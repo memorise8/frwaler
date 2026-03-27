@@ -1,0 +1,20 @@
+{
+  "site_id": "ed-gov-budget-and-more",
+  "site_name": "ed.gov - Budget And More",
+  "base_url": "https://www.ed.gov",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.ed.gov/about/ed-overview/annual-performance-reports/budget/budget-and-more",
+    "selectors": {
+      "link": "ul li a",
+      "link_attr": "href",
+      "category_heading": "h1"
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null
+  }
+}

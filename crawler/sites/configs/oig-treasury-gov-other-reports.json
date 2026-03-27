@@ -1,0 +1,42 @@
+{
+  "site_id": "oig-treasury-gov-other-reports",
+  "site_name": "oig.treasury.gov - Other Reports Testimonies",
+  "base_url": "https://oig.treasury.gov",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://oig.treasury.gov/other-reports-testimonies",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": "",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "ul.usa-sidenav__sublist",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": "a",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1.uswds-page-title",
+      "abstract": null,
+      "authors": null,
+      "date": "time.datetime",
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null
+  }
+}

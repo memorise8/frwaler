@@ -1,0 +1,42 @@
+{
+  "site_id": "home-treasury-gov-press-releas",
+  "site_name": "home.treasury.gov - Press Releases",
+  "base_url": "https://home.treasury.gov",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://home.treasury.gov/news/press-releases",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": "",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": ".featured-stories__headline",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": "a",
+      "date": ".date-format time.datetime",
+      "category": "span.subcategory a"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": ".field-item.even p",
+      "authors": null,
+      "date": ".date-display-single",
+      "pdf_link": "a[href$='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "site_id": "home-treasury-gov-good-account",
+  "site_name": "home.treasury.gov - Good Accounting Obligation In Government",
+  "base_url": "https://home.treasury.gov",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://home.treasury.gov/about/budget-financial-reporting-planning-and-performance/good-accounting-obligation-in-government-act-gao-ig-act-reports",
+    "selectors": {
+      "link": "a[href$='.pdf']",
+      "link_attr": "href",
+      "category_heading": "h3"
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null
+  }
+}

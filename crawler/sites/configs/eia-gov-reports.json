@@ -1,0 +1,42 @@
+{
+  "site_id": "eia-gov-reports",
+  "site_name": "eia.gov - Reports",
+  "base_url": "https://www.eia.gov",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.eia.gov/reports/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": "",
+      "start": 0,
+      "step": 0
+    },
+    "selectors": {
+      "item_container": "div.reports-container ul li",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": "a",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": "a[href$='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": "utf-8",
+    "verify_ssl": true,
+    "id_regex": null
+  }
+}

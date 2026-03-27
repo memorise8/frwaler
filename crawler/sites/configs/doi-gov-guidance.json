@@ -1,0 +1,6 @@
+{
+  "site_id": "doi-gov-guidance",
+  "site_name": "doi.gov - Guidance",
+  "base_url": "https://www.doi.gov",
+  "crawl_type": "single-page"
+}

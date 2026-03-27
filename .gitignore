@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# Environment
+.env
+crawler/.env
+
+# Data (large files)
+data/
+downloads/
+converted/
+reports/
+
+# Node
+web/node_modules/
+web/.next/
+
+# IDE
+.vscode/
+.idea/
+
+# OMC state
+.omc/
+
+# Test URL files
+test_urls.txt
+spa_urls.txt
+spa_retry.txt
+unblocked_urls.txt

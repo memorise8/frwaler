@@ -1,0 +1,91 @@
+# USDA
+https://www.usda.gov/about-usda/news/press-releases
+https://search.nal.usda.gov/discovery/collectionDiscovery?vid=01NAL_INST:MAIN&collectionId=81279629790007426
+https://search.nal.usda.gov/discovery/collectionDiscovery?vid=01NAL_INST:MAIN&collectionId=81279629900007426
+https://search.nal.usda.gov/discovery/collectionDiscovery?vid=01NAL_INST:MAIN
+https://www.usda.gov/about-usda/policies-and-links/open-government-usda
+
+# Commerce
+https://www.commerce.gov/about/budget-and-performance/past-budgets-performance-reports
+https://data.commerce.gov/
+https://www.commerce.gov/data-and-reports/reports
+https://www.commerce.gov/opog/open-government/open-government-plans
+https://www.commerce.gov/opog/open-government/open-government-authorities-laws-policies-and-guidance
+
+# Defense
+https://www.defense.gov/News/Releases/
+https://www.defense.gov/News/Publications/
+https://comptroller.defense.gov/ODCFO/afr/
+
+# Education (already done: annual, foia, other, infra)
+https://www.ed.gov/about/news/press-release
+https://www.ed.gov/about/ed-overview/annual-performance-reports/budget/budget-and-more
+https://www.ed.gov/about/news
+
+# Energy
+https://www.eia.gov/reports/
+https://www.directives.doe.gov/directives-browse
+https://www.directives.doe.gov/guidance
+https://www.energy.gov/search?page=0&f%5B0%5D=bundle_alias%3APress+Releases
+https://www.energy.gov/search?page=0&f%5B0%5D=bundle_alias%3APage
+https://www.energy.gov/search?page=0&f%5B0%5D=bundle_alias%3ADocument
+https://www.energy.gov/open-government
+
+# HHS
+https://www.hhs.gov/guidance/
+https://www.hhs.gov/press-room/index.html
+https://www.federalregister.gov/documents/search?conditions%5Bagencies%5D%5B%5D=health-and-human-services-department&conditions%5Bsearch_type_id%5D=3&order=newest
+https://www.federalregister.gov/documents/search?conditions%5Bagencies%5D%5B%5D=health-and-human-services-department&conditions%5Bsearch_type_id%5D=3&conditions%5Bsignificant%5D=1&order=newest
+
+# DHS
+https://www.dhs.gov/news-releases/press-releases
+https://www.dhs.gov/publications
+https://www.dhs.gov/congressional-appropriations-reports
+https://www.dhs.gov/publication/annual-report-conferences
+
+# Interior (DOI)
+https://www.doi.gov/news
+https://www.doi.gov/foia/news/guidance
+https://www.doi.gov/foia/DOI-FOIA-Annual-Reports
+https://www.doi.gov/foia/eLibraries
+https://www.doi.gov/performance/performance-reports
+https://www.doi.gov/bpp/pars
+https://www.doi.gov/bpp/budget-briefs
+https://www.doi.gov/bpp/budget-justifications
+
+# Justice
+https://www.justice.gov/news
+https://www.justice.gov/news/press-releases
+https://www.justice.gov/guidance
+https://www.justice.gov/archives/doj-archive
+
+# Labor
+https://www.dol.gov/newsroom/releases?agency=All&state=All&topic=All&year=all&page=0
+https://www.dol.gov/newsroom/economicdata
+https://www.dol.gov/general/aboutdol#Budget
+https://www.dol.gov/agencies/oasam/centers-offices/civil-rights-center/resports/notification-and-federal-employee-antidiscrimination-retaliation-act-of-2002
+https://www.dol.gov/evidence/building-plans-and-assessments
+https://www.dol.gov/guidance
+
+# State
+https://www.state.gov/press-releases/
+https://www.state.gov/plans-performance-budget/
+https://www.state.gov/department-reports/
+
+# Transportation
+https://www.transportation.gov/newsroom/press-releases
+https://www.transportation.gov/mission/budget/dot-budget-and-performance-documents#BudgetHighlights
+https://www.transportation.gov/guidance
+
+# Treasury
+https://home.treasury.gov/news/press-releases
+https://home.treasury.gov/about/budget-financial-reporting-planning-and-performance/agency-financial-report
+https://home.treasury.gov/about/budget-financial-reporting-planning-and-performance/budget-requestannual-performance-plan-and-reports/budget-documents-congressional-justification
+https://oig.treasury.gov/other-reports-testimonies
+https://www.tigta.gov/reports/list
+https://home.treasury.gov/about/budget-financial-reporting-planning-and-performance/good-accounting-obligation-in-government-act-gao-ig-act-reports
+https://home.treasury.gov/data/treasury-coupon-issues-and-corporate-bond-yield-curves/treasury-coupon-issues
+
+# VA
+https://news.va.gov/va-press-room/?redirect=1
+https://www.va.gov/vetdata/report.asp

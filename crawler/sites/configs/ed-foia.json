@@ -1,0 +1,20 @@
+{
+  "site_id": "ed-foia",
+  "site_name": "ED FOIA Reports",
+  "base_url": "https://www.ed.gov",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.ed.gov/about/ed-overview/annual-performance-reports/freedom-of-information-act-foia-annual-reports--office-of-management",
+    "selectors": {
+      "link": "a[href$='.pdf'], a[href$='.xlsx']",
+      "link_attr": "href",
+      "category_heading": "h4"
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null
+  }
+}

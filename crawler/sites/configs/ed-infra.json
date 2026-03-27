@@ -1,0 +1,20 @@
+{
+  "site_id": "ed-infra",
+  "site_name": "ED Infrastructure",
+  "base_url": "https://www.ed.gov",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.ed.gov/about/initiatives/infrastructure-and-sustainability",
+    "selectors": {
+      "link": "a[href$='.pdf']",
+      "link_attr": "href",
+      "category_heading": "h2, h3"
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null
+  }
+}

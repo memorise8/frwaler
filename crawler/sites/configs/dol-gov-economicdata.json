@@ -1,0 +1,6 @@
+{
+  "site_id": "dol-gov-economicdata",
+  "site_name": "dol.gov - Economicdata",
+  "base_url": "https://www.dol.gov",
+  "crawl_type": "single-page"
+}
