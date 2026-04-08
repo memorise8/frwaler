@@ -1,0 +1,42 @@
+{
+  "site_id": "chungnam-press",
+  "site_name": "www.chungnam.go.kr",
+  "base_url": "https://www.chungnam.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.chungnam.go.kr/cnportal/cnapcPressList/cnapcPress/list.do?menuNo=500498",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": "",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table tbody tr",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": "a",
+      "date": "td:nth-child(6)",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h3",
+      "abstract": null,
+      "authors": null,
+      "date": ".date",
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "fetch_method": "browser"
+  }
+}

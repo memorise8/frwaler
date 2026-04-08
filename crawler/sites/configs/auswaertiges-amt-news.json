@@ -1,0 +1,42 @@
+{
+  "site_id": "auswaertiges-amt-news",
+  "site_name": "German Federal Foreign Office - News",
+  "base_url": "https://www.auswaertiges-amt.de",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.auswaertiges-amt.de/en/newsroom/news/609204-609204",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "li.nav-primary__sub-list-item",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": "a",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": "div.c-content-text, div.rte",
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 3.0,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": "browser",
+    "timeout": 30
+  }
+}

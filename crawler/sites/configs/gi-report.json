@@ -1,0 +1,6 @@
+{
+  "site_id": "gi-report",
+  "site_name": "www.gi.re.kr",
+  "base_url": "https://www.gi.re.kr",
+  "crawl_type": "single-page"
+}

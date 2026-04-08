@@ -1,0 +1,43 @@
+{
+  "site_id": "krivet-report1",
+  "site_name": "www.krivet.re.kr",
+  "base_url": "https://www.krivet.re.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.krivet.re.kr/kor/sub.do?menuSn=12",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table.tb_base tbody tr",
+      "item_link": "td.ta_l a",
+      "item_link_attr": "href",
+      "title": "td:nth-child(2) a",
+      "date": "td:nth-child(4)",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": "td:nth-child(3)",
+      "date": "td:nth-child(4)",
+      "pdf_link": "td:nth-child(6) button",
+      "keywords": null,
+      "department": "td:nth-child(5)",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

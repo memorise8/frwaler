@@ -1,0 +1,41 @@
+{
+  "site_id": "post-parliament",
+  "site_name": "UK Parliament POST - All Research",
+  "base_url": "https://post.parliament.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://post.parliament.uk/research/all-research/",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "article.card",
+      "item_link": "a.card__link",
+      "item_link_attr": "href",
+      "title": "h2.card__heading",
+      "date": "time",
+      "category": "p.card__type"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": ".post-content p",
+      "authors": null,
+      "date": "time",
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": "cloudscraper"
+  }
+}

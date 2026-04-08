@@ -1,0 +1,42 @@
+{
+  "site_id": "kisdi-bbs",
+  "site_name": "www.kisdi.re.kr",
+  "base_url": "https://www.kisdi.re.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.kisdi.re.kr/bbs/list.do?key=m2101113055776",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "pageIndex",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "li.notice",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": "a strong",
+      "date": "ul li strong"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h3",
+      "abstract": null,
+      "authors": null,
+      "date": "ul li strong",
+      "pdf_link": "a.download",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "fetch_method": "browser",
+    "id_regex": null
+  }
+}

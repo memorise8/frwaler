@@ -1,0 +1,41 @@
+{
+  "site_id": "jic-pubs",
+  "site_name": "John Innes Centre - Publications (Press Releases)",
+  "base_url": "https://www.jic.ac.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.jic.ac.uk/press-release/",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "article",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": "h2, h3",
+      "date": "time, span.uppercase",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": "article p",
+      "authors": null,
+      "date": "time",
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

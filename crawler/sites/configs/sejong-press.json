@@ -1,0 +1,6 @@
+{
+  "site_id": "sejong-press",
+  "site_name": "www.sejong.go.kr",
+  "base_url": "https://www.sejong.go.kr",
+  "crawl_type": "single-page"
+}

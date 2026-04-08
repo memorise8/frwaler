@@ -1,0 +1,6 @@
+{
+  "site_id": "jeju-press",
+  "site_name": "www.jeju.go.kr",
+  "base_url": "https://www.jeju.go.kr",
+  "crawl_type": "single-page"
+}

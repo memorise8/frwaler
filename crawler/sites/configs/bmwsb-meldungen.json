@@ -1,0 +1,42 @@
+{
+  "site_id": "bmwsb-meldungen",
+  "site_name": "German Ministry of Housing - News",
+  "base_url": "https://www.bmwsb.bund.de",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.bmwsb.bund.de/DE/ministerium/aktuelle-meldungen/aktuelle-meldungen_node.html",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "div.c-teaser-search-result",
+      "item_link": "a.c-teaser-search-result__link-main",
+      "item_link_attr": "href",
+      "title": "h3.c-teaser-search-result__headline",
+      "date": "span.c-topline__element.is-date",
+      "category": "p.c-teaser-search-result__category"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": "div.c-content-text",
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null,
+    "timeout": 30
+  }
+}

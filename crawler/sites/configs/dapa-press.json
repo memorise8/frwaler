@@ -1,0 +1,21 @@
+{
+  "site_id": "dapa-press",
+  "site_name": "www.dapa.go.kr",
+  "base_url": "https://www.dapa.go.kr",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.dapa.go.kr/dapa/doc/selectDocList.do?menuSeq=3069&bbsSeq=326",
+    "selectors": {
+      "link": "td.subject a",
+      "link_attr": "href",
+      "category_heading": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": "browser"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "site_id": "busan-data",
+  "site_name": "data.busan.go.kr",
+  "base_url": "https://data.busan.go.kr",
+  "crawl_type": "single-page"
+}

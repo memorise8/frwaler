@@ -1,0 +1,42 @@
+{
+  "site_id": "moe-press",
+  "site_name": "www.moe.go.kr",
+  "base_url": "https://www.moe.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.moe.go.kr/boardCnts/listRenew.do?boardID=294&m=020402&s=moe",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tbody tr",
+      "item_link": "td a",
+      "item_link_attr": "href",
+      "title": "td a",
+      "date": "td:nth-of-type(4)",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "fetch_method": "browser"
+  }
+}

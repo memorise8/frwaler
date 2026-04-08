@@ -1,0 +1,18 @@
+{
+  "site_id": "moj-press",
+  "site_name": "www.moj.go.kr",
+  "base_url": "https://www.moj.go.kr",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.moj.go.kr/moj/418/subview.do",
+    "selectors": {
+      "link": "td a",
+      "link_attr": "href",
+      "category_heading": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "fetch_method": "browser"
+  }
+}

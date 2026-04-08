@@ -1,0 +1,6 @@
+{
+  "site_id": "mss-press",
+  "site_name": "www.mss.go.kr",
+  "base_url": "https://www.mss.go.kr",
+  "crawl_type": "single-page"
+}

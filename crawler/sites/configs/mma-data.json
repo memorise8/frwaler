@@ -1,0 +1,6 @@
+{
+  "site_id": "mma-data",
+  "site_name": "www.mma.go.kr",
+  "base_url": "https://www.mma.go.kr",
+  "crawl_type": "single-page"
+}

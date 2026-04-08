@@ -1,0 +1,19 @@
+{
+  "site_id": "nhis-press",
+  "site_name": "www.nhis.or.kr",
+  "base_url": "https://www.nhis.or.kr",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.nhis.or.kr/nhis/together/wbhaec07800m01.do",
+    "selectors": {
+      "link": "a[href$='.pdf']",
+      "link_attr": "href",
+      "category_heading": "h2, h3"
+    },
+    "options": {}
+  },
+  "options": {
+    "fetch_method": "browser",
+    "delay": 1.5
+  }
+}

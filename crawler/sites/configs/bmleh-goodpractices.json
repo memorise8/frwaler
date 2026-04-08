@@ -1,0 +1,42 @@
+{
+  "site_id": "bmleh-goodpractices",
+  "site_name": "German Ministry of Agriculture - Good Practices",
+  "base_url": "https://www.bmleh.de",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.bmleh.de/SiteGlobals/Forms/Suche/DE/GoodPracticessuche/GoodPracticessuche_Formular.html?view=processForm&nn=902",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "li.c-search-teaser__li",
+      "item_link": "a.c-search-teaser__true-link",
+      "item_link_attr": "href",
+      "title": "span.c-search-teaser__headline",
+      "date": "span.c-search-teaser__date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": "div.c-content-text",
+      "authors": null,
+      "date": null,
+      "pdf_link": "a[href$='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 2.0,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null,
+    "timeout": 30
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "site_id": "mohw-research",
+  "site_name": "www.mohw.go.kr",
+  "base_url": "https://www.mohw.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.mohw.go.kr/board.es?mid=a10411010200&bid=0019&cg_code=C01",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "nPage",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table tbody tr",
+      "item_link": "td a",
+      "item_link_attr": "href",
+      "title": "td:nth-child(3)",
+      "date": "td:nth-child(4)",
+      "category": "td:nth-child(2)"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h2.contents_title",
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true
+  }
+}

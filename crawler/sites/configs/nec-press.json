@@ -1,0 +1,6 @@
+{
+  "site_id": "nec-press",
+  "site_name": "www.nec.go.kr",
+  "base_url": "https://www.nec.go.kr",
+  "crawl_type": "single-page"
+}

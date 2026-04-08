@@ -1,0 +1,41 @@
+{
+  "site_id": "nrscotland",
+  "site_name": "National Records of Scotland - Publications",
+  "base_url": "https://www.nrscotland.gov.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.nrscotland.gov.uk/publications/",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": ".ds_category-item",
+      "item_link": "a.ds_category-item__link",
+      "item_link_attr": "href",
+      "title": "a.ds_category-item__link",
+      "date": ".ds_metadata__item dd",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": ".ds_layout__content p",
+      "authors": null,
+      "date": ".ds_metadata__item dd",
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "site_id": "gri-report",
+  "site_name": "www.gri.re.kr",
+  "base_url": "https://www.gri.re.kr",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.gri.re.kr/web/contents/resreport.do",
+    "selectors": {
+      "link": ".issue_table_wrap ul li a",
+      "link_attr": "href",
+      "category_heading": "h2.title"
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": "browser"
+  }
+}

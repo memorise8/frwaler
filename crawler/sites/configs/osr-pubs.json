@@ -1,0 +1,41 @@
+{
+  "site_id": "osr-pubs",
+  "site_name": "Office for Statistics Regulation - Publications",
+  "base_url": "https://osr.statisticsauthority.gov.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://osr.statisticsauthority.gov.uk/publications-list/",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "li.media",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": "h2.media-heading a",
+      "date": "p",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": ".entry-content p",
+      "authors": null,
+      "date": ".entry-date",
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

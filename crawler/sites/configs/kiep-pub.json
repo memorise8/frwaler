@@ -1,0 +1,23 @@
+{
+  "site_id": "kiep-pub",
+  "site_name": "www.kiep.go.kr",
+  "base_url": "https://www.kiep.go.kr",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.kiep.go.kr/gallery.es?mid=a10101010000&bid=0001&cg_code=C03%2CC05%2CC02%2CC13%2CC01%2CC19%2CC17%2CC11%2CC20",
+    "selectors": {
+      "link": "a[href]",
+      "link_attr": "href",
+      "category_heading": "h3#contents_title"
+    },
+    "options": {
+      "fetch_method": "browser",
+      "delay": 1.5,
+      "verify_ssl": true
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "verify_ssl": true
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "site_id": "ioj-library",
+  "site_name": "book.ioj.go.kr",
+  "base_url": "https://book.ioj.go.kr",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://book.ioj.go.kr/library/10210/search?materialTypes=bc&categoryTab=true",
+    "selectors": {
+      "link": "ul li a",
+      "link_attr": "href",
+      "category_heading": "h3.LeftLayout-module-scss-module__daLPGG__title"
+    },
+    "options": {
+      "delay": 1.5,
+      "fetch_method": "browser"
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "site_id": "pps-press",
+  "site_name": "www.pps.go.kr",
+  "base_url": "https://www.pps.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.pps.go.kr/kor/bbs/list.do?key=00634",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "pageIndex",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table tbody tr",
+      "item_link": "td.title a",
+      "item_link_attr": "href",
+      "title": "td.title a",
+      "date": "td.normal:nth-child(6)",
+      "category": "td.normal:nth-child(4)"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

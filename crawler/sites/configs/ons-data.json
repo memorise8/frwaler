@@ -1,0 +1,41 @@
+{
+  "site_id": "ons-data",
+  "site_name": "ONS - Datasets and Time Series",
+  "base_url": "https://www.ons.gov.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.ons.gov.uk/search?q=uk+wide&page=1&filter=time_series&filter=datasets&filter=user_requested_data",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "li.search__results__item",
+      "item_link": "h3 a",
+      "item_link_attr": "href",
+      "title": "h3 a",
+      "date": ".search__results__release-date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": ".page-intro__content p",
+      "authors": null,
+      "date": ".release-data__date",
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

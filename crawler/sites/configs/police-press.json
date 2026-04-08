@@ -1,0 +1,38 @@
+{
+  "site_id": "police-press",
+  "site_name": "www.police.go.kr",
+  "base_url": "https://www.police.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.police.go.kr/user/bbs/BD_selectBbsList.do?q_bbsCode=1113",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "ul.file-download li",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "h3 a",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1.page-header",
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": "a.btnDown[type='button']",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "site_id": "incheon-press",
+  "site_name": "www.incheon.go.kr",
+  "base_url": "https://www.incheon.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.incheon.go.kr/IC010205",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "div.board-blog-list li",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": "strong.subject",
+      "date": "dl.item dd",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "strong.subject",
+      "abstract": "div.txt-area div.txt",
+      "authors": "dl.item dt",
+      "date": "dl.item dd",
+      "pdf_link": null,
+      "keywords": null,
+      "department": "dl.item dd",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "fetch_method": "browser"
+  }
+}

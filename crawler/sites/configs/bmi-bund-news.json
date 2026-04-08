@@ -1,0 +1,45 @@
+{
+  "site_id": "bmi-bund-news",
+  "site_name": "German Federal Ministry of the Interior - News",
+  "base_url": "https://www.bmi.bund.de",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.bmi.bund.de/SiteGlobals/Forms/suche/EN/expertensuche-formular.html",
+    "params": {
+      "gts": "9398922_list%3DunifiedDate_dt+desc",
+      "documentType_": "news"
+    },
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "li.c-search-teaser__li",
+      "item_link": "a.c-search-teaser__true-link",
+      "item_link_attr": "href",
+      "title": "span.c-search-teaser__headline",
+      "date": "span.c-search-teaser__date",
+      "category": "span.c-search-teaser__type"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": "div.c-content-text",
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null,
+    "timeout": 30
+  }
+}

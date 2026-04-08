@@ -1,0 +1,6 @@
+{
+  "site_id": "opm-press",
+  "site_name": "www.opm.go.kr",
+  "base_url": "https://www.opm.go.kr",
+  "crawl_type": "single-page"
+}

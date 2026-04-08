@@ -1,0 +1,6 @@
+{
+  "site_id": "kihasa-report",
+  "site_name": "www.kihasa.re.kr",
+  "base_url": "https://www.kihasa.re.kr",
+  "crawl_type": "single-page"
+}

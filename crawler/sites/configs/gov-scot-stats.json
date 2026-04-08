@@ -1,0 +1,41 @@
+{
+  "site_id": "gov-scot-stats",
+  "site_name": "Scottish Government - Statistics and Research",
+  "base_url": "https://www.gov.scot",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.gov.scot/statistics-and-research/",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "li.ds_search-result",
+      "item_link": "a.ds_search-result__link",
+      "item_link_attr": "href",
+      "title": "a.ds_search-result__link",
+      "date": ".ds_metadata__item dd",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": ".ds_layout__content p",
+      "authors": null,
+      "date": ".ds_metadata__item dd",
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

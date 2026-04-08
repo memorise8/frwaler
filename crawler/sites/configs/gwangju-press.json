@@ -1,0 +1,42 @@
+{
+  "site_id": "gwangju-press",
+  "site_name": "www.gwangju.go.kr",
+  "base_url": "https://www.gwangju.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.gwangju.go.kr/boardList.do?boardId=BD_0000000027&pageId=www789",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "movePage",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": ".body_row",
+      "item_link": ".subject a",
+      "item_link_attr": "href",
+      "title": ".subject a",
+      "date": ".date"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h3",
+      "abstract": "p.content_text",
+      "authors": "span.author",
+      "date": ".date",
+      "pdf_link": "a.file_download",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

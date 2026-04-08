@@ -1,0 +1,6 @@
+{
+  "site_id": "kasa-notice",
+  "site_name": "www.kasa.go.kr",
+  "base_url": "https://www.kasa.go.kr",
+  "crawl_type": "single-page"
+}

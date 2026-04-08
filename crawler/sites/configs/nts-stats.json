@@ -1,0 +1,20 @@
+{
+  "site_id": "nts-stats",
+  "site_name": "www.nts.go.kr",
+  "base_url": "https://www.nts.go.kr",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.nts.go.kr/nts/cm/cntnts/cntntsView.do?mi=6690&cntntsId=8102",
+    "selectors": {
+      "link": "a.bu_linkL",
+      "link_attr": "href",
+      "category_heading": "h2.titleH2"
+    },
+    "options": {}
+  },
+  "options": {
+    "delay": 1.5,
+    "verify_ssl": true,
+    "fetch_method": "browser"
+  }
+}

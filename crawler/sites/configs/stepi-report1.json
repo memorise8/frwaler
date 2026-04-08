@@ -1,0 +1,18 @@
+{
+  "site_id": "stepi-report1",
+  "site_name": "www.stepi.re.kr",
+  "base_url": "https://www.stepi.re.kr",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.stepi.re.kr/site/stepiko/report/List.do?cateCont=A0201",
+    "selectors": {
+      "link": "td a",
+      "link_attr": "href",
+      "category_heading": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "fetch_method": "browser"
+  }
+}

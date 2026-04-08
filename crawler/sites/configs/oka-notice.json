@@ -1,0 +1,42 @@
+{
+  "site_id": "oka-notice",
+  "site_name": "www.oka.go.kr",
+  "base_url": "https://www.oka.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.oka.go.kr/web/board/brdList.do?menu_cd=000018",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": "",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tbody tr",
+      "item_link": ".subject a",
+      "item_link_attr": "href",
+      "title": ".subject a",
+      "date": "td.date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": ".subject a",
+      "abstract": null,
+      "authors": null,
+      "date": ".date",
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "fetch_method": "browser"
+  }
+}

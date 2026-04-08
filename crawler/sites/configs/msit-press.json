@@ -1,0 +1,6 @@
+{
+  "site_id": "msit-press",
+  "site_name": "www.msit.go.kr",
+  "base_url": "https://www.msit.go.kr",
+  "crawl_type": "single-page"
+}

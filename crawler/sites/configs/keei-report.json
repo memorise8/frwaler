@@ -1,0 +1,6 @@
+{
+  "site_id": "keei-report",
+  "site_name": "www.keei.re.kr",
+  "base_url": "https://www.keei.re.kr",
+  "crawl_type": "single-page"
+}

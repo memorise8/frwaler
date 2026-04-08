@@ -1,0 +1,41 @@
+{
+  "site_id": "health-ni-pubs",
+  "site_name": "Department of Health NI - Publications",
+  "base_url": "https://www.health-ni.gov.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.health-ni.gov.uk/publications",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "li",
+      "item_link": "a.card",
+      "item_link_attr": "href",
+      "title": "h3.card__title",
+      "date": "time",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": ".field--type-text-with-summary p",
+      "authors": null,
+      "date": "time",
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

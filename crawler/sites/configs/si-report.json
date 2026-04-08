@@ -1,0 +1,6 @@
+{
+  "site_id": "si-report",
+  "site_name": "www.si.re.kr",
+  "base_url": "https://www.si.re.kr",
+  "crawl_type": "single-page"
+}

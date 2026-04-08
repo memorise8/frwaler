@@ -1,0 +1,41 @@
+{
+  "site_id": "nora-nerc",
+  "site_name": "NORA - NERC Open Research Archive (NOC Division)",
+  "base_url": "https://nora.nerc.ac.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://nora.nerc.ac.uk/view/division/noc/2025.default.html",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": ".ep_view_page p",
+      "item_link": "a[href*='nora.nerc.ac.uk/id/']",
+      "item_link_attr": "href",
+      "title": "a[href*='nora.nerc.ac.uk/id/']",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1, .ep_summary_title",
+      "abstract": ".ep_summary_content_main p, #abstract p",
+      "authors": null,
+      "date": null,
+      "pdf_link": "a[href*='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

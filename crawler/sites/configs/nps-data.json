@@ -1,0 +1,43 @@
+{
+  "site_id": "nps-data",
+  "site_name": "www.nps.or.kr",
+  "base_url": "https://www.nps.or.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.nps.or.kr/inforls/publdata/getOHAB0019M0List.do?menuId=MN24000873",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "pageIndex",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table tbody tr",
+      "item_link": "td.title a",
+      "item_link_attr": "href",
+      "title": "td.title a",
+      "date": "td:nth-child(7)",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": "td.file a",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

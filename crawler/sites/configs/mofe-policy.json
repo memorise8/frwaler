@@ -1,0 +1,20 @@
+{
+  "site_id": "mofe-policy",
+  "site_name": "mofe.go.kr",
+  "base_url": "https://mofe.go.kr",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://mofe.go.kr/id/pdo.do?menuNo=3050000",
+    "selectors": {
+      "link": "#container a[href]",
+      "link_attr": "href",
+      "category_heading": "h2, h3"
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "fetch_method": "browser"
+  }
+}

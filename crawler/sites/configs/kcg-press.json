@@ -1,0 +1,6 @@
+{
+  "site_id": "kcg-press",
+  "site_name": "www.kcg.go.kr",
+  "base_url": "https://www.kcg.go.kr",
+  "crawl_type": "single-page"
+}

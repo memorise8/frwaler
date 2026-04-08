@@ -1,0 +1,6 @@
+{
+  "site_id": "gb-data",
+  "site_name": "gb.go.kr",
+  "base_url": "https://gb.go.kr",
+  "crawl_type": "single-page"
+}

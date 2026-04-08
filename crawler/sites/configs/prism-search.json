@@ -1,0 +1,39 @@
+{
+  "site_id": "prism-search",
+  "site_name": "www.prism.go.kr",
+  "base_url": "https://www.prism.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.prism.go.kr/homepage/prtl/totalsearch/list",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "div.board_sch_wrap",
+      "item_link": null,
+      "item_link_attr": null,
+      "title": "div.board_sch_wrap input[type='text']",
+      "date": null,
+      "category": "div.board_sch_wrap select"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "fetch_method": "browser"
+  }
+}

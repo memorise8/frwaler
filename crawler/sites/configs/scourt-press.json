@@ -1,0 +1,43 @@
+{
+  "site_id": "scourt-press",
+  "site_name": "www.scourt.go.kr",
+  "base_url": "https://www.scourt.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.scourt.go.kr/portal/news/NewsListAction.work?gubun=6",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "pageIndex",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table tbody tr",
+      "item_link": "td a",
+      "item_link_attr": "href",
+      "title": "td:nth-child(3)",
+      "date": "td:nth-child(4)",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": "euc-kr",
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

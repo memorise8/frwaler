@@ -1,0 +1,6 @@
+{
+  "site_id": "klri-pub",
+  "site_name": "www.klri.re.kr",
+  "base_url": "https://www.klri.re.kr",
+  "crawl_type": "single-page"
+}

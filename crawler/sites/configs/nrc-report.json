@@ -1,0 +1,19 @@
+{
+  "site_id": "nrc-report",
+  "site_name": "www.nrc.re.kr",
+  "base_url": "https://www.nrc.re.kr",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.nrc.re.kr/board.es?mid=a10301000000&bid=0008&publication_p_cd=RSPX002",
+    "selectors": {
+      "link": "li a[href]",
+      "link_attr": "href",
+      "category_heading": "ul.category_list li"
+    },
+    "options": {}
+  },
+  "options": {
+    "delay": 1.5,
+    "fetch_method": "browser"
+  }
+}

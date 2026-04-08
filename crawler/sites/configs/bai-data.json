@@ -1,0 +1,6 @@
+{
+  "site_id": "bai-data",
+  "site_name": "www.bai.go.kr",
+  "base_url": "https://www.bai.go.kr",
+  "crawl_type": "single-page"
+}

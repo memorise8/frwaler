@@ -1,0 +1,6 @@
+{
+  "site_id": "krei-report",
+  "site_name": "www.krei.re.kr",
+  "base_url": "https://www.krei.re.kr",
+  "crawl_type": "single-page"
+}

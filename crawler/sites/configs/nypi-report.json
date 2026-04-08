@@ -1,0 +1,32 @@
+{
+  "site_id": "nypi-report",
+  "site_name": "www.nypi.re.kr",
+  "base_url": "https://www.nypi.re.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.nypi.re.kr/mps/rpstr/rep/list?menuId=MENU002040301010000",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.repository-item",
+      "item_link": "a.btn-view",
+      "item_link_attr": "href",
+      "title": "h3.item-title",
+      "date": null,
+      "category": "span.item-category"
+    },
+    "detail_page": null
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

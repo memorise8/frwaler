@@ -1,0 +1,33 @@
+{
+  "site_id": "naturalengland",
+  "site_name": "Natural England - Open Data Geoportal (RSS)",
+  "base_url": "https://naturalengland-defra.opendata.arcgis.com",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://naturalengland-defra.opendata.arcgis.com/api/feed/rss/2.0",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "item",
+      "item_link": "guid",
+      "item_link_attr": "text",
+      "title": "title",
+      "date": "pubDate",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

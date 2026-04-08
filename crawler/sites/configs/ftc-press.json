@@ -1,0 +1,20 @@
+{
+  "site_id": "ftc-press",
+  "site_name": "www.ftc.go.kr",
+  "base_url": "https://www.ftc.go.kr",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.ftc.go.kr/www/selectBbsNttList.do?bordCd=3&key=12&searchCtgry=01,02",
+    "selectors": {
+      "link": "td.p-subject a",
+      "link_attr": "href",
+      "category_heading": "null"
+    },
+    "options": {
+      "delay": 1.5,
+      "encoding": null,
+      "verify_ssl": true,
+      "fetch_method": "browser"
+    }
+  }
+}

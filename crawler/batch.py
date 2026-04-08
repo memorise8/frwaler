@@ -210,7 +210,7 @@ def _generate_site_name(url):
     return domain
 
 
-def batch_analyze(urls, check_only=False, verbose=False):
+def batch_analyze(urls, check_only=False, verbose=False, force_browser=False):
     """Analyze a batch of URLs and optionally run auto-add.
 
     Returns a report dict with results grouped by status.
@@ -314,7 +314,7 @@ def batch_analyze(urls, check_only=False, verbose=False):
         print(f"\n--- [{i}/{len(viable)}] {site_id} ---")
 
         try:
-            agent = AutoAddAgent(max_iterations=10, verbose=verbose)
+            agent = AutoAddAgent(max_iterations=10, verbose=verbose, force_browser=force_browser)
             result = agent.run(url, site_id=site_id, site_name=site_name)
 
             if result.get("success"):

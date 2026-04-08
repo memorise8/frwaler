@@ -1,0 +1,18 @@
+{
+  "site_id": "jeonnam-press",
+  "site_name": "www.jeonnam.go.kr",
+  "base_url": "https://www.jeonnam.go.kr",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.jeonnam.go.kr/M7116/boardList.do?menuId=jeonnam0202000000",
+    "selectors": {
+      "link": "td.left a",
+      "link_attr": "href",
+      "category_heading": "td.date"
+    },
+    "options": {
+      "fetch_method": "browser",
+      "delay": 1.5
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "site_id": "forest-data",
+  "site_name": "kfss.forest.go.kr",
+  "base_url": "https://kfss.forest.go.kr",
+  "crawl_type": "single-page"
+}

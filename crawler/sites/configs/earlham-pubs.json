@@ -1,0 +1,41 @@
+{
+  "site_id": "earlham-pubs",
+  "site_name": "Earlham Institute - Publications",
+  "base_url": "https://www.earlham.ac.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.earlham.ac.uk/publications",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": ".views-row",
+      "item_link": "a.publication-card-link",
+      "item_link_attr": "href",
+      "title": ".publication-title",
+      "date": ".publication-publish-date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": ".field--name-body p, article p",
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

@@ -2,5 +2,10 @@
   "site_id": "justice-gov-guidance",
   "site_name": "justice.gov - Guidance",
   "base_url": "https://www.justice.gov",
-  "crawl_type": "single-page"
+  "crawl_type": "single-page",
+  "detail_page": {
+    "selectors": {
+      "auto_detect_files": true
+    }
+  }
 }

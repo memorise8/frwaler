@@ -30,7 +30,8 @@
       "pdf_link": "meta[name='citation_pdf_url']",
       "keywords": null,
       "department": null,
-      "doi": null
+      "doi": null,
+      "auto_detect_files": true
     }
   },
   "options": {

@@ -1,0 +1,38 @@
+{
+  "site_id": "kli-report",
+  "site_name": "www.kli.re.kr",
+  "base_url": "https://www.kli.re.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.kli.re.kr/kli/rschRptpList.es?mid=a10102060000",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "nPage",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table tbody tr",
+      "item_link": "td a",
+      "item_link_attr": "href",
+      "title": "td a",
+      "date": "td:nth-child(5)",
+      "category": "td:nth-child(2)"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1#contents_title",
+      "abstract": "div.group1 p.title",
+      "authors": "div.group1 ul.info_wrap li em:contains('저자') + span",
+      "date": "div.group1 ul.info_wrap li em:contains('출판일') + span",
+      "pdf_link": "a.btn4.ic"
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true
+  }
+}

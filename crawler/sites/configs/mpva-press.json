@@ -1,0 +1,22 @@
+{
+  "site_id": "mpva-press",
+  "site_name": "www.mpva.go.kr",
+  "base_url": "https://www.mpva.go.kr",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.mpva.go.kr/mpva/selectBbsNttList.do?bbsNo=75&key=210",
+    "selectors": {
+      "link": "tbody tr td a",
+      "link_attr": "href",
+      "category_heading": "h2"
+    },
+    "options": {
+      "delay": 1.5,
+      "fetch_method": "browser"
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "fetch_method": "browser"
+  }
+}

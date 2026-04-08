@@ -1,0 +1,42 @@
+{
+  "site_id": "bmg-praevention",
+  "site_name": "German Federal Ministry of Health - Prevention",
+  "base_url": "https://www.bundesgesundheitsministerium.de",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.bundesgesundheitsministerium.de/service/publikationen/praevention.html",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "div.c-teaser",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": "h3",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": "div.c-text",
+      "authors": null,
+      "date": null,
+      "pdf_link": "a[href$='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 2.0,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null,
+    "timeout": 30
+  }
+}

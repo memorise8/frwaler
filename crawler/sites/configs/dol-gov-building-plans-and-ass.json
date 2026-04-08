@@ -16,5 +16,10 @@
     "encoding": "utf-8",
     "verify_ssl": true,
     "id_regex": null
+  },
+  "detail_page": {
+    "selectors": {
+      "auto_detect_files": true
+    }
   }
 }

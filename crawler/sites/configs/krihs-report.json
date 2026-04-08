@@ -1,0 +1,6 @@
+{
+  "site_id": "krihs-report",
+  "site_name": "www.krihs.re.kr",
+  "base_url": "https://www.krihs.re.kr",
+  "crawl_type": "single-page"
+}

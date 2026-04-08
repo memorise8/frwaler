@@ -1,0 +1,6 @@
+{
+  "site_id": "rda-report",
+  "site_name": "www.rda.go.kr",
+  "base_url": "https://www.rda.go.kr",
+  "crawl_type": "single-page"
+}

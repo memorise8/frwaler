@@ -1,0 +1,6 @@
+{
+  "site_id": "mnd-press",
+  "site_name": "www.mnd.go.kr",
+  "base_url": "https://www.mnd.go.kr",
+  "crawl_type": "single-page"
+}

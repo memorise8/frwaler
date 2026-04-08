@@ -1,0 +1,41 @@
+{
+  "site_id": "rfi-news",
+  "site_name": "Rosalind Franklin Institute - News",
+  "base_url": "https://www.rfi.ac.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.rfi.ac.uk/latest/?filter_nonce=7afe782d93&filter=news",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "a.card-col",
+      "item_link": "self",
+      "item_link_attr": "href",
+      "title": "h2",
+      "date": ".card-col__date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": ".entry-content p, article p",
+      "authors": null,
+      "date": "time, .date",
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

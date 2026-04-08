@@ -5,7 +5,12 @@
   "crawl_type": "html",
   "list_page": {
     "url": "https://www.tigta.gov/reports/list",
-    "pagination": {"type": "query_param", "param": "page", "start": 0, "step": 1},
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 0,
+      "step": 1
+    },
     "selectors": {
       "item_container": "h3",
       "item_link": "a",
@@ -18,8 +23,12 @@
       "title": "h1",
       "abstract": "div.field--body",
       "date": "time.datetime",
-      "pdf_link": "a[href$='.pdf']"
+      "pdf_link": "a[href$='.pdf']",
+      "auto_detect_files": true
     }
   },
-  "options": {"delay": 1.5, "fetch_method": "browser"}
+  "options": {
+    "delay": 1.5,
+    "fetch_method": "browser"
+  }
 }

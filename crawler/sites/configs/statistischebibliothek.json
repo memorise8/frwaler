@@ -1,0 +1,44 @@
+{
+  "site_id": "statistischebibliothek",
+  "site_name": "German Statistical Library",
+  "base_url": "https://www.statistischebibliothek.de",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.statistischebibliothek.de/mir/receive/DESerie_mods_00000012",
+    "params": {
+      "list": "all"
+    },
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "div.detail_block ul li",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": "a",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": "div.description",
+      "authors": null,
+      "date": null,
+      "pdf_link": "a[href*='bitstream']",
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 2.0,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null,
+    "timeout": 30
+  }
+}

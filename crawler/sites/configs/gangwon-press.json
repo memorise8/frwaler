@@ -1,0 +1,38 @@
+{
+  "site_id": "gangwon-press",
+  "site_name": "state.gwd.go.kr",
+  "base_url": "https://state.gwd.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://state.gwd.go.kr/portal/briefing/pressRelease/newpressRelease",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "pageIndex",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table tbody tr",
+      "item_link": "td a",
+      "item_link_attr": "href",
+      "title": "td.skinTb-sbj a",
+      "date": "td.skinTb-date",
+      "category": "td.skinTb-part"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h2",
+      "abstract": null,
+      "authors": null,
+      "date": "td.skinTb-date",
+      "pdf_link": "td.skinTb-link a"
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true
+  }
+}

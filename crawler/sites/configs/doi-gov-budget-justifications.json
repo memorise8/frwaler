@@ -14,5 +14,10 @@
   "options": {
     "delay": 1.5,
     "verify_ssl": true
+  },
+  "detail_page": {
+    "selectors": {
+      "auto_detect_files": true
+    }
   }
 }

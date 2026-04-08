@@ -1,0 +1,6 @@
+{
+  "site_id": "kostat-press",
+  "site_name": "www.kostat.go.kr",
+  "base_url": "https://www.kostat.go.kr",
+  "crawl_type": "single-page"
+}

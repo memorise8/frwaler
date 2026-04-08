@@ -187,7 +187,8 @@ def cmd_batch_add(args, conn):
         print("URL이 없습니다.")
         return
 
-    batch_analyze(urls, check_only=check_only, verbose=verbose)
+    force_browser = getattr(args, "browser", False)
+    batch_analyze(urls, check_only=check_only, verbose=verbose, force_browser=force_browser)
 
 
 def cmd_auto_add(args, conn):
@@ -195,6 +196,7 @@ def cmd_auto_add(args, conn):
     agent = AutoAddAgent(
         max_iterations=getattr(args, "max_iterations", 10),
         verbose=getattr(args, "verbose", False),
+        force_browser=getattr(args, "browser", False),
     )
     result = agent.run(args.url, site_id=getattr(args, "site_id", None),
                        site_name=getattr(args, "site_name", None))
@@ -248,6 +250,7 @@ def build_parser():
     auto_parser.add_argument("--site-name", default=None, help="Human-readable site name")
     auto_parser.add_argument("--max-iterations", type=int, default=10, help="Max agent iterations (default: 10)")
     auto_parser.add_argument("--verbose", action="store_true", help="Show full GPT reasoning")
+    auto_parser.add_argument("--browser", action="store_true", help="Force browser_fetch first (for SPA/React/Angular sites)")
 
     # download
     download_parser = subparsers.add_parser("download", help="Download files (HWP/PDF) for papers")
@@ -265,6 +268,7 @@ def build_parser():
     batch_parser.add_argument("file", help="Text file with URLs (one per line)")
     batch_parser.add_argument("--check-only", action="store_true", help="Only check accessibility and structure (no GPT cost)")
     batch_parser.add_argument("--verbose", action="store_true", help="Show detailed GPT agent output")
+    batch_parser.add_argument("--browser", action="store_true", help="Force browser_fetch for all sites")
 
     return parser
 

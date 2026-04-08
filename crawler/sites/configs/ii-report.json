@@ -1,0 +1,19 @@
+{
+  "site_id": "ii-report",
+  "site_name": "www.ii.re.kr",
+  "base_url": "https://www.ii.re.kr",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.ii.re.kr/base/board/list?boardManagementNo=14&menuLevel=2&menuNo=76",
+    "selectors": {
+      "link": "h4 a",
+      "link_attr": "href",
+      "category_heading": "h3"
+    },
+    "options": {
+      "delay": 1.5,
+      "verify_ssl": true,
+      "fetch_method": "browser"
+    }
+  }
+}

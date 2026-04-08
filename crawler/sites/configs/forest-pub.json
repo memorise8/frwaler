@@ -1,0 +1,37 @@
+{
+  "site_id": "forest-pub",
+  "site_name": "kna.forest.go.kr",
+  "base_url": "https://kna.forest.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://kna.forest.go.kr/kfsweb/kfi/kfs/kna/application/publication/list.do?mainCd=210103&mn=UKNA_04_10",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "table tbody tr",
+      "item_link": "td:nth-child(2) a",
+      "item_link_attr": "href",
+      "title": "td:nth-child(2) a",
+      "date": "td:nth-child(3)"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h2.title",
+      "abstract": null,
+      "authors": "table tbody tr:nth-child(1) td",
+      "date": "table tbody tr:nth-child(2) td",
+      "pdf_link": "table tbody tr td a[href$='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": "UTF-8",
+    "verify_ssl": true
+  }
+}

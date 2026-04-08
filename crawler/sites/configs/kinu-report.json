@@ -1,0 +1,42 @@
+{
+  "site_id": "kinu-report",
+  "site_name": "www.kinu.or.kr",
+  "base_url": "https://www.kinu.or.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.kinu.or.kr/main/module/report/index.do?nav_code=mai1674786094",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "li.bx",
+      "item_link": "a.t-rsp.subject[href*='view.do']",
+      "item_link_attr": "href",
+      "title": "a.t-rsp.subject",
+      "date": "dd:nth-of-type(1)",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": null,
+      "authors": "dd:nth-of-type(2)",
+      "date": "dd:nth-of-type(1)",
+      "pdf_link": ".btn-d.btn-lg.btn-pdf-down",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "fetch_method": "browser"
+  }
+}

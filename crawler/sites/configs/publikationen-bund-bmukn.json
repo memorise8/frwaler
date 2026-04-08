@@ -1,0 +1,27 @@
+{
+  "site_id": "publikationen-bund-bmukn",
+  "site_name": "German Federal Publications - Federal Ministry of Environment",
+  "base_url": "https://www.publikationen-bundesregierung.de",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.publikationen-bundesregierung.de/pp-en/publishers/federal-ministry-for-the-environment-climate-action-nature-conservation-and-nuclear-safety-bmukn-",
+    "selectors": {
+      "link": "a[href$=\".pdf\"]",
+      "link_attr": "href",
+      "category_heading": "h2"
+    }
+  },
+  "options": {
+    "delay": 3.0,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": "browser",
+    "timeout": 30
+  },
+  "detail_page": {
+    "selectors": {
+      "auto_detect_files": true
+    }
+  }
+}

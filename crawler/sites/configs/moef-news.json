@@ -1,0 +1,6 @@
+{
+  "site_id": "moef-news",
+  "site_name": "www.moef.go.kr",
+  "base_url": "https://www.moef.go.kr",
+  "crawl_type": "single-page"
+}

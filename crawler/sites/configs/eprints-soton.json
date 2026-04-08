@@ -1,0 +1,41 @@
+{
+  "site_id": "eprints-soton",
+  "site_name": "University of Southampton Eprints - NOC Division",
+  "base_url": "https://eprints.soton.ac.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://eprints.soton.ac.uk/view/divisions/5d1c5ba6-6977-4d9d-9afe-fd1820201262/2025.html",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": ".ep_view_page div[style*='margin-bottom']",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": "strong a, a strong",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1, .ep_summary_title",
+      "abstract": ".ep_summary_content_main p, #abstract p",
+      "authors": null,
+      "date": null,
+      "pdf_link": "a[href*='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null
+  }
+}

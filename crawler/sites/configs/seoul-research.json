@@ -1,0 +1,6 @@
+{
+  "site_id": "seoul-research",
+  "site_name": "opengov.seoul.go.kr",
+  "base_url": "https://opengov.seoul.go.kr",
+  "crawl_type": "single-page"
+}

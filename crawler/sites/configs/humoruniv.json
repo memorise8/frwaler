@@ -32,7 +32,8 @@
       "pdf_link": null,
       "keywords": null,
       "department": null,
-      "doi": null
+      "doi": null,
+      "auto_detect_files": true
     }
   },
   "options": {

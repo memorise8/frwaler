@@ -1,0 +1,38 @@
+{
+  "site_id": "naacc-notice",
+  "site_name": "naacc.go.kr",
+  "base_url": "https://naacc.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://naacc.go.kr/WEB/contents/N4020000000.do",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": "span.tit",
+      "date": "li.date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "span.tit",
+      "abstract": null,
+      "authors": null,
+      "date": "li.date",
+      "pdf_link": "span.btnDownloadM a",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true
+  }
+}

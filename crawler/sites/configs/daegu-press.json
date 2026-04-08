@@ -1,0 +1,6 @@
+{
+  "site_id": "daegu-press",
+  "site_name": "info.daegu.go.kr",
+  "base_url": "https://info.daegu.go.kr",
+  "crawl_type": "single-page"
+}

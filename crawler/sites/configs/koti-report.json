@@ -1,0 +1,6 @@
+{
+  "site_id": "koti-report",
+  "site_name": "www.koti.re.kr",
+  "base_url": "https://www.koti.re.kr",
+  "crawl_type": "single-page"
+}

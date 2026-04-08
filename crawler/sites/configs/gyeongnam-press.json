@@ -1,0 +1,42 @@
+{
+  "site_id": "gyeongnam-press",
+  "site_name": "www.gyeongnam.go.kr",
+  "base_url": "https://www.gyeongnam.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.gyeongnam.go.kr/board/list.gyeong?boardId=BBS_0000060&menuCd=DOM_000000135002001000&contentsSid=6959&cpath=",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "pageNo",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table.basicList tbody tr",
+      "item_link": "td.title a",
+      "item_link_attr": "href",
+      "title": "td.title a",
+      "date": "td.date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": "td a",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "fetch_method": "browser"
+  }
+}

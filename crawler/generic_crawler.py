@@ -8,6 +8,7 @@ import uuid
 
 from bs4 import BeautifulSoup
 from .base_crawler import BaseCrawler
+from .network_capture import find_data_api
 
 
 class GenericCrawler(BaseCrawler):
@@ -17,8 +18,10 @@ class GenericCrawler(BaseCrawler):
         with open(config_path, encoding="utf-8") as f:
             self._config = json.load(f)
         _delay = delay or self._config.get("options", {}).get("delay", 1.5)
-        super().__init__(db_conn, _delay)
+        _respect_robots = self._config.get("options", {}).get("respect_robots", True)
+        super().__init__(db_conn, _delay, respect_robots=_respect_robots)
         self._config_path = config_path
+        self._last_diagnosis = []
         # SSL verification option
         verify_ssl = self._config.get("options", {}).get("verify_ssl", True)
         if not verify_ssl:
@@ -76,7 +79,10 @@ class GenericCrawler(BaseCrawler):
         try:
             page.goto(url, timeout=30000, wait_until="networkidle")
             page.wait_for_timeout(int(wait_seconds * 1000))
-            html = page.content()
+
+            # Feature 7: Check for iframe content in browser mode
+            iframe_html = self._resolve_iframe_browser(page)
+            html = iframe_html if iframe_html else page.content()
         finally:
             page.close()
 
@@ -137,6 +143,44 @@ class GenericCrawler(BaseCrawler):
             return self._parse_response(response)
 
     # ------------------------------------------------------------------
+    # Failure diagnosis
+    # ------------------------------------------------------------------
+
+    def _diagnose_failure(self, url, soup, selectors):
+        """Diagnose why no items were found."""
+        hints = []
+
+        text_len = len(soup.get_text(strip=True))
+
+        # Check 1: Page too small (JS rendering needed)
+        if text_len < 500:
+            hints.append("JS_RENDERING: 페이지 콘텐츠가 매우 적음 - fetch_method를 'browser'로 변경 필요")
+
+        # Check 2: iframes
+        iframes = soup.select("iframe[src]")
+        if iframes:
+            iframe_srcs = [f.get("src", "")[:60] for f in iframes[:3]]
+            hints.append(f"IFRAME: iframe {len(iframes)}개 발견 - {', '.join(iframe_srcs)}")
+
+        # Check 3: Suggest alternative selectors
+        container_sel = selectors.get("item_container", "")
+        alternatives = []
+        for sel in ["table tbody tr", "ul li", "div.list-item", "li", "article", "div.item", "div.board-list li", "tr"]:
+            if sel != container_sel:
+                found = soup.select(sel)
+                if 3 <= len(found) <= 100:
+                    alternatives.append(f"'{sel}' ({len(found)}개)")
+        if alternatives:
+            hints.append(f"SELECTOR: 대체 셀렉터 후보 - {', '.join(alternatives[:5])}")
+
+        # Check 4: Page has links
+        all_links = soup.select("a[href]")
+        if len(all_links) > 10:
+            hints.append(f"LINKS: 페이지에 링크 {len(all_links)}개 존재 - 셀렉터 수정 필요")
+
+        return hints
+
+    # ------------------------------------------------------------------
     # HTML crawling (list page → detail page)
     # ------------------------------------------------------------------
 
@@ -149,6 +193,7 @@ class GenericCrawler(BaseCrawler):
         page_num = pagination.get("start", 1)
         page_param = pagination.get("param", "page")
         saved = 0
+        skipped = 0
 
         while True:
             if limit is not None and saved >= limit:
@@ -163,9 +208,34 @@ class GenericCrawler(BaseCrawler):
             if soup is None:
                 print(f"[{self.site_id}] Failed to fetch list page {page_num}. Stopping.")
                 break
+            # Feature 7: Resolve iframe if main content is inside one
+            soup, _ = self._resolve_iframe(soup, list_cfg["url"])
+
             items = self._extract_list_items(soup, selectors)
 
+            # Feature 6: AJAX/API auto-detection fallback
+            if not items and self._config.get("options", {}).get("auto_detect_api", True):
+                list_url = list_cfg["url"]
+                if params and pagination.get("type") == "query_param":
+                    from urllib.parse import urlencode
+                    list_url = list_url + ("&" if "?" in list_url else "?") + urlencode(params)
+                print(f"[{self.site_id}] No items found via HTML on page {page_num}, trying API detection...")
+                try:
+                    api_result = find_data_api(list_url)
+                    if api_result:
+                        print(f"[{self.site_id}] Found API: {api_result['url'][:80]}")
+                        items = self._parse_api_response(api_result)
+                except Exception as e:
+                    print(f"[{self.site_id}] API detection failed: {e}")
+
             if not items:
+                if page_num == pagination.get("start", 1):
+                    hints = self._diagnose_failure(list_cfg["url"], soup, selectors)
+                    self._last_diagnosis = hints
+                    if hints:
+                        print(f"[{self.site_id}] Failure diagnosis:")
+                        for hint in hints:
+                            print(f"[{self.site_id}]   - {hint}")
                 print(f"[{self.site_id}] No items found on page {page_num}. Stopping.")
                 break
 
@@ -184,14 +254,17 @@ class GenericCrawler(BaseCrawler):
                     paper = self._build_paper_from_list(item_info)
 
                 if paper:
-                    self._save_paper(paper)
-                    saved += 1
-                    label = f"{saved}/{limit}" if limit else str(saved)
-                    print(f"[{self.site_id}] Saved {label} papers...")
+                    result = self._save_paper(paper)
+                    if result:
+                        saved += 1
+                        label = f"{saved}/{limit}" if limit else str(saved)
+                        print(f"[{self.site_id}] Saved {label} papers...")
+                    else:
+                        skipped += 1
 
             page_num += pagination.get("step", 1)
 
-        print(f"[{self.site_id}] Done. Saved {saved} papers.")
+        print(f"[{self.site_id}] Done: {saved} new, {skipped} duplicates skipped.")
         return saved
 
     def _extract_list_items(self, soup, selectors):
@@ -203,12 +276,18 @@ class GenericCrawler(BaseCrawler):
         for row in rows:
             # Extract link to detail page
             link_sel = selectors.get("item_link", "a[href]")
-            link_tag = row.select_one(link_sel)
+            if link_sel == "self":
+                link_tag = row
+            else:
+                link_tag = row.select_one(link_sel)
             if not link_tag:
                 continue
 
             link_attr = selectors.get("item_link_attr", "href")
-            href = link_tag.get(link_attr, "")
+            if link_attr == "text":
+                href = link_tag.get_text(strip=True)
+            else:
+                href = link_tag.get(link_attr, "")
             if not href:
                 continue
 
@@ -254,6 +333,10 @@ class GenericCrawler(BaseCrawler):
         soup = self._fetch_page(url)
         if soup is None:
             return None
+
+        # Feature 7: Resolve iframe if main content is inside one
+        soup, url = self._resolve_iframe(soup, url)
+
         sel = detail_cfg.get("selectors", {})
 
         # Title
@@ -287,13 +370,29 @@ class GenericCrawler(BaseCrawler):
                 # Remove common label prefixes (e.g., "날짜 :", "Date:")
                 published_date = re.sub(r"^(날짜|Date|작성일|등록일)\s*[:：]\s*", "", published_date)
 
-        # PDF link
+        # File download link (PDF, Excel, HWP, CSV, etc.)
         pdf_url = ""
         if sel.get("pdf_link"):
             tag = soup.select_one(sel["pdf_link"])
             if tag:
                 pdf_attr = sel.get("pdf_link_attr", "href")
                 pdf_url = self._make_absolute(tag.get(pdf_attr, ""))
+
+        # If no specific pdf_link selector matched, try finding any downloadable file
+        if not pdf_url and sel.get("file_link"):
+            tag = soup.select_one(sel["file_link"])
+            if tag:
+                file_attr = sel.get("file_link_attr", "href")
+                pdf_url = self._make_absolute(tag.get(file_attr, ""))
+
+        # Auto-detect: if still no link, look for common download patterns
+        if not pdf_url and sel.get("auto_detect_files"):
+            file_extensions = ('.pdf', '.xlsx', '.xls', '.csv', '.hwp', '.docx', '.doc', '.pptx', '.ppt', '.zip', '.json', '.xml')
+            for a_tag in soup.select("a[href]"):
+                href = a_tag.get("href", "").lower()
+                if any(href.endswith(ext) for ext in file_extensions):
+                    pdf_url = self._make_absolute(a_tag.get("href", ""))
+                    break
 
         # Keywords
         keywords = []
@@ -352,6 +451,130 @@ class GenericCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Feature 6: AJAX/API auto-detection
+    # ------------------------------------------------------------------
+
+    def _parse_api_response(self, api_result):
+        """Parse items from a detected API response."""
+        items = []
+        try:
+            data = json.loads(api_result["sample"])
+
+            # Find the list of items
+            item_list = None
+            if isinstance(data, list):
+                item_list = data
+            elif isinstance(data, dict):
+                for key in ["items", "data", "list", "result", "results", "rows",
+                            "content", "records", "body", "resultList", "bbsList",
+                            "nttList", "boardList", "dataList"]:
+                    if key in data and isinstance(data[key], list):
+                        item_list = data[key]
+                        break
+                if not item_list:
+                    for v in data.values():
+                        if isinstance(v, dict):
+                            for v2 in v.values():
+                                if isinstance(v2, list) and len(v2) >= 3:
+                                    item_list = v2
+                                    break
+
+            if not item_list:
+                return items
+
+            for item in item_list:
+                if not isinstance(item, dict):
+                    continue
+
+                # Try to extract title
+                title = ""
+                for k in ["title", "nttSj", "bbsSj", "sj", "subject", "boardTitle",
+                           "artclTitle", "cn", "name", "nm"]:
+                    if k in item and item[k]:
+                        title = str(item[k]).strip()
+                        break
+
+                if not title:
+                    # Use first string value > 10 chars as title
+                    for v in item.values():
+                        if isinstance(v, str) and len(v) > 10:
+                            title = v.strip()
+                            break
+
+                # Try to extract URL
+                url = ""
+                for k in ["url", "link", "href", "detailUrl", "articleUrl", "nttUrl"]:
+                    if k in item and item[k]:
+                        url = str(item[k]).strip()
+                        break
+
+                # Try to extract date
+                date = ""
+                for k in ["date", "regDate", "registDt", "frstRegstDt", "createDt",
+                           "publishDate", "pubDate", "writDt", "rgsDt"]:
+                    if k in item and item[k]:
+                        date = str(item[k]).strip()[:10]
+                        break
+
+                if title:
+                    items.append({
+                        "detail_url": self._make_absolute(url) if url else "",
+                        "external_id": "",
+                        "title": title,
+                        "published_date": date,
+                        "category": "",
+                    })
+
+            print(f"[{self.site_id}] Extracted {len(items)} items from API")
+        except Exception as e:
+            print(f"[{self.site_id}] API parse error: {e}")
+
+        return items
+
+    # ------------------------------------------------------------------
+    # Feature 7: iframe crawling
+    # ------------------------------------------------------------------
+
+    def _resolve_iframe(self, soup, page_url):
+        """If main content is in an iframe, fetch the iframe src and return its soup."""
+        main_text = soup.get_text(strip=True)
+        iframes = soup.select("iframe[src]")
+
+        if len(main_text) < 500 and iframes:
+            for iframe in iframes:
+                src = iframe.get("src", "")
+                if not src or src.startswith("javascript:") or "google" in src or "facebook" in src:
+                    continue
+
+                iframe_url = self._make_absolute(src)
+                print(f"[{self.site_id}] Following iframe: {iframe_url[:80]}")
+
+                try:
+                    resp = self._request(iframe_url)
+                    if resp:
+                        return BeautifulSoup(resp.text, "html.parser"), iframe_url
+                except Exception as e:
+                    print(f"[{self.site_id}] iframe fetch failed: {e}")
+                    continue
+
+        return soup, page_url
+
+    def _resolve_iframe_browser(self, page):
+        """Check for iframes in Playwright page and switch to iframe content."""
+        frames = page.frames
+        if len(frames) > 1:
+            # Find the largest non-main frame
+            for frame in frames[1:]:  # Skip main frame
+                try:
+                    content = frame.content()
+                    if len(content) > 1000:
+                        print(f"[{self.site_id}] Switching to iframe: {frame.url[:80]}")
+                        return content
+                except Exception:
+                    continue
+        return None
+
+    # ------------------------------------------------------------------
     # Single-page crawling (all links on one page)
     # ------------------------------------------------------------------
 
@@ -380,6 +603,7 @@ class GenericCrawler(BaseCrawler):
         cat_sel = selectors.get("category_heading", "h2")
 
         saved = 0
+        skipped = 0
         for tag in links:
             if limit is not None and saved >= limit:
                 break
@@ -429,12 +653,15 @@ class GenericCrawler(BaseCrawler):
                 "department": "",
                 "metadata": json.dumps({}, ensure_ascii=False),
             }
-            self._save_paper(paper)
-            saved += 1
-            label = f"{saved}/{limit}" if limit else str(saved)
-            print(f"[{self.site_id}] Saved {label} items...")
+            result = self._save_paper(paper)
+            if result:
+                saved += 1
+                label = f"{saved}/{limit}" if limit else str(saved)
+                print(f"[{self.site_id}] Saved {label} items...")
+            else:
+                skipped += 1
 
-        print(f"[{self.site_id}] Done. Saved {saved} items.")
+        print(f"[{self.site_id}] Done: {saved} new, {skipped} duplicates skipped.")
         return saved
 
     # ------------------------------------------------------------------

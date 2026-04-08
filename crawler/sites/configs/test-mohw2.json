@@ -1,0 +1,41 @@
+{
+  "site_id": "test-mohw2",
+  "site_name": "www.mohw.go.kr",
+  "base_url": "https://www.mohw.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.mohw.go.kr/board.es?mid=a10411010200&bid=0019&cg_code=C01",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "nPage",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table tbody tr",
+      "item_link": "a.txt_title",
+      "item_link_attr": "href",
+      "title": "a.txt_title",
+      "date": "td:nth-child(4)",
+      "category": "td:nth-child(2)"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "article.board_view h2.title",
+      "abstract": "div.contents p",
+      "authors": null,
+      "date": "ul.info li.date:nth-child(1) span",
+      "pdf_link": "div.file ul.list li a.btn_line",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": "UTF-8",
+    "verify_ssl": true
+  }
+}

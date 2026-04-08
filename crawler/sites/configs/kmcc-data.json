@@ -1,0 +1,6 @@
+{
+  "site_id": "kmcc-data",
+  "site_name": "www.kmcc.go.kr",
+  "base_url": "https://www.kmcc.go.kr",
+  "crawl_type": "single-page"
+}

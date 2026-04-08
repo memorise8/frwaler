@@ -187,7 +187,8 @@ Given a URL (typically a list/board page), create either:
 3. If still fails or returns 403 → try cloudscraper_fetch(url) (bypasses Cloudflare/WAF)
 4. If still fails → try curl_fetch(url)
 5. If HTML is very small (<5000 chars) or has 0 links → this is likely a SPA site → try browser_fetch(url) which uses a headless browser to render JavaScript
-6. If response looks like JSON, this might be an API endpoint
+6. ALSO check for SPA indicators even in large HTML: if you see <div id="root">, <div id="app">, <app-root>, __NEXT_DATA__, ng-version, or the HTML is mostly <script> tags with very little visible text content → this is a SPA that needs browser_fetch(url). Don't be fooled by large HTML size — SPA shells can be 50-100KB of scripts with no actual content.
+7. If response looks like JSON, this might be an API endpoint
 5. clean_html(html="__last__") to get a compact version (IMPORTANT: pass "__last__" as html to use the stored full HTML from the last fetch, do NOT paste the HTML inline)
 6. *** MOST IMPORTANT ***: clean_html returns "selector_hints" - a dict of CSS selectors that ALREADY MATCHED real elements in the full HTML. Each hint has a count and sample text. YOU MUST USE THESE HINTS FIRST before trying your own selectors. Pick the hint with samples that look like article titles as your item_container and item_link. For example, if hints show {"tbody tr": {"count": 11, "sample": "article title..."}, "td.left a": {"count": 11, "sample": "article title..."}}, then use "tbody tr" as item_container and "td.left a" (or just "a") as item_link within the container.
 7. Similarly, test_selector(html="__last__", ...) and extract_text(html="__last__", ...) use the last fetched HTML
@@ -325,13 +326,14 @@ class AutoAddAgent:
 
     MAX_ITERATIONS = 15
 
-    def __init__(self, max_iterations=None, verbose=False):
+    def __init__(self, max_iterations=None, verbose=False, force_browser=False):
         api_key = os.environ.get("OPENAI_API_KEY")
         if not api_key:
             raise RuntimeError("OPENAI_API_KEY not set in environment or .env file.")
         self._client = OpenAI(api_key=api_key)
         self._max_iterations = max_iterations or self.MAX_ITERATIONS
         self._verbose = verbose
+        self._force_browser = force_browser
         # Store full HTML separately (not sent to GPT to save tokens)
         self._html_store = {}
 
@@ -346,15 +348,30 @@ class AutoAddAgent:
         print(f"Agent: Analyzing {url} ...")
         print(f"  Site ID: {site_id}, Name: {site_name}")
 
-        messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": (
+        if self._force_browser:
+            user_msg = (
+                f"Analyze this website and create a working crawler.\n"
+                f"URL: {url}\n"
+                f"Site ID: {site_id}\n"
+                f"Site Name: {site_name}\n\n"
+                f"IMPORTANT: This is a known SPA (Single Page Application) site. "
+                f"Skip fetch_page entirely and use browser_fetch(url) FIRST to get the "
+                f"fully rendered HTML. The site requires JavaScript rendering. "
+                f"Set fetch_method: \"browser\" in the final config.\n\n"
+                f"Start by calling browser_fetch on the URL."
+            )
+        else:
+            user_msg = (
                 f"Analyze this website and create a working crawler.\n"
                 f"URL: {url}\n"
                 f"Site ID: {site_id}\n"
                 f"Site Name: {site_name}\n\n"
                 f"Start by fetching the page."
-            )}
+            )
+
+        messages = [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_msg}
         ]
 
         for iteration in range(self._max_iterations):

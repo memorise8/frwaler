@@ -1,0 +1,6 @@
+{
+  "site_id": "kipa-pub",
+  "site_name": "www.kipa.re.kr",
+  "base_url": "https://www.kipa.re.kr",
+  "crawl_type": "single-page"
+}

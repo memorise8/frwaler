@@ -1,10 +1,36 @@
 # -*- coding: utf-8 -*-
 """SQLite database manager for crawler-poc."""
 
+import hashlib
 import sqlite3
 import os
 
 DEFAULT_DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'papers.db')
+
+
+def paper_exists(conn, site_id, url=None, title_hash=None):
+    """Check if a paper already exists by URL or title hash."""
+    if url:
+        row = conn.execute(
+            "SELECT id FROM papers WHERE site_id = ? AND url = ?",
+            (site_id, url)
+        ).fetchone()
+        if row:
+            return True
+    if title_hash:
+        row = conn.execute(
+            "SELECT id FROM papers WHERE site_id = ? AND external_id = ?",
+            (site_id, title_hash)
+        ).fetchone()
+        if row:
+            return True
+    return False
+
+
+def compute_content_hash(title, url=""):
+    """Compute a hash for deduplication."""
+    content = f"{title.strip().lower()}|{url.strip().lower()}"
+    return hashlib.sha256(content.encode()).hexdigest()[:16]
 
 
 def get_db(db_path=None):

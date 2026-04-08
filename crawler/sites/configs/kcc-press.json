@@ -1,0 +1,18 @@
+{
+  "site_id": "kcc-press",
+  "site_name": "www.kcc.go.kr",
+  "base_url": "https://www.kcc.go.kr",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.kcc.go.kr/user.do?boardId=1113&page=A05030000&dc=K05030000",
+    "selectors": {
+      "link": "td.txtL a",
+      "link_attr": "href",
+      "category_heading": "h3.sub_title"
+    },
+    "options": {
+      "delay": 1.5,
+      "fetch_method": "browser"
+    }
+  }
+}

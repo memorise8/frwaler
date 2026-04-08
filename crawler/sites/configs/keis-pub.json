@@ -1,0 +1,6 @@
+{
+  "site_id": "keis-pub",
+  "site_name": "www.keis.or.kr",
+  "base_url": "https://www.keis.or.kr",
+  "crawl_type": "single-page"
+}

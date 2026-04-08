@@ -1,0 +1,42 @@
+{
+  "site_id": "bmv-mobility",
+  "site_name": "German Federal Ministry of Transport - Mobility Statistics",
+  "base_url": "https://www.bmv.de",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.bmv.de/EN/Services/Statistics/Mobility-in-Germany/mobility-in-germany.html",
+    "params": {},
+    "pagination": {
+      "type": "none"
+    },
+    "selectors": {
+      "item_container": "li.link-list-item",
+      "item_link": "a.link-list-link",
+      "item_link_attr": "href",
+      "title": "a.link-list-link",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1",
+      "abstract": "div.text",
+      "authors": null,
+      "date": null,
+      "pdf_link": "a[href$='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null,
+      "auto_detect_files": true
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "encoding": null,
+    "verify_ssl": true,
+    "id_regex": null,
+    "fetch_method": null,
+    "timeout": 30
+  }
+}

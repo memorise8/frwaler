@@ -1,0 +1,18 @@
+{
+  "site_id": "spo-data",
+  "site_name": "www.spo.go.kr",
+  "base_url": "https://www.spo.go.kr",
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.spo.go.kr/site/spo/ex/board/List.do?cbIdx=1303",
+    "selectors": {
+      "link": "ul.reportList li.noti a",
+      "link_attr": "href",
+      "category_heading": "ul.lnb li.dep2.sub"
+    },
+    "options": {
+      "delay": 1.5,
+      "fetch_method": "browser"
+    }
+  }
+}

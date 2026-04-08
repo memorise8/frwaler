@@ -1,0 +1,6 @@
+{
+  "site_id": "kwdi-report",
+  "site_name": "www.kwdi.re.kr",
+  "base_url": "https://www.kwdi.re.kr",
+  "crawl_type": "single-page"
+}

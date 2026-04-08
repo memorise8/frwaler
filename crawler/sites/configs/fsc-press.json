@@ -1,0 +1,6 @@
+{
+  "site_id": "fsc-press",
+  "site_name": "www.fsc.go.kr",
+  "base_url": "https://www.fsc.go.kr",
+  "crawl_type": "single-page"
+}
