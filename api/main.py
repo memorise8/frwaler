@@ -1,13 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .settings import settings
-from .routers import sites, papers, stats, crawl, jobs, pro, url_test, auto_add, site_status, config_editor, crawl_preview, smart_find, reports
+from .routers import sites, papers, stats, crawl, jobs, pro, url_test, auto_add, site_status, config_editor, crawl_preview, smart_find, reports, products
 
 app = FastAPI(title="Crawler API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -26,6 +27,7 @@ app.include_router(config_editor.router)
 app.include_router(crawl_preview.router)
 app.include_router(smart_find.router)
 app.include_router(reports.router)
+app.include_router(products.router)
 
 
 @app.get("/api/health")

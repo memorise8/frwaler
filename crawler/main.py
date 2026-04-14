@@ -171,6 +171,26 @@ def cmd_convert(args, conn):
     convert_site_files(conn, site_id=site_id, limit=limit)
 
 
+def cmd_product_stats(args, conn):
+    """Show product crawling statistics."""
+    site_id = getattr(args, "site_id", None)
+    db_module.init_db(conn)
+    rows = db_module.get_product_stats(conn, site_id)
+    if not rows:
+        print("No product data found.")
+        return
+    print(f"\n{'Site ID':<30} {'Total':>8} {'HTML Saved':>12}")
+    print("-" * 52)
+    total_products = 0
+    total_html = 0
+    for row in rows:
+        print(f"{row['site_id']:<30} {row['total']:>8} {row['html_saved']:>12}")
+        total_products += row['total']
+        total_html += row['html_saved']
+    print("-" * 52)
+    print(f"{'TOTAL':<30} {total_products:>8} {total_html:>12}")
+
+
 def cmd_batch_add(args, conn):
     """Batch analyze URLs and run auto-add."""
     from .batch import batch_analyze
@@ -263,6 +283,10 @@ def build_parser():
     convert_parser.add_argument("site_id", nargs="?", default=None, help="Site to convert files for")
     convert_parser.add_argument("--limit", type=int, default=None, help="Max files to convert")
 
+    # product-stats
+    product_stats_parser = subparsers.add_parser("product-stats", help="Show product crawling statistics")
+    product_stats_parser.add_argument("site_id", nargs="?", default=None, help="Filter by site ID (optional)")
+
     # batch-add
     batch_parser = subparsers.add_parser("batch-add", help="Batch analyze URLs and auto-add crawlers")
     batch_parser.add_argument("file", help="Text file with URLs (one per line)")
@@ -297,6 +321,7 @@ def main():
         "download": cmd_download,
         "convert": cmd_convert,
         "batch-add": cmd_batch_add,
+        "product-stats": cmd_product_stats,
     }
     dispatch[args.command](args, conn)
     conn.close()

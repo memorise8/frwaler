@@ -74,6 +74,30 @@ def init_db(conn):
             crawled_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(site_id, external_id)
         );
+
+        CREATE TABLE IF NOT EXISTS products (
+            id              TEXT PRIMARY KEY,
+            site_id         TEXT NOT NULL REFERENCES sites(id),
+            external_id     TEXT,
+            name            TEXT,
+            price           TEXT,
+            price_value     REAL,
+            currency        TEXT,
+            brand           TEXT,
+            category        TEXT,
+            description     TEXT,
+            image_url       TEXT,
+            image_urls      TEXT,
+            specs           TEXT,
+            rating          REAL,
+            review_count    INTEGER,
+            availability    TEXT,
+            url             TEXT,
+            html_path       TEXT,
+            metadata        TEXT,
+            crawled_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(site_id, external_id)
+        );
     """)
     conn.commit()
     for col in ["summary TEXT", "download_status TEXT", "download_path TEXT"]:
@@ -159,6 +183,55 @@ def get_download_stats(conn, site_id=None):
                SUM(CASE WHEN download_status = 'failed' THEN 1 ELSE 0 END) AS failed,
                SUM(CASE WHEN (pdf_url IS NOT NULL AND pdf_url != '') AND (download_status IS NULL) THEN 1 ELSE 0 END) AS pending
         FROM papers
+    """
+    params = []
+    if site_id:
+        query += " WHERE site_id = ?"
+        params.append(site_id)
+    query += " GROUP BY site_id ORDER BY site_id"
+    return conn.execute(query, params).fetchall()
+
+
+def product_exists(conn, site_id, url=None, external_id=None):
+    """Check if a product already exists by URL or external_id."""
+    if external_id:
+        row = conn.execute(
+            "SELECT id FROM products WHERE site_id = ? AND external_id = ?",
+            (site_id, external_id)
+        ).fetchone()
+        if row:
+            return True
+    if url:
+        row = conn.execute(
+            "SELECT id FROM products WHERE site_id = ? AND url = ?",
+            (site_id, url)
+        ).fetchone()
+        if row:
+            return True
+    return False
+
+
+def upsert_product(conn, product_dict):
+    """Insert or replace a product record."""
+    conn.execute("""
+        INSERT OR REPLACE INTO products
+            (id, site_id, external_id, name, price, price_value, currency,
+             brand, category, description, image_url, image_urls, specs,
+             rating, review_count, availability, url, html_path, metadata)
+        VALUES
+            (:id, :site_id, :external_id, :name, :price, :price_value, :currency,
+             :brand, :category, :description, :image_url, :image_urls, :specs,
+             :rating, :review_count, :availability, :url, :html_path, :metadata)
+    """, product_dict)
+    conn.commit()
+
+
+def get_product_stats(conn, site_id=None):
+    """Return product count per site."""
+    query = """
+        SELECT site_id, COUNT(*) AS total,
+               SUM(CASE WHEN html_path IS NOT NULL AND html_path != '' THEN 1 ELSE 0 END) AS html_saved
+        FROM products
     """
     params = []
     if site_id:

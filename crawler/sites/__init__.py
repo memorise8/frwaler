@@ -8,17 +8,26 @@ import os
 from .ntrs import NTRSCrawler
 from .mohw import MOHWCrawler
 from .fsc import FSCCrawler
+from .vishay import VishayCrawler
+from .nexperia import NexperiaCrawler
+from .ti import TICrawler
+from .infineon import InfineonCrawler
 
 CRAWLERS = {
     'ntrs': NTRSCrawler,
     'mohw': MOHWCrawler,
     'fsc': FSCCrawler,
+    'vishay': VishayCrawler,
+    'nexperia': NexperiaCrawler,
+    'ti': TICrawler,
+    'infineon': InfineonCrawler,
 }
 
 # Auto-discover JSON config files and register GenericCrawler instances
 _configs_dir = os.path.join(os.path.dirname(__file__), "configs")
 if os.path.isdir(_configs_dir):
     from ..generic_crawler import GenericCrawler
+    from ..product_crawler import ProductCrawler
 
     for _cfg_file in sorted(glob.glob(os.path.join(_configs_dir, "*.json"))):
         try:
@@ -27,7 +36,9 @@ if os.path.isdir(_configs_dir):
             _site_id = _cfg.get("site_id")
             if _site_id and _site_id not in CRAWLERS:
                 def _make_factory(path, cfg):
-                    class _ConfiguredCrawler(GenericCrawler):
+                    _is_product = cfg.get("data_type") == "product"
+                    _base_cls = ProductCrawler if _is_product else GenericCrawler
+                    class _ConfiguredCrawler(_base_cls):
                         _config_path = path
                         # Expose as class attributes for registration
                         site_id = cfg.get("site_id", "")

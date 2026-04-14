@@ -1,0 +1,51 @@
+{
+  "site_id": "product-example",
+  "site_name": "Product Example (Template)",
+  "base_url": "https://example.com",
+  "data_type": "product",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://example.com/products",
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1,
+      "max_pages": 5
+    },
+    "selectors": {
+      "item_container": ".product-item",
+      "item_link": "a.product-link",
+      "item_link_attr": "href",
+      "title": ".product-name",
+      "price": ".product-price",
+      "category": ".product-category"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "name": "h1.product-title",
+      "price": ".price-current",
+      "brand": ".brand-name",
+      "category": ".breadcrumb li:last-child",
+      "description": ".product-description",
+      "image": ".product-main-image img",
+      "images": ".product-gallery img",
+      "specs": ".product-specs tr",
+      "rating": ".rating-value",
+      "review_count": ".review-count",
+      "availability": ".stock-status"
+    }
+  },
+  "options": {
+    "delay": 2.0,
+    "verify_ssl": true,
+    "respect_robots": true
+  },
+  "metadata": {
+    "analyzed_from": "https://example.com/products",
+    "detail_sample": "https://example.com/products/example-product",
+    "confidence": 0.0,
+    "notes": "This is a generic template. Replace selectors, URLs, and field names with actual values from your target site."
+  }
+}

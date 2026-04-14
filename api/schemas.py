@@ -67,3 +67,32 @@ class AutoAddRequest(BaseModel):
     site_id: Optional[str] = None
     site_name: Optional[str] = None
     browser: bool = False
+
+
+class ProductOut(BaseModel):
+    id: str
+    site_id: str
+    external_id: Optional[str] = None
+    name: str
+    brand: Optional[str] = None
+    price: Optional[str] = None
+    price_value: Optional[float] = None
+    currency: Optional[str] = None
+    category: Optional[str] = None
+    description: Optional[str] = None
+    image_url: Optional[str] = None
+    image_urls: list[str] = []
+    specs: Optional[dict] = None
+    rating: Optional[float] = None
+    review_count: Optional[int] = None
+    availability: Optional[str] = None
+    url: Optional[str] = None
+    html_path: Optional[str] = None
+    crawled_at: Optional[str] = None
+
+
+class ProductListOut(BaseModel):
+    items: list[ProductOut]
+    total: int
+    page: int
+    limit: int

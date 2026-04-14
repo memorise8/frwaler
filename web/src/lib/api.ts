@@ -73,3 +73,29 @@ export async function getFoundFiles(jobId: string) {
 export async function downloadFoundFiles(jobId: string) {
   return postApi(`/api/smart-find/${jobId}/download`, {});
 }
+
+// Products
+export async function fetchProducts(params?: Record<string, string>) {
+  const query = params ? '?' + new URLSearchParams(params).toString() : '';
+  const res = await fetch(`${API_BASE}/api/products${query}`);
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchProduct(id: string) {
+  const res = await fetch(`${API_BASE}/api/products/${id}`);
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchProductHtml(id: string) {
+  const res = await fetch(`${API_BASE}/api/products/${id}/html`);
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.text();
+}
+
+export async function fetchProductStats() {
+  const res = await fetch(`${API_BASE}/api/products/stats`);
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
