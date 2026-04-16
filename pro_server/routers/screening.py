@@ -1,0 +1,158 @@
+from __future__ import annotations
+import json, sqlite3, uuid
+from typing import Optional, List
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from ..auth import verify_license, log_usage
+from ..settings import pro_settings
+from ..schemas import (ScreeningReport, BjtParameters,
+                       FactorOut, FactorScore, FactorSource, HeritageMatch, RiskFlag)
+from ..services.factor_kb import load_factors
+from ..services.heritage_db import list_heritage, get_vectors, VECTOR_KEYS
+from ..services.scorer import score_report
+from ..services.datasheet_parser import extract_from_pdf_bytes
+from ..services.normalizer import normalize_bjt_params
+
+router = APIRouter(prefix="/pro/api", tags=["screening"])
+
+
+@router.post("/screen-bjt", response_model=ScreeningReport)
+async def screen_bjt(
+    file: Optional[UploadFile] = File(None),
+    mpn: Optional[str] = Form(None),
+    manufacturer: Optional[str] = Form(None),
+    license_info: dict = Depends(verify_license),
+):
+    """Accept either a PDF upload or MPN (form field)."""
+    if file is None and not mpn:
+        raise HTTPException(status_code=400, detail="Provide either a PDF file or an mpn")
+
+    tokens = 0
+    extraction_confidence = 1.0
+    input_source = "pdf" if file else "mpn"
+
+    if file:
+        pdf_bytes = await file.read()
+        if len(pdf_bytes) < 100:
+            raise HTTPException(status_code=400, detail="PDF too small / empty")
+        if len(pdf_bytes) > 20 * 1024 * 1024:  # 20MB
+            raise HTTPException(status_code=413, detail="PDF exceeds 20MB")
+        try:
+            raw_params, extraction_confidence, t = extract_from_pdf_bytes(pdf_bytes, mpn_hint=mpn)
+            tokens += t
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception("Datasheet extraction failed")
+            raise HTTPException(status_code=422, detail="Datasheet extraction failed")
+        # PDF path: raw_params has LLM-returned raw datasheet labels → normalize
+        normalized = normalize_bjt_params(raw_params)
+    else:
+        # MPN-only path: look up in heritage DB (parameters already in SI/canonical form)
+        heritage = [h for h in list_heritage("bjt") if h["mpn"].lower() == mpn.lower()]
+        if heritage:
+            normalized = heritage[0]["parameters"]  # already canonical — skip normalizer
+            extraction_confidence = 1.0
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    f"MPN '{mpn}' not found in heritage DB. Please upload a PDF datasheet. "
+                    "(Phase 2: auto-fetch from Mouser/Doeeet products table.)"
+                ),
+            )
+
+    params = BjtParameters(**{k: v for k, v in normalized.items()
+                               if k in BjtParameters.model_fields})
+
+    # Load KB + heritage
+    factors = load_factors("bjt")
+    heritage_rows, heritage_vectors = get_vectors("bjt")
+
+    # Score
+    report_id = str(uuid.uuid4())
+    report = score_report(
+        params=params,
+        factors=factors,
+        heritage_rows=heritage_rows,
+        heritage_vectors=heritage_vectors,
+        vector_keys=VECTOR_KEYS,
+        extraction_confidence=extraction_confidence,
+        input_mpn=mpn,
+        input_source=input_source,
+        report_id=report_id,
+        tokens_used=tokens,
+    )
+
+    # Persist
+    _save_report(report, license_info["key"])
+
+    # Usage log
+    log_usage(license_info["key"], "screen-bjt", tokens)
+
+    return report
+
+
+@router.get("/screen-bjt/{report_id}", response_model=ScreeningReport)
+async def get_screening(report_id: str, license_info: dict = Depends(verify_license)):
+    conn = sqlite3.connect(pro_settings.screening_db_path)
+    conn.row_factory = sqlite3.Row
+    row = conn.execute(
+        "SELECT * FROM screening_results WHERE id=? AND license_key=?",
+        (report_id, license_info["key"]),
+    ).fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(status_code=404, detail="Report not found")
+    return _row_to_report(row)
+
+
+@router.get("/factors", response_model=List[FactorOut])
+async def list_bjt_factors(part_type: str = "bjt", license_info: dict = Depends(verify_license)):
+    return load_factors(part_type)
+
+
+def _save_report(r: ScreeningReport, license_key: str) -> None:
+    conn = sqlite3.connect(pro_settings.screening_db_path)
+    conn.execute(
+        """
+        INSERT INTO screening_results
+            (id, input_mpn, input_source, parameters, factor_scores,
+             overall_score, status, confidence, heritage_matches, risk_flags,
+             license_key, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        """,
+        (
+            r.id,
+            r.input_mpn,
+            r.input_source,
+            json.dumps(r.parameters.dict()),
+            json.dumps([fs.dict() for fs in r.factor_scores]),
+            r.overall_score,
+            r.status,
+            r.confidence,
+            json.dumps([hm.dict() for hm in r.heritage_matches]),
+            json.dumps([rf.dict() for rf in r.risk_flags]),
+            license_key,
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+
+def _row_to_report(row) -> ScreeningReport:
+    params = BjtParameters(**json.loads(row["parameters"]))
+    factor_scores = [FactorScore(**fs) for fs in json.loads(row["factor_scores"])]
+    heritage_matches = [HeritageMatch(**hm) for hm in json.loads(row["heritage_matches"])]
+    risk_flags = [RiskFlag(**rf) for rf in json.loads(row["risk_flags"])]
+    return ScreeningReport(
+        id=row["id"],
+        input_mpn=row["input_mpn"],
+        input_source=row["input_source"],
+        parameters=params,
+        factor_scores=factor_scores,
+        overall_score=row["overall_score"],
+        status=row["status"],
+        confidence=row["confidence"],
+        heritage_matches=heritage_matches,
+        risk_flags=risk_flags,
+        created_at=row["created_at"],
+    )

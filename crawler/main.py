@@ -191,6 +191,20 @@ def cmd_product_stats(args, conn):
     print(f"{'TOTAL':<30} {total_products:>8} {total_html:>12}")
 
 
+def cmd_promote_heritage(args, conn):
+    """Promote qualifying crawler products into the heritage_parts table."""
+    import os
+    from pro_server.services.heritage_importer import promote_heritage
+
+    papers_db = getattr(args, "papers_db", None) or DB_PATH
+    screening_db = getattr(args, "screening_db", None) or os.path.join(
+        os.path.dirname(DB_PATH), "screening.db"
+    )
+    print(f"Promoting heritage parts: {papers_db} → {screening_db}")
+    count = promote_heritage(papers_db, screening_db)
+    print(f"Promoted {count} parts.")
+
+
 def cmd_batch_add(args, conn):
     """Batch analyze URLs and run auto-add."""
     from .batch import batch_analyze
@@ -287,6 +301,20 @@ def build_parser():
     product_stats_parser = subparsers.add_parser("product-stats", help="Show product crawling statistics")
     product_stats_parser.add_argument("site_id", nargs="?", default=None, help="Filter by site ID (optional)")
 
+    # promote-heritage
+    ph_parser = subparsers.add_parser(
+        "promote-heritage",
+        help="Promote qualifying crawler products into the heritage_parts screening table",
+    )
+    ph_parser.add_argument(
+        "--papers-db", default=None,
+        help="Path to crawler SQLite DB (default: same as crawl DB_PATH)",
+    )
+    ph_parser.add_argument(
+        "--screening-db", default=None,
+        help="Path to screening SQLite DB (default: <papers-db-dir>/screening.db)",
+    )
+
     # batch-add
     batch_parser = subparsers.add_parser("batch-add", help="Batch analyze URLs and auto-add crawlers")
     batch_parser.add_argument("file", help="Text file with URLs (one per line)")
@@ -322,6 +350,7 @@ def main():
         "convert": cmd_convert,
         "batch-add": cmd_batch_add,
         "product-stats": cmd_product_stats,
+        "promote-heritage": cmd_promote_heritage,
     }
     dispatch[args.command](args, conn)
     conn.close()

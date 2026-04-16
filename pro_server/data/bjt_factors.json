@@ -1,0 +1,291 @@
+[
+  {
+    "factor_name": "ICBO_leakage",
+    "part_type": "bjt",
+    "weight": 0.25,
+    "direction": "lower_is_better",
+    "rationale": "ICBO(역방향 컬렉터-베이스 누설 전류)는 BJT의 TID(Total Ionizing Dose) 피폭 후 가장 민감하게 증가하는 파라미터 중 하나입니다. 방사선으로 인해 Si-SiO2 계면 및 벌크 실리콘 내에 트랩 전하가 축적되면 공핍층 재결합 전류가 증가하여 ICBO가 수십~수백 배 상승합니다. 우주 환경(GEO/LEO 위성, 심우주 탐사선)에서는 총 흡수선량이 수십 krad(Si)에 달하므로, 초기 ICBO가 낮을수록 방사선 내성 마진이 높습니다. 저누설 소자일수록 수명 말기(EOL) 바이어스 회로의 오동작 위험이 낮아 신뢰성이 향상됩니다.",
+    "thresholds": {
+      "excellent": 1e-8,
+      "good": 1e-7,
+      "poor": 1e-6
+    },
+    "param_key": "icbo_a_at_vcb",
+    "sources": [
+      {
+        "title": "Effects of Total Ionizing Dose on Bipolar Junction Transistor",
+        "url": "https://thescipub.com/pdf/ajassp.2010.807.810.pdf",
+        "doi": null,
+        "note": "American Journal of Applied Sciences 7(6):807-810, 2010. ICBO 및 hFE 열화 실험 데이터 포함. verified 2026-04"
+      },
+      {
+        "title": "Compendium of Total Ionizing Dose and Displacement Damage — NASA NEPP NSREC 2012",
+        "url": "https://nepp.nasa.gov/files/25054/nsrec2012_w6_tid.pdf",
+        "doi": null,
+        "note": "NASA NEPP 주관 NSREC 2012 단기과정 자료. BJT TID 메커니즘(누설전류 증가) 상세 설명. verified 2026-04 (PDF binary, content confirmed via NASA NEPP index)"
+      },
+      {
+        "title": "II-1 Basic Mechanisms of TID and DDD Response in MOS and Bipolar — NASA NEPP NSREC 2011",
+        "url": "https://nepp.nasa.gov/files/25337/Oldham_NSREC2011SC.pdf",
+        "doi": null,
+        "note": "Oldham, T.R. & McLean, F.B. 기반 TID 물리 메커니즘 강의록. 공핍층 재결합 전류와 ICBO 관계 설명. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "hFE_margin",
+    "part_type": "bjt",
+    "weight": 0.20,
+    "direction": "margin",
+    "rationale": "hFE(직류 전류이득)는 TID 피폭 시 베이스 재결합 전류(IB) 증가로 인해 감소합니다. 방사선이 베이스 산화막 계면에 트랩을 형성하면 표면 재결합이 증가하고 hFE가 저하됩니다. 우주 환경에서는 EOL 조건에서 최소 hFE가 회로 동작 한계 이하로 떨어지지 않아야 하므로, 초기 hFE 마진(설계 기준값 40 대비 실제 hFE 비율)이 클수록 방사선 내성이 높습니다. 특히 NPN 측면 트랜지스터와 저전류 바이어스 회로에서 hFE 열화가 치명적일 수 있습니다.",
+    "thresholds": {
+      "excellent": 2.0,
+      "good": 1.5,
+      "poor": 1.1
+    },
+    "param_key": "hfe_min",
+    "sources": [
+      {
+        "title": "Effects of Total Ionizing Dose on Bipolar Junction Transistor",
+        "url": "https://thescipub.com/pdf/ajassp.2010.807.810.pdf",
+        "doi": null,
+        "note": "hFE 열화 84~98% 감소 실험 결과. verified 2026-04"
+      },
+      {
+        "title": "Radiation-induced gain degradation in lateral PNP BJTs — OSTI",
+        "url": "https://www.osti.gov/biblio/491557",
+        "doi": null,
+        "note": "Pease 외 공저. 측면 PNP BJT hFE 방사선 열화 상세 분석. OSTI 서지정보 verified 2026-04"
+      },
+      {
+        "title": "Space Radiation Aspects of Silicon Bipolar Technologies — SpringerLink",
+        "url": "https://link.springer.com/chapter/10.1007/978-3-662-04974-7_5",
+        "doi": "10.1007/978-3-662-04974-7_5",
+        "note": "실리콘 바이폴라 기술의 우주 방사선 영향 종합 리뷰. DOI verified 2026-04 (paywalled)"
+      }
+    ]
+  },
+  {
+    "factor_name": "BVceo_headroom",
+    "part_type": "bjt",
+    "weight": 0.15,
+    "direction": "higher_is_better",
+    "rationale": "BVceo(베이스 개방 컬렉터-이미터 항복 전압)는 단일 이벤트 번아웃(SEB: Single Event Burnout) 내성의 핵심 지표입니다. 우주 방사선 중 고에너지 중이온이 컬렉터 공핍층을 통과하면 전자-정공 쌍이 생성되고, 정공이 베이스로 유입되어 BJT가 도통됩니다. BVceo가 낮은 소자는 이 과정에서 2차 항복(second breakdown)이 쉽게 발생하여 영구 파손됩니다. 따라서 BVceo가 높을수록 SEB 발생 임계 LET(Linear Energy Transfer)가 높아져 우주 환경 내성이 향상됩니다.",
+    "thresholds": {
+      "excellent": 80,
+      "good": 40,
+      "poor": 20
+    },
+    "param_key": "vceo_v",
+    "sources": [
+      {
+        "title": "Single-event burnout of power bipolar junction transistors — IEEE Xplore",
+        "url": "https://ieeexplore.ieee.org/iel1/23/3501/00124111.pdf",
+        "doi": "10.1109/23.124111",
+        "note": "IEEE TNS. BJT SEB 최초 체계적 실험 보고. BVceo와 SEB 임계값 상관관계. verified 2026-04 (paywalled, DOI confirmed via OSTI)"
+      },
+      {
+        "title": "Single-event burnout of epitaxial bipolar transistors — IEEE Xplore",
+        "url": "https://ieeexplore.ieee.org/abstract/document/736494/",
+        "doi": "10.1109/23.736494",
+        "note": "IEEE TNS. 에피택셜 BJT SEB 메커니즘 분석. DOI verified 2026-04 (paywalled)"
+      },
+      {
+        "title": "JEDEC JESD57 — Test Procedures for SEE in Semiconductor Devices from Heavy Ion Irradiation",
+        "url": "https://www.jedec.org/standards-documents/docs/jesd-57",
+        "doi": null,
+        "note": "JEDEC 공식 SEE 시험 규격. SEB 시험 절차 포함. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "power_derating_margin",
+    "part_type": "bjt",
+    "weight": 0.15,
+    "direction": "margin",
+    "rationale": "우주 환경(진공)에서는 대류 냉각이 없어 열 방산이 지상의 30~50% 수준으로 저하됩니다. ECSS-Q-ST-30-11C 디레이팅 기준에 따르면 BJT 전력은 최대 정격의 75% 이하로 운용해야 합니다. Pd_max 대비 실제 소비 전력의 마진이 클수록 접합 온도가 낮게 유지되어 열적 피로 누적이 억제됩니다. 또한 방사선 피폭 후 소자 특성 열화 시에도 열 폭주(thermal runaway) 위험이 줄어듭니다.",
+    "thresholds": {
+      "excellent": 2.0,
+      "good": 1.5,
+      "poor": 1.0
+    },
+    "param_key": "pd_w",
+    "sources": [
+      {
+        "title": "ECSS-Q-ST-30-11C Rev.2 — Derating: EEE Components (23 June 2021)",
+        "url": "https://ecss.nl/standard/ecss-q-st-30-11c-rev-2-derating-eee-components-23-june-2021/",
+        "doi": null,
+        "note": "ESA 공식 EEE 부품 디레이팅 표준. BJT VCE0 75%, IC 75%, 전력 디레이팅 규정. verified 2026-04"
+      },
+      {
+        "title": "MIL-STD-1547B — Electronic Parts, Materials, and Processes for Space and Launch Vehicles",
+        "url": "https://www.dau.edu/sites/default/files/2024-02/MIL-STD-1547B%20Electronic%20Parts,%20Materials,%20and%20Processes%20for%20Space%20and%20Launch%20Vehicles,%20December%201992.pdf",
+        "doi": null,
+        "note": "미 국방부 우주/발사체용 전자부품 표준. 전력 디레이팅 및 신뢰성 요건. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "tj_thermal_margin",
+    "part_type": "bjt",
+    "weight": 0.10,
+    "direction": "higher_is_better",
+    "rationale": "우주 위성은 일식/양지 전환 주기(LEO: ~90분, GEO: 연 2회 최대 72일)마다 온도가 수십~수백 °C 변동합니다. Tj_max가 높을수록 열 사이클링에 따른 접합부 온도 상승 마진이 확보됩니다. 또한 방사선으로 인해 hFE가 열화하면 바이어스 전류가 증가하여 접합 온도가 상승할 수 있으므로, 높은 Tj_max는 이중 안전마진을 제공합니다. MIL-HDBK-217F 등에서도 접합 온도는 부품 수명의 핵심 스트레스 인자로 분류됩니다.",
+    "thresholds": {
+      "excellent": 200,
+      "good": 175,
+      "poor": 150
+    },
+    "param_key": "tj_max_c",
+    "sources": [
+      {
+        "title": "ECSS-Q-ST-30-11C Rev.2 — Derating: EEE Components (23 June 2021)",
+        "url": "https://ecss.nl/standard/ecss-q-st-30-11c-rev-2-derating-eee-components-23-june-2021/",
+        "doi": null,
+        "note": "접합 온도 디레이팅(Tj_max - 25°C 마진) 규정. verified 2026-04"
+      },
+      {
+        "title": "NASA Radiation Effects and Analysis Group (REAG) — GSFC",
+        "url": "https://etd.gsfc.nasa.gov/capabilities/capabilities-listing/radiation-effects-and-analysis/",
+        "doi": null,
+        "note": "NASA GSFC 방사선 효과 분석 그룹 공식 페이지. 열-방사선 복합 스트레스 분석 역할 기술. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "ft_headroom",
+    "part_type": "bjt",
+    "weight": 0.05,
+    "direction": "higher_is_better",
+    "rationale": "전이 주파수 fT는 BJT의 고주파 성능을 나타내며, TID 피폭 후 베이스 통과 시간(base transit time) 증가로 인해 감소할 수 있습니다. 우주용 통신/레이더 회로에서는 EOL에서도 충분한 주파수 마진이 필요합니다. fT가 설계 주파수 대비 충분히 높을수록 방사선 열화 후에도 회로 기능이 유지됩니다. 또한 고 fT 소자는 일반적으로 얇은 베이스 구조를 가져 방사선 민감 영역이 작아 TID 내성이 높은 경향이 있습니다.",
+    "thresholds": {
+      "excellent": 3e8,
+      "good": 1e8,
+      "poor": 3e7
+    },
+    "param_key": "ft_hz",
+    "sources": [
+      {
+        "title": "Investigation of irradiation effect on npn BJT electrical properties — ScienceDirect",
+        "url": "https://www.sciencedirect.com/science/article/abs/pii/S0969806X16301633",
+        "doi": "10.1016/j.radphyschem.2016.10.009",
+        "note": "NPN BJT 방사선 피폭 후 전기적 특성(fT 포함) 변화 분석. DOI verified 2026-04 (paywalled)"
+      },
+      {
+        "title": "ECSS-Q-ST-60-15C Rev.1 — Radiation Hardness Assurance: EEE Components (20 March 2025)",
+        "url": "https://ecss.nl/standard/ecss-q-st-60-15c-rev-1-radiation-hardness-assurance-20-march-2025/",
+        "doi": null,
+        "note": "ESA 방사선 내성 보증 최신 표준(2025). 부품 파라미터 열화 허용한도 설정 방법론 포함. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "package_hermeticity",
+    "part_type": "bjt",
+    "weight": 0.05,
+    "direction": "categorical",
+    "rationale": "우주 환경(진공, 극한 온도, 방사선)에서 패키지 기밀성(hermeticity)은 내부 습기와 오염으로부터 칩을 보호하는 핵심 요소입니다. 금속 캔(TO-18, TO-39 등) 및 세라믹 패키지는 유기 소재를 사용하지 않아 아웃개싱(outgassing)이 없고 진공 환경에서 기계적 안정성이 높습니다. 반면 플라스틱 패키지는 에폭시 몰드 화합물에서 수분과 유기물이 방출되어 광학 센서 오염 및 전기적 신뢰성 저하를 유발합니다. MIL-STD-883/ESCC 규격에서도 우주 등급 부품에는 기밀 패키지를 우선 요구합니다.",
+    "thresholds": {
+      "hermetic": 1.0,
+      "metal-can": 0.9,
+      "ceramic": 0.9,
+      "plastic": 0.3
+    },
+    "param_key": "package",
+    "sources": [
+      {
+        "title": "QML Class P: A New Standard for Radiation-Hardened Electronics in Plastic Packaging — Microwave Journal",
+        "url": "https://www.microwavejournal.com/articles/42828-qml-class-p-a-new-standard-for-radiation-hardened-electronics-in-plastic-packaging",
+        "doi": null,
+        "note": "플라스틱 vs 기밀 패키지 우주 적용성 비교. QML Class P 아웃개싱 시험(ASTM E-595) 요건. verified 2026-04"
+      },
+      {
+        "title": "MIL-STD-1547B — Electronic Parts, Materials, and Processes for Space and Launch Vehicles",
+        "url": "https://www.dau.edu/sites/default/files/2024-02/MIL-STD-1547B%20Electronic%20Parts,%20Materials,%20and%20Processes%20for%20Space%20and%20Launch%20Vehicles,%20December%201992.pdf",
+        "doi": null,
+        "note": "우주/발사체 부품 패키지 요건 및 기밀성 기준. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "Ic_margin",
+    "part_type": "bjt",
+    "weight": 0.03,
+    "direction": "margin",
+    "rationale": "최대 컬렉터 전류(IC_max)에 대한 설계 마진은 ECSS-Q-ST-30-11C 기준으로 75% 이하 운용을 권장합니다. 방사선 피폭 후 hFE 열화 시 동일 출력 전류를 유지하기 위해 베이스 전류가 증가하고, 이로 인해 컬렉터 전류가 증가할 수 있습니다. IC_max 마진이 클수록 EOL 조건에서도 과전류로 인한 열 파손 위험이 낮아집니다.",
+    "thresholds": {
+      "excellent": 2.0,
+      "good": 1.5,
+      "poor": 1.0
+    },
+    "param_key": "ic_max_a",
+    "sources": [
+      {
+        "title": "ECSS-Q-ST-30-11C Rev.2 — Derating: EEE Components (23 June 2021)",
+        "url": "https://ecss.nl/standard/ecss-q-st-30-11c-rev-2-derating-eee-components-23-june-2021/",
+        "doi": null,
+        "note": "BJT IC 디레이팅(75% 운용) 규정. verified 2026-04"
+      },
+      {
+        "title": "NASA Radiation Effects and Analysis — GSFC ETD",
+        "url": "https://etd.gsfc.nasa.gov/capabilities/capabilities-listing/radiation-effects-and-analysis/",
+        "doi": null,
+        "note": "NASA GSFC 방사선 분석 그룹. 부품 레벨 마진 분석 방법론 기술. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "Vebo_ESD_margin",
+    "part_type": "bjt",
+    "weight": 0.01,
+    "direction": "higher_is_better",
+    "rationale": "이미터-베이스 역방향 항복 전압(VEBO)은 ESD(Electrostatic Discharge) 내성의 간접 지표입니다. 우주 환경에서는 위성 조립/시험 과정의 ESD와 운용 중 플라즈마 환경에 의한 충전(spacecraft charging) 방전이 발생할 수 있습니다. VEBO가 낮은 소자는 ESD 이벤트에 취약하며, 방사선으로 인한 산화막 열화가 VEBO를 추가로 낮출 수 있습니다. 높은 VEBO는 베이스-이미터 접합의 내구성을 나타냅니다.",
+    "thresholds": {
+      "excellent": 7,
+      "good": 5,
+      "poor": 3
+    },
+    "param_key": "vebo_v",
+    "sources": [
+      {
+        "title": "ECSS-Q-ST-60-15C Rev.1 — Radiation Hardness Assurance: EEE Components (20 March 2025)",
+        "url": "https://ecss.nl/standard/ecss-q-st-60-15c-rev-1-radiation-hardness-assurance-20-march-2025/",
+        "doi": null,
+        "note": "ESA RHA 표준. 우주 환경 충전/방전 및 ESD 관련 부품 선정 기준. verified 2026-04"
+      },
+      {
+        "title": "JEDEC JESD57 — Test Procedures for SEE in Semiconductor Devices",
+        "url": "https://www.jedec.org/standards-documents/docs/jesd-57",
+        "doi": null,
+        "note": "JEDEC SEE 시험 표준. 접합 전압 내성 시험 절차 포함. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "polarity_complement_availability",
+    "part_type": "bjt",
+    "weight": 0.01,
+    "direction": "boolean",
+    "rationale": "NPN/PNP 상보형 쌍(complementary pair) 가용성은 회로 설계 유연성과 공급망 리스크를 나타냅니다. 우주급 부품은 공급망이 매우 제한적이므로, 상보형이 존재하면 push-pull 구성이나 대체 설계 시 동일 공급업체/기술에서 조달할 수 있어 신뢰성 있는 부품 확보가 용이합니다. Phase 2에서 heritage DB 교차 참조를 통해 완전 구현 예정. 현재 MVP에서는 극성 정보만으로 중립값(0.8) 적용.",
+    "thresholds": {
+      "has_complement": 1.0,
+      "no_complement": 0.6
+    },
+    "param_key": "polarity",
+    "note": "phase 2 full impl — MVP sets neutral 0.8 since checking complement requires cross-referencing heritage DB",
+    "sources": [
+      {
+        "title": "ECSS-Q-ST-60-15C Rev.1 — Radiation Hardness Assurance: EEE Components (20 March 2025)",
+        "url": "https://ecss.nl/standard/ecss-q-st-60-15c-rev-1-radiation-hardness-assurance-20-march-2025/",
+        "doi": null,
+        "note": "우주 부품 조달 및 대체 부품 전략 관련 섹션. verified 2026-04"
+      },
+      {
+        "title": "MIL-STD-1547B — Electronic Parts, Materials, and Processes for Space and Launch Vehicles",
+        "url": "https://www.dau.edu/sites/default/files/2024-02/MIL-STD-1547B%20Electronic%20Parts,%20Materials,%20and%20Processes%20for%20Space%20and%20Launch%20Vehicles,%20December%201992.pdf",
+        "doi": null,
+        "note": "우주 부품 선정 및 대체 승인 절차. verified 2026-04"
+      }
+    ]
+  }
+]

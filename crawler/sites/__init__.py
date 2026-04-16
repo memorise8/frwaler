@@ -12,6 +12,8 @@ from .vishay import VishayCrawler
 from .nexperia import NexperiaCrawler
 from .ti import TICrawler
 from .infineon import InfineonCrawler
+from .mouser import MouserCrawler
+from .doeeet import DoeeetCrawler
 
 CRAWLERS = {
     'ntrs': NTRSCrawler,
@@ -21,6 +23,8 @@ CRAWLERS = {
     'nexperia': NexperiaCrawler,
     'ti': TICrawler,
     'infineon': InfineonCrawler,
+    'mouser': MouserCrawler,
+    'doeeet': DoeeetCrawler,
 }
 
 # Auto-discover JSON config files and register GenericCrawler instances

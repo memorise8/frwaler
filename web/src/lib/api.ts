@@ -99,3 +99,58 @@ export async function fetchProductStats() {
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();
 }
+
+// ─── BJT Up-Screening API ────────────────────────────────────────────────────
+
+const PRO_API_BASE = process.env.NEXT_PUBLIC_PRO_API_URL || "";
+
+export async function screenBjtByFile(
+  file: File,
+  opts: { mpn?: string; manufacturer?: string; licenseKey: string }
+) {
+  const fd = new FormData();
+  fd.append("file", file);
+  if (opts.mpn) fd.append("mpn", opts.mpn);
+  if (opts.manufacturer) fd.append("manufacturer", opts.manufacturer);
+  const res = await fetch(`${PRO_API_BASE}/pro/api/screen-bjt`, {
+    method: "POST",
+    headers: { "X-License-Key": opts.licenseKey },
+    body: fd,
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function screenBjtByMpn(
+  mpn: string,
+  licenseKey: string,
+  manufacturer?: string
+) {
+  const res = await fetch(`${PRO_API_BASE}/pro/api/screen-bjt`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-License-Key": licenseKey,
+    },
+    body: JSON.stringify({ mpn, manufacturer }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getScreening(id: string, licenseKey: string) {
+  const res = await fetch(`${PRO_API_BASE}/pro/api/screen-bjt/${id}`, {
+    headers: { "X-License-Key": licenseKey },
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function listFactors(licenseKey: string, partType = "bjt") {
+  const res = await fetch(
+    `${PRO_API_BASE}/pro/api/factors?part_type=${partType}`,
+    { headers: { "X-License-Key": licenseKey } }
+  );
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}

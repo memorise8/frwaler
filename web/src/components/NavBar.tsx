@@ -7,6 +7,7 @@ const links = [
   { href: "/products", label: "제품 검색" },
   { href: "/categories", label: "카테고리" },
   { href: "/stats", label: "통계" },
+  { href: "/screening", label: "Screening" },
 ];
 
 export default function NavBar() {

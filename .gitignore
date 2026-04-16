@@ -8,11 +8,14 @@ __pycache__/
 .env
 crawler/.env
 
-# Data (large files)
+# Data (runtime DBs + large outputs)
 data/
 downloads/
 converted/
 reports/
+# Track curated seed JSONs (factor KB + heritage data — not runtime state)
+!pro_server/data/
+!pro_server/data/*.json
 
 # Node
 web/node_modules/

@@ -1,2 +1,28 @@
+# Web server
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+python-multipart
+
+# HTTP / scraping
 requests
 beautifulsoup4
+cloudscraper
+
+# Crawler DB (api/ uses aiosqlite)
+aiosqlite
+
+# PDF parsing (datasheet extraction)
+pdfplumber
+
+# LLM
+openai
+google-genai
+
+# Dev / test
+pytest
+httpx
+
+# Env loading
+python-dotenv
