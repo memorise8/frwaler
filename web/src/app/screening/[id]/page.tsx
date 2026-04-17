@@ -7,6 +7,7 @@ import ConfidenceBanner from "@/components/screening/ConfidenceBanner";
 import FactorTable from "@/components/screening/FactorTable";
 import HeritageMatches from "@/components/screening/HeritageMatches";
 import RiskFlags from "@/components/screening/RiskFlags";
+import OverallFeedback from "@/components/screening/OverallFeedback";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -437,7 +438,7 @@ export default function ScreeningResultPage({ params }: PageProps) {
 
       {/* ── Factor table ── */}
       <Section title="평가 인자 상세" delay={2}>
-        <FactorTable factors={report.factor_scores} />
+        <FactorTable factors={report.factor_scores} reportId={report.id} licenseKey={licenseKey} />
       </Section>
 
       {/* ── Heritage matches ── */}
@@ -466,6 +467,11 @@ export default function ScreeningResultPage({ params }: PageProps) {
           업스크리닝 시 특별히 주의해야 할 항목입니다.
         </p>
         <RiskFlags flags={report.risk_flags} />
+      </Section>
+
+      {/* ── Overall feedback ── */}
+      <Section title="분석 피드백" delay={5}>
+        <OverallFeedback reportId={report.id} licenseKey={licenseKey} />
       </Section>
 
       {/* ── Back link ── */}

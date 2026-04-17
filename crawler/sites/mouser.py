@@ -11,10 +11,22 @@ from bs4 import BeautifulSoup
 from ..base_crawler import BaseCrawler
 from .. import db
 
-# Mouser category URL for bipolar transistors
-_CATEGORY_URL = (
+# Mouser category URLs — verified structure (HTML pages are JS-rendered/bot-blocked;
+# use MOUSER_API_KEY env var to enable the REST API path instead).
+#
+# BJTs:   https://www.mouser.com/c/semiconductors/discrete-semiconductors/transistors/bipolar-transistors-bjt/
+# MOSFETs: https://www.mouser.com/c/semiconductors/discrete-semiconductors/transistors/mosfet/
+#
+# Both URLs return HTTP 200 when accessed from a browser but time-out / serve an
+# empty SPA shell for plain HTTP clients.  The HTML crawl path will detect the
+# SPA shell and log a warning; supply MOUSER_API_KEY to use the REST API instead.
+_BJT_URL = (
     "https://www.mouser.com/c/semiconductors/discrete-semiconductors/"
     "transistors/bipolar-transistors-bjt/"
+)
+_MOSFET_URL = (
+    "https://www.mouser.com/c/semiconductors/discrete-semiconductors/"
+    "transistors/mosfet/"
 )
 
 # Space/mil-grade filter query params Mouser uses in its faceted search
@@ -46,8 +58,10 @@ class MouserCrawler(BaseCrawler):
     site_name = "Mouser"
     base_url = "https://www.mouser.com"
 
-    # Mouser category entry URL for bipolar transistors
-    ENTRY_URLS = [_CATEGORY_URL]
+    # Mouser category entry URLs: BJTs and MOSFETs (space/mil grade)
+    # NOTE: Both pages are JS-rendered. Plain HTTP crawl detects SPA shell and
+    # logs a warning. Set MOUSER_API_KEY env var to use the REST API path.
+    ENTRY_URLS = [_BJT_URL, _MOSFET_URL]
 
     def __init__(self, db_conn, delay=None):
         super().__init__(db_conn, delay or 2.0, respect_robots=True)

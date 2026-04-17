@@ -1,0 +1,380 @@
+[
+  {
+    "mpn": "JANSR2N7268",
+    "manufacturer": "Microchip (Microsemi) / VPT Components",
+    "part_type": "mosfet",
+    "qual_level": "JANSR",
+    "parameters": {
+      "bvdss_v": 100.0,
+      "vgs_th_v": 3.0,
+      "rds_on_ohm": 0.065,
+      "id_max_a": 34.0,
+      "idss_a": 1e-6,
+      "qg_c": 6e-8,
+      "pd_w": 150.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "N-channel",
+      "package": "TO-254AA metal-can"
+    },
+    "heritage_notes": "N-channel rad-hard power MOSFET per MIL-PRF-19500/603. TID 100 krad(Si). R4 generation die. 265x265 mil die size. Extensive NASA and DoD flight heritage in DC-DC converters and power switching. JANSR and JANTXVR qualification levels available.",
+    "source_url": "https://www.vptcomponents.com/product/jansr2n7268/"
+  },
+  {
+    "mpn": "JANSR2N7269",
+    "manufacturer": "Microchip (Microsemi) / VPT Components",
+    "part_type": "mosfet",
+    "qual_level": "JANSR",
+    "parameters": {
+      "bvdss_v": 200.0,
+      "vgs_th_v": 3.0,
+      "rds_on_ohm": 0.10,
+      "id_max_a": 26.0,
+      "idss_a": 1e-6,
+      "qg_c": 7e-8,
+      "pd_w": 150.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "N-channel",
+      "package": "TO-254AA metal-can"
+    },
+    "heritage_notes": "N-channel 200 V rad-hard MOSFET per MIL-PRF-19500/603. TID 100 krad(Si). Used in high-voltage spacecraft bus switching and power conditioning. Companion part to 2N7268 for 200 V bus architectures.",
+    "source_url": "https://www.vptcomponents.com/product/jansr2n7269/"
+  },
+  {
+    "mpn": "JANSR2N7270",
+    "manufacturer": "Microchip (Microsemi) / VPT Components",
+    "part_type": "mosfet",
+    "qual_level": "JANSR",
+    "parameters": {
+      "bvdss_v": 500.0,
+      "vgs_th_v": 3.5,
+      "rds_on_ohm": 0.45,
+      "id_max_a": 11.0,
+      "idss_a": 1e-6,
+      "qg_c": 5e-8,
+      "pd_w": 150.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "N-channel",
+      "package": "TO-254AA metal-can"
+    },
+    "heritage_notes": "N-channel 500 V rad-hard MOSFET per MIL-PRF-19500/603. TID 100 krad(Si). Highest BVDSS in the 2N726x family; used in high-voltage bus protection and flyback converter switches on spacecraft.",
+    "source_url": "https://www.vptcomponents.com/product/jansr2n7270/"
+  },
+  {
+    "mpn": "JANSR2N7380",
+    "manufacturer": "Microchip (Microsemi) / VPT Components",
+    "part_type": "mosfet",
+    "qual_level": "JANSR",
+    "parameters": {
+      "bvdss_v": 100.0,
+      "vgs_th_v": 3.0,
+      "rds_on_ohm": 0.18,
+      "id_max_a": 14.4,
+      "idss_a": 1e-6,
+      "qg_c": 4e-8,
+      "pd_w": 75.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "N-channel",
+      "package": "TO-257AA metal-can"
+    },
+    "heritage_notes": "N-channel 100 V rad-hard MOSFET per MIL-PRF-19500. TID 100 krad(Si). TO-257AA hermetic package. Used in satellite attitude control and payload power switching circuits.",
+    "source_url": "https://www.vptcomponents.com/product-category/mosfets/"
+  },
+  {
+    "mpn": "JANSR2N7381",
+    "manufacturer": "Microchip (Microsemi) / VPT Components",
+    "part_type": "mosfet",
+    "qual_level": "JANSR",
+    "parameters": {
+      "bvdss_v": 200.0,
+      "vgs_th_v": 3.0,
+      "rds_on_ohm": 0.40,
+      "id_max_a": 9.4,
+      "idss_a": 1e-6,
+      "qg_c": 4e-8,
+      "pd_w": 75.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "N-channel",
+      "package": "TO-257AA metal-can"
+    },
+    "heritage_notes": "N-channel 200 V rad-hard MOSFET per MIL-PRF-19500. TID 100 krad(Si). TO-257AA hermetic package. Complement to 2N7380 for higher-voltage spacecraft power management applications.",
+    "source_url": "https://www.vptcomponents.com/product-category/mosfets/"
+  },
+  {
+    "mpn": "JANSR2N7261",
+    "manufacturer": "Microchip (Microsemi) / VPT Components",
+    "part_type": "mosfet",
+    "qual_level": "JANSR",
+    "parameters": {
+      "bvdss_v": 100.0,
+      "vgs_th_v": 3.0,
+      "rds_on_ohm": 0.18,
+      "id_max_a": 8.0,
+      "idss_a": 1e-6,
+      "qg_c": 3e-8,
+      "pd_w": 50.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "N-channel",
+      "package": "TO-205AF metal-can"
+    },
+    "heritage_notes": "N-channel 100 V rad-hard MOSFET per MIL-PRF-19500. TID 100 krad(Si). TO-205AF hermetic package. Small-footprint companion to 2N7268; used in low-power spacecraft switching regulators.",
+    "source_url": "https://www.vptcomponents.com/product-category/mosfets/"
+  },
+  {
+    "mpn": "JANSR2N7262",
+    "manufacturer": "Microchip (Microsemi) / VPT Components",
+    "part_type": "mosfet",
+    "qual_level": "JANSR",
+    "parameters": {
+      "bvdss_v": 200.0,
+      "vgs_th_v": 3.0,
+      "rds_on_ohm": 0.35,
+      "id_max_a": 5.5,
+      "idss_a": 1e-6,
+      "qg_c": 3e-8,
+      "pd_w": 50.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "N-channel",
+      "package": "TO-205AF metal-can"
+    },
+    "heritage_notes": "N-channel 200 V rad-hard MOSFET per MIL-PRF-19500. TID 100 krad(Si). TO-205AF hermetic package. Used in 200 V bus satellite power systems where compact size is required.",
+    "source_url": "https://www.vptcomponents.com/product-category/mosfets/"
+  },
+  {
+    "mpn": "JANSR2N7392",
+    "manufacturer": "Microchip (Microsemi) / VPT Components",
+    "part_type": "mosfet",
+    "qual_level": "JANSR",
+    "parameters": {
+      "bvdss_v": 500.0,
+      "vgs_th_v": 3.5,
+      "rds_on_ohm": 0.32,
+      "id_max_a": 18.0,
+      "idss_a": 1e-6,
+      "qg_c": 8e-8,
+      "pd_w": 150.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "N-channel",
+      "package": "TO-254AA metal-can"
+    },
+    "heritage_notes": "N-channel 500 V rad-hard MOSFET per MIL-PRF-19500. TID 100 krad(Si). Higher ID than 2N7270 at same BVDSS. Used in high-power, high-voltage spacecraft DC-DC converter primary switches.",
+    "source_url": "https://www.vptcomponents.com/product-category/mosfets/"
+  },
+  {
+    "mpn": "IRHNJ9A7130",
+    "manufacturer": "Infineon (IR HiRel)",
+    "part_type": "mosfet",
+    "qual_level": "ESCC / MIL-PRF-19500",
+    "parameters": {
+      "bvdss_v": 100.0,
+      "vgs_th_v": 3.0,
+      "rds_on_ohm": 0.025,
+      "id_max_a": 35.0,
+      "idss_a": 1e-6,
+      "qg_c": 4e-8,
+      "pd_w": 100.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "N-channel",
+      "package": "SMD-0.5 hermetic"
+    },
+    "heritage_notes": "N-channel 100 V, 35 A rad-hard MOSFET. TID 100 krad(Si). SEE LET up to 90 MeV/(mg/cm²). R9 proprietary N-channel technology. RDS(on) 33% lower than previous generation. Designed for space DC-DC converters, motor controllers, and intermediate bus converters with 15+ year mission life.",
+    "source_url": "https://www.infineon.com/cms/en/product/high-reliability/space/power/rad-hard-mosfets/n-channel-rad-hard-power-mosfets/irhnj9a7130/"
+  },
+  {
+    "mpn": "IRHNJ9A3130",
+    "manufacturer": "Infineon (IR HiRel)",
+    "part_type": "mosfet",
+    "qual_level": "ESCC / MIL-PRF-19500",
+    "parameters": {
+      "bvdss_v": 100.0,
+      "vgs_th_v": 3.0,
+      "rds_on_ohm": 0.025,
+      "id_max_a": 35.0,
+      "idss_a": 1e-6,
+      "qg_c": 4e-8,
+      "pd_w": 100.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "N-channel",
+      "package": "SMD-0.5 hermetic"
+    },
+    "heritage_notes": "N-channel 100 V, 35 A rad-hard MOSFET. TID 300 krad(Si) — higher TID variant of IRHNJ9A7130. SEE LET up to 90 MeV/(mg/cm²). R9 technology. For deep-space or high-radiation orbit missions requiring 300 krad total dose budget.",
+    "source_url": "https://octopart.com/irhnj9a3130-infineon-91542813"
+  },
+  {
+    "mpn": "JANTX2N6798",
+    "manufacturer": "Microchip (Microsemi) / Infineon (IR HiRel)",
+    "part_type": "mosfet",
+    "qual_level": "JANTX",
+    "parameters": {
+      "bvdss_v": 200.0,
+      "vgs_th_v": 2.5,
+      "rds_on_ohm": 0.40,
+      "id_max_a": 5.5,
+      "idss_a": 1e-6,
+      "qg_c": 3e-8,
+      "pd_w": 40.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "N-channel",
+      "package": "TO-205AF metal-can"
+    },
+    "heritage_notes": "N-channel MOSFET qualified per MIL-PRF-19500/557. JAN, JANTX, JANTXV qualification levels; JANS available. Top-hat design with flexible terminals and low-profile U-18 LCC SMT option. Widely used in DoD satellite and launch vehicle power electronics.",
+    "source_url": "https://www.alldatasheet.com/datasheet-pdf/pdf/527661/MICROSEMI/JANTX2N6798.html"
+  },
+  {
+    "mpn": "JANSR2N7391D4",
+    "manufacturer": "Microchip (Microsemi) / VPT Components",
+    "part_type": "mosfet",
+    "qual_level": "JANSR",
+    "parameters": {
+      "bvdss_v": 400.0,
+      "vgs_th_v": 3.5,
+      "rds_on_ohm": 0.20,
+      "id_max_a": 22.0,
+      "idss_a": 1e-6,
+      "qg_c": 9e-8,
+      "pd_w": 150.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "N-channel",
+      "package": "TO-254AA TL hermetic"
+    },
+    "heritage_notes": "N-channel 400 V, 22 A rad-hard MOSFET per MIL-PRF-19500. TID 100 krad(Si). TO-254AA TL (top-lead) hermetic package. Used in medium-voltage spacecraft power buses and propulsion electronics.",
+    "source_url": "https://www.vptcomponents.com/product-category/mosfets/"
+  },
+  {
+    "mpn": "IRHNA340",
+    "manufacturer": "Infineon (IR HiRel)",
+    "part_type": "mosfet",
+    "qual_level": "JANTX / MIL-PRF-19500",
+    "parameters": {
+      "bvdss_v": 100.0,
+      "vgs_th_v": 3.0,
+      "rds_on_ohm": 0.044,
+      "id_max_a": 28.0,
+      "idss_a": 1e-6,
+      "qg_c": 5e-8,
+      "pd_w": 83.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "N-channel",
+      "package": "TO-254AA metal-can"
+    },
+    "heritage_notes": "N-channel rad-hard MOSFET from Infineon IR HiRel IRHNA series. MIL-PRF-19500 qualified. TID 100 krad(Si). Used in spacecraft power switching and synchronous rectification in space-grade DC-DC converters. Predecessor to the IRHNJ9A series.",
+    "source_url": "https://www.infineon.com/cms/en/product/high-reliability/space/power/rad-hard-mosfets/"
+  },
+  {
+    "mpn": "JANSR2N7268U",
+    "manufacturer": "Microchip (Microsemi) / VPT Components",
+    "part_type": "mosfet",
+    "qual_level": "JANSR",
+    "parameters": {
+      "bvdss_v": 100.0,
+      "vgs_th_v": 3.0,
+      "rds_on_ohm": 0.065,
+      "id_max_a": 34.0,
+      "idss_a": 1e-6,
+      "qg_c": 6e-8,
+      "pd_w": 150.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "N-channel",
+      "package": "SMD-1 hermetic surface-mount"
+    },
+    "heritage_notes": "Surface-mount variant of JANSR2N7268 per MIL-PRF-19500/603. SMD-1 hermetic package for high-density space power electronics. TID 100 krad(Si). Same die as through-hole version; used in compact satellite power modules.",
+    "source_url": "https://www.vptcomponents.com/product-category/mosfets/"
+  },
+  {
+    "mpn": "JANSR2N7380U3",
+    "manufacturer": "Microchip (Microsemi) / VPT Components",
+    "part_type": "mosfet",
+    "qual_level": "JANSR",
+    "parameters": {
+      "bvdss_v": 100.0,
+      "vgs_th_v": 3.0,
+      "rds_on_ohm": 0.18,
+      "id_max_a": 14.4,
+      "idss_a": 1e-6,
+      "qg_c": 4e-8,
+      "pd_w": 75.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "N-channel",
+      "package": "SMD-0.5 hermetic surface-mount"
+    },
+    "heritage_notes": "Surface-mount variant of JANSR2N7380 in SMD-0.5 package. TID 100 krad(Si). MIL-PRF-19500 qualified. Used in small-satellite and CubeSat-heritage power boards where board density is critical.",
+    "source_url": "https://www.vptcomponents.com/product-category/mosfets/"
+  },
+  {
+    "mpn": "IRHLNA677Z4",
+    "manufacturer": "Infineon (IR HiRel)",
+    "part_type": "mosfet",
+    "qual_level": "ESCC / MIL-PRF-19500",
+    "parameters": {
+      "bvdss_v": 100.0,
+      "vgs_th_v": -1.5,
+      "rds_on_ohm": 0.20,
+      "id_max_a": 10.0,
+      "idss_a": 1e-6,
+      "qg_c": 3e-8,
+      "pd_w": 50.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "P-channel",
+      "package": "SMD-0.5 hermetic"
+    },
+    "heritage_notes": "P-channel rad-hard power MOSFET from Infineon IR HiRel IRHLNA series. TID 100 krad(Si). ESCC/MIL-PRF-19500 qualified. Used in complementary half-bridge configurations, load switches, and reverse battery protection in spacecraft power systems. Vgs_th is negative (enhancement P-channel).",
+    "source_url": "https://www.infineon.com/cms/en/product/high-reliability/space/power/rad-hard-mosfets/p-channel-rad-hard-power-mosfets/"
+  },
+  {
+    "mpn": "IRHLUB7770Z4",
+    "manufacturer": "Infineon (IR HiRel)",
+    "part_type": "mosfet",
+    "qual_level": "ESCC / MIL-PRF-19500",
+    "parameters": {
+      "bvdss_v": 100.0,
+      "vgs_th_v": -2.0,
+      "rds_on_ohm": 0.12,
+      "id_max_a": 16.0,
+      "idss_a": 1e-6,
+      "qg_c": 5e-8,
+      "pd_w": 75.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "P-channel",
+      "package": "SMD-1 hermetic"
+    },
+    "heritage_notes": "P-channel rad-hard power MOSFET from Infineon IR HiRel. TID 100 krad(Si). Used in synchronous rectification and high-side switch applications in spacecraft power converters. ESA ESCC qualified.",
+    "source_url": "https://www.infineon.com/cms/en/product/high-reliability/space/power/rad-hard-mosfets/p-channel-rad-hard-power-mosfets/"
+  },
+  {
+    "mpn": "JANTXV2N7268",
+    "manufacturer": "Microchip (Microsemi)",
+    "part_type": "mosfet",
+    "qual_level": "JANTXV",
+    "parameters": {
+      "bvdss_v": 100.0,
+      "vgs_th_v": 3.0,
+      "rds_on_ohm": 0.065,
+      "id_max_a": 34.0,
+      "idss_a": 1e-6,
+      "qg_c": 6e-8,
+      "pd_w": 150.0,
+      "tj_max_c": 175.0,
+      "gate_oxide": "thick",
+      "polarity": "N-channel",
+      "package": "TO-254AA metal-can"
+    },
+    "heritage_notes": "JANTXV (highest visual inspection) qualification of 2N7268 per MIL-PRF-19500/603. TID 100 krad(Si). R4 die. Used on NASA flagship science missions requiring the most stringent upscreening. Parameters identical to JANSR variant; qualification process is more rigorous.",
+    "source_url": "https://www.document-center.com/standards/show/MIL-PRF-19500/603"
+  }
+]

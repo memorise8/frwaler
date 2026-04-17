@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .settings import pro_settings
 from .auth import init_license_db
-from .routers import auto_add, summarize, analyze, license, screening
+from .routers import auto_add, summarize, analyze, license, screening, users
 
 app = FastAPI(title="Crawler PRO API", version="1.0.0")
 
@@ -36,6 +36,8 @@ async def startup():
         pro_settings.screening_db_path,
         pro_settings.factors_seed_path,
         pro_settings.heritage_seed_path,
+        mosfet_factors_json_path=pro_settings.mosfet_factors_seed_path,
+        mosfet_heritage_json_path=pro_settings.mosfet_heritage_seed_path,
     )
 
 
@@ -44,6 +46,7 @@ app.include_router(summarize.router)
 app.include_router(analyze.router)
 app.include_router(license.router)
 app.include_router(screening.router)
+app.include_router(users.router)
 
 
 @app.get("/pro/api/health")

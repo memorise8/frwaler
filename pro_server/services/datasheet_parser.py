@@ -53,6 +53,45 @@ Text:
 
 _BJT_FIELD_COUNT = 12  # number of BjtParameters fields used for confidence
 
+_MOSFET_SYSTEM_PROMPT = (
+    "You are a semiconductor datasheet parser. Extract MOSFET (Metal-Oxide-Semiconductor "
+    "Field-Effect Transistor) parameters and return STRICT JSON only. Do not invent values. "
+    "Use null for missing."
+)
+
+_MOSFET_USER_TEMPLATE = """\
+Extract from this datasheet text. Return a JSON object with exactly these keys:
+bvdss, vgs_th, rds_on, id_max, idss, qg, pd, tj_max,
+gate_oxide, polarity, package, extracted_mosfet_type_confirmed (bool), extraction_notes (string).
+
+Rules:
+- For numeric values include the unit in the string (e.g. "100 V", "1 mΩ", "50 nC").
+- For polarity use "N-channel" or "P-channel".
+- For gate_oxide use "thick", "standard", or "thin" if determinable, else null.
+- For package use the standard name (e.g. "TO-254AA", "TO-257AA", "SMD-1").
+- Return null (not empty string) for any value you cannot find.
+- Do NOT add extra keys.
+
+MPN hint: {mpn_hint}
+
+Text:
+{text}
+"""
+
+_MOSFET_STRICT_USER_TEMPLATE = """\
+You MUST return valid JSON only — no prose, no markdown, no code fences.
+Keys: bvdss, vgs_th, rds_on, id_max, idss, qg, pd, tj_max,
+gate_oxide, polarity, package, extracted_mosfet_type_confirmed (bool), extraction_notes (string).
+Unknown values → null.
+
+MPN hint: {mpn_hint}
+
+Text:
+{text}
+"""
+
+_MOSFET_FIELD_COUNT = 11  # number of MosfetParameters fields used for confidence
+
 
 # ---------------------------------------------------------------------------
 # Gemini (primary)
@@ -280,6 +319,136 @@ def extract_from_pdf_path(
 
     text = extract_text_pdf(path) or ""
     return extract_from_text(text, mpn_hint=mpn_hint)
+
+
+# ---------------------------------------------------------------------------
+# MOSFET extraction
+# ---------------------------------------------------------------------------
+
+def extract_mosfet_from_text(
+    text: str, mpn_hint: Optional[str] = None
+) -> tuple[dict, float, int]:
+    """Extract MOSFET parameters from raw datasheet text.
+
+    Tries Gemini first (free tier). Falls back to OpenAI on any failure.
+
+    Returns:
+        (mosfet_params_dict, extraction_confidence_0_to_1, tokens_used)
+    """
+    from pro_server.services.normalizer import normalize_mosfet_params
+
+    truncated = text[:12000]
+    hint = mpn_hint or "unknown"
+    user_msg = _MOSFET_USER_TEMPLATE.format(mpn_hint=hint, text=truncated)
+    strict_msg = _MOSFET_STRICT_USER_TEMPLATE.format(mpn_hint=hint, text=truncated)
+
+    raw: Optional[dict] = None
+    total_tokens = 0
+    provider_used = None
+
+    # --- Try Gemini first ---
+    gclient, gmodel = _make_gemini_client()
+    if gclient is not None:
+        # Temporarily swap system prompt for MOSFET
+        original_system = _SYSTEM_PROMPT
+        try:
+            import pro_server.services.datasheet_parser as _self
+            _self._SYSTEM_PROMPT_BACKUP = _SYSTEM_PROMPT
+
+            def _gemini_call_mosfet(msg):
+                resp = gclient.models.generate_content(
+                    model=gmodel,
+                    contents=f"{_MOSFET_SYSTEM_PROMPT}\n\n{msg}",
+                    config={"response_mime_type": "application/json", "max_output_tokens": 1024},
+                )
+                usage = resp.usage_metadata
+                tokens = (usage.prompt_token_count or 0) + (usage.candidates_token_count or 0)
+                import json as _json
+                return _json.loads((resp.text or "").strip()), tokens
+
+            raw, total_tokens = _try_provider(
+                _gemini_call_mosfet,
+                user_msg, strict_msg,
+            )
+            if raw is not None:
+                provider_used = "gemini"
+        except RuntimeError:
+            _LOGGER.warning("Gemini failed for MOSFET; falling back to OpenAI")
+            raw = None
+
+    # --- Fallback to OpenAI ---
+    if raw is None:
+        oclient = _make_openai_client()
+        if oclient is not None:
+            def _openai_call_mosfet(msg):
+                import json as _json
+                response = oclient.chat.completions.create(
+                    model=_OPENAI_MODEL,
+                    messages=[
+                        {"role": "system", "content": _MOSFET_SYSTEM_PROMPT},
+                        {"role": "user", "content": msg},
+                    ],
+                    response_format={"type": "json_object"},
+                    max_tokens=1024,
+                )
+                tokens = response.usage.total_tokens
+                return _json.loads(response.choices[0].message.content or ""), tokens
+
+            try:
+                raw, total_tokens = _try_provider(
+                    _openai_call_mosfet,
+                    user_msg, strict_msg,
+                )
+                if raw is not None:
+                    provider_used = "openai"
+            except RuntimeError:
+                raise
+
+    if raw is None:
+        if provider_used is None:
+            raise RuntimeError(
+                "No LLM provider configured. Set GEMINI_KEY or PRO_OPENAI_API_KEY "
+                "in your environment."
+            )
+        raise ValueError(
+            "All LLM extraction attempts produced invalid JSON. "
+            "Check that the input is a valid MOSFET datasheet."
+        )
+
+    _LOGGER.info("MOSFET datasheet extracted via %s (tokens=%d)", provider_used, total_tokens)
+
+    normalized = normalize_mosfet_params(raw)
+
+    non_null = sum(1 for v in normalized.values() if v is not None)
+    confidence = non_null / _MOSFET_FIELD_COUNT
+
+    mosfet_confirmed = raw.get("extracted_mosfet_type_confirmed", True)
+    notes = str(raw.get("extraction_notes") or "").lower()
+    if mpn_hint and not mosfet_confirmed:
+        confidence = max(0.0, confidence - 0.1)
+    if "uncertain" in notes or "could not find" in notes:
+        confidence = max(0.0, confidence - 0.1)
+
+    confidence = min(1.0, confidence)
+    return normalized, confidence, total_tokens
+
+
+def extract_mosfet_from_pdf_bytes(
+    pdf_bytes: bytes, mpn_hint: Optional[str] = None
+) -> tuple[dict, float, int]:
+    """Extract MOSFET parameters from raw PDF bytes."""
+    from crawler.converter import extract_text_pdf
+
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+        tmp.write(pdf_bytes)
+        tmp_path = tmp.name
+
+    try:
+        text = extract_text_pdf(tmp_path) or ""
+    finally:
+        os.unlink(tmp_path)
+
+    return extract_mosfet_from_text(text, mpn_hint=mpn_hint)
 
 
 if __name__ == "__main__":

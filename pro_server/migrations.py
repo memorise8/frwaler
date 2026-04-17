@@ -58,14 +58,55 @@ def run_migrations(db_path: str) -> None:
         CREATE INDEX IF NOT EXISTS idx_screening_results_license_created
         ON screening_results (license_key, created_at)
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS screening_feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            report_id TEXT NOT NULL,
+            factor_name TEXT,
+            rating TEXT NOT NULL,
+            comment TEXT,
+            license_key TEXT NOT NULL,
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (report_id) REFERENCES screening_results(id),
+            UNIQUE(report_id, factor_name, license_key)
+        )
+    """)
+    conn.execute("""
+        CREATE INDEX IF NOT EXISTS idx_feedback_report ON screening_feedback(report_id)
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            password_hash TEXT NOT NULL,
+            password_salt TEXT NOT NULL,
+            license_key TEXT,
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (license_key) REFERENCES licenses(key)
+        )
+    """)
+    conn.execute("""
+        CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)
+    """)
+
+    # Add email and ip columns to licenses table if they don't exist
+    for col_sql in [
+        "ALTER TABLE licenses ADD COLUMN email TEXT",
+        "ALTER TABLE licenses ADD COLUMN ip TEXT",
+    ]:
+        try:
+            conn.execute(col_sql)
+        except Exception:
+            pass  # Column already exists
+
     conn.commit()
     conn.close()
 
 
-def seed_if_empty(db_path: str, factors_json_path: str, heritage_json_path: str) -> None:
-    conn = sqlite3.connect(db_path)
+def _seed_factors(conn, factors_json_path: str, part_type: str) -> None:
     count = conn.execute(
-        "SELECT COUNT(*) FROM space_factors WHERE part_type='bjt'"
+        "SELECT COUNT(*) FROM space_factors WHERE part_type=?", (part_type,)
     ).fetchone()[0]
     if count == 0:
         try:
@@ -90,10 +131,12 @@ def seed_if_empty(db_path: str, factors_json_path: str, heritage_json_path: str)
         except FileNotFoundError:
             print(f"Warning: factors seed file not found: {factors_json_path}")
 
-    heritage_count = conn.execute(
-        "SELECT COUNT(*) FROM heritage_parts WHERE part_type='bjt'"
+
+def _seed_heritage(conn, heritage_json_path: str, part_type: str) -> None:
+    count = conn.execute(
+        "SELECT COUNT(*) FROM heritage_parts WHERE part_type=?", (part_type,)
     ).fetchone()[0]
-    if heritage_count == 0:
+    if count == 0:
         try:
             with open(heritage_json_path, "r") as f:
                 parts = json.load(f)
@@ -115,5 +158,19 @@ def seed_if_empty(db_path: str, factors_json_path: str, heritage_json_path: str)
             conn.commit()
         except FileNotFoundError:
             print(f"Warning: heritage seed file not found: {heritage_json_path}")
+
+
+def seed_if_empty(db_path: str, factors_json_path: str, heritage_json_path: str,
+                  mosfet_factors_json_path: str = "",
+                  mosfet_heritage_json_path: str = "") -> None:
+    conn = sqlite3.connect(db_path)
+
+    _seed_factors(conn, factors_json_path, "bjt")
+    _seed_heritage(conn, heritage_json_path, "bjt")
+
+    if mosfet_factors_json_path:
+        _seed_factors(conn, mosfet_factors_json_path, "mosfet")
+    if mosfet_heritage_json_path:
+        _seed_heritage(conn, mosfet_heritage_json_path, "mosfet")
 
     conn.close()

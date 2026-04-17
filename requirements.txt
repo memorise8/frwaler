@@ -20,6 +20,9 @@ pdfplumber
 openai
 google-genai
 
+# JWT auth
+PyJWT
+
 # Dev / test
 pytest
 httpx

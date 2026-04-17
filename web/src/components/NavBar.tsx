@@ -7,8 +7,12 @@ const links = [
   { href: "/products", label: "제품 검색" },
   { href: "/categories", label: "카테고리" },
   { href: "/stats", label: "통계" },
+  { href: "/register", label: "키 발급" },
   { href: "/screening", label: "Screening" },
+  { href: "/screening/compare", label: "비교" },
 ];
+
+const adminLink = { href: "/admin", label: "관리" };
 
 export default function NavBar() {
   const pathname = usePathname();
@@ -85,7 +89,11 @@ export default function NavBar() {
         <nav className="flex items-center gap-6">
           {links.map(({ href, label }) => {
             const isActive =
-              href === "/" ? pathname === "/" : pathname.startsWith(href);
+              href === "/"
+                ? pathname === "/"
+                : href === "/screening"
+                ? pathname === "/screening" || pathname.startsWith("/screening/") && !pathname.startsWith("/screening/compare")
+                : pathname.startsWith(href);
             return (
               <Link
                 key={href}
@@ -96,6 +104,22 @@ export default function NavBar() {
               </Link>
             );
           })}
+
+          {/* Admin link — small, less prominent */}
+          <Link
+            href={adminLink.href}
+            style={{
+              fontSize: "0.72rem",
+              color: pathname.startsWith("/admin") ? "var(--accent-cyan)" : "var(--text-dim)",
+              textDecoration: "none",
+              letterSpacing: "0.04em",
+              borderLeft: "1px solid var(--border-dim)",
+              paddingLeft: "0.75rem",
+              transition: "color 0.2s",
+            }}
+          >
+            {adminLink.label}
+          </Link>
 
           {/* Live indicator */}
           <div

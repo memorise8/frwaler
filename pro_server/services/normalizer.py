@@ -139,6 +139,41 @@ def normalize_bjt_params(raw: dict) -> dict:
     return result
 
 
+MOSFET_KEY_MAP = {
+    'bvdss': 'bvdss_v', 'vdss': 'bvdss_v', 'breakdown': 'bvdss_v',
+    'vgs_th': 'vgs_th_v', 'vth': 'vgs_th_v', 'threshold': 'vgs_th_v',
+    'rds_on': 'rds_on_ohm', 'rdson': 'rds_on_ohm',
+    'id_max': 'id_max_a', 'id': 'id_max_a', 'drain_current': 'id_max_a',
+    'idss': 'idss_a', 'drain_leakage': 'idss_a',
+    'qg': 'qg_c', 'gate_charge': 'qg_c',
+    'pd': 'pd_w', 'power': 'pd_w',
+    'tj': 'tj_max_c', 'tj_max': 'tj_max_c',
+    'gate_oxide': 'gate_oxide',
+    'polarity': 'polarity', 'type': 'polarity', 'channel': 'polarity',
+    'package': 'package', 'case': 'package',
+}
+
+_MOSFET_STRING_FIELDS = {'gate_oxide', 'polarity', 'package'}
+
+
+def normalize_mosfet_params(raw: dict) -> dict:
+    """Normalise an LLM-extracted raw dict to MosfetParameters field names."""
+    result: dict = {}
+    for raw_key, raw_val in raw.items():
+        canonical = MOSFET_KEY_MAP.get(raw_key.lower().strip())
+        if canonical is None:
+            continue
+        if canonical in _MOSFET_STRING_FIELDS:
+            if raw_val is None:
+                result[canonical] = None
+            else:
+                result[canonical] = str(raw_val).strip()
+        else:
+            si_val, _unit, _note = parse_value(raw_val)
+            result[canonical] = si_val
+    return result
+
+
 if __name__ == '__main__':
     # --- parse_value tests ---
     v, u, n = parse_value('100 nA')

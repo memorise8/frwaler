@@ -10,12 +10,26 @@ from bs4 import BeautifulSoup
 from ..base_crawler import BaseCrawler
 from .. import db
 
-# TODO: Confirm the exact Doeeet category URL for bipolar transistors.
-# Candidates based on common EEE catalogue structures:
-#   https://doeeet.com/semiconductors/discrete/bipolar-transistors/
-#   https://doeeet.com/search/?q=BJT&category=transistors
-# Leave ENTRY_URLS empty until the correct path is verified.
-ENTRY_URLS = []
+# Doeeet (doEEEt by Alter Technology) — space/EEE parts catalogue.
+#
+# IMPORTANT: The site requires a free account login to access any part search
+# or catalogue tool (Comparator, Stockplace, DCL Manager).  There are NO
+# publicly accessible category pages for BJTs or MOSFETs.
+#
+# The entry URLs below are the authenticated tool pages.  Crawling them
+# requires a valid session cookie; set DOEEET_SESSION_COOKIE env var
+# (copy from a logged-in browser) and pass it via cookies= to __init__.
+#
+# Verified URL structure (2026-04):
+#   ESA Stockplace: https://www.doeeet.com/stockplace          (login required)
+#   Comparator:     https://www.doeeet.com/comparator          (login required)
+#
+# Without auth the crawler will receive a login-redirect (HTTP 200 login page)
+# and _parse_listing() will find no products — safe no-op.
+ENTRY_URLS = [
+    "https://www.doeeet.com/stockplace",
+    "https://www.doeeet.com/comparator",
+]
 
 _QUAL_KEYWORDS = (
     "JANS", "JANSR", "JANTXV", "JANTX", "JAN",

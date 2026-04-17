@@ -15,8 +15,11 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
+from pydantic import BaseModel
+
 from ..schemas import (
     BjtParameters,
+    MosfetParameters,
     FactorOut,
     FactorScore,
     HeritageMatch,
@@ -42,6 +45,14 @@ FACTOR_NAME_TO_PARAM_KEY: Dict[str, str] = {
     "Ic_margin": "ic_max_a",
     "Vebo_ESD_margin": "vebo_v",
     "polarity_complement_availability": "polarity",
+    # MOSFET factors
+    "Vgs_th_shift": "vgs_th_v",
+    "BVDSS_headroom": "bvdss_v",
+    "Rds_on_margin": "rds_on_ohm",
+    "IDSS_leakage": "idss_a",
+    "gate_oxide_thickness": "gate_oxide",
+    "Qg_margin": "qg_c",
+    "Id_margin": "id_max_a",
 }
 
 # Design references for 'margin' direction — ratio = value / ref.
@@ -49,6 +60,10 @@ DESIGN_REFERENCES: Dict[str, Dict[str, Any]] = {
     "hFE_margin": {"ref": 40.0, "desc": "nominal hFE design target"},
     "power_derating_margin": {"ref": 0.5, "desc": "50% derating factor (W)"},
     "Ic_margin": {"ref": 0.1, "desc": "typical switching current A"},
+    # MOSFET design references
+    "Vgs_th_shift": {"ref": 1.0, "desc": "1V enhancement threshold reference"},
+    "Rds_on_margin": {"ref": 0.5, "desc": "0.5Ω design reference"},
+    "Id_margin": {"ref": 1.0, "desc": "1A design reference"},
 }
 
 ALPHA = 0.6
@@ -167,7 +182,7 @@ def _margin_ratio(factor_name: str, raw_value: float) -> Optional[float]:
 # Vectorization / k-NN
 # --------------------------------------------------------------------------- #
 
-def _to_vector(params: BjtParameters, keys: List[str]) -> List[Optional[float]]:
+def _to_vector(params: BaseModel, keys: List[str]) -> List[Optional[float]]:
     out: List[Optional[float]] = []
     for k in keys:
         val = getattr(params, k, None)
@@ -248,7 +263,7 @@ def _top_k_neighbors(
 # Risk flags
 # --------------------------------------------------------------------------- #
 
-def _risk_flags(params: BjtParameters,
+def _risk_flags(params: BaseModel,
                 neighbors: List[Tuple[Dict[str, Any], float]],
                 factor_scores: List[FactorScore]) -> List[RiskFlag]:
     flags: List[RiskFlag] = []
@@ -307,7 +322,7 @@ def _risk_flags(params: BjtParameters,
 # --------------------------------------------------------------------------- #
 
 def _score_single_factor(
-    params: BjtParameters, factor: FactorOut,
+    params: BaseModel, factor: FactorOut,
 ) -> Tuple[float, float, Optional[float]]:
     """Returns (score, coverage, numeric_value_for_report)."""
     param_key = FACTOR_NAME_TO_PARAM_KEY.get(factor.factor_name)
@@ -339,7 +354,7 @@ def _score_single_factor(
 
 
 def score_report(
-    params: BjtParameters,
+    params: BaseModel,
     factors: List[FactorOut],
     heritage_rows: List[Dict[str, Any]],
     heritage_vectors: List[List[Optional[float]]],

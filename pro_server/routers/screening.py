@@ -4,15 +4,33 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from ..auth import verify_license, log_usage
 from ..settings import pro_settings
-from ..schemas import (ScreeningReport, BjtParameters,
-                       FactorOut, FactorScore, FactorSource, HeritageMatch, RiskFlag)
+from ..schemas import (ScreeningReport, BjtParameters, MosfetParameters,
+                       FactorOut, FactorScore, FactorSource, HeritageMatch, RiskFlag,
+                       FeedbackRequest, FeedbackResponse, FeedbackSummary, FeedbackFactorSummary)
 from ..services.factor_kb import load_factors
-from ..services.heritage_db import list_heritage, get_vectors, VECTOR_KEYS
+from ..services.heritage_db import list_heritage, get_vectors, VECTOR_KEYS, MOSFET_VECTOR_KEYS
 from ..services.scorer import score_report
-from ..services.datasheet_parser import extract_from_pdf_bytes
-from ..services.normalizer import normalize_bjt_params
+from ..services.datasheet_parser import extract_from_pdf_bytes, extract_mosfet_from_pdf_bytes
+from ..services.normalizer import normalize_bjt_params, normalize_mosfet_params
 
 router = APIRouter(prefix="/pro/api", tags=["screening"])
+
+
+def _check_global_quota():
+    """Reject if total daily screening requests across all users exceed the global cap."""
+    from datetime import date
+    conn = sqlite3.connect(pro_settings.license_db_path)
+    today = date.today().isoformat()
+    count = conn.execute(
+        "SELECT COUNT(*) FROM usage_log WHERE endpoint IN ('screen-bjt','screen-mosfet') AND timestamp >= ?",
+        (today,),
+    ).fetchone()[0]
+    conn.close()
+    if count >= pro_settings.max_global_requests_per_day:
+        raise HTTPException(
+            status_code=429,
+            detail=f"일일 전체 분석 한도({pro_settings.max_global_requests_per_day}건)를 초과했습니다. 내일 다시 시도해주세요.",
+        )
 
 
 @router.post("/screen-bjt", response_model=ScreeningReport)
@@ -23,6 +41,7 @@ async def screen_bjt(
     license_info: dict = Depends(verify_license),
 ):
     """Accept either a PDF upload or MPN (form field)."""
+    _check_global_quota()
     if file is None and not mpn:
         raise HTTPException(status_code=400, detail="Provide either a PDF file or an mpn")
 
@@ -91,6 +110,76 @@ async def screen_bjt(
     return report
 
 
+@router.post("/screen-mosfet", response_model=ScreeningReport)
+async def screen_mosfet(
+    file: Optional[UploadFile] = File(None),
+    mpn: Optional[str] = Form(None),
+    manufacturer: Optional[str] = Form(None),
+    license_info: dict = Depends(verify_license),
+):
+    """Accept either a PDF upload or MPN (form field) for MOSFET screening."""
+    _check_global_quota()
+    if file is None and not mpn:
+        raise HTTPException(status_code=400, detail="Provide either a PDF file or an mpn")
+
+    tokens = 0
+    extraction_confidence = 1.0
+    input_source = "pdf" if file else "mpn"
+
+    if file:
+        pdf_bytes = await file.read()
+        if len(pdf_bytes) < 100:
+            raise HTTPException(status_code=400, detail="PDF too small / empty")
+        if len(pdf_bytes) > 20 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="PDF exceeds 20MB")
+        try:
+            raw_params, extraction_confidence, t = extract_mosfet_from_pdf_bytes(pdf_bytes, mpn_hint=mpn)
+            tokens += t
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception("MOSFET datasheet extraction failed")
+            raise HTTPException(status_code=422, detail="Datasheet extraction failed")
+        normalized = normalize_mosfet_params(raw_params)
+    else:
+        heritage = [h for h in list_heritage("mosfet") if h["mpn"].lower() == mpn.lower()]
+        if heritage:
+            normalized = heritage[0]["parameters"]
+            extraction_confidence = 1.0
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    f"MPN '{mpn}' not found in MOSFET heritage DB. "
+                    "Please upload a PDF datasheet."
+                ),
+            )
+
+    params = MosfetParameters(**{k: v for k, v in normalized.items()
+                                  if k in MosfetParameters.model_fields})
+
+    factors = load_factors("mosfet")
+    heritage_rows, heritage_vectors = get_vectors("mosfet", MOSFET_VECTOR_KEYS)
+
+    report_id = str(uuid.uuid4())
+    report = score_report(
+        params=params,
+        factors=factors,
+        heritage_rows=heritage_rows,
+        heritage_vectors=heritage_vectors,
+        vector_keys=MOSFET_VECTOR_KEYS,
+        extraction_confidence=extraction_confidence,
+        input_mpn=mpn,
+        input_source=input_source,
+        report_id=report_id,
+        tokens_used=tokens,
+    )
+
+    _save_report(report, license_info["key"])
+    log_usage(license_info["key"], "screen-mosfet", tokens)
+
+    return report
+
+
 @router.get("/screen-bjt/{report_id}", response_model=ScreeningReport)
 async def get_screening(report_id: str, license_info: dict = Depends(verify_license)):
     conn = sqlite3.connect(pro_settings.screening_db_path)
@@ -108,6 +197,64 @@ async def get_screening(report_id: str, license_info: dict = Depends(verify_lice
 @router.get("/factors", response_model=List[FactorOut])
 async def list_bjt_factors(part_type: str = "bjt", license_info: dict = Depends(verify_license)):
     return load_factors(part_type)
+
+
+@router.post("/feedback", response_model=FeedbackResponse)
+async def submit_feedback(req: FeedbackRequest, license_info: dict = Depends(verify_license)):
+    if req.rating not in ("up", "down"):
+        raise HTTPException(status_code=400, detail="rating must be 'up' or 'down'")
+    conn = sqlite3.connect(pro_settings.screening_db_path)
+    # Validate report exists
+    row = conn.execute(
+        "SELECT id FROM screening_results WHERE id=?", (req.report_id,)
+    ).fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Report not found")
+    # INSERT OR REPLACE for one-feedback-per-(report, factor, license)
+    # SQLite UNIQUE(report_id, factor_name, license_key) — need to handle NULL factor_name
+    # Use a sentinel for NULL since NULL != NULL in UNIQUE constraints
+    cursor = conn.execute(
+        """INSERT OR REPLACE INTO screening_feedback
+               (report_id, factor_name, rating, comment, license_key)
+           VALUES (?, ?, ?, ?, ?)""",
+        (req.report_id, req.factor_name, req.rating, req.comment, license_info["key"]),
+    )
+    feedback_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return FeedbackResponse(id=feedback_id, message="Feedback recorded")
+
+
+@router.get("/feedback/{report_id}", response_model=FeedbackSummary)
+async def get_feedback(report_id: str, license_info: dict = Depends(verify_license)):
+    conn = sqlite3.connect(pro_settings.screening_db_path)
+    rows = conn.execute(
+        "SELECT factor_name, rating FROM screening_feedback WHERE report_id=?",
+        (report_id,),
+    ).fetchall()
+    conn.close()
+
+    total_up = sum(1 for r in rows if r[1] == "up")
+    total_down = sum(1 for r in rows if r[1] == "down")
+
+    factor_map: dict = {}
+    for factor_name, rating in rows:
+        key = factor_name  # may be None for overall
+        if key not in factor_map:
+            factor_map[key] = {"up": 0, "down": 0}
+        factor_map[key][rating] += 1
+
+    per_factor = [
+        FeedbackFactorSummary(factor_name=k, up=v["up"], down=v["down"])
+        for k, v in factor_map.items()
+    ]
+    return FeedbackSummary(
+        report_id=report_id,
+        total_up=total_up,
+        total_down=total_down,
+        per_factor=per_factor,
+    )
 
 
 def _save_report(r: ScreeningReport, license_key: str) -> None:

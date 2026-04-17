@@ -14,6 +14,11 @@ VECTOR_KEYS = [
     "icbo_a_at_vcb", "ft_hz", "pd_w", "tj_max_c",
 ]
 
+MOSFET_VECTOR_KEYS = [
+    "bvdss_v", "vgs_th_v", "rds_on_ohm", "id_max_a",
+    "idss_a", "qg_c", "pd_w", "tj_max_c",
+]
+
 _QUAL_SCORES = {
     "JANS": 1.0,
     "JANSR": 0.95,
@@ -73,11 +78,13 @@ def _get_count(part_type: str) -> int:
         conn.close()
 
 
-def _build_vectors(rows: List[Dict[str, Any]]) -> List[List[Optional[float]]]:
+def _build_vectors(rows: List[Dict[str, Any]],
+                   vector_keys: Optional[List[str]] = None) -> List[List[Optional[float]]]:
+    keys = vector_keys if vector_keys is not None else VECTOR_KEYS
     vectors = []
     for row in rows:
         params = row["parameters"]
-        vectors.append([params.get(k) for k in VECTOR_KEYS])
+        vectors.append([params.get(k) for k in keys])
     return vectors
 
 
@@ -95,10 +102,16 @@ def list_heritage(part_type: str = "bjt") -> List[Dict[str, Any]]:
 
 def get_vectors(
     part_type: str = "bjt",
+    vector_keys: Optional[List[str]] = None,
 ) -> tuple[List[Dict[str, Any]], List[List[Optional[float]]]]:
-    """Returns (heritage_rows, vectors) aligned with VECTOR_KEYS."""
-    list_heritage(part_type)  # ensures cache is warm
-    return _CACHE["rows"], _CACHE["vectors"]  # type: ignore[return-value]
+    """Returns (heritage_rows, vectors) aligned with vector_keys (default VECTOR_KEYS for bjt)."""
+    list_heritage(part_type)  # ensures rows cache is warm
+    rows = _CACHE["rows"]
+    vkeys = vector_keys if vector_keys is not None else (
+        MOSFET_VECTOR_KEYS if part_type == "mosfet" else VECTOR_KEYS
+    )
+    vectors = _build_vectors(rows, vkeys)
+    return rows, vectors  # type: ignore[return-value]
 
 
 if __name__ == "__main__":

@@ -154,3 +154,136 @@ export async function listFactors(licenseKey: string, partType = "bjt") {
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
+
+export async function registerLicense(
+  name: string,
+  email: string
+): Promise<{ key: string; plan: string; message: string }> {
+  const res = await fetch(`${PRO_API_BASE}/pro/api/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, email }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function submitFeedback(
+  reportId: string,
+  rating: "up" | "down",
+  licenseKey: string,
+  factorName?: string,
+  comment?: string
+) {
+  const res = await fetch(`${PRO_API_BASE}/pro/api/feedback`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-License-Key": licenseKey,
+    },
+    body: JSON.stringify({
+      report_id: reportId,
+      rating,
+      factor_name: factorName ?? null,
+      comment: comment ?? null,
+    }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getFeedback(reportId: string, licenseKey: string) {
+  const res = await fetch(`${PRO_API_BASE}/pro/api/feedback/${reportId}`, {
+    headers: { "X-License-Key": licenseKey },
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+// ─── User Account API ───────────────────────────────────────────────────────
+
+export async function signup(email: string, name: string, password: string) {
+  const res = await fetch(`${PRO_API_BASE}/pro/api/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, name, password }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function login(email: string, password: string) {
+  const res = await fetch(`${PRO_API_BASE}/pro/api/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getMe(token: string) {
+  const res = await fetch(`${PRO_API_BASE}/pro/api/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getMyReports(token: string, page = 1, perPage = 20) {
+  const res = await fetch(
+    `${PRO_API_BASE}/pro/api/me/reports?page=${page}&per_page=${perPage}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+// ─── Admin API ───────────────────────────────────────────────────────────────
+
+function adminHeaders(adminPassword: string) {
+  return { "X-Admin-Password": adminPassword };
+}
+
+export async function adminListPending(adminPassword: string) {
+  const res = await fetch(`${PRO_API_BASE}/pro/api/admin/pending`, {
+    headers: adminHeaders(adminPassword),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function adminListAll(adminPassword: string) {
+  const res = await fetch(`${PRO_API_BASE}/pro/api/admin/all`, {
+    headers: adminHeaders(adminPassword),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function adminApprove(key: string, adminPassword: string) {
+  const res = await fetch(`${PRO_API_BASE}/pro/api/admin/approve/${key}`, {
+    method: "POST",
+    headers: adminHeaders(adminPassword),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function adminReject(key: string, adminPassword: string) {
+  const res = await fetch(`${PRO_API_BASE}/pro/api/admin/reject/${key}`, {
+    method: "POST",
+    headers: adminHeaders(adminPassword),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function adminDeactivate(key: string, adminPassword: string) {
+  const res = await fetch(`${PRO_API_BASE}/pro/api/admin/deactivate/${key}`, {
+    method: "POST",
+    headers: adminHeaders(adminPassword),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}

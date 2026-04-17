@@ -16,9 +16,17 @@ def init_license_db(db_path: str):
             plan TEXT DEFAULT 'basic',
             created_at TEXT DEFAULT (datetime('now')),
             expires_at TEXT,
-            active INTEGER DEFAULT 1
+            active INTEGER DEFAULT 1,
+            email TEXT,
+            ip TEXT
         )
     """)
+    # Migrate: add email/ip columns if they don't exist (idempotent)
+    existing_cols = [row[1] for row in conn.execute("PRAGMA table_info(licenses)").fetchall()]
+    if "email" not in existing_cols:
+        conn.execute("ALTER TABLE licenses ADD COLUMN email TEXT")
+    if "ip" not in existing_cols:
+        conn.execute("ALTER TABLE licenses ADD COLUMN ip TEXT")
     conn.execute("""
         CREATE TABLE IF NOT EXISTS usage_log (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,6 +36,21 @@ def init_license_db(db_path: str):
             tokens_used INTEGER DEFAULT 0,
             FOREIGN KEY (license_key) REFERENCES licenses(key)
         )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            password_hash TEXT NOT NULL,
+            password_salt TEXT NOT NULL,
+            license_key TEXT,
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (license_key) REFERENCES licenses(key)
+        )
+    """)
+    conn.execute("""
+        CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)
     """)
     conn.commit()
     conn.close()

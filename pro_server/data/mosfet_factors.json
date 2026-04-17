@@ -1,0 +1,285 @@
+[
+  {
+    "factor_name": "Vgs_th_shift",
+    "part_type": "mosfet",
+    "weight": 0.20,
+    "direction": "margin",
+    "rationale": "TID(총 이온화 선량)는 게이트 산화막 내에 양의 트랩 전하를 축적시켜 N채널 MOSFET의 문턱전압(Vth)을 음의 방향으로 이동시킵니다. 초기 Vth가 클수록 TID 피폭 후에도 Vth가 허용 하한 이하로 떨어지지 않을 마진이 커집니다. ESA ECSS-Q-ST-60-15C 및 NASA NEPP 연구에 따르면 두꺼운 게이트 산화막을 가진 파워 MOSFET에서 수십 krad(Si) 피폭 후 Vth가 0.5~2 V 이동하는 사례가 보고됩니다. 1V를 기준(ref)으로 실제 |Vth|의 비율을 마진으로 산정합니다.",
+    "thresholds": {
+      "excellent": 3.0,
+      "good": 2.0,
+      "poor": 1.2
+    },
+    "param_key": "vgs_th_v",
+    "sources": [
+      {
+        "title": "Total Ionizing Dose Effects in MOS and Low-Dose-Rate-Sensitive Linear-Bipolar Devices — ResearchGate / IEEE TNS",
+        "url": "https://www.researchgate.net/publication/260355856_Total_Ionizing_Dose_Effects_in_MOS_and_Low-Dose-Rate-Sensitive_Linear-Bipolar_Devices",
+        "doi": null,
+        "note": "Oldham & McLean 공저. MOS 소자 TID 메커니즘(게이트 산화막 트랩 전하, 계면 트랩) 및 Vth 이동 상세 분석. IEEE TNS 게재. verified 2026-04"
+      },
+      {
+        "title": "Combined Effect of TID Radiation and Electrical Stress on NMOSFETs — PMC/MDPI",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9696535/",
+        "doi": null,
+        "note": "28 nm NMOSFET에서 1000 krad(Si) 60Co 감마선 피폭 후 Vth 이동 정량 데이터. 산화막 트랩 전하 및 계면 트랩 메커니즘 분석. verified 2026-04"
+      },
+      {
+        "title": "ECSS-Q-ST-60-15C Rev.1 — Radiation Hardness Assurance: EEE Components (20 March 2025)",
+        "url": "https://ecss.nl/standard/ecss-q-st-60-15c-rev-1-radiation-hardness-assurance-20-march-2025/",
+        "doi": null,
+        "note": "ESA 방사선 내성 보증 최신 표준(2025). MOSFET TID 시험 절차(바이어스 조건, 선량률) 및 파라미터 열화 허용한도 설정 방법론. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "Rds_on_margin",
+    "part_type": "mosfet",
+    "weight": 0.15,
+    "direction": "lower_is_better",
+    "rationale": "TID 피폭 후 MOSFET의 드레인-소스 온저항(RDS(on))은 채널 이동도 저하 및 문턱전압 변동으로 인해 증가합니다. 특히 두꺼운 게이트 산화막을 사용하는 파워 MOSFET에서 수십 krad(Si) 이후 RDS(on)이 30~50% 증가하는 사례가 NASA NEPP 시험 보고서에 기록되어 있습니다. 초기 RDS(on)이 낮을수록 EOL(수명 말기) 조건에서도 도통 손실 예산 내에 머물 헤드룸이 증가합니다.",
+    "thresholds": {
+      "excellent": 0.05,
+      "good": 0.2,
+      "poor": 0.5
+    },
+    "param_key": "rds_on_ohm",
+    "sources": [
+      {
+        "title": "Recent Radiation Test Results for Trench Power MOSFETs — NASA NEPP / NTRS",
+        "url": "https://ntrs.nasa.gov/api/citations/20170007314/downloads/20170007314.pdf",
+        "doi": null,
+        "note": "Lauenstein et al., NASA GSFC. 트렌치 파워 MOSFET TID 및 SEE 시험 결과. RDS(on) 변화 데이터 포함. NSREC 2017 발표. verified 2026-04"
+      },
+      {
+        "title": "Recent Radiation Test Results for Power MOSFETs — NASA NEPP NSREC 2013",
+        "url": "https://nepp.nasa.gov/files/24915/NSREC2013_Lauenstein_W38.pdf",
+        "doi": null,
+        "note": "NASA NEPP. 파워 MOSFET SEGR/SEB 시험 결과 및 TID 파라미터 열화(RDS(on) 증가) 분석. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "BVDSS_headroom",
+    "part_type": "mosfet",
+    "weight": 0.20,
+    "direction": "higher_is_better",
+    "rationale": "단일 이벤트 번아웃(SEB)과 단일 이벤트 게이트 파괴(SEGR)는 파워 MOSFET의 치명적 고장 모드입니다. NASA NEPP 연구에 따르면 SEB 임계 LET은 BVDSS와 강한 양의 상관관계를 가지며, 실용 설계에서는 BVDSS의 50~60% 이하로 VDS를 디레이팅합니다. BVDSS가 높을수록 더 낮은 비율로 운용할 수 있어 SEB/SEGR 발생 확률이 대폭 감소합니다. ECSS-Q-ST-30-11C 및 ECSS-Q-ST-60-15C 모두 MOSFET VDS 디레이팅을 명시합니다.",
+    "thresholds": {
+      "excellent": 200,
+      "good": 100,
+      "poor": 60
+    },
+    "param_key": "bvdss_v",
+    "sources": [
+      {
+        "title": "Interpreting Space-Mission LET Requirements for SEGR in Power MOSFETs — NASA NEPP / IEEE TNS",
+        "url": "https://nepp.nasa.gov/files/22362/Lauenstein_tns2010.pdf",
+        "doi": null,
+        "note": "Lauenstein & Xapsos, NASA GSFC. BVDSS와 SEGR 임계 LET 상관관계 정량 분석. 우주 임무 적용 디레이팅 가이드라인. IEEE TNS 2010. verified 2026-04"
+      },
+      {
+        "title": "Testing Guideline for Single Event Gate Rupture (SEGR) of Power MOSFETs — NASA NEPP",
+        "url": "https://nepp.nasa.gov/docuploads/9E969C8F-50DF-4EE1-A932E552D3C0FA99/07-116%20Scheick_JPL%20Testing%20Guidelines%20SEGR.pdf",
+        "doi": null,
+        "note": "Scheick, JPL/NASA NEPP. SEGR 시험 절차 및 BVDSS 기반 디레이팅 기준. SEB 임계전압과 BVDSS 비율 분석. verified 2026-04"
+      },
+      {
+        "title": "ECSS-Q-ST-30-11C Rev.2 — Derating: EEE Components (23 June 2021)",
+        "url": "https://ecss.nl/standard/ecss-q-st-30-11c-rev-2-derating-eee-components-23-june-2021/",
+        "doi": null,
+        "note": "ESA 공식 EEE 부품 디레이팅 표준. MOSFET VDS 50~60% 운용 규정. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "IDSS_leakage",
+    "part_type": "mosfet",
+    "weight": 0.15,
+    "direction": "lower_is_better",
+    "rationale": "드레인-소스 오프 상태 누설 전류(IDSS)는 TID 피폭 후 게이트 산화막 및 필드 산화막 계면 트랩 생성으로 인해 증가합니다. BJT의 ICBO와 유사하게, 초기 IDSS가 낮은 소자일수록 방사선 피폭 후에도 허용 누설 한도 이내에 머물 마진이 큽니다. 고온 우주 환경에서는 IDSS 증가가 대기 전력 예산을 초과할 수 있어 특히 중요합니다. 트렌치 게이트 MOSFET 계열에서 IDSS가 TID 민감 지표로 잘 알려져 있습니다.",
+    "thresholds": {
+      "excellent": 1e-8,
+      "good": 1e-6,
+      "poor": 1e-4
+    },
+    "param_key": "idss_a",
+    "sources": [
+      {
+        "title": "Recent Radiation Test Results for Trench Power MOSFETs — NASA NEPP / NTRS",
+        "url": "https://ntrs.nasa.gov/api/citations/20170007314/downloads/20170007314.pdf",
+        "doi": null,
+        "note": "트렌치 MOSFET IDSS 누설 전류 TID 피폭 후 변화 데이터. verified 2026-04"
+      },
+      {
+        "title": "IEEE TNS 2008 — Total Ionizing Dose Effects in MOS Devices",
+        "url": "https://sirad.pd.infn.it/~candelor/Parte5/TNS_2008_MOS_TID_OKPerCorso.pdf",
+        "doi": null,
+        "note": "MOS 소자 TID 효과 종합 리뷰. 누설 전류 증가 메커니즘(필드 산화막, STI 트랩) 분석. IEEE TNS 55(4), 2008. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "gate_oxide_thickness",
+    "part_type": "mosfet",
+    "weight": 0.08,
+    "direction": "categorical",
+    "rationale": "게이트 산화막 두께는 MOSFET TID 내성의 핵심 구조적 요소입니다. 두꺼운 산화막(thick oxide, >40 nm)은 단위 선량당 더 많은 트랩 전하를 축적하지만, 방사선 내성 설계(RadHard)에서는 두꺼운 산화막이 이미 검증된 전하 포화(charge saturation) 거동을 가져 예측 가능성이 높습니다. 반면 얇은 산화막(<10 nm)은 터널링으로 인해 트랩 전하가 빠르게 소멸되어 TID 민감도가 낮지만, SEGR(게이트 파괴) 임계 전압도 낮아집니다. 우주 파워 MOSFET은 통상 두꺼운 산화막 + 방사선 하드닝 공정을 사용합니다.",
+    "thresholds": {
+      "thick": 1.0,
+      "standard": 0.6,
+      "thin": 0.3
+    },
+    "param_key": "gate_oxide",
+    "sources": [
+      {
+        "title": "Total Ionizing Dose Effects in MOS and Low-Dose-Rate-Sensitive Linear-Bipolar Devices — ResearchGate / IEEE TNS",
+        "url": "https://www.researchgate.net/publication/260355856_Total_Ionizing_Dose_Effects_in_MOS_and_Low-Dose-Rate-Sensitive_Linear-Bipolar_Devices",
+        "doi": null,
+        "note": "게이트 산화막 두께와 TID 민감도 관계 상세 분석. 산화막 두께별 전하 포화 메커니즘 비교. verified 2026-04"
+      },
+      {
+        "title": "ECSS-Q-ST-60-15C Rev.1 — Radiation Hardness Assurance: EEE Components (20 March 2025)",
+        "url": "https://ecss.nl/standard/ecss-q-st-60-15c-rev-1-radiation-hardness-assurance-20-march-2025/",
+        "doi": null,
+        "note": "MOSFET 게이트 산화막 두께에 따른 TID 시험 요건 차별화 규정. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "power_derating_margin",
+    "part_type": "mosfet",
+    "weight": 0.08,
+    "direction": "margin",
+    "rationale": "우주 환경(진공)에서는 대류 냉각이 없어 열 방산이 지상 대비 크게 저하됩니다. ECSS-Q-ST-30-11C에 따르면 MOSFET 전력은 정격의 75% 이하로 운용해야 합니다. TID 피폭 후 RDS(on) 증가로 인한 도통 손실 증가도 고려하면, 초기 전력 마진이 클수록 EOL에서도 열 한계 이내로 유지될 가능성이 높습니다. PD_max 대비 실제 소비 전력 마진이 클수록 신뢰성이 향상됩니다.",
+    "thresholds": {
+      "excellent": 2.0,
+      "good": 1.5,
+      "poor": 1.0
+    },
+    "param_key": "pd_w",
+    "sources": [
+      {
+        "title": "ECSS-Q-ST-30-11C Rev.2 — Derating: EEE Components (23 June 2021)",
+        "url": "https://ecss.nl/standard/ecss-q-st-30-11c-rev-2-derating-eee-components-23-june-2021/",
+        "doi": null,
+        "note": "ESA 공식 EEE 부품 디레이팅 표준. MOSFET 전력 75% 운용 규정. verified 2026-04"
+      },
+      {
+        "title": "MIL-STD-1547B — Electronic Parts, Materials, and Processes for Space and Launch Vehicles",
+        "url": "https://www.dau.edu/sites/default/files/2024-02/MIL-STD-1547B%20Electronic%20Parts,%20Materials,%20and%20Processes%20for%20Space%20and%20Launch%20Vehicles,%20December%201992.pdf",
+        "doi": null,
+        "note": "미 국방부 우주/발사체용 전자부품 표준. 전력 디레이팅 및 열 신뢰성 요건. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "tj_thermal_margin",
+    "part_type": "mosfet",
+    "weight": 0.05,
+    "direction": "higher_is_better",
+    "rationale": "LEO 위성은 약 90분 주기로 일식/양지를 반복하며 접합 온도가 수십 °C 변동합니다. Tj_max가 높을수록 열 사이클 마진이 확보됩니다. 방사선 피폭 후 RDS(on) 증가로 인한 도통 손실 증가가 접합 온도를 추가로 상승시키므로, 높은 Tj_max는 이중 안전마진을 제공합니다. MIL-PRF-19500 우주급 MOSFET은 대부분 Tj_max = 175~200 °C를 규정합니다.",
+    "thresholds": {
+      "excellent": 200,
+      "good": 175,
+      "poor": 150
+    },
+    "param_key": "tj_max_c",
+    "sources": [
+      {
+        "title": "ECSS-Q-ST-30-11C Rev.2 — Derating: EEE Components (23 June 2021)",
+        "url": "https://ecss.nl/standard/ecss-q-st-30-11c-rev-2-derating-eee-components-23-june-2021/",
+        "doi": null,
+        "note": "접합 온도 디레이팅(Tj_max - 25°C 마진) 규정. verified 2026-04"
+      },
+      {
+        "title": "NASA Radiation Effects and Analysis Group (REAG) — GSFC",
+        "url": "https://etd.gsfc.nasa.gov/capabilities/capabilities-listing/radiation-effects-and-analysis/",
+        "doi": null,
+        "note": "NASA GSFC 방사선 효과 분석 그룹 공식 페이지. 열-방사선 복합 스트레스 분석 역할 기술. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "Qg_margin",
+    "part_type": "mosfet",
+    "weight": 0.04,
+    "direction": "lower_is_better",
+    "rationale": "총 게이트 전하(Qg)는 스위칭 속도와 게이트 구동 손실의 핵심 지표입니다. TID 피폭 후 Vth 변동이 게이트 구동 타이밍에 영향을 줄 때, Qg가 낮은 소자일수록 구동 회로의 여유가 커지고 스위칭 손실 증가가 최소화됩니다. 또한 낮은 Qg는 게이트 산화막의 단위 면적 전하 밀도가 낮음을 의미하여 SEGR 취약성 감소와도 간접적으로 연관됩니다.",
+    "thresholds": {
+      "excellent": 2e-8,
+      "good": 1e-7,
+      "poor": 5e-7
+    },
+    "param_key": "qg_c",
+    "sources": [
+      {
+        "title": "Testing Guideline for Single Event Gate Rupture (SEGR) of Power MOSFETs — NASA NEPP",
+        "url": "https://nepp.nasa.gov/docuploads/9E969C8F-50DF-4EE1-A932E552D3C0FA99/07-116%20Scheick_JPL%20Testing%20Guidelines%20SEGR.pdf",
+        "doi": null,
+        "note": "게이트 산화막 전하 축적과 SEGR 메커니즘. 게이트 전하 관련 파라미터의 방사선 내성 연관성. verified 2026-04"
+      },
+      {
+        "title": "ECSS-Q-ST-60-15C Rev.1 — Radiation Hardness Assurance: EEE Components (20 March 2025)",
+        "url": "https://ecss.nl/standard/ecss-q-st-60-15c-rev-1-radiation-hardness-assurance-20-march-2025/",
+        "doi": null,
+        "note": "MOSFET 게이트 파라미터 TID 시험 및 EOL 허용 한도 방법론. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "package_hermeticity",
+    "part_type": "mosfet",
+    "weight": 0.04,
+    "direction": "categorical",
+    "rationale": "우주 환경(진공, 극한 온도, 방사선)에서 패키지 기밀성은 내부 습기와 오염으로부터 칩을 보호합니다. TO-254AA, TO-257AA, SMD-1 등 금속/세라믹 기밀 패키지는 아웃개싱이 없고 진공 환경에서 기계적으로 안정합니다. MIL-PRF-19500 우주급 MOSFET은 모두 기밀 패키지를 사용합니다. 플라스틱 패키지(SMD 비기밀)는 특별 선별 시에만 허용됩니다.",
+    "thresholds": {
+      "hermetic": 1.0,
+      "metal-can": 0.9,
+      "ceramic": 0.9,
+      "plastic": 0.3
+    },
+    "param_key": "package",
+    "sources": [
+      {
+        "title": "MIL-STD-1547B — Electronic Parts, Materials, and Processes for Space and Launch Vehicles",
+        "url": "https://www.dau.edu/sites/default/files/2024-02/MIL-STD-1547B%20Electronic%20Parts,%20Materials,%20and%20Processes%20for%20Space%20and%20Launch%20Vehicles,%20December%201992.pdf",
+        "doi": null,
+        "note": "우주/발사체 부품 패키지 요건 및 기밀성 기준. verified 2026-04"
+      },
+      {
+        "title": "QML Class P: A New Standard for Radiation-Hardened Electronics in Plastic Packaging — Microwave Journal",
+        "url": "https://www.microwavejournal.com/articles/42828-qml-class-p-a-new-standard-for-radiation-hardened-electronics-in-plastic-packaging",
+        "doi": null,
+        "note": "플라스틱 vs 기밀 패키지 우주 적용성 비교. QML Class P 아웃개싱 시험(ASTM E-595) 요건. verified 2026-04"
+      }
+    ]
+  },
+  {
+    "factor_name": "Id_margin",
+    "part_type": "mosfet",
+    "weight": 0.01,
+    "direction": "margin",
+    "rationale": "최대 드레인 전류(ID_max) 대비 설계 운용 전류의 마진은 ECSS-Q-ST-30-11C 기준으로 75% 이하 운용을 권장합니다. TID 피폭 후 RDS(on) 증가 및 Vth 변동 시 동일 출력을 유지하기 위해 전류가 변동할 수 있으며, ID_max 마진이 클수록 과전류로 인한 열 파손 위험이 감소합니다.",
+    "thresholds": {
+      "excellent": 2.0,
+      "good": 1.5,
+      "poor": 1.0
+    },
+    "param_key": "id_max_a",
+    "sources": [
+      {
+        "title": "ECSS-Q-ST-30-11C Rev.2 — Derating: EEE Components (23 June 2021)",
+        "url": "https://ecss.nl/standard/ecss-q-st-30-11c-rev-2-derating-eee-components-23-june-2021/",
+        "doi": null,
+        "note": "MOSFET ID 디레이팅(75% 운용) 규정. verified 2026-04"
+      },
+      {
+        "title": "NASA Radiation Effects and Analysis Group (REAG) — GSFC",
+        "url": "https://etd.gsfc.nasa.gov/capabilities/capabilities-listing/radiation-effects-and-analysis/",
+        "doi": null,
+        "note": "NASA GSFC 방사선 분석 그룹. 부품 레벨 마진 분석 방법론. verified 2026-04"
+      }
+    ]
+  }
+]

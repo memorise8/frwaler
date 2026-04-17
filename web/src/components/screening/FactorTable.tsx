@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Tooltip from "./Tooltip";
+import FeedbackButton from "./FeedbackButton";
 
 interface FactorSource {
   title: string;
@@ -22,6 +23,8 @@ interface FactorScore {
 
 interface FactorTableProps {
   factors: FactorScore[];
+  reportId: string;
+  licenseKey: string;
 }
 
 // Plain-Korean tooltip explanations per factor name (partial match)
@@ -136,7 +139,7 @@ function StatusChip({ score }: { score: number }) {
   );
 }
 
-export default function FactorTable({ factors }: FactorTableProps) {
+export default function FactorTable({ factors, reportId, licenseKey }: FactorTableProps) {
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
   const [sortKey, setSortKey] = useState<"weighted" | "score" | "weight">(
     "weighted"
@@ -239,6 +242,7 @@ export default function FactorTable({ factors }: FactorTableProps) {
                 <SortIcon active={sortKey === "weighted"} asc={sortAsc} />
               </th>
               <th style={{ ...thStyle, cursor: "default" }}>상세</th>
+              <th style={{ ...thStyle, cursor: "default" }}>평가</th>
             </tr>
           </thead>
           <tbody>
@@ -344,13 +348,22 @@ export default function FactorTable({ factors }: FactorTableProps) {
                         {isExpanded ? "접기" : "보기"}
                       </button>
                     </td>
+
+                    {/* Feedback */}
+                    <td style={tdStyle}>
+                      <FeedbackButton
+                        reportId={reportId}
+                        factorName={factor.name}
+                        licenseKey={licenseKey}
+                      />
+                    </td>
                   </tr>
 
                   {/* Expanded row */}
                   {isExpanded && (
                     <tr key={factor.name + i + "-exp"}>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         style={{
                           padding: "1rem 1.25rem 1.25rem",
                           background: "rgba(0,200,240,0.025)",
