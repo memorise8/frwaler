@@ -34,7 +34,7 @@ class _NTSTaxlawBase(BaseCrawler):
         """POST via curl; returns raw response text or None on failure."""
         param_json = json.dumps(param_data, ensure_ascii=False)
         cmd = [
-            "curl", "-skL", "--max-time", "30",
+            "curl", "-skL", "--tls-max", "1.3", "--max-time", "30",
             "-X", "POST",
             "-H", "Content-Type: application/x-www-form-urlencoded",
             "-H", f"User-Agent: {self.USER_AGENT}",
@@ -141,7 +141,7 @@ class _NTSTaxlawBase(BaseCrawler):
         }
         param_json = json.dumps(params, ensure_ascii=False)
         cmd = [
-            "curl", "-skL", "--max-time", "30",
+            "curl", "-skL", "--tls-max", "1.3", "--max-time", "30",
             "-X", "POST",
             "-H", "Content-Type: application/x-www-form-urlencoded; charset=UTF-8",
             "-H", f"User-Agent: {self.USER_AGENT}",
@@ -286,7 +286,7 @@ class _NTSTaxlawBase(BaseCrawler):
                 doc_ids = [str(it.get("dcm", {}).get("DOC_ID", "")) for it in items]
                 doc_ids = [d for d in doc_ids if d]
                 if doc_ids:
-                    existing = self.db_conn.execute(
+                    existing = self._conn.execute(
                         "SELECT external_id FROM papers WHERE site_id = ? AND external_id IN ({})".format(
                             ",".join("?" * len(doc_ids))
                         ),
@@ -308,7 +308,7 @@ class _NTSTaxlawBase(BaseCrawler):
 
                 # Skip already-existing documents in incremental mode
                 if incremental and doc_id:
-                    check = self.db_conn.execute(
+                    check = self._conn.execute(
                         "SELECT 1 FROM papers WHERE site_id = ? AND external_id = ?",
                         [self.site_id, doc_id]
                     ).fetchone()
