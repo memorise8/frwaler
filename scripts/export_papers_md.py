@@ -170,7 +170,8 @@ def export(site_id: str, limit: int | None) -> int:
     for row in conn.execute(sql, params):
         meta = json.loads(row["metadata"] or "{}")
         doc_no = meta.get("documentNumber") or row["external_id"]
-        base = safe_filename(str(doc_no))
+        ext_id = row["external_id"] or ""
+        base = safe_filename(f"{doc_no}_{ext_id}" if doc_no != ext_id else str(ext_id))
 
         # MD (검색용)
         (out_dir / (base + ".md")).write_text(render_paper(row), encoding="utf-8")
