@@ -21,8 +21,40 @@ def cmd_crawl(args, conn):
     delay = 2.5 if site_id == "mohw" else 1.0
     crawler = crawler_cls(db_conn=conn, delay=delay)
     limit = args.limit
-    print(f"Starting crawl for '{site_id}'" + (f" (limit={limit})" if limit else "") + " ...")
-    crawler.crawl(limit=limit)
+    search = getattr(args, 'search', None)
+    doc_type = getattr(args, 'doc_type', None)
+    date_from = getattr(args, 'date_from', None)
+    date_to = getattr(args, 'date_to', None)
+
+    info = f"Starting crawl for '{site_id}'"
+    if limit:
+        info += f" (limit={limit})"
+    if search:
+        info += f" (search={search})"
+    if doc_type:
+        info += f" (doc_type={doc_type})"
+    if date_from or date_to:
+        info += f" (date: {date_from or '...'} ~ {date_to or '...'})"
+    incremental = getattr(args, 'incremental', False)
+    if incremental:
+        info += " (incremental)"
+    print(info + " ...")
+
+    # Pass extra params if the crawler supports them
+    import inspect
+    crawl_params = inspect.signature(crawler.crawl).parameters
+    kwargs = {"limit": limit}
+    if "search" in crawl_params and search:
+        kwargs["search"] = search
+    if "doc_type" in crawl_params and doc_type:
+        kwargs["doc_type"] = doc_type
+    if "date_from" in crawl_params and date_from:
+        kwargs["date_from"] = date_from
+    if "date_to" in crawl_params and date_to:
+        kwargs["date_to"] = date_to
+    if "incremental" in crawl_params and incremental:
+        kwargs["incremental"] = incremental
+    crawler.crawl(**kwargs)
 
 
 def cmd_list_sites(args, conn):
@@ -177,6 +209,12 @@ def build_parser():
     crawl_parser = subparsers.add_parser("crawl", help="Crawl a specific site")
     crawl_parser.add_argument("site_id", help="Site to crawl")
     crawl_parser.add_argument("--limit", type=int, default=None, help="Max number of papers to save")
+    crawl_parser.add_argument("--search", type=str, default=None, help="Keyword search filter")
+    crawl_parser.add_argument("--doc-type", type=str, default=None, help="Document type code (e.g. 001_02)")
+    crawl_parser.add_argument("--date-from", type=str, default=None, help="Start date filter (YYYY-MM-DD)")
+    crawl_parser.add_argument("--date-to", type=str, default=None, help="End date filter (YYYY-MM-DD)")
+    crawl_parser.add_argument("--incremental", action="store_true", default=False,
+                              help="Only crawl new documents not already in DB")
 
     # list-sites
     subparsers.add_parser("list-sites", help="List registered sites and paper counts")
