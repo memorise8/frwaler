@@ -2,15 +2,13 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import DatasheetUpload from "@/components/screening/DatasheetUpload";
-import { screenBjtByFile, screenBjtByMpn } from "@/lib/api";
-
-function useLicenseKey() {
-  if (typeof window === "undefined") return "";
-  return localStorage.getItem("bjt_license_key") || "";
-}
+import { screenBjtByFile, screenBjtByMpn, screenMosfetByFile, screenMosfetByMpn } from "@/lib/api";
 
 export default function ScreeningPage() {
   const router = useRouter();
+
+  // Device type tab
+  const [deviceType, setDeviceType] = useState<'bjt' | 'mosfet'>('bjt');
 
   // License key (stored in localStorage)
   const [licenseKey, setLicenseKey] = useState<string>(() => {
@@ -40,13 +38,25 @@ export default function ScreeningPage() {
     }
   };
 
+  const handleTabChange = (tab: 'bjt' | 'mosfet') => {
+    setDeviceType(tab);
+    setFile(null);
+    setMpnHint("");
+    setMfgHint("");
+    setPdfError("");
+    setMpn("");
+    setManufacturer("");
+    setMpnError("");
+  };
+
   const handlePdfSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return;
     setPdfError("");
     setPdfLoading(true);
     try {
-      const report = await screenBjtByFile(file, {
+      const screenFn = deviceType === 'bjt' ? screenBjtByFile : screenMosfetByFile;
+      const report = await screenFn(file, {
         mpn: mpnHint || undefined,
         manufacturer: mfgHint || undefined,
         licenseKey,
@@ -65,7 +75,8 @@ export default function ScreeningPage() {
     setMpnError("");
     setMpnLoading(true);
     try {
-      const report = await screenBjtByMpn(
+      const screenFn = deviceType === 'bjt' ? screenBjtByMpn : screenMosfetByMpn;
+      const report = await screenFn(
         mpn.trim(),
         licenseKey,
         manufacturer.trim() || undefined
@@ -125,7 +136,7 @@ export default function ScreeningPage() {
               borderRadius: "4px",
             }}
           >
-            BJT 업스크리닝
+            {deviceType === 'bjt' ? 'BJT 업스크리닝' : 'MOSFET 업스크리닝'}
           </span>
           <span
             style={{
@@ -150,9 +161,31 @@ export default function ScreeningPage() {
           트랜지스터 업스크리닝 분석
         </h1>
         <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)", maxWidth: "560px" }}>
-          BJT 데이터시트를 업로드하거나 부품 번호(MPN)를 입력하면, AI가 우주 방사선 환경 적합성을 자동 평가합니다.
-          비전문가도 쉽게 이해할 수 있도록 한국어로 설명합니다.
+          {deviceType === 'bjt'
+            ? "BJT 데이터시트를 업로드하거나 부품 번호(MPN)를 입력하면, AI가 우주 방사선 환경 적합성을 자동 평가합니다. 비전문가도 쉽게 이해할 수 있도록 한국어로 설명합니다."
+            : "MOSFET 데이터시트를 업로드하거나 부품 번호(MPN)를 입력하면, AI가 우주 방사선 환경 적합성을 자동 평가합니다."}
         </p>
+      </div>
+
+      {/* Device type tab toggle */}
+      <div style={{ display: 'flex', gap: '0', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-dim)' }}>
+        {(['bjt', 'mosfet'] as const).map(t => (
+          <button key={t} onClick={() => handleTabChange(t)}
+            style={{
+              padding: '0.5rem 1.25rem',
+              fontSize: '0.85rem',
+              fontWeight: deviceType === t ? 600 : 400,
+              color: deviceType === t ? 'var(--accent-cyan)' : 'var(--text-dim)',
+              borderBottom: deviceType === t ? '2px solid var(--accent-cyan)' : '2px solid transparent',
+              background: 'none',
+              border: 'none',
+              borderBottomWidth: '2px',
+              borderBottomStyle: 'solid',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >{t.toUpperCase()}</button>
+        ))}
       </div>
 
       {/* License key input (collapsible) */}
@@ -380,7 +413,7 @@ export default function ScreeningPage() {
                 type="text"
                 value={mpn}
                 onChange={(e) => setMpn(e.target.value)}
-                placeholder="예: 2N2222A, BC547, 2N3904"
+                placeholder={deviceType === 'bjt' ? "예: 2N2222A, BC547, 2N3904" : "예: IRHNJ57130SE, 2N7002, IRF540"}
                 required
                 style={inputClass}
                 className="search-input"
@@ -489,7 +522,9 @@ export default function ScreeningPage() {
             >
               {[
                 "데이터시트에서 전기적 파라미터 자동 추출",
-                "10가지 우주 방사선 내성 인자 점수화",
+                deviceType === 'bjt'
+                  ? "10가지 우주 방사선 내성 인자 점수화"
+                  : "10가지 MOSFET 우주 방사선 내성 인자 점수화 (Vth 시프트, BVDSS, Rds_on 등)",
                 "헤리티지 데이터베이스와 유사도 비교",
                 "종합 점수 및 위험 플래그 생성",
               ].map((step, i) => (
