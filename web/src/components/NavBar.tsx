@@ -7,7 +7,6 @@ const links = [
   { href: "/products", label: "제품 검색" },
   { href: "/categories", label: "카테고리" },
   { href: "/stats", label: "통계" },
-  { href: "/register", label: "키 발급" },
   { href: "/screening", label: "Screening" },
   { href: "/screening/compare", label: "비교" },
 ];

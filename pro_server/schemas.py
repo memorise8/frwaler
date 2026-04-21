@@ -1,30 +1,5 @@
 from pydantic import BaseModel, field_validator
-from typing import Optional, List, Any, Dict
-
-
-class RegisterRequest(BaseModel):
-    name: str
-    email: str
-
-    @field_validator("name")
-    @classmethod
-    def name_min_length(cls, v: str) -> str:
-        if len(v.strip()) < 2:
-            raise ValueError("name must be at least 2 characters")
-        return v.strip()
-
-    @field_validator("email")
-    @classmethod
-    def email_basic_validation(cls, v: str) -> str:
-        if "@" not in v or "." not in v.split("@")[-1]:
-            raise ValueError("invalid email address")
-        return v.strip().lower()
-
-
-class RegisterResponse(BaseModel):
-    key: str
-    plan: str
-    message: str
+from typing import Optional, List, Any, Dict, Union
 
 
 class LicenseInfo(BaseModel):
@@ -141,7 +116,7 @@ class ScreeningReport(BaseModel):
     id: str
     input_mpn: Optional[str] = None
     input_source: str  # 'pdf' | 'mpn'
-    parameters: BjtParameters
+    parameters: Union[BjtParameters, MosfetParameters]
     factor_scores: List[FactorScore] = []
     overall_score: float
     status: str  # 'pass' | 'caution' | 'fail'

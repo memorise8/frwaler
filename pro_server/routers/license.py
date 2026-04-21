@@ -1,15 +1,12 @@
-import uuid
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Header, Request
+from fastapi import APIRouter, Depends, HTTPException, Header
 from ..auth import verify_license
 import sqlite3
 from ..settings import pro_settings
-from ..schemas import RegisterRequest, RegisterResponse, LicenseInfo, AdminActionResponse
+from ..schemas import LicenseInfo, AdminActionResponse
 
 router = APIRouter(prefix="/pro/api", tags=["license"])
-
-DAILY_REGISTRATION_LIMIT = 5
 
 
 def _verify_admin(x_admin_password: str = Header(...)):
@@ -18,41 +15,6 @@ def _verify_admin(x_admin_password: str = Header(...)):
     return True
 
 
-@router.post("/register", response_model=RegisterResponse)
-async def register_license(req: RegisterRequest, request: Request):
-    """Self-service license key registration. No auth required.
-    Rate-limited to 5 registrations per IP per day.
-    Keys start as inactive (active=0) pending admin approval."""
-    client_ip = request.client.host if request.client else "unknown"
-    today = date.today().isoformat()
-
-    conn = sqlite3.connect(pro_settings.license_db_path)
-    try:
-        count = conn.execute(
-            "SELECT COUNT(*) FROM licenses WHERE ip = ? AND created_at >= ?",
-            (client_ip, today),
-        ).fetchone()[0]
-
-        if count >= DAILY_REGISTRATION_LIMIT:
-            raise HTTPException(
-                status_code=429,
-                detail=f"Registration limit reached: max {DAILY_REGISTRATION_LIMIT} keys per IP per day",
-            )
-
-        key = f"usr-{uuid.uuid4()}"
-        conn.execute(
-            "INSERT INTO licenses (key, owner, plan, active, email, ip) VALUES (?, ?, 'basic', 0, ?, ?)",
-            (key, req.name, req.email, client_ip),
-        )
-        conn.commit()
-    finally:
-        conn.close()
-
-    return RegisterResponse(
-        key=key,
-        plan="basic",
-        message="신청이 완료되었습니다. 관리자 승인 후 사용 가능합니다.",
-    )
 
 
 @router.post("/verify-key")

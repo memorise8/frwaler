@@ -268,19 +268,21 @@ def _risk_flags(params: BaseModel,
                 factor_scores: List[FactorScore]) -> List[RiskFlag]:
     flags: List[RiskFlag] = []
 
-    if params.icbo_a_at_vcb is not None and params.icbo_a_at_vcb > 1e-7:
+    icbo = getattr(params, "icbo_a_at_vcb", None)
+    if icbo is not None and icbo > 1e-7:
         flags.append(RiskFlag(
             code="TID_drift_risk",
             severity="warning",
-            message=f"ICBO {params.icbo_a_at_vcb:.2e} A exceeds 100 nA — "
+            message=f"ICBO {icbo:.2e} A exceeds 100 nA — "
                     "elevated TID leakage drift risk.",
         ))
 
-    if params.hfe_min is not None and params.hfe_min < 40:
+    hfe_min = getattr(params, "hfe_min", None)
+    if hfe_min is not None and hfe_min < 40:
         flags.append(RiskFlag(
             code="gain_margin_risk",
             severity="warning",
-            message=f"hFE_min {params.hfe_min} below 40 — insufficient gain "
+            message=f"hFE_min {hfe_min} below 40 — insufficient gain "
                     "margin for EOL operation.",
         ))
 
@@ -289,7 +291,7 @@ def _risk_flags(params: BaseModel,
         ("vceo_v", "Vceo"),
         ("ic_max_a", "Ic_max"),
     ):
-        if getattr(params, attr) is None:
+        if getattr(params, attr, None) is None and hasattr(params, attr):
             flags.append(RiskFlag(
                 code="parametric_gap",
                 severity="info",

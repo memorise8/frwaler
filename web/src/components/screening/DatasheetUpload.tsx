@@ -3,9 +3,10 @@ import { useRef, useState, DragEvent, ChangeEvent } from "react";
 
 interface DatasheetUploadProps {
   onFile: (file: File) => void;
+  partLabel?: string;
 }
 
-export default function DatasheetUpload({ onFile }: DatasheetUploadProps) {
+export default function DatasheetUpload({ onFile, partLabel = "트랜지스터" }: DatasheetUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -169,7 +170,7 @@ export default function DatasheetUpload({ onFile }: DatasheetUploadProps) {
               marginBottom: "0.5rem",
             }}
           >
-            트랜지스터 규격서(데이터시트)를 업로드하면
+            {partLabel} 규격서(데이터시트)를 업로드하면
             <br />
             AI가 자동으로 파라미터를 추출하여 분석합니다
           </p>

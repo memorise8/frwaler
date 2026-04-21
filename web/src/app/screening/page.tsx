@@ -1,24 +1,21 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import DatasheetUpload from "@/components/screening/DatasheetUpload";
-import { screenBjtByFile, screenBjtByMpn } from "@/lib/api";
-
-function useLicenseKey() {
-  if (typeof window === "undefined") return "";
-  return localStorage.getItem("bjt_license_key") || "";
-}
+import { screenBjtByFile, screenBjtByMpn, screenMosfetByFile, screenMosfetByMpn } from "@/lib/api";
 
 export default function ScreeningPage() {
   const router = useRouter();
 
-  // License key (stored in localStorage)
-  const [licenseKey, setLicenseKey] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("bjt_license_key") || "";
-    }
-    return "";
-  });
+  // Part type toggle
+  const [partType, setPartType] = useState<"bjt" | "mosfet">("bjt");
+
+  // License key (stored in localStorage, loaded after mount)
+  const [licenseKey, setLicenseKey] = useState<string>("");
+
+  useEffect(() => {
+    setLicenseKey(localStorage.getItem("bjt_license_key") || "");
+  }, []);
 
   // PDF panel state
   const [file, setFile] = useState<File | null>(null);
@@ -46,7 +43,8 @@ export default function ScreeningPage() {
     setPdfError("");
     setPdfLoading(true);
     try {
-      const report = await screenBjtByFile(file, {
+      const screenFn = partType === "mosfet" ? screenMosfetByFile : screenBjtByFile;
+      const report = await screenFn(file, {
         mpn: mpnHint || undefined,
         manufacturer: mfgHint || undefined,
         licenseKey,
@@ -65,7 +63,8 @@ export default function ScreeningPage() {
     setMpnError("");
     setMpnLoading(true);
     try {
-      const report = await screenBjtByMpn(
+      const screenFn = partType === "mosfet" ? screenMosfetByMpn : screenBjtByMpn;
+      const report = await screenFn(
         mpn.trim(),
         licenseKey,
         manufacturer.trim() || undefined
@@ -101,6 +100,8 @@ export default function ScreeningPage() {
     fontWeight: 500,
   };
 
+  const isMosfet = partType === "mosfet";
+
   return (
     <div className="animate-fade-up">
       {/* Page header */}
@@ -125,7 +126,7 @@ export default function ScreeningPage() {
               borderRadius: "4px",
             }}
           >
-            BJT 업스크리닝
+            {isMosfet ? "MOSFET 업스크리닝" : "BJT 업스크리닝"}
           </span>
           <span
             style={{
@@ -147,12 +148,50 @@ export default function ScreeningPage() {
             letterSpacing: "-0.01em",
           }}
         >
-          트랜지스터 업스크리닝 분석
+          {isMosfet ? "MOSFET" : "BJT"} 업스크리닝 분석
         </h1>
         <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)", maxWidth: "560px" }}>
-          BJT 데이터시트를 업로드하거나 부품 번호(MPN)를 입력하면, AI가 우주 방사선 환경 적합성을 자동 평가합니다.
-          비전문가도 쉽게 이해할 수 있도록 한국어로 설명합니다.
+          {isMosfet
+            ? "MOSFET 데이터시트를 업로드하거나 부품 번호(MPN)를 입력하면, AI가 우주 방사선 환경 적합성을 자동 평가합니다."
+            : "BJT 데이터시트를 업로드하거나 부품 번호(MPN)를 입력하면, AI가 우주 방사선 환경 적합성을 자동 평가합니다."}
+          {" "}비전문가도 쉽게 이해할 수 있도록 한국어로 설명합니다.
         </p>
+      </div>
+
+      {/* BJT / MOSFET toggle */}
+      <div style={{ marginBottom: "1.5rem" }}>
+        <div
+          style={{
+            display: "inline-flex",
+            background: "var(--bg-panel)",
+            border: "1px solid var(--border-dim)",
+            borderRadius: "0.625rem",
+            padding: "3px",
+            gap: "2px",
+          }}
+        >
+          {(["bjt", "mosfet"] as const).map((pt) => (
+            <button
+              key={pt}
+              onClick={() => setPartType(pt)}
+              style={{
+                padding: "0.35rem 1rem",
+                borderRadius: "0.45rem",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "0.8rem",
+                fontWeight: 600,
+                fontFamily: "'DM Mono', monospace",
+                letterSpacing: "0.04em",
+                transition: "all 0.15s",
+                background: partType === pt ? "var(--accent-cyan)" : "transparent",
+                color: partType === pt ? "#000" : "var(--text-dim)",
+              }}
+            >
+              {pt.toUpperCase()}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* License key input (collapsible) */}
@@ -219,13 +258,13 @@ export default function ScreeningPage() {
               데이터시트 업로드
             </h2>
             <p style={{ fontSize: "0.775rem", color: "var(--text-secondary)" }}>
-              트랜지스터 규격서(PDF)를 업로드하면 파라미터를 자동 추출합니다
+              {isMosfet ? "MOSFET" : "트랜지스터"} 규격서(PDF)를 업로드하면 파라미터를 자동 추출합니다
             </p>
           </div>
 
           <form onSubmit={handlePdfSubmit}>
             <div style={{ marginBottom: "1rem" }}>
-              <DatasheetUpload onFile={(f) => setFile(f)} />
+              <DatasheetUpload onFile={(f) => setFile(f)} partLabel={isMosfet ? "MOSFET" : "트랜지스터"} />
             </div>
 
             <div
@@ -380,7 +419,7 @@ export default function ScreeningPage() {
                 type="text"
                 value={mpn}
                 onChange={(e) => setMpn(e.target.value)}
-                placeholder="예: 2N2222A, BC547, 2N3904"
+                placeholder={isMosfet ? "예: JANSR2N7268, JANSR2N7380" : "예: 2N2222A, BC547, 2N3904"}
                 required
                 style={inputClass}
                 className="search-input"

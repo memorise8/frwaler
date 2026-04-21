@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback } from "react";
-import { getScreening, screenBjtByMpn } from "@/lib/api";
+import { getScreening, screenBjtByMpn, screenMosfetByMpn } from "@/lib/api";
 import ScoreGauge from "@/components/screening/ScoreGauge";
 import HeritageMatches from "@/components/screening/HeritageMatches";
 import RiskFlags from "@/components/screening/RiskFlags";
@@ -545,6 +545,7 @@ export default function ComparePageClient() {
     licenseKey: typeof window !== "undefined" ? getLicenseKey() : "",
   });
 
+  const [partType, setPartType] = useState<'bjt' | 'mosfet'>('bjt');
   const [reportA, setReportA] = useState<ScreeningReport | null>(null);
   const [reportB, setReportB] = useState<ScreeningReport | null>(null);
   const [loading, setLoading] = useState(false);
@@ -586,10 +587,8 @@ export default function ComparePageClient() {
           setLoading(false);
           return;
         }
-        const [a, b] = await Promise.all([
-          screenBjtByMpn(mpnA, key),
-          screenBjtByMpn(mpnB, key),
-        ]);
+        const fn = partType === 'mosfet' ? screenMosfetByMpn : screenBjtByMpn;
+        const [a, b] = await Promise.all([fn(mpnA, key), fn(mpnB, key)]);
         setReportA(a);
         setReportB(b);
       }
@@ -598,7 +597,7 @@ export default function ComparePageClient() {
     } finally {
       setLoading(false);
     }
-  }, [form]);
+  }, [form, partType]);
 
   const inputStyle: React.CSSProperties = {
     background: "var(--bg-panel)",
@@ -656,7 +655,7 @@ export default function ComparePageClient() {
           비교 분석
         </h1>
         <p style={{ fontSize: "0.825rem", color: "var(--text-dim)" }}>
-          두 BJT 부품의 우주 적합성 평가 결과를 나란히 비교합니다.
+          두 {partType === 'mosfet' ? 'MOSFET' : 'BJT'} 부품의 우주 적합성 평가 결과를 나란히 비교합니다.
         </p>
       </div>
 
@@ -665,6 +664,42 @@ export default function ComparePageClient() {
         className="card stat-card animate-fade-up-1"
         style={{ padding: "1.75rem", marginBottom: "2.5rem" }}
       >
+        {/* Part type toggle */}
+        <div style={{ marginBottom: "1.25rem" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              background: "var(--bg-panel)",
+              border: "1px solid var(--border-dim)",
+              borderRadius: "0.625rem",
+              padding: "3px",
+              gap: "2px",
+            }}
+          >
+            {(["bjt", "mosfet"] as const).map((pt) => (
+              <button
+                key={pt}
+                onClick={() => setPartType(pt)}
+                style={{
+                  padding: "0.35rem 1rem",
+                  borderRadius: "0.45rem",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "0.8rem",
+                  fontWeight: 600,
+                  fontFamily: "'DM Mono', monospace",
+                  letterSpacing: "0.04em",
+                  transition: "all 0.15s",
+                  background: partType === pt ? "var(--accent-cyan)" : "transparent",
+                  color: partType === pt ? "#000" : "var(--text-dim)",
+                }}
+              >
+                {pt.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Mode toggle */}
         <div
           style={{
@@ -728,7 +763,7 @@ export default function ComparePageClient() {
                     : { ...f, idA: e.target.value }
                 )
               }
-              placeholder={form.mode === "mpn" ? "예: 2N2222A" : "예: abc123..."}
+              placeholder={form.mode === "mpn" ? (partType === 'mosfet' ? "예: JANSR2N7268" : "예: JANSR2N2222AUB") : "예: abc123..."}
               style={inputStyle}
               onFocus={(e) => {
                 (e.target as HTMLInputElement).style.borderColor = "var(--accent-cyan-dim)";
@@ -767,7 +802,7 @@ export default function ComparePageClient() {
                     : { ...f, idB: e.target.value }
                 )
               }
-              placeholder={form.mode === "mpn" ? "예: BC547B" : "예: def456..."}
+              placeholder={form.mode === "mpn" ? (partType === 'mosfet' ? "예: JANSR2N7268" : "예: JANSR2N2222AUB") : "예: def456..."}
               style={inputStyle}
               onFocus={(e) => {
                 (e.target as HTMLInputElement).style.borderColor = "var(--accent-cyan-dim)";

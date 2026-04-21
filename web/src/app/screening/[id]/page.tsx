@@ -1,5 +1,5 @@
 "use client";
-import { use } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { getScreening } from "@/lib/api";
 import ScoreGauge from "@/components/screening/ScoreGauge";
@@ -48,11 +48,24 @@ type BjtParameters = {
   polarity: string | null;
   package: string | null;
 };
+type MosfetParameters = {
+  bvdss_v: number | null;
+  vgs_th_v: number | null;
+  rds_on_ohm: number | null;
+  id_max_a: number | null;
+  idss_a: number | null;
+  qg_c: number | null;
+  pd_w: number | null;
+  tj_max_c: number | null;
+  gate_oxide: string | null;
+  polarity: string | null;
+  package: string | null;
+};
 type ScreeningReport = {
   id: string;
   input_mpn?: string;
   input_source: "pdf" | "mpn";
-  parameters: BjtParameters;
+  parameters: BjtParameters & MosfetParameters;
   factor_scores: FactorScore[];
   overall_score: number;
   status: "pass" | "caution" | "fail";
@@ -66,7 +79,7 @@ type ScreeningReport = {
 
 // ─── Param display helper ─────────────────────────────────────────────────────
 
-const PARAM_LABELS: Record<string, string> = {
+const BJT_PARAM_LABELS: Record<string, string> = {
   vceo_v: "VCEO (V)",
   vcbo_v: "VCBO (V)",
   vebo_v: "VEBO (V)",
@@ -81,6 +94,24 @@ const PARAM_LABELS: Record<string, string> = {
   package: "패키지",
 };
 
+const MOSFET_PARAM_LABELS: Record<string, string> = {
+  bvdss_v: "BVDSS (V)",
+  vgs_th_v: "Vgs_th (V)",
+  rds_on_ohm: "Rds(on) (Ω)",
+  id_max_a: "Id_max (A)",
+  idss_a: "Idss (A)",
+  qg_c: "Qg (C)",
+  pd_w: "Pd (W)",
+  tj_max_c: "Tj_max (°C)",
+  gate_oxide: "게이트 산화막",
+  polarity: "극성",
+  package: "패키지",
+};
+
+function isMosfetParams(params: Record<string, unknown>): boolean {
+  return "bvdss_v" in params || "rds_on_ohm" in params;
+}
+
 function formatParamValue(key: string, val: number | string | null): string {
   if (val === null) return "—";
   if (key === "ft_hz" && typeof val === "number") {
@@ -92,6 +123,21 @@ function formatParamValue(key: string, val: number | string | null): string {
     if (val < 1e-6) return `${(val * 1e9).toFixed(1)} nA`;
     if (val < 1e-3) return `${(val * 1e6).toFixed(1)} μA`;
     return `${val} A`;
+  }
+  if (key === "idss_a" && typeof val === "number") {
+    if (val < 1e-6) return `${(val * 1e9).toFixed(1)} nA`;
+    if (val < 1e-3) return `${(val * 1e6).toFixed(1)} μA`;
+    return `${val} A`;
+  }
+  if (key === "rds_on_ohm" && typeof val === "number") {
+    if (val < 0.001) return `${(val * 1000).toFixed(2)} mΩ`;
+    if (val < 1) return `${(val * 1000).toFixed(1)} mΩ`;
+    return `${val} Ω`;
+  }
+  if (key === "qg_c" && typeof val === "number") {
+    if (val < 1e-6) return `${(val * 1e9).toFixed(1)} nC`;
+    if (val < 1e-3) return `${(val * 1e6).toFixed(1)} μC`;
+    return `${val} C`;
   }
   return String(val);
 }
@@ -172,20 +218,21 @@ function Section({
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 interface PageProps {
-  params: Promise<{ id: string }>;
-}
-
-function getLicenseKey(): string {
-  if (typeof window === "undefined") return "";
-  return localStorage.getItem("bjt_license_key") || "";
+  params: { id: string };
 }
 
 export default function ScreeningResultPage({ params }: PageProps) {
-  const { id } = use(params);
-  const licenseKey = typeof window !== "undefined" ? getLicenseKey() : "";
+  const { id } = params;
+  const [licenseKey, setLicenseKey] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setLicenseKey(localStorage.getItem("bjt_license_key") || "");
+    setMounted(true);
+  }, []);
 
   const { data: report, error, isLoading } = useSWR<ScreeningReport>(
-    id ? ["screen-bjt", id] : null,
+    mounted && id ? ["screen-bjt", id, licenseKey] : null,
     () => getScreening(id, licenseKey),
     { revalidateOnFocus: false }
   );
@@ -249,7 +296,9 @@ export default function ScreeningResultPage({ params }: PageProps) {
   }
 
   const si = statusInfo(report.status);
-  const paramEntries = Object.entries(PARAM_LABELS) as [string, string][];
+  const isMosfet = isMosfetParams(report.parameters as unknown as Record<string, unknown>);
+  const paramLabels = isMosfet ? MOSFET_PARAM_LABELS : BJT_PARAM_LABELS;
+  const paramEntries = Object.entries(paramLabels) as [string, string][];
 
   return (
     <div className="animate-fade-up">
@@ -362,6 +411,18 @@ export default function ScreeningResultPage({ params }: PageProps) {
                   ? "데이터시트 분석"
                   : "MPN 조회"}
               </span>
+              <span
+                className="chip chip-neutral"
+                style={{
+                  fontSize: "0.7rem",
+                  fontFamily: "'DM Mono', monospace",
+                  color: "var(--accent-cyan)",
+                  borderColor: "rgba(0,200,240,0.25)",
+                  background: "rgba(0,200,240,0.06)",
+                }}
+              >
+                {isMosfet ? "MOSFET" : "BJT"}
+              </span>
             </div>
 
             {/* Parameter grid */}
@@ -373,7 +434,7 @@ export default function ScreeningResultPage({ params }: PageProps) {
               }}
             >
               {paramEntries.map(([key, label]) => {
-                const raw = report.parameters[key as keyof BjtParameters];
+                const raw = (report.parameters as Record<string, unknown>)[key] as number | string | null;
                 const val = formatParamValue(key, raw);
                 if (val === "—") return null;
                 return (

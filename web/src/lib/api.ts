@@ -102,7 +102,8 @@ export async function fetchProductStats() {
 
 // ─── BJT Up-Screening API ────────────────────────────────────────────────────
 
-const PRO_API_BASE = process.env.NEXT_PUBLIC_PRO_API_URL || "";
+// Use relative paths — Next.js rewrites proxy /pro/api/* to the backend
+const PRO_API_BASE = "";
 
 export async function screenBjtByFile(
   file: File,
@@ -126,13 +127,47 @@ export async function screenBjtByMpn(
   licenseKey: string,
   manufacturer?: string
 ) {
+  const fd = new FormData();
+  fd.append("mpn", mpn);
+  if (manufacturer) fd.append("manufacturer", manufacturer);
   const res = await fetch(`${PRO_API_BASE}/pro/api/screen-bjt`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-License-Key": licenseKey,
-    },
-    body: JSON.stringify({ mpn, manufacturer }),
+    headers: { "X-License-Key": licenseKey },
+    body: fd,
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function screenMosfetByFile(
+  file: File,
+  opts: { mpn?: string; manufacturer?: string; licenseKey: string }
+) {
+  const fd = new FormData();
+  fd.append("file", file);
+  if (opts.mpn) fd.append("mpn", opts.mpn);
+  if (opts.manufacturer) fd.append("manufacturer", opts.manufacturer);
+  const res = await fetch(`${PRO_API_BASE}/pro/api/screen-mosfet`, {
+    method: "POST",
+    headers: { "X-License-Key": opts.licenseKey },
+    body: fd,
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function screenMosfetByMpn(
+  mpn: string,
+  licenseKey: string,
+  manufacturer?: string
+) {
+  const fd = new FormData();
+  fd.append("mpn", mpn);
+  if (manufacturer) fd.append("manufacturer", manufacturer);
+  const res = await fetch(`${PRO_API_BASE}/pro/api/screen-mosfet`, {
+    method: "POST",
+    headers: { "X-License-Key": licenseKey },
+    body: fd,
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
@@ -151,19 +186,6 @@ export async function listFactors(licenseKey: string, partType = "bjt") {
     `${PRO_API_BASE}/pro/api/factors?part_type=${partType}`,
     { headers: { "X-License-Key": licenseKey } }
   );
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
-
-export async function registerLicense(
-  name: string,
-  email: string
-): Promise<{ key: string; plan: string; message: string }> {
-  const res = await fetch(`${PRO_API_BASE}/pro/api/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email }),
-  });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }

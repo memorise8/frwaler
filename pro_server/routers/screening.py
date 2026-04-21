@@ -271,13 +271,13 @@ def _save_report(r: ScreeningReport, license_key: str) -> None:
             r.id,
             r.input_mpn,
             r.input_source,
-            json.dumps(r.parameters.dict()),
-            json.dumps([fs.dict() for fs in r.factor_scores]),
+            json.dumps(r.parameters.model_dump()),
+            json.dumps([fs.model_dump() for fs in r.factor_scores]),
             r.overall_score,
             r.status,
             r.confidence,
-            json.dumps([hm.dict() for hm in r.heritage_matches]),
-            json.dumps([rf.dict() for rf in r.risk_flags]),
+            json.dumps([hm.model_dump() for hm in r.heritage_matches]),
+            json.dumps([rf.model_dump() for rf in r.risk_flags]),
             license_key,
         ),
     )
@@ -286,7 +286,12 @@ def _save_report(r: ScreeningReport, license_key: str) -> None:
 
 
 def _row_to_report(row) -> ScreeningReport:
-    params = BjtParameters(**json.loads(row["parameters"]))
+    raw_params = json.loads(row["parameters"])
+    # Detect MOSFET vs BJT by checking for MOSFET-specific keys
+    if "bvdss_v" in raw_params or "rds_on_ohm" in raw_params:
+        params = MosfetParameters(**raw_params)
+    else:
+        params = BjtParameters(**raw_params)
     factor_scores = [FactorScore(**fs) for fs in json.loads(row["factor_scores"])]
     heritage_matches = [HeritageMatch(**hm) for hm in json.loads(row["heritage_matches"])]
     risk_flags = [RiskFlag(**rf) for rf in json.loads(row["risk_flags"])]

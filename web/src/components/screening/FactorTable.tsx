@@ -29,6 +29,7 @@ interface FactorTableProps {
 
 // Plain-Korean tooltip explanations per factor name (partial match)
 const FACTOR_TOOLTIPS: Record<string, string> = {
+  // BJT factors
   icbo: "ICBO는 누설 전류로, 우주 방사선 누적에 따라 가장 먼저 변하는 파라미터입니다. 값이 낮을수록 좋습니다.",
   vceo: "VCEO는 이미터 개방 시 컬렉터-베이스 간 최대 허용 전압입니다. 높을수록 우주 환경의 고전압 스트레스에 유리합니다.",
   vcbo: "VCBO는 이미터 개방 시 컬렉터-베이스 최대 역전압입니다. SEE(단일 이벤트 효과) 내성과 연관됩니다.",
@@ -39,6 +40,15 @@ const FACTOR_TOOLTIPS: Record<string, string> = {
   package: "패키지 형태는 방사선 차폐 효과와 우주 적합성에 영향을 줍니다. 금속 캔(TO-18, TO-39 등)이 우주 용도에 선호됩니다.",
   ic: "최대 컬렉터 전류(Ic_max)입니다. 우주 전원 시스템의 부하 전류 요건을 만족해야 합니다.",
   heritage: "헤리티지 점수는 유사 부품의 우주 비행 이력을 반영합니다. 검증된 헤리티지가 높을수록 신뢰성이 높습니다.",
+  // MOSFET factors
+  bvdss: "BVDSS(드레인-소스 항복전압)는 SEB/SEGR 내성의 핵심 지표입니다. 높을수록 단일 이벤트 번아웃 위험이 낮아집니다.",
+  rds_on: "Rds(on)(온저항)은 TID 피폭 후 증가하는 경향이 있습니다. 초기값이 낮을수록 수명 말기 도통 손실 마진이 넓습니다.",
+  vgs_th: "Vgs_th(게이트 문턱전압)은 TID에 의해 음의 방향으로 이동합니다. 초기값이 클수록 방사선 열화 마진이 넓습니다.",
+  qg: "게이트 총 전하(Qg)가 낮을수록 SEGR 취약성이 감소하고 스위칭 손실 변화에 대한 여유가 커집니다.",
+  idss: "IDSS(오프 상태 누설 전류)는 TID 피폭 후 증가합니다. 초기값이 낮을수록 방사선 후 누설 전력 예산 마진이 넓습니다.",
+  gate_oxide: "게이트 산화막 두께는 TID 내성과 직결됩니다. 방사선 하드닝 공정의 핵심 구조 파라미터입니다.",
+  power_derating: "전력 디레이팅 마진은 ECSS 기준 75% 이하 운용 여유를 나타냅니다. 진공 환경의 열 방산 한계를 고려합니다.",
+  id_margin: "최대 드레인 전류(Id_max) 마진입니다. TID 후 RDS(on) 증가 시 과전류 열 파손 위험을 방지합니다.",
 };
 
 function getFactorTooltip(name: string): string {
