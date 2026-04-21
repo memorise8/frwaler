@@ -22,6 +22,7 @@ class ProSettings(BaseSettings):
     jwt_secret: str = "change-me-in-production"
     jwt_expiry_hours: int = 24
     admin_password: str = "admin1234"  # change in production via PRO_ADMIN_PASSWORD
+    products_db_path: str = "./data/products.db"
 
     class Config:
         env_prefix = "PRO_"

@@ -100,10 +100,77 @@ export async function fetchProductStats() {
   return res.json();
 }
 
-// ─── BJT Up-Screening API ────────────────────────────────────────────────────
+// ─── Pro Products API ────────────────────────────────────────────────────────
+
+export async function listProducts(
+  params: {
+    device_type?: string;
+    site_id?: string;
+    brand?: string;
+    q?: string;
+    page?: number;
+    per_page?: number;
+  },
+  licenseKey: string
+) {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined) searchParams.set(k, String(v));
+  });
+  const res = await fetch(
+    `${PRO_API_BASE}/pro/api/products?${searchParams}`,
+    { headers: { "X-License-Key": licenseKey } }
+  );
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function getProductStats(licenseKey: string) {
+  const res = await fetch(`${PRO_API_BASE}/pro/api/products/stats`, {
+    headers: { "X-License-Key": licenseKey },
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+// ─── Transistor Up-Screening API ─────────────────────────────────────────────
 
 // Use relative paths — Next.js rewrites proxy /pro/api/* to the backend
 const PRO_API_BASE = "";
+
+export async function screenMosfetByFile(
+  file: File,
+  opts: { mpn?: string; manufacturer?: string; licenseKey: string }
+) {
+  const fd = new FormData();
+  fd.append("file", file);
+  if (opts.mpn) fd.append("mpn", opts.mpn);
+  if (opts.manufacturer) fd.append("manufacturer", opts.manufacturer);
+  const res = await fetch(`${PRO_API_BASE}/pro/api/screen-mosfet`, {
+    method: "POST",
+    headers: { "X-License-Key": opts.licenseKey },
+    body: fd,
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function screenMosfetByMpn(
+  mpn: string,
+  licenseKey: string,
+  manufacturer?: string
+) {
+  const res = await fetch(`${PRO_API_BASE}/pro/api/screen-mosfet`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-License-Key": licenseKey,
+    },
+    body: JSON.stringify({ mpn, manufacturer }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
 
 export async function screenBjtByFile(
   file: File,
