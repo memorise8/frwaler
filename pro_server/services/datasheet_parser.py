@@ -119,7 +119,7 @@ def _make_gemini_client():
 
 
 def _call_gemini(client, model_name: str, user_content: str,
-                 max_tokens: int = 1024) -> tuple[dict, int]:
+                 max_tokens: int = 8192) -> tuple[dict, int]:
     """Call Gemini with JSON mode. Returns (parsed_dict, tokens_used)."""
     try:
         response = client.models.generate_content(
@@ -128,6 +128,7 @@ def _call_gemini(client, model_name: str, user_content: str,
             config={
                 "response_mime_type": "application/json",
                 "max_output_tokens": max_tokens,
+                "thinking_config": {"thinking_budget": 0},
             },
         )
     except Exception as exc:
@@ -165,7 +166,7 @@ def _make_openai_client():
         return None
 
 
-def _call_openai(client, user_content: str, max_tokens: int = 1024) -> tuple[dict, int]:
+def _call_openai(client, user_content: str, max_tokens: int = 2048) -> tuple[dict, int]:
     """Call gpt-4o-mini with JSON mode. Returns (parsed_dict, tokens_used)."""
     try:
         response = client.chat.completions.create(
@@ -359,7 +360,11 @@ def extract_mosfet_from_text(
                 resp = gclient.models.generate_content(
                     model=gmodel,
                     contents=f"{_MOSFET_SYSTEM_PROMPT}\n\n{msg}",
-                    config={"response_mime_type": "application/json", "max_output_tokens": 1024},
+                    config={
+                        "response_mime_type": "application/json",
+                        "max_output_tokens": 8192,
+                        "thinking_config": {"thinking_budget": 0},
+                    },
                 )
                 usage = resp.usage_metadata
                 tokens = (usage.prompt_token_count or 0) + (usage.candidates_token_count or 0)
@@ -389,7 +394,7 @@ def extract_mosfet_from_text(
                         {"role": "user", "content": msg},
                     ],
                     response_format={"type": "json_object"},
-                    max_tokens=1024,
+                    max_tokens=2048,
                 )
                 tokens = response.usage.total_tokens
                 return _json.loads(response.choices[0].message.content or ""), tokens

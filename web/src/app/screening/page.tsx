@@ -1,10 +1,18 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import DatasheetUpload from "@/components/screening/DatasheetUpload";
 import MpnAutocomplete, { AutocompleteProduct } from "@/components/screening/MpnAutocomplete";
-import { screenBjtByFile, screenBjtByMpn, screenMosfetByFile, screenMosfetByMpn } from "@/lib/api";
+import ScreeningGuidanceCard from "@/components/screening/ScreeningGuidanceCard";
+import {
+  screenBjtByFile,
+  screenBjtByMpn,
+  screenMosfetByFile,
+  screenMosfetByMpn,
+  ScreeningError,
+  ScreeningGuidance,
+} from "@/lib/api";
 
 type QuickExample = { mpn: string; type: "bjt" | "mosfet"; label: string };
 
@@ -51,6 +59,16 @@ export default function ScreeningPage() {
   const [manufacturer, setManufacturer] = useState("");
   const [mpnLoading, setMpnLoading] = useState(false);
   const [mpnError, setMpnError] = useState("");
+  const [mpnGuidance, setMpnGuidance] = useState<ScreeningGuidance | null>(null);
+
+  // Ref for scroll-to-upload affordance from guidance card
+  const pdfPanelRef = useRef<HTMLDivElement>(null);
+
+  const scrollToUpload = () => {
+    pdfPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (mpn) setMpnHint(mpn);
+    if (manufacturer) setMfgHint(manufacturer);
+  };
 
   const saveLicenseKey = (val: string) => {
     setLicenseKey(val);
@@ -83,6 +101,7 @@ export default function ScreeningPage() {
     e.preventDefault();
     if (!mpn.trim()) return;
     setMpnError("");
+    setMpnGuidance(null);
     setMpnLoading(true);
     try {
       const screenFn = partType === "mosfet" ? screenMosfetByMpn : screenBjtByMpn;
@@ -93,7 +112,11 @@ export default function ScreeningPage() {
       );
       router.push(`/screening/${report.id}`);
     } catch (err: unknown) {
-      setMpnError(err instanceof Error ? err.message : "오류가 발생했습니다");
+      if (err instanceof ScreeningError && err.guidance) {
+        setMpnGuidance(err.guidance);
+      } else {
+        setMpnError(err instanceof Error ? err.message : "오류가 발생했습니다");
+      }
     } finally {
       setMpnLoading(false);
     }
@@ -351,7 +374,7 @@ export default function ScreeningPage() {
         }}
       >
         {/* ── Left: PDF upload ── */}
-        <div className="animate-fade-up animate-fade-up-1">
+        <div ref={pdfPanelRef} className="animate-fade-up animate-fade-up-1">
           <div style={{ marginBottom: "1rem" }}>
             <h2
               style={{
@@ -549,7 +572,14 @@ export default function ScreeningPage() {
               />
             </div>
 
-            {mpnError && (
+            {mpnGuidance && (
+              <ScreeningGuidanceCard
+                guidance={mpnGuidance}
+                onUploadClick={scrollToUpload}
+              />
+            )}
+
+            {mpnError && !mpnGuidance && (
               <div
                 style={{
                   background: "rgba(239,68,68,0.08)",

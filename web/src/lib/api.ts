@@ -138,6 +138,40 @@ export async function getProductStats(licenseKey: string) {
 // Use relative paths — Next.js rewrites proxy /pro/api/* to the backend
 const PRO_API_BASE = "";
 
+export type ScreeningGuidance = {
+  error_code: "needs_upload" | "not_found" | "fetch_failed" | string;
+  mpn?: string;
+  message: string;
+  product_url?: string;
+  datasheet_url?: string;
+  brand?: string;
+};
+
+export class ScreeningError extends Error {
+  guidance?: ScreeningGuidance;
+  status: number;
+  constructor(status: number, guidance: ScreeningGuidance | string) {
+    super(typeof guidance === "string" ? guidance : guidance.message);
+    this.status = status;
+    if (typeof guidance !== "string") this.guidance = guidance;
+  }
+}
+
+async function parseScreeningError(res: Response): Promise<ScreeningError> {
+  let body: unknown = null;
+  try {
+    body = await res.json();
+  } catch {
+    const txt = await res.text().catch(() => "");
+    return new ScreeningError(res.status, txt || `HTTP ${res.status}`);
+  }
+  const detail = (body as { detail?: unknown })?.detail;
+  if (detail && typeof detail === "object" && "error_code" in detail) {
+    return new ScreeningError(res.status, detail as ScreeningGuidance);
+  }
+  return new ScreeningError(res.status, typeof detail === "string" ? detail : JSON.stringify(body));
+}
+
 export async function screenBjtByFile(
   file: File,
   opts: { mpn?: string; manufacturer?: string; licenseKey: string }
@@ -151,7 +185,7 @@ export async function screenBjtByFile(
     headers: { "X-License-Key": opts.licenseKey },
     body: fd,
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) throw await parseScreeningError(res);
   return res.json();
 }
 
@@ -168,7 +202,7 @@ export async function screenBjtByMpn(
     headers: { "X-License-Key": licenseKey },
     body: fd,
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) throw await parseScreeningError(res);
   return res.json();
 }
 
@@ -185,7 +219,7 @@ export async function screenMosfetByFile(
     headers: { "X-License-Key": opts.licenseKey },
     body: fd,
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) throw await parseScreeningError(res);
   return res.json();
 }
 
@@ -202,7 +236,7 @@ export async function screenMosfetByMpn(
     headers: { "X-License-Key": licenseKey },
     body: fd,
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) throw await parseScreeningError(res);
   return res.json();
 }
 

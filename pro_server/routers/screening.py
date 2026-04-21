@@ -12,6 +12,7 @@ from ..services.heritage_db import list_heritage, get_vectors, VECTOR_KEYS, MOSF
 from ..services.scorer import score_report
 from ..services.datasheet_parser import extract_from_pdf_bytes, extract_mosfet_from_pdf_bytes
 from ..services.normalizer import normalize_bjt_params, normalize_mosfet_params
+from ..services.products_lookup import find_product, fetch_datasheet_bytes
 
 router = APIRouter(prefix="/pro/api", tags=["screening"])
 
@@ -65,19 +66,57 @@ async def screen_bjt(
         # PDF path: raw_params has LLM-returned raw datasheet labels → normalize
         normalized = normalize_bjt_params(raw_params)
     else:
-        # MPN-only path: look up in heritage DB (parameters already in SI/canonical form)
+        # MPN-only path: look up in heritage DB first (parameters already canonical)
         heritage = [h for h in list_heritage("bjt") if h["mpn"].lower() == mpn.lower()]
         if heritage:
-            normalized = heritage[0]["parameters"]  # already canonical — skip normalizer
+            normalized = heritage[0]["parameters"]
             extraction_confidence = 1.0
         else:
-            raise HTTPException(
-                status_code=404,
-                detail=(
-                    f"MPN '{mpn}' not found in heritage DB. Please upload a PDF datasheet. "
-                    "(Phase 2: auto-fetch from Mouser/Doeeet products table.)"
-                ),
-            )
+            # Fallback: check the 56K crawler products DB and try its datasheet PDF
+            product = find_product(pro_settings.products_db_path, mpn, "bjt")
+            if product and product.get("datasheet_url"):
+                try:
+                    pdf_bytes = fetch_datasheet_bytes(product["datasheet_url"])
+                    raw_params, extraction_confidence, t = extract_from_pdf_bytes(
+                        pdf_bytes, mpn_hint=mpn
+                    )
+                    tokens += t
+                    normalized = normalize_bjt_params(raw_params)
+                    input_source = "pdf"
+                except Exception:
+                    import logging
+                    logging.getLogger(__name__).exception("Auto-fetch datasheet failed")
+                    raise HTTPException(
+                        status_code=422,
+                        detail={
+                            "error_code": "fetch_failed",
+                            "mpn": mpn,
+                            "message": "데이터시트 자동 다운로드에 실패했습니다. PDF를 직접 받아 업로드해주세요.",
+                            "product_url": product.get("url"),
+                            "datasheet_url": product.get("datasheet_url"),
+                            "brand": product.get("brand"),
+                        },
+                    )
+            elif product:
+                raise HTTPException(
+                    status_code=404,
+                    detail={
+                        "error_code": "needs_upload",
+                        "mpn": mpn,
+                        "message": "이 부품은 자동 분석이 어렵습니다. 데이터시트 PDF를 업로드해주세요.",
+                        "product_url": product.get("url"),
+                        "brand": product.get("brand"),
+                    },
+                )
+            else:
+                raise HTTPException(
+                    status_code=404,
+                    detail={
+                        "error_code": "not_found",
+                        "mpn": mpn,
+                        "message": "아직 등록되지 않은 부품입니다. 데이터시트 PDF를 업로드하면 바로 분석할 수 있습니다.",
+                    },
+                )
 
     params = BjtParameters(**{k: v for k, v in normalized.items()
                                if k in BjtParameters.model_fields})
@@ -146,13 +185,50 @@ async def screen_mosfet(
             normalized = heritage[0]["parameters"]
             extraction_confidence = 1.0
         else:
-            raise HTTPException(
-                status_code=404,
-                detail=(
-                    f"MPN '{mpn}' not found in MOSFET heritage DB. "
-                    "Please upload a PDF datasheet."
-                ),
-            )
+            product = find_product(pro_settings.products_db_path, mpn, "mosfet")
+            if product and product.get("datasheet_url"):
+                try:
+                    pdf_bytes = fetch_datasheet_bytes(product["datasheet_url"])
+                    raw_params, extraction_confidence, t = extract_mosfet_from_pdf_bytes(
+                        pdf_bytes, mpn_hint=mpn
+                    )
+                    tokens += t
+                    normalized = normalize_mosfet_params(raw_params)
+                    input_source = "pdf"
+                except Exception:
+                    import logging
+                    logging.getLogger(__name__).exception("Auto-fetch datasheet failed")
+                    raise HTTPException(
+                        status_code=422,
+                        detail={
+                            "error_code": "fetch_failed",
+                            "mpn": mpn,
+                            "message": "데이터시트 자동 다운로드에 실패했습니다. PDF를 직접 받아 업로드해주세요.",
+                            "product_url": product.get("url"),
+                            "datasheet_url": product.get("datasheet_url"),
+                            "brand": product.get("brand"),
+                        },
+                    )
+            elif product:
+                raise HTTPException(
+                    status_code=404,
+                    detail={
+                        "error_code": "needs_upload",
+                        "mpn": mpn,
+                        "message": "이 부품은 자동 분석이 어렵습니다. 데이터시트 PDF를 업로드해주세요.",
+                        "product_url": product.get("url"),
+                        "brand": product.get("brand"),
+                    },
+                )
+            else:
+                raise HTTPException(
+                    status_code=404,
+                    detail={
+                        "error_code": "not_found",
+                        "mpn": mpn,
+                        "message": "아직 등록되지 않은 부품입니다. 데이터시트 PDF를 업로드하면 바로 분석할 수 있습니다.",
+                    },
+                )
 
     params = MosfetParameters(**{k: v for k, v in normalized.items()
                                   if k in MosfetParameters.model_fields})
