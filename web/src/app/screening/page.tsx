@@ -1,8 +1,20 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import DatasheetUpload from "@/components/screening/DatasheetUpload";
+import MpnAutocomplete, { AutocompleteProduct } from "@/components/screening/MpnAutocomplete";
 import { screenBjtByFile, screenBjtByMpn, screenMosfetByFile, screenMosfetByMpn } from "@/lib/api";
+
+type QuickExample = { mpn: string; type: "bjt" | "mosfet"; label: string };
+
+const QUICK_EXAMPLES: QuickExample[] = [
+  { mpn: "2N2222A", type: "bjt", label: "2N2222A" },
+  { mpn: "2N3904", type: "bjt", label: "2N3904" },
+  { mpn: "IRF540N", type: "mosfet", label: "IRF540N" },
+  { mpn: "JANSR2N2222AUB", type: "bjt", label: "JANSR2N2222AUB (우주급)" },
+  { mpn: "JANSR2N7268", type: "mosfet", label: "JANSR2N7268 (우주급)" },
+];
 
 export default function ScreeningPage() {
   const router = useRouter();
@@ -15,6 +27,16 @@ export default function ScreeningPage() {
 
   useEffect(() => {
     setLicenseKey(localStorage.getItem("bjt_license_key") || "");
+    // Read URL params (from browse page)
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlMpn = params.get("mpn");
+      const urlType = params.get("type");
+      const urlBrand = params.get("brand");
+      if (urlType === "bjt" || urlType === "mosfet") setPartType(urlType);
+      if (urlMpn) setMpn(urlMpn);
+      if (urlBrand) setManufacturer(urlBrand);
+    }
   }, []);
 
   // PDF panel state
@@ -75,6 +97,21 @@ export default function ScreeningPage() {
     } finally {
       setMpnLoading(false);
     }
+  };
+
+  const handleAutocompletePick = (p: AutocompleteProduct) => {
+    if (p.device_type === "bjt" || p.device_type === "mosfet") {
+      setPartType(p.device_type);
+    }
+    if (p.brand) setManufacturer(p.brand);
+    setMpnError("");
+  };
+
+  const applyExample = (ex: QuickExample) => {
+    setPartType(ex.type);
+    setMpn(ex.mpn);
+    setManufacturer("");
+    setMpnError("");
   };
 
   const inputClass: React.CSSProperties = {
@@ -158,8 +195,16 @@ export default function ScreeningPage() {
         </p>
       </div>
 
-      {/* BJT / MOSFET toggle */}
-      <div style={{ marginBottom: "1.5rem" }}>
+      {/* BJT / MOSFET toggle + Quick start + Browse link */}
+      <div
+        style={{
+          marginBottom: "1.5rem",
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          gap: "0.75rem 1rem",
+        }}
+      >
         <div
           style={{
             display: "inline-flex",
@@ -192,6 +237,67 @@ export default function ScreeningPage() {
             </button>
           ))}
         </div>
+
+        <span
+          style={{
+            fontSize: "0.7rem",
+            color: "var(--text-dim)",
+            letterSpacing: "0.05em",
+            textTransform: "uppercase",
+            fontFamily: "'DM Mono', monospace",
+          }}
+        >
+          빠른 시작
+        </span>
+
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
+          {QUICK_EXAMPLES.map((ex) => (
+            <button
+              key={ex.mpn}
+              type="button"
+              onClick={() => applyExample(ex)}
+              style={{
+                padding: "0.25rem 0.65rem",
+                borderRadius: "999px",
+                border: "1px solid var(--border-dim)",
+                background: "var(--bg-panel)",
+                color: "var(--text-secondary)",
+                fontSize: "0.72rem",
+                fontFamily: "'DM Mono', monospace",
+                cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "rgba(0,200,240,0.4)";
+                e.currentTarget.style.color = "var(--accent-cyan)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--border-dim)";
+                e.currentTarget.style.color = "var(--text-secondary)";
+              }}
+            >
+              {ex.label}
+            </button>
+          ))}
+        </div>
+
+        <Link
+          href="/screening/browse"
+          style={{
+            marginLeft: "auto",
+            fontSize: "0.75rem",
+            color: "var(--text-dim)",
+            textDecoration: "none",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.3rem",
+            borderBottom: "1px dashed var(--border-dim)",
+            paddingBottom: "1px",
+          }}
+        >
+          부품 번호를 모르시나요? 목록에서 찾기
+          <span style={{ fontSize: "0.85rem" }}>→</span>
+        </Link>
       </div>
 
       {/* License key input (collapsible) */}
@@ -415,15 +521,20 @@ export default function ScreeningPage() {
           <form onSubmit={handleMpnSubmit}>
             <div style={{ marginBottom: "0.75rem" }}>
               <label style={labelStyle}>부품 번호 (MPN) *</label>
-              <input
-                type="text"
+              <MpnAutocomplete
                 value={mpn}
-                onChange={(e) => setMpn(e.target.value)}
-                placeholder={isMosfet ? "예: JANSR2N7268, JANSR2N7380" : "예: 2N2222A, BC547, 2N3904"}
-                required
+                onChange={setMpn}
+                onSelect={handleAutocompletePick}
+                licenseKey={licenseKey}
+                placeholder={isMosfet ? "예: JANSR2N7268, IRF540N" : "예: 2N2222A, BC547, 2N3904"}
                 style={inputClass}
                 className="search-input"
+                deviceTypes={["bjt", "mosfet"]}
+                required
               />
+              <p style={{ fontSize: "0.68rem", color: "var(--text-dim)", marginTop: "0.35rem" }}>
+                입력하면 56,064개 부품 DB에서 자동 추천 · 선택 시 타입 자동 전환
+              </p>
             </div>
 
             <div style={{ marginBottom: "1rem" }}>

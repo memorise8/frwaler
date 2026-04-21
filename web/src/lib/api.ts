@@ -138,40 +138,6 @@ export async function getProductStats(licenseKey: string) {
 // Use relative paths — Next.js rewrites proxy /pro/api/* to the backend
 const PRO_API_BASE = "";
 
-export async function screenMosfetByFile(
-  file: File,
-  opts: { mpn?: string; manufacturer?: string; licenseKey: string }
-) {
-  const fd = new FormData();
-  fd.append("file", file);
-  if (opts.mpn) fd.append("mpn", opts.mpn);
-  if (opts.manufacturer) fd.append("manufacturer", opts.manufacturer);
-  const res = await fetch(`${PRO_API_BASE}/pro/api/screen-mosfet`, {
-    method: "POST",
-    headers: { "X-License-Key": opts.licenseKey },
-    body: fd,
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
-
-export async function screenMosfetByMpn(
-  mpn: string,
-  licenseKey: string,
-  manufacturer?: string
-) {
-  const res = await fetch(`${PRO_API_BASE}/pro/api/screen-mosfet`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-License-Key": licenseKey,
-    },
-    body: JSON.stringify({ mpn, manufacturer }),
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
-
 export async function screenBjtByFile(
   file: File,
   opts: { mpn?: string; manufacturer?: string; licenseKey: string }
