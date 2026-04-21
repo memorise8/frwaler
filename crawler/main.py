@@ -38,6 +38,9 @@ def cmd_crawl(args, conn):
     incremental = getattr(args, 'incremental', False)
     if incremental:
         info += " (incremental)"
+    gap_fill = getattr(args, 'gap_fill', False)
+    if gap_fill:
+        info += " (gap-fill)"
     print(info + " ...")
 
     # Pass extra params if the crawler supports them
@@ -54,7 +57,13 @@ def cmd_crawl(args, conn):
         kwargs["date_to"] = date_to
     if "incremental" in crawl_params and incremental:
         kwargs["incremental"] = incremental
-    crawler.crawl(**kwargs)
+    if gap_fill and hasattr(crawler, 'gap_fill'):
+        gf_kwargs = {}
+        if doc_type:
+            gf_kwargs["doc_type"] = doc_type
+        crawler.gap_fill(**gf_kwargs)
+    else:
+        crawler.crawl(**kwargs)
 
 
 def cmd_list_sites(args, conn):
@@ -198,6 +207,96 @@ def cmd_convert(args, conn):
     convert_site_files(conn, site_id=site_id, limit=limit)
 
 
+def cmd_smart_find(args, conn):
+    """Find downloadable documents from any URL using smart detection + optional LLM.
+
+    Streams NDJSON events to stdout:
+      {"type":"progress","message":"..."}
+      {"type":"result","url":"...","documents":[...],"pages_scanned":N,...}
+      {"type":"db_saved","count":N,"site_id":"sf-..."}  (when --save-db)
+      {"type":"error","message":"..."}
+    """
+    import json as _json
+    import uuid
+    from urllib.parse import urlparse
+    from .smart_finder import SmartDocumentFinder
+
+    def emit(event_type, **data):
+        print(_json.dumps({"type": event_type, **data}, ensure_ascii=False), flush=True)
+
+    def on_progress(msg):
+        emit("progress", message=msg)
+
+    try:
+        finder = SmartDocumentFinder(
+            delay=args.delay,
+            callback=on_progress,
+            llm_provider=args.provider,
+        )
+        result = finder.find(
+            args.url,
+            max_pages=args.max_pages,
+            max_depth=args.max_depth,
+            use_ai=not args.no_ai,
+        )
+    except Exception as e:
+        emit("error", message=f"find failed: {e}")
+        sys.exit(1)
+
+    docs = [
+        {
+            "id": d.id,
+            "title": d.title,
+            "file_url": d.file_url,
+            "file_type": d.file_type,
+            "source_page": d.source_page,
+            "date": getattr(d, "date", None),
+        }
+        for d in result.documents
+    ]
+    emit(
+        "result",
+        url=result.url,
+        documents=docs,
+        pages_scanned=result.pages_scanned,
+        detail_pages_visited=result.detail_pages_visited,
+        fetch_method=result.fetch_method,
+        errors=result.errors,
+    )
+
+    if args.save_db and result.documents:
+        parsed = urlparse(args.url)
+        site_id = f"sf-{parsed.netloc.replace('www.', '').replace('.', '-')}"
+        site_name = f"Smart Find: {parsed.netloc}"
+        base_url = f"{parsed.scheme}://{parsed.netloc}"
+        db_module.register_site(conn, site_id, site_name, base_url)
+
+        saved = 0
+        for d in result.documents:
+            paper = {
+                "id": str(uuid.uuid4()),
+                "site_id": site_id,
+                "external_id": d.id,
+                "title": d.title,
+                "authors": "[]",
+                "abstract": "",
+                "category": d.file_type,
+                "keywords": "[]",
+                "published_date": getattr(d, "date", "") or "",
+                "url": d.source_page,
+                "pdf_url": d.file_url,
+                "doi": "",
+                "department": "",
+                "metadata": _json.dumps({"finder": "smart_find"}, ensure_ascii=False),
+            }
+            try:
+                db_module.upsert_paper(conn, paper)
+                saved += 1
+            except Exception as exc:
+                emit("error", message=f"db save error: {exc}")
+        emit("db_saved", count=saved, site_id=site_id)
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="python -m crawler.main",
@@ -215,6 +314,8 @@ def build_parser():
     crawl_parser.add_argument("--date-to", type=str, default=None, help="End date filter (YYYY-MM-DD)")
     crawl_parser.add_argument("--incremental", action="store_true", default=False,
                               help="Only crawl new documents not already in DB")
+    crawl_parser.add_argument("--gap-fill", action="store_true", default=False,
+                              help="Fast gap fill: scan for missing DOC_IDs then fetch only those")
 
     # list-sites
     subparsers.add_parser("list-sites", help="List registered sites and paper counts")
@@ -238,6 +339,20 @@ def build_parser():
     convert_parser.add_argument("site_id", nargs="?", default=None, help="Site to convert files for")
     convert_parser.add_argument("--limit", type=int, default=None, help="Max files to convert")
 
+    # smart-find
+    sf_parser = subparsers.add_parser(
+        "smart-find",
+        help="Find downloadable documents from any URL (emits NDJSON events)",
+    )
+    sf_parser.add_argument("url", help="Starting URL to scan")
+    sf_parser.add_argument("--max-pages", type=int, default=20, help="Max list pages to scan (default: 20)")
+    sf_parser.add_argument("--max-depth", type=int, default=3, help="Detail-link follow depth (default: 3)")
+    sf_parser.add_argument("--delay", type=float, default=1.0, help="Inter-request delay seconds (default: 1.0)")
+    sf_parser.add_argument("--provider", choices=["gpt", "gemini"], default=None,
+                           help="LLM provider for AI fallback (default: env LLM_PROVIDER or gpt)")
+    sf_parser.add_argument("--no-ai", action="store_true", help="Disable LLM fallback analysis")
+    sf_parser.add_argument("--save-db", action="store_true", help="Save found documents to papers table")
+
     return parser
 
 
@@ -260,6 +375,7 @@ def main():
         "test-config": cmd_test_config,
         "download": cmd_download,
         "convert": cmd_convert,
+        "smart-find": cmd_smart_find,
     }
     dispatch[args.command](args, conn)
     conn.close()

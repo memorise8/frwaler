@@ -505,6 +505,206 @@ class _NTSTaxlawBase(BaseCrawler):
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
 
+    def gap_fill(self, doc_type=None):
+        """Fast gap fill: scan list pages for DOC_IDs, then fetch only missing ones."""
+        import json as _json
+
+        # Phase 1: Scan all list pages to collect DOC_IDs (no detail fetch)
+        print(f"[{self.site_id}] Gap fill Phase 1: Scanning list pages...")
+        all_doc_ids = []
+        page = 1
+        while True:
+            time.sleep(0.5)  # faster than normal crawl delay
+            raw = self._fetch_list(page, doc_type=doc_type)
+            if not raw:
+                page += 1
+                if page > 3:  # 3 consecutive failures = stop
+                    break
+                continue
+
+            try:
+                data = _json.loads(raw)
+                items = data["data"]["ASIPDI002PR01"]["body"]
+            except (json.JSONDecodeError, KeyError, TypeError):
+                page += 1
+                continue
+
+            if not items:
+                print(f"[{self.site_id}] Phase 1: No more items at page {page}. Scan complete.")
+                break
+
+            if page == 1:
+                total = data.get("data", {}).get("ASIPDI002PR01", {}).get("totalCount")
+                if total is not None:
+                    print(f"[{self.site_id}] Total records on server: {total}")
+
+            for item in items:
+                dcm = item.get("dcm", {})
+                doc_id = str(dcm.get("DOC_ID", ""))
+                if doc_id:
+                    all_doc_ids.append(doc_id)
+
+            if page % 100 == 0:
+                print(f"[{self.site_id}] Phase 1: Scanned {page} pages, {len(all_doc_ids)} DOC_IDs...")
+
+            page += 1
+
+        print(f"[{self.site_id}] Phase 1 done: {len(all_doc_ids)} DOC_IDs from {page - 1} pages.")
+
+        # Phase 2: Find missing DOC_IDs
+        print(f"[{self.site_id}] Phase 2: Finding missing DOC_IDs...")
+        existing = set()
+        # Query in batches of 500
+        for i in range(0, len(all_doc_ids), 500):
+            batch = all_doc_ids[i:i + 500]
+            rows = self._conn.execute(
+                "SELECT external_id FROM papers WHERE site_id = ? AND external_id IN ({})".format(
+                    ",".join("?" * len(batch))
+                ),
+                [self.site_id] + batch
+            ).fetchall()
+            existing.update(r[0] for r in rows)
+
+        missing = [d for d in all_doc_ids if d not in existing]
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_missing = []
+        for d in missing:
+            if d not in seen:
+                seen.add(d)
+                unique_missing.append(d)
+        missing = unique_missing
+
+        print(f"[{self.site_id}] Phase 2 done: {len(existing)} existing, {len(missing)} missing.")
+
+        if not missing:
+            print(f"[{self.site_id}] No missing documents. Done.")
+            return 0
+
+        # Phase 3: Fetch detail and save for missing DOC_IDs only
+        print(f"[{self.site_id}] Phase 3: Fetching {len(missing)} missing documents...")
+        saved = 0
+        for i, doc_id in enumerate(missing, 1):
+            time.sleep(self._delay)
+            detail = self._fetch_detail(doc_id)
+            if not detail:
+                print(f"[{self.site_id}] Failed to fetch detail for {doc_id}, skipping.")
+                continue
+
+            dvo = detail.get("dcmDVO") or {}
+            title = dvo.get("ntstDcmTtl") or dvo.get("TTL") or dvo.get("ttl") or ""
+            doc_number = dvo.get("ntstDcmDscmCntn") or ""
+            tax_category = dvo.get("ntstTlawClNm") or ""
+            doc_type_name = dvo.get("ntstDcmClNm") or ""
+            raw_date = dvo.get("dcmRgtDtm") or ""
+            file_id = dvo.get("ntstFleId") or ""
+            src_org_cd = dvo.get("ntstDcmSrcsOrgnClCd") or ""
+            reply_ref = dvo.get("ntstDcmRplyCntn") or ""
+            detail_gist = dvo.get("ntstDcmGistCntn") or ""
+            detail_content = dvo.get("ntstDcmCntn") or ""
+            keywords_raw = dvo.get("ntstDcmMatrCntn") or ""
+            keyword_list = [k.strip() for k in keywords_raw.split(",") if k.strip()] if keywords_raw else []
+
+            published_date = self._parse_date(raw_date)
+
+            # Additional dvo fields
+            detail_extra = {
+                "attrYr": dvo.get("attrYr"),
+                "decisionClassCd": dvo.get("ntstDcmDcsClCd"),
+                "reviewResultCd": dvo.get("ntstDcmInveRsltCd"),
+                "reviewReason": dvo.get("ntstDcmInveRsn"),
+                "supremeCourtAllAgmt": dvo.get("sprcJdgmAllAgmtYn"),
+                "caseNumber": dvo.get("dsbdHpnnNo"),
+                "attachedFileId": dvo.get("ntstWpFleId"),
+                "firstRegDtm": dvo.get("frsRgtDtm"),
+                "lastAltDtm": dvo.get("lstAltDtm"),
+                "inputOrgCd": dvo.get("inptOptrTxhfOgzCd"),
+            }
+            detail_extra = {k: v for k, v in detail_extra.items()
+                            if v not in (None, "", "ZZ", "ZZZ", "ZZZZ",
+                                         "ZZZZZ", "ZZZZZZ", "ZZZZZZZ")}
+
+            # HTML body
+            html_body = ""
+            raw_html_content = ""
+            for editor_item in (detail.get("dcmHwpEditorDVOList") or []):
+                if editor_item.get("dcmFleTy") == "html":
+                    raw_html = editor_item.get("dcmFleByte", "") or ""
+                    if raw_html:
+                        raw_html_content = raw_html
+                        html_body = self._strip_tags(raw_html)
+                        break
+
+            # Save raw HTML
+            raw_html_path = ""
+            if raw_html_content and doc_id:
+                html_dir = _HTML_EXPORT_ROOT / self.site_id / "_html"
+                html_dir.mkdir(parents=True, exist_ok=True)
+                html_file = html_dir / f"{doc_id}.html"
+                try:
+                    html_file.write_text(raw_html_content, encoding="utf-8")
+                    raw_html_path = str(html_file.relative_to(_ROOT))
+                except Exception as e:
+                    print(f"[{self.site_id}] raw HTML save failed ({doc_id}): {e}")
+
+            # Related laws
+            related_laws = [law.get("ntstTextNm", "") for law in (detail.get("dcmRltnStttList") or []) if law.get("ntstTextNm")]
+            # Trial history
+            trial_history = [t.get("ntstDcmDscmCntn", "") for t in (detail.get("trilPsagList") or []) if t.get("ntstDcmDscmCntn")]
+            # Referenced cases
+            referenced_cases = [p.get("ntstDcmDscmCntn", "") for p in (detail.get("dcmRfrnPrtsList") or []) if p.get("ntstDcmDscmCntn")]
+            # Cited cases
+            cited_cases = [p.get("ntstDcmDscmCntn", "") for p in (detail.get("dcmQutPrtsList") or []) if p.get("ntstDcmDscmCntn")]
+            # Related topics
+            related_topics = [(m.get("ntstTextNm") or m.get("matrCntn") or "") for m in (detail.get("dcmRltnStttMatrList") or []) if (m.get("ntstTextNm") or m.get("matrCntn"))]
+            # Attached files
+            attached_files = [{"name": f.get("fleOrgNm") or f.get("fleNm") or "", "fileId": f.get("fleId") or f.get("ntstFleId") or ""} for f in (detail.get("fleDVOList") or []) if (f.get("fleOrgNm") or f.get("fleNm") or f.get("fleId") or f.get("ntstFleId"))]
+
+            # Build abstract
+            abstract_parts = []
+            for part in [detail_gist, detail_content, html_body]:
+                if part and part not in abstract_parts:
+                    abstract_parts.append(part)
+            abstract = "\n\n".join(abstract_parts)
+
+            paper = {
+                "id": None,
+                "site_id": self.site_id,
+                "external_id": doc_id,
+                "title": title,
+                "authors": json.dumps([], ensure_ascii=False),
+                "abstract": abstract,
+                "category": tax_category,
+                "keywords": json.dumps(keyword_list, ensure_ascii=False),
+                "published_date": published_date,
+                "url": f"https://taxlaw.nts.go.kr/pd/USEPDA002P.do?ntstDcmId={doc_id}",
+                "pdf_url": "",
+                "doi": "",
+                "department": "",
+                "metadata": json.dumps({
+                    "documentNumber": doc_number,
+                    "documentTypeName": doc_type_name,
+                    "replyReference": reply_ref,
+                    "fileId": file_id,
+                    "sourceOrgCode": src_org_cd,
+                    "relatedLaws": related_laws,
+                    "trialHistory": trial_history,
+                    "referencedCases": referenced_cases,
+                    "citedCases": cited_cases,
+                    "relatedTopics": related_topics,
+                    "attachedFiles": attached_files,
+                    "rawHtmlPath": raw_html_path,
+                    **detail_extra,
+                }, ensure_ascii=False),
+            }
+
+            self._save_paper(paper)
+            saved += 1
+            print(f"[{self.site_id}] Gap fill {saved}/{len(missing)}: {title[:60]}")
+
+        print(f"[{self.site_id}] Gap fill done. {saved} new documents saved.")
+        return saved
+
 
 class NTSTaxlawQtCrawler(_NTSTaxlawBase):
     """Crawler for 국세법령 세법해석례."""
