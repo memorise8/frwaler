@@ -79,12 +79,14 @@ class FinderResult:
 class SmartDocumentFinder:
     """Finds all downloadable documents from any URL without config files."""
 
-    def __init__(self, delay=1.5, respect_robots=False, callback=None):
+    def __init__(self, delay=1.5, respect_robots=False, callback=None, llm_provider=None):
         """
         Args:
             delay: Seconds between requests
             respect_robots: Whether to check robots.txt
             callback: Optional function(progress_str) for real-time updates
+            llm_provider: 'gpt' or 'gemini'. If None, uses LLM_PROVIDER env var
+                          (defaults to 'gpt').
         """
         self._delay = delay
         self._session = requests.Session()
@@ -97,6 +99,7 @@ class SmartDocumentFinder:
         self._fetch_method = None  # Auto-detect
         self._seen_urls = set()
         self._callback = callback
+        self._llm_provider = llm_provider
         self._browser = None
         self._playwright = None
         self._page = None  # Reuse same page for session persistence
@@ -104,7 +107,9 @@ class SmartDocumentFinder:
     def _update_progress(self, msg):
         if self._callback:
             self._callback(msg)
-        print(f"[SmartFinder] {msg}")
+        else:
+            import sys
+            print(f"[SmartFinder] {msg}", file=sys.stderr)
 
     # ------------------------------------------------------------------
     # Fetching
@@ -636,64 +641,9 @@ class SmartDocumentFinder:
     # ------------------------------------------------------------------
 
     def _ai_analyze(self, html, url):
-        """Use GPT to analyze page structure when pattern matching fails."""
-        api_key = os.environ.get("OPENAI_API_KEY")
-        if not api_key:
-            return None
-
-        try:
-            from openai import OpenAI
-            client = OpenAI(api_key=api_key)
-
-            # Clean HTML to reduce tokens
-            soup = BeautifulSoup(html, "html.parser")
-            for tag in soup.select("script, style, noscript, svg, path"):
-                tag.decompose()
-            clean_text = soup.get_text(strip=True)[:3000]
-
-            # Also get a sample of the HTML structure
-            body = soup.select_one("body")
-            structure = str(body)[:2000] if body else str(soup)[:2000]
-
-            response = client.chat.completions.create(
-                model="gpt-5.4-mini",
-                messages=[{
-                    "role": "system",
-                    "content": (
-                        "You analyze web pages to find downloadable documents. "
-                        "Respond in JSON only."
-                    ),
-                }, {
-                    "role": "user",
-                    "content": (
-                        f"Analyze this page and find document download links.\n"
-                        f"URL: {url}\n\n"
-                        f"Page text (truncated):\n{clean_text[:1500]}\n\n"
-                        f"HTML structure (truncated):\n{structure[:1500]}\n\n"
-                        f"Respond with JSON:\n"
-                        f'{{\n'
-                        f'    "has_documents": true/false,\n'
-                        f'    "document_links_css": "CSS selector for document links",\n'
-                        f'    "file_links_css": "CSS selector for direct file download links",\n'
-                        f'    "pagination_css": "CSS selector for next page link if any",\n'
-                        f'    "notes": "brief description"\n'
-                        f'}}'
-                    ),
-                }],
-                temperature=0,
-                max_completion_tokens=300,
-            )
-
-            text = response.choices[0].message.content.strip()
-            # Extract JSON from response
-            if "```" in text:
-                text = text.split("```")[1].strip()
-                if text.startswith("json"):
-                    text = text[4:].strip()
-            return json.loads(text)
-        except Exception as e:
-            print(f"[SmartFinder] AI analysis error: {e}")
-            return None
+        """Use an LLM (GPT or Gemini) to analyze page structure when pattern matching fails."""
+        from .llm_providers import analyze_page_for_documents
+        return analyze_page_for_documents(html, url, provider=self._llm_provider)
 
     # ------------------------------------------------------------------
     # Main find method
@@ -852,6 +802,10 @@ class SmartDocumentFinder:
                     try:
                         from .network_capture import find_data_api
                         self._update_progress("AJAX API 탐지 시도 중...")
+                        # Release our sync_playwright instance before network_capture
+                        # starts its own; two concurrent sync instances clash on the
+                        # internal asyncio loop.
+                        self._close_browser()
                         api_result = find_data_api(url)
                         if api_result:
                             self._update_progress(

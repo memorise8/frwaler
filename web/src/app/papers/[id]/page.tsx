@@ -93,6 +93,14 @@ export default function PaperDetailPage({
         </div>
       </div>
 
+      {/* Abstract / 본문 */}
+      {paper.abstract && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-3">본문 내용</h2>
+          <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{paper.abstract}</p>
+        </div>
+      )}
+
       {/* AI Summary */}
       {paper.summary ? (
         <div className="bg-white rounded-xl border border-gray-200 p-6">

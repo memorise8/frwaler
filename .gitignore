@@ -17,6 +17,10 @@ reports/
 # Node
 web/node_modules/
 web/.next/
+web/.vercel/
+finolaw/node_modules/
+finolaw/.next/
+finolaw/tsconfig.tsbuildinfo
 
 # IDE
 .vscode/
@@ -24,6 +28,13 @@ web/.next/
 
 # OMC state
 .omc/
+
+# Local caches, agent state
+.cache/
+.claude/
+
+# Separate large scraped assets
+html_archive/
 
 # Test URL files
 test_urls.txt

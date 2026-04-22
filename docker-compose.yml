@@ -1,0 +1,40 @@
+# On-premise single-service deployment.
+#
+# The single `app` container runs:
+#   - Next.js (port 3001, driven by supervisord)
+#   - Python 3 + Playwright + Codex CLI (spawned on-demand per crawl)
+#
+# Host directories are bind-mounted so DB, logs, and Codex-generated crawlers
+# survive `docker compose down` and are easy to back up with `tar`/`rsync`.
+#
+# Usage:
+#   cp .env.example .env
+#   cp crawler/.env.example crawler/.env
+#   # edit both files, then:
+#   docker compose up -d
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: crawler-poc:mvp
+    container_name: crawler-poc
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env
+      - crawler/.env
+    volumes:
+      - ./data:/app/data
+      - ./.cache:/app/.cache
+      - ./crawler/sites/custom:/app/crawler/sites/custom
+      - ./crawler/sites/configs:/app/crawler/sites/configs
+    restart: unless-stopped
+    # Healthcheck: the Next.js server responds to HEAD / even behind auth (returns 401, not 5xx).
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null -w '%{http_code}' http://localhost:3001/ | grep -E '^(200|401)$$' >/dev/null"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s

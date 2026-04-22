@@ -1,2 +1,8 @@
 requests
 beautifulsoup4
+cloudscraper
+playwright
+openai
+google-genai
+openpyxl
+python-dotenv

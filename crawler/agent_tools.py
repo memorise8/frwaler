@@ -244,7 +244,31 @@ def save_config(config):
 
 
 def test_crawl(site_id, limit=3):
-    """Test crawl a site using in-memory DB. Returns success and sample data."""
+    """Test crawl a site using in-memory DB. Returns success and sample data.
+
+    Quality-aware success criterion:
+        success=True requires count>0 AND at least one sample with a real
+        (non-empty) abstract AND at least one sample with a valid http(s)
+        URL (no ``javascript:`` pseudo-links).
+
+    Return shape (backward compatible — existing ``success``/``count``/``samples``
+    keys are preserved)::
+
+        {
+            "success": bool,
+            "count": int,
+            "samples": [{"title": str, "url": str, "abstract_preview": str,
+                          "has_abstract": bool}, ...],
+            "quality": {
+                "samples_with_content": int,      # abstract length >= 50 chars
+                "samples_with_valid_url": int,    # starts with http(s) AND no 'javascript:'
+                "avg_abstract_len": int,
+                "empty_abstract_pct": int,        # 0-100
+                "js_url_pct": int,                # 0-100
+                "warnings": [str, ...],
+            },
+        }
+    """
     try:
         # Use in-memory SQLite to avoid polluting production DB
         conn = sqlite3.connect(":memory:")
@@ -264,36 +288,152 @@ def test_crawl(site_id, limit=3):
             if os.path.exists(custom_path):
                 spec = importlib.util.spec_from_file_location(f"custom_{site_id}", custom_path)
                 mod = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(mod)
-                # Find the crawler class
+                try:
+                    spec.loader.exec_module(mod)
+                except ImportError as ie:
+                    return {
+                        "success": False,
+                        "count": 0,
+                        "error": f"Import error loading custom crawler: {ie}",
+                        "samples": [],
+                        "quality": _empty_quality(),
+                    }
+                # Find the crawler class — a proper BaseCrawler subclass.
+                # Must exclude BaseCrawler itself (alphabetically earlier, would
+                # match the old filter and error on abstract instantiation).
+                from .base_crawler import BaseCrawler as _BaseCrawler
                 crawler_cls = None
                 for attr_name in dir(mod):
                     attr = getattr(mod, attr_name)
-                    if isinstance(attr, type) and hasattr(attr, 'site_id') and hasattr(attr, 'crawl'):
+                    if (isinstance(attr, type)
+                            and attr is not _BaseCrawler
+                            and issubclass(attr, _BaseCrawler)):
                         crawler_cls = attr
                         break
                 if not crawler_cls:
-                    return {"success": False, "count": 0, "error": "No crawler class found in custom file"}
+                    return {"success": False, "count": 0, "error": "No crawler class found in custom file",
+                            "samples": [], "quality": _empty_quality()}
                 crawler = crawler_cls(db_conn=conn)
                 db_module.register_site(conn, crawler.site_id, crawler.site_name, crawler.base_url)
             else:
-                return {"success": False, "count": 0, "error": f"No config or custom crawler found for '{site_id}'"}
+                return {"success": False, "count": 0,
+                        "error": f"No config or custom crawler found for '{site_id}'",
+                        "samples": [], "quality": _empty_quality()}
 
         count = crawler.crawl(limit=limit)
 
-        # Get sample data
-        rows = conn.execute("SELECT title, url, abstract FROM papers LIMIT 3").fetchall()
+        # Get sample data (look at up to 5 rows so metrics are meaningful)
+        rows = conn.execute(
+            "SELECT title, url, abstract FROM papers LIMIT 5"
+        ).fetchall()
         samples = []
+        abstract_lens = []
+        valid_url_count = 0
+        js_url_count = 0
+        content_count = 0  # abstract len >= 50
         for row in rows:
+            title = (row["title"] or "")
+            url = (row["url"] or "")
+            abstract = (row["abstract"] or "")
+            abstract_stripped = abstract.strip()
+            abstract_len = len(abstract_stripped)
+            abstract_lens.append(abstract_len)
+            if abstract_len >= 50:
+                content_count += 1
+
+            url_lower = url.lower()
+            is_js_url = "javascript:" in url_lower
+            is_http = url_lower.startswith(("http://", "https://"))
+            if is_js_url:
+                js_url_count += 1
+            if is_http and not is_js_url:
+                valid_url_count += 1
+
             samples.append({
-                "title": (row["title"] or "")[:80],
-                "url": (row["url"] or "")[:100],
-                "has_abstract": bool(row["abstract"] and row["abstract"].strip()),
+                "title": title[:80],
+                "url": url[:120],
+                "abstract_preview": abstract_stripped[:120],
+                "has_abstract": bool(abstract_stripped),
             })
         conn.close()
-        return {"success": count > 0, "count": count, "samples": samples}
+
+        sample_total = len(samples)
+        if sample_total > 0:
+            empty_abs = sum(1 for a in abstract_lens if a == 0)
+            empty_abstract_pct = int(round(100 * empty_abs / sample_total))
+            js_url_pct = int(round(100 * js_url_count / sample_total))
+            avg_abstract_len = int(round(sum(abstract_lens) / sample_total))
+        else:
+            empty_abstract_pct = 100
+            js_url_pct = 0
+            avg_abstract_len = 0
+
+        warnings = []
+        if js_url_pct > 0:
+            warnings.append(
+                "Site uses JS-based navigation (javascript: in URLs). "
+                "A JSON config cannot crawl detail pages. Use write_crawler_file "
+                "to generate a custom Python crawler that calls the underlying API "
+                "directly (discover it with curl_fetch or browser_fetch's network tab)."
+            )
+        if sample_total > 0 and empty_abstract_pct == 100:
+            warnings.append(
+                "All samples have empty abstract. The detail_page.selectors may be "
+                "missing or wrong. Either fix the detail selectors, OR if detail "
+                "navigation requires JS, use write_crawler_file."
+            )
+        if count == 0:
+            warnings.append(
+                "Zero rows saved. The list-page selectors (item_container / "
+                "item_link) are probably wrong. Re-inspect clean_html output and "
+                "retry. If the page is a SPA, use browser_fetch."
+            )
+
+        quality = {
+            "samples_with_content": content_count,
+            "samples_with_valid_url": valid_url_count,
+            "avg_abstract_len": avg_abstract_len,
+            "empty_abstract_pct": empty_abstract_pct,
+            "js_url_pct": js_url_pct,
+            "warnings": warnings,
+        }
+
+        # Quality-aware success: count must be positive AND content-rich
+        # samples with real URLs. A zero-row crawl or a crawl that only
+        # yielded javascript: URLs / empty abstracts is NOT success.
+        quality_fail = (
+            count == 0
+            or (sample_total > 0 and empty_abstract_pct == 100)
+            or js_url_pct > 0
+        )
+        success = (not quality_fail) and count > 0
+
+        return {
+            "success": success,
+            "count": count,
+            "samples": samples,
+            "quality": quality,
+        }
     except Exception as e:
-        return {"success": False, "count": 0, "error": str(e)[:200]}
+        return {
+            "success": False,
+            "count": 0,
+            "error": str(e)[:200],
+            "samples": [],
+            "quality": _empty_quality(),
+        }
+
+
+def _empty_quality():
+    """Default quality dict for error paths (keeps response shape stable)."""
+    return {
+        "samples_with_content": 0,
+        "samples_with_valid_url": 0,
+        "avg_abstract_len": 0,
+        "empty_abstract_pct": 100,
+        "js_url_pct": 0,
+        "warnings": [],
+    }
 
 
 def write_crawler_file(site_id, code):
@@ -309,6 +449,17 @@ def write_crawler_file(site_id, code):
         return {"success": False, "error": "Code must extend BaseCrawler"}
     if "def crawl" not in code:
         return {"success": False, "error": "Code must define a crawl() method"}
+
+    # Reject relative imports — spec_from_file_location does not support them
+    import re as _re
+    if _re.search(r"^\s*from \.\.?", code, _re.MULTILINE):
+        return {
+            "success": False,
+            "error": (
+                "Relative imports not supported. "
+                "Use absolute imports (from crawler.base_crawler import BaseCrawler)."
+            ),
+        }
 
     os.makedirs(CUSTOM_DIR, exist_ok=True)
     path = os.path.join(CUSTOM_DIR, f"{site_id}.py")
@@ -326,6 +477,72 @@ def write_crawler_file(site_id, code):
         return {"success": False, "error": f"Import failed: {e}"}
 
 
+def discover_api(url, wait_seconds=5):
+    """Load `url` in a headless browser and capture all XHR/fetch responses.
+
+    Returns a compact dict the agent can reason over:
+      {
+        "count": N,
+        "requests": [
+          {"method": ..., "url": ..., "status": ..., "content_type": ...,
+           "size": ..., "body_preview": first-2000-chars-of-response-body},
+          ...
+        ][:20]
+      }
+
+    Filters applied:
+      - Skip responses whose content-type is NOT JSON/XML/plain (drop images, fonts, JS bundles).
+      - Skip responses with empty body.
+      - Dedupe by (method, url) — keep first occurrence.
+      - Truncate each body to 2000 chars to stay within token budget.
+      - Never include request/response headers beyond content-type (avoid leaking cookies).
+    """
+    from .network_capture import capture_api_requests
+
+    try:
+        raw = capture_api_requests(url, timeout=max(20, wait_seconds + 15))
+    except Exception as e:
+        return {"count": 0, "requests": [], "error": f"capture failed: {e}"}
+
+    seen = set()
+    filtered = []
+    for r in raw or []:
+        key = (r.get("method", "GET"), r.get("url", ""))
+        if key in seen:
+            continue
+        seen.add(key)
+
+        ct = (r.get("content_type") or "").lower()
+        # Keep data-bearing types; drop JS/CSS/font/image bundles
+        is_data = (
+            "json" in ct
+            or "xml" in ct
+            or ct.startswith("text/plain")
+            or ct.startswith("text/html")
+        )
+        is_script = "javascript" in ct or "ecmascript" in ct or ct.startswith("text/css")
+        if not is_data or is_script:
+            continue
+            continue
+
+        body = r.get("body") or ""
+        if not body.strip():
+            continue
+
+        filtered.append({
+            "method": r.get("method", "GET"),
+            "url": r.get("url", ""),
+            "status": r.get("status"),
+            "content_type": r.get("content_type"),
+            "size": r.get("size"),
+            "body_preview": body[:2000],
+        })
+        if len(filtered) >= 20:
+            break
+
+    return {"count": len(filtered), "requests": filtered}
+
+
 # Map of tool name -> function for the agent to dispatch
 TOOL_FUNCTIONS = {
     "fetch_page": fetch_page,
@@ -338,4 +555,5 @@ TOOL_FUNCTIONS = {
     "save_config": save_config,
     "test_crawl": test_crawl,
     "write_crawler_file": write_crawler_file,
+    "discover_api": discover_api,
 }

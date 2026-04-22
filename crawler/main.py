@@ -66,6 +66,32 @@ def cmd_crawl(args, conn):
         crawler.crawl(**kwargs)
 
 
+def cmd_scan_index(args, conn):
+    """Build/refresh doc_index by scanning the list API only (no detail fetch).
+
+    Only supported on crawlers that define a ``scan_index`` method.
+    """
+    site_id = args.site_id
+    if site_id not in CRAWLERS:
+        print(f"Unknown site: {site_id!r}. Available: {', '.join(CRAWLERS)}")
+        sys.exit(1)
+
+    crawler_cls = CRAWLERS[site_id]
+    delay = 2.5 if site_id == "mohw" else 1.0
+    crawler = crawler_cls(db_conn=conn, delay=delay)
+    if not hasattr(crawler, "scan_index"):
+        print(f"Site '{site_id}' does not support scan-index.")
+        sys.exit(1)
+
+    doc_type = getattr(args, "doc_type", None)
+    no_mark_deleted = getattr(args, "no_mark_deleted", False)
+
+    print(f"Starting scan-index for '{site_id}'"
+          f"{' (doc_type=' + doc_type + ')' if doc_type else ''}"
+          f"{' (no-mark-deleted)' if no_mark_deleted else ''} ...")
+    crawler.scan_index(doc_type=doc_type, mark_deleted=not no_mark_deleted)
+
+
 def cmd_list_sites(args, conn):
     rows = db_module.get_stats(conn)
     if not rows:
@@ -297,6 +323,164 @@ def cmd_smart_find(args, conn):
         emit("db_saved", count=saved, site_id=site_id)
 
 
+def cmd_auto_add(args, conn):
+    """Autonomous GPT agent: analyze a URL and generate a GenericCrawler JSON config.
+
+    Streams NDJSON events to stdout:
+      {"type":"progress","message":"..."}
+      {"type":"result","success":true|false,"site_id":"...","items_found":N,"config_path":"...","reason":"..."}
+      {"type":"error","message":"..."}
+    """
+    import json as _json
+
+    def emit(event_type, **data):
+        print(_json.dumps({"type": event_type, **data}, ensure_ascii=False), flush=True)
+
+    # Guard: require OPENAI_API_KEY before importing agent (which calls load_dotenv)
+    import os as _os
+    # Load .env first so the key can come from there
+    try:
+        from dotenv import load_dotenv as _load_dotenv
+        _env_path = _os.path.join(_os.path.dirname(__file__), ".env")
+        _load_dotenv(_env_path)
+    except Exception:
+        pass
+
+    if not _os.environ.get("OPENAI_API_KEY"):
+        emit("error", message="OPENAI_API_KEY not set in environment or crawler/.env")
+        sys.exit(1)
+
+    try:
+        from .agent import AutoAddAgent
+    except Exception as e:
+        emit("error", message=f"Failed to import AutoAddAgent: {e}")
+        sys.exit(1)
+
+    url = args.url
+    site_id = getattr(args, "site_id", None) or None
+    dry_run = getattr(args, "dry_run", False)
+    force_browser = getattr(args, "browser", False)
+
+    if dry_run:
+        emit("progress", message=f"[dry-run] Would analyze: {url}")
+        emit("result", success=True, site_id=site_id or "dry-run", items_found=0,
+             config_path=None, reason="dry-run mode — no API calls made")
+        return
+
+    def on_progress(msg):
+        emit("progress", message=msg)
+
+    max_iter = getattr(args, "max_iterations", None)
+    try:
+        agent = AutoAddAgent(
+            max_iterations=max_iter,
+            verbose=True,
+            force_browser=force_browser,
+        )
+    except RuntimeError as e:
+        emit("error", message=str(e))
+        sys.exit(1)
+
+    # Monkey-patch _report_progress to also emit NDJSON progress events
+    _orig_report = agent._report_progress
+
+    def _patched_report(name, a, result):
+        _orig_report(name, a, result)
+        # Derive a human-readable status message for the NDJSON stream
+        if name in ("fetch_page", "curl_fetch", "cloudscraper_fetch", "browser_fetch"):
+            status = "ok" if result.get("success") else "failed"
+            emit("progress", message=f"[{name}] {a.get('url','')[:80]} -> {status}")
+        elif name == "save_config":
+            sid = (a.get("config") or {}).get("site_id", "?") if isinstance(a.get("config"), dict) else "?"
+            emit("progress", message=f"[save_config] site_id={sid}")
+        elif name == "test_crawl":
+            count = result.get("count", 0)
+            emit("progress", message=f"[test_crawl] {count} items crawled")
+
+    agent._report_progress = _patched_report
+
+    try:
+        result = agent.run(url, site_id=site_id)
+    except Exception as e:
+        emit("error", message=f"Agent error: {e}")
+        sys.exit(1)
+
+    import os as _os2
+    config_path = None
+    out_site_id = result.get("site_id", site_id or "unknown")
+    if result.get("success"):
+        candidate = _os2.path.join(_os2.path.dirname(__file__), "sites", "configs", f"{out_site_id}.json")
+        if _os2.path.exists(candidate):
+            config_path = candidate
+
+    emit(
+        "result",
+        success=result.get("success", False),
+        site_id=out_site_id,
+        items_found=result.get("items_found", 0),
+        config_path=config_path,
+        reason=result.get("reason", ""),
+    )
+
+    if not result.get("success"):
+        sys.exit(1)
+
+
+def cmd_auto_add_codex(args, conn):
+    """Tier 2: Escalate to Codex CLI for autonomous custom crawler generation.
+
+    Streams NDJSON events to stdout:
+      {"type":"progress","message":"..."}
+      {"type":"result","success":bool,"site_id":"...","file_path":"...","test_crawl":{...},"error":"..."}
+    """
+    import json as _json
+
+    def emit(event_type, **data):
+        print(_json.dumps({"type": event_type, **data}, ensure_ascii=False), flush=True)
+
+    # Guard key presence
+    import os as _os
+    try:
+        from dotenv import load_dotenv as _load_dotenv
+        _load_dotenv(_os.path.join(_os.path.dirname(__file__), ".env"))
+    except Exception:
+        pass
+    if not _os.environ.get("OPENAI_API_KEY"):
+        emit("error", message="OPENAI_API_KEY not set in environment or crawler/.env")
+        sys.exit(1)
+
+    from .codex_runner import run_codex_crawler_build
+
+    def on_stream(line: str):
+        emit("progress", message=line.rstrip())
+
+    try:
+        result = run_codex_crawler_build(
+            url=args.url,
+            site_id=getattr(args, "site_id", None) or None,
+            site_name=getattr(args, "site_name", None) or None,
+            max_timeout_seconds=getattr(args, "timeout_seconds", 1200),
+            stream_cb=on_stream,
+        )
+    except Exception as e:
+        emit("error", message=f"codex_runner failed: {e}")
+        sys.exit(1)
+
+    # Emit final result (redact test_crawl samples length only)
+    tc = result.get("test_crawl")
+    emit(
+        "result",
+        success=result.get("success", False),
+        site_id=result.get("site_id"),
+        file_path=result.get("file_path"),
+        elapsed_seconds=result.get("elapsed_seconds"),
+        codex_log_path=result.get("codex_log_path"),
+        quality=(tc or {}).get("quality"),
+        count=(tc or {}).get("count"),
+        error=result.get("error"),
+    )
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="python -m crawler.main",
@@ -316,6 +500,18 @@ def build_parser():
                               help="Only crawl new documents not already in DB")
     crawl_parser.add_argument("--gap-fill", action="store_true", default=False,
                               help="Fast gap fill: scan for missing DOC_IDs then fetch only those")
+
+    # scan-index
+    scan_parser = subparsers.add_parser(
+        "scan-index",
+        help="Scan list API only to build/refresh doc_index (no detail fetch)",
+    )
+    scan_parser.add_argument("site_id", help="Site to scan")
+    scan_parser.add_argument("--doc-type", type=str, default=None,
+                             help="Document type code filter (e.g. 001_02)")
+    scan_parser.add_argument("--no-mark-deleted", action="store_true", default=False,
+                             help="Do not mark unseen rows as deleted "
+                                  "(useful for partial/filtered scans)")
 
     # list-sites
     subparsers.add_parser("list-sites", help="List registered sites and paper counts")
@@ -353,6 +549,31 @@ def build_parser():
     sf_parser.add_argument("--no-ai", action="store_true", help="Disable LLM fallback analysis")
     sf_parser.add_argument("--save-db", action="store_true", help="Save found documents to papers table")
 
+    # auto-add
+    aa_parser = subparsers.add_parser(
+        "auto-add",
+        help="Autonomous GPT agent: analyze a URL and generate a crawler config (emits NDJSON events)",
+    )
+    aa_parser.add_argument("url", help="URL of the list/board page to analyze")
+    aa_parser.add_argument("--site-id", dest="site_id", default=None,
+                           help="Override auto-generated site_id")
+    aa_parser.add_argument("--browser", action="store_true",
+                           help="Force headless browser fetch (for SPA sites)")
+    aa_parser.add_argument("--dry-run", action="store_true",
+                           help="Print what would happen without calling OpenAI")
+    aa_parser.add_argument("--max-iterations", dest="max_iterations", type=int, default=None,
+                           help="Max agent iterations (default: 15). Raise (e.g. 30) for complex sites")
+
+    # auto-add-codex
+    aac_parser = subparsers.add_parser(
+        "auto-add-codex",
+        help="Tier 2: autonomous crawler generation via Codex CLI",
+    )
+    aac_parser.add_argument("url")
+    aac_parser.add_argument("--site-id", dest="site_id", default=None)
+    aac_parser.add_argument("--site-name", dest="site_name", default=None)
+    aac_parser.add_argument("--timeout-seconds", dest="timeout_seconds", type=int, default=1200)
+
     return parser
 
 
@@ -364,18 +585,24 @@ def main():
     db_module.init_db(conn)
 
     # Register all known sites
+    import inspect as _inspect
     for site_id, crawler_cls in CRAWLERS.items():
-        instance = crawler_cls.__new__(crawler_cls)
-        db_module.register_site(conn, site_id, crawler_cls.site_name, crawler_cls.base_url)
+        try:
+            db_module.register_site(conn, site_id, crawler_cls.site_name, crawler_cls.base_url)
+        except Exception:
+            pass
 
     dispatch = {
         "crawl": cmd_crawl,
+        "scan-index": cmd_scan_index,
         "list-sites": cmd_list_sites,
         "stats": cmd_stats,
         "test-config": cmd_test_config,
         "download": cmd_download,
         "convert": cmd_convert,
         "smart-find": cmd_smart_find,
+        "auto-add": cmd_auto_add,
+        "auto-add-codex": cmd_auto_add_codex,
     }
     dispatch[args.command](args, conn)
     conn.close()

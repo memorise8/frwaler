@@ -505,6 +505,134 @@ class _NTSTaxlawBase(BaseCrawler):
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
 
+    def scan_index(self, doc_type=None, mark_deleted=True):
+        """Scan list API pages to build/refresh ``doc_index`` for this site.
+
+        Only uses the cheap list endpoint — no per-document detail fetches.
+        Upserts every observed ``DOC_ID`` and, once the scan completes
+        successfully, marks rows not observed in this scan as deleted.
+
+        Returns the number of DOC_IDs observed.
+        """
+        import json as _json
+        from datetime import datetime
+
+        from .. import db as _dbm
+
+        scan_started_at = datetime.utcnow().isoformat(sep=" ", timespec="seconds")
+        print(f"[{self.site_id}] scan_index: start ({scan_started_at})")
+
+        observed = 0
+        page = 1
+        empty_streak = 0  # consecutive pages that failed to fetch
+        total_on_server: int | None = None
+
+        while True:
+            time.sleep(0.5)  # lighter than normal crawl delay (list API only)
+
+            raw = None
+            data = None
+            for retry in range(5):
+                raw = self._fetch_list(page, doc_type=doc_type)
+                if not raw:
+                    wait = (retry + 1) * 5
+                    print(f"[{self.site_id}] scan_index: empty response at page {page}, "
+                          f"retry {retry + 1}/5 in {wait}s...")
+                    time.sleep(wait)
+                    continue
+                try:
+                    data = _json.loads(raw)
+                    break
+                except json.JSONDecodeError:
+                    wait = (retry + 1) * 5
+                    print(f"[{self.site_id}] scan_index: bad JSON at page {page}, "
+                          f"retry {retry + 1}/5 in {wait}s...")
+                    time.sleep(wait)
+
+            if data is None:
+                empty_streak += 1
+                if empty_streak >= 3:
+                    print(f"[{self.site_id}] scan_index: {empty_streak} consecutive "
+                          f"failures at page {page}. Aborting (NOT marking deleted).")
+                    return observed
+                page += 1
+                continue
+            empty_streak = 0
+
+            try:
+                items = data["data"]["ASIPDI002PR01"]["body"]
+            except (KeyError, TypeError):
+                print(f"[{self.site_id}] scan_index: unexpected response at page {page}. Stopping.")
+                break
+
+            if page == 1:
+                total_on_server = (data.get("data", {})
+                                       .get("ASIPDI002PR01", {})
+                                       .get("totalCount"))
+                if total_on_server is not None:
+                    print(f"[{self.site_id}] scan_index: total on server = {total_on_server}")
+
+            if not items:
+                print(f"[{self.site_id}] scan_index: no more items at page {page}. Done.")
+                break
+
+            for item in items:
+                dcm = item.get("dcm", {}) or {}
+                doc_id = str(dcm.get("DOC_ID", "") or "")
+                if not doc_id:
+                    continue
+
+                doc_number = dcm.get("NTST_DCM_DSCM_CNTN", "") or ""
+                title = dcm.get("TTL", "") or ""
+                doc_type_name = dcm.get("NTST_DCM_CL_NM", "") or ""
+                category = dcm.get("NTST_TLAW_CL_NM", "") or ""
+                raw_date = dcm.get("DCM_RGT_DTM", "") or ""
+                last_alt = (dcm.get("LST_ALT_DTM")
+                            or dcm.get("LAST_ALT_DTM")
+                            or dcm.get("DCM_LAST_ALT_DTM")
+                            or "")
+                published_date = self._parse_date(raw_date)
+
+                # Strip API highlight markers from indexed text
+                doc_number = re.sub(r"<!H[SE]>", "", doc_number)
+                title = re.sub(r"<!H[SE]>", "", title)
+
+                # Keep full raw dcm dict for future analysis (small, text-only)
+                extra = _json.dumps({k: v for k, v in dcm.items()
+                                     if k not in {"CNTN", "GIST_CNTN"}},
+                                    ensure_ascii=False)
+
+                _dbm.upsert_doc_index(
+                    self._conn, self.site_id, doc_id,
+                    doc_number=doc_number or None,
+                    title=title or None,
+                    doc_type=doc_type_name or None,
+                    category=category or None,
+                    published_date=published_date or None,
+                    last_altered_at=last_alt or None,
+                    extra=extra,
+                )
+                observed += 1
+
+            # Commit once per page (batch) — avoid per-row commit overhead
+            self._conn.commit()
+
+            if page % 20 == 0:
+                print(f"[{self.site_id}] scan_index: page {page}, observed {observed} so far")
+
+            page += 1
+
+        if mark_deleted and observed > 0:
+            n_deleted = _dbm.mark_doc_index_deleted(self._conn, self.site_id, scan_started_at)
+            print(f"[{self.site_id}] scan_index: marked {n_deleted} row(s) as deleted (unseen this scan)")
+
+        # Print final summary
+        stats = _dbm.get_doc_index_stats(self._conn, self.site_id)
+        for r in stats:
+            print(f"[{self.site_id}] doc_index: total={r['total']} active={r['active']} deleted={r['deleted']}")
+        print(f"[{self.site_id}] scan_index: observed {observed} DOC_IDs across {page - 1} pages")
+        return observed
+
     def gap_fill(self, doc_type=None):
         """Fast gap fill: scan list pages for DOC_IDs, then fetch only missing ones."""
         import json as _json

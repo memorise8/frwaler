@@ -49,8 +49,8 @@ export function getPapers(options: {
     params.push(siteId);
   }
   if (search) {
-    where.push('(p.title LIKE ? OR p.keywords LIKE ?)');
-    params.push(`%${search}%`, `%${search}%`);
+    where.push('(p.title LIKE ? OR p.keywords LIKE ? OR p.abstract LIKE ? OR p.metadata LIKE ?)');
+    params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
   }
 
   const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
