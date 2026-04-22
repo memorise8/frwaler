@@ -595,7 +595,14 @@ class _NTSTaxlawBase(BaseCrawler):
             title = dvo.get("ntstDcmTtl") or dvo.get("TTL") or dvo.get("ttl") or ""
             doc_number = dvo.get("ntstDcmDscmCntn") or ""
             tax_category = dvo.get("ntstTlawClNm") or ""
-            doc_type_name = dvo.get("ntstDcmClNm") or ""
+            # DVO has code only (ntstDcmClCd), not name — map it
+            _DCM_CL_NAMES = {
+                "01": "사전", "02": "질의", "03": "기준", "04": "고시",
+                "05": "적부", "06": "이의", "07": "심사", "08": "심판",
+                "09": "판례", "10": "헌재",
+            }
+            doc_type_code = dvo.get("ntstDcmClCd") or ""
+            doc_type_name = _DCM_CL_NAMES.get(doc_type_code, "")
             raw_date = dvo.get("dcmRgtDtm") or ""
             file_id = dvo.get("ntstFleId") or ""
             src_org_cd = dvo.get("ntstDcmSrcsOrgnClCd") or ""
