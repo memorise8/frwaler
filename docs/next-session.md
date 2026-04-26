@@ -93,9 +93,9 @@ cd <repo-root>
   --timeout-seconds 1200
 ```
 
-### 4. Preflight 체크 구현
+### 4. Preflight 체크 확장
 
-`OPENAI_API_KEY`, `data/papers.db`, `.venv/bin/python`, `codex` 유무를 확인하는 `/api/health`와 UI 배너를 추가한다.
+기본 `/api/health`와 대시보드 배너는 구현됨. 필요 시 Docker Compose v2, 디스크 여유 공간, 로그 디렉터리 쓰기 권한 같은 운영 체크를 추가한다.
 
 ### 5. Codex 비용 계측
 

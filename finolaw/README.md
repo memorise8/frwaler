@@ -17,6 +17,7 @@ Open http://localhost:3001.
 
 - `src/app/` — App Router pages and API routes
 - `src/lib/db.ts` — readonly SQLite access to `../data/papers.db`
+- `src/lib/preflight.ts` — local environment health checks
 - `src/lib/*runner*.ts` — spawns crawler commands through `../.venv/bin/python`
 - `src/proxy.ts` — HTTP Basic Auth gate using `ADMIN_USER` and `ADMIN_PASSWORD`
 
@@ -59,6 +60,11 @@ From the repository root:
 ```
 
 If `../data/papers.db` is missing, crawler stats/search-related commands may show no data or initialize an empty DB. Run a small crawl or Auto-Add flow first.
+
+## Health Check
+
+- Dashboard: shows a preflight warning banner when DB/API key/Codex/Python/Auth checks need attention.
+- API: `GET /api/health` returns the same checks as JSON.
 
 ## Next.js 16 Note
 

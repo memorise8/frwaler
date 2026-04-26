@@ -4,6 +4,7 @@ import {
   getDocTypeCounts,
   getAllSitesSummary,
 } from "@/lib/db";
+import { getPreflightStatus, type PreflightCheck, type PreflightLevel } from "@/lib/preflight";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,7 @@ function formatDate(iso: string | null): string {
 }
 
 export default async function DashboardPage() {
+  const preflight = getPreflightStatus();
   let stats, docTypes, sites;
   let dbError: string | null = null;
   try {
@@ -75,6 +77,13 @@ export default async function DashboardPage() {
           마지막 크롤링: {formatDate(stats.lastCrawled)}
         </div>
       </div>
+
+      {preflight.status !== "ok" && (
+        <PreflightBanner
+          status={preflight.status}
+          checks={preflight.checks.filter((check) => check.level !== "ok")}
+        />
+      )}
 
       {stats.totalPapers === 0 && (
         <div className="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-5 text-amber-900 dark:text-amber-200">
@@ -249,6 +258,53 @@ export default async function DashboardPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+function PreflightBanner({
+  status,
+  checks,
+}: {
+  status: PreflightLevel;
+  checks: PreflightCheck[];
+}) {
+  const isError = status === "error";
+  const boxClass = isError
+    ? "border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-200"
+    : "border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-200";
+
+  return (
+    <section className={`rounded-xl border p-5 ${boxClass}`}>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="font-semibold">
+            {isError ? "시스템 필수 조건 확인 필요" : "운영 전 확인할 항목이 있습니다"}
+          </p>
+          <p className="text-sm mt-1 opacity-85">
+            DB, Python, Codex, API 키, 관리자 인증 상태를 점검했습니다.
+          </p>
+        </div>
+        <Link
+          href="/api/health"
+          className="shrink-0 text-xs underline underline-offset-4 opacity-80 hover:opacity-100"
+        >
+          JSON 보기
+        </Link>
+      </div>
+      <ul className="mt-3 space-y-1.5 text-sm">
+        {checks.map((check) => (
+          <li key={check.id} className="flex gap-2">
+            <span aria-hidden="true">{check.level === "error" ? "❌" : "⚠️"}</span>
+            <span>
+              <strong>{check.label}:</strong> {check.message}
+              {check.detail && (
+                <span className="block text-xs font-mono opacity-70">{check.detail}</span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
