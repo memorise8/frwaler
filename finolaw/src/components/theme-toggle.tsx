@@ -26,18 +26,22 @@ function readStoredTheme(): Theme {
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
+  const [mountedTheme, setMountedTheme] = useState<Theme | null>(null);
 
   useEffect(() => {
-    const current = readStoredTheme();
-    setTheme(current);
-    applyTheme(current);
-    setMounted(true);
+    const id = window.requestAnimationFrame(() => {
+      const current = readStoredTheme();
+      setTheme(current);
+      setMountedTheme(current);
+      applyTheme(current);
+    });
+    return () => window.cancelAnimationFrame(id);
   }, []);
 
   const toggle = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";
     setTheme(next);
+    setMountedTheme(next);
     applyTheme(next);
     try {
       localStorage.setItem("finolaw-theme", next);
@@ -55,7 +59,7 @@ export function ThemeToggle() {
       className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
     >
       <span className="text-lg leading-none" suppressHydrationWarning>
-        {mounted ? (theme === "dark" ? "☀️" : "🌙") : "🌓"}
+        {mountedTheme ? (theme === "dark" ? "☀️" : "🌙") : "🌓"}
       </span>
     </button>
   );

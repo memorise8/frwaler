@@ -112,7 +112,7 @@ export default function AutoAddPage() {
   const [phase, setPhase] = useState<Phase>("analyzing");
   const [phaseStartTimes, setPhaseStartTimes] = useState<Partial<Record<Phase, number>>>({});
   const [phaseDurations, setPhaseDurations] = useState<Partial<Record<Phase, number>>>({});
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(0);
   const [lastLineAt, setLastLineAt] = useState<number | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [idleWarning, setIdleWarning] = useState(false);
@@ -164,7 +164,9 @@ export default function AutoAddPage() {
     setLogFile(name);
     setPhase("analyzing");
     phaseRef.current = "analyzing";
-    setPhaseStartTimes({ analyzing: jobStartedAt ?? Date.now() });
+    const startedAt = jobStartedAt ?? Date.now();
+    setNow(startedAt);
+    setPhaseStartTimes({ analyzing: startedAt });
     setPhaseDurations({});
     setLastLineAt(null);
     setIdleWarning(false);
@@ -173,7 +175,6 @@ export default function AutoAddPage() {
 
   useEffect(() => {
     if (!logFile) return;
-    setLogLines([]);
     const es = new EventSource(
       `/api/crawler/logs?file=${encodeURIComponent(logFile)}`
     );
@@ -277,11 +278,11 @@ export default function AutoAddPage() {
 
   // Phase card rendering helpers
   const getPhaseStatus = (p: PhaseInfo): "pending" | "in-progress" | "done" | "failed" => {
-    if (phase === "failed" && phaseIndex(p.key as Phase) === phaseIndex(phaseRef.current)) {
-      return "failed";
-    }
     if (phase === "done" || phaseIndex(p.key as Phase) < phaseIndex(phase)) {
       return "done";
+    }
+    if (phase === "failed" && phaseIndex(p.key as Phase) === phaseIndex("saving")) {
+      return "failed";
     }
     if (p.key === phase) return "in-progress";
     return "pending";

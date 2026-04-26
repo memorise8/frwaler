@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Finolaw Frontend
 
-## Getting Started
+Finolaw is the active Next.js UI for the crawler-poc project. The legacy `web/` frontend has been removed; use this app for dashboard, search, Smart Find, Auto-Add, and crawler management.
 
-First, run the development server:
+## Quick Start
+
+Run from this directory:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3001.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Layout
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `src/app/` — App Router pages and API routes
+- `src/lib/db.ts` — readonly SQLite access to `../data/papers.db`
+- `src/lib/*runner*.ts` — spawns crawler commands through `../.venv/bin/python`
+- `src/proxy.ts` — HTTP Basic Auth gate using `ADMIN_USER` and `ADMIN_PASSWORD`
 
-## Learn More
+## Required Parent Project Files
 
-To learn more about Next.js, take a look at the following resources:
+This app expects to live inside the crawler-poc repo and depends on sibling paths:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `../crawler/` — Python crawler package
+- `../.venv/bin/python` — Python used by crawler jobs
+- `../data/papers.db` — SQLite database for dashboard/search
+- `../.cache/` — crawler and Auto-Add logs
+- `../crawler/.env` — `OPENAI_API_KEY` for Auto-Add/Codex flows
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+If `../data/papers.db` is missing, the UI can start but dashboard/search data will be empty.
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run dev      # Next.js dev server on port 3001
+npm run build    # production build
+npm run start    # production server on port 3001
+npm run lint     # ESLint
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Validation Checklist
+
+From `finolaw/`:
+
+```bash
+npm run lint
+npm run build
+curl -i http://localhost:3001 | head
+```
+
+From the repository root:
+
+```bash
+.venv/bin/python -m crawler.main stats
+.venv/bin/python -m crawler.main list-sites
+```
+
+If `../data/papers.db` is missing, crawler stats/search-related commands may show no data or initialize an empty DB. Run a small crawl or Auto-Add flow first.
+
+## Next.js 16 Note
+
+This project uses Next.js 16. Before changing framework APIs, file conventions, proxy behavior, or route handlers, check the local docs under `node_modules/next/dist/docs/`.

@@ -7,6 +7,7 @@ __pycache__/
 # Environment
 .env
 crawler/.env
+.id
 
 # Data (large files)
 data/
@@ -28,6 +29,7 @@ finolaw/tsconfig.tsbuildinfo
 
 # OMC state
 .omc/
+.omx/
 
 # Local caches, agent state
 .cache/

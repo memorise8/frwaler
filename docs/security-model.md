@@ -138,7 +138,7 @@ API 키는 `crawler/.env` 에 저장되고 컨테이너에 `env_file` 로 주입
 
 - **사용자 입력 URL**: SQLite `data/papers.db` 의 `sites` 테이블에 저장됩니다.
 - **크롤링 결과**: 대상 사이트에서 수집한 공개 데이터 (제목, 본문, 링크, 메타데이터).
-- **OpenAI API 호출 로그**: `.cache/codex-*.log` — Codex의 stdout/stderr. 생성된 코드, 시도 중인 URL, 오류 메시지 포함.
+- **OpenAI API 호출 로그**: `.cache/codex_*.log` 및 UI 실행 로그 `.cache/ui_*.log` — Codex의 stdout/stderr. 생성된 코드, 시도 중인 URL, 오류 메시지 포함.
 
 ### 5.2 본 시스템이 수집하지 않는 것
 

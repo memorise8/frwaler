@@ -1,3 +1,4 @@
+import fs from "fs";
 import Database from "better-sqlite3";
 import path from "path";
 import { cached } from "./cache";
@@ -53,8 +54,65 @@ export interface SiteCount {
   count: number;
 }
 
+export interface DbState {
+  kind: "ready" | "missing" | "incomplete";
+  path: string;
+  missingTables?: string[];
+}
+
 function getDb() {
   return new Database(DB_PATH, { readonly: true, fileMustExist: true });
+}
+
+function getMissingTables(
+  db: ReturnType<typeof getDb>,
+  tables: readonly string[]
+): string[] {
+  if (tables.length === 0) return [];
+
+  const placeholders = tables.map(() => "?").join(",");
+  const rows = db
+    .prepare(
+      `SELECT name FROM sqlite_master
+       WHERE type = 'table' AND name IN (${placeholders})`
+    )
+    .all(...tables) as { name: string }[];
+  const present = new Set(rows.map((row) => row.name));
+
+  return tables.filter((table) => !present.has(table));
+}
+
+function hasTables(
+  db: ReturnType<typeof getDb>,
+  tables: readonly string[]
+): boolean {
+  return getMissingTables(db, tables).length === 0;
+}
+
+export function getDbState(requiredTables: readonly string[] = []): DbState {
+  if (!fs.existsSync(DB_PATH)) {
+    return { kind: "missing", path: DB_PATH };
+  }
+
+  if (requiredTables.length === 0) {
+    return { kind: "ready", path: DB_PATH };
+  }
+
+  const db = getDb();
+  try {
+    const missingTables = getMissingTables(db, requiredTables);
+    if (missingTables.length > 0) {
+      return {
+        kind: "incomplete",
+        path: DB_PATH,
+        missingTables,
+      };
+    }
+
+    return { kind: "ready", path: DB_PATH };
+  } finally {
+    db.close();
+  }
 }
 
 export function parseMetadata(raw: string | null): PaperMetadata {
@@ -84,6 +142,15 @@ export interface SearchResult {
   pageSize: number;
 }
 
+function emptySearchResult(filters: SearchFilters): SearchResult {
+  return {
+    papers: [],
+    total: 0,
+    page: filters.page ?? 1,
+    pageSize: filters.pageSize ?? 20,
+  };
+}
+
 /**
  * Sanitize a user query for FTS5 MATCH.
  * Each whitespace-separated token is wrapped in double-quotes (internal `"`
@@ -102,6 +169,10 @@ export function sanitizeFtsQuery(q: string): string | null {
 const TTL = 5 * 60 * 1000; // 5 minutes
 
 export function searchPapers(filters: SearchFilters): SearchResult {
+  if (getDbState(["papers"]).kind !== "ready") {
+    return emptySearchResult(filters);
+  }
+
   const db = getDb();
   try {
     const {
@@ -118,7 +189,7 @@ export function searchPapers(filters: SearchFilters): SearchResult {
     const offset = (page - 1) * pageSize;
     const ftsQuery = q ? sanitizeFtsQuery(q) : null;
 
-    if (ftsQuery) {
+    if (ftsQuery && hasTables(db, ["papers_fts"])) {
       // ── FTS5 path ──────────────────────────────────────────────────────────
       const where: string[] = [];
       const params: unknown[] = [ftsQuery];
@@ -172,9 +243,20 @@ export function searchPapers(filters: SearchFilters): SearchResult {
       return { papers: rows, total, page, pageSize };
     }
 
-    // ── Non-FTS path (no q, or q had no usable tokens) ─────────────────────
+    // ── Non-FTS path (no q, q had no usable tokens, or FTS is unavailable) ──
     const where: string[] = [];
     const params: unknown[] = [];
+    const tokens = q?.trim().split(/\s+/).filter((token) => token.length > 0) ?? [];
+
+    if (tokens.length > 0) {
+      tokens.forEach((token) => {
+        const pattern = `%${token}%`;
+        where.push(
+          `(COALESCE(title, '') LIKE ? OR COALESCE(abstract, '') LIKE ? OR COALESCE(metadata, '') LIKE ?)`
+        );
+        params.push(pattern, pattern, pattern);
+      });
+    }
 
     if (siteIds.length > 0) {
       where.push(`site_id IN (${siteIds.map(() => "?").join(",")})`);
@@ -218,6 +300,10 @@ export function searchPapers(filters: SearchFilters): SearchResult {
 }
 
 export function getPaper(id: string): Paper | null {
+  if (getDbState(["papers"]).kind !== "ready") {
+    return null;
+  }
+
   const db = getDb();
   try {
     return (db.prepare(`SELECT * FROM papers WHERE id = ?`).get(id) as Paper) ?? null;
@@ -227,6 +313,10 @@ export function getPaper(id: string): Paper | null {
 }
 
 export function getDocTypeCounts(siteIds: string[] = [...NTS_SITES]): DocTypeCount[] {
+  if (getDbState(["papers"]).kind !== "ready") {
+    return [];
+  }
+
   const key = "docTypeCounts:" + [...siteIds].sort().join(",");
   return cached(key, TTL, () => {
     const db = getDb();
@@ -250,6 +340,10 @@ export function getDocTypeCounts(siteIds: string[] = [...NTS_SITES]): DocTypeCou
 }
 
 export function getCategories(siteIds: string[] = [...NTS_SITES]): string[] {
+  if (getDbState(["papers"]).kind !== "ready") {
+    return [];
+  }
+
   const key = "categories:" + [...siteIds].sort().join(",");
   return cached(key, TTL, () => {
     const db = getDb();
@@ -278,6 +372,16 @@ export interface DbStats {
 }
 
 export function getDbStats(): DbStats {
+  if (getDbState(["papers"]).kind !== "ready") {
+    return {
+      totalPapers: 0,
+      ntsPd: 0,
+      ntsQt: 0,
+      totalSites: 0,
+      lastCrawled: null,
+    };
+  }
+
   return cached("stats", TTL, () => {
     const db = getDb();
     try {
@@ -290,9 +394,11 @@ export function getDbStats(): DbStats {
       const ntsQt = (db
         .prepare(`SELECT COUNT(*) as c FROM papers WHERE site_id = 'nts-taxlaw-qt'`)
         .get() as { c: number }).c;
-      const sites = (db.prepare(`SELECT COUNT(*) as c FROM sites`).get() as {
-        c: number;
-      }).c;
+      const sites = hasTables(db, ["sites"])
+        ? (db.prepare(`SELECT COUNT(*) as c FROM sites`).get() as {
+            c: number;
+          }).c
+        : 0;
       const last = db
         .prepare(
           `SELECT MAX(crawled_at) as last FROM papers WHERE site_id LIKE 'nts-taxlaw%'`
@@ -312,6 +418,10 @@ export function getDbStats(): DbStats {
 }
 
 export function getAllSitesSummary(): SiteCount[] {
+  if (getDbState(["papers", "sites"]).kind !== "ready") {
+    return [];
+  }
+
   return cached("sitesSummary", TTL, () => {
     const db = getDb();
     try {

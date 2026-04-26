@@ -1,80 +1,105 @@
 # 다음 세션 핸드오프
 
-> 이 파일을 먼저 읽으세요. 5분 안에 어디까지 왔는지 파악하고 작업을 이어받을 수 있습니다.
+> 이 파일을 먼저 읽으세요. 5분 안에 현재 작업 상태와 다음 액션을 파악하는 용도입니다.
 
 ---
 
 ## 빠른 시작
 
 ```bash
-cd /data_raid/ruci_workspace/crawler-poc
+cd <repo-root>
 
 # 1. 미커밋 변경 확인
-git status
+git status --short
 
-# 2. finolaw dev 서버 시작 (이미 켜져 있으면 스킵)
-cd finolaw && npm run dev &
+# 2. finolaw dev 서버 시작
+cd finolaw
+npm run dev
 # → http://localhost:3001
+```
 
-# 3. DB 상태 확인
-.venv/bin/python -c "
+DB가 있는지 확인:
+
+```bash
+cd <repo-root>
+
+if [ -f data/papers.db ]; then
+  .venv/bin/python - <<'PY'
 import sqlite3
 c = sqlite3.connect('data/papers.db')
-total = c.execute('SELECT COUNT(*) FROM papers').fetchone()[0]
-print(f'총 {total:,}건')
+print('papers:', c.execute('SELECT COUNT(*) FROM papers').fetchone()[0])
 for row in c.execute('SELECT site_id, COUNT(*) FROM papers GROUP BY site_id ORDER BY 2 DESC LIMIT 5'):
     print(row)
-"
+PY
+else
+  echo 'data/papers.db missing: dashboard/search will be empty until a crawl creates data.'
+fi
+```
 
-# 4. 실행 중인 크롤러 확인
-ps aux | grep crawler | grep -v grep
+실행 중인 크롤러 확인:
+
+```bash
+ps aux | grep crawler | grep -v grep || true
 ```
 
 ---
 
 ## 현재 위치
 
-Month 1 Foundation이 완료된 상태. Codex CLI 기반 Auto-Add 흐름(URL → 자율 크롤러 생성)이 작동 중이며, finolaw Next.js 앱(port 3001)이 메인 UI다. DB에는 308,623건이 수집되어 있고, FTS5 전문검색이 동작한다. better.fsc.go.kr 5,394건 자동 수집으로 Tier 2(Codex) 경로가 검증되었다. `api/`, `pro_server/`, `web/` 레거시 디렉토리는 정리 대기 중.
+- 활성 FE는 `finolaw/` 하나다. 레거시 `web/` 프론트엔드는 제거되었다.
+- `finolaw`는 Next.js 16 앱이며 포트는 3001이다.
+- `finolaw`는 상위 디렉터리의 `crawler/`, `.venv/`, `data/`, `.cache/`에 의존한다.
+- 현재 체크아웃 기준 `data/papers.db`가 없을 수 있다. 이 경우 앱은 뜨지만 대시보드/검색 데이터는 비어 보인다.
+- Auto-Add 메인 경로는 Codex CLI 기반 Tier 2다.
 
 ---
 
-## 바로 이어 할 수 있는 작업 (우선순위 순)
+## 바로 이어 할 수 있는 작업
 
-### 1. Docker 빌드 검증 (Month 1 마무리) — 약 20분
-
-Month 1 Dockerfile은 작성되었지만 실제 빌드 테스트가 남아있다.
+### 1. 문서/상태 검증 마무리
 
 ```bash
-cd /data_raid/ruci_workspace/crawler-poc
-docker build -t crawler-poc:test .
-# 성공하면 docker-compose up -d 로 전체 스택 확인
+cd <repo-root>
+rg -n "localhost:3000|port 3000|세션 기반|codex_runner.py 직접|web/src" docs README-install.md finolaw/README.md
 ```
 
-네트워크 환경에 따라 20분 소요. 빌드 오류가 나면 `Dockerfile` 수정 후 재시도.
+아카이브 문서 외에 현재 사용 문서에서 오래된 표현이 나오면 수정한다.
 
-### 2. 레거시 디렉토리 정리
-
-`api/`, `pro_server/`, `web/` 디렉토리는 현재 사용하지 않음.
+### 2. Docker 빌드 검증
 
 ```bash
-# 내용 확인 후 archive 또는 삭제 결정
-ls api/ pro_server/ web/
-# git rm -r 또는 mv 처리
+cd <repo-root>
+docker compose build
+docker compose up -d
+docker compose logs -f --tail=200
 ```
 
-### 3. Preflight 체크 구현 (Month 2 첫 아이템)
+빌드가 성공하면 `http://localhost:3001` 접속과 Basic Auth 동작을 확인한다.
 
-`OPENAI_API_KEY` 등 필수 환경변수 누락 시 finolaw UI에 빨간 배너 표시.
+### 3. DB 초기화/샘플 수집 경로 확인
 
-- 백엔드: `GET /api/health` 엔드포인트 → 환경변수 체크 결과 반환
-- 프론트: 대시보드 상단에 경고 배너 컴포넌트 추가
+DB가 없는 환경에서는 아래 중 하나로 초기 데이터를 만든다.
 
-### 4. Codex 비용 계측
+```bash
+cd <repo-root>
 
-크롤러 자동 생성 1회당 토큰 수와 추정 비용을 DB 또는 로그에 기록.
+# 기존 크롤러 소량 실행 예시
+.venv/bin/python -m crawler.main crawl ntrs --limit 3
 
-- `crawler/codex_runner.py`에 비용 로깅 추가
-- finolaw 크롤러 관리 페이지에 비용 컬럼 표시
+# 또는 Auto-Add Codex 경로
+.venv/bin/python -m crawler.main auto-add-codex \
+  "https://example.go.kr/list" \
+  --site-id example-site \
+  --timeout-seconds 1200
+```
+
+### 4. Preflight 체크 구현
+
+`OPENAI_API_KEY`, `data/papers.db`, `.venv/bin/python`, `codex` 유무를 확인하는 `/api/health`와 UI 배너를 추가한다.
+
+### 5. Codex 비용 계측
+
+`crawler/codex_runner.py` 또는 실행 로그에서 크롤러 생성 1회당 토큰/비용 추정치를 남기고 UI에 표시한다.
 
 ---
 
@@ -82,47 +107,36 @@ ls api/ pro_server/ web/
 
 | 파일 | 역할 |
 |------|------|
-| `crawler/codex_runner.py` | Codex CLI 서브프로세스 실행 + 크롤러 저장 (Tier 2 메인 경로) |
-| `crawler/agent.py` | AutoAddAgent GPT API 구현 (Tier 1 내부 경로) |
-| `crawler/agent_tools.py` | AutoAddAgent 도구 11개 구현 |
-| `crawler/main.py` | CLI 진입점 (`crawl`, `auto-add`, `test-config`) |
-| `crawler/base_crawler.py` | 공통 베이스 (upsert, retry) |
-| `crawler/sites/nts_taxlaw.py` | NTS 국세법령 크롤러 |
-| `crawler/sites/custom/` | Codex가 자동 생성한 Python 크롤러 저장 위치 |
-| `finolaw/src/app/` | Next.js App Router 페이지 |
-| `finolaw/src/lib/` | DB 접근, 유틸리티 |
-| `data/papers.db` | SQLite DB (308,623건) |
+| `finolaw/README.md` | 활성 FE 개발 가이드 |
+| `finolaw/src/app/` | Next.js App Router 페이지/API |
+| `finolaw/src/lib/db.ts` | `data/papers.db` readonly 조회 |
+| `finolaw/src/lib/auto-add-codex.ts` | `python -m crawler.main auto-add-codex` 실행 |
+| `finolaw/src/proxy.ts` | HTTP Basic Auth |
+| `crawler/main.py` | Python CLI 진입점 |
+| `crawler/codex_runner.py` | Codex CLI 래퍼 |
+| `crawler/sites/custom/` | Codex 생성 Python 크롤러 |
+| `crawler/sites/configs/` | AutoAddAgent JSON 설정 |
+| `data/papers.db` | SQLite DB |
+| `.cache/` | UI/Codex/크롤러 로그 |
+| `Dockerfile`, `docker-compose.yml` | 단일 컨테이너 배포 |
 
 ---
 
-## 계획 파일 경로
+## 주의사항
 
-```
-/home/ruci/.claude/plans/elegant-herding-goblet.md
-```
-
-3개월 MVP 로드맵. Month 1 완료, Month 2 진행 중.
-
----
-
-## 알려진 블로커 / 주의사항
-
-**Codex bypass flag 이슈**
-
-Codex CLI는 `--dangerously-bypass-approvals-and-sandbox` 플래그로 실행해야 자율 작업이 가능하다. 이 플래그는 `crawler/codex_runner.py`에서 서브프로세스 호출 시 전달된다.
-
-Claude Code 세션 내에서 Codex를 직접 이 플래그로 호출하려 하면 Claude Code 자체적으로 차단된다. 이는 의도된 보안 동작이므로, Codex 실행이 필요할 때는 **사용자가 터미널에서 직접 실행**해야 한다.
-
-**git 미커밋 변경**
-
-세션 시작 시 `git status` 확인 필수. `web/package.json`, `web/src/`, `web/package-lock.json` 등 변경 사항이 스테이지 밖에 있을 수 있다.
+- Next.js 16은 기존 Next.js 지식과 다를 수 있다. 프레임워크 API/파일 convention 수정 전 `finolaw/node_modules/next/dist/docs/`를 확인한다.
+- Admin 인증은 세션 기반이 아니라 HTTP Basic Auth다. `ADMIN_USER`와 `ADMIN_PASSWORD`가 모두 있어야 켜진다.
+- Codex CLI는 내부적으로 sandbox/approval bypass 플래그를 사용한다. 운영 전 `docs/security-model.md`를 확인한다.
+- 세션 시작 시 `git status --short`로 사용자 미커밋 변경을 먼저 확인한다.
 
 ---
 
 ## 재개 체크리스트
 
-- [ ] `finolaw` dev server가 port 3001에서 응답하는지 확인 (`curl -s http://localhost:3001 | head -3`)
-- [ ] `git status` 확인 — 커밋 안 된 변경 있으면 처리 또는 기록
-- [ ] Month 1 Foundation 파일 자리에 있는지 확인 (`ls Dockerfile docker-compose.yml README-install.md`)
-- [ ] 계획 파일 열기 (`cat /home/ruci/.claude/plans/elegant-herding-goblet.md`)
-- [ ] 위 "바로 이어 할 수 있는 작업" 목록에서 첫 아이템 집어들기
+- [ ] `git status --short` 확인
+- [ ] `finolaw` dev server가 port 3001에서 응답하는지 확인
+- [ ] `data/papers.db` 존재 여부 확인
+- [ ] `crawler/.env`의 `OPENAI_API_KEY` 확인
+- [ ] `docs/README.md`의 읽기 순서에 따라 필요한 문서 확인
+
+최종 갱신: 2026-04-24

@@ -3,6 +3,7 @@ import {
   searchPapers,
   getDocTypeCounts,
   getCategories,
+  getDbState,
   parseMetadata,
   NTS_SITES,
 } from "@/lib/db";
@@ -27,6 +28,7 @@ interface PageProps {
 
 export default async function SearchPage({ searchParams }: PageProps) {
   const sp = await searchParams;
+  const dbState = getDbState(["papers"]);
   const page = Math.max(1, parseInt(sp.page ?? "1", 10));
   const pageSize = 20;
   const q = sp.q?.trim() || undefined;
@@ -64,6 +66,23 @@ export default async function SearchPage({ searchParams }: PageProps) {
           국세법령 판례·해석례 통합 검색
         </p>
       </div>
+
+      {dbState.kind !== "ready" && (
+        <div className="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-5 text-amber-900 dark:text-amber-200">
+          <p className="font-semibold">아직 수집된 데이터가 없습니다.</p>
+          <p className="text-sm mt-2">
+            크롤링을 시작하면 검색 결과와 필터 목록이 여기에 표시됩니다.
+          </p>
+          <p className="text-xs mt-3 font-mono opacity-75">
+            DB 경로: {dbState.path}
+          </p>
+          {dbState.kind === "incomplete" && dbState.missingTables && (
+            <p className="text-xs mt-1 opacity-75">
+              준비 중인 테이블: {dbState.missingTables.join(", ")}
+            </p>
+          )}
+        </div>
+      )}
 
       <form className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 space-y-4">
         <div>
@@ -145,7 +164,9 @@ export default async function SearchPage({ searchParams }: PageProps) {
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
         {result.papers.length === 0 ? (
           <div className="px-6 py-16 text-center text-slate-400 dark:text-slate-500 text-sm">
-            검색 결과가 없습니다.
+            {dbState.kind === "ready"
+              ? "검색 결과가 없습니다."
+              : "아직 수집된 데이터가 없습니다. 크롤링을 시작하면 여기에 결과가 표시됩니다."}
           </div>
         ) : (
           <ul className="divide-y divide-slate-100 dark:divide-slate-800">

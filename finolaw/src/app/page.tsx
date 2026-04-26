@@ -76,6 +76,15 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {stats.totalPapers === 0 && (
+        <div className="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-5 text-amber-900 dark:text-amber-200">
+          <p className="font-semibold">아직 수집된 데이터가 없습니다.</p>
+          <p className="text-sm mt-2">
+            크롤링을 시작하면 대시보드 수치와 검색 결과가 자동으로 채워집니다.
+          </p>
+        </div>
+      )}
+
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Stat label="전체 문서" value={formatNum(stats.totalPapers)} tone="indigo" />
         <Stat
@@ -135,6 +144,16 @@ export default async function DashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {docTypes.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-4 py-10 text-center text-slate-400 dark:text-slate-500"
+                  >
+                    아직 집계할 문서가 없습니다.
+                  </td>
+                </tr>
+              )}
               {docTypes.map((d) => {
                 const target = DOC_TYPE_TARGETS[d.documentTypeName] ?? d.count;
                 const pct = Math.min(100, Math.round((d.count / target) * 100));
@@ -191,6 +210,16 @@ export default async function DashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {sites.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={3}
+                    className="px-4 py-10 text-center text-slate-400 dark:text-slate-500"
+                  >
+                    아직 표시할 사이트 요약이 없습니다.
+                  </td>
+                </tr>
+              )}
               {sites.slice(0, 20).map((s) => (
                 <tr
                   key={s.site_id}

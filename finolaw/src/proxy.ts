@@ -20,7 +20,6 @@ const AUTH_ENABLED = ADMIN_USER.length > 0 && ADMIN_PASSWORD.length > 0;
 
 if (!AUTH_ENABLED) {
   // Single stderr line at module load so operators see it in docker logs.
-  // eslint-disable-next-line no-console
   console.warn(
     '[proxy] ADMIN_USER / ADMIN_PASSWORD not set — admin auth is DISABLED. Do not expose this server to the public internet.',
   );

@@ -33,8 +33,8 @@ Docker가 없다면 [공식 가이드](https://docs.docker.com/engine/install/ub
 ### OpenAI API 키
 
 - [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys) 에서 발급.
-- **`gpt-5.4` 모델 접근 권한이 있어야 합니다.** (Codex CLI가 이 모델을 사용)
-- 월별 사용량 상한(Spend limit)을 반드시 설정하세요. Codex 1회 실행당 약 $0.5 ~ $2 소모됩니다.
+- Codex CLI와 OpenAI API를 사용할 수 있는 계정이 필요합니다.
+- 월별 사용량 상한(Spend limit)을 반드시 설정하세요. Codex 실행 비용은 대상 사이트 복잡도와 반복 횟수에 따라 달라집니다.
 
 ---
 
@@ -114,6 +114,19 @@ HTTP Basic Auth 프롬프트가 뜨면, Step 2에서 설정한 `ADMIN_USER` / `A
 
 페이지가 로드되면 설치 완료입니다.
 
+> 인증 동작: `ADMIN_USER`와 `ADMIN_PASSWORD`가 모두 비어 있지 않을 때만 HTTP Basic Auth가 켜집니다. 둘 중 하나라도 비어 있으면 로컬 개발 편의를 위해 인증이 비활성화됩니다. 운영 환경에서는 반드시 둘 다 설정하세요.
+
+### DB가 비어 있거나 없을 때
+
+새 설치 직후 `data/papers.db`가 없을 수 있습니다. 이 경우 finolaw UI는 실행되지만 대시보드/검색 결과는 비어 보입니다. 첫 수집을 실행하면 SQLite DB가 생성됩니다.
+
+```bash
+docker compose exec app .venv/bin/python -m crawler.main list-sites
+docker compose exec app .venv/bin/python -m crawler.main crawl ntrs --limit 3
+```
+
+또는 UI의 `/auto-add`에서 새 URL을 입력해 크롤러를 생성/실행하세요.
+
 ---
 
 ## 3. 첫 사용 (First-Use Tutorial)
@@ -141,7 +154,8 @@ HTTP Basic Auth 프롬프트가 뜨면, Step 2에서 설정한 `ADMIN_USER` / `A
 |------|------|------|
 | "OPENAI_API_KEY not set" | `crawler/.env` 미설정 또는 컨테이너 재시작 필요 | `docker compose restart` |
 | "insufficient_quota" | OpenAI 계정 잔액 부족 | [platform.openai.com](https://platform.openai.com/account/billing) 에서 충전 |
-| Codex가 robots.txt 차단을 보고 중단 | 대상 사이트의 `robots.txt` 정책 | 관리자 판단 하에 Month 2의 "robots.txt 무시" 옵션 사용 |
+| 대시보드/검색이 비어 있음 | `data/papers.db` 없음 또는 아직 수집 데이터 없음 | `/auto-add` 또는 `crawler.main crawl`로 첫 수집 실행 |
+| Codex가 robots.txt/약관 문제를 보고 중단 | 대상 사이트 정책 또는 모델 판단 | 운영자가 robots.txt/약관을 검토한 뒤 수집 여부 결정 |
 
 ---
 
@@ -201,7 +215,7 @@ docker compose up -d
 ## 5. 보안 주의사항
 
 - 이 컨테이너는 자율적으로 Python 코드를 생성/실행합니다. 자세한 내용은 [`docs/security-model.md`](docs/security-model.md) 를 반드시 읽어 주세요.
-- `ADMIN_PASSWORD` 를 비워 두면 인증이 비활성화됩니다. **사내 LAN 외부에 노출하지 마세요.**
+- `ADMIN_USER` 또는 `ADMIN_PASSWORD` 를 비워 두면 인증이 비활성화됩니다. **사내 LAN 외부에 노출하지 마세요.**
 - HTTPS가 필요한 경우 앞단에 reverse proxy (nginx, Caddy 등) 를 두고 TLS를 종단하세요. 이 컨테이너는 HTTP만 직접 제공합니다.
 - OpenAI API 키는 로그에 기록되지 않으며, 오직 `env_file` 을 통해서만 주입됩니다.
 
@@ -211,4 +225,5 @@ docker compose up -d
 
 - 이슈/버그: 저장소 이슈 트래커
 - 생성된 크롤러 코드 검토: `crawler/sites/custom/*.py` (파일 상단 주석에 생성 시각과 원본 URL이 기록됩니다)
-- Codex 실행 로그: `.cache/codex-*.log`
+- UI/크롤러 로그: `.cache/ui_*.log`
+- Codex 내부 로그: `.cache/codex_*.log`

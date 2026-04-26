@@ -158,7 +158,7 @@ crawler-poc/
 │   ├── build_graph.py                   # (Phase 5) 엣지 추출
 │   └── …
 ├── api/main.py                          # FastAPI (검색/그래프 엔드포인트)
-├── web/                                  # Next.js Wiki UI
+├── finolaw/                              # Next.js Wiki UI
 └── docs/
     └── fino-rag-architecture.md (이 문서)
 ```
@@ -775,7 +775,7 @@ POST /search/expand                      # Query expansion
 
 ## 11. Phase 7 — Wiki UI
 
-### 11-1. 페이지 구성 (`web/`)
+### 11-1. 페이지 구성 (`finolaw/`)
 
 ```
 /                                          홈: 최신 판례, 인기 쟁점, 통계
@@ -801,7 +801,7 @@ POST /search/expand                      # Query expansion
 ### 11-2. 판례 상세 페이지 렌더링
 
 ```tsx
-// web/src/app/papers/[id]/page.tsx
+// finolaw/src/app/papers/[id]/page.tsx
 import DOMPurify from 'isomorphic-dompurify';
 
 export default async function PaperPage({ params }) {
@@ -1016,4 +1016,4 @@ export default async function PaperPage({ params }) {
 - MD export: `scripts/export_papers_md.py`
 - DB: `data/papers.db`
 - FastAPI: `api/main.py`
-- Next.js UI: `web/src/`
+- Next.js UI: `finolaw/src/`

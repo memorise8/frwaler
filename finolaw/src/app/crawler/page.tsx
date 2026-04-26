@@ -71,14 +71,18 @@ function CrawlerPageInner() {
   }, []);
 
   useEffect(() => {
-    refreshState();
+    const initial = setTimeout(() => {
+      void refreshState();
+    }, 0);
     const iv = setInterval(refreshState, 5000);
-    return () => clearInterval(iv);
+    return () => {
+      clearTimeout(initial);
+      clearInterval(iv);
+    };
   }, []);
 
   useEffect(() => {
     if (!logFile) return;
-    setLogLines([]);
     const es = new EventSource(
       `/api/crawler/logs?file=${encodeURIComponent(logFile)}`
     );
@@ -124,7 +128,10 @@ function CrawlerPageInner() {
     }
     await refreshState();
     const name = data.job?.logPath?.split("/").pop();
-    if (name) setLogFile(name);
+    if (name) {
+      setLogLines([]);
+      setLogFile(name);
+    }
   };
 
   const stop = async (jobId: string) => {
