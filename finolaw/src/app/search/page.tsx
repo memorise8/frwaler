@@ -5,7 +5,7 @@ import {
   getCategories,
   getDbState,
   parseMetadata,
-  NTS_SITES,
+  getSiteOptions,
 } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +34,9 @@ export default async function SearchPage({ searchParams }: PageProps) {
   const q = sp.q?.trim() || undefined;
   const docType = sp.docType || undefined;
   const category = sp.category || undefined;
-  const siteIds = sp.site ? [sp.site] : [...NTS_SITES];
+  const sites = getSiteOptions();
+  const allSiteIds = sites.map((site) => site.site_id);
+  const siteIds = sp.site ? [sp.site] : allSiteIds;
 
   const [result, docTypes, categories] = await Promise.all([
     Promise.resolve(
@@ -97,8 +99,11 @@ export default async function SearchPage({ searchParams }: PageProps) {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <select name="site" defaultValue={sp.site ?? ""} className={inputClass}>
             <option value="">전체 사이트</option>
-            <option value="nts-taxlaw-pd">판례 (pd)</option>
-            <option value="nts-taxlaw-qt">해석례 (qt)</option>
+            {sites.map((site) => (
+              <option key={site.site_id} value={site.site_id}>
+                {site.site_name} ({site.site_id})
+              </option>
+            ))}
           </select>
           <select
             name="docType"

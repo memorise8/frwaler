@@ -3,6 +3,8 @@ import {
   getDbStats,
   getDocTypeCounts,
   getAllSitesSummary,
+  getRecentPapers,
+  parseMetadata,
 } from "@/lib/db";
 import { getPreflightStatus, type PreflightCheck, type PreflightLevel } from "@/lib/preflight";
 
@@ -39,17 +41,18 @@ function formatDate(iso: string | null): string {
 
 export default async function DashboardPage() {
   const preflight = getPreflightStatus();
-  let stats, docTypes, sites;
+  let stats, docTypes, sites, recentPapers;
   let dbError: string | null = null;
   try {
     stats = getDbStats();
     docTypes = getDocTypeCounts();
     sites = getAllSitesSummary();
+    recentPapers = getRecentPapers(undefined, 20);
   } catch (e) {
     dbError = e instanceof Error ? e.message : String(e);
   }
 
-  if (dbError || !stats || !docTypes || !sites) {
+  if (dbError || !stats || !docTypes || !sites || !recentPapers) {
     return (
       <div className="space-y-4">
         <h1 className="text-2xl font-bold">대시보드</h1>
@@ -70,11 +73,19 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-2xl font-bold">대시보드</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            국세법령 수집 현황 및 시스템 상태
+            수집 문서 현황과 시스템 상태를 한 화면에서 확인합니다.
           </p>
         </div>
-        <div className="text-xs text-slate-400 dark:text-slate-500">
-          마지막 크롤링: {formatDate(stats.lastCrawled)}
+        <div className="flex items-center gap-2">
+          <div className="text-xs text-slate-400 dark:text-slate-500">
+            마지막 크롤링: {formatDate(stats.lastCrawled)}
+          </div>
+          <Link
+            href="/api/export/markdown"
+            className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-800"
+          >
+            전체 MD export
+          </Link>
         </div>
       </div>
 
@@ -97,23 +108,23 @@ export default async function DashboardPage() {
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Stat label="전체 문서" value={formatNum(stats.totalPapers)} tone="indigo" />
         <Stat
-          label="nts-taxlaw-pd (판례)"
-          value={formatNum(stats.ntsPd)}
+          label="커스텀 사이트 문서"
+          value={formatNum(stats.customPapers)}
           tone="blue"
         />
         <Stat
-          label="nts-taxlaw-qt (해석례)"
-          value={formatNum(stats.ntsQt)}
+          label="활성 사이트"
+          value={formatNum(stats.totalSites)}
           tone="emerald"
         />
-        <Stat label="등록된 사이트" value={String(stats.totalSites)} tone="amber" />
+        <Stat label="등록된 사이트 메타" value={String(stats.registeredSites)} tone="amber" />
       </section>
 
       <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <QuickLink
           href="/search"
           title="세법 검색"
-          desc={`${formatNum(stats.ntsPd + stats.ntsQt)}건의 판례·해석례 전체 검색`}
+          desc={`${formatNum(stats.totalPapers)}건의 수집 문서 전체 검색`}
           icon="🔍"
           color="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900 hover:bg-blue-100 dark:hover:bg-blue-950/50"
         />
@@ -138,6 +149,69 @@ export default async function DashboardPage() {
           icon="⚙️"
           color="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
         />
+      </section>
+
+      <section>
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div>
+            <h2 className="text-lg font-semibold">최근 수집 문서</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              최근 크롤링된 문서 20건을 바로 확인하고 상세 페이지로 이동할 수 있습니다.
+            </p>
+          </div>
+          <Link
+            href="/api/export/markdown"
+            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+          >
+            Markdown으로 저장
+          </Link>
+        </div>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+          {recentPapers.length === 0 ? (
+            <div className="px-4 py-10 text-center text-slate-400 dark:text-slate-500">
+              아직 표시할 문서가 없습니다.
+            </div>
+          ) : (
+            <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+              {recentPapers.map((paper) => {
+                const md = parseMetadata(paper.metadata);
+                return (
+                  <li key={paper.id} className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <Link
+                          href={`/search/${paper.id}`}
+                          className="font-medium text-slate-900 dark:text-slate-100 hover:text-blue-700 dark:hover:text-blue-300"
+                        >
+                          {paper.title || "(제목 없음)"}
+                        </Link>
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                          <span className="font-mono">{paper.site_id}</span>
+                          {md.documentTypeName && <span>· {md.documentTypeName}</span>}
+                          {paper.category && <span>· {paper.category}</span>}
+                          {paper.published_date && <span>· {paper.published_date}</span>}
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <div className="text-xs text-slate-400 dark:text-slate-500">
+                          {formatDate(paper.crawled_at)}
+                        </div>
+                        <div className="mt-1">
+                          <Link
+                            href={`/api/export/markdown?site=${encodeURIComponent(paper.site_id)}&limit=50`}
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                          >
+                            이 사이트 MD
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       </section>
 
       <section>
@@ -216,13 +290,15 @@ export default async function DashboardPage() {
                 <th className="text-left px-4 py-3 font-medium">site_id</th>
                 <th className="text-left px-4 py-3 font-medium">이름</th>
                 <th className="text-right px-4 py-3 font-medium">문서 수</th>
+                <th className="text-right px-4 py-3 font-medium">최근 수집</th>
+                <th className="text-right px-4 py-3 font-medium">작업</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {sites.length === 0 && (
                 <tr>
                   <td
-                    colSpan={3}
+                    colSpan={5}
                     className="px-4 py-10 text-center text-slate-400 dark:text-slate-500"
                   >
                     아직 표시할 사이트 요약이 없습니다.
@@ -241,12 +317,31 @@ export default async function DashboardPage() {
                   <td className="px-4 py-2 text-right font-mono">
                     {formatNum(s.count)}
                   </td>
+                  <td className="px-4 py-2 text-right text-xs text-slate-500 dark:text-slate-400">
+                    {formatDate(s.last_crawled)}
+                  </td>
+                  <td className="px-4 py-2 text-right">
+                    <div className="inline-flex items-center gap-3 text-xs">
+                      <Link
+                        href={`/search?site=${encodeURIComponent(s.site_id)}`}
+                        className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+                      >
+                        보기
+                      </Link>
+                      <Link
+                        href={`/api/export/markdown?site=${encodeURIComponent(s.site_id)}&limit=200`}
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                      >
+                        MD export
+                      </Link>
+                    </div>
+                  </td>
                 </tr>
               ))}
               {sites.length > 20 && (
                 <tr>
                   <td
-                    colSpan={3}
+                    colSpan={5}
                     className="px-4 py-2 text-center text-xs text-slate-400 dark:text-slate-500"
                   >
                     ...외 {sites.length - 20}개

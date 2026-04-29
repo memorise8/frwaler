@@ -52,6 +52,12 @@ export interface SiteCount {
   site_id: string;
   site_name: string;
   count: number;
+  last_crawled: string | null;
+}
+
+export interface SiteOption {
+  site_id: string;
+  site_name: string;
 }
 
 export interface DbState {
@@ -168,6 +174,28 @@ export function sanitizeFtsQuery(q: string): string | null {
 
 const TTL = 5 * 60 * 1000; // 5 minutes
 
+function getDefaultSiteIds(db: ReturnType<typeof getDb>): string[] {
+  const rows = db
+    .prepare(
+      `SELECT DISTINCT site_id
+       FROM papers
+       WHERE site_id IS NOT NULL AND site_id != ''
+       ORDER BY site_id`
+    )
+    .all() as { site_id: string }[];
+  return rows.map((row) => row.site_id);
+}
+
+function normalizeSiteIds(
+  db: ReturnType<typeof getDb>,
+  siteIds?: string[]
+): string[] {
+  if (siteIds && siteIds.length > 0) {
+    return [...siteIds];
+  }
+  return getDefaultSiteIds(db);
+}
+
 export function searchPapers(filters: SearchFilters): SearchResult {
   if (getDbState(["papers"]).kind !== "ready") {
     return emptySearchResult(filters);
@@ -175,8 +203,8 @@ export function searchPapers(filters: SearchFilters): SearchResult {
 
   const db = getDb();
   try {
+    const resolvedSiteIds = normalizeSiteIds(db, filters.siteIds);
     const {
-      siteIds = [...NTS_SITES],
       q,
       category,
       docType,
@@ -194,9 +222,9 @@ export function searchPapers(filters: SearchFilters): SearchResult {
       const where: string[] = [];
       const params: unknown[] = [ftsQuery];
 
-      if (siteIds.length > 0) {
-        where.push(`p.site_id IN (${siteIds.map(() => "?").join(",")})`);
-        params.push(...siteIds);
+      if (resolvedSiteIds.length > 0) {
+        where.push(`p.site_id IN (${resolvedSiteIds.map(() => "?").join(",")})`);
+        params.push(...resolvedSiteIds);
       }
       if (category) {
         where.push(`p.category = ?`);
@@ -258,9 +286,9 @@ export function searchPapers(filters: SearchFilters): SearchResult {
       });
     }
 
-    if (siteIds.length > 0) {
-      where.push(`site_id IN (${siteIds.map(() => "?").join(",")})`);
-      params.push(...siteIds);
+    if (resolvedSiteIds.length > 0) {
+      where.push(`site_id IN (${resolvedSiteIds.map(() => "?").join(",")})`);
+      params.push(...resolvedSiteIds);
     }
     if (category) {
       where.push(`category = ?`);
@@ -312,26 +340,30 @@ export function getPaper(id: string): Paper | null {
   }
 }
 
-export function getDocTypeCounts(siteIds: string[] = [...NTS_SITES]): DocTypeCount[] {
+export function getDocTypeCounts(siteIds?: string[]): DocTypeCount[] {
   if (getDbState(["papers"]).kind !== "ready") {
     return [];
   }
 
-  const key = "docTypeCounts:" + [...siteIds].sort().join(",");
+  const cacheSiteIds = siteIds && siteIds.length > 0 ? [...siteIds].sort() : ["__all__"];
+  const key = "docTypeCounts:" + cacheSiteIds.join(",");
   return cached(key, TTL, () => {
     const db = getDb();
     try {
-      const placeholders = siteIds.map(() => "?").join(",");
-      const rows = db
-        .prepare(
-          `SELECT json_extract(metadata, '$.documentTypeName') AS documentTypeName,
-                  COUNT(*) AS count
-           FROM papers
-           WHERE site_id IN (${placeholders})
-           GROUP BY documentTypeName
-           ORDER BY count DESC`
-        )
-        .all(...siteIds) as DocTypeCount[];
+      const resolvedSiteIds = normalizeSiteIds(db, siteIds);
+      const rows =
+        resolvedSiteIds.length > 0
+          ? (db
+              .prepare(
+                `SELECT json_extract(metadata, '$.documentTypeName') AS documentTypeName,
+                        COUNT(*) AS count
+                 FROM papers
+                 WHERE site_id IN (${resolvedSiteIds.map(() => "?").join(",")})
+                 GROUP BY documentTypeName
+                 ORDER BY count DESC`
+              )
+              .all(...resolvedSiteIds) as DocTypeCount[])
+          : [];
       return rows.filter((r) => r.documentTypeName);
     } finally {
       db.close();
@@ -339,23 +371,29 @@ export function getDocTypeCounts(siteIds: string[] = [...NTS_SITES]): DocTypeCou
   });
 }
 
-export function getCategories(siteIds: string[] = [...NTS_SITES]): string[] {
+export function getCategories(siteIds?: string[]): string[] {
   if (getDbState(["papers"]).kind !== "ready") {
     return [];
   }
 
-  const key = "categories:" + [...siteIds].sort().join(",");
+  const cacheSiteIds = siteIds && siteIds.length > 0 ? [...siteIds].sort() : ["__all__"];
+  const key = "categories:" + cacheSiteIds.join(",");
   return cached(key, TTL, () => {
     const db = getDb();
     try {
-      const placeholders = siteIds.map(() => "?").join(",");
-      const rows = db
-        .prepare(
-          `SELECT DISTINCT category FROM papers
-           WHERE site_id IN (${placeholders}) AND category IS NOT NULL AND category != ''
-           ORDER BY category`
-        )
-        .all(...siteIds) as { category: string }[];
+      const resolvedSiteIds = normalizeSiteIds(db, siteIds);
+      const rows =
+        resolvedSiteIds.length > 0
+          ? (db
+              .prepare(
+                `SELECT DISTINCT category FROM papers
+                 WHERE site_id IN (${resolvedSiteIds.map(() => "?").join(",")})
+                   AND category IS NOT NULL
+                   AND category != ''
+                 ORDER BY category`
+              )
+              .all(...resolvedSiteIds) as { category: string }[])
+          : [];
       return rows.map((r) => r.category);
     } finally {
       db.close();
@@ -365,9 +403,9 @@ export function getCategories(siteIds: string[] = [...NTS_SITES]): string[] {
 
 export interface DbStats {
   totalPapers: number;
-  ntsPd: number;
-  ntsQt: number;
+  customPapers: number;
   totalSites: number;
+  registeredSites: number;
   lastCrawled: string | null;
 }
 
@@ -375,9 +413,9 @@ export function getDbStats(): DbStats {
   if (getDbState(["papers"]).kind !== "ready") {
     return {
       totalPapers: 0,
-      ntsPd: 0,
-      ntsQt: 0,
+      customPapers: 0,
       totalSites: 0,
+      registeredSites: 0,
       lastCrawled: null,
     };
   }
@@ -388,27 +426,29 @@ export function getDbStats(): DbStats {
       const total = (db.prepare(`SELECT COUNT(*) as c FROM papers`).get() as {
         c: number;
       }).c;
-      const ntsPd = (db
-        .prepare(`SELECT COUNT(*) as c FROM papers WHERE site_id = 'nts-taxlaw-pd'`)
+      const customPapers = (db
+        .prepare(
+          `SELECT COUNT(*) as c
+           FROM papers
+           WHERE site_id NOT IN ('nts-taxlaw-pd', 'nts-taxlaw-qt')`
+        )
         .get() as { c: number }).c;
-      const ntsQt = (db
-        .prepare(`SELECT COUNT(*) as c FROM papers WHERE site_id = 'nts-taxlaw-qt'`)
+      const totalSites = (db
+        .prepare(`SELECT COUNT(DISTINCT site_id) as c FROM papers`)
         .get() as { c: number }).c;
-      const sites = hasTables(db, ["sites"])
+      const registeredSites = hasTables(db, ["sites"])
         ? (db.prepare(`SELECT COUNT(*) as c FROM sites`).get() as {
             c: number;
           }).c
         : 0;
-      const last = db
-        .prepare(
-          `SELECT MAX(crawled_at) as last FROM papers WHERE site_id LIKE 'nts-taxlaw%'`
-        )
-        .get() as { last: string | null };
+      const last = db.prepare(`SELECT MAX(crawled_at) as last FROM papers`).get() as {
+        last: string | null;
+      };
       return {
         totalPapers: total,
-        ntsPd,
-        ntsQt,
-        totalSites: sites,
+        customPapers,
+        totalSites,
+        registeredSites,
         lastCrawled: last.last,
       };
     } finally {
@@ -418,7 +458,7 @@ export function getDbStats(): DbStats {
 }
 
 export function getAllSitesSummary(): SiteCount[] {
-  if (getDbState(["papers", "sites"]).kind !== "ready") {
+  if (getDbState(["papers"]).kind !== "ready") {
     return [];
   }
 
@@ -427,12 +467,14 @@ export function getAllSitesSummary(): SiteCount[] {
     try {
       const rows = db
         .prepare(
-          `SELECT s.id as site_id, s.name as site_name, COUNT(p.id) as count
-           FROM sites s
-           LEFT JOIN papers p ON p.site_id = s.id
-           GROUP BY s.id, s.name
-           HAVING count > 0
-           ORDER BY count DESC`
+          `SELECT p.site_id as site_id,
+                  COALESCE(s.name, p.site_id) as site_name,
+                  COUNT(p.id) as count,
+                  MAX(p.crawled_at) as last_crawled
+           FROM papers p
+           LEFT JOIN sites s ON p.site_id = s.id
+           GROUP BY p.site_id, COALESCE(s.name, p.site_id)
+           ORDER BY count DESC, site_id ASC`
         )
         .all() as SiteCount[];
       return rows;
@@ -440,4 +482,125 @@ export function getAllSitesSummary(): SiteCount[] {
       db.close();
     }
   });
+}
+
+export function getSiteOptions(): SiteOption[] {
+  return getAllSitesSummary().map((site) => ({
+    site_id: site.site_id,
+    site_name: site.site_name,
+  }));
+}
+
+export function getRecentPapers(siteId?: string, limit = 20): Paper[] {
+  if (getDbState(["papers"]).kind !== "ready") {
+    return [];
+  }
+
+  const safeLimit = Math.max(1, Math.min(limit, 200));
+  const key = `recentPapers:${siteId ?? "__all__"}:${safeLimit}`;
+  return cached(key, TTL, () => {
+    const db = getDb();
+    try {
+      if (siteId) {
+        return db
+          .prepare(
+            `SELECT *
+             FROM papers
+             WHERE site_id = ?
+             ORDER BY crawled_at DESC, published_date DESC
+             LIMIT ?`
+          )
+          .all(siteId, safeLimit) as Paper[];
+      }
+      return db
+        .prepare(
+          `SELECT *
+           FROM papers
+           ORDER BY crawled_at DESC, published_date DESC
+           LIMIT ?`
+        )
+        .all(safeLimit) as Paper[];
+    } finally {
+      db.close();
+    }
+  });
+}
+
+function escapeMarkdown(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/([*_`#[\]])/g, "\\$1");
+}
+
+function toBulletList(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((item) => {
+      if (typeof item === "string") {
+        return item;
+      }
+      if (item && typeof item === "object" && "name" in item && typeof item.name === "string") {
+        return item.name;
+      }
+      return null;
+    })
+    .filter((item): item is string => Boolean(item));
+}
+
+export function renderPapersMarkdown(papers: Paper[], title: string): string {
+  const lines: string[] = [
+    `# ${escapeMarkdown(title)}`,
+    "",
+    `- Exported at: ${new Date().toISOString()}`,
+    `- Document count: ${papers.length}`,
+    "",
+  ];
+
+  if (papers.length === 0) {
+    lines.push("수집된 문서가 없습니다.", "");
+    return lines.join("\n");
+  }
+
+  papers.forEach((paper, index) => {
+    const metadata = parseMetadata(paper.metadata);
+    const relatedLaws = toBulletList(metadata.relatedLaws);
+    const relatedTopics = toBulletList(metadata.relatedTopics);
+
+    lines.push(`## ${index + 1}. ${escapeMarkdown(paper.title || "(제목 없음)")}`);
+    lines.push("");
+    lines.push(`- ID: \`${paper.id}\``);
+    lines.push(`- Site: \`${paper.site_id}\``);
+    if (metadata.documentTypeName) {
+      lines.push(`- Type: ${escapeMarkdown(String(metadata.documentTypeName))}`);
+    }
+    if (metadata.documentNumber) {
+      lines.push(`- Document Number: ${escapeMarkdown(String(metadata.documentNumber))}`);
+    }
+    if (paper.category) {
+      lines.push(`- Category: ${escapeMarkdown(paper.category)}`);
+    }
+    if (paper.published_date) {
+      lines.push(`- Published: ${paper.published_date}`);
+    }
+    lines.push(`- Crawled: ${paper.crawled_at}`);
+    if (paper.url) {
+      lines.push(`- URL: ${paper.url}`);
+    }
+    if (paper.pdf_url) {
+      lines.push(`- Attachment: ${paper.pdf_url}`);
+    }
+    if (relatedLaws.length > 0) {
+      lines.push(`- Related Laws: ${relatedLaws.map((law) => escapeMarkdown(law)).join(", ")}`);
+    }
+    if (relatedTopics.length > 0) {
+      lines.push(`- Related Topics: ${relatedTopics.map((topic) => escapeMarkdown(topic)).join(", ")}`);
+    }
+    lines.push("");
+    if (paper.abstract) {
+      lines.push(escapeMarkdown(paper.abstract));
+      lines.push("");
+    }
+  });
+
+  return lines.join("\n");
 }
