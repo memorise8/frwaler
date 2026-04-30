@@ -45,6 +45,7 @@ function CrawlerPageInner() {
   const [limit, setLimit] = useState<number | "">("");
 
   const [logFile, setLogFile] = useState<string | null>(null);
+  const [logStreamKey, setLogStreamKey] = useState(0);
   const [logLines, setLogLines] = useState<string[]>([]);
   const logEsRef = useRef<EventSource | null>(null);
   const logPaneRef = useRef<HTMLDivElement>(null);
@@ -84,7 +85,7 @@ function CrawlerPageInner() {
   useEffect(() => {
     if (!logFile) return;
     const es = new EventSource(
-      `/api/crawler/logs?file=${encodeURIComponent(logFile)}`
+      `/api/crawler/logs?file=${encodeURIComponent(logFile)}&stream=${logStreamKey}`
     );
     logEsRef.current = es;
     es.onmessage = (e) => {
@@ -101,7 +102,15 @@ function CrawlerPageInner() {
       es.close();
       logEsRef.current = null;
     };
-  }, [logFile]);
+  }, [logFile, logStreamKey]);
+
+  const openLog = (name: string) => {
+    logEsRef.current?.close();
+    logEsRef.current = null;
+    setLogLines([]);
+    setLogFile(name);
+    setLogStreamKey((prev) => prev + 1);
+  };
 
   useEffect(() => {
     if (logPaneRef.current) {
@@ -129,8 +138,7 @@ function CrawlerPageInner() {
     await refreshState();
     const name = data.job?.logPath?.split("/").pop();
     if (name) {
-      setLogLines([]);
-      setLogFile(name);
+      openLog(name);
     }
   };
 
@@ -275,7 +283,7 @@ function CrawlerPageInner() {
                       </td>
                       <td className="px-4 py-2 text-right">
                         <button
-                          onClick={() => setLogFile(logName)}
+                          onClick={() => openLog(logName)}
                           className="text-blue-600 dark:text-blue-400 hover:underline text-xs mr-3"
                         >
                           로그 보기
@@ -302,8 +310,10 @@ function CrawlerPageInner() {
           {logFile && (
             <button
               onClick={() => {
-                setLogFile(null);
                 logEsRef.current?.close();
+                logEsRef.current = null;
+                setLogFile(null);
+                setLogLines([]);
               }}
               className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
             >
@@ -317,7 +327,7 @@ function CrawlerPageInner() {
               {logs.map((l) => (
                 <li key={l.name}>
                   <button
-                    onClick={() => setLogFile(l.name)}
+                    onClick={() => openLog(l.name)}
                     className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-800/50 ${
                       logFile === l.name
                         ? "bg-blue-50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 font-medium"

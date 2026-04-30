@@ -105,6 +105,7 @@ export default function AutoAddPage() {
   const [siteId, setSiteId] = useState("");
 
   const [logFile, setLogFile] = useState<string | null>(null);
+  const [logStreamKey, setLogStreamKey] = useState(0);
   const [logLines, setLogLines] = useState<string[]>([]);
   const [result, setResult] = useState<ResultEvent | null>(null);
 
@@ -156,12 +157,12 @@ export default function AutoAddPage() {
 
   // Open log stream
   const openLog = (name: string, jobStartedAt?: number) => {
-    if (logFile === name) return;
     logEsRef.current?.close();
     logEsRef.current = null;
     setLogLines([]);
     setResult(null);
     setLogFile(name);
+    setLogStreamKey((prev) => prev + 1);
     setPhase("analyzing");
     phaseRef.current = "analyzing";
     const startedAt = jobStartedAt ?? Date.now();
@@ -176,7 +177,7 @@ export default function AutoAddPage() {
   useEffect(() => {
     if (!logFile) return;
     const es = new EventSource(
-      `/api/crawler/logs?file=${encodeURIComponent(logFile)}`
+      `/api/crawler/logs?file=${encodeURIComponent(logFile)}&stream=${logStreamKey}`
     );
     logEsRef.current = es;
     es.onmessage = (e) => {
@@ -212,7 +213,7 @@ export default function AutoAddPage() {
       logEsRef.current = null;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [logFile]);
+  }, [logFile, logStreamKey]);
 
   useEffect(() => {
     if (logPaneRef.current) {
