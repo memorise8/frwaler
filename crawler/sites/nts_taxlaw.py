@@ -418,7 +418,7 @@ class _NTSTaxlawBase(BaseCrawler):
 
                     # Related-law topics (주제어)
                     for matr in (detail.get("dcmRltnStttMatrList") or []):
-                        name = matr.get("ntstTextNm") or matr.get("matrCntn") or ""
+                        name = (matr.get("ntstTextMatrCntn") or "").strip()
                         if name:
                             related_topics.append(name)
 
@@ -637,9 +637,11 @@ class _NTSTaxlawBase(BaseCrawler):
         """Fast gap fill: scan list pages for DOC_IDs, then fetch only missing ones."""
         import json as _json
 
-        # Phase 1: Scan all list pages to collect DOC_IDs (no detail fetch)
+        # Phase 1: Scan all list pages — cache the full ``dcm`` payload so
+        # Phase 3 can fall back to list-API fields (NTST_TLAW_CL_NM,
+        # DCM_RGT_DTM, NTST_DCM_DSCM_CNTN, etc.) that the detail API omits.
         print(f"[{self.site_id}] Gap fill Phase 1: Scanning list pages...")
-        all_doc_ids = []
+        list_cache: dict[str, dict] = {}
         page = 1
         while True:
             time.sleep(0.5)  # faster than normal crawl delay
@@ -669,14 +671,15 @@ class _NTSTaxlawBase(BaseCrawler):
             for item in items:
                 dcm = item.get("dcm", {})
                 doc_id = str(dcm.get("DOC_ID", ""))
-                if doc_id:
-                    all_doc_ids.append(doc_id)
+                if doc_id and doc_id not in list_cache:
+                    list_cache[doc_id] = dcm
 
             if page % 100 == 0:
-                print(f"[{self.site_id}] Phase 1: Scanned {page} pages, {len(all_doc_ids)} DOC_IDs...")
+                print(f"[{self.site_id}] Phase 1: Scanned {page} pages, {len(list_cache)} DOC_IDs...")
 
             page += 1
 
+        all_doc_ids = list(list_cache.keys())
         print(f"[{self.site_id}] Phase 1 done: {len(all_doc_ids)} DOC_IDs from {page - 1} pages.")
 
         # Phase 2: Find missing DOC_IDs
@@ -720,21 +723,28 @@ class _NTSTaxlawBase(BaseCrawler):
                 continue
 
             dvo = detail.get("dcmDVO") or {}
+            list_item = list_cache.get(doc_id, {})
             title = dvo.get("ntstDcmTtl") or dvo.get("TTL") or dvo.get("ttl") or ""
-            doc_number = dvo.get("ntstDcmDscmCntn") or ""
-            tax_category = dvo.get("ntstTlawClNm") or ""
-            # DVO has code only (ntstDcmClCd), not name — map it
+            # Fall back to list-API fields: detail dvo returns None for
+            # ntstTlawClNm / dcmRgtDtm / ntstDcmDscmCntn on most documents.
+            doc_number = dvo.get("ntstDcmDscmCntn") or list_item.get("NTST_DCM_DSCM_CNTN") or ""
+            tax_category = dvo.get("ntstTlawClNm") or list_item.get("NTST_TLAW_CL_NM") or ""
+            # DVO has code only (ntstDcmClCd), not name — map it. Prefer the
+            # list API's direct name if detail lacks a mappable code.
             _DCM_CL_NAMES = {
                 "01": "사전", "02": "질의", "03": "기준", "04": "고시",
                 "05": "적부", "06": "이의", "07": "심사", "08": "심판",
                 "09": "판례", "10": "헌재",
             }
             doc_type_code = dvo.get("ntstDcmClCd") or ""
-            doc_type_name = _DCM_CL_NAMES.get(doc_type_code, "")
-            raw_date = dvo.get("dcmRgtDtm") or ""
-            file_id = dvo.get("ntstFleId") or ""
-            src_org_cd = dvo.get("ntstDcmSrcsOrgnClCd") or ""
-            reply_ref = dvo.get("ntstDcmRplyCntn") or ""
+            doc_type_name = (_DCM_CL_NAMES.get(doc_type_code, "")
+                             or list_item.get("NTST_DCM_CL_NM") or "")
+            raw_date = dvo.get("dcmRgtDtm") or list_item.get("DCM_RGT_DTM") or ""
+            file_id = dvo.get("ntstFleId") or list_item.get("NTST_FLE_ID") or ""
+            src_org_cd = (dvo.get("ntstDcmSrcsOrgnClCd")
+                          or list_item.get("NTST_DCM_SRCS_ORGN_CL_CD") or "")
+            reply_ref = (dvo.get("ntstDcmRplyCntn")
+                         or list_item.get("NTST_DCM_RPLY_CNTN") or "")
             detail_gist = dvo.get("ntstDcmGistCntn") or ""
             detail_content = dvo.get("ntstDcmCntn") or ""
             keywords_raw = dvo.get("ntstDcmMatrCntn") or ""
@@ -791,7 +801,7 @@ class _NTSTaxlawBase(BaseCrawler):
             # Cited cases
             cited_cases = [p.get("ntstDcmDscmCntn", "") for p in (detail.get("dcmQutPrtsList") or []) if p.get("ntstDcmDscmCntn")]
             # Related topics
-            related_topics = [(m.get("ntstTextNm") or m.get("matrCntn") or "") for m in (detail.get("dcmRltnStttMatrList") or []) if (m.get("ntstTextNm") or m.get("matrCntn"))]
+            related_topics = [v for m in (detail.get("dcmRltnStttMatrList") or []) if (v := (m.get("ntstTextMatrCntn") or "").strip())]
             # Attached files
             attached_files = [{"name": f.get("fleOrgNm") or f.get("fleNm") or "", "fileId": f.get("fleId") or f.get("ntstFleId") or ""} for f in (detail.get("fleDVOList") or []) if (f.get("fleOrgNm") or f.get("fleNm") or f.get("fleId") or f.get("ntstFleId"))]
 

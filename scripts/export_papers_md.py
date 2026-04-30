@@ -150,17 +150,22 @@ def render_paper(row: sqlite3.Row) -> str:
     return "\n".join(lines)
 
 
-def export(site_id: str, limit: int | None) -> int:
+def export(site_id: str, limit: int | None,
+           updated_after: str | None = None) -> int:
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     sql = """SELECT external_id, title, abstract, category, keywords,
-                    published_date, url, metadata
-             FROM papers WHERE site_id = ?
-             ORDER BY crawled_at DESC"""
-    params: tuple = (site_id,)
+                    published_date, url, metadata, crawled_at
+             FROM papers WHERE site_id = ?"""
+    params: list = [site_id]
+    if updated_after:
+        sql += " AND crawled_at > ?"
+        params.append(updated_after)
+    sql += " ORDER BY crawled_at DESC"
     if limit:
         sql += " LIMIT ?"
-        params = (site_id, limit)
+        params.append(limit)
+    params = tuple(params)
 
     out_dir = EXPORT_ROOT / site_id
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -206,8 +211,11 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--site-id", required=True)
     ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--updated-after",
+                    help="Only export papers whose crawled_at is newer "
+                         "than this ISO timestamp (e.g. '2026-04-23 14:00:00')")
     args = ap.parse_args()
-    export(args.site_id, args.limit)
+    export(args.site_id, args.limit, args.updated_after)
 
 
 if __name__ == "__main__":
