@@ -122,9 +122,12 @@ python -m scripts.migrate_livertree --db data/papers.db
 `documents` 기반으로 마이그레이션됐다. UUID PK 기반 legacy `papers`
 행은 `getPaper(id)` 가 비숫자 ID 일 때만 fallback 으로 조회한다.
 
-> **FTS5 (전문검색)** 는 일시적으로 비활성화되어 있다. `papers_fts` 가
-> `papers` 행만 인덱싱하므로 livertree 데이터는 LIKE 경로로만 검색된다.
-> `documents_fts` 재구축은 후속 PR 에서 진행한다.
+**FTS5 (전문검색):** `documents_fts` 가상 테이블이 `title / abstract /
+summary / metadata` 를 트라이그램 토크나이저로 인덱싱한다 (CJK 지원).
+설정 방법은 `python -m scripts.migrate_documents_fts` 한 번 실행하면 끝
+(idempotent). `documents` 의 INSERT/UPDATE/DELETE 트리거가 자동으로 인덱스를
+동기화하므로 이후 별도 작업 불요. 검색 쿼리의 모든 토큰이 3자 미만인
+경우 (한국어 2자 단어) `searchPapers` 가 자동으로 LIKE 경로로 폴백한다.
 
 > **기존 `papers.db` 위에 적용** 시 `migrate_livertree.py` 는 빈 documents
 > 테이블만 만들고 papers 행을 자동 백필하지 않는다. UI 가 documents 만

@@ -291,9 +291,77 @@ export function searchPapers(filters: SearchFilters): SearchResult {
 
     const offset = (page - 1) * pageSize;
 
-    // FTS5 path is temporarily disabled — `papers_fts` only indexes the
-    // legacy `papers` table. A `documents_fts` rebuild is a follow-up PR.
-    // Use LIKE path for all queries against `documents`.
+    // FTS5 over documents_fts (built by scripts/migrate_documents_fts.py).
+    // Trigram tokenizer needs all whitespace-separated tokens to be ≥ 3
+    // chars; for shorter queries (typical 2-character Korean words) we
+    // fall back to the LIKE path so the user still gets results.
+    const rawTokens = q?.trim().split(/\s+/).filter((t) => t.length > 0) ?? [];
+    const ftsEligible =
+      rawTokens.length > 0 &&
+      rawTokens.every((t) => t.length >= 3) &&
+      hasTables(db, ["documents_fts"]);
+    const ftsQuery = ftsEligible ? sanitizeFtsQuery(q!) : null;
+
+    if (ftsQuery) {
+      const ftsWhere: string[] = [];
+      const ftsParams: unknown[] = [ftsQuery];
+      if (resolvedSiteIds.length > 0) {
+        ftsWhere.push(
+          `d.site_id IN (${resolvedSiteIds.map(() => "?").join(",")})`,
+        );
+        ftsParams.push(...resolvedSiteIds);
+      }
+      if (category) {
+        ftsWhere.push(`json_extract(d.metadata, '$.category') = ?`);
+        ftsParams.push(category);
+      }
+      if (docType) {
+        ftsWhere.push(`json_extract(d.metadata, '$.documentTypeName') = ?`);
+        ftsParams.push(docType);
+      }
+      if (dateFrom) {
+        ftsWhere.push(`d.published_date >= ?`);
+        ftsParams.push(dateFrom);
+      }
+      if (dateTo) {
+        ftsWhere.push(`d.published_date <= ?`);
+        ftsParams.push(dateTo);
+      }
+      const ftsExtra = ftsWhere.length ? `AND ${ftsWhere.join(" AND ")}` : "";
+
+      const total = (
+        db
+          .prepare(
+            `SELECT COUNT(*) as c
+             FROM documents d
+             JOIN documents_fts f ON d.rowid = f.rowid
+             WHERE documents_fts MATCH ?
+             ${ftsExtra}`,
+          )
+          .get(...ftsParams) as { c: number }
+      ).c;
+
+      const rows = db
+        .prepare(
+          `SELECT d.*
+           FROM documents d
+           JOIN documents_fts f ON d.rowid = f.rowid
+           WHERE documents_fts MATCH ?
+           ${ftsExtra}
+           ORDER BY d.published_date DESC, d.crawled_at DESC
+           LIMIT ? OFFSET ?`,
+        )
+        .all(...ftsParams, pageSize, offset) as DocRow[];
+
+      return {
+        papers: rows.map(documentToPaperShape),
+        total,
+        page,
+        pageSize,
+      };
+    }
+
+    // Fallback: LIKE-based search (no q, short tokens, or FTS table absent).
     const where: string[] = [];
     const params: unknown[] = [];
     const tokens = q?.trim().split(/\s+/).filter((token) => token.length > 0) ?? [];
