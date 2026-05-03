@@ -788,3 +788,67 @@ export function splitKeywords(keywords: string | null): string[] {
 export function splitPublishers(publisher: string | null): string[] {
   return splitAuthors(publisher);
 }
+
+// ====================================================================
+// /admin/status — per-site collection progress
+// ====================================================================
+
+export interface SiteProgress {
+  site_id: string;
+  site_name: string;
+  total: number;
+  downloaded: number;
+  converted: number;
+  summarized: number;
+  last_crawled: string | null;
+}
+
+export interface CollectionTotals {
+  total: number;
+  downloaded: number;
+  converted: number;
+  summarized: number;
+  sites: number;
+}
+
+export function getCollectionProgress(): SiteProgress[] {
+  if (getDbState(["documents"]).kind !== "ready") return [];
+
+  return cached("collectionProgress", TTL, () => {
+    const db = getDb();
+    try {
+      const rows = db
+        .prepare(
+          `SELECT d.site_id AS site_id,
+                  COALESCE(s.name, d.site_id) AS site_name,
+                  COUNT(d.id) AS total,
+                  SUM(CASE WHEN d.download_status = 'downloaded' THEN 1 ELSE 0 END) AS downloaded,
+                  SUM(CASE WHEN d.txt_path IS NOT NULL AND d.txt_path != '' THEN 1 ELSE 0 END) AS converted,
+                  SUM(CASE WHEN d.summary IS NOT NULL AND d.summary != '' THEN 1 ELSE 0 END) AS summarized,
+                  MAX(d.crawled_at) AS last_crawled
+           FROM documents d
+           LEFT JOIN sites s ON s.id = d.site_id
+           GROUP BY d.site_id, COALESCE(s.name, d.site_id)
+           ORDER BY total DESC, site_id ASC`
+        )
+        .all() as SiteProgress[];
+      return rows;
+    } finally {
+      db.close();
+    }
+  });
+}
+
+export function getCollectionTotals(): CollectionTotals {
+  const rows = getCollectionProgress();
+  return rows.reduce<CollectionTotals>(
+    (acc, r) => ({
+      total: acc.total + (r.total | 0),
+      downloaded: acc.downloaded + (r.downloaded | 0),
+      converted: acc.converted + (r.converted | 0),
+      summarized: acc.summarized + (r.summarized | 0),
+      sites: acc.sites + 1,
+    }),
+    { total: 0, downloaded: 0, converted: 0, summarized: 0, sites: 0 },
+  );
+}
