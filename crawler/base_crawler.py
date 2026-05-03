@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 import requests
 
 from . import db as db_module
+from . import storage as storage_module
 
 
 class BaseCrawler(ABC):
@@ -87,11 +88,45 @@ class BaseCrawler(ABC):
                     return None
 
     def _save_paper(self, paper_dict):
-        """Persist a paper dict to the database via db.upsert_paper.
+        """Persist a crawled item.
 
-        Ensures the required ``id`` field is present (generates a UUID if not).
+        On the livertree branch this transparently routes ALL legacy
+        ``paper_dict`` payloads through the adapter and into the new
+        ``documents`` table — this lets every existing site crawler keep
+        its current calling convention (``self._save_paper(paper_dict)``)
+        while gaining the global INTEGER sequence + 12-digit folder layout.
+
+        Returns the integer ``documents.id`` assigned to the row.
+        """
+        from . import livertree_adapter
+        paper_dict.setdefault("site_id", self.site_id)
+        doc_dict = livertree_adapter.paper_to_document(paper_dict)
+        return self._save_document(doc_dict)
+
+    def _save_paper_legacy(self, paper_dict):
+        """Original behaviour: write to the legacy ``papers`` table (UUID PK).
+
+        Kept for opt-in use when a caller specifically needs the old schema.
         """
         if not paper_dict.get("id"):
             paper_dict["id"] = str(uuid.uuid4())
         paper_dict.setdefault("site_id", self.site_id)
         db_module.upsert_paper(self._conn, paper_dict)
+
+    def _save_document(self, doc_dict):
+        """Persist a document dict to the ``documents`` table.
+
+        Returns the integer sequence id assigned to (or already held by)
+        the row.
+
+        ``pdf_path`` and ``txt_path`` are intentionally NOT written here
+        — they get filled in by the download (``cmd_download``) and convert
+        (``convert_site_files``) steps respectively. This way ``txt_path``
+        stays NULL until conversion succeeds, which lets
+        ``get_documents_pending_convert()`` use ``txt_path IS NULL`` as a
+        reliable "needs conversion" marker.
+
+        ``site_id`` defaults to ``self.site_id`` when omitted.
+        """
+        doc_dict.setdefault("site_id", self.site_id)
+        return db_module.upsert_document(self._conn, doc_dict)

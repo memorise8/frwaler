@@ -178,13 +178,88 @@ function getDefaultSiteIds(db: ReturnType<typeof getDb>): string[] {
   const rows = db
     .prepare(
       `SELECT DISTINCT site_id
-       FROM papers
+       FROM documents
        WHERE site_id IS NOT NULL AND site_id != ''
        ORDER BY site_id`
     )
     .all() as { site_id: string }[];
   return rows.map((row) => row.site_id);
 }
+
+// ====================================================================
+// Paper-shape adapter over the documents table.
+// All Paper-shape readers below run against `documents` and shape rows
+// into the legacy `Paper` interface so the existing UI pages stay unchanged.
+// `papers` is kept read-only as a fallback for legacy UUID lookups.
+// ====================================================================
+
+interface DocRow {
+  id: number;
+  crawled_at: string;
+  site_id: string;
+  external_id: string | null;
+  meta_url: string | null;
+  title: string | null;
+  published_date: string | null;
+  posted_date: string | null;
+  authors: string | null;
+  publisher: string | null;
+  journal: string | null;
+  pdf_url: string | null;
+  keywords: string | null;
+  abstract: string | null;
+  original_filename: string | null;
+  pdf_path: string | null;
+  txt_path: string | null;
+  download_status: string | null;
+  summary: string | null;
+  metadata: string | null;
+}
+
+function safeJSONParse(raw: string | null): Record<string, unknown> {
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function pickStr(md: Record<string, unknown>, key: string): string | null {
+  const v = md[key];
+  return typeof v === "string" && v ? v : null;
+}
+
+function documentToPaperShape(d: DocRow): Paper {
+  const md = safeJSONParse(d.metadata);
+  return {
+    id: String(d.id),
+    site_id: d.site_id,
+    external_id: d.external_id ?? "",
+    title: d.title,
+    authors: d.authors,
+    abstract: d.abstract,
+    category: pickStr(md, "category"),
+    keywords: d.keywords,
+    published_date: d.published_date,
+    url: d.meta_url,
+    pdf_url: d.pdf_url,
+    doi: pickStr(md, "doi"),
+    department: d.publisher,
+    metadata: d.metadata,
+    crawled_at: d.crawled_at,
+  };
+}
+
+const DOC_COLS_FULL = `
+  id, crawled_at, site_id, external_id, meta_url, title,
+  published_date, posted_date, authors, publisher, journal,
+  pdf_url, keywords, abstract, original_filename,
+  pdf_path, txt_path, download_status, summary, metadata
+`;
 
 function normalizeSiteIds(
   db: ReturnType<typeof getDb>,
@@ -197,7 +272,7 @@ function normalizeSiteIds(
 }
 
 export function searchPapers(filters: SearchFilters): SearchResult {
-  if (getDbState(["papers"]).kind !== "ready") {
+  if (getDbState(["documents"]).kind !== "ready") {
     return emptySearchResult(filters);
   }
 
@@ -215,63 +290,10 @@ export function searchPapers(filters: SearchFilters): SearchResult {
     } = filters;
 
     const offset = (page - 1) * pageSize;
-    const ftsQuery = q ? sanitizeFtsQuery(q) : null;
 
-    if (ftsQuery && hasTables(db, ["papers_fts"])) {
-      // ── FTS5 path ──────────────────────────────────────────────────────────
-      const where: string[] = [];
-      const params: unknown[] = [ftsQuery];
-
-      if (resolvedSiteIds.length > 0) {
-        where.push(`p.site_id IN (${resolvedSiteIds.map(() => "?").join(",")})`);
-        params.push(...resolvedSiteIds);
-      }
-      if (category) {
-        where.push(`p.category = ?`);
-        params.push(category);
-      }
-      if (docType) {
-        where.push(`json_extract(p.metadata, '$.documentTypeName') = ?`);
-        params.push(docType);
-      }
-      if (dateFrom) {
-        where.push(`p.published_date >= ?`);
-        params.push(dateFrom);
-      }
-      if (dateTo) {
-        where.push(`p.published_date <= ?`);
-        params.push(dateTo);
-      }
-
-      const whereSQL = where.length ? `AND ${where.join(" AND ")}` : "";
-
-      const total = (
-        db
-          .prepare(
-            `SELECT COUNT(*) as c
-             FROM papers p
-             JOIN papers_fts f ON p.rowid = f.rowid
-             WHERE papers_fts MATCH ?
-             ${whereSQL}`
-          )
-          .get(...params) as { c: number }
-      ).c;
-
-      const rows = db
-        .prepare(
-          `SELECT p.* FROM papers p
-           JOIN papers_fts f ON p.rowid = f.rowid
-           WHERE papers_fts MATCH ?
-           ${whereSQL}
-           ORDER BY p.published_date DESC, p.crawled_at DESC
-           LIMIT ? OFFSET ?`
-        )
-        .all(...params, pageSize, offset) as Paper[];
-
-      return { papers: rows, total, page, pageSize };
-    }
-
-    // ── Non-FTS path (no q, q had no usable tokens, or FTS is unavailable) ──
+    // FTS5 path is temporarily disabled — `papers_fts` only indexes the
+    // legacy `papers` table. A `documents_fts` rebuild is a follow-up PR.
+    // Use LIKE path for all queries against `documents`.
     const where: string[] = [];
     const params: unknown[] = [];
     const tokens = q?.trim().split(/\s+/).filter((token) => token.length > 0) ?? [];
@@ -291,7 +313,7 @@ export function searchPapers(filters: SearchFilters): SearchResult {
       params.push(...resolvedSiteIds);
     }
     if (category) {
-      where.push(`category = ?`);
+      where.push(`json_extract(metadata, '$.category') = ?`);
       params.push(category);
     }
     if (docType) {
@@ -311,37 +333,54 @@ export function searchPapers(filters: SearchFilters): SearchResult {
 
     const total = (
       db
-        .prepare(`SELECT COUNT(*) as c FROM papers ${whereSQL}`)
+        .prepare(`SELECT COUNT(*) as c FROM documents ${whereSQL}`)
         .get(...params) as { c: number }
     ).c;
 
     const rows = db
       .prepare(
-        `SELECT * FROM papers ${whereSQL} ORDER BY published_date DESC, crawled_at DESC LIMIT ? OFFSET ?`
+        `SELECT ${DOC_COLS_FULL} FROM documents ${whereSQL}
+         ORDER BY published_date DESC, crawled_at DESC LIMIT ? OFFSET ?`
       )
-      .all(...params, pageSize, offset) as Paper[];
+      .all(...params, pageSize, offset) as DocRow[];
 
-    return { papers: rows, total, page, pageSize };
+    return {
+      papers: rows.map(documentToPaperShape),
+      total,
+      page,
+      pageSize,
+    };
   } finally {
     db.close();
   }
 }
 
 export function getPaper(id: string): Paper | null {
-  if (getDbState(["papers"]).kind !== "ready") {
-    return null;
-  }
+  const state = getDbState();
+  if (state.kind !== "ready") return null;
 
   const db = getDb();
   try {
-    return (db.prepare(`SELECT * FROM papers WHERE id = ?`).get(id) as Paper) ?? null;
+    // Numeric IDs map to the new `documents` table; non-numeric (UUID) IDs
+    // fall back to the legacy `papers` table for smart-find historical rows.
+    const isNumeric = /^\d+$/.test(id);
+    if (isNumeric && hasTables(db, ["documents"])) {
+      const row = db
+        .prepare(`SELECT ${DOC_COLS_FULL} FROM documents WHERE id = ?`)
+        .get(Number(id)) as DocRow | undefined;
+      if (row) return documentToPaperShape(row);
+    }
+    if (hasTables(db, ["papers"])) {
+      return (db.prepare(`SELECT * FROM papers WHERE id = ?`).get(id) as Paper) ?? null;
+    }
+    return null;
   } finally {
     db.close();
   }
 }
 
 export function getDocTypeCounts(siteIds?: string[]): DocTypeCount[] {
-  if (getDbState(["papers"]).kind !== "ready") {
+  if (getDbState(["documents"]).kind !== "ready") {
     return [];
   }
 
@@ -357,7 +396,7 @@ export function getDocTypeCounts(siteIds?: string[]): DocTypeCount[] {
               .prepare(
                 `SELECT json_extract(metadata, '$.documentTypeName') AS documentTypeName,
                         COUNT(*) AS count
-                 FROM papers
+                 FROM documents
                  WHERE site_id IN (${resolvedSiteIds.map(() => "?").join(",")})
                  GROUP BY documentTypeName
                  ORDER BY count DESC`
@@ -372,7 +411,7 @@ export function getDocTypeCounts(siteIds?: string[]): DocTypeCount[] {
 }
 
 export function getCategories(siteIds?: string[]): string[] {
-  if (getDbState(["papers"]).kind !== "ready") {
+  if (getDbState(["documents"]).kind !== "ready") {
     return [];
   }
 
@@ -386,15 +425,16 @@ export function getCategories(siteIds?: string[]): string[] {
         resolvedSiteIds.length > 0
           ? (db
               .prepare(
-                `SELECT DISTINCT category FROM papers
+                `SELECT DISTINCT json_extract(metadata, '$.category') AS category
+                 FROM documents
                  WHERE site_id IN (${resolvedSiteIds.map(() => "?").join(",")})
-                   AND category IS NOT NULL
-                   AND category != ''
+                   AND json_extract(metadata, '$.category') IS NOT NULL
+                   AND json_extract(metadata, '$.category') != ''
                  ORDER BY category`
               )
               .all(...resolvedSiteIds) as { category: string }[])
           : [];
-      return rows.map((r) => r.category);
+      return rows.map((r) => r.category).filter((c): c is string => Boolean(c));
     } finally {
       db.close();
     }
@@ -410,7 +450,7 @@ export interface DbStats {
 }
 
 export function getDbStats(): DbStats {
-  if (getDbState(["papers"]).kind !== "ready") {
+  if (getDbState(["documents"]).kind !== "ready") {
     return {
       totalPapers: 0,
       customPapers: 0,
@@ -423,25 +463,25 @@ export function getDbStats(): DbStats {
   return cached("stats", TTL, () => {
     const db = getDb();
     try {
-      const total = (db.prepare(`SELECT COUNT(*) as c FROM papers`).get() as {
+      const total = (db.prepare(`SELECT COUNT(*) as c FROM documents`).get() as {
         c: number;
       }).c;
       const customPapers = (db
         .prepare(
           `SELECT COUNT(*) as c
-           FROM papers
+           FROM documents
            WHERE site_id NOT IN ('nts-taxlaw-pd', 'nts-taxlaw-qt')`
         )
         .get() as { c: number }).c;
       const totalSites = (db
-        .prepare(`SELECT COUNT(DISTINCT site_id) as c FROM papers`)
+        .prepare(`SELECT COUNT(DISTINCT site_id) as c FROM documents`)
         .get() as { c: number }).c;
       const registeredSites = hasTables(db, ["sites"])
         ? (db.prepare(`SELECT COUNT(*) as c FROM sites`).get() as {
             c: number;
           }).c
         : 0;
-      const last = db.prepare(`SELECT MAX(crawled_at) as last FROM papers`).get() as {
+      const last = db.prepare(`SELECT MAX(crawled_at) as last FROM documents`).get() as {
         last: string | null;
       };
       return {
@@ -458,7 +498,7 @@ export function getDbStats(): DbStats {
 }
 
 export function getAllSitesSummary(): SiteCount[] {
-  if (getDbState(["papers"]).kind !== "ready") {
+  if (getDbState(["documents"]).kind !== "ready") {
     return [];
   }
 
@@ -467,13 +507,13 @@ export function getAllSitesSummary(): SiteCount[] {
     try {
       const rows = db
         .prepare(
-          `SELECT p.site_id as site_id,
-                  COALESCE(s.name, p.site_id) as site_name,
-                  COUNT(p.id) as count,
-                  MAX(p.crawled_at) as last_crawled
-           FROM papers p
-           LEFT JOIN sites s ON p.site_id = s.id
-           GROUP BY p.site_id, COALESCE(s.name, p.site_id)
+          `SELECT d.site_id as site_id,
+                  COALESCE(s.name, d.site_id) as site_name,
+                  COUNT(d.id) as count,
+                  MAX(d.crawled_at) as last_crawled
+           FROM documents d
+           LEFT JOIN sites s ON d.site_id = s.id
+           GROUP BY d.site_id, COALESCE(s.name, d.site_id)
            ORDER BY count DESC, site_id ASC`
         )
         .all() as SiteCount[];
@@ -492,7 +532,7 @@ export function getSiteOptions(): SiteOption[] {
 }
 
 export function getRecentPapers(siteId?: string, limit = 20): Paper[] {
-  if (getDbState(["papers"]).kind !== "ready") {
+  if (getDbState(["documents"]).kind !== "ready") {
     return [];
   }
 
@@ -501,25 +541,25 @@ export function getRecentPapers(siteId?: string, limit = 20): Paper[] {
   return cached(key, TTL, () => {
     const db = getDb();
     try {
-      if (siteId) {
-        return db
-          .prepare(
-            `SELECT *
-             FROM papers
-             WHERE site_id = ?
-             ORDER BY crawled_at DESC, published_date DESC
-             LIMIT ?`
-          )
-          .all(siteId, safeLimit) as Paper[];
-      }
-      return db
-        .prepare(
-          `SELECT *
-           FROM papers
-           ORDER BY crawled_at DESC, published_date DESC
-           LIMIT ?`
-        )
-        .all(safeLimit) as Paper[];
+      const rows = siteId
+        ? (db
+            .prepare(
+              `SELECT ${DOC_COLS_FULL}
+               FROM documents
+               WHERE site_id = ?
+               ORDER BY crawled_at DESC, published_date DESC
+               LIMIT ?`
+            )
+            .all(siteId, safeLimit) as DocRow[])
+        : (db
+            .prepare(
+              `SELECT ${DOC_COLS_FULL}
+               FROM documents
+               ORDER BY crawled_at DESC, published_date DESC
+               LIMIT ?`
+            )
+            .all(safeLimit) as DocRow[]);
+      return rows.map(documentToPaperShape);
     } finally {
       db.close();
     }
@@ -603,4 +643,148 @@ export function renderPapersMarkdown(papers: Paper[], title: string): string {
   });
 
   return lines.join("\n");
+}
+
+// ====================================================================
+// livertree: documents 테이블 (글로벌 INTEGER PK + 12자리 파일 매핑)
+// docs/livertree.md 와 crawler/db.py 의 documents 스키마와 1:1 대응.
+// ====================================================================
+
+export interface LivertreeDocument {
+  id: number;
+  crawled_at: string;
+  site_id: string;
+  external_id: string | null;
+  meta_url: string | null;
+  title: string | null;
+  published_date: string | null;
+  posted_date: string | null;
+  authors: string | null;       // "; " separated
+  publisher: string | null;     // "; " separated
+  journal: string | null;
+  pdf_url: string | null;
+  keywords: string | null;      // ", " separated
+  abstract: string | null;
+  original_filename: string | null;
+  pdf_path: string | null;      // data/AAAA/BBBB/N.pdf
+  txt_path: string | null;
+  download_status: string | null;
+  summary: string | null;
+}
+
+const DOCUMENT_COLUMNS = `
+  id, crawled_at, site_id, external_id, meta_url, title,
+  published_date, posted_date, authors, publisher, journal,
+  pdf_url, keywords, abstract, original_filename,
+  pdf_path, txt_path, download_status, summary
+`;
+
+export function getRecentDocuments(limit = 50): LivertreeDocument[] {
+  const db = getDb();
+  try {
+    if (!hasTables(db, ["documents"])) return [];
+    return db
+      .prepare(
+        `SELECT ${DOCUMENT_COLUMNS} FROM documents
+         ORDER BY id DESC
+         LIMIT ?`
+      )
+      .all(limit) as LivertreeDocument[];
+  } finally {
+    db.close();
+  }
+}
+
+export function getDocumentById(id: number): LivertreeDocument | null {
+  const db = getDb();
+  try {
+    if (!hasTables(db, ["documents"])) return null;
+    const row = db
+      .prepare(`SELECT ${DOCUMENT_COLUMNS} FROM documents WHERE id = ?`)
+      .get(id) as LivertreeDocument | undefined;
+    return row ?? null;
+  } finally {
+    db.close();
+  }
+}
+
+export interface SearchDocumentsParams {
+  query?: string;        // matched against title/abstract/authors (LIKE)
+  siteId?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export function searchDocuments({
+  query,
+  siteId,
+  limit = 50,
+  offset = 0,
+}: SearchDocumentsParams = {}): LivertreeDocument[] {
+  const db = getDb();
+  try {
+    if (!hasTables(db, ["documents"])) return [];
+    const wheres: string[] = [];
+    const params: (string | number)[] = [];
+    if (siteId) {
+      wheres.push("site_id = ?");
+      params.push(siteId);
+    }
+    if (query && query.trim().length > 0) {
+      const q = `%${query.trim()}%`;
+      wheres.push("(title LIKE ? OR abstract LIKE ? OR authors LIKE ? OR keywords LIKE ?)");
+      params.push(q, q, q, q);
+    }
+    const where = wheres.length ? `WHERE ${wheres.join(" AND ")}` : "";
+    params.push(limit, offset);
+    return db
+      .prepare(
+        `SELECT ${DOCUMENT_COLUMNS} FROM documents
+         ${where}
+         ORDER BY id DESC
+         LIMIT ? OFFSET ?`
+      )
+      .all(...params) as LivertreeDocument[];
+  } finally {
+    db.close();
+  }
+}
+
+export function countDocuments(siteId?: string): number {
+  const db = getDb();
+  try {
+    if (!hasTables(db, ["documents"])) return 0;
+    if (siteId) {
+      const row = db
+        .prepare("SELECT COUNT(*) AS n FROM documents WHERE site_id = ?")
+        .get(siteId) as { n: number };
+      return row.n;
+    }
+    const row = db
+      .prepare("SELECT COUNT(*) AS n FROM documents")
+      .get() as { n: number };
+    return row.n;
+  } finally {
+    db.close();
+  }
+}
+
+export function splitAuthors(authors: string | null): string[] {
+  if (!authors) return [];
+  return authors
+    .split(";")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
+export function splitKeywords(keywords: string | null): string[] {
+  if (!keywords) return [];
+  return keywords
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
+export function splitPublishers(publisher: string | null): string[] {
+  return splitAuthors(publisher);
 }

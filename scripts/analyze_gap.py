@@ -54,9 +54,9 @@ def analyze(site_id: str, write_lists: bool = False) -> dict:
     ).fetchall()
     upstream_ids: set[str] = {r["doc_id"] for r in idx_rows}
 
-    # DB papers (active means existing row)
+    # DB documents (livertree: was `papers`)
     db_rows = conn.execute(
-        "SELECT external_id, metadata FROM papers WHERE site_id = ?",
+        "SELECT external_id, metadata FROM documents WHERE site_id = ?",
         (site_id,),
     ).fetchall()
     db_ids: set[str] = {r["external_id"] for r in db_rows if r["external_id"]}

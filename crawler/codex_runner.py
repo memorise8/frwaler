@@ -68,7 +68,7 @@ dbm.init_db(conn)
 c = cls(db_conn=conn); dbm.register_site(conn, c.site_id, c.site_name, c.base_url)
 n = c.crawl(limit=3)
 assert n >= 1, f'expected >=1, got {{n}}'
-rows = conn.execute('SELECT title, LENGTH(abstract) l FROM papers').fetchall()
+rows = conn.execute('SELECT title, LENGTH(abstract) l FROM documents').fetchall()
 assert all(r['l'] >= 100 for r in rows), 'all abstracts must be >=100 chars'
 print('saved:', n)
 for r in rows: print(r['title'][:60], r['l'])

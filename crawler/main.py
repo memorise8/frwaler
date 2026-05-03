@@ -6,6 +6,7 @@ import os
 import sys
 
 from . import db as db_module
+from . import storage as storage_module
 from .sites import CRAWLERS
 
 DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'papers.db')
@@ -127,14 +128,19 @@ def cmd_stats(args, conn):
 
 
 def cmd_download(args, conn):
-    """Download all files (HWP/PDF) for a site."""
+    """Download attachment files for documents into the 12-digit livertree layout.
+
+    파일명은 항상 ``{12자리 ID}.pdf`` (또는 .hwp/.hwpx)이며 경로는
+    ``data/AAAA/BBBB/AAAABBBBCCCC.pdf`` 이다. 원본 파일명은
+    ``documents.original_filename`` 컬럼에 그대로 보존된다.
+    """
     site_id = args.site_id if hasattr(args, 'site_id') and args.site_id else None
     limit = args.limit if hasattr(args, 'limit') else None
     retry = getattr(args, 'retry', False)
 
     import subprocess
 
-    query = "SELECT id, site_id, external_id, title, pdf_url FROM papers WHERE pdf_url IS NOT NULL AND pdf_url != ''"
+    query = "SELECT id, site_id, external_id, title, pdf_url, original_filename FROM documents WHERE pdf_url IS NOT NULL AND pdf_url != ''"
     params = []
     if site_id:
         query += " AND site_id = ?"
@@ -142,64 +148,107 @@ def cmd_download(args, conn):
     if retry:
         query += " AND download_status = 'failed'"
     else:
-        query += " AND (download_status IS NULL OR download_status = 'failed')"
+        query += " AND (download_status IS NULL OR download_status = 'pending' OR download_status = 'failed')"
+    query += " ORDER BY id"
     if limit:
         query += " LIMIT ?"
         params.append(limit)
 
     rows = conn.execute(query, params).fetchall()
     label = "retry failed" if retry else "to download"
-    print(f"Found {len(rows)} papers {label}")
+    print(f"Found {len(rows)} documents {label}")
+
+    def _ext_from_url(url: str) -> str | None:
+        """Return ``.pdf``/``.hwp``/``.hwpx`` if the URL has an obvious extension, else None."""
+        u = url.lower()
+        if ".hwpx" in u:
+            return ".hwpx"
+        if ".hwp" in u:
+            return ".hwp"
+        if ".pdf" in u:
+            return ".pdf"
+        return None
 
     downloaded = 0
     failed = 0
     for i, row in enumerate(rows, 1):
         pdf_url = row["pdf_url"]
-        s_id = row["site_id"]
-        ext_id = row["external_id"]
+        doc_id = row["id"]
         title = row["title"] or ""
-        paper_id = row["id"]
 
-        # Determine extension
-        if '.hwpx' in pdf_url.lower():
-            ext = '.hwpx'
-        elif '.hwp' in pdf_url.lower():
-            ext = '.hwp'
-        elif '.pdf' in pdf_url.lower():
-            ext = '.pdf'
-        else:
-            ext = ''
+        # Original filename: prefer existing column, fall back to URL last segment.
+        original_filename = row["original_filename"]
+        if not original_filename:
+            tail = pdf_url.rstrip("/").split("/")[-1].split("?")[0].split("#")[0]
+            if "." in tail and len(tail) <= 200:
+                original_filename = tail
 
-        downloads_dir = os.path.join(os.path.dirname(__file__), '..', 'downloads', s_id)
-        os.makedirs(downloads_dir, exist_ok=True)
-        local_path = os.path.join(downloads_dir, f"{ext_id}{ext}")
+        # If the URL declares an extension we trust it; otherwise sniff after download.
+        url_ext = _ext_from_url(pdf_url)
 
-        if os.path.exists(local_path):
-            db_module.update_download_status(conn, paper_id, "downloaded", local_path)
+        # Idempotent: if any of the canonical paths already has content, skip.
+        existing_ext = None
+        for candidate in (".pdf", ".hwp", ".hwpx", ".bin"):
+            cand_path = storage_module.doc_id_to_path(doc_id, candidate)
+            if cand_path.exists() and cand_path.stat().st_size > 0:
+                existing_ext = candidate
+                break
+        if existing_ext is not None:
+            db_module.update_document_paths(
+                conn, doc_id,
+                pdf_path=storage_module.doc_id_to_relative(doc_id, existing_ext),
+                download_status="downloaded",
+                original_filename=original_filename,
+            )
             downloaded += 1
             continue
 
-        print(f"  [{i}/{len(rows)}] {title[:50]}...")
-        # Download via curl
+        print(f"  [{i}/{len(rows)}] #{doc_id} {title[:50]}...")
+
+        # Stage download to .tmp so a partial transfer can't corrupt the canonical name.
+        tmp_path = storage_module.doc_id_to_path(doc_id, ".tmp")
+        storage_module.ensure_parent(tmp_path)
         try:
-            result = subprocess.run(
-                ["curl", "-sL", "--max-time", "30", "-o", local_path, pdf_url],
+            subprocess.run(
+                ["curl", "-sL", "--max-time", "30", "-o", str(tmp_path), pdf_url],
                 capture_output=True, timeout=35,
             )
-            if os.path.exists(local_path) and os.path.getsize(local_path) > 0:
-                downloaded += 1
-                db_module.update_download_status(conn, paper_id, "downloaded", local_path)
-                print(f"    Saved: {os.path.basename(local_path)}")
-            else:
+            if not (tmp_path.exists() and tmp_path.stat().st_size > 0):
                 failed += 1
-                db_module.update_download_status(conn, paper_id, "failed")
-                if os.path.exists(local_path):
-                    os.remove(local_path)
-                print(f"    FAILED")
-        except Exception:
+                db_module.update_document_paths(conn, doc_id, download_status="failed")
+                if tmp_path.exists():
+                    tmp_path.unlink()
+                print("    FAILED (empty)")
+                continue
+
+            # Decide extension: URL hint > magic-byte sniff.
+            if url_ext is not None:
+                ext = url_ext
+            else:
+                with open(tmp_path, "rb") as f:
+                    head = f.read(8)
+                ext = storage_module.detect_extension(head)
+
+            final_path = storage_module.doc_id_to_path(doc_id, ext)
+            storage_module.ensure_parent(final_path)
+            os.replace(tmp_path, final_path)
+
+            rel_path = storage_module.doc_id_to_relative(doc_id, ext)
+            downloaded += 1
+            db_module.update_document_paths(
+                conn, doc_id,
+                pdf_path=str(rel_path),
+                download_status="downloaded",
+                original_filename=original_filename,
+            )
+            print(f"    Saved: {final_path.name} ({final_path.stat().st_size} bytes)")
+        except Exception as exc:
             failed += 1
-            db_module.update_download_status(conn, paper_id, "failed")
-            print(f"    FAILED")
+            db_module.update_document_paths(conn, doc_id, download_status="failed")
+            if tmp_path.exists():
+                try: tmp_path.unlink()
+                except OSError: pass
+            print(f"    FAILED ({type(exc).__name__})")
 
     print(f"\nDone. Downloaded: {downloaded}, Failed: {failed}, Total: {len(rows)}")
 
@@ -297,10 +346,10 @@ def cmd_smart_find(args, conn):
         base_url = f"{parsed.scheme}://{parsed.netloc}"
         db_module.register_site(conn, site_id, site_name, base_url)
 
+        from .livertree_adapter import paper_to_document
         saved = 0
         for d in result.documents:
             paper = {
-                "id": str(uuid.uuid4()),
                 "site_id": site_id,
                 "external_id": d.id,
                 "title": d.title,
@@ -316,7 +365,12 @@ def cmd_smart_find(args, conn):
                 "metadata": _json.dumps({"finder": "smart_find"}, ensure_ascii=False),
             }
             try:
-                db_module.upsert_paper(conn, paper)
+                doc = paper_to_document(paper)
+                db_module.upsert_document(conn, doc)
+                # Do NOT fill pdf_path/txt_path here. cmd_download fills pdf_path on
+                # successful download, convert_site_files fills txt_path on successful
+                # conversion. Setting txt_path upfront would break the
+                # ``txt_path IS NULL`` marker used by get_documents_pending_convert.
                 saved += 1
             except Exception as exc:
                 emit("error", message=f"db save error: {exc}")

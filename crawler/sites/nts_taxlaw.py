@@ -287,7 +287,7 @@ class _NTSTaxlawBase(BaseCrawler):
                 doc_ids = [d for d in doc_ids if d]
                 if doc_ids:
                     existing = self._conn.execute(
-                        "SELECT external_id FROM papers WHERE site_id = ? AND external_id IN ({})".format(
+                        "SELECT external_id FROM documents WHERE site_id = ? AND external_id IN ({})".format(
                             ",".join("?" * len(doc_ids))
                         ),
                         [self.site_id] + doc_ids
@@ -309,7 +309,7 @@ class _NTSTaxlawBase(BaseCrawler):
                 # Skip already-existing documents in incremental mode
                 if incremental and doc_id:
                     check = self._conn.execute(
-                        "SELECT 1 FROM papers WHERE site_id = ? AND external_id = ?",
+                        "SELECT 1 FROM documents WHERE site_id = ? AND external_id = ?",
                         [self.site_id, doc_id]
                     ).fetchone()
                     if check:
@@ -686,7 +686,7 @@ class _NTSTaxlawBase(BaseCrawler):
         for i in range(0, len(all_doc_ids), 500):
             batch = all_doc_ids[i:i + 500]
             rows = self._conn.execute(
-                "SELECT external_id FROM papers WHERE site_id = ? AND external_id IN ({})".format(
+                "SELECT external_id FROM documents WHERE site_id = ? AND external_id IN ({})".format(
                     ",".join("?" * len(batch))
                 ),
                 [self.site_id] + batch

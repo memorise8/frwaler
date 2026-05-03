@@ -47,12 +47,21 @@ def render_paper(row: sqlite3.Row) -> str:
             meta = json.loads(row["metadata"])
         except json.JSONDecodeError:
             meta = {}
-    keywords = []
-    if row["keywords"]:
-        try:
-            keywords = json.loads(row["keywords"])
-        except json.JSONDecodeError:
-            pass
+    keywords: list = []
+    raw_kw = row["keywords"]
+    if raw_kw:
+        # livertree stores keywords as a ", " separated string. Older
+        # papers rows used a JSON array — fall back to that for compat.
+        s = raw_kw.strip()
+        if s.startswith("[") and s.endswith("]"):
+            try:
+                parsed = json.loads(s)
+                if isinstance(parsed, list):
+                    keywords = [str(x).strip() for x in parsed if str(x).strip()]
+            except json.JSONDecodeError:
+                pass
+        else:
+            keywords = [k.strip() for k in s.split(",") if k.strip()]
 
     lines: list[str] = []
     lines.append(f"# {row['title']}")
@@ -153,9 +162,12 @@ def render_paper(row: sqlite3.Row) -> str:
 def export(site_id: str, limit: int | None) -> int:
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    sql = """SELECT external_id, title, abstract, category, keywords,
-                    published_date, url, metadata
-             FROM papers WHERE site_id = ?
+    # livertree: rows live in `documents`. `category`/`doi` are kept inside
+    # the metadata JSON; `meta_url` is the equivalent of legacy `url`.
+    sql = """SELECT external_id, title, abstract,
+                    json_extract(metadata, '$.category') AS category,
+                    keywords, published_date, meta_url AS url, metadata
+             FROM documents WHERE site_id = ?
              ORDER BY crawled_at DESC"""
     params: tuple = (site_id,)
     if limit:

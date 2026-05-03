@@ -42,8 +42,10 @@ def find_issues(conn: sqlite3.Connection, site_filter: str | None,
 
     rows = cur.execute(f"""
         SELECT external_id, site_id, title, abstract, metadata,
-               published_date, category, crawled_at
-        FROM papers WHERE {where_sql}
+               published_date,
+               json_extract(metadata, '$.category') AS category,
+               crawled_at
+        FROM documents WHERE {where_sql}
     """).fetchall()
 
     by_site: dict = defaultdict(list)

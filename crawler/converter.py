@@ -100,55 +100,78 @@ def convert_file(filepath):
 
 
 def convert_site_files(conn, site_id=None, limit=None):
-    """Convert downloaded files to Markdown for a site."""
-    base_dir = os.path.join(os.path.dirname(__file__), "..")
+    """Extract text from downloaded documents into the matching ``.txt`` file.
 
-    query = """SELECT id, site_id, external_id, title, published_date, category, pdf_url
-               FROM papers WHERE download_status = 'downloaded'"""
+    For each ``documents`` row with ``download_status = 'downloaded'`` the
+    corresponding PDF/HWP at ``pdf_path`` is read and the extracted plain
+    text is written to a ``.txt`` file with the SAME 12-digit base name in
+    the SAME directory (i.e. ``data/AAAA/BBBB/AAAABBBBCCCC.txt``).
+
+    Markdown export is intentionally NOT performed here — that lives in
+    ``scripts/export_papers_md.py`` if needed separately.
+    """
+    from . import storage as _storage
+
+    # Only pull rows that still need conversion (txt_path NULL/empty).
+    # Without this filter, ``--limit N`` would keep re-selecting the lowest
+    # N already-converted IDs, skip them because the .txt file exists, and
+    # never advance past them.
+    query = """SELECT id, site_id, external_id, title, pdf_url, pdf_path, txt_path
+               FROM documents
+               WHERE download_status = 'downloaded'
+                 AND (txt_path IS NULL OR txt_path = '')"""
     params = []
     if site_id:
         query += " AND site_id = ?"
         params.append(site_id)
+    query += " ORDER BY id"
     if limit:
         query += " LIMIT ?"
         params.append(limit)
 
     rows = conn.execute(query, params).fetchall()
-    print(f"Found {len(rows)} downloaded papers to convert")
+    print(f"Found {len(rows)} downloaded documents to convert")
 
     converted = 0
     failed = 0
     skipped = 0
 
     for i, row in enumerate(rows, 1):
-        s_id = row["site_id"]
-        ext_id = row["external_id"]
+        doc_id = row["id"]
         title = row["title"] or ""
-        pdf_url = row["pdf_url"] or ""
 
-        # Determine source file extension
-        if ".hwpx" in pdf_url.lower():
-            ext = ".hwpx"
-        elif ".hwp" in pdf_url.lower():
-            ext = ".hwp"
-        elif ".pdf" in pdf_url.lower():
-            ext = ".pdf"
-        else:
-            ext = ""
+        # Source ext comes from the actual saved pdf_path — that's whatever
+        # the magic-byte sniffer picked at download time. Falling back to URL
+        # hint and finally ``.pdf`` only when the row is missing pdf_path.
+        pdf_path_rel = row["pdf_path"] or ""
+        ext = os.path.splitext(pdf_path_rel)[1].lower() if pdf_path_rel else ""
+        if ext not in (".pdf", ".hwp", ".hwpx", ".bin"):
+            url_lower = (row["pdf_url"] or "").lower()
+            if ".hwpx" in url_lower:
+                ext = ".hwpx"
+            elif ".hwp" in url_lower:
+                ext = ".hwp"
+            else:
+                ext = ".pdf"
+        src_path = str(_storage.doc_id_to_path(doc_id, ext))
 
-        src_path = os.path.join(base_dir, "downloads", s_id, f"{ext_id}{ext}")
         if not os.path.exists(src_path):
-            # Try without extension
-            src_path = os.path.join(base_dir, "downloads", s_id, ext_id)
-            if not os.path.exists(src_path):
-                continue
+            failed += 1
+            print(f"  [{i}/{len(rows)}] MISSING: {src_path}")
+            continue
 
-        # Output path
-        out_dir = os.path.join(base_dir, "converted", s_id)
-        os.makedirs(out_dir, exist_ok=True)
-        out_path = os.path.join(out_dir, f"{ext_id}.md")
+        # Output: same directory, same 12-digit base, .txt extension.
+        out_path = _storage.doc_id_to_txt_path(doc_id)
+        _storage.ensure_parent(out_path)
 
-        if os.path.exists(out_path):
+        if out_path.exists() and out_path.stat().st_size > 0:
+            # File already converted on disk. Make sure documents.txt_path
+            # reflects that — without this, a row with txt_path NULL would
+            # stay in get_documents_pending_convert() forever.
+            if not (row["txt_path"] or "").strip():
+                rel_txt = _storage.doc_id_to_relative_txt(doc_id)
+                from . import db as _db
+                _db.update_document_paths(conn, doc_id, txt_path=rel_txt)
             skipped += 1
             continue
 
@@ -156,25 +179,20 @@ def convert_site_files(conn, site_id=None, limit=None):
         if not text:
             failed += 1
             if i <= 20 or i % 100 == 0:
-                print(f"  [{i}/{len(rows)}] FAILED: {title[:50]}")
+                print(f"  [{i}/{len(rows)}] FAILED extract: {title[:50]}")
             continue
 
-        md = text_to_markdown(
-            text,
-            title=title,
-            metadata={
-                "날짜": row["published_date"] or "",
-                "분류": row["category"] or "",
-                "원본": os.path.basename(src_path),
-            },
-        )
-
         with open(out_path, "w", encoding="utf-8") as f:
-            f.write(md)
-        converted += 1
+            f.write(text)
+        # Make sure the DB has the canonical relative txt_path even if upstream
+        # _save_document already filled it in.
+        rel_txt = _storage.doc_id_to_relative_txt(doc_id)
+        from . import db as _db
+        _db.update_document_paths(conn, doc_id, txt_path=rel_txt)
 
+        converted += 1
         if i <= 10 or i % 100 == 0:
-            print(f"  [{i}/{len(rows)}] Converted: {ext_id}.md ({len(text)} chars)")
+            print(f"  [{i}/{len(rows)}] Converted: {out_path.name} ({len(text)} chars)")
 
     print(f"\nDone. Converted: {converted}, Skipped: {skipped}, Failed: {failed}")
     return converted
