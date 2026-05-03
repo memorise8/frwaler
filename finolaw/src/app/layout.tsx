@@ -23,6 +23,7 @@ const NAV = [
   { href: "/", label: "대시보드", icon: "📊" },
   { href: "/search", label: "세법 검색", icon: "🔍" },
   { href: "/admin/status", label: "수집 현황", icon: "📈" },
+  { href: "/admin/summary", label: "요약 결과", icon: "🧠" },
   { href: "/smart-find", label: "URL 크롤링", icon: "🌐" },
   { href: "/auto-add", label: "Auto-Add", icon: "🧠" },
   { href: "/crawler", label: "크롤러 관리", icon: "⚙️" },

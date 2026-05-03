@@ -839,6 +839,67 @@ export function getCollectionProgress(): SiteProgress[] {
   });
 }
 
+export interface SummaryFilter {
+  hasSummary?: boolean;
+  siteId?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface SummaryListResult {
+  documents: LivertreeDocument[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export function getDocumentsBySummaryStatus({
+  hasSummary,
+  siteId,
+  limit = 50,
+  offset = 0,
+}: SummaryFilter = {}): SummaryListResult {
+  if (getDbState(["documents"]).kind !== "ready") {
+    return { documents: [], total: 0, limit, offset };
+  }
+
+  const db = getDb();
+  try {
+    const wheres: string[] = [];
+    const params: (string | number)[] = [];
+    if (typeof hasSummary === "boolean") {
+      wheres.push(
+        hasSummary
+          ? "(summary IS NOT NULL AND summary != '')"
+          : "(summary IS NULL OR summary = '')",
+      );
+    }
+    if (siteId) {
+      wheres.push("site_id = ?");
+      params.push(siteId);
+    }
+    const where = wheres.length ? `WHERE ${wheres.join(" AND ")}` : "";
+
+    const total = (
+      db.prepare(`SELECT COUNT(*) AS c FROM documents ${where}`)
+        .get(...params) as { c: number }
+    ).c;
+
+    const rows = db
+      .prepare(
+        `SELECT ${DOCUMENT_COLUMNS} FROM documents
+         ${where}
+         ORDER BY id DESC
+         LIMIT ? OFFSET ?`,
+      )
+      .all(...params, limit, offset) as LivertreeDocument[];
+
+    return { documents: rows, total, limit, offset };
+  } finally {
+    db.close();
+  }
+}
+
 export function getCollectionTotals(): CollectionTotals {
   const rows = getCollectionProgress();
   return rows.reduce<CollectionTotals>(
