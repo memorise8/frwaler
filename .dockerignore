@@ -1,0 +1,44 @@
+# Build context excludes — keep images small and reproducible.
+
+# VCS
+.git
+.gitignore
+
+# Local data (mounted as a volume at runtime)
+data/
+logs/
+*.db
+*.db-shm
+*.db-wal
+*.db.bak-*
+
+# Node / Next build artifacts
+finolaw/node_modules/
+finolaw/.next/
+finolaw/out/
+node_modules/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+
+# Env files (keys go in via runtime env, not build context)
+.env
+.env.*
+!.env.example
+crawler/.env
+crawler/.env.*
+!crawler/.env.example
+
+# Test outputs / planning
+.omc/
+report.docx
+docs/프로젝트계획서.md

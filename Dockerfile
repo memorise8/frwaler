@@ -46,6 +46,9 @@ COPY crawler/ /app/crawler/
 COPY api/     /app/api/
 COPY scripts/ /app/scripts/
 
+# Logs directory used by the scheduler supervisor program (cron_crawl.sh).
+RUN mkdir -p /app/logs
+
 # --- Next.js build artefacts + runtime deps ---
 # Copy the entire built finolaw/ tree (including node_modules so `next start` works).
 COPY --from=web-build /app/finolaw /app/finolaw
