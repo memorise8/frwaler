@@ -365,5 +365,122 @@ class TestFollowupBehaviour(unittest.TestCase):
         self.assertEqual(row["title"], "Updated")  # non-preserved fields still update
 
 
+class TestSummarizer(unittest.TestCase):
+    """Phase A: ``cmd_summarize`` integration with mocked LLM provider."""
+
+    def setUp(self):
+        import sys as _s, types as _t
+        class _Stub: pass
+        _s.modules.setdefault("bs4", _t.SimpleNamespace(BeautifulSoup=_Stub))
+        _s.modules.setdefault(
+            "olefile",
+            _t.SimpleNamespace(isOleFile=lambda p: False, OleFileIO=_Stub),
+        )
+        import sqlite3
+        from crawler import db as _db
+        self._db = _db
+        self.conn = sqlite3.connect(":memory:")
+        self.conn.row_factory = sqlite3.Row
+        _db.init_db(self.conn)
+        _db.register_site(self.conn, "s", "Site", "http://s")
+
+    def tearDown(self):
+        self.conn.close()
+
+    def test_summarize_text_routes_to_provider(self):
+        """summarize_text honours provider arg and falls back via env."""
+        from crawler import summarizer
+
+        # Without API keys, provider returns None — used to detect routing.
+        # Set OPENAI_API_KEY=fake so the openai branch tries; we patch
+        # the OpenAI client to a fake.
+        import os, sys, types
+        os.environ["OPENAI_API_KEY"] = "fake-test-key"
+
+        class _FakeChoice:
+            def __init__(self, content): self.message = types.SimpleNamespace(content=content)
+        class _FakeResp:
+            def __init__(self, content): self.choices = [_FakeChoice(content)]
+        class _FakeChat:
+            class completions:
+                @staticmethod
+                def create(**kw):
+                    return _FakeResp("이것은 테스트 요약입니다. 두 번째 문장입니다.")
+        class _FakeOpenAI:
+            def __init__(self, **kw): self.chat = _FakeChat()
+
+        sys.modules["openai"] = types.SimpleNamespace(OpenAI=_FakeOpenAI)
+
+        out = summarizer.summarize_text("긴 본문 텍스트", title="제목", provider="gpt")
+        self.assertIsNotNone(out)
+        self.assertIn("테스트 요약", out)
+
+    def test_summarize_text_returns_none_without_api_key(self):
+        from crawler import summarizer
+        import os
+        os.environ.pop("OPENAI_API_KEY", None)
+        os.environ.pop("GEMINI_API_KEY", None)
+        os.environ.pop("GOOGLE_API_KEY", None)
+        self.assertIsNone(summarizer.summarize_text("test", provider="gpt"))
+        self.assertIsNone(summarizer.summarize_text("test", provider="gemini"))
+
+    def test_cmd_summarize_updates_summary_column(self):
+        """cmd_summarize calls summarize_text and persists via update_document_summary."""
+        # Insert two docs, one with summary already set.
+        d1 = self._db.upsert_document(self.conn, {
+            "site_id": "s", "external_id": "1", "title": "T1",
+            "abstract": "본문1 본문1 본문1",
+        })
+        d2 = self._db.upsert_document(self.conn, {
+            "site_id": "s", "external_id": "2", "title": "T2",
+            "abstract": "본문2 본문2 본문2",
+        })
+        self._db.update_document_summary(self.conn, d2, "기존 요약")
+
+        from crawler import main as cm
+        from crawler import summarizer as _sum
+        # Monkey-patch summarize_text to a deterministic fake.
+        original = _sum.summarize_text
+        try:
+            _sum.summarize_text = lambda text, *, title=None, provider=None: f"요약[{title}]"
+
+            class _Args:
+                site_id = None; limit = None; provider = None; doc_id = None
+            cm.cmd_summarize(_Args(), self.conn)
+        finally:
+            _sum.summarize_text = original
+
+        # d1 should now have a fresh summary; d2 should keep its existing one
+        # (because get_documents_without_summary excludes rows with summary).
+        rows = {r["id"]: r for r in self.conn.execute(
+            "SELECT id, summary FROM documents ORDER BY id").fetchall()}
+        self.assertEqual(rows[d1]["summary"], "요약[T1]")
+        self.assertEqual(rows[d2]["summary"], "기존 요약")
+
+    def test_cmd_summarize_doc_id_targets_single_row(self):
+        """--doc-id mode bypasses the queue and targets one row."""
+        d1 = self._db.upsert_document(self.conn, {
+            "site_id": "s", "external_id": "1", "title": "T1", "abstract": "x",
+        })
+        self._db.update_document_summary(self.conn, d1, "기존 요약")
+
+        from crawler import main as cm
+        from crawler import summarizer as _sum
+        original = _sum.summarize_text
+        try:
+            _sum.summarize_text = lambda text, *, title=None, provider=None: "재요약 결과"
+
+            class _Args:
+                site_id = None; limit = None; provider = None; doc_id = d1
+            cm.cmd_summarize(_Args(), self.conn)
+        finally:
+            _sum.summarize_text = original
+
+        row = self.conn.execute(
+            "SELECT summary FROM documents WHERE id = ?", (d1,)
+        ).fetchone()
+        self.assertEqual(row["summary"], "재요약 결과")
+
+
 if __name__ == "__main__":
     unittest.main()

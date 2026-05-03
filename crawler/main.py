@@ -282,6 +282,87 @@ def cmd_convert(args, conn):
     convert_site_files(conn, site_id=site_id, limit=limit)
 
 
+def cmd_summarize(args, conn):
+    """Generate Korean 3~5 sentence summaries for documents missing one.
+
+    Source text precedence per row:
+      1. ``documents.abstract`` (if non-empty)
+      2. The on-disk text at ``documents.txt_path`` (if available)
+      3. ``documents.title`` only (last resort)
+    """
+    from . import summarizer
+    from . import storage as storage_module
+
+    site_id = getattr(args, "site_id", None)
+    limit = getattr(args, "limit", None)
+    provider = getattr(args, "provider", None)
+    doc_id_arg = getattr(args, "doc_id", None)
+
+    if doc_id_arg is not None:
+        # Targeted single-row mode (used by the UI's "재요약" button).
+        rows = conn.execute(
+            "SELECT id, site_id, title, abstract, txt_path "
+            "FROM documents WHERE id = ?",
+            (doc_id_arg,),
+        ).fetchall()
+        if not rows:
+            print(f"No document with id={doc_id_arg}")
+            return
+    else:
+        rows = db_module.get_documents_without_summary(
+            conn, site_id=site_id, limit=limit,
+        )
+
+    print(f"Found {len(rows)} documents to summarize "
+          f"(provider={provider or os.environ.get('LLM_PROVIDER') or 'gpt'})")
+
+    done = 0
+    skipped = 0
+    failed = 0
+    for i, row in enumerate(rows, 1):
+        doc_id = row["id"]
+        title = (row["title"] or "").strip() or None
+        abstract = (row["abstract"] or "").strip() if "abstract" in row.keys() else ""
+        txt_rel = row["txt_path"] if "txt_path" in row.keys() else None
+
+        text = abstract
+        if not text and txt_rel:
+            try:
+                # txt_path is a relative path like ``data/AAAA/BBBB/N.txt``.
+                # Honour LIVERTREE_DATA_ROOT by deriving the absolute path
+                # from the doc id rather than treating the stored path as
+                # absolute.
+                abs_path = storage_module.doc_id_to_txt_path(doc_id)
+                if abs_path.exists():
+                    with open(abs_path, "r", encoding="utf-8", errors="replace") as f:
+                        text = f.read()
+            except Exception as exc:
+                print(f"  [{i}/{len(rows)}] #{doc_id} txt read failed: {exc}")
+        if not text:
+            text = title or ""
+
+        if not text.strip():
+            skipped += 1
+            print(f"  [{i}/{len(rows)}] #{doc_id} SKIP (no source text)")
+            continue
+
+        summary = summarizer.summarize_text(text, title=title, provider=provider)
+        if not summary:
+            failed += 1
+            if i <= 10 or i % 50 == 0:
+                print(f"  [{i}/{len(rows)}] #{doc_id} FAILED (provider returned none)")
+            continue
+
+        db_module.update_document_summary(conn, doc_id, summary)
+        done += 1
+        if i <= 10 or i % 50 == 0:
+            preview = summary.replace("\n", " ")[:60]
+            print(f"  [{i}/{len(rows)}] #{doc_id} OK ({len(summary)} chars) {preview}…")
+
+    print(f"\nDone. Summarized: {done}, Skipped: {skipped}, Failed: {failed}, "
+          f"Total: {len(rows)}")
+
+
 def cmd_smart_find(args, conn):
     """Find downloadable documents from any URL using smart detection + optional LLM.
 
@@ -585,6 +666,21 @@ def build_parser():
     download_parser.add_argument("--retry", action="store_true", help="Retry only previously failed downloads")
 
     # convert
+    sum_parser = subparsers.add_parser(
+        "summarize", help="Generate Korean summaries for documents missing one")
+    sum_parser.add_argument(
+        "site_id", nargs="?", default=None,
+        help="Limit to one site (default: all sites)")
+    sum_parser.add_argument(
+        "--limit", type=int, default=None,
+        help="Maximum rows to summarize this run")
+    sum_parser.add_argument(
+        "--provider", choices=["gpt", "openai", "gemini", "google"], default=None,
+        help="LLM provider override (default: $LLM_PROVIDER or 'gpt')")
+    sum_parser.add_argument(
+        "--doc-id", dest="doc_id", type=int, default=None,
+        help="Summarize a single document by id (e.g. for a UI re-trigger)")
+
     convert_parser = subparsers.add_parser("convert", help="Convert downloaded files (HWP/PDF) to Markdown")
     convert_parser.add_argument("site_id", nargs="?", default=None, help="Site to convert files for")
     convert_parser.add_argument("--limit", type=int, default=None, help="Max files to convert")
@@ -654,6 +750,7 @@ def main():
         "test-config": cmd_test_config,
         "download": cmd_download,
         "convert": cmd_convert,
+        "summarize": cmd_summarize,
         "smart-find": cmd_smart_find,
         "auto-add": cmd_auto_add,
         "auto-add-codex": cmd_auto_add_codex,
