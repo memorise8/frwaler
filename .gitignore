@@ -15,6 +15,11 @@ downloads/
 converted/
 reports/
 
+# Runtime-generated crawlers and site configs
+crawler/sites/configs/*.json
+crawler/sites/custom/*.py
+!crawler/sites/custom/__init__.py
+
 # Node
 web/node_modules/
 web/.next/
@@ -33,6 +38,7 @@ finolaw/tsconfig.tsbuildinfo
 
 # Local caches, agent state
 .cache/
+.codex/
 .claude/
 
 # Separate large scraped assets

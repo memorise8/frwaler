@@ -4,7 +4,12 @@
 import sqlite3
 import os
 
-DEFAULT_DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'papers.db')
+DEFAULT_DB_PATH = os.path.abspath(
+    os.environ.get(
+        "FINOLAW_DB_PATH",
+        os.path.join(os.path.dirname(__file__), '..', 'data', 'data.db'),
+    )
+)
 
 
 def get_db(db_path=None):

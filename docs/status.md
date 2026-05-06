@@ -39,9 +39,10 @@ Finolaw는 URL 기반 크롤러 자동 생성과 SQLite 검색 UI를 제공하�
 
 ### 데이터/로그
 
-- DB 경로: `data/papers.db`
+- DB 경로: `data/data.db`
+- DB 경로 override: `FINOLAW_DB_PATH`
 - 로그 경로: `.cache/`
-- 현재 체크아웃에서는 `data/papers.db`가 없을 수 있다. DB가 없으면 UI는 실행되지만 대시보드/검색은 빈 상태가 된다.
+- 현재 체크아웃에서는 `data/data.db`가 없을 수 있다. DB가 없으면 UI는 실행되지만 대시보드/검색은 빈 상태가 된다.
 
 ---
 
@@ -61,6 +62,8 @@ Finolaw는 URL 기반 크롤러 자동 생성과 SQLite 검색 UI를 제공하�
 - `Dockerfile`, `docker-compose.yml`는 단일 컨테이너 배포 구조다.
 - 컨테이너는 Next.js, Python crawler, Playwright, Codex CLI를 함께 포함한다.
 - 데이터/로그/생성 크롤러는 bind mount로 유지된다.
+- 회사별 배포는 같은 Git 코드를 쓰되 `data/`, `.cache/`, `crawler/sites/custom/`, `crawler/sites/configs/`를 독립 운영한다.
+- `crawler/sites/custom/*.py`와 `crawler/sites/configs/*.json`은 백업 대상 런타임 생성물이며 Git 커밋 대상이 아니다.
 
 ---
 

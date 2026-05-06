@@ -8,7 +8,7 @@ import sys
 from . import db as db_module
 from .sites import CRAWLERS
 
-DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'papers.db')
+DB_PATH = db_module.DEFAULT_DB_PATH
 
 
 def cmd_crawl(args, conn):
@@ -437,17 +437,6 @@ def cmd_auto_add_codex(args, conn):
 
     def emit(event_type, **data):
         print(_json.dumps({"type": event_type, **data}, ensure_ascii=False), flush=True)
-
-    # Guard key presence
-    import os as _os
-    try:
-        from dotenv import load_dotenv as _load_dotenv
-        _load_dotenv(_os.path.join(_os.path.dirname(__file__), ".env"))
-    except Exception:
-        pass
-    if not _os.environ.get("OPENAI_API_KEY"):
-        emit("error", message="OPENAI_API_KEY not set in environment or crawler/.env")
-        sys.exit(1)
 
     from .codex_runner import run_codex_crawler_build
 

@@ -67,7 +67,7 @@
                            │
             ┌──────────────┼──────────────┐
             ▼              ▼              ▼
-      [papers.db]     [_html/]      [_html/]
+      [data.db]     [_html/]      [_html/]
       (메타+본문)    판례 HTML      해석례 HTML
                      (DOC_ID명)     (DOC_ID명)
                            │
@@ -134,7 +134,7 @@
 ```
 crawler-poc/
 ├── data/
-│   ├── papers.db                        # SQLite: 메타데이터·검색 인덱스·그래프
+│   ├── data.db                        # SQLite: 메타데이터·검색 인덱스·그래프
 │   └── exports/
 │       ├── nts-taxlaw-pd/               # 판례/결정례 (152,808건 예상)
 │       │   ├── _html/                   # 원본 HTML (크롤러 직접 저장)
@@ -167,7 +167,7 @@ crawler-poc/
 
 | 파일 | 포맷 | 대상 | 용도 |
 |------|------|------|------|
-| `papers.db` | SQLite | 30만 rows | 메타·검색 인덱스·그래프·벡터 |
+| `data.db` | SQLite | 30만 rows | 메타·검색 인덱스·그래프·벡터 |
 | `_html/{DOC_ID}.html` | HTML (원본) | 30만 파일 | 위키 렌더링용 원본, 표·이미지 보존 |
 | `{문서번호}.md` | Markdown | 30만 파일 | 구조화 메타 + 플레인 본문 (임베딩/FTS5 입력) |
 | `{문서번호}.html` | symlink → `_html/{DOC_ID}.html` | 30만 링크 | 사람이 읽기 쉬운 이름 |
@@ -586,7 +586,7 @@ ASIQTB002PR01 (상세 API)
 ```python
 import sqlite_vec
 
-conn = sqlite3.connect('data/papers.db')
+conn = sqlite3.connect('data/data.db')
 conn.enable_load_extension(True)
 sqlite_vec.load(conn)
 
@@ -1014,6 +1014,6 @@ export default async function PaperPage({ params }) {
 - 크롤러: `crawler/sites/nts_taxlaw.py`
 - 문서번호 검색: `scripts/fino_search.py`
 - MD export: `scripts/export_papers_md.py`
-- DB: `data/papers.db`
+- DB: `data/data.db`
 - FastAPI: `api/main.py`
 - Next.js UI: `finolaw/src/`

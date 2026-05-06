@@ -74,11 +74,19 @@ vi crawler/.env
 ```
 
 ```env
-OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxx   # 위 1단계에서 발급한 키
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxx   # GPT 기반 Smart Find/Tier 1 사용 시 필요
 LLM_PROVIDER=gpt
 ```
 
 > 두 파일 모두 `.gitignore`에 등록되어 있어 저장소에 올라가지 않습니다. 그러나 서버의 파일 권한은 반드시 제한하세요: `chmod 600 .env crawler/.env`.
+
+Codex CLI로 크롤러를 생성하는 Tier 2 경로는 OpenAI API key 대신 Codex OAuth 로그인을 사용합니다. 각 프로젝트 관리자는 배포 서버의 실행 사용자 계정에서 Codex에 로그인해 둡니다. Docker는 `${HOME}/.codex`를 `/root/.codex`로 마운트해 해당 OAuth 상태를 사용합니다.
+
+```bash
+codex login --device-auth
+codex login status
+docker compose exec app codex login status
+```
 
 ### Step 3. 컨테이너 빌드
 
@@ -118,7 +126,7 @@ HTTP Basic Auth 프롬프트가 뜨면, Step 2에서 설정한 `ADMIN_USER` / `A
 
 ### DB가 비어 있거나 없을 때
 
-새 설치 직후 `data/papers.db`가 없을 수 있습니다. 이 경우 finolaw UI는 실행되지만 대시보드/검색 결과는 비어 보입니다. 첫 수집을 실행하면 SQLite DB가 생성됩니다.
+새 설치 직후 `data/data.db`가 없을 수 있습니다. 이 경우 finolaw UI는 실행되지만 대시보드/검색 결과는 비어 보입니다. 첫 수집을 실행하면 SQLite DB가 생성됩니다.
 
 ```bash
 docker compose exec app .venv/bin/python -m crawler.main list-sites
@@ -152,9 +160,10 @@ docker compose exec app .venv/bin/python -m crawler.main crawl ntrs --limit 3
 
 | 증상 | 원인 | 해결 |
 |------|------|------|
-| "OPENAI_API_KEY not set" | `crawler/.env` 미설정 또는 컨테이너 재시작 필요 | `docker compose restart` |
+| "OPENAI_API_KEY not set" | GPT 기반 Smart Find/Tier 1 사용 중 `crawler/.env` 미설정 또는 컨테이너 재시작 필요 | `docker compose restart` |
+| "Codex CLI is not logged in" | Tier 2 Codex CLI OAuth 상태 없음 | `docker compose exec -it app codex login --device-auth` |
 | "insufficient_quota" | OpenAI 계정 잔액 부족 | [platform.openai.com](https://platform.openai.com/account/billing) 에서 충전 |
-| 대시보드/검색이 비어 있음 | `data/papers.db` 없음 또는 아직 수집 데이터 없음 | `/auto-add` 또는 `crawler.main crawl`로 첫 수집 실행 |
+| 대시보드/검색이 비어 있음 | `data/data.db` 없음 또는 아직 수집 데이터 없음 | `/auto-add` 또는 `crawler.main crawl`로 첫 수집 실행 |
 | Codex가 robots.txt/약관 문제를 보고 중단 | 대상 사이트 정책 또는 모델 판단 | 운영자가 robots.txt/약관을 검토한 뒤 수집 여부 결정 |
 
 ---
@@ -192,14 +201,17 @@ docker compose logs -f --tail=200
 
 ```
 ./data/                       # SQLite DB (수집 결과)
+./.cache/                     # UI/Codex/크롤러 로그
 ./crawler/sites/custom/       # Codex가 생성한 크롤러
 ./crawler/sites/configs/      # 사이트별 설정 JSON
 ```
 
+`crawler/sites/custom/*.py`와 `crawler/sites/configs/*.json`은 회사별 런타임 생성물입니다. 백업 대상이지만 Git 커밋 대상은 아니며, 공용 크롤러로 승격할 때만 `crawler/sites/*.py`에 별도 파일로 추가합니다.
+
 간단한 예시:
 
 ```bash
-tar czf backup-$(date +%F).tar.gz data crawler/sites/custom crawler/sites/configs
+tar czf backup-$(date +%F).tar.gz data .cache crawler/sites/custom crawler/sites/configs
 ```
 
 ### 업그레이드
@@ -217,7 +229,7 @@ docker compose up -d
 - 이 컨테이너는 자율적으로 Python 코드를 생성/실행합니다. 자세한 내용은 [`docs/security-model.md`](docs/security-model.md) 를 반드시 읽어 주세요.
 - `ADMIN_USER` 또는 `ADMIN_PASSWORD` 를 비워 두면 인증이 비활성화됩니다. **사내 LAN 외부에 노출하지 마세요.**
 - HTTPS가 필요한 경우 앞단에 reverse proxy (nginx, Caddy 등) 를 두고 TLS를 종단하세요. 이 컨테이너는 HTTP만 직접 제공합니다.
-- OpenAI API 키는 로그에 기록되지 않으며, 오직 `env_file` 을 통해서만 주입됩니다.
+- OpenAI API 키는 로그에 기록되지 않으며, 오직 `env_file` 을 통해서만 주입됩니다. Codex OAuth 상태는 서버 실행 사용자의 `${HOME}/.codex`에 저장되고 컨테이너에 마운트되므로 파일 권한과 계정 접근 권한을 별도로 관리하세요.
 
 ---
 

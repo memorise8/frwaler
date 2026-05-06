@@ -3,7 +3,10 @@ import Database from "better-sqlite3";
 import path from "path";
 import { cached } from "./cache";
 
-const DB_PATH = path.join(process.cwd(), "..", "data", "papers.db");
+const PROJECT_ROOT = path.resolve(process.cwd(), "..");
+const DB_PATH = process.env.FINOLAW_DB_PATH
+  ? path.resolve(PROJECT_ROOT, process.env.FINOLAW_DB_PATH)
+  : path.join(PROJECT_ROOT, "data", "data.db");
 
 export const NTS_SITES = ["nts-taxlaw-pd", "nts-taxlaw-qt"] as const;
 export type NtsSiteId = (typeof NTS_SITES)[number];

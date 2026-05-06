@@ -16,7 +16,7 @@ Open http://localhost:3001.
 ## Project Layout
 
 - `src/app/` — App Router pages and API routes
-- `src/lib/db.ts` — readonly SQLite access to `../data/papers.db`
+- `src/lib/db.ts` — readonly SQLite access to `../data/data.db`
 - `src/lib/preflight.ts` — local environment health checks
 - `src/lib/*runner*.ts` — spawns crawler commands through `../.venv/bin/python`
 - `src/proxy.ts` — HTTP Basic Auth gate using `ADMIN_USER` and `ADMIN_PASSWORD`
@@ -27,11 +27,15 @@ This app expects to live inside the crawler-poc repo and depends on sibling path
 
 - `../crawler/` — Python crawler package
 - `../.venv/bin/python` — Python used by crawler jobs
-- `../data/papers.db` — SQLite database for dashboard/search
+- `../data/data.db` — SQLite database for dashboard/search
 - `../.cache/` — crawler and Auto-Add logs
-- `../crawler/.env` — `OPENAI_API_KEY` for Auto-Add/Codex flows
+- `../crawler/sites/custom/` — generated Python crawlers
+- `../crawler/sites/configs/` — generated JSON site configs
+- `../crawler/.env` — `OPENAI_API_KEY` for direct OpenAI API flows such as GPT Smart Find and Tier 1 Auto-Add
+- `${HOME}/.codex` — server admin's Codex CLI OAuth state mounted to `/home/codex/.codex` in Docker
 
-If `../data/papers.db` is missing, the UI can start but dashboard/search data will be empty.
+If `../data/data.db` is missing, the UI can start but dashboard/search data will be empty.
+Set `FINOLAW_DB_PATH` to override the default SQLite path for a deployment.
 
 ## Scripts
 
@@ -59,7 +63,7 @@ From the repository root:
 .venv/bin/python -m crawler.main list-sites
 ```
 
-If `../data/papers.db` is missing, crawler stats/search-related commands may show no data or initialize an empty DB. Run a small crawl or Auto-Add flow first.
+If `../data/data.db` is missing, crawler stats/search-related commands may show no data or initialize an empty DB. Run a small crawl or Auto-Add flow first.
 
 ## Health Check
 

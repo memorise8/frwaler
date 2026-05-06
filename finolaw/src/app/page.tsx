@@ -60,7 +60,7 @@ export default async function DashboardPage() {
           <p className="font-semibold">데이터베이스 연결 실패</p>
           <p className="text-sm mt-2">{dbError}</p>
           <p className="text-xs mt-3 font-mono opacity-75">
-            예상 경로: ../data/papers.db
+            예상 경로: ../data/data.db
           </p>
         </div>
       </div>
@@ -120,7 +120,7 @@ export default async function DashboardPage() {
         <Stat label="등록된 사이트 메타" value={String(stats.registeredSites)} tone="amber" />
       </section>
 
-      <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <section className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <QuickLink
           href="/search"
           title="세법 검색"
@@ -148,6 +148,13 @@ export default async function DashboardPage() {
           desc="증분/수동 실행 및 로그 스트리밍"
           icon="⚙️"
           color="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+        />
+        <QuickLink
+          href="/products/import"
+          title="제품 Import"
+          desc="페이지별 CSV를 한 번에 합쳐 제품 DB 저장"
+          icon="📦"
+          color="bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900 hover:bg-emerald-100 dark:hover:bg-emerald-950/50"
         />
       </section>
 

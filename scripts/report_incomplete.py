@@ -18,12 +18,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sqlite3
 from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "data" / "papers.db"
+DB_PATH = Path(os.environ.get("FINOLAW_DB_PATH", ROOT / "data" / "data.db"))
 REPORT_MD = ROOT / "docs" / "fino-incomplete-report.md"
 
 DEFAULT_MIN_ABS = 200

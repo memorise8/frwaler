@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+uid="${CODEX_HOST_UID:-1001}"
+gid="${CODEX_HOST_GID:-1001}"
+
+if ! getent group "$gid" >/dev/null 2>&1; then
+  groupadd -g "$gid" codexhost
+fi
+
+if ! getent passwd "$uid" >/dev/null 2>&1; then
+  useradd -u "$uid" -g "$gid" -M -d /home/codex -s /bin/sh codexhost
+fi
+
+exec setpriv \
+  --reuid "$uid" \
+  --regid "$gid" \
+  --clear-groups \
+  env HOME=/home/codex CODEX_HOME=/home/codex/.codex "$@"

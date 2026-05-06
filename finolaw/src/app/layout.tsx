@@ -25,6 +25,7 @@ const NAV = [
   { href: "/smart-find", label: "URL 크롤링", icon: "🌐" },
   { href: "/auto-add", label: "Auto-Add", icon: "🧠" },
   { href: "/crawler", label: "크롤러 관리", icon: "⚙️" },
+  { href: "/products/import", label: "제품 Import", icon: "📦" },
 ];
 
 export default function RootLayout({

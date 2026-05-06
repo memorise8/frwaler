@@ -21,7 +21,7 @@ Wiki + 벡터 검색 + Graph RAG 시스템을 구축하는 프로젝트.
 
 | 항목 | 값 |
 |------|-----|
-| 파일 | `data/papers.db` (SQLite) |
+| 파일 | `data/data.db` (SQLite) |
 | 크기 | **8.7GB** |
 | 총 건수 | **269,768건** |
 | 목표 대비 | **92.3%** (292,219건 중) |
@@ -48,7 +48,7 @@ Wiki + 벡터 검색 + Graph RAG 시스템을 구축하는 프로젝트.
 
 | 위치 | 내용 | 수량 |
 |------|------|------|
-| `data/papers.db` | SQLite (메타+본문+metadata JSON) | 269,768건 |
+| `data/data.db` | SQLite (메타+본문+metadata JSON) | 269,768건 |
 | `data/exports/nts-taxlaw-pd/_html/` | 판례 원본 HTML (DOC_ID.html) | 141,130개 |
 | `data/exports/nts-taxlaw-qt/_html/` | 해석례 원본 HTML | 127,498개 |
 | `data/exports/nts-taxlaw-pd/*.md` | 판례 MD (검색용) | **141,222개** ✅ |
@@ -281,7 +281,7 @@ QT (nts-taxlaw-qt):
 # 크롤러 내장 메서드
 from crawler.sites.nts_taxlaw import NTSTaxlawPdCrawler, NTSTaxlawQtCrawler
 import sqlite3
-conn = sqlite3.connect('data/papers.db')
+conn = sqlite3.connect('data/data.db')
 c = NTSTaxlawPdCrawler(db_conn=conn)
 result = c.lookup_by_doc_number('감심-1994-0168')
 # → {'doc_id': '...', 'title': '...', 'type': '심사', 'category': '부가가치세', 'published_date': '1994-10-04'}
@@ -315,7 +315,7 @@ cd /data_raid/ruci_workspace/crawler-poc
 # 1. 현재 상태 확인
 .venv/bin/python -c "
 import sqlite3
-c=sqlite3.connect('data/papers.db').cursor()
+c=sqlite3.connect('data/data.db').cursor()
 total = c.execute(\"SELECT COUNT(*) FROM papers WHERE site_id LIKE 'nts-taxlaw%'\").fetchone()[0]
 print(f'DB: {total:,}건')
 "

@@ -40,9 +40,12 @@ cd <repo-root>
 .venv/bin/python --version
 codex --version
 
-# OpenAI API 키 설정: 환경변수 또는 crawler/.env
-printf 'OPENAI_API_KEY=sk-...\nLLM_PROVIDER=gpt\n' > crawler/.env
-chmod 600 crawler/.env
+# Codex CLI OAuth 로그인 상태 확인
+codex login status
+
+# Docker 배포에서는 배포 서버의 실행 사용자 계정에서 Codex를 로그인합니다.
+codex login --device-auth
+docker compose exec app codex login status
 ```
 
 ### finolaw UI에서 사용 권장
@@ -76,7 +79,9 @@ cd <repo-root>
 - 생성 파일: `crawler/sites/custom/my-site.py`
 - UI 로그: `.cache/ui_codex-*.log`
 - Codex 내부 로그: `.cache/codex_<site_id>_*.log`
-- DB 저장 위치: `data/papers.db`
+- DB 저장 위치: `data/data.db`
+
+생성 파일은 회사별 런타임 생성물입니다. `crawler/sites/custom/*.py`와 `crawler/sites/configs/*.json`은 백업 대상이지만 Git 커밋 대상은 아닙니다.
 
 ### 생성된 크롤러 확인 및 실행
 
@@ -122,7 +127,7 @@ cd <repo-root>
 
 ## 3. DB와 검색 반영
 
-크롤러가 데이터를 저장하면 `data/papers.db`에 `papers`/`sites` 테이블이 생성 또는 갱신됩니다.
+크롤러가 데이터를 저장하면 `data/data.db`에 `papers`/`sites` 테이블이 생성 또는 갱신됩니다.
 
 ```bash
 cd <repo-root>
@@ -131,7 +136,7 @@ cd <repo-root>
 .venv/bin/python -m crawler.main list-sites
 ```
 
-`data/papers.db`가 없으면 finolaw UI는 실행되지만 대시보드/검색 결과는 비어 보입니다. 먼저 위 Auto-Add 또는 기존 크롤러로 데이터를 수집하세요.
+`data/data.db`가 없으면 finolaw UI는 실행되지만 대시보드/검색 결과는 비어 보입니다. 먼저 위 Auto-Add 또는 기존 크롤러로 데이터를 수집하세요.
 
 ---
 
@@ -139,7 +144,8 @@ cd <repo-root>
 
 | 변수 | 필수 | 설명 |
 |------|------|------|
-| `OPENAI_API_KEY` | Auto-Add/Codex 사용 시 필수 | Codex CLI 및 AutoAddAgent에서 사용 |
+| `OPENAI_API_KEY` | GPT 기반 Smart Find/Tier 1 사용 시 필수 | OpenAI SDK를 직접 쓰는 기능에서 사용. Codex OAuth 경로에는 불필요 |
+| `FINOLAW_DB_PATH` | 선택 | SQLite DB 경로 override. 기본값은 `data/data.db` |
 | `LLM_PROVIDER` | 선택 | Smart Finder AI fallback provider. 기본값은 `gpt` |
 | `GEMINI_API_KEY` | 선택 | `LLM_PROVIDER=gemini`일 때 사용 |
 
@@ -149,6 +155,13 @@ cd <repo-root>
 OPENAI_API_KEY=sk-...
 LLM_PROVIDER=gpt
 # GEMINI_API_KEY=...
+```
+
+Tier 2 Codex CLI 경로는 `OPENAI_API_KEY`를 직접 요구하지 않습니다. Codex CLI 자체가 로그인되어 있으면 됩니다. Docker 배포에서는 `${HOME}/.codex:/home/codex/.codex` 볼륨으로 서버 실행 사용자의 Codex OAuth 상태를 컨테이너에 공유합니다. 각 프로젝트 관리자는 배포 서버에서 다음 명령으로 로그인합니다:
+
+```bash
+codex login --device-auth
+docker compose exec app codex login status
 ```
 
 ---
@@ -167,6 +180,8 @@ LLM_PROVIDER=gpt
 
 ### `OPENAI_API_KEY not set`
 
+이 오류는 GPT 기반 Smart Find 또는 Tier 1 AutoAddAgent 경로에서 발생합니다. Tier 2 Codex CLI 경로는 Codex 로그인 상태를 확인합니다.
+
 ```bash
 grep OPENAI_API_KEY crawler/.env
 env | grep OPENAI_API_KEY
@@ -176,6 +191,16 @@ env | grep OPENAI_API_KEY
 
 ```bash
 docker compose restart
+```
+
+### Codex CLI is not logged in
+
+Tier 2 Codex CLI 경로에서 발생합니다. Docker 컨테이너 내부 Codex를 OAuth로 로그인하세요.
+배포 서버의 실행 사용자 계정에서 먼저 로그인한 뒤 컨테이너에서 상태를 확인합니다.
+
+```bash
+codex login --device-auth
+docker compose exec app codex login status
 ```
 
 ### `codex CLI not found`
@@ -216,8 +241,10 @@ cat .cache/ui_*.log | tail -200
 | `crawler/agent_tools.py` | Tier 1 도구 |
 | `crawler/sites/custom/` | Codex 생성 Python 크롤러 |
 | `crawler/sites/configs/` | AutoAddAgent 생성 JSON 설정 |
-| `data/papers.db` | SQLite DB |
+| `data/data.db` | SQLite DB |
 | `.cache/` | UI/Codex/크롤러 로그 |
+
+`data/`, `.cache/`, `crawler/sites/custom/`, `crawler/sites/configs/`는 배포별 런타임 상태입니다. 회사별 환경에서 별도 백업하고 Git으로 공유하지 않습니다.
 
 ---
 

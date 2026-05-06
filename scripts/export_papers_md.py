@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export papers from papers.db to markdown files.
+"""Export papers from data.db to markdown files.
 
 Usage:
     python scripts/export_papers_md.py --site-id nts-taxlaw-pd --limit 10
@@ -18,7 +18,7 @@ import sqlite3
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "data" / "papers.db"
+DB_PATH = Path(os.environ.get("FINOLAW_DB_PATH", ROOT / "data" / "data.db"))
 EXPORT_ROOT = ROOT / "data" / "exports"
 
 UNSAFE_FS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')

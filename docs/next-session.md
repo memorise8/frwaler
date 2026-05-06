@@ -23,16 +23,16 @@ DB가 있는지 확인:
 ```bash
 cd <repo-root>
 
-if [ -f data/papers.db ]; then
+if [ -f data/data.db ]; then
   .venv/bin/python - <<'PY'
 import sqlite3
-c = sqlite3.connect('data/papers.db')
+c = sqlite3.connect('data/data.db')
 print('papers:', c.execute('SELECT COUNT(*) FROM papers').fetchone()[0])
 for row in c.execute('SELECT site_id, COUNT(*) FROM papers GROUP BY site_id ORDER BY 2 DESC LIMIT 5'):
     print(row)
 PY
 else
-  echo 'data/papers.db missing: dashboard/search will be empty until a crawl creates data.'
+  echo 'data/data.db missing: dashboard/search will be empty until a crawl creates data.'
 fi
 ```
 
@@ -49,7 +49,7 @@ ps aux | grep crawler | grep -v grep || true
 - 활성 FE는 `finolaw/` 하나다. 레거시 `web/` 프론트엔드는 제거되었다.
 - `finolaw`는 Next.js 16 앱이며 포트는 3001이다.
 - `finolaw`는 상위 디렉터리의 `crawler/`, `.venv/`, `data/`, `.cache/`에 의존한다.
-- 현재 체크아웃 기준 `data/papers.db`가 없을 수 있다. 이 경우 앱은 뜨지만 대시보드/검색 데이터는 비어 보인다.
+- 현재 체크아웃 기준 `data/data.db`가 없을 수 있다. 이 경우 앱은 뜨지만 대시보드/검색 데이터는 비어 보인다.
 - Auto-Add 메인 경로는 Codex CLI 기반 Tier 2다.
 
 ---
@@ -109,14 +109,14 @@ cd <repo-root>
 |------|------|
 | `finolaw/README.md` | 활성 FE 개발 가이드 |
 | `finolaw/src/app/` | Next.js App Router 페이지/API |
-| `finolaw/src/lib/db.ts` | `data/papers.db` readonly 조회 |
+| `finolaw/src/lib/db.ts` | `data/data.db` readonly 조회 |
 | `finolaw/src/lib/auto-add-codex.ts` | `python -m crawler.main auto-add-codex` 실행 |
 | `finolaw/src/proxy.ts` | HTTP Basic Auth |
 | `crawler/main.py` | Python CLI 진입점 |
 | `crawler/codex_runner.py` | Codex CLI 래퍼 |
 | `crawler/sites/custom/` | Codex 생성 Python 크롤러 |
 | `crawler/sites/configs/` | AutoAddAgent JSON 설정 |
-| `data/papers.db` | SQLite DB |
+| `data/data.db` | SQLite DB |
 | `.cache/` | UI/Codex/크롤러 로그 |
 | `Dockerfile`, `docker-compose.yml` | 단일 컨테이너 배포 |
 
@@ -135,7 +135,7 @@ cd <repo-root>
 
 - [ ] `git status --short` 확인
 - [ ] `finolaw` dev server가 port 3001에서 응답하는지 확인
-- [ ] `data/papers.db` 존재 여부 확인
+- [ ] `data/data.db` 존재 여부 확인
 - [ ] `crawler/.env`의 `OPENAI_API_KEY` 확인
 - [ ] `docs/README.md`의 읽기 순서에 따라 필요한 문서 확인
 

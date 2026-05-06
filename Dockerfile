@@ -28,7 +28,7 @@ FROM mcr.microsoft.com/playwright/python:v1.48.0-noble
 
 # Install Node 22 (replacing the bundled Node), plus supervisor/cron/curl.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends curl ca-certificates gnupg supervisor cron \
+ && apt-get install -y --no-install-recommends curl ca-certificates gnupg supervisor cron passwd \
  && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
  && apt-get install -y --no-install-recommends nodejs \
  && rm -rf /var/lib/apt/lists/*
@@ -53,6 +53,10 @@ COPY --from=web-build /app/finolaw /app/finolaw
 # Supervisor config drives the long-running Next.js process.
 # Crawlers are spawned on-demand by finolaw as short-lived Python subprocesses.
 COPY docker/supervisord.conf /etc/supervisor/conf.d/app.conf
+COPY docker/codex-as-host-user /usr/local/bin/codex-as-host-user
+RUN mkdir -p /home/codex \
+ && chmod 755 /home/codex \
+ && chmod 755 /usr/local/bin/codex-as-host-user
 
 # finolaw's lib/crawler-runner.ts expects .venv/bin/python — create a symlink
 # that points to the system Python so the existing code runs unchanged.
@@ -68,7 +72,7 @@ ENV PYTHONUNBUFFERED=1 \
 EXPOSE 3001
 
 # Persisted at runtime via bind mounts (see docker-compose.yml).
-#   /app/data                       — SQLite DB (papers.db)
+#   /app/data                       — SQLite DB (data.db)
 #   /app/.cache                     — Codex/crawler logs
 #   /app/crawler/sites/custom       — Codex-generated crawlers
 #   /app/crawler/sites/configs      — per-site JSON configs

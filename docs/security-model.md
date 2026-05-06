@@ -72,7 +72,7 @@ OpenAI API가 반환한 코드가 악의적이거나 오작동할 수 있습니�
 
 ### 3.3 OpenAI API 키 유출 (낮음)
 
-API 키는 `crawler/.env` 에 저장되고 컨테이너에 `env_file` 로 주입됩니다.
+API 키는 `crawler/.env` 에 저장되고 컨테이너에 `env_file` 로 주입됩니다. GPT 기반 Smart Find/Tier 1 기능은 이 키를 사용합니다. Tier 2 Codex CLI 크롤러 생성은 Codex OAuth 로그인을 사용할 수 있으며, 이 경우 배포 서버 실행 사용자의 `${HOME}/.codex`가 `/home/codex/.codex`로 마운트됩니다.
 
 **저장 경로:**
 - 호스트: `./crawler/.env` (gitignore에 포함, 저장소에 커밋되지 않음).
@@ -81,6 +81,7 @@ API 키는 `crawler/.env` 에 저장되고 컨테이너에 `env_file` 로 주입
 **키가 기록될 수 있는 곳:**
 - Docker 프로세스 리스트 (`docker inspect` 로 조회 가능. 호스트 root가 필요).
 - 컨테이너 내부 `/proc/*/environ` (컨테이너 root 권한 필요).
+- Codex OAuth를 사용할 경우 서버 실행 사용자의 `${HOME}/.codex/auth.json` 등 Codex 상태 파일이 민감 정보가 됩니다.
 
 **키가 기록되지 않는 곳:**
 - `.cache/*.log` — 앱 코드는 API 키를 로그에 직접 쓰지 않음.
@@ -125,7 +126,7 @@ API 키는 `crawler/.env` 에 저장되고 컨테이너에 `env_file` 로 주입
    사내 방화벽에서 컨테이너 → 외부 인터넷 방향으로 허용되는 호스트를 제한하면 C2 통신 위험이 줄어듭니다. 단, Codex와 OpenAI API (`api.openai.com`) 및 실제 크롤링 대상 도메인은 허용되어야 합니다.
 
 8. **정기 백업.**
-   `./data/` (SQLite DB) 와 `./crawler/sites/custom/` (생성된 크롤러) 를 최소 주 1회 백업. Month 3에서 자동 백업 스크립트 제공 예정.
+   `./data/` (SQLite DB), `./.cache/` (로그), `./crawler/sites/custom/` (생성된 Python 크롤러), `./crawler/sites/configs/` (생성된 JSON 설정) 를 최소 주 1회 백업. 이 파일들은 회사별 런타임 생성물이므로 Git 커밋 대상이 아닙니다. Month 3에서 자동 백업 스크립트 제공 예정.
 
 9. **로그 로테이션.**
    `.cache/` 디렉토리가 무제한 증가할 수 있습니다. 디스크 모니터링을 설정하거나 Month 2의 로그 로테이션 기능을 대기하세요.
@@ -136,7 +137,7 @@ API 키는 `crawler/.env` 에 저장되고 컨테이너에 `env_file` 로 주입
 
 ### 5.1 본 시스템이 수집/저장하는 것
 
-- **사용자 입력 URL**: SQLite `data/papers.db` 의 `sites` 테이블에 저장됩니다.
+- **사용자 입력 URL**: SQLite `data/data.db` 의 `sites` 테이블에 저장됩니다.
 - **크롤링 결과**: 대상 사이트에서 수집한 공개 데이터 (제목, 본문, 링크, 메타데이터).
 - **OpenAI API 호출 로그**: `.cache/codex_*.log` 및 UI 실행 로그 `.cache/ui_*.log` — Codex의 stdout/stderr. 생성된 코드, 시도 중인 URL, 오류 메시지 포함.
 

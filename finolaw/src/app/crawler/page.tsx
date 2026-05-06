@@ -17,6 +17,13 @@ interface LogFile {
   mtime: string;
 }
 
+interface SiteInfo {
+  id: string;
+  kind: "built-in" | "custom" | "config";
+  deletable: boolean;
+  fileName?: string;
+}
+
 const DOC_TYPES = [
   { code: "", label: "전체" },
   { code: "001_08", label: "심판 (001_08)" },
@@ -39,10 +46,12 @@ function CrawlerPageInner() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [logs, setLogs] = useState<LogFile[]>([]);
   const [sites, setSites] = useState<string[]>([]);
+  const [siteDetails, setSiteDetails] = useState<SiteInfo[]>([]);
   const [siteId, setSiteId] = useState<string>(urlSite || "nts-taxlaw-pd");
   const [docType, setDocType] = useState("");
   const [incremental, setIncremental] = useState(true);
   const [limit, setLimit] = useState<number | "">("");
+  const [deleting, setDeleting] = useState(false);
 
   const [logFile, setLogFile] = useState<string | null>(null);
   const [logStreamKey, setLogStreamKey] = useState(0);
@@ -60,13 +69,27 @@ function CrawlerPageInner() {
     setLogs(data.logs ?? []);
   };
 
+  const refreshSites = async () => {
+    try {
+      const res = await fetch("/api/crawler/sites", { cache: "no-store" });
+      const data = await res.json();
+      const details: SiteInfo[] = data.siteDetails ?? [];
+      const list: string[] = data.sites ?? details.map((site) => site.id);
+      setSites(list);
+      setSiteDetails(details);
+    } catch {
+      // keep the last known list
+    }
+  };
+
   useEffect(() => {
-    fetch("/api/crawler/sites")
+    fetch("/api/crawler/sites", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
-        const list: string[] = d.sites ?? [];
+        const details: SiteInfo[] = d.siteDetails ?? [];
+        const list: string[] = d.sites ?? details.map((site) => site.id);
         setSites(list);
-        // If urlSite is not in list, we still keep it as the current value
+        setSiteDetails(details);
       })
       .catch(() => {});
   }, []);
@@ -154,6 +177,46 @@ function CrawlerPageInner() {
 
   // Merge sites list with current siteId to ensure it always appears in dropdown
   const selectOptions = Array.from(new Set([...sites, siteId])).sort();
+  const selectedSite = siteDetails.find((site) => site.id === siteId);
+  const selectedSiteKind = selectedSite?.kind ?? "built-in";
+  const selectedSiteDeletable = Boolean(selectedSite?.deletable);
+  const selectedSiteRunning = jobs.some((job) => job.siteId === siteId);
+
+  const deleteSelectedSite = async () => {
+    if (!selectedSiteDeletable || deleting) return;
+    if (selectedSiteRunning) {
+      alert("실행 중인 크롤러는 삭제할 수 없습니다. 먼저 job을 중지하세요.");
+      return;
+    }
+    const label = selectedSiteKind === "custom" ? "커스텀 Python 크롤러" : "설정 JSON 크롤러";
+    if (
+      !confirm(
+        `${siteId} ${label} 파일을 삭제하시겠습니까?\n\n수집된 DB 데이터는 삭제되지 않습니다.`
+      )
+    ) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/crawler/sites", {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ siteId }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        alert(`삭제 실패: ${data.error ?? res.statusText}`);
+        return;
+      }
+      await refreshSites();
+      await refreshState();
+      const nextSite = sites.filter((id) => id !== siteId).sort()[0] ?? "nts-taxlaw-pd";
+      setSiteId(nextSite);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -249,6 +312,42 @@ function CrawlerPageInner() {
               실행
             </button>
           </div>
+        </div>
+
+        <div className="flex flex-col gap-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 px-4 py-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+              선택한 크롤러
+            </div>
+            <div className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+              <code className="font-mono text-xs">{siteId}</code>
+              <span className="mx-2 text-slate-300 dark:text-slate-700">·</span>
+              {selectedSiteKind === "built-in"
+                ? "내장 공용 크롤러"
+                : selectedSiteKind === "custom"
+                  ? "런타임 커스텀 Python 크롤러"
+                  : "런타임 설정 JSON 크롤러"}
+              {selectedSite?.fileName && (
+                <span className="ml-2 font-mono text-xs text-slate-400 dark:text-slate-500">
+                  {selectedSite.fileName}
+                </span>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={deleteSelectedSite}
+            disabled={!selectedSiteDeletable || selectedSiteRunning || deleting}
+            title={
+              !selectedSiteDeletable
+                ? "내장 공용 크롤러는 삭제할 수 없습니다"
+                : selectedSiteRunning
+                  ? "실행 중인 크롤러는 먼저 중지해야 합니다"
+                  : "생성된 크롤러 파일 삭제"
+            }
+            className="self-start rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-transparent dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/30 dark:disabled:border-slate-800 dark:disabled:text-slate-600 md:self-auto"
+          >
+            {deleting ? "삭제 중..." : "생성 크롤러 삭제"}
+          </button>
         </div>
       </section>
 

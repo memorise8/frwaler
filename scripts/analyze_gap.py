@@ -18,12 +18,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sqlite3
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "data" / "papers.db"
+DB_PATH = Path(os.environ.get("FINOLAW_DB_PATH", ROOT / "data" / "data.db"))
 EXPORT_ROOT = ROOT / "data" / "exports"
 REPORT_DIR = ROOT / "reports"
 

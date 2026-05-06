@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Idempotent SQLite migration: adds indexes + FTS5 virtual table to papers.db.
+Idempotent SQLite migration: adds indexes + FTS5 virtual table to data.db.
 Safe to run multiple times — skips anything already present.
 
 Fixes vs v1:
@@ -18,7 +18,10 @@ import sys
 import time
 from datetime import datetime
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "papers.db")
+DB_PATH = os.environ.get(
+    "FINOLAW_DB_PATH",
+    os.path.join(os.path.dirname(__file__), "..", "data", "data.db"),
+)
 DB_PATH = os.path.abspath(DB_PATH)
 
 # Expected tokenizer — if existing table used a different one we rebuild.

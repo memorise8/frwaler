@@ -21,6 +21,8 @@ from pathlib import Path
 from typing import Callable, Optional
 from urllib.parse import urlparse
 
+CODEX_CMD = os.environ.get("CODEX_CMD", "codex-as-host-user codex").split()
+
 # ---------------------------------------------------------------------------
 # Task template
 # ---------------------------------------------------------------------------
@@ -196,6 +198,23 @@ def run_codex_crawler_build(
     ts = datetime.utcnow().strftime("%Y%m%dT%H%M%S")
     log_path = os.path.join(cache_dir, f"codex_{site_id}_{ts}.log")
 
+    # Codex CLI owns its own authentication state. This may be ChatGPT/OAuth
+    # or API-key login, stored under CODEX_HOME / ~/.codex. Do not require
+    # OPENAI_API_KEY here; Tier 2 is intentionally allowed to use OAuth.
+    auth_ok, auth_detail = _codex_login_status(project_root)
+    if not auth_ok:
+        return _failure(
+            site_id=site_id,
+            log_path=log_path,
+            elapsed=time.monotonic() - t0,
+            error=(
+                "Codex CLI is not logged in. Run "
+                "`docker compose exec -it app codex login --device-auth` "
+                "for OAuth, or otherwise log in Codex CLI. "
+                f"Status output: {auth_detail}"
+            ),
+        )
+
     # ---- build task prompt --------------------------------------------------
     prompt = TASK_TEMPLATE.format(
         site_id=site_id,
@@ -206,7 +225,7 @@ def run_codex_crawler_build(
 
     # ---- build codex command -------------------------------------------------
     cmd = [
-        "codex",
+        *CODEX_CMD,
         "exec",
         "--dangerously-bypass-approvals-and-sandbox",
         "--skip-git-repo-check",
@@ -372,6 +391,39 @@ def run_codex_crawler_build(
 
 def _custom_file_path(project_root: str, site_id: str) -> str:
     return os.path.join(project_root, "crawler", "sites", "custom", f"{site_id}.py")
+
+
+def _codex_login_status(project_root: str) -> tuple[bool, str]:
+    """Return whether Codex CLI has usable auth state.
+
+    The CLI supports both ChatGPT/OAuth and API-key auth. The crawler builder
+    should accept either, because deployments may use OAuth for Codex while the
+    rest of the app still uses OPENAI_API_KEY for direct OpenAI API calls.
+    """
+    try:
+        result = subprocess.run(
+            [*CODEX_CMD, "login", "status"],
+            cwd=project_root,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=20,
+        )
+    except FileNotFoundError:
+        return False, "codex CLI not found"
+    except subprocess.TimeoutExpired:
+        return False, "codex login status timed out"
+
+    output = (result.stdout or "").strip()
+    if result.returncode != 0:
+        return False, output or f"codex login status exited {result.returncode}"
+
+    lowered = output.lower()
+    if "not logged in" in lowered or "login" in lowered and "logged in" not in lowered:
+        return False, output
+    return "logged in" in lowered, output or "codex login status returned no output"
 
 
 def _failure(
