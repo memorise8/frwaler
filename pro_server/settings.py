@@ -26,6 +26,9 @@ class ProSettings(BaseSettings):
 
     class Config:
         env_prefix = "PRO_"
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+        extra = "ignore"
 
 
 pro_settings = ProSettings()

@@ -3,11 +3,40 @@
 
 import json
 import os
+import re
 import time
 import uuid
 import xml.etree.ElementTree as ET
 
 from bs4 import BeautifulSoup
+
+
+_PDF_URL_RE = re.compile(
+    r'https?://www\.infineon\.com/assets/[^\s"\'<>]+?\.pdf',
+    re.IGNORECASE,
+)
+
+
+def extract_datasheet_url(html: str, opn: str) -> str | None:
+    """Pick the most likely datasheet PDF URL from an Infineon part HTML page.
+
+    Prefers a URL whose slug contains the OPN (case-insensitive, with hyphens
+    stripped) over generic component datasheets that may appear on module pages.
+    """
+    urls = _PDF_URL_RE.findall(html or "")
+    if not urls:
+        return None
+    seen, deduped = set(), []
+    for u in urls:
+        if u not in seen:
+            seen.add(u)
+            deduped.append(u)
+    opn_slug = opn.lower().replace("-", "").replace("_", "")
+    for u in deduped:
+        slug = u.lower().split("/")[-1].replace("-", "").replace("_", "")
+        if opn_slug and opn_slug in slug:
+            return u
+    return deduped[0]
 
 from ..base_crawler import BaseCrawler
 from .. import db
@@ -169,6 +198,12 @@ class InfineonCrawler(BaseCrawler):
             # --- Fetch breadcrumb JSON for category ---
             category_str = self._fetch_breadcrumb(opn)
 
+            datasheet_url = extract_datasheet_url(html_content, opn)
+
+            metadata = {"family": family_name}
+            if datasheet_url:
+                metadata["datasheet_url"] = datasheet_url
+
             product = {
                 "id": str(uuid.uuid4()),
                 "site_id": self.site_id,
@@ -188,7 +223,7 @@ class InfineonCrawler(BaseCrawler):
                 "availability": status or None,
                 "url": page_url,
                 "html_path": None,  # filled by caller
-                "metadata": json.dumps({"family": family_name}),
+                "metadata": json.dumps(metadata),
             }
             return product, html_content
 

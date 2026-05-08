@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .settings import pro_settings
 from .auth import init_license_db
 from .routers import auto_add, summarize, analyze, license, screening, users, products_api
+from .routers import chat as chat_router
 
 app = FastAPI(title="Crawler PRO API", version="1.0.0")
 
@@ -48,6 +49,7 @@ app.include_router(license.router)
 app.include_router(screening.router)
 app.include_router(users.router)
 app.include_router(products_api.router)
+app.include_router(chat_router.router)
 
 
 @app.get("/pro/api/health")
