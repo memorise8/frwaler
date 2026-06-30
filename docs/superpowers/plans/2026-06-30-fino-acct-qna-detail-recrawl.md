@@ -760,6 +760,103 @@ git commit --allow-empty -m "chore(fino_acct): QnA 재크롤 검증 완료 (KASB
 
 ---
 
+## Task 7: early-stop (self-terminating 수집) — max-pages 추측 제거
+
+> 발견(2026-06-30 재크롤): `collect_target`이 `max_pages`만큼 무조건 순회 → p3가 `--max-pages 100`(1000건) 상한에 잘림(page 101에 글 존재). 목표: **목록에서 새 글이 안 나오면 자동 중단**해 페이지 수 추측 없이 전수 수집. 기본 `max-pages`를 안전 상한(1000)으로 올리고, early-stop이 실제 종료를 담당.
+
+**Files:**
+- Modify: `crawler/fino_acct/collect.py` (collect_target LIST early-stop, default max_pages)
+- Test: `tests/test_fino_acct_collector.py`
+
+- [ ] **Step 1: Write the failing test**
+
+```python
+# tests/test_fino_acct_collector.py 에 추가
+def test_collect_target_early_stops_when_page_has_no_new_docs(tmp_path, monkeypatch) -> None:
+    calls = {"list": 0}
+
+    def fake_fetch(session, request, delay):
+        if "list.do" in request.url:
+            calls["list"] += 1
+            m = re.search(r"pageIndex=(\d+)", request.url)
+            page = int(m.group(1)) if m else 1
+            if page <= 2:  # page 1,2 만 글 보유, 3+ 빈 목록
+                body = f'<a href="/fss/bbs/B0000132/view.do?nttId={page}01&menuNo=200442">글{page}</a>'
+            else:
+                body = "<html>no items</html>"
+            return FetchResult(url=request.url, status_code=200, content_type="text/html", content=body.encode())
+        return FetchResult(url=request.url, status_code=200, content_type="text/html", content=b"<div class='bd-view'><h2 class='subject'>x</h2></div>")
+
+    monkeypatch.setattr(collect_mod, "fetch_page_request", fake_fetch)
+    db_path = tmp_path / "a.db"
+    with connect_db(db_path) as conn:
+        init_schema(conn)
+        docs, _ = collect_mod.collect_target(
+            conn=conn, session=None, target=TARGETS[1],
+            download_dir=tmp_path / "dl", max_pages=100, delay_seconds=0, download=False,
+        )
+    # max_pages=100 이지만 page 3에서 새 글 0 → 조기 종료. 목록 fetch는 한 자릿수.
+    assert calls["list"] <= 4
+    assert conn.execute("SELECT COUNT(*) FROM acct_documents").fetchone()[0] == 2
+```
+
+- [ ] **Step 2: Run to verify fail**
+
+Run: `.venv/bin/python -m pytest tests/test_fino_acct_collector.py::test_collect_target_early_stops_when_page_has_no_new_docs -v`
+Expected: FAIL (현재는 100페이지 전부 fetch → calls["list"]==100)
+
+- [ ] **Step 3: Implement early-stop**
+
+`collect.py`의 `collect_target` LIST 분기를 아래로 교체 (DB row 수 비교로 "새 글 없음" 감지 → wrap/빈페이지 모두 대응):
+```python
+        case TargetKind.LIST:
+            documents = 0
+            attachments = 0
+            prev_count = conn.execute(
+                "SELECT COUNT(*) FROM acct_documents WHERE source_priority = ?",
+                (target.priority,),
+            ).fetchone()[0]
+            for page in range(1, max_pages + 1):
+                docs, files = collect_page(
+                    conn=conn, session=session, target=target,
+                    request=page_request_for_target(target, page),
+                    download_dir=download_dir, delay_seconds=delay_seconds,
+                    download=download, store_self=False, follow_details=True,
+                )
+                documents += docs
+                attachments += files
+                count = conn.execute(
+                    "SELECT COUNT(*) FROM acct_documents WHERE source_priority = ?",
+                    (target.priority,),
+                ).fetchone()[0]
+                if docs == 0 or count == prev_count:  # 빈 목록 또는 새 글 없음 → 종료
+                    break
+                prev_count = count
+            return documents, attachments
+```
+
+`collect.py`의 기본 max-pages 를 안전 상한으로 상향 (early-stop이 실제 종료 담당):
+```python
+# MutableCliArgs 와 build_parser 의 max_pages 기본값 1 → 1000 으로
+    max_pages: int = 1000
+# build_parser:
+    _ = parser.add_argument("--max-pages", type=int, default=1000)
+```
+
+- [ ] **Step 4: Run tests**
+
+Run: `.venv/bin/python -m pytest tests/test_fino_acct_collector.py -q`
+Expected: 전부 PASS (early-stop 신규 + 기존).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add crawler/fino_acct/collect.py tests/test_fino_acct_collector.py
+git commit -m "feat(fino_acct): early-stop self-terminating 수집 (max-pages 추측 제거, 기본 1000)"
+```
+
+---
+
 ## Self-Review 메모 (작성자)
 - Spec §4.1(상세 저장)→Task4, §4.2(정리)→Task5/6, §4.3(코드 단위)→Task2/3/4, §7(테스트/수용)→Task2/3/4/6. 커버 완료.
 - 타입 일관: `kasb_items: tuple[tuple[str,str],...]`(models) ↔ `kasb_detail_request(seq,ctg)`(target_pages) ↔ collect의 `for seq,ctg in links.kasb_items` 일치. `external_id` = FSS:nttId / KASB:`{ctgCd}-{seq}` 일관.
