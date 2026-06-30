@@ -519,6 +519,203 @@ git commit -m "feat(fino_acct): cleanup 스크립트(백업 + priority 1~6 삭�
 
 ---
 
+## Task 5.5: 제목 보강 (a+b: 상세 셀렉터 우선 + 목록 제목 폴백) — **Task 6 재크롤 전에 수행**
+
+> 발견(2026-06-30): 현재 상세 저장 시 `page_title`이 사이트명/공통 헤딩(FSS="금융감독원", KASB=빈 h1→fallback)을 잡아 제목이 전부 동일. 진짜 제목 위치 = FSS `div.bd-view h2.subject`, KASB 텍스트 있는 첫 `h3`. 목록 링크 텍스트에도 동일 제목 존재(폴백). 제목 결정 = `상세셀렉터(a) → 목록제목(b) → page_title`.
+
+**Files:**
+- Modify: `crawler/fino_acct/models.py` (ExtractedLinks.title_by_id)
+- Modify: `crawler/fino_acct/parsers.py` (detail_title, FSS/KASB 제목 추출)
+- Modify: `crawler/fino_acct/collect.py` (title_override 전달)
+- Test: `tests/test_fino_acct_collector.py`
+
+- [ ] **Step 1: Write the failing tests**
+
+```python
+# tests/test_fino_acct_collector.py 에 추가
+from crawler.fino_acct.parsers import detail_title
+
+
+def test_detail_title_kasb_uses_h3() -> None:
+    html = _Path("tests/fixtures/fino_acct/kasb_detail.html").read_text(encoding="utf-8")
+    title = detail_title(TARGETS[0], BeautifulSoup(html, "html.parser"))
+    assert title == "종전기업회계기준과 일반기업회계기준 질의회신 비교표"
+
+
+def test_detail_title_fss_uses_subject() -> None:
+    html = _Path("tests/fixtures/fino_acct/fss_detail.html").read_text(encoding="utf-8")
+    title = detail_title(TARGETS[1], BeautifulSoup(html, "html.parser"))
+    assert "ETF" in title and "금융감독원" != title
+
+
+def test_kasb_list_title_by_id_maps_ctgcd_seq() -> None:
+    html = _Path("tests/fixtures/fino_acct/kasb_list.html").read_text(encoding="utf-8")
+    links = extract_links_for_target(
+        TARGETS[0], "https://www.kasb.or.kr/front/board/allReplySummaryList.do",
+        BeautifulSoup(html, "html.parser"),
+    )
+    assert links.title_by_id.get("016009-40533") == "종전기업회계기준과 일반기업회계기준 질의회신 비교표"
+```
+
+- [ ] **Step 2: Run to verify fail**
+
+Run: `.venv/bin/python -m pytest tests/test_fino_acct_collector.py -k "detail_title or title_by_id" -v`
+Expected: FAIL (`detail_title` 없음, `title_by_id` 빈 dict)
+
+- [ ] **Step 3: Implement**
+
+models.py — ExtractedLinks 에 `title_by_id` 추가 (import에 `field`):
+```python
+# crawler/fino_acct/models.py 상단
+from dataclasses import dataclass, field
+
+# ExtractedLinks 를 아래로 교체
+@dataclass(frozen=True, slots=True)
+class ExtractedLinks:
+    details: tuple[str, ...]
+    attachments: tuple[AttachmentLink, ...]
+    kasb_items: tuple[tuple[str, str], ...] = ()
+    title_by_id: dict[str, str] = field(default_factory=dict)
+```
+
+parsers.py — nttId 헬퍼 + detail_title + FSS/KASB 제목맵:
+```python
+# crawler/fino_acct/parsers.py 상단 정규식 추가
+NTT_ID_RE: Final[re.Pattern[str]] = re.compile(r"nttId=(\d+)")
+
+
+def _nttid(href: str) -> str:
+    m = NTT_ID_RE.search(href)
+    return m.group(1) if m else ""
+
+
+def detail_title(target: Target, soup: BeautifulSoup) -> str:
+    if target.priority == 1:  # KASB: 텍스트 있는 첫 h3
+        for h3 in soup.find_all("h3"):
+            text = clean_text(h3.get_text(" ", strip=True))
+            if text:
+                return text
+        return ""
+    if _is_fss_board(target.url):  # FSS: bd-view 의 subject
+        node = soup.select_one("div.bd-view h2.subject") or soup.select_one("h2.subject")
+        if node is not None:
+            return clean_text(node.get_text(" ", strip=True))
+    return ""
+```
+
+parsers.py — `extract_links_for_target` FSS 분기를 제목맵까지 만들도록 교체:
+```python
+    if _is_fss_board(target.url):
+        details: list[str] = []
+        titles: dict[str, str] = {}
+        for anchor in soup.find_all("a", href=True):
+            href = str(anchor.get("href", ""))
+            if FSS_DETAIL_RE.search(href):
+                url = urljoin(base_url, href)
+                details.append(url)
+                ntt = _nttid(href)
+                if ntt:
+                    titles[ntt] = clean_text(anchor.get_text(" ", strip=True))
+        return ExtractedLinks(
+            details=tuple(dict.fromkeys(details)),
+            attachments=extract_links(base_url, soup).attachments,
+            title_by_id=titles,
+        )
+```
+
+parsers.py — `_extract_kasb_list_links`에 제목맵 추가:
+```python
+def _extract_kasb_list_links(base_url: str, soup: BeautifulSoup) -> ExtractedLinks:
+    attachments: list[AttachmentLink] = []
+    items: list[tuple[str, str]] = []
+    titles: dict[str, str] = {}
+    for row in soup.select("tbody tr"):
+        row_soup = BeautifulSoup(str(row), "html.parser")
+        attachments.extend(extract_links(base_url, row_soup).attachments)
+        for anchor in row_soup.find_all("a"):
+            match = KASB_FN_DETAIL_RE.search(str(anchor.get("onclick", "")))
+            if match is not None:
+                seq, ctg = match.group(1), match.group(2)
+                items.append((seq, ctg))
+                titles[f"{ctg}-{seq}"] = clean_text(anchor.get_text(" ", strip=True))
+    return ExtractedLinks(
+        details=(),
+        attachments=tuple(_dedupe_attachments(attachments)),
+        kasb_items=tuple(dict.fromkeys(items)),
+        title_by_id=titles,
+    )
+```
+
+collect.py — `detail_title` import 추가, `collect_page`에 `title_override` 파라미터, store_self 제목 결정, follow_details에서 전달:
+```python
+# import 에 detail_title 추가
+from .parsers import detail_title, extract_links_for_target, page_body, page_title
+
+# collect_page 시그니처에 추가
+    title_override: str = "",
+
+# store_self 블록의 title 줄 교체
+        title = detail_title(target, soup) or title_override or page_title(soup, target.target_name)
+
+# follow_details 루프 교체
+    if follow_details:
+        for detail_url in links.details:
+            ext = _fss_detail_external_id(detail_url)
+            d, f = collect_page(
+                conn=conn, session=session, target=target,
+                request=direct_page_request(detail_url, ext),
+                download_dir=download_dir, delay_seconds=delay_seconds,
+                download=download, store_self=True, follow_details=False,
+                title_override=links.title_by_id.get(ext, ""),
+            )
+            documents += d
+            attachment_count += f
+        for seq, ctg in links.kasb_items:
+            ext = f"{ctg}-{seq}"
+            d, f = collect_page(
+                conn=conn, session=session, target=target,
+                request=kasb_detail_request(seq, ctg),
+                download_dir=download_dir, delay_seconds=delay_seconds,
+                download=download, store_self=True, follow_details=False,
+                title_override=links.title_by_id.get(ext, ""),
+            )
+            documents += d
+            attachment_count += f
+```
+
+- [ ] **Step 4: Update existing FSS test if needed**
+
+`test_extract_fss_details_picks_view_do_nttid_links`(Task 2)는 `extract_fss_details`(URL만)을 그대로 사용 — 변경 없음(이 함수는 유지). 라우팅은 위 인라인 루프로 제목까지 처리하므로 기존 테스트 영향 없음.
+
+- [ ] **Step 5: Run all tests**
+
+Run: `.venv/bin/python -m pytest tests/test_fino_acct_collector.py -q`
+Expected: 전부 PASS (신규 3 + 기존).
+
+- [ ] **Step 6: 임시 DB로 제목 실측 검증**
+
+Run:
+```bash
+.venv/bin/python -m crawler.fino_acct.collect --priorities 1,2 --max-pages 1 --no-download --delay-seconds 0.4 --db-path /tmp/acct_title.db
+.venv/bin/python - <<'PY'
+import sqlite3
+c=sqlite3.connect("/tmp/acct_title.db"); c.row_factory=sqlite3.Row
+for p in (1,2):
+    for r in c.execute("SELECT title FROM acct_documents WHERE source_priority=? LIMIT 3",(p,)):
+        print(f"p{p} title={r['title'][:55]!r}")
+PY
+```
+Expected: 제목이 "금융감독원"/"질의회신 요약 전체"가 아니라 **개별 글 제목**.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add crawler/fino_acct/models.py crawler/fino_acct/parsers.py crawler/fino_acct/collect.py tests/test_fino_acct_collector.py
+git commit -m "feat(fino_acct): 제목 보강 (상세 h2.subject/h3 우선 + 목록 제목 폴백)"
+```
+
+---
+
 ## Task 6: 재크롤 + 수용기준 검증
 
 - [ ] **Step 1: 전체 테스트**
