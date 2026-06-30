@@ -22,6 +22,9 @@ ATTACHMENT_EXTENSIONS: Final[tuple[str, ...]] = (
 KASB_FILE_DOWNLOAD_RE: Final[re.Pattern[str]] = re.compile(
     r"fileDownload\('([^']+)'\s*,\s*'([^']+)'\)"
 )
+KASB_FN_DETAIL_RE: Final[re.Pattern[str]] = re.compile(
+    r"fn_Detail\('([^']+)'\s*,\s*'([^']+)'\)"
+)
 FSC_DETAIL_RE: Final[re.Pattern[str]] = re.compile(r"/no010101/\d+")
 FSS_DETAIL_RE: Final[re.Pattern[str]] = re.compile(r"view\.do\?[^\"'>]*\bnttId=\d+")
 ACCOUNTING_KEYWORDS: Final[tuple[str, ...]] = (
@@ -130,10 +133,20 @@ def extract_links_for_target(target: Target, base_url: str, soup: BeautifulSoup)
 
 def _extract_kasb_list_links(base_url: str, soup: BeautifulSoup) -> ExtractedLinks:
     attachments: list[AttachmentLink] = []
+    items: list[tuple[str, str]] = []
     for row in soup.select("tbody tr"):
-        row_links = extract_links(base_url, BeautifulSoup(str(row), "html.parser"))
+        row_soup = BeautifulSoup(str(row), "html.parser")
+        row_links = extract_links(base_url, row_soup)
         attachments.extend(row_links.attachments)
-    return ExtractedLinks(details=(), attachments=tuple(_dedupe_attachments(attachments)))
+        for anchor in row_soup.find_all("a"):
+            match = KASB_FN_DETAIL_RE.search(str(anchor.get("onclick", "")))
+            if match is not None:
+                items.append((match.group(1), match.group(2)))
+    return ExtractedLinks(
+        details=(),
+        attachments=tuple(_dedupe_attachments(attachments)),
+        kasb_items=tuple(dict.fromkeys(items)),
+    )
 
 
 def _dedupe_attachments(attachments: list[AttachmentLink]) -> list[AttachmentLink]:

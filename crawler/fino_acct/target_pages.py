@@ -23,6 +23,15 @@ def direct_page_request(url: str, external_id: str) -> PageRequest:
     return PageRequest(url=url, external_id=external_id)
 
 
+def kasb_detail_request(seq: str, ctg_cd: str, site_cd: str = "002000000000000") -> PageRequest:
+    return PageRequest(
+        url=f"https://www.kasb.or.kr/front/board/View{ctg_cd}.do",
+        external_id=f"{ctg_cd}-{seq}",
+        method="POST",
+        data={"seq": seq, "ctgCd": ctg_cd, "siteCd": site_cd},
+    )
+
+
 def page_request_for_target(target: Target, page: int) -> PageRequest:
     if _is_kasb_url(target.url):
         return PageRequest(

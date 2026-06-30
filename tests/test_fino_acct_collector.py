@@ -10,7 +10,7 @@ from crawler.fino_acct.fetch import safe_filename
 from crawler.fino_acct.pagination import paged_url
 from crawler.fino_acct.parsers import extract_fss_details, extract_links, extract_links_for_target
 from crawler.fino_acct.sources import TARGETS
-from crawler.fino_acct.target_pages import page_request_for_target
+from crawler.fino_acct.target_pages import kasb_detail_request, page_request_for_target
 
 
 def _dump_database(conn: sqlite3.Connection) -> str:
@@ -224,6 +224,24 @@ def test_extract_fss_details_picks_view_do_nttid_links() -> None:
     assert all("view.do?nttId=" in u for u in details)
     assert all(u.startswith("https://www.fss.or.kr") for u in details)
     assert len(details) == len(set(details))
+
+
+def test_extract_kasb_list_returns_seq_ctgcd_items() -> None:
+    html = Path("tests/fixtures/fino_acct/kasb_list.html").read_text(encoding="utf-8")
+    links = extract_links_for_target(
+        TARGETS[0], "https://www.kasb.or.kr/front/board/allReplySummaryList.do",
+        BeautifulSoup(html, "html.parser"),
+    )
+    assert ("40533", "016009") in links.kasb_items
+    assert len(links.kasb_items) == len(set(links.kasb_items))
+
+
+def test_kasb_detail_request_builds_post_view_url() -> None:
+    req = kasb_detail_request("40533", "016009")
+    assert req.url == "https://www.kasb.or.kr/front/board/View016009.do"
+    assert req.method == "POST"
+    assert req.data == {"seq": "40533", "ctgCd": "016009", "siteCd": "002000000000000"}
+    assert req.external_id == "016009-40533"
 
 
 def test_extract_links_for_target_routes_fss_board_to_view_details() -> None:
