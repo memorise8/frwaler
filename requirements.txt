@@ -8,3 +8,4 @@ openai
 google-genai
 openpyxl
 python-dotenv
+olefile

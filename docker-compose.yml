@@ -28,12 +28,16 @@ services:
     environment:
       CODEX_HOST_UID: "${CODEX_HOST_UID:-1001}"
       CODEX_HOST_GID: "${CODEX_HOST_GID:-1001}"
+      SOURCES_PAPERS_DB: "/app/sources-papers.db"
+      SOURCES_MD_ROOT: "/app/sources-md"
     volumes:
       - ./data:/app/data
       - ./.cache:/app/.cache
       - ${HOME}/.codex:/home/codex/.codex
       - ./crawler/sites/custom:/app/crawler/sites/custom
       - ./crawler/sites/configs:/app/crawler/sites/configs
+      - /data_raid/ruci_workspace/crawler-poc/data/papers.db:/app/sources-papers.db:ro
+      - /data_raid/ruci_workspace/data/세법MD_20260417:/app/sources-md:ro
     restart: unless-stopped
     # Healthcheck: the Next.js server responds to HEAD / even behind auth (returns 401, not 5xx).
     healthcheck:
