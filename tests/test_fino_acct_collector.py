@@ -5,12 +5,14 @@ import sys
 
 from bs4 import BeautifulSoup
 
+from crawler.fino_acct import collect as collect_mod
 from crawler.fino_acct.db import connect_db, init_schema, upsert_attachment, upsert_document
 from crawler.fino_acct.fetch import safe_filename
+from crawler.fino_acct.models import FetchResult
 from crawler.fino_acct.pagination import paged_url
 from crawler.fino_acct.parsers import extract_fss_details, extract_links, extract_links_for_target
 from crawler.fino_acct.sources import TARGETS
-from crawler.fino_acct.target_pages import kasb_detail_request, page_request_for_target
+from crawler.fino_acct.target_pages import kasb_detail_request, page_request_for_target, PageRequest
 
 
 def _dump_database(conn: sqlite3.Connection) -> str:
@@ -252,3 +254,31 @@ def test_extract_links_for_target_routes_fss_board_to_view_details() -> None:
     )
     assert links.details
     assert all("view.do?nttId=" in u for u in links.details)
+
+
+def test_collect_list_stores_details_not_list_page(tmp_path, monkeypatch) -> None:
+    list_html = (
+        '<a href="/fss/bbs/B0000132/view.do?nttId=111&menuNo=200442">질의응답 A</a>'
+        '<a href="/fss/bbs/B0000132/view.do?nttId=222&menuNo=200442">질의응답 B</a>'
+    )
+    detail_html = "<h2>제목</h2><div>질의: ... 회신: 내용</div>"
+
+    def fake_fetch(session, request: PageRequest, delay):
+        body = list_html if "list.do" in request.url else detail_html
+        return FetchResult(url=request.url, status_code=200, content_type="text/html", content=body.encode())
+
+    monkeypatch.setattr(collect_mod, "fetch_page_request", fake_fetch)
+
+    db_path = tmp_path / "acct.db"
+    with connect_db(db_path) as conn:
+        init_schema(conn)
+        docs, _ = collect_mod.collect_target(
+            conn=conn, session=None, target=TARGETS[1],  # FSS B0000132
+            download_dir=tmp_path / "dl", max_pages=1, delay_seconds=0, download=False,
+        )
+        rows = conn.execute("SELECT external_id, detail_url FROM acct_documents ORDER BY external_id").fetchall()
+
+    eids = [r["external_id"] for r in rows]
+    assert "111" in eids and "222" in eids           # 상세가 문서로 저장됨
+    assert all("list.do" not in r["detail_url"] for r in rows)  # 목록 페이지는 저장 안 됨
+    assert all("view.do?nttId=" in r["detail_url"] for r in rows)

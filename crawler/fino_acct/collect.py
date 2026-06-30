@@ -4,6 +4,7 @@ import argparse
 from dataclasses import dataclass
 from pathlib import Path
 import sqlite3
+from urllib.parse import parse_qs, urlparse
 
 from bs4 import BeautifulSoup
 import requests
@@ -13,7 +14,7 @@ from .fetch import download_attachment, fetch_page_request, new_session
 from .models import AttachmentLink, Target, TargetKind
 from .parsers import extract_links_for_target, page_body, page_title
 from .sources import TARGETS
-from .target_pages import PageRequest, direct_page_request, page_request_for_target
+from .target_pages import PageRequest, direct_page_request, kasb_detail_request, page_request_for_target
 
 
 DEFAULT_DB_PATH = Path("data/fino_acct.db")
@@ -96,6 +97,12 @@ def collect_all(
     return total_documents, total_attachments
 
 
+def _fss_detail_external_id(url: str) -> str:
+    qs = parse_qs(urlparse(url).query)
+    ntt = qs.get("nttId", [])
+    return ntt[0] if ntt else url
+
+
 def collect_target(
     *,
     conn: sqlite3.Connection,
@@ -116,6 +123,7 @@ def collect_target(
                 download_dir=download_dir,
                 delay_seconds=delay_seconds,
                 download=download,
+                store_self=True,
                 follow_details=False,
             )
         case TargetKind.LIST:
@@ -130,6 +138,7 @@ def collect_target(
                     download_dir=download_dir,
                     delay_seconds=delay_seconds,
                     download=download,
+                    store_self=False,
                     follow_details=True,
                 )
                 documents += docs
@@ -146,54 +155,74 @@ def collect_page(
     download_dir: Path,
     delay_seconds: float,
     download: bool,
+    store_self: bool,
     follow_details: bool,
 ) -> tuple[int, int]:
     result = fetch_page_request(session, request, delay_seconds)
     if result.status_code >= 400:
         return 0, 0
     soup = BeautifulSoup(result.content, "html.parser")
-    title = page_title(soup, target.target_name)
-    document_id = upsert_document(
-        conn,
-        source_priority=target.priority,
-        agency=target.agency,
-        target_name=target.target_name,
-        source_url=target.url,
-        source_type=target.source_type,
-        source_subtype=target.source_subtype,
-        index_name=target.index_name,
-        external_id=request.external_id,
-        title=title,
-        detail_url=result.url,
-        published_date="",
-        body_text=page_body(soup),
-    )
     links = extract_links_for_target(target, result.url, soup)
-    attachment_count = store_attachments(
-        conn=conn,
-        session=session,
-        document_id=document_id,
-        links=links.attachments,
-        download_dir=download_dir / f"{target.priority:02d}",
-        prefix=str(document_id),
-        delay_seconds=delay_seconds,
-        download=download,
-    )
-    documents = 1
+    documents = 0
+    attachment_count = 0
+    if store_self:
+        title = page_title(soup, target.target_name)
+        document_id = upsert_document(
+            conn,
+            source_priority=target.priority,
+            agency=target.agency,
+            target_name=target.target_name,
+            source_url=target.url,
+            source_type=target.source_type,
+            source_subtype=target.source_subtype,
+            index_name=target.index_name,
+            external_id=request.external_id,
+            title=title,
+            detail_url=result.url,
+            published_date="",
+            body_text=page_body(soup),
+        )
+        documents = 1
+        attachment_count = store_attachments(
+            conn=conn,
+            session=session,
+            document_id=document_id,
+            links=links.attachments,
+            download_dir=download_dir / f"{target.priority:02d}",
+            prefix=str(document_id),
+            delay_seconds=delay_seconds,
+            download=download,
+        )
     if follow_details:
-        for detail_url in links.details[:10]:
-            docs, files = collect_page(
+        for detail_url in links.details:
+            req = direct_page_request(detail_url, _fss_detail_external_id(detail_url))
+            d, f = collect_page(
                 conn=conn,
                 session=session,
                 target=target,
-                request=direct_page_request(detail_url, detail_url),
+                request=req,
                 download_dir=download_dir,
                 delay_seconds=delay_seconds,
                 download=download,
+                store_self=True,
                 follow_details=False,
             )
-            documents += docs
-            attachment_count += files
+            documents += d
+            attachment_count += f
+        for seq, ctg in links.kasb_items:
+            d, f = collect_page(
+                conn=conn,
+                session=session,
+                target=target,
+                request=kasb_detail_request(seq, ctg),
+                download_dir=download_dir,
+                delay_seconds=delay_seconds,
+                download=download,
+                store_self=True,
+                follow_details=False,
+            )
+            documents += d
+            attachment_count += f
     return documents, attachment_count
 
 
