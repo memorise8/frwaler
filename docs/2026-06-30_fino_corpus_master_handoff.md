@@ -106,3 +106,35 @@ cd /data_raid/ruci_workspace/frwaler
 **crawler-poc**: `data/papers.db`(NTS 20.6GB), `scripts/export_papers_md.py`.
 **FINO BE**: `scripts/{build_exec_standard_index,build_accounting_standard_ndjson,nts_full_embed_index}.py`, `scripts/qna_corpus/*`.
 **원본 디스크**: 회계 MD `/data_raid/ruci_workspace/acct_rag_data/`, 법/회계기준 MD `/data_raid/share/tax_data/current/`, QnA PDF `~/qna_corpus_work/`, NTS `crawler-poc/data/papers.db`.
+
+---
+
+## 9. 원문 링크 / 문서번호 citation 기능 (사용자 요청 2026-06-30)
+
+> 사용자 요청: 답변 근거에 **원문 문서번호(예: "조심-2017-서-2912") + 원문 링크**를 노출. 사용자가 회계기준원 홈피에서 매번 재검색하거나 원문링크를 일일이 여는 불편 해소. **소비자: FINO FE + TEMIS**(TEMIS는 (a) FINO BE API 호출, 또는 (b) 회계 질의회신 데이터를 DB/인덱스에서 직접 취득 — 둘 다 확인됨). **공통 전제 = 원문 URL이 실제 DB/인덱스에 존재해야 함.**
+
+### 트랙 1 — 판례·예규·심판례 (NTS): ✅ 즉시 가능 (크롤러 불필요)
+- `fino-nts-v2`에 **이미 보유**: `document_number`(="심사-부가-2024-0049"), `reference_no`, `document_type`(판례), 작동 deep-link `url`(`https://taxlaw.nts.go.kr/pd/USEPDA002P.do?ntstDcmId=...`).
+- 작업: FINO BE가 NTS 근거를 citation으로 낼 때 `document_number`(제목/라벨)+`url`(링크) 포함 → FE/TEMIS 렌더. **크롤러 작업 없음.**
+- 전제 점검: 세무 답변이 실제로 NTS를 근거로 쓰는지 배선 확인(과거 우회 이력, FINO 메모리 `project_fino_tax_retriever_bypass_0615`).
+
+### 트랙 2 — 회계 질의회신 (KASB/FSS): 🔴 frwaler 크롤러 보강이 선행 필수
+- **현재 원문 URL 없음**(실측): `fino_acct.db` 회계 qna 868행의 `detail_url`이 **개별 deep-link가 아니라 목록 페이지 URL**(`fss.or.kr/.../list.do?...&pageIndex=N`, `#page=N`만 다름). 제목도 "금융감독원"으로 비어있음. KASB 217행 = 깨진 priority-01 배치(본문 unique 1개).
+- 따라서 **"DB에 있으니 보강"이 아니라, 크롤러를 고쳐 개별 문서 deep-link를 새로 수집(재크롤)** 해야 함.
+- 데이터 흐름(이 순서대로 해야 TEMIS/FE가 링크를 받음):
+  ```
+  frwaler fino_acct 크롤러 보강(목록→상세 진입, 개별 원문 URL 추출)
+    → fino_acct.db detail_url 정상 기록(현재 목록URL)
+    → FINO 회계/질의회신 ES 인덱스에 source_url 필드 추가 재빌드
+    → FINO BE citation에 url 포함 → FINO FE + TEMIS 표시
+  ```
+- 크롤러 보강 구체:
+  - FSS: 게시판 목록(`list.do`)에서 각 글 상세(`view.do?nttId=...` 류) URL 추출해 detail_url에 저장.
+  - KASB: `allReplySummaryList.do` SPA에서 개별 항목 식별자/상세 URL 추출(+ priority-01 첨부 식별자 버그 동시 수리, `plans/acct-rag-curation.md` Task 6 / `plans/kasb-recrawl-repair.md`).
+  - 매핑 키: 현 FINO QnA 인덱스의 `doc_no`/`title` ↔ 크롤 `external_id`/`title` 정합 확인(매칭 가능해야 기존 인덱스에 URL 주입 가능; 불가 시 크롤 산출로 QnA 코퍼스 재소싱 검토).
+
+### 작업 순서 (권장)
+1. **판례(NTS) 링크/번호 노출** — FINO BE+FE, 즉효. (frwaler 무관)
+2. **회계 질의회신**: ① frwaler 크롤러 deep-link 수집 보강 → ② 인덱스 `source_url` 재빌드 → ③ FINO BE+FE/TEMIS 노출.
+
+> 주의: **이 문서 추가 ≠ 링크 생성.** 실제 링크는 위 코드 작업으로 생기며, 문서는 다음 세션 인계용 계획임.
