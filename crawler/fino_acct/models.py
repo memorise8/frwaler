@@ -37,6 +37,7 @@ class AttachmentLink:
 class ExtractedLinks:
     details: tuple[str, ...]
     attachments: tuple[AttachmentLink, ...]
+    kasb_items: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

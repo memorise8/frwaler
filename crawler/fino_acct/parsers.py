@@ -23,6 +23,7 @@ KASB_FILE_DOWNLOAD_RE: Final[re.Pattern[str]] = re.compile(
     r"fileDownload\('([^']+)'\s*,\s*'([^']+)'\)"
 )
 FSC_DETAIL_RE: Final[re.Pattern[str]] = re.compile(r"/no010101/\d+")
+FSS_DETAIL_RE: Final[re.Pattern[str]] = re.compile(r"view\.do\?[^\"'>]*\bnttId=\d+")
 ACCOUNTING_KEYWORDS: Final[tuple[str, ...]] = (
     "회계",
     "감리",
@@ -91,9 +92,28 @@ def extract_links(base_url: str, soup: BeautifulSoup) -> ExtractedLinks:
     return ExtractedLinks(details=tuple(dict.fromkeys(details)), attachments=tuple(_dedupe_attachments(attachments)))
 
 
+def extract_fss_details(base_url: str, soup: BeautifulSoup) -> tuple[str, ...]:
+    out: list[str] = []
+    for anchor in soup.find_all("a", href=True):
+        href = str(anchor.get("href", ""))
+        if FSS_DETAIL_RE.search(href):
+            out.append(urljoin(base_url, href))
+    return tuple(dict.fromkeys(out))
+
+
+def _is_fss_board(url: str) -> bool:
+    parsed = urlparse(url)
+    return parsed.netloc.endswith("fss.or.kr") and "/fss/bbs/" in parsed.path
+
+
 def extract_links_for_target(target: Target, base_url: str, soup: BeautifulSoup) -> ExtractedLinks:
     if target.priority == 1:
         return _extract_kasb_list_links(base_url, soup)
+    if _is_fss_board(target.url):
+        return ExtractedLinks(
+            details=extract_fss_details(base_url, soup),
+            attachments=extract_links(base_url, soup).attachments,
+        )
     if target.priority != 8:
         return extract_links(base_url, soup)
     details: list[str] = []

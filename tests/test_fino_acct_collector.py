@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from crawler.fino_acct.db import connect_db, init_schema, upsert_attachment, upsert_document
 from crawler.fino_acct.fetch import safe_filename
 from crawler.fino_acct.pagination import paged_url
-from crawler.fino_acct.parsers import extract_links, extract_links_for_target
+from crawler.fino_acct.parsers import extract_fss_details, extract_links, extract_links_for_target
 from crawler.fino_acct.sources import TARGETS
 from crawler.fino_acct.target_pages import page_request_for_target
 
@@ -213,3 +213,24 @@ def test_extract_links_for_target_when_kasb_list_ignores_non_row_downloads() -> 
     )
 
     assert [link.filename for link in links.attachments] == ["질의.pdf"]
+
+
+def test_extract_fss_details_picks_view_do_nttid_links() -> None:
+    html = Path("tests/fixtures/fino_acct/fss_list.html").read_text(encoding="utf-8")
+    soup = BeautifulSoup(html, "html.parser")
+    details = extract_fss_details("https://www.fss.or.kr/fss/bbs/B0000132/list.do?menuNo=200442", soup)
+    # 절대 URL, nttId 포함, 중복 제거
+    assert details
+    assert all("view.do?nttId=" in u for u in details)
+    assert all(u.startswith("https://www.fss.or.kr") for u in details)
+    assert len(details) == len(set(details))
+
+
+def test_extract_links_for_target_routes_fss_board_to_view_details() -> None:
+    html = Path("tests/fixtures/fino_acct/fss_list.html").read_text(encoding="utf-8")
+    links = extract_links_for_target(
+        TARGETS[1], "https://www.fss.or.kr/fss/bbs/B0000132/list.do?menuNo=200442",
+        BeautifulSoup(html, "html.parser"),
+    )
+    assert links.details
+    assert all("view.do?nttId=" in u for u in links.details)
