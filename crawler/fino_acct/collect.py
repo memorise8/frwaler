@@ -35,7 +35,7 @@ class CliArgs:
 class MutableCliArgs:
     db_path: Path = DEFAULT_DB_PATH
     download_dir: Path = DEFAULT_DOWNLOAD_DIR
-    max_pages: int = 1
+    max_pages: int = 1000
     delay_seconds: float = 0.5
     no_download: bool = False
     priorities: str = ""
@@ -45,7 +45,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python -m crawler.fino_acct.collect")
     _ = parser.add_argument("--db-path", type=Path, default=DEFAULT_DB_PATH)
     _ = parser.add_argument("--download-dir", type=Path, default=DEFAULT_DOWNLOAD_DIR)
-    _ = parser.add_argument("--max-pages", type=int, default=1)
+    _ = parser.add_argument("--max-pages", type=int, default=1000)
     _ = parser.add_argument("--delay-seconds", type=float, default=0.5)
     _ = parser.add_argument("--no-download", action="store_true")
     _ = parser.add_argument("--priorities", default="")
@@ -129,6 +129,10 @@ def collect_target(
         case TargetKind.LIST:
             documents = 0
             attachments = 0
+            prev_count = conn.execute(
+                "SELECT COUNT(*) FROM acct_documents WHERE source_priority = ?",
+                (target.priority,),
+            ).fetchone()[0]
             for page in range(1, max_pages + 1):
                 docs, files = collect_page(
                     conn=conn,
@@ -143,6 +147,13 @@ def collect_target(
                 )
                 documents += docs
                 attachments += files
+                count = conn.execute(
+                    "SELECT COUNT(*) FROM acct_documents WHERE source_priority = ?",
+                    (target.priority,),
+                ).fetchone()[0]
+                if docs == 0 or count == prev_count:  # 빈 목록 또는 새 글 없음 → 종료
+                    break
+                prev_count = count
             return documents, attachments
 
 

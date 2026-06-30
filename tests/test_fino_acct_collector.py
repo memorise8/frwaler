@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 import sqlite3
 import subprocess
 import sys
@@ -303,3 +304,31 @@ def test_kasb_list_title_by_id_maps_ctgcd_seq() -> None:
         BeautifulSoup(html, "html.parser"),
     )
     assert links.title_by_id.get("016009-40533") == "종전기업회계기준과 일반기업회계기준 질의회신 비교표"
+
+
+def test_collect_target_early_stops_when_page_has_no_new_docs(tmp_path, monkeypatch) -> None:
+    calls = {"list": 0}
+
+    def fake_fetch(session, request, delay):
+        if "list.do" in request.url:
+            calls["list"] += 1
+            m = re.search(r"pageIndex=(\d+)", request.url)
+            page = int(m.group(1)) if m else 1
+            if page <= 2:  # page 1,2 만 글 보유, 3+ 빈 목록
+                body = f'<a href="/fss/bbs/B0000132/view.do?nttId={page}01&menuNo=200442">글{page}</a>'
+            else:
+                body = "<html>no items</html>"
+            return FetchResult(url=request.url, status_code=200, content_type="text/html", content=body.encode())
+        return FetchResult(url=request.url, status_code=200, content_type="text/html", content=b"<div class='bd-view'><h2 class='subject'>x</h2></div>")
+
+    monkeypatch.setattr(collect_mod, "fetch_page_request", fake_fetch)
+    db_path = tmp_path / "a.db"
+    with connect_db(db_path) as conn:
+        init_schema(conn)
+        docs, _ = collect_mod.collect_target(
+            conn=conn, session=None, target=TARGETS[1],
+            download_dir=tmp_path / "dl", max_pages=100, delay_seconds=0, download=False,
+        )
+    # max_pages=100 이지만 page 3에서 새 글 0 → 조기 종료. 목록 fetch는 한 자릿수.
+    assert calls["list"] <= 4
+    assert conn.execute("SELECT COUNT(*) FROM acct_documents").fetchone()[0] == 2
