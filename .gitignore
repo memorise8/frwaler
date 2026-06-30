@@ -49,3 +49,6 @@ test_urls.txt
 spa_urls.txt
 spa_retry.txt
 unblocked_urls.txt
+
+# OMC variant agent state
+.omo/
