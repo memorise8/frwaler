@@ -332,3 +332,37 @@ def test_collect_target_early_stops_when_page_has_no_new_docs(tmp_path, monkeypa
     # max_pages=100 이지만 page 3에서 새 글 0 → 조기 종료. 목록 fetch는 한 자릿수.
     assert calls["list"] <= 4
     assert conn.execute("SELECT COUNT(*) FROM acct_documents").fetchone()[0] == 2
+
+
+def test_collect_target_resume_does_not_stop_on_duplicate_first_page(tmp_path, monkeypatch) -> None:
+    """부분수집 재크롤: page1이 이미 있는 글(중복)이어도 page2,3로 계속 진행해야 한다."""
+
+    def fake_fetch(session, request, delay):
+        if "list.do" in request.url:
+            m = re.search(r"pageIndex=(\d+)", request.url)
+            page = int(m.group(1)) if m else 1
+            if page <= 3:  # page 1~3 글 보유, 4+ 빈 목록
+                body = f'<a href="/fss/bbs/B0000132/view.do?nttId={page}01&menuNo=200442">글{page}</a>'
+            else:
+                body = "<html>no items</html>"
+            return FetchResult(url=request.url, status_code=200, content_type="text/html", content=body.encode())
+        return FetchResult(url=request.url, status_code=200, content_type="text/html", content=b"<div class='bd-view'><h2 class='subject'>x</h2></div>")
+
+    monkeypatch.setattr(collect_mod, "fetch_page_request", fake_fetch)
+    db_path = tmp_path / "a.db"
+    with connect_db(db_path) as conn:
+        init_schema(conn)
+        # page1 글(nttId=101)을 이미 수집된 상태로 미리 심음
+        upsert_document(
+            conn, source_priority=2, agency="a", target_name="t", source_url="u",
+            source_type="qna", source_subtype="s", index_name="i", external_id="101",
+            title="t", detail_url="https://x/view.do?nttId=101", published_date="", body_text="b",
+        )
+        collect_mod.collect_target(
+            conn=conn, session=None, target=TARGETS[1],
+            download_dir=tmp_path / "dl", max_pages=100, delay_seconds=0, download=False,
+        )
+        ids = {r[0] for r in conn.execute("SELECT external_id FROM acct_documents WHERE source_priority=2")}
+
+    # page1이 중복이어도 page2,3의 새 글이 수집돼야 함(조기 종료 금지)
+    assert "201" in ids and "301" in ids

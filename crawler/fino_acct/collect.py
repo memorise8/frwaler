@@ -129,10 +129,6 @@ def collect_target(
         case TargetKind.LIST:
             documents = 0
             attachments = 0
-            prev_count = conn.execute(
-                "SELECT COUNT(*) FROM acct_documents WHERE source_priority = ?",
-                (target.priority,),
-            ).fetchone()[0]
             for page in range(1, max_pages + 1):
                 docs, files = collect_page(
                     conn=conn,
@@ -147,13 +143,11 @@ def collect_target(
                 )
                 documents += docs
                 attachments += files
-                count = conn.execute(
-                    "SELECT COUNT(*) FROM acct_documents WHERE source_priority = ?",
-                    (target.priority,),
-                ).fetchone()[0]
-                if docs == 0 or count == prev_count:  # 빈 목록 또는 새 글 없음 → 종료
+                # 빈 목록(마지막 페이지 너머)에서 종료. FSS/KASB는 끝 너머에서 빈 목록을
+                # 반환(wrap 없음, 실측). "새 글 없음"으로 멈추면 재크롤 시 page1 중복으로
+                # 조기 종료되므로 docs==0(목록에 상세링크 없음)만을 종료 신호로 사용한다.
+                if docs == 0:
                     break
-                prev_count = count
             return documents, attachments
 
 
