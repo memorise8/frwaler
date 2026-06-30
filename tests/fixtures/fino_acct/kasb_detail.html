@@ -1,0 +1,1065 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			
+			
+
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="format-detection" content="telephone=no">
+	<!--
+	<meta name="robots" content="noindex">
+	-->
+	<meta http-equiv="Expires" content="-1">
+	<meta name="description" content="한국채택국제회계기준, 일반기업회계기준, IFRS, 지속가능성공시기준, 질의회신, 연구, 세미나, 교육" >
+	<meta name="keywords" content="한국회계기준원, 회계기준원, 한국회계연구원,회계연구원,회계기준, 지속가능성기준,지속가능성공시기준, 질의회신, 연구교육, 회계기준열람,일반기업회계기준, K-IFRS, 진행과제, 제정개정자료, IFRS, 한국공시기준, SASB기준, KAI, KAI Forum, KASB, KSSB, KARI, ESG">
+	<meta name="title" content="한국회계기준원">
+	<meta property="og:site_name" content="한국회계기준원" />
+	<meta property="og:title" content="한국회계기준원" />
+	<meta property="og:description" content="한국채택국제회계기준, 일반기업회계기준, IFRS, 지속가능성공시기준, 질의회신, 연구, 세미나, 교육" />
+    <title></title>
+    <link rel="shortcut icon" href="/common/front/kor/images/fav.ico" type="image/X-icon">
+    <link rel="icon" href="/common/front/kor/images/fav.ico" type="image/X-icon">
+    <link rel="stylesheet" href="/common/front/kor/css/swiper-bundle.min.css">
+    <link rel="stylesheet" href="/common/front/kor/css/default.css">
+    <script src="/common/front/kor/js/jquery-1.11.2.min.js"></script>
+    <script src="/common/front/kor/js/swiper-bundle.min.js"></script>
+    <script src="/common/front/kor/js/design.js"></script>
+	   	<script src="/common/admmgr/js/calendar.js;jsessionid=8CF61541EB38FF2E406260B2533BF893"></script>
+	<script type="text/javascript" src="/common/admmgr/js/frameLayer.js;jsessionid=8CF61541EB38FF2E406260B2533BF893"></script>
+	<script src="/common/admmgr/js/common.js"></script>
+	<link rel="stylesheet" type="text/css"	href="/plug-in/coaUpload/CoaUpload.css" />
+	<script type="text/javascript" src="/plug-in/coaUpload/CoaConfig.js"></script>
+	<script type="text/javascript" src="/plug-in/coaUpload/CoaUpload.min.js"></script>
+	<script type="text/javascript" src="/common/admmgr/js/file/CtitFile-custom.js;jsessionid=8CF61541EB38FF2E406260B2533BF893"></script>
+	<script src="//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+	<script type="text/javascript">
+	$(document).ready(function(){
+		window.onload = function(){
+	        var subTitle = "질의회신 요약 전체";
+	        $(".subTitleNm").text(subTitle);
+	        document.title = subTitle + " - 한국회계기준원"; 
+	    };
+	});
+	function fn_goMenu(menuUrl){
+		$("body").append("<form id='homeForm' name='homeForm' method='post'></form>");
+		$("#homeForm").attr("action", menuUrl);
+		$("#homeForm").submit();
+	}
+	function fn_fileViewer(fileNm){
+		var obj = {};
+		obj["fileNm"] = fileNm;
+		console.log(obj);
+		var innerHtml = "";
+		$.ajax({
+			type : "POST",
+			url  : "/admmgr/fileView.do",
+			data : obj,
+			dataType : "json",
+			success : function(data){
+				console.log(data);
+				console.log(data.length);
+					if(data.length > 0){
+						for(var i=0;i<data.length;i++){
+							window.open("/plug-in/synap_skin/doc.html?fn=" + data[i]["FILE_NM"] + "&rs=/_upload/synap" + data[i]["SUBSTRING_VIEWER_PATH"], "_blank");
+						}
+					}else{
+						innerHtml += "";
+					}
+				},
+			error : function(request,status,error){
+				alert("처리 중 오류가 발생되었습니다.\nerror:"+error+"request:"+request+"status:"+status);
+			}
+		});
+	}
+	</script>
+</head>
+
+<body>
+	<div class="skip_navi">
+		<a href="#content">본문으로 가기</a>
+		<a href="#gnb">주메뉴로 가기</a>
+		<a href="#footer">카피라이트로 가기</a>
+	</div>
+	<!--common_wrap-->
+	<div class="common_wrap">
+
+		<!--header_wrap-->
+		<div class="header_wrap">
+			<div class="hd_bott">
+				<div class="hd_inner">
+					<h1 class="hd_logo"><a href="/" class="hd_logo"><img src="/common/front/kor/images/common/top_logo.png" alt="한국회계기준원 로고"></a></h1>
+					<div id="gnb" class="gnb_wrap">
+						<ul class="dep01_wrap">
+						<li>
+<a href="javascript:fn_goMenu('/front/board/accountingAllList.do');"><span>회계기준</span></a>
+<div class='dep02'>
+<div class='dep02_inner'>
+<div class='dep02_lft'><p class='dep02_lft_tit'>회계기준</p><p class='dep02_lft_txt'>투명·지속가능 경제를 위한 <br>회계기준 및 지속가능성 기준 <br>제정의 글로벌 리더</p></div>
+<ul class='dep02_wrap'>
+<li><a href='/front/board/accountingAllList.do' ><span>기업회계기준</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/accountingAllList.do');"><span>기업회계기준(전체)</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3007.do');"><span>기업회계기준전문</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/ingAccountingList.do');"><span>한국채택국제회계기준(K-IFRS)</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3013.do');"><span>국제회계기준(IFRS)</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3003.do');"><span>일반기업회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3004.do');"><span>특수분야회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3005.do');"><span>중소기업회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3006.do');"><span>비영리조직회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3008.do');"><span>종전기업회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List2001.do');"><span>회계기준연혁</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/newAccPrepListA.do' ><span>제정개정과제</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/newAccPrepListA.do');"><span>진행 과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/fNewAccPrepListA.do');"><span>완료 과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/cmtreadListA.do');"><span>의견 조회</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/calListA.do' ><span>주요 일정</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/board/AccIntActivityListA.do' ><span>국제 활동</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/boardA/AccList2002.do' ><span>자료실</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/boardA/AccList2002.do');"><span>제정개정자료</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/boardA/AccList2003.do');"><span>행사·교육자료</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/boardA/AccList2005.do');"><span>기고자료</span></a></li>
+</ul>
+</div>
+<li class='dep02_link'><a href='https://db.kasb.or.kr/standard/'  target='_blank'><span>회계기준열람서비스</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</div>
+</li>
+<li>
+<a href="javascript:fn_goMenu('/front/board/sstnb_stndrAllList.do');"><span>지속가능성 공시기준</span></a>
+<div class='dep02'>
+<div class='dep02_inner'>
+<div class='dep02_lft'><p class='dep02_lft_tit'>지속가능성 공시기준</p><p class='dep02_lft_txt'>투명·지속가능 경제를 위한 <br>회계기준 및 지속가능성 기준 <br>제정의 글로벌 리더</p></div>
+<ul class='dep02_wrap'>
+<li><a href='/front/board/sstnb_stndrAllList.do' ><span>지속가능성 공시기준</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/sstnb_stndrAllList.do');"><span>지속가능성 공시기준(전체)</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/sstnb_stndrList.do');"><span>한국 지속가능성 공시기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List5001.do');"><span>IFRS 지속가능성 공시기준</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/newConPrepListB.do' ><span>제정개정과제</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/newConPrepListB.do');"><span>진행 과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/fNewConPrepListB.do');"><span>완료 과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/ConcmtreadListB.do');"><span>의견 조회</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/calListB.do' ><span>주요 일정</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/board/ConIntActivityListB.do' ><span>국제 활동</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/boardB/ConList2002.do' ><span>자료실</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/boardB/ConList2002.do');"><span>제정개정자료</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/boardB/ConList2003.do');"><span>행사∙교육자료</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/boardB/ConList2005.do');"><span>기고자료</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/kdsdList.do' ><span>기업 보고 지원</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/kdsdList.do');"><span>한국 지속가능성 공시기준 적용지원</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/idsdList.do');"><span>국제 지속가능성 공시기준 적용지원</span></a></li>
+</ul>
+</div>
+</ul>
+</div>
+</div>
+</li>
+<li>
+<a href="javascript:fn_goMenu('/front/conts/120001001000000.do');"><span>질의회신</span></a>
+<div class='dep02'>
+<div class='dep02_inner'>
+<div class='dep02_lft'><p class='dep02_lft_tit'>질의회신</p><p class='dep02_lft_txt'>투명·지속가능 경제를 위한 <br>회계기준 및 지속가능성 기준 <br>제정의 글로벌 리더</p></div>
+<ul class='dep02_wrap'>
+<li><a href='/front/conts/120001001000000.do' ><span>질의회신 접수</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/120001001000000.do');"><span>질의회신 업무절차</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/quickQuestionFirst.do');"><span>신속처리 질의</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/regularQuestionFirst.do');"><span>정규절차 질의</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/allReplySummaryList.do' ><span>질의회신 요약</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/120002017000000.do');"><span>질의회신 요약 안내</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/allReplySummaryList.do');"><span>질의회신 요약 전체</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016001.do');"><span>한국채택국제회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016002.do');"><span>IFRS 해석위원회 논의 결과 </span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016003.do');"><span>일반기업회계기준 </span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016004.do');"><span>종전기업회계기준 </span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016005.do');"><span>K-IFRS 신속처리질의 </span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016006.do');"><span> 일반기업회계기준 신속처리질의</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016008.do');"><span>정착지원TF</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/opinionList.do' ><span>회계기준적용의견서</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</div>
+</li>
+<li>
+<a href="javascript:fn_goMenu('/front/conts/122001001001000.do');"><span>연구교육</span></a>
+<div class='dep02'>
+<div class='dep02_inner'>
+<div class='dep02_lft'><p class='dep02_lft_tit'>연구교육</p><p class='dep02_lft_txt'>투명·지속가능 경제를 위한 <br>회계기준 및 지속가능성 기준 <br>제정의 글로벌 리더</p></div>
+<ul class='dep02_wrap'>
+<li><a href='/front/conts/122001001001000.do' ><span>한국회계연구원</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/122001001001000.do');"><span>소개</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/122001002000000.do');"><span>박사후 연구원 프로그램</span></a></li>
+</ul>
+</div>
+<li><a href='/front/conts/122002006000000.do' ><span>연구</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/122002006000000.do');"><span>진행 중인 연구과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List4003.do');"><span>IFRS Research Forum</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/publishList.do');"><span>출판물</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/eduSmartList.do' ><span>교육</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/eduSmartList.do');"><span>스마트강의</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/eduAccstdList.do');"><span>교육 자료</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/thesisShareFirst.do' ><span>참여</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/thesisShareFirst.do');"><span>연구논문 공유</span></a></li>
+</ul>
+</div>
+</ul>
+</div>
+</div>
+</li>
+<li>
+<a href="javascript:fn_goMenu('/front/board/comm010List.do');"><span>소통광장</span></a>
+<div class='dep02'>
+<div class='dep02_inner'>
+<div class='dep02_lft'><p class='dep02_lft_tit'>소통광장</p><p class='dep02_lft_txt'>투명·지속가능 경제를 위한 <br>회계기준 및 지속가능성 기준 <br>제정의 글로벌 리더</p></div>
+<ul class='dep02_wrap'>
+<li><a href='/front/board/comm010List.do' ><span>공지사항</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/board/comm020List.do' ><span>보도자료</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/board/comm030DomesticList.do' ><span>회계뉴스</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/board/comm040List.do' ><span>뉴스레터</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/board/surveyList.do' ><span>참여</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/surveyList.do');"><span>서베이</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/comm050First.do');"><span>의견제안</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/comm060List.do' ><span>자주하는 질문</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</div>
+</li>
+<li>
+<a href="javascript:fn_goMenu('/front/conts/117001001000000.do');"><span>기준원 안내</span></a>
+<div class='dep02'>
+<div class='dep02_inner'>
+<div class='dep02_lft'><p class='dep02_lft_tit'>기준원 안내</p><p class='dep02_lft_txt'>투명·지속가능 경제를 위한 <br>회계기준 및 지속가능성 기준 <br>제정의 글로벌 리더</p></div>
+<ul class='dep02_wrap'>
+<li><a href='/front/conts/117001001000000.do' ><span>비전과 연혁</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/117001001000000.do');"><span>설립 안내</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117001002000000.do');"><span>비전</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/historyList.do');"><span>연혁</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/executivesHistoryList.do');"><span>역대 임원</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/anReportList.do');"><span>연차보고서</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/auditList.do');"><span>감사보고서</span></a></li>
+</ul>
+</div>
+<li><a href='/front/conts/117006000000000.do' ><span>CI소개</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/board/empList.do' ><span>조직</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/conts/117003001000000.do' ><span>주요업무</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/117003001000000.do');"><span>2026년 중점 사업방향</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003002000000.do');"><span>회계기준 제정개정 업무</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003005000000.do');"><span>회계기준 제정개정 절차</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003003000000.do');"><span>지속가능성 공시기준 제정개정 업무</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003006000000.do');"><span>교육 업무</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003004000000.do');"><span>IFRS재단 재정지원</span></a></li>
+</ul>
+</div>
+<li><a href='/front/conts/117004001000000.do' ><span>채용안내</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/117004001000000.do');"><span>채용 안내</span></a></li>
+<li><a href='https://kai.career.greetinghr.com/ko/'  target='_blank'><span>채용 공고</span></a>
+</ul>
+</div>
+<li><a href='/front/conts/117005000000000.do' ><span>찾아오시는 길</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</div>
+</li>
+
+					</ul>
+				</div>
+				<ul class="hd_bott_rgt">
+					<li class="hd_lang"><a href="http://eng.kasb.or.kr">English</a></li>
+					<li class="hd_sear"><a href="javascript:void(0);"><span>검색</span></a></li>
+					<li class="hd_menu"><a href="javascript:void(0);"><span>전체메뉴 열기</span></a></li>
+					<li class="hd_menu_close"><a href="javascript:void(0);"><span>전체메뉴 닫기</span></a></li>
+				</ul>
+				</div>
+			</div>
+		</div>
+		<!--//header_wrap-->
+		
+		<!--all menu-->
+		<div class="sm_wrap">
+		    <div class="sm_m_top">
+               <ul class="sm_m_rgt">
+                   <li class="sm_m_lang"><a href="#">English</a></li>
+               </ul>
+           </div>
+			<ul class="sm_dep01_wrap">
+			<li>
+<a href="javascript:fn_goMenu('');"><span>회계기준</span></a>
+<div class='sm_dep02'>
+<ul class='sm_dep02_wrap'>
+<li><a href='#' ><span>기업회계기준</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/accountingAllList.do');"><span>기업회계기준(전체)</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3007.do');"><span>기업회계기준전문</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/ingAccountingList.do');"><span>한국채택국제회계기준(K-IFRS)</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3013.do');"><span>국제회계기준(IFRS)</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3003.do');"><span>일반기업회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3004.do');"><span>특수분야회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3005.do');"><span>중소기업회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3006.do');"><span>비영리조직회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3008.do');"><span>종전기업회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List2001.do');"><span>회계기준연혁</span></a></li>
+</ul>
+</div>
+<li><a href='#' ><span>제정개정과제</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/newAccPrepListA.do');"><span>진행 과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/fNewAccPrepListA.do');"><span>완료 과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/cmtreadListA.do');"><span>의견 조회</span></a></li>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/calListA.do' ><span>주요 일정</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/AccIntActivityListA.do' ><span>국제 활동</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li><a href='#' ><span>자료실</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/boardA/AccList2002.do');"><span>제정개정자료</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/boardA/AccList2003.do');"><span>행사·교육자료</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/boardA/AccList2005.do');"><span>기고자료</span></a></li>
+</ul>
+</div>
+<li class='sm_dep02_link'><a href='https://db.kasb.or.kr/standard/'  target='_blank'><span>회계기준열람서비스</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</li>
+<li>
+<a href="javascript:fn_goMenu('');"><span>지속가능성 공시기준</span></a>
+<div class='sm_dep02'>
+<ul class='sm_dep02_wrap'>
+<li><a href='#' ><span>지속가능성 공시기준</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/sstnb_stndrAllList.do');"><span>지속가능성 공시기준(전체)</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/sstnb_stndrList.do?tab=B');"><span>한국 지속가능성 공시기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List5001.do');"><span>IFRS 지속가능성 공시기준</span></a></li>
+</ul>
+</div>
+<li><a href='#' ><span>제정개정과제</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/newConPrepListB.do');"><span>진행 과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/fNewConPrepListB.do');"><span>완료 과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/ConcmtreadListB.do');"><span>의견 조회</span></a></li>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/calListB.do' ><span>주요 일정</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/ConIntActivityListB.do' ><span>국제 활동</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li><a href='#' ><span>자료실</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/boardB/ConList2002.do');"><span>제정개정자료</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/boardB/ConList2003.do');"><span>행사∙교육자료</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/boardB/ConList2005.do');"><span>기고자료</span></a></li>
+</ul>
+</div>
+<li><a href='#' ><span>기업 보고 지원</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/kdsdList.do');"><span>한국 지속가능성 공시기준 적용지원</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/idsdList.do');"><span>국제 지속가능성 공시기준 적용지원</span></a></li>
+</ul>
+</div>
+</ul>
+</div>
+</li>
+<li>
+<a href="javascript:fn_goMenu('');"><span>질의회신</span></a>
+<div class='sm_dep02'>
+<ul class='sm_dep02_wrap'>
+<li><a href='#' ><span>질의회신 접수</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/120001001000000.do');"><span>질의회신 업무절차</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/quickQuestionFirst.do');"><span>신속처리 질의</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/regularQuestionFirst.do');"><span>정규절차 질의</span></a></li>
+</ul>
+</div>
+<li><a href='#' ><span>질의회신 요약</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/120002017000000.do');"><span>질의회신 요약 안내</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/allReplySummaryList.do');"><span>질의회신 요약 전체</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016001.do');"><span>한국채택국제회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016002.do');"><span>IFRS 해석위원회 논의 결과 </span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016003.do');"><span>일반기업회계기준 </span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016004.do');"><span>종전기업회계기준 </span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016005.do');"><span>K-IFRS 신속처리질의 </span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016006.do');"><span> 일반기업회계기준 신속처리질의</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016008.do');"><span>정착지원TF</span></a></li>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/opinionList.do' ><span>회계기준적용의견서</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</li>
+<li>
+<a href="javascript:fn_goMenu('');"><span>연구교육</span></a>
+<div class='sm_dep02'>
+<ul class='sm_dep02_wrap'>
+<li><a href='#' ><span>한국회계연구원</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/122001001001000.do');"><span>소개</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/122001002000000.do');"><span>박사후 연구원 프로그램</span></a></li>
+</ul>
+</div>
+<li><a href='#' ><span>연구</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/122002006000000.do');"><span>진행 중인 연구과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List4003.do');"><span>IFRS Research Forum</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/publishList.do');"><span>출판물</span></a></li>
+</ul>
+</div>
+<li><a href='#' ><span>교육</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/eduSmartList.do');"><span>스마트강의</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/eduAccstdList.do');"><span>교육 자료</span></a></li>
+</ul>
+</div>
+<li><a href='#' ><span>참여</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/thesisShareFirst.do');"><span>연구논문 공유</span></a></li>
+</ul>
+</div>
+</ul>
+</div>
+</li>
+<li>
+<a href="javascript:fn_goMenu('');"><span>소통광장</span></a>
+<div class='sm_dep02'>
+<ul class='sm_dep02_wrap'>
+<li class='sm_dep02_right'><a href='/front/board/comm010List.do' ><span>공지사항</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/comm020List.do' ><span>보도자료</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/comm030DomesticList.do' ><span>회계뉴스</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/comm040List.do' ><span>뉴스레터</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li><a href='#' ><span>참여</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/surveyList.do');"><span>서베이</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/comm050First.do');"><span>의견제안</span></a></li>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/comm060List.do' ><span>자주하는 질문</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</li>
+<li>
+<a href="javascript:fn_goMenu('');"><span>기준원 안내</span></a>
+<div class='sm_dep02'>
+<ul class='sm_dep02_wrap'>
+<li><a href='#' ><span>비전과 연혁</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/117001001000000.do');"><span>설립 안내</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117001002000000.do');"><span>비전</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/historyList.do');"><span>연혁</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/executivesHistoryList.do');"><span>역대 임원</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/anReportList.do');"><span>연차보고서</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/auditList.do');"><span>감사보고서</span></a></li>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/conts/117006000000000.do' ><span>CI소개</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/empList.do' ><span>조직</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li><a href='#' ><span>주요업무</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/117003001000000.do');"><span>2026년 중점 사업방향</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003002000000.do');"><span>회계기준 제정개정 업무</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003005000000.do');"><span>회계기준 제정개정 절차</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003003000000.do');"><span>지속가능성 공시기준 제정개정 업무</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003006000000.do');"><span>교육 업무</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003004000000.do');"><span>IFRS재단 재정지원</span></a></li>
+</ul>
+</div>
+<li><a href='#' ><span>채용안내</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/117004001000000.do');"><span>채용 안내</span></a></li>
+<li class='dep03_link'><a href='https://kai.career.greetinghr.com/ko/'  target='_blank'><span>채용 공고</span></a>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/conts/117005000000000.do' ><span>찾아오시는 길</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</li>
+<li>
+<a href="javascript:fn_goMenu('');"><span>이용안내</span></a>
+<div class='sm_dep02'>
+<ul class='sm_dep02_wrap'>
+<li class='sm_dep02_right'><a href='/front/conts/124001000000000.do' ><span>이용안내</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/sitemap.do' ><span>사이트맵</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/conts/124003000000000.do' ><span>관련 사이트</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/conts/124004000000000.do' ><span>개인정보 처리방침</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/conts/124005000000000.do' ><span>이메일 무단수집 거부</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/ipLookerRegist.do' ><span>IP 차단안내</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/rssList.do' ><span>RSS 이용안내</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</li>
+
+			</ul>
+		</div>
+		<!--//all menu-->
+		
+		<!--total_sear_layer-->
+		<div class="layer_search_wrap">
+            <div class="layer_search">
+            	<form id="SearchForm" action="/front/board/search.do" method="post">
+	                <fieldset>
+	                    <legend>통합검색</legend>
+	                    <div class="layer_search_top">
+	                        <strong>SEARCH</strong>
+	                        <a href="javascript:void(0);" class="layer_search_close"><img src="/common/front/kor/images/common/ico_close_w.png" alt=""></a>
+	                    </div>
+	                    <div class="layer_search_bott">
+	                        <div class="layer_search_box">
+	                            <input type="text" id="searchtext" name="searchtext" class="layer_search_input" placeholder="무엇이 궁금하세요?">
+	                            <input type="submit" class="layer_search_btn">
+	                        </div>
+							<!--
+	                        <ul class="layer_search_tag">
+	                            <li><a href="#" onclick="fn_SearchForm('주요 진행과제');">#주요 진행과제</a></li>
+	                            <li><a href="#" onclick="fn_SearchForm('의견조회');">#의견조회</a></li>
+	                            <li><a href="#" onclick="fn_SearchForm('질의회신접수');">#질의회신접수</a></li>
+	                        </ul>
+							-->
+	                    </div>
+	                </fieldset>                
+                </form>
+                <script>
+                	function fn_SearchForm( value ) {
+                		$("#SearchFormText").val( value );
+                		$("#SearchForm").submit();
+                	}
+                </script>
+            </div>
+        </div>
+		<!--//total_sear_layer-->
+		
+		<!--lnb wrap-->
+     <div class="lnb_wrap">
+            <div class="lnb_inner">
+                <div class="lnb_lft">
+                    <a href="/" class="lnb_home"><span>home</span></a>
+                    <ul class="lnb_dep01 fix">
+                        <li><a href="javascript:void(0);"><span>질의회신</span></a>
+                            <ul class="lnb_dep02" style="display: none;">
+								<li><a href="javascript:fn_goMenu('/front/board/accountingAllList.do');" ><span>회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/sstnb_stndrAllList.do');" ><span>지속가능성 공시기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/120001001000000.do');" ><span>질의회신</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/122001001001000.do');" ><span>연구교육</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/comm010List.do');" ><span>소통광장</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117001001000000.do');" ><span>기준원 안내</span></a></li>
+
+                            </ul>
+                        </li>
+                        <li><a href="javascript:void(0);" class=""><span>질의회신 요약</span></a>
+                            <ul class="lnb_dep02" style="display: none;">
+								<li><a href="/front/conts/120001001000000.do" ><span>질의회신 접수</span></a></li>
+<li><a href="/front/board/allReplySummaryList.do" ><span>질의회신 요약</span></a></li>
+<li><a href="/front/board/opinionList.do" ><span>회계기준적용의견서</span></a></li>
+
+                            </ul>
+                        </li>
+						
+                        <li><a href="javascript:void(0);" class=""><span>질의회신 요약 전체</span></a>
+                            <ul class="lnb_dep02" style="display: none;">
+								<li><a href="/front/conts/120002017000000.do" >질의회신 요약 안내</a></li>
+<li><a href="/front/board/allReplySummaryList.do" >질의회신 요약 전체</a></li>
+<li><a href="/front/board/List016001.do" >한국채택국제회계기준</a></li>
+<li><a href="/front/board/List016002.do" >IFRS 해석위원회 논의 결과 </a></li>
+<li><a href="/front/board/List016003.do" >일반기업회계기준 </a></li>
+<li><a href="/front/board/List016004.do" >종전기업회계기준 </a></li>
+<li><a href="/front/board/List016005.do" >K-IFRS 신속처리질의 </a></li>
+<li><a href="/front/board/List016006.do" > 일반기업회계기준 신속처리질의</a></li>
+<li><a href="/front/board/List016008.do" >정착지원TF</a></li>
+
+                            </ul>
+                        </li>
+                        
+                    </ul>
+                </div>
+                <div class="lnb_rgt">
+                    <ul class="lnb_link">
+                        <li><a href="https://www.youtube.com/channel/UCySa4nG05sklQSmTbK3U8Zw" target="_blank" title="새창열림"><img src="/common/front/kor/images/common/ico_yt.png" alt="유튜브 아이콘"></a></li>
+                        <li><a href="https://www.linkedin.com/company/korea-accounting-institute/" target="_blank" title="새창열림"><img src="/common/front/kor/images/common/ico_linkin.png" alt="링크드인 아이콘"></a></li>
+                        <li><a href="/front/conts/124008000000000.do"><img src="/common/front/kor/images/common/ico_rss.png" alt="rss아이콘"></a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!--//lnb wrap-->
+        
+		<!--title-->
+        <div class="title_wrap">
+            <div class="title_inner">
+                <h2 class="sub_tit_h2 subTitleNm"></h2>
+                <div class="title_rgt">
+                    <ul class="title_rgt_link">
+                        <li><a href="#" onclick="ScreenCopy(); return false;" title="새창열림"><img src="/common/front/kor/images/common/ico_print.png" alt="프린트 아이콘"></a></li>
+                        <li>
+                            <div class="title_sns_wrap">
+								<!--
+                                <a href="https://www.linkedin.com/company/korea-accounting-institute/" target="_blank" class="tit_sns_btn"><img src="/common/front/kor/images/common/ico_sns_linkedin.png" alt=""></a>
+								-->
+                                <a href="#" onclick="FacebookCopy(); return false;" class="tit_sns_btn" title="새창열림"><img src="/common/front/kor/images/common/ico_sns_fb.png" alt="페이스북 아이콘"></a>
+                                <a href="#" onclick="LinkCopy(); return false;" class="tit_sns_btn"><img src="/common/front/kor/images/common/ico_sns_url.png" alt="링크복사 아이콘"></a>
+                                <a href="javascript:void(0);" class="tit_sns_shar" title="닫힘"><img src="/common/front/kor/images/common/ico_sns_share.png" alt="sns 펼침버튼 아이콘"></a>
+                            </div>
+                        </li>
+                    </ul>
+                    <ul class="title_rgt_btn">
+                        <li><a href="javascript:zoomIn();"><img src="/common/front/kor/images/common/ico_pluse.png" alt="화면확대 아이콘"></a></li>
+                        <li><a href="javascript:zoomOut();"><img src="/common/front/kor/images/common/ico_minus.png" alt="화면축소 아이콘"></a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!--//title-->
+        <script>
+        	function LinkCopy() {
+        		var hostname = $(location).prop('hostname');
+        		var pathname = $(location).attr('pathname');
+        		var paramname = $('#frm').serialize();
+        		var copyname = "http://" + hostname + pathname + "?" + paramname;
+        		
+        		$("#link_area").val( copyname );
+        	    $("#link_area").attr("type", "text");
+        	    $("#link_area").select();
+        	    var success = document.execCommand("copy");
+        	    $("#link_area").attr("type", "hidden");
+        	    if (success) {
+        	        alert("링크가 복사되었습니다.");
+        	    }
+        	}
+        	
+        	function ScreenCopy() {
+        		window.print();
+        	}     
+        	
+        	function FacebookCopy() {
+        		var hostname = $(location).prop('hostname');
+        		var pathname = $(location).attr('pathname');
+        		var paramname = $('#frm').serialize();
+        		var copyname =  pathname + "?" + paramname;        		
+        		fullUrl =  encodeURIComponent( "http://" + hostname + copyname );
+        	    var fb = window.open('https://www.facebook.com/sharer/sharer.php?u='+fullUrl, 'facebook' , 'width=570,height=420,scrollbars=yes');        		
+        	}
+        </script>
+        <input type="hidden" id="link_area" class="link_area" value="" />        
+        <!-- 컨텐츠 -->
+		
+
+<script type="text/javascript">
+	//이전글 , 다음글 
+	function fn_view(seq,ctgCd){
+		if(seq == 0){
+			return false;
+		}else{
+			$("#seq").val(seq);
+			$("#ctgCd").val(ctgCd);
+			var url = "/front/board/View" + ctgCd + ".do";
+			$("#frm").attr("action", url).submit();
+		}
+	}
+</script>
+<form id="frm" name="frm" method="GET">
+	<input type="hidden" id="siteCd" name="siteCd" value="002000000000000"/>
+	<input type="hidden" id="seq" name="seq" value="40533"/>
+	<input type="hidden" id="ctgCd" name="ctgCd" value=""/>
+	<input type="hidden" id="fileNo1" name="fileNo1" value="-49990797"/>
+        <!--content wrap-->
+        <div id="content" class="content_wrap">
+            <div class="content_inner">
+                
+                <h3 class="sub_tit_h3 sty02">종전기업회계기준과 일반기업회계기준 질의회신 비교표</h3>
+                <div class="board_view_wrap bdt0">
+                    <div class="table_sty01 top_blue">
+                        <table>
+                            <caption>질의회신 요약 상세내용과 관련된표로 분류, 관련기준서, 회신일자, 첨부파일로 구성되어있다.</caption>
+                            <colgroup>
+                                <col width="18%">
+                                <col width="%">
+                            </colgroup>
+                            <tbody>
+                            	
+                                
+									
+																		
+		                                <tr>
+		                                    <th>회신일자</th>
+		                                    <td class="left"><p class="board_date">2011-06-08</p></td>
+		                                </tr>
+		                                <tr>
+		                                	<th>공개일</th>
+		                                    <td class="left"><p class="board_date">2024-06-27</p></td>
+		                                </tr>
+									
+								
+                                <tr>
+                                   <th>첨부파일</th>
+                                    <td class="left">
+										<div class="board_view_file">
+										
+										
+											
+											
+												
+													 <!-- .으로 파일명 분리 -->
+													 <!-- 가장 마지막 요소 (확장자) -->
+													<!-- 실제 확장자명과 클래스명이 일치하지않아 맞춰줌  -->
+													
+														
+														
+														
+														
+														
+														
+														 
+														
+														
+														
+														
+													
+													<div class="board_view_file_wrap">
+														<a href="javascript:void(0)" title="다운로드 하려면 클릭하세요  20140630_질의회신_게시물_요약_210609_수정.xlsx" class="ico_excel  hand" onclick="javascript:fileDownload('-49990797','1'); return false;"><span>20140630_질의회신_게시물_요약_210609_수정.xlsx</span></a>
+														
+															<div id="09081045-6e22-4fc7-a3b4-d312a5cb245f"><a class="btn_preview" href="javascript:void(0);" title="새창열림" onclick="javascript:fn_fileViewer('09081045-6e22-4fc7-a3b4-d312a5cb245f');" ><img src="/common/front/kor/images/ico/ico_preview.png;jsessionid=8CF61541EB38FF2E406260B2533BF893" alt="파일뷰어 아이콘"></a></div>
+														
+													</div>
+												
+											
+										
+										</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="board_view_cont bdb1">
+                        <p class="p_txt"><p>종전기업회계기준과 일반기업회계기준 질의회신 요약 게시물 목록 입니다.</p>
+<p><br></p>
+<p>업무에 참고하시기 바랍니다.</p>
+</p>
+                    </div>
+                </div>
+                
+                <div class="btn_wrap">
+                    <a href="javascript:void(0);" onclick="javascript:fn_List();" class="btn_blue"><span>목록</span></a>
+                </div>
+                
+            </div>
+        </div>
+        <!--//content wrap-->
+	</form>
+	<script>
+	function fn_List(){
+		window.history.back();
+	}
+	</script>
+
+		<!-- //컨텐츠 -->
+
+		<!-- 상단 바로가기 -->
+		<button id="scrollToTop" class="scrollToTop"><span>상단 바로가기</span></button>
+		<!-- // 상단 바로가기 -->
+
+        <!--footer wrap-->
+        <div id="footer" class="footer_wrap">
+            <div class="ft_inner">
+                <div class="ft_lft">
+                    <ul class="ft_link">
+						<li class="person_info"><a href="/front/conts/124004000000000.do;jsessionid=8CF61541EB38FF2E406260B2533BF893">개인정보처리방침</a></li>        
+                        <li><a href="/front/conts/124005000000000.do;jsessionid=8CF61541EB38FF2E406260B2533BF893">이메일무단수집거부</a></li>        
+                        <li><a href="/front/board/comm060List.do;jsessionid=8CF61541EB38FF2E406260B2533BF893">자주하는 질문</a></li>         
+                        <li><a href="/front/conts/117005000000000.do;jsessionid=8CF61541EB38FF2E406260B2533BF893">찾아오시는 길</a></li>        
+                        <li><a href="/front/conts/117001001000000.do;jsessionid=8CF61541EB38FF2E406260B2533BF893">한국회계기준원</a></li>
+                    </ul>
+                    <address>
+                        <p class="ad_top"><span>[04513] 서울특별시 중구 세종대로 39 대한상공회의소 빌딩 3층</span><span>TEL : 02-6050-0150</span><span>FAX : 02-6050-0170</span><span>E-MAIL : webmaster@kasb.or.kr</span></p>
+                        <p class="ad_bott">Copyright ©KAI all rights reserved</p>
+                    </address>
+                </div>
+                <div class="ft_rgt">
+                   <div class="ft_family_wrap">
+                        <a href="javascript:void(0);" title="">Family Site</a>
+                        <ul class="ft_family_list" style="display: none;">
+                            <li><a href="#" target="_blank" title="새창열림">사이트 1</a></li>
+                            <li><a href="#" target="_blank" title="새창열림">사이트 2</a></li>
+                            <li><a href="#" target="_blank" title="새창열림">사이트 3</a></li>
+                        </ul>
+                    </div> 
+                </div>
+            </div>
+        </div>
+        <!--footer wrap-->
+		
+	</div>
+	<!--//common_wrap-->
+	
+</body>
+<script>
+function openPopup(url, width, height) {
+    var left = (screen.width - width) / 2;
+    var top = (screen.height - height) / 2;
+    var options = "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=" + width + ", height=" + height + ", top=0, left=0";
+    window.open(url, '_blank', options);
+}
+
+//화면 확대, 축소
+let nowZoom = 100; // 현재 비율
+
+// 화면크기 축소
+function zoomOut() {
+	nowZoom = nowZoom - 10;
+  
+  	// 화면크기 최대 축소율 70%
+  	if(nowZoom <= 70){
+      	nowZoom = 70;
+    }
+  	zooms();
+}
+
+// 화면크기 확대
+function zoomIn() {
+	nowZoom = nowZoom + 20;
+  	
+  	// 화면크기 최대 확대율 200%
+  	if(nowZoom >= 70){
+    	nowZoom = 70;
+    }
+  	zooms();
+}
+
+// 원래 화면크기도 되돌아가기
+function zoomReset() {
+	nowZoom = 100;
+  	zooms();
+}
+
+function zooms() {
+   document.body.style.zoom = nowZoom + "%";
+   if(nowZoom == 70) {
+      alert("더 이상 축소할 수 없습니다."); // 화면 축소율이 70% 이하일 경우 
+   }
+   if(nowZoom == 200) {
+      alert("더 이상 확대할 수 없습니다."); // 화면 확대율이 200% 이상일 경우 
+   }
+}
+
+</script>
+</html>

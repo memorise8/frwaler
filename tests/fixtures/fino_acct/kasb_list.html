@@ -1,0 +1,2108 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			
+			
+
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+	<meta name="description" content="한국채택국제회계기준, 일반기업회계기준, IFRS, 지속가능성공시기준, 질의회신, 연구, 세미나, 교육" >
+	<meta name="keywords" content="한국회계기준원, 회계기준원, 한국회계연구원,회계연구원,회계기준, 지속가능성기준,지속가능성공시기준, 질의회신, 연구교육, 회계기준열람,일반기업회계기준, K-IFRS, 진행과제, 제정개정자료, IFRS, 한국공시기준, SASB기준, KAI, KAI Forum, KASB, KSSB, KARI, ESG">
+	<meta name="title" content="한국회계기준원">
+	<!--
+	<meta name="robots" content="noindex">
+	-->
+	<meta property="og:site_name" content="한국회계기준원" />
+	<meta property="og:title" content="한국회계기준원" />
+	<meta property="og:description" content="한국채택국제회계기준, 일반기업회계기준, IFRS, 지속가능성공시기준, 질의회신, 연구, 세미나, 교육" />
+    <title></title>
+    <link rel="shortcut icon" href="/common/front/kor/images/fav.ico" type="image/X-icon">
+    <link rel="icon" href="/common/front/kor/images/fav.ico" type="image/X-icon">
+    <link rel="stylesheet" href="/common/front/kor/css/swiper-bundle.min.css">
+    <link rel="stylesheet" href="/common/front/kor/css/default.css?ver=241205">
+    <script src="/common/front/kor/js/jquery-1.11.2.min.js"></script>
+    <script src="/common/front/kor/js/swiper-bundle.min.js"></script>
+    <script src="/common/front/kor/js/design.js"></script>
+   	<script src="/common/admmgr/js/calendar.js;jsessionid=95D42F38925503C34ACC13923C57FF95"></script>
+	<script type="text/javascript" src="/common/admmgr/js/frameLayer.js;jsessionid=95D42F38925503C34ACC13923C57FF95"></script>
+	<script src="/common/admmgr/js/common.js"></script>
+	<link rel="stylesheet" type="text/css"	href="/plug-in/coaUpload/CoaUpload.css" />
+	<script type="text/javascript" src="/plug-in/coaUpload/CoaConfig.js"></script>
+	<script type="text/javascript" src="/plug-in/coaUpload/CoaUpload.min.js"></script>
+	<script type="text/javascript" src="/common/admmgr/js/file/CtitFile-custom.js;jsessionid=95D42F38925503C34ACC13923C57FF95"></script>
+	<script src="//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+	<script type="text/javascript">
+	$(document).ready(function(){
+		window.onload = function(){
+	        var subTitle = "질의회신 요약 전체";
+	        $(".subTitleNm").text(subTitle);
+	        document.title = subTitle + " - 한국회계기준원"; 
+	    };
+
+		// 초기화 버튼 공통
+		var obj = $(".sear_top_inner");
+		var idx = obj.length > 1 ? 1 : 0;
+		obj.eq(idx).append('<input type="button" value="초기화" title="초기화 버튼" class="btn_reset" onclick="javascript:fn_Reset()">');
+		
+		//파일
+		file_limit();
+	});
+	
+	function fn_Reset() {
+	    var fieldsToReset = ['searchword', 'categoryList', 's_date_start', 's_date_end', 'category', 'subCategoryList', 'gubun','progress','str_dd','end_dd'];
+	    
+	    fieldsToReset.forEach(function(name) {
+	        var elements = document.getElementsByName(name);
+	        elements.forEach(function(element) {
+	            element.value = '';
+	        });
+	    });
+	    
+	    var searchFieldElements = document.getElementsByName('searchfield');
+	    searchFieldElements.forEach(function(element) {
+	        element.value = 'ALL';
+	    });
+	    
+	    searchFieldElements.forEach(function(element) {
+	        if (element.value !== 'ALL') {
+	            element.value = 'TITLE';
+	        }
+	    });
+	}
+
+
+	
+	function fn_goMenu(menuUrl){
+		$("body").append("<form id='homeForm' name='homeForm' method='post'></form>");
+		$("#homeForm").attr("action", menuUrl);
+		$("#homeForm").submit();
+	}
+	function fn_ValidateSearchDate(startId,endId){
+		var sStart = $("#"+startId).val();
+		var sEnd   = $("#"+endId).val();
+		if( sStart != "" && sStart != undefined && sEnd != "" && sEnd != undefined ){
+			//시작날짜가 종료날짜보다 이후인 경우
+			if( Number(sStart.replaceAll("-","")) > Number(sEnd.replaceAll("-","")) ){
+				alert("시작일자가 종료일자보다 미래일 수 없습니다.");
+				return false;
+			}else{
+				return true;
+			}
+		}
+		return true;
+	}
+	function fn_fileViewer(fileNm){
+		var obj = {};
+		obj["fileNm"] = fileNm;
+		console.log(obj);
+		var innerHtml = "";
+		$.ajax({
+			type : "POST",
+			url  : "/admmgr/fileView.do",
+			data : obj,
+			dataType : "json",
+			success : function(data){
+				console.log(data);
+				console.log(data.length);
+					if(data.length > 0){
+						for(var i=0;i<data.length;i++){
+							window.open("/plug-in/synap_skin/doc.html?fn=" + data[i]["FILE_NM"] + "&rs=/_upload/synap" + data[i]["SUBSTRING_VIEWER_PATH"], "_blank");
+						}
+					}else{
+						innerHtml += "";
+					}
+				},
+			error : function(request,status,error){
+				alert("처리 중 오류가 발생되었습니다.\nerror:"+error+"request:"+request+"status:"+status);
+			}
+		});
+	}
+	</script>
+</head>
+
+<body>
+	<div class="skip_navi">
+		<a href="#content">본문으로 가기</a>
+		<a href="#gnb">주메뉴로 가기</a>
+		<a href="#footer">카피라이트로 가기</a>
+	</div>
+	<!--common_wrap-->
+	<div class="common_wrap">
+
+		<!--header_wrap-->
+		<div class="header_wrap">
+			<div class="hd_bott">
+				<div class="hd_inner">
+					<h1 class="hd_logo"><a href="https://kasb.or.kr/" class="hd_logo"><img src="/common/front/kor/images/common/top_logo.png" alt="한국회계기준원 로고"></a></h1>
+					<div id="gnb" class="gnb_wrap">
+						<ul class="dep01_wrap">
+						<li>
+<a href="javascript:void(0)"><span>회계기준</span></a>
+<div class='dep02'>
+<div class='dep02_inner'>
+<div class='dep02_lft'><p class='dep02_lft_tit'>회계기준</p><p class='dep02_lft_txt'>투명·지속가능 경제를 위한 <br>회계기준 및 지속가능성 기준 <br>제정의 글로벌 리더</p></div>
+<ul class='dep02_wrap'>
+<li><a href='/front/board/accountingAllList.do' ><span>기업회계기준</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/accountingAllList.do');"><span>기업회계기준(전체)</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3007.do');"><span>기업회계기준전문</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/ingAccountingList.do');"><span>한국채택국제회계기준(K-IFRS)</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3013.do');"><span>국제회계기준(IFRS)</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3003.do');"><span>일반기업회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3004.do');"><span>특수분야회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3005.do');"><span>중소기업회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3006.do');"><span>비영리조직회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3008.do');"><span>종전기업회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List2001.do');"><span>회계기준연혁</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/newAccPrepListA.do' ><span>제정개정과제</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/newAccPrepListA.do');"><span>진행 과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/fNewAccPrepListA.do');"><span>완료 과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/cmtreadListA.do');"><span>의견 조회</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/calListA.do' ><span>주요 일정</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/board/AccIntActivityListA.do' ><span>국제 활동</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/boardA/AccList2002.do' ><span>자료실</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/boardA/AccList2002.do');"><span>제정개정자료</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/boardA/AccList2003.do');"><span>행사·교육자료</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/boardA/AccList2005.do');"><span>기고자료</span></a></li>
+</ul>
+</div>
+<li class='dep02_link'><a href='https://db.kasb.or.kr/standard/'  target='_blank'><span>회계기준열람서비스</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</div>
+</li>
+<li>
+<a href="javascript:void(0)"><span>지속가능성 공시기준</span></a>
+<div class='dep02'>
+<div class='dep02_inner'>
+<div class='dep02_lft'><p class='dep02_lft_tit'>지속가능성 공시기준</p><p class='dep02_lft_txt'>투명·지속가능 경제를 위한 <br>회계기준 및 지속가능성 기준 <br>제정의 글로벌 리더</p></div>
+<ul class='dep02_wrap'>
+<li><a href='/front/board/sstnb_stndrAllList.do' ><span>지속가능성 공시기준</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/sstnb_stndrAllList.do');"><span>지속가능성 공시기준(전체)</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/sstnb_stndrList.do?tab=B');"><span>한국 지속가능성 공시기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List5001.do');"><span>IFRS 지속가능성 공시기준</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/newConPrepListB.do' ><span>제정개정과제</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/newConPrepListB.do');"><span>진행 과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/fNewConPrepListB.do');"><span>완료 과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/ConcmtreadListB.do');"><span>의견 조회</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/calListB.do' ><span>주요 일정</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/board/ConIntActivityListB.do' ><span>국제 활동</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/boardB/ConList2002.do' ><span>자료실</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/boardB/ConList2002.do');"><span>제정개정자료</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/boardB/ConList2003.do');"><span>행사∙교육자료</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/boardB/ConList2005.do');"><span>기고자료</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/kdsdList.do' ><span>기업 보고 지원</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/kdsdList.do');"><span>한국 지속가능성 공시기준 적용지원</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/idsdList.do');"><span>국제 지속가능성 공시기준 적용지원</span></a></li>
+</ul>
+</div>
+</ul>
+</div>
+</div>
+</li>
+<li>
+<a href="javascript:void(0)"><span>질의회신</span></a>
+<div class='dep02'>
+<div class='dep02_inner'>
+<div class='dep02_lft'><p class='dep02_lft_tit'>질의회신</p><p class='dep02_lft_txt'>투명·지속가능 경제를 위한 <br>회계기준 및 지속가능성 기준 <br>제정의 글로벌 리더</p></div>
+<ul class='dep02_wrap'>
+<li><a href='/front/conts/120001001000000.do' ><span>질의회신 접수</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/120001001000000.do');"><span>질의회신 업무절차</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/quickQuestionFirst.do');"><span>신속처리 질의</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/regularQuestionFirst.do');"><span>정규절차 질의</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/allReplySummaryList.do' ><span>질의회신 요약</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/120002017000000.do');"><span>질의회신 요약 안내</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/allReplySummaryList.do');"><span>질의회신 요약 전체</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016001.do');"><span>한국채택국제회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016002.do');"><span>IFRS 해석위원회 논의 결과 </span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016003.do');"><span>일반기업회계기준 </span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016004.do');"><span>종전기업회계기준 </span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016005.do');"><span>K-IFRS 신속처리질의 </span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016006.do');"><span> 일반기업회계기준 신속처리질의</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016008.do');"><span>정착지원TF</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/opinionList.do' ><span>회계기준적용의견서</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</div>
+</li>
+<li>
+<a href="javascript:void(0)"><span>연구교육</span></a>
+<div class='dep02'>
+<div class='dep02_inner'>
+<div class='dep02_lft'><p class='dep02_lft_tit'>연구교육</p><p class='dep02_lft_txt'>투명·지속가능 경제를 위한 <br>회계기준 및 지속가능성 기준 <br>제정의 글로벌 리더</p></div>
+<ul class='dep02_wrap'>
+<li><a href='/front/conts/122001001001000.do' ><span>한국회계연구원</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/122001001001000.do');"><span>소개</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/122001002000000.do');"><span>박사후 연구원 프로그램</span></a></li>
+</ul>
+</div>
+<li><a href='/front/conts/122002006000000.do' ><span>연구</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/122002006000000.do');"><span>진행 중인 연구과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List4003.do');"><span>IFRS Research Forum</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/publishList.do');"><span>출판물</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/eduSmartList.do' ><span>교육</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/eduSmartList.do');"><span>스마트강의</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/eduAccstdList.do');"><span>교육 자료</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/thesisShareFirst.do' ><span>참여</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/thesisShareFirst.do');"><span>연구논문 공유</span></a></li>
+</ul>
+</div>
+</ul>
+</div>
+</div>
+</li>
+<li>
+<a href="javascript:void(0)"><span>소통광장</span></a>
+<div class='dep02'>
+<div class='dep02_inner'>
+<div class='dep02_lft'><p class='dep02_lft_tit'>소통광장</p><p class='dep02_lft_txt'>투명·지속가능 경제를 위한 <br>회계기준 및 지속가능성 기준 <br>제정의 글로벌 리더</p></div>
+<ul class='dep02_wrap'>
+<li><a href='/front/board/comm010List.do' ><span>공지사항</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/board/comm020List.do' ><span>보도자료</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/board/comm030DomesticList.do' ><span>회계뉴스</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/board/comm040List.do' ><span>뉴스레터</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/board/surveyList.do' ><span>참여</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/surveyList.do');"><span>서베이</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/comm050First.do');"><span>의견제안</span></a></li>
+</ul>
+</div>
+<li><a href='/front/board/comm060List.do' ><span>자주하는 질문</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</div>
+</li>
+<li>
+<a href="javascript:void(0)"><span>기준원 안내</span></a>
+<div class='dep02'>
+<div class='dep02_inner'>
+<div class='dep02_lft'><p class='dep02_lft_tit'>기준원 안내</p><p class='dep02_lft_txt'>투명·지속가능 경제를 위한 <br>회계기준 및 지속가능성 기준 <br>제정의 글로벌 리더</p></div>
+<ul class='dep02_wrap'>
+<li><a href='/front/conts/117001001000000.do' ><span>비전과 연혁</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/117001001000000.do');"><span>설립 안내</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117001002000000.do');"><span>비전</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/historyList.do');"><span>연혁</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/executivesHistoryList.do');"><span>역대 임원</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/anReportList.do');"><span>연차보고서</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/auditList.do');"><span>감사보고서</span></a></li>
+</ul>
+</div>
+<li><a href='/front/conts/117006000000000.do' ><span>CI소개</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/board/empList.do' ><span>조직</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+<li><a href='/front/conts/117003001000000.do' ><span>주요업무</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/117003001000000.do');"><span>2026년 중점 사업방향</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003002000000.do');"><span>회계기준 제정개정 업무</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003005000000.do');"><span>회계기준 제정개정 절차</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003003000000.do');"><span>지속가능성 공시기준 제정개정 업무</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003006000000.do');"><span>교육 업무</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003004000000.do');"><span>IFRS재단 재정지원</span></a></li>
+</ul>
+</div>
+<li><a href='/front/conts/117004001000000.do' ><span>채용안내</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/117004001000000.do');"><span>채용 안내</span></a></li>
+<li><a href='https://kai.career.greetinghr.com/ko/'  target='_blank'><span>채용 공고</span></a>
+</ul>
+</div>
+<li><a href='/front/conts/117005000000000.do' ><span>찾아오시는 길</span></a>
+<div class='dep03'>
+<ul class='dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</div>
+</li>
+
+					</ul>
+				</div>
+				<ul class="hd_bott_rgt">
+					<li class="hd_lang"><a href="http://eng.kasb.or.kr">English</a></li>
+					<li class="hd_sear"><a href="javascript:void(0);"><span>검색</span></a></li>
+					<li class="hd_menu"><a href="javascript:void(0);"><span>전체메뉴 열기</span></a></li>
+					<li class="hd_menu_close"><a href="javascript:void(0);"><span>전체메뉴 닫기</span></a></li>
+				</ul>
+				</div>
+			</div>
+		</div>
+		<!--//header_wrap-->
+		
+		<!--all menu-->
+		<div class="sm_wrap">
+			<!--
+		    <div class="sm_m_top">
+               <ul class="sm_m_rgt">
+                   <li class="sm_m_lang"><a href="#">English</a></li>
+               </ul>
+           </div>
+		   -->
+			<ul class="sm_dep01_wrap">
+			<li>
+<a href="javascript:void(0);"><span>회계기준</span></a>
+<div class='sm_dep02'>
+<ul class='sm_dep02_wrap'>
+<li><a href='#' ><span>기업회계기준</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/accountingAllList.do');"><span>기업회계기준(전체)</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3007.do');"><span>기업회계기준전문</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/ingAccountingList.do');"><span>한국채택국제회계기준(K-IFRS)</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3013.do');"><span>국제회계기준(IFRS)</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3003.do');"><span>일반기업회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3004.do');"><span>특수분야회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3005.do');"><span>중소기업회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3006.do');"><span>비영리조직회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List3008.do');"><span>종전기업회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List2001.do');"><span>회계기준연혁</span></a></li>
+</ul>
+</div>
+<li><a href='#' ><span>제정개정과제</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/newAccPrepListA.do');"><span>진행 과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/fNewAccPrepListA.do');"><span>완료 과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/cmtreadListA.do');"><span>의견 조회</span></a></li>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/calListA.do' ><span>주요 일정</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/AccIntActivityListA.do' ><span>국제 활동</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li><a href='#' ><span>자료실</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/boardA/AccList2002.do');"><span>제정개정자료</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/boardA/AccList2003.do');"><span>행사·교육자료</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/boardA/AccList2005.do');"><span>기고자료</span></a></li>
+</ul>
+</div>
+<li class='sm_dep02_link'><a href='https://db.kasb.or.kr/standard/'  target='_blank'><span>회계기준열람서비스</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</li>
+<li>
+<a href="javascript:void(0);"><span>지속가능성 공시기준</span></a>
+<div class='sm_dep02'>
+<ul class='sm_dep02_wrap'>
+<li><a href='#' ><span>지속가능성 공시기준</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/sstnb_stndrAllList.do');"><span>지속가능성 공시기준(전체)</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/sstnb_stndrList.do');"><span>한국 지속가능성 공시기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List5001.do');"><span>IFRS 지속가능성 공시기준</span></a></li>
+</ul>
+</div>
+<li><a href='#' ><span>제정개정과제</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/newConPrepListB.do');"><span>진행 과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/fNewConPrepListB.do');"><span>완료 과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/ConcmtreadListB.do');"><span>의견 조회</span></a></li>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/calListB.do' ><span>주요 일정</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/ConIntActivityListB.do' ><span>국제 활동</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li><a href='#' ><span>자료실</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/boardB/ConList2002.do');"><span>제정개정자료</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/boardB/ConList2003.do');"><span>행사∙교육자료</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/boardB/ConList2005.do');"><span>기고자료</span></a></li>
+</ul>
+</div>
+<li><a href='#' ><span>기업 보고 지원</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/kdsdList.do');"><span>한국 지속가능성 공시기준 적용지원</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/idsdList.do');"><span>국제 지속가능성 공시기준 적용지원</span></a></li>
+</ul>
+</div>
+</ul>
+</div>
+</li>
+<li>
+<a href="javascript:void(0);"><span>질의회신</span></a>
+<div class='sm_dep02'>
+<ul class='sm_dep02_wrap'>
+<li><a href='#' ><span>질의회신 접수</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/120001001000000.do');"><span>질의회신 업무절차</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/quickQuestionFirst.do');"><span>신속처리 질의</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/regularQuestionFirst.do');"><span>정규절차 질의</span></a></li>
+</ul>
+</div>
+<li><a href='#' ><span>질의회신 요약</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/120002017000000.do');"><span>질의회신 요약 안내</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/allReplySummaryList.do');"><span>질의회신 요약 전체</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016001.do');"><span>한국채택국제회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016002.do');"><span>IFRS 해석위원회 논의 결과 </span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016003.do');"><span>일반기업회계기준 </span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016004.do');"><span>종전기업회계기준 </span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016005.do');"><span>K-IFRS 신속처리질의 </span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016006.do');"><span> 일반기업회계기준 신속처리질의</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List016008.do');"><span>정착지원TF</span></a></li>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/opinionList.do' ><span>회계기준적용의견서</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</li>
+<li>
+<a href="javascript:void(0);"><span>연구교육</span></a>
+<div class='sm_dep02'>
+<ul class='sm_dep02_wrap'>
+<li><a href='#' ><span>한국회계연구원</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/122001001001000.do');"><span>소개</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/122001002000000.do');"><span>박사후 연구원 프로그램</span></a></li>
+</ul>
+</div>
+<li><a href='#' ><span>연구</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/122002006000000.do');"><span>진행 중인 연구과제</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/List4003.do');"><span>IFRS Research Forum</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/publishList.do');"><span>출판물</span></a></li>
+</ul>
+</div>
+<li><a href='#' ><span>교육</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/eduSmartList.do');"><span>스마트강의</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/eduAccstdList.do');"><span>교육 자료</span></a></li>
+</ul>
+</div>
+<li><a href='#' ><span>참여</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/thesisShareFirst.do');"><span>연구논문 공유</span></a></li>
+</ul>
+</div>
+</ul>
+</div>
+</li>
+<li>
+<a href="javascript:void(0);"><span>소통광장</span></a>
+<div class='sm_dep02'>
+<ul class='sm_dep02_wrap'>
+<li class='sm_dep02_right'><a href='/front/board/comm010List.do' ><span>공지사항</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/comm020List.do' ><span>보도자료</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/comm030DomesticList.do' ><span>회계뉴스</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/comm040List.do' ><span>뉴스레터</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li><a href='#' ><span>참여</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/board/surveyList.do');"><span>서베이</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/comm050First.do');"><span>의견제안</span></a></li>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/comm060List.do' ><span>자주하는 질문</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</li>
+<li>
+<a href="javascript:void(0);"><span>기준원 안내</span></a>
+<div class='sm_dep02'>
+<ul class='sm_dep02_wrap'>
+<li><a href='#' ><span>비전과 연혁</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/117001001000000.do');"><span>설립 안내</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117001002000000.do');"><span>비전</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/historyList.do');"><span>연혁</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/executivesHistoryList.do');"><span>역대 임원</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/anReportList.do');"><span>연차보고서</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/auditList.do');"><span>감사보고서</span></a></li>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/conts/117006000000000.do' ><span>CI소개</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/empList.do' ><span>조직</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li><a href='#' ><span>주요업무</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/117003001000000.do');"><span>2026년 중점 사업방향</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003002000000.do');"><span>회계기준 제정개정 업무</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003005000000.do');"><span>회계기준 제정개정 절차</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003003000000.do');"><span>지속가능성 공시기준 제정개정 업무</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003006000000.do');"><span>교육 업무</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117003004000000.do');"><span>IFRS재단 재정지원</span></a></li>
+</ul>
+</div>
+<li><a href='#' ><span>채용안내</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+<li><a href="javascript:fn_goMenu('/front/conts/117004001000000.do');"><span>채용 안내</span></a></li>
+<li class='dep03_link'><a href='https://kai.career.greetinghr.com/ko/'  target='_blank'><span>채용 공고</span></a>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/conts/117005000000000.do' ><span>찾아오시는 길</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</li>
+<li>
+<a href="javascript:void(0);"><span>이용안내</span></a>
+<div class='sm_dep02'>
+<ul class='sm_dep02_wrap'>
+<li class='sm_dep02_right'><a href='/front/conts/124001000000000.do' ><span>이용안내</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/sitemap.do' ><span>사이트맵</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/conts/124003000000000.do' ><span>관련 사이트</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/conts/124004000000000.do' ><span>개인정보 처리방침</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/conts/124005000000000.do' ><span>이메일 무단수집 거부</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/ipLookerRegist.do' ><span>IP 차단안내</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+<li class='sm_dep02_right'><a href='/front/board/rssList.do' ><span>RSS 이용안내</span></a>
+<div class='sm_dep03' style='display:none'>
+<ul class='sm_dep03_wrap'>
+</ul>
+</div>
+</ul>
+</div>
+</li>
+
+			</ul>
+		</div>
+		<!--//all menu-->
+		
+		<!--total_sear_layer-->
+		<div class="layer_search_wrap">
+            <div class="layer_search">
+            	<form id="SearchForm" action="/front/board/search.do" method="post">
+	                <fieldset>
+	                    <legend>통합검색</legend>
+	                    <div class="layer_search_top">
+	                        <strong>SEARCH</strong>
+	                        <a href="javascript:void(0);" class="layer_search_close"><img src="/common/front/kor/images/common/ico_close_w.png" alt=""></a>
+	                    </div>
+	                    <div class="layer_search_bott">
+	                        <div class="layer_search_box">
+	                            <input type="text" id="searchtext" name="searchtext" class="layer_search_input" placeholder="무엇이 궁금하세요?">
+	                            <input type="submit" class="layer_search_btn">
+	                        </div>
+							<!--
+	                        <ul class="layer_search_tag">
+	                            <li><a href="#" onclick="fn_SearchForm('주요 진행과제');">#주요 진행과제</a></li>
+	                            <li><a href="#" onclick="fn_SearchForm('의견조회');">#의견조회</a></li>
+	                            <li><a href="#" onclick="fn_SearchForm('질의회신접수');">#질의회신접수</a></li>
+	                        </ul>
+							-->
+	                    </div>
+	                </fieldset>                
+                </form>
+                <script>
+                	function fn_SearchForm( value ) {
+                		$("#SearchFormText").val( value );
+                		$("#SearchForm").submit();
+                	}
+                </script>
+            </div>
+        </div>
+		<!--//total_sear_layer-->
+		
+		<!--lnb wrap-->
+     <div class="lnb_wrap">
+            <div class="lnb_inner">
+                <div class="lnb_lft">
+                    <a href="/" class="lnb_home"><span>home</span></a>
+                    <ul class="lnb_dep01 fix">
+                        <li><a href="javascript:void(0);"><span>질의회신</span></a>
+                            <ul class="lnb_dep02" style="display: none;">
+								<li><a href="javascript:fn_goMenu('/front/board/accountingAllList.do');" ><span>회계기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/sstnb_stndrAllList.do');" ><span>지속가능성 공시기준</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/120001001000000.do');" ><span>질의회신</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/122001001001000.do');" ><span>연구교육</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/board/comm010List.do');" ><span>소통광장</span></a></li>
+<li><a href="javascript:fn_goMenu('/front/conts/117001001000000.do');" ><span>기준원 안내</span></a></li>
+
+                            </ul>
+                        </li>
+                        <li><a href="javascript:void(0);" class=""><span>질의회신 요약</span></a>
+                            <ul class="lnb_dep02" style="display: none;">
+								<li><a href="/front/conts/120001001000000.do" ><span>질의회신 접수</span></a></li>
+<li><a href="/front/board/allReplySummaryList.do" ><span>질의회신 요약</span></a></li>
+<li><a href="/front/board/opinionList.do" ><span>회계기준적용의견서</span></a></li>
+
+                            </ul>
+                        </li>
+						
+                        <li><a href="javascript:void(0);" class=""><span>질의회신 요약 전체</span></a>
+                            <ul class="lnb_dep02" style="display: none;">
+								<li><a href="/front/conts/120002017000000.do" >질의회신 요약 안내</a></li>
+<li><a href="/front/board/allReplySummaryList.do" >질의회신 요약 전체</a></li>
+<li><a href="/front/board/List016001.do" >한국채택국제회계기준</a></li>
+<li><a href="/front/board/List016002.do" >IFRS 해석위원회 논의 결과 </a></li>
+<li><a href="/front/board/List016003.do" >일반기업회계기준 </a></li>
+<li><a href="/front/board/List016004.do" >종전기업회계기준 </a></li>
+<li><a href="/front/board/List016005.do" >K-IFRS 신속처리질의 </a></li>
+<li><a href="/front/board/List016006.do" > 일반기업회계기준 신속처리질의</a></li>
+<li><a href="/front/board/List016008.do" >정착지원TF</a></li>
+
+                            </ul>
+                        </li>
+                        
+                    </ul>
+                </div>
+                <div class="lnb_rgt">
+                    <ul class="lnb_link">
+                        <li><a href="https://www.youtube.com/channel/UCySa4nG05sklQSmTbK3U8Zw" target="_blank" title="새창 열기"><img src="/common/front/kor/images/common/ico_yt.png" alt="유튜브아이콘"></a></li>
+					
+                        <li><a href="https://www.linkedin.com/company/korea-accounting-institute/" target="_blank" title="새창 열기"><img src="/common/front/kor/images/common/ico_linkin.png" alt="Linkedin 아이콘"></a></li>
+					
+                        <li><a href="/front/conts/124008000000000.do"><img src="/common/front/kor/images/common/ico_rss.png" alt="RSS 이용안내 아이콘"></a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!--//lnb wrap-->
+        
+		<!--title-->
+        <div class="title_wrap">
+            <div class="title_inner">
+                <h2 class="sub_tit_h2 subTitleNm"></h2>
+                <div class="title_rgt">
+                    <ul class="title_rgt_link">
+                        <li><a href="#" onclick="ScreenCopy(); return false;" title="새창 열기"><img src="/common/front/kor/images/common/ico_print.png" alt="프린트 아이콘"></a></li>
+                        <li>
+                            <div class="title_sns_wrap">
+								<!--
+                                <a href="https://www.linkedin.com/company/korea-accounting-institute/" target="_blank" class="tit_sns_btn"><img src="/common/front/kor/images/common/ico_sns_linkedin.png" alt=""></a>
+								-->
+                                <a href="javascript:void(0);" class="tit_sns_shar"><img src="/common/front/kor/images/common/ico_sns_share.png" alt="sns 펼침버튼 아이콘"></a>
+								<a href="#" onclick="FacebookCopy(); return false;" class="tit_sns_btn" class="tit_sns_btn" title="새창 열기"><img src="/common/front/kor/images/common/ico_sns_fb.png" alt="페이스북 아이콘"></a>
+                                <a href="#" onclick="LinkCopy(); return false;" class="tit_sns_btn"><img src="/common/front/kor/images/common/ico_sns_url.png" alt="링크복사 아이콘"></a>
+                                
+                            </div>
+                        </li>
+                    </ul>
+                    <ul class="title_rgt_btn">
+                        <li><a href="javascript:zoomIn();"><img src="/common/front/kor/images/common/ico_pluse.png" alt="화면확대"></a></li>
+                        <li><a href="javascript:zoomOut();"><img src="/common/front/kor/images/common/ico_minus.png" alt="화면축소"></a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!--//title-->
+        <script>
+        	function LinkCopy() {
+        		var hostname = $(location).prop('hostname');
+        		var pathname = $(location).attr('pathname');
+        		var paramname = $('#frm').serialize();
+        		var copyname = "http://" + hostname + pathname + "?" + paramname;
+        		
+        		$("#link_area").val( copyname );
+        	    $("#link_area").attr("type", "text");
+        	    $("#link_area").select();
+        	    var success = document.execCommand("copy");
+        	    $("#link_area").attr("type", "hidden");
+        	    if (success) {
+        	        alert("링크가 복사되었습니다.");
+        	    }
+        	}
+        	
+        	function ScreenCopy() {
+        		window.print();
+        	}
+        	
+        	function FacebookCopy() {
+        		var hostname = $(location).prop('hostname');
+        		var pathname = $(location).attr('pathname');
+        		var paramname = $('#frm').serialize();
+        		var copyname =  pathname + "?" + paramname;        		
+        	    fullUrl =  encodeURIComponent( "http://" + hostname + copyname );
+        	    var fb = window.open('https://www.facebook.com/sharer/sharer.php?u='+fullUrl, 'facebook' , 'width=570,height=420,scrollbars=yes');        		
+        	}        	
+        </script>
+        <input type="hidden" id="link_area" class="link_area" value="" />        
+        <!-- 컨텐츠 -->
+        
+      <!--tab-->
+        
+        <div class="tab_wrap">
+            <div class="tab_inner">
+                <ul class="tab_sty01">
+				
+                </ul>
+            </div>
+        </div>
+        
+        
+		<!-- 5Depth -->
+		
+		<!-- 5Depth -->
+        
+        <!--//tab-->
+        
+        <!-- 컨텐츠 -->
+		
+<form id="frm" name="frm" method="GET">
+	<input type="hidden" id="siteCd" name="siteCd" value="002000000000000"/>
+	<input type="hidden" id="seq" name="seq" value=""/>
+	<input type="hidden" id="ctgCd" name="ctgCd" value=""/>
+	<input type="hidden" id="replySummary" name="replySummary" value="Y"/>
+        
+    <!--content wrap-->
+    <div id="content" class="content_wrap">
+        <div class="content_inner">
+           
+           <div class="sear_wrap">
+               <div class="sear_top">
+                   <div class="sear_top_inner">
+                       <select id="searchfield" name="searchfield" class="select_sty01" title="검색조건선택"
+					   >
+                           <option value="ALL">전체</option>
+                           <option value="TITLE" >제목</option>
+                           <option value="CONTENTS" >내용</option>
+                       </select>
+                       <input type="text" id="searchword" name="searchword" placeholder="검색어를 입력하세요." title="검색어입력"
+					   value="" class="input_text01">
+                       <input type="submit" value="검색" class="btn_sear" onClick="javascript:fn_Search(); return false;" title="검색버튼"
+					   >
+                   </div>
+				   <a href="javascript:void(0);" class="sear_detail_btn"><span>상세검색</span></a>
+               </div>
+               <div class="sear_bott">
+					<ul class="sear_bott_inner">
+						
+	               		<li>
+							<p class="sear_tit">분류</p>
+							<select id="categoryList" name="categoryList" class="select_sty01" onchange="fn_refdocSelect(this.value)" title="분류선택"
+							>
+								<option value="">선택</option>
+								
+									
+								
+									
+										<option value="016001000000" >한국채택국제회계기준</option>
+									
+								
+									
+										<option value="016002000000" >IFRS 해석위원회 논의 결과</option>
+									
+								
+									
+										<option value="016003000000" >일반기업회계기준</option>
+									
+								
+									
+										<option value="016004000000" >종전기업회계기준</option>
+									
+								
+									
+										<option value="016005000000" >K-IFRS 신속처리질의</option>
+									
+								
+									
+										<option value="016006000000" >일반기준 신속처리질의</option>
+									
+								
+									
+								
+									
+										<option value="016008000000" >정착지원TF</option>
+									
+								
+							</select>
+						</li>
+						
+						<li>
+	                       <p class="sear_tit">조회기간</p>
+	                       <div class="sear_date">
+	                           <div class="sear_date_sec"><input type="date" max="2999-12-31" id="s_date_start" name="s_date_start" placeholder="날짜선택" title="조회기간 시작일" value=""></div>
+	                           <p>~</p>
+	                           <div class="sear_date_sec"><input type="date" max="2999-12-31" id="s_date_end" name="s_date_end" placeholder="날짜선택" title="조회기간 종료일" value=""></div>
+	                       </div>
+						</li>
+					</ul>
+               </div>
+               <!-- <a href="javascript:void(0);" class="sear_detail_btn"><span>상세검색</span></a> -->
+           </div>
+
+            <div class="board_sty01">
+                <table>
+                    <caption>질의회신 요약 전체 관련된 표로 번호, 분류, 제목, 첨부, 회신일로 구성되어있다.</caption>
+                    <colgroup>
+                    	<col width="8%" class="col_none">
+                    	
+                    	
+                    	<col width="18%" class="col_none">
+                    	
+						<col width="*%">
+						<col width="50px" class="col_none">
+						<col width="120px">
+						<col width="120px">
+                    </colgroup>
+                    <thead>
+                        <tr>
+							<th class="col_none">번호</th>
+							
+								<th class="col_none">분류</th>
+							
+							
+							<th>제목</th>
+							<th class="col_none">첨부</th>
+							<th>
+								
+									
+																		
+										회신일
+									
+								
+							</th>
+							<th>공개일</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    	
+                    		<tr>
+	                          	<td class="col_none"><strong>공지</strong></td>
+	                            
+	                            	<td class="col_none"></td>
+	                            
+	                            
+	                            <td class="left"><a href="javascript:void(0);" onclick="javascript:fn_Detail('40533','016009');">종전기업회계기준과 일반기업회계기준 질의회신 비교표</a></td>
+
+                         		<!-- 파일 시작 -->
+	                            
+	                            
+                            	
+									<td class="col_none">
+										<div class="btn_down03_wrap">
+										<a href="javascript:void(0);" class="btn_down03"><span>다운로드</span></a>
+											<div class="down_pop_wrap">
+												<div class="down_pop_top"><p>파일 다운로드 선택</p><a href="javascript:void(0);"><img src="/common/front/kor/images/ico/ico_pop_close.png" alt="팝업 닫기"></a></div>
+												<div class="down_pop_bott">
+													<ul class="down_pop_list">
+														
+															 <!-- .으로 파일명 분리 -->
+															 <!-- 가장 마지막 요소 (확장자) -->
+																<!-- 실제 확장자명과 클래스명이 일치하지않아 맞춰줌  -->
+																
+																	
+																	
+																	
+																	
+																	
+																	
+																	 
+																	
+																	
+																	
+																	
+																
+																<li class="down_excel"><a href="javascript:void(0)" title="다운로드 하려면 클릭하세요  20140630_질의회신_게시물_요약_210609_수정.xlsx" onclick="javascript:fileDownload('-49990797','1'); return false;"><span>20140630_질의회신_게시물_요약_210609_수정.xlsx</span></a></li>
+														
+													</ul>
+												</div>
+											</div>
+										</div>
+									</td>
+								
+								
+								
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    	
+                    		<tr>
+	                          	<td class="col_none"><strong>공지</strong></td>
+	                            
+	                            	<td class="col_none"></td>
+	                            
+	                            
+	                            <td class="left"><a href="javascript:void(0);" onclick="javascript:fn_Detail('40531','016009');">일반기업회계기준 질의회신 정비목록 24-1</a></td>
+
+                         		<!-- 파일 시작 -->
+	                            
+	                            
+                            	
+									<td class="col_none">
+										<div class="btn_down03_wrap">
+										<a href="javascript:void(0);" class="btn_down03"><span>다운로드</span></a>
+											<div class="down_pop_wrap">
+												<div class="down_pop_top"><p>파일 다운로드 선택</p><a href="javascript:void(0);"><img src="/common/front/kor/images/ico/ico_pop_close.png" alt="팝업 닫기"></a></div>
+												<div class="down_pop_bott">
+													<ul class="down_pop_list">
+														
+															 <!-- .으로 파일명 분리 -->
+															 <!-- 가장 마지막 요소 (확장자) -->
+																<!-- 실제 확장자명과 클래스명이 일치하지않아 맞춰줌  -->
+																
+																	
+																	
+																	
+																	
+																	
+																	
+																	 
+																	
+																	
+																	
+																	
+																
+																<li class="down_hwp"><a href="javascript:void(0)" title="다운로드 하려면 클릭하세요  240322_일반기업회계기준_질의회신_정비목록_24-1.hwp" onclick="javascript:fileDownload('-49990795','1'); return false;"><span>240322_일반기업회계기준_질의회신_정비목록_24-1.hwp</span></a></li>
+														
+													</ul>
+												</div>
+											</div>
+										</div>
+									</td>
+								
+								
+								
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    	
+                    		<tr>
+	                          	<td class="col_none"><strong>공지</strong></td>
+	                            
+	                            	<td class="col_none"></td>
+	                            
+	                            
+	                            <td class="left"><a href="javascript:void(0);" onclick="javascript:fn_Detail('40530','016009');">일반기업회계기준 질의회신 정비목록 21-1</a></td>
+
+                         		<!-- 파일 시작 -->
+	                            
+	                            
+                            	
+									<td class="col_none">
+										<div class="btn_down03_wrap">
+										<a href="javascript:void(0);" class="btn_down03"><span>다운로드</span></a>
+											<div class="down_pop_wrap">
+												<div class="down_pop_top"><p>파일 다운로드 선택</p><a href="javascript:void(0);"><img src="/common/front/kor/images/ico/ico_pop_close.png" alt="팝업 닫기"></a></div>
+												<div class="down_pop_bott">
+													<ul class="down_pop_list">
+														
+															 <!-- .으로 파일명 분리 -->
+															 <!-- 가장 마지막 요소 (확장자) -->
+																<!-- 실제 확장자명과 클래스명이 일치하지않아 맞춰줌  -->
+																
+																	
+																	
+																	
+																	
+																	
+																	
+																	 
+																	
+																	
+																	
+																	
+																
+																<li class="down_hwp"><a href="javascript:void(0)" title="다운로드 하려면 클릭하세요  210611_일반기업회계기준_질의회신_정비목록_21-1.hwp" onclick="javascript:fileDownload('-49990794','1'); return false;"><span>210611_일반기업회계기준_질의회신_정비목록_21-1.hwp</span></a></li>
+														
+													</ul>
+												</div>
+											</div>
+										</div>
+									</td>
+								
+								
+								
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    	
+                    		<tr>
+	                          	<td class="col_none"><strong>공지</strong></td>
+	                            
+	                            	<td class="col_none"></td>
+	                            
+	                            
+	                            <td class="left"><a href="javascript:void(0);" onclick="javascript:fn_Detail('40529','016009');">일반기업회계기준 질의회신 정비목록 20-1</a></td>
+
+                         		<!-- 파일 시작 -->
+	                            
+	                            
+                            	
+									<td class="col_none">
+										<div class="btn_down03_wrap">
+										<a href="javascript:void(0);" class="btn_down03"><span>다운로드</span></a>
+											<div class="down_pop_wrap">
+												<div class="down_pop_top"><p>파일 다운로드 선택</p><a href="javascript:void(0);"><img src="/common/front/kor/images/ico/ico_pop_close.png" alt="팝업 닫기"></a></div>
+												<div class="down_pop_bott">
+													<ul class="down_pop_list">
+														
+															 <!-- .으로 파일명 분리 -->
+															 <!-- 가장 마지막 요소 (확장자) -->
+																<!-- 실제 확장자명과 클래스명이 일치하지않아 맞춰줌  -->
+																
+																	
+																	
+																	
+																	
+																	
+																	
+																	 
+																	
+																	
+																	
+																	
+																
+																<li class="down_hwp"><a href="javascript:void(0)" title="다운로드 하려면 클릭하세요  200116_일반기업회계기준_질의회신_정비목록_20-1.hwp" onclick="javascript:fileDownload('-49990793','1'); return false;"><span>200116_일반기업회계기준_질의회신_정비목록_20-1.hwp</span></a></li>
+														
+													</ul>
+												</div>
+											</div>
+										</div>
+									</td>
+								
+								
+								
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    	
+                    		<tr>
+	                          	<td class="col_none"><strong>공지</strong></td>
+	                            
+	                            	<td class="col_none"></td>
+	                            
+	                            
+	                            <td class="left"><a href="javascript:void(0);" onclick="javascript:fn_Detail('40528','016009');">일반기업회계기준 질의회신 정비목록 19-1</a></td>
+
+                         		<!-- 파일 시작 -->
+	                            
+	                            
+                            	
+									<td class="col_none">
+										<div class="btn_down03_wrap">
+										<a href="javascript:void(0);" class="btn_down03"><span>다운로드</span></a>
+											<div class="down_pop_wrap">
+												<div class="down_pop_top"><p>파일 다운로드 선택</p><a href="javascript:void(0);"><img src="/common/front/kor/images/ico/ico_pop_close.png" alt="팝업 닫기"></a></div>
+												<div class="down_pop_bott">
+													<ul class="down_pop_list">
+														
+															 <!-- .으로 파일명 분리 -->
+															 <!-- 가장 마지막 요소 (확장자) -->
+																<!-- 실제 확장자명과 클래스명이 일치하지않아 맞춰줌  -->
+																
+																	
+																	
+																	
+																	
+																	
+																	
+																	 
+																	
+																	
+																	
+																	
+																
+																<li class="down_hwp"><a href="javascript:void(0)" title="다운로드 하려면 클릭하세요  190527_일반기업회계기준_질의회신_정비목록.hwp" onclick="javascript:fileDownload('-49990792','1'); return false;"><span>190527_일반기업회계기준_질의회신_정비목록.hwp</span></a></li>
+														
+													</ul>
+												</div>
+											</div>
+										</div>
+									</td>
+								
+								
+								
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    	
+                    		<tr>
+	                          	<td class="col_none"><strong>공지</strong></td>
+	                            
+	                            	<td class="col_none"></td>
+	                            
+	                            
+	                            <td class="left"><a href="javascript:void(0);" onclick="javascript:fn_Detail('40527','016009');">일반기업회계기준 질의회신 정비목록 17-1</a></td>
+
+                         		<!-- 파일 시작 -->
+	                            
+	                            
+                            	
+									<td class="col_none">
+										<div class="btn_down03_wrap">
+										<a href="javascript:void(0);" class="btn_down03"><span>다운로드</span></a>
+											<div class="down_pop_wrap">
+												<div class="down_pop_top"><p>파일 다운로드 선택</p><a href="javascript:void(0);"><img src="/common/front/kor/images/ico/ico_pop_close.png" alt="팝업 닫기"></a></div>
+												<div class="down_pop_bott">
+													<ul class="down_pop_list">
+														
+															 <!-- .으로 파일명 분리 -->
+															 <!-- 가장 마지막 요소 (확장자) -->
+																<!-- 실제 확장자명과 클래스명이 일치하지않아 맞춰줌  -->
+																
+																	
+																	
+																	
+																	
+																	
+																	
+																	 
+																	
+																	
+																	
+																	
+																
+																<li class="down_hwp"><a href="javascript:void(0)" title="다운로드 하려면 클릭하세요  171120_일반기업회계기준_질의회신_정비목록.hwp" onclick="javascript:fileDownload('-49990791','1'); return false;"><span>171120_일반기업회계기준_질의회신_정비목록.hwp</span></a></li>
+														
+													</ul>
+												</div>
+											</div>
+										</div>
+									</td>
+								
+								
+								
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    	
+                        
+						<tr>
+							
+                            
+                            	
+									
+	                            		<td class="col_none">2181</td>
+	                            	
+		                            
+	                          	
+	                            
+	                            	
+										
+	                            			<td class="col_none">정착지원TF</td>
+	                            		
+	                            		
+	                            	
+	                            
+	                            
+	                            <td class="left"><a href="javascript:void(0);" onclick="javascript:fn_Detail('40674','016008');">제1118호 정착지원 TF 논의 내용(2차)</a></td>
+
+                         		<!-- 파일 시작 -->
+	                            
+	                            
+                            	
+									<td class="col_none">
+										<div class="btn_down03_wrap">
+										<a href="javascript:void(0);" class="btn_down03"><span>다운로드</span></a>
+											<div class="down_pop_wrap">
+												<div class="down_pop_top"><p>파일 다운로드 선택</p><a href="javascript:void(0);"><img src="/common/front/kor/images/ico/ico_pop_close.png" alt=""></a></div>
+												<div class="down_pop_bott">
+													<ul class="down_pop_list">
+														
+															 <!-- .으로 파일명 분리 -->
+															 <!-- 가장 마지막 요소 (확장자) -->
+																<!-- 실제 확장자명과 클래스명이 일치하지않아 맞춰줌  -->
+																
+																	
+																	
+																	
+																	
+																	
+																	
+																	 
+																	
+																	
+																	
+																	
+																
+																<li class="down_hwp"><a href="javascript:void(0)" title="다운로드 하려면 클릭하세요  260616_(기준원)K-IFRS제1118호정착지원TF_2차회의_논의내용_F.hwp" onclick="javascript:fileDownload('-49993022','1'); return false;"><span>260616_(기준원)K-IFRS제1118호정착지원TF_2차회의_논의내용_F.hwp</span></a></li>
+														
+													</ul>
+												</div>
+											</div>
+										</div>
+									</td>
+								
+								
+								
+								<!-- 파일 끝-->
+							
+							
+							
+							
+								
+                            	
+                            		<td><p class="board_date">2026-06-16</p></td>
+                            	
+                            
+                            <td></td>
+                        </tr>
+                        
+						<tr>
+							
+                            
+                            	
+									
+	                            		<td class="col_none">2180</td>
+	                            	
+		                            
+	                          	
+	                            
+	                            	
+										
+	                            			<td class="col_none">정착지원TF</td>
+	                            		
+	                            		
+	                            	
+	                            
+	                            
+	                            <td class="left"><a href="javascript:void(0);" onclick="javascript:fn_Detail('40664','016008');">제1118호 정착지원 TF 논의 내용(1차)</a></td>
+
+                         		<!-- 파일 시작 -->
+	                            
+	                            
+                            	
+									<td class="col_none">
+										<div class="btn_down03_wrap">
+										<a href="javascript:void(0);" class="btn_down03"><span>다운로드</span></a>
+											<div class="down_pop_wrap">
+												<div class="down_pop_top"><p>파일 다운로드 선택</p><a href="javascript:void(0);"><img src="/common/front/kor/images/ico/ico_pop_close.png" alt=""></a></div>
+												<div class="down_pop_bott">
+													<ul class="down_pop_list">
+														
+															 <!-- .으로 파일명 분리 -->
+															 <!-- 가장 마지막 요소 (확장자) -->
+																<!-- 실제 확장자명과 클래스명이 일치하지않아 맞춰줌  -->
+																
+																	
+																	
+																	
+																	
+																	
+																	
+																	 
+																	
+																	
+																	
+																	
+																
+																<li class="down_hwp"><a href="javascript:void(0)" title="다운로드 하려면 클릭하세요  260515_(기준원)K-IFRS제1118호정착지원TF_1차회의_논의내용_F.hwp" onclick="javascript:fileDownload('-49992955','1'); return false;"><span>260515_(기준원)K-IFRS제1118호정착지원TF_1차회의_논의내용_F.hwp</span></a></li>
+														
+													</ul>
+												</div>
+											</div>
+										</div>
+									</td>
+								
+								
+								
+								<!-- 파일 끝-->
+							
+							
+							
+							
+								
+                            	
+                            		<td><p class="board_date">2026-05-15</p></td>
+                            	
+                            
+                            <td></td>
+                        </tr>
+                        
+						<tr>
+							
+                            
+                            	
+									
+	                            		<td class="col_none">2179</td>
+	                            	
+		                            
+	                          	
+	                            
+	                            	
+										
+	                            			<td class="col_none">정착지원TF</td>
+	                            		
+	                            		
+	                            	
+	                            
+	                            
+	                            <td class="left"><a href="javascript:void(0);" onclick="javascript:fn_Detail('40661','016008');">K-IFRS 제1118호 정착지원 TF 논의 내용(킥오프 미팅)</a></td>
+
+                         		<!-- 파일 시작 -->
+	                            
+	                            
+                            	
+									<td class="col_none">
+										<div class="btn_down03_wrap">
+										<a href="javascript:void(0);" class="btn_down03"><span>다운로드</span></a>
+											<div class="down_pop_wrap">
+												<div class="down_pop_top"><p>파일 다운로드 선택</p><a href="javascript:void(0);"><img src="/common/front/kor/images/ico/ico_pop_close.png" alt=""></a></div>
+												<div class="down_pop_bott">
+													<ul class="down_pop_list">
+														
+															 <!-- .으로 파일명 분리 -->
+															 <!-- 가장 마지막 요소 (확장자) -->
+																<!-- 실제 확장자명과 클래스명이 일치하지않아 맞춰줌  -->
+																
+																	
+																	
+																	
+																	
+																	
+																	
+																	 
+																	
+																	
+																	
+																	
+																
+																<li class="down_hwp"><a href="javascript:void(0)" title="다운로드 하려면 클릭하세요  제1118호정착지원TF_논의내용(킥오프미팅).hwp" onclick="javascript:fileDownload('-49992812','1'); return false;"><span>제1118호정착지원TF_논의내용(킥오프미팅).hwp</span></a></li>
+														
+													</ul>
+												</div>
+											</div>
+										</div>
+									</td>
+								
+								
+								
+								<!-- 파일 끝-->
+							
+							
+							
+							
+								
+                            	
+                            		<td><p class="board_date">2026-02-27</p></td>
+                            	
+                            
+                            <td>2026-02-27</td>
+                        </tr>
+                        
+						<tr>
+							
+                            
+                            	
+									
+	                            		<td class="col_none">2178</td>
+	                            	
+		                            
+	                          	
+	                            
+	                            	
+										
+	                            			<td class="col_none">K-IFRS 신속처리질의</td>
+	                            		
+	                            		
+	                            	
+	                            
+	                            
+	                            <td class="left"><a href="javascript:void(0);" onclick="javascript:fn_Detail('40670','016005');">비금융변수와 금융변수가 함께 존재하는 경우에 파생상품 정의 충족 여부</a></td>
+
+                         		<!-- 파일 시작 -->
+	                            
+	                            
+                            	
+								
+									<td class="col_none"></td>
+								
+								
+								<!-- 파일 끝-->
+							
+							
+							
+							
+								
+                            		<td><p class="board_date">2025-12-31</p></td>
+                            	
+                            	
+                            
+                            <td>2026-06-30</td>
+                        </tr>
+                        
+						<tr>
+							
+                            
+                            	
+									
+	                            		<td class="col_none">2177</td>
+	                            	
+		                            
+	                          	
+	                            
+	                            	
+										
+	                            			<td class="col_none">K-IFRS 신속처리질의</td>
+	                            		
+	                            		
+	                            	
+	                            
+	                            
+	                            <td class="left"><a href="javascript:void(0);" onclick="javascript:fn_Detail('40665','016005');">상조회사 부금선수금의 유동성 분류</a></td>
+
+                         		<!-- 파일 시작 -->
+	                            
+	                            
+                            	
+								
+									<td class="col_none"></td>
+								
+								
+								<!-- 파일 끝-->
+							
+							
+							
+							
+								
+                            		<td><p class="board_date">2025-12-23</p></td>
+                            	
+                            	
+                            
+                            <td>2026-06-30</td>
+                        </tr>
+                        
+						<tr>
+							
+                            
+                            	
+									
+	                            		<td class="col_none">2176</td>
+	                            	
+		                            
+	                          	
+	                            
+	                            	
+										
+	                            			<td class="col_none">K-IFRS 신속처리질의</td>
+	                            		
+	                            		
+	                            	
+	                            
+	                            
+	                            <td class="left"><a href="javascript:void(0);" onclick="javascript:fn_Detail('40677','016005');">리스기간 연장 시 단기리스 해당 여부</a></td>
+
+                         		<!-- 파일 시작 -->
+	                            
+	                            
+                            	
+								
+									<td class="col_none"></td>
+								
+								
+								<!-- 파일 끝-->
+							
+							
+							
+							
+								
+                            		<td><p class="board_date">2025-12-12</p></td>
+                            	
+                            	
+                            
+                            <td>2026-06-30</td>
+                        </tr>
+                        
+						<tr>
+							
+                            
+                            	
+									
+	                            		<td class="col_none">2175</td>
+	                            	
+		                            
+	                          	
+	                            
+	                            	
+										
+	                            			<td class="col_none">일반기준 신속처리질의</td>
+	                            		
+	                            		
+	                            	
+	                            
+	                            
+	                            <td class="left"><a href="javascript:void(0);" onclick="javascript:fn_Detail('40673','016006');">비외감 종속기업에 대한 연결면제의 선택과 후속 적용 가능 여부</a></td>
+
+                         		<!-- 파일 시작 -->
+	                            
+	                            
+                            	
+								
+									<td class="col_none"></td>
+								
+								
+								<!-- 파일 끝-->
+							
+							
+							
+							
+								
+                            		<td><p class="board_date">2025-12-02</p></td>
+                            	
+                            	
+                            
+                            <td>2026-06-30</td>
+                        </tr>
+                        
+						<tr>
+							
+                            
+                            	
+									
+	                            		<td class="col_none">2174</td>
+	                            	
+		                            
+	                          	
+	                            
+	                            	
+										
+	                            			<td class="col_none">한국채택국제회계기준</td>
+	                            		
+	                            		
+	                            	
+	                            
+	                            
+	                            <td class="left"><a href="javascript:void(0);" onclick="javascript:fn_Detail('40663','016001');">[2025-I-KQA006] 종속기업투자주식을 교환대상으로 하는 교환사채 발행 시 종속기업투자주식의 회계처리</a></td>
+
+                         		<!-- 파일 시작 -->
+	                            
+	                            
+                            	
+									<td class="col_none">
+										<div class="btn_down03_wrap">
+										<a href="javascript:void(0);" class="btn_down03"><span>다운로드</span></a>
+											<div class="down_pop_wrap">
+												<div class="down_pop_top"><p>파일 다운로드 선택</p><a href="javascript:void(0);"><img src="/common/front/kor/images/ico/ico_pop_close.png" alt=""></a></div>
+												<div class="down_pop_bott">
+													<ul class="down_pop_list">
+														
+															 <!-- .으로 파일명 분리 -->
+															 <!-- 가장 마지막 요소 (확장자) -->
+																<!-- 실제 확장자명과 클래스명이 일치하지않아 맞춰줌  -->
+																
+																	
+																	
+																	
+																	
+																	
+																	
+																	 
+																	
+																	
+																	
+																	
+																
+																<li class="down_pdf"><a href="javascript:void(0)" title="다운로드 하려면 클릭하세요  K-IFRS질의회신요약_2025-I-KQA006.pdf" onclick="javascript:fileDownload('-49992874','1'); return false;"><span>K-IFRS질의회신요약_2025-I-KQA006.pdf</span></a></li>
+														
+													</ul>
+												</div>
+											</div>
+										</div>
+									</td>
+								
+								
+								
+								<!-- 파일 끝-->
+							
+							
+							
+							
+								
+                            		<td><p class="board_date">2025-11-25</p></td>
+                            	
+                            	
+                            
+                            <td>2026-03-31</td>
+                        </tr>
+                        
+						<tr>
+							
+                            
+                            	
+									
+	                            		<td class="col_none">2173</td>
+	                            	
+		                            
+	                          	
+	                            
+	                            	
+										
+	                            			<td class="col_none">K-IFRS 신속처리질의</td>
+	                            		
+	                            		
+	                            	
+	                            
+	                            
+	                            <td class="left"><a href="javascript:void(0);" onclick="javascript:fn_Detail('40667','016005');">원재료 매입과 관련한 정부보조금의 당기손익 인식시기</a></td>
+
+                         		<!-- 파일 시작 -->
+	                            
+	                            
+                            	
+								
+									<td class="col_none"></td>
+								
+								
+								<!-- 파일 끝-->
+							
+							
+							
+							
+								
+                            		<td><p class="board_date">2025-10-17</p></td>
+                            	
+                            	
+                            
+                            <td>2026-06-30</td>
+                        </tr>
+                        
+						<tr>
+							
+                            
+                            	
+									
+	                            		<td class="col_none">2172</td>
+	                            	
+		                            
+	                          	
+	                            
+	                            	
+										
+	                            			<td class="col_none">한국채택국제회계기준</td>
+	                            		
+	                            		
+	                            	
+	                            
+	                            
+	                            <td class="left"><a href="javascript:void(0);" onclick="javascript:fn_Detail('40660','016001');">2025-I-KQA004 부동산신탁사의 정비사업 관련 자금조달시 회계처리</a></td>
+
+                         		<!-- 파일 시작 -->
+	                            
+	                            
+                            	
+									<td class="col_none">
+										<div class="btn_down03_wrap">
+										<a href="javascript:void(0);" class="btn_down03"><span>다운로드</span></a>
+											<div class="down_pop_wrap">
+												<div class="down_pop_top"><p>파일 다운로드 선택</p><a href="javascript:void(0);"><img src="/common/front/kor/images/ico/ico_pop_close.png" alt=""></a></div>
+												<div class="down_pop_bott">
+													<ul class="down_pop_list">
+														
+															 <!-- .으로 파일명 분리 -->
+															 <!-- 가장 마지막 요소 (확장자) -->
+																<!-- 실제 확장자명과 클래스명이 일치하지않아 맞춰줌  -->
+																
+																	
+																	
+																	
+																	
+																	
+																	
+																	 
+																	
+																	
+																	
+																	
+																
+																<li class="down_pdf"><a href="javascript:void(0)" title="다운로드 하려면 클릭하세요  2025-I-KQA004부동산신탁사의정비사업관련자금조달시회계처리.pdf" onclick="javascript:fileDownload('-49992379','1'); return false;"><span>2025-I-KQA004부동산신탁사의정비사업관련자금조달시회계처리.pdf</span></a></li>
+														
+													</ul>
+												</div>
+											</div>
+										</div>
+									</td>
+								
+								
+								
+								<!-- 파일 끝-->
+							
+							
+							
+							
+								
+                            		<td><p class="board_date">2025-10-15</p></td>
+                            	
+                            	
+                            
+                            <td>2025-11-28</td>
+                        </tr>
+                        
+                        
+                        
+                        	
+                         
+                        
+                          
+                    </tbody>
+                </table>
+            </div>
+
+            <!--paging-->
+            <div class="paging_wrap">
+				<ul> <li class='pag_first'><a href='javascript:G_MovePage(1);' alt='처음 페이지'>First</a></li> <li class='pag_prev'><a href='javascript:G_MovePage(1);' alt='이전 페이지'>Prev</a></li></ul><ol><li class="on"><a href='javascript:void(0);'>1</a></li> <li><a href='javascript:G_MovePage(2);'>2</a></li><li><a href='javascript:G_MovePage(3);'>3</a></li><li><a href='javascript:G_MovePage(4);'>4</a></li><li><a href='javascript:G_MovePage(5);'>5</a></li></ol><ul><li class='pag_next'><a href='javascript:G_MovePage(6);' alt='다음 페이지'>Next</a></li><li class='pag_last'><a href='javascript:G_MovePage(219);' alt='마지막 페이지'>Last</a></li></ul>
+            </div>
+            <!--//paging-->
+			
+			<!-- 안내 -->
+			<!-- IFRS 해석위원회 논의 결과 만 노출 -->
+			
+			<!-- // 안내 -->
+
+        </div>
+    </div>
+    <!--//content wrap-->
+<div id="popup_div" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border: 1px solid black;">
+    <!-- X 표시를 추가하여 팝업 창을 닫습니다. -->
+    <button onclick="closePopup()" style="position: absolute; top: -15px; right: -15px; cursor: pointer; background: none; border: none; font-size: 20px;">X</button>
+    
+    <!-- 첫 번째 칸에 파일 다운로드 -->
+    <p>파일 다운로드</p>
+    
+    <!-- 두 번째 칸부터 파일 목록 -->
+	<div id="file_list">
+	    <ul>
+	        
+	    </ul>
+	</div>
+</div>
+
+</form>
+<script type="text/javascript">
+	function fn_Detail(seq,ctgCd){
+		$("#seq").val(seq);
+		$("#ctgCd").val(ctgCd);
+		var url = "/front/board/View" + ctgCd + ".do";
+		$("#frm").attr("action", url).submit();
+	}
+	function fn_Search(){
+		if( !fn_ValidateSearchDate("s_date_start","s_date_end") ){
+			return false;
+		}
+		
+		var replyValue = document.getElementById('replySummary').value;
+		
+		if(replyValue === 'Y'){
+			$("#frm").attr("action","/front/board/allReplySummaryList.do;jsessionid=95D42F38925503C34ACC13923C57FF95");	
+		}else{
+			$("#frm").attr("action","/front/board/List.do;jsessionid=95D42F38925503C34ACC13923C57FF95");
+		}
+		$("#frm").submit();
+	}
+	function fn_refdocSelect(pCode){
+		var obj = {};
+		obj["pCode"] = pCode;
+		console.log(obj);
+		var innerHtml = "";
+		$.ajax({
+			type : "POST",
+			url  : "/admmgr/manage/board/refdocSelect.do",
+			data : obj,
+			dataType : "json",
+			success : function(data){
+				console.log(data);
+				console.log(data.length);
+					$("#refdocSubCd").find('option').remove();
+					if(data.length > 0){
+						innerHtml += "<option value=''>기준서 선택</option>";
+						for(var i=0;i<data.length;i++){
+							innerHtml += "<option value="+data[i]["CODE"]+">"+data[i]["CODE_NM"]+"</option>";
+						}
+					}else{
+						innerHtml += "";
+					}
+						$("#refdocSubCd").append(innerHtml);
+				},
+			error : function(request,status,error){
+				alert("처리 중 오류가 발생되었습니다.\nerror:"+error+"request:"+request+"status:"+status);
+			}
+		});
+	}
+	function fn_subSelect(pCode){
+		var obj = {};
+		obj["pCode"] = pCode;
+		console.log(obj);
+		var innerHtml = "";
+		$.ajax({
+			type : "POST",
+			url  : "/admmgr/manage/board/refdocSelect.do",
+			data : obj,
+			dataType : "json",
+			success : function(data){
+				console.log(data);
+				console.log(data.length);
+					$("#spanSubNm").remove();
+					$("#spanSub").children().remove();
+					if(data.length > 0){
+						innerHtml += "<p id='spanSubNm' class='sear_tit'>기준서명</p>";
+						innerHtml += "<select id='refdocSubCd' name='refdocSubCd' class='select_sty01' title='조건 선택'>";
+						for(var i=0;i<data.length;i++){
+							innerHtml += "<option value="+data[i]["CODE"]+">"+data[i]["CODE_NM"]+"</option>";
+						}
+						innerHtml += "</select>";
+					}else{
+						$("#spanSubNm").remove();
+					}
+						$("#spanSub").append(innerHtml);
+				},
+			error : function(request,status,error){
+				alert("처리 중 오류가 발생되었습니다.\nerror:"+error+"request:"+request+"status:"+status);
+			}
+		});
+	}
+</script>
+
+		<!-- //컨텐츠 -->
+
+		<!-- 상단 바로가기 -->
+		<button id="scrollToTop" class="scrollToTop"><span>상단 바로가기</span></button>
+		<!-- // 상단 바로가기 -->
+
+        <!--footer wrap-->
+        <div id="footer" class="footer_wrap">
+            <div class="ft_inner">
+                <div class="ft_lft">
+                    <ul class="ft_link">
+                        <li class="person_info"><a href="/front/conts/124004000000000.do;jsessionid=95D42F38925503C34ACC13923C57FF95">개인정보처리방침</a></li>        
+                        <li><a href="/front/conts/124005000000000.do;jsessionid=95D42F38925503C34ACC13923C57FF95">이메일무단수집거부</a></li>        
+                        <li><a href="/front/board/comm060List.do;jsessionid=95D42F38925503C34ACC13923C57FF95">자주하는 질문</a></li>         
+                        <li><a href="/front/conts/117005000000000.do;jsessionid=95D42F38925503C34ACC13923C57FF95">찾아오시는 길</a></li>        
+                        <li><a href="/front/conts/117001001000000.do;jsessionid=95D42F38925503C34ACC13923C57FF95">한국회계기준원</a></li>
+                    </ul>
+                    <address>
+                        <p class="ad_top"><span>[04513] 서울특별시 중구 세종대로 39 대한상공회의소 빌딩 3층</span><span>TEL : 02-6050-0150</span><span>FAX : 02-6050-0170</span><span>E-MAIL : webmaster@kasb.or.kr</span></p>
+                        <p class="ad_bott">Copyright ©KAI all rights reserved</p>
+                    </address>
+                </div>
+                <div class="ft_rgt">
+                   <!-- <div class="ft_family_wrap">
+                        <a href="javascript:void(0);" title="">Family Site</a>
+                        <ul class="ft_family_list" style="display: none;">
+                            <li><a href="#" target="_blank" title="새창열림">사이트 1</a></li>
+                            <li><a href="#" target="_blank" title="새창열림">사이트 2</a></li>
+                            <li><a href="#" target="_blank" title="새창열림">사이트 3</a></li>
+                        </ul>
+                    </div>  -->
+
+                </div>
+            </div>
+        </div>
+        <!--footer wrap-->
+		
+	</div>
+	<!--//common_wrap-->
+
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Y910Y4MQLQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-Y910Y4MQLQ');
+</script>
+
+	
+<script type="text/javascript" src="//wcs.naver.net/wcslog.js"></script>
+<script type="text/javascript">
+if(!wcs_add) var wcs_add = {};
+wcs_add["wa"] = "fb53862c912c08";
+if(window.wcs) {
+wcs_do();
+}
+</script>
+	
+</body>
+<script>
+function openPopup(url, width, height) {
+    var left = (screen.width - width) / 2;
+    var top = (screen.height - height) / 2;
+    var options = "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=" + width + ", height=" + height + ", top=0, left=0";
+    window.open(url, '_blank', options);
+}
+</script>
+</html>
