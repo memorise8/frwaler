@@ -26,3 +26,11 @@ def test_parse_law_service_extracts_articles_with_citation_url() -> None:
     assert first.article_no.startswith("제")
     assert first.source_url.startswith("https://www.law.go.kr/법령/법인세법")
     assert first.body_text  # 본문 비어있지 않음
+
+
+def test_parse_law_service_body_text_includes_항_content() -> None:
+    """제3조 body_text must flatten 항 clauses (납세의무자 항내용 포함)."""
+    data = json.load(open(FIX / "law_service_법인세법.json"))
+    doc = parse_law_service(data, name="법인세법", category="법률", external_id="001563")
+    article_3 = next(a for a in doc.articles if a.article_no == "제3조")
+    assert "법인세를 납부할 의무" in article_3.body_text

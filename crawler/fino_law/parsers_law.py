@@ -49,11 +49,29 @@ def parse_law_service(data: dict, *, name: str, category: str, external_id: str)
         # API의 조문번호는 "1" 형태 → "제N조"로 정규화
         label = article_no if article_no.startswith("제") else f"제{article_no}조"
         clauses = _as_list(unit.get("항"))
+        # Build complete body_text: heading + 항내용 + 호내용 + 목내용
+        body_parts: list[str] = []
+        heading = str(unit.get("조문내용", "") or "").strip()
+        if heading:
+            body_parts.append(heading)
+        for clause in clauses:
+            항내용 = str(clause.get("항내용", "") or "").strip()
+            if 항내용:
+                body_parts.append(항내용)
+            for 호 in _as_list(clause.get("호")):
+                호내용 = str(호.get("호내용", "") or "").strip()
+                if 호내용:
+                    body_parts.append(호내용)
+                for 목 in _as_list(호.get("목")):
+                    목내용 = str(목.get("목내용", "") or "").strip()
+                    if 목내용:
+                        body_parts.append(목내용)
+        body_text = "\n".join(body_parts)
         articles.append(
             ArticleRecord(
                 article_no=label,
                 article_title=str(unit.get("조문제목", "") or "").strip(),
-                body_text=str(unit.get("조문내용", "") or "").strip(),
+                body_text=body_text,
                 clause_json=json.dumps(clauses, ensure_ascii=False),
                 seq=seq,
                 source_url=f"{base_url}#{label}",
