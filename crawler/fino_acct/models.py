@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
 
@@ -38,6 +38,7 @@ class ExtractedLinks:
     details: tuple[str, ...]
     attachments: tuple[AttachmentLink, ...]
     kasb_items: tuple[tuple[str, str], ...] = ()
+    title_by_id: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)

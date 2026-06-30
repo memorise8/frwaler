@@ -27,6 +27,7 @@ KASB_FN_DETAIL_RE: Final[re.Pattern[str]] = re.compile(
 )
 FSC_DETAIL_RE: Final[re.Pattern[str]] = re.compile(r"/no010101/\d+")
 FSS_DETAIL_RE: Final[re.Pattern[str]] = re.compile(r"view\.do\?[^\"'>]*\bnttId=\d+")
+NTT_ID_RE: Final[re.Pattern[str]] = re.compile(r"nttId=(\d+)")
 ACCOUNTING_KEYWORDS: Final[tuple[str, ...]] = (
     "회계",
     "감리",
@@ -109,13 +110,43 @@ def _is_fss_board(url: str) -> bool:
     return parsed.netloc.endswith("fss.or.kr") and "/fss/bbs/" in parsed.path
 
 
+def _nttid(href: str) -> str:
+    m = NTT_ID_RE.search(href)
+    return m.group(1) if m else ""
+
+
+def detail_title(target: Target, soup: BeautifulSoup) -> str:
+    if target.priority == 1:  # KASB: 텍스트 있는 첫 h3
+        for h3 in soup.find_all("h3"):
+            text = clean_text(h3.get_text(" ", strip=True))
+            if text:
+                return text
+        return ""
+    if _is_fss_board(target.url):  # FSS: bd-view 의 subject
+        node = soup.select_one("div.bd-view h2.subject") or soup.select_one("h2.subject")
+        if node is not None:
+            return clean_text(node.get_text(" ", strip=True))
+    return ""
+
+
 def extract_links_for_target(target: Target, base_url: str, soup: BeautifulSoup) -> ExtractedLinks:
     if target.priority == 1:
         return _extract_kasb_list_links(base_url, soup)
     if _is_fss_board(target.url):
+        details: list[str] = []
+        titles: dict[str, str] = {}
+        for anchor in soup.find_all("a", href=True):
+            href = str(anchor.get("href", ""))
+            if FSS_DETAIL_RE.search(href):
+                url = urljoin(base_url, href)
+                details.append(url)
+                ntt = _nttid(href)
+                if ntt:
+                    titles[ntt] = clean_text(anchor.get_text(" ", strip=True))
         return ExtractedLinks(
-            details=extract_fss_details(base_url, soup),
+            details=tuple(dict.fromkeys(details)),
             attachments=extract_links(base_url, soup).attachments,
+            title_by_id=titles,
         )
     if target.priority != 8:
         return extract_links(base_url, soup)
@@ -134,18 +165,21 @@ def extract_links_for_target(target: Target, base_url: str, soup: BeautifulSoup)
 def _extract_kasb_list_links(base_url: str, soup: BeautifulSoup) -> ExtractedLinks:
     attachments: list[AttachmentLink] = []
     items: list[tuple[str, str]] = []
+    titles: dict[str, str] = {}
     for row in soup.select("tbody tr"):
         row_soup = BeautifulSoup(str(row), "html.parser")
-        row_links = extract_links(base_url, row_soup)
-        attachments.extend(row_links.attachments)
+        attachments.extend(extract_links(base_url, row_soup).attachments)
         for anchor in row_soup.find_all("a"):
             match = KASB_FN_DETAIL_RE.search(str(anchor.get("onclick", "")))
             if match is not None:
-                items.append((match.group(1), match.group(2)))
+                seq, ctg = match.group(1), match.group(2)
+                items.append((seq, ctg))
+                titles[f"{ctg}-{seq}"] = clean_text(anchor.get_text(" ", strip=True))
     return ExtractedLinks(
         details=(),
         attachments=tuple(_dedupe_attachments(attachments)),
         kasb_items=tuple(dict.fromkeys(items)),
+        title_by_id=titles,
     )
 
 

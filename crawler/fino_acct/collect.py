@@ -12,7 +12,7 @@ import requests
 from .db import connect_db, init_schema, upsert_attachment, upsert_document
 from .fetch import download_attachment, fetch_page_request, new_session
 from .models import AttachmentLink, Target, TargetKind
-from .parsers import extract_links_for_target, page_body, page_title
+from .parsers import detail_title, extract_links_for_target, page_body, page_title
 from .sources import TARGETS
 from .target_pages import PageRequest, direct_page_request, kasb_detail_request, page_request_for_target
 
@@ -157,6 +157,7 @@ def collect_page(
     download: bool,
     store_self: bool,
     follow_details: bool,
+    title_override: str = "",
 ) -> tuple[int, int]:
     result = fetch_page_request(session, request, delay_seconds)
     if result.status_code >= 400:
@@ -166,7 +167,7 @@ def collect_page(
     documents = 0
     attachment_count = 0
     if store_self:
-        title = page_title(soup, target.target_name)
+        title = detail_title(target, soup) or title_override or page_title(soup, target.target_name)
         document_id = upsert_document(
             conn,
             source_priority=target.priority,
@@ -195,21 +196,23 @@ def collect_page(
         )
     if follow_details:
         for detail_url in links.details:
-            req = direct_page_request(detail_url, _fss_detail_external_id(detail_url))
+            ext = _fss_detail_external_id(detail_url)
             d, f = collect_page(
                 conn=conn,
                 session=session,
                 target=target,
-                request=req,
+                request=direct_page_request(detail_url, ext),
                 download_dir=download_dir,
                 delay_seconds=delay_seconds,
                 download=download,
                 store_self=True,
                 follow_details=False,
+                title_override=links.title_by_id.get(ext, ""),
             )
             documents += d
             attachment_count += f
         for seq, ctg in links.kasb_items:
+            ext = f"{ctg}-{seq}"
             d, f = collect_page(
                 conn=conn,
                 session=session,
@@ -220,6 +223,7 @@ def collect_page(
                 download=download,
                 store_self=True,
                 follow_details=False,
+                title_override=links.title_by_id.get(ext, ""),
             )
             documents += d
             attachment_count += f

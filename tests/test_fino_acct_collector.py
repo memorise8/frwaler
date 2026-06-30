@@ -10,7 +10,7 @@ from crawler.fino_acct.db import connect_db, init_schema, upsert_attachment, ups
 from crawler.fino_acct.fetch import safe_filename
 from crawler.fino_acct.models import FetchResult
 from crawler.fino_acct.pagination import paged_url
-from crawler.fino_acct.parsers import extract_fss_details, extract_links, extract_links_for_target
+from crawler.fino_acct.parsers import detail_title, extract_fss_details, extract_links, extract_links_for_target
 from crawler.fino_acct.sources import TARGETS
 from crawler.fino_acct.target_pages import kasb_detail_request, page_request_for_target, PageRequest
 
@@ -282,3 +282,24 @@ def test_collect_list_stores_details_not_list_page(tmp_path, monkeypatch) -> Non
     assert "111" in eids and "222" in eids           # 상세가 문서로 저장됨
     assert all("list.do" not in r["detail_url"] for r in rows)  # 목록 페이지는 저장 안 됨
     assert all("view.do?nttId=" in r["detail_url"] for r in rows)
+
+
+def test_detail_title_kasb_uses_h3() -> None:
+    html = Path("tests/fixtures/fino_acct/kasb_detail.html").read_text(encoding="utf-8")
+    title = detail_title(TARGETS[0], BeautifulSoup(html, "html.parser"))
+    assert title == "종전기업회계기준과 일반기업회계기준 질의회신 비교표"
+
+
+def test_detail_title_fss_uses_subject() -> None:
+    html = Path("tests/fixtures/fino_acct/fss_detail.html").read_text(encoding="utf-8")
+    title = detail_title(TARGETS[1], BeautifulSoup(html, "html.parser"))
+    assert "ETF" in title and "금융감독원" != title
+
+
+def test_kasb_list_title_by_id_maps_ctgcd_seq() -> None:
+    html = Path("tests/fixtures/fino_acct/kasb_list.html").read_text(encoding="utf-8")
+    links = extract_links_for_target(
+        TARGETS[0], "https://www.kasb.or.kr/front/board/allReplySummaryList.do",
+        BeautifulSoup(html, "html.parser"),
+    )
+    assert links.title_by_id.get("016009-40533") == "종전기업회계기준과 일반기업회계기준 질의회신 비교표"
