@@ -21,6 +21,7 @@ export const metadata: Metadata = {
 
 const NAV = [
   { href: "/", label: "대시보드", icon: "📊" },
+  { href: "/sources", label: "원천 데이터", icon: "🗄️" },
   { href: "/search", label: "세법 검색", icon: "🔍" },
   { href: "/smart-find", label: "URL 크롤링", icon: "🌐" },
   { href: "/auto-add", label: "Auto-Add", icon: "🧠" },
