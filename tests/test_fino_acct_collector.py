@@ -11,7 +11,7 @@ from crawler.fino_acct.db import connect_db, init_schema, upsert_attachment, ups
 from crawler.fino_acct.fetch import safe_filename
 from crawler.fino_acct.models import FetchResult
 from crawler.fino_acct.pagination import paged_url
-from crawler.fino_acct.parsers import detail_title, extract_fss_details, extract_links, extract_links_for_target
+from crawler.fino_acct.parsers import _is_kasb_board, detail_title, extract_fss_details, extract_links, extract_links_for_target
 from crawler.fino_acct.sources import TARGETS
 from crawler.fino_acct.target_pages import kasb_detail_request, page_request_for_target, PageRequest
 
@@ -450,3 +450,8 @@ def test_fss_detail_excludes_docview_viewer_from_attachments() -> None:
     urls = [a.url for a in links.attachments]
     assert any("fileDown.do" in u for u in urls)          # 실제 첨부는 유지
     assert not any("docView" in u for u in urls)          # 뷰어는 제외
+
+
+def test_is_kasb_board_by_url() -> None:
+    assert _is_kasb_board("https://www.kasb.or.kr/front/board/allReplySummaryList.do")
+    assert not _is_kasb_board("https://www.fss.or.kr/fss/bbs/B0000132/list.do")

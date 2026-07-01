@@ -107,6 +107,14 @@ def extract_fss_details(base_url: str, soup: BeautifulSoup) -> tuple[str, ...]:
     return tuple(dict.fromkeys(out))
 
 
+def _is_kasb_board(url: str) -> bool:
+    return urlparse(url).netloc.endswith("kasb.or.kr")
+
+
+def _is_fsc(url: str) -> bool:
+    return urlparse(url).netloc.endswith("fsc.go.kr")
+
+
 def _is_fss_board(url: str) -> bool:
     parsed = urlparse(url)
     return parsed.netloc.endswith("fss.or.kr") and "/fss/bbs/" in parsed.path
@@ -118,7 +126,7 @@ def _nttid(href: str) -> str:
 
 
 def detail_title(target: Target, soup: BeautifulSoup) -> str:
-    if target.priority == 1:  # KASB: 텍스트 있는 첫 h3
+    if _is_kasb_board(target.url):  # KASB: 텍스트 있는 첫 h3
         for h3 in soup.find_all("h3"):
             text = clean_text(h3.get_text(" ", strip=True))
             if text:
@@ -132,7 +140,7 @@ def detail_title(target: Target, soup: BeautifulSoup) -> str:
 
 
 def extract_links_for_target(target: Target, base_url: str, soup: BeautifulSoup) -> ExtractedLinks:
-    if target.priority == 1:
+    if _is_kasb_board(target.url):
         return _extract_kasb_list_links(base_url, soup)
     if _is_fss_board(target.url):
         details: list[str] = []
@@ -150,7 +158,7 @@ def extract_links_for_target(target: Target, base_url: str, soup: BeautifulSoup)
             attachments=extract_links(base_url, soup).attachments,
             title_by_id=titles,
         )
-    if target.priority != 8:
+    if not _is_fsc(target.url):
         return extract_links(base_url, soup)
     details: list[str] = []
     attachments: list[AttachmentLink] = []
