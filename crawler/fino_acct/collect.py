@@ -115,7 +115,7 @@ def collect_target(
 ) -> tuple[int, int]:
     match target.kind:
         case TargetKind.DETAIL | TargetKind.META:
-            return collect_page(
+            docs, files, _ = collect_page(
                 conn=conn,
                 session=session,
                 target=target,
@@ -126,11 +126,14 @@ def collect_target(
                 store_self=True,
                 follow_details=False,
             )
+            return docs, files
         case TargetKind.LIST:
             documents = 0
             attachments = 0
+            seen: set[str] = set()
+            empty_streak = 0
             for page in range(1, max_pages + 1):
-                docs, files = collect_page(
+                docs, files, candidate_ids = collect_page(
                     conn=conn,
                     session=session,
                     target=target,
@@ -143,11 +146,16 @@ def collect_target(
                 )
                 documents += docs
                 attachments += files
-                # 빈 목록(마지막 페이지 너머)에서 종료. FSS/KASB는 끝 너머에서 빈 목록을
-                # 반환(wrap 없음, 실측). "새 글 없음"으로 멈추면 재크롤 시 page1 중복으로
-                # 조기 종료되므로 docs==0(목록에 상세링크 없음)만을 종료 신호로 사용한다.
-                if docs == 0:
+                if not candidate_ids:
+                    empty_streak += 1
+                    if empty_streak >= 2:  # 연속 2회 빈 목록 → 끝(FSC 필터 1페이지 공백 허용)
+                        break
+                    continue
+                empty_streak = 0
+                new_ids = set(candidate_ids) - seen
+                if not new_ids:  # 이번 run에서 새 후보 없음(wrap/중복 루프) → 종료
                     break
+                seen |= new_ids
             return documents, attachments
 
 
@@ -163,12 +171,16 @@ def collect_page(
     store_self: bool,
     follow_details: bool,
     title_override: str = "",
-) -> tuple[int, int]:
+) -> tuple[int, int, tuple[str, ...]]:
     result = fetch_page_request(session, request, delay_seconds)
     if result.status_code >= 400:
-        return 0, 0
+        return 0, 0, ()
     soup = BeautifulSoup(result.content, "html.parser")
     links = extract_links_for_target(target, result.url, soup)
+    candidate_ids = tuple(
+        [_fss_detail_external_id(u) for u in links.details]
+        + [f"{ctg}-{seq}" for seq, ctg in links.kasb_items]
+    )
     documents = 0
     attachment_count = 0
     if store_self:
@@ -202,7 +214,7 @@ def collect_page(
     if follow_details:
         for detail_url in links.details:
             ext = _fss_detail_external_id(detail_url)
-            d, f = collect_page(
+            d, f, _ = collect_page(
                 conn=conn,
                 session=session,
                 target=target,
@@ -218,7 +230,7 @@ def collect_page(
             attachment_count += f
         for seq, ctg in links.kasb_items:
             ext = f"{ctg}-{seq}"
-            d, f = collect_page(
+            d, f, _ = collect_page(
                 conn=conn,
                 session=session,
                 target=target,
@@ -232,7 +244,7 @@ def collect_page(
             )
             documents += d
             attachment_count += f
-    return documents, attachment_count
+    return documents, attachment_count, candidate_ids
 
 
 def store_attachments(

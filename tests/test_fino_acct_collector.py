@@ -330,7 +330,7 @@ def test_collect_target_early_stops_when_page_has_no_new_docs(tmp_path, monkeypa
             download_dir=tmp_path / "dl", max_pages=100, delay_seconds=0, download=False,
         )
     # max_pages=100 이지만 page 3에서 새 글 0 → 조기 종료. 목록 fetch는 한 자릿수.
-    assert calls["list"] <= 4
+    assert calls["list"] <= 5
     assert conn.execute("SELECT COUNT(*) FROM acct_documents").fetchone()[0] == 2
 
 
@@ -366,6 +366,58 @@ def test_collect_target_resume_does_not_stop_on_duplicate_first_page(tmp_path, m
 
     # page1이 중복이어도 page2,3의 새 글이 수집돼야 함(조기 종료 금지)
     assert "201" in ids and "301" in ids
+
+
+def test_early_stop_continues_when_detail_fetches_fail(tmp_path, monkeypatch) -> None:
+    """목록엔 글이 있으나 상세 fetch가 404여도, 뒤 페이지(글 있음)를 계속 수집해야 한다."""
+    def fake_fetch(session, request, delay):
+        if "list.do" in request.url:
+            m = re.search(r"pageIndex=(\d+)", request.url)
+            page = int(m.group(1)) if m else 1
+            if page <= 3:
+                body = f'<a href="/fss/bbs/B0000132/view.do?nttId={page}01&menuNo=200442">글{page}</a>'
+            else:
+                body = "<html>no items</html>"
+            return FetchResult(url=request.url, status_code=200, content_type="text/html", content=body.encode())
+        # 상세는 page1(nttId=101)만 실패(404), 나머지 성공
+        code = 404 if "nttId=101" in request.url else 200
+        return FetchResult(url=request.url, status_code=code, content_type="text/html",
+                           content=b"<div class='bd-view'><h2 class='subject'>x</h2></div>")
+
+    monkeypatch.setattr(collect_mod, "fetch_page_request", fake_fetch)
+    db_path = tmp_path / "a.db"
+    with connect_db(db_path) as conn:
+        init_schema(conn)
+        collect_mod.collect_target(
+            conn=conn, session=None, target=TARGETS[1],
+            download_dir=tmp_path / "dl", max_pages=100, delay_seconds=0, download=False,
+        )
+        ids = {r[0] for r in conn.execute("SELECT external_id FROM acct_documents WHERE source_priority=2")}
+    # page1 상세가 404여도 page2,3 글은 수집돼야 함(조기종료 금지)
+    assert "201" in ids and "301" in ids
+
+
+def test_early_stop_halts_on_wrap_when_no_new_candidates(tmp_path, monkeypatch) -> None:
+    """모든 페이지가 동일 글(wrap)을 반환하면 max_pages 전에 종료해야 한다."""
+    calls = {"list": 0}
+
+    def fake_fetch(session, request, delay):
+        if "list.do" in request.url:
+            calls["list"] += 1
+            body = '<a href="/fss/bbs/B0000132/view.do?nttId=999&menuNo=200442">동일글</a>'  # 항상 같은 글
+            return FetchResult(url=request.url, status_code=200, content_type="text/html", content=body.encode())
+        return FetchResult(url=request.url, status_code=200, content_type="text/html",
+                           content=b"<div class='bd-view'><h2 class='subject'>x</h2></div>")
+
+    monkeypatch.setattr(collect_mod, "fetch_page_request", fake_fetch)
+    db_path = tmp_path / "a.db"
+    with connect_db(db_path) as conn:
+        init_schema(conn)
+        collect_mod.collect_target(
+            conn=conn, session=None, target=TARGETS[1],
+            download_dir=tmp_path / "dl", max_pages=1000, delay_seconds=0, download=False,
+        )
+    assert calls["list"] <= 2  # page2에서 새 후보 없음 감지 → 종료(1000 전부 X)
 
 
 def test_fss_detail_excludes_docview_viewer_from_attachments() -> None:
