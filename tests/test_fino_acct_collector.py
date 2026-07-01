@@ -420,6 +420,30 @@ def test_early_stop_halts_on_wrap_when_no_new_candidates(tmp_path, monkeypatch) 
     assert calls["list"] <= 2  # page2에서 새 후보 없음 감지 → 종료(1000 전부 X)
 
 
+import scripts.fino_acct_cleanup as cleanup_mod
+
+
+def test_cleanup_backup_does_not_overwrite_original(tmp_path) -> None:
+    db_path = tmp_path / "acct.db"
+    with connect_db(db_path) as conn:
+        init_schema(conn)
+        for p in (1, 8):
+            upsert_document(conn, source_priority=p, agency="a", target_name="t", source_url="u",
+                source_type="qna", source_subtype="s", index_name="i", external_id=f"e{p}",
+                title="t", detail_url="u", published_date="", body_text="b")
+    cleanup_mod.cleanup(db_path)   # 1회: 백업A(1·8 모두 보유), db에서 p1 삭제
+    cleanup_mod.cleanup(db_path)   # 2회: 백업B(이미 p1 없음)
+    backups = list(tmp_path.glob("acct.db*.bak"))
+    assert len(backups) == 2  # 서로 다른 백업 2개(덮어쓰기 없음)
+    # 최소 하나의 백업엔 p1(e1)이 남아있어야 함(원본 보존)
+    import sqlite3
+    has_e1 = any(
+        sqlite3.connect(b).execute("SELECT COUNT(*) FROM acct_documents WHERE external_id='e1'").fetchone()[0] > 0
+        for b in backups
+    )
+    assert has_e1
+
+
 def test_fss_detail_excludes_docview_viewer_from_attachments() -> None:
     html = Path("tests/fixtures/fino_acct/fss_detail.html").read_text(encoding="utf-8")
     links = extract_links("https://www.fss.or.kr/fss/bbs/B0000132/view.do", BeautifulSoup(html, "html.parser"))

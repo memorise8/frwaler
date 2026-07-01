@@ -2,16 +2,20 @@
 from __future__ import annotations
 
 import argparse
-import shutil
 import sqlite3
+from datetime import datetime
 from pathlib import Path
 
 
 def cleanup(db_path: Path) -> tuple[int, int]:
-    backup = db_path.with_suffix(db_path.suffix + ".bak")
-    shutil.copy2(db_path, backup)
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    backup = db_path.with_name(f"{db_path.name}.{stamp}.bak")
     conn = sqlite3.connect(db_path)
     conn.execute("PRAGMA foreign_keys=ON")
+    # Use SQLite backup API so WAL journal is included in the backup
+    dst = sqlite3.connect(backup)
+    conn.backup(dst)
+    dst.close()
     before = conn.execute("SELECT COUNT(*) FROM acct_documents").fetchone()[0]
     conn.execute("DELETE FROM acct_documents WHERE source_priority BETWEEN 1 AND 6")
     conn.commit()
