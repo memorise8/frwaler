@@ -57,6 +57,8 @@ def filename_from_text(text: str, fallback: str) -> str:
 
 def looks_like_attachment(href: str, text: str) -> bool:
     lowered = f"{href} {text}".lower()
+    if "docview" in lowered:  # 문서뷰어 링크(fileName=..hwp 로 확장자 오매칭)는 첨부 아님
+        return False
     return any(extension in lowered for extension in ATTACHMENT_EXTENSIONS) or "filedown" in lowered or "getfile" in lowered
 
 

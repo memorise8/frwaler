@@ -366,3 +366,11 @@ def test_collect_target_resume_does_not_stop_on_duplicate_first_page(tmp_path, m
 
     # page1이 중복이어도 page2,3의 새 글이 수집돼야 함(조기 종료 금지)
     assert "201" in ids and "301" in ids
+
+
+def test_fss_detail_excludes_docview_viewer_from_attachments() -> None:
+    html = Path("tests/fixtures/fino_acct/fss_detail.html").read_text(encoding="utf-8")
+    links = extract_links("https://www.fss.or.kr/fss/bbs/B0000132/view.do", BeautifulSoup(html, "html.parser"))
+    urls = [a.url for a in links.attachments]
+    assert any("fileDown.do" in u for u in urls)          # 실제 첨부는 유지
+    assert not any("docView" in u for u in urls)          # 뷰어는 제외
