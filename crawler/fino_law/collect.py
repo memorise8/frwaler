@@ -65,13 +65,15 @@ def collect_exec(*, db_path: Path, pdf_dir: Path, delay: float) -> tuple[int, in
                 continue
             listing = fetch_article_list(t.ntst_bsc_id, pub["rgt_year"], delay)
             pdf_path = pdf_dir / f"{t.name}_{pub['rgt_year']}.pdf"
+            pdf_text = ""
             try:
                 download_pdf(pub["fle_id"], pub["fle_sn"], pdf_path, delay)
-                bodies = extract_bodies(pdf_to_text(pdf_path), page_headers=(t.name, "국세청"))
+                pdf_text = pdf_to_text(pdf_path)
+                bodies = extract_bodies(pdf_text, page_headers=(t.name, "국세청"))
             except Exception as exc:  # PDF 실패해도 구조는 저장
                 print(f"[warn] PDF 실패 {t.name}: {exc}", flush=True)
                 bodies = {}
-            doc = parse_exec(listing, name=t.name, ntst_bsc_id=t.ntst_bsc_id, bodies=bodies)
+            doc = parse_exec(listing, name=t.name, ntst_bsc_id=t.ntst_bsc_id, bodies=bodies, pdf_text=pdf_text)
             doc_id = upsert_document(
                 conn, source_kind=doc.source_kind, external_id=doc.external_id,
                 title=doc.title, category=doc.category, org=doc.org,

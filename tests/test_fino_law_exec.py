@@ -60,3 +60,20 @@ def test_parse_exec_matches_bodies_by_number() -> None:
 def test_exec_citation_url() -> None:
     assert exec_citation_url("100000000000001563") == \
         "https://taxlaw.nts.go.kr/st/USESTE001M.do?ntstBscId=100000000000001563"
+
+
+def test_parse_exec_drops_contamination_absent_from_pdf() -> None:
+    """taxlaw 목록에 섞여온 타 세목 조문(본문 없고 제목도 PDF에 없음)은 제외.
+    본문은 없지만 제목이 PDF에 있는 조문(파서 miss)은 유지."""
+    data = {"data": {"ASISTE001MR02": {"exeBaseDVOList": [
+        {"ntstTextNm": " 1-0-1  진짜 제목 본문있음", "rgtYr": "2024"},
+        {"ntstTextNm": " 2-0-1  파서가 놓친 진짜 조문", "rgtYr": "2024"},
+        {"ntstTextNm": " 3-0-1  타세목 오염 조문", "rgtYr": "2024"},
+    ]}}}
+    bodies = {"1-0-1": "본문 텍스트"}
+    pdf_text = "1-0-1 진짜 제목 본문있음\n본문 텍스트\n2-0-1 파서가 놓친 진짜 조문\n(표라서 본문 추출 실패)"
+    doc = parse_exec(data, name="테스트 집행기준", ntst_bsc_id="X", bodies=bodies, pdf_text=pdf_text)
+    nums = {a.article_no for a in doc.articles}
+    assert "1-0-1" in nums       # 본문 매칭됨
+    assert "2-0-1" in nums       # 본문 없어도 제목이 PDF에 있음 → 유지
+    assert "3-0-1" not in nums   # 제목이 PDF에 없음 → 오염 제외
