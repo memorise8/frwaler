@@ -21,13 +21,12 @@ def _get_json(client: httpx.Client, path: str, delay: float) -> dict | None:
             time.sleep(delay)
         try:
             resp = client.get(f"{BASE}{path}", headers={"User-Agent": _UA}, timeout=30)
-        except httpx.HTTPError:
-            time.sleep(1 + attempt)
-            continue
-        if resp.status_code == 200:
-            return resp.json()
-        if resp.status_code == 500:  # 미지원 기준서 — 재시도 무의미
-            return None
+            if resp.status_code == 500:  # 미지원 기준서 — 재시도 무의미
+                return None
+            if resp.status_code == 200:
+                return resp.json()
+        except (httpx.HTTPError, ValueError):
+            pass
         time.sleep(1 + attempt)
     return None
 
