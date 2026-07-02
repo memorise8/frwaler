@@ -10,7 +10,7 @@ from .db import (
     DEFAULT_OPS_DB, connect_ops, finish_run, init_ops_schema, try_start_run,
 )
 
-DEFAULT_LOG_DIR = Path("data/ops_logs")
+DEFAULT_LOG_DIR = REPO_ROOT / "data" / "ops_logs"
 
 
 class BusyError(RuntimeError):

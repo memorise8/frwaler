@@ -15,6 +15,12 @@ def _conn(tmp_path: Path):
     return conn
 
 
+def test_default_ops_db_is_repo_anchored() -> None:
+    from crawler.fino_ops.db import DEFAULT_OPS_DB
+    assert DEFAULT_OPS_DB.is_absolute()
+    assert DEFAULT_OPS_DB.parts[-2:] == ("data", "fino_ops.db")
+
+
 def test_run_lifecycle_ok(tmp_path: Path) -> None:
     conn = _conn(tmp_path)
     rid = start_run(conn, "std", "data/ops_logs/x.log")

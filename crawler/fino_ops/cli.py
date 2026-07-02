@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 
 from .corpora import CORPORA, corpus_stats
-from .db import DEFAULT_OPS_DB, connect_ops, init_ops_schema, last_run
+from .db import DEFAULT_OPS_DB, connect_ops, init_ops_schema, last_run, mark_stale_running
 from .runner import BusyError, refresh_corpus
 
 
@@ -41,6 +41,15 @@ def cmd_refresh(corpus: str | None, run_all: bool) -> int:
     return rc
 
 
+def cmd_unlock() -> int:
+    conn = connect_ops(DEFAULT_OPS_DB)
+    init_ops_schema(conn)
+    n = mark_stale_running(conn)
+    conn.close()
+    print(f"unlocked: running {n}건을 error(stale)로 정리")
+    return 0
+
+
 def main() -> int:
     p = argparse.ArgumentParser(prog="python -m crawler.fino_ops")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -48,9 +57,12 @@ def main() -> int:
     rp = sub.add_parser("refresh")
     _ = rp.add_argument("--corpus", type=str, default=None)
     _ = rp.add_argument("--all", action="store_true")
+    _ = sub.add_parser("unlock")
     args = p.parse_args()
     if args.cmd == "status":
         return cmd_status()
+    if args.cmd == "unlock":
+        return cmd_unlock()
     if not args.all and not args.corpus:
         p.error("refresh는 --corpus KEY 또는 --all 필요")
     return cmd_refresh(args.corpus, args.all)

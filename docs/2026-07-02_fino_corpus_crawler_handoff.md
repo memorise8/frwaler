@@ -48,6 +48,7 @@
 - 실행법(재현): frwaler에서 `FINOLAW_DB_PATH=/data_raid/ruci_workspace/crawler-poc/data/papers.db .venv/bin/python -m crawler.main crawl nts-taxlaw-qt --incremental` (pd 동일). 주의: env 미지정 시 기본 DB는 `frwaler/data/data.db`.
 - 증분 안전 근거: 목록 API 등록일 내림차순(`DCM_RGT_DTM/DESC`) + "새 항목 0인 페이지에서 정지" + `(site_id, external_id)` 사전 중복 체크.
 - **일원화**: 크롤러 코드는 frwaler가 정본(크롤러는 frwaler에서 실행, crawler-poc 사본은 구버전). DB 파일(20GB)은 crawler-poc/data/에 그대로 두고 `FINOLAW_DB_PATH`로 참조 — 파일 이전은 보류(사용자 합의: 기존 내용 기준 추가만).
+- fino_nts.db에 `idx_papers_site_crawled(site_id, crawled_at)` 인덱스 적용(2026-07-02, 대시보드 신선도 조회용) — 재분리 시 재생성 필요.
 
 ---
 

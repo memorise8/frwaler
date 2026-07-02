@@ -3,7 +3,9 @@ from pathlib import Path
 
 import crawler.fino_ops.runner as runner_mod
 from crawler.fino_ops.corpora import Corpus
-from crawler.fino_ops.db import connect_ops, init_ops_schema, last_run, start_run
+from crawler.fino_ops.db import (
+    any_running, connect_ops, init_ops_schema, last_run, start_run,
+)
 from crawler.fino_ops.runner import BusyError, refresh_corpus
 import pytest
 import sqlite3
@@ -73,3 +75,15 @@ def test_post_claim_failure_recorded_not_raised(tmp_path: Path, monkeypatch) -> 
     lr = last_run(conn, "mini")
     assert lr["id"] == rid and lr["status"] == "error"
     assert "no_such_table" in lr["error"]
+
+
+def test_cli_unlock_clears_stale_running(tmp_path: Path, monkeypatch) -> None:
+    import crawler.fino_ops.cli as cli_mod
+    monkeypatch.setattr(cli_mod, "DEFAULT_OPS_DB", tmp_path / "ops.db")
+    conn = connect_ops(tmp_path / "ops.db")
+    init_ops_schema(conn)
+    start_run(conn, "std", "s.log")
+    conn.close()
+    assert cli_mod.cmd_unlock() == 0
+    conn = connect_ops(tmp_path / "ops.db")
+    assert not any_running(conn)

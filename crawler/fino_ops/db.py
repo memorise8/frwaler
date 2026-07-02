@@ -3,7 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 import sqlite3
 
-DEFAULT_OPS_DB = Path("data/fino_ops.db")
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_OPS_DB = _REPO_ROOT / "data" / "fino_ops.db"
 
 
 def connect_ops(db_path: Path = DEFAULT_OPS_DB) -> sqlite3.Connection:
