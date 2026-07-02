@@ -1,5 +1,8 @@
 from pathlib import Path
 
+import pytest
+import sqlite3
+
 from crawler.fino_ops.db import (
     any_running, connect_ops, finish_run, init_ops_schema,
     last_run, mark_stale_running, recent_runs, start_run,
@@ -48,3 +51,10 @@ def test_mark_stale_running(tmp_path: Path) -> None:
     assert mark_stale_running(conn) == 2
     assert not any_running(conn)
     assert last_run(conn, "std")["status"] == "error"
+
+
+def test_status_check_constraint_rejects_typo(tmp_path: Path) -> None:
+    conn = _conn(tmp_path)
+    rid = start_run(conn, "std", "s.log")
+    with pytest.raises(sqlite3.IntegrityError):
+        finish_run(conn, rid, status="okk")

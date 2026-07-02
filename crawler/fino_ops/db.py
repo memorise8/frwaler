@@ -23,7 +23,7 @@ def init_ops_schema(conn: sqlite3.Connection) -> None:
             corpus TEXT NOT NULL,
             started_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
             finished_at TEXT,
-            status TEXT NOT NULL DEFAULT 'running',
+            status TEXT NOT NULL DEFAULT 'running' CHECK (status IN ('running','ok','error')),
             new_count INTEGER,
             total_after INTEGER,
             log_path TEXT NOT NULL DEFAULT '',
