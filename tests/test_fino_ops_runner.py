@@ -59,3 +59,17 @@ def test_refresh_busy_raises(tmp_path: Path, monkeypatch) -> None:
     with pytest.raises(BusyError):
         refresh_corpus("mini", ops_db=tmp_path / "ops.db", log_dir=tmp_path / "logs",
                        argv=(sys.executable, "-c", "pass"))
+
+
+def test_post_claim_failure_recorded_not_raised(tmp_path: Path, monkeypatch) -> None:
+    c = _make_corpus(tmp_path)
+    broken = Corpus(key="mini", label="미니", db_path=c.db_path,
+                    count_sql="SELECT COUNT(*) FROM no_such_table",
+                    freshness_sql="SELECT 1", argv=("unused",))
+    _install(monkeypatch, broken)
+    rid = refresh_corpus("mini", ops_db=tmp_path / "ops.db", log_dir=tmp_path / "logs",
+                         argv=(sys.executable, "-c", "pass"))
+    conn = connect_ops(tmp_path / "ops.db")
+    lr = last_run(conn, "mini")
+    assert lr["id"] == rid and lr["status"] == "error"
+    assert "no_such_table" in lr["error"]

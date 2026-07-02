@@ -5,7 +5,7 @@ import sqlite3
 
 from crawler.fino_ops.db import (
     any_running, connect_ops, finish_run, init_ops_schema,
-    last_run, mark_stale_running, recent_runs, start_run,
+    last_run, mark_stale_running, recent_runs, start_run, try_start_run,
 )
 
 
@@ -58,3 +58,12 @@ def test_status_check_constraint_rejects_typo(tmp_path: Path) -> None:
     rid = start_run(conn, "std", "s.log")
     with pytest.raises(sqlite3.IntegrityError):
         finish_run(conn, rid, status="okk")
+
+
+def test_try_start_run_atomic_claim(tmp_path: Path) -> None:
+    conn = _conn(tmp_path)
+    rid = try_start_run(conn, "std", "a.log")
+    assert rid is not None
+    assert try_start_run(conn, "law", "b.log") is None      # 실행 중이면 획득 실패
+    finish_run(conn, rid, status="ok", new_count=0, total_after=0)
+    assert try_start_run(conn, "law", "c.log") is not None  # 종료 후 획득 가능

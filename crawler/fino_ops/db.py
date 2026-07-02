@@ -43,6 +43,19 @@ def start_run(conn: sqlite3.Connection, corpus: str, log_path: str) -> int:
     return int(cur.lastrowid)
 
 
+def try_start_run(conn: sqlite3.Connection, corpus: str, log_path: str) -> int | None:
+    """원자적 락 획득: running 행이 없을 때만 run을 생성한다(단일 INSERT라 레이스 없음)."""
+    cur = conn.execute(
+        """
+        INSERT INTO runs (corpus, log_path)
+        SELECT ?, ? WHERE NOT EXISTS (SELECT 1 FROM runs WHERE status = 'running')
+        """,
+        (corpus, log_path),
+    )
+    conn.commit()
+    return int(cur.lastrowid) if cur.rowcount else None
+
+
 def finish_run(
     conn: sqlite3.Connection, run_id: int, *, status: str,
     new_count: int | None = None, total_after: int | None = None,
