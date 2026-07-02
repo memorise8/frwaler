@@ -101,3 +101,7 @@ corpus_stats(c) -> {total, last_collected, db_exists}   # 소스DB read-only 조
 
 - [ ] 대시보드 상시 구동 방식(systemd/tmux) — 구현 후 운영에서 결정.
 - [ ] acct 코퍼스의 last_collected 컬럼(fetched_at) 포맷 통일 여부 — 구현 중 실데이터로 확정.
+
+## 알려진 동작 (Task 2 리뷰에서 확인)
+
+- `crawler.main`은 기동 시 CRAWLERS 레지스트리의 **모든 사이트 정의를 sites 테이블에 등록**한다(기존 크롤러 동작, 무수정 원칙에 따라 유지). 따라서 fino_nts.db의 sites에는 NTS 외 사이트 *정의* 행이 존재할 수 있다. **papers/doc_index/FTS 데이터는 NTS 2종만이며**(리뷰에서 재검증), fino_ops 레지스트리는 papers.site_id 기준으로만 집계하므로 영향 없음.
