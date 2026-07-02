@@ -6,7 +6,7 @@
 
 ## 0. TL;DR — 어디까지 왔나
 
-**NTS 제외 코퍼스 7개 중 5개 완료, 2개(회계 기준서) 남음.**
+**NTS 제외 코퍼스 7개 전부 완료. 남은 건 NTS 최신화뿐.**
 
 | 코퍼스 | 크롤러 | 수집 | 상태 |
 |---|---|---|---|
@@ -15,10 +15,10 @@
 | KASB 질의회신 | `fino_acct` p1 | 991건 | ✅ 완료 |
 | FSS 질의회신 | `fino_acct` p2~6 | 2,635건 | ✅ 완료 |
 | FSC 정책자료(보조) | `fino_acct` p8~17 | 기존 | ✅ |
-| **회계 기준서 K-IFRS(전문)** | ❌ 없음 | — | 🔴 **다음 작업** |
-| **회계 기준서 GAAP(일반기업회계기준 전문)** | ❌ 없음 | — | 🔴 **다음 작업** |
+| **회계 기준서 K-IFRS(전문)** | `fino_std` | 61문서(kifrs 42+kifrs_interp 19)/18,550문단 | ✅ 완료 |
+| **회계 기준서 GAAP(일반기업회계기준 전문)** | `fino_std` | 35문서/2,825문단 | ✅ 완료 |
 
-**다음 순서**: ① 회계 기준서(K-IFRS/GAAP) 크롤러 제작·수집 → ② NTS 최신화(papers.db 재가동·일원화).
+**다음 순서**: NTS 최신화(papers.db 재가동·일원화)만 남음 — §2 참고.
 
 ---
 
@@ -35,25 +35,14 @@
 - 실행: `.venv/bin/python -m crawler.fino_acct.collect --priorities 1,2,3,4,5,6`.
 - 상세: 메모리 `fino-acct-qna-crawler`.
 
----
-
-## 2. 다음 작업 ① — 회계 기준서(K-IFRS/GAAP) 크롤러 (최우선)
-
-**목표**: KASB의 실제 **회계기준 전문**(K-IFRS 기준서 + 일반기업회계기준(GAAP) 전문)을 재수집. FINO 기존 인덱스 fino-kifrs-20260625(17,444), fino-gaap-20260625(2,430)에 대응하는 원본.
-
-**질의회신(fino_acct)과 별개** — 그건 Q&A, 이건 기준 조문 전문이다.
-
-**착수 방법 (권장 = 집행기준과 동일 패턴)**:
-1. **소스 정찰**: `kasb.or.kr`에서 K-IFRS/일반기업회계기준 **기준서 게시판/뷰어** 찾기. `fino_acct`의 KASB 경로(`/front/board/...`)와 유사할 것. 기준서가 HTML인지 PDF인지 확인.
-2. **기존 MD 위치 확인**: FINO에 이미 있는 kifrs/gaap MD가 어디 있는지(`/data_raid/share/` 계열 추정, tax_data/current엔 없음 — 별도 경로). 있으면 집행기준처럼 "구조는 크롤 + 본문은 MD/PDF" 하이브리드 가능.
-3. **구현**: 집행기준(`fino_law` exec)과 동일 골격 재사용 가능하면 재사용. 아니면 `fino_acct`에 기준서 타깃 추가 or 신규 모듈.
-4. 브레인스토밍 → 스펙 → 계획 → subagent 구현 (이번 세션과 동일 플로우).
-
-**주의**: 소스가 SPA/POST면 DevTools 캡처가 가장 확실(집행기준에서 그렇게 뚫음). blind probe는 한계.
+### 회계 기준서(K-IFRS/GAAP) = `crawler/fino_std/` (DB: `data/fino_std.db`, documents/paragraphs)
+- db.kasb.or.kr API(`/api/paragraphs/title/{std}`, `/api/paragraphs/content/{std}/{docId}`)로 기준서 전문 수집. 102시드 중 96문서/21,375문단(kifrs 42+kifrs_interp 19=18,550문단, gaap 35/2,825문단), skip 6건(91·93·1191·1192·1118·10121, API 미지원/빈 목차), 빈 본문 0.
+- 실행: `.venv/bin/python -m crawler.fino_std.collect`. 재실행=최신화.
+- 상세: 메모리 `fino-std-standards-crawler`.
 
 ---
 
-## 3. 다음 작업 ② — NTS 최신화 (①완료 후)
+## 2. 다음 작업 — NTS 최신화 (마지막 남은 항목)
 
 - `crawler/sites/nts_taxlaw.py`(taxlaw action.do, curl) — 판례/예규 크롤러. 작동·증분 지원.
 - 데이터 `crawler-poc/data/papers.db`(20GB, 289k행, ~2026-04 기준, ~2개월+ stale).
@@ -61,31 +50,29 @@
 
 ---
 
-## 4. 아키텍처 (현 구조 — 유지, 정리는 나중)
+## 3. 아키텍처 (현 구조 — 유지, 정리는 나중)
 
-3개 독립 크롤러(소스 성격이 달라 분리가 자연스러움):
+4개 독립 크롤러(소스 성격이 달라 분리가 자연스러움):
 - `crawler/fino_law/` → `fino_law.db` (세법 법령+집행기준, documents/articles, source_kind=law|exec_standard)
 - `crawler/fino_acct/` → `fino_acct.db` (회계 질의회신, acct_documents/acct_attachments)
+- `crawler/fino_std/` → `fino_std.db` (회계 기준서 K-IFRS/GAAP, documents/paragraphs)
 - `crawler/sites/*` + `crawler/main.py` → `papers.db` (NTS 판례/예규 + 기타 사이트)
 
 **통합 오케스트레이터/정리는 전체 크롤러 완성 후로 미룸**(사용자 합의). data/*.db는 .gitignore(코드만 버전관리) — 데이터는 이 환경 로컬 디스크에만 있음(재수집으로 복구 가능).
 
 ---
 
-## 5. 핵심 포인터
-- **메모리**: `fino-law-corpus-collection-endpoints`(세법 법령·집행기준 엔드포인트/코드), `fino-acct-qna-crawler`(회계 질의회신).
+## 4. 핵심 포인터
+- **메모리**: `fino-law-corpus-collection-endpoints`(세법 법령·집행기준 엔드포인트/코드), `fino-acct-qna-crawler`(회계 질의회신), `fino-std-standards-crawler`(회계 기준서 K-IFRS/GAAP).
 - **스펙/계획**: `docs/superpowers/{specs,plans}/2026-06-30-fino-acct-*`, `docs/superpowers/{specs,plans}/2026-07-02-fino-law-exec-standard-crawler.md`, `docs/superpowers/plans/2026-07-01-fino-acct-review-fixes.md`.
 - **상위 문서**: `docs/2026-06-30_fino_corpus_master_handoff.md`(원 7코퍼스 매핑·citation 미션).
-- **테스트**: `.venv/bin/python -m pytest tests/test_fino_law_*.py tests/test_fino_acct_collector.py -q`.
-- **다운스트림(FINO BE)**: fino_law.db/fino_acct.db export(MD/NDJSON, 조문별 source_url) → exec_standard 인덱스 → RAG citation.
+- **테스트**: `.venv/bin/python -m pytest tests/test_fino_law_*.py tests/test_fino_acct_collector.py tests/test_fino_std_*.py -q`.
+- **다운스트림(FINO BE)**: fino_law.db/fino_acct.db/fino_std.db export(MD/NDJSON, 조문·문단별 source_url) → exec_standard 인덱스 → RAG citation.
 
-## 6. 새 세션 액션 순서
-1. 이 문서 + 메모리 2개 읽기.
-2. **회계 기준서(K-IFRS/GAAP) 소스 정찰** (kasb.or.kr 기준서 게시판/뷰어, 기존 MD 위치).
-3. 브레인스토밍 → 스펙 → 계획 → subagent 구현 → 수집·검증.
-4. (①완료 후) NTS papers.db 재가동·최신화·일원화.
+## 5. 새 세션 액션 순서
+1. 이 문서 + 메모리 3개 읽기.
+2. NTS 최신화 착수: `crawler/sites/nts_taxlaw.py` 증분 재가동 → 신선도 확인 → frwaler로 일원화.
 
-## 7. Open Questions
-- [ ] 회계 기준서 소스: kasb.or.kr 기준서 뷰어 URL/구조(HTML vs PDF), 기존 kifrs/gaap MD 정확 위치.
-- [ ] 기준서를 fino_law(조문형) 골격에 넣을지 fino_acct(문서형)에 넣을지 신규 모듈일지.
+## 6. Open Questions
 - [ ] 법인세 집행기준 2조문(44-0-32/33) 본문 파서 miss — PDF 헤더 edge case 보정(소소, 선택).
+- [ ] fino_std BC/IG(결론도출근거/적용지침) 문단의 뷰어 라우팅 — 데이터 정합성엔 무관, 수동 확인만 완료.
