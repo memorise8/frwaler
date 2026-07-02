@@ -55,15 +55,20 @@ export default function Home() {
     const fetchLog = () =>
       fetch(`/api/runs/${logRunId}/log?tail=200`)
         .then((x) => (x.ok ? x.text() : "(로그 없음)"))
-        .then(setLogText);
+        .then(setLogText)
+        .catch(() => setLogText("(로그를 불러올 수 없습니다)"));
     fetchLog();
     const t = setInterval(fetchLog, 3000);
     return () => clearInterval(t);
   }, [logRunId]);
 
   const refresh = async (key: string) => {
-    const r = await fetch(`/api/corpora/${key}/refresh`, { method: "POST" });
-    if (r.status === 409) setError("다른 수집이 실행 중입니다");
+    try {
+      const r = await fetch(`/api/corpora/${key}/refresh`, { method: "POST" });
+      if (r.status === 409) setError("다른 수집이 실행 중입니다");
+    } catch {
+      setError("Refresh 요청 실패 — API 서버(:8500)에 연결할 수 없습니다");
+    }
     load();
   };
 
