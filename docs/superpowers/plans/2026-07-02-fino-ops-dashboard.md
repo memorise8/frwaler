@@ -4,7 +4,7 @@
 
 **Goal:** 크롤러 4종(6코퍼스)을 단일 레지스트리+상태DB(fino_ops.db)로 통합하고, FastAPI API(:8500) + Next.js 대시보드로 최신화 상태 조회·갱신 트리거를 제공한다.
 
-**Architecture:** `crawler/fino_ops/`(레지스트리·runner·CLI·FastAPI)가 기존 크롤러 CLI를 subprocess로 호출(크롤러 코드 무수정). `dashboard/`(Next.js 15)는 rewrites로 FastAPI를 프록시. 상태는 `data/fino_ops.db`의 runs 테이블 하나.
+**Architecture:** `crawler/fino_ops/`(레지스트리·runner·CLI·FastAPI)가 기존 크롤러 CLI를 subprocess로 호출(크롤러 코드 무수정). `dashboard/`(Next.js 15)는 rewrites로 FastAPI를 프록시. 상태는 `data/fino_ops.db`의 runs 테이블 하나. **NTS는 papers.db(20GB, 무관 사이트 혼재)에서 NTS 2개 site_id만 `data/fino_nts.db`로 물리 분리**(Task 2)하고 이후 증분·조회는 fino_nts.db 대상.
 
 **Tech Stack:** Python 3(.venv: fastapi 0.135, uvicorn 0.44, pytest), Node 22 + Next.js 15(TS, Tailwind, App Router).
 
@@ -15,7 +15,8 @@
 - 기존 크롤러 코드(crawler/fino_law·fino_acct·fino_std·sites·main.py) **무수정**. 통합은 subprocess 호출로만.
 - refresh는 **글로벌 동시 1개** (소스 사이트 매너). 실행 중 POST → HTTP 409.
 - API 바인드는 127.0.0.1:8500, 인증 없음(로컬 전용).
-- papers.db 경로: env `FINO_PAPERS_DB` (기본 `/data_raid/ruci_workspace/crawler-poc/data/papers.db`). nts refresh 시 subprocess env에 `FINOLAW_DB_PATH` 주입.
+- NTS DB 경로: env `FINO_PAPERS_DB` (기본 `data/fino_nts.db` — Task 2 분리 산출물). nts refresh 시 subprocess env에 `FINOLAW_DB_PATH` 주입.
+- **원본 papers.db(crawler-poc)는 어떤 태스크에서도 수정·삭제 금지** — split은 SELECT만, 분리 후에도 비-NTS 데이터의 유일본으로 보존.
 - `data/fino_ops.db`, `data/ops_logs/`, `data/export/`, `dashboard/node_modules`·`.next`는 커밋 금지(.gitignore).
 - 6코퍼스 key 고정: `law, exec, acct, std, nts_qt, nts_pd`.
 - 테스트: `.venv/bin/python -m pytest tests/test_fino_ops_*.py -q`. 실 크롤러 호출 없는 유닛/TestClient만.
@@ -208,7 +209,208 @@ git commit -m "feat(fino_ops): 상태DB runs 테이블 — 실행 라이프사�
 
 ---
 
-### Task 2: 코퍼스 레지스트리 + stats 어댑터
+### Task 2: NTS 물리 분리 — papers.db → data/fino_nts.db 추출
+
+**Files:**
+- Create: `crawler/fino_ops/split_nts.py`
+- Test: `tests/test_fino_ops_split_nts.py`
+- Create(외부): `data/fino_nts.db` (~19GB, gitignore — 커밋 안 함)
+
+**Interfaces:**
+- Consumes: 없음 (원본 papers.db는 SELECT만)
+- Produces: `NTS_SITE_IDS = ("nts-taxlaw-pd", "nts-taxlaw-qt")`, `split_nts(src=DEFAULT_SRC, dest=DEFAULT_DEST) -> dict[str, int]` (site_id별 복사 행수), CLI `python -m crawler.fino_ops.split_nts [--src P] [--dest P]`. Task 3의 레지스트리가 `data/fino_nts.db`를 기본 NTS DB로 사용.
+
+- [ ] **Step 1: Write the failing test**
+
+`tests/test_fino_ops_split_nts.py`:
+
+```python
+import sqlite3
+from pathlib import Path
+
+import pytest
+
+from crawler.fino_ops.split_nts import NTS_SITE_IDS, split_nts
+
+
+def _make_src(path: Path) -> None:
+    conn = sqlite3.connect(path)
+    conn.executescript(
+        """
+        CREATE TABLE sites (id TEXT PRIMARY KEY, name TEXT, base_url TEXT);
+        CREATE TABLE papers (
+            id TEXT PRIMARY KEY, site_id TEXT NOT NULL, external_id TEXT,
+            title TEXT, abstract TEXT, metadata TEXT
+        );
+        CREATE INDEX idx_papers_site ON papers(site_id);
+        CREATE TABLE doc_index (site_id TEXT, doc_id TEXT, title TEXT);
+        CREATE VIRTUAL TABLE papers_fts USING fts5(
+            title, abstract, metadata, content='papers', content_rowid='rowid');
+        CREATE TRIGGER papers_ai AFTER INSERT ON papers BEGIN
+            INSERT INTO papers_fts(rowid, title, abstract, metadata)
+            VALUES (new.rowid, new.title, new.abstract, new.metadata);
+        END;
+        INSERT INTO sites VALUES ('nts-taxlaw-pd','판례',''),('nts-taxlaw-qt','예규',''),('mohw','복지부','');
+        INSERT INTO papers VALUES
+            ('a','nts-taxlaw-pd','1','판례 하나','본문A','{}'),
+            ('b','nts-taxlaw-qt','2','예규 하나','본문B','{}'),
+            ('c','mohw','3','무관 문서','본문C','{}');
+        INSERT INTO doc_index VALUES ('nts-taxlaw-pd','1','판례 하나'),('mohw','3','무관');
+        """
+    )
+    conn.commit()
+    conn.close()
+
+
+def test_split_copies_only_nts_and_rebuilds_fts(tmp_path: Path) -> None:
+    src = tmp_path / "papers.db"
+    dest = tmp_path / "fino_nts.db"
+    _make_src(src)
+    counts = split_nts(src, dest)
+    assert counts == {"nts-taxlaw-pd": 1, "nts-taxlaw-qt": 1}
+    conn = sqlite3.connect(dest)
+    assert conn.execute("SELECT COUNT(*) FROM papers").fetchone()[0] == 2
+    assert conn.execute("SELECT COUNT(*) FROM papers WHERE site_id='mohw'").fetchone()[0] == 0
+    assert conn.execute("SELECT COUNT(*) FROM doc_index").fetchone()[0] == 1
+    assert {r[0] for r in conn.execute("SELECT id FROM sites")} == set(NTS_SITE_IDS)
+    assert len(conn.execute("SELECT title FROM papers_fts WHERE papers_fts MATCH '판례'").fetchall()) == 1
+    # 트리거 생존: 분리 후 신규 insert도 FTS 반영
+    conn.execute("INSERT INTO papers VALUES ('d','nts-taxlaw-pd','4','신규 판례','본문D','{}')")
+    conn.commit()
+    assert conn.execute("SELECT COUNT(*) FROM papers_fts WHERE papers_fts MATCH '신규'").fetchone()[0] == 1
+    # 소스 무수정
+    s = sqlite3.connect(src)
+    assert s.execute("SELECT COUNT(*) FROM papers").fetchone()[0] == 3
+
+
+def test_split_refuses_overwrite(tmp_path: Path) -> None:
+    src = tmp_path / "papers.db"
+    dest = tmp_path / "fino_nts.db"
+    _make_src(src)
+    dest.write_text("existing")
+    with pytest.raises(SystemExit):
+        split_nts(src, dest)
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `.venv/bin/python -m pytest tests/test_fino_ops_split_nts.py -q`
+Expected: FAIL — `ModuleNotFoundError` (split_nts 모듈 없음)
+
+- [ ] **Step 3: Write implementation**
+
+`crawler/fino_ops/split_nts.py`:
+
+```python
+from __future__ import annotations
+
+import argparse
+import sqlite3
+from pathlib import Path
+
+NTS_SITE_IDS = ("nts-taxlaw-pd", "nts-taxlaw-qt")
+DEFAULT_SRC = Path("/data_raid/ruci_workspace/crawler-poc/data/papers.db")
+DEFAULT_DEST = Path("data/fino_nts.db")
+_TABLES = ("sites", "papers", "doc_index")
+
+
+def split_nts(src: Path = DEFAULT_SRC, dest: Path = DEFAULT_DEST) -> dict[str, int]:
+    if dest.exists():
+        raise SystemExit(f"대상이 이미 존재합니다(덮어쓰기 금지): {dest}")
+    if not src.exists():
+        raise SystemExit(f"소스가 없습니다: {src}")
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(dest)
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("ATTACH DATABASE ? AS src", (str(src),))
+
+    # 1) 소스 DDL 복제(테이블·인덱스만) — 스키마 동일성 보장
+    ddl = conn.execute(
+        "SELECT sql FROM src.sqlite_master WHERE type IN ('table','index') "
+        "AND sql IS NOT NULL AND tbl_name IN (?,?,?) AND name NOT LIKE 'sqlite_%'",
+        _TABLES,
+    ).fetchall()
+    for (sql,) in ddl:
+        conn.execute(sql)
+
+    # 2) NTS 행만 복사 (소스는 SELECT만)
+    marks = ",".join("?" for _ in NTS_SITE_IDS)
+    with conn:
+        conn.execute(f"INSERT INTO main.sites SELECT * FROM src.sites WHERE id IN ({marks})",
+                     NTS_SITE_IDS)
+        conn.execute(f"INSERT INTO main.papers SELECT * FROM src.papers WHERE site_id IN ({marks})",
+                     NTS_SITE_IDS)
+        conn.execute(f"INSERT INTO main.doc_index SELECT * FROM src.doc_index WHERE site_id IN ({marks})",
+                     NTS_SITE_IDS)
+
+    # 3) FTS 생성·rebuild → 4) 트리거는 적재 후 생성(적재 중 이중 색인 방지)
+    fts_row = conn.execute("SELECT sql FROM src.sqlite_master WHERE name = 'papers_fts'").fetchone()
+    if fts_row:
+        conn.execute(fts_row[0])
+        conn.execute("INSERT INTO papers_fts(papers_fts) VALUES('rebuild')")
+        for (sql,) in conn.execute(
+            "SELECT sql FROM src.sqlite_master WHERE type = 'trigger' AND tbl_name = 'papers'"
+        ).fetchall():
+            conn.execute(sql)
+        conn.commit()
+
+    # 5) 검증: site_id별 행수 일치
+    counts: dict[str, int] = {}
+    for site in NTS_SITE_IDS:
+        s = conn.execute("SELECT COUNT(*) FROM src.papers WHERE site_id = ?", (site,)).fetchone()[0]
+        d = conn.execute("SELECT COUNT(*) FROM main.papers WHERE site_id = ?", (site,)).fetchone()[0]
+        if s != d:
+            raise SystemExit(f"검증 실패 {site}: src {s} != dest {d}")
+        counts[site] = d
+    conn.execute("DETACH DATABASE src")
+    conn.close()
+    return counts
+
+
+def main() -> int:
+    p = argparse.ArgumentParser(prog="python -m crawler.fino_ops.split_nts")
+    _ = p.add_argument("--src", type=Path, default=DEFAULT_SRC)
+    _ = p.add_argument("--dest", type=Path, default=DEFAULT_DEST)
+    args = p.parse_args()
+    counts = split_nts(args.src, args.dest)
+    print(f"done: {counts} → {args.dest}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `.venv/bin/python -m pytest tests/test_fino_ops_split_nts.py -q`
+Expected: PASS (2 tests)
+
+- [ ] **Step 5: 실 추출 실행** (20GB — 백그라운드, FTS rebuild 포함 30~60분 예상)
+
+Run: `.venv/bin/python -m crawler.fino_ops.split_nts > data/ops_logs/split_nts.log 2>&1` (run_in_background 또는 timeout 충분히)
+Expected: `done: {'nts-taxlaw-pd': 151041+, 'nts-taxlaw-qt': 139617+} → data/fino_nts.db` (+는 이후 증분분)
+
+- [ ] **Step 6: 실측 검증 (증분 crawl이 새 DB에서 동작)**
+
+```bash
+FINOLAW_DB_PATH=data/fino_nts.db .venv/bin/python -m crawler.main crawl nts-taxlaw-qt --incremental --limit 3
+.venv/bin/python -c "
+import sqlite3; c = sqlite3.connect('data/fino_nts.db')
+print({r[0]: r[1] for r in c.execute('SELECT site_id, COUNT(*) FROM papers GROUP BY site_id')})"
+```
+Expected: 증분 crawl 정상(신규 0~3건 저장 또는 'no new items'), site_id 2종만 존재.
+
+- [ ] **Step 7: Commit** (코드·테스트만 — DB 파일 제외)
+
+```bash
+git add crawler/fino_ops/split_nts.py tests/test_fino_ops_split_nts.py
+git commit -m "feat(fino_ops): papers.db에서 NTS 전용 fino_nts.db 물리 분리(스키마 복제+FTS 재구축)"
+```
+
+---
+
+### Task 3: 코퍼스 레지스트리 + stats 어댑터
 
 **Files:**
 - Create: `crawler/fino_ops/corpora.py`
@@ -289,7 +491,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PAPERS_DB = Path(os.environ.get(
-    "FINO_PAPERS_DB", "/data_raid/ruci_workspace/crawler-poc/data/papers.db"))
+    "FINO_PAPERS_DB", str(REPO_ROOT / "data" / "fino_nts.db")))  # Task 2 분리 산출물
 _PY = str(REPO_ROOT / ".venv" / "bin" / "python")
 
 
@@ -372,7 +574,7 @@ git commit -m "feat(fino_ops): 6코퍼스 레지스트리 + read-only stats 어�
 
 ---
 
-### Task 3: runner + CLI — subprocess 실행, 락, new_count
+### Task 4: runner + CLI — subprocess 실행, 락, new_count
 
 **Files:**
 - Create: `crawler/fino_ops/runner.py`
@@ -381,7 +583,7 @@ git commit -m "feat(fino_ops): 6코퍼스 레지스트리 + read-only stats 어�
 - Test: `tests/test_fino_ops_runner.py`
 
 **Interfaces:**
-- Consumes: Task 1 db.*, Task 2 CORPORA/corpus_stats/REPO_ROOT
+- Consumes: Task 1 db.*, Task 3 CORPORA/corpus_stats/REPO_ROOT
 - Produces: `BusyError(RuntimeError)`, `refresh_corpus(key, *, ops_db=DEFAULT_OPS_DB, log_dir=Path("data/ops_logs"), argv=None, cwd=None, timeout=7200) -> int` (run_id 반환; 실패해도 raise하지 않고 error 기록 — BusyError만 raise), CLI `python -m crawler.fino_ops status|refresh --corpus KEY|--all`
 
 - [ ] **Step 1: Write the failing test**
@@ -594,14 +796,14 @@ git commit -m "feat(fino_ops): refresh runner(락·new_count·로그) + status/r
 
 ---
 
-### Task 4: FastAPI 서버 — /api/corpora, refresh, runs, log, export
+### Task 5: FastAPI 서버 — /api/corpora, refresh, runs, log, export
 
 **Files:**
 - Create: `crawler/fino_ops/api.py`
 - Test: `tests/test_fino_ops_api.py`
 
 **Interfaces:**
-- Consumes: Task 1-3 전부
+- Consumes: Task 1·3·4 전부
 - Produces: `create_app(ops_db=DEFAULT_OPS_DB, export_dir=Path("data/export")) -> FastAPI`, 모듈 레벨 `app`(uvicorn 진입점: `.venv/bin/uvicorn crawler.fino_ops.api:app --host 127.0.0.1 --port 8500`)
 
 - [ ] **Step 1: Write the failing test**
@@ -798,7 +1000,7 @@ git commit -m "feat(fino_ops): FastAPI — corpora/refresh(409)/runs/log tail/ex
 
 ---
 
-### Task 5: Next.js 스캐폴드 + 프록시
+### Task 6: Next.js 스캐폴드 + 프록시
 
 **Files:**
 - Create: `dashboard/` (create-next-app 산출물)
@@ -806,7 +1008,7 @@ git commit -m "feat(fino_ops): FastAPI — corpora/refresh(409)/runs/log tail/ex
 - Modify: `.gitignore` (루트 — dashboard/node_modules, dashboard/.next 제외 확인)
 
 **Interfaces:**
-- Produces: `npm run dev`(:3000) → `/api/*`가 FastAPI(:8500)로 프록시되는 빈 Next.js 앱. 이후 Task 6이 페이지를 채움.
+- Produces: `npm run dev`(:3000) → `/api/*`가 FastAPI(:8500)로 프록시되는 빈 Next.js 앱. 이후 Task 7이 페이지를 채움.
 
 - [ ] **Step 1: Scaffold**
 
@@ -853,14 +1055,14 @@ git commit -m "feat(dashboard): Next.js 스캐폴드 + /api → fino_ops(:8500) 
 
 ---
 
-### Task 6: 대시보드 UI — 코퍼스 카드 / 이력 / 로그
+### Task 7: 대시보드 UI — 코퍼스 카드 / 이력 / 로그
 
 **Files:**
 - Modify: `dashboard/app/page.tsx` (전체 교체)
 - Modify: `dashboard/app/layout.tsx` (metadata title만 "FINO Ops"로)
 
 **Interfaces:**
-- Consumes: Task 4 API 응답 형태 — `/api/corpora`: `[{key,label,total,last_collected,db_exists,last_run:{status,new_count,finished_at}|null,busy}]`, `/api/runs`: `[{id,corpus,started_at,finished_at,status,new_count,total_after}]`, `/api/runs/{id}/log`(text), `POST /api/corpora/{key}/refresh`(202/409)
+- Consumes: Task 5 API 응답 형태 — `/api/corpora`: `[{key,label,total,last_collected,db_exists,last_run:{status,new_count,finished_at}|null,busy}]`, `/api/runs`: `[{id,corpus,started_at,finished_at,status,new_count,total_after}]`, `/api/runs/{id}/log`(text), `POST /api/corpora/{key}/refresh`(202/409)
 
 - [ ] **Step 1: page.tsx 전체 교체**
 
@@ -1053,7 +1255,7 @@ git commit -m "feat(dashboard): 코퍼스 카드·실행 이력·로그 뷰 — 
 
 ---
 
-### Task 7: 실구동 E2E 검증 + 문서/메모리 갱신
+### Task 8: 실구동 E2E 검증 + 문서/메모리 갱신
 
 **Files:**
 - Modify: `docs/2026-07-02_fino_corpus_crawler_handoff.md` (§5 액션 순서에 fino_ops 항목 추가)
@@ -1110,7 +1312,7 @@ git commit -m "docs(fino_ops): 핸드오프에 통합 CLI·대시보드 사용�
 
 ## Self-Review 결과
 
-- **스펙 커버리지**: 상태DB(§데이터 모델)=Task 1, 레지스트리(§레지스트리 계약)=Task 2, runner·CLI(§아키텍처)=Task 3, API 5종(§API)=Task 4, UI(§대시보드 UI)=Task 5-6, E2E·운영(§테스트)=Task 7. 물리 통합 제외·FINO 1단계 소비는 스펙 기록 사항으로 코드 태스크 없음 — 갭 없음.
+- **스펙 커버리지**: 상태DB(§데이터 모델)=Task 1, NTS 물리 분리(§split_nts 상세)=Task 2, 레지스트리(§레지스트리 계약)=Task 3, runner·CLI(§아키텍처)=Task 4, API 5종(§API)=Task 5, UI(§대시보드 UI)=Task 6-7, E2E·운영(§테스트)=Task 8. FINO 1단계 소비는 스펙 기록 사항으로 코드 태스크 없음 — 갭 없음.
 - **플레이스홀더 스캔**: 모든 코드 스텝에 전체 코드 포함. "적절히 처리" 류 문구 없음.
 - **타입 일관성**: `corpus_stats` 반환 dict 키(total/last_collected/db_exists)가 Task 2 구현·테스트, Task 4 API 병합(`**corpus_stats(c)`), Task 6 `CorpusCard` 타입과 일치. `refresh_corpus` 시그니처가 Task 3 테스트·Task 4 `_task()` 호출과 일치. runs 컬럼명이 Task 1 스키마·Task 4 응답·Task 6 `Run` 타입과 일치.
 - 주의 기록: Task 4 테스트는 TestClient가 응답 후 BackgroundTasks를 동기 실행하는 성질에 의존(FastAPI 표준 동작). Task 6 `new Date(...)` 파싱은 sqlite `datetime('now','localtime')` 포맷("YYYY-MM-DD HH:MM:SS") 전제 — freshness()에서 "T" 치환으로 처리.

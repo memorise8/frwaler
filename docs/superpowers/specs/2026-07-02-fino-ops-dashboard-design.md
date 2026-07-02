@@ -4,7 +4,7 @@
 
 frwaler의 크롤러 4종(fino_law, fino_acct, fino_std, NTS)을 **단일 진입점으로 통합**하고, 코퍼스별 **최신화 상태를 한눈에 보고 갱신을 트리거하는 웹 대시보드**를 만든다. FINO(서비스)는 1단계에서 export 산출물과 상태 API를 소비하고, 수집 트리거 API는 후속 연동에서 그대로 재사용한다.
 
-**선택된 접근 = C(풀스택 UI) + 논리적 DB 통합.** Next.js 프론트 + FastAPI API 서버. DB 물리 통합(20GB papers.db 이관)은 제외 — 스키마 이질(문서형/조문형/판례형)과 20GB 재색인 리스크 대비 실익이 없고, 통합의 실제 요구(한눈 관리·단일 진입점)는 상태층으로 충족된다.
+**선택된 접근 = C(풀스택 UI) + 논리적 DB 통합 + NTS 물리 분리.** Next.js 프론트 + FastAPI API 서버. 전체 DB 물리 통합(단일 스키마 합병)은 제외 — 스키마 이질(문서형/조문형/판례형) 대비 실익이 없다. 단, **papers.db에는 NTS 외 무관 사이트(ntrs, mohw, 독일 통계 등 ~21k행)가 섞여 있으므로 NTS(93.4%, 290,708행)만 `data/fino_nts.db`로 추출**해 fino 코퍼스 체계에 편입한다(사용자 요구). 원본 papers.db는 무수정 보존(비-NTS 데이터의 유일본).
 
 ## 현황 (실측, 2026-07-02)
 
@@ -14,8 +14,8 @@ frwaler의 크롤러 4종(fino_law, fino_acct, fino_std, NTS)을 **단일 진입
 | `exec` | data/fino_law.db (source_kind=exec_standard) | 2,799조문 | `python -m crawler.fino_law.collect --exec` |
 | `acct` | data/fino_acct.db | 4,540건 | `python -m crawler.fino_acct.collect --priorities 1,2,3,4,5,6` |
 | `std` | data/fino_std.db | 21,375문단 | `python -m crawler.fino_std.collect` |
-| `nts_qt` | crawler-poc/data/papers.db | 139,617행 | `FINOLAW_DB_PATH=… python -m crawler.main crawl nts-taxlaw-qt --incremental` |
-| `nts_pd` | crawler-poc/data/papers.db | 151,041행 | 동일 (pd) |
+| `nts_qt` | data/fino_nts.db (분리 후; 원본 papers.db에서 추출) | 139,617행 | `FINOLAW_DB_PATH=… python -m crawler.main crawl nts-taxlaw-qt --incremental` |
+| `nts_pd` | data/fino_nts.db (분리 후) | 151,041행 | 동일 (pd) |
 
 모든 크롤러는 재실행=증분 최신화. 문제는 (1) 실행법이 6가지, (2) 최신화 이력·신선도를 보는 곳이 없음.
 
@@ -28,9 +28,11 @@ crawler/fino_ops/     Python 코어 + API 서버
    ├─ db.py           data/fino_ops.db — runs 테이블 (실행 이력·상태)
    ├─ corpora.py      6코퍼스 레지스트리 (stats SQL + refresh argv/env)
    ├─ runner.py       refresh 실행기 (subprocess, 락, new_count 산출)
+   ├─ split_nts.py    papers.db → fino_nts.db NTS 추출 (1회성, 멱등 가드)
    ├─ cli.py          python -m crawler.fino_ops {status,refresh}
    └─ api.py          FastAPI — /api/corpora, /api/runs, /api/export
 data/fino_ops.db      상태 메타DB (신규)
+data/fino_nts.db      NTS 전용 DB (papers.db에서 추출, ~19GB) — 이후 NTS 증분의 대상
 data/ops_logs/        실행별 로그 파일
 ```
 
@@ -55,7 +57,7 @@ Corpus(key, label, db_path, count_sql, freshness_sql, argv, env)
 corpus_stats(c) -> {total, last_collected, db_exists}   # 소스DB read-only 조회
 ```
 
-- papers.db 경로는 `FINO_PAPERS_DB` env로 재정의 가능(기본 crawler-poc 경로).
+- NTS DB 경로는 `FINO_PAPERS_DB` env로 재정의 가능(기본 `data/fino_nts.db` — 분리 완료 후 기준).
 - freshness = max(마지막 성공 run의 finished_at, 소스DB의 max collected/crawled/fetched_at).
 
 ## API (FastAPI, 127.0.0.1:8500 — 로컬 전용, 인증 없음)
@@ -87,7 +89,13 @@ corpus_stats(c) -> {total, last_collected, db_exists}   # 소스DB read-only 조
 
 ## FINO 연동 로드맵 (스펙 범위 밖, 기록용)
 
-1단계(이 스펙): FINO가 `GET /api/export/{key}` + `GET /api/corpora`(신선도) 소비. 2단계(후속): FINO 에이전트가 `POST refresh` 직접 트리거 or MCP 래퍼. 3단계(선택): papers.db 물리 이전 여부 재검토.
+1단계(이 스펙): FINO가 `GET /api/export/{key}` + `GET /api/corpora`(신선도) 소비. 2단계(후속): FINO 에이전트가 `POST refresh` 직접 트리거 or MCP 래퍼. (NTS 물리 분리는 이 스펙에 포함되어 완료됨 — 원본 papers.db는 비-NTS 사이트 데이터 아카이브로 crawler-poc에 보존.)
+
+## NTS 물리 분리 (split_nts) 상세
+
+- 소스 papers.db의 DDL(sqlite_master)을 복제해 스키마 동일성 보장 → `site_id IN ('nts-taxlaw-pd','nts-taxlaw-qt')` 행만 papers/doc_index/sites 복사 → FTS5(papers_fts) 생성·`rebuild` → 트리거(papers_ai/ad/au)는 데이터 적재 후 생성.
+- 검증: 소스 대비 site_id별 행수 일치, FTS 검색 1건 동작, 이후 fino_nts.db 대상 증분 crawl 정상(신규 0~수건).
+- 멱등 가드: 대상 파일 존재 시 중단(덮어쓰기 금지). 소스는 SELECT만(무수정).
 
 ## Open Questions
 
