@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -32,13 +33,15 @@ def create_app(ops_db: Path = DEFAULT_OPS_DB,
     @app.get("/api/corpora")
     def corpora_list() -> list[dict]:
         conn = connect_ops(ops_db)
-        init_ops_schema(conn)
-        busy = any_running(conn)
-        out = []
-        for key, c in CORPORA.items():
-            out.append({"key": key, "label": c.label, **corpus_stats(c),
-                        "last_run": last_run(conn, key), "busy": busy})
-        conn.close()
+        try:
+            init_ops_schema(conn)
+            busy = any_running(conn)
+            out = []
+            for key, c in CORPORA.items():
+                out.append({"key": key, "label": c.label, **corpus_stats(c),
+                            "last_run": last_run(conn, key), "busy": busy})
+        finally:
+            conn.close()
         return out
 
     @app.post("/api/corpora/{key}/refresh", status_code=202)
@@ -46,9 +49,11 @@ def create_app(ops_db: Path = DEFAULT_OPS_DB,
         if key not in CORPORA:
             raise HTTPException(404, f"알 수 없는 코퍼스: {key}")
         conn = connect_ops(ops_db)
-        init_ops_schema(conn)
-        busy = any_running(conn)
-        conn.close()
+        try:
+            init_ops_schema(conn)
+            busy = any_running(conn)
+        finally:
+            conn.close()
         if busy:
             raise HTTPException(409, "다른 수집이 실행 중입니다")
 
@@ -64,24 +69,29 @@ def create_app(ops_db: Path = DEFAULT_OPS_DB,
     @app.get("/api/runs")
     def runs_list(limit: int = 50) -> list[dict]:
         conn = connect_ops(ops_db)
-        init_ops_schema(conn)
-        rows = recent_runs(conn, limit=limit)
-        conn.close()
+        try:
+            init_ops_schema(conn)
+            rows = recent_runs(conn, limit=limit)
+        finally:
+            conn.close()
         return rows
 
     @app.get("/api/runs/{run_id}/log", response_class=PlainTextResponse)
     def run_log(run_id: int, tail: int = 200) -> str:
         conn = connect_ops(ops_db)
-        init_ops_schema(conn)
-        row = conn.execute("SELECT log_path FROM runs WHERE id = ?", (run_id,)).fetchone()
-        conn.close()
+        try:
+            init_ops_schema(conn)
+            row = conn.execute("SELECT log_path FROM runs WHERE id = ?", (run_id,)).fetchone()
+        finally:
+            conn.close()
         if row is None:
             raise HTTPException(404, "run 없음")
         p = Path(row["log_path"])
         if not p.exists():
             raise HTTPException(404, "로그 파일 없음")
-        lines = p.read_text(encoding="utf-8", errors="replace").splitlines()
-        return "\n".join(lines[-tail:])
+        with p.open(encoding="utf-8", errors="replace") as fh:
+            lines = deque(fh, maxlen=tail)
+        return "".join(lines)
 
     @app.get("/api/export/{key}")
     def export_file(key: str) -> FileResponse:

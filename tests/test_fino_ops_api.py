@@ -63,3 +63,13 @@ def test_export_serves_file_or_404(tmp_path: Path, monkeypatch) -> None:
     (tmp_path / "export" / "mini.ndjson").write_text('{"a":1}\n', encoding="utf-8")
     r = client.get("/api/export/mini")
     assert r.status_code == 200 and r.text.startswith('{"a":1}')
+
+
+def test_run_log_404_paths(tmp_path: Path, monkeypatch) -> None:
+    client = _setup(tmp_path, monkeypatch)
+    assert client.get("/api/runs/999/log").status_code == 404          # run 없음
+    conn = connect_ops(tmp_path / "ops.db")
+    init_ops_schema(conn)
+    rid = start_run(conn, "mini", str(tmp_path / "ghost.log"))          # 로그 파일 없음
+    conn.close()
+    assert client.get(f"/api/runs/{rid}/log").status_code == 404
