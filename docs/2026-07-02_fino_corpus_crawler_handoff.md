@@ -6,7 +6,7 @@
 
 ## 0. TL;DR — 어디까지 왔나
 
-**NTS 제외 코퍼스 7개 전부 완료. 남은 건 NTS 최신화뿐.**
+**NTS 제외 코퍼스 7개 전부 완료 + NTS 최신화(2026-07-02)까지 완료. 원 미션의 수집 단계는 전부 끝.**
 
 | 코퍼스 | 크롤러 | 수집 | 상태 |
 |---|---|---|---|
@@ -18,7 +18,7 @@
 | **회계 기준서 K-IFRS(전문)** | `fino_std` | 61문서(kifrs 42+kifrs_interp 19)/18,550문단 | ✅ 완료 |
 | **회계 기준서 GAAP(일반기업회계기준 전문)** | `fino_std` | 35문서/2,825문단 | ✅ 완료 |
 
-**다음 순서**: NTS 최신화(papers.db 재가동·일원화)만 남음 — §2 참고.
+**다음 순서**: 수집은 전부 완료(§2). 남은 후속은 통합 오케스트레이터/정리(§3, 보류 중)와 다운스트림 export→인덱스(§4).
 
 ---
 
@@ -42,11 +42,12 @@
 
 ---
 
-## 2. 다음 작업 — NTS 최신화 (마지막 남은 항목)
+## 2. NTS 최신화 — ✅ 완료 (2026-07-02)
 
-- `crawler/sites/nts_taxlaw.py`(taxlaw action.do, curl) — 판례/예규 크롤러. 작동·증분 지원.
-- 데이터 `crawler-poc/data/papers.db`(20GB, 289k행, ~2026-04 기준, ~2개월+ stale).
-- 할 일: **증분 재가동으로 최신화** + frwaler로 **일원화**(참조/이전). 신선도 확인 후.
+- 증분 재가동 완료: **예규(qt) +232건 → 139,617행, 판례(pd) +1,132건 → 151,041행** (papers.db 총 ~290.7k행, max crawled_at 2026-07-02). 기존 행 무접촉, 신규만 INSERT.
+- 실행법(재현): frwaler에서 `FINOLAW_DB_PATH=/data_raid/ruci_workspace/crawler-poc/data/papers.db .venv/bin/python -m crawler.main crawl nts-taxlaw-qt --incremental` (pd 동일). 주의: env 미지정 시 기본 DB는 `frwaler/data/data.db`.
+- 증분 안전 근거: 목록 API 등록일 내림차순(`DCM_RGT_DTM/DESC`) + "새 항목 0인 페이지에서 정지" + `(site_id, external_id)` 사전 중복 체크.
+- **일원화**: 크롤러 코드는 frwaler가 정본(크롤러는 frwaler에서 실행, crawler-poc 사본은 구버전). DB 파일(20GB)은 crawler-poc/data/에 그대로 두고 `FINOLAW_DB_PATH`로 참조 — 파일 이전은 보류(사용자 합의: 기존 내용 기준 추가만).
 
 ---
 
@@ -71,7 +72,8 @@
 
 ## 5. 새 세션 액션 순서
 1. 이 문서 + 메모리 3개 읽기.
-2. NTS 최신화 착수: `crawler/sites/nts_taxlaw.py` 증분 재가동 → 신선도 확인 → frwaler로 일원화.
+2. (수집은 전부 완료) 필요 시 각 크롤러 재실행=최신화. NTS는 §2의 `FINOLAW_DB_PATH` 실행법 참고.
+3. 후속 후보: 다운스트림 export→FINO 인덱스 재생성, 통합 오케스트레이터/정리(보류 중), papers.db 물리 이전 여부 결정.
 
 ## 6. Open Questions
 - [ ] 법인세 집행기준 2조문(44-0-32/33) 본문 파서 miss — PDF 헤더 edge case 보정(소소, 선택).
