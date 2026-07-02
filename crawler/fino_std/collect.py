@@ -33,12 +33,17 @@ def collect_standards(
                 print(f"[skip] 빈 목차: {t.std_num} {t.title}", flush=True)
                 continue
             records = []
+            failed_sections = 0
             for big in bigs:
                 content = fetch_content(client, t.std_num, big.document_id, delay)
                 if is_unavailable(content):
                     print(f"[warn] 섹션 실패: {t.std_num} {big.title}", flush=True)
+                    failed_sections += 1
                     continue
                 records.extend(parse_content(content, std_num=t.std_num, start_seq=len(records)))
+            if failed_sections:
+                print(f"[warn] 섹션 {failed_sections}건 실패 — 문서 보존: {t.std_num} {t.title}", flush=True)
+                continue
             if bigs and not records:
                 print(f"[warn] 전 섹션 실패 — 보존: {t.std_num} {t.title}", flush=True)
                 continue

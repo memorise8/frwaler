@@ -27,7 +27,8 @@ def _get_json(client: httpx.Client, path: str, delay: float) -> dict | None:
                 return resp.json()
         except (httpx.HTTPError, ValueError):
             pass
-        time.sleep(1 + attempt)
+        if attempt < 2:
+            time.sleep(1 + attempt)
     return None
 
 

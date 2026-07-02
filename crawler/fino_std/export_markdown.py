@@ -8,6 +8,10 @@ _TYPE_LABEL = {"kifrs": "K-IFRS", "kifrs_interp": "K-IFRS 해석서",
                "kifrs_etc": "K-IFRS 기타", "gaap": "일반기업회계기준"}
 
 
+def _safe(name: str) -> str:
+    return "".join(c for c in name if c.isalnum() or c in " _-()가-힣").strip().replace(" ", "_")
+
+
 def export_markdown(*, db_path: Path, out_dir: Path) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     count = 0
@@ -27,7 +31,7 @@ def export_markdown(*, db_path: Path, out_dir: Path) -> int:
                     lines += [f"## {current_path}", ""]
                 head = f"**{p['para_num']}** " if p["para_num"] else ""
                 lines += [f"{head}{p['body_text']}", f"[{p['source_url']}]({p['source_url']})", ""]
-            name = f"{d['std_type']}_{d['std_num']}_{d['title'].replace('/', '·')}.md"
+            name = f"{d['std_type']}_{d['std_num']}_{_safe(d['title'])}.md"
             (out_dir / name).write_text("\n".join(lines), encoding="utf-8")
             count += 1
     return count

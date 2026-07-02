@@ -63,3 +63,23 @@ def test_collect_preserves_existing_paragraphs_on_total_section_failure(tmp_path
     with connect_db(db) as conn:
         n = conn.execute("SELECT COUNT(*) AS c FROM paragraphs").fetchone()["c"]
         assert n == 70                                  # 기존 문단 보존
+
+
+def test_collect_preserves_document_on_partial_section_failure(tmp_path: Path, monkeypatch) -> None:
+    _install_fake_fetch(monkeypatch)
+    db = tmp_path / "std.db"
+    collect_standards(db_path=db, types={"kifrs"}, std_num=1001, delay=0)  # 정상 수집(70문단)
+    # 재수집: 첫 섹션만 실패, 나머지는 성공
+    content = json.load(open(_FX / "content_1001_1f0730.json"))
+    calls = {"n": 0}
+
+    def flaky_content(client, std_num, document_id, delay=0.4):
+        calls["n"] += 1
+        return None if calls["n"] == 1 else content
+
+    monkeypatch.setattr(collect_mod, "fetch_content", flaky_content)
+    docs, paras = collect_standards(db_path=db, types={"kifrs"}, std_num=1001, delay=0)
+    assert docs == 0 and paras == 0
+    with connect_db(db) as conn:
+        n = conn.execute("SELECT COUNT(*) AS c FROM paragraphs").fetchone()["c"]
+        assert n == 70  # 부분 실패가 기존 문단을 줄이지 않음

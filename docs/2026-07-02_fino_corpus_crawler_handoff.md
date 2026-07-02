@@ -36,7 +36,7 @@
 - 상세: 메모리 `fino-acct-qna-crawler`.
 
 ### 회계 기준서(K-IFRS/GAAP) = `crawler/fino_std/` (DB: `data/fino_std.db`, documents/paragraphs)
-- db.kasb.or.kr API(`/api/paragraphs/title/{std}`, `/api/paragraphs/content/{std}/{docId}`)로 기준서 전문 수집. 102시드 중 96문서/21,375문단(kifrs 42+kifrs_interp 19=18,550문단, gaap 35/2,825문단), skip 6건(91·93·1191·1192·1118·10121, API 미지원/빈 목차), 빈 본문 0.
+- db.kasb.or.kr API(`api/title/{stdNum}`(목차), `api/content/{stdNum}/{documentId}`(본문); `/api/paragraphs/content/{std}/{para}`는 문단 단위 검증용)로 기준서 전문 수집. 102시드 중 96문서/21,375문단(kifrs 42+kifrs_interp 19=18,550문단, gaap 35/2,825문단), skip 6건(91·93·1191·1192·1118·10121, API 미지원/빈 목차), 빈 본문 0.
 - 실행: `.venv/bin/python -m crawler.fino_std.collect`. 재실행=최신화.
 - 상세: 메모리 `fino-std-standards-crawler`.
 
