@@ -38,3 +38,25 @@ def test_extract_bodies_splits_and_strips_noise() -> None:
     assert "- 1 -" not in bodies["2-0-1"] and "- 2 -" not in bodies["2-0-1"]
     assert bodies["2-0-2"].startswith("① 비영리내국법인")
     assert "국세청" not in bodies["2-0-2"]
+
+
+import json
+from pathlib import Path
+from crawler.fino_law.parsers_exec import parse_exec, exec_citation_url
+
+
+def test_parse_exec_matches_bodies_by_number() -> None:
+    data = json.load(open(Path("tests/fixtures/exec_법인세_list.json")))
+    bodies = {"2-0-1": "내국법인과 외국법인의 구분은 본점 또는...", "2-0-2": "① 비영리내국법인은..."}
+    doc = parse_exec(data, name="법인세 집행기준", ntst_bsc_id="100000000000001563", bodies=bodies)
+    assert doc.source_kind == "exec_standard"
+    assert doc.source_url == "https://taxlaw.nts.go.kr/st/USESTE001M.do?ntstBscId=100000000000001563"
+    first = next(a for a in doc.articles if a.article_no == "2-0-1")
+    assert "내국법인과 외국법인의 구분" in first.article_title
+    assert "본점 또는" in first.body_text
+    assert first.source_url.endswith("ntstBscId=100000000000001563#2-0-1")
+
+
+def test_exec_citation_url() -> None:
+    assert exec_citation_url("100000000000001563") == \
+        "https://taxlaw.nts.go.kr/st/USESTE001M.do?ntstBscId=100000000000001563"
