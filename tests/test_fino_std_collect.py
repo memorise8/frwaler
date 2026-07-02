@@ -50,3 +50,16 @@ def test_collect_single_std_filter(tmp_path: Path, monkeypatch) -> None:
     db = tmp_path / "std.db"
     docs, _ = collect_standards(db_path=db, types={"kifrs", "gaap"}, std_num=1001, delay=0)
     assert docs == 1
+
+
+def test_collect_preserves_existing_paragraphs_on_total_section_failure(tmp_path: Path, monkeypatch) -> None:
+    _install_fake_fetch(monkeypatch)
+    db = tmp_path / "std.db"
+    collect_standards(db_path=db, types={"kifrs"}, std_num=1001, delay=0)  # 정상 수집(70문단)
+    # 재수집: titles는 성공하지만 모든 섹션 content가 실패하는 상황
+    monkeypatch.setattr(collect_mod, "fetch_content", lambda client, std_num, document_id, delay=0.4: None)
+    docs, paras = collect_standards(db_path=db, types={"kifrs"}, std_num=1001, delay=0)
+    assert docs == 0 and paras == 0                     # 수집으로 집계되지 않음
+    with connect_db(db) as conn:
+        n = conn.execute("SELECT COUNT(*) AS c FROM paragraphs").fetchone()["c"]
+        assert n == 70                                  # 기존 문단 보존

@@ -39,6 +39,9 @@ def collect_standards(
                     print(f"[warn] 섹션 실패: {t.std_num} {big.title}", flush=True)
                     continue
                 records.extend(parse_content(content, std_num=t.std_num, start_seq=len(records)))
+            if bigs and not records:
+                print(f"[warn] 전 섹션 실패 — 보존: {t.std_num} {t.title}", flush=True)
+                continue
             doc_id = upsert_document(
                 conn, std_num=t.std_num, std_type=t.std_type,
                 title=t.title, source_url=std_source_url(t.std_num),
