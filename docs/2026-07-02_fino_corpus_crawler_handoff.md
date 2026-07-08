@@ -76,6 +76,7 @@
 2. (수집은 전부 완료) 필요 시 각 크롤러 재실행=최신화. NTS는 §2의 `FINOLAW_DB_PATH` 실행법 참고.
 3. 후속 후보: 다운스트림 export→FINO 인덱스 재생성, 통합 오케스트레이터/정리(보류 중), papers.db 물리 이전 여부 결정.
 4. 최신화 관리: `python -m crawler.fino_ops status|refresh` 또는 uvicorn(:8500)+dashboard(:3000) — 스펙 `2026-07-02-fino-ops-dashboard-design.md`.
+5. temis 연동: temis-ops Corpus 탭(브랜치 corpus-tab) + fino-backend `/api/admin/corpus/*`(브랜치 temis-corpus-ops) — 스펙 `2026-07-08-temis-corpus-tab-design.md`. 두 브랜치는 미푸시, 머지/배포는 temis 절차.
 
 ## 6. Open Questions
 - [ ] 법인세 집행기준 2조문(44-0-32/33) 본문 파서 miss — PDF 헤더 edge case 보정(소소, 선택).
