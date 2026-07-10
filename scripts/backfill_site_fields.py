@@ -22,7 +22,7 @@ from pathlib import Path
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_PROJECT_ROOT))
 
-from crawler.db_libertree import find_by_dedup_key, init_db, open_db  # noqa: E402
+from crawler.db_libertree import find_by_dedup_key, init_db, open_db, upsert_site  # noqa: E402
 
 ALLOWED_FIELDS = {"published_date", "title", "listed_date", "authors", "keywords"}
 
@@ -105,6 +105,12 @@ def main():
     scratch = open_db(scratch_path)
     init_db(scratch)
     cls = load_crawler_class(args.site)
+    # documents.site_id has a FOREIGN KEY to sites(site_id) and open_db()
+    # turns PRAGMA foreign_keys=ON, so the scratch DB needs its own sites
+    # row registered before crawl() can INSERT any documents (2026-07-11
+    # discovered: fresh scratch DB -> every insert failed with
+    # "FOREIGN KEY constraint failed", 0 scratch_docs, tool silently no-op).
+    upsert_site(scratch, args.site, cls.site_name, cls.base_url)
     crawler = cls(db_conn=scratch, delay=1.0)
     print(f"[backfill] crawling {args.site} into scratch {scratch_path} ...")
     crawler.crawl(limit=args.limit)
