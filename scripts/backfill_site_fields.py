@@ -53,6 +53,9 @@ def _should_update(field: str, old, new) -> bool:
 
 
 def backfill(main_conn, scratch_conn, site_id, fields, apply: bool) -> dict:
+    bad = set(fields) - ALLOWED_FIELDS
+    if bad:
+        raise ValueError(f"not allowed fields: {sorted(bad)}")
     rep = {"scratch_docs": 0, "matched": 0, "unmatched": 0,
            "updated": {f: 0 for f in fields}}
     rows = scratch_conn.execute(

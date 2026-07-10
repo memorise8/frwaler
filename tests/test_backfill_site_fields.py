@@ -62,6 +62,11 @@ class TestBackfill(unittest.TestCase):
         rep = backfill(main, scratch, "s", ["published_date"], apply=True)
         self.assertEqual(rep["unmatched"], 1)
 
+    def test_disallowed_field_rejected(self):
+        main, scratch = _mkdb(), _mkdb()
+        with self.assertRaises(ValueError):
+            backfill(main, scratch, "s", ["title; DROP TABLE documents"], apply=True)
+
 
 if __name__ == "__main__":
     unittest.main()
