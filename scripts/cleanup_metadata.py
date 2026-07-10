@@ -42,7 +42,7 @@ _YMD_SEP_RE = re.compile(r"^(\d{4})[./](\d{1,2})[./](\d{1,2})$")
 _TEXT_MONTH_RE = re.compile(r"^(\d{1,2})\s+([A-Za-zÀ-ÖØ-öø-ÿ]+)\.?\s+(\d{2,4})$")
 
 
-def _unescape_repeat(s: str, max_rounds: int = 3) -> str:
+def _unescape_repeat(s: str, max_rounds: int = 8) -> str:
     """이중 인코딩(&amp;#8211;)까지 풀되 무한루프 방지."""
     out = s
     for _ in range(max_rounds):
@@ -160,7 +160,7 @@ def fix_meta_url(meta_url):
     """R6: meta_url 정리. 'ERROR'는 null 처리, 나머지 비http는 리포트만."""
     v = (meta_url or "").strip()
     if v == "ERROR":
-        return (None, "nulled")
+        return ("", "nulled")
     return (meta_url, "kept" if not v.startswith(("http://", "https://")) else "ok")
 
 

@@ -24,6 +24,14 @@ class TestCleanText(unittest.TestCase):
     def test_double_encoded_entity(self):
         self.assertEqual(clean_text("A &amp;amp; B"), "A & B")
 
+    def test_quadruple_encoded_entity_fixed_point(self):
+        # 4단계 중첩 인코딩(&amp;amp;amp;lsquo;)도 한 번의 호출로 완전히 풀려야 함
+        # &amp;amp;amp;lsquo; -> &amp;amp;lsquo; -> &amp;lsquo; -> &lsquo; -> '‘'
+        result = clean_text("A &amp;amp;amp;lsquo;B")
+        self.assertEqual(result, "A ‘B")
+        self.assertEqual(clean_text(result), result)
+        self.assertNotIn("&", result)
+
     def test_tag_strip(self):
         self.assertEqual(
             clean_text('intro <div class="x">body</div> <br/> end'),
@@ -151,7 +159,7 @@ class TestUrlRules(unittest.TestCase):
                          ("ftp://ftp.asc-csa.gc.ca/a.pdf", "kept_ftp"))
 
     def test_meta_error_nulled(self):
-        self.assertEqual(fix_meta_url("ERROR"), (None, "nulled"))
+        self.assertEqual(fix_meta_url("ERROR"), ("", "nulled"))
 
     def test_meta_citation_kept(self):
         val = "Bączek-Kwinta, R. (2006). Reakcja..."
@@ -162,7 +170,7 @@ MINI_SCHEMA = """
 CREATE TABLE documents (
   seq_id INTEGER PRIMARY KEY, site_id TEXT, title TEXT, abstract TEXT,
   keywords TEXT, listed_date TEXT, published_date TEXT,
-  meta_url TEXT, pdf_url TEXT
+  meta_url TEXT NOT NULL, pdf_url TEXT
 );
 """
 
@@ -207,7 +215,7 @@ class TestRunCleanup(unittest.TestCase):
         self.assertEqual(got[2][2], "K1")
         self.assertEqual(got[2][3], "2025-08-01")
         self.assertEqual(got[3][5], "https://www.sgu.se/globalassets/n.pdf")
-        self.assertIsNone(got[4][4])
+        self.assertEqual(got[4][4], "")
         self.assertEqual(got[5][3], "2026 - 12??")  # 파싱불가 → 원값 유지
         report2 = run_cleanup(self.conn, apply=True)  # 멱등
         self.assertTrue(all(v["changed"] == 0 for v in report2.values()))
