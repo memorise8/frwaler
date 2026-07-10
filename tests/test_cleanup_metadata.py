@@ -1,0 +1,68 @@
+# -*- coding: utf-8 -*-
+import sys
+import unittest
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from scripts.cleanup_metadata import clean_text, clean_keywords
+
+
+class TestCleanText(unittest.TestCase):
+    def test_entity_decode(self):
+        # esteri-it 실사례: &#8211; = en-dash, &#8217; = right quote
+        self.assertEqual(
+            clean_text("Nota di inquadramento &#8211; Conferenza"),
+            "Nota di inquadramento – Conferenza",
+        )
+        self.assertEqual(clean_text("Blood Diseases &amp; Disorders"),
+                         "Blood Diseases & Disorders")
+
+    def test_double_encoded_entity(self):
+        self.assertEqual(clean_text("A &amp;amp; B"), "A & B")
+
+    def test_tag_strip(self):
+        self.assertEqual(
+            clean_text('intro <div class="x">body</div> <br/> end'),
+            "intro body end",
+        )
+
+    def test_math_lt_preserved(self):
+        # 태그가 아닌 부등호는 보존 (< 뒤가 영문자/슬래시일 때만 태그)
+        self.assertEqual(clean_text("p<0.05, q>1"), "p<0.05, q>1")
+
+    def test_newline_and_spaces(self):
+        self.assertEqual(clean_text("Line one\n  Line two\t x"),
+                         "Line one Line two x")
+
+    def test_cdata_removed(self):
+        self.assertEqual(clean_text("<![CDATA[Communiqué]]>"), "Communiqué")
+
+    def test_none_and_empty_passthrough(self):
+        self.assertIsNone(clean_text(None))
+        self.assertEqual(clean_text(""), "")
+
+    def test_clean_value_unchanged_identity(self):
+        s = "Perfectly normal title 2024"
+        self.assertEqual(clean_text(s), s)
+
+
+class TestCleanKeywords(unittest.TestCase):
+    def test_cdata_and_dupes(self):
+        # presse-economie 실사례: CDATA 잔재 + 중복 토큰
+        raw = ("Communiqué de presse, Bruno Le Maire, "
+               "<![CDATA[Communiqué de presse]]>, <![CDATA[Bruno Le Maire]]>")
+        self.assertEqual(clean_keywords(raw),
+                         "Communiqué de presse, Bruno Le Maire")
+
+    def test_sub_tag_stripped(self):
+        self.assertEqual(clean_keywords("CO<sub>2</sub>, Carbon capture"),
+                         "CO2, Carbon capture")
+
+    def test_case_insensitive_dedupe_keeps_first(self):
+        self.assertEqual(clean_keywords("Energy, energy, ENERGY, wind"),
+                         "Energy, wind")
+
+
+if __name__ == "__main__":
+    unittest.main()
