@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import sqlite3
 import sys
 import unittest
 from pathlib import Path
@@ -7,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from scripts.cleanup_metadata import clean_text, clean_keywords, normalize_date
 from scripts.cleanup_metadata import fix_pdf_url, fix_meta_url
+from scripts.cleanup_metadata import run_cleanup
 
 
 class TestCleanText(unittest.TestCase):
@@ -154,6 +156,59 @@ class TestUrlRules(unittest.TestCase):
     def test_meta_citation_kept(self):
         val = "Bączek-Kwinta, R. (2006). Reakcja..."
         self.assertEqual(fix_meta_url(val), (val, "kept"))
+
+
+MINI_SCHEMA = """
+CREATE TABLE documents (
+  seq_id INTEGER PRIMARY KEY, site_id TEXT, title TEXT, abstract TEXT,
+  keywords TEXT, listed_date TEXT, published_date TEXT,
+  meta_url TEXT, pdf_url TEXT
+);
+"""
+
+
+class TestRunCleanup(unittest.TestCase):
+    def setUp(self):
+        self.conn = sqlite3.connect(":memory:")
+        self.conn.executescript(MINI_SCHEMA)
+        rows = [
+            (1, "esteri-it-it", "A &#8211; B", "x <div>y</div>", None,
+             None, "2024-01-01", "https://e.it/p1", None),
+            (2, "presse-economie-gouv-fr", "OK", "ok",
+             "K1, <![CDATA[K1]]>", "01 août 2025", "2024-01-01",
+             "https://p.fr/p2", None),
+            # NOTE: meta_url uses www.sgu.se (not sgu.se) so the relative
+            # pdf_url absolutizes against the real site host — matches the
+            # sgu.se live example asserted in TestUrlRules.test_relative_absolutized.
+            (3, "sgu-se-en", "OK", "ok", None, None, "2024-01-01",
+             "https://www.sgu.se/p3", "/globalassets/n.pdf"),
+            (4, "directives-doe-gov-guidance", "OK", "ok", None, None,
+             "2024-01-01", "ERROR", None),
+            (5, "search-nal-usda-gov-discovery", "OK", "ok", None,
+             "2026 - 12??", "2024-01-01", "https://u.gov/p5", None),
+        ]
+        self.conn.executemany("INSERT INTO documents VALUES (?,?,?,?,?,?,?,?,?)", rows)
+
+    def test_dry_run_changes_nothing(self):
+        report = run_cleanup(self.conn, apply=False)
+        self.assertEqual(
+            self.conn.execute("SELECT title FROM documents WHERE seq_id=1").fetchone()[0],
+            "A &#8211; B")
+        self.assertGreaterEqual(report["title"]["changed"], 1)
+
+    def test_apply_fixes_and_is_idempotent(self):
+        run_cleanup(self.conn, apply=True)
+        got = {r[0]: r for r in self.conn.execute(
+            "SELECT seq_id, title, keywords, listed_date, meta_url, pdf_url"
+            " FROM documents").fetchall()}
+        self.assertEqual(got[1][1], "A – B")
+        self.assertEqual(got[2][2], "K1")
+        self.assertEqual(got[2][3], "2025-08-01")
+        self.assertEqual(got[3][5], "https://www.sgu.se/globalassets/n.pdf")
+        self.assertIsNone(got[4][4])
+        self.assertEqual(got[5][3], "2026 - 12??")  # 파싱불가 → 원값 유지
+        report2 = run_cleanup(self.conn, apply=True)  # 멱등
+        self.assertTrue(all(v["changed"] == 0 for v in report2.values()))
 
 
 if __name__ == "__main__":

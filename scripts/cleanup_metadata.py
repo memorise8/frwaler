@@ -6,9 +6,14 @@
       R5 날짜 정규화, R6 URL 정리.
 기본 dry-run. --apply 시에만 UPDATE. FTS는 documents_au 트리거가 동기화.
 """
+import argparse
 import html
+import json
 import re
+import shutil
+import sqlite3
 from datetime import datetime
+from pathlib import Path
 from urllib.parse import urljoin
 
 from dateutil import parser as _dateparser
@@ -157,3 +162,128 @@ def fix_meta_url(meta_url):
     if v == "ERROR":
         return (None, "nulled")
     return (meta_url, "kept" if not v.startswith(("http://", "https://")) else "ok")
+
+
+_NON_ISO_WHERE = (
+    "{col} IS NOT NULL AND {col} != '' "
+    "AND {col} NOT GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]*' "
+    "AND {col} NOT GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]' "
+    "AND {col} NOT GLOB '[0-9][0-9][0-9][0-9]'"
+)
+
+
+def _rule_text(conn, apply, col, where):
+    rep = {"candidates": 0, "changed": 0, "samples": []}
+    fn = clean_keywords if col == "keywords" else clean_text
+    for seq_id, val in conn.execute(
+            f"SELECT seq_id, {col} FROM documents WHERE {where}").fetchall():
+        rep["candidates"] += 1
+        new = fn(val)
+        if new != val:
+            rep["changed"] += 1
+            if len(rep["samples"]) < 5:
+                rep["samples"].append({"seq_id": seq_id, "old": val[:80], "new": (new or "")[:80]})
+            if apply:
+                conn.execute(f"UPDATE documents SET {col}=? WHERE seq_id=?", (new, seq_id))
+    if apply:
+        conn.commit()
+    return rep
+
+
+def _rule_date(conn, apply, col):
+    rep = {"candidates": 0, "changed": 0, "unparsed": 0, "samples": []}
+    where = _NON_ISO_WHERE.format(col=col)
+    for seq_id, site_id, val in conn.execute(
+            f"SELECT seq_id, site_id, {col} FROM documents WHERE {where}").fetchall():
+        rep["candidates"] += 1
+        new = normalize_date(val, dayfirst=site_id in DAYFIRST_SITES)
+        if new is None:
+            rep["unparsed"] += 1
+            if len(rep["samples"]) < 10:
+                rep["samples"].append({"seq_id": seq_id, "kept": val[:40]})
+            continue
+        if new != val:
+            rep["changed"] += 1
+            if apply:
+                conn.execute(f"UPDATE documents SET {col}=? WHERE seq_id=?", (new, seq_id))
+    if apply:
+        conn.commit()
+    return rep
+
+
+def _rule_url(conn, apply):
+    rep = {"candidates": 0, "changed": 0, "kept_ftp": 0, "samples": []}
+    for seq_id, meta_url, pdf_url in conn.execute(
+            "SELECT seq_id, meta_url, pdf_url FROM documents WHERE meta_url='ERROR'"
+            " OR (pdf_url IS NOT NULL AND pdf_url != '' AND pdf_url NOT LIKE 'http%')"
+    ).fetchall():
+        rep["candidates"] += 1
+        new_meta, meta_verdict = fix_meta_url(meta_url)
+        new_pdf, pdf_verdict = fix_pdf_url(pdf_url, meta_url)
+        if pdf_verdict == "kept_ftp":
+            rep["kept_ftp"] += 1
+        # 값 비교로 "changed"를 판단한다 (verdict 문자열만으로는 안 됨):
+        # 예) http(s) pdf_url에 공백이 섞인 경우 fix_pdf_url은 strip된 값을
+        # verdict="ok"로 돌려주는데, verdict만 보면 "안 바뀜"으로 오판해
+        # 매번 WHERE에 다시 걸려 무한 재선택될 수 있다.
+        changed = (new_meta != meta_url) or (new_pdf != pdf_url)
+        if changed:
+            rep["changed"] += 1
+            if len(rep["samples"]) < 10:
+                rep["samples"].append({"seq_id": seq_id, "pdf": pdf_verdict, "meta": meta_verdict})
+            if apply:
+                conn.execute("UPDATE documents SET meta_url=?, pdf_url=? WHERE seq_id=?",
+                             (new_meta, new_pdf, seq_id))
+    if apply:
+        conn.commit()
+    return rep
+
+
+_TITLE_WHERE = ("title LIKE '%&#%' OR title LIKE '%&amp;%' OR title LIKE '%&lt;%'"
+                " OR title LIKE '%<a %' OR title LIKE '%<span%' OR title LIKE '%<br%'"
+                " OR title LIKE '%' || CHAR(10) || '%'")
+_ABSTRACT_WHERE = ("abstract LIKE '%<div%' OR abstract LIKE '%<span%'"
+                   " OR abstract LIKE '%<a href%' OR abstract LIKE '%<br%'"
+                   " OR abstract LIKE '%<![CDATA[%' OR abstract LIKE '%&amp;%'"
+                   " OR abstract LIKE '%&#%'")
+_KEYWORDS_WHERE = "keywords LIKE '%<%' OR keywords LIKE '%&amp%'"
+
+
+def run_cleanup(conn, apply: bool) -> dict:
+    return {
+        "title": _rule_text(conn, apply, "title", _TITLE_WHERE),
+        "abstract": _rule_text(conn, apply, "abstract", _ABSTRACT_WHERE),
+        "keywords": _rule_text(conn, apply, "keywords", _KEYWORDS_WHERE),
+        "listed_date": _rule_date(conn, apply, "listed_date"),
+        "published_date": _rule_date(conn, apply, "published_date"),
+        "url": _rule_url(conn, apply),
+    }
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--apply", action="store_true", help="실제 UPDATE 수행 (기본 dry-run)")
+    ap.add_argument("--db", default="data/libertree.db")
+    args = ap.parse_args()
+
+    db = Path(args.db)
+    if args.apply:
+        from datetime import datetime as _dt
+        bak = db.with_name(db.name + f".bak-{_dt.now():%Y%m%d-%H%M}-precleanup")
+        if not any(db.parent.glob(db.name + ".bak-*-precleanup")):
+            print(f"backing up -> {bak}")
+            shutil.copy2(db, bak)
+    conn = sqlite3.connect(db)
+    report = run_cleanup(conn, apply=args.apply)
+    from datetime import datetime as _dt
+    out = Path(f"data/audit/cleanup_metadata_{_dt.now():%Y%m%d_%H%M%S}"
+               f"{'_apply' if args.apply else '_dryrun'}.json")
+    out.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    for rule, r in report.items():
+        print(f"{rule:16s} candidates={r['candidates']:6d} changed={r['changed']:6d}"
+              + (f" unparsed={r['unparsed']}" if "unparsed" in r else ""))
+    print(f"report -> {out}")
+
+
+if __name__ == "__main__":
+    main()
