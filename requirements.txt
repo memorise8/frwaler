@@ -6,3 +6,4 @@ openai
 google-genai
 openpyxl
 python-dotenv
+python-dateutil>=2.8

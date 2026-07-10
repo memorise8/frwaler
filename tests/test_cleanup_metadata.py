@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from scripts.cleanup_metadata import clean_text, clean_keywords
+from scripts.cleanup_metadata import clean_text, clean_keywords, normalize_date
 
 
 class TestCleanText(unittest.TestCase):
@@ -62,6 +62,51 @@ class TestCleanKeywords(unittest.TestCase):
     def test_case_insensitive_dedupe_keeps_first(self):
         self.assertEqual(clean_keywords("Energy, energy, ENERGY, wind"),
                          "Energy, wind")
+
+
+class TestNormalizeDate(unittest.TestCase):
+    def test_already_iso_returns_none(self):
+        # 호출부는 비ISO만 넘기지만 방어적으로: 동일값이면 변경 불필요 표시(None 아님)
+        self.assertEqual(normalize_date("2025-08-01"), "2025-08-01")
+
+    def test_french_month(self):
+        self.assertEqual(normalize_date("01 août 2025"), "2025-08-01")
+        self.assertEqual(normalize_date("01 avril 2021"), "2021-04-01")
+
+    def test_dotted_korean_style(self):
+        self.assertEqual(normalize_date("2014.10.24"), "2014-10-24")
+        self.assertEqual(normalize_date("2025.09.15."), "2025-09-15")
+
+    def test_rfc822(self):
+        self.assertEqual(normalize_date("Fri, 01 Aug 2025 09:36:29 +0000"),
+                         "2025-08-01")
+
+    def test_short_year_english(self):
+        self.assertEqual(normalize_date("1 Feb 24"), "2024-02-01")
+        self.assertEqual(normalize_date("19 Nov 24"), "2024-11-19")
+
+    def test_slash_us_default(self):
+        self.assertEqual(normalize_date("09/30/2021"), "2021-09-30")
+
+    def test_slash_dayfirst(self):
+        self.assertEqual(normalize_date("06/02/2017", dayfirst=True), "2017-02-06")
+
+    def test_slash_ymd(self):
+        self.assertEqual(normalize_date("2025/11/24"), "2025-11-24")
+
+    def test_long_english(self):
+        self.assertEqual(normalize_date("March 17, 2026"), "2026-03-17")
+        self.assertEqual(normalize_date("18 March 2026"), "2026-03-18")
+
+    def test_unparseable_returns_none(self):
+        self.assertIsNone(normalize_date("2026 - 12??"))
+        self.assertIsNone(normalize_date(":"))
+        self.assertIsNone(normalize_date(""))
+        self.assertIsNone(normalize_date(None))
+
+    def test_out_of_range_rejected(self):
+        self.assertIsNone(normalize_date("0020-01-01"))
+        self.assertIsNone(normalize_date("-001-11-30"))
 
 
 if __name__ == "__main__":
