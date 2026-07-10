@@ -280,14 +280,6 @@ class Scanner:
         # Handle actions
         if fake:
             if self.reset or self.delete_blob:
-                # For logging: only log if action is taken
-                action_parts = []
-                if self.reset:
-                    action_parts.append("reset")
-                if self.delete_blob:
-                    action_parts.append("delete")
-                action_str = "+".join(action_parts)
-
                 if self.reset:
                     with self.db_lock:
                         reset_pdf_row(self._get_write_conn(), seq_id)
@@ -298,6 +290,13 @@ class Scanner:
 
     def run(self) -> None:
         """Run the full scan."""
+        if (self.reset or self.delete_blob) and not BLOB_ROOT.is_dir():
+            raise RuntimeError(
+                f"BLOB_ROOT '{BLOB_ROOT}' not found — refusing to run "
+                "--reset/--delete-blob (wrong cwd would classify every "
+                "blob as missing and wipe all rows)."
+            )
+
         self.open()
         try:
             rows = self.fetch_rows()
@@ -419,6 +418,20 @@ def main():
     )
 
     args = parser.parse_args()
+
+    # Pre-flight cwd guard: --reset/--delete-blob rely on the relative
+    # BLOB_ROOT ("libertree/") and hardcoded "data/libertree.db". Running
+    # from the wrong directory would make every blob classify as "missing"
+    # and silently zero out pdf_downloaded/text_extracted for every row.
+    if args.reset or args.delete_blob:
+        if not BLOB_ROOT.is_dir() or not Path("data/libertree.db").is_file():
+            print(
+                "ERROR: run from repo root — blob root 'libertree/' or "
+                "'data/libertree.db' not found in the current directory. "
+                "Refusing to run --reset/--delete-blob from an unexpected cwd.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
 
     # Setup logging
     logger, log_file = setup_logging(args.report_file)

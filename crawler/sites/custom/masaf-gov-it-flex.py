@@ -211,7 +211,8 @@ class MasafGovItFlexCrawler(BaseCrawler):
             # Title: <h4 class="u-text-h4 u-color-70 ...">
             h4 = soup.find("h4", class_=lambda c: c and "u-text-h4" in c.split())
             if h4:
-                out["title"] = h4.get_text(separator=" ", strip=True)
+                title = h4.get_text(separator=" ", strip=True)
+                out["title"] = " ".join(title.split())
 
             # Published date: <strong class="userFormat1">(DD.MM.YYYY)</strong>
             for strong in soup.find_all("strong", class_="userFormat1"):

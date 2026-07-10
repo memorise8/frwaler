@@ -279,7 +279,7 @@ def _normalize_date(raw: str):
     ):
         try:
             dt = datetime.strptime(raw[: len(fmt)], fmt)
-            return dt.strftime("%Y-%m-%d") if "%d" in fmt else dt.strftime("%Y-%m-%d")
+            return dt.strftime("%Y-%m-%d")
         except ValueError:
             continue
     return raw[:10] if len(raw) >= 10 else raw

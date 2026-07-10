@@ -150,5 +150,69 @@ class TestScannerThreadedReset(unittest.TestCase):
             self.assertFalse(blob_path.exists())
 
 
+class TestScannerBlobRootGuard(unittest.TestCase):
+    """Regression guard for M1: a wrong-cwd --reset run must not silently
+    wipe every row. Scanner.run() should raise RuntimeError before touching
+    the DB if BLOB_ROOT does not exist (belt-and-suspenders alongside the
+    CLI pre-flight check in main()).
+    """
+
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.tmp_path = Path(self.tmpdir.name)
+        # Deliberately do NOT create a "libertree" dir here.
+        self.db_path = self.tmp_path / "test.db"
+
+        conn = sqlite3.connect(str(self.db_path))
+        conn.execute(
+            """
+            CREATE TABLE documents (
+                seq_id         INTEGER PRIMARY KEY,
+                site_id        TEXT,
+                pdf_downloaded INT,
+                pdf_size_bytes INT,
+                pdf_sha256     TEXT,
+                text_extracted INT
+            )
+            """
+        )
+        conn.execute(
+            "INSERT INTO documents VALUES (1, 'site-1', 1, 999, 'deadbeef', 1)"
+        )
+        conn.commit()
+        conn.close()
+
+        # Point BLOB_ROOT at a path inside the temp dir that we never create,
+        # simulating a wrong-cwd invocation (no "libertree/" directory).
+        self.missing_blob_root = self.tmp_path / "libertree"
+        self._blob_root_patch = mock.patch.object(
+            scan_fake_pdfs, "BLOB_ROOT", self.missing_blob_root
+        )
+        self._blob_root_patch.start()
+
+    def tearDown(self):
+        self._blob_root_patch.stop()
+        self.tmpdir.cleanup()
+
+    def test_reset_without_blob_root_raises(self):
+        scanner = scan_fake_pdfs.Scanner(db_path=self.db_path, reset=True)
+        with self.assertRaises(RuntimeError):
+            scanner.run()
+
+        # Row must be untouched -- the guard must fire before any DB write.
+        conn = sqlite3.connect(str(self.db_path))
+        row = conn.execute(
+            "SELECT pdf_downloaded, pdf_size_bytes, pdf_sha256, text_extracted "
+            "FROM documents WHERE seq_id=1"
+        ).fetchone()
+        conn.close()
+        self.assertEqual(row, (1, 999, "deadbeef", 1))
+
+    def test_delete_blob_without_blob_root_raises(self):
+        scanner = scan_fake_pdfs.Scanner(db_path=self.db_path, delete_blob=True)
+        with self.assertRaises(RuntimeError):
+            scanner.run()
+
+
 if __name__ == "__main__":
     unittest.main()
