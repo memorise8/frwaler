@@ -186,6 +186,8 @@ class TestRunCleanup(unittest.TestCase):
              "2024-01-01", "ERROR", None),
             (5, "search-nal-usda-gov-discovery", "OK", "ok", None,
              "2026 - 12??", "2024-01-01", "https://u.gov/p5", None),
+            (6, "cwf-ca-publications", "OK", "ok", None, None, "2024-01-01",
+             "https://cwf.ca/p6", " https://cwf.ca/a.pdf"),
         ]
         self.conn.executemany("INSERT INTO documents VALUES (?,?,?,?,?,?,?,?,?)", rows)
 
@@ -209,6 +211,15 @@ class TestRunCleanup(unittest.TestCase):
         self.assertEqual(got[5][3], "2026 - 12??")  # 파싱불가 → 원값 유지
         report2 = run_cleanup(self.conn, apply=True)  # 멱등
         self.assertTrue(all(v["changed"] == 0 for v in report2.values()))
+
+    def test_whitespace_padded_url_trimmed_and_idempotent(self):
+        report1 = run_cleanup(self.conn, apply=True)
+        self.assertGreaterEqual(report1["url"]["changed"], 1)
+        got = self.conn.execute(
+            "SELECT pdf_url FROM documents WHERE seq_id=6").fetchone()[0]
+        self.assertEqual(got, "https://cwf.ca/a.pdf")
+        report2 = run_cleanup(self.conn, apply=True)
+        self.assertEqual(report2["url"]["changed"], 0)
 
 
 if __name__ == "__main__":
