@@ -9,6 +9,7 @@
 import html
 import re
 from datetime import datetime
+from urllib.parse import urljoin
 
 from dateutil import parser as _dateparser
 
@@ -129,3 +130,30 @@ def normalize_date(value, dayfirst: bool = False):
         return _fmt(dt1.year, dt1.month, dt1.day)
     except (ValueError, OverflowError):
         return None
+
+
+def fix_pdf_url(pdf_url, meta_url):
+    """R6: pdf_url 정리.
+
+    http(s) 그대로 유지("ok"), 상대경로는 meta_url 기준 절대화
+    ("absolutized"), ftp는 보존만 하고 리포트("kept_ftp"), 그 외
+    (인용/DOI 텍스트 등)는 None으로 null 처리("nulled").
+    """
+    v = (pdf_url or "").strip()
+    if not v:
+        return (pdf_url, "ok")
+    if v.startswith(("http://", "https://")):
+        return (v, "ok")
+    if v.startswith("ftp://"):
+        return (v, "kept_ftp")
+    if v.startswith("/") and (meta_url or "").startswith(("http://", "https://")):
+        return (urljoin(meta_url, v), "absolutized")
+    return (None, "nulled")
+
+
+def fix_meta_url(meta_url):
+    """R6: meta_url 정리. 'ERROR'는 null 처리, 나머지 비http는 리포트만."""
+    v = (meta_url or "").strip()
+    if v == "ERROR":
+        return (None, "nulled")
+    return (meta_url, "kept" if not v.startswith(("http://", "https://")) else "ok")

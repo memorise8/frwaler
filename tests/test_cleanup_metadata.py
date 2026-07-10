@@ -6,6 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from scripts.cleanup_metadata import clean_text, clean_keywords, normalize_date
+from scripts.cleanup_metadata import fix_pdf_url, fix_meta_url
 
 
 class TestCleanText(unittest.TestCase):
@@ -124,6 +125,35 @@ class TestNormalizeDate(unittest.TestCase):
             r1 = normalize_date(c)
             self.assertIsNotNone(r1, c)
             self.assertEqual(normalize_date(r1), r1, c)
+
+
+class TestUrlRules(unittest.TestCase):
+    def test_http_ok(self):
+        self.assertEqual(fix_pdf_url("https://x.org/a.pdf", "https://x.org/p"),
+                         ("https://x.org/a.pdf", "ok"))
+
+    def test_relative_absolutized(self):
+        self.assertEqual(
+            fix_pdf_url("/globalassets/n.pdf", "https://www.sgu.se/en/page"),
+            ("https://www.sgu.se/globalassets/n.pdf", "absolutized"),
+        )
+
+    def test_citation_nulled(self):
+        self.assertEqual(fix_pdf_url("Brouwer2024", "https://nin.nl/p"),
+                         (None, "nulled"))
+        self.assertEqual(fix_pdf_url("DOI: 10.14207/ejsd.2019", "https://toi.no/p"),
+                         (None, "nulled"))
+
+    def test_ftp_kept(self):
+        self.assertEqual(fix_pdf_url("ftp://ftp.asc-csa.gc.ca/a.pdf", "https://x/p"),
+                         ("ftp://ftp.asc-csa.gc.ca/a.pdf", "kept_ftp"))
+
+    def test_meta_error_nulled(self):
+        self.assertEqual(fix_meta_url("ERROR"), (None, "nulled"))
+
+    def test_meta_citation_kept(self):
+        val = "Bączek-Kwinta, R. (2006). Reakcja..."
+        self.assertEqual(fix_meta_url(val), (val, "kept"))
 
 
 if __name__ == "__main__":
