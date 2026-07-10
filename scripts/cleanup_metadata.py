@@ -33,7 +33,7 @@ DAYFIRST_SITES = {
 }
 
 _YMD_SEP_RE = re.compile(r"^(\d{4})[./](\d{1,2})[./](\d{1,2})$")
-_TEXT_MONTH_RE = re.compile(r"^(\d{1,2})\s+([A-Za-zà-ÿ]+)\.?\s+(\d{2,4})$")
+_TEXT_MONTH_RE = re.compile(r"^(\d{1,2})\s+([A-Za-zÀ-ÖØ-öø-ÿ]+)\.?\s+(\d{2,4})$")
 
 
 def _unescape_repeat(s: str, max_rounds: int = 3) -> str:
@@ -115,10 +115,17 @@ def normalize_date(value, dayfirst: bool = False):
             return _fmt(year, mon, day)
         # 영어 월명은 dateutil에 위임 (아래 fallback)
     try:
-        dt = _dateparser.parse(v, dayfirst=dayfirst, fuzzy=False,
-                               default=datetime(1600, 1, 1))
-        if dt.year == 1600:  # 연도 없는 입력이 default로 채워진 것 → 불신
+        # 서로 다른 default(연/월/일이 각기 구별되는 두 값)로 두 번 파싱해
+        # 결과가 다르면 입력에 없던 성분이 default로 채워진 것 → 불신(None).
+        # 월/연도만 있는 입력(예: "01/2005", "August 2025")의 day=01 날조를 막는다.
+        dt1 = _dateparser.parse(v, dayfirst=dayfirst, fuzzy=False,
+                                default=datetime(1600, 1, 1))
+        dt2 = _dateparser.parse(v, dayfirst=dayfirst, fuzzy=False,
+                                default=datetime(1601, 2, 2))
+        if (dt1.year, dt1.month, dt1.day) != (dt2.year, dt2.month, dt2.day):
             return None
-        return _fmt(dt.year, dt.month, dt.day)
+        if dt1.year == 1600:  # 연도 없는 입력 가드(위 비교로도 걸리지만 안전망 유지)
+            return None
+        return _fmt(dt1.year, dt1.month, dt1.day)
     except (ValueError, OverflowError):
         return None

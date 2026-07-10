@@ -108,6 +108,23 @@ class TestNormalizeDate(unittest.TestCase):
         self.assertIsNone(normalize_date("0020-01-01"))
         self.assertIsNone(normalize_date("-001-11-30"))
 
+    def test_month_year_only_rejected(self):
+        self.assertIsNone(normalize_date("01/2005"))
+        self.assertIsNone(normalize_date("2005/01"))
+        self.assertIsNone(normalize_date("August 2025"))
+
+    def test_capitalized_french_month(self):
+        self.assertEqual(normalize_date("01 Février 2025"), "2025-02-01")
+
+    def test_idempotent_on_all_parseable(self):
+        cases = ["2025-08-01", "01 août 2025", "2014.10.24", "2025.09.15.",
+                  "Fri, 01 Aug 2025 09:36:29 +0000", "1 Feb 24", "09/30/2021",
+                  "2025/11/24", "March 17, 2026", "18 March 2026"]
+        for c in cases:
+            r1 = normalize_date(c)
+            self.assertIsNotNone(r1, c)
+            self.assertEqual(normalize_date(r1), r1, c)
+
 
 if __name__ == "__main__":
     unittest.main()
