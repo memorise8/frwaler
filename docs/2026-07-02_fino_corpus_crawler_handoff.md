@@ -49,6 +49,7 @@
 - 증분 안전 근거: 목록 API 등록일 내림차순(`DCM_RGT_DTM/DESC`) + "새 항목 0인 페이지에서 정지" + `(site_id, external_id)` 사전 중복 체크.
 - **일원화**: 크롤러 코드는 frwaler가 정본(크롤러는 frwaler에서 실행, crawler-poc 사본은 구버전). DB 파일(20GB)은 crawler-poc/data/에 그대로 두고 `FINOLAW_DB_PATH`로 참조 — 파일 이전은 보류(사용자 합의: 기존 내용 기준 추가만).
 - fino_nts.db에 `idx_papers_site_crawled(site_id, crawled_at)` 인덱스 적용(2026-07-02, 대시보드 신선도 조회용) — 재분리 시 재생성 필요.
+- NTS 해석사례 정비: `crawler/nts_revisions/`가 nts_new.xlsx→fino_nts.db 3테이블(정비내역/사례/제외목록) 적재, `data/export/nts_excluded_ids.ndjson`(검색 제외목록)·`nts_deletion_history.ndjson` 산출. 스펙 `2026-07-13-nts-revision-exclusion-design.md`. 제외 실현(ES 재색인 필터)은 후속.
 
 ---
 
