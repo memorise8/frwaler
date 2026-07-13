@@ -36,6 +36,7 @@ def init_schema(conn: sqlite3.Connection) -> None:
         );
         CREATE INDEX IF NOT EXISTS idx_rev_source ON nts_revisions(source_file);
         CREATE INDEX IF NOT EXISTS idx_case_rev ON nts_revision_cases(revision_id);
+        CREATE INDEX IF NOT EXISTS idx_excluded_rev ON nts_excluded_docs(revision_id);
         """
     )
     conn.commit()

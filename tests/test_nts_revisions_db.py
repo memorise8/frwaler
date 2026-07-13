@@ -30,20 +30,23 @@ def test_upsert_excluded_idempotent(tmp_path: Path) -> None:
     rid = insert_revision(conn, seq=1, tax_category="법인", summary="x",
                           revision_reason="y", registered_at="2026.01.01.", source_file="a.xlsx")
     upsert_excluded(conn, external_id="E1", revision_id=rid, doc_number="법인46012-1784",
-                    title="업무무관가지급금...", revision_reason="y", registered_at="2026.01.01.")
+                    title="원제목", revision_reason="y", registered_at="2026.01.01.")
     upsert_excluded(conn, external_id="E1", revision_id=rid, doc_number="법인46012-1784",
-                    title="업무무관가지급금...", revision_reason="y", registered_at="2026.01.01.")
-    assert count_excluded(conn) == 1                       # 같은 external_id 재등재 → 1건
+                    title="갱신제목", revision_reason="y2", registered_at="2026.01.01.")
+    assert count_excluded(conn) == 1                       # 같은 external_id → 1건
     rows = iter_excluded(conn)
-    assert rows[0]["external_id"] == "E1" and rows[0]["doc_number"] == "법인46012-1784"
+    assert rows[0]["external_id"] == "E1" and rows[0]["title"] == "갱신제목"   # 실제 UPDATE
 
 
 def test_delete_by_source_replaces(tmp_path: Path) -> None:
     conn = _conn(tmp_path)
     rid = insert_revision(conn, seq=1, tax_category="법인", summary="x", revision_reason="y",
                           registered_at="2026.01.01.", source_file="a.xlsx")
+    insert_case(conn, revision_id=rid, role="delete", case_number="D1",
+                case_date="2020.01.01.", matched_doc_id="E1")
     upsert_excluded(conn, external_id="E1", revision_id=rid, doc_number="D1", title="t",
                     revision_reason="y", registered_at="2026.01.01.")
     delete_by_source(conn, "a.xlsx")
     assert count_excluded(conn) == 0
     assert iter_history(conn) == []
+    assert conn.execute("SELECT COUNT(*) FROM nts_revision_cases").fetchone()[0] == 0
