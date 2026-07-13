@@ -6,6 +6,6 @@ cloudscraper
 playwright
 openai
 google-genai
-openpyxl
+openpyxl>=3.1
 python-dotenv
 olefile

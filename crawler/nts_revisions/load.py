@@ -5,8 +5,8 @@ import json
 from pathlib import Path
 
 from .db import (
-    connect_db, count_excluded, delete_by_source, init_schema, insert_case,
-    insert_revision, iter_excluded, iter_history, upsert_excluded,
+    connect_db, count_excluded, delete_by_source, ensure_match_index, init_schema,
+    insert_case, insert_revision, iter_excluded, iter_history, upsert_excluded,
 )
 from .match import resolve_delete_case
 from .models import Revision
@@ -19,6 +19,7 @@ DEFAULT_HISTORY = Path("data/export/nts_deletion_history.ndjson")
 
 def load(conn, revisions: list[Revision]) -> dict:
     n_rev = n_case = 0
+    ensure_match_index(conn)
     try:
         if revisions:
             delete_by_source(conn, revisions[0].source_file, commit=False)   # 멱등: 해당 source 교체
@@ -29,8 +30,10 @@ def load(conn, revisions: list[Revision]) -> dict:
                                   commit=False)
             n_rev += 1
             for number, date in rev.keep_cases:
+                matches = resolve_delete_case(conn, number, date)
+                doc_id = matches[0][0] if matches else None
                 insert_case(conn, revision_id=rid, role="keep", case_number=number,
-                            case_date=date, matched_doc_id=None, commit=False)
+                            case_date=date, matched_doc_id=doc_id, commit=False)
                 n_case += 1
             for number, date in rev.delete_cases:
                 matches = resolve_delete_case(conn, number, date)

@@ -58,6 +58,21 @@ def test_export(tmp_path: Path) -> None:
     assert h0["seq"] == 996 and h0["tax_category"] == "상증"
 
 
+def test_load_matches_keep_cases(tmp_path) -> None:
+    conn = _conn_with_docindex(tmp_path)
+    from crawler.nts_revisions.models import Revision
+    rev = Revision(seq=1, tax_category="법인", summary="s", reason="",
+                   revision_reason="r", registered_at="2026.01.01.",
+                   keep_cases=(("재산세과-271", "2010.05.04."),),   # doc_index에 D-uniq로 존재
+                   delete_cases=(("법인46012-1784", "2000.08.19."),),
+                   source_file="x.xlsx")
+    load(conn, [rev])
+    keep = conn.execute("SELECT matched_doc_id FROM nts_revision_cases WHERE role='keep'").fetchone()
+    assert keep["matched_doc_id"] == "D-uniq"          # keep도 이제 매칭됨
+    # delete는 여전히 제외목록에
+    assert conn.execute("SELECT COUNT(*) FROM nts_excluded_docs").fetchone()[0] == 1
+
+
 def test_load_rolls_back_on_error(tmp_path, monkeypatch) -> None:
     conn = _conn_with_docindex(tmp_path)
     load(conn, [_rev()])                       # 정상 적재(제외 2건)

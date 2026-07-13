@@ -107,3 +107,12 @@ def iter_history(conn: sqlite3.Connection) -> list[sqlite3.Row]:
 
 def count_excluded(conn: sqlite3.Connection) -> int:
     return int(conn.execute("SELECT COUNT(*) FROM nts_excluded_docs").fetchone()[0])
+
+
+def ensure_match_index(conn: sqlite3.Connection) -> None:
+    """doc_index.doc_number 매칭 가속용 인덱스(존재 시). 기존 데이터 무변경."""
+    exists = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='doc_index'").fetchone()
+    if exists:
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_doc_index_doc_number ON doc_index(doc_number)")
+        conn.commit()
