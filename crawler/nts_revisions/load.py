@@ -18,29 +18,35 @@ DEFAULT_HISTORY = Path("data/export/nts_deletion_history.ndjson")
 
 
 def load(conn, revisions: list[Revision]) -> dict:
-    if revisions:
-        delete_by_source(conn, revisions[0].source_file)   # 멱등: 해당 source 교체
-    n_rev = n_case = n_excl = 0
-    for rev in revisions:
-        rid = insert_revision(conn, seq=rev.seq, tax_category=rev.tax_category,
-                              summary=rev.summary, revision_reason=rev.revision_reason,
-                              registered_at=rev.registered_at, source_file=rev.source_file)
-        n_rev += 1
-        for number, date in rev.keep_cases:
-            insert_case(conn, revision_id=rid, role="keep", case_number=number,
-                        case_date=date, matched_doc_id=None)
-            n_case += 1
-        for number, date in rev.delete_cases:
-            matches = resolve_delete_case(conn, number, date)
-            doc_id = matches[0][0] if matches else None
-            insert_case(conn, revision_id=rid, role="delete", case_number=number,
-                        case_date=date, matched_doc_id=doc_id)
-            n_case += 1
-            for external_id, title in matches:
-                upsert_excluded(conn, external_id=external_id, revision_id=rid,
-                                doc_number=number, title=title,
-                                revision_reason=rev.revision_reason, registered_at=rev.registered_at)
-                n_excl += 1
+    n_rev = n_case = 0
+    try:
+        if revisions:
+            delete_by_source(conn, revisions[0].source_file, commit=False)   # 멱등: 해당 source 교체
+        for rev in revisions:
+            rid = insert_revision(conn, seq=rev.seq, tax_category=rev.tax_category,
+                                  summary=rev.summary, revision_reason=rev.revision_reason,
+                                  registered_at=rev.registered_at, source_file=rev.source_file,
+                                  commit=False)
+            n_rev += 1
+            for number, date in rev.keep_cases:
+                insert_case(conn, revision_id=rid, role="keep", case_number=number,
+                            case_date=date, matched_doc_id=None, commit=False)
+                n_case += 1
+            for number, date in rev.delete_cases:
+                matches = resolve_delete_case(conn, number, date)
+                doc_id = matches[0][0] if matches else None
+                insert_case(conn, revision_id=rid, role="delete", case_number=number,
+                            case_date=date, matched_doc_id=doc_id, commit=False)
+                n_case += 1
+                for external_id, title in matches:
+                    upsert_excluded(conn, external_id=external_id, revision_id=rid,
+                                    doc_number=number, title=title,
+                                    revision_reason=rev.revision_reason,
+                                    registered_at=rev.registered_at, commit=False)
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
     return {"revisions": n_rev, "cases": n_case, "excluded": count_excluded(conn)}
 
 

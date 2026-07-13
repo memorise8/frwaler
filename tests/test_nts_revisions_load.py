@@ -56,3 +56,25 @@ def test_export(tmp_path: Path) -> None:
     assert "external_id" in first and "revision_reason" in first
     h0 = json.loads(hi.read_text(encoding="utf-8").splitlines()[0])
     assert h0["seq"] == 996 and h0["tax_category"] == "상증"
+
+
+def test_load_rolls_back_on_error(tmp_path, monkeypatch) -> None:
+    conn = _conn_with_docindex(tmp_path)
+    load(conn, [_rev()])                       # 정상 적재(제외 2건)
+    before = count_excluded(conn)
+    assert before == 2
+    # 두 번째 적재 중 예외를 강제 → 롤백되어야 함(기존 2건 보존)
+    import crawler.nts_revisions.load as load_mod
+    orig = load_mod.insert_case
+    calls = {"n": 0}
+    def boom(*a, **k):
+        calls["n"] += 1
+        if calls["n"] == 2:
+            raise RuntimeError("중간 실패")
+        return orig(*a, **k)
+    monkeypatch.setattr(load_mod, "insert_case", boom)
+    import pytest
+    with pytest.raises(RuntimeError):
+        load(conn, [_rev()])
+    assert count_excluded(conn) == before      # 롤백 → 기존 2건 그대로
+    assert conn.execute("SELECT COUNT(*) FROM nts_revisions").fetchone()[0] == 1

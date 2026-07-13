@@ -42,7 +42,7 @@ def init_schema(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
-def delete_by_source(conn: sqlite3.Connection, source_file: str) -> None:
+def delete_by_source(conn: sqlite3.Connection, source_file: str, *, commit: bool = True) -> None:
     ids = [r[0] for r in conn.execute(
         "SELECT id FROM nts_revisions WHERE source_file = ?", (source_file,))]
     if ids:
@@ -50,32 +50,38 @@ def delete_by_source(conn: sqlite3.Connection, source_file: str) -> None:
         conn.execute(f"DELETE FROM nts_excluded_docs WHERE revision_id IN ({qs})", ids)
         conn.execute(f"DELETE FROM nts_revision_cases WHERE revision_id IN ({qs})", ids)
         conn.execute(f"DELETE FROM nts_revisions WHERE id IN ({qs})", ids)
-    conn.commit()
+    if commit:
+        conn.commit()
 
 
 def insert_revision(conn: sqlite3.Connection, *, seq: int, tax_category: str, summary: str,
-                    revision_reason: str, registered_at: str, source_file: str) -> int:
+                    revision_reason: str, registered_at: str, source_file: str,
+                    commit: bool = True) -> int:
     cur = conn.execute(
         """INSERT INTO nts_revisions (seq, tax_category, summary, revision_reason,
              registered_at, source_file) VALUES (?, ?, ?, ?, ?, ?)""",
         (seq, tax_category, summary, revision_reason, registered_at, source_file),
     )
-    conn.commit()
+    if commit:
+        conn.commit()
     return int(cur.lastrowid)
 
 
 def insert_case(conn: sqlite3.Connection, *, revision_id: int, role: str,
-                case_number: str, case_date: str, matched_doc_id: str | None) -> None:
+                case_number: str, case_date: str, matched_doc_id: str | None,
+                commit: bool = True) -> None:
     conn.execute(
         """INSERT INTO nts_revision_cases (revision_id, role, case_number, case_date, matched_doc_id)
            VALUES (?, ?, ?, ?, ?)""",
         (revision_id, role, case_number, case_date, matched_doc_id),
     )
-    conn.commit()
+    if commit:
+        conn.commit()
 
 
 def upsert_excluded(conn: sqlite3.Connection, *, external_id: str, revision_id: int,
-                    doc_number: str, title: str, revision_reason: str, registered_at: str) -> None:
+                    doc_number: str, title: str, revision_reason: str, registered_at: str,
+                    commit: bool = True) -> None:
     conn.execute(
         """INSERT INTO nts_excluded_docs (external_id, revision_id, doc_number, title,
              revision_reason, registered_at) VALUES (?, ?, ?, ?, ?, ?)
@@ -85,7 +91,8 @@ def upsert_excluded(conn: sqlite3.Connection, *, external_id: str, revision_id: 
              excluded_at=datetime('now','localtime')""",
         (external_id, revision_id, doc_number, title, revision_reason, registered_at),
     )
-    conn.commit()
+    if commit:
+        conn.commit()
 
 
 def iter_excluded(conn: sqlite3.Connection) -> list[sqlite3.Row]:
