@@ -1,6 +1,17 @@
 # FINO 코퍼스 크롤러 — 세션 인계 (2026-07-02)
 
-> 목표: **NTS를 제외한 전체 코퍼스의 재수집 크롤러 제작 → 수집 → 그 후 NTS 최신화.** 이 문서는 다음 세션이 이어받기 위한 핸드오프. 브랜치 `fino-crawler` (전부 push됨, `decccdb` 기준).
+> 목표: **NTS를 제외한 전체 코퍼스의 재수집 크롤러 제작 → 수집 → 그 후 NTS 최신화.** 이 문서는 다음 세션이 이어받기 위한 핸드오프. 브랜치 `fino-crawler` (전부 push됨).
+
+---
+
+## 업데이트 (2026-07-14) — 모든 잔여 작업 종료
+
+- **NTS 삭제해석 검색 제외 실현 완료** (§2 마지막 항목의 "후속"이 이걸로 종결): `crawler/nts_revisions/es_exclude.py`가 `data/export/nts_excluded_ids.ndjson`(913 external_id) → ES `_delete_by_query`. **fino-nts-synthv4-v1**(실서비스, alias `fino-nts-current`) + **fino-nts-v2** 각 913건 삭제, 실패 0, 잔여 0(289,249→288,336). 드라이런(기본)→`--apply`→재count 검증 내장. ES 접속은 `.env`의 `ES_PASSWORD`+`ES_USER`(기본 `fino`), `http://localhost:9200`. 재실행: `.venv/bin/python -m crawler.nts_revisions.es_exclude --apply`(멱등). 복구 필요 시 `nts_index/nts_records.jsonl` 원본으로 재색인. 상세: 메모리 `nts-revision-exclusion`.
+- **fino_ops 대시보드**: 6코퍼스 상태/refresh 통합 CLI+FastAPI(:8500)+Next(:3050) 완료. 상세: 메모리 `fino-ops-dashboard`.
+- **temis 연동**: temis-ops Corpus 탭 + fino-backend 프록시 — 브랜치 `corpus-tab`/`temis-corpus-ops`, **미푸시**(머지/배포는 사용자 private handoff).
+- **DART 공시 수집기**: frwaler 외부에서 완료(스펙/계획 `docs/superpowers/{specs,plans}/2026-07-09-fino-dart-*`는 참고용).
+- **정리**: 에이전트 스크래치/캐시(`.cache`/`.superpowers`/`.omx`/`.omo`/`.codex`/`.codegraph`)·Python 캐시 제거. `.omc/project-memory.json`(영속 메모리)·git 산출물 보존.
+- **결론: frwaler 브랜치 `fino-crawler`에 잔여 작업 없음.** 새 세션은 자동 로드되는 메모리(`MEMORY.md` 인덱스)로 전체 이력 확인 가능.
 
 ---
 
@@ -49,7 +60,7 @@
 - 증분 안전 근거: 목록 API 등록일 내림차순(`DCM_RGT_DTM/DESC`) + "새 항목 0인 페이지에서 정지" + `(site_id, external_id)` 사전 중복 체크.
 - **일원화**: 크롤러 코드는 frwaler가 정본(크롤러는 frwaler에서 실행, crawler-poc 사본은 구버전). DB 파일(20GB)은 crawler-poc/data/에 그대로 두고 `FINOLAW_DB_PATH`로 참조 — 파일 이전은 보류(사용자 합의: 기존 내용 기준 추가만).
 - fino_nts.db에 `idx_papers_site_crawled(site_id, crawled_at)` 인덱스 적용(2026-07-02, 대시보드 신선도 조회용) — 재분리 시 재생성 필요.
-- NTS 해석사례 정비: `crawler/nts_revisions/`가 nts_new.xlsx→fino_nts.db 3테이블(정비내역/사례/제외목록) 적재, `data/export/nts_excluded_ids.ndjson`(검색 제외목록)·`nts_deletion_history.ndjson` 산출. 스펙 `2026-07-13-nts-revision-exclusion-design.md`. 제외 실현(ES 재색인 필터)은 후속.
+- NTS 해석사례 정비: `crawler/nts_revisions/`가 nts_new.xlsx→fino_nts.db 3테이블(정비내역/사례/제외목록) 적재, `data/export/nts_excluded_ids.ndjson`(검색 제외목록)·`nts_deletion_history.ndjson` 산출. 스펙 `2026-07-13-nts-revision-exclusion-design.md`. **ES 제외 실현은 2026-07-14 완료**(상단 업데이트 참조, `es_exclude.py` delete-by-query).
 
 ---
 
