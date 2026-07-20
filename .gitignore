@@ -46,6 +46,7 @@ html_archive/
 /report-libertree.docx
 /libertree_crawler.md
 /verify_mpi.py
+/scripts/tier1_batch.py.bak
 
 # Local runtime and browser-inspection artifacts
 /.playwright-mcp/

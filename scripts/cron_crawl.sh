@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# cron_crawl.sh — nightly batch chain for livertree.
+# cron_crawl.sh — nightly batch chain for libertree.
 #
 # In compose mode the scheduler container runs `cron_crawl.sh loop` which
 # sleeps until the next 03:00 KST and then runs the crawl→download→convert
@@ -13,7 +13,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-LOG_DIR="${LIVERTREE_LOG_DIR:-./logs}"
+LOG_DIR="${LIBERTREE_LOG_DIR:-./logs}"
 mkdir -p "$LOG_DIR"
 
 run_once() {

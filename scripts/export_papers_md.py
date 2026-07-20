@@ -50,7 +50,7 @@ def render_paper(row: sqlite3.Row) -> str:
     keywords: list = []
     raw_kw = row["keywords"]
     if raw_kw:
-        # livertree stores keywords as a ", " separated string. Older
+        # libertree stores keywords as a ", " separated string. Older
         # papers rows used a JSON array — fall back to that for compat.
         s = raw_kw.strip()
         if s.startswith("[") and s.endswith("]"):
@@ -162,7 +162,7 @@ def render_paper(row: sqlite3.Row) -> str:
 def export(site_id: str, limit: int | None) -> int:
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    # livertree: rows live in `documents`. `category`/`doi` are kept inside
+    # libertree: rows live in `documents`. `category`/`doi` are kept inside
     # the metadata JSON; `meta_url` is the equivalent of legacy `url`.
     sql = """SELECT external_id, title, abstract,
                     json_extract(metadata, '$.category') AS category,

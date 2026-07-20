@@ -24,7 +24,8 @@ from pathlib import Path
 from typing import Iterable
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_DB = ROOT / "data" / "papers.db"
+DEFAULT_DB = ROOT / "data" / "libertree.db"
+BLOB_ROOT = ROOT / "libertree"
 
 sys.path.insert(0, str(ROOT))
 
@@ -33,9 +34,12 @@ def _has_value(s) -> bool:
     return bool(s) and bool(str(s).strip())
 
 
-def _audit_rows(rows: Iterable[sqlite3.Row]) -> dict:
-    from crawler import storage as _st
+def _blob_path(seq_id: int, ext: str) -> Path:
+    s = f"{int(seq_id):012d}"
+    return BLOB_ROOT / s[0:4] / s[4:8] / f"{s}.{ext}"
 
+
+def _audit_rows(rows: Iterable[sqlite3.Row]) -> dict:
     n = 0
     title_ok = 0
     pubdate_ok = 0
@@ -44,7 +48,7 @@ def _audit_rows(rows: Iterable[sqlite3.Row]) -> dict:
     downloaded = 0
     converted = 0
     summarized = 0
-    txt_missing = 0  # txt_path set in DB but file gone
+    txt_missing = 0  # text_extracted=1 but file gone or empty
 
     for r in rows:
         n += 1
@@ -56,12 +60,12 @@ def _audit_rows(rows: Iterable[sqlite3.Row]) -> dict:
             pdfurl_ok += 1
         if _has_value(r["abstract"]):
             abstract_ok += 1
-        if (r["download_status"] or "") == "downloaded":
+        if int(r["pdf_downloaded"] or 0) == 1:
             downloaded += 1
-        if _has_value(r["txt_path"]):
+        if int(r["text_extracted"] or 0) == 1:
             converted += 1
             try:
-                p = _st.doc_id_to_txt_path(r["id"])
+                p = _blob_path(r["seq_id"], "txt")
                 if not p.exists() or p.stat().st_size == 0:
                     txt_missing += 1
             except Exception:
@@ -126,13 +130,13 @@ def _write_xlsx(report: dict[str, dict], rows_by_site: dict[str, list[sqlite3.Ro
 
     for site, rows in rows_by_site.items():
         ws = wb.create_sheet(title=site[:30])  # Excel sheet name max 31 chars
-        ws.append(["id", "external_id", "title", "published_date", "pdf_url",
-                   "download_status", "txt_path", "summary_len"])
+        ws.append(["seq_id", "post_number", "title", "published_date", "pdf_url",
+                   "pdf_downloaded", "text_extracted", "summary_len"])
         for r in rows:
             ws.append([
-                r["id"], r["external_id"] or "", (r["title"] or "")[:200],
+                r["seq_id"], r["post_number"] or "", (r["title"] or "")[:200],
                 r["published_date"] or "", r["pdf_url"] or "",
-                r["download_status"] or "", r["txt_path"] or "",
+                int(r["pdf_downloaded"] or 0), int(r["text_extracted"] or 0),
                 len(r["summary"] or ""),
             ])
     wb.save(str(out))
@@ -177,10 +181,10 @@ def main() -> int:
     rows_by_site: dict[str, list[sqlite3.Row]] = {}
     for site in site_ids:
         rows = conn.execute(
-            """SELECT id, external_id, title, published_date, pdf_url,
-                      abstract, download_status, txt_path, summary
+            """SELECT seq_id, post_number, title, published_date, pdf_url,
+                      abstract, pdf_downloaded, text_extracted, summary
                FROM documents WHERE site_id = ?
-               ORDER BY id LIMIT ?""",
+               ORDER BY seq_id LIMIT ?""",
             (site, args.limit),
         ).fetchall()
         report[site] = _audit_rows(rows)

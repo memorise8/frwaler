@@ -54,7 +54,7 @@ def analyze(site_id: str, write_lists: bool = False) -> dict:
     ).fetchall()
     upstream_ids: set[str] = {r["doc_id"] for r in idx_rows}
 
-    # DB documents (livertree: was `papers`)
+    # DB documents (libertree: was `papers`)
     db_rows = conn.execute(
         "SELECT external_id, metadata FROM documents WHERE site_id = ?",
         (site_id,),
