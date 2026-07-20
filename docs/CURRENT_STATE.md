@@ -1,4 +1,4 @@
-# Libertree 현재 상태 종합 (2026-07-11 갱신)
+# Libertree 현재 상태 종합 (2026-07-17 갱신)
 
 새 세션을 열었다면 이 문서를 **가장 먼저** 읽으세요. 컨텍스트 0에서 작업 가능하도록 self-contained로 작성.
 (빠른 재개용 복사 프롬프트는 `docs/NEXT_SESSION_PROMPT.md` 참조)
@@ -37,19 +37,25 @@
 
 ---
 
-## 3. 핵심 데이터 (2026-07-11 기준 — 수치는 반드시 DB로 재확인)
+## 3. 핵심 데이터 (2026-07-20 기준 — 수치는 반드시 DB로 재확인)
 
 | 지표 | 값 |
 |---|---|
 | 입력 entries | 1,994 (unique hosts 833) |
-| **수집 완료 hosts** | **631 / 833 (75.7%)** |
-| documents | **427,266** |
-| DB 내 unique site_id | 692 (한 host에 여러 site_id 가능) |
-| PDF 다운로드 | **266,815** (7/11 가짜 PDF 3,704건 리셋 반영 — 이전 270,519) |
-| 텍스트 추출 | **260,260** |
-| 한국어 요약 | **36,548** (Gemma 트랙 일시중지 중, 마지막 5/26) |
+| **수집 완료 hosts** | **694 / 832 (83.4%)** |
+| documents | **481,669** |
+| DB 내 unique site_id | 761 (한 host에 여러 site_id 가능) |
+| PDF 다운로드 | **297,756** |
+| 텍스트 추출 | **288,124** |
+| 한국어 요약 | 36,548 (Gemma 트랙 일시중지 중, 마지막 5/26) |
 
-**수집/회복 자동 작업은 전부 종료 — 시스템 idle.** 마지막 신규 수집 6/10.
+**2026-07-18~20 대규모 수집 완료 — 시스템 idle.** 세부:
+- 증분 재크롤 700사이트 (2달치 신규분) + 텍스트 백필 6,740건 전수
+- 미수집 152곳 3단계 재실사 → 수집가능 51곳 확인 → 재개방 46곳 크롤러 생성·수집
+- robots 금지 38곳 전원 기관 허가 획득(2026-07-19) → 전용 크롤러 37곳 생성·수집
+- 신규 83곳 promote 결과: 82곳 수집 성공(items 25,474 / pdf 12,982 / text 10,933), archives-nationales 1곳만 items=0 실패
+- **적재 hosts 635 → 694 (+59 순증)**. pdf=0 사이트(뉴스·보도자료 HTML본문형)도 abstract 100% 보유 → 검색 가능
+- 자동 생성 실패 6곳(수동제작 대상): archives-nationales, nioz worldcat, data.ademe.fr, news.va.gov, observa.minciencia.gob.cl, compareschoolrankings.org, eia.gov
 
 ### 상태 확인 명령 (세션 시작 시 실행)
 ```bash
@@ -71,21 +77,22 @@ seq_id(PK), collected_at, site_id, post_number, meta_url, title, published_date,
 
 ---
 
-## 4. 미수집 202 사이트 분류 (2026-07-07 정정 반영)
+## 4. 미수집 198 사이트 분류 (2026-07-14 실사 반영)
 
 | 분류 | 개수 | 남은 경로 (전부 수동) |
 |---|---|---|
 | 정책상 포기 | 63 | 운영 기관 직접 컨택 |
-| 회원가입 필요 | 51 | 사람이 가입/로그인 → 쿠키를 크롤러에 전달 (**가장 효과적, +30~40 hosts 예상**) |
+| 봇차단 (전면37+부분9) | 46 | 사람이 브라우저에서 차단 통과 → 쿠키 전달 (7/13 실사로 "회원가입 필요"에서 정정 — 로그인 확인된 곳은 5곳뿐) |
+| 확인 중 | 2 | ots.at(언론전용 가능성)·culture.gov.gr(지역차단 의심) |
 | 재시도 실패 | 48 | 수동 분석 또는 Wayback |
 | 절대 불가 | 38 | Wayback Machine (성공률 10~20%) |
-| 미분류 | 2 | gob.mx / oka.go.kr — 사람이 확인 후 분류 |
+| 미분류 | 1 | gob.mx — 수집 범위 정의 필요 (oka.go.kr는 7/14 수집 완료) |
 
 > 자동 회복 수단은 소진됨 (6월에 3회 자동 재시도 완료).
 > ⚠️ 종전 "라벨오류 18" 분류는 2026-07-07에 정정 완료 — 실제로는 수집돼 있어 수집성공 명단으로 이동 (613→631).
 
 ### 보고 파일 (비개발자 전달용, `data/audit/`)
-- **`수집현황_전체.xlsx`** ⭐ 대표본 — 시트: 수집성공(631) / 미수집(202)
+- **`수집현황_전체.xlsx`** ⭐ 대표본 — 시트: 수집성공(635) / 미수집(198)
 - `수집현황_요약.csv`, `미수집_사이트_사유.csv`, `미수집_사이트_분류설명.csv` (모두 EUC-KR)
 - `site_collection_status.csv` — 833 hosts 원본 소스 (UTF-8, 재생성용)
 - `docs/미수집_사이트_설명.md` — 비개발자용 설명 문서
@@ -104,6 +111,9 @@ seq_id(PK), collected_at, site_id, post_number, meta_url, title, published_date,
 | 6/18 | 미수집 사이트 사유별 분류 + 비개발자 보고 파일 작성 |
 | **7/7** | **라벨오류 18개 정정** (수집률 613→631/833) + **livertree→libertree 전면 리네이밍** (61개 파일 치환, DB/blob/브랜치 개명, 호환 심링크 유지) |
 | **7/11** | **메타데이터 정제 완료**: title/abstract/keywords 엔티티·태그·CDATA 정리(~24k행) + 날짜 정규화(listed 17,623건/published 380건, 원값 유지분은 진짜 파싱불가) + URL 정리 · **가짜 PDF 정리**: 3,704건 리셋(PDF 270,519→**266,815**) · **백필**: masaf 인코딩 수정(title 154건 100% 복구), 그리스 3사이트(mindev/mindigital/ypergasias) `_parse_date` 정규식 버그 수정으로 published_date 4,581건 100% 백필. 상세: `data/audit/metadata_cleanup_final_report.md` |
+| **7/13~14** | **"회원가입 필요 51" 전수 실사** — 로그인 확인 5곳뿐, 대부분 봇차단으로 정정 (`data/audit/로그인사이트_실사_20260713.csv`) · **재개방 4사이트 크롤러 생성·수집**: mentalhealthcommission.ca(500) + ameslab.gov(392) + repo.lib.duth.gr(500) + oka.go.kr(30) = **+1,422 문서, hosts 631→635** |
+
+| **7/16~17** | **cap 확장 재수집**: duth 500→**7,132** 문서(+PDF 5,438, 그리스 학위논문 저장소), mentalhealth 500→589 · 크롤러 내부 25분 예산이 병목이라 5시간으로 확장 · 텍스트 추출 잔여분은 backfill로 완료(스캔본 170건은 텍스트 레이어 없음, seq 431199는 추출 불능 known-problem) |
 
 상세 개발 이력: `libertree_crawler.md` (페이즈별 변경 로그)
 
@@ -124,7 +134,8 @@ seq_id(PK), collected_at, site_id, post_number, meta_url, title, published_date,
 
 ## 7. 다음 작업 후보 (우선순위)
 
-1. **회원가입 51 사이트 수동 쿠키 작업** — 가장 큰 잔여. 사용자가 가입/로그인 후 쿠키 전달 → `playwright_fetcher` 재시도
+1. **봇차단 46 사이트 수동 쿠키 작업** — 가장 큰 잔여. 브라우저에서 차단 통과 후 쿠키 전달 (순서표: `data/audit/로그인사이트_실사_20260713.csv`)
+1-2. (완료 7/17) 신규 4사이트 cap 확장 재수집 — duth 7,132·mentalhealth 589로 전량 수집
 2. **Gemma 요약 트랙 재개** — resume-safe (채워진 summary 자동 skip). 재개 명령:
    ```bash
    CUDA_VISIBLE_DEVICES=1 OLLAMA_HOST=127.0.0.1:11436 \
@@ -134,7 +145,8 @@ seq_id(PK), collected_at, site_id, post_number, meta_url, title, published_date,
    ```
 3. UI 확장 (계획 문서만 존재): `country_library_ui_plan.md`, `dashboard_1994_funnel_plan.md`, `uncollected_sites_directory_plan.md`
 4. 워킹트리 커밋 정리 — 7/7 리네이밍 + 라벨오류 정정 변경분이 미커밋 상태 (git mv 2건은 스테이징됨)
-5. (경미) masaf title 개행 10건 잔존 — 7/11 masaf 백필이 메타데이터 정제(R1/R4) 이후 실행되어 반영 안 됨. `scripts/cleanup_metadata.py --apply` 1회 재실행으로 해소 가능. 상세: `data/audit/metadata_cleanup_final_report.md` §5, §7
+5. (해소됨 7/11) masaf title 개행 10건 — cleanup 재실행으로 0건 확인, masaf 크롤러에 제목 정규화 추가(67d8c27)로 재발 경로 차단
+6. (후속 후보) 타 크롤러 20곳에 동일한 `\b` 날짜 정규식 버그 잔존 (그리스 3곳만 수정됨) — 재크롤 계획 시 함께 수정 권장. 상세: `.superpowers/sdd/final-review.md` m3
 
 ---
 
