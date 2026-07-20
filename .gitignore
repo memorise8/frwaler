@@ -37,6 +37,21 @@ finolaw/tsconfig.tsbuildinfo
 
 # Separate large scraped assets
 html_archive/
+/libertree/
+
+# Local inputs, client deliverables, and operator-only notes
+/scroll_index.xlsx
+/client_report.xlsx
+/report.docx
+/report-libertree.docx
+/libertree_crawler.md
+/verify_mpi.py
+
+# Local runtime and browser-inspection artifacts
+/.playwright-mcp/
+/finolaw/server.log
+/.DS_Store
+/._.DS_Store
 
 # Test URL files
 test_urls.txt
