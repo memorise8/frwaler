@@ -1,0 +1,45 @@
+{
+  "site_id": "en-moj-gov-cn",
+  "site_name": "en.moj.gov.cn",
+  "base_url": "http://en.moj.gov.cn",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "http://en.moj.gov.cn/lawsandregulations.html",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.mr950_cont > div.lis_box",
+      "item_link": "h3 > a",
+      "item_link_attr": "href",
+      "title": "h3 > a",
+      "date": "b",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "div.mr950 div.mr950_cont div.lis_box h3 > a",
+      "abstract": "div.mr950 div.mr950_cont div.lis_box > p.pc_box",
+      "authors": null,
+      "date": "div.mr950 div.mr950_cont div.lis_box > b",
+      "pdf_link": "div.mr950 div.mr950_cont div.lis_box h3 > a[href$='.pdf'], div.mr950 div.mr950_cont div.lis_box h3 > a[href*='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "http://en.moj.gov.cn/lawsandregulations.html",
+    "detail_sample": "http://en.moj.gov.cn/lawsandregulations.html",
+    "confidence": 1.0
+  }
+}

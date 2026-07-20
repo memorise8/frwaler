@@ -1,0 +1,48 @@
+{
+  "site_id": "afd-fr",
+  "site_name": "www.afd.fr",
+  "base_url": "https://www.afd.fr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.afd.fr/fr/publications/liste",
+    "params": {
+      "words": "",
+      "type%5B170%5D": "170"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 0,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.view-publications div.views-row",
+      "item_link": "article.node--type-publication h3.fr-card__title a[href]",
+      "item_link_attr": "href",
+      "title": "article.node--type-publication h3.fr-card__title a",
+      "date": "article.node--type-publication time, article.node--type-publication .fr-card__detail",
+      "category": "article.node--type-publication .fr-tag, article.node--type-publication .field--name-field-publication-type"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.afd.fr/fr/publications/liste?words=&type%5B170%5D=170",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

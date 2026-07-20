@@ -1,0 +1,45 @@
+{
+  "site_id": "llnl-gov",
+  "site_name": "www.llnl.gov",
+  "base_url": "https://www.llnl.gov",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.llnl.gov/news",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 0,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.view-news div.view-content div.views-row",
+      "item_link": "h3 a",
+      "item_link_attr": "href",
+      "title": "h3 a",
+      "date": "time.datetime",
+      "category": "div.field--name-field-news-category a"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.llnl.gov/news",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

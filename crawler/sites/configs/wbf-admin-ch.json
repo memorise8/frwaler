@@ -1,0 +1,45 @@
+{
+  "site_id": "wbf-admin-ch",
+  "site_name": "www.wbf.admin.ch",
+  "base_url": "https://www.wbf.admin.ch",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.wbf.admin.ch/en/press-information",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.search-results > ul.search-results__list > li",
+      "item_link": "div.card__footer__action > a.btn[href]",
+      "item_link_attr": "href",
+      "title": "div.card__title > h3",
+      "date": "div.card__body > p.meta-info > span.meta-info__item",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "section.hero h1.hero__title",
+      "abstract": "section.hero p.hero__description",
+      "authors": null,
+      "date": "section.hero p.meta-info span.meta-info__item:nth-child(2)",
+      "pdf_link": null,
+      "keywords": null,
+      "department": "header#main-header .logo__title",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.wbf.admin.ch/en/press-information",
+    "detail_sample": "https://www.wbf.admin.ch/en/newnsb/cFdMJzyyPq2GAfzyF2oj1",
+    "confidence": 1.0
+  }
+}

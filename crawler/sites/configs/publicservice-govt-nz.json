@@ -1,0 +1,49 @@
+{
+  "site_id": "publicservice-govt-nz",
+  "site_name": "www.publicservice.govt.nz",
+  "base_url": "https://www.publicservice.govt.nz",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.publicservice.govt.nz/research-and-data",
+    "params": {
+      "q": "",
+      "classification": "Datasheet",
+      "topics%5B0%5D": "193"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": null,
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.publicservice.govt.nz/research-and-data?q=&classification=Datasheet&topics%5B0%5D=193",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

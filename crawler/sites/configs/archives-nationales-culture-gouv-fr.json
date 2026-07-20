@@ -1,0 +1,49 @@
+{
+  "site_id": "archives-nationales-culture-gouv-fr",
+  "site_name": "www.archives-nationales.culture.gouv.fr",
+  "base_url": "https://www.archives-nationales.culture.gouv.fr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.archives-nationales.culture.gouv.fr/presse",
+    "params": {
+      "title": "",
+      "field_type_publication_target_id_1%5B32%5D": "32",
+      "created%5Bvalue%5D": ""
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": null,
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.archives-nationales.culture.gouv.fr/presse?title=&field_type_publication_target_id_1%5B32%5D=32&created%5Bvalue%5D=",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

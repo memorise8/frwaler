@@ -1,0 +1,49 @@
+{
+  "site_id": "ivo-se",
+  "site_name": "www.ivo.se",
+  "base_url": "https://www.ivo.se",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.ivo.se/sok/",
+    "params": {
+      "q": "%20",
+      "s": "0",
+      "f": "1"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "s",
+      "start": 0,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.search-results ul.search-results__list > li.search-results__item",
+      "item_link": "a.search-results__link",
+      "item_link_attr": "href",
+      "title": "a.search-results__link",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.ivo.se/sok/?q=%20&s=0&f=1",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "site_id": "nivel-nl",
+  "site_name": "www.nivel.nl",
+  "base_url": "https://www.nivel.nl",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.nivel.nl/en/publications",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.view-publications div.views-infinite-scroll-content-wrapper > div.views-row",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "div.publication div.field--name-field-title",
+      "date": "div.publication div.field--name-field-webopac-date time.datetime",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.nivel.nl/en/publications",
+    "detail_sample": null,
+    "confidence": 1.0
+  }
+}

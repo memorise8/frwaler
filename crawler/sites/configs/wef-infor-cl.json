@@ -1,0 +1,45 @@
+{
+  "site_id": "wef-infor-cl",
+  "site_name": "wef.infor.cl",
+  "base_url": "https://wef.infor.cl",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://wef.infor.cl/index.php/publicaciones",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.card.m20.publicacion",
+      "item_link": "div.card-body h5.card-title > a",
+      "item_link_attr": "href",
+      "title": "div.card-body h5.card-title > a",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "article.page-content > h1.page-content__title",
+      "abstract": "article.page-content > div.card > div.card-body > p",
+      "authors": null,
+      "date": "article.page-content .row .publicacion-fecha-portada2 > h6",
+      "pdf_link": "article.page-content .row .card a.btn[href*='task=GetFile']",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://wef.infor.cl/index.php/publicaciones",
+    "detail_sample": "https://wef.infor.cl/index.php/publicaciones/boletines-estadisticos/anuario-forestal",
+    "confidence": 1.0
+  }
+}

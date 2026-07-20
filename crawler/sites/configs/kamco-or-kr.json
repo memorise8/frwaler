@@ -1,0 +1,48 @@
+{
+  "site_id": "kamco-or-kr",
+  "site_name": "www.kamco.or.kr",
+  "base_url": "https://www.kamco.or.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.kamco.or.kr/portal/bbs/list.do",
+    "params": {
+      "ptIdx": "282",
+      "mId": "0701030000"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table tbody tr",
+      "item_link": "td a[href]",
+      "item_link_attr": "href",
+      "title": "td a[href]",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.kamco.or.kr/portal/bbs/list.do?ptIdx=282&mId=0701030000",
+    "detail_sample": "https://www.kamco.or.kr/portal/bbs/#",
+    "confidence": 1.0
+  }
+}

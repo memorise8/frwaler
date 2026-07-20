@@ -1,0 +1,45 @@
+{
+  "site_id": "bmf-gv-at",
+  "site_name": "www.bmf.gv.at",
+  "base_url": "https://www.bmf.gv.at",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.bmf.gv.at/ministerium/nationale-finanzbildungsstrategie/uebersicht-nationale-finanzbildungsstrategie/downloads.html",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "main#content ul li",
+      "item_link": "a.file",
+      "item_link_attr": "href",
+      "title": "a.file",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.bmf.gv.at/ministerium/nationale-finanzbildungsstrategie/uebersicht-nationale-finanzbildungsstrategie/downloads.html",
+    "detail_sample": "https://www.bmf.gv.at/dam/jcr:ee620bbd-2509-4033-8640-ca2a07a2d258/Kommunikationspaket%20Social%20Media%20und%20Newsletter.docx",
+    "confidence": 1.0
+  }
+}

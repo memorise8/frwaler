@@ -1,0 +1,50 @@
+{
+  "site_id": "didaktorika-gr",
+  "site_name": "www.didaktorika.gr",
+  "base_url": "https://www.didaktorika.gr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.didaktorika.gr/eadd/simple-search",
+    "params": {
+      "query": "",
+      "rpp": "100",
+      "sort_by": "0",
+      "order": "DESC"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "start",
+      "start": 0,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": ".search-results table.miscTable tr:not(:first-child)",
+      "item_link": "td:nth-child(2) > a",
+      "item_link_attr": "href",
+      "title": "td:nth-child(2) > a",
+      "date": "td:nth-child(1)",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.didaktorika.gr/eadd/simple-search?query=&rpp=100&sort_by=0&order=DESC",
+    "detail_sample": "https://www.didaktorika.gr/eadd/handle/10442/53287",
+    "confidence": 1.0
+  }
+}

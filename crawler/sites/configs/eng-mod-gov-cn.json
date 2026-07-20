@@ -1,0 +1,45 @@
+{
+  "site_id": "eng-mod-gov-cn",
+  "site_name": "eng.mod.gov.cn",
+  "base_url": "http://eng.mod.gov.cn",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "http://eng.mod.gov.cn/2025xb/M/L_251592/index.html",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "ul#main-news-list.news-list > li.first",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "h3.title",
+      "date": "small.time",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "div.artichle-info > h2",
+      "abstract": "div#article-content div.article-content > ul#main-news-list",
+      "authors": null,
+      "date": "div.artichle-info > p > span:nth-of-type(3)",
+      "pdf_link": null,
+      "keywords": null,
+      "department": "div.artichle-info > p > span:nth-of-type(1) > a",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "http://eng.mod.gov.cn/2025xb/M/L_251592/index.html",
+    "detail_sample": "http://eng.mod.gov.cn/2025xb/M/L_251592/16415117.html",
+    "confidence": 1.0
+  }
+}

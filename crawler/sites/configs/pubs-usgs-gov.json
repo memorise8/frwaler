@@ -1,0 +1,45 @@
+{
+  "site_id": "pubs-usgs-gov",
+  "site_name": "pubs.usgs.gov",
+  "base_url": "https://pubs.usgs.gov",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://pubs.usgs.gov/browse/Conference%20Paper/",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.browse-page ul > li",
+      "item_link": "a.usa-link[href^='/publication/']",
+      "item_link_attr": "href",
+      "title": "a.usa-link[href^='/publication/']",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h3.publication-title",
+      "abstract": "section#abstract div.abstract-contents",
+      "authors": "section#contributors span.contributor",
+      "date": "section#details table.usa-table tbody tr:nth-child(4) td",
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://pubs.usgs.gov/browse/Conference%20Paper/",
+    "detail_sample": "https://pubs.usgs.gov/publication/70275225",
+    "confidence": 1.0
+  }
+}

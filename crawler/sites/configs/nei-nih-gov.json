@@ -1,0 +1,45 @@
+{
+  "site_id": "nei-nih-gov",
+  "site_name": "www.nei.nih.gov",
+  "base_url": "https://www.nei.nih.gov",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.nei.nih.gov/about/budget-and-congress",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "#block-nei-content article .c-text ul li:has(a)",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "a[href]",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.nei.nih.gov/about/budget-and-congress",
+    "detail_sample": "https://officeofbudget.od.nih.gov/br.html",
+    "confidence": 1.0
+  }
+}

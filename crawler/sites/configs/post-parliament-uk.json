@@ -1,0 +1,45 @@
+{
+  "site_id": "post-parliament-uk",
+  "site_name": "post.parliament.uk",
+  "base_url": "https://post.parliament.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://post.parliament.uk/research/all-research/",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "paged",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "main#main section.component article.card",
+      "item_link": "h2.card__heading a.card__link",
+      "item_link_attr": "href",
+      "title": "h2.card__heading a.card__link",
+      "date": "p.card__date time",
+      "category": "ul.tag-list a.tax-term-tag"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "div.page-header__title > h1",
+      "abstract": "main#main div.component.component--text div.reading-width",
+      "authors": "div.postmetadata ul.postmetadata__items a.author",
+      "date": "div.page-header div.meta > time",
+      "pdf_link": null,
+      "keywords": "div.postmetadata ul.postmetadata__items a.tag span.tag__label",
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://post.parliament.uk/research/all-research/",
+    "detail_sample": "https://post.parliament.uk/the-health-impacts-of-airports-on-local-residents/",
+    "confidence": 1.0
+  }
+}

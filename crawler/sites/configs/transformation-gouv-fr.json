@@ -1,0 +1,47 @@
+{
+  "site_id": "transformation-gouv-fr",
+  "site_name": "www.transformation.gouv.fr",
+  "base_url": "https://www.transformation.gouv.fr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.transformation.gouv.fr/espace-presse",
+    "params": {
+      "field_type_presse_target_id%5B17%5D": "17"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "#block-mtfp-2024-content .view-content.fr-grid-row > div.views-row",
+      "item_link": "article.node--type-presse h3.fr-card__title a",
+      "item_link_attr": "href",
+      "title": "article.node--type-presse h3.fr-card__title a span.field--name-title",
+      "date": "article.node--type-presse .fr-card__start p.fr-card__detail",
+      "category": "article.node--type-presse .fr-card__start p.fr-tag"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.transformation.gouv.fr/espace-presse?field_type_presse_target_id%5B17%5D=17",
+    "detail_sample": "https://www.transformation.gouv.fr/files/presse/Communiqu%C3%A9-Laurent_Marcangeli_annonce_mise_en_oeuvre_plan-canicule.pdf",
+    "confidence": 1.0
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "site_id": "english-mee-gov-cn",
+  "site_name": "english.mee.gov.cn",
+  "base_url": "https://english.mee.gov.cn",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://english.mee.gov.cn/Resources/Reports/bomeaesoc/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.det_con ul#div > li",
+      "item_link": "div.art_title > a",
+      "item_link_attr": "href",
+      "title": "div.art_title > a",
+      "date": "div.date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://english.mee.gov.cn/Resources/Reports/bomeaesoc/",
+    "detail_sample": "https://english.mee.gov.cn/Resources/Reports/bomeaesoc/./202603/P020260320559026376052.pdf",
+    "confidence": 1.0
+  }
+}

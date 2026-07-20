@@ -1,0 +1,45 @@
+{
+  "site_id": "arcnl-nl",
+  "site_name": "arcnl.nl",
+  "base_url": "https://arcnl.nl",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://arcnl.nl/publications/types/bachelorthesis",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": null,
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://arcnl.nl/publications/types/bachelorthesis",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

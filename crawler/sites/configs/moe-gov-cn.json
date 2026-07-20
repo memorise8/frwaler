@@ -1,0 +1,45 @@
+{
+  "site_id": "moe-gov-cn",
+  "site_name": "www.moe.gov.cn",
+  "base_url": "http://www.moe.gov.cn",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "http://www.moe.gov.cn/jyb_sjzl/sjzl_fztjgb/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.moe-list ul#list > li",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": "a",
+      "date": "span",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "div.moe-detail-box > h1",
+      "abstract": "div.moe-detail-box > div.TRS_Editor",
+      "authors": null,
+      "date": "div.moe-detail-box > div.moe-detail-shuxing",
+      "pdf_link": null,
+      "keywords": null,
+      "department": "div.moe-detail-box > div.moe-detail-shuxing",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "http://www.moe.gov.cn/jyb_sjzl/sjzl_fztjgb/",
+    "detail_sample": "http://www.moe.gov.cn/jyb_sjzl/sjzl_fztjgb/./202506/t20250611_1193760.html",
+    "confidence": 1.0
+  }
+}

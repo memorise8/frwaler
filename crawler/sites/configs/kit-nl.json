@@ -1,0 +1,49 @@
+{
+  "site_id": "kit-nl",
+  "site_name": "www.kit.nl",
+  "base_url": "https://www.kit.nl",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.kit.nl/institute/publication/",
+    "params": {
+      "publication-type": "research-article",
+      "kit_impact_area": "",
+      "year": ""
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "article",
+      "item_link": "a[href*=\"/institute/publication/\"]",
+      "item_link_attr": "href",
+      "title": "a[href*=\"/institute/publication/\"]",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.kit.nl/institute/publication/?publication-type=research-article&kit_impact_area=&year=",
+    "detail_sample": null,
+    "confidence": 0.5
+  }
+}

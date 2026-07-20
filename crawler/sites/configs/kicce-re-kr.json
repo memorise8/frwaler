@@ -1,0 +1,48 @@
+{
+  "site_id": "kicce-re-kr",
+  "site_name": "www.kicce.re.kr",
+  "base_url": "https://www.kicce.re.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.kicce.re.kr/main/board/index.do",
+    "params": {
+      "menu_idx": "231",
+      "manage_idx": "103"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.board-list ul li",
+      "item_link": "a[href*='/main/board/view.do']",
+      "item_link_attr": "href",
+      "title": "a[href*='/main/board/view.do'] .tit",
+      "date": ".date",
+      "category": ".category"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.kicce.re.kr/main/board/index.do?menu_idx=231&manage_idx=103",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

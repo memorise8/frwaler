@@ -1,0 +1,45 @@
+{
+  "site_id": "ots-at",
+  "site_name": "www.ots.at",
+  "base_url": "https://www.ots.at",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.ots.at/pressemappe/54/bundesministerium-fuer-inneres",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "seite",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "app-pressroom-ots-list div.ots-list-holder mat-card.mat-card-1",
+      "item_link": "a.link-detailed-view",
+      "item_link_attr": "href",
+      "title": "div.card-content div.h3",
+      "date": "div.card-content small.text-muted ul.list-inline li.list-inline-item:first-child",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.ots.at/pressemappe/54/bundesministerium-fuer-inneres",
+    "detail_sample": "https://www.ots.at/presseaussendung/OTS_20260508_OTS0124/aviso-lokalaugenschein-im-esc-einsatzstab-der-landespolizeidirektion-wien",
+    "confidence": 1.0
+  }
+}

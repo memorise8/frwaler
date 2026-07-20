@@ -1,0 +1,45 @@
+{
+  "site_id": "pleanala-ie",
+  "site_name": "www.pleanala.ie",
+  "base_url": "https://www.pleanala.ie",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.pleanala.ie/en-IE/Publications",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.large-9.cell div.grid-x.grid-padding-x.medium-up-2.large-up-3 > div.cell",
+      "item_link": "a.card-article.card-article--pub",
+      "item_link_attr": "href",
+      "title": "a.card-article.card-article--pub p.title",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.pleanala.ie/en-IE/Publications",
+    "detail_sample": "https://www.pleanala.ie/getattachment/d65080b9-bd82-4c0c-aa1d-19f82f370e8d/An-Coimisiun-Pleanala-Strategic-Plan-2026-2028-R5.pdf?lang=en-IE&ext=.pdf",
+    "confidence": 1.0
+  }
+}

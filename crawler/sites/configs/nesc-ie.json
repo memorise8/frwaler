@@ -1,0 +1,51 @@
+{
+  "site_id": "nesc-ie",
+  "site_name": "www.nesc.ie",
+  "base_url": "https://www.nesc.ie",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.nesc.ie/news-events/",
+    "params": {
+      "keyword": "",
+      "bytopic": "",
+      "category": "42",
+      "fromdate": "",
+      "todate": ""
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "ul.wp-block-post-template > li.wp-block-post",
+      "item_link": "a.spectra-container-link-overlay",
+      "item_link_attr": "href",
+      "title": "div.uagb-block-0b94a4ff h3.uagb-heading-text",
+      "date": "div.uagb-block-59aed77c .uagb-heading-text",
+      "category": "div.uagb-block-483da6d5 .uagb-heading-text"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "div.uagb-block-b0923400 > h2.uagb-heading-text",
+      "abstract": "div.entry-content.wp-block-post-content",
+      "authors": null,
+      "date": "div.uagb-block-7f737b2c > p.uagb-heading-text",
+      "pdf_link": "div.entry-content.wp-block-post-content a[href$='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.nesc.ie/news-events/?keyword=&bytopic=&category=42&fromdate=&todate=",
+    "detail_sample": "https://www.nesc.ie/news-events/press-releases/council-report-no-173-artificial-intelligence-in-service-of-society-navigating-our-way-forward/",
+    "confidence": 1.0
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "site_id": "nbb-be",
+  "site_name": "www.nbb.be",
+  "base_url": "https://www.nbb.be",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.nbb.be/en/news-events/news",
+    "params": {
+      "format%5B583%5D": "583"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.view-news .view-content .views-row",
+      "item_link": "h2 a[href], .node__title a[href]",
+      "item_link_attr": "href",
+      "title": "h2 a[href], .node__title a[href]",
+      "date": "time.datetime",
+      "category": ".field--name-field-news-format, .field--name-field-format"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.nbb.be/en/news-events/news?format%5B583%5D=583",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

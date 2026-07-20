@@ -1,0 +1,45 @@
+{
+  "site_id": "astro-oma-be",
+  "site_name": "www.astro.oma.be",
+  "base_url": "https://www.astro.oma.be",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.astro.oma.be/en/information/publications/annual-reports/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div#builder-module-541c3a477a922 ul:nth-of-type(2) > li",
+      "item_link": "a[href$='.pdf']",
+      "item_link_attr": "href",
+      "title": "a[href$='.pdf']",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.astro.oma.be/en/information/publications/annual-reports/",
+    "detail_sample": "https://www.astro.oma.be/common/pdf/y_reports/AnnualReport2024.pdf",
+    "confidence": 1.0
+  }
+}

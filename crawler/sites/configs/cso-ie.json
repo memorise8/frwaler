@@ -1,0 +1,45 @@
+{
+  "site_id": "cso-ie",
+  "site_name": "www.cso.ie",
+  "base_url": "https://www.cso.ie",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.cso.ie/en/csolatestnews/pressreleases/2025pressreleases/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div#columnLeft div.copy ul.links > li",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "a[href]",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.cso.ie/en/csolatestnews/pressreleases/2025pressreleases/",
+    "detail_sample": "https://www.cso.ie/en/csolatestnews/pressreleases/2025pressreleases/pressstatement-thesavingsandbenefitsofnewyearsresolutions2025/",
+    "confidence": 1.0
+  }
+}

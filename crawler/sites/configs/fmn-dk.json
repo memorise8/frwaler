@@ -1,0 +1,45 @@
+{
+  "site_id": "fmn-dk",
+  "site_name": "www.fmn.dk",
+  "base_url": "https://www.fmn.dk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.fmn.dk/da/nyheder/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "main .news-list .news-list-item",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "h2, h3, .title",
+      "date": ".date, time",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.fmn.dk/da/nyheder/",
+    "detail_sample": null,
+    "confidence": 0.33
+  }
+}

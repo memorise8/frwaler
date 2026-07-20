@@ -1,0 +1,48 @@
+{
+  "site_id": "forest-go-kr",
+  "site_name": "www.forest.go.kr",
+  "base_url": "https://www.forest.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.forest.go.kr/kfsweb/cop/bbs/selectBoardList.do",
+    "params": {
+      "bbsId": "BBSMSTR_1036",
+      "mn": "NKFS_04_02_01"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "pageIndex",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table tbody tr",
+      "item_link": "td a[href*='selectBoardArticle.do']",
+      "item_link_attr": "href",
+      "title": "td a[href*='selectBoardArticle.do']",
+      "date": "td:nth-last-child(2)",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.forest.go.kr/kfsweb/cop/bbs/selectBoardList.do?bbsId=BBSMSTR_1036&mn=NKFS_04_02_01",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

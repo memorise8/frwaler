@@ -1,0 +1,48 @@
+{
+  "site_id": "gov-uk",
+  "site_name": "www.gov.uk",
+  "base_url": "https://www.gov.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.gov.uk/search/research-and-statistics",
+    "params": {
+      "content_store_document_type": "research",
+      "order": "updated-newest"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "ul.gem-c-document-list li.gem-c-document-list__item",
+      "item_link": "a.gem-c-document-list__item-title",
+      "item_link_attr": "href",
+      "title": "a.gem-c-document-list__item-title",
+      "date": "ul.gem-c-document-list__metadata time",
+      "category": "ul.gem-c-document-list__metadata li.gem-c-document-list__attribute"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.gov.uk/search/research-and-statistics?content_store_document_type=research&order=updated-newest",
+    "detail_sample": null,
+    "confidence": 0.33
+  }
+}

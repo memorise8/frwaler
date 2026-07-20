@@ -1,0 +1,90 @@
+{
+  "site_id": "elocus-lib-uoc-gr",
+  "site_name": "elocus.lib.uoc.gr",
+  "base_url": "https://elocus.lib.uoc.gr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://elocus.lib.uoc.gr/search/",
+    "params": {
+      "store_query": "1",
+      "display_mode": "overview",
+      "search_help": "",
+      "show_form": "",
+      "search_type": "advanced",
+      "wf_step": "init",
+      "show_hidden": "0",
+      "number": "10",
+      "keep_number": "",
+      "cclterm1": "",
+      "cclterm2": "",
+      "cclterm3": "",
+      "cclterm4": "",
+      "cclterm5": "",
+      "cclterm6": "",
+      "cclterm7": "",
+      "cclterm8": "%2Fhierarchy%2Fmaterial%2F010",
+      "cclterm9": "",
+      "cclfield1": "author",
+      "cclfield2": "title",
+      "cclfield3": "subject",
+      "cclfield4": "datefrom",
+      "cclfield5": "dateto",
+      "cclfield6": "",
+      "cclfield7": "lang",
+      "cclfield8": "collection",
+      "cclfield9": "department",
+      "cclop1": "and",
+      "cclop2": "and",
+      "cclop3": "and",
+      "cclop4": "and",
+      "cclop5": "",
+      "cclop6": "and",
+      "cclop7": "and",
+      "cclop8": "and",
+      "display_help": "0",
+      "offset": "1",
+      "search_coll%5Bmetadata%5D": "0",
+      "search_coll%5Bdlib%5D": "1",
+      "stored_cclquery": "",
+      "skin": "",
+      "rss": "0",
+      "clone_file": "",
+      "export_method": "none"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "offset",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": null,
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://elocus.lib.uoc.gr/search/?store_query=1&display_mode=overview&search_help=list&show_form=%27%27&search_type=advanced&search_help=&display_mode=overview&wf_step=init&show_hidden=0&number=10&keep_number=&cclterm1=&cclterm2=&cclterm3=&cclterm4=&cclterm5=&cclterm6=&cclterm7=&cclterm8=%2Fhierarchy%2Fmaterial%2F030&cclterm9=&cclfield1=author&cclfield2=title&cclfield3=subject&cclfield4=datefrom&cclfield5=dateto&cclfield6=&cclfield7=lang&cclfield8=collection&cclfield9=department&cclop1=and&cclop2=and&cclop3=and&cclop4=and&cclop5=&cclop6=and&cclop7=and&cclop8=and&display_help=0&offset=1&search_coll%5Bmetadata%5D=0&search_coll%5Bdlib%5D=1&stored_cclquery=&skin=&rss=0&store_query=1&show_form=&clone_file=&export_method=none&search_coll%5Bdlib%5D=1&cclfield1=author&cclterm1=&cclop1=and&cclfield2=title&cclterm2=&cclop2=and&cclfield3=subject&cclterm3=&cclop3=and&cclfield4=datefrom&cclterm4=&cclop4=and&cclfield5=dateto&cclterm5=&cclop6=and&cclfield7=lang&cclterm7=&cclop7=and&cclfield8=collection&cclterm8=%2Fhierarchy%2Fmaterial%2F010&cclop8=and&cclfield9=department&cclterm9=#",
+    "detail_sample": "https://elocus.lib.uoc.gr/search/?search_type=advanced&search_help=&display_mode=overview&wf_step=init&show_hidden=0&number=10&keep_number=&cclterm1=&cclterm2=&cclterm3=&cclterm4=&cclterm5=&cclterm6=&cclterm7=&cclterm8=%2Fhierarchy%2Fmaterial%2F010&cclterm9=&cclfield1=author&cclfield2=title&cclfield3=subject&cclfield4=datefrom&cclfield5=dateto&cclfield6=&cclfield7=lang&cclfield8=collection&cclfield9=department&cclop1=and&cclop2=and&cclop3=and&cclop4=and&cclop5=&cclop6=and&cclop7=and&cclop8=and&display_help=0&offset=1&search_coll[metadata]=0&search_coll[dlib]=1&&stored_cclquery=&skin=&rss=0&store_query=1&show_form=&clone_file=&export_method=none&search_type=advanced&show_form=1",
+    "confidence": 0.0
+  }
+}

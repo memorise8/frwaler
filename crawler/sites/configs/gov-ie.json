@@ -1,0 +1,45 @@
+{
+  "site_id": "gov-ie",
+  "site_name": "www.gov.ie",
+  "base_url": "https://www.gov.ie",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.gov.ie/en/publications/",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "main .gi-card.gi-card-horizontal.gi-card-inset-none.border-b-gray-150.border-b.border-solid",
+      "item_link": ".gi-card-title.card-title-overwrite a.gi-link",
+      "item_link_attr": "href",
+      "title": ".gi-card-title.card-title-overwrite a.gi-link",
+      "date": ".gi-card-subheading.gi-card-truncate-text",
+      "category": ".gi-card-subheading.gi-card-truncate-text"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "main .info-section h1.gi-heading-xl",
+      "abstract": "main div.rich-text",
+      "authors": null,
+      "date": "main .info-section ul.info-section-ul > li:nth-child(2)",
+      "pdf_link": null,
+      "keywords": null,
+      "department": "main .info-section ul.info-section-ul > li:nth-child(1) a.gi-link",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.gov.ie/en/publications/",
+    "detail_sample": "https://www.gov.ie/en/department-of-foreign-affairs/press-releases/minister-mcentee-marks-europe-day-as-ireland-prepares-for-eu-council-presidency/",
+    "confidence": 1.0
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "site_id": "fi-se",
+  "site_name": "www.fi.se",
+  "base_url": "https://www.fi.se",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.fi.se/en/markets/news/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "#results > div.list-item.extended-click-area",
+      "item_link": "h2 > a",
+      "item_link_attr": "href",
+      "title": "h2 > a",
+      "date": ".date-and-categories span.date",
+      "category": ".date-and-categories a.categoryLink"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "div.page > h1",
+      "abstract": "div.page > p.lead",
+      "authors": null,
+      "date": "div.page > div.date-and-category",
+      "pdf_link": "div.page a[href$='.pdf'], div.page a[href*='.pdf?']",
+      "keywords": "div.page > div.date-and-category a.categoryLink",
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.fi.se/en/markets/news/",
+    "detail_sample": "https://www.fi.se/en/published/reports/consumer-protection-on-the-financial-market/consumer-protection-report-2026/",
+    "confidence": 1.0
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "site_id": "cancer-fr",
+  "site_name": "www.cancer.fr",
+  "base_url": "https://www.cancer.fr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.cancer.fr/catalogue-des-publications",
+    "params": {
+      "publications_catalog%5Bfilters%5D%5Bsearch_text%5D": "",
+      "publications_catalog%5Bfilters%5D%5Bcollection%5D%5B%5D": "98",
+      "search": ""
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": null,
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.cancer.fr/catalogue-des-publications?publications_catalog%5Bfilters%5D%5Bsearch_text%5D=&publications_catalog%5Bfilters%5D%5Bcollection%5D%5B%5D=98&search=",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

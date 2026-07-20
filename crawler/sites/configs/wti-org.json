@@ -1,0 +1,50 @@
+{
+  "site_id": "wti-org",
+  "site_name": "www.wti.org",
+  "base_url": "https://www.wti.org",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.wti.org/research/publications/",
+    "params": {
+      "q": "",
+      "type": "4",
+      "author": "",
+      "research_project": ""
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "section#publications div.list__container.card-wrapper article.card.publication-item",
+      "item_link": "div.card__text h3 a",
+      "item_link_attr": "href",
+      "title": "div.card__text h3 a",
+      "date": "div.card__text p.pre",
+      "category": "div.card__text p.pre"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "section#publications.detail .detail__intro h1",
+      "abstract": "section#publications.detail .left p.lead",
+      "authors": "section#publications.detail .detail__intro p.info a.author",
+      "date": "section#publications.detail .detail__intro p.info strong",
+      "pdf_link": "section#publications.detail .left a.button[href$='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.wti.org/research/publications/?q=&type=4&author=&research_project=",
+    "detail_sample": "https://www.wti.org/research/publications/1495/from-digital-empires-to-common-ground-digital-trade-convergence-between-the-eu-and-cptpp/",
+    "confidence": 1.0
+  }
+}

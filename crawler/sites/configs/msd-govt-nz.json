@@ -1,0 +1,45 @@
+{
+  "site_id": "msd-govt-nz",
+  "site_name": "www.msd.govt.nz",
+  "base_url": "https://www.msd.govt.nz",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.msd.govt.nz/about-msd-and-our-work/publications-resources/literature-reviews/index.html",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "#content .topBottomFloat .listing",
+      "item_link": ".title a",
+      "item_link_attr": "href",
+      "title": ".title a",
+      "date": ".date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "#content > h1",
+      "abstract": "#content > div.block",
+      "authors": "#content > div.block p strong",
+      "date": "#feature1 div.block p.date",
+      "pdf_link": null,
+      "keywords": null,
+      "department": "#content > div.block p strong",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.msd.govt.nz/about-msd-and-our-work/publications-resources/literature-reviews/index.html",
+    "detail_sample": "https://www.msd.govt.nz/about-msd-and-our-work/publications-resources/literature-reviews/sbib/index.html",
+    "confidence": 1.0
+  }
+}

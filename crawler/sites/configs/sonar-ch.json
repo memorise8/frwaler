@@ -1,0 +1,51 @@
+{
+  "site_id": "sonar-ch",
+  "site_name": "sonar.ch",
+  "base_url": "https://sonar.ch",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://sonar.ch/global/search/documents",
+    "params": {
+      "q": "",
+      "page": "1",
+      "size": "10",
+      "sort": "newest",
+      "document_type": "coar:c_5794"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": null,
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://sonar.ch/global/search/documents?q=&page=1&size=10&sort=newest&document_type=coar:c_5794",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

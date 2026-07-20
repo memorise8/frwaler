@@ -1,0 +1,48 @@
+{
+  "site_id": "iisd-org",
+  "site_name": "www.iisd.org",
+  "base_url": "https://www.iisd.org",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.iisd.org/press",
+    "params": {
+      "article_subtype[10]": "10",
+      "sort_by": "unified_date"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 0,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.view-content div.views-row",
+      "item_link": "article a[href]",
+      "item_link_attr": "href",
+      "title": "article h2 a, article h3 a",
+      "date": "article time",
+      "category": "article .c-tag, article .field--name-field-article-subtype"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.iisd.org/press?article_subtype[10]=10&sort_by=unified_date",
+    "detail_sample": null,
+    "confidence": 0.33
+  }
+}

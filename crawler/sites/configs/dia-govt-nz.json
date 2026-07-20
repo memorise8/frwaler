@@ -1,0 +1,45 @@
+{
+  "site_id": "dia-govt-nz",
+  "site_name": "www.dia.govt.nz",
+  "base_url": "https://www.dia.govt.nz",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.dia.govt.nz/Proactive-Releases",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.content table tbody tr:has(> td)",
+      "item_link": "td:nth-child(2) a[href]",
+      "item_link_attr": "href",
+      "title": "td:nth-child(2) a[href]",
+      "date": "td:nth-child(1)",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.dia.govt.nz/Proactive-Releases",
+    "detail_sample": "https://www.dia.govt.nz/diawebsite.nsf/Files/Proactive-Releases-2025-26/$file/Waipareria-Trust-Decision-17-December-2025.pdf",
+    "confidence": 1.0
+  }
+}

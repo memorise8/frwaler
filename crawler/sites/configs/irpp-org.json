@@ -1,0 +1,45 @@
+{
+  "site_id": "irpp-org",
+  "site_name": "irpp.org",
+  "base_url": "https://irpp.org",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://irpp.org/media/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.load-more__container > div.event__list",
+      "item_link": "article.article-main--list > a.article__link",
+      "item_link_attr": "href",
+      "title": "h1.article__title",
+      "date": "span.date-subtitle",
+      "category": "div.article-main__oval--list .icon__oval"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://irpp.org/media/",
+    "detail_sample": "https://irpp.org/op-ed/making-homes-affordable/",
+    "confidence": 1.0
+  }
+}

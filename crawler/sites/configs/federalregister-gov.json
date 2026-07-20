@@ -1,0 +1,49 @@
+{
+  "site_id": "federalregister-gov",
+  "site_name": "www.federalregister.gov",
+  "base_url": "https://www.federalregister.gov",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.federalregister.gov/documents/search",
+    "params": {
+      "conditions%5Bagencies%5D%5B%5D": "health-and-human-services-department",
+      "conditions%5Bsearch_type_id%5D": "3",
+      "order": "newest"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.document-wrapper",
+      "item_link": "h5 a[href^=\"/documents/\"]",
+      "item_link_attr": "href",
+      "title": "h5 a[href^=\"/documents/\"]",
+      "date": "div.metadata span.published-date",
+      "category": "div.metadata a.document-type"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.federalregister.gov/documents/search?conditions%5Bagencies%5D%5B%5D=health-and-human-services-department&conditions%5Bsearch_type_id%5D=3&order=newest",
+    "detail_sample": null,
+    "confidence": 0.33
+  }
+}

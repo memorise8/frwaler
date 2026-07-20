@@ -1,0 +1,45 @@
+{
+  "site_id": "ntp-niehs-nih-gov",
+  "site_name": "ntp.niehs.nih.gov",
+  "base_url": "https://ntp.niehs.nih.gov",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://ntp.niehs.nih.gov/publications",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.summary-section div.summary-item.row.align-top",
+      "item_link": "h4 > a[href]",
+      "item_link_attr": "href",
+      "title": "h4 > a",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "#secondary-pagecontent article > h1",
+      "abstract": "#secondary-pagecontent article",
+      "authors": null,
+      "date": null,
+      "pdf_link": "#secondary-pagecontent article a[href$='.pdf'], #secondary-pagecontent article a[href*='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": "#secondary-pagecontent article a[href*='doi.org']"
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://ntp.niehs.nih.gov/publications",
+    "detail_sample": "https://ntp.niehs.nih.gov/research/assessments/cancer/roc",
+    "confidence": 1.0
+  }
+}

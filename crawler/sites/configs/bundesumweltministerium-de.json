@@ -1,0 +1,45 @@
+{
+  "site_id": "bundesumweltministerium-de",
+  "site_name": "www.bundesumweltministerium.de",
+  "base_url": "https://www.bundesumweltministerium.de",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.bundesumweltministerium.de/en/public-information-service/publications",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "article.c-publication-teaser",
+      "item_link": "a.c-publication-teaser__link",
+      "item_link_attr": "href",
+      "title": ".c-publication-teaser__title",
+      "date": null,
+      "category": ".c-publication-teaser__category"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.bundesumweltministerium.de/en/public-information-service/publications",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

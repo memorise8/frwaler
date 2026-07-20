@@ -1,0 +1,64 @@
+{
+  "site_id": "pubs-drdc-rddc-gc-ca",
+  "site_name": "pubs.drdc-rddc.gc.ca",
+  "base_url": "https://pubs.drdc-rddc.gc.ca",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://pubs.drdc-rddc.gc.ca/BASIS/pcandid/www/engpub/SDF",
+    "params": {
+      "KEYWORDS_O": "contains+all",
+      "KEYWORDS": "",
+      "TITLE_O": "contains+all",
+      "TITLE": "",
+      "AUTHOR": "",
+      "AUTHOR_O": "contains+the+phrase",
+      "CA_CODE": "",
+      "CA_CODE_O": "equals",
+      "CA_NAME": "",
+      "CA_NAME_O": "contains+the+phrase",
+      "CA_RPNUM": "",
+      "CA_RPNUM_O": "equals",
+      "REPDATE": "",
+      "PROJNUM": "",
+      "PROJNUM_O": "includes",
+      "FORM_C": "and",
+      "FORM_OB": "Repdate",
+      "FORM_SO": "Descend"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "main.col-md-9.col-md-push-3 > section",
+      "item_link": "a[href*='/BASIS/pcandid/www/engpub/DDW']",
+      "item_link_attr": "href",
+      "title": "p:first-of-type",
+      "date": "p:has(span.text-primary)",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://pubs.drdc-rddc.gc.ca/BASIS/pcandid/www/engpub/SDF?KEYWORDS_O=contains+all&KEYWORDS=&TITLE_O=contains+all&TITLE=&AUTHOR=&AUTHOR_O=contains+the+phrase&CA_CODE=&CA_CODE_O=equals&CA_NAME=&CA_NAME_O=contains+the+phrase&CA_RPNUM=&CA_RPNUM_O=equals&REPDATE=&CA_RPNUM_O=equals&PROJNUM=&PROJNUM_O=includes&FORM_C=and&FORM_OB=Repdate&FORM_SO=Descend",
+    "detail_sample": "https://pubs.drdc-rddc.gc.ca/BASIS/pcandid/www/engpub/DDW?W%3D+ORDER+BY+Repdate/Descend%26M%3D1%26K%3D820915%26U%3D1",
+    "confidence": 1.0
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "site_id": "skillsdevelopmentscotland-co-uk",
+  "site_name": "www.skillsdevelopmentscotland.co.uk",
+  "base_url": "https://www.skillsdevelopmentscotland.co.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.skillsdevelopmentscotland.co.uk/news-events",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.leftNavLayout__content div.newsResult__item",
+      "item_link": "div.newsResult__ctaContainer a.newsResult__cta",
+      "item_link_attr": "href",
+      "title": "h3.newsResult__itemTitle",
+      "date": "span.newsResult__date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "section.newsItemBanner h1.newsItemBanner__title",
+      "abstract": "main section.textMediaBlock div.textMediaBlock__rte, main section.rteBlock div.rteBlock__container",
+      "authors": null,
+      "date": "section.newsItemBanner span.newsItemBanner__date",
+      "pdf_link": null,
+      "keywords": "section.newsItemBanner div.newsItemBanner__tags span.newsItemBanner__tag",
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.skillsdevelopmentscotland.co.uk/news-events",
+    "detail_sample": "https://www.skillsdevelopmentscotland.co.uk/news-events/2026/april/national-productivity-week-shows-why-skills-are-central-to-business-growth/",
+    "confidence": 1.0
+  }
+}

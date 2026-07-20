@@ -1,0 +1,47 @@
+{
+  "site_id": "library-kwrwater-nl",
+  "site_name": "library.kwrwater.nl",
+  "base_url": "https://library.kwrwater.nl",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://library.kwrwater.nl/en/publications/filter/",
+    "params": {
+      "document_type": "BTO%20rapport;KWRW%20-Waterwijs%20rapport;Peer%20review%20artikel;Vakblad%20artikel"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.table.table-overview div.table-body div.table-row.publication.pub-overview",
+      "item_link": "a.trigger",
+      "item_link_attr": "href",
+      "title": "a.trigger div.title-block span",
+      "date": "a.trigger div.date-block time.date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://library.kwrwater.nl/en/publications/filter/?document_type=BTO%20rapport;KWRW%20-Waterwijs%20rapport;Peer%20review%20artikel;Vakblad%20artikel",
+    "detail_sample": "https://library.kwrwater.nl/publication/101749/wat-is-de-watertransitie-een-cartografie-van-een-prikkelende-ambitie",
+    "confidence": 1.0
+  }
+}

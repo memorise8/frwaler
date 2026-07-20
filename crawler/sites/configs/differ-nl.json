@@ -1,0 +1,50 @@
+{
+  "site_id": "differ-nl",
+  "site_name": "www.differ.nl",
+  "base_url": "https://www.differ.nl",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.differ.nl/publications",
+    "params": {
+      "author": "",
+      "year": "",
+      "type": "thesis",
+      "combine": ""
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.view-differ-repository div.view-content div.views-row",
+      "item_link": "h3 a, h2 a, .views-field-title a",
+      "item_link_attr": "href",
+      "title": "h3 a, h2 a, .views-field-title a",
+      "date": ".views-field-field-year, .views-field-created, time",
+      "category": ".views-field-field-publication-type"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.differ.nl/publications?author=&year=&type=thesis&combine=",
+    "detail_sample": "https://www.differ.nl/bibcite/reference/9298",
+    "confidence": 0.67
+  }
+}

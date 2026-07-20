@@ -1,0 +1,48 @@
+{
+  "site_id": "datos-gob-cl",
+  "site_name": "datos.gob.cl",
+  "base_url": "https://datos.gob.cl",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://datos.gob.cl/dataset/",
+    "params": {
+      "q": "a+OR+res_name%3Aa+OR+res_description%3Aa",
+      "fq": "filter%28res_format%3Apdf%29+filter%28license_id%3Acc-nc%29"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": null,
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://datos.gob.cl/dataset/?q=a+OR+res_name%3Aa+OR+res_description%3Aa&fq=filter%28res_format%3Apdf%29+filter%28license_id%3Acc-nc%29",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

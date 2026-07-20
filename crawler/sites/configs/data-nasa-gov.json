@@ -1,0 +1,45 @@
+{
+  "site_id": "data-nasa-gov",
+  "site_name": "data.nasa.gov",
+  "base_url": "https://data.nasa.gov",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://data.nasa.gov/dataset/",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "ul.dataset-list.list-unstyled > li.dataset-item",
+      "item_link": "div.dataset-content h2.dataset-heading > a",
+      "item_link_attr": "href",
+      "title": "div.dataset-content h2.dataset-heading > a",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://data.nasa.gov/dataset/",
+    "detail_sample": "https://data.nasa.gov/dataset/active-layer-and-permafrost-temperatures-soendre-stroemfjord-greenland-version-1-41c53",
+    "confidence": 1.0
+  }
+}

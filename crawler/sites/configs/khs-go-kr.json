@@ -1,0 +1,48 @@
+{
+  "site_id": "khs-go-kr",
+  "site_name": "www.khs.go.kr",
+  "base_url": "https://www.khs.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.khs.go.kr/cop/bbs/selectBoardList.do",
+    "params": {
+      "bbsId": "BBSMSTR_1020",
+      "mn": "NS_03_07_04"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "pageIndex",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table.boardList tbody tr",
+      "item_link": "td.subject a[href]",
+      "item_link_attr": "href",
+      "title": "td.subject a[href]",
+      "date": "td.date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.khs.go.kr/cop/bbs/selectBoardList.do?bbsId=BBSMSTR_1020&mn=NS_03_07_04",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

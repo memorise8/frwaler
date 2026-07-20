@@ -1,0 +1,47 @@
+{
+  "site_id": "avoindata-suomi-fi",
+  "site_name": "avoindata.suomi.fi",
+  "base_url": "https://avoindata.suomi.fi",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://avoindata.suomi.fi/data/fi/dataset/",
+    "params": {
+      "res_format": "pdf"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": ".primary .dataset-list .dataset-item",
+      "item_link": ".dataset-content .dataset-heading a",
+      "item_link_attr": "href",
+      "title": ".dataset-content .dataset-heading a",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://avoindata.suomi.fi/data/fi/dataset/?res_format=pdf",
+    "detail_sample": "https://avoindata.suomi.fi/data/fi/dataset/rantasalmen-taajama-linja-autoasema-ja-torialue-selvitys-rakennetusta-kulttuuriymparistosta",
+    "confidence": 1.0
+  }
+}

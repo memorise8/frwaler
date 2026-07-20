@@ -1,0 +1,47 @@
+{
+  "site_id": "lib-cssn-cn",
+  "site_name": "lib.cssn.cn",
+  "base_url": "http://lib.cssn.cn",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "http://lib.cssn.cn/zy/dzzy/",
+    "params": {
+      "column": "xueke"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.main_search div.search_channel#xueke > a",
+      "item_link": ":scope",
+      "item_link_attr": "href",
+      "title": ":scope",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "http://lib.cssn.cn/zy/dzzy/?column=xueke",
+    "detail_sample": null,
+    "confidence": 1.0
+  }
+}

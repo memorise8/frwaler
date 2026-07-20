@@ -1,0 +1,47 @@
+{
+  "site_id": "saemangeum-go-kr",
+  "site_name": "www.saemangeum.go.kr",
+  "base_url": "https://www.saemangeum.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.saemangeum.go.kr/sda/brd/list.do",
+    "params": {
+      "key": "2009074409621"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.saemangeum.go.kr/sda/brd/list.do?key=2009074409621",
+    "detail_sample": "https://www.saemangeum.go.kr/sda/brd/javascript:void(0);",
+    "confidence": 0.0
+  }
+}

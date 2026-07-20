@@ -1,0 +1,45 @@
+{
+  "site_id": "harcresearch-org",
+  "site_name": "harcresearch.org",
+  "base_url": "https://harcresearch.org",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://harcresearch.org/research/#data-downloads",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div#research div.isotope > *",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "h2, h3, h4, a[href]",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "#image-banner .info h1",
+      "abstract": "#image-banner + section.bg-lightgray + section .content-block",
+      "authors": "section.bg-lightgray .lists .list:nth-child(2) ul li a",
+      "date": null,
+      "pdf_link": null,
+      "keywords": "#image-banner .info h4",
+      "department": "section.bg-lightgray .lists .list:nth-child(1) p",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://harcresearch.org/research/#data-downloads",
+    "detail_sample": "https://harcresearch.org/research/strengthening-the-alamo-areas-climate-plan/",
+    "confidence": 1.0
+  }
+}

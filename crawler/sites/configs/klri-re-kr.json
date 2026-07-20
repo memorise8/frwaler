@@ -1,0 +1,45 @@
+{
+  "site_id": "klri-re-kr",
+  "site_name": "www.klri.re.kr",
+  "base_url": "https://www.klri.re.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.klri.re.kr/kor/bbs/BBSMSTR_000000000002/list.do",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "pageIndex",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table.boardList tbody tr",
+      "item_link": "td.subject a[href]",
+      "item_link_attr": "href",
+      "title": "td.subject a",
+      "date": "td.date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.klri.re.kr/kor/bbs/BBSMSTR_000000000002/list.do",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

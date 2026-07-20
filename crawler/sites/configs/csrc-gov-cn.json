@@ -1,0 +1,45 @@
+{
+  "site_id": "csrc-gov-cn",
+  "site_name": "www.csrc.gov.cn",
+  "base_url": "http://www.csrc.gov.cn",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "http://www.csrc.gov.cn/csrc_en/c102062/list.shtml",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.main-right.common-list ul#list > li",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": "a",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "http://www.csrc.gov.cn/csrc_en/c102062/list.shtml",
+    "detail_sample": null,
+    "confidence": 0.5
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "site_id": "om-mp-be",
+  "site_name": "www.om-mp.be",
+  "base_url": "https://www.om-mp.be",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.om-mp.be/nl/onze-publicaties",
+    "params": {
+      "f%5B0%5D": "type%3A2"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 0,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": ".view-onze-publicaties .view-content .views-row",
+      "item_link": "h2 a[href], h3 a[href], .node__title a[href]",
+      "item_link_attr": "href",
+      "title": "h2 a, h3 a, .node__title a",
+      "date": ".field--name-field-publication-date, .field--name-created, time",
+      "category": ".field--name-field-publication-type, .type"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.om-mp.be/nl/onze-publicaties?f%5B0%5D=type%3A2",
+    "detail_sample": null,
+    "confidence": 0.33
+  }
+}

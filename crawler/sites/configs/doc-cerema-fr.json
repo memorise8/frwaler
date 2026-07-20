@@ -1,0 +1,45 @@
+{
+  "site_id": "doc-cerema-fr",
+  "site_name": "doc.cerema.fr",
+  "base_url": "https://doc.cerema.fr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://doc.cerema.fr/Default/search.aspx#/Search/(query:(ExceptTotalFacet:!t,ForceSearch:!t,HiddenFacetFilter:'%7B%22_453%22:%22Les%20essentiels%22%7D',InitialSearch:!f,Page:0,PageRange:3,QueryGuid:'6b224825-8cbb-4913-b56c-e34ac3521860',QueryString:'*:*',ResultSize:10,ScenarioCode:'LES%20EDITIONS',ScenarioDisplayMode:display-standard,SearchContext:14,SearchGridFieldsShownOnResultsDTO:!(),SearchLabel:'*:*',SearchTerms:'*:*',SortField:DateTRI_sort,SortOrder:0,TemplateParams:(Scenario:'',Scope:Default,Size:!n,Source:'',Support:'',UseCompact:!f),UseSpellChecking:!n))",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": null,
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://doc.cerema.fr/Default/search.aspx#/Search/(query:(ExceptTotalFacet:!t,ForceSearch:!t,HiddenFacetFilter:'%7B%22_453%22:%22Les%20essentiels%22%7D',InitialSearch:!f,Page:0,PageRange:3,QueryGuid:'6b224825-8cbb-4913-b56c-e34ac3521860',QueryString:'*:*',ResultSize:10,ScenarioCode:'LES%20EDITIONS',ScenarioDisplayMode:display-standard,SearchContext:14,SearchGridFieldsShownOnResultsDTO:!(),SearchLabel:'*:*',SearchTerms:'*:*',SortField:DateTRI_sort,SortOrder:0,TemplateParams:(Scenario:'',Scope:Default,Size:!n,Source:'',Support:'',UseCompact:!f),UseSpellChecking:!n))",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

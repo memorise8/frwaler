@@ -1,0 +1,48 @@
+{
+  "site_id": "nofima-com",
+  "site_name": "nofima.com",
+  "base_url": "https://nofima.com",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://nofima.com/publication/",
+    "params": {
+      "_sft_bc_tax_pubtype": "nofimareports",
+      "_sfm_year_published": "1980+2027"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "sf_paged",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.col-md-8 > div.col-12.mb-5",
+      "item_link": "a.card.card-publication",
+      "item_link_attr": "href",
+      "title": "p.card__title",
+      "date": "p.card__meta",
+      "category": "p.card__meta"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "article.bc_publication header.page__header h1.page__title",
+      "abstract": "article.bc_publication div.page__content > div.row.text-left.align-items-center.mb-5:first-of-type > div.col-12:first-child > p",
+      "authors": "article.bc_publication header.page__header p.alignwide.has-sizing-large",
+      "date": "article.bc_publication div.page__meta div.col-12 > p:first-child",
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": "article.bc_publication div.page__content p.pub-links a.pub-links__item[href*=\"doi.org\"]"
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://nofima.com/publication/?_sft_bc_tax_pubtype=nofimareports&_sfm_year_published=1980+2027",
+    "detail_sample": "https://nofima.com/publication/10439127/",
+    "confidence": 1.0
+  }
+}

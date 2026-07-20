@@ -1,0 +1,48 @@
+{
+  "site_id": "ftc-go-kr",
+  "site_name": "www.ftc.go.kr",
+  "base_url": "https://www.ftc.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.ftc.go.kr/www/selectBbsNttList.do",
+    "params": {
+      "bordCd": "103",
+      "key": "190"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "pageIndex",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table.board-list tbody tr",
+      "item_link": "td.subject a[href], td.tit a[href], td:nth-child(2) a[href]",
+      "item_link_attr": "href",
+      "title": "td.subject a, td.tit a, td:nth-child(2) a",
+      "date": "td.date, td:nth-child(4)",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.ftc.go.kr/www/selectBbsNttList.do?bordCd=103&key=190",
+    "detail_sample": null,
+    "confidence": 0.67
+  }
+}

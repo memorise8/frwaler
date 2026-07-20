@@ -1,0 +1,45 @@
+{
+  "site_id": "sante-gouv-fr",
+  "site_name": "sante.gouv.fr",
+  "base_url": "https://sante.gouv.fr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://sante.gouv.fr/ministere/documentation-et-publications-officielles/rapports/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": null,
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://sante.gouv.fr/ministere/documentation-et-publications-officielles/rapports/",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

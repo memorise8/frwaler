@@ -1,0 +1,45 @@
+{
+  "site_id": "xxgk-mot-gov-cn",
+  "site_name": "xxgk.mot.gov.cn",
+  "base_url": "https://xxgk.mot.gov.cn",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://xxgk.mot.gov.cn/2020/zhengce/863/868/869/iframe_list_7232.html",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.planning_information_item ul.national_development > li",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "a[href]",
+      "date": "span",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1.gkzn_right_tit > span",
+      "abstract": "div#Zoom div.view.TRS_UEDITOR",
+      "authors": null,
+      "date": "div.main_xl_header.hidden-xs > div.col-md-6:first-child form.form-horizontal > div.form-group:nth-child(3) p.form-control-static",
+      "pdf_link": null,
+      "keywords": "div.main_xl_header.hidden-xs > div.col-md-6:first-child form.form-horizontal > div.form-group:nth-child(4) p.form-control-static",
+      "department": "div.main_xl_header.hidden-xs > div.col-md-6:nth-child(2) form.form-horizontal > div.form-group:nth-child(1) p.form-control-static",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://xxgk.mot.gov.cn/2020/zhengce/863/868/869/iframe_list_7232.html",
+    "detail_sample": "https://xxgk.mot.gov.cn/2020/zhengce/863/868/869/../../../../jigou/zhghs/202604/t20260421_4204096.html",
+    "confidence": 1.0
+  }
+}

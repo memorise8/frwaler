@@ -1,0 +1,45 @@
+{
+  "site_id": "hcsp-fr",
+  "site_name": "www.hcsp.fr",
+  "base_url": "https://www.hcsp.fr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.hcsp.fr/Explore.cgi/infoarchive",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.row.principal div.col-sm-12 > h3",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "a[href]",
+      "date": "span.info-date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "div.row.principal div.col-sm-12 > h2",
+      "abstract": "div.row.principal div.avistexte",
+      "authors": null,
+      "date": "div#doc-donnees > p:nth-of-type(2)",
+      "pdf_link": "div#doc-donnees > p:first-of-type > a[href*='Telecharger']",
+      "keywords": "div#doc-donnees span.motclef > a",
+      "department": "div#doc-donnees > p > a[href*='Groupe']",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.hcsp.fr/Explore.cgi/infoarchive",
+    "detail_sample": "https://www.hcsp.fr/Explore.cgi/avisrapportsdomaine?clefr=1492",
+    "confidence": 1.0
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "site_id": "acpr-banque-france-fr",
+  "site_name": "acpr.banque-france.fr",
+  "base_url": "https://acpr.banque-france.fr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://acpr.banque-france.fr/fr/communiques-de-presse",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": null,
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://acpr.banque-france.fr/fr/communiques-de-presse",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

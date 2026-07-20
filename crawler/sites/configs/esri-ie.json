@@ -1,0 +1,45 @@
+{
+  "site_id": "esri-ie",
+  "site_name": "www.esri.ie",
+  "base_url": "https://www.esri.ie",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.esri.ie/publications/browse",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 0,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.view-search-publications div.view-content div.views-row",
+      "item_link": "h2 a[href]",
+      "item_link_attr": "href",
+      "title": "h2 a[href]",
+      "date": ".field--name-field-publication-date, .date, time",
+      "category": ".field--name-field-publication-type, .publication-type, .category"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.esri.ie/publications/browse",
+    "detail_sample": null,
+    "confidence": 0.67
+  }
+}

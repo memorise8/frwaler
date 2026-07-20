@@ -1,0 +1,49 @@
+{
+  "site_id": "arcep-fr",
+  "site_name": "www.arcep.fr",
+  "base_url": "https://www.arcep.fr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.arcep.fr/actualites/les-publications/gp-page/1.html",
+    "params": {
+      "chash": "8b0f561c2957c5542868ac50314ebdb6",
+      "tx_gspublication_publication%5Bfilters%5D%5Btype%5D": "15",
+      "cHash": "d8c9832bc6f8cc4156a279bc10d514a3"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": null,
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.arcep.fr/actualites/les-publications/gp-page/1.html?chash=8b0f561c2957c5542868ac50314ebdb6&tx_gspublication_publication%5Bfilters%5D%5Btype%5D=15&cHash=d8c9832bc6f8cc4156a279bc10d514a3#items-list",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

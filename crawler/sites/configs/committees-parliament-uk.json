@@ -1,0 +1,45 @@
+{
+  "site_id": "committees-parliament-uk",
+  "site_name": "committees.parliament.uk",
+  "base_url": "https://committees.parliament.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://committees.parliament.uk/publications/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.sections div.section#latest-reports-responses-results > div.card.card-button.card-publication",
+      "item_link": "div.dropdown div.dropdown-menu a.dropdown-item[href]:first-child",
+      "item_link_attr": "href",
+      "title": "div.card-inner div.content > div.primary-info",
+      "date": "div.card-inner div.info div.indicators-left time",
+      "category": "div.card-inner div.info div.indicators-right div.indicator:last-child"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://committees.parliament.uk/publications/",
+    "detail_sample": "https://committees.parliament.uk/publications/51283/documents/284898/default/",
+    "confidence": 1.0
+  }
+}

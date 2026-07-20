@@ -1,0 +1,45 @@
+{
+  "site_id": "minrel-gob-cl",
+  "site_name": "www.minrel.gob.cl",
+  "base_url": "https://www.minrel.gob.cl",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.minrel.gob.cl/minrel/sala-de-prensa/p/1",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "section.box__arts div.grid > div.grid__col article.card",
+      "item_link": "a.card__auxi",
+      "item_link_attr": "href",
+      "title": "h3.card__title",
+      "date": "p.card__date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "header.enc-main.enc-main__art h2.enc-main__title",
+      "abstract": "section.art-content div.CUERPO",
+      "authors": null,
+      "date": "header.enc-main.enc-main__art p.enc-main__date",
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.minrel.gob.cl/minrel/sala-de-prensa/p/1",
+    "detail_sample": "https://www.minrel.gob.cl/sala-de-prensa/canciller-acompana-al-presidente-kast-en-el-traspaso-de-mando-presidencial",
+    "confidence": 1.0
+  }
+}

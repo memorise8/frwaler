@@ -1,0 +1,45 @@
+{
+  "site_id": "rcaanc-cirnac-gc-ca",
+  "site_name": "www.rcaanc-cirnac.gc.ca",
+  "base_url": "https://www.rcaanc-cirnac.gc.ca",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.rcaanc-cirnac.gc.ca/eng/1575131323136/1575131374706",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "main.container > section:not(:first-of-type) ul > li",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "a[href]",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "main.container > h1#wb-cont",
+      "abstract": "main.container > section:not(.panel)",
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.rcaanc-cirnac.gc.ca/eng/1575131323136/1575131374706",
+    "detail_sample": "https://www.rcaanc-cirnac.gc.ca/eng/1756126440869/1756126476029",
+    "confidence": 1.0
+  }
+}

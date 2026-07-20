@@ -1,0 +1,45 @@
+{
+  "site_id": "reseau-canope-fr",
+  "site_name": "www.reseau-canope.fr",
+  "base_url": "https://www.reseau-canope.fr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.reseau-canope.fr/espace-presse/nos-dossiers-et-communiques-de-presse.html",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "main .frame-type-uploads ul.ce-uploads > li",
+      "item_link": "div > a[href]",
+      "item_link_attr": "href",
+      "title": "span.ce-uploads-fileName",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.reseau-canope.fr/espace-presse/nos-dossiers-et-communiques-de-presse.html",
+    "detail_sample": "https://www.reseau-canope.fr/fileadminfactory/user_upload/RC/espace_presse/2026/cp_Reseau_Canope_acteur_de_l_ouverture_europeenne_de_l_Ecole_07052026.pdf",
+    "confidence": 1.0
+  }
+}

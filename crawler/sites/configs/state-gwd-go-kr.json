@@ -1,0 +1,45 @@
+{
+  "site_id": "state-gwd-go-kr",
+  "site_name": "state.gwd.go.kr",
+  "base_url": "https://state.gwd.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://state.gwd.go.kr/portal/briefing/pressRelease/newpressRelease",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "null",
+      "item_link": "null",
+      "item_link_attr": "href",
+      "title": "null",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://state.gwd.go.kr/portal/briefing/pressRelease/newpressRelease",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

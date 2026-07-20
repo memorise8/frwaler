@@ -1,0 +1,51 @@
+{
+  "site_id": "iucn-org",
+  "site_name": "iucn.org",
+  "base_url": "https://iucn.org",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://iucn.org/resources",
+    "params": {
+      "rstype": "1116",
+      "thm": "All",
+      "tpc": "All",
+      "rgn": "All",
+      "cntry": "All"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 0,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.view-resources div.view-content div.views-row",
+      "item_link": "h3 a, h2 a, a[href^='/resources/']",
+      "item_link_attr": "href",
+      "title": "h3 a, h2 a, a[href^='/resources/']",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://iucn.org/resources?rstype=1116&thm=All&tpc=All&rgn=All&cntry=All",
+    "detail_sample": null,
+    "confidence": 0.5
+  }
+}

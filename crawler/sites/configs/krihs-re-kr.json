@@ -1,0 +1,48 @@
+{
+  "site_id": "krihs-re-kr",
+  "site_name": "www.krihs.re.kr",
+  "base_url": "https://www.krihs.re.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.krihs.re.kr/krihsLibraryArticle/articleList.es",
+    "params": {
+      "mid": "a10103030000",
+      "pub_kind": "3"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": null,
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.krihs.re.kr/krihsLibraryArticle/articleList.es?mid=a10103030000&pub_kind=3",
+    "detail_sample": "https://www.krihs.re.kr/krihsLibraryArticle/javascript:viewCntAdd('3','a-1810516', '/library/10120/contents/5869851?checkinId=3115750&articleId=1810516')",
+    "confidence": 0.0
+  }
+}

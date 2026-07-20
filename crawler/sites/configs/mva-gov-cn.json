@@ -1,0 +1,45 @@
+{
+  "site_id": "mva-gov-cn",
+  "site_name": "www.mva.gov.cn",
+  "base_url": "https://www.mva.gov.cn",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.mva.gov.cn/gongkai/zfxxgkpt/zfxxgknb/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": ".overview_right .lzyj_list.gkzd_list ul > li",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": "a",
+      "date": "a > span",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "div.overview_right div.tyxl_title > h1.gkzn_title",
+      "abstract": "div.overview_right div.gkzn_zw#zhengwen div.trs_editor_view",
+      "authors": null,
+      "date": "div.overview_right div.tyxl_title > div.article-info",
+      "pdf_link": null,
+      "keywords": null,
+      "department": "div.overview_right div.tyxl_title > div.article-info",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.mva.gov.cn/gongkai/zfxxgkpt/zfxxgknb/",
+    "detail_sample": "https://www.mva.gov.cn/gongkai/zfxxgkpt/zfxxgknb/./202603/t20260320_534737.html",
+    "confidence": 1.0
+  }
+}

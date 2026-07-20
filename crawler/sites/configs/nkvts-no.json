@@ -1,0 +1,48 @@
+{
+  "site_id": "nkvts-no",
+  "site_name": "www.nkvts.no",
+  "base_url": "https://www.nkvts.no",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.nkvts.no/english/publications/",
+    "params": {
+      "sd-post_type_label%5B%5D": "Academic+Articles",
+      "pg": "1"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "pg",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.nkvts-archive.archive-type-publications .dekode-algolia-search-results article",
+      "item_link": "h2 a[href]",
+      "item_link_attr": "href",
+      "title": "h2 a[href]",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.nkvts.no/english/publications/?sd-post_type_label%5B%5D=Academic+Articles&pg=1",
+    "detail_sample": null,
+    "confidence": 0.5
+  }
+}

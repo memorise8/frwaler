@@ -1,0 +1,49 @@
+{
+  "site_id": "msit-go-kr",
+  "site_name": "www.msit.go.kr",
+  "base_url": "https://www.msit.go.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.msit.go.kr/bbs/list.do",
+    "params": {
+      "sCode": "user",
+      "mPid": "100",
+      "mId": "101"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "pageIndex",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table.boardList tbody tr",
+      "item_link": "td.subject a[href]",
+      "item_link_attr": "href",
+      "title": "td.subject a",
+      "date": "td.date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.msit.go.kr/bbs/list.do?sCode=user&mPid=100&mId=101",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

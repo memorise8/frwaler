@@ -1,0 +1,45 @@
+{
+  "site_id": "emep-int",
+  "site_name": "emep.int",
+  "base_url": "https://emep.int",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://emep.int/mscw/mscw_publications.html",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.w3-container > dl",
+      "item_link": "dd a[href]",
+      "item_link_attr": "href",
+      "title": "dt > font",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://emep.int/mscw/mscw_publications.html",
+    "detail_sample": "https://emep.int/publ/reports/2025/EMEP_Status_Report_1_2025.pdf",
+    "confidence": 1.0
+  }
+}

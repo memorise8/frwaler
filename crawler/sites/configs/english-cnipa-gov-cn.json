@@ -1,0 +1,45 @@
+{
+  "site_id": "english-cnipa-gov-cn",
+  "site_name": "english.cnipa.gov.cn",
+  "base_url": "https://english.cnipa.gov.cn",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://english.cnipa.gov.cn/col/col1336/index.html",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.column_list ul.column_list_lan > li",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "a[href]",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "#hiddenLocation #col1_name",
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": "#hiddenLocation #col2_name",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://english.cnipa.gov.cn/col/col1336/index.html",
+    "detail_sample": "https://english.cnipa.gov.cn/col/col3568/index.html",
+    "confidence": 1.0
+  }
+}

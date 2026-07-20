@@ -1,0 +1,49 @@
+{
+  "site_id": "helios-eie-gr",
+  "site_name": "helios.eie.gr",
+  "base_url": "https://helios.eie.gr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://helios.eie.gr/helios/handle/10442/1/simple-search",
+    "params": {
+      "filterquery": "%CE%86%CF%81%CE%B8%CF%81%CE%BF+%CF%83%CE%B5+%CE%B5%CF%80%CE%B9%CF%83%CF%84%CE%B7%CE%BC%CE%BF%CE%BD%CE%B9%CE%BA%CF%8C+%CF%80%CE%B5%CF%81%CE%B9%CE%BF%CE%B4%CE%B9%CE%BA%CF%8C",
+      "filtername": "searchFilterTypeQualified",
+      "filtertype": "equals"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.discovery-result-results div.artifact-description",
+      "item_link": "div.artifact-title a[href]",
+      "item_link_attr": "href",
+      "title": "div.artifact-title a[href]",
+      "date": "div.artifact-info span.publisher-date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://helios.eie.gr/helios/handle/10442/1/simple-search?filterquery=%CE%86%CF%81%CE%B8%CF%81%CE%BF+%CF%83%CE%B5+%CE%B5%CF%80%CE%B9%CF%83%CF%84%CE%B7%CE%BC%CE%BF%CE%BD%CE%B9%CE%BA%CF%8C+%CF%80%CE%B5%CF%81%CE%B9%CE%BF%CE%B4%CE%B9%CE%BA%CF%8C&filtername=searchFilterTypeQualified&filtertype=equals",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

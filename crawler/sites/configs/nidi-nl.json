@@ -1,0 +1,45 @@
+{
+  "site_id": "nidi-nl",
+  "site_name": "nidi.nl",
+  "base_url": "https://nidi.nl",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://nidi.nl/en/publications/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "ul.related-list.related-list__publications.l-block-list > li.related-list--item",
+      "item_link": "a.publication-title",
+      "item_link_attr": "href",
+      "title": "a.publication-title span.indent",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "main.l-main-content h1",
+      "abstract": "article.l-reading-plane.demos",
+      "authors": ".infobar .infobar__credits",
+      "date": ".infobar .infobar__credits",
+      "pdf_link": ".demos_curedition > a[href$='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://nidi.nl/en/publications/",
+    "detail_sample": "https://nidi.nl/demos/wachten-met-kinderen-tot-een-vast-contract/",
+    "confidence": 1.0
+  }
+}

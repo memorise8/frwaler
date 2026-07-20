@@ -1,0 +1,45 @@
+{
+  "site_id": "data-biodiversity-be",
+  "site_name": "data.biodiversity.be",
+  "base_url": "https://data.biodiversity.be",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://data.biodiversity.be/dataset/",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.primary section.module div.module-content ul.dataset-list > li.dataset-item",
+      "item_link": "h2.dataset-heading a",
+      "item_link_attr": "href",
+      "title": "h2.dataset-heading a",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "div.primary article.module > div.module-content > h1",
+      "abstract": "div.primary article.module div.notes.embedded-content",
+      "authors": null,
+      "date": "section.additional-info table tbody tr:nth-child(2) td.dataset-details span.automatic-local-datetime",
+      "pdf_link": null,
+      "keywords": null,
+      "department": "aside.secondary div.context-info h1.heading",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://data.biodiversity.be/dataset/",
+    "detail_sample": "https://data.biodiversity.be/dataset/85e8c69c-f762-11e1-a439-00145eb45e9a",
+    "confidence": 1.0
+  }
+}

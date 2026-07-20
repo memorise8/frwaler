@@ -1,0 +1,45 @@
+{
+  "site_id": "vtg-admin-ch",
+  "site_name": "www.vtg.admin.ch",
+  "base_url": "https://www.vtg.admin.ch",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.vtg.admin.ch/en/swiss-peace-supporter-4",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.container__aside ul.list > li",
+      "item_link": "a.download-item",
+      "item_link_attr": "href",
+      "title": "h4.download-item__title",
+      "date": "p.download-item__meta-info span.meta-info__item:nth-of-type(3)",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.vtg.admin.ch/en/swiss-peace-supporter-4",
+    "detail_sample": "https://www.vtg.admin.ch/dam/en/sd-web/cyW1YBUOUb4A/2026_1_Swiss_Peace_Supporter.pdf",
+    "confidence": 1.0
+  }
+}

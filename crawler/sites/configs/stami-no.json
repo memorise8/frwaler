@@ -1,0 +1,47 @@
+{
+  "site_id": "stami-no",
+  "site_name": "stami.no",
+  "base_url": "https://stami.no",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://stami.no/en/publication/",
+    "params": {
+      "fwp_publikasjontype": "stami-report"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.post-list article.post-list-item.publication",
+      "item_link": "h2.post-list-item-title a",
+      "item_link_attr": "href",
+      "title": "h2.post-list-item-title a",
+      "date": "small.post-list-item-meta time",
+      "category": "small.post-list-item-meta span:first-child"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "header.content-header h1.header-title",
+      "abstract": "div.publication-container > div:first-child p",
+      "authors": "div.publication-container div.references.people span",
+      "date": "div.page-meta div.meta-block.published ul li",
+      "pdf_link": null,
+      "keywords": null,
+      "department": "div.publication-container div.references.references-secondary span.reference",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://stami.no/en/publication/?fwp_publikasjontype=stami-report",
+    "detail_sample": "https://stami.no/en/publication/eksponering-for-kjemiske-plantevernmidler-og-mikrobiologisk-mangfold-blant-veksthusansatte/",
+    "confidence": 1.0
+  }
+}

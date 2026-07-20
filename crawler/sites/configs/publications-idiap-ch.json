@@ -1,0 +1,45 @@
+{
+  "site_id": "publications-idiap-ch",
+  "site_name": "publications.idiap.ch",
+  "base_url": "https://publications.idiap.ch",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://publications.idiap.ch/publications/articles",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.publication_list div.publication_summary",
+      "item_link": "span.title > a",
+      "item_link_attr": "href",
+      "title": "span.title > a",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "#content_holder .publication > .header",
+      "abstract": null,
+      "authors": "#content_holder table.publication_details .authorlist a",
+      "date": "#content_holder table.publication_details tr:nth-of-type(5) td:nth-of-type(2)",
+      "pdf_link": "#content_holder table.publication_details ul.attachmentlist a[href$='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://publications.idiap.ch/publications/articles",
+    "detail_sample": "https://publications.idiap.ch/publications/show/5817",
+    "confidence": 1.0
+  }
+}

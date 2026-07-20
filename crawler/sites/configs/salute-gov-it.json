@@ -1,0 +1,47 @@
+{
+  "site_id": "salute-gov-it",
+  "site_name": "www.salute.gov.it",
+  "base_url": "https://www.salute.gov.it",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.salute.gov.it/new/it/sezione/pubblicazioni/",
+    "params": {
+      "tipologia": "Rapporti"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "main#main-content div.card-wrapper",
+      "item_link": "h2.card-title a[href], h3.card-title a[href], a.card-title[href]",
+      "item_link_attr": "href",
+      "title": "h2.card-title a[href], h3.card-title a[href], a.card-title[href]",
+      "date": "span.data, span.date, .card-date",
+      "category": ".category-top .category, span.category"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.salute.gov.it/new/it/sezione/pubblicazioni/?tipologia=Rapporti",
+    "detail_sample": null,
+    "confidence": 0.67
+  }
+}

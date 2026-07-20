@@ -1,0 +1,47 @@
+{
+  "site_id": "krivet-re-kr",
+  "site_name": "www.krivet.re.kr",
+  "base_url": "https://www.krivet.re.kr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.krivet.re.kr/kor/sub.do",
+    "params": {
+      "menuSn": "23"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "pageIndex",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table.tb_base.tb_list tbody tr",
+      "item_link": "td.ta_l a[href]",
+      "item_link_attr": "href",
+      "title": "td.ta_l a[href]",
+      "date": "td:nth-child(4)",
+      "category": "td:nth-child(2)"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "table.tb_base.tb_view tbody tr:first-child > th.tb_tit",
+      "abstract": "table.tb_base.tb_view tbody tr:nth-of-type(4) > td",
+      "authors": null,
+      "date": "table.tb_base.tb_view tbody tr:nth-of-type(2) > td",
+      "pdf_link": "table.tb_base.tb_view tbody tr:nth-of-type(3) > td button.icon_file_pdf",
+      "keywords": null,
+      "department": "div.charg_wrap dl dd",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.krivet.re.kr/kor/sub.do?menuSn=23",
+    "detail_sample": "https://www.krivet.re.kr/kor/sub.do?menuSn=23&pstNo=NH0000000676",
+    "confidence": 1.0
+  }
+}

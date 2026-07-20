@@ -1,0 +1,45 @@
+{
+  "site_id": "broadbentinstitute-ca",
+  "site_name": "broadbentinstitute.ca",
+  "base_url": "https://broadbentinstitute.ca",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://broadbentinstitute.ca/research/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "main article.broadbent_pubs",
+      "item_link": "h2 a[href], h3 a[href]",
+      "item_link_attr": "href",
+      "title": "h2 a, h3 a",
+      "date": "time",
+      "category": ".post-type, .cat-links, .taxonomy-broadbent_pub_type, .bi-card__category"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://broadbentinstitute.ca/research/",
+    "detail_sample": null,
+    "confidence": 0.67
+  }
+}

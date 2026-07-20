@@ -1,0 +1,47 @@
+{
+  "site_id": "kirj-ee",
+  "site_name": "kirj.ee",
+  "base_url": "https://kirj.ee",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://kirj.ee/archive/",
+    "params": {
+      "v": "38dd815e66db"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.sisu p a[href]",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "a[href]",
+      "date": null,
+      "category": "p.has-text-align-left.has-large-font-size"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://kirj.ee/archive/?v=38dd815e66db",
+    "detail_sample": null,
+    "confidence": 1.0
+  }
+}

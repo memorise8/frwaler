@@ -1,0 +1,50 @@
+{
+  "site_id": "imt-nord-europe-hal-science",
+  "site_name": "imt-nord-europe.hal.science",
+  "base_url": "https://imt-nord-europe.hal.science",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://imt-nord-europe.hal.science/search/index/",
+    "params": {
+      "q": "%2A",
+      "rows": "30",
+      "submitType_s": "file",
+      "docType_s": "REPORT+OR+OTHER"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": null,
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://imt-nord-europe.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=REPORT+OR+OTHER",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "site_id": "datos-gob-mx",
+  "site_name": "datos.gob.mx",
+  "base_url": "https://datos.gob.mx",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://datos.gob.mx/dataset/",
+    "params": {
+      "_groups_limit": "0",
+      "_organization_limit": "0",
+      "groups": "turismo"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "ul.dataset-list.list-unstyled > li.resource-item.card.card-custom.border-card",
+      "item_link": "h3.mb-2 > a.text-black",
+      "item_link_attr": "href",
+      "title": "h3.mb-2 > a.text-black",
+      "date": "h3.mb-2 + p.mb-2",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "div.jumbotron h1.jumbotron-title",
+      "abstract": "div.primary article.module div.notes.embedded-content",
+      "authors": null,
+      "date": "section.additional-info table tbody tr:nth-child(3) td.dataset-details span.automatic-local-datetime",
+      "pdf_link": null,
+      "keywords": "section.tags ul.tag-list a.tag",
+      "department": "aside.secondary section#organization-info h1.heading",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://datos.gob.mx/dataset/?_groups_limit=0&_organization_limit=0&groups=turismo",
+    "detail_sample": "https://datos.gob.mx/dataset/actividades_centro_planeado_acapulco_coyuca",
+    "confidence": 1.0
+  }
+}

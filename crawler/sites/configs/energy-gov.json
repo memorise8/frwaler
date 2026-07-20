@@ -1,0 +1,45 @@
+{
+  "site_id": "energy-gov",
+  "site_name": "www.energy.gov",
+  "base_url": "https://www.energy.gov",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.energy.gov/open-government",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "main .view-content .views-row",
+      "item_link": "h2 a[href], h3 a[href]",
+      "item_link_attr": "href",
+      "title": "h2 a[href], h3 a[href]",
+      "date": "time.datetime, .date, .field--name-field-date",
+      "category": ".field--name-field-tags a, .category a"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.energy.gov/open-government",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

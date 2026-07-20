@@ -1,0 +1,45 @@
+{
+  "site_id": "inl-gov",
+  "site_name": "inl.gov",
+  "base_url": "https://inl.gov",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://inl.gov/factsheets/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "article.elementor-post",
+      "item_link": "a",
+      "item_link_attr": "href",
+      "title": ".elementor-post__title a",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://inl.gov/factsheets/",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

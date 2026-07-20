@@ -1,0 +1,47 @@
+{
+  "site_id": "ineris-fr",
+  "site_name": "www.ineris.fr",
+  "base_url": "https://www.ineris.fr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.ineris.fr/fr/base-documentaire",
+    "params": {
+      "document%5B0%5D": "document_type%3A68"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 0,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.view-base-documentaire div.view-content div.views-row",
+      "item_link": "h2 a, h3 a, .views-field-title a",
+      "item_link_attr": "href",
+      "title": "h2 a, h3 a, .views-field-title a",
+      "date": "time, .views-field-field-date, .field--name-field-date",
+      "category": ".views-field-field-document-type, .field--name-field-document-type"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.ineris.fr/fr/base-documentaire?document%5B0%5D=document_type%3A68",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

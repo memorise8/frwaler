@@ -1,0 +1,45 @@
+{
+  "site_id": "publichealth-ie",
+  "site_name": "www.publichealth.ie",
+  "base_url": "https://www.publichealth.ie",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.publichealth.ie/journal-articles",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.view-new-term-page div.view-content.row div#views-bootstrap-new-term-page-page-1 > div.row > div.col-12.col-sm-12.col-md-6.col-lg-6.col-xl-6.col-xxl-6",
+      "item_link": "div.views-field-title h4.field-content > a",
+      "item_link_attr": "href",
+      "title": "div.views-field-title h4.field-content > a",
+      "date": "div.views-field-body span.inline-date",
+      "category": "div.views-field-field-type-of-resource span.field-content > a"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "article.node--type-resource #details .field--name-title-text",
+      "abstract": "article.node--type-resource #body .field--name-body",
+      "authors": null,
+      "date": "article.node--type-resource #details .field--name-field-date time.datetime",
+      "pdf_link": null,
+      "keywords": "article.node--type-resource #details .field--name-field-topic .field__item a",
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.publichealth.ie/journal-articles",
+    "detail_sample": "https://www.publichealth.ie/journal-articles/first-irish-study-suicide-and-gambling-identifies-23-deaths-where-gambling-was",
+    "confidence": 1.0
+  }
+}

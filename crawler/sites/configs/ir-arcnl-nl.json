@@ -1,0 +1,45 @@
+{
+  "site_id": "ir-arcnl-nl",
+  "site_name": "ir.arcnl.nl",
+  "base_url": "https://ir.arcnl.nl",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://ir.arcnl.nl/#facet=type:article|dissertation|masterThesis|bachelorThesis",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.listing ul.unstyled > li.row-fluid.underlined",
+      "item_link": "div.span9 h4 > a[href]",
+      "item_link_attr": "href",
+      "title": "div.span9 h4 > a[href] > span",
+      "date": "div.span2 > div",
+      "category": "div.span9 h4 > small"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "#content .page-header h1",
+      "abstract": "#content .abstract > p",
+      "authors": "#content .page-header p.author-list a[href^='https://ir.arcnl.nl/ppl/'] > span",
+      "date": "#content .page-header p.pub_type > span",
+      "pdf_link": "#content .publication-downloads legend > a[href$='.pdf']",
+      "keywords": null,
+      "department": "#publication-metadata table tbody tr:nth-child(4) td:nth-child(2) a",
+      "doi": "#publication-metadata table tbody tr:nth-child(2) td:nth-child(2) a[href*='doi.org/']"
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://ir.arcnl.nl/#facet=type:article|dissertation|masterThesis|bachelorThesis",
+    "detail_sample": "https://ir.arcnl.nl/pub/28/",
+    "confidence": 1.0
+  }
+}

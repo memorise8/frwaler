@@ -1,0 +1,53 @@
+{
+  "site_id": "knmi-nl",
+  "site_name": "www.knmi.nl",
+  "base_url": "https://www.knmi.nl",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.knmi.nl/kennis-en-datacentrum/zoekresultaten",
+    "params": {
+      "q": "",
+      "page": "1",
+      "sort": "score",
+      "type": "data_center_publication",
+      "publication_types%5B%5D": "knmi_publication",
+      "year_from": "2016",
+      "year_to": "2026"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "#search-results ol.search-results > li",
+      "item_link": "a.search-results__title",
+      "item_link_attr": "href",
+      "title": "a.search-results__title",
+      "date": "span.search-results__meta",
+      "category": "span.search-results__category"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "main#mainBody .hero-text h1.hero-text__heading",
+      "abstract": null,
+      "authors": "main#mainBody .datacenter-detail .publication-author",
+      "date": "main#mainBody .datacenter-detail .editable-table h2 + p",
+      "pdf_link": "main#mainBody .datacenter-detail a.download[href*='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.knmi.nl/kennis-en-datacentrum/zoekresultaten?q=&page=1&sort=score&type=data_center_publication&publication_types%5B%5D=knmi_publication&year_from=2016&year_to=2026",
+    "detail_sample": "https://www.knmi.nl/kennis-en-datacentrum/publicatie/integrating-formal-data-and-volunteered-geographic-information",
+    "confidence": 1.0
+  }
+}

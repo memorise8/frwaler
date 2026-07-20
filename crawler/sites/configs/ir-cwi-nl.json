@@ -1,0 +1,45 @@
+{
+  "site_id": "ir-cwi-nl",
+  "site_name": "ir.cwi.nl",
+  "base_url": "https://ir.cwi.nl",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://ir.cwi.nl/#facet=type:dataset",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "next",
+      "start": 0,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.listing ul.unstyled > li.row-fluid.underlined",
+      "item_link": "div.span9 h4 > a[href]",
+      "item_link_attr": "href",
+      "title": "div.span9 h4 > a[href] > span",
+      "date": "div.span2 > div",
+      "category": "div.span9 h4 > small"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "#content .page-header h1",
+      "abstract": "#content p.abstract",
+      "authors": null,
+      "date": "#content .page-header p.pub_type span",
+      "pdf_link": "div.publication-downloads legend > a[href$='.pdf']",
+      "keywords": null,
+      "department": "#publication-metadata table.table tbody tr:nth-child(2) td:nth-child(2) a",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://ir.cwi.nl/#facet=type:dataset",
+    "detail_sample": "https://ir.cwi.nl/pub/35471/",
+    "confidence": 1.0
+  }
+}

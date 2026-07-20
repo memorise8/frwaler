@@ -1,0 +1,50 @@
+{
+  "site_id": "pbl-nl",
+  "site_name": "www.pbl.nl",
+  "base_url": "https://www.pbl.nl",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.pbl.nl/en/publications",
+    "params": {
+      "key": "",
+      "type%5B28%5D": "28",
+      "published%5Bmin%5D": "",
+      "published%5Bmax%5D": ""
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.view-publications-overview div.views-row",
+      "item_link": "a[href^=\"/en/publications/\"]",
+      "item_link_attr": "href",
+      "title": "a[href^=\"/en/publications/\"]",
+      "date": "time, .datetime, .field--name-field-publication-date",
+      "category": ".field--name-field-publication-type, .publication-type"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.pbl.nl/en/publications?key=&type%5B28%5D=28&published%5Bmin%5D=&published%5Bmax%5D=",
+    "detail_sample": null,
+    "confidence": 0.67
+  }
+}

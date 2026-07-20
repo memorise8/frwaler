@@ -8,14 +8,11 @@ import os
 from .ntrs import NTRSCrawler
 from .mohw import MOHWCrawler
 from .fsc import FSCCrawler
-from .nts_taxlaw import NTSTaxlawQtCrawler, NTSTaxlawPdCrawler
 
 CRAWLERS = {
     'ntrs': NTRSCrawler,
     'mohw': MOHWCrawler,
     'fsc': FSCCrawler,
-    'nts-taxlaw-qt': NTSTaxlawQtCrawler,
-    'nts-taxlaw-pd': NTSTaxlawPdCrawler,
 }
 
 # Auto-discover JSON config files and register GenericCrawler instances

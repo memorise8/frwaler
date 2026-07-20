@@ -1,0 +1,48 @@
+{
+  "site_id": "deltares-nl",
+  "site_name": "www.deltares.nl",
+  "base_url": "https://www.deltares.nl",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.deltares.nl/en/expertise/publications",
+    "params": {
+      "languages": "English",
+      "materials": "ARTICLE"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "#results article",
+      "item_link": "a[href^=\"/en/expertise/publications/\"]",
+      "item_link_attr": "href",
+      "title": "h2, h3",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.deltares.nl/en/expertise/publications?languages=Dutch&languages=English&materials=ARTICLE",
+    "detail_sample": null,
+    "confidence": 0.5
+  }
+}

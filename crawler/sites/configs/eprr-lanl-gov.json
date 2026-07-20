@@ -1,0 +1,47 @@
+{
+  "site_id": "eprr-lanl-gov",
+  "site_name": "eprr.lanl.gov",
+  "base_url": "https://eprr.lanl.gov",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://eprr.lanl.gov/",
+    "params": {
+      "f%5BdocType_f%5D%5B%5D": "Full+Paper"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.documents-list#documents article.document",
+      "item_link": "div.document-thumbnail a[href]",
+      "item_link_attr": "href",
+      "title": "header.documentHeader h3.index_title.document-title-heading",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://eprr.lanl.gov/?f%5BdocType_f%5D%5B%5D=Full+Paper",
+    "detail_sample": "https://srorlgreen.lanl.gov/object/tr?what=info:lanl-repo/eprr/LA-UR-13-22770",
+    "confidence": 1.0
+  }
+}

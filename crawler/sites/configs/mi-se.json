@@ -1,0 +1,47 @@
+{
+  "site_id": "mi-se",
+  "site_name": "www.mi.se",
+  "base_url": "https://www.mi.se",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.mi.se/arkiv/",
+    "params": {
+      "type": "publication"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.archive.archive--post > article.tease.tease--publication",
+      "item_link": "h2.tease__headline > a",
+      "item_link_attr": "href",
+      "title": "h2.tease__headline > a",
+      "date": "time.tease__date",
+      "category": "p.tease__content-type"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "article#post-18660 h1.page-header__headline",
+      "abstract": "article#post-18660 p.page-header__text, article#post-18660 section.article-content div.article-body",
+      "authors": null,
+      "date": null,
+      "pdf_link": "article#post-18660 div.article-post-body a.button[href$='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.mi.se/arkiv/?type=publication",
+    "detail_sample": "https://www.mi.se/publikationer/medling-for-val-fungerande-lonebildning/",
+    "confidence": 1.0
+  }
+}

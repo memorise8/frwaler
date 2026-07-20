@@ -1,0 +1,47 @@
+{
+  "site_id": "bmlv-gv-at",
+  "site_name": "www.bmlv.gv.at",
+  "base_url": "https://www.bmlv.gv.at",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.bmlv.gv.at/wissen-forschung/publikationen/doktyp.php",
+    "params": {
+      "id": "10"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table.publikationen tr:not(:first-child)",
+      "item_link": "td[headers='name'] a[href]",
+      "item_link_attr": "href",
+      "title": "td[headers='name'] a[href]",
+      "date": "td[headers='datum']",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "#content > h2",
+      "abstract": "#content #text",
+      "authors": null,
+      "date": null,
+      "pdf_link": "#content #text a[href$='.pdf'], #content #text a[href*='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.bmlv.gv.at/wissen-forschung/publikationen/doktyp.php?id=10",
+    "detail_sample": "https://www.bmlv.gv.at/wissen-forschung/publikationen/publikation.php?id=1284",
+    "confidence": 1.0
+  }
+}

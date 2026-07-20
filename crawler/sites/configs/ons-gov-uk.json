@@ -1,0 +1,49 @@
+{
+  "site_id": "ons-gov-uk",
+  "site_name": "www.ons.gov.uk",
+  "base_url": "https://www.ons.gov.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.ons.gov.uk/search",
+    "params": {
+      "q": "uk+wide",
+      "page": "1",
+      "filter": "user_requested_data"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "ol.search-results__list li.search-results__item",
+      "item_link": "h3.search-results__title a[href]",
+      "item_link_attr": "href",
+      "title": "h3.search-results__title a[href]",
+      "date": ".search-results__meta .search-results__date",
+      "category": ".search-results__meta .search-results__type"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.ons.gov.uk/search?q=uk+wide&page=1&filter=time_series&filter=datasets&filter=user_requested_data",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

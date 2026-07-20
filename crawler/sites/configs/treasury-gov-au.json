@@ -1,0 +1,47 @@
+{
+  "site_id": "treasury-gov-au",
+  "site_name": "treasury.gov.au",
+  "base_url": "https://treasury.gov.au",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://treasury.gov.au/search",
+    "params": {
+      "search_keyword": "pdf"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.view-search.view-display-id-all_p div.view-content > div",
+      "item_link": "article.node--view-mode-search-index h2 > a",
+      "item_link_attr": "href",
+      "title": "article.node--view-mode-search-index h2 > a span.field--name-title",
+      "date": "article.node--view-mode-search-index .field--name-field-date time.datetime",
+      "category": "article.node--view-mode-search-index .field--name-field-topics .field__item a"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1.page-title span.field--name-title",
+      "abstract": "article.node--type-page .node__content .field--name-body",
+      "authors": null,
+      "date": null,
+      "pdf_link": "article.node--type-page .field--name-field-attachments a[href$='.pdf']",
+      "keywords": null,
+      "department": "article.node--type-page .field--name-body h4:first-of-type",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://treasury.gov.au/search?search_keyword=pdf",
+    "detail_sample": "https://treasury.gov.au/the-department/accountability-reporting/departmental-and-agency-file-list/autumn-sittings",
+    "confidence": 1.0
+  }
+}

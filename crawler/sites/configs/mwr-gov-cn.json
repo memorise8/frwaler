@@ -1,0 +1,45 @@
+{
+  "site_id": "mwr-gov-cn",
+  "site_name": "www.mwr.gov.cn",
+  "base_url": "http://www.mwr.gov.cn",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "http://www.mwr.gov.cn/zwgk/gknb/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.gknb_list div.top div.itemb",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "a[href]",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "div.right div.gknb.scroll > div.title",
+      "abstract": "div.right div.gknb_content > div.view.TRS_UEDITOR",
+      "authors": null,
+      "date": "div.right div.gknb.scroll > div.tools.tad",
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "http://www.mwr.gov.cn/zwgk/gknb/",
+    "detail_sample": "http://www.mwr.gov.cn/zwgk/gknb/./202601/t20260129_2100351.html",
+    "confidence": 1.0
+  }
+}

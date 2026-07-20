@@ -1,0 +1,45 @@
+{
+  "site_id": "hautconseilclimat-fr",
+  "site_name": "www.hautconseilclimat.fr",
+  "base_url": "https://www.hautconseilclimat.fr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.hautconseilclimat.fr/ressources-pedagogiques/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "section.strate article.ressource.swiper-slide",
+      "item_link": "a.ressource__content",
+      "item_link_attr": "href",
+      "title": "h2.title",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "div#modal1.ressource__modal h3.title",
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": "div#modal1.ressource__modal .ressource__modal__text .credits",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.hautconseilclimat.fr/ressources-pedagogiques/",
+    "detail_sample": "https://www.hautconseilclimat.fr/ressources-pedagogiques/#modal1",
+    "confidence": 1.0
+  }
+}

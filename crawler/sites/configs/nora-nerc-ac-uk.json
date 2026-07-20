@@ -1,0 +1,45 @@
+{
+  "site_id": "nora-nerc-ac-uk",
+  "site_name": "nora.nerc.ac.uk",
+  "base_url": "https://nora.nerc.ac.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://nora.nerc.ac.uk/view/division/noc/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.ep_view_menu > ul > li",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "a[href]",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "h1.page-title",
+      "abstract": null,
+      "authors": "div.ep_view_page span.person span.person_name",
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": "h1.page-title",
+      "doi": "div.ep_view_page a[href^='https://doi.org/']"
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://nora.nerc.ac.uk/view/division/noc/",
+    "detail_sample": "https://nora.nerc.ac.uk/view/division/noc/2026.html",
+    "confidence": 1.0
+  }
+}

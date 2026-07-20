@@ -1,0 +1,45 @@
+{
+  "site_id": "kjonnsforskning-no",
+  "site_name": "kjonnsforskning.no",
+  "base_url": "https://kjonnsforskning.no",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://kjonnsforskning.no/en/our-reports-and-other-publications",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.view.view-external-resources.view-display-id-reports_teaser div.view-content > div.views-row",
+      "item_link": "a.reports-teaser__report-link",
+      "item_link_attr": "href",
+      "title": "h2.reports-teaser__title",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://kjonnsforskning.no/en/our-reports-and-other-publications",
+    "detail_sample": "https://kjonnsforskning.no/sites/default/files/2025-04/Report_2025_Improving%20Access%20to%20Healthcare%20and%20Justice%20for%20Sexual%20Violence%20Survivors_web.pdf",
+    "confidence": 1.0
+  }
+}

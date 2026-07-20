@@ -1,0 +1,49 @@
+{
+  "site_id": "repositorio-uchile-cl",
+  "site_name": "repositorio.uchile.cl",
+  "base_url": "https://repositorio.uchile.cl",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://repositorio.uchile.cl/discover",
+    "params": {
+      "filtertype": "type",
+      "filter_relational_operator": "equals",
+      "filter": "Tesis"
+    },
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "ul.ds-artifact-list > li.ds-artifact-item",
+      "item_link": "div.artifact-description div.artifact-title a[href]",
+      "item_link_attr": "href",
+      "title": "div.artifact-description div.artifact-title a",
+      "date": "div.artifact-description div.artifact-info span.publisher-date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://repositorio.uchile.cl/discover?filtertype=type&filter_relational_operator=equals&filter=Tesis",
+    "detail_sample": null,
+    "confidence": 0.33
+  }
+}

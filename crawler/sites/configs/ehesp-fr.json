@@ -1,0 +1,45 @@
+{
+  "site_id": "ehesp-fr",
+  "site_name": "www.ehesp.fr",
+  "base_url": "https://www.ehesp.fr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.ehesp.fr/espace-presse/communiques-de-presse/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "article#post-26058 section.post_content > ul > li",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "a[href]",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.ehesp.fr/espace-presse/communiques-de-presse/",
+    "detail_sample": "https://www.ehesp.fr/wp-content/uploads/2026/04/CP_etaperennaise-tour-de-France-prevention_EHESP_avril2026.pdf",
+    "confidence": 1.0
+  }
+}

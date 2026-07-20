@@ -1,0 +1,45 @@
+{
+  "site_id": "klimaraadet-dk",
+  "site_name": "klimaraadet.dk",
+  "base_url": "https://klimaraadet.dk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://klimaraadet.dk/da/udgivelser",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": ".view-publications.view-display-id-block_main .view-content .views-row",
+      "item_link": ".base-teaser-styling > a",
+      "item_link_attr": "href",
+      "title": ".node__content h3 .field--name-title",
+      "date": ".node__content time",
+      "category": ".node__content .field--name-field-publication-type"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "article.node--type-analysis.node--view-mode-pageview .node__content--main h1 .field--name-title",
+      "abstract": "article.node--type-analysis.node--view-mode-pageview .node__content--main .field--name-body",
+      "authors": null,
+      "date": "article.node--type-analysis.node--view-mode-pageview .node__content--main > .label",
+      "pdf_link": "article.node--type-analysis.node--view-mode-pageview .node__content--aside .field--name-field-files a[href$='.pdf']",
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://klimaraadet.dk/da/udgivelser",
+    "detail_sample": "https://klimaraadet.dk/da/analyse/hoeringssvar-vedroerende-forudsaetninger-klimastatus-og-fremskrivning-2026",
+    "confidence": 1.0
+  }
+}

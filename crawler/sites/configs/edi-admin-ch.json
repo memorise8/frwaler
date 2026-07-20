@@ -1,0 +1,45 @@
+{
+  "site_id": "edi-admin-ch",
+  "site_name": "www.edi.admin.ch",
+  "base_url": "https://www.edi.admin.ch",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.edi.admin.ch/de/medienmitteilungen-des-edi",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.search-results ul.search-results__list > li",
+      "item_link": "div.card__footer__action a.btn[href]",
+      "item_link_attr": "href",
+      "title": "div.card__title h3",
+      "date": "p.meta-info span.meta-info__item",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "main#main-content section.hero h1.hero__title",
+      "abstract": "main#main-content section.hero p.hero__description, main#main-content section.section .container__center--xs p.font--regular",
+      "authors": null,
+      "date": "main#main-content section.hero p.meta-info span.meta-info__item:nth-child(2)",
+      "pdf_link": null,
+      "keywords": null,
+      "department": "header#main-header .top-header a.logo .logo__accronym",
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.edi.admin.ch/de/medienmitteilungen-des-edi",
+    "detail_sample": "https://www.edi.admin.ch/de/newnsb/lOSqrbdSx85tAzxYPfjY3",
+    "confidence": 1.0
+  }
+}

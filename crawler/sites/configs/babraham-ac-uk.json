@@ -1,0 +1,45 @@
+{
+  "site_id": "babraham-ac-uk",
+  "site_name": "www.babraham.ac.uk",
+  "base_url": "https://www.babraham.ac.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.babraham.ac.uk/news/category/news",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": null,
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.babraham.ac.uk/news/category/news",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

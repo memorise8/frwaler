@@ -1,0 +1,45 @@
+{
+  "site_id": "nasa-gov",
+  "site_name": "www.nasa.gov",
+  "base_url": "https://www.nasa.gov",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.nasa.gov/2025-news-releases/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "article.hds-content-item",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "h2, h3, .hds-content-item-heading, .hds-content-item-title",
+      "date": "time, .hds-meta-date, .hds-content-item-date",
+      "category": ".hds-content-item-type, .hds-content-item-topic, .hds-meta-category"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.nasa.gov/2025-news-releases/",
+    "detail_sample": null,
+    "confidence": 0.33
+  }
+}

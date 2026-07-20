@@ -1,0 +1,45 @@
+{
+  "site_id": "nnsa-mee-gov-cn",
+  "site_name": "nnsa.mee.gov.cn",
+  "base_url": "https://nnsa.mee.gov.cn",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://nnsa.mee.gov.cn/english/resources/annual/",
+    "params": {},
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "ul.nr_list.nr_list_fgLIne > li",
+      "item_link": "div.art_title > a",
+      "item_link_attr": "href",
+      "title": "div.art_title > a",
+      "date": "div.date",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://nnsa.mee.gov.cn/english/resources/annual/",
+    "detail_sample": "https://nnsa.mee.gov.cn/english/resources/annual/./202410/P020241010638875318343.pdf",
+    "confidence": 1.0
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "site_id": "telemarksforsking-no",
+  "site_name": "telemarksforsking.no",
+  "base_url": "https://telemarksforsking.no",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://telemarksforsking.no/publikasjoner/tab/",
+    "params": {
+      "tab": "vitenskapelig"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.elementor-loop-container.elementor-grid > div.e-loop-item.publication",
+      "item_link": "div.elementor-widget-button a.elementor-button-link[href]",
+      "item_link_attr": "href",
+      "title": "div.elementor-widget-button a.elementor-button-link .elementor-button-text",
+      "date": null,
+      "category": "div.elementor-widget-heading.hideen .elementor-heading-title"
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://telemarksforsking.no/publikasjoner/tab/?tab=vitenskapelig",
+    "detail_sample": "https://telemarksforsking.no/publikasjoner/governing-access-to-outdoor-recreation-nordic-coastal-trails-under-pressure/4668/",
+    "confidence": 1.0
+  }
+}

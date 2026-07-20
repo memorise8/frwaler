@@ -1,0 +1,48 @@
+{
+  "site_id": "rfi-ac-uk",
+  "site_name": "www.rfi.ac.uk",
+  "base_url": "https://www.rfi.ac.uk",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.rfi.ac.uk/latest/",
+    "params": {
+      "filter_nonce": "7afe782d93",
+      "filter": "news"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "tr",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": null,
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.rfi.ac.uk/latest/?filter_nonce=7afe782d93&filter=news",
+    "detail_sample": null,
+    "confidence": 0.0
+  }
+}

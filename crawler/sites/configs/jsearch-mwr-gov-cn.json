@@ -1,0 +1,48 @@
+{
+  "site_id": "jsearch-mwr-gov-cn",
+  "site_name": "jsearch.mwr.gov.cn",
+  "base_url": "http://jsearch.mwr.gov.cn",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "http://jsearch.mwr.gov.cn/irs-c-web/search.shtml",
+    "params": {
+      "code": "18703928938",
+      "dataTypeId": "26264"
+    },
+    "pagination": {
+      "type": "none",
+      "param": null,
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.basic_result_content.js_basic_result_content > *",
+      "item_link": "a[href]",
+      "item_link_attr": "href",
+      "title": "a[href]",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "http://jsearch.mwr.gov.cn/irs-c-web/search.shtml?code=18703928938&dataTypeId=26264",
+    "detail_sample": null,
+    "confidence": 0.5
+  }
+}

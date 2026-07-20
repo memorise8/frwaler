@@ -1,0 +1,45 @@
+{
+  "site_id": "minedu-gov-gr",
+  "site_name": "www.minedu.gov.gr",
+  "base_url": "https://www.minedu.gov.gr",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.minedu.gov.gr/grafeio-typoy-kai-dimosion-sxeseon/deltia-typoy",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "start",
+      "start": 0,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "table.category.table tbody tr[class^='cat-list-row']",
+      "item_link": "td.list-title > a[href]",
+      "item_link_attr": "href",
+      "title": "td.list-title > a[href]",
+      "date": null,
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": null,
+      "abstract": null,
+      "authors": null,
+      "date": null,
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.minedu.gov.gr/grafeio-typoy-kai-dimosion-sxeseon/deltia-typoy",
+    "detail_sample": "https://www.minedu.gov.gr/rss/64885-08-05-26-ksekina-noritera-i-ypovoli-theseon-apo-epixeiriseis-gia-to-metalykeiako-etos-taksi-mathiteias-2026-2028",
+    "confidence": 1.0
+  }
+}

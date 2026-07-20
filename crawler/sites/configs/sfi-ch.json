@@ -1,0 +1,45 @@
+{
+  "site_id": "sfi-ch",
+  "site_name": "www.sfi.ch",
+  "base_url": "https://www.sfi.ch",
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.sfi.ch/en/about-us/press-releases",
+    "params": {},
+    "pagination": {
+      "type": "query_param",
+      "param": "p",
+      "start": 1,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "div.content__bloglist--content div.content__bloglist--item.md__card",
+      "item_link": "div.md__card--body h3.headline a.text-dark",
+      "item_link_attr": "href",
+      "title": "div.md__card--body h3.headline a.text-dark",
+      "date": "div.md__card--footer span.text-primary",
+      "category": null
+    }
+  },
+  "detail_page": {
+    "selectors": {
+      "title": "div.blog__lead div.element__lead--title > h2.headline",
+      "abstract": "div.content__ckeditor div.content__ckeditor--content",
+      "authors": "div.content__ckeditor div.content__ckeditor--content p:first-of-type strong",
+      "date": "div.blog__lead div.element__lead--meta .row > div:nth-child(1) span.v",
+      "pdf_link": null,
+      "keywords": null,
+      "department": null,
+      "doi": null
+    }
+  },
+  "options": {
+    "delay": 1.5,
+    "id_regex": null
+  },
+  "metadata": {
+    "analyzed_from": "https://www.sfi.ch/en/about-us/press-releases",
+    "detail_sample": "https://www.sfi.ch/en/about-us/news/sfi-outstanding-paper-award-2025",
+    "confidence": 1.0
+  }
+}
