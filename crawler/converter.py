@@ -85,18 +85,79 @@ def text_to_markdown(text, title="", metadata=None):
     return "\n".join(lines)
 
 
+def _sniff_content_type(filepath: str) -> str:
+    """Read first 16 bytes and classify by magic bytes.
+    Returns 'pdf' | 'hwp' | 'hwpx' | 'zip' | 'ole' | 'jpeg' | 'png' | 'html' | 'xml' | 'text' | 'unknown'.
+    """
+    try:
+        with open(filepath, 'rb') as f:
+            head = f.read(16)
+    except Exception:
+        return 'unknown'
+    if not head:
+        return 'unknown'
+    # PDF
+    if head.startswith(b'%PDF-'):
+        return 'pdf'
+    # HWPX is ZIP-based, but generic ZIP could be docx/xlsx/etc. We detect HWPX by checking if the ZIP contains HWPX-specific signature later (skip for now — return 'zip')
+    if head.startswith(b'PK\x03\x04'):
+        return 'zip'  # Could be HWPX/docx/xlsx — caller decides
+    # HWP (binary OLE compound)
+    if head.startswith(b'\xd0\xcf\x11\xe0'):
+        return 'ole'  # Could be HWP or DOC
+    # Explicit HWP header
+    if head.startswith(b'HWP Doc'):
+        return 'hwp'
+    # JPEG
+    if head.startswith(b'\xff\xd8\xff'):
+        return 'jpeg'
+    # PNG
+    if head.startswith(b'\x89PNG'):
+        return 'png'
+    # HTML/XML
+    stripped = head.lstrip()
+    if stripped.startswith(b'<!') or stripped.lower().startswith(b'<html') or stripped[:5].lower() == b'<head':
+        return 'html'
+    if stripped.startswith(b'<?xml'):
+        return 'xml'
+    return 'unknown'
+
+
 def convert_file(filepath):
-    """Extract text from a file based on its extension. Returns text or None."""
-    ext = os.path.splitext(filepath)[1].lower()
-    if ext == ".hwpx":
-        return extract_text_hwpx(filepath)
-    elif ext == ".hwp":
-        return extract_text_hwp(filepath)
-    elif ext == ".pdf":
+    """Extract text from a file, preferring magic-byte detection over extension.
+
+    Dispatch order:
+    1. Sniff first 16 bytes → dispatch by actual content type.
+    2. If sniff returns 'unknown', fall back to extension-based dispatch.
+    Returns text string or None.
+    """
+    sniffed = _sniff_content_type(filepath)
+
+    if sniffed == 'pdf':
         return extract_text_pdf(filepath)
-    else:
-        # Try HWP binary for extensionless files
+    elif sniffed == 'ole':
+        # OLE2 compound document — almost certainly HWP in our dataset
         return extract_text_hwp(filepath)
+    elif sniffed == 'zip':
+        # ZIP-based — try HWPX first (most ZIP blobs in our dataset are HWPX)
+        return extract_text_hwpx(filepath)
+    elif sniffed == 'hwp':
+        return extract_text_hwp(filepath)
+    elif sniffed in ('html', 'xml', 'jpeg', 'png'):
+        # Cannot extract meaningful text from these
+        return None
+    else:
+        # sniffed == 'unknown': fall back to extension-based dispatch
+        ext = os.path.splitext(filepath)[1].lower()
+        if ext == ".hwpx":
+            return extract_text_hwpx(filepath)
+        elif ext == ".hwp":
+            return extract_text_hwp(filepath)
+        elif ext == ".pdf":
+            return extract_text_pdf(filepath)
+        else:
+            # Try HWP binary for extensionless files
+            return extract_text_hwp(filepath)
 
 
 def convert_site_files(conn, site_id=None, limit=None):
@@ -196,3 +257,47 @@ def convert_site_files(conn, site_id=None, limit=None):
 
     print(f"\nDone. Converted: {converted}, Skipped: {skipped}, Failed: {failed}")
     return converted
+
+
+# =====================================================================
+# libertree (Phase A) — single-doc text extraction backed by libertree.db
+# =====================================================================
+
+def extract_text_for(conn, seq_id: int, *, blob_root=None) -> dict:
+    """Extract text from libertree blob ``{root}/AAAA/BBBB/seq.pdf``,
+    save ``.txt`` next to it, and update ``documents.text_extracted``.
+
+    Returns
+    -------
+    dict
+        ``{"success": bool, "chars": int, "txt_path": str|None,
+           "error": str|None}``
+    """
+    from . import blob_storage as _blobs
+    from . import db_libertree as _ldb
+
+    out: dict = {"success": False, "chars": 0, "txt_path": None, "error": None}
+
+    pdf_path = _blobs.get_blob_path(seq_id, "pdf", blob_root)
+    if not pdf_path.exists():
+        out["error"] = f"pdf not found: {pdf_path}"
+        _ldb.update_document_text(conn, seq_id, extracted=False)
+        return out
+
+    try:
+        text = convert_file(str(pdf_path))
+    except Exception as e:  # pdfplumber/pypdf can crash on malformed PDFs
+        out["error"] = f"convert_file raised: {e}"
+        _ldb.update_document_text(conn, seq_id, extracted=False)
+        return out
+
+    if not text:
+        out["error"] = "extract_text returned empty"
+        _ldb.update_document_text(conn, seq_id, extracted=False)
+        return out
+
+    txt_path = _blobs.save_text(seq_id, text, root=blob_root)
+    _ldb.update_document_text(conn, seq_id, extracted=True)
+
+    out.update(success=True, chars=len(text), txt_path=str(txt_path), error=None)
+    return out

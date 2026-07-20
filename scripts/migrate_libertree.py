@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""livertree migration helper.
+"""libertree migration helper.
 
-기존 SQLite DB 위에 livertree 의 ``documents`` 테이블/인덱스를 추가한다.
+기존 SQLite DB 위에 libertree 의 ``documents`` 테이블/인덱스를 추가한다.
 ``init_db`` 가 idempotent 하므로 사실상 ``init_db`` 를 호출하기만 하면
 충분하지만, 운영 환경에서 안전하게 적용하려고 다음을 묶어서 수행한다.
 
@@ -11,7 +11,7 @@
 3. 결과 출력 (테이블/인덱스 목록 + 행 수)
 
 Usage:
-    python -m scripts.migrate_livertree [--db PATH]
+    python -m scripts.migrate_libertree [--db PATH]
 """
 from __future__ import annotations
 
@@ -92,7 +92,7 @@ def main() -> int:
 
     _summary(conn)
     conn.close()
-    print("\nlivertree migration: OK")
+    print("\nlibertree migration: OK")
     return 0
 
 

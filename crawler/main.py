@@ -128,7 +128,7 @@ def cmd_stats(args, conn):
 
 
 def cmd_download(args, conn):
-    """Download attachment files for documents into the 12-digit livertree layout.
+    """Download attachment files for documents into the 12-digit libertree layout.
 
     파일명은 항상 ``{12자리 ID}.pdf`` (또는 .hwp/.hwpx)이며 경로는
     ``data/AAAA/BBBB/AAAABBBBCCCC.pdf`` 이다. 원본 파일명은
@@ -329,7 +329,7 @@ def cmd_summarize(args, conn):
         if not text and txt_rel:
             try:
                 # txt_path is a relative path like ``data/AAAA/BBBB/N.txt``.
-                # Honour LIVERTREE_DATA_ROOT by deriving the absolute path
+                # Honour LIBERTREE_DATA_ROOT by deriving the absolute path
                 # from the doc id rather than treating the stored path as
                 # absolute.
                 abs_path = storage_module.doc_id_to_txt_path(doc_id)
@@ -427,7 +427,7 @@ def cmd_smart_find(args, conn):
         base_url = f"{parsed.scheme}://{parsed.netloc}"
         db_module.register_site(conn, site_id, site_name, base_url)
 
-        from .livertree_adapter import paper_to_document
+        from .libertree_adapter import paper_to_document
         saved = 0
         for d in result.documents:
             paper = {

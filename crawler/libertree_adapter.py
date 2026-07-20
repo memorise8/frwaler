@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Adapter: legacy ``paper_dict`` (UUID/JSON-array shape) → livertree ``document_dict``.
+"""Adapter: legacy ``paper_dict`` (UUID/JSON-array shape) → libertree ``document_dict``.
 
 기존 사이트 크롤러는 다음 형태의 dict 를 반환한다::
 

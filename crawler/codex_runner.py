@@ -40,8 +40,26 @@ Write a working crawler for `{site_id}` at `crawler/sites/custom/{site_id}.py`.
 3. Implement `crawl(self, limit=None)`:
    - Discover the real list/detail API endpoints (use curl, test responses, parse JSON or HTML).
    - Parse real records with title/abstract/date/url.
-   - Save via `self._save_paper({{...}})` using fields: id, site_id, external_id, title, authors (JSON string), abstract, category, keywords (JSON string), published_date, url, pdf_url, doi, department, metadata (JSON string).
-   - Respect `limit`.
+   - Save via `self._save_paper({{...}})` using these fields:
+     - **관리/식별** — `id`, `site_id`, `external_id` (사이트의 native ID).
+     - **글번호 (점진 수집용 핵심)** — `post_number`: 사이트의 게시글 번호. 가능하면 **숫자 문자열** ("12345"); 숫자 없으면 사이트의 native slug/uuid 사용. 없으면 None. 다음 수집 때 `MAX(post_number)` 기준으로 중지 위치 측정.
+     - **기본** — `title`, `abstract`.
+     - **날짜** — `published_date` (작성일/출판일, ISO `YYYY-MM-DD` 권장), **`listed_date`** (게시일/list 노출 일자, ISO `YYYY-MM-DD`). list 페이지에서 두 종류 날짜가 다르면 둘 다 채워야 함.
+     - **저자/기관** — `authors` (`;` 로 여러 저자 구분), `publisher` (`;` 로 여러 기관 구분, 발행기관/출판사), `department` (선택, 부서/세부조직), `journal` (학술지명, 해당 시).
+     - **URL** — `url` (= 메타정보 페이지 URL, 글의 detail 페이지), `pdf_url` (첨부파일/원문 PDF 다운로드 URL, 없으면 None).
+     - **부가** — `keywords` (`,` 로 구분된 단일 string), `category` (분류), `doi` (있으면), **`original_filename`** (PDF 의 원래 파일명, 예: "2026-안전보고서.pdf"; URL 의 마지막 path segment 또는 Content-Disposition 헤더에서 추출).
+     - **`metadata`** — JSON string. 위에 매핑되지 않은 모든 raw 데이터를 dict로 저장. 반드시 다음 키 포함 (있는 경우):
+       - `posted_date` (listed_date 의 raw 형태, parser 가 자동 추출)
+       - `originalFilename` (original_filename 보완)
+       - `journal_raw`, `series`, `volume`, `issue` (학술지인 경우)
+       - 사이트별 native field (예: `node_id`, `nttId`, `bbsSeq` 등)
+   - **`limit` MUST work for any value** including small (limit=3) and large (limit=500). NEVER hard-code a small upper bound or assume `limit` is always 3.
+   - **Pagination — full-depth crawl required**:
+     - Walk pages until either (a) `saved >= limit`, (b) page returns 0 new records, or (c) safety cap of 200 pages reached (just in case — log when reaching cap).
+     - Track and log progress every 10 pages: `print(f"[{site_id}] page {{p}}: saved {{saved}}/{{limit_or_inf}}")`.
+     - Detect end-of-pagination correctly — empty list, "next page" link absent, or items already seen (URL deduplication).
+     - Use a `seen_urls = set()` to skip duplicates across pages and prevent infinite loops where a paginator silently loops back to page 1.
+     - Total wall-clock budget per crawl: do not run longer than 25 minutes; if approaching, log and exit cleanly.
 4. TLS issues common on Korean gov sites: use `curl --tls-max 1.3 -sk`. subprocess.run is fine.
 5. Robustness (hard requirement — real sites break in unexpected ways):
    - HTML parsing: prefer `BeautifulSoup(raw, "html5lib")` over `"html.parser"`. Fallback chain: `html5lib` → `lxml` → `html.parser`. Wrap `BeautifulSoup(...)` construction in try/except so a malformed page (embedded HWP JSON, stray CDATA, SGML declarations) never crashes the run.
@@ -55,7 +73,7 @@ Write a working crawler for `{site_id}` at `crawler/sites/custom/{site_id}.py`.
 6. Verify end-to-end by running this script yourself:
 
 ```bash
-cd /data_raid/ruci_workspace/crawler-poc
+cd {project_root}
 .venv/bin/python - <<'PY'
 import sqlite3, sys, importlib.util
 sys.path.insert(0, '.')
@@ -79,11 +97,10 @@ Iterate until success. Save only when the verification passes.
 
 ## Reference
 
-- `crawler/sites/nts_taxlaw.py` — existing curl+POST example for Korean gov site.
 - `crawler/base_crawler.py` — base class (`_save_paper`, `_session`).
 - `crawler/db.py` — DB schema.
 
-Work inside `/data_raid/ruci_workspace/crawler-poc/`. When done, print a final summary with saved row count and sample abstract.
+Work inside `{project_root}/`. When done, print a final summary with saved row count and sample abstract. **CRITICAL: never write to any other workspace path** — the file MUST be created at `{project_root}/crawler/sites/custom/{site_id}.py` and nowhere else.
 """.strip()
 
 
@@ -154,6 +171,7 @@ def run_codex_crawler_build(
     project_root: Optional[str] = None,
     max_timeout_seconds: int = 1200,
     model: Optional[str] = None,
+    codex_home: Optional[str] = None,
     stream_cb: Optional[Callable[[str], None]] = None,
 ) -> dict:
     """Spawn ``codex exec`` with a generated task prompt; return result dict.
@@ -172,6 +190,9 @@ def run_codex_crawler_build(
         Hard wall-clock limit. Process is killed if exceeded.
     model:
         Optional model flag forwarded to ``codex -m <model>``.
+    codex_home:
+        Optional path to a directory used as CODEX_HOME for the spawned codex
+        process. Useful for account rotation. Defaults to user's default ~/.codex.
     stream_cb:
         Called with each stdout line (str, no trailing newline) as codex runs.
 
@@ -202,6 +223,7 @@ def run_codex_crawler_build(
         site_name=site_name,
         url=url,
         base_url=base_url,
+        project_root=project_root,
     )
 
     # ---- build codex command -------------------------------------------------
@@ -217,6 +239,10 @@ def run_codex_crawler_build(
     cmd.append("-")  # read prompt from stdin
 
     # ---- spawn subprocess ---------------------------------------------------
+    env = os.environ.copy()
+    if codex_home:
+        env["CODEX_HOME"] = codex_home
+
     proc = None
     try:
         proc = subprocess.Popen(
@@ -227,6 +253,7 @@ def run_codex_crawler_build(
             text=True,
             encoding="utf-8",
             errors="replace",
+            env=env,
         )
     except FileNotFoundError:
         elapsed = time.monotonic() - t0

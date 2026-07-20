@@ -2,11 +2,24 @@ import fs from "fs";
 import Database from "better-sqlite3";
 import path from "path";
 import { cached } from "./cache";
+import {
+  ALL_CATEGORIES,
+  ALL_CONTINENTS,
+  classificationStats,
+  getCategoryForSheet,
+  type Continent,
+  type SiteFunctionCategory,
+} from "./categories";
 
-const DB_PATH = path.join(process.cwd(), "..", "data", "papers.db");
+const DB_PATH = path.join(process.cwd(), "..", "data", "libertree.db");
 
-export const NTS_SITES = ["nts-taxlaw-pd", "nts-taxlaw-qt"] as const;
-export type NtsSiteId = (typeof NTS_SITES)[number];
+// ====================================================================
+// Legacy `Paper` shape kept for existing pages — adapted from the
+// libertree `documents` table. Metadata-derived fields (category,
+// docType, doi, etc.) are no longer available so they're typed as
+// nullable and populated as null. Pages that referenced them have
+// been updated to omit / fallback gracefully.
+// ====================================================================
 
 export interface Paper {
   id: string;
@@ -26,6 +39,7 @@ export interface Paper {
   crawled_at: string;
 }
 
+// Kept as a no-op shape so legacy callers still type-check.
 export interface PaperMetadata {
   documentNumber?: string;
   documentTypeName?: string;
@@ -80,7 +94,7 @@ function getMissingTables(
   const rows = db
     .prepare(
       `SELECT name FROM sqlite_master
-       WHERE type = 'table' AND name IN (${placeholders})`
+       WHERE type IN ('table', 'view') AND name IN (${placeholders})`
     )
     .all(...tables) as { name: string }[];
   const present = new Set(rows.map((row) => row.name));
@@ -121,6 +135,11 @@ export function getDbState(requiredTables: readonly string[] = []): DbState {
   }
 }
 
+/**
+ * Legacy metadata parser. The libertree schema has no `metadata` column,
+ * so the input is always null and we return {} — kept exported so existing
+ * pages keep type-checking without rewriting them.
+ */
 export function parseMetadata(raw: string | null): PaperMetadata {
   if (!raw) return {};
   try {
@@ -187,21 +206,36 @@ function getDefaultSiteIds(db: ReturnType<typeof getDb>): string[] {
 }
 
 // ====================================================================
-// Paper-shape adapter over the documents table.
-// All Paper-shape readers below run against `documents` and shape rows
-// into the legacy `Paper` interface so the existing UI pages stay unchanged.
-// `papers` is kept read-only as a fallback for legacy UUID lookups.
+// libertree blob layout
+//   12-digit zero-padded seq_id, two-level sharding under libertree/:
+//     libertree/{XXXX}/{YYYY}/{XXXXYYYYZZZZ}.{pdf|txt}
+//   Matches crawler/blob_storage.py.
+// ====================================================================
+
+export function blobPath(seqId: number, ext: "pdf" | "txt"): string {
+  if (!Number.isInteger(seqId) || seqId < 0 || seqId >= 1e12) {
+    throw new RangeError(`blobPath: seq_id out of range [0, 1e12): ${seqId}`);
+  }
+  const name = seqId.toString().padStart(12, "0");
+  return `libertree/${name.slice(0, 4)}/${name.slice(4, 8)}/${name}.${ext}`;
+}
+
+// ====================================================================
+// Paper-shape adapter over the libertree `documents` table.
+// Returns rows shaped like the legacy `Paper` interface so existing
+// pages keep rendering. Metadata-derived fields (category/docType/doi)
+// are populated as null since the column no longer exists.
 // ====================================================================
 
 interface DocRow {
-  id: number;
-  crawled_at: string;
+  seq_id: number;
+  collected_at: string;
   site_id: string;
-  external_id: string | null;
+  post_number: string | null;
   meta_url: string | null;
   title: string | null;
   published_date: string | null;
-  posted_date: string | null;
+  listed_date: string | null;
   authors: string | null;
   publisher: string | null;
   journal: string | null;
@@ -209,56 +243,41 @@ interface DocRow {
   keywords: string | null;
   abstract: string | null;
   original_filename: string | null;
-  pdf_path: string | null;
-  txt_path: string | null;
-  download_status: string | null;
+  pdf_downloaded: number | null;
+  text_extracted: number | null;
+  pdf_size_bytes: number | null;
+  pdf_sha256: string | null;
   summary: string | null;
-  metadata: string | null;
-}
-
-function safeJSONParse(raw: string | null): Record<string, unknown> {
-  if (!raw) return {};
-  try {
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-      ? (parsed as Record<string, unknown>)
-      : {};
-  } catch {
-    return {};
-  }
-}
-
-function pickStr(md: Record<string, unknown>, key: string): string | null {
-  const v = md[key];
-  return typeof v === "string" && v ? v : null;
+  summary_model: string | null;
+  summary_at: string | null;
 }
 
 function documentToPaperShape(d: DocRow): Paper {
-  const md = safeJSONParse(d.metadata);
   return {
-    id: String(d.id),
+    id: String(d.seq_id),
     site_id: d.site_id,
-    external_id: d.external_id ?? "",
+    external_id: d.post_number ?? "",
     title: d.title,
     authors: d.authors,
     abstract: d.abstract,
-    category: pickStr(md, "category"),
+    category: null,
     keywords: d.keywords,
     published_date: d.published_date,
     url: d.meta_url,
     pdf_url: d.pdf_url,
-    doi: pickStr(md, "doi"),
+    doi: null,
     department: d.publisher,
-    metadata: d.metadata,
-    crawled_at: d.crawled_at,
+    metadata: null,
+    crawled_at: d.collected_at,
   };
 }
 
 const DOC_COLS_FULL = `
-  id, crawled_at, site_id, external_id, meta_url, title,
-  published_date, posted_date, authors, publisher, journal,
+  seq_id, collected_at, site_id, post_number, meta_url, title,
+  published_date, listed_date, authors, publisher, journal,
   pdf_url, keywords, abstract, original_filename,
-  pdf_path, txt_path, download_status, summary, metadata
+  pdf_downloaded, text_extracted, pdf_size_bytes, pdf_sha256,
+  summary, summary_model, summary_at
 `;
 
 function normalizeSiteIds(
@@ -281,8 +300,6 @@ export function searchPapers(filters: SearchFilters): SearchResult {
     const resolvedSiteIds = normalizeSiteIds(db, filters.siteIds);
     const {
       q,
-      category,
-      docType,
       dateFrom,
       dateTo,
       page = 1,
@@ -292,9 +309,8 @@ export function searchPapers(filters: SearchFilters): SearchResult {
     const offset = (page - 1) * pageSize;
 
     // FTS5 over documents_fts (built by scripts/migrate_documents_fts.py).
-    // Trigram tokenizer needs all whitespace-separated tokens to be ≥ 3
-    // chars; for shorter queries (typical 2-character Korean words) we
-    // fall back to the LIKE path so the user still gets results.
+    // Currently not present in libertree.db — the LIKE fallback below
+    // handles all queries until that migration runs.
     const rawTokens = q?.trim().split(/\s+/).filter((t) => t.length > 0) ?? [];
     const ftsEligible =
       rawTokens.length > 0 &&
@@ -310,14 +326,6 @@ export function searchPapers(filters: SearchFilters): SearchResult {
           `d.site_id IN (${resolvedSiteIds.map(() => "?").join(",")})`,
         );
         ftsParams.push(...resolvedSiteIds);
-      }
-      if (category) {
-        ftsWhere.push(`json_extract(d.metadata, '$.category') = ?`);
-        ftsParams.push(category);
-      }
-      if (docType) {
-        ftsWhere.push(`json_extract(d.metadata, '$.documentTypeName') = ?`);
-        ftsParams.push(docType);
       }
       if (dateFrom) {
         ftsWhere.push(`d.published_date >= ?`);
@@ -348,7 +356,7 @@ export function searchPapers(filters: SearchFilters): SearchResult {
            JOIN documents_fts f ON d.rowid = f.rowid
            WHERE documents_fts MATCH ?
            ${ftsExtra}
-           ORDER BY d.published_date DESC, d.crawled_at DESC
+           ORDER BY d.published_date DESC, d.collected_at DESC
            LIMIT ? OFFSET ?`,
         )
         .all(...ftsParams, pageSize, offset) as DocRow[];
@@ -370,7 +378,7 @@ export function searchPapers(filters: SearchFilters): SearchResult {
       tokens.forEach((token) => {
         const pattern = `%${token}%`;
         where.push(
-          `(COALESCE(title, '') LIKE ? OR COALESCE(abstract, '') LIKE ? OR COALESCE(metadata, '') LIKE ?)`
+          `(COALESCE(title, '') LIKE ? OR COALESCE(abstract, '') LIKE ? OR COALESCE(keywords, '') LIKE ?)`
         );
         params.push(pattern, pattern, pattern);
       });
@@ -379,14 +387,6 @@ export function searchPapers(filters: SearchFilters): SearchResult {
     if (resolvedSiteIds.length > 0) {
       where.push(`site_id IN (${resolvedSiteIds.map(() => "?").join(",")})`);
       params.push(...resolvedSiteIds);
-    }
-    if (category) {
-      where.push(`json_extract(metadata, '$.category') = ?`);
-      params.push(category);
-    }
-    if (docType) {
-      where.push(`json_extract(metadata, '$.documentTypeName') = ?`);
-      params.push(docType);
     }
     if (dateFrom) {
       where.push(`published_date >= ?`);
@@ -408,7 +408,7 @@ export function searchPapers(filters: SearchFilters): SearchResult {
     const rows = db
       .prepare(
         `SELECT ${DOC_COLS_FULL} FROM documents ${whereSQL}
-         ORDER BY published_date DESC, crawled_at DESC LIMIT ? OFFSET ?`
+         ORDER BY published_date DESC, collected_at DESC LIMIT ? OFFSET ?`
       )
       .all(...params, pageSize, offset) as DocRow[];
 
@@ -429,89 +429,42 @@ export function getPaper(id: string): Paper | null {
 
   const db = getDb();
   try {
-    // Numeric IDs map to the new `documents` table; non-numeric (UUID) IDs
-    // fall back to the legacy `papers` table for smart-find historical rows.
-    const isNumeric = /^\d+$/.test(id);
-    if (isNumeric && hasTables(db, ["documents"])) {
-      const row = db
-        .prepare(`SELECT ${DOC_COLS_FULL} FROM documents WHERE id = ?`)
-        .get(Number(id)) as DocRow | undefined;
-      if (row) return documentToPaperShape(row);
-    }
-    if (hasTables(db, ["papers"])) {
-      return (db.prepare(`SELECT * FROM papers WHERE id = ?`).get(id) as Paper) ?? null;
-    }
-    return null;
+    // libertree IDs are numeric seq_id. Non-numeric IDs (legacy UUIDs from
+    // the old papers.db) are not supported — there's no papers table here.
+    if (!/^\d+$/.test(id)) return null;
+    if (!hasTables(db, ["documents"])) return null;
+    const row = db
+      .prepare(`SELECT ${DOC_COLS_FULL} FROM documents WHERE seq_id = ?`)
+      .get(Number(id)) as DocRow | undefined;
+    return row ? documentToPaperShape(row) : null;
   } finally {
     db.close();
   }
 }
 
-export function getDocTypeCounts(siteIds?: string[]): DocTypeCount[] {
-  if (getDbState(["documents"]).kind !== "ready") {
-    return [];
-  }
-
-  const cacheSiteIds = siteIds && siteIds.length > 0 ? [...siteIds].sort() : ["__all__"];
-  const key = "docTypeCounts:" + cacheSiteIds.join(",");
-  return cached(key, TTL, () => {
-    const db = getDb();
-    try {
-      const resolvedSiteIds = normalizeSiteIds(db, siteIds);
-      const rows =
-        resolvedSiteIds.length > 0
-          ? (db
-              .prepare(
-                `SELECT json_extract(metadata, '$.documentTypeName') AS documentTypeName,
-                        COUNT(*) AS count
-                 FROM documents
-                 WHERE site_id IN (${resolvedSiteIds.map(() => "?").join(",")})
-                 GROUP BY documentTypeName
-                 ORDER BY count DESC`
-              )
-              .all(...resolvedSiteIds) as DocTypeCount[])
-          : [];
-      return rows.filter((r) => r.documentTypeName);
-    } finally {
-      db.close();
-    }
-  });
+/**
+ * libertree has no `documentTypeName` metadata column. Returned empty
+ * for legacy compatibility — pages that rendered this filter degrade
+ * gracefully to an empty dropdown.
+ */
+export function getDocTypeCounts(_siteIds?: string[]): DocTypeCount[] {
+  void _siteIds;
+  return [];
 }
 
-export function getCategories(siteIds?: string[]): string[] {
-  if (getDbState(["documents"]).kind !== "ready") {
-    return [];
-  }
-
-  const cacheSiteIds = siteIds && siteIds.length > 0 ? [...siteIds].sort() : ["__all__"];
-  const key = "categories:" + cacheSiteIds.join(",");
-  return cached(key, TTL, () => {
-    const db = getDb();
-    try {
-      const resolvedSiteIds = normalizeSiteIds(db, siteIds);
-      const rows =
-        resolvedSiteIds.length > 0
-          ? (db
-              .prepare(
-                `SELECT DISTINCT json_extract(metadata, '$.category') AS category
-                 FROM documents
-                 WHERE site_id IN (${resolvedSiteIds.map(() => "?").join(",")})
-                   AND json_extract(metadata, '$.category') IS NOT NULL
-                   AND json_extract(metadata, '$.category') != ''
-                 ORDER BY category`
-              )
-              .all(...resolvedSiteIds) as { category: string }[])
-          : [];
-      return rows.map((r) => r.category).filter((c): c is string => Boolean(c));
-    } finally {
-      db.close();
-    }
-  });
+/**
+ * libertree has no `category` metadata column. Returned empty for
+ * legacy compatibility.
+ */
+export function getCategories(_siteIds?: string[]): string[] {
+  void _siteIds;
+  return [];
 }
 
 export interface DbStats {
   totalPapers: number;
-  customPapers: number;
+  pdfPapers: number;
+  txtPapers: number;
   totalSites: number;
   registeredSites: number;
   lastCrawled: string | null;
@@ -521,7 +474,8 @@ export function getDbStats(): DbStats {
   if (getDbState(["documents"]).kind !== "ready") {
     return {
       totalPapers: 0,
-      customPapers: 0,
+      pdfPapers: 0,
+      txtPapers: 0,
       totalSites: 0,
       registeredSites: 0,
       lastCrawled: null,
@@ -531,34 +485,319 @@ export function getDbStats(): DbStats {
   return cached("stats", TTL, () => {
     const db = getDb();
     try {
-      const total = (db.prepare(`SELECT COUNT(*) as c FROM documents`).get() as {
-        c: number;
-      }).c;
-      const customPapers = (db
+      const totals = db
         .prepare(
-          `SELECT COUNT(*) as c
-           FROM documents
-           WHERE site_id NOT IN ('nts-taxlaw-pd', 'nts-taxlaw-qt')`
+          `SELECT
+             COUNT(*) AS total,
+             SUM(CASE WHEN pdf_downloaded = 1 THEN 1 ELSE 0 END) AS pdf,
+             SUM(CASE WHEN text_extracted = 1 THEN 1 ELSE 0 END) AS txt,
+             COUNT(DISTINCT site_id) AS sites,
+             MAX(collected_at) AS last
+           FROM documents`,
         )
-        .get() as { c: number }).c;
-      const totalSites = (db
-        .prepare(`SELECT COUNT(DISTINCT site_id) as c FROM documents`)
-        .get() as { c: number }).c;
+        .get() as {
+          total: number;
+          pdf: number | null;
+          txt: number | null;
+          sites: number;
+          last: string | null;
+        };
       const registeredSites = hasTables(db, ["sites"])
         ? (db.prepare(`SELECT COUNT(*) as c FROM sites`).get() as {
             c: number;
           }).c
         : 0;
-      const last = db.prepare(`SELECT MAX(crawled_at) as last FROM documents`).get() as {
-        last: string | null;
-      };
       return {
-        totalPapers: total,
-        customPapers,
-        totalSites,
+        totalPapers: totals.total,
+        pdfPapers: totals.pdf ?? 0,
+        txtPapers: totals.txt ?? 0,
+        totalSites: totals.sites,
         registeredSites,
-        lastCrawled: last.last,
+        lastCrawled: totals.last,
       };
+    } finally {
+      db.close();
+    }
+  });
+}
+
+// ====================================================================
+// Global dashboard aggregations — group documents by sheet (via the
+// `sites` table) and roll up to continent / country / function-category
+// using lib/categories.ts. All counts come from a single JOIN so the
+// numbers are internally consistent.
+// ====================================================================
+
+export interface DashboardKPI {
+  totalDocs: number;
+  totalSites: number;
+  registeredSites: number;
+  pdfDocs: number;
+  txtDocs: number;
+  summarizedDocs: number;
+  lastCrawled: string | null;
+}
+
+export interface DashboardGroupRow {
+  /** Group label (e.g. "Europe", "프랑스", "Government"). */
+  label: string;
+  /** Distinct sites contributing to this group. */
+  sites: number;
+  /** Total docs aggregated in this group. */
+  docs: number;
+  pdf: number;
+  txt: number;
+  summarized: number;
+}
+
+export interface DashboardRecentSite {
+  site_id: string;
+  site_name: string;
+  sheet: string | null;
+  country: string;
+  continent: string;
+  category: string;
+  docs: number;
+  last_crawled: string | null;
+}
+
+export interface DashboardStats {
+  kpi: DashboardKPI;
+  byContinent: DashboardGroupRow[];
+  byCountry: DashboardGroupRow[];
+  byCategory: DashboardGroupRow[];
+  bySheet: DashboardGroupRow[];
+  recentSites: DashboardRecentSite[];
+  classification: {
+    totalSheets: number;
+    mappedSheets: number;
+    unmappedSheets: number;
+    unmappedList: string[];
+  };
+}
+
+interface SheetRollupRow {
+  site_id: string;
+  site_name: string;
+  sheet: string | null;
+  total: number;
+  pdf: number;
+  txt: number;
+  summarized: number;
+  last_crawled: string | null;
+}
+
+export function getDashboardStats(): DashboardStats {
+  if (getDbState(["documents"]).kind !== "ready") {
+    return {
+      kpi: {
+        totalDocs: 0,
+        totalSites: 0,
+        registeredSites: 0,
+        pdfDocs: 0,
+        txtDocs: 0,
+        summarizedDocs: 0,
+        lastCrawled: null,
+      },
+      byContinent: [],
+      byCountry: [],
+      byCategory: [],
+      bySheet: [],
+      recentSites: [],
+      classification: {
+        totalSheets: 0,
+        mappedSheets: 0,
+        unmappedSheets: 0,
+        unmappedList: [],
+      },
+    };
+  }
+
+  return cached("dashboardStats", TTL, () => {
+    const db = getDb();
+    try {
+      const stats = getDbStats();
+      const hasSites = hasTables(db, ["sites"]);
+      const selectSheet = hasSites ? "s.sheet" : "NULL";
+      const selectName = hasSites ? "COALESCE(s.site_name, d.site_id)" : "d.site_id";
+      const joinClause = hasSites ? "LEFT JOIN sites s ON s.site_id = d.site_id" : "";
+
+      const perSite = db
+        .prepare(
+          `SELECT d.site_id           AS site_id,
+                  ${selectName}        AS site_name,
+                  ${selectSheet}       AS sheet,
+                  COUNT(d.seq_id)      AS total,
+                  SUM(CASE WHEN d.pdf_downloaded = 1 THEN 1 ELSE 0 END) AS pdf,
+                  SUM(CASE WHEN d.text_extracted = 1 THEN 1 ELSE 0 END) AS txt,
+                  SUM(CASE WHEN d.summary IS NOT NULL AND d.summary != '' THEN 1 ELSE 0 END) AS summarized,
+                  MAX(d.collected_at)  AS last_crawled
+           FROM documents d
+           ${joinClause}
+           GROUP BY d.site_id`,
+        )
+        .all() as SheetRollupRow[];
+
+      // accumulate by group label
+      function mkRow(label: string): DashboardGroupRow {
+        return { label, sites: 0, docs: 0, pdf: 0, txt: 0, summarized: 0 };
+      }
+      const continentMap = new Map<string, DashboardGroupRow>();
+      const countryMap = new Map<string, DashboardGroupRow>();
+      const categoryMap = new Map<string, DashboardGroupRow>();
+      const sheetMap = new Map<string, DashboardGroupRow>();
+
+      for (const row of perSite) {
+        const cat = getCategoryForSheet(row.sheet);
+        const targets = [
+          continentMap.get(cat.continent) ?? continentMap.set(cat.continent, mkRow(cat.continent)).get(cat.continent)!,
+          countryMap.get(cat.country) ?? countryMap.set(cat.country, mkRow(cat.country)).get(cat.country)!,
+          categoryMap.get(cat.category) ?? categoryMap.set(cat.category, mkRow(cat.category)).get(cat.category)!,
+          sheetMap.get(cat.sheet) ?? sheetMap.set(cat.sheet, mkRow(cat.sheet)).get(cat.sheet)!,
+        ];
+        for (const t of targets) {
+          t.sites += 1;
+          t.docs += row.total | 0;
+          t.pdf += (row.pdf ?? 0) | 0;
+          t.txt += (row.txt ?? 0) | 0;
+          t.summarized += (row.summarized ?? 0) | 0;
+        }
+      }
+
+      const byContinent = ALL_CONTINENTS
+        .map((c) => continentMap.get(c))
+        .filter((r): r is DashboardGroupRow => !!r && r.docs > 0)
+        .sort((a, b) => b.docs - a.docs);
+
+      // include any extra continents that slipped through (shouldn't happen
+      // since getCategoryForSheet only returns ALL_CONTINENTS values).
+      for (const [k, v] of continentMap) {
+        if (!ALL_CONTINENTS.includes(k as Continent) && v.docs > 0) byContinent.push(v);
+      }
+
+      const byCategory = ALL_CATEGORIES
+        .map((c) => categoryMap.get(c))
+        .filter((r): r is DashboardGroupRow => !!r && r.docs > 0)
+        .sort((a, b) => b.docs - a.docs);
+      for (const [k, v] of categoryMap) {
+        if (!ALL_CATEGORIES.includes(k as SiteFunctionCategory) && v.docs > 0) byCategory.push(v);
+      }
+
+      const byCountry = Array.from(countryMap.values())
+        .filter((r) => r.docs > 0)
+        .sort((a, b) => b.docs - a.docs);
+
+      const bySheet = Array.from(sheetMap.values())
+        .filter((r) => r.docs > 0)
+        .sort((a, b) => b.docs - a.docs);
+
+      const recentSites: DashboardRecentSite[] = perSite
+        .filter((r) => !!r.last_crawled)
+        .sort((a, b) => (b.last_crawled ?? "").localeCompare(a.last_crawled ?? ""))
+        .slice(0, 8)
+        .map((r) => {
+          const cat = getCategoryForSheet(r.sheet);
+          return {
+            site_id: r.site_id,
+            site_name: r.site_name,
+            sheet: r.sheet,
+            country: cat.country,
+            continent: cat.continent,
+            category: cat.category,
+            docs: r.total,
+            last_crawled: r.last_crawled,
+          };
+        });
+
+      // classification coverage — based on registered sites, not docs.
+      const registered = hasSites
+        ? (db.prepare(`SELECT sheet FROM sites`).all() as { sheet: string | null }[])
+        : perSite.map((r) => ({ sheet: r.sheet }));
+      const cs = classificationStats(registered.map((r) => r.sheet));
+
+      const kpi: DashboardKPI = {
+        totalDocs: stats.totalPapers,
+        totalSites: stats.totalSites,
+        registeredSites: stats.registeredSites,
+        pdfDocs: stats.pdfPapers,
+        txtDocs: stats.txtPapers,
+        summarizedDocs: perSite.reduce((acc, r) => acc + (r.summarized ?? 0), 0),
+        lastCrawled: stats.lastCrawled,
+      };
+
+      return {
+        kpi,
+        byContinent,
+        byCountry,
+        byCategory,
+        bySheet,
+        recentSites,
+        classification: {
+          totalSheets: cs.total,
+          mappedSheets: cs.mapped,
+          unmappedSheets: cs.unmapped,
+          unmappedList: cs.unmappedSheets,
+        },
+      };
+    } finally {
+      db.close();
+    }
+  });
+}
+
+// ====================================================================
+// Site option enrichment — used by the search page filters so we can
+// drive continent/country/category dropdowns without re-querying.
+// ====================================================================
+
+export interface SiteOptionRich {
+  site_id: string;
+  site_name: string;
+  sheet: string | null;
+  country: string;
+  countryCode: string;
+  continent: Continent;
+  category: SiteFunctionCategory;
+  docs: number;
+}
+
+export function getSiteOptionsRich(): SiteOptionRich[] {
+  if (getDbState(["documents"]).kind !== "ready") return [];
+
+  return cached("siteOptionsRich", TTL, () => {
+    const db = getDb();
+    try {
+      const hasSites = hasTables(db, ["sites"]);
+      const selectSheet = hasSites ? "s.sheet" : "NULL";
+      const selectName = hasSites ? "COALESCE(s.site_name, d.site_id)" : "d.site_id";
+      const joinClause = hasSites ? "LEFT JOIN sites s ON s.site_id = d.site_id" : "";
+
+      const rows = db
+        .prepare(
+          `SELECT d.site_id          AS site_id,
+                  ${selectName}       AS site_name,
+                  ${selectSheet}      AS sheet,
+                  COUNT(d.seq_id)     AS docs
+           FROM documents d
+           ${joinClause}
+           GROUP BY d.site_id
+           ORDER BY docs DESC, d.site_id ASC`,
+        )
+        .all() as { site_id: string; site_name: string; sheet: string | null; docs: number }[];
+
+      return rows.map((r) => {
+        const cat = getCategoryForSheet(r.sheet);
+        return {
+          site_id: r.site_id,
+          site_name: r.site_name,
+          sheet: r.sheet,
+          country: cat.country,
+          countryCode: cat.countryCode,
+          continent: cat.continent,
+          category: cat.category,
+          docs: r.docs,
+        };
+      });
     } finally {
       db.close();
     }
@@ -576,12 +815,12 @@ export function getAllSitesSummary(): SiteCount[] {
       const rows = db
         .prepare(
           `SELECT d.site_id as site_id,
-                  COALESCE(s.name, d.site_id) as site_name,
-                  COUNT(d.id) as count,
-                  MAX(d.crawled_at) as last_crawled
+                  COALESCE(s.site_name, d.site_id) as site_name,
+                  COUNT(d.seq_id) as count,
+                  MAX(d.collected_at) as last_crawled
            FROM documents d
-           LEFT JOIN sites s ON d.site_id = s.id
-           GROUP BY d.site_id, COALESCE(s.name, d.site_id)
+           LEFT JOIN sites s ON s.site_id = d.site_id
+           GROUP BY d.site_id, COALESCE(s.site_name, d.site_id)
            ORDER BY count DESC, site_id ASC`
         )
         .all() as SiteCount[];
@@ -615,7 +854,7 @@ export function getRecentPapers(siteId?: string, limit = 20): Paper[] {
               `SELECT ${DOC_COLS_FULL}
                FROM documents
                WHERE site_id = ?
-               ORDER BY crawled_at DESC, published_date DESC
+               ORDER BY collected_at DESC, published_date DESC
                LIMIT ?`
             )
             .all(siteId, safeLimit) as DocRow[])
@@ -623,7 +862,7 @@ export function getRecentPapers(siteId?: string, limit = 20): Paper[] {
             .prepare(
               `SELECT ${DOC_COLS_FULL}
                FROM documents
-               ORDER BY crawled_at DESC, published_date DESC
+               ORDER BY collected_at DESC, published_date DESC
                LIMIT ?`
             )
             .all(safeLimit) as DocRow[]);
@@ -636,23 +875,6 @@ export function getRecentPapers(siteId?: string, limit = 20): Paper[] {
 
 function escapeMarkdown(value: string): string {
   return value.replace(/\\/g, "\\\\").replace(/([*_`#[\]])/g, "\\$1");
-}
-
-function toBulletList(value: unknown): string[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-  return value
-    .map((item) => {
-      if (typeof item === "string") {
-        return item;
-      }
-      if (item && typeof item === "object" && "name" in item && typeof item.name === "string") {
-        return item.name;
-      }
-      return null;
-    })
-    .filter((item): item is string => Boolean(item));
 }
 
 export function renderPapersMarkdown(papers: Paper[], title: string): string {
@@ -670,22 +892,12 @@ export function renderPapersMarkdown(papers: Paper[], title: string): string {
   }
 
   papers.forEach((paper, index) => {
-    const metadata = parseMetadata(paper.metadata);
-    const relatedLaws = toBulletList(metadata.relatedLaws);
-    const relatedTopics = toBulletList(metadata.relatedTopics);
-
     lines.push(`## ${index + 1}. ${escapeMarkdown(paper.title || "(제목 없음)")}`);
     lines.push("");
     lines.push(`- ID: \`${paper.id}\``);
     lines.push(`- Site: \`${paper.site_id}\``);
-    if (metadata.documentTypeName) {
-      lines.push(`- Type: ${escapeMarkdown(String(metadata.documentTypeName))}`);
-    }
-    if (metadata.documentNumber) {
-      lines.push(`- Document Number: ${escapeMarkdown(String(metadata.documentNumber))}`);
-    }
-    if (paper.category) {
-      lines.push(`- Category: ${escapeMarkdown(paper.category)}`);
+    if (paper.external_id) {
+      lines.push(`- Post number: ${escapeMarkdown(paper.external_id)}`);
     }
     if (paper.published_date) {
       lines.push(`- Published: ${paper.published_date}`);
@@ -697,11 +909,14 @@ export function renderPapersMarkdown(papers: Paper[], title: string): string {
     if (paper.pdf_url) {
       lines.push(`- Attachment: ${paper.pdf_url}`);
     }
-    if (relatedLaws.length > 0) {
-      lines.push(`- Related Laws: ${relatedLaws.map((law) => escapeMarkdown(law)).join(", ")}`);
+    if (paper.authors) {
+      lines.push(`- Authors: ${escapeMarkdown(paper.authors)}`);
     }
-    if (relatedTopics.length > 0) {
-      lines.push(`- Related Topics: ${relatedTopics.map((topic) => escapeMarkdown(topic)).join(", ")}`);
+    if (paper.department) {
+      lines.push(`- Publisher: ${escapeMarkdown(paper.department)}`);
+    }
+    if (paper.keywords) {
+      lines.push(`- Keywords: ${escapeMarkdown(paper.keywords)}`);
     }
     lines.push("");
     if (paper.abstract) {
@@ -714,62 +929,235 @@ export function renderPapersMarkdown(papers: Paper[], title: string): string {
 }
 
 // ====================================================================
-// livertree: documents 테이블 (글로벌 INTEGER PK + 12자리 파일 매핑)
-// docs/livertree.md 와 crawler/db.py 의 documents 스키마와 1:1 대응.
+// libertree: documents 테이블 (글로벌 INTEGER PK + 12자리 파일 매핑)
+// docs/libertree.md 와 crawler/db_libertree.py 의 documents 스키마와
+// 1:1 대응한다.
 // ====================================================================
 
-export interface LivertreeDocument {
-  id: number;
-  crawled_at: string;
+export interface LibertreeDocument {
+  seq_id: number;
+  collected_at: string;
   site_id: string;
-  external_id: string | null;
+  post_number: string | null;
   meta_url: string | null;
   title: string | null;
   published_date: string | null;
-  posted_date: string | null;
-  authors: string | null;       // "; " separated
-  publisher: string | null;     // "; " separated
+  listed_date: string | null;
+  authors: string | null;       // ";" separated
+  publisher: string | null;     // ";" separated
   journal: string | null;
   pdf_url: string | null;
-  keywords: string | null;      // ", " separated
+  keywords: string | null;      // "," separated
   abstract: string | null;
   original_filename: string | null;
-  pdf_path: string | null;      // data/AAAA/BBBB/N.pdf
-  txt_path: string | null;
-  download_status: string | null;
+  pdf_downloaded: number | null;
+  text_extracted: number | null;
+  pdf_size_bytes: number | null;
+  pdf_sha256: string | null;
   summary: string | null;
+  summary_model: string | null;
+  summary_at: string | null;
+  // back-compat alias for components that still reference `.id`
+  id: number;
 }
 
 const DOCUMENT_COLUMNS = `
-  id, crawled_at, site_id, external_id, meta_url, title,
-  published_date, posted_date, authors, publisher, journal,
+  seq_id, collected_at, site_id, post_number, meta_url, title,
+  published_date, listed_date, authors, publisher, journal,
   pdf_url, keywords, abstract, original_filename,
-  pdf_path, txt_path, download_status, summary
+  pdf_downloaded, text_extracted, pdf_size_bytes, pdf_sha256,
+  summary, summary_model, summary_at
 `;
 
-export function getRecentDocuments(limit = 50): LivertreeDocument[] {
+function toLibertreeDocument(row: DocRow): LibertreeDocument {
+  return {
+    seq_id: row.seq_id,
+    collected_at: row.collected_at,
+    site_id: row.site_id,
+    post_number: row.post_number,
+    meta_url: row.meta_url,
+    title: row.title,
+    published_date: row.published_date,
+    listed_date: row.listed_date,
+    authors: row.authors,
+    publisher: row.publisher,
+    journal: row.journal,
+    pdf_url: row.pdf_url,
+    keywords: row.keywords,
+    abstract: row.abstract,
+    original_filename: row.original_filename,
+    pdf_downloaded: row.pdf_downloaded,
+    text_extracted: row.text_extracted,
+    pdf_size_bytes: row.pdf_size_bytes,
+    pdf_sha256: row.pdf_sha256,
+    summary: row.summary,
+    summary_model: row.summary_model,
+    summary_at: row.summary_at,
+    id: row.seq_id,
+  };
+}
+
+export function getRecentDocuments(limit = 50): LibertreeDocument[] {
   const db = getDb();
   try {
     if (!hasTables(db, ["documents"])) return [];
-    return db
+    const rows = db
       .prepare(
         `SELECT ${DOCUMENT_COLUMNS} FROM documents
-         ORDER BY id DESC
+         ORDER BY seq_id DESC
          LIMIT ?`
       )
-      .all(limit) as LivertreeDocument[];
+      .all(limit) as DocRow[];
+    return rows.map(toLibertreeDocument);
   } finally {
     db.close();
   }
 }
 
-export function getDocumentById(id: number): LivertreeDocument | null {
+export function getDocumentById(id: number): LibertreeDocument | null {
   const db = getDb();
   try {
     if (!hasTables(db, ["documents"])) return null;
     const row = db
-      .prepare(`SELECT ${DOCUMENT_COLUMNS} FROM documents WHERE id = ?`)
-      .get(id) as LivertreeDocument | undefined;
+      .prepare(`SELECT ${DOCUMENT_COLUMNS} FROM documents WHERE seq_id = ?`)
+      .get(id) as DocRow | undefined;
+    return row ? toLibertreeDocument(row) : null;
+  } finally {
+    db.close();
+  }
+}
+
+// ====================================================================
+// Document detail (UI-friendly) — JOIN sites + check blob existence.
+// Used by /search/[id] and /admin/document/[seq_id].
+// ====================================================================
+
+export interface DocumentDetail extends LibertreeDocument {
+  site_name: string | null;
+  site_url: string | null;
+  blob_pdf_path: string;
+  blob_txt_path: string;
+  blob_pdf_abs: string;
+  blob_txt_abs: string;
+  blob_pdf_exists: boolean;
+  blob_txt_exists: boolean;
+  blob_pdf_disk_size: number | null;
+  blob_txt_disk_size: number | null;
+}
+
+interface DocDetailRow extends DocRow {
+  site_name: string | null;
+  site_url: string | null;
+}
+
+export function getDocumentDetail(seqId: number): DocumentDetail | null {
+  if (!Number.isInteger(seqId) || seqId < 0 || seqId >= 1e12) return null;
+  if (getDbState(["documents"]).kind !== "ready") return null;
+
+  const db = getDb();
+  let row: DocDetailRow | undefined;
+  try {
+    const hasSites = hasTables(db, ["sites"]);
+    const select = hasSites
+      ? `SELECT ${DOCUMENT_COLUMNS}, s.site_name AS site_name, s.site_url AS site_url
+         FROM documents d
+         LEFT JOIN sites s ON s.site_id = d.site_id
+         WHERE d.seq_id = ?`
+      : `SELECT ${DOCUMENT_COLUMNS}, NULL AS site_name, NULL AS site_url
+         FROM documents WHERE seq_id = ?`;
+    // For the JOIN form we need column references against `d.*` — re-issue the SELECT
+    // using qualified column list when sites table exists.
+    if (hasSites) {
+      const qualified = `
+        d.seq_id, d.collected_at, d.site_id, d.post_number, d.meta_url, d.title,
+        d.published_date, d.listed_date, d.authors, d.publisher, d.journal,
+        d.pdf_url, d.keywords, d.abstract, d.original_filename,
+        d.pdf_downloaded, d.text_extracted, d.pdf_size_bytes, d.pdf_sha256,
+        d.summary, d.summary_model, d.summary_at,
+        s.site_name AS site_name, s.site_url AS site_url
+      `;
+      row = db
+        .prepare(
+          `SELECT ${qualified}
+           FROM documents d
+           LEFT JOIN sites s ON s.site_id = d.site_id
+           WHERE d.seq_id = ?`
+        )
+        .get(seqId) as DocDetailRow | undefined;
+    } else {
+      row = db.prepare(select).get(seqId) as DocDetailRow | undefined;
+    }
+  } finally {
+    db.close();
+  }
+
+  if (!row) return null;
+
+  const pdfPath = blobPath(seqId, "pdf");
+  const txtPath = blobPath(seqId, "txt");
+  // libertree/ lives at project root (one level up from finolaw/).
+  const projectRoot = path.join(process.cwd(), "..");
+  const pdfAbs = path.join(projectRoot, pdfPath);
+  const txtAbs = path.join(projectRoot, txtPath);
+
+  let pdfExists = false;
+  let txtExists = false;
+  let pdfDiskSize: number | null = null;
+  let txtDiskSize: number | null = null;
+  try {
+    const st = fs.statSync(pdfAbs);
+    pdfExists = st.isFile();
+    pdfDiskSize = pdfExists ? st.size : null;
+  } catch {
+    /* missing */
+  }
+  try {
+    const st = fs.statSync(txtAbs);
+    txtExists = st.isFile();
+    txtDiskSize = txtExists ? st.size : null;
+  } catch {
+    /* missing */
+  }
+
+  const base = toLibertreeDocument(row);
+  return {
+    ...base,
+    site_name: row.site_name ?? null,
+    site_url: row.site_url ?? null,
+    blob_pdf_path: pdfPath,
+    blob_txt_path: txtPath,
+    blob_pdf_abs: pdfAbs,
+    blob_txt_abs: txtAbs,
+    blob_pdf_exists: pdfExists,
+    blob_txt_exists: txtExists,
+    blob_pdf_disk_size: pdfDiskSize,
+    blob_txt_disk_size: txtDiskSize,
+  };
+}
+
+/**
+ * Resolve the absolute filesystem path for a blob, validating seq_id.
+ * Throws RangeError for out-of-range ids. Used by the blob streaming route.
+ */
+export function blobAbsolutePath(seqId: number, ext: "pdf" | "txt"): string {
+  return path.join(process.cwd(), "..", blobPath(seqId, ext));
+}
+
+/** Look up the original_filename + site_id for the blob download header. */
+export function getDocumentBlobInfo(
+  seqId: number
+): { original_filename: string | null; site_id: string } | null {
+  if (!Number.isInteger(seqId) || seqId < 0 || seqId >= 1e12) return null;
+  if (getDbState(["documents"]).kind !== "ready") return null;
+  const db = getDb();
+  try {
+    const row = db
+      .prepare(
+        `SELECT original_filename, site_id FROM documents WHERE seq_id = ?`
+      )
+      .get(seqId) as
+      | { original_filename: string | null; site_id: string }
+      | undefined;
     return row ?? null;
   } finally {
     db.close();
@@ -777,7 +1165,7 @@ export function getDocumentById(id: number): LivertreeDocument | null {
 }
 
 export interface SearchDocumentsParams {
-  query?: string;        // matched against title/abstract/authors (LIKE)
+  query?: string;        // matched against title/abstract/authors/keywords (LIKE)
   siteId?: string;
   limit?: number;
   offset?: number;
@@ -788,7 +1176,7 @@ export function searchDocuments({
   siteId,
   limit = 50,
   offset = 0,
-}: SearchDocumentsParams = {}): LivertreeDocument[] {
+}: SearchDocumentsParams = {}): LibertreeDocument[] {
   const db = getDb();
   try {
     if (!hasTables(db, ["documents"])) return [];
@@ -805,14 +1193,15 @@ export function searchDocuments({
     }
     const where = wheres.length ? `WHERE ${wheres.join(" AND ")}` : "";
     params.push(limit, offset);
-    return db
+    const rows = db
       .prepare(
         `SELECT ${DOCUMENT_COLUMNS} FROM documents
          ${where}
-         ORDER BY id DESC
+         ORDER BY seq_id DESC
          LIMIT ? OFFSET ?`
       )
-      .all(...params) as LivertreeDocument[];
+      .all(...params) as DocRow[];
+    return rows.map(toLibertreeDocument);
   } finally {
     db.close();
   }
@@ -859,6 +1248,8 @@ export function splitPublishers(publisher: string | null): string[] {
 
 // ====================================================================
 // /admin/status — per-site collection progress
+// libertree uses INTEGER flag columns (pdf_downloaded, text_extracted)
+// instead of the old papers.db `download_status` / `txt_path` columns.
 // ====================================================================
 
 export interface SiteProgress {
@@ -888,15 +1279,15 @@ export function getCollectionProgress(): SiteProgress[] {
       const rows = db
         .prepare(
           `SELECT d.site_id AS site_id,
-                  COALESCE(s.name, d.site_id) AS site_name,
-                  COUNT(d.id) AS total,
-                  SUM(CASE WHEN d.download_status = 'downloaded' THEN 1 ELSE 0 END) AS downloaded,
-                  SUM(CASE WHEN d.txt_path IS NOT NULL AND d.txt_path != '' THEN 1 ELSE 0 END) AS converted,
+                  COALESCE(s.site_name, d.site_id) AS site_name,
+                  COUNT(d.seq_id) AS total,
+                  SUM(CASE WHEN d.pdf_downloaded = 1 THEN 1 ELSE 0 END) AS downloaded,
+                  SUM(CASE WHEN d.text_extracted = 1 THEN 1 ELSE 0 END) AS converted,
                   SUM(CASE WHEN d.summary IS NOT NULL AND d.summary != '' THEN 1 ELSE 0 END) AS summarized,
-                  MAX(d.crawled_at) AS last_crawled
+                  MAX(d.collected_at) AS last_crawled
            FROM documents d
-           LEFT JOIN sites s ON s.id = d.site_id
-           GROUP BY d.site_id, COALESCE(s.name, d.site_id)
+           LEFT JOIN sites s ON s.site_id = d.site_id
+           GROUP BY d.site_id, COALESCE(s.site_name, d.site_id)
            ORDER BY total DESC, site_id ASC`
         )
         .all() as SiteProgress[];
@@ -915,7 +1306,7 @@ export interface SummaryFilter {
 }
 
 export interface SummaryListResult {
-  documents: LivertreeDocument[];
+  documents: LibertreeDocument[];
   total: number;
   limit: number;
   offset: number;
@@ -957,12 +1348,17 @@ export function getDocumentsBySummaryStatus({
       .prepare(
         `SELECT ${DOCUMENT_COLUMNS} FROM documents
          ${where}
-         ORDER BY id DESC
+         ORDER BY seq_id DESC
          LIMIT ? OFFSET ?`,
       )
-      .all(...params, limit, offset) as LivertreeDocument[];
+      .all(...params, limit, offset) as DocRow[];
 
-    return { documents: rows, total, limit, offset };
+    return {
+      documents: rows.map(toLibertreeDocument),
+      total,
+      limit,
+      offset,
+    };
   } finally {
     db.close();
   }
@@ -980,4 +1376,231 @@ export function getCollectionTotals(): CollectionTotals {
     }),
     { total: 0, downloaded: 0, converted: 0, summarized: 0, sites: 0 },
   );
+}
+
+// ===========================================================================
+// Collection report (input -> registered -> collected funnel + gap analysis)
+// ===========================================================================
+
+export interface SiteGap {
+  site_id: string;
+  total: number;
+  pdf_downloaded: number;
+  pdf_failed: number;
+  no_pdf_url: number;
+}
+
+export interface RecoveryCategory {
+  category: string;
+  count: number;
+}
+
+export interface CollectionReport {
+  inputEntries: number;
+  inputUniqueHosts: number;
+  registeredCrawlers: number;
+  collectedSites: number;
+  totalDocs: number;
+  totalPdfDownloaded: number;
+  totalTextExtracted: number;
+  totalSummary: number;
+  totalPdfFailed: number;
+  totalNoPdfUrl: number;
+  siteGaps: SiteGap[];
+  recoveryCategories: RecoveryCategory[];
+}
+
+function countCsvRows(absPath: string): number {
+  try {
+    if (!fs.existsSync(absPath)) return 0;
+    const data = fs.readFileSync(absPath, "utf-8");
+    const lines = data.split(/\r?\n/).filter((l) => l.trim().length > 0);
+    return Math.max(0, lines.length - 1); // header
+  } catch {
+    return 0;
+  }
+}
+
+function countCsvUniqueHosts(absPath: string, hostCol: string): number {
+  try {
+    if (!fs.existsSync(absPath)) return 0;
+    const data = fs.readFileSync(absPath, "utf-8");
+    const lines = data.split(/\r?\n/);
+    if (lines.length < 2) return 0;
+    // Strip UTF-8 BOM if present
+    const headerLine = lines[0].replace(/^﻿/, "");
+    const header = headerLine.split(",");
+    const idx = header.indexOf(hostCol);
+    if (idx < 0) return 0;
+    const set = new Set<string>();
+    for (let i = 1; i < lines.length; i++) {
+      const ln = lines[i];
+      if (!ln) continue;
+      const cols = ln.split(",");
+      const v = (cols[idx] || "").trim();
+      if (v) set.add(v);
+    }
+    return set.size;
+  } catch {
+    return 0;
+  }
+}
+
+function readCsvCategoryCounts(absPath: string, catCol: string): RecoveryCategory[] {
+  try {
+    if (!fs.existsSync(absPath)) return [];
+    const data = fs.readFileSync(absPath, "utf-8");
+    const lines = data.split(/\r?\n/);
+    if (lines.length < 2) return [];
+    const headerLine = lines[0].replace(/^﻿/, "");
+    const header = headerLine.split(",");
+    const idx = header.indexOf(catCol);
+    if (idx < 0) return [];
+    const counts = new Map<string, number>();
+    for (let i = 1; i < lines.length; i++) {
+      const ln = lines[i];
+      if (!ln) continue;
+      const cols = ln.split(",");
+      const v = (cols[idx] || "").trim();
+      if (!v) continue;
+      counts.set(v, (counts.get(v) || 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .map(([category, count]) => ({ category, count }))
+      .sort((a, b) => b.count - a.count);
+  } catch {
+    return [];
+  }
+}
+
+function countRegisteredCrawlers(): number {
+  try {
+    const projectRoot = path.resolve(process.cwd(), "..");
+    const customDir = path.join(projectRoot, "crawler", "sites", "custom");
+    const configsDir = path.join(projectRoot, "crawler", "sites", "configs");
+    let n = 3; // ntrs, mohw, fsc built-in
+    if (fs.existsSync(customDir)) {
+      const files = fs.readdirSync(customDir);
+      n += files.filter((f) => f.endsWith(".py") && !f.startsWith("_")).length;
+    }
+    if (fs.existsSync(configsDir)) {
+      const files = fs.readdirSync(configsDir);
+      n += files.filter((f) => f.endsWith(".json")).length;
+    }
+    return n;
+  } catch {
+    return 0;
+  }
+}
+
+export interface SiteGapDiagnosis {
+  gap_count: number;
+  samples: number;
+  dominant: string;
+  reasons: Record<string, number>;
+}
+
+export function getPdfGapDiagnosis(): Record<string, SiteGapDiagnosis> {
+  try {
+    const p = path.resolve(process.cwd(), "..", "data", "audit", "pdf_gap_diagnosis.json");
+    if (!fs.existsSync(p)) return {};
+    const raw = JSON.parse(fs.readFileSync(p, "utf-8")) as {
+      sites?: Record<string, SiteGapDiagnosis>;
+    };
+    return raw.sites || {};
+  } catch {
+    return {};
+  }
+}
+
+export const PDF_GAP_REASON_LABEL: Record<string, string> = {
+  retry_ok: "🟢 일시오류 (재시도 가능)",
+  embargo_html: "🟡 HTML landing (embargo 가능성)",
+  permanent_404: "🔴 영구 404",
+  client_error: "🔴 4xx 오류",
+  server_error: "🟠 5xx 오류",
+  timeout: "🟠 timeout",
+  conn_error: "🟠 연결 실패",
+  ssl_error: "🟠 SSL 오류",
+  no_url: "📄 pdf_url 없음",
+  other: "❓ 기타",
+};
+
+export function getCollectionReport(): CollectionReport {
+  if (getDbState(["documents"]).kind !== "ready") {
+    return {
+      inputEntries: 0,
+      inputUniqueHosts: 0,
+      registeredCrawlers: 0,
+      collectedSites: 0,
+      totalDocs: 0,
+      totalPdfDownloaded: 0,
+      totalTextExtracted: 0,
+      totalSummary: 0,
+      totalPdfFailed: 0,
+      totalNoPdfUrl: 0,
+      siteGaps: [],
+      recoveryCategories: [],
+    };
+  }
+
+  return cached("collectionReport", TTL, () => {
+    const projectRoot = path.resolve(process.cwd(), "..");
+    const coverageCsv = path.join(projectRoot, "data", "audit", "coverage_report.csv");
+    const recoveryCsv = path.join(projectRoot, "data", "audit", "site_recovery_plan.csv");
+
+    const inputEntries = countCsvRows(coverageCsv);
+    const inputUniqueHosts = countCsvUniqueHosts(coverageCsv, "host");
+    const recoveryCategories = readCsvCategoryCounts(recoveryCsv, "recovery_category");
+    const registeredCrawlers = countRegisteredCrawlers();
+
+    const db = getDb();
+    try {
+      const totals = db
+        .prepare(
+          `SELECT COUNT(*) AS docs,
+                  SUM(CASE WHEN pdf_downloaded=1 THEN 1 ELSE 0 END) AS pdfs,
+                  SUM(CASE WHEN text_extracted=1 THEN 1 ELSE 0 END) AS txts,
+                  SUM(CASE WHEN COALESCE(summary,'')!='' THEN 1 ELSE 0 END) AS sums,
+                  SUM(CASE WHEN COALESCE(pdf_url,'')!='' AND pdf_downloaded=0 THEN 1 ELSE 0 END) AS pdf_fail,
+                  SUM(CASE WHEN COALESCE(pdf_url,'')='' THEN 1 ELSE 0 END) AS no_pdf_url,
+                  COUNT(DISTINCT site_id) AS sites
+           FROM documents`
+        )
+        .get() as {
+          docs: number; pdfs: number; txts: number; sums: number;
+          pdf_fail: number; no_pdf_url: number; sites: number;
+        };
+
+      const siteGaps = db
+        .prepare(
+          `SELECT site_id,
+                  COUNT(*) AS total,
+                  SUM(CASE WHEN pdf_downloaded=1 THEN 1 ELSE 0 END) AS pdf_downloaded,
+                  SUM(CASE WHEN COALESCE(pdf_url,'')!='' AND pdf_downloaded=0 THEN 1 ELSE 0 END) AS pdf_failed,
+                  SUM(CASE WHEN COALESCE(pdf_url,'')='' THEN 1 ELSE 0 END) AS no_pdf_url
+           FROM documents
+           GROUP BY site_id
+           ORDER BY total DESC`
+        )
+        .all() as SiteGap[];
+
+      return {
+        inputEntries,
+        inputUniqueHosts,
+        registeredCrawlers,
+        collectedSites: totals.sites | 0,
+        totalDocs: totals.docs | 0,
+        totalPdfDownloaded: totals.pdfs | 0,
+        totalTextExtracted: totals.txts | 0,
+        totalSummary: totals.sums | 0,
+        totalPdfFailed: totals.pdf_fail | 0,
+        totalNoPdfUrl: totals.no_pdf_url | 0,
+        siteGaps,
+        recoveryCategories,
+      };
+    } finally {
+      db.close();
+    }
+  });
 }

@@ -90,17 +90,45 @@ class BaseCrawler(ABC):
     def _save_paper(self, paper_dict):
         """Persist a crawled item.
 
-        On the livertree branch this transparently routes ALL legacy
-        ``paper_dict`` payloads through the adapter and into the new
-        ``documents`` table — this lets every existing site crawler keep
-        its current calling convention (``self._save_paper(paper_dict)``)
-        while gaining the global INTEGER sequence + 12-digit folder layout.
+        Routing (Phase A — libertree.db):
 
-        Returns the integer ``documents.id`` assigned to the row.
+        - If the bound connection is the new ``data/libertree.db`` (detected
+          via the presence of ``documents.seq_id``), the legacy
+          ``paper_dict`` is passed through the libertree adapter and then
+          mapped onto the new schema's columns (``meta_url``, ``listed_date``,
+          ``post_number`` ←``external_id``, etc) and inserted via
+          :meth:`_save_paper_v2`. Returns the new ``seq_id``.
+
+        - Otherwise (legacy ``data/papers.db`` connection), the existing
+          ``paper_to_document`` adapter + ``upsert_document`` flow is kept
+          for backward compatibility with every site crawler that was
+          already on the legacy libertree branch. Returns the legacy
+          ``documents.id``.
         """
-        from . import livertree_adapter
+        from . import libertree_adapter
         paper_dict.setdefault("site_id", self.site_id)
-        doc_dict = livertree_adapter.paper_to_document(paper_dict)
+        doc_dict = libertree_adapter.paper_to_document(paper_dict)
+
+        if self._conn_is_libertree():
+            # Map legacy/adapter dict → new libertree.db documents columns.
+            v2_doc = {
+                "site_id": doc_dict.get("site_id"),
+                "post_number": doc_dict.get("external_id"),
+                "meta_url": doc_dict.get("meta_url") or doc_dict.get("pdf_url") or "",
+                "title": doc_dict.get("title") or "(untitled)",
+                "published_date": doc_dict.get("published_date"),
+                "listed_date": doc_dict.get("posted_date"),
+                "authors": doc_dict.get("authors"),
+                "publisher": doc_dict.get("publisher"),
+                "journal": doc_dict.get("journal"),
+                "pdf_url": doc_dict.get("pdf_url"),
+                "keywords": doc_dict.get("keywords"),
+                "abstract": doc_dict.get("abstract"),
+                "original_filename": doc_dict.get("original_filename"),
+                "summary": doc_dict.get("summary"),
+            }
+            return self._save_paper_v2(v2_doc)
+
         return self._save_document(doc_dict)
 
     def _save_paper_legacy(self, paper_dict):
@@ -130,3 +158,42 @@ class BaseCrawler(ABC):
         """
         doc_dict.setdefault("site_id", self.site_id)
         return db_module.upsert_document(self._conn, doc_dict)
+
+    # ------------------------------------------------------------------
+    # libertree v2 — INSERT into the new ``data/libertree.db`` schema
+    # ------------------------------------------------------------------
+
+    def _save_paper_v2(self, doc):
+        """Insert into ``data/libertree.db``'s ``documents`` table.
+
+        ``doc`` keys map directly to documents columns (except ``seq_id``,
+        which is auto-assigned). ``site_id`` defaults to ``self.site_id``.
+        Required: ``meta_url``, ``title``.
+
+        Returns the assigned (or pre-existing dedup-matched) ``seq_id``.
+
+        This bypasses the legacy ``papers``/``documents`` tables entirely.
+        Called from :meth:`_save_paper` when the bound connection points
+        at libertree.db. Callers can also invoke it directly when the
+        crawler explicitly opens a libertree connection.
+        """
+        from . import db_libertree as _ldb
+        if not isinstance(doc, dict):
+            raise TypeError("doc must be a dict")
+        doc.setdefault("site_id", self.site_id)
+        return _ldb.insert_document(self._conn, doc)
+
+    def _conn_is_libertree(self):
+        """Return True if the bound DB connection looks like libertree.db.
+
+        Detection is best-effort: we look for the ``documents.seq_id``
+        column (libertree-only) and the absence of ``papers`` (legacy-only).
+        """
+        try:
+            cur = self._conn.execute("PRAGMA table_info(documents)")
+            cols = {r[1] for r in cur.fetchall()}
+            if "seq_id" in cols:
+                return True
+        except Exception:
+            return False
+        return False

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""LLM-based summarization for livertree documents.
+"""LLM-based summarization for libertree documents.
 
 Mirrors the provider-abstraction shape of ``crawler/llm_providers.py`` but
 emits a plain Korean text summary instead of a JSON descriptor.
@@ -19,8 +19,44 @@ import os
 from typing import Optional
 
 
-OPENAI_MODEL = "gpt-5.4-mini"
+# Model selection — override with SUMMARIZER_MODEL env var. Default is
+# gpt-5.4-mini: verified available via OpenAI API key, non-reasoning model
+# (no token-budget surprises), produces clean Korean summaries.
+# gpt-5.5-mini may become available later — set SUMMARIZER_MODEL=gpt-5.5-mini
+# to opt in. We exclude gpt-5-mini from the fallback chain because, as a
+# reasoning model, it tends to echo source text rather than condense it
+# unless given a much larger token budget than 5.4-mini needs.
+SUMMARIZER_MODEL = os.environ.get("SUMMARIZER_MODEL", "gpt-5.4-mini")
+SUMMARIZER_FALLBACK_CHAIN = ["gpt-5.4-mini", "gpt-4o-mini"]
 GEMINI_MODEL = "gemini-2.5-flash"
+
+
+def _is_gpt5_family(model: str) -> bool:
+    """gpt-5.x rejects `temperature` (only default 1 allowed) and prefers
+    `max_completion_tokens` over `max_tokens`. Detect the family by name."""
+    m = (model or "").lower()
+    return m.startswith("gpt-5") or "gpt-5." in m
+
+
+def _summarize_with_model(client, model: str, text: str, title: Optional[str]) -> Optional[str]:
+    # gpt-5.x mini variants are reasoning models — internal reasoning_tokens
+    # consume the completion budget before any visible text is emitted, so
+    # 400 was too tight (e.g. 192 reasoning + 0 output → empty content).
+    # Use 800 for the gpt-5.x family, keep 400 for older models.
+    is_gpt5 = _is_gpt5_family(model)
+    kwargs = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": _build_user_prompt(text, title)},
+        ],
+        "max_completion_tokens": 800 if is_gpt5 else 400,
+    }
+    # gpt-5.x family rejects temperature != 1; only set for older models.
+    if not is_gpt5:
+        kwargs["temperature"] = 0.2
+    response = client.chat.completions.create(**kwargs)
+    return _clean(response.choices[0].message.content)
 
 # Hard cap on input characters fed to the model. Korean admin documents
 # routinely exceed model context windows; truncating here keeps the cost
@@ -54,22 +90,43 @@ def _summarize_openai(text: str, title: Optional[str]) -> Optional[str]:
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
         return None
-    try:
-        from openai import OpenAI
-        client = OpenAI(api_key=api_key)
-        response = client.chat.completions.create(
-            model=OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": _build_user_prompt(text, title)},
-            ],
-            temperature=0.2,
-            max_completion_tokens=400,
-        )
-        return _clean(response.choices[0].message.content)
-    except Exception as e:  # network, auth, rate-limit, etc.
-        print(f"[summarizer:openai] error: {e}")
-        return None
+    from openai import OpenAI
+    client = OpenAI(api_key=api_key)
+
+    # Build fallback chain starting with the configured model, then the
+    # remaining chain entries in order (without duplicating the primary).
+    primary = SUMMARIZER_MODEL
+    chain = [primary] + [m for m in SUMMARIZER_FALLBACK_CHAIN if m != primary]
+
+    last_err: Optional[Exception] = None
+    for idx, model in enumerate(chain):
+        try:
+            result = _summarize_with_model(client, model, text, title)
+        except Exception as e:
+            msg = str(e).lower()
+            # Only fall through on model-not-found / unsupported errors;
+            # bail out early on auth / rate-limit / network so we don't
+            # blow through quota.
+            if "model" in msg and ("not found" in msg or "does not exist" in msg or "unsupported" in msg):
+                if idx == len(chain) - 1:
+                    print(f"[summarizer:openai] all models in fallback chain failed: {e}")
+                    return None
+                print(f"[summarizer:openai] {model} unavailable; falling back to {chain[idx+1]}")
+                last_err = e
+                continue
+            print(f"[summarizer:openai] error ({model}): {e}")
+            return None
+
+        # Empty string / None — typical for reasoning models (gpt-5.x mini)
+        # when the completion budget is exhausted by reasoning_tokens. Fall
+        # through to the next model rather than returning None silently.
+        if result:
+            return result
+        if idx == len(chain) - 1:
+            print(f"[summarizer:openai] all models returned empty content")
+            return None
+        print(f"[summarizer:openai] {model} returned empty content; falling back to {chain[idx+1]}")
+    return None
 
 
 def _summarize_gemini(text: str, title: Optional[str]) -> Optional[str]:

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""livertree documents_fts migration — idempotent FTS5 over the documents table.
+"""libertree documents_fts migration — idempotent FTS5 over the documents table.
 
 Mirrors the existing ``papers_fts`` setup (`scripts/migrate_indexes_fts.py`)
-but indexes the new livertree ``documents`` table:
+but indexes the new libertree ``documents`` table:
 
-- title, abstract, summary, metadata
+- title, abstract, summary, keywords
 - tokenize='trigram' (correct for Korean/CJK; unicode61 splits Hangul)
 - AFTER INSERT / UPDATE / DELETE triggers keep the index in sync
 - Initial backfill picks up any rows that pre-date the FTS table
@@ -94,13 +94,13 @@ def main() -> int:
     conn.execute("PRAGMA synchronous=NORMAL")
 
     try:
-        # documents table must exist (livertree migration prerequisite)
+        # documents table must exist (libertree migration prerequisite)
         if not conn.execute(
             "SELECT 1 FROM sqlite_master WHERE type='table' AND name='documents'"
         ).fetchone():
             print(
                 "[error] 'documents' table missing. Run "
-                "`python -m scripts.migrate_livertree` first.",
+                "`python -m scripts.migrate_libertree` first.",
                 file=sys.stderr,
             )
             return 1
@@ -135,7 +135,7 @@ def main() -> int:
                 f"CREATE VIRTUAL TABLE documents_fts (tokenize={EXPECTED_TOKENIZER})",
                 conn.execute,
                 f"""CREATE VIRTUAL TABLE IF NOT EXISTS documents_fts USING fts5(
-                    title, abstract, summary, metadata,
+                    title, abstract, summary, keywords,
                     content='documents', content_rowid='rowid',
                     tokenize='{EXPECTED_TOKENIZER}'
                 )""",
@@ -155,26 +155,26 @@ def main() -> int:
                 "documents_ai",
                 """CREATE TRIGGER IF NOT EXISTS documents_ai
                    AFTER INSERT ON documents BEGIN
-                     INSERT INTO documents_fts(rowid, title, abstract, summary, metadata)
-                       VALUES (new.rowid, new.title, new.abstract, new.summary, new.metadata);
+                     INSERT INTO documents_fts(rowid, title, abstract, summary, keywords)
+                       VALUES (new.rowid, new.title, new.abstract, new.summary, new.keywords);
                    END""",
             ),
             (
                 "documents_ad",
                 """CREATE TRIGGER IF NOT EXISTS documents_ad
                    AFTER DELETE ON documents BEGIN
-                     INSERT INTO documents_fts(documents_fts, rowid, title, abstract, summary, metadata)
-                       VALUES ('delete', old.rowid, old.title, old.abstract, old.summary, old.metadata);
+                     INSERT INTO documents_fts(documents_fts, rowid, title, abstract, summary, keywords)
+                       VALUES ('delete', old.rowid, old.title, old.abstract, old.summary, old.keywords);
                    END""",
             ),
             (
                 "documents_au",
                 """CREATE TRIGGER IF NOT EXISTS documents_au
                    AFTER UPDATE ON documents BEGIN
-                     INSERT INTO documents_fts(documents_fts, rowid, title, abstract, summary, metadata)
-                       VALUES ('delete', old.rowid, old.title, old.abstract, old.summary, old.metadata);
-                     INSERT INTO documents_fts(rowid, title, abstract, summary, metadata)
-                       VALUES (new.rowid, new.title, new.abstract, new.summary, new.metadata);
+                     INSERT INTO documents_fts(documents_fts, rowid, title, abstract, summary, keywords)
+                       VALUES ('delete', old.rowid, old.title, old.abstract, old.summary, old.keywords);
+                     INSERT INTO documents_fts(rowid, title, abstract, summary, keywords)
+                       VALUES (new.rowid, new.title, new.abstract, new.summary, new.keywords);
                    END""",
             ),
         ]
@@ -222,7 +222,7 @@ def main() -> int:
     print(f"\n{'=' * 60}")
     print(f"documents_fts migration complete in {(time.time() - t_total):.1f}s")
     print(f"Tokenizer: {EXPECTED_TOKENIZER}")
-    print(f"Columns:   title, abstract, summary, metadata")
+    print(f"Columns:   title, abstract, summary, keywords")
     print(f"Triggers:  documents_ai, documents_ad, documents_au")
     print(f"{'=' * 60}")
     return 0

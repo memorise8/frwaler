@@ -69,8 +69,8 @@ def init_db(conn):
         CREATE INDEX IF NOT EXISTS idx_doc_index_site ON doc_index(site_id);
         CREATE INDEX IF NOT EXISTS idx_doc_index_last_seen ON doc_index(last_seen_at);
 
-        -- livertree: 사이트 무관 글로벌 시퀀스 PK + 12자리 zero-pad 파일 매핑.
-        -- 자세한 설명은 docs/livertree.md, crawler/storage.py 참고.
+        -- libertree: 사이트 무관 글로벌 시퀀스 PK + 12자리 zero-pad 파일 매핑.
+        -- 자세한 설명은 docs/libertree.md, crawler/storage.py 참고.
         CREATE TABLE IF NOT EXISTS documents (
             id                INTEGER PRIMARY KEY AUTOINCREMENT,
             crawled_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -165,7 +165,7 @@ def update_download_status(conn, paper_id, status, path=None):
 def get_stats(conn):
     """Return a list of (site_id, site_name, paper_count) rows.
 
-    Counts come from the livertree ``documents`` table — ``papers`` is no
+    Counts come from the libertree ``documents`` table — ``papers`` is no
     longer written to. The result-tuple field name is kept as ``paper_count``
     for backward compatibility with ``cmd_stats`` formatting.
     """
@@ -242,7 +242,7 @@ def get_doc_index_stats(conn, site_id=None):
 
 
 # =====================================================================
-# livertree: documents 테이블 (글로벌 INTEGER PK + 12자리 파일 매핑)
+# libertree: documents 테이블 (글로벌 INTEGER PK + 12자리 파일 매핑)
 # =====================================================================
 
 DOCUMENT_FIELDS = (

@@ -1,12 +1,16 @@
 import Link from "next/link";
 import {
   searchPapers,
-  getDocTypeCounts,
-  getCategories,
   getDbState,
-  parseMetadata,
-  getSiteOptions,
+  getSiteOptionsRich,
+  type SiteOptionRich,
 } from "@/lib/db";
+import {
+  ALL_CATEGORIES,
+  ALL_CONTINENTS,
+  type Continent,
+  type SiteFunctionCategory,
+} from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
 
@@ -17,43 +21,95 @@ function formatNum(n: number): string {
 interface PageProps {
   searchParams: Promise<{
     q?: string;
-    docType?: string;
-    category?: string;
     site?: string;
+    sheet?: string;
+    continent?: string;
+    country?: string;
+    category?: string;
     dateFrom?: string;
     dateTo?: string;
     page?: string;
   }>;
 }
 
+function uniqueSorted<T extends string>(values: Iterable<T>): T[] {
+  return Array.from(new Set(values)).sort((a, b) => a.localeCompare(b));
+}
+
+function isContinent(s: string | undefined): s is Continent {
+  return !!s && (ALL_CONTINENTS as readonly string[]).includes(s);
+}
+
+function isCategory(s: string | undefined): s is SiteFunctionCategory {
+  return !!s && (ALL_CATEGORIES as readonly string[]).includes(s);
+}
+
+function applySiteFilters(
+  sites: SiteOptionRich[],
+  filters: {
+    continent?: Continent;
+    country?: string;
+    category?: SiteFunctionCategory;
+    sheet?: string;
+    siteId?: string;
+  },
+): SiteOptionRich[] {
+  return sites.filter((s) => {
+    if (filters.siteId && s.site_id !== filters.siteId) return false;
+    if (filters.continent && s.continent !== filters.continent) return false;
+    if (filters.country && s.country !== filters.country) return false;
+    if (filters.category && s.category !== filters.category) return false;
+    if (filters.sheet && (s.sheet ?? "(없음)") !== filters.sheet) return false;
+    return true;
+  });
+}
+
 export default async function SearchPage({ searchParams }: PageProps) {
   const sp = await searchParams;
-  const dbState = getDbState(["papers"]);
+  const dbState = getDbState(["documents"]);
   const page = Math.max(1, parseInt(sp.page ?? "1", 10));
   const pageSize = 20;
   const q = sp.q?.trim() || undefined;
-  const docType = sp.docType || undefined;
-  const category = sp.category || undefined;
-  const sites = getSiteOptions();
-  const allSiteIds = sites.map((site) => site.site_id);
-  const siteIds = sp.site ? [sp.site] : allSiteIds;
+  const sites = getSiteOptionsRich();
 
-  const [result, docTypes, categories] = await Promise.all([
-    Promise.resolve(
-      searchPapers({
-        siteIds,
+  const continent = isContinent(sp.continent) ? sp.continent : undefined;
+  const category = isCategory(sp.category) ? sp.category : undefined;
+  const country = sp.country?.trim() || undefined;
+  const sheet = sp.sheet?.trim() || undefined;
+  const siteId = sp.site?.trim() || undefined;
+
+  // Sites that match the structural filters (continent/country/category/sheet).
+  // The site dropdown narrows progressively, and the search itself targets
+  // these site IDs unless the user explicitly picks one site.
+  const filteredSites = applySiteFilters(sites, { continent, country, category, sheet });
+  const candidateSiteIds = (
+    siteId ? filteredSites.filter((s) => s.site_id === siteId) : filteredSites
+  ).map((s) => s.site_id);
+
+  // Build dropdown option lists.
+  const continentOptions = uniqueSorted(sites.map((s) => s.continent));
+  // For country/sheet/category dropdowns, narrow by the continent so the
+  // user sees only meaningful sub-options.
+  const sitesForCountryList = continent
+    ? sites.filter((s) => s.continent === continent)
+    : sites;
+  const countryOptions = uniqueSorted(sitesForCountryList.map((s) => s.country));
+  const categoryOptions = uniqueSorted(sitesForCountryList.map((s) => s.category));
+  const sheetOptions = uniqueSorted(
+    sitesForCountryList.map((s) => s.sheet ?? "(없음)"),
+  );
+
+  // If a structural filter eliminates everything, return empty result quickly.
+  const result = candidateSiteIds.length === 0
+    ? { papers: [], total: 0, page, pageSize }
+    : searchPapers({
+        siteIds: candidateSiteIds,
         q,
-        docType,
-        category,
         dateFrom: sp.dateFrom,
         dateTo: sp.dateTo,
         page,
         pageSize,
-      })
-    ),
-    Promise.resolve(getDocTypeCounts()),
-    Promise.resolve(getCategories()),
-  ]);
+      });
 
   const totalPages = Math.max(1, Math.ceil(result.total / pageSize));
 
@@ -63,9 +119,9 @@ export default async function SearchPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">세법 검색</h1>
+        <h1 className="text-2xl font-bold">문서 검색</h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          국세법령 판례·해석례 통합 검색
+          전세계 정부·연구·학술 사이트 통합 검색
         </p>
       </div>
 
@@ -92,62 +148,62 @@ export default async function SearchPage({ searchParams }: PageProps) {
             type="text"
             name="q"
             defaultValue={q ?? ""}
-            placeholder="제목 · 본문 · 메타데이터 검색"
+            placeholder="제목 · 본문 · 키워드 · 저자 검색"
             className={`w-full ${inputClass} py-2.5 text-sm`}
           />
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          <select name="site" defaultValue={sp.site ?? ""} className={inputClass}>
-            <option value="">전체 사이트</option>
-            {sites.map((site) => (
-              <option key={site.site_id} value={site.site_id}>
-                {site.site_name} ({site.site_id})
-              </option>
-            ))}
-          </select>
-          <select
-            name="docType"
-            defaultValue={docType ?? ""}
-            className={inputClass}
-          >
-            <option value="">전체 유형</option>
-            {docTypes.map((d) => (
-              <option key={d.documentTypeName} value={d.documentTypeName}>
-                {d.documentTypeName} ({formatNum(d.count)})
-              </option>
-            ))}
-          </select>
-          <select
-            name="category"
-            defaultValue={category ?? ""}
-            className={inputClass}
-          >
-            <option value="">전체 세목</option>
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            name="dateFrom"
-            defaultValue={sp.dateFrom ?? ""}
-            placeholder="부터 (YYYY-MM-DD)"
-            className={inputClass}
-          />
-          <input
-            type="text"
-            name="dateTo"
-            defaultValue={sp.dateTo ?? ""}
-            placeholder="까지 (YYYY-MM-DD)"
-            className={inputClass}
-          />
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <FilterSelect name="continent" label="대륙" value={continent ?? ""} options={continentOptions} inputClass={inputClass} placeholder="전체 대륙" />
+          <FilterSelect name="country" label="국가" value={country ?? ""} options={countryOptions} inputClass={inputClass} placeholder="전체 국가" />
+          <FilterSelect name="category" label="범주" value={category ?? ""} options={categoryOptions} inputClass={inputClass} placeholder="전체 범주" />
+          <FilterSelect name="sheet" label="Sheet" value={sheet ?? ""} options={sheetOptions} inputClass={inputClass} placeholder="전체 sheet" />
         </div>
-        <div className="flex items-center justify-between">
+
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="md:col-span-1">
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
+              사이트 (선택)
+            </label>
+            <select name="site" defaultValue={siteId ?? ""} className={`w-full ${inputClass}`}>
+              <option value="">전체 사이트 ({filteredSites.length})</option>
+              {filteredSites.map((s) => (
+                <option key={s.site_id} value={s.site_id}>
+                  {s.site_name} · {s.country} ({formatNum(s.docs)})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
+              발행일 (YYYY-MM-DD)
+            </label>
+            <input
+              type="text"
+              name="dateFrom"
+              defaultValue={sp.dateFrom ?? ""}
+              placeholder="부터"
+              className={`w-full ${inputClass}`}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
+              &nbsp;
+            </label>
+            <input
+              type="text"
+              name="dateTo"
+              defaultValue={sp.dateTo ?? ""}
+              placeholder="까지"
+              className={`w-full ${inputClass}`}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="text-xs text-slate-500 dark:text-slate-400">
-            결과 <span className="font-semibold">{formatNum(result.total)}</span>
-            건 · {page} / {totalPages} 페이지
+            결과 <span className="font-semibold">{formatNum(result.total)}</span>건 · 사이트
+            {" "}<span className="font-semibold">{formatNum(candidateSiteIds.length)}</span>개 · {page} / {totalPages} 페이지
           </div>
           <div className="flex gap-2">
             <Link
@@ -176,7 +232,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
         ) : (
           <ul className="divide-y divide-slate-100 dark:divide-slate-800">
             {result.papers.map((p) => {
-              const md = parseMetadata(p.metadata);
+              const enriched = sites.find((s) => s.site_id === p.site_id);
               return (
                 <li
                   key={p.id}
@@ -189,20 +245,15 @@ export default async function SearchPage({ searchParams }: PageProps) {
                           {p.title || "(제목 없음)"}
                         </h3>
                         <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
-                          {md.documentTypeName && (
-                            <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded font-medium">
-                              {md.documentTypeName}
-                            </span>
-                          )}
-                          {p.category && (
-                            <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded font-medium">
-                              {p.category}
-                            </span>
-                          )}
-                          {md.documentNumber && (
-                            <span className="font-mono">
-                              {md.documentNumber}
-                            </span>
+                          {enriched && (
+                            <>
+                              <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded font-medium">
+                                {enriched.country}
+                              </span>
+                              <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded font-medium">
+                                {enriched.category}
+                              </span>
+                            </>
                           )}
                           {p.published_date && (
                             <span>· {p.published_date}</span>
@@ -243,6 +294,38 @@ export default async function SearchPage({ searchParams }: PageProps) {
           />
         </div>
       )}
+    </div>
+  );
+}
+
+function FilterSelect({
+  name,
+  label,
+  value,
+  options,
+  inputClass,
+  placeholder,
+}: {
+  name: string;
+  label: string;
+  value: string;
+  options: string[];
+  inputClass: string;
+  placeholder: string;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
+        {label}
+      </label>
+      <select name={name} defaultValue={value} className={`w-full ${inputClass}`}>
+        <option value="">{placeholder}</option>
+        {options.map((opt) => (
+          <option key={opt} value={opt}>
+            {opt}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

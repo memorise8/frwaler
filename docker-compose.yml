@@ -27,6 +27,8 @@ services:
       - crawler/.env
     volumes:
       - ./data:/app/data
+      # PDF/텍스트 블랍 저장소 (1.6TB) — 웹앱은 읽기 전용
+      - ./libertree:/app/libertree:ro
       - ./.cache:/app/.cache
       - ./crawler/sites/custom:/app/crawler/sites/custom
       - ./crawler/sites/configs:/app/crawler/sites/configs

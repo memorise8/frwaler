@@ -15,17 +15,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Finolaw — 세법 문서 허브",
-  description: "국세법령 판례/해석례 통합 검색 및 크롤러 관리 콘솔",
+  title: "Libertree — 글로벌 문서 허브",
+  description:
+    "전세계 정부·연구·학술 사이트의 문서 통합 검색 및 수집 현황",
 };
 
 const NAV = [
-  { href: "/", label: "대시보드", icon: "📊" },
-  { href: "/search", label: "세법 검색", icon: "🔍" },
+  { href: "/", label: "대시보드", icon: "🌐" },
+  { href: "/search", label: "문서 검색", icon: "🔍" },
   { href: "/admin/status", label: "수집 현황", icon: "📈" },
   { href: "/admin/summary", label: "요약 결과", icon: "🧠" },
-  { href: "/smart-find", label: "URL 크롤링", icon: "🌐" },
-  { href: "/auto-add", label: "Auto-Add", icon: "🧠" },
+  { href: "/smart-find", label: "URL 크롤링", icon: "🛰️" },
+  { href: "/auto-add", label: "Auto-Add", icon: "✨" },
   { href: "/crawler", label: "크롤러 관리", icon: "⚙️" },
 ];
 
@@ -45,8 +46,8 @@ export default function RootLayout({
         <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
           <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-              <span className="text-2xl">⚖️</span>
-              <span>Finolaw</span>
+              <span className="text-2xl">🌳</span>
+              <span>Libertree</span>
             </Link>
             <nav className="flex items-center gap-1 flex-1">
               {NAV.map((item) => (
@@ -61,7 +62,7 @@ export default function RootLayout({
               ))}
             </nav>
             <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">
-              port 3001
+              port 3002
             </span>
             <ThemeToggle />
           </div>
@@ -70,7 +71,7 @@ export default function RootLayout({
           {children}
         </main>
         <footer className="border-t border-slate-200 dark:border-slate-800 py-4 text-center text-xs text-slate-400 dark:text-slate-500">
-          Finolaw · 국세법령 통합 · powered by crawler-poc
+          Libertree · 글로벌 문서 허브 · libertree.db
         </footer>
       </body>
     </html>

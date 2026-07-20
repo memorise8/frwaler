@@ -17,19 +17,10 @@ interface LogFile {
   mtime: string;
 }
 
-const DOC_TYPES = [
-  { code: "", label: "전체" },
-  { code: "001_08", label: "심판 (001_08)" },
-  { code: "001_09", label: "판례 (001_09)" },
-  { code: "001_07", label: "심사 (001_07)" },
-  { code: "001_06", label: "이의 (001_06)" },
-  { code: "001_05", label: "적부 (001_05)" },
-  { code: "001_10", label: "헌재 (001_10)" },
-  { code: "001_01", label: "질의 (001_01)" },
-  { code: "001_02", label: "심판 qt (001_02)" },
-  { code: "001_03", label: "사전 (001_03)" },
-  { code: "001_04", label: "기준/고시 (001_04)" },
-];
+// doc_type is an optional site-specific filter passed through to
+// `crawler.main`. The free-form text input below lets operators target
+// site-specific categories (e.g. an NTS doc code) without baking any
+// legacy tax-law presets into the UI.
 
 function CrawlerPageInner() {
   const searchParams = useSearchParams();
@@ -39,7 +30,7 @@ function CrawlerPageInner() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [logs, setLogs] = useState<LogFile[]>([]);
   const [sites, setSites] = useState<string[]>([]);
-  const [siteId, setSiteId] = useState<string>(urlSite || "nts-taxlaw-pd");
+  const [siteId, setSiteId] = useState<string>(urlSite || "");
   const [docType, setDocType] = useState("");
   const [incremental, setIncremental] = useState(true);
   const [limit, setLimit] = useState<number | "">("");
@@ -65,7 +56,9 @@ function CrawlerPageInner() {
       .then((d) => {
         const list: string[] = d.sites ?? [];
         setSites(list);
-        // If urlSite is not in list, we still keep it as the current value
+        // If we have no site selected yet and the URL didn't pre-pick one,
+        // adopt the first available site so the dropdown is never blank.
+        setSiteId((prev) => (prev ? prev : list[0] ?? ""));
       })
       .catch(() => {});
   }, []);
@@ -190,19 +183,15 @@ function CrawlerPageInner() {
           </div>
           <div>
             <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1 block">
-              doc_type
+              doc_type (선택)
             </label>
-            <select
+            <input
+              type="text"
               value={docType}
               onChange={(e) => setDocType(e.target.value)}
+              placeholder="사이트별 코드"
               className={`w-full ${inputClass}`}
-            >
-              {DOC_TYPES.map((dt) => (
-                <option key={dt.code} value={dt.code}>
-                  {dt.label}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <div>
             <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1 block">

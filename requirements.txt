@@ -1,7 +1,14 @@
 requests
+httpx
 beautifulsoup4
+lxml
+html5lib
 cloudscraper
 playwright
+playwright-stealth
+patchright
+pdfplumber
+pypdf
 openai
 google-genai
 openpyxl

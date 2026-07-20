@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""livertree storage layout.
+"""libertree storage layout.
 
 12자리 zero-padded 시퀀스 ID 를 3-level 계층 디렉터리로 매핑한다.
 
@@ -17,7 +17,7 @@ from pathlib import Path
 MAX_DOC_ID = 999_999_999_999  # 1조 - 1
 DEFAULT_DATA_ROOT = Path(
     os.environ.get(
-        "LIVERTREE_DATA_ROOT",
+        "LIBERTREE_DATA_ROOT",
         os.path.join(os.path.dirname(__file__), "..", "data"),
     )
 ).resolve()

@@ -174,7 +174,7 @@ class TestFollowupBehaviour(unittest.TestCase):
 
     def test_paper_to_document_preserves_metadata(self):
         import json
-        from crawler import livertree_adapter as la
+        from crawler import libertree_adapter as la
         paper = {
             "site_id": "nts-taxlaw-pd",
             "external_id": "1",
@@ -280,9 +280,9 @@ class TestFollowupBehaviour(unittest.TestCase):
         from crawler import storage as _storage
 
         # Use a private data root so the test doesn't touch real data/.
-        old_root = _os.environ.get("LIVERTREE_DATA_ROOT")
+        old_root = _os.environ.get("LIBERTREE_DATA_ROOT")
         tmp_root = _tempfile.mkdtemp()
-        _os.environ["LIVERTREE_DATA_ROOT"] = tmp_root
+        _os.environ["LIBERTREE_DATA_ROOT"] = tmp_root
         # storage caches DEFAULT_DATA_ROOT at import — reload to pick up env.
         import importlib
         importlib.reload(_storage)
@@ -312,9 +312,9 @@ class TestFollowupBehaviour(unittest.TestCase):
             self.assertFalse(txt.exists(), "stale txt was not deleted")
         finally:
             if old_root is None:
-                _os.environ.pop("LIVERTREE_DATA_ROOT", None)
+                _os.environ.pop("LIBERTREE_DATA_ROOT", None)
             else:
-                _os.environ["LIVERTREE_DATA_ROOT"] = old_root
+                _os.environ["LIBERTREE_DATA_ROOT"] = old_root
             importlib.reload(_storage)
 
     def test_pdf_url_unchanged_preserves_download_state(self):
@@ -344,7 +344,7 @@ class TestFollowupBehaviour(unittest.TestCase):
         """Codex re-review P2: a normal recrawl must not wipe LLM-generated
         summary or previously-stored metadata when the new payload omits them."""
         import json as _json
-        from crawler import livertree_adapter as _la
+        from crawler import libertree_adapter as _la
 
         doc_id = self._db.upsert_document(self.conn, {
             "site_id": "s", "external_id": "9", "title": "Original",

@@ -323,7 +323,7 @@ def test_crawl(site_id, limit=3):
         count = crawler.crawl(limit=limit)
 
         # Get sample data (look at up to 5 rows so metrics are meaningful).
-        # livertree: rows live in `documents`, with `meta_url` instead of `url`.
+        # libertree: rows live in `documents`, with `meta_url` instead of `url`.
         rows = conn.execute(
             "SELECT title, meta_url AS url, abstract FROM documents LIMIT 5"
         ).fetchall()

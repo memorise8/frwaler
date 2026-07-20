@@ -2,10 +2,23 @@ import Link from "next/link";
 import {
   getCollectionProgress,
   getCollectionTotals,
+  getSiteOptionsRich,
   type SiteProgress,
 } from "@/lib/db";
+import { getCategoryForSheet } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
+
+type GroupMode = "site" | "continent" | "country" | "category";
+
+function parseGroupBy(s: string | undefined): GroupMode {
+  if (s === "continent" || s === "country" || s === "category") return s;
+  return "site";
+}
+
+interface Props {
+  searchParams: Promise<{ groupBy?: string }>;
+}
 
 function formatNum(n: number): string {
   return n.toLocaleString("ko-KR");
@@ -28,7 +41,77 @@ function pct(part: number, whole: number): number {
   return Math.min(100, Math.round((part / whole) * 100));
 }
 
-export default async function AdminStatusPage() {
+interface GroupedRow {
+  key: string;
+  label: string;
+  total: number;
+  downloaded: number;
+  converted: number;
+  summarized: number;
+  last_crawled: string | null;
+  sites: SiteProgress[];
+}
+
+function groupRows(
+  rows: SiteProgress[],
+  mode: GroupMode,
+  enrichment: Map<string, { sheet: string | null; country: string; continent: string; category: string }>,
+): GroupedRow[] {
+  if (mode === "site") {
+    return rows.map((r) => ({
+      key: r.site_id,
+      label: r.site_name,
+      total: r.total,
+      downloaded: r.downloaded,
+      converted: r.converted,
+      summarized: r.summarized,
+      last_crawled: r.last_crawled,
+      sites: [r],
+    }));
+  }
+
+  const buckets = new Map<string, GroupedRow>();
+  for (const r of rows) {
+    const meta = enrichment.get(r.site_id);
+    const key =
+      mode === "continent"
+        ? meta?.continent ?? "Other"
+        : mode === "country"
+          ? meta?.country ?? "기타"
+          : meta?.category ?? "기타";
+    const existing = buckets.get(key);
+    if (existing) {
+      existing.total += r.total;
+      existing.downloaded += r.downloaded;
+      existing.converted += r.converted;
+      existing.summarized += r.summarized;
+      existing.sites.push(r);
+      if (
+        r.last_crawled &&
+        (!existing.last_crawled || r.last_crawled > existing.last_crawled)
+      ) {
+        existing.last_crawled = r.last_crawled;
+      }
+    } else {
+      buckets.set(key, {
+        key,
+        label: key,
+        total: r.total,
+        downloaded: r.downloaded,
+        converted: r.converted,
+        summarized: r.summarized,
+        last_crawled: r.last_crawled,
+        sites: [r],
+      });
+    }
+  }
+  return Array.from(buckets.values()).sort((a, b) => b.total - a.total);
+}
+
+export default async function AdminStatusPage({ searchParams }: Props) {
+  const sp = await searchParams;
+  const groupBy = parseGroupBy(sp.groupBy);
+
   let rows: SiteProgress[] = [];
   let totals: ReturnType<typeof getCollectionTotals> = {
     total: 0,
@@ -38,9 +121,18 @@ export default async function AdminStatusPage() {
     sites: 0,
   };
   let dbError: string | null = null;
+  const enrichment = new Map<string, { sheet: string | null; country: string; continent: string; category: string }>();
   try {
     rows = getCollectionProgress();
     totals = getCollectionTotals();
+    for (const s of getSiteOptionsRich()) {
+      enrichment.set(s.site_id, {
+        sheet: s.sheet,
+        country: s.country,
+        continent: s.continent,
+        category: s.category,
+      });
+    }
   } catch (e) {
     dbError = e instanceof Error ? e.message : String(e);
   }
@@ -53,20 +145,45 @@ export default async function AdminStatusPage() {
           <p className="font-semibold">데이터베이스 연결 실패</p>
           <p className="text-sm mt-2">{dbError}</p>
           <p className="text-xs mt-3 font-mono opacity-75">
-            예상 경로: ../data/papers.db
+            예상 경로: ../data/libertree.db
           </p>
         </div>
       </div>
     );
   }
 
+  const grouped = groupRows(rows, groupBy, enrichment);
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold">수집 현황</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          사이트별 수집 → 다운로드 → 변환 → 요약 진행률을 한눈에 확인합니다.
-        </p>
+      <div className="flex items-end justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">수집 현황</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            사이트별 수집 → 다운로드 → 변환 → 요약 진행률을 한눈에 확인합니다.
+          </p>
+        </div>
+        <div className="flex items-center gap-1 text-xs">
+          {(["site", "continent", "country", "category"] as GroupMode[]).map((mode) => (
+            <Link
+              key={mode}
+              href={mode === "site" ? "/admin/status" : `/admin/status?groupBy=${mode}`}
+              className={`px-3 py-1.5 rounded-lg border ${
+                groupBy === mode
+                  ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-slate-100"
+                  : "border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+              }`}
+            >
+              {mode === "site"
+                ? "사이트"
+                : mode === "continent"
+                  ? "대륙"
+                  : mode === "country"
+                    ? "국가"
+                    : "범주"}
+            </Link>
+          ))}
+        </div>
       </div>
 
       {totals.total === 0 && (
@@ -79,16 +196,8 @@ export default async function AdminStatusPage() {
       )}
 
       <section className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Stat
-          label="활성 사이트"
-          value={formatNum(totals.sites)}
-          tone="indigo"
-        />
-        <Stat
-          label="수집 문서"
-          value={formatNum(totals.total)}
-          tone="indigo"
-        />
+        <Stat label="활성 사이트" value={formatNum(totals.sites)} tone="indigo" />
+        <Stat label="수집 문서" value={formatNum(totals.total)} tone="indigo" />
         <Stat
           label="다운로드 완료"
           value={`${formatNum(totals.downloaded)} (${pct(totals.downloaded, totals.total)}%)`}
@@ -107,12 +216,25 @@ export default async function AdminStatusPage() {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold mb-3">사이트별 진행률</h2>
+        <h2 className="text-lg font-semibold mb-3">
+          {groupBy === "site"
+            ? "사이트별 진행률"
+            : groupBy === "continent"
+              ? "대륙별 진행률"
+              : groupBy === "country"
+                ? "국가별 진행률"
+                : "범주별 진행률"}
+        </h2>
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300">
               <tr>
-                <th className="text-left px-4 py-3 font-medium">사이트</th>
+                <th className="text-left px-4 py-3 font-medium">
+                  {groupBy === "site" ? "사이트" : "그룹"}
+                </th>
+                {groupBy !== "site" && (
+                  <th className="text-right px-4 py-3 font-medium">사이트 수</th>
+                )}
                 <th className="text-right px-4 py-3 font-medium">수집</th>
                 <th className="text-left px-4 py-3 font-medium">다운로드</th>
                 <th className="text-left px-4 py-3 font-medium">변환</th>
@@ -122,52 +244,79 @@ export default async function AdminStatusPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {rows.length === 0 ? (
+              {grouped.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={groupBy === "site" ? 7 : 8}
                     className="px-4 py-10 text-center text-slate-400 dark:text-slate-500"
                   >
                     표시할 사이트가 없습니다.
                   </td>
                 </tr>
               ) : (
-                rows.map((r) => (
-                  <tr
-                    key={r.site_id}
-                    className="hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                  >
-                    <td className="px-4 py-2.5">
-                      <div className="font-medium">{r.site_name}</div>
-                      <div className="font-mono text-xs text-slate-500 dark:text-slate-400">
-                        {r.site_id}
-                      </div>
-                    </td>
-                    <td className="px-4 py-2.5 text-right font-mono">
-                      {formatNum(r.total)}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <ProgressBar part={r.downloaded} whole={r.total} tone="blue" />
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <ProgressBar part={r.converted} whole={r.total} tone="emerald" />
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <ProgressBar part={r.summarized} whole={r.total} tone="amber" />
-                    </td>
-                    <td className="px-4 py-2.5 text-right text-xs text-slate-500 dark:text-slate-400">
-                      {formatDate(r.last_crawled)}
-                    </td>
-                    <td className="px-4 py-2.5 text-right">
-                      <Link
-                        href={`/search?site=${encodeURIComponent(r.site_id)}`}
-                        className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
-                      >
-                        보기
-                      </Link>
-                    </td>
-                  </tr>
-                ))
+                grouped.map((row) => {
+                  const meta = groupBy === "site" ? enrichment.get(row.sites[0].site_id) : null;
+                  const cat = meta ? getCategoryForSheet(meta.sheet) : null;
+                  return (
+                    <tr key={row.key} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                      <td className="px-4 py-2.5">
+                        <div className="font-medium">{row.label}</div>
+                        {groupBy === "site" && (
+                          <div className="font-mono text-xs text-slate-500 dark:text-slate-400">
+                            {row.sites[0].site_id}
+                            {cat && (
+                              <>
+                                {" "}· <span>{cat.country}</span>{" / "}
+                                <span>{cat.category}</span>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                      {groupBy !== "site" && (
+                        <td className="px-4 py-2.5 text-right font-mono">
+                          {formatNum(row.sites.length)}
+                        </td>
+                      )}
+                      <td className="px-4 py-2.5 text-right font-mono">{formatNum(row.total)}</td>
+                      <td className="px-4 py-2.5">
+                        <ProgressBar part={row.downloaded} whole={row.total} tone="blue" />
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <ProgressBar part={row.converted} whole={row.total} tone="emerald" />
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <ProgressBar part={row.summarized} whole={row.total} tone="amber" />
+                      </td>
+                      <td className="px-4 py-2.5 text-right text-xs text-slate-500 dark:text-slate-400">
+                        {formatDate(row.last_crawled)}
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        {groupBy === "site" ? (
+                          <Link
+                            href={`/search?site=${encodeURIComponent(row.sites[0].site_id)}`}
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                          >
+                            보기
+                          </Link>
+                        ) : (
+                          <Link
+                            href={
+                              groupBy === "continent"
+                                ? `/search?continent=${encodeURIComponent(row.label)}`
+                                : groupBy === "country"
+                                  ? `/search?country=${encodeURIComponent(row.label)}`
+                                  : `/search?category=${encodeURIComponent(row.label)}`
+                            }
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                          >
+                            검색
+                          </Link>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

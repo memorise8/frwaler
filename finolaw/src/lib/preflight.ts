@@ -20,7 +20,7 @@ export interface PreflightStatus {
 }
 
 const PROJECT_ROOT = path.resolve(process.cwd(), "..");
-const DB_PATH = path.join(PROJECT_ROOT, "data", "papers.db");
+const DB_PATH = path.join(PROJECT_ROOT, "data", "libertree.db");
 const PYTHON_BIN = path.join(PROJECT_ROOT, ".venv", "bin", "python");
 const CRAWLER_DIR = path.join(PROJECT_ROOT, "crawler");
 const CACHE_DIR = path.join(PROJECT_ROOT, ".cache");

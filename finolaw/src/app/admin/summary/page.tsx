@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   getDocumentsBySummaryStatus,
   getSiteOptions,
-  type LivertreeDocument,
+  type LibertreeDocument,
 } from "@/lib/db";
 import { RegenerateButton } from "./_components/regenerate-button";
 
@@ -159,7 +159,7 @@ export default async function AdminSummaryPage({ searchParams }: Props) {
   );
 }
 
-function SummaryRow({ doc }: { doc: LivertreeDocument }) {
+function SummaryRow({ doc }: { doc: LibertreeDocument }) {
   const hasSummary = !!doc.summary?.trim();
   return (
     <li className="px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50">
