@@ -1,0 +1,117 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: "Pretendard Variable", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  line-height: 1.65;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 20rem;
+  background: var(--canvas);
+  text-rendering: optimizeLegibility;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+a {
+  color: var(--focus-blue-dark);
+  text-decoration-color: currentcolor;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  color: var(--focus-blue);
+}
+
+a:focus-visible,
+.table-scroll:focus-visible {
+  outline: 3px solid var(--focus-blue);
+  outline-offset: 3px;
+}
+
+.site-header {
+  border-block-end: 1px solid var(--rule);
+  background: var(--paper);
+}
+
+.site-header__inner,
+.dashboard-shell {
+  width: min(var(--page-width), calc(100% - 3rem));
+  margin-inline: auto;
+}
+
+.site-header__inner {
+  padding-block: var(--space-4) var(--space-2);
+}
+
+.data-classification {
+  margin: 0 0 var(--space-1);
+  color: var(--status-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+h1,
+h2,
+h3,
+p,
+dl {
+  margin-block-start: 0;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+h1 {
+  max-width: 16ch;
+  margin-block-end: var(--space-3);
+  font-size: clamp(1.875rem, 4vw, 2.8rem);
+  line-height: 1.2;
+}
+
+h2 {
+  margin-block-end: var(--space-3);
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  line-height: 1.35;
+}
+
+h3 {
+  margin-block-end: var(--space-2);
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.section-navigation {
+  border-block-start: 1px solid var(--soft-rule);
+}
+
+.section-navigation__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
+  margin: 0;
+  padding: var(--space-2) 0 0;
+  list-style: none;
+}
+
+.section-navigation__list a {
+  display: inline-block;
+  padding-block: var(--space-1);
+  font-size: 0.9375rem;
+  font-weight: 650;
+  white-space: nowrap;
+}

@@ -1,0 +1,29 @@
+{
+  "name": "libertree-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "../finolaw/node_modules/.bin/tsc --noEmit -p tsconfig.json",
+    "verify:data-path": "node --experimental-strip-types scripts/verify-data-path.ts",
+    "print:data-contract": "node --experimental-strip-types scripts/print-data-contract.ts",
+    "verify:app-surface": "node --experimental-strip-types scripts/verify-app-surface.ts"
+  },
+  "dependencies": {
+    "next": "16.2.4",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "typescript": "^5"
+  }
+}

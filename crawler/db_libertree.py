@@ -17,7 +17,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any, Optional
 
-DB_PATH = Path(__file__).resolve().parent.parent / "data" / "libertree.db"
+DB_PATH = Path(__file__).resolve().parent.parent / "libertree-app" / "data" / "libertree.db"
 
 
 def open_db(path: Path | str | None = None) -> sqlite3.Connection:

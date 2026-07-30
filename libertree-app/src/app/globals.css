@@ -1,0 +1,124 @@
+:root {
+  --canvas: #f7f6f1;
+  --surface: #fffefb;
+  --ink: #202622;
+  --muted: #687069;
+  --rule: #dedfd7;
+  --moss: #365b42;
+  --moss-wash: #e6eee5;
+  --sand-wash: #efe9da;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--canvas); }
+
+body {
+  min-inline-size: 20rem;
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
+  line-height: 1.6;
+}
+
+a { color: inherit; text-decoration: none; }
+button, input { font: inherit; }
+:focus-visible { outline: 3px solid var(--moss); outline-offset: 3px; }
+.frame { inline-size: min(100% - clamp(2rem, 6vw, 6rem), 73.75rem); margin-inline: auto; }
+.masthead { border-block-end: 1px solid var(--rule); background: color-mix(in srgb, var(--surface) 88%, transparent); }
+.masthead__inner { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); min-block-size: 4.5rem; }
+.brand { display: inline-flex; align-items: center; gap: var(--space-2); font-family: "Noto Serif KR", "Iowan Old Style", "AppleMyungjo", serif; font-size: 1.25rem; font-weight: 600; letter-spacing: -0.03em; }
+.tree-ring { inline-size: 2rem; block-size: 2rem; fill: none; stroke: var(--moss); stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.65; }
+.masthead nav { display: flex; flex-wrap: wrap; gap: var(--space-4); margin-inline-start: auto; }
+.nav-link { display: inline-block; border-block-end: 1px solid transparent; color: var(--muted); font-size: 0.875rem; font-weight: 600; padding-block: var(--space-2); transition: border-color 150ms ease-out, color 150ms ease-out, transform 150ms ease-out; }
+.nav-link:hover { border-color: var(--moss); color: var(--moss); }
+.nav-link:active, .catalogue-link:active { transform: scale(0.98); }
+.read-only { border: 1px solid var(--rule); color: var(--muted); font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.75rem; margin: 0; padding: 0.25rem 0.5rem; }
+.main-content { min-block-size: calc(100dvb - 9rem); padding-block: clamp(var(--space-12), 9vw, 8rem); }
+.stack { display: flex; flex-direction: column; gap: var(--space-8); }
+.page-label, .card-label { color: var(--moss); font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.09em; margin: 0; }
+h1, h2, p { margin-block: 0; }
+h1, h2 { font-family: "Noto Serif KR", "Iowan Old Style", "AppleMyungjo", serif; font-weight: 600; letter-spacing: -0.035em; }
+h1 { font-size: clamp(1.75rem, 4vw, 3rem); line-height: 1.12; }
+h2 { font-size: 1.25rem; line-height: 1.3; }
+.home__heading { gap: var(--space-5); max-inline-size: 50rem; }
+.home__heading h1 { font-size: clamp(2.25rem, 6vw, 4.5rem); line-height: 1.02; word-break: keep-all; }
+.lede { color: var(--muted); font-size: 1rem; max-inline-size: 42rem; overflow-wrap: anywhere; }
+.lede, .quiet-card p, .empty-state p { word-break: keep-all; }
+.keep-together { white-space: nowrap; }
+.catalogue-grid { display: grid; gap: var(--space-4); grid-template-columns: minmax(min(31rem, 100%), 1.6fr) minmax(min(15rem, 100%), 1fr); }
+.quiet-card, .search-frame, .empty-state, .home-search { border: 1px solid var(--rule); background: var(--surface); }
+.quiet-card { display: flex; flex-direction: column; gap: var(--space-4); justify-content: space-between; min-block-size: 15rem; padding: clamp(var(--space-6), 4vw, var(--space-10)); }
+.quiet-card p:not(.card-label), .empty-state p:not(.card-label) { color: var(--muted); overflow-wrap: anywhere; }
+.quiet-card--feature { background: var(--moss-wash); }
+.catalogue-note { background: var(--sand-wash); }
+.catalogue-link { align-self: flex-start; border-block-end: 1px solid var(--moss); color: var(--moss); font-size: 0.875rem; font-weight: 600; padding-block-end: 0.25rem; transition: color 150ms ease-out, transform 150ms ease-out; }
+.catalogue-link:hover { color: var(--ink); }
+.home-search { display: flex; flex-direction: column; gap: var(--space-3); max-inline-size: 48rem; padding: var(--space-5); }
+.home-search label { font-size: 0.875rem; font-weight: 600; }
+.catalogue-overview { align-items: baseline; border-block: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: var(--space-5); padding-block: var(--space-4); }
+.catalogue-overview p { color: var(--muted); }
+.catalogue-overview strong { color: var(--ink); font-family: "Noto Serif KR", "Iowan Old Style", "AppleMyungjo", serif; font-size: 1.5rem; font-weight: 600; letter-spacing: -0.03em; }
+.browse-shelf { border-block-start: 1px solid var(--rule); display: flex; flex-direction: column; gap: var(--space-5); padding-block-start: var(--space-8); }
+.browse-shelf__heading { align-items: end; display: flex; flex-wrap: wrap; gap: var(--space-4); justify-content: space-between; }
+.browse-shelf__heading > div { display: flex; flex-direction: column; gap: var(--space-2); }
+.browse-shelf__heading .lede { max-inline-size: 32rem; }
+.browse-grid { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr)); list-style: none; margin: 0; padding: 0; }
+.browse-grid--dense { grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr)); }
+.browse-card { background: var(--surface); border: 1px solid var(--rule); display: grid; gap: var(--space-2); min-block-size: 9.5rem; padding: var(--space-4); transition: background-color 150ms ease-out, border-color 150ms ease-out, transform 150ms ease-out; }
+.browse-card:hover { background: var(--moss-wash); border-color: var(--moss); }
+.browse-card:active { transform: scale(0.98); }
+.browse-card__label { font-family: "Noto Serif KR", "Iowan Old Style", "AppleMyungjo", serif; font-size: 1.25rem; font-weight: 600; letter-spacing: -0.03em; overflow-wrap: anywhere; word-break: keep-all; }
+.browse-card__count { color: var(--muted); font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.8125rem; }
+.browse-card__action { align-self: end; color: var(--moss); font-size: 0.875rem; font-weight: 600; }
+.search-page { max-inline-size: 52rem; }
+.search-page > div { display: flex; flex-direction: column; gap: var(--space-3); }
+.search-frame { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-6); }
+.search-frame label { font-size: 0.875rem; font-weight: 600; }
+.search-frame__controls { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.search-frame input { background: var(--surface); border: 1px solid var(--rule); border-radius: 0; color: var(--muted); flex: 1 1 16rem; min-inline-size: 0; padding: var(--space-3); }
+.search-frame button { background: var(--ink); border: 1px solid var(--ink); border-radius: 0; color: var(--surface); cursor: pointer; padding: var(--space-3) var(--space-4); }
+.filter-row { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.filter-row label { display: flex; flex: 1 1 12rem; flex-direction: column; gap: var(--space-2); }
+.filter-row select { background: var(--surface); border: 1px solid var(--rule); border-radius: 0; padding: var(--space-3); }
+.filter-reset { align-self: flex-start; border-block-end: 1px solid var(--rule); color: var(--muted); font-size: 0.875rem; }
+.filter-reset:hover { border-color: var(--moss); color: var(--moss); }
+.result-list { border: 1px solid var(--rule); list-style: none; margin: 0; padding: 0; }
+.result-list li { border-block-end: 1px solid var(--rule); padding: var(--space-5); }
+.result-list li:last-child { border-block-end: 0; }
+.result-list li:hover { background: var(--moss-wash); }
+.result-list h2 { margin-block: var(--space-2); overflow-wrap: anywhere; }
+.result-list p:last-child { color: var(--muted); margin-block-start: var(--space-3); overflow-wrap: anywhere; }
+.pagination { display: flex; gap: var(--space-4); }
+.pagination a, .pagination span { border-block-end: 1px solid var(--moss); color: var(--moss); font-weight: 600; padding-block-end: var(--space-2); }
+.pagination span { border-color: var(--rule); color: var(--muted); }
+.document-card, .description-card, .bibliography { background: var(--surface); border: 1px solid var(--rule); padding: clamp(var(--space-6), 5vw, var(--space-10)); }
+.description-card { background: var(--moss-wash); }
+.description-card p, .bibliography p { overflow-wrap: anywhere; white-space: pre-wrap; word-break: keep-all; }
+.source-cta { background: var(--moss); color: var(--surface); display: inline-block; font-weight: 600; padding: var(--space-3) var(--space-4); }
+.empty-state { background: var(--moss-wash); display: flex; flex-direction: column; gap: var(--space-4); padding: clamp(var(--space-6), 5vw, var(--space-10)); }
+.footer { border-block-start: 1px solid var(--rule); color: var(--muted); display: flex; flex-wrap: wrap; font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.75rem; gap: var(--space-3); padding-block: var(--space-6); }
+
+@media (max-width: 50rem) {
+  .masthead__inner { padding-block: var(--space-3); }
+  .masthead nav { margin-inline-start: 0; }
+  .read-only { margin-inline-start: auto; }
+  .catalogue-grid { grid-template-columns: 1fr; }
+  .browse-shelf__heading { align-items: start; flex-direction: column; }
+  .main-content { padding-block: var(--space-12); }
+  .document-card, .description-card, .bibliography { padding: var(--space-4); }
+  .description-card p, .bibliography p { font-size: 0.9375rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0ms !important; }
+}

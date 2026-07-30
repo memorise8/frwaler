@@ -1,0 +1,4 @@
+# Keep the local-preview snapshot reproducible without tracking other data artifacts.
+!data/
+data/*
+!data/catalog.json

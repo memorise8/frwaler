@@ -10,6 +10,13 @@ import {
   type Continent,
   type SiteFunctionCategory,
 } from "./categories";
+import {
+  toInternalReviewDocument,
+  toInternalReviewListItem,
+  type InternalReviewDocument,
+  type InternalReviewListItem,
+  type InternalReviewRecord,
+} from "./internal-review";
 
 const DB_PATH = path.join(process.cwd(), "..", "data", "libertree.db");
 
@@ -804,6 +811,154 @@ export function getSiteOptionsRich(): SiteOptionRich[] {
   });
 }
 
+export interface InternalReviewSearchFilters {
+  dateFrom?: string;
+  dateTo?: string;
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  siteIds?: readonly string[];
+}
+
+export interface InternalReviewSearchResult {
+  items: InternalReviewListItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+interface InternalReviewRow {
+  abstract: string | null;
+  authors: string | null;
+  journal: string | null;
+  keywords: string | null;
+  meta_url: string | null;
+  published_date: string | null;
+  publisher: string | null;
+  seq_id: number;
+  sheet: string | null;
+  site_name: string | null;
+  site_url: string | null;
+  summary: string | null;
+  title: string | null;
+}
+
+function toInternalReviewRecord(row: InternalReviewRow): InternalReviewRecord {
+  return {
+    abstract: row.abstract,
+    authors: row.authors,
+    journal: row.journal,
+    keywords: row.keywords,
+    metaUrl: row.meta_url,
+    publishedDate: row.published_date,
+    publisher: row.publisher,
+    seqId: row.seq_id,
+    sheet: row.sheet,
+    siteName: row.site_name,
+    siteUrl: row.site_url,
+    summary: row.summary,
+    title: row.title,
+  };
+}
+
+function internalReviewSelect(hasSites: boolean): string {
+  const sourceName = hasSites ? "COALESCE(s.site_name, d.site_id)" : "d.site_id";
+  const sourceUrl = hasSites ? "s.site_url" : "NULL";
+  const sheet = hasSites ? "s.sheet" : "NULL";
+  return `
+    d.seq_id, d.title, d.authors, d.publisher, d.journal, d.published_date,
+    d.keywords, substr(d.summary, 1, 1201) AS summary,
+    substr(d.abstract, 1, 1201) AS abstract, d.meta_url,
+    ${sourceName} AS site_name, ${sourceUrl} AS site_url, ${sheet} AS sheet
+  `;
+}
+
+export function searchInternalReviewDocuments(
+  filters: InternalReviewSearchFilters,
+): InternalReviewSearchResult {
+  const rawPage = Math.trunc(filters.page ?? 1);
+  const rawPageSize = Math.trunc(filters.pageSize ?? 20);
+  const page = Number.isFinite(rawPage) ? Math.max(1, rawPage) : 1;
+  const pageSize = Number.isFinite(rawPageSize) ? Math.min(50, Math.max(1, rawPageSize)) : 20;
+  if (getDbState(["documents"]).kind !== "ready") {
+    return { items: [], page, pageSize, total: 0 };
+  }
+  if (filters.siteIds?.length === 0) {
+    return { items: [], page, pageSize, total: 0 };
+  }
+
+  const db = getDb();
+  try {
+    const hasSites = hasTables(db, ["sites"]);
+    const join = hasSites ? "LEFT JOIN sites s ON s.site_id = d.site_id" : "";
+    const where: string[] = [];
+    const params: string[] = [];
+    const tokens = filters.q?.trim().slice(0, 500).split(/\s+/).filter(Boolean) ?? [];
+    for (const token of tokens) {
+      const pattern = `%${token}%`;
+      where.push(`(
+        COALESCE(d.title, '') LIKE ? OR COALESCE(d.summary, '') LIKE ? OR
+        COALESCE(d.abstract, '') LIKE ? OR COALESCE(d.authors, '') LIKE ? OR
+        COALESCE(d.keywords, '') LIKE ?
+      )`);
+      params.push(pattern, pattern, pattern, pattern, pattern);
+    }
+    if (filters.siteIds && filters.siteIds.length > 0) {
+      where.push(`d.site_id IN (${filters.siteIds.map(() => "?").join(",")})`);
+      params.push(...filters.siteIds);
+    }
+    if (filters.dateFrom) {
+      where.push("d.published_date >= ?");
+      params.push(filters.dateFrom);
+    }
+    if (filters.dateTo) {
+      where.push("d.published_date <= ?");
+      params.push(filters.dateTo);
+    }
+    const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+    const countRow = db
+      .prepare(`SELECT COUNT(*) AS total FROM documents d ${join} ${whereSql}`)
+      .get(...params) as { total: number };
+    const rows = db
+      .prepare(
+        `SELECT ${internalReviewSelect(hasSites)}
+         FROM documents d ${join} ${whereSql}
+         ORDER BY d.published_date DESC, d.seq_id DESC
+         LIMIT ? OFFSET ?`,
+      )
+      .all(...params, pageSize, (page - 1) * pageSize) as InternalReviewRow[];
+    return {
+      items: rows.map((row) => toInternalReviewListItem(toInternalReviewRecord(row))),
+      page,
+      pageSize,
+      total: countRow.total,
+    };
+  } finally {
+    db.close();
+  }
+}
+
+export function getInternalReviewDocument(seqId: number): InternalReviewDocument | null {
+  if (!Number.isInteger(seqId) || seqId < 0 || seqId >= 1e12) return null;
+  if (getDbState(["documents"]).kind !== "ready") return null;
+
+  const db = getDb();
+  try {
+    const hasSites = hasTables(db, ["sites"]);
+    const join = hasSites ? "LEFT JOIN sites s ON s.site_id = d.site_id" : "";
+    const row = db
+      .prepare(
+        `SELECT ${internalReviewSelect(hasSites)}
+         FROM documents d ${join}
+         WHERE d.seq_id = ?`,
+      )
+      .get(seqId) as InternalReviewRow | undefined;
+    return row ? toInternalReviewDocument(toInternalReviewRecord(row)) : null;
+  } finally {
+    db.close();
+  }
+}
+
 export function getAllSitesSummary(): SiteCount[] {
   if (getDbState(["documents"]).kind !== "ready") {
     return [];
@@ -1146,19 +1301,36 @@ export function blobAbsolutePath(seqId: number, ext: "pdf" | "txt"): string {
 /** Look up the original_filename + site_id for the blob download header. */
 export function getDocumentBlobInfo(
   seqId: number
-): { original_filename: string | null; site_id: string } | null {
+): {
+  original_filename: string | null;
+  pdf_downloaded: boolean;
+  site_id: string;
+  text_extracted: boolean;
+} | null {
   if (!Number.isInteger(seqId) || seqId < 0 || seqId >= 1e12) return null;
   if (getDbState(["documents"]).kind !== "ready") return null;
   const db = getDb();
   try {
     const row = db
       .prepare(
-        `SELECT original_filename, site_id FROM documents WHERE seq_id = ?`
+        `SELECT original_filename, pdf_downloaded, site_id, text_extracted
+         FROM documents WHERE seq_id = ?`
       )
       .get(seqId) as
-      | { original_filename: string | null; site_id: string }
+      | {
+          original_filename: string | null;
+          pdf_downloaded: number | null;
+          site_id: string;
+          text_extracted: number | null;
+        }
       | undefined;
-    return row ?? null;
+    if (!row) return null;
+    return {
+      original_filename: row.original_filename,
+      pdf_downloaded: row.pdf_downloaded === 1,
+      site_id: row.site_id,
+      text_extracted: row.text_extracted === 1,
+    };
   } finally {
     db.close();
   }

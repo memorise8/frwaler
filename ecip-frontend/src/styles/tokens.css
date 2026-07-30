@@ -1,0 +1,20 @@
+:root {
+  --canvas: #f4f2ec;
+  --paper: #fffefb;
+  --ink: #202725;
+  --muted-ink: #58605c;
+  --rule: #d4d3cc;
+  --soft-rule: #e9e7df;
+  --quiet-surface: #eeece4;
+  --focus-blue: #1c5fa8;
+  --focus-blue-dark: #14477e;
+  --status-ink: #5a4024;
+  --page-width: 68rem;
+  --space-1: 0.375rem;
+  --space-2: 0.75rem;
+  --space-3: 1.25rem;
+  --space-4: 2rem;
+  --space-5: 3.5rem;
+  --radius-small: 0.25rem;
+  --radius-medium: 0.5rem;
+}

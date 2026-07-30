@@ -1,8 +1,8 @@
 import Link from "next/link";
 import {
-  searchPapers,
   getDbState,
   getSiteOptionsRich,
+  searchInternalReviewDocuments,
   type SiteOptionRich,
 } from "@/lib/db";
 import {
@@ -67,7 +67,8 @@ function applySiteFilters(
 export default async function SearchPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const dbState = getDbState(["documents"]);
-  const page = Math.max(1, parseInt(sp.page ?? "1", 10));
+  const requestedPage = Number.parseInt(sp.page ?? "1", 10);
+  const page = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const pageSize = 20;
   const q = sp.q?.trim() || undefined;
   const sites = getSiteOptionsRich();
@@ -101,8 +102,8 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
   // If a structural filter eliminates everything, return empty result quickly.
   const result = candidateSiteIds.length === 0
-    ? { papers: [], total: 0, page, pageSize }
-    : searchPapers({
+    ? { items: [], total: 0, page, pageSize }
+    : searchInternalReviewDocuments({
         siteIds: candidateSiteIds,
         q,
         dateFrom: sp.dateFrom,
@@ -114,10 +115,10 @@ export default async function SearchPage({ searchParams }: PageProps) {
   const totalPages = Math.max(1, Math.ceil(result.total / pageSize));
 
   const inputClass =
-    "px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
+    "w-full min-w-0 max-w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 max-w-full space-y-6">
       <div>
         <h1 className="text-2xl font-bold">문서 검색</h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -142,7 +143,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
         </div>
       )}
 
-      <form className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 space-y-4">
+      <form className="min-w-0 max-w-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 space-y-4">
         <div>
           <input
             type="text"
@@ -153,14 +154,14 @@ export default async function SearchPage({ searchParams }: PageProps) {
           />
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid min-w-0 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           <FilterSelect name="continent" label="대륙" value={continent ?? ""} options={continentOptions} inputClass={inputClass} placeholder="전체 대륙" />
           <FilterSelect name="country" label="국가" value={country ?? ""} options={countryOptions} inputClass={inputClass} placeholder="전체 국가" />
           <FilterSelect name="category" label="범주" value={category ?? ""} options={categoryOptions} inputClass={inputClass} placeholder="전체 범주" />
           <FilterSelect name="sheet" label="Sheet" value={sheet ?? ""} options={sheetOptions} inputClass={inputClass} placeholder="전체 sheet" />
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="grid min-w-0 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           <div className="md:col-span-1">
             <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
               사이트 (선택)
@@ -223,7 +224,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
       </form>
 
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-        {result.papers.length === 0 ? (
+        {result.items.length === 0 ? (
           <div className="px-6 py-16 text-center text-slate-400 dark:text-slate-500 text-sm">
             {dbState.kind === "ready"
               ? "검색 결과가 없습니다."
@@ -231,37 +232,44 @@ export default async function SearchPage({ searchParams }: PageProps) {
           </div>
         ) : (
           <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-            {result.papers.map((p) => {
-              const enriched = sites.find((s) => s.site_id === p.site_id);
+            {result.items.map((item) => {
               return (
                 <li
-                  key={p.id}
+                  key={item.id}
                   className="px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                 >
-                  <Link href={`/search/${p.id}`} className="block">
+                  <Link href={`/search/${item.id}`} className="block">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-slate-900 dark:text-slate-100 truncate">
-                          {p.title || "(제목 없음)"}
+                        <h3 className="font-semibold text-slate-900 dark:text-slate-100 break-keep leading-snug">
+                          {item.title}
                         </h3>
                         <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
-                          {enriched && (
-                            <>
-                              <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded font-medium">
-                                {enriched.country}
-                              </span>
-                              <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded font-medium">
-                                {enriched.category}
-                              </span>
-                            </>
-                          )}
-                          {p.published_date && (
-                            <span>· {p.published_date}</span>
+                          <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded font-medium">
+                            {item.source.country}
+                          </span>
+                          <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded font-medium">
+                            {item.source.category}
+                          </span>
+                          {item.publishedDate && (
+                            <span>· {item.publishedDate}</span>
                           )}
                           <span className="text-slate-400 dark:text-slate-500">
-                            · {p.site_id}
+                            · {item.source.name}
                           </span>
                         </div>
+                        {item.description.text ? (
+                          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
+                            <span className="mr-1 text-xs text-slate-400 dark:text-slate-500">
+                              {item.description.provenance === "summary" ? "소개·요약" : "소개·초록"}
+                            </span>
+                            {item.description.text}
+                          </p>
+                        ) : (
+                          <p className="mt-2 text-sm text-slate-400 dark:text-slate-500">
+                            소개 정보가 아직 없습니다.
+                          </p>
+                        )}
                       </div>
                       <span className="text-slate-300 dark:text-slate-600 text-lg">
                         →

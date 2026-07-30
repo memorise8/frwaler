@@ -1,5 +1,7 @@
 # Libertree 현재 상태 종합 (2026-07-17 갱신)
 
+> ⚠️ **역사적 스냅샷 — 현재 운영 기준이 아닙니다.** 이 아래의 모든 레거시 안내(“가장 먼저 읽으세요” 같은 표현 포함)는 역사 보존용이며, 현재 상태와 다음 세션 운영 절차는 전부 [`docs/HANDOFF.md`](HANDOFF.md)에 의해 대체됩니다.
+
 새 세션을 열었다면 이 문서를 **가장 먼저** 읽으세요. 컨텍스트 0에서 작업 가능하도록 self-contained로 작성.
 (빠른 재개용 복사 프롬프트는 `docs/NEXT_SESSION_PROMPT.md` 참조)
 
@@ -124,7 +126,7 @@ seq_id(PK), collected_at, site_id, post_number, meta_url, title, published_date,
 1. **비용 트랙 분리** (절대 유지)
    - OAuth(구독): 크롤러 생성 — codex_runner / claude_runner
    - OpenAI API key: analyzer.py, summarizer.py (gpt-5.4-mini)
-   - 로컬 GPU(무료): Gemma 요약 — port **11436** ollama (11434는 CPU fallback, 사용 금지)
+   - 로컬 GPU(무료): Qwen3 8B 요약 — port **11436** Ollama (11434는 CPU fallback, 사용 금지)
 2. **summary_model 컬럼 UI 노출 금지** (관리자 디버그 뷰만 허용)
 3. **DB는 운영 중** — 쓰기는 promote_all / runner / recover_pdfs 계열만, UI는 readonly
 4. **runner 결과 cp 시 `cp -n` 금지** — 옛 실패 JSON이 새 성공 결과를 가려 promote 누락됨 (6/11 실제 사고)
@@ -136,11 +138,11 @@ seq_id(PK), collected_at, site_id, post_number, meta_url, title, published_date,
 
 1. **봇차단 46 사이트 수동 쿠키 작업** — 가장 큰 잔여. 브라우저에서 차단 통과 후 쿠키 전달 (순서표: `data/audit/로그인사이트_실사_20260713.csv`)
 1-2. (완료 7/17) 신규 4사이트 cap 확장 재수집 — duth 7,132·mentalhealth 589로 전량 수집
-2. **Gemma 요약 트랙 재개** — resume-safe (채워진 summary 자동 skip). 재개 명령:
+2. **Qwen3 8B 요약 트랙 재개** — resume-safe (채워진 summary 자동 skip). 재개 명령:
    ```bash
    CUDA_VISIBLE_DEVICES=1 OLLAMA_HOST=127.0.0.1:11436 \
      OLLAMA_MODELS=/data_raid/ruci_workspace/ollama_models \
-     OLLAMA_NUM_PARALLEL=4 nohup ollama serve > /tmp/ollama_11436.log 2>&1 &
+     OLLAMA_NUM_PARALLEL=1 nohup ollama serve > /tmp/ollama_11436.log 2>&1 &
    setsid scripts/wait_then_summarize_done_sites.sh 1 < /dev/null > /dev/null 2>&1 &
    ```
 3. UI 확장 (계획 문서만 존재): `country_library_ui_plan.md`, `dashboard_1994_funnel_plan.md`, `uncollected_sites_directory_plan.md`

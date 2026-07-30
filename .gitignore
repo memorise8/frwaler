@@ -6,6 +6,7 @@ __pycache__/
 
 # Environment
 .env
+/libertree-app/.admin-credentials.env
 crawler/.env
 .id
 
@@ -59,3 +60,15 @@ test_urls.txt
 spa_urls.txt
 spa_retry.txt
 unblocked_urls.txt
+
+# --- 2026-07-31: general safety patterns (multi-app repo) ---
+node_modules/
+.next/
+dist/
+*.tsbuildinfo
+.venv-embed/
+.omo/
+.env.local
+.admin-credentials.env
+scripts/audit/out/
+ecip-library/data/

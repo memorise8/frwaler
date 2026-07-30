@@ -1,40 +1,18 @@
 # Libertree 프로젝트 문서
 
-**프로젝트**: 1,994개 글로벌 정부·연구 사이트의 메타+PDF+요약 수집 시스템
+이 디렉터리는 프로젝트 문서의 안전한 색인입니다. 현재 운영 작업을 시작할 때는 **반드시 먼저 [HANDOFF.md](HANDOFF.md)를 읽으세요.** `HANDOFF.md`가 유일한 현재 운영 권한 문서이며, 다른 문서는 이를 대체하지 않습니다.
 
-**마지막 갱신**: 2026-07-10
+## 문서 안내
 
----
+| 문서 | 상태 및 용도 |
+|---|---|
+| **[HANDOFF.md](HANDOFF.md)** | **유일한 현재 운영 권한 문서 · 새 세션의 첫 번째 읽기 문서** |
+| [NEXT_SESSION_PROMPT.md](NEXT_SESSION_PROMPT.md) | `HANDOFF.md`에서 파생된 다음 세션 시작용 보조 프롬프트. 운영 권한 문서가 아님. |
+| [CURRENT_STATE.md](CURRENT_STATE.md) | 과거 상태 기록이며 현재 운영 기준으로는 대체됨. 역사적 참고용. |
+| 기타 문서 및 과거 핸드오프 | 역사·기획·참고용 문서. 현재 운영 지침으로 사용하지 않음. |
 
-## 📚 활성 문서 (현재 작업용)
+개발 상세 이력(페이즈별 변경 로그)은 저장소 루트의 `libertree_crawler.md`에서 역사적 참고로 확인할 수 있습니다.
 
-| 문서 | 용도 | 우선순위 |
-|---|---|---|
-| **[CURRENT_STATE.md](CURRENT_STATE.md)** | 🔥 **프로젝트 종합 상태 (2026-07-10)** — 새 세션 시작 시 **첫 번째 읽기** | ⭐⭐ 필수 |
-| **[NEXT_SESSION_PROMPT.md](NEXT_SESSION_PROMPT.md)** | 새 세션 복사용 재개 프롬프트 (요약판) | ⭐ |
-| [미수집_사이트_설명.md](미수집_사이트_설명.md) | 미수집 202 사이트 분류 설명 (비개발자용) | 참고 |
-| [country_library_ui_plan.md](country_library_ui_plan.md) | 신규 UI: 나라별 도서관 페이지 트리 계획 (~6h) | 보류 |
-| [dashboard_1994_funnel_plan.md](dashboard_1994_funnel_plan.md) | 신규 UI: 대시보드 funnel 추가 (~2h) | 보류 |
-| [uncollected_sites_directory_plan.md](uncollected_sites_directory_plan.md) | 신규 UI: 수집 불가 사이트 디렉토리 (~2h) | 보류 |
-| [SESSION_HANDOFF_2026-06-05.md](SESSION_HANDOFF_2026-06-05.md) | 과거 세션 핸드오프 (이력용) | 아카이브 |
+## 로컬 구성 및 접근 정보
 
-개발 상세 이력(페이즈별 변경 로그)은 저장소 루트의 `libertree_crawler.md` 참조.
-
----
-
-## 🚀 새 세션 시작 가이드
-
-```bash
-cd /data_raid/ruci_workspace/frwaler_job
-cat docs/CURRENT_STATE.md          # ← 이거 먼저 (상태 확인 명령 포함)
-```
-
----
-
-## 🌐 접속 정보 (Production)
-
-- URL: **https://celebrity-annie-schedules-passing.trycloudflare.com**
-- ID: `ruci`
-- Password: `aKInNf7gljXlDHIj1P8t`
-
-(URL은 cloudflared 재시작 시 변경됨 — CURRENT_STATE.md 참조)
+로컬 구성 및 접근 세부 정보는 의도적으로 저장소 문서에 기록하지 않습니다.

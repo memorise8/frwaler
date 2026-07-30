@@ -1,7 +1,7 @@
 #!/bin/bash
 # Waits until current bulk_summarize PID exits, then iterates
 # through 'truly done' sites (sites_finalized.csv category='진짜끝(100%)')
-# and summarizes each one via Gemma on port 11436.
+# and summarizes each one via Qwen3 on port 11436.
 set -u
 ROOT="/data_raid/ruci_workspace/frwaler_job"
 WAIT_PID="$1"

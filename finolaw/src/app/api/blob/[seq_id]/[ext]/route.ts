@@ -1,5 +1,6 @@
 import fs from "fs";
 import { blobAbsolutePath, getDocumentBlobInfo } from "@/lib/db";
+import { authenticateInternalRequest, internalAuthFailure } from "@/lib/internal-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,9 +45,15 @@ function rfc5987(value: string): string {
 }
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<Params> }
 ): Promise<Response> {
+  const auth = authenticateInternalRequest(req);
+  if (auth.kind !== "authorized") {
+    const failure = internalAuthFailure(auth);
+    return new Response(failure.body, failure);
+  }
+
   const { seq_id: seqIdRaw, ext: extRaw } = await params;
 
   const seqId = parseSeqId(seqIdRaw);
@@ -55,6 +62,12 @@ export async function GET(
   const ext = extRaw.toLowerCase();
   if (!ALLOWED_EXT.has(ext)) return notFound("unsupported extension");
   const typedExt = ext as "pdf" | "txt";
+
+  const info = getDocumentBlobInfo(seqId);
+  if (!info) return notFound("blob not found");
+
+  const available = typedExt === "pdf" ? info.pdf_downloaded : info.text_extracted;
+  if (!available) return notFound("blob not found");
 
   let absPath: string;
   try {
@@ -71,8 +84,7 @@ export async function GET(
   }
   if (!stat.isFile()) return notFound("not a file");
 
-  const info = getDocumentBlobInfo(seqId);
-  const filename = buildFilename(seqId, typedExt, info?.original_filename ?? null);
+  const filename = buildFilename(seqId, typedExt, info.original_filename);
 
   const contentType =
     typedExt === "pdf" ? "application/pdf" : "text/plain; charset=utf-8";

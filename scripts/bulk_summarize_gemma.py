@@ -1,12 +1,12 @@
-"""Bulk-summarize documents for a single site_id using local Gemma via ollama.
+"""Bulk-summarize documents for a single site_id using local Qwen3 via Ollama.
 
 Usage:
     .venv/bin/python scripts/bulk_summarize_gemma.py \\
         --site ens-hal-science-search \\
-        [--port 11434] [--limit 0] [--commit-every 20]
+        [--port 11436] [--limit 0] [--commit-every 20]
 
 - Reads text blobs from libertree/AAAA/BBBB/AAAABBBBNNNN.txt (fallback: abstract)
-- Calls ollama gemma4:26b with the same prompt template as summarizer.py
+- Calls Ollama qwen3:8b with the same prompt template as summarizer.py
 - Writes result back to documents.summary (resume-safe — skips rows with summary)
 """
 import argparse, os, sys, sqlite3, time, requests
@@ -17,11 +17,11 @@ sys.path.insert(0, str(ROOT))
 from crawler.summarizer import SYSTEM_PROMPT, _clean
 
 BLOB = ROOT / 'libertree'
-DB = ROOT / 'data' / 'libertree.db'
+DB = ROOT / 'libertree-app' / 'data' / 'libertree.db'
 MAX_INPUT = 6000
 NUM_PREDICT = 1500
 NUM_CTX = 8192
-MODEL = 'gemma4:26b'
+MODEL = 'qwen3:8b'
 
 def blob_path(seq_id, ext):
     s = f"{seq_id:012d}"
@@ -45,7 +45,7 @@ def build_prompt(text, title):
         return f"제목: {title}\n\n본문:\n{text}\n\n위 본문을 한국어로 3~5문장으로 요약하세요."
     return f"다음 본문을 한국어로 3~5문장으로 요약하세요:\n\n{text}"
 
-def call_gemma(endpoint, text, title, timeout=600):
+def call_qwen(endpoint, text, title, timeout=600):
     payload = {
         "model": MODEL,
         "messages": [
@@ -53,6 +53,7 @@ def call_gemma(endpoint, text, title, timeout=600):
             {"role": "user", "content": build_prompt(text, title)},
         ],
         "stream": False,
+        "think": False,
         "options": {"temperature": 0.2, "num_predict": NUM_PREDICT, "num_ctx": NUM_CTX},
     }
     r = requests.post(endpoint, json=payload, timeout=timeout)
@@ -62,7 +63,7 @@ def call_gemma(endpoint, text, title, timeout=600):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('--site', required=True)
-    p.add_argument('--port', type=int, default=11434)
+    p.add_argument('--port', type=int, default=11436)
     p.add_argument('--limit', type=int, default=0, help='0=all remaining')
     p.add_argument('--commit-every', type=int, default=20)
     p.add_argument('--timeout', type=int, default=600)
@@ -82,7 +83,7 @@ def main():
     if args.limit > 0:
         rows = rows[:args.limit]
     total = len(rows)
-    print(f"[bulk-summarize] site={args.site} endpoint={endpoint}")
+    print(f"[bulk-summarize] site={args.site} model={MODEL} endpoint={endpoint}")
     print(f"[bulk-summarize] {total} docs pending (summary empty + text_extracted=1)")
     if total == 0:
         print("[bulk-summarize] nothing to do.")
@@ -95,7 +96,7 @@ def main():
         text = load_text(seq, abstract)
         t0 = time.time()
         try:
-            out = call_gemma(endpoint, text, title, timeout=args.timeout)
+            out = call_qwen(endpoint, text, title, timeout=args.timeout)
             elapsed = time.time() - t0
             if out:
                 pending_writes.append((out, MODEL, seq))

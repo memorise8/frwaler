@@ -44,30 +44,30 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
         <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2 font-bold text-lg">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center gap-3 sm:gap-6">
+            <Link href="/" className="flex shrink-0 items-center gap-2 font-bold text-lg">
               <span className="text-2xl">🌳</span>
               <span>Libertree</span>
             </Link>
-            <nav className="flex items-center gap-1 flex-1">
+            <nav className="order-3 flex min-w-0 w-full gap-1 overflow-x-auto whitespace-nowrap pb-1 sm:order-none sm:w-auto sm:flex-1 sm:pb-0">
               {NAV.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+                  className="shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
                 >
                   <span className="mr-1.5">{item.icon}</span>
                   {item.label}
                 </Link>
               ))}
             </nav>
-            <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">
+            <span className="hidden sm:inline text-xs text-slate-400 dark:text-slate-500 font-mono">
               port 3002
             </span>
             <ThemeToggle />
           </div>
         </header>
-        <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
+        <main className="flex-1 min-w-0 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
           {children}
         </main>
         <footer className="border-t border-slate-200 dark:border-slate-800 py-4 text-center text-xs text-slate-400 dark:text-slate-500">

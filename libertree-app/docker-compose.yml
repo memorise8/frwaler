@@ -1,0 +1,37 @@
+name: libertree-catalogue
+
+services:
+  catalogue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ADMIN_USER: ${ADMIN_USER:?ADMIN_USER is required}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
+      LIBERTREE_APP_MODE: read-only
+      LIBERTREE_DB_PATH: /data/repository/libertree-app/data/libertree.db
+      LIBERTREE_BLOB_ROOT: /data/repository/libertree
+    ports:
+      - 127.0.0.1:${LIBERTREE_HOST_PORT:-3101}:3001
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777,size=64m
+    volumes:
+      - type: bind
+        source: ${LIBERTREE_HOST_APP_DATA_ROOT:?LIBERTREE_HOST_APP_DATA_ROOT is required}
+        target: /data/repository/libertree-app/data
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${LIBERTREE_HOST_BLOB_ROOT:?LIBERTREE_HOST_BLOB_ROOT is required}
+        target: /data/repository/libertree
+        read_only: true
+        bind:
+          create_host_path: false
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    restart: "no"

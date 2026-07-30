@@ -5,6 +5,14 @@
 
 ---
 
+## ⚠️ 새 세션 실행 게이트 (필수)
+
+이 문서는 **정본(canonical) 참조 문서**로서 언제든 읽을 수 있다. 그러나 새 세션은 명시적인 사용자 지시가 있기 전까지 **저장소·Git·파일시스템 메타데이터만** 읽기 전용으로 오리엔테이션한 뒤 결과를 보고하고 대기한다. 이 사전-승인 오리엔테이션에는 DB 질의, 프로세스 점검, Docker 또는 그 밖의 운영 명령이 절대 포함되지 않는다.
+
+그 전에는 Docker·컨테이너·서비스·크롤러·수집·복구·전달·백업 작업을 실행하지 말고, 자격증명에 접근하지 말며, DB·blob·PDF·Excel 데이터를 수정하거나 검사하지 않는다. 아래의 Docker·크롤러 관련 운영 예시와 명령은 **명시적 사용자 승인 후에만 실행할 수 있는 참조 자료**일 뿐이며 이 실행 게이트를 무효화하거나 우선하지 않는다.
+
+---
+
 ## 1. 프로젝트 한 줄 요약
 
 클라이언트가 준 `scroll_index.xlsx`의 **글로벌 정부·연구·학술 사이트 1,994 entries(고유 host 832~833)**에서
@@ -32,7 +40,7 @@
 | 한국어 요약(Gemma) | 36,548 (트랙 일시중지, 마지막 5/26) |
 | 미수집 hosts | 138 |
 
-**상태 확인 명령 (세션 시작 시):**
+**명시적 사용자 승인 후에만 사용하는 상태 확인 참조 예시 (사전-승인 오리엔테이션에서는 절대 실행 금지):**
 ```bash
 cd /data_raid/ruci_workspace/frwaler_job
 .venv/bin/python -c "import sqlite3; c=sqlite3.connect('data/libertree.db'); \
@@ -167,7 +175,7 @@ setsid nohup .venv/bin/python scripts/<script>.py <args> > data/audit/logs/<name
 |---|---|---|
 | 크롤러 생성기 (claude_runner) | **OAuth (Claude 구독)** | `claude --model sonnet` 내장, 추가 과금 없음 |
 | analyzer / summarizer | **API key** | 토큰 과금 |
-| Gemma 요약 | 로컬 GPU **port 11436** (11434 금지) | 현재 일시중지 |
+| Qwen3 8B 요약 | 로컬 GPU **port 11436** (11434 금지) | 2026-07-26 전문 기반 배치 시작; 로그 `data/audit/logs/qwen_summary_batch_20260726_121138.log` |
 
 DB 쓰기는 **promote_all / runner / recover_pdfs / backfill 계열만**. summary_model은 UI 노출 금지.
 
@@ -214,7 +222,9 @@ DB 쓰기는 **promote_all / runner / recover_pdfs / backfill 계열만**. summa
 
 ---
 
-## 12. 새 세션에서 이어서 할 수 있는 작업 (우선순위)
+## 12. 명시적 사용자 지시 후 새 세션에서 선택할 수 있는 작업 (우선순위)
+
+아래 후보는 명시적인 사용자 지시가 있어야만 수행할 수 있으며, 새 세션이 자율적으로 시작할 다음 단계가 아니다.
 
 1. **자동수집 미완 60곳 크롤러 (재)생성** — 정부·연구 포털, 자동화로 상당수 회수 가능 (robots 38곳과 같은 방식)
    → `data/audit/미수집_사이트_사유.csv`에서 대상 추출 → claude_required_runner
@@ -222,7 +232,12 @@ DB 쓰기는 **promote_all / runner / recover_pdfs / backfill 계열만**. summa
 3. **봇차단 38곳 쿠키 수작업** — 사람이 브라우저 통과 후 쿠키 전달 (가장 큰 수동 회복분)
 4. **자동생성 실패 6곳 수동 크롤러 제작** — 개발자 직접 분석
 5. **OCR 트랙 신설** — 스캔 PDF 3,410건 (로컬 GPU, API 비용 0)
-6. **Gemma 요약 재개** — 36.5K/288K, API key 트랙
+6. **Qwen3 8B 요약 배치** — 실행 중: `scripts/run_qwen_summary_batch.sh` (PID는 변동 가능). `text_extracted=1`이면서 빈 summary만 처리하므로 중단 후 재실행 가능. 상태는 위 로그와 `ps`로 확인.
+
+> ⚠️ **계획·검토 artifact 분류 (실행 금지)**: `.omo/plans/metadata-only-60-hosts.md`와 연계된
+> `.omo/drafts/metadata-only-60-hosts.md`는 계획·검토 산출물이며, 요구된 고정확도 검토를 아직 통과하지
+> 않았다. 이들은 운영 지침이 아니며 수집 명령으로 실행해서는 안 된다. 현재 운영 작업은 위의 승인된
+> 새 세션 우선순위를 따른다.
 
 **참고 문서:**
 - `docs/CURRENT_STATE.md` — 상태 종합 (수치·스키마·미수집 분류)
