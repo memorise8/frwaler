@@ -10,6 +10,7 @@ pagination.  One HTML page per year:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -28,7 +29,7 @@ class DefensaGobEsGabineteCrawler(BaseCrawler):
 
     _LIST_BASE = "https://www.defensa.gob.es/gabinete/notasPrensa/"
     _MIN_YEAR = 2007
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _CURL_TIMEOUT = 45
     _BACKOFF = (1, 3, 9)
     _MIN_ABSTRACT = 50  # chars — skip if shorter
@@ -56,7 +57,7 @@ class DefensaGobEsGabineteCrawler(BaseCrawler):
                 print(f"[{self.site_id}] safety cap of {self._MAX_PAGES} pages reached; stopping")
                 break
             # wall-clock budget: 25 minutes
-            if time.time() - self._crawl_start > 25 * 60:
+            if time.time() - self._crawl_start > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute wall-clock budget reached; stopping")
                 break
 
@@ -85,7 +86,7 @@ class DefensaGobEsGabineteCrawler(BaseCrawler):
             for idx, record in enumerate(records, 1):
                 if limit is not None and saved >= limit:
                     break
-                if time.time() - self._crawl_start > 25 * 60:
+                if time.time() - self._crawl_start > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                     break
 
                 item_label = f"year={year} item={idx}"

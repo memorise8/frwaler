@@ -135,7 +135,7 @@ class EducationGovtNzSearchCrawler(BaseCrawler):
         seen_urls: set = set()
         start_time = time.time()
         MAX_PAGES = 200
-        MAX_SECONDS = 25 * 60
+        MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         # Fetch page 0 first to get pagination metadata.
         first = self._algolia_query(0)

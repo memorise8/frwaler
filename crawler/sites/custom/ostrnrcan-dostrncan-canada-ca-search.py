@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -34,7 +35,7 @@ class OstrnrcanDostrncanCanadaCaSearchCrawler(BaseCrawler):
 
     PAGE_SIZE = 20
     SAFETY_PAGE_CAP = 200
-    TIME_BUDGET_SECONDS = 25 * 60
+    TIME_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     BACKOFF_SECONDS = (1, 3, 9)
     MIN_ABSTRACT_CHARS = 100
 

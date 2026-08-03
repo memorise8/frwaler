@@ -6,6 +6,7 @@ Covers: fafo-reports, fafo-notes, briefs, other-fafo-publications
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -283,7 +284,7 @@ class FafoNoEnCrawler(BaseCrawler):
         seen_urls = set()
         limit_or_inf = limit if limit is not None else float("inf")
         start_time = time.time()
-        max_seconds = 25 * 60  # 25-minute wall-clock budget
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
         for category in _CATEGORIES:
             if saved >= limit_or_inf:

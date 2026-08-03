@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import html as html_mod
 import json
+import os
 import re
 import subprocess
 import time
@@ -183,7 +184,7 @@ class EnergyGovOpenGovCrawler(BaseCrawler):
                     f"[energy-gov-open-government] safety cap of {safety_cap} pages reached"
                 )
                 break
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print("[energy-gov-open-government] 25-minute wall-clock limit reached")
                 break
 

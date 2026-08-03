@@ -41,7 +41,7 @@ _FALLBACK_DESCRIPTION = (
 )
 
 _RATE_SLEEP = 1.0
-_MAX_PAGES = 200  # safety cap (this site is a single page, but kept for API compat)
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))  # safety cap (this site is a single page, but kept for API compat)
 _MAX_MINUTES = 25
 
 

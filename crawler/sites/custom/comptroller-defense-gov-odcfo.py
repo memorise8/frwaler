@@ -33,7 +33,7 @@ class ComptrollerDefenseGovOdcfoCrawler(BaseCrawler):
 
     START_URL = "https://comptroller.defense.gov/ODCFO/afr/"
     SAFETY_CAP_PAGES = 200
-    MAX_WALL_SECONDS = 25 * 60
+    MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     MIN_ABSTRACT_CHARS = 50
     BACKOFF_SECONDS = (1, 3, 9)
 

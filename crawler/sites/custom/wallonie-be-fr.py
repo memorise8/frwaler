@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -24,7 +25,7 @@ class WallonieBeFrCrawler(BaseCrawler):
     BACKOFF_SECONDS = (1, 3, 9)
     CURL_TIMEOUT = 45
     MAX_PAGES = 200
-    WALL_CLOCK_BUDGET_SECONDS = 25 * 60
+    WALL_CLOCK_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     MIN_ABSTRACT_CHARS = 50
     _CURL_META_MARKER = "__WALLONIE_BE_FR_CURL_META__:"
 

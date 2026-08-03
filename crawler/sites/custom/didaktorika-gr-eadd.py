@@ -5,6 +5,7 @@ DSpace 1.8 instance — HTML-only (no REST API available).
 """
 
 import json
+import os
 import subprocess
 import time
 import re
@@ -18,7 +19,7 @@ SEARCH_URL = (
     "https://www.didaktorika.gr/eadd/simple-search"
     "?query=&rpp=100&sort_by=0&order=DESC"
 )
-CRAWL_DEADLINE_S = 25 * 60  # 25-minute wall-clock budget
+CRAWL_DEADLINE_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
 
 def _try_bs(raw):

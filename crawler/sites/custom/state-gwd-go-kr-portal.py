@@ -9,6 +9,7 @@ Content: HWP 5.0 OLE2 PrvText stream (preview text, UTF-16LE) → abstract.
 
 import io
 import json
+import os
 import re
 import subprocess
 import sys
@@ -329,7 +330,7 @@ class StateGwdGoKrPortalCrawler(BaseCrawler):
             if page > max_pages:
                 print(f"[{self.site_id}] Safety cap of {max_pages} pages reached. Stopping.")
                 break
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute wall-clock budget exceeded. Stopping.")
                 break
 

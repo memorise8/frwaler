@@ -5,6 +5,7 @@ API endpoint: https://ntrs.nasa.gov/api/citations/search
 """
 
 import json
+import os
 import subprocess
 import sys
 import time
@@ -61,7 +62,7 @@ class NtrsNasaGovSearchCrawler(BaseCrawler):
         limit_or_inf = limit if limit is not None else "∞"
         seen_urls = set()
         start_time = time.time()
-        MAX_WALL_SECS = 25 * 60
+        MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         MAX_PAGES = 200
 
         page_from = 0

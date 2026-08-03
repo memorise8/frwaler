@@ -13,6 +13,7 @@ Detail pages: https://ir.arcnl.nl/pub/{id}
 
 import copy
 import json
+import os
 import re
 import subprocess
 import time
@@ -22,7 +23,7 @@ from crawler.base_crawler import BaseCrawler
 _SEARCH_URL = "https://ir.arcnl.nl/search/query"
 _PAGE_SIZE = 10
 _PAGE_CAP = 200
-_MAX_SECS = 25 * 60
+_MAX_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 _SEARCH_PAYLOAD_BASE = {
     "query": {

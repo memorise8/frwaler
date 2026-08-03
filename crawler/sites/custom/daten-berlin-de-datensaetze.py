@@ -42,7 +42,7 @@ class DatenBerlinDeDatensaetzeCrawler(BaseCrawler):
     DETAIL_API_URL = f"{REGISTRY_BASE_URL}/api/3/action/package_show"
     PAGE_SIZE = 50
     MAX_PAGES = 200
-    WALL_BUDGET_SECONDS = 25 * 60
+    WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     WALL_BUDGET_MARGIN_SECONDS = 15
     BACKOFF_SECONDS = (1, 3, 9)
     MIN_ABSTRACT_CHARS = 50

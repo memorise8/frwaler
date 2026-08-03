@@ -8,6 +8,7 @@ Single-page listing of 35+ <details> accordion items — no pagination or API.
 
 import hashlib
 import json
+import os
 import re
 import subprocess
 import time
@@ -238,7 +239,7 @@ class BmiGvAt114Crawler(BaseCrawler):
 
     def crawl(self, limit=None):
         wall_start = time.time()
-        MAX_WALL = 25 * 60  # 25 minutes
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
         limit_str = str(limit) if limit is not None else "∞"
         print(f"[bmi-gv-at-114] Starting crawl (limit={limit_str})")

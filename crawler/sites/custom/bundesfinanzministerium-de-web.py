@@ -2,6 +2,7 @@
 """Crawler for bundesfinanzministerium.de English brochures/publications."""
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -21,8 +22,8 @@ class BundesfinanzministeriumWebCrawler(BaseCrawler):
         "/Web/EN/Resources/Publications/Monthly_report/monthly_report.html"
     )
     _PAGE_PARAM = "251020_list"
-    _MAX_PAGES = 200
-    _CRAWL_BUDGET_SECS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT = 50
 
     # ------------------------------------------------------------------

@@ -25,6 +25,7 @@ Site structure (probed 2026-07-19 via curl --tls-max 1.3):
 """
 
 import json
+import os
 import re
 import sys
 import time
@@ -120,7 +121,7 @@ class KiceReKrBoardcntsCrawler(BaseCrawler):
         budget is hit.
         """
         start_time = time.time()
-        MAX_RUNTIME = 25 * 60  # seconds
+        MAX_RUNTIME = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
         MAX_PAGES = 200
 
         saved = 0

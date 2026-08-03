@@ -45,7 +45,7 @@ class CollegeDeFranceFrEnCrawler(BaseCrawler):
     LISTING_ENDPOINT = "/en/news?f%5B0%5D=type%3A4825&page={page}"
     DRUPAL_AJAX_ENDPOINT = "/en/views/ajax"
     MAX_PAGES = 200
-    WALL_CLOCK_BUDGET_SECONDS = 25 * 60
+    WALL_CLOCK_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     CURL_TIMEOUT = 45
     BACKOFF_SECONDS = (1, 3, 9)
     MIN_ABSTRACT_CHARS = 100

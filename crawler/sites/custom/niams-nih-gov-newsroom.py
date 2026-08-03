@@ -6,6 +6,7 @@ Detail: each press-release page via HTML parsing.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -23,7 +24,7 @@ class NiamsNihNewsroomCrawler(BaseCrawler):
     _LIST_URL = "https://www.niams.nih.gov/newsroom/press-releases"
     _PR_PREFIX = "/newsroom/press-releases/"
     _PAGE_SIZE = 10   # logical page size for chunked processing
-    _MAX_PAGES = 200  # safety cap
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))  # safety cap
 
     # ------------------------------------------------------------------
     # Network helpers
@@ -277,7 +278,7 @@ class NiamsNihNewsroomCrawler(BaseCrawler):
                 break
 
             elapsed = time.monotonic() - start_time
-            if elapsed > 25 * 60:
+            if elapsed > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute wall-clock budget reached. Exiting cleanly.")
                 break
 
@@ -302,7 +303,7 @@ class NiamsNihNewsroomCrawler(BaseCrawler):
                 seen_urls.add(url)
                 new_on_page += 1
 
-                if time.monotonic() - start_time > 25 * 60:
+                if time.monotonic() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                     print(f"[{self.site_id}] Budget exhausted mid-page. Stopping.")
                     break
 

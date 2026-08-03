@@ -203,7 +203,7 @@ class PhfScienceNzNewsPublicationsCrawler(BaseCrawler):
         seen_urls = set()
         limit_or_inf = limit if limit is not None else float("inf")
         start_time = time.time()
-        MAX_SECONDS = 25 * 60
+        MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         HITS_PER_PAGE = 50
 
         page = 0

@@ -21,6 +21,7 @@ in-between cluster.  Items with abstract < 50 chars are skipped.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -34,9 +35,9 @@ _VID = "01NAL_INST:MAIN"
 _INST = "01NAL_INST"
 _COLLECTION_ID = "81279629900007426"
 _PAGE_SIZE = 50
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _MIN_ABSTRACT = 50
-_MAX_WALL_SEC = 25 * 60
+_MAX_WALL_SEC = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _REFERER = (
     "https://search.nal.usda.gov/discovery/collectionDiscovery"
     f"?vid={_VID}&collectionId={_COLLECTION_ID}"

@@ -3,6 +3,7 @@
 
 import io
 import json
+import os
 import re
 import subprocess
 import sys
@@ -98,7 +99,7 @@ class ProvenienzforschungBeschluesseCrawler(BaseCrawler):
         text becomes the abstract.
         """
         start_time = time.time()
-        MAX_WALL_SECONDS = 25 * 60
+        MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         limit_str = str(limit) if limit is not None else "∞"
 

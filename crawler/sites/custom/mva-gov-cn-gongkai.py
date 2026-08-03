@@ -8,6 +8,7 @@ https://www.mva.gov.cn/gongkai/zfxxgkpt/zfxxgknb/
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -19,10 +20,10 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "mva-gov-cn-gongkai"
 _BASE_URL = "https://www.mva.gov.cn"
 _LIST_BASE = "https://www.mva.gov.cn/gongkai/zfxxgkpt/zfxxgknb"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN = 50
 _ABSTRACT_TARGET = 100
-_WALL_CLOCK_BUDGET = 25 * 60  # seconds
+_WALL_CLOCK_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
 
 def _curl_get(url: str, retries: int = 3) -> str | None:

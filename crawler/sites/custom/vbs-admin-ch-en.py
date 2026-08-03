@@ -13,6 +13,7 @@ records, so the parser handles both shapes.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -42,7 +43,7 @@ class VbsAdminChEnCrawler(BaseCrawler):
     END_DATE = "2025-08-29T23:59:59.999Z"
     PAGE_SIZE = 50
     SAFETY_PAGE_CAP = 200
-    WALL_LIMIT_SECONDS = 25 * 60
+    WALL_LIMIT_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     WALL_APPROACH_SECONDS = 24 * 60
     CURL_TIMEOUT = 60
     BACKOFF = (1, 3, 9)

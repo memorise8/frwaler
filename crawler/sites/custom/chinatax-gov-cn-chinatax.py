@@ -10,6 +10,7 @@ Detail page:  /chinatax/n810214/c102384r/c<id>/content.html
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -25,8 +26,8 @@ from crawler.base_crawler import BaseCrawler  # noqa: E402
 _CHANNEL_ID = "61eaab3127b040d4950fff177f09e561"
 _LIST_URL = "https://www.chinatax.gov.cn/getFileListByCodeId"
 _PAGE_SIZE = 20
-_MAX_PAGES = 200
-_WALL_BUDGET_SECS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 def _bs4_parse(html: str, parser: str):

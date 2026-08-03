@@ -12,6 +12,7 @@ No numeric post IDs — the URL slug is used as the native identifier.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -60,7 +61,7 @@ class SafefoodNetNewsCrawler(BaseCrawler):
     _NEWS_ROOT = "https://www.safefood.net/communications/news"
     _PUBLISHER = "Safefood"
     _PAGE_SAFETY_CAP = 200
-    _CRAWL_BUDGET_SECS = 25 * 60
+    _CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _RATE_SLEEP = 1.0
 
     # ------------------------------------------------------------------

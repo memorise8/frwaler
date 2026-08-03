@@ -10,6 +10,7 @@ rich body text — consistently > 100 chars for this collection.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -19,8 +20,8 @@ from crawler.base_crawler import BaseCrawler
 _LIST_URL = "https://www.kipf.re.kr/kor/Publication/CenterPeriodicals/kiPublish/CB/Center/list.do"
 _DETAIL_URL = "https://www.kipf.re.kr/kor/Publication/CenterPeriodicals/kiPublish/CB/Center/view.do"
 _BASE = "https://www.kipf.re.kr"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 class KipfReKrKorCrawler(BaseCrawler):

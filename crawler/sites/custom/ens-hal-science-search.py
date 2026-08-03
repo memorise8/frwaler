@@ -9,6 +9,7 @@ keeping the full crawl well within the 25-minute wall-clock budget.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -33,8 +34,8 @@ class EnsHalScienceSearchCrawler(BaseCrawler):
     _PAGE_SIZE = 100
     _MIN_ABSTRACT_CHARS = 100
     _RETRY_WAITS = (1, 3, 9)
-    _MAX_PAGES = 200
-    _WALL_CLOCK_BUDGET = 25 * 60  # seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_CLOCK_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
     # All fields fetched in a single list call (no per-item detail needed)
     _FIELDS = ",".join((

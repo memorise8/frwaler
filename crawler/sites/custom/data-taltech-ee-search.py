@@ -13,6 +13,7 @@ so no per-record detail fetch is required.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -30,7 +31,7 @@ class DataTaltechEeSearchCrawler(BaseCrawler):
 
     _API_BASE = "https://data.taltech.ee/api/records"
     _PAGE_SIZE = 25
-    _WALL_BUDGET = 25 * 60  # seconds
+    _WALL_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
     # ------------------------------------------------------------------ #
     # Network                                                              #

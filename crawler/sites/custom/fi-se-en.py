@@ -10,6 +10,7 @@ Detail pages: full editor-content body + PDF link extraction.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -23,7 +24,7 @@ from crawler.base_crawler import BaseCrawler
 
 _LIST_URL = "https://www.fi.se/en/published/reports/reports/"
 _PUBLISHER = "Finansinspektionen"
-_MAX_SECONDS = 25 * 60  # 25-minute wall-clock budget
+_MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
 
 def _curl_get(url: str, max_time: int = 30) -> str | None:

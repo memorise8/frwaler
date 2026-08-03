@@ -11,6 +11,7 @@ the per-record detail endpoint is NVA's public publication endpoint.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -28,8 +29,8 @@ _NVA_REGISTRATION_URL = "https://nva.sikt.no/registration"
 _CROSSREF_API = "https://api.crossref.org/works"
 _INSTITUTION_ID = "7444"
 _PAGE_SIZE = 50
-_MAX_PAGES = 200
-_WALL_BUDGET_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _RETRY_WAITS = (1, 3, 9)
 _BS_PARSERS = ("html5lib", "lxml", "html.parser")
 _MIN_ABSTRACT_CHARS = 100

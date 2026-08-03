@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import html
 import json
+import os
 import re
 import subprocess
 import time
@@ -37,7 +38,7 @@ class EnvironmentGovtNzWhatYouCanDoCrawler(BaseCrawler):
     DETAIL_API_URL = CONSULT_BASE_URL + "/api/2.4/json_consultation_details"
 
     MAX_PAGES = 200
-    WALL_CLOCK_SECONDS = 25 * 60
+    WALL_CLOCK_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     DEADLINE_MARGIN_SECONDS = 60
     MIN_ABSTRACT_CHARS = 50
     BACKOFF_SECONDS = (1, 3, 9)

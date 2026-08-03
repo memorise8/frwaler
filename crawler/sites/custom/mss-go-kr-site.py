@@ -9,6 +9,7 @@ Detail: POST https://www.mss.go.kr/site/smba/foffice/ex/statDB/StReportContentDe
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -55,8 +56,8 @@ class MssGoKrSiteCrawler(BaseCrawler):
     _DETAIL_URL = ("https://www.mss.go.kr/site/smba/foffice/ex/statDB/"
                    "StReportContentDetailView.do?gb=1&nodeId=&rcCode=&roCode=")
     _PAGE_SIZE  = 10
-    _MAX_PAGES  = 200          # safety cap; ~2 000 records total on site
-    _MAX_SECS   = 25 * 60     # 25-minute wall-clock budget
+    _MAX_PAGES  = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))          # safety cap; ~2 000 records total on site
+    _MAX_SECS   = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))     # 25-minute wall-clock budget
 
     # ------------------------------------------------------------------
     # Network helpers

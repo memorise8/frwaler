@@ -124,7 +124,7 @@ class CnipaAnnualReportCrawler(BaseCrawler):
         seen_urls: set = set()
         limit_n = float("inf") if limit is None else int(limit)
         start_ts = time.time()
-        MAX_SECS = 25 * 60  # 25-minute wall-clock budget
+        MAX_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
         year_cols = self._get_year_collections()
         if not year_cols:

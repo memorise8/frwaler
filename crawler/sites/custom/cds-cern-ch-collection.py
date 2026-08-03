@@ -16,6 +16,7 @@ Starting URL : https://cds.cern.ch/collection/Published%20Articles?ln=en
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -47,8 +48,8 @@ class CdsCernChCollectionCrawler(BaseCrawler):
         "arxiv_eprints",
     ])
     _PAGE_SIZE = 25
-    _MAX_PAGES = 200
-    _MAX_WALL_SECONDS = 25 * 60  # 25 minutes hard stop
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes hard stop
     _MIN_ABSTRACT_CHARS = 50
 
     # ------------------------------------------------------------------

@@ -20,6 +20,7 @@ from __future__ import annotations
 import hashlib
 import html as html_module
 import json
+import os
 import re
 import time
 
@@ -34,7 +35,7 @@ class IrbUsiChPublicationsCrawler(BaseCrawler):
     base_url = "https://irb.usi.ch"
 
     MAX_PAGES = 200
-    MAX_WALL_SECONDS = 25 * 60
+    MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     MIN_ABSTRACT_CHARS = 50
 
     # WP REST API endpoint for page 632 — current-year publications rendered by Pods widget

@@ -8,6 +8,7 @@ WP REST endpoint: /wp-json/wp/v2/posts?categories=499
 
 import html as _html
 import json
+import os
 import re
 import subprocess
 import time
@@ -16,7 +17,7 @@ from crawler.base_crawler import BaseCrawler
 
 _CATEGORY_ID = 499
 _PER_PAGE = 100
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -74,7 +75,7 @@ class MinisteroTurismoGovItCategoryCrawler(BaseCrawler):
         limit_or_inf = str(limit) if limit is not None else "∞"
 
         while True:
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute budget reached. Stopping.")
                 break
 

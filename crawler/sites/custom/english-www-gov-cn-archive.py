@@ -12,6 +12,7 @@ the linked content_WS*.html pages.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -28,8 +29,8 @@ _BASE_URL = "https://english.www.gov.cn"
 _LIST_URL = f"{_BASE_URL}/archive/statecouncilgazette/"
 _PUBLISHER = "The State Council of the People's Republic of China; english.www.gov.cn"
 _CATEGORY = "State Council Gazette"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_CHARS = 50
 
 _MONTHS = {

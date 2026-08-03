@@ -20,8 +20,8 @@ _LIST_URL = f"{_BASE}/mpva/selectBbsNttList.do"
 _VIEW_URL = f"{_BASE}/mpva/selectBbsNttView.do"
 _BBS_NO = "16"
 _KEY = "77"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 class MpvaGovKrMpvaCrawler(BaseCrawler):

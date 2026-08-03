@@ -7,6 +7,7 @@ Sources:
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -201,7 +202,7 @@ class AMFFranceOrgFrCrawler(BaseCrawler):
     TARGET_PATH_PREFIX = "/fr/actualites-publications/communiques/communiques-de-lamf/"
     RATE_SLEEP = 1.0
     MAX_PAGES = 200  # safety cap (one page = one article here)
-    WALL_CLOCK_LIMIT = 25 * 60  # 25 minutes in seconds
+    WALL_CLOCK_LIMIT = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes in seconds
 
     def _fetch_sitemap_urls(self):
         """Return list of (url, lastmod) for communiques-de-lamf, newest first."""

@@ -6,6 +6,7 @@ Pagination: ?page=N (10 items per page, ~15 pages)
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -16,8 +17,8 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "bmj-gv-at-ministerium"
 _BASE_URL = "https://www.bmj.gv.at"
 _LIST_URL = f"{_BASE_URL}/ministerium/aktuelle-meldungen.html"
-_MAX_PAGES = 200
-_CRAWL_BUDGET_SECS = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 _USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "

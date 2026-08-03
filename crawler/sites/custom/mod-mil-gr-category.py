@@ -12,6 +12,7 @@ category and detail HTML endpoints are stable:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -62,7 +63,7 @@ class ModMilGrCategoryCrawler(BaseCrawler):
     PUBLISHER = "Υπουργείο Εθνικής Άμυνας; Ελληνική Δημοκρατία"
 
     MAX_PAGES = 200
-    MAX_WALL_SECONDS = 25 * 60
+    MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     WALL_GRACE_SECONDS = 30
     CURL_TIMEOUT = 45
     BACKOFF = (1, 3, 9)

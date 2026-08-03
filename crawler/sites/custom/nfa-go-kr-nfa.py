@@ -23,7 +23,7 @@ _BASE = "https://www.nfa.go.kr"
 _LIST_PATH = "/nfa/publicrelations/policyarchive/policyresearch/"
 _BOARD_ID = "bbs_0000000000000613"
 _SAFETY_CAP = 200
-_BUDGET_SECS = 25 * 60
+_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "

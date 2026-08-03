@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import html as _html
 import json
+import os
 import re
 import subprocess
 import time
@@ -22,9 +23,9 @@ _BBS_CODE = "13000005"
 _LIST_URL = f"{_BASE_URL}/bbs/mnd/{_BBS_CODE}/artclList.do"
 _DETAIL_BASE = f"{_BASE_URL}/bbs/mnd/{_BBS_CODE}"
 _LIST_REFERER = f"{_BASE_URL}/mnd/167/subview.do"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 50
-_WALL_CLOCK_SECS = 25 * 60
+_WALL_CLOCK_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 _UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import subprocess
 import time
@@ -35,8 +36,8 @@ _BASE_URL = "https://www.ethniccommunities.govt.nz"
 _LISTING_URL = "https://www.ethniccommunities.govt.nz/resources/our-newsletter"
 _PUBLISHER = "Ministry for Ethnic Communities"
 _CATEGORY = "Newsletter"
-_MAX_PAGES = 200
-_MAX_RUNTIME_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_RUNTIME_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _RUNTIME_GRACE_SECONDS = 45
 _ABSTRACT_MIN_CHARS = 50
 _ABSTRACT_DB_MIN_CHARS = 100

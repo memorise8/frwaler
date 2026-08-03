@@ -9,6 +9,7 @@ Total: ~5765 journal records.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -24,8 +25,8 @@ class IheidSwisscoveryChDiscoveryCrawler(BaseCrawler):
 
     _API_URL = "https://iheid.swisscovery.ch/primaws/rest/pub/pnxs"
     _PAGE_SIZE = 25
-    _MAX_PAGES = 200
-    _CRAWL_BUDGET_SECS = 25 * 60  # 25 minutes
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
     _RATE_SLEEP = 1.0
     _MIN_ABSTRACT = 100  # chars — skip items below this
 

@@ -8,6 +8,7 @@ Detail page  : https://www.cmi.no/publications/{numeric-id}-{slug}
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -224,7 +225,7 @@ class CmiNoPublicationsCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         start_time = time.time()
-        budget_seconds = 25 * 60
+        budget_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         safety_page_cap = 200
 
         saved = 0

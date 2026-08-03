@@ -38,7 +38,7 @@ _EXP_ENCODED = urllib.parse.quote(_EXP, safe="")
 
 _PAGE_SIZE = 20
 _SAFETY_CAP_PAGES = 200
-_BUDGET_SECS = 25 * 60  # 25 minutes
+_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 class DairDiasIeCgiCrawler(BaseCrawler):

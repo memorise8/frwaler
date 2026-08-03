@@ -12,6 +12,7 @@ possible. There is no JSON endpoint exposed by the page.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -39,7 +40,7 @@ ARCHIVE_YEAR_URLS = [
     for year in (2015, 2014, 2013, 2012, 2011)
 ]
 MAX_PAGES = 200
-MAX_WALL_SECONDS = 25 * 60
+MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 WALL_CLOCK_GRACE_SECONDS = 15
 
 

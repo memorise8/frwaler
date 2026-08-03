@@ -7,6 +7,7 @@ GB2312/GBK-like bytes, so this crawler uses curl and byte-level decoding.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -30,8 +31,8 @@ class DrcGovCnLeafAspxCrawler(BaseCrawler):
     _CHANNEL_ID = "378"
     _LEAF_ID = "1338"
     _PAGE_SIZE = 100
-    _MAX_PAGES = 200
-    _MAX_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT_CHARS = 100
 
     def __init__(self, db_conn, delay=1.0):

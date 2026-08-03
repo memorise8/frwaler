@@ -6,6 +6,7 @@ No per-item detail-page fetch needed: the list API returns full resource metadat
 """
 
 import json
+import os
 import subprocess
 import time
 import urllib.parse
@@ -51,7 +52,7 @@ class DataEGovJpDataCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
-        BUDGET_SECS = 25 * 60
+        BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         MAX_PAGES = 200
 
         start_time = time.time()

@@ -32,8 +32,8 @@ _BASE_URL = "https://www.graduateinstitute.ch"
 _START_URL = f"{_BASE_URL}/library/publications-institute"
 _LIST_URL = f"{_BASE_URL}/catalog-publication"
 _REPOSITORY_BASE = "https://repository.graduateinstitute.ch"
-_MAX_PAGES = 200
-_CRAWL_BUDGET_SECS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_CHARS = 100
 
 

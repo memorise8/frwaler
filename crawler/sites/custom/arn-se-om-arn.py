@@ -7,6 +7,7 @@ Each entry: year, PDF link, constructed abstract from page preamble + year conte
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -81,7 +82,7 @@ class ArnSeOmArnCrawler(BaseCrawler):
         Returns count of saved documents.
         """
         start_time = time.time()
-        max_seconds = 25 * 60
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         print(f"[{self.site_id}] Fetching: {self._LIST_URL}")
         raw = self._curl_get(self._LIST_URL)

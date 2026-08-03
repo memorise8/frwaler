@@ -61,8 +61,8 @@ class CernNewsCrawler(BaseCrawler):
     base_url = "https://home.cern"
 
     _FEED_BASE = "https://home.cern/feed/"
-    _MAX_PAGES = 200
-    _WALL_CLOCK_BUDGET = 25 * 60  # 25 minutes in seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_CLOCK_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes in seconds
 
     # ------------------------------------------------------------------
     # curl helper

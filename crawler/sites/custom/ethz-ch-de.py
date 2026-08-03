@@ -77,8 +77,8 @@ class EthzChDeCrawler(BaseCrawler):
     site_name = "Custom: ethz-ch-de"
     base_url = "https://ethz.ch"
 
-    _MAX_PAGES = 200
-    _WALL_CLOCK_BUDGET = 25 * 60  # seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_CLOCK_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
     # ------------------------------------------------------------------
     # curl helper

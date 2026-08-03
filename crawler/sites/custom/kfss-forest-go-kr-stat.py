@@ -10,6 +10,7 @@ API endpoints discovered:
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -67,8 +68,8 @@ class KfssForestGoKrStatCrawler(BaseCrawler):
     _BBS_ID = "ptlPdsBase"
     _MENU_ID = "9795"
     _PAGE_SIZE = 10
-    _MAX_PAGES = 200
-    _WALL_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     # ------------------------------------------------------------------
     # HTTP helpers

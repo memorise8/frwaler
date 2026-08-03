@@ -8,6 +8,7 @@ each publication's DOI.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -154,7 +155,7 @@ class SibSwissCommunity(BaseCrawler):
             Maximum number of papers to save. None means unlimited.
         """
         start_ts  = time.time()
-        max_wall  = 25 * 60          # 25 minutes hard budget
+        max_wall  = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))          # 25 minutes hard budget
         saved     = 0
         seen_urls = set()
         lim_str   = str(limit) if limit is not None else "∞"

@@ -15,6 +15,7 @@ Endpoints:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -38,7 +39,7 @@ class KliimaministeeriumEeOtsingCrawler(BaseCrawler):
     _PAGE_SIZE = 10        # API default; per_page param is ignored by the server
     _MIN_ABSTRACT = 50     # chars: skip item if below this
     _CURL_TIMEOUT = 45
-    _MAX_PAGES = 200       # safety cap
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))       # safety cap
 
     # ------------------------------------------------------------------
     # Network
@@ -237,7 +238,7 @@ class KliimaministeeriumEeOtsingCrawler(BaseCrawler):
 
             # Check wall-clock budget (25 min)
             elapsed = time.time() - start_time
-            if elapsed > 25 * 60:
+            if elapsed > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-minute budget reached at page {page}; stopping")
                 break
 

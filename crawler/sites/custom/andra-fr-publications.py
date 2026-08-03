@@ -74,7 +74,7 @@ class AndraFrPublicationsCrawler(BaseCrawler):
     base_url  = "https://www.andra.fr"
 
     _PDF_PAGES         = 3     # PDF pages to extract for abstract
-    _MAX_PAGES         = 200   # hard safety cap
+    _MAX_PAGES         = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))   # hard safety cap
     _CRAWL_BUDGET_SECS = 1500  # 25-minute wall-clock limit
 
     # ------------------------------------------------------------------ #

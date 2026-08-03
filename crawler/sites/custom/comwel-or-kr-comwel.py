@@ -10,6 +10,7 @@ full article body plus attachment links.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -62,8 +63,8 @@ class ComwelOrKrComwelCrawler(BaseCrawler):
     _BOARD_NO = "892"
     _PAGE_SIZE = 10
     _MIN_ABSTRACT = 100
-    _MAX_PAGES = 200
-    _MAX_WALL = 25 * 60  # seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
     # ------------------------------------------------------------------
     # curl helper

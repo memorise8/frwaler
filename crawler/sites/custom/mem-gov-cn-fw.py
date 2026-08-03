@@ -5,6 +5,7 @@ Target: https://www.mem.gov.cn/fw/yajzjxzxk/zjxzxksxbljg/
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -16,8 +17,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from crawler.base_crawler import BaseCrawler
 
 _LIST_BASE = "https://www.mem.gov.cn/fw/yajzjxzxk/zjxzxksxbljg/"
-_MAX_PAGES = 200
-_WALL_BUDGET = 25 * 60  # seconds
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
 
 # ---------------------------------------------------------------------------

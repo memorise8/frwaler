@@ -48,7 +48,7 @@ class BawDeEnCrawler(BaseCrawler):
     MIN_ABSTRACT_CHARS = 50
     PREFERRED_ABSTRACT_CHARS = 100
     MAX_ABSTRACT_CHARS = 5000
-    MAX_WALL_SECONDS = 25 * 60  # 25-minute budget per crawl run
+    MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget per crawl run
     MAX_PAGES_SAFETY = 200      # pagination safety cap (not needed here but kept)
 
     def __init__(self, db_conn, delay=1.0, detail_delay=None):

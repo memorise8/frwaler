@@ -12,6 +12,7 @@ Structure:
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -27,7 +28,7 @@ _LIST_URL = "https://www.nidcr.nih.gov/news-events/nidcr-news"
 _ARCHIVE_YEARS = [2021, 2022, 2023, 2024, 2025]
 _CURRENT_YEAR = 2026
 _RATE_SLEEP = 1.0
-_MAX_PAGES = 200  # safety cap (one "page" = one year listing here)
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))  # safety cap (one "page" = one year listing here)
 
 
 def _curl_get(url: str, retries: int = 3) -> str | None:
@@ -171,7 +172,7 @@ class NIDCRNewsEventsCrawler(BaseCrawler):
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.time()
-        max_wall_seconds = 25 * 60  # 25-minute budget
+        max_wall_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
 
         # Build list of year pages to walk (current year first, then archives newest→oldest)
         year_pages = [(_CURRENT_YEAR, _LIST_URL)]

@@ -45,10 +45,10 @@ _LISTING_PATH = (
 )
 _DOCSET_ID = "2041"
 _PAGE_SIZE = 16
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_SAVE = 50
 _ABSTRACT_TARGET = 100
-_WALL_BUDGET = 25 * 60  # seconds
+_WALL_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 _CDX_API = "http://web.archive.org/cdx/search/cdx"
 _WB_BASE = "https://web.archive.org/web"
 

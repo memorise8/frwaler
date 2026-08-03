@@ -25,8 +25,8 @@ from crawler.base_crawler import BaseCrawler  # noqa: E402
 _API_URL = "https://bm.ankiro.dk/Public/Rest/Search/bm.dk.json"
 _BASE_STR = "Ym0uZGstNjM5Mg=="   # base64 key from jsViewData on bm.dk/soeg/
 _PAGE_SIZE = 10
-_MAX_PAGES = 200
-_WALL_CLOCK_LIMIT = 25 * 60   # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_CLOCK_LIMIT = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25 minutes
 
 
 class BmDkSoegCrawler(BaseCrawler):

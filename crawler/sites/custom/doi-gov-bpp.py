@@ -10,6 +10,7 @@ as its own document record.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -28,8 +29,8 @@ _FALLBACK_DESC = (
     "Interior's budget. You may track the progress of this budget request "
     "through the Congressional appropriations process from this page."
 )
-_MAX_WALL_SECONDS = 25 * 60  # 25 minutes
-_MAX_PAGES = 200              # safety cap (index links, not paginator pages)
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))              # safety cap (index links, not paginator pages)
 
 
 # ---------------------------------------------------------------------------

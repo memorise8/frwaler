@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -29,8 +30,8 @@ class XxgkMotGovCn2020Crawler(BaseCrawler):
     _LIST_STEM = "iframe_list_7232"
     _COLUMN_ID = "7232"
     _DEFAULT_CATEGORY = "统计数据"
-    _MAX_PAGES = 200
-    _MAX_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT_CHARS = 50
 
     def __init__(self, db_conn, delay=1.0):

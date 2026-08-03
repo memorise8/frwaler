@@ -6,6 +6,7 @@ API:    Drupal Views AJAX  POST /views/ajax  page=0, 1, 2, …
 """
 
 import json
+import os
 import re
 import time
 from urllib.parse import urljoin
@@ -19,7 +20,7 @@ _AJAX_URL   = "https://www.ifpenergiesnouvelles.fr/views/ajax"
 _TAG_TID    = "72"          # taxonomy term ID for communiques-presse
 _VIEW_DOM_ID = "ifpen_cp_dom"
 _SAFETY_PAGE_CAP  = 200
-_WALL_CLOCK_LIMIT = 25 * 60  # 25 minutes
+_WALL_CLOCK_LIMIT = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 # ---------------------------------------------------------------------------
 # French month → zero-padded number

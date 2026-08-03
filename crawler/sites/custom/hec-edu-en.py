@@ -6,6 +6,7 @@ API:     Drupal Views AJAX at /en/views/ajax (POST, page=0,1,2…)
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -246,7 +247,7 @@ class HecEduEnCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         start_ts = time.time()
-        MAX_WALL_SECS = 25 * 60  # 25 minutes
+        MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
         MAX_PAGES = 200
 
         saved = 0

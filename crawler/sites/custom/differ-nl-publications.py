@@ -14,6 +14,7 @@ record when available and uses that record for the real abstract and PDF URL.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -26,7 +27,7 @@ from crawler.base_crawler import BaseCrawler
 
 _START_URL = "https://www.differ.nl/publications?author=&year=&type=thesis&combine="
 _PAGE_CAP = 200
-_CRAWL_BUDGET_SECONDS = 25 * 60
+_CRAWL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _RETRY_WAITS = (1, 3, 9)
 
 _MONTHS = {

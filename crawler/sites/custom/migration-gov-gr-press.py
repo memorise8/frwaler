@@ -8,6 +8,7 @@ full post content — no detail-page fetches needed.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -27,13 +28,13 @@ class MigrationGovGrPressCrawler(BaseCrawler):
     _API_BASE = "https://migration.gov.gr/wp-json/wp/v2/posts"
     _CATEGORY_ID = 23          # "Δελτία Τύπου"
     _PER_PAGE = 10
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _BACKOFF = (1, 3, 9)
     _CURL_TIMEOUT = 45
     _MIN_ABSTRACT_CHARS = 50   # below this → skip entirely
     _MIN_SAVED_ABSTRACT_CHARS = 100  # below this → skip save
     _PUBLISHER = "Υπουργείο Μετανάστευσης και Ασύλου"
-    _WALL_CLOCK_BUDGET_S = 25 * 60  # 25 minutes
+    _WALL_CLOCK_BUDGET_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
     _API_FIELDS = "id,date,modified,slug,link,title,content,excerpt"
 

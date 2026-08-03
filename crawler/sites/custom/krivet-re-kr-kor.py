@@ -8,6 +8,7 @@ Abstract built from 내용(KOR) + 내용(ENG) <pre> blocks in the detail page.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -21,8 +22,8 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "krivet-re-kr-kor"
 _BASE_URL = "https://www.krivet.re.kr"
 _LIST_URL = f"{_BASE_URL}/kor/sub.do"
-_MAX_PAGES = 200
-_WALL_CLOCK_LIMIT = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_CLOCK_LIMIT = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 def _curl_get(url: str, params: dict | None = None, retries: int = 3) -> str | None:

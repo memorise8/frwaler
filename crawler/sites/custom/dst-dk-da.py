@@ -8,6 +8,7 @@ PDF URL:         https://www.dst.dk/pubfile/{pub_id}/{filename}
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -31,7 +32,7 @@ class DstDkDaCrawler(BaseCrawler):
 
     _LIST_URL = "https://www.dst.dk/da/Statistik/udgivelser?pub=pub&page={page}"
     _DETAIL_URL = "https://www.dst.dk/pubomtale/{pub_id}"
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
     # ------------------------------------------------------------------
     # HTTP
@@ -281,7 +282,7 @@ class DstDkDaCrawler(BaseCrawler):
         for page in range(1, self._MAX_PAGES + 1):
             # Wall-clock budget
             elapsed = time.time() - start_time
-            if elapsed > 25 * 60:
+            if elapsed > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute wall-clock budget exceeded. Stopping.")
                 break
 

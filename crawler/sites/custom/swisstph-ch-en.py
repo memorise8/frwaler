@@ -15,6 +15,7 @@ from __future__ import annotations
 import hashlib
 import html
 import json
+import os
 import re
 import subprocess
 import time
@@ -105,8 +106,8 @@ class SwissTPHCrawler(BaseCrawler):
 
     _LIST_URL = "https://www.swisstph.ch/en/publications"
     _EFETCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
-    _MAX_PAGES = 200
-    _MAX_WALL_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _STOP_GRACE_SECONDS = 30
     _MIN_ABSTRACT_CHARS = 100
 

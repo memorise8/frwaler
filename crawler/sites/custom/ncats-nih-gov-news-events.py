@@ -9,6 +9,7 @@ Mechanism: Drupal Views AJAX endpoint for pagination; external (and internal)
 
 import hashlib
 import json
+import os
 import re
 import subprocess
 import time
@@ -25,9 +26,9 @@ _DEFAULT_VIEW_DOM_ID = (
 _VIEW_NAME = "news_new"
 _VIEW_DISPLAY_ID = "block_7"
 _VIEW_NODE_PATH = "%2Fnode%2F27561"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _RATE_LIMIT = 1.0        # seconds between detail-page fetches
-_WALL_BUDGET = 25 * 60  # 25-minute wall-clock cap
+_WALL_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock cap
 
 
 # ---------------------------------------------------------------------------

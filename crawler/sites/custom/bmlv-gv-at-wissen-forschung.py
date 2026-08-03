@@ -10,6 +10,7 @@ still obeys `limit` and the 200-page safety cap.
 
 import html as _html_mod
 import json
+import os
 import re
 import subprocess
 import sys
@@ -32,7 +33,7 @@ _UA = (
 )
 _BASE_PUB = "https://www.bmlv.gv.at/wissen-forschung/publikationen"
 _LIST_URL = f"{_BASE_PUB}/doktyp.php?id=14"
-_MAX_WALL_SECS = 25 * 60   # 25-minute wall-clock budget
+_MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute wall-clock budget
 _SAFETY_CAP   = 200        # max loop iterations (all items on one page; safety only)
 
 _GERMAN_MONTHS = {

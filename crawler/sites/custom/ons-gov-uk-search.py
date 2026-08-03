@@ -10,6 +10,7 @@ API endpoint:
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -269,7 +270,7 @@ class OnsGovUkSearchCrawler(BaseCrawler):
                     )
                     break
 
-                if time.time() - start_time > 25 * 60:
+                if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                     print(f"[{_SITE_ID}] 25-minute wall-clock budget exceeded, stopping")
                     break
 

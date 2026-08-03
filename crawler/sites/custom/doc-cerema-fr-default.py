@@ -8,6 +8,7 @@ Key: FacetFilter MUST be a JSON-encoded string (not an object).
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -17,7 +18,7 @@ from crawler.base_crawler import BaseCrawler
 _SEARCH_URL = "https://doc.cerema.fr/Portal/Recherche/Search.svc/Search"
 _INIT_URL = "https://doc.cerema.fr/Default/search.aspx"
 _PAGE_SIZE = 50  # max supported by API (PageSizeResult: [5,10,25,50])
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _MAX_MINUTES = 25
 # FacetFilter must be JSON-stringified; _488=public PDF, _416=publisher type
 _FACET_FILTER = json.dumps({"_488": "Oui", "_416": "Editions du Cerema"})

@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import html as _html
 import json
+import os
 import re
 import subprocess
 import sys
@@ -41,7 +42,7 @@ _LIST_TMPL = f"{_BASE}/actualites/les-publications/gp-page/{{page}}.html"
 _FILTER_TYPE = 15                         # Rapport annuel
 _CHASH_FALLBACK = "72267ca2be700b84e16163a0213a69f2"
 _COOKIES = "/tmp/arcep_fr_actualites_cookies.txt"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _MIN_ABSTRACT_SAVE = 50     # skip if shorter
 _MIN_ABSTRACT_TEST = 100    # test requirement; abstract built to always exceed this
 _BACKOFF = (1, 3, 9)
@@ -279,7 +280,7 @@ class ArcepFrActualitesCrawler(BaseCrawler):
 
         while True:
             # --- Safety / budget checks ---
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute wall-clock budget reached; stopping cleanly")
                 break
             if limit is not None and saved >= limit:

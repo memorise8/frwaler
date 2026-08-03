@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -20,9 +21,9 @@ _LIST_URL = _BASE_URL + "/board/list.gyeong"
 _DETAIL_URL = _BASE_URL + "/board/view.gyeong"
 _BOARD_ID = "BBS_0000060"
 _MENU_CD = "DOM_000000135002001000"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 50
-_WALL_CLOCK_BUDGET_SECONDS = 25 * 60
+_WALL_CLOCK_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 class GyeongnamGoKrBoardCrawler(BaseCrawler):

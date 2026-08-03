@@ -11,6 +11,7 @@ Tableaux.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -200,7 +201,7 @@ class HautConseilClimatRessourcesPedagogiqCrawler(BaseCrawler):
                 break
 
             # Wall-clock budget: 25 minutes
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute budget reached. Stopping early.")
                 break
 

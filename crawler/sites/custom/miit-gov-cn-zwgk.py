@@ -7,6 +7,7 @@ Detail:   /zwgk/zfxxgkzl/zfxxgknb/gyhxxhb/art/{year}/art_{hash}.html (HTML)
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -212,7 +213,7 @@ class MiitGovCnZwgkCrawler(BaseCrawler):
     def crawl(self, limit=None):
         """Crawl MIIT 政府信息公开年报, save via _save_paper. Returns saved count."""
         start_time = time.time()
-        max_seconds = 25 * 60  # 25-minute wall-clock budget
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
         saved = 0
         seen_urls: set[str] = set()

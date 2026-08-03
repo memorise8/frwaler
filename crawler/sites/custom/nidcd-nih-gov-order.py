@@ -2,6 +2,7 @@
 """Crawler for NIDCD Free Publications (https://www.nidcd.nih.gov/order)."""
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -13,7 +14,7 @@ _SITE_ID = "nidcd-nih-gov-order"
 _BASE_URL = "https://www.nidcd.nih.gov"
 _LIST_URL = _BASE_URL + "/order"
 _PAGE_CAP = 200
-_WALL_SECONDS = 25 * 60  # 25 minute budget
+_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minute budget
 
 
 def _make_soup(raw):

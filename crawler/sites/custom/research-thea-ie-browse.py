@@ -29,6 +29,7 @@ whose <fileSec> lists the actual bitstream download URLs.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -50,7 +51,7 @@ _NS = {
 }
 
 _SAFETY_CAP = 200        # max list pages before forced stop
-_BUDGET_SECS = 25 * 60   # 25-minute wall-clock cap
+_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute wall-clock cap
 _DETAIL_SLEEP = 1.0      # seconds between per-item detail (mets) fetches
 _MIN_ABSTRACT_LEN = 50
 

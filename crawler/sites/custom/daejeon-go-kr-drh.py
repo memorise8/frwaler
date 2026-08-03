@@ -21,6 +21,7 @@ is still captured in ``metadata.attachments`` / ``original_filename``.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -39,8 +40,8 @@ class DaejeonGoKrDrhCrawler(BaseCrawler):
     _BOARD_ID = "normal_0189"
     _MENU_SEQ = "6825"
     _RECORD_COUNT = 10
-    _MAX_PAGES = 200
-    _WALL_CLOCK_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_CLOCK_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _STOP_SOON_SECONDS = _WALL_CLOCK_SECONDS - 30
     _MIN_ABSTRACT_CHARS = 100
 

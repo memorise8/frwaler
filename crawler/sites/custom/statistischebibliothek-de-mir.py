@@ -19,6 +19,7 @@ issue's subject keywords.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -38,9 +39,9 @@ class StatistischebibliothekDeMirCrawler(BaseCrawler):
     _SOLR_URL = "https://www.statistischebibliothek.de/mir/servlets/solr/find"
 
     _PAGE_SIZE = 100
-    _MAX_PAGES = 200          # safety cap
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))          # safety cap
     _MIN_ABSTRACT_CHARS = 50  # skip items whose abstract is shorter than this
-    _MAX_CRAWL_SECONDS = 25 * 60  # 25-minute wall-clock budget
+    _MAX_CRAWL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
     _BACKOFF = (1, 3, 9)
 

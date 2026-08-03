@@ -6,6 +6,7 @@ API:    https://www.state.gov/wp-json/wp/v2/state_report  (WordPress REST API)
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -116,7 +117,7 @@ class StateGovDepartmentReportsCrawler(BaseCrawler):
     base_url = "https://www.state.gov"
 
     _PER_PAGE = 100
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
     def crawl(self, limit=None):
         """Crawl state.gov department reports via WordPress REST API.
@@ -125,7 +126,7 @@ class StateGovDepartmentReportsCrawler(BaseCrawler):
         response — no per-item detail fetch is required.
         """
         start_time = time.time()
-        max_seconds = 25 * 60
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         # Pre-fetch taxonomy term maps for human-readable names
         print(f"[{self.site_id}] Fetching taxonomy maps...")

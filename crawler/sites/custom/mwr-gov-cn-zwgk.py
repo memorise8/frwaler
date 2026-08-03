@@ -7,6 +7,7 @@ Target: http://www.mwr.gov.cn/zwgk/gknb/
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -21,7 +22,7 @@ _SITE_ID = "mwr-gov-cn-zwgk"
 _BASE_URL = "http://www.mwr.gov.cn"
 _LIST_URL = "http://www.mwr.gov.cn/zwgk/gknb/"
 _ABSTRACT_MIN_CHARS = 50
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
 
 class MwrGovCnZwgkCrawler(BaseCrawler):
@@ -279,7 +280,7 @@ class MwrGovCnZwgkCrawler(BaseCrawler):
 
         for page in range(_MAX_PAGES):
             elapsed = time.time() - crawl_start
-            if elapsed > 25 * 60:
+            if elapsed > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-minute wall-clock budget reached; stopping.")
                 break
 

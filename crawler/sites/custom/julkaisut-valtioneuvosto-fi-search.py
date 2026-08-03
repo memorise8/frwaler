@@ -6,6 +6,7 @@ API base: https://julkaisut.valtioneuvosto.fi/server/api
 """
 
 import json
+import os
 import subprocess
 import sys
 import time
@@ -112,7 +113,7 @@ class JulkaisutValtioneuvastoFiSearchCrawler(BaseCrawler):
         seen_urls = set()
         limit_val = limit if limit is not None else float("inf")
         start_time = time.time()
-        max_wall_secs = 25 * 60  # 25 minutes hard cap
+        max_wall_secs = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes hard cap
 
         page = 0
         max_pages = 200

@@ -11,6 +11,7 @@ abstracts are built from real detail metadata plus embedded page-image facts.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -28,8 +29,8 @@ _CATEGORY = "党的建设 / 水科之声 / 期刊"
 _JOURNAL = "水科之声"
 _PUBLISHER = "中国水科院党委; 中国水利水电科学研究院"
 _DEPARTMENT = "中国水科院党委办公室"
-_MAX_PAGES = 200
-_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 def _make_soup(raw):

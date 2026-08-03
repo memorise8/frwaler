@@ -10,6 +10,7 @@ Each section lists publications that link to either:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -22,7 +23,7 @@ _BASE_URL = "https://www.bmwet.gv.at"
 _INDEX_URL = "https://www.bmwet.gv.at/Services/Publikationen.html"
 _ABSTRACT_MIN_CHARS = 50
 _MAX_SAFETY_ITEMS = 10_000  # safety cap instead of pages (no pagination on this site)
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 _DE_MONTHS = {
     "januar": "01", "februar": "02", "märz": "03", "maerz": "03",

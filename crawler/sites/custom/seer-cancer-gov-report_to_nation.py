@@ -13,6 +13,7 @@ then naturally terminates on the (nonexistent) next page.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -25,9 +26,9 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "seer-cancer-gov-report_to_nation"
 _BASE_URL = "https://seer.cancer.gov"
 _LIST_URL = "https://seer.cancer.gov/report_to_nation/previous.html"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _MIN_ABSTRACT = 50
-_MAX_WALL_SEC = 25 * 60
+_MAX_WALL_SEC = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _PUBLISHER = "National Cancer Institute; SEER Program"
 _MONTHS = [
     "January", "February", "March", "April", "May", "June",

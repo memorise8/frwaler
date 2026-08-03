@@ -96,8 +96,8 @@ class KeeiReKrBoardesCrawler(BaseCrawler):
     site_name = "Custom: keei-re-kr-boardes"
     base_url = _BASE
 
-    _MAX_PAGES = 200
-    _TIMEOUT_SECS = 25 * 60   # 25 minutes
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _TIMEOUT_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25 minutes
     _MIN_ABSTRACT = 50         # skip items shorter than this
 
     def crawl(self, limit=None):

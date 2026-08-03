@@ -21,7 +21,7 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "harcresearch-org-news"
 _LIST_URL = "https://harcresearch.org/news/"
 _PUBLISHER = "Houston Advanced Research Center"
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _BS4_PARSERS = ["html5lib", "lxml", "html.parser"]
 
 

@@ -42,7 +42,7 @@ class CancerFrCataloguePublicCrawler(BaseCrawler):
     )
     _PAGE_CAP = 200
     _PAGE_SIZE = 50
-    _WALL_CLOCK_BUDGET = 25 * 60
+    _WALL_CLOCK_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     _ALGOLIA_APP_ID = "9O0WH8HVSU"
     _ALGOLIA_API_KEY = os.environ.get("CANCER_FR_CATALOGUE_DES_PUBLIC_KEY", "")

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -18,8 +19,8 @@ _BASE_URL = "https://kommunikasjon.ntb.no"
 _PUBLISHER_ID = "17848243"
 _CATEGORY_ID = "19"
 _PAGE_SIZE = 20
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_CHARS = 50
 _STARTING_URL = (
     "https://kommunikasjon.ntb.no/presserom/17848243/vetinst/r?categories=19"

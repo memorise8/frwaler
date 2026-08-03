@@ -121,8 +121,8 @@ class KicjReKrBoardesCrawler(BaseCrawler):
     _KEYWORDS_URL = f"{_BASE}/ajaxBoardTagList.es"
 
     _ITEMS_PER_PAGE = 10
-    _MAX_PAGES = 200
-    _TIMEOUT_SECS = 25 * 60  # 25 minutes
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _TIMEOUT_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
     # ------------------------------------------------------------------
 

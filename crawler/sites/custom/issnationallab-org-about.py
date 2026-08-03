@@ -2,6 +2,7 @@
 """Crawler for ISS National Laboratory Annual/Quarterly Reports and Metrics."""
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -249,7 +250,7 @@ class ISSNationalLabAboutCrawler(BaseCrawler):
             Maximum number of records to save. None means unlimited.
         """
         start_time = time.time()
-        MAX_WALL = 25 * 60  # 25-minute hard budget
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute hard budget
 
         print(f"[{self.site_id}] Fetching listing page: {self._LIST_URL}")
         raw = self._curl_get(self._LIST_URL)

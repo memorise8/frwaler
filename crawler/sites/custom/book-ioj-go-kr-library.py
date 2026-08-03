@@ -40,6 +40,7 @@ krihs-re-kr-krihslibraryreport.py):
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -53,8 +54,8 @@ _LIBRARY_MENU = "10210"
 _LIST_URL = f"{_BASE_URL}/library/{_LIBRARY_MENU}/search"
 _LIST_PARAMS = "materialTypes=bc&categoryTab=true"
 _PER_PAGE = 100
-_MAX_PAGES = 200
-_MAX_WALL_SECS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_CHARS = 100
 _MIN_ABSTRACT_FLOOR = 50
 

@@ -7,6 +7,7 @@ Detail pages carry the abstract and a shortlink with the numeric post ID.
 """
 
 import json
+import os
 import re
 import time
 
@@ -33,7 +34,7 @@ class NinNlPublicationsCrawler(BaseCrawler):
     base_url = "https://nin.nl"
 
     _LIST_BASE = "https://nin.nl/publications/"
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _MIN_ABSTRACT = 100  # chars; skip items below this
 
     def crawl(self, limit=None):
@@ -49,7 +50,7 @@ class NinNlPublicationsCrawler(BaseCrawler):
                 break
 
             # 25-minute wall-clock budget
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute budget reached, stopping.")
                 break
 

@@ -10,6 +10,7 @@ metadata table (등록일/생산일/제공부서/원본시스템/...), and attac
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -60,8 +61,8 @@ class OpengovSeoulGoKrResearchCrawler(BaseCrawler):
 
     _LIST_URL = "https://opengov.seoul.go.kr/research/list"
     _MIN_ABSTRACT = 100
-    _MAX_PAGES = 200
-    _MAX_WALL = 25 * 60  # seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
     _ITEMS_PER_PAGE = 50
 
     # ------------------------------------------------------------------

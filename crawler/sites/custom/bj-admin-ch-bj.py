@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -27,7 +28,7 @@ _CURL_TIMEOUT = 45
 _ITEMS_PER_PAGE = 20
 _PAGE_SAFETY_CAP = 200
 _MIN_ABSTRACT_CHARS = 50
-_WALL_CLOCK_BUDGET_S = 25 * 60
+_WALL_CLOCK_BUDGET_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 class BjAdminChBjCrawler(BaseCrawler):

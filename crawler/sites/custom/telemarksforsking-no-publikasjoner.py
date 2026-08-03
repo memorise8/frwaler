@@ -31,7 +31,7 @@ _START_URL = "https://telemarksforsking.no/publikasjoner/tab/?tab=vitenskapelig"
 _LIST_WIDGET_ID = "9534a6f"
 _REST_COLLECTION = "https://telemarksforsking.no/wp-json/wp/v2/publication"
 _PAGE_CAP = 200
-_CRAWL_BUDGET_SECONDS = 25 * 60
+_CRAWL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _RETRY_WAITS = (1, 3, 9)
 
 _MONTHS = {

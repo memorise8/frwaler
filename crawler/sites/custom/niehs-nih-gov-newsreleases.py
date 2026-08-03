@@ -9,6 +9,7 @@ fetched to obtain the full article body used as the abstract.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -44,7 +45,7 @@ class NiehsNihGovNewsReleasesCrawler(BaseCrawler):
     _MIN_ABSTRACT = 50   # chars; items below this are skipped
     _PAGE_CAP = 200      # safety cap on list-page fetches
     _RETRY_WAITS = (1, 3, 9)
-    _MAX_SECONDS = 25 * 60  # 25-minute wall-clock budget
+    _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
     # ------------------------------------------------------------------
     # Network helpers

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -24,8 +25,8 @@ class AuswaertigesAmtDeDeCrawler(BaseCrawler):
         "/ajax/json-filterlist/de/newsroom/presse/newsroom-archiv/609192-609192"
     )
     _PAGE_SIZE = 20
-    _MAX_PAGES = 200
-    _MAX_RUNTIME_SECS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_RUNTIME_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT_CHARS = 100  # verification test requires >= 100
     _BACKOFF = (1, 3, 9)
     _CURL_TIMEOUT = 60

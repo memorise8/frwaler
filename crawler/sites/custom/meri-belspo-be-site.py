@@ -140,7 +140,7 @@ class MeriBelspoBeSiteCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         start    = time.time()
-        max_secs = 25 * 60
+        max_secs = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         limit_n  = float("inf") if limit is None else int(limit)
 
         # ── Step 1: fetch CSV ─────────────────────────────────────────

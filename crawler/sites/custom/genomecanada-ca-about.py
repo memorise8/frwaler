@@ -271,7 +271,7 @@ class GenomeCanadaAboutCrawler(BaseCrawler):
             Number of publications saved.
         """
         start_time = time.time()
-        max_secs = 25 * 60  # 25-minute wall-clock budget
+        max_secs = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
         # ---- Fetch index page ----
         print(f"[{_SITE_ID}] Fetching index: {_INDEX_URL}")

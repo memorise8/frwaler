@@ -32,7 +32,7 @@ class PhfscienceNzDigitalLibraryCrawler(BaseCrawler):
 
     PAGE_SIZE = 100
     SAFETY_PAGE_CAP = 200
-    WALL_CLOCK_SECONDS = 25 * 60
+    WALL_CLOCK_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     DEADLINE_MARGIN_SECONDS = 15
     CURL_TIMEOUT = 45
     BACKOFF_SECONDS = (1, 3, 9)

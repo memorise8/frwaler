@@ -25,7 +25,7 @@ _COLLECTION_UUID = "9f55048d-9351-4613-bf4d-e48b90ffe9f3"
 _API_BASE = "https://reports.nlr.nl/server"
 _PAGE_SIZE = 20
 _PAGE_CAP = 200
-_CRAWL_BUDGET_SECONDS = 25 * 60
+_CRAWL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _RETRY_WAITS = (1, 3, 9)
 _MIN_ABSTRACT = 50
 

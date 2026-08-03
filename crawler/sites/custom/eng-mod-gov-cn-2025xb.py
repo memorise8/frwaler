@@ -12,6 +12,7 @@ Discovery notes:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -29,7 +30,7 @@ SITE_ID = "eng-mod-gov-cn-2025xb"
 BASE_URL = "http://eng.mod.gov.cn"
 START_URL = BASE_URL + "/2025xb/M/L_251592/index.html"
 MAX_PAGES = 200
-MAX_SECONDS = 25 * 60
+MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 FETCH_MAX_TIME = 30
 FETCH_TIMEOUT = 45
 RETRY_WAITS = (1, 3, 9)

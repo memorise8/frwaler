@@ -6,6 +6,7 @@ API:    https://www.srnl.gov/wp-json/wp/v2/news-releases  (WordPress REST API)
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -160,7 +161,7 @@ class SRNLGovNewsroomCrawler(BaseCrawler):
 
         while True:
             # Wall-clock budget: 25 minutes
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print("[srnl-gov-newsroom] 25-minute budget reached. Exiting cleanly.")
                 break
 

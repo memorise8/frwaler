@@ -154,7 +154,7 @@ class VtgAdminChEnCrawler(BaseCrawler):
         limit_disp = str(limit) if limit is not None else "∞"
         seen_urls = set()
         start_time = time.time()
-        MAX_SECONDS = 25 * 60  # 25-minute wall-clock budget
+        MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
         # ── Fetch listing page ─────────────────────────────────────────
         print(f"[{self.site_id}] fetching {_START_URL}")

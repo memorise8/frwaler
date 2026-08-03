@@ -2,6 +2,7 @@
 """WHO Publications crawler — https://www.who.int/publications/i"""
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -57,8 +58,8 @@ class WHOPublicationsCrawler(BaseCrawler):
         "&$select=Title,ItemDefaultUrl,FormatedDate,Tag,DownloadUrl"
     )
     _PAGE_SIZE = 20
-    _MAX_PAGES = 200
-    _WALL_CLOCK_BUDGET_S = 25 * 60  # 25 minutes
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_CLOCK_BUDGET_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
     _ABSTRACT_MIN_CHARS = 100       # skip items with shorter abstracts
 
     # ------------------------------------------------------------------

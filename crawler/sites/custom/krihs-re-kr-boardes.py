@@ -7,6 +7,7 @@ Board URL: https://www.krihs.re.kr/board.es?mid=a10607000000&bid=0008
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -21,7 +22,7 @@ _LIST_URL = "https://www.krihs.re.kr/board.es?mid=a10607000000&bid=0008"
 _DETAIL_URL = "https://www.krihs.re.kr/board.es?mid=a10607000000&bid=0008&act=view&list_no={list_no}&tag=&nPage=1"
 _DOWNLOAD_URL = "https://www.krihs.re.kr/boardDownload.es?bid=0008&list_no={list_no}&seq={seq}"
 _PAGE_SIZE = 10
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 50
 
 
@@ -224,7 +225,7 @@ class KrihsReKrBoardesCrawler(BaseCrawler):
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.monotonic()
-        max_wall_seconds = 25 * 60  # 25-minute budget
+        max_wall_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
 
         for page in range(1, _MAX_PAGES + 1):
             # Wall-clock budget

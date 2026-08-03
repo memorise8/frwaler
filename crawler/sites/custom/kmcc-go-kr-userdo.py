@@ -8,6 +8,7 @@ https://www.kmcc.go.kr/user.do?boardId=1113&page=A05030000&dc=K05030000
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -37,8 +38,8 @@ _PAGE = "A05030000"
 _DC = "K05030000"
 _LIST_PARAMS_BASE = {"boardId": _BOARD_ID, "page": _PAGE, "dc": _DC}
 _PAGE_SIZE = 30
-_MAX_PAGES = 200
-_CRAWL_BUDGET_SECS = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 _RATE_LIMIT = 1.0  # seconds between detail fetches
 _SKIP_ABSTRACT_UNDER = 100  # skip items whose abstract is shorter than this
 

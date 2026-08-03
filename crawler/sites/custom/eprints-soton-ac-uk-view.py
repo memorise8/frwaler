@@ -18,6 +18,7 @@ Strategy
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -39,7 +40,7 @@ _YEAR_LIST_URL = (
 
 _WAITS = [1, 3, 9]
 _SAFETY_PAGE_CAP = 200
-_WALL_CLOCK_BUDGET = 25 * 60  # seconds
+_WALL_CLOCK_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
 
 class EprintsSotonAcUkViewCrawler(BaseCrawler):

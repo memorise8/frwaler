@@ -27,7 +27,7 @@ from crawler.base_crawler import BaseCrawler  # noqa: E402
 
 _API_BASE = "https://doaj.org/api/search/articles"
 _PAGE_SIZE = 50
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
 
 class DOAJSearchCrawler(BaseCrawler):
@@ -132,7 +132,7 @@ class DOAJSearchCrawler(BaseCrawler):
         saved = 0
         seen_ids: set = set()
         start_time = time.time()
-        max_wall = 25 * 60  # 25-minute safety budget
+        max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute safety budget
 
         for page in range(1, _MAX_PAGES + 1):
             if time.time() - start_time > max_wall:

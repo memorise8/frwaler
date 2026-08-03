@@ -10,6 +10,7 @@ Detail: each /en-ie/publications/Pages/*.aspx page.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -21,9 +22,9 @@ _SITE_ID = "gsi-ie-en-ie"
 _BASE_URL = "https://www.gsi.ie"
 _LIST_URL = "https://www.gsi.ie/en-ie/research/Pages/related-publications.aspx"
 _PUB_HOME_URL = "https://www.gsi.ie/en-ie/publications"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _RATE = 1.0          # seconds between detail fetches
-_BUDGET_SECS = 25 * 60  # 25 minutes wall-clock max
+_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes wall-clock max
 
 
 # ---------------------------------------------------------------------------

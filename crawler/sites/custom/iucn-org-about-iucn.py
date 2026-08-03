@@ -13,6 +13,7 @@ Strategy:
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -26,8 +27,8 @@ _SITE_ID = "iucn-org-about-iucn"
 _BASE = "https://iucn.org"
 _LIBRARY_BASE = "https://portals.iucn.org"
 _LIST_URL = "https://iucn.org/about-iucn/accountability-and-reporting/annual-reports"
-_MAX_PAGES = 200          # safety cap
-_WALL_CLOCK_BUDGET = 25 * 60  # seconds
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))          # safety cap
+_WALL_CLOCK_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
 
 # ---------------------------------------------------------------------------

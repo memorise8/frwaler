@@ -52,7 +52,7 @@ BASE_URL = "https://biorbic.com"
 LIST_URL = "https://biorbic.com/publications/"
 
 SAFETY_CAP_PAGES = 200
-WALL_CLOCK_BUDGET_SECONDS = 25 * 60
+WALL_CLOCK_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 RETRY_WAITS = (1, 3, 9)
 MIN_ABSTRACT_CHARS = 50
 PAGE_CHUNK = 25  # rows per "virtual page" for progress logging only

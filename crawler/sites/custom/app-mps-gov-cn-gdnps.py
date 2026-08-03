@@ -2,6 +2,7 @@
 """中华人민共和国公安部 政府信息公开 crawler (app.mps.gov.cn/gdnps)."""
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -12,8 +13,8 @@ from crawler.base_crawler import BaseCrawler
 _API_URL = "https://app.mps.gov.cn/gdnps/searchIndex.jsp"
 _DETAIL_URL_TPL = "https://app.mps.gov.cn/gdnps/pc/content.jsp?id={}&mtype=4"
 _PAGE_SIZE = 15
-_MAX_PAGES = 200
-_WALL_CLOCK_BUDGET_S = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_CLOCK_BUDGET_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 def _strip_tags(html: str) -> str:

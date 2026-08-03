@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import email.utils
 import json
+import os
 import re
 import subprocess
 import sys
@@ -34,8 +35,8 @@ _VIEW_NAME = "reports_listing"
 _VIEW_DISPLAY_ID = "embed"
 _VIEW_PATH = "/node/15222"
 _DEFAULT_VIEW_DOM_ID = "6ac007463537c58902b950d57c029a886a3c79cb0ea4518492158ed355d65b5d"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_CHARS = 50
 _PUBLISHER = "Environmental Molecular Sciences Laboratory; Pacific Northwest National Laboratory"
 _USER_AGENT = (

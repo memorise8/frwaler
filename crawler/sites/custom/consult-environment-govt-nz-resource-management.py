@@ -2,6 +2,7 @@
 """Crawler for consult.environment.govt.nz – Ministry for the Environment (CitizenSpace)."""
 
 import json
+import os
 import re
 import sys
 import time
@@ -111,7 +112,7 @@ class ConsultEnvironmentNZCrawler(BaseCrawler):
 
         while True:
             # 25-minute wall-clock budget
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{SITE_ID}] 25-minute budget reached, stopping cleanly.")
                 break
 

@@ -7,6 +7,7 @@ API:       WordPress HTML archive (bc_publication post type, not REST-exposed)
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -105,7 +106,7 @@ class NofimaCOMPublicationCrawler(BaseCrawler):
     base_url = "https://nofima.com"
 
     _LIST_BASE = "https://nofima.com/bc_tax_pubtype/nofimareports/"
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _MAX_MINUTES = 25
 
     # ------------------------------------------------------------------

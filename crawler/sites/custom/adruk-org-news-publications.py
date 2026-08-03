@@ -7,6 +7,7 @@ Pagination   : https://www.adruk.org/our-mission/our-impact/{N}/  (N = 1, 2, …
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -222,7 +223,7 @@ class AdrukOrgNewsPublicationsCrawler(BaseCrawler):
         seen_urls: set[str] = set()
         limit_display = limit if limit is not None else "∞"
         start_time = time.time()
-        MAX_SECONDS = 25 * 60
+        MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         MAX_PAGES = 200
 
         page = 0  # 0 → first listing URL, N → /our-mission/our-impact/N/

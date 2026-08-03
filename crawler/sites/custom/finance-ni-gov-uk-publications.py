@@ -2,6 +2,7 @@
 """finance-ni.gov.uk publications crawler (Drupal 10 HTML scrape)."""
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -18,8 +19,8 @@ class FinanceNiGovUkPublicationsCrawler(BaseCrawler):
     base_url = "https://www.finance-ni.gov.uk"
 
     _LIST_URL = "https://www.finance-ni.gov.uk/publications"
-    _MAX_PAGES = 200
-    _CRAWL_TIMEOUT = 25 * 60  # seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _CRAWL_TIMEOUT = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
     # ------------------------------------------------------------------ #
     # Network                                                              #

@@ -92,7 +92,7 @@ class BdapOpendataRgsMefGovItCatalogCrawler(BaseCrawler):
 
     _LIST_URL = "https://bdap-opendata.rgs.mef.gov.it/catalog"
     _PAGE_CAP = 200        # safety: never fetch more than 200 listing pages
-    _MAX_WALL = 25 * 60    # 25-minute wall-clock budget
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))    # 25-minute wall-clock budget
     _MIN_ABSTRACT_LEN = 50
 
     # ------------------------------------------------------------------

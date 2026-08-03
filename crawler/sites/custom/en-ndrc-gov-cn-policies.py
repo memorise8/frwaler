@@ -26,7 +26,7 @@ _PUBLISHER = "National Development and Reform Commission"
 _ABSTRACT_MIN = 50
 _ABSTRACT_SKIP_MSG_THRESHOLD = 50
 _MAX_PAGES_SAFETY = 200
-_WALL_CLOCK_MAX = 25 * 60  # 25 minutes
+_WALL_CLOCK_MAX = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 _BS_PARSERS = ["html5lib", "lxml", "html.parser"]
 

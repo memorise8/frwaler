@@ -5,6 +5,7 @@ Uses the WordPress REST API (category 5 = Press Releases, ~556 posts).
 """
 
 import json
+import os
 import re
 import time
 
@@ -98,7 +99,7 @@ class ISSNationalLabPressReleasesCrawler(BaseCrawler):
         saved = 0
         seen_urls: set = set()
         start_time = time.time()
-        MAX_SECONDS = 25 * 60
+        MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         SAFETY_CAP = 200
 
         page = 1

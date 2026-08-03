@@ -8,6 +8,7 @@ Detail URL:      /pnsgdnc/nscvrgdata/getOHAE0002M1.do?pstId=ZZ...
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -59,8 +60,8 @@ class NpsOrKrPnsgdncCrawler(BaseCrawler):
     site_name = "Custom: nps-or-kr-pnsgdnc"
     base_url  = _BASE_URL
 
-    _MAX_PAGES   = 200
-    _MAX_SECONDS = 25 * 60   # 25-minute wall-clock budget
+    _MAX_PAGES   = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute wall-clock budget
 
     # ------------------------------------------------------------------
     # network helpers

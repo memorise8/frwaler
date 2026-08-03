@@ -7,6 +7,7 @@ curl-based due to TLS quirks on Korean government sites.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -74,7 +75,7 @@ class KipfBbsCrawler(BaseCrawler):
         seen_urls: set[str] = set()
         limit_val = limit if limit is not None else float("inf")
         start_time = time.time()
-        MAX_WALL = 25 * 60  # 25 minutes
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
         MAX_PAGES = 200
 
         for page in range(1, MAX_PAGES + 1):

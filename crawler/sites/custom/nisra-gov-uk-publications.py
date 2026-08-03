@@ -7,6 +7,7 @@ Detail pages: https://www.nisra.gov.uk/publications/<slug>
 """
 
 import json
+import os
 import subprocess
 import time
 from pathlib import Path
@@ -26,8 +27,8 @@ class NisraGovUkPublicationsCrawler(BaseCrawler):
     base_url = "https://www.nisra.gov.uk"
 
     _LIST_URL = "https://www.nisra.gov.uk/publications"
-    _MAX_PAGES = 200
-    _MAX_WALL_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     # ------------------------------------------------------------------
     # Fetch helpers

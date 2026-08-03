@@ -10,6 +10,7 @@ PDF   : https://library.kei.re.kr/pyxis-api/1/digital-files/{uuid}  (direct link
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -88,8 +89,8 @@ class KeiReKrEliblistesCrawler(BaseCrawler):
     site_name = "Custom: kei-re-kr-eliblistes"
     base_url = _BASE
 
-    _MAX_PAGES = 200
-    _TIMEOUT_SECS = 25 * 60   # 25-minute wall-clock budget
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _TIMEOUT_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute wall-clock budget
     _MIN_ABSTRACT = 50        # skip items with a shorter abstract
     _RATE_SLEEP = 1.0         # seconds between detail fetches
 

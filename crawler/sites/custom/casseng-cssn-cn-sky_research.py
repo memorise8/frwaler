@@ -9,6 +9,7 @@ the entire list is on one HTML page.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -29,8 +30,8 @@ class CassengCssncnSkyResearchCrawler(BaseCrawler):
     site_name = "Custom: casseng-cssn-cn-sky_research"
     base_url  = "http://casseng.cssn.cn"
 
-    _MAX_PAGES          = 200
-    _MAX_SECONDS        = 25 * 60
+    _MAX_PAGES          = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_SECONDS        = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _BUDGET_MARGIN_S    = 60
     _MIN_ABSTRACT_CHARS = 50
 

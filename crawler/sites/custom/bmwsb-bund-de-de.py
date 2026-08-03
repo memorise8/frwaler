@@ -10,6 +10,7 @@ Pagination: ?gtp=122226_Dokumente%3D{page} for page >= 2
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -41,7 +42,7 @@ class BmwsbBundDeDeCrawler(BaseCrawler):
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.time()
-        max_wall_seconds = 25 * 60
+        max_wall_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         page_url: str | None = self.START_URL
         page_num = 0

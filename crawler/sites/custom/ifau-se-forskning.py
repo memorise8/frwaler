@@ -11,6 +11,7 @@ Detail pages: citation_* meta tags supply title, abstract, authors, date, PDF UR
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -27,7 +28,7 @@ _SEARCHQEP = _LIST_URL + "SearchQep/"
 _LINK_RE = re.compile(
     r'href="(/Forskning/Publikationer/Rapporter/\d{4}/[^"]+)"'
 )
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _WALL_MINUTES = 25
 _MIN_ABSTRACT = 50   # chars; items below this are skipped
 

@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import re
 import subprocess
 import time
@@ -71,8 +72,8 @@ class CompareSchoolRankingsOrgCrawler(BaseCrawler):
 
     _LIST_URL = "https://www.compareschoolrankings.org/pdfs"
     _MIN_ABSTRACT = 50
-    _MAX_PAGES = 200
-    _MAX_WALL = 25 * 60  # seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
     _PUBLISHER = "Fraser Institute"
 
     # ------------------------------------------------------------------

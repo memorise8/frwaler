@@ -16,8 +16,8 @@ _SITE_ID = "portaldiplomatico-mne-gov-pt-en"
 _BASE_URL = "https://portaldiplomatico.mne.gov.pt"
 _LIST_URL = f"{_BASE_URL}/en/communication-and-media/press-releases"
 _PAGE_SIZE = 6
-_MAX_PAGES = 200
-_MAX_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 _UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

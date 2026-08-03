@@ -284,7 +284,7 @@ class MofaGoKrWwwCrawler(BaseCrawler):
         safety cap, or 25-minute wall-clock budget.
         """
         start_time = time.time()
-        max_seconds = 25 * 60
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         saved = 0
         page = 1

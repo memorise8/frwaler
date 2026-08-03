@@ -14,6 +14,7 @@ Records without a resolvable DOI/abstract are skipped.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -51,8 +52,8 @@ class EtisEePortalCrawler(BaseCrawler):
     base_url = "https://www.etis.ee"
 
     _MIN_ABSTRACT = 100
-    _MAX_PAGES = 200
-    _MAX_WALL = 25 * 60  # seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
     _PAGE_SIZE = 100
 
     # ------------------------------------------------------------------

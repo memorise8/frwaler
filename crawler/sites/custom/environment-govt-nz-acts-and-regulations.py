@@ -20,6 +20,7 @@ Raw-record fallback is used if collapsed calls return nothing.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -295,7 +296,7 @@ class EnvironmentGovtNzActsAndRegulationsCrawler(BaseCrawler):
             Max records to save. None = unlimited.
         """
         start_time = time.time()
-        MAX_WALL_SEC = 25 * 60   # 25-minute wall-clock budget
+        MAX_WALL_SEC = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute wall-clock budget
         SAFETY_CAP = 200         # max CDX discovery pages (already handled per-batch)
 
         saved = 0

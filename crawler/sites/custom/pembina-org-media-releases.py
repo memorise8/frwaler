@@ -252,7 +252,7 @@ class PembinaOrgMediaReleasesCrawler(BaseCrawler):
         page = 0
         max_pages = 200
         start_time = time.time()
-        max_wall_secs = 25 * 60
+        max_wall_secs = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         limit_str = str(limit) if limit is not None else "∞"
 

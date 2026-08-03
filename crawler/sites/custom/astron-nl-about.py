@@ -9,6 +9,7 @@ Abstracts are constructed from available metadata (year, publisher info).
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -21,9 +22,9 @@ from crawler.base_crawler import BaseCrawler
 
 _LIST_URL = "https://www.astron.nl/about/annual-reports/"
 _MIN_ABSTRACT_CHARS = 50
-_MAX_PAGES = 200         # safety cap (this site is single-page)
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))         # safety cap (this site is single-page)
 _PAGE_LOG_INTERVAL = 10  # log every N items
-_MAX_WALL_SECONDS = 25 * 60  # 25-minute budget
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
 
 
 class AstronNlAboutCrawler(BaseCrawler):

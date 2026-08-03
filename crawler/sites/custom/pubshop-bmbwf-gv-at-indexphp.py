@@ -8,6 +8,7 @@ Detail page: index.php?article_id=9&type=gesamtkatalog&pub=<ID>
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -28,8 +29,8 @@ class PubshopBmbwfGvAtIndexphpCrawler(BaseCrawler):
     _BACKOFF = (1, 3, 9)
     _MIN_ABSTRACT = 50
     _PAGE_SIZE = 20
-    _MAX_PAGES = 200
-    _CRAWL_BUDGET_S = 25 * 60  # 25 minutes
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _CRAWL_BUDGET_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
     # ------------------------------------------------------------------
     # Public API

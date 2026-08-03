@@ -51,8 +51,8 @@ _START_URL = (
     "&submitType_s=file&docType_s=THESE+OR+ART+OR+COMM"
 )
 _PAGE_SIZE = 30
-_MAX_PAGES = 200
-_WALL_BUDGET_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _RETRY_WAITS = (1, 3, 9)
 _MIN_ABSTRACT_LEN = 100
 

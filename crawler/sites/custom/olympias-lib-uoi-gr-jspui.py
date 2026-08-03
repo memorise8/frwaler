@@ -39,8 +39,8 @@ _LIST_TPL = (
 )
 _DETAIL_TPL = _BASE + "/jspui/handle/{handle}?mode=full"
 _RPP = 20
-_MAX_PAGES = 200
-_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 # ---------------------------------------------------------------------------

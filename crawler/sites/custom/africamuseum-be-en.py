@@ -6,6 +6,7 @@ Site: Drupal 10, paginated list (?page=N), HTML scraping.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -61,8 +62,8 @@ class AfricamuseumBeEnCrawler(BaseCrawler):
     base_url = "https://www.africamuseum.be"
 
     _LIST_BASE = "https://www.africamuseum.be/en/research/news"
-    _MAX_PAGES = 200
-    _WALL_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _RATE_SLEEP = 1.0
     _MIN_ABSTRACT = 100
 

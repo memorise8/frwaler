@@ -36,8 +36,8 @@ class RdrKuleuvenBeDataverseCrawler(BaseCrawler):
     _SEARCH_API = base_url + "/api/search"
     _DETAIL_API = base_url + "/api/datasets/:persistentId/"
     _PAGE_SIZE = 50
-    _MAX_PAGES = 200
-    _WALL_BUDGET = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT_CHARS = 100
 
     def crawl(self, limit=None):

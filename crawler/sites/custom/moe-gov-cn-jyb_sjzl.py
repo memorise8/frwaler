@@ -7,6 +7,7 @@ Total:        ~28 records, 20 per page  → 2 pages
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -266,7 +267,7 @@ class MoeGovCnJybSjzlCrawler(BaseCrawler):
         saved = 0
         seen_urls: set = set()
         start_ts = time.time()
-        max_seconds = 25 * 60
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         # Determine total pages from the main list page's embedded JS
         main_html = self._curl_get(self._LIST_URL)

@@ -229,7 +229,7 @@ class NOAARepositoryViewCrawler(BaseCrawler):
         min_browse_id = None
 
         while not browse_done and saved < limit_or_inf:
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute budget reached, stopping")
                 return saved
 
@@ -288,7 +288,7 @@ class NOAARepositoryViewCrawler(BaseCrawler):
         consecutive_misses = 0
 
         while saved < limit_or_inf and current_id > 0:
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute budget reached, stopping")
                 break
 

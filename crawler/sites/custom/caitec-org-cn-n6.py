@@ -8,6 +8,7 @@ Detail HTML:  /n6/sy_xsyj_yjbg/json/{id}.html  (plain HTML, not JSON despite pat
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -184,7 +185,7 @@ class CaitecOrgCnN6Crawler(BaseCrawler):
         saved = 0
         seen_urls: set = set()
         crawl_start = time.time()
-        max_wall = 25 * 60
+        max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         max_pages = 200
         limit_display = str(limit) if limit is not None else "inf"
 

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import subprocess
 import time
@@ -31,7 +32,7 @@ _START_URL = "https://noc.ac.uk/about-us/literature-brochures"
 _CANONICAL_LIST_URL = "https://www.noc.ac.uk/who-we-are/our-purpose/literature-and-brochures"
 _WAITS = (1, 3, 9)
 _SAFETY_PAGE_CAP = 200
-_WALL_CLOCK_BUDGET = 25 * 60
+_WALL_CLOCK_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MAX_ABSTRACT_CHARS = 1800
 
 

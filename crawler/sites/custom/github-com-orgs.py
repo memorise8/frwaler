@@ -30,7 +30,7 @@ class GitHubComOrgsCrawler(BaseCrawler):
     _ORG = "Deltares"
     _API_BASE = "https://api.github.com"
     _PER_PAGE = 100
-    _WALL_CLOCK_LIMIT_S = 25 * 60  # 25 minutes
+    _WALL_CLOCK_LIMIT_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
     def __init__(self, db_conn, delay=1.0):
         super().__init__(db_conn, delay)

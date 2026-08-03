@@ -17,8 +17,8 @@ _SITE_ID = "nimh-nih-gov-news"
 _BASE_URL = "https://www.nimh.nih.gov"
 _LIST_URL = "https://www.nimh.nih.gov/news/science-updates"
 _DELAY = 1.0
-_MAX_PAGES = 200   # safety cap (year pages)
-_BUDGET_SECS = 25 * 60  # 25 min wall-clock budget
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))   # safety cap (year pages)
+_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 min wall-clock budget
 
 
 def _bs(html):

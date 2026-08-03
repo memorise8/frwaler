@@ -2,6 +2,7 @@
 """CNES Communiqués crawler — https://cnes.fr/communiques"""
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -20,8 +21,8 @@ _FRENCH_MONTHS = {
 
 _LIST_URL = ('https://cnes.fr/communiques'
              '?display_parameters%5Bdisplay_type%5D=0')
-_MAX_PAGES = 200
-_BUDGET_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 def _parse_french_date(s):

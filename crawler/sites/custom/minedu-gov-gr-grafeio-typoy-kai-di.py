@@ -8,6 +8,7 @@ Date: embedded in title prefix as DD-MM-YY.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -140,7 +141,7 @@ class MineduGovGrGrafeioTypoyKaiDiCrawler(BaseCrawler):
 
         while True:
             # Wall-clock budget
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-minute budget reached at page {page}. Exiting cleanly.")
                 break
 

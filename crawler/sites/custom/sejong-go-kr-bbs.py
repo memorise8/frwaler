@@ -19,6 +19,7 @@ Detail page structure:
 
 import html
 import json
+import os
 import re
 import subprocess
 import sys
@@ -38,8 +39,8 @@ _UA = (
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
 
-_MAX_PAGES = 200
-_CRAWL_BUDGET_SECS = 25 * 60  # 25 minutes wall-clock cap
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes wall-clock cap
 _MIN_ABSTRACT_LEN = 50         # skip items below this
 _SAVE_ABSTRACT_LEN = 100       # pad with metadata if abstract is still short
 

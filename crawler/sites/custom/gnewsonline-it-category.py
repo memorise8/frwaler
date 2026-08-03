@@ -11,6 +11,7 @@ Pagination: /category/comunicati-stampa/page/N/  (~130 pages, ~10 articles/page)
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -22,7 +23,7 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "gnewsonline-it-category"
 _BASE_URL = "https://www.gnewsonline.it"
 _LIST_URL = "https://www.gnewsonline.it/category/comunicati-stampa/"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 100
 
 _ITALIAN_MONTHS = {
@@ -297,7 +298,7 @@ class GnewsonlineItCategoryCrawler(BaseCrawler):
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.time()
-        max_wall = 25 * 60  # seconds
+        max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
         page = 1
         while page <= _MAX_PAGES:

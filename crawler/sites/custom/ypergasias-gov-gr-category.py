@@ -17,6 +17,7 @@ Total posts: ~3146 across ~1049 pages as of 2026-05.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -43,7 +44,7 @@ class YpergasiasGovGrCategoryCrawler(BaseCrawler):
     MIN_ABSTRACT_CHARS = 50
     MIN_SAVED_ABSTRACT_CHARS = 100
     MAX_PAGES = 200
-    WALL_CLOCK_BUDGET_SECS = 25 * 60
+    WALL_CLOCK_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     DEPARTMENT = "Ministry of Labour and Social Insurance, Greece"
     _CURL_META_MARKER = "__YPERGASIAS_GOV_GR_CURL_META__:"
     # The WAF on this site blocks the default Chrome UA; Firefox UA works fine.

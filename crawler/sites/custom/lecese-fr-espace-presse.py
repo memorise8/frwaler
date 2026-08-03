@@ -7,6 +7,7 @@ Detail:     https://www.lecese.fr/presse/communiques/SLUG
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -51,7 +52,7 @@ class LecesseFrEspacePressCrawler(BaseCrawler):
     base_url = 'https://www.lecese.fr'
 
     _LIST_URL = 'https://www.lecese.fr/espace-presse'
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _SKIP_ABSTRACT_LEN = 100
 
     # ------------------------------------------------------------------
@@ -269,7 +270,7 @@ class LecesseFrEspacePressCrawler(BaseCrawler):
         """Crawl CESE press releases page by page."""
         saved = 0
         seen_urls = set()
-        deadline = time.time() + 25 * 60  # 25-minute wall-clock cap
+        deadline = time.time() + int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock cap
         limit_str = str(limit) if limit is not None else '∞'
 
         for page in range(self._MAX_PAGES):

@@ -45,8 +45,8 @@ class BRSNResearchListCrawler(BaseCrawler):
 
     _LIST_URL_P1 = "https://www.brsn.net/list/research/index.html"
     _LIST_URL_PN = "https://www.brsn.net/list/research/index_{}.html"
-    _MAX_PAGES = 200
-    _MAX_WALL_SECS = 25 * 60  # 25 minutes
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
     # ------------------------------------------------------------------
     # Network helper

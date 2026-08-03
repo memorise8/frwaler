@@ -16,6 +16,7 @@ Discovery notes:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -236,8 +237,8 @@ class WodcNlDocumentenCrawler(BaseCrawler):
     _REPOSITORY_BASE = "https://repository.wodc.nl"
     _SEARCH_API = "https://repository.wodc.nl/server/api/discover/search/objects"
     _PAGE_SIZE = 100
-    _MAX_PAGES = 200
-    _MAX_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     def _repository_base_from_start_page(self):
         html = _curl(self._START_URL, accept="text/html,application/xhtml+xml,*/*;q=0.8", timeout=30, retries=3)

@@ -11,6 +11,7 @@ Structure:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -33,7 +34,7 @@ class MeteoFranceFrActualiteCrawler(BaseCrawler):
     CURL_TIMEOUT = 45
     MIN_ABSTRACT_CHARS = 50
     MAX_PAGES = 200
-    WALL_CLOCK_LIMIT = 25 * 60  # 25 minutes in seconds
+    WALL_CLOCK_LIMIT = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes in seconds
 
     MONTHS_FR = {
         "janvier": 1, "fevrier": 2, "mars": 3, "avril": 4,

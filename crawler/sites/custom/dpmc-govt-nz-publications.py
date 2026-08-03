@@ -8,6 +8,7 @@ and gracefully falls back when detail pages are inaccessible.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -111,7 +112,7 @@ class DpmcGovtNzPublicationsCrawler(BaseCrawler):
         page = 0
         MAX_PAGES = 200
         start_time = time.time()
-        MAX_SECONDS = 25 * 60
+        MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         limit_display = str(limit) if limit is not None else "∞"
 
         while True:

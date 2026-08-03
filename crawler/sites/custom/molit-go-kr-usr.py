@@ -84,8 +84,8 @@ class MolitGoKrUsrCrawler(BaseCrawler):
     base_url = "https://www.molit.go.kr"
 
     _LIST_URL = "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp"
-    _MAX_PAGES = 200
-    _WALL_SECS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     def crawl(self, limit=None):
         """Crawl molit.go.kr press-release list pages and persist each item."""

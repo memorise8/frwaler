@@ -12,6 +12,7 @@ Pagination: ?page=0 .. ?page=N (0-indexed).
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -228,7 +229,7 @@ class DefenseGouvFrSalleDePresseCrawler(BaseCrawler):
                 break
 
             # 25-minute wall-clock budget
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(
                     f"[{self.site_id}] 25-minute budget reached at page {page_num},"
                     " exiting cleanly."

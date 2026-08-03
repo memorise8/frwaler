@@ -15,6 +15,7 @@ Detail page: full body text, fr-tag keywords, PDF attachments.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -30,8 +31,8 @@ _LIST_URL = (
     "&thematiques=recherche-developpement-et-innovation"
     "&pg={pg}"
 )
-_MAX_PAGES = 200  # safety cap
-_WALL_BUDGET_S = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))  # safety cap
+_WALL_BUDGET_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 _MOIS = {
     "janvier": "01", "février": "02", "fevrier": "02", "mars": "03",

@@ -15,6 +15,7 @@ The page is a single-page Drupal 10 site with 34 publications in a flat
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -55,7 +56,7 @@ class InternationalAndraFrDocumentsAndVisualCrawler(BaseCrawler):
         saved = 0
         seen_urls: set = set()
         start_time = time.time()
-        MAX_WALL = 25 * 60  # 25 minutes
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
         # --- Page loop (single page, but structured per spec) ---
         page = 0

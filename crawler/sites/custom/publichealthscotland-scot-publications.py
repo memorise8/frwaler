@@ -15,6 +15,7 @@ Detail page: /publications/<series>/<release-slug>
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -35,7 +36,7 @@ class PublichealthscotlandScotPublicationsCrawler(BaseCrawler):
     MIN_ABSTRACT_CHARS = 100
     BACKOFF = (1, 3, 9)
     MAX_PAGES = 200
-    TIME_BUDGET_SECS = 25 * 60
+    TIME_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     _MONTHS = {
         "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,

@@ -29,7 +29,7 @@ _BASE_URL = "https://www.nordlandsforskning.no"
 _START_URL = f"{_BASE_URL}/en/publications"
 _JSON_LIST_URL = f"{_BASE_URL}/publikasjoner?format=json"
 _SAFETY_CAP = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_CHARS = 100
 _SUMMARY_LABELS = {"summary", "sammendrag", "abstract"}
 

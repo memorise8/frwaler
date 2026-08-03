@@ -200,7 +200,7 @@ class GardaIeEnCrawler(BaseCrawler):
 
     def crawl(self, limit=None):  # noqa: C901
         start_wall = time.time()
-        MAX_WALL = 25 * 60  # 25-minute hard budget
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute hard budget
         PAGE_CAP = 200      # safety cap on pages visited
 
         saved = 0

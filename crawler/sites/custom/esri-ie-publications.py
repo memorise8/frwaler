@@ -131,8 +131,8 @@ class EsriIePublicationsCrawler(BaseCrawler):
     base_url = "https://www.esri.ie"
 
     _START_URL = "https://www.esri.ie/publications/browse"
-    _MAX_PAGES = 200
-    _WALL_CLOCK_BUDGET_S = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_CLOCK_BUDGET_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT_CHARS = 50
 
     def _curl_get(self, url: str, accept: str = "text/html,application/xhtml+xml,*/*;q=0.9",

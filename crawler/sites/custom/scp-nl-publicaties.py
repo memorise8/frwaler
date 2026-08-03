@@ -12,6 +12,7 @@ obtain the full abstract, PDF URL, authors, and publication date.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -37,8 +38,8 @@ _PUBLICATION_TYPES = [
 ]
 _PAGE_SIZE = 20
 _MIN_ABSTRACT_CHARS = 50
-_MAX_PAGES = 200
-_CRAWL_TIMEOUT_S = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_CRAWL_TIMEOUT_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 class ScpNlPublicatiesCrawler(BaseCrawler):

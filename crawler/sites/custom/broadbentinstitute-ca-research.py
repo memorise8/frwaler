@@ -6,6 +6,7 @@ Listing:  https://broadbentinstitute.ca/research/
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -27,7 +28,7 @@ class BroadbentInstituteCAResearchCrawler(BaseCrawler):
     _CURL_TIMEOUT = 30
     _RETRIES = 3
     _BACKOFFS = (1, 3, 9)
-    _CRAWL_BUDGET_SECS = 25 * 60  # 25 minutes
+    _CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
     # ------------------------------------------------------------------
     # Network helpers

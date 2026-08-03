@@ -33,8 +33,8 @@ from crawler.base_crawler import BaseCrawler  # noqa: E402
 _SITE_ID   = "regulation-govt-nz-about-us"
 _SEARCH_URL = "https://www.regulation.govt.nz/about-us/our-publications/search/"
 _PAGE_SIZE  = 12
-_MAX_PAGES  = 200
-_WALL_BUDGET = 25 * 60  # seconds
+_MAX_PAGES  = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
 _MONTH_MAP = {
     "january": "01", "february": "02", "march": "03", "april": "04",

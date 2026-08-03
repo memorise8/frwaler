@@ -12,6 +12,7 @@ Discovery notes:
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -25,8 +26,8 @@ from crawler.base_crawler import BaseCrawler
 
 _LIST_URL = "https://www.bmvg.de/service/queryL-list-filter/en/277064"
 _PAGE_SIZE = 6
-_MAX_PAGES = 200
-_BUDGET_SECS = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 # ---------------------------------------------------------------------------

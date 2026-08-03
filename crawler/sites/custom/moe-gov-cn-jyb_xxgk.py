@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -14,9 +15,9 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "moe-gov-cn-jyb_xxgk"
 _BASE_URL = "http://www.moe.gov.cn"
 _LIST_URL = "http://www.moe.gov.cn/jyb_xxgk/xxgk/nianbao/jiguan/"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 50
-_WALL_CLOCK_BUDGET = 25 * 60  # 25 minutes in seconds
+_WALL_CLOCK_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes in seconds
 
 
 def _make_soup(html: str | bytes):

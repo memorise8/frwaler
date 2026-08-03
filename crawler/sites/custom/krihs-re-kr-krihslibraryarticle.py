@@ -15,6 +15,7 @@ Architecture:
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -278,7 +279,7 @@ class KrihsLibraryArticleCrawler(BaseCrawler):
         seen_keys    = set()   # dedup: "lib_menu/content_id/checkin_id/art_id"
         issue_cache  = {}      # checkin_id → {art_id: {pages, pub_date, ...}}
         start_time   = time.time()
-        MAX_WALL     = 25 * 60  # 25 minutes
+        MAX_WALL     = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
         try:
             for page_num in range(1, 201):

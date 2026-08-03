@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -63,7 +64,7 @@ class BrgmFrFrCrawler(BaseCrawler):
         try:
             for page in range(self.MAX_PAGES):
                 elapsed = time.monotonic() - start_time
-                if elapsed > 25 * 60:
+                if elapsed > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                     print(f"[{self.site_id}] 25-minute budget reached at page {page}; stopping")
                     break
 

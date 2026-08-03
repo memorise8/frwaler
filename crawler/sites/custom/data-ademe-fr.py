@@ -33,6 +33,7 @@ minimum length even when the raw description is short or empty.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import time
@@ -61,7 +62,7 @@ class DataAdemeFrCrawler(BaseCrawler):
     base_url = _BASE
 
     _PAGE_SIZE = 40
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _CRAWL_BUDGET_SECS = 1500  # 25-minute wall-clock limit
     _MIN_ABSTRACT_LEN = 50
 

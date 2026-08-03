@@ -5,6 +5,7 @@ Target: https://www.ftc.go.kr/www/selectBbsNttList.do?bordCd=3&key=12&searchCtgr
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -36,8 +37,8 @@ class FtcGovKrWwwCrawler(BaseCrawler):
     _DETAIL_BASE = "https://www.ftc.go.kr/www/selectBbsNttView.do"
     _FILE_BASE = "https://www.ftc.go.kr/www/"
     _LIST_PARAMS = "pageUnit=10&searchCnd=all&key=12&bordCd=3&searchCtgry=01,02"
-    _MAX_PAGES = 200
-    _WALL_SECONDS = 25 * 60  # 25-minute budget
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
 
     # ------------------------------------------------------------------
     # curl helper

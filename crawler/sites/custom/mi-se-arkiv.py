@@ -8,6 +8,7 @@ news posts.  PDF URLs are extracted from detail pages for the publication type.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -28,7 +29,7 @@ _POST_TYPES = [
 ]
 
 _PER_PAGE      = 100
-_MAX_PAGES     = 200
+_MAX_PAGES     = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _WALL_MINUTES  = 25
 _MIN_ABSTRACT  = 50   # skip & log items whose abstract is shorter
 _DETAIL_SLEEP  = 1.0

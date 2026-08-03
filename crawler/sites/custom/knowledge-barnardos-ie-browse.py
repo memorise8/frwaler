@@ -10,6 +10,7 @@ PDFs are exposed through each item's ORIGINAL bundle bitstreams.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -28,8 +29,8 @@ class KnowledgeBarnardosIeBrowseCrawler(BaseCrawler):
     _API_BASE = "https://knowledge.barnardos.ie/server/api"
     _LIST_API = f"{_API_BASE}/discover/browses/title/items"
     _PAGE_SIZE = 20
-    _MAX_PAGES = 200
-    _MAX_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT_CHARS = 100
     _BACKOFFS = (1, 3, 9)
 

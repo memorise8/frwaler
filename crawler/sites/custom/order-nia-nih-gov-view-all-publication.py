@@ -21,6 +21,7 @@ it stops right after the first page.
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 from datetime import datetime
@@ -57,8 +58,8 @@ class OrderNiaNihGovViewAllPublicationCrawler(BaseCrawler):
 
     _LIST_URL = "https://order.nia.nih.gov/view-all-publications"
     _MIN_ABSTRACT = 50
-    _MAX_PAGES = 200
-    _MAX_WALL_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _PUBLISHER = "National Institute on Aging (NIA)"
     _RETRY_WAITS = (1, 3, 9)
     _WAF_RETRY_WAITS = (10, 20, 40)

@@ -13,6 +13,7 @@ Discovery notes:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -105,7 +106,7 @@ class PtbDeCmsCrawler(BaseCrawler):
     )
     _OAR_BASE_URL = "https://oar.ptb.de"
     _PAGE_CAP = 200
-    _MAX_SECONDS = 25 * 60
+    _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT_CHARS = 50
     _CURL_USER_AGENTS = (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

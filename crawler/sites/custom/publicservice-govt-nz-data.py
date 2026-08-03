@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import subprocess
 import time
@@ -37,8 +38,8 @@ class PublicServiceGovtNzDataCrawler(BaseCrawler):
         "SilverStripe-CMS-Model-SiteTree/{page}"
     )
     DATA_PREFIX = "https://www.publicservice.govt.nz/data/"
-    _MAX_PAGES = 200
-    _MAX_RUNTIME_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_RUNTIME_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _RUNTIME_GRACE_SECONDS = 60
     _sitemap_page_urls: Optional[List[str]] = None
 

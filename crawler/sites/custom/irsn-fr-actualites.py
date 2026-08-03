@@ -17,6 +17,7 @@ Abstract source priority:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -33,8 +34,8 @@ except ImportError:
 
 _ACTUAL_BASE = "https://recherche-expertise.asnr.fr"
 _LIST_PATH = "/actualites/communiques-presse"
-_MAX_PAGES = 200
-_WALL_CLOCK = 25 * 60          # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_CLOCK = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))          # 25 minutes
 _MIN_ABSTRACT = 100            # skip items shorter than this
 _BACKOFF = (1, 3, 9)           # retry wait-times (seconds)
 

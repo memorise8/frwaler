@@ -28,7 +28,7 @@ class ICPFrAPropsDeLICPCrawler(BaseCrawler):
 
     LIST_URL = "https://www.icp.fr/a-propos-de-licp/presse/communiques-de-presse"
     MIN_ABSTRACT_CHARS = 50
-    MAX_WALL_SECONDS = 25 * 60   # 25-minute budget
+    MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute budget
     PAGE_CAP = 200               # safety cap (site has one page; kept for robustness)
 
     def __init__(self, db_conn, delay=1.0):

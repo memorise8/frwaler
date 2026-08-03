@@ -22,6 +22,7 @@ from __future__ import annotations
 import html as html_lib
 import io
 import json
+import os
 import re
 import subprocess
 import time
@@ -209,8 +210,8 @@ class BmlehDeEnCrawler(BaseCrawler):
     _LIST_URL = "https://www.bmleh.de/EN/ministry/organisation/advisory-boards/AgriculturalPolicyPublications.html"
     _PUBLISHER = "Federal Ministry of Food, Agriculture and Consumer Protection"
     _MIN_ABSTRACT = 100
-    _MAX_PAGES = 200
-    _MAX_WALL = 25 * 60  # seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
     # ------------------------------------------------------------------
     # Network helpers

@@ -13,6 +13,7 @@ No individual detail pages; all data lives on the year-range listing pages.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -25,7 +26,7 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "justitsministeriet-dk-forskning"
 _BASE_URL = "https://www.justitsministeriet.dk"
 _START_URL = _BASE_URL + "/forskning/forskningsrapporter/"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _WALL_MINUTES = 25
 _MIN_ABSTRACT = 50
 

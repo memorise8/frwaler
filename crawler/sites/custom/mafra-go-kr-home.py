@@ -7,6 +7,7 @@ Detail URL:   /bbs/home/792/{bbsArtclSeq}/artclView.do
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -97,8 +98,8 @@ class MafraGoKrHomeCrawler(BaseCrawler):
     _PUBLISHER = "농림축산식품부"
     _DEFAULT_LAYOUT = "gSMQlq%2FRnioZNDL9kDA24%2FlabU8u4tWWDbOYcFOF2Xw%3D"
     _PAGE_SIZE = 10
-    _MAX_PAGES = 200
-    _MAX_WALL = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _CURL_USER_AGENT = "Mozilla/5.0"
 
     def __init__(self, db_conn, delay=1.0):

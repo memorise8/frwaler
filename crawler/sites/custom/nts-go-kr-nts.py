@@ -5,6 +5,7 @@ Board: https://www.nts.go.kr/nts/na/ntt/selectNttList.do?mi=2210&bbsId=1034
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -23,8 +24,8 @@ _FILE_API_URL = f"{_BASE}/nts/na/ntt/selectNttFileList.do"
 _DL_BASE = f"{_BASE}/comm/nttFileDownload.do"
 _REFERER = f"{_BASE}/nts/na/ntt/selectNttList.do?mi={_MI}&bbsId={_BBS_ID}"
 _PAGE_SIZE = 10
-_MAX_PAGES = 200
-_WALL_SECS = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 class NtsGoKrNtsCrawler(BaseCrawler):

@@ -10,6 +10,7 @@ OAI-PMH endpoint:
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -30,7 +31,7 @@ _NS = {
 }
 
 _SAFETY_CAP = 200       # max pages before forced stop
-_BUDGET_SECS = 25 * 60  # 25-minute wall-clock cap
+_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock cap
 
 
 def _curl_get(url, retries=3):

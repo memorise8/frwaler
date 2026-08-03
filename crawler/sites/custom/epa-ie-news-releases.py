@@ -8,6 +8,7 @@ Detail pages contain the full press-release body text used as abstract.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -26,7 +27,7 @@ class EPAIENewsReleasesCrawler(BaseCrawler):
     _START_URL = "https://www.epa.ie/news-releases/news-releases-2025/"
     _PUBLISHER = "Environmental Protection Agency"
     _PAGE_SAFETY_CAP = 200
-    _CRAWL_BUDGET_SECS = 25 * 60
+    _CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     # ------------------------------------------------------------------
     # Fetch helpers

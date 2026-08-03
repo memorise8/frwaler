@@ -2,6 +2,7 @@
 """Crawler for Institute of Marine Research (hi.no) nettrapporter (English reports)."""
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -14,8 +15,8 @@ from crawler.base_crawler import BaseCrawler
 _BASE = "https://www.hi.no"
 _LIST_URL = "https://www.hi.no/en/hi/nettrapporter"
 _PAGE_SIZE = 30
-_MAX_PAGES = 200
-_MAX_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"

@@ -12,6 +12,7 @@ blocks the Python requests library on TLS negotiation.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -169,7 +170,7 @@ class PolicyAlternativesCaNewsResearchCrawler(BaseCrawler):
         page = 1
         seen_urls: set[str] = set()
         start_time = time.time()
-        max_wall_seconds = 25 * 60
+        max_wall_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         limit_or_inf = str(limit) if limit is not None else "inf"
 
         while True:

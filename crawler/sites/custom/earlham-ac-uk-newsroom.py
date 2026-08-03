@@ -8,6 +8,7 @@ seen_urls deduplication handles it transparently.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -392,7 +393,7 @@ class EarlhamAcUkNewsroomCrawler(BaseCrawler):
         page = 0
         max_pages = 200
         start_time = time.time()
-        max_wall_seconds = 25 * 60  # 25-minute budget
+        max_wall_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
 
         while page <= max_pages:
             # Wall-clock safety valve.

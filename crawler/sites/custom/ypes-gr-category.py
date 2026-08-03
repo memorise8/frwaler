@@ -8,6 +8,7 @@ post content, title, date, and ID without needing to scrape HTML detail pages.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -33,7 +34,7 @@ class YpesGrCategoryCrawler(BaseCrawler):
     CURL_TIMEOUT = 45
     MIN_ABSTRACT_CHARS = 100
     MIN_SAVED_ABSTRACT_CHARS = 100
-    MAX_WALL_SECONDS = 25 * 60  # 25 minutes
+    MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
     # curl headers that bypass Akamai CDN (plain curl gets 403, these pass)
     _CURL_HEADERS = [

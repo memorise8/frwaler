@@ -11,6 +11,7 @@ Discovered endpoints:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -171,7 +172,7 @@ class IfremerFrFrCrawler(BaseCrawler):
     START_URL = "https://www.ifremer.fr/fr/espace-presse"
     AJAX_URL = "https://www.ifremer.fr/fr/views/ajax"
     MAX_PAGES = 200
-    MAX_SECONDS = 25 * 60
+    MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     CURL_TIMEOUT = 60
     MIN_ABSTRACT_CHARS = 50
     BACKOFFS = (1, 3, 9)

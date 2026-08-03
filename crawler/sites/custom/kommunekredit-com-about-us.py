@@ -14,6 +14,7 @@ Item detail:
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -34,8 +35,8 @@ _LIST_URL = (
     "reports-numbers-and-publications/reports/"
 )
 _PUBLISHER = "KommuneKredit"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 _USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

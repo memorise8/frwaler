@@ -10,6 +10,7 @@ Detail page: GET https://www.nps.or.kr/inforls/publdata/getOHAB0019M1.do
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -24,7 +25,7 @@ _MENU_ID = "MN24000873"
 _HMPG_CD = "01"
 _HMPG_BBS_CD = "BS20240191"
 _PAGE_SIZE = 10
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
 
 def _try_soup(html):
@@ -222,7 +223,7 @@ class NpsInforlsCrawler(BaseCrawler):
         saved = 0
         seen_urls: set = set()
         start_time = time.time()
-        max_seconds = 25 * 60  # 25 minutes
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
         limit_str = str(limit) if limit is not None else "inf"
 
         for p in range(1, _MAX_PAGES + 1):

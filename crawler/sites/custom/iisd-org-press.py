@@ -17,6 +17,7 @@ list record if Cloudflare serves an interstitial.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -28,8 +29,8 @@ from crawler.base_crawler import BaseCrawler
 
 
 _START_URL = "https://www.iisd.org/press?article_subtype%5B10%5D=10&sort_by=unified_date"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _BACKOFF = (1, 3, 9)
 _MIN_ABSTRACT_CHARS = 50
 

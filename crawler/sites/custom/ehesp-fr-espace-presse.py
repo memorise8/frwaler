@@ -38,8 +38,8 @@ _MEDIA_FIELDS = (
     "id,date,modified,slug,source_url,title,caption,description,"
     "media_details,mime_type,link"
 )
-_MAX_PAGES = 200
-_BUDGET_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _RETRY_DELAYS = (1, 3, 9)
 _USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

@@ -40,7 +40,7 @@ _LIST_TPL = (
 )
 _DETAIL_TPL = _BASE + "/jspui/handle/{handle}?mode=full"
 _RPP = 20
-_MAX_PAGES = 2000  # 2026-07-16 cap 확장
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "2000"))  # 2026-07-16 cap 확장
 _WALL_SECONDS = 300 * 60  # 2026-07-16 cap 확장 재수집: 25분 → 5시간
 _UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

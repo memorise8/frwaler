@@ -15,6 +15,7 @@ WAF:  The site is behind AWS WAF (HTTP 202 JS-challenge on bare curl/requests).
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import time
@@ -39,7 +40,7 @@ _SEED_URL = (
 )
 _PER_PAGE = 100       # site supports up to 100; gets all 29 in one shot
 _PAGE_CAP = 200
-_BUDGET_SECS = 25 * 60   # 25-min wall-clock cap
+_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-min wall-clock cap
 
 
 def _clean(text: str) -> str:

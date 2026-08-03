@@ -28,9 +28,9 @@ _SITE_ID = "catalog-data-metro-tokyo-lg-jp-dataset"
 _BASE_URL = "https://catalog.data.metro.tokyo.lg.jp"
 _API_SEARCH = f"{_BASE_URL}/api/3/action/package_search"
 _PAGE_SIZE = 100
-_MAX_PAGES = 200       # safety cap
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))       # safety cap
 _ABSTRACT_MIN = 100   # skip items whose built abstract is shorter
-_WALL_BUDGET = 25 * 60  # 25-minute wall-clock limit
+_WALL_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock limit
 
 
 class CatalogDataMetroTokyoDatasetCrawler(BaseCrawler):

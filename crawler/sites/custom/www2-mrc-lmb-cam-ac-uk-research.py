@@ -10,6 +10,7 @@ Abstracts are fetched from PubMed E-utilities (free, no API key needed).
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -207,7 +208,7 @@ class MrcLmbResearchCrawler(BaseCrawler):
         saved = 0
         seen_urls: Set[str] = set()
         start_time = time.time()
-        MAX_WALL = 25 * 60  # 25 minutes
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
         # --- Page 1: parse from initial HTML ---
         html = _curl(LISTING_URL)

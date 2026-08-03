@@ -14,6 +14,7 @@ Strategy
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -154,7 +155,7 @@ class MofeGoKrIdCrawler(BaseCrawler):
         or 25-minute wall-clock budget reached.
         """
         start_ts = time.time()
-        budget_secs = 25 * 60
+        budget_secs = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         saved = 0
         seen_pks: set[str] = set()
         limit_label = str(limit) if limit is not None else "∞"

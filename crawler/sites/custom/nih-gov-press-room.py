@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -28,7 +29,7 @@ class NihGovPressRoomCrawler(BaseCrawler):
     _DEPARTMENT = "National Institutes of Health"
     _RETRY_WAITS = (1, 3, 9)
     _SAFETY_PAGE_CAP = 200
-    _MAX_CRAWL_SECONDS = 25 * 60
+    _MAX_CRAWL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _TIME_STOP_MARGIN_SECONDS = 30
     _MIN_ABSTRACT_CHARS = 50
 

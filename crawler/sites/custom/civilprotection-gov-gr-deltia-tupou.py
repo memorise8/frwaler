@@ -17,6 +17,7 @@ Detail page:   Drupal node HTML — body in .deltio-tupou-wrapper > .dt-content
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 from html import unescape
@@ -64,8 +65,8 @@ class CivilprotectionGovGrDeltia(BaseCrawler):
     _PUBLISHER = "Ministry of Climate Crisis and Civil Protection, Greece"
     _MIN_ABSTRACT = 50
     _MIN_SAVE_ABSTRACT = 100
-    _MAX_PAGES = 200
-    _BUDGET_SECS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     def __init__(self, db_conn, delay=1.0):
         super().__init__(db_conn=db_conn, delay=delay)

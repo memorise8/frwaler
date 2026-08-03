@@ -34,7 +34,7 @@ BASE_URL = "https://www.homeaffairs.gov.au"
 SEARCH_API = f"{BASE_URL}/_api/search/query"
 PAGE_SIZE = 50
 MAX_PAGES = 200
-MAX_WALL_SECONDS = 25 * 60
+MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 HIDDEN_CONSTRAINTS = (
     "-filename:allitems.aspx -filename:News-publisher.aspx"

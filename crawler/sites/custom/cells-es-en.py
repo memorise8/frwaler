@@ -24,8 +24,8 @@ except ImportError:  # pragma: no cover
 
 _LIST_URL = "https://www.cells.es/en/public/corporate-publications"
 _PUBLISHER = "ALBA Synchrotron - CELLS"
-_MAX_PAGES = 200
-_MAX_WALL_SECS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 class CellsEsEnCrawler(BaseCrawler):

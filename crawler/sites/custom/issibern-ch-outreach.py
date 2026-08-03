@@ -42,7 +42,7 @@ class IssibernChOutreachCrawler(BaseCrawler):
     START_URL = "https://www.issibern.ch/outreach/news/"
     DEFAULT_LIST_ENDPOINT = "https://www.issibern.ch/wp-json/facetwp/v1/refresh"
     SAFETY_PAGE_CAP = 200
-    WALL_CLOCK_BUDGET_SECONDS = 25 * 60
+    WALL_CLOCK_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     CURL_TIMEOUT = 45
     BACKOFF_SECONDS = (1, 3, 9)
     MIN_ABSTRACT_CHARS = 50

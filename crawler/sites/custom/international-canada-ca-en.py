@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -24,7 +25,7 @@ INDEX_URL = (
 BACKOFF_SECONDS = (1, 3, 9)
 MIN_ABSTRACT = 50
 MAX_PAGES = 200  # safety cap (this site is a single list page)
-CRAWL_TIMEOUT_SECS = 25 * 60
+CRAWL_TIMEOUT_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 DETAIL_SLEEP = 1.0
 
 

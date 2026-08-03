@@ -9,6 +9,7 @@ Total:        ~2080 documents
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -152,7 +153,7 @@ class HUDStatsInsightsCrawler(BaseCrawler):
 
         while True:
             # --- guard conditions ---
-            if time.time() - t0 > 25 * 60:
+            if time.time() - t0 > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-minute budget reached, stopping cleanly.")
                 break
             if limit is not None and saved >= limit:

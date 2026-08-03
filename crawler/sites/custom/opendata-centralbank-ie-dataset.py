@@ -11,6 +11,7 @@ Usage (absolute import via spec_from_file_location):
 """
 
 import json
+import os
 import re
 import sys
 import time
@@ -22,7 +23,7 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "opendata-centralbank-ie-dataset"
 _BASE_URL = "https://opendata.centralbank.ie"
 _PAGE_SIZE = 20
-_WALL_CLOCK_LIMIT = 25 * 60  # seconds
+_WALL_CLOCK_LIMIT = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
 
 class OpendataCentralbankIeDatasetCrawler(BaseCrawler):

@@ -224,7 +224,7 @@ class NecGoKrSiteCrawler(BaseCrawler):
         saved = 0
         seen_urls: set = set()
         start_time = time.time()
-        max_wall = 25 * 60  # 25-minute hard budget
+        max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute hard budget
         page = 1
         max_pages = 200
 

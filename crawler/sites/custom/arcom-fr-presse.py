@@ -5,6 +5,7 @@ Target: https://www.arcom.fr/presse?field_type_de_presse_target_id%5B16%5D=16&..
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -107,7 +108,7 @@ class ArcomFrPresseCrawler(BaseCrawler):
         seen_urls = set()
         limit_or_inf = limit if limit is not None else float('inf')
         start_time = time.time()
-        MAX_WALL = 25 * 60  # 25 minutes in seconds
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes in seconds
         MAX_PAGES = 200
 
         page = 0

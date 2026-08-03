@@ -5,6 +5,7 @@ Board: https://www.mma.go.kr/board/boardList.do?gesipan_id=15&mc=mma0000392
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -39,8 +40,8 @@ _DOWN_PATH = "/boardFileDown.do"
 _GESIPAN_ID = "15"
 _MC = "mma0000392"
 _PAGE_SIZE = 10
-_MAX_PAGES = 200
-_CRAWL_BUDGET_SECS = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 def _soup(html: str):

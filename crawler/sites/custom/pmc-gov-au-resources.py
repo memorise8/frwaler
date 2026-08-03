@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import subprocess
 import time
@@ -38,7 +39,7 @@ SITE_ID = "pmc-gov-au-resources"
 BASE_URL = "https://www.pmc.gov.au"
 MIN_ABSTRACT_CHARS = 50
 MAX_PAGES = 200
-MAX_SECONDS = 25 * 60
+MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 BACKOFF_SECONDS = (1, 3, 9)
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

@@ -9,6 +9,7 @@ ArticleListElement whose ``filterUrl`` points at the real list API.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -31,7 +32,7 @@ class SwisspeaceChPublicationsCrawler(BaseCrawler):
 
     PAGE_SIZE = 10
     SAFETY_PAGE_CAP = 200
-    WALL_CLOCK_BUDGET_SECONDS = 25 * 60
+    WALL_CLOCK_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     BACKOFF_SECONDS = (1, 3, 9)
     CURL_TIMEOUT = 45
     MIN_ABSTRACT_CHARS = 50

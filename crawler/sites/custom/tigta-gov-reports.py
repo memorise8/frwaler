@@ -226,7 +226,7 @@ class TIGTAReportsCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         start_time = time.time()
-        MAX_WALL_SECONDS = 25 * 60
+        MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         limit_str = str(limit) if limit is not None else 'inf'
 
         print(f"[tigta-gov-reports] Starting crawl (limit={limit_str})")

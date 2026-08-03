@@ -12,6 +12,7 @@ the download response's Content-Disposition header.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -32,8 +33,8 @@ _BOARD_MANAGEMENT_NO = "14"
 _MENU_LEVEL = "2"
 _MENU_NO = "76"
 _PUBLISHER = "인천연구원"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _ABSTRACT_MIN_CHARS = 100
 
 

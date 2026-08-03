@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -60,7 +61,7 @@ class MinscfaGovGrGrafeioTypouCrawler(BaseCrawler):
     CURL_TIMEOUT = 45
     MIN_ABSTRACT_CHARS = 50
     MIN_SAVED_ABSTRACT_CHARS = 100
-    MAX_WALL_SECONDS = 25 * 60  # 25 minutes
+    MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
     def __init__(self, db_conn, delay=1.0, detail_delay=None):
         super().__init__(db_conn=db_conn, delay=delay)

@@ -14,6 +14,7 @@ reached, a safety cap is hit, or the wall-clock budget expires.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -42,7 +43,7 @@ class DatosGobMxDatasetCrawler(BaseCrawler):
     BACKOFF_SECONDS = (1, 3, 9)
     MIN_ABSTRACT_CHARS = 100
     PAGE_SAFETY_CAP = 200
-    WALL_CLOCK_BUDGET_SEC = 25 * 60
+    WALL_CLOCK_BUDGET_SEC = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _NETWORK_FAILED = object()
 
     def crawl(self, limit=None):

@@ -41,7 +41,7 @@ class NiddkNihGovNewsCrawler(BaseCrawler):
     DEPARTMENT = "National Institute of Diabetes and Digestive and Kidney Diseases"
 
     MAX_PAGES = 200
-    MAX_SECONDS = 25 * 60
+    MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     TIME_MARGIN_SECONDS = 30
     MIN_ABSTRACT_CHARS = 50
     RETRY_WAITS = (1, 3, 9)

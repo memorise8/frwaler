@@ -14,6 +14,7 @@ link (when present) is used as the record's ``url``.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -56,8 +57,8 @@ class NibioNoEnCrawler(BaseCrawler):
     _LIST_PATH = "/en/publications"
     _PTYPE = "e4b9b2bc-82be-42d1-80f5-f1515ad07e2e"
     _MIN_ABSTRACT = 50
-    _MAX_PAGES = 200
-    _MAX_WALL = 25 * 60  # seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
     _PUBLISHER = "Norwegian Institute of Bioeconomy Research (NIBIO)"
 
     # ------------------------------------------------------------------

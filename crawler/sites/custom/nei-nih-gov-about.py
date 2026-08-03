@@ -15,6 +15,7 @@ record lives on a single HTML page. Treat the page as page 1; subsequent
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -30,7 +31,7 @@ class NEINihGovAboutCrawler(BaseCrawler):
 
     _START_URL = "https://www.nei.nih.gov/about/budget-and-congress"
     _SAFETY_PAGE_CAP = 200
-    _WALL_CLOCK_BUDGET_SEC = 25 * 60
+    _WALL_CLOCK_BUDGET_SEC = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     # ------------------------------------------------------------------
     # HTTP via curl (TLS issues are common on .gov hosts)

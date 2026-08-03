@@ -12,6 +12,7 @@ File download: /board/boardFile/download/{manage_idx}/{board_idx}/{file_idx}.do
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -29,8 +30,8 @@ _LIST_URL = (
     f"?menu_idx={_MENU_IDX}&manage_idx={_MANAGE_IDX}"
 )
 _RATE_SLEEP = 1.0
-_MAX_PAGES = 200
-_WALL_BUDGET_SEC = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_BUDGET_SEC = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 # ---------------------------------------------------------------------------

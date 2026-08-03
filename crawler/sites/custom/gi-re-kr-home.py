@@ -21,8 +21,8 @@ from crawler.base_crawler import BaseCrawler
 
 _LIST_URL = "https://www.gi.re.kr/Home/H10000/H10100/pmsReportList"
 _DETAIL_URL = "https://www.gi.re.kr/Home/H10000/H10100/pmsReportView"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_CHARS = 100
 
 

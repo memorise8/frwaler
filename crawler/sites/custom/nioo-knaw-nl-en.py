@@ -16,7 +16,7 @@ _SITE_ID   = "nioo-knaw-nl-en"
 _BASE_URL  = "https://nioo.knaw.nl"
 _LIST_URL  = "https://nioo.knaw.nl/en/pressreleases"
 _PAGE_SIZE = 12
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _PUBLISHER = "Netherlands Institute of Ecology (NIOO-KNAW)"
 
 
@@ -166,7 +166,7 @@ class NiooKnawNlEnCrawler(BaseCrawler):
         seen_urls = set()
         limit_inf = limit is None
         start_time = time.time()
-        max_seconds = 25 * 60  # 25-minute wall-clock budget
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
         for page_num in range(_MAX_PAGES):
             # Wall-clock guard

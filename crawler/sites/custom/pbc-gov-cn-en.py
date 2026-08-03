@@ -50,6 +50,7 @@ and ``post_number``.
 """
 
 import json
+import os
 import re
 import time
 
@@ -58,8 +59,8 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "pbc-gov-cn-en"
 _BASE_URL = "https://www.pbc.gov.cn"
 _LIST_URL = "https://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html"
-_MAX_PAGES = 200  # safety cap
-_WALL_BUDGET_S = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))  # safety cap
+_WALL_BUDGET_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 _DETAIL_DELAY = 1.0  # seconds between detail-page fetches
 _RETRY_WAITS = (1, 3, 9)  # exponential backoff between retries
 

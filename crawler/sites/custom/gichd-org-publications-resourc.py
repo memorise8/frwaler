@@ -13,6 +13,7 @@ Live discovery notes, 2026-06-04:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -151,8 +152,8 @@ class GichdPublicationsCrawler(BaseCrawler):
     base_url = "https://www.gichd.org"
 
     _LIST_START_URL = "https://www.gichd.org/publications-resources/publications/"
-    _MAX_PAGES = 200
-    _WALL_CLOCK_BUDGET_S = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_CLOCK_BUDGET_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _ABSTRACT_MIN_CHARS = 50
 
     def _curl_get(self, url: str, accept: str = "text/html,application/xhtml+xml,*/*;q=0.9") -> str | None:

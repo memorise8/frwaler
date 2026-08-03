@@ -163,7 +163,7 @@ class NNSAMeeGovCnEnglishCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         start_time = time.time()
-        budget_s = 25 * 60
+        budget_s = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         saved = 0
         seen_urls: set = set()

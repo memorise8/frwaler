@@ -10,6 +10,7 @@ Two subsections crawled in order:
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -37,8 +38,8 @@ class PbocriOrgCnXslwhtmlCrawler(BaseCrawler):
     site_name = "Custom: pbocri-org-cn-xslwhtml"
     base_url = "https://www.pbocri.org.cn"
 
-    _MAX_PAGES = 200
-    _WALL_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     # ------------------------------------------------------------------
     # curl helper

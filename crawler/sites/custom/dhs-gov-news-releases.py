@@ -10,6 +10,7 @@ presents a real browser fingerprint.
 """
 
 import json
+import os
 import re
 import sys
 import time
@@ -21,8 +22,8 @@ from crawler.base_crawler import BaseCrawler
 
 _BASE = "https://www.dhs.gov"
 _LIST_URL = f"{_BASE}/news-releases/press-releases"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 def _make_soup(html: str):

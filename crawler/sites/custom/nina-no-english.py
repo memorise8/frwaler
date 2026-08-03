@@ -10,6 +10,7 @@ Abstract = full citation text (100–500 chars for real entries; short ones skip
 
 import hashlib
 import json
+import os
 import re
 import subprocess
 import time
@@ -19,8 +20,8 @@ from crawler.base_crawler import BaseCrawler
 _LIST_URL = "https://www.nina.no/english/Publications/Older-NINA-series"
 _PUBLISHER = "Norwegian Institute for Nature Research (NINA)"
 _MIN_ABSTRACT = 100   # citations shorter than this are incomplete stubs
-_MAX_PAGES = 200      # safety cap (single HTML page = 1; kept for protocol)
-_WALL_BUDGET = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))      # safety cap (single HTML page = 1; kept for protocol)
+_WALL_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 def _make_soup(html):

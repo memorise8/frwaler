@@ -25,6 +25,7 @@ Content-Disposition filename, while avoiding downloading the PDF body.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -131,7 +132,7 @@ class DirectivesDoeGovGuidanceCrawler(BaseCrawler):
     _WANTED_TYPE = "Guide"
 
     _SAFETY_CAP = 200
-    _WALL_BUDGET_SECONDS = 25 * 60
+    _WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT_CHARS = 50
     _BACKOFF_SECONDS = (1, 3, 9)
     _VIRTUAL_PAGE_SIZE = 5

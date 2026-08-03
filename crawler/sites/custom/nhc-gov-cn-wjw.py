@@ -9,6 +9,7 @@ Pagination: list.shtml (page 1), list_2.shtml, list_3.shtml, ... (63 pages, ~150
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import time
@@ -19,7 +20,7 @@ from crawler.base_crawler import BaseCrawler
 
 _BASE_URL = "https://www.nhc.gov.cn"
 _LIST_URL = f"{_BASE_URL}/wjw/gfxwjj/list.shtml"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _BS_PARSERS = ("html5lib", "lxml", "html.parser")
 
 
@@ -240,7 +241,7 @@ class NHCGovCnWjwCrawler(BaseCrawler):
         saved = 0
         seen_urls: set[str] = set()
         crawl_start = time.monotonic()
-        MAX_WALL = 25 * 60  # 25-minute wall-clock cap
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock cap
 
         limit_str = str(limit) if limit is not None else "unlimited"
         print(f"[nhc-gov-cn-wjw] Starting crawl, limit={limit_str}", flush=True)

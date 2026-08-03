@@ -32,8 +32,8 @@ from crawler.base_crawler import BaseCrawler  # noqa: E402
 _START_URL = "https://www.fibl.org/en/info-centre/publications-archive-fibl-en"
 _ORGPRINTS = "https://orgprints.org"
 _PAGE_SIZE = 100
-_MAX_PAGES = 200
-_MAX_WALL_SECS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _STOP_SOON_SECS = 30
 _MIN_ABSTRACT_CHARS = 100
 _BACKOFFS = (1, 3, 9)

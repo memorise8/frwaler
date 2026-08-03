@@ -40,8 +40,8 @@ from crawler.base_crawler import BaseCrawler  # noqa: E402
 _API_BASE = "https://api.figshare.com/v2"
 _INSTITUTION_ID = 1129
 _PAGE_SIZE = 100
-_MAX_PAGES = 200
-_CRAWL_BUDGET_SECS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _STOP_SOON_SECS = _CRAWL_BUDGET_SECS - 60
 
 

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -34,7 +35,7 @@ class BmimiGvAtThemenCrawler(BaseCrawler):
     CURL_TIMEOUT = 45
     CURL_META_MARKER = "__BMIMI_GV_AT_CURL_META__:"
     MIN_ABSTRACT_CHARS = 50
-    WALL_CLOCK_SECONDS = 25 * 60
+    WALL_CLOCK_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     SAFETY_PAGE_CAP = 200
 
     def __init__(self, db_conn, delay=1.0, detail_delay=None):

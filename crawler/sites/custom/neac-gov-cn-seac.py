@@ -9,6 +9,7 @@ Detail: https://www.neac.gov.cn/seac/c103544/YYYYMM/NNNNNNN.shtml
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -19,7 +20,7 @@ _SITE_ID = "neac-gov-cn-seac"
 _BASE_URL = "https://www.neac.gov.cn"
 _LIST_PAGE1 = f"{_BASE_URL}/seac/c103544/common_list.shtml"
 _LIST_TMPL = f"{_BASE_URL}/seac/c103544/common_list_{{page}}.shtml"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 50
 
 # BeautifulSoup parser preference order
@@ -177,7 +178,7 @@ class NeacGovCnSeacCrawler(BaseCrawler):
         page = 1
         while True:
             # Wall-clock budget: 25 minutes
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-minute wall-clock budget reached. Stopping.")
                 break
 

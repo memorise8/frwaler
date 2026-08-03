@@ -15,6 +15,7 @@ Strategy:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -116,7 +117,7 @@ class NZPRIDocumentLibraryCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         started = time.monotonic()
-        MAX_WALL = 25 * 60
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         saved = 0
         seen_keys: set[str] = set()

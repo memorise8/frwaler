@@ -6,6 +6,7 @@ Detail: https://www.keis.or.kr/keis/ko/bbs/123/detail.do?pstSn=N
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -20,8 +21,8 @@ _BASE = "https://www.keis.or.kr"
 _LIST_URL = _BASE + "/keis/ko/bbs/123/list.do"
 _DETAIL_PREFIX = _BASE + "/keis/ko/bbs/123/"
 _PAGE_SIZE = 10
-_MAX_PAGES = 200
-_MAX_SEC = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_SEC = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 def _make_soup(html_text):

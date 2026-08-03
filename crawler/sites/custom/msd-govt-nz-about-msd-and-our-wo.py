@@ -74,7 +74,7 @@ class MSDGovtNzRisCrawler(BaseCrawler):
     _LIST_URL       = ("https://www.msd.govt.nz/about-msd-and-our-work/"
                        "publications-resources/regulatory-impact-statements/index.html")
     _PUBLISHER      = "Ministry of Social Development"
-    _WALL_CLOCK_MAX = 25 * 60   # 25 minutes
+    _WALL_CLOCK_MAX = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25 minutes
     _MIN_ABSTRACT   = 100       # chars — items below this are skipped (test requires >=100)
 
     # ------------------------------------------------------------------

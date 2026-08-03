@@ -5,6 +5,7 @@ Target: https://www.unikorea.go.kr/web/unikorea/bbs/bbs_0000000000000181
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -33,7 +34,7 @@ class UnikoreaNewsletterCrawler(BaseCrawler):
     _BBS_ID = "bbs_0000000000000181"
     _LIST_BASE = "https://www.unikorea.go.kr/web/unikorea/bbs/bbs_0000000000000181"
     _PAGE_SIZE = 15
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _BUDGET_MINUTES = 25
 
     # ------------------------------------------------------------------

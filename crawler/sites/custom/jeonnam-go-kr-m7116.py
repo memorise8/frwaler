@@ -2,6 +2,7 @@
 """전라남도청 보도자료 crawler — jeonnam.go.kr M7116."""
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -18,8 +19,8 @@ _MENU_ID = "jeonnam0202000000"
 _BOARD_ID = "M7116"
 _LIST_URL = f"{_BASE}/{_BOARD_ID}/boardList.do"
 _DETAIL_URL = f"{_BASE}/{_BOARD_ID}/boardView.do"
-_MAX_PAGES = 200
-_TIMEOUT_SECS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_TIMEOUT_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 def _curl(url: str) -> str | None:

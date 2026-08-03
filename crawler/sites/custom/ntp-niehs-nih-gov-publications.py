@@ -10,6 +10,7 @@ links (/go/*).
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -48,7 +49,7 @@ class NtpNiehsNihGovPublicationsCrawler(BaseCrawler):
     START_URL = "https://ntp.niehs.nih.gov/publications"
     LIST_URL = "https://ntp.niehs.nih.gov/publications/reports"
     PAGE_CAP = 200
-    MAX_SECONDS = 25 * 60
+    MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     RETRY_WAITS = (1, 3, 9)
     MIN_ABSTRACT_CHARS = 50
 

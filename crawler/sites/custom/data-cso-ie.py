@@ -48,9 +48,9 @@ _DATASET_URL_TMPL = (
     "PxStat.Data.Cube_API.ReadDataset/{matrix}/JSON-stat/2.0/en"
 )
 _TABLE_URL_TMPL = "https://data.cso.ie/table/{matrix}"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _PAGE_SIZE = 100
-_WALL_BUDGET_SECONDS = 25 * 60
+_WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _ABSTRACT_MIN_CHARS = 50
 _CURL_WAITS = (1, 3, 9)
 

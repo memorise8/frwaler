@@ -12,6 +12,7 @@ anchor and an outbound publication link.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -25,8 +26,8 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "cc-nih-gov-research"
 _BASE_URL = "https://www.cc.nih.gov"
 _START_URL = "https://www.cc.nih.gov/research/2025"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_CHARS = 50
 _RETRY_WAITS = (1, 3, 9)
 

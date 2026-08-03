@@ -14,6 +14,7 @@ tags, publisher/producer taxonomy, and PDF download cards.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -41,7 +42,7 @@ class CultureGouvFrEspaceDocumentationCrawler(BaseCrawler):
     MAX_PAGES = 200
     CURL_TIMEOUT = 60
     DETAIL_SLEEP = 1.0
-    WALL_CLOCK_SECONDS = 25 * 60
+    WALL_CLOCK_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     WALL_CLOCK_GRACE_SECONDS = 30
     MIN_ABSTRACT_CHARS = 50
 

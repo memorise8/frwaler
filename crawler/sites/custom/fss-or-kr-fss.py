@@ -10,6 +10,7 @@ Files:   /fss/cmmn/file/fileDown.do?menuNo=200218&atchFileId={id}&fileSn={n}
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -62,8 +63,8 @@ class FssOrKrFssCrawler(BaseCrawler):
     site_name = "Custom: fss-or-kr-fss"
     base_url = _BASE
 
-    _MAX_PAGES = 200
-    _MAX_SECS = 25 * 60  # 25-minute wall-clock budget
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
     # ------------------------------------------------------------------
     # HTTP helpers

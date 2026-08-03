@@ -24,8 +24,8 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "publications-idiap-ch-publications"
 _BASE_URL = "https://publications.idiap.ch"
 _START_URL = f"{_BASE_URL}/publications/articles"
-_MAX_PAGES = 200
-_CRAWL_BUDGET_SECS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_CHARS = 100
 
 _MONTHS = {

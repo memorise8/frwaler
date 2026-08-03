@@ -12,6 +12,7 @@ a single Solr request per page — no per-item detail fetch required.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -35,7 +36,7 @@ class HalScienceIgnEnsgCrawler(BaseCrawler):
     _PAGE_SIZE = 30
     _MIN_ABSTRACT_CHARS = 100  # must match verification test assertion
     _RETRY_WAITS = (1, 3, 9)
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
     _ALL_FIELDS = ",".join((
         "docid",

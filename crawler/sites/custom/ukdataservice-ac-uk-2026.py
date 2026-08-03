@@ -7,6 +7,7 @@ Strategy: Walk /wp-json/wp/v2/posts (100 per page) and extract full content + Yo
 
 import html as html_mod
 import json
+import os
 import re
 import time
 
@@ -15,8 +16,8 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "ukdataservice-ac-uk-2026"
 _API_BASE = "https://ukdataservice.ac.uk/wp-json/wp/v2/posts"
 _PER_PAGE = 100
-_MAX_PAGES = 200
-_WALL_BUDGET_S = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_BUDGET_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 # Fields to request from WP REST API (content is large but needed for abstract)
 _FIELDS = "id,slug,date,title,excerpt,content,tags,categories,link,yoast_head_json"

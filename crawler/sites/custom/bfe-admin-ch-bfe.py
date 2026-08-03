@@ -19,6 +19,7 @@ published date, file type, size, available languages, publication id).
 
 import base64
 import json
+import os
 import re
 import subprocess
 import sys
@@ -45,8 +46,8 @@ class BfeAdminChBfeCrawler(BaseCrawler):
     base_url = "https://www.bfe.admin.ch"
 
     _MIN_ABSTRACT = 50
-    _MAX_PAGES = 200
-    _MAX_WALL = 25 * 60  # seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
     _RETRY_WAITS = (1, 3, 9)
 
     # ------------------------------------------------------------------

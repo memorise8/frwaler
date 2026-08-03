@@ -38,7 +38,7 @@ class InraeFrActualitesCrawler(BaseCrawler):
     MIN_ABSTRACT_CHARS = 50    # skip items below this
     MIN_SAVE_ABSTRACT_CHARS = 100  # test requirement; try detail page if below
     MAX_PAGES = 200
-    MAX_SECONDS = 25 * 60
+    MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     MONTHS_FR = {
         "janvier": 1, "fevrier": 2, "mars": 3, "avril": 4,

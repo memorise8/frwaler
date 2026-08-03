@@ -14,6 +14,7 @@ The public landing page at /en/detec-press-releases renders only the first
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -38,7 +39,7 @@ class UvekAdminChEnCrawler(BaseCrawler):
     PUBLISHER_ID = "8"
     PAGE_SIZE = 50
     SAFETY_PAGE_CAP = 200
-    WALL_LIMIT_SECONDS = 25 * 60
+    WALL_LIMIT_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     WALL_APPROACH_SECONDS = 24 * 60
     CURL_TIMEOUT = 60
     BACKOFF = (1, 3, 9)

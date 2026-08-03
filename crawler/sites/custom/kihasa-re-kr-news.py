@@ -13,6 +13,7 @@ full HTML body ("contents") is only on the detail page.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -36,7 +37,7 @@ class KihasaReKrNewsCrawler(BaseCrawler):
     _DEPARTMENT = "한국보건사회연구원"
 
     MAX_PAGES = 200
-    _MAX_RUNTIME_S = 25 * 60
+    _MAX_RUNTIME_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _RUNTIME_GRACE_S = 30
 
     # ------------------------------------------------------------------

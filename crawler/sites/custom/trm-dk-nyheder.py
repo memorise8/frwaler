@@ -11,6 +11,7 @@ with a CSRF token from the start page.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -131,8 +132,8 @@ class TrmDkNyhederCrawler(BaseCrawler):
     _LIST_ENDPOINT = "https://www.trm.dk/surface/FilterListe/GetFilterlisteContent"
     _PAGE_ID = "1724"
     _PAGE_SIZE = 50
-    _MAX_PAGES = 200
-    _MAX_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _CURL_TIMEOUT = 60
     _CURL_META_MARKER = "__TRM_DK_CURL_META__:"
     _BACKOFFS = (1, 3, 9)

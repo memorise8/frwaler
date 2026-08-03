@@ -18,8 +18,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 from crawler.base_crawler import BaseCrawler
 
 _PAGE_SIZE = 100
-_MAX_PAGES = 200
-_CRAWL_TIMEOUT = 25 * 60  # seconds
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_CRAWL_TIMEOUT = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
 
 class AvoindataSuomiFiDataCrawler(BaseCrawler):

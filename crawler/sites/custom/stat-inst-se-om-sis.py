@@ -22,8 +22,8 @@ _SITE_ID = "stat-inst-se-om-sis"
 _BASE_URL = "https://www.stat-inst.se"
 _LIST_URL = "https://www.stat-inst.se/om-sis/remissvar/"
 _ABSTRACT_MIN_CHARS = 50
-_MAX_PAGES = 200  # safety cap (this site is single-page, but kept for robustness)
-_MAX_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))  # safety cap (this site is single-page, but kept for robustness)
+_MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 class StatInstSisCrawler(BaseCrawler):

@@ -7,6 +7,7 @@ Detail pages: individual publication pages with full abstract.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -22,8 +23,8 @@ _BASE = "https://www.defence.govt.nz"
 _LIST_URL = f"{_BASE}/publications/doSearch/"
 _PAGE_SIZE = 10
 _MIN_ABSTRACT = 100
-_MAX_PAGES = 200
-_MAX_WALL = 25 * 60  # 25-minute wall-clock budget
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
 _MONTH_MAP = {
     "jan": "01", "feb": "02", "mar": "03", "apr": "04",

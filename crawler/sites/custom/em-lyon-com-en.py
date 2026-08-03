@@ -10,6 +10,7 @@ HTML page whose Drupal settings expose the native ``node/<id>`` identifier.
 
 import html
 import json
+import os
 import re
 import subprocess
 import time
@@ -21,8 +22,8 @@ from crawler.base_crawler import BaseCrawler
 
 _BASE_URL = "https://em-lyon.com"
 _START_URL = f"{_BASE_URL}/en/newsroom"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _BACKOFF_SECONDS = (1, 3, 9)
 
 

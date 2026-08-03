@@ -14,6 +14,7 @@ Sections crawled:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -25,7 +26,7 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "oig-treasury-gov-other-reports-testim"
 _BASE_URL = "https://oig.treasury.gov"
 _PUBLISHER = "U.S. Department of the Treasury Office of Inspector General"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN = 50
 _ABSTRACT_SUFFIX = f" | Published by {_PUBLISHER}."
 
@@ -213,7 +214,7 @@ class OigTreasuryOtherReportsTestimCrawler(BaseCrawler):
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.time()
-        MAX_WALL_SECS = 25 * 60
+        MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         for section in _SECTIONS:
             if saved >= limit_val:

@@ -3,6 +3,7 @@
 
 import html as html_mod
 import json
+import os
 import re
 import subprocess
 import sys
@@ -21,8 +22,8 @@ _LIST_PATH = "/board"
 _MENU_KEY = "uCjzEQTnJu"
 _BBS_ID = "BOARD00019"
 _ROW_CNT = 10
-_MAX_PAGES = 200
-_MAX_SECONDS = 25 * 60  # 25 minutes wall-clock budget
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes wall-clock budget
 
 
 def _make_soup(raw: str):

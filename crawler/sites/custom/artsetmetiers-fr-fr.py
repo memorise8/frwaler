@@ -8,6 +8,7 @@ No HTML detail page exists — all data is harvested from the list pages.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -80,8 +81,8 @@ class ArtsetmetiersFrFrCrawler(BaseCrawler):
     base_url = "https://artsetmetiers.fr"
 
     _LIST_URL = "https://artsetmetiers.fr/fr/communiques-de-presse"
-    _MAX_PAGES = 200       # safety cap
-    _WALL_CLOCK_LIMIT = 25 * 60  # 25 minutes in seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))       # safety cap
+    _WALL_CLOCK_LIMIT = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes in seconds
 
     # ------------------------------------------------------------------
     # Internal helpers

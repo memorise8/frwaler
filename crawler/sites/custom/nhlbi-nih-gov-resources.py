@@ -7,6 +7,7 @@ Detail pages: /resources/<slug> — JSON-LD carries description/date/keywords.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -181,8 +182,8 @@ class NHLBIResourcesCrawler(BaseCrawler):
     base_url = "https://www.nhlbi.nih.gov"
 
     _LIST_URL = "https://www.nhlbi.nih.gov/resources"
-    _MAX_PAGES = 200
-    _MAX_WALL_SECONDS = 25 * 60  # 25 minutes
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
     def crawl(self, limit=None):
         """Paginate /resources?page=N and save publications.

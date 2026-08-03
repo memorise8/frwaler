@@ -9,6 +9,7 @@ Files:  /boardDownload.es?bid=0027&list_no=LIST_NO&seq=SEQ
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -254,7 +255,7 @@ class MohwGovKrBoardesCrawler(BaseCrawler):
         saved = 0
         seen: set[str] = set()           # dedup by list_no
         start_time = time.time()
-        max_seconds = 25 * 60            # 25-minute wall-clock budget
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))            # 25-minute wall-clock budget
         safety_cap = 200
         limit_or_inf = limit if limit is not None else "∞"
 

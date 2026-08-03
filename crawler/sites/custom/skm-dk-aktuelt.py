@@ -10,6 +10,7 @@ Strategy:
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -26,7 +27,7 @@ _LISTING_URL = _BASE + _LISTING_PATH
 _SITEMAP_PREFIX = _BASE + _LISTING_PATH + "/"
 
 _RATE_SLEEP = 1.0      # seconds between detail fetches
-_MAX_PAGES = 200       # safety cap (not real pages here, kept for spec compliance)
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))       # safety cap (not real pages here, kept for spec compliance)
 _WALL_MINUTES = 25     # budget per crawl
 
 

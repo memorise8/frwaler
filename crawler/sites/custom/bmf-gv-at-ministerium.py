@@ -16,7 +16,7 @@ _START_URL = (
     "uebersicht-nationale-finanzbildungsstrategie/downloads.html"
 )
 _PUBLISHER = "Bundesministerium für Finanzen (BMF)"
-_WALL_BUDGET = 25 * 60  # 25 minutes
+_WALL_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 _MONTH_DE = {
     "jänner": "01", "januar": "01", "februar": "02", "märz": "03",

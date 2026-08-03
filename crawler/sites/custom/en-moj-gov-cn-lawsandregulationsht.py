@@ -8,6 +8,7 @@ Pagination: lawsandregulations.html (p1), lawsandregulations_2.html, …
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -19,8 +20,8 @@ _BASE_URL = "http://en.moj.gov.cn"
 _LIST_PAGE_1 = "http://en.moj.gov.cn/lawsandregulations.html"
 _LIST_PAGE_N = "http://en.moj.gov.cn/lawsandregulations_{n}.html"
 _ABSTRACT_MIN_CHARS = 100
-_MAX_PAGES = 200
-_WALL_CLOCK_SECS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_CLOCK_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 class EnMojGovCnLawsRegsCrawler(BaseCrawler):

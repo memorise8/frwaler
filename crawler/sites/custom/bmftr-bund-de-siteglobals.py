@@ -2,6 +2,7 @@
 """Crawler for bmftr.bund.de Publikationssuche (German federal research ministry)."""
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -20,8 +21,8 @@ class BmftrBundDeSiteglobalsCrawler(BaseCrawler):
         "/SiteGlobals/Forms/Suche/Publikationssuche/Publikationssuche_Formular.html"
     )
     _RESULTS_PER_PAGE = 50
-    _MAX_PAGES = 200
-    _CRAWL_BUDGET_SECS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT = 50
 
     # ------------------------------------------------------------------

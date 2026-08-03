@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import subprocess
 import time
@@ -35,7 +36,7 @@ class OpenaireEuOsSloveniaCrawler(BaseCrawler):
 
     PAGE_SIZE = 10
     MAX_PAGES = 200
-    MAX_SECONDS = 25 * 60
+    MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     BACKOFF_SECONDS = (1, 3, 9)
     MIN_ABSTRACT_CHARS = 100
 

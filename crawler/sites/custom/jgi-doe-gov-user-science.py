@@ -256,7 +256,7 @@ class JGIUserScienceCrawler(BaseCrawler):
                 break
             if saved >= limit_n:
                 break
-            if time.time() - start_ts > 25 * 60:
+            if time.time() - start_ts > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE}] 25-min budget reached. Stopping.")
                 break
 

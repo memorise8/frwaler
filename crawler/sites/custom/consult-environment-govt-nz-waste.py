@@ -6,6 +6,7 @@ Target: https://consult.environment.govt.nz/consultation_finder/
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -17,7 +18,7 @@ _SITE_ID = "consult-environment-govt-nz-waste"
 _BASE_URL = "https://consult.environment.govt.nz"
 _FINDER_URL = "https://consult.environment.govt.nz/consultation_finder/"
 _PAGE_SIZE = 30
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _RATE_SLEEP = 1.0
 
 _USER_AGENT = (
@@ -153,7 +154,7 @@ class ConsultEnvironmentGovtNzWasteCrawler(BaseCrawler):
         page = 1
         while saved < limit_val:
             # 25-minute wall-clock budget
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-minute budget reached, stopping cleanly.")
                 break
 

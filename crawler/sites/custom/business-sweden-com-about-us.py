@@ -7,6 +7,7 @@ Detail page: /about-us/media/press-releases/press-releases/YYYY/slug/
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -234,7 +235,7 @@ class BusinessSwedenPressReleasesCrawler(BaseCrawler):
         seen_urls: set = set()
         start_time = time.time()
         MAX_PAGES = 200
-        WALL_SECS = 25 * 60  # 25 minutes
+        WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
         page = 1
         while True:

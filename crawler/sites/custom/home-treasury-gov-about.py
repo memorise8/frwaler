@@ -312,7 +312,7 @@ class HomeTreasuryGovAboutCrawler(BaseCrawler):
                 break
 
             # 25-minute wall-clock budget
-            if time.time() - start_ts > 25 * 60:
+            if time.time() - start_ts > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-minute wall-clock budget reached; stopping.")
                 break
 

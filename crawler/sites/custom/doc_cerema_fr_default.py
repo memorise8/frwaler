@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import time
 import xml.etree.ElementTree as ET
@@ -20,7 +21,7 @@ class DocCeremaFrDefaultCrawler(BaseCrawler):
     base_url = "https://doc.cerema.fr"
 
     _RSS_INDEX = "https://doc.cerema.fr/Default/tous-les-flux-rss.aspx"
-    _WALL_CLOCK_BUDGET = 25 * 60  # 25 minutes in seconds
+    _WALL_CLOCK_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes in seconds
 
     def __init__(self, db_conn, delay=1.5):
         super().__init__(db_conn, delay)

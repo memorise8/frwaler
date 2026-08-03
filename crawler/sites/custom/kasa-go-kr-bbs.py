@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import html
 import json
+import os
 import re
 import subprocess
 import time
@@ -32,8 +33,8 @@ _LIST_URL = f"{_BASE_URL}/bbs/{_BBS_ID}/list.do"
 _DETAIL_URL = f"{_BASE_URL}/bbs/{_BBS_ID}/view.do"
 _FILE_URL = f"{_BASE_URL}/cmm/fms/FileDown.do"
 
-_MAX_PAGES = 200
-_WALL_CLOCK_SECS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_CLOCK_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _STOP_SOON_SECS = _WALL_CLOCK_SECS - 30
 _MIN_ABSTRACT_CHARS = 50
 _RICH_ABSTRACT_CHARS = 100

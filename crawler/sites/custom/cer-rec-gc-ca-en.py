@@ -14,6 +14,7 @@ Structure:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -29,8 +30,8 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "cer-rec-gc-ca-en"
 _BASE_URL = "https://www.cer-rec.gc.ca"
 _INDEX_URL = f"{_BASE_URL}/en/about/publications-reports/index.html"
-_MAX_PAGES = 200
-_BUDGET_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _DELAY = 1.0
 _MIN_ABSTRACT_CHARS = 100
 _RETRY_DELAYS = (1, 3, 9)

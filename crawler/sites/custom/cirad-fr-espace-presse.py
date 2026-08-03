@@ -8,6 +8,7 @@ Detail page: https://www.cirad.fr/espace-presse/communiques-de-presse/{year}/{sl
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -82,7 +83,7 @@ class CiradFrEspacePresseCrawler(BaseCrawler):
         seen_urls: set[str] = set()
         limit_str = str(limit) if limit is not None else "inf"
         wall_start = time.time()
-        MAX_WALL = 25 * 60  # 25 minutes
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
         for page_num in range(1, self.MAX_PAGES + 1):
             # ── wall-clock guard ────────────────────────────────────────

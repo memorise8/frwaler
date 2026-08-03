@@ -7,6 +7,7 @@ Uses RSS feed: https://www.health-ni.gov.uk/news/feed/health?page=N
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -216,7 +217,7 @@ class HealthNiGovUkNewsCrawler(BaseCrawler):
         limit_or_inf = limit if limit is not None else "∞"
         start_time = time.time()
         MAX_PAGES = 200
-        BUDGET_SECS = 25 * 60
+        BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         try:
             while page < MAX_PAGES:

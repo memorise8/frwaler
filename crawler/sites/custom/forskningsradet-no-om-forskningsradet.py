@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import re
 import subprocess
 import time
@@ -23,8 +24,8 @@ class ForskningsradetNomOmForskningsradetCrawler(BaseCrawler):
 
     _LIST_URL = "https://www.forskningsradet.no/om-forskningsradet/publikasjoner/"
     _MIN_ABSTRACT_CHARS = 100
-    _MAX_PAGES = 200
-    _MAX_WALL_SECS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     def __init__(self, db_conn, delay=1.0):
         super().__init__(db_conn=db_conn, delay=delay)

@@ -71,7 +71,7 @@ class MasafGovItFlexCrawler(BaseCrawler):
     # Newest first so incremental crawls stop early
     _YEARS = list(range(2026, 2013, -1))
     _PAGE_CAP = 200       # safety: never fetch more than 200 listing pages
-    _MAX_WALL = 25 * 60   # 25-minute wall-clock budget
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute wall-clock budget
 
     # ------------------------------------------------------------------
     # Low-level fetch

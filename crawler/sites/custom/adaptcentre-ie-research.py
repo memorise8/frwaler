@@ -36,7 +36,7 @@ from crawler.base_crawler import BaseCrawler
 _WP_ENDPOINT = "https://www.adaptcentre.ie/wp-json/wp/v2/publications"
 _PER_PAGE = 100
 _PAGE_CAP = 200
-_CRAWL_BUDGET_SECONDS = 25 * 60
+_CRAWL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _RETRY_WAITS = (1, 3, 9)
 _MIN_ABSTRACT_CHARS = 50
 _API_DELAY = 1.0  # seconds between external API calls

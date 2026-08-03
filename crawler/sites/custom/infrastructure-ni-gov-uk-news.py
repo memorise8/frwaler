@@ -152,7 +152,7 @@ class InfrastructureNiGovUkNewsCrawler(BaseCrawler):
         seen_urls: set[str] = set()
         limit_or_inf = limit if limit is not None else float("inf")
         start_time = time.time()
-        max_seconds = 25 * 60  # 25-minute wall-clock budget
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
         page = 0
         while page < self.MAX_PAGES:

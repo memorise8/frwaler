@@ -6,6 +6,7 @@ CMS:    Liferay 7.x — AssetPublisher portlet (PQibxq1lWdyu)
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -124,7 +125,7 @@ class MimGovItWebCrawler(BaseCrawler):
         cur = 1
         seen_urls: set = set()
         start_ts = time.time()
-        budget_secs = 25 * 60  # 25-minute wall-clock budget
+        budget_secs = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
         while True:
             # ---- budget / safety checks ----

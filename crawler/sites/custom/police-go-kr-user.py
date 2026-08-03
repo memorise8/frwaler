@@ -60,8 +60,8 @@ class PoliceGoKrUserCrawler(BaseCrawler):
     _DETAIL_URL = "https://www.police.go.kr/user/bbs/BD_selectBbs.do"
     _BBS_CODE   = "1002"
     _PAGE_SIZE  = 10
-    _MAX_PAGES  = 200
-    _MAX_SECS   = 25 * 60  # 25-minute wall-clock budget
+    _MAX_PAGES  = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_SECS   = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
     def __init__(self, db_conn, delay: float = 1.0):
         super().__init__(db_conn, delay)

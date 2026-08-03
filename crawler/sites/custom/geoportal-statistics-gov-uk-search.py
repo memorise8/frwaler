@@ -17,6 +17,7 @@ Individual records are exposed at:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -33,7 +34,7 @@ _API_ITEMS = f"{_BASE_URL}/api/search/v1/collections/document/items"
 _ARCGIS_DATA_URL = "https://www.arcgis.com/sharing/rest/content/items/{item_id}/data"
 _PAGE_SIZE = 50
 _SAFETY_CAP_PAGES = 200
-_WALL_CLOCK_BUDGET_SECONDS = 25 * 60
+_WALL_CLOCK_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_CHARS = 100
 
 

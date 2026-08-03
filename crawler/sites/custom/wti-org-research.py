@@ -7,6 +7,7 @@ Pagination   : https://www.wti.org/research/publications/?type=2&page=N
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -230,7 +231,7 @@ class WtiOrgResearchCrawler(BaseCrawler):
         seen_urls: set = set()
         limit_display = limit if limit is not None else "inf"
         start_time = time.time()
-        MAX_SECONDS = 25 * 60
+        MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         MAX_PAGES = 200
 
         page = 1

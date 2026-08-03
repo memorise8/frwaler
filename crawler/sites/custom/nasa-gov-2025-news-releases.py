@@ -6,6 +6,7 @@ Filters:  after=2025-01-01, before=2026-01-01  (~236 posts, 3 pages @ 100/page)
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -18,8 +19,8 @@ _API_URL = "https://www.nasa.gov/wp-json/wp/v2/press-release"
 _YEAR_AFTER = "2025-01-01T00:00:00"
 _YEAR_BEFORE = "2026-01-01T00:00:00"
 _PER_PAGE = 100
-_MAX_PAGES = 200
-_BUDGET_SECS = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 def _strip_html(html: str) -> str:

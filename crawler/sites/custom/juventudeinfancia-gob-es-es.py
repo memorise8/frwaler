@@ -6,6 +6,7 @@ Pagination: ?page=0 … ?page=N (5 items/page, currently ~55 pages).
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -84,7 +85,7 @@ class JuventudeinfanciaGobEsEsCrawler(BaseCrawler):
     site_name = "Custom: juventudeinfancia-gob-es-es"
     base_url = _BASE_URL
 
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
     def crawl(self, limit=None):
         """Crawl Notas de prensa, saving up to *limit* items (None = unlimited)."""
@@ -92,7 +93,7 @@ class JuventudeinfanciaGobEsEsCrawler(BaseCrawler):
         seen_urls = set()
         limit_or_inf = limit if limit is not None else float("inf")
         start_time = time.time()
-        MAX_WALL = 25 * 60  # seconds
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
         for page in range(self._MAX_PAGES):
             # --- guards ---

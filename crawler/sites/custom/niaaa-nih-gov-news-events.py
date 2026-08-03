@@ -16,6 +16,7 @@ category label, and date. We strip those header tokens to build the abstract.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -25,9 +26,9 @@ from crawler.base_crawler import BaseCrawler
 
 _BASE = "https://www.niaaa.nih.gov"
 _LIST_URL = f"{_BASE}/news-events/news"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _MIN_ABSTRACT = 100  # skip & log items whose abstract is shorter than this
-_WALL_CLOCK_S = 25 * 60  # 25-minute budget
+_WALL_CLOCK_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
 
 _MONTHS = (
     "January|February|March|April|May|June|July|August|"

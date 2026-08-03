@@ -10,6 +10,7 @@ Detail pages: plain HTML — h1 title, preamble div, Publicerades date, Författ
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -22,8 +23,8 @@ from crawler.base_crawler import BaseCrawler
 
 _BASE_URL = "https://www.ifau.se"
 _LIST_URL = _BASE_URL + "/Press/Pressmeddelanden/"
-_MAX_PAGES = 200
-_WALL_SECONDS = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 _MIN_ABSTRACT = 50       # skip items with abstract shorter than this
 
 _MONTHS_SE = {

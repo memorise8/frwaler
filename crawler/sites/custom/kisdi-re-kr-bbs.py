@@ -7,6 +7,7 @@ Detail: GET /bbs/view.do?bbsSn=N&key=m2101113055776
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -22,7 +23,7 @@ _VIEW_URL = "https://www.kisdi.re.kr/bbs/view.do"
 _FILE_URL = "https://www.kisdi.re.kr/cmm/fileDown.do"
 _PAGE_SIZE = 16
 _RATE = 1.0
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
 
 def _bs(raw: bytes | str) -> "BeautifulSoup":
@@ -101,7 +102,7 @@ class KisdiRekrBbsCrawler(BaseCrawler):
 
         for page in range(1, _MAX_PAGES + 1):
             # Wall-clock budget: 25 minutes
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[kisdi-re-kr-bbs] 25-minute budget reached; stopping at page {page}.")
                 break
 

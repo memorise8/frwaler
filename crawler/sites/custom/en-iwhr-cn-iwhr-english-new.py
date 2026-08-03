@@ -8,6 +8,7 @@ Detail pages:    /IWHR-English-New/Publications/Papers/webinfo/{yyyy}/{mm}/{id}.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -96,7 +97,7 @@ class IWHREnglishNewCrawler(BaseCrawler):
         limit_val = limit if limit is not None else float("inf")
         limit_str = str(limit) if limit is not None else "∞"
         start_time = time.time()
-        max_seconds = 25 * 60  # 25-minute wall-clock budget
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
         page = 1
         max_pages = 200
 

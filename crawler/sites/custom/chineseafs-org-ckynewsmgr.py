@@ -10,6 +10,7 @@ Paginated via ?start=N offset; detail page fetched per item.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -230,7 +231,7 @@ class ChineseAFSCrawler(BaseCrawler):
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.time()
-        MAX_WALL_SECONDS = 25 * 60   # 25 minutes
+        MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25 minutes
         SAFETY_CAP = 200             # max list pages
         limit_str = str(limit) if limit is not None else "∞"
 

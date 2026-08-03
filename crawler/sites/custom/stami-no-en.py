@@ -13,6 +13,7 @@ the DOI/original-publication link.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -26,8 +27,8 @@ from crawler.base_crawler import BaseCrawler
 _START_URL = "https://stami.no/en/publication/?fwp_publikasjontype=academic-article"
 _ARCHIVE_BASE = "https://stami.no/en/publication/"
 _ACADEMIC_FILTER = "fwp_publikasjontype=academic-article"
-_MAX_PAGES = 200
-_WALL_BUDGET_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _RETRY_WAITS = (1, 3, 9)
 _BS_PARSERS = ("html5lib", "lxml", "html.parser")
 

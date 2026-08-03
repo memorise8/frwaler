@@ -6,6 +6,7 @@ Site: Drupal 10, paginated list (?page=N, 0-indexed), HTML scraping.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -55,8 +56,8 @@ class NbbBeEnCrawler(BaseCrawler):
 
     _LIST_BASE = "https://www.nbb.be/en/publications-research/publications/all-publications"
     _LIST_PARAMS = "after_date=&before_date=&issue_number=&quick_search=&type%5B0%5D=709"
-    _MAX_PAGES = 200
-    _WALL_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _RATE_SLEEP = 1.0
     _SKIP_ABSTRACT_CHARS = 50  # skip (don't save) items with abstract shorter than this
 

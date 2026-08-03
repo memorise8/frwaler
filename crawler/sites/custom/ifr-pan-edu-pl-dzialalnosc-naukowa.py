@@ -10,6 +10,7 @@ link or journal info.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -188,7 +189,7 @@ class IFRPanPublicationsCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         start_ts = time.time()
-        max_wall = 25 * 60  # 25-minute budget
+        max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
 
         limit_str = str(limit) if limit is not None else "∞"
         saved = 0

@@ -9,6 +9,7 @@ Detail pages carry full abstract in <div class="intro">.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -85,7 +86,7 @@ class RijksoverheidNlDocumentenCrawler(BaseCrawler):
         "onderdeel": "Alle ministeries",
         "type": "Ambtsbericht",
     }
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
     # ------------------------------------------------------------------
     # List-page parsing
@@ -232,7 +233,7 @@ class RijksoverheidNlDocumentenCrawler(BaseCrawler):
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.time()
-        max_seconds = 25 * 60
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         limit_str = str(limit) if limit is not None else "∞"
         page = 1
 

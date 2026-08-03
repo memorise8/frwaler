@@ -7,6 +7,7 @@ Uses the FacetWP REST API (template: journal_publications).
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -23,8 +24,8 @@ _LIST_URL = "https://www.issibern.ch/results/publications/journal-publications/"
 _TEMPLATE = "journal_publications"
 _URI = r"results\/publications\/journal-publications"
 _PER_PAGE = 10
-_MAX_PAGES = 200
-_MAX_SECS = 25 * 60  # 25-minute wall-clock budget
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
 
 # ---------------------------------------------------------------------------

@@ -11,6 +11,7 @@ Detail page: /prensa/actualidad/YYYY/MM/YYYYMMDD-slug.html
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -28,7 +29,7 @@ _LIST_URL = f"{_BASE_URL}/prensa/actualidad.html"
 _PUBLISHER = "Ministerio de Educación, Formación Profesional y Deportes"
 _ABSTRACT_MIN_CHARS = 50
 _ABSTRACT_TARGET_CHARS = 100
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
 
 class EducacionFpyDeportesPrensaCrawler(BaseCrawler):
@@ -242,7 +243,7 @@ class EducacionFpyDeportesPrensaCrawler(BaseCrawler):
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.time()
-        MAX_WALL_SECS = 25 * 60
+        MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         # Phase 1: get full article list (single wide-date search request)
         articles = self._fetch_list()

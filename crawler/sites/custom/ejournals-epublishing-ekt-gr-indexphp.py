@@ -9,6 +9,7 @@ Strategy:
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -23,7 +24,7 @@ _BASE = "https://ejournals.epublishing.ekt.gr"
 _CATALOG_URL = f"{_BASE}/index.php/index/journals-catalog"
 
 # Wall-clock budget (seconds) and page safety cap
-_MAX_WALL = 25 * 60
+_MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _PAGE_CAP = 200
 
 

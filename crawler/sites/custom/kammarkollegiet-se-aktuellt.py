@@ -10,6 +10,7 @@ Discovery strategy:
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -166,7 +167,7 @@ class KammarkollegietSeAktuellt(BaseCrawler):
     def crawl(self, limit=None):  # noqa: C901
         saved = 0
         start_wall = time.time()
-        max_wall = 25 * 60  # 25-minute budget
+        max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
         seen_urls: set[str] = set()
         limit_display = limit if limit is not None else "∞"
 

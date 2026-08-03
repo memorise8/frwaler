@@ -12,6 +12,7 @@ API: https://d-nsbc-p.admin.ch/v1/search
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -41,8 +42,8 @@ class NewsAdminChEnCrawler(BaseCrawler):
     _START_DATE = '2024-08-29T00:00:00.000Z'
     _END_DATE = '2025-08-29T23:59:59.999Z'
     _PAGE_SIZE = 50
-    _MAX_PAGES = 200
-    _MAX_WALL_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT_CHARS = 50
     _BACKOFF = (1, 3, 9)
 

@@ -13,6 +13,7 @@ Structure:
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 
@@ -207,7 +208,7 @@ class NupiNoEnCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         MAX_PAGES = 200
-        MAX_WALL_SECS = 25 * 60
+        MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         start = time.time()
 
         saved = 0

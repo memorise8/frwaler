@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import html as _html
 import json
+import os
 import re
 import subprocess
 import sys
@@ -32,7 +33,7 @@ _BASE = "https://www.hatvp.fr"
 _LIST_PAGE1 = f"{_BASE}/actualites-et-publications/"
 _LIST_PAGED = f"{_BASE}/actualites-et-publications/page/{{n}}/"
 _PUBLISHER = "Haute Autorité pour la transparence de la vie publique"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _RATE = 1.0          # seconds between detail fetches
 _MAX_MINUTES = 25    # wall-clock budget per crawl run
 _BACKOFF = (1, 3, 9)

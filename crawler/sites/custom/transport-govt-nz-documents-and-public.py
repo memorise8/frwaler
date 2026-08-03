@@ -14,6 +14,7 @@ what the archive exposes, but the live path paginates through the real endpoint.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -170,8 +171,8 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
     _CDX_API = "http://web.archive.org/cdx/search/cdx"
     _WAYBACK = "https://web.archive.org/web"
     _PAGE_SIZE = 20
-    _MAX_PAGES = 200
-    _MAX_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     # ------------------------------------------------------------------
     # curl helpers

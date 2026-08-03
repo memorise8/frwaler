@@ -8,6 +8,7 @@ No per-item detail fetch is needed — the export already contains full abstract
 """
 
 import json
+import os
 import re
 import sys
 import time
@@ -28,8 +29,8 @@ class DorasDcuIeViewCrawler(BaseCrawler):
         "https://doras.dcu.ie/cgi/exportview/type/thesis/JSON/thesis.json"
     )
     _PAGE_SIZE = 100          # logical "page" size for progress logging
-    _MAX_PAGES = 200          # safety cap (100 * 200 = 20 000 items)
-    _MAX_SECONDS = 25 * 60   # wall-clock budget
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))          # safety cap (100 * 200 = 20 000 items)
+    _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # wall-clock budget
     _MIN_ABSTRACT = 100       # skip items whose abstract is shorter than this
 
     # ------------------------------------------------------------------

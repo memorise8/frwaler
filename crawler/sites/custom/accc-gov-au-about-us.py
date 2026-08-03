@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -18,7 +19,7 @@ _SITE_ID = "accc-gov-au-about-us"
 _BASE_URL = "https://www.accc.gov.au"
 _LIST_URL = "https://www.accc.gov.au/about-us/publications"
 _PAGE_SIZE = 10
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 100
 
 
@@ -336,7 +337,7 @@ class AcccGovAuAboutUsCrawler(BaseCrawler):
         for page in range(_MAX_PAGES):
             # Time budget: 25 minutes
             elapsed = time.time() - crawl_start
-            if elapsed > 25 * 60:
+            if elapsed > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-minute wall-clock budget reached; stopping.")
                 break
 

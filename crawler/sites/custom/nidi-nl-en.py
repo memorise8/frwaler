@@ -32,7 +32,7 @@ from crawler.base_crawler import BaseCrawler
 _START_URL = "https://nidi.nl/en/publications/"
 _AJAX_URL = "https://nidi.nl/wp-admin/admin-ajax.php"
 _PAGE_CAP = 200
-_CRAWL_BUDGET_SECONDS = 25 * 60
+_CRAWL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _RETRY_WAITS = (1, 3, 9)
 _MIN_ABSTRACT_CHARS = 100
 

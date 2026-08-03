@@ -9,6 +9,7 @@ Detail pages: body text in .field--name-field-text, PDF in .file--application-pd
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -25,8 +26,8 @@ _BASE = "https://www.energy.gov"
 _API_URL = f"{_BASE}/api/v1/search"
 _FILTER = "f%5B0%5D=bundle_alias%3ADocument"
 _MIN_ABSTRACT = 100
-_MAX_PAGES = 200
-_MAX_WALL = 25 * 60  # 25-minute wall-clock budget
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
 
 # ---------------------------------------------------------------------------

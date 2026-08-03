@@ -34,7 +34,7 @@ class BamDeNavigationCrawler(BaseCrawler):
     )
     _PAGE_PARAM = "gtp=53294_list%253D"  # appended as ?{_PAGE_PARAM}{n}
     _PAGE_CAP = 200
-    _MAX_SECONDS = 25 * 60
+    _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT = 100  # chars; items below this threshold are skipped
 
     # ------------------------------------------------------------------

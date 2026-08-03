@@ -12,6 +12,7 @@ metadata plus the report body.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -400,7 +401,7 @@ class RcaancCirnacGcCaEngCrawler(BaseCrawler):
         page_url = START_URL
         seen_urls = set()
         start_time = time.time()
-        max_seconds = 25 * 60
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         stop_threshold = max_seconds - 30
         limit_or_inf = str(limit) if limit is not None else "inf"
         max_pages = 200

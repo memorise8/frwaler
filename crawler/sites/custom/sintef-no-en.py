@@ -66,8 +66,8 @@ class SintefNoEnCrawler(BaseCrawler):
     _NVA_ORG_API = "https://api.nva.unit.no/cristin/organization/{org_id}"
 
     _MIN_ABSTRACT = 100
-    _MAX_PAGES = 200
-    _MAX_WALL = 25 * 60  # seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
     _RETRY_WAITS = (1, 3, 9)
 
     # ------------------------------------------------------------------

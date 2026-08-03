@@ -7,6 +7,7 @@ redirects for full abstract, save PDF links from the article teaser.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -54,7 +55,7 @@ class CentraleSupelecPresseCrawler(BaseCrawler):
     base_url = "https://www.centralesupelec.fr"
 
     _LIST_URL = "https://www.centralesupelec.fr/presse/communiques"
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _MAX_WALL_MINUTES = 25
 
     # ------------------------------------------------------------------

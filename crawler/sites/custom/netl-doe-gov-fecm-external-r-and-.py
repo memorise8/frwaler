@@ -14,6 +14,7 @@ with authors, subjects (keywords), doi, and richer description.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -25,7 +26,7 @@ from crawler.base_crawler import BaseCrawler  # absolute import — no package c
 _LIST_URL = "https://netl.doe.gov/projects/project-Final-Report-List.aspx"
 _OSTI_API = "https://www.osti.gov/api/v1/records/{osti_id}"
 _PAGE_CAP = 200   # safety guard — this site is a single page, so rarely hit
-_TIME_BUDGET = 25 * 60  # 25 minutes in seconds
+_TIME_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes in seconds
 
 
 class NETLFECMCrawler(BaseCrawler):

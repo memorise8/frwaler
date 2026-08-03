@@ -158,8 +158,8 @@ class PleanalaIeEnIeCrawler(BaseCrawler):
     _START_URL = "https://www.pleanala.ie/en-IE/Statistics/Annual-Statistics"
     _QUARTERLY_URL = "https://www.pleanala.ie/en-IE/Statistics/Quarterly-Statistics"
     _PUBLISHER = "An Coimisiún Pleanála"
-    _MAX_PAGES = 200
-    _WALL_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT = 50
 
     # ───────────────── network ─────────────────

@@ -6,6 +6,7 @@ API: https://data.biodiversity.be/api/3/action/package_search
 """
 
 import json
+import os
 import sys
 import time
 
@@ -21,8 +22,8 @@ class DataBiodiversityBeCrawler(BaseCrawler):
     _API_BASE = "https://data.biodiversity.be/api/3/action"
     _PAGE_SIZE = 100
     _ABSTRACT_MIN = 100
-    _MAX_PAGES = 200
-    _BUDGET_SECS = 25 * 60  # 25 minutes
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
     def crawl(self, limit=None):
         saved = 0

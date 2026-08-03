@@ -13,6 +13,7 @@ the same browser context.
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import time
@@ -305,7 +306,7 @@ class MPIForestryWoodProcessingCrawler(BaseCrawler):
                         break
 
                     # Time-budget check (25 min)
-                    if time.time() - start_time > 25 * 60:
+                    if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                         print(f"[{_SITE_ID}] 25-min budget reached at item {i}. Stopping.")
                         break
 

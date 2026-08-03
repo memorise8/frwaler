@@ -38,7 +38,7 @@ class TransparencyGovAuPublicationsCrawler(BaseCrawler):
     _PAGE_SIZE = 50
     _SAFETY_CAP = 200
     _MIN_ABSTRACT = 50
-    _WALL_BUDGET_S = 25 * 60  # 25 minutes
+    _WALL_BUDGET_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
     _PUB_TYPE_LABELS = {
         "annual_report": "Annual Report",

@@ -15,6 +15,7 @@ infinite loop.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -43,7 +44,7 @@ class NindsNihGovNewsEventsCrawler(BaseCrawler):
     MIN_ABSTRACT_CHARS = 50
     MAX_ABSTRACT_CHARS = 8000
     PAGE_SAFETY_CAP = 200
-    WALL_CLOCK_BUDGET_SECONDS = 25 * 60
+    WALL_CLOCK_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     PROGRESS_EVERY = 10
 
     _CURL_META_MARKER = "__NINDS_CURL_META__:"

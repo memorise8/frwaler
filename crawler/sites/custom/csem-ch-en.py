@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import subprocess
 import time
@@ -28,7 +29,7 @@ class CSEMChEnCrawler(BaseCrawler):
     LANG = "en-gb"
     PAGE_SIZE = 50
     MAX_PAGES = 200
-    MAX_WALL_SECONDS = 25 * 60
+    MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     WALL_MARGIN_SECONDS = 60
     MIN_ABSTRACT_CHARS = 50
     CURL_TIMEOUT = 45

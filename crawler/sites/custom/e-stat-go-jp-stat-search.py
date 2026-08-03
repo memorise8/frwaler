@@ -10,6 +10,7 @@ file download links, then fetch the dataset detail page for richer metadata.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -29,8 +30,8 @@ class EStatGoJpStatSearchCrawler(BaseCrawler):
 
     _START_URL = "https://www.e-stat.go.jp/stat-search?page=1"
     _LIST_API = "https://www.e-stat.go.jp/retrieve/api_stat"
-    _MAX_PAGES = 200
-    _WALL_BUDGET_SECS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _ABSTRACT_MIN = 100
 
     # ------------------------------------------------------------------

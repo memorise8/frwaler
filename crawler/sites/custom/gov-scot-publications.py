@@ -7,6 +7,7 @@ Detail pages: HTML with JSON-LD + structured metadata
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -24,7 +25,7 @@ _PAGE_SIZE = 10
 _ABSTRACT_MIN = 100   # skip items whose abstract is below this threshold
 _RATE_SLEEP = 1.0
 _SAFETY_CAP = 200     # max list pages before forced stop
-_MAX_WALL = 25 * 60   # 25-minute total wall-clock budget (seconds)
+_MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute total wall-clock budget (seconds)
 _USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"

@@ -8,6 +8,7 @@ ePrints-based) via <meta name="eprints.*"> tags.
 
 import html as _html_mod
 import json
+import os
 import re
 import subprocess
 import time
@@ -34,7 +35,7 @@ class NocAcUkPublicationsCrawler(BaseCrawler):
     base_url = "https://noc.ac.uk"
 
     _LIST_URL = "https://www.noc.ac.uk/publications"
-    _MAX_PAGES = 200  # safety cap — ~8 500 total records at 12/page
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))  # safety cap — ~8 500 total records at 12/page
 
     # ------------------------------------------------------------------ helpers
 
@@ -228,7 +229,7 @@ class NocAcUkPublicationsCrawler(BaseCrawler):
                 )
                 break
 
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(
                     f"[{self.site_id}] 25-minute budget reached at page {page}. Stopping."
                 )

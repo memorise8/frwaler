@@ -31,8 +31,8 @@ from crawler.base_crawler import BaseCrawler  # noqa: E402
 _SITE_ID = "benthamscience-com-press-release"
 _BASE_URL = "https://www.benthamscience.com"
 _LIST_URL = f"{_BASE_URL}/press-release"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _WALL_STOP_GRACE_SECONDS = 20
 _BACKOFF_SECONDS = (1, 3, 9)
 

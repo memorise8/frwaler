@@ -7,6 +7,7 @@ Total packages: ~535
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -18,7 +19,7 @@ from crawler.base_crawler import BaseCrawler
 
 _GROUP_ID = "lca-unit-process-library"
 _PAGE_SIZE = 100
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
 
 def _curl_get(url: str, *, user_agent: str, retries: int = 3) -> str | None:
@@ -106,7 +107,7 @@ class EdxNetlDoeGovGroupCrawler(BaseCrawler):
 
             # 25-minute wall-clock budget
             elapsed = time.time() - start_time
-            if elapsed > 25 * 60:
+            if elapsed > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[edx-netl-doe-gov-group] 25-minute budget reached. Exiting cleanly.")
                 break
 

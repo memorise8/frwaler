@@ -8,6 +8,7 @@ Detail: fetched only when listing teaser < 100 chars, for full abstract.
 """
 
 import json
+import os
 import re
 import sys
 import time
@@ -30,8 +31,8 @@ class EconomieFgovBeNlCrawler(BaseCrawler):
     site_name = "Custom: economie-fgov-be-nl"
     base_url = "https://economie.fgov.be"
 
-    _MAX_PAGES = 200
-    _MAX_WALL_SECS = 25 * 60  # 25-minute budget
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
 
     # ------------------------------------------------------------------
     # BeautifulSoup helper

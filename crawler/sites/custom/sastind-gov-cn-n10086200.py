@@ -10,6 +10,7 @@ Article detail URL pattern:
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -31,8 +32,8 @@ class SastindGovCnN10086200Crawler(BaseCrawler):
 
     _START_URL = "https://www.sastind.gov.cn/n10086200/n10086319/index.html"
     _PAGE_BASE = "https://www.sastind.gov.cn/n10086200/n10086319/index_10126608_{n}.html"
-    _MAX_PAGES = 200
-    _MAX_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT_CHARS = 100
 
     def __init__(self, db_conn, delay=1.0):

@@ -10,6 +10,7 @@ Abstract:    full body from field--name-field-body on each detail page
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -33,7 +34,7 @@ class OmMpBeNlCrawler(BaseCrawler):
 
     _LIST_URL = "https://www.om-mp.be/nl/onze-publicaties"
     _LIST_FILTER = "f%5B0%5D=type%3A2"
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _MAX_WALL_SECS = 24 * 60  # 24-minute budget (leaves 1 min margin)
 
     # ------------------------------------------------------------------

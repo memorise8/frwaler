@@ -14,6 +14,7 @@ UUID to obtain full author lists and abstracts.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import tempfile
@@ -393,7 +394,7 @@ class NETLDoeRDPublicationsCrawler(BaseCrawler):
     def crawl(self, limit=None):
         """Crawl NETL R&D publications via year × component faceted search."""
         start_time = time.time()
-        BUDGET = 25 * 60  # 25-minute wall-clock budget
+        BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
         saved = 0
         seen_urls: set[str] = set()
         limit_str = str(limit) if limit is not None else 'inf'

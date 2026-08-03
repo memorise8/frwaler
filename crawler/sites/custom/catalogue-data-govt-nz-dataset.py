@@ -32,9 +32,9 @@ _BASE_URL = "https://catalogue.data.govt.nz"
 _CKAN_PATH = "/api/3/action/package_search"
 _ORG = "department-of-internal-affairs"
 _PAGE_SIZE = 20
-_MAX_PAGES = 200        # safety cap — logged when hit
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))        # safety cap — logged when hit
 _ABSTRACT_MIN = 100     # skip items shorter than this (test asserts >=100)
-_WALL_BUDGET = 25 * 60  # 25-minute max wall-clock run
+_WALL_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute max wall-clock run
 _UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"

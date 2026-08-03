@@ -13,6 +13,7 @@ summaries, body content, governing office, and last-reviewed dates.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -34,8 +35,8 @@ _START_URL = (
 _SEARCH_QUERY = "infrastructure sustainability"
 _PARSERS = ("html5lib", "lxml", "html.parser")
 _BACKOFF_SECONDS = (1, 3, 9)
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_CHARS = 100
 
 

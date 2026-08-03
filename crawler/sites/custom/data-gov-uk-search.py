@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import html
 import json
+import os
 import re
 import subprocess
 import time
@@ -31,8 +32,8 @@ _PACKAGE_SEARCH_URL = "https://www.data.gov.uk/api/3/action/package_search"
 _PACKAGE_SHOW_URL = "https://www.data.gov.uk/api/3/action/package_show"
 
 _ROWS_PER_PAGE = 20
-_MAX_PAGES = 200
-_WALL_BUDGET_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _ABSTRACT_MIN_CHARS = 50
 
 _UUID_RE = re.compile(

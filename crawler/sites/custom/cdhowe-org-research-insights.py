@@ -14,6 +14,7 @@ div.elementor-shortcode paragraphs.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -28,7 +29,7 @@ _BASE_URL = "https://cdhowe.org"
 _LIST_URL  = "https://cdhowe.org/research-insights/"
 _PUB_PAT   = re.compile(r'href="(https://cdhowe\.org/publication/[^"?#\s]+)"')
 _ABSTRACT_MIN = 50   # chars — items below this are skipped (not saved)
-_MAX_PAGES    = 200
+_MAX_PAGES    = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _MAX_MINUTES  = 25
 
 

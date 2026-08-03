@@ -14,6 +14,7 @@ Newswire, local PPF pages, and Mailchimp campaign pages.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -27,8 +28,8 @@ from crawler.base_crawler import BaseCrawler
 
 
 _START_URL = "https://ppforum.ca/press-releases/"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _BACKOFFS = (1, 3, 9)
 _MIN_ABSTRACT_CHARS = 50
 _META_MARKER = "__PPFORUM_CURL_META__:"

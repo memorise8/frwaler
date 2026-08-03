@@ -11,6 +11,7 @@ starting URL and later pages expose a "Show more" rel=next link.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -121,7 +122,7 @@ class AFPGovAuNewsCentreCrawler(BaseCrawler):
     _START_URL = "https://www.afp.gov.au/news-centre"
     _PAGE_SIZE = 8
     _SAFETY_CAP = 200
-    _WALL_BUDGET_SECONDS = 25 * 60
+    _WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT_CHARS = 50
     _BACKOFF_SECONDS = (1, 3, 9)
 

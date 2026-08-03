@@ -11,6 +11,7 @@ Each item links to a detail page with full body (.RichText) and PDF download lin
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -29,7 +30,7 @@ _BACKOFF = (1, 3, 9)
 _MIN_ABSTRACT = 50
 _MAX_ABSTRACT = 6000
 _PAGE_CAP = 200
-_BUDGET_SECS = 25 * 60
+_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 _MONTHS_FR = {
     "janvier": "01", "février": "02", "mars": "03", "avril": "04",

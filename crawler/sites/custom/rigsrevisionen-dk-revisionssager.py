@@ -15,6 +15,7 @@ encrypted Blazor payloads).
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -35,7 +36,7 @@ class RigsrevisionenDkRevisionssagerCrawler(BaseCrawler):
     _ITEM_PATH_RE = re.compile(r"^/revisionssager-arkiv/\d{4}/[a-z]+/[^/]+$")
     _CURL_TIMEOUT = 45
     _MIN_ABSTRACT_CHARS = 50
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _PAGE_SIZE = 10
     _CRAWL_BUDGET_SECS = 1500  # 25 minutes
 

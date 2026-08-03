@@ -11,6 +11,7 @@ Strategy:
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -168,8 +169,8 @@ _SEEDS = [
     },
 ]
 
-_MAX_PAGES = 200
-_WALL_BUDGET = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _ABSTRACT_MIN = 50
 
 

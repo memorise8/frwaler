@@ -9,6 +9,7 @@ Discovery notes:
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -21,8 +22,8 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "nichd-nih-gov-newsroom"
 _BASE_URL = "https://www.nichd.nih.gov"
 _LIST_URL = "https://www.nichd.nih.gov/newsroom/news"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_CHARS = 50
 _RETRY_DELAYS = (1, 3, 9)
 _PUBLISHER = (

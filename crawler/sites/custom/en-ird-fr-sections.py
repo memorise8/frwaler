@@ -266,7 +266,7 @@ class IrdPressReleaseCrawler(BaseCrawler):
         limit_or_inf = limit if limit is not None else "∞"
         start_time = time.time()
         MAX_PAGES = 200
-        MAX_SECONDS = 25 * 60
+        MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         while page < MAX_PAGES:
             if time.time() - start_time > MAX_SECONDS:

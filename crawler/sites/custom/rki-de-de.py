@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -34,9 +35,9 @@ _LIST_URL = (
 # URL-encoded page parameter used by Government Site Builder
 _PAGE_PARAM_TPL = "gtp=16956152_Dokumente%253D{page}"
 _ITEMS_PER_PAGE = 25
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 50
-_WALL_CLOCK_LIMIT = 25 * 60  # 25 minutes in seconds
+_WALL_CLOCK_LIMIT = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes in seconds
 
 
 def _make_soup(html: str):

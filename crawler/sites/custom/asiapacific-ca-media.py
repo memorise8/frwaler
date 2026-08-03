@@ -11,6 +11,7 @@ JSON-LD Article block with the full articleBody, datePublished, and name.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -205,7 +206,7 @@ class AsiaPacificCaMediaCrawler(BaseCrawler):
         seen_urls: set[str] = set()
         saved = 0
         start_time = time.time()
-        max_wall_seconds = 25 * 60  # 25-minute budget
+        max_wall_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
 
         # ---- Phase 1: collect article paths from list page ----------------
         print(f"[{self.site_id}] Fetching list page…")

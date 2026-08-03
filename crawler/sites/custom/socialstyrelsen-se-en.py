@@ -93,7 +93,7 @@ class SocialstyrelseSEENcrawler(BaseCrawler):
 
     _LIST_URL = "https://www.socialstyrelsen.se/en/publications/"
     _ENGLISH_LANG_ID = "137"
-    _MAX_WALL_SECS = 25 * 60  # 25-minute hard budget
+    _MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute hard budget
     _PROGRESS_EVERY = 10       # log every N pages (items, really)
 
     # ── internal HTTP helpers ─────────────────────────────────────────────────

@@ -34,9 +34,9 @@ _RSS_URL = "https://data.gov.be/nl/taxonomy/term/65/feed"
 _LDF_URL = "https://ldf.belgif.be/datagovbe"
 _FORMAT_URI = "http://publications.europa.eu/resource/authority/file-type/PDF"
 
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _PAGE_SIZE_HINT = 10
-_WALL_BUDGET_SECONDS = 25 * 60
+_WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _ABSTRACT_MIN_SAVE = 100
 
 RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"

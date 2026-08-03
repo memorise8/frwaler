@@ -6,6 +6,7 @@ Content API: https://www.gov.uk/api/content/<path>
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -92,7 +93,7 @@ class GovUKSearchCrawler(BaseCrawler):
 
         while True:
             # Wall-clock budget: 25 minutes
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[gov-uk-search] 25-minute wall-clock budget reached. Stopping.")
                 break
 

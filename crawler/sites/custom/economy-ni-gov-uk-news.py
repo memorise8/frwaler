@@ -6,6 +6,7 @@ Node IDs extracted from Drupal settings JSON as post_number.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -17,7 +18,7 @@ from crawler.base_crawler import BaseCrawler
 
 _BASE = "https://www.economy-ni.gov.uk"
 _LIST_URL = _BASE + "/news"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _RATE_SLEEP = 1.0
 
 
@@ -165,7 +166,7 @@ class EconomyNIGovUKNewsCrawler(BaseCrawler):
 
         for page in range(_MAX_PAGES):
             # 25-minute wall-clock budget
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(
                     f"[economy-ni-gov-uk-news] 25-minute budget reached at page {page}. Stopping."
                 )

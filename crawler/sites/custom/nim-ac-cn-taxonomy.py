@@ -7,6 +7,7 @@ Detail pages at /daibiaozuo/{id}. No prose abstract — synthesized from fields.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -25,8 +26,8 @@ class NimAcCnTaxonomyCrawler(BaseCrawler):
     base_url = "https://www.nim.ac.cn"
 
     _START_URL = "https://www.nim.ac.cn/taxonomy/term/170"
-    _MAX_PAGES = 200
-    _MAX_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _BUDGET_MARGIN_SECONDS = 60
     _MIN_ABSTRACT_CHARS = 100
 

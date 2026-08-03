@@ -15,6 +15,7 @@ Strategy:
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 
@@ -30,8 +31,8 @@ _API_URL = "https://issnationallab.org/wp-json/wp/v2/pages"
 _DLM_API_URL = "https://issnationallab.org/wp-json/wp/v2/dlm_download"
 _PARENT_PAGE_ID = 41447
 _ITEMS_PER_PAGE = 100
-_MAX_PAGES = 200
-_WALL_CLOCK_BUDGET = 25 * 60  # seconds
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_CLOCK_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 _MIN_ABSTRACT_LEN = 100        # skip items with abstract shorter than this
 _ITEM_SLEEP = 1.0              # seconds between detail-page fetches
 _PAGE_SLEEP = 0.5              # seconds between listing-page fetches

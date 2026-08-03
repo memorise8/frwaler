@@ -178,7 +178,7 @@ class WomenGovtNzLibraryCrawler(BaseCrawler):
         saved = 0
         seen_urls: set = set()
         t_start = time.time()
-        MAX_WALL = 25 * 60   # 25-minute wall-clock budget
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute wall-clock budget
         MAX_PAGES = 200
 
         page = 0

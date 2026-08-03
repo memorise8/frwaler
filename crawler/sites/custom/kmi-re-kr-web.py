@@ -13,6 +13,7 @@ The site exposes regular HTML endpoints:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -29,8 +30,8 @@ _BASE_URL = "https://www.kmi.re.kr"
 _RBS_IDX = "164"
 _LIST_URL = f"{_BASE_URL}/web/board/list.do"
 _VIEW_URL = f"{_BASE_URL}/web/board/view.do"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _ABSTRACT_MIN_CHARS = 50
 _PUBLISHER = "KMI 한국해양수산개발원"
 

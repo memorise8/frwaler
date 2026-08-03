@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -224,7 +225,7 @@ class IcnArtemComEnCrawler(BaseCrawler):
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.time()
-        MAX_WALL_SECONDS = 25 * 60
+        MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         SAFETY_CAP = 200
 
         # Build URL list: news list page first (most recent), then sitemap

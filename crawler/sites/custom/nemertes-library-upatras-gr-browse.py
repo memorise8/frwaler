@@ -46,7 +46,7 @@ from crawler.base_crawler import BaseCrawler
 _SCOPE = "aa75d318-67b9-41ef-b89c-d33db195a08e"
 _PAGE_SIZE = 20
 _PAGE_CAP = 200
-_CRAWL_BUDGET_SECONDS = 25 * 60
+_CRAWL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _RETRY_WAITS = (1, 3, 9)
 _MIN_ABSTRACT_CHARS = 50
 _DETAIL_DELAY = 1.0

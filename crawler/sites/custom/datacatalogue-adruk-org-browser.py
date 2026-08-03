@@ -35,7 +35,7 @@ class DatacatalogueAdrukOrgBrowserCrawler(BaseCrawler):
     INCLUDE = "dataset::datastandard::terminology::dataclass::dataelement"
     PAGE_SIZE = 100
     MAX_PAGES = 200
-    WALL_BUDGET_SECONDS = 25 * 60
+    WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     BACKOFF_SECONDS = (1, 3, 9)
     MIN_ABSTRACT_CHARS = 50
 

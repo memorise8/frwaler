@@ -13,6 +13,7 @@ APIs discovered from ItemList.js / Script.js:
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -25,7 +26,7 @@ _DETAIL_API = f"{_BASE}/cbircweb/DocInfo/SelectByDocId"
 _ITEM_ID = "954"
 _PAGE_SIZE = 18
 _SAFETY_CAP = 200
-_BUDGET_SECS = 25 * 60
+_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 def _curl_get(url, retries=3, user_agent=None):

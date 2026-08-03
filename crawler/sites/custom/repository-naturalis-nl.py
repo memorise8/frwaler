@@ -10,6 +10,7 @@ Endpoint: https://repository.naturalis.nl/oai
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -27,7 +28,7 @@ OAI_BASE = "https://repository.naturalis.nl/oai"
 _TARGET_GENRES = frozenset({"article", "doctoralthesis", "dissertation"})
 _MIN_ABSTRACT = 100
 _SAFETY_PAGE_CAP = 200
-_MAX_SECONDS = 25 * 60
+_MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 class RepositoryNaturalisNlCrawler(BaseCrawler):

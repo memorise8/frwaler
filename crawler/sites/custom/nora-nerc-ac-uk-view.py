@@ -13,6 +13,7 @@ Strategy
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -28,7 +29,7 @@ _YEAR_LIST_URL = "https://nora.nerc.ac.uk/view/division/noc/{year}.default.html"
 
 _WAITS = [1, 3, 9]
 _SAFETY_PAGE_CAP = 200  # max year-pages before we bail
-_WALL_CLOCK_BUDGET = 25 * 60  # 25 minutes
+_WALL_CLOCK_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 class NoraNeRCAcUkViewCrawler(BaseCrawler):

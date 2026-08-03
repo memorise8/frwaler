@@ -8,6 +8,7 @@ type[28] = Publication (1852 items as of 2026-05-11), page-0-indexed HTML pagina
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -92,7 +93,7 @@ class PblNlEnCrawler(BaseCrawler):
     )
     _PAGE_SIZE = 10
     _SAFETY_CAP_PAGES = 200
-    _MAX_WALL_SECONDS = 25 * 60   # 25 minutes
+    _MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25 minutes
     _MIN_ABSTRACT_CHARS = 50
 
     def __init__(self, db_conn, delay=1.0, detail_delay=None):

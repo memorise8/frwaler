@@ -6,6 +6,7 @@ Pagination: Drupal 10 Views AJAX at /views/ajax?...&query=pdf&page=N (0-indexed,
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -21,8 +22,8 @@ _BASE = "https://www.ansto.gov.au"
 _AJAX_URL = f"{_BASE}/views/ajax"
 _QUERY = "pdf"
 _MIN_ABSTRACT = 100   # skip items whose abstract is shorter than this
-_MAX_PAGES = 200
-_MAX_WALL = 25 * 60   # 25-minute wall-clock budget
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute wall-clock budget
 
 
 # ---------------------------------------------------------------------------

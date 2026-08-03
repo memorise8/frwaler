@@ -46,7 +46,7 @@ class GovGrSearchCrawler(BaseCrawler):
 
     PAGE_SIZE = 25
     MAX_PAGES = 200
-    WALL_CLOCK_BUDGET_SECONDS = 25 * 60
+    WALL_CLOCK_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     BACKOFF_SECONDS = (1, 3, 9)
     CURL_TIMEOUT_SECONDS = 45
     MIN_ABSTRACT_CHARS = 100

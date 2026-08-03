@@ -8,6 +8,7 @@ PDF download: /userPublicationDownload.es?publication_type=research&publication_
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -70,9 +71,9 @@ class AuriReKrPublicationCrawler(BaseCrawler):
 
     _LIST_URL  = "https://www.auri.re.kr/publication/list.es"
     _LIST_QS   = {"mid": "a10312000000", "publication_type": "research"}
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _RATE_SLEEP = 1.0          # seconds between detail fetches
-    _MAX_WALL   = 25 * 60      # 25-minute overall budget
+    _MAX_WALL   = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))      # 25-minute overall budget
 
     # ------------------------------------------------------------------
     # Low-level HTTP

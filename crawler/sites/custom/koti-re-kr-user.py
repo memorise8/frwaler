@@ -9,6 +9,7 @@ PDF: /common/file/download.do?atch_no=<encoded_key>
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -20,9 +21,9 @@ _BASE_URL = "https://www.koti.re.kr"
 _LIST_URL = f"{_BASE_URL}/user/bbs/bassRsrchReprtList.do"
 _DETAIL_BASE = f"{_BASE_URL}/user/bbs/bassRsrchReprtView.do"
 _PAGE_SIZE = 10
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 50
-_WALL_CLOCK_BUDGET_SECS = 25 * 60
+_WALL_CLOCK_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 def _make_soup(html: str):

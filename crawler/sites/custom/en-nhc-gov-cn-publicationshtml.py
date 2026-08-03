@@ -8,6 +8,7 @@ Static page with ~9 items and no API pagination.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -22,7 +23,7 @@ _SITE_ID = "en-nhc-gov-cn-publicationshtml"
 _BASE_URL = "https://en.nhc.gov.cn"
 _LIST_URL = f"{_BASE_URL}/publications.html"
 _BS_PARSERS = ("html5lib", "lxml", "html.parser")
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 # ---------------------------------------------------------------------------

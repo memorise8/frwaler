@@ -8,6 +8,7 @@ Drupal-based listing, 10 items/page, paginated via ?page=N (0-indexed).
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -23,7 +24,7 @@ _UA = (
 )
 _BASE = "https://www.cnic.es"
 _LIST_URL = f"{_BASE}/en/actualidad/noticias"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _MIN_ABSTRACT_SAVE = 50
 _BACKOFF = (1, 3, 9)
 
@@ -206,7 +207,7 @@ class CnicEsEnCrawler(BaseCrawler):
         next_url: str | None = None
 
         while True:
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[cnic-es-en] 25-minute wall-clock budget reached; stopping cleanly")
                 break
             if limit is not None and saved >= limit:

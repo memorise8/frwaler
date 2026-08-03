@@ -20,8 +20,8 @@ _CODE = "XDXh8TgkVFNJ"
 _BASE = "https://www.kinu.or.kr"
 _LIST_URL = f"{_BASE}/main/board/index.do"
 _VIEW_URL = f"{_BASE}/main/board/view.do"
-_MAX_PAGES = 200
-_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT = 100  # skip items with shorter abstracts
 
 

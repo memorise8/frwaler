@@ -2,6 +2,7 @@
 """US State Department press releases via WordPress REST API."""
 
 import json
+import os
 import re
 import time
 
@@ -81,7 +82,7 @@ class StateGovPressReleasesCrawler(BaseCrawler):
         MAX_PAGES = 200
 
         while True:
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute budget reached, exiting cleanly")
                 break
 

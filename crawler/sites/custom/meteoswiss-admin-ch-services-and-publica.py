@@ -11,6 +11,7 @@ Discovery: API endpoint found via Playwright network interception.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -28,7 +29,7 @@ class MeteoSwissPublicationsCrawler(BaseCrawler):
 
     _LIST_API  = "https://www.meteoswiss.admin.ch/api/search/public-en/publications/results.json"
     _PAGE_SIZE = 12   # API is hard-capped at 12 items per page
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
     # ------------------------------------------------------------------ #
     # Network helpers
@@ -117,7 +118,7 @@ class MeteoSwissPublicationsCrawler(BaseCrawler):
         page         = 1
         seen_urls: set = set()
         start_time   = time.time()
-        MAX_WALL     = 25 * 60  # 25 minutes
+        MAX_WALL     = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
         limit_display = str(limit) if limit is not None else "inf"
 

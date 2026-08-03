@@ -6,6 +6,7 @@ Total:    ~1126 posts across 12 pages (as of 2026-05-14).
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -15,8 +16,8 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "jic-ac-uk-news-events"
 _API_URL = "https://www.jic.ac.uk/wp-json/wp/v2/posts"
 _PER_PAGE = 100
-_MAX_PAGES = 200
-_BUDGET_SECS = 25 * 60  # 25 minutes wall-clock cap
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes wall-clock cap
 
 
 # ---------------------------------------------------------------------------

@@ -6,6 +6,7 @@ Pagination: ?page=N (0-indexed, ~239 pages, 10 items/page)
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -333,7 +334,7 @@ class TreasuryGovAuPublicationCrawler(BaseCrawler):
         saved = 0
         seen_urls: set = set()
         crawl_start = time.time()
-        max_wall = 25 * 60  # 25-minute budget
+        max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
         max_pages = 200
         limit_display = str(limit) if limit is not None else "∞"
 

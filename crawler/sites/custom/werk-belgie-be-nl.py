@@ -8,6 +8,7 @@ Abstract:     full body text from detail page field--name-body
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -30,8 +31,8 @@ class WerkBelgieBeNlCrawler(BaseCrawler):
     base_url = "https://werk.belgie.be"
 
     _LIST_URL = "https://werk.belgie.be/nl/nieuws"
-    _MAX_PAGES = 200
-    _MAX_WALL_SECS = 25 * 60  # 25-minute budget
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
 
     # ------------------------------------------------------------------
     # Network helpers

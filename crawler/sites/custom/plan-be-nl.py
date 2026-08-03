@@ -239,7 +239,7 @@ class PlanBeNlCrawler(BaseCrawler):
         saved = 0
         seen_urls = set()
         start_time = time.time()
-        MAX_WALL_SECONDS = 25 * 60  # 25-minute hard budget
+        MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute hard budget
 
         # Step 1 — collect all URLs from sitemaps
         print("[plan-be-nl] Fetching publication URLs from sitemaps...")

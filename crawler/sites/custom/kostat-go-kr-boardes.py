@@ -110,8 +110,8 @@ class KostatGoKrBoardesCrawler(BaseCrawler):
     base_url = _BASE
 
     _LIST_URL = f"{_BASE}/board.es"
-    _MAX_PAGES = 200
-    _TIMEOUT_SECS = 25 * 60  # 25 minutes
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _TIMEOUT_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
     def crawl(self, limit=None):
         saved = 0

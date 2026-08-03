@@ -111,7 +111,7 @@ class RepositoryCernSearchCrawler(BaseCrawler):
                     print(f"[{self.site_id}] Safety cap of 200 pages reached. Stopping.")
                     break
 
-                if time.time() - start_time > 25 * 60:
+                if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                     print(f"[{self.site_id}] 25-minute wall-clock budget reached. Stopping.")
                     break
 

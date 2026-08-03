@@ -14,6 +14,7 @@ Pagination: ?from=0, ?from=10, ?from=20 … (10 results/page, ~950 total).
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import time
@@ -33,8 +34,8 @@ _PAGE_SIZE = 10
 _ECAT_XML_URL = "https://ecat.ga.gov.au/geonetwork/srv/api/records/{uuid}/formatters/xml"
 _ECAT_DETAIL_BASE = "https://ecat.ga.gov.au/geonetwork/srv/eng/catalog.search#/metadata/{uuid}"
 _MIN_ABSTRACT = 100   # skip items whose abstract is shorter than this
-_MAX_PAGES = 200
-_MAX_SECONDS = 25 * 60   # 25-minute wall-clock budget
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute wall-clock budget
 _BACKOFF = (1, 3, 9)
 
 # ISO 19115-3 XML namespaces

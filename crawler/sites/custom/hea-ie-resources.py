@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import re
 import time
 import unicodedata
@@ -69,7 +70,7 @@ class HeaIeResourcesCrawler(BaseCrawler):
     base_url = "https://hea.ie"
 
     _LIST_BASE = "https://hea.ie/resources/publications"
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _WALL_MINS = 25
     _MIN_ABS = 100     # skip items whose PDF yields < this many chars
     _BACKOFF = (1, 3, 9)

@@ -221,7 +221,7 @@ class NihGovNewsEventsCrawler(BaseCrawler):
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.time()
-        MAX_SECONDS = 25 * 60  # 25-minute wall-clock budget
+        MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
         MAX_PAGES = 200
 
         limit_display = str(limit) if limit is not None else 'inf'

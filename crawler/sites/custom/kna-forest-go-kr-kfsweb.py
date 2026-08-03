@@ -15,6 +15,7 @@ Notes:
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -27,7 +28,7 @@ _DETAIL_BASE = f"{_BASE}/kfsweb/kfi/kfs/kna/application/publication/detailForm.d
 _FILE_BASE = f"{_BASE}/kfsweb/cmm/fms/FileDown.do"
 _MAIN_CD = "210103"
 _MN = "UKNA_04_10"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
 
 class KnaForestKrKfswebCrawler(BaseCrawler):
@@ -211,7 +212,7 @@ class KnaForestKrKfswebCrawler(BaseCrawler):
                 if page > _MAX_PAGES:
                     print(f"[{self.site_id}] safety cap of {_MAX_PAGES} pages reached. Stopping.")
                     break
-                if time.time() - start_time > 25 * 60:
+                if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                     print(f"[{self.site_id}] 25-minute budget exceeded. Stopping.")
                     break
 

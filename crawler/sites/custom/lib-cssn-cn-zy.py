@@ -7,6 +7,7 @@ Detail: http://lib.cssn.cn/zy/dzzy/sjk_1/YYYYMM/tYYYYMMDD_ID.shtml
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -17,8 +18,8 @@ from crawler.base_crawler import BaseCrawler
 
 _LIST_BASE = "http://lib.cssn.cn/zy/dzzy/sjk_1/axkflll/"
 _DETAIL_BASE = "http://lib.cssn.cn/zy/dzzy/sjk_1/"
-_MAX_PAGES = 200
-_WALL_CLOCK_LIMIT = 25 * 60  # seconds
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_CLOCK_LIMIT = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 _MIN_ABSTRACT = 100  # chars; skip items below this
 
 

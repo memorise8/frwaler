@@ -8,6 +8,7 @@ Drupal 11 Views listing — HTML pagination (?page=N), 15 items/page.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -20,7 +21,7 @@ _SITE_ID = "cerema-fr-fr"
 _BASE_URL = "https://www.cerema.fr"
 _LIST_URL = "https://www.cerema.fr/fr/presse/dossier"
 _PAGE_SIZE = 15
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 100
 
 _FR_MONTHS = {
@@ -357,7 +358,7 @@ class CeremaFrFrCrawler(BaseCrawler):
 
         for page in range(_MAX_PAGES):
             # 25-minute wall-clock budget
-            if time.time() - crawl_start > 25 * 60:
+            if time.time() - crawl_start > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-minute wall-clock budget reached; stopping.")
                 break
 

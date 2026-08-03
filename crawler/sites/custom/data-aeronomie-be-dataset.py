@@ -9,6 +9,7 @@ Total:  ~32 datasets (CKAN 2.11.4)
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -42,7 +43,7 @@ class DataAeronomieBeDatasetCrawler(BaseCrawler):
         limit_label = str(limit) if limit is not None else "inf"
 
         while True:
-            if time.time() - t0 > 25 * 60:
+            if time.time() - t0 > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute budget reached; stopping")
                 break
 

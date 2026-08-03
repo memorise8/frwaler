@@ -14,6 +14,7 @@ Approach:
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -109,7 +110,7 @@ class AfdFrFrCrawler(BaseCrawler):
         or (c) safety cap of 200 pages or 25-minute wall-clock budget.
         """
         start_time = time.time()
-        MAX_RUNTIME = 25 * 60  # seconds
+        MAX_RUNTIME = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
         MAX_PAGES = 200
 
         saved = 0

@@ -8,6 +8,7 @@ Node ID extracted from data-history-node-id attribute (used as post_number).
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -153,7 +154,7 @@ class LavoroGovItStampaEMediaCrawler(BaseCrawler):
         seen_urls: set = set()
         start_time = time.time()
         MAX_PAGES = 200
-        MAX_SECONDS = 25 * 60  # 25-minute wall-clock budget
+        MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
         for page_num in range(MAX_PAGES):
             # Wall-clock budget check

@@ -11,6 +11,7 @@ Detail page  : meta[name=description] = abstract,  DT/DD "Date published",
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -42,9 +43,9 @@ class NRSScotlandPublicationsCrawler(BaseCrawler):
     base_url  = "https://www.nrscotland.gov.uk"
 
     _START_URL   = "https://www.nrscotland.gov.uk/publications/"
-    _MAX_PAGES   = 200
+    _MAX_PAGES   = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _MIN_ABSTRACT = 50   # chars; items shorter than this are skipped
-    _BUDGET_SECS  = 25 * 60  # 25-minute wall-clock cap
+    _BUDGET_SECS  = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock cap
 
     # ------------------------------------------------------------------
     # Low-level network

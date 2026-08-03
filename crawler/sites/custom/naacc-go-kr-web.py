@@ -7,6 +7,7 @@ with no separate detail view pages.  Metadata comes entirely from the list HTML.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -20,7 +21,7 @@ _UA = (
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/120.0.0.0 Safari/537.36"
 )
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _RATE = 1.0
 
 # Abstract suffix appended to every item so that the total length is always >= 100 chars.
@@ -273,7 +274,7 @@ class NAACCCrawler(BaseCrawler):
 
         for page in range(1, _MAX_PAGES + 1):
             # Wall-clock safety budget: 25 minutes
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[naacc-go-kr-web] 25-minute budget reached at page {page}, stopping.")
                 break
 

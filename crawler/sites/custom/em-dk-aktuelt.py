@@ -19,6 +19,7 @@ Architecture:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -32,7 +33,7 @@ from crawler.base_crawler import BaseCrawler
 _BASE_URL = "https://www.em.dk"
 _INDEX_URL = _BASE_URL + "/aktuelt/udgivelser-og-aftaler"
 _GENERATOR = "GoBasic.Presentation.Controls.ListHelper, GoBasic.Presentation"
-_MAX_PAGES = 200        # safety cap on pages-per-month
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))        # safety cap on pages-per-month
 _WALL_MINUTES = 25      # total crawl wall-clock budget
 _MIN_ABSTRACT = 50      # skip items whose abstract is shorter than this
 _DETAIL_DELAY = 1.0     # seconds between detail page fetches

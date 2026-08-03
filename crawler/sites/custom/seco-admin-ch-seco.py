@@ -34,6 +34,7 @@ Detail URL pattern for both kinds: ``{base_url}/{lang}/newnsb/{langGroupId}``.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -64,8 +65,8 @@ class SecoAdminChSecoCrawler(BaseCrawler):
     _START_DATE = '2023-01-01T00:00:00.000Z'
     _END_DATE = '2030-12-31T23:59:59.999Z'
     _PAGE_SIZE = 100
-    _MAX_PAGES = 200
-    _MAX_WALL_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT_CHARS = 100
     _BACKOFF = (1, 3, 9)
 

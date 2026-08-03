@@ -8,6 +8,7 @@ PDF:         /atch/fileDown.do?cnncSn=<pstSn>&cnncTy=bbs&ordr=2
 
 import html as html_module
 import json
+import os
 import re
 import time
 
@@ -218,7 +219,7 @@ class SiReKrBbsCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         start_time = time.time()
-        MAX_WALL_SEC = 25 * 60
+        MAX_WALL_SEC = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         MAX_PAGES = 200
 
         seen_urls = set()

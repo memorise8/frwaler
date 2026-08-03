@@ -22,6 +22,7 @@ the page). Some detail pages additionally carry a real downloadable PDF
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -38,8 +39,8 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "cstb-fr-communiques-de-press"
 _BASE_URL = "https://www.cstb.fr"
 _LIST_URL = f"{_BASE_URL}/communiques-de-presse"
-_MAX_PAGES = 200
-_BUDGET_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _RETRY_DELAYS = (1, 3, 9)
 _MIN_ABSTRACT_CHARS = 50
 _TAKE = 36

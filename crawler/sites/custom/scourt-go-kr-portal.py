@@ -7,6 +7,7 @@ Detail: GET /portal/news/NewsViewAction.work?seqnum=XXXX&gubun=6
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -27,7 +28,7 @@ _BASE_URL = "https://www.scourt.go.kr"
 _LIST_URL = f"{_BASE_URL}/portal/news/NewsListAction.work"
 _DETAIL_URL = f"{_BASE_URL}/portal/news/NewsViewAction.work"
 _GUBUN = "6"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _MAX_WALL_SECONDS = 24 * 60  # 24 min (25-min budget)
 _BACKOFFS = [1, 3, 9]
 

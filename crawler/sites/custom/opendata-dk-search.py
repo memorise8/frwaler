@@ -26,9 +26,9 @@ from crawler.base_crawler import BaseCrawler
 _CKAN_API = "https://ckan.oddk.prod.datopian.com/api/3/action/package_search"
 _PORTAL_BASE = "https://www.opendata.dk"
 _ROWS_PER_PAGE = 20
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 100      # skip items with less; test asserts >= 100
-_CRAWL_TIMEOUT_SECS = 25 * 60  # 25-minute wall-clock budget
+_CRAWL_TIMEOUT_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
 
 class OpendataDkSearchCrawler(BaseCrawler):

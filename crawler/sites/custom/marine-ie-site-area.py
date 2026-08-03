@@ -34,6 +34,7 @@ Site structure discovered by live inspection (curl, no browser/JS needed):
 """
 
 import json
+import os
 import re
 import sys
 import time
@@ -346,7 +347,7 @@ class MarineIeSiteAreaCrawler(BaseCrawler):
         seen_keys = set()
         limit_display = limit if limit is not None else "inf"
         start_time = time.monotonic()
-        MAX_SECONDS = 25 * 60
+        MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         MAX_PAGES = 200
 
         page = 0

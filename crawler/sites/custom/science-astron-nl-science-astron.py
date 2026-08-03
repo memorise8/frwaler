@@ -13,6 +13,7 @@ reconstructed here.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -235,7 +236,7 @@ class ASTRONScienceCrawler(BaseCrawler):
         seen_urls: set[str] = set()
         limit_or_inf    = limit if limit is not None else float("inf")
         start_time      = time.time()
-        max_wall_secs   = 25 * 60          # 25 minutes hard cap
+        max_wall_secs   = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))          # 25 minutes hard cap
         safety_cap      = 200              # page-count safety cap
         pages_done      = 0
 

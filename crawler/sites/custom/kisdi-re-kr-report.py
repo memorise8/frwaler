@@ -7,6 +7,7 @@ Detail: POST https://www.kisdi.re.kr/report/view.do?key=KEY&masterId=MID&arrMast
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -174,7 +175,7 @@ class KisdiReKrReportCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         start_time = time.time()
-        MAX_SECONDS = 25 * 60
+        MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         MAX_PAGES = 200
 
         seen_urls = set()

@@ -20,6 +20,7 @@ import gzip
 import html as htmllib
 import io
 import json
+import os
 import re
 import subprocess
 import time
@@ -40,7 +41,7 @@ _CC_INDEX = "CC-MAIN-2024-51"
 _CC_CDX_API = f"https://index.commoncrawl.org/{_CC_INDEX}-index"
 _CC_WARC_BASE = "https://data.commoncrawl.org/"
 _PAGE_SIZE = 12   # items per listing page (observed from live site)
-_MAX_PAGES = 200  # safety cap
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))  # safety cap
 
 
 # ── HTML / JSON helpers ───────────────────────────────────────────────────────
@@ -307,7 +308,7 @@ class StatsGovtNzPublicationsCrawler(BaseCrawler):
 
     def crawl(self, limit: int | None = None) -> int:
         t0 = time.time()
-        MAX_WALL = 25 * 60  # 25 minutes
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
         seen_urls: set[str] = set()
 
         print(f"[{self.site_id}] Checking direct access …")

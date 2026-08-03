@@ -7,6 +7,7 @@ list at /taxonomy/term/170?page=N; paper details are regular HTML pages at
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -26,8 +27,8 @@ class EnNimAcCnTaxonomyCrawler(BaseCrawler):
 
     _START_URL = "https://en.nim.ac.cn/taxonomy/term/170"
     _CATEGORY = "Papers"
-    _MAX_PAGES = 200
-    _MAX_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _BUDGET_MARGIN_SECONDS = 60
     _MIN_ABSTRACT_CHARS = 50
 

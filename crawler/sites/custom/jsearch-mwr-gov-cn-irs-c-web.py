@@ -13,6 +13,7 @@ the detail page is fetched and parsed.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -168,7 +169,7 @@ class JsearchMwrGovCnCrawler(BaseCrawler):
         limit_val = limit if limit is not None else float("inf")
         start_ts = time.time()
         MAX_PAGES = 200
-        MAX_SECS = 25 * 60
+        MAX_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         while saved < limit_val and page <= MAX_PAGES:
             if time.time() - start_ts > MAX_SECS:

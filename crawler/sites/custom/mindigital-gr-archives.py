@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -39,7 +40,7 @@ class MindigitalGrArchivesCrawler(BaseCrawler):
     MIN_ABSTRACT_CHARS = 50
     MIN_SAVED_ABSTRACT_CHARS = 100
     PAGE_CAP = 200
-    WALL_CLOCK_LIMIT = 25 * 60  # seconds
+    WALL_CLOCK_LIMIT = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
     _CURL_META_MARKER = "__MINDIGITAL_GR_CURL_META__:"
 

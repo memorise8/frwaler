@@ -14,6 +14,7 @@ API endpoint (discovered via JS bundle analysis):
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -30,7 +31,7 @@ _PAGE_SIZE = 100
 _SAFETY_CAP = 200
 _RATE_SLEEP = 1.0
 _ABSTRACT_MIN = 100
-_MAX_SECONDS = 25 * 60
+_MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 _MONTH_MAP = {
     "January": "01", "February": "02", "March": "03", "April": "04",

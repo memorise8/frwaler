@@ -10,6 +10,7 @@ publisher HTML as fallbacks.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -34,7 +35,7 @@ class ToiNoPublicationsCrawler(BaseCrawler):
     )
     PAGE_SIZE = 30
     MAX_PAGES = 200
-    MAX_RUNTIME_SECONDS = 25 * 60
+    MAX_RUNTIME_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     MIN_ABSTRACT_CHARS = 100
 
     # ------------------------------------------------------------------

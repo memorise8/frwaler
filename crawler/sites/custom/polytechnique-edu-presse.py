@@ -7,6 +7,7 @@ Each detail page carries a Drupal node ID (used as post_number/external_id).
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -252,7 +253,7 @@ class PolytechniqueEduPresseCrawler(BaseCrawler):
                 print(f"[{self.site_id}] Safety cap of {MAX_PAGES} pages reached. Stopping.")
                 break
             elapsed = time.time() - start_time
-            if elapsed > 25 * 60:
+            if elapsed > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute time budget exceeded ({elapsed:.0f}s). Stopping.")
                 break
 

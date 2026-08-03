@@ -12,6 +12,7 @@ Detail page: https://rosap.ntl.bts.gov/view/dot/{id}
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -29,8 +30,8 @@ class RosapNtlBtsGovCbrowseCrawler(BaseCrawler):
     base_url = "https://rosap.ntl.bts.gov"
 
     _PAGE_SIZE = 20
-    _MAX_PAGES = 200
-    _MAX_WALL_SECONDS = 25 * 60  # 25 minutes
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
     def __init__(self, db_conn, delay=1.0):
         super().__init__(db_conn=db_conn, delay=delay)

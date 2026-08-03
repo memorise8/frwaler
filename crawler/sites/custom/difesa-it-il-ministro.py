@@ -9,6 +9,7 @@ Detail: /il-ministro/note-stampa/<slug>/<id>.html
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -20,7 +21,7 @@ from crawler.base_crawler import BaseCrawler
 _BASE_URL = "https://www.difesa.it"
 _LIST_JSON_URL = "https://www.difesa.it/data/il-ministro/note-stampa/elenco.json"
 _ABSTRACT_MIN_CHARS = 50
-_MAX_WALL_SECONDS = 25 * 60   # 25-minute budget
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute budget
 _SAFETY_CAP_PAGES = 200       # not really used (single JSON), but kept for spec
 
 _IT_MONTHS = {

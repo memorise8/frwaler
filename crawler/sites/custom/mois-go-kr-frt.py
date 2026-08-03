@@ -2,6 +2,7 @@
 """행정안전부 보도자료 crawler (mois.go.kr)."""
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -18,8 +19,8 @@ _BBS_ID = "BBSMSTR_000000000008"
 _LIST_URL = "https://www.mois.go.kr/frt/bbs/type010/commonSelectBoardList.do"
 _DETAIL_URL = "https://www.mois.go.kr/frt/bbs/type010/commonSelectBoardArticle.do"
 _PAGE_SIZE = 10
-_MAX_PAGES = 200
-_MAX_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 class MoisGoKrFrtCrawler(BaseCrawler):

@@ -7,6 +7,7 @@ Board: https://www.khs.go.kr/cop/bbs/selectBoardList.do?bbsId=BBSMSTR_1020&mn=NS
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -21,9 +22,9 @@ _BBS_ID = "BBSMSTR_1020"
 _MN = "NS_03_07_04"
 _LIST_URL = f"{_BASE_URL}/cop/bbs/selectBoardList.do"
 _DETAIL_URL = f"{_BASE_URL}/cop/bbs/selectBoardArticle.do"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 50
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 def _strip_jsessionid(url: str) -> str:

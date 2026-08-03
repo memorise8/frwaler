@@ -8,6 +8,7 @@ Detail:       https://www.hhs.gov/guidance/document/{slug}
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -21,7 +22,7 @@ _SITE_ID = "hhs-gov-guidance"
 _BASE_URL = "https://www.hhs.gov"
 _LIST_URL = "https://www.hhs.gov/guidance/"
 _ABSTRACT_MIN = 50
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _DELAY = 1.0
 
 _CURL_HEADERS = [
@@ -240,7 +241,7 @@ class HhsGovGuidanceCrawler(BaseCrawler):
 
         for page_num in range(_MAX_PAGES):
             # Wall-clock budget: 25 minutes
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-minute budget reached at page {page_num}, stopping")
                 break
 

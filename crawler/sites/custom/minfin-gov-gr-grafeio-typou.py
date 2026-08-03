@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -28,8 +29,8 @@ class MinfinGovGrGrafeioTypouCrawler(BaseCrawler):
     _CURL_TIMEOUT = 45
     _MIN_ABSTRACT = 50       # chars — skip below this
     _MIN_SAVE = 100          # chars — skip save below this
-    _MAX_PAGES = 200         # safety cap
-    _MAX_WALL_SECS = 25 * 60  # 25 minutes
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))         # safety cap
+    _MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
     _MARKER = "__MINFIN_META__:"
 
     # ------------------------------------------------------------------

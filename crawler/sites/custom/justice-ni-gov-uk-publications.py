@@ -2,6 +2,7 @@
 """Crawler for justice-ni.gov.uk/publications (Drupal 10, HTML pagination)."""
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -56,7 +57,7 @@ class JusticeNiPublicationsCrawler(BaseCrawler):
         seen_urls: set = set()
         start_time = time.time()
         MAX_PAGES = 200
-        MAX_WALL = 25 * 60  # 25 minutes
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
         while True:
             if limit is not None and saved >= limit:

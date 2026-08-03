@@ -8,6 +8,7 @@ Detail endpoint: each press-release HTML page linked from the list.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -31,7 +32,7 @@ class LneFrFrCrawler(BaseCrawler):
     START_URL = "https://www.lne.fr/fr/communiques-de-presse"
     MAX_PAGES = 200
     CURL_TIMEOUT = 60
-    WALL_CLOCK_BUDGET = 25 * 60
+    WALL_CLOCK_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     MIN_ABSTRACT_CHARS = 50
     BACKOFF = (1, 3, 9)
 

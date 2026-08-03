@@ -8,6 +8,7 @@ Pagination: /seite-{n} path segments, 51+ pages.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -21,7 +22,7 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "bundesgesundheitsministerium-de-service"
 _BASE_URL = "https://www.bundesgesundheitsministerium.de"
 _LIST_URL = f"{_BASE_URL}/service/publikationen/gesundheit"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 100
 
 _DE_MONTHS = {
@@ -389,7 +390,7 @@ class BundesgesundheitsministeriumDeServiceCrawler(BaseCrawler):
 
         for page in range(_MAX_PAGES):
             # 25-minute wall-clock budget
-            if time.time() - crawl_start > 25 * 60:
+            if time.time() - crawl_start > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-minute budget reached; stopping.")
                 break
 

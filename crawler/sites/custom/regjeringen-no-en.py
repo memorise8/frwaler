@@ -7,6 +7,7 @@ Detail URL: /en/documents/{slug}/id{ID}/
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -35,8 +36,8 @@ class RegjeringenNoEnCrawler(BaseCrawler):
 
     _LIST_URL = "https://www.regjeringen.no/en/find-document/id2000006/"
     _LIST_PARAMS = "documenttype=dokumenter&ownerid=833&term="
-    _MAX_PAGES = 200
-    _MAX_WALL_SECS = 25 * 60  # 25 minutes
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
     # ------------------------------------------------------------------
     # Network

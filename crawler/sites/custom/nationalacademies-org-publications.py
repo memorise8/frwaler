@@ -2,6 +2,7 @@
 """Crawler for National Academies CSTB publications (nationalacademies.org)."""
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -18,8 +19,8 @@ class NationalAcademiesPublicationsCrawler(BaseCrawler):
     base_url = "https://www.nationalacademies.org"
 
     _LIST_URL = "https://www.nationalacademies.org/publications/all"
-    _MAX_PAGES = 200
-    _BUDGET_SECS = 25 * 60  # 25 minutes
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
     # ------------------------------------------------------------------ #
     # Network helpers                                                      #

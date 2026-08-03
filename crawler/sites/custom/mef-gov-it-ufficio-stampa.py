@@ -2,6 +2,7 @@
 """Crawler for MEF (Ministero dell'Economia e delle Finanze) Ufficio Stampa comunicati."""
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -219,7 +220,7 @@ class MefGovItUfficioStampaCrawler(BaseCrawler):
             Maximum number of items to save.  None means unlimited.
         """
         start_time = time.time()
-        MAX_WALL = 25 * 60   # 25-minute wall-clock budget
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute wall-clock budget
         SAFETY_CAP = 200     # max pages per year (safety valve)
 
         saved = 0

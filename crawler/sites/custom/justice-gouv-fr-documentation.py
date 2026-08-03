@@ -12,6 +12,7 @@ and PDF download anchors.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -39,7 +40,7 @@ class JusticeGouvFrDocumentationCrawler(BaseCrawler):
     PAGE_SIZE = 100
     CURL_TIMEOUT = 60
     DETAIL_SLEEP = 1.0
-    WALL_CLOCK_SECONDS = 25 * 60
+    WALL_CLOCK_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     WALL_CLOCK_GRACE_SECONDS = 30
     MIN_ABSTRACT_CHARS = 50
 

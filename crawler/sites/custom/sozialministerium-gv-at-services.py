@@ -24,8 +24,8 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "sozialministerium-gv-at-services"
 _BASE_URL = "https://www.sozialministerium.gv.at"
 _START_URL = "https://www.sozialministerium.gv.at/Services/Studien.html"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _ABSTRACT_MIN_CHARS = 50
 _ABSTRACT_TARGET_CHARS = 100
 _PDF_ABSTRACT_CHARS = 1800

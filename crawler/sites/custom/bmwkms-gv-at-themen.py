@@ -10,6 +10,7 @@ No JSON API, no pagination — all entries are on one page.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -37,7 +38,7 @@ _SERIES_DESC = (
     "Herausgeber: Bundesministerium für Wohnen, Kunst, Kultur, Medien und Sport "
     "(BMWKMS), Sektion IV – Kunst und Kultur, Concordiaplatz 2, 1010 Wien."
 )
-_MAX_WALL_S = 25 * 60
+_MAX_WALL_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 # ---------------------------------------------------------------------------

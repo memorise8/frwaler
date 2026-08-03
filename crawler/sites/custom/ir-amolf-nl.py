@@ -40,7 +40,7 @@ _START_URL = "https://ir.amolf.nl/#facet=type:article|dissertation;facet=open_ac
 _SEARCH_API = "https://ir.amolf.nl/search/query"
 _PAGE_SIZE = 10
 _PAGE_CAP = 200
-_CRAWL_BUDGET_SECONDS = 25 * 60
+_CRAWL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _RETRY_WAITS = (1, 3, 9)
 
 # Full facet-definition template as embedded in the page's #initial-query

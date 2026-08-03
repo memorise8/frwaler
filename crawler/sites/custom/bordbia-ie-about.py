@@ -96,7 +96,7 @@ class BordbiaAboutCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         start_time = time.time()
-        max_wall = 25 * 60
+        max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         saved = 0
         seen_urls: set[str] = set()
 

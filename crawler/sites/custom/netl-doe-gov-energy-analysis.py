@@ -15,6 +15,7 @@ full authors, abstract, and publication type.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import tempfile
@@ -390,7 +391,7 @@ class NETLEnergyAnalysisTRSCrawler(BaseCrawler):
     def crawl(self, limit=None):
         """Crawl NETL energy-analysis publications matching the TRS search term."""
         start_time = time.time()
-        BUDGET     = 25 * 60   # 25-minute wall-clock budget
+        BUDGET     = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute wall-clock budget
         SAFETY_CAP = 200       # max list-page fetches
         saved      = 0
         seen_uuids: set[str] = set()

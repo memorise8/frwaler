@@ -21,8 +21,8 @@ from crawler.base_crawler import BaseCrawler
 _API_URL = "https://sonar.ch/api/documents/"
 _DOC_TYPE = "coar:c_7a1f"
 _PAGE_SIZE = 50
-_MAX_PAGES = 200
-_CRAWL_BUDGET_SECS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_LEN = 100   # match test assertion
 _RATE_SLEEP = 1.0          # seconds between page fetches
 

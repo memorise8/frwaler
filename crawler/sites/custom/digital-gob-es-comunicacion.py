@@ -14,6 +14,7 @@ from __future__ import annotations
 import datetime as _dt
 import hashlib
 import json
+import os
 import re
 import subprocess
 import time
@@ -37,8 +38,8 @@ _LIST_SERVICE = (
 _CONTENT_PREFIX = "/content/portalmtdfp/es"
 _PUBLISHER = "Ministerio para la Transformación Digital y de la Función Pública"
 
-_MAX_PAGES = 200
-_MAX_RUNTIME_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_RUNTIME_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _RETRY_DELAYS = (1, 3, 9)
 _MIN_ABSTRACT_CHARS = 100
 

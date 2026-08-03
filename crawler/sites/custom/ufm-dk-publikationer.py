@@ -2,6 +2,7 @@
 """UFM.dk Publikationer crawler — Uddannelses- og Forskningsministeriet."""
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -247,7 +248,7 @@ class UfmDkPublikationerCrawler(BaseCrawler):
             Maximum number of papers to save. ``None`` means unlimited.
         """
         start_time = time.time()
-        wall_budget_secs = 25 * 60  # 25 minutes hard cap
+        wall_budget_secs = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes hard cap
 
         saved = 0
         page = 1

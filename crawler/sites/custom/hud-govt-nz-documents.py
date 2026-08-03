@@ -28,8 +28,8 @@ from crawler.base_crawler import BaseCrawler  # noqa: E402
 _LIST_URL = "https://www.hud.govt.nz/documents/search"
 _DOC_TYPE = "32"   # Statistics and research (target URL: _documenttypes[]=32)
 _PAGE_SIZE = 12    # server default; start increments by this
-_MAX_PAGES = 200   # safety cap
-_WALL_BUDGET = 25 * 60  # seconds
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))   # safety cap
+_WALL_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 _ABSTRACT_MIN = 100     # skip items shorter than this (test asserts >=100)
 _PUBLISHER = "Te Tūāpapa Kura Kāinga – Ministry of Housing and Urban Development"
 

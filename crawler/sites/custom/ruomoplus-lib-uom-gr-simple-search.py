@@ -16,6 +16,7 @@ from __future__ import annotations
 import hashlib
 import html
 import json
+import os
 import re
 import time
 import unicodedata
@@ -82,8 +83,8 @@ class RuomoplusLibUomGrSimpleSearchCrawler(BaseCrawler):
     )
     _RPP = 10
     _MIN_ABSTRACT = 50
-    _MAX_PAGES = 200
-    _MAX_WALL = 25 * 60  # seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
     def __init__(self, db_conn, delay=1.0):
         super().__init__(db_conn, delay=delay)

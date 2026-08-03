@@ -14,6 +14,7 @@ that carries DC meta and rich body text.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -30,7 +31,7 @@ _LIST_URL = (
     "Resource-material-Corporate-Publications-Annual-Reports?OpenDocument"
 )
 _ABSTRACT_MIN_CHARS = 50
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 class DIAGovtNZCrawler(BaseCrawler):

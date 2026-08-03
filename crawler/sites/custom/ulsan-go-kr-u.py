@@ -10,6 +10,7 @@ PDF:    /u/enc/media/bbsFileDown.do?bbsId=...&atchFileId={enc}&fileSn={enc}
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -86,7 +87,7 @@ class UlsanGoKrUCrawler(BaseCrawler):
         limit_val = limit if limit is not None else float("inf")
         lim_str = str(limit) if limit is not None else "inf"
         start_time = time.time()
-        MAX_WALL = 25 * 60
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         MAX_PAGES = 200
 
         for page in range(1, MAX_PAGES + 1):

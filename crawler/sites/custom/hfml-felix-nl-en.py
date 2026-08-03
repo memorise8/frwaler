@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import html
 import json
+import os
 import re
 import subprocess
 import time
@@ -50,7 +51,7 @@ class HfmlFelixNlEnCrawler(BaseCrawler):
     _CROSSREF_API = "https://api.crossref.org/works/{doi}"
     _MIN_ABSTRACT_CHARS = 100
     _PAGE_CAP = 200
-    _WALL_CLOCK_SECS = 25 * 60
+    _WALL_CLOCK_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     def __init__(self, db_conn, delay=1.0, detail_delay=None):
         super().__init__(db_conn=db_conn, delay=delay)

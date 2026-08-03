@@ -12,6 +12,7 @@ pages (which have a description + /dam/ PDF) or directly to external PDFs
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -29,7 +30,7 @@ _START_URL = (
 )
 _ABSTRACT_MIN_CHARS = 50
 _ABSTRACT_SAVE_MIN = 100
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _MINISTRY_LONG = (
     "Bundesministerium für Land- und Forstwirtschaft, "
     "Klima- und Umweltschutz, Regionen und Wasserwirtschaft (BMLUK)"
@@ -348,7 +349,7 @@ class BmlukGvAtServiceCrawler(BaseCrawler):
         page = 0
         for idx, item in enumerate(items):
             elapsed = time.time() - crawl_start
-            if elapsed > 25 * 60:
+            if elapsed > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-minute wall-clock budget reached; stopping.")
                 break
 

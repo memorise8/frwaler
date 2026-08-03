@@ -10,6 +10,7 @@ synthesised summary that is always ≥ 100 chars.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -237,7 +238,7 @@ class CentralBankIEPublicationCrawler(BaseCrawler):
             Maximum number of records to save.  ``None`` means unlimited.
         """
         crawl_start = time.time()
-        max_wall = 25 * 60  # 25-minute wall-clock budget
+        max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
         limit_display = str(limit) if limit is not None else "∞"
 
         # ── Fetch listing page ───────────────────────────────────────────

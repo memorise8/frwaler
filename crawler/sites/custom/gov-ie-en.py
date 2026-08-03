@@ -156,8 +156,8 @@ class GovIeEnCrawler(BaseCrawler):
         "&organisation=Department+of+Transport"
         "&page={page}"
     )
-    _MAX_PAGES = 200
-    _CRAWL_TIMEOUT_SECS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _CRAWL_TIMEOUT_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     def crawl(self, limit=None):
         """Crawl publications list + detail pages, save via _save_paper."""

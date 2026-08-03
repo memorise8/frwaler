@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import html
 import json
+import os
 import re
 import subprocess
 import time
@@ -136,8 +137,8 @@ class ObservaMincienciaGobClCrawler(BaseCrawler):
 
     _MIN_ABSTRACT = 100
     _PAGE_SIZE = 20
-    _MAX_PAGES = 200
-    _MAX_WALL = 25 * 60  # seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
     # ------------------------------------------------------------------
     # curl helpers

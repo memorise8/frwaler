@@ -15,6 +15,7 @@ Content-Disposition header on HEAD of /en/media/<id>/download.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -92,8 +93,8 @@ class NcriIeEnCrawler(BaseCrawler):
 
     _SEARCH_URL = "https://www.ncri.ie/en/search"
     _SECTION = "3"          # "Reports & Publications" — 135 items across ~12 pages
-    _MAX_PAGES = 200
-    _WALL_CLOCK_BUDGET_S = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_CLOCK_BUDGET_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT_CHARS = 100
 
     # ------------------------------------------------------------------

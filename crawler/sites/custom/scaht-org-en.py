@@ -250,7 +250,7 @@ class SCAHTOrgEnCrawler(BaseCrawler):
     START_URL = "https://www.scaht.org/en/research/publications/"
     LIVE_LIST_URL = "https://www.scaht.org/en/publications/"
     MAX_PAGES = 200
-    WALL_BUDGET_SECONDS = 25 * 60
+    WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     WALL_MARGIN_SECONDS = 30
     MIN_ABSTRACT_CHARS = 100
     CURL_TIMEOUT = 45

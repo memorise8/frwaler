@@ -17,6 +17,7 @@ author (연구책임자), views, file icon.  Abstract lives in detail page's
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -32,8 +33,8 @@ _DETAIL_URL = f"{_BASE_URL}/khome/main/research/selectPubForm.do"
 _DOWNLOAD_URL = f"{_BASE_URL}/khome/main/research/downloadPubFileAction.do"
 
 _PAGE_SIZE = 10
-_MAX_PAGES = 200
-_WALL_BUDGET_SEC = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_BUDGET_SEC = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_CHARS = 100  # test requires LENGTH(abstract) >= 100
 
 _BACKOFFS = (1, 3, 9)

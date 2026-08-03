@@ -12,6 +12,7 @@ becomes one document record.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -40,7 +41,7 @@ _SECTION_PATHS = [
 ]
 
 _PUBLISHER = "Ministry of Business, Innovation & Employment"
-_BUDGET_SECS = 25 * 60  # 25-minute wall-clock budget
+_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
 _MONTHS = {
     "january": "01", "february": "02", "march": "03", "april": "04",

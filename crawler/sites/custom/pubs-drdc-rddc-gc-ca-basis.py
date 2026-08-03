@@ -13,6 +13,7 @@ which indexes 6 000+ DRDC publications with full abstracts and author informatio
 from __future__ import annotations
 
 import json
+import os
 import re
 import socket
 import subprocess
@@ -63,7 +64,7 @@ class PubsDrdcRddcGcCaBasisCrawler(BaseCrawler):
     _CURL_TIMEOUT = 45                   # curl per-request timeout
     _MIN_ABSTRACT_CHARS = 50
     _PAGE_CAP = 200
-    _MAX_WALL_SECS = 25 * 60            # 25-minute budget
+    _MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))            # 25-minute budget
 
     # ------------------------------------------------------------------ #
     # Construction                                                         #

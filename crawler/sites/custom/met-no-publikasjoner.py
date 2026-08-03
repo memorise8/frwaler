@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import re
 import subprocess
 import time
@@ -243,7 +244,7 @@ class MetNoPublikasjoner(BaseCrawler):
         import datetime
 
         start_ts = time.time()
-        MAX_WALL = 25 * 60    # 25 min wall-clock budget
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))    # 25 min wall-clock budget
         MAX_PAGES = 200        # safety cap (one per year page)
 
         saved = 0

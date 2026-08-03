@@ -13,6 +13,7 @@ Detail pages: /english/publications/archive/YYYY-MM-DD-slug
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -44,8 +45,8 @@ _LIST_URL_PAGE = (
 )
 
 _PAGE_SIZE = 10
-_MAX_PAGES = 200       # safety cap — log when reached
-_MAX_WALL_SECS = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))       # safety cap — log when reached
+_MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 _MIN_ABSTRACT = 50     # skip items with fewer chars
 
 

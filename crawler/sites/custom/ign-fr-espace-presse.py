@@ -10,6 +10,7 @@ Structure: Drupal 10 HTML listing (~47 items on main page + ~21 in archives);
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -186,7 +187,7 @@ class IGNEspacePresseCrawler(BaseCrawler):
         saved = 0
         limit_str = str(limit) if limit is not None else "∞"
         start_time = time.time()
-        max_seconds = 25 * 60
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         # ---- Phase 1: collect article URLs from listing pages --------------
         all_article_urls: list[str] = []

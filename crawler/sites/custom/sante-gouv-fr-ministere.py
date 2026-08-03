@@ -23,6 +23,7 @@ Crawl flow
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import time
@@ -115,7 +116,7 @@ class SanteGouvFrMinistereCrawler(BaseCrawler):
     base_url  = "https://sante.gouv.fr"
 
     _START_URL      = "https://sante.gouv.fr/ministere/documentation-et-publications-officielles/"
-    _CRAWL_BUDGET_S = 25 * 60   # 25-minute wall-clock limit
+    _CRAWL_BUDGET_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute wall-clock limit
     _RATE_SLEEP     = 1.0       # seconds between detail fetches
 
     # CSS selector present on real pages but absent from TSPD challenge pages.

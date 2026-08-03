@@ -29,6 +29,7 @@ Site structure (discovered via curl, 2026-07):
 """
 
 import json
+import os
 import re
 import time
 from urllib.parse import urljoin
@@ -40,8 +41,8 @@ _DETAIL_PATH = "/briefing/brief_gongbo_view.do"
 _BS_CODE = "s017"
 _SUBJECT_CODE = "BO01"
 _PUBLISHER = "경기도"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _ABSTRACT_MIN_CHARS = 100
 _RETRY_DELAYS = (1, 3, 9)
 

@@ -50,7 +50,7 @@ except ImportError:
 _SEARCH_BASE   = "https://par.nsf.gov/search/product-type:Journal%20Article"
 _ROWS_PER_PAGE = 10           # keep default; server always returns 10 for articles
 _MIN_ABSTRACT  = 50           # chars — below this we skip and log
-_MAX_PAGES     = 200          # safety cap
+_MAX_PAGES     = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))          # safety cap
 _MAX_SECONDS   = 24 * 60      # 24 min (spec: 25 min)
 _BACKOFF       = (1, 3, 9)    # exponential-backoff delays in seconds
 

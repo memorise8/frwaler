@@ -12,6 +12,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import os
 import re
 import subprocess
 import time
@@ -38,7 +39,7 @@ class PublicServiceGovtNzResearchAndDataCrawler(BaseCrawler):
     LIST_ENDPOINT = f"{base_url}/research-and-data"
     PAGE_SIZE = 25
     MAX_PAGES = 200
-    MAX_RUNTIME_SECONDS = 25 * 60
+    MAX_RUNTIME_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     RUNTIME_GRACE_SECONDS = 30
     DEFAULT_DEPARTMENT = "Te Kawa Mataaho Public Service Commission"
 

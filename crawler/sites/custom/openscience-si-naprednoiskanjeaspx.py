@@ -61,8 +61,8 @@ class OpenscienceSiNaprednoIskanjeAspxCrawler(BaseCrawler):
 
     _START_URL = "https://openscience.si/NaprednoIskanje.aspx?q=0:20:212"
     _MIN_ABSTRACT = 100
-    _MAX_PAGES = 200
-    _MAX_WALL = 25 * 60  # seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
     _NEXT_PAGE_BUTTON = "ctl00$Content$Zadetki$ctl00$PageNaprej"
 
     def __init__(self, db_conn, delay=1.0):

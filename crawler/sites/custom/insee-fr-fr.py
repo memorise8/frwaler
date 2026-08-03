@@ -10,6 +10,7 @@ Abstract:  extracted from the PDF attached to each detail page
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -36,7 +37,7 @@ class InseeFrFrCrawler(BaseCrawler):
     PDF_TIMEOUT = 45
     MIN_ABSTRACT = 100
     MAX_ABSTRACT = 6000
-    MAX_WALL_SECONDS = 25 * 60
+    MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MARKER = "__INSEE_FR_FR_CURL_META__:"
 
     def crawl(self, limit=None):

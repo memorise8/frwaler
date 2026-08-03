@@ -22,8 +22,8 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "gov-scot-statistics-and-resea"
 _BASE_URL = "https://www.gov.scot"
 _LISTING_URL = "https://www.gov.scot/statistics-and-research/"
-_MAX_PAGES = 200
-_CRAWL_BUDGET_SECS = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 def _bs4(raw, parsers=("html5lib", "lxml", "html.parser")):

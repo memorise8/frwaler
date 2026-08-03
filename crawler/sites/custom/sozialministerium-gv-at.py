@@ -22,10 +22,10 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "sozialministerium-gv-at"
 _SEARCH_URL = "https://www.sozialministerium.gv.at/.search"
 _PAGE_SIZE = 10
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _RATE_SLEEP = 0.5       # seconds between page fetches
 _PDF_RATE_SLEEP = 1.0   # seconds between PDF downloads
-_MAX_SECONDS = 25 * 60  # 25-minute wall-clock budget
+_MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
 
 # ---------------------------------------------------------------------------

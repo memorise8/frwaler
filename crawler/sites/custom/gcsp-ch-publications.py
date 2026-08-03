@@ -2,6 +2,7 @@
 """Crawler for GCSP Publications (gcsp.ch) — Geneva Papers, Policy Briefs, etc."""
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -232,7 +233,7 @@ class GCSPPublicationsCrawler(BaseCrawler):
         saved = 0
         seen_urls = set()
         start_time = time.time()
-        max_seconds = 25 * 60  # 25-minute wall-clock budget
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
         limit_display = str(limit) if limit is not None else "inf"
 

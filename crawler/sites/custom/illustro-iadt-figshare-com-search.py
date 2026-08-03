@@ -9,6 +9,7 @@ IADT's group_id in figshare is 54031; item_type=8 is "thesis".
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -28,7 +29,7 @@ class IllustroIadtFigshareCrawler(BaseCrawler):
     _GROUP_ID  = 54031   # IADT's figshare group
     _ITEM_TYPE = 8       # thesis
     _PAGE_SIZE = 100     # max allowed by figshare API
-    _MAX_PAGES = 200     # safety cap
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))     # safety cap
 
     # ------------------------------------------------------------------
     # Network helpers
@@ -134,7 +135,7 @@ class IllustroIadtFigshareCrawler(BaseCrawler):
         saved = 0
         seen_urls = set()
         start_time = time.time()
-        max_wall = 25 * 60  # 25 minutes
+        max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
         for page in range(1, self._MAX_PAGES + 1):
             if time.time() - start_time > max_wall:

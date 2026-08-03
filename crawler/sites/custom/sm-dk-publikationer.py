@@ -12,6 +12,7 @@ Pagination:
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -288,7 +289,7 @@ class SmDkPubikationerCrawler(BaseCrawler):
         saved = 0
         seen_urls: set[str] = set()
         crawl_start = time.time()
-        max_wall = 25 * 60
+        max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         max_pages = 200
         limit_display = str(limit) if limit is not None else "∞"
 

@@ -2,6 +2,7 @@
 """Bundeskanzleramt Austria news crawler (nachrichten-der-bundesregierung)."""
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -119,7 +120,7 @@ class BundeskanzleramtGvAtBundeskanzleramtCrawler(BaseCrawler):
         saved = 0
         seen_urls = set()
         start_time = time.time()
-        MAX_SECONDS = 25 * 60  # 25-minute wall-clock budget
+        MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
         SAFETY_CAP = 200       # max year-pages processed
 
         limit_or_inf = limit if limit is not None else "∞"

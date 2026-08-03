@@ -8,6 +8,7 @@ Total corpus: ~108 posts in ~2 pages at per_page=100.
 
 import html
 import json
+import os
 import re
 import subprocess
 import time
@@ -67,7 +68,7 @@ class ClimateInstituteNewsroomCrawler(BaseCrawler):
         seen_urls: set = set()
         start_time = time.time()
         MAX_PAGES = 200
-        MAX_SECONDS = 25 * 60  # 25 minutes
+        MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
         limit_display = str(limit) if limit is not None else "inf"
 

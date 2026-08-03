@@ -21,6 +21,7 @@ Access strategy:
 
 import html as _html_mod
 import json
+import os
 import re
 import sys
 import time
@@ -31,8 +32,8 @@ from crawler.base_crawler import BaseCrawler
 
 _CATEGORY_ID = 1        # WP category ID for "Comunicati"
 _PER_PAGE = 100         # posts per REST API page
-_MAX_PAGES = 200        # safety cap (log + exit, not hard crash)
-_BUDGET_SECS = 25 * 60  # 25-minute wall-clock budget
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))        # safety cap (log + exit, not hard crash)
+_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
 
 # ---------------------------------------------------------------------------

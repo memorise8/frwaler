@@ -39,7 +39,7 @@ _WP_LIST_API = (
 )
 _CROSSREF_API = "https://api.crossref.org/works/{doi}"
 _PAGE_CAP = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_CHARS = 100
 _BACKOFFS = (1, 3, 9)
 _USER_AGENT = (

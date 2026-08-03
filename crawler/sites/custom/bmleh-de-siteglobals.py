@@ -28,6 +28,7 @@ faithful to real page content (no fabricated text).
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -75,8 +76,8 @@ class BmlehDeSiteglobalsCrawler(BaseCrawler):
     )
     _RESULTS_PER_PAGE = 50
     _MIN_ABSTRACT = 50
-    _MAX_PAGES = 200
-    _MAX_WALL = 25 * 60  # seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
     _PUBLISHER = "Bundesministerium für Landwirtschaft, Ernährung und Heimat (BMLEH)"
 
     # ------------------------------------------------------------------

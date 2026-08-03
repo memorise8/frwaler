@@ -10,6 +10,7 @@ PDFs are hosted on https://www.police.be/statistiques/…
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -282,7 +283,7 @@ class PolitieBeMorfologieRapportenCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         start_time = time.time()
-        max_wall_seconds = 25 * 60  # 25-minute budget
+        max_wall_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
 
         saved = 0
         seen_urls = set()

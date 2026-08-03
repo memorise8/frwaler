@@ -12,6 +12,7 @@ Detail       : GET /news-media/<slug> — full article body in .l-story__body
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -369,7 +370,7 @@ class PNNLNewsGovCrawler(BaseCrawler):
         page = 0
         while True:
             # --- Guard: wall-clock budget (25 min) ---
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[pnnl-gov-news] 25-minute budget reached at page {page}, stopping")
                 break
 

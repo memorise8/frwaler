@@ -2,6 +2,7 @@
 """Crawler for SLAC National Accelerator Laboratory – News Releases archive."""
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -59,8 +60,8 @@ class SLACNewsCrawler(BaseCrawler):
 
     _ARCHIVE_URL = "https://www6.slac.stanford.edu/news-and-events/news-center/archive"
     _ARCHIVE_PARAMS = "created=&news_research_area=All&news_type=1"
-    _MAX_PAGES = 200
-    _WALL_BUDGET = 25 * 60  # 25 minutes in seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes in seconds
 
     # ------------------------------------------------------------------
     # Network helpers

@@ -8,6 +8,7 @@ API: POST /rest/items/search  (Elasticsearch query, JSON response)
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 from urllib.parse import urljoin
@@ -17,8 +18,8 @@ from crawler.base_crawler import BaseCrawler
 _BASE_URL = "https://pure.mpg.de"
 _SEARCH_API = f"{_BASE_URL}/rest/items/search"
 _PAGE_SIZE = 25
-_MAX_PAGES = 200
-_WALL_BUDGET_SECS = 25 * 60   # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25 minutes
 _ABSTRACT_MIN_CHARS = 100      # skip items with shorter abstracts
 
 

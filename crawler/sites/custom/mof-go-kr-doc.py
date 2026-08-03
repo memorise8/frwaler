@@ -9,6 +9,7 @@ PDF:    https://www.mof.go.kr/jfile/readDownloadFile.do?fileType=MOF_ARTICLE&fil
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -30,7 +31,7 @@ class MofGoKrDocCrawler(BaseCrawler):
     _BBS_SEQ = "10"
 
     MAX_PAGES = 200
-    _MAX_RUNTIME_S = 25 * 60
+    _MAX_RUNTIME_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _RUNTIME_GRACE_S = 30
 
     # ------------------------------------------------------------------

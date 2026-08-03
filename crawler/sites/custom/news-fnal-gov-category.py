@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import html
 import json
+import os
 import re
 import subprocess
 import sys
@@ -32,8 +33,8 @@ _BASE_URL = "https://news.fnal.gov"
 _START_URL = f"{_BASE_URL}/category/newsroom/press-release/"
 _CATEGORY_ID = 55
 _PER_PAGE = 100
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _DETAIL_DELAY_SECONDS = 1.0
 _BACKOFFS = (1, 3, 9)
 _UA = (

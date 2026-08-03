@@ -7,6 +7,7 @@ API: GET /api/1/search?fulltext=&rows={n}&start={offset}
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -27,7 +28,7 @@ class FairHealthdataBeSearchCrawler(BaseCrawler):
 
     _SEARCH_API = "https://fair.healthdata.be/api/1/search"
     _PAGE_SIZE = 20
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -180,7 +181,7 @@ class FairHealthdataBeSearchCrawler(BaseCrawler):
         saved = 0
         seen_urls: set = set()
         start_time = time.time()
-        MAX_WALL_SECONDS = 25 * 60
+        MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         for page in range(self._MAX_PAGES):
             # Wall-clock budget

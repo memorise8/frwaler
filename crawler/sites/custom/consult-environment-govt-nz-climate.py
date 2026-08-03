@@ -2,6 +2,7 @@
 """Crawler for NZ ETS published submissions on consult.environment.govt.nz."""
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -151,7 +152,7 @@ class ConsultEnvironmentGovtNzClimateCrawler(BaseCrawler):
         saved = 0
         seen_urls = set()
         start_time = time.time()
-        max_seconds = 25 * 60  # 25-minute wall-clock budget
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
         list_url = (
             f"{self.base_url}{self._CONSULTATION_PATH}"

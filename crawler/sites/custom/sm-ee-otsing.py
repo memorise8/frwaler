@@ -15,6 +15,7 @@ bare ``null`` body. Detail pages are plain Drupal node pages fetched at
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -40,7 +41,7 @@ class SmEeOtsingCrawler(BaseCrawler):
 
     PAGE_SIZE = 20
     MAX_PAGES = 200
-    WALL_BUDGET_SECONDS = 25 * 60
+    WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     CURL_TIMEOUT = 30
     BACKOFF_SECONDS = (1, 3, 9)
     MIN_ABSTRACT_CHARS = 100

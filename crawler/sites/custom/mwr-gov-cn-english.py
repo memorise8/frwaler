@@ -32,7 +32,7 @@ from crawler.base_crawler import BaseCrawler  # noqa: E402
 _LIST_BASE = "http://www.mwr.gov.cn/english/Documents/WaterStandards/"
 _PUBLISHER = "Ministry of Water Resources, People's Republic of China"
 _CATEGORY = "Water Standards"
-_MAX_WALL_SECS = 25 * 60   # 25-minute hard wall budget
+_MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute hard wall budget
 _SAFETY_PAGE_CAP = 200     # list-page loop guard
 
 

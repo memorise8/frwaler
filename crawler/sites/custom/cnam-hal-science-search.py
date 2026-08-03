@@ -45,8 +45,8 @@ _API_BASE = "https://api.archives-ouvertes.fr/search/"
 _PAGE_SIZE = 30
 _MIN_ABSTRACT = 100
 _RETRY_WAITS = (1, 3, 9)
-_MAX_PAGES = 200
-_WALL_BUDGET = 25 * 60  # seconds
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
 _FIELDS = ",".join((
     "docid",

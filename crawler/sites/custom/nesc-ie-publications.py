@@ -2,6 +2,7 @@
 """Crawler for NESC (nesc.ie) Publications — National Economic & Social Council."""
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -168,7 +169,7 @@ class NescIePublicationsCrawler(BaseCrawler):
         page = 1
         max_pages = 200
         start_time = time.time()
-        max_seconds = 25 * 60  # 25 minutes
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
         while True:
             try:

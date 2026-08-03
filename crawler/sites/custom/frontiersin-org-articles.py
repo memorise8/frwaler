@@ -59,8 +59,8 @@ class FrontiersOrgArticlesCrawler(BaseCrawler):
 
     _LIST_URL = "https://www.frontiersin.org/articles"
     _ITEMS_PER_PAGE = 24
-    _MAX_PAGES = 200
-    _MAX_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     # ------------------------------------------------------------------
     # Network helpers

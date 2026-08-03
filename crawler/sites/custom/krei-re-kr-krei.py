@@ -10,6 +10,7 @@ PDF download: /krei/board/atchDown.do?no=NNNNNN
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -72,10 +73,10 @@ class KreiReKrKreiCrawler(BaseCrawler):
     base_url  = "https://www.krei.re.kr"
 
     _LIST_URL   = "https://www.krei.re.kr/krei/page/24"
-    _MAX_PAGES  = 200
+    _MAX_PAGES  = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _PAGE_SIZE  = 10
     _RATE_SLEEP = 1.0
-    _MAX_WALL   = 25 * 60  # 25-minute budget
+    _MAX_WALL   = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
 
     # ------------------------------------------------------------------
     # Low-level HTTP via curl (TLS workaround)

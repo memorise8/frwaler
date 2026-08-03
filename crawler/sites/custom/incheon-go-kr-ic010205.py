@@ -6,6 +6,7 @@ Detail: GET https://www.incheon.go.kr/IC010205/view?repSeq=DOM_XXXX&curPage=N
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -40,8 +41,8 @@ class IncheonIC010205Crawler(BaseCrawler):
 
     _LIST_URL = "https://www.incheon.go.kr/IC010205"
     _DETAIL_BASE = "https://www.incheon.go.kr/IC010205/view"
-    _MAX_PAGES = 200          # safety cap
-    _MAX_WALL_SEC = 25 * 60   # 25 minutes
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))          # safety cap
+    _MAX_WALL_SEC = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25 minutes
 
     # ------------------------------------------------------------------
     # Network helpers

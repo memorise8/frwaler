@@ -21,8 +21,8 @@ _BASE_URL = "https://www.cso.ie"
 _LIST_URL_TMPL = "https://www.cso.ie/en/csolatestnews/pressreleases/{year}pressreleases/"
 _PUBLISHER = "Central Statistics Office"
 _EARLIEST_YEAR = 2010
-_MAX_PAGES = 200
-_MAX_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 _MONTH_MAP = {
     "january": "01", "february": "02", "march": "03", "april": "04",

@@ -9,6 +9,7 @@ API:    POST https://library.kwrwater.nl/wp/wp-admin/admin-ajax.php
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 from typing import Optional
@@ -104,7 +105,7 @@ class LibraryKwrwaterNlEnCrawler(BaseCrawler):
         no more pages, or the 25-minute wall-clock budget is exhausted.
         """
         start_time = time.time()
-        MAX_WALL_SECS = 25 * 60
+        MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         MAX_PAGES = 200
 
         saved = 0

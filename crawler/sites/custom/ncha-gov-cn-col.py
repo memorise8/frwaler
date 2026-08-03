@@ -11,6 +11,7 @@ no separate HTML detail page for this column.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -39,7 +40,7 @@ class NchaGovCnColCrawler(BaseCrawler):
     WEB_ID = "1"
 
     SAFETY_PAGE_CAP = 200
-    WALL_CLOCK_BUDGET_SECONDS = 25 * 60
+    WALL_CLOCK_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     CURL_TIMEOUT = 45
     BACKOFF_SECONDS = (1, 3, 9)
     DETAIL_DELAY_SECONDS = 1.0

@@ -5,6 +5,7 @@ Target: https://www.auri.re.kr/board.es?mid=a10401030000&bid=0013
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -16,8 +17,8 @@ _BASE = "https://www.auri.re.kr"
 _MID = "a10401030000"
 _BID = "0013"
 _PUBLISHER = "건축공간연구원"
-_MAX_PAGES = 200
-_MAX_WALL_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _ABSTRACT_MIN_CHARS = 100
 
 

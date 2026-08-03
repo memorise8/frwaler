@@ -10,6 +10,7 @@ That gives full server-rendered HTML without any bot-protection challenges.
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 from urllib.parse import urlparse
@@ -231,7 +232,7 @@ class EnvironmentGovtNzPublicationsCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         start_time = time.time()
-        max_seconds = 25 * 60  # 25-minute wall-clock budget
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
         # Step 1: enumerate all publication URLs from CDX
         entries = self._cdx_publication_urls()

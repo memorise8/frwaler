@@ -10,6 +10,7 @@ Starting URL:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -39,8 +40,8 @@ _LIST_TMPL = (
 )
 
 _ABSTRACT_MIN = 50      # skip items with abstract shorter than this (per spec)
-_MAX_PAGES = 200        # safety cap — log when reached
-_WALL_SECONDS = 25 * 60  # 25-minute per-run budget
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))        # safety cap — log when reached
+_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute per-run budget
 
 
 class IrLibUthGrXmluiCrawler(BaseCrawler):

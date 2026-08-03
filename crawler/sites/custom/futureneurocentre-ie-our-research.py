@@ -43,7 +43,7 @@ AJAX_URL = "https://futureneurocentre.ie/wp-admin/admin-ajax.php"
 
 BACKOFFS = (1, 3, 9)
 SAFETY_CAP_PAGES = 200
-MAX_CRAWL_SECONDS = 25 * 60
+MAX_CRAWL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 MIN_ABSTRACT_CHARS = 100
 
 _BS_PARSER_CACHE = [None]

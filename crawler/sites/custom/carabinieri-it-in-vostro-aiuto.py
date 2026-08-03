@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -17,9 +18,9 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "carabinieri-it-in-vostro-aiuto"
 _BASE_URL = "https://www.carabinieri.it"
 _LIST_BASE = "https://www.carabinieri.it/in-vostro-aiuto/informazioni/comunicati-stampa"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 50
-_WALL_CLOCK_MAX = 25 * 60  # seconds
+_WALL_CLOCK_MAX = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
 
 def _make_soup(html: str) -> BeautifulSoup:

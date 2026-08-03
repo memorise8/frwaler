@@ -31,8 +31,8 @@ _FIELDS = (
     "series_s,volume_s,issue_s"
 )
 _ROWS = 30
-_MAX_PAGES = 200
-_CRAWL_BUDGET_SECS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_LEN = 50
 
 

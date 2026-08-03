@@ -49,8 +49,8 @@ _START_URL = (
     "ImRisSeitBisDatum=&ImRisSeit=Undefined&ResultPageSize=100&"
     "Suchworte=&Position=1&SkipToDocumentPage=true"
 )
-_MAX_PAGES = 200
-_WALL_BUDGET_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _ABSTRACT_MIN_CHARS = 50
 
 _LABEL_KEYS = {

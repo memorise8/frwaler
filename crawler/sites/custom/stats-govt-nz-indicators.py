@@ -19,6 +19,7 @@ import csv
 import hashlib
 import io
 import json
+import os
 import re
 import subprocess
 import time
@@ -201,7 +202,7 @@ class StatsGovtNzIndicatorsCrawler(BaseCrawler):
 
     PAGE_SIZE = 10
     SAFETY_PAGE_CAP = 200
-    WALL_CLOCK_SECONDS = 25 * 60
+    WALL_CLOCK_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     DEADLINE_MARGIN_SECONDS = 30
     CURL_TIMEOUT = 45
     BROWSER_TIMEOUT_MS = 60000

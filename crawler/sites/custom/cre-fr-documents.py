@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import html as htmlmod
 import json
+import os
 import re
 import subprocess
 import sys
@@ -368,7 +369,7 @@ class CreFrDocumentsCrawler(BaseCrawler):
             Maximum number of documents to save.  ``None`` means no limit.
         """
         start_time = time.time()
-        max_wall_secs = 25 * 60  # 25-minute hard budget
+        max_wall_secs = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute hard budget
         limit_disp = str(limit) if limit is not None else "∞"
 
         # ---- Phase 1: discover all document URLs ----

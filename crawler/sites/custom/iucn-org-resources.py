@@ -8,6 +8,7 @@ Detail: GET https://iucn.org/resources/dataset/{slug}
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 from html import unescape
@@ -48,7 +49,7 @@ class IUCNResourcesCrawler(BaseCrawler):
         "rgn": "All",
         "cntry": "All",
     }
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _WALL_MINS = 25
     _MIN_ABS = 50
     _BACKOFF = (1, 3, 9)

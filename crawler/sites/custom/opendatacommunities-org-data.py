@@ -14,6 +14,7 @@ Strategy:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -30,7 +31,7 @@ from crawler.base_crawler import BaseCrawler
 
 _SITE_ID = "opendatacommunities-org-data"
 _NEW_BASE = "https://open-data.communities.gov.uk"
-_MAX_PAGES = 200  # safety cap on node files to scan
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))  # safety cap on node files to scan
 _ABSTRACT_MIN_CHARS = 50
 
 _MONTHS = {
@@ -341,7 +342,7 @@ class OpenDataCommunitiesDataCrawler(BaseCrawler):
         for node_path in node_paths:
             if saved >= limit_or_inf:
                 break
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-minute wall-clock budget reached, stopping")
                 break
             if p >= _MAX_PAGES:

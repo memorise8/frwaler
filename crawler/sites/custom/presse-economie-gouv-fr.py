@@ -220,7 +220,7 @@ class PresseEconomieGouvCrawler(BaseCrawler):
     site_name = "Custom: presse-economie-gouv-fr"
     base_url = "https://presse.economie.gouv.fr"
 
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _PAGE_SLEEP = 1.0  # seconds between RSS page fetches
 
     # ------------------------------------------------------------------
@@ -267,7 +267,7 @@ class PresseEconomieGouvCrawler(BaseCrawler):
         for page in range(1, self._MAX_PAGES + 1):
             # 25-minute wall-clock budget
             elapsed = time.time() - start_time
-            if elapsed > 25 * 60:
+            if elapsed > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(
                     f"[{self.site_id}] Wall-clock budget (25 min) reached "
                     f"at page {page}. Stopping."

@@ -343,7 +343,7 @@ class StepiReKrSiteCrawler(BaseCrawler):
 
         while saved < limit_eff and page <= MAX_PAGES:
             # 25분 예산 검사
-            if time.time() - t0 > 25 * 60:
+            if time.time() - t0 > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute wall-clock budget reached; stopping.")
                 break
 

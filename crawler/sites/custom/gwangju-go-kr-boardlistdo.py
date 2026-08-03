@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import html
 import json
+import os
 import re
 import subprocess
 import time
@@ -34,8 +35,8 @@ class GwangjuGoKrBoardlistdoCrawler(BaseCrawler):
     _DETAIL_PATH = "/boardView.do"
     _PUBLISHER = "광주광역시"
 
-    _MAX_PAGES = 200
-    _WALL_CLOCK_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_CLOCK_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _STOP_SOON_SECONDS = _WALL_CLOCK_SECONDS - 30
     _MIN_ABSTRACT_CHARS = 50
 

@@ -115,7 +115,7 @@ class BoverketSeEnCrawler(BaseCrawler):
             Maximum number of records to save. ``None`` means unlimited.
         """
         start_time = time.time()
-        MAX_WALL_SECONDS = 25 * 60
+        MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         saved = 0
         seen_urls: set[str] = set()

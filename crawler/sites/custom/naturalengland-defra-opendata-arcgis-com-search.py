@@ -9,6 +9,7 @@ Total: ~183 datasets (as of 2026-05)
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -102,7 +103,7 @@ class NaturalEnglandArcgisSearchCrawler(BaseCrawler):
         next_url: str | None = f"{_API_BASE}?limit={_PAGE_SIZE}"
 
         while next_url and page < _SAFETY_CAP_PAGES:
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-min wall-clock budget reached, stopping.")
                 break
 

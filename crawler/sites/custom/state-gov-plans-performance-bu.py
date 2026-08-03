@@ -272,7 +272,7 @@ class StateGovPlansBudgetCrawler(BaseCrawler):
 
             # Wall-clock budget: 25 minutes
             elapsed = time.time() - start_time
-            if elapsed > 25 * 60:
+            if elapsed > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] Wall-clock budget (25 min) reached after {elapsed:.0f}s. Stopping.")
                 break
 

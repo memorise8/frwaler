@@ -16,6 +16,7 @@ the numeric Drupal node id via the ``drupal-settings-json`` inline script
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -128,7 +129,7 @@ class AmeslabGovNewsCrawler(BaseCrawler):
         ("feature-stories", "Feature Story"),
     )
     _SAFETY_CAP = 200
-    _WALL_BUDGET_SECONDS = 25 * 60
+    _WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT_CHARS = 50
     _BACKOFF_SECONDS = (1, 3, 9)
     _PUBLISHER = "Ames National Laboratory"

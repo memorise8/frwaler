@@ -5,6 +5,7 @@ Starting URL: https://info.korail.com/info/selectBbsNttList.do?bbsNo=199&key=911
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -49,7 +50,7 @@ class InfoKorailComInfoCrawler(BaseCrawler):
     site_name = "Custom: info-korail-com-info"
     base_url = _BASE
 
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
     # ------------------------------------------------------------------
     # curl helper
@@ -251,7 +252,7 @@ class InfoKorailComInfoCrawler(BaseCrawler):
 
         for page in range(1, self._MAX_PAGES + 1):
             # 25-minute wall-clock budget
-            if time.time() - start_time > 25 * 60:
+            if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-min budget reached at page {page}. Stopping.")
                 break
 

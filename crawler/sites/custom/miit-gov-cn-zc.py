@@ -189,7 +189,7 @@ class MiitGovCnZcCrawler(BaseCrawler):
         seen_urls = set()
         limit_str = str(limit) if limit is not None else "inf"
         start_time = time.time()
-        MAX_WALL = 25 * 60   # 25-minute hard budget
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute hard budget
         MAX_PAGES = 200
 
         page = 1

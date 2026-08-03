@@ -349,7 +349,7 @@ class VaGovVetdataCrawler(BaseCrawler):
         guards against duplicate file links on the page.
         """
         start_time = time.monotonic()
-        max_wall = 25 * 60  # 25-minute budget
+        max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
         lim_str = str(limit) if limit is not None else "∞"
 
         print(f"[{_SITE_ID}] Fetching {_REPORT_URL}")

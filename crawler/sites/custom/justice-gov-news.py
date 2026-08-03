@@ -10,6 +10,7 @@ Detail page: Drupal node, body in div.node-press-release paragraphs.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -21,7 +22,7 @@ _SITE_ID = "justice-gov-news"
 _BASE_URL = "https://www.justice.gov"
 _LIST_URL = "https://www.justice.gov/news/press-releases"
 _PAGE_SIZE = 12
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 50
 _DETAIL_DELAY = 1.0
 _COOKIE_FILE = "/tmp/justice_gov_cookies.txt"
@@ -287,7 +288,7 @@ class JusticeGovNewsCrawler(BaseCrawler):
         """Crawl DOJ press releases. Returns number of saved documents."""
         import time as _time
         start_wall = _time.monotonic()
-        wall_budget_s = 25 * 60  # 25 minutes
+        wall_budget_s = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
         # Ensure Akamai cookies are valid on first run
         if not self._akamai_solved:

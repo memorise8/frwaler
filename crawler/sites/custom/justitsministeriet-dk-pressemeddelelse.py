@@ -7,6 +7,7 @@ Pagination: /side/{N}/ (Danish for "page")
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -166,7 +167,7 @@ class JustitsministerietPressemeddelelseCrawler(BaseCrawler):
         seen_urls: set = set()
         page = 1
         MAX_PAGES = 200
-        WALL_LIMIT = 25 * 60  # seconds
+        WALL_LIMIT = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
         start_time = time.time()
         limit_or_inf = limit if limit is not None else "∞"
 

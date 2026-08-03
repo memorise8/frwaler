@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -29,8 +30,8 @@ class InriaHalScienceSearchCrawler(BaseCrawler):
     _QUERY = "collCode_s:INRIA2"
     _LIST_FILTERS = ("submitType_s:file", "docType_s:REPORT")
     _PAGE_SIZE = 30
-    _MAX_PAGES = 200
-    _WALL_CLOCK_BUDGET = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_CLOCK_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _WALL_CLOCK_MARGIN = 30
     _MIN_ABSTRACT_CHARS = 100
     _RETRY_WAITS = (1, 3, 9)

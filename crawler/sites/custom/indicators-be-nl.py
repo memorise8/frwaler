@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -266,7 +267,7 @@ class IndicatorsBeNlCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         start_time = time.time()
-        max_wall = 25 * 60  # 25 minutes
+        max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
         saved = 0
         seen_urls = set()

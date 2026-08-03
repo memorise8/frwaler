@@ -7,6 +7,7 @@ found immediately, making small limits (e.g. limit=3) fast.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -19,8 +20,8 @@ _BASE = "https://helios.eie.gr"
 _LIST_URL = f"{_BASE}/helios/handle/10442/11/simple-search"
 _FILTER_VALUE = "Άρθρο σε επιστημονικό περιοδικό"
 _RPP = 100
-_MAX_PAGES = 200
-_CRAWL_TIMEOUT = 25 * 60   # seconds
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_CRAWL_TIMEOUT = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # seconds
 _MIN_ABSTRACT = 50          # items with shorter abstract are skipped
 
 

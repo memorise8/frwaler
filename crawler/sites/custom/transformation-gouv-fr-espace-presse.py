@@ -24,7 +24,7 @@ _SITE_ID = "transformation-gouv-fr-espace-presse"
 _BASE_URL = "https://www.transformation.gouv.fr"
 _LIST_PATH = "/espace-presse"
 _FILTER_PARAM = "field_type_presse_target_id%5B17%5D=17"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _RETRY_DELAYS = (1, 3, 9)
 
 _FRENCH_MONTHS = {
@@ -191,7 +191,7 @@ class TransformationGouvFrEspacePresseCrawler(BaseCrawler):
         saved = 0
         seen_urls = set()
         limit_eff = float("inf") if limit is None else limit
-        deadline = time.time() + 25 * 60  # 25-minute wall-clock budget
+        deadline = time.time() + int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
         for page in range(_MAX_PAGES):
             if time.time() >= deadline:

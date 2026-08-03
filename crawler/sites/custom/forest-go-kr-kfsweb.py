@@ -8,6 +8,7 @@ Detail: https://www.forest.go.kr/kfsweb/cop/bbs/selectBoardArticle.do?nttId=NTTI
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -19,9 +20,9 @@ _BASE = "https://www.forest.go.kr"
 _BBS_ID = "BBSMSTR_1036"
 _MN = "NKFS_04_02_01"
 _PAGE_SIZE = 10
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _DETAIL_SLEEP = 1.0
-_MAX_RUNTIME_S = 25 * 60  # 25 minutes
+_MAX_RUNTIME_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 def _make_soup(html: str, context: str = "html"):

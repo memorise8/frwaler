@@ -12,6 +12,7 @@ Pagination: page[offset] / page[limit] via links.next in each response.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -23,8 +24,8 @@ from crawler.base_crawler import BaseCrawler
 _API_BASE = "https://www.bnf.fr/fr/jsonapi/node/espace_presse"
 _SITE_BASE = "https://www.bnf.fr"
 _PAGE_SIZE = 50
-_MAX_PAGES = 200
-_MAX_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _BACKOFF = (1, 3, 9)
 _MIN_ABSTRACT = 50
 

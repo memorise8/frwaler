@@ -33,7 +33,7 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "english-mee-gov-cn-resources"
 _BASE_URL = "https://english.mee.gov.cn"
 _PUBLISHER = "Ministry of Ecology and Environment of the People's Republic of China"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_SAVE_MIN = 50   # per-spec: skip if <50 chars; extraction target is >=100
 
 _SECTIONS = [
@@ -297,7 +297,7 @@ class EnglishMeeGovCnResourcesCrawler(BaseCrawler):
         for section_url, category in _SECTIONS:
             if limit is not None and saved >= limit:
                 break
-            if time.time() - crawl_start > 25 * 60:
+            if time.time() - crawl_start > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-minute wall-clock budget reached; stopping.")
                 break
 
@@ -322,7 +322,7 @@ class EnglishMeeGovCnResourcesCrawler(BaseCrawler):
             for item in items:
                 if limit is not None and saved >= limit:
                     break
-                if time.time() - crawl_start > 25 * 60:
+                if time.time() - crawl_start > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                     print(f"[{_SITE_ID}] 25-minute wall-clock budget reached; stopping.")
                     break
 

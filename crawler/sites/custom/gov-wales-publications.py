@@ -9,6 +9,7 @@ Detail pages: Drupal 11 HTML, abstract from #description-block or hero summary.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -28,7 +29,7 @@ class GovWalesPublicationsCrawler(BaseCrawler):
 
     LIST_URL = "https://www.gov.wales/publications"
     MAX_PAGES = 200
-    MAX_RUNTIME_SECONDS = 25 * 60
+    MAX_RUNTIME_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     RUNTIME_GRACE_SECONDS = 30
     PUBLISHER = "Welsh Government"
 

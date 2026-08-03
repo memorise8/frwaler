@@ -37,8 +37,8 @@ _SITE_ID = "data-statistik-gv-at-web"
 _BASE_URL = "https://data.statistik.gv.at"
 _START_URL = f"{_BASE_URL}/web/catalog.jsp#"
 _JSON_API = f"{_BASE_URL}/ogd/json"
-_MAX_PAGES = 200
-_WALL_BUDGET_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _SHORT_ABSTRACT_MIN = 50
 _RETRY_WAITS = (1, 3, 9)
 

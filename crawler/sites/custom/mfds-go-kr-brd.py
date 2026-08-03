@@ -13,6 +13,7 @@ contains only the title, so the PDF is the only reliable source of rich text.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -37,9 +38,9 @@ class MFDSBoardCrawler(BaseCrawler):
     _DOWN_BASE = "https://www.mfds.go.kr/brd/m_99/down.do"
     _BRD_ID = "ntc0021"
     _PAGE_SIZE = 10    # items per list page
-    _MAX_PAGES = 200   # safety pagination cap
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))   # safety pagination cap
     _RATE_LIMIT = 1.0  # seconds between detail fetches
-    _MAX_WALL_SECONDS = 25 * 60  # 25-minute budget
+    _MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
     _MIN_ABSTRACT_LEN = 50  # items shorter than this are skipped (not saved)
 
     # ------------------------------------------------------------------

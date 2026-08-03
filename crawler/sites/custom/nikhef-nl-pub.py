@@ -8,6 +8,7 @@ No detail pages — abstract text is extracted from each PDF via pdfplumber.
 
 import io
 import json
+import os
 import re
 import subprocess
 import sys
@@ -272,7 +273,7 @@ class NikhefPubCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         start_time = time.time()
-        max_seconds = 25 * 60  # 25-minute wall-clock budget
+        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
         saved = 0
         seen_urls = set()

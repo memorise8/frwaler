@@ -9,6 +9,7 @@ Taxonomy ID 34 = "Research article" in kit_publication_type.
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 from html import unescape
@@ -23,7 +24,7 @@ _BASE_URL = "https://www.kit.nl"
 _API_BASE = "https://www.kit.nl/wp-json/wp/v2/institute_pub"
 _PUB_TYPE_RESEARCH_ARTICLE = 34   # kit_publication_type taxonomy ID for "Research article"
 _PER_PAGE = 100
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 50     # skip items with shorter abstracts
 
 _MONTHS = {
@@ -267,7 +268,7 @@ class KitNlInstituteCrawler(BaseCrawler):
 
         while True:
             # Wall-clock budget: 25 minutes
-            if time.time() - crawl_start > 25 * 60:
+            if time.time() - crawl_start > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-minute wall-clock budget reached; stopping.")
                 break
 

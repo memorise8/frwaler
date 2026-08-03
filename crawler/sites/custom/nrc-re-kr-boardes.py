@@ -32,8 +32,8 @@ class NRCBoardesCrawler(BaseCrawler):
     _LIST_BASE = "https://www.nrc.re.kr/board.es"
     _MID = "a12102000000"
     _BID = "0015"
-    _MAX_PAGES = 200
-    _MAX_WALL_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT = 100  # skip items with fewer chars of extracted text
 
     # ------------------------------------------------------------------

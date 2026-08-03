@@ -16,6 +16,7 @@ block, giving each record 200+ chars of real page text.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -49,9 +50,9 @@ _UA = (
     "Chrome/120.0.0.0 Safari/537.36"
 )
 _BACKOFF = (1, 3, 9)
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _MIN_ABSTRACT = 50
-_MAX_SECONDS = 25 * 60  # 25 minutes
+_MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 # ---------------------------------------------------------------------------

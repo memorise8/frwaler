@@ -5,6 +5,7 @@ Target: https://www.apra.gov.au/statistics
 """
 
 import json
+import os
 import subprocess
 import time
 from urllib.parse import urljoin, urlparse, unquote
@@ -13,9 +14,9 @@ from crawler.base_crawler import BaseCrawler
 
 _BASE = "https://www.apra.gov.au"
 _LIST_URL = f"{_BASE}/statistics"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _RATE_LIMIT = 1.0  # seconds between detail fetches
-_BUDGET_SECS = 25 * 60  # 25 minutes
+_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 def _curl(url, retries=3):

@@ -11,6 +11,7 @@ HTML at ``/publications/final-report/`` and paginated with ``/page/N/`` URLs.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -30,7 +31,7 @@ BASE_URL = "https://www.alrc.gov.au"
 START_URL = f"{BASE_URL}/publications/final-report/"
 PUBLISHER = "Australian Law Reform Commission"
 SAFETY_PAGE_CAP = 200
-MAX_WALL_SECONDS = 25 * 60
+MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 ABSTRACT_MIN_CHARS = 50
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

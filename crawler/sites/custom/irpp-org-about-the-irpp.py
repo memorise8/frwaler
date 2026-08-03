@@ -35,7 +35,7 @@ class IRPPOrgAboutTheIRPPCrawler(BaseCrawler):
     _START_URL = "https://irpp.org/about-the-irpp/annual-reports/"
     _RETRIES = 3
     _BACKOFFS = (1, 3, 9)
-    _MAX_WALL_SECONDS = 25 * 60
+    _MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     # ------------------------------------------------------------------
     # Network helpers

@@ -14,6 +14,7 @@ plus /content/eda/en/meta/news/YYYY/M/D/{langGroupId}.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -39,7 +40,7 @@ class EdaAdminChEdaCrawler(BaseCrawler):
     PUBLISHER_ID = "2"  # Federal Department of Foreign Affairs (EDA/FDFA)
     PAGE_SIZE = 50
     SAFETY_PAGE_CAP = 200
-    WALL_CLOCK_SECONDS = 25 * 60
+    WALL_CLOCK_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     WALL_APPROACH_SECONDS = 24 * 60
     CURL_TIMEOUT = 60
     BACKOFF_SECONDS = (1, 3, 9)

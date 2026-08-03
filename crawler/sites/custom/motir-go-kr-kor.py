@@ -10,6 +10,7 @@ The ATCL id identifies a board (게시판); listing is paginated via
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -53,8 +54,8 @@ class MotirGoKrKorCrawler(BaseCrawler):
     _ARTICLE_CODE = "ATCL3f49a5a8c"
     _LIST_URL = f"{base_url}/kor/article/{_ARTICLE_CODE}"
     _MIN_ABSTRACT = 50
-    _MAX_PAGES = 200
-    _MAX_WALL = 25 * 60  # seconds
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
     _PUBLISHER = "산업통상부"
 
     # ------------------------------------------------------------------

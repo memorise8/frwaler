@@ -16,6 +16,7 @@ Strategy:
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -27,8 +28,8 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID   = "insight-centre-org-press-releases"
 _BASE      = "https://www.insight-centre.org"
 _LIST_URL  = "https://www.insight-centre.org/press-releases/"
-_MAX_PAGES = 200   # safety cap (only 1 list page currently, kept for future)
-_WALL_SECS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))   # safety cap (only 1 list page currently, kept for future)
+_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 # ---------------------------------------------------------------------------

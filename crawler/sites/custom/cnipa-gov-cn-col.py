@@ -12,6 +12,7 @@ guarantees abstract ≥ 100 chars even for sparse pages.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -278,7 +279,7 @@ class CnipaGovCnColCrawler(BaseCrawler):
         for p in range(1, effective_pages + 1):
             if saved >= limit_n:
                 break
-            if time.time() - t0 > 25 * 60:
+            if time.time() - t0 > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] Wall-clock budget exceeded at page {p}. Exiting cleanly.")
                 break
             if p == safety_cap:

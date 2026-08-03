@@ -9,6 +9,7 @@ abstract field, so DOI records are enriched from CrossRef when possible.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -23,7 +24,7 @@ GRAPHQL_ENDPOINT = "https://craft.bjerknes.uib.no/graphql"
 CROSSREF_WORKS_ENDPOINT = "https://api.crossref.org/works"
 PAGE_SIZE = 50
 MAX_PAGES = 200
-MAX_SECONDS = 25 * 60
+MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 MIN_ABSTRACT_CHARS = 100
 
 

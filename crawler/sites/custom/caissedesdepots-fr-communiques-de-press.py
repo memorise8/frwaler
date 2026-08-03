@@ -2,6 +2,7 @@
 """Caisse des Dépôts - Communiqués de presse crawler (PDF list, no detail pages)."""
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -168,7 +169,7 @@ class CaisseDesDepotsCommPresseCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         start_time = time.time()
-        MAX_WALL_SECONDS = 25 * 60
+        MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         SAFETY_CAP = 200
 
         saved = 0

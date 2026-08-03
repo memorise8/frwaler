@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -13,7 +14,7 @@ from crawler.base_crawler import BaseCrawler
 _BACKOFF = (1, 3, 9)
 _MIN_ABSTRACT = 50
 _WALL_CLOCK_MIN = 25
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
 
 def _curl_get(url: str, timeout: int = 30) -> str | None:

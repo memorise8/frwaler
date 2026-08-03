@@ -9,6 +9,7 @@ PDF:    https://www.kwdi.re.kr/inc/download.do?ut=A&upIdx=IDX&no=N
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -37,7 +38,7 @@ class KwdiReKrPlazaCrawler(BaseCrawler):
     _DEPARTMENT = "한국여성정책연구원"
 
     MAX_PAGES = 200
-    _MAX_RUNTIME_S = 25 * 60
+    _MAX_RUNTIME_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     # ------------------------------------------------------------------
     # Main crawl loop

@@ -21,6 +21,7 @@ attachment filenames) rather than being padded with artificial filler.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -94,7 +95,7 @@ class OkaGoKrWebCrawler(BaseCrawler):
 
     MENU_CD = "000164"
     _SAFETY_CAP = 200
-    _WALL_BUDGET_SECONDS = 25 * 60
+    _WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT_CHARS = 50
     _BACKOFF_SECONDS = (1, 3, 9)
 

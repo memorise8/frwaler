@@ -6,6 +6,7 @@ Backend: Plone CMS with eea.facetednavigation (@@faceted_query endpoint).
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -14,8 +15,8 @@ from crawler.base_crawler import BaseCrawler
 
 _LIST_URL = "https://www.idiap.ch/en/scientific-research/data/@@faceted_query"
 _PAGE_SIZE = 20
-_MAX_PAGES = 200
-_MAX_WALL_SECS = 25 * 60  # 25 minutes
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 def _make_soup(html: str):

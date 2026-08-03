@@ -35,8 +35,8 @@ from crawler.base_crawler import BaseCrawler  # noqa: E402
 _ORG_ID = "5c812a16634f416583ed1876"
 _ORG_SLUG = "cerema"
 _PAGE_SIZE = 20
-_MAX_PAGES = 200
-_CRAWL_TIMEOUT_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_CRAWL_TIMEOUT_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _ABSTRACT_MIN_CHARS = 100
 
 

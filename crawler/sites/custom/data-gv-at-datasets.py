@@ -41,8 +41,8 @@ _API_BASE = f"{_BASE_URL}/api/hub/search"
 _LIST_API = f"{_API_BASE}/search"
 _DETAIL_API = f"{_API_BASE}/datasets"
 _PAGE_SIZE = 50
-_MAX_PAGES = 200
-_WALL_BUDGET_SECONDS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _ABSTRACT_MIN_CHARS = 100
 _UUID_RE = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",

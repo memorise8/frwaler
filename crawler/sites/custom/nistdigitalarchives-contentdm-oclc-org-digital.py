@@ -7,6 +7,7 @@ PDF    : /utils/getfile/collection/p16009coll6/id/{ptr}/filename/{ptr}.pdf
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -152,7 +153,7 @@ class NISTDigitalArchivesCrawler(BaseCrawler):
         saved = 0
         page_num = 0
         MAX_PAGES = 200
-        MAX_WALL_SECONDS = 25 * 60
+        MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         t0 = time.time()
         limit_label = str(limit) if limit is not None else "∞"
 

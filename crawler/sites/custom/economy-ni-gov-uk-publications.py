@@ -9,6 +9,7 @@ Detail pages parsed with BeautifulSoup for abstract, node-id, PDFs, topics.
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -325,7 +326,7 @@ class EconomyNiGovUkPublicationsCrawler(BaseCrawler):
     def crawl(self, limit=None):
         """Crawl publications and save to DB. Returns number of saved items."""
         start_time = time.time()
-        MAX_WALL_SECS = 25 * 60  # 25 minutes
+        MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
         MAX_PAGES = 200           # safety cap: each "page" = 10 items
 
         seen_urls: set = set()

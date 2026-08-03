@@ -2,6 +2,7 @@
 """Crawler for IMT Nord Europe Research News (English, WordPress REST API)."""
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -69,7 +70,7 @@ class IMTNordEuropeNewsEnCrawler(BaseCrawler):
         seen_urls = set()
         limit_or_inf = limit if limit is not None else float("inf")
         start_time = time.time()
-        MAX_WALL = 25 * 60  # 25 minutes
+        MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
         p = 1
         while True:

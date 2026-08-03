@@ -6,6 +6,7 @@ Detail:    HTML  https://www.cac.gov.cn/YYYY-MM/DD/c_<id>.htm
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -179,7 +180,7 @@ class CacGovCnHdfwCrawler(BaseCrawler):
         seen_urls: set = set()
         MAX_PAGES = 200
         start_time = time.time()
-        MAX_WALL_SECS = 25 * 60  # 25 minutes
+        MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
         while True:
             if limit is not None and saved >= limit:

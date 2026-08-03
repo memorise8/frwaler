@@ -12,6 +12,7 @@ Strategy:
 
 import json
 import math
+import os
 import re
 import subprocess
 import sys
@@ -30,8 +31,8 @@ _LIST_MID = "a10103090000"
 _LIST_PUB_KIND = "WKP"
 _LIB_DETAIL_BASE = "https://library.krihs.re.kr/library/10120/contents"
 _SITE_ID = "krihs-re-kr-krihslibraryreport"
-_MAX_PAGES = 200
-_MAX_WALL_SECS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 class KRIHSLibraryReportCrawler(BaseCrawler):

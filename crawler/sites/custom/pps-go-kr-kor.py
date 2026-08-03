@@ -7,6 +7,7 @@ curl-based due to TLS/session quirks on Korean government sites.
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -17,8 +18,8 @@ _BASE_URL = "https://www.pps.go.kr"
 _LIST_URL = f"{_BASE_URL}/kor/bbs/list.do"
 _VIEW_URL = f"{_BASE_URL}/kor/bbs/view.do"
 _KEY = "00664"
-_MAX_PAGES = 200
-_MAX_WALL = 25 * 60  # seconds
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
 _USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

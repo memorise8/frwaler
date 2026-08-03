@@ -11,6 +11,7 @@ Fields used:
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 
@@ -24,8 +25,8 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "issnationallab-org-publications"
 _API_URL = "https://issnationallab.org/wp-json/wp/v2/publications"
 _ITEMS_PER_PAGE = 100          # WP REST API max
-_MAX_PAGES = 200               # safety cap
-_WALL_CLOCK_BUDGET = 25 * 60  # 25 min in seconds
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))               # safety cap
+_WALL_CLOCK_BUDGET = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 min in seconds
 _MIN_ABSTRACT_LEN = 100        # skip shorter abstracts (test requires >=100)
 _PAGE_SLEEP = 0.5              # seconds between page fetches
 _BACKOFF = (1, 3, 9)          # retry delays

@@ -16,6 +16,7 @@ The CAS gateway redirect (gateway=true) is transparent: following redirects
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -120,7 +121,7 @@ class ReseauCanopeFrEspacePressCrawler(BaseCrawler):
         seen_urls: set[str] = set()
         limit_or_inf = limit if limit is not None else float("inf")
         wall_start = time.time()
-        MAX_WALL_SECONDS = 25 * 60
+        MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         page = 1
         page_url = self.LIST_URL

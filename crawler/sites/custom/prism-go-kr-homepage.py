@@ -8,6 +8,7 @@ API    : POST https://api.prism.go.kr/prism-be-prtl/search/totalSearch.do
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -31,8 +32,8 @@ class PrismGoKrHomepageCrawler(BaseCrawler):
     # "연구" (research) is present in virtually every record → ~380 K hits.
     _DEFAULT_QUERY = "연구"
     _PAGE_SIZE = 20
-    _MAX_PAGES = 200      # safety cap (log when reached)
-    _MAX_SECONDS = 25 * 60  # 25-minute wall-clock budget
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))      # safety cap (log when reached)
+    _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
 
     # ------------------------------------------------------------------
     # curl POST helper

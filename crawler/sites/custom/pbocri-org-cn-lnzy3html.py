@@ -21,8 +21,8 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "pbocri-org-cn-lnzy3html"
 _LIST_URL = "https://www.pbocri.org.cn/lnzy3.html"
 _RATE_SLEEP = 1.0
-_MAX_PAGES = 200  # safety cap (this site is a single page, kept for spec)
-_CRAWL_BUDGET_SECS = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))  # safety cap (this site is a single page, kept for spec)
+_CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
 
 def _curl(url, out_path=None, retries=3):

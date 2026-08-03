@@ -189,8 +189,8 @@ class SibSwissTrainingCrawler(BaseCrawler):
     base_url = "https://www.sib.swiss"
 
     _LISTING_URL = "https://www.sib.swiss/training/training-materials"
-    _MAX_PAGES = 200
-    _WALL_CLOCK_S = 25 * 60  # 25 minutes
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _WALL_CLOCK_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
     def crawl(self, limit=None):
         """Crawl training materials and persist to DB.

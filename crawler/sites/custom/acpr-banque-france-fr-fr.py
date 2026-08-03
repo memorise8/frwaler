@@ -7,6 +7,7 @@ Pagination: ?page=N  (~10 items/page, pages 0–~18)
 """
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -89,7 +90,7 @@ class ACPRBanqueFranceCrawler(BaseCrawler):
         '&format%5B5412600%5D=5412600'
         '&start-date_year=&start-date_month=&end-date_year=&end-date_month='
     )
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _SKIP_ABSTRACT_LEN = 100  # skip items where abstract < this (matches test assertion >=100)
 
     # ------------------------------------------------------------------
@@ -402,7 +403,7 @@ class ACPRBanqueFranceCrawler(BaseCrawler):
         """Crawl ACPR études et recherche page by page."""
         saved = 0
         seen_urls = set()
-        deadline = time.time() + 25 * 60  # 25-minute wall-clock cap
+        deadline = time.time() + int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock cap
 
         for page in range(self._MAX_PAGES):
             if limit is not None and saved >= limit:

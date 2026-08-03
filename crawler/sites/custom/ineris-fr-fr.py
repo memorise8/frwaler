@@ -21,8 +21,8 @@ _BASE = "https://www.ineris.fr"
 _LIST_PATH = "/fr/base-documentaire"
 _LIST_FILTER = "?document%5B0%5D=document_type%3A68"
 _PAGE_SIZE = 9          # observed items per page on the listing
-_MAX_PAGES = 200        # safety cap
-_MAX_WALL = 25 * 60    # 25-minute wall-clock budget
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))        # safety cap
+_MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))    # 25-minute wall-clock budget
 
 
 class InerisfrfrCrawler(BaseCrawler):

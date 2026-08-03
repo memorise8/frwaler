@@ -52,6 +52,7 @@ also wraps the lead/contact/disclaimer text.
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 
@@ -61,7 +62,7 @@ _BASE = "https://www.ots.at"
 _API_BASE = "https://core2023.ots.at/api/v1"
 _EMITTENT_ID = "54"
 _PAGE_SIZE = 10
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _MIN_ABSTRACT_SAVE = 50     # skip saving if shorter than this
 _BACKOFF = (1, 3, 9)
 _TIME_BUDGET_SECONDS = 1500  # 25 minutes

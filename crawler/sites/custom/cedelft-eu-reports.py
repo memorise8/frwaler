@@ -19,6 +19,7 @@ Fields extracted:
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import time
@@ -267,7 +268,7 @@ class CedelftEuReportsCrawler(BaseCrawler):
             Maximum number of records to save. None = unlimited.
         """
         start_ts = time.time()
-        max_wall = 25 * 60  # 25-minute wall clock budget
+        max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall clock budget
 
         print(f"[{self.site_id}] Fetching sitemaps...")
         entries = self._fetch_sitemaps()

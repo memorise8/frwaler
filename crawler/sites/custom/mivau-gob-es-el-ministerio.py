@@ -10,6 +10,7 @@ Detail endpoint: each /el-ministerio/sala-de-prensa/noticias/<slug> page.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -37,8 +38,8 @@ _HEADERS = [
 ]
 
 _BACKOFF = (1, 3, 9)
-_MAX_PAGES = 200
-_MAX_RUNTIME_S = 25 * 60
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+_MAX_RUNTIME_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT = 50
 _STATUS_MARKER = b"\n__MIVAU_HTTP_STATUS__:"
 

@@ -23,7 +23,7 @@ class OSRPublicationsListCrawler(BaseCrawler):
 
     _API_BASE = "https://osr.statisticsauthority.gov.uk/wp-json/wp/v2"
     _DETAIL_DELAY = 1.0
-    _MAX_PAGES = 200
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _MAX_WALL_MINUTES = 25
 
     def _curl_get(self, url, retries=3):

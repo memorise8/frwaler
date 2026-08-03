@@ -91,8 +91,8 @@ class JejuGoKrNewsCrawler(BaseCrawler):
     site_name = "Custom: jeju-go-kr-news"
     base_url = _BASE_URL
 
-    _MAX_PAGES = 200
-    _TIME_BUDGET_SECONDS = 25 * 60
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _TIME_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _TIME_EXIT_MARGIN_SECONDS = 30
 
     def crawl(self, limit=None):

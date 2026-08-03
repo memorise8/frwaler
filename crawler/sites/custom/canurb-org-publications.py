@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -19,7 +20,7 @@ _LIST_URL = "https://canurb.org/publications/"
 _MIN_ABSTRACT = 50
 _BACKOFF = (1, 3, 9)
 _PAGE_SAFETY_CAP = 200
-_CRAWL_BUDGET_SECS = 25 * 60  # 25 minutes
+_CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 class CanurbOrgPublicationsCrawler(BaseCrawler):

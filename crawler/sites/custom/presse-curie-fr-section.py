@@ -12,6 +12,7 @@ A fresh nonce is scraped from the listing page on every crawl run.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -48,7 +49,7 @@ class PresseCurieFrSectionCrawler(BaseCrawler):
     def crawl(self, limit=None):
         """Crawl communiqués and save to DB. Returns count of saved items."""
         start_time = time.monotonic()
-        MAX_WALL_SECS = 25 * 60
+        MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         nonce = self._fetch_nonce()
         if not nonce:

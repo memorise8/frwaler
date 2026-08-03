@@ -8,6 +8,7 @@ Detail:          GET /sda/brd/view.do?key=2009074409621&nttSn=XXXXX
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -21,7 +22,7 @@ _BASE = "https://www.saemangeum.go.kr"
 _LIST_URL = f"{_BASE}/sda/brd/list.do?key={_BOARD_KEY}"
 _VIEW_BASE = f"{_BASE}/sda/brd/view.do"
 _PUBLISHER = "새만금개발청"
-_MAX_PAGES = 200
+_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _WALL_MINUTES = 25
 
 
