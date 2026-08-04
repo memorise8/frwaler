@@ -1,12 +1,13 @@
 import { isIP } from "node:net"
 import { getCategoryForSheet, siteCategoryLabel } from "./categories"
+import { docTypeLabel, getDocTypeForSite } from "./doc-types"
 
 export type DescriptionProvenance = "summary" | "abstract" | "unavailable"
 export type InternalReviewDescription = { readonly provenance: DescriptionProvenance; readonly text: string | null; readonly truncated: boolean }
-export type InternalReviewSource = { readonly category: string; readonly continent: string; readonly country: string; readonly name: string }
+export type InternalReviewSource = { readonly category: string; readonly continent: string; readonly country: string; readonly docType: string; readonly name: string }
 export type InternalReviewListItem = { readonly description: InternalReviewDescription; readonly id: number; readonly publishedDate: string | null; readonly source: InternalReviewSource; readonly title: string }
-export type InternalReviewDocument = InternalReviewListItem & { readonly authors: readonly string[]; readonly journal: string | null; readonly keywords: readonly string[]; readonly originalSourceUrl: string | null; readonly publisher: string | null }
-export type InternalReviewRecord = { readonly abstract: string | null; readonly authors: string | null; readonly journal: string | null; readonly keywords: string | null; readonly metaUrl: string | null; readonly publishedDate: string | null; readonly publisher: string | null; readonly seqId: number; readonly sheet: string | null; readonly siteName: string | null; readonly siteUrl: string | null; readonly summary: string | null; readonly title: string | null }
+export type InternalReviewDocument = InternalReviewListItem & { readonly authors: readonly string[]; readonly descriptionKo: string | null; readonly journal: string | null; readonly keywords: readonly string[]; readonly originalSourceUrl: string | null; readonly publisher: string | null; readonly titleKo: string | null }
+export type InternalReviewRecord = { readonly abstract: string | null; readonly authors: string | null; readonly descriptionKo?: string | null; readonly journal: string | null; readonly keywords: string | null; readonly metaUrl: string | null; readonly publishedDate: string | null; readonly publisher: string | null; readonly seqId: number; readonly sheet: string | null; readonly siteId: string | null; readonly siteName: string | null; readonly siteUrl: string | null; readonly summary: string | null; readonly title: string | null; readonly titleKo?: string | null }
 
 const compact = (value: string | null): string | null => {
   const normalized = value?.replace(/\s+/g, " ").trim() ?? ""
@@ -98,9 +99,27 @@ export const vettedOriginalSourceUrl = (rawUrl: string | null, siteUrl: string |
   }
 }
 
+const hostnameOf = (siteUrl: string | null): string | null => {
+  const source = compact(siteUrl)
+  if (source === null) return null
+  try {
+    return new URL(source).hostname.replace(/^www\./, "") || null
+  } catch {
+    return null
+  }
+}
+
+// Human-facing site (수집 출처) label: drop the internal "Custom:" prefix and prefer a
+// readable hostname over an opaque site-id slug.
+export const cleanSiteName = (siteName: string | null, siteUrl: string | null): string => {
+  const cleaned = humanReadableMetadata(siteName, 200)?.replace(/^Custom:\s*/iu, "").trim() || null
+  if (cleaned !== null && !/^[a-z\d-]+$/iu.test(cleaned)) return cleaned
+  return hostnameOf(siteUrl) ?? cleaned ?? "출처 미분류"
+}
+
 const sourceFrom = (record: InternalReviewRecord): InternalReviewSource => {
   const taxonomy = getCategoryForSheet(record.sheet)
-  return { category: siteCategoryLabel(taxonomy.category), continent: taxonomy.continent, country: taxonomy.country, name: humanReadableMetadata(record.siteName, 200) ?? "출처 미분류" }
+  return { category: siteCategoryLabel(taxonomy.category), continent: taxonomy.continent, country: taxonomy.country, docType: docTypeLabel(getDocTypeForSite(record.siteId)), name: cleanSiteName(record.siteName, record.siteUrl) }
 }
 export const toInternalReviewListItem = (record: InternalReviewRecord): InternalReviewListItem => ({ description: descriptionFrom(record, 360), id: record.seqId, publishedDate: publishedDate(record.publishedDate), source: sourceFrom(record), title: humanReadableMetadata(record.title, 500) ?? "(제목 없음)" })
-export const toInternalReviewDocument = (record: InternalReviewRecord): InternalReviewDocument => ({ ...toInternalReviewListItem(record), authors: splitBounded(record.authors), description: descriptionFrom(record, 1200), journal: humanReadableMetadata(record.journal, 500), keywords: splitBounded(record.keywords), originalSourceUrl: vettedOriginalSourceUrl(record.metaUrl, record.siteUrl), publisher: humanReadableMetadata(record.publisher, 500) })
+export const toInternalReviewDocument = (record: InternalReviewRecord): InternalReviewDocument => ({ ...toInternalReviewListItem(record), authors: splitBounded(record.authors), description: descriptionFrom(record, 1200), descriptionKo: bounded(record.descriptionKo ?? null, 1200), journal: humanReadableMetadata(record.journal, 500), keywords: splitBounded(record.keywords), originalSourceUrl: vettedOriginalSourceUrl(record.metaUrl, record.siteUrl), publisher: humanReadableMetadata(record.publisher, 500), titleKo: bounded(record.titleKo ?? null, 500) })

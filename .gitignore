@@ -72,3 +72,8 @@ dist/
 .admin-credentials.env
 scripts/audit/out/
 ecip-library/data/
+
+# volatile audit artifacts (active-run temp/backup/logs)
+scripts/audit/*.run.log
+scripts/audit/count_only_c_part.csv
+scripts/audit/*.bak.csv

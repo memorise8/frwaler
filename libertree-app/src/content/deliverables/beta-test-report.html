@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>베타테스트·디버깅 보고서 | Libertree</title>
+<style>
+  :root{
+    --ink:#202622; --muted:#5f6f74; --canvas:#ffffff; --wash:#f4f2ea;
+    --accent:#365b42; --accent-soft:#e4ebe1; --rule:#d9d6cc;
+    --good:#3f7350; --warn:#9a7524; --bad:#9e463b;
+    --mono:"SF Mono",ui-monospace,Consolas,"D2Coding",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    --space:1.5rem;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--wash);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.72;letter-spacing:-.003em}
+  .page{max-width:860px;margin:0 auto;background:var(--canvas);
+    padding:4rem 3.4rem 3.6rem;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  /* Document header */
+  .doc-eyebrow{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;margin:0 0 .6rem}
+  h1{font-size:1.86rem;line-height:1.28;margin:0 0 1.4rem;font-weight:700;
+    text-wrap:balance;border-bottom:3px solid var(--accent);padding-bottom:1rem}
+  .doc-meta{width:100%;border-collapse:collapse;margin:0 0 2.6rem;font-size:.86rem}
+  .doc-meta th,.doc-meta td{border:1px solid var(--rule);padding:.5rem .8rem;text-align:left}
+  .doc-meta th{background:var(--wash);color:var(--muted);font-weight:600;white-space:nowrap;width:1%}
+  /* Sections */
+  h2{font-size:1.22rem;margin:2.8rem 0 .9rem;padding-top:1.2rem;font-weight:700;
+    border-top:1px solid var(--rule)}
+  h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:.5rem}
+  h3{font-size:1.02rem;margin:1.8rem 0 .6rem;font-weight:700;color:#2c332e}
+  p{margin:.7rem 0}
+  ul,ol{margin:.7rem 0;padding-left:1.3rem}
+  li{margin:.28rem 0}
+  strong{font-weight:700}
+  a{color:var(--accent)}
+  code{font-family:var(--mono);font-size:.86em;background:var(--wash);
+    padding:.1em .38em;border-radius:3px;border:1px solid var(--rule)}
+  pre{font-family:var(--mono);font-size:.82rem;line-height:1.6;background:#1c211d;color:#e8ede6;
+    padding:1rem 1.15rem;border-radius:5px;overflow-x:auto;margin:1rem 0}
+  pre code{background:none;border:none;padding:0;color:inherit}
+  /* Tables */
+  .tbl-wrap{overflow-x:auto;margin:1.1rem 0}
+  table.data{width:100%;border-collapse:collapse;font-size:.86rem}
+  table.data th,table.data td{border:1px solid var(--rule);padding:.5rem .7rem;
+    text-align:left;vertical-align:top}
+  table.data th{background:var(--accent-soft);font-weight:700}
+  table.data tr:nth-child(even) td{background:#faf9f5}
+  table.data td.num{text-align:right;font-variant-numeric:tabular-nums}
+  /* Callouts & status */
+  .note{border-left:4px solid var(--accent);background:var(--accent-soft);
+    padding:.8rem 1.1rem;margin:1.1rem 0;border-radius:0 4px 4px 0;font-size:.9rem}
+  .note.warn{border-color:var(--warn);background:#f6efe0}
+  .note.bad{border-color:var(--bad);background:#f6e6e3}
+  .pill{display:inline-block;font-size:.74rem;font-weight:700;padding:.12em .6em;
+    border-radius:999px;line-height:1.5;white-space:nowrap}
+  .pill.good{background:#e2efe6;color:var(--good)}
+  .pill.warn{background:#f6eed9;color:var(--warn)}
+  .pill.bad{background:#f4e0dc;color:var(--bad)}
+  /* Diagram boxes (for architecture) */
+  .diagram{display:flex;flex-wrap:wrap;gap:.7rem;margin:1.2rem 0;font-size:.82rem}
+  .diagram .box{border:1.5px solid var(--accent);border-radius:5px;padding:.7rem .9rem;
+    background:#fff;min-width:140px}
+  .diagram .box b{display:block;color:var(--accent);margin-bottom:.2rem}
+  .placeholder{border:1.5px dashed var(--rule);border-radius:5px;padding:2rem;
+    text-align:center;color:var(--muted);font-size:.85rem;margin:1.1rem 0;background:#fbfaf6}
+  footer{margin-top:3.4rem;padding-top:1.2rem;border-top:1px solid var(--rule);
+    font-size:.78rem;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+  /* Print */
+  @media print{
+    body{background:#fff;font-size:11pt}
+    .page{max-width:none;margin:0;padding:0;box-shadow:none}
+    h2{break-after:avoid}
+    table.data,pre,.note,.diagram{break-inside:avoid}
+    a{color:var(--ink);text-decoration:none}
+    @page{margin:18mm 16mm}
+  }
+  @media(max-width:640px){.page{padding:2rem 1.2rem}}
+</style>
+</head>
+<body>
+<main class="page">
+  <p class="doc-eyebrow">LIBERTREE · 산출물</p>
+  <h1>베타테스트·디버깅 보고서</h1>
+  <table class="doc-meta">
+    <tr><th>문서번호</th><td>BETA-2026-001</td><th>버전</th><td>v1.0</td></tr>
+    <tr><th>프로젝트</th><td>웹페이지 데이터 수집·분석·요약 서비스</td><th>작성일</th><td>2026-08-01</td></tr>
+    <tr><th>작성자</th><td>공급자 (financenow)</td><th>이용자</th><td>libertree.co.kr</td></tr>
+  </table>
+
+  <!-- CONTENT START -->
+
+  <h2><span class="num">1.</span>개요</h2>
+  <p>본 보고서는 <strong>Libertree 웹페이지 데이터 수집·분석·요약 서비스</strong>의 베타테스트 및 디버깅 결과를 정리한 것입니다. 테스트 범위는 수집 파이프라인 전 구간(① 문서 발견 → ② 원문 PDF 다운로드 → ③ 텍스트 추출 → ④ 한글 번역 → ⑤ 요약 생성)을 대상으로 하며, 실제 운영 DB(<code>data/libertree.db</code>) 실측 기준으로 검증하였습니다.</p>
+
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>항목</th><th>내용</th></tr>
+    <tr><td>테스트 범위</td><td>수집 파이프라인 전 구간(발견·다운로드·추출·번역·요약)</td></tr>
+    <tr><td>기준일</td><td>2026-08-01</td></tr>
+    <tr><td>데이터 규모</td><td class="num">문서 481,669건 (메타데이터 발견 기준)</td></tr>
+    <tr><td>검증 방식</td><td>DB 실측 · 디스크 매직바이트 검사 · 야간 회수 배치 실행 검증</td></tr>
+    <tr><td>대상 범위</td><td>29개국 · 761개 사이트(실적재)</td></tr>
+  </table>
+  </div>
+
+  <div class="note">모든 수치는 <code>libertree.db</code> 실측 및 회수 배치 실행 결과에 근거하며, 라이브 <code>/report</code> 대시보드가 DB에서 실시간 집계하는 값과 일치합니다.</div>
+
+  <h2><span class="num">2.</span>발견 이슈 요약</h2>
+  <p>베타테스트 과정에서 확인된 주요 이슈와 조치 현황은 다음과 같습니다.</p>
+
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr>
+      <th>이슈</th><th>증상</th><th>원인</th><th>조치</th><th>상태</th>
+    </tr>
+    <tr>
+      <td>PDF 다운로드 실패 집중(C버킷)</td>
+      <td>링크는 확보됐으나 원문 미다운로드 문서가 소수 호스트에 집중</td>
+      <td>접근 차단·인증·rate-limit·Referer 요구</td>
+      <td>야간 재시도 배치(<code>recover_pdfs.py</code>)로 <strong>1,620건 회수</strong>, 확보율 61.8%→62.2%</td>
+      <td><span class="pill good">조치완료</span></td>
+    </tr>
+    <tr>
+      <td>첨부 확장자 혼재</td>
+      <td>hwpx/docx 등 한글·오피스 원문이 <code>.pdf</code>로 저장(회수분의 약 6%)</td>
+      <td>한국 정부 FileDown이 PDF가 아닌 한글 첨부를 반환</td>
+      <td>확장자 정정 + hwp/office 텍스트 추출기 추가 필요</td>
+      <td><span class="pill warn">확인·보완예정</span></td>
+    </tr>
+    <tr>
+      <td>HTML 에러페이지 오저장</td>
+      <td>HTML 응답이 <code>.pdf</code>로 저장(약 1%)</td>
+      <td>200 응답이지만 실제 본문은 HTML 조각·에러페이지</td>
+      <td>실패로 재분류, <code>_is_html_content</code> 필터 개선</td>
+      <td><span class="pill warn">확인·보완예정</span></td>
+    </tr>
+    <tr>
+      <td>구DB 경로 하드코딩</td>
+      <td><code>crawler/main.py</code>가 구DB <code>data/papers.db</code>를 하드코딩</td>
+      <td>정본 DB는 <code>data/libertree.db</code> — 경로 이원화</td>
+      <td>운영 배포 전 경로 정리 필요</td>
+      <td><span class="pill warn">확인·보완예정</span></td>
+    </tr>
+    <tr>
+      <td>요약 모델 문서 불일치</td>
+      <td>산출물 문서상 OpenAI 연동으로 기재됐으나 실제와 상이</td>
+      <td>프로덕션 요약은 로컬 Ollama 사용, OpenAI 미사용</td>
+      <td>DB <code>summary_model</code> 실측(gemma4:26b 55% + qwen3:8b 45%)으로 정정</td>
+      <td><span class="pill good">조치완료</span></td>
+    </tr>
+    <tr>
+      <td>관리자 보고 대시보드 막대 붕괴</td>
+      <td><code>/report</code> 막대 그래프가 세로로 무너져 "한 칸·무색" 표시</td>
+      <td>전역 <code>.stack</code> 유틸(<code>flex-direction:column</code>)과 클래스명 충돌</td>
+      <td>막대 클래스를 <code>stack</code>→<code>segbar</code>로 변경</td>
+      <td><span class="pill good">수정완료</span></td>
+    </tr>
+  </table>
+  </div>
+
+  <h2><span class="num">3.</span>주요 디버깅 사례 상세</h2>
+
+  <h3>(a) 야간 PDF 회수 배치</h3>
+  <p>C버킷(링크 있음·미다운로드) 상위 호스트를 대상으로 실제 HTTP 응답을 프로브한 뒤 <code>scripts/recover_pdfs.py</code>로 재수집을 실행했습니다. 추정이 아니라 실행·검증한 결과이며, 결과는 호스트 건전도에 따라 green/yellow/red로 분류됩니다.</p>
+
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>site_id</th><th>대상</th><th>회수</th><th>결과</th><th>판정</th></tr>
+    <tr><td>motir-go-kr-kor</td><td class="num">702</td><td class="num">702</td><td>100%</td><td><span class="pill good">green · 완전 회수</span></td></tr>
+    <tr><td>kli-re-kr-kli</td><td class="num">448</td><td class="num">436</td><td>97%</td><td><span class="pill good">green · 완전 회수</span></td></tr>
+    <tr><td>energy-gov-management</td><td class="num">67</td><td class="num">65</td><td>97%</td><td><span class="pill good">green · 완전 회수</span></td></tr>
+    <tr><td>kiep-go-kr-galleryes</td><td class="num">437</td><td class="num">255</td><td>58%</td><td><span class="pill warn">yellow · conn_err 73건, throttle 재시도</span></td></tr>
+    <tr><td>mois-go-kr-frt</td><td class="num">533</td><td class="num">99</td><td>19%</td><td><span class="pill warn">yellow · 일부 세션 필요</span></td></tr>
+    <tr><td>klri-re-kr-kor</td><td class="num">420</td><td class="num">42</td><td>10%</td><td><span class="pill warn">yellow · Referer 부분 효과</span></td></tr>
+    <tr><td>etera-ee-browse</td><td class="num">5,992</td><td class="num">21</td><td>0.4%</td><td><span class="pill bad">red · tail 95% 404(영구소실)</span></td></tr>
+    <tr><td>krihs / krivet-re-kr-kor</td><td class="num">1,393</td><td class="num">0</td><td>0%</td><td><span class="pill bad">red · HTML 반환, 세션/JS 필요</span></td></tr>
+    <tr><td>directives-doe-gov (2개)</td><td class="num">463</td><td class="num">0</td><td>0%</td><td><span class="pill bad">red · SSL 핸드셰이크 실패</span></td></tr>
+  </table>
+  </div>
+
+  <p>배치 실행 명령(재현):</p>
+  <pre><code>.venv/bin/python scripts/recover_pdfs.py --site-ids &lt;sid,...&gt; --max-workers 6 --throttle-sec 0.4</code></pre>
+
+  <div class="note"><strong>정직한 교정.</strong> etera.ee는 6샘플 프로브가 3/6(50%)로 나와 "~3,000 회수 가능"으로 예측했으나, 실행 시 하드테일 5,992건의 95%가 404(죽은 링크)로 실제 21건만 회수. "6샘플은 6천행 호스트에 너무 작다"는 교훈. <code>Referer=meta_url</code> 기법으로 mois +99, klri +42 = 141건을 순수 요청으론 못 받던 것을 회수.</div>
+
+  <h3>(b) 확장자·포맷 검증(매직바이트)</h3>
+  <p>회수 파일을 실제로 열어 디스크 매직바이트를 검사한 결과, 원문은 맞으나 포맷이 PDF가 아닌 건이 확인되었습니다.</p>
+  <ul>
+    <li>motir·kli·kiep·klri·energy·etera → 전부 진짜 PDF(<code>%PDF-</code>) 확인.</li>
+    <li>mois-go-kr-frt → 원문이 한글/오피스 포맷: ZIP(<code>.hwpx/.docx/.xlsx</code>) 641건 · OLE(<code>.hwp/.doc</code>) 24건 · PDF 48건.</li>
+    <li>함의: office 원문이 <code>.pdf</code> 확장자로 저장돼 <code>pdf2txt</code> 텍스트 추출이 불가 → 확장자 정정 + 한글/office 추출기 추가 필요.</li>
+  </ul>
+  <div class="note warn">라벨 정확성: 야간 회수 1,620건 중 약 1,520건은 정상 PDF, 약 100건은 한글/오피스 원문. "원문 회수 1,620"이 정확하고 "PDF 회수"는 약 1,520으로 구분해야 합니다.</div>
+
+  <h3>(c) 미확보 A/B/C 분해</h3>
+  <p>미확보 183,913건(발견 대비 38.2%)은 무작위가 아니라 실패 지점별로 3분류됩니다. C는 검증된 회수 대상, B는 표본검증 필요(미측정), A는 원문 부재형 콘텐츠입니다.</p>
+
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>구분</th><th>건수</th><th>비중</th><th>성격</th><th>검증 상태</th></tr>
+    <tr><td>A. 원문 링크 없음 · HTML 공지</td><td class="num">70,267</td><td class="num">38.2%</td><td>보도자료 등 원래 PDF가 없는 콘텐츠</td><td>정책(재분류) 대상</td></tr>
+    <tr><td>B. 링크 추출 실패 · 문서형</td><td class="num">85,188</td><td class="num">46.3%</td><td>PDF가 있을 법하나 링크 미확보</td><td>표본검증 필요(미측정)</td></tr>
+    <tr><td>C. 다운로드 실패 · 링크 있음</td><td class="num">28,458</td><td class="num">15.5%</td><td>접근차단·인증·rate-limit</td><td>검증됨(회수 가능성 높음)</td></tr>
+    <tr><td>합계</td><td class="num">183,913</td><td class="num">100%</td><td></td><td></td></tr>
+  </table>
+  </div>
+
+  <h2><span class="num">4.</span>데이터 검증 수치</h2>
+  <p>파이프라인 각 단계의 처리 실적입니다(발견 481,669건 기준, 야간 회수 반영 후).</p>
+
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>단계</th><th>건수</th><th>발견 대비</th></tr>
+    <tr><td>① 발견(메타데이터)</td><td class="num">481,669</td><td class="num">100%</td></tr>
+    <tr><td>② 원문(PDF) 확보</td><td class="num">299,376</td><td class="num">62.2%</td></tr>
+    <tr><td>③ 텍스트 추출</td><td class="num">288,124</td><td class="num">59.8%</td></tr>
+    <tr><td>④ 요약 생성</td><td class="num">66,248</td><td class="num">13.8%</td></tr>
+  </table>
+  </div>
+
+  <div class="note">원문 확보는 야간 회수(1,620건) 반영으로 297,756건(61.8%) → <strong>299,376건(62.2%)</strong>으로 상향되었습니다. C버킷은 28,458 → 26,838로 감소. 요약 생성 13.8%는 초기 단계로 다음 스프린트 집중 영역입니다.</div>
+
+  <h2><span class="num">5.</span>잔여 이슈</h2>
+
+  <div class="note warn">
+    <strong>미해결·대기 항목</strong>
+    <ul>
+      <li><strong>FR-02 증분수집 미구현</strong> — <code>max(post_no)</code> 스킵 로직이 헬퍼만 존재(dead code)하고 실제 미구현. 재수집 시 전량 순회로 비효율.</li>
+      <li><strong>FR-03 멀티포맷 부분 지원</strong> — 요구사항은 PDF/HWP/DOCX/XLSX 다운로드이나 실제는 <code>pdf_url</code> 1개·확장자 <code>.pdf</code> 고정. 한글/오피스 원문이 잘못 라벨링됨.</li>
+      <li><strong>확장자 정정 대기</strong> — mois 등 한글/오피스 원문(약 100건, ZIP 641/OLE 24 포함)의 확장자 정정 및 HTML 오저장분(약 1%) 실패 재분류 미완.</li>
+      <li><strong>대형 호스트 잔여 회수</strong> — mois/klri/krivet/krihs(~2,200건)는 세션 쿠키·토큰 어댑터, prism(SSL)·file.scourt(500)·civilprotection(403) 등(~5,900건)은 TLS·차단우회 엔지니어링 필요. etera tail(~5,900건)은 영구소실로 회수불가 재분류 대상.</li>
+    </ul>
+  </div>
+
+  <h2><span class="num">6.</span>결론</h2>
+  <p>수집 파이프라인 전 구간에 대한 베타테스트 결과, 핵심 다운로드 이슈(C버킷)는 야간 재시도 배치로 <strong>1,620건을 실측 회수</strong>하여 원문 확보율을 61.8%에서 62.2%로 끌어올렸으며, 관리자 대시보드 막대 붕괴(<code>stack</code>→<code>segbar</code>)와 요약 모델 문서 불일치는 수정·정정 완료했습니다.</p>
+  <p>다만 첨부 확장자 혼재(한글/오피스 원문의 <code>.pdf</code> 오저장), HTML 에러페이지 오저장, 구DB 경로 하드코딩은 보완 예정 상태이며, 요구사항 관점에서 FR-02 증분수집(미구현)과 FR-03 멀티포맷(부분)은 잔여 과제로 남습니다. 확장자 정정과 세션·TLS 어댑터 도입 시 확보율을 추가 상향할 여지가 있으며, 회수 가능분(B+C)의 표적 처리로 확보율 최대 약 85%까지 상향이 가능할 것으로 판단됩니다.</p>
+
+  <!-- CONTENT END -->
+
+  <footer>
+    <span>Libertree · 웹페이지 데이터 수집·분석·요약 서비스</span>
+    <span>BETA-2026-001 · 2026-08-01</span>
+  </footer>
+</main>
+</body>
+</html>

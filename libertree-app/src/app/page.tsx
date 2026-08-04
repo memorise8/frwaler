@@ -3,7 +3,9 @@ import { getCatalogueBrowseSummary } from "../lib/catalogue"
 
 export const dynamic = "force-dynamic"
 
-const browseHref = (name: "category" | "continent" | "country", value: string): string => `/search?${new URLSearchParams([[name, value]]).toString()}`
+const browseHref = (name: BrowseFilter, value: string): string => `/search?${new URLSearchParams([[name, value]]).toString()}`
+
+type BrowseFilter = "category" | "continent" | "country" | "docType"
 
 export default function HomePage(): React.JSX.Element {
   const browse = getCatalogueBrowseSummary()
@@ -27,9 +29,11 @@ export default function HomePage(): React.JSX.Element {
         <p><strong>{browse.totalDocuments.toLocaleString("ko-KR")}</strong>건의 자료</p>
         <p><strong>{browse.sourceCount.toLocaleString("ko-KR")}</strong>개 수집 출처</p>
         <Link className="catalogue-link" href="/search">전체 자료 보기</Link>
+        <Link className="catalogue-link" href="/report">수집 현황 보고</Link>
       </div>
+      <BrowseShelf title="유형으로 둘러보기" lead="보고서, 논문, 보도자료 등 자료의 유형별로 탐색합니다." buckets={browse.docTypes} filter="docType" />
       <BrowseShelf title="대륙으로 둘러보기" lead="자료가 수집된 지역을 선택해 해당 출처의 문서를 살펴보세요." buckets={browse.continents} filter="continent" />
-      <BrowseShelf title="국가·지역으로 둘러보기" lead="국가별 수집 자료를 바로 열 수 있습니다." buckets={browse.countries} filter="country" dense />
+      <BrowseShelf title="국가·지역으로 둘러보기" lead="국가를 선택하면 해당 국가에서 수집한 출처(사이트)를 이어서 볼 수 있습니다." buckets={browse.countries} filter="country" dense />
       <BrowseShelf title="기관 성격으로 둘러보기" lead="정부, 연구기관, 대학 등 자료를 만든 기관의 성격으로 탐색합니다." buckets={browse.categories} filter="category" />
       <aside className="catalogue-note">
         <p className="card-label">READ-ONLY CATALOGUE</p>
@@ -39,7 +43,7 @@ export default function HomePage(): React.JSX.Element {
   )
 }
 
-const BrowseShelf = ({ buckets, dense = false, filter, lead, title }: Readonly<{ buckets: readonly { readonly count: number; readonly key: string; readonly label: string }[]; dense?: boolean; filter: "category" | "continent" | "country"; lead: string; title: string }>): React.JSX.Element => (
+const BrowseShelf = ({ buckets, dense = false, filter, lead, title }: Readonly<{ buckets: readonly { readonly count: number; readonly key: string; readonly label: string }[]; dense?: boolean; filter: BrowseFilter; lead: string; title: string }>): React.JSX.Element => (
   <section className="browse-shelf" aria-labelledby={`browse-${filter}`}>
     <div className="browse-shelf__heading">
       <div>

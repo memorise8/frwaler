@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>완료보고 | 웹페이지 데이터 수집·분석 및 요약 서비스 개발</title>
+<style>
+  :root{
+    --forest:#173a24; --forest2:#1d4a2d; --moss:#2f5233; --moss2:#37694a;
+    --gold:#9a7524; --ink:#1f2a22; --muted:#6c776f; --line:#e4e0d5;
+    --card:#f4f2eb; --ground:#faf9f4; --pos:#2f7d4f; --neg:#9e463b;
+    --sans:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    --mono:"SF Mono",ui-monospace,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
+    line-height:1.6;letter-spacing:-.004em;word-break:keep-all}
+  .wrap{max-width:960px;margin:0 auto;background:#fff}
+  /* Cover */
+  .cover{position:relative;background:var(--forest);color:#eef3ee;overflow:hidden;
+    padding:5.5rem 3.2rem 4.2rem}
+  .cover::before,.cover::after{content:"";position:absolute;border-radius:50%;
+    background:rgba(255,255,255,.045)}
+  .cover::before{width:360px;height:360px;right:-90px;top:-70px}
+  .cover::after{width:240px;height:240px;right:70px;bottom:-120px;background:rgba(255,255,255,.03)}
+  .cover .eyebrow{font-size:.78rem;letter-spacing:.34em;color:#9cc0a6;margin:0 0 1.6rem;font-weight:500}
+  .cover h1{font-size:clamp(1.9rem,4.6vw,2.9rem);line-height:1.24;margin:0;font-weight:700;
+    position:relative;z-index:1;max-width:16ch}
+  .cover .kind{font-size:1.05rem;letter-spacing:.5em;color:#c7d8cb;margin:1.5rem 0 0;font-weight:400}
+  .cover .divider{width:150px;height:2px;background:#5c7d64;margin:1.1rem 0 1.6rem}
+  .cover .meta{margin:0;font-size:.95rem;color:#c7d8cb}
+  .cover .meta strong{display:block;color:#fff;font-size:1.15rem;font-weight:700;margin-top:.25rem}
+  /* Sections */
+  section{padding:3.4rem 3.2rem;border-bottom:1px solid var(--line)}
+  .sec-no{font-size:.75rem;letter-spacing:.2em;color:var(--muted);font-weight:700}
+  .sec-no b{color:var(--moss);margin-right:.5rem}
+  h2{font-size:1.7rem;margin:.35rem 0 0;font-weight:700;letter-spacing:-.02em}
+  .lede{color:var(--muted);margin:.5rem 0 0;font-size:.94rem}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:2.4rem;margin-top:2rem}
+  h3{font-size:1.05rem;color:var(--moss);font-weight:700;margin:0 0 1rem}
+  /* 계약 개요 */
+  .contract{background:var(--card);border-radius:10px;padding:1.8rem}
+  .contract dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:.9rem 1.4rem}
+  .contract dt{color:var(--muted);font-size:.86rem;white-space:nowrap}
+  .contract dd{margin:0;font-size:.92rem;font-weight:500}
+  /* Timeline */
+  .tl{position:relative;margin:0;padding:0;list-style:none}
+  .tl li{position:relative;padding:0 0 1.7rem 3rem;min-height:2.2rem}
+  .tl li::before{content:"";position:absolute;left:15px;top:1.9rem;bottom:-.2rem;width:2px;background:var(--line)}
+  .tl li:last-child{padding-bottom:0}
+  .tl li:last-child::before{display:none}
+  .tl .dot{position:absolute;left:0;top:0;width:32px;height:32px;border-radius:50%;
+    background:#fff;border:2px solid var(--line);color:var(--muted);
+    display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700}
+  .tl li.done .dot{background:var(--moss);border-color:var(--moss);color:#fff}
+  .tl .date{font-size:.78rem;color:var(--gold);font-weight:700;letter-spacing:.02em}
+  .tl .what{font-size:.94rem;font-weight:500;margin-top:.15rem}
+  /* Stat cards */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-top:2rem}
+  .stat{background:var(--card);border-radius:10px;padding:1.5rem 1.3rem}
+  .stat.hero{background:var(--forest);color:#eef3ee}
+  .stat .num{font-size:1.9rem;font-weight:800;letter-spacing:-.03em;color:var(--moss);
+    font-variant-numeric:tabular-nums;line-height:1.1}
+  .stat.hero .num{color:#fff}
+  .stat .num small{font-size:.9rem;font-weight:600;color:var(--muted)}
+  .stat.hero .num small{color:#9cc0a6}
+  .stat .cap{margin-top:1.4rem;font-size:.82rem;color:var(--muted)}
+  .stat.hero .cap{color:#bcd0c0}
+  /* Pipeline */
+  .pipe{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin-top:2rem}
+  .pipe .step{flex:1 1 0;min-width:110px;border:1px solid var(--line);border-radius:8px;
+    padding:.9rem .6rem;text-align:center;font-size:.83rem;background:#fff}
+  .pipe .arrow{display:flex;align-items:center;color:var(--muted);font-size:.9rem}
+  .fnote{margin-top:1.6rem;font-size:.8rem;color:var(--muted)}
+  /* Coverage */
+  .cov-cards{display:flex;flex-direction:column;gap:.9rem}
+  .cov{display:flex;align-items:center;gap:1.1rem;background:var(--card);border-radius:10px;padding:1.2rem 1.5rem}
+  .cov .big{font-size:1.7rem;font-weight:800;font-variant-numeric:tabular-nums;min-width:5.2rem}
+  .cov .big.g{color:var(--pos)} .cov .big.r{color:var(--neg)}
+  .cov .u{font-size:.72rem;color:var(--muted);font-weight:700;letter-spacing:.05em}
+  .cov .lbl{font-size:.88rem;color:var(--ink)}
+  .donut-box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.8rem;
+    display:flex;flex-direction:column;gap:1.2rem}
+  .donut-row{display:flex;align-items:center;gap:1.8rem}
+  .donut{width:150px;height:150px;border-radius:50%;flex:none;
+    background:conic-gradient(var(--moss) 0 83.4%, #d8d3c6 83.4% 100%);
+    display:flex;align-items:center;justify-content:center;position:relative}
+  .donut::before{content:"";position:absolute;width:98px;height:98px;border-radius:50%;background:#fff}
+  .donut span{position:relative;font-size:1.5rem;font-weight:800;color:var(--moss);letter-spacing:-.02em}
+  .legend .lg{display:flex;flex-direction:column;margin-bottom:1rem}
+  .legend .lg:last-child{margin-bottom:0}
+  .legend .lg b{font-size:1.35rem;font-weight:800;font-variant-numeric:tabular-nums}
+  .legend .lg.g b{color:var(--pos)} .legend .lg.r b{color:var(--neg)}
+  .legend .lg small{font-size:.83rem;color:var(--muted)}
+  /* Next steps (dark) */
+  .next{background:var(--forest);color:#e9f0ea;border:none}
+  .next .sec-no{color:#8fb399} .next .sec-no b{color:#bcd8c2}
+  .next h2{color:#fff}
+  .steps{margin-top:2.2rem;display:flex;flex-direction:column;gap:1.7rem}
+  .step-item{display:flex;gap:1.2rem;align-items:flex-start}
+  .step-item .n{flex:none;width:32px;height:32px;border-radius:50%;background:var(--moss2);
+    color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem}
+  .step-item h4{margin:.2rem 0 .25rem;font-size:1.02rem;color:#fff;font-weight:700}
+  .step-item p{margin:0;font-size:.9rem;color:#bcd0c0}
+  .next .close{margin-top:2.4rem;padding-top:1.4rem;border-top:1px solid rgba(255,255,255,.14);
+    font-size:.83rem;color:#9cb3a2}
+  footer{padding:1.6rem 3.2rem;font-size:.78rem;color:var(--muted);display:flex;
+    justify-content:space-between;flex-wrap:wrap;gap:.5rem;background:#fff}
+  @media(max-width:720px){
+    .grid2,.stats{grid-template-columns:1fr}
+    .cover,section,footer{padding-left:1.5rem;padding-right:1.5rem}
+    .donut-row{flex-direction:column;align-items:flex-start}
+  }
+  @media print{
+    body{background:#fff} .wrap{max-width:none}
+    section,.stat,.cov,.donut-box,.step-item{break-inside:avoid}
+    .next,.cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{margin:14mm}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- COVER -->
+  <header class="cover">
+    <p class="eyebrow">PROJECT COMPLETION REPORT</p>
+    <h1>웹페이지 데이터 수집·분석 및<br>요약 서비스 개발</h1>
+    <p class="kind">완 료 보 고</p>
+    <div class="divider"></div>
+    <p class="meta">2026. 8. 1.<strong>주식회사 와이즈어카운팅</strong></p>
+  </header>
+
+  <!-- 01 OVERVIEW -->
+  <section>
+    <p class="sec-no"><b>01</b>OVERVIEW</p>
+    <h2>프로젝트 개요</h2>
+    <div class="grid2">
+      <div>
+        <h3>계약 개요</h3>
+        <div class="contract">
+          <dl>
+            <dt>계약명</dt><dd>웹페이지 데이터 수집·분석 및 요약 서비스 개발</dd>
+            <dt>이용자</dt><dd>주식회사 리버트리</dd>
+            <dt>공급자</dt><dd>주식회사 와이즈어카운팅</dd>
+            <dt>계약기간</dt><dd>2026. 5. 1. ~ 2026. 7. 31. (3개월)</dd>
+            <dt>완료보고</dt><dd>2026. 8. 1. (일정 조율)</dd>
+          </dl>
+        </div>
+      </div>
+      <div>
+        <h3>추진 경과</h3>
+        <ul class="tl">
+          <li><span class="dot">1</span><div class="date">2026. 05</div><div class="what">착수 및 요구사항 확정</div></li>
+          <li><span class="dot">2</span><div class="date">2026. 05 ~ 06</div><div class="what">크롤러·수집 파이프라인 개발</div></li>
+          <li><span class="dot">3</span><div class="date">2026. 06 ~ 07</div><div class="what">전량 수집 · AI 요약 · 관리자 화면 구축</div></li>
+          <li class="done"><span class="dot">4</span><div class="date">2026. 08. 01</div><div class="what">완료보고 및 납품</div></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 RESULTS -->
+  <section>
+    <p class="sec-no"><b>02</b>RESULTS</p>
+    <h2>수행 결과 요약</h2>
+    <p class="lede">국가별·유형별 세부 현황은 관리자 화면에서 직접 확인 가능함</p>
+    <div class="stats">
+      <div class="stat hero"><div class="num">28 <small>개국</small></div><div class="cap">수집 대상 국가</div></div>
+      <div class="stat"><div class="num">482,674 <small>건</small></div><div class="cap">문서 메타정보 수집</div></div>
+      <div class="stat"><div class="num">299,376 <small>건</small></div><div class="cap">원문 PDF 확보 (62.0%)</div></div>
+      <div class="stat"><div class="num">288,124 <small>건</small></div><div class="cap">텍스트 추출 · AI 요약</div></div>
+    </div>
+    <h3 style="margin-top:2.6rem">처리 파이프라인</h3>
+    <div class="pipe">
+      <div class="step">웹 게시글 수집</div><div class="arrow">›</div>
+      <div class="step">메타정보 DB화</div><div class="arrow">›</div>
+      <div class="step">첨부 원문 확보</div><div class="arrow">›</div>
+      <div class="step">텍스트 추출</div><div class="arrow">›</div>
+      <div class="step">AI 요약 생성</div><div class="arrow">›</div>
+      <div class="step">관리자 화면 제공</div>
+    </div>
+    <p class="fnote">· 원문 PDF는 첨부파일을 보유한 게시글에 한하여 확보하였으며, 미보유 게시글은 요구사항에 따라 메타정보를 수집함</p>
+  </section>
+
+  <!-- 03 COVERAGE -->
+  <section>
+    <p class="sec-no"><b>03</b>COVERAGE</p>
+    <h2>대상 사이트 수집 현황</h2>
+    <div class="grid2">
+      <div class="cov-cards" style="margin-top:2rem">
+        <div class="cov"><div class="big g">1,995</div><div><div class="u">URL</div><div class="lbl">이용자 요청 대상 (상세페이지 포함)</div></div></div>
+        <div class="cov"><div class="big r">543</div><div><div class="u">URL</div><div class="lbl">접근 불가 등의 사유로 수집 제외</div></div></div>
+        <div class="cov"><div class="big g">1,452</div><div><div class="u">URL</div><div class="lbl">수집 수행 완료</div></div></div>
+      </div>
+      <div class="donut-box" style="margin-top:2rem">
+        <div>
+          <h3 style="margin:0">대표 사이트 기준 커버리지</h3>
+          <p class="lede" style="margin-top:.2rem">요청 URL을 대표 사이트 단위로 집계한 결과</p>
+        </div>
+        <div class="donut-row">
+          <div class="donut"><span>83.4%</span></div>
+          <div class="legend">
+            <div class="lg g"><b>694</b><small>수집 성공 사이트</small></div>
+            <div class="lg r"><b>138</b><small>미수집 사이트</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="fnote">주) 미수집 사유(로그인 인증 요구, 이용약관·robots.txt 제한, 사이트 폐쇄·URL 변경 등)별 상세 내역은 관리자 화면에서 확인 가능함</p>
+  </section>
+
+  <!-- 04 NEXT STEPS -->
+  <section class="next">
+    <p class="sec-no"><b>04</b>NEXT STEPS</p>
+    <h2>후속 운영 및 인수인계</h2>
+    <div class="steps">
+      <div class="step-item"><div class="n">1</div><div><h4>상호 QA 진행</h4><p>완료보고 후 1개월간 미수집 페이지 여부를 이용자·공급자가 상호 점검함</p></div></div>
+      <div class="step-item"><div class="n">2</div><div><h4>증분수집 반영</h4><p>7월 중 추가 요청하신 2개 사이트를 증분수집으로 반영하여 제공함</p></div></div>
+      <div class="step-item"><div class="n">3</div><div><h4>OpenAI 크레딧 이관</h4><p>크롤러 자동 생성·구조 분석(Auto-Add·Smart Find)에 사용한 OpenAI 충전 비용은 공급자가 부담하였으며, 미사용 잔액은 이용자 운영분으로 이관함</p></div></div>
+      <div class="step-item"><div class="n">4</div><div><h4>하자보수</h4><p>2026. 8. 1. ~ 2026. 9. 1. 무상 1개월. 기존 개발 문제로 인한 수정 사항을 무상 처리함</p></div></div>
+    </div>
+    <p class="close">인프라는 AWS(EC2·RDS·S3) 기준으로 구성하였으며, 계정 및 운영 비용은 계약에 따라 이용자가 부담함. 소스코드는 Github 최종본으로 납품함.</p>
+  </section>
+
+  <footer>
+    <span>웹페이지 데이터 수집·분석 및 요약 서비스 개발 · 완료보고</span>
+    <span>주식회사 와이즈어카운팅 · 2026. 8. 1.</span>
+  </footer>
+
+</div>
+</body>
+</html>

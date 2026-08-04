@@ -26,6 +26,6 @@ docker compose -f docker-compose.yml down
 
 ## Intentional route removals
 
-The only application routes are `/`, `/search`, `/search/:id`, `/api/blob/:seq_id/:ext`, and `/api/health`. There is no crawler scheduler or Supervisor program in this runtime.
+The only application routes are `/`, `/search`, `/search/:id`, `/report`, `/files`, `/docs`, `/docs/:slug`, `/api/blob/:seq_id/:ext`, and `/api/health`. There is no crawler scheduler or Supervisor program in this runtime.
 
 After authentication, these excluded routes deliberately have no handler and return `404`: `/api/crawler`, `/api/auto-add`, `/api/smart-find`, `/crawler`, `/auto-add`, `/smart-find`, `/admin`, `/admin/status`, `/admin/summary`, and `/admin/collection-report`. Without valid Basic auth, the app-wide authentication proxy returns `401` before route matching; this is intentional and must not be mistaken for a restored legacy route.

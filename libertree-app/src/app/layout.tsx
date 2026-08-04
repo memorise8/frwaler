@@ -32,6 +32,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <nav aria-label="주요 탐색">
               <Link className="nav-link" href="/">둘러보기</Link>
               <Link className="nav-link" href="/search">검색</Link>
+              <Link className="nav-link" href="/files">파일</Link>
+              <Link className="nav-link" href="/report">보고</Link>
+              <Link className="nav-link" href="/docs">산출물</Link>
             </nav>
             <p className="read-only">읽기 전용 서가</p>
           </div>
