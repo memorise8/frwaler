@@ -20,8 +20,21 @@ from bs4 import BeautifulSoup
 
 from crawler.base_crawler import BaseCrawler
 
+try:
+    from curl_cffi import requests as _cffi_requests
+    _CFFI_AVAILABLE = True
+except ImportError:
+    _CFFI_AVAILABLE = False
+
 
 _SITE_ID = "agri-ee-ministeerium-uudised"
+
+
+def _is_cf_challenge(raw):
+    if not raw:
+        return False
+    head = raw[:2000].lower()
+    return "just a moment" in head and "challenges.cloudflare.com" in head
 
 
 class AgriEeMinisteeriumUudisedCrawler(BaseCrawler):
@@ -153,6 +166,17 @@ class AgriEeMinisteeriumUudisedCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def _curl_text(self, url, *, context, referer=None):
+        if _CFFI_AVAILABLE:
+            headers = {
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "et,en;q=0.9",
+            }
+            if referer:
+                headers["Referer"] = referer
+            body = self._run_cffi(url, headers=headers, context=context, method="GET")
+            if body is not None:
+                return body
+
         cmd = [
             "curl",
             "--tls-max",
@@ -177,7 +201,49 @@ class AgriEeMinisteeriumUudisedCrawler(BaseCrawler):
         body, _headers = self._run_curl(cmd, context=context)
         return body
 
+    def _run_cffi(self, url, *, headers, context, method="GET"):
+        """Fetch via curl_cffi (Chrome TLS impersonation) to bypass Cloudflare's
+        JS challenge. Returns response text on success, or None to signal the
+        caller should fall back to the plain-curl subprocess path."""
+        last_error = "unknown error"
+        for attempt, wait in enumerate(self.BACKOFF_SECONDS, start=1):
+            try:
+                fn = _cffi_requests.head if method == "HEAD" else _cffi_requests.get
+                r = fn(url, headers=headers, impersonate="chrome124", timeout=self.CURL_TIMEOUT)
+                if method == "HEAD":
+                    if r.status_code < 400:
+                        return "\r\n".join(f"{k}: {v}" for k, v in r.headers.items()) + "\r\n\r\n"
+                    last_error = f"HTTP {r.status_code}"
+                else:
+                    text = r.text
+                    if text.strip() and not _is_cf_challenge(text):
+                        return text
+                    last_error = "empty/challenge response" if text.strip() else "empty response"
+            except Exception as exc:
+                last_error = str(exc)
+
+            if attempt < len(self.BACKOFF_SECONDS):
+                print(
+                    f"[{_SITE_ID}] {context} curl_cffi failed "
+                    f"(attempt {attempt}/3): {last_error}; retrying in {wait}s"
+                )
+                time.sleep(wait)
+
+        print(f"[{_SITE_ID}] {context} curl_cffi failed after 3 attempts: {last_error}; falling back to plain curl")
+        return None
+
     def _curl_headers(self, url, *, context, referer=None):
+        if _CFFI_AVAILABLE:
+            headers = {
+                "Accept": "application/pdf,text/html,*/*;q=0.8",
+                "Accept-Language": "et,en;q=0.9",
+            }
+            if referer:
+                headers["Referer"] = referer
+            raw_headers = self._run_cffi(url, headers=headers, context=context, method="HEAD")
+            if raw_headers is not None:
+                return self._parse_header_blocks(raw_headers)
+
         cmd = [
             "curl",
             "--tls-max",

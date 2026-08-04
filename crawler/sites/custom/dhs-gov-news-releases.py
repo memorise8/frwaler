@@ -4,9 +4,12 @@
 Starting URL: https://www.dhs.gov/news-releases/press-releases
 Pagination: ?page=N  (0-indexed, ~99 pages, 10 items/page)
 
-dhs.gov is behind Akamai which blocks datacenter IPs regardless of
-User-Agent.  Playwright (headless Chromium) bypasses this because it
-presents a real browser fingerprint.
+dhs.gov is behind Akamai which blocks datacenter IPs/plain-curl clients
+regardless of User-Agent header — it fingerprints at the TLS/HTTP2 layer.
+curl_cffi (Chrome TLS impersonation) passes and is far faster than
+launching a full headless browser per request; Playwright (headless
+Chromium) is kept as a fallback in case curl_cffi's fingerprint ever
+gets flagged too.
 """
 
 import json
@@ -19,6 +22,12 @@ from datetime import datetime
 # Absolute import — required because spec_from_file_location has no package context.
 sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler
+
+try:
+    from curl_cffi import requests as _cffi_requests
+    _CFFI_AVAILABLE = True
+except ImportError:
+    _CFFI_AVAILABLE = False
 
 _BASE = "https://www.dhs.gov"
 _LIST_URL = f"{_BASE}/news-releases/press-releases"
@@ -35,6 +44,38 @@ def _make_soup(html: str):
         except Exception:
             continue
     return None
+
+
+def _fetch_cffi(url: str, *, retries: int = 3) -> str | None:
+    """Fetch URL via curl_cffi (Chrome TLS impersonation) with backoff retry."""
+    if not _CFFI_AVAILABLE:
+        return None
+    backoff = [1, 3, 9]
+    headers = {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+    for attempt in range(retries):
+        try:
+            r = _cffi_requests.get(url, headers=headers, impersonate="chrome124", timeout=30)
+            if r.status_code < 400 and r.text and len(r.text) > 500:
+                return r.text
+            print(f"[dhs-gov-news-releases] curl_cffi short/empty response "
+                  f"(HTTP {r.status_code}, attempt {attempt + 1}/{retries}) for {url}")
+        except Exception as exc:
+            print(f"[dhs-gov-news-releases] curl_cffi error "
+                  f"(attempt {attempt + 1}/{retries}) for {url}: {exc}")
+        if attempt < retries - 1:
+            time.sleep(backoff[attempt])
+    return None
+
+
+def _fetch(url: str, *, retries: int = 3) -> str | None:
+    """Fetch a URL, preferring curl_cffi (fast) with a Playwright fallback."""
+    html = _fetch_cffi(url, retries=retries)
+    if html:
+        return html
+    return _fetch_playwright(url, retries=retries)
 
 
 def _fetch_playwright(url: str, *, retries: int = 3) -> str | None:
@@ -184,7 +225,7 @@ class DHSNewsReleasesCrawler(BaseCrawler):
 
             # ── fetch list page ───────────────────────────────────────
             list_url = f"{_LIST_URL}?page={page}"
-            html = _fetch_playwright(list_url)
+            html = _fetch(list_url)
             if not html:
                 print(f"[dhs-gov-news-releases] list page {page}: fetch failed. Stopping.")
                 break
@@ -225,7 +266,7 @@ class DHSNewsReleasesCrawler(BaseCrawler):
 
                 try:
                     time.sleep(self._delay)
-                    article_html = _fetch_playwright(article_url)
+                    article_html = _fetch(article_url)
                     if not article_html:
                         print(f"[dhs-gov-news-releases] item {article_url} failed: empty response; continue")
                         continue

@@ -22,6 +22,12 @@ from urllib.parse import unquote, urljoin, urlparse
 sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler
 
+try:
+    from curl_cffi import requests as _cffi_requests
+    _CFFI_AVAILABLE = True
+except ImportError:
+    _CFFI_AVAILABLE = False
+
 
 _SITE_ID = "transportation-gov-newsroom"
 _BASE_URL = "https://www.transportation.gov"
@@ -45,7 +51,48 @@ class TransportationGovNewsroomCrawler(BaseCrawler):
     # Network helpers
     # ------------------------------------------------------------------
 
-    def _curl(self, url: str, *, referer: str | None = None, timeout: int = 60) -> str | None:
+    def _curl_cffi(self, url: str, *, referer: str | None = None, timeout: int = 60) -> str | None:
+        """Fetch via curl_cffi (Chrome TLS impersonation) to bypass Akamai WAF.
+
+        Plain curl / requests get a hard "Access Denied" (edgesuite) from
+        transportation.gov's Akamai front door regardless of User-Agent —
+        it fingerprints at the TLS/HTTP2 layer, not headers. curl_cffi's
+        Chrome impersonation passes.
+        """
+        headers = {
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+        }
+        if referer:
+            headers["Referer"] = referer
+
+        waits = [1, 3, 9]
+        last_error = "unknown error"
+        for attempt, wait in enumerate(waits, start=1):
+            try:
+                r = _cffi_requests.get(
+                    url, headers=headers, impersonate="chrome124", timeout=timeout
+                )
+                if r.status_code >= 400:
+                    last_error = f"HTTP {r.status_code}"
+                elif r.text and r.text.strip():
+                    return r.text
+                else:
+                    last_error = "empty response"
+            except Exception as exc:
+                last_error = str(exc)
+
+            if attempt < len(waits):
+                print(
+                    f"[{self.site_id}] curl_cffi failed {attempt}/{len(waits)} for {url}: "
+                    f"{last_error}; retrying in {wait}s"
+                )
+                time.sleep(wait)
+
+        print(f"[{self.site_id}] curl_cffi failed after 3 attempts for {url}: {last_error}")
+        return None
+
+    def _curl_subprocess(self, url: str, *, referer: str | None = None, timeout: int = 60) -> str | None:
         cmd = [
             "curl",
             "--tls-max",
@@ -97,6 +144,14 @@ class TransportationGovNewsroomCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] curl failed after 3 attempts for {url}: {last_error}")
         return None
+
+    def _curl(self, url: str, *, referer: str | None = None, timeout: int = 60) -> str | None:
+        """Fetch a URL, preferring curl_cffi (bypasses Akamai) with a plain-curl fallback."""
+        if _CFFI_AVAILABLE:
+            raw = self._curl_cffi(url, referer=referer, timeout=timeout)
+            if raw and not self._is_access_denied(raw):
+                return raw
+        return self._curl_subprocess(url, referer=referer, timeout=timeout)
 
     @staticmethod
     def _is_access_denied(raw: str | None) -> bool:

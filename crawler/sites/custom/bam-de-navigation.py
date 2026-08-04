@@ -1,14 +1,20 @@
 # -*- coding: utf-8 -*-
 """Crawler for BAM Paper of the Month.
 
-Site: https://www.bam.de/Navigation/EN/News/Paper-of-the-Month/paper-of-the-month.html
+Site: https://www.bam.de/en/news/papers-of-the-month
+(redesigned TYPO3/Solr site as of 2026; old Navigation/EN/... URL 301s here)
 
-Listing pages use BAM CMS pagination: ?gtp=53294_list%253D{n}
+Listing pages use a TYPO3 Solr results pager that requires a per-page cHash
+security token (`?tx_news_pi1[currentPage]=N&cHash=...`) which can't be
+predicted from a page number alone, so pages are walked by following the
+actual "next" link (`a.page-link.page-forward`) found in each page's HTML.
 Each detail page has:
-  - <h1 id="Titel"> with <span class="subtitle"> for category
-  - <span class="date">DD/MM/YYYY</span>
-  - <div class="singleview"> with abstract <p> and bibliographic reference <p>
-  - <div class="further-information"> with journal and opus4 repository links
+  - <h1 class="headerMain"> with the title (no category subtitle anymore)
+  - <time datetime="YYYY-MM-DD"> for the published date
+  - <div class="ce-bodytext"> (inside the news_newsdetail frame) with
+    abstract <p> paragraphs and a final bibliographic-reference <p>
+  - <a class="external-link"> for the journal article and opus4 repository
+    links (inside a "Further Links" teaser)
 """
 from __future__ import annotations
 
@@ -29,10 +35,8 @@ class BamDeNavigationCrawler(BaseCrawler):
     site_name = "Custom: bam-de-navigation"
     base_url = "https://www.bam.de"
 
-    _LIST_URL = (
-        "https://www.bam.de/Navigation/EN/News/Paper-of-the-Month/paper-of-the-month.html"
-    )
-    _PAGE_PARAM = "gtp=53294_list%253D"  # appended as ?{_PAGE_PARAM}{n}
+    # Old URL 301-redirects here; kept up to date to skip the extra hop.
+    _LIST_URL = "https://www.bam.de/en/news/papers-of-the-month"
     _PAGE_CAP = 200
     _MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT = 100  # chars; items below this threshold are skipped
@@ -93,26 +97,47 @@ class BamDeNavigationCrawler(BaseCrawler):
         soup = self._make_soup(html)
         if not soup:
             return []
+        # Current site (TYPO3 Solr search results): li.search-result h3.results-topic a
+        # Legacy markup (pre-redesign) kept as a fallback: h3.list-title a
+        anchors = soup.select("li.search-result h3.results-topic a[href]")
+        if not anchors:
+            anchors = soup.select("h3.results-topic a[href]")
+        if not anchors:
+            anchors = [
+                a
+                for h3 in soup.find_all("h3", class_="list-title")
+                for a in [h3.find("a", href=True)]
+                if a
+            ]
         urls = []
-        for h3 in soup.find_all("h3", class_="list-title"):
-            a = h3.find("a", href=True)
-            if not a:
-                continue
+        for a in anchors:
             href = a["href"].strip()
             if not href.startswith("http"):
                 href = self.base_url + "/" + href.lstrip("/")
             urls.append(href)
         return urls
 
-    def _has_next_page(self, html: str, next_num: int) -> bool:
-        return any(
-            p in html
-            for p in (
-                f"{self._PAGE_PARAM}{next_num}",
-                f"gtp=53294_list%3D{next_num}",
-                f"gtp=53294_list={next_num}",
-            )
+    def _next_page_url(self, html: str) -> str | None:
+        """Return the absolute URL of the next results page, if any.
+
+        The site's TYPO3 pager requires a per-page `cHash` security token
+        that can't be predicted/constructed — it must be read off the
+        "next" link actually present in the current page's HTML.
+        """
+        soup = self._make_soup(html)
+        if not soup:
+            return None
+        nxt = soup.select_one("a.page-link.page-forward[href]") or soup.select_one(
+            "a.page-forward[href]"
         )
+        if not nxt:
+            return None
+        href = nxt["href"].strip()
+        if not href:
+            return None
+        if not href.startswith("http"):
+            href = self.base_url + "/" + href.lstrip("/")
+        return href
 
     # ------------------------------------------------------------------
     # Detail-page parsing
@@ -128,7 +153,9 @@ class BamDeNavigationCrawler(BaseCrawler):
             return None
 
         # --- Title and category ---
-        h1 = soup.find("h1", id="Titel") or soup.find("h1")
+        # Current markup: <h1 class="headerMain"><span>Title</span></h1>
+        # Legacy markup (pre-redesign): <h1 id="Titel">...<span class="subtitle">
+        h1 = soup.select_one("h1.headerMain") or soup.find("h1", id="Titel") or soup.find("h1")
         if not h1:
             return None
 
@@ -146,14 +173,19 @@ class BamDeNavigationCrawler(BaseCrawler):
             return None
 
         # --- Published date ---
+        # Current markup: <time class="date-text" datetime="2026-08-02">...</time>
         published_date = ""
-        date_span = soup.find("span", class_="date")
-        if date_span:
-            raw_date = date_span.get_text(strip=True)  # e.g. "01/05/2026"
-            try:
-                published_date = datetime.strptime(raw_date, "%d/%m/%Y").strftime("%Y-%m-%d")
-            except ValueError:
-                published_date = raw_date
+        date_tag = soup.select_one("time[datetime]") or soup.find("span", class_="date")
+        if date_tag:
+            raw_datetime = (date_tag.get("datetime") or "").strip()
+            if re.match(r"^\d{4}-\d{2}-\d{2}$", raw_datetime):
+                published_date = raw_datetime
+            else:
+                raw_date = date_tag.get_text(strip=True)  # e.g. "01/05/2026"
+                try:
+                    published_date = datetime.strptime(raw_date, "%d/%m/%Y").strftime("%Y-%m-%d")
+                except ValueError:
+                    published_date = raw_date
 
         # --- Abstract and bibliographic reference ---
         abstract = ""
@@ -161,10 +193,25 @@ class BamDeNavigationCrawler(BaseCrawler):
         journal = ""
         ref_title = ""
 
-        singleview = soup.find("div", class_="singleview")
-        if singleview:
+        # Current markup: the article body lives in a <div class="ce-bodytext">
+        # inside the "frame-type-news_newsdetail" frame (there are other,
+        # unrelated ce-bodytext divs elsewhere on the page, e.g. footer/teasers,
+        # so scope the search to that frame). Legacy markup used
+        # <div class="singleview"> directly.
+        body_div = None
+        newsdetail_frame = soup.find(
+            "div", class_=lambda c: c and "frame-type-news_newsdetail" in c
+        )
+        if newsdetail_frame:
+            body_div = newsdetail_frame.find("div", class_="ce-bodytext")
+        if body_div is None:
+            body_div = soup.find("div", class_="singleview")
+        if body_div is None:
+            body_div = soup.find("div", class_="ce-bodytext")
+
+        if body_div:
             content_paras = []
-            for p in singleview.find_all("p"):
+            for p in body_div.find_all("p"):
                 if p.find_parent("figcaption") or p.find_parent("figure"):
                     continue
                 cls = p.get("class") or []
@@ -174,12 +221,20 @@ class BamDeNavigationCrawler(BaseCrawler):
                 if len(text) > 40:
                     content_paras.append((p, text))
 
+            # The bibliographic-reference paragraph is the LAST content
+            # paragraph and is recognizable by >=2 <br> line breaks
+            # (title<br/>authors<br/>journal, year). Every other paragraph
+            # is genuine abstract text.
+            ref_p = None
             if content_paras:
-                _, abstract = content_paras[0]
+                last_p, _ = content_paras[-1]
+                if len(last_p.find_all("br")) >= 2:
+                    ref_p = last_p
+                    content_paras = content_paras[:-1]
 
-            # Second paragraph: <em>title</em><br/>Authors<br/>Journal, Year
-            if len(content_paras) >= 2:
-                ref_p, _ = content_paras[1]
+            abstract = " ".join(text for _, text in content_paras)
+
+            if ref_p is not None:
                 em = ref_p.find("em")
                 if em:
                     ref_title = self._clean(em)
@@ -201,14 +256,20 @@ class BamDeNavigationCrawler(BaseCrawler):
         article_url: str | None = None
         opus_url: str | None = None
 
+        # Current markup: <a class="external-link" href="..."> inside a
+        # "Further Links" teaser article. Legacy markup used
+        # <div class="further-information">.
+        link_candidates = soup.select("a.external-link[href]")
         further = soup.find("div", class_="further-information")
-        if further:
-            for a_tag in further.find_all("a", href=True):
-                href = a_tag["href"]
-                if "opus4.kobv.de" in href:
-                    opus_url = href
-                elif href.startswith("http") and "bam.de" not in href and article_url is None:
-                    article_url = href
+        if not link_candidates and further:
+            link_candidates = further.find_all("a", href=True)
+
+        for a_tag in link_candidates:
+            href = a_tag["href"]
+            if "opus4.kobv.de" in href:
+                opus_url = href
+            elif href.startswith("http") and "bam.de" not in href and article_url is None:
+                article_url = href
 
         # --- DOI from article URL ---
         doi: str | None = None
@@ -276,6 +337,12 @@ class BamDeNavigationCrawler(BaseCrawler):
         start_time = time.time()
         limit_str = str(limit) if limit is not None else "inf"
 
+        # The site's TYPO3 pager requires a per-page cHash token that can't
+        # be constructed from a page number alone, so pages are walked by
+        # following the "next" link found in each page's own HTML rather
+        # than by templating a page-number query param.
+        list_url: str | None = self._LIST_URL
+
         for page_num in range(1, self._PAGE_CAP + 1):
             if time.time() - start_time > self._MAX_SECONDS:
                 print(f"[bam-de-navigation] 25-min budget reached at page {page_num}, stopping")
@@ -288,14 +355,12 @@ class BamDeNavigationCrawler(BaseCrawler):
                 print(f"[bam-de-navigation] safety cap {self._PAGE_CAP} pages reached, stopping")
                 break
 
+            if not list_url:
+                print(f"[bam-de-navigation] no page {page_num} link found, stopping")
+                break
+
             if page_num == 1 or page_num % 10 == 0:
                 print(f"[bam-de-navigation] page {page_num}: saved {saved}/{limit_str}")
-
-            list_url = (
-                self._LIST_URL
-                if page_num == 1
-                else f"{self._LIST_URL}?{self._PAGE_PARAM}{page_num}"
-            )
 
             html = self._curl_get(list_url)
             if not html:
@@ -346,9 +411,10 @@ class BamDeNavigationCrawler(BaseCrawler):
                     print(f"[bam-de-navigation] item failed ({url}): {exc}")
                     continue
 
-            if not self._has_next_page(html, page_num + 1):
+            list_url = self._next_page_url(html)
+            if not list_url:
                 print(
-                    f"[bam-de-navigation] no page {page_num + 1} link found, "
+                    f"[bam-de-navigation] no next-page link found, "
                     f"done after {page_num} page(s)"
                 )
                 break

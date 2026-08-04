@@ -116,7 +116,14 @@ class NiaNihGovNewsCrawler(BaseCrawler):
     _SAFETY_CAP = 200
     _WALL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT_CHARS = 50
-    _BACKOFF_SECONDS = (1, 3, 9)
+    _BACKOFF_SECONDS = (5, 15, 45, 90)
+    # Markers seen when the AWS WAF/bot-mitigation kicks in after a burst of
+    # requests: either the documented "Human Verification" 405 challenge, or
+    # (observed live) an HTTP-200 fallback shell whose body is just a
+    # "JavaScript is disabled" notice with no real card/article markup. Both
+    # must be treated as a failed fetch so _curl_get retries with backoff
+    # instead of returning bogus content that silently truncates the crawl.
+    _BLOCK_MARKERS = ("Human Verification", "JavaScript is disabled")
 
     def crawl(self, limit=None):
         saved = 0
@@ -232,13 +239,14 @@ class NiaNihGovNewsCrawler(BaseCrawler):
                     check=False,
                 )
                 body = result.stdout.decode("utf-8", errors="replace")
-                if result.returncode == 0 and body.strip() and "Human Verification" not in body[:2000]:
+                blocked = next((m for m in self._BLOCK_MARKERS if m in body[:4000]), None)
+                if result.returncode == 0 and body.strip() and blocked is None:
                     return body
 
                 stderr = result.stderr.decode("utf-8", errors="replace").strip()
                 reason = stderr or f"curl exit {result.returncode}, body length {len(body)}"
-                if "Human Verification" in body[:2000]:
-                    reason = "WAF human-verification challenge"
+                if blocked is not None:
+                    reason = f"WAF/bot-mitigation challenge ({blocked!r})"
                 if attempt == len(self._BACKOFF_SECONDS):
                     print(f"[{self.site_id}] {label or url} failed after 3 attempts: {reason}")
                     return None

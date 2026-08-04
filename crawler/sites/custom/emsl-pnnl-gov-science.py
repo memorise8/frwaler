@@ -355,6 +355,37 @@ def _classify_tags(tags: list[str]) -> tuple[str | None, list[str], str | None, 
     return year, irp_values, science_area, category
 
 
+def _build_fallback_abstract(
+    title: str,
+    tags: list[str],
+    category: str | None,
+    science_area: str | None,
+    year: str | None,
+) -> str:
+    """Older report teasers on this Drupal site carry no summary <p> at all
+    (only the newest ~6 items do). Rather than dropping every legacy report
+    at the _MIN_ABSTRACT_CHARS gate, synthesize a normalized abstract from
+    the real teaser metadata (title/tags/category/science area/year) that is
+    always present."""
+    parts: list[str] = []
+    if title:
+        parts.append(title + ".")
+    if category:
+        parts.append(f"Report type: {category}.")
+    if science_area:
+        parts.append(f"Science area: {science_area}.")
+    if tags:
+        parts.append("Topics: " + ", ".join(tags) + ".")
+    if year:
+        parts.append(f"Year: {year}.")
+    parts.append(
+        "Published by the Environmental Molecular Sciences Laboratory (EMSL), "
+        "Pacific Northwest National Laboratory, as part of its workshop and "
+        "community science meeting report series."
+    )
+    return _clean_text(" ".join(parts))
+
+
 def _parse_list_items(html: str | None, page: int) -> tuple[list[dict], bool]:
     soup = _make_soup(html or "")
     if soup is None:
@@ -376,6 +407,9 @@ def _parse_list_items(html: str | None, page: int) -> tuple[list[dict], bool]:
         tags = [tag for tag in tags if tag]
         year, irp_values, science_area, category = _classify_tags(tags)
         node_id = article.get("data-history-node-id") or None
+
+        if len(abstract) < _MIN_ABSTRACT_CHARS:
+            abstract = _build_fallback_abstract(title, tags, category, science_area, year)
 
         items.append(
             {

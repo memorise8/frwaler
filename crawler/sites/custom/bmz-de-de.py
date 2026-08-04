@@ -26,6 +26,12 @@ from urllib.parse import unquote, urljoin, urlparse
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
 from crawler.base_crawler import BaseCrawler  # noqa: E402
 
+try:
+    from curl_cffi import requests as _cffi_requests
+    _CFFI_AVAILABLE = True
+except ImportError:
+    _CFFI_AVAILABLE = False
+
 
 _SITE_ID = "bmz-de-de"
 _BASE_URL = "https://www.bmz.de"
@@ -184,7 +190,42 @@ class BmzDeDeCrawler(BaseCrawler):
     # Network and parsing helpers
     # ------------------------------------------------------------------
 
+    def _cffi_get(self, url, *, context="", timeout=45):
+        headers = {
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "de-DE,de;q=0.9,en;q=0.8",
+            "Referer": _START_URL,
+        }
+        last_error = "unknown error"
+        for attempt, wait in enumerate(_RETRY_WAITS, start=1):
+            try:
+                r = _cffi_requests.get(url, headers=headers, impersonate="chrome124", timeout=timeout)
+                if r.status_code < 400 and r.text and r.text.strip():
+                    return r.text
+                last_error = f"HTTP {r.status_code}"
+            except Exception as exc:
+                last_error = str(exc)
+
+            if attempt < len(_RETRY_WAITS):
+                label = f" {context}" if context else ""
+                print(f"[{_SITE_ID}]{label} curl_cffi attempt {attempt}/3 failed: {last_error}; retrying in {wait}s")
+                time.sleep(wait)
+
+        label = f" {context}" if context else ""
+        print(f"[{_SITE_ID}]{label} curl_cffi failed after 3 attempts for {url}: {last_error}; falling back to plain curl")
+        return None
+
     def _curl_get(self, url, *, context="", timeout=45):
+        """Fetch a URL, preferring curl_cffi (in-process, no subprocess-spawn
+        overhead) with a plain-curl subprocess fallback. Not behind a
+        WAF/challenge, but subprocess curl calls were prone to slow/stalled
+        fetches in this environment; curl_cffi is faster and more reliable.
+        """
+        if _CFFI_AVAILABLE:
+            body = self._cffi_get(url, context=context, timeout=timeout)
+            if body:
+                return body
+
         cmd = [
             "curl",
             "--tls-max",

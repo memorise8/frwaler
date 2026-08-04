@@ -117,11 +117,19 @@ def _parse_list_bs4(soup):
     items = []
     seen = set()
 
-    # Each press release item is preceded by <span name="d.en.NNNNNN">
-    # followed by <ul class="links"><li><a href="...">title</a>
+    # Each press release item is preceded by an anchor span identifying the
+    # node. The site's CMS migrated the anchor from name="d.en.NNNNNN" to
+    # id="d.en.NNNNNN" at some point; match either for robustness.
+    # It's followed by <ul class="links"><li><a href="...">title</a>
     #              <span class="externalSource">- DD Month YYYY</span></li></ul>
-    for span in soup.find_all("span", attrs={"name": re.compile(r"^d\.en\.\d+")}):
-        raw_name = span.get("name", "")
+    anchor_re = re.compile(r"^d\.en\.\d+$")
+    anchor_spans = [
+        span
+        for span in soup.find_all("span")
+        if anchor_re.match(span.get("id") or "") or anchor_re.match(span.get("name") or "")
+    ]
+    for span in anchor_spans:
+        raw_name = span.get("id") or span.get("name") or ""
         id_match = re.search(r"d\.en\.(\d+)", raw_name)
         if not id_match:
             continue
@@ -161,7 +169,7 @@ def _parse_list_regex(html):
     items = []
     seen = set()
     pat = re.compile(
-        r'name="d\.en\.(\d+)"[^>]*>.*?'
+        r'(?:id|name)="d\.en\.(\d+)"[^>]*>.*?'
         r'<ul[^>]*class="links"[^>]*>.*?'
         r'<a\s+href="(/en/csolatestnews/pressreleases/\d{4}pressreleases/[^"]+)"[^>]*>'
         r'([^<]+)</a>.*?'

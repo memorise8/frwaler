@@ -22,6 +22,12 @@ from datetime import datetime
 sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler  # noqa: E402  absolute import
 
+try:
+    from curl_cffi import requests as _cffi_requests
+    _CFFI_AVAILABLE = True
+except ImportError:
+    _CFFI_AVAILABLE = False
+
 
 _MONTH_MAP = {
     "january": 1, "february": 2, "march": 3, "april": 4,
@@ -68,25 +74,44 @@ class SafefoodNetNewsCrawler(BaseCrawler):
     # Network helpers
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _is_cf_challenge(raw: str | None) -> bool:
+        if not raw:
+            return False
+        head = raw[:2000].lower()
+        return "just a moment" in head and "challenges.cloudflare.com" in head
+
     def _curl_get(self, url: str) -> str | None:
-        """GET via curl with 3-attempt exponential backoff. Returns decoded text or None."""
+        """GET via curl_cffi (Chrome TLS impersonation) to bypass Cloudflare's
+        JS challenge, with 3-attempt exponential backoff. Falls back to plain
+        curl if curl_cffi is unavailable. Returns decoded text or None.
+        """
         waits = [1, 3, 9]
         for attempt in range(3):
             try:
-                result = subprocess.run(
-                    [
-                        "curl", "--tls-max", "1.3", "-skL",
-                        "--max-time", "30",
-                        "-H", f"User-Agent: {self.USER_AGENT}",
+                if _CFFI_AVAILABLE:
+                    r = _cffi_requests.get(
                         url,
-                    ],
-                    capture_output=True,
-                    timeout=35,
-                )
-                body = result.stdout.decode("utf-8", errors="replace")
-                if body.strip():
+                        headers={"Accept-Language": "en-US,en;q=0.9"},
+                        impersonate="chrome124",
+                        timeout=30,
+                    )
+                    body = r.text
+                else:
+                    result = subprocess.run(
+                        [
+                            "curl", "--tls-max", "1.3", "-skL",
+                            "--max-time", "30",
+                            "-H", f"User-Agent: {self.USER_AGENT}",
+                            url,
+                        ],
+                        capture_output=True,
+                        timeout=35,
+                    )
+                    body = result.stdout.decode("utf-8", errors="replace")
+                if body.strip() and not self._is_cf_challenge(body):
                     return body
-                print(f"[{self.site_id}] empty response attempt {attempt + 1}/3 for {url}")
+                print(f"[{self.site_id}] empty/challenge response attempt {attempt + 1}/3 for {url}")
             except Exception as exc:
                 print(f"[{self.site_id}] curl error attempt {attempt + 1}/3: {exc}")
             if attempt < 2:

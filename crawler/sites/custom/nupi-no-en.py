@@ -126,7 +126,11 @@ class NupiNoEnCrawler(BaseCrawler):
         full_version_url = None
 
         if summary_div:
-            text_div = summary_div.find("div", class_="eztext-field")
+            # eZ Systems rebranded to Ibexa DXP; the site's field-wrapper
+            # classes were renamed accordingly (eztext-field -> ibexa_text-field,
+            # ezstring-field -> ibexa_string-field). Try both, new name first.
+            text_div = summary_div.find("div", class_="ibexa_text-field") \
+                or summary_div.find("div", class_="eztext-field")
             if text_div:
                 abstract = text_div.get_text(separator=" ", strip=True)
 
@@ -138,11 +142,13 @@ class NupiNoEnCrawler(BaseCrawler):
                         raw = a.get_text(strip=True)
                         doi = re.sub(r"^https?://(dx\.)?doi\.org/", "", raw)
                 elif "Journal:" in li_text:
-                    sp = li.find("span", class_="ezstring-field")
+                    sp = li.find("span", class_="ibexa_string-field") \
+                        or li.find("span", class_="ezstring-field")
                     if sp:
                         journal = sp.get_text(strip=True)
                 elif "Published year:" in li_text:
-                    sp = li.find("span", class_="ezstring-field")
+                    sp = li.find("span", class_="ibexa_string-field") \
+                        or li.find("span", class_="ezstring-field")
                     if sp:
                         pub_year = sp.get_text(strip=True)
                 elif "Full version:" in li_text:

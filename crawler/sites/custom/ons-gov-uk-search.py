@@ -26,7 +26,22 @@ _SITE_ID = "ons-gov-uk-search"
 _PAGE_SIZE = 10
 _ABSTRACT_MIN = 100   # skip items whose abstract is below this
 _RATE_SLEEP = 1.0
-_SAFETY_CAP = 200     # max pages before forced stop
+_SAFETY_CAP = 200     # max pages before forced stop (shared across content types)
+
+# The ONS beta search API's `content_type` query param does NOT OR multiple
+# repeated values together server-side (verified live: passing
+# content_type=dataset&content_type=timeseries in one request silently
+# returns only "dataset" items). Each type must be queried separately, hence
+# the list below + the per-type outer loop in crawl(). Only "dataset" is
+# used: "timeseries" (~5k live matches) was tried and every sampled item
+# across multiple offsets has an empty summary/metaDescription in both the
+# search response and the /data detail endpoint (they're raw numeric time
+# series, e.g. "GG:AS:LEVEL:Bonds issued by UK banks..." — not documents
+# with an abstract), so they always fail the abstract-length quality filter
+# and would only add wasted requests, not saved documents.
+# `user_requested_data` is no longer a recognized content_type on the live
+# API at all (empty/non-JSON response) and was dropped outright.
+_CONTENT_TYPES = ("dataset",)
 
 
 def _curl_get(url: str, *, accept: str = "application/json",
@@ -87,16 +102,17 @@ class OnsGovUkSearchCrawler(BaseCrawler):
     # Private helpers
     # ------------------------------------------------------------------
 
-    def _search_page(self, offset: int) -> dict | None:
-        """Fetch one page of search results from the ONS beta API."""
+    def _search_page(self, offset: int, content_type: str) -> dict | None:
+        """Fetch one page of search results from the ONS beta API.
+
+        NOTE: only ONE content_type per request — see _CONTENT_TYPES comment.
+        """
         url = (
             f"{_API_BASE}/v1/search"
             f"?q=uk+wide"
             f"&limit={_PAGE_SIZE}"
             f"&offset={offset}"
-            f"&content_type=dataset"
-            f"&content_type=timeseries"
-            f"&content_type=user_requested_data"
+            f"&content_type={content_type}"
         )
         raw = _curl_get(url)
         if not raw:
@@ -259,67 +275,73 @@ class OnsGovUkSearchCrawler(BaseCrawler):
         limit_or_inf = limit if limit is not None else float("inf")
         seen_urls: set[str] = set()
         start_time = time.time()
-        offset = 0
-        page = 0
+        page = 0  # shared page counter across all content types
+        wall_budget_s = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         try:
-            while saved < limit_or_inf:
-                if page >= _SAFETY_CAP:
-                    print(
-                        f"[{_SITE_ID}] safety cap of {_SAFETY_CAP} pages reached, stopping"
-                    )
+            for content_type in _CONTENT_TYPES:
+                if saved >= limit_or_inf:
                     break
 
-                if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
-                    print(f"[{_SITE_ID}] 25-minute wall-clock budget exceeded, stopping")
-                    break
+                offset = 0
+                while saved < limit_or_inf:
+                    if page >= _SAFETY_CAP:
+                        print(
+                            f"[{_SITE_ID}] safety cap of {_SAFETY_CAP} pages reached, stopping"
+                        )
+                        return saved
 
-                data = self._search_page(offset)
-                if not data:
-                    print(f"[{_SITE_ID}] no data at offset {offset}, stopping")
-                    break
+                    if time.time() - start_time > wall_budget_s:
+                        print(f"[{_SITE_ID}] 25-minute wall-clock budget exceeded, stopping")
+                        return saved
 
-                items = data.get("items", [])
-                if not items:
-                    print(f"[{_SITE_ID}] empty items at offset {offset}, end of results")
-                    break
-
-                page += 1
-                if page % 10 == 0:
-                    print(
-                        f"[{_SITE_ID}] page {page}: saved {saved}/{limit_or_inf}"
-                    )
-
-                new_this_page = 0
-                for item in items:
-                    if saved >= limit_or_inf:
+                    data = self._search_page(offset, content_type)
+                    if not data:
+                        print(f"[{_SITE_ID}] no data at offset {offset} ({content_type}), stopping type")
                         break
 
-                    uri = item.get("uri", "")
-                    item_url = f"{_BASE}{uri}"
-                    if item_url in seen_urls:
-                        continue
-                    seen_urls.add(item_url)
-                    new_this_page += 1
+                    items = data.get("items", [])
+                    if not items:
+                        print(f"[{_SITE_ID}] empty items at offset {offset} ({content_type}), end of type")
+                        break
 
-                    try:
-                        did_save = self._process_item(item)
-                        if did_save:
-                            saved += 1
-                            time.sleep(_RATE_SLEEP)
-                    except KeyboardInterrupt:
-                        raise
-                    except Exception as exc:
-                        print(f"[{_SITE_ID}] item {item_url} failed: {exc}")
-                        continue
+                    page += 1
+                    if page % 10 == 0:
+                        print(
+                            f"[{_SITE_ID}] page {page} ({content_type}): saved {saved}/{limit_or_inf}"
+                        )
 
-                if new_this_page == 0:
-                    print(
-                        f"[{_SITE_ID}] all items on page {page} already seen, stopping"
-                    )
-                    break
+                    new_this_page = 0
+                    for item in items:
+                        if saved >= limit_or_inf:
+                            break
 
-                offset += _PAGE_SIZE
+                        uri = item.get("uri", "")
+                        item_url = f"{_BASE}{uri}"
+                        if item_url in seen_urls:
+                            continue
+                        seen_urls.add(item_url)
+                        new_this_page += 1
+
+                        try:
+                            did_save = self._process_item(item)
+                            if did_save:
+                                saved += 1
+                                time.sleep(_RATE_SLEEP)
+                        except KeyboardInterrupt:
+                            raise
+                        except Exception as exc:
+                            print(f"[{_SITE_ID}] item {item_url} failed: {exc}")
+                            continue
+
+                    if new_this_page == 0:
+                        print(
+                            f"[{_SITE_ID}] all items on page {page} ({content_type}) already seen, "
+                            f"stopping type"
+                        )
+                        break
+
+                    offset += _PAGE_SIZE
 
         except KeyboardInterrupt:
             print(f"[{_SITE_ID}] interrupted by user after saving {saved} items")

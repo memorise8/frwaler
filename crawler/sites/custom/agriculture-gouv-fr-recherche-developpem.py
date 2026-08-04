@@ -42,8 +42,17 @@ _MOIS = {
 }
 
 
-def _curl_get(url: str, retries: int = 3) -> str | None:
-    """Fetch URL via curl; return decoded text or None after all retries."""
+_MARKER = "__HTTP_CODE__:"
+
+
+def _curl_get(url: str, retries: int = 4) -> str | None:
+    """Fetch URL via curl; return decoded text or None after all retries.
+
+    Site nginx layer intermittently rate-limits (HTTP 429) and returns a
+    generic non-empty error page instead of the real listing, which used to
+    be mistaken for a legit "no results" page. Detect the status code via
+    curl's -w and retry on 429/5xx instead of accepting the body as-is.
+    """
     cmd = [
         "curl", "-skL", "--tls-max", "1.3", "--max-time", "30",
         "-H", "Accept-Language: fr-FR,fr;q=0.9,en;q=0.8",
@@ -51,19 +60,27 @@ def _curl_get(url: str, retries: int = 3) -> str | None:
             "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         ),
+        "-w", f"\n{_MARKER}%{{http_code}}",
         url,
     ]
     for attempt in range(retries):
         try:
             result = subprocess.run(cmd, capture_output=True, timeout=35)
-            text = result.stdout.decode("utf-8", errors="replace")
-            if text.strip():
-                return text
-            # empty body — retry
+            raw = result.stdout.decode("utf-8", errors="replace")
+            status = "000"
+            if _MARKER in raw:
+                raw, _, status = raw.rpartition(_MARKER)
+                status = status.strip()
+            if raw.strip() and status not in ("429",) and not status.startswith("5"):
+                return raw
+            print(
+                f"[{_SITE_ID}] fetch retry ({attempt + 1}/{retries}) for {url}: "
+                f"http={status} body_len={len(raw.strip())}"
+            )
         except Exception as exc:
             print(f"[{_SITE_ID}] curl error ({attempt + 1}/{retries}): {exc}")
         if attempt < retries - 1:
-            wait = 3 ** attempt  # 1, 3, 9 seconds
+            wait = 2 * (2 ** attempt)  # 2, 4, 8, 16 seconds
             print(f"[{_SITE_ID}] retrying in {wait}s...")
             time.sleep(wait)
     return None

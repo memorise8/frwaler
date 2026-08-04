@@ -70,22 +70,25 @@ class KihasaReKrPublishCrawler(BaseCrawler):
                 print(f"[{self.site_id}] Empty response for list page {page}; stopping")
                 break
 
-            seqs = self._parse_list_seqs(raw)
-            if not seqs:
+            items = self._parse_list_items(raw)
+            if not items:
                 print(f"[{self.site_id}] No items on list page {page}; stopping")
                 break
 
             total_pages = self._extract_int(raw, "totalPage")
 
             new_count = 0
-            for seq in seqs:
+            for seq, detail_path in items:
                 if limit is not None and saved >= limit:
                     break
                 if self._budget_exhausted(t0):
                     print(f"[{self.site_id}] Runtime budget exhausted; stopping cleanly")
                     return saved
 
-                detail_url = f"{self._DETAIL_BASE}?seq={seq}"
+                detail_url = (
+                    detail_path if detail_path.startswith("http")
+                    else self.base_url + detail_path
+                )
                 if detail_url in seen_urls:
                     continue
                 seen_urls.add(detail_url)
@@ -198,40 +201,34 @@ class KihasaReKrPublishCrawler(BaseCrawler):
         m = re.search(rf"\b{re.escape(key)}:(\d+)", raw)
         return int(m.group(1)) if m else 0
 
-    def _parse_list_seqs(self, raw: str) -> list[int]:
-        """Return ordered, deduplicated seq values from the list page.
+    def _parse_list_items(self, raw: str) -> list[tuple[int, str]]:
+        """Return ordered, deduplicated (seq, detail_path) pairs from the list page.
 
-        Nuxt SSR compresses repeated values into IIFE variables. Some items
-        are variable-assigned (u.seq=NNN) and others are inline ({seq:NNN}).
-        We capture both patterns.
+        Site redesign moved detail pages under a per-category path segment
+        (e.g. /publish/report/policy/view, .../research/view,
+        .../workingpapers/view, .../policymemos/view) instead of the old
+        flat /publish/report/view?seq=N — the category segment varies per
+        item and must be read from the anchor href itself, not assumed.
         """
-        nuxt = self._nuxt_state(raw)
-        seqs: list[int] = []
+        items: list[tuple[int, str]] = []
         seen: set[int] = set()
+        for href, seq_s in re.findall(
+            r'href="(/publish/report/[a-zA-Z]+/view\?[^"]*seq=(\d+))"', raw
+        ):
+            s = int(seq_s)
+            if s not in seen:
+                seen.add(s)
+                items.append((s, href.replace("&amp;", "&")))
 
-        if nuxt:
-            # Variable-assigned objects: u.seq=75487 (first ~2 items per page)
-            for m in re.finditer(r'\.seq=(\d+)', nuxt):
-                s = int(m.group(1))
+        # Fallback: old flat pattern, in case a category-less link ever appears
+        if not items:
+            for m in re.finditer(r'href="(/publish/report/view\?[^"]*seq=(\d+))"', raw):
+                s = int(m.group(2))
                 if s not in seen:
                     seen.add(s)
-                    seqs.append(s)
-            # Inline objects: {seq:75182,...} (remaining items)
-            for m in re.finditer(r'\bseq:(\d+)', nuxt):
-                s = int(m.group(1))
-                if s not in seen:
-                    seen.add(s)
-                    seqs.append(s)
+                    items.append((s, m.group(1).replace("&amp;", "&")))
 
-        # Fallback: scan raw HTML for detail href links
-        if not seqs:
-            for m in re.finditer(r'/publish/report(?:/[^/]+)?/view\?seq=(\d+)', raw):
-                s = int(m.group(1))
-                if s not in seen:
-                    seen.add(s)
-                    seqs.append(s)
-
-        return seqs
+        return items
 
     def _extract_js_string(self, text: str, key: str) -> str:
         """Extract a JS string property value, handling \\uXXXX escapes.
