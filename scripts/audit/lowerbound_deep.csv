@@ -1,0 +1,314 @@
+site_id,sheet,collected,counted,server_total,completed,elapsed_s,method,note,health
+gob-mx-agricultura,Mexico Ministries,729,0,,True,0,no_crawler,,no_crawler
+gob-mx-bienestar,Mexico Ministries,729,0,,True,0,no_crawler,,no_crawler
+gob-mx-buengobierno,Mexico Ministries,771,0,,True,0,no_crawler,,no_crawler
+gob-mx-defensa,Mexico Ministries,756,0,,True,0,no_crawler,,no_crawler
+gob-mx-mujeres,Mexico Ministries,270,0,,True,0,no_crawler,,no_crawler
+gob-mx-salud,Mexico Ministries,765,0,,True,0,no_crawler,,no_crawler
+gob-mx-se,Mexico Ministries,762,0,,True,0,no_crawler,,no_crawler
+gob-mx-sectur,Mexico Ministries,765,0,,True,0,no_crawler,,no_crawler
+gob-mx-sedatu,Mexico Ministries,756,0,,True,0,no_crawler,,no_crawler
+gob-mx-segob,Mexico Ministries,747,0,,True,0,no_crawler,,no_crawler
+gob-mx-semar,Mexico Ministries,783,0,,True,0,no_crawler,,no_crawler
+gob-mx-semarnat,Mexico Ministries,774,0,,True,0,no_crawler,,no_crawler
+gob-mx-sep,Mexico Ministries,774,0,,True,0,no_crawler,,no_crawler
+gob-mx-shcp,Mexico Ministries,762,0,,True,0,no_crawler,,no_crawler
+gob-mx-sict,Mexico Ministries,747,0,,True,0,no_crawler,,no_crawler
+gob-mx-sre,Mexico Ministries,774,0,,True,0,no_crawler,,no_crawler
+gob-mx-sspc,Mexico Ministries,773,0,,True,0,no_crawler,,no_crawler
+gob-mx-stps,Mexico Ministries,748,0,,True,0,no_crawler,,no_crawler
+sonar-ch-global,Switzerland Research Centers,5462,5364,0,True,257.7,count_crawl,caps_neutralized:_MAX_PAGES=200->big,ok
+prism-go-kr-homepage,한국완료,2900,20621,385687,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+jsearch-mwr-gov-cn-irs-c-web,중국 완료,2499,2575,40542,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+ir-cwi-nl,Dutch Research Centers,592,786,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+llnl-gov-news,American Research Institutes,3537,3958,5249,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+ir-arcnl-nl,Dutch Research Centers,452,770,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+homeaffairs-gov-au-sitesearch,호주완료,1308,1912,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+bok-or-kr-portal,한국완료,430,995,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+ecologie-gouv-fr-presse,France Ministries,4049,411,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+drc-gov-cn-leafaspx,중국 완료,555,476,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+app-mps-gov-cn-gdnps,중국 완료,501,628,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+moef-go-kr-nw,한국완료,683,935,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+bfe-admin-ch-bfe,Switzerland Departments,1002,307,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+kmcc-go-kr-userdo,한국완료,666,881,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+gri-re-kr-web,한국완료,516,845,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+ftc-go-kr-www,한국완료,694,781,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+justice-gov-news,USA Executive Departments,741,1035,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+daejeon-go-kr-drh,한국완료,473,720,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+etera-ee-browse,Estonia Research Centers,100403,334,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+civilprotection-gov-gr-deltia-tupou,Greece Ministries,500,825,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+oig-treasury-gov-other-reports-testim,USA Executive Departments,1353,1354,0,True,67.4,count_crawl,caps_neutralized:_MAX_PAGES=200->big,ok
+mod-mil-gr-category,Greece Ministries,470,594,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+kdca-go-kr-kdca,한국완료,846,648,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+chungnam-go-kr-cnportal,한국완료,425,682,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+busan-go-kr-nbtnewsbu,한국완료,537,622,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+par-nsf-gov-search,American Research Institutes,2481,2360,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+fss-or-kr-fss,한국완료,500,479,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+afp-gov-au-news-centre,호주완료,432,550,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+info-daegu-go-kr-newshome,한국완료,490,580,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+kisdi-re-kr-bbs,한국완료,502,466,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+jeju-go-kr-news,한국완료,1087,548,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+ii-re-kr-base,한국완료,287,422,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+book-ioj-go-kr-library,한국완료,500,998,0,True,451.5,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SECS=1500->big,ok
+gwangju-go-kr-boardlistdo,한국완료,500,503,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+gnews-gg-go-kr-briefing,한국완료,500,1216,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+keei-re-kr-boardes,한국완료,452,466,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+caissedesdepots-fr-communiques-de-press,French Public Institutions,1201,951,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+defensa-gob-es-gabinete,Spain Ministries,421,431,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+digital-gob-es-comunicacion,Spain Ministries,416,637,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+kedi-re-kr-khome,한국완료,519,355,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+kcg-go-kr-kcg,한국완료,624,370,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+fmn-dk-da,덴마크완료,848,272,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+mof-go-kr-doc,한국완료,624,366,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+gyeongnam-go-kr-board,한국완료,190,349,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+auswaertiges-amt-de-en,독일완료,526,311,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+biblio-naturalsciences-be-rbins-publications,벨기에완료,500,299,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+mintour-gov-gr-deltia-typoy,Greece Ministries,394,253,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+mivau-gob-es-el-ministerio,Spain Ministries,473,270,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+amolf-nl-publications,Dutch Research Centers,512,422,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+miteco-gob-es-es,Spain Ministries,379,293,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+cpb-nl-en,Dutch Research Centers,371,318,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+forest-go-kr-kfsweb,한국완료,931,269,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+em-lyon-com-en,French Public Universities,348,268,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+incheon-go-kr-ic010205,한국완료,1328,574,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+esri-ie-publications,Irish Research Centers,531,276,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+ypes-gr-category,Greece Ministries,987,1785,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+kipo-go-kr-ko,한국완료,500,561,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+policyalternatives-ca-news-research,Canadian Research Centers,1543,1026,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+fibl-org-en,Switzerland Research Centers,539,393,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+irb-usi-ch-publications,Switzerland Research Centers,558,560,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+presse-economie-gouv-fr,France Ministries,1206,1881,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+etis-ee-portal,Estonia Research Centers,138,89,327834,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+kei-re-kr-eliblistes,한국완료,364,224,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+cnic-es-en,Spanish Research Centers,419,221,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+gi-re-kr-home,한국완료,452,432,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+justitsministeriet-dk-pressemeddelelse,덴마크완료,346,230,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+koti-re-kr-user,한국완료,373,197,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+sejong-go-kr-bbs,한국완료,500,1241,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+scourt-go-kr-portal,한국완료,982,1177,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+gnewsonline-it-category,Italy Ministries,343,208,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+kepco-co-kr-home,한국완료,400,492,0,True,377.4,count_crawl,,ok
+biorbic-com-publications,Irish Research Centers,497,467,0,True,7.7,count_crawl,caps_neutralized:SAFETY_CAP_PAGES=200->big;WALL_CLOCK_BUDGET_SECONDS=1500->big,ok
+skillsdevelopmentscotland-co-uk-publications-statist,영국완료,488,487,0,True,49.7,count_crawl,caps_neutralized:_SAFETY_CAP=200->big;_MAX_SECONDS=1500->big,ok
+educacionfpydeportes-gob-es-prensahtml,Spain Ministries,347,200,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+bnf-fr-fr,French Public Institutions,488,488,0,True,82.6,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_SECONDS=1500->big,ok
+minrel-gob-cl-minrel,Chile Ministries,4547,1154,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+defence-govt-nz-publications,뉴질랜드완료,431,434,0,True,473.9,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL=1500->big,ok
+stepi-re-kr-site,한국완료,570,941,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+babraham-ac-uk-news,영국완료,483,309,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+carabinieri-it-in-vostro-aiuto,Italy Ministries,301,132,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+fafo-no-en,Norway Research Centers,322,178,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+dst-dk-da,덴마크완료,408,210,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+kinu-or-kr-main,한국완료,432,434,0,True,567.6,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_SECONDS=1500->big,ok
+accc-gov-au-search,호주완료,454,162,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+jeonnam-go-kr-m7116,한국완료,770,255,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+ameslab-gov-news,American Research Institutes,394,396,0,True,249.5,count_crawl,caps_neutralized:_SAFETY_CAP=200->big;_WALL_BUDGET_SECONDS=1500->big,ok
+mfds-go-kr-brd,한국완료,461,163,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+mpva-go-kr-mpva,한국완료,590,902,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+gov-wales-publications,영국완료,155,172,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+environment-govt-nz-acts-and-regulations,뉴질랜드완료,315,140,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+mss-go-kr-site,한국완료,500,832,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+elocus-lib-uoc-gr-search,Greece Research Centers,282,165,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+klri-re-kr-kor,한국완료,590,155,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+ejournals-epublishing-ekt-gr-indexphp,Greece Research Centers,474,209,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+rda-go-kr-board,한국완료,1020,792,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+police-go-kr-user,한국완료,747,768,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+repository-naturalis-nl,Dutch Research Centers,9681,777,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+em-dk-aktuelt,덴마크완료,350,247,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+motir-go-kr-kor,한국완료,703,697,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+pubs-usgs-gov,American Research Institutes,10,658,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+state-gwd-go-kr-portal,한국완료,614,570,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+rigsrevisionen-dk-revisionssager,덴마크완료,590,648,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+english-www-gov-cn-archive,중국 완료,506,269,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+bundesgesundheitsministerium-de-service,독일완료,229,112,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+gichd-org-publications-resourc,Switzerland Research Centers,266,166,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+bmluk-gv-at-service,오스트리아완료,315,272,0,True,4.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big,ok
+en-nim-ac-cn-taxonomy,중국 완료,303,303,0,True,263.1,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_SECONDS=1500->big,ok
+mohw-go-kr-boardes,한국완료,920,628,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+sm-dk-publikationer,덴마크완료,354,354,0,True,368.4,count_crawl,,ok
+sm-ee-otsing,Estonia Ministries,158,337,348,True,395.9,count_crawl,caps_neutralized:MAX_PAGES=200->big;WALL_BUDGET_SECONDS=1500->big,ok
+ons-gov-uk-search,영국완료,516,333,0,True,419.4,count_crawl,caps_neutralized:_SAFETY_CAP=200->big,ok
+nypi-re-kr,한국완료,3,589,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+dol-gov-newsroom,USA Executive Departments,275,119,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+repository-library-noaa-gov-view,American Research Institutes,812,548,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+ifremer-fr-fr,French Research Institutes,286,240,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+igualdad-gob-es-comunicacion,Spain Ministries,216,40,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+ntp-niehs-nih-gov-publications,American Research Institutes,536,532,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+search-open-canada-ca-opendata,Canada Ministries,5287,80,0,True,135.0,count_crawl,caps_neutralized:MAX_PAGES=200->big;WALL_BUDGET_SECONDS=1500->big,ok
+kicj-re-kr-boardes,한국완료,154,103,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+moj-go-kr-moj,한국완료,793,503,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+treasury-gov-au-publication,호주완료,651,589,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+ruomoplus-lib-uom-gr-simple-search,Greece Research Centers,500,514,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+sastind-gov-cn-n10086200,중국 완료,474,372,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+opm-go-kr-opm,한국완료,660,489,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+nisra-gov-uk-publications,영국완료,522,502,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+mafra-go-kr-home,한국완료,761,460,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+doi-gov-bpp,USA Executive Departments,204,204,0,True,11.3,count_crawl,caps_neutralized:_MAX_WALL_SECONDS=1500->big;_MAX_PAGES=200->big,ok
+amf-france-org-fr,French Public Institutions,157,75,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+nordlandsforskning-no-en,Norway Research Centers,304,396,0,True,557.1,count_crawl,caps_neutralized:_SAFETY_CAP=200->big;_MAX_WALL_SECONDS=1500->big,ok
+graduateinstitute-ch-library,Switzerland Research Centers,398,84,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+lib-cssn-cn-zy,중국 완료,204,204,0,True,273.8,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_CLOCK_LIMIT=1500->big,ok
+benthamscience-com-press-release,Switzerland Research Centers,191,193,0,True,226.7,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SECONDS=1500->big,ok
+mogef-go-kr-nw,한국완료,852,355,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+economy-ni-gov-uk-publications,영국완료,583,97,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+molit-go-kr-usr,한국완료,390,430,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+opengov-seoul-go-kr-research,한국완료,344,357,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+nist-gov-publications,American Research Institutes,478,347,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+nin-nl-publications,Dutch Research Centers,471,357,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+nhlbi-nih-gov-resources,American Research Institutes,325,271,0,True,519.7,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SECONDS=1500->big,ok
+sib-swiss-community,Switzerland Research Centers,391,359,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+ypen-gov-gr-category,Greece Ministries,454,330,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+regulation-govt-nz-about-us,뉴질랜드완료,247,312,0,True,547.9,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_BUDGET=1500->big,ok
+bmftr-bund-de-siteglobals,독일완료,197,142,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+saemangeum-go-kr-sda,한국완료,428,321,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+ots-at-pressemappe,오스트리아완료,500,303,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+krihs-re-kr-krihslibraryreport,한국완료,168,150,0,True,89.6,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SECS=1500->big,ok
+nivel-nl-en,Dutch Research Centers,520,370,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+netl-doe-gov-search-r-d-publicati,American Research Institutes,729,338,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+usgs-gov-news,American Research Institutes,1549,243,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+repository-tno-nl-doclist,Dutch Research Centers,10508,263,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+si-re-kr-bbs,한국완료,501,297,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+issibern-ch-outreach,Switzerland Research Centers,157,159,0,True,596.1,count_crawl,caps_neutralized:SAFETY_PAGE_CAP=200->big;WALL_CLOCK_BUDGET_SECONDS=1500->big,ok
+onera-fr-fr,French Research Institutes,145,148,0,True,330.4,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SECONDS=1500->big,ok
+nimh-nih-gov-news,American Research Institutes,492,261,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+psi-ch-en,Switzerland Research Centers,405,273,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+netl-doe-gov-fecm-external-r-and-,American Research Institutes,343,312,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+www6-slac-stanford-edu-news-and-events,American Research Institutes,267,190,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+pubshop-bmbwf-gv-at-indexphp,오스트리아완료,479,499,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+ivo-se-sok,스웨덴 완료,134,139,139,True,358.0,count_crawl,caps_neutralized:MAX_PAGES=200->big;WALL_BUDGET_SECONDS=1500->big,ok
+skm-dk-aktuelt,덴마크완료,457,241,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+swisstph-ch-en,Switzerland Research Centers,1087,417,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+kommunikasjon-ntb-no-presserom,Norway Research Centers,116,116,0,True,147.1,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SECONDS=1500->big,ok
+ncha-gov-cn-col,중국 완료,117,117,0,True,160.4,count_crawl,caps_neutralized:SAFETY_PAGE_CAP=200->big;WALL_CLOCK_BUDGET_SECONDS=1500->big,ok
+who-int-publications,Switzerland Research Centers,511,188,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+didaktorika-gr-eadd,Greece Research Centers,118,118,0,True,276.5,count_crawl,caps_neutralized:CRAWL_DEADLINE_S=1500->big,ok
+samr-gov-cn-zw,중국 완료,315,283,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+pbl-nl-en,Dutch Research Centers,649,231,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+health-ni-gov-uk-news,영국완료,137,100,0,True,36.3,count_crawl,,ok
+werk-belgie-be-nl,벨기에완료,316,203,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+nrc-re-kr-boardes,한국완료,470,237,0,True,345.2,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SECONDS=1500->big,ok
+icp-fr-a-propos-de-licp,French Public Institutions,99,99,0,True,72.7,count_crawl,caps_neutralized:MAX_WALL_SECONDS=1500->big;PAGE_CAP=200->big,ok
+ifau-se-forskning,스웨덴 완료,101,106,0,True,156.2,count_crawl,caps_neutralized:_MAX_PAGES=200->big,ok
+niddk-nih-gov-news,American Research Institutes,124,99,0,True,95.0,count_crawl,caps_neutralized:MAX_PAGES=200->big;MAX_SECONDS=1500->big,ok
+polytechnique-edu-presse,French Public Universities,226,232,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+cac-gov-cn-hdfw,중국 완료,89,91,0,True,71.8,count_crawl,,ok
+transportes-gob-es-el-ministerio,Spain Ministries,288,225,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+wallonie-be-fr,벨기에완료,121,124,0,True,401.3,count_crawl,caps_neutralized:MAX_PAGES=200->big;WALL_CLOCK_BUDGET_SECONDS=1500->big,ok
+ustat-mur-gov-it,Italy Ministries,92,94,0,True,148.6,count_crawl,,ok
+fi-se-en,스웨덴 완료,122,95,0,True,217.4,count_crawl,caps_neutralized:_MAX_SECONDS=1500->big,ok
+nps-or-kr-inforls,한국완료,115,0,0,True,103.0,count_crawl,caps_neutralized:_MAX_PAGES=200->big,empty_zero_parse
+unidata-gv-at-pages,오스트리아완료,404,0,0,True,3.0,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_BUDGET_SECONDS=1500->big,empty_zero_parse
+ncri-ie-en,Irish Research Centers,104,104,0,True,353.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_CLOCK_BUDGET_S=1500->big,ok
+klimaraadet-dk-da,덴마크완료,84,84,0,True,128.7,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SECONDS=1500->big,ok
+toi-no-publications,Norway Research Centers,470,275,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+sib-swiss-training,Switzerland Research Centers,74,67,0,True,9.5,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_CLOCK_S=1500->big,ok
+ninds-nih-gov-publications,American Research Institutes,71,70,0,True,121.2,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_BUDGET=1500->big,ok
+nersc-no-en,Norway Research Centers,349,165,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+publicservice-govt-nz-data,뉴질랜드완료,61,61,0,True,90.8,count_crawl,caps_neutralized:_MAX_PAGES=200->big,ok
+ungeneva-org-en,Switzerland Research Centers,93,91,0,True,232.0,count_crawl,caps_neutralized:_WALL_CLOCK_MIN=25->big;_MAX_PAGES=200->big,ok
+cae-eco-fr-presse-cae-0,French Public Institutions,64,64,0,True,196.5,count_crawl,,ok
+sintef-no-en,Norway Research Centers,141,140,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+nichd-nih-gov-newsroom,American Research Institutes,329,197,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+hatvp-fr-actualites-et-public,French Public Institutions,57,57,0,True,173.5,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_MINUTES=25->big,ok
+nia-nih-gov-news,American Research Institutes,95,59,0,True,126.9,count_crawl,caps_neutralized:_SAFETY_CAP=200->big;_WALL_BUDGET_SECONDS=1500->big,ok
+xxgk-mot-gov-cn-2020,중국 완료,456,460,0,True,534.0,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_SECONDS=1500->big,ok
+directives-doe-gov-guidance,USA Executive Departments,260,51,0,True,120.2,count_crawl,caps_neutralized:_SAFETY_CAP=200->big;_WALL_BUDGET_SECONDS=1500->big,ok
+plan-be-nl,벨기에완료,152,117,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+noc-ac-uk-publications,영국완료,234,25,0,True,181.4,count_crawl,caps_neutralized:_MAX_PAGES=200->big,ok
+cstb-fr-communiques-de-press,French Research Institutes,48,48,0,True,78.8,count_crawl,caps_neutralized:_MAX_PAGES=200->big,ok
+alrc-gov-au-publications,호주완료,116,40,0,True,38.0,count_crawl,caps_neutralized:SAFETY_PAGE_CAP=200->big;MAX_WALL_SECONDS=1500->big,ok
+opendata-centralbank-ie-dataset,Irish Research Centers,38,39,0,True,12.3,count_crawl,caps_neutralized:_WALL_CLOCK_LIMIT=1500->big,ok
+africamuseum-be-en,벨기에완료,52,52,0,True,225.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_SECONDS=1500->big,ok
+ris-bka-gv-at-ergebniswxe,오스트리아완료,507,101,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+nidi-nl-en,Dutch Research Centers,285,142,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+presse-cnam-fr-communiques,French Public Institutions,36,38,0,True,169.9,count_crawl,caps_neutralized:MAX_PAGES=200->big;WALL_CLOCK_BUDGET_SECONDS=1500->big,ok
+nim-ac-cn-taxonomy,중국 완료,34,34,0,True,34.0,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_SECONDS=1500->big,ok
+rcaanc-cirnac-gc-ca-eng,Canada Ministries,33,33,0,True,78.4,count_crawl,,ok
+oka-go-kr-web,한국완료,30,30,0,True,19.8,count_crawl,caps_neutralized:_SAFETY_CAP=200->big;_WALL_BUDGET_SECONDS=1500->big,ok
+hhs-gov-guidance,USA Executive Departments,267,43,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+swisspeace-ch-publications,Switzerland Research Centers,304,305,0,True,519.5,count_crawl,caps_neutralized:SAFETY_PAGE_CAP=200->big;WALL_CLOCK_BUDGET_SECONDS=1500->big,ok
+ansto-gov-au-search,호주완료,30,26,0,True,45.2,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL=1500->big,ok
+justitsministeriet-dk-forskning,덴마크완료,24,24,0,True,24.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big,ok
+seer-cancer-gov-report_to_nation,American Research Institutes,24,24,0,True,25.7,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SEC=1500->big,ok
+hud-govt-nz-documents,뉴질랜드완료,148,47,0,True,577.5,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_BUDGET=1500->big,ok
+um-dk-om-os,덴마크완료,24,24,0,True,25.6,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_MINUTES=25->big,ok
+trm-dk-nyheder,덴마크완료,404,331,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+portaldiplomatico-mne-gov-pt-en,Portugal Ministries,378,241,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+dhs-gov-news-releases,USA Executive Departments,79,13,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+vbs-admin-ch-en,Switzerland Departments,111,50,0,True,66.1,count_crawl,caps_neutralized:SAFETY_PAGE_CAP=200->big,ok
+meri-belspo-be-site,벨기에완료,21,21,0,True,92.5,count_crawl,,ok
+mohrss-gov-cn-xxgk2020,중국 완료,19,19,0,True,26.0,count_crawl,,ok
+presse-curie-fr-section,French Research Institutes,300,171,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+reseau-canope-fr-espace-presse,French Public Institutions,19,19,0,True,9.7,count_crawl,,ok
+iucn-org-about-iucn,Switzerland Research Centers,19,19,0,True,76.4,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_CLOCK_BUDGET=1500->big,ok
+mwr-gov-cn-zwgk,중국 완료,18,18,0,True,11.1,count_crawl,caps_neutralized:_MAX_PAGES=200->big,ok
+sfi-ch-en,Switzerland Research Centers,288,211,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+publications-idiap-ch-publications,Switzerland Research Centers,231,120,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+www2-mrc-lmb-cam-ac-uk-research,영국완료,47,16,0,True,31.7,count_crawl,,ok
+vtg-admin-ch-en,Switzerland Departments,18,18,0,True,51.9,count_crawl,,ok
+nbb-be-en,벨기에완료,15,15,0,True,58.1,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_SECONDS=1500->big,ok
+women-govt-nz-library,뉴질랜드완료,14,14,0,True,33.2,count_crawl,,ok
+santepubliquefrance-fr-presse,French Public Institutions,624,159,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+scaht-org-en,Switzerland Research Centers,641,183,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+nimhd-nih-gov-news-events,American Research Institutes,13,13,0,True,40.9,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SEC=1500->big,ok
+eng-mod-gov-cn-2025xb,중국 완료,10,10,0,True,8.8,count_crawl,caps_neutralized:MAX_PAGES=200->big;MAX_SECONDS=1500->big,ok
+search-worldcat-org-ko,USA Executive Departments,14,13,23,True,60.2,count_crawl,caps_neutralized:MAX_PAGES=200->big;MAX_WALL_SECONDS=1500->big,ok
+nnsa-mee-gov-cn-english,중국 완료,10,10,0,True,3.6,count_crawl,,ok
+kicce-re-kr-main,한국완료,368,9,0,True,12.0,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_BUDGET_SEC=1500->big,ok
+mof-gov-cn-en,중국 완료,9,9,0,True,18.3,count_crawl,,ok
+data-mfe-govt-nz-documents,뉴질랜드완료,21,21,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+casseng-cssn-cn-sky_research,중국 완료,8,8,0,True,11.1,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_SECONDS=1500->big,ok
+ptb-de-cms,GER ResearchCenters(Unfinished),8,8,0,True,28.8,count_crawl,caps_neutralized:_PAGE_CAP=200->big;_MAX_SECONDS=1500->big,ok
+nesc-ie-publications,Irish Research Centers,121,121,0,True,541.7,count_crawl,,ok
+ncats-nih-gov-news-events,American Research Institutes,19,6,0,True,23.5,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_BUDGET=1500->big,ok
+nifu-no-en,Norway Research Centers,363,138,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+andra-fr-publications,French Research Institutes,1,0,0,True,2.7,count_crawl,caps_neutralized:_MAX_PAGES=200->big,empty_zero_parse
+science-libraries-canada-ca-eng,Canadian Research Centers,31,31,0,True,508.0,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL=1500->big,ok
+openscience-si-naprednoiskanjeaspx,Slovenia Research Centers,30,19,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+bam-de-navigation,GER ResearchCenters(Unfinished),308,0,0,True,5.0,count_crawl,caps_neutralized:_PAGE_CAP=200->big;_MAX_SECONDS=1500->big,empty_zero_parse
+baw-de-en,GER ResearchCenters(Unfinished),14,0,0,True,1.2,count_crawl,caps_neutralized:MAX_WALL_SECONDS=1500->big;MAX_PAGES_SAFETY=200->big,empty_zero_parse
+bordbia-ie-about,Irish Research Centers,20,0,0,True,0.9,count_crawl,caps_neutralized:_PAGE_SAFETY_CAP=200->big,empty_zero_parse
+sozialministerium-gv-at-services,오스트리아완료,206,60,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+emsl-pnnl-gov-science,American Research Institutes,6,6,0,True,124.1,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SECONDS=1500->big,ok
+sante-gouv-fr-ministere,France Ministries,145,60,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+cells-es-en,Spanish Research Centers,11,0,0,True,110.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SECS=1500->big,empty_zero_parse
+cso-ie-en,Irish Research Centers,388,0,0,True,1.7,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_SECONDS=1500->big,empty_zero_parse
+astron-nl-about,Dutch Research Centers,57,0,0,True,139.0,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SECONDS=1500->big,empty_zero_parse
+en-iwhr-cn-iwhr-english-new,중국 완료,458,0,0,True,0.3,count_crawl,,empty_zero_parse
+consult-environment-govt-nz-climate,뉴질랜드완료,72,72,0,True,91.2,count_crawl,,ok
+astro-oma-be-en,벨기에완료,22,0,0,True,185.7,count_crawl,caps_neutralized:MAX_PAGES=200->big;MAX_WALL_SECONDS=1500->big,empty_zero_parse
+environment-govt-nz-what-you-can-do,뉴질랜드완료,58,0,0,True,0.0,count_crawl,caps_neutralized:MAX_PAGES=200->big;WALL_CLOCK_SECONDS=1500->big;DEADLINE_MARGIN_SECONDS=60->big,empty_zero_parse
+eprints-soton-ac-uk-view,영국완료,259,0,0,True,1.6,count_crawl,caps_neutralized:_SAFETY_PAGE_CAP=200->big;_WALL_CLOCK_BUDGET=1500->big,empty_zero_parse
+ethniccommunities-govt-nz-resources,뉴질랜드완료,85,0,0,True,0.5,count_crawl,caps_neutralized:_MAX_PAGES=200->big,empty_zero_parse
+khs-go-kr-cop,한국완료,38,13,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+gsi-ie-en-ie,Irish Research Centers,113,0,0,True,7.1,count_crawl,caps_neutralized:_MAX_PAGES=200->big,empty_zero_parse
+data-biodiversity-be-dataset,벨기에완료,524,0,0,True,45.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big,empty_zero_parse
+iwhr-com-zgskywwnew,중국 완료,62,0,0,True,0.2,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_SECONDS=1500->big,empty_zero_parse
+consult-environment-govt-nz-waste,뉴질랜드완료,58,60,0,True,128.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big,ok
+english-mee-gov-cn-resources,중국 완료,20,0,0,True,80.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big,empty_zero_parse
+minscfa-gov-gr-grafeio-typou,Greece Ministries,626,0,0,True,1.2,count_crawl,caps_neutralized:MAX_PAGES=200->big;MAX_WALL_SECONDS=1500->big,empty_zero_parse
+mpi-govt-nz-about-mpi,뉴질랜드완료,14,0,0,True,17.6,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_BUDGET=1500->big,empty_zero_parse
+mpi-govt-nz-resources-and-forms,뉴질랜드완료,35,0,0,True,1.0,count_crawl,,empty_zero_parse
+nhc-gov-cn-wjw,중국 완료,71,26,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+nidcd-nih-gov-news,American Research Institutes,203,5,0,True,31.4,count_crawl,caps_neutralized:MAX_PAGES=200->big;WALL_CLOCK_MINUTES=25->big,ok
+telemarksforsking-no-publikasjoner,Norway Research Centers,280,161,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+opendatacommunities-org-data,영국완료,3,0,0,True,0.1,count_crawl,caps_neutralized:_MAX_PAGES=200->big,empty_zero_parse
+pbocri-org-cn-lnzy3html,중국 완료,8,0,0,True,2.4,count_crawl,caps_neutralized:_MAX_PAGES=200->big,empty_zero_parse
+pmc-gov-au-resources,호주완료,129,0,0,True,0.3,count_crawl,caps_neutralized:MAX_PAGES=200->big;MAX_SECONDS=1500->big,empty_zero_parse
+nupi-no-en,Norway Research Centers,28,0,0,True,42.7,count_crawl,,empty_zero_parse
+safefood-net-news,Irish Research Centers,31,0,0,True,0.1,count_crawl,caps_neutralized:_PAGE_SAFETY_CAP=200->big,empty_zero_parse
+anses-fr-fr,French Research Institutes,6091,0,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+cerema-fr-fr,French Research Institutes,231,240,0,True,597.4,count_crawl,caps_neutralized:_MAX_PAGES=200->big,ok
+environment-govt-nz-publications,뉴질랜드완료,249,241,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+transparency-gov-au-publications,호주완료,2694,0,0,True,13.8,count_crawl,caps_neutralized:_SAFETY_CAP=200->big;_WALL_BUDGET_S=1500->big,empty_zero_parse
+ineris-fr-fr,French Research Institutes,141,0,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+transportation-gov-newsroom,USA Executive Departments,205,0,0,True,0.6,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SECONDS=1500->big,empty_zero_parse
+insee-fr-fr,French Public Institutions,223,0,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+kihasa-re-kr-publish,한국완료,673,0,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+met-no-publikasjoner,Norway Research Centers,116,0,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+transport-govt-nz-documents-and-public,뉴질랜드완료,3,0,0,True,68.5,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_SECONDS=1500->big,empty_zero_parse
+nec-go-kr-site,한국완료,175,0,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+provenienzforschung-gv-at-empfehlungen-des-bei,오스트리아완료,425,0,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+socialstyrelsen-se-en,스웨덴 완료,127,0,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout
+stat-inst-se-om-sis,스웨덴 완료,69,0,0,False,600.1,count_crawl,external_timeout_kill:lower_bound,timeout
+tigta-gov-reports,USA Executive Departments,133,0,0,False,600.2,count_crawl,external_timeout_kill:lower_bound,timeout

@@ -1,0 +1,474 @@
+site_id,sheet,platform_detected,total,method,api_url,filters_applied,reverify,collected,note
+etera-ee-browse,Estonia Research Centers,etera_geneza,210234,etera_browse_api,"https://www.etera.ee/api/browse (POST {from:0,size:1} -> results.count)",,,100403,ok
+repository-tno-nl-doclist,Dutch Research Centers,blazor_app,13609,blazor_rendered_count,"https://repository.tno.nl/DocList?find=ID%20%3E%200,refine_MATREP:CONFERENCE%20PAPER&sort=JVP:DESC:MATREP:DESC",refine_MATREP:CONFERENCE PAPER (unfiltered_total=69032),,10508,ok
+repository-naturalis-nl,Dutch Research Centers,custom_search,17309,naturalis_search_query,https://repository.naturalis.nl/search/query (POST -> query.total),,,9681,ok
+ntrs-nasa-gov-search,American Research Institutes,ntrs,646398,ntrs_api,https://ntrs.nasa.gov/api/citations/search,no_filters_applied,,6490,ok
+anses-fr-fr,French Research Institutes,generic,6186,html_count_regex,https://www.anses.fr/fr/content/avis-et-rapports-de-lanses-sur-saisine,,,6091,ok_html_unverified
+federalregister-gov-documents,USA Executive Departments,generic,20,html_count_regex,https://www.federalregister.gov/documents/search?conditions%5Bagencies%5D%5B%5D=health-and-human-services-department&conditions%5Bsearch_type_id%5D=3&conditions%5Bsignificant%5D=1&order=newest,,,5957,ok_html_unverified
+moh-gov-gr-articles,Greece Ministries,generic,,html_count_regex,https://www.moh.gov.gr/articles/ministry/grafeio-typoy/press-releases,,,5608,error:no_count_keyword
+esteri-it-it,Italy Ministries,generic,,html_count_regex,https://www.esteri.it/it/sala_stampa/archivionotizie/comunicati/,,,5533,error:no_count_keyword
+sonar-ch-global,Switzerland Research Centers,invenio,309727,invenio_api,https://sonar.ch/api/documents/?q=&size=1&view=global&document_type=coar:c_6501 -> hits.total.value,document_type=coar:c_6501 (unfiltered_total=322786),,5462,ok
+search-open-canada-ca-opendata,Canada Ministries,ckan,5830,ckan,https://open.canada.ca/data/api/3/action/package_search?rows=0&fq=res_format%3APDF+dataset_type%3Adataset,"res_format:PDF,dataset_type:dataset",,5287,ok
+minrel-gob-cl-minrel,Chile Ministries,generic,,html_count_regex,https://www.minrel.gob.cl/minrel/sala-de-prensa/p/1,,,4547,error:no_count_keyword
+ecologie-gouv-fr-presse,France Ministries,generic,4110,html_count_regex,https://www.ecologie.gouv.fr/presse,,,4049,ok_html_unverified
+pubs-drdc-rddc-gc-ca-basis,Canadian Research Centers,generic,,html_count_regex,https://pubs.drdc-rddc.gc.ca/BASIS/pcandid/www/engpub/SDF?KEYWORDS_O=contains+all&KEYWORDS=&TITLE_O=contains+all&TITLE=&AUTHOR=&AUTHOR_O=contains+the+phrase&CA_CODE=&CA_CODE_O=equals&CA_NAME=&CA_NAME_O=contains+the+phrase&CA_RPNUM=&CA_RPNUM_O=equals&REPDATE=&CA_RPNUM_O=equals&PROJNUM=&PROJNUM_O=includes&FORM_C=and&FORM_OB=Repdate&FORM_SO=Descend,,,4040,error:Timeout
+llnl-gov-news,American Research Institutes,generic,,html_count_regex,https://www.llnl.gov/news/lab-report,,,3537,error:no_count_keyword
+mindev-gov-gr-category,Greece Ministries,generic,3,html_count_regex,https://www.mindev.gov.gr/category/deltia-tipou/,,,3514,ok_html_unverified
+yme-gr-2013-01-31-06-37-23,Greece Ministries,generic,,html_count_regex,https://www.yme.gr/2013-01-31-06-37-23/2013-01-31-07-00-49,,,3380,error:no_count_keyword
+prism-go-kr-homepage,한국완료,generic,,html_count_regex,https://www.prism.go.kr/homepage/prtl/totalsearch/list,,,2900,error:no_count_keyword
+transparency-gov-au-publications,호주완료,generic,,html_count_regex,https://www.transparency.gov.au/publications,,,2694,error:no_count_keyword
+jsearch-mwr-gov-cn-irs-c-web,중국 완료,generic,,html_count_regex,http://jsearch.mwr.gov.cn/irs-c-web/search.shtml?code=18703928938&dataTypeId=26264,,,2499,error:no_count_keyword
+par-nsf-gov-search,American Research Institutes,nsf_par,5134,pagination_count,https://par.nsf.gov/search/product-type:Dataset (Page 1 of 514; 10/page; last page=4 -> 513*10+4),product-type:Dataset,,2481,ok
+ga-gov-au-data-pubs,호주완료,geonetwork_csw,31979,csw_getrecords,https://ecat.ga.gov.au/geonetwork/srv/eng/csw?request=GetRecords&service=CSW&version=2.0.2&resultType=hits&typeNames=csw:Record -> numberOfRecordsMatched,full eCat catalog (crawler URL is 1970s-decade subset),,2243,ok
+doras-dcu-ie-view,Irish Research Centers,eprints,4902,eprints_browse_view,https://doras.dcu.ie/view/type/ (Article count; repo_total_all_types=14149),type:article (repo_total=14149),,2229,ok
+newsreleases-sandia-gov-archives-by-year,American Research Institutes,generic,,html_count_regex,https://newsreleases.sandia.gov/archives-by-year/,,,2044,error:no_count_keyword
+data-busan-go-kr-bdip,한국완료,ckan,,ckan,https://data.busan.go.kr/api/3/action/package_search,,,2022,error:http_404|generic:no_count_keyword
+defense-gouv-fr-salle-de-presse,France Ministries,generic,2275,html_count_regex,https://www.defense.gouv.fr/salle-de-presse,,,1980,ok_html_unverified
+minfin-gov-gr-grafeio-typou,Greece Ministries,generic,,html_count_regex,https://minfin.gov.gr/grafeio-typou/anakoinoseis-typou-el/,,,1797,error:http_202
+usgs-gov-news,American Research Institutes,generic,2,html_count_regex,https://www.usgs.gov/news/news-releases/all-news-releases,,,1549,ok_html_unverified
+policyalternatives-ca-news-research,Canadian Research Centers,generic,74,html_count_regex,https://www.policyalternatives.ca/news-research/category/news-commentary/,,,1543,ok_html_unverified
+eprints-imtlucca-it-cgi,Italy Research centers,eprints,,oai_resumption,http://eprints.imtlucca.it/cgi/oai2,,,1461,error:DNSError|generic:DNSError
+krei-re-kr-krei,한국완료,generic,,html_count_regex,https://www.krei.re.kr/krei/page/53,,,1450,error:no_count_keyword
+oig-treasury-gov-other-reports-testim,USA Executive Departments,generic,4,html_count_regex,https://oig.treasury.gov/other-reports-testimonies,,,1353,ok_html_unverified
+hud-govt-nz-stats-and-insights,뉴질랜드완료,generic,2,html_count_regex,https://www.hud.govt.nz/stats-and-insights/homelessness-outlook/introducing-the-homelessness-outlook,,,1334,ok_html_unverified
+incheon-go-kr-ic010205,한국완료,generic,,html_count_regex,https://www.incheon.go.kr/IC010205,,,1328,error:no_count_keyword
+homeaffairs-gov-au-sitesearch,호주완료,generic,,html_count_regex,https://www.homeaffairs.gov.au/sitesearch?k=pdf,,,1308,error:no_count_keyword
+moe-go-kr-boardcnts,한국완료,generic,,html_count_regex,https://www.moe.go.kr/boardCnts/listRenew.do?boardID=428&m=041205&s=moe,,,1250,error:no_count_keyword
+khs-go-kr-newsbbz,한국완료,generic,,html_count_regex,https://www.khs.go.kr/newsBbz/selectNewsBbzList.do?sectionId=all_sec_1&mn=NS_01_02,,,1249,error:no_count_keyword
+frontiersin-org-articles,American Research Institutes,generic,242,html_count_regex,https://www.frontiersin.org/articles,,,1230,ok_html_unverified
+presse-economie-gouv-fr,France Ministries,generic,82,html_count_regex,https://presse.economie.gouv.fr/?s=+&type=communiques-de-presse,,,1206,ok_html_unverified
+caissedesdepots-fr-communiques-de-press,French Public Institutions,generic,1,html_count_regex,https://www.caissedesdepots.fr/communiques-de-presse,,,1201,ok_html_unverified
+mois-go-kr-frt,한국완료,generic,,html_count_regex,https://www.mois.go.kr/frt/bbs/type001/commonSelectBoardList.do?bbsId=BBSMSTR_000000000013,,,1148,error:no_count_keyword
+jeju-go-kr-news,한국완료,generic,,html_count_regex,https://www.jeju.go.kr/news/bodo/list.htm,,,1087,error:no_count_keyword
+swisstph-ch-en,Switzerland Research Centers,generic,15000,html_count_regex,https://www.swisstph.ch/en/publications,,,1087,ok_html_unverified
+gov-scot-publications,영국완료,onpage_count,50542,html_count_regex,https://www.gov.scot/publications/,,yes,1024,ok
+rda-go-kr-board,한국완료,generic,,html_count_regex,https://www.rda.go.kr/board/board.do?mode=list&prgId=day_farmprmninfoEntry,,,1020,error:no_count_keyword
+e-stat-go-jp-stat-search,일본완료,onpage_count,1709118,html_count_regex,https://www.e-stat.go.jp/stat-search?page=1,,yes,1018,ok
+ministeroturismo-gov-it-category,Italy Ministries,generic,3,html_count_regex,https://www.ministeroturismo.gov.it/category/comunicati-stampa/,,,1014,ok_html_unverified
+bfe-admin-ch-bfe,Switzerland Departments,generic,8508,html_count_regex,https://www.bfe.admin.ch/bfe/de/home/news-und-medien/publikationen.exturl.html/aHR0cHM6Ly9wdWJkYi5iZmUuYWRtaW4uY2gvZGUvc3VjaGU=.html?keywords=&q=&from=&to=&nr=,,,1002,ok_html_unverified
+ypes-gr-category,Greece Ministries,generic,,html_count_regex,https://www.ypes.gr/category/deltia-typoy/,,,987,error:no_count_keyword
+scourt-go-kr-portal,한국완료,generic,,html_count_regex,https://www.scourt.go.kr/portal/news/NewsListAction.work?gubun=6,,,982,error:no_count_keyword
+dapa-go-kr-dapa,한국완료,generic,,html_count_regex,https://www.dapa.go.kr/dapa/doc/selectDocList.do?menuSeq=3069&bbsSeq=326,,,970,error:Timeout
+canada-ca-en,Canada Ministries,generic,949,html_count_regex,https://www.canada.ca/en/news/advanced-news-search/news-results.html?_=1618957516190&dprtmnt=crownindigenousrelationsandnorthernaffairscanada&start=&end=,,,948,ok_html_unverified
+forest-go-kr-kfsweb,한국완료,generic,,html_count_regex,https://www.forest.go.kr/kfsweb/cop/bbs/selectBoardList.do?bbsId=BBSMSTR_1036&mn=NKFS_04_02_01,,,931,error:no_count_keyword
+mohw-go-kr-boardes,한국완료,generic,,html_count_regex,https://www.mohw.go.kr/board.es?mid=a10411010300&bid=0019&cg_code=C02,,,920,error:no_count_keyword
+gov-uk-search,영국완료,gov_uk_finder,42435,gov_uk_finder,https://www.gov.uk/search/research-and-statistics.json?content_store_document_type=statistics_published&order=updated-newest,content_store_document_type=statistics_published&order=updated-newest,yes,862,ok
+mogef-go-kr-nw,한국완료,generic,,html_count_regex,https://www.mogef.go.kr/nw/rpd/nw_rpd_s001.do?mid=news405,,,852,error:no_count_keyword
+fmn-dk-da,덴마크완료,generic,,html_count_regex,https://www.fmn.dk/da/nyheder/,,,848,error:no_count_keyword
+kdca-go-kr-kdca,한국완료,generic,,html_count_regex,https://www.kdca.go.kr/kdca/2847/subview.do,,,846,error:no_count_keyword
+inrae-fr-actualites,French Research Institutes,generic,,html_count_regex,https://www.inrae.fr/actualites?inrae_prod_created_date_desc%5BrefinementList%5D%5Bfield_system_tags_name%5D%5B0%5D=CP%20National,,,830,error:no_count_keyword
+kwdi-re-kr-plaza,한국완료,generic,,html_count_regex,https://www.kwdi.re.kr/plaza/bodo.do,,,819,error:no_count_keyword
+fmi-ch-research,Switzerland Research Centers,generic,4,html_count_regex,https://www.fmi.ch/research/publications/,,,818,ok_html_unverified
+repository-library-noaa-gov-view,American Research Institutes,dspace,2,html_count_regex,https://repository.library.noaa.gov/view/noaa/72459,,,812,ok_html_unverified
+home-cern-news,Switzerland Research Centers,generic,,html_count_regex,https://home.cern/news?title=&topic=All&type=40&audience=All&tid_3=&date_from=&date_to=,,,809,error:no_count_keyword
+afd-fr-fr,French Public Institutions,generic,,html_count_regex,https://www.afd.fr/fr/publications/liste?words=&type%5B170%5D=170,,,797,error:no_count_keyword
+ecat-ga-gov-au-geonetwork,호주완료,ckan,,ckan,https://ecat.ga.gov.au/api/3/action/package_search,,,796,error:http_404|generic:no_count_keyword
+moj-go-kr-moj,한국완료,generic,,html_count_regex,https://www.moj.go.kr/moj/221/subview.do,,,793,error:no_count_keyword
+nistdigitalarchives-contentdm-oclc-org-digital,American Research Institutes,generic,,html_count_regex,https://nistdigitalarchives.contentdm.oclc.org/digital/collection/p16009coll6/custom/jresbyvol,,,788,error:no_count_keyword
+gob-mx-semar,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/semar/archivo/prensa,,,783,error:no_count_keyword
+gov-ie-en,Ireland Ministries,generic,100,html_count_regex,https://www.gov.ie/en/search/?category=Press%20release&organisation=Department%20of%20the%20Taoiseach,,,780,ok_html_unverified
+gob-mx-semarnat,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/semarnat/archivo/prensa,,,774,error:no_count_keyword
+gob-mx-sep,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/sep/archivo/prensa,,,774,error:no_count_keyword
+gob-mx-sre,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/sre/archivo/prensa,,,774,error:no_count_keyword
+gob-mx-sspc,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/sspc/archivo/prensa,,,773,error:no_count_keyword
+gob-mx-buengobierno,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/buengobierno/archivo/prensa,,,771,error:no_count_keyword
+jeonnam-go-kr-m7116,한국완료,generic,,html_count_regex,https://www.jeonnam.go.kr/M7116/boardList.do?menuId=jeonnam0202000000,,,770,error:no_count_keyword
+gob-mx-salud,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/salud/archivo/prensa,,,765,error:no_count_keyword
+gob-mx-sectur,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/sectur/archivo/prensa,,,765,error:no_count_keyword
+gob-mx-se,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/se/archivo/prensa,,,762,error:no_count_keyword
+gob-mx-shcp,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/shcp/archivo/prensa,,,762,error:no_count_keyword
+mafra-go-kr-home,한국완료,generic,,html_count_regex,https://www.mafra.go.kr/home/5109/subview.do,,,761,error:no_count_keyword
+gob-mx-defensa,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/defensa/archivo/prensa,,,756,error:no_count_keyword
+gob-mx-sedatu,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/sedatu/archivo/prensa,,,756,error:no_count_keyword
+gob-mx-stps,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/stps/archivo/prensa,,,748,error:no_count_keyword
+gob-mx-segob,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/segob/archivo/prensa,,,747,error:no_count_keyword
+gob-mx-sict,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/sict/archivo/prensa,,,747,error:no_count_keyword
+police-go-kr-user,한국완료,generic,,html_count_regex,https://www.police.go.kr/user/bbs/BD_selectBbsList.do?q_bbsCode=1002,,,747,error:no_count_keyword
+krihs-re-kr-krihslibraryarticle,한국완료,generic,,html_count_regex,https://www.krihs.re.kr/krihsLibraryArticle/articleList.es?mid=a10103010000&pub_kind=1,,,744,error:no_count_keyword
+justice-gov-news,USA Executive Departments,generic,,html_count_regex,https://www.justice.gov/news/press-releases,,,741,error:no_count_keyword
+kinfa-or-kr-notificationpromotio,한국완료,generic,,html_count_regex,https://www.kinfa.or.kr/notificationPromotion/news.do,,,732,error:no_count_keyword
+gob-mx-agricultura,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/agricultura/archivo/prensa,,,729,error:no_count_keyword
+gob-mx-bienestar,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/bienestar/archivo/prensa,,,729,error:no_count_keyword
+netl-doe-gov-search-r-d-publicati,American Research Institutes,generic,1,html_count_regex,https://netl.doe.gov/search-r-d-publications,,,729,ok_html_unverified
+nfra-gov-cn-cn,중국 완료,generic,,html_count_regex,https://www.nfra.gov.cn/cn/view/pages/ItemList.html?itemPId=953&itemId=954&itemUrl=ItemListRightList.html&itemName=%E7%BB%9F%E8%AE%A1%E4%BF%A1%E6%81%AF,,,726,error:no_count_keyword
+motir-go-kr-kor,한국완료,generic,,html_count_regex,https://www.motir.go.kr/kor/article/ATCL449580de4,,,703,error:no_count_keyword
+doc-cerema-fr-default,French Research Institutes,generic,,html_count_regex,"https://doc.cerema.fr/Default/search.aspx#/Search/(query:(CloudTerms:!(),ExceptTotalFacet:!t,FacetFilter:'%7B%22_416%22:%22Publications%20scientifiques%20(HAL)%7C%7CEtude%20et%20rapport%22,%22_488%22:%22Oui%22%7D',ForceSearch:!t,HiddenFacetFilter:%7B%7D,InitialSearch:!f,Page:0,PageRange:3,QueryGuid:f6263fa6-ee7c-41d4-856d-2af7c8165659,QueryString:'*:*',ResultSize:10,ScenarioCode:DEFAULT,ScenarioDisplayMode:display-standard,SearchGridFieldsShownOnResultsDTO:!(),SearchLabel:'Tous%20les%20documents',SearchTerms:'*:*',SiteCodeRestriction:'',SortField:!n,SortOrder:0,TemplateParams:(Scenario:'',Scope:Default,Size:!n,Source:'',Support:'',UseCompact:!f),UseSpellChecking:!n),sst:4)",,,697,error:http_403
+ftc-go-kr-www,한국완료,generic,,html_count_regex,"https://www.ftc.go.kr/www/selectBbsNttList.do?bordCd=3&key=12&searchCtgry=01,02",,,694,error:no_count_keyword
+moef-go-kr-nw,한국완료,generic,,html_count_regex,https://www.moef.go.kr/nw/nes/nesdta.do?bbsId=MOSFBBS_000000000028&menuNo=4010100,,,683,error:no_count_keyword
+jgi-doe-gov-user-science,American Research Institutes,generic,,html_count_regex,https://jgi.doe.gov/user-science/publications,,,682,error:no_count_keyword
+mindigital-gr-archives,Greece Ministries,generic,2,html_count_regex,https://www.mindigital.gr/archives/category/deltia-typou-anakoinoseis,,,675,ok_html_unverified
+kihasa-re-kr-publish,한국완료,generic,,html_count_regex,https://www.kihasa.re.kr/publish/report/all/list,,,673,error:no_count_keyword
+kmcc-go-kr-userdo,한국완료,generic,,html_count_regex,https://www.kmcc.go.kr/user.do?boardId=1030&page=A02060400&dc=K02060400,,,666,error:no_count_keyword
+opm-go-kr-opm,한국완료,generic,,html_count_regex,https://www.opm.go.kr/opm/info/policies.do,,,660,error:no_count_keyword
+treasury-gov-au-publication,호주완료,generic,2,html_count_regex,https://treasury.gov.au/publication,,,651,ok_html_unverified
+pbl-nl-en,Dutch Research Centers,generic,2,html_count_regex,https://www.pbl.nl/en/publications?key=&type%5B26%5D=26&published%5Bmin%5D=&published%5Bmax%5D=,,,649,ok_html_unverified
+scaht-org-en,Switzerland Research Centers,generic,,html_count_regex,https://www.scaht.org/en/research/publications/,,,641,error:http_404
+dhs-gov-congressional-approp,USA Executive Departments,generic,,html_count_regex,https://www.dhs.gov/congressional-appropriations-reports,,,638,error:no_count_keyword
+minscfa-gov-gr-grafeio-typou,Greece Ministries,generic,,html_count_regex,https://minscfa.gov.gr/grafeio-typou/deltia-typou/,,,626,error:http_202
+kcg-go-kr-kcg,한국완료,generic,,html_count_regex,https://www.kcg.go.kr/kcg/na/ntt/selectNttList.do?mi=2799&bbsId=313,,,624,error:no_count_keyword
+mof-go-kr-doc,한국완료,generic,,html_count_regex,https://www.mof.go.kr/doc/ko/selectDocList.do?menuSeq=971&bbsSeq=10&listUpdtDt=2025-07-03++10%3A00,,,624,error:no_count_keyword
+santepubliquefrance-fr-presse,French Public Institutions,generic,14000,html_count_regex,https://www.santepubliquefrance.fr/presse,,,624,ok_html_unverified
+mma-go-kr-board,한국완료,generic,,html_count_regex,https://www.mma.go.kr/board/boardList.do?gesipan_id=15&mc=mma0000392,,,616,error:no_count_keyword
+kihasa-re-kr-news,한국완료,generic,,html_count_regex,https://www.kihasa.re.kr/news/press/list,,,615,error:no_count_keyword
+state-gwd-go-kr-portal,한국완료,generic,,html_count_regex,https://state.gwd.go.kr/portal/briefing/pressRelease/newpressRelease,,,614,error:no_count_keyword
+kipf-re-kr-kor,한국완료,generic,,html_count_regex,https://www.kipf.re.kr/kor/Publication/PolicyResearch/kiPublish/CD3/list.do,,,601,error:no_count_keyword
+masaf-gov-it-flex,Italy Ministries,generic,,html_count_regex,https://www.masaf.gov.it/flex/cm/pages/ServeBLOB.php/L/IT/IDPagina/331,,,601,error:no_count_keyword
+krihs-re-kr-boardes,한국완료,generic,,html_count_regex,https://www.krihs.re.kr/board.es?mid=a10607000000&bid=0008,,,600,error:no_count_keyword
+auri-re-kr-publication,한국완료,generic,,html_count_regex,https://www.auri.re.kr/publication/list.es?mid=a10312000000&publication_type=research,,,593,error:no_count_keyword
+ir-cwi-nl,Dutch Research Centers,generic,,html_count_regex,https://ir.cwi.nl/#facet=type:article|dissertation|masterThesis,,,592,error:no_count_keyword
+klri-re-kr-kor,한국완료,generic,,html_count_regex,https://www.klri.re.kr/kor/issueData/B/list.do,,,590,error:no_count_keyword
+mpva-go-kr-mpva,한국완료,generic,1,html_count_regex,https://www.mpva.go.kr/mpva/selectBbsNttList.do?bbsNo=16&key=77,,,590,ok_html_unverified
+rigsrevisionen-dk-revisionssager,덴마크완료,generic,,html_count_regex,https://www.rigsrevisionen.dk/revisionssager,,,590,error:no_count_keyword
+mentalhealthcommission-ca-resources,Canadian Research Centers,generic,,html_count_regex,https://mentalhealthcommission.ca/resources/,,,589,error:no_count_keyword
+economy-ni-gov-uk-publications,영국완료,generic,2343,html_count_regex,https://www.economy-ni.gov.uk/publications,,,583,ok_html_unverified
+dpmc-govt-nz-publications,뉴질랜드완료,generic,26,html_count_regex,https://www.dpmc.govt.nz/publications,,,571,ok_html_unverified
+stepi-re-kr-site,한국완료,generic,,html_count_regex,https://www.stepi.re.kr/site/stepiko/report/List.do?cateCont=A0202,,,570,error:no_count_keyword
+waltoninstitute-ie-research,Irish Research Centers,generic,5,html_count_regex,https://waltoninstitute.ie/research/publications,,,566,ok_html_unverified
+info-korail-com-info,한국완료,generic,,html_count_regex,https://info.korail.com/info/selectBbsNttList.do?bbsNo=199&key=911,,,565,error:no_count_keyword
+nkvts-no-english,Norway Research Centers,generic,32,html_count_regex,https://www.nkvts.no/english/publications/?pg=1&sd-post_type_label%5B%5D=Reports,,,562,ok_html_unverified
+rosap-ntl-bts-gov-cbrowse,American Research Institutes,generic,3960,html_count_regex,https://rosap.ntl.bts.gov/cbrowse?pid=dot%3A231&parentId=dot%3A231&sm_resource_type%5B%5D=Tech+Report,,,562,ok_html_unverified
+ami-swiss-en,Switzerland Research Centers,generic,93,html_count_regex,https://www.ami.swiss/en/research/publications.html,,,558,ok_html_unverified
+irb-usi-ch-publications,Switzerland Research Centers,generic,20,html_count_regex,https://irb.usi.ch/publications/,,,558,ok_html_unverified
+drc-gov-cn-leafaspx,중국 완료,generic,,html_count_regex,https://www.drc.gov.cn/Leaf.aspx?leafid=1338,,,555,error:no_count_keyword
+diplomatie-gouv-fr-en,France Ministries,generic,,html_count_regex,https://www.diplomatie.gouv.fr/en/press-room/latest-news?amp;amp;amp;page_courante=4&amp;amp;page_courante=3&amp;page_courante=5&page_courante=1#pagination_actus_article,,,551,error:no_count_keyword
+defense-gov-news,USA Executive Departments,generic,50,html_count_regex,https://www.defense.gov/News/Releases/,,,546,ok_html_unverified
+cepii-fr-cepii,French Public Institutions,generic,,html_count_regex,https://www.cepii.fr/CEPII/fr/presse/espace_presse.asp,,,540,error:no_count_keyword
+fibl-org-en,Switzerland Research Centers,generic,,html_count_regex,https://www.fibl.org/en/info-centre/publications-archive-fibl-en,,,539,error:Timeout
+busan-go-kr-nbtnewsbu,한국완료,generic,,html_count_regex,https://www.busan.go.kr/nbtnewsBU,,,537,error:no_count_keyword
+ntp-niehs-nih-gov-publications,American Research Institutes,generic,1,html_count_regex,https://ntp.niehs.nih.gov/publications,,,536,ok_html_unverified
+esri-ie-publications,Irish Research Centers,generic,1,html_count_regex,https://www.esri.ie/publications/browse,,,531,ok_html_unverified
+ypergasias-gov-gr-category,Greece Ministries,generic,,html_count_regex,https://ypergasias.gov.gr/category/anakoinoseis-typou/,,,531,error:http_202
+banque-france-fr-en,French Public Institutions,generic,20,html_count_regex,https://www.banque-france.fr/en/press-release,,,530,ok_html_unverified
+auswaertiges-amt-de-en,독일완료,generic,27,html_count_regex,https://www.auswaertiges-amt.de/en/newsroom/news/609204-609204,,,526,ok_html_unverified
+data-biodiversity-be-dataset,벨기에완료,ckan,,ckan,https://data.biodiversity.be/api/3/action/package_search,,,524,error:Timeout|generic:Timeout
+iheid-swisscovery-ch-discovery,Switzerland Research Centers,generic,,html_count_regex,"https://iheid.swisscovery.ch/discovery/jsearch?query=any,contains,a&tab=jsearch_slot&vid=41SLSP_IID:VU1_CUSTOM&offset=0&journals=any,a",,,523,error:no_count_keyword
+nisra-gov-uk-publications,영국완료,generic,3239,html_count_regex,https://www.nisra.gov.uk/publications,,,522,ok_html_unverified
+mofa-go-kr-www,한국완료,generic,,html_count_regex,https://www.mofa.go.kr/www/brd/m_4099/list.do,,,521,error:no_count_keyword
+nivel-nl-en,Dutch Research Centers,generic,10000,html_count_regex,https://www.nivel.nl/en/publications,,,520,ok_html_unverified
+kedi-re-kr-khome,한국완료,generic,,html_count_regex,https://www.kedi.re.kr/khome/main/research/kediBrief.do,,,519,error:no_count_keyword
+gri-re-kr-web,한국완료,generic,,html_count_regex,https://www.gri.re.kr/web/contents/resreport.do,,,516,error:no_count_keyword
+ons-gov-uk-search,영국완료,generic,88,html_count_regex,https://www.ons.gov.uk/search?q=uk+wide&page=1&filter=time_series&filter=datasets&filter=user_requested_data,,,516,ok_html_unverified
+amolf-nl-publications,Dutch Research Centers,generic,75,html_count_regex,https://amolf.nl/publications,,,512,ok_html_unverified
+who-int-publications,Switzerland Research Centers,generic,97,html_count_regex,https://www.who.int/publications/i,,,511,ok_html_unverified
+ris-bka-gv-at-ergebniswxe,오스트리아완료,generic,39,html_count_regex,https://www.ris.bka.gv.at/Ergebnis.wxe?Abfrage=Landesnormen&Kundmachungsorgan=&Bundesland=Undefined&BundeslandDefault=Undefined&Index=&Titel=&Gesetzesnummer=&VonArtikel=&BisArtikel=&VonParagraf=&BisParagraf=&VonAnlage=&BisAnlage=&Typ=&Kundmachungsnummer=&Unterzeichnungsdatum=&FassungVom=04.08.2025&VonInkrafttretedatum=&BisInkrafttretedatum=&VonAusserkrafttretedatum=&BisAusserkrafttretedatum=&NormabschnittnummerKombination=Und&ImRisSeitVonDatum=&ImRisSeitBisDatum=&ImRisSeit=Undefined&ResultPageSize=100&Suchworte=&Position=1&SkipToDocumentPage=true,,,507,ok_html_unverified
+english-www-gov-cn-archive,중국 완료,generic,,html_count_regex,https://english.www.gov.cn/archive/statecouncilgazette/,,,506,error:no_count_keyword
+cds-cern-ch-collection,Switzerland Research Centers,generic,,html_count_regex,https://cds.cern.ch/collection/Published%20Articles?ln=en,,,505,error:no_count_keyword
+education-ni-gov-uk-news,영국완료,generic,950,html_count_regex,https://www.education-ni.gov.uk/news,,,503,ok_html_unverified
+health-ni-gov-uk-publications,영국완료,generic,2833,html_count_regex,https://www.health-ni.gov.uk/publications,,,503,ok_html_unverified
+accc-gov-au-about-us,호주완료,generic,836,html_count_regex,https://www.accc.gov.au/about-us/publications,,,502,ok_html_unverified
+bmbfsfj-bund-de-bmbfsfj,Germany Ministries,generic,20,html_count_regex,https://www.bmbfsfj.bund.de/bmbfsfj/aktuelles/alle-meldungen,,,502,ok_html_unverified
+kisdi-re-kr-bbs,한국완료,generic,,html_count_regex,https://www.kisdi.re.kr/bbs/list.do?key=m2101113055776,,,502,error:no_count_keyword
+app-mps-gov-cn-gdnps,중국 완료,generic,,html_count_regex,https://app.mps.gov.cn/gdnps/zc/index.jsp,,,501,error:no_count_keyword
+kisdi-re-kr-report,한국완료,generic,,html_count_regex,https://www.kisdi.re.kr/report/list.do?key=m2101113025536&arrMasterId=3934550,,,501,error:no_count_keyword
+phfscience-nz-digital-library,뉴질랜드완료,generic,,html_count_regex,https://www.phfscience.nz/digital-library/,,,501,error:no_count_keyword
+si-re-kr-bbs,한국완료,generic,,html_count_regex,https://www.si.re.kr/bbs/list.do?key=2024100166,,,501,error:no_count_keyword
+uvek-admin-ch-en,Switzerland Departments,generic,85,html_count_regex,https://www.uvek.admin.ch/en/detec-press-releases,,,501,ok_html_unverified
+biblio-naturalsciences-be-rbins-publications,벨기에완료,generic,1,html_count_regex,https://biblio.naturalsciences.be/rbins-publications/,,,500,ok_html_unverified
+book-ioj-go-kr-library,한국완료,generic,,html_count_regex,https://book.ioj.go.kr/library/10210/search?materialTypes=bc&categoryTab=true,,,500,error:no_count_keyword
+brsn-net-list,중국 완료,generic,,html_count_regex,https://www.brsn.net/list/research/index.html,,,500,error:no_count_keyword
+cedelft-eu-reports,Dutch Research Centers,generic,,html_count_regex,https://cedelft.eu/reports/,,,500,error:no_count_keyword
+cigionline-org-publications,Canadian Research Centers,generic,28,html_count_regex,https://www.cigionline.org/publications/,,,500,ok_html_unverified
+civilprotection-gov-gr-deltia-tupou,Greece Ministries,generic,,html_count_regex,https://civilprotection.gov.gr/deltia-tupou?filter_content_type%5B%5D=deltio_typoy&field_omilia_value%5B%5D=2&field_omilia_value_op=not,,,500,error:no_count_keyword
+dair-dias-ie-cgi,Irish Research Centers,eprints,1054,html_count_regex,https://dair.dias.ie/cgi/search/archive/advanced?screen=Search&dataset=archive&documents_merge=ALL&documents=&title_merge=ALL&title=&creators_name_merge=ALL&creators_name=&abstract_merge=ALL&abstract=&date=&keywords_merge=ALL&keywords=&subjects_merge=ANY&divisions_merge=ANY&type=article&department_merge=ALL&department=&editors_name_merge=ALL&editors_name=&refereed=EITHER&publication_merge=ALL&publication=&satisfyall=ALL&order=-date%2Fcreators_name%2Ftitle&_action_search=Search,,,500,ok_html_unverified
+data-statistik-gv-at-web,오스트리아완료,ckan,1,html_count_regex,https://data.statistik.gv.at/web/catalog.jsp#,,,500,ok_html_unverified
+drugsandalcohol-ie-cgi,Irish Research Centers,eprints,9768,html_count_regex,https://www.drugsandalcohol.ie/cgi/search/archive/type?dataset=archive&screen=Search&titlex_merge=ALL&titlex=&subjectx_merge=ALL&subjectx=&q_merge=ALL&q=&type=monograph&satisfyall=ALL&order=-date%2Fbrowse_by%2Ftitle&_action_search=Search,,,500,ok_html_unverified
+dtic-dimensions-ai-discover,American Research Institutes,generic,,html_count_regex,https://dtic.dimensions.ai/discover/publication,,yes,500,error:no_count_keyword
+economy-ni-gov-uk-news,영국완료,generic,1897,html_count_regex,https://www.economy-ni.gov.uk/news,,,500,ok_html_unverified
+efd-admin-ch-en,Switzerland Departments,generic,61,html_count_regex,https://www.efd.admin.ch/en/overview/nsb?sort=dateDecreasing&display=list&organization=601&topic=all&from=2024-08-29&to=2025-08-29,,,500,ok_html_unverified
+fss-or-kr-fss,한국완료,generic,,html_count_regex,https://www.fss.or.kr/fss/bbs/B0000188/list.do?menuNo=200218,,,500,error:no_count_keyword
+gnews-gg-go-kr-briefing,한국완료,generic,,html_count_regex,https://gnews.gg.go.kr/briefing/brief_gongbo.do,,,500,error:no_count_keyword
+gwangju-go-kr-boardlistdo,한국완료,generic,,html_count_regex,https://www.gwangju.go.kr/boardList.do?boardId=BD_0000000027&pageId=www789,,,500,error:no_count_keyword
+kice-re-kr-boardcnts,한국완료,generic,1,html_count_regex,https://www.kice.re.kr/boardCnts/list.do?boardID=10024&m=050102&s=kice&searchStr=,,,500,ok_html_unverified
+kipo-go-kr-ko,한국완료,generic,,html_count_regex,https://www.kipo.go.kr/ko/kpoBultnMgmt.do?menuCd=SCD0200640&parntMenuCd2=SCD0200281,,,500,error:no_count_keyword
+kli-re-kr-kli,한국완료,generic,,html_count_regex,https://www.kli.re.kr/kli/rschRptpList.es?mid=a10102060000,,,500,error:no_count_keyword
+krivet-re-kr-kor,한국완료,generic,,html_count_regex,https://www.krivet.re.kr/kor/sub.do?menuSn=12,,,500,error:no_count_keyword
+kwdi-re-kr-publications,한국완료,generic,,html_count_regex,https://www.kwdi.re.kr/publications/journal.do,,,500,error:no_count_keyword
+lecese-fr-espace-presse,French Public Institutions,generic,,html_count_regex,https://www.lecese.fr/espace-presse,,,500,error:no_count_keyword
+mss-go-kr-site,한국완료,generic,,html_count_regex,https://www.mss.go.kr/site/smba/foffice/ex/statDB/stReportRoList.do?gb=1&nodeId=&roCode=,,,500,error:no_count_keyword
+ots-at-pressemappe,오스트리아완료,generic,,html_count_regex,https://www.ots.at/pressemappe/54/bundesministerium-fuer-inneres,,,500,error:no_count_keyword
+repository-cern-search,Switzerland Research Centers,dspace,10,html_count_regex,https://repository.cern/search?q=&f=access_status%3Aopen&f=file_type%3Apdf&l=list&p=1&s=10&sort=newest,,,500,ok_html_unverified
+ruomoplus-lib-uom-gr-simple-search,Greece Research Centers,generic,,html_count_regex,https://ruomoplus.lib.uom.gr/simple-search?query=&location=publications&sort_by=dc.date.issued_dt&order=desc&rpp=10&crisID=&relationName=&etal=0&filtername=itemtype&filterquery=journal%20article&filtertype=equals,,,500,error:no_count_keyword
+sejong-go-kr-bbs,한국완료,generic,,html_count_regex,https://www.sejong.go.kr/bbs/R0079/list.do,,,500,error:no_count_keyword
+wbf-admin-ch-en,Switzerland Departments,generic,53,html_count_regex,https://www.wbf.admin.ch/en/press-information,,,500,ok_html_unverified
+biorbic-com-publications,Irish Research Centers,generic,82,html_count_regex,https://biorbic.com/publications/,,,497,ok_html_unverified
+issibern-ch-results,Switzerland Research Centers,generic,3,html_count_regex,https://www.issibern.ch/results/publications/journal-publications/,,,495,ok_html_unverified
+pembina-org-media-releases,Canadian Research Centers,generic,,html_count_regex,https://www.pembina.org/media-releases,,,494,error:no_count_keyword
+nimh-nih-gov-news,American Research Institutes,generic,,html_count_regex,https://www.nimh.nih.gov/news/science-updates,,,492,error:no_count_keyword
+info-daegu-go-kr-newshome,한국완료,generic,,html_count_regex,https://info.daegu.go.kr/newshome/mtnmain.php?mtnkey=scatelist&mkey=26,,,490,error:no_count_keyword
+gov-gr-search,Greece Ministries,generic,,html_count_regex,https://www.gov.gr/search?SearchSensor=%22%22&SingleRangeSensor=%22%CE%8C%CE%BB%CE%B5%CF%82+%CE%BF%CE%B9+%CF%85%CF%80%CE%B7%CF%81%CE%B5%CF%83%CE%AF%CE%B5%CF%82%22,,,489,error:no_count_keyword
+bnf-fr-fr,French Public Institutions,generic,287,html_count_regex,https://www.bnf.fr/fr/recherche-liste?keyword=&type%5B0%5D=espace_presse&items_per_page=10,,,488,ok_html_unverified
+msit-go-kr-bbs,한국완료,generic,,html_count_regex,https://www.msit.go.kr/bbs/list.do?sCode=user&mPid=208&mId=307,,,488,error:no_count_keyword
+skillsdevelopmentscotland-co-uk-publications-statist,영국완료,generic,,html_count_regex,https://www.skillsdevelopmentscotland.co.uk/publications-statistics/publications,,,488,error:no_count_keyword
+datacatalogue-adruk-org-browser,영국완료,generic,,html_count_regex,https://datacatalogue.adruk.org/browser/search?include=dataset::datastandard::terminology::dataclass::dataelement,,,484,error:no_count_keyword
+babraham-ac-uk-news,영국완료,generic,,html_count_regex,https://www.babraham.ac.uk/news/category/news,,,483,error:no_count_keyword
+bundeskanzleramt-gv-at-bundeskanzleramt,오스트리아완료,generic,,html_count_regex,https://www.bundeskanzleramt.gv.at/bundeskanzleramt/nachrichten-der-bundesregierung/2021.html,,,480,error:no_count_keyword
+pubshop-bmbwf-gv-at-indexphp,오스트리아완료,generic,,html_count_regex,https://pubshop.bmbwf.gv.at/index.php?article_id=1,,,479,error:no_count_keyword
+seco-admin-ch-seco,Switzerland Departments,generic,52,html_count_regex,https://www.seco.admin.ch/seco/en/home/seco/nsb-news.html?dyn_startDate=01.01.2023,,,479,ok_html_unverified
+nist-gov-publications,American Research Institutes,generic,1,html_count_regex,https://www.nist.gov/publications/search,,,478,ok_html_unverified
+ejournals-epublishing-ekt-gr-indexphp,Greece Research Centers,generic,,html_count_regex,https://ejournals.epublishing.ekt.gr/index.php/index/journals-catalog,,,474,error:Timeout
+sastind-gov-cn-n10086200,중국 완료,generic,,html_count_regex,https://www.sastind.gov.cn/n10086200/n10086319/index.html,,,474,error:no_count_keyword
+daejeon-go-kr-drh,한국완료,generic,,html_count_regex,https://www.daejeon.go.kr/drh/board/boardNormalList.do?boardId=normal_0189&menuSeq=6825,,,473,error:no_count_keyword
+mivau-gob-es-el-ministerio,Spain Ministries,generic,4813,html_count_regex,https://www.mivau.gob.es/el-ministerio/sala-de-prensa,,,473,ok_html_unverified
+agriculture-gouv-fr-recherche-developpem,France Ministries,generic,,html_count_regex,https://agriculture.gouv.fr/recherche-developpement-et-innovation,,,472,error:no_count_keyword
+comwel-or-kr-comwel,한국완료,generic,,html_count_regex,https://www.comwel.or.kr/comwel/noti/pres.jsp,,,471,error:no_count_keyword
+nin-nl-publications,Dutch Research Centers,generic,4022,html_count_regex,https://nin.nl/publications/,,,471,ok_html_unverified
+mod-mil-gr-category,Greece Ministries,generic,,html_count_regex,https://www.mod.mil.gr/category/anakoinoseis-typoy/,,,470,error:no_count_keyword
+nrc-re-kr-boardes,한국완료,generic,,html_count_regex,https://www.nrc.re.kr/board.es?mid=a12102000000&bid=0015,,,470,error:no_count_keyword
+toi-no-publications,Norway Research Centers,generic,2,html_count_regex,https://www.toi.no/publications/category29.html?types=report&area=&author=&searchstring=,,,470,ok_html_unverified
+mfds-go-kr-brd,한국완료,generic,,html_count_regex,https://www.mfds.go.kr/brd/m_99/list.do,,,461,error:no_count_keyword
+en-iwhr-cn-iwhr-english-new,중국 완료,generic,,html_count_regex,http://en.iwhr.cn/IWHR-English-New/Publications/AnnualReports/A110403index_1.htm,,,458,error:http_412
+skm-dk-aktuelt,덴마크완료,generic,,html_count_regex,https://skm.dk/aktuelt/publikationer/rapporter,,,457,error:no_count_keyword
+xxgk-mot-gov-cn-2020,중국 완료,generic,,html_count_regex,https://xxgk.mot.gov.cn/2020/zhengce/863/868/869/iframe_list_7232.html,,,456,error:no_count_keyword
+accc-gov-au-search,호주완료,generic,7998,html_count_regex,https://www.accc.gov.au/search?query=pdf,,,454,ok_html_unverified
+bmas-de-de,Germany Ministries,generic,,html_count_regex,https://www.bmas.de/DE/Service/Publikationen/Neue-Publikationen/neue-publikationen.html,,,454,error:no_count_keyword
+ypen-gov-gr-category,Greece Ministries,generic,,html_count_regex,https://ypen.gov.gr/category/anakoinoseis-typou/,,,454,error:no_count_keyword
+gi-re-kr-home,한국완료,generic,,html_count_regex,https://www.gi.re.kr/Home/H10000/H10100/pmsReportList,,,452,error:no_count_keyword
+ir-arcnl-nl,Dutch Research Centers,generic,,html_count_regex,https://ir.arcnl.nl/#facet=type:article|dissertation|masterThesis|bachelorThesis,,,452,error:no_count_keyword
+keei-re-kr-boardes,한국완료,generic,,html_count_regex,https://www.keei.re.kr/board.es?mid=a10202020000&bid=0008,,,452,error:no_count_keyword
+search-nal-usda-gov-discovery,USA Executive Departments,generic,,html_count_regex,https://search.nal.usda.gov/discovery/collectionDiscovery?vid=01NAL_INST:MAIN,,,452,error:no_count_keyword
+humanrights-go-kr-base,한국완료,generic,,html_count_regex,https://www.humanrights.go.kr/base/board/list?boardManagementNo=20&menuLevel=3&menuNo=120,,,450,error:no_count_keyword
+nih-gov-press-room,American Research Institutes,generic,,html_count_regex,https://www.nih.gov/press-room,,,449,error:http_403
+wef-infor-cl-indexphp,Chile Ministries,generic,,html_count_regex,https://wef.infor.cl/index.php/publicaciones,,,448,error:no_count_keyword
+kmi-re-kr-web,한국완료,generic,,html_count_regex,https://www.kmi.re.kr/web/board/list.do?rbsIdx=164,,,445,error:no_count_keyword
+meteoswiss-admin-ch-services-and-publica,Switzerland Research Centers,generic,,html_count_regex,https://www.meteoswiss.admin.ch/services-and-publications/publications.html#order=date-desc&page=1&pageGroup=publication&tenant=mchweb,,,440,error:no_count_keyword
+hrbopenresearch-org,Irish Research Centers,generic,,html_count_regex,https://hrbopenresearch.org/browse/articles,,,437,error:http_403
+kiep-go-kr-galleryes,한국완료,generic,,html_count_regex,https://www.kiep.go.kr/gallery.es?mid=a10101010000&bid=0001&cg_code=C03%2CC05%2CC02%2CC13%2CC01%2CC19%2CC17%2CC11%2CC20,,,437,error:no_count_keyword
+data-mfe-govt-nz-tables,뉴질랜드완료,ckan,,ckan,https://data.mfe.govt.nz/api/3/action/package_search,,,435,error:http_200|generic:no_count_keyword
+afp-gov-au-news-centre,호주완료,generic,,html_count_regex,https://www.afp.gov.au/news-centre,,,432,error:no_count_keyword
+kinu-or-kr-main,한국완료,generic,,html_count_regex,https://www.kinu.or.kr/main/module/report/index.do?nav_code=mai1674786094,,,432,error:no_count_keyword
+defence-govt-nz-publications,뉴질랜드완료,generic,1,html_count_regex,https://www.defence.govt.nz/publications/doSearch/,,,431,ok_html_unverified
+bok-or-kr-portal,한국완료,generic,,html_count_regex,https://www.bok.or.kr/portal/singl/newsData/list.do?pageIndex=1&targetDepth=&menuNo=201150&syncMenuChekKey=1&depthSubMain=&subMainAt=&searchCnd=1&searchKwd=&depth2=200038&date=&sdate=&edate=&sort=1&pageUnit=10,,,430,error:no_count_keyword
+saemangeum-go-kr-sda,한국완료,generic,,html_count_regex,https://www.saemangeum.go.kr/sda/brd/list.do?key=2009074409621,,,428,error:no_count_keyword
+chungnam-go-kr-cnportal,한국완료,generic,,html_count_regex,https://www.chungnam.go.kr/cnportal/cnapcPressList/cnapcPress/list.do?menuNo=500498,,,425,error:no_count_keyword
+provenienzforschung-gv-at-empfehlungen-des-bei,오스트리아완료,generic,,html_count_regex,https://provenienzforschung.gv.at/empfehlungen-des-beirats/beschluesse/beschluesse-alphabetisch/,,,425,error:no_count_keyword
+publicsafety-gc-ca-cnt,Canada Ministries,generic,,html_count_regex,https://www.publicsafety.gc.ca/cnt/nws/nws-rlss/index-en.aspx,,,424,error:http_404
+defensa-gob-es-gabinete,Spain Ministries,generic,,html_count_regex,https://www.defensa.gob.es/gabinete/notasPrensa/,,,421,error:no_count_keyword
+infrastructure-ni-gov-uk-news,영국완료,generic,2997,html_count_regex,https://www.infrastructure-ni.gov.uk/news,,,420,ok_html_unverified
+cnic-es-en,Spanish Research Centers,generic,,html_count_regex,https://www.cnic.es/en/scientific-report,,,419,error:no_count_keyword
+moe-gov-cn-jyb_xwfb,중국 완료,generic,,html_count_regex,http://www.moe.gov.cn/jyb_xwfb/s271/,,,418,error:no_count_keyword
+digital-gob-es-comunicacion,Spain Ministries,generic,,html_count_regex,https://digital.gob.es/comunicacion,,,416,error:no_count_keyword
+nih-gov-news-events,American Research Institutes,generic,,html_count_regex,https://www.nih.gov/news-events/news-releases,,,409,error:http_403
+dst-dk-da,덴마크완료,generic,,html_count_regex,https://www.dst.dk/da/Statistik/nyheder-analyser-publ/Analyser,,,408,error:no_count_keyword
+gb-go-kr-sub,한국완료,generic,,html_count_regex,https://gb.go.kr/Sub/open_contents/section/datastat/page.do?mnu_uid=7866&LARGE_CODE=820&MEDIUM_CODE=20&SMALL_CODE=40&SMALL_CODE2=20&mnu_order=3,,,406,error:no_count_keyword
+psi-ch-en,Switzerland Research Centers,generic,2,html_count_regex,https://www.psi.ch/en/about/business-report,,,405,ok_html_unverified
+minedu-gov-gr-grafeio-typoy-kai-di,Greece Ministries,generic,20,html_count_regex,https://www.minedu.gov.gr/grafeio-typoy-kai-dimosion-sxeseon/deltia-typoy,,,404,ok_html_unverified
+trm-dk-nyheder,덴마크완료,generic,,html_count_regex,https://www.trm.dk/nyheder,,,404,error:no_count_keyword
+unidata-gv-at-pages,오스트리아완료,generic,3,html_count_regex,https://unidata.gv.at/Pages/auswertungen.aspx,,,404,ok_html_unverified
+data-gv-at-datasets,오스트리아완료,ckan,,ckan,https://www.data.gv.at/api/3/action/package_search,,,400,error:http_404|generic:no_count_keyword
+kepco-co-kr-home,한국완료,generic,,html_count_regex,https://www.kepco.co.kr/home/media/newsroom/pr/boardList.do,,,400,error:no_count_keyword
+graduateinstitute-ch-library,Switzerland Research Centers,generic,20,html_count_regex,https://www.graduateinstitute.ch/library/publications-institute,,,398,ok_html_unverified
+ameslab-gov-news,American Research Institutes,generic,1,html_count_regex,https://www.ameslab.gov/news,,,394,ok_html_unverified
+mintour-gov-gr-deltia-typoy,Greece Ministries,generic,,html_count_regex,https://mintour.gov.gr/deltia-typoy/,,,394,error:no_count_keyword
+sib-swiss-community,Switzerland Research Centers,generic,20,html_count_regex,https://www.sib.swiss/community/publications/scientific-publications-2025,,,391,ok_html_unverified
+molit-go-kr-usr,한국완료,generic,,html_count_regex,https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp,,,390,error:no_count_keyword
+cso-ie-en,Irish Research Centers,generic,,html_count_regex,https://www.cso.ie/en/csolatestnews/pressreleases/2025pressreleases/,,,388,error:no_count_keyword
+energy-gov-management,USA Executive Departments,generic,,html_count_regex,https://www.energy.gov/management/directives-guidance-and-delegations,,,388,error:no_count_keyword
+knmi-nl-kennis-en-datacentru,Dutch Research Centers,generic,796,html_count_regex,https://www.knmi.nl/kennis-en-datacentrum/zoekresultaten?q=&page=1&sort=score&type=data_center_publication&publication_types%5B%5D=knmi_publication&year_from=2016&year_to=2026,,,388,ok_html_unverified
+bfs-admin-ch-bfs,Switzerland Departments,generic,34,html_count_regex,https://www.bfs.admin.ch/bfs/de/home.html,,,384,ok_html_unverified
+statistischebibliothek-de-mir,독일완료,generic,,html_count_regex,https://www.statistischebibliothek.de/mir/receive/DESerie_mods_00000012?list=all,,,384,error:Timeout
+miteco-gob-es-es,Spain Ministries,generic,,html_count_regex,https://www.miteco.gob.es/es/prensa/ultimas-noticias.html,,,379,error:no_count_keyword
+portaldiplomatico-mne-gov-pt-en,Portugal Ministries,generic,,html_count_regex,https://portaldiplomatico.mne.gov.pt/en/communication-and-media/press-releases,,,378,error:no_count_keyword
+koti-re-kr-user,한국완료,generic,,html_count_regex,https://www.koti.re.kr/user/bbs/bassRsrchReprtList.do,,,373,error:no_count_keyword
+kna-forest-go-kr-kfsweb,한국완료,generic,,html_count_regex,https://kna.forest.go.kr/kfsweb/kfi/kfs/kna/application/publication/list.do?mainCd=210103&mn=UKNA_04_10,,,372,error:no_count_keyword
+cpb-nl-en,Dutch Research Centers,generic,3,html_count_regex,https://www.cpb.nl/en/publications,,,371,ok_html_unverified
+kicce-re-kr-main,한국완료,generic,,html_count_regex,https://www.kicce.re.kr/main/board/index.do?menu_idx=95&manage_idx=56,,,368,error:no_count_keyword
+eprr-lanl-gov,American Research Institutes,generic,2,html_count_regex,https://eprr.lanl.gov/?f%5BdocType_f%5D%5B%5D=Full+Paper,,,367,ok_html_unverified
+kei-re-kr-eliblistes,한국완료,generic,,html_count_regex,https://www.kei.re.kr/elibList.es?mid=a10101010000,,,364,error:no_count_keyword
+nifu-no-en,Norway Research Centers,generic,1,html_count_regex,https://www.nifu.no/en/nifu-alle-publikasjoner/,,,363,ok_html_unverified
+bdap-opendata-rgs-mef-gov-it-catalog,Italy Ministries,ckan,,ckan,https://bdap-opendata.rgs.mef.gov.it/api/3/action/package_search,,,360,error:http_404|generic:no_count_keyword
+cirad-fr-espace-presse,French Research Institutes,generic,446,html_count_regex,https://www.cirad.fr/espace-presse/communiques-de-presse,,,360,ok_html_unverified
+edi-admin-ch-de,Switzerland Departments,generic,52,html_count_regex,https://www.edi.admin.ch/de/medienmitteilungen-des-edi,,,360,ok_html_unverified
+nrscotland-gov-uk-publications,영국완료,generic,20,html_count_regex,https://www.nrscotland.gov.uk/publications/,,,359,ok_html_unverified
+forskningsradet-no-om-forskningsradet,Norway Research Centers,generic,14,html_count_regex,https://www.forskningsradet.no/om-forskningsradet/publikasjoner/,,,356,ok_html_unverified
+sm-dk-publikationer,덴마크완료,generic,,html_count_regex,https://www.sm.dk/publikationer,,,354,error:no_count_keyword
+english-cnipa-gov-cn-col,중국 완료,generic,,html_count_regex,https://english.cnipa.gov.cn/col/col2967/index.html,,,353,error:no_count_keyword
+gov-scot-statistics-and-resea,영국완료,onpage_count,6001,html_count_regex,https://www.gov.scot/statistics-and-research/,,yes,353,ok
+kipf-re-kr-bbs,한국완료,generic,,html_count_regex,https://www.kipf.re.kr/bbs/kor_Plaza_PressRelease.do,,,352,error:no_count_keyword
+em-dk-aktuelt,덴마크완료,generic,16,html_count_regex,https://www.em.dk/aktuelt/udgivelser-og-aftaler,,,350,ok_html_unverified
+nersc-no-en,Norway Research Centers,generic,2,html_count_regex,https://nersc.no/en/publications/,,,349,ok_html_unverified
+em-lyon-com-en,French Public Universities,generic,,html_count_regex,https://em-lyon.com/en/newsroom,,,348,error:no_count_keyword
+educacionfpydeportes-gob-es-prensahtml,Spain Ministries,generic,,html_count_regex,https://www.educacionfpydeportes.gob.es/prensa.html,,,347,error:no_count_keyword
+geoportal-statistics-gov-uk-search,영국완료,generic,20,html_count_regex,https://geoportal.statistics.gov.uk/search?collection=document&sort=Date%20Updated%7Cmodified%7Cdesc,,,346,ok_html_unverified
+justitsministeriet-dk-pressemeddelelse,덴마크완료,generic,,html_count_regex,https://www.justitsministeriet.dk/pressemeddelelse/,,,346,error:no_count_keyword
+cdhowe-org-research-insights,Canadian Research Centers,generic,,html_count_regex,https://cdhowe.org/research-insights/,,,344,error:no_count_keyword
+opengov-seoul-go-kr-research,한국완료,generic,,html_count_regex,https://opengov.seoul.go.kr/research/list,,,344,error:no_count_keyword
+gnewsonline-it-category,Italy Ministries,generic,,html_count_regex,https://www.gnewsonline.it/category/comunicati-stampa/,,,343,error:no_count_keyword
+netl-doe-gov-fecm-external-r-and-,American Research Institutes,generic,,html_count_regex,https://netl.doe.gov/FECM-External-R-and-D-Final-Technical-Reports,,,343,error:no_count_keyword
+iisd-org-press,Canadian Research Centers,generic,601,html_count_regex,https://www.iisd.org/press?article_subtype[10]=10&sort_by=unified_date,,,342,ok_html_unverified
+lavoro-gov-it-stampa-e-media,Italy Ministries,generic,1761,html_count_regex,https://www.lavoro.gov.it/stampa-e-media/Comunicati/Pagine/Comunicati,,,340,ok_html_unverified
+finance-ni-gov-uk-publications,영국완료,generic,3510,html_count_regex,https://www.finance-ni.gov.uk/publications,,,336,ok_html_unverified
+naacc-go-kr-web,한국완료,generic,,html_count_regex,https://naacc.go.kr/WEB/contents/N3050100000.do,,,334,error:no_count_keyword
+kasa-go-kr-bbs,한국완료,generic,,html_count_regex,https://www.kasa.go.kr/bbs/BBSMSTR_000000000010/list.do,,,331,error:no_count_keyword
+libreria-educacion-gob-es-p,Spain Ministries,generic,,html_count_regex,https://www.libreria.educacion.gob.es/p/3740_estadisticas/,,,330,error:no_count_keyword
+nichd-nih-gov-newsroom,American Research Institutes,generic,,html_count_regex,https://www.nichd.nih.gov/newsroom/news,,,329,error:no_count_keyword
+nhlbi-nih-gov-resources,American Research Institutes,generic,20,html_count_regex,https://www.nhlbi.nih.gov/resources,,,325,ok_html_unverified
+fafo-no-en,Norway Research Centers,generic,4,html_count_regex,https://www.fafo.no/en/publications,,,322,ok_html_unverified
+pnnl-gov-news,American Research Institutes,generic,547,html_count_regex,https://www.pnnl.gov/news?news%5B0%5D=type%3A23,,,322,ok_html_unverified
+werk-belgie-be-nl,벨기에완료,generic,,html_count_regex,https://werk.belgie.be/nl/nieuws,,,316,error:no_count_keyword
+bmluk-gv-at-service,오스트리아완료,generic,30,html_count_regex,https://www.bmluk.gv.at/service/zahlen-fakten-neu/statistik-agrarberichte-gruene-berichte.html,,,315,ok_html_unverified
+environment-govt-nz-acts-and-regulations,뉴질랜드완료,generic,55,html_count_regex,https://environment.govt.nz/acts-and-regulations/national-planning-standards/,,,315,ok_html_unverified
+samr-gov-cn-zw,중국 완료,generic,,html_count_regex,https://www.samr.gov.cn/zw/zjwj/zcjd/index.html,,,315,error:no_count_keyword
+pasteur-fr-en,French Research Institutes,generic,2,html_count_regex,https://www.pasteur.fr/en/search-press?field_pst_doc_type=49,,,314,ok_html_unverified
+bam-de-navigation,GER ResearchCenters(Unfinished),generic,,html_count_regex,https://www.bam.de/Navigation/EN/News/Press-Releases/press-releases.html,,,308,error:http_404
+bra-se-english,스웨덴 완료,generic,1,html_count_regex,https://bra.se/english/publications,,,306,ok_html_unverified
+juventudeinfancia-gob-es-es,Spain Ministries,generic,,html_count_regex,https://www.juventudeinfancia.gob.es/es/comunicacion/notas-prensa,,,306,error:no_count_keyword
+culture-gouv-fr-espace-documentation,France Ministries,generic,862,html_count_regex,https://www.culture.gouv.fr/espace-documentation?resource_type%5B0%5D=50,,,304,ok_html_unverified
+mnd-go-kr-user,한국완료,generic,,html_count_regex,https://www.mnd.go.kr/user/newsInUserRecord.action?siteId=mnd&handle=I_669&id=mnd_020500000000,,,304,error:Timeout
+nordlandsforskning-no-en,Norway Research Centers,generic,,html_count_regex,https://www.nordlandsforskning.no/en/publications,,,304,error:no_count_keyword
+swisspeace-ch-publications,Switzerland Research Centers,generic,,html_count_regex,https://www.swisspeace.ch/publications,,,304,error:no_count_keyword
+en-nim-ac-cn-taxonomy,중국 완료,generic,3,html_count_regex,https://en.nim.ac.cn/taxonomy/term/170,,,303,ok_html_unverified
+wti-org-research,Switzerland Research Centers,generic,313,html_count_regex,https://www.wti.org/research/publications/?q=&type=2&author=&research_project=,,,303,ok_html_unverified
+carabinieri-it-in-vostro-aiuto,Italy Ministries,generic,,html_count_regex,https://www.carabinieri.it/in-vostro-aiuto/informazioni/comunicati-stampa,,,301,error:no_count_keyword
+presse-curie-fr-section,French Research Institutes,generic,,html_count_regex,https://presse.curie.fr/section/communiques/?lang=en&_gl=1*g1wgb0*_up*MQ..*_ga*MTY0Mzk4NTg0LjE3NTE5Nzc2Njc.*_ga_3H1QKXKJYY*czE3NTE5Nzc2NjckbzEkZzAkdDE3NTE5Nzc2NjckajYwJGwwJGgw*_ga_G7RMZZ61ZW*czE3NTE5Nzc2NjckbzEkZzAkdDE3NTE5Nzc2NjckajYwJGwwJGgw*_ga_ZZMKJMV6LS*czE3NTE5Nzc2NjckbzEkZzAkdDE3NTE5Nzc2NjckajYwJGwwJGgw,,,300,error:no_count_keyword
+arcom-fr-presse,French Public Institutions,generic,30,html_count_regex,https://www.arcom.fr/presse?field_type_de_presse_target_id%5B16%5D=16&field_date_de_decision_value_1=&field_date_de_decision_value=&sort_bef_combine=field_date_de_decision_value_ASC,,,290,ok_html_unverified
+pps-go-kr-kor,한국완료,generic,,html_count_regex,https://www.pps.go.kr/kor/bbs/list.do?key=00664,,,290,error:no_count_keyword
+sfi-ch-en,Switzerland Research Centers,generic,26,html_count_regex,https://www.sfi.ch/en/publications?d=&a=&c=383&q=,,,288,ok_html_unverified
+transportes-gob-es-el-ministerio,Spain Ministries,generic,,html_count_regex,https://www.transportes.gob.es/el-ministerio/sala-de-prensa,,,288,error:no_count_keyword
+ii-re-kr-base,한국완료,generic,,html_count_regex,https://www.ii.re.kr/base/board/list?boardManagementNo=14&menuLevel=2&menuNo=76,,,287,error:no_count_keyword
+ifremer-fr-fr,French Research Institutes,generic,,html_count_regex,https://www.ifremer.fr/fr/espace-presse,,,286,error:no_count_keyword
+nidi-nl-en,Dutch Research Centers,generic,17,html_count_regex,https://nidi.nl/en/publications/,,,285,ok_html_unverified
+elocus-lib-uoc-gr-search,Greece Research Centers,generic,,html_count_regex,https://elocus.lib.uoc.gr/search/?store_query=1&display_mode=overview&search_help=list&show_form=%27%27&search_type=advanced&search_help=&display_mode=overview&wf_step=init&show_hidden=0&number=10&keep_number=&cclterm1=&cclterm2=&cclterm3=&cclterm4=&cclterm5=&cclterm6=&cclterm7=&cclterm8=%2Fhierarchy%2Fmaterial%2F030&cclterm9=&cclfield1=author&cclfield2=title&cclfield3=subject&cclfield4=datefrom&cclfield5=dateto&cclfield6=&cclfield7=lang&cclfield8=collection&cclfield9=department&cclop1=and&cclop2=and&cclop3=and&cclop4=and&cclop5=&cclop6=and&cclop7=and&cclop8=and&display_help=0&offset=1&search_coll%5Bmetadata%5D=0&search_coll%5Bdlib%5D=1&stored_cclquery=&skin=&rss=0&store_query=1&show_form=&clone_file=&export_method=none&search_coll%5Bdlib%5D=1&cclfield1=author&cclterm1=&cclop1=and&cclfield2=title&cclterm2=&cclop2=and&cclfield3=subject&cclterm3=&cclop3=and&cclfield4=datefrom&cclterm4=&cclop4=and&cclfield5=dateto&cclterm5=&cclop6=and&cclfield7=lang&cclterm7=&cclop7=and&cclfield8=collection&cclterm8=%2Fhierarchy%2Fmaterial%2F010&cclop8=and&cclfield9=department&cclterm9=#,,,282,error:no_count_keyword
+telemarksforsking-no-publikasjoner,Norway Research Centers,generic,69,html_count_regex,https://telemarksforsking.no/publikasjoner/tab/?tab=vitenskapelig,,,280,ok_html_unverified
+earlham-ac-uk-newsroom,영국완료,generic,,html_count_regex,https://www.earlham.ac.uk/newsroom,,,278,error:no_count_keyword
+dol-gov-newsroom,USA Executive Departments,generic,,html_count_regex,https://www.dol.gov/newsroom/releases?agency=All&state=All&topic=All&year=all&page=0,,,275,error:no_count_keyword
+irsn-fr-actualites,French Research Institutes,generic,,html_count_regex,https://www.irsn.fr/actualites/communiques-presse,,,274,error:no_count_keyword
+rijksoverheid-nl-documenten,Netherland Ministries,generic,,html_count_regex,https://www.rijksoverheid.nl/documenten?trefwoord=&startdatum=&einddatum=&onderdeel=Alle+ministeries&type=Rapport,,,274,error:no_count_keyword
+gob-mx-mujeres,Mexico Ministries,generic,,html_count_regex,https://www.gob.mx/mujeres/archivo/prensa,,,270,error:no_count_keyword
+hhs-gov-guidance,USA Executive Departments,generic,4064,html_count_regex,https://www.hhs.gov/guidance/,,,267,ok_html_unverified
+minagric-gr-the-ministry-2,Greece Ministries,generic,,html_count_regex,https://minagric.gr/the-ministry-2/grafeiotypou/press-releases-ypaat-current-year,,,267,error:no_count_keyword
+www6-slac-stanford-edu-news-and-events,American Research Institutes,generic,,html_count_regex,https://www6.slac.stanford.edu/news-and-events/news-center/archive?created=&news_research_area=All&news_type=1,,,267,error:no_count_keyword
+gichd-org-publications-resourc,Switzerland Research Centers,generic,59,html_count_regex,https://www.gichd.org/publications-resources/publications/,,,266,ok_html_unverified
+ministryofjustice-gr,Greece Ministries,generic,3,html_count_regex,https://ministryofjustice.gr/?page_id=598,,,261,ok_html_unverified
+auri-re-kr-boardes,한국완료,generic,,html_count_regex,https://www.auri.re.kr/board.es?mid=a10401030000&bid=0013,,,260,error:no_count_keyword
+directives-doe-gov-guidance,USA Executive Departments,generic,,html_count_regex,https://www.directives.doe.gov/guidance,,,260,error:no_count_keyword
+eprints-soton-ac-uk-view,영국완료,eprints,,oai_resumption,https://eprints.soton.ac.uk/cgi/oai2,,,259,error:http_401|generic:http_401
+moleg-go-kr-boardes,한국완료,generic,,html_count_regex,https://www.moleg.go.kr/board.es?mid=a10404000000&bid=0007,,,256,error:no_count_keyword
+fhi-no-en,Norway Research Centers,generic,30,html_count_regex,https://www.fhi.no/en/publ/?lang=en&type=con-32/cat-750&filter=&sort=1&page=1&archive=0,,,255,ok_html_unverified
+ninds-nih-gov-news-events,American Research Institutes,generic,,html_count_regex,https://www.ninds.nih.gov/news-events/news/press-releases,,,253,error:no_count_keyword
+daten-berlin-de-datensaetze,독일완료,ckan,,ckan,https://daten.berlin.de/api/3/action/package_search,res_format:PDF,,250,error:http_404|generic:http_425
+environment-govt-nz-publications,뉴질랜드완료,generic,57,html_count_regex,https://environment.govt.nz/publications/?offset=25,,,249,ok_html_unverified
+regulation-govt-nz-about-us,뉴질랜드완료,generic,3,html_count_regex,https://www.regulation.govt.nz/about-us/our-publications/?https%3A%2F%2Fwww_regulation_govt_nz%2Fabout-us%2Four-publications%2Fsearch%2F%3Fquery=&order=relevance&publication_type_id%5B110%5D=110&sort_date_from=&sort_date_to=,,,247,ok_html_unverified
+audencia-com-lecole,French Public Universities,generic,24,html_count_regex,https://www.audencia.com/lecole/newsroom/communiques-de-presse,,,246,ok_html_unverified
+scp-nl-publicaties,Dutch Research Centers,generic,,html_count_regex,https://www.scp.nl/publicaties,,,243,error:no_count_keyword
+harcresearch-org-news,American Research Institutes,generic,5,html_count_regex,https://harcresearch.org/news/,,,240,ok_html_unverified
+om-mp-be-nl,벨기에완료,generic,,html_count_regex,https://www.om-mp.be/nl/colpg/college-van-procureurs-generaal-jaarverslagen,,,239,error:no_count_keyword
+brgm-fr-fr,French Research Institutes,generic,,html_count_regex,https://www.brgm.fr/fr/actualites?type=Communiqu%C3%A9%20de%20presse,,,234,error:no_count_keyword
+noc-ac-uk-publications,영국완료,generic,,html_count_regex,https://noc.ac.uk/publications,,,234,error:no_count_keyword
+ifr-pan-edu-pl-dzialalnosc-naukowa,Polish Research Centers,generic,,html_count_regex,https://ifr-pan.edu.pl/dzialalnosc-naukowa/publikacje,,,232,error:no_count_keyword
+cerema-fr-fr,French Research Institutes,generic,,html_count_regex,https://www.cerema.fr/fr/presse/document,,,231,error:no_count_keyword
+publications-idiap-ch-publications,Switzerland Research Centers,generic,58,html_count_regex,https://publications.idiap.ch/publications,,,231,ok_html_unverified
+arrow-tudublin-ie-creaart,Irish Research Centers,generic,,html_count_regex,https://arrow.tudublin.ie/creaart/,,,229,error:no_count_keyword
+bundesgesundheitsministerium-de-service,독일완료,generic,2,html_count_regex,https://www.bundesgesundheitsministerium.de/service/publikationen/drogen-und-sucht.html,,,229,ok_html_unverified
+justice-ni-gov-uk-publications,영국완료,generic,1895,html_count_regex,https://www.justice-ni.gov.uk/publications,,,228,ok_html_unverified
+spo-go-kr-site,한국완료,generic,,html_count_regex,https://www.spo.go.kr/site/spo/ex/board/List.do?cbIdx=1303,,,227,error:no_count_keyword
+polytechnique-edu-presse,French Public Universities,generic,,html_count_regex,https://www.polytechnique.edu/presse/communiques-et-dossiers-de-presse,,,226,error:no_count_keyword
+acpr-banque-france-fr-fr,French Public Institutions,generic,,html_count_regex,https://acpr.banque-france.fr/fr/communiques-de-presse,,,225,error:no_count_keyword
+auswaertiges-amt-de-de,Germany Ministries,generic,3,html_count_regex,https://www.auswaertiges-amt.de/de/newsroom/presse/newsroom-archiv,,,224,ok_html_unverified
+ed-gov-about,USA Executive Departments,generic,3,html_count_regex,https://www.ed.gov/about/news/press-release,,,224,ok_html_unverified
+pbc-gov-cn-en,중국 완료,generic,,html_count_regex,https://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html,,,224,error:no_count_keyword
+insee-fr-fr,French Public Institutions,generic,,html_count_regex,https://www.insee.fr/fr/information/2117832?debut=0&region=REG84+REG27+REG53+REG24+REG94+REG44+REG01+REG32+REG11+REG03+REG76+REG52+REG75+REG93+REG06+REG28+REG02+REG04,,,223,error:no_count_keyword
+artsetmetiers-fr-fr,French Public Universities,generic,,html_count_regex,https://artsetmetiers.fr/fr/communiques-de-presse,,,222,error:no_count_keyword
+ostrnrcan-dostrncan-canada-ca-search,Canadian Research Centers,generic,2,html_count_regex,"https://ostrnrcan-dostrncan.canada.ca/search?page=1&query=*&spc.sf=dc.date.issued&spc.sd=DESC&spc.page=1&f.itemtype_en=Report,equals",,,220,ok_html_unverified
+nibio-no-en,Norway Research Centers,generic,3,html_count_regex,https://www.nibio.no/en/publications?filters=1&q=&publicationType%5B%5D=e4b9b2bc-82be-42d1-80f5-f1515ad07e2e,,,219,ok_html_unverified
+secihti-mx-sala-de-prensa,Mexico Ministries,generic,58,html_count_regex,https://secihti.mx/sala-de-prensa/,,,218,ok_html_unverified
+igualdad-gob-es-comunicacion,Spain Ministries,generic,,html_count_regex,https://www.igualdad.gob.es/comunicacion/sala-de-prensa/,,,216,error:no_count_keyword
+ifau-se-press,스웨덴 완료,generic,,html_count_regex,https://www.ifau.se/Press/Meddelanden/,,,215,error:no_count_keyword
+bjerknes-uib-no-en,Norway Research Centers,generic,3,html_count_regex,https://bjerknes.uib.no/en/publications,,,214,ok_html_unverified
+cnipa-gov-cn-col,중국 완료,generic,,html_count_regex,https://www.cnipa.gov.cn/col/col88/index.html,,,213,error:no_count_keyword
+emep-int-mscw,Norway Research Centers,generic,20,html_count_regex,https://emep.int/mscw/mscw_publications.html,,,213,ok_html_unverified
+transformation-gouv-fr-espace-presse,France Ministries,generic,,html_count_regex,https://www.transformation.gouv.fr/espace-presse?field_type_presse_target_id%5B17%5D=17,,,211,error:no_count_keyword
+adruk-org-news-publications,영국완료,generic,,html_count_regex,https://www.adruk.org/news-publications/annual-reports/,,,210,error:no_count_keyword
+sozialministerium-gv-at-services,오스트리아완료,generic,,html_count_regex,https://www.sozialministerium.gv.at/Services/Studien.html,,,206,error:no_count_keyword
+directives-doe-gov-directives-browse,USA Executive Departments,generic,,html_count_regex,https://www.directives.doe.gov/directives-browse,,,205,error:no_count_keyword
+transportation-gov-newsroom,USA Executive Departments,generic,,html_count_regex,https://www.transportation.gov/newsroom/press-releases,,,205,error:no_count_keyword
+doi-gov-bpp,USA Executive Departments,generic,,html_count_regex,https://www.doi.gov/bpp/pars,,,204,error:no_count_keyword
+lib-cssn-cn-zy,중국 완료,generic,,html_count_regex,http://lib.cssn.cn/zy/dzzy/?column=xueke,,,204,error:no_count_keyword
+mef-gov-it-ufficio-stampa,Italy Ministries,generic,122,html_count_regex,https://www.mef.gov.it/ufficio-stampa/comunicati/2025/,,,204,ok_html_unverified
+ethz-ch-de,Switzerland Research Centers,generic,,html_count_regex,https://ethz.ch/de/news-und-veranstaltungen/medien/medienmitteilungen.html,,,203,error:no_count_keyword
+nidcd-nih-gov-news,American Research Institutes,generic,,html_count_regex,https://www.nidcd.nih.gov/news/nidcd-news,,,203,error:no_count_keyword
+salute-gov-it-new,Italy Ministries,generic,,html_count_regex,https://www.salute.gov.it/new/it/sezione/comunicati-stampa/,,,202,error:no_count_keyword
+bmleh-de-siteglobals,독일완료,generic,50,html_count_regex,https://www.bmleh.de/SiteGlobals/Forms/Suche/DE/GoodPracticessuche/GoodPracticessuche_Formular.html?view=processForm&nn=902,,,200,ok_html_unverified
+data-gouv-fr-organizations,French Research Institutes,ckan,68,html_count_regex,https://www.data.gouv.fr/organizations/cerema/datasets/?page_size=20&page=1,,,200,ok_html_unverified
+cc-nih-gov-research,American Research Institutes,generic,,html_count_regex,https://www.cc.nih.gov/research/2025,,,199,error:no_count_keyword
+differ-nl-publications,Dutch Research Centers,generic,1,html_count_regex,https://www.differ.nl/publications?author=&year=&type=thesis&combine=,,,198,ok_html_unverified
+bmftr-bund-de-siteglobals,독일완료,generic,50,html_count_regex,https://www.bmftr.bund.de/SiteGlobals/Forms/Suche/Publikationssuche/Publikationssuche_Formular.html,,,197,ok_html_unverified
+benthamscience-com-press-release,Switzerland Research Centers,generic,,html_count_regex,https://www.benthamscience.com/press-release,,,191,error:no_count_keyword
+energy-gov-search,USA Executive Departments,generic,,html_count_regex,https://www.energy.gov/search?page=0&f%5B0%5D=bundle_alias%3APage,,,191,error:no_count_keyword
+gyeongnam-go-kr-board,한국완료,generic,,html_count_regex,https://www.gyeongnam.go.kr/board/list.gyeong?boardId=BBS_0000060&menuCd=DOM_000000135002001000&contentsSid=6959&cpath=,,,190,error:no_count_keyword
+regjeringen-no-en,Norway Ministries,generic,,html_count_regex,https://www.regjeringen.no/en/find-document/id2000006/?documenttype=dokumenter&ownerid=463&term=,,,187,error:http_403
+nationalacademies-org-publications,French Research Institutes,generic,28,html_count_regex,https://www.nationalacademies.org/publications/all?unit[]=CSTB,,,184,ok_html_unverified
+nps-or-kr-pnsgdnc,한국완료,generic,,html_count_regex,https://www.nps.or.kr/pnsgdnc/nscvrgdata/getOHAE0002M0List.do?menuId=MN24000898,,,182,error:no_count_keyword
+gcsp-ch-publications,Switzerland Research Centers,generic,99,html_count_regex,https://www.gcsp.ch/publications?type%5B230%5D=230&type%5B879%5D=879&type%5B600%5D=600&type%5B675%5D=675,,,176,ok_html_unverified
+cer-rec-gc-ca-en,Canadian Research Centers,generic,20,html_count_regex,https://www.cer-rec.gc.ca/en/about/publications-reports/index.html,,,175,ok_html_unverified
+nec-go-kr-site,한국완료,generic,,html_count_regex,https://www.nec.go.kr/site/nec/ex/bbs/List.do?cbIdx=1090,,,175,error:no_count_keyword
+csem-ch-en,Switzerland Research Centers,generic,169,html_count_regex,https://www.csem.ch/en/press/,,,168,ok_html_unverified
+krihs-re-kr-krihslibraryreport,한국완료,generic,,html_count_regex,https://www.krihs.re.kr/krihsLibraryReport/briefList.es?mid=a10103060000&pub_kind=BR_2,,,168,error:no_count_keyword
+justice-gouv-fr-documentation,France Ministries,generic,178,html_count_regex,https://www.justice.gouv.fr/documentation/ressources?categories%5B%5D=399&categories%5B%5D=431&items_per_page=100,,,167,ok_html_unverified
+naturalengland-defra-opendata-arcgis-com-search,영국완료,ckan,22,html_count_regex,https://naturalengland-defra.opendata.arcgis.com/search?collection=dataset,,,167,ok_html_unverified
+sm-ee-otsing,Estonia Ministries,generic,,html_count_regex,https://www.sm.ee/otsing?filters%5Btype%5D=Artikkel&sort=created&page=1,,,158,error:no_count_keyword
+amf-france-org-fr,French Public Institutions,generic,3,html_count_regex,https://www.amf-france.org/fr/actualites-publications/communiques/communiques-de-lamf,,,157,ok_html_unverified
+issibern-ch-outreach,Switzerland Research Centers,generic,3,html_count_regex,https://www.issibern.ch/outreach/news/,,,157,ok_html_unverified
+deltares-nl-en,Dutch Research Centers,generic,181,html_count_regex,https://www.deltares.nl/en/expertise/publications?languages=Dutch&languages=English&materials=ARTICLE,,,155,ok_html_unverified
+gov-wales-publications,영국완료,generic,16601,html_count_regex,https://www.gov.wales/publications,,,155,ok_html_unverified
+ens-lyon-fr-lecole,French Public Universities,generic,2,html_count_regex,https://www.ens-lyon.fr/lecole/medias-et-presse/communiques-de-presse,,,154,ok_html_unverified
+kicj-re-kr-boardes,한국완료,generic,,html_count_regex,https://www.kicj.re.kr/board.es?mid=a10101000000&bid=0001,,,154,error:http_520
+plan-be-nl,벨기에완료,generic,2,html_count_regex,https://www.plan.be/nl/publicaties,,,152,ok_html_unverified
+ifpenergiesnouvelles-fr-tags,French Research Institutes,generic,,html_count_regex,https://www.ifpenergiesnouvelles.fr/tags/communiques-presse,,,150,error:no_count_keyword
+nypi-re-kr-board,한국완료,generic,,html_count_regex,https://www.nypi.re.kr/board?menuKey=uCjzEQTnJu&bbsId=BOARD00019,,,150,error:no_count_keyword
+bmj-gv-at-ministerium,오스트리아완료,generic,,html_count_regex,https://www.bmj.gv.at/ministerium/aktuelle-meldungen.html,,,149,error:no_count_keyword
+hud-govt-nz-documents,뉴질랜드완료,generic,,html_count_regex,https://www.hud.govt.nz/documents?q=&sort=&_documenttypes%5B%5D=29,,,148,error:Timeout
+onera-fr-fr,French Research Institutes,generic,,html_count_regex,https://www.onera.fr/fr/presse?page=1,,,145,error:no_count_keyword
+sante-gouv-fr-ministere,France Ministries,generic,,html_count_regex,https://sante.gouv.fr/ministere/documentation-et-publications-officielles/rapports/,,,145,error:no_count_keyword
+ineris-fr-fr,French Research Institutes,generic,20,html_count_regex,https://www.ineris.fr/fr/base-documentaire?document%5B0%5D=document_type%3A8,,,141,ok_html_unverified
+sintef-no-en,Norway Research Centers,generic,,html_count_regex,https://www.sintef.no/en/search/?querytext=*&flow=reports,,,141,error:no_count_keyword
+economie-fgov-be-nl,벨기에완료,generic,,html_count_regex,https://economie.fgov.be/nl/publicaties,,,138,error:no_count_keyword
+etis-ee-portal,Estonia Research Centers,generic,,html_count_regex,https://www.etis.ee/Portal/Publications/Index/?,,,138,error:no_count_keyword
+health-ni-gov-uk-news,영국완료,generic,2970,html_count_regex,https://www.health-ni.gov.uk/news,,,137,ok_html_unverified
+ivo-se-sok,스웨덴 완료,generic,,html_count_regex,https://www.ivo.se/sok/?q=%20&s=0&f=1,,,134,error:no_count_keyword
+mofe-go-kr-id,한국완료,generic,,html_count_regex,https://mofe.go.kr/id/pdo.do?menuNo=3050000,,,133,error:no_count_keyword
+tigta-gov-reports,USA Executive Departments,generic,,html_count_regex,https://www.tigta.gov/reports/list,,,133,error:no_count_keyword
+data-gov-be-nl,벨기에완료,ckan,,ckan,https://data.gov.be/api/3/action/package_search,,,132,error:http_200|generic:no_count_keyword
+pmc-gov-au-resources,호주완료,generic,,html_count_regex,https://www.pmc.gov.au/resources?f%5B0%5D=db_r_publication_category%3A334,,,129,error:no_count_keyword
+repository-lboro-ac-uk,영국완료,dspace,,dspace_rest7,https://repository.lboro.ac.uk/server/api/discover/search/objects,,,128,error:no_dspace7|http_202|generic:http_202
+socialstyrelsen-se-en,스웨덴 완료,generic,2,html_count_regex,https://www.socialstyrelsen.se/en/publications/,,,127,ok_html_unverified
+idiap-ch-en,Switzerland Research Centers,generic,,html_count_regex,https://www.idiap.ch/en/scientific-research/data#b_start=0,,,125,error:no_count_keyword
+niddk-nih-gov-news,American Research Institutes,generic,2,html_count_regex,https://www.niddk.nih.gov/news/archive?nt=nr,,,124,ok_html_unverified
+agri-ee-ministeerium-uudised,Estonia Ministries,generic,20,html_count_regex,https://www.agri.ee/ministeerium-uudised-kontakt/uuringud,,,122,ok_html_unverified
+fi-se-en,스웨덴 완료,generic,,html_count_regex,https://www.fi.se/en/payments/nyheter-betalningar/,,,122,error:no_count_keyword
+nesc-ie-publications,Irish Research Centers,generic,2,html_count_regex,https://www.nesc.ie/publications/,,,121,ok_html_unverified
+wallonie-be-fr,벨기에완료,generic,1,html_count_regex,https://www.wallonie.be/fr/publications,,,121,ok_html_unverified
+epa-ie-news-releases,Irish Research Centers,generic,,html_count_regex,https://www.epa.ie/news-releases/news-releases-2025/,,,120,error:no_count_keyword
+cnes-fr-communiques,French Research Institutes,generic,127,html_count_regex,https://cnes.fr/communiques?display_parameters%5Bdisplay_type%5D=0,,,119,ok_html_unverified
+hi-no-en,Norway Research Centers,generic,,html_count_regex,https://www.hi.no/en/hi/nettrapporter,,,119,error:no_count_keyword
+didaktorika-gr-eadd,Greece Research Centers,generic,3,html_count_regex,https://www.didaktorika.gr/eadd/simple-search?query=&rpp=100&sort_by=0&order=DESC,,,118,ok_html_unverified
+ncha-gov-cn-col,중국 완료,generic,,html_count_regex,http://www.ncha.gov.cn/col/col2423/index.html,,,117,error:no_count_keyword
+science-astron-nl-science-astron,Dutch Research Centers,generic,,html_count_regex,https://science.astron.nl/science-astron/publications-and-phd-theses/,,,117,error:ConnectionError
+alrc-gov-au-publications,호주완료,generic,2,html_count_regex,https://www.alrc.gov.au/publications/final-report/,,,116,ok_html_unverified
+kommunikasjon-ntb-no-presserom,Norway Research Centers,generic,,html_count_regex,https://kommunikasjon.ntb.no/presserom/17848243/vetinst/r?categories=19,,,116,error:no_count_keyword
+met-no-publikasjoner,Norway Research Centers,generic,,html_count_regex,https://www.met.no/publikasjoner/met-report,,,116,error:no_count_keyword
+nps-or-kr-inforls,한국완료,generic,,html_count_regex,https://www.nps.or.kr/inforls/publdata/getOHAB0019M0List.do?menuId=MN24000873,,,115,error:no_count_keyword
+inria-fr-fr,French Research Institutes,generic,,html_count_regex,https://www.inria.fr/fr/espace-presse,,,114,error:no_count_keyword
+va-gov-vetdata,USA Executive Departments,generic,,html_count_regex,https://www.va.gov/vetdata/report.asp,,,114,error:no_count_keyword
+gsi-ie-en-ie,Irish Research Centers,generic,,html_count_regex,https://www.gsi.ie/en-ie/research/Pages/related-publications.aspx,,,113,error:no_count_keyword
+bundesfinanzministerium-de-web,Germany Ministries,generic,8,html_count_regex,https://www.bundesfinanzministerium.de/Web/EN/Press/Press_releases/press_releases.html,,,112,ok_html_unverified
+nfa-go-kr-nfa,한국완료,generic,,html_count_regex,https://www.nfa.go.kr/nfa/releaseinformation/statisticalinformation/main/,,,112,error:no_count_keyword
+publikationen-bundesregierung-de-pp-de,Germany Ministries,generic,,html_count_regex,https://www.publikationen-bundesregierung.de/pp-de/herausgeber/bundesministerium-fuer-umwelt-klimaschutz-naturschutz-und-nukleare-sicherheit-bmukn-,,,112,error:no_count_keyword
+vbs-admin-ch-en,Switzerland Departments,generic,52,html_count_regex,https://www.vbs.admin.ch/en/newnsb?publisherIDs=5&topicIDs=all&newsCategoryIDs=medienmitteilung&sort=dateDecreasing&display=list&start_date=2024-08-29&end_date=2025-08-29,,,111,ok_html_unverified
+cancer-fr-presse,French Public Institutions,generic,111,html_count_regex,https://www.cancer.fr/presse?press_list%5Bfilters%5D%5Bdate_from%5D=&press_list%5Bfilters%5D%5Bdate_to%5D=&search=,,,110,ok_html_unverified
+publicservice-govt-nz-research-and-data,뉴질랜드완료,generic,,html_count_regex,https://www.publicservice.govt.nz/research-and-data?q=&classification=Datasheet&topics%5B0%5D=193,,,110,error:no_count_keyword
+stats-govt-nz-indicators,뉴질랜드완료,generic,,html_count_regex,https://www.stats.govt.nz/indicators/,,,109,error:no_count_keyword
+college-de-france-fr-en,French Public Universities,generic,17,html_count_regex,https://www.college-de-france.fr/en/news?f%5B0%5D=type%3A4825,,,105,ok_html_unverified
+miit-gov-cn-zc,중국 완료,generic,1,html_count_regex,https://www.miit.gov.cn/zc/wjxzfl/xzgfxwj/index.html,,,104,ok_html_unverified
+ncri-ie-en,Irish Research Centers,generic,,html_count_regex,https://www.ncri.ie/en/search?keywords=&section=3&sort_bef_combine=relevance_DESC,,,104,error:no_count_keyword
+difesa-it-il-ministro,Italy Ministries,generic,,html_count_regex,https://www.difesa.it/il-ministro/note-stampa/elenco/index.html,,,101,error:no_count_keyword
+ifau-se-forskning,스웨덴 완료,generic,,html_count_regex,https://www.ifau.se/Forskning/Publikationer/Dissertation-series/,,,101,error:no_count_keyword
+kefm-dk-aftaler,덴마크완료,generic,20,html_count_regex,https://www.kefm.dk/aftaler,,,101,ok_html_unverified
+fm-dk-udgivelser,덴마크완료,generic,,html_count_regex,https://fm.dk/udgivelser/,,,100,error:no_count_keyword
+kjonnsforskning-no-nb,Norway Research Centers,generic,,html_count_regex,https://kjonnsforskning.no/nb/tidsskrift-for-kjonnsforskning,,,100,error:no_count_keyword
+kostat-go-kr-boardes,한국완료,generic,,html_count_regex,https://www.kostat.go.kr/board.es?mid=a10403010000&bid=1401,,,100,error:no_count_keyword
+catalogue-data-govt-nz-dataset,뉴질랜드완료,ckan,,ckan,https://catalogue.data.govt.nz/api/3/action/package_search,res_format:PDF,,85,error:http_200|generic:no_count_keyword
+datenportal-bmbf-de-portal,독일완료,generic,,html_count_regex,https://www.datenportal.bmbf.de/portal/de/bufi.html,,,75,error:no_count_keyword
+opendata-dk-search,덴마크완료,ckan,75,html_count_regex,https://www.opendata.dk/search?q=res_format:PDF,,,70,ok_html_unverified
+opendata-centralbank-ie-dataset,Irish Research Centers,ckan,,ckan,https://opendata.centralbank.ie/api/3/action/package_search,,,38,error:http_202|generic:http_202
+cancer-fr-catalogue-des-public,French Public Institutions,ckan,63,html_count_regex,https://www.cancer.fr/catalogue-des-publications?publications_catalog%5Bfilters%5D%5Bsearch_text%5D=&publications_catalog%5Bfilters%5D%5Bcollection%5D%5B%5D=76&search=,,,12,ok_html_unverified
+opendatacommunities-org-data,영국완료,ckan,,ckan,https://opendatacommunities.org/api/3/action/package_search,,,3,error:http_403|generic:http_403

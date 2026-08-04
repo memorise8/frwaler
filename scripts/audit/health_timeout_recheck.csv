@@ -1,0 +1,46 @@
+site_id,sheet,collected,counted,server_total,completed,elapsed_s,method,note,health
+bfr-bund-de-en,GER ResearchCenters(Unfinished),23,1,0,True,134.1,count_crawl,probe_limit:3,ok
+astron-nl-about,Dutch Research Centers,57,0,0,True,139.0,count_crawl,probe_limit:3,empty_zero_parse
+academie-sciences-fr-espace-presse,French Public Institutions,68,0,0,False,150.0,count_crawl,external_timeout_kill:lower_bound,timeout
+agri-ee-ministeerium-uudised,Estonia Ministries,122,0,0,False,150.0,count_crawl,external_timeout_kill:lower_bound,timeout
+anses-fr-fr,French Research Institutes,6091,0,0,False,150.0,count_crawl,external_timeout_kill:lower_bound,timeout
+astro-oma-be-en,벨기에완료,22,0,0,False,150.0,count_crawl,external_timeout_kill:lower_bound,timeout
+data-mfe-govt-nz-documents,뉴질랜드완료,21,3,0,True,12.5,count_crawl,probe_limit:3,ok
+data-mfe-govt-nz-tables,뉴질랜드완료,435,3,0,True,18.4,count_crawl,probe_limit:3,ok
+data-nasa-gov-dataset,American Research Institutes,4474,3,355,True,36.7,count_crawl,probe_limit:3,ok
+bmv-de-en,독일완료,11,0,0,True,70.8,count_crawl,probe_limit:3,empty_zero_parse
+bmf-gv-at-ministerium,오스트리아완료,36,3,0,True,83.6,count_crawl,probe_limit:3,ok
+dapa-go-kr-dapa,한국완료,970,0,0,True,94.0,count_crawl,probe_limit:3,empty_zero_parse
+dhs-gov-congressional-approp,USA Executive Departments,638,3,0,True,75.7,count_crawl,probe_limit:3,ok
+dhs-gov-publication,USA Executive Departments,29,3,0,True,49.2,count_crawl,probe_limit:3,ok
+cells-es-en,Spanish Research Centers,11,0,0,True,111.2,count_crawl,probe_limit:3,empty_zero_parse
+english-mee-gov-cn-resources,중국 완료,20,0,0,True,81.8,count_crawl,probe_limit:3,empty_zero_parse
+dhs-gov-news-releases,USA Executive Departments,79,2,0,False,150.0,count_crawl,external_timeout_kill:lower_bound,timeout
+dspace-ut-ee-search,Estonia Research Centers,125,2,14177,False,150.0,count_crawl,external_timeout_kill:lower_bound,timeout
+ehesp-fr-espace-presse,French Public Universities,127,0,0,False,150.0,count_crawl,external_timeout_kill:lower_bound,timeout
+en-ndrc-gov-cn-policies,중국 완료,52,0,0,False,150.0,count_crawl,external_timeout_kill:lower_bound,timeout
+forskningsradet-no-om-forskningsradet,Norway Research Centers,356,0,0,False,150.0,count_crawl,external_timeout_kill:lower_bound,timeout
+garda-ie-en,Irish Research Centers,94,0,0,False,150.0,count_crawl,external_timeout_kill:lower_bound,timeout
+genome-gov-about-nhgri,American Research Institutes,42,1,0,False,150.0,count_crawl,external_timeout_kill:lower_bound,timeout
+hea-ie-resources,Irish Research Centers,221,0,0,True,118.0,count_crawl,probe_limit:3,empty_zero_parse
+genomecanada-ca-about,Canadian Research Centers,50,0,0,False,150.1,count_crawl,external_timeout_kill:lower_bound,timeout
+gov-il-collectors,Israel Ministries,708,10,0,False,150.1,count_crawl,external_timeout_kill:lower_bound,timeout
+ineris-fr-fr,French Research Institutes,141,0,0,False,150.1,count_crawl,external_timeout_kill:lower_bound,timeout
+mnd-go-kr-user,한국완료,304,0,0,True,94.0,count_crawl,probe_limit:3,empty_zero_parse
+insee-fr-fr,French Public Institutions,223,0,0,False,150.1,count_crawl,external_timeout_kill:lower_bound,timeout
+justice-govt-nz-publications,뉴질랜드완료,0,0,0,False,150.1,count_crawl,external_timeout_kill:lower_bound,timeout
+kihasa-re-kr-publish,한국완료,673,0,0,False,150.1,count_crawl,external_timeout_kill:lower_bound,timeout
+met-no-publikasjoner,Norway Research Centers,116,0,0,False,150.0,count_crawl,external_timeout_kill:lower_bound,timeout
+nec-go-kr-site,한국완료,175,0,0,False,150.0,count_crawl,external_timeout_kill:lower_bound,timeout
+nhc-gov-cn-wjw,중국 완료,71,3,0,True,112.6,count_crawl,probe_limit:3,ok
+openscience-si-naprednoiskanjeaspx,Slovenia Research Centers,30,3,0,True,53.4,count_crawl,probe_limit:3,ok
+nps-or-kr-inforls,한국완료,115,0,0,True,103.0,count_crawl,probe_limit:3,empty_zero_parse
+netl-doe-gov-advsearch,American Research Institutes,28,0,0,False,150.1,count_crawl,external_timeout_kill:lower_bound,timeout
+noc-ac-uk-about-us,영국완료,7,0,0,False,150.1,count_crawl,external_timeout_kill:lower_bound,timeout
+nps-or-kr-pnsgdnc,한국완료,182,0,0,False,150.1,count_crawl,external_timeout_kill:lower_bound,timeout
+provenienzforschung-gv-at-empfehlungen-des-bei,오스트리아완료,425,0,0,False,150.1,count_crawl,external_timeout_kill:lower_bound,timeout
+science-astron-nl-science-astron,Dutch Research Centers,117,0,0,False,150.1,count_crawl,external_timeout_kill:lower_bound,timeout
+socialstyrelsen-se-en,스웨덴 완료,127,0,0,False,150.1,count_crawl,external_timeout_kill:lower_bound,timeout
+stat-inst-se-om-sis,스웨덴 완료,69,0,0,False,150.1,count_crawl,external_timeout_kill:lower_bound,timeout
+tigta-gov-reports,USA Executive Departments,133,0,0,False,150.1,count_crawl,external_timeout_kill:lower_bound,timeout
+transformation-gouv-fr-espace-presse,France Ministries,211,0,0,False,150.1,count_crawl,external_timeout_kill:lower_bound,timeout

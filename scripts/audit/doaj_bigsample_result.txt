@@ -1,0 +1,1 @@
+sample=6072 journals=3247 filter_rate=0.8979 pdf_rate=0.1509 pdf_rate_ci=0.0090 est_meta=11997811 est_pdf=2015773

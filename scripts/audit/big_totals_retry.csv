@@ -1,0 +1,10 @@
+site_id,sheet,platform_detected,total,method,api_url,filters_applied,reverify,collected,note
+etera-ee-browse,Estonia Research Centers,etera_geneza,210234,etera_browse_api,"https://www.etera.ee/api/browse (POST {from:0,size:1} -> results.count)",,,100403,ok
+repository-naturalis-nl,Dutch Research Centers,custom_search,17309,naturalis_search_query,https://repository.naturalis.nl/search/query (POST -> query.total),,,9681,ok
+sonar-ch-global,Switzerland Research Centers,invenio,309727,invenio_api,https://sonar.ch/api/documents/?q=&size=1&view=global&document_type=coar:c_6501 -> hits.total.value,document_type=coar:c_6501 (unfiltered_total=322786),,5462,ok
+repository-tno-nl-doclist,Dutch Research Centers,blazor_app,13609,blazor_rendered_count,"https://repository.tno.nl/DocList?find=ID%20%3E%200,refine_MATREP:CONFERENCE%20PAPER&sort=JVP:DESC:MATREP:DESC",refine_MATREP:CONFERENCE PAPER (unfiltered_total=69032),,10508,ok
+par-nsf-gov-search,American Research Institutes,nsf_par,5134,pagination_count,https://par.nsf.gov/search/product-type:Dataset (Page 1 of 514; 10/page; last page=4 -> 513*10+4),product-type:Dataset,,2481,ok
+doras-dcu-ie-view,Irish Research Centers,eprints,4902,eprints_browse_view,https://doras.dcu.ie/view/type/ (Article count; repo_total_all_types=14149),type:article (repo_total=14149),,2229,ok
+ga-gov-au-data-pubs,호주완료,geonetwork_csw,31979,csw_getrecords,https://ecat.ga.gov.au/geonetwork/srv/eng/csw?request=GetRecords&service=CSW&version=2.0.2&resultType=hits&typeNames=csw:Record -> numberOfRecordsMatched,full eCat catalog (crawler URL is 1970s-decade subset),,2243,ok
+repository-library-noaa-gov-view,American Research Institutes,drupal_islandora,,gsearch_blocked,https://repository.library.noaa.gov/gsearch (403 WAF); /oai* 404; no sitemap; /view/<pid> is single item,,,812,error:search_waf_blocked_no_oai
+eprints-imtlucca-it-cgi,Italy Research centers,eprints,,oai_resumption,http://eprints.imtlucca.it/cgi/oai2 (and https) -> DNS resolution failed,,,1461,error:host_down

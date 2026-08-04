@@ -1,0 +1,29 @@
+site_id,sheet,collected,counted,server_total,completed,elapsed_s,method,note,health
+afp-gov-au-search,호주완료,49,1,0,True,8.7,count_crawl,,ok
+alrc-gov-au-publications,호주완료,116,50,0,True,52.4,count_crawl,caps_neutralized:SAFETY_PAGE_CAP=200->big;MAX_WALL_SECONDS=1500->big,ok
+adruk-org-news-publications,영국완료,210,41,0,True,130.5,count_crawl,,ok
+agri-ee-ministeerium-uudised,Estonia Ministries,122,122,0,True,148.1,count_crawl,caps_neutralized:MAX_PAGES=200->big;WALL_BUDGET_SECONDS=1500->big,ok
+andra-fr-publications,French Research Institutes,1,0,0,True,47.8,count_crawl,caps_neutralized:_MAX_PAGES=200->big,empty_zero_parse
+africamuseum-be-en,벨기에완료,52,52,0,True,184.4,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_SECONDS=1500->big,ok
+ansto-gov-au-search,호주완료,30,26,0,True,48.1,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL=1500->big,ok
+arcep-fr-actualites,French Public Institutions,34,0,0,True,3.4,count_crawl,caps_neutralized:_MAX_PAGES=200->big,empty_zero_parse
+arcnl-nl-publications,Dutch Research Centers,11,11,0,True,32.0,count_crawl,caps_neutralized:_PAGE_CAP=200->big,ok
+arn-se-om-arn,스웨덴 완료,80,12,0,True,2.2,count_crawl,,ok
+ameslab-gov-news,American Research Institutes,394,396,0,True,285.6,count_crawl,caps_neutralized:_SAFETY_CAP=200->big;_WALL_BUDGET_SECONDS=1500->big,ok
+artsetmetiers-fr-fr,French Public Universities,222,223,0,True,110.4,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_CLOCK_LIMIT=1500->big,ok
+asiapacific-ca-media,Canadian Research Centers,50,0,0,True,94.0,count_crawl,,empty_zero_parse
+asn-fr-information,French Public Institutions,19,19,0,True,69.3,count_crawl,caps_neutralized:_PAGE_CAP=200->big,ok
+astron-nl-about,Dutch Research Centers,57,57,0,True,25.2,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SECONDS=1500->big,ok
+astro-oma-be-en,벨기에완료,22,0,0,True,187.2,count_crawl,caps_neutralized:MAX_PAGES=200->big;MAX_WALL_SECONDS=1500->big,empty_zero_parse
+auri-re-kr-boardes,한국완료,260,267,0,True,219.7,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SECONDS=1500->big,ok
+agriculture-gouv-fr-recherche-developpem,France Ministries,472,400,0,True,837.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_BUDGET_S=1500->big,ok
+audencia-com-lecole,French Public Universities,246,247,0,True,465.7,count_crawl,caps_neutralized:MAX_PAGES=200->big;WALL_CLOCK_BUDGET_SECONDS=1500->big,ok
+acpr-banque-france-fr-fr,French Public Institutions,225,233,0,True,980.2,count_crawl,caps_neutralized:_MAX_PAGES=200->big,ok
+auswaertiges-amt-de-de,Germany Ministries,224,225,0,True,620.6,count_crawl,caps_neutralized:_MAX_PAGES=200->big,ok
+afd-fr-fr,French Public Institutions,797,588,0,True,1501.9,count_crawl,,ok
+accc-gov-au-search,호주완료,454,495,0,True,1513.3,count_crawl,,ok
+amolf-nl-publications,Dutch Research Centers,512,915,0,True,1470.1,count_crawl,caps_neutralized:_PAGE_CAP=200->big,ok
+baw-de-en,GER ResearchCenters(Unfinished),14,0,0,True,1.4,count_crawl,caps_neutralized:MAX_WALL_SECONDS=1500->big;MAX_PAGES_SAFETY=200->big,empty_zero_parse
+bankofcanada-ca-publications,Canadian Research Centers,27,27,0,True,28.5,count_crawl,,ok
+banque-france-fr-en,French Public Institutions,530,30,0,True,112.0,count_crawl,caps_neutralized:MAX_PAGES=200->big;WALL_CLOCK_BUDGET_SECONDS=1500->big,ok
+ami-swiss-en,Switzerland Research Centers,558,583,0,True,1658.4,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL=1500->big,ok

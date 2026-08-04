@@ -1,0 +1,180 @@
+site_id,sheet,collected,counted,completed,elapsed_s,method,note
+agriculture-gouv-fr-recherche-developpem,France Ministries,472,134,True,266.0,count_crawl,
+agri-ee-ministeerium-uudised,Estonia Ministries,122,8,True,513.9,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+auswaertiges-amt-de-de,Germany Ministries,224,226,True,533.0,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+acpr-banque-france-fr-fr,French Public Institutions,225,233,True,661.5,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+auri-re-kr-publication,한국완료,593,559,True,1107.7,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000;_MAX_WALL=1500->10000000
+bfr-bund-de-en,GER ResearchCenters(Unfinished),23,1,True,268.2,count_crawl,
+babraham-ac-uk-news,영국완료,483,483,True,913.8,count_crawl,
+amolf-nl-publications,Dutch Research Centers,512,811,True,1470.1,count_crawl,
+accc-gov-au-search,호주완료,454,513,True,1502.8,count_crawl,
+afp-gov-au-news-centre,호주완료,432,1336,True,1506.4,count_crawl,caps_neutralized:_SAFETY_CAP=200->10000000
+app-mps-gov-cn-gdnps,중국 완료,501,1933,True,1507.6,count_crawl,
+amf-france-org-fr,French Public Institutions,157,201,True,1509.6,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+bm-dk-soeg,덴마크완료,88,88,True,164.4,count_crawl,
+ami-swiss-en,Switzerland Research Centers,558,583,True,1760.8,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000;_MAX_WALL=1500->10000000
+auswaertiges-amt-de-en,독일완료,526,782,True,1517.9,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+bmz-de-de,Germany Ministries,6,6,True,388.0,count_crawl,
+bmj-gv-at-ministerium,오스트리아완료,149,151,True,402.8,count_crawl,
+bmleh-de-siteglobals,독일완료,200,233,True,467.6,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000;_MAX_WALL=1500->10000000
+bmas-de-de,Germany Ministries,454,330,True,590.8,count_crawl,
+bmftr-bund-de-siteglobals,독일완료,197,179,True,745.9,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+book-ioj-go-kr-library,한국완료,500,998,True,567.0,count_crawl,
+bundeskanzleramt-gv-at-bundeskanzleramt,오스트리아완료,480,447,True,850.0,count_crawl,
+brgm-fr-fr,French Research Institutes,234,241,True,1058.7,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+caissedesdepots-fr-communiques-de-press,French Public Institutions,1201,1000,True,666.1,count_crawl,
+brsn-net-list,중국 완료,500,999,True,1036.2,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+bok-or-kr-portal,한국완료,430,2080,True,1500.1,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+biblio-naturalsciences-be-rbins-publications,벨기에완료,500,750,True,1717.7,count_crawl,
+cer-rec-gc-ca-en,Canadian Research Centers,175,174,True,431.7,count_crawl,
+bundesgesundheitsministerium-de-service,독일완료,229,261,True,1505.8,count_crawl,
+busan-go-kr-nbtnewsbu,한국완료,537,1043,True,1470.7,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+centralesupelec-fr-presse,French Public Institutions,51,51,True,641.7,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+anses-fr-fr,French Research Institutes,6091,0,False,3600.5,count_crawl,external_timeout_kill:lower_bound
+bdap-opendata-rgs-mef-gov-it-catalog,Italy Ministries,360,898,True,3214.2,count_crawl,caps_neutralized:_PAGE_CAP=200->10000000;_MAX_WALL=1500->10000000
+cdhowe-org-research-insights,Canadian Research Centers,344,344,True,953.5,count_crawl,
+carabinieri-it-in-vostro-aiuto,Italy Ministries,301,420,True,1539.4,count_crawl,
+college-de-france-fr-en,French Public Universities,105,105,True,463.5,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+bfe-admin-ch-bfe,Switzerland Departments,1002,1951,False,3600.5,count_crawl,external_timeout_kill:lower_bound
+datacatalogue-adruk-org-browser,영국완료,484,440,True,448.6,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+cds-cern-ch-collection,Switzerland Research Centers,505,1016,True,1534.8,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+data-mfe-govt-nz-tables,뉴질랜드완료,435,434,True,697.9,count_crawl,
+chungnam-go-kr-cnportal,한국완료,425,570,True,1470.8,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+civilprotection-gov-gr-deltia-tupou,Greece Ministries,500,1157,True,1507.1,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+comwel-or-kr-comwel,한국완료,471,1277,True,1160.7,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000;_MAX_WALL=1500->10000000
+defence-govt-nz-publications,뉴질랜드완료,431,433,True,507.0,count_crawl,
+data-statistik-gv-at-web,오스트리아완료,500,518,True,944.7,count_crawl,
+cnic-es-en,Spanish Research Centers,419,570,True,1520.1,count_crawl,
+cpb-nl-en,Dutch Research Centers,371,682,True,1470.4,count_crawl,
+daejeon-go-kr-drh,한국완료,473,669,True,1470.2,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+didaktorika-gr-eadd,Greece Research Centers,118,118,True,472.2,count_crawl,
+drugsandalcohol-ie-cgi,Irish Research Centers,500,649,True,63.7,count_crawl,
+data-mfe-govt-nz-documents,뉴질랜드완료,21,23,True,1501.0,count_crawl,
+defense-gouv-fr-salle-de-presse,France Ministries,1980,2263,True,889.9,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+dhs-gov-congressional-approp,USA Executive Departments,638,1081,True,922.5,count_crawl,
+directives-doe-gov-directives-browse,USA Executive Departments,205,205,True,604.9,count_crawl,
+dpmc-govt-nz-publications,뉴질랜드완료,571,1060,True,724.9,count_crawl,
+earlham-ac-uk-newsroom,영국완료,278,283,True,557.9,count_crawl,
+defensa-gob-es-gabinete,Spain Ministries,421,995,True,1500.7,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+diplomatie-gouv-fr-en,France Ministries,551,694,True,1086.3,count_crawl,caps_neutralized:_SAFETY_CAP=200->10000000
+digital-gob-es-comunicacion,Spain Ministries,416,963,True,1230.6,count_crawl,
+dhs-gov-news-releases,USA Executive Departments,79,36,True,1505.4,count_crawl,
+dol-gov-newsroom,USA Executive Departments,275,292,True,1472.6,count_crawl,caps_neutralized:_SAFETY_PAGE_CAP=200->10000000
+energy-gov-management,USA Executive Departments,388,388,True,402.8,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000;_MAX_WALL=1500->10000000
+dst-dk-da,덴마크완료,408,473,True,1531.2,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+economy-ni-gov-uk-publications,영국완료,583,539,True,1393.8,count_crawl,
+em-dk-aktuelt,덴마크완료,350,350,True,954.0,count_crawl,
+efd-admin-ch-en,Switzerland Departments,500,2528,True,1165.0,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000;_MAX_WALL=1500->10000000
+educacionfpydeportes-gob-es-prensahtml,Spain Ministries,347,507,True,1501.4,count_crawl,
+english-cnipa-gov-cn-col,중국 완료,353,353,True,647.3,count_crawl,
+ens-lyon-fr-lecole,French Public Universities,154,151,True,617.5,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+ejournals-epublishing-ekt-gr-indexphp,Greece Research Centers,474,381,True,1502.3,count_crawl,
+elocus-lib-uoc-gr-search,Greece Research Centers,282,389,True,1501.0,count_crawl,
+ethz-ch-de,Switzerland Research Centers,203,204,True,351.8,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+fmi-ch-research,Switzerland Research Centers,818,0,True,2.5,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+em-lyon-com-en,French Public Universities,348,661,True,1500.3,count_crawl,
+drc-gov-cn-leafaspx,중국 완료,555,2232,True,2677.7,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000;_MAX_SECONDS=1500->10000000
+english-www-gov-cn-archive,중국 완료,506,315,True,1482.6,count_crawl,
+environment-govt-nz-acts-and-regulations,뉴질랜드완료,315,394,True,1501.6,count_crawl,
+environment-govt-nz-publications,뉴질랜드완료,249,563,True,1501.4,count_crawl,
+esri-ie-publications,Irish Research Centers,531,636,True,1471.2,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+fafo-no-en,Norway Research Centers,322,474,True,1543.1,count_crawl,
+ecologie-gouv-fr-presse,France Ministries,4049,2347,False,3600.5,count_crawl,external_timeout_kill:lower_bound
+forest-go-kr-kfsweb,한국완료,931,667,True,1520.9,count_crawl,
+fibl-org-en,Switzerland Research Centers,539,580,True,1675.3,count_crawl,
+gb-go-kr-sub,한국완료,406,407,True,798.0,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+fss-or-kr-fss,한국완료,500,1310,True,1504.2,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+fmn-dk-da,덴마크완료,848,851,True,1934.8,count_crawl,
+gi-re-kr-home,한국완료,452,552,True,985.1,count_crawl,
+genome-gov-about-nhgri,American Research Institutes,42,1,True,1089.0,count_crawl,
+ftc-go-kr-www,한국완료,694,1700,True,1502.6,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+hi-no-en,Norway Research Centers,119,119,True,638.6,count_crawl,
+gichd-org-publications-resourc,Switzerland Research Centers,266,311,True,1495.2,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+gnews-gg-go-kr-briefing,한국완료,500,1052,True,1507.9,count_crawl,
+gnewsonline-it-category,Italy Ministries,343,520,True,1519.3,count_crawl,
+gov-wales-publications,영국완료,155,395,True,1471.2,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+etera-ee-browse,Estonia Research Centers,100403,1567,False,3600.5,count_crawl,external_timeout_kill:lower_bound
+graduateinstitute-ch-library,Switzerland Research Centers,398,213,True,1471.3,count_crawl,
+gri-re-kr-web,한국완료,516,1729,True,1502.4,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+gwangju-go-kr-boardlistdo,한국완료,500,1104,True,1470.2,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+gyeongnam-go-kr-board,한국완료,190,790,True,1500.6,count_crawl,
+etis-ee-portal,Estonia Research Centers,138,576,False,3600.5,count_crawl,external_timeout_kill:lower_bound
+hhs-gov-guidance,USA Executive Departments,267,58,True,1514.3,count_crawl,
+ifau-se-press,스웨덴 완료,215,215,True,420.7,count_crawl,
+hud-govt-nz-documents,뉴질랜드완료,148,47,True,598.2,count_crawl,
+hrbopenresearch-org,Irish Research Centers,437,739,True,878.1,count_crawl,caps_neutralized:_MAX_PAGES=60->10000000
+ifremer-fr-fr,French Research Institutes,286,287,True,739.9,count_crawl,caps_neutralized:MAX_PAGES=200->10000000;MAX_SECONDS=1500->10000000
+home-cern-news,Switzerland Research Centers,809,2200,True,1229.4,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+humanrights-go-kr-base,한국완료,450,519,True,956.7,count_crawl,
+homeaffairs-gov-au-sitesearch,호주완료,1308,3676,True,1515.4,count_crawl,
+info-korail-com-info,한국완료,565,1633,True,1175.4,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+irsn-fr-actualites,French Research Institutes,274,274,True,711.4,count_crawl,
+ii-re-kr-base,한국완료,287,1146,True,1470.5,count_crawl,
+igualdad-gob-es-comunicacion,Spain Ministries,216,286,True,1518.7,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+incheon-go-kr-ic010205,한국완료,1328,660,True,1506.9,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+ineris-fr-fr,French Research Institutes,141,0,True,1505.6,count_crawl,
+info-daegu-go-kr-newshome,한국완료,490,1300,True,1509.2,count_crawl,
+ivo-se-sok,스웨덴 완료,134,139,True,369.3,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+issibern-ch-outreach,Switzerland Research Centers,157,159,True,626.9,count_crawl,caps_neutralized:SAFETY_PAGE_CAP=200->10000000
+insee-fr-fr,French Public Institutions,223,0,True,1590.6,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+irb-usi-ch-publications,Switzerland Research Centers,558,580,True,1531.1,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+juventudeinfancia-gob-es-es,Spain Ministries,306,307,True,751.1,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+jsearch-mwr-gov-cn-irs-c-web,중국 완료,2499,4276,True,1013.7,count_crawl,
+jeju-go-kr-news,한국완료,1087,1158,True,1470.5,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+kepco-co-kr-home,한국완료,400,491,True,427.9,count_crawl,
+jeonnam-go-kr-m7116,한국완료,770,440,True,1508.7,count_crawl,
+justice-gov-news,USA Executive Departments,741,1618,True,1511.3,count_crawl,
+justitsministeriet-dk-pressemeddelelse,덴마크완료,346,549,True,1505.3,count_crawl,
+kdca-go-kr-kdca,한국완료,846,1458,True,1470.3,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+kcg-go-kr-kcg,한국완료,624,857,True,1513.7,count_crawl,
+khs-go-kr-newsbbz,한국완료,1249,0,True,315.1,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+kedi-re-kr-khome,한국완료,519,863,True,1495.4,count_crawl,
+keei-re-kr-boardes,한국완료,452,1040,True,1507.2,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+kice-re-kr-boardcnts,한국완료,500,939,True,879.0,count_crawl,
+kei-re-kr-eliblistes,한국완료,364,573,True,1502.1,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+kihasa-re-kr-news,한국완료,615,943,True,763.0,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+kinu-or-kr-main,한국완료,432,434,True,612.2,count_crawl,
+kinfa-or-kr-notificationpromotio,한국완료,732,766,True,763.5,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+kipf-re-kr-bbs,한국완료,352,353,True,456.8,count_crawl,
+khs-go-kr-cop,한국완료,38,13,True,1226.7,count_crawl,
+ir-arcnl-nl,Dutch Research Centers,452,3961,False,3600.5,count_crawl,external_timeout_kill:lower_bound
+ir-cwi-nl,Dutch Research Centers,592,4041,False,3600.5,count_crawl,external_timeout_kill:lower_bound
+kna-forest-go-kr-kfsweb,한국완료,372,375,True,488.0,count_crawl,
+kipo-go-kr-ko,한국완료,500,602,True,721.3,count_crawl,
+kisdi-re-kr-report,한국완료,501,1019,True,642.3,count_crawl,
+kicj-re-kr-boardes,한국완료,154,260,True,1527.8,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+kihasa-re-kr-publish,한국완료,673,0,True,1470.4,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+krivet-re-kr-kor,한국완료,500,553,True,375.4,count_crawl,
+lavoro-gov-it-stampa-e-media,Italy Ministries,340,20,True,41.7,count_crawl,
+kiep-go-kr-galleryes,한국완료,437,2051,True,2018.4,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000;_MAX_WALL=1500->10000000
+krivet-re-kr,한국완료,1,1232,True,620.3,count_crawl,
+krihs-re-kr-boardes,한국완료,600,1036,True,645.2,count_crawl,
+kli-re-kr-kli,한국완료,500,1628,True,1282.0,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+kisdi-re-kr-bbs,한국완료,502,1178,True,1512.0,count_crawl,
+kwdi-re-kr-plaza,한국완료,819,454,True,800.4,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+klri-re-kr-kor,한국완료,590,384,True,1503.2,count_crawl,
+kwdi-re-kr-publications,한국완료,500,629,True,844.7,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+kmcc-go-kr-userdo,한국완료,666,1920,True,1511.3,count_crawl,
+koti-re-kr-user,한국완료,373,533,True,1503.7,count_crawl,
+lecese-fr-espace-presse,French Public Institutions,500,676,True,687.9,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+llnl-gov-news,American Research Institutes,3537,3997,True,604.0,count_crawl,
+libreria-educacion-gob-es-p,Spain Ministries,330,350,True,942.7,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+masaf-gov-it-flex,Italy Ministries,601,922,True,881.9,count_crawl,caps_neutralized:_PAGE_CAP=200->10000000;_MAX_WALL=1500->10000000
+ministryofjustice-gr,Greece Ministries,261,264,True,642.9,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+mimit-gov-it-it,Italy Ministries,92,93,True,725.0,count_crawl,
+minagric-gr-the-ministry-2,Greece Ministries,267,281,True,971.1,count_crawl,
+mindigital-gr-archives,Greece Ministries,675,1224,True,1143.6,count_crawl,caps_neutralized:PAGE_CAP=200->10000000
+met-no-publikasjoner,Norway Research Centers,116,0,True,1501.1,count_crawl,
+mfds-go-kr-brd,한국완료,461,410,True,1501.7,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+mma-go-kr-board,한국완료,616,683,True,819.0,count_crawl,
+krei-re-kr-krei,한국완료,1450,2097,True,3115.6,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000;_MAX_WALL=1500->10000000
+mintour-gov-gr-deltia-typoy,Greece Ministries,394,745,True,1505.0,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+moe-go-kr-boardcnts,한국완료,1250,1047,True,960.4,count_crawl,
+miteco-gob-es-es,Spain Ministries,379,690,True,1514.9,count_crawl,
+mivau-gob-es-el-ministerio,Spain Ministries,473,738,True,1496.0,count_crawl,
+moe-gov-cn-jyb_xwfb,중국 완료,418,422,True,1010.6,count_crawl,
+mod-mil-gr-category,Greece Ministries,470,1480,True,1470.9,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+msit-go-kr-bbs,한국완료,488,488,True,433.3,count_crawl,
+moef-go-kr-nw,한국완료,683,2000,True,1463.7,count_crawl,
+mof-go-kr-doc,한국완료,624,823,True,1471.6,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+mofa-go-kr-www,한국완료,521,1338,True,1508.3,count_crawl,

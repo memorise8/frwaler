@@ -1,0 +1,357 @@
+﻿시트명,일련번호,기관명,URL주소,상태코드,페이지제목,PDF링크수,문서수힌트,크롤판정
+호주완료,3,호주 법무부,https://www.ag.gov.au/integrity/publications,200,Integrity Publications | Attorney-General&#039;s Department,0,82,"크롤가능(HTML,PDF미검출)"
+호주완료,3,호주 법무부,https://www.ag.gov.au/international-relations/publications,200,International Relations Publications | Attorney-General&#039;s Department,0,69,"크롤가능(HTML,PDF미검출)"
+호주완료,3,호주 법무부,https://www.ag.gov.au/families-and-marriage/publications,200,Families and Marriage Publications | Attorney-General&#039;s Department,0,284,"크롤가능(HTML,PDF미검출)"
+호주완료,3,호주 법무부,https://www.ag.gov.au/rights-and-protections/publications,200,Rights and Protections Publications | Attorney-General&#039;s Department,0,271,"크롤가능(HTML,PDF미검출)"
+호주완료,3,호주 법무부,https://www.ag.gov.au/legal-system/publications,200,Legal System Publications | Attorney-General&#039;s Department,0,208,"크롤가능(HTML,PDF미검출)"
+호주완료,3,호주 법무부,https://www.ag.gov.au/crime/publications,200,Crime Publications | Attorney-General&#039;s Department,0,49,"크롤가능(HTML,PDF미검출)"
+호주완료,3,호주 법무부,https://www.ag.gov.au/national-security/publications,200,National Security Publications | Attorney-General&#039;s Department,0,36,"크롤가능(HTML,PDF미검출)"
+호주완료,3,호주 법무부,https://www.agriculture.gov.au/about/publications/list,200,Publications - DAFF,0,,차단(봇방어)
+호주완료,4,호주 국방부,https://www.defence.gov.au/about/accessing-information/annual-reports,200,Annual Reports | About | Defence,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,4,호주 국방부,https://www.defence.gov.au/about/accessing-information/defence-census,200,Defence census | About | Defence,5,,크롤가능(PDF링크有)
+호주완료,4,호주 국방부,https://www.defence.gov.au/about/accessing-information/defence-force-discipline-reports,200,Defence Force Discipline reports | About | Defence,28,,크롤가능(PDF링크有)
+호주완료,4,호주 국방부,https://www.defence.gov.au/about/accessing-information/export-permit-statistics,200,Export permit statistics | About | Defence,15,,크롤가능(PDF링크有)
+호주완료,5,호주 금융부,https://www.finance.gov.au/publications/annual-report,200,Publications | Department of Finance,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,5,호주 금융부,https://www.finance.gov.au/publications/reports,200,&nbsp;,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,6,호주 외무통상부,https://www.dfat.gov.au/about-us/publications?page=1,200,Publications | Australian Government Department of Foreign Affairs and Trade,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,7,호주 보건장애노화부,https://www.health.gov.au/resources/publications,200,"Publications | Australian Government Department of Health, Disability and Ageing",0,9630,"크롤가능(HTML,PDF미검출)"
+호주완료,8,데이터버스,https://dataverse.ada.edu.au/dataverse/ada?q=&types=dataverses%3Adatasets%3Afiles&sort=dateSort&order=desc&page=1,200,Making sure you&#39;re not a bot!,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,11,호주 통계청,https://dataexplorer.abs.gov.au/?tm=%20&pg=0&fc=Economy&snb=1213&isAvailabilityDisabled=false,200,,0,,차단(봇방어)
+호주완료,12,호주 통신미디어청,https://www.acma.gov.au/media-releases,200,Media releases | ACMA,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,12,호주 통신미디어청,https://www.acma.gov.au/publications,200,Publications | ACMA,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,17,호주 보건복지연구소,https://www.aihw.gov.au/reports-data/downloadable-resources,403,Just a moment...,0,,차단(봇방어)
+호주완료,17,호주 보건복지연구소,https://www.aihw.gov.au/reports-data/latest-reports,403,Just a moment...,0,,차단(봇방어)
+호주완료,17,호주 보건복지연구소,https://www.aihw.gov.au/reports-data/corporate-publications/reports,403,Just a moment...,0,,차단(봇방어)
+호주완료,17,호주 보건복지연구소,https://www.aihw.gov.au/news-media/media-releases,403,Just a moment...,0,,차단(봇방어)
+호주완료,18,호주 국립보건의료연구위원회,https://www.nhmrc.gov.au/about-us/publications,200,Publications | NHMRC,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,18,호주 국립보건의료연구위원회,https://www.nhmrc.gov.au/about-us/resources,200,Resources | NHMRC,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,19,호주원자력과학기술기구,"https://apo.ansto.gov.au/search?spc.page=1&spc.sf=dc.date.accessioned&spc.sd=DESC&f.has_content_in_original_bundle=true,equals",200,,0,,JS렌더의심(정적본문빈약)
+호주완료,22,"호주 산업, 과학, 에너지 및 자원부",https://www.industry.gov.au/search?search=pdf,200,&nbsp;,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,23,호주 법무부,https://www.ag.gov.au/search?query=pdf,200,&nbsp;,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,24,호주 농업 및 자원 경제 과학국,https://www.agriculture.gov.au/search?search_api_fulltext=pdf,200,&nbsp;,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,25,호주 국방부,https://www.defence.gov.au/search?keywords=pdf&cat=all,200,&nbsp;,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,26,호주 금융부,https://www.finance.gov.au/search?search=pdf,200,&nbsp;,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,27,호주 외무통상부,https://www.dfat.gov.au/search?keys=pdf,200,&nbsp;,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,28,호주 보건장애노화부,https://www.health.gov.au/node/44804?query=pdf&search_scope=0,200,"Search | Australian Government Department of Health, Disability and Ageing",0,,"크롤가능(HTML,PDF미검출)"
+호주완료,31,호주 사회복지부,https://www.dss.gov.au/search?search=pdf,200,&nbsp;,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,33,호주 보훈부,https://www.dva.gov.au/search/node?keys=pdf,200,&nbsp;,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,34,호주 통계청,https://search.abs.gov.au/s/search.html?form=simple&collection=abs-search&query=pdf,200,Search results | Australian Bureau of Statistics,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,35,호주 통신미디어청,https://www.acma.gov.au/search?search_api_fulltext=pdf,200,&nbsp;,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,39,호주 보건복지연구소,"https://www.aihw.gov.au/search?%7B%22ContentType%22:%5B%22Releases%22%5D,%22SearchText%22:%22pdf%22%7D",403,Just a moment...,0,,차단(봇방어)
+호주완료,40,호주 국립보건의료연구위원회,https://www.nhmrc.gov.au/search?search=pdf,200,&nbsp;,0,,"크롤가능(HTML,PDF미검출)"
+호주완료,44,호주 해양과학연구원,https://www.aims.gov.au/search?keys=pdf,200,&nbsp;,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,1,뉴질랜드 문화유산부,https://www.mch.govt.nz/publications,403,Just a moment...,0,,차단(봇방어)
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/maori-health,200,Māori health data and statistics | Ministry of Health NZ,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/mental-health,200,Mental health data and statistics | Ministry of Health NZ,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/obesity,200,Obesity data and statistics | Ministry of Health NZ,0,19,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/suicide,403,Just a moment...,0,,차단(봇방어)
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/tobacco,200,Tobacco data and statistics | Ministry of Health NZ,0,17,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/alcohol-use,200,Alcohol use data and statistics | Ministry of Health NZ,0,18,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/asian-health,200,Asian health data and statistics | Ministry of Health NZ,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/cancer,200,Cancer data and statistics | Ministry of Health NZ,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/child-and-youth-health,200,Child and youth health data and statistics | Ministry of Health NZ,0,18,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/disability,200,Disability data and statistics | Ministry of Health NZ,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/drug-use,200,Drug use data and statistics | Ministry of Health NZ,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/environmental-health,200,Environmental health data and statistics | Ministry of Health NZ,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/fetal-and-infant-death,200,Fetal and infant death data and statistics | Ministry of Health NZ,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/hospital-event,200,Hospital event data and statistics | Ministry of Health NZ,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/maternity-and-newborn,200,Maternity and newborn data and statistics | Ministry of Health NZ,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/mortality,200,Mortality data and statistics | Ministry of Health NZ,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/nutrition,200,Nutrition data and statistics | Ministry of Health NZ,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/older-peoples-health,200,Older people’s health data and statistics | Ministry of Health NZ,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/oral-health,200,Oral health data and statistics | Ministry of Health NZ,0,18,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/problem-gambling,200,Gambling harm data and statistics | Ministry of Health NZ,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/statistics-research/statistics-and-data-sets/socioeconomic-deprivation,200,Socioeconomic deprivation data and statistics | Ministry of Health NZ,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://healthnz.figshare.com/,202,,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,10,뉴질랜드 보건부,https://www.health.govt.nz/publications,200,Publications | Ministry of Health NZ,0,819,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=38&Filter_Topic_child=638,405,Human Verification,0,,HTTP405
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=38&Filter_Topic_child=762,405,Human Verification,0,,HTTP405
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=38&Filter_Topic_child=133,405,Human Verification,0,,HTTP405
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=38&Filter_Topic_child=57,405,Human Verification,0,,HTTP405
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=45&Filter_Topic_child=549,405,Human Verification,0,,HTTP405
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=45&Filter_Topic_child=552,405,Human Verification,0,,HTTP405
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=45&Filter_Topic_child=558,405,Human Verification,0,,HTTP405
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=45&Filter_Topic_child=736,405,Human Verification,0,,HTTP405
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=45&Filter_Topic_child=748,405,Human Verification,0,,HTTP405
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=738,405,Human Verification,0,,HTTP405
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=39,405,Human Verification,0,,HTTP405
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=765,405,Human Verification,0,,HTTP405
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=41&Filter_Topic_child=76,405,Human Verification,0,,HTTP405
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=41&Filter_Topic_child=77,405,Human Verification,0,,HTTP405
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=41&Filter_Topic_child=754,405,Human Verification,0,,HTTP405
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=41&Filter_Topic_child=78,405,Human Verification,0,,HTTP405
+뉴질랜드완료,12,뉴질랜드 법무부,https://www.justice.govt.nz/about/publication-finder/?Filter_Topic=41&Filter_Topic_child=79,405,Human Verification,0,,HTTP405
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2025,200,Budget 2025 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2024,200,Budget 2024 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2023,200,Budget 2023 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2022,200,Budget 2022 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2021,200,Budget 2021 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2020,200,Budget 2020 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2019,200,Budget 2019 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2018,200,Budget 2018 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2017,200,Budget 2017 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2016,200,Budget 2016 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2015,200,Budget 2015 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2014,200,Budget 2014 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2013,200,Budget 2013 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2012,200,Budget 2012 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2011,200,Budget 2011 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2010,200,Budget 2010 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2009,200,Budget 2009 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2008,200,Budget 2008 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2007,200,Budget 2007 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2006,200,Budget 2006 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2005,200,Budget 2005 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2004,200,Budget 2004 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2003,200,Budget 2003 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2002,200,Budget 2002 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2001,200,Budget 2001 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-2000,200,Budget 2000 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-1999,200,Budget 1999 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-1998,200,Budget 1998 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/budgets/budget-1997,200,Budget 1997 | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/search?f%5B0%5D=publication_category%3A2697&issued_from=All&issued_to=All&search=&sort_by=issue_date&sort_order=DESC,200,Publication search | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/search?f%5B0%5D=publication_category%3A2698&issued_from=All&issued_to=All&search=&sort_by=issue_date&sort_order=DESC,200,Publication search | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/search?f%5B0%5D=publication_category%3A2701&issued_from=All&issued_to=All&search=&sort_by=issue_date&sort_order=DESC,200,Publication search | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/search?f%5B0%5D=publication_category%3A2709&issued_from=All&issued_to=All&search=&sort_by=issue_date&sort_order=DESC,200,Publication search | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/search?f%5B0%5D=resource_type%3A4415,200,Publication search | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/research-and-commentary/a-z/jel,200,Research papers by JEL classification | The Treasury New Zealand,0,2,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/search?f%5B0%5D=resource_type%3A4476,200,Publication search | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/search?f%5B0%5D=resource_type%3A15591,200,Publication search | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/search?f%5B0%5D=resource_type%3A16111,200,Publication search | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+뉴질랜드완료,18,뉴질랜드 재무부,https://www.treasury.govt.nz/publications/corporate-documents/annual-reports,200,Annual reports | The Treasury New Zealand,0,,"크롤가능(HTML,PDF미검출)"
+오스트리아완료,16,오스트리아 여성과학연구부,https://www.bmfwf.gv.at/ministerium/informationspflicht/veroeffentlichungen-gem-art-20-abs-5-b-vg.html,404,"Seite nicht gefunden 404 - Bundesministerium für Frauen, Wissenschaft und Forsch",0,,HTTP404
+오스트리아완료,17,"오스트리아 연구, 과학, 혁신 및 기술개발 위원회",https://forwit.at/veroeffentlichungen/?type=av,"ERR:Failed to perform, curl: (28) Connection timed out after 150",,0,,죽음/접속불가
+오스트리아완료,17,"오스트리아 연구, 과학, 혁신 및 기술개발 위원회",https://forwit.at/veroeffentlichungen/?type=be,"ERR:Failed to perform, curl: (28) Connection timed out after 150",,0,,죽음/접속불가
+오스트리아완료,18,오스트리아 과학 아카데미,https://www.oeaw.ac.at/cmc/publications/books,403,Just a moment...,0,,차단(봇방어)
+오스트리아완료,18,오스트리아 과학 아카데미,https://www.oeaw.ac.at/cmc/publications/articles-book-chapters,200,Articles &amp; Book Chapters,8,,크롤가능(PDF링크有)
+오스트리아완료,18,오스트리아 과학 아카데미,https://www.oeaw.ac.at/cmc/publications/research-papers,200,Research Papers,27,,크롤가능(PDF링크有)
+핀란드완료,4,핀란드 농림부,https://tietokayttoon.fi/julkaisut/raportit,403,Just a moment...,0,,차단(봇방어)
+핀란드완료,4,핀란드 농림부,https://tietokayttoon.fi/julkaisut/artikkelit,403,Just a moment...,0,,차단(봇방어)
+핀란드완료,5,핀란드 법무부,https://oikeusministerio.fi/vuosiarkisto,403,Just a moment...,0,,차단(봇방어)
+핀란드완료,6,국무부,https://um.fi/vientivalvontauutiset,200,Vientivalvontauutiset - Ulkoministeriö,0,,"크롤가능(HTML,PDF미검출)"
+핀란드완료,7,내무부,https://intermin.fi/ajankohtaista/uutiset,403,Just a moment...,0,,차단(봇방어)
+핀란드완료,7,내무부,https://intermin.fi/kertomukset-ja-selvitykset,403,Just a moment...,0,,차단(봇방어)
+핀란드완료,8,국방부,https://defmin.fi/julkaisut/nordefco-vuosiraportit,403,Just a moment...,0,,차단(봇방어)
+핀란드완료,9,국고,https://vm.fi/julkaisut,403,Just a moment...,0,,차단(봇방어)
+핀란드완료,10,교육문화부,https://okm.fi/vuosiarkisto,403,Just a moment...,0,,차단(봇방어)
+핀란드완료,11,고용경제부,https://tem.fi/uutiset,403,Just a moment...,0,,차단(봇방어)
+핀란드완료,12,사회보건복지부,https://stm.fi/tiedotteet-ja-uutiset,403,Just a moment...,0,,차단(봇방어)
+핀란드완료,13,환경부,https://ym.fi/tiedotteiden-ja-uutisten-vuosiarkisto?p_p_id=fi_yja_web_content_listing_portlet_WebContentListingPortlet_INSTANCE_HrtAwqaNDThV&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&_fi_yja_web_content_listing_portlet_WebContentListingPortlet_INSTANCE_HrtAwqaNDThV_mvcRenderCommandName=%2Fwebcontentisting%2Farticles%2Fview&_fi_yja_web_content_listing_portlet_WebContentListingPortlet_INSTANCE_HrtAwqaNDThV_paramYear=2026&_fi_yja_web_content_listing_portlet_WebContentListingPortlet_INSTANCE_HrtAwqaNDThV_paramPage=1,403,Just a moment...,0,,차단(봇방어)
+덴마크완료,2,덴마크 기업청,https://erhvervsstyrelsen.dk/publikationer,403,Just a moment...,0,,차단(봇방어)
+덴마크완료,7,덴마크 문화부,https://kum.dk/kulturomraader/medier/mediernes-udvikling/publikationer,404,404,0,,HTTP404
+벨기에완료,9,벨기에 핵연구센터,https://researchportal.sckcen.be/en/publications/?type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fcontributiontobookanthology%2Fconference&type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fthesis%2Fmaster&type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fthesis%2Fdoc&type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fthesis%2Fprofbachelor&nofollow=true,403,Just a moment...,0,,차단(봇방어)
+벨기에완료,9,벨기에 핵연구센터,https://researchportal.sckcen.be/en/publications/?type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fbookanthology%2Fblg&type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fbookanthology%2Fer&type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fbookanthology%2Fother&type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fbookanthology%2Fcommissioned&nofollow=true,403,Just a moment...,0,,차단(봇방어)
+벨기에완료,14,벨기에 통계청,https://statbel.fgov.be/nl/nieuws,200,,0,,"크롤가능(HTML,PDF미검출)"
+한국완료,25,산업통상자원부,https://www.motie.go.kr/kor/article/ATCL3f49a5a8c,200,보도·참고자료 &lt; 보도자료 &lt; 알림·뉴스 &lt; 산업통상부,0,10,"크롤가능(HTML,PDF미검출)"
+한국완료,28,환경부,https://www.mcee.go.kr/home/web/index.do?menuId=10525,404,파일을 찾을수없습니다.,0,,HTTP404
+한국완료,40,금융위원회,https://www.fsc.go.kr/no010101,200,보도자료 - 위원회 소식 - 알림마당 - 금융위원회,0,10,"크롤가능(HTML,PDF미검출)"
+한국완료,47,국민건강보험공단,https://www.nhis.or.kr/nhis/together/wbhaec07800m01.do,200,연구자료실 게시판목록 | 국민건강보험,3,5,크롤가능(PDF링크有)
+한국완료,47,국민건강보험공단,https://www.nhis.or.kr/nhis/together/wbhaec06700m01.do,200,일반통계 게시판목록 | 국민건강보험,3,5,크롤가능(PDF링크有)
+한국완료,90,방송통신위원회,https://www.kcc.go.kr/user.do?boardId=1113&page=A05030000&dc=K05030000,200,방송미디어통신위원회 누리집 &gt; 알림마당 &gt; 보도자료 목록,0,5,"크롤가능(HTML,PDF미검출)"
+한국완료,93,대한민국감사원,https://www.bai.go.kr/bai/board/base/list?brdId=BAK_0007,200,감사원,0,,"크롤가능(HTML,PDF미검출)"
+영국완료,14,런던시 공공데이터 데이터스토어,https://data.london.gov.uk/dataset/?format=pdf,410,,0,,HTTP410
+영국완료,16,영국 의회,https://www.parliament.uk/business/publications/commons/house-of-commons-journal/,200,House of Commons Journal - UK Parliament,208,,크롤가능(PDF링크有)
+영국완료,16,영국 의회,https://www.parliament.uk/mps-lords-and-offices/offices/uk-parliamentary-assemblies/ocsepa-uk/oscepa-uk-publications/,200,Publications - UK Parliament,44,,크롤가능(PDF링크有)
+영국완료,16,영국 의회,https://committees.parliament.uk/publications/,200,Find a publication - Committees - UK Parliament,9,,크롤가능(PDF링크有)
+영국완료,16,영국 의회,https://post.parliament.uk/research/all-research/,200,All POST research - POST,0,,"크롤가능(HTML,PDF미검출)"
+영국완료,16,영국 의회,https://lordslibrary.parliament.uk/research/all-research/,200,All research - House of Lords Library,0,,"크롤가능(HTML,PDF미검출)"
+독일완료,8,독일 내무부,https://www.bmi.bund.de/SiteGlobals/Forms/suche/EN/expertensuche-formular.html?gts=9398922_list%253DunifiedDate_dt%2Bdesc&documentType_=news,200,BMI - Advanced search,0,,"크롤가능(HTML,PDF미검출)"
+독일완료,10,독일 연방경제기후보호부,https://www.bundeswirtschaftsministerium.de/Navigation/EN/Service/Publications/publications.html,200,Publications | BMWE,10,,크롤가능(PDF링크有)
+독일완료,10,독일 연방경제기후보호부,https://www.bundeswirtschaftsministerium.de/SiteGlobals/BMWI/Forms/Listen/EN/Medienraum/Medienraum_Formular.html,200,Media room archive | BMWE,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/information-material/,200,Information material - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/care-for-older-people/,200,Care for older people - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/childrens-rights/,200,Children&#x2019;s rights - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/civil-defence/,200,Civil defence - Government.se,1,,크롤가능(PDF링크有)
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/civil-society-and-sport/,200,Civil society and sport - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/combating-terrorism,200,Combating terrorism - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/the-constitution-of-sweden-and-personal-privacy/,200,The Constitution of Sweden and personal privacy - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/culture/,200,Culture - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/digital-policy/,200,Digital policy - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/democracy-and-human-rights/,200,Democracy and human rights - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/economic-policy/,200,Economic policy - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/emergency-preparedness/,200,Emergency preparedness - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/energy/,200,Energy - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/enterprise-and-industry/,200,Enterprise and industry - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/environment-and-climate/,200,Environment and climate - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/financial-markets/,403,Just a moment...,0,,차단(봇방어)
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/foreign-and-security-policy/,200,Foreign and security policy - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/gender-equality/,200,Gender equality - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/higher-education-research-and-space/,200,"Higher education, research and space - Government.se",0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/innovation/,200,Innovation - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/multilateral-cooperation/,200,International development cooperation - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/international-law/,200,International law - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/judicial-system/,200,Judicial system - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/labour-law-and-work-environment/,200,Labour law and work environment - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/labour-market/,200,Labour market - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/medical-care/,200,Medical care - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/migration-and-asylum/,200,Migration and asylum - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/military-defence/,200,Military defence - Government.se,1,,크롤가능(PDF링크有)
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/nordic-affairs/,200,Nordic affairs - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/public-health/,200,Public health - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/rural-affairs-agriculture-and-food-production/,200,"Rural affairs, agriculture and food production - Government.se",0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/social-services/,200,Social services - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/state-owned-enterprises/,200,State-owned enterprises - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/trade-and-investment-promotion/,200,Trade and investment promotion - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/government-policy/transport-and-infrastructure/,200,Transport and infrastructure - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/legal-documents/,200,Legal documents - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/reports/,200,Reports - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/international-development-cooperation-strategies/,200,International development cooperation strategies - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,1,GOS(Government Offices of Sweden),https://www.government.se/press-releases/,200,Press releases - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,2,PMO(Prime Minister's Office (국무총리실)),https://www.government.se/government-of-sweden/prime-ministers-office/,200,Prime Minister&#x27;s Office - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,3,"MoCE(Ministry of Climate and Enterprise
+(기후 및 기업부))",https://www.government.se/government-of-sweden/ministry-of-climate-and-enterprise/,200,Ministry of Climate and Enterprise - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,4,MoC(Ministry of Culture (문화부)),https://www.government.se/government-of-sweden/ministry-of-culture/,200,Ministry of Culture - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,5,MoD(Ministry of Defence (국방부)),https://www.government.se/government-of-sweden/ministry-of-defence/,200,Ministry of Defence - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,6,"MoER(Ministry of Education and Research
+(교육 및 연구부))",https://www.government.se/government-of-sweden/ministry-of-education-and-research/,200,Ministry of Education and Research - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,7,MoE(Ministry of Employment (고용부)),https://www.government.se/government-of-sweden/ministry-of-employment/,200,Ministry of Employment - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,8,MoF(Ministry of Finance (재무부)),https://www.government.se/government-of-sweden/ministry-of-finance/,200,Ministry of Finance - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,9,MFA(Ministry for Foreign Affairs (외교부)),https://www.government.se/government-of-sweden/ministry-for-foreign-affairs/,200,Ministry for Foreign Affairs - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,10,"MoHSA(Ministry of Health and Social Affairs
+(보건 및 사회복지부))",https://www.government.se/government-of-sweden/ministry-of-health-and-social-affairs/,200,Ministry of Health and Social Affairs - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,11,MoJ(Ministry of Justice (법무부)),https://www.government.se/government-of-sweden/ministry-of-justice/,200,Ministry of Justice - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+스웨덴 완료,12,"MoRAI(Ministry of Rural Affairs and Infrastructure
+(농촌 및 인프라부))",https://www.government.se/government-of-sweden/ministry-of-rural-affairs-and-infrastructure/,200,Ministry of Rural Affairs and Infrastructure - Government.se,0,,"크롤가능(HTML,PDF미검출)"
+중국 완료,24,공안부(Ministry of Public Security of the People's Republic of China),https://www.mps.gov.cn/n2254314/n9036792/index.html,521,,0,,HTTP521
+USA Executive Departments,1,Agriculture,https://www.usda.gov/about-usda/news/press-releases,200,USDA Press Releases | USDA,0,339,"크롤가능(HTML,PDF미검출)"
+USA Executive Departments,*******,Agriculture,https://www.usda.gov/about-usda/policies-and-links/open-government-usda,200,Open Government at USDA | USDA,17,,크롤가능(PDF링크有)
+USA Executive Departments,*******,Agriculture,https://www.commerce.gov/about/budget-and-performance/past-budgets-performance-reports,403,Just a moment...,0,,차단(봇방어)
+USA Executive Departments,전화요망,Agriculture,https://data.commerce.gov/,403,Just a moment...,0,,차단(봇방어)
+USA Executive Departments,전화요망,Agriculture,https://www.commerce.gov/data-and-reports/reports,403,Just a moment...,0,,차단(봇방어)
+USA Executive Departments,전화요망,Agriculture,https://www.commerce.gov/opog/open-government/open-government-plans,403,Just a moment...,0,,차단(봇방어)
+USA Executive Departments,전화요망,Agriculture,https://www.commerce.gov/opog/open-government/open-government-authorities-laws-policies-and-guidance,403,Just a moment...,0,,차단(봇방어)
+USA Executive Departments,5,Energy,https://www.eia.gov/reports/,200,All Reports & Publications - U.S. Energy Information Administration (EIA),0,,"크롤가능(HTML,PDF미검출)"
+USA Executive Departments,8,Housing and Urban Development,Website not accessible,"ERR:Failed to perform, curl: (3) URL rejected: Bad hostname. See",,0,,죽음/접속불가
+USA Executive Departments,15,Veterans Affairs,https://news.va.gov/va-press-room/?redirect=1,200,VA Press Room - VA News,0,,차단(봇방어)
+American Research Institutes,3,Argonne National Laboratory (ANL),https://www.anl.gov/news?article-type=3946&science-term=All&business-topic=All,403,Just a moment...,0,,차단(봇방어)
+American Research Institutes,3,Argonne National Laboratory (ANL),https://www.anl.gov/argonne-scientific-publications,403,Just a moment...,0,,차단(봇방어)
+American Research Institutes,12,Idaho National Laboratory,https://inl.gov/factsheets/,403,Just a moment...,0,,차단(봇방어)
+American Research Institutes,12,Idaho National Laboratory,https://inl.gov/news-archives/?_post_tag=news-release,403,Just a moment...,0,,차단(봇방어)
+American Research Institutes,16,Thomas Jefferson National Accelerator Facility (Jefferson Lab),https://misportal.jlab.org/sti/publications/search?utf8=%E2%9C%93&search%5Bpub_year%5D=&search%5Btitle%5D=&search%5Babstract%5D=&search%5Bauthor_name%5D=&search%5Bdocument_number%5D=&search%5Bprimary_institution%5D=&search%5Bpub_type%5D=Journal+Article&search%5Bmeeting_type%5D=&search%5Bdoe_funding%5D=&search%5Bmeeting_id%5D=&search%5Bjournal_id%5D=&search%5Bdivision%5D=&search%5Bdepartment%5D=&search%5Bgrp%5D=&search%5Bcategory_id%5D=&search%5Bpaperid%5D=&search%5Bproposal_num%5D=&search%5Bsubmit_date_after%5D=&search%5Bsubmit_date_before%5D=&search%5Bpubl_author_NAME%5D=&search%5Bpubl_author_ID%5D=&commit=Search,"ERR:Failed to perform, curl: (28) Operation timed out after 1500",,0,,죽음/접속불가
+American Research Institutes,17,Environmental Molecular Sciences Laboratory,https://sc-data.emsl.pnnl.gov/,200,EMSL Data Portal,0,,"크롤가능(HTML,PDF미검출)"
+American Research Institutes,28,National Institute on Aging (NIA),https://order.nia.nih.gov/view-all-publications,200,All Publications | Publication Ordering System and Contact Report System,0,,"크롤가능(HTML,PDF미검출)"
+American Research Institutes,28,National Institute on Aging (NIA),https://dpcpsi.nih.gov/oepr/performance_gpra_archive,403,Just a moment...,0,,차단(봇방어)
+American Research Institutes,43,National Library of Medicine (NLM),https://collections.nlm.nih.gov/?f%5Bdrep2.isMemberOfCollection%5D%5B%5D=DREPNIHAR,202,,0,,"크롤가능(HTML,PDF미검출)"
+American Research Institutes,43,National Library of Medicine (NLM),https://collections.nlm.nih.gov/?f%5Bdrep2.isMemberOfCollection%5D%5B%5D=DREPNLMP,202,,0,,"크롤가능(HTML,PDF미검출)"
+American Research Institutes,43,National Library of Medicine (NLM),https://collections.nlm.nih.gov/?f%5Bdrep2.isMemberOfCollection%5D%5B%5D=DREPHSR,202,,0,,"크롤가능(HTML,PDF미검출)"
+American Research Institutes,43,National Library of Medicine (NLM),https://collections.nlm.nih.gov/?f%5Bdrep2.isMemberOfCollection%5D%5B%5D=DREPWWI,202,,0,,"크롤가능(HTML,PDF미검출)"
+Canadian Research Centers,2,Canadian Institutes of Health Research (CIHR),https://nrc-digital-repository.canada.ca/eng/search/?q=*&m=1&fc=%2Bgn%3Atr%7Ccpr,200,Search for “*” - NRC Digital Repository - Canada.ca,0,,"크롤가능(HTML,PDF미검출)"
+Canadian Research Centers,9,Canadian Agency for Drugs and Technologies in Health,https://www.cda-amc.ca/find-reports#tab-1911,403,Just a moment...,0,,차단(봇방어)
+Canadian Research Centers,9,Canadian Agency for Drugs and Technologies in Health,https://www.cda-amc.ca/news-and-events/news,403,Just a moment...,0,,차단(봇방어)
+Canadian Research Centers,10,Standards Council of Canada,https://scc-ccn.ca/resources/publications,200,Publications | Standards Council of Canada,25,22,크롤가능(PDF링크有)
+Canadian Research Centers,10,Standards Council of Canada,https://scc-ccn.ca/resources/case-studies,200,Case studies | Standards Council of Canada,0,22,"크롤가능(HTML,PDF미검출)"
+Canadian Research Centers,10,Standards Council of Canada,https://scc-ccn.ca/resources/news,200,News | Standards Council of Canada,0,22,"크롤가능(HTML,PDF미검출)"
+Canadian Research Centers,14,Fraser Institute,https://www.fraserinstitute.org/quarterly,403,Just a moment...,0,,차단(봇방어)
+Canadian Research Centers,14,Fraser Institute,https://www.fraserinstitute.org/search?f%5B0%5D=type_of_content%3Aresearch,403,Just a moment...,0,,차단(봇방어)
+Canadian Research Centers,14,Fraser Institute,https://www.compareschoolrankings.org/,200,Fraser Institute - School Ranking,0,,"크롤가능(HTML,PDF미검출)"
+France Ministries,1,Ministry of Interior(https://www.interieur.gouv.fr/),https://www.interieur.gouv.fr/documentation?search=&sort_by=newest&field_publication_date_picker=date_options_picker&field_publication_date%5Bmin%5D=&field_publication_date%5Bmax%5D=&field_document_category%5B421%5D=421,403,Just a moment...,0,,차단(봇방어)
+France Ministries,7,"Ministry of National Education, Higher Education and Research",https://www.education.gouv.fr/recherche?filters%5B0%5D=types%3A115068,403,Just a moment...,0,,차단(봇방어)
+France Ministries,7,"Ministry of National Education, Higher Education and Research",https://www.education.gouv.fr/recherche?filters%5B0%5D=types%3A115056,403,Just a moment...,0,,차단(봇방어)
+France Ministries,7,"Ministry of National Education, Higher Education and Research",https://www.education.gouv.fr/recherche?filters%5B0%5D=types%3A115065,403,Just a moment...,0,,차단(봇방어)
+French Research Institutes,16,"Agency for Ecological Transition (ADEME)
+(French: Agence de l’environnement et de la maîtrise de l’énergie)",https://data.ademe.fr/,200,Portail open data de l&#x27;ADEME,0,,"크롤가능(HTML,PDF미검출)"
+French Public Universities,13,"School for Advanced Studies in the Social Sciences (EHESS)
+(French: École des hautes études en sciences sociales)",https://www.ehess.fr/fr/liste/actualite?field_types_actualites_tid=4095&field_annee_value=All,"ERR:Failed to perform, curl: (28) Connection timed out after 150",,0,,죽음/접속불가
+Germany Ministries,2,Ministry of Interior,https://www.bmi.bund.de/SiteGlobals/Forms/suche/EN/expertensuche-formular.html?documentType_=pbjournal&timerange=all#facets-9384678,200,BMI - Advanced search,0,,"크롤가능(HTML,PDF미검출)"
+Germany Ministries,2,Ministry of Interior,https://www.bmi.bund.de/SiteGlobals/Forms/suche/publikationssuche-formular.html,200,BMI - Publikationssuche,20,,크롤가능(PDF링크有)
+Germany Ministries,5,Economic Affairs and Energy,https://www.bundeswirtschaftsministerium.de/SiteGlobals/BMWI/Forms/Listen/EN/Medienraum/Medienraum_Formular.html?resourceId=3f9ec156-6040-4c67-8115-d64e2e064e8d&input_=1a45c19b-36c5-4f0d-a2dc-ed2f7e0b27c8&pageLocale=en&templateQueryStringListen=&to=&from=&documentType_=PressRelease&documentType_.GROUP=1&cl2Categories_LeadKeyword=&cl2Categories_LeadKeyword.GROUP=1&selectSort=&selectSort.GROUP=1&selectTimePeriod=&selectTimePeriod.GROUP=1#form-3f9ec156-6040-4c67-8115-d64e2e064e8d,200,Media room archive | BMWE,0,,"크롤가능(HTML,PDF미검출)"
+Germany Ministries,5,Economic Affairs and Energy,https://www.bundeswirtschaftsministerium.de/Navigation/EN/Service/Publications/publications.html,200,Publications | BMWE,10,,크롤가능(PDF링크有)
+Spain Ministries,3,Interior,https://www.interior.gob.es/opencms/es/prensa/,403,Just a moment...,0,,차단(봇방어)
+Spain Ministries,6,Industry and Tourism,https://www.mintur.gob.es/en-us/gabineteprensa/notasprensa/Paginas/listadoNotasPrensa.aspx,"ERR:Failed to perform, curl: (28) Operation timed out after 1500",,0,,죽음/접속불가
+Irish Research Centers,5,Central Statistics Office,https://data.cso.ie/,200,,0,,"크롤가능(HTML,PDF미검출)"
+Irish Research Centers,11,FutureNeuro - Centre for Neurological Disease,https://repository.rcsi.com/,"ERR:Failed to perform, curl: (60) SSL certificate problem: unabl",,0,,죽음/접속불가
+Irish Research Centers,12,Insight - Centre for Data Analytics,"https://researchrepository.ucd.ie/search?spc.page=1&configuration=site&f.itemtype=Journal%20Article,equals",405,Human Verification,0,,HTTP405
+Irish Research Centers,12,Insight - Centre for Data Analytics,"https://researchrepository.ucd.ie/search?spc.page=1&configuration=site&f.itemtype=Master%20Thesis,equals",405,Human Verification,0,,HTTP405
+Irish Research Centers,12,Insight - Centre for Data Analytics,"https://researchrepository.ucd.ie/search?spc.page=1&configuration=site&f.itemtype=Doctoral%20Thesis,equals",405,Human Verification,0,,HTTP405
+Irish Research Centers,12,Insight - Centre for Data Analytics,"https://researchrepository.ucd.ie/search?spc.page=1&configuration=site&f.itemtype=Technical%20Report,equals",405,Human Verification,0,,HTTP405
+Irish Research Centers,12,Insight - Centre for Data Analytics,"https://researchrepository.ucd.ie/search?spc.page=1&configuration=site&f.itemtype=Conference%20Publication,equals",405,Human Verification,0,,HTTP405
+Irish Research Centers,18,Institute of Public Health in Ireland (IPH),https://www.publichealth.ie/reports,403,Just a moment...,0,,차단(봇방어)
+Irish Research Centers,18,Institute of Public Health in Ireland (IPH),https://www.publichealth.ie/journal-articles,403,Just a moment...,0,,차단(봇방어)
+Irish Research Centers,31,Griffith Open Repository,https://cris.iucc.ac.il/en/publications/?openAccess=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fopenaccesspermission%2Fopen&nofollow=true,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,***,Press releases,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,***,Publications,https://www.gov.il/he/collectors/publications,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,1,Agriculture & Rural Development,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=920e5116-ca8b-4bb5-b54c-6a518d3d94b9,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,1,Agriculture & Rural Development,https://www.gov.il/he/collectors/publications?officeId=920e5116-ca8b-4bb5-b54c-6a518d3d94b9,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,2,Ministry of Communications,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=503be068-3051-4dc0-bc61-65f0b33f0570,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,2,Ministry of Communications,https://www.gov.il/he/collectors/publications?officeId=503be068-3051-4dc0-bc61-65f0b33f0570&Type=4775599a-4bdd-43c6-a60d-0d77a2790020,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,3,Construction & Housing,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=c515b1b2-3163-499e-bdbd-8849147c5ada,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,4,Culture & Sport,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=7d5d01a1-c043-4c87-b8ef-5061999e797c,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,5,Ministry of Defense,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=7566b0f1-c9a4-4af7-ab01-d34ca3a52104,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,6,Diaspora Affairs & Combating Antisemitism,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=1213ca14-4263-4720-b7bf-afa8e8c05444,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,7,Economy & Industry,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=ba3bf87e-6a99-4e24-ae89-2815a450881e,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,7,Economy & Industry,https://www.gov.il/he/collectors/publications?officeId=ba3bf87e-6a99-4e24-ae89-2815a450881e&Type=4775599a-4bdd-43c6-a60d-0d77a2790020,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,8,Ministry of Education,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=3a4dfc8a-ac31-4ab4-8734-35090ae3bb06,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,9,Energy & Infrastructure,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=0caee7eb-1ebb-4c12-9ed8-7dce94badcb2,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,10,Environmental Protection,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=7807091f-2385-4915-b1cb-fd4db6d2c1cc,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,11,Ministry of Intelligence,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=5c7214c6-6571-43b1-9474-a0541e7afd94,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,11,Ministry of Intelligence,https://www.gov.il/he/collectors/publications?officeId=5c7214c6-6571-43b1-9474-a0541e7afd94,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,12,Foreign Affairs,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=6cbf57de-3976-484a-8666-995ca17899ec,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,13,Ministry of Health,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=104cb0f4-d65a-4692-b590-94af928c19c0,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,13,Ministry of Health,https://www.gov.il/he/collectors/publications?officeId=104cb0f4-d65a-4692-b590-94af928c19c0&Type=4775599a-4bdd-43c6-a60d-0d77a2790020,200,,0,,"크롤가능(HTML,PDF미검출)"
+Israel Ministries,14,Immigration & Absorption,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=27db3169-ab0e-490c-af70-6d03133cb1f3,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,14,Immigration & Absorption,https://www.gov.il/he/collectors/publications?officeId=27db3169-ab0e-490c-af70-6d03133cb1f3&Type=4775599a-4bdd-43c6-a60d-0d77a2790020,200,,0,,"크롤가능(HTML,PDF미검출)"
+Israel Ministries,15,Ministry of Interior,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=bbdbfb50-7ef3-4e3b-9718-f40f011283c6,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,15,Ministry of Interior,https://www.gov.il/he/collectors/publications?officeId=bbdbfb50-7ef3-4e3b-9718-f40f011283c6&Type=4775599a-4bdd-43c6-a60d-0d77a2790020,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,16,Ministry of Justice,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=86842de6-987b-42d4-b9c2-cbd7d0619534,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,16,Ministry of Justice,https://www.gov.il/he/collectors/publications?officeId=86842de6-987b-42d4-b9c2-cbd7d0619534&Type=4775599a-4bdd-43c6-a60d-0d77a2790020,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,17,Labor / Welfare & Social Affairs,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=4fa63b79-3d73-4a66-b3f5-ff385dd31cc7,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,17,Labor / Welfare & Social Affairs,https://www.gov.il/he/collectors/publications?officeId=4fa63b79-3d73-4a66-b3f5-ff385dd31cc7&Type=4775599a-4bdd-43c6-a60d-0d77a2790020,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,18,National Security,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=a4558f18-657b-450e-87c3-32d70f6e07b5,200,,0,,"크롤가능(HTML,PDF미검출)"
+Israel Ministries,18,National Security,https://www.gov.il/he/collectors/publications?officeId=a4558f18-657b-450e-87c3-32d70f6e07b5&Type=4775599a-4bdd-43c6-a60d-0d77a2790020,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,19,Religious Services,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=4f415ec8-cd6c-426a-adcc-342917abae72,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,19,Religious Services,https://www.gov.il/he/collectors/publications?officeId=4f415ec8-cd6c-426a-adcc-342917abae72&Type=4775599a-4bdd-43c6-a60d-0d77a2790020,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,20,Ministry of Tourism,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=d6b46ce2-975b-43ee-afbd-404ba29b01e8,200,,0,,"크롤가능(HTML,PDF미검출)"
+Israel Ministries,21,Transport & Road Safety,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=48eaee91-0c97-4ef3-b364-50ae52e3b56f,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,21,Transport & Road Safety,https://www.gov.il/he/collectors/publications?officeId=48eaee91-0c97-4ef3-b364-50ae52e3b56f&Type=4775599a-4bdd-43c6-a60d-0d77a2790020,403,Just a moment...,0,,차단(봇방어)
+Israel Ministries,22,"Innovation, Science & Technology",https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=75d0cbd7-46cf-487b-930c-2e7b12d7f846,200,,0,,"크롤가능(HTML,PDF미검출)"
+Israel Ministries,23,Social Equality,https://www.gov.il/he/collectors/news?Type=cc21a290-f00a-4adb-8d31-575d2be9fef9&officeId=90fba09e-a331-4c19-a6d3-8301993f382e,403,Just a moment...,0,,차단(봇방어)
+Switzerland Departments,8,Central Government,https://www.news.admin.ch/en/newnsb?publisherIDs=all&topicIDs=all&newsCategoryIDs=medienmitteilung&sort=dateDecreasing&display=list&start_date=2024-08-29&end_date=2025-08-29,200,News,0,,차단(봇방어)
+Switzerland Research Centers,2,École Polytechnique Fédérale de Lausanne (EPFL),"https://infoscience.epfl.ch/search?spc.page=1&configuration=researchoutputs&f.entityType=publication,equals&f.datacite_rights=openaccess,equals&f.types=article-coar-types:c_2df8fbb1,authority",405,Human Verification,0,,HTTP405
+Switzerland Research Centers,2,École Polytechnique Fédérale de Lausanne (EPFL),"https://infoscience.epfl.ch/search?spc.page=1&configuration=researchoutputs&f.entityType=publication,equals&f.datacite_rights=openaccess,equals&f.types=conference-coar-types:c_5794,authority",405,Human Verification,0,,HTTP405
+Switzerland Research Centers,2,École Polytechnique Fédérale de Lausanne (EPFL),"https://infoscience.epfl.ch/search?spc.page=1&configuration=researchoutputs&f.entityType=publication,equals&f.datacite_rights=openaccess,equals&f.types=thesis-coar-types:c_db06,authority",405,Human Verification,0,,HTTP405
+Switzerland Research Centers,2,École Polytechnique Fédérale de Lausanne (EPFL),"https://infoscience.epfl.ch/search?spc.page=1&configuration=researchoutputs&f.entityType=publication,equals&f.datacite_rights=openaccess,equals&f.types=conference-coar-types:c_18cp,authority",405,Human Verification,0,,HTTP405
+Switzerland Research Centers,2,École Polytechnique Fédérale de Lausanne (EPFL),"https://infoscience.epfl.ch/search?spc.page=1&configuration=researchoutputs&f.entityType=publication,equals&f.datacite_rights=openaccess,equals&f.types=student-coar-types:c_bdcc,authority",405,Human Verification,0,,HTTP405
+Switzerland Research Centers,2,École Polytechnique Fédérale de Lausanne (EPFL),"https://infoscience.epfl.ch/search?spc.page=1&configuration=researchoutputs&f.entityType=publication,equals&f.datacite_rights=openaccess,equals&f.types=report-coar-types:c_93fc,authority",405,Human Verification,0,,HTTP405
+Switzerland Research Centers,5,Agroscope,https://www.agroscope.admin.ch/agroscope/en/home/news/media-office/press-releases.html,404,Page not found,0,,HTTP404
+Switzerland Research Centers,5,Agroscope,https://www.agroscope.admin.ch/agroscope/en/home/publications/publication-search.html,404,Page not found,0,,HTTP404
+Switzerland Research Centers,5,Agroscope,https://www.agroscope.admin.ch/agroscope/en/home/publications/publication-search.html,404,Page not found,0,,HTTP404
+Switzerland Research Centers,5,Agroscope,https://www.agroscope.admin.ch/agroscope/en/home/publications/publication-search.html,404,Page not found,0,,HTTP404
+Switzerland Research Centers,5,Agroscope,https://www.agroscope.admin.ch/agroscope/en/home/publications/publication-search.html,404,Page not found,0,,HTTP404
+Switzerland Research Centers,5,Agroscope,https://www.agroscope.admin.ch/agroscope/en/home/publications/publication-search.html,404,Page not found,0,,HTTP404
+Switzerland Research Centers,14,Institute of Oncology Research (IOR),https://scholar.google.com/citations?user=Bz4cC04AAAAJ&hl=en,200,‪Institute of Oncology Research (IOR)‬ - ‪Google Scholar‬,0,,"크롤가능(HTML,PDF미검출)"
+Switzerland Research Centers,17,Graduate Institute of International and Development Studies (IHEID),https://repository.graduateinstitute.ch/search?ln=en&p=&f=&rm=&sf=&so=d&rg=10&c=Academic%20Departments&c=Academic%20Reports&c=Book%20Chapters&c=Books&c=Centres%20and%20Programmes&c=Datasets&c=Geographical%20Areas&c=Journal%20Articles&c=Multimedia&c=Thematics&c=Working%20Papers&c=&of=hb&fct__1=Master%20Theses&fct__1=Journal%20Articles,202,,0,,"크롤가능(HTML,PDF미검출)"
+Switzerland Research Centers,31,Swiss Biotech Center (SBC),https://abzena.com/resources/scientific-posters-and-publications/?_gl=1*ua5e1t*_up*MQ..*_gs*MQ..&gclid=Cj0KCQjw8eTFBhCXARIsAIkiuOyKiLzLKftU3cGneg6y4iNvB_WdfIZeQ-9Xcke3_L7DdFtCAmChu4MaAp3yEALw_wcB&gbraid=0AAAAADMhGf46N-EvotAwXd3nAvSP3M8kd,403,Just a moment...,0,,차단(봇방어)
+Italy Ministries,9,Ministry of University and Research,https://www.mur.gov.it/it/stampa/notizie-e-comunicati-stampa,403,Just a moment...,0,,차단(봇방어)
+Italy Research centers,1,Bioversity International Publications – Archive of Bioversity International research outputs,https://alliancebioversityciat.org/publications-data?search_api_fulltext=&field_publication_type_tid=All&field_themes_tid=All&field_regions_tid=All&field_publication_year=All,403,Just a moment...,0,,차단(봇방어)
+Italy Research centers,2,Earth-Prints – INGV open archive for earth sciences,"https://www.earth-prints.org/search?configuration=researchoutputs&page=1&f.status=Published,equals&f.itemtype=article,equals&spc.page=1&f.has_content_in_original_bundle=true,equals",202,,0,,"크롤가능(HTML,PDF미검출)"
+Italy Research centers,2,Earth-Prints – INGV open archive for earth sciences,"https://www.earth-prints.org/search?configuration=researchoutputs&page=1&f.status=Published,equals&f.itemtype=Conference%20paper,equals&spc.page=1&f.has_content_in_original_bundle=true,equals",202,,0,,"크롤가능(HTML,PDF미검출)"
+Italy Research centers,2,Earth-Prints – INGV open archive for earth sciences,"https://www.earth-prints.org/search?configuration=researchoutputs&page=1&f.status=Published,equals&f.itemtype=report,equals&spc.page=1&f.has_content_in_original_bundle=true,equals",202,,0,,"크롤가능(HTML,PDF미검출)"
+Italy Research centers,3,OpenstarTS – University of Trieste Repository,https://www.openstarts.units.it,"ERR:Failed to perform, curl: (28) Connection timed out after 150",,0,,죽음/접속불가
+Italy Research centers,4,OA@INAF – INAF Open Access Repository,https://openaccess.inaf.it/search?configuration=homePageTopItems&view=list&spc.page=1&spc.rpp=100,200,DSpace-CRIS,0,,JS렌더의심(정적본문빈약)
+Italy Research centers,5,IRIS – University of Trento Repository,https://iris.unitn.it/simple-search?query=&sort_by=dc.title_sort&order=asc&rpp=10&filter_field=typeFull&filter_type=equals&filter_value=03+Contributo+in+periodico+(Part+of+a+journal)&filter_value_display=03+Contributo+in+periodico+(Part+of+a+journal)&etal=0&filtername=descriptionFulltext&filterquery=open&filterquerydisplay=open&filtertype=equals,403,Just a moment...,0,,차단(봇방어)
+Italy Research centers,5,IRIS – University of Trento Repository,https://iris.unitn.it/simple-search?query=&sort_by=dc.title_sort&order=asc&rpp=10&filter_field=descriptionFulltext&filter_type=equals&filter_value=open&filter_value_display=open&etal=0&filtername=typeFull&filterquery=08+Tesi+di+dottorato+(Doctoral+Thesis)&filterquerydisplay=08+Tesi+di+dottorato+(Doctoral+Thesis)&filtertype=equals,403,Just a moment...,0,,차단(봇방어)
+Italy Research centers,6,FLORE – University of Florence Repository,https://flore.unifi.it/simple-search?query=&sort_by=dc.date.issued_dt&order=asc&rpp=10&filter_field=typeFull&filter_type=equals&filter_value=1+-+Contributo+su+rivista&filter_value_display=1+-+Contributo+su+rivista&etal=0&filtername=descriptionFulltext&filterquery=open&filterquerydisplay=open&filtertype=equals,403,Just a moment...,0,,차단(봇방어)
+Dutch Research Centers,1,IMT Institutional Repository – Lucca,https://ir.amolf.nl/#facet=type:article|dissertation;facet=open_access:T,200,AMOLF Institutional Repository,0,,"크롤가능(HTML,PDF미검출)"
+Dutch Research Centers,8,Royal Netherlands Institute for Sea Research (NIOZ),https://nioz.on.worldcat.org/search?queryString=%20&clusterResults=true&groupVariantRecords=false&stickyFacetsChecked=true&subscope=zs%3A50976%3A%3Azs%3A50975,200,,0,,JS렌더의심(정적본문빈약)
+Dutch Research Centers,9,Data Archiving and Networked Services (DANS),https://pure.knaw.nl/portal/en/organisations/dans-knaw/publications/?type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fbookanthology%2Freport,403,Just a moment...,0,,차단(봇방어)
+Dutch Research Centers,9,Data Archiving and Networked Services (DANS),https://pure.knaw.nl/portal/en/organisations/dans-knaw/publications/?type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fcontributiontojournal%2Farticle,403,Just a moment...,0,,차단(봇방어)
+Dutch Research Centers,10,Fryske Akademy (FA),https://pure.knaw.nl/portal/en/organisations/fryske-akademy-fa/datasets/,403,Just a moment...,0,,차단(봇방어)
+Dutch Research Centers,11,Hubrecht Institute,https://pure.knaw.nl/portal/en/organisations/hubrecht-institute/publications/?type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fcontributiontojournal%2Farticle,403,Just a moment...,0,,차단(봇방어)
+Dutch Research Centers,12,Huygens Institute,https://pure.knaw.nl/portal/en/organisations/huygens-instituut/publications/?type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fcontributiontojournal%2Farticle,403,Just a moment...,0,,차단(봇방어)
+Dutch Research Centers,12,Huygens Institute,https://pure.knaw.nl/portal/en/organisations/huygens-instituut/datasets/,403,Just a moment...,0,,차단(봇방어)
+Dutch Research Centers,12,Huygens Institute,https://pure.knaw.nl/portal/en/organisations/iish/datasets/,403,Just a moment...,0,,차단(봇방어)
+Dutch Research Centers,12,Huygens Institute,https://pure.knaw.nl/portal/en/organisations/iish/publications/?type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fcontributiontojournal%2Farticle&ordering=type&descending=false,403,Just a moment...,0,,차단(봇방어)
+Dutch Research Centers,12,Huygens Institute,https://pure.knaw.nl/portal/en/organisations/kitlvroyal-netherlands-institute-of-southeast-asian-and-caribbean/publications/?type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fcontributiontojournal%2Farticle,403,Just a moment...,0,,차단(봇방어)
+Dutch Research Centers,14,Netherlands Interdisciplinary Demographic Institute (NIDI),https://pure.knaw.nl/portal/en/organisations/netherlands-interdisciplinary-demographic-institute-nidi/publications/?type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fcontributiontojournal%2Farticle,403,Just a moment...,0,,차단(봇방어)
+Dutch Research Centers,14,Netherlands Interdisciplinary Demographic Institute (NIDI),https://pure.knaw.nl/portal/en/organisations/netherlands-interdisciplinary-demographic-institute-nidi/datasets/,403,Just a moment...,0,,차단(봇방어)
+Dutch Research Centers,16,Netherlands Institute of Ecology (NIOO-KNAW),https://pure.knaw.nl/portal/en/organisations/netherlands-institute-of-ecology-nioo-knaw/publications/?type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fcontributiontojournal%2Farticle,403,Just a moment...,0,,차단(봇방어)
+Dutch Research Centers,20,National Institute for Public Health and the Environment (RIVM),https://www.rivm.nl/en/publications?f%5B0%5D=publications_type%3Areport,403,,0,,차단(봇방어)
+Dutch Research Centers,26,Princess Máxima Center for Pediatric Oncology,https://pure.prinsesmaximacentrum.nl/nl/publications/?type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fcontributiontojournal%2Farticle&type=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fresearchoutputtypes%2Fcontributiontojournal%2Fsystematicreview&nofollow=true&openAccess=%2Fdk%2Fatira%2Fpure%2Fresearchoutput%2Fopenaccesspermission%2Fopen,403,Just a moment...,0,,차단(봇방어)
+Dutch Research Centers,27,Clingendael Institute,https://www.clingendael.org/publications,200,Publications | Clingendael,0,5160,"크롤가능(HTML,PDF미검출)"
+Dutch Research Centers,33,T.M.C. Asser Institute,https://www.asser.nl/research/publications/,404,Page Not Found,0,,HTTP404
+Greece Ministries,9,Ministry of Culture,https://culture.gov.gr/el/pressoffice/SitePages/press.aspx,404,Not Found,0,,HTTP404
+Greece Research Centers,5,Major Institutional Repositories,"https://dias.library.tuc.gr/search?spc.page=1&spc.sf=dc.date.accessioned&spc.sd=DESC&f.has_content_in_original_bundle=true,equals",200,Making sure you&#39;re not a bot!,0,,차단(봇방어)
+Greece Research Centers,5,Major Institutional Repositories,https://dspace.lib.uom.gr/browse?type=title&sort_by=2&order=DESC&rpp=20&etal=0&submit_browse=%EC%A0%95%EB%B3%B4,"ERR:Failed to perform, curl: (28) Connection timed out after 150",,0,,죽음/접속불가
+Chile Ministries,2,"Science, Technology, Knowledge and Innovation",https://observa.minciencia.gob.cl/,200,,0,,JS렌더의심(정적본문빈약)
+Estonia Research Centers,8,KIVIKE (Estonian Literary Museum Repository),https://www.digar.ee​,200,DIGAR,0,,"크롤가능(HTML,PDF미검출)"

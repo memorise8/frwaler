@@ -1,0 +1,116 @@
+site_id,url,verdict,fix_class
+auri-re-kr-publication,https://www.auri.re.kr/publication/list.es,SPA/JS쉘(정적크롤 불가),SKIP_spa
+alrc-gov-au-publications,https://www.alrc.gov.au,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+agriculture-gouv-fr-recherche-developpem,https://agriculture.gouv.fr,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+ansto-gov-au-search,https://www.ansto.gov.au,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+agri-ee-ministeerium-uudised,https://www.agri.ee,WAF차단(헤더/스텔스 우회검증필요),FIX_stealth
+astro-oma-be-en,https://www.astro.oma.be,SPA/JS쉘(정적크롤 불가),SKIP_spa
+babraham-ac-uk-news,https://www.babraham.ac.uk/news/category/news,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+biorbic-com-publications,https://biorbic.com,WAF차단(헤더/스텔스 우회검증필요),FIX_stealth
+bfr-bund-de-en,https://www.bfr.bund.de,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+bmf-gv-at-ministerium,https://www.bmf.gv.at,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+caissedesdepots-fr-communiques-de-press,https://www.caissedesdepots.fr/presse/communiques-de-presse,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+bmz-de-de,https://www.bmz.de,WAF차단(헤더/스텔스 우회검증필요),FIX_stealth
+cae-eco-fr-presse-cae-0,https://cae-eco.fr,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+bmas-de-de,https://www.bmas.de,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+bundeskanzleramt-gv-at-bundeskanzleramt,https://www.bundeskanzleramt.gv.at,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+bmluk-gv-at-service,https://www.bmluk.gv.at,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+cdhowe-org-research-insights,https://cdhowe.org,WAF차단(헤더/스텔스 우회검증필요),FIX_stealth
+bnf-fr-fr,https://www.bnf.fr,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+dhs-gov-publication,https://www.dhs.gov,WAF차단(헤더/스텔스 우회검증필요),FIX_stealth
+bmftr-bund-de-siteglobals,https://www.bmftr.bund.de/SiteGlobals/Forms/Suche/Publikationssuche/Publikationssuche_Formular.html,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+dhs-gov-news-releases,https://www.dhs.gov,WAF차단(헤더/스텔스 우회검증필요),FIX_stealth
+cer-rec-gc-ca-en,https://www.cer-rec.gc.ca,SPA/JS쉘(정적크롤 불가),SKIP_spa
+africamuseum-be-en,https://www.africamuseum.be,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+directives-doe-gov-directives-browse,https://www.directives.doe.gov,도메인이전→www.energy.gov,FIX_domain
+centralesupelec-fr-presse,https://www.centralesupelec.fr/presse/communiques,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+doi-gov-bpp,https://www.doi.gov,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+consult-environment-govt-nz-climate,https://consult.environment.govt.nz,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+casseng-cssn-cn-sky_research,http://casseng.cssn.cn,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+data-mfe-govt-nz-tables,https://data.mfe.govt.nz,"불명(HTTP200, 9947B, 0링크)",PROBE_review
+directives-doe-gov-guidance,https://www.energy.gov/management/directives-library,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+economy-ni-gov-uk-publications,https://www.economy-ni.gov.uk,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+cstb-fr-communiques-de-press,https://www.cstb.fr,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+english-www-gov-cn-archive,https://english.www.gov.cn,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+energy-gov-management,https://www.energy.gov,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+en-nim-ac-cn-taxonomy,https://en.nim.ac.cn/taxonomy/term/170,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+forest-go-kr-kfsweb,https://www.forest.go.kr,SPA/JS쉘(정적크롤 불가),SKIP_spa
+college-de-france-fr-en,https://www.college-de-france.fr,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+em-dk-aktuelt,https://www.em.dk,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+english-cnipa-gov-cn-col,https://english.cnipa.gov.cn,SPA/JS쉘(정적크롤 불가),SKIP_spa
+emsl-pnnl-gov-science,https://www.emsl.pnnl.gov,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+hhs-gov-guidance,https://www.hhs.gov,WAF차단(헤더/스텔스 우회검증필요),FIX_stealth
+fmi-ch-research,https://www.fmi.ch,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+didaktorika-gr-eadd,https://www.didaktorika.gr,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+health-ni-gov-uk-news,https://www.health-ni.gov.uk,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+genome-gov-about-nhgri,https://www.genome.gov,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+ens-lyon-fr-lecole,https://www.ens-lyon.fr,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+hatvp-fr-actualites-et-public,https://www.hatvp.fr,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+fi-se-en,https://www.fi.se,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+iucn-org-about-iucn,https://iucn.org,WAF차단(헤더/스텔스 우회검증필요),FIX_stealth
+environment-govt-nz-what-you-can-do,https://environment.govt.nz,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+graduateinstitute-ch-library,https://www.graduateinstitute.ch,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+ifau-se-press,https://www.ifau.se,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+icp-fr-a-propos-de-licp,https://www.icp.fr,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+incheon-go-kr-ic010205,https://www.incheon.go.kr/IC010205,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+kicce-re-kr-main,https://www.kicce.re.kr,SPA/JS쉘(정적크롤 불가),SKIP_spa
+kihasa-re-kr-publish,https://www.kihasa.re.kr/publish/report/all/list,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+hi-no-en,https://www.hi.no,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+justitsministeriet-dk-forskning,https://www.justitsministeriet.dk,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+ineris-fr-fr,https://www.ineris.fr,WAF차단(헤더/스텔스 우회검증필요),FIX_stealth
+insee-fr-fr,https://www.insee.fr,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+klimaraadet-dk-da,https://klimaraadet.dk,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+krihs-re-kr-krihslibraryreport,https://www.krihs.re.kr,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+klri-re-kr-kor,https://www.klri.re.kr,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+kommunikasjon-ntb-no-presserom,https://kommunikasjon.ntb.no,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+eng-mod-gov-cn-2025xb,http://eng.mod.gov.cn,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+met-no-publikasjoner,https://www.met.no/publikasjoner/met-report,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+irsn-fr-actualites,https://www.irsn.fr,도메인이전→recherche-expertise.asnr.fr,FIX_domain
+lib-cssn-cn-zy,http://lib.cssn.cn,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+ejournals-epublishing-ekt-gr-indexphp,https://ejournals.epublishing.ekt.gr,WAF차단(헤더/스텔스 우회검증필요),FIX_stealth
+msit-go-kr-bbs,https://www.msit.go.kr,SPA/JS쉘(정적크롤 불가),SKIP_spa
+mof-gov-cn-en,http://www.mof.gov.cn,SPA/JS쉘(정적크롤 불가),SKIP_spa
+mfds-go-kr-brd,https://www.mfds.go.kr/brd/m_99/list.do,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+mwr-gov-cn-zwgk,http://www.mwr.gov.cn,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+moe-go-kr-boardcnts,https://www.moe.go.kr,SPA/JS쉘(정적크롤 불가),SKIP_spa
+meri-belspo-be-site,https://meri.belspo.be,SPA/JS쉘(정적크롤 불가),SKIP_spa
+lavoro-gov-it-stampa-e-media,https://www.lavoro.gov.it,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+nbb-be-en,https://www.nbb.be,"불명(HTTP200, 10601B, 6링크)",PROBE_review
+kwdi-re-kr-plaza,https://www.kwdi.re.kr/plaza/bodo.do,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+nhc-gov-cn-wjw,https://www.nhc.gov.cn,SPA/JS쉘(정적크롤 불가),SKIP_spa
+ncats-nih-gov-news-events,https://ncats.nih.gov,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+ncri-ie-en,https://www.ncri.ie,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+nesc-ie-publications,https://www.nesc.ie,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+nim-ac-cn-taxonomy,https://www.nim.ac.cn/taxonomy/term/170,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+nrc-re-kr-boardes,https://www.nrc.re.kr,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+nhlbi-nih-gov-resources,https://www.nhlbi.nih.gov/resources,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+nia-nih-gov-news,https://www.nia.nih.gov,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+nnsa-mee-gov-cn-english,https://nnsa.mee.gov.cn,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+ninds-nih-gov-publications,https://www.ninds.nih.gov,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+ons-gov-uk-search,https://www.ons.gov.uk,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+mohrss-gov-cn-xxgk2020,https://www.mohrss.gov.cn,SPA/JS쉘(정적크롤 불가),SKIP_spa
+nimhd-nih-gov-news-events,https://www.nimhd.nih.gov,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+publicservice-govt-nz-data,https://www.publicservice.govt.nz,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+rcaanc-cirnac-gc-ca-eng,https://www.rcaanc-cirnac.gc.ca,SPA/JS쉘(정적크롤 불가),SKIP_spa
+science-libraries-canada-ca-eng,https://science-libraries.canada.ca,SPA/JS쉘(정적크롤 불가),SKIP_spa
+search-worldcat-org-ko,https://search.worldcat.org,WAF차단(헤더/스텔스 우회검증필요),FIX_stealth
+ptb-de-cms,https://www.ptb.de/cms/presseaktuelles/wissenschaftlich-technische-publikationen/ptb-berichte.html,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+noc-ac-uk-publications,https://www.noc.ac.uk/publications,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+seer-cancer-gov-report_to_nation,https://seer.cancer.gov,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+niddk-nih-gov-news,https://www.niddk.nih.gov,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+sonar-ch-global,https://sonar.ch,"불명(HTTP200, 10306B, 15링크)",PROBE_review
+search-open-canada-ca-opendata,https://search.open.canada.ca,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+sib-swiss-training,https://www.sib.swiss,WAF차단(헤더/스텔스 우회검증필요),FIX_stealth
+skillsdevelopmentscotland-co-uk-publications-statist,https://www.skillsdevelopmentscotland.co.uk,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+openscience-si-naprednoiskanjeaspx,https://openscience.si/NaprednoIskanje.aspx?q=0:20:212,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+ungeneva-org-en,https://www.ungeneva.org/en/news-media/press-release,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+um-dk-om-os,https://um.dk,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+women-govt-nz-library,https://www.women.govt.nz,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+sm-dk-publikationer,https://www.sm.dk,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+vbs-admin-ch-en,https://www.vbs.admin.ch,WAF차단(헤더/스텔스 우회검증필요),FIX_stealth
+vtg-admin-ch-en,https://www.vtg.admin.ch,WAF차단(헤더/스텔스 우회검증필요),FIX_stealth
+www2-mrc-lmb-cam-ac-uk-research,https://www2.mrc-lmb.cam.ac.uk,콘텐츠 있음(셀렉터 노후 의심),FIX_selector
+jeonnam-go-kr-m7116,https://www.jeonnam.go.kr,사망/무응답(HTTP000),SKIP_dead
+khs-go-kr-cop,https://www.khs.go.kr,사망/무응답(HTTP000),SKIP_dead
+khs-go-kr-newsbbz,https://www.khs.go.kr,사망/무응답(HTTP000),SKIP_dead
+reseau-canope-fr-espace-presse,https://www.reseau-canope.fr,SPA/JS쉘(정적크롤 불가),SKIP_spa

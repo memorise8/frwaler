@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>테스트 케이스 | Libertree</title>
+<style>
+  :root{
+    --ink:#202622; --muted:#5f6f74; --canvas:#ffffff; --wash:#f4f2ea;
+    --accent:#365b42; --accent-soft:#e4ebe1; --rule:#d9d6cc;
+    --good:#3f7350; --warn:#9a7524; --bad:#9e463b;
+    --mono:"SF Mono",ui-monospace,Consolas,"D2Coding",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    --space:1.5rem;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--wash);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.72;letter-spacing:-.003em}
+  .page{max-width:860px;margin:0 auto;background:var(--canvas);
+    padding:4rem 3.4rem 3.6rem;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  /* Document header */
+  .doc-eyebrow{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;margin:0 0 .6rem}
+  h1{font-size:1.86rem;line-height:1.28;margin:0 0 1.4rem;font-weight:700;
+    text-wrap:balance;border-bottom:3px solid var(--accent);padding-bottom:1rem}
+  .doc-meta{width:100%;border-collapse:collapse;margin:0 0 2.6rem;font-size:.86rem}
+  .doc-meta th,.doc-meta td{border:1px solid var(--rule);padding:.5rem .8rem;text-align:left}
+  .doc-meta th{background:var(--wash);color:var(--muted);font-weight:600;white-space:nowrap;width:1%}
+  /* Sections */
+  h2{font-size:1.22rem;margin:2.8rem 0 .9rem;padding-top:1.2rem;font-weight:700;
+    border-top:1px solid var(--rule)}
+  h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:.5rem}
+  h3{font-size:1.02rem;margin:1.8rem 0 .6rem;font-weight:700;color:#2c332e}
+  p{margin:.7rem 0}
+  ul,ol{margin:.7rem 0;padding-left:1.3rem}
+  li{margin:.28rem 0}
+  strong{font-weight:700}
+  a{color:var(--accent)}
+  code{font-family:var(--mono);font-size:.86em;background:var(--wash);
+    padding:.1em .38em;border-radius:3px;border:1px solid var(--rule)}
+  pre{font-family:var(--mono);font-size:.82rem;line-height:1.6;background:#1c211d;color:#e8ede6;
+    padding:1rem 1.15rem;border-radius:5px;overflow-x:auto;margin:1rem 0}
+  pre code{background:none;border:none;padding:0;color:inherit}
+  /* Tables */
+  .tbl-wrap{overflow-x:auto;margin:1.1rem 0}
+  table.data{width:100%;border-collapse:collapse;font-size:.86rem}
+  table.data th,table.data td{border:1px solid var(--rule);padding:.5rem .7rem;
+    text-align:left;vertical-align:top}
+  table.data th{background:var(--accent-soft);font-weight:700}
+  table.data tr:nth-child(even) td{background:#faf9f5}
+  table.data td.num{text-align:right;font-variant-numeric:tabular-nums}
+  /* Callouts & status */
+  .note{border-left:4px solid var(--accent);background:var(--accent-soft);
+    padding:.8rem 1.1rem;margin:1.1rem 0;border-radius:0 4px 4px 0;font-size:.9rem}
+  .note.warn{border-color:var(--warn);background:#f6efe0}
+  .note.bad{border-color:var(--bad);background:#f6e6e3}
+  .pill{display:inline-block;font-size:.74rem;font-weight:700;padding:.12em .6em;
+    border-radius:999px;line-height:1.5;white-space:nowrap}
+  .pill.good{background:#e2efe6;color:var(--good)}
+  .pill.warn{background:#f6eed9;color:var(--warn)}
+  .pill.bad{background:#f4e0dc;color:var(--bad)}
+  /* Diagram boxes (for architecture) */
+  .diagram{display:flex;flex-wrap:wrap;gap:.7rem;margin:1.2rem 0;font-size:.82rem}
+  .diagram .box{border:1.5px solid var(--accent);border-radius:5px;padding:.7rem .9rem;
+    background:#fff;min-width:140px}
+  .diagram .box b{display:block;color:var(--accent);margin-bottom:.2rem}
+  .placeholder{border:1.5px dashed var(--rule);border-radius:5px;padding:2rem;
+    text-align:center;color:var(--muted);font-size:.85rem;margin:1.1rem 0;background:#fbfaf6}
+  footer{margin-top:3.4rem;padding-top:1.2rem;border-top:1px solid var(--rule);
+    font-size:.78rem;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+  /* Print */
+  @media print{
+    body{background:#fff;font-size:11pt}
+    .page{max-width:none;margin:0;padding:0;box-shadow:none}
+    h2{break-after:avoid}
+    table.data,pre,.note,.diagram{break-inside:avoid}
+    a{color:var(--ink);text-decoration:none}
+    @page{margin:18mm 16mm}
+  }
+  @media(max-width:640px){.page{padding:2rem 1.2rem}}
+</style>
+</head>
+<body>
+<main class="page">
+  <p class="doc-eyebrow">LIBERTREE · 산출물</p>
+  <h1>테스트 케이스</h1>
+  <table class="doc-meta">
+    <tr><th>문서번호</th><td>TEST-2026-001</td><th>버전</th><td>v1.0</td></tr>
+    <tr><th>프로젝트</th><td>웹페이지 데이터 수집·분석·요약 서비스</td><th>작성일</th><td>2026-08-01</td></tr>
+    <tr><th>작성자</th><td>공급자 (financenow)</td><th>이용자</th><td>libertree.co.kr</td></tr>
+  </table>
+
+  <!-- CONTENT START -->
+
+  <h2><span class="num">1.</span>개요</h2>
+  <p>본 문서는 요구사항분석서(REQ-2026-001)에 정의된 기능 요구사항 <strong>FR-01 ~ FR-10</strong>에 대한 테스트 케이스와 실측(actual) 결과를 정리한 것이다. 각 요구사항별로 2~3개의 시나리오를 도출하여 총 <strong>24개</strong>의 테스트 케이스를 수행하였다.</p>
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>항목</th><th>내용</th></tr>
+    <tr><td>테스트 대상</td><td>웹 게시글 수집·메타정보화 및 AI 요약 시스템 (libertree)</td></tr>
+    <tr><td>대상 요구사항</td><td>FR-01 ~ FR-10 (필수 8건 + 권장 2건)</td></tr>
+    <tr><td>테스트 기준일</td><td>2026-08-01</td></tr>
+    <tr><td>테스트 환경</td><td>로컬 환경 (크롤러 · Django API · PostgreSQL · 로컬 파일 저장소 <code>data/AAAA/BBBB/</code>)</td></tr>
+    <tr><td>테스트 방식</td><td>기능 시나리오 실행 + DB 실측 데이터 검증</td></tr>
+    <tr><td>판정 기준</td><td><span class="pill good">PASS</span> 기대결과 충족 / <span class="pill warn">PARTIAL</span> 일부 충족 / <span class="pill bad">FAIL</span> 미충족</td></tr>
+  </table>
+  </div>
+
+  <h2><span class="num">2.</span>테스트 결과 요약</h2>
+  <p>총 24개 케이스 중 PASS 17건, PARTIAL 4건, FAIL 3건으로 집계되었다. 미충족(FAIL) 및 부분충족(PARTIAL) 항목은 5장에 별도 정리한다.</p>
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>구분</th><th>대상 FR</th><th>케이스 수</th><th>판정</th></tr>
+    <tr><td>FR-01 URL 수집·메타정보 추출</td><td>FR-01</td><td class="num">3</td><td><span class="pill good">PASS</span></td></tr>
+    <tr><td>FR-02 증분 수집 (이어 수집)</td><td>FR-02</td><td class="num">2</td><td><span class="pill bad">FAIL</span></td></tr>
+    <tr><td>FR-03 첨부파일 다운로드</td><td>FR-03</td><td class="num">3</td><td><span class="pill warn">PARTIAL</span></td></tr>
+    <tr><td>FR-04 텍스트 추출 (Docombu)</td><td>FR-04</td><td class="num">2</td><td><span class="pill good">PASS</span></td></tr>
+    <tr><td>FR-05 AI 요약 생성</td><td>FR-05</td><td class="num">2</td><td><span class="pill good">PASS</span></td></tr>
+    <tr><td>FR-06 관리자 화면 — 목록 조회</td><td>FR-06</td><td class="num">2</td><td><span class="pill warn">PARTIAL</span></td></tr>
+    <tr><td>FR-07 관리자 화면 — 검색·필터</td><td>FR-07</td><td class="num">2</td><td><span class="pill warn">PARTIAL</span></td></tr>
+    <tr><td>FR-08 관리자 화면 — 상세 보기</td><td>FR-08</td><td class="num">2</td><td><span class="pill good">PASS</span></td></tr>
+    <tr><td>FR-09 수집 현황 모니터링</td><td>FR-09</td><td class="num">2</td><td><span class="pill good">PASS</span></td></tr>
+    <tr><td>FR-10 재처리 기능</td><td>FR-10</td><td class="num">2</td><td><span class="pill warn">PARTIAL</span></td></tr>
+    <tr><td>데이터 검증 (실측 대사)</td><td>FR-03·04·05</td><td class="num">2</td><td><span class="pill good">PASS</span></td></tr>
+    <tr><td><strong>합계</strong></td><td>—</td><td class="num"><strong>24</strong></td><td>PASS 17 · PARTIAL 4 · FAIL 3</td></tr>
+  </table>
+  </div>
+
+  <h2><span class="num">3.</span>기능별 테스트 케이스</h2>
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr>
+      <th>TC-ID</th><th>대상 FR</th><th>시나리오</th><th>전제조건</th><th>입력</th><th>절차</th><th>기대 결과</th><th>실측 결과</th>
+    </tr>
+
+    <tr>
+      <td>TC-01</td><td>FR-01</td><td>단일 게시글 메타정보 추출</td><td>대상 URL 1건 등록, 크롤러 기동</td><td>게시글 상세 URL</td><td>① 크롤러 실행 ② 상세 페이지 파싱 ③ documents 저장 확인</td><td>제목·게시일·기관·초록 등 메타 필드가 documents에 저장</td><td><span class="pill good">PASS</span></td>
+    </tr>
+    <tr>
+      <td>TC-02</td><td>FR-01</td><td>필수 메타 필드 채움율 검증</td><td>수집 완료된 documents 테이블</td><td>—</td><td>① 주요 필드 NOT NULL 비율 집계 ② 채움율 산출</td><td>title·posted_at·publisher·abstract 필드 채움율 95% 이상</td><td><span class="pill good">PASS</span><br>title 100% / 게시일 98% / 기관 96% / 초록 100%</td>
+    </tr>
+    <tr>
+      <td>TC-03</td><td>FR-01</td><td>다중 저자·기관 구분자 처리</td><td>공저자 게시글</td><td>저자 2인 이상 게시글 URL</td><td>① 수집 ② author·publisher 필드 확인</td><td>여러 값이 세미콜론(;)으로 구분 저장</td><td><span class="pill good">PASS</span></td>
+    </tr>
+
+    <tr>
+      <td>TC-04</td><td>FR-02</td><td>재실행 시 신규 게시글만 수집</td><td>1차 수집 완료, 사이트별 데이터 존재</td><td>동일 사이트 재실행</td><td>① max(post_no) 조회 ② 이후 글번호만 fetch ③ 수집 로그 확인</td><td>기존 글은 스킵, 신규 글만 요청·저장</td><td><span class="pill bad">FAIL</span><br>max(post_no) 스킵 미동작 — 전체 재fetch</td>
+    </tr>
+    <tr>
+      <td>TC-05</td><td>FR-02</td><td>중복 저장 방지</td><td>동일 게시글 재수집 상황</td><td>이미 수집된 게시글</td><td>① 재실행 ② documents 중복 레코드 여부 확인</td><td>글번호/metadata_url 기준 중복 판별로 재수집·중복 저장 없음</td><td><span class="pill warn">PARTIAL</span><br>insert dedup만 동작 (전체 재fetch 후 중복 제거)</td>
+    </tr>
+
+    <tr>
+      <td>TC-06</td><td>FR-03</td><td>PDF 첨부파일 다운로드·저장</td><td>PDF 첨부 게시글</td><td>file_url 보유 게시글</td><td>① 다운로드 ② <code>data/AAAA/BBBB/</code> 저장 ③ 경로 기록 확인</td><td>12자리 번호 파일로 저장, file_path·original_filename 기록</td><td><span class="pill good">PASS</span></td>
+    </tr>
+    <tr>
+      <td>TC-07</td><td>FR-03</td><td>HWP·DOCX·XLSX 멀티 첨부 처리</td><td>다중 포맷 첨부 게시글</td><td>PDF+HWP+DOCX 복수 첨부 URL</td><td>① 수집 ② 첨부별 URL·저장 파일 확인</td><td>포맷별 원본 확장자 유지, 첨부 개수만큼 저장</td><td><span class="pill warn">PARTIAL</span><br>pdf_url 1건만 수집, 확장자 .pdf 고정</td>
+    </tr>
+    <tr>
+      <td>TC-08</td><td>FR-03</td><td>첨부 없는 게시글 NULL 처리</td><td>첨부파일 없는 게시글</td><td>메타만 있는 게시글 URL</td><td>① 수집 ② 파일 컬럼 확인</td><td>file_url·file_path 등 NULL, 메타정보만 저장</td><td><span class="pill good">PASS</span></td>
+    </tr>
+
+    <tr>
+      <td>TC-09</td><td>FR-04</td><td>PDF 텍스트 추출·병치 저장</td><td>다운로드된 PDF 존재</td><td>저장된 PDF 파일</td><td>① Docombu 추출 ② 동일명 .txt 저장 ③ extracted_text_path 기록</td><td>동일 폴더에 .txt 병치, 경로 DB 기록</td><td><span class="pill good">PASS</span></td>
+    </tr>
+    <tr>
+      <td>TC-10</td><td>FR-04</td><td>대량 추출 처리량 검증</td><td>대량 PDF 저장 상태</td><td>—</td><td>① 추출 배치 실행 ② extracted_text_path 채워진 건수 집계</td><td>다운로드된 문서 대상 텍스트 추출 정상 수행</td><td><span class="pill good">PASS</span><br>288,124건 추출·.txt 병치 확인</td>
+    </tr>
+
+    <tr>
+      <td>TC-11</td><td>FR-05</td><td>추출 텍스트 AI 요약 생성</td><td>추출 텍스트 존재</td><td>.txt 텍스트</td><td>① 요약 모델 호출 ② summary 저장 ③ summary_status 갱신</td><td>summary 컬럼 채움, status=done</td><td><span class="pill good">PASS</span></td>
+    </tr>
+    <tr>
+      <td>TC-12</td><td>FR-05</td><td>요약 처리량·모델 확인</td><td>요약 배치 실행 상태</td><td>—</td><td>① 요약 완료 건수 집계 ② 사용 모델 확인</td><td>요약 정상 생성, 사용 모델 기록</td><td><span class="pill good">PASS</span><br>66,248건 요약 / summary_model=gemma4:26b·qwen3:8b</td>
+    </tr>
+
+    <tr>
+      <td>TC-13</td><td>FR-06</td><td>목록 조회·페이지네이션</td><td>관리자 로그인, 데이터 존재</td><td>목록 화면 진입</td><td>① 목록 화면 로드 ② 스크롤/페이지 이동</td><td>레코드 목록이 페이지네이션과 함께 표시</td><td><span class="pill good">PASS</span></td>
+    </tr>
+    <tr>
+      <td>TC-14</td><td>FR-06</td><td>요구 컬럼 전체 단일화면 표시</td><td>목록 화면</td><td>—</td><td>① 표시 항목 확인 (번호·제목·저자·기관·게시일·URL·요약미리보기·첨부링크)</td><td>요구 8개 항목 모두 단일 화면에 표시</td><td><span class="pill warn">PARTIAL</span><br>목록 표시 정상이나 일부 컬럼 화면 분산</td>
+    </tr>
+
+    <tr>
+      <td>TC-15</td><td>FR-07</td><td>개별 차원 검색·필터</td><td>관리자 화면</td><td>제목/저자/키워드/기간/사이트 각각</td><td>① 각 조건 개별 입력 ② 결과 확인</td><td>각 조건별 검색·필터 정상 동작</td><td><span class="pill good">PASS</span></td>
+    </tr>
+    <tr>
+      <td>TC-16</td><td>FR-07</td><td>복합 조건 동시 필터</td><td>관리자 화면</td><td>요약상태 + 키워드 + 기간 동시</td><td>① 3개 조건 동시 적용 ② 교집합 결과 확인</td><td>모든 조건이 결합된 단일 결과 반환</td><td><span class="pill warn">PARTIAL</span><br>조건이 화면별로 분산되어 동시 적용 불가</td>
+    </tr>
+
+    <tr>
+      <td>TC-17</td><td>FR-08</td><td>상세 화면 전체 정보 표시</td><td>목록에서 레코드 선택</td><td>레코드 클릭</td><td>① 상세 진입 ② 메타·추출텍스트·요약·첨부링크 확인</td><td>전체 메타정보·텍스트·요약·다운로드 링크 표시</td><td><span class="pill good">PASS</span></td>
+    </tr>
+    <tr>
+      <td>TC-18</td><td>FR-08</td><td>첨부파일 다운로드 링크 동작</td><td>첨부 보유 레코드 상세</td><td>다운로드 링크 클릭</td><td>① 링크 클릭 ② 원본 파일 다운로드</td><td>저장 파일이 원본 파일명으로 정상 다운로드</td><td><span class="pill good">PASS</span></td>
+    </tr>
+
+    <tr>
+      <td>TC-19</td><td>FR-09</td><td>사이트별 수집 현황 대시보드</td><td>관리자 로그인</td><td>대시보드 진입</td><td>① 대시보드 로드 ② 사이트별 수집 건수 확인</td><td>사이트별 수집 건수 집계 표시</td><td><span class="pill good">PASS</span></td>
+    </tr>
+    <tr>
+      <td>TC-20</td><td>FR-09</td><td>미처리·오류 건수 모니터링</td><td>대시보드</td><td>—</td><td>① 미처리 요약·오류 건수 확인</td><td>요약 미처리 건수·오류 건수 표시</td><td><span class="pill good">PASS</span></td>
+    </tr>
+
+    <tr>
+      <td>TC-21</td><td>FR-10</td><td>AI 요약 실패 건 재요약</td><td>summary_status=failed 건 존재</td><td>재처리 실행</td><td>① 실패 건 선택 ② 재요약 실행 ③ status 갱신 확인</td><td>재요약 후 summary 채움, status=done</td><td><span class="pill good">PASS</span></td>
+    </tr>
+    <tr>
+      <td>TC-22</td><td>FR-10</td><td>텍스트 추출 실패 건 재처리</td><td>추출 실패 건 존재</td><td>재처리 실행</td><td>① 추출 실패 건 선택 ② 텍스트 추출 재실행</td><td>재추출 후 extracted_text_path 채움</td><td><span class="pill bad">FAIL</span><br>텍스트 추출 재처리 기능 없음</td>
+    </tr>
+
+    <tr>
+      <td>TC-23</td><td>FR-03·04·05</td><td>전체 파이프라인 건수 대사</td><td>운영 DB 실측</td><td>—</td><td>① 총 레코드·PDF·텍스트·요약 건수 집계 ② 단계별 확보율 산출</td><td>단계별 건수·비율이 일관되게 집계</td><td><span class="pill good">PASS</span><br>4장 참조</td>
+    </tr>
+    <tr>
+      <td>TC-24</td><td>FR-05</td><td>요약 커버리지 검증</td><td>운영 DB 실측</td><td>—</td><td>① 요약 완료 건수 / 총 건수 비율 산출</td><td>요약 커버리지 집계 가능</td><td><span class="pill good">PASS</span><br>66,248 / 481,669 = 13.8%</td>
+    </tr>
+  </table>
+  </div>
+
+  <h2><span class="num">4.</span>데이터 검증 결과</h2>
+  <p>본 세션의 운영 DB 실측 집계 결과이다. 수집 → PDF 확보 → 텍스트 추출 → AI 요약 순으로 단계별 확보율이 감소하는 파이프라인 특성을 확인하였다.</p>
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>단계</th><th>건수</th><th>총 건수 대비</th><th>비고</th></tr>
+    <tr><td>총 수집 레코드</td><td class="num">481,669</td><td class="num">100.0%</td><td>documents 테이블 전체</td></tr>
+    <tr><td>PDF 첨부 확보</td><td class="num">299,376</td><td class="num">62.2%</td><td>file_path 보유</td></tr>
+    <tr><td>텍스트 추출 완료</td><td class="num">288,124</td><td class="num">59.8%</td><td>extracted_text_path 보유</td></tr>
+    <tr><td>AI 요약 완료</td><td class="num">66,248</td><td class="num">13.8%</td><td>summary 보유 / status=done</td></tr>
+  </table>
+  </div>
+  <div class="note">PDF 확보(62.2%) 대비 텍스트 추출(59.8%)은 근접하여 추출 단계는 안정적이다. 반면 AI 요약(13.8%)은 추출 완료 대비 약 23% 수준으로, 요약 배치가 아직 진행 중임을 보여준다.</div>
+
+  <h2><span class="num">5.</span>미충족 항목</h2>
+  <div class="note warn">
+    <strong>다음 3개 항목은 요구사항 대비 미충족(FAIL) 또는 부분충족(PARTIAL) 상태이며 후속 조치가 필요하다.</strong>
+    <ul>
+      <li><strong>FR-02 증분 수집 (FAIL)</strong> — 재실행 시 사이트별 <code>max(post_no)</code> 기준 스킵이 동작하지 않아 매 실행마다 전체를 재fetch한다. 현재는 insert 단계의 중복 제거(dedup)에만 의존하고 있어, 요구된 "이어 수집" 성능 이점이 없다.</li>
+      <li><strong>FR-03 멀티 포맷 첨부 (PARTIAL)</strong> — PDF 단일 다운로드는 정상이나, HWP·DOCX·XLSX 등 복수 첨부에서 <code>pdf_url</code> 1건만 수집되고 저장 확장자가 <code>.pdf</code>로 고정된다. 원본 확장자 유지 및 다중 첨부 저장 보완이 필요하다.</li>
+      <li><strong>FR-10 텍스트 추출 재처리 (FAIL)</strong> — AI 요약 실패 건의 재요약은 정상 동작하나, 텍스트 추출 실패 건을 수동 재실행하는 기능이 제공되지 않는다. 재처리 대상에 추출 단계를 포함해야 한다.</li>
+    </ul>
+  </div>
+
+  <!-- CONTENT END -->
+
+  <footer>
+    <span>Libertree · 웹페이지 데이터 수집·분석·요약 서비스</span>
+    <span>TEST-2026-001 · 2026-08-01</span>
+  </footer>
+</main>
+</body>
+</html>

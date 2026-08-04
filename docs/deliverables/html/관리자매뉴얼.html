@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>관리자 매뉴얼 | Libertree</title>
+<style>
+  :root{
+    --ink:#202622; --muted:#5f6f74; --canvas:#ffffff; --wash:#f4f2ea;
+    --accent:#365b42; --accent-soft:#e4ebe1; --rule:#d9d6cc;
+    --good:#3f7350; --warn:#9a7524; --bad:#9e463b;
+    --mono:"SF Mono",ui-monospace,Consolas,"D2Coding",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    --space:1.5rem;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--wash);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.72;letter-spacing:-.003em}
+  .page{max-width:860px;margin:0 auto;background:var(--canvas);
+    padding:4rem 3.4rem 3.6rem;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  /* Document header */
+  .doc-eyebrow{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;margin:0 0 .6rem}
+  h1{font-size:1.86rem;line-height:1.28;margin:0 0 1.4rem;font-weight:700;
+    text-wrap:balance;border-bottom:3px solid var(--accent);padding-bottom:1rem}
+  .doc-meta{width:100%;border-collapse:collapse;margin:0 0 2.6rem;font-size:.86rem}
+  .doc-meta th,.doc-meta td{border:1px solid var(--rule);padding:.5rem .8rem;text-align:left}
+  .doc-meta th{background:var(--wash);color:var(--muted);font-weight:600;white-space:nowrap;width:1%}
+  /* Sections */
+  h2{font-size:1.22rem;margin:2.8rem 0 .9rem;padding-top:1.2rem;font-weight:700;
+    border-top:1px solid var(--rule)}
+  h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:.5rem}
+  h3{font-size:1.02rem;margin:1.8rem 0 .6rem;font-weight:700;color:#2c332e}
+  p{margin:.7rem 0}
+  ul,ol{margin:.7rem 0;padding-left:1.3rem}
+  li{margin:.28rem 0}
+  strong{font-weight:700}
+  a{color:var(--accent)}
+  code{font-family:var(--mono);font-size:.86em;background:var(--wash);
+    padding:.1em .38em;border-radius:3px;border:1px solid var(--rule)}
+  pre{font-family:var(--mono);font-size:.82rem;line-height:1.6;background:#1c211d;color:#e8ede6;
+    padding:1rem 1.15rem;border-radius:5px;overflow-x:auto;margin:1rem 0}
+  pre code{background:none;border:none;padding:0;color:inherit}
+  /* Tables */
+  .tbl-wrap{overflow-x:auto;margin:1.1rem 0}
+  table.data{width:100%;border-collapse:collapse;font-size:.86rem}
+  table.data th,table.data td{border:1px solid var(--rule);padding:.5rem .7rem;
+    text-align:left;vertical-align:top}
+  table.data th{background:var(--accent-soft);font-weight:700}
+  table.data tr:nth-child(even) td{background:#faf9f5}
+  table.data td.num{text-align:right;font-variant-numeric:tabular-nums}
+  /* Callouts & status */
+  .note{border-left:4px solid var(--accent);background:var(--accent-soft);
+    padding:.8rem 1.1rem;margin:1.1rem 0;border-radius:0 4px 4px 0;font-size:.9rem}
+  .note.warn{border-color:var(--warn);background:#f6efe0}
+  .note.bad{border-color:var(--bad);background:#f6e6e3}
+  .pill{display:inline-block;font-size:.74rem;font-weight:700;padding:.12em .6em;
+    border-radius:999px;line-height:1.5;white-space:nowrap}
+  .pill.good{background:#e2efe6;color:var(--good)}
+  .pill.warn{background:#f6eed9;color:var(--warn)}
+  .pill.bad{background:#f4e0dc;color:var(--bad)}
+  /* Diagram boxes (for architecture) */
+  .diagram{display:flex;flex-wrap:wrap;gap:.7rem;margin:1.2rem 0;font-size:.82rem}
+  .diagram .box{border:1.5px solid var(--accent);border-radius:5px;padding:.7rem .9rem;
+    background:#fff;min-width:140px}
+  .diagram .box b{display:block;color:var(--accent);margin-bottom:.2rem}
+  .placeholder{border:1.5px dashed var(--rule);border-radius:5px;padding:2rem;
+    text-align:center;color:var(--muted);font-size:.85rem;margin:1.1rem 0;background:#fbfaf6}
+  footer{margin-top:3.4rem;padding-top:1.2rem;border-top:1px solid var(--rule);
+    font-size:.78rem;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+  /* Print */
+  @media print{
+    body{background:#fff;font-size:11pt}
+    .page{max-width:none;margin:0;padding:0;box-shadow:none}
+    h2{break-after:avoid}
+    table.data,pre,.note,.diagram{break-inside:avoid}
+    a{color:var(--ink);text-decoration:none}
+    @page{margin:18mm 16mm}
+  }
+  @media(max-width:640px){.page{padding:2rem 1.2rem}}
+</style>
+</head>
+<body>
+<main class="page">
+  <p class="doc-eyebrow">LIBERTREE · 산출물</p>
+  <h1>관리자 매뉴얼</h1>
+  <table class="doc-meta">
+    <tr><th>문서번호</th><td>MANUAL-2026-001</td><th>버전</th><td>v1.0</td></tr>
+    <tr><th>프로젝트</th><td>웹페이지 데이터 수집·분석·요약 서비스</td><th>작성일</th><td>2026-08-01</td></tr>
+    <tr><th>작성자</th><td>공급자 (financenow)</td><th>이용자</th><td>libertree.co.kr</td></tr>
+  </table>
+
+  <!-- CONTENT START -->
+  <p><strong>웹페이지 데이터 수집·분석·요약 서비스 (libertree) — finolaw 관리자 웹앱</strong></p>
+
+  <h2><span class="num">1.</span> 문서 개요</h2>
+  <div class="tbl-wrap">
+    <table class="data">
+      <thead><tr><th>항목</th><th>내용</th></tr></thead>
+      <tbody>
+        <tr><td>문서명</td><td>Libertree 관리자 매뉴얼 (Administrator Manual)</td></tr>
+        <tr><td>대상 서비스</td><td>웹페이지 데이터 수집·분석·요약 서비스 (libertree)</td></tr>
+        <tr><td>대상 애플리케이션</td><td><strong>finolaw</strong> 관리자 웹앱 (Next.js)</td></tr>
+        <tr><td>대상 독자</td><td>운영 관리자</td></tr>
+        <tr><td>갱신일</td><td>2026-08-01</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>본 매뉴얼은 finolaw 관리자 웹앱의 실제 화면과 동작을 기준으로 작성되었습니다. 각 화면에서 제공하는 버튼·필드·컬럼을 실제 코드 기준으로 설명하며, 존재하지 않는 기능은 "제공되지 않음"으로 명시합니다.</p>
+  <p>finolaw는 전세계 정부·연구·학술 사이트의 문서를 <strong>수집(크롤링) → PDF 다운로드 → 텍스트 변환 → AI 요약</strong> 단계로 처리하고, 그 현황과 결과를 웹에서 확인·검색·재요약할 수 있는 관리 도구입니다. 데이터는 저장소 루트의 <code>libertree.db</code> (SQLite)에 적재되며, 대부분의 화면은 <strong>읽기 전용 집계</strong>를 보여 줍니다.</p>
+
+  <h2><span class="num">2.</span> 시작하기</h2>
+
+  <h3>2.1 접속 URL</h3>
+  <div class="tbl-wrap">
+    <table class="data">
+      <thead><tr><th>구분</th><th>값</th></tr></thead>
+      <tbody>
+        <tr><td>접속 주소</td><td><code>http://localhost:3001</code></td></tr>
+        <tr><td>실행 포트</td><td><strong>3001</strong> (<code>next dev -p 3001</code> / <code>next start -p 3001</code>)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note"><strong>참고:</strong> 화면 우측 상단 헤더에 <code>port 3002</code> 라는 회색 라벨이 표시되지만, 이는 코드에 고정된 표시용 문자열일 뿐 실제 서비스 포트가 아닙니다. 실제 접속 포트는 <strong>3001</strong>입니다.</div>
+
+  <h3>2.2 로그인 (HTTP Basic 인증)</h3>
+  <p>finolaw는 별도의 로그인 화면이 없습니다. 브라우저로 처음 접속하면 운영체제/브라우저 기본 <strong>HTTP Basic 인증 팝업</strong>이 뜹니다.</p>
+  <ul>
+    <li><strong>사용자명 / 비밀번호</strong>: 서버 환경변수 <code>ADMIN_USER</code> / <code>ADMIN_PASSWORD</code> 에 설정된 값</li>
+    <li>인증 영역(realm) 표시: <code>Libertree Internal</code></li>
+    <li>인증은 정적 자산(css/js/이미지 등)과 Next.js 내부 경로를 제외한 <strong>모든 페이지</strong>에 적용됩니다.</li>
+    <li>인증 처리는 <code>src/proxy.ts</code> (Next.js 16 proxy)에서 수행되며, 아이디/비밀번호 비교는 타이밍 공격 방지를 위해 상수시간 비교를 사용합니다.</li>
+  </ul>
+  <p><strong>인증 관련 응답 상태</strong></p>
+  <div class="tbl-wrap">
+    <table class="data">
+      <thead><tr><th>상황</th><th>HTTP 상태</th><th>의미</th></tr></thead>
+      <tbody>
+        <tr><td>아이디/비밀번호 미설정</td><td><strong>503</strong></td><td>서버에 <code>ADMIN_USER</code>/<code>ADMIN_PASSWORD</code> 환경변수가 비어 있음 → 운영자에게 환경변수 설정 요청</td></tr>
+        <tr><td>자격 증명 누락/오류</td><td><strong>401</strong></td><td>팝업 취소 또는 잘못된 계정 입력 → 재입력</td></tr>
+        <tr><td>정상 인증</td><td>200</td><td>페이지 정상 표시</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">503이 뜨면 계정 문제가 아니라 <strong>서버 환경변수 미설정</strong> 문제입니다. 대시보드 상단의 사전점검(Preflight) 배너에도 관리자 인증 상태가 함께 표시됩니다(2.4 참고).</div>
+  <div class="placeholder">[스크린샷: 브라우저 Basic 인증 팝업]</div>
+
+  <h3>2.3 네비게이션 개요</h3>
+  <p>모든 화면 상단에는 공통 헤더가 고정되어 있으며, 좌측에 🌳 <strong>Libertree</strong> 로고(클릭 시 대시보드로 이동)와 다음 7개 메뉴가 나열됩니다. 우측에는 라이트/다크 테마 토글 버튼이 있습니다.</p>
+  <div class="tbl-wrap">
+    <table class="data">
+      <thead><tr><th>순서</th><th>메뉴</th><th>아이콘</th><th>경로</th><th>용도</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>대시보드</td><td>🌐</td><td><code>/</code></td><td>전체 KPI·분포·최근 수집 요약</td></tr>
+        <tr><td>2</td><td>문서 검색</td><td>🔍</td><td><code>/search</code></td><td>수집 문서 통합 검색·필터</td></tr>
+        <tr><td>3</td><td>수집 현황</td><td>📈</td><td><code>/admin/status</code></td><td>사이트별 단계 진행률</td></tr>
+        <tr><td>4</td><td>요약 결과</td><td>🧠</td><td><code>/admin/summary</code></td><td>요약 상태 확인 및 재요약</td></tr>
+        <tr><td>5</td><td>URL 크롤링</td><td>🛰️</td><td><code>/smart-find</code></td><td>URL만으로 문서 자동 발견 (Smart Find)</td></tr>
+        <tr><td>6</td><td>Auto-Add</td><td>✨</td><td><code>/auto-add</code></td><td>URL 입력만으로 전용 크롤러 자동 제작</td></tr>
+        <tr><td>7</td><td>크롤러 관리</td><td>⚙️</td><td><code>/crawler</code></td><td>크롤러 수동 실행·로그 스트리밍</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>상단 메뉴에는 없지만 접근 가능한 화면</strong></p>
+  <div class="tbl-wrap">
+    <table class="data">
+      <thead><tr><th>화면</th><th>경로</th><th>접근 방법</th></tr></thead>
+      <tbody>
+        <tr><td>수집 보고서</td><td><code>/admin/collection-report</code></td><td>직접 URL 입력 (상단 네비에는 미노출)</td></tr>
+        <tr><td>문서 상세(관리자 raw 검증)</td><td><code>/admin/document/{seq_id}</code></td><td>검색 결과/수집 현황 등에서 연결</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="placeholder">[스크린샷: 공통 상단 네비게이션]</div>
+
+  <h3>2.4 사전점검(Preflight) 배너</h3>
+  <p>대시보드 접속 시 시스템 상태에 문제가 있으면 상단에 경고/오류 배너가 나타납니다. DB, Python, Codex, API 키, 관리자 인증 상태를 점검한 결과이며, 우측 "JSON 보기" 링크(<code>/api/health</code>)로 상세 상태를 확인할 수 있습니다. 이상이 없으면 배너는 표시되지 않습니다.</p>
+
+  <h2><span class="num">3.</span> 화면별 사용법</h2>
+
+  <h3>3.1 대시보드 (수집 현황 요약) — <code>/</code></h3>
+  <p><strong>목적</strong><br>전체 수집 현황을 한 화면에서 파악합니다. 총 문서/사이트 수, 처리 단계별 통과율, 대륙·국가·범주별 분포, 최근 수집 사이트, 입력→수집 퍼널을 보여 줍니다.</p>
+  <p><strong>주요 항목·컨트롤</strong></p>
+  <ul>
+    <li><strong>상단 우측</strong>
+      <ul>
+        <li>"마지막 수집: {일시}" — 가장 최근 크롤링 시각</li>
+        <li><strong>전체 MD export</strong> 버튼 — 전체 문서를 Markdown으로 내보내기(<code>/api/export/markdown</code>)</li>
+      </ul>
+    </li>
+    <li><strong>KPI 카드 4종</strong>
+      <ul>
+        <li>총 문서 수 (최근 수집 일시)</li>
+        <li>총 사이트 수 (등록 메타 건수)</li>
+        <li>PDF 보유 (전체 대비 %)</li>
+        <li>TXT 추출 (전체 대비 %)</li>
+      </ul>
+    </li>
+    <li><strong>입력 → 등록 → 수집 Funnel</strong> (입력 CSV가 있을 때만 표시)
+      <ul>
+        <li>막대: 입력 entries → unique hosts → 등록 크롤러 → 수집 완료</li>
+        <li>회복 카테고리 분류(자동회복중/수집완료/회원가입 필요/정책상포기/절대불가/미분류)</li>
+        <li>"되는 것 / 안 되는 것" 요약 카드: ✅ 수집 가능 / 🔐 수동 회복 / ❌ 회복 불가</li>
+        <li>"카테고리 의미 설명" 펼치기로 각 분류 정의 확인</li>
+      </ul>
+    </li>
+    <li><strong>대륙별 분포</strong> 표 (사이트/문서/PDF/TXT/비중)</li>
+    <li><strong>국가별 상위 10개</strong> 표</li>
+    <li><strong>범주별 분포</strong> 표</li>
+    <li><strong>최근 수집 사이트</strong> 표 (사이트/국가·범주/문서 수/최근 수집/문서 보기 바로가기) — 최근 8개</li>
+    <li><strong>바로가기 카드 4종</strong>: 문서 검색 · 수집 현황 · URL 크롤링 · 크롤러 관리</li>
+  </ul>
+  <p><strong>사용 절차</strong></p>
+  <ol>
+    <li>상단 네비에서 🌐 <strong>대시보드</strong> 클릭(또는 로고 클릭).</li>
+    <li>KPI 카드로 전체 규모와 단계별 통과율을 확인.</li>
+    <li>분포 표에서 특정 대륙/국가/범주 비중을 확인.</li>
+    <li>"최근 수집 사이트" 표의 <strong>문서 보기</strong>를 눌러 해당 사이트 문서를 검색 화면에서 확인.</li>
+    <li>데이터 백업/공유가 필요하면 <strong>전체 MD export</strong> 클릭.</li>
+  </ol>
+  <div class="note">데이터가 없으면 "아직 수집된 문서가 없습니다." 안내가, DB 연결 실패 시 빨간 오류 박스(예상 경로 <code>../data/libertree.db</code>)가 표시됩니다.</div>
+  <div class="placeholder">[스크린샷: 대시보드]</div>
+
+  <h3>3.2 문서 검색 — <code>/search</code></h3>
+  <p><strong>목적</strong><br>전세계 정부·연구·학술 사이트에서 수집된 문서를 키워드와 다중 필터로 통합 검색합니다.</p>
+  <p><strong>주요 항목·컨트롤</strong></p>
+  <ul>
+    <li><strong>검색어 입력창</strong> — 제목·본문·키워드·저자 대상 검색</li>
+    <li><strong>구조 필터 (드롭다운 4종)</strong>: 대륙 / 국가 / 범주 / Sheet
+      <ul>
+        <li>대륙을 고르면 국가·범주·Sheet 목록이 그 대륙에 맞춰 좁혀집니다(점진적 필터링).</li>
+      </ul>
+    </li>
+    <li><strong>사이트 (선택)</strong> 드롭다운 — 개별 사이트 지정. 옵션에 사이트명·국가·문서 수가 함께 표시됩니다.</li>
+    <li><strong>발행일 범위</strong> — <code>YYYY-MM-DD</code> 형식의 "부터" / "까지" 입력</li>
+    <li><strong>결과 요약 줄</strong> — 결과 건수 · 대상 사이트 수 · 현재/전체 페이지</li>
+    <li><strong>초기화</strong> 링크 / <strong>검색</strong> 버튼</li>
+    <li><strong>결과 목록</strong> — 각 항목에 제목, 국가 배지, 범주 배지, 발행일, 출처명, 소개(요약 또는 초록) 미리보기 표시. 항목 클릭 시 문서 상세(<code>/search/{id}</code>)로 이동.</li>
+    <li><strong>페이지네이션</strong> — 페이지당 20건, 이전/다음 이동</li>
+  </ul>
+  <p><strong>사용 절차</strong></p>
+  <ol>
+    <li>상단 네비에서 🔍 <strong>문서 검색</strong> 클릭.</li>
+    <li>검색어를 입력하고 필요 시 대륙→국가→범주→Sheet, 사이트, 발행일을 지정.</li>
+    <li><strong>검색</strong> 버튼 클릭.</li>
+    <li>결과 목록에서 문서 제목을 클릭해 상세 확인.</li>
+    <li>조건을 바꾸려면 값 변경 후 다시 검색, 전체 초기화는 <strong>초기화</strong> 클릭.</li>
+  </ol>
+  <div class="note">수집 데이터가 아직 없으면 상단에 노란 안내 박스와 DB 경로가 표시됩니다.</div>
+  <div class="placeholder">[스크린샷: 문서 검색]</div>
+
+  <h3>3.3 문서 상세 (관리자 raw 검증) — <code>/admin/document/{seq_id}</code></h3>
+  <p><strong>목적</strong><br>개별 문서의 DB 원본 값을 그대로 검증하는 관리자 전용 페이지입니다. 일반 열람용(<code>/search/{id}</code>)과 달리, 모든 DB 필드·블롭 파일 존재 여부·원본 JSON을 노출합니다.</p>
+  <p><strong>주요 항목·컨트롤</strong></p>
+  <ul>
+    <li><strong>상단 링크</strong>: <code>← /search/{12자리 seq_id}</code> (공개 열람 페이지), <code>· /admin/status</code> (수집 현황)</li>
+    <li><strong>헤더 카드</strong>: <code>seq_id</code>(원본/12자리 패딩), <code>site_id</code>, <code>post_number</code></li>
+    <li><strong>필드 표 (필드 / DB 값 / 비고)</strong> — 주요 필드:
+      <ul>
+        <li><code>collected_at</code>, <code>site_id</code>(+ site_name JOIN), <code>post_number</code>(점진수집 키)</li>
+        <li><code>title</code>, <code>published_date</code>(작성/출판일), <code>listed_date</code>(사이트 게시일)</li>
+        <li><code>authors</code>(분리 결과), <code>publisher</code>(기관 분리), <code>journal</code></li>
+        <li><code>meta_url</code>, <code>pdf_url</code> (새 탭 링크)</li>
+        <li><code>keywords</code>(분리 결과), <code>abstract</code>(펼치기, 글자수)</li>
+        <li><code>original_filename</code></li>
+        <li><code>pdf_downloaded</code>, <code>text_extracted</code> (각 디스크 존재 여부 ✓/✗)</li>
+        <li><code>pdf_size_bytes</code>, <code>pdf_sha256</code></li>
+        <li><code>summary</code>(펼치기, 글자수), <strong><code>summary_model</code></strong>(요약에 사용된 모델), <code>summary_at</code>(요약 시각)</li>
+        <li><code>site_name</code>, <code>site_url</code> (sites 테이블 JOIN)</li>
+      </ul>
+    </li>
+    <li><strong>블롭 파일 섹션</strong> — <code>pdf</code>, <code>txt</code> 각각에 대해:
+      <ul>
+        <li>저장 경로, <code>✓ exists</code> / <code>✗ missing</code> 배지</li>
+        <li>파일이 존재하면 <strong>[download]</strong> 링크(<code>/api/blob/{seq_id}/{ext}</code>)로 원본 다운로드</li>
+        <li><code>db_flag</code> / <code>db_size</code> / <code>disk_size</code> 비교값</li>
+      </ul>
+    </li>
+    <li><strong>raw JSON dump</strong> — 문서 레코드 전체를 JSON으로 출력(절대경로 필드는 제외)</li>
+  </ul>
+  <p><strong>사용 절차</strong></p>
+  <ol>
+    <li>검색 결과·수집 현황·요약 결과 등에서 특정 문서로 진입(또는 URL에 <code>seq_id</code> 직접 입력).</li>
+    <li>필드 표에서 메타데이터가 올바르게 수집되었는지 확인.</li>
+    <li>블롭 파일 섹션에서 PDF/TXT 존재 여부를 점검하고, 필요 시 <strong>[download]</strong> 로 원본 파일 확인.</li>
+    <li><code>summary</code> / <code>summary_model</code> / <code>summary_at</code> 로 요약 생성 여부와 사용 모델을 확인.</li>
+  </ol>
+  <div class="note">잘못된/존재하지 않는 <code>seq_id</code>는 404(문서 없음) 처리됩니다. 이 화면에는 재수집·재추출·재요약 버튼이 없습니다(검증 전용). 재요약은 3.4 요약 결과 화면에서 수행합니다.</div>
+  <div class="placeholder">[스크린샷: 문서 상세(관리자 raw 검증)]</div>
+
+  <h3>3.4 요약 결과 · 재요약 — <code>/admin/summary</code></h3>
+  <p><strong>목적</strong><br>AI 요약(<code>documents.summary</code>)의 생성 상태를 확인하고, 필요한 문서를 <strong>재요약</strong>합니다.</p>
+  <p><strong>주요 항목·컨트롤</strong></p>
+  <ul>
+    <li><strong>필터 폼</strong>
+      <ul>
+        <li><strong>상태</strong> 드롭다운: <code>전체</code> / <code>요약 완료</code> / <code>미요약</code></li>
+        <li><strong>사이트</strong> 드롭다운: <code>전체 사이트</code> 또는 개별 사이트(사이트명 + site_id)</li>
+        <li><strong>적용</strong> 버튼 / <strong>초기화</strong> 링크</li>
+        <li>우측에 "전체 N건 · 페이지 x/y" 표시</li>
+      </ul>
+    </li>
+    <li><strong>문서 목록</strong> (페이지당 30건) — 각 행:
+      <ul>
+        <li>제목(클릭 시 <code>/search/{id}</code> 상세로 이동)</li>
+        <li><code>#{문서ID}</code> 배지, <code>site_id</code> 배지</li>
+        <li><span class="pill good">요약 완료</span>(초록색) 또는 <span class="pill warn">미요약</span>(노란색) 상태 배지</li>
+        <li>요약이 있으면 요약 본문 표시, 없고 초록이 있으면 "초록:" 미리보기(240자) 표시</li>
+        <li>우측 <strong>재요약</strong> 버튼</li>
+      </ul>
+    </li>
+    <li><strong>재요약 버튼 동작</strong>
+      <ul>
+        <li>클릭 시 <code>POST /api/admin/summarize</code>(본문 <code>{ docId }</code>) 호출</li>
+        <li>진행 중에는 버튼이 "요약 중…" 으로 바뀌고 비활성화</li>
+        <li>완료되면 서버 데이터가 새로고침되어 갱신된 요약이 즉시 표시</li>
+        <li>실패 시 버튼 옆에 오류 메시지가 빨간 글씨로 표시</li>
+        <li>요약 처리는 서버에서 <code>python -m crawler.main summarize --doc-id {id}</code> 를 실행하며, <strong>90초</strong> 타임아웃이 적용됩니다.</li>
+      </ul>
+    </li>
+    <li><strong>페이지네이션</strong> — 이전/다음 이동</li>
+  </ul>
+  <p><strong>사용 절차</strong></p>
+  <ol>
+    <li>상단 네비에서 🧠 <strong>요약 결과</strong> 클릭.</li>
+    <li><strong>상태</strong>를 <code>미요약</code>으로, 필요 시 <strong>사이트</strong>를 선택한 뒤 <strong>적용</strong> 클릭.</li>
+    <li>목록에서 대상 문서를 확인하고 각 행의 <strong>재요약</strong> 클릭.</li>
+    <li>버튼이 "요약 중…"에서 원래대로 돌아오고 요약 본문이 채워지면 완료.</li>
+    <li>오류 메시지가 나오면 내용을 확인(예: 모델/키 문제)하고 재시도.</li>
+  </ol>
+  <div class="note">이 화면의 재처리는 <strong>요약(summary)만</strong> 지원합니다. 텍스트 추출·PDF 재다운로드 재처리 버튼은 없습니다.</div>
+  <div class="placeholder">[스크린샷: 요약 결과 · 재요약]</div>
+
+  <h3>3.5 수집 보고서 (오류·예외) — <code>/admin/collection-report</code></h3>
+  <p><strong>목적</strong><br>입력부터 요약까지의 현재 상태를 집계하고, <strong>PDF 다운로드 실패</strong>를 사이트별로 진단합니다. 읽기 전용 리포트입니다. (상단 네비에는 없으며 URL로 접근하거나 리포트 내 이동 링크를 사용합니다.)</p>
+  <p><strong>주요 항목·컨트롤</strong></p>
+  <ul>
+    <li><strong>리포트 헤더</strong> — 상단 이동 링크: 홈 / 사이트 진행도(<code>/admin/status</code>) / 요약(<code>/admin/summary</code>)</li>
+    <li><strong>STATUS (상태 밴드)</strong> — "읽기 전용 집계" 배지와 함께
+      <ul>
+        <li>입력 URL(고유 호스트 수), 등록 수집기, 수집 사이트(입력 대비 %), 메타데이터(저장 문서)</li>
+        <li><strong>문서 단계별 통과 현황</strong> 막대: PDF 다운로드 / 텍스트 추출 / 요약 생성 (각 단계별 통과율)</li>
+      </ul>
+    </li>
+    <li><strong>EXCEPTIONS (PDF 누락과 사이트별 예외)</strong>
+      <ul>
+        <li>요약 카드: PDF 다운로드 성공 / 다운로드 실패(실패율) / PDF 주소 없음</li>
+        <li><strong>실패 사이트 표</strong> (실패 건수 상위 20개): 순위 · site_id · 메타 · PDF · 실패 · 실패율 · 진단(사유 라벨 및 상세). 작은 화면에서는 가로 스크롤됩니다.</li>
+      </ul>
+    </li>
+    <li><strong>DIAGNOSIS (누락 사유 진단)</strong> — 사유 라벨별 사이트 수, 진단 포함 사이트 수</li>
+    <li><strong>RECOVERY (입력 항목 분류)</strong> — 회복 카테고리별 건수, 현재 입력 집계 기준 건수</li>
+  </ul>
+  <p><strong>사용 절차</strong></p>
+  <ol>
+    <li>브라우저 주소창에 <code>/admin/collection-report</code> 입력(또는 리포트 내 링크로 이동).</li>
+    <li>STATUS 밴드로 단계별 통과율(어느 단계에서 손실이 큰지)을 파악.</li>
+    <li>EXCEPTIONS 표에서 실패가 많은 사이트와 진단 사유를 확인.</li>
+    <li>DIAGNOSIS/RECOVERY에서 사유 유형과 회복 가능성(수집 가능/수동/불가)을 판단.</li>
+    <li>회복 가능한 사이트는 크롤러 관리(3.7)에서 재실행을 검토.</li>
+  </ol>
+  <div class="note">집계할 데이터가 없으면 각 섹션에 "표시할 집계가 없습니다." 안내가 표시됩니다.</div>
+  <div class="placeholder">[스크린샷: 수집 보고서]</div>
+
+  <h3>3.6 수집 현황 (사이트별 진행률) — <code>/admin/status</code></h3>
+  <p><strong>목적</strong><br>사이트별로 수집 → 다운로드 → 변환 → 요약 진행률을 표로 확인합니다.</p>
+  <p><strong>주요 항목·컨트롤</strong></p>
+  <ul>
+    <li><strong>그룹 전환 탭</strong> (우측 상단): <strong>사이트 / 대륙 / 국가 / 범주</strong> — 집계 단위를 바꿉니다.</li>
+    <li><strong>요약 통계 카드 5종</strong>: 활성 사이트 · 수집 문서 · 다운로드 완료(%) · 텍스트 변환(%) · AI 요약(%)</li>
+    <li><strong>진행률 표</strong> — 컬럼:
+      <ul>
+        <li>사이트(또는 그룹명), (그룹 모드 시) 사이트 수</li>
+        <li><strong>수집</strong>(총 문서 수)</li>
+        <li><strong>다운로드 / 변환 / 요약</strong> — 각각 진행률 막대 + "N (P%)" 표시</li>
+        <li><strong>최근</strong> (마지막 수집 일시)</li>
+        <li><strong>작업</strong> — 사이트 모드는 <strong>보기</strong>(<code>/search?site=...</code>), 그룹 모드는 <strong>검색</strong>(대륙/국가/범주별 검색)</li>
+        <li>사이트 모드에서는 사이트명 아래 site_id·국가·범주가 함께 표시</li>
+      </ul>
+    </li>
+  </ul>
+  <p><strong>사용 절차</strong></p>
+  <ol>
+    <li>상단 네비에서 📈 <strong>수집 현황</strong> 클릭.</li>
+    <li>상단 카드로 전체 다운로드/변환/요약 진척을 확인.</li>
+    <li><strong>사이트/대륙/국가/범주</strong> 탭으로 원하는 집계 단위 선택.</li>
+    <li>표에서 진행률 막대가 낮은(변환·요약이 뒤처진) 사이트를 식별.</li>
+    <li><strong>보기/검색</strong> 링크로 해당 문서를 확인하거나, 필요 시 크롤러 관리에서 재수집.</li>
+  </ol>
+  <div class="note">문서가 하나도 없으면 노란 안내 박스에 첫 수집 명령 예시(<code>python -m crawler.main crawl &lt;site&gt;</code>)가 표시됩니다. DB 연결 실패 시 빨간 오류 박스가 표시됩니다.</div>
+  <div class="placeholder">[스크린샷: 수집 현황]</div>
+
+  <h3>3.7 URL 크롤링 (Smart Find) — <code>/smart-find</code></h3>
+  <p><strong>목적</strong><br>URL 하나만 입력하면 그 페이지에서 <strong>다운로드 가능한 문서(PDF/HWP/XLSX 등)</strong> 를 자동으로 찾아냅니다. 패턴 매칭이 실패하면 LLM으로 페이지 구조를 분석합니다. 진행 상황은 실시간 스트리밍됩니다.</p>
+  <p><strong>주요 항목·컨트롤</strong></p>
+  <ul>
+    <li><strong>URL</strong> 입력창(필수)</li>
+    <li><strong>최대 페이지</strong> (1~200, 기본 20)</li>
+    <li><strong>탐색 깊이</strong> (0~5, 기본 3)</li>
+    <li><strong>LLM Provider</strong> 드롭다운: <strong>GPT-5.4-mini</strong> / <strong>Gemini-2.5-flash</strong></li>
+    <li><strong>AI 분석 사용</strong> 체크박스(기본 켜짐) — 끄면 패턴 매칭만 사용</li>
+    <li><strong>DB에 저장</strong> 체크박스(기본 꺼짐) — 켜면 발견 문서를 DB에 적재</li>
+    <li><strong>시작 / 중지</strong> 버튼</li>
+    <li><strong>PROGRESS</strong> 패널 — 진행 로그 실시간 표시</li>
+    <li><strong>결과 섹션</strong> — "N개 파일 발견", 스캔 페이지 수·상세 방문 수·fetch 방식 표시
+      <ul>
+        <li>DB 저장 시 "✓ DB에 N건 저장 · {siteId}" 배지</li>
+        <li>경고가 있으면 "경고 N건" 펼치기</li>
+        <li>파일 목록: 파일 형식 배지(색상 구분) + 제목 + 파일 URL + 새 탭 열기(↗)</li>
+      </ul>
+    </li>
+  </ul>
+  <p><strong>사용 절차</strong></p>
+  <ol>
+    <li>상단 네비에서 🛰️ <strong>URL 크롤링</strong> 클릭.</li>
+    <li>대상 목록/게시판 URL을 입력.</li>
+    <li>최대 페이지·탐색 깊이·Provider를 필요에 맞게 조정.</li>
+    <li>DB 적재까지 원하면 <strong>DB에 저장</strong> 체크.</li>
+    <li><strong>시작</strong> 클릭 → PROGRESS에서 진행 확인(원하면 <strong>중지</strong>).</li>
+    <li>결과 목록에서 발견 파일을 확인하고 ↗로 원본 열기.</li>
+  </ol>
+  <div class="placeholder">[스크린샷: URL 크롤링 (Smart Find)]</div>
+
+  <h3>3.8 Auto-Add (전용 크롤러 자동 제작) — <code>/auto-add</code></h3>
+  <p><strong>목적</strong><br>URL 입력만으로 <strong>Codex(AI)</strong> 가 사이트 구조를 분석하고 전용 크롤러(Python 코드)를 자동 작성·검증합니다. 통상 10~15분이 소요됩니다.</p>
+  <p><strong>주요 항목·컨트롤</strong></p>
+  <ul>
+    <li><strong>URL</strong> 입력창(필수)</li>
+    <li><strong>site_id (선택)</strong> — 비워두면 자동 생성</li>
+    <li><strong>시작</strong> 버튼 (진행 중에는 "동작중..." 스피너)</li>
+    <li><strong>진행 단계 카드</strong> — 4단계 진척을 실시간 표시:
+      <ol>
+        <li>사이트 구조 분석</li>
+        <li>전용 크롤러 코드 작성</li>
+        <li>크롤러 검증</li>
+        <li>저장</li>
+      </ol>
+      <ul>
+        <li>각 단계에 상태 아이콘(✓/⏳/✗)과 경과 시간 표시</li>
+        <li>90초 이상 무응답 시 "응답이 없습니다" 경고</li>
+        <li>"개발자용 원본 로그" 펼치기로 원시 로그 확인</li>
+      </ul>
+    </li>
+    <li><strong>성공 카드</strong> (✅ 수집 준비 완료) — 검증 수집 건수, 크롤러 ID, 예시 제목, <strong>실제 수집 시작 →</strong> 버튼(<code>/crawler?site=...&amp;from=auto-add</code>)</li>
+    <li><strong>실패 카드</strong> (❌ 수집 실패) — 경과 시간, (가능하면) 사람이 읽기 쉬운 오류 설명, <strong>🔄 재시도</strong> 버튼, 원본 로그 보기</li>
+  </ul>
+  <p><strong>사용 절차</strong></p>
+  <ol>
+    <li>상단 네비에서 ✨ <strong>Auto-Add</strong> 클릭.</li>
+    <li>대상 URL을 입력(필요 시 site_id 지정).</li>
+    <li><strong>시작</strong> 클릭 → 4단계 진행 카드로 상태 확인(10~15분).</li>
+    <li>성공하면 <strong>실제 수집 시작 →</strong> 를 눌러 크롤러 관리로 이동(검증 실행 권장).</li>
+    <li>실패하면 오류 설명 확인 후 <strong>재시도</strong>.</li>
+  </ol>
+  <div class="note">성공 후 크롤러 관리로 넘어가면 상단에 "Auto-Add에서 생성된 사이트입니다. 먼저 <code>--limit 5</code> 정도로 검증 실행을 권장합니다." 안내가 표시됩니다.</div>
+  <div class="placeholder">[스크린샷: Auto-Add]</div>
+
+  <h3>3.9 크롤러 관리 — <code>/crawler</code></h3>
+  <p><strong>목적</strong><br>등록된 크롤러를 <strong>수동 실행</strong>하고, 실행 중인 작업(Job)과 진행 로그를 실시간으로 관리합니다.</p>
+  <p><strong>주요 항목·컨트롤</strong></p>
+  <ul>
+    <li><strong>새 크롤링 실행</strong> 폼
+      <ul>
+        <li><strong>사이트</strong> 드롭다운 — 등록된 크롤러 목록에서 선택</li>
+        <li><strong>doc_type (선택)</strong> — 사이트별 코드 등 자유 입력 필터</li>
+        <li><strong>limit (선택)</strong> — 수집 건수 상한(비우면 무제한)</li>
+        <li><strong>증분 (incremental)</strong> 체크박스(기본 켜짐) — 새 문서만 수집</li>
+        <li><strong>실행</strong> 버튼 (Auto-Add에서 넘어온 경우 강조 색상 + 검증 실행 안내 배너)</li>
+      </ul>
+    </li>
+    <li><strong>실행 중 Job</strong> 표 — Job ID · PID · 시작 시각 · 동작(<strong>로그 보기</strong> / <strong>중지</strong>). 5초마다 자동 갱신.</li>
+    <li><strong>로그 파일</strong> 영역
+      <ul>
+        <li>좌측: 로그 파일 목록(파일명·크기·수정시각)</li>
+        <li>우측: 선택한 로그의 실시간 스트리밍 뷰(터미널 스타일). 최근 500줄 유지, 자동 스크롤.</li>
+        <li><strong>스트림 닫기</strong> 버튼</li>
+      </ul>
+    </li>
+  </ul>
+  <p><strong>사용 절차</strong></p>
+  <ol>
+    <li>상단 네비에서 ⚙️ <strong>크롤러 관리</strong> 클릭.</li>
+    <li><strong>사이트</strong>를 선택하고 필요 시 doc_type·limit 지정, 증분 여부 확인.</li>
+    <li><strong>실행</strong> 클릭 → 새 Job이 생성되고 로그 스트림이 자동으로 열림.</li>
+    <li>"실행 중 Job" 표에서 진행을 확인하고, 필요 시 <strong>로그 보기</strong>로 다른 Job 로그를 열거나 <strong>중지</strong>로 종료(확인 팝업).</li>
+    <li>과거 로그는 "로그 파일" 목록에서 선택해 확인.</li>
+  </ol>
+  <div class="note">신규(Auto-Add 생성) 사이트는 먼저 <strong>limit 5</strong> 정도로 검증 실행한 뒤 전체 수집을 진행하는 것을 권장합니다.</div>
+  <div class="placeholder">[스크린샷: 크롤러 관리]</div>
+
+  <h2><span class="num">4.</span> 자주 하는 작업 (Task 기반)</h2>
+
+  <h3>4.1 특정 사이트의 수집 상태 보기</h3>
+  <ol>
+    <li>상단 네비 → <strong>수집 현황</strong>(<code>/admin/status</code>).</li>
+    <li>그룹 탭을 <strong>사이트</strong>로 둠(기본값).</li>
+    <li>표에서 대상 사이트 행을 찾아 다운로드/변환/요약 막대 확인.</li>
+    <li>해당 행의 <strong>보기</strong> 클릭 → 그 사이트 문서가 검색 결과로 표시됨.
+      <ul>
+        <li>(대안) 대시보드 "최근 수집 사이트" 표의 <strong>문서 보기</strong> 사용.</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3>4.2 미요약 문서 재요약</h3>
+  <ol>
+    <li>상단 네비 → <strong>요약 결과</strong>(<code>/admin/summary</code>).</li>
+    <li><strong>상태</strong> 드롭다운을 <code>미요약</code>으로 선택(필요 시 <strong>사이트</strong>도 선택) → <strong>적용</strong>.</li>
+    <li>목록에서 대상 문서의 <strong>재요약</strong> 버튼 클릭.</li>
+    <li>버튼이 "요약 중…"으로 바뀌었다가 복귀하고 요약 본문이 채워지면 완료.</li>
+    <li>여러 건이면 각 행에서 반복. 오류 시 메시지 확인 후 재시도.</li>
+  </ol>
+
+  <h3>4.3 실패(오류) 문서·사이트 확인</h3>
+  <ol>
+    <li>브라우저 주소창에 <code>/admin/collection-report</code> 입력.</li>
+    <li><strong>EXCEPTIONS</strong> 표에서 실패 건수 상위 사이트와 진단 사유 확인.</li>
+    <li>단계별 손실은 <strong>STATUS</strong> 밴드(PDF/텍스트/요약 통과율)로 파악.</li>
+    <li>개별 문서의 원인 점검은 문서 상세(<code>/admin/document/{seq_id}</code>)에서 <code>pdf_downloaded</code>·<code>text_extracted</code>·블롭 존재 여부(✓/✗)로 확인.</li>
+    <li>회복 가능 사이트는 <strong>크롤러 관리</strong>에서 재실행 검토.</li>
+  </ol>
+
+  <h3>4.4 새 URL 추가</h3>
+  <p><strong>A. 빠르게 다운로드 링크만 찾기 → URL 크롤링(Smart Find)</strong></p>
+  <ol>
+    <li>상단 네비 → <strong>URL 크롤링</strong>(<code>/smart-find</code>).</li>
+    <li>URL 입력 → (선택) <strong>DB에 저장</strong> 체크 → <strong>시작</strong>.</li>
+    <li>결과에서 발견 파일 확인, 필요 시 저장 배지로 적재 확인.</li>
+  </ol>
+  <p><strong>B. 사이트 전용 크롤러가 필요할 때 → Auto-Add → 크롤러 관리</strong></p>
+  <ol>
+    <li>상단 네비 → <strong>Auto-Add</strong>(<code>/auto-add</code>).</li>
+    <li>URL 입력(선택 site_id) → <strong>시작</strong> → 4단계 완료까지 대기(10~15분).</li>
+    <li>성공 카드에서 <strong>실제 수집 시작 →</strong> 클릭 → 크롤러 관리로 이동.</li>
+    <li><strong>크롤러 관리</strong>에서 <strong>limit 5</strong> 로 검증 실행 후, 이상 없으면 limit 없이(또는 증분) 본 수집 실행.</li>
+  </ol>
+
+  <h2><span class="num">5.</span> 참고</h2>
+
+  <h3>5.1 요약(AI) 엔진</h3>
+  <ul>
+    <li>재처리(재요약)는 서버에서 <code>python -m crawler.main summarize --doc-id {id}</code> 를 실행합니다(타임아웃 90초).</li>
+    <li><strong>프로덕션 요약은 로컬 Ollama 모델</strong>(<code>gemma4:26b</code> 55% + <code>qwen3:8b</code> 45%, DB <code>summary_model</code> 실측)로 생성됐습니다. 코드(<code>summarizer.py</code>)의 기본값은 <code>gpt-5.4-mini</code>(환경변수 <code>SUMMARIZER_MODEL</code>)이나 프로덕션 요약엔 미사용입니다.</li>
+    <li>요약 <strong>Provider</strong> 는 <code>provider</code> 인자 &gt; 환경변수 <code>LLM_PROVIDER</code> &gt; 기본 <code>gpt</code> 순으로 선택됩니다. Gemini 계열 모델은 <code>gemini-2.5-flash</code> 를 사용합니다.</li>
+    <li>실제로 어떤 모델이 사용됐는지는 문서 상세의 <code>summary_model</code> 필드에서 확인할 수 있습니다.</li>
+  </ul>
+  <div class="note"><strong>참고(요약 엔진 정본):</strong> 프로덕션 요약 66,248건은 <strong>로컬 Ollama <code>gemma4:26b</code>(36,548·55%) + <code>qwen3:8b</code>(29,700·45%)</strong> 로 생성됨(DB <code>summary_model</code> 실측, 배치 스크립트 <code>bulk_summarize_gemma.py</code>). <code>summarizer.py</code>에는 OpenAI(<code>gpt-5.4-mini</code>)·Gemini 경로가 있으나 <strong>실제 요약에는 미사용</strong>. 계약(REQ-2026-001)의 OpenAI 대비 비용·온프레미스 이유로 로컬 모델로 구현함. 향후 OpenAI 폴백 도입은 계획.<br><br>별도로, URL 크롤링(Smart Find)의 구조 분석 LLM 은 화면에서 <strong>GPT-5.4-mini / Gemini-2.5-flash</strong> 중 선택하며, Auto-Add 의 크롤러 자동 제작은 <strong>Codex</strong> 를 사용합니다. (요약 엔진과는 별개입니다.)</div>
+
+  <h3>5.2 데이터는 "읽기 위주"</h3>
+  <ul>
+    <li>대시보드·수집 현황·수집 보고서·문서 검색·문서 상세는 모두 <strong>읽기 전용 집계/조회</strong> 화면입니다. 데이터를 직접 편집하는 기능은 없습니다.</li>
+    <li>데이터는 저장소 루트의 <code>libertree.db</code> (SQLite)에 저장되며, DB가 없거나 연결에 실패하면 각 화면이 안내/오류 박스를 표시합니다(예상 경로 <code>../data/libertree.db</code>).</li>
+  </ul>
+
+  <h3>5.3 재처리(재실행) 범위 — 무엇이 되고 무엇이 안 되는가</h3>
+  <div class="tbl-wrap">
+    <table class="data">
+      <thead><tr><th>작업</th><th>지원 위치</th><th>지원 여부</th></tr></thead>
+      <tbody>
+        <tr><td><strong>재요약(summary)</strong></td><td>요약 결과 화면의 "재요약" 버튼</td><td><strong>지원</strong></td></tr>
+        <tr><td>크롤링(수집) 수동 실행</td><td>크롤러 관리</td><td>지원(수집 실행)</td></tr>
+        <tr><td>신규 URL 문서 발견</td><td>URL 크롤링(Smart Find)</td><td>지원</td></tr>
+        <tr><td>신규 사이트 크롤러 자동 제작</td><td>Auto-Add</td><td>지원</td></tr>
+        <tr><td><strong>텍스트 추출(재추출) 버튼</strong></td><td>—</td><td><strong>제공되지 않음</strong></td></tr>
+        <tr><td>PDF 재다운로드 버튼</td><td>—</td><td>제공되지 않음(개별 재처리 UI 없음)</td></tr>
+        <tr><td>문서 상세 화면 내 재처리 버튼</td><td>—</td><td>제공되지 않음(검증 전용)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">웹 UI에서 개별 문서 단위로 제공되는 재처리는 <strong>재요약뿐</strong>입니다. 텍스트추출 재처리 버튼은 존재하지 않습니다. 텍스트 추출/PDF 다운로드를 다시 하려면 크롤러(수집) 재실행 등 서버 측 작업이 필요합니다.</div>
+
+  <h3>5.4 접속·인증 요약</h3>
+  <ul>
+    <li>접속: <code>http://localhost:3001</code> (헤더의 "port 3002" 라벨은 표시용이며 실제 포트가 아님)</li>
+    <li>인증: HTTP Basic (<code>ADMIN_USER</code> / <code>ADMIN_PASSWORD</code>), realm <code>Libertree Internal</code></li>
+    <li>계정 미설정 시 <strong>503</strong>, 자격 증명 오류 시 <strong>401</strong></li>
+  </ul>
+
+  <p><em>본 매뉴얼의 스크린샷 자리표시([스크린샷: …])에는 추후 실제 캡처 이미지를 삽입합니다.</em></p>
+  <!-- CONTENT END -->
+
+  <footer>
+    <span>Libertree · 웹페이지 데이터 수집·분석·요약 서비스</span>
+    <span>MANUAL-2026-001 · 2026-08-01</span>
+  </footer>
+</main>
+</body>
+</html>

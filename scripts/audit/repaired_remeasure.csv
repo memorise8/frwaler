@@ -1,0 +1,14 @@
+site_id,sheet,collected,counted,server_total,completed,elapsed_s,method,note,health
+agri-ee-ministeerium-uudised,Estonia Ministries,122,122,0,True,181.8,count_crawl,caps_neutralized:MAX_PAGES=200->big;WALL_BUDGET_SECONDS=1500->big,ok
+agriculture-gouv-fr-recherche-developpem,France Ministries,472,400,0,True,837.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_BUDGET_S=1500->big,ok
+bam-de-navigation,GER ResearchCenters(Unfinished),308,36,0,False,300.1,count_crawl,external_timeout_kill:lower_bound,timeout
+bmz-de-de,Germany Ministries,6,5,0,False,300.1,count_crawl,external_timeout_kill:lower_bound,timeout
+cso-ie-en,Irish Research Centers,388,234,0,False,300.1,count_crawl,external_timeout_kill:lower_bound,timeout
+dhs-gov-news-releases,USA Executive Departments,79,228,0,False,300.1,count_crawl,external_timeout_kill:lower_bound,timeout
+emsl-pnnl-gov-science,American Research Institutes,6,28,0,True,129.1,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SECONDS=1500->big,ok
+nupi-no-en,Norway Research Centers,28,29,0,True,17.0,count_crawl,,ok
+safefood-net-news,Irish Research Centers,31,29,0,True,46.1,count_crawl,caps_neutralized:_PAGE_SAFETY_CAP=200->big,ok
+kihasa-re-kr-publish,한국완료,673,403,0,False,300.0,count_crawl,external_timeout_kill:lower_bound,timeout
+nia-nih-gov-news,American Research Institutes,95,115,0,False,300.0,count_crawl,external_timeout_kill:lower_bound,timeout
+ons-gov-uk-search,영국완료,516,232,0,False,300.0,count_crawl,external_timeout_kill:lower_bound,timeout
+transportation-gov-newsroom,USA Executive Departments,205,247,0,False,300.0,count_crawl,external_timeout_kill:lower_bound,timeout

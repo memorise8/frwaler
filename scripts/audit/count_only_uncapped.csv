@@ -1,0 +1,26 @@
+site_id,sheet,collected,counted,completed,elapsed_s,method,note
+caissedesdepots-fr-communiques-de-press,French Public Institutions,1201,1000,True,650.9,count_crawl,
+amolf-nl-publications,Dutch Research Centers,512,727,True,1470.6,count_crawl,caps_neutralized:_PAGE_CAP=200->big
+busan-go-kr-nbtnewsbu,한국완료,537,1372,True,1470.5,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_CLOCK_SECONDS=1500->big
+bundesgesundheitsministerium-de-service,독일완료,229,311,True,1504.0,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+accc-gov-au-search,호주완료,454,457,True,1513.1,count_crawl,
+auswaertiges-amt-de-en,독일완료,526,782,True,1526.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+biblio-naturalsciences-be-rbins-publications,벨기에완료,500,750,True,1672.3,count_crawl,
+afp-gov-au-news-centre,호주완료,432,1307,False,1800.2,count_crawl,external_timeout_kill:lower_bound
+amf-france-org-fr,French Public Institutions,157,219,False,1800.2,count_crawl,external_timeout_kill:lower_bound
+app-mps-gov-cn-gdnps,중국 완료,501,2049,False,1800.2,count_crawl,external_timeout_kill:lower_bound
+bok-or-kr-portal,한국완료,430,2461,False,1800.2,count_crawl,external_timeout_kill:lower_bound
+carabinieri-it-in-vostro-aiuto,Italy Ministries,301,481,False,1800.2,count_crawl,external_timeout_kill:lower_bound
+data-busan-go-kr-bdip,한국완료,2022,2919,True,219.8,count_crawl,
+cer-rec-gc-ca-en,Canadian Research Centers,175,354,True,873.0,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+cds-cern-ch-collection,Switzerland Research Centers,505,1161,False,1800.3,count_crawl,external_timeout_kill:lower_bound
+ecat-ga-gov-au-geonetwork,호주완료,796,7190,True,570.2,count_crawl,caps_neutralized:MAX_PAGES=200->big;MAX_SECONDS=1500->big
+chungnam-go-kr-cnportal,한국완료,425,1456,True,1470.1,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_CLOCK_SECONDS=1500->big
+cpb-nl-en,Dutch Research Centers,371,688,True,1471.0,count_crawl,caps_neutralized:_PAGE_CAP=200->big
+civilprotection-gov-gr-deltia-tupou,Greece Ministries,500,1539,True,1508.1,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+cnic-es-en,Spanish Research Centers,419,570,True,1511.0,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+daejeon-go-kr-drh,한국완료,473,1569,True,1470.9,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_CLOCK_SECONDS=1500->big
+environment-govt-nz-publications,뉴질랜드완료,249,0,True,4.5,count_crawl,
+economy-ni-gov-uk-publications,영국완료,583,212,True,948.4,count_crawl,
+defensa-gob-es-gabinete,Spain Ministries,421,980,True,1501.1,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+dst-dk-da,덴마크완료,408,473,True,1550.0,count_crawl,caps_neutralized:_MAX_PAGES=200->big

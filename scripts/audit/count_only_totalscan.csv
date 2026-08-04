@@ -1,0 +1,94 @@
+site_id,sheet,collected,counted,server_total,completed,elapsed_s,method,note
+avoindata-suomi-fi-data,핀란드완료,154,153,0,True,7.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+artsetmetiers-hal-science-search,French Public Universities,86,63,85,True,8.1,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+amu-hal-science-search,French Public Universities,3048,510,81423,False,45.0,count_crawl,external_timeout_kill:lower_bound
+anr-hal-science-search,French Research Institutes,363,454,2965,False,45.0,count_crawl,external_timeout_kill:lower_bound
+bfs-admin-ch-bfs,Switzerland Departments,384,4,8141,False,45.0,count_crawl,external_timeout_kill:lower_bound
+bm-dk-soeg,덴마크완료,88,23,1817,False,45.0,count_crawl,external_timeout_kill:lower_bound
+book-ioj-go-kr-library,한국완료,500,96,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+cac-gov-cn-hdfw,중국 완료,89,63,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+chineseafs-org-ckynewsmgr,중국 완료,30,0,0,True,4.3,count_crawl,
+cds-cern-ch-collection,Switzerland Research Centers,505,27,110804,False,45.0,count_crawl,external_timeout_kill:lower_bound
+cea-hal-science-cnrgh,French Research Institutes,759,472,866,False,45.0,count_crawl,external_timeout_kill:lower_bound
+cnam-hal-science-ceet,French Research Institutes,279,268,409,True,27.2,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+chinatax-gov-cn-chinatax,중국 완료,6,0,32,True,32.9,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_BUDGET_SECS=1500->big
+csrc-gov-cn-csrc_en,중국 완료,9,9,9,True,43.9,count_crawl,
+cigionline-org-publications,Canadian Research Centers,500,527,1328,False,45.0,count_crawl,external_timeout_kill:lower_bound
+cnam-hal-science-search,French Public Institutions,975,403,660,False,45.0,count_crawl,external_timeout_kill:lower_bound
+data-busan-go-kr-bdip,한국완료,2022,1856,12421,False,45.0,count_crawl,external_timeout_kill:lower_bound
+data-taltech-ee-search,Estonia Research Centers,92,92,111,True,43.3,count_crawl,caps_neutralized:_WALL_BUDGET=1500->big
+en-moj-gov-cn-lawsandregulationsht,중국 완료,15,0,0,True,0.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_CLOCK_SECS=1500->big
+datacatalogue-adruk-org-browser,영국완료,484,44,219378,False,45.0,count_crawl,external_timeout_kill:lower_bound
+ec-lyon-hal-science-search,French Public Universities,222,224,252,True,17.1,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+doaj-org-search,Irish Research Centers,1417,923,13362110,True,43.4,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+ehess-hal-science-search,French Public Universities,429,270,2756,True,25.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+drc-gov-cn-leafaspx,중국 완료,555,47,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+education-govt-nz-search,뉴질랜드완료,66,0,0,True,40.1,count_crawl,
+efk-admin-ch-fr,Switzerland Research Centers,26,7,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+enssib-hal-science-search,French Public Universities,12,12,17,True,2.7,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+enac-hal-science-search,French Public Universities,549,31,57,False,45.0,count_crawl,external_timeout_kill:lower_bound
+enc-hal-science-search,French Public Universities,509,383,666,False,45.0,count_crawl,external_timeout_kill:lower_bound
+eprr-lanl-gov,American Research Institutes,367,0,0,True,2.0,count_crawl,
+espci-hal-science-search,French Public Universities,22,18,21,True,2.7,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+energy-gov-search,USA Executive Departments,191,19,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+ens-lyon-hal-science-search,French Public Universities,1343,362,2559,True,28.0,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+enpc-hal-science-search,French Public Universities,741,31,1719,False,45.0,count_crawl,external_timeout_kill:lower_bound
+ens-hal-science-search,French Public Universities,18340,1473,28775,False,45.1,count_crawl,external_timeout_kill:lower_bound
+hal-science-afd,French Public Institutions,59,61,67,True,6.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+enscp-hal-science-search,French Public Institutions,3517,1507,3778,False,45.1,count_crawl,external_timeout_kill:lower_bound
+envt-hal-science-search,French Public Universities,1063,30,8034,False,45.1,count_crawl,external_timeout_kill:lower_bound
+fair-healthdata-be-search,벨기에완료,10,1,248,False,45.0,count_crawl,external_timeout_kill:lower_bound
+federalregister-gov-documents,USA Executive Departments,5957,5548,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+fhi-no-en,Norway Research Centers,255,63,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+go-griffith-ie-browse,Irish Research Centers,1111,37,617,False,45.0,count_crawl,external_timeout_kill:lower_bound
+gov-il-collectors,Israel Ministries,708,1,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+icn-hal-science-search,French Public Universities,133,97,139,True,10.0,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+icp-hal-science-search,French Public Institutions,220,132,182,True,13.1,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+inria-hal-science-search,French Research Institutes,1083,0,0,True,0.0,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_CLOCK_BUDGET=1500->big;_WALL_CLOCK_MARGIN=30->big
+imt-nord-europe-hal-science-search,French Public Universities,61,62,96,True,8.0,count_crawl,caps_neutralized:_SAFETY_PAGE_CAP=200->big
+hal-science-ign-ensg,French Public Institutions,3288,386,3733,False,45.0,count_crawl,external_timeout_kill:lower_bound
+hec-hal-science-search,French Public Universities,313,31,335,False,45.0,count_crawl,external_timeout_kill:lower_bound
+hfml-felix-nl-en,Dutch Research Centers,62,11,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+homeaffairs-gov-au-sitesearch,호주완료,1308,139,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+hud-govt-nz-documents,뉴질랜드완료,148,7,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+inserm-hal-science-search,French Research Institutes,883,904,1283,True,31.0,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_WALL_CLOCK_BUDGET=1500->big
+ineris-hal-science-search,French Research Institutes,2234,656,2336,False,45.0,count_crawl,external_timeout_kill:lower_bound
+kliimaministeerium-ee-otsing,Estonia Ministries,10,10,4291,True,14.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+issibern-ch-results,Switzerland Research Centers,495,86,0,True,22.6,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_SECS=1500->big
+ir-cwi-nl,Dutch Research Centers,592,57,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+ird-hal-science-search,French Research Institutes,1144,292,664,False,45.0,count_crawl,external_timeout_kill:lower_bound
+isae-ensma-hal-science-search,French Public Universities,14,591,3474,False,45.0,count_crawl,external_timeout_kill:lower_bound
+issibern-ch-outreach,Switzerland Research Centers,157,19,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+ivo-se-sok,스웨덴 완료,134,16,139,False,45.0,count_crawl,external_timeout_kill:lower_bound
+moe-gov-cn-jyb_sjzl,중국 완료,28,28,0,True,36.4,count_crawl,
+knowledge-barnardos-ie-browse,Irish Research Centers,365,24,1239,False,45.0,count_crawl,external_timeout_kill:lower_bound
+nida-nih-gov-research-topics,American Research Institutes,29,29,5,True,18.8,count_crawl,caps_neutralized:_SAFETY_PAGE_CAP=200->big
+meteoswiss-admin-ch-services-and-publica,Switzerland Research Centers,440,24,1574,False,45.0,count_crawl,external_timeout_kill:lower_bound
+ncha-gov-cn-col,중국 완료,117,28,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+nemertes-library-upatras-gr-browse,Greece Research Centers,127,21,140,False,45.0,count_crawl,external_timeout_kill:lower_bound
+phfscience-nz-news-publications,뉴질랜드완료,32,0,0,True,1.1,count_crawl,
+nemertes-library-upatras-gr-search,Greece Research Centers,500,14,30968,False,45.0,count_crawl,external_timeout_kill:lower_bound
+nfra-gov-cn-cn,중국 완료,726,71,1373,True,41.4,count_crawl,caps_neutralized:_SAFETY_CAP=200->big
+opendata-dk-search,덴마크완료,70,70,0,True,11.5,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+oka-go-kr-web,한국완료,30,30,0,True,19.9,count_crawl,caps_neutralized:_SAFETY_CAP=200->big;_WALL_BUDGET_SECONDS=1500->big
+nistdigitalarchives-contentdm-oclc-org-digital,American Research Institutes,788,24,8257,False,45.0,count_crawl,external_timeout_kill:lower_bound
+open-science-canada-ca-communities,Canadian Research Centers,272,5,295,False,45.0,count_crawl,external_timeout_kill:lower_bound
+ostrnrcan-dostrncan-canada-ca-search,Canadian Research Centers,220,11,48867,False,45.0,count_crawl,external_timeout_kill:lower_bound
+reports-nlr-nl-collections,Dutch Research Centers,18,18,1407,True,35.0,count_crawl,caps_neutralized:_PAGE_CAP=200->big
+polytechnique-hal-science-search,French Public Universities,3103,529,20286,False,45.0,count_crawl,external_timeout_kill:lower_bound
+rdr-kuleuven-be-dataverse,벨기에완료,418,20,820,False,45.0,count_crawl,external_timeout_kill:lower_bound
+repository-cern-search,Switzerland Research Centers,500,401,52293,False,45.0,count_crawl,external_timeout_kill:lower_bound
+samr-gov-cn-zw,중국 완료,315,24,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+search-nal-usda-gov-discovery,USA Executive Departments,452,19,422,True,19.3,count_crawl,caps_neutralized:_MAX_PAGES=200->big;_MAX_WALL_SEC=1500->big
+siseministeerium-ee-otsing,Estonia Ministries,20,10,2501,True,16.0,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+scp-nl-publicaties,Dutch Research Centers,243,45,285,False,45.0,count_crawl,external_timeout_kill:lower_bound
+simula-no-publications,Norway Research Centers,73,25,143,False,45.0,count_crawl,external_timeout_kill:lower_bound
+stats-govt-nz-publications,뉴질랜드완료,87,0,0,True,33.8,count_crawl,caps_neutralized:_MAX_PAGES=200->big
+sodha-be-dataverse,벨기에완료,152,22,193,False,45.0,count_crawl,external_timeout_kill:lower_bound
+stami-no-en,Norway Research Centers,337,15,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+statistischebibliothek-de-mir,독일완료,384,12,1476,False,45.0,count_crawl,external_timeout_kill:lower_bound
+vlaanderen-be-nieuwsberichten,벨기에완료,26,20,0,True,21.3,count_crawl,
+transport-govt-nz-documents-and-public,뉴질랜드완료,3,0,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+trm-dk-nyheder,덴마크완료,404,22,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+wallonie-be-fr,벨기에완료,121,13,0,False,45.0,count_crawl,external_timeout_kill:lower_bound
+wodc-nl-documenten,Dutch Research Centers,2,1,439,False,45.0,count_crawl,external_timeout_kill:lower_bound

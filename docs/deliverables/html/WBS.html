@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WBS · 작업분해구조 | Libertree</title>
+<style>
+  :root{
+    --ink:#202622; --muted:#5f6f74; --canvas:#ffffff; --wash:#f4f2ea;
+    --accent:#365b42; --accent-soft:#e4ebe1; --rule:#d9d6cc;
+    --good:#3f7350; --warn:#9a7524; --bad:#9e463b;
+    --mono:"SF Mono",ui-monospace,Consolas,"D2Coding",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    --space:1.5rem;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--wash);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.72;letter-spacing:-.003em}
+  .page{max-width:860px;margin:0 auto;background:var(--canvas);
+    padding:4rem 3.4rem 3.6rem;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  /* Document header */
+  .doc-eyebrow{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;margin:0 0 .6rem}
+  h1{font-size:1.86rem;line-height:1.28;margin:0 0 1.4rem;font-weight:700;
+    text-wrap:balance;border-bottom:3px solid var(--accent);padding-bottom:1rem}
+  .doc-meta{width:100%;border-collapse:collapse;margin:0 0 2.6rem;font-size:.86rem}
+  .doc-meta th,.doc-meta td{border:1px solid var(--rule);padding:.5rem .8rem;text-align:left}
+  .doc-meta th{background:var(--wash);color:var(--muted);font-weight:600;white-space:nowrap;width:1%}
+  /* Sections */
+  h2{font-size:1.22rem;margin:2.8rem 0 .9rem;padding-top:1.2rem;font-weight:700;
+    border-top:1px solid var(--rule)}
+  h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:.5rem}
+  h3{font-size:1.02rem;margin:1.8rem 0 .6rem;font-weight:700;color:#2c332e}
+  p{margin:.7rem 0}
+  ul,ol{margin:.7rem 0;padding-left:1.3rem}
+  li{margin:.28rem 0}
+  strong{font-weight:700}
+  a{color:var(--accent)}
+  code{font-family:var(--mono);font-size:.86em;background:var(--wash);
+    padding:.1em .38em;border-radius:3px;border:1px solid var(--rule)}
+  pre{font-family:var(--mono);font-size:.82rem;line-height:1.6;background:#1c211d;color:#e8ede6;
+    padding:1rem 1.15rem;border-radius:5px;overflow-x:auto;margin:1rem 0}
+  pre code{background:none;border:none;padding:0;color:inherit}
+  /* Tables */
+  .tbl-wrap{overflow-x:auto;margin:1.1rem 0}
+  table.data{width:100%;border-collapse:collapse;font-size:.86rem}
+  table.data th,table.data td{border:1px solid var(--rule);padding:.5rem .7rem;
+    text-align:left;vertical-align:top}
+  table.data th{background:var(--accent-soft);font-weight:700}
+  table.data tr:nth-child(even) td{background:#faf9f5}
+  table.data td.num{text-align:right;font-variant-numeric:tabular-nums}
+  /* Callouts & status */
+  .note{border-left:4px solid var(--accent);background:var(--accent-soft);
+    padding:.8rem 1.1rem;margin:1.1rem 0;border-radius:0 4px 4px 0;font-size:.9rem}
+  .note.warn{border-color:var(--warn);background:#f6efe0}
+  .note.bad{border-color:var(--bad);background:#f6e6e3}
+  .pill{display:inline-block;font-size:.74rem;font-weight:700;padding:.12em .6em;
+    border-radius:999px;line-height:1.5;white-space:nowrap}
+  .pill.good{background:#e2efe6;color:var(--good)}
+  .pill.warn{background:#f6eed9;color:var(--warn)}
+  .pill.bad{background:#f4e0dc;color:var(--bad)}
+  /* Diagram boxes (for architecture) */
+  .diagram{display:flex;flex-wrap:wrap;gap:.7rem;margin:1.2rem 0;font-size:.82rem}
+  .diagram .box{border:1.5px solid var(--accent);border-radius:5px;padding:.7rem .9rem;
+    background:#fff;min-width:140px}
+  .diagram .box b{display:block;color:var(--accent);margin-bottom:.2rem}
+  .placeholder{border:1.5px dashed var(--rule);border-radius:5px;padding:2rem;
+    text-align:center;color:var(--muted);font-size:.85rem;margin:1.1rem 0;background:#fbfaf6}
+  footer{margin-top:3.4rem;padding-top:1.2rem;border-top:1px solid var(--rule);
+    font-size:.78rem;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+  /* Print */
+  @media print{
+    body{background:#fff;font-size:11pt}
+    .page{max-width:none;margin:0;padding:0;box-shadow:none}
+    h2{break-after:avoid}
+    table.data,pre,.note,.diagram{break-inside:avoid}
+    a{color:var(--ink);text-decoration:none}
+    @page{margin:18mm 16mm}
+  }
+  @media(max-width:640px){.page{padding:2rem 1.2rem}}
+</style>
+</head>
+<body>
+<main class="page">
+  <p class="doc-eyebrow">LIBERTREE · 산출물</p>
+  <h1>WBS · 작업분해구조</h1>
+  <table class="doc-meta">
+    <tr><th>문서번호</th><td>WBS-2026-001</td><th>버전</th><td>v1.0</td></tr>
+    <tr><th>프로젝트</th><td>웹페이지 데이터 수집·분석·요약 서비스</td><th>작성일</th><td>2026-08-01</td></tr>
+    <tr><th>작성자</th><td>공급자 (financenow)</td><th>이용자</th><td>libertree.co.kr</td></tr>
+  </table>
+
+  <!-- CONTENT START -->
+  <h2><span class="num">1.</span>개요</h2>
+  <p>본 문서는 <strong>「웹페이지 데이터 수집·분석 및 요약 서비스 개발」</strong> 프로젝트의 작업분해구조(WBS)를 정의한다.
+  제안서(프로젝트 계획서)의 월별 진행 일정과 산출물 리스트 19종을 근거로, 전체 작업을 5개 단계·20개 세부 작업으로 분해하고
+  각 작업의 산출물·기간·담당·현재 상태를 기술한다.</p>
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>항목</th><th>내용</th></tr>
+    <tr><td>프로젝트명</td><td>웹페이지 데이터 수집·분석 및 요약 서비스 개발</td></tr>
+    <tr><td>계약(수행) 기간</td><td>2026-05-01 ~ 2026-07-31 (3개월)</td></tr>
+    <tr><td>납품일</td><td>2026-07-31</td></tr>
+    <tr><td>이용자 / 공급자</td><td>libertree.co.kr (유제승) / financenow (김현명)</td></tr>
+    <tr><td>산출물 제공 방식</td><td>Git을 통해 제공</td></tr>
+    <tr><td>단계 / 세부 작업</td><td>5개 단계 · 20개 작업</td></tr>
+  </table>
+  </div>
+
+  <h2><span class="num">2.</span>마일스톤 요약 (월별)</h2>
+  <p>제안서 진행 일정에 따라 3개월을 월 단위 마일스톤으로 구분한다.</p>
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>월</th><th>단계</th><th>주요 산출</th></tr>
+    <tr>
+      <td><strong>2026-05</strong><br>상세기획·핵심개발</td>
+      <td>상세기획 · 개발환경 구성 · 개발 착수</td>
+      <td>요구사항 분석서, 상세 기능정의서, WBS, 수집대상 분석, 개발환경·인프라 문서, 크롤러·다운로드·텍스트추출 모듈, Backend API, DB 스키마</td>
+    </tr>
+    <tr>
+      <td><strong>2026-06</strong><br>AI요약·검색·관리자UI</td>
+      <td>개발 (AI 요약 · 검색 · 관리자 화면 보강)</td>
+      <td>AI 요약 모듈, 관리자 Frontend(수집현황·요약결과 조회·검색), API 명세서</td>
+    </tr>
+    <tr>
+      <td><strong>2026-07</strong><br>QA·배포·문서화</td>
+      <td>QA·검수 · 기술이전</td>
+      <td>테스트 케이스, 테스트 결과 보고서, 베타테스트·디버깅 보고서, 관리자 매뉴얼, 시스템 운영 가이드, 소스코드 최종본(Github)</td>
+    </tr>
+  </table>
+  </div>
+
+  <h2><span class="num">3.</span>WBS 상세표</h2>
+  <p>단계별 작업을 산출물 단위로 분해한다. <strong>상태</strong>는 산출물 제출 현황(2026-08-01 기준)을 반영한다.</p>
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr>
+      <th>WBS번호</th><th>단계</th><th>작업</th><th>산출물</th><th>기간(월)</th><th>담당</th><th>상태</th>
+    </tr>
+
+    <tr><td class="num">1</td><td colspan="4"><strong>상세기획</strong></td><td>공급자</td><td>5월</td></tr>
+    <tr><td class="num">1.1</td><td>상세기획</td><td>요구사항 분석</td><td>요구사항 분석서 (REQ-2026-001)</td><td>5월</td><td>공급자</td><td><span class="pill good">완료</span></td></tr>
+    <tr><td class="num">1.2</td><td>상세기획</td><td>상세 기능정의</td><td>상세 기능정의서</td><td>5월</td><td>공급자</td><td><span class="pill warn">작성중</span></td></tr>
+    <tr><td class="num">1.3</td><td>상세기획</td><td>WBS 작성</td><td>WBS (본 문서)</td><td>5월</td><td>공급자</td><td><span class="pill warn">작성중</span></td></tr>
+    <tr><td class="num">1.4</td><td>상세기획</td><td>수집대상 분석</td><td>URL 목록(약 1,500개)·게시판 구조·메타정보 항목 분석</td><td>5월</td><td>공급자</td><td><span class="pill good">완료</span></td></tr>
+
+    <tr><td class="num">2</td><td colspan="4"><strong>개발환경 구성</strong></td><td>공급자</td><td>5월</td></tr>
+    <tr><td class="num">2.1</td><td>개발환경 구성</td><td>개발환경 구성</td><td>개발환경 구성 문서 (ENV-2026-001)</td><td>5월</td><td>공급자</td><td><span class="pill warn">초안</span></td></tr>
+    <tr><td class="num">2.2</td><td>개발환경 구성</td><td>인프라 아키텍처 설계</td><td>인프라 아키텍처 문서 (ARC-2026-001)</td><td>5월</td><td>공급자</td><td><span class="pill warn">초안</span></td></tr>
+
+    <tr><td class="num">3</td><td colspan="4"><strong>개발</strong></td><td>공급자</td><td>5~6월</td></tr>
+    <tr><td class="num">3.1</td><td>개발</td><td>크롤러 모듈 개발</td><td>크롤러 소스코드</td><td>5~6월</td><td>공급자</td><td><span class="pill good">완료</span></td></tr>
+    <tr><td class="num">3.2</td><td>개발</td><td>첨부 다운로드 모듈 개발</td><td>첨부파일 다운로드 모듈 소스코드</td><td>5~6월</td><td>공급자</td><td><span class="pill good">완료</span></td></tr>
+    <tr><td class="num">3.3</td><td>개발</td><td>텍스트 추출 모듈 개발</td><td>텍스트 추출 모듈 소스코드</td><td>5~6월</td><td>공급자</td><td><span class="pill good">완료</span></td></tr>
+    <tr><td class="num">3.4</td><td>개발</td><td>AI 요약 모듈 개발</td><td>AI 요약 모듈 소스코드</td><td>6월</td><td>공급자</td><td><span class="pill good">완료</span></td></tr>
+    <tr><td class="num">3.5</td><td>개발</td><td>Backend API 개발</td><td>Backend API 소스코드</td><td>5~6월</td><td>공급자</td><td><span class="pill good">완료</span></td></tr>
+    <tr><td class="num">3.6</td><td>개발</td><td>Frontend(관리자 화면) 개발</td><td>Frontend 소스코드 (수집현황·요약결과 조회·검색)</td><td>6월</td><td>공급자</td><td><span class="pill good">완료</span></td></tr>
+    <tr><td class="num">3.7</td><td>개발</td><td>DB 스키마 설계</td><td>DB 스키마</td><td>5월</td><td>공급자</td><td><span class="pill good">완료</span></td></tr>
+    <tr><td class="num">3.8</td><td>개발</td><td>API 명세 작성</td><td>API 명세서 (17개 엔드포인트)</td><td>6월</td><td>공급자</td><td><span class="pill warn">초안</span></td></tr>
+
+    <tr><td class="num">4</td><td colspan="4"><strong>QA·검수</strong></td><td>공급자</td><td>7월</td></tr>
+    <tr><td class="num">4.1</td><td>QA·검수</td><td>테스트 케이스 작성</td><td>테스트 케이스</td><td>7월</td><td>공급자</td><td><span class="pill warn">작성중</span></td></tr>
+    <tr><td class="num">4.2</td><td>QA·검수</td><td>테스트 수행·결과 정리</td><td>테스트 결과 보고서 (QA 정확도 실측)</td><td>7월</td><td>공급자</td><td><span class="pill warn">부분</span></td></tr>
+    <tr><td class="num">4.3</td><td>QA·검수</td><td>베타테스트·디버깅</td><td>베타테스트·디버깅 보고서 (BETA-2026-001)</td><td>7월</td><td>공급자</td><td><span class="pill warn">초안</span></td></tr>
+
+    <tr><td class="num">5</td><td colspan="4"><strong>기술이전</strong></td><td>공급자</td><td>7월</td></tr>
+    <tr><td class="num">5.1</td><td>기술이전</td><td>관리자 매뉴얼 작성</td><td>관리자 매뉴얼 (9화면)</td><td>7월</td><td>공급자</td><td><span class="pill warn">초안</span></td></tr>
+    <tr><td class="num">5.2</td><td>기술이전</td><td>시스템 운영 가이드 작성</td><td>시스템 운영 가이드 (48섹션)</td><td>7월</td><td>공급자</td><td><span class="pill warn">초안</span></td></tr>
+    <tr><td class="num">5.3</td><td>기술이전</td><td>소스코드 최종본 전달</td><td>소스코드 최종본 (Github Repository)</td><td>7월</td><td>공급자</td><td><span class="pill good">완료</span></td></tr>
+  </table>
+  </div>
+  <p class="note">단계 3(개발)의 소스코드 산출물은 일부 구현 방식이 요구사항과 상이하다(예: 텍스트 추출 pdfplumber, AI 요약 로컬 Ollama, Backend FastAPI). 기능은 동등하며 문서 산출물에 "구현 방식"으로 기술한다.</p>
+
+  <h2><span class="num">4.</span>산출물-작업 매핑 현황</h2>
+  <p>WBS 상세표 20개 작업의 상태를 집계한다. 소스코드류·요구사항 분석서는 완료, 문서형 산출물 다수는 초안 또는 작성중 상태다.</p>
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>상태</th><th>표시</th><th>건수</th><th>해당 작업</th></tr>
+    <tr>
+      <td>완료</td><td><span class="pill good">완료</span></td><td class="num">10</td>
+      <td>1.1 요구사항 분석서 · 1.4 수집대상 분석 · 3.1~3.7 소스코드(크롤러·다운로드·텍스트추출·AI요약·Backend·Frontend·DB) · 5.3 소스코드 최종본</td>
+    </tr>
+    <tr>
+      <td>초안</td><td><span class="pill warn">초안</span></td><td class="num">6</td>
+      <td>2.1 개발환경 · 2.2 인프라 · 3.8 API 명세서 · 4.3 베타보고서 · 5.1 관리자 매뉴얼 · 5.2 운영 가이드</td>
+    </tr>
+    <tr>
+      <td>작성중</td><td><span class="pill warn">작성중</span></td><td class="num">3</td>
+      <td>1.2 기능정의서 · 1.3 WBS · 4.1 테스트 케이스</td>
+    </tr>
+    <tr>
+      <td>부분</td><td><span class="pill warn">부분</span></td><td class="num">1</td>
+      <td>4.2 테스트 결과 보고서 (실측 데이터 존재, 보고서 형식 정리 필요)</td>
+    </tr>
+    <tr><td><strong>합계</strong></td><td>—</td><td class="num"><strong>20</strong></td><td>완료 10 · 초안 6 · 작성중 3 · 부분 1</td></tr>
+  </table>
+  </div>
+
+  <h2><span class="num">5.</span>일정 리스크</h2>
+  <div class="note warn">납품일(2026-07-31) 경과 — 소스코드 및 요구사항 분석서 등 핵심 산출물은 완료되었으나, 문서 산출물 일부가 초안·작성중 상태다. 초안 6종(개발환경·인프라·API 명세서·베타보고서·관리자 매뉴얼·운영 가이드)은 형식 변환·제출, 작성중 3종(기능정의서·WBS·테스트 케이스)과 부분 1종(테스트 결과 보고서)은 정식화가 필요하다.</div>
+  <!-- CONTENT END -->
+
+  <footer>
+    <span>Libertree · 웹페이지 데이터 수집·분석·요약 서비스</span>
+    <span>WBS-2026-001 · 2026-08-01</span>
+  </footer>
+</main>
+</body>
+</html>

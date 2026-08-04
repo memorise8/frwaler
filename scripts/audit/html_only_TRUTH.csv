@@ -1,0 +1,530 @@
+site_id,verdict,counted,collected,html_list_하한,note
+accc-gov-au-search,measured_partial,513,454,513,측정OK·부분수집
+acpr-banque-france-fr-fr,measured_partial,233,225,233,측정OK·부분수집
+adruk-org-news-publications,notrust_need2h,,,106,이전패스 count만
+afd-fr-fr,notrust_need2h,,,42,이전패스 count만
+afp-gov-au-news-centre,measured_partial,1336,432,1336,측정OK·부분수집
+afp-gov-au-search,notrust_need2h,,,1,이전패스 count만
+africamuseum-be-en,SUSPECT_nonew,52,52,52,새문서0-死의심
+agri-ee-ministeerium-uudised,SUSPECT_undercount,8,122,8,측정<수집
+agriculture-gouv-fr-recherche-developpem,SUSPECT_undercount,134,472,134,측정<수집
+alrc-gov-au-publications,SUSPECT_undercount,40,116,40,측정<수집
+ameslab-gov-news,measured_partial,396,394,396,측정OK·부분수집
+amf-france-org-fr,measured_partial,201,157,201,측정OK·부분수집
+ami-swiss-en,measured_partial,583,558,583,측정OK·부분수집
+amolf-nl-publications,measured_partial,811,512,811,측정OK·부분수집
+andra-fr-publications,FAKE_zero,0,1,0,완료인데 0건-차단/고장
+anses-fr-fr,lowerbound_need2h,0,6091,0,캡걸림 하한
+ansto-gov-au-search,SUSPECT_undercount,26,30,27,측정<수집
+app-mps-gov-cn-gdnps,measured_partial,1933,501,1933,측정OK·부분수집
+arcep-fr-actualites,notrust_need2h,,,0,이전패스 count만
+arcnl-nl-publications,notrust_need2h,,,11,이전패스 count만
+arn-se-om-arn,notrust_need2h,,,12,이전패스 count만
+artsetmetiers-fr-fr,notrust_need2h,,,223,이전패스 count만
+asiapacific-ca-media,notrust_need2h,,,52,이전패스 count만
+asn-fr-information,notrust_need2h,,,19,이전패스 count만
+astro-oma-be-en,FAKE_zero,0,22,0,완료인데 0건-차단/고장
+astron-nl-about,FAKE_zero,0,57,0,완료인데 0건-차단/고장
+audencia-com-lecole,notrust_need2h,,,243,이전패스 count만
+auri-re-kr-boardes,notrust_need2h,,,267,이전패스 count만
+auri-re-kr-publication,SUSPECT_undercount,559,593,559,측정<수집
+auswaertiges-amt-de-de,measured_partial,226,224,226,측정OK·부분수집
+auswaertiges-amt-de-en,measured_partial,782,526,782,측정OK·부분수집
+babraham-ac-uk-news,SUSPECT_nonew,483,483,483,새문서0-死의심
+bam-de-navigation,FAKE_zero,0,308,0,완료인데 0건-차단/고장
+bankofcanada-ca-publications,notrust_need2h,,,27,이전패스 count만
+banque-france-fr-en,notrust_need2h,,,30,이전패스 count만
+baw-de-en,FAKE_zero,0,14,0,완료인데 0건-차단/고장
+bdap-opendata-rgs-mef-gov-it-catalog,measured_partial,898,360,898,측정OK·부분수집
+benthamscience-com-press-release,measured_partial,193,191,193,측정OK·부분수집
+bfe-admin-ch-bfe,lowerbound_need2h,1951,1002,1951,캡걸림 하한
+bfr-bund-de-en,FAKE_tiny,1,23,1,극소카운트-차단의심
+biblio-naturalsciences-be-rbins-publications,measured_partial,750,500,750,측정OK·부분수집
+biorbic-com-publications,SUSPECT_undercount,467,497,467,측정<수집
+bj-admin-ch-bj,notrust_need2h,,,0,이전패스 count만
+bmas-de-de,SUSPECT_undercount,330,454,330,측정<수집
+bmds-bund-de-aktuelles,notrust_need2h,,,84,이전패스 count만
+bmf-gv-at-ministerium,FAKE_tiny,3,36,3,극소카운트-차단의심
+bmftr-bund-de-siteglobals,SUSPECT_undercount,179,197,179,측정<수집
+bmi-gv-at-114,notrust_need2h,,,42,이전패스 count만
+bmimi-gv-at-themen,notrust_need2h,,,18,이전패스 count만
+bmj-gv-at-ministerium,measured_partial,151,149,151,측정OK·부분수집
+bmleh-de-en,notrust_need2h,,,16,이전패스 count만
+bmleh-de-siteglobals,measured_partial,233,200,233,측정OK·부분수집
+bmluk-gv-at-service,SUSPECT_undercount,272,315,272,측정<수집
+bmlv-gv-at-wissen-forschung,notrust_need2h,,,18,이전패스 count만
+bmvg-de-en,notrust_need2h,,,20,이전패스 count만
+bmwet-gv-at-services,notrust_need2h,,,87,이전패스 count만
+bmwkms-gv-at-themen,notrust_need2h,,,17,이전패스 count만
+bmwsb-bund-de-de,notrust_need2h,,,20,이전패스 count만
+bmz-de-de,SUSPECT_nonew,6,6,6,새문서0-死의심
+bnf-fr-fr,SUSPECT_nonew,488,488,488,새문서0-死의심
+bok-or-kr-portal,measured_partial,2080,430,2080,측정OK·부분수집
+bordbia-ie-about,FAKE_zero,0,20,0,완료인데 0건-차단/고장
+boverket-se-en,notrust_need2h,,,9,이전패스 count만
+brgm-fr-fr,measured_partial,241,234,241,측정OK·부분수집
+brsn-net-list,measured_partial,999,500,999,측정OK·부분수집
+budget-canada-ca-home-accueil-enhtml,notrust_need2h,,,17,이전패스 count만
+bundesgesundheitsministerium-de-service,measured_partial,261,229,261,측정OK·부분수집
+bundeskanzleramt-gv-at-bundeskanzleramt,SUSPECT_undercount,447,480,447,측정<수집
+bundesumweltministerium-de-en,notrust_need2h,,,7,이전패스 count만
+busan-go-kr-nbtnewsbu,measured_partial,1043,537,1043,측정OK·부분수집
+business-sweden-com-about-us,notrust_need2h,,,94,이전패스 count만
+cae-eco-fr-presse-cae-0,SUSPECT_nonew,64,64,64,새문서0-死의심
+caissedesdepots-fr-communiques-de-press,SUSPECT_undercount,1000,1201,1000,측정<수집
+caitec-org-cn-n6,notrust_need2h,,,62,이전패스 count만
+cancer-gov-about-nci,notrust_need2h,,,24,이전패스 count만
+carabinieri-it-in-vostro-aiuto,measured_partial,420,301,420,측정OK·부분수집
+casseng-cssn-cn-sky_research,SUSPECT_nonew,8,8,8,새문서0-死의심
+catalogue-data-govt-nz-dataset,notrust_need2h,,,86,이전패스 count만
+cc-nih-gov-research,notrust_need2h,,,22,이전패스 count만
+cdhowe-org-research-insights,SUSPECT_nonew,344,344,344,새문서0-死의심
+cells-es-en,FAKE_zero,0,11,0,완료인데 0건-차단/고장
+centralbank-ie-publication,notrust_need2h,,,25,이전패스 count만
+centralesupelec-fr-presse,SUSPECT_nonew,51,51,51,새문서0-死의심
+cepii-fr-cepii,notrust_need2h,,,24,이전패스 count만
+cer-rec-gc-ca-en,SUSPECT_undercount,174,175,174,측정<수집
+cerema-fr-fr,measured_partial,240,231,0,측정OK·부분수집
+chungnam-go-kr-cnportal,measured_partial,682,425,570,측정OK·부분수집
+civilprotection-gov-gr-deltia-tupou,measured_partial,1157,500,1157,측정OK·부분수집
+cnic-es-en,measured_partial,570,419,570,측정OK·부분수집
+cnipa-gov-cn-col,notrust_need2h,,,213,이전패스 count만
+college-de-france-fr-en,SUSPECT_nonew,105,105,105,새문서0-死의심
+comptroller-defense-gov-odcfo,notrust_need2h,,,24,이전패스 count만
+comwel-or-kr-comwel,measured_partial,1277,471,1277,측정OK·부분수집
+consult-environment-govt-nz-climate,SUSPECT_nonew,72,72,0,새문서0-死의심
+consult-environment-govt-nz-resource-management,notrust_need2h,,,0,이전패스 count만
+consult-environment-govt-nz-waste,measured_partial,60,58,0,측정OK·부분수집
+cpb-nl-en,measured_partial,682,371,682,측정OK·부분수집
+csic-es-es,notrust_need2h,,,26,이전패스 count만
+cso-ie-en,FAKE_zero,0,388,0,완료인데 0건-차단/고장
+cstb-fr-communiques-de-press,SUSPECT_nonew,48,48,48,새문서0-死의심
+daejeon-go-kr-drh,measured_partial,720,473,669,측정OK·부분수집
+dair-dias-ie-cgi,notrust_need2h,,,756,이전패스 count만
+dapa-go-kr-dapa,FAKE_zero,0,970,0,완료인데 0건-차단/고장
+data-biodiversity-be-dataset,FAKE_zero,0,524,0,완료인데 0건-차단/고장
+data-gov-be-nl,notrust_need2h,,,0,이전패스 count만
+data-mfe-govt-nz-documents,measured_partial,23,21,23,측정OK·부분수집
+data-mfe-govt-nz-tables,SUSPECT_undercount,434,435,434,측정<수집
+data-nist-gov-sdp,notrust_need2h,,,50,이전패스 count만
+data-statistik-gv-at-web,measured_partial,518,500,518,측정OK·부분수집
+datenportal-bmbf-de-portal,notrust_need2h,,,75,이전패스 count만
+defence-govt-nz-publications,measured_partial,434,431,433,측정OK·부분수집
+defensa-gob-es-gabinete,measured_partial,995,421,995,측정OK·부분수집
+defense-gouv-fr-salle-de-presse,measured_partial,2263,1980,2263,측정OK·부분수집
+defense-gov-news,notrust_need2h,,,500,이전패스 count만
+dhs-gov-congressional-approp,measured_partial,1081,638,1081,측정OK·부분수집
+dhs-gov-news-releases,SUSPECT_undercount,36,79,36,측정<수집
+dhs-gov-publication,FAKE_tiny,3,29,29,극소카운트-차단의심
+dia-govt-nz-diawebsitensf,notrust_need2h,,,28,이전패스 count만
+didaktorika-gr-eadd,SUSPECT_nonew,118,118,118,새문서0-死의심
+difesa-it-il-ministro,notrust_need2h,,,101,이전패스 count만
+digital-gob-es-comunicacion,measured_partial,963,416,963,측정OK·부분수집
+diplomatie-gouv-fr-en,measured_partial,694,551,694,측정OK·부분수집
+directives-doe-gov-directives-browse,SUSPECT_nonew,205,205,205,새문서0-死의심
+directives-doe-gov-guidance,SUSPECT_undercount,51,260,51,측정<수집
+doc-cerema-fr-default,notrust_need2h,,,0,이전패스 count만
+doi-gov-bpp,SUSPECT_nonew,204,204,204,새문서0-死의심
+dol-gov-newsroom,measured_partial,292,275,292,측정OK·부분수집
+doras-dcu-ie-view,notrust_need2h,,,3683,이전패스 count만
+dpmc-govt-nz-publications,measured_partial,1060,571,1060,측정OK·부분수집
+drugsandalcohol-ie-cgi,FAKE_broken,649,500,649,콘텐츠 있음(셀렉터 노후 의심)
+dst-dk-da,measured_partial,473,408,473,측정OK·부분수집
+earlham-ac-uk-newsroom,measured_partial,283,278,283,측정OK·부분수집
+ecat-ga-gov-au-geonetwork,notrust_need2h,,,797,이전패스 count만
+ecologie-gouv-fr-presse,lowerbound_need2h,2347,4049,2347,캡걸림 하한
+economie-fgov-be-nl,notrust_need2h,,,120,이전패스 count만
+economy-ni-gov-uk-news,notrust_need2h,,,20,이전패스 count만
+economy-ni-gov-uk-publications,SUSPECT_undercount,539,583,539,측정<수집
+eda-admin-ch-eda,notrust_need2h,,,48,이전패스 count만
+edi-admin-ch-de,notrust_need2h,,,20,이전패스 count만
+educacionfpydeportes-gob-es-prensahtml,measured_partial,507,347,507,측정OK·부분수집
+efd-admin-ch-en,measured_partial,2528,500,2528,측정OK·부분수집
+ejournals-epublishing-ekt-gr-indexphp,SUSPECT_undercount,381,474,381,측정<수집
+elocus-lib-uoc-gr-search,measured_partial,389,282,389,측정OK·부분수집
+em-dk-aktuelt,SUSPECT_nonew,350,350,350,새문서0-死의심
+em-lyon-com-en,measured_partial,661,348,661,측정OK·부분수집
+emep-int-mscw,notrust_need2h,,,215,이전패스 count만
+emsl-pnnl-gov-science,SUSPECT_nonew,6,6,6,새문서0-死의심
+en-iwhr-cn-iwhr-english-new,FAKE_zero,0,458,0,완료인데 0건-차단/고장
+en-ndrc-gov-cn-policies,lowerbound_need2h,0,52,0,캡걸림 하한
+en-nhc-gov-cn-publicationshtml,notrust_need2h,,,9,이전패스 count만
+en-nim-ac-cn-taxonomy,SUSPECT_nonew,303,303,303,새문서0-死의심
+energy-gov-management,SUSPECT_nonew,388,388,388,새문서0-死의심
+energy-gov-open-government,notrust_need2h,,,10,이전패스 count만
+eng-mod-gov-cn-2025xb,SUSPECT_nonew,10,10,10,새문서0-死의심
+english-cnipa-gov-cn-col,SUSPECT_nonew,353,353,353,새문서0-死의심
+english-mee-gov-cn-resources,FAKE_zero,0,20,0,완료인데 0건-차단/고장
+english-www-gov-cn-archive,SUSPECT_undercount,315,506,315,측정<수집
+ens-lyon-fr-lecole,SUSPECT_undercount,151,154,151,측정<수집
+environment-govt-nz-acts-and-regulations,measured_partial,394,315,394,측정OK·부분수집
+environment-govt-nz-publications,measured_partial,563,249,563,측정OK·부분수집
+environment-govt-nz-what-you-can-do,FAKE_zero,0,58,0,완료인데 0건-차단/고장
+epa-ie-news-releases,notrust_need2h,,,128,이전패스 count만
+eprints-imtlucca-it-cgi,notrust_need2h,,,0,이전패스 count만
+eprints-soton-ac-uk-view,FAKE_zero,0,259,0,완료인데 0건-차단/고장
+esri-ie-publications,measured_partial,636,531,636,측정OK·부분수집
+etera-ee-browse,lowerbound_need2h,1567,100403,1567,캡걸림 하한
+ethniccommunities-govt-nz-resources,FAKE_zero,0,85,0,완료인데 0건-차단/고장
+ethz-ch-de,measured_partial,204,203,204,측정OK·부분수집
+etis-ee-portal,lowerbound_need2h,576,138,576,캡걸림 하한
+fafo-no-en,measured_partial,474,322,474,측정OK·부분수집
+fi-se-en,SUSPECT_undercount,95,122,93,측정<수집
+fibl-org-en,measured_partial,580,539,580,측정OK·부분수집
+finance-ni-gov-uk-publications,notrust_need2h,,,17,이전패스 count만
+fm-dk-udgivelser,notrust_need2h,,,100,이전패스 count만
+fmi-ch-research,FAKE_zero,0,818,0,완료인데 0건-차단/고장
+fmn-dk-da,measured_partial,851,848,851,측정OK·부분수집
+forest-go-kr-kfsweb,SUSPECT_undercount,667,931,667,측정<수집
+fss-or-kr-fss,measured_partial,1310,500,1310,측정OK·부분수집
+ftc-go-kr-www,measured_partial,1700,694,1700,측정OK·부분수집
+ga-gov-au-data-pubs,notrust_need2h,,,2241,이전패스 count만
+gb-go-kr-sub,measured_partial,407,406,407,측정OK·부분수집
+gcsp-ch-publications,notrust_need2h,,,178,이전패스 count만
+genome-gov-about-nhgri,FAKE_tiny,1,42,1,극소카운트-차단의심
+genomecanada-ca-about,lowerbound_need2h,0,50,0,캡걸림 하한
+gi-re-kr-home,measured_partial,552,452,552,측정OK·부분수집
+gichd-org-publications-resourc,measured_partial,311,266,311,측정OK·부분수집
+gnews-gg-go-kr-briefing,measured_partial,1216,500,1052,측정OK·부분수집
+gnewsonline-it-category,measured_partial,520,343,520,측정OK·부분수집
+gov-gr-search,notrust_need2h,,,0,이전패스 count만
+gov-wales-publications,measured_partial,395,155,395,측정OK·부분수집
+graduateinstitute-ch-library,SUSPECT_undercount,213,398,213,측정<수집
+gri-re-kr-web,measured_partial,1729,516,1729,측정OK·부분수집
+gsi-ie-en-ie,FAKE_zero,0,113,0,완료인데 0건-차단/고장
+gwangju-go-kr-boardlistdo,measured_partial,1104,500,1104,측정OK·부분수집
+gyeongnam-go-kr-board,measured_partial,790,190,790,측정OK·부분수집
+harcresearch-org-news,notrust_need2h,,,104,이전패스 count만
+harcresearch-org-research,notrust_need2h,,,0,이전패스 count만
+hatvp-fr-actualites-et-public,SUSPECT_nonew,57,57,57,새문서0-死의심
+hcsp-fr-explorecgi,notrust_need2h,,,32,이전패스 count만
+health-ni-gov-uk-news,SUSPECT_undercount,100,137,100,측정<수집
+health-ni-gov-uk-publications,notrust_need2h,,,20,이전패스 count만
+hec-edu-en,notrust_need2h,,,10,이전패스 count만
+hhs-gov-guidance,SUSPECT_undercount,58,267,58,측정<수집
+hi-no-en,SUSPECT_nonew,119,119,119,새문서0-死의심
+home-cern-news,measured_partial,2200,809,2200,측정OK·부분수집
+home-treasury-gov-about,notrust_need2h,,,12,이전패스 count만
+hrbopenresearch-org,measured_partial,739,437,739,측정OK·부분수집
+hud-govt-nz-stats-and-insights,notrust_need2h,,,2088,이전패스 count만
+humanrights-go-kr-base,measured_partial,519,450,519,측정OK·부분수집
+icn-artem-com-en,notrust_need2h,,,21,이전패스 count만
+icp-fr-a-propos-de-licp,SUSPECT_nonew,99,99,99,새문서0-死의심
+idiap-ch-en,notrust_need2h,,,125,이전패스 count만
+ifau-se-forskning,measured_partial,106,101,106,측정OK·부분수집
+ifau-se-press,SUSPECT_nonew,215,215,215,새문서0-死의심
+ifpenergiesnouvelles-fr-tags,notrust_need2h,,,150,이전패스 count만
+ifr-pan-edu-pl-dzialalnosc-naukowa,notrust_need2h,,,0,이전패스 count만
+ifremer-fr-fr,measured_partial,287,286,287,측정OK·부분수집
+ign-fr-espace-presse,notrust_need2h,,,70,이전패스 count만
+igualdad-gob-es-comunicacion,measured_partial,286,216,286,측정OK·부분수집
+iheid-swisscovery-ch-discovery,notrust_need2h,,,242,이전패스 count만
+ii-re-kr-base,measured_partial,1146,287,1146,측정OK·부분수집
+illustro-iadt-figshare-com-search,notrust_need2h,,,92,이전패스 count만
+incheon-go-kr-ic010205,SUSPECT_undercount,660,1328,660,측정<수집
+indicators-be-nl,notrust_need2h,,,84,이전패스 count만
+ineris-fr-fr,FAKE_zero,0,141,0,완료인데 0건-차단/고장
+info-daegu-go-kr-newshome,measured_partial,1300,490,1300,측정OK·부분수집
+info-korail-com-info,measured_partial,1633,565,1633,측정OK·부분수집
+infrastructure-ni-gov-uk-news,notrust_need2h,,,20,이전패스 count만
+inrae-fr-actualites,notrust_need2h,,,0,이전패스 count만
+inria-fr-fr,notrust_need2h,,,0,이전패스 count만
+insee-fr-fr,FAKE_zero,0,223,0,완료인데 0건-차단/고장
+international-canada-ca-en,notrust_need2h,,,14,이전패스 count만
+international-gc-ca-transparency-transpa,notrust_need2h,,,14,이전패스 count만
+ir-arcnl-nl,lowerbound_need2h,3961,452,3961,캡걸림 하한
+irb-usi-ch-publications,measured_partial,580,558,580,측정OK·부분수집
+irsn-fr-actualites,SUSPECT_nonew,274,274,274,새문서0-死의심
+iucn-org-about-iucn,SUSPECT_nonew,19,19,19,새문서0-死의심
+iucn-org-press-releases,notrust_need2h,,,69,이전패스 count만
+iucn-org-resources,notrust_need2h,,,6,이전패스 count만
+iwhr-com-zgskywwnew,FAKE_zero,0,62,0,완료인데 0건-차단/고장
+jeju-go-kr-news,measured_partial,1158,1087,1158,측정OK·부분수집
+jeonnam-go-kr-m7116,SUSPECT_undercount,440,770,440,측정<수집
+jsearch-mwr-gov-cn-irs-c-web,measured_partial,4276,2499,4276,측정OK·부분수집
+justice-gov-news,measured_partial,1618,741,1618,측정OK·부분수집
+justice-ni-gov-uk-publications,notrust_need2h,,,11,이전패스 count만
+justitsministeriet-dk-forskning,SUSPECT_nonew,24,24,24,새문서0-死의심
+justitsministeriet-dk-pressemeddelelse,measured_partial,549,346,549,측정OK·부분수집
+juventudeinfancia-gob-es-es,measured_partial,307,306,307,측정OK·부분수집
+kamco-or-kr-portal,notrust_need2h,,,19,이전패스 count만
+kammarkollegiet-se-aktuellt,notrust_need2h,,,48,이전패스 count만
+kasa-go-kr-bbs,notrust_need2h,,,331,이전패스 count만
+kcg-go-kr-kcg,measured_partial,857,624,857,측정OK·부분수집
+kdca-go-kr-kdca,measured_partial,1458,846,1458,측정OK·부분수집
+kedi-re-kr-khome,measured_partial,863,519,863,측정OK·부분수집
+keei-re-kr-boardes,measured_partial,1040,452,1040,측정OK·부분수집
+kefm-dk-aftaler,notrust_need2h,,,102,이전패스 count만
+kei-re-kr-eliblistes,measured_partial,573,364,573,측정OK·부분수집
+keis-or-kr-keis,notrust_need2h,,,21,이전패스 count만
+kepco-co-kr-home,measured_partial,492,400,491,측정OK·부분수집
+khs-go-kr-cop,SUSPECT_undercount,13,38,13,측정<수집
+khs-go-kr-newsbbz,FAKE_zero,0,1249,0,완료인데 0건-차단/고장
+kicce-re-kr-main,SUSPECT_undercount,9,368,9,측정<수집
+kice-re-kr-boardcnts,FAKE_broken,939,500,939,SPA/JS쉘(정적크롤 불가)
+kicj-re-kr-boardes,measured_partial,260,154,260,측정OK·부분수집
+kiep-go-kr-galleryes,measured_partial,2051,437,2051,측정OK·부분수집
+kihasa-re-kr-news,measured_partial,943,615,943,측정OK·부분수집
+kihasa-re-kr-publish,FAKE_zero,0,673,0,완료인데 0건-차단/고장
+kinfa-or-kr-notificationpromotio,measured_partial,766,732,766,측정OK·부분수집
+kinu-or-kr-main,measured_partial,434,432,434,측정OK·부분수집
+kipa-re-kr-html,notrust_need2h,,,7,이전패스 count만
+kipf-re-kr-bbs,measured_partial,353,352,353,측정OK·부분수집
+kipf-re-kr-kor,notrust_need2h,,,206,이전패스 count만
+kipo-go-kr-ko,measured_partial,602,500,602,측정OK·부분수집
+kisdi-re-kr-bbs,measured_partial,1178,502,1178,측정OK·부분수집
+kisdi-re-kr-report,measured_partial,1019,501,1019,측정OK·부분수집
+kli-re-kr-kli,measured_partial,1628,500,1628,측정OK·부분수집
+klimaraadet-dk-da,SUSPECT_nonew,84,84,84,새문서0-死의심
+klri-re-kr-kor,SUSPECT_undercount,384,590,384,측정<수집
+kma-go-kr-kma,notrust_need2h,,,58,이전패스 count만
+kmcc-go-kr-userdo,measured_partial,1920,666,1920,측정OK·부분수집
+kna-forest-go-kr-kfsweb,measured_partial,375,372,375,측정OK·부분수집
+kommunikasjon-ntb-no-presserom,SUSPECT_nonew,116,116,116,새문서0-死의심
+kostat-go-kr-boardes,notrust_need2h,,,0,이전패스 count만
+koti-re-kr-user,measured_partial,533,373,533,측정OK·부분수집
+krei-re-kr-krei,measured_partial,2097,1450,2097,측정OK·부분수집
+krihs-re-kr-boardes,measured_partial,1036,600,1036,측정OK·부분수집
+krihs-re-kr-krihslibraryarticle,notrust_need2h,,,744,이전패스 count만
+krihs-re-kr-krihslibraryreport,SUSPECT_undercount,150,168,150,측정<수집
+krivet-re-kr,measured_partial,1232,1,1232,측정OK·부분수집
+krivet-re-kr-kor,measured_partial,553,500,553,측정OK·부분수집
+kwdi-re-kr-plaza,SUSPECT_undercount,454,819,454,측정<수집
+kwdi-re-kr-publications,measured_partial,629,500,629,측정OK·부분수집
+lavoro-gov-it-stampa-e-media,SUSPECT_undercount,20,340,20,측정<수집
+lecese-fr-espace-presse,measured_partial,676,500,676,측정OK·부분수집
+lib-cssn-cn-zy,SUSPECT_nonew,204,204,204,새문서0-死의심
+libreria-educacion-gob-es-p,measured_partial,350,330,350,측정OK·부분수집
+llnl-gov-news,measured_partial,3997,3537,3997,측정OK·부분수집
+mafra-go-kr-home,lowerbound_need2h,460,761,238,캡걸림 하한
+marine-ie-site-area,notrust_need2h,,,14,이전패스 count만
+masaf-gov-it-flex,measured_partial,922,601,922,측정OK·부분수집
+mbie-govt-nz-building-and-energy,notrust_need2h,,,0,이전패스 count만
+mem-gov-cn-fw,notrust_need2h,,,63,이전패스 count만
+meri-belspo-be-site,SUSPECT_nonew,21,21,21,새문서0-死의심
+met-no-publikasjoner,FAKE_zero,0,116,0,완료인데 0건-차단/고장
+meteofrance-fr-actualite,notrust_need2h,,,97,이전패스 count만
+mfat-govt-nz-en,notrust_need2h,,,11,이전패스 count만
+mfds-go-kr-brd,SUSPECT_undercount,410,461,410,측정<수집
+miit-gov-cn-zwgk,notrust_need2h,,,26,이전패스 count만
+mim-gov-it-web,notrust_need2h,,,20,이전패스 count만
+mimit-gov-it-it,measured_partial,93,92,93,측정OK·부분수집
+minagric-gr-the-ministry-2,measured_partial,281,267,281,측정OK·부분수집
+mindigital-gr-archives,measured_partial,1224,675,1224,측정OK·부분수집
+minedu-gov-gr-grafeio-typoy-kai-di,notrust_need2h,,,0,이전패스 count만
+minfin-gov-gr-grafeio-typou,notrust_need2h,,,0,이전패스 count만
+ministryofjustice-gr,measured_partial,264,261,264,측정OK·부분수집
+minrel-gob-cl-minrel,lowerbound_need2h,1154,4547,490,캡걸림 하한
+minscfa-gov-gr-grafeio-typou,FAKE_zero,0,626,0,완료인데 0건-차단/고장
+mintour-gov-gr-deltia-typoy,measured_partial,745,394,745,측정OK·부분수집
+miteco-gob-es-es,measured_partial,690,379,690,측정OK·부분수집
+mivau-gob-es-el-ministerio,measured_partial,738,473,738,측정OK·부분수집
+mma-go-kr-board,measured_partial,683,616,683,측정OK·부분수집
+mnd-go-kr-user,FAKE_zero,0,304,0,완료인데 0건-차단/고장
+mod-mil-gr-category,measured_partial,1480,470,1480,측정OK·부분수집
+moe-go-kr-boardcnts,SUSPECT_undercount,1047,1250,1047,측정<수집
+moe-gov-cn-jyb_xwfb,measured_partial,422,418,422,측정OK·부분수집
+moe-gov-cn-jyb_xxgk,notrust_need2h,,,18,이전패스 count만
+moef-go-kr-nw,measured_partial,2000,683,2000,측정OK·부분수집
+mof-go-kr-doc,measured_partial,823,624,823,측정OK·부분수집
+mof-gov-cn-en,SUSPECT_nonew,9,9,9,새문서0-死의심
+mofa-go-kr-www,measured_partial,1338,521,1338,측정OK·부분수집
+mofe-go-kr-id,notrust_need2h,,,133,이전패스 count만
+mogef-go-kr-nw,lowerbound_need2h,355,852,213,캡걸림 하한
+mohrss-gov-cn-xxgk2020,SUSPECT_nonew,19,19,19,새문서0-死의심
+mohw-go-kr-boardes,lowerbound_need2h,628,920,311,캡걸림 하한
+mois-go-kr-frt,notrust_need2h,,,119,이전패스 count만
+moj-go-kr-moj,lowerbound_need2h,503,793,259,캡걸림 하한
+moleg-go-kr-boardes,notrust_need2h,,,256,이전패스 count만
+molit-go-kr-usr,lowerbound_need2h,430,390,210,캡걸림 하한
+motir-go-kr-kor,lowerbound_need2h,697,703,340,캡걸림 하한
+mpi-govt-nz-about-mpi,FAKE_zero,0,14,0,완료인데 0건-차단/고장
+mpi-govt-nz-resources-and-forms,FAKE_zero,0,35,0,완료인데 0건-차단/고장
+mpva-go-kr-mpva,lowerbound_need2h,902,590,402,캡걸림 하한
+msd-govt-nz-about-msd-and-our-wo,notrust_need2h,,,16,이전패스 count만
+msit-go-kr-bbs,SUSPECT_nonew,488,488,488,새문서0-死의심
+mss-go-kr-site,lowerbound_need2h,832,500,391,캡걸림 하한
+mva-gov-cn-gongkai,notrust_need2h,,,15,이전패스 count만
+mwr-gov-cn-english,notrust_need2h,,,37,이전패스 count만
+mwr-gov-cn-zwgk,SUSPECT_nonew,18,18,18,새문서0-死의심
+naacc-go-kr-web,notrust_need2h,,,338,이전패스 count만
+nbb-be-en,SUSPECT_nonew,15,15,15,새문서0-死의심
+ncats-nih-gov-news-events,SUSPECT_undercount,6,19,6,측정<수집
+nccih-nih-gov-news,notrust_need2h,,,54,이전패스 count만
+ncri-ie-en,SUSPECT_nonew,104,104,100,새문서0-死의심
+neac-gov-cn-seac,notrust_need2h,,,57,이전패스 count만
+nec-go-kr-site,lowerbound_need2h,0,175,0,캡걸림 하한
+nei-nih-gov-about,notrust_need2h,,,14,이전패스 count만
+nersc-no-en,lowerbound_need2h,165,349,107,캡걸림 하한
+nesc-ie-publications,SUSPECT_nonew,121,121,19,새문서0-死의심
+netl-doe-gov-advsearch,lowerbound_need2h,0,28,0,캡걸림 하한
+netl-doe-gov-energy-analysis,notrust_need2h,,,97,이전패스 count만
+netl-doe-gov-fecm-external-r-and-,lowerbound_need2h,312,343,151,캡걸림 하한
+netl-doe-gov-search-r-d-publicati,lowerbound_need2h,338,729,166,캡걸림 하한
+news-admin-ch-en,notrust_need2h,,,7,이전패스 count만
+nfa-go-kr-nfa,notrust_need2h,,,95,이전패스 count만
+nhc-gov-cn-wjw,SUSPECT_undercount,26,71,10,측정<수집
+nhlbi-nih-gov-resources,SUSPECT_undercount,271,325,188,측정<수집
+nia-nih-gov-news,SUSPECT_undercount,59,95,57,측정<수집
+niaaa-nih-gov-news-events,notrust_need2h,,,80,이전패스 count만
+niams-nih-gov-newsroom,notrust_need2h,,,15,이전패스 count만
+nibib-nih-gov-news-events,notrust_need2h,,,39,이전패스 count만
+nibio-no-en,notrust_need2h,,,34,이전패스 count만
+nichd-nih-gov-newsroom,lowerbound_need2h,197,329,95,캡걸림 하한
+nida-nih-gov-news-events,notrust_need2h,,,46,이전패스 count만
+nidcd-nih-gov-news,FAKE_broken,5,203,0,콘텐츠 있음(셀렉터 노후 의심)
+nidcd-nih-gov-order,notrust_need2h,,,0,이전패스 count만
+nidcr-nih-gov-news-events,notrust_need2h,,,88,이전패스 count만
+niddk-nih-gov-news,SUSPECT_undercount,99,124,99,측정<수집
+nidi-nl-en,lowerbound_need2h,142,285,70,캡걸림 하한
+niehs-nih-gov-newsreleases,notrust_need2h,,,40,이전패스 count만
+nifu-no-en,lowerbound_need2h,138,363,20,캡걸림 하한
+nigms-nih-gov-news,notrust_need2h,,,21,이전패스 count만
+nih-gov-news-events,notrust_need2h,,,0,이전패스 count만
+nih-gov-press-room,notrust_need2h,,,0,이전패스 count만
+nikhef-nl-pub,notrust_need2h,,,4,이전패스 count만
+nim-ac-cn-taxonomy,SUSPECT_nonew,34,34,34,새문서0-死의심
+nimh-nih-gov-news,lowerbound_need2h,261,492,157,캡걸림 하한
+nimhd-nih-gov-news-events,SUSPECT_nonew,13,13,13,새문서0-死의심
+nin-nl-publications,lowerbound_need2h,357,471,201,캡걸림 하한
+ninds-nih-gov-news-events,notrust_need2h,,,73,이전패스 count만
+ninds-nih-gov-publications,SUSPECT_undercount,70,71,70,측정<수집
+nioo-knaw-nl-en,notrust_need2h,,,75,이전패스 count만
+nisra-gov-uk-publications,lowerbound_need2h,502,522,249,캡걸림 하한
+nist-gov-publications,lowerbound_need2h,347,478,207,캡걸림 하한
+nivel-nl-en,lowerbound_need2h,370,520,168,캡걸림 하한
+nkvts-no-english,notrust_need2h,,,0,이전패스 count만
+nnsa-mee-gov-cn-english,SUSPECT_nonew,10,10,10,새문서0-死의심
+noc-ac-uk-about-us,lowerbound_need2h,0,7,0,캡걸림 하한
+noc-ac-uk-publications,SUSPECT_undercount,25,234,54,측정<수집
+nordlandsforskning-no-en,measured_partial,396,304,217,측정OK·부분수집
+nps-or-kr-inforls,FAKE_zero,0,115,89,완료인데 0건-차단/고장
+nps-or-kr-pnsgdnc,lowerbound_need2h,0,182,138,캡걸림 하한
+nrc-re-kr-boardes,SUSPECT_undercount,237,470,116,측정<수집
+ntp-niehs-nih-gov-publications,lowerbound_need2h,532,536,261,캡걸림 하한
+nts-go-kr-nts,notrust_need2h,,,42,이전패스 count만
+nupi-no-en,FAKE_zero,0,28,0,완료인데 0건-차단/고장
+nypi-re-kr,lowerbound_need2h,589,3,298,캡걸림 하한
+nypi-re-kr-board,notrust_need2h,,,151,이전패스 count만
+nzpri-aut-ac-nz-document-library,notrust_need2h,,,0,이전패스 count만
+oig-treasury-gov-other-reports-testim,measured_partial,1354,1353,1354,측정OK·부분수집
+om-mp-be-nl,notrust_need2h,,,0,이전패스 count만
+onera-fr-fr,measured_partial,148,145,148,측정OK·부분수집
+ons-gov-uk-search,SUSPECT_undercount,333,516,285,측정<수집
+openaire-eu-os-slovenia,notrust_need2h,,,28,이전패스 count만
+opendata-centralbank-ie-dataset,measured_partial,39,38,39,측정OK·부분수집
+opendatacommunities-org-data,FAKE_zero,0,3,0,완료인데 0건-차단/고장
+opengov-seoul-go-kr-research,lowerbound_need2h,357,344,209,캡걸림 하한
+openscience-si-naprednoiskanjeaspx,SUSPECT_undercount,19,30,19,측정<수집
+opm-go-kr-opm,lowerbound_need2h,489,660,251,캡걸림 하한
+ots-at-pressemappe,lowerbound_need2h,303,500,169,캡걸림 하한
+par-nsf-gov-search,lowerbound_need2h,2360,2481,1370,캡걸림 하한
+pbc-gov-cn-en,notrust_need2h,,,224,이전패스 count만
+pbl-nl-en,lowerbound_need2h,231,649,133,캡걸림 하한
+pbocri-org-cn-lnzy3html,FAKE_zero,0,8,0,완료인데 0건-차단/고장
+pbocri-org-cn-xslwhtml,notrust_need2h,,,2,이전패스 count만
+plan-be-nl,lowerbound_need2h,117,152,90,캡걸림 하한
+pleanala-ie-en-ie,notrust_need2h,,,50,이전패스 count만
+pmc-gov-au-resources,FAKE_zero,0,129,0,완료인데 0건-차단/고장
+police-go-kr-user,lowerbound_need2h,768,747,365,캡걸림 하한
+policyalternatives-ca-news-research,lowerbound_need2h,1026,1543,593,캡걸림 하한
+politie-be-statistieken,notrust_need2h,,,95,이전패스 count만
+polytechnique-edu-presse,lowerbound_need2h,232,226,128,캡걸림 하한
+portaldiplomatico-mne-gov-pt-en,lowerbound_need2h,241,378,37,캡걸림 하한
+pps-go-kr-kor,notrust_need2h,,,291,이전패스 count만
+presse-cnam-fr-communiques,measured_partial,38,36,38,측정OK·부분수집
+presse-curie-fr-section,lowerbound_need2h,171,300,36,캡걸림 하한
+presse-economie-gouv-fr,lowerbound_need2h,1881,1206,578,캡걸림 하한
+prism-go-kr-homepage,lowerbound_need2h,20621,2900,9301,캡걸림 하한
+provenienzforschung-gv-at-empfehlungen-des-bei,lowerbound_need2h,0,425,0,캡걸림 하한
+psi-ch-en,lowerbound_need2h,273,405,152,캡걸림 하한
+ptb-de-cms,SUSPECT_nonew,8,8,8,새문서0-死의심
+publications-idiap-ch-publications,lowerbound_need2h,120,231,35,캡걸림 하한
+publicsafety-gc-ca-cnt,notrust_need2h,,,0,이전패스 count만
+publicservice-govt-nz-data,SUSPECT_nonew,61,61,61,새문서0-死의심
+publicservice-govt-nz-research-and-data,notrust_need2h,,,110,이전패스 count만
+publikationen-bundesregierung-de-pp-de,notrust_need2h,,,64,이전패스 count만
+pubs-drdc-rddc-gc-ca-basis,notrust_need2h,,,4966,이전패스 count만
+pubs-usgs-gov,lowerbound_need2h,658,10,333,캡걸림 하한
+pubshop-bmbwf-gv-at-indexphp,lowerbound_need2h,499,479,144,캡걸림 하한
+pure-mpg-de-search,notrust_need2h,,,25,이전패스 count만
+rcaanc-cirnac-gc-ca-eng,SUSPECT_nonew,33,33,33,새문서0-死의심
+rda-go-kr-board,lowerbound_need2h,792,1020,372,캡걸림 하한
+regjeringen-no-en,notrust_need2h,,,0,이전패스 count만
+reglementation-controle-asnr-fr-information,notrust_need2h,,,6,이전패스 count만
+regulation-govt-nz-about-us,measured_partial,312,247,179,측정OK·부분수집
+repository-lboro-ac-uk,notrust_need2h,,,129,이전패스 count만
+repository-library-noaa-gov-view,lowerbound_need2h,548,812,290,캡걸림 하한
+repository-naturalis-nl,lowerbound_need2h,777,9681,364,캡걸림 하한
+repository-tno-nl-doclist,lowerbound_need2h,263,10508,160,캡걸림 하한
+reseau-canope-fr-espace-presse,SUSPECT_nonew,19,19,19,새문서0-死의심
+rigsrevisionen-dk-revisionssager,lowerbound_need2h,648,590,316,캡걸림 하한
+rijksoverheid-nl-documenten,notrust_need2h,,,0,이전패스 count만
+ris-bka-gv-at-ergebniswxe,lowerbound_need2h,101,507,82,캡걸림 하한
+rki-de-de,notrust_need2h,,,67,이전패스 count만
+ruomoplus-lib-uom-gr-simple-search,lowerbound_need2h,514,500,256,캡걸림 하한
+saemangeum-go-kr-sda,lowerbound_need2h,321,428,177,캡걸림 하한
+safefood-net-news,FAKE_zero,0,31,0,완료인데 0건-차단/고장
+sante-gouv-fr-ministere,lowerbound_need2h,60,145,15,캡걸림 하한
+santepubliquefrance-fr-presse,lowerbound_need2h,159,624,30,캡걸림 하한
+sastind-gov-cn-n10086200,lowerbound_need2h,372,474,255,캡걸림 하한
+scaht-org-en,lowerbound_need2h,183,641,28,캡걸림 하한
+science-astron-nl-science-astron,lowerbound_need2h,0,117,0,캡걸림 하한
+science-libraries-canada-ca-eng,SUSPECT_nonew,31,31,15,새문서0-死의심
+scourt-go-kr-portal,lowerbound_need2h,1177,982,526,캡걸림 하한
+search-open-canada-ca-opendata,SUSPECT_undercount,80,5287,238,측정<수집
+search-worldcat-org-ko,SUSPECT_undercount,13,14,13,측정<수집
+seco-admin-ch-seco,notrust_need2h,,,281,이전패스 count만
+seer-cancer-gov-report_to_nation,SUSPECT_nonew,24,24,24,새문서0-死의심
+sejong-go-kr-bbs,lowerbound_need2h,1241,500,530,캡걸림 하한
+sfi-ch-en,lowerbound_need2h,211,288,36,캡걸림 하한
+sgu-se-en,notrust_need2h,,,54,이전패스 count만
+si-re-kr-bbs,lowerbound_need2h,297,501,160,캡걸림 하한
+sib-swiss-community,lowerbound_need2h,359,391,188,캡걸림 하한
+sib-swiss-training,SUSPECT_undercount,67,74,67,측정<수집
+sintef-no-en,lowerbound_need2h,140,141,99,캡걸림 하한
+skillsdevelopmentscotland-co-uk-publications-statist,SUSPECT_undercount,487,488,487,측정<수집
+skm-dk-aktuelt,lowerbound_need2h,241,457,142,캡걸림 하한
+sm-dk-publikationer,SUSPECT_nonew,354,354,297,새문서0-死의심
+sm-ee-otsing,measured_partial,337,158,267,측정OK·부분수집
+socialstyrelsen-se-en,lowerbound_need2h,0,127,0,캡걸림 하한
+sonar-ch-global,SUSPECT_undercount,5364,5462,4039,측정<수집
+sozialministerium-gv-at-services,lowerbound_need2h,60,206,17,캡걸림 하한
+spo-go-kr-site,notrust_need2h,,,227,이전패스 count만
+stat-inst-se-om-sis,lowerbound_need2h,0,69,0,캡걸림 하한
+state-gov-department-reports,notrust_need2h,,,10,이전패스 count만
+state-gwd-go-kr-portal,lowerbound_need2h,570,614,326,캡걸림 하한
+stats-govt-nz-indicators,notrust_need2h,,,109,이전패스 count만
+stepi-re-kr-site,lowerbound_need2h,941,570,486,캡걸림 하한
+swisspeace-ch-publications,measured_partial,305,304,49,측정OK·부분수집
+swisstph-ch-en,lowerbound_need2h,417,1087,141,캡걸림 하한
+telemarksforsking-no-publikasjoner,lowerbound_need2h,161,280,9,캡걸림 하한
+tigta-gov-reports,lowerbound_need2h,0,133,0,캡걸림 하한
+toi-no-publications,lowerbound_need2h,275,470,114,캡걸림 하한
+transparency-gov-au-publications,FAKE_zero,0,2694,0,완료인데 0건-차단/고장
+transportation-gov-newsroom,FAKE_zero,0,205,0,완료인데 0건-차단/고장
+transportes-gob-es-el-ministerio,lowerbound_need2h,225,288,120,캡걸림 하한
+treasury-gov-au-publication,lowerbound_need2h,589,651,259,캡걸림 하한
+ufm-dk-publikationer,notrust_need2h,,,38,이전패스 count만
+ulsan-go-kr-u,notrust_need2h,,,58,이전패스 count만
+um-dk-om-os,SUSPECT_nonew,24,24,24,새문서0-死의심
+ungeneva-org-en,SUSPECT_undercount,91,93,68,측정<수집
+unidata-gv-at-pages,FAKE_zero,0,404,73,완료인데 0건-차단/고장
+unikorea-go-kr-web,notrust_need2h,,,41,이전패스 count만
+usgs-gov-news,lowerbound_need2h,243,1549,164,캡걸림 하한
+ustat-mur-gov-it,measured_partial,94,92,94,측정OK·부분수집
+uvek-admin-ch-en,notrust_need2h,,,50,이전패스 count만
+va-gov-vetdata,notrust_need2h,,,114,이전패스 count만
+vbs-admin-ch-en,SUSPECT_undercount,50,111,21,측정<수집
+vtg-admin-ch-en,SUSPECT_nonew,18,18,18,새문서0-死의심
+wbf-admin-ch-en,notrust_need2h,,,0,이전패스 count만
+wef-infor-cl-indexphp,notrust_need2h,,,453,이전패스 count만
+werk-belgie-be-nl,lowerbound_need2h,203,316,132,캡걸림 하한
+who-int-publications,lowerbound_need2h,188,511,139,캡걸림 하한
+women-govt-nz-library,SUSPECT_nonew,14,14,14,새문서0-死의심
+www2-mrc-lmb-cam-ac-uk-research,SUSPECT_undercount,16,47,16,측정<수집
+www6-slac-stanford-edu-news-and-events,lowerbound_need2h,190,267,145,캡걸림 하한
+xxgk-mot-gov-cn-2020,measured_partial,460,456,89,측정OK·부분수집
+ypen-gov-gr-category,lowerbound_need2h,330,454,184,캡걸림 하한
+ypergasias-gov-gr-category,notrust_need2h,,,0,이전패스 count만
+ypes-gr-category,lowerbound_need2h,1785,987,634,캡걸림 하한

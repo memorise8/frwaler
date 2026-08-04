@@ -1,0 +1,74 @@
+﻿site_id,start_url,verdict,category
+andra-fr-publications,https://www.andra.fr,SPA/JS쉘(정적크롤 불가),structural
+apra-gov-au-statistics,https://www.apra.gov.au,WAF차단(헤더/스텔스 우회검증필요),fixable?
+arcep-fr-actualites,https://www.arcep.fr,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+astron-nl-about,https://www.astron.nl,SPA/JS쉘(정적크롤 불가),structural
+bam-de-navigation,https://www.bam.de/Navigation/EN/News/Paper-of-the-Month/paper-of-the-month.html,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+baw-de-en,https://www.baw.de/en/publikationen/geschaeftsbericht/geschaeftsbericht.html,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+bj-admin-ch-bj,https://www.bj.admin.ch,WAF차단(헤더/스텔스 우회검증필요),fixable?
+bmv-de-en,https://www.bmv.de,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+bordbia-ie-about,https://www.bordbia.ie,WAF차단(헤더/스텔스 우회검증필요),fixable?
+bundesfinanzministerium-de-web,https://www.bundesfinanzministerium.de/Web/EN/Resources/Publications/Monthly_report/monthly_report.html,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+cells-es-en,https://www.cells.es,WAF차단(헤더/스텔스 우회검증필요),fixable?
+chineseafs-org-ckynewsmgr,https://www.chineseafs.org,사망/무응답(HTTP000),structural
+cnl-ca-news-publications,https://www.cnl.ca,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+cso-ie-en,https://www.cso.ie,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+dapa-go-kr-dapa,https://www.dapa.go.kr,사망/무응답(HTTP000),structural
+data-biodiversity-be-dataset,https://data.biodiversity.be,WAF차단(헤더/스텔스 우회검증필요),fixable?
+data-gov-be-nl,https://data.gov.be,"불명(HTTP200, 8469B, 6링크)",review
+doc-cerema-fr-default,https://doc.cerema.fr,WAF차단(헤더/스텔스 우회검증필요),fixable?
+drugsandalcohol-ie-cgi,https://www.drugsandalcohol.ie,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+education-govt-nz-our-work,https://www.education.govt.nz,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+education-govt-nz-search,https://www.education.govt.nz,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+en-iwhr-cn-iwhr-english-new,http://en.iwhr.cn,SPA/JS쉘(정적크롤 불가),structural
+en-moj-gov-cn-lawsandregulationsht,http://en.moj.gov.cn,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+english-mee-gov-cn-resources,https://english.mee.gov.cn,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+eprints-imtlucca-it-cgi,http://eprints.imtlucca.it,사망/무응답(HTTP000),structural
+eprints-soton-ac-uk-view,https://eprints.soton.ac.uk,SPA/JS쉘(정적크롤 불가),structural
+eprr-lanl-gov,https://eprr.lanl.gov,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+ethniccommunities-govt-nz-resources,https://www.ethniccommunities.govt.nz,WAF차단(헤더/스텔스 우회검증필요),fixable?
+flore-unifi-it,https://flore.unifi.it,WAF차단(헤더/스텔스 우회검증필요),fixable?
+gov-gr-search,https://www.gov.gr,WAF차단(헤더/스텔스 우회검증필요),fixable?
+gsi-ie-en-ie,https://www.gsi.ie,도메인이전→secure.decc.gov.ie,fixable(도메인갱신)
+hea-ie-resources,https://hea.ie,WAF차단(헤더/스텔스 우회검증필요),fixable?
+ifr-pan-edu-pl-dzialalnosc-naukowa,https://ifr-pan.edu.pl,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+inrae-fr-actualites,https://www.inrae.fr,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+inria-fr-fr,https://www.inria.fr/fr/espace-presse,"불명(HTTP200, 4751B, 6링크)",review
+issnationallab-org-about,https://issnationallab.org/about/annual-quarterly-reports-metrics/,WAF차단(헤더/스텔스 우회검증필요),fixable?
+iwhr-com-zgskywwnew,http://www.iwhr.com/zgskywwnew/ddjs/newskzs/N014809index_1.htm,SPA/JS쉘(정적크롤 불가),structural
+kice-re-kr-boardcnts,https://www.kice.re.kr/boardCnts/list.do,SPA/JS쉘(정적크롤 불가),structural
+kostat-go-kr-boardes,https://www.kostat.go.kr/board.es,SPA/JS쉘(정적크롤 불가),structural
+mbie-govt-nz-building-and-energy,https://www.mbie.govt.nz,SPA/JS쉘(정적크롤 불가),structural
+minedu-gov-gr-grafeio-typoy-kai-di,https://www.minedu.gov.gr,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+minfin-gov-gr-grafeio-typou,https://minfin.gov.gr,WAF차단(헤더/스텔스 우회검증필요),fixable?
+minscfa-gov-gr-grafeio-typou,https://minscfa.gov.gr,WAF차단(헤더/스텔스 우회검증필요),fixable?
+mnd-go-kr-user,https://www.mnd.go.kr,사망/무응답(HTTP000),structural
+mpi-govt-nz-about-mpi,https://www.mpi.govt.nz,SPA/JS쉘(정적크롤 불가),structural
+mpi-govt-nz-resources-and-forms,https://www.mpi.govt.nz,SPA/JS쉘(정적크롤 불가),structural
+nfra-gov-cn-cn,https://www.nfra.gov.cn,SPA/JS쉘(정적크롤 불가),structural
+nidcd-nih-gov-news,https://www.nidcd.nih.gov,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+nidcd-nih-gov-order,https://www.nidcd.nih.gov,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+nih-gov-news-events,https://www.nih.gov,WAF차단(헤더/스텔스 우회검증필요),fixable?
+nih-gov-press-room,https://www.nih.gov/press-room,WAF차단(헤더/스텔스 우회검증필요),fixable?
+nina-no-english,https://www.nina.no,WAF차단(헤더/스텔스 우회검증필요),fixable?
+nkvts-no-english,https://www.nkvts.no,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+nofima-com-publication,https://nofima.com,WAF차단(헤더/스텔스 우회검증필요),fixable?
+nps-or-kr-inforls,https://www.nps.or.kr,사망/무응답(HTTP000),structural
+nupi-no-en,https://www.nupi.no,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+nzpri-aut-ac-nz-document-library,https://nzpri.aut.ac.nz,WAF차단(헤더/스텔스 우회검증필요),fixable?
+om-mp-be-nl,https://www.om-mp.be/nl/onze-publicaties,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+opendatacommunities-org-data,https://opendatacommunities.org,WAF차단(헤더/스텔스 우회검증필요),fixable?
+pbocri-org-cn-lnzy3html,https://www.pbocri.org.cn,"불명(HTTP200, 12177B, 91링크)",review
+phfscience-nz-digital-library,https://www.phfscience.nz,WAF차단(헤더/스텔스 우회검증필요),fixable?
+phfscience-nz-news-publications,https://www.phfscience.nz,WAF차단(헤더/스텔스 우회검증필요),fixable?
+pmc-gov-au-resources,https://www.pmc.gov.au,SPA/JS쉘(정적크롤 불가),structural
+publicsafety-gc-ca-cnt,https://www.publicsafety.gc.ca,SPA/JS쉘(정적크롤 불가),structural
+regjeringen-no-en,https://www.regjeringen.no/en/find-document/id2000006/,WAF차단(헤더/스텔스 우회검증필요),fixable?
+repositorio-uchile-cl-discover,https://repositorio.uchile.cl,사망/무응답(HTTP000),structural
+rijksoverheid-nl-documenten,https://www.rijksoverheid.nl/documenten,콘텐츠 있음(셀렉터 노후 의심),fixable(셀렉터)
+safefood-net-news,https://www.safefood.net,WAF차단(헤더/스텔스 우회검증필요),fixable?
+transparency-gov-au-publications,https://www.transparency.gov.au,SPA/JS쉘(정적크롤 불가),structural
+transport-govt-nz-documents-and-public,https://www.transport.govt.nz/documents-and-publications/results?Keyword=&TopicID=&DocumentTypeID=222&SortBy=NewestToOldest&action_results=Search,SPA/JS쉘(정적크롤 불가),structural
+transportation-gov-newsroom,https://www.transportation.gov,WAF차단(헤더/스텔스 우회검증필요),fixable?
+unidata-gv-at-pages,https://unidata.gv.at,WAF차단(헤더/스텔스 우회검증필요),fixable?
+ypergasias-gov-gr-category,https://ypergasias.gov.gr,WAF차단(헤더/스텔스 우회검증필요),fixable?

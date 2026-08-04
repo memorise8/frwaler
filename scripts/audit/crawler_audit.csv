@@ -1,0 +1,799 @@
+﻿site_id,health,flag_count,flags
+academie-sciences-fr-espace-presse,timeout,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+accc-gov-au-about-us,ok,2,MAX_PAGES=200; 25분벽시계
+accc-gov-au-search,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+acma-gov-au-publications,ok,2,25분벽시계; JS렌더의존(취약)
+acpr-banque-france-fr-fr,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+adaptcentre-ie-research,ok,3,25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+adruk-org-news-publications,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+afd-fr-fr,ok,2,초록<50자 skip; 25분벽시계
+afp-gov-au-news-centre,ok,2,25분벽시계; JS렌더의존(취약)
+afp-gov-au-search,ok,2,초록<50자 skip; 25분벽시계
+africamuseum-be-en,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+ag-gov-au-publications,ok,2,25분벽시계; JS렌더의존(취약)
+agri-ee-ministeerium-uudised,timeout,1,25분벽시계
+agriculture-gouv-fr-recherche-developpem,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+alrc-gov-au-publications,ok,2,25분벽시계; JS렌더의존(취약)
+alrc-gov-au,?,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+ameslab-gov-news,ok,2,25분벽시계; 뉴스/보도성
+amf-france-org-fr,ok,3,초록<100자 skip; 25분벽시계; 뉴스/보도성
+ami-swiss-en,ok,2,MAX_PAGES=200; 25분벽시계
+amolf-nl-publications,ok,3,초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+amu-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+andra-fr-publications,empty_zero_parse,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+anr-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+anses-fr-fr,timeout,1,PDF링크 접미사판정(랜딩미추적)
+ansto-gov-au-search,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+app-mps-gov-cn-gdnps,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+apra-gov-au-statistics,empty_zero_parse,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+arcep-fr-actualites,empty_zero_parse,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+archives-nationales-culture-gouv-fr-presse,ok,3,초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+arcnl-nl-publications,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+arcom-fr-presse,ok,2,초록<100자 skip; 25분벽시계
+arn-se-om-arn,ok,2,초록<50자 skip; 25분벽시계
+arrow-tudublin-ie-creaart,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; 25분벽시계
+artsetmetiers-fr-fr,ok,4,초록<100자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+artsetmetiers-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+asiapacific-ca-media,ok,4,초록<50자 skip; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+asn-fr-information,ok,1,25분벽시계
+astro-oma-be-en,timeout,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+astron-nl-about,empty_zero_parse,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+audencia-com-lecole,ok,3,25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+auri-re-kr-boardes,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+auri-re-kr-publication,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+auswaertiges-amt-de-de,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+auswaertiges-amt-de-en,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+avoindata-suomi-fi-data,ok,3,초록<200자 skip; MAX_PAGES=200; 25분벽시계
+babraham-ac-uk-news,ok,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+bam-de-navigation,empty_zero_parse,2,25분벽시계; 뉴스/보도성
+bankofcanada-ca-publications,ok,0,
+banque-france-fr-en,ok,1,25분벽시계
+baw-de-en,empty_zero_parse,1,25분벽시계
+bdap-opendata-rgs-mef-gov-it-catalog,ok,1,25분벽시계
+benthamscience-com-press-release,ok,6,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+better-fsc-go-kr-fsc_new,?,0,
+bfe-admin-ch-bfe,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+bfr-bund-de-en,ok,0,
+bfs-admin-ch-bfs,ok,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; 뉴스/보도성
+biblio-naturalsciences-be-rbins-publications,ok,2,초록<50자 skip; 25분벽시계
+biorbic-com-publications,ok,2,25분벽시계; JS렌더의존(취약)
+bj-admin-ch-bj,empty_zero_parse,2,25분벽시계; 뉴스/보도성
+bjerknes-uib-no-en,ok,1,25분벽시계
+bm-dk-soeg,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+bmas-de-de,ok,5,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+bmbfsfj-bund-de-bmbfsfj,ok,0,
+bmds-bund-de-aktuelles,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계; 뉴스/보도성
+bmf-gv-at-ministerium,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; 25분벽시계
+bmftr-bund-de-siteglobals,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+bmi-gv-at-114,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+bmimi-gv-at-themen,ok,1,25분벽시계
+bmj-gv-at-ministerium,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+bmleh-de-en,ok,2,MAX_PAGES=200; 25분벽시계
+bmleh-de-siteglobals,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+bmluk-gv-at-service,ok,2,MAX_PAGES=200; 25분벽시계
+bmlv-gv-at-wissen-forschung,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+bmv-de-en,empty_zero_parse,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+bmvg-de-en,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+bmwet-gv-at-services,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+bmwkms-gv-at-themen,ok,2,초록<50자 skip; 25분벽시계
+bmwsb-bund-de-de,ok,1,25분벽시계
+bmz-de-de,ok,2,MAX_PAGES=200; 25분벽시계
+bnf-fr-fr,ok,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+bok-or-kr-portal,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+book-ioj-go-kr-library,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+bordbia-ie-about,empty_zero_parse,2,초록<50자 skip; 25분벽시계
+boverket-se-en,ok,2,초록<100자 skip; 25분벽시계
+bra-se-english,ok,4,초록<100자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+brgm-fr-fr,ok,2,25분벽시계; 뉴스/보도성
+broadbentinstitute-ca-research,ok,4,초록<50자 skip; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+brsn-net-list,ok,2,MAX_PAGES=200; 25분벽시계
+budget-canada-ca-home-accueil-enhtml,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+bundesfinanzministerium-de-web,empty_zero_parse,3,초록<80자 skip; MAX_PAGES=200; 25분벽시계
+bundesgesundheitsministerium-de-service,ok,2,MAX_PAGES=200; 25분벽시계
+bundeskanzleramt-gv-at-bundeskanzleramt,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+bundesumweltministerium-de-en,ok,0,
+busan-go-kr-nbtnewsbu,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+business-sweden-com-about-us,ok,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+cac-gov-cn-hdfw,ok,2,초록<50자 skip; 25분벽시계
+cae-eco-fr-presse-cae-0,ok,2,초록<50자 skip; 25분벽시계
+caissedesdepots-fr-communiques-de-press,ok,2,초록<50자 skip; 25분벽시계
+caitec-org-cn-n6,ok,2,초록<50자 skip; 25분벽시계
+canada-ca-en,ok,3,초록<100자 skip; 25분벽시계; 뉴스/보도성
+cancer-fr-catalogue-des-public,ok,2,25분벽시계; JS렌더의존(취약)
+cancer-fr-presse,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+cancer-gov-about-nci,ok,2,초록<50자 skip; 25분벽시계
+canurb-org-publications,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+carabinieri-it-in-vostro-aiuto,ok,5,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+casseng-cssn-cn-sky_research,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+catalog-data-metro-tokyo-lg-jp-dataset,ok,2,MAX_PAGES=200; 25분벽시계
+catalogue-data-govt-nz-dataset,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+cc-nih-gov-research,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+cdhowe-org-research-insights,ok,4,MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+cds-cern-ch-collection,ok,2,MAX_PAGES=200; 25분벽시계
+cea-hal-science-cnrgh,ok,2,MAX_PAGES=200; 25분벽시계
+cedelft-eu-reports,ok,2,25분벽시계; 뉴스/보도성
+cells-es-en,empty_zero_parse,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+centralbank-ie-publication,ok,2,초록<50자 skip; 25분벽시계
+centralesupelec-fr-presse,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+cepii-fr-cepii,ok,2,MAX_PAGES=200; 25분벽시계
+cer-rec-gc-ca-en,ok,2,MAX_PAGES=200; 25분벽시계
+cerema-fr-fr,ok,2,MAX_PAGES=200; 25분벽시계
+chinatax-gov-cn-chinatax,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+chineseafs-org-ckynewsmgr,empty_zero_parse,2,초록<50자 skip; 25분벽시계
+chungnam-go-kr-cnportal,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+cigionline-org-publications,ok,2,25분벽시계; JS렌더의존(취약)
+cirad-fr-espace-presse,ok,2,초록<100자 skip; 25분벽시계
+civilprotection-gov-gr-deltia-tupou,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+climateinstitute-ca-newsroom,ok,4,초록<50자 skip; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+cmi-no-publications,ok,1,25분벽시계
+cnam-hal-science-ceet,ok,2,MAX_PAGES=200; 25분벽시계
+cnam-hal-science-search,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+cnes-fr-communiques,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+cnic-es-en,ok,2,MAX_PAGES=200; 25분벽시계
+cnipa-gov-cn-col,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+cnl-ca-news-publications,empty_zero_parse,2,초록<100자 skip; 25분벽시계
+collections-nlm-nih-gov,?,3,초록<100자 skip; 25분벽시계; JS렌더의존(취약)
+college-de-france-fr-en,ok,3,25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+compareschoolrankings-org,?,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+comptroller-defense-gov-odcfo,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+comwel-or-kr-comwel,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+consult-environment-govt-nz-climate,ok,2,초록<50자 skip; 25분벽시계
+consult-environment-govt-nz-resource-management,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+consult-environment-govt-nz-waste,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+cora-ucc-ie-search,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+cpb-nl-en,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+cre-fr-documents,ok,2,초록<100자 skip; 25분벽시계
+csem-ch-en,ok,2,25분벽시계; 뉴스/보도성
+csic-es-es,ok,2,MAX_PAGES=200; 25분벽시계
+cso-ie-en,empty_zero_parse,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+csrc-gov-cn-csrc_en,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+cstb-fr-communiques-de-press,ok,4,MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+culture-gouv-fr-espace-documentation,ok,2,25분벽시계; JS렌더의존(취약)
+cwf-ca-publications,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+daejeon-go-kr-drh,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+dair-dias-ie-cgi,ok,2,초록<50자 skip; 25분벽시계
+dapa-go-kr-dapa,empty_zero_parse,5,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+data-ademe-fr,?,2,MAX_PAGES=200; 25분벽시계
+data-aeronomie-be-dataset,ok,1,25분벽시계
+data-biodiversity-be-dataset,empty_zero_parse,2,MAX_PAGES=200; 25분벽시계
+data-busan-go-kr-bdip,ok,2,초록<100자 skip; 25분벽시계
+data-cso-ie,?,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+data-e-gov-go-jp-data,ok,1,25분벽시계
+data-gouv-fr-organizations,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+data-gov-au-data,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+data-gov-be-nl,empty_zero_parse,2,MAX_PAGES=200; 25분벽시계
+data-gov-uk-search,ok,2,MAX_PAGES=200; 25분벽시계
+data-gv-at-datasets,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+data-mfe-govt-nz-documents,ok,2,MAX_PAGES=200; 25분벽시계
+data-mfe-govt-nz-tables,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+data-nasa-gov-dataset,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+data-nist-gov-sdp,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+data-statistik-gv-at-web,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+data-taltech-ee-search,ok,2,초록<100자 skip; 25분벽시계
+datacatalogue-adruk-org-browser,ok,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; JS렌더의존(취약)
+daten-berlin-de-datensaetze,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+datenportal-bmbf-de-portal,ok,2,MAX_PAGES=200; 25분벽시계
+datos-gob-cl-dataset,ok,0,
+datos-gob-mx-dataset,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+defence-gov-au-publications,ok,2,25분벽시계; JS렌더의존(취약)
+defence-govt-nz-publications,ok,2,MAX_PAGES=200; 25분벽시계
+defensa-gob-es-gabinete,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+defense-gouv-fr-salle-de-presse,ok,2,초록<100자 skip; 25분벽시계
+defense-gov-news,ok,4,초록<100자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+deltares-nl-en,ok,2,초록<100자 skip; 25분벽시계
+dfat-gov-au-publications,ok,2,25분벽시계; JS렌더의존(취약)
+dhs-gov-congressional-approp,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+dhs-gov-news-releases,timeout,5,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+dhs-gov-publication,ok,3,초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+dia-govt-nz-diawebsitensf,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+didaktorika-gr-eadd,ok,2,초록<50자 skip; 25분벽시계
+difesa-it-il-ministro,ok,1,25분벽시계
+differ-nl-publications,ok,3,초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+digar-ee,?,2,25분벽시계; JS렌더의존(취약)
+digital-gob-es-comunicacion,ok,2,MAX_PAGES=200; 25분벽시계
+diplomatie-gouv-fr-en,ok,2,25분벽시계; 뉴스/보도성
+directives-doe-gov-directives-browse,ok,2,초록<50자 skip; 25분벽시계
+directives-doe-gov-guidance,ok,1,25분벽시계
+doaj-org-search,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; MAX_PAGES=200; 25분벽시계
+doc-cerema-fr-default,empty_zero_parse,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+doc_cerema_fr_default,?,2,초록<50자 skip; 25분벽시계
+doi-gov-bpp,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+dol-gov-newsroom,ok,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; 뉴스/보도성
+doras-dcu-ie-view,ok,2,MAX_PAGES=200; 25분벽시계
+dpmc-govt-nz-publications,ok,1,25분벽시계
+drc-gov-cn-leafaspx,ok,2,MAX_PAGES=200; 25분벽시계
+drugsandalcohol-ie-cgi,empty_zero_parse,2,25분벽시계; JS렌더의존(취약)
+dspace-emu-ee-search,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+dspace-ut-ee-search,timeout,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+dst-dk-da,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+dtic-dimensions-ai-discover,ok,2,MAX_PAGES=200; 25분벽시계
+e-stat-go-jp-stat-search,ok,4,PDF만수집(데이터손실의심); MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+earlham-ac-uk-newsroom,ok,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+earth-prints-org,ok,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; JS렌더의존(취약)
+ec-lyon-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+ecat-ga-gov-au-geonetwork,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+ecologie-gouv-fr-presse,ok,2,뉴스/보도성; JS렌더의존(취약)
+economie-fgov-be-nl,ok,4,초록<100자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+economy-ni-gov-uk-news,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+economy-ni-gov-uk-publications,ok,2,초록<50자 skip; 25분벽시계
+ed-gov-about,ok,2,MAX_PAGES=200; 25분벽시계
+eda-admin-ch-eda,ok,2,25분벽시계; 뉴스/보도성
+edi-admin-ch-de,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+edoc-rki-de-handle,ok,1,PDF링크 접미사판정(랜딩미추적)
+educacionfpydeportes-gob-es-prensahtml,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+education-govt-nz-our-work,empty_zero_parse,3,초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+education-govt-nz-search,empty_zero_parse,2,초록<50자 skip; 25분벽시계
+education-ni-gov-uk-news,ok,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+edx-netl-doe-gov-group,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+efd-admin-ch-en,ok,2,MAX_PAGES=200; 25분벽시계
+efk-admin-ch-fr,ok,4,PDF링크 접미사판정(랜딩미추적); 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+ehesp-fr-espace-presse,timeout,5,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+ehess-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+eia-gov-reports,?,5,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+ejournals-epublishing-ekt-gr-indexphp,ok,2,초록<20자 skip; 25분벽시계
+elocus-lib-uoc-gr-search,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+em-dk-aktuelt,ok,2,MAX_PAGES=200; 25분벽시계
+em-lyon-com-en,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+emep-int-mscw,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+emsl-pnnl-gov-science,ok,2,MAX_PAGES=200; 25분벽시계
+en-ird-fr-sections,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계; 뉴스/보도성
+en-iwhr-cn-iwhr-english-new,empty_zero_parse,2,초록<50자 skip; 25분벽시계
+en-moj-gov-cn-lawsandregulationsht,empty_zero_parse,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+en-ndrc-gov-cn-policies,timeout,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+en-nhc-gov-cn-publicationshtml,ok,2,초록<50자 skip; 25분벽시계
+en-nim-ac-cn-taxonomy,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+enac-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+enc-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+energy-gov-management,ok,2,MAX_PAGES=200; 25분벽시계
+energy-gov-open-government,ok,2,초록<50자 skip; 25분벽시계
+energy-gov-search,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+eng-mod-gov-cn-2025xb,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+english-cnipa-gov-cn-col,ok,2,초록<50자 skip; 25분벽시계
+english-mee-gov-cn-resources,empty_zero_parse,2,MAX_PAGES=200; 25분벽시계
+english-www-gov-cn-archive,ok,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+enpc-hal-science-search,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+ens-hal-science-search,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+ens-lyon-fr-lecole,ok,2,25분벽시계; 뉴스/보도성
+ens-lyon-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+enscp-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+enssib-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+environment-govt-nz-acts-and-regulations,ok,2,초록<50자 skip; 25분벽시계
+environment-govt-nz-publications,ok,3,초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+environment-govt-nz-what-you-can-do,ok,1,25분벽시계
+envt-hal-science-search,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+epa-ie-news-releases,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계; 뉴스/보도성
+eprints-imtlucca-it-cgi,empty_zero_parse,2,초록<50자 skip; 25분벽시계
+eprints-soton-ac-uk-view,empty_zero_parse,2,초록<50자 skip; 25분벽시계
+eprr-lanl-gov,empty_zero_parse,0,
+espci-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+esri-ie-publications,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+esteri-it-it,ok,5,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+etera-ee-browse,ok,0,
+ethniccommunities-govt-nz-resources,empty_zero_parse,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+ethz-ch-de,ok,4,초록<100자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+etis-ee-portal,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+exteriores-gob-es-en,ok,2,초록<100자 skip; 25분벽시계
+fafo-no-en,ok,2,초록<100자 skip; 25분벽시계
+fair-healthdata-be-search,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+federalregister-gov-documents,ok,2,초록<50자 skip; 25분벽시계
+fhi-no-en,ok,3,초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+fi-se-en,ok,2,초록<50자 skip; 25분벽시계
+fibl-org-en,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+finance-ni-gov-uk-publications,ok,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+flore-unifi-it,empty_zero_parse,2,25분벽시계; JS렌더의존(취약)
+fm-dk-udgivelser,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+fmi-ch-research,ok,1,25분벽시계
+fmn-dk-da,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+forest-go-kr-kfsweb,ok,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+forskningsradet-no-om-forskningsradet,timeout,2,MAX_PAGES=200; 25분벽시계
+frontiersin-org-articles,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+fsc_better_testcodex,?,1,초록<100자 skip
+fss-or-kr-fss,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+ftc-go-kr-www,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+futureneurocentre-ie-our-research,ok,3,25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+ga-gov-au-data-pubs,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+ga-gov-au-search,?,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+garda-ie-en,timeout,2,초록<50자 skip; 25분벽시계
+gb-go-kr-sub,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+gcsp-ch-publications,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+genome-gov-about-nhgri,timeout,3,초록<100자 skip; 25분벽시계; JS렌더의존(취약)
+genomecanada-ca-about,timeout,2,25분벽시계; 뉴스/보도성
+geoportal-statistics-gov-uk-search,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+gi-re-kr-home,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+gichd-org-publications-resourc,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+github-com-orgs,ok,2,초록<100자 skip; 25분벽시계
+gnews-gg-go-kr-briefing,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+gnewsonline-it-category,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+go-griffith-ie-browse,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+gob-mx-archivo-prensa,?,2,25분벽시계; 뉴스/보도성
+gov-gr-search,empty_zero_parse,1,25분벽시계
+gov-ie-en,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+gov-il-collectors,timeout,2,25분벽시계; JS렌더의존(취약)
+gov-scot-publications,ok,1,25분벽시계
+gov-scot-statistics-and-resea,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; MAX_PAGES=200; 25분벽시계
+gov-uk-search,ok,2,초록<100자 skip; 25분벽시계
+gov-wales-publications,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; 25분벽시계
+government-se-publications,ok,2,25분벽시계; JS렌더의존(취약)
+graduateinstitute-ch-library,ok,2,MAX_PAGES=200; 25분벽시계
+gri-re-kr-web,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; 25분벽시계
+gsi-ie-en-ie,empty_zero_parse,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+gwangju-go-kr-boardlistdo,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+gyeongnam-go-kr-board,ok,2,MAX_PAGES=200; 25분벽시계
+hal-science-afd,ok,2,MAX_PAGES=200; 25분벽시계
+hal-science-ign-ensg,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+harcresearch-org-news,ok,3,초록<100자 skip; 25분벽시계; 뉴스/보도성
+harcresearch-org-research,ok,4,PDF링크 접미사판정(랜딩미추적); 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+hatvp-fr-actualites-et-public,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+hautconseilclimat-fr-ressources-pedagogiq,ok,2,초록<50자 skip; 25분벽시계
+hcsp-fr-explorecgi,ok,1,JS렌더의존(취약)
+hea-ie-resources,empty_zero_parse,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+health-gov-au-publications,ok,2,25분벽시계; JS렌더의존(취약)
+health-govt-nz-publications,ok,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; JS렌더의존(취약)
+health-ni-gov-uk-news,ok,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+health-ni-gov-uk-publications,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+healthnz-figshare-com,?,5,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+hec-edu-en,ok,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+hec-hal-science-search,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+helios-eie-gr-helios,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+hfml-felix-nl-en,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+hhs-gov-guidance,ok,2,MAX_PAGES=200; 25분벽시계
+hi-no-en,ok,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+home-cern-news,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+home-treasury-gov-about,ok,2,초록<50자 skip; 25분벽시계
+homeaffairs-gov-au-sitesearch,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+hrb-ie-publications,ok,3,초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+hrbopenresearch-org-articles,?,4,초록<30자 skip; MAX_PAGES=60; 25분벽시계; JS렌더의존(취약)
+hud-govt-nz-documents,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+hud-govt-nz-stats-and-insights,ok,2,초록<50자 skip; 25분벽시계
+humanrights-go-kr-base,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+icn-artem-com-en,ok,2,25분벽시계; 뉴스/보도성
+icn-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+icp-fr-a-propos-de-licp,ok,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; 뉴스/보도성
+icp-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+idiap-ch-en,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+ifau-se-forskning,ok,2,MAX_PAGES=200; 25분벽시계
+ifau-se-press,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+ifpenergiesnouvelles-fr-tags,ok,2,초록<50자 skip; 25분벽시계
+ifr-pan-edu-pl-dzialalnosc-naukowa,empty_zero_parse,2,초록<50자 skip; 25분벽시계
+ifremer-fr-fr,ok,3,25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+ign-fr-espace-presse,ok,2,초록<100자 skip; 25분벽시계
+igualdad-gob-es-comunicacion,ok,2,25분벽시계; 뉴스/보도성
+iheid-swisscovery-ch-discovery,ok,2,MAX_PAGES=200; 25분벽시계
+ii-re-kr-base,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+iisd-org-press,ok,5,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+illustro-iadt-figshare-com-search,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+imt-nord-europe-hal-science-search,ok,2,초록<50자 skip; 25분벽시계
+incheon-go-kr-ic010205,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+indicators-be-nl,ok,1,25분벽시계
+ineris-fr-fr,timeout,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+ineris-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+info-daegu-go-kr-newshome,ok,2,MAX_PAGES=200; 25분벽시계
+info-korail-com-info,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+infrastructure-ni-gov-uk-news,ok,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+inrae-fr-actualites,empty_zero_parse,3,25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+inria-fr-fr,empty_zero_parse,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+inria-hal-science-search,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+insee-fr-fr,timeout,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; 뉴스/보도성
+inserm-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+insight-centre-org-press-releases,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+international-andra-fr-documents-and-visual,ok,2,25분벽시계; JS렌더의존(취약)
+international-canada-ca-en,ok,1,25분벽시계
+international-gc-ca-transparency-transpa,ok,1,25분벽시계
+ir-amolf-nl,?,2,초록<50자 skip; 25분벽시계
+ir-arcnl-nl,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+ir-cwi-nl,ok,2,MAX_PAGES=200; 25분벽시계
+ir-lib-uth-gr-xmlui,ok,2,MAX_PAGES=200; 25분벽시계
+irb-usi-ch-publications,ok,2,25분벽시계; JS렌더의존(취약)
+ird-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+iris-unitn-it,ok,2,25분벽시계; JS렌더의존(취약)
+irpp-org-about-the-irpp,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+irpp-org-media,ok,3,초록<50자 skip; 뉴스/보도성; JS렌더의존(취약)
+irsn-fr-actualites,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+isae-ensma-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+issibern-ch-outreach,ok,4,PDF링크 접미사판정(랜딩미추적); 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+issibern-ch-results,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+issnationallab-org-about,empty_zero_parse,2,초록<50자 skip; 25분벽시계
+issnationallab-org-press-releases,ok,4,초록<50자 skip; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+issnationallab-org-publications,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+issnationallab-org-research-and-science,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+iucn-org-about-iucn,ok,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+iucn-org-press-releases,ok,5,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+iucn-org-resources,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+ivo-se-sok,ok,2,25분벽시계; JS렌더의존(취약)
+iwhr-com-zgskywwnew,empty_zero_parse,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+jeju-go-kr-news,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+jeonnam-go-kr-m7116,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+jgi-doe-gov-user-science,ok,2,초록<50자 skip; 25분벽시계
+jic-ac-uk-news-events,ok,5,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+jsearch-mwr-gov-cn-irs-c-web,ok,2,초록<100자 skip; 25분벽시계
+julkaisut-valtioneuvosto-fi-search,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+justice-gouv-fr-documentation,ok,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; JS렌더의존(취약)
+justice-gov-news,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+justice-govt-nz-publications,timeout,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; JS렌더의존(취약)
+justice-ni-gov-uk-publications,ok,2,초록<100자 skip; 25분벽시계
+justitsministeriet-dk-forskning,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+justitsministeriet-dk-pressemeddelelse,ok,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; 뉴스/보도성
+juventudeinfancia-gob-es-es,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+kamco-or-kr-portal,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+kammarkollegiet-se-aktuellt,ok,2,초록<50자 skip; 25분벽시계
+kasa-go-kr-bbs,ok,2,MAX_PAGES=200; 25분벽시계
+kb-se-om-oss,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+kcg-go-kr-kcg,ok,2,초록<50자 skip; 25분벽시계
+kdca-go-kr-kdca,ok,2,초록<100자 skip; 25분벽시계
+kedi-re-kr-khome,ok,2,MAX_PAGES=200; 25분벽시계
+keei-re-kr-boardes,ok,2,MAX_PAGES=200; 25분벽시계
+kefm-dk-aftaler,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+kei-re-kr-eliblistes,ok,2,MAX_PAGES=200; 25분벽시계
+keis-or-kr-keis,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+kepco-co-kr-home,ok,2,초록<50자 skip; 25분벽시계
+kfss-forest-go-kr-stat,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+khs-go-kr-cop,ok,2,MAX_PAGES=200; 25분벽시계
+khs-go-kr-newsbbz,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+kicce-re-kr-main,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+kice-re-kr-boardcnts,empty_zero_parse,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+kicj-re-kr-boardes,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+kiep-go-kr-galleryes,ok,2,MAX_PAGES=200; 25분벽시계
+kihasa-re-kr-news,ok,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+kihasa-re-kr-publish,timeout,3,초록<100자 skip; 25분벽시계; JS렌더의존(취약)
+kinfa-or-kr-notificationpromotio,ok,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+kinu-or-kr-main,ok,2,MAX_PAGES=200; 25분벽시계
+kipa-re-kr-html,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+kipf-re-kr-bbs,ok,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+kipf-re-kr-kor,ok,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+kipo-go-kr-ko,ok,2,초록<50자 skip; 25분벽시계
+kirj-ee-archive,ok,2,뉴스/보도성; JS렌더의존(취약)
+kisdi-re-kr-bbs,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+kisdi-re-kr-report,ok,2,초록<100자 skip; 25분벽시계
+kit-nl-institute,ok,4,MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+kjonnsforskning-no-nb,ok,1,25분벽시계
+kli-re-kr-kli,ok,2,MAX_PAGES=200; 25분벽시계
+kliimaministeerium-ee-otsing,ok,2,MAX_PAGES=200; 25분벽시계
+klimaraadet-dk-da,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+klri-re-kr-kor,ok,2,MAX_PAGES=200; 25분벽시계
+kma-go-kr-kma,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계; 뉴스/보도성
+kmcc-go-kr-userdo,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+kmi-re-kr-web,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+kna-forest-go-kr-kfsweb,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+knmi-nl-kennis-en-datacentru,ok,2,초록<50자 skip; 25분벽시계
+knowledge-barnardos-ie-browse,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+kommunekredit-com-about-us,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+kommunikasjon-ntb-no-presserom,ok,2,MAX_PAGES=200; 25분벽시계
+kostat-go-kr-boardes,empty_zero_parse,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+koti-re-kr-user,ok,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+krei-re-kr-krei,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+krihs-re-kr-boardes,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+krihs-re-kr-krihslibraryarticle,ok,2,초록<50자 skip; 25분벽시계
+krihs-re-kr-krihslibraryreport,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+krivet-re-kr-kor,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+kwdi-re-kr-plaza,ok,2,초록<100자 skip; 25분벽시계
+kwdi-re-kr-publications,ok,2,초록<100자 skip; 25분벽시계
+lavoro-gov-it-stampa-e-media,ok,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+lecese-fr-espace-presse,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+lenus-ie-browse,ok,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; JS렌더의존(취약)
+lib-cssn-cn-zy,ok,2,MAX_PAGES=200; 25분벽시계
+library-kwrwater-nl-en,ok,2,초록<50자 skip; 25분벽시계
+libreria-educacion-gob-es-p,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+llnl-gov-news,ok,2,초록<50자 skip; 25분벽시계
+lne-fr-fr,ok,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; 뉴스/보도성
+mafra-go-kr-home,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+marine-ie-site-area,ok,3,초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+masaf-gov-it-flex,ok,3,초록<100자 skip; 25분벽시계; 뉴스/보도성
+mbie-govt-nz-building-and-energy,empty_zero_parse,2,초록<50자 skip; 25분벽시계
+mef-gov-it-ufficio-stampa,ok,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+mem-gov-cn-fw,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+mentalhealthcommission-ca-resources,ok,4,초록<50자 skip; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+meri-belspo-be-site,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+met-no-publikasjoner,timeout,2,초록<50자 skip; 25분벽시계
+meteofrance-fr-actualite,ok,1,25분벽시계
+meteoswiss-admin-ch-services-and-publica,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+mfat-govt-nz-en,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; MAX_PAGES=200; 25분벽시계
+mfds-go-kr-brd,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+mi-se-arkiv,ok,4,MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+migration-gov-gr-press,ok,5,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+miit-gov-cn-zc,ok,2,초록<50자 skip; 25분벽시계
+miit-gov-cn-zwgk,ok,2,초록<50자 skip; 25분벽시계
+mim-gov-it-web,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; 25분벽시계
+mimit-gov-it-it,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+minagric-gr-the-ministry-2,ok,2,25분벽시계; 뉴스/보도성
+mindev-gov-gr-category,ok,3,PDF링크 접미사판정(랜딩미추적); 뉴스/보도성; JS렌더의존(취약)
+mindigital-gr-archives,ok,2,25분벽시계; 뉴스/보도성
+minedu-gov-gr-grafeio-typoy-kai-di,empty_zero_parse,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+minfin-gov-gr-grafeio-typou,empty_zero_parse,4,MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+ministeroturismo-gov-it-category,ok,5,초록<100자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+ministryofjustice-gr,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+minrel-gob-cl-minrel,ok,0,
+minscfa-gov-gr-grafeio-typou,empty_zero_parse,2,25분벽시계; 뉴스/보도성
+mintour-gov-gr-deltia-typoy,ok,3,25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+miteco-gob-es-es,ok,2,25분벽시계; 뉴스/보도성
+mivau-gob-es-el-ministerio,ok,2,MAX_PAGES=200; 25분벽시계
+mma-go-kr-board,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+mnd-go-kr-user,empty_zero_parse,4,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; MAX_PAGES=200; 25분벽시계
+mod-mil-gr-category,ok,2,25분벽시계; 뉴스/보도성
+moe-go-kr-boardcnts,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; MAX_PAGES=200; 25분벽시계
+moe-gov-cn-jyb_sjzl,ok,2,초록<100자 skip; 25분벽시계
+moe-gov-cn-jyb_xwfb,ok,2,초록<50자 skip; 25분벽시계
+moe-gov-cn-jyb_xxgk,ok,2,MAX_PAGES=200; 25분벽시계
+moef-go-kr-nw,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+mof-go-kr-doc,ok,2,초록<100자 skip; 25분벽시계
+mof-gov-cn-en,ok,2,초록<50자 skip; 25분벽시계
+mofa-go-kr-www,ok,2,초록<50자 skip; 25분벽시계
+mofe-go-kr-id,ok,2,초록<50자 skip; 25분벽시계
+mogef-go-kr-nw,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+moh-gov-gr-articles,ok,2,뉴스/보도성; JS렌더의존(취약)
+mohrss-gov-cn-xxgk2020,ok,2,초록<50자 skip; 25분벽시계
+mohw-go-kr-boardes,ok,1,25분벽시계
+mois-go-kr-frt,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; MAX_PAGES=200; 25분벽시계
+moj-go-kr-moj,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+moleg-go-kr-boardes,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+molit-go-kr-usr,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+motir-go-kr-kor,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+mpi-govt-nz-about-mpi,empty_zero_parse,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+mpi-govt-nz-forestry,?,3,초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+mpi-govt-nz-resources-and-forms,empty_zero_parse,2,초록<100자 skip; 25분벽시계
+mpva-go-kr-mpva,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+msd-govt-nz-about-msd-and-our-wo,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+msit-go-kr-bbs,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+mss-go-kr-site,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+mva-gov-cn-gongkai,ok,2,MAX_PAGES=200; 25분벽시계
+mwr-gov-cn-english,ok,2,초록<50자 skip; 25분벽시계
+mwr-gov-cn-zwgk,ok,2,MAX_PAGES=200; 25분벽시계
+naacc-go-kr-web,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+nasa-gov-2025-news-releases,ok,5,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+nationalacademies-org-publications,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+naturalengland-defra-opendata-arcgis-com-search,ok,1,25분벽시계
+nbb-be-en,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+ncats-nih-gov-news-events,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+nccih-nih-gov-news,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+ncha-gov-cn-col,ok,2,25분벽시계; JS렌더의존(취약)
+ncri-ie-en,ok,2,MAX_PAGES=200; 25분벽시계
+neac-gov-cn-seac,ok,2,MAX_PAGES=200; 25분벽시계
+nec-go-kr-site,timeout,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+nei-nih-gov-about,ok,2,초록<50자 skip; 25분벽시계
+nei-nih-gov-learn-about-eye-heal,ok,2,MAX_PAGES=200; 25분벽시계
+nemertes-library-upatras-gr-browse,ok,2,25분벽시계; JS렌더의존(취약)
+nemertes-library-upatras-gr-search,ok,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; JS렌더의존(취약)
+nersc-no-en,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+nesc-ie-publications,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+netl-doe-gov-advsearch,timeout,1,25분벽시계
+netl-doe-gov-energy-analysis,ok,2,초록<100자 skip; 25분벽시계
+netl-doe-gov-fecm-external-r-and-,ok,2,초록<50자 skip; 25분벽시계
+netl-doe-gov-search-r-d-publicati,ok,2,초록<100자 skip; 25분벽시계
+news-admin-ch-en,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+news-fnal-gov-category,ok,5,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+news-va-gov-va-press-room,?,4,MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+newsreleases-sandia-gov-archives-by-year,ok,4,초록<50자 skip; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+nfa-go-kr-nfa,ok,2,초록<100자 skip; 25분벽시계
+nfra-gov-cn-cn,empty_zero_parse,2,초록<50자 skip; 25분벽시계
+nhc-gov-cn-wjw,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+nhlbi-nih-gov-about,ok,1,25분벽시계
+nhlbi-nih-gov-resources,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+nhmrc-gov-au-publications,ok,2,25분벽시계; JS렌더의존(취약)
+nia-nih-gov-news,ok,3,25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+niaaa-nih-gov-news-events,ok,4,MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+niams-nih-gov-newsroom,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+nibib-nih-gov-news-events,ok,3,초록<100자 skip; 25분벽시계; 뉴스/보도성
+nibio-no-en,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+nichd-nih-gov-newsroom,ok,4,MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+nida-nih-gov-news-events,ok,3,25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+nida-nih-gov-research-topics,ok,1,25분벽시계
+nidcd-nih-gov-news,empty_zero_parse,2,25분벽시계; 뉴스/보도성
+nidcd-nih-gov-order,empty_zero_parse,2,초록<50자 skip; 25분벽시계
+nidcr-nih-gov-news-events,ok,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+niddk-nih-gov-news,ok,3,25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+nidi-nl-en,ok,4,PDF링크 접미사판정(랜딩미추적); 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+niehs-nih-gov-newsreleases,ok,2,25분벽시계; 뉴스/보도성
+nifu-no-en,ok,2,25분벽시계; 뉴스/보도성
+nigms-nih-gov-news,ok,3,초록<50자 skip; 뉴스/보도성; JS렌더의존(취약)
+nih-gov-news-events,empty_zero_parse,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+nih-gov-press-room,empty_zero_parse,3,25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+nikhef-nl-pub,ok,2,초록<50자 skip; 25분벽시계
+nim-ac-cn-taxonomy,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+nimh-nih-gov-news,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+nimhd-nih-gov-news-events,ok,4,MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+nin-nl-publications,ok,2,MAX_PAGES=200; 25분벽시계
+nina-no-english,empty_zero_parse,2,MAX_PAGES=200; 25분벽시계
+ninds-nih-gov-news-events,ok,2,25분벽시계; 뉴스/보도성
+ninds-nih-gov-publications,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+nioo-knaw-nl-en,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+nisra-gov-uk-publications,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+nist-gov-publications,ok,2,초록<50자 skip; 25분벽시계
+nistdigitalarchives-contentdm-oclc-org-digital,ok,1,25분벽시계
+nivel-nl-en,ok,2,25분벽시계; JS렌더의존(취약)
+nkvts-no-english,empty_zero_parse,2,초록<50자 skip; 25분벽시계
+nnsa-mee-gov-cn-english,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+noc-ac-uk-about-us,timeout,2,초록<50자 skip; 25분벽시계
+noc-ac-uk-publications,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+nofima-com-publication,empty_zero_parse,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+nora-nerc-ac-uk-view,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+nordlandsforskning-no-en,ok,1,25분벽시계
+nps-or-kr-inforls,empty_zero_parse,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+nps-or-kr-pnsgdnc,timeout,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+nrc-re-kr-boardes,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+nrscotland-gov-uk-publications,ok,3,초록<200자 skip; MAX_PAGES=200; 25분벽시계
+ntp-niehs-nih-gov-publications,ok,2,25분벽시계; JS렌더의존(취약)
+ntrs-nasa-gov-search,ok,1,25분벽시계
+nts-go-kr-nts,ok,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+nupi-no-en,empty_zero_parse,2,초록<50자 skip; 25분벽시계
+nypi-re-kr-board,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+nzpri-aut-ac-nz-document-library,empty_zero_parse,1,25분벽시계
+observa-minciencia-gob-cl,?,2,MAX_PAGES=200; 25분벽시계
+oig-treasury-gov-other-reports-testim,ok,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+oka-go-kr-web,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+olympias-lib-uoi-gr-jspui,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+om-mp-be-nl,empty_zero_parse,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+onera-fr-fr,ok,5,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+ons-gov-uk-search,ok,2,초록<50자 skip; 25분벽시계
+open-science-canada-ca-communities,ok,2,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip
+openaccess-inaf-it,ok,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; JS렌더의존(취약)
+openaire-eu-os-slovenia,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+opendata-centralbank-ie-dataset,ok,3,초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+opendata-dk-search,ok,2,MAX_PAGES=200; 25분벽시계
+opendatacommunities-org-data,empty_zero_parse,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+opengov-seoul-go-kr-research,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+openresearch-repository-anu-edu-au-search,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+openscience-si-naprednoiskanjeaspx,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+openstarts-units-it,?,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+opm-go-kr-opm,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계; 뉴스/보도성
+order-nia-nih-gov-view-all-publication,?,2,MAX_PAGES=200; 25분벽시계
+osr-statisticsauthority-gov-uk-publications-list,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; MAX_PAGES=200; JS렌더의존(취약)
+ostrnrcan-dostrncan-canada-ca-search,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+ots-at-pressemappe,ok,5,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+par-nsf-gov-search,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+pasteur-fr-en,ok,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; 뉴스/보도성
+pbc-gov-cn-en,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+pbl-nl-en,ok,1,25분벽시계
+pbocri-org-cn-lnzy3html,empty_zero_parse,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+pbocri-org-cn-xslwhtml,ok,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+pembina-org-media-releases,ok,2,초록<50자 skip; 25분벽시계
+pergamos-lib-uoa-gr-search,ok,1,25분벽시계
+phfscience-nz-digital-library,empty_zero_parse,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+phfscience-nz-news-publications,empty_zero_parse,2,초록<100자 skip; 25분벽시계
+plan-be-nl,ok,2,초록<100자 skip; 25분벽시계
+pleanala-ie-en-ie,ok,2,MAX_PAGES=200; 25분벽시계
+pmc-gov-au-resources,empty_zero_parse,1,25분벽시계
+pnnl-gov-news,ok,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+police-go-kr-user,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+policyalternatives-ca-news-research,ok,4,초록<50자 skip; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+politie-be-statistieken,ok,1,25분벽시계
+polytechnique-edu-presse,ok,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+polytechnique-hal-science-search,ok,2,MAX_PAGES=200; 25분벽시계
+portaldiplomatico-mne-gov-pt-en,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+ppforum-ca-press-releases,ok,5,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+pps-go-kr-kor,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+presse-cnam-fr-communiques,ok,2,25분벽시계; 뉴스/보도성
+presse-curie-fr-section,ok,4,PDF링크 접미사판정(랜딩미추적); 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+presse-economie-gouv-fr,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+prism-go-kr-homepage,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+provenienzforschung-gv-at-empfehlungen-des-bei,timeout,2,초록<50자 skip; 25분벽시계
+psi-ch-en,ok,2,25분벽시계; 뉴스/보도성
+ptb-de-cms,ok,2,25분벽시계; JS렌더의존(취약)
+publications-idiap-ch-publications,ok,2,MAX_PAGES=200; 25분벽시계
+publichealthscotland-scot-publications,ok,1,25분벽시계
+publicsafety-gc-ca-cnt,empty_zero_parse,4,초록<50자 skip; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+publicservice-govt-nz-data,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+publicservice-govt-nz-research-and-data,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+publikationen-bundesregierung-de-pp-de,ok,2,초록<100자 skip; 25분벽시계
+pubs-drdc-rddc-gc-ca-basis,ok,1,25분벽시계
+pubshop-bmbwf-gv-at-indexphp,ok,2,MAX_PAGES=200; 25분벽시계
+pure-mpg-de-search,ok,2,MAX_PAGES=200; 25분벽시계
+rcaanc-cirnac-gc-ca-eng,ok,2,초록<50자 skip; 25분벽시계
+rda-go-kr-board,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+rdr-kuleuven-be-dataverse,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+regjeringen-no-en,empty_zero_parse,4,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; MAX_PAGES=200; 25분벽시계
+reglementation-controle-asnr-fr-information,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+regulation-govt-nz-about-us,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+repo-lib-duth-gr-jspui,ok,3,초록<50자 skip; MAX_PAGES=2000; 25분벽시계
+reports-nlr-nl-collections,ok,1,25분벽시계
+repositorio-uchile-cl-discover,empty_zero_parse,1,PDF링크 접미사판정(랜딩미추적)
+repository-cern-search,ok,2,초록<100자 skip; 25분벽시계
+repository-lboro-ac-uk,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+repository-library-noaa-gov-view,ok,2,초록<50자 skip; 25분벽시계
+repository-naturalis-nl,ok,1,25분벽시계
+repository-rcsi-com,?,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+repository-tno-nl-doclist,ok,0,
+research-collection-ethz-ch-search,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+research-imt-nord-europe-fr-news,ok,4,초록<100자 skip; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+research-thea-ie-browse,ok,1,25분벽시계
+researchrepository-ul-ie-search,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+reseau-canope-fr-espace-presse,ok,2,25분벽시계; 뉴스/보도성
+rfi-ac-uk-latest,ok,3,25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+rigsrevisionen-dk-revisionssager,ok,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+rijksoverheid-nl-documenten,empty_zero_parse,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+ris-bka-gv-at-ergebniswxe,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+rki-de-de,ok,2,MAX_PAGES=200; 25분벽시계
+rosap-ntl-bts-gov-cbrowse,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+ruomoplus-lib-uom-gr-simple-search,ok,2,MAX_PAGES=200; 25분벽시계
+saemangeum-go-kr-sda,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+safefood-net-news,empty_zero_parse,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+salute-gov-it-new,ok,1,초록<100자 skip
+samr-gov-cn-zw,ok,1,25분벽시계
+sandia-gov-news,ok,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+sante-gouv-fr-ministere,ok,3,초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+santepubliquefrance-fr-presse,ok,2,뉴스/보도성; JS렌더의존(취약)
+sastind-gov-cn-n10086200,ok,2,MAX_PAGES=200; 25분벽시계
+scaht-org-en,ok,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; JS렌더의존(취약)
+science-astron-nl-science-astron,timeout,3,초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+science-libraries-canada-ca-eng,ok,2,MAX_PAGES=200; 25분벽시계
+scourt-go-kr-portal,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+scp-nl-publicaties,ok,2,MAX_PAGES=200; 25분벽시계
+search-nal-usda-gov-discovery,ok,2,MAX_PAGES=200; 25분벽시계
+search-open-canada-ca-opendata,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+search-worldcat-org-ko,ok,2,25분벽시계; JS렌더의존(취약)
+secihti-mx-sala-de-prensa,ok,4,초록<50자 skip; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+seco-admin-ch-seco,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+seer-cancer-gov-report_to_nation,ok,2,MAX_PAGES=200; 25분벽시계
+sejong-go-kr-bbs,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+sfi-ch-en,ok,1,25분벽시계
+sgu-se-en,ok,2,PDF링크 접미사판정(랜딩미추적); 25분벽시계
+si-re-kr-bbs,ok,2,초록<50자 skip; 25분벽시계
+sib-swiss-community,ok,3,초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+sib-swiss-training,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+simula-no-publications,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+sintef-no-en,ok,3,MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+siseministeerium-ee-otsing,ok,2,MAX_PAGES=200; 25분벽시계
+skillsdevelopmentscotland-co-uk-publications-statist,ok,1,25분벽시계
+skm-dk-aktuelt,ok,5,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+sm-dk-publikationer,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<100자 skip; 25분벽시계
+sm-ee-otsing,ok,1,25분벽시계
+socialstyrelsen-se-en,timeout,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+sodha-be-dataverse,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+sonar-ch-global,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+sozialministerium-gv-at-services,ok,2,MAX_PAGES=200; 25분벽시계
+sozialministerium-gv-at,?,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+spo-go-kr-site,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+srnl-gov-newsroom,ok,4,초록<50자 skip; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+stami-no-en,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+stat-inst-se-om-sis,timeout,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+statbel-fgov-be-nl,?,2,초록<50자 skip; 25분벽시계
+state-gov-department-reports,ok,5,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+state-gov-plans-performance-bu,?,4,초록<50자 skip; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+state-gov-press-releases,ok,4,초록<100자 skip; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+state-gwd-go-kr-portal,ok,3,초록<50자 skip; 25분벽시계; 뉴스/보도성
+statistischebibliothek-de-mir,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+stats-govt-nz-indicators,ok,3,초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+stats-govt-nz-publications,ok,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+stepi-re-kr-site,ok,2,초록<50자 skip; 25분벽시계
+swisspeace-ch-publications,ok,1,25분벽시계
+swisspolar-ch-expeditions,ok,4,PDF링크 접미사판정(랜딩미추적); 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+swisstph-ch-en,ok,2,MAX_PAGES=200; 25분벽시계
+telemarksforsking-no-publikasjoner,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+tigta-gov-reports,timeout,2,초록<50자 skip; 25분벽시계
+toi-no-publications,ok,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; JS렌더의존(취약)
+transformation-gouv-fr-espace-presse,timeout,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+transparency-gov-au-publications,empty_zero_parse,1,25분벽시계
+transport-govt-nz-documents-and-public,empty_zero_parse,3,초록<100자 skip; MAX_PAGES=200; 25분벽시계
+transportation-gov-newsroom,empty_zero_parse,4,MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+transportes-gob-es-el-ministerio,ok,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+treasury-gov-au-publication,ok,2,초록<50자 skip; 25분벽시계
+treasury-govt-nz-publications,ok,3,PDF링크 접미사판정(랜딩미추적); 25분벽시계; JS렌더의존(취약)
+trm-dk-nyheder,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+ufm-dk-publikationer,ok,2,초록<50자 skip; 25분벽시계
+ukdataservice-ac-uk-2026,ok,5,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+ulsan-go-kr-u,ok,3,초록<50자 skip; 25분벽시계; JS렌더의존(취약)
+um-dk-om-os,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+ungeneva-org-en,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+unidata-gv-at-pages,empty_zero_parse,4,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계; JS렌더의존(취약)
+unikorea-go-kr-web,ok,3,초록<50자 skip; MAX_PAGES=200; 25분벽시계
+usgs-gov-news,ok,2,초록<50자 skip; 뉴스/보도성
+ustat-mur-gov-it,ok,2,초록<50자 skip; 25분벽시계
+uvek-admin-ch-en,ok,3,25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+va-gov-vetdata,ok,1,25분벽시계
+vbs-admin-ch-en,ok,2,25분벽시계; 뉴스/보도성
+vlaanderen-be-nieuwsberichten,ok,2,초록<50자 skip; 25분벽시계
+vtg-admin-ch-en,ok,3,초록<100자 skip; 25분벽시계; JS렌더의존(취약)
+wallonie-be-fr,ok,1,25분벽시계
+waltoninstitute-ie-research,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+wbf-admin-ch-en,ok,3,MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+wef-infor-cl-indexphp,ok,0,
+werk-belgie-be-nl,ok,5,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+who-int-publications,ok,2,MAX_PAGES=200; 25분벽시계
+wodc-nl-documenten,ok,4,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; MAX_PAGES=200; 25분벽시계
+women-govt-nz-library,ok,1,25분벽시계
+wti-org-research,ok,3,PDF링크 접미사판정(랜딩미추적); 초록<50자 skip; 25분벽시계
+www2-mrc-lmb-cam-ac-uk-research,ok,4,초록<50자 skip; 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+www6-slac-stanford-edu-news-and-events,ok,4,초록<50자 skip; MAX_PAGES=200; 25분벽시계; 뉴스/보도성
+xxgk-mot-gov-cn-2020,ok,3,PDF링크 접미사판정(랜딩미추적); MAX_PAGES=200; 25분벽시계
+yme-gr-2013-01-31-06-37-23,ok,1,뉴스/보도성
+ypen-gov-gr-category,ok,2,초록<50자 skip; 25분벽시계
+ypergasias-gov-gr-category,empty_zero_parse,4,PDF링크 접미사판정(랜딩미추적); 25분벽시계; 뉴스/보도성; JS렌더의존(취약)
+ypes-gr-category,ok,3,25분벽시계; 뉴스/보도성; JS렌더의존(취약)

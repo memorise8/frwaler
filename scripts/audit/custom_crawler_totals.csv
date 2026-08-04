@@ -1,0 +1,600 @@
+site_id,sheet,collected,source_total,method,confidence,endpoint_used,note
+ameslab-gov-news,American Research Institutes,394,,unknown,,,www.ameslab.gov:not_json; www.ameslab.gov/news:not_json
+accc-gov-au-search,호주완료,454,,unknown,,,www.accc.gov.au/search:not_json; www.accc.gov.au:not_json; www.accc.gov.au/search?query=pdf:not_json
+alrc-gov-au-publications,호주완료,116,,unknown,,,www.alrc.gov.au:not_json; www.alrc.gov.au/publications/final-repor:not_json
+agri-ee-ministeerium-uudised,Estonia Ministries,122,,unknown,,,www.agri.ee:not_json; www.agri.ee/ministeerium-uudised-kontakt:not_json
+app-mps-gov-cn-gdnps,중국 완료,501,,unknown,,,app.mps.gov.cn/gdnps/searchIndex.jsp:http_403; app.mps.gov.cn:http_403; app.mps.gov.cn/gdnps/pc/content.jsp?id={:http_403; app.mps.gov.cn/gdnps/zc/index.jsp:http_403
+arcep-fr-actualites,French Public Institutions,34,,unknown,,,www.arcep.fr:not_json; www.arcep.fr/actualites/les-publications:not_json; www.arcep.fr/actualites/les-publications:not_json; www.arcep.fr/tmp/arcep_fr_actualites_coo:not_json
+acpr-banque-france-fr-fr,French Public Institutions,225,,unknown,,,acpr.banque-france.fr/fr/publications-et:not_json; acpr.banque-france.fr:not_json; acpr.banque-france.fr/fr/communiques-de-:not_json
+adruk-org-news-publications,영국완료,210,,unknown,,,www.adruk.org:not_json; www.adruk.org/news-publications/impact-c:not_json; www.adruk.org/our-mission/our-impact/{n}:http_404; www.adruk.org/news-publications/annual-r:not_json
+amolf-nl-publications,Dutch Research Centers,512,,unknown,,,amolf.nl:not_json; amolf.nl/publications:not_json
+audencia-com-lecole,French Public Universities,246,,unknown,,,www.audencia.com:not_json; www.audencia.com/lecole/newsroom/communi:not_json
+arrow-tudublin-ie-creaart,Irish Research Centers,229,231,oai_resumption,high,https://arrow.tudublin.ie/do/oai/,https://arrow.tudublin.ie/do/oai/?verb=ListIdentifiers&metadataPrefix=oai_dc&set=publication%3Acreaart
+africamuseum-be-en,벨기에완료,52,,unknown,,,www.africamuseum.be/en/research/news:not_json; www.africamuseum.be:not_json
+anses-fr-fr,French Research Institutes,6091,,unknown,,,www.anses.fr:not_json; www.anses.fr/fr/content/avis-et-rapports:not_json; www.anses.fr/fr/content/avis-et-rapports:not_json; www.anses.fr/system/files/<pdf>:http_404
+afp-gov-au-news-centre,호주완료,432,,unknown,,,www.afp.gov.au:not_json; www.afp.gov.au/news-centre:not_json
+artsetmetiers-fr-fr,French Public Universities,222,,unknown,,,artsetmetiers.fr:not_json; artsetmetiers.fr/fr/communiques-de-press:not_json
+afp-gov-au-search,호주완료,49,,unknown,,,afp.gov.au/search:not_json; afp.gov.au:not_json; afp.gov.au/search?keys=pdf&content_type_:not_json
+arcnl-nl-publications,Dutch Research Centers,11,,unknown,,,arcnl.nl:not_json; arcnl.nl/publications/types/bachelorthes:not_json; arcnl.nl/publications/types/phdthesis:not_json
+arn-se-om-arn,스웨덴 완료,80,,unknown,,,www.arn.se:not_json; www.arn.se/om-arn/arsredovisning/:not_json; www.arn.se/om-arn/vagledande-beslut/:not_json
+auri-re-kr-boardes,한국완료,260,,unknown,,,www.auri.re.kr:http_500; www.auri.re.kr/board.es?mid=a10401030000:not_json
+artsetmetiers-hal-science-search,French Public Universities,86,,unknown,,,artsetmetiers.hal.science:not_json; artsetmetiers.hal.science/search/index/?:not_json
+bankofcanada-ca-publications,Canadian Research Centers,27,,unknown,,,www.bankofcanada.ca:not_json; www.bankofcanada.ca/publications/canadia:not_json; www.bankofcanada.ca/publications/browse/:not_json; www.bankofcanada.ca/wp-content/plugins/f:not_json_container
+astron-nl-about,Dutch Research Centers,57,,unknown,,,www.astron.nl:http_500; www.astron.nl/about/annual-reports/:http_500
+babraham-ac-uk-news,영국완료,483,,unknown,,,www.babraham.ac.uk:not_json; www.babraham.ac.uk/news/category/news:not_json
+auswaertiges-amt-de-en,독일완료,526,,unknown,,,www.auswaertiges-amt.de/ajax/json-filter:no_total_field; www.auswaertiges-amt.de:not_json; www.auswaertiges-amt.de/en/newsroom/news:not_json
+astro-oma-be-en,벨기에완료,22,,unknown,,,www.astro.oma.be:not_json; www.astro.oma.be/en/information/publicat:not_json
+academie-sciences-fr-espace-presse,French Public Institutions,68,370,html_paginate,low,https://www.academie-sciences.fr/espace-presse?page=6,https://www.academie-sciences.fr/espace-presse?page=6
+ansto-gov-au-search,호주완료,30,,unknown,,,www.ansto.gov.au:not_json; www.ansto.gov.au/views/ajax:not_json; www.ansto.gov.au/search?query=pdf:not_json
+auri-re-kr-publication,한국완료,593,,unknown,,,www.auri.re.kr:http_500; www.auri.re.kr/publication/list.es:not_json; www.auri.re.kr/publication/list.es?mid=a:not_json
+auswaertiges-amt-de-de,Germany Ministries,224,,unknown,,,www.auswaertiges-amt.de/ajax/json-filter:no_total_field; www.auswaertiges-amt.de:not_json; www.auswaertiges-amt.de/de/newsroom/pres:not_json
+benthamscience-com-press-release,Switzerland Research Centers,191,,unknown,,,www.benthamscience.com:not_json; www.benthamscience.com/data_raid/ruci_wo:http_404; www.benthamscience.com/press-release:not_json
+andra-fr-publications,French Research Institutes,1,,unknown,,,www.andra.fr:not_json; www.andra.fr/publications?f%5B0%5D=facet:not_json; www.andra.fr/views/ajax:not_json; www.andra.fr/publications?f%5B0%5D=facet:not_json
+banque-france-fr-en,French Public Institutions,530,,unknown,,,www.banque-france.fr/en/publications-and:not_json; www.banque-france.fr:not_json; www.banque-france.fr/en/press-release:not_json
+archives-nationales-culture-gouv-fr-presse,French Public Institutions,15,26,html_count_regex,medium,https://www.archives-nationales.culture.gouv.fr/presse?title=&field_type_publication_target_id_1%5B32%5D=32&created%5Bvalue%5D=,https://www.archives-nationales.culture.gouv.fr/presse?title=&field_type_publication_target_id_1%5B32%5D=32&created%5Bvalue%5D=
+amf-france-org-fr,French Public Institutions,157,,unknown,,,www.amf-france.org:not_json; www.amf-france.org/sitemap.xml:error:ConnectionError
+ami-swiss-en,Switzerland Research Centers,558,,unknown,,,www.ami.swiss/en/research/publications.h:not_json; www.ami.swiss:error:ConnectionError; api.crossref.org/works:no_total_field
+afd-fr-fr,French Public Institutions,797,,unknown,,,www.afd.fr:not_json; www.afd.fr/fr/publications/liste:not_json; www.afd.fr/fr/publications/liste?words=&:not_json
+bmas-de-de,Germany Ministries,454,,unknown,,,www.bmas.de/SiteGlobals/Forms/Suche/Pres:not_json; www.bmas.de:not_json; www.bmas.de/SiteGlobals/Forms/Suche/Pres:not_json; www.bmas.de/DE/Service/Publikationen/Neu:not_json
+agriculture-gouv-fr-recherche-developpem,France Ministries,472,,unknown,,,agriculture.gouv.fr:not_json; agriculture.gouv.fr/espace-presse?query=:not_json; agriculture.gouv.fr/recherche-developpem:not_json
+bfs-admin-ch-bfs,Switzerland Departments,384,8141,json_total,medium,https://www.bfs.admin.ch/content/bfs/de/home/jcr:content/root/main/section_1270692185/container/grid/grid_par_1/container/nip.model.json,key=paginationData.totalResults
+baw-de-en,GER ResearchCenters(Unfinished),14,,unknown,,,www.baw.de:http_403; www.baw.de/en/publikationen/geschaeftsbe:http_403; www.baw.de/content/v2/publis/ws.php:http_403
+bmi-gv-at-114,오스트리아완료,76,,unknown,,,www.bmi.gv.at:not_json; www.bmi.gv.at/114/start.aspx:not_json; www.bmi.gv.at/114:not_json
+asn-fr-information,French Public Institutions,19,,unknown,,,www.asn.fr:not_json
+bfr-bund-de-en,GER ResearchCenters(Unfinished),23,,unknown,,,"www.bfr.bund.de/api/v1/en/mini-suche:rejected_total<collected(6<23,method=json_total); www.bfr.bund.de:not_json; www.bfr.bund.de/en/publications/annual-r:not_json"
+bmds-bund-de-aktuelles,Germany Ministries,79,,unknown,,,bmds.bund.de:not_json; bmds.bund.de/aktuelles/pressemitteilunge:not_json
+asiapacific-ca-media,Canadian Research Centers,50,,unknown,,,www.asiapacific.ca:error:ConnectTimeout; www.asiapacific.ca/media/press-releases:error:ConnectTimeout
+bm-dk-soeg,덴마크완료,88,,unknown,,,bm.ankiro.dk/Public/Rest/Search/bm.dk.js:no_total_field; bm.dk:not_json; bm.dk/data_raid/ruci_workspace/frwaler_j:http_404; bm.dk/soeg/?q=*&ContentTags=Publikation&:not_json
+bfe-admin-ch-bfe,Switzerland Departments,1002,,unknown,,,www.bfe.admin.ch:not_json; pubdb.bfe.admin.ch/de/suche:error:ReadTimeout; www.bfe.admin.ch/bfe/de/home/news-und-me:not_json; www.bfe.admin.ch/bfe/de/home/news-und-me:not_json
+bmvg-de-en,Germany Ministries,20,,unknown,,,www.bmvg.de:not_json; www.bmvg.de/service/queryL-list-filter/e:not_json; www.bmvg.de/en/press/all-press-releases:not_json
+biblio-naturalsciences-be-rbins-publications,벨기에완료,500,,unknown,,,biblio.naturalsciences.be/rbins-publicat:error:ReadTimeout; biblio.naturalsciences.be:error:ReadTimeout; biblio.naturalsciences.be/rbins-publicat:error:ReadTimeout
+bok-or-kr-portal,한국완료,430,,unknown,,,www.bok.or.kr:not_json; www.bok.or.kr/portal/singl/newsData/list:not_json; www.bok.or.kr/portal/singl/newsData/list:not_json; www.bok.or.kr/portal/singl/newsData/list:not_json
+bmf-gv-at-ministerium,오스트리아완료,36,,unknown,,,www.bmf.gv.at:not_json; www.bmf.gv.at/ministerium/nationale-fina:not_json
+bmj-gv-at-ministerium,오스트리아완료,149,,unknown,,,www.bmj.gv.at:not_json; www.bmj.gv.at/ministerium/aktuelle-meldu:not_json
+bordbia-ie-about,Irish Research Centers,20,,unknown,,,www.bordbia.ie:http_403; www.bordbia.ie/about/governance/annual-r:http_403
+bmluk-gv-at-service,오스트리아완료,315,,unknown,,,www.bmluk.gv.at:not_json; www.bmluk.gv.at/service/zahlen-fakten-ne:not_json; www.bmluk.gv.at/service/zahlen-fakten-ne:not_json
+bj-admin-ch-bj,Switzerland Departments,41,,unknown,,,www.bj.admin.ch:not_json; www.bj.admin.ch/bj/en/home/aktuell/mm/_j:http_404; www.bj.admin.ch/bj/en/home/aktuell/mm.ht:http_404
+book-ioj-go-kr-library,한국완료,500,,unknown,,,book.ioj.go.kr/library/10210/search:not_json; book.ioj.go.kr:not_json; book.ioj.go.kr/library/10210/search?mate:not_json
+budget-canada-ca-home-accueil-enhtml,Canada Ministries,17,,unknown,,,budget.canada.ca:not_json; budget.canada.ca/home-accueil-en.html:not_json
+bmz-de-de,Germany Ministries,6,,unknown,,,www.bmz.de:not_json; www.bmz.de/de/aktuelles/publikationen:not_json; www.bmz.de/ajax/filterlist/de/24710-2471:not_json; www.bmz.de/de/aktuelles/publikationen/{c:http_404
+bnf-fr-fr,French Public Institutions,488,,unknown,,,www.bnf.fr/fr/jsonapi/node/espace_presse:no_total_field; www.bnf.fr:not_json; www.bnf.fr/fr/recherche-liste?keyword=&t:not_json
+biorbic-com-publications,Irish Research Centers,497,,unknown,,,biorbic.com:not_json; biorbic.com/data_raid/ruci_workspace/frw:http_404; biorbic.com/publications/:not_json
+bam-de-navigation,GER ResearchCenters(Unfinished),308,,unknown,,,www.bam.de:not_json; www.bam.de/Navigation/EN/News/Paper-of-t:http_404; www.bam.de/Navigation/EN/News/Press-Rele:http_404
+bmleh-de-en,독일완료,26,,unknown,,,www.bmleh.de:error:ConnectionError; www.bmleh.de/EN/ministry/organisation/ad:not_json
+cac-gov-cn-hdfw,중국 완료,89,,unknown,,,www.cac.gov.cn/cms/JsonList:http_403; www.cac.gov.cn:not_json; www.cac.gov.cn/hdfw/jbzx/jbgg/A09380302i:not_json
+bmftr-bund-de-siteglobals,독일완료,197,,unknown,,,www.bmftr.bund.de:not_json; www.bmftr.bund.de/SiteGlobals/Forms/Such:not_json
+brgm-fr-fr,French Research Institutes,234,,unknown,,,www.brgm.fr:not_json; www.brgm.fr/fr/actualites?type=Communiqu:not_json
+bdap-opendata-rgs-mef-gov-it-catalog,Italy Ministries,360,,unknown,,,bdap-opendata.rgs.mef.gov.it:not_json; bdap-opendata.rgs.mef.gov.it/catalog:not_json
+bmleh-de-siteglobals,독일완료,200,,unknown,,,www.bmleh.de:not_json; www.bmleh.de/SiteGlobals/Forms/Suche/DE/:not_json; www.bmleh.de/SiteGlobals/Forms/Suche/DE/:not_json
+bmv-de-en,독일완료,11,3584,html_paginate,low,https://www.bmv.de/EN/Services/Statistics/Mobility-in-Germany/mobility-in-germany.html?page=64,https://www.bmv.de/EN/Services/Statistics/Mobility-in-Germany/mobility-in-germany.html?page=64
+casseng-cssn-cn-sky_research,중국 완료,8,,unknown,,,casseng.cssn.cn/sky_research/publication:not_json; casseng.cssn.cn:not_json
+caitec-org-cn-n6,중국 완료,62,,unknown,,,www.caitec.org.cn/n6/sy_xsyj_yjbg/json/i:no_total_field; www.caitec.org.cn/n6/sy_xsyj_yjbg/json/i:http_404; www.caitec.org.cn:not_json; www.caitec.org.cn/n6/sy_zgdwmyxsbg/:not_json
+cc-nih-gov-research,American Research Institutes,199,,unknown,,,www.cc.nih.gov/research/2025:http_403; www.cc.nih.gov:http_403
+catalogue-data-govt-nz-dataset,뉴질랜드완료,85,,unknown,,,catalogue.data.govt.nz/api/3/action/pack:error:JSONDecodeError; catalogue.data.govt.nz:not_json; catalogue.data.govt.nz/data_raid/ruci_wo:not_json; catalogue.data.govt.nz/data_raid/ruci_wo:not_json
+cancer-gov-about-nci,American Research Institutes,24,,unknown,,,www.cancer.gov:not_json; www.cancer.gov/about-nci/budget/about-bu:not_json
+boverket-se-en,스웨덴 완료,9,,unknown,,,www.boverket.se:not_json; www.boverket.se/en/start/publications/?f:not_json; www.boverket.se/en/start/publications/:not_json
+business-sweden-com-about-us,스웨덴 완료,94,,unknown,,,www.business-sweden.com:not_json; www.business-sweden.com/about-us/media/p:not_json
+centralbank-ie-publication,Irish Research Centers,26,,unknown,,,www.centralbank.ie:not_json; www.centralbank.ie/publication/corporate:not_json
+bmlv-gv-at-wissen-forschung,오스트리아완료,18,,unknown,,,www.bmlv.gv.at:not_json; www.bmlv.gv.at/wissen-forschung/publikat:not_json; www.bmlv.gv.at/wissen-forschung/publikat:not_json; www.bmlv.gv.at/wissen-forschung/publikat:not_json
+cdhowe-org-research-insights,Canadian Research Centers,344,,unknown,,,cdhowe.org/research-insights/:not_json; cdhowe.org:not_json
+chineseafs-org-ckynewsmgr,중국 완료,30,,unknown,,,www.chineseafs.org/ckynewsmgr/newsConten:error:ConnectionError; www.chineseafs.org:error:ConnectionError; www.chineseafs.org/ckynewsmgr/newsConten:error:ConnectionError; www.chineseafs.org/ckynewsmgr/
+bmwkms-gv-at-themen,오스트리아완료,41,,unknown,,,www.bmwkms.gv.at:not_json; www.bmwkms.gv.at/themen/kunst-und-kultur:not_json
+brsn-net-list,중국 완료,500,,unknown,,,www.brsn.net/list/research/index.html:not_json; www.brsn.net/list/research/index_{}.html:not_json; www.brsn.net:not_json
+cer-rec-gc-ca-en,Canadian Research Centers,175,,unknown,,,www.cer-rec.gc.ca:not_json; www.cer-rec.gc.ca/en/about/publications-:not_json
+chungnam-go-kr-cnportal,한국완료,425,,unknown,,,www.chungnam.go.kr:not_json; www.chungnam.go.kr/cnportal/cnapcPressLi:not_json; www.chungnam.go.kr/cnportal/cnapcPressLi:not_json; www.chungnam.go.kr/cnportal/cnapcPressLi:not_json
+bmwsb-bund-de-de,독일완료,20,,unknown,,,www.bmwsb.bund.de:error:ReadTimeout; www.bmwsb.bund.de/DE/ministerium/gesetzg:error:ReadTimeout; www.bmwsb.bund.de/DE/ministerium/aktuell:error:ReadTimeout
+chinatax-gov-cn-chinatax,중국 완료,6,,unknown,,,www.chinatax.gov.cn:not_json; www.chinatax.gov.cn/getFileListByCodeId:not_json; www.chinatax.gov.cn/chinatax/n810219/c10:not_json
+cigionline-org-publications,Canadian Research Centers,500,,unknown,,,www.cigionline.org/api/search/:http_500; www.cigionline.org:not_json; www.cigionline.org/publications/:not_json
+bmimi-gv-at-themen,오스트리아완료,18,,unknown,,,www.bmimi.gv.at:not_json; www.bmimi.gv.at/themen/innovation/publik:not_json; www.bmimi.gv.at/themen/innovation/publik:not_json
+civilprotection-gov-gr-deltia-tupou,Greece Ministries,500,,unknown,,,civilprotection.gov.gr:http_403; civilprotection.gov.gr/deltia-tupou:http_403; civilprotection.gov.gr/deltia-tupou?filt:http_403
+busan-go-kr-nbtnewsbu,한국완료,537,,unknown,,,www.busan.go.kr:error:ReadTimeout; www.busan.go.kr/nbtnewsBU:error:ReadTimeout
+comptroller-defense-gov-odcfo,USA Executive Departments,24,,unknown,,,comptroller.defense.gov:http_403; comptroller.defense.gov/ODCFO/afr/:http_403
+cells-es-en,Spanish Research Centers,11,,unknown,,,www.cells.es:not_json; www.cells.es/en/public/corporate-publica:not_json
+bundesgesundheitsministerium-de-service,독일완료,229,,unknown,,,www.bundesgesundheitsministerium.de:error:ReadTimeout; www.bundesgesundheitsministerium.de/serv:error:ReadTimeout
+comwel-or-kr-comwel,한국완료,471,,unknown,,,www.comwel.or.kr:not_json; www.comwel.or.kr/comwel/noti/pres.jsp:not_json
+bmwet-gv-at-services,오스트리아완료,89,,unknown,,,www.bmwet.gv.at:error:ReadTimeout; www.bmwet.gv.at/Services/Publikationen.h:error:ConnectionError
+cerema-fr-fr,French Research Institutes,231,,unknown,,,www.cerema.fr:not_json; www.cerema.fr/fr/presse/dossier:not_json; www.cerema.fr/fr/presse/document:not_json
+centralesupelec-fr-presse,French Public Institutions,51,,unknown,,,www.centralesupelec.fr:not_json; www.centralesupelec.fr/presse/communique:not_json
+cnipa-gov-cn-col,중국 완료,213,,unknown,,,www.cnipa.gov.cn:not_json; www.cnipa.gov.cn/col/col89/index.html:not_json; www.cnipa.gov.cn/module/web/jpage/datapr:not_json; www.cnipa.gov.cn/col/col88/index.html:not_json
+csrc-gov-cn-csrc_en,중국 완료,9,,unknown,,,"www.csrc.gov.cn/searchList/{cid}?_isAgg=:rejected_total<collected(0<9,method=json_total); www.csrc.gov.cn:not_json; www.csrc.gov.cn/csrc_en/c102061/:not_json; www.csrc.gov.cn/csrc_en/c102060/common_l:"
+bundeskanzleramt-gv-at-bundeskanzleramt,오스트리아완료,480,,unknown,,,www.bundeskanzleramt.gv.at:error:ReadTimeout; www.bundeskanzleramt.gv.at/bundeskanzler:not_json
+college-de-france-fr-en,French Public Universities,105,,unknown,,,www.college-de-france.fr:http_403; www.college-de-france.fr/en/news?f%5B0%5:http_403; www.college-de-france.fr/en/news:http_403; www.college-de-france.fr/en/news?f%5B0%5:http_403
+cae-eco-fr-presse-cae-0,French Public Institutions,64,,unknown,,,cae-eco.fr:error:ReadTimeout; cae-eco.fr/Presse-CAE-0:error:ReadTimeout
+cds-cern-ch-collection,Switzerland Research Centers,505,,unknown,,,inspirehep.net/api/literature:error:ReadTimeout; cds.cern.ch:error:ConnectionError; cds.cern.ch/collection/Published%20Artic:not_json
+data-busan-go-kr-bdip,한국완료,2022,,unknown,,,data.busan.go.kr/bdip/srh/getPublicDataL:not_json; data.busan.go.kr:not_json; data.busan.go.kr/bdip/opendata/dataSet.d:not_json; data.busan.go.kr/bdip/opendata/dataSet.d:not_json
+cepii-fr-cepii,French Public Institutions,540,,unknown,,,www.cepii.fr:not_json; www.cepii.fr/CEPII/fr/publications/repor:not_json; www.cepii.fr/CEPII/fr/presse/espace_pres:not_json
+daejeon-go-kr-drh,한국완료,473,,unknown,,,www.daejeon.go.kr:not_json; www.daejeon.go.kr/drh/board/boardNormalL:not_json; www.daejeon.go.kr/drh/board/boardNormalL:not_json
+csic-es-es,Spanish Research Centers,25,,unknown,,,www.csic.es:not_json; www.csic.es/es/el-csic/informacion-corpo:not_json
+bundesumweltministerium-de-en,Germany Ministries,7,,unknown,,,www.bundesumweltministerium.de:error:ReadTimeout; www.bundesumweltministerium.de/en/public:not_json
+cso-ie-en,Irish Research Centers,388,,unknown,,,www.cso.ie:not_json; www.cso.ie/en/csolatestnews/pressrelease:http_404; www.cso.ie/en/csolatestnews/pressrelease:not_json
+data-gv-at-datasets,오스트리아완료,400,116818,json_total,low,https://www.data.gv.at/api/hub/search/search,key=result.count [ratio=292x:review_possible_unscoped_endpoint]
+cpb-nl-en,Dutch Research Centers,371,,unknown,,,www.cpb.nl:not_json; www.cpb.nl/en/publications:not_json
+carabinieri-it-in-vostro-aiuto,Italy Ministries,301,,unknown,,,www.carabinieri.it:error:ConnectionError; www.carabinieri.it/in-vostro-aiuto/infor:not_json
+daten-berlin-de-datensaetze,독일완료,250,2619,ckan,high,https://datenregister.berlin.de/api/3/action/package_search,https://datenregister.berlin.de/api/3/action/package_search
+caissedesdepots-fr-communiques-de-press,French Public Institutions,1201,,unknown,,,www.caissedesdepots.fr:not_json; www.caissedesdepots.fr/presse/communique:not_json; www.caissedesdepots.fr/communiques-de-pr:not_json
+data-mfe-govt-nz-documents,뉴질랜드완료,21,,unknown,,,data.mfe.govt.nz/services/api/v1.x:http_404; data.mfe.govt.nz:not_json; data.mfe.govt.nz/data_raid/ruci_workspac:http_404; data.mfe.govt.nz/data_raid/ruci_workspac:http_404
+data-mfe-govt-nz-tables,뉴질랜드완료,435,,unknown,,,data.mfe.govt.nz/services/api/v1.x:http_404; data.mfe.govt.nz:not_json; data.mfe.govt.nz/data_raid/ruci_workspac:http_404; data.mfe.govt.nz/data_raid/ruci_workspac:http_404
+data-gov-be-nl,벨기에완료,132,,unknown,,,data.gov.be:not_json; data.gov.be/data_raid/ruci_workspace/frw:not_json; data.gov.be/data_raid/ruci_workspace/frw:not_json; data.gov.be/nl/datasets?f%5B0%5D=format%:not_json
+canada-ca-en,Canada Ministries,948,949,html_count_regex,medium,https://www.canada.ca/en/news/advanced-news-search/news-results.html?_=1618957516190&dprtmnt=crownindigenousrelationsandnorthernaffairscanada&start=&end=,https://www.canada.ca/en/news/advanced-news-search/news-results.html?_=1618957516190&dprtmnt=crownindigenousrelationsandnorthernaffairscanada&start=&e
+defense-gov-news,USA Executive Departments,546,,unknown,,,www.defense.gov:http_403; www.defense.gov/DesktopModules/ArticleCS:not_json; www.defense.gov/News/Releases/:http_403
+defensa-gob-es-gabinete,Spain Ministries,421,,unknown,,,www.defensa.gob.es:not_json; www.defensa.gob.es/gabinete/notasPrensa/:not_json
+datacatalogue-adruk-org-browser,영국완료,484,,unknown,,,datacatalogue.adruk.org/browser/search?i:not_json; api-datacatalogue.adruk.org/api:http_404; datacatalogue.adruk.org:not_json
+dair-dias-ie-cgi,Irish Research Centers,500,,unknown,,,dair.dias.ie:not_json; dair.dias.ie/cgi/search/archive/advanced:not_json
+data-statistik-gv-at-web,오스트리아완료,500,,unknown,,,data.statistik.gv.at/ogd/json:empty; data.statistik.gv.at:not_json; data.statistik.gv.at/data_raid/ruci_work:not_json; data.statistik.gv.at/data_raid/ruci_work:not_json
+dia-govt-nz-diawebsitensf,뉴질랜드완료,28,,unknown,,,www.dia.govt.nz:not_json; www.dia.govt.nz/diawebsite.nsf/wpg_URL/R:not_json
+cstb-fr-communiques-de-press,French Research Institutes,48,,unknown,,,www.cstb.fr:not_json; www.cstb.fr/communiques-de-presse:not_json
+dhs-gov-congressional-approp,USA Executive Departments,638,,unknown,,,www.dhs.gov:not_json; www.dhs.gov/congressional-appropriations:not_json
+dhs-gov-publication,USA Executive Departments,29,,unknown,,,www.dhs.gov:not_json; www.dhs.gov/publication/annual-report-co:not_json
+data-taltech-ee-search,Estonia Research Centers,92,219,json_total,medium,https://data.taltech.ee/api/records,key=hits.total
+dol-gov-newsroom,USA Executive Departments,275,,unknown,,,www.dol.gov:http_403; www.dol.gov/newsroom/releases?agency=All:http_403; www.dol.gov/newsroom/releases?agency=All:http_403
+defence-govt-nz-publications,뉴질랜드완료,431,,unknown,,,www.defence.govt.nz/publications/doSearc:not_json; www.defence.govt.nz:not_json
+directives-doe-gov-guidance,USA Executive Departments,260,,unknown,,,www.directives.doe.gov:not_json; www.energy.gov/management/directives-lib:not_json; www.directives.doe.gov/guidance:not_json
+data-nist-gov-sdp,American Research Institutes,50,,unknown,,,data.nist.gov/rmm/records:error:ReadTimeout; data.nist.gov:not_json; data.nist.gov/sdp/#/search?q=:not_json
+dpmc-govt-nz-publications,뉴질랜드완료,571,,unknown,,,www.dpmc.govt.nz:http_403; www.dpmc.govt.nz/publications:not_json
+defense-gouv-fr-salle-de-presse,France Ministries,1980,,unknown,,,www.defense.gouv.fr:not_json; www.defense.gouv.fr/salle-de-presse:not_json
+directives-doe-gov-directives-browse,USA Executive Departments,205,,unknown,,,www.directives.doe.gov:not_json; www.energy.gov/management/directives-lib:not_json; www.directives.doe.gov/directives-browse:not_json
+drc-gov-cn-leafaspx,중국 완료,555,,unknown,,,www.drc.gov.cn/Json/GetPageDocuments.ash:no_total_field; www.drc.gov.cn:http_406; www.drc.gov.cn/Leaf.aspx?leafid=1338:not_json
+cnic-es-en,Spanish Research Centers,419,,unknown,,,www.cnic.es:error:ReadTimeout; www.cnic.es/en/actualidad/noticias:error:ReadTimeout; www.cnic.es/en/scientific-report:error:ReadTimeout
+dhs-gov-news-releases,USA Executive Departments,79,,unknown,,,www.dhs.gov:not_json; www.dhs.gov/news-releases/press-releases:not_json
+digital-gob-es-comunicacion,Spain Ministries,416,,unknown,,,digital.gob.es:not_json; digital.gob.es/comunicacion:not_json; digital.gob.es/content/portalmtdfp/es/co:http_404; digital.gob.es/content/portalmtdfp/es:http_404
+datenportal-bmbf-de-portal,독일완료,75,,unknown,,,www.datenportal.bmbf.de:not_json; www.datenportal.bmftr.bund.de/portal/de:http_404; www.datenportal.bmbf.de/portal/de/bufi.h:not_json
+doc-cerema-fr-default,French Research Institutes,697,,unknown,,,doc.cerema.fr/Portal/Recherche/Search.sv:http_403; doc.cerema.fr/Default/search.aspx:http_403; doc.cerema.fr:http_403; doc.cerema.fr/Default/search.aspx#/Searc:http_403
+doi-gov-bpp,USA Executive Departments,204,,unknown,,,www.doi.gov:not_json; www.doi.gov/bpp/budget-briefs:not_json; www.doi.gov/bpp/pars:not_json
+ecat-ga-gov-au-geonetwork,호주완료,796,,unknown,,,ecat.ga.gov.au/geonetwork/srv/api/search:http_403; ecat.ga.gov.au/geonetwork/srv/eng/catalo:not_json; ecat.ga.gov.au:not_json; ecat.ga.gov.au/geonetwork/srv/eng/catalo:not_json
+difesa-it-il-ministro,Italy Ministries,101,,unknown,,,www.difesa.it/data/il-ministro/note-stam:no_total_field; www.difesa.it:not_json; www.difesa.it/il-ministro/note-stampa/el:not_json
+ecologie-gouv-fr-presse,France Ministries,4049,,unknown,,,www.ecologie.gouv.fr:http_406; www.ecologie.gouv.fr/presse:http_406
+diplomatie-gouv-fr-en,France Ministries,551,,unknown,,,www.diplomatie.gouv.fr:error:ConnectionError; www.diplomatie.gouv.fr/en/press/news:not_json; www.diplomatie.gouv.fr/en/press-room/lat:not_json
+dst-dk-da,덴마크완료,408,,unknown,,,www.dst.dk:not_json; www.dst.dk/da/Statistik/udgivelser?pub=p:not_json; www.dst.dk/pubomtale/{pub_id}:http_404; www.dst.dk/da/Statistik/nyheder-analyser:not_json
+economy-ni-gov-uk-publications,영국완료,583,,unknown,,,www.economy-ni.gov.uk:not_json; www.economy-ni.gov.uk/publications/feed/:not_json; www.economy-ni.gov.uk/publications:not_json
+economie-fgov-be-nl,벨기에완료,138,,unknown,,,economie.fgov.be:not_json; economie.fgov.be/nl/publicaties:not_json
+economy-ni-gov-uk-news,영국완료,500,,unknown,,,www.economy-ni.gov.uk:not_json; www.economy-ni.gov.uk/news:not_json
+earlham-ac-uk-newsroom,영국완료,278,,unknown,,,www.earlham.ac.uk:no_total_field; www.earlham.ac.uk/views/ajax?_wrapper_fo:no_total_field; www.earlham.ac.uk/newsroom:no_total_field
+eda-admin-ch-eda,Switzerland Departments,12,,unknown,,,d-nsbc-p.admin.ch/v1:http_404; d-nsbc-p.admin.ch/v1/search:http_400; www.eda.admin.ch:http_403; www.eda.admin.ch/eda/en/fdfa/fdfa/aktuel:http_403
+differ-nl-publications,Dutch Research Centers,198,642,html_paginate,low,https://www.differ.nl/publications?author=&year=&type=thesis&combine=&page=7,https://www.differ.nl/publications?author=&year=&type=thesis&combine=&page=7
+en-moj-gov-cn-lawsandregulationsht,중국 완료,15,,unknown,,,en.moj.gov.cn:not_json; en.moj.gov.cn/lawsandregulations.html:not_json; en.moj.gov.cn/lawsandregulations_{n}.htm:http_404
+en-iwhr-cn-iwhr-english-new,중국 완료,458,,unknown,,,en.iwhr.cn:http_412; en.iwhr.cn/IWHR-English-New/Publications:http_412; en.iwhr.cn/IWHR-English-New/Publications:http_412
+en-nim-ac-cn-taxonomy,중국 완료,303,,unknown,,,en.nim.ac.cn:not_json; en.nim.ac.cn/taxonomy/term/170:not_json
+dapa-go-kr-dapa,한국완료,970,,unknown,,,www.dapa.go.kr:error:ConnectTimeout; www.dapa.go.kr/dapa/doc/selectDocList.do:error:ConnectTimeout; www.dapa.go.kr/dapa/doc/selectDoc.do:error:ConnectTimeout
+efd-admin-ch-en,Switzerland Departments,500,,unknown,,,www.efd.admin.ch/ne/nsb/channel:http_400; www.efd.admin.ch/ne/nsb/organisations:http_400; www.efd.admin.ch:not_json; www.efd.admin.ch/en/overview/nsb?sort=da:not_json
+consult-environment-govt-nz-climate,뉴질랜드완료,72,,unknown,,,consult.environment.govt.nz:error:ConnectTimeout; consult.environment.govt.nz/climate/nz-e:error:ConnectTimeout
+consult-environment-govt-nz-resource-management,뉴질랜드완료,58,,unknown,,,consult.environment.govt.nz:error:ConnectTimeout; consult.environment.govt.nz/resource-man:error:ConnectTimeout
+emep-int-mscw,Norway Research Centers,213,,unknown,,,emep.int:not_json; emep.int/mscw/mscw_publications.html:not_json; emep.int/mscw/:not_json
+consult-environment-govt-nz-waste,뉴질랜드완료,58,,unknown,,,consult.environment.govt.nz:error:ConnectTimeout; consult.environment.govt.nz/consultation:error:ConnectTimeout
+eng-mod-gov-cn-2025xb,중국 완료,10,,unknown,,,eng.mod.gov.cn:not_json; eng.mod.gov.cn/2025xb/M/L_251592/index.h:not_json
+en-ndrc-gov-cn-policies,중국 완료,52,,unknown,,,en.ndrc.gov.cn:not_json; en.ndrc.gov.cn/policies/:not_json
+doras-dcu-ie-view,Irish Research Centers,2229,,unknown,,,doras.dcu.ie/cgi/exportview/type/thesis/:error:ReadTimeout; doras.dcu.ie:not_json; doras.dcu.ie/view/type/article.html:not_json
+en-nhc-gov-cn-publicationshtml,중국 완료,9,,unknown,,,en.nhc.gov.cn:not_json; en.nhc.gov.cn/publications.html:not_json
+energy-gov-open-government,USA Executive Departments,10,,unknown,,,www.energy.gov:not_json; www.energy.gov/open-government:not_json
+data-biodiversity-be-dataset,벨기에완료,524,,unknown,,,data.biodiversity.be/api/3/action:error:ReadTimeout; data.biodiversity.be:error:ReadTimeout; data.biodiversity.be/dataset/:error:ReadTimeout
+edi-admin-ch-de,Switzerland Departments,360,,unknown,,,www.edi.admin.ch:not_json; d-nsbc-p.admin.ch/v1:http_404; www.edi.admin.ch/de/medienmitteilungen-d:not_json
+em-lyon-com-en,French Public Universities,348,,unknown,,,em-lyon.com:not_json; em-lyon.com/en/newsroom:not_json
+energy-gov-search,USA Executive Departments,191,49332,json_total,low,https://www.energy.gov/api/v1/search,key=facets.bundle_alias.values.count [ratio=258x:review_possible_unscoped_endpoint]
+energy-gov-management,USA Executive Departments,388,,unknown,,,www.energy.gov:not_json; www.energy.gov/management/directives-gui:not_json; www.energy.gov/management/directives-lib:not_json; www.energy.gov/management/delegations-li:not_json
+emsl-pnnl-gov-science,American Research Institutes,6,,unknown,,,www.emsl.pnnl.gov:not_json; www.emsl.pnnl.gov/science/reports:not_json; www.emsl.pnnl.gov/views/ajax:http_404; www.emsl.pnnl.gov/node/15222:not_json
+drugsandalcohol-ie-cgi,Irish Research Centers,500,,unknown,,,www.drugsandalcohol.ie:not_json; www.drugsandalcohol.ie/cgi/search/archiv:not_json
+english-mee-gov-cn-resources,중국 완료,20,,unknown,,,english.mee.gov.cn:not_json; english.mee.gov.cn/Resources/Reports/Ann:not_json
+em-dk-aktuelt,덴마크완료,350,,unknown,,,www.em.dk:not_json; www.em.dk/aktuelt/udgivelser-og-aftaler:not_json
+english-www-gov-cn-archive,중국 완료,506,,unknown,,,english.www.gov.cn:not_json; english.www.gov.cn/archive/statecouncilg:not_json
+eprints-imtlucca-it-cgi,Italy Research centers,1461,,unknown,,,eprints.imtlucca.it:error:ConnectionError; eprints.imtlucca.it/cgi/search/archive/a:error:ConnectionError
+ethniccommunities-govt-nz-resources,뉴질랜드완료,85,,unknown,,,www.ethniccommunities.govt.nz:http_403; www.ethniccommunities.govt.nz/resources/:http_403
+english-cnipa-gov-cn-col,중국 완료,353,,unknown,,,english.cnipa.gov.cn:not_json; english.cnipa.gov.cn/col/col1336/index.h:not_json; english.cnipa.gov.cn/col/col2967/index.h:not_json
+ens-lyon-fr-lecole,French Public Universities,154,,unknown,,,www.ens-lyon.fr:not_json; www.ens-lyon.fr/lecole/medias-et-presse/:not_json
+epa-ie-news-releases,Irish Research Centers,120,,unknown,,,www.epa.ie:not_json; www.epa.ie/news-releases/news-releases-2:not_json
+ethz-ch-de,Switzerland Research Centers,203,,unknown,,,ethz.ch/de/news-und-veranstaltungen/medi:no_total_field; ethz.ch:not_json; ethz.ch/de/news-und-veranstaltungen/medi:not_json
+federalregister-gov-documents,USA Executive Departments,5957,10000,json_total,medium,https://www.federalregister.gov/api/v1/documents,key=count
+esteri-it-it,Italy Ministries,5533,25207,wp_total,high,https://www.esteri.it/it/wp-json/wp/v2/posts,route=posts
+etis-ee-portal,Estonia Research Centers,138,,unknown,,,www.etis.ee/services/Portal/Publications:http_405; www.etis.ee/services/Portal/Publications:http_400; www.etis.ee:not_json; www.etis.ee/Portal/Publications/Display/:not_json
+etera-ee-browse,Estonia Research Centers,100403,,unknown,,,www.etera.ee/api/browse:http_405; www.etera.ee/api/item/{item_id}/meta:http_404; www.etera.ee:not_json; www.etera.ee/browse:not_json
+fhi-no-en,Norway Research Centers,255,1000,json_total,medium,https://www.fhi.no/api/search,key=filterModels.documentTypeFacet.count
+esri-ie-publications,Irish Research Centers,531,,unknown,,,www.esri.ie:not_json; www.esri.ie/publications/browse:not_json
+fair-healthdata-be-search,벨기에완료,10,248,json_total,medium,https://fair.healthdata.be/api/1/search,key=facets.total
+eprints-soton-ac-uk-view,영국완료,259,,unknown,,,eprints.soton.ac.uk:http_401; eprints.soton.ac.uk/view/divisions/5d1c5:http_401; eprints.soton.ac.uk/view/divisions/5d1c5:http_401
+elocus-lib-uoc-gr-search,Greece Research Centers,282,,unknown,,,elocus.lib.uoc.gr/search/:not_json; elocus.lib.uoc.gr:not_json; elocus.lib.uoc.gr/search/?store_query=1&:not_json
+educacionfpydeportes-gob-es-prensahtml,Spain Ministries,347,,unknown,,,www.educacionfpydeportes.gob.es:not_json; www.educacionfpydeportes.gob.es/prensa/a:not_json; www.educacionfpydeportes.gob.es/prensa.h:not_json
+ftc-go-kr-www,한국완료,694,,unknown,,,www.ftc.go.kr:not_json; www.ftc.go.kr/www/selectBbsNttList.do:not_json; www.ftc.go.kr/www/selectBbsNttView.do:not_json; www.ftc.go.kr/www/:http_404
+fss-or-kr-fss,한국완료,500,,unknown,,,www.fss.or.kr:not_json; www.fss.or.kr/fss/bbs/B0000188/list.do:not_json; www.fss.or.kr/fss/bbs/B0000188/view.do:not_json; www.fss.or.kr/fss/bbs/B0000188/list.do?m:not_json
+finance-ni-gov-uk-publications,영국완료,336,,unknown,,,www.finance-ni.gov.uk:not_json; www.finance-ni.gov.uk/publications:not_json
+fm-dk-udgivelser,덴마크완료,100,,unknown,,,fm.dk:not_json; fm.dk/udgivelser/:not_json
+gb-go-kr-sub,한국완료,406,,unknown,,,gb.go.kr:not_json; gb.go.kr/Sub/open_contents/section/datas:not_json; gb.go.kr/Sub/open_contents/section/datas:not_json
+fmi-ch-research,Switzerland Research Centers,818,,unknown,,,www.fmi.ch/research/publications/:not_json; eutils.ncbi.nlm.nih.gov/entrez/eutils/es:not_json; www.fmi.ch:not_json; eutils.ncbi.nlm.nih.gov/entrez/eutils/ef:http_400
+gnews-gg-go-kr-briefing,한국완료,500,,unknown,,,gnews.gg.go.kr:not_json; gnews.gg.go.kr/briefing/brief_gongbo.do:not_json; gnews.gg.go.kr/briefing/brief_gongbo_vie:http_404
+fi-se-en,스웨덴 완료,122,,unknown,,,www.fi.se:not_json; www.fi.se/en/published/reports/reports/:not_json; www.fi.se/en/payments/nyheter-betalninga:not_json
+gi-re-kr-home,한국완료,452,,unknown,,,www.gi.re.kr:http_406; www.gi.re.kr/Home/H10000/H10100/pmsRepor:not_json; www.gi.re.kr/Home/H10000/H10100/pmsRepor:not_json
+ejournals-epublishing-ekt-gr-indexphp,Greece Research Centers,474,,unknown,,,ejournals.epublishing.ekt.gr:not_json; ejournals.epublishing.ekt.gr/index.php/i:not_json
+genome-gov-about-nhgri,American Research Institutes,42,,unknown,,,www.genome.gov:not_json; www.genome.gov/about-nhgri/Budget-Financ:not_json
+gcsp-ch-publications,Switzerland Research Centers,176,,unknown,,,www.gcsp.ch:not_json; www.gcsp.ch/publications:not_json; www.gcsp.ch/publications?type%5B230%5D=2:not_json
+fibl-org-en,Switzerland Research Centers,539,,unknown,,,www.fibl.org:not_json; www.fibl.org/data_raid/ruci_workspace/fr:http_404; www.fibl.org/en/info-centre/publications:not_json; orgprints.org:error:ReadTimeout
+gov-gr-search,Greece Ministries,489,,unknown,,,www.gov.gr/search?SearchSensor=%22%22&Si:http_403; www.gov.gr/elasticsearch/services/_searc:http_403; www.gov.gr/el/api/v1/services/{service_i:http_403; www.gov.gr:http_403
+didaktorika-gr-eadd,Greece Research Centers,118,,unknown,,,www.didaktorika.gr/eadd/simple-search?qu:error:ReadTimeout; www.didaktorika.gr:error:ReadTimeout
+forest-go-kr-kfsweb,한국완료,931,,unknown,,,www.forest.go.kr:not_json; www.forest.go.kr/kfsweb/cop/bbs/selectBo:not_json
+gri-re-kr-web,한국완료,516,,unknown,,,www.gri.re.kr:not_json; www.gri.re.kr/web/contents/resreport.do:not_json; library.gri.re.kr/download.do:http_500
+environment-govt-nz-acts-and-regulations,뉴질랜드완료,315,,unknown,,,web.archive.org/cdx/search/cdx:http_503; environment.govt.nz:not_json; web.archive.org/web:http_404; environment.govt.nz/acts-and-regulations:not_json
+github-com-orgs,Dutch Research Centers,91,190,html_paginate,low,https://github.com/orgs/Deltares/repositories?page=3,https://github.com/orgs/Deltares/repositories?page=3
+ga-gov-au-data-pubs,호주완료,2243,,unknown,,,ecat.ga.gov.au/geonetwork/srv/api/search:http_403; www.ga.gov.au:not_json; www.ga.gov.au/data-pubs/library/legacy-p:not_json; www.ga.gov.au/data-pubs/library/legacy-p:not_json
+harcresearch-org-research,American Research Institutes,41,,unknown,,,harcresearch.org:not_json; harcresearch.org/research/:not_json; harcresearch.org/research/#data-download:not_json
+environment-govt-nz-publications,뉴질랜드완료,249,,unknown,,,web.archive.org/cdx/search/cdx:http_400; environment.govt.nz:not_json; web.archive.org/web:not_json; environment.govt.nz/publications/?offset:not_json
+gwangju-go-kr-boardlistdo,한국완료,500,,unknown,,,www.gwangju.go.kr:not_json; www.gwangju.go.kr/boardList.do:not_json; www.gwangju.go.kr/boardView.do:not_json; www.gwangju.go.kr/boardList.do?boardId=B:not_json
+hhs-gov-guidance,USA Executive Departments,267,,unknown,,,www.hhs.gov:http_403; www.hhs.gov/guidance/:http_403
+graduateinstitute-ch-library,Switzerland Research Centers,398,,unknown,,,www.graduateinstitute.ch:not_json; www.graduateinstitute.ch/library/publica:not_json; www.graduateinstitute.ch/catalog-publica:not_json; repository.graduateinstitute.ch:http_202
+harcresearch-org-news,American Research Institutes,240,,unknown,,,harcresearch.org:not_json; harcresearch.org/news/:not_json
+health-ni-gov-uk-publications,영국완료,503,,unknown,,,www.health-ni.gov.uk:not_json; www.health-ni.gov.uk/publications:not_json
+fmn-dk-da,덴마크완료,848,,unknown,,,www.fmn.dk/ListPage/UpdateList:not_json; www.fmn.dk:not_json; www.fmn.dk/da/nyheder/:not_json
+hcsp-fr-explorecgi,French Public Institutions,37,,unknown,,,www.hcsp.fr:not_json; www.hcsp.fr/Explore.cgi/avisrapports?Ann:not_json; www.hcsp.fr/Explore.cgi/avisrapports:not_json; www.hcsp.fr/Explore.cgi/avisrapportsdoma:not_json
+fafo-no-en,Norway Research Centers,322,,unknown,,,www.fafo.no:not_json; www.fafo.no/en/publications:not_json
+gichd-org-publications-resourc,Switzerland Research Centers,266,,unknown,,,www.gichd.org:not_json; www.gichd.org/publications-resources/pub:not_json
+health-ni-gov-uk-news,영국완료,137,,unknown,,,www.health-ni.gov.uk:not_json; www.health-ni.gov.uk/news/feed/health:not_json; purl.org/dc/elements/1.1/:not_json; www.health-ni.gov.uk/news:not_json
+home-treasury-gov-about,USA Executive Departments,12,,unknown,,,home.treasury.gov:not_json; home.treasury.gov/about/budget-financial:not_json; home.treasury.gov/about/budget-financial:not_json
+hatvp-fr-actualites-et-public,French Public Institutions,57,,unknown,,,www.hatvp.fr:not_json; www.hatvp.fr/actualites-et-publications/:not_json; www.hatvp.fr/actualites-et-publications/:http_404; www.hatvp.fr/actualites-et-publications/:not_json
+hi-no-en,Norway Research Centers,119,,unknown,,,www.hi.no:not_json; www.hi.no/en/hi/nettrapporter:not_json
+hud-govt-nz-stats-and-insights,뉴질랜드완료,1334,,unknown,,,www.hud.govt.nz/documents/search:http_400; www.hud.govt.nz:not_json; www.hud.govt.nz/stats-and-insights/homel:not_json
+gyeongnam-go-kr-board,한국완료,190,,unknown,,,www.gyeongnam.go.kr:not_json; www.gyeongnam.go.kr/board/list.gyeong:http_500; www.gyeongnam.go.kr/board/view.gyeong:no_total_field; www.gyeongnam.go.kr/board/list.gyeong?bo:http_500
+idiap-ch-en,Switzerland Research Centers,125,,unknown,,,"www.idiap.ch/en/scientific-research/data:not_json; www.idiap.ch:not_json; www.idiap.ch/en/scientific-research/data:not_json; html_paginate:rejected_total<collected(44<125,method=html_paginate)"
+gov-wales-publications,영국완료,155,,unknown,,,www.gov.wales:not_json; www.gov.wales/publications:not_json
+environment-govt-nz-what-you-can-do,뉴질랜드완료,58,,unknown,,,consult.environment.govt.nz/api/2.4/json:error:ConnectTimeout; environment.govt.nz:not_json; environment.govt.nz/what-you-can-do/have:not_json; consult.environment.govt.nz:error:ConnectTimeout
+hec-edu-en,French Public Universities,16,,unknown,,,www.hec.edu:http_403; www.hec.edu/en/list-press-release:http_403; www.hec.edu/en/views/ajax:http_403
+homeaffairs-gov-au-sitesearch,호주완료,1308,,unknown,,,www.homeaffairs.gov.au/_api/search/query:http_500; www.homeaffairs.gov.au:not_json; www.homeaffairs.gov.au/sitesearch?k=pdf:not_json
+humanrights-go-kr-base,한국완료,450,,unknown,,,www.humanrights.go.kr:not_json; www.humanrights.go.kr/base/board/list:not_json; www.humanrights.go.kr/base/board/read:http_500; www.humanrights.go.kr/base/board/list?bo:not_json
+icp-fr-a-propos-de-licp,French Public Institutions,99,,unknown,,,www.icp.fr:not_json; www.icp.fr/a-propos-de-licp/presse/commu:not_json
+ii-re-kr-base,한국완료,287,,unknown,,,www.ii.re.kr:not_json; www.ii.re.kr/base/board/list:not_json; www.ii.re.kr/base/board/list?boardManage:not_json
+ifau-se-forskning,스웨덴 완료,101,,unknown,,,www.ifau.se/Forskning/Publikationer/Rapp:http_404; www.ifau.se:not_json; www.ifau.se/Forskning/Publikationer/Rapp:not_json; www.ifau.se/Forskning/Publikationer/Diss:not_json
+info-korail-com-info,한국완료,565,,unknown,,,info.korail.com:not_json; info.korail.com/info/selectBbsNttList.do:not_json; info.korail.com/info/selectBbsNttView.do:http_500; info.korail.com/info/downloadBbsFile.do:http_500
+gnewsonline-it-category,Italy Ministries,343,,unknown,,,www.gnewsonline.it:not_json; www.gnewsonline.it/category/comunicati-s:not_json
+ifpenergiesnouvelles-fr-tags,French Research Institutes,150,,unknown,,,www.ifpenergiesnouvelles.fr:not_json; www.ifpenergiesnouvelles.fr/views/ajax:http_404; www.ifpenergiesnouvelles.fr/tags/communi:not_json
+gsi-ie-en-ie,Irish Research Centers,113,,unknown,,,www.gsi.ie/en-ie/research/Pages/related-:not_json; www.gsi.ie:not_json; www.gsi.ie/en-ie/publications:not_json
+ifau-se-press,스웨덴 완료,215,,unknown,,,www.ifau.se:not_json; www.ifau.se/Press/Pressmeddelanden/:not_json; www.ifau.se/Press/Meddelanden/:not_json
+ign-fr-espace-presse,French Public Institutions,67,,unknown,,,www.ign.fr:not_json; www.ign.fr/espace-presse:not_json
+ifr-pan-edu-pl-dzialalnosc-naukowa,Polish Research Centers,232,,unknown,,,ifr-pan.edu.pl:not_json; ifr-pan.edu.pl/publication/filtered:not_json; api.crossref.org/works:no_total_field; ifr-pan.edu.pl/dzialalnosc-naukowa/publi:not_json
+home-cern-news,Switzerland Research Centers,809,,unknown,,,home.cern:not_json; home.cern/feed/:not_json; purl.org/rss/1.0/modules/content/:not_json; purl.org/dc/elements/1.1/:not_json
+indicators-be-nl,벨기에완료,84,,unknown,,,indicators.be:not_json; indicators.be/nl/t/SDG/:not_json
+info-daegu-go-kr-newshome,한국완료,490,,unknown,,,info.daegu.go.kr:not_json; info.daegu.go.kr/newshome/mtnmain.php:not_json; info.daegu.go.kr/enewspaper/file_downloa:not_json; info.daegu.go.kr/newshome/mtnmain.php?mt:not_json
+iheid-swisscovery-ch-discovery,Switzerland Research Centers,523,,unknown,,,iheid.swisscovery.ch/primaws/rest/pub/pn:http_400; iheid.swisscovery.ch:not_json; iheid.swisscovery.ch/discovery/jsearch?q:not_json
+infrastructure-ni-gov-uk-news,영국완료,420,,unknown,,,www.infrastructure-ni.gov.uk:not_json; www.infrastructure-ni.gov.uk/news:not_json
+genomecanada-ca-about,Canadian Research Centers,50,,unknown,,,genomecanada.ca:not_json; genomecanada.ca/about/publications/:not_json
+illustro-iadt-figshare-com-search,Irish Research Centers,92,,unknown,,,api.figshare.com/v2:http_404; illustro-iadt.figshare.com:http_202; illustro-iadt.figshare.com/search?itemTy:http_202
+inrae-fr-actualites,French Research Institutes,830,,unknown,,,www.inrae.fr:not_json; DVUTVWXJFU-dsn.algolia.net/1/indexes/inr:http_403; www.inrae.fr/actualites?inrae_prod_creat:not_json
+insee-fr-fr,French Public Institutions,223,,unknown,,,www.insee.fr:not_json; www.insee.fr/fr/information/2117832?debu:not_json
+iucn-org-press-releases,Switzerland Research Centers,68,,unknown,,,iucn.org:not_json; iucn.org/press-releases:not_json; iucn.org/press-releases?ptype=internatio:not_json
+inria-fr-fr,French Research Institutes,114,,unknown,,,www.inria.fr:not_json; www.inria.fr/fr/espace-presse:not_json
+incheon-go-kr-ic010205,한국완료,1328,,unknown,,,www.incheon.go.kr:not_json; www.incheon.go.kr/IC010205:empty; www.incheon.go.kr/IC010205/view:empty
+iucn-org-about-iucn,Switzerland Research Centers,19,,unknown,,,iucn.org:not_json; portals.iucn.org:not_json; iucn.org/about-iucn/accountability-and-r:not_json
+international-canada-ca-en,Canada Ministries,14,,unknown,,,international.canada.ca:not_json; international.canada.ca/en/global-affair:not_json
+ifremer-fr-fr,French Research Institutes,286,,unknown,,,www.ifremer.fr:not_json; www.ifremer.fr/fr/espace-presse:not_json; www.ifremer.fr/fr/views/ajax:http_404
+iwhr-com-zgskywwnew,중국 완료,62,,unknown,,,www.iwhr.com:http_412; www.iwhr.com/zgskywwnew/ddjs/newskzs/N01:http_412
+jeju-go-kr-news,한국완료,1087,,unknown,,,www.jeju.go.kr:not_json; www.jeju.go.kr/data_raid/ruci_workspace/:not_json; www.jeju.go.kr/news/bodo/list.htm:not_json
+international-gc-ca-transparency-transpa,Canada Ministries,22,,unknown,,,www.international.gc.ca:not_json; www.international.gc.ca/transparency-tra:not_json
+jsearch-mwr-gov-cn-irs-c-web,중국 완료,2499,,unknown,,,jsearch.mwr.gov.cn:not_json; jsearch.mwr.gov.cn/irs/front/search:no_total_field; jsearch.mwr.gov.cn/irs-c-web/search.shtm:not_json
+ineris-fr-fr,French Research Institutes,141,,unknown,,,www.ineris.fr:not_json; www.ineris.fr/fr/base-documentaire:not_json; www.ineris.fr/fr/base-documentaire?docum:not_json
+irsn-fr-actualites,French Research Institutes,274,,unknown,,,www.irsn.fr:not_json; recherche-expertise.asnr.fr:not_json; www.irsn.fr/actualites/communiques-press:not_json
+hud-govt-nz-documents,뉴질랜드완료,148,,unknown,,,www.hud.govt.nz/documents/search:http_400; www.hud.govt.nz:not_json; www.hud.govt.nz/data_raid/ruci_workspace:http_404; www.hud.govt.nz/data_raid/ruci_workspace:http_404
+kamco-or-kr-portal,한국완료,19,,unknown,,,www.kamco.or.kr:not_json; www.kamco.or.kr/portal/bbs/list.do:not_json; www.kamco.or.kr/portal/bbs/view.do:not_json; www.kamco.or.kr/cmm/fms/FileDown.do:not_json
+justice-gov-news,USA Executive Departments,741,,unknown,,,www.justice.gov:not_json; www.justice.gov/news/press-releases:not_json; www.justice.gov/tmp/justice_gov_cookies.:http_404
+justice-ni-gov-uk-publications,영국완료,228,,unknown,,,www.justice-ni.gov.uk:not_json; www.justice-ni.gov.uk/publications:not_json
+keis-or-kr-keis,한국완료,22,,unknown,,,www.keis.or.kr:not_json; www.keis.or.kr/keis/ko/bbs/123/list.do:not_json; www.keis.or.kr/keis/ko/bbs/123/:http_404; www.keis.or.kr/keis/ko/bbs/124/list.do?s:not_json
+keei-re-kr-boardes,한국완료,452,,unknown,,,www.keei.re.kr:http_500; www.keei.re.kr/board.es?mid=a10202020000:not_json
+icn-artem-com-en,French Public Universities,6,,unknown,,,www.icn-artem.com:not_json; www.icn-artem.com/en/news/:not_json; www.icn-artem.com/post-sitemap.xml:not_json; www.icn-artem.com/en/press/:not_json
+issibern-ch-outreach,Switzerland Research Centers,157,,unknown,,,www.issibern.ch/wp-json/facetwp/v1/refre:http_404; www.issibern.ch:not_json; www.issibern.ch/outreach/news/:not_json; www.issibern.ch/data_raid/ruci_workspace:http_404
+iucn-org-resources,Switzerland Research Centers,6,,unknown,,,iucn.org/search-website:not_json; iucn.org:not_json; iucn.org/resources?rstype=1116&thm=All&t:not_json
+kepco-co-kr-home,한국완료,400,,unknown,,,www.kepco.co.kr:not_json; www.kepco.co.kr/home/media/newsroom/pr/b:empty; www.kepco.co.kr/home/media/newsroom/pr/b:not_json; www.kepco.co.kr/c2r/FileDownload.do:not_json
+kice-re-kr-boardcnts,한국완료,500,,unknown,,,www.kice.re.kr:not_json; www.kice.re.kr/boardCnts/list.do:not_json; www.kice.re.kr/boardCnts/view.do:not_json; www.kice.re.kr/boardCnts/fileDown.do:not_json
+igualdad-gob-es-comunicacion,Spain Ministries,216,,unknown,,,www.igualdad.gob.es:not_json; www.igualdad.gob.es/comunicacion/sala-de:not_json
+kicce-re-kr-main,한국완료,368,,unknown,,,www.kicce.re.kr:not_json; www.kicce.re.kr/main/board/index.do?menu:http_400; www.kicce.re.kr/main/board/index.do?menu:http_400
+insight-centre-org-press-releases,Irish Research Centers,54,2560,html_paginate,low,https://www.insight-centre.org/press-releases/?p=80,https://www.insight-centre.org/press-releases/?p=80
+kei-re-kr-eliblistes,한국완료,364,,unknown,,,www.kei.re.kr:http_500; www.kei.re.kr/elibList.es?mid=a101010100:not_json
+issibern-ch-results,Switzerland Research Centers,495,,unknown,,,www.issibern.ch/wp-json/facetwp/v1/refre:http_404; www.issibern.ch:not_json; www.issibern.ch/results/publications/jou:not_json
+kihasa-re-kr-news,한국완료,615,,unknown,,,www.kihasa.re.kr/api/kihasa/file/downloa:http_500; www.kihasa.re.kr:not_json; www.kihasa.re.kr/news/press/list:not_json; www.kihasa.re.kr/news/press/view:not_json
+ivo-se-sok,스웨덴 완료,134,,unknown,,,www.ivo.se:not_json; www.ivo.se/sok/?q=%20&s=0&f=1:not_json; www.ivo.se/sok/:not_json
+kihasa-re-kr-publish,한국완료,673,,unknown,,,www.kihasa.re.kr/api/kihasa/file/downloa:http_429; www.kihasa.re.kr:not_json; www.kihasa.re.kr/publish/report/all/list:not_json; www.kihasa.re.kr/publish/report/view:not_json
+kcg-go-kr-kcg,한국완료,624,,unknown,,,www.kcg.go.kr:not_json; www.kcg.go.kr/kcg/na/ntt/selectNttList.d:not_json; www.kcg.go.kr/kcg/na/ntt/selectNttInfo.d:http_404; www.kcg.go.kr/common/nttFileDownload.do:http_404
+irb-usi-ch-publications,Switzerland Research Centers,558,,unknown,,,"irb.usi.ch/wp-json/wp/v2/pages/632?_fiel:rejected_total<collected(82<558,method=wp_total); irb.usi.ch:not_json; irb.usi.ch/publications/:not_json"
+kipf-re-kr-kor,한국완료,601,,unknown,,,www.kipf.re.kr:not_json; www.kipf.re.kr/kor/Publication/CenterPer:not_json; www.kipf.re.kr/kor/Publication/CenterPer:not_json; www.kipf.re.kr/kor/Publication/PolicyRes:not_json
+kb-se-om-oss,스웨덴 완료,80,395,html_paginate,low,https://www.kb.se/om-oss/nyheter.html?page=10,https://www.kb.se/om-oss/nyheter.html?page=10
+kisdi-re-kr-report,한국완료,501,,unknown,,,www.kisdi.re.kr:not_json; www.kisdi.re.kr/report/list.do:http_404; www.kisdi.re.kr/report/view.do:http_404; www.kisdi.re.kr/report/fileDown.do:http_404
+kiep-go-kr-galleryes,한국완료,437,,unknown,,,www.kiep.go.kr:http_400; www.kiep.go.kr/gallery.es:not_json; www.kiep.go.kr/galleryDownload.es:not_json; www.kiep.go.kr/gallery.es?mid=a101010100:not_json
+kammarkollegiet-se-aktuellt,스웨덴 완료,46,,unknown,,,www.kammarkollegiet.se:not_json; www.kammarkollegiet.se/aktuellt:not_json
+jeonnam-go-kr-m7116,한국완료,770,,unknown,,,www.jeonnam.go.kr:not_json; www.jeonnam.go.kr/M7116/boardList.do:not_json; www.jeonnam.go.kr/M7116/boardView.do:http_500; www.jeonnam.go.kr/M7116/boardList.do?men:not_json
+juventudeinfancia-gob-es-es,Spain Ministries,306,,unknown,,,www.juventudeinfancia.gob.es:not_json; www.juventudeinfancia.gob.es/es/comunica:not_json
+klri-re-kr-kor,한국완료,590,,unknown,,,www.klri.re.kr:not_json; www.klri.re.kr/kor/issueData/P/list.do:not_json; www.klri.re.kr/kor/issueData/P/{item_id}:not_json; www.klri.re.kr/cmm/fms/FileDown.do?atchF:not_json
+kinfa-or-kr-notificationpromotio,한국완료,732,,unknown,,,www.kinfa.or.kr:not_json; www.kinfa.or.kr/notificationPromotion/ne:not_json; www.kinfa.or.kr/notificationPromotion/ne:not_json; www.kinfa.or.kr/FileDown.do:not_json
+kipo-go-kr-ko,한국완료,500,,unknown,,,www.kipo.go.kr:not_json; www.kipo.go.kr/ko/kpoBultnMgmt.do:not_json; www.kipo.go.kr/ko/kpoBultnDetail.do:not_json; www.kipo.go.kr/data_raid/ruci_workspace/:http_404
+kma-go-kr-kma,한국완료,86,,unknown,,,www.kma.go.kr:not_json; www.kma.go.kr/kma/news/press_01.jsp:not_json; www.kma.go.kr/kma/news/press_01.jsp?from:not_json
+justitsministeriet-dk-pressemeddelelse,덴마크완료,346,,unknown,,,www.justitsministeriet.dk:not_json; www.justitsministeriet.dk/pressemeddelel:not_json; www.justitsministeriet.dk/pressemeddelel:http_404
+kisdi-re-kr-bbs,한국완료,502,,unknown,,,www.kisdi.re.kr:not_json; www.kisdi.re.kr/bbs/list.do:http_404; www.kisdi.re.kr/bbs/view.do:http_404; www.kisdi.re.kr/cmm/fileDown.do:http_404
+kefm-dk-aftaler,덴마크완료,101,,unknown,,,www.kefm.dk:not_json; www.kefm.dk/aftaler:not_json
+kinu-or-kr-main,한국완료,432,,unknown,,,www.kinu.or.kr:not_json; www.kinu.or.kr/main/board/index.do:no_total_field; www.kinu.or.kr/main/board/view.do:http_500; www.kinu.or.kr/main/module/report/index.:no_total_field
+kicj-re-kr-boardes,한국완료,154,,unknown,,,www.kicj.re.kr:http_500; www.kicj.re.kr/board.es:not_json; www.kicj.re.kr/boardGetData.es:empty; www.kicj.re.kr/ajaxBoardTagList.es:empty
+kipf-re-kr-bbs,한국완료,352,,unknown,,,www.kipf.re.kr:not_json; www.kipf.re.kr/bbs/kor_Plaza_PressReleas:not_json; www.kipf.re.kr/bbs/kor_Plaza_PressReleas:not_json; www.kipf.re.kr/cmm/fms/FileDown.do:error:ConnectionError
+kipa-re-kr-html,한국완료,8,,unknown,,,www.kipa.re.kr/service/cmn/sym/api/selec:no_total_field; www.kipa.re.kr:not_json; www.kipa.re.kr/service/kor/rsch/pblc/sel:no_total_field; www.kipa.re.kr/service/kor/rsch/pblc/sel:no_total_field
+klimaraadet-dk-da,덴마크완료,84,,unknown,,,klimaraadet.dk:not_json; klimaraadet.dk/da/udgivelser:not_json
+krihs-re-kr-krihslibraryreport,한국완료,168,,unknown,,,www.krihs.re.kr:http_500; www.krihs.re.kr/data_raid/ruci_workspace:http_404; www.krihs.re.kr/krihsLibraryReport/brief:not_json; library.krihs.re.kr/library/10120/conten:http_404
+kna-forest-go-kr-kfsweb,한국완료,372,,unknown,,,kna.forest.go.kr:not_json; kna.forest.go.kr/kfsweb/kfi/kfs/kna/appl:not_json; kna.forest.go.kr/kfsweb/kfi/kfs/kna/appl:not_json; kna.forest.go.kr/kfsweb/cmm/fms/FileDown:not_json
+kmi-re-kr-web,한국완료,445,2348,html_paginate,low,https://www.kmi.re.kr/web/board/list.do?rbsIdx=164&page=118,https://www.kmi.re.kr/web/board/list.do?rbsIdx=164&page=118
+krihs-re-kr-boardes,한국완료,600,,unknown,,,www.krihs.re.kr:http_500; www.krihs.re.kr/board.es?mid=a1060700000:not_json; www.krihs.re.kr/board.es?mid=a1060700000:not_json; www.krihs.re.kr/boardDownload.es?bid=000:not_json
+kommunikasjon-ntb-no-presserom,Norway Research Centers,116,,unknown,,,kommunikasjon.ntb.no:not_json; kommunikasjon.ntb.no/presserom/17848243/:not_json
+krihs-re-kr-krihslibraryarticle,한국완료,744,,unknown,,,www.krihs.re.kr:http_500; www.krihs.re.kr/krihsLibraryArticle/arti:not_json; library.krihs.re.kr:not_json; www.krihs.re.kr/krihsLibraryArticle/arti:not_json
+justitsministeriet-dk-forskning,덴마크완료,24,,unknown,,,www.justitsministeriet.dk:not_json; www.justitsministeriet.dk/forskning/fors:not_json
+lib-cssn-cn-zy,중국 완료,204,,unknown,,,lib.cssn.cn:not_json; lib.cssn.cn/zy/dzzy/sjk_1/axkflll/:not_json; lib.cssn.cn/zy/dzzy/sjk_1/:not_json; lib.cssn.cn/zy/dzzy/?column=xueke:not_json
+kasa-go-kr-bbs,한국완료,331,,unknown,,,www.kasa.go.kr:not_json; www.kasa.go.kr/bbs/BBSMSTR_000000000010/:not_json; www.kasa.go.kr/bbs/BBSMSTR_000000000010/:not_json; www.kasa.go.kr/cmm/fms/FileDown.do:http_404
+kedi-re-kr-khome,한국완료,519,,unknown,,,www.kedi.re.kr/khome/main/research/listP:not_json; www.kedi.re.kr/khome/main/research/selec:not_json; www.kedi.re.kr/khome/main/research/downl:not_json; www.kedi.re.kr:not_json
+kdca-go-kr-kdca,한국완료,846,,unknown,,,www.kdca.go.kr:not_json; www.kdca.go.kr/bbs/kdca/41/artclList.do:not_json; www.kdca.go.kr/bbs/kdca/41/{seq}/artclVi:not_json; www.kdca.go.kr/kdca/2847/subview.do:not_json
+khs-go-kr-cop,한국완료,38,,unknown,,,www.khs.go.kr:error:ConnectTimeout; www.khs.go.kr/cop/bbs/selectBoardList.do:error:ConnectTimeout; www.khs.go.kr/cop/bbs/selectBoardArticle:error:ConnectTimeout
+lecese-fr-espace-presse,French Public Institutions,500,,unknown,,,www.lecese.fr:not_json; www.lecese.fr/espace-presse:not_json
+khs-go-kr-newsbbz,한국완료,1249,,unknown,,,www.khs.go.kr:error:ConnectTimeout; www.khs.go.kr/newsBbz/selectNewsBbzList.:error:ConnectTimeout; www.khs.go.kr/newsBbz/selectNewsBbzView.:error:ConnectTimeout
+kjonnsforskning-no-nb,Norway Research Centers,100,166,html_paginate,low,https://kjonnsforskning.no/nb/tidsskrift-for-kjonnsforskning?page=7,https://kjonnsforskning.no/nb/tidsskrift-for-kjonnsforskning?page=7
+kliimaministeerium-ee-otsing,Estonia Ministries,10,,unknown,,,search.service.eu-live.vportal.ee/v1/sea:not_json_container; kliimaministeerium.ee:not_json; kliimaministeerium.ee/otsing?sort_by=cre:not_json
+kmcc-go-kr-userdo,한국완료,666,,unknown,,,www.kmcc.go.kr:not_json; www.kmcc.go.kr/user.do:not_json; www.kmcc.go.kr/user.do?boardId=1030&page:not_json
+kli-re-kr-kli,한국완료,500,,unknown,,,www.kli.re.kr:http_500; www.kli.re.kr/kli/rschRptpList.es?mid=a1:not_json
+koti-re-kr-user,한국완료,373,,unknown,,,www.koti.re.kr:not_json; www.koti.re.kr/user/bbs/bassRsrchReprtLi:not_json; www.koti.re.kr/user/bbs/bassRsrchReprtVi:http_500
+krivet-re-kr-kor,한국완료,500,,unknown,,,www.krivet.re.kr:not_json; www.krivet.re.kr/kor/sub.do:not_json; www.krivet.re.kr/kor/sub.do?menuSn=12:not_json
+mem-gov-cn-fw,중국 완료,62,,unknown,,,www.mem.gov.cn:not_json; www.mem.gov.cn/fw/yajzjxzxk/zjxzxksxbljg:not_json
+libreria-educacion-gob-es-p,Spain Ministries,330,,unknown,,,www.libreria.educacion.gob.es:not_json; www.libreria.educacion.gob.es/p/3740_est:not_json
+lavoro-gov-it-stampa-e-media,Italy Ministries,340,,unknown,,,www.lavoro.gov.it:not_json; www.lavoro.gov.it/stampa-e-media/Comunic:not_json
+llnl-gov-news,American Research Institutes,3537,,unknown,,,contenthub.llnl.gov:not_json; www.llnl.gov:not_json; www.llnl.gov/news/lab-report:not_json
+krei-re-kr-krei,한국완료,1450,,unknown,,,www.krei.re.kr:not_json; www.krei.re.kr/krei/page/24:http_404; www.krei.re.kr/krei/page/53:http_404
+mbie-govt-nz-building-and-energy,뉴질랜드완료,80,,unknown,,,www.mbie.govt.nz:not_json; www.mbie.govt.nz/building-and-energy/ene:not_json; www.mbie.govt.nz/building-and-energy/ene:not_json
+miit-gov-cn-zc,중국 완료,104,104,json_total,medium,https://www.miit.gov.cn/search-front-server/api/search/info,key=data.searchResult.total
+miit-gov-cn-zwgk,중국 완료,26,,unknown,,,www.miit.gov.cn/api-gateway/jpaas-publis:no_total_field; www.miit.gov.cn:not_json; www.miit.gov.cn/zwgk/zfxxgkzl/zfxxgknb/g:not_json; www.miit.gov.cn/zwgk/zfxxgkzl/zfxxgknb/d:not_json
+met-no-publikasjoner,Norway Research Centers,116,,unknown,,,www.met.no:not_json; www.met.no/publikasjoner/met-report:not_json
+meteoswiss-admin-ch-services-and-publica,Switzerland Research Centers,440,1574,json_total,medium,https://www.meteoswiss.admin.ch/api/search/public-en/publications/results.json,key=response.numFound
+mindigital-gr-archives,Greece Ministries,675,,unknown,,,www.mindigital.gr:http_403; www.mindigital.gr/archives/category/delt:http_403
+masaf-gov-it-flex,Italy Ministries,601,,unknown,,,www.masaf.gov.it:not_json; www.masaf.gov.it/flex/cm/pages/ServeBLOB:not_json
+marine-ie-site-area,Irish Research Centers,24,,unknown,,,www.marine.ie:not_json; www.marine.ie/site-area/publications/ann:not_json; oar.marine.ie:not_json
+meteofrance-fr-actualite,French Research Institutes,94,,unknown,,,meteofrance.fr:not_json; meteofrance.fr/actualite/publications/le:not_json
+meri-belspo-be-site,벨기에완료,21,,unknown,,,meri.belspo.be/site/publications_en.stm?:not_json; meri.belspo.be:http_406; meri.belspo.be/site/docs/publications/ME:http_406; meri.belspo.be/site/docs/publications/:http_403
+mim-gov-it-web,Italy Ministries,41,,unknown,,,www.mim.gov.it:not_json; www.mim.gov.it/web/guest/comunicati:not_json
+mentalhealthcommission-ca-resources,Canadian Research Centers,589,616,wp_total,high,https://mentalhealthcommission.ca/wp-json/wp/v2/resource,route=resource
+minedu-gov-gr-grafeio-typoy-kai-di,Greece Ministries,404,,unknown,,,www.minedu.gov.gr:not_json; www.minedu.gov.gr/grafeio-typoy-kai-dimo:not_json
+mindev-gov-gr-category,Greece Ministries,3514,4756,wp_total,high,https://www.mindev.gov.gr/wp-json/wp/v2/posts,route=posts
+kostat-go-kr-boardes,한국완료,100,,unknown,,,www.kostat.go.kr:not_json; www.kostat.go.kr/board.es:not_json; www.kostat.go.kr/board.es?mid=a104030100:not_json
+mfat-govt-nz-en,뉴질랜드완료,11,,unknown,,,www.mfat.govt.nz:not_json; www.mfat.govt.nz/en/about-us/mfat-annual:not_json; www.mfat.govt.nz/en/media-and-resources?:not_json
+ministryofjustice-gr,Greece Ministries,261,,unknown,,,ministryofjustice.gr:http_403; ministryofjustice.gr/?page_id=598:http_403
+mfds-go-kr-brd,한국완료,461,,unknown,,,www.mfds.go.kr:not_json; www.mfds.go.kr/brd/m_99/list.do:not_json; www.mfds.go.kr/brd/m_99/view.do:not_json; www.mfds.go.kr/brd/m_99/down.do:not_json
+mod-mil-gr-category,Greece Ministries,470,,unknown,,,www.mod.mil.gr:http_403; www.mod.mil.gr/category/anakoinoseis-typ:http_403
+kwdi-re-kr-plaza,한국완료,819,,unknown,,,www.kwdi.re.kr:not_json; www.kwdi.re.kr/plaza/bodo.do:not_json; www.kwdi.re.kr/plaza/bodoView.do:not_json
+minfin-gov-gr-grafeio-typou,Greece Ministries,1797,,unknown,,,minfin.gov.gr:http_202; minfin.gov.gr/grafeio-typou/anakoinoseis:http_202
+mafra-go-kr-home,한국완료,761,,unknown,,,www.mafra.go.kr:not_json; www.mafra.go.kr/home/5109/subview.do:not_json; www.mafra.go.kr/bbs/home/792/artclList.d:not_json
+mof-gov-cn-en,중국 완료,9,,unknown,,,www.mof.gov.cn:not_json; www.mof.gov.cn/en/reports/:not_json
+ministeroturismo-gov-it-category,Italy Ministries,1014,2266,wp_total,high,https://www.ministeroturismo.gov.it/wp-json/wp/v2/posts,route=posts
+minscfa-gov-gr-grafeio-typou,Greece Ministries,626,,unknown,,,minscfa.gov.gr:http_202; minscfa.gov.gr/grafeio-typou/deltia-typo:http_202
+mois-go-kr-frt,한국완료,1148,,unknown,,,www.mois.go.kr:not_json; www.mois.go.kr/frt/bbs/type010/commonSel:not_json; www.mois.go.kr/frt/bbs/type010/commonSel:not_json; www.mois.go.kr/frt/bbs/type001/commonSel:not_json
+mohrss-gov-cn-xxgk2020,중국 완료,19,,unknown,,,www.mohrss.gov.cn:not_json; www.mohrss.gov.cn/xxgk2020/zfxxgknb/:not_json
+minagric-gr-the-ministry-2,Greece Ministries,267,,unknown,,,minagric.gr:http_403; minagric.gr/the-ministry-2/grafeiotypou/:http_403
+mintour-gov-gr-deltia-typoy,Greece Ministries,394,,unknown,,,mintour.gov.gr:not_json; mintour.gov.gr/deltia-typoy/:not_json; mintour.gov.gr/category/deltia-typou/:not_json
+mma-go-kr-board,한국완료,616,,unknown,,,www.mma.go.kr:not_json; www.mma.go.kr/board/boardList.do:not_json; www.mma.go.kr/board/boardView.do:not_json; www.mma.go.kr/boardFileDown.do:http_500
+mogef-go-kr-nw,한국완료,852,,unknown,,,www.mogef.go.kr:not_json; www.mogef.go.kr/nw/rpd/nw_rpd_s001.do?mi:not_json; www.mogef.go.kr/nw/rpd/nw_rpd_s001d.do?m:not_json
+molit-go-kr-usr,한국완료,390,,unknown,,,www.molit.go.kr:not_json; www.molit.go.kr/USR/NEWS/m_71/lst.jsp:not_json
+mofa-go-kr-www,한국완료,521,,unknown,,,www.mofa.go.kr:not_json; www.mofa.go.kr/www/brd/m_4076/list.do:not_json; www.mofa.go.kr/www/brd/m_4076/view.do:not_json; www.mofa.go.kr/www/brd/m_4099/list.do:not_json
+mivau-gob-es-el-ministerio,Spain Ministries,473,,unknown,,,www.mivau.gob.es:not_json; www.mivau.gob.es/el-ministerio/sala-de-p:not_json
+kwdi-re-kr-publications,한국완료,500,,unknown,,,www.kwdi.re.kr:not_json; www.kwdi.re.kr/publications/genderReview:not_json; www.kwdi.re.kr/publications/genderReview:not_json; www.kwdi.re.kr/publications/journal.do:not_json
+moe-go-kr-boardcnts,한국완료,1250,,unknown,,,www.moe.go.kr:not_json; www.moe.go.kr/boardCnts/listRenew.do:no_total_field; www.moe.go.kr/boardCnts/viewRenew.do:no_total_field; www.moe.go.kr/boardCnts/listRenew.do?boa:no_total_field
+moe-gov-cn-jyb_sjzl,중국 완료,28,,unknown,,,www.moe.gov.cn/was5/web/search:not_json; www.moe.gov.cn:not_json; www.moe.gov.cn/jyb_sjzl/sjzl_jfzxgg/:not_json; www.moe.gov.cn/jyb_sjzl/sjzl_fztjgb/:not_json
+moleg-go-kr-boardes,한국완료,256,,unknown,,,www.moleg.go.kr:not_json; www.moleg.go.kr/board.es?mid=a1040400000:not_json
+mpi-govt-nz-resources-and-forms,뉴질랜드완료,35,,unknown,,,www.mpi.govt.nz:not_json; www.mpi.govt.nz/resources-and-forms/econ:not_json; www.mpi.govt.nz/resources-and-forms/econ:not_json
+mss-go-kr-site,한국완료,500,,unknown,,,www.mss.go.kr:not_json; www.mss.go.kr/site/smba/foffice/ex/statD:not_json; www.mss.go.kr/site/smba/foffice/ex/statD:not_json; www.mss.go.kr/site/smba/foffice/ex/statD:not_json
+mwr-gov-cn-zwgk,중국 완료,18,,unknown,,,www.mwr.gov.cn:not_json; www.mwr.gov.cn/zwgk/gknb/:not_json
+mimit-gov-it-it,Italy Ministries,92,,unknown,,,www.mimit.gov.it:not_json; www.mimit.gov.it/it/per-i-media/pubblica:not_json
+moef-go-kr-nw,한국완료,683,,unknown,,,www.moef.go.kr:not_json; www.moef.go.kr/nw/nes/nesdta.do:not_json; www.moef.go.kr/nw/nes/detailNesDtaView.d:not_json; www.moef.go.kr/nw/nes/nesdta.do?bbsId=MO:not_json
+mwr-gov-cn-english,중국 완료,37,,unknown,,,www.mwr.gov.cn:not_json; www.mwr.gov.cn/data_raid/ruci_workspace/:not_json; www.mwr.gov.cn/english/Documents/WaterSt:not_json; www.mwr.gov.cn/english/MainAchievements/:not_json
+mof-go-kr-doc,한국완료,624,,unknown,,,www.mof.go.kr:not_json; www.mof.go.kr/doc/ko/selectDocList.do:not_json; www.mof.go.kr/doc/ko/selectDoc.do:not_json; www.mof.go.kr/doc/ko/selectDocList.do?me:not_json
+ncha-gov-cn-col,중국 완료,117,,unknown,,,www.ncha.gov.cn/module/jslib/jquery/jpag:empty; www.ncha.gov.cn:not_json; www.ncha.gov.cn/col/col2423/index.html:not_json
+mpi-govt-nz-about-mpi,뉴질랜드완료,14,,unknown,,,web.archive.org/cdx/search/cdx:http_400; www.mpi.govt.nz:not_json; www.mpi.govt.nz/data_raid/ruci_workspace:not_json; www.mpi.govt.nz/about-mpi/corporate-publ:not_json
+msd-govt-nz-about-msd-and-our-wo,뉴질랜드완료,16,,unknown,,,www.msd.govt.nz:not_json; www.msd.govt.nz/about-msd-and-our-work/p:not_json
+mofe-go-kr-id,한국완료,133,,unknown,,,mofe.go.kr:not_json; www.data.go.kr/tcs/dss/selectDataSetList:not_json; www.data.go.kr/catalog:http_404; www.data.go.kr/data:http_404
+nec-go-kr-site,한국완료,175,,unknown,,,www.nec.go.kr:not_json; www.nec.go.kr/site/nec/ex/bbs/List.do:not_json; www.nec.go.kr/site/nec/ex/bbs/List.do?cb:not_json
+minrel-gob-cl-minrel,Chile Ministries,4547,,unknown,,,www.minrel.gob.cl:not_json; www.minrel.gob.cl/minrel/sala-de-prensa/:not_json; www.minrel.gob.cl/minrel/sala-de-prensa/:not_json
+mva-gov-cn-gongkai,중국 완료,15,,unknown,,,www.mva.gov.cn:not_json; www.mva.gov.cn/gongkai/zfxxgkpt/zfxxgknb:not_json; www.mva.gov.cn/gongkai/zfxxgkpt/zfxxgknb:not_json
+moj-go-kr-moj,한국완료,793,,unknown,,,www.moj.go.kr:not_json; www.moj.go.kr/moj/221/subview.do:not_json
+motir-go-kr-kor,한국완료,703,,unknown,,,www.motir.go.kr:not_json; www.motir.go.kr/kor/article/ATCL3f49a5a8:http_404; www.motir.go.kr/kor/article/ATCL449580de:http_404
+ncats-nih-gov-news-events,American Research Institutes,19,,unknown,,,ncats.nih.gov:not_json; ncats.nih.gov/views/ajax:http_404; ncats.nih.gov/news-events/news:not_json
+moe-gov-cn-jyb_xxgk,중국 완료,18,,unknown,,,www.moe.gov.cn:not_json; www.moe.gov.cn/jyb_xxgk/xxgk/nianbao/jig:not_json
+mohw-go-kr-boardes,한국완료,920,,unknown,,,www.mohw.go.kr:http_500; www.mohw.go.kr/board.es?mid=a10411010300:not_json
+nei-nih-gov-about,American Research Institutes,14,,unknown,,,www.nei.nih.gov:not_json; www.nei.nih.gov/about/budget-and-congres:not_json
+nbb-be-en,벨기에완료,15,,unknown,,,www.nbb.be/en/publications-research/publ:not_json; www.nbb.be:not_json; www.nbb.be/en/statistics/topics/general/:not_json
+mpva-go-kr-mpva,한국완료,590,,unknown,,,www.mpva.go.kr:not_json; www.mpva.go.kr/mpva/selectBbsNttList.do:not_json; www.mpva.go.kr/mpva/selectBbsNttView.do:http_404; www.mpva.go.kr/mpva/selectBbsNttList.do?:not_json
+nfra-gov-cn-cn,중국 완료,726,,unknown,,,www.nfra.gov.cn/cbircweb/DocInfo/SelectD:no_total_field; www.nfra.gov.cn/cbircweb/DocInfo/SelectB:no_total_field; www.nfra.gov.cn:not_json; www.nfra.gov.cn/cn/view/pages/ItemList.h:not_json
+netl-doe-gov-advsearch,American Research Institutes,28,,unknown,,,netl.doe.gov/advsearch:not_json; netl.doe.gov:not_json; netl.doe.gov/advsearch?tid=107:not_json
+ncri-ie-en,Irish Research Centers,104,,unknown,,,www.ncri.ie/en/search:not_json; www.ncri.ie:not_json; www.ncri.ie/en/search?keywords=&section=:not_json
+neac-gov-cn-seac,중국 완료,57,,unknown,,,www.neac.gov.cn:not_json; www.neac.gov.cn/seac/c103544/common_list:not_json; www.neac.gov.cn/seac/c103544/common_list:not_json
+miteco-gob-es-es,Spain Ministries,379,,unknown,,,www.miteco.gob.es:not_json; www.miteco.gob.es/es/prensa/ultimas-noti:not_json
+nccih-nih-gov-news,American Research Institutes,57,,unknown,,,www.nccih.nih.gov/page-data/news/press-r:no_total_field; www.nccih.nih.gov/page-data/news/press-r:http_404; www.nccih.nih.gov/page-data{path}/page-d:http_404; www.nccih.nih.gov:not_json
+niams-nih-gov-newsroom,American Research Institutes,15,,unknown,,,www.niams.nih.gov:not_json; www.niams.nih.gov/sitemap.xml:not_json; www.niams.nih.gov/newsroom/press-release:not_json; www.niams.nih.gov/newsroom/press-release:not_json
+nia-nih-gov-news,American Research Institutes,95,,unknown,,,www.nia.nih.gov:not_json; www.nia.nih.gov/news/news-releases:not_json
+netl-doe-gov-search-r-d-publicati,American Research Institutes,729,,unknown,,,netl.doe.gov/projects/VueConnection/Sear:not_json; netl.doe.gov:not_json; netl.doe.gov/projects/VueConnection/ener:not_json; netl.doe.gov/search-r-d-publications:not_json
+news-admin-ch-en,Switzerland Departments,0,,unknown,,,d-nsbc-p.admin.ch/v1:http_404; www.news.admin.ch:http_403; www.news.admin.ch/en/newnsb:http_403; www.news.admin.ch/en/newnsb?publisherIDs:http_403
+naacc-go-kr-web,한국완료,334,,unknown,,,naacc.go.kr:not_json; naacc.go.kr/WEB/contents/N4020000000.do:not_json; naacc.go.kr/WEB/contents/N3050100000.do:not_json
+nibib-nih-gov-news-events,American Research Institutes,39,,unknown,,,www.nibib.nih.gov:not_json; www.nibib.nih.gov/news-events/press-rele:not_json
+netl-doe-gov-energy-analysis,American Research Institutes,97,,unknown,,,netl.doe.gov/projects/VueConnection/Sear:not_json; netl.doe.gov:not_json; netl.doe.gov/projects/VueConnection/ener:not_json; netl.doe.gov/energy-analysis/search?sear:not_json
+nhc-gov-cn-wjw,중국 완료,71,,unknown,,,www.nhc.gov.cn:http_412; www.nhc.gov.cn/wjw/gfxwjj/list.shtml:http_412
+moe-gov-cn-jyb_xwfb,중국 완료,418,,unknown,,,www.moe.gov.cn/was5/web/search:not_json; www.moe.gov.cn:error:ReadTimeout; www.moe.gov.cn/jyb_xwfb/s271/:not_json
+nida-nih-gov-news-events,American Research Institutes,46,,unknown,,,nida.nih.gov:not_json; nida.nih.gov/news-events/news-releases:not_json; nida.nih.gov/news-events/news-releases?p:not_json
+nida-nih-gov-research-topics,American Research Institutes,29,,unknown,,,"api.nida.nih.gov/api/content_index/searc:rejected_total<collected(5<29,method=json_total); nida.nih.gov:not_json; nida.nih.gov/research-topics/trends-stat:not_json"
+nhlbi-nih-gov-resources,American Research Institutes,325,,unknown,,,www.nhlbi.nih.gov:not_json; www.nhlbi.nih.gov/resources:not_json
+nidcd-nih-gov-news,American Research Institutes,203,,unknown,,,www.nidcd.nih.gov:not_json; www.nidcd.nih.gov/news/nidcd-news:not_json
+nidcd-nih-gov-order,American Research Institutes,90,,unknown,,,www.nidcd.nih.gov:not_json; www.nidcd.nih.gov/order:not_json
+newsreleases-sandia-gov-archives-by-year,American Research Institutes,2044,2046,wp_total,high,https://newsreleases.sandia.gov/wp-json/wp/v2/posts,route=posts
+niaaa-nih-gov-news-events,American Research Institutes,80,,unknown,,,www.niaaa.nih.gov:not_json; www.niaaa.nih.gov/news-events/news:not_json
+msit-go-kr-bbs,한국완료,488,,unknown,,,www.msit.go.kr:not_json; www.msit.go.kr/bbs/list.do:not_json; www.msit.go.kr/bbs/view.do:not_json; www.msit.go.kr/ssm/file/fileDown.do:not_json
+netl-doe-gov-fecm-external-r-and-,American Research Institutes,343,,unknown,,,www.osti.gov/api/v1/records/{osti_id}:http_500; netl.doe.gov:not_json; netl.doe.gov/projects/project-Final-Repo:not_json; netl.doe.gov/FECM-External-R-and-D-Final:not_json
+mnd-go-kr-user,한국완료,304,,unknown,,,www.mnd.go.kr:error:ConnectTimeout; www.mnd.go.kr/bbs/mnd/13000005/artclList:error:ConnectTimeout; www.mnd.go.kr/bbs/mnd/13000005:error:ConnectTimeout
+nationalacademies-org-publications,French Research Institutes,184,236,html_count_regex,medium,https://www.nationalacademies.org/publications/all?unit[]=CSTB,https://www.nationalacademies.org/publications/all?unit[]=CSTB
+nfa-go-kr-nfa,한국완료,112,,unknown,,,www.nfa.go.kr/nfa/publicrelations/policy:not_json; www.nfa.go.kr:not_json; www.nfa.go.kr/nfa/releaseinformation/sta:not_json
+nim-ac-cn-taxonomy,중국 완료,34,,unknown,,,www.nim.ac.cn:not_json; www.nim.ac.cn/taxonomy/term/170:not_json
+nimh-nih-gov-news,American Research Institutes,492,,unknown,,,www.nimh.nih.gov:not_json; www.nimh.nih.gov/news/science-updates:not_json
+nigms-nih-gov-news,American Research Institutes,21,,unknown,,,www.nigms.nih.gov:not_json; www.nigms.nih.gov/news/releases-and-anno:not_json
+nichd-nih-gov-newsroom,American Research Institutes,329,,unknown,,,www.nichd.nih.gov:not_json; www.nichd.nih.gov/newsroom/news:not_json
+nikhef-nl-pub,Dutch Research Centers,26,,unknown,,,www.nikhef.nl:not_json; www.nikhef.nl/pub/services/newbiblio/rep:not_json; www.nikhef.nl/pub/services/newbiblio/pub:not_json
+ninds-nih-gov-news-events,American Research Institutes,253,,unknown,,,"www.ninds.nih.gov/news-events/press-rele:no_total_field; www.ninds.nih.gov:http_406; www.ninds.nih.gov/news-events/news/press:http_406; html_paginate:rejected_total<collected(189<253,method=html_pagin"
+niehs-nih-gov-newsreleases,American Research Institutes,40,,unknown,,,www.niehs.nih.gov:not_json; www.niehs.nih.gov/newsreleases:not_json
+nih-gov-news-events,American Research Institutes,409,,unknown,,,www.nih.gov:http_403; www.nih.gov/news-events/news-releases:http_403
+nih-gov-press-room,American Research Institutes,449,,unknown,,,www.nih.gov:http_403; www.nih.gov/press-room:http_403; www.nih.gov/press-room?page={page}:http_403; www.nih.gov/news-events/news-releases/{s:http_403
+nimhd-nih-gov-news-events,American Research Institutes,13,,unknown,,,www.nimhd.nih.gov:not_json; www.nimhd.nih.gov/sitemap.xml:not_json; www.nimhd.nih.gov/news-events/all-news/n:not_json
+ninds-nih-gov-publications,American Research Institutes,71,,unknown,,,www.ninds.nih.gov:not_json; www.ninds.nih.gov/publications:not_json
+nps-or-kr-inforls,한국완료,115,,unknown,,,www.nps.or.kr:not_json; www.nps.or.kr/inforls/publdata/getOHAB00:not_json; www.nps.or.kr/inforls/publdata/getOHAB00:http_500; www.nps.or.kr/inforls/publdata/getOHAB00:not_json
+nps-or-kr-pnsgdnc,한국완료,182,,unknown,,,www.nps.or.kr:not_json; www.nps.or.kr/pnsgdnc/nscvrgdata/getOHAE:not_json; www.nps.or.kr/pnsgdnc/nscvrgdata/getOHAE:http_500; www.nps.or.kr/pnsgdnc/nscvrgdata/getOHAE:not_json
+nioo-knaw-nl-en,Dutch Research Centers,75,,unknown,,,nioo.knaw.nl:not_json; nioo.knaw.nl/en/pressreleases:not_json
+nisra-gov-uk-publications,영국완료,522,,unknown,,,www.nisra.gov.uk:not_json; www.nisra.gov.uk/publications:not_json
+nivel-nl-en,Dutch Research Centers,520,,unknown,,,www.nivel.nl:no_total_field; www.nivel.nl/en/publications:no_total_field
+nidcr-nih-gov-news-events,American Research Institutes,87,,unknown,,,www.nidcr.nih.gov:not_json; www.nidcr.nih.gov/news-events/nidcr-news:not_json
+nrc-re-kr-boardes,한국완료,470,,unknown,,,www.nrc.re.kr:http_404; www.nrc.re.kr/board.es:not_json; www.nrc.re.kr/data_raid/ruci_workspace/f:http_404; www.nrc.re.kr/data_raid/ruci_workspace/f:http_404
+nist-gov-publications,American Research Institutes,478,,unknown,,,www.nist.gov/publications/search:not_json; www.nist.gov:not_json
+nibio-no-en,Norway Research Centers,219,,unknown,,,www.nibio.no:not_json; www.nibio.no/en/publications:not_json; www.nibio.no/en/publications?filters=1&q:not_json
+oka-go-kr-web,한국완료,30,,unknown,,,www.oka.go.kr:no_total_field; www.oka.go.kr/web/board/brdList.do?menu_:no_total_field
+nin-nl-publications,Dutch Research Centers,471,,unknown,,,nin.nl:not_json; nin.nl/publications/:not_json
+ntrs-nasa-gov-search,American Research Institutes,6490,71863,json_total,medium,https://ntrs.nasa.gov/api/citations/search,key=stats.total
+nersc-no-en,Norway Research Centers,349,,unknown,,,"api.cristin.no/v2/results:rejected_total<collected(10<349,method=json_total); api.nva.unit.no/publication:http_403; api.crossref.org/works:http_400; nersc.no:not_json"
+ntp-niehs-nih-gov-publications,American Research Institutes,536,,unknown,,,ntp.niehs.nih.gov:not_json; ntp.niehs.nih.gov/publications:not_json; ntp.niehs.nih.gov/publications/reports:not_json
+nnsa-mee-gov-cn-english,중국 완료,10,,unknown,,,nnsa.mee.gov.cn:not_json; nnsa.mee.gov.cn/english/resources/annual:not_json
+nrscotland-gov-uk-publications,영국완료,359,1275,html_paginate,low,https://www.nrscotland.gov.uk/publications/?page=25,https://www.nrscotland.gov.uk/publications/?page=25
+nkvts-no-english,Norway Research Centers,562,,unknown,,,A4EOX51ZO9-dsn.algolia.net/1/indexes/wp_:http_403; www.nkvts.no:not_json; www.nkvts.no/english/publications/?pg=1&:not_json
+oig-treasury-gov-other-reports-testim,USA Executive Departments,1353,,unknown,,,oig.treasury.gov:not_json; oig.treasury.gov/other-reports-testimoni:not_json
+opendatacommunities-org-data,영국완료,3,,unknown,,,opendatacommunities.org:http_403; open-data.communities.gov.uk:http_403; opendatacommunities.org/data:http_403
+nypi-re-kr-board,한국완료,150,,unknown,,,www.nypi.re.kr:not_json; www.nypi.re.kr/board:not_json; www.nypi.re.kr/board?menuKey=uCjzEQTnJu&:not_json
+om-mp-be-nl,벨기에완료,239,,unknown,,,www.om-mp.be:not_json; www.om-mp.be/nl/onze-publicaties:not_json; www.om-mp.be/nl/colpg/college-van-procur:not_json
+nzpri-aut-ac-nz-document-library,뉴질랜드완료,7,,unknown,,,nzpri.aut.ac.nz/document-library/documen:http_403; nzpri.aut.ac.nz:http_403; nzpri.aut.ac.nz/document-library/all-doc:http_403; nzpri.aut.ac.nz/document-library:http_403
+nts-go-kr-nts,한국완료,42,,unknown,,,www.nts.go.kr/nts/na/ntt/selectNttFileLi:no_total_field; www.nts.go.kr:not_json; www.nts.go.kr/nts/na/ntt/selectNttList.d:not_json; www.nts.go.kr/nts/na/ntt/selectNttInfo.d:not_json
+nordlandsforskning-no-en,Norway Research Centers,304,,unknown,,,www.nordlandsforskning.no/publikasjoner?:no_total_field; www.nordlandsforskning.no:no_total_field; www.nordlandsforskning.no/en/publication:not_json
+nesc-ie-publications,Irish Research Centers,121,,unknown,,,www.nesc.ie/wp-json/nesc/v1/publications:error:ConnectTimeout; www.nesc.ie:error:ConnectTimeout; www.nesc.ie/publications/:error:ConnectTimeout
+pbc-gov-cn-en,중국 완료,224,,unknown,,,www.pbc.gov.cn:not_json; www.pbc.gov.cn/en/3688247/3688978/370914:not_json
+nistdigitalarchives-contentdm-oclc-org-digital,American Research Institutes,788,,unknown,,,nistdigitalarchives.contentdm.oclc.org:not_json; nistdigitalarchives.contentdm.oclc.org/d:not_json; nistdigitalarchives.contentdm.oclc.org/d:not_json
+ostrnrcan-dostrncan-canada-ca-search,Canadian Research Centers,220,198333,dspace_rest7,low,https://ostr-backend-prod.azure.cloud.nrcan-rncan.gc.ca/server/api/discover/search/objects,https://ostr-backend-prod.azure.cloud.nrcan-rncan.gc.ca/server/api/discover/search/objects [ratio=902x:review_possible_unscoped_endpoint]
+ons-gov-uk-search,영국완료,516,,unknown,,,api.beta.ons.gov.uk:no_total_field; www.ons.gov.uk:not_json; www.ons.gov.uk/search?q=uk+wide&page=1&f:not_json
+nupi-no-en,Norway Research Centers,28,,unknown,,,www.nupi.no/en/publications?pcform%5Bpub:not_json; www.nupi.no:not_json; www.nupi.no/en/publications?pcform%5Bpub:not_json
+nidi-nl-en,Dutch Research Centers,285,,unknown,,,nidi.nl:not_json; nidi.nl/en/publications/:not_json; nidi.nl/wp-admin/admin-ajax.php:http_400
+opendata-centralbank-ie-dataset,Irish Research Centers,38,,unknown,,,opendata.centralbank.ie:http_202; opendata.centralbank.ie/dataset/:http_202
+niddk-nih-gov-news,American Research Institutes,124,,unknown,,,www.niddk.nih.gov:not_json; www.niddk.nih.gov/news/archive?nt=nr:not_json; www.niddk.nih.gov/news/archive?nt=nr&p={:not_json; www.niddk.nih.gov/rss/news:not_json
+onera-fr-fr,French Research Institutes,145,,unknown,,,www.onera.fr:not_json; www.onera.fr/fr/presse:not_json; www.onera.fr/fr/presse?page=1:not_json
+pbocri-org-cn-lnzy3html,중국 완료,8,,unknown,,,www.pbocri.org.cn:not_json; www.pbocri.org.cn/lnzy3.html:not_json
+opengov-seoul-go-kr-research,한국완료,344,,unknown,,,opengov.seoul.go.kr/research/list:not_json; opengov.seoul.go.kr:not_json
+pbocri-org-cn-xslwhtml,중국 완료,2,,unknown,,,www.pbocri.org.cn:not_json; www.pbocri.org.cn/xslw.html:not_json
+politie-be-statistieken,벨기에완료,95,,unknown,,,www.politie.be:http_403; www.politie.be/statistieken/nl/morfologi:http_403
+pmc-gov-au-resources,호주완료,129,,unknown,,,www.pmc.gov.au:http_403; www.pmc.gov.au/resources?f%5B0%5D=db_r_p:http_403
+opendata-dk-search,덴마크완료,70,75,ckan,high,https://ckan.oddk.prod.datopian.com/api/3/action/package_search,https://ckan.oddk.prod.datopian.com/api/3/action/package_search
+par-nsf-gov-search,American Research Institutes,2481,,unknown,,,par.nsf.gov/search/product-type:Journal%:not_json; par.nsf.gov:not_json; par.nsf.gov/data_raid/ruci_workspace/frw:http_404; par.nsf.gov/search/product-type:Dataset:not_json
+police-go-kr-user,한국완료,747,,unknown,,,www.police.go.kr:not_json; www.police.go.kr/user/bbs/BD_selectBbsLi:http_500; www.police.go.kr/user/bbs/BD_selectBbs.d:not_json; www.police.go.kr/user/bbs/BD_selectBbsLi:http_500
+prism-go-kr-homepage,한국완료,2900,,unknown,,,api.prism.go.kr/prism-be-prtl/search/tot:http_400; www.prism.go.kr:not_json; www.prism.go.kr/homepage/asmt/popup:not_json; www.prism.go.kr/homepage/prtl/totalsearc:not_json
+pasteur-fr-en,French Research Institutes,314,2036,html_paginate,low,https://www.pasteur.fr/en/search-press?field_pst_doc_type=49&page=57,https://www.pasteur.fr/en/search-press?field_pst_doc_type=49&page=57
+portaldiplomatico-mne-gov-pt-en,Portugal Ministries,378,,unknown,,,portaldiplomatico.mne.gov.pt:not_json; portaldiplomatico.mne.gov.pt/en/communic:not_json
+ots-at-pressemappe,오스트리아완료,500,,unknown,,,core2023.ots.at/api/v1:http_404; www.ots.at:not_json; www.ots.at/pressemappe/54/bundesminister:not_json
+pbl-nl-en,Dutch Research Centers,649,,unknown,,,www.pbl.nl:not_json; www.pbl.nl/en/publications?key=&type%5B2:not_json; www.pbl.nl/en/publications?key=&type%5B2:not_json
+pleanala-ie-en-ie,Irish Research Centers,54,,unknown,,,www.pleanala.ie:not_json; www.pleanala.ie/en-IE/Statistics/Annual-:not_json; www.pleanala.ie/en-IE/Statistics/Quarter:not_json; www.pleanala.ie/en-IE/Publications:not_json
+plan-be-nl,벨기에완료,152,,unknown,,,www.plan.be:not_json; www.plan.be/sitemap.xml:not_json; www.plan.be/nl/publicaties:not_json
+opm-go-kr-opm,한국완료,660,,unknown,,,www.opm.go.kr:not_json; www.opm.go.kr/opm/news/press-release.do:not_json; www.opm.go.kr/opm/info/policies.do:not_json
+noc-ac-uk-publications,영국완료,234,,unknown,,,noc.ac.uk:not_json; www.noc.ac.uk/publications:not_json; noc.ac.uk/publications:not_json
+polytechnique-edu-presse,French Public Universities,226,,unknown,,,www.polytechnique.edu:not_json; www.polytechnique.edu/presse/communiques:not_json
+nifu-no-en,Norway Research Centers,363,,unknown,,,www.nifu.no/wp-content/themes/nifu-child:http_403; www.nifu.no:not_json; www.nifu.no/en/nifu-alle-publikasjoner/:not_json
+noc-ac-uk-about-us,영국완료,7,,unknown,,,noc.ac.uk:not_json; noc.ac.uk/about-us/literature-brochures:not_json; www.noc.ac.uk/who-we-are/our-purpose/lit:not_json
+openaire-eu-os-slovenia,Slovenia Research Centers,28,,unknown,,,"oseurope.openaire.eu/api/surveys:rejected_total<collected(1<28,method=json_total); oseurope.openaire.eu/api/answers/public:http_500; oseurope.openaire.eu/api/answers/public/:http_500; oseurope.openair"
+publications-idiap-ch-publications,Switzerland Research Centers,231,,unknown,,,publications.idiap.ch:not_json; publications.idiap.ch/publications/artic:not_json; publications.idiap.ch/publications:not_json
+rda-go-kr-board,한국완료,1020,,unknown,,,www.rda.go.kr:not_json; www.rda.go.kr/board/board.do?mode=list&p:not_json
+publicservice-govt-nz-data,뉴질랜드완료,61,,unknown,,,www.publicservice.govt.nz:not_json; www.publicservice.govt.nz/data/workforce:not_json; www.publicservice.govt.nz/sitemap.xml:not_json; www.publicservice.govt.nz/sitemap.xml/si:http_404
+pubshop-bmbwf-gv-at-indexphp,오스트리아완료,479,,unknown,,,pubshop.bmbwf.gv.at:not_json; pubshop.bmbwf.gv.at/index.php:not_json; pubshop.bmbwf.gv.at/index.php?article_id:not_json
+regjeringen-no-en,Norway Ministries,187,,unknown,,,www.regjeringen.no:http_403; www.regjeringen.no/en/find-document/id20:http_403; www.regjeringen.no/en/find-document/id20:http_403
+pps-go-kr-kor,한국완료,290,,unknown,,,www.pps.go.kr:not_json; www.pps.go.kr/kor/bbs/list.do:not_json; www.pps.go.kr/kor/bbs/view.do:http_404; www.pps.go.kr/kor/bbs/list.do?key=00664:not_json
+publicsafety-gc-ca-cnt,Canada Ministries,424,,unknown,,,www.publicsafety.gc.ca:not_json; www.publicsafety.gc.ca/cnt/nws/nws-rlss/:http_404
+publicservice-govt-nz-research-and-data,뉴질랜드완료,110,,unknown,,,www.publicservice.govt.nz/research-and-d:not_json; www.publicservice.govt.nz/research-and-d:not_json; www.publicservice.govt.nz:not_json
+psi-ch-en,Switzerland Research Centers,405,,unknown,,,www.psi.ch:not_json; www.psi.ch/en/news/news:not_json; www.psi.ch/en/about/business-report:not_json
+repository-library-noaa-gov-view,American Research Institutes,812,,unknown,,,repository.library.noaa.gov:http_403; repository.library.noaa.gov/browse/recen:http_403; repository.library.noaa.gov/view/noaa/:http_403; repository.library.noaa.gov/view/noaa/72:http_403
+provenienzforschung-gv-at-empfehlungen-des-bei,오스트리아완료,425,,unknown,,,provenienzforschung.gv.at:not_json; provenienzforschung.gv.at/empfehlungen-d:not_json
+publikationen-bundesregierung-de-pp-de,Germany Ministries,112,,unknown,,,www.publikationen-bundesregierung.de/pp-:http_404; www.publikationen-bundesregierung.de:not_json; www.publikationen-bundesregierung.de/pp-:not_json; www.publikationen-bundesregierung.de/ser:no_total_f
+rcaanc-cirnac-gc-ca-eng,Canada Ministries,33,,unknown,,,www.rcaanc-cirnac.gc.ca:not_json; www.rcaanc-cirnac.gc.ca/eng/157513132313:not_json
+repository-cern-search,Switzerland Research Centers,500,,unknown,,,repository.cern/api/records:http_403; repository.cern:http_403; repository.cern/search?q=&f=access_statu:http_403
+repository-naturalis-nl,Dutch Research Centers,9681,,unknown,,,repository.naturalis.nl/data_raid/ruci_w:http_404; repository.naturalis.nl/data_raid/ruci_w:http_404; repository.naturalis.nl:not_json; repository.naturalis.nl/data_raid/ruci_w:http_404
+regulation-govt-nz-about-us,뉴질랜드완료,247,,unknown,,,www.regulation.govt.nz/about-us/our-publ:not_json; www.regulation.govt.nz:not_json; www.regulation.govt.nz/data_raid/ruci_wo:http_404; www.regulation.govt.nz/about-us/our-publ:not_json
+ptb-de-cms,GER ResearchCenters(Unfinished),8,,unknown,,,www.ptb.de:http_500; www.ptb.de/cms/presseaktuelles/wissensch:error:ConnectionError; oar.ptb.de:not_json
+samr-gov-cn-zw,중국 완료,315,,unknown,,,www.samr.gov.cn/api-gateway/jpaas-publis:no_total_field; www.samr.gov.cn:not_json; www.samr.gov.cn/zw/zjwj/zcjd/index.html:not_json
+safefood-net-news,Irish Research Centers,31,,unknown,,,www.safefood.net:http_403; www.safefood.net/communications/news:http_403; www.safefood.net/news:http_403
+presse-cnam-fr-communiques,French Public Institutions,36,,unknown,,,presse.cnam.fr:not_json; presse.cnam.fr/communiques/:not_json; presse.cnam.fr/communiques/tous-les-comm:not_json
+rijksoverheid-nl-documenten,Netherland Ministries,274,,unknown,,,www.rijksoverheid.nl:not_json; www.rijksoverheid.nl/documenten:not_json; www.rijksoverheid.nl/documenten?trefwoor:not_json
+presse-economie-gouv-fr,France Ministries,1206,,unknown,,,presse.economie.gouv.fr/search/+/feed/rs:not_json; presse.economie.gouv.fr:not_json; presse.economie.gouv.fr/?s=+&type=commun:not_json
+repository-lboro-ac-uk,영국완료,128,,unknown,,,api.figshare.com/v2:http_404; api.figshare.com/v2/articles:no_total_field; api.figshare.com/v2/articles/{article_id:http_400; repository.lboro.ac.uk:http_202
+sastind-gov-cn-n10086200,중국 완료,474,,unknown,,,www.sastind.gov.cn:not_json; www.sastind.gov.cn/n10086200/n10086319/i:not_json; www.sastind.gov.cn/n10086200/n10086319/i:http_404
+rigsrevisionen-dk-revisionssager,덴마크완료,590,,unknown,,,www.rigsrevisionen.dk:not_json; www.rigsrevisionen.dk/sitemap.xml:not_json; www.rigsrevisionen.dk/revisionssager:not_json
+sante-gouv-fr-ministere,France Ministries,145,,unknown,,,sante.gouv.fr:not_json; sante.gouv.fr/ministere/documentation-et:not_json; sante.gouv.fr/ministere/documentation-et:not_json
+scourt-go-kr-portal,한국완료,982,,unknown,,,www.scourt.go.kr:not_json; www.scourt.go.kr/portal/news/NewsListAct:not_json; www.scourt.go.kr/portal/news/NewsViewAct:not_json; www.scourt.go.kr/portal/news/NewsListAct:not_json
+policyalternatives-ca-news-research,Canadian Research Centers,1543,,unknown,,,www.policyalternatives.ca/wp-json/wp/v2:no_total_field; www.policyalternatives.ca:not_json; www.policyalternatives.ca/news-research/:not_json
+pure-mpg-de-search,GER ResearchCenters(Unfinished),75,,unknown,,,pure.mpg.de:http_403; pure.mpg.de/search:http_403
+saemangeum-go-kr-sda,한국완료,428,,unknown,,,www.saemangeum.go.kr:not_json; www.saemangeum.go.kr/sda/brd/list.do?key:http_404; www.saemangeum.go.kr/sda/brd/view.do:http_404
+ruomoplus-lib-uom-gr-simple-search,Greece Research Centers,500,,unknown,,,ruomoplus.lib.uom.gr/simple-search?query:not_json; ruomoplus.lib.uom.gr:not_json
+search-worldcat-org-ko,USA Executive Departments,14,,unknown,,,search.worldcat.org:http_403; search.worldcat.org/ko/search?q=ai&openA:http_403; search.worldcat.org/api/search:http_403; search.brave.com/search:not_json
+scp-nl-publicaties,Dutch Research Centers,243,,unknown,,,www.scp.nl/api/search:http_400; www.scp.nl:not_json; www.scp.nl/publicaties:not_json
+sejong-go-kr-bbs,한국완료,500,,unknown,,,www.sejong.go.kr:not_json; www.sejong.go.kr/bbs/R0079/list.do:not_json; www.sejong.go.kr/bbs/R0079/view.do:not_json; www.sejong.go.kr/cmm/fms/FileDown.do:not_json
+search-nal-usda-gov-discovery,USA Executive Departments,452,,unknown,,,search.nal.usda.gov:not_json; search.nal.usda.gov/primaws/rest/pub/pnx:http_400; search.nal.usda.gov/discovery/collection:not_json; search.nal.usda.gov/discovery/collection:not_json
+repository-tno-nl-doclist,Dutch Research Centers,10508,,unknown,,,repository.tno.nl:not_json; repository.tno.nl/DocList:not_json; repository.tno.nl/DocList?find=ID%20%3E%:not_json
+si-re-kr-bbs,한국완료,501,,unknown,,,www.si.re.kr:not_json; www.si.re.kr/bbs/list.do:http_404; www.si.re.kr/bbs/view.do:http_404; www.si.re.kr/atch/fileDown.do:http_404
+reglementation-controle-asnr-fr-information,French Public Institutions,6,,unknown,,,reglementation-controle.asnr.fr:not_json; reglementation-controle.asnr.fr/informat:not_json
+science-libraries-canada-ca-eng,Canadian Research Centers,31,,unknown,,,science-libraries.canada.ca/eng/search/:not_json; science-libraries.canada.ca:not_json; science-libraries.canada.ca/eng/search/?:not_json
+presse-curie-fr-section,French Research Institutes,300,,unknown,,,presse.curie.fr:not_json; presse.curie.fr/wp-admin/admin-ajax.php:http_400; presse.curie.fr/section/communiques/?lan:not_json; presse.curie.fr/section/communiques/?lan:not_json
+simula-no-publications,Norway Research Centers,73,,unknown,,,"api.nva.unit.no/search/resources:rejected_total<collected(0<73,method=json_total); www.simula.no:not_json; www.simula.no/publications/?status=publi:not_json; api.nva.unit.no/publication/{identifier}:h"
+science-astron-nl-science-astron,Dutch Research Centers,117,,unknown,,,science.astron.nl:error:ConnectionError; www.astron.nl/~leeuwen/ag/pub-ag.{year}.:http_500; api.openalex.org/works:no_total_field; science.astron.nl/science-astron/publica:error:ConnectionError
+ris-bka-gv-at-ergebniswxe,오스트리아완료,507,,unknown,,,www.ris.bka.gv.at:not_json; www.ris.bka.gv.at/data_raid/ruci_workspa:http_404; www.ris.bka.gv.at/data_raid/ruci_workspa:http_404; www.ris.bka.gv.at/Ergebnis.wxe?Abfrage=L:not_json
+salute-gov-it-new,Italy Ministries,202,890,html_count_regex,medium,https://www.salute.gov.it/new/it/sezione/comunicati-stampa/,https://www.salute.gov.it/new/it/sezione/comunicati-stampa/
+skillsdevelopmentscotland-co-uk-publications-statist,영국완료,488,,unknown,,,www.skillsdevelopmentscotland.co.uk/api/:http_404; www.skillsdevelopmentscotland.co.uk:not_json; www.skillsdevelopmentscotland.co.uk/publ:not_json
+rki-de-de,GER ResearchCenters(Unfinished),66,,unknown,,,www.rki.de:not_json; www.rki.de/DE/Aktuelles/Neuigkeiten-und-:not_json
+openscience-si-naprednoiskanjeaspx,Slovenia Research Centers,30,,unknown,,,openscience.si:not_json; openscience.si/NaprednoIskanje.aspx?q=0::error:ReadTimeout; openscience.si/NaprednoIskanje.aspx?q=0::error:ReadTimeout
+search-open-canada-ca-opendata,Canada Ministries,5287,,unknown,,,"open.canada.ca/data/api/3/action/package:rejected_total<collected(1052<5287,method=ckan); open.canada.ca/data/api/3/action/package:rejected_total<collected(1052<5287,method=ckan); search.open.canada.c"
+santepubliquefrance-fr-presse,French Public Institutions,624,,unknown,,,www.santepubliquefrance.fr:not_json
+pubs-drdc-rddc-gc-ca-basis,Canadian Research Centers,4040,,unknown,,,pubs.drdc-rddc.gc.ca:error:ConnectTimeout; pubs.drdc-rddc.gc.ca/BASIS/pcandid/www/e:error:ConnectTimeout; api.openalex.org:no_total_field; pubs.drdc-rddc.gc.ca/BASIS/pcandid/www/e:error:ConnectTimeout
+seer-cancer-gov-report_to_nation,American Research Institutes,24,,unknown,,,seer.cancer.gov:not_json; seer.cancer.gov/report_to_nation/previou:not_json
+state-gwd-go-kr-portal,한국완료,614,,unknown,,,state.gwd.go.kr:not_json; state.gwd.go.kr/portal/briefing/pressRel:not_json
+sm-ee-otsing,Estonia Ministries,158,,unknown,,,search.service.eu-live.vportal.ee/v1/sea:not_json_container; www.sm.ee:not_json; www.sm.ee/otsing?filters%5Btype%5D=Artik:not_json; www.sm.ee/otsing:not_json
+spo-go-kr-site,한국완료,227,,unknown,,,www.spo.go.kr:not_json; www.spo.go.kr/site/spo/ex/board/List.do:not_json; www.spo.go.kr/site/spo/ex/board/View.do:http_500; www.spo.go.kr/site/spo/ex/board/List.do?:not_json
+skm-dk-aktuelt,덴마크완료,457,,unknown,,,skm.dk:not_json; skm.dk/sitemap.xml:not_json; skm.dk/aktuelt/presse-nyheder/pressemedd:not_json; skm.dk/aktuelt/presse-nyheder/pressemedd:not_json
+reseau-canope-fr-espace-presse,French Public Institutions,19,,unknown,,,www.reseau-canope.fr:not_json; www.reseau-canope.fr/espace-presse/nos-d:not_json; www.reseau-canope.fr/tmp/reseau_canope_c:http_404
+scaht-org-en,Switzerland Research Centers,641,,unknown,,,www.scaht.org/en/research/publications/:http_404; www.scaht.org:not_json; www.scaht.org/en/publications/:not_json
+sm-dk-publikationer,덴마크완료,354,,unknown,,,www.sm.dk:not_json; www.sm.dk/publikationer:not_json; www.sm.dk/publikationer/proxy.gba:http_500
+stepi-re-kr-site,한국완료,570,,unknown,,,www.stepi.re.kr:not_json; www.stepi.re.kr/site/stepiko/report/List:not_json; www.stepi.re.kr/site/stepiko/report/View:not_json; www.stepi.re.kr/data_raid/ruci_workspace:http_404
+secihti-mx-sala-de-prensa,Mexico Ministries,218,226,wp_total,high,https://secihti.mx/wp-json/wp/v2/sala-de-prensa,route=sala-de-prensa
+state-gov-department-reports,USA Executive Departments,10,,unknown,,,www.state.gov/wp-json/wp/v2:no_total_field; www.state.gov:not_json; www.state.gov/department-reports/:not_json
+sgu-se-en,스웨덴 완료,54,,unknown,,,www.sgu.se:no_total_field; www.sgu.se/en/about-sgu/news-from-sgu/:no_total_field
+sonar-ch-global,Switzerland Research Centers,5462,,unknown,,,sonar.ch/api/documents/:http_401; sonar.ch:not_json; sonar.ch/global/search/documents?q=&page:not_json
+swisspeace-ch-publications,Switzerland Research Centers,304,,unknown,,,www.swisspeace.ch/api/data/initial/publi:no_total_field; www.swisspeace.ch/api/data/url/:no_total_field; www.swisspeace.ch:not_json; www.swisspeace.ch/publications:not_json
+stat-inst-se-om-sis,스웨덴 완료,69,,unknown,,,www.stat-inst.se:not_json; www.stat-inst.se/om-sis/remissvar/:not_json; www.stat-inst.se/om-sis/rapporter-och-sl:not_json
+transportation-gov-newsroom,USA Executive Departments,205,,unknown,,,www.transportation.gov:http_403; www.transportation.gov/newsroom/press-re:http_403; :http_403
+sintef-no-en,Norway Research Centers,141,,unknown,,,www.sintef.no/en/search/?querytext=*&flo:not_json; api.nva.unit.no/publication/{reg_id}:http_400; api.nva.unit.no/publication/{reg_id}/fil:http_400; api.nva.unit.no/publication-channels-v2/:http_400
+seco-admin-ch-seco,Switzerland Departments,479,,unknown,,,d-nsbc-p.admin.ch/v1/search:http_400; www.seco.admin.ch:not_json; www.seco.admin.ch/seco/en/home/seco/nsb-:http_404
+siseministeerium-ee-otsing,Estonia Ministries,20,,unknown,,,search.service.eu-live.vportal.ee/v1/sea:not_json_container; www.siseministeerium.ee:not_json; www.siseministeerium.ee/otsing?filters%5:not_json
+stats-govt-nz-indicators,뉴질랜드완료,109,,unknown,,,www.stats.govt.nz:not_json; www.stats.govt.nz/indicators/:not_json; statisticsnz.shinyapps.io/wellbeingindic:not_json
+transport-govt-nz-documents-and-public,뉴질랜드완료,3,,unknown,,,www.transport.govt.nz/documents-and-publ:not_json; www.transport.govt.nz/about-us/what-we-d:not_json; www.transport.govt.nz/about-us/what-we-d:not_json; web.archive.org/cdx/search/cdx:http_400
+tigta-gov-reports,USA Executive Departments,133,,unknown,,,www.tigta.gov/reports/all-reports.json:no_total_field; www.tigta.gov:not_json; www.tigta.gov/reports/list:not_json
+transparency-gov-au-publications,호주완료,2694,,unknown,,,acs-dof-shared-aue-01.search.windows.net:http_403; www.transparency.gov.au:not_json; www.transparency.gov.au/publications:not_json
+treasury-gov-au-publication,호주완료,651,,unknown,,,treasury.gov.au:not_json; treasury.gov.au/publication:not_json
+unikorea-go-kr-web,한국완료,47,,unknown,,,www.unikorea.go.kr:not_json; www.unikorea.go.kr/web/unikorea/bbs/bbs_:not_json
+sib-swiss-community,Switzerland Research Centers,391,,unknown,,,www.ebi.ac.uk/europepmc/webservices/rest:no_total_field; www.sib.swiss:not_json; www.sib.swiss/community/publications/sci:not_json
+stats-govt-nz-publications,뉴질랜드완료,87,,unknown,,,index.commoncrawl.org/CC-MAIN-2024-51-in:http_400; www.stats.govt.nz:not_json; www.stats.govt.nz/publications/?category:not_json; data.commoncrawl.org/:not_json
+transformation-gouv-fr-espace-presse,France Ministries,211,428,html_paginate,low,https://www.transformation.gouv.fr/espace-presse?field_type_presse_target_id%5B17%5D=17&page=22,https://www.transformation.gouv.fr/espace-presse?field_type_presse_target_id%5B17%5D=17&page=22
+toi-no-publications,Norway Research Centers,470,,unknown,,,www.toi.no/publications/category29.html?:not_json; www.toi.no:not_json; www.toi.no/publications/category29.html?:not_json
+ulsan-go-kr-u,한국완료,58,,unknown,,,www.ulsan.go.kr:not_json; www.ulsan.go.kr/u/rep/bbs/list.ulsan?bbs:not_json; www.ulsan.go.kr/u/rep/bbs/view.do:not_json
+sib-swiss-training,Switzerland Research Centers,74,,unknown,,,www.sib.swiss:not_json; www.sib.swiss/training/training-material:not_json
+um-dk-om-os,덴마크완료,24,,unknown,,,um.dk:not_json; um.dk/om-os/organisation/oekonomi-og-udb:not_json
+transportes-gob-es-el-ministerio,Spain Ministries,288,,unknown,,,www.transportes.gob.es:not_json; www.transportes.gob.es/ministerio/comuni:not_json; www.transportes.gob.es/views/ajax:http_404; www.transportes.gob.es/el-ministerio/sal:not_json
+swisspolar-ch-expeditions,Switzerland Research Centers,94,101,wp_total,high,"https://swisspolar.ch/wp-json/wp/v2/pages?slug=ace-publications&page={page}&per_page=1&_fields=id,date,date_gmt,modified,modified_gmt,slug,link,title,content",route=pages
+socialstyrelsen-se-en,스웨덴 완료,127,,unknown,,,www.socialstyrelsen.se:not_json; www.socialstyrelsen.se/en/publications/:not_json
+ustat-mur-gov-it,Italy Ministries,92,,unknown,,,ustat.mur.gov.it:not_json; ustat.mur.gov.it/:not_json
+waltoninstitute-ie-research,Irish Research Centers,566,788,wp_total,high,https://wordpress.waltoninstitute.ie/wp-json/wp/v2/publication,route=publication
+ungeneva-org-en,Switzerland Research Centers,93,,unknown,,,www.ungeneva.org:not_json; www.ungeneva.org/en/news-media/press-rel:not_json
+who-int-publications,Switzerland Research Centers,511,,unknown,,,www.who.int/api/hubs/publications?sf_sit:no_total_field; www.who.int:not_json; www.who.int/publications/i:not_json
+www6-slac-stanford-edu-news-and-events,American Research Institutes,267,,unknown,,,www6.slac.stanford.edu:not_json; www6.slac.stanford.edu/news-and-events/n:not_json; www6.slac.stanford.edu/news-and-events/n:not_json
+sfi-ch-en,Switzerland Research Centers,288,,unknown,,,www.sfi.ch:not_json; www.sfi.ch/en/about-us/activity-report:not_json; www.sfi.ch/en/publications:not_json; www.sfi.ch/en/publications?d=&a=&c=383&q:not_json
+va-gov-vetdata,USA Executive Departments,114,,unknown,,,www.va.gov:not_json; www.va.gov/vetdata/report.asp:not_json
+wodc-nl-documenten,Dutch Research Centers,2,3527,dspace_rest7,low,https://repository.wodc.nl/server/api/discover/search/objects,https://repository.wodc.nl/server/api/discover/search/objects [ratio=1764x:review_possible_unscoped_endpoint]
+vlaanderen-be-nieuwsberichten,벨기에완료,26,,unknown,,,www.vlaanderen.be/api/overview-search:http_404; www.vlaanderen.be/api/newsarticles/nl/{i:http_500; www.vlaanderen.be:not_json; www.vlaanderen.be/nieuwsberichten?order_:not_json
+xxgk-mot-gov-cn-2020,중국 완료,456,,unknown,,,xxgk.mot.gov.cn:not_json; xxgk.mot.gov.cn/2020/zhengce/863/868/869:not_json; xxgk.mot.gov.cn/2020/zhengce/863/868/869:http_404
+sozialministerium-gv-at-services,오스트리아완료,206,,unknown,,,www.sozialministerium.gv.at:error:ConnectionError; www.sozialministerium.gv.at/Services/Stu:error:ConnectionError
+trm-dk-nyheder,덴마크완료,404,,unknown,,,www.trm.dk:error:ReadTimeout; www.trm.dk/nyheder:error:ReadTimeout
+women-govt-nz-library,뉴질랜드완료,14,,unknown,,,www.women.govt.nz:not_json; www.women.govt.nz/views/ajax:http_404; www.women.govt.nz/library:not_json
+ypen-gov-gr-category,Greece Ministries,454,,unknown,,,ypen.gov.gr:http_403; ypen.gov.gr/category/anakoinoseis-typou/:http_403
+swisstph-ch-en,Switzerland Research Centers,1087,,unknown,,,www.swisstph.ch:not_json; www.swisstph.ch/en/publications:not_json; eutils.ncbi.nlm.nih.gov/entrez/eutils/ef:http_400
+werk-belgie-be-nl,벨기에완료,316,,unknown,,,werk.belgie.be:not_json; werk.belgie.be/nl/nieuws:not_json
+ypes-gr-category,Greece Ministries,987,,unknown,,,www.ypes.gr:http_403; www.ypes.gr/category/deltia-typoy/:http_403
+wallonie-be-fr,벨기에완료,121,,unknown,,,www.wallonie.be:not_json; www.wallonie.be/fr/publications:not_json
+uvek-admin-ch-en,Switzerland Departments,501,,unknown,,,d-nsbc-p.admin.ch/v1:error:ConnectTimeout; d-nsbc-p.admin.ch/v1/search:error:ConnectTimeout; www.uvek.admin.ch:error:ReadTimeout
+ypergasias-gov-gr-category,Greece Ministries,531,,unknown,,,ypergasias.gov.gr:http_202; ypergasias.gov.gr/category/anakoinoseis-:http_202
+unidata-gv-at-pages,오스트리아완료,404,,unknown,,,unidata.gv.at:error:ReadTimeout; unidata.gv.at/data_raid/ruci_workspace/f:http_404
+usgs-gov-news,American Research Institutes,1549,,unknown,,,www.usgs.gov:not_json; www.usgs.gov/news/news-releases/all-news:not_json; www.usgs.gov/views/ajax:http_404
+wef-infor-cl-indexphp,Chile Ministries,448,,unknown,,,wef.infor.cl:not_json; wef.infor.cl/index.php/publicaciones:not_json
+ufm-dk-publikationer,덴마크완료,44,,unknown,,,ufm.dk:error:ConnectionError; ufm.dk/publikationer:error:ConnectionError
+wbf-admin-ch-en,Switzerland Departments,500,,unknown,,,d-nsbc-p.admin.ch/v1/search:http_400; www.wbf.admin.ch:error:ReadTimeout
+vbs-admin-ch-en,Switzerland Departments,111,,unknown,,,d-nsbc-p.admin.ch/v1:http_404; d-nsbc-p.admin.ch/v1/search:http_400; www.vbs.admin.ch:error:ConnectTimeout; www.vbs.admin.ch/en/newnsb?publisherIDs=:error:ReadTimeout
+vtg-admin-ch-en,Switzerland Departments,18,,unknown,,,www.vtg.admin.ch:error:ReadTimeout; www.vtg.admin.ch/en/swiss-peace-supporte:error:ReadTimeout
+www2-mrc-lmb-cam-ac-uk-research,영국완료,47,,unknown,,,www2.mrc-lmb.cam.ac.uk:not_json; mrclmb.ac.uk/publications/:not_json; mrclmb.ac.uk/wp-admin/admin-ajax.php:http_400; eutils.ncbi.nlm.nih.gov/entrez/eutils/ef:http_400
+statistischebibliothek-de-mir,독일완료,384,,unknown,,,www.statistischebibliothek.de:not_json; www.statistischebibliothek.de/mir/receiv:error:ReadTimeout
+telemarksforsking-no-publikasjoner,Norway Research Centers,280,,unknown,,,telemarksforsking.no:error:ReadTimeout; telemarksforsking.no/publikasjoner/tab/?:error:ReadTimeout

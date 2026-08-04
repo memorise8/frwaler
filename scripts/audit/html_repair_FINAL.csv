@@ -1,0 +1,147 @@
+site_id,fix_class,verdict,counted,collected
+directives-doe-gov-directives-browse,FIX_domain,도메인이전→www.energy.gov,205,205
+irsn-fr-actualites,FIX_domain,도메인이전→recherche-expertise.asnr.fr,274,274
+africamuseum-be-en,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),52,52
+agriculture-gouv-fr-recherche-developpem,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),134,472
+alrc-gov-au-publications,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),40,116
+ansto-gov-au-search,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),26,30
+babraham-ac-uk-news,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),483,483
+bam-de-navigation,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),0,308
+baw-de-en,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),0,14
+bfr-bund-de-en,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),1,23
+bmas-de-de,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),330,454
+bmf-gv-at-ministerium,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),3,36
+bmftr-bund-de-siteglobals,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),179,197
+bmluk-gv-at-service,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),272,315
+bnf-fr-fr,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),488,488
+bundeskanzleramt-gv-at-bundeskanzleramt,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),447,480
+cae-eco-fr-presse-cae-0,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),64,64
+caissedesdepots-fr-communiques-de-press,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),1000,1201
+casseng-cssn-cn-sky_research,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),8,8
+centralesupelec-fr-presse,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),51,51
+college-de-france-fr-en,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),105,105
+consult-environment-govt-nz-climate,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),72,72
+cso-ie-en,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),0,388
+cstb-fr-communiques-de-press,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),48,48
+didaktorika-gr-eadd,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),118,118
+directives-doe-gov-guidance,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),51,260
+doi-gov-bpp,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),204,204
+drugsandalcohol-ie-cgi,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),649,500
+economy-ni-gov-uk-publications,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),539,583
+em-dk-aktuelt,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),350,350
+emsl-pnnl-gov-science,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),6,6
+en-nim-ac-cn-taxonomy,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),303,303
+energy-gov-management,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),388,388
+eng-mod-gov-cn-2025xb,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),10,10
+english-mee-gov-cn-resources,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),0,20
+english-www-gov-cn-archive,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),315,506
+ens-lyon-fr-lecole,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),151,154
+environment-govt-nz-what-you-can-do,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),0,58
+fi-se-en,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),95,122
+fmi-ch-research,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),0,818
+genome-gov-about-nhgri,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),1,42
+graduateinstitute-ch-library,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),213,398
+hatvp-fr-actualites-et-public,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),57,57
+health-ni-gov-uk-news,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),100,137
+hi-no-en,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),119,119
+icp-fr-a-propos-de-licp,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),99,99
+ifau-se-press,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),215,215
+incheon-go-kr-ic010205,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),660,1328
+insee-fr-fr,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),0,223
+justitsministeriet-dk-forskning,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),24,24
+kihasa-re-kr-publish,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),0,673
+klimaraadet-dk-da,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),84,84
+klri-re-kr-kor,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),384,590
+kommunikasjon-ntb-no-presserom,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),116,116
+krihs-re-kr-krihslibraryreport,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),150,168
+kwdi-re-kr-plaza,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),454,819
+lavoro-gov-it-stampa-e-media,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),20,340
+lib-cssn-cn-zy,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),204,204
+met-no-publikasjoner,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),0,116
+mfds-go-kr-brd,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),410,461
+mwr-gov-cn-zwgk,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),18,18
+ncats-nih-gov-news-events,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),6,19
+ncri-ie-en,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),104,104
+nesc-ie-publications,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),121,121
+nhlbi-nih-gov-resources,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),271,325
+nia-nih-gov-news,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),59,95
+nidcd-nih-gov-news,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),5,203
+niddk-nih-gov-news,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),99,124
+nim-ac-cn-taxonomy,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),34,34
+nimhd-nih-gov-news-events,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),13,13
+ninds-nih-gov-publications,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),70,71
+nnsa-mee-gov-cn-english,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),10,10
+noc-ac-uk-publications,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),25,234
+nrc-re-kr-boardes,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),237,470
+nupi-no-en,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),0,28
+ons-gov-uk-search,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),333,516
+openscience-si-naprednoiskanjeaspx,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),19,30
+ptb-de-cms,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),8,8
+publicservice-govt-nz-data,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),61,61
+search-open-canada-ca-opendata,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),80,5287
+seer-cancer-gov-report_to_nation,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),24,24
+skillsdevelopmentscotland-co-uk-publications-statist,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),487,488
+sm-dk-publikationer,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),354,354
+um-dk-om-os,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),24,24
+ungeneva-org-en,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),91,93
+women-govt-nz-library,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),14,14
+www2-mrc-lmb-cam-ac-uk-research,FIX_selector,콘텐츠 있음(셀렉터 노후 의심),16,47
+agri-ee-ministeerium-uudised,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),8,122
+biorbic-com-publications,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),467,497
+bmz-de-de,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),6,6
+bordbia-ie-about,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),0,20
+cdhowe-org-research-insights,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),344,344
+cells-es-en,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),0,11
+data-biodiversity-be-dataset,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),0,524
+dhs-gov-news-releases,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),36,79
+dhs-gov-publication,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),3,29
+ejournals-epublishing-ekt-gr-indexphp,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),381,474
+ethniccommunities-govt-nz-resources,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),0,85
+hhs-gov-guidance,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),58,267
+ineris-fr-fr,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),0,141
+iucn-org-about-iucn,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),19,19
+minscfa-gov-gr-grafeio-typou,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),0,626
+opendatacommunities-org-data,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),0,3
+safefood-net-news,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),0,31
+search-worldcat-org-ko,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),13,14
+sib-swiss-training,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),67,74
+transportation-gov-newsroom,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),0,205
+unidata-gv-at-pages,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),0,404
+vbs-admin-ch-en,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),50,111
+vtg-admin-ch-en,FIX_stealth,WAF차단(헤더/스텔스 우회검증필요),18,18
+data-mfe-govt-nz-tables,PROBE_review,"불명(HTTP200, 9947B, 0링크)",434,435
+nbb-be-en,PROBE_review,"불명(HTTP200, 10601B, 6링크)",15,15
+sonar-ch-global,PROBE_review,"불명(HTTP200, 10306B, 15링크)",5364,5462
+pbocri-org-cn-lnzy3html,PROBE_unknown,"불명(HTTP200, 12177B, 91링크)",0,8
+dapa-go-kr-dapa,SKIP_dead,사망/무응답(HTTP000),0,970
+gsi-ie-en-ie,SKIP_dead,도메인이전→secure.decc.gov.ie,0,113
+jeonnam-go-kr-m7116,SKIP_dead,사망/무응답(HTTP000),440,770
+khs-go-kr-cop,SKIP_dead,사망/무응답(HTTP000),13,38
+khs-go-kr-newsbbz,SKIP_dead,사망/무응답(HTTP000),0,1249
+mnd-go-kr-user,SKIP_dead,사망/무응답(HTTP000),0,304
+nps-or-kr-inforls,SKIP_dead,사망/무응답(HTTP000),0,115
+andra-fr-publications,SKIP_spa,SPA/JS쉘(정적크롤 불가),0,1
+astro-oma-be-en,SKIP_spa,SPA/JS쉘(정적크롤 불가),0,22
+astron-nl-about,SKIP_spa,SPA/JS쉘(정적크롤 불가),0,57
+auri-re-kr-publication,SKIP_spa,SPA/JS쉘(정적크롤 불가),559,593
+cer-rec-gc-ca-en,SKIP_spa,SPA/JS쉘(정적크롤 불가),174,175
+en-iwhr-cn-iwhr-english-new,SKIP_spa,SPA/JS쉘(정적크롤 불가),0,458
+english-cnipa-gov-cn-col,SKIP_spa,SPA/JS쉘(정적크롤 불가),353,353
+eprints-soton-ac-uk-view,SKIP_spa,SPA/JS쉘(정적크롤 불가),0,259
+forest-go-kr-kfsweb,SKIP_spa,SPA/JS쉘(정적크롤 불가),667,931
+iwhr-com-zgskywwnew,SKIP_spa,SPA/JS쉘(정적크롤 불가),0,62
+kicce-re-kr-main,SKIP_spa,SPA/JS쉘(정적크롤 불가),9,368
+kice-re-kr-boardcnts,SKIP_spa,SPA/JS쉘(정적크롤 불가),939,500
+meri-belspo-be-site,SKIP_spa,SPA/JS쉘(정적크롤 불가),21,21
+moe-go-kr-boardcnts,SKIP_spa,SPA/JS쉘(정적크롤 불가),1047,1250
+mof-gov-cn-en,SKIP_spa,SPA/JS쉘(정적크롤 불가),9,9
+mohrss-gov-cn-xxgk2020,SKIP_spa,SPA/JS쉘(정적크롤 불가),19,19
+mpi-govt-nz-about-mpi,SKIP_spa,SPA/JS쉘(정적크롤 불가),0,14
+mpi-govt-nz-resources-and-forms,SKIP_spa,SPA/JS쉘(정적크롤 불가),0,35
+msit-go-kr-bbs,SKIP_spa,SPA/JS쉘(정적크롤 불가),488,488
+nhc-gov-cn-wjw,SKIP_spa,SPA/JS쉘(정적크롤 불가),26,71
+pmc-gov-au-resources,SKIP_spa,SPA/JS쉘(정적크롤 불가),0,129
+rcaanc-cirnac-gc-ca-eng,SKIP_spa,SPA/JS쉘(정적크롤 불가),33,33
+reseau-canope-fr-espace-presse,SKIP_spa,SPA/JS쉘(정적크롤 불가),19,19
+science-libraries-canada-ca-eng,SKIP_spa,SPA/JS쉘(정적크롤 불가),31,31
+transparency-gov-au-publications,SKIP_spa,SPA/JS쉘(정적크롤 불가),0,2694

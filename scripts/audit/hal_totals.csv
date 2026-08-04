@@ -1,0 +1,30 @@
+site_id,sheet,portal,filtered_total,api_url,note
+amu-hal-science-search,French Public Universities,amu,2938,https://api.archives-ouvertes.fr/search/amu/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28REPORT+OR+OTHER%29&wt=json&rows=0,ok
+anr-hal-science-search,French Research Institutes,anr,140008,https://api.archives-ouvertes.fr/search/anr/?q=%2A%3A%2A&fq=openAccess_bool%3Atrue&fq=submitType_s%3Afile&fq=docType_s%3A%28THESE+OR+COMM+OR+ART+OR+MEM%29&wt=json&rows=0,ok
+artsetmetiers-hal-science-search,French Public Universities,artsetmetiers,,https://api.archives-ouvertes.fr/search/artsetmetiers/?q=*:*&fq=submitType_s:file&fq=docType_s:(ART OR COMM OR THESE)&wt=json&rows=0,error:non_json
+cea-hal-science-cnrgh,French Research Institutes,cea,866,https://api.archives-ouvertes.fr/search/cea/?q=%2A%3A%2A&fq=collCode_s%3ACNRGH&fq=docType_s%3A%28THESE+OR+COMM+OR+ART%29&wt=json&rows=0,ok
+cnam-hal-science-ceet,French Research Institutes,cnam,84,https://api.archives-ouvertes.fr/search/cnam/?q=%2A%3A%2A&fq=collCode_s%3ACEET&fq=submitType_s%3Afile&fq=docType_s%3A%28OTHER+OR+REPORT%29&wt=json&rows=0,ok
+cnam-hal-science-search,French Public Institutions,cnam,12651,https://api.archives-ouvertes.fr/search/cnam/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28ART+OR+COMM+OR+THESE%29&wt=json&rows=0,ok
+ec-lyon-hal-science-search,French Public Universities,ec-lyon,252,https://api.archives-ouvertes.fr/search/ec-lyon/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28REPORT+OR+OTHER%29&wt=json&rows=0,ok
+ehess-hal-science-search,French Public Universities,ehess,21015,https://api.archives-ouvertes.fr/search/ehess/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28ART+OR+COMM+OR+MEM+OR+THESE%29&wt=json&rows=0,ok
+enac-hal-science-search,French Public Universities,enac,2395,https://api.archives-ouvertes.fr/search/enac/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28COMM+OR+ART+OR+THESE+OR+MEM%29&wt=json&rows=0,ok
+enc-hal-science-search,French Public Universities,enc,666,https://api.archives-ouvertes.fr/search/enc/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28ART+OR+ETABTHESE+OR+COMM+OR+MEM%29&wt=json&rows=0,ok
+enpc-hal-science-search,French Public Universities,enpc,15281,https://api.archives-ouvertes.fr/search/enpc/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28ART+OR+THESE+OR+COMM%29&wt=json&rows=0,ok
+ens-hal-science-search,French Public Universities,ens,1693,https://api.archives-ouvertes.fr/search/ens/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28REPORT+OR+OTHER%29&wt=json&rows=0,ok
+ens-lyon-hal-science-search,French Public Universities,ens-lyon,24750,https://api.archives-ouvertes.fr/search/ens-lyon/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28THESE+OR+COMM+OR+ART+OR+MEM%29&wt=json&rows=0,ok
+enscp-hal-science-search,French Public Institutions,enscp,3777,https://api.archives-ouvertes.fr/search/enscp/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28ART+OR+THESE+OR+COMM%29&wt=json&rows=0,ok
+enssib-hal-science-search,French Public Universities,enssib,177,https://api.archives-ouvertes.fr/search/enssib/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28COMM+OR+ART%29&wt=json&rows=0,ok
+envt-hal-science-search,French Public Universities,envt,188,https://api.archives-ouvertes.fr/search/envt/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28OTHER+OR+REPORT%29&wt=json&rows=0,ok
+espci-hal-science-search,French Public Universities,espci,23,https://api.archives-ouvertes.fr/search/espci/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28REPORT+OR+OTHER%29&wt=json&rows=0,ok
+hal-science-afd,French Public Institutions,(global),67,https://api.archives-ouvertes.fr/search/?q=%2A%3A%2A&fq=collCode_s%3AAFD&fq=submitType_s%3Afile&fq=docType_s%3A%28REPORT+OR+OTHER%29&wt=json&rows=0,ok
+hal-science-ign-ensg,French Public Institutions,(global),3733,https://api.archives-ouvertes.fr/search/?q=%2A%3A%2A&fq=collCode_s%3AIGN-ENSG&fq=submitType_s%3Afile&fq=docType_s%3A%28THESE+OR+COMM+OR+ART%29&wt=json&rows=0,ok
+hec-hal-science-search,French Public Universities,hec,335,https://api.archives-ouvertes.fr/search/hec/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28THESE+OR+ART+OR+COMM%29&wt=json&rows=0,ok
+icn-hal-science-search,French Public Universities,icn,154,https://api.archives-ouvertes.fr/search/icn/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28ART+OR+COMM%29&wt=json&rows=0,ok
+icp-hal-science-search,French Public Institutions,icp,182,https://api.archives-ouvertes.fr/search/icp/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28ART+OR+COMM%29&wt=json&rows=0,ok
+imt-nord-europe-hal-science-search,French Public Universities,imt-nord-europe,2137,https://api.archives-ouvertes.fr/search/imt-nord-europe/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28ART+OR+THESE+OR+COMM%29&wt=json&rows=0,ok
+ineris-hal-science-search,French Research Institutes,ineris,75,https://api.archives-ouvertes.fr/search/ineris/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3AREPORT&wt=json&rows=0,ok
+inria-hal-science-search,French Research Institutes,inria,65674,https://api.archives-ouvertes.fr/search/inria/?q=collCode_s%3AINRIA2&fq=submitType_s%3Afile&fq=docType_s%3A%28ART+OR+COMM+OR+MEM+OR+THESE%29&wt=json&rows=0,ok
+inserm-hal-science-search,French Research Institutes,inserm,234422,https://api.archives-ouvertes.fr/search/inserm/?q=%2A%3A%2A&fq=docType_s%3A%28COMM+OR+ART+OR+THESE%29&wt=json&rows=0,ok
+ird-hal-science-search,French Research Institutes,ird,2185,https://api.archives-ouvertes.fr/search/ird/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3AREPORT&wt=json&rows=0,ok
+isae-ensma-hal-science-search,French Public Universities,isae-ensma,3474,https://api.archives-ouvertes.fr/search/isae-ensma/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28ART+OR+THESE+OR+COMM%29&wt=json&rows=0,ok
+polytechnique-hal-science-search,French Public Universities,polytechnique,717,https://api.archives-ouvertes.fr/search/polytechnique/?q=%2A%3A%2A&fq=submitType_s%3Afile&fq=docType_s%3A%28OTHER+OR+REPORT%29&wt=json&rows=0,ok

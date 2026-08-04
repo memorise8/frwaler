@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>개발환경 구성 문서 | Libertree</title>
+<style>
+  :root{
+    --ink:#202622; --muted:#5f6f74; --canvas:#ffffff; --wash:#f4f2ea;
+    --accent:#365b42; --accent-soft:#e4ebe1; --rule:#d9d6cc;
+    --good:#3f7350; --warn:#9a7524; --bad:#9e463b;
+    --mono:"SF Mono",ui-monospace,Consolas,"D2Coding",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    --space:1.5rem;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--wash);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.72;letter-spacing:-.003em}
+  .page{max-width:860px;margin:0 auto;background:var(--canvas);
+    padding:4rem 3.4rem 3.6rem;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  /* Document header */
+  .doc-eyebrow{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;margin:0 0 .6rem}
+  h1{font-size:1.86rem;line-height:1.28;margin:0 0 1.4rem;font-weight:700;
+    text-wrap:balance;border-bottom:3px solid var(--accent);padding-bottom:1rem}
+  .doc-meta{width:100%;border-collapse:collapse;margin:0 0 2.6rem;font-size:.86rem}
+  .doc-meta th,.doc-meta td{border:1px solid var(--rule);padding:.5rem .8rem;text-align:left}
+  .doc-meta th{background:var(--wash);color:var(--muted);font-weight:600;white-space:nowrap;width:1%}
+  /* Sections */
+  h2{font-size:1.22rem;margin:2.8rem 0 .9rem;padding-top:1.2rem;font-weight:700;
+    border-top:1px solid var(--rule)}
+  h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:.5rem}
+  h3{font-size:1.02rem;margin:1.8rem 0 .6rem;font-weight:700;color:#2c332e}
+  p{margin:.7rem 0}
+  ul,ol{margin:.7rem 0;padding-left:1.3rem}
+  li{margin:.28rem 0}
+  strong{font-weight:700}
+  a{color:var(--accent)}
+  code{font-family:var(--mono);font-size:.86em;background:var(--wash);
+    padding:.1em .38em;border-radius:3px;border:1px solid var(--rule)}
+  pre{font-family:var(--mono);font-size:.82rem;line-height:1.6;background:#1c211d;color:#e8ede6;
+    padding:1rem 1.15rem;border-radius:5px;overflow-x:auto;margin:1rem 0}
+  pre code{background:none;border:none;padding:0;color:inherit}
+  /* Tables */
+  .tbl-wrap{overflow-x:auto;margin:1.1rem 0}
+  table.data{width:100%;border-collapse:collapse;font-size:.86rem}
+  table.data th,table.data td{border:1px solid var(--rule);padding:.5rem .7rem;
+    text-align:left;vertical-align:top}
+  table.data th{background:var(--accent-soft);font-weight:700}
+  table.data tr:nth-child(even) td{background:#faf9f5}
+  table.data td.num{text-align:right;font-variant-numeric:tabular-nums}
+  /* Callouts & status */
+  .note{border-left:4px solid var(--accent);background:var(--accent-soft);
+    padding:.8rem 1.1rem;margin:1.1rem 0;border-radius:0 4px 4px 0;font-size:.9rem}
+  .note.warn{border-color:var(--warn);background:#f6efe0}
+  .note.bad{border-color:var(--bad);background:#f6e6e3}
+  .pill{display:inline-block;font-size:.74rem;font-weight:700;padding:.12em .6em;
+    border-radius:999px;line-height:1.5;white-space:nowrap}
+  .pill.good{background:#e2efe6;color:var(--good)}
+  .pill.warn{background:#f6eed9;color:var(--warn)}
+  .pill.bad{background:#f4e0dc;color:var(--bad)}
+  /* Diagram boxes (for architecture) */
+  .diagram{display:flex;flex-wrap:wrap;gap:.7rem;margin:1.2rem 0;font-size:.82rem}
+  .diagram .box{border:1.5px solid var(--accent);border-radius:5px;padding:.7rem .9rem;
+    background:#fff;min-width:140px}
+  .diagram .box b{display:block;color:var(--accent);margin-bottom:.2rem}
+  .placeholder{border:1.5px dashed var(--rule);border-radius:5px;padding:2rem;
+    text-align:center;color:var(--muted);font-size:.85rem;margin:1.1rem 0;background:#fbfaf6}
+  footer{margin-top:3.4rem;padding-top:1.2rem;border-top:1px solid var(--rule);
+    font-size:.78rem;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+  /* Print */
+  @media print{
+    body{background:#fff;font-size:11pt}
+    .page{max-width:none;margin:0;padding:0;box-shadow:none}
+    h2{break-after:avoid}
+    table.data,pre,.note,.diagram{break-inside:avoid}
+    a{color:var(--ink);text-decoration:none}
+    @page{margin:18mm 16mm}
+  }
+  @media(max-width:640px){.page{padding:2rem 1.2rem}}
+</style>
+</head>
+<body>
+<main class="page">
+  <p class="doc-eyebrow">LIBERTREE · 산출물</p>
+  <h1>개발환경 구성 문서</h1>
+  <table class="doc-meta">
+    <tr><th>문서번호</th><td>ENV-2026-001</td><th>버전</th><td>v1.0</td></tr>
+    <tr><th>프로젝트</th><td>웹페이지 데이터 수집·분석·요약 서비스</td><th>작성일</th><td>2026-08-01</td></tr>
+    <tr><th>작성자</th><td>공급자 (financenow)</td><th>이용자</th><td>libertree.co.kr</td></tr>
+  </table>
+
+  <!-- CONTENT START -->
+  <h2><span class="num">1.</span> 개요</h2>
+  <p>본 서비스는 웹페이지·문서를 수집하고 텍스트로 변환·분석하여 요약을 생성하는 시스템으로,
+  하나의 저장소(<code>crawler-poc</code>) 안에 세 개의 구성요소와 하나의 데이터 계층으로 이루어진다.
+  세 구성요소는 공통의 <code>data/</code> · <code>libertree/</code> 저장소를 형제 경로로 참조한다.</p>
+
+  <div class="diagram">
+    <div class="box"><b>① 크롤러</b>Python 3.12<br>수집·변환·요약<br><code>python -m crawler.main</code></div>
+    <div class="box"><b>② 관리자앱 (finolaw)</b>Next.js 16 · 포트 3001<br>대시보드·검색·크롤러 관리</div>
+    <div class="box"><b>③ 열람앱 (libertree-app)</b>Next.js 16 · dev 3000<br>배포 3101 (읽기전용 카탈로그)</div>
+    <div class="box"><b>데이터</b>SQLite (WAL)<br><code>libertree.db</code><br>블랍 <code>libertree/</code></div>
+  </div>
+
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>구성요소</th><th>기술</th><th>포트</th><th>역할</th></tr>
+    <tr><td>크롤러 (<code>crawler/</code>)</td><td>Python 3.12 (venv)</td><td>-</td><td>웹/문서 수집, PDF·HWP 변환, LLM 요약. CLI로 실행</td></tr>
+    <tr><td>관리자앱 (<code>finolaw/</code>)</td><td>Next.js 16 / React 19</td><td>3001</td><td>대시보드, 검색, Smart Find, Auto-Add, 크롤러 관리 UI</td></tr>
+    <tr><td>열람앱 (<code>libertree-app/</code>)</td><td>Next.js 16 / React 19</td><td>dev 3000 · 배포 3101</td><td>읽기전용 카탈로그 열람·검색·블랍 조회</td></tr>
+    <tr><td>데이터</td><td>SQLite (WAL) + 파일 블랍</td><td>-</td><td><code>libertree.db</code> 및 <code>libertree/</code> 블랍 트리</td></tr>
+  </table>
+  </div>
+
+  <div class="note">열람앱(libertree-app)은 관리자앱(finolaw)과 <strong>독립된 격리 런타임</strong>이다.
+  크롤러 스케줄러·Supervisor가 없으며, DB와 블랍을 <strong>읽기 전용</strong>으로만 마운트하여 카탈로그 열람 전용으로 동작한다.</div>
+
+  <h2><span class="num">2.</span> 언어·런타임</h2>
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>대상</th><th>런타임</th><th>버전</th><th>비고</th></tr>
+    <tr><td>크롤러</td><td>Python (CPython)</td><td>3.12.0</td><td><code>.venv</code> (uv 관리, prompt <code>frwaler_job</code>). <code>.venv/bin/python</code> 사용</td></tr>
+    <tr><td>관리자앱 finolaw</td><td>Next.js</td><td>16.2.4</td><td>React 19.2.4 / React-DOM 19.2.4</td></tr>
+    <tr><td>열람앱 libertree-app</td><td>Next.js</td><td>16.2.4</td><td>React 19.2.4 / React-DOM 19.2.4</td></tr>
+    <tr><td>Node.js</td><td>Node</td><td>20 이상 <span class="pill warn">미확인</span></td><td><code>package.json</code>에 <code>engines</code> 미지정. <code>@types/node ^20</code> 기준 추정</td></tr>
+    <tr><td>TypeScript</td><td>tsc</td><td>^5</td><td>양 프론트 공통 (열람앱은 finolaw의 tsc 바이너리 공유)</td></tr>
+  </table>
+  </div>
+  <div class="note">Node 버전은 저장소에 명시적으로 고정되어 있지 않다(<code>engines</code>·<code>.nvmrc</code> 부재). Next.js 16 / React 19 요구사항상 Node 20 LTS 이상 권장.</div>
+
+  <h2><span class="num">3.</span> 주요 의존성</h2>
+
+  <h3>3.1 크롤러 (requirements.txt)</h3>
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>패키지</th><th>용도</th></tr>
+    <tr><td><code>requests</code></td><td>동기 HTTP 요청</td></tr>
+    <tr><td><code>httpx</code></td><td>비동기/HTTP2 지원 HTTP 클라이언트</td></tr>
+    <tr><td><code>beautifulsoup4</code></td><td>HTML 파싱·요소 추출</td></tr>
+    <tr><td><code>lxml</code></td><td>고속 HTML/XML 파서 백엔드</td></tr>
+    <tr><td><code>html5lib</code></td><td>브라우저 호환 HTML 파싱 백엔드</td></tr>
+    <tr><td><code>cloudscraper</code></td><td>Cloudflare 우회 요청</td></tr>
+    <tr><td><code>playwright</code></td><td>헤드리스 브라우저 렌더링·수집</td></tr>
+    <tr><td><code>playwright-stealth</code></td><td>Playwright 봇 탐지 회피</td></tr>
+    <tr><td><code>patchright</code></td><td>탐지 우회용 Playwright 패치 런타임</td></tr>
+    <tr><td><code>pdfplumber</code></td><td>PDF 텍스트·표 추출</td></tr>
+    <tr><td><code>pypdf</code></td><td>PDF 페이지 조작·읽기</td></tr>
+    <tr><td><code>openai</code></td><td>OpenAI API (요약·Auto-Add)</td></tr>
+    <tr><td><code>google-genai</code></td><td>Gemini API (요약 폴백·Smart Finder)</td></tr>
+    <tr><td><code>openpyxl</code></td><td>Excel(xlsx) 읽기/쓰기</td></tr>
+    <tr><td><code>python-dotenv</code></td><td><code>.env</code> 환경변수 로딩</td></tr>
+    <tr><td><code>python-dateutil</code> (&gt;=2.8)</td><td>날짜 파싱·처리</td></tr>
+  </table>
+  </div>
+  <div class="note warn"><code>requirements.txt</code>는 대부분 버전 미고정(비핀). 재현성이 필요하면 배포 전 버전 고정(pin)을 권장한다.
+  또한 <code>olefile</code>·<code>PyPDF2</code>는 현재 <code>requirements.txt</code>에 명시되어 있지 않다(HWP/OLE 처리 및 PDF는 <code>pdfplumber</code>·<code>pypdf</code>로 처리). <span class="pill warn">미확인</span></div>
+
+  <h3>3.2 프론트엔드 (package.json)</h3>
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>패키지</th><th>대상</th><th>용도</th></tr>
+    <tr><td><code>next 16.2.4</code></td><td>finolaw · libertree-app</td><td>App Router 웹 프레임워크</td></tr>
+    <tr><td><code>react 19.2.4</code> / <code>react-dom 19.2.4</code></td><td>공통</td><td>UI 렌더링</td></tr>
+    <tr><td><code>better-sqlite3 ^12.9.0</code></td><td>finolaw</td><td>SQLite 동기 접근 (읽기전용 DB 조회)</td></tr>
+    <tr><td><code>@types/better-sqlite3 ^7.6.13</code></td><td>finolaw</td><td>better-sqlite3 타입 정의</td></tr>
+    <tr><td><code>tailwindcss ^4</code> / <code>@tailwindcss/postcss ^4</code></td><td>finolaw</td><td>유틸리티 CSS 스타일링</td></tr>
+    <tr><td><code>typescript ^5</code></td><td>공통</td><td>정적 타입 검사</td></tr>
+    <tr><td><code>eslint ^9</code> / <code>eslint-config-next 16.2.4</code></td><td>공통</td><td>린팅</td></tr>
+  </table>
+  </div>
+  <div class="note">열람앱(libertree-app)은 런타임 의존성을 <code>next</code>·<code>react</code>·<code>react-dom</code>으로 최소화했으며, 자체 <code>tailwindcss</code>·<code>better-sqlite3</code> 의존성을 두지 않는다(타입체크 시 finolaw의 <code>tsc</code> 바이너리 공유).</div>
+
+  <h2><span class="num">4.</span> 환경변수</h2>
+  <p>루트 <code>.env</code>(관리자앱 인증)와 <code>crawler/.env</code>(크롤러·LLM)로 분리되며, 열람앱은 컨테이너 배포 시
+  <code>LIBERTREE_*</code> 계약값을 명시적으로 주입받는다.</p>
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>변수명</th><th>파일/대상</th><th>필수</th><th>용도</th></tr>
+    <tr><td><code>ADMIN_USER</code></td><td>루트 <code>.env</code> / 전 앱</td><td><span class="pill warn">조건부</span></td><td>HTTP Basic 인증 사용자명. 열람앱 배포 시 필수</td></tr>
+    <tr><td><code>ADMIN_PASSWORD</code></td><td>루트 <code>.env</code> / 전 앱</td><td><span class="pill warn">조건부</span></td><td>Basic 인증 비밀번호. 둘 다 비우면 인증 비활성(로컬 개발 전용)</td></tr>
+    <tr><td><code>AUTH_PROTECTED_PATHS</code></td><td>루트 <code>.env</code> / finolaw</td><td><span class="pill">선택</span></td><td>인증 적용 경로 접두사(쉼표 구분). 기본은 정적/<code>/_next/*</code> 제외 전체</td></tr>
+    <tr><td><code>OPENAI_API_KEY</code></td><td><code>crawler/.env</code></td><td><span class="pill warn">조건부</span></td><td>요약·Auto-Add(GPT) 및 Codex CLI 생성. 요약/Auto-Add 사용 시 필수 (<code>gpt-5.4</code> 접근 권한 필요)</td></tr>
+    <tr><td><code>GEMINI_API_KEY</code> / <code>GOOGLE_API_KEY</code></td><td><code>crawler/.env</code></td><td><span class="pill">선택</span></td><td>Smart Finder AI 폴백 및 요약 Gemini 경로</td></tr>
+    <tr><td><code>LLM_PROVIDER</code></td><td><code>crawler/.env</code></td><td><span class="pill">선택</span></td><td>Smart Finder 기본 LLM 공급자. <code>gpt</code> | <code>gemini</code> (기본 <code>gpt</code>)</td></tr>
+    <tr><td><code>SUMMARIZER_MODEL</code></td><td><code>crawler/</code> (환경변수)</td><td><span class="pill">선택</span></td><td>요약 모델. 기본 <code>gpt-5.4-mini</code></td></tr>
+    <tr><td><code>LIBERTREE_APP_MODE</code></td><td>열람앱 (배포)</td><td><span class="pill bad">필수</span></td><td>반드시 <code>read-only</code>. 그 외 값이면 기동 거부</td></tr>
+    <tr><td><code>LIBERTREE_DB_PATH</code></td><td>열람앱 (배포)</td><td><span class="pill bad">필수</span></td><td>카탈로그 <code>libertree.db</code> 절대 경로 (<code>papers.db</code>는 거부됨)</td></tr>
+    <tr><td><code>LIBERTREE_BLOB_ROOT</code></td><td>열람앱 (배포) / 크롤러</td><td><span class="pill bad">필수</span></td><td>블랍 저장 루트. 크롤러 기본은 저장소 루트 <code>libertree/</code></td></tr>
+    <tr><td><code>LIBERTREE_DATA_ROOT</code></td><td>열람앱</td><td><span class="pill warn">조건부</span></td><td>데이터 디렉터리 루트(WAL/SHM 사이드카 포함 마운트용)</td></tr>
+    <tr><td>사이트별 공개 검색 키<br>(<code>*_KEY</code> / <code>*_PUBLIC_KEY</code>)</td><td><code>crawler/.env</code></td><td><span class="pill">선택</span></td><td>일부 사이트 공개 읽기전용 검색 API 키 (예: <code>CANCER_FR_CATALOGUE_DES_PUBLIC_KEY</code>, <code>INRAE_FR_ACTUALITES_KEY</code> 등)</td></tr>
+  </table>
+  </div>
+  <div class="note">컨테이너 배포용 호스트측 변수(열람앱 <code>docker-compose.yml</code>): <code>LIBERTREE_HOST_APP_DATA_ROOT</code>(=<code>libertree-app/data/</code> 절대경로), <code>LIBERTREE_HOST_BLOB_ROOT</code>(=저장소 루트 <code>libertree/</code>), <code>LIBERTREE_HOST_PORT</code>(선택, 기본 <code>3101</code>). 기동 게이트는 쓰기가능/누락 마운트, 변경된 데이터 경로, 크롤러·외부 AI 키 환경변수를 거부한다.</div>
+  <div class="note">참고: 위 <code>OPENAI_API_KEY</code>/<code>SUMMARIZER_MODEL</code>은 <code>crawler/summarizer.py</code>의 <strong>온디맨드 요약 경로</strong>용이다. <strong>실제 프로덕션 대량 요약</strong>은 로컬 Ollama 배치(<code>scripts/bulk_summarize_gemma.py</code>, 포트 11436, gemma4:26b·qwen3:8b)로 수행됐다 — 5.4 참조.</div>
+
+  <h2><span class="num">5.</span> 로컬 실행 절차</h2>
+
+  <h3>5.1 크롤러</h3>
+  <pre><code># 저장소 루트에서 (Python 3.12 venv)
+source .venv/bin/activate           # 또는 직접 .venv/bin/python 사용
+
+# 등록된 사이트/통계 확인
+python -m crawler.main list-sites
+python -m crawler.main stats
+
+# 수집 실행 (예)
+python -m crawler.main crawl &lt;site&gt;
+
+# 지원 서브커맨드: crawl · list-sites · stats · test-config · download · convert</code></pre>
+
+  <h3>5.2 관리자앱 finolaw (포트 3001)</h3>
+  <pre><code>cd finolaw
+npm install
+npm run dev            # http://localhost:3001
+
+# 프로덕션
+npm run build
+npm run start          # 포트 3001</code></pre>
+  <div class="note">finolaw는 형제 경로에 의존한다: <code>../crawler/</code>, <code>../.venv/bin/python</code>, 대시보드/검색용 DB, <code>../.cache/</code> 로그, <code>../crawler/.env</code>. DB가 없으면 UI는 기동되나 대시보드/검색 데이터가 비어 있다.</div>
+
+  <h3>5.3 열람앱 libertree-app (dev 포트 3000)</h3>
+  <pre><code>cd libertree-app
+npm install
+npm run dev            # http://localhost:3000 (기본 포트)
+
+# 데이터 계약 검증 스크립트
+npm run verify:data-path
+npm run print:data-contract
+npm run verify:app-surface</code></pre>
+
+  <h3>5.4 요약 백엔드</h3>
+  <p>요약 경로는 <strong>두 가지</strong>가 존재한다:</p>
+  <ul>
+    <li><strong>대량 배치(프로덕션 실사용)</strong> — <code>scripts/bulk_summarize_gemma.py</code>가 <strong>로컬 Ollama</strong>(<code>127.0.0.1:11436</code>)를 호출한다. <strong>실제 저장된 요약 66,248건은 전부 이 경로</strong>로 생성됐다(DB <code>summary_model</code> 실측: <code>gemma4:26b</code> 55% + <code>qwen3:8b</code> 45%).</li>
+    <li><strong>온디맨드 재요약</strong> — <code>crawler/summarizer.py</code>(관리자 화면의 재요약·<code>crawler.main summarize</code>)는 OpenAI(<code>SUMMARIZER_MODEL</code> 기본 <code>gpt-5.4-mini</code>, 폴백 <code>gpt-4o-mini</code>)·Gemini(<code>gemini-2.5-flash</code>) 경로를 사용한다. 이 경로는 코드에 존재하나 <strong>프로덕션 대량 요약에는 미사용</strong>이다.</li>
+  </ul>
+  <div class="note">계약(REQ-2026-001)은 OpenAI API를 명시했으나, 비용·온프레미스 이유로 <strong>실제 대량 요약은 로컬 Ollama 모델</strong>로 구현했다. OpenAI/Gemini 경로는 온디맨드 보조 수단으로 코드에 보존돼 있다.</div>
+
+  <h2><span class="num">6.</span> 컨테이너 실행</h2>
+
+  <h3>6.1 통합 배포 (루트 docker-compose.yml)</h3>
+  <p>단일 <code>app</code> 컨테이너가 Next.js(3001, supervisord 구동)와 Python3 + Playwright + Codex CLI(크롤 시 온디맨드 실행)를 함께 운영한다.</p>
+  <pre><code>cp .env.example .env
+cp crawler/.env.example crawler/.env
+# 두 파일 편집 후:
+docker compose up -d</code></pre>
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>항목</th><th>값</th></tr>
+    <tr><td>서비스 / 이미지</td><td><code>app</code> / <code>crawler-poc:mvp</code> (컨테이너 <code>crawler-poc</code>)</td></tr>
+    <tr><td>포트</td><td><code>3001:3001</code></td></tr>
+    <tr><td>env_file</td><td><code>.env</code>, <code>crawler/.env</code></td></tr>
+    <tr><td>볼륨</td><td><code>./data</code>, <code>./libertree</code>(읽기전용), <code>./.cache</code>, <code>./crawler/sites/custom</code>, <code>./crawler/sites/configs</code></td></tr>
+    <tr><td>헬스체크</td><td><code>HEAD /</code> 응답 200 또는 401 (인증 뒤에서도 5xx 아님) / 30s 간격</td></tr>
+  </table>
+  </div>
+
+  <h3>6.2 열람앱 격리 배포 (libertree-app/docker-compose.yml)</h3>
+  <p>기존 3001 서비스와 무관한 카탈로그 전용 컨테이너로, 루프백에만 게시하며 기본 호스트 포트는 <code>3101</code>이다.</p>
+  <pre><code>cd libertree-app
+docker compose -f docker-compose.yml build
+docker compose -f docker-compose.yml up -d
+curl --fail --user "$ADMIN_USER:$ADMIN_PASSWORD" http://127.0.0.1:3101/api/health
+docker compose -f docker-compose.yml down</code></pre>
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>항목</th><th>값</th></tr>
+    <tr><td>서비스</td><td><code>catalogue</code> (compose 프로젝트 <code>libertree-catalogue</code>)</td></tr>
+    <tr><td>포트</td><td><code>127.0.0.1:${LIBERTREE_HOST_PORT:-3101} → 3001</code></td></tr>
+    <tr><td>주입 환경</td><td><code>LIBERTREE_APP_MODE=read-only</code>, <code>LIBERTREE_DB_PATH</code>, <code>LIBERTREE_BLOB_ROOT</code>, <code>ADMIN_USER</code>/<code>ADMIN_PASSWORD</code></td></tr>
+    <tr><td>마운트</td><td>데이터·블랍 모두 <code>read_only</code> 바인드 (<code>/data/repository/libertree-app/data</code>, <code>/data/repository/libertree</code>)</td></tr>
+    <tr><td>보안</td><td><code>read_only: true</code>, <code>cap_drop: ALL</code>, <code>no-new-privileges</code>, <code>pids_limit: 128</code>, <code>tmpfs /tmp</code></td></tr>
+  </table>
+  </div>
+  <div class="note"><code>/api/health</code>는 보호된 준비성 프로브다. 오설정/카탈로그 접근 불가 시 <code>503</code>, 자격증명 누락/오류 시 <code>401</code>, 정상 시 <code>200</code>. 노출 라우트는 <code>/</code>, <code>/search</code>, <code>/search/:id</code>, <code>/api/blob/:seq_id/:ext</code>, <code>/api/health</code> 뿐이다.</div>
+
+  <h2><span class="num">7.</span> 저장소·데이터 위치</h2>
+  <div class="tbl-wrap">
+  <table class="data">
+    <tr><th>경로</th><th>내용</th></tr>
+    <tr><td><code>libertree-app/data/libertree.db</code></td><td>정본 카탈로그 SQLite DB. <code>PRAGMA journal_mode=WAL</code> (WAL/SHM 사이드카 동반). 크롤러 <code>db_libertree.py</code> 기본 경로이며 <code>papers.db</code>와 독립</td></tr>
+    <tr><td><code>data/libertree.db</code></td><td>구(舊)/대체 경로. 데이터 경로 계약은 저장소 루트 기준 <code>data/libertree.db</code>와 <code>libertree-app/data/libertree.db</code>를 함께 인지</td></tr>
+    <tr><td><code>libertree/AAAA/BBBB/…</code></td><td>PDF·텍스트 블랍 저장소. 12자리 zero-padded <code>seq_id</code>를 2단계 폴더로 분산. 예: <code>libertree/0000/1234/000123456789.txt</code> (leaf당 최대 10,000개, 최대 1조 개)</td></tr>
+    <tr><td><code>.cache/</code></td><td>크롤러·Auto-Add 로그</td></tr>
+    <tr><td><code>crawler/.env</code></td><td>API 키·사이트별 공개 검색 키 (gitignore)</td></tr>
+  </table>
+  </div>
+  <div class="note warn"><code>data/papers.db</code>는 구 크롤러(finolaw 대시보드/검색)의 DB로 카탈로그(<code>libertree.db</code>)와는 별개다. 열람앱 데이터 경로 계약은 <code>papers.db</code>를 앱 데이터로 사용하는 것을 거부한다.</div>
+  <div class="note"><code>libertree/</code> 블랍 트리는 대용량(약 1.6TB 규모)으로, 웹앱(열람앱)에는 항상 <strong>읽기 전용</strong>으로 마운트된다. 데이터 백업은 <code>data/</code>·<code>libertree/</code> 디렉터리를 <code>tar</code>/<code>rsync</code>로 처리한다.</div>
+  <!-- CONTENT END -->
+
+  <footer>
+    <span>Libertree · 웹페이지 데이터 수집·분석·요약 서비스</span>
+    <span>ENV-2026-001 · 2026-08-01</span>
+  </footer>
+</main>
+</body>
+</html>

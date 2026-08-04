@@ -1,0 +1,4 @@
+site_id,sheet,collected,counted,completed,elapsed_s,method,note
+agri-ee-ministeerium-uudised,Estonia Ministries,122,8,True,518.3,count_crawl,caps_neutralized:MAX_PAGES=200->10000000
+auswaertiges-amt-de-de,Germany Ministries,224,226,True,535.4,count_crawl,caps_neutralized:_MAX_PAGES=200->10000000
+agriculture-gouv-fr-recherche-developpem,France Ministries,472,277,True,569.7,count_crawl,

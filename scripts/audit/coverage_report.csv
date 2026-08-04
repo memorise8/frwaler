@@ -1,0 +1,778 @@
+site_id,sheet,site_url,collected,source_total,coverage_pct,method,status,note
+accc-gov-au-about-us,호주완료,https://www.accc.gov.au/about-us/publications,502,836,60.0,html_count_regex,partial,https://www.accc.gov.au/about-us/publications
+accc-gov-au-search,호주완료,https://www.accc.gov.au/search?query=pdf,454,,,unknown,unknown,
+adaptcentre-ie-research,Irish Research Centers,https://www.adaptcentre.ie/research/publications/?searchwp_keyword&searchwp_author&searchwp_year,206,3402,6.1,wordpress_publications,partial,https://www.adaptcentre.ie/wp-json/wp/v2/publications
+agriculture-gouv-fr-recherche-developpem,France Ministries,https://agriculture.gouv.fr/recherche-developpement-et-innovation,472,,,unknown,unknown,
+ameslab-gov-news,American Research Institutes,https://www.ameslab.gov/news,394,,,unknown,unknown,
+agri-ee-ministeerium-uudised,Estonia Ministries,https://www.agri.ee/ministeerium-uudised-kontakt/uuringud,122,,,unknown,unknown,
+africamuseum-be-en,벨기에완료,https://www.africamuseum.be/en/research/news,52,,,unknown,unknown,
+adruk-org-news-publications,영국완료,https://www.adruk.org/news-publications/annual-reports/,210,,,unknown,unknown,
+acpr-banque-france-fr-fr,French Public Institutions,https://acpr.banque-france.fr/fr/communiques-de-presse,225,,,unknown,unknown,
+alrc-gov-au-publications,호주완료,https://www.alrc.gov.au/publications/final-report/,116,,,unknown,unknown,
+afd-fr-fr,French Public Institutions,https://www.afd.fr/fr/publications/liste?words=&type%5B170%5D=170,797,,,unknown,unknown,
+amu-hal-science-search,French Public Universities,https://amu.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=REPORT+OR+OTHER,3048,237733,1.3,hal_solr,partial,https://api.archives-ouvertes.fr/search/amu/
+amf-france-org-fr,French Public Institutions,https://www.amf-france.org/fr/actualites-publications/communiques/communiques-de-lamf,157,,,unknown,unknown,
+amolf-nl-publications,Dutch Research Centers,https://amolf.nl/publications,512,,,unknown,unknown,
+anr-hal-science-search,French Research Institutes,https://anr.hal.science/search/index/?q=%2A&rows=30&openAccess_bool=true&submitType_s=file&docType_s=THESE+OR+COMM+OR+ART+OR+MEM,363,253771,0.1,hal_solr,partial,https://api.archives-ouvertes.fr/search/anr/
+academie-sciences-fr-espace-presse,French Public Institutions,https://www.academie-sciences.fr/espace-presse,68,,,unknown,unknown,
+app-mps-gov-cn-gdnps,중국 완료,https://app.mps.gov.cn/gdnps/zc/index.jsp,501,,,unknown,unknown,
+anses-fr-fr,French Research Institutes,https://www.anses.fr/fr/content/avis-et-rapports-de-lanses-sur-saisine,6091,,,unknown,unknown,
+arcep-fr-actualites,French Public Institutions,https://www.arcep.fr/actualites/actualites-et-communiques/n-page/1.html?tx_news_pi1%5Bfilters%5D%5BtypeContent%5D=5&cHash=d411a099541ff08a38e6142c8162a5f6,34,,,unknown,unknown,
+andra-fr-publications,French Research Institutes,https://www.andra.fr/publications?f%5B0%5D=facet_doc_cat%3A224,1,,,unknown,unknown,
+arrow-tudublin-ie-creaart,Irish Research Centers,https://arrow.tudublin.ie/creaart/,229,,,unknown,unknown,
+arcnl-nl-publications,Dutch Research Centers,https://arcnl.nl/publications/types/phdthesis,11,,,unknown,unknown,
+arcom-fr-presse,French Public Institutions,https://www.arcom.fr/presse?field_type_de_presse_target_id%5B16%5D=16&field_date_de_decision_value_1=&field_date_de_decision_value=&sort_bef_combine=field_date_de_decision_value_ASC,290,307,94.5,html_count_regex,partial,https://www.arcom.fr/presse?field_type_de_presse_target_id%5B16%5D=16&field_date_de_decision_value_1=&field_date_de_decision_value=&sort_bef_combine=field_date_de_decision_value_ASC
+ami-swiss-en,Switzerland Research Centers,https://www.ami.swiss/en/research/publications.html,558,,,unknown,unknown,
+artsetmetiers-hal-science-search,French Public Universities,https://artsetmetiers.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=ART+OR+COMM+OR+THESE,86,,,unknown,unknown,
+audencia-com-lecole,French Public Universities,https://www.audencia.com/lecole/newsroom/communiques-de-presse,246,,,unknown,unknown,
+arn-se-om-arn,스웨덴 완료,https://www.arn.se/om-arn/vagledande-beslut/,80,,,unknown,unknown,
+artsetmetiers-fr-fr,French Public Universities,https://artsetmetiers.fr/fr/communiques-de-presse,222,,,unknown,unknown,
+afp-gov-au-search,호주완료,https://afp.gov.au/search?keys=pdf&content_type_id=All,49,,,unknown,unknown,
+afp-gov-au-news-centre,호주완료,https://www.afp.gov.au/news-centre,432,,,unknown,unknown,
+auri-re-kr-boardes,한국완료,https://www.auri.re.kr/board.es?mid=a10401030000&bid=0013,260,,,unknown,unknown,
+auri-re-kr-publication,한국완료,https://www.auri.re.kr/publication/list.es?mid=a10312000000&publication_type=research,593,,,unknown,unknown,
+avoindata-suomi-fi-data,핀란드완료,https://avoindata.suomi.fi/data/fi/dataset/?res_format=pdf,154,2555,6.0,ckan,partial,https://avoindata.suomi.fi/data/api/3/action/package_search
+astro-oma-be-en,벨기에완료,https://www.astro.oma.be/en/information/publications/annual-reports/,22,,,unknown,unknown,
+apra-gov-au-statistics,호주완료,https://www.apra.gov.au/statistics,75,75,100.0,html_count_regex,complete,https://www.apra.gov.au/statistics
+astron-nl-about,Dutch Research Centers,https://www.astron.nl/about/annual-reports/,57,,,unknown,unknown,
+babraham-ac-uk-news,영국완료,https://www.babraham.ac.uk/news/category/news,483,,,unknown,unknown,
+ansto-gov-au-search,호주완료,https://www.ansto.gov.au/search?query=pdf,30,,,unknown,unknown,
+bankofcanada-ca-publications,Canadian Research Centers,https://www.bankofcanada.ca/publications/canadian-survey-of-consumer-expectations/,27,,,unknown,unknown,
+auswaertiges-amt-de-en,독일완료,https://www.auswaertiges-amt.de/en/newsroom/news/609204-609204,526,,,unknown,unknown,
+auswaertiges-amt-de-de,Germany Ministries,https://www.auswaertiges-amt.de/de/newsroom/presse/newsroom-archiv,224,,,unknown,unknown,
+asn-fr-information,French Public Institutions,https://www.asn.fr/information/publications/rapports-d-expertise,19,,,unknown,unknown,
+baw-de-en,GER ResearchCenters(Unfinished),https://www.baw.de/en/publikationen/geschaeftsbericht/geschaeftsbericht.html,14,,,unknown,unknown,
+archives-nationales-culture-gouv-fr-presse,French Public Institutions,https://www.archives-nationales.culture.gouv.fr/presse?title=&field_type_publication_target_id_1%5B32%5D=32&created%5Bvalue%5D=,15,,,unknown,unknown,
+benthamscience-com-press-release,Switzerland Research Centers,https://www.benthamscience.com/press-release,191,,,unknown,unknown,
+bfr-bund-de-en,GER ResearchCenters(Unfinished),https://www.bfr.bund.de/en/publications/annual-reports/,23,,,unknown,unknown,
+biblio-naturalsciences-be-rbins-publications,벨기에완료,https://biblio.naturalsciences.be/rbins-publications/,500,,,unknown,unknown,
+bm-dk-soeg,덴마크완료,https://bm.dk/soeg/?q=*&ContentTags=Publikation&sort-desc=ManualDate,88,,,unknown,unknown,
+bfe-admin-ch-bfe,Switzerland Departments,https://www.bfe.admin.ch/bfe/de/home/news-und-medien/publikationen.exturl.html/aHR0cHM6Ly9wdWJkYi5iZmUuYWRtaW4uY2gvZGUvc3VjaGU=.html?keywords=&q=&from=&to=&nr=,1002,,,unknown,unknown,
+bjerknes-uib-no-en,Norway Research Centers,https://bjerknes.uib.no/en/publications,214,12,1783.3,html_count_regex,over,https://bjerknes.uib.no/en/publications
+banque-france-fr-en,French Public Institutions,https://www.banque-france.fr/en/press-release,530,,,unknown,unknown,
+bj-admin-ch-bj,Switzerland Departments,https://www.bj.admin.ch/bj/en/home/aktuell/mm.html?dyn_startDate=01.03.2016&dyn_endDate=01.04.2026,41,,,unknown,unknown,
+bmbfsfj-bund-de-bmbfsfj,Germany Ministries,https://www.bmbfsfj.bund.de/bmbfsfj/aktuelles/alle-meldungen,502,226,222.1,html_count_regex,over,https://www.bmbfsfj.bund.de/bmbfsfj/aktuelles/alle-meldungen
+asiapacific-ca-media,Canadian Research Centers,https://www.asiapacific.ca/media/press-releases,50,,,unknown,unknown,
+bmas-de-de,Germany Ministries,https://www.bmas.de/DE/Service/Publikationen/Neue-Publikationen/neue-publikationen.html,454,,,unknown,unknown,
+bmi-gv-at-114,오스트리아완료,https://www.bmi.gv.at/114/start.aspx,76,,,unknown,unknown,
+bfs-admin-ch-bfs,Switzerland Departments,https://www.bfs.admin.ch/bfs/de/home.html,384,,,unknown,unknown,
+biorbic-com-publications,Irish Research Centers,https://biorbic.com/publications/,497,,,unknown,unknown,
+bmds-bund-de-aktuelles,Germany Ministries,https://bmds.bund.de/aktuelles/pressemitteilungen,79,,,unknown,unknown,
+bmj-gv-at-ministerium,오스트리아완료,https://www.bmj.gv.at/ministerium/aktuelle-meldungen.html,149,,,unknown,unknown,
+bmluk-gv-at-service,오스트리아완료,https://www.bmluk.gv.at/service/zahlen-fakten-neu/statistik-agrarberichte-gruene-berichte.html,315,,,unknown,unknown,
+bmvg-de-en,Germany Ministries,https://www.bmvg.de/en/press/all-press-releases,20,,,unknown,unknown,
+bam-de-navigation,GER ResearchCenters(Unfinished),https://www.bam.de/Navigation/EN/News/Press-Releases/press-releases.html,308,,,unknown,unknown,
+bdap-opendata-rgs-mef-gov-it-catalog,Italy Ministries,https://bdap-opendata.rgs.mef.gov.it/catalog,360,,,unknown,unknown,
+bmv-de-en,독일완료,https://www.bmv.de/EN/Services/Statistics/Mobility-in-Germany/mobility-in-germany.html,11,,,unknown,unknown,
+bmf-gv-at-ministerium,오스트리아완료,https://www.bmf.gv.at/ministerium/nationale-finanzbildungsstrategie/uebersicht-nationale-finanzbildungsstrategie/downloads.html,36,,,unknown,unknown,
+bmlv-gv-at-wissen-forschung,오스트리아완료,https://www.bmlv.gv.at/wissen-forschung/publikationen/doktyp.php?id=23,18,,,unknown,unknown,
+bok-or-kr-portal,한국완료,https://www.bok.or.kr/portal/singl/newsData/list.do?pageIndex=1&targetDepth=&menuNo=201150&syncMenuChekKey=1&depthSubMain=&subMainAt=&searchCnd=1&searchKwd=&depth2=200038&date=&sdate=&edate=&sort=1&pageUnit=10,430,,,unknown,unknown,
+bmftr-bund-de-siteglobals,독일완료,https://www.bmftr.bund.de/SiteGlobals/Forms/Suche/Publikationssuche/Publikationssuche_Formular.html,197,,,unknown,unknown,
+book-ioj-go-kr-library,한국완료,https://book.ioj.go.kr/library/10210/search?materialTypes=bc&categoryTab=true,500,,,unknown,unknown,
+bmimi-gv-at-themen,오스트리아완료,https://www.bmimi.gv.at/themen/innovation/publikationen/menschen_qualifikation_gender.html,18,,,unknown,unknown,
+bordbia-ie-about,Irish Research Centers,https://www.bordbia.ie/about/governance/annual-reports/,20,,,unknown,unknown,
+bmleh-de-siteglobals,독일완료,https://www.bmleh.de/SiteGlobals/Forms/Suche/DE/GoodPracticessuche/GoodPracticessuche_Formular.html?view=processForm&nn=902,200,,,unknown,unknown,
+bmz-de-de,Germany Ministries,https://www.bmz.de/de/aktuelles/publikationen,6,,,unknown,unknown,
+bmleh-de-en,독일완료,https://www.bmleh.de/EN/ministry/organisation/advisory-boards/AgriculturalPolicyPublications.html,26,,,unknown,unknown,
+bnf-fr-fr,French Public Institutions,https://www.bnf.fr/fr/recherche-liste?keyword=&type%5B0%5D=espace_presse&items_per_page=10,488,,,unknown,unknown,
+bra-se-english,스웨덴 완료,https://bra.se/english/publications,306,2,15300.0,html_count_regex,over,https://bra.se/english/publications
+budget-canada-ca-home-accueil-enhtml,Canada Ministries,https://budget.canada.ca/home-accueil-en.html,17,,,unknown,unknown,
+bmwkms-gv-at-themen,오스트리아완료,https://www.bmwkms.gv.at/themen/kunst-und-kultur/service-kunst-und-kultur/publikationen/kunst-und-kulturberichte.html,41,,,unknown,unknown,
+bmwet-gv-at-services,오스트리아완료,https://www.bmwet.gv.at/Services/Publikationen.html,89,,,unknown,unknown,
+bmwsb-bund-de-de,독일완료,https://www.bmwsb.bund.de/DE/ministerium/aktuelle-meldungen/aktuelle-meldungen_node.html,20,,,unknown,unknown,
+broadbentinstitute-ca-research,Canadian Research Centers,https://broadbentinstitute.ca/research/,81,78,103.8,wordpress_posts,over,https://broadbentinstitute.ca/wp-json/wp/v2/posts
+brgm-fr-fr,French Research Institutes,https://www.brgm.fr/fr/actualites?type=Communiqu%C3%A9%20de%20presse,234,,,unknown,unknown,
+busan-go-kr-nbtnewsbu,한국완료,https://www.busan.go.kr/nbtnewsBU,537,,,unknown,unknown,
+cac-gov-cn-hdfw,중국 완료,https://www.cac.gov.cn/hdfw/jbzx/jbgg/A09380302index_1.htm,89,,,unknown,unknown,
+bundesumweltministerium-de-en,Germany Ministries,https://www.bundesumweltministerium.de/en/public-information-service/publications,7,,,unknown,unknown,
+bundesgesundheitsministerium-de-service,독일완료,https://www.bundesgesundheitsministerium.de/service/publikationen/drogen-und-sucht.html,229,,,unknown,unknown,
+caitec-org-cn-n6,중국 완료,https://www.caitec.org.cn/n6/sy_zgdwmyxsbg/,62,,,unknown,unknown,
+boverket-se-en,스웨덴 완료,https://www.boverket.se/en/start/publications/,9,,,unknown,unknown,
+bundeskanzleramt-gv-at-bundeskanzleramt,오스트리아완료,https://www.bundeskanzleramt.gv.at/bundeskanzleramt/nachrichten-der-bundesregierung/2021.html,480,,,unknown,unknown,
+casseng-cssn-cn-sky_research,중국 완료,http://casseng.cssn.cn/sky_research/publications/journals/,8,,,unknown,unknown,
+catalog-data-metro-tokyo-lg-jp-dataset,일본완료,https://catalog.data.metro.tokyo.lg.jp/dataset/?res_format=PDF,492,9647,5.1,ckan,partial,https://catalog.data.metro.tokyo.lg.jp/api/3/action/package_search
+bundesfinanzministerium-de-web,Germany Ministries,https://www.bundesfinanzministerium.de/Web/EN/Press/Press_releases/press_releases.html,112,8,1400.0,html_count_regex,over,https://www.bundesfinanzministerium.de/Web/EN/Press/Press_releases/press_releases.html
+business-sweden-com-about-us,스웨덴 완료,https://www.business-sweden.com/about-us/media/press-releases/,94,,,unknown,unknown,
+cc-nih-gov-research,American Research Institutes,https://www.cc.nih.gov/research/2025,199,,,unknown,unknown,
+catalogue-data-govt-nz-dataset,뉴질랜드완료,https://catalogue.data.govt.nz/dataset/?res_format=PDF,85,,,unknown,unknown,
+cancer-gov-about-nci,American Research Institutes,https://www.cancer.gov/about-nci/budget/about-budget-proposal,24,,,unknown,unknown,
+cdhowe-org-research-insights,Canadian Research Centers,https://cdhowe.org/research-insights/,344,,,unknown,unknown,
+cae-eco-fr-presse-cae-0,French Public Institutions,https://cae-eco.fr/Presse-CAE-0,64,,,unknown,unknown,
+cancer-fr-catalogue-des-public,French Public Institutions,https://www.cancer.fr/catalogue-des-publications?publications_catalog%5Bfilters%5D%5Bsearch_text%5D=&publications_catalog%5Bfilters%5D%5Bcollection%5D%5B%5D=76&search=,12,63,19.0,html_count_regex,partial,https://www.cancer.fr/catalogue-des-publications?publications_catalog%5Bfilters%5D%5Bsearch_text%5D=&publications_catalog%5Bfilters%5D%5Bcollection%5D%5B%5D=76&search=
+centralbank-ie-publication,Irish Research Centers,https://www.centralbank.ie/publication/corporate-reports/annual-reports,26,,,unknown,unknown,
+cea-hal-science-cnrgh,French Research Institutes,https://cea.hal.science/CNRGH/search/index/?q=%2A&rows=30&docType_s=THESE+OR+COMM+OR+ART,759,151061,0.5,hal_solr,partial,https://api.archives-ouvertes.fr/search/cea/
+cds-cern-ch-collection,Switzerland Research Centers,https://cds.cern.ch/collection/Published%20Articles?ln=en,505,,,unknown,unknown,
+brsn-net-list,중국 완료,https://www.brsn.net/list/research/index.html,500,,,unknown,unknown,
+cancer-fr-presse,French Public Institutions,https://www.cancer.fr/presse?press_list%5Bfilters%5D%5Bdate_from%5D=&press_list%5Bfilters%5D%5Bdate_to%5D=&search=,110,111,99.1,html_count_regex,complete,https://www.cancer.fr/presse?press_list%5Bfilters%5D%5Bdate_from%5D=&press_list%5Bfilters%5D%5Bdate_to%5D=&search=
+chineseafs-org-ckynewsmgr,중국 완료,https://www.chineseafs.org/ckynewsmgr/newsContentQueryByPage.action?searchKey=enyjbg&queryFlag=1&address=Research%20Reports&retVal=enyjbggdxw&start=0&limit=10,30,,,unknown,unknown,
+chungnam-go-kr-cnportal,한국완료,https://www.chungnam.go.kr/cnportal/cnapcPressList/cnapcPress/list.do?menuNo=500498,425,,,unknown,unknown,
+cer-rec-gc-ca-en,Canadian Research Centers,https://www.cer-rec.gc.ca/en/about/publications-reports/index.html,175,,,unknown,unknown,
+carabinieri-it-in-vostro-aiuto,Italy Ministries,https://www.carabinieri.it/in-vostro-aiuto/informazioni/comunicati-stampa,301,,,unknown,unknown,
+chinatax-gov-cn-chinatax,중국 완료,https://www.chinatax.gov.cn/chinatax/n810219/c102025/common_listwyc.html,6,,,unknown,unknown,
+cigionline-org-publications,Canadian Research Centers,https://www.cigionline.org/publications/,500,,,unknown,unknown,
+centralesupelec-fr-presse,French Public Institutions,https://www.centralesupelec.fr/presse/communiques,51,,,unknown,unknown,
+cells-es-en,Spanish Research Centers,https://www.cells.es/en/public/corporate-publications,11,,,unknown,unknown,
+cepii-fr-cepii,French Public Institutions,https://www.cepii.fr/CEPII/fr/presse/espace_presse.asp,540,,,unknown,unknown,
+canurb-org-publications,Canadian Research Centers,https://canurb.org/publications/,92,35,262.9,wordpress_posts,over,https://canurb.org/wp-json/wp/v2/posts
+civilprotection-gov-gr-deltia-tupou,Greece Ministries,https://civilprotection.gov.gr/deltia-tupou?filter_content_type%5B%5D=deltio_typoy&field_omilia_value%5B%5D=2&field_omilia_value_op=not,500,,,unknown,unknown,
+cmi-no-publications,Norway Research Centers,https://www.cmi.no/publications/search?pubtype=journal-articles,346,1657,20.9,oai_resumption,partial,https://www.cmi.no/oai
+cedelft-eu-reports,Dutch Research Centers,https://cedelft.eu/reports/,500,1,50000.0,html_count_regex,over,https://cedelft.eu/reports/
+cerema-fr-fr,French Research Institutes,https://www.cerema.fr/fr/presse/document,231,,,unknown,unknown,
+comptroller-defense-gov-odcfo,USA Executive Departments,https://comptroller.defense.gov/ODCFO/afr/,24,,,unknown,unknown,
+caissedesdepots-fr-communiques-de-press,French Public Institutions,https://www.caissedesdepots.fr/communiques-de-presse,1201,,,unknown,unknown,
+comwel-or-kr-comwel,한국완료,https://www.comwel.or.kr/comwel/noti/pres.jsp,471,,,unknown,unknown,
+cnam-hal-science-ceet,French Research Institutes,https://cnam.hal.science/CEET/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=OTHER+OR+REPORT,279,32221,0.9,hal_solr,partial,https://api.archives-ouvertes.fr/search/cnam/
+cnam-hal-science-search,French Public Institutions,https://cnam.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=ART+OR+COMM+OR+THESE,975,32221,3.0,hal_solr,partial,https://api.archives-ouvertes.fr/search/cnam/
+cnipa-gov-cn-col,중국 완료,https://www.cnipa.gov.cn/col/col88/index.html,213,,,unknown,unknown,
+cnes-fr-communiques,French Research Institutes,https://cnes.fr/communiques?display_parameters%5Bdisplay_type%5D=0,119,127,93.7,html_count_regex,partial,https://cnes.fr/communiques?display_parameters%5Bdisplay_type%5D=0
+cirad-fr-espace-presse,French Research Institutes,https://www.cirad.fr/espace-presse/communiques-de-presse,360,446,80.7,html_count_regex,partial,https://www.cirad.fr/espace-presse/communiques-de-presse
+cora-ucc-ie-search,Irish Research Centers,"https://cora.ucc.ie/search?f.itemtype=Doctoral%20thesis,equals&spc.page=1",439,18130,2.4,dspace_rest7,partial,https://cora.ucc.ie/server/api/discover/search/objects
+climateinstitute-ca-newsroom,Canadian Research Centers,https://climateinstitute.ca/newsroom/news-releases/,110,114,96.5,wordpress_news,complete,https://climateinstitute.ca/wp-json/wp/v2/news
+cnic-es-en,Spanish Research Centers,https://www.cnic.es/en/scientific-report,419,,,unknown,unknown,
+college-de-france-fr-en,French Public Universities,https://www.college-de-france.fr/en/news?f%5B0%5D=type%3A4825,105,,,unknown,unknown,
+canada-ca-en,Canada Ministries,https://www.canada.ca/en/news/advanced-news-search/news-results.html?_=1618957516190&dprtmnt=crownindigenousrelationsandnorthernaffairscanada&start=&end=,948,,,unknown,unknown,
+csrc-gov-cn-csrc_en,중국 완료,http://www.csrc.gov.cn/csrc_en/c102060/common_list.shtml?channelid=8972fc7f51414c53a6818bed2a3da572,9,,,unknown,unknown,
+cpb-nl-en,Dutch Research Centers,https://www.cpb.nl/en/publications,371,,,unknown,unknown,
+daejeon-go-kr-drh,한국완료,https://www.daejeon.go.kr/drh/board/boardNormalList.do?boardId=normal_0189&menuSeq=6825,473,,,unknown,unknown,
+cnl-ca-news-publications,Canadian Research Centers,https://www.cnl.ca/news-publications/canadian-nuclear-review/,137,3,4566.7,wordpress_industry_news_events,over,https://www.cnl.ca/wp-json/wp/v2/industry_news_events
+csic-es-es,Spanish Research Centers,https://www.csic.es/es/el-csic/informacion-corporativa/el-csic-en-cifras,25,,,unknown,unknown,
+cso-ie-en,Irish Research Centers,https://www.cso.ie/en/csolatestnews/pressreleases/2025pressreleases/,388,,,unknown,unknown,
+cstb-fr-communiques-de-press,French Research Institutes,https://www.cstb.fr/communiques-de-presse,48,,,unknown,unknown,
+cre-fr-documents,French Public Institutions,https://www.cre.fr/documents/rapports-et-etudes.html,27,351,7.7,html_count_regex,partial,https://www.cre.fr/documents/rapports-et-etudes.html
+data-busan-go-kr-bdip,한국완료,https://data.busan.go.kr/bdip/opendata/dataSet.do;jsessionid=6B10E30C8AD71286859FAAF148A85DF8.worker2,2022,,,unknown,unknown,
+data-e-gov-go-jp-data,일본완료,https://data.e-gov.go.jp/data/dataset/?organization=default&res_format=PDF&sort=score+desc%2C+metadata_modified+desc-20,1392,0,0.0,ckan,over,https://data.e-gov.go.jp/data/api/3/action/package_search
+data-aeronomie-be-dataset,벨기에완료,https://data.aeronomie.be/dataset/?res_format=PDF,33,170,19.4,ckan,partial,https://data.aeronomie.be/api/3/action/package_search
+data-gov-au-data,호주완료,https://data.gov.au/data/dataset/?res_format=PDF,500,140429,0.4,ckan,partial,https://data.gov.au/data/api/3/action/package_search
+data-gov-uk-search,영국완료,https://www.data.gov.uk/search?q=&filters%5Bpublisher%5D=&filters%5Btopic%5D=&filters%5Bformat%5D=PDF&sort=best,488,58487,0.8,ckan,partial,https://www.data.gov.uk/api/3/action/package_search
+csem-ch-en,Switzerland Research Centers,https://www.csem.ch/en/press/,168,169,99.4,html_count_regex,complete,https://www.csem.ch/en/press/
+dair-dias-ie-cgi,Irish Research Centers,https://dair.dias.ie/cgi/search/archive/advanced?screen=Search&dataset=archive&documents_merge=ALL&documents=&title_merge=ALL&title=&creators_name_merge=ALL&creators_name=&abstract_merge=ALL&abstract=&date=&keywords_merge=ALL&keywords=&subjects_merge=ANY&divisions_merge=ANY&type=article&department_merge=ALL&department=&editors_name_merge=ALL&editors_name=&refereed=EITHER&publication_merge=ALL&publication=&satisfyall=ALL&order=-date%2Fcreators_name%2Ftitle&_action_search=Search,500,,,unknown,unknown,
+data-gov-be-nl,벨기에완료,https://data.gov.be/nl/datasets?f%5B0%5D=format%3A65,132,,,unknown,unknown,
+data-nasa-gov-dataset,American Research Institutes,https://data.nasa.gov/dataset/,4474,35964,12.4,ckan,partial,https://data.nasa.gov/api/3/action/package_search
+cwf-ca-publications,Canadian Research Centers,https://cwf.ca/publications/#series=reports@what-now-policy-briefs@partner-publications@what-the-west@fiscal-federalism-policy-network@50th-anniversary,228,1,22800.0,wordpress_posts,over,https://cwf.ca/wp-json/wp/v2/posts
+culture-gouv-fr-espace-documentation,France Ministries,https://www.culture.gouv.fr/espace-documentation?resource_type%5B0%5D=50,304,862,35.3,html_count_regex,partial,https://www.culture.gouv.fr/espace-documentation?resource_type%5B0%5D=50
+data-gv-at-datasets,오스트리아완료,https://www.data.gv.at/datasets?locale=de&format=PDF&page=1,400,,,unknown,unknown,
+data-gouv-fr-organizations,French Research Institutes,https://www.data.gouv.fr/organizations/cerema/datasets/?page_size=20&page=1,200,4,5000.0,html_count_regex,over,https://www.data.gouv.fr/organizations/cerema/datasets/?page_size=20&page=1
+data-mfe-govt-nz-documents,뉴질랜드완료,https://data.mfe.govt.nz/documents/,21,,,unknown,unknown,
+data-mfe-govt-nz-tables,뉴질랜드완료,https://data.mfe.govt.nz/tables/,435,,,unknown,unknown,
+datos-gob-cl-dataset,Chile Research Centers,https://datos.gob.cl/dataset/?q=a+OR+res_name%3Aa+OR+res_description%3Aa&fq=filter%28res_format%3Apdf%29+filter%28license_id%3Acc-nc%29,21,3179,0.7,ckan,partial,https://datos.gob.cl/api/3/action/package_search
+data-nist-gov-sdp,American Research Institutes,https://data.nist.gov/sdp/#/search?q=,50,,,unknown,unknown,
+datos-gob-mx-agricultura,Mexico Ministries,https://datos.gob.mx/dataset/?groups=agricultura,85,85,100.0,ckan,complete,https://datos.gob.mx/api/3/action/package_search
+datos-gob-mx-cultura,Mexico Ministries,https://datos.gob.mx/dataset/?_groups_limit=0&_organization_limit=0&groups=cultura,114,114,100.0,ckan,complete,https://datos.gob.mx/api/3/action/package_search
+datacatalogue-adruk-org-browser,영국완료,https://datacatalogue.adruk.org/browser/search?include=dataset::datastandard::terminology::dataclass::dataelement,484,,,unknown,unknown,
+datos-gob-mx-dataset,Mexico Ministries,https://datos.gob.mx/dataset/?_groups_limit=0&groups=ciencia_tecnologia,97,81,119.8,ckan,over,https://datos.gob.mx/api/3/action/package_search
+datos-gob-mx-presupuesto,Mexico Ministries,https://datos.gob.mx/dataset/?_groups_limit=0&_organization_limit=0&groups=presupuesto,108,108,100.0,ckan,complete,https://datos.gob.mx/api/3/action/package_search
+datos-gob-mx-secretaria-salud,Mexico Ministries,https://datos.gob.mx/dataset/?_groups_limit=0&_organization_limit=0&organization=secretaria_salud,9,9,100.0,ckan,complete,https://datos.gob.mx/api/3/action/package_search
+datos-gob-mx-secretaria-trabajo,Mexico Ministries,https://datos.gob.mx/dataset/?_groups_limit=0&_organization_limit=0&organization=secretaria_trabajo,16,16,100.0,ckan,complete,https://datos.gob.mx/api/3/action/package_search
+datos-gob-mx-seguridad,Mexico Ministries,https://datos.gob.mx/dataset/?_groups_limit=0&_organization_limit=0&groups=seguridad,27,27,100.0,ckan,complete,https://datos.gob.mx/api/3/action/package_search
+datos-gob-mx-territorio,Mexico Ministries,https://datos.gob.mx/dataset/?_groups_limit=0&_organization_limit=0&groups=territorio,16,16,100.0,ckan,complete,https://datos.gob.mx/api/3/action/package_search
+daten-berlin-de-datensaetze,독일완료,https://daten.berlin.de/datensaetze?res_format=PDF&sort=score+desc%2C+metadata_modified+desc,250,,,unknown,unknown,
+data-statistik-gv-at-web,오스트리아완료,https://data.statistik.gv.at/web/catalog.jsp#,500,,,unknown,unknown,
+consult-environment-govt-nz-climate,뉴질랜드완료,https://consult.environment.govt.nz/climate/second-emissions-reduction-plan/,72,,,unknown,unknown,
+consult-environment-govt-nz-resource-management,뉴질랜드완료,https://consult.environment.govt.nz/resource-management/infrastructure-development-primary-sector-nd/,58,,,unknown,unknown,
+datos-gob-mx-turismo,Mexico Ministries,https://datos.gob.mx/dataset/?_groups_limit=0&groups=turismo,4,4,100.0,ckan,complete,https://datos.gob.mx/api/3/action/package_search
+consult-environment-govt-nz-waste,뉴질랜드완료,https://consult.environment.govt.nz/waste/agrichemicals-their-containers-and-farm-plastics/,58,,,unknown,unknown,
+defensa-gob-es-gabinete,Spain Ministries,https://www.defensa.gob.es/gabinete/notasPrensa/,421,,,unknown,unknown,
+deltares-nl-en,Dutch Research Centers,https://www.deltares.nl/en/expertise/publications?languages=Dutch&languages=English&materials=ARTICLE,155,200,77.5,html_count_regex,partial,https://www.deltares.nl/en/expertise/publications?languages=Dutch&languages=English&materials=ARTICLE
+defense-gov-news,USA Executive Departments,https://www.defense.gov/News/Releases/,546,,,unknown,unknown,
+defence-govt-nz-publications,뉴질랜드완료,https://www.defence.govt.nz/publications/doSearch/,431,,,unknown,unknown,
+defense-gouv-fr-salle-de-presse,France Ministries,https://www.defense.gouv.fr/salle-de-presse,1980,,,unknown,unknown,
+datenportal-bmbf-de-portal,독일완료,https://www.datenportal.bmbf.de/portal/de/bufi.html,75,,,unknown,unknown,
+data-taltech-ee-search,Estonia Research Centers,https://data.taltech.ee/search?q=&f=access_status%3Aopen&f=file_type%3Apdf&f=resource_type%3Adataset&f=resource_type%3Apublication&f=is_published%3Atrue&l=list&p=1&s=10&sort=newest,92,,,unknown,unknown,
+dia-govt-nz-diawebsitensf,뉴질랜드완료,https://www.dia.govt.nz/diawebsite.nsf/wpg_URL/Resource-material-Corporate-Publications-Annual-Reports?OpenDocument,28,,,unknown,unknown,
+dhs-gov-congressional-approp,USA Executive Departments,https://www.dhs.gov/congressional-appropriations-reports,638,,,unknown,unknown,
+dhs-gov-publication,USA Executive Departments,https://www.dhs.gov/publication/annual-report-conferences,29,,,unknown,unknown,
+dhs-gov-news-releases,USA Executive Departments,https://www.dhs.gov/news-releases/press-releases,79,,,unknown,unknown,
+dapa-go-kr-dapa,한국완료,https://www.dapa.go.kr/dapa/doc/selectDocList.do?menuSeq=3069&bbsSeq=326,970,,,unknown,unknown,
+directives-doe-gov-guidance,USA Executive Departments,https://www.directives.doe.gov/guidance,260,,,unknown,unknown,
+dol-gov-newsroom,USA Executive Departments,https://www.dol.gov/newsroom/releases?agency=All&state=All&topic=All&year=all&page=0,275,,,unknown,unknown,
+directives-doe-gov-directives-browse,USA Executive Departments,https://www.directives.doe.gov/directives-browse,205,,,unknown,unknown,
+doaj-org-search,Irish Research Centers,https://doaj.org/search/articles?source=%7B%22query%22%3A%7B%22match_all%22%3A%7B%7D%7D%2C%22size%22%3A50%2C%22sort%22%3A%5B%7B%22created_date%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22track_total_hits%22%3Atrue%7D,1417,35582,4.0,oai_resumption,partial,https://doaj.org/oai
+dpmc-govt-nz-publications,뉴질랜드완료,https://www.dpmc.govt.nz/publications,571,,,unknown,unknown,
+data-biodiversity-be-dataset,벨기에완료,https://data.biodiversity.be/dataset/,524,,,unknown,unknown,
+drc-gov-cn-leafaspx,중국 완료,https://www.drc.gov.cn/Leaf.aspx?leafid=1338,555,,,unknown,unknown,
+digital-gob-es-comunicacion,Spain Ministries,https://digital.gob.es/comunicacion,416,,,unknown,unknown,
+dspace-ut-ee-search,Estonia Research Centers,"https://dspace.ut.ee/search?spc.page=1&spc.sf=dc.date.accessioned&spc.sd=DESC&f.has_content_in_original_bundle=true,equals&f.subject=magistrit%C3%B6%C3%B6d,equals",125,114527,0.1,dspace_rest7,partial,https://dspace.ut.ee/server/api/discover/search/objects
+doi-gov-bpp,USA Executive Departments,https://www.doi.gov/bpp/pars,204,,,unknown,unknown,
+doc-cerema-fr-default,French Research Institutes,"https://doc.cerema.fr/Default/search.aspx#/Search/(query:(CloudTerms:!(),ExceptTotalFacet:!t,FacetFilter:'%7B%22_416%22:%22Publications%20scientifiques%20(HAL)%7C%7CEtude%20et%20rapport%22,%22_488%22:%22Oui%22%7D',ForceSearch:!t,HiddenFacetFilter:%7B%7D,InitialSearch:!f,Page:0,PageRange:3,QueryGuid:f6263fa6-ee7c-41d4-856d-2af7c8165659,QueryString:'*:*',ResultSize:10,ScenarioCode:DEFAULT,ScenarioDisplayMode:display-standard,SearchGridFieldsShownOnResultsDTO:!(),SearchLabel:'Tous%20les%20documents',SearchTerms:'*:*',SiteCodeRestriction:'',SortField:!n,SortOrder:0,TemplateParams:(Scenario:'',Scope:Default,Size:!n,Source:'',Support:'',UseCompact:!f),UseSpellChecking:!n),sst:4)",697,,,unknown,unknown,
+dspace-emu-ee-search,Estonia Research Centers,"https://dspace.emu.ee/search?spc.page=1&f.has_content_in_original_bundle=true,equals&f.subject=magistrit%C3%B6%C3%B6d,equals",500,10421,4.8,dspace_rest7,partial,https://dspace.emu.ee/server/api/discover/search/objects
+difesa-it-il-ministro,Italy Ministries,https://www.difesa.it/il-ministro/note-stampa/elenco/index.html,101,,,unknown,unknown,
+doras-dcu-ie-view,Irish Research Centers,https://doras.dcu.ie/view/type/article.html,2229,,,unknown,unknown,
+didaktorika-gr-eadd,Greece Research Centers,https://www.didaktorika.gr/eadd/simple-search?query=&rpp=100&sort_by=0&order=DESC,118,,,unknown,unknown,
+dtic-dimensions-ai-discover,American Research Institutes,https://dtic.dimensions.ai/discover/publication,500,25000,2.0,html_count_regex,partial,https://dtic.dimensions.ai/discover/publication
+dst-dk-da,덴마크완료,https://www.dst.dk/da/Statistik/nyheder-analyser-publ/Analyser,408,,,unknown,unknown,
+ecat-ga-gov-au-geonetwork,호주완료,"https://ecat.ga.gov.au/geonetwork/srv/eng/catalog.search#/search?isTemplate=n&resourceTemporalDateRange=%7B%22range%22:%7B%22resourceTemporalDateRange%22:%7B%22gte%22:null,%22lte%22:null,%22relation%22:%22intersects%22%7D%7D%7D&sortBy=relevance&sortOrder=&from=1&to=30&any=PDF",796,,,unknown,unknown,
+drugsandalcohol-ie-cgi,Irish Research Centers,https://www.drugsandalcohol.ie/cgi/search/archive/type?dataset=archive&screen=Search&titlex_merge=ALL&titlex=&subjectx_merge=ALL&subjectx=&q_merge=ALL&q=&type=monograph&satisfyall=ALL&order=-date%2Fbrowse_by%2Ftitle&_action_search=Search,500,,,unknown,unknown,
+ec-lyon-hal-science-search,French Public Universities,https://ec-lyon.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=REPORT+OR+OTHER,222,32877,0.7,hal_solr,partial,https://api.archives-ouvertes.fr/search/ec-lyon/
+diplomatie-gouv-fr-en,France Ministries,https://www.diplomatie.gouv.fr/en/press-room/latest-news?amp;amp;amp;page_courante=4&amp;amp;page_courante=3&amp;page_courante=5&page_courante=1#pagination_actus_article,551,,,unknown,unknown,
+ecologie-gouv-fr-presse,France Ministries,https://www.ecologie.gouv.fr/presse,4049,,,unknown,unknown,
+earlham-ac-uk-newsroom,영국완료,https://www.earlham.ac.uk/newsroom,278,,,unknown,unknown,
+economie-fgov-be-nl,벨기에완료,https://economie.fgov.be/nl/publicaties,138,,,unknown,unknown,
+eda-admin-ch-eda,Switzerland Departments,https://www.eda.admin.ch/eda/en/fdfa/fdfa/aktuell/news.html,12,,,unknown,unknown,
+edx-netl-doe-gov-group,American Research Institutes,https://edx.netl.doe.gov/group/lca-unit-process-library,100,17984,0.6,ckan,partial,https://edx.netl.doe.gov/api/3/action/package_search
+edoc-rki-de-handle,GER ResearchCenters(Unfinished),https://edoc.rki.de/handle/176904/2,20,14052,0.1,oai_resumption,partial,https://edoc.rki.de/oai/request
+economy-ni-gov-uk-publications,영국완료,https://www.economy-ni.gov.uk/publications,583,,,unknown,unknown,
+differ-nl-publications,Dutch Research Centers,https://www.differ.nl/publications?author=&year=&type=thesis&combine=,198,,,unknown,unknown,
+economy-ni-gov-uk-news,영국완료,https://www.economy-ni.gov.uk/news,500,,,unknown,unknown,
+e-stat-go-jp-stat-search,일본완료,https://www.e-stat.go.jp/stat-search?page=1,1018,1709118,0.1,html_count_regex,partial,https://www.e-stat.go.jp/stat-search?page=1
+edi-admin-ch-de,Switzerland Departments,https://www.edi.admin.ch/de/medienmitteilungen-des-edi,360,,,unknown,unknown,
+ed-gov-about,USA Executive Departments,https://www.ed.gov/about/news/press-release,224,387,57.9,html_count_regex,partial,https://www.ed.gov/about/news/press-release
+education-govt-nz-our-work,뉴질랜드완료,https://www.education.govt.nz/our-work/publications/education-circulars,34,3,1133.3,html_count_regex,over,https://www.education.govt.nz/our-work/publications/education-circulars
+education-govt-nz-search,뉴질랜드완료,https://www.education.govt.nz/search?site_search_live%5BhierarchicalMenu%5D%5Bresult.lvl0%5D%5B0%5D=Documents&site_search_live%5BhierarchicalMenu%5D%5Bresult.lvl0%5D%5B1%5D=Corporate%20publication&site_search_live%5BsortBy%5D=date_desc_live,66,3,2200.0,html_count_regex,over,https://www.education.govt.nz/search?site_search_live%5BhierarchicalMenu%5D%5Bresult.lvl0%5D%5B0%5D=Documents&site_search_live%5BhierarchicalMenu%5D%5Bresult.lvl0%5D%5B1%5D=Corporate%20publication&sit
+efd-admin-ch-en,Switzerland Departments,https://www.efd.admin.ch/en/overview/nsb?sort=dateDecreasing&display=list&organization=601&topic=all&from=2024-08-29&to=2025-08-29,500,,,unknown,unknown,
+ehess-hal-science-search,French Public Universities,https://ehess.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=ART+OR+COMM+OR+MEM+OR+THESE,429,108008,0.4,hal_solr,partial,https://api.archives-ouvertes.fr/search/ehess/
+ehesp-fr-espace-presse,French Public Universities,https://www.ehesp.fr/espace-presse/communiques-de-presse/,127,1088,11.7,wordpress_posts,partial,https://www.ehesp.fr/wp-json/wp/v2/posts
+education-ni-gov-uk-news,영국완료,https://www.education-ni.gov.uk/news,503,950,52.9,html_count_regex,partial,https://www.education-ni.gov.uk/news
+en-iwhr-cn-iwhr-english-new,중국 완료,http://en.iwhr.cn/IWHR-English-New/Publications/AnnualReports/A110403index_1.htm,458,,,unknown,unknown,
+en-moj-gov-cn-lawsandregulationsht,중국 완료,http://en.moj.gov.cn/lawsandregulations.html,15,,,unknown,unknown,
+emep-int-mscw,Norway Research Centers,https://emep.int/mscw/mscw_publications.html,213,,,unknown,unknown,
+en-ird-fr-sections,French Research Institutes,https://en.ird.fr/sections/release-press-office,84,21,400.0,html_count_regex,over,https://en.ird.fr/sections/release-press-office
+en-nim-ac-cn-taxonomy,중국 완료,https://en.nim.ac.cn/taxonomy/term/170,303,,,unknown,unknown,
+em-lyon-com-en,French Public Universities,https://em-lyon.com/en/newsroom,348,,,unknown,unknown,
+emsl-pnnl-gov-science,American Research Institutes,https://www.emsl.pnnl.gov/science/reports,6,,,unknown,unknown,
+elocus-lib-uoc-gr-search,Greece Research Centers,https://elocus.lib.uoc.gr/search/?store_query=1&display_mode=overview&search_help=list&show_form=%27%27&search_type=advanced&search_help=&display_mode=overview&wf_step=init&show_hidden=0&number=10&keep_number=&cclterm1=&cclterm2=&cclterm3=&cclterm4=&cclterm5=&cclterm6=&cclterm7=&cclterm8=%2Fhierarchy%2Fmaterial%2F030&cclterm9=&cclfield1=author&cclfield2=title&cclfield3=subject&cclfield4=datefrom&cclfield5=dateto&cclfield6=&cclfield7=lang&cclfield8=collection&cclfield9=department&cclop1=and&cclop2=and&cclop3=and&cclop4=and&cclop5=&cclop6=and&cclop7=and&cclop8=and&display_help=0&offset=1&search_coll%5Bmetadata%5D=0&search_coll%5Bdlib%5D=1&stored_cclquery=&skin=&rss=0&store_query=1&show_form=&clone_file=&export_method=none&search_coll%5Bdlib%5D=1&cclfield1=author&cclterm1=&cclop1=and&cclfield2=title&cclterm2=&cclop2=and&cclfield3=subject&cclterm3=&cclop3=and&cclfield4=datefrom&cclterm4=&cclop4=and&cclfield5=dateto&cclterm5=&cclop6=and&cclfield7=lang&cclterm7=&cclop7=and&cclfield8=collection&cclterm8=%2Fhierarchy%2Fmaterial%2F010&cclop8=and&cclfield9=department&cclterm9=#,282,,,unknown,unknown,
+en-ndrc-gov-cn-policies,중국 완료,https://en.ndrc.gov.cn/policies/,52,,,unknown,unknown,
+en-nhc-gov-cn-publicationshtml,중국 완료,https://en.nhc.gov.cn/publications.html,9,,,unknown,unknown,
+ejournals-epublishing-ekt-gr-indexphp,Greece Research Centers,https://ejournals.epublishing.ekt.gr/index.php/index/journals-catalog,474,,,unknown,unknown,
+enac-hal-science-search,French Public Universities,https://enac.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=COMM+OR+ART+OR+THESE+OR+MEM,549,3613,15.2,hal_solr,partial,https://api.archives-ouvertes.fr/search/enac/
+enc-hal-science-search,French Public Universities,https://enc.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=ART+OR+ETABTHESE+OR+COMM+OR+MEM,509,3889,13.1,hal_solr,partial,https://api.archives-ouvertes.fr/search/enc/
+eng-mod-gov-cn-2025xb,중국 완료,http://eng.mod.gov.cn/2025xb/M/L_251592/index.html,10,,,unknown,unknown,
+efk-admin-ch-fr,Switzerland Research Centers,https://www.efk.admin.ch/fr/actualites/?category_name=medienmitteilung,26,46,56.5,wordpress_posts,partial,https://www.efk.admin.ch/wp-json/wp/v2/posts
+energy-gov-open-government,USA Executive Departments,https://www.energy.gov/open-government,10,,,unknown,unknown,
+energy-gov-management,USA Executive Departments,https://www.energy.gov/management/directives-guidance-and-delegations,388,,,unknown,unknown,
+educacionfpydeportes-gob-es-prensahtml,Spain Ministries,https://www.educacionfpydeportes.gob.es/prensa.html,347,,,unknown,unknown,
+english-www-gov-cn-archive,중국 완료,https://english.www.gov.cn/archive/statecouncilgazette/,506,,,unknown,unknown,
+energy-gov-search,USA Executive Departments,https://www.energy.gov/search?page=0&f%5B0%5D=bundle_alias%3APage,191,,,unknown,unknown,
+enpc-hal-science-search,French Public Universities,https://enpc.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=ART+OR+THESE+OR+COMM,741,43475,1.7,hal_solr,partial,https://api.archives-ouvertes.fr/search/enpc/
+english-mee-gov-cn-resources,중국 완료,https://english.mee.gov.cn/Resources/Reports/Annual_Report_for_Nuclear_Safety/,20,,,unknown,unknown,
+ens-hal-science-search,French Public Universities,https://ens.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=REPORT+OR+OTHER,18340,84355,21.7,hal_solr,partial,https://api.archives-ouvertes.fr/search/ens/
+ens-lyon-hal-science-search,French Public Universities,https://ens-lyon.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=THESE+OR+COMM+OR+ART+OR+MEM,1343,106515,1.3,hal_solr,partial,https://api.archives-ouvertes.fr/search/ens-lyon/
+ens-lyon-fr-lecole,French Public Universities,https://www.ens-lyon.fr/lecole/medias-et-presse/communiques-de-presse,154,,,unknown,unknown,
+enscp-hal-science-search,French Public Institutions,https://enscp.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=ART+OR+THESE+OR+COMM,3517,8006,43.9,hal_solr,partial,https://api.archives-ouvertes.fr/search/enscp/
+enssib-hal-science-search,French Public Universities,https://enssib.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=COMM+OR+ART,12,992,1.2,hal_solr,partial,https://api.archives-ouvertes.fr/search/enssib/
+eprints-imtlucca-it-cgi,Italy Research centers,http://eprints.imtlucca.it/cgi/search/archive/advanced?screen=Search&dataset=archive&documents_merge=ALL&documents=&title_merge=ALL&title=&publication_merge=ALL&publication=&creators_name_merge=ALL&creators_name=&abstract_merge=ALL&abstract=&date=&keywords_merge=ALL&keywords=&subjects_merge=ANY&type=article&type=monograph&type=thesis&department_merge=ALL&department=&editors_name_merge=ALL&editors_name=&ispublished=pub&refereed=EITHER&eprintid=&satisfyall=ALL&order=-date%2Fcreators_name%2Ftitle&_action_search=%EA%B2%80%EC%83%89+,1461,,,unknown,unknown,
+em-dk-aktuelt,덴마크완료,https://www.em.dk/aktuelt/udgivelser-og-aftaler,350,,,unknown,unknown,
+eprr-lanl-gov,American Research Institutes,https://eprr.lanl.gov/?f%5BdocType_f%5D%5B%5D=Full+Paper,367,,,unknown,unknown,
+envt-hal-science-search,French Public Universities,https://envt.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=OTHER+OR+REPORT,1063,17091,6.2,hal_solr,partial,https://api.archives-ouvertes.fr/search/envt/
+english-cnipa-gov-cn-col,중국 완료,https://english.cnipa.gov.cn/col/col2967/index.html,353,,,unknown,unknown,
+epa-ie-news-releases,Irish Research Centers,https://www.epa.ie/news-releases/news-releases-2025/,120,,,unknown,unknown,
+espci-hal-science-search,French Public Universities,https://espci.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=REPORT+OR+OTHER,22,12333,0.2,hal_solr,partial,https://api.archives-ouvertes.fr/search/espci/
+esri-ie-publications,Irish Research Centers,https://www.esri.ie/publications/browse,531,,,unknown,unknown,
+ethz-ch-de,Switzerland Research Centers,https://ethz.ch/de/news-und-veranstaltungen/medien/medienmitteilungen.html,203,,,unknown,unknown,
+ethniccommunities-govt-nz-resources,뉴질랜드완료,https://www.ethniccommunities.govt.nz/resources/our-newsletter,85,,,unknown,unknown,
+eprints-soton-ac-uk-view,영국완료,https://eprints.soton.ac.uk/view/divisions/5d1c5ba6-6977-4d9d-9afe-fd1820201262/,259,,,unknown,unknown,
+environment-govt-nz-publications,뉴질랜드완료,https://environment.govt.nz/publications/?offset=25,249,,,unknown,unknown,
+etis-ee-portal,Estonia Research Centers,https://www.etis.ee/Portal/Publications/Index/?,138,,,unknown,unknown,
+etera-ee-browse,Estonia Research Centers,https://www.etera.ee/browse,100403,,,unknown,unknown,
+esteri-it-it,Italy Ministries,https://www.esteri.it/it/sala_stampa/archivionotizie/comunicati/,5533,,,unknown,unknown,
+federalregister-gov-documents,USA Executive Departments,https://www.federalregister.gov/documents/search?conditions%5Bagencies%5D%5B%5D=health-and-human-services-department&conditions%5Bsearch_type_id%5D=3&conditions%5Bsignificant%5D=1&order=newest,5957,,,unknown,unknown,
+fair-healthdata-be-search,벨기에완료,https://fair.healthdata.be/search,10,,,unknown,unknown,
+environment-govt-nz-what-you-can-do,뉴질랜드완료,https://environment.govt.nz/what-you-can-do/have-your-say/,58,,,unknown,unknown,
+fm-dk-udgivelser,덴마크완료,https://fm.dk/udgivelser/,100,,,unknown,unknown,
+fhi-no-en,Norway Research Centers,https://www.fhi.no/en/publ/?lang=en&type=con-32/cat-750&filter=&sort=1&page=1&archive=0,255,,,unknown,unknown,
+forest-go-kr-kfsweb,한국완료,https://www.forest.go.kr/kfsweb/cop/bbs/selectBoardList.do?bbsId=BBSMSTR_1036&mn=NKFS_04_02_01,931,,,unknown,unknown,
+environment-govt-nz-acts-and-regulations,뉴질랜드완료,https://environment.govt.nz/acts-and-regulations/national-planning-standards/,315,,,unknown,unknown,
+fafo-no-en,Norway Research Centers,https://www.fafo.no/en/publications,322,,,unknown,unknown,
+fss-or-kr-fss,한국완료,https://www.fss.or.kr/fss/bbs/B0000188/list.do?menuNo=200218,500,,,unknown,unknown,
+fibl-org-en,Switzerland Research Centers,https://www.fibl.org/en/info-centre/publications-archive-fibl-en,539,,,unknown,unknown,
+ftc-go-kr-www,한국완료,"https://www.ftc.go.kr/www/selectBbsNttList.do?bordCd=3&key=12&searchCtgry=01,02",694,,,unknown,unknown,
+gb-go-kr-sub,한국완료,https://gb.go.kr/Sub/open_contents/section/datastat/page.do?mnu_uid=7866&LARGE_CODE=820&MEDIUM_CODE=20&SMALL_CODE=40&SMALL_CODE2=20&mnu_order=3,406,,,unknown,unknown,
+fmi-ch-research,Switzerland Research Centers,https://www.fmi.ch/research/publications/,818,,,unknown,unknown,
+finance-ni-gov-uk-publications,영국완료,https://www.finance-ni.gov.uk/publications,336,,,unknown,unknown,
+exteriores-gob-es-en,Spain Ministries,https://www.exteriores.gob.es/en/ServiciosAlCiudadano/Paginas/Publicaciones-oficiales.aspx,55,20,275.0,html_count_regex,over,https://www.exteriores.gob.es/en/ServiciosAlCiudadano/Paginas/Publicaciones-oficiales.aspx
+gi-re-kr-home,한국완료,https://www.gi.re.kr/Home/H10000/H10100/pmsReportList,452,,,unknown,unknown,
+fi-se-en,스웨덴 완료,https://www.fi.se/en/payments/nyheter-betalningar/,122,,,unknown,unknown,
+forskningsradet-no-om-forskningsradet,Norway Research Centers,https://www.forskningsradet.no/om-forskningsradet/publikasjoner/,356,2,17800.0,html_count_regex,over,https://www.forskningsradet.no/om-forskningsradet/publikasjoner/
+gnews-gg-go-kr-briefing,한국완료,https://gnews.gg.go.kr/briefing/brief_gongbo.do,500,,,unknown,unknown,
+geoportal-statistics-gov-uk-search,영국완료,https://geoportal.statistics.gov.uk/search?collection=document&sort=Date%20Updated%7Cmodified%7Cdesc,346,24,1441.7,html_count_regex,over,https://geoportal.statistics.gov.uk/search?collection=document&sort=Date%20Updated%7Cmodified%7Cdesc
+genome-gov-about-nhgri,American Research Institutes,https://www.genome.gov/about-nhgri/Budget-Financial-Information,42,,,unknown,unknown,
+gcsp-ch-publications,Switzerland Research Centers,https://www.gcsp.ch/publications?type%5B230%5D=230&type%5B879%5D=879&type%5B600%5D=600&type%5B675%5D=675,176,,,unknown,unknown,
+frontiersin-org-articles,American Research Institutes,https://www.frontiersin.org/articles,1230,242,508.3,html_count_regex,over,https://www.frontiersin.org/articles
+gob-mx-bienestar,Mexico Ministries,https://www.gob.mx/bienestar/archivo/prensa,729,,,unknown,unknown,
+gob-mx-agricultura,Mexico Ministries,https://www.gob.mx/agricultura/archivo/prensa,729,,,unknown,unknown,
+go-griffith-ie-browse,Irish Research Centers,https://go.griffith.ie/browse/title,1111,662,167.8,dspace_rest7,over,https://go.griffith.ie/server/api/discover/search/objects
+fmn-dk-da,덴마크완료,https://www.fmn.dk/da/nyheder/,848,,,unknown,unknown,
+futureneurocentre-ie-our-research,Irish Research Centers,https://futureneurocentre.ie/our-research/publications/,455,95,478.9,wordpress_posts,over,https://futureneurocentre.ie/wp-json/wp/v2/posts
+ga-gov-au-data-pubs,호주완료,https://www.ga.gov.au/data-pubs/library/legacy-publications/records/1970s,2243,,,unknown,unknown,
+gob-mx-se,Mexico Ministries,https://www.gob.mx/se/archivo/prensa,288,,,unknown,unknown,
+gob-mx-defensa,Mexico Ministries,https://www.gob.mx/defensa/archivo/prensa,756,,,unknown,unknown,
+gob-mx-sedatu,Mexico Ministries,https://www.gob.mx/sedatu/archivo/prensa,756,,,unknown,unknown,
+gob-mx-sict,Mexico Ministries,https://www.gob.mx/sict/archivo/prensa,747,,,unknown,unknown,
+gov-gr-search,Greece Ministries,https://www.gov.gr/search?SearchSensor=%22%22&SingleRangeSensor=%22%CE%8C%CE%BB%CE%B5%CF%82+%CE%BF%CE%B9+%CF%85%CF%80%CE%B7%CF%81%CE%B5%CF%83%CE%AF%CE%B5%CF%82%22,489,,,unknown,unknown,
+gri-re-kr-web,한국완료,https://www.gri.re.kr/web/contents/resreport.do,516,,,unknown,unknown,
+github-com-orgs,Dutch Research Centers,https://github.com/orgs/Deltares/repositories,91,,,unknown,unknown,
+gwangju-go-kr-boardlistdo,한국완료,https://www.gwangju.go.kr/boardList.do?boardId=BD_0000000027&pageId=www789,500,,,unknown,unknown,
+gichd-org-publications-resourc,Switzerland Research Centers,https://www.gichd.org/publications-resources/publications/,266,,,unknown,unknown,
+gyeongnam-go-kr-board,한국완료,https://www.gyeongnam.go.kr/board/list.gyeong?boardId=BBS_0000060&menuCd=DOM_000000135002001000&contentsSid=6959&cpath=,190,,,unknown,unknown,
+gov-scot-publications,영국완료,https://www.gov.scot/publications/,1024,50542,2.0,html_count_regex,partial,https://www.gov.scot/publications/
+gov-scot-statistics-and-resea,영국완료,https://www.gov.scot/statistics-and-research/,353,6001,5.9,html_count_regex,partial,https://www.gov.scot/statistics-and-research/
+graduateinstitute-ch-library,Switzerland Research Centers,https://www.graduateinstitute.ch/library/publications-institute,398,,,unknown,unknown,
+gov-ie-en,Ireland Ministries,https://www.gov.ie/en/search/?category=Press%20release&organisation=Department%20of%20the%20Taoiseach,780,100,780.0,html_count_regex,over,https://www.gov.ie/en/search/?category=Press%20release&organisation=Department%20of%20the%20Taoiseach
+garda-ie-en,Irish Research Centers,https://www.garda.ie/en/about-us/publications/research-publications/,94,5,1880.0,html_count_regex,over,https://www.garda.ie/en/about-us/publications/research-publications/
+hal-science-afd,French Public Institutions,https://hal.science/AFD/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=REPORT+OR+OTHER,59,4628498,0.0,hal_solr,partial,https://api.archives-ouvertes.fr/search/
+gov-wales-publications,영국완료,https://www.gov.wales/publications,155,,,unknown,unknown,
+hal-science-ign-ensg,French Public Institutions,https://hal.science/IGN-ENSG/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=THESE+OR+COMM+OR+ART,3288,4628498,0.1,hal_solr,partial,https://api.archives-ouvertes.fr/search/
+gov-uk-search,영국완료,https://www.gov.uk/search/research-and-statistics?content_store_document_type=statistics_published&order=updated-newest,862,42435,2.0,html_count_regex,partial,https://www.gov.uk/search/research-and-statistics?content_store_document_type=statistics_published&order=updated-newest
+genomecanada-ca-about,Canadian Research Centers,https://genomecanada.ca/about/publications/,50,,,unknown,unknown,
+hcsp-fr-explorecgi,French Public Institutions,https://www.hcsp.fr/Explore.cgi/avisrapports?Annee=&Langue=&Type=c&MC0=0&MC1=,37,,,unknown,unknown,
+harcresearch-org-research,American Research Institutes,https://harcresearch.org/research/#data-downloads,41,,,unknown,unknown,
+harcresearch-org-news,American Research Institutes,https://harcresearch.org/news/,240,,,unknown,unknown,
+hatvp-fr-actualites-et-public,French Public Institutions,https://www.hatvp.fr/actualites-et-publications/?anchor=communiques&type=communiques#communiques,57,,,unknown,unknown,
+hhs-gov-guidance,USA Executive Departments,https://www.hhs.gov/guidance/,267,,,unknown,unknown,
+gnewsonline-it-category,Italy Ministries,https://www.gnewsonline.it/category/comunicati-stampa/,343,,,unknown,unknown,
+helios-eie-gr-helios,Greece Research Centers,https://helios.eie.gr/helios/handle/10442/9/simple-search?filterquery=%CE%86%CF%81%CE%B8%CF%81%CE%BF+%CF%83%CE%B5+%CE%B5%CF%80%CE%B9%CF%83%CF%84%CE%B7%CE%BC%CE%BF%CE%BD%CE%B9%CE%BA%CF%8C+%CF%80%CE%B5%CF%81%CE%B9%CE%BF%CE%B4%CE%B9%CE%BA%CF%8C&filtername=searchFilterTypeQualified&filtertype=equals,500,11234,4.5,oai_resumption,partial,https://helios.eie.gr/oai/request
+hea-ie-resources,Irish Research Centers,https://hea.ie/resources/publications/,221,347,63.7,wordpress_posts,partial,https://hea.ie/wp-json/wp/v2/posts
+health-ni-gov-uk-news,영국완료,https://www.health-ni.gov.uk/news,137,,,unknown,unknown,
+health-ni-gov-uk-publications,영국완료,https://www.health-ni.gov.uk/publications,503,,,unknown,unknown,
+hrbopenresearch-org,Irish Research Centers,https://hrbopenresearch.org/browse/articles,437,,,unknown,unknown,
+hec-hal-science-search,French Public Universities,https://hec.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=THESE+OR+ART+OR+COMM,313,4829,6.5,hal_solr,partial,https://api.archives-ouvertes.fr/search/hec/
+hi-no-en,Norway Research Centers,https://www.hi.no/en/hi/nettrapporter,119,,,unknown,unknown,
+hautconseilclimat-fr-ressources-pedagogiq,French Public Institutions,https://www.hautconseilclimat.fr/ressources-pedagogiques/,234,52,450.0,wordpress_posts,over,https://www.hautconseilclimat.fr/wp-json/wp/v2/posts
+homeaffairs-gov-au-sitesearch,호주완료,https://www.homeaffairs.gov.au/sitesearch?k=pdf,1308,,,unknown,unknown,
+home-treasury-gov-about,USA Executive Departments,https://home.treasury.gov/about/budget-financial-reporting-planning-and-performance/agency-financial-report,12,,,unknown,unknown,
+humanrights-go-kr-base,한국완료,https://www.humanrights.go.kr/base/board/list?boardManagementNo=20&menuLevel=3&menuNo=120,450,,,unknown,unknown,
+hec-edu-en,French Public Universities,https://www.hec.edu/en/list-press-release,16,,,unknown,unknown,
+hud-govt-nz-stats-and-insights,뉴질랜드완료,https://www.hud.govt.nz/stats-and-insights/homelessness-outlook/introducing-the-homelessness-outlook,1334,,,unknown,unknown,
+icn-hal-science-search,French Public Universities,https://icn.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=ART+OR+COMM,133,1748,7.6,hal_solr,partial,https://api.archives-ouvertes.fr/search/icn/
+hrb-ie-publications,Irish Research Centers,https://www.hrb.ie/publications/,187,819,22.8,wordpress_posts,partial,https://www.hrb.ie/wp-json/wp/v2/posts
+idiap-ch-en,Switzerland Research Centers,https://www.idiap.ch/en/scientific-research/data#b_start=0,125,,,unknown,unknown,
+gsi-ie-en-ie,Irish Research Centers,https://www.gsi.ie/en-ie/research/Pages/related-publications.aspx,113,,,unknown,unknown,
+icp-hal-science-search,French Public Institutions,https://icp.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=ART+OR+COMM,220,9325,2.4,hal_solr,partial,https://api.archives-ouvertes.fr/search/icp/
+icp-fr-a-propos-de-licp,French Public Institutions,https://www.icp.fr/a-propos-de-licp/presse/communiques-de-presse,99,,,unknown,unknown,
+home-cern-news,Switzerland Research Centers,https://home.cern/news?title=&topic=All&type=40&audience=All&tid_3=&date_from=&date_to=,809,,,unknown,unknown,
+hud-govt-nz-documents,뉴질랜드완료,https://www.hud.govt.nz/documents?q=&sort=&_documenttypes%5B%5D=29,148,,,unknown,unknown,
+ifau-se-forskning,스웨덴 완료,https://www.ifau.se/Forskning/Publikationer/Dissertation-series/,101,,,unknown,unknown,
+ii-re-kr-base,한국완료,https://www.ii.re.kr/base/board/list?boardManagementNo=14&menuLevel=2&menuNo=76,287,,,unknown,unknown,
+hfml-felix-nl-en,Dutch Research Centers,https://www.hfml-felix.nl/en/publications/,62,98,63.3,html_count_regex,partial,https://www.hfml-felix.nl/en/publications/
+ifau-se-press,스웨덴 완료,https://www.ifau.se/Press/Meddelanden/,215,,,unknown,unknown,
+ifpenergiesnouvelles-fr-tags,French Research Institutes,https://www.ifpenergiesnouvelles.fr/tags/communiques-presse,150,,,unknown,unknown,
+iisd-org-press,Canadian Research Centers,https://www.iisd.org/press?article_subtype[10]=10&sort_by=unified_date,342,601,56.9,html_count_regex,partial,https://www.iisd.org/press?article_subtype[10]=10&sort_by=unified_date
+ifr-pan-edu-pl-dzialalnosc-naukowa,Polish Research Centers,https://ifr-pan.edu.pl/dzialalnosc-naukowa/publikacje,232,,,unknown,unknown,
+incheon-go-kr-ic010205,한국완료,https://www.incheon.go.kr/IC010205,1328,,,unknown,unknown,
+info-korail-com-info,한국완료,https://info.korail.com/info/selectBbsNttList.do?bbsNo=199&key=911,565,,,unknown,unknown,
+info-daegu-go-kr-newshome,한국완료,https://info.daegu.go.kr/newshome/mtnmain.php?mtnkey=scatelist&mkey=26,490,,,unknown,unknown,
+iheid-swisscovery-ch-discovery,Switzerland Research Centers,"https://iheid.swisscovery.ch/discovery/jsearch?query=any,contains,a&tab=jsearch_slot&vid=41SLSP_IID:VU1_CUSTOM&offset=0&journals=any,a",523,,,unknown,unknown,
+inrae-fr-actualites,French Research Institutes,https://www.inrae.fr/actualites?inrae_prod_created_date_desc%5BrefinementList%5D%5Bfield_system_tags_name%5D%5B0%5D=CP%20National,830,,,unknown,unknown,
+imt-nord-europe-hal-science-search,French Public Universities,https://imt-nord-europe.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=ART+OR+THESE+OR+COMM,61,7266,0.8,hal_solr,partial,https://api.archives-ouvertes.fr/search/imt-nord-europe/
+indicators-be-nl,벨기에완료,https://indicators.be/nl/t/SDG/,84,,,unknown,unknown,
+illustro-iadt-figshare-com-search,Irish Research Centers,https://illustro-iadt.figshare.com/search?itemTypes=8,92,,,unknown,unknown,
+ineris-hal-science-search,French Research Institutes,https://ineris.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=REPORT,2234,8889,25.1,hal_solr,partial,https://api.archives-ouvertes.fr/search/ineris/
+ineris-fr-fr,French Research Institutes,https://www.ineris.fr/fr/base-documentaire?document%5B0%5D=document_type%3A8,141,,,unknown,unknown,
+ign-fr-espace-presse,French Public Institutions,https://www.ign.fr/espace-presse,67,,,unknown,unknown,
+inria-hal-science-search,French Research Institutes,https://inria.hal.science/search/index/?q=collCode_s%3AINRIA2&rows=30&sort=submittedDate_s+desc&submitType_s=file&docType_s=ART+OR+COMM+OR+MEM+OR+THESE,1083,4528812,0.0,hal_solr,partial,https://api.archives-ouvertes.fr/search/inria/
+inria-fr-fr,French Research Institutes,https://www.inria.fr/fr/espace-presse,114,,,unknown,unknown,
+icn-artem-com-en,French Public Universities,https://www.icn-artem.com/en/press/,6,,,unknown,unknown,
+inserm-hal-science-search,French Research Institutes,https://inserm.hal.science/search/index/?q=%2A&rows=30&sort=producedDate_tdate+desc&docType_s=COMM+OR+ART+OR+THESE,883,254477,0.3,hal_solr,partial,https://api.archives-ouvertes.fr/search/inserm/
+infrastructure-ni-gov-uk-news,영국완료,https://www.infrastructure-ni.gov.uk/news,420,,,unknown,unknown,
+insee-fr-fr,French Public Institutions,https://www.insee.fr/fr/information/2117832?debut=0&region=REG84+REG27+REG53+REG24+REG94+REG44+REG01+REG32+REG11+REG03+REG76+REG52+REG75+REG93+REG06+REG28+REG02+REG04,223,,,unknown,unknown,
+ir-arcnl-nl,Dutch Research Centers,https://ir.arcnl.nl/#facet=type:article|dissertation|masterThesis|bachelorThesis,452,,,unknown,unknown,
+international-canada-ca-en,Canada Ministries,https://international.canada.ca/en/global-affairs/corporate/reports/access-information-privacy-reports-global-affairs,14,,,unknown,unknown,
+ir-cwi-nl,Dutch Research Centers,https://ir.cwi.nl/#facet=type:article|dissertation|masterThesis,592,,,unknown,unknown,
+ir-lib-uth-gr-xmlui,Greece Research Centers,https://ir.lib.uth.gr/xmlui/handle/11615/3/discover?filtertype=has_content_in_original_bundle&filter_relational_operator=equals&filter=true,843,55971,1.5,oai_resumption,partial,https://ir.lib.uth.gr/oai/request
+ird-hal-science-search,French Research Institutes,https://ird.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=REPORT,1144,88988,1.3,hal_solr,partial,https://api.archives-ouvertes.fr/search/ird/
+international-andra-fr-documents-and-visual,French Research Institutes,https://international.andra.fr/documents-and-visual-ressources,34,20,170.0,html_count_regex,over,https://international.andra.fr/documents-and-visual-ressources
+igualdad-gob-es-comunicacion,Spain Ministries,https://www.igualdad.gob.es/comunicacion/sala-de-prensa/,216,,,unknown,unknown,
+international-gc-ca-transparency-transpa,Canada Ministries,https://www.international.gc.ca/transparency-transparence/information-privacy-information-protection/reports-rapport/index.aspx?lang=eng,22,,,unknown,unknown,
+isae-ensma-hal-science-search,French Public Universities,https://isae-ensma.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=ART+OR+THESE+OR+COMM,14,9836,0.1,hal_solr,partial,https://api.archives-ouvertes.fr/search/isae-ensma/
+irpp-org-about-the-irpp,Canadian Research Centers,https://irpp.org/about-the-irpp/annual-reports/,25,44,56.8,wordpress_posts,partial,https://irpp.org/wp-json/wp/v2/posts
+ifremer-fr-fr,French Research Institutes,https://www.ifremer.fr/fr/espace-presse,286,,,unknown,unknown,
+irpp-org-media,Canadian Research Centers,https://irpp.org/media/,487,44,1106.8,wordpress_posts,over,https://irpp.org/wp-json/wp/v2/posts
+irsn-fr-actualites,French Research Institutes,https://www.irsn.fr/actualites/communiques-presse,274,,,unknown,unknown,
+insight-centre-org-press-releases,Irish Research Centers,https://www.insight-centre.org/press-releases/,54,,,unknown,unknown,
+iucn-org-press-releases,Switzerland Research Centers,https://iucn.org/press-releases?ptype=international,68,,,unknown,unknown,
+iucn-org-about-iucn,Switzerland Research Centers,https://iucn.org/about-iucn/accountability-and-reporting/annual-reports,19,,,unknown,unknown,
+jeju-go-kr-news,한국완료,https://www.jeju.go.kr/news/bodo/list.htm,1087,,,unknown,unknown,
+issibern-ch-outreach,Switzerland Research Centers,https://www.issibern.ch/outreach/news/,157,,,unknown,unknown,
+iwhr-com-zgskywwnew,중국 완료,http://www.iwhr.com/zgskywwnew/ddjs/newskzs/N014809index_1.htm,62,,,unknown,unknown,
+irb-usi-ch-publications,Switzerland Research Centers,https://irb.usi.ch/publications/,558,,,unknown,unknown,
+jsearch-mwr-gov-cn-irs-c-web,중국 완료,http://jsearch.mwr.gov.cn/irs-c-web/search.shtml?code=18703928938&dataTypeId=26264,2499,,,unknown,unknown,
+jeonnam-go-kr-m7116,한국완료,https://www.jeonnam.go.kr/M7116/boardList.do?menuId=jeonnam0202000000,770,,,unknown,unknown,
+issibern-ch-results,Switzerland Research Centers,https://www.issibern.ch/results/publications/journal-publications/,495,,,unknown,unknown,
+issnationallab-org-about,American Research Institutes,https://issnationallab.org/about/annual-quarterly-reports-metrics/,82,1586,5.2,wordpress_posts,partial,https://issnationallab.org/wp-json/wp/v2/posts
+issnationallab-org-press-releases,American Research Institutes,https://issnationallab.org/press-releases/,561,1586,35.4,wordpress_posts,partial,https://issnationallab.org/wp-json/wp/v2/posts
+julkaisut-valtioneuvosto-fi-search,핀란드완료,https://julkaisut.valtioneuvosto.fi/search?spc.page=1&spc.sf=dc.date.issued&spc.sd=DESC,293,13781,2.1,dspace_rest7,partial,https://julkaisut.valtioneuvosto.fi/server/api/discover/search/objects
+issnationallab-org-publications,American Research Institutes,https://issnationallab.org/publications/,205,206,99.5,wordpress_publications,complete,https://issnationallab.org/wp-json/wp/v2/publications
+issnationallab-org-research-and-science,American Research Institutes,https://issnationallab.org/research-and-science/research-opportunities-and-results/research-reports/,12,54,22.2,wordpress_opportunities,partial,https://issnationallab.org/wp-json/wp/v2/opportunities
+kamco-or-kr-portal,한국완료,https://www.kamco.or.kr/portal/bbs/list.do?ptIdx=284&mId=0705010000,19,,,unknown,unknown,
+ivo-se-sok,스웨덴 완료,https://www.ivo.se/sok/?q=%20&s=0&f=1,134,,,unknown,unknown,
+iucn-org-resources,Switzerland Research Centers,https://iucn.org/resources?rstype=1116&thm=All&tpc=All&rgn=All&cntry=All,6,,,unknown,unknown,
+justice-gouv-fr-documentation,France Ministries,https://www.justice.gouv.fr/documentation/ressources?categories%5B%5D=399&categories%5B%5D=431&items_per_page=100,167,178,93.8,html_count_regex,partial,https://www.justice.gouv.fr/documentation/ressources?categories%5B%5D=399&categories%5B%5D=431&items_per_page=100
+justice-gov-news,USA Executive Departments,https://www.justice.gov/news/press-releases,741,,,unknown,unknown,
+kcg-go-kr-kcg,한국완료,https://www.kcg.go.kr/kcg/na/ntt/selectNttList.do?mi=2799&bbsId=313,624,,,unknown,unknown,
+justice-ni-gov-uk-publications,영국완료,https://www.justice-ni.gov.uk/publications,228,,,unknown,unknown,
+keei-re-kr-boardes,한국완료,https://www.keei.re.kr/board.es?mid=a10202020000&bid=0008,452,,,unknown,unknown,
+jic-ac-uk-news-events,영국완료,https://www.jic.ac.uk/news-events/,1138,1139,99.9,wordpress_posts,complete,https://www.jic.ac.uk/wp-json/wp/v2/posts
+keis-or-kr-keis,한국완료,https://www.keis.or.kr/keis/ko/bbs/124/list.do?searchCl1=1,22,,,unknown,unknown,
+kei-re-kr-eliblistes,한국완료,https://www.kei.re.kr/elibList.es?mid=a10101010000,364,,,unknown,unknown,
+kepco-co-kr-home,한국완료,https://www.kepco.co.kr/home/media/newsroom/pr/boardList.do,400,,,unknown,unknown,
+kb-se-om-oss,스웨덴 완료,https://www.kb.se/om-oss/nyheter.html,80,,,unknown,unknown,
+kammarkollegiet-se-aktuellt,스웨덴 완료,https://www.kammarkollegiet.se/aktuellt,46,,,unknown,unknown,
+juventudeinfancia-gob-es-es,Spain Ministries,https://www.juventudeinfancia.gob.es/es/comunicacion/notas-prensa,306,,,unknown,unknown,
+kfss-forest-go-kr-stat,한국완료,https://kfss.forest.go.kr/stat/ptl/article/articleList.do?curMenu=9795&bbsId=ptlPdsBase,15,2,750.0,html_count_regex,over,https://kfss.forest.go.kr/stat/ptl/article/articleList.do?curMenu=9795&bbsId=ptlPdsBase
+kice-re-kr-boardcnts,한국완료,https://www.kice.re.kr/boardCnts/list.do?boardID=10024&m=050102&s=kice&searchStr=,500,,,unknown,unknown,
+kicce-re-kr-main,한국완료,https://www.kicce.re.kr/main/board/index.do?menu_idx=95&manage_idx=56,368,,,unknown,unknown,
+jgi-doe-gov-user-science,American Research Institutes,https://jgi.doe.gov/user-science/publications,682,6,11366.7,html_count_regex,over,https://jgi.doe.gov/user-science/publications
+kihasa-re-kr-news,한국완료,https://www.kihasa.re.kr/news/press/list,615,,,unknown,unknown,
+kiep-go-kr-galleryes,한국완료,https://www.kiep.go.kr/gallery.es?mid=a10101010000&bid=0001&cg_code=C03%2CC05%2CC02%2CC13%2CC01%2CC19%2CC17%2CC11%2CC20,437,,,unknown,unknown,
+kihasa-re-kr-publish,한국완료,https://www.kihasa.re.kr/publish/report/all/list,673,,,unknown,unknown,
+khs-go-kr-cop,한국완료,https://www.khs.go.kr/cop/bbs/selectBoardList.do?bbsId=BBSMSTR_1020&mn=NS_03_07_04,38,,,unknown,unknown,
+khs-go-kr-newsbbz,한국완료,https://www.khs.go.kr/newsBbz/selectNewsBbzList.do?sectionId=all_sec_1&mn=NS_01_02,1249,,,unknown,unknown,
+justitsministeriet-dk-pressemeddelelse,덴마크완료,https://www.justitsministeriet.dk/pressemeddelelse/,346,,,unknown,unknown,
+kipf-re-kr-kor,한국완료,https://www.kipf.re.kr/kor/Publication/PolicyResearch/kiPublish/CD3/list.do,601,,,unknown,unknown,
+kicj-re-kr-boardes,한국완료,https://www.kicj.re.kr/board.es?mid=a10101000000&bid=0001,154,,,unknown,unknown,
+kipo-go-kr-ko,한국완료,https://www.kipo.go.kr/ko/kpoBultnMgmt.do?menuCd=SCD0200640&parntMenuCd2=SCD0200281,500,,,unknown,unknown,
+kisdi-re-kr-report,한국완료,https://www.kisdi.re.kr/report/list.do?key=m2101113025536&arrMasterId=3934550,501,,,unknown,unknown,
+kinu-or-kr-main,한국완료,https://www.kinu.or.kr/main/module/report/index.do?nav_code=mai1674786094,432,,,unknown,unknown,
+kisdi-re-kr-bbs,한국완료,https://www.kisdi.re.kr/bbs/list.do?key=m2101113055776,502,,,unknown,unknown,
+kipf-re-kr-bbs,한국완료,https://www.kipf.re.kr/bbs/kor_Plaza_PressRelease.do,352,,,unknown,unknown,
+kinfa-or-kr-notificationpromotio,한국완료,https://www.kinfa.or.kr/notificationPromotion/news.do,732,,,unknown,unknown,
+kipa-re-kr-html,한국완료,https://www.kipa.re.kr/html/kor/cmn/bbs/cmnBbsGenList.do/237,8,,,unknown,unknown,
+klri-re-kr-kor,한국완료,https://www.klri.re.kr/kor/issueData/B/list.do,590,,,unknown,unknown,
+kma-go-kr-kma,한국완료,https://www.kma.go.kr/kma/news/press_01.jsp?from=2022-10-06&to=2023-10-06&field=subject&text=,86,,,unknown,unknown,
+kli-re-kr-kli,한국완료,https://www.kli.re.kr/kli/rschRptpList.es?mid=a10102060000,500,,,unknown,unknown,
+kmi-re-kr-web,한국완료,https://www.kmi.re.kr/web/board/list.do?rbsIdx=164,445,,,unknown,unknown,
+justitsministeriet-dk-forskning,덴마크완료,https://www.justitsministeriet.dk/forskning/forskningsrapporter/,24,,,unknown,unknown,
+kefm-dk-aftaler,덴마크완료,https://www.kefm.dk/aftaler,101,,,unknown,unknown,
+kna-forest-go-kr-kfsweb,한국완료,https://kna.forest.go.kr/kfsweb/kfi/kfs/kna/application/publication/list.do?mainCd=210103&mn=UKNA_04_10,372,,,unknown,unknown,
+kirj-ee-archive,Estonia Research Centers,https://kirj.ee/archive/?v=38dd815e66db,3619,24,15079.2,wordpress_posts,over,https://kirj.ee/wp-json/wp/v2/posts
+klimaraadet-dk-da,덴마크완료,https://klimaraadet.dk/da/udgivelser,84,,,unknown,unknown,
+knowledge-barnardos-ie-browse,Irish Research Centers,https://knowledge.barnardos.ie/browse/title,365,1375,26.5,dspace_rest7,partial,https://knowledge.barnardos.ie/server/api/discover/search/objects
+kedi-re-kr-khome,한국완료,https://www.kedi.re.kr/khome/main/research/kediBrief.do,519,,,unknown,unknown,
+koti-re-kr-user,한국완료,https://www.koti.re.kr/user/bbs/bassRsrchReprtList.do,373,,,unknown,unknown,
+krihs-re-kr-boardes,한국완료,https://www.krihs.re.kr/board.es?mid=a10607000000&bid=0008,600,,,unknown,unknown,
+krihs-re-kr-krihslibraryarticle,한국완료,https://www.krihs.re.kr/krihsLibraryArticle/articleList.es?mid=a10103010000&pub_kind=1,744,,,unknown,unknown,
+krihs-re-kr-krihslibraryreport,한국완료,https://www.krihs.re.kr/krihsLibraryReport/briefList.es?mid=a10103060000&pub_kind=BR_2,168,,,unknown,unknown,
+krei-re-kr-krei,한국완료,https://www.krei.re.kr/krei/page/53,1450,,,unknown,unknown,
+krivet-re-kr-kor,한국완료,https://www.krivet.re.kr/kor/sub.do?menuSn=12,500,,,unknown,unknown,
+kommunekredit-com-about-us,덴마크완료,https://www.kommunekredit.com/about-us/reports-numbers-and-publications/reports/,24,1,2400.0,html_count_regex,over,https://www.kommunekredit.com/about-us/reports-numbers-and-publications/reports/
+kwdi-re-kr-plaza,한국완료,https://www.kwdi.re.kr/plaza/bodo.do,819,,,unknown,unknown,
+knmi-nl-kennis-en-datacentru,Dutch Research Centers,https://www.knmi.nl/kennis-en-datacentrum/zoekresultaten?q=&page=1&sort=score&type=data_center_publication&publication_types%5B%5D=knmi_publication&year_from=2016&year_to=2026,388,796,48.7,html_count_regex,partial,https://www.knmi.nl/kennis-en-datacentrum/zoekresultaten?q=&page=1&sort=score&type=data_center_publication&publication_types%5B%5D=knmi_publication&year_from=2016&year_to=2026
+kommunikasjon-ntb-no-presserom,Norway Research Centers,https://kommunikasjon.ntb.no/presserom/17848243/vetinst/r?categories=19,116,,,unknown,unknown,
+kliimaministeerium-ee-otsing,Estonia Ministries,https://kliimaministeerium.ee/otsing?sort_by=created&type=Uudis,10,,,unknown,unknown,
+kasa-go-kr-bbs,한국완료,https://www.kasa.go.kr/bbs/BBSMSTR_000000000010/list.do,331,,,unknown,unknown,
+krivet-re-kr,한국완료,https://www.krivet.re.kr,1,,,unknown,unknown,
+kwdi-re-kr-publications,한국완료,https://www.kwdi.re.kr/publications/journal.do,500,,,unknown,unknown,
+lenus-ie-browse,Irish Research Centers,https://www.lenus.ie/browse/title,168,47138,0.4,dspace_rest7,partial,https://www.lenus.ie/server/api/discover/search/objects
+lib-cssn-cn-zy,중국 완료,http://lib.cssn.cn/zy/dzzy/?column=xueke,204,,,unknown,unknown,
+kdca-go-kr-kdca,한국완료,https://www.kdca.go.kr/kdca/2847/subview.do,846,,,unknown,unknown,
+lecese-fr-espace-presse,French Public Institutions,https://www.lecese.fr/espace-presse,500,,,unknown,unknown,
+kit-nl-institute,Dutch Research Centers,https://www.kit.nl/institute/publication/?publication-type=case-study&kit_impact_area=&year=,121,72,168.1,wordpress_institute_employee,over,https://www.kit.nl/wp-json/wp/v2/institute_employee
+kjonnsforskning-no-nb,Norway Research Centers,https://kjonnsforskning.no/nb/tidsskrift-for-kjonnsforskning,100,,,unknown,unknown,
+lavoro-gov-it-stampa-e-media,Italy Ministries,https://www.lavoro.gov.it/stampa-e-media/Comunicati/Pagine/Comunicati,340,,,unknown,unknown,
+libreria-educacion-gob-es-p,Spain Ministries,https://www.libreria.educacion.gob.es/p/3740_estadisticas/,330,,,unknown,unknown,
+lne-fr-fr,French Research Institutes,https://www.lne.fr/fr/communiques-de-presse,40,42,95.2,html_count_regex,complete,https://www.lne.fr/fr/communiques-de-presse
+mbie-govt-nz-building-and-energy,뉴질랜드완료,https://www.mbie.govt.nz/building-and-energy/energy-and-natural-resources/energy-statistics-and-modelling/energy-statistics/energy-prices,80,,,unknown,unknown,
+library-kwrwater-nl-en,Dutch Research Centers,https://library.kwrwater.nl/en/publications/filter/?document_type=BTO%20rapport;KWRW%20-Waterwijs%20rapport;Peer%20review%20artikel;Vakblad%20artikel,51,100,51.0,html_count_regex,partial,https://library.kwrwater.nl/en/publications/filter/?document_type=BTO%20rapport;KWRW%20-Waterwijs%20rapport;Peer%20review%20artikel;Vakblad%20artikel
+llnl-gov-news,American Research Institutes,https://www.llnl.gov/news/lab-report,3537,,,unknown,unknown,
+kmcc-go-kr-userdo,한국완료,https://www.kmcc.go.kr/user.do?boardId=1030&page=A02060400&dc=K02060400,666,,,unknown,unknown,
+marine-ie-site-area,Irish Research Centers,https://www.marine.ie/site-area/publications/annual-reports,24,,,unknown,unknown,
+mef-gov-it-ufficio-stampa,Italy Ministries,https://www.mef.gov.it/ufficio-stampa/comunicati/2025/,204,122,167.2,html_count_regex,over,https://www.mef.gov.it/ufficio-stampa/comunicati/2025/
+mem-gov-cn-fw,중국 완료,https://www.mem.gov.cn/fw/yajzjxzxk/zjxzxksxbljg/,62,,,unknown,unknown,
+masaf-gov-it-flex,Italy Ministries,https://www.masaf.gov.it/flex/cm/pages/ServeBLOB.php/L/IT/IDPagina/331,601,,,unknown,unknown,
+mfds-go-kr-brd,한국완료,https://www.mfds.go.kr/brd/m_99/list.do,461,,,unknown,unknown,
+met-no-publikasjoner,Norway Research Centers,https://www.met.no/publikasjoner/met-report,116,,,unknown,unknown,
+meri-belspo-be-site,벨기에완료,https://meri.belspo.be/site/publications_en.stm?sc=BRISTI,21,,,unknown,unknown,
+miit-gov-cn-zwgk,중국 완료,https://www.miit.gov.cn/zwgk/zfxxgkzl/zfxxgknb/dftxglj/index.html,26,,,unknown,unknown,
+miit-gov-cn-zc,중국 완료,https://www.miit.gov.cn/zc/wjxzfl/xzgfxwj/index.html,104,,,unknown,unknown,
+meteofrance-fr-actualite,French Research Institutes,https://meteofrance.fr/actualite/publications/les-publications-de-meteo-france,94,,,unknown,unknown,
+kostat-go-kr-boardes,한국완료,https://www.kostat.go.kr/board.es?mid=a10403010000&bid=1401,100,,,unknown,unknown,
+mafra-go-kr-home,한국완료,https://www.mafra.go.kr/home/5109/subview.do,761,,,unknown,unknown,
+mindigital-gr-archives,Greece Ministries,https://www.mindigital.gr/archives/category/deltia-typou-anakoinoseis,675,,,unknown,unknown,
+meteoswiss-admin-ch-services-and-publica,Switzerland Research Centers,https://www.meteoswiss.admin.ch/services-and-publications/publications.html#order=date-desc&page=1&pageGroup=publication&tenant=mchweb,440,,,unknown,unknown,
+mim-gov-it-web,Italy Ministries,https://www.mim.gov.it/web/guest/comunicati,41,,,unknown,unknown,
+minedu-gov-gr-grafeio-typoy-kai-di,Greece Ministries,https://www.minedu.gov.gr/grafeio-typoy-kai-dimosion-sxeseon/deltia-typoy,404,,,unknown,unknown,
+mfat-govt-nz-en,뉴질랜드완료,https://www.mfat.govt.nz/en/media-and-resources?categories=cabinet_papers,11,,,unknown,unknown,
+minfin-gov-gr-grafeio-typou,Greece Ministries,https://minfin.gov.gr/grafeio-typou/anakoinoseis-typou-el/,1797,,,unknown,unknown,
+mi-se-arkiv,스웨덴 완료,https://www.mi.se/arkiv/?type=post,632,469,134.8,wordpress_posts,over,https://www.mi.se/wp-json/wp/v2/posts
+mentalhealthcommission-ca-resources,Canadian Research Centers,https://mentalhealthcommission.ca/resources/,589,,,unknown,unknown,
+ministryofjustice-gr,Greece Ministries,https://ministryofjustice.gr/?page_id=598,261,,,unknown,unknown,
+minscfa-gov-gr-grafeio-typou,Greece Ministries,https://minscfa.gov.gr/grafeio-typou/deltia-typou/,626,,,unknown,unknown,
+migration-gov-gr-press,Greece Ministries,https://migration.gov.gr/press/deltia-typoy/,1618,7770,20.8,wordpress_posts,partial,https://migration.gov.gr/wp-json/wp/v2/posts
+minagric-gr-the-ministry-2,Greece Ministries,https://minagric.gr/the-ministry-2/grafeiotypou/press-releases-ypaat-current-year,267,,,unknown,unknown,
+mindev-gov-gr-category,Greece Ministries,https://www.mindev.gov.gr/category/deltia-tipou/,3514,,,unknown,unknown,
+mimit-gov-it-it,Italy Ministries,https://www.mimit.gov.it/it/per-i-media/pubblicazioni,92,,,unknown,unknown,
+mod-mil-gr-category,Greece Ministries,https://www.mod.mil.gr/category/anakoinoseis-typoy/,470,,,unknown,unknown,
+mivau-gob-es-el-ministerio,Spain Ministries,https://www.mivau.gob.es/el-ministerio/sala-de-prensa,473,,,unknown,unknown,
+mintour-gov-gr-deltia-typoy,Greece Ministries,https://mintour.gov.gr/deltia-typoy/,394,,,unknown,unknown,
+ministeroturismo-gov-it-category,Italy Ministries,https://www.ministeroturismo.gov.it/category/comunicati-stampa/,1014,,,unknown,unknown,
+mma-go-kr-board,한국완료,https://www.mma.go.kr/board/boardList.do?gesipan_id=15&mc=mma0000392,616,,,unknown,unknown,
+mof-gov-cn-en,중국 완료,http://www.mof.gov.cn/en/reports/,9,,,unknown,unknown,
+mofa-go-kr-www,한국완료,https://www.mofa.go.kr/www/brd/m_4099/list.do,521,,,unknown,unknown,
+mogef-go-kr-nw,한국완료,https://www.mogef.go.kr/nw/rpd/nw_rpd_s001.do?mid=news405,852,,,unknown,unknown,
+minrel-gob-cl-minrel,Chile Ministries,https://www.minrel.gob.cl/minrel/sala-de-prensa/p/1,4547,,,unknown,unknown,
+mohrss-gov-cn-xxgk2020,중국 완료,https://www.mohrss.gov.cn/xxgk2020/zfxxgknb/,19,,,unknown,unknown,
+mois-go-kr-frt,한국완료,https://www.mois.go.kr/frt/bbs/type001/commonSelectBoardList.do?bbsId=BBSMSTR_000000000013,1148,,,unknown,unknown,
+miteco-gob-es-es,Spain Ministries,https://www.miteco.gob.es/es/prensa/ultimas-noticias.html,379,,,unknown,unknown,
+moj-go-kr-moj,한국완료,https://www.moj.go.kr/moj/221/subview.do,793,,,unknown,unknown,
+moh-gov-gr-articles,Greece Ministries,https://www.moh.gov.gr/articles/ministry/grafeio-typoy/press-releases,5608,12,46733.3,html_count_regex,over,https://www.moh.gov.gr/articles/ministry/grafeio-typoy/press-releases
+molit-go-kr-usr,한국완료,https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp,390,,,unknown,unknown,
+moe-gov-cn-jyb_xwfb,중국 완료,http://www.moe.gov.cn/jyb_xwfb/s271/,418,,,unknown,unknown,
+mpi-govt-nz-about-mpi,뉴질랜드완료,https://www.mpi.govt.nz/about-mpi/corporate-publications/annual-reports-of-the-ministry-for-primary-industries/,14,,,unknown,unknown,
+mpi-govt-nz-resources-and-forms,뉴질랜드완료,https://www.mpi.govt.nz/resources-and-forms/economic-intelligence/market-insights-for-the-primary-sector/,35,,,unknown,unknown,
+moe-go-kr-boardcnts,한국완료,https://www.moe.go.kr/boardCnts/listRenew.do?boardID=428&m=041205&s=moe,1250,,,unknown,unknown,
+mof-go-kr-doc,한국완료,https://www.mof.go.kr/doc/ko/selectDocList.do?menuSeq=971&bbsSeq=10&listUpdtDt=2025-07-03++10%3A00,624,,,unknown,unknown,
+moe-gov-cn-jyb_sjzl,중국 완료,http://www.moe.gov.cn/jyb_sjzl/sjzl_fztjgb/,28,,,unknown,unknown,
+mss-go-kr-site,한국완료,https://www.mss.go.kr/site/smba/foffice/ex/statDB/stReportRoList.do?gb=1&nodeId=&roCode=,500,,,unknown,unknown,
+moe-gov-cn-jyb_xxgk,중국 완료,http://www.moe.gov.cn/jyb_xxgk/xxgk/nianbao/jiguan/,18,,,unknown,unknown,
+moleg-go-kr-boardes,한국완료,https://www.moleg.go.kr/board.es?mid=a10404000000&bid=0007,256,,,unknown,unknown,
+mnd-go-kr-user,한국완료,https://www.mnd.go.kr/user/newsInUserRecord.action?siteId=mnd&handle=I_669&id=mnd_020500000000,304,,,unknown,unknown,
+msd-govt-nz-about-msd-and-our-wo,뉴질랜드완료,https://www.msd.govt.nz/about-msd-and-our-work/publications-resources/regulatory-impact-statements/index.html,16,,,unknown,unknown,
+mwr-gov-cn-english,중국 완료,http://www.mwr.gov.cn/english/MainAchievements/,37,,,unknown,unknown,
+mwr-gov-cn-zwgk,중국 완료,http://www.mwr.gov.cn/zwgk/gknb/,18,,,unknown,unknown,
+moef-go-kr-nw,한국완료,https://www.moef.go.kr/nw/nes/nesdta.do?bbsId=MOSFBBS_000000000028&menuNo=4010100,683,,,unknown,unknown,
+mva-gov-cn-gongkai,중국 완료,https://www.mva.gov.cn/gongkai/zfxxgkpt/zfxxgknb/,15,,,unknown,unknown,
+mohw-go-kr-boardes,한국완료,https://www.mohw.go.kr/board.es?mid=a10411010300&bid=0019&cg_code=C02,920,,,unknown,unknown,
+naturalengland-defra-opendata-arcgis-com-search,영국완료,https://naturalengland-defra.opendata.arcgis.com/search?collection=dataset,167,24,695.8,html_count_regex,over,https://naturalengland-defra.opendata.arcgis.com/search?collection=dataset
+ncha-gov-cn-col,중국 완료,http://www.ncha.gov.cn/col/col2423/index.html,117,,,unknown,unknown,
+nbb-be-en,벨기에완료,https://www.nbb.be/en/statistics/topics/general/statistical-publications,15,,,unknown,unknown,
+mofe-go-kr-id,한국완료,https://mofe.go.kr/id/pdo.do?menuNo=3050000,133,,,unknown,unknown,
+nec-go-kr-site,한국완료,https://www.nec.go.kr/site/nec/ex/bbs/List.do?cbIdx=1090,175,,,unknown,unknown,
+nasa-gov-2025-news-releases,American Research Institutes,https://www.nasa.gov/2025-news-releases/,236,35278,0.7,wordpress_posts,partial,https://www.nasa.gov/wp-json/wp/v2/posts
+ncats-nih-gov-news-events,American Research Institutes,https://ncats.nih.gov/news-events/news,19,,,unknown,unknown,
+nemertes-library-upatras-gr-browse,Greece Research Centers,https://nemertes.library.upatras.gr/browse/title?scope=38e1d29e-3f53-4755-868e-a36b75554f81,127,31267,0.4,dspace_rest7,partial,https://nemertes.library.upatras.gr/server/api/discover/search/objects
+nei-nih-gov-about,American Research Institutes,https://www.nei.nih.gov/about/budget-and-congress,14,,,unknown,unknown,
+nei-nih-gov-learn-about-eye-heal,American Research Institutes,https://www.nei.nih.gov/learn-about-eye-health/outreach-resources/outreach-materials,88,93,94.6,html_count_regex,partial,https://www.nei.nih.gov/learn-about-eye-health/outreach-resources/outreach-materials
+nemertes-library-upatras-gr-search,Greece Research Centers,"https://nemertes.library.upatras.gr/search?bbm.page=6&spc.page=1&spc.sf=dc.date.accessioned&spc.sd=DESC&f.has_content_in_original_bundle=true,equals",500,31267,1.6,dspace_rest7,partial,https://nemertes.library.upatras.gr/server/api/discover/search/objects
+motir-go-kr-kor,한국완료,https://www.motir.go.kr/kor/article/ATCL449580de4,703,,,unknown,unknown,
+ncri-ie-en,Irish Research Centers,https://www.ncri.ie/en/search?keywords=&section=3&sort_bef_combine=relevance_DESC,104,,,unknown,unknown,
+netl-doe-gov-advsearch,American Research Institutes,https://netl.doe.gov/advsearch?tid=107,28,,,unknown,unknown,
+netl-doe-gov-energy-analysis,American Research Institutes,https://netl.doe.gov/energy-analysis/search?search=TRS,97,,,unknown,unknown,
+nccih-nih-gov-news,American Research Institutes,https://www.nccih.nih.gov/news/press-releases,57,,,unknown,unknown,
+neac-gov-cn-seac,중국 완료,https://www.neac.gov.cn/seac/c103544/common_list.shtml,57,,,unknown,unknown,
+mpva-go-kr-mpva,한국완료,https://www.mpva.go.kr/mpva/selectBbsNttList.do?bbsNo=16&key=77,590,,,unknown,unknown,
+nationalacademies-org-publications,French Research Institutes,https://www.nationalacademies.org/publications/all?unit[]=CSTB,184,,,unknown,unknown,
+netl-doe-gov-fecm-external-r-and-,American Research Institutes,https://netl.doe.gov/FECM-External-R-and-D-Final-Technical-Reports,343,,,unknown,unknown,
+nfra-gov-cn-cn,중국 완료,https://www.nfra.gov.cn/cn/view/pages/ItemList.html?itemPId=953&itemId=954&itemUrl=ItemListRightList.html&itemName=%E7%BB%9F%E8%AE%A1%E4%BF%A1%E6%81%AF,726,,,unknown,unknown,
+netl-doe-gov-search-r-d-publicati,American Research Institutes,https://netl.doe.gov/search-r-d-publications,729,,,unknown,unknown,
+news-admin-ch-en,Switzerland Departments,https://www.news.admin.ch/en/newnsb?publisherIDs=all&topicIDs=all&newsCategoryIDs=medienmitteilung&sort=dateDecreasing&display=list&start_date=2024-08-29&end_date=2025-08-29,0,,,unknown,unknown,
+msit-go-kr-bbs,한국완료,https://www.msit.go.kr/bbs/list.do?sCode=user&mPid=208&mId=307,488,,,unknown,unknown,
+niams-nih-gov-newsroom,American Research Institutes,https://www.niams.nih.gov/newsroom/press-releases,15,,,unknown,unknown,
+naacc-go-kr-web,한국완료,https://naacc.go.kr/WEB/contents/N3050100000.do,334,,,unknown,unknown,
+nhc-gov-cn-wjw,중국 완료,https://www.nhc.gov.cn/wjw/gfxwjj/list.shtml,71,,,unknown,unknown,
+news-fnal-gov-category,American Research Institutes,https://news.fnal.gov/category/newsroom/press-release/,374,3286,11.4,wordpress_posts,partial,https://news.fnal.gov/wp-json/wp/v2/posts
+nibib-nih-gov-news-events,American Research Institutes,https://www.nibib.nih.gov/news-events/press-releases,39,,,unknown,unknown,
+nia-nih-gov-news,American Research Institutes,https://www.nia.nih.gov/news/news-releases,95,,,unknown,unknown,
+nersc-no-en,Norway Research Centers,https://nersc.no/en/publications/,349,,,unknown,unknown,
+nida-nih-gov-news-events,American Research Institutes,https://nida.nih.gov/news-events/news-releases,46,,,unknown,unknown,
+nida-nih-gov-research-topics,American Research Institutes,https://nida.nih.gov/research-topics/trends-statistics/infographics,29,,,unknown,unknown,
+nibio-no-en,Norway Research Centers,https://www.nibio.no/en/publications?filters=1&q=&publicationType%5B%5D=e4b9b2bc-82be-42d1-80f5-f1515ad07e2e,219,,,unknown,unknown,
+nidcd-nih-gov-news,American Research Institutes,https://www.nidcd.nih.gov/news/nidcd-news,203,,,unknown,unknown,
+nidcd-nih-gov-order,American Research Institutes,https://www.nidcd.nih.gov/order,90,,,unknown,unknown,
+niaaa-nih-gov-news-events,American Research Institutes,https://www.niaaa.nih.gov/news-events/news,80,,,unknown,unknown,
+nhlbi-nih-gov-about,American Research Institutes,https://www.nhlbi.nih.gov/about/budget-and-legislative-information,22,20,110.0,html_count_regex,over,https://www.nhlbi.nih.gov/about/budget-and-legislative-information
+nidcr-nih-gov-news-events,American Research Institutes,https://www.nidcr.nih.gov/news-events/nidcr-news,87,,,unknown,unknown,
+nichd-nih-gov-newsroom,American Research Institutes,https://www.nichd.nih.gov/newsroom/news,329,,,unknown,unknown,
+nhlbi-nih-gov-resources,American Research Institutes,https://www.nhlbi.nih.gov/resources,325,,,unknown,unknown,
+newsreleases-sandia-gov-archives-by-year,American Research Institutes,https://newsreleases.sandia.gov/archives-by-year/,2044,,,unknown,unknown,
+nesc-ie-publications,Irish Research Centers,https://www.nesc.ie/publications/,121,,,unknown,unknown,
+nigms-nih-gov-news,American Research Institutes,https://www.nigms.nih.gov/news/releases-and-announcements,21,,,unknown,unknown,
+nim-ac-cn-taxonomy,중국 완료,https://www.nim.ac.cn/taxonomy/term/170,34,,,unknown,unknown,
+nfa-go-kr-nfa,한국완료,https://www.nfa.go.kr/nfa/releaseinformation/statisticalinformation/main/,112,,,unknown,unknown,
+nimh-nih-gov-news,American Research Institutes,https://www.nimh.nih.gov/news/science-updates,492,,,unknown,unknown,
+nikhef-nl-pub,Dutch Research Centers,https://www.nikhef.nl/pub/services/newbiblio/publications.php,26,,,unknown,unknown,
+nidi-nl-en,Dutch Research Centers,https://nidi.nl/en/publications/,285,,,unknown,unknown,
+niddk-nih-gov-news,American Research Institutes,https://www.niddk.nih.gov/news/archive?nt=nr,124,,,unknown,unknown,
+nih-gov-news-events,American Research Institutes,https://www.nih.gov/news-events/news-releases,409,,,unknown,unknown,
+nih-gov-press-room,American Research Institutes,https://www.nih.gov/press-room,449,,,unknown,unknown,
+nimhd-nih-gov-news-events,American Research Institutes,https://www.nimhd.nih.gov/news-events/all-news/news-releases,13,,,unknown,unknown,
+ninds-nih-gov-news-events,American Research Institutes,https://www.ninds.nih.gov/news-events/news/press-releases,253,,,unknown,unknown,
+nina-no-english,Norway Research Centers,https://www.nina.no/english/Publications/NINA-Special-Report,36,180,20.0,html_count_regex,partial,https://www.nina.no/english/Publications/NINA-Special-Report
+niehs-nih-gov-newsreleases,American Research Institutes,https://www.niehs.nih.gov/newsreleases,40,,,unknown,unknown,
+ninds-nih-gov-publications,American Research Institutes,https://www.ninds.nih.gov/publications,71,,,unknown,unknown,
+nioo-knaw-nl-en,Dutch Research Centers,https://nioo.knaw.nl/en/pressreleases,75,,,unknown,unknown,
+nin-nl-publications,Dutch Research Centers,https://nin.nl/publications/,471,,,unknown,unknown,
+nofima-com-publication,Norway Research Centers,https://nofima.com/publication/?_sft_bc_tax_pubtype=nofimareports&_sfm_year_published=1980+2027,200,359,55.7,wordpress_posts,partial,https://nofima.com/wp-json/wp/v2/posts
+nps-or-kr-inforls,한국완료,https://www.nps.or.kr/inforls/publdata/getOHAB0019M0List.do?menuId=MN24000873,115,,,unknown,unknown,
+nivel-nl-en,Dutch Research Centers,https://www.nivel.nl/en/publications,520,,,unknown,unknown,
+nkvts-no-english,Norway Research Centers,https://www.nkvts.no/english/publications/?pg=1&sd-post_type_label%5B%5D=Reports,562,,,unknown,unknown,
+nps-or-kr-pnsgdnc,한국완료,https://www.nps.or.kr/pnsgdnc/nscvrgdata/getOHAE0002M0List.do?menuId=MN24000898,182,,,unknown,unknown,
+nrc-re-kr-boardes,한국완료,https://www.nrc.re.kr/board.es?mid=a12102000000&bid=0015,470,,,unknown,unknown,
+nora-nerc-ac-uk-view,영국완료,https://nora.nerc.ac.uk/view/division/noc/,596,57936,1.0,oai_resumption,partial,https://nora.nerc.ac.uk/cgi/oai2
+nisra-gov-uk-publications,영국완료,https://www.nisra.gov.uk/publications,522,,,unknown,unknown,
+nist-gov-publications,American Research Institutes,https://www.nist.gov/publications/search,478,,,unknown,unknown,
+nts-go-kr-nts,한국완료,https://www.nts.go.kr/nts/na/ntt/selectNttList.do?mi=2201&bbsId=1028,42,,,unknown,unknown,
+nypi-re-kr,한국완료,https://www.nypi.re.kr,3,,,unknown,unknown,
+nifu-no-en,Norway Research Centers,https://www.nifu.no/en/nifu-alle-publikasjoner/,363,,,unknown,unknown,
+ntp-niehs-nih-gov-publications,American Research Institutes,https://ntp.niehs.nih.gov/publications,536,,,unknown,unknown,
+nypi-re-kr-board,한국완료,https://www.nypi.re.kr/board?menuKey=uCjzEQTnJu&bbsId=BOARD00019,150,,,unknown,unknown,
+oka-go-kr-web,한국완료,https://www.oka.go.kr/web/board/brdList.do?menu_cd=000018,30,,,unknown,unknown,
+nrscotland-gov-uk-publications,영국완료,https://www.nrscotland.gov.uk/publications/,359,,,unknown,unknown,
+ntrs-nasa-gov-search,American Research Institutes,"https://ntrs.nasa.gov/search?stiTypeDetails=Conference%20Paper&page=%7B%22from%22:0,%22size%22:100%7D",6490,,,unknown,unknown,
+nnsa-mee-gov-cn-english,중국 완료,https://nnsa.mee.gov.cn/english/resources/annual/,10,,,unknown,unknown,
+nzpri-aut-ac-nz-document-library,뉴질랜드완료,https://nzpri.aut.ac.nz/document-library,7,,,unknown,unknown,
+nordlandsforskning-no-en,Norway Research Centers,https://www.nordlandsforskning.no/en/publications,304,,,unknown,unknown,
+oig-treasury-gov-other-reports-testim,USA Executive Departments,https://oig.treasury.gov/other-reports-testimonies,1353,,,unknown,unknown,
+olympias-lib-uoi-gr-jspui,Greece Research Centers,https://olympias.lib.uoi.gr/jspui/simple-search?query=&sort_by=score&order=desc&rpp=10&etal=0&filtername=type&filterquery=bachelorThesis&filtertype=equals,400,50014,0.8,oai_resumption,partial,https://olympias.lib.uoi.gr/oai/request
+open-science-canada-ca-communities,Canadian Research Centers,https://open-science.canada.ca/communities/307d8eca-9337-48d3-a296-6ea96f5a75c5?page=1&spc.sf=score&spc.sd=DESC&scope=307d8eca-9337-48d3-a296-6ea96f5a75c5&spc.page=1&query=*,272,4400,6.2,dspace_rest7,partial,https://open-science.canada.ca/server/api/discover/search/objects
+om-mp-be-nl,벨기에완료,https://www.om-mp.be/nl/colpg/college-van-procureurs-generaal-jaarverslagen,239,,,unknown,unknown,
+opendatacommunities-org-data,영국완료,https://opendatacommunities.org/data,3,,,unknown,unknown,
+opengov-seoul-go-kr-research,한국완료,https://opengov.seoul.go.kr/research/list,344,,,unknown,unknown,
+noc-ac-uk-about-us,영국완료,https://noc.ac.uk/about-us/literature-brochures,7,,,unknown,unknown,
+openresearch-repository-anu-edu-au-search,호주완료,https://openresearch-repository.anu.edu.au/search?spc.page=1&spc.sf=dc.date.accessioned&spc.sd=DESC&view=list,261,393484,0.1,dspace_rest7,partial,https://openresearch-repository.anu.edu.au/server/api/discover/search/objects
+onera-fr-fr,French Research Institutes,https://www.onera.fr/fr/presse?page=1,145,,,unknown,unknown,
+ons-gov-uk-search,영국완료,https://www.ons.gov.uk/search?q=uk+wide&page=1&filter=time_series&filter=datasets&filter=user_requested_data,516,,,unknown,unknown,
+noc-ac-uk-publications,영국완료,https://noc.ac.uk/publications,234,,,unknown,unknown,
+opendata-centralbank-ie-dataset,Irish Research Centers,https://opendata.centralbank.ie/dataset/,38,,,unknown,unknown,
+nistdigitalarchives-contentdm-oclc-org-digital,American Research Institutes,https://nistdigitalarchives.contentdm.oclc.org/digital/collection/p16009coll6/custom/jresbyvol,788,,,unknown,unknown,
+pbc-gov-cn-en,중국 완료,https://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html,224,,,unknown,unknown,
+ostrnrcan-dostrncan-canada-ca-search,Canadian Research Centers,"https://ostrnrcan-dostrncan.canada.ca/search?page=1&query=*&spc.sf=dc.date.issued&spc.sd=DESC&spc.page=1&f.itemtype_en=Report,equals",220,,,unknown,unknown,
+openaire-eu-os-slovenia,Slovenia Research Centers,https://www.openaire.eu/os-slovenia,28,,,unknown,unknown,
+nupi-no-en,Norway Research Centers,https://www.nupi.no/en/publications?pcform%5Bpublications_type%5D=pub_scientific_article&pcform%5Bfield%5D=&pcform%5Bfrom_date_time%5D=&pcform%5Bto_date_time%5D=,28,,,unknown,unknown,
+pbocri-org-cn-lnzy3html,중국 완료,https://www.pbocri.org.cn/lnzy3.html,8,,,unknown,unknown,
+par-nsf-gov-search,American Research Institutes,https://par.nsf.gov/search/product-type:Dataset,2481,,,unknown,unknown,
+osr-statisticsauthority-gov-uk-publications-list,영국완료,https://osr.statisticsauthority.gov.uk/publications-list/,257,255,100.8,wordpress_posts,over,https://osr.statisticsauthority.gov.uk/wp-json/wp/v2/posts
+pbocri-org-cn-xslwhtml,중국 완료,https://www.pbocri.org.cn/xslw.html,2,,,unknown,unknown,
+ots-at-pressemappe,오스트리아완료,https://www.ots.at/pressemappe/54/bundesministerium-fuer-inneres,500,,,unknown,unknown,
+pergamos-lib-uoa-gr-search,Greece Research Centers,https://pergamos.lib.uoa.gr/search?byPublicType=ScientificPublicationArticle&byPublicType=ScientificPublicationInProceedings&byPublicType=BornDigitalPostgraduateThesis&byPublicType=BornDigitalGraduateThesis&byPublicType=ConferencePaper,500,250523,0.2,oai_resumption,partial,https://pergamos.lib.uoa.gr/oai
+pbl-nl-en,Dutch Research Centers,https://www.pbl.nl/en/publications?key=&type%5B26%5D=26&published%5Bmin%5D=&published%5Bmax%5D=,649,,,unknown,unknown,
+pembina-org-media-releases,Canadian Research Centers,https://www.pembina.org/media-releases,494,5,9880.0,html_count_regex,over,https://www.pembina.org/media-releases
+pmc-gov-au-resources,호주완료,https://www.pmc.gov.au/resources?f%5B0%5D=db_r_publication_category%3A334,129,,,unknown,unknown,
+police-go-kr-user,한국완료,https://www.police.go.kr/user/bbs/BD_selectBbsList.do?q_bbsCode=1002,747,,,unknown,unknown,
+pasteur-fr-en,French Research Institutes,https://www.pasteur.fr/en/search-press?field_pst_doc_type=49,314,,,unknown,unknown,
+politie-be-statistieken,벨기에완료,https://www.politie.be/statistieken/nl/morfologie/rapporten,95,,,unknown,unknown,
+pleanala-ie-en-ie,Irish Research Centers,https://www.pleanala.ie/en-IE/Publications,54,,,unknown,unknown,
+opendata-dk-search,덴마크완료,https://www.opendata.dk/search?q=res_format:PDF,70,,,unknown,unknown,
+polytechnique-hal-science-search,French Public Universities,https://polytechnique.hal.science/search/index/?q=%2A&rows=30&submitType_s=file&docType_s=OTHER+OR+REPORT,3103,51962,6.0,hal_solr,partial,https://api.archives-ouvertes.fr/search/polytechnique/
+pnnl-gov-news,American Research Institutes,https://www.pnnl.gov/news?news%5B0%5D=type%3A23,322,547,58.9,html_count_regex,partial,https://www.pnnl.gov/news?news%5B0%5D=type%3A23
+plan-be-nl,벨기에완료,https://www.plan.be/nl/publicaties,152,,,unknown,unknown,
+polytechnique-edu-presse,French Public Universities,https://www.polytechnique.edu/presse/communiques-et-dossiers-de-presse,226,,,unknown,unknown,
+portaldiplomatico-mne-gov-pt-en,Portugal Ministries,https://portaldiplomatico.mne.gov.pt/en/communication-and-media/press-releases,378,,,unknown,unknown,
+phfscience-nz-digital-library,뉴질랜드완료,https://www.phfscience.nz/digital-library/,501,28,1789.3,html_count_regex,over,https://www.phfscience.nz/digital-library/
+prism-go-kr-homepage,한국완료,https://www.prism.go.kr/homepage/prtl/totalsearch/list,2900,,,unknown,unknown,
+phfscience-nz-news-publications,뉴질랜드완료,https://www.phfscience.nz/news-publications/?researchType%5B0%5D=corporatePublicationItem,32,28,114.3,html_count_regex,over,https://www.phfscience.nz/news-publications/?researchType%5B0%5D=corporatePublicationItem
+opm-go-kr-opm,한국완료,https://www.opm.go.kr/opm/info/policies.do,660,,,unknown,unknown,
+presse-economie-gouv-fr,France Ministries,https://presse.economie.gouv.fr/?s=+&type=communiques-de-presse,1206,,,unknown,unknown,
+publications-idiap-ch-publications,Switzerland Research Centers,https://publications.idiap.ch/publications,231,,,unknown,unknown,
+openscience-si-naprednoiskanjeaspx,Slovenia Research Centers,https://openscience.si/NaprednoIskanje.aspx?q=0:20:211,30,,,unknown,unknown,
+ppforum-ca-press-releases,Canadian Research Centers,https://ppforum.ca/press-releases/,42,4,1050.0,wordpress_posts,over,https://ppforum.ca/wp-json/wp/v2/posts
+policyalternatives-ca-news-research,Canadian Research Centers,https://www.policyalternatives.ca/news-research/category/news-commentary/,1543,,,unknown,unknown,
+publichealthscotland-scot-publications,영국완료,https://www.publichealthscotland.scot/publications/,373,626,59.6,oai_resumption,partial,https://www.publichealthscotland.scot/oai
+provenienzforschung-gv-at-empfehlungen-des-bei,오스트리아완료,https://provenienzforschung.gv.at/empfehlungen-des-beirats/beschluesse/beschluesse-alphabetisch/,425,,,unknown,unknown,
+publicservice-govt-nz-data,뉴질랜드완료,https://www.publicservice.govt.nz/data/public-service-census/delivery/innovation,61,,,unknown,unknown,
+publicsafety-gc-ca-cnt,Canada Ministries,https://www.publicsafety.gc.ca/cnt/nws/nws-rlss/index-en.aspx,424,,,unknown,unknown,
+publicservice-govt-nz-research-and-data,뉴질랜드완료,https://www.publicservice.govt.nz/research-and-data?q=&classification=Datasheet&topics%5B0%5D=193,110,,,unknown,unknown,
+psi-ch-en,Switzerland Research Centers,https://www.psi.ch/en/about/business-report,405,,,unknown,unknown,
+pubshop-bmbwf-gv-at-indexphp,오스트리아완료,https://pubshop.bmbwf.gv.at/index.php?article_id=1,479,,,unknown,unknown,
+rda-go-kr-board,한국완료,https://www.rda.go.kr/board/board.do?mode=list&prgId=day_farmprmninfoEntry,1020,,,unknown,unknown,
+pubs-usgs-gov,American Research Institutes,https://pubs.usgs.gov,10,,,unknown,unknown,
+publikationen-bundesregierung-de-pp-de,Germany Ministries,https://www.publikationen-bundesregierung.de/pp-de/herausgeber/bundesministerium-fuer-umwelt-klimaschutz-naturschutz-und-nukleare-sicherheit-bmukn-,112,,,unknown,unknown,
+presse-cnam-fr-communiques,French Public Institutions,https://presse.cnam.fr/communiques/,36,,,unknown,unknown,
+regjeringen-no-en,Norway Ministries,https://www.regjeringen.no/en/find-document/id2000006/?documenttype=dokumenter&ownerid=463&term=,187,,,unknown,unknown,
+pps-go-kr-kor,한국완료,https://www.pps.go.kr/kor/bbs/list.do?key=00664,290,,,unknown,unknown,
+rdr-kuleuven-be-dataverse,벨기에완료,https://rdr.kuleuven.be/dataverse/rdr;jsessionid=a1a143970ce30c708f592f34c638?q=&types=datasets&sort=dateSort&order=desc&page=1,418,824,50.7,oai_resumption,partial,https://rdr.kuleuven.be/oai
+presse-curie-fr-section,French Research Institutes,https://presse.curie.fr/section/communiques/?lang=en&_gl=1*g1wgb0*_up*MQ..*_ga*MTY0Mzk4NTg0LjE3NTE5Nzc2Njc.*_ga_3H1QKXKJYY*czE3NTE5Nzc2NjckbzEkZzAkdDE3NTE5Nzc2NjckajYwJGwwJGgw*_ga_G7RMZZ61ZW*czE3NTE5Nzc2NjckbzEkZzAkdDE3NTE5Nzc2NjckajYwJGwwJGgw*_ga_ZZMKJMV6LS*czE3NTE5Nzc2NjckbzEkZzAkdDE3NTE5Nzc2NjckajYwJGwwJGgw,300,,,unknown,unknown,
+rcaanc-cirnac-gc-ca-eng,Canada Ministries,https://www.rcaanc-cirnac.gc.ca/eng/1575131323136/1575131374706,33,,,unknown,unknown,
+repo-lib-duth-gr-jspui,Greece Research Centers,https://repo.lib.duth.gr/jspui/,7156,22040,32.5,oai_resumption,partial,https://repo.lib.duth.gr/oai/request
+reports-nlr-nl-collections,Dutch Research Centers,https://reports.nlr.nl/collections/9f55048d-9351-4613-bf4d-e48b90ffe9f3,18,1724,1.0,dspace_rest7,partial,https://reports.nlr.nl/server/api/discover/search/objects
+repository-library-noaa-gov-view,American Research Institutes,https://repository.library.noaa.gov/view/noaa/72459,812,,,unknown,unknown,
+repositorio-uchile-cl-discover,Chile Research Centers,https://repositorio.uchile.cl/discover?filtertype=type&filter_relational_operator=equals&filter=Tesis,500,102175,0.5,oai_resumption,partial,https://repositorio.uchile.cl/oai/request
+pure-mpg-de-search,GER ResearchCenters(Unfinished),https://pure.mpg.de/search,75,,,unknown,unknown,
+reglementation-controle-asnr-fr-information,French Public Institutions,https://reglementation-controle.asnr.fr/information/publications/rapports-d-expertise,6,,,unknown,unknown,
+research-collection-ethz-ch-search,Switzerland Research Centers,"https://www.research-collection.ethz.ch/search?spc.page=1&f.ethzAvailability=Open%20access,equals&f.itemtype=Journal%20Article,equals",459,303530,0.2,dspace_rest7,partial,https://www.research-collection.ethz.ch/server/api/discover/search/objects
+ptb-de-cms,GER ResearchCenters(Unfinished),https://www.ptb.de/cms/presseaktuelles/wissenschaftlich-technische-publikationen/ptb-berichte.html,8,,,unknown,unknown,
+repository-cern-search,Switzerland Research Centers,https://repository.cern/search?q=&f=access_status%3Aopen&f=file_type%3Apdf&l=list&p=1&s=10&sort=newest,500,,,unknown,unknown,
+repository-naturalis-nl,Dutch Research Centers,https://repository.naturalis.nl/#facet=type:article|dissertation,9681,,,unknown,unknown,
+research-thea-ie-browse,Irish Research Centers,https://research.thea.ie/browse?type=title,449,3103,14.5,oai_resumption,partial,https://research.thea.ie/oai/request
+regulation-govt-nz-about-us,뉴질랜드완료,https://www.regulation.govt.nz/about-us/our-publications/?https%3A%2F%2Fwww_regulation_govt_nz%2Fabout-us%2Four-publications%2Fsearch%2F%3Fquery=&order=relevance&publication_type_id%5B110%5D=110&sort_date_from=&sort_date_to=,247,,,unknown,unknown,
+rosap-ntl-bts-gov-cbrowse,American Research Institutes,https://rosap.ntl.bts.gov/cbrowse?pid=dot%3A231&parentId=dot%3A231&sm_resource_type%5B%5D=Tech+Report,562,100,562.0,html_count_regex,over,https://rosap.ntl.bts.gov/cbrowse?pid=dot%3A231&parentId=dot%3A231&sm_resource_type%5B%5D=Tech+Report
+researchrepository-ul-ie-search,Irish Research Centers,"https://researchrepository.ul.ie/search?f.itemtype=Article,equals",400,13970,2.9,dspace_rest7,partial,https://researchrepository.ul.ie/server/api/discover/search/objects
+repository-tno-nl-doclist,Dutch Research Centers,"https://repository.tno.nl/DocList?find=ID%20%3E%200,refine_MATREP:CONFERENCE%20PAPER&sort=JVP:DESC:MATREP:DESC",10508,,,unknown,unknown,
+repository-lboro-ac-uk,영국완료,https://repository.lboro.ac.uk/,128,,,unknown,unknown,
+saemangeum-go-kr-sda,한국완료,https://www.saemangeum.go.kr/sda/brd/list.do?key=2009074409621,428,,,unknown,unknown,
+safefood-net-news,Irish Research Centers,https://www.safefood.net/news,31,,,unknown,unknown,
+samr-gov-cn-zw,중국 완료,https://www.samr.gov.cn/zw/zjwj/zcjd/index.html,315,,,unknown,unknown,
+rijksoverheid-nl-documenten,Netherland Ministries,https://www.rijksoverheid.nl/documenten?trefwoord=&startdatum=&einddatum=&onderdeel=Alle+ministeries&type=Rapport,274,,,unknown,unknown,
+ris-bka-gv-at-ergebniswxe,오스트리아완료,https://www.ris.bka.gv.at/Ergebnis.wxe?Abfrage=Landesnormen&Kundmachungsorgan=&Bundesland=Undefined&BundeslandDefault=Undefined&Index=&Titel=&Gesetzesnummer=&VonArtikel=&BisArtikel=&VonParagraf=&BisParagraf=&VonAnlage=&BisAnlage=&Typ=&Kundmachungsnummer=&Unterzeichnungsdatum=&FassungVom=04.08.2025&VonInkrafttretedatum=&BisInkrafttretedatum=&VonAusserkrafttretedatum=&BisAusserkrafttretedatum=&NormabschnittnummerKombination=Und&ImRisSeitVonDatum=&ImRisSeitBisDatum=&ImRisSeit=Undefined&ResultPageSize=100&Suchworte=&Position=1&SkipToDocumentPage=true,507,,,unknown,unknown,
+rigsrevisionen-dk-revisionssager,덴마크완료,https://www.rigsrevisionen.dk/revisionssager,590,,,unknown,unknown,
+sastind-gov-cn-n10086200,중국 완료,https://www.sastind.gov.cn/n10086200/n10086319/index.html,474,,,unknown,unknown,
+ruomoplus-lib-uom-gr-simple-search,Greece Research Centers,https://ruomoplus.lib.uom.gr/simple-search?query=&location=publications&sort_by=dc.date.issued_dt&order=desc&rpp=10&crisID=&relationName=&etal=0&filtername=itemtype&filterquery=journal%20article&filtertype=equals,500,,,unknown,unknown,
+sante-gouv-fr-ministere,France Ministries,https://sante.gouv.fr/ministere/documentation-et-publications-officielles/rapports/,145,,,unknown,unknown,
+scourt-go-kr-portal,한국완료,https://www.scourt.go.kr/portal/news/NewsListAction.work?gubun=6,982,,,unknown,unknown,
+rfi-ac-uk-latest,영국완료,https://www.rfi.ac.uk/latest/?filter_nonce=7afe782d93&filter=news,142,181,78.5,wordpress_posts,partial,https://www.rfi.ac.uk/wp-json/wp/v2/posts
+santepubliquefrance-fr-presse,French Public Institutions,https://www.santepubliquefrance.fr/presse,624,,,unknown,unknown,
+search-nal-usda-gov-discovery,USA Executive Departments,https://search.nal.usda.gov/discovery/collectionDiscovery?vid=01NAL_INST:MAIN,452,,,unknown,unknown,
+pubs-drdc-rddc-gc-ca-basis,Canadian Research Centers,https://pubs.drdc-rddc.gc.ca/BASIS/pcandid/www/engpub/SDF?KEYWORDS_O=contains+all&KEYWORDS=&TITLE_O=contains+all&TITLE=&AUTHOR=&AUTHOR_O=contains+the+phrase&CA_CODE=&CA_CODE_O=equals&CA_NAME=&CA_NAME_O=contains+the+phrase&CA_RPNUM=&CA_RPNUM_O=equals&REPDATE=&CA_RPNUM_O=equals&PROJNUM=&PROJNUM_O=includes&FORM_C=and&FORM_OB=Repdate&FORM_SO=Descend,4040,,,unknown,unknown,
+search-worldcat-org-ko,USA Executive Departments,https://search.worldcat.org/ko/search?q=ai&openAccess=true&itemSubType=book-thsis&itemSubTypeModified=book-thsis,14,,,unknown,unknown,
+research-imt-nord-europe-fr-news,French Public Universities,https://research.imt-nord-europe.fr/news/,56,347,16.1,wordpress_posts,partial,https://research.imt-nord-europe.fr/wp-json/wp/v2/posts
+scp-nl-publicaties,Dutch Research Centers,https://www.scp.nl/publicaties,243,,,unknown,unknown,
+sejong-go-kr-bbs,한국완료,https://www.sejong.go.kr/bbs/R0079/list.do,500,,,unknown,unknown,
+science-libraries-canada-ca-eng,Canadian Research Centers,https://science-libraries.canada.ca/eng/search/?q=*&fc=ContentType%3AConference+Proceeding&sm=1,31,,,unknown,unknown,
+search-open-canada-ca-opendata,Canada Ministries,https://search.open.canada.ca/opendata/?page=1&sort=metadata_modified+desc&resource_format=PDF&resource_type=dataset,5287,,,unknown,unknown,
+si-re-kr-bbs,한국완료,https://www.si.re.kr/bbs/list.do?key=2024100166,501,,,unknown,unknown,
+scaht-org-en,Switzerland Research Centers,https://www.scaht.org/en/research/publications/,641,,,unknown,unknown,
+reseau-canope-fr-espace-presse,French Public Institutions,https://www.reseau-canope.fr/espace-presse/nos-dossiers-et-communiques-de-presse.html,19,,,unknown,unknown,
+rki-de-de,GER ResearchCenters(Unfinished),https://www.rki.de/DE/Aktuelles/Neuigkeiten-und-Presse/Meldungen-PM/meldungen-pressemitteilungen-node.html,66,,,unknown,unknown,
+simula-no-publications,Norway Research Centers,https://www.simula.no/publications/?status=published&type=journal_article%2Cthesis%2Cproceedings_refereed%2Cmaster_s_thesis%2Cconference_proceedings,73,,,unknown,unknown,
+science-astron-nl-science-astron,Dutch Research Centers,https://science.astron.nl/science-astron/publications-and-phd-theses/,117,,,unknown,unknown,
+salute-gov-it-new,Italy Ministries,https://www.salute.gov.it/new/it/sezione/comunicati-stampa/,202,,,unknown,unknown,
+seco-admin-ch-seco,Switzerland Departments,https://www.seco.admin.ch/seco/en/home/seco/nsb-news.html?dyn_startDate=01.01.2023,479,,,unknown,unknown,
+sib-swiss-community,Switzerland Research Centers,https://www.sib.swiss/community/publications/scientific-publications-2025,391,,,unknown,unknown,
+sandia-gov-news,American Research Institutes,https://www.sandia.gov/news/publications/hpc-annual-reports/,101,199,50.8,wordpress_posts,partial,https://www.sandia.gov/news/wp-json/wp/v2/posts
+sib-swiss-training,Switzerland Research Centers,https://www.sib.swiss/training/training-materials,74,,,unknown,unknown,
+skillsdevelopmentscotland-co-uk-publications-statist,영국완료,https://www.skillsdevelopmentscotland.co.uk/publications-statistics/publications,488,,,unknown,unknown,
+sodha-be-dataverse,벨기에완료,https://www.sodha.be/dataverse/sodha;jsessionid=a17e84dd70965738edb4862be19d?q=&types=datasets&sort=dateSort&order=desc&page=1,152,211,72.0,oai_resumption,partial,https://www.sodha.be/oai
+seer-cancer-gov-report_to_nation,American Research Institutes,https://seer.cancer.gov/report_to_nation/previous.html,24,,,unknown,unknown,
+sgu-se-en,스웨덴 완료,https://www.sgu.se/en/about-sgu/news-from-sgu/,54,,,unknown,unknown,
+sm-ee-otsing,Estonia Ministries,https://www.sm.ee/otsing?filters%5Btype%5D=Artikkel&sort=created&page=1,158,,,unknown,unknown,
+spo-go-kr-site,한국완료,https://www.spo.go.kr/site/spo/ex/board/List.do?cbIdx=1303,227,,,unknown,unknown,
+skm-dk-aktuelt,덴마크완료,https://skm.dk/aktuelt/publikationer/rapporter,457,,,unknown,unknown,
+sonar-ch-global,Switzerland Research Centers,https://sonar.ch/global/search/documents?q=&page=1&size=10&sort=newest&document_type=coar:c_6501,5462,,,unknown,unknown,
+sintef-no-en,Norway Research Centers,https://www.sintef.no/en/search/?querytext=*&flow=reports,141,,,unknown,unknown,
+state-gwd-go-kr-portal,한국완료,https://state.gwd.go.kr/portal/briefing/pressRelease/newpressRelease,614,,,unknown,unknown,
+sfi-ch-en,Switzerland Research Centers,https://www.sfi.ch/en/publications?d=&a=&c=383&q=,288,,,unknown,unknown,
+sm-dk-publikationer,덴마크완료,https://www.sm.dk/publikationer,354,,,unknown,unknown,
+siseministeerium-ee-otsing,Estonia Ministries,https://www.siseministeerium.ee/otsing?filters%5Btype%5D=Artikkel&sort=created&page=1,20,,,unknown,unknown,
+stat-inst-se-om-sis,스웨덴 완료,https://www.stat-inst.se/om-sis/rapporter-och-slutredovisningar/,69,,,unknown,unknown,
+secihti-mx-sala-de-prensa,Mexico Ministries,https://secihti.mx/sala-de-prensa/,218,,,unknown,unknown,
+stepi-re-kr-site,한국완료,https://www.stepi.re.kr/site/stepiko/report/List.do?cateCont=A0202,570,,,unknown,unknown,
+srnl-gov-newsroom,American Research Institutes,https://www.srnl.gov/newsroom/news-releases/,88,89,98.9,wordpress_news-releases,complete,https://www.srnl.gov/wp-json/wp/v2/news-releases
+stami-no-en,Norway Research Centers,https://stami.no/en/publication/?fwp_publikasjontype=academic-article,337,1661,20.3,wordpress_publication,partial,https://stami.no/wp-json/wp/v2/publication
+state-gov-press-releases,USA Executive Departments,https://www.state.gov/press-releases/,30,2192,1.4,wordpress_state_press_release,partial,https://www.state.gov/wp-json/wp/v2/state_press_release
+stats-govt-nz-indicators,뉴질랜드완료,https://www.stats.govt.nz/indicators/,109,,,unknown,unknown,
+stats-govt-nz-publications,뉴질랜드완료,https://www.stats.govt.nz/publications/?categoryFiltersID=385&filters=Reports,87,,,unknown,unknown,
+state-gov-department-reports,USA Executive Departments,https://www.state.gov/department-reports/,10,,,unknown,unknown,
+socialstyrelsen-se-en,스웨덴 완료,https://www.socialstyrelsen.se/en/publications/,127,,,unknown,unknown,
+transport-govt-nz-documents-and-public,뉴질랜드완료,https://www.transport.govt.nz/documents-and-publications/results?Keyword=&TopicID=&DocumentTypeID=133&SortBy=NewestToOldest&action_results=Search,3,,,unknown,unknown,
+swisspeace-ch-publications,Switzerland Research Centers,https://www.swisspeace.ch/publications,304,,,unknown,unknown,
+transportation-gov-newsroom,USA Executive Departments,https://www.transportation.gov/newsroom/press-releases,205,,,unknown,unknown,
+transparency-gov-au-publications,호주완료,https://www.transparency.gov.au/publications,2694,,,unknown,unknown,
+swisstph-ch-en,Switzerland Research Centers,https://www.swisstph.ch/en/publications,1087,,,unknown,unknown,
+tigta-gov-reports,USA Executive Departments,https://www.tigta.gov/reports/list,133,,,unknown,unknown,
+treasury-gov-au-publication,호주완료,https://treasury.gov.au/publication,651,,,unknown,unknown,
+ulsan-go-kr-u,한국완료,https://www.ulsan.go.kr/u/rep/bbs/list.ulsan?bbsId=BBS_0000000000000170&mId=001003007001000000,58,,,unknown,unknown,
+toi-no-publications,Norway Research Centers,https://www.toi.no/publications/category29.html?types=report&area=&author=&searchstring=,470,,,unknown,unknown,
+transformation-gouv-fr-espace-presse,France Ministries,https://www.transformation.gouv.fr/espace-presse?field_type_presse_target_id%5B17%5D=17,211,,,unknown,unknown,
+unikorea-go-kr-web,한국완료,https://www.unikorea.go.kr/web/unikorea/bbs/bbs_0000000000000181,47,,,unknown,unknown,
+sozialministerium-gv-at-services,오스트리아완료,https://www.sozialministerium.gv.at/Services/Studien.html,206,,,unknown,unknown,
+ufm-dk-publikationer,덴마크완료,https://ufm.dk/publikationer,44,,,unknown,unknown,
+trm-dk-nyheder,덴마크완료,https://www.trm.dk/nyheder,404,,,unknown,unknown,
+ungeneva-org-en,Switzerland Research Centers,https://www.ungeneva.org/en/news-media/press-release,93,,,unknown,unknown,
+transportes-gob-es-el-ministerio,Spain Ministries,https://www.transportes.gob.es/el-ministerio/sala-de-prensa,288,,,unknown,unknown,
+unidata-gv-at-pages,오스트리아완료,https://unidata.gv.at/Pages/auswertungen.aspx,404,,,unknown,unknown,
+um-dk-om-os,덴마크완료,https://um.dk/om-os/organisation/oekonomi-og-udbud/oekonomi-maal-og-resultater,24,,,unknown,unknown,
+ukdataservice-ac-uk-2026,영국완료,https://ukdataservice.ac.uk/2026/03/20/latest-data-collections-and-new-editions-20-march-2026/,549,560,98.0,wordpress_posts,complete,https://ukdataservice.ac.uk/wp-json/wp/v2/posts
+ustat-mur-gov-it,Italy Ministries,https://ustat.mur.gov.it/,92,,,unknown,unknown,
+uvek-admin-ch-en,Switzerland Departments,https://www.uvek.admin.ch/en/detec-press-releases,501,,,unknown,unknown,
+swisspolar-ch-expeditions,Switzerland Research Centers,https://swisspolar.ch/expeditions/ace/ace-publications/,94,,,unknown,unknown,
+vbs-admin-ch-en,Switzerland Departments,https://www.vbs.admin.ch/en/newnsb?publisherIDs=5&topicIDs=all&newsCategoryIDs=medienmitteilung&sort=dateDecreasing&display=list&start_date=2024-08-29&end_date=2025-08-29,111,,,unknown,unknown,
+who-int-publications,Switzerland Research Centers,https://www.who.int/publications/i,511,,,unknown,unknown,
+vtg-admin-ch-en,Switzerland Departments,https://www.vtg.admin.ch/en/swiss-peace-supporter-4,18,,,unknown,unknown,
+waltoninstitute-ie-research,Irish Research Centers,https://waltoninstitute.ie/research/publications,566,,,unknown,unknown,
+va-gov-vetdata,USA Executive Departments,https://www.va.gov/vetdata/report.asp,114,,,unknown,unknown,
+wbf-admin-ch-en,Switzerland Departments,https://www.wbf.admin.ch/en/press-information,500,,,unknown,unknown,
+www6-slac-stanford-edu-news-and-events,American Research Institutes,https://www6.slac.stanford.edu/news-and-events/news-center/archive?created=&news_research_area=All&news_type=1,267,,,unknown,unknown,
+vlaanderen-be-nieuwsberichten,벨기에완료,https://www.vlaanderen.be/nieuwsberichten?order_publicationdate=desc,26,,,unknown,unknown,
+wodc-nl-documenten,Dutch Research Centers,https://www.wodc.nl/documenten?type=Jaarverslag,2,,,unknown,unknown,
+women-govt-nz-library,뉴질랜드완료,https://www.women.govt.nz/library,14,,,unknown,unknown,
+xxgk-mot-gov-cn-2020,중국 완료,https://xxgk.mot.gov.cn/2020/zhengce/863/868/869/iframe_list_7232.html,456,,,unknown,unknown,
+wef-infor-cl-indexphp,Chile Ministries,https://wef.infor.cl/index.php/publicaciones,448,,,unknown,unknown,
+werk-belgie-be-nl,벨기에완료,https://werk.belgie.be/nl/nieuws,316,,,unknown,unknown,
+ypen-gov-gr-category,Greece Ministries,https://ypen.gov.gr/category/anakoinoseis-typou/,454,,,unknown,unknown,
+ypes-gr-category,Greece Ministries,https://www.ypes.gr/category/deltia-typoy/,987,,,unknown,unknown,
+usgs-gov-news,American Research Institutes,https://www.usgs.gov/news/news-releases/all-news-releases,1549,,,unknown,unknown,
+wallonie-be-fr,벨기에완료,https://www.wallonie.be/fr/publications,121,,,unknown,unknown,
+statistischebibliothek-de-mir,독일완료,https://www.statistischebibliothek.de/mir/receive/DESerie_mods_00000012?list=all,384,,,unknown,unknown,
+telemarksforsking-no-publikasjoner,Norway Research Centers,https://telemarksforsking.no/publikasjoner/tab/?tab=vitenskapelig,280,,,unknown,unknown,
+ypergasias-gov-gr-category,Greece Ministries,https://ypergasias.gov.gr/category/anakoinoseis-typou/,531,,,unknown,unknown,
+wti-org-research,Switzerland Research Centers,https://www.wti.org/research/publications/?q=&type=2&author=&research_project=,303,386,78.5,html_count_regex,partial,https://www.wti.org/research/publications/?q=&type=2&author=&research_project=
+www2-mrc-lmb-cam-ac-uk-research,영국완료,https://www2.mrc-lmb.cam.ac.uk/research/published-research/,47,,,unknown,unknown,
+yme-gr-2013-01-31-06-37-23,Greece Ministries,https://www.yme.gr/2013-01-31-06-37-23/2013-01-31-07-00-49,3380,2,169000.0,html_count_regex,over,https://www.yme.gr/2013-01-31-06-37-23/2013-01-31-07-00-49
