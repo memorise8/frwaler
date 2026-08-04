@@ -1,7 +1,8 @@
-# Libertree 프로젝트 종합 핸드오프 (2026-07-20)
+# Libertree 프로젝트 종합 핸드오프 (2026-07-20 작성 · **2026-08-04 갱신**)
 
 > **새 세션/새 개발자용 단일 진입 문서.** 컨텍스트 0에서 이 문서만 읽으면 프로젝트 전체를
 > 파악하고 이어서 개발할 수 있도록 self-contained로 작성. 수치는 빠르게 변하므로 항상 DB로 재확인.
+> §0이 최신 변경사항, §1 이후는 7/20 기준 본문(구조·정책·함정은 여전히 유효).
 
 ---
 
@@ -10,6 +11,43 @@
 이 문서는 **정본(canonical) 참조 문서**로서 언제든 읽을 수 있다. 그러나 새 세션은 명시적인 사용자 지시가 있기 전까지 **저장소·Git·파일시스템 메타데이터만** 읽기 전용으로 오리엔테이션한 뒤 결과를 보고하고 대기한다. 이 사전-승인 오리엔테이션에는 DB 질의, 프로세스 점검, Docker 또는 그 밖의 운영 명령이 절대 포함되지 않는다.
 
 그 전에는 Docker·컨테이너·서비스·크롤러·수집·복구·전달·백업 작업을 실행하지 말고, 자격증명에 접근하지 말며, DB·blob·PDF·Excel 데이터를 수정하거나 검사하지 않는다. 아래의 Docker·크롤러 관련 운영 예시와 명령은 **명시적 사용자 승인 후에만 실행할 수 있는 참조 자료**일 뿐이며 이 실행 게이트를 무효화하거나 우선하지 않는다.
+
+---
+
+## 0. 2026-08-04 업데이트 (7/20 이후 변경사항)
+
+### 0.1 현재 수치 (2026-08-04 DB 실측)
+| 지표 | 값 | 7/20 대비 |
+|---|---|---|
+| documents | **525,570** | +43,901 |
+| sites | **804** | +43 |
+| PDF 다운로드 | 303,240 | +5,484 |
+| 텍스트 추출 | 288,124 | = |
+| **한국어 번역(제목·초록)** | **554,692** | 신규 트랙 |
+| DB | `libertree-app/data/libertree.db` **7.0GB** | 경로 변경 |
+| blob | `libertree/` 1.7TB | 디스크 여유 3.6TB |
+
+### 0.2 웹앱 이전: finolaw → **libertree-app** (프로덕션)
+- **Next.js 16 App Router**, `libertree-app/` — §9의 finolaw 설명은 구버전
+- **프로덕션 배포: Cloudflare 터널 → `https://libertree.financenow.kr`** (Basic Auth: `.env` ADMIN_USER/PASSWORD)
+- 추가된 페이지: **`/files`**(blob 스토리지 FTP식 브라우저 + `/api/files`), **`/docs`**(납품문서 뷰어), **`/report`**(수집현황 보고), 문서별 **한/원문 토글**(번역 트랙 연동), doc-type 분류
+- 납품 문서 세트: `docs/deliverables/` (완료보고·API명세·운영가이드 등 md/html/xlsx) — `/docs`에서 서빙
+
+### 0.3 번역 파이프라인 (7/31~, 상주)
+제목·초록 한국어 번역 — qwen(고자원)+GPT(저자원) 이원화, `document_translations`/`document_lang` 테이블, `scripts/translate/`. UI 원문 토글 지원.
+
+### 0.4 케파(전량 규모) 산정 — **진행중, 상세는 `docs/CAPACITY_PIPELINE.md` (단일 진실 문서)**
+업체 "50만이 전부가 아니다" 확인 요청 → 804개 사이트 전량 규모 측정 (count-only·무저장):
+- **A+B(API 정확측정) = 114개 / 16.08M건 확정** — DOAJ 단독 13.36M (server_total 검증)
+- **C+E(HTML 페이징) 544개 sweep 진행중** (522/544, 현재까지 1.14M 확인) → exact_probe(캡·의심 정확값 보정) → 최종보고서 `capacity_final_report.xlsx` 순
+- 전량 다운로드는 스토리지(수십TB) 확보 후 별도 단계. 크롤러 727개 캡은 env(`LIBERTREE_MAX_PAGES`/`LIBERTREE_MAX_WALL_S`)로 상향 가능
+- **재개법·수치·파일맵 전부 CAPACITY_PIPELINE.md 참조** (케파 관련 대화는 그 문서 기준으로)
+
+### 0.5 기타
+- **test.xlsx 검증** (클라이언트 1,995 URL): 수집률 77.7% → 신규 크롤러(멕시코 gob.mx 18부처, 아일랜드 HRB, datos.gob.mx)로 87.6%
+- **크롤러 수리 13개** (CF챌린지 대응 등) + "고장 146" 트리아지: 대부분 측정도구 오탐, 진짜 고장 소수 (`scripts/audit/REPAIR_SUMMARY.md`)
+- 7/30 데이터 품질검수: `docs/LIBERTREE_DATA_REVIEW.md`
+- git: `libertree` 브랜치, 8/4 3커밋 푸시(app/crawlers/audit)
 
 ---
 
@@ -226,6 +264,8 @@ DB 쓰기는 **promote_all / runner / recover_pdfs / backfill 계열만**. summa
 
 아래 후보는 명시적인 사용자 지시가 있어야만 수행할 수 있으며, 새 세션이 자율적으로 시작할 다음 단계가 아니다.
 
+0. **[진행중 8/4] 케파 산정 마무리** — sweep 잔여 → exact_probe → `capacity_final_report.xlsx`. 이어서 D-26곳(datos.gob.mx 계열) 크롤러 제작+측정. **`docs/CAPACITY_PIPELINE.md`의 재개 체크리스트 따를 것**
+0-1. **전량 다운로드 (케파 확정 후)** — 스토리지 확보(수십TB, gdrive 1PB 마운트 후보) → env 캡 상향 → 의심 크롤러 수리 → 실행
 1. **자동수집 미완 60곳 크롤러 (재)생성** — 정부·연구 포털, 자동화로 상당수 회수 가능 (robots 38곳과 같은 방식)
    → `data/audit/미수집_사이트_사유.csv`에서 대상 추출 → claude_required_runner
 2. **납품 패키지 완성** (태스크 미완): DB 스냅샷 + manifest + 외장 디스크 복사
