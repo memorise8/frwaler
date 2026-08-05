@@ -3,6 +3,9 @@
 
 Starting URL: http://en.moj.gov.cn/lawsandregulations.html
 Pagination: lawsandregulations.html (p1), lawsandregulations_2.html, …
+
+Note: site now 301-redirects http -> https; curl needs -L to follow it,
+otherwise the tiny redirect stub body is mistaken for an empty page.
 """
 
 from __future__ import annotations
@@ -36,7 +39,7 @@ class EnMojGovCnLawsRegsCrawler(BaseCrawler):
     def _curl_get(self, url: str) -> str | None:
         """GET via curl with up to 3 retries (1s, 3s, 9s backoff)."""
         cmd = [
-            "curl", "-sk", "--tls-max", "1.3", "--max-time", "30",
+            "curl", "-sk", "-L", "--tls-max", "1.3", "--max-time", "30",
             "-H", f"User-Agent: {self.USER_AGENT}",
             url.strip(),
         ]

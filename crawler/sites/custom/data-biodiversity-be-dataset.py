@@ -25,11 +25,42 @@ class DataBiodiversityBeCrawler(BaseCrawler):
     _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
+    def _solve_anubis(self) -> bool:
+        """Solve the site's Anubis proof-of-work JS challenge once via a
+        real headless browser, then copy the resulting auth cookies into
+        self._session so plain HTTP API calls (curl/requests) pass through
+        for the rest of the crawl without re-solving.
+        """
+        try:
+            from playwright.sync_api import sync_playwright
+            with sync_playwright() as p:
+                browser = p.chromium.launch(
+                    headless=True,
+                    args=["--disable-blink-features=AutomationControlled"],
+                )
+                ctx = browser.new_context(
+                    user_agent=self.USER_AGENT, viewport={"width": 1920, "height": 1080}
+                )
+                page = ctx.new_page()
+                page.goto(self.base_url, timeout=45000, wait_until="domcontentloaded")
+                page.wait_for_timeout(6000)
+                cookies = ctx.cookies()
+                browser.close()
+            for c in cookies:
+                self._session.cookies.set(c["name"], c["value"], domain=c["domain"])
+            print(f"[{self.site_id}] Anubis challenge solved ({len(cookies)} cookies)")
+            return True
+        except Exception as exc:
+            print(f"[{self.site_id}] Anubis challenge solve failed: {exc}")
+            return False
+
     def crawl(self, limit=None):
         saved = 0
         seen_ids = set()
         limit_str = str(limit) if limit is not None else "inf"
         t0 = time.time()
+
+        self._solve_anubis()
 
         for page in range(self._MAX_PAGES):
             if time.time() - t0 > self._BUDGET_SECS:

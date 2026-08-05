@@ -1,12 +1,22 @@
 # -*- coding: utf-8 -*-
 """Crawler for Public Safety Canada news releases.
 
-Starting URL:
-https://www.publicsafety.gc.ca/cnt/nws/nws-rlss/index-en.aspx
+The old listing page (https://www.publicsafety.gc.ca/cnt/nws/nws-rlss/
+index-en.aspx) and its per-year archive pages (.../nws-rlss/{year}/
+index-eng.aspx) now all 404/redirect-to-404 — Public Safety Canada's news
+section was migrated into the centralized Canada.ca news system. The
+department's homepage links to that system's public JSON/atom feed API
+(``api.io.canada.ca/io-server/gc/news/en/v2?dept=publicsafetycanada&...``),
+which returns the full flat list (~630 entries back to ~2017) in one call —
+no HTML list-page scraping or pagination needed.
 
-The listing is server-rendered HTML. Items link mostly to Canada.ca AEM
-news-release detail pages, with older legacy Public Safety ASP.NET pages also
-possible. There is no JSON endpoint exposed by the page.
+Individual news items now live on www.canada.ca (AEM), which fronts a WAF
+that TLS-fingerprints requests: plain ``curl``/``requests`` hang or get an
+HTTP/2 stream error, but curl_cffi's Chrome TLS impersonation gets a clean
+200 (verified). ``_fetch`` therefore uses curl_cffi instead of shelling out
+to curl. Detail-page parsing (``_parse_detail`` and friends) is unchanged —
+it already targets the several government templates (canada.ca,
+publicsafety.gc.ca legacy, pm.gc.ca, scics.ca, ...) these items can land on.
 """
 
 from __future__ import annotations
@@ -14,7 +24,6 @@ from __future__ import annotations
 import json
 import os
 import re
-import subprocess
 import time
 import uuid
 from datetime import datetime
@@ -29,17 +38,11 @@ from crawler.base_crawler import BaseCrawler
 
 SITE_ID = "publicsafety-gc-ca-cnt"
 BASE_URL = "https://www.publicsafety.gc.ca"
-LIST_URL = f"{BASE_URL}/cnt/nws/nws-rlss/index-en.aspx"
-# The index page itself has no query-string pagination — it is one flat list
-# (~900 entries, back to ~2015). Older history lives on separate per-year
-# "archived" pages linked from the top of the index. Queuing them after the
-# main list gives a genuine full-depth crawl for limits beyond what the
-# single index page holds.
-ARCHIVE_YEAR_URLS = [
-    f"{BASE_URL}/cnt/nws/nws-rlss/{year}/index-eng.aspx"
-    for year in (2015, 2014, 2013, 2012, 2011)
-]
-MAX_PAGES = 200
+_API_URL = (
+    "https://api.io.canada.ca/io-server/gc/news/en/v2"
+    "?dept=publicsafetycanada&type=newsreleases,statements"
+    "&sort=publishedDate&orderBy=desc&pick=1000&format=json"
+)
 MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 WALL_CLOCK_GRACE_SECONDS = 15
 
@@ -62,34 +65,31 @@ def _make_soup(raw: str) -> BeautifulSoup | None:
 
 
 def _fetch(url: str, *, retries: int = 3, timeout: int = 40) -> str | None:
-    """Fetch URL using curl with exponential-backoff retries."""
+    """Fetch URL via curl_cffi (Chrome TLS impersonation), retrying with
+    exponential backoff. Plain curl/requests get stuck or HTTP/2-error
+    against the canada.ca WAF; curl_cffi gets a clean 200 (verified)."""
+    from curl_cffi import requests as _creq
     backoffs = (1, 3, 9)
+    last_error = "unknown error"
     for attempt in range(retries):
         try:
-            result = subprocess.run(
-                [
-                    "curl",
-                    "--tls-max",
-                    "1.3",
-                    "-sk",
-                    "-L",
-                    "--max-time",
-                    str(timeout),
-                    url,
-                ],
-                capture_output=True,
-                timeout=timeout + 5,
+            resp = _creq.get(
+                url, impersonate="chrome131", timeout=timeout, allow_redirects=True,
+                headers={
+                    "Accept": "text/html,application/xhtml+xml,application/xml,"
+                              "application/json;q=0.9,*/*;q=0.8",
+                    "Accept-Language": "en-US,en;q=0.9,fr;q=0.5",
+                },
             )
-            if result.returncode == 0 and result.stdout:
-                return result.stdout.decode("utf-8", errors="replace")
-            stderr = result.stderr.decode("utf-8", errors="replace").strip()
-            print(
-                f"[{SITE_ID}] curl failed (attempt {attempt + 1}/{retries}) "
-                f"for {url}: code={result.returncode} {stderr}"
-            )
+            if resp.status_code == 200 and resp.content:
+                return resp.text
+            last_error = f"HTTP {resp.status_code}; {len(resp.content)} bytes"
         except Exception as exc:
-            print(f"[{SITE_ID}] curl error (attempt {attempt + 1}/{retries}) for {url}: {exc}")
-
+            last_error = str(exc)
+        print(
+            f"[{SITE_ID}] fetch failed (attempt {attempt + 1}/{retries}) "
+            f"for {url}: {last_error}"
+        )
         if attempt < retries - 1:
             time.sleep(backoffs[attempt])
 
@@ -297,49 +297,26 @@ def _extract_first_body_date(soup: BeautifulSoup) -> str | None:
     return None
 
 
-_MONTH_DATE_RE = re.compile(
-    r"\b(January|February|March|April|May|June|July|August|September|October|"
-    r"November|December)\s+\d{1,2},\s+\d{4}\b"
-)
-
-
-def _extract_list_items(soup: BeautifulSoup, page_url: str) -> list[dict]:
-    """Extract news-release rows from a list page.
-
-    The three markup variants seen across the current index and the
-    per-year archive pages (``<li class="list-group-item">`` with a
-    ``<small class="text-muted">`` date, ``<li class="list-group-item">``
-    with a bare ``<small>`` date, and a plain ``<li>`` with the date as
-    trailing text) all share one trait: the row's text contains a
-    "Month D, YYYY" date next to the link. Matching on that date pattern
-    instead of specific classes/tags is what makes this work uniformly,
-    and it naturally excludes nav-only ``<li>`` rows (breadcrumbs, the
-    "20xx (archived)" links) since those never contain a date.
+def _extract_api_items(raw_json: str) -> list[dict]:
+    """Parse the Canada.ca centralized news feed's ``format=json`` response
+    (``{"feed": {"entry": [{"link", "title", "teaser", "publishedDate"}]}}``)
+    into the same item-dict shape ``_parse_detail`` expects.
     """
+    try:
+        data = json.loads(raw_json)
+    except Exception as exc:
+        print(f"[{SITE_ID}] feed JSON parse failed: {exc}")
+        return []
+
+    entries = ((data.get("feed") or {}).get("entry")) or []
     items: list[dict] = []
-    main = soup.find(id="wb-cont") or soup.find("main") or soup
-
-    for li_tag in main.find_all("li"):
-        a_tag = li_tag.find("a", href=True)
-        if not a_tag:
+    for entry in entries:
+        url = entry.get("link")
+        title = _clean_text(entry.get("title"))
+        if not url or not title:
             continue
 
-        href = a_tag.get("href", "")
-        title = _clean_text(a_tag.get_text(" ", strip=True))
-        if not href or not title:
-            continue
-
-        text_all = _clean_text(li_tag.get_text(" ", strip=True))
-        date_match = _MONTH_DATE_RE.search(text_all)
-        if not date_match:
-            # Not a news-release row (nav link, breadcrumb, archive-year link, ...).
-            continue
-
-        url = urljoin(page_url, href)
-        if not url.lower().startswith("http"):
-            continue
-
-        raw_date = date_match.group(0)
+        raw_date = entry.get("publishedDate") or ""
         listed_date = _date_to_iso(raw_date)
         slug = _slug_from_url(url)
 
@@ -351,21 +328,12 @@ def _extract_list_items(soup: BeautifulSoup, page_url: str) -> list[dict]:
                 "listed_date": listed_date,
                 "external_id": slug,
                 "post_number": _post_number_from_url(url, slug),
-                "source_list_url": page_url,
+                "source_list_url": _API_URL,
+                "teaser": _clean_text(entry.get("teaser")),
             }
         )
 
     return items
-
-
-def _extract_next_page_url(soup: BeautifulSoup, page_url: str) -> str | None:
-    for a_tag in soup.find_all("a", href=True):
-        rel = " ".join(a_tag.get("rel") or [])
-        text = _clean_text(a_tag.get_text(" ", strip=True)).lower()
-        aria = _clean_text(a_tag.get("aria-label")).lower()
-        if "next" in rel.lower() or text in {"next", "next page"} or "next" in aria:
-            return urljoin(page_url, a_tag["href"])
-    return None
 
 
 def _parse_detail(detail_html: str, url: str, list_item: dict) -> dict:
@@ -471,94 +439,95 @@ class PublicSafetyGcCaCntCrawler(BaseCrawler):
     def crawl(self, limit=None):
         saved = 0
         seen_urls: set[str] = set()
-        seen_page_urls: set[str] = set()
-        # Queue starts with the flat current-list index, then falls back to
-        # the per-year archive pages for full depth. Any genuine "next"
-        # link discovered on a page (in case the site adds real pagination
-        # later) is appended to the same queue rather than followed ad hoc.
-        pending_pages = [LIST_URL] + list(ARCHIVE_YEAR_URLS)
-        page = 0
         start_time = time.time()
         limit_or_inf = str(limit) if limit is not None else "inf"
 
-        while pending_pages:
+        print(f"[{self.site_id}] fetching news feed: {_API_URL}")
+        feed_raw = _fetch(_API_URL)
+        if not feed_raw:
+            print(f"[{self.site_id}] feed fetch failed; stopping.")
+            return 0
+
+        items = _extract_api_items(feed_raw)
+        if not items:
+            print(f"[{self.site_id}] 0 records from feed; stopping.")
+            return 0
+        print(f"[{self.site_id}] feed returned {len(items)} records")
+
+        for item_number, item in enumerate(items, start=1):
             if limit is not None and saved >= limit:
                 break
-            if page >= MAX_PAGES:
-                print(f"[{self.site_id}] safety cap of {MAX_PAGES} pages reached; stopping.")
-                break
-            elapsed = time.time() - start_time
-            if elapsed >= MAX_WALL_SECONDS - WALL_CLOCK_GRACE_SECONDS:
+            if time.time() - start_time >= MAX_WALL_SECONDS - WALL_CLOCK_GRACE_SECONDS:
                 print(f"[{self.site_id}] approaching 25-minute wall-clock budget; stopping cleanly.")
                 break
 
-            page_url = pending_pages.pop(0)
-            if page_url in seen_page_urls:
+            if item["url"] in seen_urls:
                 continue
-            seen_page_urls.add(page_url)
+            seen_urls.add(item["url"])
 
-            if page % 10 == 0:
-                print(f"[{self.site_id}] page {page}: saved {saved}/{limit_or_inf}")
+            if item_number % 50 == 0:
+                print(f"[{self.site_id}] item {item_number}/{len(items)}: saved {saved}/{limit_or_inf}")
 
-            list_html = _fetch(page_url)
-            if not list_html:
-                print(f"[{self.site_id}] page {page}: fetch failed; skipping.")
-                page += 1
-                continue
+            try:
+                time.sleep(getattr(self, "_delay", 1.0))
+                detail_html = _fetch(item["url"])
+                paper = None
+                if detail_html:
+                    try:
+                        paper = _parse_detail(detail_html, item["url"], item)
+                    except Exception as exc:
+                        print(f"[{self.site_id}] item {item_number} detail parse failed: {exc}")
 
-            soup = _make_soup(list_html)
-            if soup is None:
-                print(f"[{self.site_id}] page {page}: parse failed; skipping.")
-                page += 1
-                continue
-
-            items = _extract_list_items(soup, page_url)
-            if not items:
-                print(f"[{self.site_id}] page {page}: 0 records; skipping.")
-                page += 1
-                continue
-
-            new_items = [item for item in items if item["url"] not in seen_urls]
-            if not new_items:
-                print(f"[{self.site_id}] page {page}: all item URLs already seen; skipping.")
-                page += 1
-                continue
-            for item in new_items:
-                seen_urls.add(item["url"])
-
-            for item_number, item in enumerate(new_items, start=1):
-                if limit is not None and saved >= limit:
-                    break
-                if time.time() - start_time >= MAX_WALL_SECONDS - WALL_CLOCK_GRACE_SECONDS:
-                    print(f"[{self.site_id}] approaching 25-minute wall-clock budget; stopping cleanly.")
-                    return saved
-
-                try:
-                    time.sleep(getattr(self, "_delay", 1.0))
-                    detail_html = _fetch(item["url"])
-                    if not detail_html:
-                        print(f"[{self.site_id}] item {item_number} failed: detail fetch returned no body")
+                if paper is None:
+                    # Detail fetch/parse failed — fall back to the feed's own
+                    # teaser text so a transient per-item failure doesn't
+                    # lose the record entirely.
+                    teaser = item.get("teaser") or ""
+                    if len(teaser) < 50:
+                        print(f"[{self.site_id}] item {item_number} failed: no usable content")
                         continue
+                    publisher = _publisher_from_domain(item["url"]) or "Public Safety Canada"
+                    paper = {
+                        "id": str(uuid.uuid5(uuid.NAMESPACE_URL, item["url"])),
+                        "site_id": SITE_ID,
+                        "external_id": item["external_id"],
+                        "post_number": item["post_number"],
+                        "title": item["title"],
+                        "abstract": teaser,
+                        "published_date": item["listed_date"],
+                        "listed_date": item["listed_date"],
+                        "posted_date": item["listed_date"],
+                        "authors": None,
+                        "publisher": publisher,
+                        "department": publisher,
+                        "journal": None,
+                        "url": item["url"],
+                        "pdf_url": None,
+                        "keywords": None,
+                        "category": "News release",
+                        "doi": None,
+                        "original_filename": None,
+                        "metadata": json.dumps({
+                            "posted_date": item.get("raw_listed_date"),
+                            "listed_date": item["listed_date"],
+                            "source_list_url": item.get("source_list_url"),
+                            "fallback": "feed_teaser",
+                        }, ensure_ascii=False),
+                    }
 
-                    paper = _parse_detail(detail_html, item["url"], item)
-                    abstract = _clean_text(paper.get("abstract"))
-                    paper["abstract"] = abstract
-                    if len(abstract) < 50:
-                        print(f"[{self.site_id}] skipping (abstract <50 chars): {item['url']}")
-                        continue
-
-                    self._save_paper(paper)
-                    saved += 1
-                except KeyboardInterrupt:
-                    raise
-                except Exception as exc:
-                    print(f"[{self.site_id}] item {item_number} failed: {exc}")
+                abstract = _clean_text(paper.get("abstract"))
+                paper["abstract"] = abstract
+                if len(abstract) < 50:
+                    print(f"[{self.site_id}] skipping (abstract <50 chars): {item['url']}")
                     continue
 
-            next_url = _extract_next_page_url(soup, page_url)
-            if next_url and next_url not in seen_page_urls and next_url not in pending_pages:
-                pending_pages.append(next_url)
-            page += 1
+                self._save_paper(paper)
+                saved += 1
+            except KeyboardInterrupt:
+                raise
+            except Exception as exc:
+                print(f"[{self.site_id}] item {item_number} failed: {exc}")
+                continue
 
         print(f"[{self.site_id}] done. saved={saved}")
         return saved

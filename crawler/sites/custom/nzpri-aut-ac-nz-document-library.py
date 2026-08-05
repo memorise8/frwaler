@@ -10,6 +10,11 @@ Strategy:
   - post_number = the numeric Squiz asset ID embedded in the component div.
     For working papers without a component div (e.g. "26/03 Title..."),
     derive a synthetic key from the working-paper code.
+
+NOTE (2026-08): nzpri.aut.ac.nz now sits behind a Cloudflare JS challenge
+("Just a moment...") that returns 403 to plain curl/requests. Fetches go
+through crawler.stealth_fetcher.StealthSession (curl_cffi -> playwright
+fallback) instead of raw curl.
 """
 
 from __future__ import annotations
@@ -17,12 +22,12 @@ from __future__ import annotations
 import json
 import os
 import re
-import subprocess
 import time
 from html import unescape
 from urllib.parse import urljoin
 
 from crawler.base_crawler import BaseCrawler
+from crawler.stealth_fetcher import StealthSession
 
 _API_URL = (
     "https://nzpri.aut.ac.nz/document-library/document-library-search"
@@ -45,29 +50,6 @@ def _bs4(html: str):
     raise RuntimeError("no working HTML parser available")
 
 
-def _curl_get(url: str, retries: int = 3) -> str | None:
-    """GET via curl with exponential backoff; returns decoded text or None."""
-    waits = (1, 3, 9)
-    for attempt in range(retries):
-        try:
-            result = subprocess.run(
-                [
-                    "curl", "-sk", "--tls-max", "1.3", "--max-time", "30",
-                    "-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                          "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                    url,
-                ],
-                capture_output=True,
-                timeout=35,
-            )
-            text = result.stdout.decode("utf-8", errors="replace")
-            if text.strip():
-                return text
-        except Exception as exc:
-            print(f"[nzpri-aut-ac-nz-document-library] curl error attempt {attempt + 1}: {exc}")
-        if attempt < retries - 1:
-            time.sleep(waits[attempt])
-    return None
 
 
 def _date_from_title(title: str) -> str | None:
@@ -115,6 +97,26 @@ class NZPRIDocumentLibraryCrawler(BaseCrawler):
     site_name = "Custom: nzpri-aut-ac-nz-document-library"
     base_url = "https://nzpri.aut.ac.nz"
 
+    FETCH_RETRIES = 3
+
+    def __init__(self, db_conn, delay=1.0):
+        super().__init__(db_conn, delay=delay)
+        self._stealth = StealthSession(playwright_timeout=60)
+
+    def _fetch(self, url):
+        """GET via StealthSession (curl_cffi -> playwright fallback), with retries."""
+        for attempt in range(self.FETCH_RETRIES):
+            html, info = self._stealth.fetch_html(url)
+            if html and info.get("final_reason") == "ok":
+                return html
+            print(
+                f"[{self.site_id}] fetch attempt {attempt + 1}/"
+                f"{self.FETCH_RETRIES} failed for {url}: {info.get('final_reason')}"
+            )
+            if attempt < self.FETCH_RETRIES - 1:
+                time.sleep(2 * (attempt + 1))
+        return None
+
     def crawl(self, limit=None):
         started = time.monotonic()
         MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
@@ -124,7 +126,7 @@ class NZPRIDocumentLibraryCrawler(BaseCrawler):
         limit_str = str(limit) if limit is not None else "∞"
 
         print(f"[{self.site_id}] Fetching document library API...")
-        raw = _curl_get(_API_URL)
+        raw = self._fetch(_API_URL)
         if not raw:
             print(f"[{self.site_id}] Failed to fetch API. Aborting.")
             return 0

@@ -4,10 +4,10 @@
 import json
 import os
 import re
-import subprocess
 import time
 
 from crawler.base_crawler import BaseCrawler
+from crawler.stealth_fetcher import StealthSession
 
 
 def _make_soup(raw):
@@ -34,36 +34,33 @@ class ISSNationalLabAboutCrawler(BaseCrawler):
 
     _LIST_URL = "https://issnationallab.org/about/annual-quarterly-reports-metrics/"
 
+    def __init__(self, db_conn, delay=1.0):
+        super().__init__(db_conn=db_conn, delay=delay)
+        self._stealth = StealthSession(playwright_timeout=60)
+
     # ------------------------------------------------------------------
     # HTTP helpers
     # ------------------------------------------------------------------
 
     def _curl_get(self, url, retries=3):
-        """Fetch URL via curl with retry/exponential-backoff. Returns text or None."""
-        cmd = [
-            "curl", "--tls-max", "1.3", "-sk", "-L",
-            "--max-time", "30",
-            "-H", "Accept: text/html,*/*;q=0.8",
-            "-H", "Accept-Language: en-US,en;q=0.9",
-            url,
-        ]
+        """Fetch URL via StealthSession with retry/exponential-backoff.
+
+        Plain curl gets a bare "403 Forbidden" from this site's WAF;
+        curl_cffi's Chrome TLS fingerprint impersonation (layer 1 of
+        StealthSession) gets a clean 200. Returns text or None.
+        """
         for attempt in range(retries):
-            try:
-                result = subprocess.run(cmd, capture_output=True, timeout=35)
-                if result.stdout:
-                    return result.stdout.decode('utf-8', errors='replace')
-                if attempt < retries - 1:
-                    wait = (attempt + 1) * 3
-                    print(f"[{self.site_id}] Empty response for {url[:80]}, "
-                          f"retry in {wait}s...")
-                    time.sleep(wait)
-            except Exception as exc:
-                if attempt < retries - 1:
-                    wait = (attempt + 1) * 3
-                    print(f"[{self.site_id}] curl error: {exc}, retry in {wait}s...")
-                    time.sleep(wait)
-                else:
-                    print(f"[{self.site_id}] curl failed after {retries} attempts: {exc}")
+            html, info = self._stealth.fetch_html(url)
+            if html and info.get("final_reason") == "ok":
+                return html
+            if attempt < retries - 1:
+                wait = (attempt + 1) * 3
+                print(f"[{self.site_id}] fetch failed for {url[:80]} "
+                      f"({info.get('final_reason')}), retry in {wait}s...")
+                time.sleep(wait)
+            else:
+                print(f"[{self.site_id}] fetch failed after {retries} attempts: "
+                      f"{info.get('final_reason')}")
         return None
 
     # ------------------------------------------------------------------

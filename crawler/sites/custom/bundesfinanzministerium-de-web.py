@@ -4,11 +4,11 @@
 import json
 import os
 import re
-import subprocess
 import time
 from urllib.parse import urlparse
 
 from crawler.base_crawler import BaseCrawler
+from crawler.stealth_fetcher import StealthSession
 
 
 class BundesfinanzministeriumWebCrawler(BaseCrawler):
@@ -26,38 +26,30 @@ class BundesfinanzministeriumWebCrawler(BaseCrawler):
     _CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _MIN_ABSTRACT = 50
 
+    def __init__(self, db_conn, delay=1.0):
+        super().__init__(db_conn=db_conn, delay=delay)
+        self._stealth = StealthSession(playwright_timeout=60)
+
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
 
     def _curl_get(self, url, retries=3):
-        """Fetch *url* via curl with TLS compatibility; retries with backoff."""
+        """Fetch *url* via StealthSession (site sits behind a Radware WAF
+        that 403/captcha-challenges plain curl; curl_cffi's Chrome TLS
+        fingerprint impersonation, layer 1 of StealthSession, gets a clean
+        200 here without needing the browser fallback)."""
         backoff = [0, 1, 3]
         for attempt in range(retries):
             if backoff[attempt]:
                 time.sleep(backoff[attempt])
-            try:
-                result = subprocess.run(
-                    [
-                        "curl", "--tls-max", "1.3", "-sk", "-L",
-                        "-H", f"User-Agent: {self.USER_AGENT}",
-                        "-H", "Accept: text/html,application/xhtml+xml,*/*;q=0.8",
-                        "--max-time", "30",
-                        url,
-                    ],
-                    capture_output=True,
-                    timeout=35,
-                )
-                if result.returncode == 0 and result.stdout:
-                    return result.stdout.decode("utf-8", errors="replace")
-                print(
-                    f"[{self.site_id}] curl exit {result.returncode} "
-                    f"(attempt {attempt+1}/{retries}): {url}"
-                )
-            except subprocess.TimeoutExpired:
-                print(f"[{self.site_id}] curl timeout (attempt {attempt+1}/{retries}): {url}")
-            except Exception as exc:
-                print(f"[{self.site_id}] curl error (attempt {attempt+1}/{retries}): {exc}")
+            html, info = self._stealth.fetch_html(url)
+            if html and info.get("final_reason") == "ok":
+                return html
+            print(
+                f"[{self.site_id}] fetch attempt {attempt+1}/{retries} failed "
+                f"for {url}: {info.get('final_reason')}"
+            )
         return None
 
     def _make_soup(self, html):

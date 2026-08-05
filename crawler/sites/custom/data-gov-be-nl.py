@@ -81,6 +81,12 @@ class DataGovBeNlCrawler(BaseCrawler):
     base_url = _BASE_URL
 
     def crawl(self, limit=None):
+        try:
+            return self._crawl_impl(limit)
+        finally:
+            self._close_browser()
+
+    def _crawl_impl(self, limit=None):
         """Crawl the Dutch PDF dataset listing and persist document records."""
         if limit is not None and limit <= 0:
             return 0
@@ -165,7 +171,66 @@ class DataGovBeNlCrawler(BaseCrawler):
     # Network helpers
     # ------------------------------------------------------------------
 
+    def _get_page(self):
+        """Lazily start a persistent headless-browser page for this crawl.
+
+        data.gov.be (Drupal) fronts every page with an F5/TSPD JS bot-
+        defense challenge that plain curl can never solve; ldf.belgif.be
+        (the LDF/DCAT endpoint) is unaffected and keeps using plain curl.
+        """
+        if getattr(self, "_pw_page", None) is None:
+            from playwright.sync_api import sync_playwright
+            self._pw = sync_playwright().start()
+            self._pw_browser = self._pw.chromium.launch(
+                headless=True,
+                args=["--disable-blink-features=AutomationControlled"],
+            )
+            self._pw_context = self._pw_browser.new_context(
+                user_agent=self.USER_AGENT, viewport={"width": 1920, "height": 1080}
+            )
+            self._pw_page = self._pw_context.new_page()
+        return self._pw_page
+
+    def _close_browser(self):
+        try:
+            if getattr(self, "_pw_browser", None) is not None:
+                self._pw_browser.close()
+        except Exception:
+            pass
+        try:
+            if getattr(self, "_pw", None) is not None:
+                self._pw.stop()
+        except Exception:
+            pass
+        self._pw_page = None
+        self._pw_browser = None
+        self._pw = None
+
+    def _curl_get_browser(self, url, timeout=35):
+        """Fetch a data.gov.be URL via a real headless browser."""
+        for attempt in range(3):
+            try:
+                page = self._get_page()
+                page.goto(url, timeout=timeout * 1000, wait_until="domcontentloaded")
+                page.wait_for_timeout(8000)
+                pre = page.query_selector("pre")
+                if pre is not None:
+                    # XML/JSON responses are shown by Chrome's raw viewer,
+                    # HTML-entity-escaped inside a <pre>; inner_text() gives
+                    # back the original unescaped payload.
+                    return pre.inner_text()
+                return page.content()
+            except Exception as exc:
+                wait = (1, 3, 9)[min(attempt, 2)]
+                print(f"[{self.site_id}] browser fetch attempt {attempt + 1}/3 failed for {url}: {exc}; retrying in {wait}s")
+                self._close_browser()
+                if attempt < 2:
+                    time.sleep(wait)
+        return None
+
     def _curl_get(self, url, accept="*/*", timeout=35):
+        if urlparse(url).netloc == "data.gov.be":
+            return self._curl_get_browser(url, timeout=timeout)
         cmd = [
             "curl",
             "--tls-max",

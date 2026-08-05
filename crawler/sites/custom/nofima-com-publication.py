@@ -4,12 +4,20 @@
 List URL:  https://nofima.com/bc_tax_pubtype/nofimareports/page/{N}/
 Detail:    https://nofima.com/publication/{cristin_id}/
 API:       WordPress HTML archive (bc_publication post type, not REST-exposed)
+
+The whole nofima.com origin now sits behind an active Cloudflare managed
+JS challenge ("Just a moment..." interstitial) — plain curl/requests (even
+curl_cffi Chrome-TLS-impersonation) get a 403. A real browser is required
+to execute/clear the challenge. We keep one headless Playwright
+context/page alive for the whole crawl() call (challenge-clearance cookies
+persist across navigations in the same context, so only the *first*
+navigation pays the challenge-solve latency; subsequent page/detail fetches
+are fast).
 """
 
 import json
 import os
 import re
-import subprocess
 import sys
 import time
 from pathlib import Path
@@ -47,33 +55,7 @@ def _make_soup(raw):
 # ---------------------------------------------------------------------------
 
 _SITE_ID = "nofima-com-publication"
-
-
-def _curl_get(url, retries=3, timeout=30):
-    """GET via curl with exponential backoff; returns text or None."""
-    cmd = [
-        "curl", "-skL", "--tls-max", "1.3", "--max-time", str(timeout),
-        "-H", "Accept: text/html,application/xhtml+xml,*/*;q=0.8",
-        "-H", "Accept-Language: en-US,en;q=0.9",
-        "-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        url,
-    ]
-    waits = [1, 3, 9]
-    for attempt in range(retries):
-        try:
-            result = subprocess.run(cmd, capture_output=True, timeout=timeout + 10)
-            text = result.stdout.decode("utf-8", errors="replace")
-            if text.strip():
-                return text
-            if attempt < retries - 1:
-                time.sleep(waits[attempt])
-        except Exception as exc:
-            if attempt < retries - 1:
-                print(f"[{_SITE_ID}] curl error {url}: {exc}, retrying in {waits[attempt]}s")
-                time.sleep(waits[attempt])
-            else:
-                print(f"[{_SITE_ID}] curl failed after {retries} attempts: {url}: {exc}")
-    return None
+_CHALLENGE_TITLES = ("just a moment", "attention required")
 
 
 # ---------------------------------------------------------------------------
@@ -110,6 +92,82 @@ class NofimaCOMPublicationCrawler(BaseCrawler):
     _MAX_MINUTES = 25
 
     # ------------------------------------------------------------------
+    # Playwright session (Cloudflare managed-challenge bypass)
+    # ------------------------------------------------------------------
+
+    def _get_page(self):
+        """Lazily launch a single headless-Chromium page for the whole crawl.
+
+        Reused across every list/detail fetch so the Cloudflare challenge
+        (solved once on the first navigation) stays cleared for the rest of
+        the run via the context's cookies.
+        """
+        if getattr(self, "_pw_page", None) is not None:
+            return self._pw_page
+        from playwright.sync_api import sync_playwright
+        try:
+            from playwright_stealth import Stealth
+            stealth = Stealth()
+        except ImportError:
+            stealth = None
+
+        self._pw = sync_playwright().start()
+        self._pw_browser = self._pw.chromium.launch(
+            headless=True, args=["--disable-blink-features=AutomationControlled"],
+        )
+        self._pw_context = self._pw_browser.new_context(
+            user_agent=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                        "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"),
+            viewport={"width": 1920, "height": 1080},
+            locale="en-US",
+        )
+        self._pw_page = self._pw_context.new_page()
+        if stealth:
+            try:
+                stealth.apply_stealth_sync(self._pw_page)
+            except Exception:
+                pass
+        return self._pw_page
+
+    def _close_browser(self):
+        for attr, closer in (
+            ("_pw_context", lambda o: o.close()),
+            ("_pw_browser", lambda o: o.close()),
+            ("_pw", lambda o: o.stop()),
+        ):
+            obj = getattr(self, attr, None)
+            if obj is not None:
+                try:
+                    closer(obj)
+                except Exception:
+                    pass
+        self._pw_page = None
+
+    def _fetch_html(self, url, timeout=45, retries=2):
+        """Navigate to ``url`` with the persistent page, waiting out the
+        Cloudflare challenge if it appears. Returns HTML text or None.
+        """
+        page = self._get_page()
+        for attempt in range(retries):
+            try:
+                page.goto(url, timeout=timeout * 1000, wait_until="domcontentloaded")
+                for _ in range(14):
+                    title = (page.title() or "").strip().lower()
+                    if not any(k in title for k in _CHALLENGE_TITLES):
+                        break
+                    page.wait_for_timeout(1500)
+                html = page.content()
+                title = (page.title() or "").strip().lower()
+                if any(k in title for k in _CHALLENGE_TITLES):
+                    print(f"[{self.site_id}] challenge did not clear (attempt {attempt+1}/{retries}) — {url[:80]}")
+                    continue
+                return html
+            except Exception as exc:
+                print(f"[{self.site_id}] playwright fetch error (attempt {attempt+1}/{retries}) {url[:80]}: {exc}")
+                time.sleep(2)
+        return None
+
+    # ------------------------------------------------------------------
     def crawl(self, limit=None):
         saved = 0
         seen_urls = set()
@@ -117,6 +175,15 @@ class NofimaCOMPublicationCrawler(BaseCrawler):
         start_time = time.time()
         limit_str = str(limit) if limit is not None else "inf"
 
+        try:
+            saved, page = self._crawl_inner(limit, limit_str, saved, seen_urls, page, start_time)
+        finally:
+            self._close_browser()
+
+        print(f"[{self.site_id}] crawl complete: saved {saved} items across {page - 1} pages")
+        return saved
+
+    def _crawl_inner(self, limit, limit_str, saved, seen_urls, page, start_time):
         while True:
             if limit is not None and saved >= limit:
                 break
@@ -130,7 +197,7 @@ class NofimaCOMPublicationCrawler(BaseCrawler):
 
             list_url = self._LIST_BASE if page == 1 else f"{self._LIST_BASE}page/{page}/"
 
-            raw = _curl_get(list_url)
+            raw = self._fetch_html(list_url)
             if not raw:
                 print(f"[{self.site_id}] Failed to fetch list page {page}, stopping")
                 break
@@ -180,13 +247,12 @@ class NofimaCOMPublicationCrawler(BaseCrawler):
 
             page += 1
 
-        print(f"[{self.site_id}] crawl complete: saved {saved} items across {page - 1} pages")
-        return saved
+        return saved, page
 
     # ------------------------------------------------------------------
     def _fetch_detail(self, url):
         """Fetch and parse one publication detail page; return paper dict or None."""
-        raw = _curl_get(url)
+        raw = self._fetch_html(url)
         if not raw:
             print(f"[{self.site_id}] Failed to fetch detail: {url}")
             return None

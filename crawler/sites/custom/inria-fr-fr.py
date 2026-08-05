@@ -6,7 +6,6 @@ from __future__ import annotations
 import json
 import os
 import re
-import subprocess
 import time
 from html import unescape
 from urllib.parse import urljoin, urlparse
@@ -32,6 +31,12 @@ class InriaFrFrCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        try:
+            return self._crawl_impl(limit)
+        finally:
+            self._close_browser()
+
+    def _crawl_impl(self, limit=None):
         saved = 0
         page = 0
         seen_urls: set[str] = set()
@@ -271,33 +276,65 @@ class InriaFrFrCrawler(BaseCrawler):
     # Network
     # ------------------------------------------------------------------
 
+    def _get_page(self):
+        """Lazily start a persistent headless-browser page for this crawl.
+
+        The site now fronts every URL with an Anubis proof-of-work JS
+        challenge ("Making sure you're not a bot!") that plain curl can
+        never solve. A real headless Chromium context is required; once
+        solved, the Anubis cookie is reused for subsequent navigations in
+        the same context (list + all detail pages), so only the first
+        request pays the PoW cost.
+        """
+        if getattr(self, "_pw_page", None) is None:
+            from playwright.sync_api import sync_playwright
+            self._pw = sync_playwright().start()
+            self._pw_browser = self._pw.chromium.launch(
+                headless=True,
+                args=["--disable-blink-features=AutomationControlled"],
+            )
+            self._pw_context = self._pw_browser.new_context(
+                user_agent=self.USER_AGENT, viewport={"width": 1920, "height": 1080}
+            )
+            self._pw_page = self._pw_context.new_page()
+        return self._pw_page
+
+    def _close_browser(self) -> None:
+        try:
+            if getattr(self, "_pw_browser", None) is not None:
+                self._pw_browser.close()
+        except Exception:
+            pass
+        try:
+            if getattr(self, "_pw", None) is not None:
+                self._pw.stop()
+        except Exception:
+            pass
+        self._pw_page = None
+        self._pw_browser = None
+        self._pw = None
+
     def _curl_get(self, url: str, context: str = "request") -> str | None:
-        cmd = [
-            "curl", "--tls-max", "1.3", "-skL", "--compressed",
-            "--connect-timeout", "15",
-            "--max-time", str(self._CURL_TIMEOUT),
-            "-A", self.USER_AGENT,
-            "-H", "Accept: text/html,application/xhtml+xml,*/*;q=0.8",
-            "-H", "Accept-Language: fr-FR,fr;q=0.9,en;q=0.7",
-            url,
-        ]
         last_error = ""
         for attempt in range(1, 4):
             try:
-                result = subprocess.run(
-                    cmd, capture_output=True, timeout=self._CURL_TIMEOUT + 10
-                )
-                if result.returncode != 0:
-                    raise RuntimeError(f"curl exit {result.returncode}")
-                body = result.stdout
-                if not body:
+                page = self._get_page()
+                page.goto(url, timeout=45000, wait_until="domcontentloaded")
+                page.wait_for_timeout(6000)
+                html = page.content()
+                if "Making sure you're not a bot" in html or "id=\"anubis_challenge\"" in html:
+                    # Challenge not yet resolved; give the PoW script more time.
+                    page.wait_for_timeout(6000)
+                    html = page.content()
+                if not html:
                     raise RuntimeError("empty response")
-                return body.decode("utf-8", errors="replace")
+                return html
             except Exception as exc:
                 last_error = str(exc)
                 print(
                     f"[{self.site_id}] {context} attempt {attempt}/3 failed: {last_error}"
                 )
+                self._close_browser()
                 if attempt < 3:
                     time.sleep(self._BACKOFF[attempt - 1])
         print(f"[{self.site_id}] {context} failed after 3 attempts: {last_error}")

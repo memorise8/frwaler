@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 """kostat.go.kr 국가통계포털 법령정보 게시판 (bid=1401) crawler.
 
-Target: https://www.kostat.go.kr/board.es?mid=a10403010000&bid=1401
+Target: https://mods.go.kr/board.es?mid=a10403010000&bid=1401
+  (www.kostat.go.kr now 301-redirects here — 통계청 reorganized into
+   국가데이터처(MODS) circa 2026; board.es system + params unchanged,
+   only the domain moved. curl doesn't follow redirects here, so point
+   directly at the new domain.)
 
 List endpoint  : GET /board.es?mid=a10403010000&bid=1401&nPage={n}
 Detail endpoint: GET /board.es?mid=a10403010000&bid=1401&act=view&list_no={id}&nPage={p}
@@ -20,7 +24,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from crawler.base_crawler import BaseCrawler
 
-_BASE = "https://www.kostat.go.kr"
+_BASE = "https://mods.go.kr"
 _BID = "1401"
 _MID = "a10403010000"
 _UA = (

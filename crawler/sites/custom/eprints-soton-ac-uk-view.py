@@ -13,6 +13,14 @@ Strategy
      site) — the pattern is <h2>Abstract</h2><p ...>…</p>.
    - Extract the first PDF href.
    - Save via self._save_paper().
+
+The whole eprints.soton.ac.uk origin is now fronted by Anubis
+(https://anubis.techaro.lol), a JS proof-of-work anti-scraper gate — plain
+curl gets a 401 "Ensuring the security of your connection" PoW page instead
+of real content. A real browser is required to execute the PoW JS. We keep
+one headless Playwright page alive for the whole crawl() call: the PoW is
+solved once (~8-9s) on the first navigation and the resulting cookie clears
+every subsequent same-context navigation almost instantly.
 """
 
 from __future__ import annotations
@@ -20,7 +28,6 @@ from __future__ import annotations
 import json
 import os
 import re
-import subprocess
 import time
 from html import unescape
 from urllib.parse import urljoin
@@ -49,35 +56,73 @@ class EprintsSotonAcUkViewCrawler(BaseCrawler):
     base_url = "https://eprints.soton.ac.uk"
 
     # ------------------------------------------------------------------
-    # Network helper
+    # Network helper (persistent Playwright page — Anubis PoW gate)
     # ------------------------------------------------------------------
 
+    def _get_page(self):
+        """Lazily launch a single headless-Chromium page for the whole crawl.
+
+        Reused across every list/detail fetch so the Anubis proof-of-work
+        challenge (solved once on the first navigation) stays cleared for
+        the rest of the run via the context's cookie.
+        """
+        if getattr(self, "_pw_page", None) is not None:
+            return self._pw_page
+        from playwright.sync_api import sync_playwright
+
+        self._pw = sync_playwright().start()
+        self._pw_browser = self._pw.chromium.launch(headless=True)
+        self._pw_context = self._pw_browser.new_context(user_agent=self.USER_AGENT)
+        self._pw_page = self._pw_context.new_page()
+        return self._pw_page
+
+    def _close_browser(self):
+        for attr, closer in (
+            ("_pw_context", lambda o: o.close()),
+            ("_pw_browser", lambda o: o.close()),
+            ("_pw", lambda o: o.stop()),
+        ):
+            obj = getattr(self, attr, None)
+            if obj is not None:
+                try:
+                    closer(obj)
+                except Exception:
+                    pass
+        self._pw_page = None
+
     def _curl(self, url: str, *, timeout: int = 60) -> str | None:
-        cmd = [
-            "curl", "--tls-max", "1.3", "-skL",
-            "--connect-timeout", "15",
-            "--max-time", str(timeout),
-            "-H", f"User-Agent: {self.USER_AGENT}",
-            "-H", "Accept: text/html,application/xhtml+xml,*/*;q=0.8",
-            url,
-        ]
+        """Fetch *url* with the persistent page, waiting out the Anubis
+        proof-of-work challenge if it appears. Returns HTML text or None.
+        """
+        page = self._get_page()
         last_err = "unknown"
         for attempt in range(3):
             try:
-                r = subprocess.run(cmd, capture_output=True, timeout=timeout + 10, check=False)
+                page.goto(url, timeout=timeout * 1000, wait_until="domcontentloaded")
+                for _ in range(14):
+                    title = page.title() or ""
+                    if "Ensuring the security" not in title:
+                        break
+                    page.wait_for_timeout(1500)
+                # allow a moment for post-challenge redirect/render to settle
+                try:
+                    page.wait_for_load_state("domcontentloaded", timeout=10000)
+                except Exception:
+                    pass
+                title = page.title() or ""
+                if "Ensuring the security" in title:
+                    last_err = "anubis challenge did not clear"
+                else:
+                    return page.content()
             except Exception as exc:
                 last_err = str(exc)
-            else:
-                if r.returncode == 0 and r.stdout:
-                    return r.stdout.decode("utf-8", errors="replace")
-                last_err = f"exit={r.returncode} {r.stderr.decode('utf-8', errors='replace').strip()[:200]}"
 
             if attempt < 2:
                 wait = _WAITS[attempt]
-                print(f"[{self.site_id}] curl attempt {attempt+1}/3 failed for {url}: {last_err}; retry in {wait}s")
+                print(f"[{self.site_id}] fetch attempt {attempt+1}/3 failed for {url}: {last_err}; retry in {wait}s")
                 time.sleep(wait)
 
-        print(f"[{self.site_id}] curl failed after 3 attempts for {url}: {last_err}")
+        print(f"[{self.site_id}] fetch failed after 3 attempts for {url}: {last_err}")
         return None
 
     # ------------------------------------------------------------------
@@ -323,6 +368,12 @@ class EprintsSotonAcUkViewCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit: int | None = None) -> int:
+        try:
+            return self._crawl_inner(limit)
+        finally:
+            self._close_browser()
+
+    def _crawl_inner(self, limit: int | None = None) -> int:
         start_time = time.time()
         saved = 0
         seen_urls: set[str] = set()

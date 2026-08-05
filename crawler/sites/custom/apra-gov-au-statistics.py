@@ -2,6 +2,11 @@
 """Custom crawler for APRA Statistics (apra-gov-au-statistics).
 
 Target: https://www.apra.gov.au/statistics
+
+NOTE (2026-08): APRA replaced /statistics with a 301 redirect to
+/news-and-publications?document_type[0]=bundle:statistical_publication
+and redesigned the listing markup (Drupal search-result teasers instead
+of the old tile__* components). Selectors below were updated accordingly.
 """
 
 import json
@@ -13,10 +18,35 @@ from urllib.parse import urljoin, urlparse, unquote
 from crawler.base_crawler import BaseCrawler
 
 _BASE = "https://www.apra.gov.au"
-_LIST_URL = f"{_BASE}/statistics"
+_LIST_URL = (
+    f"{_BASE}/news-and-publications"
+    "?created=All&document_type%5B0%5D=bundle%3Astatistical_publication"
+    "&sort_bef_combine=created_DESC"
+)
 _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _RATE_LIMIT = 1.0  # seconds between detail fetches
 _BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
+
+_MONTHS = {
+    "january": "01", "february": "02", "march": "03", "april": "04",
+    "may": "05", "june": "06", "july": "07", "august": "08",
+    "september": "09", "october": "10", "november": "11", "december": "12",
+}
+
+
+def _parse_display_date(text):
+    """Parse 'D Month YYYY' (e.g. '31 July 2026') -> ISO YYYY-MM-DD."""
+    if not text:
+        return None
+    import re
+    m = re.search(r"(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})", text)
+    if not m:
+        return None
+    day, mon_str, year = m.group(1), m.group(2).lower(), m.group(3)
+    mon = _MONTHS.get(mon_str)
+    if not mon:
+        return None
+    return f"{year}-{mon}-{int(day):02d}"
 
 
 def _curl(url, retries=3):
@@ -148,8 +178,8 @@ class APRAStatisticsCrawler(BaseCrawler):
             if page > 0 and page % 10 == 0:
                 print(f"[apra-gov-au-statistics] page {page}: saved {saved}/{limit_or_inf}")
 
-            # Fetch listing page (page 0 = no query param)
-            list_url = f"{_LIST_URL}?page={page}" if page > 0 else _LIST_URL
+            # Fetch listing page (page 0 has no page= param on the new URL)
+            list_url = f"{_LIST_URL}&page={page}" if page > 0 else _LIST_URL
             raw = _curl(list_url)
             if not raw:
                 print(f"[apra-gov-au-statistics] Failed to fetch listing page {page}, stopping.")
@@ -160,7 +190,7 @@ class APRAStatisticsCrawler(BaseCrawler):
                 print(f"[apra-gov-au-statistics] Failed to parse listing page {page}, stopping.")
                 break
 
-            articles = soup.select("div.views-row article")
+            articles = soup.select("div.views-row")
             if not articles:
                 print(f"[apra-gov-au-statistics] No articles on page {page}, stopping.")
                 break
@@ -173,7 +203,7 @@ class APRAStatisticsCrawler(BaseCrawler):
 
                 try:
                     # --- List-level extraction ---
-                    link_tag = art.select_one("a.tile__link-cover")
+                    link_tag = art.select_one(".search-result__title a[href]")
                     if not link_tag:
                         continue
                     href = link_tag.get("href", "").strip()
@@ -188,13 +218,18 @@ class APRAStatisticsCrawler(BaseCrawler):
                     seen_urls.add(detail_url)
                     new_on_page += 1
 
-                    # Listed date (tile shows when the page was last updated/published)
-                    tile_time = art.select_one(".tile__date time")
-                    listed_date_raw = tile_time.get("datetime", "") if tile_time else ""
-                    listed_date = _parse_date(listed_date_raw)
+                    # Listed date (from the "Published" pill, e.g. "31 July 2026")
+                    listed_date_raw = ""
+                    for pill in art.select(".anx-pill--split"):
+                        label = pill.select_one(".anx-pill__label-first")
+                        value = pill.select_one(".anx-pill__label-last")
+                        if label and value and "published" in label.get_text(strip=True).lower():
+                            listed_date_raw = value.get_text(strip=True)
+                            break
+                    listed_date = _parse_display_date(listed_date_raw)
 
-                    # Category label from tile
-                    cat_tag = art.select_one(".tile__subject")
+                    # Category label from tag pill
+                    cat_tag = art.select_one(".tag-bungle-type")
                     category = cat_tag.get_text(strip=True) if cat_tag else "Statistical publication"
 
                     # --- Detail page fetch ---

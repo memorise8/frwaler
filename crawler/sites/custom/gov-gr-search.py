@@ -4,12 +4,30 @@
 Start URL:
 https://www.gov.gr/search?SearchSensor=%22%22&SingleRangeSensor=%22%CE%8C%CE%BB%CE%B5%CF%82+%CE%BF%CE%B9+%CF%85%CF%80%CE%B7%CF%81%CE%B5%CF%83%CE%AF%CE%B5%CF%82%22
 
-The public search route is Nuxt/ReactiveSearch. The route itself is often
-blocked by Akamai for curl, but the homepage exposes the same public
-read-only Elasticsearch configuration used by the browser:
+Repaired 2026-08-05: gov.gr migrated its frontend from a Nuxt/ReactiveSearch
+app (backed by a public Elasticsearch proxy at
+/elasticsearch/services/_search) to a Next.js app served off an Azure Front
+Door origin. The old Elasticsearch proxy and the old
+/el/api/v1/services/{id}/?format=json detail API are both gone (proxy now
+just returns the Next.js app shell HTML instead of JSON; detail API 404s).
 
-- list API:   https://www.gov.gr/elasticsearch/services/_search
-- detail API: https://www.gov.gr/el/api/v1/services/{id}/?format=json
+The new, still-public JSON APIs (verified via curl, no auth needed) are:
+
+- list API:   https://www.gov.gr/api/search?query=&page={page}&per_page={n}
+              -> {"pagination": {"page","per_page","total_items","total_pages"},
+                  "data": [{"title": {"el_text","en_text"}, "slug",
+                            "human_readable_id"}, ...]}
+              per_page caps server-side at 100.
+- detail API: https://www.gov.gr/api/services/{human_readable_id}
+              -> full service record: title, description (el_text/en_text
+                 HTML), exit_links/useful_links/support_links, organization,
+                 groups[].category/subcategory/group, created/modified, etc.
+
+Detail page URLs are only resolvable client-side (JS SPA route; curl always
+gets the app-shell "page not found" HTML even for real, live services), so
+the canonical URL is *constructed* from the confirmed live pattern
+https://www.gov.gr/ipiresies/{category_slug}/{subcategory_slug}/{slug}
+(verified against real indexed gov.gr service pages).
 """
 
 from __future__ import annotations
@@ -35,16 +53,10 @@ class GovGrSearchCrawler(BaseCrawler):
         '%22%CE%8C%CE%BB%CE%B5%CF%82+%CE%BF%CE%B9+%CF%85%CF%80%CE%B7'
         '%CF%81%CE%B5%CF%83%CE%AF%CE%B5%CF%82%22'
     )
-    SEARCH_API = "https://www.gov.gr/elasticsearch/services/_search"
-    DETAIL_API = "https://www.gov.gr/el/api/v1/services/{service_id}/?format=json"
+    SEARCH_API = "https://www.gov.gr/api/search"
+    DETAIL_API = "https://www.gov.gr/api/services/{service_id}"
 
-    # Public read-only credentials embedded in gov.gr's Nuxt config.
-    ELASTIC_CREDENTIALS = (
-        "govgr_readonly:"
-        "xbDQVehryDBPKyAwEsuNArMmYx4Z8rjH2jDoSftKSFEg4NsGrmB7BgJYZBRc6h7x"
-    )
-
-    PAGE_SIZE = 25
+    PAGE_SIZE = 100
     MAX_PAGES = 200
     WALL_CLOCK_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     BACKOFF_SECONDS = (1, 3, 9)
@@ -72,8 +84,7 @@ class GovGrSearchCrawler(BaseCrawler):
             if page == 1 or page % 10 == 0:
                 print(f"[gov-gr-search] page {page}: saved {saved}/{limit_display}")
 
-            offset = (page - 1) * self.PAGE_SIZE
-            list_payload = self._fetch_list_page(offset)
+            list_payload = self._fetch_list_page(page)
             records = self._extract_hits(list_payload)
             if not records:
                 print(f"[{self.site_id}] page {page}: no records returned; stopping")
@@ -87,21 +98,20 @@ class GovGrSearchCrawler(BaseCrawler):
                     print(f"[{self.site_id}] approaching 25-minute wall-clock budget; stopping cleanly")
                     return saved
 
-                source = hit.get("_source") or {}
-                item_label = str(source.get("id") or hit.get("_id") or f"{page}.{idx}")
-                detail_url = self._build_detail_url(source)
-                if not detail_url:
-                    print(f"[{self.site_id}] item {item_label} skipped: no detail URL")
+                item_label = str(hit.get("human_readable_id") or hit.get("slug") or f"{page}.{idx}")
+                if item_label in seen_urls:
                     continue
-                if detail_url in seen_urls:
-                    continue
-                seen_urls.add(detail_url)
+                seen_urls.add(item_label)
                 new_urls_on_page += 1
 
                 try:
                     time.sleep(self.detail_delay)
                     detail = self._fetch_detail(item_label)
-                    parsed = self._parse_record(hit, source, detail, detail_url)
+                    detail_url = self._build_detail_url(hit, detail)
+                    if not detail_url:
+                        print(f"[{self.site_id}] item {item_label} skipped: no detail URL")
+                        continue
+                    parsed = self._parse_record(hit, detail, detail_url)
                     abstract = parsed.get("abstract") or ""
                     if len(abstract) < self.MIN_ABSTRACT_CHARS:
                         print(
@@ -135,26 +145,12 @@ class GovGrSearchCrawler(BaseCrawler):
     # Network
     # ------------------------------------------------------------------
 
-    def _fetch_list_page(self, offset):
-        payload = {
-            "from": offset,
-            "size": self.PAGE_SIZE,
-            "query": {
-                "bool": {
-                    "must": [
-                        {"term": {"active": {"value": True}}},
-                    ],
-                },
-            },
-            "sort": [{"id": {"order": "desc"}}],
-        }
+    def _fetch_list_page(self, page):
+        url = f"{self.SEARCH_API}?query=&page={page}&per_page={self.PAGE_SIZE}"
         raw = self._curl(
-            self.SEARCH_API,
-            context=f"list page offset={offset}",
-            method="POST",
-            json_payload=payload,
+            url,
+            context=f"list page={page}",
             accept="application/json,text/plain,*/*",
-            credentials=self.ELASTIC_CREDENTIALS,
             referer=self.START_URL,
         )
         if not raw:
@@ -162,7 +158,7 @@ class GovGrSearchCrawler(BaseCrawler):
         try:
             return json.loads(raw)
         except json.JSONDecodeError as exc:
-            print(f"[{self.site_id}] list JSON parse failed at offset={offset}: {exc}")
+            print(f"[{self.site_id}] list JSON parse failed at page={page}: {exc}")
             return None
 
     def _fetch_detail(self, service_id):
@@ -275,51 +271,51 @@ class GovGrSearchCrawler(BaseCrawler):
     def _extract_hits(self, payload):
         if not isinstance(payload, dict):
             return []
-        hits = payload.get("hits") or {}
-        records = hits.get("hits") or []
+        records = payload.get("data") or []
         return records if isinstance(records, list) else []
 
-    def _parse_record(self, hit, source, detail, detail_url):
-        merged = dict(source)
-        if isinstance(detail, dict):
-            for key, value in detail.items():
-                if key in {"category", "sub_category", "group", "organization", "ministry", "tags"}:
-                    if self._has_rich_value(merged.get(key)):
-                        continue
-                if key == "useful_links" and self._has_expanded_links(merged.get(key)):
-                    continue
-                merged[key] = value
+    def _first_group(self, detail):
+        groups = detail.get("groups") if isinstance(detail, dict) else None
+        if isinstance(groups, list) and groups:
+            first = groups[0]
+            return first if isinstance(first, dict) else {}
+        return {}
 
-        title = self._clean_text(merged.get("title") or "")
-        description_html = merged.get("description") or source.get("description") or ""
+    def _parse_record(self, hit, detail, detail_url):
+        detail = detail if isinstance(detail, dict) else {}
+        title_field = detail.get("title") or hit.get("title") or {}
+        title = self._clean_text(title_field.get("el_text") or title_field.get("en_text") or "")
+        description_field = detail.get("description") or {}
+        description_html = description_field.get("el_text") or description_field.get("en_text") or ""
         abstract = self._html_to_text(description_html)
-        service_id = str(merged.get("id") or source.get("id") or hit.get("_id") or "").strip()
+        service_id = str(detail.get("human_readable_id") or hit.get("human_readable_id") or "").strip()
         post_number = service_id if service_id else None
 
-        created_raw = merged.get("created_timestamp") or source.get("created_timestamp")
-        modified_raw = merged.get("modified_timestamp") or source.get("modified_timestamp")
+        created_raw = detail.get("created")
+        modified_raw = detail.get("modified")
         published_date = self._iso_date(created_raw)
         listed_date = self._iso_date(modified_raw) or published_date
 
-        category_title = self._nested_text(source, "category", "title")
-        subcategory_title = self._nested_text(source, "sub_category", "title")
-        group_title = self._nested_text(source, "group", "title")
-        ministry_title = self._nested_text(source, "ministry", "title")
-        organization_title = self._nested_text(source, "organization", "title")
-        tag_titles = self._list_titles(source.get("tags"))
-        publisher = self._join_unique([ministry_title, organization_title])
-        department = organization_title or ministry_title
-        keywords = self._join_unique(
-            [category_title, subcategory_title, group_title] + tag_titles,
-            sep=", ",
+        group = self._first_group(detail)
+        category_title = self._nested_text(group, "category", "title", lang="el_text")
+        subcategory_title = self._nested_text(group, "subcategory", "title", lang="el_text")
+        group_title = self._nested_text(group, "group", "title", lang="el_text")
+        organization_field = detail.get("organization") or detail.get("support_company") or {}
+        organization_title = self._clean_text(
+            (organization_field.get("title") or {}).get("el_text")
+            or (organization_field.get("title") or {}).get("en_text")
+            or ""
         )
+        publisher = organization_title or None
+        department = organization_title or None
+        keywords = self._join_unique([category_title, subcategory_title, group_title], sep=", ")
 
-        all_links = self._collect_links(source, detail, description_html)
+        all_links = self._collect_links(detail, description_html)
         pdf_url = self._first_pdf_url(all_links)
         original_filename = self._filename_from_url(pdf_url)
 
         metadata = {
-            "source": "gov.gr Elasticsearch services index + service detail API",
+            "source": "gov.gr /api/search + /api/services/{human_readable_id} (post-2026-08 Next.js migration)",
             "start_url": self.START_URL,
             "search_api_url": self.SEARCH_API,
             "detail_api_url": self.DETAIL_API.format(service_id=service_id) if service_id else None,
@@ -329,26 +325,21 @@ class GovGrSearchCrawler(BaseCrawler):
             "listed_date": listed_date,
             "post_number": post_number,
             "service_id": service_id,
-            "node_id": service_id,
-            "elastic_id": hit.get("_id"),
-            "elastic_index": hit.get("_index"),
-            "slug": merged.get("slug") or source.get("slug"),
-            "category": source.get("category"),
-            "sub_category": source.get("sub_category"),
-            "group": source.get("group"),
-            "organization": source.get("organization"),
-            "ministry": source.get("ministry"),
-            "tags": source.get("tags"),
-            "service_actions": merged.get("service_actions"),
-            "useful_links": source.get("useful_links") or merged.get("useful_links"),
+            "node_id": detail.get("id") or hit.get("id"),
+            "slug": detail.get("slug") or hit.get("slug"),
+            "status": detail.get("status"),
+            "category": group.get("category"),
+            "sub_category": group.get("subcategory"),
+            "group": group.get("group"),
+            "organization": detail.get("organization"),
+            "support_company": detail.get("support_company"),
+            "exit_links": detail.get("exit_links"),
+            "useful_links": detail.get("useful_links"),
+            "support_links": detail.get("support_links"),
             "all_links": all_links,
-            "is_g2c": merged.get("is_g2c"),
-            "is_g2b": merged.get("is_g2b"),
-            "is_g2g": merged.get("is_g2g"),
-            "active": merged.get("active"),
-            "support_url": merged.get("support_url"),
-            "emd_url": merged.get("emd_url"),
-            "confirmed_translation": merged.get("confirmed_translation"),
+            "provides_feedback": detail.get("provides_feedback"),
+            "is_support": detail.get("is_support"),
+            "is_translation_confirmed": detail.get("is_translation_confirmed"),
             "raw_list_hit": hit,
             "raw_detail": detail,
         }
@@ -358,7 +349,7 @@ class GovGrSearchCrawler(BaseCrawler):
         return {
             "id": None,
             "site_id": self.site_id,
-            "external_id": service_id or (merged.get("slug") or detail_url),
+            "external_id": service_id or (detail.get("slug") or detail_url),
             "post_number": post_number,
             "title": title,
             "abstract": abstract,
@@ -403,17 +394,19 @@ class GovGrSearchCrawler(BaseCrawler):
             "metadata": json.dumps(metadata, ensure_ascii=False, default=str),
         }
 
-    def _build_detail_url(self, source):
-        slug = (source.get("slug") or "").strip()
-        category_slug = self._nested_text(source, "category", "slug")
-        subcategory_slug = self._nested_text(source, "sub_category", "slug")
+    def _build_detail_url(self, hit, detail):
+        detail = detail if isinstance(detail, dict) else {}
+        slug = (detail.get("slug") or hit.get("slug") or "").strip()
+        group = self._first_group(detail)
+        category_slug = self._nested_text(group, "category", "slug")
+        subcategory_slug = self._nested_text(group, "subcategory", "slug")
         if category_slug and subcategory_slug and slug:
             return f"{self.base_url}/ipiresies/{category_slug}/{subcategory_slug}/{slug}"
         if slug:
             return f"{self.base_url}/ipiresies/{slug}"
         return None
 
-    def _collect_links(self, source, detail, description_html):
+    def _collect_links(self, detail, description_html):
         links = []
 
         def add_link(title, url, kind):
@@ -422,18 +415,19 @@ class GovGrSearchCrawler(BaseCrawler):
             absolute = urljoin(self.base_url, str(url).strip())
             links.append({"title": self._clean_text(title or ""), "url": absolute, "kind": kind})
 
-        for link in source.get("useful_links") or []:
-            if isinstance(link, dict):
-                add_link(link.get("title"), link.get("url"), "useful_link")
-        for action in source.get("service_actions") or []:
-            if isinstance(action, dict):
-                add_link(action.get("title"), action.get("url"), "service_action")
-        if isinstance(detail, dict):
-            for action in detail.get("service_actions") or []:
-                if isinstance(action, dict):
-                    add_link(action.get("title"), action.get("url"), "detail_service_action")
-            for key in ("support_url", "emd_url", "url"):
-                add_link(key, detail.get(key), key)
+        def add_link_group(entries, kind):
+            for link in entries or []:
+                if not isinstance(link, dict):
+                    continue
+                url_text = link.get("url_text") or {}
+                title = url_text.get("el_text") or url_text.get("en_text") or ""
+                add_link(title, link.get("url_link") or link.get("url_link_en"), kind)
+
+        add_link_group(detail.get("exit_links"), "exit_link")
+        add_link_group(detail.get("useful_links"), "useful_link")
+        add_link_group(detail.get("support_links"), "support_link")
+        if detail.get("support_url"):
+            add_link("support_url", detail.get("support_url"), "support_url")
 
         soup = self._make_soup(description_html)
         if soup is not None:
@@ -538,11 +532,15 @@ class GovGrSearchCrawler(BaseCrawler):
         match = re.search(r"(\d{4}-\d{2}-\d{2})", str(raw))
         return match.group(1) if match else None
 
-    def _nested_text(self, mapping, key, subkey):
+    def _nested_text(self, mapping, key, subkey, lang="el_text"):
         value = mapping.get(key) if isinstance(mapping, dict) else None
-        if isinstance(value, dict):
-            return self._clean_text(value.get(subkey))
-        return ""
+        if not isinstance(value, dict):
+            return ""
+        sub = value.get(subkey)
+        if isinstance(sub, dict):
+            # {"el_text": ..., "en_text": ...} shape (new gov.gr API).
+            return self._clean_text(sub.get(lang) or sub.get("en_text") or sub.get("el_text"))
+        return self._clean_text(sub)
 
     def _list_titles(self, values):
         titles = []

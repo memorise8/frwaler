@@ -9,6 +9,16 @@ Strategy: discover all direct child pages under the two energy sub-sections
 (energy-statistics/ and energy-publications-and-technical-papers/), then
 scrape each page for title / abstract / download links.  Each CMS page
 becomes one document record.
+
+NOTE (2026-08): the live mbie.govt.nz site is now behind an Imperva/
+Incapsula WAF that hard-blocks datacenter IPs (same protection as
+mpi-govt-nz-about-mpi.py) — every request, including the homepage, returns
+an empty Incapsula challenge iframe regardless of TLS fingerprint. All
+fetches are routed through Wayback Machine archived snapshots instead
+(https://web.archive.org/web/<ts>/<url>, using a "now" timestamp so
+Wayback redirects to the closest available snapshot), and hrefs extracted
+from the returned HTML have the Wayback rewrite prefix stripped back to
+canonical mbie.govt.nz URLs.
 """
 
 import json
@@ -54,8 +64,35 @@ _MONTHS = {
 # Network helpers
 # ---------------------------------------------------------------------------
 
+_WB_BASE = "https://web.archive.org/web"
+
+
+def _wb_ts() -> str:
+    """Current UTC timestamp; Wayback redirects to the nearest snapshot <= this."""
+    return time.strftime("%Y%m%d%H%M%S", time.gmtime())
+
+
+def _strip_wb_prefix(href: str) -> str:
+    """Strip a Wayback Machine rewrite prefix back to the canonical URL.
+
+    /web/{timestamp}[modifier]/https://www.mbie.govt.nz/... -> https://www.mbie.govt.nz/...
+    """
+    m = re.match(r"^(?:https?://web\.archive\.org)?/web/\d+[a-z_]*/(.+)$", href)
+    if m:
+        remainder = m.group(1)
+        if remainder.startswith("http://") or remainder.startswith("https://"):
+            return remainder
+        return _BASE + "/" + remainder.lstrip("/")
+    return href
+
+
 def _curl_get(url: str, retries: int = 3) -> str | None:
-    """Fetch URL via curl with TLS-max-1.3, exponential backoff."""
+    """Fetch *url* via a Wayback Machine snapshot (curl, TLS-max-1.3, backoff).
+
+    Live mbie.govt.nz is Incapsula-blocked for datacenter IPs (see module
+    docstring), so every fetch goes through web.archive.org instead.
+    """
+    wb_url = f"{_WB_BASE}/{_wb_ts()}/{url}"
     cmd = [
         "curl", "--tls-max", "1.3", "-skL", "--max-time", "30",
         "-A",
@@ -63,7 +100,7 @@ def _curl_get(url: str, retries: int = 3) -> str | None:
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "-H", "Accept: text/html,application/xhtml+xml,*/*;q=0.8",
         "-H", "Accept-Language: en-NZ,en;q=0.9",
-        url,
+        wb_url,
     ]
     for attempt in range(retries):
         try:
@@ -199,7 +236,7 @@ def _extract_page(html: str, url: str) -> dict | None:
     # --- downloadable file links ---
     files: list[str] = []
     for a in soup.find_all("a", href=True):
-        href = (a.get("href") or "").strip()
+        href = _strip_wb_prefix((a.get("href") or "").strip())
         if re.search(r"\.(xlsx|pdf|csv|xls|zip|ods)(\?.*)?$", href, re.I):
             if href.startswith("/"):
                 href = _BASE + href
@@ -250,7 +287,7 @@ def _discover_sub_pages(section_path: str) -> list[str]:
     seen: set[str] = set()
 
     for a in soup.find_all("a", href=True):
-        href = (a.get("href") or "").strip()
+        href = _strip_wb_prefix((a.get("href") or "").strip())
         if href.startswith("/"):
             full = _BASE + href
         elif href.startswith(_BASE):

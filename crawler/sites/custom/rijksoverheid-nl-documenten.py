@@ -1,229 +1,82 @@
 # -*- coding: utf-8 -*-
 """Rijksoverheid.nl – Ambtsberichten crawler.
 
-Targets: https://www.rijksoverheid.nl/documenten?type=Ambtsbericht
-280 documents (HTML pagination, 10 items/page, 28 pages).
-Detail pages carry full abstract in <div class="intro">.
+As of 2026-04-28 rijksoverheid.nl retired its own `/documenten` listing for
+most document types (Kamerstukken, Woo-verzoeken, Ambtsberichten, ...) and
+now redirects users to the KOOP "Open overheid" platform
+(https://open.overheid.nl). The old `/documenten?type=Ambtsbericht` listing
+page now renders an empty results list — the data has moved, not
+disappeared.
+
+Open overheid is a client-side React app; the actual documents come from a
+plain, unauthenticated JSON REST API (no bot-defense observed):
+
+    GET https://open.overheid.nl/overheid/openbaarmakingen/api/v0/zoek
+        ?start=<offset>&aantalResultaten=<pageSize>&documentsoort=ambtsbericht
+
+`documentsoort=ambtsbericht` matches the "documentsoort" facet value
+confirmed via the API's own facet counts (974 documents at time of writing).
+Each result already carries title/description/date/publisher; the `pid`
+field is a direct, permanent PDF download URL (there is no separate HTML
+detail page — the SPA route "/documenten/<id>" itself streams the PDF).
 """
 
 from __future__ import annotations
 
 import json
 import os
-import re
 import subprocess
-import sys
 import time
-from pathlib import Path
-from urllib.parse import urlencode, unquote
+from urllib.parse import urlencode
 
-# Absolute import — spec_from_file_location has no package context
-_ROOT = Path(__file__).resolve().parent.parent.parent
-if str(_ROOT) not in sys.path:
-    sys.path.insert(0, str(_ROOT))
+from crawler.base_crawler import BaseCrawler
 
-from crawler.base_crawler import BaseCrawler  # noqa: E402
-
-
-# ---------------------------------------------------------------------------
-# HTML helpers
-# ---------------------------------------------------------------------------
-
-def _make_soup(html: str):
-    """Parse HTML with fallback chain: html5lib → lxml → html.parser."""
-    if isinstance(html, bytes):
-        html = html.decode("utf-8", errors="replace")
-    for parser in ("html5lib", "lxml", "html.parser"):
-        try:
-            from bs4 import BeautifulSoup
-            return BeautifulSoup(html, parser)
-        except Exception:
-            continue
-    return None
-
-
-def _curl_get(url: str, retries: int = 3) -> str | None:
-    """GET via curl with exponential backoff; returns decoded text or None."""
-    cmd = [
-        "curl", "-sk", "--tls-max", "1.3", "--max-time", "30",
-        "-H", "Accept: text/html,application/xhtml+xml,*/*;q=0.8",
-        "-H", "Accept-Language: nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7",
-        "-H", (
-            "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/120.0.0.0 Safari/537.36"
-        ),
-        url,
-    ]
-    waits = [1, 3, 9]
-    for attempt in range(retries):
-        try:
-            res = subprocess.run(cmd, capture_output=True, timeout=40, check=False)
-            raw = res.stdout or b""
-            if raw.strip():
-                return raw.decode("utf-8", errors="replace")
-        except Exception:
-            pass
-        if attempt < retries - 1:
-            time.sleep(waits[attempt])
-    return None
-
-
-# ---------------------------------------------------------------------------
-# Crawler
-# ---------------------------------------------------------------------------
 
 class RijksoverheidNlDocumentenCrawler(BaseCrawler):
     site_id = "rijksoverheid-nl-documenten"
     site_name = "Custom: rijksoverheid-nl-documenten"
-    base_url = "https://www.rijksoverheid.nl"
+    base_url = "https://open.overheid.nl"
 
-    _LIST_URL = "https://www.rijksoverheid.nl/documenten"
-    _LIST_PARAMS_BASE = {
-        "trefwoord": "",
-        "startdatum": "",
-        "einddatum": "",
-        "onderdeel": "Alle ministeries",
-        "type": "Ambtsbericht",
-    }
+    _API_URL = "https://open.overheid.nl/overheid/openbaarmakingen/api/v0/zoek"
+    _DOC_URL_TMPL = "https://open.overheid.nl/documenten/{doc_id}"
+    _DOCUMENTSOORT = "ambtsbericht"
+    _PAGE_SIZE = 50
+    _MIN_ABSTRACT = 50
     _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _BACKOFF = (1, 3, 9)
 
     # ------------------------------------------------------------------
-    # List-page parsing
+    # Network
     # ------------------------------------------------------------------
 
-    def _list_url(self, page: int) -> str:
-        params = dict(self._LIST_PARAMS_BASE)
-        if page > 1:
-            params["pagina"] = str(page)
-        return f"{self._LIST_URL}?{urlencode(params)}"
-
-    def _parse_list_page(self, html: str) -> list[dict]:
-        soup = _make_soup(html)
-        if not soup:
-            return []
-        results_ol = soup.find("ol", class_=re.compile(r"\bresults\b"))
-        if not results_ol:
-            return []
-        items = []
-        for li in results_ol.find_all("li", class_="results__item"):
-            a = li.find("a")
-            if not a:
-                continue
-            href = a.get("href", "")
-            if not href.startswith("/documenten/"):
-                continue
-
-            title_tag = a.find("h3")
-            title = title_tag.get_text(strip=True) if title_tag else ""
-
-            # Date from "Ambtsbericht | DD-MM-YYYY" meta paragraph
-            listed_date = ""
-            for p in a.find_all("p", class_="meta"):
-                text = p.get_text(strip=True)
-                m = re.search(r"(\d{2})-(\d{2})-(\d{4})", text)
-                if m:
-                    listed_date = f"{m.group(3)}-{m.group(2)}-{m.group(1)}"
-                    break
-
-            # Date + slug from URL path: /documenten/<cat>/YYYY/MM/DD/slug
-            m = re.search(r"/(\d{4})/(\d{2})/(\d{2})/([^/?#]+)", href)
-            url_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else ""
-            slug = m.group(4) if m else href.rstrip("/").split("/")[-1]
-
-            items.append({
-                "url": f"https://www.rijksoverheid.nl{href}",
-                "title": title,
-                "listed_date": listed_date or url_date,
-                "url_date": url_date,
-                "slug": slug,
-            })
-        return items
-
-    # ------------------------------------------------------------------
-    # Detail-page parsing
-    # ------------------------------------------------------------------
-
-    def _parse_detail_page(self, url: str, html: str) -> dict | None:
-        soup = _make_soup(html)
-        if not soup:
-            return None
-
-        # Title
-        h1 = soup.find("h1", class_="download") or soup.find("h1")
-        title = h1.get_text(strip=True) if h1 else ""
-
-        # Full abstract from .intro div
-        abstract = ""
-        intro = soup.find("div", class_="intro")
-        if intro:
-            abstract = intro.get_text(separator=" ", strip=True)
-
-        # Fallback: DCTERMS.description / description meta
-        if len(abstract) < 50:
-            for attr in ({"name": "DCTERMS.description"}, {"name": "description"}):
-                meta = soup.find("meta", attr)
-                if meta and meta.get("content"):
-                    cand = meta["content"].strip()
-                    if len(cand) >= 50:
-                        abstract = cand
-                        break
-
-        # Published date from DCTERMS.issued
-        published_date = ""
-        meta_issued = soup.find("meta", {"name": "DCTERMS.issued"})
-        if meta_issued:
-            raw = meta_issued.get("content", "")
-            m = re.match(r"(\d{4}-\d{2}-\d{2})", raw)
-            if m:
-                published_date = m.group(1)
-
-        # Publisher — DCTERMS.creator is most reliable
-        publisher = ""
-        meta_creator = soup.find("meta", {"name": "DCTERMS.creator"})
-        if meta_creator:
-            publisher = meta_creator.get("content", "").strip()
-        if not publisher:
-            belongs = soup.find("div", class_=re.compile(r"belongsTo"))
-            if belongs:
-                links = [a.get_text(strip=True) for a in belongs.find_all("a")]
-                publisher = ";".join(x for x in links if x)
-
-        # PDF URL — first .download-chunk.pdf link
-        pdf_url = None
-        original_filename = None
-        pdf_a = soup.find("a", class_=re.compile(r"\bpdf\b"))
-        if pdf_a:
-            href = pdf_a.get("href", "")
-            if href:
-                pdf_url = href if href.startswith("http") else f"https://www.rijksoverheid.nl{href}"
-                original_filename = unquote(pdf_url.rstrip("/").split("/")[-1])
-
-        # Category from DCTERMS.type
-        category = ""
-        meta_type = soup.find("meta", {"name": "DCTERMS.type"})
-        if meta_type:
-            category = meta_type.get("content", "").strip()
-
-        # UUID from dataLayer JS block
-        uuid_val = ""
-        for script in soup.find_all("script"):
-            text = script.string or ""
-            m = re.search(r'"uuid"\s*:\s*"([^"]+)"', text)
-            if m:
-                uuid_val = m.group(1)
-                break
-
-        return {
-            "title": title,
-            "abstract": abstract,
-            "published_date": published_date,
-            "publisher": publisher,
-            "pdf_url": pdf_url,
-            "original_filename": original_filename,
-            "category": category,
-            "uuid": uuid_val,
+    def _fetch_page(self, start: int) -> dict | None:
+        params = {
+            "start": start,
+            "aantalResultaten": self._PAGE_SIZE,
+            "documentsoort": self._DOCUMENTSOORT,
         }
+        url = f"{self._API_URL}?{urlencode(params)}"
+        cmd = [
+            "curl", "-sk", "--tls-max", "1.3", "--max-time", "30",
+            "-A", self.USER_AGENT,
+            "-H", "Accept: application/json",
+            url,
+        ]
+        last_error = ""
+        for attempt in range(1, 4):
+            try:
+                result = subprocess.run(cmd, capture_output=True, timeout=35)
+                raw = result.stdout
+                if not raw:
+                    raise RuntimeError("empty response")
+                return json.loads(raw.decode("utf-8", errors="replace"))
+            except Exception as exc:
+                last_error = str(exc)
+                print(f"[{self.site_id}] fetch attempt {attempt}/3 failed (start={start}): {last_error}")
+                if attempt < 3:
+                    time.sleep(self._BACKOFF[attempt - 1])
+        print(f"[{self.site_id}] fetch failed after 3 attempts (start={start}): {last_error}")
+        return None
 
     # ------------------------------------------------------------------
     # Main crawl
@@ -231,111 +84,83 @@ class RijksoverheidNlDocumentenCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         saved = 0
-        seen_urls: set[str] = set()
+        seen_ids: set[str] = set()
         start_time = time.time()
         max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         limit_str = str(limit) if limit is not None else "∞"
-        page = 1
 
-        while True:
-            if time.time() - start_time > max_seconds:
-                print(f"[{self.site_id}] 25-minute budget reached after page {page - 1}. Stopping.")
-                break
-
+        for page in range(self._MAX_PAGES):
             if limit is not None and saved >= limit:
                 break
-
-            if page > self._MAX_PAGES:
-                print(f"[{self.site_id}] Safety cap of {self._MAX_PAGES} pages reached. Stopping.")
+            if time.time() - start_time > max_seconds:
+                print(f"[{self.site_id}] 25-minute budget reached; stopping cleanly")
                 break
 
             if page % 10 == 0:
                 print(f"[{self.site_id}] page {page}: saved {saved}/{limit_str}")
 
-            # Fetch and parse list page
-            html = _curl_get(self._list_url(page))
-            if not html:
-                print(f"[{self.site_id}] Failed to fetch list page {page}. Stopping.")
+            data = self._fetch_page(page * self._PAGE_SIZE)
+            if data is None:
+                print(f"[{self.site_id}] page {page}: fetch failed; stopping")
                 break
 
-            items = self._parse_list_page(html)
-            if not items:
-                print(f"[{self.site_id}] No items on page {page}. Done.")
+            results = data.get("resultaten") or []
+            if not results:
+                print(f"[{self.site_id}] page {page}: no results; done")
                 break
 
-            # URL deduplication — stops silent paginators that loop back to page 1
-            new_items = [it for it in items if it["url"] not in seen_urls]
-            for it in new_items:
-                seen_urls.add(it["url"])
-            if not new_items:
-                print(f"[{self.site_id}] All items on page {page} already seen (loop detected). Stopping.")
-                break
-
-            for item in new_items:
+            new_on_page = 0
+            for item in results:
                 if limit is not None and saved >= limit:
                     break
 
+                doc = item.get("document") or {}
+                doc_id = doc.get("id")
+                if not doc_id or doc_id in seen_ids:
+                    continue
+                seen_ids.add(doc_id)
+                new_on_page += 1
+
                 try:
-                    time.sleep(self._delay)
-
-                    # Fetch detail page with retry
-                    detail_html = None
-                    for attempt in range(3):
-                        detail_html = _curl_get(item["url"])
-                        if detail_html:
-                            break
-                        wait = [1, 3, 9][attempt]
-                        print(f"[{self.site_id}] Retry {attempt + 1}/3 for {item['url']}")
-                        time.sleep(wait)
-
-                    if not detail_html:
-                        print(f"[{self.site_id}] Skipping (fetch failed): {item['url']}")
+                    title = (doc.get("titel") or "").strip()
+                    abstract = (doc.get("omschrijving") or "").strip()
+                    if not title or len(abstract) < self._MIN_ABSTRACT:
+                        print(
+                            f"[{self.site_id}] skip {doc_id}: abstract too short "
+                            f"({len(abstract)} chars): {title[:60]}"
+                        )
                         continue
 
-                    detail = self._parse_detail_page(item["url"], detail_html)
-                    if not detail:
-                        print(f"[{self.site_id}] Skipping (parse failed): {item['url']}")
-                        continue
-
-                    title = detail["title"] or item["title"]
-                    abstract = detail["abstract"] or ""
-
-                    if len(abstract) < 50:
-                        print(f"[{self.site_id}] Skipping (abstract <50 chars): {item['url']}")
-                        continue
-
-                    # external_id = URL path without base
-                    external_id = item["url"].replace("https://www.rijksoverheid.nl", "").strip("/")
-
-                    # post_number: sortable date+slug string (no numeric ID on this site)
-                    url_date = item.get("url_date", "")
-                    slug = item.get("slug", "")
-                    post_number = f"{url_date}/{slug}" if url_date else slug
+                    doc_url = self._DOC_URL_TMPL.format(doc_id=doc_id)
+                    published_date = doc.get("openbaarmakingsdatum") or None
+                    listed_date = (doc.get("mutatiedatumtijd") or "")[:10] or published_date
 
                     paper = {
                         "site_id": self.site_id,
-                        "external_id": external_id,
-                        "post_number": post_number,
+                        "external_id": doc_id,
+                        "post_number": doc_id,
                         "title": title,
                         "abstract": abstract,
-                        "published_date": detail["published_date"] or url_date,
-                        "posted_date": item["listed_date"],
+                        "published_date": published_date,
+                        "listed_date": listed_date,
+                        "posted_date": listed_date,
                         "authors": "",
-                        "publisher": detail["publisher"],
+                        "publisher": doc.get("publisher") or "",
                         "journal": "",
-                        "url": item["url"],
-                        "pdf_url": detail["pdf_url"],
+                        "url": doc_url,
+                        "pdf_url": doc_url,
                         "keywords": "",
-                        "category": detail["category"],
+                        "category": self._DOCUMENTSOORT,
                         "doi": "",
-                        "original_filename": detail["original_filename"],
+                        "original_filename": None,
                         "metadata": json.dumps({
-                            "posted_date": item["listed_date"],
-                            "originalFilename": detail["original_filename"],
-                            "uuid": detail["uuid"],
-                            "url_date": url_date,
-                            "slug": slug,
-                            "category_raw": detail["category"],
+                            "posted_date": listed_date,
+                            "aanbieder": doc.get("aanbieder"),
+                            "mutatiedatumtijd": doc.get("mutatiedatumtijd"),
+                            "bestandsgrootte": item.get("bestandsgrootte"),
+                            "aantalPaginas": item.get("aantalPaginas"),
+                            "bestandsType": item.get("bestandsType"),
+                            "documentsoort": self._DOCUMENTSOORT,
                         }, ensure_ascii=False),
                     }
 
@@ -346,10 +171,19 @@ class RijksoverheidNlDocumentenCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
-                    print(f"[{self.site_id}] Item {item.get('url', '?')} failed: {exc}")
+                    print(f"[{self.site_id}] item {doc_id} failed: {exc}")
                     continue
 
-            page += 1
+                time.sleep(self._delay)
+
+            if new_on_page == 0:
+                print(f"[{self.site_id}] page {page}: no new records; stopping")
+                break
+
+            total = data.get("totaal")
+            if total is not None and (page + 1) * self._PAGE_SIZE >= total:
+                print(f"[{self.site_id}] reached reported total ({total}); done")
+                break
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved

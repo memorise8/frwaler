@@ -101,9 +101,14 @@ def _requests_get(url: str, retries: int = 3, session=None) -> Optional[str]:
     import requests as _requests
     _session = session or _requests.Session()
     _session.headers.update({
+        # NOTE (2026-08): web.archive.org deterministically returns HTTP 498
+        # for the Chrome/124.0.0.0 UA string (rate-limited/blocklisted on
+        # their side) while otherwise-identical requests with a newer Chrome
+        # UA succeed — switched to Chrome/131 to match the rest of the
+        # codebase's UA pool (see crawler/stealth_fetcher.py CHROME_UAS).
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
         ),
     })
     wait = 1

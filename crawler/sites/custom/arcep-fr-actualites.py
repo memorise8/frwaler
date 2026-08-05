@@ -57,43 +57,64 @@ class ArcepFrActualitesCrawler(BaseCrawler):
     # Low-level HTTP                                                       #
     # ------------------------------------------------------------------ #
 
-    def _curl(self, url: str) -> str | None:
-        """Fetch *url* with curl, transparently following JS one-time redirects.
+    def _get_page(self):
+        """Lazily start a persistent headless-browser page for this crawl.
 
-        The site sometimes challenges with:
-          <script>window.location.href = '/redirect_XXXX/original/path';</script>
-        On the first hit, cookies are not yet set; we follow the redirect URL
-        manually.  Subsequent requests with the same cookie jar bypass the
-        challenge.
+        The site now fronts *every* URL (including gp-page/N.html listing
+        pages that previously were unchallenged) with an F5/TSPD JS bot-
+        defense challenge that plain curl can never solve. A real headless
+        Chromium context is required; the TSPD cookie set after the first
+        solve is reused for subsequent page navigations in the same
+        context (faster on page 2+).
         """
-        base_cmd = [
-            "curl", "-sk", "--tls-max", "1.3",
-            "-A", _UA,
-            "-c", _COOKIES, "-b", _COOKIES,
-            "--max-time", "30",
-        ]
+        if getattr(self, "_pw_page", None) is None:
+            from playwright.sync_api import sync_playwright
+            self._pw = sync_playwright().start()
+            self._pw_browser = self._pw.chromium.launch(
+                headless=True,
+                args=["--disable-blink-features=AutomationControlled"],
+            )
+            self._pw_context = self._pw_browser.new_context(
+                user_agent=_UA, viewport={"width": 1920, "height": 1080}
+            )
+            self._pw_page = self._pw_context.new_page()
+        return self._pw_page
+
+    def _close_browser(self) -> None:
+        try:
+            if getattr(self, "_pw_browser", None) is not None:
+                self._pw_browser.close()
+        except Exception:
+            pass
+        try:
+            if getattr(self, "_pw", None) is not None:
+                self._pw.stop()
+        except Exception:
+            pass
+        self._pw_page = None
+        self._pw_browser = None
+        self._pw = None
+
+    def _curl(self, url: str) -> str | None:
+        """Fetch *url* via a real headless browser (JS-challenge required)."""
         for attempt in range(3):
             try:
-                r = subprocess.run(base_cmd + [url], capture_output=True, timeout=35)
-                html = r.stdout.decode("utf-8", errors="replace")
-                # Detect JS-challenge redirect (short page ~400-600 bytes)
-                m = re.search(
-                    r"window\.location\.href\s*=\s*'(/redirect_[^']+)'", html
-                )
-                if m:
-                    redir = _BASE + m.group(1)
-                    r2 = subprocess.run(
-                        base_cmd + ["-L", redir],
-                        capture_output=True, timeout=35,
-                    )
-                    return r2.stdout.decode("utf-8", errors="replace")
+                page = self._get_page()
+                page.goto(url, timeout=45000, wait_until="domcontentloaded")
+                page.wait_for_timeout(8000)
+                html = page.content()
+                if "list-group-item row" not in html and "items-list" not in html:
+                    # Challenge may still be resolving; give it a bit longer.
+                    page.wait_for_timeout(4000)
+                    html = page.content()
                 return html
             except Exception as exc:
                 wait = _BACKOFF[min(attempt, len(_BACKOFF) - 1)]
                 print(
-                    f"[{self.site_id}] curl attempt {attempt + 1}/3 failed "
+                    f"[{self.site_id}] browser fetch attempt {attempt + 1}/3 failed "
                     f"for {url[:80]}: {exc}; retrying in {wait}s"
                 )
+                self._close_browser()
                 if attempt < 2:
                     time.sleep(wait)
         return None
@@ -278,6 +299,13 @@ class ArcepFrActualitesCrawler(BaseCrawler):
         page = 1
         next_url: str | None = None  # override for next-page link extraction
 
+        try:
+            saved = self._crawl_loop(limit, limit_str, chash, saved, seen_ids, start_time, page, next_url)
+        finally:
+            self._close_browser()
+        return saved
+
+    def _crawl_loop(self, limit, limit_str, chash, saved, seen_ids, start_time, page, next_url):
         while True:
             # --- Safety / budget checks ---
             if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):

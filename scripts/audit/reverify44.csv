@@ -1,0 +1,45 @@
+site_id,sheet,collected,counted,server_total,completed,elapsed_s,method,note,health
+bj-admin-ch-bj,Switzerland Departments,41,3,0,True,1.4,count_crawl,probe_limit:3,ok
+apra-gov-au-statistics,호주완료,75,3,0,True,4.1,count_crawl,probe_limit:3,ok
+doc-cerema-fr-default,French Research Institutes,697,0,0,True,1.0,count_crawl,probe_limit:3,empty_zero_parse
+bundesfinanzministerium-de-web,Germany Ministries,112,3,0,True,7.8,count_crawl,probe_limit:3,ok
+en-iwhr-cn-iwhr-english-new,중국 완료,458,0,0,True,0.3,count_crawl,probe_limit:3,empty_zero_parse
+data-biodiversity-be-dataset,벨기에완료,524,3,0,True,10.8,count_crawl,probe_limit:3,ok
+education-govt-nz-our-work,뉴질랜드완료,34,3,30,True,4.1,count_crawl,probe_limit:3,ok
+en-moj-gov-cn-lawsandregulationsht,중국 완료,15,3,0,True,2.5,count_crawl,probe_limit:3,ok
+eprints-imtlucca-it-cgi,Italy Research centers,1461,3,0,True,1.6,count_crawl,probe_limit:3,ok
+gov-gr-search,Greece Ministries,489,3,0,True,5.1,count_crawl,probe_limit:3,ok
+gov-ie-en,Ireland Ministries,780,3,0,True,7.7,count_crawl,probe_limit:3,ok
+data-gov-be-nl,벨기에완료,132,0,0,True,19.6,count_crawl,probe_limit:3,empty_zero_parse
+arcep-fr-actualites,French Public Institutions,34,3,0,True,24.7,count_crawl,probe_limit:3,ok
+gsi-ie-en-ie,Irish Research Centers,113,0,0,True,7.1,count_crawl,probe_limit:3,empty_zero_parse
+inrae-fr-actualites,French Research Institutes,830,3,839,True,1.2,count_crawl,probe_limit:3,ok
+ifr-pan-edu-pl-dzialalnosc-naukowa,Polish Research Centers,232,3,0,True,7.7,count_crawl,probe_limit:3,ok
+eprints-soton-ac-uk-view,영국완료,259,3,0,True,18.6,count_crawl,probe_limit:3,ok
+issnationallab-org-about,American Research Institutes,82,3,0,True,2.3,count_crawl,probe_limit:3,ok
+iwhr-com-zgskywwnew,중국 완료,62,0,0,True,0.3,count_crawl,probe_limit:3,empty_zero_parse
+kostat-go-kr-boardes,한국완료,100,3,0,True,5.6,count_crawl,probe_limit:3,ok
+minedu-gov-gr-grafeio-typoy-kai-di,Greece Ministries,404,3,0,True,11.0,count_crawl,probe_limit:3,ok
+minfin-gov-gr-grafeio-typou,Greece Ministries,1797,0,0,True,1.3,count_crawl,probe_limit:3,empty_zero_parse
+minscfa-gov-gr-grafeio-typou,Greece Ministries,626,0,0,True,1.3,count_crawl,probe_limit:3,empty_zero_parse
+inria-fr-fr,French Research Institutes,114,3,0,True,28.8,count_crawl,probe_limit:3,ok
+nidcd-nih-gov-news,American Research Institutes,203,0,0,True,1.2,count_crawl,probe_limit:3,empty_zero_parse
+nih-gov-news-events,American Research Institutes,409,0,0,True,0.6,count_crawl,probe_limit:3,empty_zero_parse
+nih-gov-press-room,American Research Institutes,449,0,0,True,5.8,count_crawl,probe_limit:3,empty_zero_parse
+nina-no-english,Norway Research Centers,36,3,0,True,1.8,count_crawl,probe_limit:3,ok
+nofima-com-publication,Norway Research Centers,200,3,0,True,2.0,count_crawl,probe_limit:3,ok
+info-daegu-go-kr-newshome,한국완료,490,0,0,True,49.0,count_crawl,probe_limit:3,empty_zero_parse
+nzpri-aut-ac-nz-document-library,뉴질랜드완료,7,3,0,True,3.5,count_crawl,probe_limit:3,ok
+om-mp-be-nl,벨기에완료,239,0,0,True,1.0,count_crawl,probe_limit:3,empty_zero_parse
+opendatacommunities-org-data,영국완료,3,0,0,True,0.1,count_crawl,probe_limit:3,empty_zero_parse
+phfscience-nz-news-publications,뉴질랜드완료,32,3,41,True,1.4,count_crawl,probe_limit:3,ok
+regjeringen-no-en,Norway Ministries,187,0,0,True,0.3,count_crawl,probe_limit:3,empty_zero_parse
+publicsafety-gc-ca-cnt,Canada Ministries,424,3,0,True,2.2,count_crawl,probe_limit:3,ok
+rijksoverheid-nl-documenten,Netherland Ministries,274,3,0,True,2.9,count_crawl,probe_limit:3,ok
+science-astron-nl-science-astron,Dutch Research Centers,117,3,0,True,2.5,count_crawl,probe_limit:3,ok
+ypergasias-gov-gr-category,Greece Ministries,531,0,0,True,1.3,count_crawl,probe_limit:3,empty_zero_parse
+unidata-gv-at-pages,오스트리아완료,404,3,0,True,4.9,count_crawl,probe_limit:3,ok
+mpi-govt-nz-about-mpi,뉴질랜드완료,14,3,0,True,36.2,count_crawl,probe_limit:3,ok
+dapa-go-kr-dapa,한국완료,970,0,0,True,94.0,count_crawl,probe_limit:3,empty_zero_parse
+mbie-govt-nz-building-and-energy,뉴질랜드완료,80,3,0,True,66.8,count_crawl,probe_limit:3,ok
+jeonnam-go-kr-m7116,한국완료,770,0,0,True,102.0,count_crawl,probe_limit:3,empty_zero_parse

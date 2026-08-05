@@ -2,9 +2,23 @@
 """Crawler for Greek Ministry of Education Press Releases.
 
 Target: https://www.minedu.gov.gr/grafeio-typoy-kai-dimosion-sxeseon/deltia-typoy
-Site: Joomla-based, HTML listing + detail pages, 10 items/page.
+Site: Joomla-based, HTML listing + detail pages, 20 items/page.
 Article IDs: numeric Joomla ID embedded in URL slug (e.g. /rss/64902-...).
 Date: embedded in title prefix as DD-MM-YY.
+
+Repaired 2026-08-05: the Joomla template was redesigned. The listing no
+longer renders a `<table class="category">`; it now renders
+`<div class="custom-article-list"><li class="list-group-item...">
+<article class="custom-article-item">` items, with the title link in
+`h4.custom-article-title a`. Page size is now 20 (was 10); `?start=N`
+pagination still works unlinked (confirmed working query param even though
+no pagination nav is rendered server-side). Also: article hrefs on page 1
+use the non-SEO `/?view=article&id=NNNNN:slug&catid=...` form, which 301-
+redirects to the canonical `/site/NNNNN-slug` detail URL — the crawler's
+curl call was missing `-L`, so those redirects returned an empty stub body
+instead of the article HTML (-> "No item-page div" skip for every post
+using that href form). Added `-L` and made the Joomla-ID regex fall back to
+the `id=(\\d+)` query form when the URL has no `/(\\d+)-` slug segment.
 """
 
 import json
@@ -28,7 +42,7 @@ from crawler.base_crawler import BaseCrawler  # noqa: E402
 _SITE_ID = "minedu-gov-gr-grafeio-typoy-kai-di"
 _BASE_URL = "https://www.minedu.gov.gr"
 _LIST_URL = f"{_BASE_URL}/grafeio-typoy-kai-dimosion-sxeseon/deltia-typoy"
-_PAGE_SIZE = 10
+_PAGE_SIZE = 20
 _SAFETY_PAGE_CAP = 200
 _PUBLISHER = "Υπουργείο Παιδείας, Θρησκευμάτων & Αθλητισμού"
 _DEPARTMENT = "Γραφείο Τύπου και Δημοσίων Σχέσεων"
@@ -53,7 +67,7 @@ def _make_soup(html: str):
 def _curl_get(url: str, retries: int = 3):
     """Fetch URL via curl with exponential backoff. Returns decoded text or None."""
     cmd = [
-        "curl", "--tls-max", "1.3", "-sk", "--max-time", "30",
+        "curl", "--tls-max", "1.3", "-skL", "--max-time", "30",
         "-H", (
             "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -103,8 +117,12 @@ def _parse_date_from_title(title: str) -> str:
 
 
 def _extract_joomla_id(url: str):
-    """Extract numeric Joomla article ID from URL like /rss/64902-slug."""
+    """Extract numeric Joomla article ID from URL like /rss/64902-slug, or
+    from the non-SEO `?view=article&id=64902:slug` form."""
     m = re.search(r'/(\d+)-', url)
+    if m:
+        return m.group(1)
+    m = re.search(r'[?&]id=(\d+)', url)
     return m.group(1) if m else None
 
 
@@ -168,17 +186,17 @@ class MineduGovGrGrafeioTypoyKaiDiCrawler(BaseCrawler):
                 print(f"[{_SITE_ID}] Failed to parse listing page {page}: {exc}. Stopping.")
                 break
 
-            table = soup.find("table", class_="category")
-            if not table:
-                print(f"[{_SITE_ID}] No category table at page {page}. Stopping.")
+            container = soup.find("div", class_="custom-article-list") or soup.find(
+                "div", class_="custom-category-listing"
+            )
+            if not container:
+                print(f"[{_SITE_ID}] No article list container at page {page}. Stopping.")
                 break
 
             articles = []
-            for row in table.find_all("tr"):
-                cell = row.find("td", class_="list-title")
-                if not cell:
-                    continue
-                a_tag = cell.find("a", href=True)
+            for article_el in container.find_all("article", class_="custom-article-item"):
+                title_el = article_el.find("h4", class_="custom-article-title")
+                a_tag = title_el.find("a", href=True) if title_el else None
                 if not a_tag:
                     continue
                 title = a_tag.get_text(strip=True)
@@ -244,7 +262,15 @@ class MineduGovGrGrafeioTypoyKaiDiCrawler(BaseCrawler):
             print(f"[{_SITE_ID}] Parse error for {url}: {exc}")
             return 0
 
-        content_div = soup.find("div", class_="item-page")
+        # Joomla now renders the class as a single unspaced token per
+        # category, e.g. class="... item-pageDeltia-Typou" instead of a
+        # separate "item-page" class, so match by prefix instead of exact
+        # class equality.
+        content_div = None
+        for div in soup.find_all("div", class_=True):
+            if any(c.startswith("item-page") for c in div.get("class", [])):
+                content_div = div
+                break
         if not content_div:
             print(f"[{_SITE_ID}] No item-page div: {url}")
             return 0
