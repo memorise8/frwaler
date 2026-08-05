@@ -86,6 +86,7 @@ PYTHONPATH=. .venv/bin/python scripts/audit/run_exact_after_sweep.py
 ## 6. 다음 작업 (compact 후 재개 체크리스트)
 
 **①②③ 완료 (2026-08-04). 최종 수치: 가용 하한 22,923,093건 (DOAJ 13.36M / e-stat 1.71M / ots-at 1.56M[API 검증] 3대 대형), 84TB.**
+**+ 2026-08-05: 크롤러 전체 건강검진(정상 718/778) + broken 44개 수리(27 수리/17 인프라차단). 상세 = `docs/PROGRESS_20260805.md`, `scripts/audit/CRAWLER_REPAIR_20260805.md`, `crawler_health_full.csv`.**
 남은 것:
 1. ~~sweep→probe→보고서~~ ✅ 전부 완료
 2. ~~E-미측정 15개 sweep 추가~~ ✅ 완료(2026-08-04): html_list.csv 544행으로 확장됨.

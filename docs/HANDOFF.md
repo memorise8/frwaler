@@ -43,6 +43,9 @@
 - 전량 다운로드는 스토리지(수십TB) 확보 후 별도 단계. 크롤러 727개 캡은 env(`LIBERTREE_MAX_PAGES`/`LIBERTREE_MAX_WALL_S`)로 상향 가능
 - **재개법·수치·파일맵 전부 CAPACITY_PIPELINE.md 참조** (케파 관련 대화는 그 문서 기준으로)
 
+### 0.4b 크롤러 건강검진 + 수리 (8/5) — **상세 `docs/PROGRESS_20260805.md`**
+804개 전체 건강검진(sweep 실증 + probe): **정상 718/778(92%)**. broken 44개 6팀 병렬수리 → **27 수리(플랫폼이전 재작성·WAF우회)/17 인프라차단**(IP밴·WAF챌린지·CAPTCHA·임시폐쇄). 독립 재검증 완료. 실행 체크리스트 = `scripts/audit/crawler_health_full.csv`.
+
 ### 0.5 기타
 - **test.xlsx 검증** (클라이언트 1,995 URL): 수집률 77.7% → 신규 크롤러(멕시코 gob.mx 18부처, 아일랜드 HRB, datos.gob.mx)로 87.6%
 - **크롤러 수리 13개** (CF챌린지 대응 등) + "고장 146" 트리아지: 대부분 측정도구 오탐, 진짜 고장 소수 (`scripts/audit/REPAIR_SUMMARY.md`)
