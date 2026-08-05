@@ -11,9 +11,9 @@
 
 | 단계 | 내용 | 상태 (2026-08-04) |
 |---|---|---|
-| **① sweep** (C 전수 측정) | 529개 HTML 사이트를 실제 크롤러로 돌려 규모 측정 + 크롤러 고장 검진 | 🔄 진행중 324/529, 백그라운드, 재개형 |
-| **② exact_probe** (정확값 보정) | ①에서 2h 캡에 잘린 것(16) + 의심 크롤러(43)만 끝페이지/총건수로 정확값 산출 | ⏸ 도구 완성·검증됨, ① 완료 후 실행 |
-| **③ 최종 보고서** | A+B+C 병합 → `capacity_final_report.xlsx` (5시트) | ⏸ `finalize_capacity.py` 준비됨 |
+| **① sweep** (C 전수 측정) | 544개 HTML 사이트를 실제 크롤러로 돌려 규모 측정 + 크롤러 고장 검진 | ✅ **완료 544/544** (C 1.15M + E15 81k) |
+| **② exact_probe** (정확값) | 544개 전체 probe — 실패 사유는 `tests.xlsx` 'exact_probe_실패' 시트 | ✅ **완료**: 정확값 293(2.15M, ots-at 1.56M 발견) / 실패 251(사유 기록됨). 청크판 `run_exact_chunked.py` 사용(단일프로세스 FD고갈 → 40개 청크 격리로 해결) |
+| **③ 최종 보고서** | A+B+C+probe 병합(max 규칙) → `capacity_final_report.xlsx` (5시트) | ✅ **생성됨 (2026-08-04)**: **총 가용 하한 22,923,093건 / 84TB** (DOAJ 제외 9.56M). 802/804 측정. count_status: exact 591개 22.73M / 과소 211개 0.19M |
 
 ## 2. 804개 사이트 분류 (2026-08-04 파일 기준 확정)
 
@@ -77,13 +77,17 @@ PYTHONPATH=. .venv/bin/python scripts/audit/run_exact_after_sweep.py
 ## 5. 최종 보고서 — `scripts/audit/finalize_capacity.py`
 
 - 병합 우선순위: uncapped > 1h > initial count > baseline. server_total > count면 채택(status=server_total).
-- **TODO(③때 수정)**: `count_only_c_full.csv`(sweep)와 `exact_probe.csv`(정확값, 최우선)를 입력에 추가.
+- **TODO(③때 수정)**: `count_only_c_full.csv`(sweep)와 `exact_probe.csv`(정확값)를 입력에 추가.
+  **병합 규칙 = 사이트별 max(sweep counted, probe exact_total, server_total)** — probe의 `list_walk total=1~2` 같은
+  극소값은 페이지 파라미터 오인식 아티팩트이므로 max 로 하한 보호(작은 probe 값이 큰 sweep 값을 덮지 않게).
 - 출력: `capacity_final_report.xlsx` 5시트(요약/사이트별/국가별_롤업/크롤러캡_상향필요/상한재측정_대상) + `.md`. 의심 크롤러 suspect 플래그 추가 예정.
 - 용량 환산: 3.83MB/건. 전량수집 시 최소 수십TB(DOAJ만 ~51TB), 현재 여유 3.6TB, gdrive 1PB 마운트(`/data_raid/share/gdrive`) 후보.
 
 ## 6. 다음 작업 (compact 후 재개 체크리스트)
 
-1. sweep 완료 확인 → **`run_c_full.py` 한 번 더 실행** (E-15개 잔여 측정, 재개 로직이 자동 감지) → 완료 후 `run_exact_after_sweep.py` 실행 (②)
+**①②③ 완료 (2026-08-04). 최종 수치: 가용 하한 22,923,093건 (DOAJ 13.36M / e-stat 1.71M / ots-at 1.56M[API 검증] 3대 대형), 84TB.**
+남은 것:
+1. ~~sweep→probe→보고서~~ ✅ 전부 완료
 2. ~~E-미측정 15개 sweep 추가~~ ✅ 완료(2026-08-04): html_list.csv 544행으로 확장됨.
    추가된 15개: acma-gov-au-publications, ag-gov-au-publications, data-e-gov-go-jp-data, defence-gov-au-publications, dfat-gov-au-publications, earth-prints-org, flore-unifi-it, government-se-publications, health-gov-au-publications, health-govt-nz-publications, iris-unitn-it, justice-govt-nz-publications, nhmrc-gov-au-publications, openaccess-inaf-it, treasury-govt-nz-publications
 3. **D 26개** 크롤러 제작+측정 (대부분 datos-gob-mx-* CKAN 계열 — 기존 datos.gob.mx 크롤러 패턴 재사용)

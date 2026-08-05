@@ -64,10 +64,19 @@ cnt_initial = load_count("count_only_totals.csv")
 cnt_1h = load_count("count_only_capped_1h.csv")
 cnt_uncapped = load_count("count_only_uncapped.csv")
 cnt_totalscan = load_count("count_only_totalscan.csv")
+cnt_c = load_count("count_only_c_full.csv")  # C sweep (2h, 캡무력화) — count 패스 중 최우선
+
+# exact_probe: 리스트-전용 정밀 측정 (2026-08-04). 병합은 max 규칙(오인식 극소값 보호).
+probe_exact = {}
+for r in load_csv(f"{AUD}/exact_probe.csv"):
+    v = num(r.get("exact_total"))
+    if v and v > 0 and r.get("method") in (
+            "total_text", "lastpage_verified", "list_walk", "total_text_only", "list_walk_partial"):
+        probe_exact[r["site_id"]] = (v, r["method"])
 
 # 전역 server_total: 모든 패스에서 포착한 서버 총량 중 사이트별 최대
 server_totals = {}
-for _d in (cnt_initial, cnt_1h, cnt_uncapped, cnt_totalscan):
+for _d in (cnt_initial, cnt_1h, cnt_uncapped, cnt_totalscan, cnt_c):
     for _sid, (_cnt, _comp, _meth, _st) in _d.items():
         if _st and _st > server_totals.get(_sid, 0):
             server_totals[_sid] = _st
@@ -92,7 +101,9 @@ def status_from_log(sid, completed):
 rows = []
 for sid in sorted(all_sites):
     src = None; method = ""; completed = None; origin = ""; server_total = 0
-    if sid in cnt_uncapped:
+    if sid in cnt_c:
+        src, completed, method, server_total = cnt_c[sid]; origin = "c_sweep_2h"
+    elif sid in cnt_uncapped:
         src, completed, method, server_total = cnt_uncapped[sid]; origin = "uncapped"
     elif sid in cnt_1h:
         src, completed, method, server_total = cnt_1h[sid]; origin = "1h"
@@ -112,6 +123,11 @@ for sid in sorted(all_sites):
     if server_total and server_total > (src or 0):
         src = server_total
         cstatus = "server_total"  # API가 알려준 정확한 전량
+    # exact_probe 가 더 크면 채택 (max 규칙 — probe 오인식 극소값은 sweep 값이 보호)
+    if sid in probe_exact and probe_exact[sid][0] > (src or 0):
+        src = probe_exact[sid][0]
+        method = f"probe:{probe_exact[sid][1]}"
+        cstatus = "exact_probe" if probe_exact[sid][1] != "list_walk_partial" else "probe_partial"
     rows.append({
         "site_id": sid, "sheet": sheet.get(sid, ""), "site_name": name.get(sid, ""),
         "collected": collected.get(sid, 0), "held_bytes": held_bytes.get(sid, 0),
@@ -123,8 +139,8 @@ tot_collected = sum(r["collected"] for r in rows)
 tot_held_bytes = sum(r["held_bytes"] for r in rows)
 meas_rows = [r for r in rows if r["source_total"] is not None]
 tot_src = sum(r["source_total"] for r in meas_rows)
-exact_rows = [r for r in meas_rows if r["count_status"] in ("natural", "measured_api", "server_total")]
-under_rows = [r for r in meas_rows if r["count_status"] in ("crawler_cap", "external_timeout", "unknown", "no_log")]
+exact_rows = [r for r in meas_rows if r["count_status"] in ("natural", "measured_api", "server_total", "exact_probe")]
+under_rows = [r for r in meas_rows if r["count_status"] in ("crawler_cap", "external_timeout", "unknown", "no_log", "probe_partial")]
 tot_src_exact = sum(r["source_total"] for r in exact_rows)
 tot_src_under = sum(r["source_total"] for r in under_rows)
 unmeasured = [r for r in rows if r["source_total"] is None]

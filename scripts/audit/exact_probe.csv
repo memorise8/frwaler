@@ -1,0 +1,545 @@
+site_id,method,exact_total,signal,note
+acpr-banque-france-fr-fr,no_per_page,,text=0 per_page=0 maxpage=19,list=https://acpr.banque-france.fr/fr/publications-et-statistiques/etudes-et-recherche detail=https://acpr.banque-france.fr/fr/publications-et-statistiques/publications/ndeg-184-le-financement-de-limmobilier-commercial-par-les-banques-francaises-en-2025
+afd-fr-fr,no_per_page,,text=0 per_page=0 maxpage=38,list=https://www.afd.fr/fr/publications/liste detail=https://www.afd.fr/fr/ressources/afrique-du-sud-vers-un-changement-de-cap
+accc-gov-au-search,total_text,8000,text=8000 per_page=1 maxpage=799,list=https://www.accc.gov.au/search
+afp-gov-au-search,total_text_only,2025,text=2025 per_page=0 maxpage=4,list=https://afp.gov.au/search detail=https://afp.gov.au/crimes/espionage-and-foreign-interference
+adruk-org-news-publications,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.adruk.org/news-publications/impact-case-studies/
+afp-gov-au-news-centre,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.afp.gov.au/news-centre
+africamuseum-be-en,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.africamuseum.be/en/research/news
+ameslab-gov-news,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.ameslab.gov/news/news-releases
+alrc-gov-au-publications,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.alrc.gov.au/publications/final-report/
+amf-france-org-fr,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.amf-france.org/sitemap.xml
+agri-ee-ministeerium-uudised,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.agri.ee/ministeerium-uudised-kontakt/uuringud
+agriculture-gouv-fr-recherche-developpem,no_per_page,,text=0 per_page=0 maxpage=0,list=https://agriculture.gouv.fr/espace-presse detail=https://agriculture.gouv.fr/caniculessecheresse-les-assureurs-peuvent-verser-jusqua-80-dacompte-sur-leurs-indemnites-aux
+anses-fr-fr,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.anses.fr/fr/content/avis-et-rapports-de-lanses-sur-saisine
+ami-swiss-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.ami.swiss/en/research/publications.html
+andra-fr-publications,list_walk,2373,pages=2373 text=0 per_page=1 maxpage=1 empty_p2374,list=https://www.andra.fr/publications
+amolf-nl-publications,list_walk,7,pages=1 text=0 per_page=7 maxpage=1 repeat_p2,list=https://amolf.nl/publications
+arcep-fr-actualites,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.arcep.fr/actualites/les-publications.html detail=https://www.arcep.fr/actualites/les-publications/gp-page/1.html
+ansto-gov-au-search,total_text_only,2073,text=2073 per_page=0 maxpage=8,list=https://www.ansto.gov.au/views/ajax detail=https://www.ansto.gov.au/NDF/useraccess
+app-mps-gov-cn-gdnps,no_per_page,,text=0 per_page=0 maxpage=0,list=https://app.mps.gov.cn/gdnps/searchIndex.jsp detail=None
+arn-se-om-arn,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.arn.se/om-arn/arsredovisning/ detail=None
+asiapacific-ca-media,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.asiapacific.ca/media/press-releases
+arcnl-nl-publications,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://arcnl.nl/publications/types/bachelorthesis
+asn-fr-information,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://reglementation-controle.asnr.fr/information/publications/rapports-de-l-asnr
+astro-oma-be-en,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.astro.oma.be/common/pdf/y_reports/AnnualReport2024.pdf detail=https://www.astro.oma.be/en/information/publications/annual-reports/
+astron-nl-about,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.astron.nl/about/annual-reports/ detail=None
+audencia-com-lecole,no_per_page,,text=0 per_page=0 maxpage=20,list=https://www.audencia.com/lecole/newsroom/communiques-de-presse detail=https://www.audencia.com/actualites/axel-alletru-lance-un-defi-unique-pour-linclusion-par-le-sport-au-triathlon-audencia-la-baule
+auri-re-kr-boardes,no_per_page,,text=0 per_page=0 maxpage=27,list=https://www.auri.re.kr/board.es detail=None
+auri-re-kr-publication,lastpage_verified,1122,maxpage=57 per_page=20 last=2,list=https://www.auri.re.kr/publication/list.es
+auswaertiges-amt-de-de,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.auswaertiges-amt.de/ajax/json-filterlist/de/newsroom/presse/newsroom-archiv/609192-609192
+artsetmetiers-fr-fr,no_per_page,,text=0 per_page=0 maxpage=44,list=https://artsetmetiers.fr/fr/communiques-de-presse detail=None
+auswaertiges-amt-de-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.auswaertiges-amt.de/ajax/json-filterlist/en/newsroom/news/609204-609204
+babraham-ac-uk-news,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.babraham.ac.uk/news/category/news
+bankofcanada-ca-publications,list_walk,6,pages=1 text=0 per_page=6 maxpage=1 repeat_p2,list=https://www.bankofcanada.ca/publications/canadian-survey-of-consumer-expectations/
+banque-france-fr-en,no_per_page,,text=0 per_page=0 maxpage=2,list=https://www.banque-france.fr/en/publications-and-research/our-main-publications/annual-reports detail=https://www.banque-france.fr/en/publications-and-statistics/publications/french-model-financing-purchases-primary-residences
+baw-de-en,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.baw.de/content/v2/publis/ws.php detail=None
+bdap-opendata-rgs-mef-gov-it-catalog,no_per_page,,text=0 per_page=0 maxpage=365,list=https://bdap-opendata.rgs.mef.gov.it/catalog detail=https://bdap-opendata.rgs.mef.gov.it/content/progetti-opere-pubbliche-mop-totale
+benthamscience-com-press-release,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.benthamscience.com/press-release
+bfe-admin-ch-bfe,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.bfe.admin.ch/bfe/de/home/news-und-medien/publikationen.exturl.html/aHR0cHM6Ly9wdWJkYi5iZmUuYWRtaW4uY2gvZGUvc3VjaGU_cGFnZT0xJng9MQ==.html
+bfr-bund-de-en,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.bfr.bund.de/en/publications/annual-reports/ detail=https://www.bfr.bund.de/api/v1/en/mini-suche
+biblio-naturalsciences-be-rbins-publications,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://biblio.naturalsciences.be/rbins-publications/search-references/@@faceted_query
+bj-admin-ch-bj,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.bj.admin.ch/bj/en/home/aktuell/mm/_jcr_content/nsbnewslist.entries.html detail=None
+biorbic-com-publications,no_per_page,,text=0 per_page=0 maxpage=0,list=https://biorbic.com/publications/ detail=None
+bam-de-navigation,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.bam.de/en/news/papers-of-the-month
+bmas-de-de,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.bmas.de/SiteGlobals/Forms/Suche/Pressemitteilungen_Suche_Formular.html
+bmds-bund-de-aktuelles,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://bmds.bund.de/aktuelles/pressemitteilungen
+bmf-gv-at-ministerium,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.bmf.gv.at/ministerium/nationale-finanzbildungsstrategie/uebersicht-nationale-finanzbildungsstrategie/downloads.html
+bmftr-bund-de-siteglobals,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.bmftr.bund.de/SiteGlobals/Forms/Suche/Publikationssuche/Publikationssuche_Formular.html
+bmimi-gv-at-themen,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.bmimi.gv.at/themen/innovation/publikationen/menschen_qualifikation_gender.html
+bmj-gv-at-ministerium,list_walk,1,pages=1 text=0 per_page=1 maxpage=16 no_items_p2,list=https://www.bmj.gv.at/ministerium/aktuelle-meldungen.html
+bmleh-de-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.bmleh.de/EN/ministry/organisation/advisory-boards/AgriculturalPolicyPublications.html
+bmluk-gv-at-service,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.bmluk.gv.at/service/zahlen-fakten-neu/statistik-agrarmarkt.html detail=None
+bmlv-gv-at-wissen-forschung,list_walk,19,pages=1 text=0 per_page=19 maxpage=0 repeat_p2,list=https://www.bmlv.gv.at/wissen-forschung/publikationen/doktyp.php
+bmi-gv-at-114,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.bmi.gv.at/114/start.aspx detail=None
+bmwet-gv-at-services,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.bmwet.gv.at/Services/Publikationen.html
+bmvg-de-en,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.bmvg.de/service/queryL-list-filter/en/277064 detail=https://www.bmvg.de/en/press-release-german-and-the-netherlands-ministry-of-defence-6108050
+bmwkms-gv-at-themen,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.bmwkms.gv.at/themen/kunst-und-kultur/service-kunst-und-kultur/publikationen/berichte-innovative-film-austria.html detail=None
+bmwsb-bund-de-de,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.bmwsb.bund.de/DE/ministerium/gesetzgebungsverfahren/gesetzgebungsverfahren_node.html
+bmleh-de-siteglobals,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.bmleh.de/SiteGlobals/Forms/Suche/DE/Gesetzestexte/Gesetzestexte_Formular.html
+bok-or-kr-portal,list_walk,16336,pages=1634 text=0 per_page=10 maxpage=1 no_items_p1635,list=https://www.bok.or.kr/portal/singl/newsData/listCont.do
+bmz-de-de,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.bmz.de/ajax/filterlist/de/24710-24710
+bnf-fr-fr,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.bnf.fr/fr/jsonapi/node/espace_presse detail=None
+bordbia-ie-about,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.bordbia.ie/about/governance/annual-reports/ detail=None
+boverket-se-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.boverket.se/en/start/publications/
+brgm-fr-fr,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.brgm.fr/fr/actualites
+brsn-net-list,list_walk,3,pages=1 text=0 per_page=3 maxpage=0 repeat_p2,list=https://www.brsn.net/list/research/index.html
+budget-canada-ca-home-accueil-enhtml,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://budget.canada.ca/home-accueil-en.html
+bundesgesundheitsministerium-de-service,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.bundesgesundheitsministerium.de/service/publikationen/gesundheit
+bundeskanzleramt-gv-at-bundeskanzleramt,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.bundeskanzleramt.gv.at/bundeskanzleramt/nachrichten-der-bundesregierung/2024.html
+bundesumweltministerium-de-en,list_walk,3,pages=1 text=0 per_page=3 maxpage=0 repeat_p2,list=https://www.bundesumweltministerium.de/en/public-information-service/publications
+cancer-gov-about-nci,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.cancer.gov/about-nci/budget/about-budget-proposal detail=None
+busan-go-kr-nbtnewsbu,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.busan.go.kr/nbtnewsBU
+business-sweden-com-about-us,list_walk,1,pages=1 text=0 per_page=1 maxpage=7 no_items_p2,list=https://www.business-sweden.com/about-us/media/press-releases/
+cae-eco-fr-presse-cae-0,list_walk,2,pages=1 text=0 per_page=2 maxpage=0 repeat_p2,list=https://cae-eco.fr/Presse-CAE-0
+caitec-org-cn-n6,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.caitec.org.cn/n6/sy_xsyj_yjbg/json/index.html
+casseng-cssn-cn-sky_research,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=http://casseng.cssn.cn/sky_research/publications/journals/
+cc-nih-gov-research,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.cc.nih.gov/research/2025 detail=None
+caissedesdepots-fr-communiques-de-press,no_per_page,,text=0 per_page=0 maxpage=2,list=https://www.caissedesdepots.fr/presse/communiques-de-presse detail=None
+cdhowe-org-research-insights,list_walk,4,pages=1 text=0 per_page=4 maxpage=1 repeat_p2,list=https://cdhowe.org/research-insights/
+carabinieri-it-in-vostro-aiuto,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.carabinieri.it/in-vostro-aiuto/informazioni/comunicati-stampa
+centralbank-ie-publication,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.centralbank.ie/publication/corporate-reports/annual-reports
+cells-es-en,list_walk,76,pages=1 text=0 per_page=76 maxpage=1 repeat_p2,list=https://www.cells.es/en/public/corporate-publications
+centralesupelec-fr-presse,lastpage_verified,20,maxpage=20 per_page=1 last=1,list=https://www.centralesupelec.fr/presse/communiques
+cepii-fr-cepii,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.cepii.fr/CEPII/fr/publications/reports/abstract.asp detail=https://www.cepii.fr/CEPII/fr/publications/reports.asp
+cnic-es-en,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.cnic.es/en/actualidad/noticias
+cer-rec-gc-ca-en,list_walk,67,pages=1 text=0 per_page=67 maxpage=0 repeat_p2,list=https://www.cer-rec.gc.ca/en/about/publications-reports/index.html
+cerema-fr-fr,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.cerema.fr/fr/presse/dossier
+civilprotection-gov-gr-deltia-tupou,no_per_page,,text=0 per_page=0 maxpage=0,list=https://civilprotection.gov.gr/deltia-tupou detail=https://civilprotection.gov.gr/deltia-tupou/kostas-katsafados-apo-ti-fokida-ameses-aytopsies-kai-taheia-energopoiisi-tis-kratikis-arogis
+chungnam-go-kr-cnportal,list_walk,2888,pages=97 text=0 per_page=30 maxpage=1 no_items_p98,list=https://www.chungnam.go.kr/cnportal/cnapcPressList/cnapcPress/list.do
+cnipa-gov-cn-col,list_walk,1,pages=1 text=0 per_page=1 maxpage=2 no_items_p2,list=https://www.cnipa.gov.cn/module/web/jpage/dataproxy.jsp
+college-de-france-fr-en,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.college-de-france.fr/en/news detail=https://www.college-de-france.fr/en/news/science-festival-2026
+comptroller-defense-gov-odcfo,no_per_page,,text=0 per_page=0 maxpage=0,list=https://comptroller.defense.gov/ODCFO/afr/ detail=https://comptroller.defense.gov/odcfo/afr2025.aspx
+catalogue-data-govt-nz-dataset,no_list_url,,,caps=0
+comwel-or-kr-comwel,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.comwel.or.kr/comwel/noti/pres.jsp detail=None
+consult-environment-govt-nz-resource-management,total_text,60,text=60 per_page=2 maxpage=1,list=https://consult.environment.govt.nz/consultation_finder/
+cpb-nl-en,no_per_page,,text=0 per_page=0 maxpage=234,list=https://www.cpb.nl/en/publications detail=https://www.cpb.nl/en/world-trade-monitor/cpb-wereldhandelsmonitor-may-2026
+consult-environment-govt-nz-waste,total_text,60,text=60 per_page=2 maxpage=1,list=https://consult.environment.govt.nz/consultation_finder/
+csic-es-es,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.csic.es/es/el-csic/informacion-corporativa/el-csic-en-cifras detail=None
+cso-ie-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.cso.ie/en/csolatestnews/pressreleases/2026pressreleases/
+consult-environment-govt-nz-climate,no_per_page,,text=0 per_page=0 maxpage=0,list=https://consult.environment.govt.nz/climate/nz-ets-unit-settings-and-regulatory-updates-2025/consultation/view_respondent detail=https://consult.environment.govt.nz/climate/nz-ets-unit-settings-and-regulatory-updates-2025/consultation/published_select_respondent
+cstb-fr-communiques-de-press,list_walk,3,pages=1 text=0 per_page=3 maxpage=1 repeat_p2,list=https://www.cstb.fr/communiques-de-presse
+dair-dias-ie-cgi,total_text_only,2015,text=2015 per_page=0 maxpage=0,list=https://dair.dias.ie/cgi/search/archive/advanced/export_dias_JSON.js detail=None
+daejeon-go-kr-drh,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.daejeon.go.kr/drh/board/boardNormalList.do detail=None
+dapa-go-kr-dapa,fetch_fail,,,list page1 empty
+data-gov-be-nl,no_per_page,,text=0 per_page=0 maxpage=0,list=https://data.gov.be/nl/taxonomy/term/65/feed detail=https://data.gov.be/nl/file-type/pdf
+data-mfe-govt-nz-documents,list_walk,3,pages=1 text=0 per_page=3 maxpage=0 no_items_p2,list=https://data.mfe.govt.nz/services/api/v1.x/documents/
+data-mfe-govt-nz-tables,list_walk,4,pages=1 text=0 per_page=4 maxpage=0 no_items_p2,list=https://data.mfe.govt.nz/services/api/v1.x/tables/
+data-statistik-gv-at-web,no_per_page,,text=0 per_page=0 maxpage=0,list=https://data.statistik.gv.at/ogd/json detail=https://data.statistik.gv.at/web/catalog.jsp
+data-nist-gov-sdp,no_per_page,,text=0 per_page=0 maxpage=0,list=https://data.nist.gov/rmm/records detail=None
+datenportal-bmbf-de-portal,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.datenportal.bmftr.bund.de/portal/de/K1.html
+defence-govt-nz-publications,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.defence.govt.nz/publications/doSearch/
+defensa-gob-es-gabinete,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.defensa.gob.es/gabinete/notasPrensa/
+defense-gouv-fr-salle-de-presse,no_per_page,,text=0 per_page=0 maxpage=227,list=https://www.defense.gouv.fr/salle-de-presse detail=None
+data-biodiversity-be-dataset,no_per_page,,text=0 per_page=0 maxpage=0,list=https://data.biodiversity.be/api/3/action/package_search detail=None
+defense-gov-news,list_walk,2,pages=1 text=0 per_page=2 maxpage=0 repeat_p2,list=https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx
+dhs-gov-congressional-approp,no_list_url,,,caps=0
+dia-govt-nz-diawebsitensf,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.dia.govt.nz/diawebsite.nsf/wpg_URL/Resource-material-Corporate-Publications-Annual-Reports
+dhs-gov-publication,no_list_url,,,caps=0
+didaktorika-gr-eadd,list_walk,2,pages=1 text=0 per_page=2 maxpage=0 repeat_p2,list=https://www.didaktorika.gr/eadd/simple-search
+difesa-it-il-ministro,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.difesa.it/data/il-ministro/note-stampa/elenco.json
+digital-gob-es-comunicacion,no_per_page,,text=0 per_page=0 maxpage=0,list=https://digital.gob.es/content/portalmtdfp/es/comunicacion/jcr:content/root/container/containerSpace/content_display_copy.list.html detail=https://digital.gob.es/content/portalmtdfp/es/comunicacion/notas-prensa/secretaria-estado-telecomunicaciones-e-infraestructuras-digitales/2026/07/aprobada-la-redistribucion-de-canales-de-la-tdt-para-que-puedan-.model.json
+dhs-gov-news-releases,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.dhs.gov/news-releases/press-releases detail=https://www.dhs.gov/news/2026/08/03/gangbusters-dhs-highlights-dangerous-illegal-alien-gang-members-recently-deported
+diplomatie-gouv-fr-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.diplomatie.gouv.fr/en/press/news
+directives-doe-gov-directives-browse,list_walk,3,pages=1 text=0 per_page=3 maxpage=1 repeat_p2,list=https://www.energy.gov/management/directives-library
+directives-doe-gov-guidance,list_walk,3,pages=1 text=0 per_page=3 maxpage=1 repeat_p2,list=https://www.energy.gov/management/directives-library
+doc-cerema-fr-default,no_per_page,,text=0 per_page=0 maxpage=0,list=https://doc.cerema.fr/Portal/Recherche/Search.svc/Search detail=None
+doi-gov-bpp,list_walk,8,pages=1 text=0 per_page=8 maxpage=1 repeat_p2,list=https://www.doi.gov/bpp/budget-briefs
+dol-gov-newsroom,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.dol.gov/newsroom/releases detail=https://www.dol.gov/newsroom/releases/eta/eta20260730-0
+doras-dcu-ie-view,total_text_only,2019,text=2019 per_page=0 maxpage=0,list=https://doras.dcu.ie/cgi/exportview/type/thesis/JSON/thesis.json detail=None
+dpmc-govt-nz-publications,no_per_page,,text=0 per_page=0 maxpage=38,list=https://www.dpmc.govt.nz/publications detail=https://www.dpmc.govt.nz/publications/national-resilience-system-handbook
+drugsandalcohol-ie-cgi,total_text_only,2025,text=2025 per_page=0 maxpage=0,list=https://www.drugsandalcohol.ie/cgi/search/archive/type/export_ndc_JSON.js detail=None
+dst-dk-da,list_walk,1,pages=1 text=0 per_page=1 maxpage=87 no_items_p2,list=https://www.dst.dk/da/Statistik/udgivelser
+ecat-ga-gov-au-geonetwork,fetch_fail,,,list page1 empty
+ecologie-gouv-fr-presse,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.ecologie.gouv.fr/presse
+economy-ni-gov-uk-news,total_text,1900,text=1900 per_page=1 maxpage=94,list=https://www.economy-ni.gov.uk/news
+economy-ni-gov-uk-publications,list_walk,11909,pages=4 text=0 per_page=4856 maxpage=0 repeat_p5,list=https://www.economy-ni.gov.uk/sitemaps/economy/sitemap.xml
+eda-admin-ch-eda,no_per_page,,text=0 per_page=0 maxpage=0,list=https://d-nsbc-p.admin.ch/v1/organisations detail=https://d-nsbc-p.admin.ch/v1/topicsSubscriber
+earlham-ac-uk-newsroom,lastpage_verified,2,maxpage=2 per_page=1 last=1,list=https://www.earlham.ac.uk/views/ajax
+edi-admin-ch-de,no_per_page,,text=0 per_page=0 maxpage=0,list=https://d-nsbc-p.admin.ch/v1/search detail=https://d-nsbc-p.admin.ch/v1/bfs_20250
+educacionfpydeportes-gob-es-prensahtml,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.educacionfpydeportes.gob.es/prensa/actualidad.html
+efd-admin-ch-en,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.efd.admin.ch/ne/nsb/organisations detail=https://www.efd.admin.ch/ne/nsb/channel
+emep-int-mscw,no_per_page,,text=0 per_page=0 maxpage=0,list=https://emep.int/mscw/mscw_publications.html detail=None
+ejournals-epublishing-ekt-gr-indexphp,list_walk,102,pages=1 text=0 per_page=102 maxpage=0 repeat_p2,list=https://ejournals.epublishing.ekt.gr/index.php/index/journals-catalog
+elocus-lib-uoc-gr-search,no_per_page,,text=0 per_page=0 maxpage=1811,list=https://elocus.lib.uoc.gr/search/ detail=None
+em-dk-aktuelt,list_walk,12,pages=1 text=0 per_page=12 maxpage=0 repeat_p2,list=https://www.em.dk/aktuelt/udgivelser-og-aftaler
+em-lyon-com-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://em-lyon.com/en/newsroom
+emsl-pnnl-gov-science,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.emsl.pnnl.gov/science/reports
+en-iwhr-cn-iwhr-english-new,no_per_page,,text=0 per_page=0 maxpage=0,list=http://en.iwhr.cn/IWHR-English-New/Publications/Papers/A110402index_1.htm detail=None
+en-ndrc-gov-cn-policies,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://en.ndrc.gov.cn/policies/
+en-nhc-gov-cn-publicationshtml,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://en.nhc.gov.cn/publications.html
+en-nim-ac-cn-taxonomy,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://en.nim.ac.cn/taxonomy/term/170
+energy-gov-management,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.energy.gov/management/directives-guidance-and-delegations
+eng-mod-gov-cn-2025xb,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=http://eng.mod.gov.cn/2025xb/M/L_251592/index.html
+economie-fgov-be-nl,no_list_url,,,caps=0
+english-cnipa-gov-cn-col,no_per_page,,text=0 per_page=0 maxpage=0,list=https://english.cnipa.gov.cn/module/web/jpage/dataproxy.jsp detail=https://english.cnipa.gov.cn/col/col1336/index.html
+english-mee-gov-cn-resources,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://english.mee.gov.cn/Resources/Reports/reports/
+english-www-gov-cn-archive,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://english.www.gov.cn/archive/statecouncilgazette/
+ens-lyon-fr-lecole,lastpage_verified,19,maxpage=19 per_page=1 last=1,list=https://www.ens-lyon.fr/lecole/medias-et-presse/communiques-de-presse
+energy-gov-open-government,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.energy.gov/open-government
+environment-govt-nz-acts-and-regulations,no_per_page,,text=0 per_page=0 maxpage=0,list=https://web.archive.org/cdx/search/cdx detail=None
+environment-govt-nz-publications,list_walk,0,pages=0 text=0 per_page=1 maxpage=0 empty_p1,list=https://web.archive.org/cdx/search/cdx
+environment-govt-nz-what-you-can-do,no_per_page,,text=0 per_page=0 maxpage=0,list=https://consult.environment.govt.nz/api/2.4/json_consultation_details detail=https://consult.environment.govt.nz/consultation_finder/
+epa-ie-news-releases,list_walk,2,pages=1 text=0 per_page=2 maxpage=0 repeat_p2,list=https://www.epa.ie/news-releases/news-releases-2025/
+eprints-imtlucca-it-cgi,fetch_fail,,,list page1 empty
+eprints-soton-ac-uk-view,no_per_page,,text=0 per_page=0 maxpage=0,list=https://eprints.soton.ac.uk/view/divisions/5d1c5ba6-6977-4d9d-9afe-fd1820201262/ detail=None
+fafo-no-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.fafo.no/en/publications/fafo-reports
+esri-ie-publications,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.esri.ie/publications/browse
+etera-ee-browse,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.etera.ee/browse
+ethniccommunities-govt-nz-resources,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.ethniccommunities.govt.nz/resources/our-newsletter detail=None
+ethz-ch-de,list_walk,2,pages=1 text=0 per_page=2 maxpage=0 no_items_p2,list=https://ethz.ch/de/news-und-veranstaltungen/medien/medienmitteilungen/_jcr_content/par/newsfeed2.newsfeed.0-16.json
+finance-ni-gov-uk-publications,lastpage_verified,176,maxpage=176 per_page=1 last=1,list=https://www.finance-ni.gov.uk/publications
+etis-ee-portal,fetch_fail,,,list page1 empty
+fi-se-en,list_walk,2,pages=2 text=0 per_page=1 maxpage=1 repeat_p3,list=https://www.fi.se/en/published/reports/reports/
+fibl-org-en,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.fibl.org/en/info-centre/publications-archive-fibl-en detail=None
+fm-dk-udgivelser,list_walk,14,pages=1 text=0 per_page=14 maxpage=1 repeat_p2,list=https://fm.dk/udgivelser/
+fmi-ch-research,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.fmi.ch/research/publications/ detail=https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi
+fmn-dk-da,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.fmn.dk/ListPage/UpdateList
+gcsp-ch-publications,no_per_page,,text=0 per_page=0 maxpage=8,list=https://www.gcsp.ch/publications detail=https://www.gcsp.ch/publications/ai-military-domain-multilateralism-crossroad
+forest-go-kr-kfsweb,list_walk,1100,pages=100 text=0 per_page=11 maxpage=2389 empty_p101,list=https://www.forest.go.kr/kfsweb/cop/bbs/selectBoardList.do
+fss-or-kr-fss,list_walk,35,pages=1 text=0 per_page=35 maxpage=1 repeat_p2,list=https://www.fss.or.kr/fss/bbs/B0000188/list.do
+ftc-go-kr-www,lastpage_verified,9719,maxpage=972 per_page=10 last=9,list=https://www.ftc.go.kr/www/selectBbsNttList.do
+ga-gov-au-data-pubs,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.ga.gov.au/data-pubs/library/legacy-publications/records
+gb-go-kr-sub,no_per_page,,text=0 per_page=0 maxpage=0,list=https://gb.go.kr/Sub/open_contents/section/datastat/page.do detail=None
+genome-gov-about-nhgri,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.genome.gov/FY2025CJ detail=https://www.genome.gov/about-nhgri/Budget-Financial-Information
+genomecanada-ca-about,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://genomecanada.ca/about/publications/
+gi-re-kr-home,list_walk,360,pages=72 text=0 per_page=5 maxpage=1 empty_p73,list=https://www.gi.re.kr/Home/H10000/H10100/pmsReportList
+gichd-org-publications-resourc,list_walk,2,pages=1 text=0 per_page=2 maxpage=0 repeat_p2,list=https://www.gichd.org/publications-resources/publications/
+gnewsonline-it-category,list_walk,7,pages=1 text=0 per_page=7 maxpage=1 repeat_p2,list=https://www.gnewsonline.it/category/comunicati-stampa/
+gov-gr-search,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.gov.gr/elasticsearch/services/_search detail=None
+gov-wales-publications,total_text_only,16606,text=16606 per_page=0 maxpage=1660,list=https://www.gov.wales/publications detail=https://www.gov.wales/fishing-vessel-licences-category-c-41-schedule
+graduateinstitute-ch-library,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.graduateinstitute.ch/library/publications-institute
+gri-re-kr-web,no_per_page,,text=0 per_page=0 maxpage=389,list=https://www.gri.re.kr/web/contents/resreport.do detail=None
+gsi-ie-en-ie,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.gsi.ie/en-ie/research/Pages/related-publications.aspx detail=https://www.gsi.ie/en-ie/publications
+gwangju-go-kr-boardlistdo,lastpage_verified,226,maxpage=2 per_page=113 last=113,list=https://www.gwangju.go.kr/boardView.do
+gyeongnam-go-kr-board,lastpage_verified,38452,maxpage=3846 per_page=10 last=2,list=https://www.gyeongnam.go.kr/board/list.gyeong
+harcresearch-org-news,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://harcresearch.org/news/
+harcresearch-org-research,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://harcresearch.org/research/
+hatvp-fr-actualites-et-public,list_walk,3,pages=1 text=0 per_page=3 maxpage=0 repeat_p2,list=https://www.hatvp.fr/actualites-et-publications/
+gnews-gg-go-kr-briefing,no_per_page,,text=0 per_page=0 maxpage=0,list=https://gnews.gg.go.kr/briefing/brief_gongbo_view.do detail=https://gnews.gg.go.kr/briefing/brief_gongbo.do
+health-ni-gov-uk-publications,lastpage_verified,141,maxpage=141 per_page=1 last=1,list=https://www.health-ni.gov.uk/publications
+hcsp-fr-explorecgi,list_walk,21497,pages=1540 text=0 per_page=10 maxpage=1 repeat_p1541,list=https://www.hcsp.fr/Explore.cgi/avisrapportsdomaine
+health-ni-gov-uk-news,list_walk,2,pages=1 text=0 per_page=2 maxpage=0 repeat_p2,list=https://www.health-ni.gov.uk/news/feed/health
+hec-edu-en,list_walk,8,pages=1 text=0 per_page=8 maxpage=1 repeat_p2,list=https://www.hec.edu/en/list-press-release
+hhs-gov-guidance,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.hhs.gov/guidance/ detail=https://www.hhs.gov/guidance/document/medicare-provider-reimbursement-manual-part-1-chapter-9-compensation-owners-1
+hi-no-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.hi.no/en/hi/nettrapporter
+home-cern-news,no_per_page,,text=0 per_page=0 maxpage=0,list=https://home.cern/feed/ detail=None
+hrbopenresearch-org,no_per_page,,text=0 per_page=0 maxpage=1,list=https://hrbopenresearch.org/browse/articles detail=https://hrbopenresearch.org/articles/9-81
+home-treasury-gov-about,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://home.treasury.gov/about/budget-financial-reporting-planning-and-performance/good-accounting-obligation-in-government-act-gao-ig-act-reports
+hud-govt-nz-stats-and-insights,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.hud.govt.nz/documents/search detail=None
+humanrights-go-kr-base,lastpage_verified,571,maxpage=52 per_page=11 last=10,list=https://www.humanrights.go.kr/base/board/list
+icn-artem-com-en,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.icn-artem.com/en/news/ detail=https://www.icn-artem.com/post-sitemap.xml
+icp-fr-a-propos-de-licp,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.icp.fr/a-propos-de-licp/presse/communiques-de-presse
+idiap-ch-en,total_text,20,text=20 per_page=20 maxpage=1,list=https://www.idiap.ch/en/scientific-research/data/@@faceted_query
+ifau-se-press,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.ifau.se/Press/Pressmeddelanden/
+ifr-pan-edu-pl-dzialalnosc-naukowa,no_per_page,,text=0 per_page=0 maxpage=0,list=https://ifr-pan.edu.pl/publication/filtered detail=None
+ifpenergiesnouvelles-fr-tags,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.ifpenergiesnouvelles.fr/views/ajax detail=https://www.ifpenergiesnouvelles.fr/article/carbone-des-sols-valorhiz-ifpen-et-ccarbon-renforcent-cooperation-franco-bresilienne-au-service-resilience-des-ecosystemes
+ifremer-fr-fr,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.ifremer.fr/fr/espace-presse detail=https://www.ifremer.fr/fr/presse/les-vagues-de-chaleur-marines-quelles-consequences-sur-la-biodiversite-et-le-fonctionnement
+igualdad-gob-es-comunicacion,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.igualdad.gob.es/comunicacion/sala-de-prensa/
+ign-fr-espace-presse,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.ign.fr/espace-presse
+ifau-se-forskning,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.ifau.se/Forskning/Publikationer/Rapporter/2026/personalforsorjningen-i-valfardssektorn/ detail=https://www.ifau.se/Forskning/Publikationer/Rapporter/2026/en-internationell-jamforelse-av-lakares-inkomster/
+iheid-swisscovery-ch-discovery,no_per_page,,text=0 per_page=0 maxpage=0,list=https://iheid.swisscovery.ch/primaws/rest/pub/pnxs detail=None
+ii-re-kr-base,lastpage_verified,4259,maxpage=203 per_page=21 last=17,list=https://www.ii.re.kr/base/board/list
+illustro-iadt-figshare-com-search,list_walk,7,pages=1 text=0 per_page=7 maxpage=0 no_items_p2,list=https://api.figshare.com/v2/articles
+incheon-go-kr-ic010205,total_text,16464,text=16464 per_page=33 maxpage=1647,list=https://www.incheon.go.kr/IC010205
+indicators-be-nl,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://indicators.be/nl/t/SDG/
+ineris-fr-fr,no_per_page,,text=0 per_page=0 maxpage=2,list=https://www.ineris.fr/fr/base-documentaire detail=https://www.ineris.fr/sites/default/files/contribution/Documents/cp-adisseo-ineris-vdef-1415022706.pdf
+infrastructure-ni-gov-uk-news,total_text,2998,text=2998 per_page=1 maxpage=149,list=https://www.infrastructure-ni.gov.uk/news
+info-daegu-go-kr-newshome,fetch_fail,,,list page1 empty
+inrae-fr-actualites,no_per_page,,text=0 per_page=0 maxpage=0,list=https://DVUTVWXJFU-dsn.algolia.net/1/indexes/inrae_prod_created_date_desc/query detail=None
+inria-fr-fr,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.inria.fr/fr/espace-presse detail=None
+insee-fr-fr,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.insee.fr/fr/solr/consultation detail=https://www.insee.fr/fr/information/9034195
+irsn-fr-actualites,no_per_page,,text=0 per_page=0 maxpage=17,list=https://recherche-expertise.asnr.fr/actualites/communiques-presse detail=https://recherche-expertise.asnr.fr/actualites/journee-15-ans-charte-inter-organismes-louverture-societe-lirsn
+international-canada-ca-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://international.canada.ca/en/global-affairs/corporate/reports/access-information-privacy-reports-global-affairs
+international-gc-ca-transparency-transpa,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 empty_p2,list=https://www.international.gc.ca/transparency-transparence/information-privacy-information-protection/reports-rapport/index.aspx
+info-korail-com-info,lastpage_verified,12616,maxpage=631 per_page=20 last=16,list=https://info.korail.com/info/selectBbsNttList.do
+iucn-org-about-iucn,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://iucn.org/about-iucn/accountability-and-reporting/annual-reports
+iucn-org-press-releases,no_per_page,,text=0 per_page=0 maxpage=18,list=https://iucn.org/press-releases detail=https://iucn.org/press-release/202607/seven-iucn-recommended-natural-and-mixed-sites-join-unesco-world-heritage-list
+iwhr-com-zgskywwnew,no_per_page,,text=0 per_page=0 maxpage=0,list=http://www.iwhr.com/zgskywwnew/ddjs/newskzs/N014809index_1.htm detail=None
+ir-arcnl-nl,list_walk,7,pages=3 text=0 per_page=2 maxpage=0 repeat_p4,list=https://ir.arcnl.nl/
+jeju-go-kr-news,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.jeju.go.kr/news/bodo/list.htm detail=None
+justice-gov-news,list_walk,100,pages=25 text=0 per_page=4 maxpage=1 no_items_p26,list=https://www.justice.gov/news/press-releases
+justice-ni-gov-uk-publications,lastpage_verified,94,maxpage=94 per_page=1 last=1,list=https://www.justice-ni.gov.uk/publications
+iucn-org-resources,no_per_page,,text=0 per_page=0 maxpage=1,list=https://iucn.org/search-website detail=https://iucn.org/resources/dataset/pamoja-tuhifadhi-bahari-yetu-grant-summary
+justitsministeriet-dk-forskning,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.justitsministeriet.dk/forskning/forskningsrapporter/
+justitsministeriet-dk-pressemeddelelse,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.justitsministeriet.dk/pressemeddelelse/
+jeonnam-go-kr-m7116,fetch_fail,,,list page1 empty
+irb-usi-ch-publications,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.mdpi.com/2076-0817/15/6/587 detail=https://irb.usi.ch/wp-json/wp/v2/pages/632
+juventudeinfancia-gob-es-es,no_per_page,,text=0 per_page=0 maxpage=61,list=https://www.juventudeinfancia.gob.es/es/comunicacion/notas-prensa detail=https://www.juventudeinfancia.gob.es/es/comunicacion/notas-prensa/gobierno-universidad-salamanca-crean-catedra-impulsar-investigacion
+jsearch-mwr-gov-cn-irs-c-web,no_per_page,,text=0 per_page=0 maxpage=0,list=http://jsearch.mwr.gov.cn/irs/front/search detail=http://www.mwr.gov.cn/tszl/mzyt/202608/202511/t20251128_2091109.html
+kamco-or-kr-portal,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.kamco.or.kr/portal/bbs/view.do
+kammarkollegiet-se-aktuellt,list_walk,3,pages=1 text=0 per_page=3 maxpage=0 repeat_p2,list=https://www.kammarkollegiet.se/aktuellt
+kasa-go-kr-bbs,list_walk,932,pages=932 text=0 per_page=1 maxpage=34 empty_p933,list=https://www.kasa.go.kr/bbs/BBSMSTR_000000000010/list.do
+kdca-go-kr-kdca,list_walk,20,pages=1 text=0 per_page=20 maxpage=0 repeat_p2,list=https://www.kdca.go.kr/bbs/kdca/41/artclList.do
+kedi-re-kr-khome,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.kedi.re.kr/khome/main/research/selectPubForm.do detail=https://www.kedi.re.kr/khome/main/research/listPubForm.do
+keei-re-kr-boardes,no_per_page,,text=0 per_page=0 maxpage=160,list=https://www.keei.re.kr/board.es detail=None
+kefm-dk-aftaler,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.kefm.dk/aftaler detail=None
+kei-re-kr-eliblistes,no_per_page,,text=0 per_page=0 maxpage=283,list=https://www.kei.re.kr/elibList.es detail=None
+keis-or-kr-keis,lastpage_verified,256,maxpage=26 per_page=10 last=6,list=https://www.keis.or.kr/keis/ko/bbs/123/list.do
+kepco-co-kr-home,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.kepco.co.kr/home/media/newsroom/pr/boardListAjax.do detail=https://www.kepco.co.kr/home/media/newsroom/pr/boardViewAjax.do
+khs-go-kr-cop,fetch_fail,,,list page1 empty
+kicce-re-kr-main,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.kicce.re.kr/main/board/view.do
+kcg-go-kr-kcg,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.kcg.go.kr/kcg/na/ntt/selectNttInfo.do detail=https://www.kcg.go.kr/kcg/na/ntt/selectNttList.do
+kicj-re-kr-boardes,lastpage_verified,135,maxpage=135 per_page=1 last=1,list=https://www.kicj.re.kr/board.es
+kiep-go-kr-galleryes,no_per_page,,text=0 per_page=0 maxpage=225,list=https://www.kiep.go.kr/gallery.es detail=None
+kihasa-re-kr-news,list_walk,146,pages=1 text=0 per_page=146 maxpage=1 repeat_p2,list=https://www.kihasa.re.kr/news/press/list
+kihasa-re-kr-publish,list_walk,166,pages=1 text=0 per_page=166 maxpage=1 repeat_p2,list=https://www.kihasa.re.kr/publish/report/all/list
+khs-go-kr-newsbbz,fetch_fail,,,list page1 empty
+kinfa-or-kr-notificationpromotio,list_walk,4,pages=1 text=0 per_page=4 maxpage=0 repeat_p2,list=https://www.kinfa.or.kr/notificationPromotion/newsDetail.do
+kice-re-kr-boardcnts,lastpage_verified,78174,maxpage=606 per_page=129 last=129,list=https://www.kice.re.kr/boardCnts/view.do
+kinu-or-kr-main,list_walk,26,pages=1 text=0 per_page=26 maxpage=1 repeat_p2,list=https://www.kinu.or.kr/main/board/view.do
+kipa-re-kr-html,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.kipa.re.kr/service/kor/rsch/pblc/selectPblcList detail=https://www.kipa.re.kr/service/kor/rsch/pblc/selectPblcDataDtlPopup
+kipf-re-kr-bbs,list_walk,362,pages=128 text=0 per_page=11 maxpage=36 empty_p129,list=https://www.kipf.re.kr/bbs/kor_Plaza_PressRelease.do
+kipf-re-kr-kor,list_walk,557,pages=557 text=0 per_page=1 maxpage=38 empty_p558,list=https://www.kipf.re.kr/kor/Publication/CenterPeriodicals/kiPublish/CB/Center/list.do
+kipo-go-kr-ko,list_walk,88,pages=1 text=0 per_page=88 maxpage=1 repeat_p2,list=https://www.kipo.go.kr/ko/kpoBultnDetail.do
+kisdi-re-kr-bbs,lastpage_verified,264,maxpage=132 per_page=2 last=2,list=https://www.kisdi.re.kr/bbs/list.do
+kli-re-kr-kli,lastpage_verified,2162,maxpage=167 per_page=13 last=4,list=https://www.kli.re.kr/kli/rschRptpList.es
+klimaraadet-dk-da,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://klimaraadet.dk/da/udgivelser
+klri-re-kr-kor,lastpage_verified,81,maxpage=81 per_page=1 last=1,list=https://www.klri.re.kr/kor/issueData/P/list.do
+kma-go-kr-kma,no_per_page,,text=0 per_page=0 maxpage=7,list=https://www.kma.go.kr/kma/news/press_01.jsp detail=None
+kmcc-go-kr-userdo,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.kmcc.go.kr/user.do detail=None
+kna-forest-go-kr-kfsweb,lastpage_verified,375,maxpage=38 per_page=10 last=5,list=https://kna.forest.go.kr/kfsweb/kfi/kfs/kna/application/publication/list.do
+kisdi-re-kr-report,lastpage_verified,208,maxpage=104 per_page=2 last=2,list=https://www.kisdi.re.kr/report/list.do
+kommunikasjon-ntb-no-presserom,list_walk,4,pages=1 text=0 per_page=4 maxpage=0 repeat_p2,list=https://kommunikasjon.ntb.no/public-website-api/pressroom/17848243/releases/20/0
+kostat-go-kr-boardes,no_per_page,,text=0 per_page=0 maxpage=11,list=https://www.kostat.go.kr/board.es detail=None
+koti-re-kr-user,total_text,746,text=746 per_page=13 maxpage=1,list=https://www.koti.re.kr/user/bbs/bassRsrchReprtList.do
+krei-re-kr-krei,no_per_page,,text=0 per_page=0 maxpage=214,list=https://www.krei.re.kr/krei/page/24 detail=None
+krihs-re-kr-boardes,no_per_page,,text=0 per_page=0 maxpage=104,list=https://www.krihs.re.kr/board.es detail=None
+krihs-re-kr-krihslibraryarticle,list_walk,744,pages=75 text=0 per_page=10 maxpage=11 no_items_p76,list=https://www.krihs.re.kr/krihsLibraryArticle/articleList.es
+krihs-re-kr-krihslibraryreport,list_walk,5,pages=1 text=0 per_page=5 maxpage=11 no_items_p2,list=https://www.krihs.re.kr/krihsLibraryReport/briefList.es
+krivet-re-kr-kor,no_per_page,,text=0 per_page=0 maxpage=16,list=https://www.krivet.re.kr/kor/sub.do detail=None
+kwdi-re-kr-plaza,lastpage_verified,603,maxpage=61 per_page=10 last=3,list=https://www.kwdi.re.kr/plaza/bodo.do
+kwdi-re-kr-publications,lastpage_verified,629,maxpage=63 per_page=10 last=9,list=https://www.kwdi.re.kr/publications/genderReview.do
+lavoro-gov-it-stampa-e-media,no_per_page,,text=0 per_page=0 maxpage=88,list=https://www.lavoro.gov.it/stampa-e-media/Comunicati/Pagine/Comunicati detail=https://www.lavoro.gov.it/stampa-e-media/comunicati/pagine/calderone-su-bonus-mamme-e-stabilizzazione-under-35-misure-concrete-per-sostenere-la-partecipazione-stabile-al-lavoro
+lecese-fr-espace-presse,no_per_page,,text=0 per_page=0 maxpage=112,list=https://www.lecese.fr/espace-presse detail=https://www.lecese.fr/presse/communiques/mandature-2026-2031-claire-thoury-elue-presidente-du-cese
+lib-cssn-cn-zy,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=http://lib.cssn.cn/zy/dzzy/sjk_1/axkflll/
+krivet-re-kr,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.krivet.re.kr/kor/sub.do detail=None
+libreria-educacion-gob-es-p,list_walk,2,pages=1 text=0 per_page=2 maxpage=0 repeat_p2,list=https://www.libreria.educacion.gob.es/p/3740_estadisticas/
+llnl-gov-news,no_per_page,,text=0 per_page=0 maxpage=0,list=https://contenthub.llnl.gov/articles/all/20/0/none/www.llnl.gov/0 detail=None
+mafra-go-kr-home,list_walk,10,pages=1 text=0 per_page=10 maxpage=1 repeat_p2,list=https://www.mafra.go.kr/home/5109/subview.do
+marine-ie-site-area,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.marine.ie/site-area/publications/annual-reports
+masaf-gov-it-flex,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.masaf.gov.it/flex/cm/pages/ServeBLOB.php/L/IT/IDPagina/331
+mbie-govt-nz-building-and-energy,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.mbie.govt.nz/building-and-energy/energy-and-natural-resources/energy-statistics-and-modelling/energy-statistics detail=https://www.mbie.govt.nz/building-and-energy/energy-and-natural-resources/energy-statistics-and-modelling/energy-publications-and-technical-papers
+mem-gov-cn-fw,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.mem.gov.cn/fw/yajzjxzxk/zjxzxksxbljg/
+meri-belspo-be-site,no_per_page,,text=0 per_page=0 maxpage=0,list=https://meri.belspo.be/site/docs/publications/MERI_publications.csv detail=https://meri.belspo.be/site/docs/publications/RS_13%20EN.pdf
+meteofrance-fr-actualite,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://meteofrance.fr/actualite/publications/les-publications-de-meteo-france
+mfat-govt-nz-en,list_walk,32,pages=1 text=0 per_page=32 maxpage=1 repeat_p2,list=https://www.mfat.govt.nz/en/about-us/mfat-annual-reports
+mfds-go-kr-brd,lastpage_verified,4798,maxpage=437 per_page=11 last=2,list=https://www.mfds.go.kr/brd/m_99/list.do
+miit-gov-cn-zwgk,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.miit.gov.cn/api-gateway/jpaas-publish-server/front/page/build/unit
+mim-gov-it-web,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.mim.gov.it/web/guest/comunicati
+mimit-gov-it-it,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.mimit.gov.it/it/per-i-media/pubblicazioni
+met-no-publikasjoner,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.met.no/publikasjoner/met-report/_/attachment/inline/24695108-be85-47f5-a377-7be5246d8ba0:af0eb37dd5eba440ca3f856973554ff04b033e45/Met-report-01-2026.pdf detail=https://www.met.no/publikasjoner/met-report
+minagric-gr-the-ministry-2,no_per_page,,text=0 per_page=0 maxpage=0,list=https://minagric.gr/the-ministry-2/grafeiotypou/press-releases-ypaat-current-year detail=https://minagric.gr/2013-04-05-10-13-09/ministry-example/ypaat-grafeio-typou/deltiatypou/19695-dt020826
+mindigital-gr-archives,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.mindigital.gr/archives/category/deltia-typou-anakoinoseis detail=https://www.mindigital.gr/archives/9055
+minfin-gov-gr-grafeio-typou,no_per_page,,text=0 per_page=0 maxpage=0,list=https://minfin.gov.gr/wp-json/wp/v2/posts detail=None
+minedu-gov-gr-grafeio-typoy-kai-di,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.minedu.gov.gr/grafeio-typoy-kai-dimosion-sxeseon/deltia-typoy detail=None
+ministryofjustice-gr,no_per_page,,text=0 per_page=0 maxpage=0,list=https://ministryofjustice.gr/ detail=None
+minrel-gob-cl-minrel,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.minrel.gob.cl/minrel/sala-de-prensa/p/1
+minscfa-gov-gr-grafeio-typou,no_per_page,,text=0 per_page=0 maxpage=0,list=https://minscfa.gov.gr/grafeio-typou/deltia-typou/ detail=None
+mintour-gov-gr-deltia-typoy,list_walk,5,pages=1 text=0 per_page=5 maxpage=1 repeat_p2,list=https://mintour.gov.gr/category/deltia-typou/
+miteco-gob-es-es,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.miteco.gob.es/es/prensa/ultimas-noticias.html
+mivau-gob-es-el-ministerio,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.mivau.gob.es/el-ministerio/sala-de-prensa
+mnd-go-kr-user,fetch_fail,,,list page1 empty
+mma-go-kr-board,total_text,683,text=683 per_page=12 maxpage=69,list=https://www.mma.go.kr/board/boardList.do
+mod-mil-gr-category,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.mod.mil.gr/category/anakoinoseis-typoy/ detail=https://www.mod.mil.gr/oloklirothikan-oi-diadikasies-ti-chorigisi-epidomatos-dioikisis-sta-stelechi-ton/
+moe-go-kr-boardcnts,lastpage_verified,72852,maxpage=72852 per_page=1 last=1,list=https://www.moe.go.kr/boardCnts/listRenew.do
+moe-gov-cn-jyb_xwfb,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=http://www.moe.gov.cn/jyb_xwfb/s271/
+moe-gov-cn-jyb_xxgk,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=http://www.moe.gov.cn/jyb_xxgk/xxgk/nianbao/jiguan/
+moef-go-kr-nw,list_walk,201,pages=201 text=0 per_page=1 maxpage=2202 empty_p202,list=https://www.moef.go.kr/nw/nes/nesdta.do
+mof-go-kr-doc,lastpage_verified,104162,maxpage=52081 per_page=2 last=2,list=https://www.mof.go.kr/doc/ko/selectDoc.do
+mofe-go-kr-id,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.data.go.kr/tcs/dss/selectDataSetList.do detail=https://www.data.go.kr/catalog/15146172/fileData.json
+mogef-go-kr-nw,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.mogef.go.kr/nw/rpd/nw_rpd_s001d.do
+mohrss-gov-cn-xxgk2020,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.mohrss.gov.cn/xxgk2020/zfxxgknb/ detail=https://www.mohrss.gov.cn/xxgk2020/zfxxgknb/202601/t20260128_566265.html
+moj-go-kr-moj,list_walk,10,pages=1 text=0 per_page=10 maxpage=1 repeat_p2,list=https://www.moj.go.kr/moj/221/subview.do
+mohw-go-kr-boardes,no_per_page,,text=0 per_page=0 maxpage=1632,list=https://www.mohw.go.kr/board.es detail=None
+mofa-go-kr-www,fetch_fail,,,list page1 empty
+mois-go-kr-frt,list_walk,2954,pages=211 text=0 per_page=14 maxpage=1586 no_items_p212,list=https://www.mois.go.kr/frt/bbs/type010/commonSelectBoardList.do
+moleg-go-kr-boardes,no_per_page,,text=0 per_page=0 maxpage=26,list=https://www.moleg.go.kr/board.es detail=None
+mpi-govt-nz-resources-and-forms,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.mpi.govt.nz/resources-and-forms/economic-intelligence/farm-monitoring/ detail=http://web.archive.org/cdx/search/cdx
+mof-gov-cn-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=http://www.mof.gov.cn/en/reports/index.htm
+motir-go-kr-kor,lastpage_verified,41943,maxpage=2996 per_page=14 last=13,list=https://www.motir.go.kr/kor/article/ATCL3f49a5a8c
+mpva-go-kr-mpva,list_walk,9500,pages=950 text=0 per_page=10 maxpage=301 empty_p951,list=https://www.mpva.go.kr/mpva/selectBbsNttList.do
+msd-govt-nz-about-msd-and-our-wo,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.msd.govt.nz/about-msd-and-our-work/publications-resources/regulatory-impact-statements/index.html
+msit-go-kr-bbs,lastpage_verified,49,maxpage=49 per_page=1 last=1,list=https://www.msit.go.kr/bbs/list.do
+molit-go-kr-usr,fetch_fail,,,list page1 empty
+mss-go-kr-site,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.mss.go.kr/site/smba/foffice/ex/statDB/stReportRoList.do
+mva-gov-cn-gongkai,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.mva.gov.cn/gongkai/zfxxgkpt/zfxxgknb/index.html
+mwr-gov-cn-english,no_per_page,,text=0 per_page=0 maxpage=0,list=http://www.mwr.gov.cn/english/Documents/WaterStandards/ detail=http://www.mwr.gov.cn/english/Documents/WaterStandards/index_1.html
+mwr-gov-cn-zwgk,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=http://www.mwr.gov.cn/zwgk/gknb/
+naacc-go-kr-web,no_per_page,,text=0 per_page=0 maxpage=34,list=https://naacc.go.kr/WEB/contents/N4020000000.do detail=None
+nbb-be-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.nbb.be/en/publications-research/publications/all-publications
+ncats-nih-gov-news-events,list_walk,9,pages=1 text=0 per_page=9 maxpage=1 repeat_p2,list=https://ncats.nih.gov/news-events/news
+nccih-nih-gov-news,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.nccih.nih.gov/page-data/news/press-releases/page-data.json detail=https://www.nccih.nih.gov/page-data/news/press-releases/nih-study-reveals-how-inflammation-makes-touch-painful/page-data.json
+ncri-ie-en,no_per_page,,text=0 per_page=0 maxpage=11,list=https://www.ncri.ie/en/search detail=https://www.ncri.ie/en/reports-publications/reports/trends-in-irish-cancer-incidence-1994-2002-with-predictions-to-2020
+nec-go-kr-site,list_walk,2950,pages=197 text=0 per_page=15 maxpage=1 no_items_p198,list=https://www.nec.go.kr/site/nec/ex/bbs/List.do
+nersc-no-en,no_per_page,,text=0 per_page=0 maxpage=0,list=https://api.cristin.no/v2/results detail=https://nersc.no/en/publications/
+neac-gov-cn-seac,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.neac.gov.cn/seac/c103544/common_list.shtml
+mpi-govt-nz-about-mpi,no_per_page,,text=0 per_page=0 maxpage=0,list=http://web.archive.org/cdx/search/cdx detail=None
+nei-nih-gov-about,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.nei.nih.gov/about/budget-and-congress
+nesc-ie-publications,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.nesc.ie/wp-json/nesc/v1/publications-search
+netl-doe-gov-fecm-external-r-and-,list_walk,2,pages=1 text=0 per_page=2 maxpage=0 repeat_p2,list=https://netl.doe.gov/projects/project-Final-Report-List.aspx
+netl-doe-gov-advsearch,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://netl.doe.gov/advsearch
+news-admin-ch-en,no_per_page,,text=0 per_page=0 maxpage=1,list=https://d-nsbc-p.admin.ch/v1/search detail=None
+nfa-go-kr-nfa,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.nfa.go.kr/nfa/publicrelations/policyarchive/policyresearch/ detail=None
+nhlbi-nih-gov-resources,no_per_page,,text=0 per_page=0 maxpage=27,list=https://www.nhlbi.nih.gov/resources detail=https://www.nhlbi.nih.gov/resources/what-thalassemia-fact-sheet
+netl-doe-gov-energy-analysis,no_per_page,,text=0 per_page=0 maxpage=1,list=https://netl.doe.gov/projects/VueConnection/Search-RD-Publications.aspx detail=https://netl.doe.gov/projects/VueConnection/energy-analysis-details.aspx
+netl-doe-gov-search-r-d-publicati,no_per_page,,text=0 per_page=0 maxpage=1,list=https://netl.doe.gov/projects/VueConnection/Search-RD-Publications.aspx detail=None
+niaaa-nih-gov-news-events,no_per_page,,text=0 per_page=0 maxpage=7,list=https://www.niaaa.nih.gov/news-events/news detail=https://www.niaaa.nih.gov/news-events/announcement/memoriam-aaron-m-white-phd
+niams-nih-gov-newsroom,list_walk,32,pages=1 text=0 per_page=32 maxpage=0 repeat_p2,list=https://www.niams.nih.gov/sitemap.xml
+nibib-nih-gov-news-events,no_per_page,,text=0 per_page=0 maxpage=4,list=https://www.nibib.nih.gov/news-events/press-releases detail=https://www.nibib.nih.gov/news-events/newsroom/nih-announces-prize-winners-year-long-challenge-develop-fetal-diagnostic-monitoring-technologies
+nhc-gov-cn-wjw,no_list_url,,,caps=0
+nidcd-nih-gov-order,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.nidcd.nih.gov/order detail=None
+nibio-no-en,no_per_page,,text=0 per_page=0 maxpage=55,list=https://www.nibio.no/en/publications detail=None
+nichd-nih-gov-newsroom,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.nichd.nih.gov/newsroom/news
+nida-nih-gov-news-events,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://nida.nih.gov/news-events/news-releases
+nidcd-nih-gov-news,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.nidcd.nih.gov/news/nidcd-news detail=None
+nidcr-nih-gov-news-events,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.nidcr.nih.gov/news-events/nidcr-news
+niddk-nih-gov-news,list_walk,34,pages=1 text=0 per_page=34 maxpage=0 repeat_p2,list=https://www.niddk.nih.gov/rss/news
+nidi-nl-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://nidi.nl/en/publications/
+niehs-nih-gov-newsreleases,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.niehs.nih.gov/newsreleases
+nifu-no-en,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.nifu.no/wp-content/themes/nifu-child/functions/json/rapporter.json detail=https://www.nifu.no/wp-content/themes/nifu-child/functions/json/article.json
+nigms-nih-gov-news,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.nigms.nih.gov/news/releases-and-announcements
+nih-gov-press-room,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.nih.gov/press-room detail=None
+nih-gov-news-events,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.nih.gov/news-events/news-releases detail=None
+nikhef-nl-pub,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.nikhef.nl/pub/services/newbiblio/reports.php
+nim-ac-cn-taxonomy,list_walk,772,pages=1 text=0 per_page=772 maxpage=1 repeat_p2,list=https://www.nim.ac.cn/taxonomy/term/170
+nimh-nih-gov-news,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.nimh.nih.gov/news/science-updates/2026 detail=https://www.nimh.nih.gov/news/science-updates/2025
+nia-nih-gov-news,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.nia.nih.gov/news/news-releases
+nimhd-nih-gov-news-events,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.nimhd.nih.gov/sitemap.xml detail=https://www.nimhd.nih.gov/news-events/all-news/news-releases
+ninds-nih-gov-news-events,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.ninds.nih.gov/news-events/press-releases/press-releases.json detail=None
+ninds-nih-gov-publications,no_per_page,,text=0 per_page=0 maxpage=4,list=https://www.ninds.nih.gov/publications detail=None
+nisra-gov-uk-publications,total_text_only,2021,text=2021 per_page=0 maxpage=161,list=https://www.nisra.gov.uk/publications detail=https://www.nisra.gov.uk/publications/wsa-publication-schedule
+nist-gov-publications,no_per_page,,text=0 per_page=0 maxpage=2,list=https://www.nist.gov/publications/search detail=https://www.nist.gov/publications/advancing-resilience-across-lifeline-infrastructure-systems-need-consistent-guidance
+nioo-knaw-nl-en,no_per_page,,text=0 per_page=0 maxpage=6,list=https://nioo.knaw.nl/en/pressreleases detail=https://nioo.knaw.nl/en/news/hedges-also-have-a-positive-effect-underground
+nivel-nl-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.nivel.nl/en/publications
+nin-nl-publications,total_text,4022,text=4022 per_page=1 maxpage=1,list=https://nin.nl/publications/
+nkvts-no-english,no_per_page,,text=0 per_page=0 maxpage=0,list=https://A4EOX51ZO9-dsn.algolia.net/1/indexes/wp_searchable_posts/query detail=None
+nnsa-mee-gov-cn-english,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://nnsa.mee.gov.cn/english/resources/annual/
+noc-ac-uk-about-us,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.noc.ac.uk/sites/default/files/2026-04/STRATEGY%202025-2035%20-%20EXTERNAL.pdf detail=https://www.noc.ac.uk/who-we-are/our-purpose/literature-and-brochures
+noc-ac-uk-publications,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.noc.ac.uk/publications detail=https://nora.nerc.ac.uk/id/eprint/541063
+nordlandsforskning-no-en,list_walk,2,pages=1 text=0 per_page=2 maxpage=0 repeat_p2,list=https://www.nordlandsforskning.no/publikasjoner
+nps-or-kr-inforls,list_walk,1088,pages=100 text=0 per_page=11 maxpage=1 repeat_p101,list=https://www.nps.or.kr/inforls/publdata/getOHAB0019M0List.do
+nps-or-kr-pnsgdnc,list_walk,5,pages=1 text=0 per_page=5 maxpage=0 repeat_p2,list=https://www.nps.or.kr/pnsgdnc/nscvrgdata/getOHAE0002M1.do
+nrc-re-kr-boardes,no_per_page,,text=0 per_page=0 maxpage=65,list=https://www.nrc.re.kr/board.es detail=None
+ntp-niehs-nih-gov-publications,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://ntp.niehs.nih.gov/publications/reports
+nts-go-kr-nts,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.nts.go.kr/nts/na/ntt/selectNttList.do detail=https://www.nts.go.kr/nts/na/ntt/selectNttFileList.do
+nupi-no-en,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.nupi.no/en/publications
+nypi-re-kr-board,lastpage_verified,572,maxpage=16 per_page=36 last=32,list=https://www.nypi.re.kr/board
+nzpri-aut-ac-nz-document-library,no_per_page,,text=0 per_page=0 maxpage=1,list=https://nzpri.aut.ac.nz/document-library/document-library-search detail=None
+oig-treasury-gov-other-reports-testim,no_per_page,,text=0 per_page=0 maxpage=23,list=https://oig.treasury.gov/reports/audit-and-evaluation detail=None
+om-mp-be-nl,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.om-mp.be/nl/onze-publicaties detail=None
+onera-fr-fr,list_walk,1,pages=1 text=0 per_page=1 maxpage=2 no_items_p2,list=https://www.onera.fr/fr/presse
+ons-gov-uk-search,list_walk,34,pages=1 text=0 per_page=34 maxpage=0 repeat_p2,list=https://api.beta.ons.gov.uk/v1/search
+nypi-re-kr,list_walk,77,pages=1 text=0 per_page=77 maxpage=0 repeat_p2,list=https://www.nypi.re.kr/board/view
+openaire-eu-os-slovenia,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.openaire.eu/os-slovenia detail=None
+opendatacommunities-org-data,no_per_page,,text=0 per_page=0 maxpage=0,list=https://opendatacommunities.org/data detail=None
+opendata-centralbank-ie-dataset,no_list_url,,,caps=0
+opengov-seoul-go-kr-research,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://opengov.seoul.go.kr/research/list
+openscience-si-naprednoiskanjeaspx,list_walk,9,pages=1 text=0 per_page=9 maxpage=1 repeat_p2,list=https://openscience.si/NaprednoIskanje.aspx
+opm-go-kr-opm,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.opm.go.kr/opm/news/press-release.do detail=None
+ots-at-pressemappe,total_text_only,1561267,text=1561267 per_page=0 maxpage=0,list=https://core2023.ots.at/api/v1/search detail=https://core2023.ots.at/api/v1/pressrelease/OTS_20260803_OTS0086
+par-nsf-gov-search,no_per_page,,text=0 per_page=0 maxpage=0,list=https://par.nsf.gov/search/product-type:Journal%20Article/rows:10/page:1 detail=https://par.nsf.gov/search/product-type:Journal%20Article/rows:10/page:2
+pbc-gov-cn-en,list_walk,519,pages=1 text=0 per_page=519 maxpage=0 repeat_p2,list=https://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html
+pbl-nl-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.pbl.nl/en/publications
+pbocri-org-cn-lnzy3html,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.pbocri.org.cn/lnzy3.html
+pbocri-org-cn-xslwhtml,list_walk,2,pages=1 text=0 per_page=2 maxpage=0 repeat_p2,list=https://www.pbocri.org.cn/qklw.html
+plan-be-nl,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.plan.be/sitemap.xml detail=None
+pleanala-ie-en-ie,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.pleanala.ie/en-IE/Statistics/Annual-Statistics
+portaldiplomatico-mne-gov-pt-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://portaldiplomatico.mne.gov.pt/en/communication-and-media/press-releases
+pmc-gov-au-resources,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.pmc.gov.au/resources detail=https://r.jina.ai/http://https://www.pmc.gov.au/resources%3Ff%5B0%5D%3Ddb_r_publication_category:334
+police-go-kr-user,fetch_fail,,,list page1 empty
+policyalternatives-ca-news-research,total_text,2013,text=2013 per_page=280 maxpage=0,list=https://www.policyalternatives.ca/wp-json/wp/v2/posts
+politie-be-statistieken,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.politie.be/statistieken/nl/morfologie/rapporten detail=None
+polytechnique-edu-presse,no_per_page,,text=0 per_page=0 maxpage=4,list=https://www.polytechnique.edu/presse/communiques-et-dossiers-de-presse detail=https://www.polytechnique.edu/presse/communiques-et-dossiers-de-presse/cristaux-photoniques-temporels-une-revolution-dans-la-maitrise-de-la-lumiere
+pps-go-kr-kor,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.pps.go.kr/kor/bbs/view.do detail=https://www.pps.go.kr/kor/bbs/list.do
+presse-cnam-fr-communiques,list_walk,14,pages=1 text=0 per_page=14 maxpage=1 repeat_p2,list=https://presse.cnam.fr/communiques/le-cfa-cnam-et-la-ddfip-93-signent-une-convention-de-partenariat-en-faveur-de-l-insertion-professionnelle-des-alternants-1624324.kjsp
+presse-curie-fr-section,list_walk,6,pages=1 text=0 per_page=6 maxpage=0 repeat_p2,list=https://presse.curie.fr/section/communiques/
+presse-economie-gouv-fr,no_per_page,,text=0 per_page=0 maxpage=1,list=https://presse.economie.gouv.fr/search/+/feed/rss2/ detail=None
+ptb-de-cms,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.ptb.de/cms/presseaktuelles/wissenschaftlich-technische-publikationen/ptb-berichte.html detail=https://doi.org/10.7795/110.20241125
+psi-ch-en,no_per_page,,text=0 per_page=0 maxpage=8,list=https://www.psi.ch/en/news/news detail=https://www.psi.ch/en/news/media-releases/neutrons-dont-disappear-into-the-mirror-world
+publications-idiap-ch-publications,no_per_page,,text=0 per_page=0 maxpage=0,list=https://publications.idiap.ch/publications/articles detail=https://publications.idiap.ch/publications/show/5817
+publicsafety-gc-ca-cnt,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.publicsafety.gc.ca/cnt/nws/nws-rlss/index-en.aspx detail=https://www.publicsafety.gc.ca/cnt/nws/nws-rlss/2015/index-eng.aspx
+publicservice-govt-nz-research-and-data,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.publicservice.govt.nz/research-and-data
+publicservice-govt-nz-data,list_walk,3,pages=1 text=0 per_page=3 maxpage=0 repeat_p2,list=https://www.publicservice.govt.nz/sitemap.xml
+provenienzforschung-gv-at-empfehlungen-des-bei,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://provenienzforschung.gv.at/empfehlungen-des-beirats/beschluesse/beschluesse-alphabetisch/
+publikationen-bundesregierung-de-pp-de,list_walk,2,pages=1 text=0 per_page=2 maxpage=0 repeat_p2,list=https://www.publikationen-bundesregierung.de/pp-de/herausgeber/bundesministerium-fuer-wohnen-stadtentwicklung-und-bauwesen-bmwsb-
+pubs-drdc-rddc-gc-ca-basis,no_per_page,,text=0 per_page=0 maxpage=0,list=https://api.openalex.org/works detail=None
+prism-go-kr-homepage,no_per_page,,text=0 per_page=0 maxpage=0,list=https://api.prism.go.kr/prism-be-prtl/search/totalSearch.do detail=None
+pubshop-bmbwf-gv-at-indexphp,no_per_page,,text=0 per_page=0 maxpage=12,list=https://pubshop.bmbwf.gv.at/index.php detail=None
+pure-mpg-de-search,no_per_page,,text=0 per_page=0 maxpage=0,list=https://pure.mpg.de/rest/items/search detail=None
+rcaanc-cirnac-gc-ca-eng,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 empty_p2,list=https://www.rcaanc-cirnac.gc.ca/eng/1575131323136/1575131374706
+rda-go-kr-board,no_per_page,,text=0 per_page=0 maxpage=444,list=https://www.rda.go.kr/board/board.do detail=None
+regjeringen-no-en,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.regjeringen.no/en/find-document/id2000006/ detail=None
+reglementation-controle-asnr-fr-information,list_walk,2,pages=1 text=0 per_page=2 maxpage=0 repeat_p2,list=https://reglementation-controle.asnr.fr/information/publications/rapports-d-expertise
+regulation-govt-nz-about-us,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.regulation.govt.nz/about-us/our-publications/search/
+repository-lboro-ac-uk,list_walk,7,pages=1 text=0 per_page=7 maxpage=0 repeat_p2,list=https://api.figshare.com/v2/articles
+repository-library-noaa-gov-view,no_per_page,,text=0 per_page=0 maxpage=0,list=https://repository.library.noaa.gov/browse/recent detail=https://repository.library.noaa.gov/view/noaa/74063
+pubs-usgs-gov,total_text,5585,text=5585 per_page=1 maxpage=1,list=https://pubs.usgs.gov/browse/Conference%20Paper/
+repository-tno-nl-doclist,no_per_page,,text=0 per_page=0 maxpage=1,list=https://repository.tno.nl/SingleDoc detail=https://repository.tno.nl/DocList
+reseau-canope-fr-espace-presse,fetch_fail,,,list page1 empty
+rijksoverheid-nl-documenten,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.rijksoverheid.nl/documenten detail=None
+rigsrevisionen-dk-revisionssager,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.rigsrevisionen.dk/sitemap.xml
+ris-bka-gv-at-ergebniswxe,list_walk_partial,7518,pages=1074 text=0 per_page=7 maxpage=1 wall_900s,list=https://www.ris.bka.gv.at/Ergebnis.wxe
+repository-naturalis-nl,no_per_page,,text=0 per_page=0 maxpage=0,list=https://repository.naturalis.nl/ detail=https://repository.naturalis.nl/pub/504611/
+rki-de-de,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://www.rki.de/DE/Aktuelles/Neuigkeiten-und-Presse/Meldungen-PM/meldungen-pressemitteilungen-node.html
+ruomoplus-lib-uom-gr-simple-search,no_per_page,,text=0 per_page=0 maxpage=0,list=https://ruomoplus.lib.uom.gr/simple-search detail=https://ruomoplus.lib.uom.gr/.within.website/x/cmd/anubis/api/pass-challenge
+safefood-net-news,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.safefood.net/communications/news detail=https://www.safefood.net/communications/news/2026
+saemangeum-go-kr-sda,lastpage_verified,235,maxpage=235 per_page=1 last=1,list=https://www.saemangeum.go.kr/sda/brd/list.do
+santepubliquefrance-fr-presse,list_walk,5,pages=1 text=0 per_page=5 maxpage=1 repeat_p2,list=https://www.santepubliquefrance.fr/presse
+sastind-gov-cn-n10086200,list_walk,16,pages=1 text=0 per_page=16 maxpage=0 repeat_p2,list=https://www.sastind.gov.cn/n10086200/n10086319/index.html
+scaht-org-en,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.scaht.org/en/research/publications/ detail=https://www.scaht.org/en/publications/
+science-astron-nl-science-astron,fetch_fail,,,list page1 empty
+science-libraries-canada-ca-eng,list_walk,10,pages=1 text=0 per_page=10 maxpage=9 no_items_p2,list=https://science-libraries.canada.ca/eng/search/
+scourt-go-kr-portal,list_walk,3402,pages=416 text=0 per_page=11 maxpage=299 empty_p417,list=https://www.scourt.go.kr/portal/news/NewsListAction.work
+search-worldcat-org-ko,list_walk,168,pages=1 text=0 per_page=168 maxpage=1 repeat_p2,list=https://search.worldcat.org/ko/search
+search-open-canada-ca-opendata,no_per_page,,text=0 per_page=0 maxpage=0,list=https://open.canada.ca/data/api/3/action/package_show detail=https://open.canada.ca/data/api/3/action/package_search
+sgu-se-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.sgu.se/en/about-sgu/news-from-sgu/
+seco-admin-ch-seco,no_per_page,,text=0 per_page=0 maxpage=1,list=https://d-nsbc-p.admin.ch/v1/search detail=None
+seer-cancer-gov-report_to_nation,no_per_page,,text=0 per_page=0 maxpage=0,list=https://seer.cancer.gov/report_to_nation/previous.html detail=None
+sejong-go-kr-bbs,list_walk,48273,pages=6629 text=0 per_page=20 maxpage=2686 empty_p6630,list=https://www.sejong.go.kr/bbs/R0079/list.do
+sfi-ch-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=9 no_items_p2,list=https://www.sfi.ch/en/publications
+sib-swiss-training,no_per_page,,text=0 per_page=0 maxpage=25,list=https://www.sib.swiss/training/training-materials detail=None
+sib-swiss-community,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.ebi.ac.uk/europepmc/webservices/rest/search detail=https://www.sib.swiss/community/publications/scientific-publications-2025
+sintef-no-en,list_walk,3,pages=1 text=0 per_page=3 maxpage=1 repeat_p2,list=https://www.sintef.no/en/search/
+skm-dk-aktuelt,list_walk,556,pages=1 text=0 per_page=556 maxpage=0 repeat_p2,list=https://skm.dk/sitemap.xml
+skillsdevelopmentscotland-co-uk-publications-statist,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.skillsdevelopmentscotland.co.uk/api/publications/search detail=None
+sm-dk-publikationer,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.sm.dk/publikationer detail=https://www.sm.dk/publikationer/proxy.gba
+si-re-kr-bbs,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.si.re.kr/bbs/view.do detail=https://www.si.re.kr/bbs/list.do
+sm-ee-otsing,no_per_page,,text=0 per_page=0 maxpage=0,list=https://search.service.eu-live.vportal.ee/v1/search/sm detail=https://www.sm.ee/turvalisuse-margid
+socialstyrelsen-se-en,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.socialstyrelsen.se/en/publications/
+sonar-ch-global,no_per_page,,text=0 per_page=0 maxpage=2,list=https://sonar.ch/api/documents/ detail=None
+sozialministerium-gv-at-services,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.sozialministerium.gv.at/Services/Studien.html
+spo-go-kr-site,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.spo.go.kr/site/spo/ex/board/View.do detail=https://www.spo.go.kr/site/spo/ex/board/List.do
+stat-inst-se-om-sis,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.stat-inst.se/om-sis/remissvar/
+state-gwd-go-kr-portal,list_walk,8333,pages=527 text=0 per_page=15 maxpage=11 no_items_p528,list=https://state.gwd.go.kr/portal/briefing/pressRelease/newpressRelease
+stats-govt-nz-indicators,list_walk,5,pages=1 text=0 per_page=5 maxpage=1 repeat_p2,list=https://www.stats.govt.nz/indicators/
+stepi-re-kr-site,no_per_page,,text=0 per_page=0 maxpage=137,list=https://www.stepi.re.kr/site/stepiko/report/List.do detail=None
+swisspeace-ch-publications,list_walk,3,pages=1 text=0 per_page=3 maxpage=0 repeat_p2,list=https://www.swisspeace.ch/api/data/initial/publications
+swisstph-ch-en,no_per_page,,text=0 per_page=0 maxpage=0,list=https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi detail=https://www.swisstph.ch/en/publications
+state-gov-department-reports,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.state.gov/wp-json/wp/v2/state_report_types detail=https://www.state.gov/wp-json/wp/v2/state_subjects
+telemarksforsking-no-publikasjoner,list_walk,2,pages=1 text=0 per_page=2 maxpage=1 repeat_p2,list=https://telemarksforsking.no/publikasjoner/tab/
+tigta-gov-reports,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.tigta.gov/reports/all-reports.json
+toi-no-publications,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.toi.no/publications/category29.html detail=https://doi.org/10.1016/j.annals.2026.104219
+transportation-gov-newsroom,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.transportation.gov/newsroom/press-releases detail=https://www.transportation.gov/briefing-room/dot-events
+transportes-gob-es-el-ministerio,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.transportes.gob.es/ministerio/comunicacion/sala-prensa
+treasury-gov-au-publication,no_per_page,,text=0 per_page=0 maxpage=239,list=https://treasury.gov.au/publication detail=https://treasury.gov.au/the-department/corporate-publications/enterprise-data-strategy-2026-2029
+ufm-dk-publikationer,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://ufm.dk/publikationer
+ulsan-go-kr-u,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.ulsan.go.kr/u/rep/bbs/view.do detail=https://www.ulsan.go.kr/u/rep/bbs/list.ulsan
+um-dk-om-os,no_per_page,,text=0 per_page=0 maxpage=0,list=https://um.dk/om-os/organisation/oekonomi-og-udbud/oekonomi-maal-og-resultater detail=None
+ungeneva-org-en,no_per_page,,text=0 per_page=0 maxpage=8,list=https://www.ungeneva.org/en/news-media/press-release detail=https://www.ungeneva.org/en/news-media/press-release/2026/07/human-rights-council-concludes-sixty-second-regular-session-after
+unidata-gv-at-pages,no_per_page,,text=0 per_page=0 maxpage=0,list=https://unidata.gv.at/Pages/auswertungen.aspx detail=https://unidata.gv.at/_api/web/lists(guid'34B5E193-E012-4729-92A2-841CC62628CB')/items
+unikorea-go-kr-web,list_walk,1,pages=1 text=0 per_page=1 maxpage=1 repeat_p2,list=https://www.unikorea.go.kr/web/unikorea/bbs/bbs_0000000000000181
+transparency-gov-au-publications,fetch_fail,,,list page1 empty
+usgs-gov-news,total_text,22,text=22 per_page=2 maxpage=129,list=https://www.usgs.gov/views/ajax
+ustat-mur-gov-it,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://ustat.mur.gov.it/documenti/
+uvek-admin-ch-en,no_per_page,,text=0 per_page=0 maxpage=0,list=https://d-nsbc-p.admin.ch/v1/organisations detail=https://d-nsbc-p.admin.ch/v1/topicsSubscriber
+va-gov-vetdata,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.va.gov/vetdata/report.asp detail=None
+vbs-admin-ch-en,no_per_page,,text=0 per_page=0 maxpage=0,list=https://d-nsbc-p.admin.ch/v1/organisations detail=https://d-nsbc-p.admin.ch/v1/topicsSubscriber
+vtg-admin-ch-en,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.vtg.admin.ch/en/swiss-peace-supporter-4 detail=https://po.zem.ch/live/swiss_peace_supporter_2_26/meta.db
+wbf-admin-ch-en,no_per_page,,text=0 per_page=0 maxpage=1,list=https://d-nsbc-p.admin.ch/v1/search detail=None
+wef-infor-cl-indexphp,list_walk,2,pages=1 text=0 per_page=2 maxpage=0 repeat_p2,list=https://wef.infor.cl/index.php/publicaciones
+werk-belgie-be-nl,no_per_page,,text=0 per_page=0 maxpage=62,list=https://werk.belgie.be/nl/nieuws detail=https://werk.belgie.be/nl/news/de-fod-werkgelegenheid-steunt-de-campagne-blue-heart-2026-gevangen-achter-de-oplichting-0
+who-int-publications,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://www.who.int/api/hubs/publications
+women-govt-nz-library,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.women.govt.nz/views/ajax detail=https://www.women.govt.nz/library/gender-pay-gap-perceptions-and-practices-2026-pulse-check
+www2-mrc-lmb-cam-ac-uk-research,no_per_page,,text=0 per_page=0 maxpage=0,list=https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi detail=https://mrclmb.ac.uk/publications/
+www6-slac-stanford-edu-news-and-events,no_per_page,,text=0 per_page=0 maxpage=27,list=https://www6.slac.stanford.edu/news-and-events/news-center/archive detail=https://www6.slac.stanford.edu/news/2026-06-30-action-rubin-observatory-begins-capturing-greatest-cosmic-movie-ever-made
+xxgk-mot-gov-cn-2020,list_walk,1,pages=1 text=0 per_page=1 maxpage=0 repeat_p2,list=https://xxgk.mot.gov.cn/2020/zhengce/863/868/869/iframe_list_7232.html
+ypen-gov-gr-category,no_per_page,,text=0 per_page=0 maxpage=0,list=https://ypen.gov.gr/category/anakoinoseis-typou/ detail=https://ypen.gov.gr/dievrynetai-o-katalogos-ton-prostatevomenon-topion-se-12-me-tin-koryfi-mouskos-agrafon-kai-ton-oreino-ogko-vernon-vitsi-dytikis-makedonias/
+ypergasias-gov-gr-category,no_per_page,,text=0 per_page=0 maxpage=0,list=https://ypergasias.gov.gr/wp-json/wp/v2/posts detail=None
+ypes-gr-category,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.ypes.gr/wp-json/wp/v2/posts detail=None
+acma-gov-au-publications,fetch_fail,,,list page1 empty
+ag-gov-au-publications,fetch_fail,,,list page1 empty
+defence-gov-au-publications,fetch_fail,,,list page1 empty
+dfat-gov-au-publications,fetch_fail,,,list page1 empty
+data-e-gov-go-jp-data,no_per_page,,text=0 per_page=0 maxpage=0,list=https://data.e-gov.go.jp/data/api/3/action/package_search detail=None
+government-se-publications,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.government.se/information-material/ detail=https://www.government.se/information-material/2026/06/a-cloud-policy-for-sweden--for-increased-security-efficiency-and-innovation-in-public-administration/
+health-gov-au-publications,fetch_fail,,,list page1 empty
+earth-prints-org,no_per_page,,text=0 per_page=0 maxpage=674,list=https://www.earth-prints.org/server/api/discover/search/objects detail=https://www.earth-prints.org/server/api/core/items/cb95a6ce-cf50-4185-aea2-aed2fca62301
+health-govt-nz-publications,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.health.govt.nz/statistics-research/statistics-and-data-sets/maori-health detail=https://www.health.govt.nz/publications/funding-to-maori-health-providers-202021-to-202425
+justice-govt-nz-publications,no_per_page,,text=0 per_page=0 maxpage=0,list=https://www.justice.govt.nz/about/publication-finder/ detail=None
+nhmrc-gov-au-publications,fetch_fail,,,list page1 empty
+flore-unifi-it,no_per_page,,text=0 per_page=0 maxpage=0,list=https://flore.unifi.it/oai/request detail=None
+openaccess-inaf-it,no_per_page,,text=0 per_page=0 maxpage=544,list=https://openaccess.inaf.it/server/api/discover/search/objects detail=https://openaccess.inaf.it/server/api/core/items/6674e6ad-6990-4227-b601-fc93e155e654
+treasury-govt-nz-publications,no_per_page,,text=0 per_page=0 maxpage=1,list=https://www.treasury.govt.nz/publications/budgets/budget-2025 detail=https://www.treasury.govt.nz/publications/glance/budget-glance-2025
+iris-unitn-it,no_per_page,,text=0 per_page=0 maxpage=0,list=https://iris.unitn.it/oai/request detail=None
+sante-gouv-fr-ministere,no_list_url,,,caps=0

@@ -325,10 +325,26 @@ def probe_site(sid, walk_wall=900):
     except Exception as e:
         if not _caps():
             _TL.on = False
+            try:
+                conn.close()
+            except Exception:
+                pass
             return {"site_id": sid, "method": "capture_fail", "exact_total": "", "signal": "",
                     "note": f"{type(e).__name__}:{str(e)[:60]}"}
     finally:
         _TL.on = False
+        # FD 누수 방지: sqlite 연결 + 크롤러 세션 해제 (544개 연속 처리 시 고갈 → curl 전멸)
+        try:
+            conn.close()
+        except Exception:
+            pass
+        for attr in ("session", "_session", "sess", "http", "client"):
+            s = getattr(inst, attr, None)
+            if s is not None and hasattr(s, "close"):
+                try:
+                    s.close()
+                except Exception:
+                    pass
     caps = list(_caps())
     list_url, page_param, detail_path, list_path = analyze_captured(caps)
     if not list_url or not page_param:
