@@ -21,4 +21,12 @@ TARGETS: Final[tuple[Target, ...]] = (
     Target(15, "회계", "금융위원회(FSC)", "회계법인 품질관리 감리 결과 개선권고", "https://www.fsc.go.kr/no010101/84720", "개별 게시글 크롤링 + 첨부파일 다운로드", "fino-fsc-accounting-policy-index-v1", "audit_quality_review", "AUDIT_FIRM_QUALITY_REVIEW", "감사품질·품질관리 감리 사례 보조자료", TargetKind.DETAIL),
     Target(16, "회계", "금융위원회(FSC)", "사업보고서 조사·감리결과 조치", "https://www.fsc.go.kr/no010101/85695", "개별 게시글 크롤링 + 첨부파일 다운로드", "fino-fsc-accounting-policy-index-v1", "enforcement", "FINANCIAL_STATEMENT_REVIEW", "감리 조치·제재성 자료로 유사사례 보강", TargetKind.DETAIL),
     Target(17, "회계", "금융위원회(FSC)", "IFRS/K-IFRS 제도 도입·개정 자료", "https://www.fsc.go.kr/no010101/82451", "개별 게시글 크롤링 + 첨부파일 다운로드", "fino-fsc-accounting-policy-index-v1", "policy", "IFRS_ADOPTION_OR_REVISION", "K-IFRS 제도·기준 개정 정책자료", TargetKind.DETAIL),
+    # 18~23: acct_data.xlsx 대상(교육·해설 계열). 목록 페이지가 첨부를 직접 노출하므로
+    # 전용 수집기 scripts/collect_acct_data.py 가 처리한다(기존 LIST 페이징과 구조가 다름).
+    Target(18, "회계", "한국회계기준원(KASB)", "행사·교육자료", "https://www.kasb.or.kr/front/board/List2003.do", "게시판 크롤링 + 첨부파일 다운로드", "fino-acct-edu-index-v1", "education", "KASB_EVENT_EDU", "KAI Forum·세미나·교육교재. 기준서 실무이슈 해설 비중이 높음", TargetKind.LIST),
+    Target(19, "회계", "한국회계기준원(KASB)", "기고자료", "https://www.kasb.or.kr/front/board/List2005.do", "게시판 크롤링 + 첨부파일 다운로드", "fino-acct-edu-index-v1", "commentary", "KASB_ARTICLE", "월간공인회계사·협회지 기고문. 기준서 쟁점 해설", TargetKind.LIST),
+    Target(20, "회계", "한국회계기준원(KASB)", "교육자료", "https://www.kasb.or.kr/front/board/eduAccstdList.do", "게시판 크롤링 + 첨부파일 다운로드", "fino-acct-edu-index-v1", "education", "KASB_EDU_MATERIAL", "질의회신 교육자료 PDF. 스마트강의(YouTube)는 수집 대상 제외", TargetKind.LIST),
+    Target(21, "회계", "한국회계기준원(KASB)", "회계기준적용의견서", "https://www.kasb.or.kr/front/board/opinionList.do", "개별 게시글 크롤링 + 첨부파일 다운로드", "fino-qna-kasb-index-v1", "opinion", "KASB_APPLICATION_OPINION", "기준원이 발표한 적용의견서. 준규범적 성격", TargetKind.LIST),
+    Target(22, "회계", "한국회계기준원(KASB)", "정착지원TF 질의회신요약", "https://www.kasb.or.kr/front/board/List016008.do", "게시판 크롤링 + 첨부파일 다운로드", "fino-qna-kasb-index-v1", "qna", "TF_SUPPORT", "우선순위 1(질의회신 요약 전체)과 중복 가능 — 적재 시 해시 대조", TargetKind.LIST),
+    Target(23, "회계", "한국공인회계사회(KICPA)", "IFRS 실무사례", "https://www.kicpa.or.kr/board/list.brd?boardId=accstd02", "게시판 크롤링 + 첨부파일 다운로드", "fino-acct-edu-index-v1", "commentary", "KICPA_IFRS_CASE", "월간공인회계사 IFRS 실무사례. 발행년월·K-IFRS 번호 메타 보유", TargetKind.LIST),
 )
