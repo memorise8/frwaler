@@ -1,0 +1,9 @@
+site_id,sheet,collected,counted,server_total,completed,elapsed_s,method,note,health
+datos-gob-mx-turismo,Mexico Ministries,4,4,0,True,1.9,count_crawl,,ok
+datos-gob-mx-secretaria-salud,Mexico Ministries,9,9,0,True,2.4,count_crawl,,ok
+datos-gob-mx-secretaria-trabajo,Mexico Ministries,16,16,0,True,2.4,count_crawl,,ok
+datos-gob-mx-territorio,Mexico Ministries,16,16,0,True,2.5,count_crawl,,ok
+datos-gob-mx-seguridad,Mexico Ministries,27,27,0,True,3.2,count_crawl,,ok
+datos-gob-mx-agricultura,Mexico Ministries,85,85,0,True,6.1,count_crawl,,ok
+datos-gob-mx-cultura,Mexico Ministries,114,114,0,True,8.6,count_crawl,,ok
+datos-gob-mx-presupuesto,Mexico Ministries,108,108,0,True,8.3,count_crawl,,ok

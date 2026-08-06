@@ -77,3 +77,7 @@ ecip-library/data/
 scripts/audit/*.run.log
 scripts/audit/count_only_c_part.csv
 scripts/audit/*.bak.csv
+
+# 크롤러 공유 패키지: 벌크 런타임 복사본과 tarball은 빌드 산출물 (scripts/build_crawler_share.sh 로 재생성)
+/crawlers-share/crawler/
+/crawlers-share.tar.gz

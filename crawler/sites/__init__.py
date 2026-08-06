@@ -54,8 +54,16 @@ if os.path.isdir(_custom_dir):
             _spec.loader.exec_module(_mod)
             for _attr_name in dir(_mod):
                 _attr = getattr(_mod, _attr_name)
-                if (isinstance(_attr, type) and hasattr(_attr, 'site_id')
-                        and hasattr(_attr, 'crawl') and _attr.site_id not in CRAWLERS):
+                # Only register concrete crawlers: a class carrying a *string*
+                # site_id + a crawl(). This excludes the abstract BaseCrawler
+                # (site_id is an unbound property) and any crawler that forgot
+                # to set a string site_id (would otherwise pollute the registry
+                # with a non-string key and break sorted()/join() over it).
+                if (isinstance(_attr, type)
+                        and hasattr(_attr, 'crawl')
+                        and isinstance(getattr(_attr, 'site_id', None), str)
+                        and _attr.site_id
+                        and _attr.site_id not in CRAWLERS):
                     CRAWLERS[_attr.site_id] = _attr
         except Exception:
             pass

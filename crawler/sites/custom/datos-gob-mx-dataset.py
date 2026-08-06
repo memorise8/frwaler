@@ -533,3 +533,62 @@ class DatosGobMxDatasetCrawler(BaseCrawler):
         text = re.sub(r"\r\n|\r|\n|\t", " ", text)
         text = re.sub(r"\s+", " ", text)
         return text.strip()
+
+
+# ---------------------------------------------------------------------------
+# Per-portal variants of the datos.gob.mx CKAN crawler.
+#
+# datos.gob.mx exposes every ministry / thematic group through the same CKAN
+# ``package_search`` API; only the ``fq`` facet filter differs. Each site_id
+# below is one of the "Mexico Ministries" portals that previously had no
+# crawler (the D group). We reuse the fully-tested base implementation and only
+# override the facet filter + start URL. Because the custom-crawler loader
+# registers *every* class in this module that carries a ``site_id`` + ``crawl``,
+# defining the subclasses here is enough to register all of them.
+#
+# ``GROUP_FILTER`` accepts either ``groups:<slug>`` or ``organization:<slug>``
+# — CKAN treats both as ordinary facet queries.
+# ---------------------------------------------------------------------------
+
+
+class _DatosGobMxVariant(DatosGobMxDatasetCrawler):
+    """Base for the per-portal variants; subclasses set site_id + GROUP_FILTER."""
+
+
+def _variant(site_id, group_filter, start_url):
+    return type(
+        "".join(part.capitalize() for part in site_id.split("-")) + "Crawler",
+        (_DatosGobMxVariant,),
+        {
+            "site_id": site_id,
+            "site_name": f"Custom: {site_id}",
+            "START_URL": start_url,
+            "GROUP_FILTER": group_filter,
+        },
+    )
+
+
+DatosGobMxAgriculturaCrawler = _variant(
+    "datos-gob-mx-agricultura", "groups:agricultura",
+    "https://datos.gob.mx/dataset/?groups=agricultura")
+DatosGobMxCulturaCrawler = _variant(
+    "datos-gob-mx-cultura", "groups:cultura",
+    "https://datos.gob.mx/dataset/?_groups_limit=0&_organization_limit=0&groups=cultura")
+DatosGobMxPresupuestoCrawler = _variant(
+    "datos-gob-mx-presupuesto", "groups:presupuesto",
+    "https://datos.gob.mx/dataset/?_groups_limit=0&_organization_limit=0&groups=presupuesto")
+DatosGobMxSecretariaSaludCrawler = _variant(
+    "datos-gob-mx-secretaria-salud", "organization:secretaria_salud",
+    "https://datos.gob.mx/dataset/?_groups_limit=0&_organization_limit=0&organization=secretaria_salud")
+DatosGobMxSecretariaTrabajoCrawler = _variant(
+    "datos-gob-mx-secretaria-trabajo", "organization:secretaria_trabajo",
+    "https://datos.gob.mx/dataset/?_groups_limit=0&_organization_limit=0&organization=secretaria_trabajo")
+DatosGobMxSeguridadCrawler = _variant(
+    "datos-gob-mx-seguridad", "groups:seguridad",
+    "https://datos.gob.mx/dataset/?_groups_limit=0&_organization_limit=0&groups=seguridad")
+DatosGobMxTerritorioCrawler = _variant(
+    "datos-gob-mx-territorio", "groups:territorio",
+    "https://datos.gob.mx/dataset/?_groups_limit=0&_organization_limit=0&groups=territorio")
+DatosGobMxTurismoCrawler = _variant(
+    "datos-gob-mx-turismo", "groups:turismo",
+    "https://datos.gob.mx/dataset/?_groups_limit=0&groups=turismo")
