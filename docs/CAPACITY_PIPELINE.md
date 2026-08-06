@@ -25,7 +25,7 @@
 | **C. HTML 페이징만 가능** | **529** (`html_list.csv`) | 🔄 sweep 진행중 |
 | **E. 크롤러 있음·baseline 측정됨** | 141 | ✅ 값 있음, 추가작업 불필요 |
 | **E. 크롤러 있음·미측정** | **15** | ✅ 2026-08-04 사용자 승인 → `html_list.csv`에 추가됨(총 544행). 현재 sweep 런 종료 후 `run_c_full.py` 재실행하면 재개 로직이 잔여 15개 자동 측정 |
-| **D. 크롤러 없음** | **26** (대부분 datos.gob.mx CKAN) | ⏳ 크롤러 제작 필요 (CKAN이라 쉬움, API가 total 즉시 반환) |
+| **D. 크롤러 없음** | **26** (datos.gob.mx CKAN 8 + gob.mx 프렌사 18) | ✅ **완료 (2026-08-06)**: 26곳 크롤러 제작+측정 = **72,667건** (CKAN 379 + gob.mx 72,288, 18곳 자연종료). gob.mx는 Akamai 봇방어 → Playwright 1회 솔브 후 쿠키 재사용. 커밋 `4dba783`, 상세 메모리 `project_crawler_share_20260806` |
 
 - A 후보 중 실패 32개는 C 성격 → sweep/probe에서 커버.
 - DOAJ 확정: `doaj-org-search` server_total=13,362,110 (사이트 표기 13,362,044와 일치). 메가 애그리게이터라 전체를 좌우.
@@ -91,7 +91,7 @@ PYTHONPATH=. .venv/bin/python scripts/audit/run_exact_after_sweep.py
 1. ~~sweep→probe→보고서~~ ✅ 전부 완료
 2. ~~E-미측정 15개 sweep 추가~~ ✅ 완료(2026-08-04): html_list.csv 544행으로 확장됨.
    추가된 15개: acma-gov-au-publications, ag-gov-au-publications, data-e-gov-go-jp-data, defence-gov-au-publications, dfat-gov-au-publications, earth-prints-org, flore-unifi-it, government-se-publications, health-gov-au-publications, health-govt-nz-publications, iris-unitn-it, justice-govt-nz-publications, nhmrc-gov-au-publications, openaccess-inaf-it, treasury-govt-nz-publications
-3. **D 26개** 크롤러 제작+측정 (대부분 datos-gob-mx-* CKAN 계열 — 기존 datos.gob.mx 크롤러 패턴 재사용)
+3. ~~**D 26개** 크롤러 제작+측정~~ ✅ 완료(2026-08-06): CKAN 8 + gob.mx 18 = 72,667건. 커밋 `4dba783`. 크롤러 공유 패키지 `crawlers-share/`도 제작(독립 실행, 비밀키 제외).
 4. finalize_capacity.py에 C+probe 입력 추가 → ③ 최종 보고서 생성
 5. 보고서에 포함: 총 케파(하한/정확 구분), DOAJ 포함/제외 두 버전, 국가별, 수리필요 크롤러 목록, 스토리지 소요
 
