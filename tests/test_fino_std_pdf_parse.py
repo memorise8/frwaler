@@ -144,3 +144,50 @@ def test_seq_is_sequential_and_source_url_propagates() -> None:
     assert [r.seq for r in records] == [0, 1]
     assert all(r.source_url == "https://www.kasb.or.kr/x.pdf" for r in records)
     assert all(r.body_html == "" for r in records)
+
+
+def test_glossary_blank_separated_layout_keeps_short_terms() -> None:
+    """제1118호 판은 항목이 빈 줄로 갈리고 용어가 두 줄로 넘어간다.
+
+    좌측 컬럼에 글자가 있다고 무조건 끊으면 용어가 잘리고, 반대로 짧은 용어를
+    '이어지는 정의'로 보면 `분류`·`주석` 같은 두 글자 용어가 앞 항목에 먹힌다.
+    """
+    lines = [
+        "경영진이 정의한 성과측   다음 요건을 모두 충족하는 수익과 비용의 중간",
+        "정치             합계",
+        "",
+        "",
+        "당기순손익          손익계산서에 포함되어 수익에서 비용을 차감한",
+        "               합계",
+        "",
+        "",
+        "분류             공유되는 특성에 따라 자산, 부채, 자본을 구분하는 것",
+    ]
+    entries = parse_glossary(lines, "부록 A. 용어의 정의")
+
+    assert [t for t, _ in entries] == [
+        "경영진이 정의한 성과측 정치",
+        "당기순손익",
+        "분류",
+    ]
+    assert entries[1][1] == "손익계산서에 포함되어 수익에서 비용을 차감한 합계"
+
+
+def test_glossary_drops_page_numbers() -> None:
+    # Given: 정의 도중에 쪽번호가 끼어든 지면.
+    lines = [
+        "소유주            자본으로 분류되는 청구권의 보유자",
+        "",
+        "                    - 186 -",
+        "",
+        "영업손익          영업 범주로 분류되는 모든 수익과 비용의 합",
+        "              계",
+    ]
+
+    # When: 파싱하면
+    entries = parse_glossary(lines, "부록 A. 용어의 정의")
+
+    # Then: 쪽번호가 정의 본문에 섞이지 않는다.
+    assert entries[0] == ("소유주", "자본으로 분류되는 청구권의 보유자")
+    assert "186" not in entries[0][1]
+    assert [t for t, _ in entries] == ["소유주", "영업손익"]

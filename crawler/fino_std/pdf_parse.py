@@ -130,11 +130,23 @@ def _definition_column(lines: list[str]) -> int:
     return gaps.most_common(1)[0][0] if gaps else 0
 
 
-def _glossary_page(lines: list[str], section: str) -> list[tuple[str, str]]:
-    """한 페이지 분량의 용어정의 표 → [(용어, 정의)]."""
-    col = _definition_column(lines)
+def _glossary_page(lines: list[str], section: str) -> tuple[list[tuple[str, str]], bool]:
+    """한 페이지 분량의 용어정의 표 → ([(용어, 정의)], 빈 줄로 구분된 판인지).
+
+    항목 경계를 잡는 방법이 판본마다 다르다.
+      제1117호  항목 사이에 빈 줄이 없다 → 좌측 컬럼에 글자가 있으면 새 용어
+      제1118호  항목 사이가 빈 줄로 떨어져 있고, 용어가 길면 두 줄로 넘어간다
+                (`경영진이 정의한 성과측` + `정치`) → 좌측 글자만으로는 못 가른다
+
+    그래서 표 안에 빈 줄이 있는지 보고 규칙을 고른다.
+    """
+    # 쪽번호는 정의 본문도 아니고, 들여쓰기가 커서 컬럼 추정까지 망친다.
+    # 그래서 컬럼을 재기 전에 먼저 걷어낸다.
+    content = [raw.replace("\x0c", " ") for raw in lines if not _PAGE_NO.match(raw)]
+
+    col = _definition_column(content)
     if col < 4:
-        return []
+        return [], False
 
     out: list[tuple[str, str]] = []
     term_buf: list[str] = []
@@ -148,20 +160,28 @@ def _glossary_page(lines: list[str], section: str) -> list[tuple[str, str]]:
         term_buf.clear()
         body_buf.clear()
 
-    for raw in lines:
-        line = raw.replace("\x0c", " ")
+    filled = [i for i, l in enumerate(content) if l.strip()]
+    blank_separated = bool(filled) and any(
+        not content[i].strip() for i in range(filled[0], filled[-1])
+    )
+
+    boundary = True
+    for line in content:
         if not line.strip():
+            boundary = True
             continue
         left, right = line[:col].strip(), line[col:].strip()
         if left:
-            # 좌측 컬럼에 글자가 있으면 새 용어의 시작(또는 여러 줄 용어의 연속)
-            if body_buf:
+            # 빈 줄로 구분되는 판에서는 빈 줄 다음에서만 새 항목이 시작한다.
+            # 아니면 좌측 글자는 두 줄로 넘어간 용어의 뒷부분이다.
+            if (boundary or not blank_separated) and (term_buf or body_buf):
                 flush()
             term_buf.append(left)
         if right:
             body_buf.append(right)
+        boundary = False
     flush()
-    return out
+    return out, blank_separated
 
 
 def _merge_wrapped(entries: list[tuple[str, str]]) -> list[tuple[str, str]]:
@@ -192,9 +212,15 @@ def parse_glossary(lines: list[str], section: str) -> list[tuple[str, str]]:
         pages[-1].append(line)
 
     entries: list[tuple[str, str]] = []
+    separated = True
     for page in pages:
-        entries.extend(_glossary_page(page, section))
-    return _merge_wrapped(entries)
+        got, blank_separated = _glossary_page(page, section)
+        entries.extend(got)
+        separated = separated and (blank_separated or not got)
+    # 빈 줄로 항목이 갈리는 판은 경계가 확실하다. 그럴 때 _merge_wrapped 의
+    # "짧은 용어는 이어지는 정의" 추정을 걸면 `분류`·`주석`·`통합` 같은 멀쩡한
+    # 두 글자 용어가 앞 항목에 흡수된다.
+    return entries if separated else _merge_wrapped(entries)
 
 
 def parse_pdf(pdf_path: str | Path, source_url: str = "") -> list[ParagraphRecord]:
