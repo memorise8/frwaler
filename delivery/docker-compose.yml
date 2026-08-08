@@ -44,6 +44,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    # worker only waits on postgres, not on `be` finishing schema init, so on a
+    # truly empty DB it can race be's init_delivery_schema() and crash with
+    # UndefinedTable on crawl_jobs. Restart on failure so it recovers once the
+    # schema exists (be creates it on its own startup, seconds later).
+    restart: on-failure:5
 
 volumes:
   pgdata:
