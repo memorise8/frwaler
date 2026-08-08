@@ -26,6 +26,7 @@ def _count_site_docs(conn, site_id) -> int:
 
 def run_job(conn, job, crawler_registry=None, delay=1.0) -> int:
     """Run one claimed job. Returns saved doc count (0 on failure)."""
+    os.environ.setdefault("LIBERTREE_DB_BACKEND", "postgres")
     site_id = job["site_id"]
     registry = _registry(crawler_registry)
     cls = registry.get(site_id)
