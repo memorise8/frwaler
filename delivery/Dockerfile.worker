@@ -1,0 +1,10 @@
+FROM python:3.12-slim AS base
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app
+COPY delivery/requirements.txt /app/delivery/requirements.txt
+RUN pip install --no-cache-dir -r /app/delivery/requirements.txt
+COPY crawlers-share/requirements.txt /app/crawler-runtime-requirements.txt
+RUN pip install --no-cache-dir -r /app/crawler-runtime-requirements.txt
+COPY crawler /app/crawler
+COPY delivery /app/delivery
+CMD ["python", "-m", "delivery.worker.worker", "--poll", "5"]

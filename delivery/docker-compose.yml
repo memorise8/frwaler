@@ -1,0 +1,50 @@
+name: libertree-delivery
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-libertree}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-libertree}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-libertree} -d ${POSTGRES_DB:-libertree}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  be:
+    build:
+      context: ..
+      dockerfile: delivery/Dockerfile.be
+    environment:
+      LIBERTREE_PG_DSN: ${LIBERTREE_PG_DSN}
+      LIBERTREE_DB_BACKEND: postgres
+      LIBERTREE_BLOB_ROOT: /data/blob
+    volumes:
+      - blob:/data/blob
+    ports:
+      - "127.0.0.1:${BE_PORT:-8080}:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ..
+      dockerfile: delivery/Dockerfile.worker
+    environment:
+      LIBERTREE_PG_DSN: ${LIBERTREE_PG_DSN}
+      LIBERTREE_DB_BACKEND: postgres
+      LIBERTREE_BLOB_ROOT: /data/blob
+    volumes:
+      - blob:/data/blob
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  blob:
