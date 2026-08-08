@@ -109,7 +109,8 @@ class BaseCrawler(ABC):
         paper_dict.setdefault("site_id", self.site_id)
         doc_dict = libertree_adapter.paper_to_document(paper_dict)
 
-        if self._conn_is_libertree():
+        import os as _os
+        if _os.environ.get("LIBERTREE_DB_BACKEND", "sqlite").lower() == "postgres" or self._conn_is_libertree():
             # Map legacy/adapter dict → new libertree.db documents columns.
             v2_doc = {
                 "site_id": doc_dict.get("site_id"),
@@ -177,11 +178,11 @@ class BaseCrawler(ABC):
         at libertree.db. Callers can also invoke it directly when the
         crawler explicitly opens a libertree connection.
         """
-        from . import db_libertree as _ldb
+        from . import db_backend
         if not isinstance(doc, dict):
             raise TypeError("doc must be a dict")
         doc.setdefault("site_id", self.site_id)
-        return _ldb.insert_document(self._conn, doc)
+        return db_backend.get_backend().insert_document(self._conn, doc)
 
     def _conn_is_libertree(self):
         """Return True if the bound DB connection looks like libertree.db.
