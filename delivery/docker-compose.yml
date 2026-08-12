@@ -31,6 +31,24 @@ services:
       postgres:
         condition: service_healthy
 
+  fe:
+    build:
+      context: ..
+      dockerfile: delivery/Dockerfile.fe
+    environment:
+      BE_URL: http://be:3001
+    ports:
+      - "127.0.0.1:${FE_PORT:-3000}:3002"
+    depends_on:
+      be:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3002/"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
   worker:
     build:
       context: ..
