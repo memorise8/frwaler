@@ -137,7 +137,7 @@ compose up -d --build
 # the disposable DB name before issuing even the test-only site seed writes.
 PG_CID=$(compose ps -q postgres)
 [ -n "$PG_CID" ] || { echo "postgres container not found" >&2; exit 1; }
-[ "$(docker inspect -f '{{ index .Config.Labels \"com.docker.compose.project\" }}' "$PG_CID")" = "$PROJECT" ] || {
+[ "$(docker inspect -f '{{ index .Config.Labels "com.docker.compose.project" }}' "$PG_CID")" = "$PROJECT" ] || {
   echo "postgres project label mismatch" >&2; exit 1;
 }
 [ "$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$PG_CID" | sed -n 's/^POSTGRES_DB=//p')" = "$POSTGRES_DB" ] || {
