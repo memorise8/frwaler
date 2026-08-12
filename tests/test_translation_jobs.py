@@ -82,5 +82,24 @@ class TranslationJobsTest(unittest.TestCase):
         self.assertEqual(jobs.cancel(self.conn,ids[0])["status"],"cancelled")
         self.assertIsNone(jobs.claim_next(self.conn))
 
+    def test_long_text_is_split_without_loss(self):
+        from delivery.translation import jobs
+        self.conn.execute("UPDATE documents SET title=%s WHERE seq_id=%s", ("A" * 12, self.seq)); self.conn.commit()
+        self._enqueue(); claimed=jobs.claim_next(self.conn)
+        provider=_Provider(); provider.max_chars=5
+        self.assertTrue(jobs.run_job(self.conn,claimed,provider))
+        saved=self.conn.execute("SELECT translation_text FROM document_translations").fetchone()["translation_text"]
+        self.assertEqual(saved,"번역: AAAAA번역: AAAAA번역: AA")
+
+    def test_missing_url_or_number_retries_as_invalid_response(self):
+        from delivery.translation import jobs
+        self.conn.execute("UPDATE documents SET title='Budget 2025 https://example.test' WHERE seq_id=%s",(self.seq,));self.conn.commit()
+        self._enqueue(); claimed=jobs.claim_next(self.conn)
+        class LosesTokens(_Provider):
+            def translate(self,request): return TranslationResult("예산",self.name,self.model,self.prompt_version,len(request.text),2,1)
+        self.assertFalse(jobs.run_job(self.conn,claimed,LosesTokens()))
+        row=self.conn.execute("SELECT status,error_code FROM translation_jobs").fetchone()
+        self.assertEqual((row["status"],row["error_code"]),("pending","invalid_response"))
+
 
 if __name__ == "__main__": unittest.main()

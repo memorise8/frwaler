@@ -73,7 +73,8 @@ def main() -> int:
     conn = db_pg.open_db(args.dsn)
     try:
         if args.once:
-            run_once(conn, delay=args.delay)
+            if not translation_jobs.run_once(conn, provider_from_env):
+                run_once(conn, delay=args.delay)
             return 0
         while True:
             translated = translation_jobs.run_once(conn, provider_from_env)

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from typing import Iterable
 
 from .providers import ProviderError, TranslationRequest, TranslationProvider
@@ -11,6 +12,31 @@ FIELDS = {"title": "title", "description": "abstract"}
 
 def fingerprint(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _chunks(text: str, limit: int) -> list[str]:
+    """Split without dropping input; prefer paragraph/line boundaries."""
+    if len(text) <= limit:
+        return [text]
+    chunks, current = [], ""
+    for part in re.split(r"(\n+)", text):
+        if len(part) > limit:
+            if current: chunks.append(current); current = ""
+            chunks.extend(part[index:index + limit] for index in range(0, len(part), limit))
+        elif len(current) + len(part) > limit:
+            chunks.append(current); current = part
+        else:
+            current += part
+    if current: chunks.append(current)
+    return [chunk for chunk in chunks if chunk]
+
+
+def _assert_preserved(source: str, translated: str) -> None:
+    urls = re.findall(r"https?://[^\s)\]}]+", source)
+    numbers = re.findall(r"(?<!\w)\d[\d,.:/%+-]*", source)
+    missing = [token for token in (*urls, *numbers) if token not in translated]
+    if missing:
+        raise ProviderError("invalid_response", "translation omitted protected tokens", retryable=True)
 
 
 def preview_targets(conn, *, fields: Iterable[str], lang: str | None = None,
@@ -90,8 +116,11 @@ def run_job(conn, job: dict, provider: TranslationProvider) -> bool:
         conn.execute("UPDATE translation_jobs SET status='skipped', error_code='source_changed', finished_at=now(), updated_at=now() WHERE id=%s AND status='running'", (job["id"],))
         conn.commit(); return False
     try:
-        result = provider.translate(TranslationRequest(row["source_text"], job["source_lang"],
-                                                       job["target_locale"], job["source_field"]))
+        results = [provider.translate(TranslationRequest(chunk, job["source_lang"],
+                                      job["target_locale"], job["source_field"]))
+                   for chunk in _chunks(row["source_text"], provider.max_chars)]
+        translated_text = "".join(result.text for result in results)
+        _assert_preserved(row["source_text"], translated_text)
     except ProviderError as exc:
         retry = exc.retryable and job["attempts"] < job["max_attempts"]
         conn.execute("""UPDATE translation_jobs SET status=%s, error_code=%s, error_message=%s,
@@ -108,10 +137,11 @@ def run_job(conn, job: dict, provider: TranslationProvider) -> bool:
       DO UPDATE SET state='completed', translation_text=EXCLUDED.translation_text,
                     attempts=EXCLUDED.attempts, last_error_code=NULL, completed_at=now(), updated_at=now()
     """, (job["seq_id"], job["source_field"], job["target_locale"], job["source_fingerprint"],
-          result.model_version, result.prompt_version, result.text, job["attempts"]))
+          results[0].model_version, results[0].prompt_version, translated_text, job["attempts"]))
     conn.execute("""UPDATE translation_jobs SET status='completed', error_code=NULL, error_message=NULL,
       input_chars=%s, output_chars=%s, latency_ms=%s, finished_at=now(), updated_at=now()
-      WHERE id=%s AND status='running'""", (result.input_chars, result.output_chars, result.latency_ms, job["id"]))
+      WHERE id=%s AND status='running'""", (sum(r.input_chars for r in results),
+          sum(r.output_chars for r in results), sum(r.latency_ms for r in results), job["id"]))
     conn.commit(); return True
 
 
