@@ -1,0 +1,160 @@
+"""Provider-neutral translation clients with normalized failures."""
+from __future__ import annotations
+
+import json
+import os
+import time
+import urllib.error
+import urllib.request
+from dataclasses import dataclass
+from typing import Callable, Protocol
+
+ERROR_CODES = {"auth", "quota", "rate_limit", "timeout", "invalid_response", "internal"}
+
+
+@dataclass(frozen=True)
+class TranslationRequest:
+    text: str
+    source_lang: str
+    target_locale: str
+    source_field: str
+
+
+@dataclass(frozen=True)
+class TranslationResult:
+    text: str
+    provider: str
+    model_version: str
+    prompt_version: str
+    input_chars: int
+    output_chars: int
+    latency_ms: int
+
+
+class TranslationProvider(Protocol):
+    name: str
+    model: str
+    prompt_version: str
+    max_chars: int
+
+    def translate(self, request: TranslationRequest) -> TranslationResult: ...
+
+
+class ProviderError(RuntimeError):
+    def __init__(self, code: str, message: str, *, retryable: bool):
+        if code not in ERROR_CODES:
+            raise ValueError(f"unknown provider error code: {code}")
+        super().__init__(message[:500])
+        self.code = code
+        self.retryable = retryable
+
+
+def _prompt(request: TranslationRequest) -> str:
+    return (
+        f"Translate the following {request.source_field} from {request.source_lang or 'unknown'} "
+        f"to {request.target_locale}. Return only the translation. Preserve names, numbers, dates, "
+        f"and URLs exactly.\n\n{request.text}"
+    )
+
+
+def _http_error(exc: Exception) -> ProviderError:
+    if isinstance(exc, urllib.error.HTTPError):
+        if exc.code in (401, 403):
+            return ProviderError("auth", f"provider HTTP {exc.code}", retryable=False)
+        if exc.code == 429:
+            return ProviderError("rate_limit", "provider rate limit", retryable=True)
+        if exc.code in (402,):
+            return ProviderError("quota", "provider quota exhausted", retryable=False)
+        return ProviderError("internal", f"provider HTTP {exc.code}", retryable=exc.code >= 500)
+    if isinstance(exc, (TimeoutError, urllib.error.URLError)):
+        return ProviderError("timeout", "provider request timed out", retryable=True)
+    return ProviderError("internal", type(exc).__name__, retryable=True)
+
+
+class OpenAICompatibleProvider:
+    name = "external"
+
+    def __init__(self, *, endpoint: str, model: str, api_key: str | None,
+                 prompt_version: str = "translate-ko-v1", timeout: float = 45,
+                 max_chars: int = 8000, opener: Callable = urllib.request.urlopen):
+        if not endpoint.startswith(("http://", "https://")):
+            raise ValueError("translation endpoint must be HTTP(S)")
+        self.endpoint, self.model, self.api_key = endpoint, model, api_key
+        self.prompt_version, self.timeout, self.max_chars = prompt_version, timeout, max_chars
+        self._opener = opener
+
+    def translate(self, request: TranslationRequest) -> TranslationResult:
+        if not request.text.strip():
+            raise ProviderError("invalid_response", "source text is empty", retryable=False)
+        text = request.text[:self.max_chars]
+        payload = json.dumps({"model": self.model, "messages": [{"role": "user", "content": _prompt(
+            TranslationRequest(text, request.source_lang, request.target_locale, request.source_field)
+        )}], "temperature": 0.2}).encode()
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+        started = time.monotonic()
+        try:
+            with self._opener(urllib.request.Request(self.endpoint, data=payload, headers=headers),
+                              timeout=self.timeout) as response:
+                body = json.loads(response.read())
+                output = body["choices"][0]["message"]["content"].strip()
+        except ProviderError:
+            raise
+        except (KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise ProviderError("invalid_response", "invalid provider response", retryable=True) from exc
+        except Exception as exc:  # noqa: BLE001
+            raise _http_error(exc) from exc
+        if not output:
+            raise ProviderError("invalid_response", "empty provider response", retryable=True)
+        return TranslationResult(output, self.name, self.model, self.prompt_version, len(text),
+                                 len(output), round((time.monotonic() - started) * 1000))
+
+
+class OllamaProvider:
+    name = "internal"
+
+    def __init__(self, *, endpoint: str, model: str, prompt_version: str = "translate-ko-v1",
+                 timeout: float = 300, max_chars: int = 8000,
+                 opener: Callable = urllib.request.urlopen):
+        self.endpoint, self.model = endpoint, model
+        self.prompt_version, self.timeout, self.max_chars = prompt_version, timeout, max_chars
+        self._opener = opener
+
+    def translate(self, request: TranslationRequest) -> TranslationResult:
+        if not request.text.strip():
+            raise ProviderError("invalid_response", "source text is empty", retryable=False)
+        text = request.text[:self.max_chars]
+        payload = json.dumps({"model": self.model, "prompt": _prompt(
+            TranslationRequest(text, request.source_lang, request.target_locale, request.source_field)
+        ), "stream": False, "think": False}).encode()
+        started = time.monotonic()
+        try:
+            with self._opener(urllib.request.Request(self.endpoint, data=payload,
+                              headers={"Content-Type": "application/json"}), timeout=self.timeout) as response:
+                output = json.loads(response.read()).get("response", "").strip()
+        except (ValueError, json.JSONDecodeError) as exc:
+            raise ProviderError("invalid_response", "invalid provider response", retryable=True) from exc
+        except Exception as exc:  # noqa: BLE001
+            raise _http_error(exc) from exc
+        if not output:
+            raise ProviderError("invalid_response", "empty provider response", retryable=True)
+        return TranslationResult(output, self.name, self.model, self.prompt_version, len(text),
+                                 len(output), round((time.monotonic() - started) * 1000))
+
+
+def provider_from_env(name: str) -> TranslationProvider:
+    if name == "external":
+        endpoint = os.environ.get("TRANSLATION_EXTERNAL_ENDPOINT")
+        model = os.environ.get("TRANSLATION_EXTERNAL_MODEL")
+        if not endpoint or not model:
+            raise ProviderError("internal", "external translation provider is not configured", retryable=False)
+        return OpenAICompatibleProvider(endpoint=endpoint, model=model,
+                                        api_key=os.environ.get("TRANSLATION_EXTERNAL_API_KEY"))
+    if name == "internal":
+        endpoint = os.environ.get("TRANSLATION_INTERNAL_ENDPOINT")
+        model = os.environ.get("TRANSLATION_INTERNAL_MODEL")
+        if not endpoint or not model:
+            raise ProviderError("internal", "internal translation provider is not configured", retryable=False)
+        return OllamaProvider(endpoint=endpoint, model=model)
+    raise ProviderError("internal", f"unknown translation provider: {name}", retryable=False)
