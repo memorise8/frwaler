@@ -16,3 +16,10 @@
 @media(max-width:800px){.detail-header{align-items:flex-start;flex-direction:column}.detail-facts{grid-template-columns:1fr 1fr}.detail-facts div+div{border-left:0}.detail-facts div{border-bottom:1px solid var(--rule)}.run-fields{grid-template-columns:1fr}.run-submit{width:100%}}
 @media(max-width:520px){.filters{grid-template-columns:1fr}.query-field{grid-column:auto}.hero h1{font-size:2.5rem}.main-content{padding-block:40px}.summary-card{min-height:130px}.snapshot-note{font-size:.78rem}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+.database-status { margin: 42px 0; }
+.summary-date { font-size: clamp(1.35rem, 2vw, 2.2rem) !important; }
+.snapshot-note--unavailable { border-color: #c78b38; }
+.measure-row { display: grid; grid-template-columns: minmax(90px, 1fr) 2fr auto; gap: 12px; align-items: center; }
+.measure-row i { height: 6px; background: var(--line); overflow: hidden; }
+.measure-row b { display: block; height: 100%; background: var(--accent); }
+.measure-tile { border: 1px solid var(--line); padding: 12px; display: flex; justify-content: space-between; gap: 12px; }

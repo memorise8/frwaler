@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from crawler import db_pg
+from delivery.be.stats import collect_stats
 from delivery.worker import jobs
 
 
@@ -49,6 +50,14 @@ def create_app(dsn: str) -> FastAPI:
         if row is None:
             raise HTTPException(status_code=404, detail="document not found")
         return dict(row)
+
+    @app.get("/stats")
+    def get_stats():
+        conn = _conn()
+        try:
+            return collect_stats(conn)
+        finally:
+            conn.close()
 
     @app.post("/jobs")
     def post_job(body: JobIn):
