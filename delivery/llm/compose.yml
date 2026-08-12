@@ -1,0 +1,66 @@
+name: libertree-llm
+
+services:
+  vllm-gpu0:
+    image: ${VLLM_IMAGE:?set VLLM_IMAGE}
+    restart: unless-stopped
+    ipc: host
+    environment:
+      HF_HOME: /root/.cache/huggingface
+      VLLM_CACHE_ROOT: /root/.cache/vllm
+    volumes:
+      - ${HF_CACHE_DIR:?set HF_CACHE_DIR}:/root/.cache/huggingface
+      - ${VLLM_CACHE_DIR:?set VLLM_CACHE_DIR}:/root/.cache/vllm
+      - ${LLM_LOG_DIR:?set LLM_LOG_DIR}:/var/log/libertree-llm
+    ports:
+      - 127.0.0.1:${VLLM_LOOPBACK_PORT:-8000}:8000
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${GPU_DEVICE_ID:-0}"]
+              capabilities: [gpu]
+    command:
+      - --model
+      - ${MODEL_ID:?set MODEL_ID}
+      - --served-model-name
+      - ${SERVED_MODEL_NAME:?set SERVED_MODEL_NAME}
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --max-model-len
+      - ${MAX_MODEL_LEN:-16384}
+      - --max-num-seqs
+      - ${MAX_NUM_SEQS:-1}
+      - --gpu-memory-utilization
+      - ${GPU_MEMORY_UTILIZATION:-0.90}
+      - --trust-remote-code
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 20
+      start_period: 20m
+
+  proxy:
+    image: nginx:1.27.5-alpine
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      LLM_API_KEY: ${LLM_API_KEY:?set LLM_API_KEY}
+      LLM_BIND_ADDRESS: ${LLM_BIND_ADDRESS:-0.0.0.0}
+      LLM_PROXY_PORT: ${LLM_PROXY_PORT:-8088}
+      VLLM_LOOPBACK_PORT: ${VLLM_LOOPBACK_PORT:-8000}
+    volumes:
+      - ./proxy/templates:/etc/nginx/templates:ro
+      - ${LLM_LOG_DIR:?set LLM_LOG_DIR}:/var/log/nginx
+    depends_on:
+      vllm-gpu0:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1:${LLM_PROXY_PORT:-8088}/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5

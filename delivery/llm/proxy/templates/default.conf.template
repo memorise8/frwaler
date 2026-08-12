@@ -1,0 +1,37 @@
+map_hash_bucket_size 256;
+
+map $http_authorization $llm_authorized {
+    default 0;
+    "Bearer ${LLM_API_KEY}" 1;
+}
+
+limit_req_zone $binary_remote_addr zone=llm_rate:10m rate=30r/m;
+limit_conn_zone $binary_remote_addr zone=llm_conn:10m;
+
+server {
+    listen ${LLM_BIND_ADDRESS}:${LLM_PROXY_PORT};
+    server_name _;
+    client_max_body_size 2m;
+    access_log /var/log/nginx/access.log combined;
+    error_log /var/log/nginx/error.log warn;
+
+    location = /health {
+        access_log off;
+        proxy_pass http://127.0.0.1:${VLLM_LOOPBACK_PORT}/health;
+    }
+
+    location ~ ^/v1/(models|chat/completions)$ {
+        if ($llm_authorized = 0) { return 401; }
+        limit_req zone=llm_rate burst=2 nodelay;
+        limit_conn llm_conn 2;
+        proxy_pass http://127.0.0.1:${VLLM_LOOPBACK_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Authorization "";
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_buffering off;
+        proxy_read_timeout 600s;
+    }
+
+    location / { return 404; }
+}
