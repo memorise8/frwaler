@@ -3,6 +3,75 @@
 from __future__ import annotations
 
 
+def init_catalogue_schema(conn) -> None:
+    """Create catalogue companion tables and search indexes.
+
+    This is migration-only code. Request-serving startup must call
+    ``verify_required_schema`` instead of this function.
+    """
+    conn.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
+    conn.execute("""CREATE TABLE IF NOT EXISTS document_lang(
+      seq_id BIGINT PRIMARY KEY REFERENCES documents(seq_id) ON DELETE CASCADE,
+      lang TEXT NOT NULL)""")
+    conn.execute("""CREATE TABLE IF NOT EXISTS document_translations(
+      translation_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      seq_id BIGINT NOT NULL REFERENCES documents(seq_id) ON DELETE RESTRICT,
+      source_field TEXT NOT NULL CHECK(source_field IN('title','description')),
+      target_locale TEXT NOT NULL CHECK(target_locale ~ '^[a-z][a-z]-[A-Z][A-Z]$'),
+      source_fingerprint TEXT NOT NULL CHECK(length(source_fingerprint)=64),
+      model_version TEXT NOT NULL CHECK(length(model_version) BETWEEN 1 AND 128),
+      prompt_version TEXT NOT NULL CHECK(length(prompt_version) BETWEEN 1 AND 128),
+      state TEXT NOT NULL CHECK(state IN('pending','running','completed','failed','skipped')),
+      translation_text TEXT,attempts INTEGER NOT NULL DEFAULT 0 CHECK(attempts>=0),
+      last_error_code TEXT,created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),claimed_at TIMESTAMPTZ,completed_at TIMESTAMPTZ,
+      CHECK((state<>'completed') OR translation_text IS NOT NULL),
+      CHECK((state<>'failed') OR last_error_code IS NOT NULL),
+      UNIQUE(seq_id,source_field,target_locale,source_fingerprint,model_version,prompt_version))""")
+    conn.execute("""CREATE TABLE IF NOT EXISTS document_anomaly(
+      seq_id BIGINT PRIMARY KEY REFERENCES documents(seq_id) ON DELETE CASCADE,
+      verdict TEXT NOT NULL,model_version TEXT NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT now())""")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_tr_seq_field ON document_translations(seq_id,source_field)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_tr_state ON document_translations(state)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_lang_lang ON document_lang(lang)")
+    conn.execute("""ALTER TABLE documents ADD COLUMN IF NOT EXISTS fts tsvector
+      GENERATED ALWAYS AS (to_tsvector('simple',left(coalesce(title,'')||' '||
+        coalesce(abstract,'')||' '||coalesce(summary,'')||' '||coalesce(keywords,''),250000))) STORED""")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_doc_fts ON documents USING GIN(fts)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_doc_title_trgm ON documents USING GIN(title gin_trgm_ops)")
+    conn.commit()
+
+
+REQUIRED_TABLES = (
+    "sites", "documents", "document_lang", "document_translations", "crawl_jobs",
+    "crawl_job_logs", "crawl_schedules", "translation_batches", "translation_jobs",
+    "translation_job_attempts", "translation_worker_heartbeats",
+    "translation_system_observations", "document_summaries", "document_summary_quality",
+)
+
+
+def verify_required_schema(conn) -> None:
+    """Raise a content-free error when the serving schema is incomplete."""
+    missing = [name for name in REQUIRED_TABLES if conn.execute(
+        "SELECT to_regclass(%s) AS relation", (f"public.{name}",)
+    ).fetchone()["relation"] is None]
+    fts = conn.execute("""SELECT 1 FROM information_schema.columns
+      WHERE table_schema='public' AND table_name='documents' AND column_name='fts'""").fetchone()
+    if fts is None:
+        missing.append("documents.fts")
+    for table, column in (("document_lang", "lang"), ("document_translations", "source_field"),
+                          ("document_translations", "prompt_version")):
+        present = conn.execute("""SELECT 1 FROM information_schema.columns
+          WHERE table_schema='public' AND table_name=%s AND column_name=%s""", (table, column)).fetchone()
+        if present is None:
+            missing.append(f"{table}.{column}")
+    trgm = conn.execute("SELECT 1 FROM pg_extension WHERE extname='pg_trgm'").fetchone()
+    if trgm is None:
+        missing.append("extension:pg_trgm")
+    if missing:
+        raise RuntimeError("delivery schema is not ready: " + ", ".join(missing))
+
+
 def init_delivery_schema(conn) -> None:
     """Create delivery control tables if absent (idempotent). Phase 0: crawl_jobs."""
     conn.execute(

@@ -25,6 +25,7 @@ from delivery.be.blob_delivery import resolve_blob
 from delivery.worker import jobs
 from delivery.worker import schedules
 from delivery.translation import jobs as translation_jobs
+from delivery.db.schema import verify_required_schema
 
 
 class JobIn(BaseModel):
@@ -95,6 +96,18 @@ def create_app(dsn: str) -> FastAPI:
         except Exception as exc:  # noqa: BLE001
             return JSONResponse(status_code=503, content={"status": "error", "detail": str(exc)[:200]})
         return {"status": "ok"}
+
+    @app.get("/ready")
+    def ready():
+        try:
+            conn = _conn()
+            try:
+                verify_required_schema(conn)
+            finally:
+                conn.close()
+        except Exception:  # schema details belong in migration logs, not public responses
+            return JSONResponse(status_code=503, content={"status": "not_ready"})
+        return {"status": "ready"}
 
     @app.get("/documents/{seq_id}")
     def get_document(seq_id: int = Path(gt=0)):

@@ -7,7 +7,12 @@
 3. `rehearse_snapshot_schema.sh`로 원본 읽기 전용 대조와 스키마 적용을 검증한다.
 4. 스냅샷 DB에서 대표 크롤러 E2E와 Qwen 100건 canary를 수행한다.
 5. 오류율·품질 거부율·p95 지연·디스크·GPU 기준을 확인한다.
-6. 운영 Worker를 중지하고 백업 시각을 기록한 뒤에만 운영 schema를 적용한다.
+6. 운영 Worker를 중지하고 백업 시각을 기록한 뒤에만 아래 명시적 migration을 실행한다.
+
+   ```bash
+   docker compose --profile tools run --rm migrate
+   ```
+
 7. BE read-only smoke 후 Worker를 시작하되 작업은 자동 등록하지 않는다.
 8. 고객이 요청한 소량 배치부터 시작한다.
 

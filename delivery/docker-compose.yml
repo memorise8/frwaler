@@ -15,6 +15,19 @@ services:
       timeout: 3s
       retries: 20
 
+  migrate:
+    profiles: ["tools"]
+    build:
+      context: ..
+      dockerfile: delivery/Dockerfile.be
+    command: ["python", "-m", "delivery.be.migrate"]
+    environment:
+      LIBERTREE_PG_DSN: postgresql://${POSTGRES_USER:-libertree}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-libertree}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
   be:
     build:
       context: ..
@@ -31,6 +44,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:3001/ready', timeout=3)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
     logging: &delivery-logging
       driver: json-file
       options:
@@ -76,10 +95,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    # worker only waits on postgres, not on `be` finishing schema init, so on a
-    # truly empty DB it can race be's init_delivery_schema() and crash with
-    # UndefinedTable on crawl_jobs. Restart on failure so it recovers once the
-    # schema exists (be creates it on its own startup, seconds later).
+    # Schema changes are explicit (`docker compose --profile tools run --rm migrate`).
+    # A missing migration makes both BE readiness and Worker startup fail visibly.
     restart: on-failure:5
     logging: *delivery-logging
 
