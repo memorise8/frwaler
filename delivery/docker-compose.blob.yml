@@ -1,0 +1,16 @@
+# 실제 납품 blob을 연결할 때만 함께 사용한다.
+# BLOB_HOST_PATH는 검증된 절대경로여야 하며 빈 값이나 저장소 루트를 지정하지 않는다.
+services:
+  be:
+    volumes:
+      - type: bind
+        source: ${BLOB_HOST_PATH:?set BLOB_HOST_PATH to the verified blob directory}
+        target: /data/blob
+        read_only: true
+
+  worker:
+    volumes:
+      - type: bind
+        source: ${BLOB_HOST_PATH:?set BLOB_HOST_PATH to the verified blob directory}
+        target: /data/blob
+
