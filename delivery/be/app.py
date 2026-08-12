@@ -6,11 +6,15 @@ DB 접근은 crawler.db_pg 단일 경로. 요청마다 짧은 커넥션을 연�
 """
 from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException
+from datetime import date
+from typing import Literal
+
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from crawler import db_pg
+from delivery.be.catalogue import CatalogueFilters, collect_catalogue, load_taxonomy
 from delivery.be.freshness import collect_freshness
 from delivery.be.stats import collect_stats
 from delivery.worker import jobs
@@ -29,6 +33,7 @@ class RetryIn(BaseModel):
 
 def create_app(dsn: str) -> FastAPI:
     app = FastAPI(title="Libertree Delivery BE (Phase 0)")
+    taxonomy = load_taxonomy()
 
     def _conn():
         return db_pg.open_db(dsn)
@@ -55,6 +60,50 @@ def create_app(dsn: str) -> FastAPI:
         if row is None:
             raise HTTPException(status_code=404, detail="document not found")
         return dict(row)
+
+    @app.get("/documents")
+    def get_documents(
+        q: str | None = Query(default=None, max_length=200),
+        page: int = Query(default=1, ge=1),
+        page_size: int = Query(default=20, ge=1, le=100),
+        site_id: str | None = None,
+        country: str | None = None,
+        doc_type: str | None = None,
+        lang: str | None = None,
+        published_from: date | None = None,
+        published_to: date | None = None,
+        collected_from: date | None = None,
+        collected_to: date | None = None,
+        has_pdf: bool | None = None,
+        has_text: bool | None = None,
+        sort: Literal["relevance", "published_desc", "collected_desc", "seq_desc"] | None = None,
+    ):
+        normalized_q = q.strip() if q else None
+        normalized_q = normalized_q or None
+        effective_sort = sort or ("relevance" if normalized_q else "collected_desc")
+        if effective_sort == "relevance" and not normalized_q:
+            raise HTTPException(status_code=422, detail="relevance sort requires q")
+        if published_from and published_to and published_from > published_to:
+            raise HTTPException(status_code=422, detail="invalid published date range")
+        if collected_from and collected_to and collected_from > collected_to:
+            raise HTTPException(status_code=422, detail="invalid collected date range")
+        countries = {item["country"] for item in taxonomy.values()} | {"기타"}
+        doc_types = {item["doc_type"] for item in taxonomy.values()} | {"기타"}
+        if country and country not in countries:
+            raise HTTPException(status_code=422, detail="unknown country")
+        if doc_type and doc_type not in doc_types:
+            raise HTTPException(status_code=422, detail="unknown document type")
+        conn = _conn()
+        try:
+            return collect_catalogue(conn, CatalogueFilters(
+                q=normalized_q, page=page, page_size=page_size, site_id=site_id,
+                country=country, doc_type=doc_type, lang=lang,
+                published_from=published_from, published_to=published_to,
+                collected_from=collected_from, collected_to=collected_to,
+                has_pdf=has_pdf, has_text=has_text, sort=effective_sort,
+            ), taxonomy)
+        finally:
+            conn.close()
 
     @app.get("/stats")
     def get_stats():

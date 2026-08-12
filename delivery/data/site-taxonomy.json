@@ -1,0 +1,3221 @@
+{
+  "version": "2026-08-12",
+  "sites": {
+    "academie-sciences-fr-espace-presse": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "accc-gov-au-about-us": {
+      "country": "호주",
+      "doc_type": "보고서"
+    },
+    "accc-gov-au-search": {
+      "country": "호주",
+      "doc_type": "PDF 검색 색인"
+    },
+    "acma-gov-au-publications": {
+      "country": "호주",
+      "doc_type": "기타"
+    },
+    "acpr-banque-france-fr-fr": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "adaptcentre-ie-research": {
+      "country": "아일랜드",
+      "doc_type": "논문"
+    },
+    "adruk-org-news-publications": {
+      "country": "영국",
+      "doc_type": "보고서"
+    },
+    "afd-fr-fr": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "afp-gov-au-news-centre": {
+      "country": "호주",
+      "doc_type": "보도자료"
+    },
+    "afp-gov-au-search": {
+      "country": "호주",
+      "doc_type": "PDF 검색 색인"
+    },
+    "africamuseum-be-en": {
+      "country": "벨기에",
+      "doc_type": "보도자료"
+    },
+    "ag-gov-au-publications": {
+      "country": "호주",
+      "doc_type": "기타"
+    },
+    "agri-ee-ministeerium-uudised": {
+      "country": "에스토니아",
+      "doc_type": "보고서"
+    },
+    "agriculture-gouv-fr-recherche-developpem": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "alrc-gov-au-publications": {
+      "country": "호주",
+      "doc_type": "보고서"
+    },
+    "ameslab-gov-news": {
+      "country": "미국",
+      "doc_type": "보도자료"
+    },
+    "amf-france-org-fr": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "ami-swiss-en": {
+      "country": "스위스",
+      "doc_type": "논문"
+    },
+    "amolf-nl-publications": {
+      "country": "네덜란드",
+      "doc_type": "논문"
+    },
+    "amu-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "andra-fr-publications": {
+      "country": "프랑스",
+      "doc_type": "간행물"
+    },
+    "anr-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "anses-fr-fr": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "ansto-gov-au-search": {
+      "country": "호주",
+      "doc_type": "PDF 검색 색인"
+    },
+    "app-mps-gov-cn-gdnps": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "apra-gov-au-statistics": {
+      "country": "호주",
+      "doc_type": "통계"
+    },
+    "arcep-fr-actualites": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "archives-nationales-culture-gouv-fr-presse": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "arcnl-nl-publications": {
+      "country": "네덜란드",
+      "doc_type": "논문"
+    },
+    "arcom-fr-presse": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "arn-se-om-arn": {
+      "country": "스웨덴",
+      "doc_type": "간행물"
+    },
+    "arrow-tudublin-ie-creaart": {
+      "country": "아일랜드",
+      "doc_type": "논문"
+    },
+    "artsetmetiers-fr-fr": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "artsetmetiers-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "asiapacific-ca-media": {
+      "country": "캐나다",
+      "doc_type": "보도자료"
+    },
+    "asn-fr-information": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "astro-oma-be-en": {
+      "country": "벨기에",
+      "doc_type": "보고서"
+    },
+    "astron-nl-about": {
+      "country": "네덜란드",
+      "doc_type": "보고서"
+    },
+    "audencia-com-lecole": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "auri-re-kr-boardes": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "auri-re-kr-publication": {
+      "country": "한국",
+      "doc_type": "연구자료"
+    },
+    "auswaertiges-amt-de-de": {
+      "country": "독일",
+      "doc_type": "보도자료"
+    },
+    "auswaertiges-amt-de-en": {
+      "country": "독일",
+      "doc_type": "보도자료"
+    },
+    "avoindata-suomi-fi-data": {
+      "country": "핀란드",
+      "doc_type": "공공데이터"
+    },
+    "babraham-ac-uk-news": {
+      "country": "영국",
+      "doc_type": "보도자료"
+    },
+    "bam-de-navigation": {
+      "country": "독일",
+      "doc_type": "기타"
+    },
+    "bankofcanada-ca-publications": {
+      "country": "캐나다",
+      "doc_type": "보고서"
+    },
+    "banque-france-fr-en": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "baw-de-en": {
+      "country": "독일",
+      "doc_type": "보고서"
+    },
+    "bdap-opendata-rgs-mef-gov-it-catalog": {
+      "country": "이탈리아",
+      "doc_type": "공공데이터"
+    },
+    "benthamscience-com-press-release": {
+      "country": "스위스",
+      "doc_type": "보도자료"
+    },
+    "bfe-admin-ch-bfe": {
+      "country": "스위스",
+      "doc_type": "간행물"
+    },
+    "bfr-bund-de-en": {
+      "country": "독일",
+      "doc_type": "보고서"
+    },
+    "bfs-admin-ch-bfs": {
+      "country": "스위스",
+      "doc_type": "공공데이터"
+    },
+    "biblio-naturalsciences-be-rbins-publications": {
+      "country": "벨기에",
+      "doc_type": "보고서"
+    },
+    "biorbic-com-publications": {
+      "country": "아일랜드",
+      "doc_type": "논문"
+    },
+    "bj-admin-ch-bj": {
+      "country": "스위스",
+      "doc_type": "보도자료"
+    },
+    "bjerknes-uib-no-en": {
+      "country": "노르웨이",
+      "doc_type": "간행물"
+    },
+    "bm-dk-soeg": {
+      "country": "덴마크",
+      "doc_type": "간행물"
+    },
+    "bmas-de-de": {
+      "country": "독일",
+      "doc_type": "간행물"
+    },
+    "bmbfsfj-bund-de-bmbfsfj": {
+      "country": "독일",
+      "doc_type": "보고서"
+    },
+    "bmds-bund-de-aktuelles": {
+      "country": "독일",
+      "doc_type": "보도자료"
+    },
+    "bmf-gv-at-ministerium": {
+      "country": "오스트리아",
+      "doc_type": "보고서"
+    },
+    "bmftr-bund-de-siteglobals": {
+      "country": "독일",
+      "doc_type": "보고서"
+    },
+    "bmi-gv-at-114": {
+      "country": "오스트리아",
+      "doc_type": "보고서"
+    },
+    "bmimi-gv-at-themen": {
+      "country": "오스트리아",
+      "doc_type": "기타"
+    },
+    "bmj-gv-at-ministerium": {
+      "country": "오스트리아",
+      "doc_type": "보도자료"
+    },
+    "bmleh-de-en": {
+      "country": "독일",
+      "doc_type": "보고서"
+    },
+    "bmleh-de-siteglobals": {
+      "country": "독일",
+      "doc_type": "보고서"
+    },
+    "bmluk-gv-at-service": {
+      "country": "오스트리아",
+      "doc_type": "보고서"
+    },
+    "bmlv-gv-at-wissen-forschung": {
+      "country": "오스트리아",
+      "doc_type": "보고서"
+    },
+    "bmv-de-en": {
+      "country": "독일",
+      "doc_type": "통계"
+    },
+    "bmvg-de-en": {
+      "country": "독일",
+      "doc_type": "보도자료"
+    },
+    "bmwet-gv-at-services": {
+      "country": "오스트리아",
+      "doc_type": "보고서"
+    },
+    "bmwkms-gv-at-themen": {
+      "country": "오스트리아",
+      "doc_type": "보고서"
+    },
+    "bmwsb-bund-de-de": {
+      "country": "독일",
+      "doc_type": "보도자료"
+    },
+    "bmz-de-de": {
+      "country": "독일",
+      "doc_type": "보고서"
+    },
+    "bnf-fr-fr": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "bok-or-kr-portal": {
+      "country": "한국",
+      "doc_type": "보고서"
+    },
+    "book-ioj-go-kr-library": {
+      "country": "한국",
+      "doc_type": "보고서"
+    },
+    "bordbia-ie-about": {
+      "country": "아일랜드",
+      "doc_type": "보고서"
+    },
+    "boverket-se-en": {
+      "country": "스웨덴",
+      "doc_type": "간행물"
+    },
+    "bra-se-english": {
+      "country": "스웨덴",
+      "doc_type": "간행물"
+    },
+    "brgm-fr-fr": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "broadbentinstitute-ca-research": {
+      "country": "캐나다",
+      "doc_type": "보고서"
+    },
+    "brsn-net-list": {
+      "country": "중국",
+      "doc_type": "보고서"
+    },
+    "budget-canada-ca-home-accueil-enhtml": {
+      "country": "캐나다",
+      "doc_type": "보고서"
+    },
+    "bundesfinanzministerium-de-web": {
+      "country": "독일",
+      "doc_type": "보도자료"
+    },
+    "bundesgesundheitsministerium-de-service": {
+      "country": "독일",
+      "doc_type": "간행물"
+    },
+    "bundeskanzleramt-gv-at-bundeskanzleramt": {
+      "country": "오스트리아",
+      "doc_type": "기타"
+    },
+    "bundesumweltministerium-de-en": {
+      "country": "독일",
+      "doc_type": "간행물"
+    },
+    "busan-go-kr-nbtnewsbu": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "business-sweden-com-about-us": {
+      "country": "스웨덴",
+      "doc_type": "보도자료"
+    },
+    "cac-gov-cn-hdfw": {
+      "country": "중국",
+      "doc_type": "보고서"
+    },
+    "cae-eco-fr-presse-cae-0": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "caissedesdepots-fr-communiques-de-press": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "caitec-org-cn-n6": {
+      "country": "중국",
+      "doc_type": "보고서"
+    },
+    "canada-ca-en": {
+      "country": "캐나다",
+      "doc_type": "보도자료"
+    },
+    "cancer-fr-catalogue-des-public": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "cancer-fr-presse": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "cancer-gov-about-nci": {
+      "country": "미국",
+      "doc_type": "통계"
+    },
+    "canurb-org-publications": {
+      "country": "캐나다",
+      "doc_type": "보고서"
+    },
+    "carabinieri-it-in-vostro-aiuto": {
+      "country": "이탈리아",
+      "doc_type": "보도자료"
+    },
+    "casseng-cssn-cn-sky_research": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "catalog-data-metro-tokyo-lg-jp-dataset": {
+      "country": "일본",
+      "doc_type": "공공데이터"
+    },
+    "catalogue-data-govt-nz-dataset": {
+      "country": "뉴질랜드",
+      "doc_type": "공공데이터"
+    },
+    "cc-nih-gov-research": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "cdhowe-org-research-insights": {
+      "country": "캐나다",
+      "doc_type": "통계"
+    },
+    "cds-cern-ch-collection": {
+      "country": "스위스",
+      "doc_type": "논문"
+    },
+    "cea-hal-science-cnrgh": {
+      "country": "프랑스",
+      "doc_type": "논문"
+    },
+    "cedelft-eu-reports": {
+      "country": "네덜란드",
+      "doc_type": "보고서"
+    },
+    "cells-es-en": {
+      "country": "스페인",
+      "doc_type": "보고서"
+    },
+    "centralbank-ie-publication": {
+      "country": "아일랜드",
+      "doc_type": "보고서"
+    },
+    "centralesupelec-fr-presse": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "cepii-fr-cepii": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "cer-rec-gc-ca-en": {
+      "country": "캐나다",
+      "doc_type": "보고서"
+    },
+    "cerema-fr-fr": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "chinatax-gov-cn-chinatax": {
+      "country": "중국",
+      "doc_type": "보고서"
+    },
+    "chineseafs-org-ckynewsmgr": {
+      "country": "중국",
+      "doc_type": "보고서"
+    },
+    "chungnam-go-kr-cnportal": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "cigionline-org-publications": {
+      "country": "캐나다",
+      "doc_type": "보고서"
+    },
+    "cirad-fr-espace-presse": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "civilprotection-gov-gr-deltia-tupou": {
+      "country": "그리스",
+      "doc_type": "보도자료"
+    },
+    "climateinstitute-ca-newsroom": {
+      "country": "캐나다",
+      "doc_type": "보도자료"
+    },
+    "cmi-no-publications": {
+      "country": "노르웨이",
+      "doc_type": "논문"
+    },
+    "cnam-hal-science-ceet": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "cnam-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "논문"
+    },
+    "cnes-fr-communiques": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "cnic-es-en": {
+      "country": "스페인",
+      "doc_type": "보고서"
+    },
+    "cnipa-gov-cn-col": {
+      "country": "중국",
+      "doc_type": "통계"
+    },
+    "cnl-ca-news-publications": {
+      "country": "캐나다",
+      "doc_type": "보고서"
+    },
+    "college-de-france-fr-en": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "comptroller-defense-gov-odcfo": {
+      "country": "미국",
+      "doc_type": "연구자료"
+    },
+    "comwel-or-kr-comwel": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "consult-environment-govt-nz-climate": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "consult-environment-govt-nz-resource-management": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "consult-environment-govt-nz-waste": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "cora-ucc-ie-search": {
+      "country": "아일랜드",
+      "doc_type": "간행물"
+    },
+    "cpb-nl-en": {
+      "country": "네덜란드",
+      "doc_type": "보고서"
+    },
+    "cre-fr-documents": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "csem-ch-en": {
+      "country": "스위스",
+      "doc_type": "보고서"
+    },
+    "csic-es-es": {
+      "country": "스페인",
+      "doc_type": "통계"
+    },
+    "cso-ie-en": {
+      "country": "아일랜드",
+      "doc_type": "보도자료"
+    },
+    "csrc-gov-cn-csrc_en": {
+      "country": "중국",
+      "doc_type": "연구자료"
+    },
+    "cstb-fr-communiques-de-press": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "culture-gouv-fr-espace-documentation": {
+      "country": "프랑스",
+      "doc_type": "통계"
+    },
+    "cwf-ca-publications": {
+      "country": "캐나다",
+      "doc_type": "보도자료"
+    },
+    "daejeon-go-kr-drh": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "dair-dias-ie-cgi": {
+      "country": "아일랜드",
+      "doc_type": "논문"
+    },
+    "dapa-go-kr-dapa": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "data-aeronomie-be-dataset": {
+      "country": "벨기에",
+      "doc_type": "공공데이터"
+    },
+    "data-biodiversity-be-dataset": {
+      "country": "벨기에",
+      "doc_type": "공공데이터"
+    },
+    "data-busan-go-kr-bdip": {
+      "country": "한국",
+      "doc_type": "공공데이터"
+    },
+    "data-e-gov-go-jp-data": {
+      "country": "일본",
+      "doc_type": "공공데이터"
+    },
+    "data-gouv-fr-organizations": {
+      "country": "프랑스",
+      "doc_type": "공공데이터"
+    },
+    "data-gov-au-data": {
+      "country": "호주",
+      "doc_type": "공공데이터"
+    },
+    "data-gov-be-nl": {
+      "country": "벨기에",
+      "doc_type": "공공데이터"
+    },
+    "data-gov-uk-search": {
+      "country": "영국",
+      "doc_type": "공공데이터"
+    },
+    "data-gv-at-datasets": {
+      "country": "오스트리아",
+      "doc_type": "보고서"
+    },
+    "data-mfe-govt-nz-documents": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "data-mfe-govt-nz-tables": {
+      "country": "뉴질랜드",
+      "doc_type": "통계"
+    },
+    "data-nasa-gov-dataset": {
+      "country": "미국",
+      "doc_type": "공공데이터"
+    },
+    "data-nist-gov-sdp": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "data-statistik-gv-at-web": {
+      "country": "오스트리아",
+      "doc_type": "통계"
+    },
+    "data-taltech-ee-search": {
+      "country": "에스토니아",
+      "doc_type": "공공데이터"
+    },
+    "datacatalogue-adruk-org-browser": {
+      "country": "영국",
+      "doc_type": "공공데이터"
+    },
+    "daten-berlin-de-datensaetze": {
+      "country": "독일",
+      "doc_type": "공공데이터"
+    },
+    "datenportal-bmbf-de-portal": {
+      "country": "독일",
+      "doc_type": "보고서"
+    },
+    "datos-gob-cl-dataset": {
+      "country": "칠레",
+      "doc_type": "공공데이터"
+    },
+    "datos-gob-mx-agricultura": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "datos-gob-mx-cultura": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "datos-gob-mx-dataset": {
+      "country": "멕시코",
+      "doc_type": "공공데이터"
+    },
+    "datos-gob-mx-presupuesto": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "datos-gob-mx-secretaria-salud": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "datos-gob-mx-secretaria-trabajo": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "datos-gob-mx-seguridad": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "datos-gob-mx-territorio": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "datos-gob-mx-turismo": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "defence-gov-au-publications": {
+      "country": "호주",
+      "doc_type": "기타"
+    },
+    "defence-govt-nz-publications": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "defensa-gob-es-gabinete": {
+      "country": "스페인",
+      "doc_type": "보도자료"
+    },
+    "defense-gouv-fr-salle-de-presse": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "defense-gov-news": {
+      "country": "미국",
+      "doc_type": "보도자료"
+    },
+    "deltares-nl-en": {
+      "country": "네덜란드",
+      "doc_type": "논문"
+    },
+    "dfat-gov-au-publications": {
+      "country": "호주",
+      "doc_type": "기타"
+    },
+    "dhs-gov-congressional-approp": {
+      "country": "미국",
+      "doc_type": "연구자료"
+    },
+    "dhs-gov-news-releases": {
+      "country": "미국",
+      "doc_type": "보도자료"
+    },
+    "dhs-gov-publication": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "dia-govt-nz-diawebsitensf": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "didaktorika-gr-eadd": {
+      "country": "그리스",
+      "doc_type": "논문"
+    },
+    "difesa-it-il-ministro": {
+      "country": "이탈리아",
+      "doc_type": "보도자료"
+    },
+    "differ-nl-publications": {
+      "country": "네덜란드",
+      "doc_type": "논문"
+    },
+    "digital-gob-es-comunicacion": {
+      "country": "스페인",
+      "doc_type": "보도자료"
+    },
+    "diplomatie-gouv-fr-en": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "directives-doe-gov-directives-browse": {
+      "country": "미국",
+      "doc_type": "간행물"
+    },
+    "directives-doe-gov-guidance": {
+      "country": "미국",
+      "doc_type": "간행물"
+    },
+    "doaj-org-search": {
+      "country": "아일랜드",
+      "doc_type": "논문"
+    },
+    "doc-cerema-fr-default": {
+      "country": "프랑스",
+      "doc_type": "기타"
+    },
+    "doi-gov-bpp": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "dol-gov-newsroom": {
+      "country": "미국",
+      "doc_type": "보도자료"
+    },
+    "doras-dcu-ie-view": {
+      "country": "아일랜드",
+      "doc_type": "논문"
+    },
+    "dpmc-govt-nz-publications": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "drc-gov-cn-leafaspx": {
+      "country": "중국",
+      "doc_type": "보고서"
+    },
+    "drugsandalcohol-ie-cgi": {
+      "country": "아일랜드",
+      "doc_type": "논문"
+    },
+    "dspace-emu-ee-search": {
+      "country": "에스토니아",
+      "doc_type": "공공데이터"
+    },
+    "dspace-ut-ee-search": {
+      "country": "에스토니아",
+      "doc_type": "논문"
+    },
+    "dst-dk-da": {
+      "country": "덴마크",
+      "doc_type": "간행물"
+    },
+    "dtic-dimensions-ai-discover": {
+      "country": "미국",
+      "doc_type": "간행물"
+    },
+    "e-stat-go-jp-stat-search": {
+      "country": "일본",
+      "doc_type": "통계"
+    },
+    "earlham-ac-uk-newsroom": {
+      "country": "영국",
+      "doc_type": "보도자료"
+    },
+    "earth-prints-org": {
+      "country": "이탈리아",
+      "doc_type": "기타"
+    },
+    "ec-lyon-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "ecat-ga-gov-au-geonetwork": {
+      "country": "호주",
+      "doc_type": "연구자료"
+    },
+    "ecologie-gouv-fr-presse": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "economie-fgov-be-nl": {
+      "country": "벨기에",
+      "doc_type": "간행물"
+    },
+    "economy-ni-gov-uk-news": {
+      "country": "영국",
+      "doc_type": "보도자료"
+    },
+    "economy-ni-gov-uk-publications": {
+      "country": "영국",
+      "doc_type": "보고서"
+    },
+    "ed-gov-about": {
+      "country": "미국",
+      "doc_type": "보도자료"
+    },
+    "eda-admin-ch-eda": {
+      "country": "스위스",
+      "doc_type": "보도자료"
+    },
+    "edi-admin-ch-de": {
+      "country": "스위스",
+      "doc_type": "보도자료"
+    },
+    "edoc-rki-de-handle": {
+      "country": "독일",
+      "doc_type": "보고서"
+    },
+    "educacionfpydeportes-gob-es-prensahtml": {
+      "country": "스페인",
+      "doc_type": "보도자료"
+    },
+    "education-govt-nz-our-work": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "education-govt-nz-search": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "education-ni-gov-uk-news": {
+      "country": "영국",
+      "doc_type": "보도자료"
+    },
+    "edx-netl-doe-gov-group": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "efd-admin-ch-en": {
+      "country": "스위스",
+      "doc_type": "보도자료"
+    },
+    "efk-admin-ch-fr": {
+      "country": "스위스",
+      "doc_type": "보도자료"
+    },
+    "ehesp-fr-espace-presse": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "ehess-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "ejournals-epublishing-ekt-gr-indexphp": {
+      "country": "그리스",
+      "doc_type": "논문"
+    },
+    "elocus-lib-uoc-gr-search": {
+      "country": "그리스",
+      "doc_type": "논문"
+    },
+    "em-dk-aktuelt": {
+      "country": "덴마크",
+      "doc_type": "간행물"
+    },
+    "em-lyon-com-en": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "emep-int-mscw": {
+      "country": "노르웨이",
+      "doc_type": "간행물"
+    },
+    "emsl-pnnl-gov-science": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "en-ird-fr-sections": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "en-iwhr-cn-iwhr-english-new": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "en-moj-gov-cn-lawsandregulationsht": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "en-ndrc-gov-cn-policies": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "en-nhc-gov-cn-publicationshtml": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "en-nim-ac-cn-taxonomy": {
+      "country": "중국",
+      "doc_type": "논문"
+    },
+    "enac-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "논문"
+    },
+    "enc-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "논문"
+    },
+    "energy-gov-management": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "energy-gov-open-government": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "energy-gov-search": {
+      "country": "미국",
+      "doc_type": "연구자료"
+    },
+    "eng-mod-gov-cn-2025xb": {
+      "country": "중국",
+      "doc_type": "기타"
+    },
+    "english-cnipa-gov-cn-col": {
+      "country": "중국",
+      "doc_type": "보고서"
+    },
+    "english-mee-gov-cn-resources": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "english-www-gov-cn-archive": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "enpc-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "ens-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "ens-lyon-fr-lecole": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "ens-lyon-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "enscp-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "논문"
+    },
+    "enssib-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "environment-govt-nz-acts-and-regulations": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "environment-govt-nz-publications": {
+      "country": "뉴질랜드",
+      "doc_type": "기타"
+    },
+    "environment-govt-nz-what-you-can-do": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "envt-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "epa-ie-news-releases": {
+      "country": "아일랜드",
+      "doc_type": "보도자료"
+    },
+    "eprints-imtlucca-it-cgi": {
+      "country": "이탈리아",
+      "doc_type": "논문"
+    },
+    "eprints-soton-ac-uk-view": {
+      "country": "영국",
+      "doc_type": "논문"
+    },
+    "eprr-lanl-gov": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "espci-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "esri-ie-publications": {
+      "country": "아일랜드",
+      "doc_type": "보고서"
+    },
+    "esteri-it-it": {
+      "country": "이탈리아",
+      "doc_type": "보도자료"
+    },
+    "etera-ee-browse": {
+      "country": "에스토니아",
+      "doc_type": "보고서"
+    },
+    "ethniccommunities-govt-nz-resources": {
+      "country": "뉴질랜드",
+      "doc_type": "보도자료"
+    },
+    "ethz-ch-de": {
+      "country": "스위스",
+      "doc_type": "보도자료"
+    },
+    "etis-ee-portal": {
+      "country": "에스토니아",
+      "doc_type": "논문"
+    },
+    "exteriores-gob-es-en": {
+      "country": "스페인",
+      "doc_type": "간행물"
+    },
+    "fafo-no-en": {
+      "country": "노르웨이",
+      "doc_type": "간행물"
+    },
+    "fair-healthdata-be-search": {
+      "country": "벨기에",
+      "doc_type": "공공데이터"
+    },
+    "federalregister-gov-documents": {
+      "country": "미국",
+      "doc_type": "공공데이터"
+    },
+    "fhi-no-en": {
+      "country": "노르웨이",
+      "doc_type": "간행물"
+    },
+    "fi-se-en": {
+      "country": "스웨덴",
+      "doc_type": "보도자료"
+    },
+    "fibl-org-en": {
+      "country": "스위스",
+      "doc_type": "간행물"
+    },
+    "finance-ni-gov-uk-publications": {
+      "country": "영국",
+      "doc_type": "보고서"
+    },
+    "flore-unifi-it": {
+      "country": "이탈리아",
+      "doc_type": "기타"
+    },
+    "fm-dk-udgivelser": {
+      "country": "덴마크",
+      "doc_type": "간행물"
+    },
+    "fmi-ch-research": {
+      "country": "스위스",
+      "doc_type": "논문"
+    },
+    "fmn-dk-da": {
+      "country": "덴마크",
+      "doc_type": "보도자료"
+    },
+    "forest-go-kr-kfsweb": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "forskningsradet-no-om-forskningsradet": {
+      "country": "노르웨이",
+      "doc_type": "간행물"
+    },
+    "frontiersin-org-articles": {
+      "country": "미국",
+      "doc_type": "논문"
+    },
+    "fss-or-kr-fss": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "ftc-go-kr-www": {
+      "country": "한국",
+      "doc_type": "통계"
+    },
+    "futureneurocentre-ie-our-research": {
+      "country": "아일랜드",
+      "doc_type": "보고서"
+    },
+    "ga-gov-au-data-pubs": {
+      "country": "호주",
+      "doc_type": "연구자료"
+    },
+    "garda-ie-en": {
+      "country": "아일랜드",
+      "doc_type": "논문"
+    },
+    "gb-go-kr-sub": {
+      "country": "한국",
+      "doc_type": "통계"
+    },
+    "gcsp-ch-publications": {
+      "country": "스위스",
+      "doc_type": "보고서"
+    },
+    "genome-gov-about-nhgri": {
+      "country": "미국",
+      "doc_type": "통계"
+    },
+    "genomecanada-ca-about": {
+      "country": "캐나다",
+      "doc_type": "보고서"
+    },
+    "geoportal-statistics-gov-uk-search": {
+      "country": "영국",
+      "doc_type": "공공데이터"
+    },
+    "gi-re-kr-home": {
+      "country": "한국",
+      "doc_type": "연구자료"
+    },
+    "gichd-org-publications-resourc": {
+      "country": "스위스",
+      "doc_type": "간행물"
+    },
+    "github-com-orgs": {
+      "country": "네덜란드",
+      "doc_type": "보고서"
+    },
+    "gnews-gg-go-kr-briefing": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "gnewsonline-it-category": {
+      "country": "이탈리아",
+      "doc_type": "보도자료"
+    },
+    "go-griffith-ie-browse": {
+      "country": "아일랜드",
+      "doc_type": "보고서"
+    },
+    "gob-mx-agricultura": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-bienestar": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-buengobierno": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-defensa": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-mujeres": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-salud": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-se": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-sectur": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-sedatu": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-segob": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-semar": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-semarnat": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-sep": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-shcp": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-sict": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-sre": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-sspc": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gob-mx-stps": {
+      "country": "멕시코",
+      "doc_type": "기타"
+    },
+    "gov-gr-search": {
+      "country": "그리스",
+      "doc_type": "공공데이터"
+    },
+    "gov-ie-en": {
+      "country": "아일랜드",
+      "doc_type": "간행물"
+    },
+    "gov-il-collectors": {
+      "country": "기타",
+      "doc_type": "기타"
+    },
+    "gov-scot-publications": {
+      "country": "영국",
+      "doc_type": "간행물"
+    },
+    "gov-scot-statistics-and-resea": {
+      "country": "영국",
+      "doc_type": "보고서"
+    },
+    "gov-uk-search": {
+      "country": "영국",
+      "doc_type": "통계"
+    },
+    "gov-wales-publications": {
+      "country": "영국",
+      "doc_type": "보고서"
+    },
+    "government-se-publications": {
+      "country": "스웨덴",
+      "doc_type": "기타"
+    },
+    "graduateinstitute-ch-library": {
+      "country": "스위스",
+      "doc_type": "보고서"
+    },
+    "gri-re-kr-web": {
+      "country": "한국",
+      "doc_type": "연구자료"
+    },
+    "gsi-ie-en-ie": {
+      "country": "아일랜드",
+      "doc_type": "보고서"
+    },
+    "gwangju-go-kr-boardlistdo": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "gyeongnam-go-kr-board": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "hal-science-afd": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "hal-science-ign-ensg": {
+      "country": "프랑스",
+      "doc_type": "논문"
+    },
+    "harcresearch-org-news": {
+      "country": "미국",
+      "doc_type": "보도자료"
+    },
+    "harcresearch-org-research": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "hatvp-fr-actualites-et-public": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "hautconseilclimat-fr-ressources-pedagogiq": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "hcsp-fr-explorecgi": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "hea-ie-resources": {
+      "country": "아일랜드",
+      "doc_type": "보고서"
+    },
+    "health-gov-au-publications": {
+      "country": "호주",
+      "doc_type": "기타"
+    },
+    "health-govt-nz-publications": {
+      "country": "뉴질랜드",
+      "doc_type": "기타"
+    },
+    "health-ni-gov-uk-news": {
+      "country": "영국",
+      "doc_type": "보도자료"
+    },
+    "health-ni-gov-uk-publications": {
+      "country": "영국",
+      "doc_type": "보고서"
+    },
+    "hec-edu-en": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "hec-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "논문"
+    },
+    "helios-eie-gr-helios": {
+      "country": "그리스",
+      "doc_type": "논문"
+    },
+    "hfml-felix-nl-en": {
+      "country": "네덜란드",
+      "doc_type": "논문"
+    },
+    "hhs-gov-guidance": {
+      "country": "미국",
+      "doc_type": "간행물"
+    },
+    "hi-no-en": {
+      "country": "노르웨이",
+      "doc_type": "보고서"
+    },
+    "home-cern-news": {
+      "country": "스위스",
+      "doc_type": "보도자료"
+    },
+    "home-treasury-gov-about": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "homeaffairs-gov-au-sitesearch": {
+      "country": "호주",
+      "doc_type": "PDF 검색 색인"
+    },
+    "hrb-ie-publications": {
+      "country": "아일랜드",
+      "doc_type": "보고서"
+    },
+    "hrbopenresearch-org": {
+      "country": "아일랜드",
+      "doc_type": "기타"
+    },
+    "hud-govt-nz-documents": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "hud-govt-nz-stats-and-insights": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "humanrights-go-kr-base": {
+      "country": "한국",
+      "doc_type": "통계"
+    },
+    "icn-artem-com-en": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "icn-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "논문"
+    },
+    "icp-fr-a-propos-de-licp": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "icp-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "논문"
+    },
+    "idiap-ch-en": {
+      "country": "스위스",
+      "doc_type": "공공데이터"
+    },
+    "ifau-se-forskning": {
+      "country": "스웨덴",
+      "doc_type": "보고서"
+    },
+    "ifau-se-press": {
+      "country": "스웨덴",
+      "doc_type": "보도자료"
+    },
+    "ifpenergiesnouvelles-fr-tags": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "ifr-pan-edu-pl-dzialalnosc-naukowa": {
+      "country": "폴란드",
+      "doc_type": "논문"
+    },
+    "ifremer-fr-fr": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "ign-fr-espace-presse": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "igualdad-gob-es-comunicacion": {
+      "country": "스페인",
+      "doc_type": "보도자료"
+    },
+    "iheid-swisscovery-ch-discovery": {
+      "country": "스위스",
+      "doc_type": "논문"
+    },
+    "ii-re-kr-base": {
+      "country": "한국",
+      "doc_type": "통계"
+    },
+    "iisd-org-press": {
+      "country": "캐나다",
+      "doc_type": "보도자료"
+    },
+    "illustro-iadt-figshare-com-search": {
+      "country": "아일랜드",
+      "doc_type": "논문"
+    },
+    "imt-nord-europe-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "incheon-go-kr-ic010205": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "indicators-be-nl": {
+      "country": "벨기에",
+      "doc_type": "공공데이터"
+    },
+    "ineris-fr-fr": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "ineris-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "info-daegu-go-kr-newshome": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "info-korail-com-info": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "infrastructure-ni-gov-uk-news": {
+      "country": "영국",
+      "doc_type": "보도자료"
+    },
+    "inrae-fr-actualites": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "inria-fr-fr": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "inria-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "간행물"
+    },
+    "insee-fr-fr": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "inserm-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "insight-centre-org-press-releases": {
+      "country": "아일랜드",
+      "doc_type": "보도자료"
+    },
+    "international-andra-fr-documents-and-visual": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "international-canada-ca-en": {
+      "country": "캐나다",
+      "doc_type": "기타"
+    },
+    "international-gc-ca-transparency-transpa": {
+      "country": "캐나다",
+      "doc_type": "보고서"
+    },
+    "ir-arcnl-nl": {
+      "country": "네덜란드",
+      "doc_type": "논문"
+    },
+    "ir-cwi-nl": {
+      "country": "네덜란드",
+      "doc_type": "공공데이터"
+    },
+    "ir-lib-uth-gr-xmlui": {
+      "country": "그리스",
+      "doc_type": "논문"
+    },
+    "irb-usi-ch-publications": {
+      "country": "스위스",
+      "doc_type": "논문"
+    },
+    "ird-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "iris-unitn-it": {
+      "country": "이탈리아",
+      "doc_type": "기타"
+    },
+    "irpp-org-about-the-irpp": {
+      "country": "캐나다",
+      "doc_type": "보고서"
+    },
+    "irpp-org-media": {
+      "country": "캐나다",
+      "doc_type": "보도자료"
+    },
+    "irsn-fr-actualites": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "isae-ensma-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "issibern-ch-outreach": {
+      "country": "스위스",
+      "doc_type": "보도자료"
+    },
+    "issibern-ch-results": {
+      "country": "스위스",
+      "doc_type": "논문"
+    },
+    "issnationallab-org-about": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "issnationallab-org-press-releases": {
+      "country": "미국",
+      "doc_type": "보도자료"
+    },
+    "issnationallab-org-publications": {
+      "country": "미국",
+      "doc_type": "논문"
+    },
+    "issnationallab-org-research-and-science": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "iucn-org-about-iucn": {
+      "country": "스위스",
+      "doc_type": "보고서"
+    },
+    "iucn-org-press-releases": {
+      "country": "스위스",
+      "doc_type": "보도자료"
+    },
+    "iucn-org-resources": {
+      "country": "스위스",
+      "doc_type": "공공데이터"
+    },
+    "ivo-se-sok": {
+      "country": "스웨덴",
+      "doc_type": "보고서"
+    },
+    "iwhr-com-zgskywwnew": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "jeju-go-kr-news": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "jeonnam-go-kr-m7116": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "jgi-doe-gov-user-science": {
+      "country": "미국",
+      "doc_type": "논문"
+    },
+    "jic-ac-uk-news-events": {
+      "country": "영국",
+      "doc_type": "보도자료"
+    },
+    "jsearch-mwr-gov-cn-irs-c-web": {
+      "country": "중국",
+      "doc_type": "기타"
+    },
+    "julkaisut-valtioneuvosto-fi-search": {
+      "country": "핀란드",
+      "doc_type": "보고서"
+    },
+    "justice-gouv-fr-documentation": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "justice-gov-news": {
+      "country": "미국",
+      "doc_type": "보도자료"
+    },
+    "justice-govt-nz-publications": {
+      "country": "뉴질랜드",
+      "doc_type": "기타"
+    },
+    "justice-ni-gov-uk-publications": {
+      "country": "영국",
+      "doc_type": "보고서"
+    },
+    "justitsministeriet-dk-forskning": {
+      "country": "덴마크",
+      "doc_type": "보고서"
+    },
+    "justitsministeriet-dk-pressemeddelelse": {
+      "country": "덴마크",
+      "doc_type": "보도자료"
+    },
+    "juventudeinfancia-gob-es-es": {
+      "country": "스페인",
+      "doc_type": "보도자료"
+    },
+    "kamco-or-kr-portal": {
+      "country": "한국",
+      "doc_type": "보고서"
+    },
+    "kammarkollegiet-se-aktuellt": {
+      "country": "스웨덴",
+      "doc_type": "보도자료"
+    },
+    "kasa-go-kr-bbs": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kb-se-om-oss": {
+      "country": "스웨덴",
+      "doc_type": "보도자료"
+    },
+    "kcg-go-kr-kcg": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kdca-go-kr-kdca": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kedi-re-kr-khome": {
+      "country": "한국",
+      "doc_type": "기타"
+    },
+    "keei-re-kr-boardes": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kefm-dk-aftaler": {
+      "country": "덴마크",
+      "doc_type": "보고서"
+    },
+    "kei-re-kr-eliblistes": {
+      "country": "한국",
+      "doc_type": "간행물"
+    },
+    "keis-or-kr-keis": {
+      "country": "한국",
+      "doc_type": "통계"
+    },
+    "kepco-co-kr-home": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kfss-forest-go-kr-stat": {
+      "country": "한국",
+      "doc_type": "통계"
+    },
+    "khs-go-kr-cop": {
+      "country": "한국",
+      "doc_type": "통계"
+    },
+    "khs-go-kr-newsbbz": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kicce-re-kr-main": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kice-re-kr-boardcnts": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kicj-re-kr-boardes": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kiep-go-kr-galleryes": {
+      "country": "한국",
+      "doc_type": "보고서"
+    },
+    "kihasa-re-kr-news": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kihasa-re-kr-publish": {
+      "country": "한국",
+      "doc_type": "보고서"
+    },
+    "kinfa-or-kr-notificationpromotio": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kinu-or-kr-main": {
+      "country": "한국",
+      "doc_type": "보고서"
+    },
+    "kipa-re-kr-html": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kipf-re-kr-bbs": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kipf-re-kr-kor": {
+      "country": "한국",
+      "doc_type": "기타"
+    },
+    "kipo-go-kr-ko": {
+      "country": "한국",
+      "doc_type": "간행물"
+    },
+    "kirj-ee-archive": {
+      "country": "에스토니아",
+      "doc_type": "논문"
+    },
+    "kisdi-re-kr-bbs": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kisdi-re-kr-report": {
+      "country": "한국",
+      "doc_type": "논문"
+    },
+    "kit-nl-institute": {
+      "country": "네덜란드",
+      "doc_type": "논문"
+    },
+    "kjonnsforskning-no-nb": {
+      "country": "노르웨이",
+      "doc_type": "논문"
+    },
+    "kli-re-kr-kli": {
+      "country": "한국",
+      "doc_type": "보고서"
+    },
+    "kliimaministeerium-ee-otsing": {
+      "country": "에스토니아",
+      "doc_type": "논문"
+    },
+    "klimaraadet-dk-da": {
+      "country": "덴마크",
+      "doc_type": "보고서"
+    },
+    "klri-re-kr-kor": {
+      "country": "한국",
+      "doc_type": "간행물"
+    },
+    "kma-go-kr-kma": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kmcc-go-kr-userdo": {
+      "country": "한국",
+      "doc_type": "통계"
+    },
+    "kmi-re-kr-web": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kna-forest-go-kr-kfsweb": {
+      "country": "한국",
+      "doc_type": "간행물"
+    },
+    "knmi-nl-kennis-en-datacentru": {
+      "country": "네덜란드",
+      "doc_type": "보고서"
+    },
+    "knowledge-barnardos-ie-browse": {
+      "country": "아일랜드",
+      "doc_type": "간행물"
+    },
+    "kommunekredit-com-about-us": {
+      "country": "덴마크",
+      "doc_type": "보고서"
+    },
+    "kommunikasjon-ntb-no-presserom": {
+      "country": "노르웨이",
+      "doc_type": "보도자료"
+    },
+    "kostat-go-kr-boardes": {
+      "country": "한국",
+      "doc_type": "보고서"
+    },
+    "koti-re-kr-user": {
+      "country": "한국",
+      "doc_type": "보고서"
+    },
+    "krei-re-kr-krei": {
+      "country": "한국",
+      "doc_type": "연구자료"
+    },
+    "krihs-re-kr-boardes": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "krihs-re-kr-krihslibraryarticle": {
+      "country": "한국",
+      "doc_type": "간행물"
+    },
+    "krihs-re-kr-krihslibraryreport": {
+      "country": "한국",
+      "doc_type": "간행물"
+    },
+    "krivet-re-kr": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "krivet-re-kr-kor": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kwdi-re-kr-plaza": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "kwdi-re-kr-publications": {
+      "country": "한국",
+      "doc_type": "간행물"
+    },
+    "lavoro-gov-it-stampa-e-media": {
+      "country": "이탈리아",
+      "doc_type": "보도자료"
+    },
+    "lecese-fr-espace-presse": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "lenus-ie-browse": {
+      "country": "아일랜드",
+      "doc_type": "보고서"
+    },
+    "lib-cssn-cn-zy": {
+      "country": "중국",
+      "doc_type": "기타"
+    },
+    "library-kwrwater-nl-en": {
+      "country": "네덜란드",
+      "doc_type": "논문"
+    },
+    "libreria-educacion-gob-es-p": {
+      "country": "스페인",
+      "doc_type": "보고서"
+    },
+    "llnl-gov-news": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "lne-fr-fr": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "mafra-go-kr-home": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "marine-ie-site-area": {
+      "country": "아일랜드",
+      "doc_type": "보고서"
+    },
+    "masaf-gov-it-flex": {
+      "country": "이탈리아",
+      "doc_type": "보도자료"
+    },
+    "mbie-govt-nz-building-and-energy": {
+      "country": "뉴질랜드",
+      "doc_type": "통계"
+    },
+    "mef-gov-it-ufficio-stampa": {
+      "country": "이탈리아",
+      "doc_type": "보도자료"
+    },
+    "mem-gov-cn-fw": {
+      "country": "중국",
+      "doc_type": "통계"
+    },
+    "mentalhealthcommission-ca-resources": {
+      "country": "캐나다",
+      "doc_type": "기타"
+    },
+    "meri-belspo-be-site": {
+      "country": "벨기에",
+      "doc_type": "통계"
+    },
+    "met-no-publikasjoner": {
+      "country": "노르웨이",
+      "doc_type": "보고서"
+    },
+    "meteofrance-fr-actualite": {
+      "country": "프랑스",
+      "doc_type": "간행물"
+    },
+    "meteoswiss-admin-ch-services-and-publica": {
+      "country": "스위스",
+      "doc_type": "보고서"
+    },
+    "mfat-govt-nz-en": {
+      "country": "뉴질랜드",
+      "doc_type": "간행물"
+    },
+    "mfds-go-kr-brd": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "mi-se-arkiv": {
+      "country": "스웨덴",
+      "doc_type": "간행물"
+    },
+    "migration-gov-gr-press": {
+      "country": "그리스",
+      "doc_type": "보도자료"
+    },
+    "miit-gov-cn-zc": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "miit-gov-cn-zwgk": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "mim-gov-it-web": {
+      "country": "이탈리아",
+      "doc_type": "보도자료"
+    },
+    "mimit-gov-it-it": {
+      "country": "이탈리아",
+      "doc_type": "간행물"
+    },
+    "minagric-gr-the-ministry-2": {
+      "country": "그리스",
+      "doc_type": "보도자료"
+    },
+    "mindev-gov-gr-category": {
+      "country": "그리스",
+      "doc_type": "보도자료"
+    },
+    "mindigital-gr-archives": {
+      "country": "그리스",
+      "doc_type": "보도자료"
+    },
+    "minedu-gov-gr-grafeio-typoy-kai-di": {
+      "country": "그리스",
+      "doc_type": "보도자료"
+    },
+    "minfin-gov-gr-grafeio-typou": {
+      "country": "그리스",
+      "doc_type": "보도자료"
+    },
+    "ministeroturismo-gov-it-category": {
+      "country": "이탈리아",
+      "doc_type": "보도자료"
+    },
+    "ministryofjustice-gr": {
+      "country": "그리스",
+      "doc_type": "보도자료"
+    },
+    "minrel-gob-cl-minrel": {
+      "country": "칠레",
+      "doc_type": "보도자료"
+    },
+    "minscfa-gov-gr-grafeio-typou": {
+      "country": "그리스",
+      "doc_type": "보도자료"
+    },
+    "mintour-gov-gr-deltia-typoy": {
+      "country": "그리스",
+      "doc_type": "보도자료"
+    },
+    "miteco-gob-es-es": {
+      "country": "스페인",
+      "doc_type": "보도자료"
+    },
+    "mivau-gob-es-el-ministerio": {
+      "country": "스페인",
+      "doc_type": "보도자료"
+    },
+    "mma-go-kr-board": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "mnd-go-kr-user": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "mod-mil-gr-category": {
+      "country": "그리스",
+      "doc_type": "보도자료"
+    },
+    "moe-go-kr-boardcnts": {
+      "country": "한국",
+      "doc_type": "보고서"
+    },
+    "moe-gov-cn-jyb_sjzl": {
+      "country": "중국",
+      "doc_type": "통계"
+    },
+    "moe-gov-cn-jyb_xwfb": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "moe-gov-cn-jyb_xxgk": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "moef-go-kr-nw": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "mof-go-kr-doc": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "mof-gov-cn-en": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "mofa-go-kr-www": {
+      "country": "한국",
+      "doc_type": "간행물"
+    },
+    "mofe-go-kr-id": {
+      "country": "한국",
+      "doc_type": "공공데이터"
+    },
+    "mogef-go-kr-nw": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "moh-gov-gr-articles": {
+      "country": "그리스",
+      "doc_type": "보도자료"
+    },
+    "mohrss-gov-cn-xxgk2020": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "mohw-go-kr-boardes": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "mois-go-kr-frt": {
+      "country": "한국",
+      "doc_type": "간행물"
+    },
+    "moj-go-kr-moj": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "moleg-go-kr-boardes": {
+      "country": "한국",
+      "doc_type": "간행물"
+    },
+    "molit-go-kr-usr": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "motir-go-kr-kor": {
+      "country": "한국",
+      "doc_type": "간행물"
+    },
+    "mpi-govt-nz-about-mpi": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "mpi-govt-nz-resources-and-forms": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "mpva-go-kr-mpva": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "msd-govt-nz-about-msd-and-our-wo": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "msit-go-kr-bbs": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "mss-go-kr-site": {
+      "country": "한국",
+      "doc_type": "통계"
+    },
+    "mva-gov-cn-gongkai": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "mwr-gov-cn-english": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "mwr-gov-cn-zwgk": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "naacc-go-kr-web": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "nasa-gov-2025-news-releases": {
+      "country": "미국",
+      "doc_type": "보도자료"
+    },
+    "nationalacademies-org-publications": {
+      "country": "프랑스",
+      "doc_type": "간행물"
+    },
+    "naturalengland-defra-opendata-arcgis-com-search": {
+      "country": "영국",
+      "doc_type": "공공데이터"
+    },
+    "nbb-be-en": {
+      "country": "벨기에",
+      "doc_type": "간행물"
+    },
+    "ncats-nih-gov-news-events": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nccih-nih-gov-news": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "ncha-gov-cn-col": {
+      "country": "중국",
+      "doc_type": "보고서"
+    },
+    "ncri-ie-en": {
+      "country": "아일랜드",
+      "doc_type": "공공데이터"
+    },
+    "neac-gov-cn-seac": {
+      "country": "중국",
+      "doc_type": "통계"
+    },
+    "nec-go-kr-site": {
+      "country": "한국",
+      "doc_type": "보고서"
+    },
+    "nei-nih-gov-about": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "nei-nih-gov-learn-about-eye-heal": {
+      "country": "미국",
+      "doc_type": "간행물"
+    },
+    "nemertes-library-upatras-gr-browse": {
+      "country": "그리스",
+      "doc_type": "간행물"
+    },
+    "nemertes-library-upatras-gr-search": {
+      "country": "그리스",
+      "doc_type": "논문"
+    },
+    "nersc-no-en": {
+      "country": "노르웨이",
+      "doc_type": "간행물"
+    },
+    "nesc-ie-publications": {
+      "country": "아일랜드",
+      "doc_type": "보고서"
+    },
+    "netl-doe-gov-advsearch": {
+      "country": "미국",
+      "doc_type": "간행물"
+    },
+    "netl-doe-gov-energy-analysis": {
+      "country": "미국",
+      "doc_type": "간행물"
+    },
+    "netl-doe-gov-fecm-external-r-and-": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "netl-doe-gov-search-r-d-publicati": {
+      "country": "미국",
+      "doc_type": "논문"
+    },
+    "news-admin-ch-en": {
+      "country": "스위스",
+      "doc_type": "보도자료"
+    },
+    "news-fnal-gov-category": {
+      "country": "미국",
+      "doc_type": "보도자료"
+    },
+    "newsreleases-sandia-gov-archives-by-year": {
+      "country": "미국",
+      "doc_type": "보도자료"
+    },
+    "nfa-go-kr-nfa": {
+      "country": "한국",
+      "doc_type": "통계"
+    },
+    "nfra-gov-cn-cn": {
+      "country": "중국",
+      "doc_type": "보고서"
+    },
+    "nhc-gov-cn-wjw": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "nhlbi-nih-gov-about": {
+      "country": "미국",
+      "doc_type": "통계"
+    },
+    "nhlbi-nih-gov-resources": {
+      "country": "미국",
+      "doc_type": "간행물"
+    },
+    "nhmrc-gov-au-publications": {
+      "country": "호주",
+      "doc_type": "기타"
+    },
+    "nia-nih-gov-news": {
+      "country": "미국",
+      "doc_type": "보도자료"
+    },
+    "niaaa-nih-gov-news-events": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "niams-nih-gov-newsroom": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nibib-nih-gov-news-events": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nibio-no-en": {
+      "country": "노르웨이",
+      "doc_type": "논문"
+    },
+    "nichd-nih-gov-newsroom": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nida-nih-gov-news-events": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nida-nih-gov-research-topics": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nidcd-nih-gov-news": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nidcd-nih-gov-order": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nidcr-nih-gov-news-events": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "niddk-nih-gov-news": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nidi-nl-en": {
+      "country": "네덜란드",
+      "doc_type": "논문"
+    },
+    "niehs-nih-gov-newsreleases": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nifu-no-en": {
+      "country": "노르웨이",
+      "doc_type": "보고서"
+    },
+    "nigms-nih-gov-news": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nih-gov-news-events": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nih-gov-press-room": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nikhef-nl-pub": {
+      "country": "네덜란드",
+      "doc_type": "논문"
+    },
+    "nim-ac-cn-taxonomy": {
+      "country": "중국",
+      "doc_type": "보고서"
+    },
+    "nimh-nih-gov-news": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nimhd-nih-gov-news-events": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nin-nl-publications": {
+      "country": "네덜란드",
+      "doc_type": "논문"
+    },
+    "nina-no-english": {
+      "country": "노르웨이",
+      "doc_type": "보고서"
+    },
+    "ninds-nih-gov-news-events": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "ninds-nih-gov-publications": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nioo-knaw-nl-en": {
+      "country": "네덜란드",
+      "doc_type": "보도자료"
+    },
+    "nisra-gov-uk-publications": {
+      "country": "영국",
+      "doc_type": "보고서"
+    },
+    "nist-gov-publications": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nistdigitalarchives-contentdm-oclc-org-digital": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "nivel-nl-en": {
+      "country": "네덜란드",
+      "doc_type": "논문"
+    },
+    "nkvts-no-english": {
+      "country": "노르웨이",
+      "doc_type": "보고서"
+    },
+    "nnsa-mee-gov-cn-english": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "noc-ac-uk-about-us": {
+      "country": "영국",
+      "doc_type": "간행물"
+    },
+    "noc-ac-uk-publications": {
+      "country": "영국",
+      "doc_type": "논문"
+    },
+    "nofima-com-publication": {
+      "country": "노르웨이",
+      "doc_type": "보고서"
+    },
+    "nora-nerc-ac-uk-view": {
+      "country": "영국",
+      "doc_type": "논문"
+    },
+    "nordlandsforskning-no-en": {
+      "country": "노르웨이",
+      "doc_type": "간행물"
+    },
+    "nps-or-kr-inforls": {
+      "country": "한국",
+      "doc_type": "통계"
+    },
+    "nps-or-kr-pnsgdnc": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "nrc-re-kr-boardes": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "nrscotland-gov-uk-publications": {
+      "country": "영국",
+      "doc_type": "기타"
+    },
+    "ntp-niehs-nih-gov-publications": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "ntrs-nasa-gov-search": {
+      "country": "미국",
+      "doc_type": "논문"
+    },
+    "nts-go-kr-nts": {
+      "country": "한국",
+      "doc_type": "간행물"
+    },
+    "nupi-no-en": {
+      "country": "노르웨이",
+      "doc_type": "보고서"
+    },
+    "nypi-re-kr": {
+      "country": "한국",
+      "doc_type": "기타"
+    },
+    "nypi-re-kr-board": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "nzpri-aut-ac-nz-document-library": {
+      "country": "뉴질랜드",
+      "doc_type": "논문"
+    },
+    "oig-treasury-gov-other-reports-testim": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "oka-go-kr-web": {
+      "country": "한국",
+      "doc_type": "기타"
+    },
+    "olympias-lib-uoi-gr-jspui": {
+      "country": "그리스",
+      "doc_type": "논문"
+    },
+    "om-mp-be-nl": {
+      "country": "벨기에",
+      "doc_type": "보고서"
+    },
+    "onera-fr-fr": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "ons-gov-uk-search": {
+      "country": "영국",
+      "doc_type": "통계"
+    },
+    "open-science-canada-ca-communities": {
+      "country": "캐나다",
+      "doc_type": "보고서"
+    },
+    "openaccess-inaf-it": {
+      "country": "이탈리아",
+      "doc_type": "기타"
+    },
+    "openaire-eu-os-slovenia": {
+      "country": "슬로베니아",
+      "doc_type": "기타"
+    },
+    "opendata-centralbank-ie-dataset": {
+      "country": "아일랜드",
+      "doc_type": "공공데이터"
+    },
+    "opendata-dk-search": {
+      "country": "덴마크",
+      "doc_type": "공공데이터"
+    },
+    "opendatacommunities-org-data": {
+      "country": "영국",
+      "doc_type": "공공데이터"
+    },
+    "opengov-seoul-go-kr-research": {
+      "country": "한국",
+      "doc_type": "보고서"
+    },
+    "openresearch-repository-anu-edu-au-search": {
+      "country": "호주",
+      "doc_type": "논문"
+    },
+    "openscience-si-naprednoiskanjeaspx": {
+      "country": "슬로베니아",
+      "doc_type": "보고서"
+    },
+    "opm-go-kr-opm": {
+      "country": "한국",
+      "doc_type": "보고서"
+    },
+    "osr-statisticsauthority-gov-uk-publications-list": {
+      "country": "영국",
+      "doc_type": "보고서"
+    },
+    "ostrnrcan-dostrncan-canada-ca-search": {
+      "country": "캐나다",
+      "doc_type": "논문"
+    },
+    "ots-at-pressemappe": {
+      "country": "오스트리아",
+      "doc_type": "보도자료"
+    },
+    "par-nsf-gov-search": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "pasteur-fr-en": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "pbc-gov-cn-en": {
+      "country": "중국",
+      "doc_type": "보고서"
+    },
+    "pbl-nl-en": {
+      "country": "네덜란드",
+      "doc_type": "보고서"
+    },
+    "pbocri-org-cn-lnzy3html": {
+      "country": "중국",
+      "doc_type": "간행물"
+    },
+    "pbocri-org-cn-xslwhtml": {
+      "country": "중국",
+      "doc_type": "보고서"
+    },
+    "pembina-org-media-releases": {
+      "country": "캐나다",
+      "doc_type": "보도자료"
+    },
+    "pergamos-lib-uoa-gr-search": {
+      "country": "그리스",
+      "doc_type": "논문"
+    },
+    "phfscience-nz-digital-library": {
+      "country": "뉴질랜드",
+      "doc_type": "연구자료"
+    },
+    "phfscience-nz-news-publications": {
+      "country": "뉴질랜드",
+      "doc_type": "간행물"
+    },
+    "plan-be-nl": {
+      "country": "벨기에",
+      "doc_type": "보도자료"
+    },
+    "pleanala-ie-en-ie": {
+      "country": "아일랜드",
+      "doc_type": "보고서"
+    },
+    "pmc-gov-au-resources": {
+      "country": "호주",
+      "doc_type": "보고서"
+    },
+    "pnnl-gov-news": {
+      "country": "미국",
+      "doc_type": "보도자료"
+    },
+    "police-go-kr-user": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "policyalternatives-ca-news-research": {
+      "country": "캐나다",
+      "doc_type": "보도자료"
+    },
+    "politie-be-statistieken": {
+      "country": "벨기에",
+      "doc_type": "보고서"
+    },
+    "polytechnique-edu-presse": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "polytechnique-hal-science-search": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "portaldiplomatico-mne-gov-pt-en": {
+      "country": "포르투갈",
+      "doc_type": "보도자료"
+    },
+    "ppforum-ca-press-releases": {
+      "country": "캐나다",
+      "doc_type": "보도자료"
+    },
+    "pps-go-kr-kor": {
+      "country": "한국",
+      "doc_type": "통계"
+    },
+    "presse-cnam-fr-communiques": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "presse-curie-fr-section": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "presse-economie-gouv-fr": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "prism-go-kr-homepage": {
+      "country": "한국",
+      "doc_type": "보고서"
+    },
+    "provenienzforschung-gv-at-empfehlungen-des-bei": {
+      "country": "오스트리아",
+      "doc_type": "기타"
+    },
+    "psi-ch-en": {
+      "country": "스위스",
+      "doc_type": "보고서"
+    },
+    "ptb-de-cms": {
+      "country": "독일",
+      "doc_type": "보고서"
+    },
+    "publications-idiap-ch-publications": {
+      "country": "스위스",
+      "doc_type": "보고서"
+    },
+    "publichealthscotland-scot-publications": {
+      "country": "영국",
+      "doc_type": "간행물"
+    },
+    "publicsafety-gc-ca-cnt": {
+      "country": "캐나다",
+      "doc_type": "보도자료"
+    },
+    "publicservice-govt-nz-data": {
+      "country": "뉴질랜드",
+      "doc_type": "통계"
+    },
+    "publicservice-govt-nz-research-and-data": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "publikationen-bundesregierung-de-pp-de": {
+      "country": "독일",
+      "doc_type": "보고서"
+    },
+    "pubs-drdc-rddc-gc-ca-basis": {
+      "country": "캐나다",
+      "doc_type": "보고서"
+    },
+    "pubs-usgs-gov": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "pubshop-bmbwf-gv-at-indexphp": {
+      "country": "오스트리아",
+      "doc_type": "간행물"
+    },
+    "pure-mpg-de-search": {
+      "country": "독일",
+      "doc_type": "논문"
+    },
+    "rcaanc-cirnac-gc-ca-eng": {
+      "country": "캐나다",
+      "doc_type": "보고서"
+    },
+    "rda-go-kr-board": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "rdr-kuleuven-be-dataverse": {
+      "country": "벨기에",
+      "doc_type": "공공데이터"
+    },
+    "regjeringen-no-en": {
+      "country": "노르웨이",
+      "doc_type": "기타"
+    },
+    "reglementation-controle-asnr-fr-information": {
+      "country": "프랑스",
+      "doc_type": "기타"
+    },
+    "regulation-govt-nz-about-us": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "repo-lib-duth-gr-jspui": {
+      "country": "그리스",
+      "doc_type": "논문"
+    },
+    "reports-nlr-nl-collections": {
+      "country": "네덜란드",
+      "doc_type": "보고서"
+    },
+    "repositorio-uchile-cl-discover": {
+      "country": "칠레",
+      "doc_type": "기타"
+    },
+    "repository-cern-search": {
+      "country": "스위스",
+      "doc_type": "논문"
+    },
+    "repository-lboro-ac-uk": {
+      "country": "영국",
+      "doc_type": "논문"
+    },
+    "repository-library-noaa-gov-view": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "repository-naturalis-nl": {
+      "country": "네덜란드",
+      "doc_type": "보고서"
+    },
+    "repository-tno-nl-doclist": {
+      "country": "네덜란드",
+      "doc_type": "보고서"
+    },
+    "research-collection-ethz-ch-search": {
+      "country": "스위스",
+      "doc_type": "보고서"
+    },
+    "research-imt-nord-europe-fr-news": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "research-thea-ie-browse": {
+      "country": "아일랜드",
+      "doc_type": "논문"
+    },
+    "researchrepository-ul-ie-search": {
+      "country": "아일랜드",
+      "doc_type": "보고서"
+    },
+    "reseau-canope-fr-espace-presse": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "rfi-ac-uk-latest": {
+      "country": "영국",
+      "doc_type": "보도자료"
+    },
+    "rigsrevisionen-dk-revisionssager": {
+      "country": "덴마크",
+      "doc_type": "보고서"
+    },
+    "rijksoverheid-nl-documenten": {
+      "country": "네덜란드",
+      "doc_type": "보고서"
+    },
+    "ris-bka-gv-at-ergebniswxe": {
+      "country": "오스트리아",
+      "doc_type": "보고서"
+    },
+    "rki-de-de": {
+      "country": "독일",
+      "doc_type": "보도자료"
+    },
+    "rosap-ntl-bts-gov-cbrowse": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "ruomoplus-lib-uom-gr-simple-search": {
+      "country": "그리스",
+      "doc_type": "논문"
+    },
+    "saemangeum-go-kr-sda": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "safefood-net-news": {
+      "country": "아일랜드",
+      "doc_type": "보도자료"
+    },
+    "salute-gov-it-new": {
+      "country": "이탈리아",
+      "doc_type": "보도자료"
+    },
+    "samr-gov-cn-zw": {
+      "country": "중국",
+      "doc_type": "보고서"
+    },
+    "sandia-gov-news": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "sante-gouv-fr-ministere": {
+      "country": "프랑스",
+      "doc_type": "보고서"
+    },
+    "santepubliquefrance-fr-presse": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "sastind-gov-cn-n10086200": {
+      "country": "중국",
+      "doc_type": "기타"
+    },
+    "scaht-org-en": {
+      "country": "스위스",
+      "doc_type": "논문"
+    },
+    "science-astron-nl-science-astron": {
+      "country": "네덜란드",
+      "doc_type": "논문"
+    },
+    "science-libraries-canada-ca-eng": {
+      "country": "캐나다",
+      "doc_type": "보고서"
+    },
+    "scourt-go-kr-portal": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "scp-nl-publicaties": {
+      "country": "네덜란드",
+      "doc_type": "간행물"
+    },
+    "search-nal-usda-gov-discovery": {
+      "country": "미국",
+      "doc_type": "간행물"
+    },
+    "search-open-canada-ca-opendata": {
+      "country": "캐나다",
+      "doc_type": "공공데이터"
+    },
+    "search-worldcat-org-ko": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "secihti-mx-sala-de-prensa": {
+      "country": "멕시코",
+      "doc_type": "보도자료"
+    },
+    "seco-admin-ch-seco": {
+      "country": "스위스",
+      "doc_type": "기타"
+    },
+    "seer-cancer-gov-report_to_nation": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "sejong-go-kr-bbs": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "sfi-ch-en": {
+      "country": "스위스",
+      "doc_type": "논문"
+    },
+    "sgu-se-en": {
+      "country": "스웨덴",
+      "doc_type": "보도자료"
+    },
+    "si-re-kr-bbs": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "sib-swiss-community": {
+      "country": "스위스",
+      "doc_type": "보고서"
+    },
+    "sib-swiss-training": {
+      "country": "스위스",
+      "doc_type": "공공데이터"
+    },
+    "simula-no-publications": {
+      "country": "노르웨이",
+      "doc_type": "보고서"
+    },
+    "sintef-no-en": {
+      "country": "노르웨이",
+      "doc_type": "보고서"
+    },
+    "siseministeerium-ee-otsing": {
+      "country": "에스토니아",
+      "doc_type": "논문"
+    },
+    "skillsdevelopmentscotland-co-uk-publications-statist": {
+      "country": "영국",
+      "doc_type": "보고서"
+    },
+    "skm-dk-aktuelt": {
+      "country": "덴마크",
+      "doc_type": "보고서"
+    },
+    "sm-dk-publikationer": {
+      "country": "덴마크",
+      "doc_type": "간행물"
+    },
+    "sm-ee-otsing": {
+      "country": "에스토니아",
+      "doc_type": "논문"
+    },
+    "socialstyrelsen-se-en": {
+      "country": "스웨덴",
+      "doc_type": "간행물"
+    },
+    "sodha-be-dataverse": {
+      "country": "벨기에",
+      "doc_type": "공공데이터"
+    },
+    "sonar-ch-global": {
+      "country": "스위스",
+      "doc_type": "논문"
+    },
+    "sozialministerium-gv-at-services": {
+      "country": "오스트리아",
+      "doc_type": "보고서"
+    },
+    "spo-go-kr-site": {
+      "country": "한국",
+      "doc_type": "보고서"
+    },
+    "srnl-gov-newsroom": {
+      "country": "미국",
+      "doc_type": "보도자료"
+    },
+    "stami-no-en": {
+      "country": "노르웨이",
+      "doc_type": "보고서"
+    },
+    "stat-inst-se-om-sis": {
+      "country": "스웨덴",
+      "doc_type": "보고서"
+    },
+    "state-gov-department-reports": {
+      "country": "미국",
+      "doc_type": "공공데이터"
+    },
+    "state-gov-press-releases": {
+      "country": "미국",
+      "doc_type": "보도자료"
+    },
+    "state-gwd-go-kr-portal": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "statistischebibliothek-de-mir": {
+      "country": "독일",
+      "doc_type": "간행물"
+    },
+    "stats-govt-nz-indicators": {
+      "country": "뉴질랜드",
+      "doc_type": "통계"
+    },
+    "stats-govt-nz-publications": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "stepi-re-kr-site": {
+      "country": "한국",
+      "doc_type": "기타"
+    },
+    "swisspeace-ch-publications": {
+      "country": "스위스",
+      "doc_type": "논문"
+    },
+    "swisspolar-ch-expeditions": {
+      "country": "스위스",
+      "doc_type": "논문"
+    },
+    "swisstph-ch-en": {
+      "country": "스위스",
+      "doc_type": "논문"
+    },
+    "telemarksforsking-no-publikasjoner": {
+      "country": "노르웨이",
+      "doc_type": "논문"
+    },
+    "tigta-gov-reports": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "toi-no-publications": {
+      "country": "노르웨이",
+      "doc_type": "논문"
+    },
+    "transformation-gouv-fr-espace-presse": {
+      "country": "프랑스",
+      "doc_type": "보도자료"
+    },
+    "transparency-gov-au-publications": {
+      "country": "호주",
+      "doc_type": "간행물"
+    },
+    "transport-govt-nz-documents-and-public": {
+      "country": "뉴질랜드",
+      "doc_type": "통계"
+    },
+    "transportation-gov-newsroom": {
+      "country": "미국",
+      "doc_type": "보도자료"
+    },
+    "transportes-gob-es-el-ministerio": {
+      "country": "스페인",
+      "doc_type": "보도자료"
+    },
+    "treasury-gov-au-publication": {
+      "country": "호주",
+      "doc_type": "보고서"
+    },
+    "treasury-govt-nz-publications": {
+      "country": "뉴질랜드",
+      "doc_type": "기타"
+    },
+    "trm-dk-nyheder": {
+      "country": "덴마크",
+      "doc_type": "보도자료"
+    },
+    "ufm-dk-publikationer": {
+      "country": "덴마크",
+      "doc_type": "보고서"
+    },
+    "ukdataservice-ac-uk-2026": {
+      "country": "영국",
+      "doc_type": "보고서"
+    },
+    "ulsan-go-kr-u": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "um-dk-om-os": {
+      "country": "덴마크",
+      "doc_type": "보고서"
+    },
+    "ungeneva-org-en": {
+      "country": "스위스",
+      "doc_type": "보도자료"
+    },
+    "unidata-gv-at-pages": {
+      "country": "오스트리아",
+      "doc_type": "통계"
+    },
+    "unikorea-go-kr-web": {
+      "country": "한국",
+      "doc_type": "보도자료"
+    },
+    "usgs-gov-news": {
+      "country": "미국",
+      "doc_type": "기타"
+    },
+    "ustat-mur-gov-it": {
+      "country": "이탈리아",
+      "doc_type": "간행물"
+    },
+    "uvek-admin-ch-en": {
+      "country": "스위스",
+      "doc_type": "보도자료"
+    },
+    "va-gov-vetdata": {
+      "country": "미국",
+      "doc_type": "통계"
+    },
+    "vbs-admin-ch-en": {
+      "country": "스위스",
+      "doc_type": "보도자료"
+    },
+    "vlaanderen-be-nieuwsberichten": {
+      "country": "벨기에",
+      "doc_type": "보도자료"
+    },
+    "vtg-admin-ch-en": {
+      "country": "스위스",
+      "doc_type": "간행물"
+    },
+    "wallonie-be-fr": {
+      "country": "벨기에",
+      "doc_type": "간행물"
+    },
+    "waltoninstitute-ie-research": {
+      "country": "아일랜드",
+      "doc_type": "보고서"
+    },
+    "wbf-admin-ch-en": {
+      "country": "스위스",
+      "doc_type": "보도자료"
+    },
+    "wef-infor-cl-indexphp": {
+      "country": "칠레",
+      "doc_type": "간행물"
+    },
+    "werk-belgie-be-nl": {
+      "country": "벨기에",
+      "doc_type": "보고서"
+    },
+    "who-int-publications": {
+      "country": "스위스",
+      "doc_type": "보고서"
+    },
+    "wodc-nl-documenten": {
+      "country": "네덜란드",
+      "doc_type": "보고서"
+    },
+    "women-govt-nz-library": {
+      "country": "뉴질랜드",
+      "doc_type": "보고서"
+    },
+    "wti-org-research": {
+      "country": "스위스",
+      "doc_type": "보고서"
+    },
+    "www2-mrc-lmb-cam-ac-uk-research": {
+      "country": "영국",
+      "doc_type": "논문"
+    },
+    "www6-slac-stanford-edu-news-and-events": {
+      "country": "미국",
+      "doc_type": "보고서"
+    },
+    "xxgk-mot-gov-cn-2020": {
+      "country": "중국",
+      "doc_type": "통계"
+    },
+    "yme-gr-2013-01-31-06-37-23": {
+      "country": "그리스",
+      "doc_type": "보도자료"
+    },
+    "ypen-gov-gr-category": {
+      "country": "그리스",
+      "doc_type": "보도자료"
+    },
+    "ypergasias-gov-gr-category": {
+      "country": "그리스",
+      "doc_type": "보도자료"
+    },
+    "ypes-gr-category": {
+      "country": "그리스",
+      "doc_type": "보도자료"
+    }
+  }
+}
