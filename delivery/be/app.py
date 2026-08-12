@@ -45,6 +45,15 @@ class ScheduleIn(BaseModel):
     enabled:bool=True
 
 
+class ObservationIn(BaseModel):
+    model_config=ConfigDict(extra="forbid")
+    worker_id:str="gpu0-observer"
+    endpoint_healthy:bool
+    gpu_memory_free_bytes:int|None=None
+    gpu_utilization_percent:float|None=None
+    disk_free_bytes:int|None=None
+
+
 class TranslationSelection(BaseModel):
     model_config = ConfigDict(extra="forbid")
     tasks: list[Literal["title_translation", "abstract_summary"]] = ["title_translation", "abstract_summary"]
@@ -219,6 +228,21 @@ def create_app(dsn: str) -> FastAPI:
         conn=_conn()
         try:return operations(conn,provider=provider,model_version=model_version,prompt_version=prompt_version)
         finally:conn.close()
+
+    @app.post("/translation/operations/observations")
+    def post_translation_observations(body:ObservationIn,operator:str=Depends(require_operator)):
+        if not 0<=len(body.worker_id)<=100 or body.gpu_utilization_percent is not None and not 0<=body.gpu_utilization_percent<=100:
+            raise HTTPException(status_code=422,detail="invalid observation")
+        numeric={"gpu_memory_free_bytes":body.gpu_memory_free_bytes,"gpu_utilization_percent":body.gpu_utilization_percent,"disk_free_bytes":body.disk_free_bytes}
+        if any(value is not None and value<0 for value in numeric.values()):raise HTTPException(status_code=422,detail="invalid observation")
+        conn=_conn()
+        try:
+            conn.execute("INSERT INTO translation_system_observations(worker_id,metric,value_boolean) VALUES(%s,'endpoint_healthy',%s)",(body.worker_id,body.endpoint_healthy))
+            for metric,value in numeric.items():
+                if value is not None:conn.execute("INSERT INTO translation_system_observations(worker_id,metric,value_numeric) VALUES(%s,%s,%s)",(body.worker_id,metric,value))
+            conn.commit()
+        finally:conn.close()
+        return {"accepted":True}
 
     @app.post("/translation/jobs")
     def post_translation_jobs(body: TranslationJobIn,operator:str=Depends(require_operator)):

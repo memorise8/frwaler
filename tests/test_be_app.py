@@ -187,6 +187,14 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(self.client.post("/translation/jobs/999999/cancel").status_code, 404)
         self.assertEqual(self.client.post("/translation/jobs/999999/retry").status_code, 404)
 
+    def test_operator_can_report_numeric_gpu0_observations(self):
+        response=self.client.post("/translation/operations/observations",json={"endpoint_healthy":True,
+          "gpu_memory_free_bytes":2048,"gpu_utilization_percent":42,"disk_free_bytes":4096})
+        self.assertEqual(response.status_code,200)
+        body=self.client.get("/translation/operations").json()
+        self.assertTrue(any(row["metric"]=="gpu_memory_free_bytes" for row in body["observations"]))
+        self.assertEqual(self.client.post("/translation/operations/observations",json={"endpoint_healthy":True,"gpu_utilization_percent":101}).status_code,422)
+
     def test_post_and_get_job(self):
         r = self.client.post("/jobs", json={"site_id": "s1", "mode": "full", "limit_n": 3})
         self.assertEqual(r.status_code, 200)
