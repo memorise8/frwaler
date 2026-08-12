@@ -52,12 +52,16 @@ Create a JSONL snapshot containing only `id` and `text`, then run:
 
 ```bash
 set -a; source .env; set +a
-./scripts/benchmark_translation.py samples.jsonl results/benchmark.jsonl --limit 20
+./scripts/benchmark_translation.py samples.jsonl results/benchmark.jsonl --limit 20 \
+  --summary results/benchmark-summary.json
 ```
 
 The script never connects to a DB and refuses to overwrite a prior result. Input selection from
 the real PostgreSQL must be a separate read-only query; result approval is required before any
 translation job is registered.
+
+`results/` and `samples/` are ignored by Git because they can contain source documents. The
+aggregate summary contains only counts, latency, token usage, and protected-token preservation.
 
 ## Network boundary
 
