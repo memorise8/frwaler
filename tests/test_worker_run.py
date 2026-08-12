@@ -55,6 +55,38 @@ class WorkerRunTest(unittest.TestCase):
         self.assertEqual(row["status"], "done")
         self.assertEqual(row["saved_count"], 2)
 
+    def test_incremental_rerun_does_not_duplicate_documents(self):
+        from delivery.worker import jobs, worker
+
+        first = jobs.enqueue_job(self.conn, "fake", mode="full")
+        worker.run_job(
+            self.conn,
+            jobs.claim_next_job(self.conn),
+            crawler_registry={"fake": _FakeCrawler},
+            delay=0,
+        )
+        incremental = jobs.enqueue_job(self.conn, "fake", mode="incremental")
+        saved = worker.run_job(
+            self.conn,
+            jobs.claim_next_job(self.conn),
+            crawler_registry={"fake": _FakeCrawler},
+            delay=0,
+        )
+
+        rows = self.conn.execute(
+            "SELECT id, status, saved_count FROM crawl_jobs WHERE id IN (%s, %s) ORDER BY id",
+            (first, incremental),
+        ).fetchall()
+        documents = self.conn.execute(
+            "SELECT count(*) AS n FROM documents WHERE site_id=%s", ("fake",)
+        ).fetchone()
+        self.assertEqual(saved, 0)
+        self.assertEqual(documents["n"], 2)
+        self.assertEqual(
+            [(row["status"], row["saved_count"]) for row in rows],
+            [("done", 2), ("done", 0)],
+        )
+
     def test_run_job_unknown_site_fails(self):
         from delivery.worker import jobs, worker
         jid = jobs.enqueue_job(self.conn, "nope")
