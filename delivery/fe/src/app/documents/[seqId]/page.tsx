@@ -68,6 +68,7 @@ export default async function DocumentDetailPage({ params }: Readonly<{ params: 
         <TextBlock empty="아직 생성된 한국어 요약이 없습니다.">{generatedSummary?.summary_text ?? translatedDescription?.text ?? null}</TextBlock>
         {generatedSummary?.key_points?.length ? <ul className="summary-points">{generatedSummary.key_points.map(point=><li key={point}>{point}</li>)}</ul>:null}
         {generatedSummary?.institutions?.length ? <p className="summary-institutions"><strong>관련 기관</strong> · {generatedSummary.institutions.join(" · ")}</p>:null}
+        {generatedSummary&&<p className={`summary-quality summary-quality--${generatedSummary.quality_decision}`}>{generatedSummary.quality_decision==="auto_approved"?"자동 품질 승인":"검토 권장"} · {generatedSummary.quality_score}점</p>}
         {(translatedTitle || translatedDescription || generatedSummary) && <p className="translation-provenance">저장된 결과 · {generatedSummary?.model_version || translatedDescription?.model_version || translatedTitle?.model_version} · 외부 API를 실시간 호출하지 않음</p>}
       </section>
     </div>

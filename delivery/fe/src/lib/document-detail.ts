@@ -20,7 +20,8 @@ export type DocumentDetail = Readonly<{
   translations: Readonly<{ target_locale: string; title: Translation | null; description: Translation | null }>;
   generated_summary: Readonly<{ summary_text:string; key_points:string[]; institutions:string[];
     source_facts:Readonly<{urls?:string[];dates?:string[];numbers?:string[]}>;model_version:string;
-    prompt_version:string;completed_at:string|null }> | null;
+    prompt_version:string;completed_at:string|null;quality_decision:"auto_approved"|"review_recommended";
+    quality_score:number }> | null;
   files: Readonly<{ has_pdf: boolean; has_text: boolean; pdf_size_bytes: number | null; original_filename: string | null }>;
 }>;
 

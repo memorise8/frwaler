@@ -1,0 +1,29 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+
+type Decision = "auto_approved" | "review_recommended" | "rejected";
+type QualityItem = Readonly<{summary_id:number;seq_id:number;source_lang:string;site_id:string;decision:Decision;score:number;reason_codes:string[];model_version:string;prompt_version:string;evaluated_at:string}>;
+type QualityResponse = Readonly<{measured_at:string;gate_version:string;summary:{total:number;auto_approved:number;review_recommended:number;rejected:number};score:{average:number|null;evidence_average:number|null};top_reasons:{code:string;count:number}[];by_language:{source_lang:string;total:number;auto_approved:number;review_recommended:number;rejected:number}[];items:QualityItem[]}>;
+
+const LABEL:Record<Decision,string>={auto_approved:"자동 승인",review_recommended:"검토 권장",rejected:"거부"};
+const REASON:Record<string,string>={low_evidence:"원문 근거 점수 부족",summary_not_korean:"한국어 요약 아님",invalid_sentence_count:"문장 수 계약 위반",invalid_summary_length:"요약 길이 이상",invalid_key_point_count:"핵심 포인트 수 이상",key_point_not_korean:"핵심 포인트 한국어 아님",invalid_key_point_length:"핵심 포인트 길이 이상",forbidden_markup:"금지된 마크업",repeated_summary_sentence:"요약 문장 반복",repeated_key_point:"핵심 포인트 반복",truncated_output:"출력 잘림",ungrounded_institution:"원문에 없는 기관명",ungrounded_number:"원문에 없는 수치"};
+const number=(value:number|null)=>value===null?"측정 전":value.toLocaleString("ko-KR",{maximumFractionDigits:1});
+
+export function QualityDashboard(){
+  const [data,setData]=useState<QualityResponse|null>(null),[decision,setDecision]=useState<Decision|"">("");
+  const [error,setError]=useState(false),[loading,setLoading]=useState(true);
+  const load=useCallback(async(selected:Decision|""=decision)=>{setLoading(true);setError(false);try{const query=selected?`?decision=${selected}`:"";const response=await fetch(`/api/translation/quality${query}`,{cache:"no-store"});if(!response.ok)throw new Error();setData(await response.json() as QualityResponse);}catch{setError(true);}finally{setLoading(false);}},[decision]);
+  useEffect(()=>{const start=setTimeout(()=>void load(),0);return()=>clearTimeout(start);},[load]);
+  const change=(value:Decision|"")=>setDecision(value);
+  const maximum=Math.max(1,...(data?.by_language.map(row=>row.total)??[]));
+  return <section className="quality-dashboard" aria-labelledby="quality-heading">
+    <div className="section-heading"><div><p className="eyebrow">AUTOMATED QUALITY GATE</p><h2 id="quality-heading">한국어 요약 품질 현황</h2></div><div className="quality-controls"><label><span>위험도 필터</span><select value={decision} onChange={event=>change(event.target.value as Decision|"")}><option value="">전체 판정</option><option value="review_recommended">검토 권장</option><option value="rejected">거부</option><option value="auto_approved">자동 승인</option></select></label><button onClick={()=>void load()} disabled={loading}>새로고침</button></div></div>
+    {error?<aside className="snapshot-note snapshot-note--unavailable"><strong>품질 현황 연결 안 됨</strong><span>작업 등록 기능은 유지됩니다. BE 연결과 품질 게이트 스키마를 확인해 주세요.</span></aside>:data?<>
+      <div className="quality-summary"><div><span>평가 완료</span><strong>{number(data.summary.total)}</strong><small>{data.gate_version}</small></div><div className="quality-approved"><span>자동 승인</span><strong>{number(data.summary.auto_approved)}</strong><small>{data.summary.total?`${(data.summary.auto_approved/data.summary.total*100).toFixed(1)}%`:"-"}</small></div><div className="quality-review"><span>검토 권장</span><strong>{number(data.summary.review_recommended)}</strong><small>처리를 막지 않는 위험 결과</small></div><div className="quality-rejected"><span>거부</span><strong>{number(data.summary.rejected)}</strong><small>문서 상세에 미노출</small></div><div><span>평균 품질 점수</span><strong>{number(data.score.average)}</strong><small>근거 {number(data.score.evidence_average)}</small></div></div>
+      <div className="quality-grid"><article className="quality-panel"><div className="quality-panel-heading"><div><p className="eyebrow">LANGUAGE</p><h3>언어별 판정</h3></div><span>평가 건수 기준</span></div>{data.by_language.length?<div className="quality-language-list">{data.by_language.slice(0,12).map(row=><div key={row.source_lang}><span>{row.source_lang.toUpperCase()}</span><i><b style={{width:`${row.total/maximum*100}%`}}/></i><strong>{row.total.toLocaleString("ko-KR")}</strong><small>{row.review_recommended+row.rejected} 위험</small></div>)}</div>:<p className="field-empty">아직 평가된 언어가 없습니다.</p>}</article>
+        <article className="quality-panel"><div className="quality-panel-heading"><div><p className="eyebrow">FAILURE REASONS</p><h3>상위 판정 사유</h3></div><span>내용 비노출</span></div>{data.top_reasons.length?<ol className="quality-reasons">{data.top_reasons.map(row=><li key={row.code}><span>{REASON[row.code]??row.code}</span><strong>{row.count.toLocaleString("ko-KR")}</strong></li>)}</ol>:<p className="field-empty">기록된 위험 사유가 없습니다.</p>}</article></div>
+      <div className="quality-risk"><div className="quality-panel-heading"><div><p className="eyebrow">RISK QUEUE</p><h3>판정 결과 목록</h3></div><span>{new Date(data.measured_at).toLocaleString("ko-KR")} 측정</span></div>{data.items.length?<div className="table-shell"><table><thead><tr><th>문서</th><th>언어·사이트</th><th>판정</th><th>점수</th><th>사유</th><th>모델·프롬프트</th></tr></thead><tbody>{data.items.map(item=><tr key={item.summary_id}><td><a href={`/documents/${item.seq_id}`}>{item.seq_id}</a></td><td>{item.source_lang.toUpperCase()} · <code>{item.site_id}</code></td><td><span className={`quality-decision quality-decision--${item.decision}`}>{LABEL[item.decision]}</span></td><td>{item.score}</td><td>{item.reason_codes.map(code=>REASON[code]??code).join(" · ")||"통과"}</td><td><code>{item.model_version} · {item.prompt_version}</code></td></tr>)}</tbody></table></div>:<p className="document-empty">선택한 판정 결과가 없습니다.</p>}</div>
+    </>:loading?<p className="document-empty">품질 현황을 불러오는 중입니다.</p>:null}
+  </section>;
+}
