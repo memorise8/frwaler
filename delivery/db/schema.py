@@ -20,13 +20,15 @@ def init_delivery_schema(conn) -> None:
             started_at    TIMESTAMPTZ,
             finished_at   TIMESTAMPTZ,
             retry_of      BIGINT REFERENCES crawl_jobs(id),
-            retried_by    BIGINT REFERENCES crawl_jobs(id)
+            retried_by    BIGINT REFERENCES crawl_jobs(id),
+            cancel_requested_at TIMESTAMPTZ
         )
         """
     )
     # Upgrade Phase 0 databases without requiring a destructive migration.
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS retry_of BIGINT REFERENCES crawl_jobs(id)")
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS retried_by BIGINT REFERENCES crawl_jobs(id)")
+    conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS cancel_requested_at TIMESTAMPTZ")
     conn.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_jobs_retry_of ON crawl_jobs(retry_of) WHERE retry_of IS NOT NULL"
     )

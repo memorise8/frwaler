@@ -359,7 +359,7 @@ def create_app(dsn: str) -> FastAPI:
 
     @app.get("/jobs")
     def get_jobs(status: str | None = None, limit: int = 50, offset: int = 0):
-        if status not in (None, "queued", "running", "done", "failed", "cancelled"):
+        if status not in (None, "queued", "running", "cancelling", "done", "failed", "cancelled"):
             raise HTTPException(status_code=422, detail="invalid job status")
         if not 1 <= limit <= 200 or offset < 0:
             raise HTTPException(status_code=422, detail="invalid pagination")

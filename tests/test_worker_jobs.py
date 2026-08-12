@@ -98,7 +98,7 @@ class WorkerJobsTest(unittest.TestCase):
         running = jobs.list_jobs(self.conn, status="running")
         self.assertEqual([row["id"] for row in running], [first])
 
-    def test_cancel_only_queued_job(self):
+    def test_cancel_queued_and_running_job(self):
         from delivery.worker import jobs
         queued = jobs.enqueue_job(self.conn, "s1")
         cancelled = jobs.cancel_job(self.conn, queued)
@@ -108,7 +108,13 @@ class WorkerJobsTest(unittest.TestCase):
 
         running = jobs.enqueue_job(self.conn, "s2")
         jobs.claim_next_job(self.conn)
-        self.assertIsNone(jobs.cancel_job(self.conn, running))
+        requested = jobs.cancel_job(self.conn, running)
+        self.assertEqual(requested["status"], "cancelling")
+        self.assertIsNotNone(requested["cancel_requested_at"])
+        jobs.finish_job(self.conn, running, 2)
+        stopped = self.conn.execute("SELECT status,saved_count FROM crawl_jobs WHERE id=%s",(running,)).fetchone()
+        self.assertEqual(stopped["status"], "cancelled")
+        self.assertEqual(stopped["saved_count"], 2)
 
     def test_retry_preserves_source_and_can_only_happen_once(self):
         from delivery.worker import jobs

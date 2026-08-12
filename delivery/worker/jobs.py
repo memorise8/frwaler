@@ -64,15 +64,21 @@ def list_jobs(conn, *, status=None, limit=50, offset=0) -> list[dict]:
 
 
 def cancel_job(conn, job_id) -> Optional[dict]:
-    """Cancel a queued job atomically; return None when it is not queued."""
+    """Cancel queued work or request cooperative cancellation of running work."""
     row = conn.execute(
         """UPDATE crawl_jobs
-              SET status='cancelled', finished_at=now(), error=NULL
-            WHERE id=%s AND status='queued'
+              SET status=CASE WHEN status='queued' THEN 'cancelled' ELSE 'cancelling' END,
+                  cancel_requested_at=now(),
+                  finished_at=CASE WHEN status='queued' THEN now() ELSE finished_at END,
+                  error=NULL
+            WHERE id=%s AND status IN ('queued','running')
         RETURNING *""",
         (job_id,),
     ).fetchone()
-    if row:_log(conn,job_id,"cancelled","대기 중인 작업이 취소되었습니다.","warning")
+    if row:
+        event = "cancelled" if row["status"] == "cancelled" else "cancel_requested"
+        message = "대기 중인 작업이 취소되었습니다." if row["status"] == "cancelled" else "실행 중인 작업에 취소가 요청되었습니다. 현재 수집 단위가 끝나면 중단됩니다."
+        _log(conn,job_id,event,message,"warning")
     conn.commit()
     return dict(row) if row is not None else None
 
@@ -121,19 +127,28 @@ def retry_job(conn, job_id, *, requested_by=None) -> Optional[dict]:
 
 
 def finish_job(conn, job_id, saved_count) -> None:
-    conn.execute(
+    row = conn.execute(
         """UPDATE crawl_jobs SET status='done', saved_count=%s, finished_at=now()
-            WHERE id=%s AND status='running'""",
+            WHERE id=%s AND status='running' RETURNING status""",
         (int(saved_count or 0), job_id),
-    )
-    _log(conn,job_id,"completed",f"수집 완료: 신규 문서 {int(saved_count or 0)}건")
+    ).fetchone()
+    if row:
+        _log(conn,job_id,"completed",f"수집 완료: 신규 문서 {int(saved_count or 0)}건")
+    else:
+        cancelled = conn.execute(
+            """UPDATE crawl_jobs SET status='cancelled', saved_count=%s, finished_at=now()
+               WHERE id=%s AND status='cancelling' RETURNING status""",
+            (int(saved_count or 0), job_id),
+        ).fetchone()
+        if cancelled:
+            _log(conn,job_id,"cancelled",f"취소 요청에 따라 종료되었습니다. 종료 전 신규 문서 {int(saved_count or 0)}건", "warning")
     conn.commit()
 
 
 def fail_job(conn, job_id, error) -> None:
     conn.execute(
         """UPDATE crawl_jobs SET status='failed', error=%s, finished_at=now()
-            WHERE id=%s AND status='running'""",
+            WHERE id=%s AND status IN ('running','cancelling')""",
         ((error or "")[:2000], job_id),
     )
     _log(conn,job_id,"failed","수집 작업이 실패했습니다.","error")
