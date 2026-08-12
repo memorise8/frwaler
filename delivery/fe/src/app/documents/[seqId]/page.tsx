@@ -31,6 +31,7 @@ export default async function DocumentDetailPage({ params }: Readonly<{ params: 
   const document = result.data;
   const translatedTitle = document.translations.title;
   const translatedDescription = document.translations.description;
+  const generatedSummary = document.generated_summary;
 
   return <article className="archive-detail">
     <Link className="back-link" href="/documents">← 문서 탐색으로</Link>
@@ -63,9 +64,11 @@ export default async function DocumentDetailPage({ params }: Readonly<{ params: 
         <TextBlock empty="저장된 원문 초록이 없습니다.">{document.source.abstract}</TextBlock>
       </section>
       <section className="reading-panel reading-panel--translation">
-        <div className="reading-heading"><div><p className="eyebrow">KOREAN TRANSLATION</p><h2>한국어 번역</h2></div><span>{document.translations.target_locale}</span></div>
-        <TextBlock empty="아직 저장된 한국어 초록 번역이 없습니다.">{translatedDescription?.text ?? null}</TextBlock>
-        {(translatedTitle || translatedDescription) && <p className="translation-provenance">저장된 번역 결과 · {translatedDescription?.model_version || translatedTitle?.model_version} · 외부 API를 실시간 호출하지 않음</p>}
+        <div className="reading-heading"><div><p className="eyebrow">KOREAN SUMMARY</p><h2>한국어 핵심 요약</h2></div><span>{document.translations.target_locale}</span></div>
+        <TextBlock empty="아직 생성된 한국어 요약이 없습니다.">{generatedSummary?.summary_text ?? translatedDescription?.text ?? null}</TextBlock>
+        {generatedSummary?.key_points?.length ? <ul className="summary-points">{generatedSummary.key_points.map(point=><li key={point}>{point}</li>)}</ul>:null}
+        {generatedSummary?.institutions?.length ? <p className="summary-institutions"><strong>관련 기관</strong> · {generatedSummary.institutions.join(" · ")}</p>:null}
+        {(translatedTitle || translatedDescription || generatedSummary) && <p className="translation-provenance">저장된 결과 · {generatedSummary?.model_version || translatedDescription?.model_version || translatedTitle?.model_version} · 외부 API를 실시간 호출하지 않음</p>}
       </section>
     </div>
 
