@@ -29,7 +29,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <nav aria-label="운영 메뉴">
               <Link className="nav-link nav-link-active" href="/">크롤러 상태</Link>
               <span className="nav-link nav-link-disabled">수집 작업</span>
-              <span className="nav-link nav-link-disabled">수집 결과</span>
+              <Link className="nav-link" href="/documents">문서 탐색</Link>
             </nav>
             <p className="console-mark">운영 콘솔 · MVP</p>
           </div>

@@ -89,7 +89,7 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
       </header>
 
       <section className="database-status" aria-label="실제 데이터베이스 현황">
-        <div className="section-heading"><div><p className="eyebrow">LIVE DATABASE</p><h2>실제 데이터 현황</h2></div><p>{databaseStats ? `측정 ${new Date(databaseStats.measured_at).toLocaleString("ko-KR")}` : "현재 측정 불가"}</p></div>
+        <div className="section-heading"><div><p className="eyebrow">LIVE DATABASE</p><h2>실제 데이터 현황</h2></div><div className="section-actions"><p>{databaseStats ? `측정 ${new Date(databaseStats.measured_at).toLocaleString("ko-KR")}` : "현재 측정 불가"}</p><Link href="/documents">문서 탐색 →</Link></div></div>
         {databaseStats ? <>
           <div className="summary-grid">
             <article className="summary-card"><span>전체 문서</span><strong>{databaseStats.overview.documents.toLocaleString("ko-KR")}</strong><small>{databaseStats.overview.sites.toLocaleString("ko-KR")}개 사이트</small></article>
