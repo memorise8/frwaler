@@ -72,6 +72,54 @@ class WorkerJobsTest(unittest.TestCase):
         self.assertEqual(row2["status"], "failed")
         self.assertEqual(row2["error"], "boom")
 
+    def test_list_jobs_newest_first_and_filter(self):
+        from delivery.worker import jobs
+        first = jobs.enqueue_job(self.conn, "s1")
+        second = jobs.enqueue_job(self.conn, "s2")
+        jobs.claim_next_job(self.conn)
+        rows = jobs.list_jobs(self.conn)
+        self.assertEqual([row["id"] for row in rows], [second, first])
+        running = jobs.list_jobs(self.conn, status="running")
+        self.assertEqual([row["id"] for row in running], [first])
+
+    def test_cancel_only_queued_job(self):
+        from delivery.worker import jobs
+        queued = jobs.enqueue_job(self.conn, "s1")
+        cancelled = jobs.cancel_job(self.conn, queued)
+        self.assertEqual(cancelled["status"], "cancelled")
+        self.assertIsNotNone(cancelled["finished_at"])
+        self.assertIsNone(jobs.cancel_job(self.conn, queued))
+
+        running = jobs.enqueue_job(self.conn, "s2")
+        jobs.claim_next_job(self.conn)
+        self.assertIsNone(jobs.cancel_job(self.conn, running))
+
+    def test_retry_preserves_source_and_can_only_happen_once(self):
+        from delivery.worker import jobs
+        source = jobs.enqueue_job(self.conn, "s1", mode="full", limit_n=3,
+                                  requested_by="operator")
+        jobs.claim_next_job(self.conn)
+        jobs.fail_job(self.conn, source, "boom")
+        retried = jobs.retry_job(self.conn, source, requested_by="retry-button")
+        self.assertEqual(retried["status"], "queued")
+        self.assertEqual(retried["retry_of"], source)
+        self.assertEqual(retried["site_id"], "s1")
+        self.assertEqual(retried["mode"], "full")
+        self.assertEqual(retried["limit_n"], 3)
+        self.assertEqual(retried["requested_by"], "retry-button")
+        old = self.conn.execute(
+            "SELECT status, error, retried_by FROM crawl_jobs WHERE id=%s", (source,)
+        ).fetchone()
+        self.assertEqual(old["status"], "failed")
+        self.assertEqual(old["error"], "boom")
+        self.assertEqual(old["retried_by"], retried["id"])
+        self.assertIsNone(jobs.retry_job(self.conn, source))
+
+    def test_retry_rejects_non_terminal_job(self):
+        from delivery.worker import jobs
+        queued = jobs.enqueue_job(self.conn, "s1")
+        self.assertIsNone(jobs.retry_job(self.conn, queued))
+
 
 if __name__ == "__main__":
     unittest.main()

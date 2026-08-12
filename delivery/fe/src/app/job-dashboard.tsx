@@ -1,0 +1,33 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+
+type Job = { id: number; site_id: string; status: string; saved_count: number; error?: string | null; created_at: string };
+
+export function JobDashboard() {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [message, setMessage] = useState("");
+  const load = useCallback(async () => {
+    try {
+      const response = await fetch("/api/jobs?limit=20", { cache: "no-store" });
+      if (!response.ok) throw new Error("load failed");
+      setJobs(((await response.json()) as { jobs?: Job[] }).jobs ?? []);
+      setMessage("");
+    } catch { setMessage("작업 목록을 불러올 수 없습니다."); }
+  }, []);
+  useEffect(() => {
+    const initial = window.setTimeout(() => void load(), 0);
+    const timer = window.setInterval(() => void load(), 10_000);
+    return () => { window.clearTimeout(initial); window.clearInterval(timer); };
+  }, [load]);
+  const act = async (job: Job, action: "cancel" | "retry") => {
+    const response = await fetch(`/api/jobs/${job.id}/${action}`, { method: "POST" });
+    if (!response.ok) setMessage(`${job.id}번 작업을 처리하지 못했습니다.`);
+    await load();
+  };
+  return <section className="catalogue-section" aria-label="최근 수집 작업">
+    <div className="section-heading"><div><p className="eyebrow">CRAWL JOBS</p><h2>최근 작업 현황</h2></div><button type="button" onClick={() => void load()}>새로고침</button></div>
+    {message && <aside className="snapshot-note snapshot-note--unavailable"><strong>연결 안내</strong><span>{message}</span></aside>}
+    {jobs.length > 0 ? <div className="table-shell"><table><thead><tr><th>ID</th><th>수집기</th><th>상태</th><th className="number">저장</th><th>실패 사유</th><th>관리</th></tr></thead><tbody>{jobs.map((job) => <tr key={job.id}><td>{job.id}</td><td><code>{job.site_id}</code></td><td>{job.status}</td><td className="number">{job.saved_count}</td><td>{job.error ?? "-"}</td><td>{job.status === "queued" ? <button onClick={() => void act(job, "cancel")}>취소</button> : ["failed", "cancelled"].includes(job.status) ? <button onClick={() => void act(job, "retry")}>재시도</button> : "-"}</td></tr>)}</tbody></table></div> : !message && <div className="catalogue-prompt"><div><strong>등록된 작업이 없습니다.</strong><p>크롤러 상세 화면에서 수집 작업을 시작할 수 있습니다.</p></div></div>}
+  </section>;
+}

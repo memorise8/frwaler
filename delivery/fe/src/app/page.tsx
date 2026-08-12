@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Fragment } from "react";
 import { AUDIT_DATE, getCrawlerHealth, type CrawlerHealth } from "@/lib/crawler-health";
-import { getDatabaseStats } from "@/lib/database-stats";
+import { getDatabaseStats, getFreshnessStats } from "@/lib/database-stats";
+import { JobDashboard } from "./job-dashboard";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,7 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
   const requestedPage = Number.parseInt(one(params.page), 10) || 1;
   const rows = getCrawlerHealth();
   const databaseStats = await getDatabaseStats();
+  const freshnessStats = await getFreshnessStats();
   const crawlerById = new Map(rows.map((row) => [row.siteId, row]));
   const measuredCountryCounts = [...(databaseStats?.by_site ?? []).reduce((counts, item) => {
     const name = crawlerById.get(item.key)?.country ?? "기타";
@@ -109,6 +111,16 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
         </> : <aside className="snapshot-note snapshot-note--unavailable"><strong>실데이터 연결 대기</strong><span>BE 또는 PostgreSQL에 연결할 수 없습니다. 아래 수집기 감사 스냅샷은 계속 확인할 수 있습니다.</span></aside>}
       </section>
 
+      <section className="database-status" aria-label="수집 최신화 현황">
+        <div className="section-heading"><div><p className="eyebrow">FRESHNESS</p><h2>사이트 최신화</h2></div><p>{freshnessStats ? `측정 ${new Date(freshnessStats.measured_at).toLocaleString("ko-KR")}` : "현재 측정 불가"}</p></div>
+        {freshnessStats ? <div className="summary-grid">
+          <article className="summary-card summary-card--good"><span>7일 이내</span><strong>{(freshnessStats.summary.distribution.within_7_days ?? 0).toLocaleString("ko-KR")}</strong><small>사이트</small></article>
+          <article className="summary-card"><span>8~30일</span><strong>{(freshnessStats.summary.distribution["8_to_30_days"] ?? 0).toLocaleString("ko-KR")}</strong><small>사이트</small></article>
+          <article className="summary-card"><span>31~90일</span><strong>{(freshnessStats.summary.distribution["31_to_90_days"] ?? 0).toLocaleString("ko-KR")}</strong><small>사이트</small></article>
+          <article className="summary-card summary-card--bad"><span>90일 초과·미수집</span><strong>{((freshnessStats.summary.distribution.over_90_days ?? 0) + freshnessStats.summary.never_collected).toLocaleString("ko-KR")}</strong><small>점검 대상</small></article>
+        </div> : <aside className="snapshot-note snapshot-note--unavailable"><strong>최신화 측정 대기</strong><span>BE 또는 PostgreSQL 연결 후 사이트별 마지막 수집일을 계산합니다.</span></aside>}
+      </section>
+
       <section className="summary-grid" aria-label="크롤러 상태 요약">
         <article className="summary-card"><span>전체 수집기</span><strong>{rows.length.toLocaleString("ko-KR")}</strong><small>등록 카탈로그</small></article>
         <article className="summary-card summary-card--good"><span>정상 작동</span><strong>{healthy.toLocaleString("ko-KR")}</strong><small>{rows.length ? ((healthy / rows.length) * 100).toFixed(1) : "0.0"}% 저장 성공</small></article>
@@ -170,6 +182,7 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
           {page < pageCount ? <Link href={pageHref(filters, page + 1)}>다음 →</Link> : <span />}
         </nav>}
       </section>
+      <JobDashboard />
     </div>
   );
 }

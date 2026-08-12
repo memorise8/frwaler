@@ -31,3 +31,13 @@ export async function getDatabaseStats(): Promise<DatabaseStats | null> {
     return null;
   }
 }
+
+export type FreshnessStats = Readonly<{ summary: Readonly<{ total_sites: number; with_documents: number; never_collected: number; distribution: Readonly<Record<string, number>> }>; measured_at: string }>;
+
+export async function getFreshnessStats(): Promise<FreshnessStats | null> {
+  try {
+    const response = await fetch(`${backendUrl()}/freshness`, { cache: "no-store", signal: AbortSignal.timeout(5000) });
+    if (!response.ok) return null;
+    return await response.json() as FreshnessStats;
+  } catch { return null; }
+}

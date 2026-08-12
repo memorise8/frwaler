@@ -51,6 +51,40 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(r2.json()["site_id"], "s1")
         self.assertEqual(r2.json()["status"], "queued")
 
+    def test_list_cancel_and_retry_jobs(self):
+        created = self.client.post("/jobs", json={"site_id": "s1", "mode": "full"}).json()
+        jid = created["id"]
+        listed = self.client.get("/jobs?status=queued&limit=10").json()
+        self.assertEqual([row["id"] for row in listed["jobs"]], [jid])
+
+        cancelled = self.client.post(f"/jobs/{jid}/cancel")
+        self.assertEqual(cancelled.status_code, 200)
+        self.assertEqual(cancelled.json()["status"], "cancelled")
+        self.assertEqual(self.client.post(f"/jobs/{jid}/cancel").status_code, 409)
+
+        retried = self.client.post(
+            f"/jobs/{jid}/retry", json={"requested_by": "test-operator"}
+        )
+        self.assertEqual(retried.status_code, 200)
+        self.assertEqual(retried.json()["status"], "queued")
+        self.assertEqual(retried.json()["retry_of"], jid)
+        self.assertEqual(self.client.post(f"/jobs/{jid}/retry", json={}).status_code, 409)
+
+    def test_job_management_not_found_and_invalid_filter(self):
+        self.assertEqual(self.client.post("/jobs/999999/cancel").status_code, 404)
+        self.assertEqual(self.client.post("/jobs/999999/retry", json={}).status_code, 404)
+        self.assertEqual(self.client.get("/jobs?status=bogus").status_code, 422)
+
+    def test_get_freshness(self):
+        r = self.client.get("/freshness")
+        self.assertEqual(r.status_code, 200)
+        body = r.json()
+        self.assertEqual(body["summary"]["total_sites"], 1)
+        self.assertEqual(body["summary"]["with_documents"], 1)
+        self.assertEqual(body["sites"][0]["site_id"], "s1")
+        self.assertEqual(body["sites"][0]["documents"], 1)
+        self.assertEqual(body["sites"][0]["freshness_bucket"], "within_7_days")
+
 
 if __name__ == "__main__":
     unittest.main()

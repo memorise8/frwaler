@@ -8,6 +8,28 @@ type JobRequest = {
 
 const backendUrl = (): string => (process.env.BE_URL ?? "http://127.0.0.1:8080").replace(/\/$/, "");
 
+export async function GET(request: Request): Promise<NextResponse> {
+  const url = new URL(request.url);
+  const params = new URLSearchParams();
+  const status = url.searchParams.get("status");
+  const limit = url.searchParams.get("limit");
+  const offset = url.searchParams.get("offset");
+  if (status) params.set("status", status);
+  if (limit) params.set("limit", limit);
+  if (offset) params.set("offset", offset);
+  try {
+    const response = await fetch(`${backendUrl()}/jobs?${params}`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
+    });
+    const result = await response.json().catch(() => ({})) as Record<string, unknown>;
+    return NextResponse.json(result, { status: response.status });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: "작업 목록을 불러올 수 없습니다.", detail }, { status: 503 });
+  }
+}
+
 export async function POST(request: Request): Promise<NextResponse> {
   let body: JobRequest;
   try {

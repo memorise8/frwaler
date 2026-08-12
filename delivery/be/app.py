@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from crawler import db_pg
+from delivery.be.freshness import collect_freshness
 from delivery.be.stats import collect_stats
 from delivery.worker import jobs
 
@@ -19,6 +20,10 @@ class JobIn(BaseModel):
     site_id: str
     mode: str = "incremental"
     limit_n: int | None = None
+    requested_by: str | None = None
+
+
+class RetryIn(BaseModel):
     requested_by: str | None = None
 
 
@@ -59,6 +64,14 @@ def create_app(dsn: str) -> FastAPI:
         finally:
             conn.close()
 
+    @app.get("/freshness")
+    def get_freshness():
+        conn = _conn()
+        try:
+            return collect_freshness(conn)
+        finally:
+            conn.close()
+
     @app.post("/jobs")
     def post_job(body: JobIn):
         conn = _conn()
@@ -79,5 +92,54 @@ def create_app(dsn: str) -> FastAPI:
         if row is None:
             raise HTTPException(status_code=404, detail="job not found")
         return dict(row)
+
+    @app.get("/jobs")
+    def get_jobs(status: str | None = None, limit: int = 50, offset: int = 0):
+        if status not in (None, "queued", "running", "done", "failed", "cancelled"):
+            raise HTTPException(status_code=422, detail="invalid job status")
+        if not 1 <= limit <= 200 or offset < 0:
+            raise HTTPException(status_code=422, detail="invalid pagination")
+        conn = _conn()
+        try:
+            rows = jobs.list_jobs(conn, status=status, limit=limit, offset=offset)
+        finally:
+            conn.close()
+        return {"jobs": rows, "limit": limit, "offset": offset}
+
+    @app.post("/jobs/{job_id}/cancel")
+    def post_cancel_job(job_id: int):
+        conn = _conn()
+        try:
+            row = jobs.cancel_job(conn, job_id)
+            if row is not None:
+                return row
+            current = conn.execute(
+                "SELECT status FROM crawl_jobs WHERE id=%s", (job_id,)
+            ).fetchone()
+        finally:
+            conn.close()
+        if current is None:
+            raise HTTPException(status_code=404, detail="job not found")
+        raise HTTPException(status_code=409, detail=f"cannot cancel job in {current['status']} status")
+
+    @app.post("/jobs/{job_id}/retry")
+    def post_retry_job(job_id: int, body: RetryIn | None = None):
+        conn = _conn()
+        try:
+            row = jobs.retry_job(
+                conn, job_id, requested_by=body.requested_by if body else None
+            )
+            if row is not None:
+                return row
+            current = conn.execute(
+                "SELECT status, retried_by FROM crawl_jobs WHERE id=%s", (job_id,)
+            ).fetchone()
+        finally:
+            conn.close()
+        if current is None:
+            raise HTTPException(status_code=404, detail="job not found")
+        if current.get("retried_by") is not None:
+            raise HTTPException(status_code=409, detail="job was already retried")
+        raise HTTPException(status_code=409, detail=f"cannot retry job in {current['status']} status")
 
     return app
