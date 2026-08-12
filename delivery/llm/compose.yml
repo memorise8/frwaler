@@ -49,6 +49,11 @@ services:
       timeout: 5s
       retries: 20
       start_period: 20m
+    logging: &llm-logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
 
   proxy:
     image: ${NGINX_IMAGE:?set NGINX_IMAGE}
@@ -70,3 +75,4 @@ services:
       interval: 30s
       timeout: 5s
       retries: 5
+    logging: *llm-logging

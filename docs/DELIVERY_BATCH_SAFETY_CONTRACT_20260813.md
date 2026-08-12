@@ -63,3 +63,4 @@ Provider는 null을 저장하며 문자 수로 위장하지 않는다.
 Worker stdout은 JSON lines로 `event`, `worker_id`, `batch_id`, `job_id`, `attempt_id`, `status`,
 `error_code`, `latency_ms`, token counts만 기록한다. exception 문자열, 요청/응답 body, URL query,
 headers는 기록하지 않는다. Docker 서비스는 `json-file`, `max-size=10m`, `max-file=5`로 회전한다.
+LLM Nginx도 파일 대신 stdout/stderr에 기록해 같은 Docker 회전 정책을 적용한다.
