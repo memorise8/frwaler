@@ -17,7 +17,7 @@ class BeAppTest(unittest.TestCase):
         from delivery.be.app import create_app
 
         conn = db_pg.open_db(TEST_PG_DSN)
-        for t in ("crawl_jobs", "document_translations", "document_lang", "documents", "sites"):
+        for t in ("translation_jobs", "crawl_jobs", "document_translations", "document_lang", "documents", "sites"):
             conn.execute(f"DROP TABLE IF EXISTS {t} CASCADE")
         conn.commit()
         db_pg.init_db(conn)
@@ -81,6 +81,33 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(body["translations"]["title"]["text"], "문서 하나")
         self.assertEqual(body["translations"]["title"]["model_version"], "new-model")
         self.assertIsNone(body["translations"]["description"])
+
+    def test_translation_preview_enqueue_list_cancel(self):
+        preview = self.client.post("/translation/preview", json={"fields": ["title"]})
+        self.assertEqual(preview.status_code, 200)
+        self.assertEqual(preview.json()["total"], 1)
+        created = self.client.post("/translation/jobs", json={
+            "fields": ["title"], "provider": "internal", "model_version": "qwen-test",
+            "limit": 10, "requested_by": "operator",
+        })
+        self.assertEqual(created.status_code, 200)
+        self.assertEqual(created.json()["created"], 1)
+        jid = created.json()["job_ids"][0]
+        listed = self.client.get("/translation/jobs?status=pending").json()
+        self.assertEqual(listed["summary"]["pending"], 1)
+        self.assertEqual(listed["jobs"][0]["provider"], "internal")
+        cancelled = self.client.post(f"/translation/jobs/{jid}/cancel")
+        self.assertEqual(cancelled.json()["status"], "cancelled")
+        self.assertEqual(self.client.post(f"/translation/jobs/{jid}/retry").status_code, 409)
+
+    def test_translation_api_validation_and_missing(self):
+        self.assertEqual(self.client.post("/translation/preview", json={"fields": []}).status_code, 422)
+        self.assertEqual(self.client.post("/translation/jobs", json={
+            "fields": ["title"], "provider": "external", "model_version": "", "limit": 1,
+        }).status_code, 422)
+        self.assertEqual(self.client.get("/translation/jobs?status=bogus").status_code, 422)
+        self.assertEqual(self.client.post("/translation/jobs/999999/cancel").status_code, 404)
+        self.assertEqual(self.client.post("/translation/jobs/999999/retry").status_code, 404)
 
     def test_post_and_get_job(self):
         r = self.client.post("/jobs", json={"site_id": "s1", "mode": "full", "limit_n": 3})

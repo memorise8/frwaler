@@ -19,6 +19,7 @@ from delivery.be.document_detail import collect_document_detail
 from delivery.be.freshness import collect_freshness
 from delivery.be.stats import collect_stats
 from delivery.worker import jobs
+from delivery.translation import jobs as translation_jobs
 
 
 class JobIn(BaseModel):
@@ -29,6 +30,21 @@ class JobIn(BaseModel):
 
 
 class RetryIn(BaseModel):
+    requested_by: str | None = None
+
+
+class TranslationSelection(BaseModel):
+    fields: list[Literal["title", "description"]] = ["title", "description"]
+    lang: str | None = None
+    site_id: str | None = None
+
+
+class TranslationJobIn(TranslationSelection):
+    provider: Literal["external", "internal"]
+    model_version: str
+    prompt_version: str = "translate-ko-v1"
+    target_locale: str = "ko-KR"
+    limit: int = 100
     requested_by: str | None = None
 
 
@@ -121,6 +137,75 @@ def create_app(dsn: str) -> FastAPI:
             return collect_freshness(conn)
         finally:
             conn.close()
+
+    @app.post("/translation/preview")
+    def post_translation_preview(body: TranslationSelection):
+        conn = _conn()
+        try:
+            return translation_jobs.preview_targets(conn, fields=body.fields, lang=body.lang,
+                                                    site_id=body.site_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        finally:
+            conn.close()
+
+    @app.post("/translation/jobs")
+    def post_translation_jobs(body: TranslationJobIn):
+        if not 1 <= body.limit <= 1000 or not body.model_version.strip() or not body.prompt_version.strip():
+            raise HTTPException(status_code=422, detail="invalid translation job configuration")
+        conn = _conn()
+        try:
+            return translation_jobs.enqueue_targets(
+                conn, fields=body.fields, provider=body.provider,
+                model_version=body.model_version.strip(), prompt_version=body.prompt_version.strip(),
+                target_locale=body.target_locale, lang=body.lang, site_id=body.site_id,
+                limit=body.limit, requested_by=body.requested_by,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        finally:
+            conn.close()
+
+    @app.get("/translation/jobs")
+    def get_translation_jobs(status: str | None = None, limit: int = 50, offset: int = 0):
+        allowed = {"pending", "running", "completed", "failed", "skipped", "cancelled"}
+        if status is not None and status not in allowed:
+            raise HTTPException(status_code=422, detail="invalid translation job status")
+        if not 1 <= limit <= 200 or offset < 0:
+            raise HTTPException(status_code=422, detail="invalid pagination")
+        conn = _conn()
+        try:
+            rows = translation_jobs.list_jobs(conn, status=status, limit=limit, offset=offset)
+            summary = {row["status"]: row["count"] for row in conn.execute(
+                "SELECT status,count(*) AS count FROM translation_jobs GROUP BY status"
+            ).fetchall()}
+            return {"jobs": rows, "summary": summary, "limit": limit, "offset": offset}
+        finally:
+            conn.close()
+
+    @app.post("/translation/jobs/{job_id}/cancel")
+    def post_translation_cancel(job_id: int = Path(gt=0)):
+        conn = _conn()
+        try:
+            row = translation_jobs.cancel(conn, job_id)
+            current = row or conn.execute("SELECT status FROM translation_jobs WHERE id=%s", (job_id,)).fetchone()
+        finally:
+            conn.close()
+        if row: return row
+        if current is None: raise HTTPException(status_code=404, detail="translation job not found")
+        raise HTTPException(status_code=409, detail=f"cannot cancel translation job in {current['status']} status")
+
+    @app.post("/translation/jobs/{job_id}/retry")
+    def post_translation_retry(job_id: int = Path(gt=0)):
+        conn = _conn()
+        try:
+            row = translation_jobs.retry(conn, job_id)
+            current = row or conn.execute("SELECT status,attempts,max_attempts FROM translation_jobs WHERE id=%s", (job_id,)).fetchone()
+        finally:
+            conn.close()
+        if row: return row
+        if current is None: raise HTTPException(status_code=404, detail="translation job not found")
+        raise HTTPException(status_code=409, detail="translation job cannot be retried")
 
     @app.post("/jobs")
     def post_job(body: JobIn):
