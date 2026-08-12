@@ -23,6 +23,7 @@ from delivery.be.batch_operations import batch_detail, list_batches, operations
 from delivery.be.access import require_operator
 from delivery.be.blob_delivery import resolve_blob
 from delivery.worker import jobs
+from delivery.worker import schedules
 from delivery.translation import jobs as translation_jobs
 
 
@@ -35,6 +36,13 @@ class JobIn(BaseModel):
 
 class RetryIn(BaseModel):
     requested_by: str | None = None
+
+
+class ScheduleIn(BaseModel):
+    interval_hours:int
+    mode:Literal["incremental","full"]="incremental"
+    limit_n:int|None=100
+    enabled:bool=True
 
 
 class TranslationSelection(BaseModel):
@@ -301,12 +309,29 @@ def create_app(dsn: str) -> FastAPI:
     def get_job(job_id: int):
         conn = _conn()
         try:
-            row = conn.execute("SELECT * FROM crawl_jobs WHERE id=%s", (job_id,)).fetchone()
+            row = jobs.job_detail(conn,job_id)
         finally:
             conn.close()
         if row is None:
             raise HTTPException(status_code=404, detail="job not found")
-        return dict(row)
+        return {**row["job"],"logs":row["logs"]}
+
+    @app.get("/schedules")
+    def get_schedules():
+        conn=_conn()
+        try:return {"schedules":schedules.list_schedules(conn)}
+        finally:conn.close()
+
+    @app.put("/schedules/{site_id}")
+    def put_schedule(body:ScheduleIn,site_id:str,operator:str=Depends(require_operator)):
+        conn=_conn()
+        try:
+            if conn.execute("SELECT 1 FROM sites WHERE site_id=%s",(site_id,)).fetchone() is None:
+                raise HTTPException(status_code=404,detail="site not found")
+            try:return schedules.upsert(conn,site_id=site_id,interval_hours=body.interval_hours,
+              mode=body.mode,limit_n=body.limit_n,enabled=body.enabled,created_by=operator)
+            except ValueError as exc:raise HTTPException(status_code=422,detail=str(exc)) from exc
+        finally:conn.close()
 
     @app.get("/jobs")
     def get_jobs(status: str | None = None, limit: int = 50, offset: int = 0):

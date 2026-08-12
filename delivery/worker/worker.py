@@ -12,6 +12,7 @@ import json
 import shutil
 
 from . import jobs
+from . import schedules
 from delivery.translation import jobs as translation_jobs
 from delivery.translation.providers import provider_from_env
 
@@ -82,6 +83,7 @@ def main() -> int:
                 run_once(conn, delay=args.delay)
             return 0
         while True:
+            schedules.enqueue_due(conn)
             _observe_host(conn,worker_id)
             translation_jobs.recover_stale(conn)
             translated = translation_jobs.run_once(conn, provider_from_env,worker_id=worker_id)

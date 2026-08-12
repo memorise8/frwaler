@@ -33,6 +33,18 @@ def init_delivery_schema(conn) -> None:
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_jobs_status_created ON crawl_jobs(status, created_at)"
     )
+    conn.execute("""CREATE TABLE IF NOT EXISTS crawl_job_logs(
+      id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,job_id BIGINT NOT NULL REFERENCES crawl_jobs(id) ON DELETE CASCADE,
+      level TEXT NOT NULL CHECK(level IN('info','warning','error')),event TEXT NOT NULL,message TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now())""")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_crawl_job_logs_job ON crawl_job_logs(job_id,id)")
+    conn.execute("""CREATE TABLE IF NOT EXISTS crawl_schedules(
+      id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,site_id TEXT NOT NULL REFERENCES sites(site_id),
+      interval_hours INTEGER NOT NULL CHECK(interval_hours BETWEEN 1 AND 8760),mode TEXT NOT NULL DEFAULT 'incremental',
+      limit_n INTEGER CHECK(limit_n BETWEEN 1 AND 1000),enabled BOOLEAN NOT NULL DEFAULT true,
+      next_run_at TIMESTAMPTZ NOT NULL,last_run_at TIMESTAMPTZ,created_by TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),UNIQUE(site_id))""")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_crawl_schedules_due ON crawl_schedules(enabled,next_run_at)")
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS translation_batches (

@@ -20,7 +20,7 @@ class BeAppTest(unittest.TestCase):
         from delivery.be.app import create_app
 
         conn = db_pg.open_db(TEST_PG_DSN)
-        for t in ("document_summary_quality", "translation_job_attempts", "translation_worker_heartbeats", "translation_system_observations", "translation_jobs", "translation_batches", "document_summaries", "crawl_jobs", "document_translations", "document_lang", "documents", "sites"):
+        for t in ("document_summary_quality", "translation_job_attempts", "translation_worker_heartbeats", "translation_system_observations", "translation_jobs", "translation_batches", "document_summaries", "crawl_job_logs", "crawl_schedules", "crawl_jobs", "document_translations", "document_lang", "documents", "sites"):
             conn.execute(f"DROP TABLE IF EXISTS {t} CASCADE")
         conn.commit()
         db_pg.init_db(conn)
@@ -195,6 +195,14 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(r2.status_code, 200)
         self.assertEqual(r2.json()["site_id"], "s1")
         self.assertEqual(r2.json()["status"], "queued")
+        self.assertEqual(r2.json()["logs"][0]["event"],"queued")
+
+    def test_schedule_api(self):
+        made=self.client.put("/schedules/s1",json={"interval_hours":24,"limit_n":20})
+        self.assertEqual(made.status_code,200)
+        self.assertEqual(made.json()["site_id"],"s1")
+        self.assertEqual(len(self.client.get("/schedules").json()["schedules"]),1)
+        self.assertEqual(self.client.put("/schedules/missing",json={"interval_hours":24}).status_code,404)
 
     def test_list_cancel_and_retry_jobs(self):
         created = self.client.post("/jobs", json={"site_id": "s1", "mode": "full"}).json()

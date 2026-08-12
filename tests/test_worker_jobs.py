@@ -14,8 +14,11 @@ class WorkerJobsTest(unittest.TestCase):
         from crawler import db_pg
         from delivery.db import schema
         self.conn = db_pg.open_db(TEST_PG_DSN)
+        self.conn.execute("DROP TABLE IF EXISTS crawl_job_logs CASCADE")
+        self.conn.execute("DROP TABLE IF EXISTS crawl_schedules CASCADE")
         self.conn.execute("DROP TABLE IF EXISTS crawl_jobs CASCADE")
         self.conn.commit()
+        db_pg.init_db(self.conn)
         schema.init_delivery_schema(self.conn)
 
     def tearDown(self):
@@ -30,6 +33,19 @@ class WorkerJobsTest(unittest.TestCase):
         self.assertEqual(claimed["site_id"], "s1")
         self.assertEqual(claimed["mode"], "full")
         self.assertEqual(claimed["limit_n"], 5)
+        logs=self.conn.execute("SELECT event FROM crawl_job_logs WHERE job_id=%s ORDER BY id",(jid,)).fetchall()
+        self.assertEqual([row["event"] for row in logs],["queued","started"])
+
+    def test_schedule_enqueues_due_once(self):
+        from delivery.worker import schedules
+        from crawler import db_pg
+        db_pg.upsert_site(self.conn,"scheduled","Scheduled","https://scheduled.invalid")
+        schedules.upsert(self.conn,site_id="scheduled",interval_hours=24,limit_n=3,created_by="test")
+        self.conn.execute("UPDATE crawl_schedules SET next_run_at=now()-interval '1 minute'");self.conn.commit()
+        self.assertEqual(schedules.enqueue_due(self.conn),1)
+        self.conn.execute("UPDATE crawl_schedules SET next_run_at=now()-interval '1 minute'");self.conn.commit()
+        self.assertEqual(schedules.enqueue_due(self.conn),0)
+        self.assertEqual(self.conn.execute("SELECT count(*) AS n FROM crawl_jobs WHERE site_id='scheduled'").fetchone()["n"],1)
 
     def test_claim_transitions_to_running(self):
         from delivery.worker import jobs
