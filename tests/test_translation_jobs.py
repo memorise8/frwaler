@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from delivery.translation.providers import ProviderError, TranslationResult
+from delivery.translation.providers import ProviderError, SummaryResult, TranslationResult
 
 TEST_PG_DSN = os.environ.get("TEST_PG_DSN")
 
@@ -11,6 +11,9 @@ class _Provider:
     def translate(self, request):
         return TranslationResult("번역: " + request.text, self.name, self.model,
                                  self.prompt_version, len(request.text), len(request.text)+4, 12)
+    def summarize(self, request):
+        return SummaryResult("정책 핵심 요약.",( "핵심 수치 확인",),("Site",),self.name,self.model,
+                             self.prompt_version,len(request.title)+len(request.text),20,15)
 
 
 class _FailProvider(_Provider):
@@ -25,7 +28,7 @@ class TranslationJobsTest(unittest.TestCase):
         from crawler import db_pg
         from delivery.db.schema import init_delivery_schema
         self.conn=db_pg.open_db(TEST_PG_DSN)
-        for table in ("translation_jobs","crawl_jobs","document_translations","document_lang","documents","sites"):
+        for table in ("translation_jobs","document_summaries","crawl_jobs","document_translations","document_lang","documents","sites"):
             self.conn.execute(f"DROP TABLE IF EXISTS {table} CASCADE")
         self.conn.commit(); db_pg.init_db(self.conn)
         self.conn.execute("CREATE TABLE document_lang(seq_id BIGINT PRIMARY KEY REFERENCES documents(seq_id),lang TEXT NOT NULL)")
@@ -100,6 +103,18 @@ class TranslationJobsTest(unittest.TestCase):
         self.assertFalse(jobs.run_job(self.conn,claimed,LosesTokens()))
         row=self.conn.execute("SELECT status,error_code FROM translation_jobs").fetchone()
         self.assertEqual((row["status"],row["error_code"]),("pending","invalid_response"))
+
+    def test_abstract_summary_is_structured_and_keeps_source_facts(self):
+        from delivery.translation import jobs
+        made=jobs.enqueue_targets(self.conn,tasks=["abstract_summary"],provider="internal",
+            model_version="test-model",prompt_version="title-summary-ko-v1",limit=1)
+        self.assertEqual(made["created"],1)
+        claimed=jobs.claim_next(self.conn); self.assertEqual(claimed["task_type"],"summarize")
+        self.assertTrue(jobs.run_job(self.conn,claimed,_Provider()))
+        saved=self.conn.execute("SELECT summary_text,key_points,institutions,source_facts FROM document_summaries").fetchone()
+        self.assertEqual(saved["summary_text"],"정책 핵심 요약.")
+        self.assertEqual(saved["key_points"],["핵심 수치 확인"])
+        self.assertIn("https://s/1",saved["source_facts"]["urls"])
 
 
 if __name__ == "__main__": unittest.main()

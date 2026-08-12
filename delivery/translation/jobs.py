@@ -2,12 +2,17 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from typing import Iterable
 
-from .providers import ProviderError, TranslationRequest, TranslationProvider
+from .providers import ProviderError, SummaryRequest, TranslationRequest, TranslationProvider
 
 FIELDS = {"title": "title", "description": "abstract"}
+TASKS = {
+    "title_translation": ("title", "title", "translate"),
+    "abstract_summary": ("description", "abstract", "summarize"),
+}
 
 
 def fingerprint(text: str) -> str:
@@ -39,11 +44,29 @@ def _assert_preserved(source: str, translated: str) -> None:
         raise ProviderError("invalid_response", "translation omitted protected tokens", retryable=True)
 
 
-def preview_targets(conn, *, fields: Iterable[str], lang: str | None = None,
-                    site_id: str | None = None) -> dict:
-    selected = tuple(dict.fromkeys(fields))
-    if not selected or any(field not in FIELDS for field in selected):
+def source_facts(text: str, meta_url: str | None = None) -> dict:
+    urls = list(dict.fromkeys(re.findall(r"https?://[^\s)\]}]+", text)))
+    if meta_url and meta_url not in urls: urls.append(meta_url)
+    dates = list(dict.fromkeys(re.findall(r"(?<!\w)(?:\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4})(?!\w)", text)))
+    numbers = list(dict.fromkeys(re.findall(r"(?<!\w)\d[\d,.:%+-]*(?!\w)", text)))
+    return {"urls": urls[:20], "dates": dates[:30], "numbers": numbers[:100]}
+
+
+def _selected_tasks(*, tasks: Iterable[str] | None = None,
+                    fields: Iterable[str] | None = None) -> tuple[str, ...]:
+    if tasks is not None:
+        selected = tuple(dict.fromkeys(tasks))
+        if not selected or any(task not in TASKS for task in selected): raise ValueError("invalid tasks")
+        return selected
+    selected_fields = tuple(dict.fromkeys(fields or ("title", "description")))
+    if not selected_fields or any(field not in FIELDS for field in selected_fields):
         raise ValueError("invalid source fields")
+    return tuple("title_translation" if field == "title" else "abstract_summary" for field in selected_fields)
+
+
+def preview_targets(conn, *, fields: Iterable[str] | None = None, tasks: Iterable[str] | None = None, lang: str | None = None,
+                    site_id: str | None = None) -> dict:
+    selected = _selected_tasks(tasks=tasks, fields=fields)
     clauses, params = [], []
     if lang:
         clauses.append("COALESCE(dl.lang, 'unknown')=%s"); params.append(lang)
@@ -51,28 +74,26 @@ def preview_targets(conn, *, fields: Iterable[str], lang: str | None = None,
         clauses.append("d.site_id=%s"); params.append(site_id)
     where = " AND ".join(clauses) if clauses else "TRUE"
     counts = {}
-    for field in selected:
-        column = FIELDS[field]
+    for task in selected:
+        _field, column, _task_type = TASKS[task]
         row = conn.execute(f"""SELECT count(*) AS n FROM documents d
             LEFT JOIN document_lang dl USING(seq_id)
             WHERE {where} AND length(trim(COALESCE(d.{column}, ''))) > 0""", params).fetchone()
-        counts[field] = row["n"]
+        counts[task] = row["n"]
     return {"counts": counts, "total": sum(counts.values())}
 
 
-def enqueue_targets(conn, *, fields: Iterable[str], provider: str, model_version: str,
+def enqueue_targets(conn, *, fields: Iterable[str] | None = None, tasks: Iterable[str] | None = None, provider: str, model_version: str,
                     prompt_version: str, target_locale: str = "ko-KR", lang: str | None = None,
                     site_id: str | None = None, limit: int = 100, requested_by: str | None = None) -> dict:
     if provider not in ("external", "internal") or not model_version or not prompt_version:
         raise ValueError("invalid provider configuration")
     if not 1 <= limit <= 1000:
         raise ValueError("limit must be between 1 and 1000")
-    selected = tuple(dict.fromkeys(fields))
-    if not selected or any(field not in FIELDS for field in selected):
-        raise ValueError("invalid source fields")
+    selected = _selected_tasks(tasks=tasks, fields=fields)
     created, existing = [], 0
-    for field in selected:
-        column = FIELDS[field]
+    for task in selected:
+        field, column, task_type = TASKS[task]
         clauses, params = [f"length(trim(COALESCE(d.{column}, ''))) > 0"], []
         if lang: clauses.append("COALESCE(dl.lang, 'unknown')=%s"); params.append(lang)
         if site_id: clauses.append("d.site_id=%s"); params.append(site_id)
@@ -84,11 +105,11 @@ def enqueue_targets(conn, *, fields: Iterable[str], provider: str, model_version
             source_fp = fingerprint(row["source_text"])
             inserted = conn.execute("""
                 INSERT INTO translation_jobs
-                  (seq_id, source_field, source_fingerprint, source_lang, target_locale,
+                  (seq_id, source_field, task_type, source_fingerprint, source_lang, target_locale,
                    provider, model_version, prompt_version, requested_by)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 ON CONFLICT DO NOTHING RETURNING id
-            """, (row["seq_id"], field, source_fp, row["source_lang"], target_locale,
+            """, (row["seq_id"], field, task_type, source_fp, row["source_lang"], target_locale,
                   provider, model_version, prompt_version, requested_by)).fetchone()
             if inserted: created.append(inserted["id"])
             else: existing += 1
@@ -111,11 +132,34 @@ def claim_next(conn) -> dict | None:
 
 def run_job(conn, job: dict, provider: TranslationProvider) -> bool:
     column = FIELDS[job["source_field"]]
-    row = conn.execute(f"SELECT {column} AS source_text FROM documents WHERE seq_id=%s", (job["seq_id"],)).fetchone()
+    row = conn.execute(f"SELECT title, meta_url, {column} AS source_text FROM documents WHERE seq_id=%s", (job["seq_id"],)).fetchone()
     if not row or not row["source_text"] or fingerprint(row["source_text"]) != job["source_fingerprint"]:
         conn.execute("UPDATE translation_jobs SET status='skipped', error_code='source_changed', finished_at=now(), updated_at=now() WHERE id=%s AND status='running'", (job["id"],))
         conn.commit(); return False
     try:
+        if job.get("task_type", "translate") == "summarize":
+            result = provider.summarize(SummaryRequest(row["title"] or "", row["source_text"],
+                                        job["source_lang"], job["target_locale"]))
+            facts = source_facts(row["source_text"], row["meta_url"])
+            conn.execute("""
+              INSERT INTO document_summaries
+                (seq_id,target_locale,source_fingerprint,model_version,prompt_version,state,
+                 summary_text,key_points,institutions,source_facts,completed_at,updated_at)
+              VALUES (%s,%s,%s,%s,%s,'completed',%s,%s::jsonb,%s::jsonb,%s::jsonb,now(),now())
+              ON CONFLICT (seq_id,target_locale,source_fingerprint,model_version,prompt_version)
+              DO UPDATE SET state='completed',summary_text=EXCLUDED.summary_text,
+                key_points=EXCLUDED.key_points,institutions=EXCLUDED.institutions,
+                source_facts=EXCLUDED.source_facts,completed_at=now(),updated_at=now()
+            """, (job["seq_id"], job["target_locale"], job["source_fingerprint"],
+                  result.model_version, result.prompt_version, result.summary_text,
+                  json.dumps(result.key_points, ensure_ascii=False),
+                  json.dumps(result.institutions, ensure_ascii=False),
+                  json.dumps(facts, ensure_ascii=False)))
+            conn.execute("""UPDATE translation_jobs SET status='completed',error_code=NULL,error_message=NULL,
+              input_chars=%s,output_chars=%s,latency_ms=%s,finished_at=now(),updated_at=now()
+              WHERE id=%s AND status='running'""",
+              (result.input_chars, result.output_chars, result.latency_ms, job["id"]))
+            conn.commit(); return True
         results = [provider.translate(TranslationRequest(chunk, job["source_lang"],
                                       job["target_locale"], job["source_field"]))
                    for chunk in _chunks(row["source_text"], provider.max_chars)]

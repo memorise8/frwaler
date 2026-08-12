@@ -39,6 +39,8 @@ def init_delivery_schema(conn) -> None:
             id                 BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
             seq_id             BIGINT NOT NULL REFERENCES documents(seq_id) ON DELETE CASCADE,
             source_field       TEXT NOT NULL CHECK (source_field IN ('title', 'description')),
+            task_type          TEXT NOT NULL DEFAULT 'translate'
+                               CHECK (task_type IN ('translate','summarize')),
             source_fingerprint TEXT NOT NULL CHECK (length(source_fingerprint)=64),
             source_lang        TEXT NOT NULL DEFAULT 'unknown',
             target_locale      TEXT NOT NULL DEFAULT 'ko-KR',
@@ -65,5 +67,30 @@ def init_delivery_schema(conn) -> None:
         )
         """
     )
+    conn.execute("ALTER TABLE translation_jobs ADD COLUMN IF NOT EXISTS task_type TEXT NOT NULL DEFAULT 'translate'")
+    conn.execute("""DO $$ BEGIN
+      ALTER TABLE translation_jobs ADD CONSTRAINT translation_jobs_task_type_check
+        CHECK (task_type IN ('translate','summarize'));
+    EXCEPTION WHEN duplicate_object THEN NULL; END $$""")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_translation_jobs_queue ON translation_jobs(status, next_attempt_at, created_at)")
+    conn.execute("""
+      CREATE TABLE IF NOT EXISTS document_summaries (
+        summary_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+        seq_id BIGINT NOT NULL REFERENCES documents(seq_id) ON DELETE CASCADE,
+        target_locale TEXT NOT NULL DEFAULT 'ko-KR',
+        source_fingerprint TEXT NOT NULL CHECK (length(source_fingerprint)=64),
+        model_version TEXT NOT NULL,
+        prompt_version TEXT NOT NULL,
+        state TEXT NOT NULL CHECK (state IN ('completed','failed')),
+        summary_text TEXT NOT NULL,
+        key_points JSONB NOT NULL DEFAULT '[]'::jsonb,
+        institutions JSONB NOT NULL DEFAULT '[]'::jsonb,
+        source_facts JSONB NOT NULL DEFAULT '{}'::jsonb,
+        completed_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (seq_id,target_locale,source_fingerprint,model_version,prompt_version)
+      )
+    """)
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_document_summaries_current ON document_summaries(seq_id,target_locale,state,completed_at DESC)")
     conn.commit()

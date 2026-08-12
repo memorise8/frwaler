@@ -35,6 +35,12 @@ def collect_document_detail(conn, seq_id: int, taxonomy: dict | None = None) -> 
         }
         for item in translations
     }
+    summary = conn.execute(
+        """SELECT summary_text,key_points,institutions,source_facts,model_version,prompt_version,completed_at
+           FROM document_summaries WHERE seq_id=%s AND target_locale='ko-KR' AND state='completed'
+           ORDER BY completed_at DESC NULLS LAST,updated_at DESC,summary_id DESC LIMIT 1""",
+        (seq_id,),
+    ).fetchone()
     classification = taxonomy.get(row["site_id"], {"country": "기타", "doc_type": "기타"})
     return {
         "seq_id": row["seq_id"],
@@ -51,6 +57,7 @@ def collect_document_detail(conn, seq_id: int, taxonomy: dict | None = None) -> 
             "target_locale": "ko-KR", "title": translated.get("title"),
             "description": translated.get("description"),
         },
+        "generated_summary": dict(summary) if summary else None,
         "files": {
             "has_pdf": bool(row["pdf_downloaded"]), "has_text": bool(row["text_extracted"]),
             "pdf_size_bytes": row["pdf_size_bytes"], "original_filename": row["original_filename"],

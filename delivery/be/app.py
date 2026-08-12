@@ -11,7 +11,7 @@ from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Path, Query
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from crawler import db_pg
 from delivery.be.catalogue import CatalogueFilters, collect_catalogue, load_taxonomy
@@ -34,7 +34,8 @@ class RetryIn(BaseModel):
 
 
 class TranslationSelection(BaseModel):
-    fields: list[Literal["title", "description"]] = ["title", "description"]
+    model_config = ConfigDict(extra="forbid")
+    tasks: list[Literal["title_translation", "abstract_summary"]] = ["title_translation", "abstract_summary"]
     lang: str | None = None
     site_id: str | None = None
 
@@ -42,7 +43,7 @@ class TranslationSelection(BaseModel):
 class TranslationJobIn(TranslationSelection):
     provider: Literal["external", "internal"]
     model_version: str
-    prompt_version: str = "translate-ko-v1"
+    prompt_version: str = "title-summary-ko-v1"
     target_locale: str = "ko-KR"
     limit: int = 100
     requested_by: str | None = None
@@ -142,7 +143,7 @@ def create_app(dsn: str) -> FastAPI:
     def post_translation_preview(body: TranslationSelection):
         conn = _conn()
         try:
-            return translation_jobs.preview_targets(conn, fields=body.fields, lang=body.lang,
+            return translation_jobs.preview_targets(conn, tasks=body.tasks, lang=body.lang,
                                                     site_id=body.site_id)
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -156,7 +157,7 @@ def create_app(dsn: str) -> FastAPI:
         conn = _conn()
         try:
             return translation_jobs.enqueue_targets(
-                conn, fields=body.fields, provider=body.provider,
+                conn, tasks=body.tasks, provider=body.provider,
                 model_version=body.model_version.strip(), prompt_version=body.prompt_version.strip(),
                 target_locale=body.target_locale, lang=body.lang, site_id=body.site_id,
                 limit=body.limit, requested_by=body.requested_by,

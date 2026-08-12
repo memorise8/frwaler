@@ -3,7 +3,7 @@ import unittest
 import urllib.error
 
 from delivery.translation.providers import (
-    OllamaProvider, OpenAICompatibleProvider, ProviderError, TranslationRequest,
+    OllamaProvider, OpenAICompatibleProvider, ProviderError, SummaryRequest, TranslationRequest,
 )
 
 
@@ -33,6 +33,15 @@ class TranslationProviderTest(unittest.TestCase):
         result = OllamaProvider(endpoint="http://model.test/api/generate", model="qwen",
             opener=lambda *_args, **_kwargs: _Response({"response": "2025 예산"})).translate(self.request)
         self.assertEqual((result.text, result.provider), ("2025 예산", "internal"))
+
+    def test_external_structured_summary_contract(self):
+        body={"summary_ko":"예산 정책을 설명한다.","key_points":["지출 확대"],"institutions":["Treasury"]}
+        provider=OpenAICompatibleProvider(endpoint="https://api.test/v1/chat/completions",model="m",api_key=None,
+            opener=lambda *_a,**_k:_Response({"choices":[{"message":{"content":json.dumps(body)}}]}))
+        result=provider.summarize(SummaryRequest("Budget","Policy text","en"))
+        self.assertEqual(result.summary_text,"예산 정책을 설명한다.")
+        self.assertEqual(result.key_points,("지출 확대",))
+        self.assertEqual(result.institutions,("Treasury",))
 
     def test_normalized_errors(self):
         def denied(*_args, **_kwargs):

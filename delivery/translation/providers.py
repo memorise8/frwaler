@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 import urllib.error
 import urllib.request
@@ -21,8 +22,29 @@ class TranslationRequest:
 
 
 @dataclass(frozen=True)
+class SummaryRequest:
+    title: str
+    text: str
+    source_lang: str
+    target_locale: str = "ko-KR"
+
+
+@dataclass(frozen=True)
 class TranslationResult:
     text: str
+    provider: str
+    model_version: str
+    prompt_version: str
+    input_chars: int
+    output_chars: int
+    latency_ms: int
+
+
+@dataclass(frozen=True)
+class SummaryResult:
+    summary_text: str
+    key_points: tuple[str, ...]
+    institutions: tuple[str, ...]
     provider: str
     model_version: str
     prompt_version: str
@@ -38,6 +60,7 @@ class TranslationProvider(Protocol):
     max_chars: int
 
     def translate(self, request: TranslationRequest) -> TranslationResult: ...
+    def summarize(self, request: SummaryRequest) -> SummaryResult: ...
 
 
 class ProviderError(RuntimeError):
@@ -55,6 +78,38 @@ def _prompt(request: TranslationRequest) -> str:
         f"to {request.target_locale}. Return only the translation. Preserve names, numbers, dates, "
         f"and URLs exactly.\n\n{request.text}"
     )
+
+
+def _summary_prompt(request: SummaryRequest) -> str:
+    return (
+        f"Summarize the following {request.source_lang or 'unknown'} document in Korean. "
+        "Return one JSON object only with keys summary_ko, key_points, institutions. "
+        "summary_ko must be 3 to 5 concise Korean sentences. key_points must contain up to 5 "
+        "Korean strings. institutions must contain only organization names explicitly present "
+        "in the source; keep their original spelling. Do not invent facts or include markdown.\n\n"
+        f"Title: {request.title}\n\nText: {request.text}"
+    )
+
+
+def _summary_data(output: str) -> tuple[str, tuple[str, ...], tuple[str, ...]]:
+    cleaned = output.strip()
+    if cleaned.startswith("```"):
+        cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", cleaned, flags=re.IGNORECASE)
+    try:
+        data = json.loads(cleaned)
+        summary = data["summary_ko"]
+        points = data.get("key_points", [])
+        institutions = data.get("institutions", [])
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        raise ProviderError("invalid_response", "invalid structured summary", retryable=True) from exc
+    if not isinstance(summary, str) or not summary.strip():
+        raise ProviderError("invalid_response", "empty structured summary", retryable=True)
+    if not isinstance(points, list) or not isinstance(institutions, list):
+        raise ProviderError("invalid_response", "invalid structured summary lists", retryable=True)
+    if any(not isinstance(item, str) for item in (*points, *institutions)):
+        raise ProviderError("invalid_response", "invalid structured summary item", retryable=True)
+    return summary.strip(), tuple(item.strip() for item in points[:5] if item.strip()), tuple(
+        item.strip() for item in institutions[:10] if item.strip())
 
 
 def _http_error(exc: Exception) -> ProviderError:
@@ -110,6 +165,31 @@ class OpenAICompatibleProvider:
         return TranslationResult(output, self.name, self.model, self.prompt_version, len(text),
                                  len(output), round((time.monotonic() - started) * 1000))
 
+    def summarize(self, request: SummaryRequest) -> SummaryResult:
+        text = request.text[:self.max_chars]
+        if not text.strip():
+            raise ProviderError("invalid_response", "source text is empty", retryable=False)
+        prompt = _summary_prompt(SummaryRequest(request.title, text, request.source_lang, request.target_locale))
+        payload = json.dumps({"model": self.model, "messages": [{"role": "user", "content": prompt}],
+                              "temperature": 0.1, "max_tokens": 1200,
+                              "response_format": {"type": "json_object"}}).encode()
+        headers = {"Content-Type": "application/json"}
+        if self.api_key: headers["Authorization"] = f"Bearer {self.api_key}"
+        started = time.monotonic()
+        try:
+            with self._opener(urllib.request.Request(self.endpoint, data=payload, headers=headers),
+                              timeout=self.timeout) as response:
+                output = json.loads(response.read())["choices"][0]["message"]["content"].strip()
+            summary, points, institutions = _summary_data(output)
+        except ProviderError: raise
+        except (KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise ProviderError("invalid_response", "invalid provider response", retryable=True) from exc
+        except Exception as exc:  # noqa: BLE001
+            raise _http_error(exc) from exc
+        return SummaryResult(summary, points, institutions, self.name, self.model, self.prompt_version,
+                             len(request.title) + len(text), len(output),
+                             round((time.monotonic() - started) * 1000))
+
 
 class OllamaProvider:
     name = "internal"
@@ -141,6 +221,28 @@ class OllamaProvider:
             raise ProviderError("invalid_response", "empty provider response", retryable=True)
         return TranslationResult(output, self.name, self.model, self.prompt_version, len(text),
                                  len(output), round((time.monotonic() - started) * 1000))
+
+    def summarize(self, request: SummaryRequest) -> SummaryResult:
+        text = request.text[:self.max_chars]
+        if not text.strip():
+            raise ProviderError("invalid_response", "source text is empty", retryable=False)
+        payload = json.dumps({"model": self.model, "prompt": _summary_prompt(
+            SummaryRequest(request.title, text, request.source_lang, request.target_locale)),
+            "stream": False, "think": False, "format": "json"}).encode()
+        started = time.monotonic()
+        try:
+            with self._opener(urllib.request.Request(self.endpoint, data=payload,
+                              headers={"Content-Type": "application/json"}), timeout=self.timeout) as response:
+                output = json.loads(response.read()).get("response", "").strip()
+            summary, points, institutions = _summary_data(output)
+        except ProviderError: raise
+        except (ValueError, json.JSONDecodeError) as exc:
+            raise ProviderError("invalid_response", "invalid provider response", retryable=True) from exc
+        except Exception as exc:  # noqa: BLE001
+            raise _http_error(exc) from exc
+        return SummaryResult(summary, points, institutions, self.name, self.model, self.prompt_version,
+                             len(request.title) + len(text), len(output),
+                             round((time.monotonic() - started) * 1000))
 
 
 def provider_from_env(name: str) -> TranslationProvider:

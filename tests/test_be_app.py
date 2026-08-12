@@ -17,7 +17,7 @@ class BeAppTest(unittest.TestCase):
         from delivery.be.app import create_app
 
         conn = db_pg.open_db(TEST_PG_DSN)
-        for t in ("translation_jobs", "crawl_jobs", "document_translations", "document_lang", "documents", "sites"):
+        for t in ("translation_jobs", "document_summaries", "crawl_jobs", "document_translations", "document_lang", "documents", "sites"):
             conn.execute(f"DROP TABLE IF EXISTS {t} CASCADE")
         conn.commit()
         db_pg.init_db(conn)
@@ -82,12 +82,26 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(body["translations"]["title"]["model_version"], "new-model")
         self.assertIsNone(body["translations"]["description"])
 
+    def test_get_document_with_structured_korean_summary(self):
+        from crawler import db_pg
+        conn=db_pg.open_db(TEST_PG_DSN)
+        conn.execute("""INSERT INTO document_summaries
+          (seq_id,target_locale,source_fingerprint,model_version,prompt_version,state,
+           summary_text,key_points,institutions,source_facts,completed_at)
+          VALUES(%s,'ko-KR',%s,'qwen','title-summary-ko-v1','completed',%s,%s::jsonb,%s::jsonb,%s::jsonb,now())""",
+          (self.seq,"b"*64,"문서 핵심 요약.",'["핵심 사항"]','["Site One"]','{"urls":["https://s1/1"]}'))
+        conn.commit();conn.close()
+        summary=self.client.get(f"/documents/{self.seq}").json()["generated_summary"]
+        self.assertEqual(summary["summary_text"],"문서 핵심 요약.")
+        self.assertEqual(summary["key_points"],["핵심 사항"])
+        self.assertEqual(summary["source_facts"]["urls"],["https://s1/1"])
+
     def test_translation_preview_enqueue_list_cancel(self):
-        preview = self.client.post("/translation/preview", json={"fields": ["title"]})
+        preview = self.client.post("/translation/preview", json={"tasks": ["title_translation"]})
         self.assertEqual(preview.status_code, 200)
         self.assertEqual(preview.json()["total"], 1)
         created = self.client.post("/translation/jobs", json={
-            "fields": ["title"], "provider": "internal", "model_version": "qwen-test",
+            "tasks": ["title_translation"], "provider": "internal", "model_version": "qwen-test",
             "limit": 10, "requested_by": "operator",
         })
         self.assertEqual(created.status_code, 200)
@@ -101,9 +115,9 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(self.client.post(f"/translation/jobs/{jid}/retry").status_code, 409)
 
     def test_translation_api_validation_and_missing(self):
-        self.assertEqual(self.client.post("/translation/preview", json={"fields": []}).status_code, 422)
+        self.assertEqual(self.client.post("/translation/preview", json={"tasks": []}).status_code, 422)
         self.assertEqual(self.client.post("/translation/jobs", json={
-            "fields": ["title"], "provider": "external", "model_version": "", "limit": 1,
+            "tasks": ["title_translation"], "provider": "external", "model_version": "", "limit": 1,
         }).status_code, 422)
         self.assertEqual(self.client.get("/translation/jobs?status=bogus").status_code, 422)
         self.assertEqual(self.client.post("/translation/jobs/999999/cancel").status_code, 404)
