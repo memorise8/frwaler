@@ -99,31 +99,16 @@ npm run build
 
 초기에 `finolaw`에도 `/crawler-status` 페이지를 추가했다. 최종 납품 UI 개발은 `delivery/fe`를 기준으로 진행한다. `finolaw` 구현은 비교·참고용이며 새 기능을 양쪽에 중복 구현하지 않는다.
 
-## 3. 현재 데이터 한계
+## 3. 현재 데이터 상태와 납품 결정
 
-현재 작업공간에는 실제 수집 DB와 블롭이 없다.
+2026-08-12 운영 정본 SQLite를 PostgreSQL로 이관하고 실데이터 검증을 완료했다. 납품은 기존의 빈 시작 전제 대신 다음 구성을 사용한다.
 
-확인되지 않은 파일:
+- PostgreSQL: 이관된 실데이터를 dump/restore 방식으로 동봉.
+- blob: 약 1.8TB이므로 Git이나 DB dump에 넣지 않고 FTP 등 별도 채널로 전달.
+- SQLite: 원본 보관·감사 기준이며 납품 서비스의 운영 DB로 직접 사용하지 않음.
+- 상세 측정값·해시·스냅샷 경로: `docs/DELIVERY_DATABASE_AUDIT_20260812.md`.
 
-```text
-data/papers.db
-data/libertree.db
-libertree-app/data/libertree.db
-PostgreSQL dump
-libertree/ PDF·텍스트 블롭
-```
-
-따라서 현재 FE에 표시되는 상태와 수집 건수는 실제 DB 조회가 아니라 감사 CSV 기반이다.
-
-과거 보고서상 수치:
-
-- 문서 525,570건.
-- 사이트 804개.
-- PDF 297,756건 전수 검사 기록.
-- 문서 77%가 당시 최근 30일 이내.
-- 기준일 2026-08-06.
-
-이 수치는 DB가 있는 환경에서 반드시 다시 계산한다.
+현재 정본은 사이트 805개, 문서 536,017건, PDF 확보 문서 303,245건, 텍스트 확보 문서 288,124건이다. FE의 실제 DB 현황 화면은 이 수치를 하드코딩하지 않고 BE 집계 API에서 조회해야 한다.
 
 ## 4. 국가·자료 유형 분류 현황
 
@@ -209,6 +194,8 @@ git worktree add ../frwaler-delivery origin/libertree
 ```text
 docs(delivery): identify canonical database and blob snapshot
 ```
+
+2026-08-12 완료. 결과는 `docs/DELIVERY_DATABASE_AUDIT_20260812.md`를 기준으로 한다. 최종 PostgreSQL dump restore와 blob manifest 검증은 납품 패키징 단계에서 수행한다.
 
 ### 단계 1 — 실제 DB 현황 API·FE
 
