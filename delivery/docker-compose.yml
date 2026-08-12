@@ -14,6 +14,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+    restart: unless-stopped
 
   be:
     build:
@@ -24,12 +25,16 @@ services:
       LIBERTREE_DB_BACKEND: postgres
       LIBERTREE_BLOB_ROOT: /data/blob
     volumes:
-      - blob:/data/blob
+      # 읽기 전용. 기본값은 named volume(`blob`) — 납품 구성(빈 시작)이다.
+      # 우리 검증 서버에서는 .env 의 BE_BLOB_SOURCE 로 기존 블롭 트리를 가리켜
+      # 실데이터로 PDF 열람을 개발/검증한다(복사 없음, 추가 용량 0).
+      - ${BE_BLOB_SOURCE:-blob}:/data/blob:ro
     ports:
       - "127.0.0.1:${BE_PORT:-8080}:3001"
     depends_on:
       postgres:
         condition: service_healthy
+    restart: unless-stopped
 
   worker:
     build:
@@ -40,6 +45,10 @@ services:
       LIBERTREE_DB_BACKEND: postgres
       LIBERTREE_BLOB_ROOT: /data/blob
     volumes:
+      # 워커는 쓰기 주체이므로 항상 named volume 을 쓴다(bind 로 바꾸지 말 것).
+      # 우리 운영 블롭 트리(`../libertree`)를 여기에 rw 로 물리면, PG 시퀀스와
+      # 기존 SQLite 파이프라인이 둘 다 seq_id 536,089 부터 발급하므로 같은 이름의
+      # PDF 를 서로 덮어쓴다.
       - blob:/data/blob
     depends_on:
       postgres:
