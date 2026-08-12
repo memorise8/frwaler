@@ -9,6 +9,8 @@ COPY delivery/requirements.txt /app/delivery/requirements.txt
 RUN pip install --no-cache-dir -r /app/delivery/requirements.txt
 COPY crawlers-share/requirements.txt /app/crawler-runtime-requirements.txt
 RUN pip install --no-cache-dir -r /app/crawler-runtime-requirements.txt
+# Playwright crawlers require both the browser binary and its system libraries.
+RUN python -m playwright install --with-deps chromium
 COPY crawler /app/crawler
 COPY delivery /app/delivery
 CMD ["python", "-m", "delivery.worker.worker", "--poll", "5"]
