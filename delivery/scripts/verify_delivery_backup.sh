@@ -17,7 +17,14 @@ trap cleanup EXIT HUP INT TERM
 docker compose exec -T postgres pg_dump -Fc -U "${POSTGRES_USER:-libertree}" -d "$SOURCE_DB" > "$DUMP"
 docker compose exec -T postgres createdb -U "${POSTGRES_USER:-libertree}" "$RESTORE_DB"
 docker compose exec -T postgres pg_restore -U "${POSTGRES_USER:-libertree}" -d "$RESTORE_DB" --exit-on-error < "$DUMP"
-for table in sites documents document_lang document_translations document_anomaly; do
+for table in sites documents; do
+  source=$(docker compose exec -T postgres psql -tA -U "${POSTGRES_USER:-libertree}" -d "$SOURCE_DB" -c "SELECT count(*) FROM $table")
+  restored=$(docker compose exec -T postgres psql -tA -U "${POSTGRES_USER:-libertree}" -d "$RESTORE_DB" -c "SELECT count(*) FROM $table")
+  [ "$source" = "$restored" ] || { echo "$table count mismatch" >&2; exit 1; }
+done
+for table in document_lang document_translations document_anomaly; do
+  exists=$(docker compose exec -T postgres psql -tA -U "${POSTGRES_USER:-libertree}" -d "$SOURCE_DB" -c "SELECT to_regclass('public.$table') IS NOT NULL")
+  [ "$exists" = "t" ] || continue
   source=$(docker compose exec -T postgres psql -tA -U "${POSTGRES_USER:-libertree}" -d "$SOURCE_DB" -c "SELECT count(*) FROM $table")
   restored=$(docker compose exec -T postgres psql -tA -U "${POSTGRES_USER:-libertree}" -d "$RESTORE_DB" -c "SELECT count(*) FROM $table")
   [ "$source" = "$restored" ] || { echo "$table count mismatch" >&2; exit 1; }
