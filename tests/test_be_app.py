@@ -17,7 +17,7 @@ class BeAppTest(unittest.TestCase):
         from delivery.be.app import create_app
 
         conn = db_pg.open_db(TEST_PG_DSN)
-        for t in ("translation_jobs", "document_summaries", "crawl_jobs", "document_translations", "document_lang", "documents", "sites"):
+        for t in ("document_summary_quality", "translation_jobs", "document_summaries", "crawl_jobs", "document_translations", "document_lang", "documents", "sites"):
             conn.execute(f"DROP TABLE IF EXISTS {t} CASCADE")
         conn.commit()
         db_pg.init_db(conn)
@@ -85,16 +85,47 @@ class BeAppTest(unittest.TestCase):
     def test_get_document_with_structured_korean_summary(self):
         from crawler import db_pg
         conn=db_pg.open_db(TEST_PG_DSN)
-        conn.execute("""INSERT INTO document_summaries
+        summary_id=conn.execute("""INSERT INTO document_summaries
           (seq_id,target_locale,source_fingerprint,model_version,prompt_version,state,
            summary_text,key_points,institutions,source_facts,completed_at)
-          VALUES(%s,'ko-KR',%s,'qwen','title-summary-ko-v1','completed',%s,%s::jsonb,%s::jsonb,%s::jsonb,now())""",
-          (self.seq,"b"*64,"문서 핵심 요약.",'["핵심 사항"]','["Site One"]','{"urls":["https://s1/1"]}'))
+          VALUES(%s,'ko-KR',%s,'qwen','title-summary-ko-v1','completed',%s,%s::jsonb,%s::jsonb,%s::jsonb,now())
+          RETURNING summary_id""",
+          (self.seq,"b"*64,"문서 핵심 요약.",'["핵심 사항"]','["Site One"]','{"urls":["https://s1/1"]}')).fetchone()["summary_id"]
+        conn.execute("""INSERT INTO document_summary_quality
+          (summary_id,gate_version,decision,score,reason_codes,checks,evidence)
+          VALUES(%s,'summary-quality-v1','review_recommended',82,'["low_evidence"]','{"evidence_average":64}','[]')""",(summary_id,))
         conn.commit();conn.close()
         summary=self.client.get(f"/documents/{self.seq}").json()["generated_summary"]
         self.assertEqual(summary["summary_text"],"문서 핵심 요약.")
         self.assertEqual(summary["key_points"],["핵심 사항"])
         self.assertEqual(summary["source_facts"]["urls"],["https://s1/1"])
+        self.assertEqual(summary["quality_decision"],"review_recommended")
+
+    def test_translation_quality_dashboard_and_validation(self):
+        from crawler import db_pg
+        conn=db_pg.open_db(TEST_PG_DSN)
+        conn.execute("INSERT INTO document_lang(seq_id,lang) VALUES(%s,'en')",(self.seq,))
+        conn.execute("""INSERT INTO translation_jobs
+          (seq_id,source_field,task_type,source_fingerprint,source_lang,target_locale,provider,
+           model_version,prompt_version,status) VALUES
+          (%s,'description','summarize',%s,'en','ko-KR','internal','qwen','v1','completed')""",
+          (self.seq,"c"*64))
+        sid=conn.execute("""INSERT INTO document_summaries
+          (seq_id,target_locale,source_fingerprint,model_version,prompt_version,state,summary_text)
+          VALUES(%s,'ko-KR',%s,'qwen','v1','completed','redacted') RETURNING summary_id""",
+          (self.seq,"c"*64)).fetchone()["summary_id"]
+        conn.execute("""INSERT INTO document_summary_quality
+          (summary_id,gate_version,decision,score,reason_codes,checks,evidence)
+          VALUES(%s,'summary-quality-v1','review_recommended',81,'["low_evidence"]',
+                 '{"evidence_average":62}','[{"key_point_index":0,"source_sentence_index":1,"similarity":62}]')""",(sid,))
+        conn.commit();conn.close()
+        body=self.client.get("/translation/quality?decision=review_recommended").json()
+        self.assertEqual(body["summary"]["total"],1)
+        self.assertEqual(body["items"][0]["seq_id"],self.seq)
+        self.assertNotIn("summary_text",body["items"][0])
+        self.assertEqual(body["top_reasons"][0]["code"],"low_evidence")
+        self.assertEqual(self.client.get("/translation/quality?decision=unknown").status_code,422)
+        self.assertEqual(self.client.get("/translation/quality?limit=0").status_code,422)
 
     def test_translation_preview_enqueue_list_cancel(self):
         preview = self.client.post("/translation/preview", json={"tasks": ["title_translation"]})

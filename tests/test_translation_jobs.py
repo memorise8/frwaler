@@ -28,7 +28,7 @@ class TranslationJobsTest(unittest.TestCase):
         from crawler import db_pg
         from delivery.db.schema import init_delivery_schema
         self.conn=db_pg.open_db(TEST_PG_DSN)
-        for table in ("translation_jobs","document_summaries","crawl_jobs","document_translations","document_lang","documents","sites"):
+        for table in ("document_summary_quality","translation_jobs","document_summaries","crawl_jobs","document_translations","document_lang","documents","sites"):
             self.conn.execute(f"DROP TABLE IF EXISTS {table} CASCADE")
         self.conn.commit(); db_pg.init_db(self.conn)
         self.conn.execute("CREATE TABLE document_lang(seq_id BIGINT PRIMARY KEY REFERENCES documents(seq_id),lang TEXT NOT NULL)")
@@ -111,10 +111,15 @@ class TranslationJobsTest(unittest.TestCase):
         self.assertEqual(made["created"],1)
         claimed=jobs.claim_next(self.conn); self.assertEqual(claimed["task_type"],"summarize")
         self.assertTrue(jobs.run_job(self.conn,claimed,_Provider()))
-        saved=self.conn.execute("SELECT summary_text,key_points,institutions,source_facts FROM document_summaries").fetchone()
+        saved=self.conn.execute("""SELECT s.summary_text,s.key_points,s.institutions,s.source_facts,
+            q.decision,q.reason_codes,q.evidence FROM document_summaries s
+            JOIN document_summary_quality q USING(summary_id)""").fetchone()
         self.assertEqual(saved["summary_text"],"정책 핵심 요약.")
         self.assertEqual(saved["key_points"],["핵심 수치 확인"])
         self.assertIn("https://s/1",saved["source_facts"]["urls"])
+        self.assertEqual(saved["decision"],"rejected")
+        self.assertIn("invalid_sentence_count",saved["reason_codes"])
+        self.assertNotIn("source_text",saved["evidence"])
 
 
 if __name__ == "__main__": unittest.main()

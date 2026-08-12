@@ -18,6 +18,7 @@ from delivery.be.catalogue import CatalogueFilters, collect_catalogue, load_taxo
 from delivery.be.document_detail import collect_document_detail
 from delivery.be.freshness import collect_freshness
 from delivery.be.stats import collect_stats
+from delivery.be.translation_quality import collect_translation_quality
 from delivery.worker import jobs
 from delivery.translation import jobs as translation_jobs
 
@@ -181,6 +182,19 @@ def create_app(dsn: str) -> FastAPI:
                 "SELECT status,count(*) AS count FROM translation_jobs GROUP BY status"
             ).fetchall()}
             return {"jobs": rows, "summary": summary, "limit": limit, "offset": offset}
+        finally:
+            conn.close()
+
+    @app.get("/translation/quality")
+    def get_translation_quality(decision: str | None = None, limit: int = 50, offset: int = 0):
+        allowed = {"auto_approved", "review_recommended", "rejected"}
+        if decision is not None and decision not in allowed:
+            raise HTTPException(status_code=422, detail="invalid quality decision")
+        if not 1 <= limit <= 200 or offset < 0:
+            raise HTTPException(status_code=422, detail="invalid pagination")
+        conn = _conn()
+        try:
+            return collect_translation_quality(conn, decision=decision, limit=limit, offset=offset)
         finally:
             conn.close()
 

@@ -7,6 +7,7 @@ import re
 from typing import Iterable
 
 from .providers import ProviderError, SummaryRequest, TranslationRequest, TranslationProvider
+from .quality import GATE_VERSION, evaluate_summary
 
 FIELDS = {"title": "title", "description": "abstract"}
 TASKS = {
@@ -141,7 +142,7 @@ def run_job(conn, job: dict, provider: TranslationProvider) -> bool:
             result = provider.summarize(SummaryRequest(row["title"] or "", row["source_text"],
                                         job["source_lang"], job["target_locale"]))
             facts = source_facts(row["source_text"], row["meta_url"])
-            conn.execute("""
+            saved = conn.execute("""
               INSERT INTO document_summaries
                 (seq_id,target_locale,source_fingerprint,model_version,prompt_version,state,
                  summary_text,key_points,institutions,source_facts,completed_at,updated_at)
@@ -150,11 +151,25 @@ def run_job(conn, job: dict, provider: TranslationProvider) -> bool:
               DO UPDATE SET state='completed',summary_text=EXCLUDED.summary_text,
                 key_points=EXCLUDED.key_points,institutions=EXCLUDED.institutions,
                 source_facts=EXCLUDED.source_facts,completed_at=now(),updated_at=now()
+              RETURNING summary_id
             """, (job["seq_id"], job["target_locale"], job["source_fingerprint"],
                   result.model_version, result.prompt_version, result.summary_text,
                   json.dumps(result.key_points, ensure_ascii=False),
                   json.dumps(result.institutions, ensure_ascii=False),
-                  json.dumps(facts, ensure_ascii=False)))
+                  json.dumps(facts, ensure_ascii=False))).fetchone()
+            quality = evaluate_summary(title=row["title"] or "", source_text=row["source_text"],
+                                      summary_text=result.summary_text, key_points=result.key_points,
+                                      institutions=result.institutions)
+            conn.execute("""
+              INSERT INTO document_summary_quality
+                (summary_id,gate_version,decision,score,reason_codes,checks,evidence,evaluated_at)
+              VALUES (%s,%s,%s,%s,%s::jsonb,%s::jsonb,%s::jsonb,now())
+              ON CONFLICT (summary_id) DO UPDATE SET gate_version=EXCLUDED.gate_version,
+                decision=EXCLUDED.decision,score=EXCLUDED.score,reason_codes=EXCLUDED.reason_codes,
+                checks=EXCLUDED.checks,evidence=EXCLUDED.evidence,evaluated_at=now()
+            """, (saved["summary_id"], GATE_VERSION, quality.decision, quality.score,
+                  json.dumps(quality.reason_codes), json.dumps(quality.checks),
+                  json.dumps(quality.evidence)))
             conn.execute("""UPDATE translation_jobs SET status='completed',error_code=NULL,error_message=NULL,
               input_chars=%s,output_chars=%s,latency_ms=%s,finished_at=now(),updated_at=now()
               WHERE id=%s AND status='running'""",

@@ -93,4 +93,17 @@ def init_delivery_schema(conn) -> None:
       )
     """)
     conn.execute("CREATE INDEX IF NOT EXISTS idx_document_summaries_current ON document_summaries(seq_id,target_locale,state,completed_at DESC)")
+    conn.execute("""
+      CREATE TABLE IF NOT EXISTS document_summary_quality (
+        summary_id BIGINT PRIMARY KEY REFERENCES document_summaries(summary_id) ON DELETE CASCADE,
+        gate_version TEXT NOT NULL,
+        decision TEXT NOT NULL CHECK (decision IN ('auto_approved','review_recommended','rejected')),
+        score INTEGER NOT NULL CHECK (score BETWEEN 0 AND 100),
+        reason_codes JSONB NOT NULL DEFAULT '[]'::jsonb,
+        checks JSONB NOT NULL DEFAULT '{}'::jsonb,
+        evidence JSONB NOT NULL DEFAULT '[]'::jsonb,
+        evaluated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )
+    """)
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_summary_quality_decision ON document_summary_quality(decision,evaluated_at DESC)")
     conn.commit()
