@@ -202,8 +202,14 @@ SQL
   done
 
   ROW=$(compose exec -T postgres psql -tA -F '|' -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
-    -v jid="$JID" -v site="$SITE" -c \
-    "SELECT j.requested_by,j.limit_n,j.saved_count,count(d.seq_id) FROM crawl_jobs j LEFT JOIN documents d ON d.site_id=j.site_id WHERE j.id=:'jid' AND j.site_id=:'site' GROUP BY j.id")
+    -v jid="$JID" -v site="$SITE" <<'SQL'
+SELECT j.requested_by,j.limit_n,j.saved_count,count(d.seq_id)
+FROM crawl_jobs j
+LEFT JOIN documents d ON d.site_id=j.site_id
+WHERE j.id=:'jid' AND j.site_id=:'site'
+GROUP BY j.id;
+SQL
+  )
   REQUESTED_BY=$(printf '%s' "$ROW" | cut -d '|' -f 1)
   LIMIT_N=$(printf '%s' "$ROW" | cut -d '|' -f 2)
   SAVED=$(printf '%s' "$ROW" | cut -d '|' -f 3)
