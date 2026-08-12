@@ -10,6 +10,8 @@ import os
 import time
 
 from . import jobs
+from delivery.translation import jobs as translation_jobs
+from delivery.translation.providers import provider_from_env
 
 
 def _registry(crawler_registry):
@@ -74,7 +76,8 @@ def main() -> int:
             run_once(conn, delay=args.delay)
             return 0
         while True:
-            if not run_once(conn, delay=args.delay):
+            translated = translation_jobs.run_once(conn, provider_from_env)
+            if not translated and not run_once(conn, delay=args.delay):
                 time.sleep(args.poll)
     finally:
         conn.close()
