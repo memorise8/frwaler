@@ -5,9 +5,11 @@ GPU 0에서 Qwen3 FP8을 vLLM으로 실행하고, 인증·속도 제한 프록�
 
 ## Pinned runtime
 
-- model: `Qwen/Qwen3-30B-A3B-Instruct-2507-FP8` (official Qwen, Apache-2.0)
-- server: `vllm/vllm-openai:v0.11.0`
+- model: `Qwen/Qwen3-30B-A3B-Instruct-2507-FP8` at a tested immutable revision (official Qwen, Apache-2.0)
+- server/proxy: tested vLLM 0.11.0 and Nginx 1.27.5 image digests
 - context: 16,384 tokens; initial concurrency: 1
+- GPU memory utilization: 0.95 with 1GiB CPU weight offload and an explicit 1.6GiB KV cache
+  (16K requires 1.50GiB; the fixed cache avoids consuming all remaining VRAM)
 - vLLM: loopback `127.0.0.1:8000`; authenticated proxy: `0.0.0.0:8088`
 
 ## L1 install

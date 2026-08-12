@@ -24,6 +24,8 @@ services:
     command:
       - --model
       - ${MODEL_ID:?set MODEL_ID}
+      - --revision
+      - ${MODEL_REVISION:?set MODEL_REVISION}
       - --served-model-name
       - ${SERVED_MODEL_NAME:?set SERVED_MODEL_NAME}
       - --host
@@ -35,7 +37,11 @@ services:
       - --max-num-seqs
       - ${MAX_NUM_SEQS:-1}
       - --gpu-memory-utilization
-      - ${GPU_MEMORY_UTILIZATION:-0.90}
+      - ${GPU_MEMORY_UTILIZATION:-0.95}
+      - --cpu-offload-gb
+      - ${CPU_OFFLOAD_GB:-1}
+      - --kv-cache-memory-bytes
+      - ${KV_CACHE_MEMORY_BYTES:-1717986918}
       - --trust-remote-code
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
@@ -45,7 +51,7 @@ services:
       start_period: 20m
 
   proxy:
-    image: nginx:1.27.5-alpine
+    image: ${NGINX_IMAGE:?set NGINX_IMAGE}
     restart: unless-stopped
     network_mode: host
     environment:
