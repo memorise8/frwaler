@@ -85,3 +85,16 @@ TranslationProvider.translate(request) -> result
 7. `feat(delivery): add translation operations console`
 
 외부/내부 provider 구현은 endpoint, 모델, 비용 정책이 결정된 뒤 T1부터 별도 단계로 진행한다.
+
+## 5. 구현 상태와 운영 시작 전 결정
+
+T0~T5의 코드 경로는 구현됐다. Provider 설정이 비어 있으면 Worker는 실제 외부·내부 호출을
+하지 않고 해당 작업을 설정 오류로 종료한다. 실제 운영 활성화 전에는 다음을 결정해야 한다.
+
+- 외부 OpenAI 호환 endpoint, 모델과 발급된 API 키
+- 내부 Ollama 호환 endpoint와 배포 모델
+- 외부 전송 허용 문서 범위 및 일일 비용 상한
+- 언어별 소량 품질 검수 표본과 승인 담당자
+
+환경변수는 `delivery/.env.example`을 기준으로 서버의 비커밋 `.env`에만 설정한다. 최초 실행은
+대상 미리보기 후 20건 이하로 제한하고, 결과 표본을 승인하기 전 대량 작업을 등록하지 않는다.

@@ -30,6 +30,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <Link className="nav-link nav-link-active" href="/">크롤러 상태</Link>
               <span className="nav-link nav-link-disabled">수집 작업</span>
               <Link className="nav-link" href="/documents">문서 탐색</Link>
+              <Link className="nav-link" href="/translations">번역 작업</Link>
             </nav>
             <p className="console-mark">운영 콘솔 · MVP</p>
           </div>
