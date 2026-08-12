@@ -9,8 +9,8 @@ from __future__ import annotations
 from datetime import date
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Path, Query
-from fastapi.responses import JSONResponse
+from fastapi import Depends, FastAPI, HTTPException, Path, Query
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, ConfigDict
 
 from crawler import db_pg
@@ -20,6 +20,8 @@ from delivery.be.freshness import collect_freshness
 from delivery.be.stats import collect_stats
 from delivery.be.translation_quality import collect_translation_quality
 from delivery.be.batch_operations import batch_detail, list_batches, operations
+from delivery.be.access import require_operator
+from delivery.be.blob_delivery import resolve_blob
 from delivery.worker import jobs
 from delivery.translation import jobs as translation_jobs
 
@@ -87,6 +89,28 @@ def create_app(dsn: str) -> FastAPI:
         if row is None:
             raise HTTPException(status_code=404, detail="document not found")
         return row
+
+    @app.get("/documents/{seq_id}/pdf")
+    def get_document_pdf(seq_id:int=Path(gt=0)):
+        conn=_conn()
+        try:
+            try:resolved=resolve_blob(conn,seq_id,"pdf")
+            except FileNotFoundError as exc:raise HTTPException(status_code=404,detail=str(exc)) from exc
+        finally:conn.close()
+        if resolved is None:raise HTTPException(status_code=404,detail="document not found")
+        path,media,filename=resolved
+        return FileResponse(path,media_type=media,filename=filename,content_disposition_type="inline")
+
+    @app.get("/documents/{seq_id}/text")
+    def get_document_text(seq_id:int=Path(gt=0)):
+        conn=_conn()
+        try:
+            try:resolved=resolve_blob(conn,seq_id,"text")
+            except FileNotFoundError as exc:raise HTTPException(status_code=404,detail=str(exc)) from exc
+        finally:conn.close()
+        if resolved is None:raise HTTPException(status_code=404,detail="document not found")
+        path,media,filename=resolved
+        return FileResponse(path,media_type=media,filename=filename,content_disposition_type="inline")
 
     @app.get("/documents")
     def get_documents(
@@ -189,7 +213,7 @@ def create_app(dsn: str) -> FastAPI:
         finally:conn.close()
 
     @app.post("/translation/jobs")
-    def post_translation_jobs(body: TranslationJobIn):
+    def post_translation_jobs(body: TranslationJobIn,operator:str=Depends(require_operator)):
         if not 1 <= body.limit <= 1000 or not body.model_version.strip() or not body.prompt_version.strip():
             raise HTTPException(status_code=422, detail="invalid translation job configuration")
         conn = _conn()
@@ -198,7 +222,7 @@ def create_app(dsn: str) -> FastAPI:
                 conn, tasks=body.tasks, provider=body.provider,
                 model_version=body.model_version.strip(), prompt_version=body.prompt_version.strip(),
                 target_locale=body.target_locale, lang=body.lang, site_id=body.site_id,
-                limit=body.limit, requested_by=body.requested_by,
+                limit=body.limit, requested_by=operator,
             )
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -240,7 +264,7 @@ def create_app(dsn: str) -> FastAPI:
             conn.close()
 
     @app.post("/translation/jobs/{job_id}/cancel")
-    def post_translation_cancel(job_id: int = Path(gt=0)):
+    def post_translation_cancel(job_id: int = Path(gt=0),operator:str=Depends(require_operator)):
         conn = _conn()
         try:
             row = translation_jobs.cancel(conn, job_id)
@@ -252,7 +276,7 @@ def create_app(dsn: str) -> FastAPI:
         raise HTTPException(status_code=409, detail=f"cannot cancel translation job in {current['status']} status")
 
     @app.post("/translation/jobs/{job_id}/retry")
-    def post_translation_retry(job_id: int = Path(gt=0)):
+    def post_translation_retry(job_id: int = Path(gt=0),operator:str=Depends(require_operator)):
         conn = _conn()
         try:
             row = translation_jobs.retry(conn, job_id)
@@ -264,11 +288,11 @@ def create_app(dsn: str) -> FastAPI:
         raise HTTPException(status_code=409, detail="translation job cannot be retried")
 
     @app.post("/jobs")
-    def post_job(body: JobIn):
+    def post_job(body: JobIn,operator:str=Depends(require_operator)):
         conn = _conn()
         try:
             jid = jobs.enqueue_job(conn, body.site_id, mode=body.mode,
-                                   limit_n=body.limit_n, requested_by=body.requested_by)
+                                   limit_n=body.limit_n, requested_by=operator)
         finally:
             conn.close()
         return {"id": jid}
@@ -298,7 +322,7 @@ def create_app(dsn: str) -> FastAPI:
         return {"jobs": rows, "limit": limit, "offset": offset}
 
     @app.post("/jobs/{job_id}/cancel")
-    def post_cancel_job(job_id: int):
+    def post_cancel_job(job_id: int,operator:str=Depends(require_operator)):
         conn = _conn()
         try:
             row = jobs.cancel_job(conn, job_id)
@@ -314,11 +338,11 @@ def create_app(dsn: str) -> FastAPI:
         raise HTTPException(status_code=409, detail=f"cannot cancel job in {current['status']} status")
 
     @app.post("/jobs/{job_id}/retry")
-    def post_retry_job(job_id: int, body: RetryIn | None = None):
+    def post_retry_job(job_id: int, body: RetryIn | None = None,operator:str=Depends(require_operator)):
         conn = _conn()
         try:
             row = jobs.retry_job(
-                conn, job_id, requested_by=body.requested_by if body else None
+                conn, job_id, requested_by=operator
             )
             if row is not None:
                 return row

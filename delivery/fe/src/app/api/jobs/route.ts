@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { operatorHeaders } from "@/lib/backend-auth";
 
 type JobRequest = {
   readonly siteId?: unknown;
@@ -47,7 +48,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     const response = await fetch(`${backendUrl()}/jobs`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: operatorHeaders(true),
       body: JSON.stringify({ site_id: siteId, mode, limit_n: limit, requested_by: "delivery-fe" }),
       cache: "no-store",
       signal: AbortSignal.timeout(10_000),

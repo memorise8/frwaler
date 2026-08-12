@@ -55,7 +55,7 @@ export default async function DocumentDetailPage({ params }: Readonly<{ params: 
     <section className="detail-file-state" aria-label="문서 파일 상태">
       <div><span className={document.files.has_pdf ? "file-ready" : ""}>PDF {document.files.has_pdf ? "확보" : "미확보"}</span><small>{formatBytes(document.files.pdf_size_bytes)}</small></div>
       <div><span className={document.files.has_text ? "file-ready" : ""}>TEXT {document.files.has_text ? "확보" : "미확보"}</span><small>{document.files.original_filename || "파일명 정보 없음"}</small></div>
-      <p>파일 열람은 다음 PDF·텍스트 제공 단계에서 연결됩니다.</p>
+      <p className="detail-links">{document.files.has_pdf&&<a href={`/api/documents/${document.seq_id}/pdf`} target="_blank">PDF 열기 ↗</a>}{document.files.has_text&&<a href={`/api/documents/${document.seq_id}/text`} target="_blank">추출 텍스트 열기 ↗</a>}{!document.files.has_pdf&&!document.files.has_text&&"제공 가능한 파일이 없습니다."}</p>
     </section>
 
     <div className="detail-reading-grid">

@@ -2,6 +2,9 @@
 import os
 import sys
 import unittest
+import tempfile
+from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -58,6 +61,29 @@ class BeAppTest(unittest.TestCase):
 
     def test_get_document_rejects_non_positive_id(self):
         self.assertEqual(self.client.get("/documents/0").status_code, 422)
+
+    def test_secure_pdf_and_text_delivery(self):
+        from crawler.blob_storage import get_blob_path
+        from crawler import db_pg
+        with tempfile.TemporaryDirectory() as root:
+            pdf=get_blob_path(self.seq,"pdf",root=root);pdf.parent.mkdir(parents=True);pdf.write_bytes(b"%PDF-1.7 demo")
+            text=get_blob_path(self.seq,"txt",root=root);text.write_text("extracted demo",encoding="utf-8")
+            conn=db_pg.open_db(TEST_PG_DSN);conn.execute("""UPDATE documents SET pdf_downloaded=1,
+              text_extracted=1,pdf_size_bytes=%s,original_filename='demo.pdf' WHERE seq_id=%s""",(pdf.stat().st_size,self.seq));conn.commit();conn.close()
+            with mock.patch.dict(os.environ,{"LIBERTREE_BLOB_ROOT":root}):
+                pdf_response=self.client.get(f"/documents/{self.seq}/pdf")
+                text_response=self.client.get(f"/documents/{self.seq}/text")
+            self.assertEqual(pdf_response.status_code,200);self.assertEqual(pdf_response.content,b"%PDF-1.7 demo")
+            self.assertEqual(text_response.text,"extracted demo")
+            self.assertIn("inline",pdf_response.headers["content-disposition"])
+        self.assertEqual(self.client.get(f"/documents/{self.seq}/pdf").status_code,404)
+
+    def test_mutations_require_configured_operator_token(self):
+        with mock.patch.dict(os.environ,{"DELIVERY_API_TOKEN":"test-secret-token"}):
+            denied=self.client.post("/jobs",json={"site_id":"s1"})
+            allowed=self.client.post("/jobs",json={"site_id":"s1"},headers={"x-delivery-token":"test-secret-token"})
+        self.assertEqual(denied.status_code,401)
+        self.assertEqual(allowed.status_code,200)
 
     def test_get_document_with_latest_completed_translations(self):
         from crawler import db_pg

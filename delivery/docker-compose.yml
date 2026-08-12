@@ -23,6 +23,7 @@ services:
       LIBERTREE_PG_DSN: postgresql://${POSTGRES_USER:-libertree}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-libertree}
       LIBERTREE_DB_BACKEND: postgres
       LIBERTREE_BLOB_ROOT: /data/blob
+      DELIVERY_API_TOKEN: ${DELIVERY_API_TOKEN:-}
     volumes:
       - blob:/data/blob
     ports:
@@ -42,6 +43,7 @@ services:
       dockerfile: delivery/Dockerfile.fe
     environment:
       BE_URL: http://be:3001
+      DELIVERY_API_TOKEN: ${DELIVERY_API_TOKEN:-}
     ports:
       - "127.0.0.1:${FE_PORT:-3000}:3002"
     depends_on:

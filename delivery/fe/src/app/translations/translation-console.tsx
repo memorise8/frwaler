@@ -11,15 +11,14 @@ export function TranslationConsole(){
   const [message,setMessage]=useState(""),[preview,setPreview]=useState<Preview|null>(null),[busy,setBusy]=useState(false);
   const load=useCallback(async()=>{try{const r=await fetch("/api/translation?limit=50",{cache:"no-store"});if(!r.ok)throw new Error();const b=await r.json() as JobsResponse;setJobs(b.jobs);setSummary(b.summary);setMessage("");}catch{setMessage("번역 작업 현황을 불러올 수 없습니다.");}},[]);
   useEffect(()=>{const start=setTimeout(()=>void load(),0),timer=setInterval(()=>void load(),10000);return()=>{clearTimeout(start);clearInterval(timer);};},[load]);
-  const body=(form:HTMLFormElement)=>{const d=new FormData(form);return{tasks:d.getAll("tasks"),provider:d.get("provider"),model_version:d.get("model_version"),prompt_version:"title-summary-ko-v1",lang:d.get("lang")||null,site_id:d.get("site_id")||null,limit:Number(d.get("limit")),requested_by:"delivery-console"};};
+  const body=(form:HTMLFormElement)=>{const d=new FormData(form);return{tasks:d.getAll("tasks"),lang:d.get("lang")||null,site_id:d.get("site_id")||null,limit:Number(d.get("limit"))};};
   const submit=async(event:FormEvent<HTMLFormElement>,action:"preview"|"enqueue")=>{event.preventDefault();setBusy(true);setMessage("");try{const payload=body(event.currentTarget);const r=await fetch(`/api/translation?action=${action}`,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload)});const b=await r.json();if(!r.ok)throw new Error();if(action==="preview")setPreview(b as Preview);else{setMessage(`${b.created.toLocaleString("ko-KR")}개 작업을 배치 #${b.batch_id}로 등록했습니다. 중복 ${b.existing.toLocaleString("ko-KR")}개는 제외했습니다.`);await load();}}catch{setMessage("안전장치가 실행을 차단했거나 요청을 처리하지 못했습니다. 배치 안전 현황과 Provider 설정을 확인해 주세요.");}finally{setBusy(false);}};
   const act=async(job:Job,action:"cancel"|"retry")=>{const r=await fetch(`/api/translation/${job.id}/${action}`,{method:"POST"});if(!r.ok)setMessage(`${job.id}번 작업을 처리하지 못했습니다.`);await load();};
   return <>
     <section className="translation-config"><div className="section-heading"><div><p className="eyebrow">NEW BATCH</p><h2>제목 번역·한국어 요약 설정</h2></div>{preview&&<p>대상 {preview.total.toLocaleString("ko-KR")}건 · 약 {preview.estimated_prompt_tokens.toLocaleString("ko-KR")} tokens · {Math.ceil(preview.estimated_seconds/60)}분</p>}</div>
       <form onSubmit={(e)=>void submit(e,"enqueue")}>
         <fieldset><legend>처리 작업</legend><label><input type="checkbox" name="tasks" value="title_translation" defaultChecked/> 제목 전체 번역</label><label><input type="checkbox" name="tasks" value="abstract_summary" defaultChecked/> 초록 한국어 요약</label></fieldset>
-        <label><span>처리 방식</span><select name="provider"><option value="internal">내부 모델</option><option value="external">외부 API</option></select></label>
-        <label><span>모델 식별자</span><input name="model_version" required defaultValue="qwen3-30b-a3b-instruct-2507"/></label>
+        <div className="fixed-model"><span>처리 방식</span><strong>검증된 내부 한국어 모델</strong><small>모델·프롬프트는 서버에서 안전하게 고정됩니다.</small></div>
         <label><span>원문 언어</span><input name="lang" placeholder="전체 또는 en"/></label>
         <label><span>사이트 ID</span><input name="site_id" placeholder="전체 사이트"/></label>
         <label><span>최대 작업 수</span><input name="limit" type="number" min="1" max="1000" defaultValue="20"/></label>

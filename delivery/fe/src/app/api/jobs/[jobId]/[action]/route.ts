@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { operatorHeaders } from "@/lib/backend-auth";
 
 type RouteContext = { params: Promise<{ jobId: string; action: string }> };
 
@@ -12,7 +13,7 @@ export async function POST(_request: Request, context: RouteContext): Promise<Ne
   try {
     const response = await fetch(`${backendUrl()}/jobs/${jobId}/${action}`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: operatorHeaders(true),
       body: action === "retry" ? JSON.stringify({ requested_by: "delivery-fe" }) : undefined,
       cache: "no-store",
       signal: AbortSignal.timeout(10_000),
