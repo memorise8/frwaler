@@ -84,8 +84,9 @@ def _summary_prompt(request: SummaryRequest) -> str:
     return (
         f"Summarize the following {request.source_lang or 'unknown'} document in Korean. "
         "Return one JSON object only with keys summary_ko, key_points, institutions. "
-        "summary_ko must be 3 to 5 concise Korean sentences. key_points must contain up to 5 "
-        "Korean strings. institutions must contain only organization names explicitly present "
+        "summary_ko must be 3 to 5 concise Korean sentences written in Hangul, even when the source "
+        "is Chinese or Japanese. key_points must contain up to 5 Korean strings written in Hangul. "
+        "institutions must contain only organization names explicitly present "
         "in the source; keep their original spelling. Do not invent facts or include markdown.\n\n"
         f"Title: {request.title}\n\nText: {request.text}"
     )
@@ -108,6 +109,8 @@ def _summary_data(output: str) -> tuple[str, tuple[str, ...], tuple[str, ...]]:
         raise ProviderError("invalid_response", "invalid structured summary lists", retryable=True)
     if any(not isinstance(item, str) for item in (*points, *institutions)):
         raise ProviderError("invalid_response", "invalid structured summary item", retryable=True)
+    if not re.search(r"[가-힣]", summary) or any(item.strip() and not re.search(r"[가-힣]", item) for item in points):
+        raise ProviderError("invalid_response", "summary is not Korean", retryable=True)
     return summary.strip(), tuple(item.strip() for item in points[:5] if item.strip()), tuple(
         item.strip() for item in institutions[:10] if item.strip())
 

@@ -43,6 +43,14 @@ class TranslationProviderTest(unittest.TestCase):
         self.assertEqual(result.key_points,("지출 확대",))
         self.assertEqual(result.institutions,("Treasury",))
 
+    def test_structured_summary_rejects_non_korean_output(self):
+        body={"summary_ko":"中文摘要", "key_points":["中文重点"], "institutions":[]}
+        provider=OpenAICompatibleProvider(endpoint="https://api.test",model="m",api_key=None,
+            opener=lambda *_a,**_k:_Response({"choices":[{"message":{"content":json.dumps(body,ensure_ascii=False)}}]}))
+        with self.assertRaises(ProviderError) as caught:
+            provider.summarize(SummaryRequest("标题","正文","zh-cn"))
+        self.assertEqual(caught.exception.code,"invalid_response")
+
     def test_normalized_errors(self):
         def denied(*_args, **_kwargs):
             raise urllib.error.HTTPError("https://api.test", 401, "denied", {}, None)

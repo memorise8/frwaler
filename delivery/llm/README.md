@@ -63,6 +63,10 @@ translation job is registered.
 `results/` and `samples/` are ignored by Git because they can contain source documents. The
 aggregate summary contains only counts, latency, token usage, and protected-token preservation.
 
+For the product's structured Korean-summary contract, use `scripts/benchmark_summary.py` with the
+same ignored sample and result paths. It validates JSON shape, Korean output, finish reason, and
+latency without registering a Delivery job.
+
 ## Network boundary
 
 The proxy permits only `/health`, `/v1/models`, and `/v1/chat/completions`. API routes require a
