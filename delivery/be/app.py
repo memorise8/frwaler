@@ -9,12 +9,13 @@ from __future__ import annotations
 from datetime import date
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Path, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from crawler import db_pg
 from delivery.be.catalogue import CatalogueFilters, collect_catalogue, load_taxonomy
+from delivery.be.document_detail import collect_document_detail
 from delivery.be.freshness import collect_freshness
 from delivery.be.stats import collect_stats
 from delivery.worker import jobs
@@ -51,15 +52,15 @@ def create_app(dsn: str) -> FastAPI:
         return {"status": "ok"}
 
     @app.get("/documents/{seq_id}")
-    def get_document(seq_id: int):
+    def get_document(seq_id: int = Path(gt=0)):
         conn = _conn()
         try:
-            row = db_pg.get_document(conn, seq_id)
+            row = collect_document_detail(conn, seq_id, taxonomy)
         finally:
             conn.close()
         if row is None:
             raise HTTPException(status_code=404, detail="document not found")
-        return dict(row)
+        return row
 
     @app.get("/documents")
     def get_documents(
