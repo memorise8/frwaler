@@ -19,6 +19,7 @@ from delivery.be.document_detail import collect_document_detail
 from delivery.be.freshness import collect_freshness
 from delivery.be.stats import collect_stats
 from delivery.be.translation_quality import collect_translation_quality
+from delivery.be.batch_operations import batch_detail, list_batches, operations
 from delivery.worker import jobs
 from delivery.translation import jobs as translation_jobs
 
@@ -39,6 +40,13 @@ class TranslationSelection(BaseModel):
     tasks: list[Literal["title_translation", "abstract_summary"]] = ["title_translation", "abstract_summary"]
     lang: str | None = None
     site_id: str | None = None
+
+
+class TranslationPreviewIn(TranslationSelection):
+    provider: Literal["external", "internal"] = "internal"
+    model_version: str = "unknown"
+    prompt_version: str = "title-summary-ko-v1"
+    limit: int = 100
 
 
 class TranslationJobIn(TranslationSelection):
@@ -141,15 +149,44 @@ def create_app(dsn: str) -> FastAPI:
             conn.close()
 
     @app.post("/translation/preview")
-    def post_translation_preview(body: TranslationSelection):
+    def post_translation_preview(body: TranslationPreviewIn):
+        if not 1 <= body.limit <= 1000:
+            raise HTTPException(status_code=422, detail="invalid preview limit")
         conn = _conn()
         try:
             return translation_jobs.preview_targets(conn, tasks=body.tasks, lang=body.lang,
-                                                    site_id=body.site_id)
+                site_id=body.site_id,provider=body.provider,model_version=body.model_version,
+                prompt_version=body.prompt_version,limit=body.limit)
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except RuntimeError as exc:
+            if str(exc).startswith("circuit_open:"):
+                raise HTTPException(status_code=409,detail={"code":"circuit_open","reason_codes":str(exc).split(":",1)[1].split(",")}) from exc
+            raise
         finally:
             conn.close()
+
+    @app.get("/translation/batches")
+    def get_translation_batches(limit: int = 50, offset: int = 0):
+        if not 1 <= limit <= 200 or offset < 0: raise HTTPException(status_code=422,detail="invalid pagination")
+        conn=_conn()
+        try:return list_batches(conn,limit=limit,offset=offset)
+        finally:conn.close()
+
+    @app.get("/translation/batches/{batch_id}")
+    def get_translation_batch(batch_id: int = Path(gt=0)):
+        conn=_conn()
+        try:result=batch_detail(conn,batch_id)
+        finally:conn.close()
+        if result is None:raise HTTPException(status_code=404,detail="translation batch not found")
+        return result
+
+    @app.get("/translation/operations")
+    def get_translation_operations(provider: Literal["external","internal"]="internal",
+                                   model_version: str="unknown",prompt_version: str="title-summary-ko-v1"):
+        conn=_conn()
+        try:return operations(conn,provider=provider,model_version=model_version,prompt_version=prompt_version)
+        finally:conn.close()
 
     @app.post("/translation/jobs")
     def post_translation_jobs(body: TranslationJobIn):
@@ -165,6 +202,10 @@ def create_app(dsn: str) -> FastAPI:
             )
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except RuntimeError as exc:
+            if str(exc).startswith("circuit_open:"):
+                raise HTTPException(status_code=409,detail={"code":"circuit_open","reason_codes":str(exc).split(":",1)[1].split(",")}) from exc
+            raise
         finally:
             conn.close()
 

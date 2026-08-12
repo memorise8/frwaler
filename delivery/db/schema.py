@@ -35,6 +35,29 @@ def init_delivery_schema(conn) -> None:
     )
     conn.execute(
         """
+        CREATE TABLE IF NOT EXISTS translation_batches (
+            id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            provider TEXT NOT NULL CHECK (provider IN ('external','internal')),
+            model_version TEXT NOT NULL,
+            prompt_version TEXT NOT NULL,
+            tasks JSONB NOT NULL,
+            filters JSONB NOT NULL DEFAULT '{}'::jsonb,
+            requested_limit INTEGER NOT NULL CHECK (requested_limit BETWEEN 1 AND 1000),
+            target_count INTEGER NOT NULL DEFAULT 0,
+            created_count INTEGER NOT NULL DEFAULT 0,
+            existing_count INTEGER NOT NULL DEFAULT 0,
+            status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued','running','completed','paused','cancelled')),
+            stop_reason TEXT,
+            requested_by TEXT,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            started_at TIMESTAMPTZ,
+            finished_at TIMESTAMPTZ,
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        )
+        """
+    )
+    conn.execute(
+        """
         CREATE TABLE IF NOT EXISTS translation_jobs (
             id                 BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
             seq_id             BIGINT NOT NULL REFERENCES documents(seq_id) ON DELETE CASCADE,
@@ -62,17 +85,56 @@ def init_delivery_schema(conn) -> None:
             requested_by       TEXT,
             created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
             updated_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+            batch_id           BIGINT REFERENCES translation_batches(id),
+            worker_id          TEXT,
+            lease_expires_at   TIMESTAMPTZ,
             UNIQUE (seq_id, source_field, target_locale, source_fingerprint,
                     provider, model_version, prompt_version)
         )
         """
     )
     conn.execute("ALTER TABLE translation_jobs ADD COLUMN IF NOT EXISTS task_type TEXT NOT NULL DEFAULT 'translate'")
+    conn.execute("ALTER TABLE translation_jobs ADD COLUMN IF NOT EXISTS batch_id BIGINT REFERENCES translation_batches(id)")
+    conn.execute("ALTER TABLE translation_jobs ADD COLUMN IF NOT EXISTS worker_id TEXT")
+    conn.execute("ALTER TABLE translation_jobs ADD COLUMN IF NOT EXISTS lease_expires_at TIMESTAMPTZ")
     conn.execute("""DO $$ BEGIN
       ALTER TABLE translation_jobs ADD CONSTRAINT translation_jobs_task_type_check
         CHECK (task_type IN ('translate','summarize'));
     EXCEPTION WHEN duplicate_object THEN NULL; END $$""")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_translation_jobs_queue ON translation_jobs(status, next_attempt_at, created_at)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_translation_jobs_batch ON translation_jobs(batch_id,status)")
+    conn.execute("""CREATE TABLE IF NOT EXISTS translation_job_attempts (
+      id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      job_id BIGINT NOT NULL REFERENCES translation_jobs(id) ON DELETE CASCADE,
+      batch_id BIGINT REFERENCES translation_batches(id) ON DELETE CASCADE,
+      attempt_no INTEGER NOT NULL,
+      worker_id TEXT NOT NULL,
+      status TEXT NOT NULL CHECK(status IN ('running','completed','failed','skipped','stale_lease')),
+      error_code TEXT,
+      retryable BOOLEAN,
+      prompt_tokens INTEGER,
+      completion_tokens INTEGER,
+      finish_reason TEXT,
+      input_chars INTEGER,
+      output_chars INTEGER,
+      latency_ms INTEGER,
+      started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      finished_at TIMESTAMPTZ,
+      UNIQUE(job_id,attempt_no)
+    )""")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_translation_attempts_recent ON translation_job_attempts(finished_at DESC,status)")
+    conn.execute("""CREATE TABLE IF NOT EXISTS translation_worker_heartbeats (
+      worker_id TEXT PRIMARY KEY,status TEXT NOT NULL,last_seen_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      current_job_id BIGINT REFERENCES translation_jobs(id) ON DELETE SET NULL,
+      started_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )""")
+    conn.execute("""CREATE TABLE IF NOT EXISTS translation_system_observations (
+      id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,worker_id TEXT NOT NULL,
+      metric TEXT NOT NULL,value_numeric DOUBLE PRECISION,value_boolean BOOLEAN,
+      observed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      CHECK ((value_numeric IS NOT NULL)::int + (value_boolean IS NOT NULL)::int = 1)
+    )""")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_translation_observations_metric ON translation_system_observations(metric,observed_at DESC)")
     conn.execute("""
       CREATE TABLE IF NOT EXISTS document_summaries (
         summary_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

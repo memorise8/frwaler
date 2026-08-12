@@ -28,7 +28,7 @@ class TranslationJobsTest(unittest.TestCase):
         from crawler import db_pg
         from delivery.db.schema import init_delivery_schema
         self.conn=db_pg.open_db(TEST_PG_DSN)
-        for table in ("document_summary_quality","translation_jobs","document_summaries","crawl_jobs","document_translations","document_lang","documents","sites"):
+        for table in ("document_summary_quality","translation_job_attempts","translation_worker_heartbeats","translation_system_observations","translation_jobs","translation_batches","document_summaries","crawl_jobs","document_translations","document_lang","documents","sites"):
             self.conn.execute(f"DROP TABLE IF EXISTS {table} CASCADE")
         self.conn.commit(); db_pg.init_db(self.conn)
         self.conn.execute("CREATE TABLE document_lang(seq_id BIGINT PRIMARY KEY REFERENCES documents(seq_id),lang TEXT NOT NULL)")
@@ -59,9 +59,30 @@ class TranslationJobsTest(unittest.TestCase):
         again=self._enqueue(); self.assertEqual(again["created"],0)
         claimed=jobs.claim_next(self.conn); self.assertTrue(jobs.run_job(self.conn,claimed,_Provider()))
         row=self.conn.execute("SELECT status,input_chars,latency_ms FROM translation_jobs").fetchone()
+        attempt=self.conn.execute("SELECT status,attempt_no,worker_id,latency_ms FROM translation_job_attempts").fetchone()
+        batch=self.conn.execute("SELECT status,created_count FROM translation_batches WHERE created_count=1").fetchone()
         saved=self.conn.execute("SELECT state,translation_text FROM document_translations").fetchone()
         self.assertEqual(row["status"],"completed"); self.assertEqual(row["latency_ms"],12)
         self.assertEqual(saved["translation_text"],"번역: Budget 2025")
+        self.assertEqual((attempt["status"],attempt["attempt_no"],attempt["worker_id"]),("completed",1,"worker-default"))
+        self.assertEqual((batch["status"],batch["created_count"]),("completed",1))
+
+    def test_circuit_breaker_blocks_large_batch_without_baseline(self):
+        from delivery.translation import jobs
+        with self.assertRaisesRegex(RuntimeError,"circuit_open:insufficient_baseline"):
+            jobs.enqueue_targets(self.conn,tasks=["title_translation"],provider="internal",
+              model_version="new-model",prompt_version="v1",limit=101)
+        self.assertEqual(self.conn.execute("SELECT count(*) AS n FROM translation_batches").fetchone()["n"],0)
+
+    def test_stale_lease_is_recorded_and_requeued(self):
+        from delivery.translation import jobs
+        self._enqueue();claimed=jobs.claim_next(self.conn,worker_id="worker-q1",lease_seconds=1)
+        self.conn.execute("UPDATE translation_jobs SET lease_expires_at=now()-interval '1 second' WHERE id=%s",(claimed["id"],));self.conn.commit()
+        self.assertEqual(jobs.recover_stale(self.conn),1)
+        job=self.conn.execute("SELECT status,error_code FROM translation_jobs WHERE id=%s",(claimed["id"],)).fetchone()
+        attempt=self.conn.execute("SELECT status,error_code FROM translation_job_attempts WHERE id=%s",(claimed["attempt_id"],)).fetchone()
+        self.assertEqual((job["status"],attempt["status"]),("pending","stale_lease"))
+        self.assertEqual(attempt["error_code"],"worker_lease_expired")
 
     def test_source_change_is_skipped(self):
         from delivery.translation import jobs

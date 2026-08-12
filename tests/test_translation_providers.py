@@ -21,18 +21,22 @@ class TranslationProviderTest(unittest.TestCase):
         seen = {}
         def opener(request, timeout):
             seen.update(headers=dict(request.header_items()), body=json.loads(request.data), timeout=timeout)
-            return _Response({"choices": [{"message": {"content": "2025 예산"}}]})
+            return _Response({"choices": [{"message": {"content": "2025 예산"},"finish_reason":"stop"}],
+                              "usage":{"prompt_tokens":7,"completion_tokens":3}})
         result = OpenAICompatibleProvider(endpoint="https://api.test/v1/chat/completions",
             model="test-model", api_key="secret", opener=opener).translate(self.request)
         self.assertEqual(result.text, "2025 예산")
         self.assertEqual(result.provider, "external")
         self.assertEqual(result.model_version, "test-model")
+        self.assertEqual((result.prompt_tokens,result.completion_tokens,result.finish_reason),(7,3,"stop"))
         self.assertNotIn("secret", json.dumps(seen["body"]))
 
     def test_internal_provider_contract(self):
         result = OllamaProvider(endpoint="http://model.test/api/generate", model="qwen",
-            opener=lambda *_args, **_kwargs: _Response({"response": "2025 예산"})).translate(self.request)
+            opener=lambda *_args, **_kwargs: _Response({"response": "2025 예산","prompt_eval_count":6,
+                                                        "eval_count":3,"done_reason":"stop"})).translate(self.request)
         self.assertEqual((result.text, result.provider), ("2025 예산", "internal"))
+        self.assertEqual((result.prompt_tokens,result.completion_tokens,result.finish_reason),(6,3,"stop"))
 
     def test_external_structured_summary_contract(self):
         body={"summary_ko":"예산 정책을 설명한다.","key_points":["지출 확대"],"institutions":["Treasury"]}

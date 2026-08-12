@@ -17,7 +17,7 @@ class BeAppTest(unittest.TestCase):
         from delivery.be.app import create_app
 
         conn = db_pg.open_db(TEST_PG_DSN)
-        for t in ("document_summary_quality", "translation_jobs", "document_summaries", "crawl_jobs", "document_translations", "document_lang", "documents", "sites"):
+        for t in ("document_summary_quality", "translation_job_attempts", "translation_worker_heartbeats", "translation_system_observations", "translation_jobs", "translation_batches", "document_summaries", "crawl_jobs", "document_translations", "document_lang", "documents", "sites"):
             conn.execute(f"DROP TABLE IF EXISTS {t} CASCADE")
         conn.commit()
         db_pg.init_db(conn)
@@ -137,6 +137,7 @@ class BeAppTest(unittest.TestCase):
         })
         self.assertEqual(created.status_code, 200)
         self.assertEqual(created.json()["created"], 1)
+        self.assertIsInstance(created.json()["batch_id"],int)
         jid = created.json()["job_ids"][0]
         listed = self.client.get("/translation/jobs?status=pending").json()
         self.assertEqual(listed["summary"]["pending"], 1)
@@ -144,6 +145,12 @@ class BeAppTest(unittest.TestCase):
         cancelled = self.client.post(f"/translation/jobs/{jid}/cancel")
         self.assertEqual(cancelled.json()["status"], "cancelled")
         self.assertEqual(self.client.post(f"/translation/jobs/{jid}/retry").status_code, 409)
+        batches=self.client.get("/translation/batches").json()["batches"]
+        self.assertEqual(batches[0]["created_count"],1)
+        detail=self.client.get(f"/translation/batches/{created.json()['batch_id']}")
+        self.assertEqual(detail.status_code,200)
+        self.assertNotIn("source_text",str(detail.json()))
+        self.assertEqual(self.client.get("/translation/batches/999999").status_code,404)
 
     def test_translation_api_validation_and_missing(self):
         self.assertEqual(self.client.post("/translation/preview", json={"tasks": []}).status_code, 422)

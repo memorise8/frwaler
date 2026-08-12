@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import os
 import time
+import json
+import shutil
 
 from . import jobs
 from delivery.translation import jobs as translation_jobs
@@ -70,18 +72,33 @@ def main() -> int:
     if not args.dsn:
         raise SystemExit("LIBERTREE_PG_DSN or --dsn required")
 
+    worker_id=os.environ.get("TRANSLATION_WORKER_ID","delivery-worker-1")
     conn = db_pg.open_db(args.dsn)
     try:
+        translation_jobs.recover_stale(conn)
         if args.once:
-            if not translation_jobs.run_once(conn, provider_from_env):
+            _observe_host(conn,worker_id)
+            if not translation_jobs.run_once(conn, provider_from_env,worker_id=worker_id):
                 run_once(conn, delay=args.delay)
             return 0
         while True:
-            translated = translation_jobs.run_once(conn, provider_from_env)
+            _observe_host(conn,worker_id)
+            translation_jobs.recover_stale(conn)
+            translated = translation_jobs.run_once(conn, provider_from_env,worker_id=worker_id)
             if not translated and not run_once(conn, delay=args.delay):
                 time.sleep(args.poll)
     finally:
         conn.close()
+
+
+def _observe_host(conn,worker_id: str) -> None:
+    free=shutil.disk_usage(os.environ.get("LIBERTREE_BLOB_ROOT","/tmp")).free
+    conn.execute("""INSERT INTO translation_system_observations(worker_id,metric,value_numeric)
+      VALUES(%s,'disk_free_bytes',%s)""",(worker_id,free))
+    conn.execute("""INSERT INTO translation_worker_heartbeats(worker_id,status,last_seen_at,current_job_id)
+      VALUES(%s,'idle',now(),NULL) ON CONFLICT(worker_id) DO UPDATE SET status='idle',last_seen_at=now(),current_job_id=NULL""",(worker_id,))
+    conn.commit()
+    print(json.dumps({"event":"worker_heartbeat","worker_id":worker_id,"disk_free_bytes":free},separators=(",",":")),flush=True)
 
 
 if __name__ == "__main__":

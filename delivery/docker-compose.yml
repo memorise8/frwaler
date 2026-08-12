@@ -30,6 +30,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    logging: &delivery-logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
 
   fe:
     build:
@@ -48,6 +53,7 @@ services:
       timeout: 5s
       retries: 12
       start_period: 20s
+    logging: *delivery-logging
 
   worker:
     build:
@@ -62,6 +68,7 @@ services:
       TRANSLATION_EXTERNAL_API_KEY: ${TRANSLATION_EXTERNAL_API_KEY:-}
       TRANSLATION_INTERNAL_ENDPOINT: ${TRANSLATION_INTERNAL_ENDPOINT:-}
       TRANSLATION_INTERNAL_MODEL: ${TRANSLATION_INTERNAL_MODEL:-}
+      TRANSLATION_WORKER_ID: ${TRANSLATION_WORKER_ID:-delivery-worker-1}
     volumes:
       - blob:/data/blob
     depends_on:
@@ -72,6 +79,7 @@ services:
     # UndefinedTable on crawl_jobs. Restart on failure so it recovers once the
     # schema exists (be creates it on its own startup, seconds later).
     restart: on-failure:5
+    logging: *delivery-logging
 
 volumes:
   pgdata:

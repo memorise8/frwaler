@@ -4,16 +4,29 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import sys
 from typing import Iterable
 
 from .providers import ProviderError, SummaryRequest, TranslationRequest, TranslationProvider
 from .quality import GATE_VERSION, evaluate_summary
+from .safety import estimate, evaluate_circuit, refresh_batch
 
 FIELDS = {"title": "title", "description": "abstract"}
 TASKS = {
     "title_translation": ("title", "title", "translate"),
     "abstract_summary": ("description", "abstract", "summarize"),
 }
+
+
+def _event(name: str, job: dict, **values) -> None:
+    payload={"event":name,"worker_id":job.get("worker_id"),"batch_id":job.get("batch_id"),
+             "job_id":job.get("id"),"attempt_id":job.get("attempt_id"),**values}
+    print(json.dumps(payload,separators=(",",":"),ensure_ascii=True),file=sys.stdout,flush=True)
+
+
+def _endpoint_observation(conn, job: dict, healthy: bool) -> None:
+    conn.execute("""INSERT INTO translation_system_observations(worker_id,metric,value_boolean)
+      VALUES(%s,'endpoint_healthy',%s)""",(job.get("worker_id") or "worker-default",healthy))
 
 
 def fingerprint(text: str) -> str:
@@ -66,7 +79,8 @@ def _selected_tasks(*, tasks: Iterable[str] | None = None,
 
 
 def preview_targets(conn, *, fields: Iterable[str] | None = None, tasks: Iterable[str] | None = None, lang: str | None = None,
-                    site_id: str | None = None) -> dict:
+                    site_id: str | None = None, provider: str = "internal", model_version: str = "unknown",
+                    prompt_version: str = "title-summary-ko-v1", limit: int = 100) -> dict:
     selected = _selected_tasks(tasks=tasks, fields=fields)
     clauses, params = [], []
     if lang:
@@ -74,14 +88,21 @@ def preview_targets(conn, *, fields: Iterable[str] | None = None, tasks: Iterabl
     if site_id:
         clauses.append("d.site_id=%s"); params.append(site_id)
     where = " AND ".join(clauses) if clauses else "TRUE"
-    counts = {}
+    counts, input_chars = {}, 0
     for task in selected:
         _field, column, _task_type = TASKS[task]
-        row = conn.execute(f"""SELECT count(*) AS n FROM documents d
+        row = conn.execute(f"""SELECT count(*) AS n,COALESCE(sum(length(d.{column})),0) AS chars FROM documents d
             LEFT JOIN document_lang dl USING(seq_id)
             WHERE {where} AND length(trim(COALESCE(d.{column}, ''))) > 0""", params).fetchone()
         counts[task] = row["n"]
-    return {"counts": counts, "total": sum(counts.values())}
+        input_chars += row["chars"]
+    total = sum(counts.values())
+    bounded = min(total, limit)
+    bounded_chars = round(input_chars * bounded / total) if total else 0
+    return {"counts": counts, "total": total, **estimate(conn,input_chars=bounded_chars,jobs=bounded,
+        provider=provider,model_version=model_version,prompt_version=prompt_version),
+        "safety": evaluate_circuit(conn,provider=provider,model_version=model_version,
+                                   prompt_version=prompt_version,requested_limit=limit)}
 
 
 def enqueue_targets(conn, *, fields: Iterable[str] | None = None, tasks: Iterable[str] | None = None, provider: str, model_version: str,
@@ -92,6 +113,16 @@ def enqueue_targets(conn, *, fields: Iterable[str] | None = None, tasks: Iterabl
     if not 1 <= limit <= 1000:
         raise ValueError("limit must be between 1 and 1000")
     selected = _selected_tasks(tasks=tasks, fields=fields)
+    safety = evaluate_circuit(conn,provider=provider,model_version=model_version,
+                              prompt_version=prompt_version,requested_limit=limit)
+    if safety["open"]:
+        raise RuntimeError("circuit_open:" + ",".join(safety["reason_codes"]))
+    batch = conn.execute("""INSERT INTO translation_batches
+      (provider,model_version,prompt_version,tasks,filters,requested_limit,target_count,requested_by)
+      VALUES(%s,%s,%s,%s::jsonb,%s::jsonb,%s,0,%s) RETURNING id""",
+      (provider,model_version,prompt_version,json.dumps(selected),json.dumps({"lang":lang,"site_id":site_id}),
+       limit,requested_by)).fetchone()
+    batch_id = batch["id"]
     created, existing = [], 0
     for task in selected:
         field, column, task_type = TASKS[task]
@@ -107,26 +138,40 @@ def enqueue_targets(conn, *, fields: Iterable[str] | None = None, tasks: Iterabl
             inserted = conn.execute("""
                 INSERT INTO translation_jobs
                   (seq_id, source_field, task_type, source_fingerprint, source_lang, target_locale,
-                   provider, model_version, prompt_version, requested_by)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                   provider, model_version, prompt_version, requested_by,batch_id)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 ON CONFLICT DO NOTHING RETURNING id
             """, (row["seq_id"], field, task_type, source_fp, row["source_lang"], target_locale,
-                  provider, model_version, prompt_version, requested_by)).fetchone()
+                  provider, model_version, prompt_version, requested_by,batch_id)).fetchone()
             if inserted: created.append(inserted["id"])
             else: existing += 1
             if len(created) >= limit: break
         if len(created) >= limit: break
+    conn.execute("""UPDATE translation_batches SET target_count=%s,created_count=%s,existing_count=%s,
+      status=CASE WHEN %s=0 THEN 'completed' ELSE 'queued' END,
+      finished_at=CASE WHEN %s=0 THEN now() ELSE NULL END,updated_at=now() WHERE id=%s""",
+      (len(created)+existing,len(created),existing,len(created),len(created),batch_id))
     conn.commit()
-    return {"created": len(created), "existing": existing, "job_ids": created}
+    return {"batch_id":batch_id,"created": len(created), "existing": existing, "job_ids": created,"safety":safety}
 
 
-def claim_next(conn) -> dict | None:
+def claim_next(conn, worker_id: str = "worker-default", lease_seconds: int = 600) -> dict | None:
     row = conn.execute("""
-      UPDATE translation_jobs SET status='running', claimed_at=now(), updated_at=now(), attempts=attempts+1
+      UPDATE translation_jobs SET status='running', claimed_at=now(), updated_at=now(), attempts=attempts+1,
+        worker_id=%s,lease_expires_at=now()+make_interval(secs=>%s)
        WHERE id=(SELECT id FROM translation_jobs WHERE status='pending' AND next_attempt_at<=now()
                   ORDER BY created_at, id FOR UPDATE SKIP LOCKED LIMIT 1)
       RETURNING *
-    """).fetchone()
+    """,(worker_id,lease_seconds)).fetchone()
+    if row:
+        attempt = conn.execute("""INSERT INTO translation_job_attempts
+          (job_id,batch_id,attempt_no,worker_id,status) VALUES(%s,%s,%s,%s,'running') RETURNING id""",
+          (row["id"],row["batch_id"],row["attempts"],worker_id)).fetchone()
+        row = dict(row); row["attempt_id"] = attempt["id"]
+        conn.execute("""INSERT INTO translation_worker_heartbeats(worker_id,status,last_seen_at,current_job_id)
+          VALUES(%s,'running',now(),%s) ON CONFLICT(worker_id) DO UPDATE SET status='running',
+          last_seen_at=now(),current_job_id=EXCLUDED.current_job_id""",(worker_id,row["id"]))
+        refresh_batch(conn,row["batch_id"])
     conn.commit()
     return dict(row) if row else None
 
@@ -136,6 +181,10 @@ def run_job(conn, job: dict, provider: TranslationProvider) -> bool:
     row = conn.execute(f"SELECT title, meta_url, {column} AS source_text FROM documents WHERE seq_id=%s", (job["seq_id"],)).fetchone()
     if not row or not row["source_text"] or fingerprint(row["source_text"]) != job["source_fingerprint"]:
         conn.execute("UPDATE translation_jobs SET status='skipped', error_code='source_changed', finished_at=now(), updated_at=now() WHERE id=%s AND status='running'", (job["id"],))
+        conn.execute("""UPDATE translation_job_attempts SET status='skipped',error_code='source_changed',
+          retryable=false,finished_at=now() WHERE id=%s""",(job.get("attempt_id"),))
+        refresh_batch(conn,job.get("batch_id"))
+        _event("translation_attempt_finished",job,status="skipped",error_code="source_changed")
         conn.commit(); return False
     try:
         if job.get("task_type", "translate") == "summarize":
@@ -174,6 +223,14 @@ def run_job(conn, job: dict, provider: TranslationProvider) -> bool:
               input_chars=%s,output_chars=%s,latency_ms=%s,finished_at=now(),updated_at=now()
               WHERE id=%s AND status='running'""",
               (result.input_chars, result.output_chars, result.latency_ms, job["id"]))
+            conn.execute("""UPDATE translation_job_attempts SET status='completed',prompt_tokens=%s,
+              completion_tokens=%s,finish_reason=%s,input_chars=%s,output_chars=%s,latency_ms=%s,
+              finished_at=now() WHERE id=%s""",(result.prompt_tokens,result.completion_tokens,
+              result.finish_reason,result.input_chars,result.output_chars,result.latency_ms,job.get("attempt_id")))
+            refresh_batch(conn,job.get("batch_id"))
+            _endpoint_observation(conn,job,True)
+            _event("translation_attempt_finished",job,status="completed",latency_ms=result.latency_ms,
+                   prompt_tokens=result.prompt_tokens,completion_tokens=result.completion_tokens)
             conn.commit(); return True
         results = [provider.translate(TranslationRequest(chunk, job["source_lang"],
                                       job["target_locale"], job["source_field"]))
@@ -186,6 +243,11 @@ def run_job(conn, job: dict, provider: TranslationProvider) -> bool:
             next_attempt_at=CASE WHEN %s THEN now() + make_interval(secs => LEAST(3600, 30 * power(2, attempts-1))::int) ELSE next_attempt_at END,
             finished_at=CASE WHEN %s THEN NULL ELSE now() END, updated_at=now() WHERE id=%s AND status='running'""",
             ("pending" if retry else "failed", exc.code, str(exc)[:500], retry, retry, job["id"]))
+        conn.execute("""UPDATE translation_job_attempts SET status='failed',error_code=%s,retryable=%s,
+          finished_at=now() WHERE id=%s""",(exc.code,exc.retryable,job.get("attempt_id")))
+        refresh_batch(conn,job.get("batch_id"))
+        _endpoint_observation(conn,job,False)
+        _event("translation_attempt_finished",job,status="failed",error_code=exc.code)
         conn.commit(); return False
     conn.execute("""
       INSERT INTO document_translations
@@ -201,18 +263,60 @@ def run_job(conn, job: dict, provider: TranslationProvider) -> bool:
       input_chars=%s, output_chars=%s, latency_ms=%s, finished_at=now(), updated_at=now()
       WHERE id=%s AND status='running'""", (sum(r.input_chars for r in results),
           sum(r.output_chars for r in results), sum(r.latency_ms for r in results), job["id"]))
+    conn.execute("""UPDATE translation_job_attempts SET status='completed',prompt_tokens=%s,
+      completion_tokens=%s,finish_reason=%s,input_chars=%s,output_chars=%s,latency_ms=%s,
+      finished_at=now() WHERE id=%s""",(sum(r.prompt_tokens or 0 for r in results) or None,
+      sum(r.completion_tokens or 0 for r in results) or None,results[-1].finish_reason,
+      sum(r.input_chars for r in results),sum(r.output_chars for r in results),
+      sum(r.latency_ms for r in results),job.get("attempt_id")))
+    refresh_batch(conn,job.get("batch_id"))
+    _endpoint_observation(conn,job,True)
+    _event("translation_attempt_finished",job,status="completed",latency_ms=sum(r.latency_ms for r in results),
+           prompt_tokens=sum(r.prompt_tokens or 0 for r in results) or None,
+           completion_tokens=sum(r.completion_tokens or 0 for r in results) or None)
     conn.commit(); return True
 
 
-def run_once(conn, factory) -> bool:
-    job = claim_next(conn)
+def run_once(conn, factory, worker_id: str = "worker-default") -> bool:
+    job = claim_next(conn,worker_id=worker_id)
     if not job: return False
     try: provider = factory(job["provider"])
     except ProviderError as exc:
         conn.execute("UPDATE translation_jobs SET status='failed', error_code=%s, error_message=%s, finished_at=now(), updated_at=now() WHERE id=%s", (exc.code, str(exc)[:500], job["id"]))
+        conn.execute("UPDATE translation_job_attempts SET status='failed',error_code=%s,retryable=%s,finished_at=now() WHERE id=%s",(exc.code,exc.retryable,job.get("attempt_id")))
+        refresh_batch(conn,job.get("batch_id"))
+        _event("translation_attempt_finished",job,status="failed",error_code=exc.code)
+        conn.execute("""UPDATE translation_worker_heartbeats SET status='idle',last_seen_at=now(),
+          current_job_id=NULL WHERE worker_id=%s""",(worker_id,))
         conn.commit(); return True
-    run_job(conn, job, provider)
+    try:
+        run_job(conn, job, provider)
+    except Exception:  # noqa: BLE001 - do not expose source/provider payload in logs
+        conn.rollback()
+        conn.execute("""UPDATE translation_jobs SET status='failed',error_code='internal',
+          error_message='unexpected worker failure',finished_at=now(),updated_at=now() WHERE id=%s""",(job["id"],))
+        conn.execute("""UPDATE translation_job_attempts SET status='failed',error_code='internal',
+          retryable=true,finished_at=now() WHERE id=%s""",(job.get("attempt_id"),))
+        refresh_batch(conn,job.get("batch_id"));conn.commit()
+        _event("translation_attempt_finished",job,status="failed",error_code="internal")
+    conn.execute("""UPDATE translation_worker_heartbeats SET status='idle',last_seen_at=now(),
+      current_job_id=NULL WHERE worker_id=%s""",(worker_id,));conn.commit()
     return True
+
+
+def recover_stale(conn) -> int:
+    rows=conn.execute("""SELECT id,batch_id,attempts,max_attempts FROM translation_jobs
+      WHERE status='running' AND lease_expires_at<now() FOR UPDATE SKIP LOCKED""").fetchall()
+    for row in rows:
+        retry=row["attempts"]<row["max_attempts"]
+        conn.execute("""UPDATE translation_job_attempts SET status='stale_lease',error_code='worker_lease_expired',
+          retryable=%s,finished_at=now() WHERE job_id=%s AND attempt_no=%s AND status='running'""",
+          (retry,row["id"],row["attempts"]))
+        conn.execute("""UPDATE translation_jobs SET status=%s,error_code='worker_lease_expired',
+          worker_id=NULL,lease_expires_at=NULL,next_attempt_at=now(),finished_at=CASE WHEN %s THEN NULL ELSE now() END,
+          updated_at=now() WHERE id=%s""",("pending" if retry else "failed",retry,row["id"]))
+        refresh_batch(conn,row["batch_id"])
+    conn.commit();return len(rows)
 
 
 def list_jobs(conn, *, status=None, limit=50, offset=0) -> list[dict]:
@@ -224,10 +328,14 @@ def list_jobs(conn, *, status=None, limit=50, offset=0) -> list[dict]:
 
 
 def cancel(conn, job_id: int) -> dict | None:
-    row=conn.execute("UPDATE translation_jobs SET status='cancelled',finished_at=now(),updated_at=now() WHERE id=%s AND status='pending' RETURNING *",(job_id,)).fetchone(); conn.commit()
+    row=conn.execute("UPDATE translation_jobs SET status='cancelled',finished_at=now(),updated_at=now() WHERE id=%s AND status='pending' RETURNING *",(job_id,)).fetchone()
+    if row:refresh_batch(conn,row["batch_id"])
+    conn.commit()
     return dict(row) if row else None
 
 
 def retry(conn, job_id: int) -> dict | None:
-    row=conn.execute("UPDATE translation_jobs SET status='pending',next_attempt_at=now(),finished_at=NULL,error_code=NULL,error_message=NULL,updated_at=now() WHERE id=%s AND status='failed' AND attempts<max_attempts RETURNING *",(job_id,)).fetchone(); conn.commit()
+    row=conn.execute("UPDATE translation_jobs SET status='pending',next_attempt_at=now(),finished_at=NULL,error_code=NULL,error_message=NULL,updated_at=now() WHERE id=%s AND status='failed' AND attempts<max_attempts RETURNING *",(job_id,)).fetchone()
+    if row:refresh_batch(conn,row["batch_id"])
+    conn.commit()
     return dict(row) if row else None

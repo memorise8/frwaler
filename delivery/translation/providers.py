@@ -38,6 +38,9 @@ class TranslationResult:
     input_chars: int
     output_chars: int
     latency_ms: int
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+    finish_reason: str | None = None
 
 
 @dataclass(frozen=True)
@@ -51,6 +54,9 @@ class SummaryResult:
     input_chars: int
     output_chars: int
     latency_ms: int
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+    finish_reason: str | None = None
 
 
 class TranslationProvider(Protocol):
@@ -165,8 +171,11 @@ class OpenAICompatibleProvider:
             raise _http_error(exc) from exc
         if not output:
             raise ProviderError("invalid_response", "empty provider response", retryable=True)
+        usage = body.get("usage", {})
         return TranslationResult(output, self.name, self.model, self.prompt_version, len(text),
-                                 len(output), round((time.monotonic() - started) * 1000))
+                                 len(output), round((time.monotonic() - started) * 1000),
+                                 usage.get("prompt_tokens"), usage.get("completion_tokens"),
+                                 body["choices"][0].get("finish_reason"))
 
     def summarize(self, request: SummaryRequest) -> SummaryResult:
         text = request.text[:self.max_chars]
@@ -182,16 +191,20 @@ class OpenAICompatibleProvider:
         try:
             with self._opener(urllib.request.Request(self.endpoint, data=payload, headers=headers),
                               timeout=self.timeout) as response:
-                output = json.loads(response.read())["choices"][0]["message"]["content"].strip()
+                body = json.loads(response.read())
+                output = body["choices"][0]["message"]["content"].strip()
             summary, points, institutions = _summary_data(output)
         except ProviderError: raise
         except (KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError) as exc:
             raise ProviderError("invalid_response", "invalid provider response", retryable=True) from exc
         except Exception as exc:  # noqa: BLE001
             raise _http_error(exc) from exc
+        usage = body.get("usage", {})
         return SummaryResult(summary, points, institutions, self.name, self.model, self.prompt_version,
                              len(request.title) + len(text), len(output),
-                             round((time.monotonic() - started) * 1000))
+                             round((time.monotonic() - started) * 1000),
+                             usage.get("prompt_tokens"), usage.get("completion_tokens"),
+                             body["choices"][0].get("finish_reason"))
 
 
 class OllamaProvider:
@@ -215,7 +228,8 @@ class OllamaProvider:
         try:
             with self._opener(urllib.request.Request(self.endpoint, data=payload,
                               headers={"Content-Type": "application/json"}), timeout=self.timeout) as response:
-                output = json.loads(response.read()).get("response", "").strip()
+                body = json.loads(response.read())
+                output = body.get("response", "").strip()
         except (ValueError, json.JSONDecodeError) as exc:
             raise ProviderError("invalid_response", "invalid provider response", retryable=True) from exc
         except Exception as exc:  # noqa: BLE001
@@ -223,7 +237,8 @@ class OllamaProvider:
         if not output:
             raise ProviderError("invalid_response", "empty provider response", retryable=True)
         return TranslationResult(output, self.name, self.model, self.prompt_version, len(text),
-                                 len(output), round((time.monotonic() - started) * 1000))
+                                 len(output), round((time.monotonic() - started) * 1000),
+                                 body.get("prompt_eval_count"), body.get("eval_count"), body.get("done_reason"))
 
     def summarize(self, request: SummaryRequest) -> SummaryResult:
         text = request.text[:self.max_chars]
@@ -236,7 +251,8 @@ class OllamaProvider:
         try:
             with self._opener(urllib.request.Request(self.endpoint, data=payload,
                               headers={"Content-Type": "application/json"}), timeout=self.timeout) as response:
-                output = json.loads(response.read()).get("response", "").strip()
+                body = json.loads(response.read())
+                output = body.get("response", "").strip()
             summary, points, institutions = _summary_data(output)
         except ProviderError: raise
         except (ValueError, json.JSONDecodeError) as exc:
@@ -245,7 +261,8 @@ class OllamaProvider:
             raise _http_error(exc) from exc
         return SummaryResult(summary, points, institutions, self.name, self.model, self.prompt_version,
                              len(request.title) + len(text), len(output),
-                             round((time.monotonic() - started) * 1000))
+                             round((time.monotonic() - started) * 1000),
+                             body.get("prompt_eval_count"), body.get("eval_count"), body.get("done_reason"))
 
 
 def provider_from_env(name: str) -> TranslationProvider:
