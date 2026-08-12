@@ -22,6 +22,11 @@ def init_delivery_schema(conn) -> None:
             retry_of      BIGINT REFERENCES crawl_jobs(id),
             retried_by    BIGINT REFERENCES crawl_jobs(id),
             cancel_requested_at TIMESTAMPTZ
+            ,worker_id     TEXT
+            ,lease_expires_at TIMESTAMPTZ
+            ,attempts      INTEGER NOT NULL DEFAULT 0
+            ,max_attempts  INTEGER NOT NULL DEFAULT 3 CHECK (max_attempts BETWEEN 1 AND 10)
+            ,next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )
         """
     )
@@ -29,11 +34,19 @@ def init_delivery_schema(conn) -> None:
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS retry_of BIGINT REFERENCES crawl_jobs(id)")
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS retried_by BIGINT REFERENCES crawl_jobs(id)")
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS cancel_requested_at TIMESTAMPTZ")
+    conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS worker_id TEXT")
+    conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS lease_expires_at TIMESTAMPTZ")
+    conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS attempts INTEGER NOT NULL DEFAULT 0")
+    conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS max_attempts INTEGER NOT NULL DEFAULT 3")
+    conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT now()")
     conn.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_jobs_retry_of ON crawl_jobs(retry_of) WHERE retry_of IS NOT NULL"
     )
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_jobs_status_created ON crawl_jobs(status, created_at)"
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_jobs_queue_due ON crawl_jobs(status, next_attempt_at, created_at)"
     )
     conn.execute("""CREATE TABLE IF NOT EXISTS crawl_job_logs(
       id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,job_id BIGINT NOT NULL REFERENCES crawl_jobs(id) ON DELETE CASCADE,

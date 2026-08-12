@@ -10,6 +10,7 @@ import os
 import time
 import json
 import shutil
+import threading
 
 from . import jobs
 from . import schedules
@@ -43,6 +44,9 @@ def run_job(conn, job, crawler_registry=None, delay=1.0) -> int:
         inst = cls(db_conn=conn, delay=delay)
         inst.crawl(limit=job.get("limit_n"))
     except Exception as exc:  # noqa: BLE001
+        # SQL errors leave psycopg transactions aborted; clear that state before
+        # recording the durable failure transition.
+        conn.rollback()
         jobs.fail_job(conn, job["id"], f"{type(exc).__name__}: {exc}")
         return 0
     saved = _count_site_docs(conn, site_id) - before
@@ -50,12 +54,38 @@ def run_job(conn, job, crawler_registry=None, delay=1.0) -> int:
     return max(0, saved)
 
 
-def run_once(conn, crawler_registry=None, delay=1.0) -> bool:
+def _lease_loop(dsn: str, job_id: int, worker_id: str, stop: threading.Event,
+                *, interval: float = 60.0, lease_seconds: int = 600) -> None:
+    from crawler import db_pg
+    while not stop.wait(interval):
+        try:
+            lease_conn = db_pg.open_db(dsn)
+            try:
+                if not jobs.renew_lease(lease_conn, job_id, worker_id=worker_id, lease_seconds=lease_seconds):
+                    return
+            finally:
+                lease_conn.close()
+        except Exception:  # lease expiry recovery is the fallback when DB is unavailable
+            return
+
+
+def run_once(conn, crawler_registry=None, delay=1.0, *, worker_id: str = "crawl-worker-1",
+             lease_dsn: str | None = None) -> bool:
     """Claim+run one job. False if the queue was empty."""
-    job = jobs.claim_next_job(conn)
+    job = jobs.claim_next_job(conn, worker_id=worker_id)
     if job is None:
         return False
-    run_job(conn, job, crawler_registry=crawler_registry, delay=delay)
+    stop = threading.Event()
+    heartbeat = None
+    if lease_dsn:
+        heartbeat = threading.Thread(target=_lease_loop, args=(lease_dsn, job["id"], worker_id, stop), daemon=True)
+        heartbeat.start()
+    try:
+        run_job(conn, job, crawler_registry=crawler_registry, delay=delay)
+    finally:
+        stop.set()
+        if heartbeat:
+            heartbeat.join(timeout=2)
     return True
 
 
@@ -77,17 +107,19 @@ def main() -> int:
     conn = db_pg.open_db(args.dsn)
     try:
         translation_jobs.recover_stale(conn)
+        jobs.recover_stale(conn)
         if args.once:
             _observe_host(conn,worker_id)
             if not translation_jobs.run_once(conn, provider_from_env,worker_id=worker_id):
-                run_once(conn, delay=args.delay)
+                run_once(conn, delay=args.delay,worker_id=worker_id,lease_dsn=args.dsn)
             return 0
         while True:
             schedules.enqueue_due(conn)
             _observe_host(conn,worker_id)
             translation_jobs.recover_stale(conn)
+            jobs.recover_stale(conn)
             translated = translation_jobs.run_once(conn, provider_from_env,worker_id=worker_id)
-            if not translated and not run_once(conn, delay=args.delay):
+            if not translated and not run_once(conn, delay=args.delay,worker_id=worker_id,lease_dsn=args.dsn):
                 time.sleep(args.poll)
     finally:
         conn.close()

@@ -23,26 +23,63 @@ def enqueue_job(conn, site_id, mode="incremental", limit_n=None, requested_by=No
     return row["id"]
 
 
-def claim_next_job(conn) -> Optional[dict]:
+def claim_next_job(conn, *, worker_id: str = "crawl-worker-1", lease_seconds: int = 600) -> Optional[dict]:
     """Atomically claim one queued job (status -> running). None if queue empty."""
     row = conn.execute(
         """
-        UPDATE crawl_jobs SET status='running', started_at=now()
+        UPDATE crawl_jobs SET status='running', started_at=COALESCE(started_at,now()),
+               worker_id=%s, lease_expires_at=now()+make_interval(secs=>%s), attempts=attempts+1
          WHERE id = (
             SELECT id FROM crawl_jobs
-             WHERE status='queued'
+             WHERE status='queued' AND next_attempt_at<=now()
              ORDER BY created_at
              FOR UPDATE SKIP LOCKED
              LIMIT 1
          )
-        RETURNING id, site_id, mode, limit_n
-        """
+        RETURNING id, site_id, mode, limit_n, attempts, max_attempts
+        """, (worker_id, lease_seconds)
     ).fetchone()
     if row:_log(conn,row["id"],"started","Worker가 수집을 시작했습니다.")
     conn.commit()
     if row is None:
         return None
-    return {"id": row["id"], "site_id": row["site_id"], "mode": row["mode"], "limit_n": row["limit_n"]}
+    return dict(row)
+
+
+def renew_lease(conn, job_id: int, *, worker_id: str, lease_seconds: int = 600) -> bool:
+    row = conn.execute(
+        """UPDATE crawl_jobs SET lease_expires_at=now()+make_interval(secs=>%s)
+             WHERE id=%s AND worker_id=%s AND status IN ('running','cancelling') RETURNING id""",
+        (lease_seconds, job_id, worker_id),
+    ).fetchone()
+    conn.commit()
+    return row is not None
+
+
+def recover_stale(conn) -> int:
+    """Recover expired crawl leases without leaving permanent running rows."""
+    rows = conn.execute(
+        """SELECT id,status,attempts,max_attempts FROM crawl_jobs
+             WHERE status IN ('running','cancelling')
+               AND (lease_expires_at IS NULL OR lease_expires_at<now())
+             FOR UPDATE SKIP LOCKED"""
+    ).fetchall()
+    for row in rows:
+        if row["status"] == "cancelling":
+            status, event, message = "cancelled", "cancelled", "Worker 연결 종료 후 취소가 확정되었습니다."
+        elif row["attempts"] < row["max_attempts"]:
+            status, event, message = "queued", "lease_recovered", "Worker lease 만료로 작업이 다시 대기열에 등록되었습니다."
+        else:
+            status, event, message = "failed", "lease_expired", "Worker lease가 반복 만료되어 작업이 실패 처리되었습니다."
+        conn.execute(
+            """UPDATE crawl_jobs SET status=%s,worker_id=NULL,lease_expires_at=NULL,
+                 next_attempt_at=now(),finished_at=CASE WHEN %s IN ('failed','cancelled') THEN now() ELSE NULL END,
+                 error=CASE WHEN %s='failed' THEN 'worker lease expired' ELSE error END WHERE id=%s""",
+            (status, status, status, row["id"]),
+        )
+        _log(conn, row["id"], event, message, "warning" if status != "failed" else "error")
+    conn.commit()
+    return len(rows)
 
 
 def list_jobs(conn, *, status=None, limit=50, offset=0) -> list[dict]:
@@ -128,7 +165,8 @@ def retry_job(conn, job_id, *, requested_by=None) -> Optional[dict]:
 
 def finish_job(conn, job_id, saved_count) -> None:
     row = conn.execute(
-        """UPDATE crawl_jobs SET status='done', saved_count=%s, finished_at=now()
+        """UPDATE crawl_jobs SET status='done', saved_count=%s, finished_at=now(),
+               worker_id=NULL,lease_expires_at=NULL
             WHERE id=%s AND status='running' RETURNING status""",
         (int(saved_count or 0), job_id),
     ).fetchone()
@@ -136,7 +174,8 @@ def finish_job(conn, job_id, saved_count) -> None:
         _log(conn,job_id,"completed",f"수집 완료: 신규 문서 {int(saved_count or 0)}건")
     else:
         cancelled = conn.execute(
-            """UPDATE crawl_jobs SET status='cancelled', saved_count=%s, finished_at=now()
+            """UPDATE crawl_jobs SET status='cancelled', saved_count=%s, finished_at=now(),
+                  worker_id=NULL,lease_expires_at=NULL
                WHERE id=%s AND status='cancelling' RETURNING status""",
             (int(saved_count or 0), job_id),
         ).fetchone()
@@ -146,12 +185,14 @@ def finish_job(conn, job_id, saved_count) -> None:
 
 
 def fail_job(conn, job_id, error) -> None:
-    conn.execute(
-        """UPDATE crawl_jobs SET status='failed', error=%s, finished_at=now()
-            WHERE id=%s AND status IN ('running','cancelling')""",
+    row = conn.execute(
+        """UPDATE crawl_jobs SET status='failed', error=%s, finished_at=now(),
+               worker_id=NULL,lease_expires_at=NULL
+            WHERE id=%s AND status IN ('running','cancelling') RETURNING id""",
         ((error or "")[:2000], job_id),
-    )
-    _log(conn,job_id,"failed","수집 작업이 실패했습니다.","error")
+    ).fetchone()
+    if row:
+        _log(conn,job_id,"failed","수집 작업이 실패했습니다.","error")
     conn.commit()
 
 

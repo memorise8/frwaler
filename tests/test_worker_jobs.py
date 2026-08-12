@@ -88,6 +88,35 @@ class WorkerJobsTest(unittest.TestCase):
         self.assertEqual(row2["status"], "failed")
         self.assertEqual(row2["error"], "boom")
 
+    def test_sql_failure_rolls_back_and_records_failed_state(self):
+        from delivery.worker import jobs, worker
+        class SqlFailureCrawler:
+            def __init__(self, db_conn, delay): self.conn = db_conn
+            def crawl(self, limit=None): self.conn.execute("SELECT * FROM deliberately_missing_table")
+        jid = jobs.enqueue_job(self.conn, "sql-failure")
+        self.assertTrue(worker.run_once(self.conn, {"sql-failure": SqlFailureCrawler}, delay=0))
+        row = self.conn.execute("SELECT status,error,finished_at FROM crawl_jobs WHERE id=%s",(jid,)).fetchone()
+        self.assertEqual(row["status"], "failed")
+        self.assertIn("UndefinedTable", row["error"])
+        self.assertIsNotNone(row["finished_at"])
+
+    def test_expired_lease_is_requeued_then_failed_at_attempt_limit(self):
+        from delivery.worker import jobs
+        jid = jobs.enqueue_job(self.conn, "s1")
+        jobs.claim_next_job(self.conn, worker_id="dead-worker", lease_seconds=1)
+        self.conn.execute("UPDATE crawl_jobs SET lease_expires_at=now()-interval '1 second'")
+        self.conn.commit()
+        self.assertEqual(jobs.recover_stale(self.conn), 1)
+        row = self.conn.execute("SELECT status,worker_id FROM crawl_jobs WHERE id=%s",(jid,)).fetchone()
+        self.assertEqual(row["status"], "queued")
+        self.assertIsNone(row["worker_id"])
+        self.conn.execute("UPDATE crawl_jobs SET status='running',attempts=max_attempts,lease_expires_at=NULL WHERE id=%s",(jid,))
+        self.conn.commit()
+        self.assertEqual(jobs.recover_stale(self.conn), 1)
+        row = self.conn.execute("SELECT status,error FROM crawl_jobs WHERE id=%s",(jid,)).fetchone()
+        self.assertEqual(row["status"], "failed")
+        self.assertEqual(row["error"], "worker lease expired")
+
     def test_list_jobs_newest_first_and_filter(self):
         from delivery.worker import jobs
         first = jobs.enqueue_job(self.conn, "s1")
