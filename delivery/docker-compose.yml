@@ -36,6 +36,7 @@ services:
       LIBERTREE_PG_DSN: postgresql://${POSTGRES_USER:-libertree}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-libertree}
       LIBERTREE_DB_BACKEND: postgres
       LIBERTREE_BLOB_ROOT: /data/blob
+      DELIVERY_AUTH_MODE: ${DELIVERY_AUTH_MODE:-token}
       DELIVERY_API_TOKEN: ${DELIVERY_API_TOKEN:-}
     volumes:
       - blob:/data/blob

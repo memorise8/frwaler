@@ -19,6 +19,7 @@
 ## 보안
 
 - `POSTGRES_PASSWORD`, `DELIVERY_API_TOKEN`, LLM key는 `.env` mode 0600에만 둔다.
+- `DELIVERY_AUTH_MODE=token`을 유지하며, 32자 이상의 `DELIVERY_API_TOKEN`이 없으면 BE는 기동하지 않는다. `disabled`는 격리된 로컬 개발 전용이다.
 - FE만 고객에게 공개하고 PostgreSQL·BE·GPU endpoint는 사설망/loopback으로 제한한다.
 - Cloudflare Access에서 고객 한 명의 계정만 허용한다.
 - 고객 브라우저에는 Delivery API token과 LLM key를 전달하지 않는다.

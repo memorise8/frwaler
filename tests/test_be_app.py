@@ -19,6 +19,8 @@ class BeAppTest(unittest.TestCase):
         from delivery.db import schema
         from delivery.be.app import create_app
 
+        self.auth_patch=mock.patch.dict(os.environ,{"DELIVERY_AUTH_MODE":"disabled"})
+        self.auth_patch.start()
         conn = db_pg.open_db(TEST_PG_DSN)
         for t in ("document_summary_quality", "translation_job_attempts", "translation_worker_heartbeats", "translation_system_observations", "translation_jobs", "translation_batches", "document_summaries", "crawl_job_logs", "crawl_schedules", "crawl_jobs", "document_translations", "document_lang", "documents", "sites"):
             conn.execute(f"DROP TABLE IF EXISTS {t} CASCADE")
@@ -79,11 +81,26 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(self.client.get(f"/documents/{self.seq}/pdf").status_code,404)
 
     def test_mutations_require_configured_operator_token(self):
-        with mock.patch.dict(os.environ,{"DELIVERY_API_TOKEN":"test-secret-token"}):
+        token="test-secret-token-that-is-at-least-32-characters"
+        with mock.patch.dict(os.environ,{"DELIVERY_AUTH_MODE":"token","DELIVERY_API_TOKEN":token}):
             denied=self.client.post("/jobs",json={"site_id":"s1"})
-            allowed=self.client.post("/jobs",json={"site_id":"s1"},headers={"x-delivery-token":"test-secret-token"})
+            allowed=self.client.post("/jobs",json={"site_id":"s1"},headers={"x-delivery-token":token})
         self.assertEqual(denied.status_code,401)
         self.assertEqual(allowed.status_code,200)
+
+    def test_missing_operator_token_configuration_fails_closed(self):
+        with mock.patch.dict(os.environ,{"DELIVERY_AUTH_MODE":"token","DELIVERY_API_TOKEN":""}):
+            response=self.client.post("/jobs",json={"site_id":"s1"})
+        self.assertEqual(response.status_code,503)
+
+    def test_backend_startup_auth_validation_rejects_missing_secret(self):
+        from delivery.be.access import validate_auth_config
+        with mock.patch.dict(os.environ,{"DELIVERY_AUTH_MODE":"token","DELIVERY_API_TOKEN":""}):
+            with self.assertRaisesRegex(RuntimeError,"at least 32"):
+                validate_auth_config()
+
+    def tearDown(self):
+        self.auth_patch.stop()
 
     def test_get_document_with_latest_completed_translations(self):
         from crawler import db_pg
