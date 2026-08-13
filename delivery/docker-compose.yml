@@ -22,6 +22,36 @@ services:
       timeout: 3s
       retries: 20
 
+  # Fails fast with a clear, self-describing message when POSTGRES_PASSWORD
+  # is unset, before migrate/be/worker ever open a connection with it.
+  #
+  # Why this exists: `postgres.environment.POSTGRES_PASSWORD` defaults to
+  # empty (see above) so that Compose's whole-file interpolation doesn't
+  # hard-fail unrelated commands like `docker compose build fe`. On a
+  # *fresh* volume, the official postgres entrypoint still refuses to
+  # start when the password is unset/empty — that failure is already
+  # clear. But on an *already-initialised* volume, postgres starts fine
+  # (the password lives in the database, not the env var), and
+  # migrate/be/worker would silently receive a DSN with no password and
+  # die with an opaque authentication error that never mentions
+  # POSTGRES_PASSWORD. This guard runs before them and names the real
+  # cause instead. It reuses the postgres:16 image already pulled for the
+  # `postgres` service purely for its shell — it never touches the
+  # database.
+  postgres-password-guard:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        if [ -z "$$POSTGRES_PASSWORD" ]; then
+          echo "POSTGRES_PASSWORD is not set. migrate/be/worker cannot authenticate to postgres." >&2
+          echo "Set POSTGRES_PASSWORD in delivery/.env -- see delivery/README.md for setup." >&2
+          exit 1
+        fi
+    restart: "no"
+
   migrate:
     profiles: ["tools"]
     build:
@@ -33,6 +63,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      postgres-password-guard:
+        condition: service_completed_successfully
     restart: "no"
 
   be:
@@ -57,6 +89,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      postgres-password-guard:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:3001/ready', timeout=3)\""]
       interval: 10s
@@ -109,6 +143,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      postgres-password-guard:
+        condition: service_completed_successfully
     # Schema changes are explicit (`docker compose --profile tools run --rm migrate`).
     # A missing migration makes both BE readiness and Worker startup fail visibly.
     restart: on-failure:5
