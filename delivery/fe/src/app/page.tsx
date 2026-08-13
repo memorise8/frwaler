@@ -175,7 +175,7 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
             })}</tbody>
           </table>
           {!visible.length && <div className="empty">조건에 맞는 크롤러가 없습니다.</div>}
-        </div> : <div className="catalogue-prompt"><span aria-hidden="true">↗</span><div><strong>검색어 또는 조건을 선택해 주세요.</strong><p>사이트 이름으로 검색하거나 위의 상태·실패 유형·국가·자료 유형 중 하나를 선택하면 해당 크롤러만 목록에 표시됩니다.</p></div></div>}
+        </div> : <div className="catalogue-prompt"><span aria-hidden="true">↗</span><div><strong>검색어를 입력하거나 조건을 선택해 주세요.</strong><p>사이트 이름으로 검색하거나 위의 상태·실패 유형·국가·자료 유형 중 하나를 선택하면 해당 크롤러만 목록에 표시됩니다.</p></div></div>}
 
         {hasCatalogueSelection && <nav className="pagination" aria-label="페이지 이동">
           {page > 1 ? <Link href={pageHref(filters, page - 1)}>← 이전</Link> : <span />}
