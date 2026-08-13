@@ -213,6 +213,20 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(self.client.post("/translation/operations/observations",json={"endpoint_healthy":True,"model_version":"qwen","gpu_utilization_percent":101}).status_code,422)
         self.assertEqual(self.client.post("/translation/operations/observations",json={"endpoint_healthy":True}).status_code,422)
 
+    def test_operations_uses_configured_model_when_query_omits_it(self):
+        response = self.client.post(
+            "/translation/operations/observations",
+            json={"endpoint_healthy": True, "model_version": "configured-qwen"},
+        )
+        self.assertEqual(response.status_code, 200)
+        with mock.patch.dict(
+            os.environ, {"TRANSLATION_INTERNAL_MODEL": "configured-qwen"}
+        ):
+            body = self.client.get("/translation/operations").json()
+        self.assertTrue(
+            any(row["metric"] == "endpoint_healthy" for row in body["observations"])
+        )
+
     def test_observation_write_prunes_expired_metrics(self):
         from crawler import db_pg
         conn=db_pg.open_db(TEST_PG_DSN)

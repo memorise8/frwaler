@@ -59,8 +59,18 @@ def verify_required_schema(conn) -> None:
       WHERE table_schema='public' AND table_name='documents' AND column_name='fts'""").fetchone()
     if fts is None:
         missing.append("documents.fts")
-    for table, column in (("document_lang", "lang"), ("document_translations", "source_field"),
-                          ("document_translations", "prompt_version")):
+    required_columns = (
+        ("document_lang", "lang"),
+        ("document_translations", "source_field"),
+        ("document_translations", "prompt_version"),
+        ("crawl_jobs", "worker_id"),
+        ("crawl_jobs", "lease_expires_at"),
+        ("crawl_jobs", "max_attempts"),
+        ("crawl_jobs", "next_attempt_at"),
+        ("translation_system_observations", "provider"),
+        ("translation_system_observations", "model_version"),
+    )
+    for table, column in required_columns:
         present = conn.execute("""SELECT 1 FROM information_schema.columns
           WHERE table_schema='public' AND table_name=%s AND column_name=%s""", (table, column)).fetchone()
         if present is None:

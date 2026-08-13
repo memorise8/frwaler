@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
-"""최소 납품 BE (Phase 0): health, 문서 조회, 작업 enqueue/조회.
-
-DB 접근은 crawler.db_pg 단일 경로. 요청마다 짧은 커넥션을 연다(Phase 0 단순화;
-커넥션 풀은 Phase 1 에서 도입).
-"""
+"""Libertree Delivery HTTP API."""
 from __future__ import annotations
 
 from datetime import date
+import os
 from typing import Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Path, Query
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
-from crawler import db_pg
 from delivery.be.catalogue import CatalogueFilters, collect_catalogue, load_taxonomy
 from delivery.be.document_detail import collect_document_detail
 from delivery.be.freshness import collect_freshness
@@ -27,6 +23,8 @@ from delivery.worker import schedules
 from delivery.translation import jobs as translation_jobs
 from delivery.db.schema import verify_required_schema
 from delivery.translation.observations import prune as prune_observations, record as record_observation
+from delivery.be.database import get_database
+from delivery.be.cache import TTLCache
 
 
 class JobIn(BaseModel):
@@ -87,9 +85,13 @@ class TranslationJobIn(TranslationSelection):
 def create_app(dsn: str) -> FastAPI:
     app = FastAPI(title="Libertree Delivery BE (Phase 0)")
     taxonomy = load_taxonomy()
+    database = get_database(dsn)
+    aggregates = TTLCache(
+        float(os.environ.get("DELIVERY_AGGREGATE_CACHE_SECONDS", "30"))
+    )
 
     def _conn():
-        return db_pg.open_db(dsn)
+        return database.connection()
 
     @app.get("/health")
     def health():
@@ -99,8 +101,8 @@ def create_app(dsn: str) -> FastAPI:
                 conn.execute("SELECT 1").fetchone()
             finally:
                 conn.close()
-        except Exception as exc:  # noqa: BLE001
-            return JSONResponse(status_code=503, content={"status": "error", "detail": str(exc)[:200]})
+        except Exception:  # database coordinates and errors are not public health data
+            return JSONResponse(status_code=503, content={"status": "error"})
         return {"status": "ok"}
 
     @app.get("/ready")
@@ -194,19 +196,25 @@ def create_app(dsn: str) -> FastAPI:
 
     @app.get("/stats")
     def get_stats():
-        conn = _conn()
-        try:
-            return collect_stats(conn)
-        finally:
-            conn.close()
+        def collect():
+            conn = _conn()
+            try:
+                return collect_stats(conn)
+            finally:
+                conn.close()
+
+        return aggregates.get_or_create("stats", collect)
 
     @app.get("/freshness")
     def get_freshness():
-        conn = _conn()
-        try:
-            return collect_freshness(conn)
-        finally:
-            conn.close()
+        def collect():
+            conn = _conn()
+            try:
+                return collect_freshness(conn)
+            finally:
+                conn.close()
+
+        return aggregates.get_or_create("freshness", collect)
 
     @app.post("/translation/preview")
     def post_translation_preview(body: TranslationPreviewIn):
@@ -242,11 +250,24 @@ def create_app(dsn: str) -> FastAPI:
         return result
 
     @app.get("/translation/operations")
-    def get_translation_operations(provider: Literal["external","internal"]="internal",
-                                   model_version: str="unknown",prompt_version: str="title-summary-ko-v1"):
-        conn=_conn()
-        try:return operations(conn,provider=provider,model_version=model_version,prompt_version=prompt_version)
-        finally:conn.close()
+    def get_translation_operations(
+        provider: Literal["external", "internal"] = "internal",
+        model_version: str | None = None,
+        prompt_version: str = "title-summary-ko-v1",
+    ):
+        effective_model = model_version or os.environ.get(
+            "TRANSLATION_INTERNAL_MODEL" if provider == "internal" else "TRANSLATION_EXTERNAL_MODEL"
+        )
+        conn = _conn()
+        try:
+            return operations(
+                conn,
+                provider=provider,
+                model_version=effective_model or "unknown",
+                prompt_version=prompt_version,
+            )
+        finally:
+            conn.close()
 
     @app.post("/translation/operations/observations")
     def post_translation_observations(body:ObservationIn,operator:str=Depends(require_operator)):

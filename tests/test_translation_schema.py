@@ -106,11 +106,15 @@ class TestTranslationSchema(unittest.TestCase):
     def test_preflight_rejects_papers_and_symlink_drift_and_never_writes(self) -> None:
         root = canonical_db_path().parents[2]
         papers = root / "data" / "papers.db"
-        compatibility_link = root / "data" / "libertree.db"
         with self.assertRaisesRegex(TranslationSchemaError, "canonical"):
             preflight_canonical_db(papers)
-        with self.assertRaisesRegex(TranslationSchemaError, "symlink"):
-            preflight_canonical_db(compatibility_link)
+        # Build the compatibility-link condition inside the test instead of
+        # depending on a particular checkout having a legacy data symlink.
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            compatibility_link = Path(temporary_directory) / "libertree.db"
+            compatibility_link.symlink_to(papers)
+            with self.assertRaisesRegex(TranslationSchemaError, "symlink"):
+                preflight_canonical_db(compatibility_link)
 
     def test_migrate_translation_schema_reports_busy_database(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
