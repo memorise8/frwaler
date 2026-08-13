@@ -124,6 +124,7 @@ def enqueue_targets(conn, *, fields: Iterable[str] | None = None, tasks: Iterabl
        limit,requested_by)).fetchone()
     batch_id = batch["id"]
     created, existing = [], 0
+    candidates: dict[str, list[dict]] = {}
     for task in selected:
         field, column, task_type = TASKS[task]
         clauses, params = [f"length(trim(COALESCE(d.{column}, ''))) > 0"], []
@@ -132,8 +133,17 @@ def enqueue_targets(conn, *, fields: Iterable[str] | None = None, tasks: Iterabl
         rows = conn.execute(f"""SELECT d.seq_id, d.{column} AS source_text,
                                       COALESCE(dl.lang, 'unknown') AS source_lang
               FROM documents d LEFT JOIN document_lang dl USING(seq_id)
-             WHERE {' AND '.join(clauses)} ORDER BY d.seq_id LIMIT %s""", (*params, limit - len(created))).fetchall()
-        for row in rows:
+             WHERE {' AND '.join(clauses)} ORDER BY d.seq_id LIMIT %s""", (*params, limit)).fetchall()
+        candidates[task] = [dict(row) for row in rows]
+    # Round-robin by task so selecting title+summary cannot consume the whole
+    # batch with titles before the first summary is queued.
+    for index in range(max((len(rows) for rows in candidates.values()), default=0)):
+        for task in selected:
+            rows = candidates[task]
+            if index >= len(rows):
+                continue
+            field, _column, task_type = TASKS[task]
+            row = rows[index]
             source_fp = fingerprint(row["source_text"])
             inserted = conn.execute("""
                 INSERT INTO translation_jobs
@@ -145,8 +155,10 @@ def enqueue_targets(conn, *, fields: Iterable[str] | None = None, tasks: Iterabl
                   provider, model_version, prompt_version, requested_by,batch_id)).fetchone()
             if inserted: created.append(inserted["id"])
             else: existing += 1
-            if len(created) >= limit: break
-        if len(created) >= limit: break
+            if len(created) >= limit:
+                break
+        if len(created) >= limit:
+            break
     conn.execute("""UPDATE translation_batches SET target_count=%s,created_count=%s,existing_count=%s,
       status=CASE WHEN %s=0 THEN 'completed' ELSE 'queued' END,
       finished_at=CASE WHEN %s=0 THEN now() ELSE NULL END,updated_at=now() WHERE id=%s""",

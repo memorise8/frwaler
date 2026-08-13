@@ -67,6 +67,21 @@ class TranslationJobsTest(unittest.TestCase):
         self.assertEqual((attempt["status"],attempt["attempt_no"],attempt["worker_id"]),("completed",1,"worker-default"))
         self.assertEqual((batch["status"],batch["created_count"]),("completed",1))
 
+    def test_combined_tasks_are_balanced_within_batch_limit(self):
+        from crawler import db_pg
+        from delivery.translation import jobs
+        for index in (2, 3):
+            seq=db_pg.insert_document(self.conn,{"site_id":"s1","post_number":str(index),
+              "meta_url":f"https://s/{index}","title":f"Title {index}","abstract":f"Abstract {index}"})
+            self.conn.execute("INSERT INTO document_lang VALUES(%s,'en')",(seq,))
+        self.conn.commit()
+        made=jobs.enqueue_targets(self.conn,tasks=["title_translation","abstract_summary"],
+          provider="internal",model_version="test-model",prompt_version="title-summary-ko-v1",limit=4)
+        self.assertEqual(made["created"],4)
+        counts={row["task_type"]:row["n"] for row in self.conn.execute(
+          "SELECT task_type,count(*) AS n FROM translation_jobs GROUP BY task_type").fetchall()}
+        self.assertEqual(counts,{"translate":2,"summarize":2})
+
     def test_circuit_breaker_blocks_large_batch_without_baseline(self):
         from delivery.translation import jobs
         with self.assertRaisesRegex(RuntimeError,"circuit_open:insufficient_baseline"):
