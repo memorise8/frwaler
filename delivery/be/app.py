@@ -26,6 +26,7 @@ from delivery.worker import jobs
 from delivery.worker import schedules
 from delivery.translation import jobs as translation_jobs
 from delivery.db.schema import verify_required_schema
+from delivery.translation.observations import prune as prune_observations, record as record_observation
 
 
 class JobIn(BaseModel):
@@ -52,6 +53,8 @@ class ScheduleIn(BaseModel):
 class ObservationIn(BaseModel):
     model_config=ConfigDict(extra="forbid")
     worker_id:str=Field(default="gpu0-observer",min_length=1,max_length=100)
+    provider:Literal["internal","external"]="internal"
+    model_version:str|None=Field(default=None,max_length=128)
     endpoint_healthy:bool
     gpu_memory_free_bytes:int|None=None
     gpu_utilization_percent:float|None=None
@@ -247,15 +250,18 @@ def create_app(dsn: str) -> FastAPI:
 
     @app.post("/translation/operations/observations")
     def post_translation_observations(body:ObservationIn,operator:str=Depends(require_operator)):
-        if not 0<=len(body.worker_id)<=100 or body.gpu_utilization_percent is not None and not 0<=body.gpu_utilization_percent<=100:
+        if not body.model_version or not body.model_version.strip() or body.gpu_utilization_percent is not None and not 0<=body.gpu_utilization_percent<=100:
             raise HTTPException(status_code=422,detail="invalid observation")
         numeric={"gpu_memory_free_bytes":body.gpu_memory_free_bytes,"gpu_utilization_percent":body.gpu_utilization_percent,"disk_free_bytes":body.disk_free_bytes}
         if any(value is not None and value<0 for value in numeric.values()):raise HTTPException(status_code=422,detail="invalid observation")
         conn=_conn()
         try:
-            conn.execute("INSERT INTO translation_system_observations(worker_id,metric,value_boolean) VALUES(%s,'endpoint_healthy',%s)",(body.worker_id,body.endpoint_healthy))
+            record_observation(conn,worker_id=body.worker_id,provider=body.provider,
+              model_version=body.model_version.strip(),metric="endpoint_healthy",value=body.endpoint_healthy)
             for metric,value in numeric.items():
-                if value is not None:conn.execute("INSERT INTO translation_system_observations(worker_id,metric,value_numeric) VALUES(%s,%s,%s)",(body.worker_id,metric,value))
+                if value is not None:record_observation(conn,worker_id=body.worker_id,provider=body.provider,
+                  model_version=body.model_version.strip(),metric=metric,value=value)
+            prune_observations(conn)
             conn.commit()
         finally:conn.close()
         return {"accepted":True}

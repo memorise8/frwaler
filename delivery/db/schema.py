@@ -231,11 +231,17 @@ def init_delivery_schema(conn) -> None:
     )""")
     conn.execute("""CREATE TABLE IF NOT EXISTS translation_system_observations (
       id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,worker_id TEXT NOT NULL,
+      provider TEXT CHECK(provider IS NULL OR provider IN('internal','external')),
+      model_version TEXT,
       metric TEXT NOT NULL,value_numeric DOUBLE PRECISION,value_boolean BOOLEAN,
       observed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       CHECK ((value_numeric IS NOT NULL)::int + (value_boolean IS NOT NULL)::int = 1)
     )""")
+    conn.execute("ALTER TABLE translation_system_observations ADD COLUMN IF NOT EXISTS provider TEXT")
+    conn.execute("ALTER TABLE translation_system_observations ADD COLUMN IF NOT EXISTS model_version TEXT")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_translation_observations_metric ON translation_system_observations(metric,observed_at DESC)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_translation_observations_scope ON translation_system_observations(provider,model_version,metric,observed_at DESC)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_translation_observations_age ON translation_system_observations(observed_at)")
     conn.execute("""
       CREATE TABLE IF NOT EXISTS document_summaries (
         summary_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

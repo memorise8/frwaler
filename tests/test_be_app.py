@@ -206,11 +206,26 @@ class BeAppTest(unittest.TestCase):
 
     def test_operator_can_report_numeric_gpu0_observations(self):
         response=self.client.post("/translation/operations/observations",json={"endpoint_healthy":True,
-          "gpu_memory_free_bytes":2048,"gpu_utilization_percent":42,"disk_free_bytes":4096})
+          "model_version":"qwen","gpu_memory_free_bytes":2048,"gpu_utilization_percent":42,"disk_free_bytes":4096})
         self.assertEqual(response.status_code,200)
-        body=self.client.get("/translation/operations").json()
+        body=self.client.get("/translation/operations?model_version=qwen").json()
         self.assertTrue(any(row["metric"]=="gpu_memory_free_bytes" for row in body["observations"]))
-        self.assertEqual(self.client.post("/translation/operations/observations",json={"endpoint_healthy":True,"gpu_utilization_percent":101}).status_code,422)
+        self.assertEqual(self.client.post("/translation/operations/observations",json={"endpoint_healthy":True,"model_version":"qwen","gpu_utilization_percent":101}).status_code,422)
+        self.assertEqual(self.client.post("/translation/operations/observations",json={"endpoint_healthy":True}).status_code,422)
+
+    def test_observation_write_prunes_expired_metrics(self):
+        from crawler import db_pg
+        conn=db_pg.open_db(TEST_PG_DSN)
+        conn.execute("""INSERT INTO translation_system_observations
+          (worker_id,provider,model_version,metric,value_boolean,observed_at)
+          VALUES('old','internal','qwen','endpoint_healthy',false,now()-interval '8 days')""")
+        conn.commit();conn.close()
+        response=self.client.post("/translation/operations/observations",json={
+          "endpoint_healthy":True,"model_version":"qwen"})
+        self.assertEqual(response.status_code,200)
+        conn=db_pg.open_db(TEST_PG_DSN)
+        count=conn.execute("SELECT count(*) AS n FROM translation_system_observations WHERE worker_id='old'").fetchone()["n"]
+        conn.close();self.assertEqual(count,0)
 
     def test_post_and_get_job(self):
         r = self.client.post("/jobs", json={"site_id": "s1", "mode": "full", "limit_n": 3})

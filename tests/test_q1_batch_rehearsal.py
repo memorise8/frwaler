@@ -69,8 +69,16 @@ class Q1BatchRehearsalTest(unittest.TestCase):
           prompt_version="q1-rehearsal-v1",requested_limit=101)
         self.assertFalse(safety["open"]);self.assertEqual(safety["baseline_sample"],100)
 
-        self.conn.execute("""INSERT INTO translation_system_observations(worker_id,metric,value_boolean)
-          VALUES('q1-worker','endpoint_healthy',false)""");self.conn.commit()
+        self.conn.execute("""INSERT INTO translation_system_observations
+          (worker_id,provider,model_version,metric,value_boolean)
+          VALUES('external-worker','external','external-model','endpoint_healthy',false)""");self.conn.commit()
+        isolated=evaluate_circuit(self.conn,provider="internal",model_version="q1-rehearsal-model",
+          prompt_version="q1-rehearsal-v1",requested_limit=100)
+        self.assertNotIn("endpoint_unhealthy",isolated["reason_codes"])
+
+        self.conn.execute("""INSERT INTO translation_system_observations
+          (worker_id,provider,model_version,metric,value_boolean)
+          VALUES('q1-worker','internal','q1-rehearsal-model','endpoint_healthy',false)""");self.conn.commit()
         stopped=evaluate_circuit(self.conn,provider="internal",model_version="q1-rehearsal-model",
           prompt_version="q1-rehearsal-v1",requested_limit=100)
         self.assertTrue(stopped["open"]);self.assertIn("endpoint_unhealthy",stopped["reason_codes"])

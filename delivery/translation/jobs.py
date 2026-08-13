@@ -10,6 +10,7 @@ from typing import Iterable
 from .providers import ProviderError, SummaryRequest, TranslationRequest, TranslationProvider
 from .quality import GATE_VERSION, evaluate_summary
 from .safety import estimate, evaluate_circuit, refresh_batch
+from .observations import record as record_observation
 
 FIELDS = {"title": "title", "description": "abstract"}
 TASKS = {
@@ -25,8 +26,8 @@ def _event(name: str, job: dict, **values) -> None:
 
 
 def _endpoint_observation(conn, job: dict, healthy: bool) -> None:
-    conn.execute("""INSERT INTO translation_system_observations(worker_id,metric,value_boolean)
-      VALUES(%s,'endpoint_healthy',%s)""",(job.get("worker_id") or "worker-default",healthy))
+    record_observation(conn,worker_id=job.get("worker_id") or "worker-default",
+      provider=job["provider"],model_version=job["model_version"],metric="endpoint_healthy",value=healthy)
 
 
 def fingerprint(text: str) -> str:

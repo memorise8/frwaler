@@ -17,6 +17,9 @@ from . import schedules
 from delivery.translation import jobs as translation_jobs
 from delivery.translation.providers import provider_from_env
 from crawler.base_crawler import CrawlCancelled
+from delivery.translation.observations import prune as prune_observations, record as record_observation
+
+_last_observation_prune = 0.0
 
 
 def _registry(crawler_registry):
@@ -146,9 +149,13 @@ def main() -> int:
 
 
 def _observe_host(conn,worker_id: str) -> None:
+    global _last_observation_prune
     free=shutil.disk_usage(os.environ.get("LIBERTREE_BLOB_ROOT","/tmp")).free
-    conn.execute("""INSERT INTO translation_system_observations(worker_id,metric,value_numeric)
-      VALUES(%s,'disk_free_bytes',%s)""",(worker_id,free))
+    record_observation(conn,worker_id=worker_id,metric="disk_free_bytes",value=free)
+    now=time.monotonic()
+    if now-_last_observation_prune>=3600:
+        prune_observations(conn)
+        _last_observation_prune=now
     conn.execute("""INSERT INTO translation_worker_heartbeats(worker_id,status,last_seen_at,current_job_id)
       VALUES(%s,'idle',now(),NULL) ON CONFLICT(worker_id) DO UPDATE SET status='idle',last_seen_at=now(),current_job_id=NULL""",(worker_id,))
     conn.commit()

@@ -41,7 +41,10 @@ def operations(conn, *, provider: str, model_version: str, prompt_version: str) 
     workers=conn.execute("""SELECT worker_id,status,last_seen_at,current_job_id
       FROM translation_worker_heartbeats ORDER BY last_seen_at DESC""").fetchall()
     observations=conn.execute("""SELECT DISTINCT ON(metric) metric,value_numeric,value_boolean,observed_at
-      FROM translation_system_observations ORDER BY metric,observed_at DESC""").fetchall()
+      FROM translation_system_observations WHERE (provider=%s OR provider IS NULL)
+        AND (model_version=%s OR model_version IS NULL)
+      ORDER BY metric,(provider IS NOT NULL) DESC,(model_version IS NOT NULL) DESC,observed_at DESC""",
+      (provider,model_version)).fetchall()
     return {"measured_at":datetime.now(timezone.utc),"workers":[dict(r) for r in workers],
             "observations":[dict(r) for r in observations],
             "safety":evaluate_circuit(conn,provider=provider,model_version=model_version,

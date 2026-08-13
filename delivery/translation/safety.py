@@ -33,9 +33,15 @@ def evaluate_circuit(conn, *, provider: str, model_version: str, prompt_version:
       FROM document_summary_quality q JOIN document_summaries s USING(summary_id)
       WHERE s.model_version=%s AND s.prompt_version=%s""",(model_version,prompt_version)).fetchone()
     for metric in ("endpoint_healthy", "disk_free_bytes", "gpu_memory_free_bytes", "gpu_utilization_percent"):
-        row = conn.execute("""SELECT value_numeric,value_boolean,observed_at
-          FROM translation_system_observations WHERE metric=%s
-            AND observed_at >= now()-interval '15 minutes' ORDER BY observed_at DESC LIMIT 1""", (metric,)).fetchone()
+        if metric == "endpoint_healthy":
+            scope = "provider=%s AND (model_version=%s OR model_version IS NULL)"
+        else:
+            scope = "(provider=%s OR provider IS NULL) AND (model_version=%s OR model_version IS NULL)"
+        row = conn.execute(f"""SELECT value_numeric,value_boolean,observed_at
+          FROM translation_system_observations WHERE metric=%s AND {scope}
+            AND observed_at >= now()-interval '15 minutes'
+          ORDER BY (provider IS NOT NULL) DESC,(model_version IS NOT NULL) DESC,observed_at DESC LIMIT 1""",
+          (metric,provider,model_version)).fetchone()
         if row:
             observations[metric] = {"value": row["value_boolean"] if row["value_boolean"] is not None else row["value_numeric"],
                                     "observed_at": row["observed_at"]}
