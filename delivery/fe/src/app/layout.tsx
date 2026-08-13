@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SiteNav } from "./site-nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -26,12 +27,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <TreeRing />
               <span>Libertree</span>
             </Link>
-            <nav aria-label="운영 메뉴">
-              <Link className="nav-link nav-link-active" href="/">크롤러 상태</Link>
-              <Link className="nav-link" href="/schedules">수집 예약</Link>
-              <Link className="nav-link" href="/documents">문서 탐색</Link>
-              <Link className="nav-link" href="/translations">번역 작업</Link>
-            </nav>
+            <SiteNav />
             <p className="console-mark">운영 콘솔 · MVP</p>
           </div>
         </header>
