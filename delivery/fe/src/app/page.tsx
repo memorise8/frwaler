@@ -107,18 +107,18 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
           <aside className="snapshot-note"><strong>정합성</strong><span>고아 문서 {databaseStats.integrity.orphan_documents.toLocaleString("ko-KR")}건 · PDF 메타데이터 누락 {databaseStats.integrity.missing_pdf_metadata.toLocaleString("ko-KR")}건 · blob 파일 전수 검사는 별도 manifest 기준</span></aside>
           <div className="taxonomy-grid" aria-label="실제 문서 분포">
             <article className="taxonomy-panel">
-              <div className="taxonomy-heading"><div><p className="eyebrow">DOCUMENTS BY COUNTRY</p><h2>국가별 문서</h2></div><span>DB 실측</span></div>
+              <div className="taxonomy-heading"><div><p className="eyebrow">DOCUMENTS BY COUNTRY</p><h3>국가별 문서</h3></div><span>DB 실측</span></div>
               <div className="taxonomy-bars">{measuredCountryCounts.slice(0, 10).map(([name, count]) => <div className="measure-row" key={name}><span>{name}</span><i><b style={{ width: `${(count / measuredCountryCounts[0]![1]) * 100}%` }} /></i><strong>{count.toLocaleString("ko-KR")}</strong></div>)}</div>
             </article>
             <article className="taxonomy-panel">
-              <div className="taxonomy-heading"><div><p className="eyebrow">DOCUMENTS BY MATERIAL</p><h2>자료 유형별 문서</h2></div><span>미분류는 기타</span></div>
+              <div className="taxonomy-heading"><div><p className="eyebrow">DOCUMENTS BY MATERIAL</p><h3>자료 유형별 문서</h3></div><span>미분류는 기타</span></div>
               <div className="type-grid">{measuredTypeCounts.map(([name, count]) => <div className="measure-tile" key={name}><span>{name}</span><strong>{count.toLocaleString("ko-KR")}</strong></div>)}</div>
             </article>
           </div>
         </> : <aside className="snapshot-note snapshot-note--unavailable"><strong>실데이터 연결 대기</strong><span>BE 또는 PostgreSQL에 연결할 수 없습니다. 아래 수집기 감사 스냅샷은 계속 확인할 수 있습니다.</span></aside>}
 
         <div className="database-status">
-          <div className="section-heading"><div><p className="eyebrow">FRESHNESS</p><h2>사이트 최신화</h2></div><p>{freshnessStats ? `측정 ${new Date(freshnessStats.measured_at).toLocaleString("ko-KR")}` : "현재 측정 불가"}</p></div>
+          <div className="section-heading"><div><p className="eyebrow">FRESHNESS</p><h3>사이트 최신화</h3></div><p>{freshnessStats ? `측정 ${new Date(freshnessStats.measured_at).toLocaleString("ko-KR")}` : "현재 측정 불가"}</p></div>
           {freshnessStats ? <div className="summary-grid">
             <article className="summary-card summary-card--secondary summary-card--good"><span>7일 이내</span><strong>{(freshnessStats.summary.distribution.within_7_days ?? 0).toLocaleString("ko-KR")}</strong><small>사이트</small></article>
             <article className="summary-card summary-card--secondary"><span>8~30일</span><strong>{(freshnessStats.summary.distribution["8_to_30_days"] ?? 0).toLocaleString("ko-KR")}</strong><small>사이트</small></article>
@@ -146,17 +146,17 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
 
         <div className="taxonomy-grid" aria-label="국가 및 자료 유형 분류">
           <article className="taxonomy-panel">
-            <div className="taxonomy-heading"><div><p className="eyebrow">BY COUNTRY</p><h2>국가별 수집기</h2></div><span>{countries.length}개 국가·지역</span></div>
+            <div className="taxonomy-heading"><div><p className="eyebrow">BY COUNTRY</p><h3>국가별 수집기</h3></div><span>{countries.length}개 국가·지역</span></div>
             <div className="taxonomy-bars">{countryCounts.slice(0, 10).map(([name, count]) => <Link href={`/?country=${encodeURIComponent(name)}`} key={name}><span>{name}</span><i><b style={{ width: `${(count / countryCounts[0]![1]) * 100}%` }} /></i><strong>{count}</strong></Link>)}</div>
           </article>
           <article className="taxonomy-panel">
-            <div className="taxonomy-heading"><div><p className="eyebrow">BY MATERIAL</p><h2>자료 유형별 수집기</h2></div><span>{docTypes.length}개 유형</span></div>
+            <div className="taxonomy-heading"><div><p className="eyebrow">BY MATERIAL</p><h3>자료 유형별 수집기</h3></div><span>{docTypes.length}개 유형</span></div>
             <div className="type-grid">{docTypeCounts.map(([name, count]) => <Link href={`/?docType=${encodeURIComponent(name)}`} key={name}><span>{name}</span><strong>{count}</strong></Link>)}</div>
           </article>
         </div>
 
         <section className="catalogue-section">
-          <div className="section-heading"><div><p className="eyebrow">STATUS CATALOGUE</p><h2>{country || docType ? `${[country, docType].filter(Boolean).join(" · ")} 크롤러` : "분류별 크롤러 목록"}</h2></div><p>{hasCatalogueSelection ? `${selectedRows.length.toLocaleString("ko-KR")}개 결과` : "사이트를 검색하거나 조건을 선택하세요"}</p></div>
+          <div className="section-heading"><div><p className="eyebrow">STATUS CATALOGUE</p><h3>{country || docType ? `${[country, docType].filter(Boolean).join(" · ")} 크롤러` : "분류별 크롤러 목록"}</h3></div><p>{hasCatalogueSelection ? `${selectedRows.length.toLocaleString("ko-KR")}개 결과` : "사이트를 검색하거나 조건을 선택하세요"}</p></div>
           <form className="filters filters--taxonomy" action="/">
             <label className="query-field"><span>사이트 검색</span><input defaultValue={query} name="q" placeholder="사이트 이름 또는 site_id" /></label>
             <label><span>상태</span><select defaultValue={status} name="status"><option value="">전체 상태</option><option value="healthy">정상</option><option value="unhealthy">실패</option></select></label>
