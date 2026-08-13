@@ -187,6 +187,9 @@ def run_job(conn, job: dict, provider: TranslationProvider) -> bool:
         _event("translation_attempt_finished",job,status="skipped",error_code="source_changed")
         conn.commit(); return False
     try:
+        if (provider.name != job["provider"] or provider.model != job["model_version"]
+                or provider.prompt_version != job["prompt_version"]):
+            raise ProviderError("configuration", "provider provenance does not match queued job", retryable=False)
         if job.get("task_type", "translate") == "summarize":
             result = provider.summarize(SummaryRequest(row["title"] or "", row["source_text"],
                                         job["source_lang"], job["target_locale"]))
@@ -246,7 +249,8 @@ def run_job(conn, job: dict, provider: TranslationProvider) -> bool:
         conn.execute("""UPDATE translation_job_attempts SET status='failed',error_code=%s,retryable=%s,
           finished_at=now() WHERE id=%s""",(exc.code,exc.retryable,job.get("attempt_id")))
         refresh_batch(conn,job.get("batch_id"))
-        _endpoint_observation(conn,job,False)
+        if exc.code != "configuration":
+            _endpoint_observation(conn,job,False)
         _event("translation_attempt_finished",job,status="failed",error_code=exc.code)
         conn.commit(); return False
     conn.execute("""
@@ -280,7 +284,9 @@ def run_job(conn, job: dict, provider: TranslationProvider) -> bool:
 def run_once(conn, factory, worker_id: str = "worker-default") -> bool:
     job = claim_next(conn,worker_id=worker_id)
     if not job: return False
-    try: provider = factory(job["provider"])
+    try:
+        provider = factory(job["provider"], model_version=job["model_version"],
+                           prompt_version=job["prompt_version"])
     except ProviderError as exc:
         conn.execute("UPDATE translation_jobs SET status='failed', error_code=%s, error_message=%s, finished_at=now(), updated_at=now() WHERE id=%s", (exc.code, str(exc)[:500], job["id"]))
         conn.execute("UPDATE translation_job_attempts SET status='failed',error_code=%s,retryable=%s,finished_at=now() WHERE id=%s",(exc.code,exc.retryable,job.get("attempt_id")))

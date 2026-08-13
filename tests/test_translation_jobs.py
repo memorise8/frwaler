@@ -131,7 +131,8 @@ class TranslationJobsTest(unittest.TestCase):
             model_version="test-model",prompt_version="title-summary-ko-v1",limit=1)
         self.assertEqual(made["created"],1)
         claimed=jobs.claim_next(self.conn); self.assertEqual(claimed["task_type"],"summarize")
-        self.assertTrue(jobs.run_job(self.conn,claimed,_Provider()))
+        provider=_Provider();provider.prompt_version="title-summary-ko-v1"
+        self.assertTrue(jobs.run_job(self.conn,claimed,provider))
         saved=self.conn.execute("""SELECT s.summary_text,s.key_points,s.institutions,s.source_facts,
             q.decision,q.reason_codes,q.evidence FROM document_summaries s
             JOIN document_summary_quality q USING(summary_id)""").fetchone()
@@ -141,6 +142,15 @@ class TranslationJobsTest(unittest.TestCase):
         self.assertEqual(saved["decision"],"rejected")
         self.assertIn("invalid_sentence_count",saved["reason_codes"])
         self.assertNotIn("source_text",saved["evidence"])
+
+    def test_provider_provenance_mismatch_fails_without_saving_result(self):
+        from delivery.translation import jobs
+        self._enqueue(); claimed=jobs.claim_next(self.conn)
+        provider=_Provider();provider.model="different-model"
+        self.assertFalse(jobs.run_job(self.conn,claimed,provider))
+        row=self.conn.execute("SELECT status,error_code FROM translation_jobs WHERE id=%s",(claimed["id"],)).fetchone()
+        self.assertEqual((row["status"],row["error_code"]),("failed","configuration"))
+        self.assertEqual(self.conn.execute("SELECT count(*) AS n FROM document_translations").fetchone()["n"],0)
 
 
 if __name__ == "__main__": unittest.main()

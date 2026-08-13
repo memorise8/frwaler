@@ -1,9 +1,12 @@
 import json
+import os
 import unittest
 import urllib.error
+from unittest import mock
 
 from delivery.translation.providers import (
     OllamaProvider, OpenAICompatibleProvider, ProviderError, SummaryRequest, TranslationRequest,
+    provider_from_env,
 )
 
 
@@ -73,6 +76,20 @@ class TranslationProviderTest(unittest.TestCase):
         with self.assertRaises(ProviderError) as invalid:
             provider.translate(self.request)
         self.assertEqual(invalid.exception.code, "invalid_response")
+
+    def test_environment_factory_binds_exact_model_and_prompt(self):
+        with mock.patch.dict(os.environ, {
+            "TRANSLATION_INTERNAL_ENDPOINT": "http://model.test/api/generate",
+            "TRANSLATION_INTERNAL_MODEL": "qwen-approved",
+        }, clear=False):
+            provider = provider_from_env("internal", model_version="qwen-approved",
+                                         prompt_version="title-summary-ko-v1")
+            self.assertEqual((provider.model, provider.prompt_version),
+                             ("qwen-approved", "title-summary-ko-v1"))
+            with self.assertRaises(ProviderError) as caught:
+                provider_from_env("internal", model_version="unapproved-model",
+                                  prompt_version="title-summary-ko-v1")
+            self.assertEqual(caught.exception.code, "configuration")
 
 
 if __name__ == "__main__": unittest.main()

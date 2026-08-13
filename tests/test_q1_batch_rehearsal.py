@@ -56,7 +56,7 @@ class Q1BatchRehearsalTest(unittest.TestCase):
         self.assertEqual(made["created"],100)
         with contextlib.redirect_stdout(io.StringIO()) as logs:
             for _ in range(100):
-                self.assertTrue(jobs.run_once(self.conn,lambda _name:_GroundedProvider(),worker_id="q1-worker"))
+                self.assertTrue(jobs.run_once(self.conn,lambda _name,**_config:_GroundedProvider(),worker_id="q1-worker"))
         events=logs.getvalue().splitlines()
         self.assertEqual(len(events),100)
         self.assertNotIn("정부는",logs.getvalue())

@@ -10,7 +10,7 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Callable, Protocol
 
-ERROR_CODES = {"auth", "quota", "rate_limit", "timeout", "invalid_response", "internal"}
+ERROR_CODES = {"auth", "quota", "rate_limit", "timeout", "invalid_response", "configuration", "internal"}
 
 
 @dataclass(frozen=True)
@@ -265,18 +265,23 @@ class OllamaProvider:
                              body.get("prompt_eval_count"), body.get("eval_count"), body.get("done_reason"))
 
 
-def provider_from_env(name: str) -> TranslationProvider:
+def provider_from_env(name: str, *, model_version: str, prompt_version: str) -> TranslationProvider:
     if name == "external":
         endpoint = os.environ.get("TRANSLATION_EXTERNAL_ENDPOINT")
         model = os.environ.get("TRANSLATION_EXTERNAL_MODEL")
         if not endpoint or not model:
-            raise ProviderError("internal", "external translation provider is not configured", retryable=False)
+            raise ProviderError("configuration", "external translation provider is not configured", retryable=False)
+        if model_version != model:
+            raise ProviderError("configuration", "queued model does not match configured external model", retryable=False)
         return OpenAICompatibleProvider(endpoint=endpoint, model=model,
-                                        api_key=os.environ.get("TRANSLATION_EXTERNAL_API_KEY"))
+                                        api_key=os.environ.get("TRANSLATION_EXTERNAL_API_KEY"),
+                                        prompt_version=prompt_version)
     if name == "internal":
         endpoint = os.environ.get("TRANSLATION_INTERNAL_ENDPOINT")
         model = os.environ.get("TRANSLATION_INTERNAL_MODEL")
         if not endpoint or not model:
-            raise ProviderError("internal", "internal translation provider is not configured", retryable=False)
-        return OllamaProvider(endpoint=endpoint, model=model)
-    raise ProviderError("internal", f"unknown translation provider: {name}", retryable=False)
+            raise ProviderError("configuration", "internal translation provider is not configured", retryable=False)
+        if model_version != model:
+            raise ProviderError("configuration", "queued model does not match configured internal model", retryable=False)
+        return OllamaProvider(endpoint=endpoint, model=model, prompt_version=prompt_version)
+    raise ProviderError("configuration", f"unknown translation provider: {name}", retryable=False)
