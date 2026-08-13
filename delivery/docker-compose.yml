@@ -5,7 +5,14 @@ services:
     image: postgres:16
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-libertree}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      # Compose interpolates this whole file for any targeted build/config
+      # (e.g. `docker compose build fe`), even when postgres isn't touched.
+      # A required (`:?`) reference here would hard-fail those unrelated
+      # commands, so we default to empty and rely on the official postgres
+      # entrypoint, which independently refuses to start when
+      # POSTGRES_PASSWORD is unset/empty and POSTGRES_HOST_AUTH_METHOD is
+      # not "trust" (see docker-entrypoint.sh: docker_verify_minimum_env).
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
       POSTGRES_DB: ${POSTGRES_DB:-libertree}
     volumes:
       - pgdata:/var/lib/postgresql/data

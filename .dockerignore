@@ -17,6 +17,11 @@ finolaw/node_modules/
 finolaw/.next/
 finolaw/out/
 node_modules/
+# Recursive rules: catches these dirs at any depth (e.g. delivery/fe/),
+# so host-installed deps/build output never leak into an image build
+# context and clobber a fresh `npm ci` inside the Dockerfile.
+**/node_modules/
+**/.next/
 
 # Python caches
 __pycache__/
