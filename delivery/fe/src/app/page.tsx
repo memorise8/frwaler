@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Fragment } from "react";
 import { AUDIT_DATE, getCrawlerHealth, type CrawlerHealth } from "@/lib/crawler-health";
 import { getDatabaseStats, getFreshnessStats } from "@/lib/database-stats";
+import { hasActiveCatalogueFilter } from "@/lib/catalogue-filters";
 import { JobDashboard } from "./job-dashboard";
 
 export const dynamic = "force-dynamic";
@@ -69,7 +70,7 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
     const bGroup = groupBy === "country" ? b.country : groupBy === "docType" ? b.docType : "";
     return aGroup.localeCompare(bGroup, "ko") || a.siteName.localeCompare(b.siteName, "ko");
   });
-  const hasCatalogueSelection = Boolean(country || docType);
+  const hasCatalogueSelection = hasActiveCatalogueFilter({ query, status, category, country, docType });
   const selectedRows = hasCatalogueSelection ? filtered : [];
   const pageCount = Math.max(1, Math.ceil(selectedRows.length / PAGE_SIZE));
   const page = Math.min(Math.max(requestedPage, 1), pageCount);
@@ -141,7 +142,7 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
       </section>
 
       <section className="catalogue-section">
-        <div className="section-heading"><div><p className="eyebrow">STATUS CATALOGUE</p><h2>{country || docType ? `${[country, docType].filter(Boolean).join(" · ")} 크롤러` : "분류별 크롤러 목록"}</h2></div><p>{hasCatalogueSelection ? `${selectedRows.length.toLocaleString("ko-KR")}개 결과` : "국가 또는 자료 유형을 선택하세요"}</p></div>
+        <div className="section-heading"><div><p className="eyebrow">STATUS CATALOGUE</p><h2>{country || docType ? `${[country, docType].filter(Boolean).join(" · ")} 크롤러` : "분류별 크롤러 목록"}</h2></div><p>{hasCatalogueSelection ? `${selectedRows.length.toLocaleString("ko-KR")}개 결과` : "사이트를 검색하거나 조건을 선택하세요"}</p></div>
         <form className="filters filters--taxonomy" action="/">
           <label className="query-field"><span>사이트 검색</span><input defaultValue={query} name="q" placeholder="사이트 이름 또는 site_id" /></label>
           <label><span>상태</span><select defaultValue={status} name="status"><option value="">전체 상태</option><option value="healthy">정상</option><option value="unhealthy">실패</option></select></label>
@@ -174,7 +175,7 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
             })}</tbody>
           </table>
           {!visible.length && <div className="empty">조건에 맞는 크롤러가 없습니다.</div>}
-        </div> : <div className="catalogue-prompt"><span aria-hidden="true">↗</span><div><strong>분류를 먼저 선택해 주세요.</strong><p>위의 국가별 또는 자료 유형별 항목을 선택하면 해당 크롤러만 목록에 표시됩니다.</p></div></div>}
+        </div> : <div className="catalogue-prompt"><span aria-hidden="true">↗</span><div><strong>검색어 또는 조건을 선택해 주세요.</strong><p>사이트 이름으로 검색하거나 위의 상태·실패 유형·국가·자료 유형 중 하나를 선택하면 해당 크롤러만 목록에 표시됩니다.</p></div></div>}
 
         {hasCatalogueSelection && <nav className="pagination" aria-label="페이지 이동">
           {page > 1 ? <Link href={pageHref(filters, page - 1)}>← 이전</Link> : <span />}
