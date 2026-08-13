@@ -149,6 +149,7 @@ class GenericCrawler(BaseCrawler):
         page_num = pagination.get("start", 1)
         page_param = pagination.get("param", "page")
         saved = 0
+        unchanged_pages = 0
 
         while True:
             if limit is not None and saved >= limit:
@@ -170,6 +171,7 @@ class GenericCrawler(BaseCrawler):
                 break
 
             print(f"[{self.site_id}] Page {page_num}: found {len(items)} items")
+            page_created = 0
 
             for item_info in items:
                 if limit is not None and saved >= limit:
@@ -185,9 +187,18 @@ class GenericCrawler(BaseCrawler):
 
                 if paper:
                     self._save_paper(paper)
-                    saved += 1
+                    created = self.delivery_mode == "full" or self._last_save_created
+                    if created:
+                        saved += 1
+                        page_created += 1
                     label = f"{saved}/{limit}" if limit else str(saved)
                     print(f"[{self.site_id}] Saved {label} papers...")
+
+            if self.delivery_mode == "incremental":
+                unchanged_pages = unchanged_pages + 1 if page_created == 0 else 0
+                if unchanged_pages >= 2:
+                    print(f"[{self.site_id}] Two unchanged pages reached; incremental crawl complete.")
+                    break
 
             page_num += pagination.get("step", 1)
 
@@ -430,7 +441,8 @@ class GenericCrawler(BaseCrawler):
                 "metadata": json.dumps({}, ensure_ascii=False),
             }
             self._save_paper(paper)
-            saved += 1
+            if self.delivery_mode == "full" or self._last_save_created:
+                saved += 1
             label = f"{saved}/{limit}" if limit else str(saved)
             print(f"[{self.site_id}] Saved {label} items...")
 

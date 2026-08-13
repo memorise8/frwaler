@@ -11,6 +11,10 @@ from . import db as db_module
 from . import storage as storage_module
 
 
+class CrawlCancelled(RuntimeError):
+    """Cooperative stop raised at safe request/save boundaries."""
+
+
 class BaseCrawler(ABC):
     """Abstract base class for all site crawlers."""
 
@@ -31,6 +35,9 @@ class BaseCrawler(ABC):
             "Accept-Encoding": "gzip, deflate, br",
             "Connection": "keep-alive",
         })
+        self.delivery_mode = "incremental"
+        self.delivery_should_cancel = lambda: False
+        self._last_save_created = False
 
     # ------------------------------------------------------------------
     # Abstract properties / methods
@@ -65,13 +72,19 @@ class BaseCrawler(ABC):
     # Helpers
     # ------------------------------------------------------------------
 
+    def _check_cancelled(self):
+        if self.delivery_should_cancel():
+            raise CrawlCancelled("crawl cancellation requested")
+
     def _request(self, url, params=None, method="GET", retries=3, **kwargs):
         """Make an HTTP request with rate-limiting, retries, and error handling.
 
         Returns the ``requests.Response`` on success, or ``None`` on error.
         """
         for attempt in range(retries):
+            self._check_cancelled()
             time.sleep(self._delay)
+            self._check_cancelled()
             try:
                 response = self._session.request(
                     method, url, params=params, timeout=30, **kwargs
@@ -83,6 +96,7 @@ class BaseCrawler(ABC):
                 if attempt < retries - 1:
                     wait = (attempt + 1) * 3
                     print(f"[{self.site_id}] Retrying in {wait}s...")
+                    self._check_cancelled()
                     time.sleep(wait)
                 else:
                     return None
@@ -105,6 +119,7 @@ class BaseCrawler(ABC):
           already on the legacy libertree branch. Returns the legacy
           ``documents.id``.
         """
+        self._check_cancelled()
         from . import libertree_adapter
         paper_dict.setdefault("site_id", self.site_id)
         doc_dict = libertree_adapter.paper_to_document(paper_dict)
@@ -157,6 +172,7 @@ class BaseCrawler(ABC):
 
         ``site_id`` defaults to ``self.site_id`` when omitted.
         """
+        self._check_cancelled()
         doc_dict.setdefault("site_id", self.site_id)
         return db_module.upsert_document(self._conn, doc_dict)
 
@@ -178,11 +194,21 @@ class BaseCrawler(ABC):
         at libertree.db. Callers can also invoke it directly when the
         crawler explicitly opens a libertree connection.
         """
+        self._check_cancelled()
         from . import db_backend
         if not isinstance(doc, dict):
             raise TypeError("doc must be a dict")
         doc.setdefault("site_id", self.site_id)
-        return db_backend.get_backend().insert_document(self._conn, doc)
+        backend = db_backend.get_backend()
+        existing = backend.find_by_dedup_key(
+            self._conn, doc["site_id"], doc.get("post_number"), doc.get("meta_url")
+        )
+        if self.delivery_mode == "incremental" and existing is not None:
+            self._last_save_created = False
+            return existing
+        seq_id = backend.insert_document(self._conn, doc)
+        self._last_save_created = existing is None
+        return seq_id
 
     def _conn_is_libertree(self):
         """Return True if the bound DB connection looks like libertree.db.

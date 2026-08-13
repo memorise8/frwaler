@@ -16,6 +16,7 @@ from . import jobs
 from . import schedules
 from delivery.translation import jobs as translation_jobs
 from delivery.translation.providers import provider_from_env
+from crawler.base_crawler import CrawlCancelled
 
 
 def _registry(crawler_registry):
@@ -30,7 +31,7 @@ def _count_site_docs(conn, site_id) -> int:
     return int(row["n"])
 
 
-def run_job(conn, job, crawler_registry=None, delay=1.0) -> int:
+def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> int:
     """Run one claimed job. Returns saved doc count (0 on failure)."""
     os.environ.setdefault("LIBERTREE_DB_BACKEND", "postgres")
     site_id = job["site_id"]
@@ -42,7 +43,14 @@ def run_job(conn, job, crawler_registry=None, delay=1.0) -> int:
     before = _count_site_docs(conn, site_id)
     try:
         inst = cls(db_conn=conn, delay=delay)
+        inst.delivery_mode = job.get("mode", "incremental")
+        inst.delivery_should_cancel = should_cancel or (lambda: False)
         inst.crawl(limit=job.get("limit_n"))
+    except CrawlCancelled:
+        conn.rollback()
+        saved = max(0, _count_site_docs(conn, site_id) - before)
+        jobs.finish_job(conn, job["id"], saved_count=saved)
+        return saved
     except Exception as exc:  # noqa: BLE001
         # SQL errors leave psycopg transactions aborted; clear that state before
         # recording the durable failure transition.
@@ -80,12 +88,24 @@ def run_once(conn, crawler_registry=None, delay=1.0, *, worker_id: str = "crawl-
     if lease_dsn:
         heartbeat = threading.Thread(target=_lease_loop, args=(lease_dsn, job["id"], worker_id, stop), daemon=True)
         heartbeat.start()
+    control_conn = None
+    if lease_dsn:
+        from crawler import db_pg
+        control_conn = db_pg.open_db(lease_dsn)
+    def should_cancel():
+        target = control_conn or conn
+        row = target.execute("SELECT status FROM crawl_jobs WHERE id=%s", (job["id"],)).fetchone()
+        if control_conn:
+            control_conn.rollback()
+        return row is not None and row["status"] == "cancelling"
     try:
-        run_job(conn, job, crawler_registry=crawler_registry, delay=delay)
+        run_job(conn, job, crawler_registry=crawler_registry, delay=delay,should_cancel=should_cancel)
     finally:
         stop.set()
         if heartbeat:
             heartbeat.join(timeout=2)
+        if control_conn:
+            control_conn.close()
     return True
 
 
