@@ -9,9 +9,11 @@ describe("web font pipeline", () => {
     expect(fonts).toContain('from "next/font/google"');
     expect(fonts).toContain("Noto_Sans_KR");
     expect(fonts).toContain("Noto_Serif_KR");
-    expect(fonts).toContain('variable: "--font-sans"');
-    expect(fonts).toContain('variable: "--font-serif"');
-    expect(fonts).toContain('display: "swap"');
+    expect(fonts).toMatch(/variable:\s*['"]--font-sans['"]/);
+    expect(fonts).toMatch(/variable:\s*['"]--font-serif['"]/);
+    expect(fonts).toMatch(/display:\s*['"]swap['"]/);
+    // A static `weight` drops the variable axis and breaks font-weight:650 in globals.css.
+    expect(fonts).not.toMatch(/\bweight\s*:/);
   });
 
   it("mounts the font variables on the html element", () => {
@@ -22,8 +24,8 @@ describe("web font pipeline", () => {
 
   it("routes the design tokens through the loaded families", () => {
     const css = read("../src/app/globals.css");
-    expect(css).toMatch(/--sans:\s*var\(--font-sans\)/);
-    expect(css).toMatch(/--serif:\s*var\(--font-serif\)/);
+    expect(css).toMatch(/--sans:\s*var\(--font-sans[,)]/);
+    expect(css).toMatch(/--serif:\s*var\(--font-serif[,)]/);
     expect(css).toMatch(/body\{[^}]*font-family:var\(--sans\)/);
   });
 
