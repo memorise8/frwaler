@@ -21,6 +21,9 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+    # Data store: must come back on its own after a host reboot or an
+    # unexpected daemon restart, with no operator present to re-run `up`.
+    restart: unless-stopped
 
   # Fails fast with a clear, self-describing message when POSTGRES_PASSWORD
   # is unset, before migrate/be/worker ever open a connection with it.
@@ -52,8 +55,24 @@ services:
         fi
     restart: "no"
 
+  # In both "tools" (ad hoc schema changes against an already-running stack)
+  # and "bootstrap" (first-run setup) profiles: same one-shot job, two
+  # entry points. Neither profile is enabled by default, so `docker compose
+  # up -d` on its own never touches this service or the schema.
+  #
+  # Why `be` does NOT `depends_on: migrate` to sequence this automatically:
+  # verified empirically (see delivery/README.md and the compose report)
+  # that when a service depends on another service whose only profiles are
+  # not currently active, Compose refuses to resolve the project at all
+  # ("service X depends on undefined service migrate") -- even for `docker
+  # compose up -d` with no --profile flag, which must keep working
+  # unchanged on an already-migrated database. A depends_on edge here would
+  # therefore break the default path, not just gate the bootstrap one. The
+  # migration is sequenced instead by running it to completion (`run --rm`
+  # blocks until exit) before `up -d` is ever invoked -- see the "최초 실행"
+  # section of the README for the exact two-step command.
   migrate:
-    profiles: ["tools"]
+    profiles: ["tools", "bootstrap"]
     build:
       context: ..
       dockerfile: delivery/Dockerfile.be
@@ -97,6 +116,12 @@ services:
       timeout: 5s
       retries: 12
       start_period: 10s
+    # Must survive a host reboot / daemon restart unattended. This also
+    # gives the bootstrap sequence a safety net: if `be` is ever started
+    # before the schema exists, it fails closed (by design) and Compose
+    # keeps retrying with backoff, so it converges on its own once
+    # `migrate` has completed instead of staying dead.
+    restart: unless-stopped
     logging: &delivery-logging
       driver: json-file
       options:
@@ -122,6 +147,8 @@ services:
       timeout: 5s
       retries: 12
       start_period: 20s
+    # Must survive a host reboot / daemon restart unattended, same as be.
+    restart: unless-stopped
     logging: *delivery-logging
 
   worker:
@@ -145,9 +172,22 @@ services:
         condition: service_healthy
       postgres-password-guard:
         condition: service_completed_successfully
-    # Schema changes are explicit (`docker compose --profile tools run --rm migrate`).
-    # A missing migration makes both BE readiness and Worker startup fail visibly.
-    restart: on-failure:5
+    # Schema changes are explicit (`docker compose --profile tools run --rm migrate`,
+    # or `--profile bootstrap` on first run). A missing migration makes both
+    # BE readiness and Worker startup fail visibly.
+    #
+    # Restart policy: previously `on-failure:5`, which is why this worker sat
+    # dead for hours on this host after exhausting its five retries -- once a
+    # transient condition (e.g. postgres not yet ready, or racing the
+    # bootstrap migration) outlasts five backoff attempts, `on-failure:N`
+    # gives up permanently and nobody is watching an unattended delivery
+    # host to notice. `unless-stopped` retries indefinitely with Docker's
+    # built-in backoff (capped, and reset after it stays up) and also
+    # restarts after a daemon/host restart, matching the other long-running
+    # services. A worker that is genuinely broken (bad credentials, etc.)
+    # will keep idling/retrying instead of vanishing -- visible in `docker
+    # compose ps` and logs -- which is what an unattended package needs.
+    restart: unless-stopped
     logging: *delivery-logging
 
 volumes:
