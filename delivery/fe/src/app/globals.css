@@ -40,3 +40,6 @@
 @media(max-width:850px){.circuit-state{grid-template-columns:1fr}.circuit-state dl{flex-wrap:wrap}.operations-grid{grid-template-columns:1fr}}
 .fixed-model{display:flex;flex-direction:column;justify-content:center;padding:8px 12px;border:1px solid var(--rule)}.fixed-model span{color:var(--muted);font-size:11px;font-weight:700}.fixed-model strong{font-size:13px}.fixed-model small{color:var(--muted);font-size:10px}
 .job-log{padding:18px;background:var(--surface);border:1px solid var(--rule)}.job-log>div{display:flex;justify-content:space-between}.job-log p{display:grid;grid-template-columns:110px 1fr;gap:12px;margin:8px 0;padding-top:8px;border-top:1px solid var(--rule);font-size:12px}.job-log time{color:var(--muted);font:10px var(--mono)}
+.loading-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:320px;padding:60px 20px;text-align:center}.loading-state p:not(.eyebrow){color:var(--muted)}.loading-pulse{animation:loading-pulse 1.6s ease-in-out infinite}
+@keyframes loading-pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@media(prefers-reduced-motion:reduce){.loading-pulse{animation:none}}
