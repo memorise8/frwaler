@@ -10,6 +10,12 @@ from pathlib import Path
 TAXONOMY_PATH = Path(__file__).resolve().parents[1] / "data" / "site-taxonomy.json"
 
 
+def _safe_date(column: str) -> str:
+    """PostgreSQL 16 expression that never casts an invalid free-form date."""
+    value = f"substring({column}, 1, 10)"
+    return f"CASE WHEN pg_input_is_valid({value}, 'date') THEN {value}::date END"
+
+
 def load_taxonomy(path: Path = TAXONOMY_PATH) -> dict[str, dict[str, str]]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     return payload["sites"]
@@ -69,10 +75,7 @@ def _filtered_sql(filters: CatalogueFilters, taxonomy: dict[str, dict[str, str]]
     ):
         if value is not None:
             params[name] = value
-            clauses.append(
-                f"(d.published_date ~ '^\\d{{4}}-\\d{{2}}-\\d{{2}}' "
-                f"AND substring(d.published_date, 1, 10)::date {operator} %({name})s)"
-            )
+            clauses.append(f"({_safe_date('d.published_date')} {operator} %({name})s)")
     if filters.collected_from is not None:
         params["collected_from"] = filters.collected_from
         clauses.append("d.collected_at >= %(collected_from)s::date")
@@ -114,7 +117,7 @@ def collect_catalogue(conn, filters: CatalogueFilters,
     if filters.sort == "relevance":
         order = "ts_rank_cd(fts, plainto_tsquery('simple', %(q)s)) DESC, similarity(title, %(q)s) DESC, seq_id DESC"
     elif filters.sort == "published_desc":
-        order = "CASE WHEN published_date ~ '^\\d{4}-\\d{2}-\\d{2}' THEN substring(published_date, 1, 10)::date END DESC NULLS LAST, seq_id DESC"
+        order = f"{_safe_date('published_date')} DESC NULLS LAST, seq_id DESC"
     elif filters.sort == "seq_desc":
         order = "seq_id DESC"
     else:

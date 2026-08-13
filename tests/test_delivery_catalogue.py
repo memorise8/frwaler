@@ -96,6 +96,18 @@ class DeliveryCatalogueTest(unittest.TestCase):
         ):
             self.assertEqual(self.client.get(path).status_code, 422, path)
 
+    def test_date_sort_and_filter_ignore_calendar_invalid_values(self):
+        from crawler import db_pg
+        conn=db_pg.open_db(TEST_PG_DSN)
+        conn.execute("UPDATE documents SET published_date='2025-99-99' WHERE seq_id=%s",(self.third,))
+        conn.commit();conn.close()
+        sorted_response=self.client.get("/documents?sort=published_desc")
+        self.assertEqual(sorted_response.status_code,200)
+        self.assertEqual(sorted_response.json()["items"][-1]["seq_id"],self.third)
+        filtered=self.client.get("/documents?published_from=2025-01-01")
+        self.assertEqual(filtered.status_code,200)
+        self.assertNotIn(self.third,[item["seq_id"] for item in filtered.json()["items"]])
+
     def test_empty_database(self):
         from crawler import db_pg
         conn = db_pg.open_db(TEST_PG_DSN)
