@@ -26,7 +26,7 @@ describe("web font pipeline", () => {
     const css = read("../src/app/globals.css");
     expect(css).toMatch(/--sans:\s*var\(--font-sans[,)]/);
     expect(css).toMatch(/--serif:\s*var\(--font-serif[,)]/);
-    expect(css).toMatch(/body\{[^}]*font-family:var\(--sans\)/);
+    expect(css).toMatch(/body\s*\{[^}]*font-family:\s*var\(--sans\)/);
   });
 
   it("no longer names unloaded families directly in the stylesheet", () => {
