@@ -20,7 +20,8 @@ def enqueue_due(conn)->int:
     rows=conn.execute("""SELECT * FROM crawl_schedules WHERE enabled AND next_run_at<=now()
       ORDER BY next_run_at FOR UPDATE SKIP LOCKED""").fetchall();created=0
     for row in rows:
-        active=conn.execute("SELECT 1 FROM crawl_jobs WHERE site_id=%s AND status IN('queued','running') LIMIT 1",(row["site_id"],)).fetchone()
+        conn.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s,0))",(row["site_id"],))
+        active=conn.execute("SELECT 1 FROM crawl_jobs WHERE site_id=%s AND status IN('queued','running','cancelling') LIMIT 1",(row["site_id"],)).fetchone()
         if not active:
             job=conn.execute("""INSERT INTO crawl_jobs(site_id,mode,limit_n,requested_by)
               VALUES(%s,%s,%s,'scheduler') RETURNING id""",(row["site_id"],row["mode"],row["limit_n"])).fetchone()

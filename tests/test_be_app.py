@@ -222,6 +222,15 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(r2.json()["status"], "queued")
         self.assertEqual(r2.json()["logs"][0]["event"],"queued")
 
+    def test_crawl_job_validates_site_mode_limit_and_active_duplicate(self):
+        self.assertEqual(self.client.post("/jobs",json={"site_id":"missing"}).status_code,404)
+        self.assertEqual(self.client.post("/jobs",json={"site_id":"s1","mode":"unsafe"}).status_code,422)
+        self.assertEqual(self.client.post("/jobs",json={"site_id":"s1","limit_n":0}).status_code,422)
+        first=self.client.post("/jobs",json={"site_id":"s1","mode":"incremental"})
+        self.assertEqual(first.status_code,200)
+        duplicate=self.client.post("/jobs",json={"site_id":"s1","mode":"full"})
+        self.assertEqual(duplicate.status_code,409)
+
     def test_schedule_api(self):
         made=self.client.put("/schedules/s1",json={"interval_hours":24,"limit_n":20})
         self.assertEqual(made.status_code,200)

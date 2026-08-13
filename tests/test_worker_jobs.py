@@ -47,6 +47,19 @@ class WorkerJobsTest(unittest.TestCase):
         self.assertEqual(schedules.enqueue_due(self.conn),0)
         self.assertEqual(self.conn.execute("SELECT count(*) AS n FROM crawl_jobs WHERE site_id='scheduled'").fetchone()["n"],1)
 
+    def test_schedule_does_not_overlap_cancelling_job(self):
+        from delivery.worker import jobs, schedules
+        from crawler import db_pg
+        db_pg.upsert_site(self.conn,"scheduled","Scheduled","https://scheduled.invalid")
+        schedules.upsert(self.conn,site_id="scheduled",interval_hours=24,created_by="test")
+        jid=jobs.enqueue_job(self.conn,"scheduled")
+        jobs.claim_next_job(self.conn)
+        self.assertEqual(jobs.cancel_job(self.conn,jid)["status"],"cancelling")
+        self.conn.execute("UPDATE crawl_schedules SET next_run_at=now()-interval '1 minute'")
+        self.conn.commit()
+        self.assertEqual(schedules.enqueue_due(self.conn),0)
+        self.assertEqual(self.conn.execute("SELECT count(*) AS n FROM crawl_jobs WHERE site_id='scheduled'").fetchone()["n"],1)
+
     def test_claim_transitions_to_running(self):
         from delivery.worker import jobs
         jid = jobs.enqueue_job(self.conn, "s1")

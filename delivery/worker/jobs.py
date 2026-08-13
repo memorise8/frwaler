@@ -5,12 +5,22 @@ from __future__ import annotations
 from typing import Optional
 
 
+class ActiveJobError(RuntimeError):
+    pass
+
+
 def _log(conn,job_id:int,event:str,message:str,level:str="info") -> None:
     conn.execute("INSERT INTO crawl_job_logs(job_id,level,event,message) VALUES(%s,%s,%s,%s)",
                  (job_id,level,event,(message or "")[:500]))
 
 
 def enqueue_job(conn, site_id, mode="incremental", limit_n=None, requested_by=None) -> int:
+    conn.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s,0))",(site_id,))
+    active=conn.execute("""SELECT id FROM crawl_jobs WHERE site_id=%s
+      AND status IN('queued','running','cancelling') LIMIT 1""",(site_id,)).fetchone()
+    if active:
+        conn.rollback()
+        raise ActiveJobError(f"active crawl job {active['id']}")
     row = conn.execute(
         """
         INSERT INTO crawl_jobs (site_id, mode, limit_n, requested_by)

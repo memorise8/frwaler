@@ -11,7 +11,7 @@ from typing import Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Path, Query
 from fastapi.responses import FileResponse, JSONResponse
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from crawler import db_pg
 from delivery.be.catalogue import CatalogueFilters, collect_catalogue, load_taxonomy
@@ -29,26 +29,29 @@ from delivery.db.schema import verify_required_schema
 
 
 class JobIn(BaseModel):
-    site_id: str
-    mode: str = "incremental"
-    limit_n: int | None = None
-    requested_by: str | None = None
+    model_config=ConfigDict(extra="forbid")
+    site_id: str = Field(min_length=1,max_length=200,pattern=r"^[A-Za-z0-9._-]+$")
+    mode: Literal["incremental","full"] = "incremental"
+    limit_n: int | None = Field(default=None,ge=1,le=1000)
+    requested_by: str | None = Field(default=None,max_length=100)
 
 
 class RetryIn(BaseModel):
-    requested_by: str | None = None
+    model_config=ConfigDict(extra="forbid")
+    requested_by: str | None = Field(default=None,max_length=100)
 
 
 class ScheduleIn(BaseModel):
-    interval_hours:int
+    model_config=ConfigDict(extra="forbid")
+    interval_hours:int=Field(ge=1,le=8760)
     mode:Literal["incremental","full"]="incremental"
-    limit_n:int|None=100
+    limit_n:int|None=Field(default=100,ge=1,le=1000)
     enabled:bool=True
 
 
 class ObservationIn(BaseModel):
     model_config=ConfigDict(extra="forbid")
-    worker_id:str="gpu0-observer"
+    worker_id:str=Field(default="gpu0-observer",min_length=1,max_length=100)
     endpoint_healthy:bool
     gpu_memory_free_bytes:int|None=None
     gpu_utilization_percent:float|None=None
@@ -58,22 +61,22 @@ class ObservationIn(BaseModel):
 class TranslationSelection(BaseModel):
     model_config = ConfigDict(extra="forbid")
     tasks: list[Literal["title_translation", "abstract_summary"]] = ["title_translation", "abstract_summary"]
-    lang: str | None = None
-    site_id: str | None = None
+    lang: str | None = Field(default=None,max_length=32)
+    site_id: str | None = Field(default=None,max_length=200,pattern=r"^[A-Za-z0-9._-]+$")
 
 
 class TranslationPreviewIn(TranslationSelection):
     provider: Literal["external", "internal"] = "internal"
-    model_version: str = "unknown"
-    prompt_version: str = "title-summary-ko-v1"
+    model_version: str = Field(default="unknown",min_length=1,max_length=128)
+    prompt_version: str = Field(default="title-summary-ko-v1",min_length=1,max_length=128)
     limit: int = 100
 
 
 class TranslationJobIn(TranslationSelection):
     provider: Literal["external", "internal"]
-    model_version: str
-    prompt_version: str = "title-summary-ko-v1"
-    target_locale: str = "ko-KR"
+    model_version: str = Field(min_length=1,max_length=128)
+    prompt_version: str = Field(default="title-summary-ko-v1",min_length=1,max_length=128)
+    target_locale: str = Field(default="ko-KR",pattern=r"^[a-z][a-z]-[A-Z][A-Z]$")
     limit: int = 100
     requested_by: str | None = None
 
@@ -336,8 +339,13 @@ def create_app(dsn: str) -> FastAPI:
     def post_job(body: JobIn,operator:str=Depends(require_operator)):
         conn = _conn()
         try:
-            jid = jobs.enqueue_job(conn, body.site_id, mode=body.mode,
-                                   limit_n=body.limit_n, requested_by=operator)
+            if conn.execute("SELECT 1 FROM sites WHERE site_id=%s",(body.site_id,)).fetchone() is None:
+                raise HTTPException(status_code=404,detail="site not found")
+            try:
+                jid = jobs.enqueue_job(conn, body.site_id, mode=body.mode,
+                                       limit_n=body.limit_n, requested_by=operator)
+            except jobs.ActiveJobError as exc:
+                raise HTTPException(status_code=409,detail="site already has an active job") from exc
         finally:
             conn.close()
         return {"id": jid}
