@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteNav } from "./site-nav";
+import { sansKR, serifKR } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,7 +20,7 @@ const TreeRing = () => (
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ko">
+    <html className={`${sansKR.variable} ${serifKR.variable}`} lang="ko">
       <body>
         <header className="masthead">
           <div className="frame masthead-inner">

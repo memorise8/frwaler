@@ -4,11 +4,15 @@ import { describe, expect, it } from "vitest";
 const css = (): string => readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
 
 /**
- * Custom properties that are legitimately declared outside this stylesheet —
- * currently none. Anything added here must be provably set on <html> or <body>
- * by application code, not merely assumed to exist.
+ * Custom properties that are legitimately declared outside this stylesheet.
+ * Anything added here must be provably set on <html> or <body> by
+ * application code, not merely assumed to exist.
  */
-const EXTERNALLY_PROVIDED = new Set<string>([]);
+const EXTERNALLY_PROVIDED = new Set<string>([
+  // Set on <html> by next/font via sansKR.variable / serifKR.variable — see src/app/fonts.ts.
+  "--font-sans",
+  "--font-serif",
+]);
 
 describe("globals.css custom properties", () => {
   it("defines every custom property it references", () => {
