@@ -184,6 +184,29 @@ blob을 호스트 디렉터리에 연결해 실행하려면:
 docker compose -f delivery/docker-compose.yml -f delivery/docker-compose.blob.yml up -d
 ```
 
+## 4. 수집 결과 읽는 법
+
+크롤러 실행 결과의 **"저장 N건"은 DB에 새로 추가된 문서 수**입니다. 크롤러가 실제로
+처리한 문서 수와 다를 수 있습니다.
+
+이미 수집된 문서를 다시 처리하면 기존 행이 갱신될 뿐 행 수가 늘지 않으므로 **0건으로
+표시됩니다. 이는 실패가 아니라 "새 문서 없음"입니다.** 실측 예:
+
+```
+워커 로그  [bfr-bund-de-en] done. Total saved: 3     ← 크롤러가 처리한 건수
+작업 기록  saved_count = 0                            ← 새로 늘어난 행 수
+```
+
+크롤러가 실제로 무엇을 처리했는지는 워커 로그로 확인합니다:
+
+```bash
+docker compose -f delivery/docker-compose.yml logs --since 10m worker | grep -v worker_heartbeat
+```
+
+로그를 볼 때는 `-t`(타임스탬프)를 함께 쓰는 것을 권장합니다. `docker compose up -d`는
+종료된 기존 컨테이너를 **재시작**하는 경우가 있어, 이전 실행의 로그가 버퍼에 남아 방금
+실행한 작업의 로그처럼 보일 수 있습니다.
+
 `fe`/`be` 포트는 `127.0.0.1`에만 바인딩됩니다(외부 인터페이스에 노출되지 않음). 기동 후
 서버에서 직접, 또는 SSH 포트포워딩 등을 통해 `http://127.0.0.1:${FE_PORT:-3000}` 으로 접속합니다.
 외부에 노출하려면 앞단에 reverse proxy(nginx, Caddy 등)를 두고 TLS를 종단하는 것을 권장합니다.

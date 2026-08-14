@@ -6,9 +6,9 @@ ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app
 #   curl          - e.g. crawler/sites/custom/datos-gob-mx-dataset.py
 #   poppler-utils - provides pdftotext, used by 39 crawlers under
 #                   crawler/sites/ to extract a document's abstract from its
-#                   PDF. Without it every one of them fails extraction, skips
-#                   the document as "short abstract 0 chars", and the crawl
-#                   still reports done with saved_count=0.
+#                   PDF. They invoke it via subprocess, so without it each
+#                   raises FileNotFoundError mid-extraction and skips the
+#                   document as a 0-character abstract.
 RUN apt-get update && apt-get install -y --no-install-recommends curl poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 COPY delivery/requirements.txt /app/delivery/requirements.txt
