@@ -702,7 +702,7 @@ code {
 
 .run-presets {
   display: grid;
-  grid-template-columns: repeat(3,1fr);
+  grid-template-columns: repeat(4,1fr);
   gap: 10px;
   margin-top: 22px;
 }
@@ -729,6 +729,22 @@ code {
 
 .run-presets small {
   color: var(--muted);
+}
+
+.run-presets button.preset-unbounded {
+  border-style: dashed;
+  border-color: var(--bad);
+  color: var(--bad);
+}
+
+.run-presets button.preset-unbounded.selected {
+  border-style: solid;
+  background: var(--bad-wash);
+  color: var(--bad);
+}
+
+.run-presets button.preset-unbounded small {
+  color: inherit;
 }
 
 .run-fields {
@@ -773,6 +789,12 @@ code {
 .run-submit:disabled {
   cursor: wait;
   opacity: .55;
+}
+
+.run-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .run-confirm {
@@ -928,6 +950,10 @@ code {
 
   .detail-facts div {
     border-bottom: 1px solid var(--rule);
+  }
+
+  .run-presets {
+    grid-template-columns: repeat(2,1fr);
   }
 
   .run-fields {
@@ -2125,13 +2151,23 @@ code {
   gap: 20px;
   padding: 18px;
   border: 1px solid var(--rule);
-  border-left: 4px solid var(--moss);
+  border-left: 4px solid var(--rule);
+  background: var(--surface);
+}
+
+.circuit-state--closed {
+  border-left-color: var(--moss);
   background: var(--moss-wash);
 }
 
 .circuit-state--open {
   border-left-color: var(--bad);
   background: var(--bad-wash);
+}
+
+.circuit-state--unmeasured {
+  border-left-color: var(--muted);
+  background: var(--sand-wash);
 }
 
 .circuit-state>div {

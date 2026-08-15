@@ -1,7 +1,36 @@
 import { describe, expect, it } from "vitest";
-import { MAX_CRAWL_LIMIT, parseCrawlLimit } from "../src/lib/crawl-limit";
+import { MAX_CRAWL_LIMIT, parseCrawlLimit, UNBOUNDED_CRAWL_LIMIT } from "../src/lib/crawl-limit";
 
 describe("parseCrawlLimit", () => {
+  it("accepts the explicit unbounded sentinel as limit: null", () => {
+    expect(parseCrawlLimit(UNBOUNDED_CRAWL_LIMIT)).toEqual({ ok: true, limit: null });
+  });
+
+  it("does not treat a missing limit as unbounded", () => {
+    const result = parseCrawlLimit(undefined);
+    expect(result).not.toEqual({ ok: true, limit: null });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain("입력");
+  });
+
+  it("does not treat a null limit as unbounded", () => {
+    const result = parseCrawlLimit(null);
+    expect(result).not.toEqual({ ok: true, limit: null });
+    expect(result.ok).toBe(false);
+  });
+
+  it("does not treat an empty string as unbounded", () => {
+    const result = parseCrawlLimit("");
+    expect(result).not.toEqual({ ok: true, limit: null });
+    expect(result.ok).toBe(false);
+  });
+
+  it("does not treat zero as unbounded", () => {
+    const result = parseCrawlLimit(0);
+    expect(result).not.toEqual({ ok: true, limit: null });
+    expect(result.ok).toBe(false);
+  });
+
   it("accepts a valid positive integer", () => {
     expect(parseCrawlLimit(3)).toEqual({ ok: true, limit: 3 });
     expect(parseCrawlLimit(100)).toEqual({ ok: true, limit: 100 });
