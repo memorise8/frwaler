@@ -32,7 +32,21 @@ export async function getDatabaseStats(): Promise<DatabaseStats | null> {
   }
 }
 
-export type FreshnessStats = Readonly<{ summary: Readonly<{ total_sites: number; with_documents: number; never_collected: number; distribution: Readonly<Record<string, number>> }>; measured_at: string }>;
+export type FreshnessSite = Readonly<{
+  site_id: string;
+  site_name: string;
+  sheet: string;
+  documents: number;
+  last_collected_at: string | null;
+  age_days: number;
+  freshness_bucket: string;
+}>;
+
+export type FreshnessStats = Readonly<{
+  summary: Readonly<{ total_sites: number; with_documents: number; never_collected: number; distribution: Readonly<Record<string, number>> }>;
+  sites: ReadonlyArray<FreshnessSite>;
+  measured_at: string;
+}>;
 
 export async function getFreshnessStats(): Promise<FreshnessStats | null> {
   try {

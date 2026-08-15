@@ -3,6 +3,7 @@ import { Fragment } from "react";
 import { AUDIT_DATE, getCrawlerHealth, type CrawlerHealth } from "@/lib/crawler-health";
 import { getDatabaseStats, getFreshnessStats } from "@/lib/database-stats";
 import { hasActiveCatalogueFilter } from "@/lib/catalogue-filters";
+import { matchesFreshnessFilter } from "@/lib/freshness-filter";
 import { JobDashboard } from "./job-dashboard";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,7 @@ const PAGE_SIZE = 40;
 type Params = Promise<Record<string, string | string[] | undefined>>;
 const one = (value: string | string[] | undefined): string => Array.isArray(value) ? value[0] ?? "" : value ?? "";
 
-const pageHref = (filters: Readonly<{ q: string; status: string; category: string; country: string; docType: string; groupBy: string }>, page: number): string => {
+const pageHref = (filters: Readonly<{ q: string; status: string; category: string; country: string; docType: string; groupBy: string; freshness: string }>, page: number): string => {
   const params = new URLSearchParams();
   if (filters.q) params.set("q", filters.q);
   if (filters.status) params.set("status", filters.status);
@@ -19,6 +20,7 @@ const pageHref = (filters: Readonly<{ q: string; status: string; category: strin
   if (filters.country) params.set("country", filters.country);
   if (filters.docType) params.set("docType", filters.docType);
   if (filters.groupBy) params.set("groupBy", filters.groupBy);
+  if (filters.freshness) params.set("freshness", filters.freshness);
   if (page > 1) params.set("page", String(page));
   return params.size ? `/?${params}` : "/";
 };
@@ -38,11 +40,13 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
   const country = one(params.country);
   const docType = one(params.docType);
   const groupBy = ["country", "docType"].includes(one(params.groupBy)) ? one(params.groupBy) : "";
+  const freshness = one(params.freshness);
   const requestedPage = Number.parseInt(one(params.page), 10) || 1;
   const rows = getCrawlerHealth();
   const databaseStats = await getDatabaseStats();
   const freshnessStats = await getFreshnessStats();
   const crawlerById = new Map(rows.map((row) => [row.siteId, row]));
+  const freshnessBucketBySite = new Map((freshnessStats?.sites ?? []).map((site) => [site.site_id, site.freshness_bucket]));
   const measuredCountryCounts = [...(databaseStats?.by_site ?? []).reduce((counts, item) => {
     const name = crawlerById.get(item.key)?.country ?? "기타";
     return counts.set(name, (counts.get(name) ?? 0) + item.documents);
@@ -64,18 +68,19 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
       && (!status || row.status === status)
       && (!category || row.category === category)
       && (!country || row.country === country)
-      && (!docType || row.docType === docType);
+      && (!docType || row.docType === docType)
+      && (!freshness || matchesFreshnessFilter(freshnessBucketBySite.get(row.siteId) ?? "", freshness));
   }).sort((a, b) => {
     const aGroup = groupBy === "country" ? a.country : groupBy === "docType" ? a.docType : "";
     const bGroup = groupBy === "country" ? b.country : groupBy === "docType" ? b.docType : "";
     return aGroup.localeCompare(bGroup, "ko") || a.siteName.localeCompare(b.siteName, "ko");
   });
-  const hasCatalogueSelection = hasActiveCatalogueFilter({ query, status, category, country, docType });
+  const hasCatalogueSelection = hasActiveCatalogueFilter({ query, status, category, country, docType, freshness });
   const selectedRows = hasCatalogueSelection ? filtered : [];
   const pageCount = Math.max(1, Math.ceil(selectedRows.length / PAGE_SIZE));
   const page = Math.min(Math.max(requestedPage, 1), pageCount);
   const visible = selectedRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const filters = { q: query, status, category, country, docType, groupBy };
+  const filters = { q: query, status, category, country, docType, groupBy, freshness };
   const groupLabel = (row: CrawlerHealth): string => groupBy === "country" ? row.country : groupBy === "docType" ? row.docType : "";
 
   return (
@@ -99,9 +104,9 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
         </div>
         {databaseStats ? <>
           <div className="summary-grid">
-            <article className="summary-card"><span>전체 문서</span><strong>{databaseStats.overview.documents.toLocaleString("ko-KR")}</strong><small>{databaseStats.overview.sites.toLocaleString("ko-KR")}개 사이트</small></article>
-            <article className="summary-card summary-card--secondary"><span>PDF 확보</span><strong>{databaseStats.overview.pdf_downloaded.toLocaleString("ko-KR")}</strong><small>{(databaseStats.overview.pdf_bytes / 1024 ** 4).toFixed(1)} TB 메타데이터 합계</small></article>
-            <article className="summary-card summary-card--secondary"><span>텍스트 확보</span><strong>{databaseStats.overview.text_extracted.toLocaleString("ko-KR")}</strong><small>추출 완료 문서</small></article>
+            <Link className="summary-card" href="/documents"><span>전체 문서</span><strong>{databaseStats.overview.documents.toLocaleString("ko-KR")}</strong><small>{databaseStats.overview.sites.toLocaleString("ko-KR")}개 사이트</small></Link>
+            <Link className="summary-card summary-card--secondary" href="/documents?has_pdf=true"><span>PDF 확보</span><strong>{databaseStats.overview.pdf_downloaded.toLocaleString("ko-KR")}</strong><small>{(databaseStats.overview.pdf_bytes / 1024 ** 4).toFixed(1)} TB 메타데이터 합계</small></Link>
+            <Link className="summary-card summary-card--secondary" href="/documents?has_text=true"><span>텍스트 확보</span><strong>{databaseStats.overview.text_extracted.toLocaleString("ko-KR")}</strong><small>추출 완료 문서</small></Link>
             <article className="summary-card summary-card--secondary"><span>최신 수집</span><strong className="summary-date">{databaseStats.overview.latest_collected_at ? new Date(databaseStats.overview.latest_collected_at).toLocaleDateString("ko-KR") : "없음"}</strong><small>DB collected_at 기준</small></article>
           </div>
           <aside className="snapshot-note"><strong>정합성</strong><span>고아 문서 {databaseStats.integrity.orphan_documents.toLocaleString("ko-KR")}건 · PDF 메타데이터 누락 {databaseStats.integrity.missing_pdf_metadata.toLocaleString("ko-KR")}건 · blob 파일 전수 검사는 별도 manifest 기준</span></aside>
@@ -120,10 +125,10 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
         <div className="database-status">
           <div className="section-heading"><div><p className="eyebrow">FRESHNESS</p><h3>사이트 최신화</h3></div><p>{freshnessStats ? `측정 ${new Date(freshnessStats.measured_at).toLocaleString("ko-KR")}` : "현재 측정 불가"}</p></div>
           {freshnessStats ? <div className="summary-grid">
-            <article className="summary-card summary-card--secondary summary-card--good"><span>7일 이내</span><strong>{(freshnessStats.summary.distribution.within_7_days ?? 0).toLocaleString("ko-KR")}</strong><small>사이트</small></article>
-            <article className="summary-card summary-card--secondary"><span>8~30일</span><strong>{(freshnessStats.summary.distribution["8_to_30_days"] ?? 0).toLocaleString("ko-KR")}</strong><small>사이트</small></article>
-            <article className="summary-card summary-card--secondary"><span>31~90일</span><strong>{(freshnessStats.summary.distribution["31_to_90_days"] ?? 0).toLocaleString("ko-KR")}</strong><small>사이트</small></article>
-            <article className="summary-card summary-card--secondary summary-card--bad"><span>90일 초과·미수집</span><strong>{((freshnessStats.summary.distribution.over_90_days ?? 0) + freshnessStats.summary.never_collected).toLocaleString("ko-KR")}</strong><small>점검 대상</small></article>
+            <Link className="summary-card summary-card--secondary summary-card--good" href="/?freshness=within_7_days"><span>7일 이내</span><strong>{(freshnessStats.summary.distribution.within_7_days ?? 0).toLocaleString("ko-KR")}</strong><small>사이트</small></Link>
+            <Link className="summary-card summary-card--secondary" href="/?freshness=8_to_30_days"><span>8~30일</span><strong>{(freshnessStats.summary.distribution["8_to_30_days"] ?? 0).toLocaleString("ko-KR")}</strong><small>사이트</small></Link>
+            <Link className="summary-card summary-card--secondary" href="/?freshness=31_to_90_days"><span>31~90일</span><strong>{(freshnessStats.summary.distribution["31_to_90_days"] ?? 0).toLocaleString("ko-KR")}</strong><small>사이트</small></Link>
+            <Link className="summary-card summary-card--secondary summary-card--bad" href="/?freshness=over_90_or_never"><span>90일 초과·미수집</span><strong>{((freshnessStats.summary.distribution.over_90_days ?? 0) + freshnessStats.summary.never_collected).toLocaleString("ko-KR")}</strong><small>점검 대상</small></Link>
           </div> : <aside className="snapshot-note snapshot-note--unavailable"><strong>최신화 측정 대기</strong><span>BE 또는 PostgreSQL 연결 후 사이트별 마지막 수집일을 계산합니다.</span></aside>}
         </div>
       </section>
@@ -138,8 +143,8 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
 
         <div className="summary-grid">
           <article className="summary-card"><span>전체 수집기</span><strong>{rows.length.toLocaleString("ko-KR")}</strong><small>등록 카탈로그</small></article>
-          <article className="summary-card summary-card--good"><span>정상 작동</span><strong>{healthy.toLocaleString("ko-KR")}</strong><small>{rows.length ? ((healthy / rows.length) * 100).toFixed(1) : "0.0"}% 저장 성공</small></article>
-          <article className="summary-card summary-card--bad"><span>실패·확인 필요</span><strong>{unhealthy.toLocaleString("ko-KR")}</strong><small>코드·차단·네트워크</small></article>
+          <Link className="summary-card summary-card--good" href="/?status=healthy"><span>정상 작동</span><strong>{healthy.toLocaleString("ko-KR")}</strong><small>{rows.length ? ((healthy / rows.length) * 100).toFixed(1) : "0.0"}% 저장 성공</small></Link>
+          <Link className="summary-card summary-card--bad" href="/?status=unhealthy"><span>실패·확인 필요</span><strong>{unhealthy.toLocaleString("ko-KR")}</strong><small>코드·차단·네트워크</small></Link>
         </div>
 
         <aside className="snapshot-note"><strong>스냅샷 안내</strong><span>이 화면은 {AUDIT_DATE} 검증 결과입니다. IP 차단 항목은 납품처 네트워크에서 달라질 수 있습니다.</span></aside>
@@ -164,6 +169,7 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
             <label><span>국가</span><select defaultValue={country} name="country"><option value="">전체 국가</option>{countries.map((item) => <option key={item}>{item}</option>)}</select></label>
             <label><span>자료 유형</span><select defaultValue={docType} name="docType"><option value="">전체 자료</option>{docTypes.map((item) => <option key={item}>{item}</option>)}</select></label>
             <label><span>목록 보기</span><select defaultValue={groupBy} name="groupBy"><option value="">전체 목록</option><option value="country">국가별 보기</option><option value="docType">카테고리별 보기</option></select></label>
+            <label><span>최신화</span><select defaultValue={freshness} name="freshness"><option value="">전체 최신화</option><option value="within_7_days">7일 이내</option><option value="8_to_30_days">8~30일</option><option value="31_to_90_days">31~90일</option><option value="over_90_or_never">90일 초과·미수집</option></select></label>
             <button type="submit">찾기</button>
             <Link className="reset-link" href="/">초기화</Link>
           </form>

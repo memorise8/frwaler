@@ -230,6 +230,11 @@ button,input,select {
   color: var(--bad);
 }
 
+a.summary-card:hover {
+  border-color: var(--moss);
+  filter: brightness(0.97);
+}
+
 /* Snapshot note & section heading */
 
 .snapshot-note {
@@ -574,7 +579,7 @@ code {
 }
 
 .filters--taxonomy {
-  grid-template-columns: minmax(200px,1fr) repeat(5,130px) auto auto;
+  grid-template-columns: minmax(200px,1fr) repeat(6,130px) auto auto;
 }
 
 .material-tag {
