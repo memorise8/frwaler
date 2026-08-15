@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getDocumentCatalogue } from "@/lib/document-catalogue";
+import { facetOptionsWithSelection, isRetainedFacetOption } from "@/lib/facet-options";
 
 export const dynamic = "force-dynamic";
 
@@ -47,12 +48,14 @@ export default async function DocumentsPage({ searchParams }: Readonly<{ searchP
       <div className="section-heading"><div><p className="eyebrow">DOCUMENT SEARCH</p><h2 id="document-search-title">문서 검색</h2></div><p>{data ? `${data.pagination.total.toLocaleString("ko-KR")}건` : "조회 대기"}</p></div>
       <form action="/documents" className="document-filters">
         <label className="document-query"><span>통합 검색</span><input name="q" defaultValue={selected.q} placeholder="제목, 초록, 키워드 검색" autoFocus /></label>
-        <label><span>국가</span><select name="country" defaultValue={selected.country}><option value="">전체 국가</option>{data?.facets.countries.map((item) => <option key={item.value} value={item.value}>{item.value} ({item.count.toLocaleString("ko-KR")})</option>)}</select></label>
-        <label><span>자료 유형</span><select name="doc_type" defaultValue={selected.doc_type}><option value="">전체 자료</option>{data?.facets.doc_types.map((item) => <option key={item.value} value={item.value}>{item.value} ({item.count.toLocaleString("ko-KR")})</option>)}</select></label>
-        <label><span>사이트</span><select name="site_id" defaultValue={selected.site_id}><option value="">전체 사이트</option>{data?.facets.sites.map((item) => <option key={item.value} value={item.value}>{item.label || item.value} ({item.count.toLocaleString("ko-KR")})</option>)}</select></label>
-        <label><span>언어</span><select name="lang" defaultValue={selected.lang}><option value="">전체 언어</option>{data?.facets.languages.map((item) => <option key={item.value} value={item.value}>{item.value} ({item.count.toLocaleString("ko-KR")})</option>)}</select></label>
+        <label><span>국가</span><select name="country" defaultValue={selected.country}><option value="">전체 국가</option>{facetOptionsWithSelection(data?.facets.countries, selected.country).map((item) => <option key={item.value} value={item.value}>{item.value} ({isRetainedFacetOption(item) ? "선택값 유지" : item.count.toLocaleString("ko-KR")})</option>)}</select></label>
+        <label><span>자료 유형</span><select name="doc_type" defaultValue={selected.doc_type}><option value="">전체 자료</option>{facetOptionsWithSelection(data?.facets.doc_types, selected.doc_type).map((item) => <option key={item.value} value={item.value}>{item.value} ({isRetainedFacetOption(item) ? "선택값 유지" : item.count.toLocaleString("ko-KR")})</option>)}</select></label>
+        <label><span>사이트</span><select name="site_id" defaultValue={selected.site_id}><option value="">전체 사이트</option>{facetOptionsWithSelection(data?.facets.sites, selected.site_id).map((item) => <option key={item.value} value={item.value}>{item.label || item.value} ({isRetainedFacetOption(item) ? "선택값 유지" : item.count.toLocaleString("ko-KR")})</option>)}</select></label>
+        <label><span>언어</span><select name="lang" defaultValue={selected.lang}><option value="">전체 언어</option>{facetOptionsWithSelection(data?.facets.languages, selected.lang).map((item) => <option key={item.value} value={item.value}>{item.value} ({isRetainedFacetOption(item) ? "선택값 유지" : item.count.toLocaleString("ko-KR")})</option>)}</select></label>
         <label><span>발행 시작일</span><input type="date" name="published_from" defaultValue={selected.published_from} /></label>
         <label><span>발행 종료일</span><input type="date" name="published_to" defaultValue={selected.published_to} /></label>
+        <label><span>수집 시작일</span><input type="date" name="collected_from" defaultValue={selected.collected_from} /></label>
+        <label><span>수집 종료일</span><input type="date" name="collected_to" defaultValue={selected.collected_to} /></label>
         <label><span>PDF</span><select name="has_pdf" defaultValue={selected.has_pdf}><option value="">전체</option><option value="true">확보</option><option value="false">미확보</option></select></label>
         <label><span>텍스트</span><select name="has_text" defaultValue={selected.has_text}><option value="">전체</option><option value="true">확보</option><option value="false">미확보</option></select></label>
         <label><span>정렬</span><select name="sort" defaultValue={selected.sort}><option value="">기본 정렬</option>{selected.q && <option value="relevance">관련도순</option>}<option value="published_desc">최신 발행일</option><option value="collected_desc">최신 수집일</option><option value="seq_desc">최근 등록순</option></select></label>
