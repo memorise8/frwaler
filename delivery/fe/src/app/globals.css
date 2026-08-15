@@ -1283,7 +1283,7 @@ code {
   color: var(--rule);
 }
 
-.document-card h2 {
+.document-card h2,.document-card h3 {
   margin: 7px 0 8px;
   font: 600 1.25rem/1.42 var(--serif);
   letter-spacing: -.02em;

@@ -72,7 +72,7 @@ export default async function DocumentsPage({ searchParams }: Readonly<{ searchP
           <div className="document-card-index">{String(item.seq_id).padStart(6, "0")}</div>
           <div className="document-card-main">
             <div className="document-kicker"><span>{item.country}</span><span>{item.doc_type}</span><span>{item.site_name}</span></div>
-            <h2><Link href={`/documents/${item.seq_id}`}>{item.title}</Link></h2>
+            <h3><Link href={`/documents/${item.seq_id}`}>{item.title}</Link></h3>
             <p className="document-byline">{[item.authors, item.publisher, item.journal].filter(Boolean).join(" · ") || "저자·발행처 정보 없음"}</p>
             <div className="document-badges"><span>{item.lang === "unknown" ? "언어 미측정" : item.lang.toUpperCase()}</span>{item.has_pdf && <span className="available">PDF</span>}{item.has_text && <span className="available">TEXT</span>}{item.has_translation && <span className="translated">한국어 번역</span>}</div>
           </div>
