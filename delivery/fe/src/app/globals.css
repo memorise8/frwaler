@@ -1462,6 +1462,7 @@ code {
 
 .detail-links {
   display: flex;
+  flex-wrap: wrap;
   gap: 18px;
   margin-top: 22px;
 }
@@ -1508,9 +1509,9 @@ code {
 
 .detail-file-state {
   display: grid;
-  grid-template-columns: 180px minmax(220px,1fr) minmax(260px,1.5fr);
+  grid-template-columns: repeat(3,minmax(180px,1fr));
   align-items: center;
-  gap: 18px;
+  gap: 14px 24px;
   padding: 16px 20px;
   background: var(--sand-wash);
   border-left: 3px solid #9a7524;
@@ -1528,6 +1529,10 @@ code {
 
 .detail-file-state .file-ready {
   color: var(--moss);
+}
+
+.detail-file-state p {
+  grid-column: 1/-1;
 }
 
 .detail-file-state small,.detail-file-state p {
@@ -1666,10 +1671,6 @@ code {
     grid-template-columns: 1fr 1fr;
   }
 
-  .detail-file-state p {
-    grid-column: 1/-1;
-  }
-
   .source-language {
     position: static;
     margin-top: 14px;
@@ -1687,10 +1688,6 @@ code {
 
   .detail-file-state {
     grid-template-columns: 1fr;
-  }
-
-  .detail-file-state p {
-    grid-column: auto;
   }
 
   .reading-panel {

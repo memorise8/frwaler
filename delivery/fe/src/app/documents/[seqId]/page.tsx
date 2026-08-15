@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDocumentDetail } from "@/lib/document-detail";
+import { pdfMissingReason, textMissingReason } from "@/lib/document-file-state";
+import { resolveSourceFileLink, sourceFileLinkLabel } from "@/lib/source-file-link";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +34,7 @@ export default async function DocumentDetailPage({ params }: Readonly<{ params: 
   const translatedTitle = document.translations.title;
   const translatedDescription = document.translations.description;
   const generatedSummary = document.generated_summary;
+  const sourceLink = resolveSourceFileLink(document.source.pdf_url);
 
   return <article className="archive-detail">
     <Link className="back-link" href="/documents">← 문서 탐색으로</Link>
@@ -40,7 +43,7 @@ export default async function DocumentDetailPage({ params }: Readonly<{ params: 
       <p className="source-language">SOURCE · {document.source.lang === "unknown" ? "언어 미측정" : document.source.lang.toUpperCase()}</p>
       <h1>{document.source.title}</h1>
       {translatedTitle && <div className="translated-title"><span>한국어 번역</span><h2>{translatedTitle.text}</h2></div>}
-      <div className="detail-links"><a href={document.source.meta_url} target="_blank" rel="noreferrer">원문 사이트 ↗</a>{document.site.site_url && <a href={document.site.site_url} target="_blank" rel="noreferrer">수집 기관 ↗</a>}</div>
+      <div className="detail-links"><a href={document.source.meta_url} target="_blank" rel="noreferrer">원문 사이트 ↗</a>{document.site.site_url && <a href={document.site.site_url} target="_blank" rel="noreferrer">수집 기관 ↗</a>}<Link href={`/crawlers/${encodeURIComponent(document.site.site_id)}`}>수집기 정보 보기 →</Link><Link href={`/documents?site_id=${encodeURIComponent(document.site.site_id)}`}>이 사이트의 다른 문서 →</Link></div>
     </header>
 
     <dl className="archive-facts">
@@ -53,9 +56,10 @@ export default async function DocumentDetailPage({ params }: Readonly<{ params: 
     </dl>
 
     <section className="detail-file-state" aria-label="문서 파일 상태">
-      <div><span className={document.files.has_pdf ? "file-ready" : ""}>PDF {document.files.has_pdf ? "확보" : "미확보"}</span><small>{formatBytes(document.files.pdf_size_bytes)}</small></div>
-      <div><span className={document.files.has_text ? "file-ready" : ""}>TEXT {document.files.has_text ? "확보" : "미확보"}</span><small>{document.files.original_filename || "파일명 정보 없음"}</small></div>
-      <p className="detail-links">{document.files.has_pdf&&<a href={`/api/documents/${document.seq_id}/pdf`} target="_blank">PDF 열기 ↗</a>}{document.files.has_text&&<a href={`/api/documents/${document.seq_id}/text`} target="_blank">추출 텍스트 열기 ↗</a>}{!document.files.has_pdf&&!document.files.has_text&&"제공 가능한 파일이 없습니다."}</p>
+      <div><span className={document.files.has_pdf ? "file-ready" : ""}>PDF {document.files.has_pdf ? "확보" : "미확보"}</span><small>{document.files.has_pdf ? formatBytes(document.files.pdf_size_bytes) : pdfMissingReason(document.files.original_filename)}</small></div>
+      <div><span className={document.files.has_text ? "file-ready" : ""}>TEXT {document.files.has_text ? "확보" : "미확보"}</span><small>{document.files.has_text ? "PDF에서 추출한 텍스트가 있습니다." : textMissingReason(document.files.has_pdf)}</small></div>
+      <div><span>원본 파일명</span><small>{document.files.original_filename || "파일명 정보 없음"}</small></div>
+      <p className="detail-links">{document.files.has_pdf&&<a href={`/api/documents/${document.seq_id}/pdf`} target="_blank">PDF 열기 ↗</a>}{document.files.has_text&&<a href={`/api/documents/${document.seq_id}/text`} target="_blank">추출 텍스트 열기 ↗</a>}{sourceLink&&<a href={sourceLink.href} target="_blank" rel="noreferrer">{sourceFileLinkLabel(sourceLink)}</a>}{!document.files.has_pdf&&!document.files.has_text&&!sourceLink&&"제공 가능한 파일이 없습니다."}</p>
     </section>
 
     <div className="detail-reading-grid">
