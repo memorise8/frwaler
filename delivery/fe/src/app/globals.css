@@ -775,6 +775,20 @@ code {
   opacity: .55;
 }
 
+.run-confirm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  background: var(--sand-wash);
+  font-size: 13px;
+}
+
+.run-confirm input {
+  flex-shrink: 0;
+}
+
 .run-caution {
   margin: 15px 0 0;
   color: var(--muted);

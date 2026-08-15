@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { operatorHeaders } from "@/lib/backend-auth";
+import { parseCrawlLimit } from "@/lib/crawl-limit";
 
 type JobRequest = {
   readonly siteId?: unknown;
@@ -40,16 +41,18 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
   const siteId = typeof body.siteId === "string" ? body.siteId.trim() : "";
   const mode = body.mode === "full" ? "full" : "incremental";
-  const parsedLimit = typeof body.limit === "number" ? body.limit : Number(body.limit);
-  const limit = Number.isInteger(parsedLimit) && parsedLimit > 0 ? parsedLimit : null;
   if (!/^[a-z0-9][a-z0-9_-]{1,127}$/.test(siteId)) {
     return NextResponse.json({ error: "유효한 크롤러 ID가 필요합니다." }, { status: 400 });
+  }
+  const limitResult = parseCrawlLimit(body.limit);
+  if (!limitResult.ok) {
+    return NextResponse.json({ error: limitResult.error }, { status: 400 });
   }
   try {
     const response = await fetch(`${backendUrl()}/jobs`, {
       method: "POST",
       headers: operatorHeaders(true),
-      body: JSON.stringify({ site_id: siteId, mode, limit_n: limit, requested_by: "delivery-fe" }),
+      body: JSON.stringify({ site_id: siteId, mode, limit_n: limitResult.limit, requested_by: "delivery-fe" }),
       cache: "no-store",
       signal: AbortSignal.timeout(10_000),
     });
