@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { operatorHeaders } from "@/lib/backend-auth";
 import { parseScheduleLimit } from "@/lib/crawl-limit";
+import { describeScheduleSaveFailure, SCHEDULE_BACKEND_UNREACHABLE_MESSAGE } from "@/lib/schedule-save-error";
 
 const backend = () => (process.env.BE_URL ?? "http://127.0.0.1:8080").replace(/\/$/, "");
 
@@ -61,8 +62,16 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ sit
       cache: "no-store",
       signal: AbortSignal.timeout(8000),
     });
-    return NextResponse.json(await response.json(), { status: response.status });
+    // The backend can answer with a non-JSON or empty body (e.g. a proxy
+    // error page); .catch keeps that from throwing past this point so it
+    // still resolves into a status-coded message below instead of a raw
+    // 500 from this route itself.
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      return NextResponse.json({ detail: describeScheduleSaveFailure(response.status, result) }, { status: response.status });
+    }
+    return NextResponse.json(result, { status: response.status });
   } catch {
-    return NextResponse.json({ detail: "backend unavailable" }, { status: 503 });
+    return NextResponse.json({ detail: SCHEDULE_BACKEND_UNREACHABLE_MESSAGE }, { status: 503 });
   }
 }

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { SCHEDULE_BACKEND_UNREACHABLE_MESSAGE } from "../src/lib/schedule-save-error";
 
 // "server-only" is a Next.js build-time guard package with no runtime
 // resolution outside the Next.js bundler; stub it so importing the route
@@ -100,6 +101,37 @@ describe("PUT /api/schedules/[siteId]", () => {
     const response = await put({ interval_hours: 168, mode: "incremental", limit_n: 100, enabled: "yes" });
     expect(response.status).toBe(400);
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("translates a real backend rejection (site not found) into Korean instead of forwarding it verbatim", async () => {
+    // Shape confirmed live: a valid, bounded PUT against a nonexistent
+    // site reaches the backend and comes back 404 {"detail":"site not
+    // found"} (be/app.py put_schedule).
+    const fetchSpy = vi.fn().mockResolvedValue(new Response(JSON.stringify({ detail: "site not found" }), { status: 404 }));
+    vi.stubGlobal("fetch", fetchSpy);
+    const response = await put({ interval_hours: 168, mode: "incremental", limit_n: 100, enabled: true });
+    expect(response.status).toBe(404);
+    const payload = await response.json() as { detail: string };
+    expect(payload.detail).not.toBe("site not found");
+    expect(payload.detail).toContain("사이트");
+  });
+
+  it("returns a distinct, Korean 'backend unreachable' message when the backend fetch itself fails", async () => {
+    const fetchSpy = vi.fn().mockRejectedValue(new Error("connect ECONNREFUSED"));
+    vi.stubGlobal("fetch", fetchSpy);
+    const response = await put({ interval_hours: 168, mode: "incremental", limit_n: 100, enabled: true });
+    expect(response.status).toBe(503);
+    const payload = await response.json() as { detail: string };
+    expect(payload.detail).toBe(SCHEDULE_BACKEND_UNREACHABLE_MESSAGE);
+  });
+
+  it("returns a status-coded fallback when the backend's error response has no usable body", async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(new Response("not json", { status: 502 }));
+    vi.stubGlobal("fetch", fetchSpy);
+    const response = await put({ interval_hours: 168, mode: "incremental", limit_n: 100, enabled: true });
+    expect(response.status).toBe(502);
+    const payload = await response.json() as { detail: string };
+    expect(payload.detail).toContain("502");
   });
 
   it("accepts a fully valid bounded request and forwards the resolved limit_n to the backend", async () => {
