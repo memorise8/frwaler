@@ -833,6 +833,91 @@ code {
   color: var(--bad);
 }
 
+.run-warning {
+  display: flex;
+  gap: 16px;
+  margin-top: 22px;
+  padding: 16px 18px;
+  background: var(--bad-wash);
+  border-left: 3px solid var(--bad);
+  font-size: 13px;
+}
+
+.run-warning strong {
+  color: var(--bad);
+  white-space: nowrap;
+}
+
+.run-warning span {
+  color: var(--muted);
+}
+
+.run-tracking {
+  margin-top: 18px;
+  padding: 16px 18px;
+  background: var(--canvas);
+  border: 1px solid var(--rule);
+}
+
+.run-tracking-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+  font: 600 13px var(--mono);
+}
+
+.run-tracking-status--done {
+  color: var(--moss);
+}
+
+.run-tracking-status--failed {
+  color: var(--bad);
+}
+
+.run-tracking-live {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.run-tracking-outcome {
+  margin: 12px 0 0;
+  font-size: 13px;
+}
+
+.run-tracking-logs {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+
+.run-tracking-logs p {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 12px;
+  margin: 6px 0;
+  font-size: 12px;
+}
+
+.run-tracking-logs time {
+  color: var(--muted);
+  font: 10px var(--mono);
+}
+
+.run-tracking-retry {
+  border: 1px solid var(--bad);
+  background: var(--surface);
+  color: var(--bad);
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.run-tracking-link {
+  margin: 12px 0 0;
+  font-size: 12px;
+}
+
 /* Table group rows */
 
 .group-row th {

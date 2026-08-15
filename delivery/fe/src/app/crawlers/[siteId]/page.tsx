@@ -20,7 +20,7 @@ export default async function CrawlerDetail({ params }: Readonly<{ params: Promi
         <div><dt>국가</dt><dd>{crawler.country}</dd></div><div><dt>대륙</dt><dd>{crawler.continent}</dd></div><div><dt>자료 유형</dt><dd>{crawler.docType}</dd></div><div><dt>과거 수집</dt><dd>{crawler.collected.toLocaleString("ko-KR")}건</dd></div><div><dt>마지막 검증</dt><dd>{AUDIT_DATE}</dd></div>
       </dl>
       {crawler.reason && <aside className="failure-reason"><strong>{crawler.category}</strong><span>{crawler.reason}</span></aside>}
-      <RunPanel siteId={crawler.siteId} />
+      <RunPanel siteId={crawler.siteId} status={crawler.status} category={crawler.category} reason={crawler.reason} />
     </div>
   );
 }
