@@ -43,3 +43,20 @@ export const parseCrawlLimit = (value: unknown): CrawlLimitResult => {
   }
   return { ok: true, limit: parsed };
 };
+
+// A schedule fires unattended, repeatedly, forever — unlike the run panel's
+// unbounded choice, there is no operator present at each run to re-confirm
+// it. The run panel's checkbox gives one execution deliberateness; it cannot
+// give every future automatic execution the same deliberateness. So the
+// schedule form never exposes UNBOUNDED_CRAWL_LIMIT as a reachable choice,
+// and this wrapper closes the door in case a raw request ever reaches this
+// endpoint some other way: it defers to parseCrawlLimit for every numeric
+// and absent-input rule, then additionally refuses the sentinel that
+// parseCrawlLimit alone would accept.
+export const parseScheduleLimit = (value: unknown): CrawlLimitResult => {
+  const result = parseCrawlLimit(value);
+  if (result.ok && result.limit === null) {
+    return { ok: false, error: "예약 수집은 무제한을 허용하지 않습니다. 최대 저장 건수를 1~1000 사이로 입력하세요." };
+  }
+  return result;
+};
