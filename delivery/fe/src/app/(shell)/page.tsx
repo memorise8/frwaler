@@ -4,6 +4,7 @@ import { AUDIT_DATE, getCrawlerHealth, type CrawlerHealth } from "@/lib/crawler-
 import { getDatabaseStats, getFreshnessStats } from "@/lib/database-stats";
 import { hasActiveCatalogueFilter } from "@/lib/catalogue-filters";
 import { matchesFreshnessFilter } from "@/lib/freshness-filter";
+import { findUncataloguedSites } from "@/lib/uncatalogued-sites";
 import { JobDashboard } from "./job-dashboard";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +47,8 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
   const databaseStats = await getDatabaseStats();
   const freshnessStats = await getFreshnessStats();
   const crawlerById = new Map(rows.map((row) => [row.siteId, row]));
+  const uncataloguedSites = databaseStats ? findUncataloguedSites(databaseStats.by_site, rows.map((row) => row.siteId)) : [];
+  const uncataloguedDocuments = uncataloguedSites.reduce((sum, site) => sum + site.documents, 0);
   const freshnessBucketBySite = new Map((freshnessStats?.sites ?? []).map((site) => [site.site_id, site.freshness_bucket]));
   const measuredCountryCounts = [...(databaseStats?.by_site ?? []).reduce((counts, item) => {
     const name = crawlerById.get(item.key)?.country ?? "기타";
@@ -89,7 +92,7 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
         <div>
           <p className="eyebrow">CRAWLER HEALTH INDEX</p>
           <h1>수집기의 상태를,<br />근거와 함께 살핍니다.</h1>
-          <p className="lede">804개 수집기의 마지막 실측 결과를 한곳에서 확인합니다. 정상 판정은 실제 문서가 임시 DB에 저장된 경우에만 부여했습니다.</p>
+          <p className="lede">{rows.length.toLocaleString("ko-KR")}개 수집기의 마지막 실측 결과를 한곳에서 확인합니다. 정상 판정은 실제 문서가 임시 DB에 저장된 경우에만 부여했습니다.</p>
         </div>
         <div className="audit-date"><span>LAST AUDIT</span><strong>{AUDIT_DATE}</strong><small>실시간 검사는 다음 단계에서 연결됩니다.</small></div>
       </header>
@@ -104,12 +107,13 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
         </div>
         {databaseStats ? <>
           <div className="summary-grid">
-            <Link className="summary-card" href="/documents"><span>전체 문서</span><strong>{databaseStats.overview.documents.toLocaleString("ko-KR")}</strong><small>{databaseStats.overview.sites.toLocaleString("ko-KR")}개 사이트</small></Link>
+            <Link className="summary-card" href="/documents"><span>전체 문서</span><strong>{databaseStats.overview.documents.toLocaleString("ko-KR")}</strong><small>{databaseStats.overview.sites.toLocaleString("ko-KR")}개 데이터 소스</small></Link>
             <Link className="summary-card summary-card--secondary" href="/documents?has_pdf=true"><span>PDF 확보</span><strong>{databaseStats.overview.pdf_downloaded.toLocaleString("ko-KR")}</strong><small>{(databaseStats.overview.pdf_bytes / 1024 ** 4).toFixed(1)} TB 메타데이터 합계</small></Link>
             <Link className="summary-card summary-card--secondary" href="/documents?has_text=true"><span>텍스트 확보</span><strong>{databaseStats.overview.text_extracted.toLocaleString("ko-KR")}</strong><small>추출 완료 문서</small></Link>
             <article className="summary-card summary-card--secondary"><span>최신 수집</span><strong className="summary-date">{databaseStats.overview.latest_collected_at ? new Date(databaseStats.overview.latest_collected_at).toLocaleDateString("ko-KR") : "없음"}</strong><small>DB collected_at 기준</small></article>
           </div>
           <aside className="snapshot-note"><strong>정합성</strong><span>고아 문서 {databaseStats.integrity.orphan_documents.toLocaleString("ko-KR")}건 · PDF 메타데이터 누락 {databaseStats.integrity.missing_pdf_metadata.toLocaleString("ko-KR")}건 · blob 파일 전수 검사는 별도 manifest 기준</span></aside>
+          {uncataloguedSites.length > 0 && <aside className="snapshot-note"><strong>수집기 미등록</strong><span>{uncataloguedSites.length.toLocaleString("ko-KR")}개 데이터 소스 · 문서 {uncataloguedDocuments.toLocaleString("ko-KR")}건은 수집기 카탈로그에 없어 아래 수집기 상태 화면에 나타나지 않습니다.</span></aside>}
           <div className="taxonomy-grid" aria-label="실제 문서 분포">
             <article className="taxonomy-panel">
               <div className="taxonomy-heading"><div><p className="eyebrow">DOCUMENTS BY COUNTRY</p><h3>국가별 문서</h3></div><span>DB 실측</span></div>
