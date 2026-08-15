@@ -2151,13 +2151,23 @@ code {
   gap: 20px;
   padding: 18px;
   border: 1px solid var(--rule);
-  border-left: 4px solid var(--moss);
+  border-left: 4px solid var(--rule);
+  background: var(--surface);
+}
+
+.circuit-state--closed {
+  border-left-color: var(--moss);
   background: var(--moss-wash);
 }
 
 .circuit-state--open {
   border-left-color: var(--bad);
   background: var(--bad-wash);
+}
+
+.circuit-state--unmeasured {
+  border-left-color: var(--muted);
+  background: var(--sand-wash);
 }
 
 .circuit-state>div {
