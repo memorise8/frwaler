@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { operatorHeaders } from "@/lib/backend-auth";
 import { parseCrawlLimit } from "@/lib/crawl-limit";
+import { describeJobSubmitFailure } from "@/lib/job-submit-error";
 
 type JobRequest = {
   readonly siteId?: unknown;
@@ -58,8 +59,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     });
     const result = await response.json().catch(() => ({})) as Record<string, unknown>;
     if (!response.ok) {
-      const detail = typeof result.detail === "string" ? result.detail : `BE 응답 오류 (${response.status})`;
-      return NextResponse.json({ error: detail }, { status: response.status });
+      return NextResponse.json({ error: describeJobSubmitFailure(response.status, result) }, { status: response.status });
     }
     return NextResponse.json({ jobId: result.id, status: "queued" }, { status: 201 });
   } catch (error) {
