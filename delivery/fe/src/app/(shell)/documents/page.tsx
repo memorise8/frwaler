@@ -1,3 +1,4 @@
+import Form from "next/form";
 import Link from "next/link";
 import { getDocumentCatalogue } from "@/lib/document-catalogue";
 import { facetOptionsWithSelection, isRetainedFacetOption } from "@/lib/facet-options";
@@ -46,7 +47,7 @@ export default async function DocumentsPage({ searchParams }: Readonly<{ searchP
 
     <section className="document-search" aria-labelledby="document-search-title">
       <div className="section-heading"><div><p className="eyebrow">DOCUMENT SEARCH</p><h2 id="document-search-title">문서 검색</h2></div><p>{data ? `${data.pagination.total.toLocaleString("ko-KR")}건` : "조회 대기"}</p></div>
-      <form action="/documents" className="document-filters">
+      <Form action="/documents" className="document-filters">
         <label className="document-query"><span>통합 검색</span><input name="q" defaultValue={selected.q} placeholder="제목, 초록, 키워드 검색" autoFocus /></label>
         <label><span>국가</span><select name="country" defaultValue={selected.country}><option value="">전체 국가</option>{facetOptionsWithSelection(data?.facets.countries, selected.country).map((item) => <option key={item.value} value={item.value}>{item.value} ({isRetainedFacetOption(item) ? "선택값 유지" : item.count.toLocaleString("ko-KR")})</option>)}</select></label>
         <label><span>자료 유형</span><select name="doc_type" defaultValue={selected.doc_type}><option value="">전체 자료</option>{facetOptionsWithSelection(data?.facets.doc_types, selected.doc_type).map((item) => <option key={item.value} value={item.value}>{item.value} ({isRetainedFacetOption(item) ? "선택값 유지" : item.count.toLocaleString("ko-KR")})</option>)}</select></label>
@@ -60,7 +61,7 @@ export default async function DocumentsPage({ searchParams }: Readonly<{ searchP
         <label><span>텍스트</span><select name="has_text" defaultValue={selected.has_text}><option value="">전체</option><option value="true">확보</option><option value="false">미확보</option></select></label>
         <label><span>정렬</span><select name="sort" defaultValue={selected.sort}><option value="">기본 정렬</option>{selected.q && <option value="relevance">관련도순</option>}<option value="published_desc">최신 발행일</option><option value="collected_desc">최신 수집일</option><option value="seq_desc">최근 등록순</option></select></label>
         <div className="document-filter-actions"><button type="submit">검색</button><Link href="/documents">조건 초기화</Link></div>
-      </form>
+      </Form>
     </section>
 
     {!result.ok && <section className={`catalogue-message catalogue-message--${result.kind}`} role="status"><strong>{result.kind === "invalid" ? "검색 조건을 확인해 주세요." : "문서 목록을 불러올 수 없습니다."}</strong><p>{result.kind === "invalid" ? "날짜 범위나 필터 값이 올바른지 확인한 뒤 다시 검색해 주세요." : "데이터 서비스 연결 상태를 확인한 뒤 잠시 후 다시 시도해 주세요."}</p></section>}

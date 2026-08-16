@@ -1,3 +1,4 @@
+import Form from "next/form";
 import Link from "next/link";
 import { Fragment } from "react";
 import { AUDIT_DATE, getCrawlerHealth, type CrawlerHealth } from "@/lib/crawler-health";
@@ -166,7 +167,7 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
 
         <section className="catalogue-section">
           <div className="section-heading"><div><p className="eyebrow">STATUS CATALOGUE</p><h3>{country || docType ? `${[country, docType].filter(Boolean).join(" · ")} 크롤러` : "분류별 크롤러 목록"}</h3></div><p>{hasCatalogueSelection ? `${selectedRows.length.toLocaleString("ko-KR")}개 결과` : "사이트를 검색하거나 조건을 선택하세요"}</p></div>
-          <form className="filters filters--taxonomy" action="/">
+          <Form className="filters filters--taxonomy" action="/">
             <label className="query-field"><span>사이트 검색</span><input defaultValue={query} name="q" placeholder="사이트 이름 또는 site_id" /></label>
             <label><span>상태</span><select defaultValue={status} name="status"><option value="">전체 상태</option><option value="healthy">정상</option><option value="unhealthy">실패</option></select></label>
             <label><span>실패 유형</span><select defaultValue={category} name="category"><option value="">전체 유형</option>{categories.map((item) => <option key={item}>{item}</option>)}</select></label>
@@ -176,7 +177,7 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pa
             <label><span>최신화</span><select defaultValue={freshness} name="freshness"><option value="">전체 최신화</option><option value="within_7_days">7일 이내</option><option value="8_to_30_days">8~30일</option><option value="31_to_90_days">31~90일</option><option value="over_90_or_never">90일 초과·미수집</option></select></label>
             <button type="submit">찾기</button>
             <Link className="reset-link" href="/">초기화</Link>
-          </form>
+          </Form>
 
           {hasCatalogueSelection ? <div className="table-shell">
             <table>
