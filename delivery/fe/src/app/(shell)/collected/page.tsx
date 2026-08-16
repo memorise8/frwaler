@@ -43,11 +43,11 @@ export default async function CollectedState() {
         {uncataloguedSites.length > 0 && <aside className="snapshot-note"><strong>수집기 미등록</strong><span>{uncataloguedSites.length.toLocaleString("ko-KR")}개 데이터 소스 · 문서 {uncataloguedDocuments.toLocaleString("ko-KR")}건은 수집기 카탈로그에 없어 <Link href="/crawlers">크롤러 상태</Link> 화면에 나타나지 않습니다.</span></aside>}
         <div className="taxonomy-grid" aria-label="실제 문서 분포">
           <article className="taxonomy-panel">
-            <div className="taxonomy-heading"><div><p className="eyebrow">DOCUMENTS BY COUNTRY</p><h3>국가별 문서</h3></div><span>DB 실측</span></div>
+            <div className="taxonomy-heading"><div><p className="eyebrow">DOCUMENTS BY COUNTRY</p><h2>국가별 문서</h2></div><span>DB 실측</span></div>
             <div className="taxonomy-bars">{measuredCountryCounts.slice(0, 10).map(([name, count]) => <div className="measure-row" key={name}><span>{name}</span><i><b style={{ width: `${(count / measuredCountryCounts[0]![1]) * 100}%` }} /></i><strong>{count.toLocaleString("ko-KR")}</strong></div>)}</div>
           </article>
           <article className="taxonomy-panel">
-            <div className="taxonomy-heading"><div><p className="eyebrow">DOCUMENTS BY MATERIAL</p><h3>자료 유형별 문서</h3></div><span>미분류는 기타</span></div>
+            <div className="taxonomy-heading"><div><p className="eyebrow">DOCUMENTS BY MATERIAL</p><h2>자료 유형별 문서</h2></div><span>미분류는 기타</span></div>
             <div className="type-grid">{measuredTypeCounts.map(([name, count]) => <div className="measure-tile" key={name}><span>{name}</span><strong>{count.toLocaleString("ko-KR")}</strong></div>)}</div>
           </article>
         </div>

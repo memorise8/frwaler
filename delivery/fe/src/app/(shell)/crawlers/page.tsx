@@ -94,17 +94,17 @@ export default async function CrawlerFleet({ searchParams }: Readonly<{ searchPa
 
       <div className="taxonomy-grid" aria-label="국가 및 자료 유형 분류">
         <article className="taxonomy-panel">
-          <div className="taxonomy-heading"><div><p className="eyebrow">BY COUNTRY</p><h3>국가별 수집기</h3></div><span>{countries.length}개 국가·지역</span></div>
+          <div className="taxonomy-heading"><div><p className="eyebrow">BY COUNTRY</p><h2>국가별 수집기</h2></div><span>{countries.length}개 국가·지역</span></div>
           <div className="taxonomy-bars">{countryCounts.slice(0, 10).map(([name, count]) => <Link href={`/crawlers?country=${encodeURIComponent(name)}`} key={name}><span>{name}</span><i><b style={{ width: `${(count / countryCounts[0]![1]) * 100}%` }} /></i><strong>{count}</strong></Link>)}</div>
         </article>
         <article className="taxonomy-panel">
-          <div className="taxonomy-heading"><div><p className="eyebrow">BY MATERIAL</p><h3>자료 유형별 수집기</h3></div><span>{docTypes.length}개 유형</span></div>
+          <div className="taxonomy-heading"><div><p className="eyebrow">BY MATERIAL</p><h2>자료 유형별 수집기</h2></div><span>{docTypes.length}개 유형</span></div>
           <div className="type-grid">{docTypeCounts.map(([name, count]) => <Link href={`/crawlers?docType=${encodeURIComponent(name)}`} key={name}><span>{name}</span><strong>{count}</strong></Link>)}</div>
         </article>
       </div>
 
       <section className="catalogue-section">
-        <div className="section-heading"><div><p className="eyebrow">STATUS CATALOGUE</p><h3>{country || docType ? `${[country, docType].filter(Boolean).join(" · ")} 크롤러` : "분류별 크롤러 목록"}</h3></div><p>{hasCatalogueSelection ? `${selectedRows.length.toLocaleString("ko-KR")}개 결과` : "사이트를 검색하거나 조건을 선택하세요"}</p></div>
+        <div className="section-heading"><div><p className="eyebrow">STATUS CATALOGUE</p><h2>{country || docType ? `${[country, docType].filter(Boolean).join(" · ")} 크롤러` : "분류별 크롤러 목록"}</h2></div><p>{hasCatalogueSelection ? `${selectedRows.length.toLocaleString("ko-KR")}개 결과` : "사이트를 검색하거나 조건을 선택하세요"}</p></div>
         <Form className="filters filters--taxonomy" action="/crawlers">
           <label className="query-field"><span>사이트 검색</span><input defaultValue={query} name="q" placeholder="사이트 이름 또는 site_id" /></label>
           <label><span>상태</span><select defaultValue={status} name="status"><option value="">전체 상태</option><option value="healthy">정상</option><option value="unhealthy">실패</option></select></label>
