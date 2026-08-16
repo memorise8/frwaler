@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { AUDIT_DATE, getCrawlerHealth } from "@/lib/crawler-health";
 import { crawlerDocumentsHref, formatEvidenceDate, summarizeCrawlerEvidence } from "@/lib/crawler-evidence";
 import { getDocumentCatalogue } from "@/lib/document-catalogue";
-import RunPanel from "./run-panel";
+import RunPanel from "@/components/run-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +20,7 @@ export default async function CrawlerDetail({ params }: Readonly<{ params: Promi
   const documentsHref = crawlerDocumentsHref(siteId);
   return (
     <div className="detail-page">
-      <Link className="back-link" href="/">← 크롤러 목록</Link>
+      <Link className="back-link" href="/crawlers">← 크롤러 상태</Link>
       <header className="detail-header">
         <div><p className="eyebrow">CRAWLER PROFILE</p><h1>{crawler.siteName || crawler.siteId}</h1><code>{crawler.siteId}</code></div>
         <span className={`health-badge health-badge--${crawler.status}`}><i />{crawler.status === "healthy" ? `이전 검증 성공 (${AUDIT_DATE})` : `이전 검증 실패 (${AUDIT_DATE})`}</span>

@@ -12,7 +12,7 @@ export default function NotFound() {
       <h1>페이지를 찾을 수 없습니다.</h1>
       <p>주소가 올바른지 확인해 주세요. 수집기 ID나 문서 번호가 잘못된 경우에도 이 화면이 표시됩니다.</p>
       <div className="detail-links">
-        <Link href="/">크롤러 목록 →</Link>
+        <Link href="/crawlers">크롤러 상태 →</Link>
         <Link href="/documents">문서 탐색 →</Link>
       </div>
     </div>

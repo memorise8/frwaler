@@ -582,6 +582,21 @@ code {
   grid-template-columns: minmax(200px,1fr) repeat(6,130px) auto auto;
 }
 
+/* The run picker on / carries one field, not seven: without its own track
+   list it would inherit the five columns of .filters and leave the submit
+   button stranded in a 170px slot with two empty columns after it. */
+.filters--run {
+  grid-template-columns: minmax(260px,1fr) auto auto;
+}
+
+.row-selected {
+  background: color-mix(in srgb,var(--moss) 12%,var(--surface));
+}
+
+.row-selected:hover {
+  background: color-mix(in srgb,var(--moss) 18%,var(--surface));
+}
+
 .material-tag {
   display: inline-block;
   padding: 2px 7px;

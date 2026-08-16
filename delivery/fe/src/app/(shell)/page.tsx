@@ -1,214 +1,88 @@
 import Form from "next/form";
 import Link from "next/link";
-import { Fragment } from "react";
-import { AUDIT_DATE, getCrawlerHealth, type CrawlerHealth } from "@/lib/crawler-health";
-import { getDatabaseStats, getFreshnessStats } from "@/lib/database-stats";
-import { hasActiveCatalogueFilter } from "@/lib/catalogue-filters";
-import { matchesFreshnessFilter } from "@/lib/freshness-filter";
-import { findUncataloguedSites } from "@/lib/uncatalogued-sites";
+import { AUDIT_DATE, getCrawlerHealth } from "@/lib/crawler-health";
+import { getDatabaseStats } from "@/lib/database-stats";
+import { searchCrawlersToRun } from "@/lib/crawler-search";
+import RunPanel from "@/components/run-panel";
 import { JobDashboard } from "./job-dashboard";
 
 export const dynamic = "force-dynamic";
 
-const PAGE_SIZE = 40;
 type Params = Promise<Record<string, string | string[] | undefined>>;
 const one = (value: string | string[] | undefined): string => Array.isArray(value) ? value[0] ?? "" : value ?? "";
 
-const pageHref = (filters: Readonly<{ q: string; status: string; category: string; country: string; docType: string; groupBy: string; freshness: string }>, page: number): string => {
-  const params = new URLSearchParams();
-  if (filters.q) params.set("q", filters.q);
-  if (filters.status) params.set("status", filters.status);
-  if (filters.category) params.set("category", filters.category);
-  if (filters.country) params.set("country", filters.country);
-  if (filters.docType) params.set("docType", filters.docType);
-  if (filters.groupBy) params.set("groupBy", filters.groupBy);
-  if (filters.freshness) params.set("freshness", filters.freshness);
-  if (page > 1) params.set("page", String(page));
-  return params.size ? `/?${params}` : "/";
-};
-
-const HealthBadge = ({ row }: Readonly<{ row: CrawlerHealth }>) => (
-  <span className={`health-badge health-badge--${row.status}`}>
-    <i aria-hidden="true" />{row.status === "healthy" ? "정상" : "실패"}
-  </span>
-);
-
-export default async function Home({ searchParams }: Readonly<{ searchParams: Params }>) {
+export default async function Collect({ searchParams }: Readonly<{ searchParams: Params }>) {
   const params = await searchParams;
   const query = one(params.q).trim();
-  const normalizedQuery = query.toLocaleLowerCase("ko-KR");
-  const status = one(params.status);
-  const category = one(params.category);
-  const country = one(params.country);
-  const docType = one(params.docType);
-  const groupBy = ["country", "docType"].includes(one(params.groupBy)) ? one(params.groupBy) : "";
-  const freshness = one(params.freshness);
-  const requestedPage = Number.parseInt(one(params.page), 10) || 1;
+  const requestedSite = one(params.site).trim();
   const rows = getCrawlerHealth();
   const databaseStats = await getDatabaseStats();
-  const freshnessStats = await getFreshnessStats();
-  const crawlerById = new Map(rows.map((row) => [row.siteId, row]));
-  const uncataloguedSites = databaseStats ? findUncataloguedSites(databaseStats.by_site, rows.map((row) => row.siteId)) : [];
-  const uncataloguedDocuments = uncataloguedSites.reduce((sum, site) => sum + site.documents, 0);
-  const freshnessBucketBySite = new Map((freshnessStats?.sites ?? []).map((site) => [site.site_id, site.freshness_bucket]));
-  const measuredCountryCounts = [...(databaseStats?.by_site ?? []).reduce((counts, item) => {
-    const name = crawlerById.get(item.key)?.country ?? "기타";
-    return counts.set(name, (counts.get(name) ?? 0) + item.documents);
-  }, new Map<string, number>())].sort((a, b) => b[1] - a[1]);
-  const measuredTypeCounts = [...(databaseStats?.by_site ?? []).reduce((counts, item) => {
-    const name = crawlerById.get(item.key)?.docType ?? "기타";
-    return counts.set(name, (counts.get(name) ?? 0) + item.documents);
-  }, new Map<string, number>())].sort((a, b) => b[1] - a[1]);
-  const healthy = rows.filter((row) => row.status === "healthy").length;
-  const unhealthy = rows.length - healthy;
-  const categories = [...new Set(rows.map((row) => row.category).filter(Boolean))].sort();
-  const countries = [...new Set(rows.map((row) => row.country))].sort((a, b) => a.localeCompare(b, "ko"));
-  const docTypes = [...new Set(rows.map((row) => row.docType))].sort((a, b) => a.localeCompare(b, "ko"));
-  const countryCounts = [...rows.reduce((counts, row) => counts.set(row.country, (counts.get(row.country) ?? 0) + 1), new Map<string, number>())].sort((a, b) => b[1] - a[1]);
-  const docTypeCounts = [...rows.reduce((counts, row) => counts.set(row.docType, (counts.get(row.docType) ?? 0) + 1), new Map<string, number>())].sort((a, b) => b[1] - a[1]);
-  const filtered = rows.filter((row) => {
-    const haystack = `${row.siteId} ${row.siteName} ${row.reason}`.toLocaleLowerCase("ko-KR");
-    return (!normalizedQuery || haystack.includes(normalizedQuery))
-      && (!status || row.status === status)
-      && (!category || row.category === category)
-      && (!country || row.country === country)
-      && (!docType || row.docType === docType)
-      && (!freshness || matchesFreshnessFilter(freshnessBucketBySite.get(row.siteId) ?? "", freshness));
-  }).sort((a, b) => {
-    const aGroup = groupBy === "country" ? a.country : groupBy === "docType" ? a.docType : "";
-    const bGroup = groupBy === "country" ? b.country : groupBy === "docType" ? b.docType : "";
-    return aGroup.localeCompare(bGroup, "ko") || a.siteName.localeCompare(b.siteName, "ko");
-  });
-  const hasCatalogueSelection = hasActiveCatalogueFilter({ query, status, category, country, docType, freshness });
-  const selectedRows = hasCatalogueSelection ? filtered : [];
-  const pageCount = Math.max(1, Math.ceil(selectedRows.length / PAGE_SIZE));
-  const page = Math.min(Math.max(requestedPage, 1), pageCount);
-  const visible = selectedRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const filters = { q: query, status, category, country, docType, groupBy, freshness };
-  const groupLabel = (row: CrawlerHealth): string => groupBy === "country" ? row.country : groupBy === "docType" ? row.docType : "";
+  const documentsBySite = new Map((databaseStats?.by_site ?? []).map((item) => [item.key, item.documents]));
+  const selected = requestedSite ? rows.find((row) => row.siteId === requestedSite) ?? null : null;
+  const results = searchCrawlersToRun(rows, query);
+  const selectHref = (siteId: string): string => {
+    const next = new URLSearchParams();
+    if (query) next.set("q", query);
+    next.set("site", siteId);
+    return `/?${next}#run-heading`;
+  };
 
   return (
     <div className="status-page">
       <header className="hero">
         <div>
-          <p className="eyebrow">CRAWLER HEALTH INDEX</p>
-          <h1>수집기의 상태를,<br />근거와 함께 살핍니다.</h1>
-          <p className="lede">{rows.length.toLocaleString("ko-KR")}개 수집기의 마지막 실측 결과를 한곳에서 확인합니다. 정상 판정은 실제 문서가 임시 DB에 저장된 경우에만 부여했습니다.</p>
+          <p className="eyebrow">RUN CRAWLER</p>
+          <h1>수집할 사이트를,<br />여기서 바로 실행합니다.</h1>
+          <p className="lede">사이트를 검색해 선택하면 아래에서 곧바로 수집을 시작할 수 있습니다. 처음 다루는 사이트는 3건 상태 확인으로 점검한 뒤 범위를 넓히는 것을 권장합니다.</p>
         </div>
-        <div className="audit-date"><span>LAST AUDIT</span><strong>{AUDIT_DATE}</strong><small>실시간 검사는 다음 단계에서 연결됩니다.</small></div>
+        <div className="audit-date"><span>CRAWLERS</span><strong>{rows.length.toLocaleString("ko-KR")}</strong><small>정기 실행이 필요하면 <Link href="/schedules">수집 예약</Link></small></div>
       </header>
 
-      <section className="status-band" aria-labelledby="band-data-heading">
-        <div className="band-heading">
-          <div className="band-heading-main">
-            <span className="band-number" aria-hidden="true">01</span>
-            <div><p className="eyebrow">COLLECTED DATA</p><h2 id="band-data-heading">수집한 데이터</h2></div>
-          </div>
-          <div className="section-actions"><p>{databaseStats ? `측정 ${new Date(databaseStats.measured_at).toLocaleString("ko-KR")}` : "현재 측정 불가"}</p><Link href="/documents">문서 탐색 →</Link></div>
+      <section className="catalogue-section" aria-labelledby="pick-heading">
+        <div className="section-heading">
+          <div><p className="eyebrow">SELECT SITE</p><h2 id="pick-heading">수집할 사이트 찾기</h2></div>
+          <p>{query ? `${results.total.toLocaleString("ko-KR")}개 일치` : `등록된 수집기 ${rows.length.toLocaleString("ko-KR")}개`}</p>
         </div>
-        {databaseStats ? <>
-          <div className="summary-grid">
-            <Link className="summary-card" href="/documents"><span>전체 문서</span><strong>{databaseStats.overview.documents.toLocaleString("ko-KR")}</strong><small>{databaseStats.overview.sites.toLocaleString("ko-KR")}개 데이터 소스</small></Link>
-            <Link className="summary-card summary-card--secondary" href="/documents?has_pdf=true"><span>PDF 확보</span><strong>{databaseStats.overview.pdf_downloaded.toLocaleString("ko-KR")}</strong><small>{(databaseStats.overview.pdf_bytes / 1024 ** 4).toFixed(1)} TB 메타데이터 합계</small></Link>
-            <Link className="summary-card summary-card--secondary" href="/documents?has_text=true"><span>텍스트 확보</span><strong>{databaseStats.overview.text_extracted.toLocaleString("ko-KR")}</strong><small>추출 완료 문서</small></Link>
-            <article className="summary-card summary-card--secondary"><span>최신 수집</span><strong className="summary-date">{databaseStats.overview.latest_collected_at ? new Date(databaseStats.overview.latest_collected_at).toLocaleDateString("ko-KR") : "없음"}</strong><small>DB collected_at 기준</small></article>
-          </div>
-          <aside className="snapshot-note"><strong>정합성</strong><span>고아 문서 {databaseStats.integrity.orphan_documents.toLocaleString("ko-KR")}건 · PDF 메타데이터 누락 {databaseStats.integrity.missing_pdf_metadata.toLocaleString("ko-KR")}건 · blob 파일 전수 검사는 별도 manifest 기준</span></aside>
-          {uncataloguedSites.length > 0 && <aside className="snapshot-note"><strong>수집기 미등록</strong><span>{uncataloguedSites.length.toLocaleString("ko-KR")}개 데이터 소스 · 문서 {uncataloguedDocuments.toLocaleString("ko-KR")}건은 수집기 카탈로그에 없어 아래 수집기 상태 화면에 나타나지 않습니다.</span></aside>}
-          <div className="taxonomy-grid" aria-label="실제 문서 분포">
-            <article className="taxonomy-panel">
-              <div className="taxonomy-heading"><div><p className="eyebrow">DOCUMENTS BY COUNTRY</p><h3>국가별 문서</h3></div><span>DB 실측</span></div>
-              <div className="taxonomy-bars">{measuredCountryCounts.slice(0, 10).map(([name, count]) => <div className="measure-row" key={name}><span>{name}</span><i><b style={{ width: `${(count / measuredCountryCounts[0]![1]) * 100}%` }} /></i><strong>{count.toLocaleString("ko-KR")}</strong></div>)}</div>
-            </article>
-            <article className="taxonomy-panel">
-              <div className="taxonomy-heading"><div><p className="eyebrow">DOCUMENTS BY MATERIAL</p><h3>자료 유형별 문서</h3></div><span>미분류는 기타</span></div>
-              <div className="type-grid">{measuredTypeCounts.map(([name, count]) => <div className="measure-tile" key={name}><span>{name}</span><strong>{count.toLocaleString("ko-KR")}</strong></div>)}</div>
-            </article>
-          </div>
-        </> : <aside className="snapshot-note snapshot-note--unavailable"><strong>실데이터 연결 대기</strong><span>BE 또는 PostgreSQL에 연결할 수 없습니다. 아래 수집기 감사 스냅샷은 계속 확인할 수 있습니다.</span></aside>}
+        <Form className="filters filters--run" action="/">
+          <label className="query-field"><span>사이트 검색</span><input defaultValue={query} name="q" placeholder="사이트 이름 또는 site_id" /></label>
+          <button type="submit">찾기</button>
+          {(query || selected) && <Link className="reset-link" href="/">초기화</Link>}
+        </Form>
 
-        <div className="database-status">
-          <div className="section-heading"><div><p className="eyebrow">FRESHNESS</p><h3>사이트 최신화</h3></div><p>{freshnessStats ? `측정 ${new Date(freshnessStats.measured_at).toLocaleString("ko-KR")}` : "현재 측정 불가"}</p></div>
-          {freshnessStats ? <div className="summary-grid">
-            <Link className="summary-card summary-card--secondary summary-card--good" href="/?freshness=within_7_days"><span>7일 이내</span><strong>{(freshnessStats.summary.distribution.within_7_days ?? 0).toLocaleString("ko-KR")}</strong><small>사이트</small></Link>
-            <Link className="summary-card summary-card--secondary" href="/?freshness=8_to_30_days"><span>8~30일</span><strong>{(freshnessStats.summary.distribution["8_to_30_days"] ?? 0).toLocaleString("ko-KR")}</strong><small>사이트</small></Link>
-            <Link className="summary-card summary-card--secondary" href="/?freshness=31_to_90_days"><span>31~90일</span><strong>{(freshnessStats.summary.distribution["31_to_90_days"] ?? 0).toLocaleString("ko-KR")}</strong><small>사이트</small></Link>
-            <Link className="summary-card summary-card--secondary summary-card--bad" href="/?freshness=over_90_or_never"><span>90일 초과·미수집</span><strong>{((freshnessStats.summary.distribution.over_90_days ?? 0) + freshnessStats.summary.never_collected).toLocaleString("ko-KR")}</strong><small>점검 대상</small></Link>
-          </div> : <aside className="snapshot-note snapshot-note--unavailable"><strong>최신화 측정 대기</strong><span>BE 또는 PostgreSQL 연결 후 사이트별 마지막 수집일을 계산합니다.</span></aside>}
-        </div>
+        {query ? (results.matches.length ? <div className="table-shell">
+          <table>
+            <thead><tr><th>사이트</th><th>수집기 ID</th><th>국가</th><th className="number">수집한 문서</th><th>마지막 검증</th><th>실행</th></tr></thead>
+            <tbody>{results.matches.map((row) => {
+              const isSelected = selected?.siteId === row.siteId;
+              const documents = documentsBySite.get(row.siteId);
+              return <tr className={isSelected ? "row-selected" : ""} key={row.siteId}>
+                <td className="site-name">{row.siteName || row.siteId}</td>
+                <td><code>{row.siteId}</code></td>
+                <td>{row.country}</td>
+                <td className="number">{documents === undefined ? "-" : documents.toLocaleString("ko-KR")}</td>
+                <td><span className={`health-badge health-badge--${row.status}`}><i aria-hidden="true" />{row.status === "healthy" ? "정상" : "실패"}</span></td>
+                <td>{isSelected
+                  ? <span className="success-note">선택됨</span>
+                  : <Link className="run-link" href={selectHref(row.siteId)}>선택 →</Link>}</td>
+              </tr>;
+            })}</tbody>
+          </table>
+          {results.truncated && <p className="run-note">일치하는 {results.total.toLocaleString("ko-KR")}개 중 {results.matches.length}개만 표시했습니다. 검색어를 더 좁혀 주세요.</p>}
+        </div> : <div className="catalogue-prompt"><span aria-hidden="true">↗</span><div><strong>&ldquo;{query}&rdquo;와 일치하는 수집기가 없습니다.</strong><p>사이트 이름 또는 site_id의 일부로 검색해 보세요. 조건별로 훑어보려면 <Link href="/crawlers">크롤러 상태</Link>에서 국가·자료 유형으로 찾을 수 있습니다.</p></div></div>)
+        : <div className="catalogue-prompt"><span aria-hidden="true">↗</span><div><strong>수집할 사이트를 검색해 주세요.</strong><p>사이트 이름이나 site_id의 일부를 입력하면 됩니다. 국가·자료 유형·실패 여부로 훑어보려면 <Link href="/crawlers">크롤러 상태</Link>를 이용하세요.</p></div></div>}
+
+        {requestedSite && !selected && <aside className="snapshot-note snapshot-note--unavailable"><strong>알 수 없는 수집기</strong><span><code>{requestedSite}</code>는 등록된 수집기 카탈로그에 없습니다. 실행 패널을 열지 않았습니다.</span></aside>}
       </section>
 
-      <section className="status-band" aria-labelledby="band-crawlers-heading">
-        <div className="band-heading">
-          <div className="band-heading-main">
-            <span className="band-number" aria-hidden="true">02</span>
-            <div><p className="eyebrow">CRAWLER FLEET</p><h2 id="band-crawlers-heading">수집기 상태</h2></div>
-          </div>
-        </div>
+      {selected && <>
+        <aside className="snapshot-note"><strong>{selected.siteName || selected.siteId}</strong><span>
+          {selected.status === "healthy" ? `${AUDIT_DATE} 검증에서 문서 저장에 성공한 수집기입니다.` : `${AUDIT_DATE} 검증에서 실패한 수집기입니다.`}
+          {" "}자료 유형 {selected.docType} · 국가 {selected.country} · 현재 DB 문서 {(documentsBySite.get(selected.siteId) ?? 0).toLocaleString("ko-KR")}건 ·{" "}
+          <Link href={`/crawlers/${encodeURIComponent(selected.siteId)}`}>수집기 상세 보기</Link>
+        </span></aside>
+        <RunPanel siteId={selected.siteId} status={selected.status} category={selected.category} reason={selected.reason} />
+      </>}
 
-        <div className="summary-grid">
-          <article className="summary-card"><span>전체 수집기</span><strong>{rows.length.toLocaleString("ko-KR")}</strong><small>등록 카탈로그</small></article>
-          <Link className="summary-card summary-card--good" href="/?status=healthy"><span>정상 작동</span><strong>{healthy.toLocaleString("ko-KR")}</strong><small>{rows.length ? ((healthy / rows.length) * 100).toFixed(1) : "0.0"}% 저장 성공</small></Link>
-          <Link className="summary-card summary-card--bad" href="/?status=unhealthy"><span>실패·확인 필요</span><strong>{unhealthy.toLocaleString("ko-KR")}</strong><small>코드·차단·네트워크</small></Link>
-        </div>
-
-        <aside className="snapshot-note"><strong>스냅샷 안내</strong><span>이 화면은 {AUDIT_DATE} 검증 결과입니다. IP 차단 항목은 납품처 네트워크에서 달라질 수 있습니다.</span></aside>
-
-        <div className="taxonomy-grid" aria-label="국가 및 자료 유형 분류">
-          <article className="taxonomy-panel">
-            <div className="taxonomy-heading"><div><p className="eyebrow">BY COUNTRY</p><h3>국가별 수집기</h3></div><span>{countries.length}개 국가·지역</span></div>
-            <div className="taxonomy-bars">{countryCounts.slice(0, 10).map(([name, count]) => <Link href={`/?country=${encodeURIComponent(name)}`} key={name}><span>{name}</span><i><b style={{ width: `${(count / countryCounts[0]![1]) * 100}%` }} /></i><strong>{count}</strong></Link>)}</div>
-          </article>
-          <article className="taxonomy-panel">
-            <div className="taxonomy-heading"><div><p className="eyebrow">BY MATERIAL</p><h3>자료 유형별 수집기</h3></div><span>{docTypes.length}개 유형</span></div>
-            <div className="type-grid">{docTypeCounts.map(([name, count]) => <Link href={`/?docType=${encodeURIComponent(name)}`} key={name}><span>{name}</span><strong>{count}</strong></Link>)}</div>
-          </article>
-        </div>
-
-        <section className="catalogue-section">
-          <div className="section-heading"><div><p className="eyebrow">STATUS CATALOGUE</p><h3>{country || docType ? `${[country, docType].filter(Boolean).join(" · ")} 크롤러` : "분류별 크롤러 목록"}</h3></div><p>{hasCatalogueSelection ? `${selectedRows.length.toLocaleString("ko-KR")}개 결과` : "사이트를 검색하거나 조건을 선택하세요"}</p></div>
-          <Form className="filters filters--taxonomy" action="/">
-            <label className="query-field"><span>사이트 검색</span><input defaultValue={query} name="q" placeholder="사이트 이름 또는 site_id" /></label>
-            <label><span>상태</span><select defaultValue={status} name="status"><option value="">전체 상태</option><option value="healthy">정상</option><option value="unhealthy">실패</option></select></label>
-            <label><span>실패 유형</span><select defaultValue={category} name="category"><option value="">전체 유형</option>{categories.map((item) => <option key={item}>{item}</option>)}</select></label>
-            <label><span>국가</span><select defaultValue={country} name="country"><option value="">전체 국가</option>{countries.map((item) => <option key={item}>{item}</option>)}</select></label>
-            <label><span>자료 유형</span><select defaultValue={docType} name="docType"><option value="">전체 자료</option>{docTypes.map((item) => <option key={item}>{item}</option>)}</select></label>
-            <label><span>목록 보기</span><select defaultValue={groupBy} name="groupBy"><option value="">전체 목록</option><option value="country">국가별 보기</option><option value="docType">카테고리별 보기</option></select></label>
-            <label><span>최신화</span><select defaultValue={freshness} name="freshness"><option value="">전체 최신화</option><option value="within_7_days">7일 이내</option><option value="8_to_30_days">8~30일</option><option value="31_to_90_days">31~90일</option><option value="over_90_or_never">90일 초과·미수집</option></select></label>
-            <button type="submit">찾기</button>
-            <Link className="reset-link" href="/">초기화</Link>
-          </Form>
-
-          {hasCatalogueSelection ? <div className="table-shell">
-            <table>
-              <thead><tr><th>상태</th><th>사이트</th><th>국가</th><th>자료 유형</th><th>수집기 ID</th><th className="number">과거 수집</th><th>진단</th><th>실행</th></tr></thead>
-              <tbody>{visible.map((row, index) => {
-                const previous = visible[index - 1];
-                const showGroup = groupBy && (!previous || groupLabel(previous) !== groupLabel(row));
-                return <Fragment key={row.siteId}>
-                {showGroup && <tr className="group-row"><th colSpan={8}>{groupLabel(row)} <span>{selectedRows.filter((item) => groupLabel(item) === groupLabel(row)).length.toLocaleString("ko-KR")}개</span></th></tr>}
-                <tr className={row.status === "unhealthy" ? "row-failed" : ""} key={row.siteId}>
-                  <td><HealthBadge row={row} /></td>
-                  <td className="site-name">{row.siteName || row.siteId}</td>
-                  <td>{row.country}</td>
-                  <td><span className="material-tag">{row.docType}</span></td>
-                  <td><code>{row.siteId}</code></td>
-                  <td className="number">{row.collected.toLocaleString("ko-KR")}</td>
-                    <td>{row.category ? <><span className="category">{row.category}</span><small className="reason">{row.reason}</small></> : <span className="success-note">문서 저장 성공</span>}</td>
-                    <td><Link className="run-link" href={`/crawlers/${encodeURIComponent(row.siteId)}`}>실행 →</Link></td>
-                </tr></Fragment>;
-              })}</tbody>
-            </table>
-            {!visible.length && <div className="empty">조건에 맞는 크롤러가 없습니다.</div>}
-          </div> : <div className="catalogue-prompt"><span aria-hidden="true">↗</span><div><strong>검색어를 입력하거나 조건을 선택해 주세요.</strong><p>사이트 이름으로 검색하거나 위의 상태·실패 유형·국가·자료 유형 중 하나를 선택하면 해당 크롤러만 목록에 표시됩니다.</p></div></div>}
-
-          {hasCatalogueSelection && <nav className="pagination" aria-label="페이지 이동">
-            {page > 1 ? <Link href={pageHref(filters, page - 1)}>← 이전</Link> : <span />}
-            <span>{page} / {pageCount}</span>
-            {page < pageCount ? <Link href={pageHref(filters, page + 1)}>다음 →</Link> : <span />}
-          </nav>}
-        </section>
-      </section>
       <JobDashboard />
     </div>
   );
