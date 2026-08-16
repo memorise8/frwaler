@@ -5,6 +5,7 @@ import { AUDIT_DATE, getCrawlerHealth, type CrawlerHealth } from "@/lib/crawler-
 import { getFreshnessStats } from "@/lib/database-stats";
 import { hasActiveCatalogueFilter } from "@/lib/catalogue-filters";
 import { matchesFreshnessFilter } from "@/lib/freshness-filter";
+import BulkRunPanel from "@/components/bulk-run-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -12,8 +13,9 @@ const PAGE_SIZE = 40;
 type Params = Promise<Record<string, string | string[] | undefined>>;
 const one = (value: string | string[] | undefined): string => Array.isArray(value) ? value[0] ?? "" : value ?? "";
 
-const pageHref = (filters: Readonly<{ q: string; status: string; category: string; country: string; docType: string; groupBy: string; freshness: string }>, page: number): string => {
+const pageHref = (filters: Readonly<{ q: string; status: string; category: string; country: string; docType: string; groupBy: string; freshness: string; all: boolean }>, page: number): string => {
   const params = new URLSearchParams();
+  if (filters.all) params.set("all", "1");
   if (filters.q) params.set("q", filters.q);
   if (filters.status) params.set("status", filters.status);
   if (filters.category) params.set("category", filters.category);
@@ -65,12 +67,17 @@ export default async function CrawlerFleet({ searchParams }: Readonly<{ searchPa
     const bGroup = groupBy === "country" ? b.country : groupBy === "docType" ? b.docType : "";
     return aGroup.localeCompare(bGroup, "ko") || a.siteName.localeCompare(b.siteName, "ko");
   });
-  const hasCatalogueSelection = hasActiveCatalogueFilter({ query, status, category, country, docType, freshness });
+  // ?all=1 is an explicit "no filter, show everything" choice, distinct from
+  // arriving with no parameters at all. Without it the widest reachable
+  // selection is 정상 772대, so a whole-fleet run -- the thing the summary card
+  // above names -- would have no route to it.
+  const showAll = one(params.all) === "1";
+  const hasCatalogueSelection = showAll || hasActiveCatalogueFilter({ query, status, category, country, docType, freshness });
   const selectedRows = hasCatalogueSelection ? filtered : [];
   const pageCount = Math.max(1, Math.ceil(selectedRows.length / PAGE_SIZE));
   const page = Math.min(Math.max(requestedPage, 1), pageCount);
   const visible = selectedRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const filters = { q: query, status, category, country, docType, groupBy, freshness };
+  const filters = { q: query, status, category, country, docType, groupBy, freshness, all: showAll };
   const groupLabel = (row: CrawlerHealth): string => groupBy === "country" ? row.country : groupBy === "docType" ? row.docType : "";
 
   return (
@@ -85,7 +92,7 @@ export default async function CrawlerFleet({ searchParams }: Readonly<{ searchPa
       </header>
 
       <div className="summary-grid">
-        <article className="summary-card"><span>전체 수집기</span><strong>{rows.length.toLocaleString("ko-KR")}</strong><small>등록 카탈로그</small></article>
+        <Link className="summary-card" href="/crawlers?all=1"><span>전체 수집기</span><strong>{rows.length.toLocaleString("ko-KR")}</strong><small>등록 카탈로그 · 전체 보기</small></Link>
         <Link className="summary-card summary-card--good" href="/crawlers?status=healthy"><span>정상 작동</span><strong>{healthy.toLocaleString("ko-KR")}</strong><small>{rows.length ? ((healthy / rows.length) * 100).toFixed(1) : "0.0"}% 저장 성공</small></Link>
         <Link className="summary-card summary-card--bad" href="/crawlers?status=unhealthy"><span>실패·확인 필요</span><strong>{unhealthy.toLocaleString("ko-KR")}</strong><small>코드·차단·네트워크</small></Link>
       </div>
@@ -104,7 +111,7 @@ export default async function CrawlerFleet({ searchParams }: Readonly<{ searchPa
       </div>
 
       <section className="catalogue-section">
-        <div className="section-heading"><div><p className="eyebrow">STATUS CATALOGUE</p><h2>{country || docType ? `${[country, docType].filter(Boolean).join(" · ")} 크롤러` : "분류별 크롤러 목록"}</h2></div><p>{hasCatalogueSelection ? `${selectedRows.length.toLocaleString("ko-KR")}개 결과` : "사이트를 검색하거나 조건을 선택하세요"}</p></div>
+        <div className="section-heading"><div><p className="eyebrow">STATUS CATALOGUE</p><h2>{country || docType ? `${[country, docType].filter(Boolean).join(" · ")} 크롤러` : showAll ? "전체 크롤러 목록" : "분류별 크롤러 목록"}</h2></div><p>{hasCatalogueSelection ? `${selectedRows.length.toLocaleString("ko-KR")}개 결과` : "사이트를 검색하거나 조건을 선택하세요"}</p></div>
         <Form className="filters filters--taxonomy" action="/crawlers">
           <label className="query-field"><span>사이트 검색</span><input defaultValue={query} name="q" placeholder="사이트 이름 또는 site_id" /></label>
           <label><span>상태</span><select defaultValue={status} name="status"><option value="">전체 상태</option><option value="healthy">정상</option><option value="unhealthy">실패</option></select></label>
@@ -139,6 +146,15 @@ export default async function CrawlerFleet({ searchParams }: Readonly<{ searchPa
           </table>
           {!visible.length && <div className="empty">조건에 맞는 크롤러가 없습니다.</div>}
         </div> : <div className="catalogue-prompt"><span aria-hidden="true">↗</span><div><strong>검색어를 입력하거나 조건을 선택해 주세요.</strong><p>사이트 이름으로 검색하거나 위의 상태·실패 유형·국가·자료 유형 중 하나를 선택하면 해당 크롤러만 목록에 표시됩니다.</p></div></div>}
+
+        {/* Acts on every row the current filter selects, not just this page --
+            which is what makes "독일 전체" or "논문 전체" a single action. */}
+        {hasCatalogueSelection && selectedRows.length > 0 && (
+          <BulkRunPanel
+            label={[country, docType, status === "healthy" ? "정상" : status === "unhealthy" ? "실패" : "", category].filter(Boolean).join(" · ") || (query ? `"${query}" 검색` : showAll ? "등록된 전체 크롤러" : "선택한 조건")}
+            siteIds={selectedRows.map((row) => row.siteId)}
+          />
+        )}
 
         {hasCatalogueSelection && <nav className="pagination" aria-label="페이지 이동">
           {page > 1 ? <Link href={pageHref(filters, page - 1)}>← 이전</Link> : <span />}

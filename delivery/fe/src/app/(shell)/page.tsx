@@ -6,6 +6,7 @@ import { getRecentJobs } from "@/lib/crawl-jobs";
 import { searchCrawlersToRun } from "@/lib/crawler-search";
 import { DEFAULT_QUEUE, isQueueKey, selectFailedCrawlers, selectRecentSites, selectStaleSites, type QueueKey, type QueueRow, type QueueSelection } from "@/lib/collect-queues";
 import RunPanel from "@/components/run-panel";
+import BulkRunPanel from "@/components/bulk-run-panel";
 import { JobDashboard } from "./job-dashboard";
 
 export const dynamic = "force-dynamic";
@@ -192,6 +193,14 @@ export default async function Collect({ searchParams }: Readonly<{ searchParams:
           </aside>
         )}
       </section>
+
+      {/* Bulk covers the whole queue, not the visible page -- the number on the
+          card and the number acted on are the same. Search is deliberately
+          excluded: it caps its own result list, so a bulk button there would
+          claim a match count it does not actually run. */}
+      {!searching && active.rows.length > 0 && (
+        <BulkRunPanel label={QUEUE_COPY[queue].heading} siteIds={active.rows.map((row) => row.siteId)} />
+      )}
 
       {selected && <>
         <aside className="snapshot-note"><strong>{selected.siteName || selected.siteId}</strong><span>

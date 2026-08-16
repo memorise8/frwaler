@@ -598,6 +598,45 @@ code {
   grid-template-columns: minmax(260px,1fr) auto auto;
 }
 
+/* Bulk run reuses the single-site run panel's shell so the two read as the
+   same kind of control, with a warmer ground to mark that it acts on many
+   third-party sites at once. */
+.bulk-run {
+  background: color-mix(in srgb,var(--bad-wash) 40%,var(--surface));
+}
+
+.bulk-actions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.bulk-actions button {
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--rule);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.bulk-actions button:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.bulk-actions small {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
 .row-selected {
   background: color-mix(in srgb,var(--moss) 12%,var(--surface));
 }
