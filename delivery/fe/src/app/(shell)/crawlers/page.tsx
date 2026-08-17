@@ -2,7 +2,8 @@ import Form from "next/form";
 import Link from "next/link";
 import { Fragment } from "react";
 import { AUDIT_DATE, getCrawlerHealth, type CrawlerHealth } from "@/lib/crawler-health";
-import { getFreshnessStats } from "@/lib/database-stats";
+import { getFreshnessStats, getVerificationStats } from "@/lib/database-stats";
+import { contradictsAudit, indexVerification, resolveVerificationState, VERIFICATION_LABEL } from "@/lib/crawler-verification";
 import { hasActiveCatalogueFilter } from "@/lib/catalogue-filters";
 import { matchesFreshnessFilter } from "@/lib/freshness-filter";
 import BulkRunPanel from "@/components/bulk-run-panel";
@@ -45,7 +46,8 @@ export default async function CrawlerFleet({ searchParams }: Readonly<{ searchPa
   const freshness = one(params.freshness);
   const requestedPage = Number.parseInt(one(params.page), 10) || 1;
   const rows = getCrawlerHealth();
-  const freshnessStats = await getFreshnessStats();
+  const [freshnessStats, verificationStats] = await Promise.all([getFreshnessStats(), getVerificationStats()]);
+  const verification = indexVerification(verificationStats?.sites);
   const freshnessBucketBySite = new Map((freshnessStats?.sites ?? []).map((site) => [site.site_id, site.freshness_bucket]));
   const healthy = rows.filter((row) => row.status === "healthy").length;
   const unhealthy = rows.length - healthy;
@@ -95,9 +97,10 @@ export default async function CrawlerFleet({ searchParams }: Readonly<{ searchPa
         <Link className="summary-card" href="/crawlers?all=1"><span>전체 수집기</span><strong>{rows.length.toLocaleString("ko-KR")}</strong><small>등록 카탈로그 · 전체 보기</small></Link>
         <Link className="summary-card summary-card--good" href="/crawlers?status=healthy"><span>정상 작동</span><strong>{healthy.toLocaleString("ko-KR")}</strong><small>{rows.length ? ((healthy / rows.length) * 100).toFixed(1) : "0.0"}% 저장 성공</small></Link>
         <Link className="summary-card summary-card--bad" href="/crawlers?status=unhealthy"><span>실패·확인 필요</span><strong>{unhealthy.toLocaleString("ko-KR")}</strong><small>코드·차단·네트워크</small></Link>
+        <article className="summary-card summary-card--secondary"><span>여기서 수집 확인</span><strong>{(verificationStats?.summary.sites_with_saved_documents ?? 0).toLocaleString("ko-KR")}</strong><small>{verificationStats ? `이 설치에서 ${verificationStats.summary.sites_with_jobs.toLocaleString("ko-KR")}개 실행` : "실행 기록 조회 불가"}</small></article>
       </div>
 
-      <aside className="snapshot-note"><strong>스냅샷 안내</strong><span>이 화면은 {AUDIT_DATE} 검증 결과입니다. IP 차단 항목은 납품처 네트워크에서 달라질 수 있습니다. 지금 상태가 필요하면 <Link href="/">수집 화면</Link>에서 3건 상태 확인을 실행하세요.</span></aside>
+      <aside className="snapshot-note"><strong>스냅샷 안내</strong><span>상태 배지는 {AUDIT_DATE}에 <strong>다른 네트워크에서</strong> 검증한 결과이며 갱신되지 않습니다. 아래 &ldquo;여기 결과&rdquo; 칸이 이 설치에서 실제로 실행한 기록입니다. 둘이 다르면 이쪽이 현재 사실입니다. 아직 실행한 적 없는 수집기는 <Link href="/">수집 화면</Link>에서 3건 상태 확인으로 확인할 수 있습니다.</span></aside>
 
       <div className="taxonomy-grid" aria-label="국가 및 자료 유형 분류">
         <article className="taxonomy-panel">
@@ -126,14 +129,16 @@ export default async function CrawlerFleet({ searchParams }: Readonly<{ searchPa
 
         {hasCatalogueSelection ? <div className="table-shell">
           <table>
-            <thead><tr><th>상태</th><th>사이트</th><th>국가</th><th>자료 유형</th><th>수집기 ID</th><th className="number">과거 수집</th><th>진단</th><th>실행</th></tr></thead>
+            <thead><tr><th title="납품 시점 검증 결과. 갱신되지 않습니다.">납품 검증</th><th title="이 설치에서 실행한 결과입니다.">여기 결과</th><th>사이트</th><th>국가</th><th>자료 유형</th><th>수집기 ID</th><th className="number">과거 수집</th><th>진단</th><th>실행</th></tr></thead>
             <tbody>{visible.map((row, index) => {
               const previous = visible[index - 1];
               const showGroup = groupBy && (!previous || groupLabel(previous) !== groupLabel(row));
               return <Fragment key={row.siteId}>
-              {showGroup && <tr className="group-row"><th colSpan={8}>{groupLabel(row)} <span>{selectedRows.filter((item) => groupLabel(item) === groupLabel(row)).length.toLocaleString("ko-KR")}개</span></th></tr>}
+              {showGroup && <tr className="group-row"><th colSpan={9}>{groupLabel(row)} <span>{selectedRows.filter((item) => groupLabel(item) === groupLabel(row)).length.toLocaleString("ko-KR")}개</span></th></tr>}
               <tr className={row.status === "unhealthy" ? "row-failed" : ""} key={row.siteId}>
                 <td><HealthBadge row={row} /></td>
+                <td>{(() => { const state = resolveVerificationState(verification.get(row.siteId));
+                  return <span className={`verify-tag verify-tag--${state}${contradictsAudit(row.status, state) ? " verify-tag--conflict" : ""}`}>{VERIFICATION_LABEL[state]}</span>; })()}</td>
                 <td className="site-name">{row.siteName || row.siteId}</td>
                 <td>{row.country}</td>
                 <td><span className="material-tag">{row.docType}</span></td>

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { AUDIT_DATE, getCrawlerHealth } from "@/lib/crawler-health";
 import { crawlerDocumentsHref, formatEvidenceDate, summarizeCrawlerEvidence } from "@/lib/crawler-evidence";
 import { getDocumentCatalogue } from "@/lib/document-catalogue";
+import { getVerificationStats } from "@/lib/database-stats";
+import { contradictsAudit, describeVerification, indexVerification, resolveVerificationState, VERIFICATION_LABEL } from "@/lib/crawler-verification";
 import RunPanel from "@/components/run-panel";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +19,8 @@ export default async function CrawlerDetail({ params }: Readonly<{ params: Promi
     site_id: siteId, sort: "collected_desc", page_size: String(EVIDENCE_PAGE_SIZE),
   }));
   const evidence = summarizeCrawlerEvidence(catalogueResult);
+  const verificationRow = indexVerification((await getVerificationStats())?.sites).get(siteId);
+  const verified = resolveVerificationState(verificationRow);
   const documentsHref = crawlerDocumentsHref(siteId);
   return (
     <div className="detail-page">
@@ -28,9 +32,14 @@ export default async function CrawlerDetail({ params }: Readonly<{ params: Promi
       <aside className="snapshot-note">
         <strong>스냅샷 안내</strong>
         <span>
-          상태 배지·과거 수집 건수·실패 사유는 모두 {AUDIT_DATE}에 기록된 스냅샷이며 실시간 상태가 아닙니다.
-          이후 실행한 수집은 반영되지 않습니다. 현재 상태는 아래에서 직접 실행해 확인하세요.
+          상태 배지·과거 수집 건수·실패 사유는 모두 {AUDIT_DATE}에 <strong>다른 네트워크에서</strong> 기록된 스냅샷이며
+          갱신되지 않습니다. 이 설치에서 실행한 결과는 아래 &ldquo;여기 결과&rdquo;에 있습니다.
         </span>
+      </aside>
+
+      <aside className={`snapshot-note${contradictsAudit(crawler.status, verified) ? "" : " snapshot-note--plain"}`}>
+        <strong>여기 결과 · <span className={`verify-tag verify-tag--${verified}`}>{VERIFICATION_LABEL[verified]}</span></strong>
+        <span>{describeVerification(crawler.status, verified, verificationRow)}</span>
       </aside>
       <dl className="detail-facts">
         <div><dt>국가</dt><dd>{crawler.country}</dd></div><div><dt>대륙</dt><dd>{crawler.continent}</dd></div><div><dt>자료 유형</dt><dd>{crawler.docType}</dd></div><div><dt>과거 수집</dt><dd>{crawler.collected.toLocaleString("ko-KR")}건</dd></div><div><dt>마지막 검증</dt><dd>{AUDIT_DATE}</dd></div>

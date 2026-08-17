@@ -13,6 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from delivery.be.catalogue import CatalogueFilters, collect_catalogue, load_taxonomy
 from delivery.be.document_detail import collect_document_detail
 from delivery.be.freshness import collect_freshness
+from delivery.be.verification import collect_verification
 from delivery.be.stats import collect_stats
 from delivery.be.translation_quality import collect_translation_quality
 from delivery.be.batch_operations import batch_detail, list_batches, operations
@@ -215,6 +216,17 @@ def create_app(dsn: str) -> FastAPI:
                 conn.close()
 
         return aggregates.get_or_create("freshness", collect)
+
+    @app.get("/sites/verification")
+    def get_site_verification():
+        def collect():
+            conn = _conn()
+            try:
+                return collect_verification(conn)
+            finally:
+                conn.close()
+
+        return aggregates.get_or_create("site_verification", collect)
 
     @app.post("/translation/preview")
     def post_translation_preview(body: TranslationPreviewIn):

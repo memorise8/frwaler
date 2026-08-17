@@ -1,10 +1,11 @@
 import Form from "next/form";
 import Link from "next/link";
 import { AUDIT_DATE, getCrawlerHealth } from "@/lib/crawler-health";
-import { getDatabaseStats, getFreshnessStats } from "@/lib/database-stats";
+import { getDatabaseStats, getFreshnessStats, getVerificationStats } from "@/lib/database-stats";
 import { getRecentJobs } from "@/lib/crawl-jobs";
 import { searchCrawlersToRun } from "@/lib/crawler-search";
 import { DEFAULT_QUEUE, isQueueKey, selectFailedCrawlers, selectRecentSites, selectStaleSites, type QueueKey, type QueueRow, type QueueSelection } from "@/lib/collect-queues";
+import { contradictsAudit, indexVerification, resolveVerificationState, VERIFICATION_LABEL } from "@/lib/crawler-verification";
 import RunPanel from "@/components/run-panel";
 import BulkRunPanel from "@/components/bulk-run-panel";
 import { JobDashboard } from "./job-dashboard";
@@ -55,17 +56,19 @@ export default async function Collect({ searchParams }: Readonly<{ searchParams:
   const requestedPage = Number.parseInt(one(params.page), 10) || 1;
 
   const rows = getCrawlerHealth();
-  const [databaseStats, freshnessStats, jobs] = await Promise.all([
+  const [databaseStats, freshnessStats, jobs, verificationStats] = await Promise.all([
     getDatabaseStats(),
     getFreshnessStats(),
     getRecentJobs(),
+    getVerificationStats(),
   ]);
   const documentsBySite = new Map((databaseStats?.by_site ?? []).map((item) => [item.key, item.documents]));
+  const verification = indexVerification(verificationStats?.sites);
 
   const queues: Readonly<Record<QueueKey, QueueSelection>> = {
-    stale: selectStaleSites(freshnessStats?.sites ?? [], rows, documentsBySite),
-    recent: selectRecentSites(jobs, rows, documentsBySite),
-    failed: selectFailedCrawlers(rows, documentsBySite),
+    stale: selectStaleSites(freshnessStats?.sites ?? [], rows, documentsBySite, verification),
+    recent: selectRecentSites(jobs, rows, documentsBySite, 12, verification),
+    failed: selectFailedCrawlers(rows, documentsBySite, verification),
   };
 
   const selected = requestedSite ? rows.find((row) => row.siteId === requestedSite) ?? null : null;
@@ -79,6 +82,7 @@ export default async function Collect({ searchParams }: Readonly<{ searchParams:
     documents: documentsBySite.get(row.siteId) ?? null,
     status: row.status,
     category: row.category,
+    verified: resolveVerificationState(verification.get(row.siteId)),
     note: row.status === "healthy" ? "마지막 검증 정상" : row.category || "마지막 검증 실패",
   }));
 
@@ -168,7 +172,7 @@ export default async function Collect({ searchParams }: Readonly<{ searchParams:
         {visible.length > 0 ? (
           <div className="table-shell">
             <table>
-              <thead><tr><th>검증</th><th>사이트</th><th>수집기 ID</th><th>국가</th><th>{QUEUE_COLUMN[searching ? "search" : queue]}</th><th className="number">수집한 문서</th><th>실행</th></tr></thead>
+              <thead><tr><th title="납품 시점(2026-08-06) 검증 결과입니다. 이 설치에서 실행한 결과가 아닙니다.">납품 검증</th><th title="이 설치에서 실제로 실행한 결과입니다. 납품 검증과 다르면 이쪽이 현재 사실입니다.">여기 결과</th><th>사이트</th><th>수집기 ID</th><th>국가</th><th>{QUEUE_COLUMN[searching ? "search" : queue]}</th><th className="number">수집한 문서</th><th>실행</th></tr></thead>
               <tbody>{visible.map((row) => {
                 const isSelected = selected?.siteId === row.siteId;
                 const failed = row.status === "unhealthy";
@@ -178,6 +182,7 @@ export default async function Collect({ searchParams }: Readonly<{ searchParams:
                       <span className={`health-badge health-badge--${failed ? "unhealthy" : "healthy"}`}><i aria-hidden="true" />{failed ? "실패" : "정상"}</span>
                       {failed && row.category && <small className="reason">{row.category}</small>}
                     </td>
+                    <td><span className={`verify-tag verify-tag--${row.verified}${contradictsAudit(row.status, row.verified) ? " verify-tag--conflict" : ""}`}>{VERIFICATION_LABEL[row.verified]}</span></td>
                     <td className="site-name">{row.siteName}</td>
                     <td><code>{row.siteId}</code></td>
                     <td>{row.country || "-"}</td>

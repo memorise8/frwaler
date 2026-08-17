@@ -1,4 +1,5 @@
 import { jobStatusLabel } from "@/lib/job-status";
+import { resolveVerificationState, type VerificationRow, type VerificationState } from "@/lib/crawler-verification";
 
 export const QUEUE_KEYS = ["stale", "recent", "failed"] as const;
 export type QueueKey = (typeof QUEUE_KEYS)[number];
@@ -15,6 +16,7 @@ export type QueueRow = Readonly<{
   documents: number | null;
   status: string;
   category: string;
+  verified: VerificationState;
   note: string;
 }>;
 
@@ -23,12 +25,15 @@ export type QueueRow = Readonly<{
 //
 // - noCrawler: /freshness reports on the database, which holds a site no
 //   crawler produces (scienceon-api, 10,447 documents). Nothing can run it.
-// - unhealthy: the audit already found this crawler broken. It is not
-//   removed from the console -- the 실패·확인 필요 queue exists to re-run
-//   exactly these, since several are IP blocks the audit marked "클라이언트
-//   egress에서 재확인 필요" -- but it does not belong in a list of ordinary
-//   overdue work, where it costs an operator a full crawl to rediscover
-//   what the catalogue already knows.
+// - unhealthy: the audit already found this crawler broken, and this
+//   deployment has not shown otherwise. It is not removed from the console --
+//   the 실패·확인 필요 queue exists to re-run exactly these, since several are
+//   IP blocks the audit marked "클라이언트 egress에서 재확인 필요" -- but it
+//   does not belong in a list of ordinary overdue work, where it costs an
+//   operator a full crawl to rediscover what the catalogue already knows.
+//   Once a run here has stored a document the exclusion stops applying: the
+//   snapshot is then simply wrong about this network, and the site is ordinary
+//   overdue work like any other.
 export type QueueExclusions = Readonly<{ noCrawler: number; unhealthy: number }>;
 export type QueueSelection = Readonly<{ rows: readonly QueueRow[]; excluded: QueueExclusions }>;
 
@@ -73,11 +78,14 @@ export const selectStaleSites = (
   freshness: readonly FreshnessSiteLike[],
   crawlers: readonly CrawlerLike[],
   documentsBySite: ReadonlyMap<string, number>,
+  verification: ReadonlyMap<string, VerificationRow> = new Map(),
 ): QueueSelection => {
   const byId = indexCrawlers(crawlers);
   const inQueue = freshness.filter((site) => STALE_BUCKETS.has(site.freshness_bucket));
   const withCrawler = inQueue.filter((site) => byId.has(site.site_id));
-  const runnable = withCrawler.filter((site) => byId.get(site.site_id)!.status !== "unhealthy");
+  const runnable = withCrawler.filter((site) =>
+    byId.get(site.site_id)!.status !== "unhealthy"
+    || resolveVerificationState(verification.get(site.site_id)) === "collected");
   // Never-collected sites sort ahead of everything: age_days is null for them,
   // which is not a small number but an absent measurement, and must not fall
   // through a numeric comparison to the bottom of the list.
@@ -97,6 +105,7 @@ export const selectStaleSites = (
         documents: documentsBySite.get(site.site_id) ?? null,
         status: crawler?.status ?? "",
         category: crawler?.category ?? "",
+        verified: resolveVerificationState(verification.get(site.site_id)),
         note: site.age_days === null ? "한 번도 수집하지 않음" : `${site.age_days.toLocaleString("ko-KR")}일 전 수집`,
       };
     }),
@@ -110,6 +119,7 @@ export const selectStaleSites = (
 export const selectFailedCrawlers = (
   crawlers: readonly CrawlerLike[],
   documentsBySite: ReadonlyMap<string, number>,
+  verification: ReadonlyMap<string, VerificationRow> = new Map(),
 ): QueueSelection => {
   const rows = crawlers
     .filter((row) => row.status === "unhealthy")
@@ -121,6 +131,7 @@ export const selectFailedCrawlers = (
       documents: documentsBySite.get(row.siteId) ?? null,
       status: row.status,
       category: row.category,
+      verified: resolveVerificationState(verification.get(row.siteId)),
       // The badge cell already carries the category, so the note gives the
       // audit's actual sentence -- which is where "코드문제 아님, 클라이언트
       // egress에서 재확인 필요" lives, the difference between a crawler worth
@@ -138,6 +149,7 @@ export const selectRecentSites = (
   crawlers: readonly CrawlerLike[],
   documentsBySite: ReadonlyMap<string, number>,
   limit = 12,
+  verification: ReadonlyMap<string, VerificationRow> = new Map(),
 ): QueueSelection => {
   const byId = indexCrawlers(crawlers);
   const newestFirst = [...jobs].sort((a, b) => b.created_at.localeCompare(a.created_at) || b.id - a.id);
@@ -164,6 +176,7 @@ export const selectRecentSites = (
       documents: documentsBySite.get(job.site_id) ?? null,
       status: crawler.status,
       category: crawler.category,
+      verified: resolveVerificationState(verification.get(job.site_id)),
       note: `최근 작업 #${job.id} · ${jobStatusLabel(job.status)}`,
     });
   }

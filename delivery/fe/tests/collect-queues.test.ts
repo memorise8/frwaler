@@ -10,6 +10,13 @@ import {
   type FreshnessSiteLike,
   type JobLike,
 } from "../src/lib/collect-queues";
+import type { VerificationRow } from "../src/lib/crawler-verification";
+
+const verified = (siteId: string, bestSaved: number): ReadonlyMap<string, VerificationRow> =>
+  new Map([[siteId, {
+    site_id: siteId, last_status: "done", last_saved_count: bestSaved, last_error: null,
+    last_finished_at: "2026-08-17T12:00:00Z", jobs: 1, best_saved_count: bestSaved,
+  }]]);
 
 const crawler = (siteId: string, over: Partial<CrawlerLike> = {}): CrawlerLike => ({
   siteId, siteName: `${siteId} 이름`, country: "독일", status: "healthy", category: "", reason: "", ...over,
@@ -89,6 +96,27 @@ describe("selectStaleSites", () => {
     ], [...crawlers, crawler("blocked", { status: "unhealthy", category: "IP차단" })], docs([]));
     expect(result.rows.map((row) => row.siteId)).toEqual(["a"]);
     expect(result.excluded).toEqual({ noCrawler: 0, unhealthy: 1 });
+  });
+
+  // The delivered verdict is a snapshot from another network that nothing
+  // updates. Once a run here has actually stored a document, excluding the
+  // site as "known broken" would hide real overdue work behind a stale file.
+  it("stops excluding an audit failure once it has collected on this install", () => {
+    const catalogue = [...crawlers, crawler("blocked", { status: "unhealthy", category: "IP차단" })];
+    const freshness = [fresh("a", "over_90_days", 120), fresh("blocked", "over_90_days", 200)];
+    const withoutProof = selectStaleSites(freshness, catalogue, docs([]));
+    expect(withoutProof.rows.map((row) => row.siteId)).toEqual(["a"]);
+
+    const withProof = selectStaleSites(freshness, catalogue, docs([]), verified("blocked", 12));
+    expect(withProof.rows.map((row) => row.siteId)).toEqual(["blocked", "a"]);
+    expect(withProof.excluded).toEqual({ noCrawler: 0, unhealthy: 0 });
+    expect(withProof.rows[0]!.verified).toBe("collected");
+  });
+
+  it("marks every row with what this install observed", () => {
+    const result = selectStaleSites([fresh("a", "over_90_days", 120)], crawlers, docs([]), verified("a", 3));
+    expect(result.rows[0]!.verified).toBe("collected");
+    expect(selectStaleSites([fresh("b", "over_90_days", 120)], crawlers, docs([])).rows[0]!.verified).toBe("unrun");
   });
 
   it("carries the audit verdict onto every row it does keep", () => {

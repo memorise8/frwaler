@@ -2453,6 +2453,42 @@ code {
   font: 10px var(--mono);
 }
 
+/* What this deployment observed, shown beside the delivered audit verdict.
+   Neutral by default because most states are neither good nor bad news; the
+   conflict modifier is the only loud one, since "the snapshot and reality
+   disagree" is the single thing an operator has to act on. */
+.verify-tag {
+  display: inline-block;
+  padding: 2px 7px;
+  border: 1px solid var(--rule);
+  color: var(--muted);
+  font: 11px var(--mono);
+  white-space: nowrap;
+}
+
+.verify-tag--collected {
+  border-color: var(--moss);
+  color: var(--moss-deep);
+  background: var(--moss-wash);
+}
+
+.verify-tag--failed {
+  border-color: var(--bad);
+  color: var(--bad);
+  background: var(--bad-wash);
+}
+
+.snapshot-note--plain {
+  background: var(--surface);
+  border-left-color: var(--rule);
+}
+
+.verify-tag--conflict {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 /* The crawler's own output, captured from its stdout. It is verbatim English
    from 804 differently-written crawlers, not the worker's three Korean
    lifecycle lines, so it is set in mono and tightened up to read as a

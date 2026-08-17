@@ -55,3 +55,25 @@ export async function getFreshnessStats(): Promise<FreshnessStats | null> {
     return await response.json() as FreshnessStats;
   } catch { return null; }
 }
+
+export type VerificationStats = Readonly<{
+  sites: ReadonlyArray<Readonly<{
+    site_id: string; last_status: string; last_saved_count: number;
+    last_error: string | null; last_finished_at: string | null;
+    jobs: number; best_saved_count: number;
+  }>>;
+  summary: Readonly<{ sites_with_jobs: number; sites_with_saved_documents: number }>;
+  measured_at: string;
+}>;
+
+// What this deployment has proven about its own crawlers, as opposed to the
+// audit snapshot shipped with the catalogue. Returns null rather than throwing
+// so a console without the endpoint (an older BE) simply shows the snapshot
+// alone instead of failing to render.
+export async function getVerificationStats(): Promise<VerificationStats | null> {
+  try {
+    const response = await fetch(`${backendUrl()}/sites/verification`, { cache: "no-store", signal: AbortSignal.timeout(5000) });
+    if (!response.ok) return null;
+    return await response.json() as VerificationStats;
+  } catch { return null; }
+}
