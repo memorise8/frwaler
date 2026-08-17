@@ -96,6 +96,21 @@ describe("selectStaleSites", () => {
     expect(result.rows[0]).toMatchObject({ status: "healthy", category: "" });
   });
 
+  // The delivery scenario: a customer installs, the migration registers all
+  // 804 crawlers as sites, and nothing has ever been collected. Every site
+  // arrives in the "never" bucket, so this queue is the first screen's whole
+  // work list -- it must not come back empty the way it did before the sites
+  // table was seeded.
+  it("fills the queue on a cold install where nothing has been collected", () => {
+    const catalogue = Array.from({ length: 804 }, (_, index) =>
+      crawler(`site-${String(index).padStart(3, "0")}`, index < 32 ? { status: "unhealthy", category: "IP차단" } : {}));
+    const freshness = catalogue.map((row) => fresh(row.siteId, "never", null));
+    const result = selectStaleSites(freshness, catalogue, docs([]));
+    expect(result.rows).toHaveLength(804 - 32);
+    expect(result.excluded).toEqual({ noCrawler: 0, unhealthy: 32 });
+    expect(new Set(result.rows.map((row) => row.note))).toEqual(new Set(["한 번도 수집하지 않음"]));
+  });
+
   it("prefers the catalogue name over the database's placeholder name", () => {
     const result = selectStaleSites([fresh("a", "never", null)], crawlers, docs([]));
     expect(result.rows[0]!.siteName).toBe("a 이름");
