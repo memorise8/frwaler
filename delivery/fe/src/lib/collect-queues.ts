@@ -13,17 +13,26 @@ export type QueueRow = Readonly<{
   siteName: string;
   country: string;
   documents: number | null;
+  status: string;
+  category: string;
   note: string;
 }>;
 
-// `excluded` counts sites that belong in the queue by its own rule but have
-// no crawler to run. /freshness reports on the database, which holds at
-// least one site (scienceon-api, 10,447 documents) that no crawler in the
-// catalogue produces. Offering it here would hand the operator a row whose
-// only possible outcome is a failed job, so it is dropped -- and counted, so
-// the screen can say so rather than quietly showing a smaller number than
-// the card promised.
-export type QueueSelection = Readonly<{ rows: readonly QueueRow[]; excluded: number }>;
+// Two different reasons a site can belong to a queue by its own rule and
+// still not be offered, kept apart because they need different words:
+//
+// - noCrawler: /freshness reports on the database, which holds a site no
+//   crawler produces (scienceon-api, 10,447 documents). Nothing can run it.
+// - unhealthy: the audit already found this crawler broken. It is not
+//   removed from the console -- the 실패·확인 필요 queue exists to re-run
+//   exactly these, since several are IP blocks the audit marked "클라이언트
+//   egress에서 재확인 필요" -- but it does not belong in a list of ordinary
+//   overdue work, where it costs an operator a full crawl to rediscover
+//   what the catalogue already knows.
+export type QueueExclusions = Readonly<{ noCrawler: number; unhealthy: number }>;
+export type QueueSelection = Readonly<{ rows: readonly QueueRow[]; excluded: QueueExclusions }>;
+
+const NONE: QueueExclusions = { noCrawler: 0, unhealthy: 0 };
 
 export type FreshnessSiteLike = Readonly<{
   site_id: string;
@@ -38,6 +47,7 @@ export type CrawlerLike = Readonly<{
   country: string;
   status: string;
   category: string;
+  reason: string;
 }>;
 
 export type JobLike = Readonly<{
@@ -66,7 +76,8 @@ export const selectStaleSites = (
 ): QueueSelection => {
   const byId = indexCrawlers(crawlers);
   const inQueue = freshness.filter((site) => STALE_BUCKETS.has(site.freshness_bucket));
-  const runnable = inQueue.filter((site) => byId.has(site.site_id));
+  const withCrawler = inQueue.filter((site) => byId.has(site.site_id));
+  const runnable = withCrawler.filter((site) => byId.get(site.site_id)!.status !== "unhealthy");
   // Never-collected sites sort ahead of everything: age_days is null for them,
   // which is not a small number but an absent measurement, and must not fall
   // through a numeric comparison to the bottom of the list.
@@ -84,10 +95,15 @@ export const selectStaleSites = (
         siteName: nameOf(crawler, site.site_id, site.site_name),
         country: crawler?.country ?? "",
         documents: documentsBySite.get(site.site_id) ?? null,
+        status: crawler?.status ?? "",
+        category: crawler?.category ?? "",
         note: site.age_days === null ? "한 번도 수집하지 않음" : `${site.age_days.toLocaleString("ko-KR")}일 전 수집`,
       };
     }),
-    excluded: inQueue.length - runnable.length,
+    excluded: {
+      noCrawler: inQueue.length - withCrawler.length,
+      unhealthy: withCrawler.length - runnable.length,
+    },
   };
 };
 
@@ -103,9 +119,15 @@ export const selectFailedCrawlers = (
       siteName: nameOf(row, row.siteId),
       country: row.country,
       documents: documentsBySite.get(row.siteId) ?? null,
-      note: row.category || "확인 필요",
+      status: row.status,
+      category: row.category,
+      // The badge cell already carries the category, so the note gives the
+      // audit's actual sentence -- which is where "코드문제 아님, 클라이언트
+      // egress에서 재확인 필요" lives, the difference between a crawler worth
+      // retrying here and one that is simply broken.
+      note: row.reason || row.category || "확인 필요",
     }));
-  return { rows, excluded: 0 };
+  return { rows, excluded: NONE };
 };
 
 // One row per site, not per job: an operator re-running yesterday's work
@@ -121,23 +143,29 @@ export const selectRecentSites = (
   const newestFirst = [...jobs].sort((a, b) => b.created_at.localeCompare(a.created_at) || b.id - a.id);
   const seen = new Set<string>();
   const rows: QueueRow[] = [];
-  let excluded = 0;
+  let noCrawler = 0;
   for (const job of newestFirst) {
     if (seen.has(job.site_id)) continue;
     seen.add(job.site_id);
     const crawler = byId.get(job.site_id);
     if (!crawler) {
-      excluded += 1;
+      noCrawler += 1;
       continue;
     }
     if (rows.length >= limit) continue;
+    // A crawler the audit calls broken stays in this queue: it is a record
+    // of what was actually run, and hiding a run that happened would be a
+    // different kind of lie than offering one that cannot work. The status
+    // column carries the warning instead.
     rows.push({
       siteId: job.site_id,
       siteName: nameOf(crawler, job.site_id),
       country: crawler.country,
       documents: documentsBySite.get(job.site_id) ?? null,
+      status: crawler.status,
+      category: crawler.category,
       note: `최근 작업 #${job.id} · ${jobStatusLabel(job.status)}`,
     });
   }
-  return { rows, excluded };
+  return { rows, excluded: { noCrawler, unhealthy: 0 } };
 };

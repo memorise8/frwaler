@@ -15,12 +15,19 @@ const PAGE_SIZE = 40;
 type Params = Promise<Record<string, string | string[] | undefined>>;
 const one = (value: string | string[] | undefined): string => Array.isArray(value) ? value[0] ?? "" : value ?? "";
 
+const QUEUE_COLUMN: Readonly<Record<QueueKey | "search", string>> = {
+  stale: "마지막 수집",
+  recent: "최근 작업",
+  failed: "실패 유형",
+  search: "마지막 검증",
+};
+
 const QUEUE_COPY: Readonly<Record<QueueKey, { label: string; caption: string; heading: string; note: string; tone: string }>> = {
   stale: {
     label: "오래 방치됨",
     caption: "90일 초과·미수집",
     heading: "오래 방치된 사이트",
-    note: "마지막 수집이 오래된 순서입니다. 한 번도 수집하지 않은 사이트가 맨 위에 옵니다.",
+    note: "마지막 수집이 오래된 순서입니다. 한 번도 수집하지 않은 사이트가 맨 위에 옵니다. 마지막 검증에서 실패한 사이트는 이 목록에서 제외했습니다.",
     tone: " summary-card--bad",
   },
   recent: {
@@ -34,7 +41,7 @@ const QUEUE_COPY: Readonly<Record<QueueKey, { label: string; caption: string; he
     label: "실패·확인 필요",
     caption: `${AUDIT_DATE} 검증 기준`,
     heading: "실패한 수집기",
-    note: "마지막 검증에서 문서를 저장하지 못한 수집기입니다. 다시 실행해도 같은 이유로 실패할 수 있습니다.",
+    note: `${AUDIT_DATE} 검증에서 문서를 저장하지 못한 수집기입니다. 다시 실행해도 같은 이유로 실패할 수 있습니다. IP 차단 항목은 납품처 네트워크에서 결과가 다를 수 있어 여기서 재확인할 수 있습니다.`,
     tone: " summary-card--bad",
   },
 };
@@ -70,6 +77,8 @@ export default async function Collect({ searchParams }: Readonly<{ searchParams:
     siteName: row.siteName || row.siteId,
     country: row.country,
     documents: documentsBySite.get(row.siteId) ?? null,
+    status: row.status,
+    category: row.category,
     note: row.status === "healthy" ? "마지막 검증 정상" : row.category || "마지막 검증 실패",
   }));
 
@@ -139,21 +148,36 @@ export default async function Collect({ searchParams }: Readonly<{ searchParams:
 
         <p className="run-note">{searching ? "카드를 누르면 다시 목록으로 돌아갑니다." : QUEUE_COPY[queue].note}</p>
 
-        {!searching && active.excluded > 0 && (
+        {!searching && active.excluded.unhealthy > 0 && (
           <aside className="snapshot-note">
-            <strong>목록에서 제외</strong>
-            <span>{active.excluded.toLocaleString("ko-KR")}개 사이트는 데이터베이스에는 있으나 실행할 수집기가 카탈로그에 없어 목록에서 제외했습니다.</span>
+            <strong>실패 판정 제외</strong>
+            <span>
+              {active.excluded.unhealthy.toLocaleString("ko-KR")}개 사이트는 {AUDIT_DATE} 검증에서 실패(IP 차단·폐쇄·코드 오류)로 분류돼 이 목록에서 뺐습니다.
+              오래됐지만 정상 판정을 받은 사이트만 남아 있습니다. 제외된 사이트는 위 <Link href="/?queue=failed">실패·확인 필요</Link> 카드에서 실행할 수 있습니다.
+            </span>
+          </aside>
+        )}
+
+        {!searching && active.excluded.noCrawler > 0 && (
+          <aside className="snapshot-note">
+            <strong>수집기 없음 제외</strong>
+            <span>{active.excluded.noCrawler.toLocaleString("ko-KR")}개 사이트는 데이터베이스에는 있으나 실행할 수집기가 카탈로그에 없어 목록에서 뺐습니다.</span>
           </aside>
         )}
 
         {visible.length > 0 ? (
           <div className="table-shell">
             <table>
-              <thead><tr><th>사이트</th><th>수집기 ID</th><th>국가</th><th>{searching ? "마지막 검증" : "상태"}</th><th className="number">수집한 문서</th><th>실행</th></tr></thead>
+              <thead><tr><th>검증</th><th>사이트</th><th>수집기 ID</th><th>국가</th><th>{QUEUE_COLUMN[searching ? "search" : queue]}</th><th className="number">수집한 문서</th><th>실행</th></tr></thead>
               <tbody>{visible.map((row) => {
                 const isSelected = selected?.siteId === row.siteId;
+                const failed = row.status === "unhealthy";
                 return (
-                  <tr className={isSelected ? "row-selected" : ""} key={row.siteId}>
+                  <tr className={`${failed ? "row-failed" : ""}${isSelected ? " row-selected" : ""}`} key={row.siteId}>
+                    <td>
+                      <span className={`health-badge health-badge--${failed ? "unhealthy" : "healthy"}`}><i aria-hidden="true" />{failed ? "실패" : "정상"}</span>
+                      {failed && row.category && <small className="reason">{row.category}</small>}
+                    </td>
                     <td className="site-name">{row.siteName}</td>
                     <td><code>{row.siteId}</code></td>
                     <td>{row.country || "-"}</td>

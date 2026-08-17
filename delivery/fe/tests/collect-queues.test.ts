@@ -12,8 +12,9 @@ import {
 } from "../src/lib/collect-queues";
 
 const crawler = (siteId: string, over: Partial<CrawlerLike> = {}): CrawlerLike => ({
-  siteId, siteName: `${siteId} 이름`, country: "독일", status: "healthy", category: "", ...over,
+  siteId, siteName: `${siteId} 이름`, country: "독일", status: "healthy", category: "", reason: "", ...over,
 });
+const NONE = { noCrawler: 0, unhealthy: 0 };
 
 const fresh = (site_id: string, bucket: string, age_days: number | null): FreshnessSiteLike =>
   ({ site_id, site_name: `Custom: ${site_id}`, freshness_bucket: bucket, age_days });
@@ -75,7 +76,24 @@ describe("selectStaleSites", () => {
       fresh("ghost", "over_90_days", 500),
     ], crawlers, docs([]));
     expect(result.rows.map((row) => row.siteId)).toEqual(["a"]);
-    expect(result.excluded).toBe(1);
+    expect(result.excluded).toEqual({ noCrawler: 1, unhealthy: 0 });
+  });
+
+  // A crawler the audit already found broken is not ordinary overdue work:
+  // leaving it here costs an operator a full crawl to rediscover what the
+  // catalogue already recorded. It stays reachable in the failed queue.
+  it("drops crawlers the audit marked unhealthy and counts them separately", () => {
+    const result = selectStaleSites([
+      fresh("a", "over_90_days", 120),
+      fresh("blocked", "never", null),
+    ], [...crawlers, crawler("blocked", { status: "unhealthy", category: "IP차단" })], docs([]));
+    expect(result.rows.map((row) => row.siteId)).toEqual(["a"]);
+    expect(result.excluded).toEqual({ noCrawler: 0, unhealthy: 1 });
+  });
+
+  it("carries the audit verdict onto every row it does keep", () => {
+    const result = selectStaleSites([fresh("a", "over_90_days", 120)], crawlers, docs([]));
+    expect(result.rows[0]).toMatchObject({ status: "healthy", category: "" });
   });
 
   it("prefers the catalogue name over the database's placeholder name", () => {
@@ -93,12 +111,13 @@ describe("selectFailedCrawlers", () => {
   it("selects unhealthy crawlers and labels them with the failure category", () => {
     const result = selectFailedCrawlers([
       crawler("ok"),
-      crawler("blocked", { status: "unhealthy", category: "IP 차단", siteName: "나 사이트" }),
+      crawler("blocked", { status: "unhealthy", category: "IP 차단", reason: "차단 사유 원문", siteName: "나 사이트" }),
       crawler("broken", { status: "unhealthy", category: "", siteName: "가 사이트" }),
     ], docs([]));
     expect(result.rows.map((row) => row.siteId)).toEqual(["broken", "blocked"]);
-    expect(result.rows.map((row) => row.note)).toEqual(["확인 필요", "IP 차단"]);
-    expect(result.excluded).toBe(0);
+    expect(result.rows.map((row) => row.note)).toEqual(["확인 필요", "차단 사유 원문"]);
+    expect(result.rows.map((row) => row.category)).toEqual(["", "IP 차단"]);
+    expect(result.excluded).toEqual(NONE);
   });
 });
 
@@ -137,7 +156,20 @@ describe("selectRecentSites", () => {
       job(3, "a", "2026-08-03T00:00:00Z"),
     ], crawlers, docs([]));
     expect(result.rows.map((row) => row.siteId)).toEqual(["a"]);
-    expect(result.excluded).toBe(1);
+    expect(result.excluded).toEqual({ noCrawler: 1, unhealthy: 0 });
+  });
+
+  // Unlike the stale queue, this one keeps a crawler the audit calls broken.
+  // It is a record of what was actually run, and hiding a run that happened
+  // would be a different kind of lie than offering one that cannot work.
+  it("keeps an unhealthy crawler that was recently run, carrying its verdict", () => {
+    const result = selectRecentSites(
+      [job(1, "bad", "2026-08-01T00:00:00Z")],
+      [crawler("bad", { status: "unhealthy", category: "IP차단" })],
+      docs([]));
+    expect(result.rows.map((row) => row.siteId)).toEqual(["bad"]);
+    expect(result.rows[0]).toMatchObject({ status: "unhealthy", category: "IP차단" });
+    expect(result.excluded).toEqual(NONE);
   });
 
   it("caps the list without dropping earlier entries", () => {
@@ -149,6 +181,6 @@ describe("selectRecentSites", () => {
   });
 
   it("returns nothing when no job has ever run", () => {
-    expect(selectRecentSites([], crawlers, docs([]))).toEqual({ rows: [], excluded: 0 });
+    expect(selectRecentSites([], crawlers, docs([]))).toEqual({ rows: [], excluded: NONE });
   });
 });
