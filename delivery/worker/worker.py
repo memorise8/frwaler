@@ -173,6 +173,32 @@ def run_once(conn, crawler_registry=None, delay=1.0, *, worker_id: str = "crawl-
     return True
 
 
+def run_cycle(conn, *, worker_id: str, delay: float = 1.0, lease_dsn: str | None = None,
+              crawler_registry=None, translation_provider=None) -> tuple[bool, bool]:
+    """One scheduling pass: at most one translation job and one crawl job.
+
+    Both lanes are attempted every cycle. The previous loop ran the crawl lane
+    only when the translation lane had come back empty, which is not a priority
+    ordering but a starvation bug on a single serial worker: a translation queue
+    that never empties means crawling never runs at all, and an 804-site sweep
+    can sit untouched for hours while the console shows only "대기 중".
+
+    Alternating is not throughput-optimal -- while both queues are busy each
+    lane advances one job per cycle, so translations proceed at crawl pace, and
+    a crawl can hold the worker for minutes. It is chosen because neither lane
+    can be starved indefinitely by the other, which no priority order gives.
+    When only one queue has work that lane runs back to back, exactly as before.
+
+    Returns (translated, crawled) so the caller can tell an idle cycle from a
+    busy one without inspecting the queues again.
+    """
+    provider = provider_from_env if translation_provider is None else translation_provider
+    translated = translation_jobs.run_once(conn, provider, worker_id=worker_id)
+    crawled = run_once(conn, crawler_registry=crawler_registry, delay=delay,
+                       worker_id=worker_id, lease_dsn=lease_dsn)
+    return translated, crawled
+
+
 def main() -> int:
     import argparse
     from crawler import db_pg
@@ -194,16 +220,16 @@ def main() -> int:
         jobs.recover_stale(conn)
         if args.once:
             _observe_host(conn,worker_id)
-            if not translation_jobs.run_once(conn, provider_from_env,worker_id=worker_id):
-                run_once(conn, delay=args.delay,worker_id=worker_id,lease_dsn=args.dsn)
+            run_cycle(conn, worker_id=worker_id, delay=args.delay, lease_dsn=args.dsn)
             return 0
         while True:
             schedules.enqueue_due(conn)
             _observe_host(conn,worker_id)
             translation_jobs.recover_stale(conn)
             jobs.recover_stale(conn)
-            translated = translation_jobs.run_once(conn, provider_from_env,worker_id=worker_id)
-            if not translated and not run_once(conn, delay=args.delay,worker_id=worker_id,lease_dsn=args.dsn):
+            translated, crawled = run_cycle(conn, worker_id=worker_id, delay=args.delay,
+                                            lease_dsn=args.dsn)
+            if not translated and not crawled:
                 time.sleep(args.poll)
     finally:
         conn.close()
