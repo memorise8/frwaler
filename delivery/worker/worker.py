@@ -7,10 +7,13 @@
 from __future__ import annotations
 
 import os
+import sys
 import time
 import json
 import shutil
 import threading
+from collections import deque
+from contextlib import redirect_stdout
 
 from . import jobs
 from . import schedules
@@ -20,6 +23,51 @@ from crawler.base_crawler import CrawlCancelled
 from delivery.translation.observations import prune as prune_observations, record as record_observation
 
 _last_observation_prune = 0.0
+
+# How many trailing lines of a crawler's own output are kept with the job.
+# Enough to hold a fully blocked run's evidence (17 sections x 3 attempts
+# produced ~68 lines) without letting a long successful crawl write thousands
+# of rows per job.
+CRAWL_OUTPUT_LINES = int(os.environ.get("LIBERTREE_JOB_LOG_LINES", "40"))
+
+
+class _TeeCapture:
+    """Mirror a crawler's stdout to the container log while keeping the tail.
+
+    Crawlers print with plain print(), so redirecting stdout for the duration
+    of crawl() collects all 804 of them without touching a single crawler --
+    there is no shared fetch layer to hook instead. The real stream is still
+    written to, so `docker logs` keeps working exactly as before.
+    """
+
+    def __init__(self, stream, limit):
+        self._stream = stream
+        self._lines = deque(maxlen=max(1, limit))
+        self._partial = ""
+
+    def write(self, text):
+        self._stream.write(text)
+        self._partial += text
+        while "\n" in self._partial:
+            line, self._partial = self._partial.split("\n", 1)
+            if line.strip():
+                self._lines.append(line[:500])
+        return len(text)
+
+    def flush(self):
+        self._stream.flush()
+
+    def isatty(self):
+        return False
+
+    def __getattr__(self, name):  # encoding, errors, buffer, ... stay usable
+        return getattr(self._stream, name)
+
+    def lines(self):
+        tail = list(self._lines)
+        if self._partial.strip():
+            tail.append(self._partial[:500])
+        return tail
 
 
 def _registry(crawler_registry):
@@ -44,24 +92,36 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
         jobs.fail_job(conn, job["id"], f"no crawler for site_id={site_id!r}")
         return 0
     before = _count_site_docs(conn, site_id)
+    capture = _TeeCapture(sys.stdout, CRAWL_OUTPUT_LINES)
+    # Recorded after each terminal transition, never before: fail_job rolls the
+    # connection back first, and both it and finish_job commit, so writing the
+    # output earlier would either be discarded or ride on the crawl's own
+    # transaction.
+    def record_output():
+        jobs.log_crawler_output(conn, job["id"], capture.lines())
+
     try:
-        inst = cls(db_conn=conn, delay=delay)
-        inst.delivery_mode = job.get("mode", "incremental")
-        inst.delivery_should_cancel = should_cancel or (lambda: False)
-        inst.crawl(limit=job.get("limit_n"))
+        with redirect_stdout(capture):
+            inst = cls(db_conn=conn, delay=delay)
+            inst.delivery_mode = job.get("mode", "incremental")
+            inst.delivery_should_cancel = should_cancel or (lambda: False)
+            inst.crawl(limit=job.get("limit_n"))
     except CrawlCancelled:
         conn.rollback()
         saved = max(0, _count_site_docs(conn, site_id) - before)
         jobs.finish_job(conn, job["id"], saved_count=saved)
+        record_output()
         return saved
     except Exception as exc:  # noqa: BLE001
         # SQL errors leave psycopg transactions aborted; clear that state before
         # recording the durable failure transition.
         conn.rollback()
         jobs.fail_job(conn, job["id"], f"{type(exc).__name__}: {exc}")
+        record_output()
         return 0
     saved = _count_site_docs(conn, site_id) - before
     jobs.finish_job(conn, job["id"], saved_count=max(0, saved))
+    record_output()
     return max(0, saved)
 
 

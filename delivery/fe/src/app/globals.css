@@ -2453,6 +2453,22 @@ code {
   font: 10px var(--mono);
 }
 
+/* The crawler's own output, captured from its stdout. It is verbatim English
+   from 804 differently-written crawlers, not the worker's three Korean
+   lifecycle lines, so it is set in mono and tightened up to read as a
+   transcript rather than as more status prose. */
+.job-log-crawler {
+  margin: 2px 0;
+  padding-top: 4px;
+  border-top: 0;
+}
+
+.job-log-crawler span {
+  color: var(--muted);
+  font: 11px/1.5 var(--mono);
+  overflow-wrap: anywhere;
+}
+
 /* Loading state */
 
 .loading-state {

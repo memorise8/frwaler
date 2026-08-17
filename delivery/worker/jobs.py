@@ -10,8 +10,10 @@ class ActiveJobError(RuntimeError):
 
 
 def _log(conn,job_id:int,event:str,message:str,level:str="info") -> None:
-    conn.execute("INSERT INTO crawl_job_logs(job_id,level,event,message) VALUES(%s,%s,%s,%s)",
-                 (job_id,level,event,(message or "")[:500]))
+    conn.execute(
+        "INSERT INTO crawl_job_logs(job_id,level,event,message,created_at)"
+        " VALUES(%s,%s,%s,%s,clock_timestamp())",
+        (job_id,level,event,(message or "")[:500]))
 
 
 def enqueue_job(conn, site_id, mode="incremental", limit_n=None, requested_by=None) -> int:
@@ -37,8 +39,8 @@ def claim_next_job(conn, *, worker_id: str = "crawl-worker-1", lease_seconds: in
     """Atomically claim one queued job (status -> running). None if queue empty."""
     row = conn.execute(
         """
-        UPDATE crawl_jobs SET status='running', started_at=COALESCE(started_at,now()),
-               worker_id=%s, lease_expires_at=now()+make_interval(secs=>%s), attempts=attempts+1
+        UPDATE crawl_jobs SET status='running', started_at=COALESCE(started_at,clock_timestamp()),
+               worker_id=%s, lease_expires_at=clock_timestamp()+make_interval(secs=>%s), attempts=attempts+1
          WHERE id = (
             SELECT id FROM crawl_jobs
              WHERE status='queued' AND next_attempt_at<=now()
@@ -58,7 +60,7 @@ def claim_next_job(conn, *, worker_id: str = "crawl-worker-1", lease_seconds: in
 
 def renew_lease(conn, job_id: int, *, worker_id: str, lease_seconds: int = 600) -> bool:
     row = conn.execute(
-        """UPDATE crawl_jobs SET lease_expires_at=now()+make_interval(secs=>%s)
+        """UPDATE crawl_jobs SET lease_expires_at=clock_timestamp()+make_interval(secs=>%s)
              WHERE id=%s AND worker_id=%s AND status IN ('running','cancelling') RETURNING id""",
         (lease_seconds, job_id, worker_id),
     ).fetchone()
@@ -83,7 +85,7 @@ def recover_stale(conn) -> int:
             status, event, message = "failed", "lease_expired", "Worker lease가 반복 만료되어 작업이 실패 처리되었습니다."
         conn.execute(
             """UPDATE crawl_jobs SET status=%s,worker_id=NULL,lease_expires_at=NULL,
-                 next_attempt_at=now(),finished_at=CASE WHEN %s IN ('failed','cancelled') THEN now() ELSE NULL END,
+                 next_attempt_at=clock_timestamp(),finished_at=CASE WHEN %s IN ('failed','cancelled') THEN clock_timestamp() ELSE NULL END,
                  error=CASE WHEN %s='failed' THEN 'worker lease expired' ELSE error END WHERE id=%s""",
             (status, status, status, row["id"]),
         )
@@ -115,8 +117,8 @@ def cancel_job(conn, job_id) -> Optional[dict]:
     row = conn.execute(
         """UPDATE crawl_jobs
               SET status=CASE WHEN status='queued' THEN 'cancelled' ELSE 'cancelling' END,
-                  cancel_requested_at=now(),
-                  finished_at=CASE WHEN status='queued' THEN now() ELSE finished_at END,
+                  cancel_requested_at=clock_timestamp(),
+                  finished_at=CASE WHEN status='queued' THEN clock_timestamp() ELSE finished_at END,
                   error=NULL
             WHERE id=%s AND status IN ('queued','running')
         RETURNING *""",
@@ -175,7 +177,7 @@ def retry_job(conn, job_id, *, requested_by=None) -> Optional[dict]:
 
 def finish_job(conn, job_id, saved_count) -> None:
     row = conn.execute(
-        """UPDATE crawl_jobs SET status='done', saved_count=%s, finished_at=now(),
+        """UPDATE crawl_jobs SET status='done', saved_count=%s, finished_at=clock_timestamp(),
                worker_id=NULL,lease_expires_at=NULL
             WHERE id=%s AND status='running' RETURNING status""",
         (int(saved_count or 0), job_id),
@@ -184,7 +186,7 @@ def finish_job(conn, job_id, saved_count) -> None:
         _log(conn,job_id,"completed",f"수집 완료: 신규 문서 {int(saved_count or 0)}건")
     else:
         cancelled = conn.execute(
-            """UPDATE crawl_jobs SET status='cancelled', saved_count=%s, finished_at=now(),
+            """UPDATE crawl_jobs SET status='cancelled', saved_count=%s, finished_at=clock_timestamp(),
                   worker_id=NULL,lease_expires_at=NULL
                WHERE id=%s AND status='cancelling' RETURNING status""",
             (int(saved_count or 0), job_id),
@@ -196,7 +198,7 @@ def finish_job(conn, job_id, saved_count) -> None:
 
 def fail_job(conn, job_id, error) -> None:
     row = conn.execute(
-        """UPDATE crawl_jobs SET status='failed', error=%s, finished_at=now(),
+        """UPDATE crawl_jobs SET status='failed', error=%s, finished_at=clock_timestamp(),
                worker_id=NULL,lease_expires_at=NULL
             WHERE id=%s AND status IN ('running','cancelling') RETURNING id""",
         ((error or "")[:2000], job_id),
@@ -204,6 +206,39 @@ def fail_job(conn, job_id, error) -> None:
     if row:
         _log(conn,job_id,"failed","수집 작업이 실패했습니다.","error")
     conn.commit()
+
+
+def log_crawler_output(conn, job_id: int, lines) -> int:
+    """Persist the tail of the crawler's own stdout against one job.
+
+    The crawlers already say what they are doing -- "saved 3/3: ...", "abstract
+    too short, skipping", "fetch attempt 1/3 failed: all_layers_failed" -- but
+    that narration only ever reached container logs. On screen a fully blocked
+    crawl and a successful one both read "완료 · 신규 0건", because saved_count
+    (net new rows) is the same 0 for both.
+
+    stdout is the only thing all 804 crawlers share: 703 of them shell out to
+    curl through their own private helper and just 14 use BaseCrawler._request,
+    so there is no fetch layer to instrument instead. Rows are written in call
+    order and read back by job_detail ordered by id, so the tail stays in
+    sequence regardless of timestamp resolution.
+
+    Never raises: a job that has already reached a terminal state must not be
+    turned into a crash by its own bookkeeping.
+    """
+    if not lines:
+        return 0
+    try:
+        for line in lines:
+            conn.execute(
+                "INSERT INTO crawl_job_logs(job_id,level,event,message,created_at)"
+                " VALUES(%s,'info','crawler_output',%s,clock_timestamp())",
+                (job_id, line[:500]))
+        conn.commit()
+    except Exception:  # noqa: BLE001 - bookkeeping must not mask the job outcome
+        conn.rollback()
+        return 0
+    return len(lines)
 
 
 def job_detail(conn,job_id:int) -> dict | None:
