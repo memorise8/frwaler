@@ -28,13 +28,16 @@ describe("formatJobDuration", () => {
     expect(formatJobDuration("2026-08-17T12:00:00.100Z", "2026-08-17T12:00:00.900Z")).toBe("1초 미만");
   });
 
-  // Identical stamps are the signature of the transaction-timestamp bug, which
-  // every job recorded before the worker fix carries -- job #8 ran 3m54s and
-  // stored 12:01:57.448963 for both. Printing "1초 미만" would repeat the
-  // original lie, so an unmoved clock reads as unmeasured.
-  it("treats byte-identical stamps as unmeasured, not instant", () => {
+  it("treats an unmoved clock as unmeasured, not instant", () => {
     expect(formatJobDuration(at(0), at(0))).toBeNull();
-    expect(formatJobDuration("2026-08-17T12:01:57.448963Z", "2026-08-17T12:01:57.448963Z")).toBeNull();
+  });
+
+  // Documents a known gap rather than a behaviour worth having: job #8 ran
+  // 3m54s but stored stamps 5ms apart, so it reads as sub-second. Rescuing it
+  // would take an invented plausibility threshold, and only the handful of
+  // pre-fix rows are affected.
+  it("cannot rescue a pre-fix row, whose stamps are close but not equal", () => {
+    expect(formatJobDuration("2026-08-17T12:01:57.448963Z", "2026-08-17T12:01:57.453966Z")).toBe("1초 미만");
   });
 
   it("returns null when the job has not finished or a stamp is missing", () => {

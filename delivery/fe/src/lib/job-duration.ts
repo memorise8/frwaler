@@ -16,13 +16,18 @@ export const formatJobDuration = (
   if (!Number.isFinite(start) || !Number.isFinite(end)) return null;
   const ms = end - start;
   if (ms < 0) return null;
-  // Byte-identical stamps mean the measurement collapsed rather than the job
-  // being instant: that is the exact signature of the transaction-timestamp
-  // bug, and every job recorded before the fix carries it. Two clock_timestamp()
-  // readings around real work do not land on the same millisecond. Reporting
-  // those as "1초 미만" would repeat the original lie about a 3m54s crawl, so
-  // they read as unmeasured -- at the cost of also labelling a genuinely
-  // instantaneous run that way, which is the far cheaper mistake.
+  // An unmoved clock means the measurement collapsed rather than the job being
+  // instant: two clock_timestamp() readings taken around real work do not land
+  // on the same millisecond.
+  //
+  // This does NOT rescue the jobs recorded before the worker fix. Their stamps
+  // are close but not equal -- job #8 stored .448963 and .453966, 5ms apart for
+  // a 234-second crawl -- because started_at came from claim_next_job's own
+  // committed transaction and finished_at from the next one, which opened
+  // moments later and then stayed open for the whole crawl. Those rows still
+  // read "1초 미만" and there is no signal in them worth guessing from; a
+  // plausibility threshold would be invented, not measured. They age out of the
+  // 20-row job list on their own.
   if (ms === 0) return null;
   // A sub-second run is a real measurement, not a missing one, and must not
   // print as "0초" -- that is exactly the reading the old bug produced.
