@@ -51,6 +51,9 @@ export async function POST(request: Request): Promise<NextResponse> {
   const summary = summarizeBulkRun(outcomes);
   return NextResponse.json({
     summary,
+    // The ids this run created, so stopping it can name exactly its own work
+    // instead of draining a queue it shares with schedules and other operators.
+    jobIds: outcomes.filter((item) => item.kind === "queued").map((item) => item.jobId),
     // Only the outcomes an operator has to act on are returned. Echoing 800
     // successful enqueues back would bury the handful that need attention.
     problems: outcomes.filter((item) => item.kind !== "queued").slice(0, 50),

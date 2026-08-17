@@ -637,6 +637,32 @@ code {
   font-size: 12px;
 }
 
+/* The whole-queue stop reaches work this screen never started, so it is the
+   one control here that has to look like a last resort rather than a peer of
+   the scoped stop beside it. */
+.bulk-stop-all {
+  border-color: var(--bad) !important;
+  color: var(--bad) !important;
+}
+
+.bulk-stop-all:disabled {
+  border-color: var(--rule) !important;
+  color: var(--muted) !important;
+}
+
+.bulk-stop-confirm {
+  flex: 1 1 320px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.bulk-stop-confirm input {
+  margin-top: 3px;
+}
+
 .row-selected {
   background: color-mix(in srgb,var(--moss) 12%,var(--surface));
 }

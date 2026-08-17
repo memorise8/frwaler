@@ -21,11 +21,17 @@ type State =
   | { kind: "ran"; summary: BulkSummary; problems: readonly BulkOutcome[] }
   | { kind: "cancelled"; summary: CancelSummary };
 
+type CancelScope = Readonly<{ scope: "jobs"; jobIds: readonly number[] } | { scope: "all" }>;
+
 export default function BulkRunPanel({ siteIds, label }: Readonly<{ siteIds: readonly string[]; label: string }>) {
   const [mode, setMode] = useState<"incremental" | "full">("incremental");
   const [limit, setLimit] = useState(String(DEFAULT_BULK_LIMIT));
   const [confirmed, setConfirmed] = useState(false);
   const [state, setState] = useState<State>({ kind: "idle" });
+  // Ids this panel created, so its stop button can name its own work. Lost on
+  // reload, which is exactly when the whole-queue scope earns its place.
+  const [startedJobIds, setStartedJobIds] = useState<readonly number[]>([]);
+  const [confirmStopAll, setConfirmStopAll] = useState(false);
 
   const parsed = parseBulkRunRequest({ siteIds, mode, limit: Number(limit) });
   const working = state.kind === "working" ? state.verb : null;
@@ -41,28 +47,35 @@ export default function BulkRunPanel({ siteIds, label }: Readonly<{ siteIds: rea
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ siteIds, mode, limit: Number(limit) }),
       });
-      const payload = await response.json() as { error?: string; summary?: BulkSummary; problems?: readonly BulkOutcome[] };
+      const payload = await response.json() as { error?: string; summary?: BulkSummary; problems?: readonly BulkOutcome[]; jobIds?: readonly number[] };
       if (!response.ok || !payload.summary) {
         setState({ kind: "error", message: payload.error ?? "일괄 실행에 실패했습니다." });
         return;
       }
       setState({ kind: "ran", summary: payload.summary, problems: payload.problems ?? [] });
+      setStartedJobIds(payload.jobIds ?? []);
       setConfirmed(false);
     } catch {
       setState({ kind: "error", message: "작업 등록 요청을 보내지 못했습니다. 연결을 확인해 주세요." });
     }
   };
 
-  const cancelAll = async () => {
+  const cancel = async (target: CancelScope) => {
     setState({ kind: "working", verb: "취소" });
     try {
-      const response = await fetch("/api/jobs/bulk/cancel", { method: "POST" });
+      const response = await fetch("/api/jobs/bulk/cancel", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(target),
+      });
       const payload = await response.json() as { error?: string; summary?: CancelSummary };
       if (!response.ok || !payload.summary) {
         setState({ kind: "error", message: payload.error ?? "일괄 중지에 실패했습니다." });
         return;
       }
       setState({ kind: "cancelled", summary: payload.summary });
+      if (target.scope === "jobs") setStartedJobIds([]);
+      setConfirmStopAll(false);
     } catch {
       setState({ kind: "error", message: "중지 요청을 보내지 못했습니다. 연결을 확인해 주세요." });
     }
@@ -128,10 +141,30 @@ export default function BulkRunPanel({ siteIds, label }: Readonly<{ siteIds: rea
       )}
 
       <div className="bulk-actions">
-        <button type="button" onClick={() => void cancelAll()} disabled={busy}>
-          {working === "취소" ? "중지 중…" : "대기·실행 중인 작업 모두 중지"}
+        {startedJobIds.length > 0 && (
+          <button
+            type="button"
+            onClick={() => void cancel({ scope: "jobs", jobIds: startedJobIds })}
+            disabled={busy}
+          >
+            {working === "취소" ? "중지 중…" : `방금 등록한 ${startedJobIds.length.toLocaleString("ko-KR")}건 중지`}
+          </button>
+        )}
+        <button
+          type="button"
+          className="bulk-stop-all"
+          onClick={() => void cancel({ scope: "all" })}
+          disabled={busy || !confirmStopAll}
+        >
+          대기열 전체 중지
         </button>
-        <small>사이트 목록과 무관하게 대기열 전체를 대상으로 합니다.</small>
+        <label className="bulk-stop-confirm">
+          <input type="checkbox" checked={confirmStopAll} onChange={(event) => setConfirmStopAll(event.target.checked)} disabled={busy} />
+          <span>
+            대기열 전체 중지는 이 화면에서 등록한 작업만이 아니라 <strong>예약이 만든 작업과 다른 사람이 시작한 작업까지</strong> 함께 취소합니다.
+            {startedJobIds.length > 0 ? " 방금 등록한 것만 멈추려면 왼쪽 버튼을 쓰세요." : " 방금 등록한 작업 번호를 알 수 없을 때만 사용하세요."}
+          </span>
+        </label>
       </div>
 
       {state.kind === "error" && <p className="run-message run-message--error" role="alert">{state.message}</p>}

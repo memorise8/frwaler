@@ -4,7 +4,9 @@ import {
   classifyBulkOutcome,
   describeBulkCancel,
   describeBulkRun,
+  MAX_BULK_CANCEL_IDS,
   MAX_BULK_SITES,
+  parseBulkCancelRequest,
   parseBulkRunRequest,
   summarizeBulkRun,
   type BulkOutcome,
@@ -121,17 +123,70 @@ describe("summarizeBulkRun / describeBulkRun", () => {
   });
 });
 
+const cancelSummary = (over: Partial<Parameters<typeof describeBulkCancel>[0]> = {}) => ({
+  cancelled: 0, requested: 0, alreadyDone: 0, failed: 0, scheduled: 0, ...over,
+});
+
+describe("parseBulkCancelRequest", () => {
+  // A bulk run shares the queue with schedules and other operators, so its
+  // stop button must be able to name exactly the jobs it created.
+  it("accepts an explicit job id list", () => {
+    const result = parseBulkCancelRequest({ scope: "jobs", jobIds: [3, 1, 3] });
+    expect(result).toEqual({ ok: true, value: { scope: "jobs", jobIds: [3, 1] } });
+  });
+
+  it("defaults to the job scope when none is named", () => {
+    const result = parseBulkCancelRequest({ jobIds: [7] });
+    expect(result.ok && result.value.scope).toBe("jobs");
+  });
+
+  it("accepts the whole-queue scope without ids", () => {
+    expect(parseBulkCancelRequest({ scope: "all" })).toEqual({ ok: true, value: { scope: "all" } });
+  });
+
+  // An empty or malformed id list must not silently widen into "cancel
+  // everything" -- that is the exact failure this scoping exists to prevent.
+  it("refuses an empty or malformed id list instead of widening", () => {
+    expect(parseBulkCancelRequest({ jobIds: [] })).toMatchObject({ ok: false });
+    expect(parseBulkCancelRequest({})).toMatchObject({ ok: false });
+    expect(parseBulkCancelRequest({ jobIds: [0] })).toMatchObject({ ok: false });
+    expect(parseBulkCancelRequest({ jobIds: [1.5] })).toMatchObject({ ok: false });
+    expect(parseBulkCancelRequest({ jobIds: ["3"] })).toMatchObject({ ok: false });
+    expect(parseBulkCancelRequest({ scope: "everything" })).toMatchObject({ ok: false });
+  });
+
+  it("caps the id list", () => {
+    const many = Array.from({ length: MAX_BULK_CANCEL_IDS + 1 }, (_, index) => index + 1);
+    expect(parseBulkCancelRequest({ jobIds: many })).toMatchObject({ ok: false });
+  });
+});
+
 describe("describeBulkCancel", () => {
   // A queued job is cancelled outright; a running one only receives the
   // request and keeps collecting until its next checkpoint. Reporting both as
   // "cancelled" would tell an operator the crawl stopped when it has not.
   it("separates a completed cancellation from a requested one", () => {
-    const text = describeBulkCancel({ cancelled: 40, requested: 1, failed: 0 });
+    const text = describeBulkCancel(cancelSummary({ cancelled: 40, requested: 1 }));
     expect(text).toContain("대기 작업 40건 취소");
     expect(text).toContain("실행 중 1건은 현재 수집 단위가 끝나면 중단됩니다");
   });
 
+  // A bulk run's ids go stale as the worker drains them, so hitting a finished
+  // job is routine and must not read as an error.
+  it("reports already-finished jobs as left alone, not failed", () => {
+    const text = describeBulkCancel(cancelSummary({ cancelled: 2, alreadyDone: 5 }));
+    expect(text).toContain("이미 끝난 작업 5건은 그대로 둡니다");
+    expect(text).not.toContain("실패");
+  });
+
+  // The whole-queue scope is the only one that can stop work nobody at this
+  // screen started; the operator has to be told they did it.
+  it("says when the stop reached scheduled work", () => {
+    expect(describeBulkCancel(cancelSummary({ cancelled: 9, scheduled: 3 })))
+      .toContain("3건은 예약이 등록한 작업이었습니다");
+  });
+
   it("says so plainly when there was nothing to cancel", () => {
-    expect(describeBulkCancel({ cancelled: 0, requested: 0, failed: 0 })).toBe("취소할 작업이 없습니다.");
+    expect(describeBulkCancel(cancelSummary())).toBe("중지할 작업이 없습니다.");
   });
 });
