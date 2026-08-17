@@ -2,7 +2,17 @@
 """crawl_jobs 큐 조작 — 원자적 소비(SKIP LOCKED)."""
 from __future__ import annotations
 
+import os
+
 from typing import Optional
+
+
+# How long a job keeps the crawler's own captured output. The three lifecycle
+# rows (queued/started/completed) are the durable record of what happened and
+# are never pruned -- they are 3 rows per job. crawler_output is ~40 rows per
+# job, so a single 804-site sweep writes about 32,000 of them; it is diagnostic
+# detail with a short useful life, read within days of a run going wrong.
+CRAWLER_OUTPUT_RETENTION_DAYS = int(os.environ.get("LIBERTREE_JOB_LOG_RETENTION_DAYS", "14"))
 
 
 class ActiveJobError(RuntimeError):
@@ -206,6 +216,33 @@ def fail_job(conn, job_id, error) -> None:
     if row:
         _log(conn,job_id,"failed","수집 작업이 실패했습니다.","error")
     conn.commit()
+
+
+def prune_crawler_output(conn, *, retention_days: int = None) -> int:
+    """Drop captured crawler output past its retention window.
+
+    Only ``crawler_output`` rows are removed. The job row itself and its
+    lifecycle log survive, so the history that /sites/verification aggregates --
+    and the record that a job ran at all -- is never lost to retention.
+
+    A retention of 0 means exactly that: every captured line already written is
+    removed, including a run that finished seconds ago. The clamp exists for a
+    different reason -- an unclamped negative value would put the cutoff in the
+    future and delete output that has not aged at all, so a misconfigured
+    ``-5`` behaves as ``0`` rather than as ``+5``.
+    """
+    days = CRAWLER_OUTPUT_RETENTION_DAYS if retention_days is None else retention_days
+    row = conn.execute(
+        """WITH removed AS (
+             DELETE FROM crawl_job_logs
+              WHERE event='crawler_output'
+                AND created_at < clock_timestamp()-make_interval(days=>%s)
+          RETURNING 1)
+           SELECT count(*) AS count FROM removed""",
+        (max(0, int(days)),),
+    ).fetchone()
+    conn.commit()
+    return int(row["count"])
 
 
 def log_crawler_output(conn, job_id: int, lines) -> int:

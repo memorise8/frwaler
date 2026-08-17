@@ -255,6 +255,91 @@ class WorkerRunTest(unittest.TestCase):
         self.assertIn("[fake] visible in docker logs", buffer.getvalue())
 
 
+    # --- crawler output retention --------------------------------------
+    # Capturing stdout took a job from 3 log rows to ~43. A single 804-site
+    # bulk sweep therefore writes about 32,000 rows, and nothing pruned this
+    # table -- translation_system_observations had a retention pass, this did
+    # not. The job row and its lifecycle log stay: /sites/verification
+    # aggregates that history, and losing it to retention would erase the
+    # evidence that a crawler ever worked on this install.
+
+    def _age_logs(self, job_id, days):
+        self.conn.execute(
+            "UPDATE crawl_job_logs SET created_at=clock_timestamp()-make_interval(days=>%s)"
+            " WHERE job_id=%s", (days, job_id))
+        self.conn.commit()
+
+    def _counts(self, job_id):
+        row = self.conn.execute(
+            "SELECT count(*) FILTER (WHERE event='crawler_output') AS output,"
+            "       count(*) FILTER (WHERE event<>'crawler_output') AS lifecycle"
+            "  FROM crawl_job_logs WHERE job_id=%s", (job_id,)).fetchone()
+        return int(row["output"]), int(row["lifecycle"])
+
+    def _talking_job(self):
+        from delivery.worker import jobs, worker
+
+        class TalkingCrawler(_FakeCrawler):
+            def crawl(self, limit=None):
+                print("[fake] fetch attempt 1/3 failed: all_layers_failed")
+                print("[fake] done. Total saved: 0")
+
+        jid = jobs.enqueue_job(self.conn, "fake")
+        worker.run_job(self.conn, jobs.claim_next_job(self.conn), {"fake": TalkingCrawler}, delay=0)
+        return jid
+
+    def test_prunes_crawler_output_past_the_retention_window(self):
+        from delivery.worker import jobs
+        jid = self._talking_job()
+        self.assertEqual(self._counts(jid), (2, 3))
+        self._age_logs(jid, 30)
+        self.assertEqual(jobs.prune_crawler_output(self.conn, retention_days=14), 2)
+        self.assertEqual(self._counts(jid), (0, 3))
+
+    def test_keeps_output_inside_the_window(self):
+        from delivery.worker import jobs
+        jid = self._talking_job()
+        self._age_logs(jid, 3)
+        self.assertEqual(jobs.prune_crawler_output(self.conn, retention_days=14), 0)
+        self.assertEqual(self._counts(jid), (2, 3))
+
+    def test_never_removes_the_lifecycle_trail_or_the_job(self):
+        from delivery.worker import jobs
+        jid = self._talking_job()
+        self._age_logs(jid, 3650)
+        jobs.prune_crawler_output(self.conn, retention_days=0)
+        output, lifecycle = self._counts(jid)
+        self.assertEqual(output, 0)
+        self.assertEqual(lifecycle, 3)
+        self.assertIsNotNone(self.conn.execute(
+            "SELECT 1 FROM crawl_jobs WHERE id=%s", (jid,)).fetchone())
+
+    def test_pruning_an_empty_table_is_a_no_op(self):
+        from delivery.worker import jobs
+        self.assertEqual(jobs.prune_crawler_output(self.conn, retention_days=14), 0)
+
+    def test_zero_retention_removes_output_written_moments_ago(self):
+        # Retention 0 means keep none, including the run that just finished.
+        # Stated here so the behaviour is a decision rather than a surprise.
+        from delivery.worker import jobs
+        jid = self._talking_job()
+        self.assertEqual(jobs.prune_crawler_output(self.conn, retention_days=0), 2)
+        self.assertEqual(self._counts(jid), (0, 3))
+
+    def test_a_negative_retention_is_clamped_rather_than_inverted(self):
+        # Unclamped, -5 would put the cutoff five days in the FUTURE and delete
+        # output no window should touch. Clamped to 0 the cutoff is now, so a
+        # future-dated row survives.
+        from delivery.worker import jobs
+        jid = self._talking_job()
+        self.conn.execute(
+            "UPDATE crawl_job_logs SET created_at=clock_timestamp()+make_interval(days=>2)"
+            " WHERE job_id=%s AND event='crawler_output'", (jid,))
+        self.conn.commit()
+        self.assertEqual(jobs.prune_crawler_output(self.conn, retention_days=-5), 0)
+        self.assertEqual(self._counts(jid), (2, 3))
+
+
 
 if __name__ == "__main__":
     unittest.main()

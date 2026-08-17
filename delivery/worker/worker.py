@@ -23,6 +23,7 @@ from crawler.base_crawler import CrawlCancelled
 from delivery.translation.observations import prune as prune_observations, record as record_observation
 
 _last_observation_prune = 0.0
+_last_job_log_prune = 0.0
 
 # How many trailing lines of a crawler's own output are kept with the job.
 # Enough to hold a fully blocked run's evidence (17 sections x 3 attempts
@@ -216,6 +217,12 @@ def _observe_host(conn,worker_id: str) -> None:
     if now-_last_observation_prune>=3600:
         prune_observations(conn)
         _last_observation_prune=now
+    global _last_job_log_prune
+    if now-_last_job_log_prune>=3600:
+        removed=jobs.prune_crawler_output(conn)
+        _last_job_log_prune=now
+        if removed:
+            print(json.dumps({"event":"crawler_output_pruned","rows":removed},separators=(",",":")),flush=True)
     conn.execute("""INSERT INTO translation_worker_heartbeats(worker_id,status,last_seen_at,current_job_id)
       VALUES(%s,'idle',now(),NULL) ON CONFLICT(worker_id) DO UPDATE SET status='idle',last_seen_at=now(),current_job_id=NULL""",(worker_id,))
     conn.commit()
