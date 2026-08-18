@@ -1,0 +1,31 @@
+# 납품 번들(build_release_bundle.sh -> git archive)에서 제외할 것들.
+# 번들은 "납품 시스템의 현재 스냅샷"만 담는다 — 이전 세대 앱과 무관 프로젝트,
+# 옛 루트 잔재는 넘기지 않는다. (git archive 가 export-ignore 를 존중한다)
+
+# 무관 프로젝트
+api/            export-ignore
+crawlers-share/ export-ignore
+ecip-frontend/  export-ignore
+ecip-library/   export-ignore
+finolaw/        export-ignore
+
+# 이전 세대 libertree/frwaler 앱과 그 흔적
+libertree-app/  export-ignore
+livertree       export-ignore
+data/           export-ignore
+docker/         export-ignore
+
+# 옛 루트 잔재 (납품 스택은 delivery/ 아래의 것을 쓴다)
+Dockerfile          export-ignore
+docker-compose.yml  export-ignore
+README-install.md   export-ignore
+.env.example        export-ignore
+.dockerignore       export-ignore
+all_urls.txt        export-ignore
+html_list.csv       export-ignore
+input.xlsx          export-ignore
+tests.xlsx          export-ignore
+
+# 저장소 관리 파일 자체도 번들에는 불필요
+.gitattributes export-ignore
+.gitignore     export-ignore
