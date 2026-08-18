@@ -126,9 +126,14 @@ class WorkerJobsTest(unittest.TestCase):
         self.conn.commit()
         self.assertEqual(schedules.enqueue_due(self.conn), 1)
         schedules.delete(self.conn, "doomed")
-        remaining = self.conn.execute(
-            "SELECT count(*) AS n FROM crawl_jobs WHERE site_id='doomed'").fetchone()["n"]
-        self.assertEqual(remaining, 1)
+        # 행이 남아 있는 것만으로는 부족하다. 예약 삭제가 진행 중인 수집을 조용히
+        # 취소해 버려도 행 수는 그대로 1이므로, 상태와 취소 요청 시각까지 봐야
+        # "건드리지 않았다"가 증명된다.
+        rows = self.conn.execute(
+            "SELECT status, cancel_requested_at FROM crawl_jobs WHERE site_id='doomed'").fetchall()
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["status"], "queued")
+        self.assertIsNone(rows[0]["cancel_requested_at"])
 
     def test_claim_transitions_to_running(self):
         from delivery.worker import jobs
