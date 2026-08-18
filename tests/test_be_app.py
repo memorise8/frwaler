@@ -341,6 +341,22 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(self.client.post("/jobs/999999/retry", json={}).status_code, 404)
         self.assertEqual(self.client.get("/jobs?status=bogus").status_code, 422)
 
+    def test_progress_endpoint_returns_rows_without_a_token(self):
+        from crawler import db_pg
+        from delivery.worker import jobs
+        conn = db_pg.open_db(TEST_PG_DSN)
+        jobs.save_progress(conn, "rc-prog-site", {"page": 4}, items_delta=200)
+        conn.close()
+        # /jobs/summary 처럼 GET 은 토큰 없이 열려 있어야 한다 — 실제로 강제되는
+        # 토큰 모드에서 확인해야 그 주장이 증명된다.
+        with mock.patch.dict(os.environ, {"DELIVERY_AUTH_MODE": "token", "DELIVERY_API_TOKEN": "x" * 32}):
+            r = self.client.get("/progress")
+        self.assertEqual(r.status_code, 200)
+        rows = {s["site_id"]: s for s in r.json()["sites"]}
+        self.assertIn("rc-prog-site", rows)
+        self.assertEqual(rows["rc-prog-site"]["items_done"], 200)
+        self.assertIn("docs_in_db", rows["rc-prog-site"])
+
     def test_get_freshness(self):
         r = self.client.get("/freshness")
         self.assertEqual(r.status_code, 200)

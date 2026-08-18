@@ -409,6 +409,22 @@ def create_app(dsn: str) -> FastAPI:
         finally:
             conn.close()
 
+    @app.get("/progress")
+    def get_backfill_progress():
+        conn = _conn()
+        try:
+            rows = conn.execute(
+                """
+                SELECT p.site_id, p.cursor, p.items_done, p.total_estimate,
+                       p.updated_at, p.completed_at,
+                       (SELECT count(*) FROM documents d WHERE d.site_id = p.site_id) AS docs_in_db
+                  FROM crawl_site_progress p
+                 ORDER BY p.completed_at NULLS FIRST, p.updated_at DESC
+                """).fetchall()
+            return {"sites": [dict(r) for r in rows]}
+        finally:
+            conn.close()
+
     @app.get("/jobs/{job_id}")
     def get_job(job_id: int):
         conn = _conn()

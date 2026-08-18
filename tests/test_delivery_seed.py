@@ -109,6 +109,17 @@ class SeedCatalogueSitesTest(unittest.TestCase):
             seed_catalogue_sites(self.conn, catalogue_path="/nonexistent/catalogue.csv", registry=REGISTRY), 0)
         self.assertEqual(self._sites(), {})
 
+    def test_seed_backfill_estimates_upserts_only_100k_sites(self):
+        from delivery.scripts.seed_backfill_estimates import seed
+        n = seed(self.conn, csv_path="scripts/audit/capacity_corrected.csv")
+        self.assertEqual(n, 25)
+        row = self.conn.execute(
+            "SELECT total_estimate FROM crawl_site_progress WHERE site_id=%s",
+            ("doaj-org-search",)).fetchone()
+        self.assertEqual(row["total_estimate"], 13373055)
+        # 재실행해도 행이 늘지 않는다
+        self.assertEqual(seed(self.conn, csv_path="scripts/audit/capacity_corrected.csv"), 25)
+
     def test_migration_registers_the_real_catalogue(self):
         # End to end against the shipped CSV and the real crawler registry:
         # this is what makes POST /jobs reachable on a new install.
