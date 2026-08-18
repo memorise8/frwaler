@@ -47,6 +47,7 @@ REQUIRED_TABLES = (
     "crawl_job_logs", "crawl_schedules", "translation_batches", "translation_jobs",
     "translation_job_attempts", "translation_worker_heartbeats",
     "translation_system_observations", "document_summaries", "document_summary_quality",
+    "crawl_site_progress",
 )
 
 
@@ -70,6 +71,10 @@ def verify_required_schema(conn) -> None:
         ("crawl_jobs", "truncated"),
         ("translation_system_observations", "provider"),
         ("translation_system_observations", "model_version"),
+        ("crawl_site_progress", "cursor"),
+        ("crawl_site_progress", "items_done"),
+        ("crawl_site_progress", "total_estimate"),
+        ("crawl_site_progress", "completed_at"),
     )
     for table, column in required_columns:
         present = conn.execute("""SELECT 1 FROM information_schema.columns
@@ -135,6 +140,15 @@ def init_delivery_schema(conn) -> None:
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_jobs_queue_due ON crawl_jobs(status, next_attempt_at, created_at)"
     )
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS crawl_site_progress (
+            site_id        TEXT PRIMARY KEY,
+            cursor         JSONB,
+            items_done     BIGINT NOT NULL DEFAULT 0,
+            total_estimate BIGINT,
+            updated_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+            completed_at   TIMESTAMPTZ
+        )""")
     conn.execute("""CREATE TABLE IF NOT EXISTS crawl_job_logs(
       id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,job_id BIGINT NOT NULL REFERENCES crawl_jobs(id) ON DELETE CASCADE,
       level TEXT NOT NULL CHECK(level IN('info','warning','error')),event TEXT NOT NULL,message TEXT NOT NULL,

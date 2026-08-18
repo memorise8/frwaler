@@ -66,6 +66,24 @@ class DeliveryMigrationTest(unittest.TestCase):
         row = self.conn.execute("SELECT truncated FROM crawl_jobs WHERE site_id='legacy'").fetchone()
         self.assertFalse(row["truncated"])
 
+    def test_crawl_site_progress_table_exists_with_required_columns(self):
+        from delivery.be.migrate import migrate
+        migrate(TEST_PG_DSN)
+        cols = {r["column_name"] for r in self.conn.execute(
+            "SELECT column_name FROM information_schema.columns"
+            " WHERE table_name='crawl_site_progress'").fetchall()}
+        self.assertLessEqual(
+            {"site_id", "cursor", "items_done", "total_estimate",
+             "updated_at", "completed_at"}, cols)
+
+    def test_migration_is_idempotent_for_progress_table(self):
+        from delivery.be.migrate import migrate
+        from delivery.db import schema
+        migrate(TEST_PG_DSN)
+        # 두 번 돌려도 무해해야 기존 설치에 안전하다.
+        schema.init_delivery_schema(self.conn)
+        schema.init_delivery_schema(self.conn)
+
 
 if __name__ == "__main__":
     unittest.main()
