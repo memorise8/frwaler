@@ -131,7 +131,17 @@ class ExhaustionSignalFailureVsEmptyTest(unittest.TestCase):
         inst = cls(db_conn=None)
         inst.delivery_mode = "backfill"
         inst.delivery_cursor = None
-        with mock.patch.object(inst, helper_attr, return_value=stub_value),                 mock.patch.object(subprocess, "run", _boom),                 mock.patch.object(subprocess, "check_output", _boom),                 mock.patch.object(subprocess, "Popen", _boom),                 mock.patch.object(urllib.request, "urlopen", _boom),                 mock.patch.object(requests.Session, "request", _boom),                 mock.patch.object(requests, "get", _boom),                 mock.patch.object(requests, "post", _boom),                 mock.patch.dict(os.environ, {"LIBERTREE_DB_BACKEND": "postgres"}):
+        with (
+            mock.patch.object(inst, helper_attr, return_value=stub_value),
+            mock.patch.object(subprocess, "run", _boom),
+            mock.patch.object(subprocess, "check_output", _boom),
+            mock.patch.object(subprocess, "Popen", _boom),
+            mock.patch.object(urllib.request, "urlopen", _boom),
+            mock.patch.object(requests.Session, "request", _boom),
+            mock.patch.object(requests, "get", _boom),
+            mock.patch.object(requests, "post", _boom),
+            mock.patch.dict(os.environ, {"LIBERTREE_DB_BACKEND": "postgres"}),
+        ):
             inst.crawl(limit=None)
         return inst.delivery_exhausted
 
