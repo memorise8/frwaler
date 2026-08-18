@@ -2,6 +2,7 @@
 """crawl_jobs 큐 조작 — 원자적 소비(SKIP LOCKED)."""
 from __future__ import annotations
 
+import json
 import os
 
 from typing import Optional
@@ -335,3 +336,45 @@ def job_detail(conn,job_id:int) -> dict | None:
     if not row:return None
     logs=conn.execute("SELECT id,level,event,message,created_at FROM crawl_job_logs WHERE job_id=%s ORDER BY id",(job_id,)).fetchall()
     return {"job":dict(row),"logs":[dict(item) for item in logs]}
+
+
+# ---------------------------------------------------------------------------
+# 사이트별 백필 진도 (crawl_site_progress)
+# ---------------------------------------------------------------------------
+
+def load_cursor(conn, site_id) -> Optional[dict]:
+    row = conn.execute(
+        "SELECT cursor FROM crawl_site_progress WHERE site_id=%s", (site_id,)
+    ).fetchone()
+    if row is None or row["cursor"] is None:
+        return None
+    return dict(row["cursor"])
+
+
+def save_progress(conn, site_id, cursor: dict, items_delta: int = 0) -> None:
+    """커서 업서트 + items_done 누적. 워커의 종결 전이와 같은 결로 커밋한다."""
+    conn.execute(
+        """
+        INSERT INTO crawl_site_progress (site_id, cursor, items_done, updated_at)
+        VALUES (%s, %s::jsonb, %s, now())
+        ON CONFLICT (site_id) DO UPDATE
+           SET cursor = EXCLUDED.cursor,
+               items_done = crawl_site_progress.items_done + EXCLUDED.items_done,
+               updated_at = now()
+        """,
+        (site_id, json.dumps(cursor), int(items_delta)),
+    )
+    conn.commit()
+
+
+def mark_backfill_complete(conn, site_id) -> None:
+    conn.execute(
+        """
+        INSERT INTO crawl_site_progress (site_id, completed_at, updated_at)
+        VALUES (%s, now(), now())
+        ON CONFLICT (site_id) DO UPDATE
+           SET completed_at = now(), updated_at = now()
+        """,
+        (site_id,),
+    )
+    conn.commit()

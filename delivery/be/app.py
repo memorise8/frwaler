@@ -31,7 +31,7 @@ from delivery.be.cache import TTLCache
 class JobIn(BaseModel):
     model_config=ConfigDict(extra="forbid")
     site_id: str = Field(min_length=1,max_length=200,pattern=r"^[A-Za-z0-9._-]+$")
-    mode: Literal["incremental","full"] = "incremental"
+    mode: Literal["incremental","full","backfill"] = "incremental"
     limit_n: int | None = Field(default=None,ge=1,le=1000)
     requested_by: str | None = Field(default=None,max_length=100)
 

@@ -285,6 +285,33 @@ class WorkerJobsTest(unittest.TestCase):
         # 잘렸어도 저장한 문서는 유효하다. status 는 여전히 done 이어야 한다.
         self.assertEqual(rows["cut"]["status"], "done")
 
+    def test_progress_roundtrip_accumulates_items(self):
+        from delivery.worker import jobs
+        jobs.save_progress(self.conn, "rc-fake-site", {"page": 5}, items_delta=100)
+        jobs.save_progress(self.conn, "rc-fake-site", {"page": 9}, items_delta=50)
+        cur = jobs.load_cursor(self.conn, "rc-fake-site")
+        self.assertEqual(cur, {"page": 9})
+        row = self.conn.execute(
+            "SELECT items_done, completed_at FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-fake-site",)).fetchone()
+        self.assertEqual(row["items_done"], 150)
+        self.assertIsNone(row["completed_at"])
+
+    def test_load_cursor_returns_none_for_unknown_site(self):
+        from delivery.worker import jobs
+        self.assertIsNone(jobs.load_cursor(self.conn, "rc-never-seen"))
+
+    def test_mark_complete_keeps_cursor(self):
+        from delivery.worker import jobs
+        # oldest_first 증분이 커서를 이어 쓰므로, 완주가 커서를 지우면 안 된다.
+        jobs.save_progress(self.conn, "rc-done-site", {"offset": 900}, items_delta=900)
+        jobs.mark_backfill_complete(self.conn, "rc-done-site")
+        self.assertEqual(jobs.load_cursor(self.conn, "rc-done-site"), {"offset": 900})
+        row = self.conn.execute(
+            "SELECT completed_at FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-done-site",)).fetchone()
+        self.assertIsNotNone(row["completed_at"])
+
 
 if __name__ == "__main__":
     unittest.main()

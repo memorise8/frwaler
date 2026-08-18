@@ -351,6 +351,13 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(body["sites"][0]["documents"], 1)
         self.assertEqual(body["sites"][0]["freshness_bucket"], "within_7_days")
 
+    def test_backfill_mode_is_accepted_by_job_schema_but_not_schedule_schema(self):
+        # 스키마 수준 검증: backfill 은 작업에서 유효, 스케줄에서 무효.
+        r = self.client.post("/jobs", json={"site_id": "rc-no-such-site", "mode": "backfill"})
+        self.assertNotEqual(r.status_code, 422)   # mode 로는 거절되지 않는다
+        r2 = self.client.put("/schedules/rc-no-such-site", json={"mode": "backfill"})
+        self.assertEqual(r2.status_code, 422)     # 스케줄은 backfill 불허
+
 
 if __name__ == "__main__":
     unittest.main()
