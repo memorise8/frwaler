@@ -53,6 +53,16 @@ export default function ScheduleManager({ initialRows, sites }: { initialRows: S
       setMessage({ text: SCHEDULE_SAVE_NETWORK_ERROR_MESSAGE, error: true });
       return;
     }
+    // A 404 here means someone else (another tab, another operator) already
+    // deleted this schedule. That is not a failure from this operator's
+    // point of view -- the row they wanted gone is gone -- so it is treated
+    // as success rather than left stuck in the table with a generic error.
+    if (response.status === 404) {
+      setRows((old) => old.filter((item) => item.site_id !== siteId));
+      setConfirming(null);
+      setMessage({ text: `${siteId} 예약은 이미 삭제되어 있었습니다.`, error: false });
+      return;
+    }
     if (!response.ok) {
       setMessage({ text: `${siteId} 예약을 삭제하지 못했습니다.`, error: true });
       return;

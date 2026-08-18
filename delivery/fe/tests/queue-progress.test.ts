@@ -15,13 +15,12 @@ describe("parseQueueSummary", () => {
     expect(progress.headline).toContain("실행 중 1건");
   });
 
-  // 작업 이력은 영구 보존이라 전체 대비 진행률은 지난 몇 달치에 희석된다.
-  // 진행률은 이번 작업분(최근 24시간 완료 + 남은 것)에 대해서만 낸다.
-  // 리터럴 2를 쓴다: 19/(19+785)=2.36%. 식을 다시 쓰면 구현을 그대로 베낀
-  // 동어반복이 되어 "갓 시작한 수집이 2%로 보인다"는 요지를 검증하지 못한다.
-  it("measures progress against the current sweep, not all of history", () => {
+  // No percent is reported at all: a rolling 24-hour finished count is not
+  // "the current sweep" -- on day 2 of an 804-site daily schedule it renders
+  // near 100% at the instant the sweep restarts.
+  it("never reports a percent field", () => {
     const progress = parseQueueSummary(payload())!;
-    expect(progress.percent).toBe(2);
+    expect("percent" in progress).toBe(false);
   });
 
   it("has no progress bar when nothing is queued or running", () => {
@@ -29,7 +28,6 @@ describe("parseQueueSummary", () => {
       counts: { queued: 0, running: 0, cancelling: 0, done: 19, failed: 0, cancelled: 0 },
       active: 0,
     }))!;
-    expect(progress.percent).toBeNull();
     expect(progress.etaText).toBeNull();
     expect(progress.headline).toBe("대기 중인 작업이 없습니다.");
   });

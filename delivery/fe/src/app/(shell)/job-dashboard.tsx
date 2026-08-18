@@ -39,17 +39,12 @@ export function JobDashboard() {
   return <section className="catalogue-section" aria-label="최근 수집 작업" id="jobs">
     <div className="section-heading"><div><p className="eyebrow">CRAWL JOBS</p><h2>최근 작업 현황</h2></div><button type="button" onClick={() => void load()}>새로고침</button></div>
     {message && <aside className="snapshot-note snapshot-note--unavailable"><strong>연결 안내</strong><span>{message}</span></aside>}
-    {progress && (
+    {progress && (progress.active > 0 || jobs.length > 0) && (
       <div className="queue-progress" role="status" aria-live="polite">
         <div className="queue-progress-line">
           <strong>{progress.headline}</strong>
           {progress.etaText && <span className="queue-progress-eta">{progress.etaText}</span>}
         </div>
-        {progress.percent !== null && (
-          <div className="queue-progress-track">
-            <div className="queue-progress-fill" style={{ width: `${progress.percent}%` }} />
-          </div>
-        )}
         {progress.active > 0 && progress.etaText === null && (
           <p className="queue-progress-note">
             완료된 작업이 아직 적어 남은 시간을 추정하지 않습니다.

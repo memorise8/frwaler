@@ -9,7 +9,6 @@ export type QueueProgress = Readonly<{
   running: number;
   active: number;
   finished: number;
-  percent: number | null;
   etaText: string | null;
   headline: string;
 }>;
@@ -30,7 +29,10 @@ const isDuration = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value) && value >= 0;
 
 // The worker is a single serial loop -- one site at a time -- so the wait is
-// simply the queue depth times how long one site has been taking.
+// simply the queue depth times how long one site has been taking. That is
+// optimistic when the translation queue is non-empty: run_cycle also spends
+// one cycle per loop on a translation job, and avg_seconds measures only
+// crawl duration, so it does not account for that time.
 export const formatEta = (seconds: number | null, activeJobs: number): string | null => {
   if (seconds === null || !isDuration(seconds) || !isCount(activeJobs) || activeJobs === 0) return null;
   const totalSeconds = Math.round(seconds * activeJobs);
@@ -60,16 +62,18 @@ export const parseQueueSummary = (payload: unknown): QueueProgress | null => {
   const mean = isDuration(avgSeconds) ? avgSeconds : null;
 
   if (active === 0) {
-    return { queued, running, active, finished, percent: null, etaText: null,
+    return { queued, running, active, finished, etaText: null,
       headline: "대기 중인 작업이 없습니다." };
   }
 
-  // Against the current sweep, never against all-time history: job records are
-  // retained forever, so an all-time denominator would report a fresh 804-site
-  // run as already 90% done.
+  // No progress percentage is reported. The only denominators available are
+  // all-time history (retained forever, so a fresh 804-site run would read as
+  // nearly complete) and a rolling 24-hour count, which is not the current
+  // sweep either -- with sites on daily schedules it pins a bar near 100%
+  // permanently. The queue depth and the estimate answer the operator's
+  // question without inventing a denominator.
   return {
     queued, running, active, finished,
-    percent: Math.round((finished / (finished + active)) * 100),
     etaText: formatEta(mean, active),
     headline: `대기 ${queued.toLocaleString("ko-KR")}건 · 실행 중 ${running.toLocaleString("ko-KR")}건`,
   };
