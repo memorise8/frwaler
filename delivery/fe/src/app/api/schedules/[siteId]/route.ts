@@ -75,3 +75,26 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ sit
     return NextResponse.json({ detail: SCHEDULE_BACKEND_UNREACHABLE_MESSAGE }, { status: 503 });
   }
 }
+
+export async function DELETE(request: NextRequest, context: { params: Promise<{ siteId: string }> }) {
+  const { siteId } = await context.params;
+  if (!siteId || siteId.includes("/")) return NextResponse.json({ detail: "invalid site" }, { status: 422 });
+
+  try {
+    const response = await fetch(`${backend()}/schedules/${encodeURIComponent(siteId)}`, {
+      method: "DELETE",
+      headers: operatorHeaders(),
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000),
+    });
+    if (response.status === 404) {
+      return NextResponse.json({ detail: "이미 삭제된 예약입니다." }, { status: 404 });
+    }
+    if (!response.ok) {
+      return NextResponse.json({ detail: "예약을 삭제하지 못했습니다." }, { status: response.status });
+    }
+    return NextResponse.json({ deleted: true, site_id: siteId }, { status: 200 });
+  } catch {
+    return NextResponse.json({ detail: SCHEDULE_BACKEND_UNREACHABLE_MESSAGE }, { status: 503 });
+  }
+}

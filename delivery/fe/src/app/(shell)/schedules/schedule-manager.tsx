@@ -41,6 +41,27 @@ export default function ScheduleManager({ initialRows, sites }: { initialRows: S
     setMessage({ text: `${siteId} 예약을 저장했습니다.`, error: false });
   };
 
+  // 두 단계로 나눈 이유: 예약 목록은 한 화면에 여러 줄이고, 되돌리기가 없다.
+  const [confirming, setConfirming] = useState<string | null>(null);
+
+  const remove = async (siteId: string) => {
+    setMessage(null);
+    let response: Response;
+    try {
+      response = await fetch(`/api/schedules/${encodeURIComponent(siteId)}`, { method: "DELETE" });
+    } catch {
+      setMessage({ text: SCHEDULE_SAVE_NETWORK_ERROR_MESSAGE, error: true });
+      return;
+    }
+    if (!response.ok) {
+      setMessage({ text: `${siteId} 예약을 삭제하지 못했습니다.`, error: true });
+      return;
+    }
+    setRows((old) => old.filter((item) => item.site_id !== siteId));
+    setConfirming(null);
+    setMessage({ text: `${siteId} 예약을 삭제했습니다. 이미 등록된 작업은 그대로 진행됩니다.`, error: false });
+  };
+
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -71,7 +92,7 @@ export default function ScheduleManager({ initialRows, sites }: { initialRows: S
         <div className="table-shell">
           <table>
             <thead>
-              <tr><th>사이트</th><th>주기</th><th>모드·제한</th><th>상태</th><th>다음 실행</th><th>최근 실행</th><th>중지 · 재개</th></tr>
+              <tr><th>사이트</th><th>주기</th><th>모드·제한</th><th>상태</th><th>다음 실행</th><th>최근 실행</th><th>중지 · 재개 · 삭제</th></tr>
             </thead>
             <tbody>
               {rows.map((row) => (
@@ -84,17 +105,25 @@ export default function ScheduleManager({ initialRows, sites }: { initialRows: S
                   <td>{row.last_run_at ? formatScheduleTimestamp(row.last_run_at) : "아직 없음"}</td>
                   <td>
                     <button
-                      title={row.enabled ? "이 예약을 중지합니다. 삭제 기능은 없으며, 재개를 누르기 전까지 다시 실행되지 않습니다." : "이 예약을 다시 시작합니다."}
+                      title={row.enabled ? "이 예약을 중지합니다. 재개를 누르기 전까지 다시 실행되지 않습니다." : "이 예약을 다시 시작합니다."}
                       onClick={() => void save(row.site_id, { interval_hours: row.interval_hours, mode: row.mode, limit_n: row.limit_n, enabled: !row.enabled })}
                     >
                       {row.enabled ? "중지" : "재개"}
                     </button>
+                    {confirming === row.site_id ? (
+                      <>
+                        <button type="button" onClick={() => void remove(row.site_id)}>삭제 확인</button>
+                        <button type="button" onClick={() => setConfirming(null)}>취소</button>
+                      </>
+                    ) : (
+                      <button type="button" onClick={() => setConfirming(row.site_id)}>삭제</button>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <p className="run-note">예약을 삭제하는 기능은 없습니다. 필요 없는 예약은 중지로 전환하세요. 중지된 예약은 목록에 남아 있으며, 재개를 누르기 전까지 다시 실행되지 않습니다.</p>
+          <p className="run-note">필요 없는 예약은 중지하거나 삭제할 수 있습니다. 중지된 예약은 목록에 남아 있으며, 재개를 누르기 전까지 다시 실행되지 않습니다. 삭제해도 이미 등록된 작업은 그대로 진행되며 되돌릴 수 없습니다.</p>
         </div>
       ) : (
         <div className="document-empty">

@@ -7,7 +7,7 @@ import { SCHEDULE_BACKEND_UNREACHABLE_MESSAGE } from "../src/lib/schedule-save-e
 vi.mock("server-only", () => ({}));
 
 const { NextRequest } = await import("next/server");
-const { PUT } = await import("../src/app/api/schedules/[siteId]/route");
+const { PUT, DELETE } = await import("../src/app/api/schedules/[siteId]/route");
 
 // Never let a fully-valid schedule request actually reach a live backend in
 // a test: assert the accept path purely by inspecting what this route would
@@ -145,5 +145,40 @@ describe("PUT /api/schedules/[siteId]", () => {
     const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
     const forwarded = JSON.parse(init.body as string) as { limit_n: number | null };
     expect(forwarded.limit_n).toBe(250);
+  });
+});
+
+describe("DELETE /api/schedules/[siteId]", () => {
+  afterEach(() => { vi.unstubAllGlobals(); });
+
+  const del = (siteId: string) =>
+    DELETE(new NextRequest(`http://localhost/api/schedules/${siteId}`, { method: "DELETE" }),
+      { params: Promise.resolve({ siteId }) });
+
+  it("forwards the delete with the operator token attached", async () => {
+    const fetchMock = vi.fn(async (_url: string, _init: RequestInit) => new Response(JSON.stringify({ deleted: true }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    expect((await del("some-site")).status).toBe(200);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain("/schedules/some-site");
+    expect(init.method).toBe("DELETE");
+  });
+
+  it("passes a missing schedule through as 404", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 404 })));
+    expect((await del("gone")).status).toBe(404);
+  });
+
+  // 경로를 벗어나는 site id를 백엔드까지 보내지 않는다.
+  it("rejects a site id that would escape the path", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    expect((await del("a/b")).status).toBe(422);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("reports an unreachable backend instead of claiming success", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("ECONNREFUSED"); }));
+    expect((await del("some-site")).status).toBe(503);
   });
 });
