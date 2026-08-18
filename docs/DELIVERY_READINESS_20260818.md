@@ -52,13 +52,18 @@
 
 ### ~~2. B1 — 큐 진행 상황 표시~~ · **완료 (2026-08-18)**
 
-`GET /jobs/summary` 추가(스키마 변경 없음, `idx_jobs_status_created` 재사용).
+`GET /jobs/summary` 추가(스키마 변경 없음). 세 쿼리 중 상태별 `GROUP BY`만
+`idx_jobs_status_created(status, created_at)` 를 탈 수 있고, 최근 24시간 완료
+건수 집계는 `finished_at` 으로 필터링하며 추정 쿼리는 `finished_at DESC` 로
+정렬한다 — 둘 다 그 인덱스로는 서빙되지 않는다. 작업 이력이 커지면
+`crawl_jobs(finished_at DESC)` 인덱스 추가가 후속 과제다(이번 파에는 포함하지 않음).
 화면은 "대기 N건 · 실행 중 N건"과 남은 시간 추정을 보여준다.
 추정은 최근 완료 20건의 평균에서 내고, **표본 3건 미만이면 추정하지 않는다.**
-`cancelled` 는 평균에서 제외한다 — 대기 중 취소된 작업은 `started_at` 이 없어
-평균을 0쪽으로 무너뜨린다.
-진행률은 전체 이력이 아니라 최근 24시간 완료분 + 남은 작업에 대해 낸다
-(작업 이력이 영구 보존이라 전체 대비 진행률은 무의미하다).
+평균은 `status='done'` 인 작업만 쓴다 — `cancelled` 뿐 아니라 실제 소요 시간이
+있는 `failed` 작업도 제외된다. 진행률(퍼센트)은 표시하지 않는다 — 남는 분모는
+전체 이력(영구 보존이라 갓 시작한 수집도 거의 완료로 보임)과 최근 24시간
+완료 건수(사이트가 매일 예약이면 상시 100%에 가까움) 뿐이라 어느 쪽도 "이번
+수집분"을 뜻하지 않는다.
 
 ### ~~3. B2 — 예약 삭제~~ · **완료 (2026-08-18)**
 
@@ -77,8 +82,8 @@ FE에 삭제 버튼을 추가했다 — 예약과 작업은 별개 테이블이�
 변경이 아니라 카운트가 낡았던 것이므로, 2026-08-18 세 번 독립적으로 재확인한 값으로
 갱신한다: **`@app.get` 18개 중 `require_operator` 가 붙은 것은 0개.**
 **쓰기는 10개 중 9개가 토큰을 요구**하고, `POST /translation/preview` 하나만
-빠져 있다 — 동사만 POST일 뿐 본문을 받기 위한 것이고 `SELECT count(*)` 만 하므로
-실질은 조회다.
+빠져 있다 — 동사만 POST일 뿐 본문을 받기 위한 것이고 집계 조회만 수행하므로
+(count·sum·avg, 쓰기 없음) 실질은 조회다.
 지금은 포트가 `127.0.0.1` 에만 묶여 가려져 있을 뿐이고, 납품처가 BE를 노출하면
 문서 전체가 열람 가능해진다. 전제는 **런북에 명시했다**(프록시 뒤에 두는 배포만
 지원) — 코드 변경 없이 문서로 끝났다.
@@ -124,8 +129,8 @@ FE(dev)     127.0.0.1:3002  ·  delivery/fe/.env.local 에 BE_URL·DELIVERY_API_
 테스트:
 
 ```
-FE       cd delivery/fe && npm test && npm run typecheck && npm run lint      # 253
-워커/BE  격리 postgres 컨테이너를 띄우고 TEST_PG_DSN 지정 후                    # 66
+FE       cd delivery/fe && npm test && npm run typecheck && npm run lint      # 281
+워커/BE  격리 postgres 컨테이너를 띄우고 TEST_PG_DSN 지정 후                    # 104
          docker run --rm --network container:<pg> -v <repo>:/app -w /app \
            -e TEST_PG_DSN=... libertree-delivery-worker python -m unittest tests.test_worker_run ...
 ```
