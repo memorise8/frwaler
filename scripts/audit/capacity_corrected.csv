@@ -1,0 +1,805 @@
+site_id,sheet,collected,max_to_collect,source,exact_or_lowerbound,gap,health,observed_pdf_rate,projected_pdf_count,projected_storage_gb,corrected_max,correction_source,n_corroborating,confidence,corrected_storage_gb
+academie-sciences-fr-espace-presse,French Public Institutions,68,370,custom_api,exact,302,,1.0,370,0.39,370,capacity_final.csv,3,unchanged,0.39
+accc-gov-au-about-us,호주완료,502,836,api_html_count_regex,exact,334,,0.9422,788,1.7,836,capacity_final.csv,3,unchanged,1.7
+accc-gov-au-search,호주완료,454,358,count_crawl,exact,-96,,0.6454,231,0.98,8000,exact_probe.csv,2,corroborated,21.9
+acma-gov-au-publications,호주완료,316,,,unmeasured,,,0.7848,,,2275,count_only_c_full.csv,1,single_source,6.75
+acpr-banque-france-fr-fr,French Public Institutions,225,233,count_crawl,exact,8,,0.9867,230,0.39,233,capacity_final.csv,5,unchanged,0.39
+adaptcentre-ie-research,Irish Research Centers,206,3402,api_wordpress_publications,exact,3196,,0.0,0,0.0,3402,capacity_final.csv,2,unchanged,0.0
+adruk-org-news-publications,영국완료,210,106,count_crawl,exact,-104,,0.3714,39,0.12,106,capacity_final.csv,5,unchanged,0.12
+afd-fr-fr,French Public Institutions,797,319,count_timeout,lower_bound,-478,,0.8996,287,0.55,588,count_only_c_full.csv,1,single_source,1.01
+afp-gov-au-news-centre,호주완료,432,451,count_timeout,lower_bound,19,,0.0162,7,0.08,3656,count_only_c_full.csv,1,single_source,0.65
+afp-gov-au-search,호주완료,49,1,count_crawl,exact,-48,,0.9184,1,0.0,2025,exact_probe.csv,1,single_source,0.0
+africamuseum-be-en,벨기에완료,52,11,count_timeout,lower_bound,-41,,0.0,0,0.0,52,count_only_c_full.csv,9,corroborated,0.0
+ag-gov-au-publications,호주완료,607,,,unmeasured,,,0.9638,,,960,count_only_c_full.csv,1,single_source,2.85
+agri-ee-ministeerium-uudised,Estonia Ministries,122,8,count_crawl,exact,-114,,0.9344,7,0.02,122,count_only_c_full.csv,2,corroborated,0.3
+agriculture-gouv-fr-recherche-developpem,France Ministries,472,329,count_timeout,lower_bound,-143,,0.0106,3,0.01,400,count_only_c_full.csv,2,corroborated,0.01
+alrc-gov-au-publications,호주완료,116,116,count_crawl,exact,0,,0.7672,89,0.3,116,capacity_final.csv,1,unchanged,0.3
+ameslab-gov-news,American Research Institutes,394,396,count_crawl,exact,2,,0.0076,3,0.0,396,capacity_final.csv,8,unchanged,0.0
+amf-france-org-fr,French Public Institutions,157,135,count_timeout,lower_bound,-22,,0.9809,132,0.09,725,count_only_c_full.csv,1,single_source,0.48
+ami-swiss-en,Switzerland Research Centers,558,184,count_timeout,lower_bound,-374,,0.0,0,0.0,583,count_only_c_full.csv,4,corroborated,0.0
+amolf-nl-publications,Dutch Research Centers,512,362,count_timeout,lower_bound,-150,,0.0,0,0.0,915,count_only_c_full.csv,1,single_source,0.0
+amu-hal-science-search,French Public Universities,3048,2938,hal_api,exact,-110,,0.9613,2824,12.06,237733,crawler_health_final.csv,2,corroborated,975.85
+andra-fr-publications,French Research Institutes,1,,,unmeasured,,zero_parsed,1.0,,,2373,exact_probe.csv,1,single_source,7.04
+anr-hal-science-search,French Research Institutes,363,140008,hal_api,exact,139645,,1.0,140008,534.45,253771,crawler_health_final.csv,2,corroborated,968.72
+anses-fr-fr,French Research Institutes,6091,0,count_timeout,lower_bound,-6091,,0.997,0,0.0,6186,big_totals.csv,1,single_source,18.35
+ansto-gov-au-search,호주완료,30,27,count_crawl,exact,-3,,0.2667,7,0.02,2073,exact_probe.csv,1,single_source,1.54
+app-mps-gov-cn-gdnps,중국 완료,501,,,unmeasured,,zero_parsed,0.0,,,2512,count_only_c_full.csv,1,single_source,7.45
+apra-gov-au-statistics,호주완료,75,75,api_html_count_regex,exact,0,,0.24,18,0.0,75,capacity_final.csv,2,unchanged,0.0
+arcep-fr-actualites,French Public Institutions,34,,,unmeasured,,zero_parsed,0.8235,,,3,reverify44.csv,1,single_source,0.01
+archives-nationales-culture-gouv-fr-presse,French Public Institutions,15,26,custom_api,exact,11,,1.0,15,0.01,26,capacity_final.csv,3,unchanged,0.01
+arcnl-nl-publications,Dutch Research Centers,11,11,count_crawl,exact,0,,0.0,6,0.03,11,capacity_final.csv,6,unchanged,0.03
+arcom-fr-presse,French Public Institutions,290,307,api_html_count_regex,exact,17,,0.9172,282,0.09,307,capacity_final.csv,3,unchanged,0.09
+arn-se-om-arn,스웨덴 완료,80,12,count_crawl,exact,-68,,1.0,12,0.01,12,capacity_final.csv,6,unchanged,0.01
+arrow-tudublin-ie-creaart,Irish Research Centers,229,231,custom_api,exact,2,,0.2664,62,0.08,231,capacity_final.csv,4,unchanged,0.08
+artsetmetiers-fr-fr,French Public Universities,222,223,count_crawl,exact,1,,1.0,223,0.07,223,capacity_final.csv,6,unchanged,0.07
+artsetmetiers-hal-science-search,French Public Universities,86,,,unmeasured,,fetch_fail,0.9767,,,85,count_only_totalscan.csv,3,corroborated,0.25
+asiapacific-ca-media,Canadian Research Centers,50,52,count_crawl,exact,2,,0.0,0,0.0,52,capacity_final.csv,5,unchanged,0.0
+asn-fr-information,French Public Institutions,19,19,count_crawl,exact,0,,0.9474,11,0.28,19,capacity_final.csv,6,unchanged,0.28
+astro-oma-be-en,벨기에완료,22,,,unmeasured,,zero_parsed,1.0,,,0,count_only_c_full.csv,0,single_source,0.0
+astron-nl-about,Dutch Research Centers,57,0,count_timeout,lower_bound,-57,,1.0,0,0.0,57,count_only_c_full.csv,2,corroborated,0.17
+audencia-com-lecole,French Public Universities,246,243,count_crawl,exact,-3,,0.0244,6,0.02,247,count_only_c_full.csv,6,corroborated,0.02
+auri-re-kr-boardes,한국완료,260,267,count_crawl,exact,7,,0.9462,253,0.69,267,capacity_final.csv,6,unchanged,0.69
+auri-re-kr-publication,한국완료,593,176,count_timeout,lower_bound,-417,,0.9764,172,11.73,1122,exact_probe.csv,1,single_source,74.78
+auswaertiges-amt-de-de,Germany Ministries,224,,,unmeasured,,fetch_fail,0.0134,,,226,count_only_capped_1h.csv,5,corroborated,0.67
+auswaertiges-amt-de-en,독일완료,526,,,unmeasured,,fetch_fail,0.0076,,,782,count_only_capped_1h.csv,5,corroborated,2.32
+avoindata-suomi-fi-data,핀란드완료,154,2555,api_ckan,exact,2401,,0.0195,50,0.2,2555,capacity_final.csv,2,unchanged,0.2
+babraham-ac-uk-news,영국완료,483,380,count_timeout,lower_bound,-103,,0.0166,6,0.02,483,count_only_c_full.csv,6,corroborated,0.03
+bam-de-navigation,GER ResearchCenters(Unfinished),308,,,unmeasured,,zero_parsed,0.0,,,318,count_only_c_full.csv,1,single_source,0.94
+bankofcanada-ca-publications,Canadian Research Centers,27,27,count_crawl,exact,0,,0.3333,9,0.0,27,capacity_final.csv,6,unchanged,0.0
+banque-france-fr-en,French Public Institutions,530,30,count_crawl,exact,-500,,0.983,29,0.01,30,capacity_final.csv,6,unchanged,0.01
+baw-de-en,GER ResearchCenters(Unfinished),14,,,unmeasured,,zero_parsed,1.0,,,0,count_only_c_full.csv,0,single_source,0.0
+bdap-opendata-rgs-mef-gov-it-catalog,Italy Ministries,360,258,count_timeout,lower_bound,-102,,0.9333,241,0.11,2270,count_only_c_full.csv,1,single_source,0.97
+benthamscience-com-press-release,Switzerland Research Centers,191,,,unmeasured,,zero_parsed,0.0,,,193,count_only_c_full.csv,7,corroborated,0.57
+bfe-admin-ch-bfe,Switzerland Departments,1002,18,count_timeout,lower_bound,-984,,0.499,9,0.02,8508,big_totals.csv,1,single_source,9.45
+bfr-bund-de-en,GER ResearchCenters(Unfinished),23,1,count_crawl,exact,-22,,1.0,1,0.0,1,capacity_final.csv,9,unchanged,0.0
+bfs-admin-ch-bfs,Switzerland Departments,384,8141,custom_api,exact,7757,,0.3906,3180,2.03,8144,crawler_health_probe308.csv,6,corroborated,2.03
+biblio-naturalsciences-be-rbins-publications,벨기에완료,500,387,count_timeout,lower_bound,-113,,0.63,244,0.77,750,count_only_capped_1h.csv,4,corroborated,1.49
+biorbic-com-publications,Irish Research Centers,497,467,count_crawl,exact,-30,,0.008,4,0.01,467,capacity_final.csv,10,unchanged,0.01
+bj-admin-ch-bj,Switzerland Departments,41,,,unmeasured,,fetch_fail,0.0244,,,3,reverify44.csv,1,single_source,0.01
+bjerknes-uib-no-en,Norway Research Centers,214,12,api_html_count_regex,exact,-202,,0.2523,3,0.01,68,full_survey_totals.csv,1,single_source,0.06
+bm-dk-soeg,덴마크완료,88,,,unmeasured,,fetch_fail,0.9886,,,1817,count_only_totalscan.csv,3,corroborated,5.39
+bmas-de-de,Germany Ministries,454,326,count_timeout,lower_bound,-128,,0.0,0,0.0,582,count_only_c_full.csv,1,single_source,0.0
+bmbfsfj-bund-de-bmbfsfj,Germany Ministries,502,226,api_html_count_regex,exact,-276,,0.1474,33,0.03,226,capacity_final.csv,3,unchanged,0.03
+bmds-bund-de-aktuelles,Germany Ministries,79,84,count_crawl,exact,5,,0.0759,6,0.0,84,capacity_final.csv,6,unchanged,0.0
+bmf-gv-at-ministerium,오스트리아완료,36,3,count_crawl,exact,-33,,0.9167,3,0.0,3,capacity_final.csv,10,unchanged,0.0
+bmftr-bund-de-siteglobals,독일완료,197,144,count_timeout,lower_bound,-53,,1.0,144,0.64,179,count_only_c_full.csv,6,corroborated,0.8
+bmi-gv-at-114,오스트리아완료,76,42,count_crawl,exact,-34,,0.75,32,0.17,42,capacity_final.csv,6,unchanged,0.17
+bmimi-gv-at-themen,오스트리아완료,18,,,unmeasured,,zero_parsed,0.8889,,,18,count_only_c_full.csv,5,corroborated,0.05
+bmj-gv-at-ministerium,오스트리아완료,149,51,count_timeout,lower_bound,-98,,0.4027,21,0.02,151,count_only_c_full.csv,4,corroborated,0.06
+bmleh-de-en,독일완료,26,16,count_crawl,exact,-10,,0.8077,13,0.02,16,capacity_final.csv,6,unchanged,0.02
+bmleh-de-siteglobals,독일완료,200,97,count_timeout,lower_bound,-103,,0.99,96,0.03,233,count_only_c_full.csv,4,corroborated,0.07
+bmluk-gv-at-service,오스트리아완료,315,272,count_crawl,exact,-43,,0.8444,230,0.24,272,capacity_final.csv,11,unchanged,0.24
+bmlv-gv-at-wissen-forschung,오스트리아완료,18,18,count_crawl,exact,0,,0.9444,10,0.0,19,exact_probe.csv,7,corroborated,0.0
+bmv-de-en,독일완료,11,3584,custom_api,exact,3573,,1.0,2068,5.09,3584,capacity_final.csv,3,unchanged,5.09
+bmvg-de-en,Germany Ministries,20,20,count_crawl,exact,0,,0.1,2,0.0,20,capacity_final.csv,6,unchanged,0.0
+bmwet-gv-at-services,오스트리아완료,89,87,count_crawl,exact,-2,,0.8876,77,0.19,87,capacity_final.csv,6,unchanged,0.19
+bmwkms-gv-at-themen,오스트리아완료,41,17,count_crawl,exact,-24,,1.0,17,0.05,17,capacity_final.csv,6,unchanged,0.05
+bmwsb-bund-de-de,독일완료,20,20,count_crawl,exact,0,,0.75,15,0.02,20,capacity_final.csv,6,unchanged,0.02
+bmz-de-de,Germany Ministries,6,6,count_crawl,exact,0,,1.0,3,0.01,6,capacity_final.csv,9,unchanged,0.01
+bnf-fr-fr,French Public Institutions,488,,,unmeasured,,fetch_fail,1.0,,,488,count_only_c_full.csv,10,corroborated,1.45
+bok-or-kr-portal,한국완료,430,507,count_timeout,lower_bound,77,,0.9744,494,0.28,16336,exact_probe.csv,1,single_source,9.02
+book-ioj-go-kr-library,한국완료,500,545,count_timeout,lower_bound,45,,1.0,545,0.03,998,count_only_capped_1h.csv,3,corroborated,0.05
+bordbia-ie-about,Irish Research Centers,20,,,unmeasured,,zero_parsed,1.0,,,0,count_only_c_full.csv,0,single_source,0.0
+boverket-se-en,스웨덴 완료,9,9,count_crawl,exact,0,,1.0,5,0.01,9,capacity_final.csv,6,unchanged,0.01
+bra-se-english,스웨덴 완료,306,2,api_html_count_regex,exact,-304,,0.9967,2,0.0,305,full_survey_totals.csv,1,single_source,0.0
+brgm-fr-fr,French Research Institutes,234,223,count_timeout,lower_bound,-11,,0.9957,222,0.34,241,count_only_c_full.csv,5,corroborated,0.37
+broadbentinstitute-ca-research,Canadian Research Centers,81,78,api_wordpress_posts,exact,-3,,0.8642,67,0.15,82,full_survey_totals.csv,3,corroborated,0.16
+brsn-net-list,중국 완료,500,478,count_timeout,lower_bound,-22,,0.022,11,0.0,999,count_only_c_full.csv,4,corroborated,0.0
+budget-canada-ca-home-accueil-enhtml,Canada Ministries,17,,,unmeasured,,fetch_fail,1.0,,,17,count_only_c_full.csv,5,corroborated,0.05
+bundesfinanzministerium-de-web,Germany Ministries,112,8,api_html_count_regex,exact,-104,,0.0,0,0.0,60,full_survey_totals.csv,1,single_source,0.0
+bundesgesundheitsministerium-de-service,독일완료,229,199,count_timeout,lower_bound,-30,,0.9956,198,0.34,311,count_only_uncapped.csv,2,corroborated,0.53
+bundeskanzleramt-gv-at-bundeskanzleramt,오스트리아완료,480,389,count_timeout,lower_bound,-91,,0.0229,9,0.02,447,count_only_c_full.csv,6,corroborated,0.02
+bundesumweltministerium-de-en,Germany Ministries,7,,,unmeasured,,zero_parsed,1.0,,,7,count_only_c_full.csv,5,corroborated,0.02
+busan-go-kr-nbtnewsbu,한국완료,537,459,count_timeout,lower_bound,-78,,0.9981,458,0.2,1372,count_only_uncapped.csv,2,corroborated,0.6
+business-sweden-com-about-us,스웨덴 완료,94,94,count_crawl,exact,0,,0.0,0,0.0,94,capacity_final.csv,6,unchanged,0.0
+cac-gov-cn-hdfw,중국 완료,89,91,count_crawl,exact,2,,0.0,0,0.0,91,capacity_final.csv,5,unchanged,0.0
+cae-eco-fr-presse-cae-0,French Public Institutions,64,64,count_crawl,exact,0,,0.9375,60,0.02,64,capacity_final.csv,10,unchanged,0.02
+caissedesdepots-fr-communiques-de-press,French Public Institutions,1201,1000,count_crawl,lower_bound,-201,,1.0,1000,0.32,1000,capacity_final.csv,10,unchanged,0.32
+caitec-org-cn-n6,중국 완료,62,,,unmeasured,,fetch_fail,0.4355,,,62,count_only_c_full.csv,5,corroborated,0.18
+canada-ca-en,Canada Ministries,948,949,custom_api,exact,1,,0.0,0,0.0,949,capacity_final.csv,5,unchanged,0.0
+cancer-fr-catalogue-des-public,French Public Institutions,12,63,api_html_count_regex,exact,51,,1.0,36,0.04,63,capacity_final.csv,3,unchanged,0.04
+cancer-fr-presse,French Public Institutions,110,111,api_html_count_regex,exact,1,,0.4727,52,0.06,111,capacity_final.csv,4,unchanged,0.06
+cancer-gov-about-nci,American Research Institutes,24,24,count_crawl,exact,0,,1.0,24,0.14,24,capacity_final.csv,6,unchanged,0.14
+canurb-org-publications,Canadian Research Centers,92,35,api_wordpress_posts,exact,-57,,0.9348,33,0.18,95,full_survey_totals.csv,1,single_source,0.49
+carabinieri-it-in-vostro-aiuto,Italy Ministries,301,218,count_timeout,lower_bound,-83,,0.0,0,0.0,481,count_only_uncapped.csv,1,single_source,0.0
+casseng-cssn-cn-sky_research,중국 완료,8,8,count_crawl,exact,0,,0.0,5,0.03,8,capacity_final.csv,11,unchanged,0.03
+catalog-data-metro-tokyo-lg-jp-dataset,일본완료,492,9647,api_ckan,exact,9155,,0.939,9059,95.22,9647,capacity_final.csv,2,unchanged,95.22
+catalogue-data-govt-nz-dataset,뉴질랜드완료,85,86,count_crawl,exact,1,,0.0235,2,0.0,86,capacity_final.csv,6,unchanged,0.0
+cc-nih-gov-research,American Research Institutes,199,22,count_crawl,exact,-177,,0.0,0,0.0,22,capacity_final.csv,6,unchanged,0.0
+cdhowe-org-research-insights,Canadian Research Centers,344,337,count_timeout,lower_bound,-7,,0.5901,199,0.11,344,count_only_c_full.csv,7,corroborated,0.11
+cds-cern-ch-collection,Switzerland Research Centers,505,121,count_crawl,exact,-384,,0.0,0,0.0,110861,crawler_health_probe308.csv,4,corroborated,0.0
+cea-hal-science-cnrgh,French Research Institutes,759,866,hal_api,exact,107,,0.635,550,1.71,151061,crawler_health_final.csv,2,corroborated,298.28
+cedelft-eu-reports,Dutch Research Centers,500,1,api_html_count_regex,exact,-499,,0.916,1,0.0,357,full_survey_totals.csv,1,single_source,0.0
+cells-es-en,Spanish Research Centers,11,,,unmeasured,,zero_parsed,1.0,,,76,exact_probe.csv,1,single_source,0.23
+centralbank-ie-publication,Irish Research Centers,26,25,count_crawl,exact,-1,,1.0,25,0.12,25,capacity_final.csv,6,unchanged,0.12
+centralesupelec-fr-presse,French Public Institutions,51,51,count_crawl,exact,0,,1.0,51,0.01,51,capacity_final.csv,9,unchanged,0.01
+cepii-fr-cepii,French Public Institutions,540,24,count_crawl,exact,-516,,0.0389,1,0.0,24,capacity_final.csv,6,unchanged,0.0
+cer-rec-gc-ca-en,Canadian Research Centers,175,174,count_crawl,exact,-1,,0.5086,88,0.17,354,count_only_c_full.csv,2,corroborated,0.35
+cerema-fr-fr,French Research Institutes,231,240,count_crawl,exact,9,,0.8615,207,0.23,240,capacity_final.csv,5,unchanged,0.23
+chinatax-gov-cn-chinatax,중국 완료,6,9,count_crawl,exact,3,,0.0,5,0.03,32,count_only_totalscan.csv,3,corroborated,0.11
+chineseafs-org-ckynewsmgr,중국 완료,30,,,unmeasured,,fetch_fail,0.0,,,0,count_only_totals.csv,0,single_source,0.0
+chungnam-go-kr-cnportal,한국완료,425,456,count_timeout,lower_bound,31,,0.0,0,0.0,2888,exact_probe.csv,1,single_source,0.0
+cigionline-org-publications,Canadian Research Centers,500,,,unmeasured,,fetch_fail,0.966,,,1328,count_only_totalscan.csv,5,corroborated,3.94
+cirad-fr-espace-presse,French Research Institutes,360,446,api_html_count_regex,exact,86,,0.0,0,0.0,446,capacity_final.csv,4,unchanged,0.0
+civilprotection-gov-gr-deltia-tupou,Greece Ministries,500,374,count_timeout,lower_bound,-126,,0.0,0,0.0,1539,count_only_uncapped.csv,1,single_source,0.0
+climateinstitute-ca-newsroom,Canadian Research Centers,110,114,api_wordpress_news,exact,4,,0.0,0,0.0,114,capacity_final.csv,3,unchanged,0.0
+cmi-no-publications,Norway Research Centers,346,1657,api_oai_resumption,exact,1311,,0.0723,120,0.13,1657,capacity_final.csv,2,unchanged,0.13
+cnam-hal-science-ceet,French Research Institutes,279,84,hal_api,exact,-195,,0.9283,78,0.06,32221,crawler_health_final.csv,2,corroborated,23.02
+cnam-hal-science-search,French Public Institutions,975,12651,hal_api,exact,11676,,0.9733,12314,68.21,32221,crawler_health_final.csv,2,corroborated,173.72
+cnes-fr-communiques,French Research Institutes,119,127,api_html_count_regex,exact,8,,0.7731,98,0.02,127,capacity_final.csv,4,unchanged,0.02
+cnic-es-en,Spanish Research Centers,419,282,count_timeout,lower_bound,-137,,0.0,0,0.0,590,count_only_c_full.csv,5,corroborated,0.0
+cnipa-gov-cn-col,중국 완료,213,213,count_crawl,exact,0,,0.0047,1,0.0,213,capacity_final.csv,6,unchanged,0.0
+cnl-ca-news-publications,Canadian Research Centers,137,3,api_wordpress_industry_news_events,exact,-134,,1.0,3,0.06,3,capacity_final.csv,2,unchanged,0.06
+college-de-france-fr-en,French Public Universities,105,105,count_crawl,exact,0,,0.0,0,0.0,105,capacity_final.csv,7,unchanged,0.0
+comptroller-defense-gov-odcfo,USA Executive Departments,24,,,unmeasured,,zero_parsed,0.0,,,24,count_only_c_full.csv,5,corroborated,0.07
+comwel-or-kr-comwel,한국완료,471,409,count_timeout,lower_bound,-62,,1.0,409,0.0,1277,count_only_c_full.csv,4,corroborated,0.0
+consult-environment-govt-nz-climate,뉴질랜드완료,72,0,count_timeout,lower_bound,-72,,0.0,0,0.0,72,count_only_c_full.csv,8,corroborated,0.21
+consult-environment-govt-nz-resource-management,뉴질랜드완료,58,0,count_timeout,lower_bound,-58,,0.0517,0,0.0,60,count_only_c_full.csv,2,corroborated,0.18
+consult-environment-govt-nz-waste,뉴질랜드완료,58,0,count_timeout,lower_bound,-58,,0.0517,0,0.0,60,count_only_c_full.csv,6,corroborated,0.18
+cora-ucc-ie-search,Irish Research Centers,439,18130,api_dspace_rest7,exact,17691,,0.3872,7021,123.36,18130,capacity_final.csv,2,unchanged,123.36
+cpb-nl-en,Dutch Research Centers,371,254,count_timeout,lower_bound,-117,,0.9811,249,0.34,688,count_only_uncapped.csv,5,corroborated,0.92
+cre-fr-documents,French Public Institutions,27,351,api_html_count_regex,exact,324,,0.8519,299,0.3,351,capacity_final.csv,2,unchanged,0.3
+csem-ch-en,Switzerland Research Centers,168,169,api_html_count_regex,exact,1,,0.756,128,0.07,169,capacity_final.csv,3,unchanged,0.07
+csic-es-es,Spanish Research Centers,25,26,count_crawl,exact,1,,0.96,25,0.21,26,capacity_final.csv,6,unchanged,0.21
+cso-ie-en,Irish Research Centers,388,,,unmeasured,,zero_parsed,0.0412,,,778,count_only_c_full.csv,1,single_source,2.31
+csrc-gov-cn-csrc_en,중국 완료,9,9,count_crawl,exact,0,,1.0,5,0.04,9,capacity_final.csv,4,unchanged,0.04
+cstb-fr-communiques-de-press,French Research Institutes,48,48,count_crawl,exact,0,,0.0625,3,0.01,48,capacity_final.csv,11,unchanged,0.01
+culture-gouv-fr-espace-documentation,France Ministries,304,862,api_html_count_regex,exact,558,,0.9145,788,3.97,862,capacity_final.csv,3,unchanged,3.97
+cwf-ca-publications,Canadian Research Centers,228,1,api_wordpress_posts,exact,-227,,0.2675,0,0.0,229,full_survey_totals.csv,1,single_source,0.0
+daejeon-go-kr-drh,한국완료,473,456,count_timeout,lower_bound,-17,,0.0,0,0.0,1569,count_only_uncapped.csv,2,corroborated,0.0
+dair-dias-ie-cgi,Irish Research Centers,500,756,count_crawl,lower_bound,256,,0.986,745,1.06,2015,exact_probe.csv,1,single_source,2.83
+dapa-go-kr-dapa,한국완료,970,0,count_timeout,lower_bound,-970,,0.9969,0,0.0,0,capacity_final.csv,0,unchanged,0.0
+data-aeronomie-be-dataset,벨기에완료,33,170,api_ckan,exact,137,,0.9697,165,0.79,170,capacity_final.csv,2,unchanged,0.79
+data-biodiversity-be-dataset,벨기에완료,524,0,count_timeout,lower_bound,-524,,0.9599,0,0.0,3,reverify44.csv,1,single_source,0.01
+data-busan-go-kr-bdip,한국완료,2022,2919,count_crawl,lower_bound,897,,0.0,0,0.0,12422,crawler_health_probe308.csv,3,corroborated,0.0
+data-e-gov-go-jp-data,일본완료,1392,0,api_ckan,exact,-1392,,0.8312,0,0.0,1380,count_only_c_full.csv,1,single_source,4.09
+data-gouv-fr-organizations,French Research Institutes,200,4,api_html_count_regex,exact,-196,,0.38,2,0.0,207,crawler_health_probe.csv,2,corroborated,0.0
+data-gov-au-data,호주완료,500,140429,api_ckan,exact,139929,,0.886,124420,254.05,140429,capacity_final.csv,3,unchanged,254.05
+data-gov-be-nl,벨기에완료,132,,,unmeasured,,zero_parsed,0.3182,,,0,count_only_c_full.csv,0,single_source,0.0
+data-gov-uk-search,영국완료,488,58487,api_ckan,exact,57999,,0.3709,21693,28.21,58487,capacity_final.csv,3,unchanged,28.21
+data-gv-at-datasets,오스트리아완료,400,116818,custom_api,exact,116418,,0.8425,98419,110.54,116818,capacity_final.csv,4,unchanged,110.54
+data-mfe-govt-nz-documents,뉴질랜드완료,21,,,unmeasured,,fetch_fail,0.5714,,,24,count_only_c_full.csv,4,corroborated,0.07
+data-mfe-govt-nz-tables,뉴질랜드완료,435,,,unmeasured,,fetch_fail,0.9057,,,434,count_only_c_full.csv,6,corroborated,1.29
+data-nasa-gov-dataset,American Research Institutes,4474,35964,api_ckan,exact,31490,,0.135,4855,9.76,35964,capacity_final.csv,3,unchanged,9.76
+data-nist-gov-sdp,American Research Institutes,50,,,unmeasured,,fetch_fail,0.0,,,50,count_only_c_full.csv,5,corroborated,0.15
+data-statistik-gv-at-web,오스트리아완료,500,186,count_timeout,lower_bound,-314,,0.0,0,0.0,518,count_only_capped_1h.csv,3,corroborated,0.0
+data-taltech-ee-search,Estonia Research Centers,92,219,custom_api,exact,127,,0.6087,133,0.28,219,capacity_final.csv,3,unchanged,0.28
+datacatalogue-adruk-org-browser,영국완료,484,,,unmeasured,,fetch_fail,0.1095,,,219675,crawler_health_probe308.csv,4,corroborated,651.81
+daten-berlin-de-datensaetze,독일완료,250,2619,custom_api,exact,2369,,0.048,126,0.09,2619,capacity_final.csv,3,unchanged,0.09
+datenportal-bmbf-de-portal,독일완료,75,75,count_crawl,exact,0,,0.96,72,0.01,75,capacity_final.csv,6,unchanged,0.01
+datos-gob-cl-dataset,Chile Research Centers,21,3179,api_ckan,exact,3158,,0.8571,2725,3.15,3179,capacity_final.csv,2,unchanged,3.15
+datos-gob-mx-agricultura,Mexico Ministries,85,85,api_ckan,exact,0,,0.0,0,0.0,85,capacity_final.csv,3,unchanged,0.0
+datos-gob-mx-cultura,Mexico Ministries,114,114,api_ckan,exact,0,,0.0,0,0.0,114,capacity_final.csv,3,unchanged,0.0
+datos-gob-mx-dataset,Mexico Ministries,97,81,api_ckan,exact,-16,,0.0,0,0.0,81,capacity_final.csv,2,unchanged,0.0
+datos-gob-mx-presupuesto,Mexico Ministries,108,108,api_ckan,exact,0,,0.0,0,0.0,108,capacity_final.csv,3,unchanged,0.0
+datos-gob-mx-secretaria-salud,Mexico Ministries,9,9,api_ckan,exact,0,,0.0,5,0.03,9,capacity_final.csv,3,unchanged,0.03
+datos-gob-mx-secretaria-trabajo,Mexico Ministries,16,16,api_ckan,exact,0,,0.0,9,0.05,16,capacity_final.csv,3,unchanged,0.05
+datos-gob-mx-seguridad,Mexico Ministries,27,27,api_ckan,exact,0,,0.0,0,0.0,27,capacity_final.csv,3,unchanged,0.0
+datos-gob-mx-territorio,Mexico Ministries,16,16,api_ckan,exact,0,,0.0,9,0.05,16,capacity_final.csv,3,unchanged,0.05
+datos-gob-mx-turismo,Mexico Ministries,4,4,api_ckan,exact,0,,0.0,2,0.01,4,capacity_final.csv,3,unchanged,0.01
+defence-gov-au-publications,호주완료,80,,,unmeasured,,,1.0,,,80,count_only_c_full.csv,1,single_source,0.24
+defence-govt-nz-publications,뉴질랜드완료,431,433,count_crawl,exact,2,,1.0,433,0.84,434,count_only_c_full.csv,7,corroborated,0.84
+defensa-gob-es-gabinete,Spain Ministries,421,383,count_timeout,lower_bound,-38,,0.0071,3,0.01,1051,count_only_c_full.csv,5,corroborated,0.03
+defense-gouv-fr-salle-de-presse,France Ministries,1980,2263,count_crawl,lower_bound,283,,0.9682,2191,1.11,2275,big_totals.csv,5,corroborated,1.12
+defense-gov-news,USA Executive Departments,546,,,unmeasured,,zero_parsed,0.0,,,500,count_only_c_full.csv,5,corroborated,1.48
+deltares-nl-en,Dutch Research Centers,155,200,api_html_count_regex,exact,45,,0.0,0,0.0,200,capacity_final.csv,3,unchanged,0.0
+dfat-gov-au-publications,호주완료,324,,,unmeasured,,,0.9352,,,324,count_only_c_full.csv,1,single_source,0.96
+dhs-gov-congressional-approp,USA Executive Departments,638,466,count_timeout,lower_bound,-172,,1.0,466,0.83,1081,count_only_c_full.csv,4,corroborated,1.93
+dhs-gov-news-releases,USA Executive Departments,79,27,count_timeout,lower_bound,-52,,0.0,0,0.0,1179,count_only_c_full.csv,1,single_source,0.0
+dhs-gov-publication,USA Executive Departments,29,29,count_crawl,exact,0,,1.0,29,0.01,29,capacity_final.csv,7,unchanged,0.01
+dia-govt-nz-diawebsitensf,뉴질랜드완료,28,28,count_crawl,exact,0,,0.3929,11,0.07,28,capacity_final.csv,6,unchanged,0.07
+didaktorika-gr-eadd,Greece Research Centers,118,118,count_crawl,exact,0,,0.9492,112,0.0,118,capacity_final.csv,9,unchanged,0.0
+difesa-it-il-ministro,Italy Ministries,101,,,unmeasured,,fetch_fail,0.0,,,101,count_only_c_full.csv,5,corroborated,0.3
+differ-nl-publications,Dutch Research Centers,198,642,custom_api,exact,444,,0.0354,23,0.32,642,capacity_final.csv,3,unchanged,0.32
+digital-gob-es-comunicacion,Spain Ministries,416,159,count_timeout,lower_bound,-257,,0.5192,83,0.02,963,count_only_capped_1h.csv,4,corroborated,0.12
+diplomatie-gouv-fr-en,France Ministries,551,379,count_timeout,lower_bound,-172,,0.0145,6,0.01,695,count_only_c_full.csv,4,corroborated,0.02
+directives-doe-gov-directives-browse,USA Executive Departments,205,,,unmeasured,,fetch_fail,0.0,,,205,count_only_c_full.csv,6,corroborated,0.61
+directives-doe-gov-guidance,USA Executive Departments,260,51,count_crawl,exact,-209,,0.0,0,0.0,51,capacity_final.csv,10,unchanged,0.0
+doaj-org-search,Irish Research Centers,1417,35582,api_oai_resumption,exact,34165,,0.1503,5349,4.1,13373055,crawler_health_probe308.csv,3,corroborated,1540.93
+doc-cerema-fr-default,French Research Institutes,697,,,unmeasured,,fetch_fail,0.5581,,,0,count_only_c_full.csv,0,single_source,0.0
+doi-gov-bpp,USA Executive Departments,204,204,count_crawl,exact,0,,1.0,204,0.19,204,capacity_final.csv,11,unchanged,0.19
+dol-gov-newsroom,USA Executive Departments,275,165,count_timeout,lower_bound,-110,,0.2473,41,0.02,292,count_only_capped_1h.csv,3,corroborated,0.04
+doras-dcu-ie-view,Irish Research Centers,2229,4902,big_api,exact,2673,,0.943,4623,39.85,4902,capacity_final.csv,2,unchanged,39.85
+dpmc-govt-nz-publications,뉴질랜드완료,571,161,count_timeout,lower_bound,-410,,0.0,0,0.0,1060,count_only_c_full.csv,4,corroborated,0.0
+drc-gov-cn-leafaspx,중국 완료,555,,,unmeasured,,fetch_fail,0.0,,,2232,count_only_capped_1h.csv,1,single_source,6.62
+drugsandalcohol-ie-cgi,Irish Research Centers,500,5696,count_crawl,lower_bound,5196,,0.834,4750,17.69,9768,big_totals.csv,2,corroborated,30.34
+dspace-emu-ee-search,Estonia Research Centers,500,10421,api_dspace_rest7,exact,9921,,0.412,4293,14.97,10421,capacity_final.csv,2,unchanged,14.97
+dspace-ut-ee-search,Estonia Research Centers,125,114527,api_dspace_rest7,exact,114402,,0.984,112695,191.46,114527,capacity_final.csv,3,unchanged,191.46
+dst-dk-da,덴마크완료,408,275,count_timeout,lower_bound,-133,,0.9828,270,0.93,473,count_only_c_full.csv,5,corroborated,1.6
+dtic-dimensions-ai-discover,American Research Institutes,500,25000,api_html_count_regex,exact,24500,,0.426,10650,8.05,25000,capacity_final.csv,3,unchanged,8.05
+e-stat-go-jp-stat-search,일본완료,1018,1709118,big_api,exact,1708100,,0.0766,130954,80.13,1709118,capacity_final.csv,4,unchanged,80.13
+earlham-ac-uk-newsroom,영국완료,278,283,count_crawl,exact,5,,0.0,0,0.0,283,capacity_final.csv,5,unchanged,0.0
+earth-prints-org,Italy Research centers,796,,,unmeasured,,,0.8442,,,16855,count_only_c_full.csv,2,corroborated,50.01
+ec-lyon-hal-science-search,French Public Universities,222,252,hal_api,exact,30,,0.982,247,0.59,32877,crawler_health_final.csv,2,corroborated,76.97
+ecat-ga-gov-au-geonetwork,호주완료,796,799,count_crawl,lower_bound,3,,0.9837,786,13.0,7191,count_only_c_full.csv,2,corroborated,117.0
+ecologie-gouv-fr-presse,France Ministries,4049,383,count_timeout,lower_bound,-3666,,0.1027,39,0.12,4110,big_totals.csv,2,corroborated,1.29
+economie-fgov-be-nl,벨기에완료,138,120,count_crawl,exact,-18,,0.1304,16,0.0,120,capacity_final.csv,6,unchanged,0.0
+economy-ni-gov-uk-news,영국완료,500,20,count_crawl,exact,-480,,0.004,0,0.0,1900,exact_probe.csv,2,corroborated,0.0
+economy-ni-gov-uk-publications,영국완료,583,458,count_timeout,lower_bound,-125,,0.8868,406,0.59,11909,exact_probe.csv,1,single_source,15.34
+ed-gov-about,USA Executive Departments,224,387,api_html_count_regex,exact,163,,0.442,171,0.26,387,capacity_final.csv,2,unchanged,0.26
+eda-admin-ch-eda,Switzerland Departments,12,,,unmeasured,,fetch_fail,0.0833,,,50,count_only_c_full.csv,5,corroborated,0.15
+edi-admin-ch-de,Switzerland Departments,360,,,unmeasured,,fetch_fail,0.1167,,,52,big_totals.csv,1,single_source,0.15
+edoc-rki-de-handle,GER ResearchCenters(Unfinished),20,14052,api_oai_resumption,exact,14032,,0.95,13349,105.97,14052,capacity_final.csv,2,unchanged,105.97
+educacionfpydeportes-gob-es-prensahtml,Spain Ministries,347,303,count_timeout,lower_bound,-44,,0.0173,5,0.0,507,count_only_capped_1h.csv,4,corroborated,0.0
+education-govt-nz-our-work,뉴질랜드완료,34,3,api_html_count_regex,exact,-31,,0.0,0,0.0,30,full_survey_totals.csv,2,corroborated,0.0
+education-govt-nz-search,뉴질랜드완료,66,3,api_html_count_regex,exact,-63,,0.9697,3,0.0,68,full_survey_totals.csv,1,single_source,0.0
+education-ni-gov-uk-news,영국완료,503,950,api_html_count_regex,exact,447,,0.0119,11,0.0,950,capacity_final.csv,3,unchanged,0.0
+edx-netl-doe-gov-group,American Research Institutes,100,17984,api_ckan,exact,17884,,0.98,17624,3.17,17984,capacity_final.csv,2,unchanged,3.17
+efd-admin-ch-en,Switzerland Departments,500,471,count_timeout,lower_bound,-29,,0.0,0,0.0,2528,count_only_c_full.csv,4,corroborated,0.0
+efk-admin-ch-fr,Switzerland Research Centers,26,46,api_wordpress_posts,exact,20,,1.0,46,0.1,46,capacity_final.csv,2,unchanged,0.1
+ehesp-fr-espace-presse,French Public Universities,127,1088,api_wordpress_posts,exact,961,,1.0,1088,0.35,1088,capacity_final.csv,2,unchanged,0.35
+ehess-hal-science-search,French Public Universities,429,21015,hal_api,exact,20586,,0.9814,20623,118.16,108008,crawler_health_final.csv,2,corroborated,607.29
+ejournals-epublishing-ekt-gr-indexphp,Greece Research Centers,474,235,count_timeout,lower_bound,-239,,0.9831,231,0.8,2421,count_only_c_full.csv,1,single_source,8.24
+elocus-lib-uoc-gr-search,Greece Research Centers,282,103,count_timeout,lower_bound,-179,,0.7057,73,0.28,447,count_only_c_full.csv,1,single_source,1.22
+em-dk-aktuelt,덴마크완료,350,350,count_crawl,exact,0,,0.9914,347,0.66,350,capacity_final.csv,7,unchanged,0.66
+em-lyon-com-en,French Public Universities,348,318,count_timeout,lower_bound,-30,,0.1034,33,0.03,833,count_only_c_full.csv,1,single_source,0.08
+emep-int-mscw,Norway Research Centers,213,215,count_crawl,exact,2,,0.7136,153,2.34,215,capacity_final.csv,6,unchanged,2.34
+emsl-pnnl-gov-science,American Research Institutes,6,6,count_crawl,exact,0,,1.0,3,0.0,28,count_only_c_full.csv,2,corroborated,0.0
+en-ird-fr-sections,French Research Institutes,84,21,api_html_count_regex,exact,-63,,0.5238,11,0.0,21,capacity_final.csv,3,unchanged,0.0
+en-iwhr-cn-iwhr-english-new,중국 완료,458,,,unmeasured,,zero_parsed,0.0,,,0,count_only_c_full.csv,0,single_source,0.0
+en-moj-gov-cn-lawsandregulationsht,중국 완료,15,15,count_crawl,exact,0,,0.0,9,0.05,15,capacity_final.csv,1,unchanged,0.05
+en-ndrc-gov-cn-policies,중국 완료,52,,,unmeasured,,fetch_fail,1.0,,,1,exact_probe.csv,1,single_source,0.0
+en-nhc-gov-cn-publicationshtml,중국 완료,9,9,count_crawl,exact,0,,0.4444,5,0.01,9,capacity_final.csv,6,unchanged,0.01
+en-nim-ac-cn-taxonomy,중국 완료,303,303,count_crawl,exact,0,,0.0,0,0.0,303,capacity_final.csv,10,unchanged,0.0
+enac-hal-science-search,French Public Universities,549,2395,hal_api,exact,1846,,1.0,2395,5.78,3613,crawler_health_final.csv,1,single_source,8.72
+enc-hal-science-search,French Public Universities,509,666,hal_api,exact,157,,0.9843,656,2.65,3889,crawler_health_final.csv,1,single_source,15.47
+energy-gov-management,USA Executive Departments,388,388,count_crawl,exact,0,,0.9948,386,0.17,388,capacity_final.csv,7,unchanged,0.17
+energy-gov-open-government,USA Executive Departments,10,,,unmeasured,,zero_parsed,0.3,,,10,count_only_c_full.csv,5,corroborated,0.03
+energy-gov-search,USA Executive Departments,191,49332,custom_api,exact,49141,,0.9319,45974,27.95,49332,capacity_final.csv,4,unchanged,27.95
+eng-mod-gov-cn-2025xb,중국 완료,10,10,count_crawl,exact,0,,0.0,6,0.03,10,capacity_final.csv,11,unchanged,0.03
+english-cnipa-gov-cn-col,중국 완료,353,353,count_crawl,exact,0,,0.2861,101,0.45,353,capacity_final.csv,7,unchanged,0.45
+english-mee-gov-cn-resources,중국 완료,20,,,unmeasured,,fetch_fail,1.0,,,1,exact_probe.csv,1,single_source,0.0
+english-www-gov-cn-archive,중국 완료,506,437,count_timeout,lower_bound,-69,,0.0,0,0.0,789,count_only_c_full.csv,1,single_source,0.0
+enpc-hal-science-search,French Public Universities,741,15281,hal_api,exact,14540,,0.9973,15240,35.87,43475,crawler_health_final.csv,2,corroborated,102.05
+ens-hal-science-search,French Public Universities,18340,1693,hal_api,exact,-16647,,0.9972,1688,7.96,84355,crawler_health_final.csv,2,corroborated,396.61
+ens-lyon-fr-lecole,French Public Universities,154,151,count_crawl,exact,-3,,0.3571,54,0.03,152,count_only_c_full.csv,7,corroborated,0.03
+ens-lyon-hal-science-search,French Public Universities,1343,24750,hal_api,exact,23407,,0.9955,24639,106.07,106515,crawler_health_final.csv,2,corroborated,456.49
+enscp-hal-science-search,French Public Institutions,3517,3777,hal_api,exact,260,,0.9505,3590,14.11,8006,crawler_health_final.csv,1,single_source,29.91
+enssib-hal-science-search,French Public Universities,12,177,hal_api,exact,165,,1.0,102,0.36,992,crawler_health_final.csv,1,single_source,2.02
+environment-govt-nz-acts-and-regulations,뉴질랜드완료,315,,,unmeasured,,zero_parsed,0.927,,,394,count_only_capped_1h.csv,4,corroborated,1.17
+environment-govt-nz-publications,뉴질랜드완료,249,,,unmeasured,,fetch_fail,0.0,,,563,count_only_capped_1h.csv,4,corroborated,1.67
+environment-govt-nz-what-you-can-do,뉴질랜드완료,58,0,count_timeout,lower_bound,-58,,0.2414,0,0.0,3,crawler_health_probe.csv,2,corroborated,0.01
+envt-hal-science-search,French Public Universities,1063,188,hal_api,exact,-875,,1.0,188,0.57,17091,crawler_health_final.csv,1,single_source,51.82
+epa-ie-news-releases,Irish Research Centers,120,128,count_crawl,exact,8,,0.0,0,0.0,128,capacity_final.csv,6,unchanged,0.0
+eprints-imtlucca-it-cgi,Italy Research centers,1461,,,unmeasured,,fetch_fail,0.3162,,,3,reverify44.csv,1,single_source,0.01
+eprints-soton-ac-uk-view,영국완료,259,,,unmeasured,,fetch_fail,0.5444,,,3,reverify44.csv,1,single_source,0.01
+eprr-lanl-gov,American Research Institutes,367,,,unmeasured,,zero_parsed,1.0,,,2,big_totals.csv,1,single_source,0.01
+espci-hal-science-search,French Public Universities,22,23,hal_api,exact,1,,0.9545,22,0.06,12333,crawler_health_final.csv,1,single_source,32.17
+esri-ie-publications,Irish Research Centers,531,310,count_timeout,lower_bound,-221,,0.5989,186,0.27,3193,count_only_c_full.csv,1,single_source,2.78
+esteri-it-it,Italy Ministries,5533,25207,custom_api,exact,19674,,0.0,0,0.0,25207,capacity_final.csv,4,unchanged,0.0
+etera-ee-browse,Estonia Research Centers,100403,210234,big_api,exact,109831,,0.8445,177536,1903.81,210234,capacity_final.csv,2,unchanged,1903.81
+ethniccommunities-govt-nz-resources,뉴질랜드완료,85,86,count_crawl,exact,1,,0.0,0,0.0,86,capacity_final.csv,1,unchanged,0.0
+ethz-ch-de,Switzerland Research Centers,203,,,unmeasured,,fetch_fail,0.936,,,204,count_only_c_full.csv,6,corroborated,0.61
+etis-ee-portal,Estonia Research Centers,138,1,count_timeout,lower_bound,-137,,0.0,0,0.0,327834,count_only_c_full.csv,3,corroborated,0.0
+exteriores-gob-es-en,Spain Ministries,55,20,api_html_count_regex,exact,-35,,1.0,20,0.12,55,full_survey_totals.csv,1,single_source,0.33
+fafo-no-en,Norway Research Centers,322,228,count_timeout,lower_bound,-94,,0.8137,186,0.29,474,count_only_c_full.csv,4,corroborated,0.6
+fair-healthdata-be-search,벨기에완료,10,248,custom_api,exact,238,,0.2,143,0.03,248,capacity_final.csv,6,unchanged,0.03
+federalregister-gov-documents,USA Executive Departments,5957,10000,custom_api,exact,4043,,0.9997,9997,4.23,10000,capacity_final.csv,3,unchanged,4.23
+fhi-no-en,Norway Research Centers,255,1000,custom_api,exact,745,,0.9529,953,1.83,1000,capacity_final.csv,3,unchanged,1.83
+fi-se-en,스웨덴 완료,122,92,count_crawl,exact,-30,,0.8689,80,0.04,95,html_only_ALL.csv,10,corroborated,0.04
+fibl-org-en,Switzerland Research Centers,539,15,count_timeout,lower_bound,-524,,0.3488,5,0.02,1970,count_only_c_full.csv,1,single_source,2.63
+finance-ni-gov-uk-publications,영국완료,336,17,count_crawl,exact,-319,,0.9435,16,0.0,3510,big_totals.csv,1,single_source,0.0
+flore-unifi-it,Italy Research centers,14038,,,unmeasured,,,0.0,,,43600,count_only_c_full.csv,1,single_source,129.37
+fm-dk-udgivelser,덴마크완료,100,100,count_crawl,exact,0,,1.0,100,0.41,100,capacity_final.csv,6,unchanged,0.41
+fmi-ch-research,Switzerland Research Centers,818,1,count_timeout,lower_bound,-817,,0.0147,0,0.0,2018,count_only_c_full.csv,1,single_source,0.0
+fmn-dk-da,덴마크완료,848,306,count_timeout,lower_bound,-542,,0.158,48,0.04,852,count_only_c_full.csv,4,corroborated,0.11
+forest-go-kr-kfsweb,한국완료,931,552,count_timeout,lower_bound,-379,,0.9914,547,1.26,1100,exact_probe.csv,1,single_source,2.51
+forskningsradet-no-om-forskningsradet,Norway Research Centers,356,2,api_html_count_regex,exact,-354,,1.0,2,0.0,14,big_totals.csv,1,single_source,0.0
+frontiersin-org-articles,American Research Institutes,1230,242,api_html_count_regex,exact,-988,,0.3423,83,0.25,357,full_survey_totals.csv,1,single_source,0.37
+fss-or-kr-fss,한국완료,500,420,count_timeout,lower_bound,-80,,0.998,419,0.21,6464,count_only_c_full.csv,1,single_source,3.23
+ftc-go-kr-www,한국완료,694,489,count_timeout,lower_bound,-205,,0.9971,488,0.24,9719,exact_probe.csv,1,single_source,4.77
+futureneurocentre-ie-our-research,Irish Research Centers,455,95,api_wordpress_posts,exact,-360,,0.2769,26,0.05,95,capacity_final.csv,2,unchanged,0.05
+ga-gov-au-data-pubs,호주완료,2243,31979,big_api,exact,29736,,0.9929,31751,326.65,31979,capacity_final.csv,2,unchanged,326.65
+garda-ie-en,Irish Research Centers,94,5,api_html_count_regex,exact,-89,,1.0,5,0.01,5,capacity_final.csv,2,unchanged,0.01
+gb-go-kr-sub,한국완료,406,407,count_crawl,exact,1,,0.8818,359,0.44,407,capacity_final.csv,4,unchanged,0.44
+gcsp-ch-publications,Switzerland Research Centers,176,178,count_crawl,exact,2,,0.483,86,0.1,178,capacity_final.csv,6,unchanged,0.1
+genome-gov-about-nhgri,American Research Institutes,42,,,unmeasured,,zero_parsed,1.0,,,1,count_only_c_full.csv,12,corroborated,0.0
+genomecanada-ca-about,Canadian Research Centers,50,,,unmeasured,,zero_parsed,1.0,,,1,exact_probe.csv,1,single_source,0.0
+geoportal-statistics-gov-uk-search,영국완료,346,24,api_html_count_regex,exact,-322,,0.8295,20,0.08,346,full_survey_totals.csv,1,single_source,1.15
+gi-re-kr-home,한국완료,452,398,count_timeout,lower_bound,-54,,0.5177,206,1.64,1902,count_only_c_full.csv,1,single_source,7.84
+gichd-org-publications-resourc,Switzerland Research Centers,266,245,count_timeout,lower_bound,-21,,0.8609,211,0.86,371,count_only_c_full.csv,1,single_source,1.3
+github-com-orgs,Dutch Research Centers,91,190,custom_api,exact,99,,0.0,0,0.0,190,capacity_final.csv,3,unchanged,0.0
+gnews-gg-go-kr-briefing,한국완료,500,432,count_timeout,lower_bound,-68,,0.996,430,0.15,10823,count_only_c_full.csv,1,single_source,3.76
+gnewsonline-it-category,Italy Ministries,343,287,count_timeout,lower_bound,-56,,0.0,0,0.0,520,count_only_capped_1h.csv,4,corroborated,0.0
+go-griffith-ie-browse,Irish Research Centers,1111,662,api_dspace_rest7,exact,-449,,0.4275,283,0.84,662,capacity_final.csv,5,unchanged,0.84
+gob-mx-agricultura,Mexico Ministries,729,,,unmeasured,,no_crawler,0.0,,,7752,count_only_gobmx.csv,1,single_source,23.0
+gob-mx-bienestar,Mexico Ministries,729,,,unmeasured,,no_crawler,0.0,,,3186,count_only_gobmx.csv,1,single_source,9.45
+gob-mx-buengobierno,Mexico Ministries,771,,,unmeasured,,no_crawler,0.0,,,1375,count_only_gobmx.csv,1,single_source,4.08
+gob-mx-defensa,Mexico Ministries,756,,,unmeasured,,no_crawler,0.0,,,2986,count_only_gobmx.csv,1,single_source,8.86
+gob-mx-mujeres,Mexico Ministries,270,,,unmeasured,,no_crawler,0.0,,,273,count_only_gobmx.csv,1,single_source,0.81
+gob-mx-salud,Mexico Ministries,765,,,unmeasured,,no_crawler,0.0,,,8529,count_only_gobmx.csv,1,single_source,25.31
+gob-mx-se,Mexico Ministries,762,,,unmeasured,,no_crawler,0.0,,,3361,count_only_gobmx.csv,1,single_source,9.97
+gob-mx-sectur,Mexico Ministries,765,,,unmeasured,,no_crawler,0.0,,,2233,count_only_gobmx.csv,1,single_source,6.63
+gob-mx-sedatu,Mexico Ministries,756,,,unmeasured,,no_crawler,0.0,,,3854,count_only_gobmx.csv,1,single_source,11.44
+gob-mx-segob,Mexico Ministries,747,,,unmeasured,,no_crawler,0.0,,,9193,count_only_gobmx.csv,1,single_source,27.28
+gob-mx-semar,Mexico Ministries,783,,,unmeasured,,no_crawler,0.0,,,2225,count_only_gobmx.csv,1,single_source,6.6
+gob-mx-semarnat,Mexico Ministries,774,,,unmeasured,,no_crawler,0.0,,,2487,count_only_gobmx.csv,1,single_source,7.38
+gob-mx-sep,Mexico Ministries,774,,,unmeasured,,no_crawler,0.0,,,4231,count_only_gobmx.csv,1,single_source,12.55
+gob-mx-shcp,Mexico Ministries,762,,,unmeasured,,no_crawler,0.0,,,1785,count_only_gobmx.csv,1,single_source,5.3
+gob-mx-sict,Mexico Ministries,747,,,unmeasured,,no_crawler,0.0,,,5378,count_only_gobmx.csv,1,single_source,15.96
+gob-mx-sre,Mexico Ministries,774,,,unmeasured,,no_crawler,0.0,,,5290,count_only_gobmx.csv,1,single_source,15.7
+gob-mx-sspc,Mexico Ministries,773,,,unmeasured,,no_crawler,0.0,,,5482,count_only_gobmx.csv,1,single_source,16.27
+gob-mx-stps,Mexico Ministries,748,,,unmeasured,,no_crawler,0.0,,,2668,count_only_gobmx.csv,1,single_source,7.92
+gov-gr-search,Greece Ministries,489,,,unmeasured,,fetch_fail,0.1738,,,3,reverify44.csv,1,single_source,0.01
+gov-ie-en,Ireland Ministries,780,100,api_html_count_regex,exact,-680,,0.0308,3,0.0,100,capacity_final.csv,3,unchanged,0.0
+gov-il-collectors,Israel Ministries,708,,,unmeasured,,,0.178,,,10,health_timeout_recheck.csv,1,single_source,0.03
+gov-scot-publications,영국완료,1024,50542,big_api,exact,49518,,0.3779,19101,29.91,50542,capacity_final.csv,4,unchanged,29.91
+gov-scot-statistics-and-resea,영국완료,353,6001,big_api,exact,5648,,0.7025,4216,4.81,6001,capacity_final.csv,3,unchanged,4.81
+gov-uk-search,영국완료,862,42435,big_api,exact,41573,,0.6601,28011,48.02,59322,crawler_health_probe308.csv,2,corroborated,67.13
+gov-wales-publications,영국완료,155,192,count_timeout,lower_bound,37,,0.7419,142,0.08,16606,exact_probe.csv,2,corroborated,6.92
+government-se-publications,스웨덴 완료,465,,,unmeasured,,,0.2344,,,521,count_only_c_full.csv,1,single_source,1.55
+graduateinstitute-ch-library,Switzerland Research Centers,398,0,count_timeout,lower_bound,-398,,0.7337,0,0.0,222,count_only_c_full.csv,6,corroborated,0.66
+gri-re-kr-web,한국완료,516,479,count_timeout,lower_bound,-37,,0.9477,454,0.01,1731,count_only_c_full.csv,4,corroborated,0.04
+gsi-ie-en-ie,Irish Research Centers,113,,,unmeasured,,fetch_fail,0.5841,,,0,count_only_c_full.csv,0,single_source,0.0
+gwangju-go-kr-boardlistdo,한국완료,500,329,count_timeout,lower_bound,-171,,0.0,0,0.0,1121,count_only_c_full.csv,4,corroborated,0.0
+gyeongnam-go-kr-board,한국완료,190,352,count_timeout,lower_bound,162,,1.0,352,0.42,38452,exact_probe.csv,1,single_source,45.88
+hal-science-afd,French Public Institutions,59,67,hal_api,exact,8,,1.0,67,0.15,67,capacity_final.csv,4,unchanged,0.15
+hal-science-ign-ensg,French Public Institutions,3288,3733,hal_api,exact,445,,0.986,3681,30.82,3736,crawler_health_probe308.csv,4,corroborated,30.84
+harcresearch-org-news,American Research Institutes,240,240,count_crawl,exact,0,,0.1417,34,0.31,240,capacity_final.csv,1,unchanged,0.31
+harcresearch-org-research,American Research Institutes,41,41,count_crawl,exact,0,,0.5854,24,0.18,41,capacity_final.csv,2,unchanged,0.18
+hatvp-fr-actualites-et-public,French Public Institutions,57,57,count_crawl,exact,0,,0.4737,27,0.05,57,capacity_final.csv,10,unchanged,0.05
+hautconseilclimat-fr-ressources-pedagogiq,French Public Institutions,234,52,api_wordpress_posts,exact,-182,,0.0,0,0.0,234,full_survey_totals.csv,1,single_source,0.0
+hcsp-fr-explorecgi,French Public Institutions,37,32,count_crawl,exact,-5,,1.0,32,0.04,21497,exact_probe.csv,1,single_source,26.87
+hea-ie-resources,Irish Research Centers,221,347,api_wordpress_posts,exact,126,,1.0,347,0.9,347,capacity_final.csv,2,unchanged,0.9
+health-gov-au-publications,호주완료,749,,,unmeasured,,,0.8598,,,3574,count_only_c_full.csv,1,single_source,10.6
+health-govt-nz-publications,뉴질랜드완료,306,,,unmeasured,,,0.7059,,,818,count_only_c_full.csv,1,single_source,2.43
+health-ni-gov-uk-news,영국완료,137,100,count_crawl,exact,-37,,0.0,0,0.0,2970,big_totals.csv,1,single_source,0.0
+health-ni-gov-uk-publications,영국완료,503,20,count_crawl,exact,-483,,0.6064,12,0.01,2833,big_totals.csv,1,single_source,1.42
+hec-edu-en,French Public Universities,16,10,count_crawl,exact,-6,,1.0,6,0.0,10,capacity_final.csv,6,unchanged,0.0
+hec-hal-science-search,French Public Universities,313,335,hal_api,exact,22,,0.9872,331,1.51,4829,crawler_health_final.csv,1,single_source,21.77
+helios-eie-gr-helios,Greece Research Centers,500,11234,api_oai_resumption,exact,10734,,0.616,6920,32.19,11234,capacity_final.csv,2,unchanged,32.19
+hfml-felix-nl-en,Dutch Research Centers,62,98,api_html_count_regex,exact,36,,0.0,0,0.0,98,capacity_final.csv,2,unchanged,0.0
+hhs-gov-guidance,USA Executive Departments,267,41,count_timeout,lower_bound,-226,,0.0,0,0.0,4064,big_totals.csv,1,single_source,0.0
+hi-no-en,Norway Research Centers,119,119,count_crawl,exact,0,,0.9916,118,0.75,119,capacity_final.csv,7,unchanged,0.75
+home-cern-news,Switzerland Research Centers,809,10,count_crawl,exact,-799,,0.0,0,0.0,2200,count_only_c_full.csv,4,corroborated,0.0
+home-treasury-gov-about,USA Executive Departments,12,12,count_crawl,exact,0,,1.0,7,0.01,12,capacity_final.csv,6,unchanged,0.01
+homeaffairs-gov-au-sitesearch,호주완료,1308,,,unmeasured,,fetch_fail,0.9969,,,3676,count_only_capped_1h.csv,1,single_source,10.91
+hrb-ie-publications,Irish Research Centers,187,819,api_wordpress_posts,exact,632,,0.262,215,0.45,819,capacity_final.csv,2,unchanged,0.45
+hrbopenresearch-org,Irish Research Centers,437,260,count_timeout,lower_bound,-177,,0.0,0,0.0,739,count_only_c_full.csv,4,corroborated,0.0
+hud-govt-nz-documents,뉴질랜드완료,148,9,count_timeout,lower_bound,-139,,0.9932,9,0.03,47,count_only_capped_1h.csv,3,corroborated,0.16
+hud-govt-nz-stats-and-insights,뉴질랜드완료,1334,1,count_timeout,lower_bound,-1333,,0.9768,1,0.0,2089,count_only_c_full.csv,5,corroborated,0.0
+humanrights-go-kr-base,한국완료,450,359,count_timeout,lower_bound,-91,,0.9978,358,0.27,571,exact_probe.csv,5,corroborated,0.43
+icn-artem-com-en,French Public Universities,6,21,count_crawl,exact,15,,0.0,12,0.07,21,capacity_final.csv,6,unchanged,0.07
+icn-hal-science-search,French Public Universities,133,154,hal_api,exact,21,,0.9248,142,0.12,1748,crawler_health_final.csv,1,single_source,1.36
+icp-fr-a-propos-de-licp,French Public Institutions,99,,,unmeasured,,zero_parsed,1.0,,,99,count_only_c_full.csv,10,corroborated,0.29
+icp-hal-science-search,French Public Institutions,220,182,hal_api,exact,-38,,0.9864,180,0.24,9325,crawler_health_final.csv,1,single_source,12.3
+idiap-ch-en,Switzerland Research Centers,125,125,count_timeout,lower_bound,0,,0.592,74,0.01,125,capacity_final.csv,6,unchanged,0.01
+ifau-se-forskning,스웨덴 완료,101,106,count_crawl,exact,5,,1.0,106,0.1,106,capacity_final.csv,8,unchanged,0.1
+ifau-se-press,스웨덴 완료,215,215,count_crawl,exact,0,,0.0,0,0.0,215,capacity_final.csv,7,unchanged,0.0
+ifpenergiesnouvelles-fr-tags,French Research Institutes,150,150,count_crawl,exact,0,,0.04,6,0.01,150,capacity_final.csv,6,unchanged,0.01
+ifr-pan-edu-pl-dzialalnosc-naukowa,Polish Research Centers,232,,,unmeasured,,zero_parsed,0.0517,,,3,reverify44.csv,1,single_source,0.01
+ifremer-fr-fr,French Research Institutes,286,287,count_crawl,exact,1,,0.521,150,0.1,287,capacity_final.csv,5,unchanged,0.1
+ign-fr-espace-presse,French Public Institutions,67,70,count_crawl,exact,3,,0.9701,68,0.04,70,capacity_final.csv,6,unchanged,0.04
+igualdad-gob-es-comunicacion,Spain Ministries,216,166,count_timeout,lower_bound,-50,,0.0926,15,0.01,286,count_only_c_full.csv,4,corroborated,0.02
+iheid-swisscovery-ch-discovery,Switzerland Research Centers,523,24,count_crawl,exact,-499,,0.0,0,0.0,3749,count_only_c_full.csv,2,corroborated,0.0
+ii-re-kr-base,한국완료,287,0,count_timeout,lower_bound,-287,,0.892,0,0.0,4259,exact_probe.csv,1,single_source,12.64
+iisd-org-press,Canadian Research Centers,342,601,api_html_count_regex,exact,259,,0.0117,7,0.02,601,capacity_final.csv,3,unchanged,0.02
+illustro-iadt-figshare-com-search,Irish Research Centers,92,92,count_crawl,exact,0,,1.0,92,0.19,92,capacity_final.csv,6,unchanged,0.19
+imt-nord-europe-hal-science-search,French Public Universities,61,2137,hal_api,exact,2076,,1.0,2137,11.54,7266,crawler_health_final.csv,1,single_source,39.24
+incheon-go-kr-ic010205,한국완료,1328,455,count_timeout,lower_bound,-873,,0.7342,334,0.48,16464,exact_probe.csv,1,single_source,17.37
+indicators-be-nl,벨기에완료,84,84,count_crawl,exact,0,,0.0,0,0.0,84,capacity_final.csv,6,unchanged,0.0
+ineris-fr-fr,French Research Institutes,141,0,count_timeout,lower_bound,-141,,1.0,0,0.0,20,big_totals.csv,1,single_source,0.06
+ineris-hal-science-search,French Research Institutes,2234,75,hal_api,exact,-2159,,0.9987,75,0.09,8889,crawler_health_final.csv,1,single_source,10.67
+info-daegu-go-kr-newshome,한국완료,490,443,count_timeout,lower_bound,-47,,0.998,442,0.54,1300,count_only_capped_1h.csv,3,corroborated,1.58
+info-korail-com-info,한국완료,565,516,count_timeout,lower_bound,-49,,1.0,516,0.3,12616,exact_probe.csv,1,single_source,7.33
+infrastructure-ni-gov-uk-news,영국완료,420,20,count_crawl,exact,-400,,0.0,0,0.0,2998,exact_probe.csv,2,corroborated,0.0
+inrae-fr-actualites,French Research Institutes,830,831,count_crawl,lower_bound,1,,0.0,0,0.0,839,reverify44.csv,2,corroborated,0.0
+inria-fr-fr,French Research Institutes,114,,,unmeasured,,zero_parsed,0.9474,,,3,reverify44.csv,1,single_source,0.01
+inria-hal-science-search,French Research Institutes,1083,65674,hal_api,exact,64591,,0.9815,64461,294.35,65674,capacity_final.csv,1,unchanged,294.35
+insee-fr-fr,French Public Institutions,223,0,count_timeout,lower_bound,-223,,1.0,0,0.0,0,capacity_final.csv,0,unchanged,0.0
+inserm-hal-science-search,French Research Institutes,883,234422,hal_api,exact,233539,,0.6931,162476,611.17,254477,crawler_health_final.csv,3,corroborated,663.46
+insight-centre-org-press-releases,Irish Research Centers,54,2560,custom_api,exact,2506,,0.0,0,0.0,2560,capacity_final.csv,3,unchanged,0.0
+international-andra-fr-documents-and-visual,French Research Institutes,34,20,api_html_count_regex,exact,-14,,1.0,20,0.24,34,full_survey_totals.csv,1,single_source,0.41
+international-canada-ca-en,Canada Ministries,14,2,count_crawl,exact,-12,,0.0,1,0.01,14,count_only_c_full.csv,5,corroborated,0.07
+international-gc-ca-transparency-transpa,Canada Ministries,22,2,count_crawl,exact,-20,,0.0,0,0.0,14,count_only_c_full.csv,5,corroborated,0.0
+ir-arcnl-nl,Dutch Research Centers,452,373,count_timeout,lower_bound,-79,,0.9314,347,2.72,7988,count_only_c_full.csv,1,single_source,58.25
+ir-cwi-nl,Dutch Research Centers,592,375,count_timeout,lower_bound,-217,,0.7686,288,1.4,4041,count_only_capped_1h.csv,1,single_source,15.09
+ir-lib-uth-gr-xmlui,Greece Research Centers,843,55971,api_oai_resumption,exact,55128,,1.0,55971,195.01,55971,capacity_final.csv,3,unchanged,195.01
+irb-usi-ch-publications,Switzerland Research Centers,558,1,count_timeout,lower_bound,-557,,0.0,0,0.0,583,count_only_c_full.csv,6,corroborated,0.0
+ird-hal-science-search,French Research Institutes,1144,2185,hal_api,exact,1041,,0.9904,2164,12.23,88988,crawler_health_final.csv,2,corroborated,498.09
+iris-unitn-it,Italy Research centers,10521,,,unmeasured,,,0.0,,,20626,count_only_c_full.csv,1,single_source,61.2
+irpp-org-about-the-irpp,Canadian Research Centers,25,44,api_wordpress_posts,exact,19,,1.0,44,0.14,44,capacity_final.csv,2,unchanged,0.14
+irpp-org-media,Canadian Research Centers,487,44,api_wordpress_posts,exact,-443,,0.0411,2,0.0,99,full_survey_totals.csv,1,single_source,0.0
+irsn-fr-actualites,French Research Institutes,274,274,count_crawl,exact,0,,0.0584,16,0.01,274,capacity_final.csv,7,unchanged,0.01
+isae-ensma-hal-science-search,French Public Universities,14,3474,hal_api,exact,3460,,1.0,2004,13.91,9836,crawler_health_final.csv,1,single_source,39.38
+issibern-ch-outreach,Switzerland Research Centers,157,,,unmeasured,,error,0.0637,,,159,count_only_capped_1h.csv,3,corroborated,0.47
+issibern-ch-results,Switzerland Research Centers,495,49,count_crawl,exact,-446,,0.0,0,0.0,86,count_only_totalscan.csv,1,single_source,0.0
+issnationallab-org-about,American Research Institutes,82,1586,api_wordpress_posts,exact,1504,,0.9024,1431,0.91,1586,capacity_final.csv,2,unchanged,0.91
+issnationallab-org-press-releases,American Research Institutes,561,1586,api_wordpress_posts,exact,1025,,0.0,0,0.0,1586,capacity_final.csv,2,unchanged,0.0
+issnationallab-org-publications,American Research Institutes,205,206,api_wordpress_publications,exact,1,,0.0,0,0.0,206,capacity_final.csv,3,unchanged,0.0
+issnationallab-org-research-and-science,American Research Institutes,12,54,api_wordpress_opportunities,exact,42,,0.0,31,0.17,54,capacity_final.csv,2,unchanged,0.17
+iucn-org-about-iucn,Switzerland Research Centers,19,19,count_crawl,exact,0,,1.0,11,0.07,19,capacity_final.csv,11,unchanged,0.07
+iucn-org-press-releases,Switzerland Research Centers,68,69,count_crawl,exact,1,,0.0,0,0.0,69,capacity_final.csv,6,unchanged,0.0
+iucn-org-resources,Switzerland Research Centers,6,6,count_crawl,exact,0,,1.0,3,0.01,6,capacity_final.csv,6,unchanged,0.01
+ivo-se-sok,스웨덴 완료,134,10,count_crawl,exact,-124,,0.9851,10,0.01,139,count_only_capped_1h.csv,7,corroborated,0.14
+iwhr-com-zgskywwnew,중국 완료,62,,,unmeasured,,zero_parsed,0.4839,,,0,count_only_c_full.csv,0,single_source,0.0
+jeju-go-kr-news,한국완료,1087,432,count_timeout,lower_bound,-655,,0.0175,8,0.09,6221,count_only_c_full.csv,1,single_source,1.3
+jeonnam-go-kr-m7116,한국완료,770,300,count_timeout,lower_bound,-470,,1.0,300,0.07,440,count_only_capped_1h.csv,5,corroborated,0.1
+jgi-doe-gov-user-science,American Research Institutes,682,6,api_html_count_regex,exact,-676,,0.0836,1,0.0,12,full_survey_totals.csv,1,single_source,0.0
+jic-ac-uk-news-events,영국완료,1138,1139,api_wordpress_posts,exact,1,,0.0,0,0.0,1139,capacity_final.csv,3,unchanged,0.0
+jsearch-mwr-gov-cn-irs-c-web,중국 완료,2499,1685,count_timeout,lower_bound,-814,,0.0,0,0.0,40542,count_only_c_full.csv,3,corroborated,0.0
+julkaisut-valtioneuvosto-fi-search,핀란드완료,293,13781,api_dspace_rest7,exact,13488,,1.0,13781,27.19,13786,crawler_health_probe308.csv,4,corroborated,27.2
+justice-gouv-fr-documentation,France Ministries,167,178,api_html_count_regex,exact,11,,0.8743,156,0.34,178,capacity_final.csv,4,unchanged,0.34
+justice-gov-news,USA Executive Departments,741,493,count_timeout,lower_bound,-248,,0.0,0,0.0,1618,count_only_capped_1h.csv,3,corroborated,0.0
+justice-govt-nz-publications,뉴질랜드완료,0,,,unmeasured,,,,,,0,count_only_c_full.csv,0,single_source,0.0
+justice-ni-gov-uk-publications,영국완료,228,11,count_crawl,exact,-217,,0.9079,10,0.01,1895,big_totals.csv,1,single_source,1.72
+justitsministeriet-dk-forskning,덴마크완료,24,24,count_crawl,exact,0,,1.0,24,0.08,24,capacity_final.csv,11,unchanged,0.08
+justitsministeriet-dk-pressemeddelelse,덴마크완료,346,321,count_timeout,lower_bound,-25,,0.3844,123,0.24,589,count_only_c_full.csv,4,corroborated,0.44
+juventudeinfancia-gob-es-es,Spain Ministries,306,124,count_timeout,lower_bound,-182,,0.0915,11,0.02,307,count_only_c_full.csv,4,corroborated,0.05
+kamco-or-kr-portal,한국완료,19,19,count_crawl,exact,0,,0.9474,11,0.3,19,capacity_final.csv,6,unchanged,0.3
+kammarkollegiet-se-aktuellt,스웨덴 완료,46,48,count_crawl,exact,2,,0.0,0,0.0,48,capacity_final.csv,6,unchanged,0.0
+kasa-go-kr-bbs,한국완료,331,331,count_crawl,exact,0,,0.9486,314,0.47,932,exact_probe.csv,1,single_source,1.32
+kb-se-om-oss,스웨덴 완료,80,395,custom_api,exact,315,,0.0625,25,0.09,395,capacity_final.csv,3,unchanged,0.09
+kcg-go-kr-kcg,한국완료,624,342,count_timeout,lower_bound,-282,,0.9952,340,0.45,908,count_only_c_full.csv,4,corroborated,1.19
+kdca-go-kr-kdca,한국완료,846,479,count_timeout,lower_bound,-367,,0.9988,478,1.16,1585,count_only_c_full.csv,4,corroborated,3.84
+kedi-re-kr-khome,한국완료,519,357,count_timeout,lower_bound,-162,,0.0077,3,0.0,3092,count_only_c_full.csv,1,single_source,0.0
+keei-re-kr-boardes,한국완료,452,328,count_timeout,lower_bound,-124,,1.0,328,1.75,1040,count_only_c_full.csv,4,corroborated,5.55
+kefm-dk-aftaler,덴마크완료,101,102,count_crawl,exact,1,,0.8515,87,0.04,102,capacity_final.csv,6,unchanged,0.04
+kei-re-kr-eliblistes,한국완료,364,453,count_timeout,lower_bound,89,,0.9753,442,6.73,583,count_only_c_full.csv,4,corroborated,8.66
+keis-or-kr-keis,한국완료,22,21,count_crawl,exact,-1,,1.0,21,0.01,256,exact_probe.csv,1,single_source,0.12
+kepco-co-kr-home,한국완료,400,490,count_crawl,exact,90,,0.0,0,0.0,492,count_only_c_full.csv,7,corroborated,0.0
+kfss-forest-go-kr-stat,한국완료,15,2,api_html_count_regex,exact,-13,,1.0,1,0.0,15,crawler_health_probe.csv,2,corroborated,0.0
+khs-go-kr-cop,한국완료,38,12,count_timeout,lower_bound,-26,,0.9737,12,0.03,13,count_only_capped_1h.csv,10,corroborated,0.03
+khs-go-kr-newsbbz,한국완료,1249,0,count_timeout,lower_bound,-1249,,0.8054,0,0.0,18,count_only_totals.csv,2,corroborated,0.05
+kicce-re-kr-main,한국완료,368,9,count_crawl,exact,-359,,0.9946,9,0.02,9,capacity_final.csv,11,unchanged,0.02
+kice-re-kr-boardcnts,한국완료,500,279,count_timeout,lower_bound,-221,,0.232,65,0.47,78174,exact_probe.csv,1,single_source,131.69
+kicj-re-kr-boardes,한국완료,154,0,count_timeout,lower_bound,-154,,0.9351,0,0.0,260,count_only_c_full.csv,4,corroborated,0.77
+kiep-go-kr-galleryes,한국완료,437,377,count_timeout,lower_bound,-60,,0.5835,220,1.36,2051,count_only_capped_1h.csv,3,corroborated,7.4
+kihasa-re-kr-news,한국완료,615,514,count_timeout,lower_bound,-101,,0.6,308,0.28,943,count_only_c_full.csv,4,corroborated,0.51
+kihasa-re-kr-publish,한국완료,673,,,unmeasured,,fetch_fail,0.9941,,,2149,count_only_c_full.csv,1,single_source,6.38
+kinfa-or-kr-notificationpromotio,한국완료,732,461,count_timeout,lower_bound,-271,,0.7883,363,0.26,766,count_only_c_full.csv,4,corroborated,0.43
+kinu-or-kr-main,한국완료,432,401,count_timeout,lower_bound,-31,,0.9861,395,0.16,434,count_only_c_full.csv,7,corroborated,0.17
+kipa-re-kr-html,한국완료,8,7,count_crawl,exact,-1,,0.0,4,0.02,641,count_only_c_full.csv,2,corroborated,1.83
+kipf-re-kr-bbs,한국완료,352,353,count_crawl,exact,1,,0.9943,351,0.65,362,exact_probe.csv,6,corroborated,0.67
+kipf-re-kr-kor,한국완료,601,206,count_crawl,exact,-395,,0.995,205,2.26,557,exact_probe.csv,1,single_source,6.11
+kipo-go-kr-ko,한국완료,500,453,count_timeout,lower_bound,-47,,0.984,446,5.36,602,count_only_c_full.csv,6,corroborated,7.12
+kirj-ee-archive,Estonia Research Centers,3619,24,api_wordpress_posts,exact,-3595,,1.0,24,0.03,146,full_survey_totals.csv,1,single_source,0.18
+kisdi-re-kr-bbs,한국완료,502,933,count_timeout,lower_bound,431,,0.998,931,0.54,1178,count_only_capped_1h.csv,4,corroborated,0.68
+kisdi-re-kr-report,한국완료,501,526,count_timeout,lower_bound,25,,1.0,526,1.88,1019,count_only_c_full.csv,4,corroborated,3.64
+kit-nl-institute,Dutch Research Centers,121,72,api_wordpress_institute_employee,exact,-49,,0.7355,53,0.07,100,full_survey_totals.csv,1,single_source,0.1
+kjonnsforskning-no-nb,Norway Research Centers,100,166,custom_api,exact,66,,0.0,0,0.0,166,capacity_final.csv,3,unchanged,0.0
+kli-re-kr-kli,한국완료,500,499,count_timeout,lower_bound,-1,,0.972,485,2.07,2162,exact_probe.csv,1,single_source,8.97
+kliimaministeerium-ee-otsing,Estonia Ministries,10,10,count_timeout,lower_bound,0,,0.0,6,0.03,4291,count_only_totalscan.csv,3,corroborated,12.87
+klimaraadet-dk-da,덴마크완료,84,84,count_crawl,exact,0,,0.0119,1,0.0,84,capacity_final.csv,10,unchanged,0.0
+klri-re-kr-kor,한국완료,590,303,count_timeout,lower_bound,-287,,0.3593,109,0.31,790,count_only_c_full.csv,1,single_source,0.81
+kma-go-kr-kma,한국완료,86,58,count_crawl,exact,-28,,0.9884,57,0.06,60,count_only_c_full.csv,6,corroborated,0.06
+kmcc-go-kr-userdo,한국완료,666,507,count_timeout,lower_bound,-159,,0.7943,403,0.51,1950,count_only_c_full.csv,4,corroborated,1.96
+kmi-re-kr-web,한국완료,445,2348,custom_api,exact,1903,,0.9528,2237,1.12,2348,capacity_final.csv,3,unchanged,1.12
+kna-forest-go-kr-kfsweb,한국완료,372,375,count_crawl,exact,3,,0.9892,371,13.57,375,capacity_final.csv,6,unchanged,13.57
+knmi-nl-kennis-en-datacentru,Dutch Research Centers,388,796,api_html_count_regex,exact,408,,0.9871,786,3.15,796,capacity_final.csv,3,unchanged,3.15
+knowledge-barnardos-ie-browse,Irish Research Centers,365,1375,api_dspace_rest7,exact,1010,,1.0,1375,2.75,1375,capacity_final.csv,5,unchanged,2.75
+kommunekredit-com-about-us,덴마크완료,24,1,api_html_count_regex,exact,-23,,1.0,1,0.0,24,full_survey_totals.csv,1,single_source,0.0
+kommunikasjon-ntb-no-presserom,Norway Research Centers,116,20,count_crawl,exact,-96,,0.0172,0,0.0,116,count_only_c_full.csv,9,corroborated,0.0
+kostat-go-kr-boardes,한국완료,100,102,count_crawl,exact,2,,0.74,75,0.01,102,capacity_final.csv,1,unchanged,0.01
+koti-re-kr-user,한국완료,373,414,count_timeout,lower_bound,41,,1.0,414,3.49,746,exact_probe.csv,2,corroborated,6.29
+krei-re-kr-krei,한국완료,1450,815,count_timeout,lower_bound,-635,,0.5903,481,0.24,2097,count_only_c_full.csv,4,corroborated,0.62
+krihs-re-kr-boardes,한국완료,600,547,count_timeout,lower_bound,-53,,0.8983,491,1.24,1037,count_only_c_full.csv,4,corroborated,2.35
+krihs-re-kr-krihslibraryarticle,한국완료,744,744,count_crawl,lower_bound,0,,0.0,0,0.0,744,capacity_final.csv,7,unchanged,0.0
+krihs-re-kr-krihslibraryreport,한국완료,168,150,count_crawl,exact,-18,,0.1131,17,0.0,150,capacity_final.csv,10,unchanged,0.0
+krivet-re-kr,한국완료,1,518,count_timeout,lower_bound,517,,0.0,299,1.64,1232,count_only_c_full.csv,4,corroborated,3.9
+krivet-re-kr-kor,한국완료,500,450,count_timeout,lower_bound,-50,,0.0,0,0.0,553,count_only_c_full.csv,4,corroborated,0.0
+kwdi-re-kr-plaza,한국완료,819,276,count_timeout,lower_bound,-543,,0.9512,263,0.18,603,exact_probe.csv,1,single_source,0.39
+kwdi-re-kr-publications,한국완료,500,423,count_timeout,lower_bound,-77,,0.922,390,1.29,629,count_only_c_full.csv,5,corroborated,1.92
+lavoro-gov-it-stampa-e-media,Italy Ministries,340,294,count_timeout,lower_bound,-46,,0.0059,2,0.0,1761,big_totals.csv,1,single_source,0.0
+lecese-fr-espace-presse,French Public Institutions,500,451,count_timeout,lower_bound,-49,,0.922,416,0.12,676,count_only_c_full.csv,4,corroborated,0.18
+lenus-ie-browse,Irish Research Centers,168,47138,api_dspace_rest7,exact,46970,,0.869,40965,69.61,47138,capacity_final.csv,5,unchanged,69.61
+lib-cssn-cn-zy,중국 완료,204,204,count_crawl,exact,0,,0.0,0,0.0,204,capacity_final.csv,10,unchanged,0.0
+library-kwrwater-nl-en,Dutch Research Centers,51,100,api_html_count_regex,exact,49,,0.0,0,0.0,5920,crawler_health_probe308.csv,2,corroborated,0.0
+libreria-educacion-gob-es-p,Spain Ministries,330,152,count_timeout,lower_bound,-178,,0.897,136,2.02,350,count_only_c_full.csv,4,corroborated,4.65
+llnl-gov-news,American Research Institutes,3537,,,unmeasured,,zero_parsed,0.0,,,5250,count_only_c_full.csv,3,corroborated,15.58
+lne-fr-fr,French Research Institutes,40,42,api_html_count_regex,exact,2,,0.0,0,0.0,42,capacity_final.csv,3,unchanged,0.0
+mafra-go-kr-home,한국완료,761,401,count_timeout,lower_bound,-360,,1.0,401,0.13,5104,count_only_c_full.csv,1,single_source,1.65
+marine-ie-site-area,Irish Research Centers,24,,,unmeasured,,fetch_fail,1.0,,,14,count_only_c_full.csv,5,corroborated,0.04
+masaf-gov-it-flex,Italy Ministries,601,465,count_timeout,lower_bound,-136,,0.0,0,0.0,922,count_only_capped_1h.csv,4,corroborated,0.0
+mbie-govt-nz-building-and-energy,뉴질랜드완료,80,18,count_crawl,exact,-62,,0.975,18,0.02,18,capacity_final.csv,1,unchanged,0.02
+mef-gov-it-ufficio-stampa,Italy Ministries,204,122,api_html_count_regex,exact,-82,,0.951,116,0.02,209,full_survey_totals.csv,1,single_source,0.03
+mem-gov-cn-fw,중국 완료,62,63,count_crawl,exact,1,,0.0,0,0.0,63,capacity_final.csv,6,unchanged,0.0
+mentalhealthcommission-ca-resources,Canadian Research Centers,589,616,custom_api,exact,27,,0.0543,33,0.06,616,capacity_final.csv,3,unchanged,0.06
+meri-belspo-be-site,벨기에완료,21,21,count_crawl,exact,0,,0.8571,18,0.02,21,capacity_final.csv,11,unchanged,0.02
+met-no-publikasjoner,Norway Research Centers,116,0,count_timeout,lower_bound,-116,,1.0,0,0.0,0,capacity_final.csv,0,unchanged,0.0
+meteofrance-fr-actualite,French Research Institutes,94,97,count_crawl,exact,3,,0.9681,94,0.18,97,capacity_final.csv,6,unchanged,0.18
+meteoswiss-admin-ch-services-and-publica,Switzerland Research Centers,440,1574,custom_api,exact,1134,,0.9886,1556,6.16,1574,capacity_final.csv,6,unchanged,6.16
+mfat-govt-nz-en,뉴질랜드완료,11,1,count_timeout,lower_bound,-10,,0.0,1,0.01,32,exact_probe.csv,1,single_source,0.32
+mfds-go-kr-brd,한국완료,461,14,count_timeout,lower_bound,-447,,1.0,14,0.01,4798,exact_probe.csv,1,single_source,3.43
+mi-se-arkiv,스웨덴 완료,632,469,api_wordpress_posts,exact,-163,,0.2104,99,0.24,469,capacity_final.csv,2,unchanged,0.24
+migration-gov-gr-press,Greece Ministries,1618,7770,api_wordpress_posts,exact,6152,,0.0457,355,0.21,7770,capacity_final.csv,2,unchanged,0.21
+miit-gov-cn-zc,중국 완료,104,104,custom_api,exact,0,,0.1538,16,0.01,104,capacity_final.csv,5,unchanged,0.01
+miit-gov-cn-zwgk,중국 완료,26,26,count_crawl,exact,0,,0.0,0,0.0,26,capacity_final.csv,6,unchanged,0.0
+mim-gov-it-web,Italy Ministries,41,20,count_crawl,exact,-21,,0.0732,1,0.0,20,capacity_final.csv,6,unchanged,0.0
+mimit-gov-it-it,Italy Ministries,92,93,count_crawl,exact,1,,0.9565,89,0.34,93,capacity_final.csv,5,unchanged,0.34
+minagric-gr-the-ministry-2,Greece Ministries,267,239,count_timeout,lower_bound,-28,,0.0,0,0.0,283,count_only_c_full.csv,4,corroborated,0.0
+mindev-gov-gr-category,Greece Ministries,3514,4756,custom_api,exact,1242,,0.0495,235,0.2,4756,capacity_final.csv,3,unchanged,0.2
+mindigital-gr-archives,Greece Ministries,675,479,count_timeout,lower_bound,-196,,0.0119,6,0.01,1224,count_only_c_full.csv,4,corroborated,0.03
+minedu-gov-gr-grafeio-typoy-kai-di,Greece Ministries,404,,,unmeasured,,zero_parsed,0.2054,,,20,big_totals.csv,1,single_source,0.06
+minfin-gov-gr-grafeio-typou,Greece Ministries,1797,,,unmeasured,,fetch_fail,0.0312,,,0,count_only_c_full.csv,0,single_source,0.0
+ministeroturismo-gov-it-category,Italy Ministries,1014,2266,custom_api,exact,1252,,0.0828,188,0.81,2266,capacity_final.csv,3,unchanged,0.81
+ministryofjustice-gr,Greece Ministries,261,262,count_timeout,lower_bound,1,,0.0,0,0.0,264,count_only_c_full.csv,5,corroborated,0.0
+minrel-gob-cl-minrel,Chile Ministries,4547,530,count_timeout,lower_bound,-4017,,0.0097,5,0.01,4584,count_only_c_full.csv,1,single_source,0.09
+minscfa-gov-gr-grafeio-typou,Greece Ministries,626,,,unmeasured,,fetch_fail,0.0096,,,0,count_only_c_full.csv,0,single_source,0.0
+mintour-gov-gr-deltia-typoy,Greece Ministries,394,336,count_timeout,lower_bound,-58,,0.0051,2,0.0,2458,count_only_c_full.csv,1,single_source,0.0
+miteco-gob-es-es,Spain Ministries,379,322,count_timeout,lower_bound,-57,,1.0,322,0.18,720,count_only_c_full.csv,4,corroborated,0.4
+mivau-gob-es-el-ministerio,Spain Ministries,473,340,count_timeout,lower_bound,-133,,0.9133,311,0.1,4813,big_totals.csv,1,single_source,1.42
+mma-go-kr-board,한국완료,616,430,count_timeout,lower_bound,-186,,0.9951,428,0.26,683,count_only_c_full.csv,5,corroborated,0.41
+mnd-go-kr-user,한국완료,304,,,unmeasured,,zero_parsed,0.0,,,0,count_only_c_full.csv,0,single_source,0.0
+mod-mil-gr-category,Greece Ministries,470,,,unmeasured,,zero_parsed,0.0,,,5197,count_only_c_full.csv,1,single_source,15.42
+moe-go-kr-boardcnts,한국완료,1250,300,count_crawl,exact,-950,,0.9848,295,0.22,72852,exact_probe.csv,1,single_source,53.42
+moe-gov-cn-jyb_sjzl,중국 완료,28,28,count_crawl,exact,0,,0.8214,23,0.01,28,capacity_final.csv,4,unchanged,0.01
+moe-gov-cn-jyb_xwfb,중국 완료,418,405,count_timeout,lower_bound,-13,,0.0,0,0.0,422,count_only_c_full.csv,5,corroborated,0.0
+moe-gov-cn-jyb_xxgk,중국 완료,18,18,count_crawl,exact,0,,0.0,10,0.05,18,capacity_final.csv,6,unchanged,0.05
+moef-go-kr-nw,한국완료,683,522,count_timeout,lower_bound,-161,,0.8931,466,0.15,2000,count_only_capped_1h.csv,4,corroborated,0.57
+mof-go-kr-doc,한국완료,624,365,count_timeout,lower_bound,-259,,1.0,365,0.12,104162,exact_probe.csv,1,single_source,34.25
+mof-gov-cn-en,중국 완료,9,9,count_crawl,exact,0,,0.0,5,0.03,9,capacity_final.csv,11,unchanged,0.03
+mofa-go-kr-www,한국완료,521,441,count_timeout,lower_bound,-80,,0.0,0,0.0,1348,count_only_c_full.csv,4,corroborated,0.0
+mofe-go-kr-id,한국완료,133,3,count_timeout,lower_bound,-130,,0.0,0,0.0,1983,count_only_c_full.csv,1,single_source,0.0
+mogef-go-kr-nw,한국완료,852,713,count_timeout,lower_bound,-139,,0.0,0,0.0,882,count_only_c_full.csv,1,single_source,0.0
+moh-gov-gr-articles,Greece Ministries,5608,12,api_html_count_regex,exact,-5596,,0.0004,0,0.0,248,full_survey_totals.csv,1,single_source,0.0
+mohrss-gov-cn-xxgk2020,중국 완료,19,19,count_crawl,exact,0,,0.0,11,0.06,19,capacity_final.csv,11,unchanged,0.06
+mohw-go-kr-boardes,한국완료,920,456,count_timeout,lower_bound,-464,,1.0,456,0.16,1380,count_only_c_full.csv,1,single_source,0.48
+mois-go-kr-frt,한국완료,1148,500,count_timeout,lower_bound,-648,,0.6211,311,0.36,2954,exact_probe.csv,1,single_source,2.13
+moj-go-kr-moj,한국완료,793,,,unmeasured,,zero_parsed,0.9735,,,5373,count_only_c_full.csv,1,single_source,15.94
+moleg-go-kr-boardes,한국완료,256,256,count_crawl,exact,0,,0.9922,254,2.87,256,capacity_final.csv,6,unchanged,2.87
+molit-go-kr-usr,한국완료,390,335,count_timeout,lower_bound,-55,,1.0,335,0.14,834,count_only_c_full.csv,1,single_source,0.35
+motir-go-kr-kor,한국완료,703,471,count_timeout,lower_bound,-232,,0.9986,470,0.47,41943,exact_probe.csv,1,single_source,41.85
+mpi-govt-nz-about-mpi,뉴질랜드완료,14,,,unmeasured,,fetch_fail,0.0,,,3,reverify44.csv,1,single_source,0.01
+mpi-govt-nz-resources-and-forms,뉴질랜드완료,35,35,count_crawl,exact,0,,0.0,0,0.0,35,capacity_final.csv,1,unchanged,0.0
+mpva-go-kr-mpva,한국완료,590,508,count_timeout,lower_bound,-82,,1.0,508,0.19,9500,exact_probe.csv,2,corroborated,3.55
+msd-govt-nz-about-msd-and-our-wo,뉴질랜드완료,16,17,count_crawl,exact,1,,0.5,10,0.01,17,capacity_final.csv,6,unchanged,0.01
+msit-go-kr-bbs,한국완료,488,488,count_crawl,exact,0,,0.8996,439,2.79,488,capacity_final.csv,7,unchanged,2.79
+mss-go-kr-site,한국완료,500,497,count_timeout,lower_bound,-3,,1.0,497,1.21,2125,count_only_c_full.csv,1,single_source,5.17
+mva-gov-cn-gongkai,중국 완료,15,15,count_crawl,exact,0,,0.0,9,0.05,15,capacity_final.csv,6,unchanged,0.05
+mwr-gov-cn-english,중국 완료,37,37,count_crawl,exact,0,,0.0,0,0.0,37,capacity_final.csv,6,unchanged,0.0
+mwr-gov-cn-zwgk,중국 완료,18,18,count_crawl,exact,0,,0.0,10,0.05,18,capacity_final.csv,11,unchanged,0.05
+naacc-go-kr-web,한국완료,334,338,count_crawl,exact,4,,0.994,336,4.69,338,capacity_final.csv,6,unchanged,4.69
+nasa-gov-2025-news-releases,American Research Institutes,236,35278,api_wordpress_posts,exact,35042,,0.0,0,0.0,35278,capacity_final.csv,3,unchanged,0.0
+nationalacademies-org-publications,French Research Institutes,184,236,custom_api,exact,52,,0.212,50,0.07,236,capacity_final.csv,3,unchanged,0.07
+naturalengland-defra-opendata-arcgis-com-search,영국완료,167,24,api_html_count_regex,exact,-143,,0.0,0,0.0,184,full_survey_totals.csv,1,single_source,0.0
+nbb-be-en,벨기에완료,15,15,count_crawl,exact,0,,1.0,9,0.06,15,capacity_final.csv,11,unchanged,0.06
+ncats-nih-gov-news-events,American Research Institutes,19,7,count_crawl,exact,-12,,0.0,4,0.02,9,exact_probe.csv,1,single_source,0.03
+nccih-nih-gov-news,American Research Institutes,57,50,count_crawl,exact,-7,,0.0175,1,0.0,54,count_only_c_full.csv,6,corroborated,0.0
+ncha-gov-cn-col,중국 완료,117,117,count_crawl,exact,0,,1.0,117,0.24,117,capacity_final.csv,5,unchanged,0.24
+ncri-ie-en,Irish Research Centers,104,104,count_crawl,exact,0,,0.9904,103,0.41,104,capacity_final.csv,10,unchanged,0.41
+neac-gov-cn-seac,중국 완료,57,57,count_crawl,exact,0,,0.0,0,0.0,57,capacity_final.csv,6,unchanged,0.0
+nec-go-kr-site,한국완료,175,0,count_timeout,lower_bound,-175,,1.0,0,0.0,2950,exact_probe.csv,1,single_source,8.75
+nei-nih-gov-about,American Research Institutes,14,14,count_crawl,exact,0,,0.7143,8,0.02,14,capacity_final.csv,6,unchanged,0.02
+nei-nih-gov-learn-about-eye-heal,American Research Institutes,88,93,api_html_count_regex,exact,5,,0.9205,86,0.18,93,capacity_final.csv,3,unchanged,0.18
+nemertes-library-upatras-gr-browse,Greece Research Centers,127,31267,api_dspace_rest7,exact,31140,,1.0,31267,43.08,31267,capacity_final.csv,3,unchanged,43.08
+nemertes-library-upatras-gr-search,Greece Research Centers,500,31267,api_dspace_rest7,exact,30767,,0.956,29891,101.29,31267,capacity_final.csv,6,unchanged,101.29
+nersc-no-en,Norway Research Centers,349,24,count_crawl,exact,-325,,0.0,0,0.0,1028,count_only_c_full.csv,1,single_source,0.0
+nesc-ie-publications,Irish Research Centers,121,121,count_crawl,exact,0,,0.9917,120,0.28,121,capacity_final.csv,8,unchanged,0.28
+netl-doe-gov-advsearch,American Research Institutes,28,,,unmeasured,,zero_parsed,1.0,,,2,exact_probe.csv,1,single_source,0.01
+netl-doe-gov-energy-analysis,American Research Institutes,97,97,count_crawl,exact,0,,0.9897,96,0.51,97,capacity_final.csv,6,unchanged,0.51
+netl-doe-gov-fecm-external-r-and-,American Research Institutes,343,33,count_timeout,lower_bound,-310,,0.895,30,0.34,456,count_only_c_full.csv,1,single_source,4.7
+netl-doe-gov-search-r-d-publicati,American Research Institutes,729,358,count_timeout,lower_bound,-371,,0.9328,334,1.07,760,count_only_c_full.csv,1,single_source,2.27
+news-admin-ch-en,Switzerland Departments,0,,,unmeasured,,fetch_fail,,,,1014,count_only_c_full.csv,1,single_source,3.01
+news-fnal-gov-category,American Research Institutes,374,3286,api_wordpress_posts,exact,2912,,0.0481,158,0.7,3286,capacity_final.csv,2,unchanged,0.7
+newsreleases-sandia-gov-archives-by-year,American Research Institutes,2044,2046,custom_api,exact,2,,0.0,0,0.0,2046,capacity_final.csv,3,unchanged,0.0
+nfa-go-kr-nfa,한국완료,112,95,count_crawl,exact,-17,,0.9464,90,0.22,95,capacity_final.csv,6,unchanged,0.22
+nfra-gov-cn-cn,중국 완료,726,,,unmeasured,,fetch_fail,0.5482,,,1373,count_only_totalscan.csv,2,corroborated,4.07
+nhc-gov-cn-wjw,중국 완료,71,32,count_timeout,lower_bound,-39,,0.2958,9,0.02,71,count_only_c_full.csv,1,single_source,0.04
+nhlbi-nih-gov-about,American Research Institutes,22,20,api_html_count_regex,exact,-2,,0.5909,12,0.02,22,full_survey_totals.csv,3,corroborated,0.02
+nhlbi-nih-gov-resources,American Research Institutes,325,271,count_crawl,exact,-54,,0.9662,262,0.64,271,capacity_final.csv,8,unchanged,0.64
+nhmrc-gov-au-publications,호주완료,232,,,unmeasured,,,0.8922,,,233,count_only_c_full.csv,1,single_source,0.69
+nia-nih-gov-news,American Research Institutes,95,125,count_crawl,exact,30,,0.0316,4,0.02,125,capacity_final.csv,3,unchanged,0.02
+niaaa-nih-gov-news-events,American Research Institutes,80,80,count_crawl,exact,0,,0.0,0,0.0,80,capacity_final.csv,6,unchanged,0.0
+niams-nih-gov-newsroom,American Research Institutes,15,15,count_crawl,exact,0,,0.0,9,0.05,32,exact_probe.csv,1,single_source,0.11
+nibib-nih-gov-news-events,American Research Institutes,39,39,count_crawl,exact,0,,0.0,0,0.0,39,capacity_final.csv,6,unchanged,0.0
+nibio-no-en,Norway Research Centers,219,80,count_crawl,exact,-139,,0.0137,1,0.0,80,capacity_final.csv,2,unchanged,0.0
+nichd-nih-gov-newsroom,American Research Institutes,329,94,count_timeout,lower_bound,-235,,0.0304,3,0.01,508,count_only_c_full.csv,1,single_source,0.05
+nida-nih-gov-news-events,American Research Institutes,46,46,count_crawl,exact,0,,0.1087,5,0.0,46,capacity_final.csv,6,unchanged,0.0
+nida-nih-gov-research-topics,American Research Institutes,29,,,unmeasured,,fetch_fail,0.0,,,29,count_only_totals.csv,3,corroborated,0.09
+nidcd-nih-gov-news,American Research Institutes,203,4,count_timeout,lower_bound,-199,,0.0,0,0.0,5,html_only_ALL.csv,6,corroborated,0.0
+nidcd-nih-gov-order,American Research Institutes,90,,,unmeasured,,fetch_fail,0.9111,,,5,count_only_c_full.csv,1,single_source,0.01
+nidcr-nih-gov-news-events,American Research Institutes,87,88,count_crawl,exact,1,,0.0,0,0.0,88,capacity_final.csv,6,unchanged,0.0
+niddk-nih-gov-news,American Research Institutes,124,1,count_timeout,lower_bound,-123,,0.0081,0,0.0,99,count_only_c_full.csv,9,corroborated,0.0
+nidi-nl-en,Dutch Research Centers,285,18,count_timeout,lower_bound,-267,,0.8526,15,0.02,329,count_only_c_full.csv,1,single_source,0.37
+niehs-nih-gov-newsreleases,American Research Institutes,40,40,count_crawl,exact,0,,0.0,0,0.0,40,capacity_final.csv,6,unchanged,0.0
+nifu-no-en,Norway Research Centers,363,218,count_timeout,lower_bound,-145,,0.0,0,0.0,347,count_only_c_full.csv,1,single_source,0.0
+nigms-nih-gov-news,American Research Institutes,21,21,count_crawl,exact,0,,0.0,0,0.0,21,capacity_final.csv,6,unchanged,0.0
+nih-gov-news-events,American Research Institutes,409,,,unmeasured,,fetch_fail,0.0,,,0,count_only_c_full.csv,0,single_source,0.0
+nih-gov-press-room,American Research Institutes,449,,,unmeasured,,fetch_fail,0.0223,,,0,count_only_c_full.csv,0,single_source,0.0
+nikhef-nl-pub,Dutch Research Centers,26,4,count_crawl,exact,-22,,1.0,4,0.0,4,capacity_final.csv,6,unchanged,0.0
+nim-ac-cn-taxonomy,중국 완료,34,34,count_crawl,exact,0,,0.0,0,0.0,772,exact_probe.csv,1,single_source,0.0
+nimh-nih-gov-news,American Research Institutes,492,90,count_timeout,lower_bound,-402,,0.0,0,0.0,700,count_only_c_full.csv,1,single_source,0.0
+nimhd-nih-gov-news-events,American Research Institutes,13,13,count_crawl,exact,0,,0.0,8,0.04,13,capacity_final.csv,11,unchanged,0.04
+nin-nl-publications,Dutch Research Centers,471,289,count_timeout,lower_bound,-182,,0.7155,207,0.87,4022,big_totals.csv,2,corroborated,12.11
+nina-no-english,Norway Research Centers,36,180,api_html_count_regex,exact,144,,0.5833,105,0.36,180,capacity_final.csv,2,unchanged,0.36
+ninds-nih-gov-news-events,American Research Institutes,253,,,unmeasured,,fetch_fail,0.0,,,73,count_only_c_full.csv,5,corroborated,0.22
+ninds-nih-gov-publications,American Research Institutes,71,70,count_crawl,exact,-1,,1.0,70,0.17,70,capacity_final.csv,10,unchanged,0.17
+nioo-knaw-nl-en,Dutch Research Centers,75,75,count_crawl,exact,0,,0.0,0,0.0,75,capacity_final.csv,6,unchanged,0.0
+nisra-gov-uk-publications,영국완료,522,417,count_timeout,lower_bound,-105,,0.3793,158,0.08,3239,big_totals.csv,2,corroborated,0.62
+nist-gov-publications,American Research Institutes,478,337,count_timeout,lower_bound,-141,,0.5272,178,0.9,803,count_only_c_full.csv,1,single_source,2.14
+nistdigitalarchives-contentdm-oclc-org-digital,American Research Institutes,788,24,count_crawl,exact,-764,,1.0,24,0.02,8257,count_only_totalscan.csv,3,corroborated,6.88
+nivel-nl-en,Dutch Research Centers,520,379,count_timeout,lower_bound,-141,,0.1577,60,0.11,10000,big_totals.csv,1,single_source,2.9
+nkvts-no-english,Norway Research Centers,562,381,count_timeout,lower_bound,-181,,0.0,0,0.0,381,capacity_final.csv,1,unchanged,0.0
+nnsa-mee-gov-cn-english,중국 완료,10,10,count_crawl,exact,0,,1.0,6,0.14,10,capacity_final.csv,11,unchanged,0.14
+noc-ac-uk-about-us,영국완료,7,,,unmeasured,,zero_parsed,1.0,,,0,count_only_c_full.csv,0,single_source,0.0
+noc-ac-uk-publications,영국완료,234,134,count_timeout,lower_bound,-100,,0.906,121,0.88,134,capacity_final.csv,1,unchanged,0.88
+nofima-com-publication,Norway Research Centers,200,359,api_wordpress_posts,exact,159,,0.0,0,0.0,359,capacity_final.csv,2,unchanged,0.0
+nora-nerc-ac-uk-view,영국완료,596,57936,api_oai_resumption,exact,57340,,0.8993,52104,389.21,57936,capacity_final.csv,3,unchanged,389.21
+nordlandsforskning-no-en,Norway Research Centers,304,305,count_timeout,lower_bound,1,,0.0362,11,0.02,396,count_only_c_full.csv,5,corroborated,0.03
+nps-or-kr-inforls,한국완료,115,0,count_timeout,lower_bound,-115,,0.0,0,0.0,1088,exact_probe.csv,1,single_source,3.23
+nps-or-kr-pnsgdnc,한국완료,182,0,count_timeout,lower_bound,-182,,0.0,0,0.0,138,count_only_c_full.csv,5,corroborated,0.41
+nrc-re-kr-boardes,한국완료,470,128,count_timeout,lower_bound,-342,,0.5894,75,0.05,237,count_only_c_full.csv,7,corroborated,0.09
+nrscotland-gov-uk-publications,영국완료,359,1275,custom_api,exact,916,,0.663,845,0.43,1275,capacity_final.csv,3,unchanged,0.43
+ntp-niehs-nih-gov-publications,American Research Institutes,536,,,unmeasured,,zero_parsed,0.9608,,,749,count_only_c_full.csv,1,single_source,2.22
+ntrs-nasa-gov-search,American Research Institutes,6490,646398,big_api,exact,639908,,0.9817,634546,4895.32,646398,capacity_final.csv,1,unchanged,4895.32
+nts-go-kr-nts,한국완료,42,1,count_timeout,lower_bound,-41,,1.0,1,0.05,42,count_only_c_full.csv,5,corroborated,2.1
+nupi-no-en,Norway Research Centers,28,,,unmeasured,,fetch_fail,0.0,,,29,count_only_c_full.csv,2,corroborated,0.09
+nypi-re-kr,한국완료,3,417,count_timeout,lower_bound,414,,0.3333,241,1.02,6304,count_only_c_full.csv,1,single_source,15.42
+nypi-re-kr-board,한국완료,150,151,count_crawl,exact,1,,0.0,0,0.0,572,exact_probe.csv,1,single_source,0.0
+nzpri-aut-ac-nz-document-library,뉴질랜드완료,7,308,count_crawl,exact,301,,0.0,178,0.98,308,capacity_final.csv,1,unchanged,0.98
+oig-treasury-gov-other-reports-testim,USA Executive Departments,1353,1354,count_crawl,lower_bound,1,,1.0,1354,1.69,1354,capacity_final.csv,8,unchanged,1.69
+oka-go-kr-web,한국완료,30,,,unmeasured,,fetch_fail,1.0,,,30,count_only_totals.csv,5,corroborated,0.09
+olympias-lib-uoi-gr-jspui,Greece Research Centers,400,50014,api_oai_resumption,exact,49614,,0.985,49264,484.02,50014,capacity_final.csv,3,unchanged,484.02
+om-mp-be-nl,벨기에완료,239,,,unmeasured,,zero_parsed,0.0042,,,0,count_only_c_full.csv,0,single_source,0.0
+onera-fr-fr,French Research Institutes,145,148,count_crawl,exact,3,,0.9862,146,0.03,148,capacity_final.csv,8,unchanged,0.03
+ons-gov-uk-search,영국완료,516,,,unmeasured,,fetch_fail,0.0,,,333,html_only_ALL.csv,6,corroborated,0.99
+open-science-canada-ca-communities,Canadian Research Centers,272,4400,api_dspace_rest7,exact,4128,,1.0,4400,10.06,4400,capacity_final.csv,2,unchanged,10.06
+openaccess-inaf-it,Italy Research centers,513,,,unmeasured,,,0.9318,,,13625,count_only_c_full.csv,2,corroborated,40.43
+openaire-eu-os-slovenia,Slovenia Research Centers,28,,,unmeasured,,fetch_fail,0.5714,,,28,count_only_c_full.csv,5,corroborated,0.08
+opendata-centralbank-ie-dataset,Irish Research Centers,38,39,count_crawl,exact,1,,0.0,0,0.0,39,capacity_final.csv,8,unchanged,0.0
+opendata-dk-search,덴마크완료,70,75,custom_api,exact,5,,0.9857,74,0.23,75,capacity_final.csv,5,unchanged,0.23
+opendatacommunities-org-data,영국완료,3,,,unmeasured,,fetch_fail,0.0,,,0,count_only_c_full.csv,0,single_source,0.0
+opengov-seoul-go-kr-research,한국완료,344,410,count_timeout,lower_bound,66,,0.9593,393,3.63,2964,count_only_c_full.csv,1,single_source,26.24
+openresearch-repository-anu-edu-au-search,호주완료,261,393484,api_dspace_rest7,exact,393223,,0.1494,58796,420.75,393484,capacity_final.csv,5,unchanged,420.75
+openscience-si-naprednoiskanjeaspx,Slovenia Research Centers,30,0,count_timeout,lower_bound,-30,,0.0333,0,0.0,20,count_only_c_full.csv,9,corroborated,0.06
+opm-go-kr-opm,한국완료,660,404,count_timeout,lower_bound,-256,,0.9818,397,0.1,1130,count_only_c_full.csv,1,single_source,0.28
+osr-statisticsauthority-gov-uk-publications-list,영국완료,257,255,api_wordpress_posts,exact,-2,,0.7821,199,0.08,255,capacity_final.csv,2,unchanged,0.08
+ostrnrcan-dostrncan-canada-ca-search,Canadian Research Centers,220,198333,custom_api,exact,198113,,0.9773,193825,2241.72,198333,capacity_final.csv,4,unchanged,2241.72
+ots-at-pressemappe,오스트리아완료,500,,,unmeasured,,fetch_fail,0.0,,,1561267,exact_probe.csv,1,single_source,4632.53
+par-nsf-gov-search,American Research Institutes,2481,5134,big_api,exact,2653,,0.8827,4532,17.16,5134,capacity_final.csv,2,unchanged,17.16
+pasteur-fr-en,French Research Institutes,314,2036,custom_api,exact,1722,,0.0096,19,0.03,2036,capacity_final.csv,3,unchanged,0.03
+pbc-gov-cn-en,중국 완료,224,224,count_crawl,exact,0,,0.0179,4,0.0,519,exact_probe.csv,1,single_source,0.0
+pbl-nl-en,Dutch Research Centers,649,236,count_timeout,lower_bound,-413,,0.6133,145,0.49,1853,count_only_c_full.csv,1,single_source,3.85
+pbocri-org-cn-lnzy3html,중국 완료,8,,,unmeasured,,zero_parsed,1.0,,,1,exact_probe.csv,1,single_source,0.0
+pbocri-org-cn-xslwhtml,중국 완료,2,2,count_crawl,exact,0,,0.0,1,0.01,2,capacity_final.csv,9,unchanged,0.01
+pembina-org-media-releases,Canadian Research Centers,494,5,api_html_count_regex,exact,-489,,0.1377,1,0.0,381,full_survey_totals.csv,1,single_source,0.0
+pergamos-lib-uoa-gr-search,Greece Research Centers,500,250523,api_oai_resumption,exact,250023,,0.718,179876,550.73,250523,capacity_final.csv,3,unchanged,550.73
+phfscience-nz-digital-library,뉴질랜드완료,501,28,api_html_count_regex,exact,-473,,0.6507,18,0.01,373,full_survey_totals.csv,1,single_source,0.13
+phfscience-nz-news-publications,뉴질랜드완료,32,28,api_html_count_regex,exact,-4,,0.0,0,0.0,41,reverify44.csv,1,single_source,0.0
+plan-be-nl,벨기에완료,152,275,count_timeout,lower_bound,123,,1.0,275,0.24,275,capacity_final.csv,2,unchanged,0.24
+pleanala-ie-en-ie,Irish Research Centers,54,50,count_crawl,exact,-4,,0.7037,35,0.02,50,capacity_final.csv,6,unchanged,0.02
+pmc-gov-au-resources,호주완료,129,,,unmeasured,,fetch_fail,0.0,,,0,count_only_c_full.csv,0,single_source,0.0
+pnnl-gov-news,American Research Institutes,322,547,api_html_count_regex,exact,225,,0.0,0,0.0,547,capacity_final.csv,3,unchanged,0.0
+police-go-kr-user,한국완료,747,481,count_timeout,lower_bound,-266,,1.0,481,0.15,2394,count_only_c_full.csv,1,single_source,0.75
+policyalternatives-ca-news-research,Canadian Research Centers,1543,46,count_timeout,lower_bound,-1497,,0.9106,42,0.06,2013,exact_probe.csv,1,single_source,2.63
+politie-be-statistieken,벨기에완료,95,95,count_crawl,exact,0,,0.0,0,0.0,95,capacity_final.csv,6,unchanged,0.0
+polytechnique-edu-presse,French Public Universities,226,236,count_crawl,exact,10,,0.9336,220,0.07,236,capacity_final.csv,6,unchanged,0.07
+polytechnique-hal-science-search,French Public Universities,3103,717,hal_api,exact,-2386,,0.9958,714,2.82,51962,crawler_health_final.csv,2,corroborated,204.37
+portaldiplomatico-mne-gov-pt-en,Portugal Ministries,378,318,count_timeout,lower_bound,-60,,0.0635,20,0.01,381,count_only_c_full.csv,1,single_source,0.01
+ppforum-ca-press-releases,Canadian Research Centers,42,4,api_wordpress_posts,exact,-38,,0.0,0,0.0,47,full_survey_totals.csv,1,single_source,0.0
+pps-go-kr-kor,한국완료,290,291,count_crawl,exact,1,,0.9897,288,0.15,291,capacity_final.csv,6,unchanged,0.15
+presse-cnam-fr-communiques,French Public Institutions,36,38,count_crawl,exact,2,,1.0,38,0.0,38,capacity_final.csv,8,unchanged,0.0
+presse-curie-fr-section,French Research Institutes,300,205,count_timeout,lower_bound,-95,,0.78,160,0.09,502,count_only_c_full.csv,1,single_source,0.22
+presse-economie-gouv-fr,France Ministries,1206,596,count_timeout,lower_bound,-610,,0.0514,31,0.12,3697,count_only_c_full.csv,1,single_source,0.74
+prism-go-kr-homepage,한국완료,2900,10521,count_timeout,lower_bound,7621,,0.0,0,0.0,385715,count_only_c_full.csv,3,corroborated,0.0
+provenienzforschung-gv-at-empfehlungen-des-bei,오스트리아완료,425,0,count_timeout,lower_bound,-425,,1.0,0,0.0,1,exact_probe.csv,1,single_source,0.0
+psi-ch-en,Switzerland Research Centers,405,353,count_timeout,lower_bound,-52,,0.0,0,0.0,407,count_only_c_full.csv,1,single_source,0.0
+ptb-de-cms,GER ResearchCenters(Unfinished),8,,,unmeasured,,zero_parsed,1.0,,,8,count_only_c_full.csv,10,corroborated,0.02
+publications-idiap-ch-publications,Switzerland Research Centers,231,191,count_timeout,lower_bound,-40,,0.6061,116,0.4,218,count_only_c_full.csv,1,single_source,0.46
+publichealthscotland-scot-publications,영국완료,373,626,api_oai_resumption,exact,253,,0.8847,554,0.36,626,capacity_final.csv,2,unchanged,0.36
+publicsafety-gc-ca-cnt,Canada Ministries,424,0,count_timeout,lower_bound,-424,,0.0236,0,0.0,3,reverify44.csv,1,single_source,0.01
+publicservice-govt-nz-data,뉴질랜드완료,61,61,count_crawl,exact,0,,0.1803,11,0.02,61,capacity_final.csv,10,unchanged,0.02
+publicservice-govt-nz-research-and-data,뉴질랜드완료,110,110,count_crawl,exact,0,,0.5545,61,0.03,110,capacity_final.csv,6,unchanged,0.03
+publikationen-bundesregierung-de-pp-de,Germany Ministries,112,,,unmeasured,,zero_parsed,0.9732,,,64,count_only_c_full.csv,5,corroborated,0.19
+pubs-drdc-rddc-gc-ca-basis,Canadian Research Centers,4040,,,unmeasured,,fetch_fail,0.1002,,,4966,count_only_totals.csv,5,corroborated,14.73
+pubs-usgs-gov,American Research Institutes,10,446,count_timeout,lower_bound,436,,0.0,257,1.41,5585,exact_probe.csv,2,corroborated,17.66
+pubshop-bmbwf-gv-at-indexphp,오스트리아완료,479,414,count_timeout,lower_bound,-65,,0.8142,337,1.28,635,count_only_c_full.csv,1,single_source,1.96
+pure-mpg-de-search,GER ResearchCenters(Unfinished),75,25,count_crawl,exact,-50,,0.36,9,0.01,25,capacity_final.csv,6,unchanged,0.01
+rcaanc-cirnac-gc-ca-eng,Canada Ministries,33,33,count_crawl,exact,0,,0.2121,7,0.01,33,capacity_final.csv,11,unchanged,0.01
+rda-go-kr-board,한국완료,1020,492,count_timeout,lower_bound,-528,,1.0,492,0.18,1800,count_only_c_full.csv,1,single_source,0.66
+rdr-kuleuven-be-dataverse,벨기에완료,418,824,api_oai_resumption,exact,406,,0.9187,757,1.36,824,capacity_final.csv,5,unchanged,1.36
+regjeringen-no-en,Norway Ministries,187,,,unmeasured,,fetch_fail,0.3422,,,0,count_only_c_full.csv,0,single_source,0.0
+reglementation-controle-asnr-fr-information,French Public Institutions,6,6,count_crawl,exact,0,,0.8333,3,0.01,6,capacity_final.csv,6,unchanged,0.01
+regulation-govt-nz-about-us,뉴질랜드완료,247,312,count_crawl,exact,65,,0.9838,307,0.53,312,capacity_final.csv,6,unchanged,0.53
+repo-lib-duth-gr-jspui,Greece Research Centers,7156,22040,api_oai_resumption,exact,14884,,0.7627,16810,72.0,22040,capacity_final.csv,2,unchanged,72.0
+reports-nlr-nl-collections,Dutch Research Centers,18,1724,api_dspace_rest7,exact,1706,,1.0,995,4.84,1724,capacity_final.csv,2,unchanged,4.84
+repositorio-uchile-cl-discover,Chile Research Centers,500,102175,api_oai_resumption,exact,101675,,0.994,101562,270.41,102175,capacity_final.csv,3,unchanged,270.41
+repository-cern-search,Switzerland Research Centers,500,425,count_crawl,exact,-75,,0.998,424,5.77,52296,crawler_health_probe308.csv,4,corroborated,710.0
+repository-lboro-ac-uk,영국완료,128,,,unmeasured,,zero_parsed,0.4375,,,129,count_only_c_full.csv,5,corroborated,0.38
+repository-library-noaa-gov-view,American Research Institutes,812,417,count_timeout,lower_bound,-395,,0.9828,410,2.64,1293,count_only_c_full.csv,1,single_source,8.19
+repository-naturalis-nl,Dutch Research Centers,9681,17309,big_api,exact,7628,,0.9997,17304,60.46,17309,capacity_final.csv,2,unchanged,60.46
+repository-tno-nl-doclist,Dutch Research Centers,10508,13609,big_api,exact,3101,,0.2476,3370,4.44,13609,capacity_final.csv,2,unchanged,4.44
+research-collection-ethz-ch-search,Switzerland Research Centers,459,303530,api_dspace_rest7,exact,303071,,0.9978,302869,1402.66,303530,capacity_final.csv,3,unchanged,1402.66
+research-imt-nord-europe-fr-news,French Public Universities,56,347,api_wordpress_posts,exact,291,,0.1429,50,0.02,347,capacity_final.csv,2,unchanged,0.02
+research-thea-ie-browse,Irish Research Centers,449,3103,api_oai_resumption,exact,2654,,0.9933,3082,0.01,3103,capacity_final.csv,2,unchanged,0.01
+researchrepository-ul-ie-search,Irish Research Centers,400,13970,api_dspace_rest7,exact,13570,,0.9775,13656,32.27,13970,capacity_final.csv,2,unchanged,32.27
+reseau-canope-fr-espace-presse,French Public Institutions,19,19,count_crawl,exact,0,,1.0,11,0.02,19,capacity_final.csv,11,unchanged,0.02
+rfi-ac-uk-latest,영국완료,142,181,api_wordpress_posts,exact,39,,0.0,0,0.0,181,capacity_final.csv,2,unchanged,0.0
+rigsrevisionen-dk-revisionssager,덴마크완료,590,457,count_timeout,lower_bound,-133,,1.0,457,0.31,695,count_only_c_full.csv,5,corroborated,0.47
+rijksoverheid-nl-documenten,Netherland Ministries,274,,,unmeasured,,zero_parsed,0.2591,,,3,reverify44.csv,1,single_source,0.01
+ris-bka-gv-at-ergebniswxe,오스트리아완료,507,585,count_timeout,lower_bound,78,,0.8974,525,0.03,7518,exact_probe.csv,1,single_source,0.39
+rki-de-de,GER ResearchCenters(Unfinished),66,67,count_crawl,exact,1,,0.0606,4,0.01,67,capacity_final.csv,6,unchanged,0.01
+rosap-ntl-bts-gov-cbrowse,American Research Institutes,562,100,api_html_count_regex,exact,-462,,0.9982,100,0.39,3960,big_totals.csv,1,single_source,15.44
+ruomoplus-lib-uom-gr-simple-search,Greece Research Centers,500,,,unmeasured,,fetch_fail,0.978,,,1547,count_only_c_full.csv,1,single_source,4.59
+saemangeum-go-kr-sda,한국완료,428,340,count_timeout,lower_bound,-88,,0.9883,336,0.06,727,count_only_c_full.csv,1,single_source,0.13
+safefood-net-news,Irish Research Centers,31,29,count_crawl,exact,-2,,0.0,0,0.0,29,capacity_final.csv,3,unchanged,0.0
+salute-gov-it-new,Italy Ministries,202,890,custom_api,exact,688,,0.0594,53,0.11,890,capacity_final.csv,3,unchanged,0.11
+samr-gov-cn-zw,중국 완료,315,1,count_timeout,lower_bound,-314,,0.0095,0,0.0,283,html_only_ALL.csv,2,corroborated,0.0
+sandia-gov-news,American Research Institutes,101,199,api_wordpress_posts,exact,98,,0.9703,193,2.53,199,capacity_final.csv,2,unchanged,2.53
+sante-gouv-fr-ministere,France Ministries,145,64,count_timeout,lower_bound,-81,,0.8414,54,0.11,64,capacity_final.csv,5,unchanged,0.11
+santepubliquefrance-fr-presse,French Public Institutions,624,225,count_timeout,lower_bound,-399,,0.8013,180,0.06,14000,big_totals.csv,1,single_source,3.73
+sastind-gov-cn-n10086200,중국 완료,474,48,count_timeout,lower_bound,-426,,0.0,0,0.0,2943,count_only_c_full.csv,1,single_source,0.0
+scaht-org-en,Switzerland Research Centers,641,,,unmeasured,,zero_parsed,0.0374,,,451,count_only_c_full.csv,1,single_source,1.34
+science-astron-nl-science-astron,Dutch Research Centers,117,0,count_timeout,lower_bound,-117,,0.0,0,0.0,3,reverify44.csv,1,single_source,0.01
+science-libraries-canada-ca-eng,Canadian Research Centers,31,0,count_timeout,lower_bound,-31,,0.5806,0,0.0,34,count_only_c_full.csv,7,corroborated,0.1
+scourt-go-kr-portal,한국완료,982,541,count_timeout,lower_bound,-441,,0.0,0,0.0,3402,exact_probe.csv,1,single_source,0.0
+scp-nl-publicaties,Dutch Research Centers,243,246,count_crawl,exact,3,,0.9794,241,0.49,285,count_only_totalscan.csv,3,corroborated,0.57
+search-nal-usda-gov-discovery,USA Executive Departments,452,,,unmeasured,,zero_parsed,0.0022,,,422,count_only_totalscan.csv,3,corroborated,1.25
+search-open-canada-ca-opendata,Canada Ministries,5287,5830,big_api,exact,543,,0.6652,3878,8.22,5830,capacity_final.csv,1,unchanged,8.22
+search-worldcat-org-ko,USA Executive Departments,14,,,unmeasured,,fetch_fail,0.0,,,168,exact_probe.csv,1,single_source,0.5
+secihti-mx-sala-de-prensa,Mexico Ministries,218,226,custom_api,exact,8,,0.8991,203,0.15,226,capacity_final.csv,4,unchanged,0.15
+seco-admin-ch-seco,Switzerland Departments,479,,,unmeasured,,fetch_fail,0.0981,,,281,count_only_totals.csv,5,corroborated,0.83
+seer-cancer-gov-report_to_nation,American Research Institutes,24,24,count_crawl,exact,0,,0.0417,1,0.0,24,capacity_final.csv,11,unchanged,0.0
+sejong-go-kr-bbs,한국완료,500,550,count_timeout,lower_bound,50,,0.008,4,0.0,48273,exact_probe.csv,1,single_source,0.0
+sfi-ch-en,Switzerland Research Centers,288,280,count_timeout,lower_bound,-8,,0.0,0,0.0,961,count_only_c_full.csv,1,single_source,0.0
+sgu-se-en,스웨덴 완료,54,54,count_crawl,exact,0,,0.3148,17,0.3,54,capacity_final.csv,6,unchanged,0.3
+si-re-kr-bbs,한국완료,501,,,unmeasured,,zero_parsed,0.7325,,,740,count_only_c_full.csv,1,single_source,2.2
+sib-swiss-community,Switzerland Research Centers,391,29,count_timeout,lower_bound,-362,,0.0,0,0.0,391,count_only_c_full.csv,5,corroborated,0.0
+sib-swiss-training,Switzerland Research Centers,74,67,count_crawl,exact,-7,,0.0,0,0.0,67,capacity_final.csv,11,unchanged,0.0
+simula-no-publications,Norway Research Centers,73,,,unmeasured,,fetch_fail,0.1644,,,143,count_only_totalscan.csv,3,corroborated,0.42
+sintef-no-en,Norway Research Centers,141,0,count_timeout,lower_bound,-141,,0.1773,0,0.0,1932,count_only_c_full.csv,1,single_source,5.73
+siseministeerium-ee-otsing,Estonia Ministries,20,10,count_timeout,lower_bound,-10,,0.0,0,0.0,2503,crawler_health_probe308.csv,3,corroborated,0.0
+skillsdevelopmentscotland-co-uk-publications-statist,영국완료,488,487,count_crawl,exact,-1,,0.9529,464,0.35,487,capacity_final.csv,11,unchanged,0.35
+skm-dk-aktuelt,덴마크완료,457,449,count_timeout,lower_bound,-8,,0.2823,127,0.11,556,exact_probe.csv,2,corroborated,0.14
+sm-dk-publikationer,덴마크완료,354,354,count_crawl,exact,0,,0.9463,335,0.91,354,capacity_final.csv,8,unchanged,0.91
+sm-ee-otsing,Estonia Ministries,158,20,count_timeout,lower_bound,-138,,0.0,0,0.0,348,count_only_c_full.csv,5,corroborated,0.0
+socialstyrelsen-se-en,스웨덴 완료,127,,,unmeasured,,fetch_fail,1.0,,,2,big_totals.csv,1,single_source,0.01
+sodha-be-dataverse,벨기에완료,152,211,api_oai_resumption,exact,59,,0.8158,172,0.88,211,capacity_final.csv,5,unchanged,0.88
+sonar-ch-global,Switzerland Research Centers,5462,309727,big_api,exact,304265,,0.9949,308139,1253.14,309727,capacity_final.csv,2,unchanged,1253.14
+sozialministerium-gv-at-services,오스트리아완료,206,1,count_timeout,lower_bound,-205,,0.9806,1,0.0,65,count_only_c_full.csv,5,corroborated,0.0
+spo-go-kr-site,한국완료,227,227,count_crawl,exact,0,,0.467,106,0.14,227,capacity_final.csv,6,unchanged,0.14
+srnl-gov-newsroom,American Research Institutes,88,89,api_wordpress_news-releases,exact,1,,1.0,89,0.02,89,capacity_final.csv,2,unchanged,0.02
+stami-no-en,Norway Research Centers,337,1661,api_wordpress_publication,exact,1324,,0.0,0,0.0,1661,capacity_final.csv,2,unchanged,0.0
+stat-inst-se-om-sis,스웨덴 완료,69,,,unmeasured,,zero_parsed,1.0,,,1,exact_probe.csv,1,single_source,0.0
+state-gov-department-reports,USA Executive Departments,10,1,count_timeout,lower_bound,-9,,0.0,1,0.01,10,count_only_c_full.csv,5,corroborated,0.1
+state-gov-press-releases,USA Executive Departments,30,2192,api_wordpress_state_press_release,exact,2162,,0.0,0,0.0,2192,capacity_final.csv,2,unchanged,0.0
+state-gwd-go-kr-portal,한국완료,614,46,count_timeout,lower_bound,-568,,1.0,46,0.09,8333,exact_probe.csv,1,single_source,16.3
+statistischebibliothek-de-mir,독일완료,384,100,count_crawl,exact,-284,,0.9922,99,0.59,1476,count_only_totalscan.csv,3,corroborated,8.71
+stats-govt-nz-indicators,뉴질랜드완료,109,109,count_crawl,exact,0,,0.0,0,0.0,109,capacity_final.csv,5,unchanged,0.0
+stats-govt-nz-publications,뉴질랜드완료,87,,,unmeasured,,error,0.0,,,3,crawler_health_probe.csv,1,single_source,0.01
+stepi-re-kr-site,한국완료,570,458,count_timeout,lower_bound,-112,,0.0,0,0.0,1368,count_only_c_full.csv,1,single_source,0.0
+swisspeace-ch-publications,Switzerland Research Centers,304,,,unmeasured,,error,0.7467,,,305,count_only_c_full.csv,5,corroborated,0.9
+swisspolar-ch-expeditions,Switzerland Research Centers,94,101,custom_api,exact,7,,0.0106,1,0.0,101,capacity_final.csv,3,unchanged,0.0
+swisstph-ch-en,Switzerland Research Centers,1087,332,count_timeout,lower_bound,-755,,0.0,0,0.0,15000,big_totals.csv,1,single_source,0.0
+telemarksforsking-no-publikasjoner,Norway Research Centers,280,,,unmeasured,,zero_parsed,0.0036,,,280,count_only_c_full.csv,1,single_source,0.83
+tigta-gov-reports,USA Executive Departments,133,,,unmeasured,,fetch_fail,1.0,,,1,exact_probe.csv,1,single_source,0.0
+toi-no-publications,Norway Research Centers,470,16,count_timeout,lower_bound,-454,,0.217,3,0.01,569,count_only_c_full.csv,1,single_source,0.36
+transformation-gouv-fr-espace-presse,France Ministries,211,428,custom_api,exact,217,,1.0,428,0.21,428,capacity_final.csv,3,unchanged,0.21
+transparency-gov-au-publications,호주완료,2694,2693,count_crawl,lower_bound,-1,,0.5182,1395,4.47,2693,capacity_final.csv,1,unchanged,4.47
+transport-govt-nz-documents-and-public,뉴질랜드완료,3,3,count_timeout,lower_bound,0,,0.0,2,0.01,3,capacity_final.csv,1,unchanged,0.01
+transportation-gov-newsroom,USA Executive Departments,205,290,count_crawl,exact,85,,0.1024,30,0.07,290,capacity_final.csv,2,unchanged,0.07
+transportes-gob-es-el-ministerio,Spain Ministries,288,10,count_crawl,exact,-278,,0.9896,10,0.0,500,count_only_c_full.csv,1,single_source,0.0
+treasury-gov-au-publication,호주완료,651,438,count_timeout,lower_bound,-213,,0.6912,303,0.42,1039,count_only_c_full.csv,1,single_source,1.0
+treasury-govt-nz-publications,뉴질랜드완료,245,,,unmeasured,,,0.8,,,817,count_only_c_full.csv,1,single_source,2.42
+trm-dk-nyheder,덴마크완료,404,,,unmeasured,,zero_parsed,0.2327,,,331,html_only_ALL.csv,2,corroborated,0.98
+ufm-dk-publikationer,덴마크완료,44,38,count_crawl,exact,-6,,0.9773,37,0.09,38,capacity_final.csv,6,unchanged,0.09
+ukdataservice-ac-uk-2026,영국완료,549,560,api_wordpress_posts,exact,11,,0.0,0,0.0,560,capacity_final.csv,3,unchanged,0.0
+ulsan-go-kr-u,한국완료,58,58,count_crawl,exact,0,,1.0,58,2.09,58,capacity_final.csv,6,unchanged,2.09
+um-dk-om-os,덴마크완료,24,24,count_crawl,exact,0,,1.0,24,0.03,24,capacity_final.csv,11,unchanged,0.03
+ungeneva-org-en,Switzerland Research Centers,93,91,count_crawl,exact,-2,,0.0,0,0.0,91,capacity_final.csv,8,unchanged,0.0
+unidata-gv-at-pages,오스트리아완료,404,,,unmeasured,,fetch_fail,0.0,,,73,count_only_totals.csv,4,corroborated,0.22
+unikorea-go-kr-web,한국완료,47,41,count_crawl,exact,-6,,0.0,0,0.0,41,capacity_final.csv,6,unchanged,0.0
+usgs-gov-news,American Research Institutes,1549,286,count_timeout,lower_bound,-1263,,0.0355,10,0.07,1548,count_only_c_full.csv,1,single_source,0.38
+ustat-mur-gov-it,Italy Ministries,92,94,count_crawl,exact,2,,1.0,94,0.07,94,capacity_final.csv,8,unchanged,0.07
+uvek-admin-ch-en,Switzerland Departments,501,,,unmeasured,,fetch_fail,0.0918,,,85,big_totals.csv,1,single_source,0.25
+va-gov-vetdata,USA Executive Departments,114,114,count_crawl,exact,0,,0.9737,111,3.5,114,capacity_final.csv,6,unchanged,3.5
+vbs-admin-ch-en,Switzerland Departments,111,,,unmeasured,,fetch_fail,0.1351,,,52,big_totals.csv,8,corroborated,0.15
+vlaanderen-be-nieuwsberichten,벨기에완료,26,20,count_crawl,exact,-6,,0.0,0,0.0,20,capacity_final.csv,4,unchanged,0.0
+vtg-admin-ch-en,Switzerland Departments,18,18,count_crawl,exact,0,,1.0,10,0.03,18,capacity_final.csv,11,unchanged,0.03
+wallonie-be-fr,벨기에완료,121,124,count_crawl,exact,3,,0.3471,43,0.61,124,capacity_final.csv,3,unchanged,0.61
+waltoninstitute-ie-research,Irish Research Centers,566,788,custom_api,exact,222,,0.0,0,0.0,788,capacity_final.csv,3,unchanged,0.0
+wbf-admin-ch-en,Switzerland Departments,500,,,unmeasured,,fetch_fail,0.0,,,53,big_totals.csv,1,single_source,0.16
+wef-infor-cl-indexphp,Chile Ministries,448,453,count_crawl,exact,5,,0.9978,452,1.45,453,capacity_final.csv,6,unchanged,1.45
+werk-belgie-be-nl,벨기에완료,316,301,count_timeout,lower_bound,-15,,0.1867,56,0.1,620,count_only_c_full.csv,1,single_source,0.21
+who-int-publications,Switzerland Research Centers,511,,,unmeasured,,zero_parsed,0.998,,,3781,count_only_c_full.csv,1,single_source,11.22
+wodc-nl-documenten,Dutch Research Centers,2,3527,custom_api,exact,3525,,1.0,2035,2.29,3527,capacity_final.csv,3,unchanged,2.29
+women-govt-nz-library,뉴질랜드완료,14,14,count_crawl,exact,0,,1.0,8,0.01,14,capacity_final.csv,11,unchanged,0.01
+wti-org-research,Switzerland Research Centers,303,386,api_html_count_regex,exact,83,,0.0,0,0.0,386,capacity_final.csv,2,unchanged,0.0
+www2-mrc-lmb-cam-ac-uk-research,영국완료,47,16,count_crawl,exact,-31,,0.0,0,0.0,16,capacity_final.csv,11,unchanged,0.0
+www6-slac-stanford-edu-news-and-events,American Research Institutes,267,121,count_timeout,lower_bound,-146,,0.0,0,0.0,190,html_only_ALL.csv,4,corroborated,0.0
+xxgk-mot-gov-cn-2020,중국 완료,456,,,unmeasured,,zero_parsed,0.7741,,,460,count_only_c_full.csv,5,corroborated,1.36
+yme-gr-2013-01-31-06-37-23,Greece Ministries,3380,2,api_html_count_regex,exact,-3378,,0.0136,0,0.0,252,full_survey_totals.csv,1,single_source,0.0
+ypen-gov-gr-category,Greece Ministries,454,,,unmeasured,,fetch_fail,0.0044,,,858,count_only_c_full.csv,1,single_source,2.55
+ypergasias-gov-gr-category,Greece Ministries,531,,,unmeasured,,fetch_fail,0.0226,,,0,count_only_c_full.csv,0,single_source,0.0
+ypes-gr-category,Greece Ministries,987,577,count_timeout,lower_bound,-410,,0.002,1,0.0,4445,count_only_c_full.csv,1,single_source,0.0
