@@ -71,7 +71,7 @@ cp delivery/.env.example delivery/.env
 | `POSTGRES_DB` | `libertree` | Postgres 데이터베이스명 |
 | `BE_PORT` | `8080` | BE를 노출할 호스트 포트 (`127.0.0.1`에만 바인딩) |
 | `FE_PORT` | `3000` | FE를 노출할 호스트 포트 (`127.0.0.1`에만 바인딩) |
-| `DELIVERY_API_TOKEN` | *(빈 값)* | BE/FE 간 API 인증 토큰. `DELIVERY_AUTH_MODE=token`(기본값)일 때 32자 미만이면 BE가 시작을 거부합니다. |
+| `DELIVERY_API_TOKEN` | *(빈 값)* | BE/FE 간 API 인증 토큰. `openssl rand -hex 32` 로 직접 생성합니다. `DELIVERY_AUTH_MODE=token`(기본값)일 때 32자 미만이거나 `.env.example`의 예시 문자열 그대로면 BE가 시작을 거부합니다. |
 | `DELIVERY_AUTH_MODE` | `token` | `token` 또는 `disabled`. 로컬 격리 개발에서만 `disabled`를 명시적으로 사용하세요. |
 | `DELIVERY_DB_POOL_MIN` | `1` | BE의 DB 커넥션 풀 최소 크기 |
 | `DELIVERY_DB_POOL_MAX` | `10` | BE의 DB 커넥션 풀 최대 크기 |

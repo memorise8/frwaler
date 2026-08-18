@@ -99,6 +99,26 @@ class BeAppTest(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError,"at least 32"):
                 validate_auth_config()
 
+    # The example placeholder is 48 characters, so the length check alone let
+    # it through. A customer who copied .env.example and filled in only
+    # POSTGRES_PASSWORD would have shipped with a token published in this
+    # repository -- and nothing anywhere would have said so.
+    def test_backend_startup_auth_validation_rejects_the_example_placeholder(self):
+        from delivery.be.access import PLACEHOLDER_TOKENS, validate_auth_config
+        for placeholder in PLACEHOLDER_TOKENS:
+            self.assertGreaterEqual(len(placeholder),32,"a short placeholder is already caught by length")
+            with mock.patch.dict(os.environ,{"DELIVERY_AUTH_MODE":"token","DELIVERY_API_TOKEN":placeholder}):
+                with self.assertRaisesRegex(RuntimeError,"openssl rand"):
+                    validate_auth_config()
+
+    # The shipped example must not carry a value that would start the backend.
+    def test_env_example_does_not_ship_a_usable_token(self):
+        from pathlib import Path
+        example=Path(__file__).resolve().parents[1]/"delivery"/".env.example"
+        assigned=[line.split("=",1)[1].strip() for line in example.read_text(encoding="utf-8").splitlines()
+                  if line.startswith("DELIVERY_API_TOKEN=")]
+        self.assertEqual(assigned,[""],"delivery/.env.example must leave DELIVERY_API_TOKEN empty")
+
     def tearDown(self):
         self.auth_patch.stop()
 
