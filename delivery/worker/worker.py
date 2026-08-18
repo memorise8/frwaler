@@ -135,18 +135,20 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
 
     # 재개(cursor) 계약: backfill 은 늘 이전 커서에서, oldest_first incremental
     # 도 마찬가지다 (신규가 오래된 쪽부터 온다). newest_first/arbitrary
-    # incremental 은 커서 없이 처음부터 다시 훑는다 -- CrawlUpToDate 가 그 경계다.
+    # incremental 과 full 은 커서를 아예 만지지 않는다 -- 주입하지도, 회수해
+    # 저장하지도 않는다. 안 그러면 그런 실행이 우연히 _advance_cursor 를 부르는
+    # 순간 백필 진도(예: {"page":300})가 조용히 덮어써진다.
     mode = job.get("mode", "incremental")
     order = getattr(cls, "DELIVERY_ORDER", "arbitrary")
-    start_cursor = None
-    if mode == "backfill" or (mode == "incremental" and order == "oldest_first"):
-        start_cursor = jobs.load_cursor(conn, site_id)
+    cursor_enabled = mode == "backfill" or (mode == "incremental" and order == "oldest_first")
+    start_cursor = jobs.load_cursor(conn, site_id) if cursor_enabled else None
 
     # Computed before the crawl runs: a malformed LIBERTREE_MAX_WALL_S must fail
     # here, not after a successful crawl -- failing late orphans a completed
     # crawl as a stuck `running` row.
     threshold = truncation_threshold_seconds()
     started = time.monotonic()
+    inst = None
     try:
         with redirect_stdout(capture):
             inst = cls(db_conn=conn, delay=delay)
@@ -158,15 +160,22 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
         # 신규분이 소진됐다는 정상 신호 -- 완료로 종결하고 잘림 판정은 하지 않는다.
         conn.rollback()
         saved = max(0, _count_site_docs(conn, site_id) - before)
-        jobs.finish_job(conn, job["id"], saved_count=saved)
+        finished = jobs.finish_job(conn, job["id"], saved_count=saved)
+        if finished and cursor_enabled:
+            # backfill 이 완주 대신 up-to-date 를 만난 경우도 완료다: 신규가
+            # 없다는 뜻이지, 못 걸었다는 뜻이 아니다.
+            _persist_advance(conn, site_id, inst, start_cursor)
+            if mode == "backfill":
+                jobs.mark_backfill_complete(conn, site_id)
         record_output()
         return saved
     except CrawlCancelled:
         conn.rollback()
         saved = max(0, _count_site_docs(conn, site_id) - before)
-        jobs.finish_job(conn, job["id"], saved_count=saved)
+        finished = jobs.finish_job(conn, job["id"], saved_count=saved)
         # 취소여도 걸은 만큼은 진짜다: 커서는 남기고, 체인(재큐잉)만 끊는다.
-        _persist_advance(conn, site_id, inst, start_cursor)
+        if finished and cursor_enabled:
+            _persist_advance(conn, site_id, inst, start_cursor)
         record_output()
         return saved
     except Exception as exc:  # noqa: BLE001
@@ -181,19 +190,35 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
     # 판정하지 않는다 -- 그것들은 각자의 상태가 있고, 오래 돌다 취소된 것을
     # "잘렸다"고 부르면 두 사건이 뒤섞인다.
     truncated = (time.monotonic() - started) >= threshold
-    jobs.finish_job(conn, job["id"], saved_count=max(0, saved), truncated=truncated)
-    advanced = _persist_advance(conn, site_id, inst, start_cursor)
-    if mode == "backfill":
-        if truncated and advanced:
-            # 전진이 재큐잉의 유일한 면허다. 새 INSERT 는 created_at 순서상 큐 맨 뒤.
-            jobs.enqueue_job(conn, site_id, mode="backfill",
-                             limit_n=job.get("limit_n"), requested_by="auto-backfill")
-        elif truncated:
-            jobs._log(conn, job["id"], "stalled",
-                      "잘렸지만 커서가 전진하지 않아 자동 재큐잉을 멈춥니다.")
-            conn.commit()
-        else:
-            jobs.mark_backfill_complete(conn, site_id)
+    finished = jobs.finish_job(conn, job["id"], saved_count=max(0, saved), truncated=truncated)
+    if finished:
+        # 이 작업을 아직 우리가 소유할 때만: lease 가 이미 회수되어 다른 곳에서
+        # 이 행을 넘겨받았다면(finished=False) 커서/완료/재큐잉을 만지지 않는다.
+        advanced = cursor_enabled and _persist_advance(conn, site_id, inst, start_cursor)
+        if mode == "backfill":
+            items_seen = getattr(inst, "delivery_cursor_items_done", 0) > 0
+            if truncated and advanced and items_seen:
+                # 전진이 재큐잉의 유일한 면허다. 새 INSERT 는 created_at 순서상 큐 맨 뒤.
+                try:
+                    jobs.enqueue_job(conn, site_id, mode="backfill",
+                                     limit_n=job.get("limit_n"), requested_by="auto-backfill")
+                except jobs.ActiveJobError:
+                    # 경쟁 행이 이미 있다 -- 체인은 그 행이 잇는다. 죽을 일이 아니다.
+                    jobs.log_event(conn, job["id"], "requeue_skipped",
+                                   "활성 작업이 이미 있어 자동 재큐잉을 건너뜁니다.", level="warning")
+                    conn.commit()
+            elif truncated:
+                jobs.log_event(conn, job["id"], "stalled",
+                               "잘렸지만 커서가 전진하지 않아 자동 재큐잉을 멈춥니다.", level="warning")
+                conn.commit()
+            elif inst.delivery_pending_cursor is not None or saved > 0:
+                jobs.mark_backfill_complete(conn, site_id)
+            else:
+                # 아무 진전도 없이 정상 반환한 백필 -- 완주로 표시하면 다시는
+                # 재시도되지 않는다.
+                jobs.log_event(conn, job["id"], "no_progress",
+                               "아무것도 걷지 못한 백필 -- 완주로 표시하지 않습니다.", level="warning")
+                conn.commit()
     record_output()
     return max(0, saved)
 

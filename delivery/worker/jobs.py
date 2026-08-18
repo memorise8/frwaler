@@ -27,6 +27,14 @@ def _log(conn,job_id:int,event:str,message:str,level:str="info") -> None:
         (job_id,level,event,(message or "")[:500]))
 
 
+def log_event(conn, job_id: int, event: str, message: str, level: str = "info") -> None:
+    """Public lifecycle-log wrapper for callers outside this module (e.g. worker.py).
+
+    Does not commit -- callers own the transaction boundary, same as ``_log``.
+    """
+    _log(conn, job_id, event, message, level)
+
+
 def enqueue_job(conn, site_id, mode="incremental", limit_n=None, requested_by=None) -> int:
     conn.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s,0))",(site_id,))
     active=conn.execute("""SELECT id FROM crawl_jobs WHERE site_id=%s
@@ -186,13 +194,22 @@ def retry_job(conn, job_id, *, requested_by=None) -> Optional[dict]:
     return dict(row)
 
 
-def finish_job(conn, job_id, saved_count, *, truncated: bool = False) -> None:
+def finish_job(conn, job_id, saved_count, *, truncated: bool = False) -> bool:
+    """Terminal transition for a job this call still owns.
+
+    Returns True iff one of the two UPDATEs actually matched a row -- i.e.
+    the job was still 'running' or 'cancelling'. False means the row moved
+    out from under the caller (e.g. recover_stale already reclaimed the
+    lease elsewhere); callers must not persist cursor/completion/requeue
+    state for a job they no longer own.
+    """
     row = conn.execute(
         """UPDATE crawl_jobs SET status='done', saved_count=%s, finished_at=clock_timestamp(),
                worker_id=NULL,lease_expires_at=NULL,truncated=%s
             WHERE id=%s AND status='running' RETURNING status""",
         (int(saved_count or 0), bool(truncated), job_id),
     ).fetchone()
+    cancelled = None
     if row:
         message = f"수집 완료: 신규 문서 {int(saved_count or 0)}건"
         if truncated:
@@ -208,6 +225,7 @@ def finish_job(conn, job_id, saved_count, *, truncated: bool = False) -> None:
         if cancelled:
             _log(conn,job_id,"cancelled",f"취소 요청에 따라 종료되었습니다. 종료 전 신규 문서 {int(saved_count or 0)}건", "warning")
     conn.commit()
+    return row is not None or cancelled is not None
 
 
 def fail_job(conn, job_id, error) -> None:

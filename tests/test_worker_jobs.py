@@ -17,6 +17,7 @@ class WorkerJobsTest(unittest.TestCase):
         self.conn.execute("DROP TABLE IF EXISTS crawl_job_logs CASCADE")
         self.conn.execute("DROP TABLE IF EXISTS crawl_schedules CASCADE")
         self.conn.execute("DROP TABLE IF EXISTS crawl_jobs CASCADE")
+        self.conn.execute("DROP TABLE IF EXISTS crawl_site_progress CASCADE")
         self.conn.commit()
         db_pg.init_db(self.conn)
         schema.init_delivery_schema(self.conn)

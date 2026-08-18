@@ -38,7 +38,7 @@ class WorkerRunTest(unittest.TestCase):
         # removes the foreign key but leaves the log rows behind, and job ids
         # restart at 1 in every test, so leftovers would attach themselves to
         # the next test's job.
-        for t in ("crawl_job_logs", "crawl_jobs", "documents", "sites"):
+        for t in ("crawl_job_logs", "crawl_jobs", "crawl_site_progress", "documents", "sites"):
             self.conn.execute(f"DROP TABLE IF EXISTS {t} CASCADE")
         self.conn.commit()
         db_pg.init_db(self.conn)
@@ -460,7 +460,7 @@ class WorkerRunTest(unittest.TestCase):
                 for _ in range(2):
                     _time.sleep(0.02)
                     page += 1
-                    self._advance_cursor({"page": page})
+                    self._advance_cursor({"page": page}, items_done=1)
 
         jobs.enqueue_job(self.conn, "rc-backfill-a", mode="backfill")
         job = jobs.claim_next_job(self.conn)
@@ -468,11 +468,14 @@ class WorkerRunTest(unittest.TestCase):
             worker.run_job(self.conn, job, crawler_registry={"rc-backfill-a": PagedBackfillCrawler}, delay=0)
         cur = jobs.load_cursor(self.conn, "rc-backfill-a")
         self.assertEqual(cur, {"page": 3})
-        tail = self.conn.execute(
-            "SELECT site_id, mode, status FROM crawl_jobs ORDER BY created_at DESC, id DESC LIMIT 1"
-        ).fetchone()
-        self.assertEqual((tail["site_id"], tail["mode"], tail["status"]),
-                         ("rc-backfill-a", "backfill", "queued"))
+        queued = self.conn.execute(
+            "SELECT site_id, mode, status, requested_by FROM crawl_jobs"
+            " WHERE site_id=%s AND status='queued'", ("rc-backfill-a",)
+        ).fetchall()
+        self.assertEqual(len(queued), 1)  # 정확히 한 건만 재큐잉된다
+        self.assertEqual(
+            (queued[0]["site_id"], queued[0]["mode"], queued[0]["status"], queued[0]["requested_by"]),
+            ("rc-backfill-a", "backfill", "queued", "auto-backfill"))
 
     def test_no_advance_means_no_requeue(self):
         # _advance_cursor 를 한 번도 부르지 않는 가짜 크롤러 + 잘림 강제.
@@ -490,12 +493,15 @@ class WorkerRunTest(unittest.TestCase):
                 _time.sleep(0.02)
 
         before = self.conn.execute("SELECT count(*) AS n FROM crawl_jobs").fetchone()["n"]
-        jobs.enqueue_job(self.conn, "rc-backfill-stuck", mode="backfill")
+        jid = jobs.enqueue_job(self.conn, "rc-backfill-stuck", mode="backfill")
         job = jobs.claim_next_job(self.conn)
         with mock.patch.dict(os.environ, {"LIBERTREE_MAX_WALL_S": "0.01"}):
             worker.run_job(self.conn, job, crawler_registry={"rc-backfill-stuck": StuckBackfillCrawler}, delay=0)
         after = self.conn.execute("SELECT count(*) AS n FROM crawl_jobs").fetchone()["n"]
         self.assertEqual(after, before + 1)  # 재큐잉 없음 (원 작업 1건뿐)
+        stalled = self.conn.execute(
+            "SELECT 1 FROM crawl_job_logs WHERE job_id=%s AND event='stalled'", (jid,)).fetchone()
+        self.assertIsNotNone(stalled)
 
     def test_completed_backfill_marks_done_and_stops_chain(self):
         from crawler.base_crawler import BaseCrawler
@@ -615,6 +621,135 @@ class WorkerRunTest(unittest.TestCase):
         tail = self.conn.execute(
             "SELECT count(*) AS n FROM crawl_jobs WHERE site_id=%s", ("rc-oldest",)).fetchone()
         self.assertEqual(tail["n"], 1)  # 잘렸어도 incremental 은 재큐잉하지 않는다
+
+    # --- fix round 1: state machine hardening ---------------------------
+
+    def test_non_backfill_orders_never_touch_saved_backfill_progress(self):
+        # full 모드와 newest_first incremental 은 커서를 아예 만지지 않는다 --
+        # 가짜 크롤러가 _advance_cursor 를 불러도 저장된 백필 진도는 그대로다.
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+
+        class TouchyFullCrawler(BaseCrawler):
+            site_id = "rc-full-touch"
+            site_name = "RC Full Touch"
+            base_url = "https://rc-full-touch.example"
+
+            def crawl(self, limit=None):
+                self._advance_cursor({"page": 2}, items_done=5)
+
+        class TouchyNewestFirstCrawler(BaseCrawler):
+            site_id = "rc-newest-touch"
+            site_name = "RC Newest Touch"
+            base_url = "https://rc-newest-touch.example"
+            DELIVERY_ORDER = "newest_first"
+
+            def crawl(self, limit=None):
+                self._advance_cursor({"page": 2}, items_done=5)
+
+        jobs.save_progress(self.conn, "rc-full-touch", {"page": 300})
+        jobs.enqueue_job(self.conn, "rc-full-touch", mode="full")
+        worker.run_job(self.conn, jobs.claim_next_job(self.conn),
+                       crawler_registry={"rc-full-touch": TouchyFullCrawler}, delay=0)
+        self.assertEqual(jobs.load_cursor(self.conn, "rc-full-touch"), {"page": 300})
+
+        jobs.save_progress(self.conn, "rc-newest-touch", {"page": 300})
+        jobs.enqueue_job(self.conn, "rc-newest-touch", mode="incremental")
+        worker.run_job(self.conn, jobs.claim_next_job(self.conn),
+                       crawler_registry={"rc-newest-touch": TouchyNewestFirstCrawler}, delay=0)
+        self.assertEqual(jobs.load_cursor(self.conn, "rc-newest-touch"), {"page": 300})
+
+    def test_backfill_up_to_date_persists_advance_and_completes(self):
+        # backfill 이 완주 대신 CrawlUpToDate 를 만나도 완료 신호다: 커서는
+        # 저장하고 completed_at 도 찍는다.
+        from crawler.base_crawler import BaseCrawler, CrawlUpToDate
+        from delivery.worker import jobs, worker
+
+        class UpToDateBackfillCrawler(BaseCrawler):
+            site_id = "rc-backfill-uptodate"
+            site_name = "RC Backfill UpToDate"
+            base_url = "https://rc-backfill-uptodate.example"
+
+            def crawl(self, limit=None):
+                self._advance_cursor({"page": 42}, items_done=3)
+                raise CrawlUpToDate("already have everything")
+
+        jid = jobs.enqueue_job(self.conn, "rc-backfill-uptodate", mode="backfill")
+        job = jobs.claim_next_job(self.conn)
+        worker.run_job(self.conn, job,
+                       crawler_registry={"rc-backfill-uptodate": UpToDateBackfillCrawler}, delay=0)
+        self.assertEqual(jobs.load_cursor(self.conn, "rc-backfill-uptodate"), {"page": 42})
+        row = self.conn.execute(
+            "SELECT completed_at FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-backfill-uptodate",)).fetchone()
+        self.assertIsNotNone(row["completed_at"])
+        jrow = self.conn.execute(
+            "SELECT status, truncated FROM crawl_jobs WHERE id=%s", (jid,)).fetchone()
+        self.assertEqual((jrow["status"], jrow["truncated"]), ("done", False))
+
+    def test_requeue_collision_logs_and_does_not_crash(self):
+        # 경쟁 행이 이미 큐에 있으면 enqueue_job 이 ActiveJobError 를 던진다 --
+        # 워커는 죽지 않고, 재큐잉을 건너뛴 로그만 남긴다.
+        import time as _time
+        from unittest import mock
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+
+        class PagedBackfillCrawler(BaseCrawler):
+            site_id = "rc-backfill-collide"
+            site_name = "RC Backfill Collide"
+            base_url = "https://rc-backfill-collide.example"
+
+            def crawl(self, limit=None):
+                _time.sleep(0.02)
+                self._advance_cursor({"page": 2}, items_done=1)
+
+        jid = jobs.enqueue_job(self.conn, "rc-backfill-collide", mode="backfill")
+        job = jobs.claim_next_job(self.conn)
+        # 원 작업을 claim 한 뒤, 같은 사이트에 다른 경로(수동 요청 등)로 이미
+        # queued 행이 하나 더 생겼다고 가정한다.
+        self.conn.execute(
+            "INSERT INTO crawl_jobs(site_id, mode, status) VALUES(%s,'backfill','queued')",
+            ("rc-backfill-collide",))
+        self.conn.commit()
+        with mock.patch.dict(os.environ, {"LIBERTREE_MAX_WALL_S": "0.01"}):
+            worker.run_job(self.conn, job,
+                           crawler_registry={"rc-backfill-collide": PagedBackfillCrawler}, delay=0)
+        queued = self.conn.execute(
+            "SELECT count(*) AS n FROM crawl_jobs WHERE site_id=%s AND status='queued'",
+            ("rc-backfill-collide",)).fetchone()
+        self.assertEqual(queued["n"], 1)  # 중복 재큐잉 없음 -- 기존 경쟁 행 그대로
+        skipped = self.conn.execute(
+            "SELECT 1 FROM crawl_job_logs WHERE job_id=%s AND event='requeue_skipped'",
+            (jid,)).fetchone()
+        self.assertIsNotNone(skipped)
+
+    def test_backfill_with_no_progress_is_not_marked_complete(self):
+        # 아무 것도 걷지 못한 채(커서 보고도, 저장도 없이) 정상 반환한 backfill 은
+        # 완주로 표시하면 안 된다 -- 재시도할 방법이 사라진다.
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+
+        class NoOpBackfillCrawler(BaseCrawler):
+            site_id = "rc-backfill-noop"
+            site_name = "RC Backfill NoOp"
+            base_url = "https://rc-backfill-noop.example"
+
+            def crawl(self, limit=None):
+                pass
+
+        jid = jobs.enqueue_job(self.conn, "rc-backfill-noop", mode="backfill")
+        job = jobs.claim_next_job(self.conn)
+        worker.run_job(self.conn, job,
+                       crawler_registry={"rc-backfill-noop": NoOpBackfillCrawler}, delay=0)
+        row = self.conn.execute(
+            "SELECT completed_at FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-backfill-noop",)).fetchone()
+        self.assertIsNone(row)  # progress row 자체가 생기지 않았다
+        no_progress = self.conn.execute(
+            "SELECT 1 FROM crawl_job_logs WHERE job_id=%s AND event='no_progress'",
+            (jid,)).fetchone()
+        self.assertIsNotNone(no_progress)
 
 
 if __name__ == "__main__":
