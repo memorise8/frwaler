@@ -123,6 +123,10 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
     def record_output():
         jobs.log_crawler_output(conn, job["id"], capture.lines())
 
+    # Computed before the crawl runs: a malformed LIBERTREE_MAX_WALL_S must fail
+    # here, not after a successful crawl -- failing late orphans a completed
+    # crawl as a stuck `running` row.
+    threshold = truncation_threshold_seconds()
     started = time.monotonic()
     try:
         with redirect_stdout(capture):
@@ -147,7 +151,7 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
     # 예산에 걸려 남은 페이지를 건너뛰고 정상 반환한 경우. 취소·실패 경로에서는
     # 판정하지 않는다 -- 그것들은 각자의 상태가 있고, 오래 돌다 취소된 것을
     # "잘렸다"고 부르면 두 사건이 뒤섞인다.
-    truncated = (time.monotonic() - started) >= truncation_threshold_seconds()
+    truncated = (time.monotonic() - started) >= threshold
     jobs.finish_job(conn, job["id"], saved_count=max(0, saved), truncated=truncated)
     record_output()
     return max(0, saved)

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { parseCrawlLimit, UNBOUNDED_CRAWL_LIMIT } from "@/lib/crawl-limit";
 import { describeBlockedCrawlerWarning, type HealthState } from "@/lib/blocked-crawler-warning";
-import { JOB_POLL_INTERVAL_MS, describeJobOutcome, describeTrackingFailure, isTerminalJobStatus, jobStatusLabel } from "@/lib/job-status";
+import { JOB_POLL_INTERVAL_MS, TRUNCATED_BADGE, describeJobOutcome, describeTrackingFailure, isTerminalJobStatus, jobStatusLabel } from "@/lib/job-status";
 
 type JobLog = { readonly level: string; readonly event: string; readonly message: string; readonly created_at: string };
 type JobDetail = {
@@ -14,6 +14,7 @@ type JobDetail = {
   readonly saved_count: number | null;
   readonly error?: string | null;
   readonly logs?: readonly JobLog[];
+  readonly truncated?: boolean | null;
 };
 
 type SubmitState =
@@ -161,7 +162,7 @@ export default function RunPanel({ siteId, status, category, reason }: Readonly<
         <div className="run-tracking" role="status">
           <p className="run-message run-message--success">작업 #{state.jobId}이 대기열에 등록되었습니다.</p>
           <div className={`run-tracking-status${job ? ` run-tracking-status--${job.status}` : ""}`}>
-            <span>{job ? jobStatusLabel(job.status) : "상태 확인 중…"}</span>
+            <span>{job ? jobStatusLabel(job.status) : "상태 확인 중…"}{job?.truncated && <span className="job-badge job-badge--cut">{TRUNCATED_BADGE}</span>}</span>
             {isTracking && <span className="run-tracking-live">자동으로 상태를 확인하는 중</span>}
           </div>
           {trackingError && (

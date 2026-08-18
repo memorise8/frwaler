@@ -87,7 +87,7 @@ describe("truncated runs", () => {
     expect(text).toContain("40");
     // 재실행은 해결책이 아니다 — 크롤러는 1페이지부터 다시 걷는다.
     expect(text).toContain("시간 제한을 늘려");
-    expect(text).not.toContain("이어서");
+    expect(text).not.toMatch(/이어(서|받)/);
   });
 
   it("says so even when a truncated run saved nothing", () => {

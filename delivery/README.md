@@ -50,7 +50,7 @@ FE 빌드가 **하드 실패**합니다. 에어갭/폐쇄망 환경이라면 이
 
 ### 필수 소프트웨어
 
-- Docker Engine (Compose v2, `docker compose` 서브커맨드 지원 버전)
+- Docker Engine (Compose v2.22 이상, `docker compose run --build` 지원 버전)
 
 ---
 

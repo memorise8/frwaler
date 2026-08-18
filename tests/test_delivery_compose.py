@@ -39,3 +39,8 @@ class DeliveryComposeBindingTest(unittest.TestCase):
         # Documents the exact line the premise rests on, so a rename is visible.
         self.assertIn('"127.0.0.1:${BE_PORT:-8080}:3001"', self.compose)
         self.assertIn('"127.0.0.1:${FE_PORT:-3000}:3002"', self.compose)
+
+    def test_the_wall_clock_budget_default_is_a_literal_number(self):
+        # Pins the ruled constraint: the default must be a literal number
+        # because an empty LIBERTREE_MAX_WALL_S crashes the worker's float().
+        self.assertIn("LIBERTREE_MAX_WALL_S: ${LIBERTREE_MAX_WALL_S:-1500}", self.compose)
