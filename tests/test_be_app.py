@@ -88,6 +88,22 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(denied.status_code,401)
         self.assertEqual(allowed.status_code,200)
 
+    def test_job_summary_reports_queue_depth_without_a_token(self):
+        response = self.client.get("/jobs/summary")
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertIn("counts", body)
+        self.assertIn("queued", body["counts"])
+        for key in ("active", "finished_24h", "avg_seconds", "samples"):
+            self.assertIn(key, body)
+
+    # /jobs/{job_id} 가 먼저 매칭되면 "summary"를 작업 번호로 읽어 422가 된다.
+    # 두 경로가 실제로 구별되는지를 보려면 양쪽을 함께 눌러야 한다 —
+    # /jobs/summary 만 200인지 보는 것은 위 테스트의 반복일 뿐이다.
+    def test_the_summary_path_and_the_job_detail_path_stay_distinct(self):
+        self.assertEqual(self.client.get("/jobs/summary").status_code, 200)
+        self.assertEqual(self.client.get("/jobs/999999999").status_code, 404)
+
     def test_missing_operator_token_configuration_fails_closed(self):
         with mock.patch.dict(os.environ,{"DELIVERY_AUTH_MODE":"token","DELIVERY_API_TOKEN":""}):
             response=self.client.post("/jobs",json={"site_id":"s1"})

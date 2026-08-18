@@ -389,6 +389,21 @@ def create_app(dsn: str) -> FastAPI:
             conn.close()
         return {"id": jid}
 
+    # Declared before /jobs/{job_id}: FastAPI matches in declaration order, and
+    # the literal path must win over the parameterised one.
+    #
+    # Not behind the aggregate TTL cache, unlike /stats and /freshness. Its
+    # 30-second window would leave the queue count unchanged for half a minute
+    # after a bulk stop, and an operator who cannot see their cancellation land
+    # presses it again. The query is one GROUP BY over idx_jobs_status_created.
+    @app.get("/jobs/summary")
+    def get_job_summary():
+        conn = _conn()
+        try:
+            return jobs.summarize_queue(conn)
+        finally:
+            conn.close()
+
     @app.get("/jobs/{job_id}")
     def get_job(job_id: int):
         conn = _conn()
