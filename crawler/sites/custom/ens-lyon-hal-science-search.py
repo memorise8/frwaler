@@ -60,6 +60,7 @@ class EnsLyonHalScienceSearchCrawler(BaseCrawler):
     site_id = "ens-lyon-hal-science-search"
     site_name = "Custom: ens-lyon-hal-science-search"
     base_url = "https://ens-lyon.hal.science"
+    DELIVERY_ORDER = "oldest_first"
 
     # ------------------------------------------------------------------
     # Network helpers
@@ -105,6 +106,7 @@ class EnsLyonHalScienceSearchCrawler(BaseCrawler):
             "wt": "json",
             "fl": _FIELDS,
             # Multiple fq values — Solr AND-s them
+            "sort": "docid asc",
             "fq": [
                 "collCode_s:ENS-LYON",
                 "submitType_s:file",
@@ -171,6 +173,7 @@ class EnsLyonHalScienceSearchCrawler(BaseCrawler):
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.time()
+        cursor_offset = (self.delivery_cursor or {}).get("offset", 0)
 
         for page in range(_MAX_PAGES):
             # Wall-clock budget guard
@@ -188,7 +191,7 @@ class EnsLyonHalScienceSearchCrawler(BaseCrawler):
             if page % 10 == 0 and page > 0:
                 print(f"[{self.site_id}] page {page}: saved {saved}/{limit_str}")
 
-            start_offset = page * _ROWS
+            start_offset = cursor_offset + page * _ROWS
             data = self._fetch_page(start_offset, _ROWS)
             if data is None:
                 print(f"[{self.site_id}] Failed to fetch page {page}. Stopping.")
@@ -328,6 +331,8 @@ class EnsLyonHalScienceSearchCrawler(BaseCrawler):
                 except Exception as exc:
                     print(f"[{self.site_id}] item {doc.get('docid', '?')} failed: {exc}")
                     continue
+
+            self._advance_cursor({"offset": start_offset + len(docs)}, items_done=len(docs))
 
             # If an entire page produced zero new records, pagination has looped
             if new_on_page == 0 and page > 0:

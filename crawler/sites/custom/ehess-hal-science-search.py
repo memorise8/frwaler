@@ -39,6 +39,7 @@ class EhessHalScienceSearchCrawler(BaseCrawler):
     site_id = "ehess-hal-science-search"
     site_name = "Custom: ehess-hal-science-search"
     base_url = "https://ehess.hal.science"
+    DELIVERY_ORDER = "oldest_first"
 
     # ------------------------------------------------------------------
     # Network helpers
@@ -84,6 +85,7 @@ class EhessHalScienceSearchCrawler(BaseCrawler):
             "wt": "json",
             "fl": _FIELDS,
             # Multiple fq values — Solr AND-s them
+            "sort": "docid asc",
             "fq": [
                 "submitType_s:file",
                 "docType_s:(REPORT OR OTHER)",
@@ -140,6 +142,7 @@ class EhessHalScienceSearchCrawler(BaseCrawler):
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.time()
+        cursor_offset = (self.delivery_cursor or {}).get("offset", 0)
 
         for page in range(_MAX_PAGES):
             # Wall-clock budget guard
@@ -161,7 +164,7 @@ class EhessHalScienceSearchCrawler(BaseCrawler):
             if limit is not None:
                 rows_this_page = min(_ROWS, limit - saved)
 
-            start_offset = page * _ROWS
+            start_offset = cursor_offset + page * _ROWS
             data = self._fetch_page(start_offset, rows_this_page)
             if data is None:
                 print(f"[{self.site_id}] Failed to fetch page {page}. Stopping.")
@@ -306,6 +309,8 @@ class EhessHalScienceSearchCrawler(BaseCrawler):
                 except Exception as exc:
                     print(f"[{self.site_id}] item {doc.get('docid', '?')} failed: {exc}")
                     continue
+
+            self._advance_cursor({"offset": start_offset + len(docs)}, items_done=len(docs))
 
             # If an entire page produced zero new records, pagination has looped
             if new_on_page == 0 and page > 0:

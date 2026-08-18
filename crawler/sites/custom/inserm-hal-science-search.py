@@ -29,6 +29,7 @@ class InsermHalScienceSearchCrawler(BaseCrawler):
     site_id = "inserm-hal-science-search"
     site_name = "Custom: inserm-hal-science-search"
     base_url = "https://inserm.hal.science"
+    DELIVERY_ORDER = "oldest_first"
 
     _START_URL = (
         "https://inserm.hal.science/search/index/?q=%2A&rows=30"
@@ -374,7 +375,8 @@ class InsermHalScienceSearchCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         saved = 0
-        start = 0
+        start_offset = (self.delivery_cursor or {}).get("offset", 0)
+        start = start_offset
         page = 0
         seen_ids: set[str] = set()
         total = None
@@ -457,6 +459,7 @@ class InsermHalScienceSearchCrawler(BaseCrawler):
                 break
 
             start += len(items)
+            self._advance_cursor({"offset": start}, items_done=len(items))
             if len(items) < self._PAGE_SIZE:
                 print(f"[{self.site_id}] last page (got {len(items)} < {self._PAGE_SIZE}); done")
                 break
