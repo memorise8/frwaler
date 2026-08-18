@@ -26,8 +26,8 @@ describe("NAV_ITEMS", () => {
   // landing route; crawler health and collected data follow in the order the
   // work actually happens.
   it("leads with collection and orders the sections by operator workflow", () => {
-    expect(NAV_ITEMS.map((item) => item.href)).toEqual(["/", "/crawlers", "/collected", "/documents", "/schedules", "/translations"]);
-    expect(NAV_ITEMS.map((item) => item.label)).toEqual(["수집", "크롤러 상태", "수집 상태", "문서 탐색", "수집 예약", "번역 작업"]);
+    expect(NAV_ITEMS.map((item) => item.href)).toEqual(["/", "/crawlers", "/backfill", "/collected", "/documents", "/schedules", "/translations"]);
+    expect(NAV_ITEMS.map((item) => item.label)).toEqual(["수집", "크롤러 상태", "백필", "수집 상태", "문서 탐색", "수집 예약", "번역 작업"]);
   });
 
   it("activates exactly one section for every console route", () => {
