@@ -196,7 +196,10 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
         # 이 행을 넘겨받았다면(finished=False) 커서/완료/재큐잉을 만지지 않는다.
         advanced = cursor_enabled and _persist_advance(conn, site_id, inst, start_cursor)
         if mode == "backfill":
-            items_seen = getattr(inst, "delivery_cursor_items_done", 0) > 0
+            # 항목 목격의 증거는 크롤러의 보고(items_done)와 실제 저장 수 중
+            # 어느 쪽이든 인정한다 -- 보고를 빠뜨린 크롤러 때문에 진짜 전진이
+            # 있는 체인을 끊으면 안 된다.
+            items_seen = getattr(inst, "delivery_cursor_items_done", 0) > 0 or saved > 0
             if truncated and advanced and items_seen:
                 # 전진이 재큐잉의 유일한 면허다. 새 INSERT 는 created_at 순서상 큐 맨 뒤.
                 try:
@@ -208,10 +211,12 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
                                    "활성 작업이 이미 있어 자동 재큐잉을 건너뜁니다.", level="warning")
                     conn.commit()
             elif truncated:
+                reason = ("커서가 전진하지 않아" if not advanced
+                          else "항목을 하나도 목격하지 못해")
                 jobs.log_event(conn, job["id"], "stalled",
-                               "잘렸지만 커서가 전진하지 않아 자동 재큐잉을 멈춥니다.", level="warning")
+                               f"잘렸지만 {reason} 자동 재큐잉을 멈춥니다.", level="warning")
                 conn.commit()
-            elif inst.delivery_pending_cursor is not None or saved > 0:
+            elif advanced or saved > 0:
                 jobs.mark_backfill_complete(conn, site_id)
             else:
                 # 아무 진전도 없이 정상 반환한 백필 -- 완주로 표시하면 다시는
