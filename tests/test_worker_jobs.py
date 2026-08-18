@@ -36,6 +36,51 @@ class WorkerJobsTest(unittest.TestCase):
         logs=self.conn.execute("SELECT event FROM crawl_job_logs WHERE job_id=%s ORDER BY id",(jid,)).fetchall()
         self.assertEqual([row["event"] for row in logs],["queued","started"])
 
+    def test_summarize_queue_counts_every_status_including_zero(self):
+        from delivery.worker import jobs
+        jobs.enqueue_job(self.conn, "s1", requested_by="op")
+        jobs.enqueue_job(self.conn, "s2", requested_by="op")
+        summary = jobs.summarize_queue(self.conn)
+        self.assertEqual(summary["counts"]["queued"], 2)
+        # 0인 상태도 키가 있어야 화면이 "실행 중 0건"을 말할 수 있다.
+        for status in ("queued", "running", "cancelling", "done", "failed", "cancelled"):
+            self.assertIn(status, summary["counts"])
+        self.assertEqual(summary["counts"]["done"], 0)
+        self.assertEqual(summary["active"], 2)
+
+    def test_summarize_queue_needs_three_samples_before_estimating(self):
+        from delivery.worker import jobs
+        for index in range(2):
+            job_id = jobs.enqueue_job(self.conn, f"done{index}", requested_by="op")
+            self.conn.execute(
+                """UPDATE crawl_jobs SET status='done',
+                     started_at=now()-interval '30 seconds', finished_at=now() WHERE id=%s""",
+                (job_id,))
+        self.conn.commit()
+        summary = jobs.summarize_queue(self.conn)
+        self.assertEqual(summary["samples"], 2)
+        # 표본 2건으로 "약 5시간"을 말하면 그건 추정이 아니라 추측이다.
+        self.assertIsNone(summary["avg_seconds"])
+
+    def test_summarize_queue_estimates_from_completed_runs_only(self):
+        from delivery.worker import jobs
+        for index in range(3):
+            job_id = jobs.enqueue_job(self.conn, f"done{index}", requested_by="op")
+            self.conn.execute(
+                """UPDATE crawl_jobs SET status='done',
+                     started_at=now()-interval '20 seconds', finished_at=now() WHERE id=%s""",
+                (job_id,))
+        # 대기 중 취소된 작업: started_at 이 없다. 평균에 들어오면 추정이 0쪽으로 무너진다.
+        cancelled = jobs.enqueue_job(self.conn, "cancelled-in-queue", requested_by="op")
+        self.conn.execute(
+            "UPDATE crawl_jobs SET status='cancelled', finished_at=now() WHERE id=%s", (cancelled,))
+        self.conn.commit()
+        summary = jobs.summarize_queue(self.conn)
+        self.assertEqual(summary["samples"], 3)
+        self.assertAlmostEqual(summary["avg_seconds"], 20.0, delta=2.0)
+        self.assertEqual(summary["finished_24h"], 4)
+        self.assertEqual(summary["active"], 0)
+
     def test_schedule_enqueues_due_once(self):
         from delivery.worker import schedules
         from crawler import db_pg

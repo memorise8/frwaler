@@ -278,6 +278,54 @@ def log_crawler_output(conn, job_id: int, lines) -> int:
     return len(lines)
 
 
+JOB_STATUSES = ("queued", "running", "cancelling", "done", "failed", "cancelled")
+
+# 추정을 시작하기 전에 요구하는 완료 표본 수. 1~2건으로 낸 평균은 추정이 아니라
+# 추측이고, 화면은 그 차이를 표현할 수 없으므로 여기서 아예 None을 돌려준다.
+_MIN_ESTIMATE_SAMPLES = 3
+_ESTIMATE_WINDOW = 20
+
+
+def summarize_queue(conn) -> dict:
+    """Queue depth by status plus an honest per-site duration estimate.
+
+    Deliberately returns no all-time total: job history is retained forever
+    (verification aggregates are computed from it), so a percentage against it
+    would be diluted by months of past runs. Progress is expressed against
+    finished_24h + active instead.
+    """
+    counts = {status: 0 for status in JOB_STATUSES}
+    for row in conn.execute("SELECT status, count(*) AS n FROM crawl_jobs GROUP BY status").fetchall():
+        counts[row["status"]] = int(row["n"])
+
+    finished_24h = int(conn.execute(
+        """SELECT count(*) AS n FROM crawl_jobs
+            WHERE finished_at IS NOT NULL AND finished_at > now() - interval '24 hours'"""
+    ).fetchone()["n"])
+
+    # Only 'done' runs. A job cancelled out of the queue never started, so its
+    # duration is null or near zero; letting those in drags the estimate toward
+    # "almost finished" precisely when a bulk sweep has just been stopped.
+    estimate = conn.execute(
+        """SELECT avg(EXTRACT(EPOCH FROM (finished_at - started_at)))::float8 AS avg_seconds,
+                  count(*) AS samples
+             FROM (SELECT started_at, finished_at FROM crawl_jobs
+                    WHERE status='done' AND started_at IS NOT NULL AND finished_at IS NOT NULL
+                    ORDER BY finished_at DESC LIMIT %s) recent""",
+        (_ESTIMATE_WINDOW,),
+    ).fetchone()
+    samples = int(estimate["samples"])
+    avg_seconds = float(estimate["avg_seconds"]) if samples >= _MIN_ESTIMATE_SAMPLES else None
+
+    return {
+        "counts": counts,
+        "active": counts["queued"] + counts["running"] + counts["cancelling"],
+        "finished_24h": finished_24h,
+        "avg_seconds": avg_seconds,
+        "samples": samples,
+    }
+
+
 def job_detail(conn,job_id:int) -> dict | None:
     row=conn.execute("SELECT * FROM crawl_jobs WHERE id=%s",(job_id,)).fetchone()
     if not row:return None
