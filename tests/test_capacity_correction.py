@@ -57,6 +57,17 @@ class CollectMeasurementsTest(unittest.TestCase):
         self.assertNotIn("site-e", got)
         self.assertEqual(got["site-f"], [(0, "probe.csv")])
 
+    def test_ignores_hal_solr_rows_from_coverage_report(self):
+        # coverage_report.csv 의 hal_solr 행은 개별 사이트가 아니라 HAL 플랫폼
+        # 전체 총계를 담는다 (서로 다른 두 기관이 동일한 4,628,498 을 보고).
+        _write_csv(self.audit / "coverage_report.csv",
+                   ["site_id", "source_total", "method", "status"],
+                   [["site-h", "4628498", "hal_solr", "partial"],
+                    ["site-i", "123", "wordpress_posts", "ok"]])
+        got = collect_measurements(self.audit)
+        self.assertNotIn("site-h", got)
+        self.assertEqual(got["site-i"], [(123, "coverage_report.csv")])
+
 
 class CorrectRowsTest(unittest.TestCase):
     def _base_row(self, **over):

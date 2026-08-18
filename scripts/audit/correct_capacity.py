@@ -9,6 +9,9 @@ consolidate_capacity.py 의 우선순위 사슬은 ~20개 감사 파일을 전�
 방법: 사이트별 corrected = max(기재값, 다른 모든 감사 CSV 의 측정값).
 provenance(어느 파일이 값을 줬는지)·확증 수·신뢰도를 함께 기록해,
 single_source 행은 나중에 실측 재검증 대상으로 골라낼 수 있게 한다.
+coverage_report.csv 의 method=hal_solr 행은 개별 사이트가 아니라 HAL 플랫폼
+전체 총계가 새어 들어온 값이라 측정값 수집에서 제외한다(consolidate_capacity.py 도
+같은 이유로 제외했다).
 
 네트워크 접근 없음. 기존 파일 수정 없음. 출력은 capacity_corrected.csv/.md 뿐.
 
@@ -79,6 +82,13 @@ def collect_measurements(audit_dir: Path) -> dict:
             for row in reader:
                 site = (row.get("site_id") or "").strip()
                 if not site:
+                    continue
+                # coverage_report.csv 의 hal_solr 행은 HAL 플랫폼 전체 규모가
+                # 사이트 값으로 새어 들어온 것이다 (afd 와 ign-ensg 가 동일한
+                # 4,628,498 을 보고 — 서로 다른 기관이 같은 값일 수 없다).
+                # consolidate_capacity.py 도 같은 이유로 hal_solr 을 제외했다.
+                if path.name == "coverage_report.csv" \
+                        and (row.get("method") or "").strip() == "hal_solr":
                     continue
                 values = [v for v in (_to_int(row.get(c)) for c in count_cols)
                           if v is not None]
