@@ -179,6 +179,18 @@ FE       cd delivery/fe && npm test && npm run typecheck && npm run lint      # 
 - 최대 사이트: doaj-org-search **13,373,055건**(corroborated) — 기존
   `capacity_final.csv` 기재값 35,582 는 OAI resumption 카운트의 단독 실패,
   서버 자체 보고값으로 3회 교차 확인
+- **대형 사이트 수집(재개) — 백필 모드로 해소 (2026-08-18):**
+  `HANDOFF_20260818_SCALE.md` §3 이 지적한 "작업 하나 = 사이트 하나를 처음부터
+  끝까지 한 번에" 문제(25분 예산에 잘리면 재실행이 매번 1페이지부터 다시
+  걷는다 — doaj 규모에서는 원리적으로 완주 불가능했다)는 커서 기반 백필 모드
+  (`mode=backfill`)로 닫혔다. `crawl_site_progress`에 커서를 남기고, 워커가
+  전진을 확인하는 동안 자동으로 재큐잉한다(§4-2, `HANDOFF_20260818_SCALE.md`
+  완료 표시). 대상은 `capacity_corrected.csv`의 `corrected_max` 10만 건 이상
+  사이트 **25개**(`delivery/scripts/seed_backfill_estimates.py`로 시드, doaj
+  1,337만 건 포함) — 운영 절차는
+  `DELIVERY_DEPLOYMENT_RUNBOOK_20260813.md`의 「백필 운영」 절. **단, 바로
+  위 항목의 "무엇을 받을지 선택"(31 TB 저장 용량 문제)은 별개로 남아 있다** —
+  백필은 완주까지 갈 수 있게 할 뿐, 무엇을 완주시킬지 고르는 것은 아니다.
 
 ## PDF blob — 앞선 기술은 틀렸다 (2026-08-18 정정)
 

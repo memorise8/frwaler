@@ -164,3 +164,72 @@ Worker가 크롤 작업 하나에 쓸 수 있는 최대 경과 시간(초)입니
 
 이 플래그는 업그레이드 이후에 실행된 수집에만 적용됩니다 — 그 이전에 끝난 작업은
 잘렸더라도 모두 truncated=false 로 남아 있습니다.
+
+## 백필 운영 — 대형 사이트 이어받기 (2026-08-18 확정)
+
+재개(resume) 계약을 갖춘 대형 사이트(예: doaj-org-search, 약 1,337만 건)를
+`LIBERTREE_MAX_WALL_S` 예산 안에서 여러 번의 작업으로 나눠, 매번 1페이지부터
+다시 걷지 않고 저장된 커서에서 이어받는 모드입니다. 25개 대형 사이트 크롤러가
+이 계약을 구현합니다.
+
+### 시작
+
+```bash
+POST /jobs
+{"site_id": "doaj-org-search", "mode": "backfill"}
+```
+
+운영자 토큰이 필요합니다(쓰기 10개 중 하나). 그 site_id에 이미 활성 작업이 있으면
+409를 반환합니다.
+
+### 자동 재큐잉과 멈추는 조건
+
+작업 하나가 `LIBERTREE_MAX_WALL_S` 예산 근방에서 정상 반환하면("잘림") 워커가
+커서 전진 여부와 항목 목격 여부(크롤러가 보고한 `items_done` 또는 실제 저장된
+문서 수)를 확인합니다. 둘 다 있어야만 같은 site_id·`mode=backfill` 작업을 큐
+맨 뒤에 자동으로 다시 넣습니다(`requested_by="auto-backfill"`) — 운영자가 반복해서
+`POST /jobs`를 부를 필요가 없습니다. 전진이 재큐잉의 유일한 면허이며, 이 체인은
+다음 세 조건 중 하나로만 멈춥니다.
+
+- **완주**: 이번 작업이 예산 안에 끝나고(잘리지 않고) 커서가 전진했거나 문서를
+  저장했으면 `crawl_site_progress.completed_at`을 기록하고 체인을 끝냅니다.
+  크롤러가 신규분 소진(`up-to-date`)을 보고해도 동일하게 완주로 처리합니다.
+  완주해도 `cursor` 자체는 지우지 않습니다 — 이후 증분 수집(oldest_first)이
+  그 커서를 이어 씁니다.
+- **무전진**: 잘렸는데 커서가 전진하지 않았거나 항목을 하나도 목격하지 못했으면
+  "stalled"로 기록하고 재큐잉을 멈춥니다. 잘리지 않았는데도 아무 진전이 없었던
+  경우도 완주로 표시하지 않고 조용히 멈춥니다("no_progress") — 둘 다 운영자가
+  원인을 살피고 다시 `POST /jobs`해야 이어집니다.
+- **취소**: `POST /jobs/{job_id}/cancel`로 취소를 요청하면(`cancel_requested_at`)
+  그때까지 걸은 커서는 저장하지만, 다음 작업은 자동으로 큐에 넣지 않습니다.
+  이어가려면 운영자가 다시 `POST /jobs`합니다.
+
+### 진행 확인 — `/backfill` 화면
+
+FE 내비게이션의 "백필" 메뉴(`/backfill`)가 `GET /progress`를 그대로 렌더합니다.
+조회 API라 토큰이 필요 없습니다. 사이트별로 완주/진행 중/시작 전 배지와
+`items_done / total_estimate` 기준 진행률(%)을 보여주며, `total_estimate`가
+비어 있으면(시딩 전) 퍼센트를 표시하지 않습니다.
+
+### 시드 스크립트 — `total_estimate` 채우기
+
+`total_estimate`는 `delivery/scripts/seed_backfill_estimates.py`로 채웁니다.
+`scripts/audit/capacity_corrected.csv`의 `corrected_max`가 10만 건 이상인
+사이트만 업서트하며(현재 25개), 재실행해도 무해합니다(업서트) — 단 이미 진행
+중인 행의 `cursor`·`items_done`·`completed_at`은 절대 건드리지 않고
+`total_estimate`만 갱신합니다.
+
+```bash
+LIBERTREE_PG_DSN='postgresql://libertree:<password>@<host>:5432/libertree' \
+  python3 delivery/scripts/seed_backfill_estimates.py
+```
+
+### `LIBERTREE_MAX_WALL_S`와의 관계 — 백필의 조각 크기
+
+위 「크롤 작업 시간 예산」 절의 `LIBERTREE_MAX_WALL_S`가 백필의 조각 크기를
+그대로 정합니다 — 별도의 조각 크기 파라미터는 없습니다. 값을 키우면 한 작업이
+더 많이 걷어 자동 재큐잉 횟수가 줄지만, 워커가 단일 직렬 처리기라 그만큼 다른
+사이트의 시작이 늦어집니다. 각 크롤러의 페이지 캡도 이제 이번 실행에서 걸을
+페이지 수(커서로 재개한 지점 기준 상대값)이지 사이트 전체에 대한 절대 상한이
+아닙니다 — 재개한 작업이 큰 페이지 번호에서 시작해도 매번 정해진 만큼은
+반드시 걷습니다.

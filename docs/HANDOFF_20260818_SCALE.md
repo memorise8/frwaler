@@ -2,6 +2,9 @@
 
 > **시점 주의:** 이 문서는 2026-08-18 A2 Task 3·4 진행 중 시점의 스냅샷이다. A2 는
 > 이후 완료되었고(§1 은 역사 기록), §2-§4 의 규모 문제는 여전히 유효하다.
+> **후속(같은 날 나중 시점):** §4-2(재개 설계)는 `docs/superpowers/plans/2026-08-18-resume-cursor.md`
+> 계획으로 완료되었다 — §3·§4-2 표시 참조. §4-1(용량 재조사)도 §2 후속 노트대로
+> 완료됐다. §4-3(수집 대상 선택)과 §3의 저장 공간(31 TB) 문제는 여전히 유효하다.
 
 compact 이후 이 문서 하나로 이어서 진행할 수 있게 정리했다.
 
@@ -102,6 +105,12 @@ datacatalogue-adruk-org-browser              0        219,675      —
 
 ## 3. 구조적 한계 — 대형 사이트는 지금 구조로 수집 불가능
 
+`[2026-08-18 해소: 아래 재개(resume) 결여는 §4-2 로 닫혔다 — 커서 기반
+백필 모드, docs/superpowers/plans/2026-08-18-resume-cursor.md. 이 절의
+본문은 그 이전 시점의 진단 기록으로 남긴다. 작업 분할과 규모 표시도 이번
+계획에서 각각 LIBERTREE_MAX_WALL_S(이미 조각 크기 역할)와 GET /progress·
+FE /backfill 로 다뤄졌다 — 저장 공간(31 TB) 문제만 별개로 남아 있다.]`
+
 한 줄 요약: **작업 하나 = 사이트 하나를 처음부터 끝까지 한 번에 훑기.**
 
 수만 건까지는 문제없다. 1,337만 건에서는 원리적으로 불가능하다:
@@ -149,11 +158,20 @@ datacatalogue-adruk-org-browser              0        219,675      —
 - 조사 스크립트는 `scripts/audit/` 에 있다(`consolidate_capacity.py`,
   `finalize_capacity.py`, `finish_capacity_pipeline.py`).
 
-### 2) 재개 설계
+### ~~2) 재개 설계~~ · **완료 (2026-08-18)**
 
-커서를 어디에 어떤 모양으로 둘지. 후보: `crawl_sites_progress(site_id, cursor JSONB,
-updated_at)` 또는 `sites` 에 컬럼 추가. 크롤러가 커서를 읽고 쓰는 계약을
-`BaseCrawler` 에 두면 799/800이 이미 `self._save` 를 쓰므로 접점은 있다.
+계획: `docs/superpowers/plans/2026-08-18-resume-cursor.md`(태스크 1~10, 리허설
+포함). 후보로 적었던 `crawl_sites_progress`는 `crawl_site_progress(site_id,
+cursor JSONB, items_done, total_estimate, updated_at, completed_at)`로
+구현됐고, 커서 계약은 실제로 `BaseCrawler`에 두었다(`delivery_cursor` 주입,
+`CrawlControl`/`CrawlUpToDate`/`CrawlCancelled`). 25개 대형 사이트 크롤러가
+oldest_first/newest_first 정렬에 맞춰 커서를 읽고 쓰며, 각자의 페이지 캡을
+"이번 실행에서 걸을 페이지 수"(재개 지점 기준 상대값)로 다시 잡았다. 워커는
+잘림·전진·항목 목격을 확인해 자동 재큐잉하고, 완주 시에만 `completed_at`을
+남긴다(운영 절차는 `DELIVERY_DEPLOYMENT_RUNBOOK_20260813.md`의 「백필 운영」
+절). Python 전체 스위트(145개, cursor 계약·conformance 포함) 그린, 리허설
+스택(`delivery-coldstart`)에서 시드 25행·`GET /progress`·FE `/backfill` 실물
+확인, 운영 스택은 그 사이 무사(문서 536,056건, 컨테이너 3개 그대로).
 
 ### 3) 수집 대상 선택
 
