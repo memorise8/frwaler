@@ -165,6 +165,19 @@ FE       cd delivery/fe && npm test && npm run typecheck && npm run lint      # 
 | 작업 이력 | 영구 | 의도적 — 검증 집계가 이 이력에서 계산됨 |
 | 크롤러 로그 | 14일 | 작업당 최대 40줄 |
 
+**보정된 전체 규모(2026-08-18):**
+
+- 전체 수집 가능 문서(보정): **약 2,433만 건**(24,330,001건,
+  `scripts/audit/capacity_corrected.csv`) — 기존 `capacity_final.csv` 합계
+  6,109,256 은 감사 파일 ~20개를 병합하지 않은 과소평가였다. 근거:
+  `scripts/audit/CAPACITY_RELIABILITY_20260818.md`
+- 추정 저장 용량(보정): **약 31 TB(추정)**(30.8 TB, 사이트별 실측 PDF 비율
+  기반 추정) — 전부 수집은 비현실적이며, 무엇을 받을지 선택하는 것이 다음
+  설계 과제다 (`HANDOFF_20260818_SCALE.md` §3-4)
+- 최대 사이트: doaj-org-search **13,373,055건**(corroborated) — 기존
+  `capacity_final.csv` 기재값 35,582 는 OAI resumption 카운트의 단독 실패,
+  서버 자체 보고값으로 3회 교차 확인
+
 ## PDF blob — 앞선 기술은 틀렸다 (2026-08-18 정정)
 
 이 문서는 원래 "PDF blob은 접었다. 볼륨이 비어 있다"고 적었다. **볼륨이 비어 있는
