@@ -37,8 +37,19 @@ describe("resolveVerificationState", () => {
     expect(resolveVerificationState(row({ last_status: "done" }))).toBe("ran_empty");
   });
 
+  // Found by a real bulk run: cancelling 15 queued jobs left every one of them
+  // reading "실행됨 · 신규 0건", claiming a crawl that never started.
+  it("keeps a cancelled job out of the ran-empty state", () => {
+    expect(resolveVerificationState(row({ last_status: "cancelled" }))).toBe("cancelled");
+    expect(resolveVerificationState(row({ last_status: "cancelling" }))).toBe("cancelled");
+  });
+
+  it("still reports a site that collected before being cancelled later", () => {
+    expect(resolveVerificationState(row({ last_status: "cancelled", best_saved_count: 4 }))).toBe("collected");
+  });
+
   it("labels every state", () => {
-    for (const state of ["unrun", "collected", "ran_empty", "failed"] as const) {
+    for (const state of ["unrun", "collected", "ran_empty", "failed", "cancelled"] as const) {
       expect(VERIFICATION_LABEL[state]).toBeTruthy();
     }
   });
@@ -85,6 +96,11 @@ describe("describeVerification", () => {
   // The console must not turn 0 saved into a verdict; it points at the evidence.
   it("sends an empty run to the crawler log rather than judging it", () => {
     expect(describeVerification("healthy", "ran_empty", row())).toContain("크롤러 로그");
+  });
+
+  it("says a cancelled job may never have started", () => {
+    expect(describeVerification("healthy", "cancelled", row({ last_status: "cancelled" })))
+      .toContain("크롤러는 시작되지 않았습니다");
   });
 
   it("says the snapshot is all there is when nothing ran here", () => {

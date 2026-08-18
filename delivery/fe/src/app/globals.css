@@ -2509,6 +2509,10 @@ code {
   border-left-color: var(--rule);
 }
 
+.verify-tag--cancelled {
+  border-style: dashed;
+}
+
 .verify-tag--conflict {
   font-weight: 700;
   text-decoration: underline;

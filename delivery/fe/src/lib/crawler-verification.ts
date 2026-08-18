@@ -29,12 +29,18 @@ export type VerificationState =
   // fetch both land here, and only the job's captured output tells them apart.
   | "ran_empty"
   // The worker recorded a failure.
-  | "failed";
+  | "failed"
+  // Cancelled before it could finish -- most often cancelled straight out of
+  // the queue, so the crawler never ran at all. Kept apart from ran_empty
+  // because "실행됨 · 신규 0건" would claim a run that never happened, which is
+  // the same class of lie as reporting a blocked crawl as a success.
+  | "cancelled";
 
 export const resolveVerificationState = (row: VerificationRow | undefined): VerificationState => {
   if (!row || row.jobs === 0) return "unrun";
   if (row.best_saved_count > 0) return "collected";
   if (row.last_status === "failed") return "failed";
+  if (row.last_status === "cancelled" || row.last_status === "cancelling") return "cancelled";
   return "ran_empty";
 };
 
@@ -43,6 +49,7 @@ export const VERIFICATION_LABEL: Readonly<Record<VerificationState, string>> = {
   collected: "여기서 수집 확인",
   ran_empty: "실행됨 · 신규 0건",
   failed: "여기서 실패",
+  cancelled: "중지됨",
 };
 
 // True when this deployment's own evidence contradicts the delivered snapshot.
@@ -65,6 +72,9 @@ export const describeVerification = (
     return auditStatus === "unhealthy"
       ? `${runs}, 최대 ${best}건을 저장했습니다. 납품 검증은 실패였으나 이 네트워크에서는 동작합니다.`
       : `${runs}, 최대 ${best}건을 저장했습니다.`;
+  }
+  if (state === "cancelled") {
+    return `${runs}, 마지막 실행이 중지되었습니다. 대기 중 취소된 경우 크롤러는 시작되지 않았습니다.`;
   }
   if (state === "failed") {
     const error = row?.last_error ? ` (${row.last_error})` : "";
