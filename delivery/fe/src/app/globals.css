@@ -2578,3 +2578,9 @@ code {
 .queue-progress-line { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
 .queue-progress-eta { font-variant-numeric: tabular-nums; color: var(--muted); font-size: .9rem; }
 .queue-progress-note { margin: 0; font-size: .85rem; color: var(--muted); }
+
+/* Truncated crawl badge */
+
+.job-badge { display: inline-block; margin-left: .4rem; padding: .05rem .35rem; border-radius: 2px;
+             font-size: .75rem; font-weight: 650; white-space: nowrap; }
+.job-badge--cut { background: var(--sand-wash); color: var(--ink); }

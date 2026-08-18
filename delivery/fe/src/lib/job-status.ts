@@ -27,7 +27,12 @@ export type JobOutcomeInput = Readonly<{
   status: string;
   saved_count: number | null | undefined;
   error?: string | null;
+  truncated?: boolean | null;
 }>;
+
+// status 를 대체하지 않고 "완료" 옆에 붙는다. 잘린 실행도 저장한 문서는 유효하므로
+// 실패가 아니고, 그렇다고 다 받은 것도 아니다.
+export const TRUNCATED_BADGE = "부분 수집";
 
 // saved_count is the net increase in rows for the site (delivery/README.md,
 // "4. 수집 결과 읽는 법"): re-processing already-collected documents updates
@@ -46,11 +51,19 @@ export const describeJobOutcome = (job: JobOutcomeInput): string => {
   }
   if (job.status === "done") {
     const saved = job.saved_count ?? 0;
+    // 재실행하면 이어받는다고 쓰지 않는다. 확인한 사실: 800개 중 이미 받은 것을
+    // 건너뛰는 장치를 가진 크롤러는 사실상 없다(has_blob 0개, _last_save_created 0개,
+    // pdf_downloaded 조회 10개). 재실행은 1페이지부터 다시 걸어 같은 자리에서 또
+    // 잘린다. 실제 해결책은 워커의 LIBERTREE_MAX_WALL_S 를 늘리는 것뿐이다.
+    const cut = job.truncated
+      ? "시간 제한(기본 25분)에 걸려 남은 페이지를 건너뛰었습니다. 다시 실행해도 크롤러가 처음부터 다시 훑기 때문에 같은 지점에서 멈춥니다. "
+        + "이 사이트를 끝까지 받으려면 워커의 시간 제한을 늘려야 합니다(LIBERTREE_MAX_WALL_S). "
+      : "";
     if (saved === 0) {
-      return "신규 저장 0건입니다. DB에 새로 추가된 문서가 없다는 뜻이며 실패가 아닙니다. "
+      return cut + "신규 저장 0건입니다. DB에 새로 추가된 문서가 없다는 뜻이며 실패가 아닙니다. "
         + "이미 수집된 문서만 다시 처리했을 수 있습니다. 크롤러가 실제로 처리한 문서 수는 이 화면에서 확인할 수 없습니다.";
     }
-    return `신규 저장 ${saved.toLocaleString("ko-KR")}건입니다.`;
+    return cut + `신규 저장 ${saved.toLocaleString("ko-KR")}건입니다.`;
   }
   return "";
 };

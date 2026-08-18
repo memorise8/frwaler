@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CRAWL_JOB_STATUS_LABELS,
+  TRUNCATED_BADGE,
   describeJobOutcome,
   describeTrackingFailure,
   isTerminalJobStatus,
@@ -70,6 +71,42 @@ describe("describeJobOutcome", () => {
 
   it("has nothing to say about a job that is still in flight", () => {
     expect(describeJobOutcome({ status: "running", saved_count: 0 })).toBe("");
+  });
+});
+
+describe("truncated runs", () => {
+  // 잘린 수집도 status 는 done 이다. 배지는 "완료" 를 대체하지 않고 옆에 붙는다.
+  it("keeps the done label and adds a separate badge", () => {
+    expect(jobStatusLabel("done")).toBe("완료");
+    expect(TRUNCATED_BADGE).toBe("부분 수집");
+  });
+
+  it("tells the operator the run was cut short and what to do", () => {
+    const text = describeJobOutcome({ status: "done", saved_count: 40, truncated: true });
+    expect(text).toContain("시간 제한");
+    expect(text).toContain("40");
+    // 재실행은 해결책이 아니다 — 크롤러는 1페이지부터 다시 걷는다.
+    expect(text).toContain("시간 제한을 늘려");
+    expect(text).not.toContain("이어서");
+  });
+
+  it("says so even when a truncated run saved nothing", () => {
+    expect(describeJobOutcome({ status: "done", saved_count: 0, truncated: true }))
+      .toContain("시간 제한");
+  });
+
+  it("leaves an ordinary completed run's text untouched", () => {
+    const plain = describeJobOutcome({ status: "done", saved_count: 40 });
+    expect(plain).not.toContain("시간 제한");
+    expect(describeJobOutcome({ status: "done", saved_count: 40, truncated: false })).toBe(plain);
+  });
+
+  // 실패·취소는 잘림과 무관하다.
+  it("does not mention truncation for failed or cancelled jobs", () => {
+    expect(describeJobOutcome({ status: "failed", saved_count: 0, error: "boom", truncated: true }))
+      .not.toContain("시간 제한");
+    expect(describeJobOutcome({ status: "cancelled", saved_count: 0, truncated: true }))
+      .not.toContain("시간 제한");
   });
 });
 
