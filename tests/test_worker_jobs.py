@@ -269,6 +269,22 @@ class WorkerJobsTest(unittest.TestCase):
         queued = jobs.enqueue_job(self.conn, "s1")
         self.assertIsNone(jobs.retry_job(self.conn, queued))
 
+    def test_finish_job_records_truncation(self):
+        from delivery.worker import jobs
+        cut = jobs.enqueue_job(self.conn, "cut", requested_by="op")
+        whole = jobs.enqueue_job(self.conn, "whole", requested_by="op")
+        for jid in (cut, whole):
+            self.conn.execute("UPDATE crawl_jobs SET status='running' WHERE id=%s", (jid,))
+        self.conn.commit()
+        jobs.finish_job(self.conn, cut, saved_count=5, truncated=True)
+        jobs.finish_job(self.conn, whole, saved_count=5)
+        rows = {r["site_id"]: r for r in self.conn.execute(
+            "SELECT site_id, status, truncated FROM crawl_jobs").fetchall()}
+        self.assertTrue(rows["cut"]["truncated"])
+        self.assertFalse(rows["whole"]["truncated"])
+        # 잘렸어도 저장한 문서는 유효하다. status 는 여전히 done 이어야 한다.
+        self.assertEqual(rows["cut"]["status"], "done")
+
 
 if __name__ == "__main__":
     unittest.main()

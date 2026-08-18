@@ -339,6 +339,77 @@ class WorkerRunTest(unittest.TestCase):
         self.assertEqual(jobs.prune_crawler_output(self.conn, retention_days=-5), 0)
         self.assertEqual(self._counts(jid), (2, 3))
 
+    # --- truncation ------------------------------------------------------
+
+    def test_slow_crawl_is_recorded_as_truncated(self):
+        import time
+        from unittest import mock
+        from delivery.worker import jobs, worker
+        class SlowCrawler(_FakeCrawler):
+            def crawl(self, limit=None):
+                time.sleep(2.5)
+        jid = jobs.enqueue_job(self.conn, "fake", mode="incremental")
+        job = jobs.claim_next_job(self.conn)
+        with mock.patch.dict(os.environ, {"LIBERTREE_MAX_WALL_S": "2"}):
+            worker.run_job(self.conn, job, crawler_registry={"fake": SlowCrawler}, delay=0)
+        row = self.conn.execute("SELECT status, truncated FROM crawl_jobs WHERE id=%s", (jid,)).fetchone()
+        self.assertEqual(row["status"], "done")
+        self.assertTrue(row["truncated"])
+
+    def test_quick_crawl_is_not_truncated(self):
+        from unittest import mock
+        from delivery.worker import jobs, worker
+        jid = jobs.enqueue_job(self.conn, "fake", mode="incremental")
+        job = jobs.claim_next_job(self.conn)
+        with mock.patch.dict(os.environ, {"LIBERTREE_MAX_WALL_S": "2"}):
+            worker.run_job(self.conn, job, crawler_registry={"fake": _FakeCrawler}, delay=0)
+        row = self.conn.execute("SELECT truncated FROM crawl_jobs WHERE id=%s", (jid,)).fetchone()
+        self.assertFalse(row["truncated"])
+
+    # 오래 돌다 취소된 것과 예산에 잘린 것은 다른 사건이다.
+    def test_cancelled_slow_crawl_is_not_marked_truncated(self):
+        import time
+        from unittest import mock
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+        class SlowCancellable(BaseCrawler):
+            site_id="fake";site_name="Fake";base_url="https://fake.example"
+            def crawl(self, limit=None):
+                time.sleep(2.5)
+                self._check_cancelled()
+        jid = jobs.enqueue_job(self.conn, "fake", mode="incremental")
+        job = jobs.claim_next_job(self.conn)
+        jobs.cancel_job(self.conn, jid)
+        with mock.patch.dict(os.environ, {"LIBERTREE_MAX_WALL_S": "2"}):
+            worker.run_job(self.conn, job, {"fake": SlowCancellable}, delay=0, should_cancel=lambda: True)
+        row = self.conn.execute("SELECT truncated FROM crawl_jobs WHERE id=%s", (jid,)).fetchone()
+        self.assertFalse(row["truncated"])
+
+    # 실패는 실패다.
+    def test_slow_failing_crawl_is_not_marked_truncated(self):
+        import time
+        from unittest import mock
+        from delivery.worker import jobs, worker
+        class SlowBroken(_FakeCrawler):
+            def crawl(self, limit=None):
+                time.sleep(2.5)
+                raise RuntimeError("boom")
+        jid = jobs.enqueue_job(self.conn, "fake", mode="incremental")
+        job = jobs.claim_next_job(self.conn)
+        with mock.patch.dict(os.environ, {"LIBERTREE_MAX_WALL_S": "2"}):
+            worker.run_job(self.conn, job, crawler_registry={"fake": SlowBroken}, delay=0)
+        row = self.conn.execute("SELECT status, truncated FROM crawl_jobs WHERE id=%s", (jid,)).fetchone()
+        self.assertEqual(row["status"], "failed")
+        self.assertFalse(row["truncated"])
+
+    def test_truncation_threshold_scales_with_the_budget(self):
+        from unittest import mock
+        from delivery.worker import worker
+        with mock.patch.dict(os.environ, {"LIBERTREE_MAX_WALL_S": "1500"}):
+            self.assertAlmostEqual(worker.truncation_threshold_seconds(), 1440.0, places=3)
+        # 테스트가 예산을 낮게 잡아도 임계가 음수로 무너지지 않아야 한다.
+        with mock.patch.dict(os.environ, {"LIBERTREE_MAX_WALL_S": "2"}):
+            self.assertAlmostEqual(worker.truncation_threshold_seconds(), 1.8, places=3)
 
 
 if __name__ == "__main__":

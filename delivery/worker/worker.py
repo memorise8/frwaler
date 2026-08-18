@@ -31,6 +31,28 @@ _last_job_log_prune = 0.0
 # of rows per job.
 CRAWL_OUTPUT_LINES = int(os.environ.get("LIBERTREE_JOB_LOG_LINES", "40"))
 
+# 예산에 근접한 시간을 쓰고 예외 없이 돌아온 수집은 잘린 것으로 본다.
+#
+# 크롤러가 찍는 문구로 판별하는 방법을 먼저 검토했다가 버렸다: 문구가 8종 이상으로
+# 제각각인 데다, 크롤러 663개가 문서 제목을 stdout 으로 흘린다. 공공기관 수집기라
+# "Budget 2026: stopping inflation" 같은 평범한 제목이 규칙에 걸린다. 경과 시간에는
+# 그런 오탐이 없고, 아무 문구도 찍지 않는 94개까지 함께 잡힌다.
+#
+# 여유 60초는 확인된 최대치의 두 배다 -- 크롤러 25개가 자기 예산에서 30초를 빼고
+# 미리 빠져나간다. budget*0.1 항은 테스트가 예산을 몇 초로 낮춰도 임계가 음수로
+# 무너지지 않게 한다.
+_TRUNCATION_MARGIN_S = 60.0
+
+
+def wall_budget_seconds() -> float:
+    """크롤러가 읽는 것과 같은 예산. 호출 시점에 읽는다(테스트가 낮출 수 있도록)."""
+    return float(os.environ.get("LIBERTREE_MAX_WALL_S", 25 * 60))
+
+
+def truncation_threshold_seconds() -> float:
+    budget = wall_budget_seconds()
+    return budget - min(_TRUNCATION_MARGIN_S, budget * 0.1)
+
 
 class _TeeCapture:
     """Mirror a crawler's stdout to the container log while keeping the tail.
@@ -101,6 +123,7 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
     def record_output():
         jobs.log_crawler_output(conn, job["id"], capture.lines())
 
+    started = time.monotonic()
     try:
         with redirect_stdout(capture):
             inst = cls(db_conn=conn, delay=delay)
@@ -121,7 +144,11 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
         record_output()
         return 0
     saved = _count_site_docs(conn, site_id) - before
-    jobs.finish_job(conn, job["id"], saved_count=max(0, saved))
+    # 예산에 걸려 남은 페이지를 건너뛰고 정상 반환한 경우. 취소·실패 경로에서는
+    # 판정하지 않는다 -- 그것들은 각자의 상태가 있고, 오래 돌다 취소된 것을
+    # "잘렸다"고 부르면 두 사건이 뒤섞인다.
+    truncated = (time.monotonic() - started) >= truncation_threshold_seconds()
+    jobs.finish_job(conn, job["id"], saved_count=max(0, saved), truncated=truncated)
     record_output()
     return max(0, saved)
 

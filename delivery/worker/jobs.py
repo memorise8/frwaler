@@ -185,15 +185,18 @@ def retry_job(conn, job_id, *, requested_by=None) -> Optional[dict]:
     return dict(row)
 
 
-def finish_job(conn, job_id, saved_count) -> None:
+def finish_job(conn, job_id, saved_count, *, truncated: bool = False) -> None:
     row = conn.execute(
         """UPDATE crawl_jobs SET status='done', saved_count=%s, finished_at=clock_timestamp(),
-               worker_id=NULL,lease_expires_at=NULL
+               worker_id=NULL,lease_expires_at=NULL,truncated=%s
             WHERE id=%s AND status='running' RETURNING status""",
-        (int(saved_count or 0), job_id),
+        (int(saved_count or 0), bool(truncated), job_id),
     ).fetchone()
     if row:
-        _log(conn,job_id,"completed",f"수집 완료: 신규 문서 {int(saved_count or 0)}건")
+        message = f"수집 완료: 신규 문서 {int(saved_count or 0)}건"
+        if truncated:
+            message += " (시간 제한으로 남은 페이지를 건너뛰었습니다)"
+        _log(conn,job_id,"completed",message)
     else:
         cancelled = conn.execute(
             """UPDATE crawl_jobs SET status='cancelled', saved_count=%s, finished_at=clock_timestamp(),
