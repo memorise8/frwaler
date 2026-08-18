@@ -19,7 +19,7 @@ from . import jobs
 from . import schedules
 from delivery.translation import jobs as translation_jobs
 from delivery.translation.providers import provider_from_env
-from crawler.base_crawler import CrawlCancelled
+from crawler.base_crawler import CrawlCancelled, CrawlUpToDate
 from delivery.translation.observations import prune as prune_observations, record as record_observation
 
 _last_observation_prune = 0.0
@@ -105,6 +105,16 @@ def _count_site_docs(conn, site_id) -> int:
     return int(row["n"])
 
 
+def _persist_advance(conn, site_id, inst, start_cursor) -> bool:
+    """크롤러가 보고한 전진을 저장. 전진 없으면 False (저장도 없음)."""
+    pending = getattr(inst, "delivery_pending_cursor", None)
+    if pending is None or pending == start_cursor:
+        return False
+    jobs.save_progress(conn, site_id, pending,
+                       items_delta=getattr(inst, "delivery_cursor_items_done", 0))
+    return True
+
+
 def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> int:
     """Run one claimed job. Returns saved doc count (0 on failure)."""
     os.environ.setdefault("LIBERTREE_DB_BACKEND", "postgres")
@@ -123,6 +133,15 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
     def record_output():
         jobs.log_crawler_output(conn, job["id"], capture.lines())
 
+    # 재개(cursor) 계약: backfill 은 늘 이전 커서에서, oldest_first incremental
+    # 도 마찬가지다 (신규가 오래된 쪽부터 온다). newest_first/arbitrary
+    # incremental 은 커서 없이 처음부터 다시 훑는다 -- CrawlUpToDate 가 그 경계다.
+    mode = job.get("mode", "incremental")
+    order = getattr(cls, "DELIVERY_ORDER", "arbitrary")
+    start_cursor = None
+    if mode == "backfill" or (mode == "incremental" and order == "oldest_first"):
+        start_cursor = jobs.load_cursor(conn, site_id)
+
     # Computed before the crawl runs: a malformed LIBERTREE_MAX_WALL_S must fail
     # here, not after a successful crawl -- failing late orphans a completed
     # crawl as a stuck `running` row.
@@ -131,13 +150,23 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
     try:
         with redirect_stdout(capture):
             inst = cls(db_conn=conn, delay=delay)
-            inst.delivery_mode = job.get("mode", "incremental")
+            inst.delivery_mode = mode
             inst.delivery_should_cancel = should_cancel or (lambda: False)
+            inst.delivery_cursor = start_cursor
             inst.crawl(limit=job.get("limit_n"))
+    except CrawlUpToDate:
+        # 신규분이 소진됐다는 정상 신호 -- 완료로 종결하고 잘림 판정은 하지 않는다.
+        conn.rollback()
+        saved = max(0, _count_site_docs(conn, site_id) - before)
+        jobs.finish_job(conn, job["id"], saved_count=saved)
+        record_output()
+        return saved
     except CrawlCancelled:
         conn.rollback()
         saved = max(0, _count_site_docs(conn, site_id) - before)
         jobs.finish_job(conn, job["id"], saved_count=saved)
+        # 취소여도 걸은 만큼은 진짜다: 커서는 남기고, 체인(재큐잉)만 끊는다.
+        _persist_advance(conn, site_id, inst, start_cursor)
         record_output()
         return saved
     except Exception as exc:  # noqa: BLE001
@@ -153,6 +182,18 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
     # "잘렸다"고 부르면 두 사건이 뒤섞인다.
     truncated = (time.monotonic() - started) >= threshold
     jobs.finish_job(conn, job["id"], saved_count=max(0, saved), truncated=truncated)
+    advanced = _persist_advance(conn, site_id, inst, start_cursor)
+    if mode == "backfill":
+        if truncated and advanced:
+            # 전진이 재큐잉의 유일한 면허다. 새 INSERT 는 created_at 순서상 큐 맨 뒤.
+            jobs.enqueue_job(conn, site_id, mode="backfill",
+                             limit_n=job.get("limit_n"), requested_by="auto-backfill")
+        elif truncated:
+            jobs._log(conn, job["id"], "stalled",
+                      "잘렸지만 커서가 전진하지 않아 자동 재큐잉을 멈춥니다.")
+            conn.commit()
+        else:
+            jobs.mark_backfill_complete(conn, site_id)
     record_output()
     return max(0, saved)
 

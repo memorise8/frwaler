@@ -440,6 +440,182 @@ class WorkerRunTest(unittest.TestCase):
         with self.assertRaises(CrawlUpToDate):
             inst.crawl()
 
+    # --- cursor contract: inject, persist, auto-requeue, no-advance guard -
+
+    def test_truncated_backfill_saves_cursor_and_requeues_at_tail(self):
+        # 커서에서 시작해 두 페이지 걷고 각각 _advance_cursor 보고; 테스트가
+        # 예산을 0에 가깝게 줄여 잘림 판정을 강제한다.
+        import time as _time
+        from unittest import mock
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+
+        class PagedBackfillCrawler(BaseCrawler):
+            site_id = "rc-backfill-a"
+            site_name = "RC Backfill A"
+            base_url = "https://rc-backfill-a.example"
+
+            def crawl(self, limit=None):
+                page = (self.delivery_cursor or {}).get("page", 1)
+                for _ in range(2):
+                    _time.sleep(0.02)
+                    page += 1
+                    self._advance_cursor({"page": page})
+
+        jobs.enqueue_job(self.conn, "rc-backfill-a", mode="backfill")
+        job = jobs.claim_next_job(self.conn)
+        with mock.patch.dict(os.environ, {"LIBERTREE_MAX_WALL_S": "0.01"}):
+            worker.run_job(self.conn, job, crawler_registry={"rc-backfill-a": PagedBackfillCrawler}, delay=0)
+        cur = jobs.load_cursor(self.conn, "rc-backfill-a")
+        self.assertEqual(cur, {"page": 3})
+        tail = self.conn.execute(
+            "SELECT site_id, mode, status FROM crawl_jobs ORDER BY created_at DESC, id DESC LIMIT 1"
+        ).fetchone()
+        self.assertEqual((tail["site_id"], tail["mode"], tail["status"]),
+                         ("rc-backfill-a", "backfill", "queued"))
+
+    def test_no_advance_means_no_requeue(self):
+        # _advance_cursor 를 한 번도 부르지 않는 가짜 크롤러 + 잘림 강제.
+        import time as _time
+        from unittest import mock
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+
+        class StuckBackfillCrawler(BaseCrawler):
+            site_id = "rc-backfill-stuck"
+            site_name = "RC Backfill Stuck"
+            base_url = "https://rc-backfill-stuck.example"
+
+            def crawl(self, limit=None):
+                _time.sleep(0.02)
+
+        before = self.conn.execute("SELECT count(*) AS n FROM crawl_jobs").fetchone()["n"]
+        jobs.enqueue_job(self.conn, "rc-backfill-stuck", mode="backfill")
+        job = jobs.claim_next_job(self.conn)
+        with mock.patch.dict(os.environ, {"LIBERTREE_MAX_WALL_S": "0.01"}):
+            worker.run_job(self.conn, job, crawler_registry={"rc-backfill-stuck": StuckBackfillCrawler}, delay=0)
+        after = self.conn.execute("SELECT count(*) AS n FROM crawl_jobs").fetchone()["n"]
+        self.assertEqual(after, before + 1)  # 재큐잉 없음 (원 작업 1건뿐)
+
+    def test_completed_backfill_marks_done_and_stops_chain(self):
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+
+        class DoneBackfillCrawler(BaseCrawler):
+            site_id = "rc-backfill-done"
+            site_name = "RC Backfill Done"
+            base_url = "https://rc-backfill-done.example"
+
+            def crawl(self, limit=None):
+                self._advance_cursor({"page": 9})
+
+        jobs.enqueue_job(self.conn, "rc-backfill-done", mode="backfill")
+        job = jobs.claim_next_job(self.conn)
+        worker.run_job(self.conn, job, crawler_registry={"rc-backfill-done": DoneBackfillCrawler}, delay=0)
+        row = self.conn.execute(
+            "SELECT completed_at, cursor FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-backfill-done",)).fetchone()
+        self.assertIsNotNone(row["completed_at"])
+        self.assertIsNotNone(row["cursor"])     # 커서는 지우지 않는다
+        tail = self.conn.execute(
+            "SELECT count(*) AS n FROM crawl_jobs WHERE site_id=%s AND status='queued'",
+            ("rc-backfill-done",)).fetchone()
+        self.assertEqual(tail["n"], 0)
+
+    def test_cancelled_backfill_saves_cursor_but_breaks_chain(self):
+        # 기존 취소 테스트 픽스처(jobs.cancel_job + should_cancel + _check_cancelled)를
+        # 그대로 재사용한다: 취소 경로에서 커서는 저장, 재큐잉은 없음.
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+
+        class CancellableBackfillCrawler(BaseCrawler):
+            site_id = "rc-backfill-cancel"
+            site_name = "RC Backfill Cancel"
+            base_url = "https://rc-backfill-cancel.example"
+
+            def crawl(self, limit=None):
+                self._advance_cursor({"page": 2})
+                self._check_cancelled()
+
+        jid = jobs.enqueue_job(self.conn, "rc-backfill-cancel", mode="backfill")
+        job = jobs.claim_next_job(self.conn)
+        jobs.cancel_job(self.conn, jid)
+        worker.run_job(self.conn, job, {"rc-backfill-cancel": CancellableBackfillCrawler},
+                       delay=0, should_cancel=lambda: True)
+        row = self.conn.execute("SELECT status FROM crawl_jobs WHERE id=%s", (jid,)).fetchone()
+        self.assertEqual(row["status"], "cancelled")
+        self.assertEqual(jobs.load_cursor(self.conn, "rc-backfill-cancel"), {"page": 2})
+        tail = self.conn.execute(
+            "SELECT count(*) AS n FROM crawl_jobs WHERE site_id=%s AND status='queued'",
+            ("rc-backfill-cancel",)).fetchone()
+        self.assertEqual(tail["n"], 0)
+
+    def test_failed_backfill_keeps_previous_cursor(self):
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+
+        class BoomBackfillCrawler(BaseCrawler):
+            site_id = "rc-backfill-boom"
+            site_name = "RC Backfill Boom"
+            base_url = "https://rc-backfill-boom.example"
+
+            def crawl(self, limit=None):
+                raise RuntimeError("boom")
+
+        jobs.save_progress(self.conn, "rc-backfill-boom", {"page": 7})
+        jobs.enqueue_job(self.conn, "rc-backfill-boom", mode="backfill")
+        job = jobs.claim_next_job(self.conn)
+        worker.run_job(self.conn, job, crawler_registry={"rc-backfill-boom": BoomBackfillCrawler}, delay=0)
+        self.assertEqual(jobs.load_cursor(self.conn, "rc-backfill-boom"), {"page": 7})
+
+    def test_up_to_date_is_finished_as_plain_done(self):
+        from crawler.base_crawler import BaseCrawler, CrawlUpToDate
+        from delivery.worker import jobs, worker
+
+        class UpToDateNowCrawler(BaseCrawler):
+            site_id = "rc-uptodate2"
+            site_name = "RC UpToDate 2"
+            base_url = "https://rc-uptodate2.example"
+
+            def crawl(self, limit=None):
+                raise CrawlUpToDate("already have everything")
+
+        jid = jobs.enqueue_job(self.conn, "rc-uptodate2", mode="incremental")
+        job = jobs.claim_next_job(self.conn)
+        worker.run_job(self.conn, job, crawler_registry={"rc-uptodate2": UpToDateNowCrawler}, delay=0)
+        row = self.conn.execute(
+            "SELECT status, truncated FROM crawl_jobs WHERE id=%s", (jid,)).fetchone()
+        self.assertEqual((row["status"], row["truncated"]), ("done", False))
+
+    def test_oldest_first_incremental_gets_cursor_and_persists_advance(self):
+        # DELIVERY_ORDER="oldest_first" 는 incremental 이어도 커서를 받는다.
+        # 단, incremental 은 잘려도 재큐잉하지 않는다 (backfill 전용).
+        import time as _time
+        from unittest import mock
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+
+        class OldestFirstCrawler(BaseCrawler):
+            site_id = "rc-oldest"
+            site_name = "RC Oldest"
+            base_url = "https://rc-oldest.example"
+            DELIVERY_ORDER = "oldest_first"
+
+            def crawl(self, limit=None):
+                _time.sleep(0.02)
+                offset = self.delivery_cursor["offset"]
+                self._advance_cursor({"offset": offset + 60})
+
+        jobs.save_progress(self.conn, "rc-oldest", {"offset": 60})
+        jobs.enqueue_job(self.conn, "rc-oldest", mode="incremental")
+        job = jobs.claim_next_job(self.conn)
+        with mock.patch.dict(os.environ, {"LIBERTREE_MAX_WALL_S": "0.01"}):
+            worker.run_job(self.conn, job, crawler_registry={"rc-oldest": OldestFirstCrawler}, delay=0)
+        self.assertEqual(jobs.load_cursor(self.conn, "rc-oldest"), {"offset": 120})
+        tail = self.conn.execute(
+            "SELECT count(*) AS n FROM crawl_jobs WHERE site_id=%s", ("rc-oldest",)).fetchone()
+        self.assertEqual(tail["n"], 1)  # 잘렸어도 incremental 은 재큐잉하지 않는다
+
 
 if __name__ == "__main__":
     unittest.main()
