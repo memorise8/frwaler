@@ -13,6 +13,10 @@
    docker compose -f delivery/docker-compose.yml --profile tools run --rm --build migrate
    ```
 
+   `--build`가 필요한 이유: `migrate`는 프로파일 뒤에 있어 평소의 전체 빌드가
+   건너뛰므로, 이 플래그가 없으면 캐시된 옛 이미지가 옛 스키마 코드로 조용히
+   `PASS`를 찍을 수 있습니다(아래 「주 경로」 절의 설명 참조).
+
 7. BE read-only smoke 후 Worker를 시작하되 작업은 자동 등록하지 않는다.
 8. 고객이 요청한 소량 배치부터 시작한다.
 
