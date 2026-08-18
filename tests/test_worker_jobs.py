@@ -332,6 +332,27 @@ class WorkerJobsTest(unittest.TestCase):
             ("rc-resurrected-site",)).fetchone()
         self.assertIsNone(row["completed_at"])
 
+    def test_save_progress_with_clear_completed_false_keeps_completed_at(self):
+        # oldest_first 증분이 완주한 사이트에서도 정상적으로 커서를 전진시키는
+        # 건 루틴 동작이다(worker 의 _persist_advance 가 mode="incremental" 일
+        # 때 이 값을 쓴다) -- 그때마다 completed_at 을 지우면 화면이 거꾸로
+        # 거짓을 말한다. 커서 자체는 그래도 전진한다.
+        from delivery.worker import jobs
+        jobs.save_progress(self.conn, "rc-still-done-site", {"offset": 900}, items_delta=900)
+        jobs.mark_backfill_complete(self.conn, "rc-still-done-site")
+        row = self.conn.execute(
+            "SELECT completed_at FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-still-done-site",)).fetchone()
+        self.assertIsNotNone(row["completed_at"])
+
+        jobs.save_progress(self.conn, "rc-still-done-site", {"offset": 950}, items_delta=50,
+                           clear_completed=False)
+        row = self.conn.execute(
+            "SELECT completed_at, cursor FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-still-done-site",)).fetchone()
+        self.assertIsNotNone(row["completed_at"])  # 여전히 완주 상태
+        self.assertEqual(row["cursor"], {"offset": 950})  # 커서는 그래도 전진했다
+
     def test_backfill_mode_passes_the_db_check_constraint(self):
         from delivery.worker import jobs
         # BE Literal 만이 아니라 DB CHECK 도 backfill 을 받아야 한다 —

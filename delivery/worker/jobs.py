@@ -378,23 +378,25 @@ def load_cursor(conn, site_id) -> Optional[dict]:
     return dict(row["cursor"])
 
 
-def save_progress(conn, site_id, cursor: dict, items_delta: int = 0) -> None:
+def save_progress(conn, site_id, cursor: dict, items_delta: int = 0, *,
+                  clear_completed: bool = True) -> None:
     """커서 업서트 + items_done 누적. 워커의 종결 전이와 같은 결로 커밋한다.
 
-    completed_at 을 함께 NULL 로 되돌린다: 커서가 전진했다는 것은 그 사이트가
-    아직 끝나지 않았다는 증거다. mark_backfill_complete 뒤에도 oldest_first
-    증분이나 뒤늦은 백필 조각이 다시 커서를 전진시킬 수 있고, 그때 완주
-    표시가 남아 있으면 화면이 거짓을 말한다.
+    clear_completed=True(기본)면 completed_at 을 함께 NULL 로 되돌린다: backfill
+    전진은 그 사이트가 아직 끝나지 않았다는 증거이기 때문이다. clear_completed=False
+    는 oldest_first incremental 전진처럼 이미 완주한 사이트에서도 정상적으로
+    일어나는 루틴 동작을 위한 것이다 -- 그런 전진마다 완주 표시를 지우면 화면이
+    거꾸로 거짓을 말하게 된다.
     """
+    completed_clause = ", completed_at = NULL" if clear_completed else ""
     conn.execute(
-        """
+        f"""
         INSERT INTO crawl_site_progress (site_id, cursor, items_done, updated_at)
         VALUES (%s, %s::jsonb, %s, now())
         ON CONFLICT (site_id) DO UPDATE
            SET cursor = EXCLUDED.cursor,
                items_done = crawl_site_progress.items_done + EXCLUDED.items_done,
-               updated_at = now(),
-               completed_at = NULL
+               updated_at = now(){completed_clause}
         """,
         (site_id, json.dumps(cursor), int(items_delta)),
     )

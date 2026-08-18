@@ -75,6 +75,83 @@ class _NetworkAttempt(BaseException):
     """fetch 시도 감지용 센티널 -- BaseException 이라 크롤러의 except Exception 이 못 삼킨다."""
 
 
+class ExhaustionSignalFailureVsEmptyTest(unittest.TestCase):
+    """fetch 실패와 빈 목록을 같은 falsy 값으로 합쳐 반환하면 안 된다.
+
+    2026-08-18 Probe G: data-gov-au-data 가 2페이지를 걷다 curl 이 일시적으로
+    실패하자 그 사이트가 영구히 "완주"로 표시됐다 -- 목록 헬퍼가 "요청 실패"와
+    "정말 빈 페이지"를 같은 falsy 값(빈 리스트/딕트)으로 뭉뚱그려 반환했고,
+    호출부는 그 값을 그대로 자연 종료 신호로 읽어 `_mark_exhausted()`를
+    불렀기 때문이다. `test_active_targets_follow_the_cursor_pattern`의 문자열
+    검사는 `_mark_exhausted`가 파일 안 어딘가에 있는지만 보므로 이 버그를
+    전혀 잡지 못한다 -- 이 테스트는 대신 헬퍼를 실제로 실패/빈 값으로 세워
+    `crawl()`을 행위로 검증한다.
+
+    표는 최소 5개 수정 대상 + 3개 대조군(원래도 올바르게 구분하던 파일)을
+    담는다: (site_id, 목록 헬퍼 속성명, 실패 시 반환값, 성공했지만 빈 결과일
+    때 반환값). 헬퍼를 인스턴스 레벨에서 각 값으로 고정하면 crawl()은 첫
+    호출만으로 루프를 빠져나온다(둘 다 continuation 이 아니라 break 조건이므로
+    무한 루프가 될 수 없다). 센티널 패치는 헬퍼 바깥에서 실제 네트워크 호출이
+    하나라도 일어나면 그 자체로 실패하게 만드는 안전망이다.
+    """
+
+    TABLE = [
+        # --- 2026-08-18 fix round 2: 실패/빈값이 합쳐져 있던 5개 -----------
+        ("inserm-hal-science-search", "_fetch_page",
+         None, {"response": {"docs": []}}),
+        ("data-gov-au-data", "_fetch_page",
+         None, []),
+        ("etis-ee-portal", "_search_page",
+         None, {"Items": []}),
+        ("ots-at-pressemappe", "_fetch_list_page",
+         None, []),
+        ("e-stat-go-jp-stat-search", "_fetch_list_page",
+         (None, False), ([], False)),
+        # --- 대조군: 원래도 실패(None)와 빈 결과를 구분하던 파일들 --------
+        ("doaj-org-search", "_curl_get",
+         None, '{"results": []}'),
+        ("amu-hal-science-search", "_fetch_page",
+         None, {"response": {"docs": []}}),
+        ("sonar-ch-global", "_fetch_page",
+         None, {"hits": {"hits": []}}),
+    ]
+
+    def _probe(self, site_id, helper_attr, stub_value):
+        import subprocess
+        import urllib.request
+
+        import requests
+
+        from crawler.sites import CRAWLERS
+
+        def _boom(*a, **k):
+            raise _NetworkAttempt()
+
+        cls = CRAWLERS[site_id]
+        inst = cls(db_conn=None)
+        inst.delivery_mode = "backfill"
+        inst.delivery_cursor = None
+        with mock.patch.object(inst, helper_attr, return_value=stub_value),                 mock.patch.object(subprocess, "run", _boom),                 mock.patch.object(subprocess, "check_output", _boom),                 mock.patch.object(subprocess, "Popen", _boom),                 mock.patch.object(urllib.request, "urlopen", _boom),                 mock.patch.object(requests.Session, "request", _boom),                 mock.patch.object(requests, "get", _boom),                 mock.patch.object(requests, "post", _boom),                 mock.patch.dict(os.environ, {"LIBERTREE_DB_BACKEND": "postgres"}):
+            inst.crawl(limit=None)
+        return inst.delivery_exhausted
+
+    def test_fetch_failure_never_sets_exhausted(self):
+        for site_id, helper_attr, failure_value, _empty_value in self.TABLE:
+            with self.subTest(site=site_id):
+                self.assertFalse(
+                    self._probe(site_id, helper_attr, failure_value),
+                    f"{site_id}: a failed fetch ({failure_value!r} from "
+                    f"{helper_attr}) must not read as list exhaustion")
+
+    def test_genuinely_empty_page_sets_exhausted(self):
+        for site_id, helper_attr, _failure_value, empty_value in self.TABLE:
+            with self.subTest(site=site_id):
+                self.assertTrue(
+                    self._probe(site_id, helper_attr, empty_value),
+                    f"{site_id}: a genuinely empty page ({empty_value!r} from "
+                    f"{helper_attr}) must set delivery_exhausted")
+
+
 class ResumeEntersLoopTest(unittest.TestCase):
     """거대 커서로 재개해도 모든 대상이 최소 1회 fetch 를 시도해야 한다.
 

@@ -407,7 +407,11 @@ class InsermHalScienceSearchCrawler(BaseCrawler):
                 print(f"[{self.site_id}] list fetch error at start={start}: {exc}")
                 break
 
-            response = (data or {}).get("response") or {}
+            if data is None:
+                print(f"[{self.site_id}] list fetch failed at start={start}; stopping")
+                break
+
+            response = data.get("response") or {}
             items = response.get("docs") or []
 
             if total is None:

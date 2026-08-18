@@ -131,6 +131,12 @@ class OtsAtPressemappeCrawler(BaseCrawler):
     # ------------------------------------------------------------------ #
 
     def _fetch_list_page(self, page):
+        """Fetch one page of the press-release list.
+
+        Returns the list of items on success (an empty list means the list
+        genuinely ended). Returns None on a transient fetch/parse failure so
+        the caller can tell that apart from a real end of pagination.
+        """
         params = {
             "query": "",
             "page": page,
@@ -139,7 +145,7 @@ class OtsAtPressemappeCrawler(BaseCrawler):
         }
         data = self._get(f"{_API_BASE}/search", params=params, as_json=True)
         if not data or not isinstance(data, dict):
-            return []
+            return None
         return data.get("result") or []
 
     # ------------------------------------------------------------------ #
@@ -275,6 +281,9 @@ class OtsAtPressemappeCrawler(BaseCrawler):
                 print(f"[{self.site_id}] page {page}: saved {saved}/{limit_str}")
 
             items = self._fetch_list_page(page)
+            if items is None:
+                print(f"[{self.site_id}] page {page} fetch failed, stopping pagination")
+                break
             if not items:
                 print(f"[{self.site_id}] page {page} returned no items, stopping pagination")
                 self._mark_exhausted()

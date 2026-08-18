@@ -857,6 +857,102 @@ class WorkerRunTest(unittest.TestCase):
             ("rc-backfill-late-cancel",)).fetchone()
         self.assertEqual(queued["n"], 0)
 
+    # --- fix round 2: clear_completed + up-to-date/cancel symmetry -------
+
+    def test_oldest_first_incremental_advance_does_not_clear_completed_at(self):
+        # oldest_first 증분이 완주한 사이트에서도 정상적으로 커서를 전진시키는
+        # 건 루틴 동작이다 -- completed_at 을 지우면 화면이 거꾸로 "아직
+        # 안 끝났다"고 거짓말하게 된다.
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+
+        class OldestFirstAfterComplete(BaseCrawler):
+            site_id = "rc-oldest-after-complete"
+            site_name = "RC Oldest After Complete"
+            base_url = "https://rc-oldest-after-complete.example"
+            DELIVERY_ORDER = "oldest_first"
+
+            def crawl(self, limit=None):
+                offset = self.delivery_cursor["offset"]
+                self._advance_cursor({"offset": offset + 10})
+
+        jobs.save_progress(self.conn, "rc-oldest-after-complete", {"offset": 100})
+        jobs.mark_backfill_complete(self.conn, "rc-oldest-after-complete")
+        row = self.conn.execute(
+            "SELECT completed_at FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-oldest-after-complete",)).fetchone()
+        self.assertIsNotNone(row["completed_at"])
+
+        jobs.enqueue_job(self.conn, "rc-oldest-after-complete", mode="incremental")
+        job = jobs.claim_next_job(self.conn)
+        worker.run_job(self.conn, job,
+                       crawler_registry={"rc-oldest-after-complete": OldestFirstAfterComplete}, delay=0)
+        row = self.conn.execute(
+            "SELECT completed_at FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-oldest-after-complete",)).fetchone()
+        self.assertIsNotNone(row["completed_at"])  # 여전히 완주 상태
+        self.assertEqual(jobs.load_cursor(self.conn, "rc-oldest-after-complete"), {"offset": 110})
+
+    def test_backfill_advance_on_a_completed_site_clears_completed_at(self):
+        # backfill 이 완주한 사이트에서 전진했다는 것은(재개된 백필이든 아니든)
+        # 그 사이트가 지금은 끝나지 않았다는 증거이므로 completed_at 을 지운다.
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+
+        class ReopenedBackfillCrawler(BaseCrawler):
+            site_id = "rc-backfill-reopened"
+            site_name = "RC Backfill Reopened"
+            base_url = "https://rc-backfill-reopened.example"
+
+            def crawl(self, limit=None):
+                offset = (self.delivery_cursor or {}).get("offset", 0)
+                self._advance_cursor({"offset": offset + 10}, items_done=1)
+
+        jobs.save_progress(self.conn, "rc-backfill-reopened", {"offset": 100})
+        jobs.mark_backfill_complete(self.conn, "rc-backfill-reopened")
+        row = self.conn.execute(
+            "SELECT completed_at FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-backfill-reopened",)).fetchone()
+        self.assertIsNotNone(row["completed_at"])
+
+        jobs.enqueue_job(self.conn, "rc-backfill-reopened", mode="backfill")
+        job = jobs.claim_next_job(self.conn)
+        worker.run_job(self.conn, job,
+                       crawler_registry={"rc-backfill-reopened": ReopenedBackfillCrawler}, delay=0)
+        row = self.conn.execute(
+            "SELECT completed_at FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-backfill-reopened",)).fetchone()
+        self.assertIsNone(row["completed_at"])
+
+    def test_backfill_up_to_date_with_concurrent_cancel_does_not_complete(self):
+        # LOW: CrawlUpToDate 경로도 정상 반환 경로와 대칭이어야 한다 -- 취소가
+        # up-to-date 도달과 동시에 도착하면(finish_job 이 cancelling->cancelled
+        # 로 떨어지면) 커서는 저장하되 완주로 표시하지 않는다.
+        from crawler.base_crawler import BaseCrawler, CrawlUpToDate
+        from delivery.worker import jobs, worker
+
+        class UpToDateCancelledCrawler(BaseCrawler):
+            site_id = "rc-backfill-uptodate-cancel"
+            site_name = "RC Backfill UpToDate Cancel"
+            base_url = "https://rc-backfill-uptodate-cancel.example"
+
+            def crawl(self, limit=None):
+                self._advance_cursor({"page": 5}, items_done=2)
+                raise CrawlUpToDate("already have everything")
+
+        jid = jobs.enqueue_job(self.conn, "rc-backfill-uptodate-cancel", mode="backfill")
+        job = jobs.claim_next_job(self.conn)
+        jobs.cancel_job(self.conn, jid)  # running -> cancelling
+        worker.run_job(self.conn, job,
+                       crawler_registry={"rc-backfill-uptodate-cancel": UpToDateCancelledCrawler}, delay=0)
+        row = self.conn.execute("SELECT status FROM crawl_jobs WHERE id=%s", (jid,)).fetchone()
+        self.assertEqual(row["status"], "cancelled")
+        self.assertEqual(jobs.load_cursor(self.conn, "rc-backfill-uptodate-cancel"), {"page": 5})
+        progress = self.conn.execute(
+            "SELECT completed_at FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-backfill-uptodate-cancel",)).fetchone()
+        self.assertIsNone(progress["completed_at"])
+
 
 if __name__ == "__main__":
     unittest.main()

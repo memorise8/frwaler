@@ -143,17 +143,24 @@ class EStatGoJpStatSearchCrawler(BaseCrawler):
         )
         return f"{self._LIST_API}?{query}"
 
-    def _fetch_list_page(self, page: int) -> tuple[list[dict[str, Any]], bool]:
+    def _fetch_list_page(self, page: int) -> tuple[list[dict[str, Any]] | None, bool]:
+        """Fetch one page of the search-result list.
+
+        Returns (items, has_next) on success -- items may legitimately be an
+        empty list when the page genuinely has none. Returns (None, False)
+        on a transient fetch/parse failure so the caller can tell that apart
+        from a real end of pagination.
+        """
         api_url = self._list_api_url(page)
         raw = self._curl(api_url, accept="application/json")
         if not raw:
-            return [], False
+            return None, False
 
         try:
             payload = json.loads(raw)
         except json.JSONDecodeError as exc:
             print(f"[{self.site_id}] JSON parse failed on page {page}: {exc}")
-            return [], False
+            return None, False
 
         items_html = payload.get("items") or ""
         if not items_html:
@@ -533,6 +540,10 @@ class EStatGoJpStatSearchCrawler(BaseCrawler):
                 raise
             except Exception as exc:
                 print(f"[{self.site_id}] page {page} failed: {exc}")
+                break
+
+            if list_items is None:
+                print(f"[{self.site_id}] page {page}: fetch failed; stopping")
                 break
 
             if not list_items:

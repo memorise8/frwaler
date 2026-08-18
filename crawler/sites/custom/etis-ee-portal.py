@@ -95,8 +95,14 @@ class EtisEePortalCrawler(BaseCrawler):
     # List / detail fetchers
     # ------------------------------------------------------------------
 
-    def _search_page(self, page: int) -> dict:
-        """Fetch one page of the publications list. Returns parsed dict (may be empty)."""
+    def _search_page(self, page: int) -> dict | None:
+        """Fetch one page of the publications list.
+
+        Returns the parsed dict on success (its "Items" list may legitimately
+        be empty when the list has ended). Returns None on a transient
+        fetch/parse failure so the caller can tell that apart from a real
+        end of pagination.
+        """
         body = {
             "fdItems": [{"fdExpr": "AND", "fdField": "", "fdType": "1"}],
             "page": page,
@@ -112,12 +118,12 @@ class EtisEePortalCrawler(BaseCrawler):
         }
         raw = self._curl(_SEARCH_URL, json_body=body)
         if not raw:
-            return {}
+            return None
         try:
             return json.loads(raw)
         except (json.JSONDecodeError, ValueError) as exc:
             print(f"[{self.site_id}] search page {page} JSON parse error: {exc}")
-            return {}
+            return None
 
     def _fetch_detail(self, guid: str) -> dict:
         """Fetch and double-decode the ``Object`` field of a publication's detail API. Returns {} on failure."""
@@ -212,6 +218,9 @@ class EtisEePortalCrawler(BaseCrawler):
                     break
 
                 data = self._search_page(page)
+                if data is None:
+                    print(f"[{self.site_id}] page {page}: fetch failed. Stopping.")
+                    break
                 items = data.get("Items") or []
                 if not items:
                     print(f"[{self.site_id}] page {page}: no items returned. Ending pagination.")

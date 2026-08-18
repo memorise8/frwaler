@@ -114,7 +114,13 @@ class BaseCrawler:
 지점(빈 결과 페이지, `has_next=false`, `totalPages` 도달 등) 바로 앞에서
 `self._mark_exhausted()` 를 호출한다. fetch 실패·JSON 파싱 오류·이번 실행의
 예산/페이지 캡 소진·`limit` 컷은 목록이 끝났다는 뜻이 아니므로 호출하지
-않는다 — 이 구분이 §2 보정의 전제다.
+않는다 — 이 구분이 §2 보정의 전제다. 이 구분이 실제로 유효하려면 목록을
+가져오는 헬퍼 자체가 실패(반환값 `None`)와 빈 목록(반환값 `[]`/`{}` 이지만
+성공한 응답)을 서로 다른 값으로 돌려줘야 한다 — 둘을 같은 falsy 값으로
+합쳐 반환하면 자연 종료 지점의 호출부가 일시적 fetch 실패를 목록 끝으로
+오판해 `_mark_exhausted()` 를 잘못 부르게 된다(2026-08-18 Probe G, 5개 파일
+에서 재현: data-gov-au-data, etis-ee-portal, ots-at-pressemappe,
+e-stat-go-jp-stat-search, inserm-hal-science-search).
 
 ## 4. 크롤러 패치 (25개)
 

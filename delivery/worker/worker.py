@@ -105,13 +105,21 @@ def _count_site_docs(conn, site_id) -> int:
     return int(row["n"])
 
 
-def _persist_advance(conn, site_id, inst, start_cursor) -> bool:
-    """크롤러가 보고한 전진을 저장. 전진 없으면 False (저장도 없음)."""
+def _persist_advance(conn, site_id, inst, start_cursor, mode) -> bool:
+    """크롤러가 보고한 전진을 저장. 전진 없으면 False (저장도 없음).
+
+    completed_at 은 backfill 전진일 때만 지운다: oldest_first incremental 은
+    이미 완주한 사이트에서도 정상적으로 계속 커서를 전진시키는 루틴 동작이라,
+    그때마다 완주 표시를 지우면 화면이 거꾸로 거짓을 말하게 된다. 반대로
+    backfill 이 전진했다는 것은(완주한 사이트에 재개된 백필이든 아니든) 그
+    사이트가 지금 이 순간 끝나지 않았다는 증거이므로 지운다.
+    """
     pending = getattr(inst, "delivery_pending_cursor", None)
     if pending is None or pending == start_cursor:
         return False
     jobs.save_progress(conn, site_id, pending,
-                       items_delta=getattr(inst, "delivery_cursor_items_done", 0))
+                       items_delta=getattr(inst, "delivery_cursor_items_done", 0),
+                       clear_completed=(mode == "backfill"))
     return True
 
 
@@ -162,10 +170,14 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
         saved = max(0, _count_site_docs(conn, site_id) - before)
         finished = jobs.finish_job(conn, job["id"], saved_count=saved)
         if finished is not None and cursor_enabled:
-            # backfill 이 완주 대신 up-to-date 를 만난 경우도 완료다: 신규가
-            # 없다는 뜻이지, 못 걸었다는 뜻이 아니다.
-            _persist_advance(conn, site_id, inst, start_cursor)
-            if mode == "backfill":
+            # 소유권이 있다면 커서는 항상 남긴다 -- 취소든 완료든 up-to-date
+            # 까지 걸은 것은 진짜다.
+            _persist_advance(conn, site_id, inst, start_cursor, mode)
+            if mode == "backfill" and finished == "done":
+                # backfill 이 완주 대신 up-to-date 를 만난 경우도 완료다: 신규가
+                # 없다는 뜻이지, 못 걸었다는 뜻이 아니다. 단, 정상 반환과 동시에
+                # 취소가 도착했다면(finished == "cancelled") 완료로 표시하지
+                # 않는다 -- 일반 경로의 취소 처리와 대칭이어야 한다.
                 jobs.mark_backfill_complete(conn, site_id)
         record_output()
         return saved
@@ -175,7 +187,7 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
         finished = jobs.finish_job(conn, job["id"], saved_count=saved)
         # 취소여도 걸은 만큼은 진짜다: 커서는 남기고, 체인(재큐잉)만 끊는다.
         if finished is not None and cursor_enabled:
-            _persist_advance(conn, site_id, inst, start_cursor)
+            _persist_advance(conn, site_id, inst, start_cursor, mode)
         record_output()
         return saved
     except Exception as exc:  # noqa: BLE001
@@ -198,12 +210,12 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
         # CrawlCancelled 예외 경로와 동일하게 다룬다: 커서는 남기고 완료·재큐잉은
         # 건너뛴다 -- 그러지 않으면 운영자의 취소가 조용히 무시된다.
         if cursor_enabled:
-            _persist_advance(conn, site_id, inst, start_cursor)
+            _persist_advance(conn, site_id, inst, start_cursor, mode)
     elif finished == "done":
         # 이 작업을 아직 우리가 소유할 때만 커서/완료/재큐잉을 만진다. finished
         # 가 None 이면(=lease 가 이미 회수되어 다른 곳에서 이 행을 넘겨받았으면)
         # 아무것도 만지지 않는다.
-        advanced = cursor_enabled and _persist_advance(conn, site_id, inst, start_cursor)
+        advanced = cursor_enabled and _persist_advance(conn, site_id, inst, start_cursor, mode)
         if mode == "backfill":
             # 항목 목격의 증거는 크롤러의 보고(items_done)와 실제 저장 수 중
             # 어느 쪽이든 인정한다 -- 보고를 빠뜨린 크롤러 때문에 진짜 전진이

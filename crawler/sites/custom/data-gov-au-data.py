@@ -70,22 +70,28 @@ class DataGovAuDataCrawler(BaseCrawler):
         return None
 
     def _fetch_page(self, start: int):
-        """Fetch one page of package_search results. Returns list of dataset dicts."""
+        """Fetch one page of package_search results.
+
+        Returns the list of dataset dicts on success (empty list means the
+        list genuinely ended). Returns None on a transient fetch/parse
+        failure -- the two must stay distinguishable so a curl hiccup is
+        never read as "list exhausted" by the caller.
+        """
         raw = self._curl_get(self._API_URL, params={
             "fq": "res_format:PDF",
             "rows": self._ROWS_PER_PAGE,
             "start": start,
         })
         if not raw:
-            return []
+            return None
         try:
             data = json.loads(raw)
         except (json.JSONDecodeError, ValueError) as exc:
             print(f"[{self.site_id}] JSON decode error at start={start}: {exc}")
-            return []
+            return None
         if not data.get("success"):
             print(f"[{self.site_id}] API returned success=false at start={start}")
-            return []
+            return None
         return (data.get("result") or {}).get("results") or []
 
     # ------------------------------------------------------------------
@@ -222,6 +228,9 @@ class DataGovAuDataCrawler(BaseCrawler):
 
                 page_num += 1
                 items = self._fetch_page(start)
+                if items is None:
+                    print(f"[{self.site_id}] Fetch failed at start={start}. Stopping.")
+                    break
                 if not items:
                     print(f"[{self.site_id}] No more results at start={start}. Stopping.")
                     self._mark_exhausted()
