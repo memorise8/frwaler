@@ -291,8 +291,9 @@ def summarize_queue(conn) -> dict:
 
     Deliberately returns no all-time total: job history is retained forever
     (verification aggregates are computed from it), so a percentage against it
-    would be diluted by months of past runs. Progress is expressed against
-    finished_24h + active instead.
+    would be diluted by months of past runs. No percentage is reported at all --
+    a 24-hour window is not the current sweep either, so the caller shows queue
+    depth and a remaining-time estimate rather than a fraction.
     """
     counts = {status: 0 for status in JOB_STATUSES}
     for row in conn.execute("SELECT status, count(*) AS n FROM crawl_jobs GROUP BY status").fetchall():
