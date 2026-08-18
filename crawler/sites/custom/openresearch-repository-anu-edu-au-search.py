@@ -18,6 +18,7 @@ class OpenresearchRepositoryAnuEduAuSearchCrawler(BaseCrawler):
     site_id = "openresearch-repository-anu-edu-au-search"
     site_name = "Custom: openresearch-repository-anu-edu-au-search"
     base_url = "https://openresearch-repository.anu.edu.au"
+    DELIVERY_ORDER = "newest_first"
 
     API_BASE = "https://openresearch-repository.anu.edu.au/server/api"
     PAGE_SIZE = 20
@@ -37,7 +38,7 @@ class OpenresearchRepositoryAnuEduAuSearchCrawler(BaseCrawler):
     def crawl(self, limit=None):
         start_time = time.monotonic()
         saved = 0
-        page = 0
+        page = (self.delivery_cursor or {}).get("page", 0)
         seen_urls = set()
 
         try:
@@ -124,6 +125,8 @@ class OpenresearchRepositoryAnuEduAuSearchCrawler(BaseCrawler):
                     except Exception as exc:
                         print(f"[{self.site_id}] item {item_label} failed: {exc}")
                         continue
+
+                self._advance_cursor({"page": page + 1}, items_done=len(objects))
 
                 if new_count == 0:
                     print(f"[{self.site_id}] page {page}: all {len(objects)} records already seen; stopping")

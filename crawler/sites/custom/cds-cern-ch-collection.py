@@ -31,6 +31,7 @@ class CdsCernChCollectionCrawler(BaseCrawler):
     site_id = "cds-cern-ch-collection"
     site_name = "Custom: cds-cern-ch-collection"
     base_url = "https://cds.cern.ch"
+    DELIVERY_ORDER = "newest_first"
 
     _INSPIRE_API = "https://inspirehep.net/api/literature"
     # All INSPIRE literature records that carry a CDS external identifier are
@@ -252,7 +253,7 @@ class CdsCernChCollectionCrawler(BaseCrawler):
         start_time = time.monotonic()
         limit_str = str(limit) if limit is not None else "∞"
         saved = 0
-        page = 1
+        page = (self.delivery_cursor or {}).get("page", 1)
         total_records: int | None = None
         seen_urls: set[str] = set()
 
@@ -397,6 +398,8 @@ class CdsCernChCollectionCrawler(BaseCrawler):
                     label = cds_id if cds_id else "unknown"
                     print(f"[{self.site_id}] item {label} failed: {exc}")
                     continue
+
+            self._advance_cursor({"page": page + 1}, items_done=len(items))
 
             # If the entire page was already seen, the paginator is looping — stop
             if new_on_page == 0 and items:

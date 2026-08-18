@@ -41,6 +41,20 @@ TARGETS = {
 }
 # 이번 태스크(HAL 6)만 먼저 활성화하고, Task 6·7 이 나머지 키를 살린다.
 ACTIVE = {k: v for k, v in TARGETS.items() if v[0] == "oldest_first"}
+# Task 6: DSpace REST ×4 + XMLUI ×1 + Invenio ×2 (newest_first) 활성화.
+# doaj/pergamos/etera 는 Task 7 파일이라 아직 손대지 않았으므로, newest_first
+# 전체가 아니라 이번 7개 site_id 만 명시적으로 추가한다.
+# Task 7 이 이 필터를 TARGETS 전체로 바꾼다.
+_TASK6_NEWEST_FIRST = frozenset({
+    "openresearch-repository-anu-edu-au-search",
+    "research-collection-ethz-ch-search",
+    "dspace-ut-ee-search",
+    "ostrnrcan-dostrncan-canada-ca-search",
+    "repositorio-uchile-cl-discover",
+    "sonar-ch-global",
+    "cds-cern-ch-collection",
+})
+ACTIVE.update({k: v for k, v in TARGETS.items() if k in _TASK6_NEWEST_FIRST})
 
 
 class CursorConformanceTest(unittest.TestCase):

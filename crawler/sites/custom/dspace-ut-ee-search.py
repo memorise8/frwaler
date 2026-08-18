@@ -19,6 +19,7 @@ class DspaceUtEeSearchCrawler(BaseCrawler):
     site_id = "dspace-ut-ee-search"
     site_name = "Custom: dspace-ut-ee-search"
     base_url = "https://dspace.ut.ee"
+    DELIVERY_ORDER = "newest_first"
 
     API_BASE = "https://dspace.ut.ee/server/api"
     SEARCH_FILTERS = (
@@ -42,7 +43,7 @@ class DspaceUtEeSearchCrawler(BaseCrawler):
     def crawl(self, limit=None):
         start_time = time.monotonic()
         saved = 0
-        page = 0
+        page = (self.delivery_cursor or {}).get("page", 0)
         seen_urls = set()
 
         while True:
@@ -130,6 +131,8 @@ class DspaceUtEeSearchCrawler(BaseCrawler):
                 except Exception as exc:
                     print(f"[{self.site_id}] item {item_label} failed: {exc}")
                     continue
+
+            self._advance_cursor({"page": page + 1}, items_done=len(objects))
 
             if new_count == 0:
                 print(f"[{self.site_id}] page {page}: all {len(objects)} records already seen; stopping")

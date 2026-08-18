@@ -31,6 +31,7 @@ class SonarChGlobalCrawler(BaseCrawler):
     site_id = "sonar-ch-global"
     site_name = "Custom: sonar-ch-global"
     base_url = "https://sonar.ch"
+    DELIVERY_ORDER = "newest_first"
 
     # ------------------------------------------------------------------
     # Network
@@ -274,8 +275,9 @@ class SonarChGlobalCrawler(BaseCrawler):
         seen_urls: set = set()
         start_time = time.monotonic()
         limit_str = str(limit) if limit is not None else "∞"
+        start_page = (self.delivery_cursor or {}).get("page", 1)
 
-        for page in range(1, _MAX_PAGES + 1):
+        for page in range(start_page, _MAX_PAGES + 1):
             if time.monotonic() - start_time > _CRAWL_BUDGET_SECS:
                 print(f"[{self.site_id}] 25-minute budget reached at page {page}, stopping.")
                 break
@@ -319,6 +321,8 @@ class SonarChGlobalCrawler(BaseCrawler):
                     doc_id = hit.get("id", "?")
                     print(f"[{self.site_id}] item {doc_id} failed: {exc}")
                     continue
+
+            self._advance_cursor({"page": page + 1}, items_done=len(hits))
 
             if new_on_page == 0:
                 print(f"[{self.site_id}] page {page}: all items already seen, stopping.")

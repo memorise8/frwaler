@@ -20,6 +20,7 @@ class OstrnrcanDostrncanCanadaCaSearchCrawler(BaseCrawler):
     site_id = "ostrnrcan-dostrncan-canada-ca-search"
     site_name = "Custom: ostrnrcan-dostrncan-canada-ca-search"
     base_url = "https://ostrnrcan-dostrncan.canada.ca"
+    DELIVERY_ORDER = "newest_first"
 
     # The Angular frontend is served from base_url, but the actual DSpace 7
     # REST backend lives on a separate Azure host (discovered by grepping the
@@ -42,7 +43,7 @@ class OstrnrcanDostrncanCanadaCaSearchCrawler(BaseCrawler):
     def crawl(self, limit=None):
         start_time = time.monotonic()
         saved = 0
-        page = 0
+        page = (self.delivery_cursor or {}).get("page", 0)
         item_number = 0
         seen_urls = set()
 
@@ -146,6 +147,8 @@ class OstrnrcanDostrncanCanadaCaSearchCrawler(BaseCrawler):
                 except Exception as exc:
                     print(f"[{self.site_id}] item {item_number} failed: {exc}")
                     continue
+
+            self._advance_cursor({"page": page + 1}, items_done=len(records))
 
             if new_on_page == 0:
                 print(f"[{self.site_id}] page {page + 1}: all records already seen; stopping")

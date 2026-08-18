@@ -19,6 +19,7 @@ class RepositorioUchileClDiscoverCrawler(BaseCrawler):
     site_id = "repositorio-uchile-cl-discover"
     site_name = "Custom: repositorio-uchile-cl-discover"
     base_url = "https://repositorio.uchile.cl"
+    DELIVERY_ORDER = "newest_first"
 
     START_URL = (
         "https://repositorio.uchile.cl/discover?"
@@ -35,7 +36,7 @@ class RepositorioUchileClDiscoverCrawler(BaseCrawler):
     def crawl(self, limit=None):
         """Crawl DSpace /discover results and save journal article records."""
         saved = 0
-        page = 1
+        page = (self.delivery_cursor or {}).get("page", 1)
         seen_urls = set()
 
         while True:
@@ -117,6 +118,8 @@ class RepositorioUchileClDiscoverCrawler(BaseCrawler):
                 except Exception as exc:
                     print(f"[{self.site_id}] item {item_label} failed: {exc}")
                     continue
+
+            self._advance_cursor({"page": page + 1}, items_done=len(records))
 
             if limit is not None and saved >= limit:
                 break

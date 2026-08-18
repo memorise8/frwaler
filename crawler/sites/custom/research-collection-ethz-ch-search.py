@@ -34,6 +34,7 @@ class ResearchCollectionEthzChSearchCrawler(BaseCrawler):
     site_id = "research-collection-ethz-ch-search"
     site_name = "Custom: research-collection-ethz-ch-search"
     base_url = "https://www.research-collection.ethz.ch"
+    DELIVERY_ORDER = "newest_first"
 
     API_BASE = "https://www.research-collection.ethz.ch/server/api"
     SEARCH_FILTERS = "f.ethzAvailability=Open%20access,equals&f.itemtype=Journal%20Article,equals"
@@ -54,7 +55,7 @@ class ResearchCollectionEthzChSearchCrawler(BaseCrawler):
     def crawl(self, limit=None):
         start_time = time.monotonic()
         saved = 0
-        page = 0
+        page = (self.delivery_cursor or {}).get("page", 0)
         seen_urls = set()
 
         while True:
@@ -142,6 +143,8 @@ class ResearchCollectionEthzChSearchCrawler(BaseCrawler):
                 except Exception as exc:
                     print(f"[{self.site_id}] item {item_label} failed: {exc}")
                     continue
+
+            self._advance_cursor({"page": page + 1}, items_done=len(objects))
 
             if new_count == 0:
                 print(f"[{self.site_id}] page {page}: all {len(objects)} records already seen; stopping")
