@@ -10,7 +10,7 @@
 6. 운영 Worker를 중지하고 백업 시각을 기록한 뒤에만 아래 명시적 migration을 실행한다.
 
    ```bash
-   docker compose --profile tools run --rm migrate
+   docker compose -f delivery/docker-compose.yml --profile tools run --rm --build migrate
    ```
 
 7. BE read-only smoke 후 Worker를 시작하되 작업은 자동 등록하지 않는다.
@@ -99,9 +99,14 @@
 바로 기동됩니다.
 
 ```bash
-docker compose -f delivery/docker-compose.yml --profile bootstrap run --rm migrate && \
+docker compose -f delivery/docker-compose.yml --profile bootstrap run --rm --build migrate && \
 docker compose -f delivery/docker-compose.yml up -d
 ```
+
+`migrate`는 `tools`/`bootstrap` 프로파일 뒤에 있어서 평소의 `docker compose ... build`
+(프로파일 지정 없음)로는 다시 빌드되지 않습니다. `--build`가 없으면 예전에 캐시된
+`migrate` 이미지가 옛 스키마 코드로 조용히 `PASS`를 찍을 수 있습니다 — 이번 리허설에서
+실제로 겪은 문제입니다.
 
 이것만으로도 완결된 시스템입니다 — 크롤러 804대가 등록되어 바로 수집을 시작할
 수 있습니다. 실측: 기동 7.2초, 전 서비스 healthy 도달까지 17초.
@@ -146,7 +151,7 @@ Worker가 크롤 작업 하나에 쓸 수 있는 최대 경과 시간(초)입니
 뜻입니다. 크롤러 자체는 고쳐지지 않았습니다.
 
 값을 올리려면 `delivery/.env`에 `LIBERTREE_MAX_WALL_S`를 설정하고
-`docker compose up -d worker`로 적용하세요.
+`docker compose -f delivery/docker-compose.yml up -d worker`로 적용하세요.
 
 **주의:** Worker는 단일 직렬 처리기입니다. 이 값을 크게 잡으면 큰 사이트 하나가
 큐 전체를 오래 독점합니다 — 그 뒤에 대기 중인 다른 사이트들이 그만큼 늦게

@@ -138,9 +138,14 @@ docker compose -f delivery/docker-compose.yml build fe
 사실상 복사-붙여넣기 한 번으로 끝나는 하나의 절차입니다.
 
 ```bash
-docker compose -f delivery/docker-compose.yml --profile bootstrap run --rm migrate && \
+docker compose -f delivery/docker-compose.yml --profile bootstrap run --rm --build migrate && \
 docker compose -f delivery/docker-compose.yml up -d
 ```
+
+`migrate`는 `tools`/`bootstrap` 프로파일 뒤에 있어서 위 3장의 `docker compose ... build`
+(프로파일 지정 없음)로는 다시 빌드되지 않습니다. `--build`가 없으면 예전에 캐시된 `migrate`
+이미지가 옛 스키마 코드로 조용히 `PASS`를 찍을 수 있습니다 — 이번 리허설에서 실제로 겪은
+문제입니다.
 
 **왜 `be`가 `depends_on`으로 `migrate`를 기다리게 하지 않는가:** 더 간단해 보이지만 실제로는
 동작하지 않습니다. `migrate`는 `tools`/`bootstrap` 프로파일에만 속해 있고, 평소의
@@ -166,7 +171,8 @@ service "main" depends on undefined service "dep": invalid compose project
 
 ```bash
 # 스키마를 바꿀 때만 명시적으로 실행 (평소 up에는 포함되지 않음)
-docker compose -f delivery/docker-compose.yml --profile tools run --rm migrate
+# --build 없이는 캐시된 옛 migrate 이미지가 재사용될 수 있다
+docker compose -f delivery/docker-compose.yml --profile tools run --rm --build migrate
 
 # 기동
 docker compose -f delivery/docker-compose.yml up -d
