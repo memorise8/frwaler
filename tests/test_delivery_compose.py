@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Holds the deployment premise that the delivery runbook documents.
 
-Seventeen GET endpoints carry no operator token -- the entire document corpus
+Eighteen GET endpoints carry no operator token -- the entire document corpus
 is readable by anyone who can reach the port. What keeps that safe today is
 one character in docker-compose.yml: the published port is bound to
 127.0.0.1, not 0.0.0.0. If that binding ever loosens, the runbook's premise
