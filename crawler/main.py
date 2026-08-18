@@ -7,6 +7,7 @@ import sys
 
 from . import db as db_module
 from . import storage as storage_module
+from .base_crawler import CrawlUpToDate
 from .sites import CRAWLERS
 
 DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'papers.db')
@@ -58,13 +59,19 @@ def cmd_crawl(args, conn):
         kwargs["date_to"] = date_to
     if "incremental" in crawl_params and incremental:
         kwargs["incremental"] = incremental
-    if gap_fill and hasattr(crawler, 'gap_fill'):
-        gf_kwargs = {}
-        if doc_type:
-            gf_kwargs["doc_type"] = doc_type
-        crawler.gap_fill(**gf_kwargs)
-    else:
-        crawler.crawl(**kwargs)
+    try:
+        if gap_fill and hasattr(crawler, 'gap_fill'):
+            gf_kwargs = {}
+            if doc_type:
+                gf_kwargs["doc_type"] = doc_type
+            crawler.gap_fill(**gf_kwargs)
+        else:
+            crawler.crawl(**kwargs)
+    except CrawlUpToDate:
+        # CrawlControl(BaseException) 이라 그냥 두면 트레이스백을 찍고 죽는다.
+        # newest_first 크롤러(12개) 가 이미 아는 최신 문서에 닿았다는 정상
+        # 신호이므로, 실패가 아니라 조기 종료로 보고한다.
+        print(f"[{site_id}] 신규분 소진 — 조기 종료(정상)")
 
 
 def cmd_scan_index(args, conn):

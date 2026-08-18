@@ -68,6 +68,7 @@ class OpenresearchRepositoryAnuEduAuSearchCrawler(BaseCrawler):
                 objects = self._extract_objects(data)
                 if not objects:
                     print(f"[{self.site_id}] no records found at page {page}; stopping")
+                    self._mark_exhausted()
                     break
 
                 new_count = 0

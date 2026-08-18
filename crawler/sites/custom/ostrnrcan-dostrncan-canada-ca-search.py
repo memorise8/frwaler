@@ -75,6 +75,7 @@ class OstrnrcanDostrncanCanadaCaSearchCrawler(BaseCrawler):
             records = self._list_records(list_data)
             if not records:
                 print(f"[{self.site_id}] no records returned at page {page + 1}; stopping")
+                self._mark_exhausted()
                 break
 
             page_info = self._page_meta(list_data)
@@ -160,8 +161,10 @@ class OstrnrcanDostrncanCanadaCaSearchCrawler(BaseCrawler):
             total_pages = page_info.get("totalPages")
             if total_pages is not None and page + 1 >= int(total_pages):
                 print(f"[{self.site_id}] reached last page ({total_pages}); stopping")
+                self._mark_exhausted()
                 break
             if len(records) < self.PAGE_SIZE:
+                self._mark_exhausted()
                 break
             page += 1
 

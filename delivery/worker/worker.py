@@ -161,7 +161,7 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
         conn.rollback()
         saved = max(0, _count_site_docs(conn, site_id) - before)
         finished = jobs.finish_job(conn, job["id"], saved_count=saved)
-        if finished and cursor_enabled:
+        if finished is not None and cursor_enabled:
             # backfill 이 완주 대신 up-to-date 를 만난 경우도 완료다: 신규가
             # 없다는 뜻이지, 못 걸었다는 뜻이 아니다.
             _persist_advance(conn, site_id, inst, start_cursor)
@@ -174,7 +174,7 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
         saved = max(0, _count_site_docs(conn, site_id) - before)
         finished = jobs.finish_job(conn, job["id"], saved_count=saved)
         # 취소여도 걸은 만큼은 진짜다: 커서는 남기고, 체인(재큐잉)만 끊는다.
-        if finished and cursor_enabled:
+        if finished is not None and cursor_enabled:
             _persist_advance(conn, site_id, inst, start_cursor)
         record_output()
         return saved
@@ -186,22 +186,37 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
         record_output()
         return 0
     saved = _count_site_docs(conn, site_id) - before
-    # 예산에 걸려 남은 페이지를 건너뛰고 정상 반환한 경우. 취소·실패 경로에서는
-    # 판정하지 않는다 -- 그것들은 각자의 상태가 있고, 오래 돌다 취소된 것을
-    # "잘렸다"고 부르면 두 사건이 뒤섞인다.
+    # truncated 는 이제 finish_job 의 truncated 컬럼(운영자에게 "시간에 걸렸다"는
+    # 정보)에만 쓰인다 -- 완료·재큐잉 판정에는 더 이상 관여하지 않는다. doaj 의
+    # 200페이지 조각(~16분)은 25분 예산의 truncation 임계 아래라 "안 잘렸다"로
+    # 보이지만 목록은 13,373,055 건 중 만 건도 못 걸었다; 시간으로 완주를
+    # 추론하면 그 조각에서 곧바로 완주 처리되어 체인이 죽는다.
     truncated = (time.monotonic() - started) >= threshold
     finished = jobs.finish_job(conn, job["id"], saved_count=max(0, saved), truncated=truncated)
-    if finished:
-        # 이 작업을 아직 우리가 소유할 때만: lease 가 이미 회수되어 다른 곳에서
-        # 이 행을 넘겨받았다면(finished=False) 커서/완료/재큐잉을 만지지 않는다.
+    if finished == "cancelled":
+        # 정상 반환과 동시에 취소가 도착했다(연결 종료 직전 running -> cancelling).
+        # CrawlCancelled 예외 경로와 동일하게 다룬다: 커서는 남기고 완료·재큐잉은
+        # 건너뛴다 -- 그러지 않으면 운영자의 취소가 조용히 무시된다.
+        if cursor_enabled:
+            _persist_advance(conn, site_id, inst, start_cursor)
+    elif finished == "done":
+        # 이 작업을 아직 우리가 소유할 때만 커서/완료/재큐잉을 만진다. finished
+        # 가 None 이면(=lease 가 이미 회수되어 다른 곳에서 이 행을 넘겨받았으면)
+        # 아무것도 만지지 않는다.
         advanced = cursor_enabled and _persist_advance(conn, site_id, inst, start_cursor)
         if mode == "backfill":
             # 항목 목격의 증거는 크롤러의 보고(items_done)와 실제 저장 수 중
             # 어느 쪽이든 인정한다 -- 보고를 빠뜨린 크롤러 때문에 진짜 전진이
             # 있는 체인을 끊으면 안 된다.
             items_seen = getattr(inst, "delivery_cursor_items_done", 0) > 0 or saved > 0
-            if truncated and advanced and items_seen:
-                # 전진이 재큐잉의 유일한 면허다. 새 INSERT 는 created_at 순서상 큐 맨 뒤.
+            if getattr(inst, "delivery_exhausted", False):
+                # 크롤러가 "끝까지 걸었다"고 명시했을 때만 완주다. 시간·예산으로
+                # 추론하지 않는다 -- 그것이 이 판정을 바꾼 이유다.
+                jobs.mark_backfill_complete(conn, site_id)
+            elif advanced and items_seen:
+                # 잘렸든 아니든(예산 소진·일시 실패 조각 포함) 전진이 있으면
+                # 체인은 계속된다. 전진이 재큐잉의 유일한 면허다. 새 INSERT 는
+                # created_at 순서상 큐 맨 뒤.
                 try:
                     jobs.enqueue_job(conn, site_id, mode="backfill",
                                      limit_n=job.get("limit_n"), requested_by="auto-backfill")
@@ -210,19 +225,11 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
                     jobs.log_event(conn, job["id"], "requeue_skipped",
                                    "활성 작업이 이미 있어 자동 재큐잉을 건너뜁니다.", level="warning")
                     conn.commit()
-            elif truncated:
+            else:
                 reason = ("커서가 전진하지 않아" if not advanced
                           else "항목을 하나도 목격하지 못해")
                 jobs.log_event(conn, job["id"], "stalled",
-                               f"잘렸지만 {reason} 자동 재큐잉을 멈춥니다.", level="warning")
-                conn.commit()
-            elif advanced or saved > 0:
-                jobs.mark_backfill_complete(conn, site_id)
-            else:
-                # 아무 진전도 없이 정상 반환한 백필 -- 완주로 표시하면 다시는
-                # 재시도되지 않는다.
-                jobs.log_event(conn, job["id"], "no_progress",
-                               "아무것도 걷지 못한 백필 -- 완주로 표시하지 않습니다.", level="warning")
+                               f"{reason} 자동 재큐잉을 멈춥니다.", level="warning")
                 conn.commit()
     record_output()
     return max(0, saved)

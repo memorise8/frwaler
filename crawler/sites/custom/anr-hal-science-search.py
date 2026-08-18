@@ -174,6 +174,7 @@ class AnrHalScienceSearchCrawler(BaseCrawler):
             docs = data.get("response", {}).get("docs", [])
             if not docs:
                 print(f"[{self.site_id}] No more documents at page {page} (start={start_offset}). Done.")
+                self._mark_exhausted()
                 break
 
             if page == 0:

@@ -179,6 +179,7 @@ class PrismGoKrHomepageCrawler(BaseCrawler):
             items = (data.get("report") or {}).get("searchResultList") or []
             if not items:
                 print(f"[{self.site_id}] page {page}: no items. Done.")
+                self._mark_exhausted()
                 break
 
             # ── Progress log every 10 pages ─────────────────────────────

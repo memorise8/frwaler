@@ -4,7 +4,9 @@
 하이픈 파일명이라 import 할 수 없으므로 소스 텍스트로 확인한다.
 여기 실패하면: 해당 파일이 delivery_cursor 를 읽지 않거나(재개 불가),
 _advance_cursor 를 부르지 않거나(전진 보고 없음 → 재큐잉 불가),
-DELIVERY_ORDER 선언이 없다(증분 전략 미지정).
+DELIVERY_ORDER 선언이 없다(증분 전략 미지정), 또는 _mark_exhausted 를
+어디서도 부르지 않는다(백필 완주를 영영 선언할 수 없다 -- doaj 의 200페이지
+조각이 시간·예산으로 완주를 오판하던 버그의 재발 방지선).
 """
 import os
 import unittest
@@ -59,6 +61,7 @@ class CursorConformanceTest(unittest.TestCase):
                 self.assertIn("_advance_cursor", src)
                 self.assertIn(f'DELIVERY_ORDER = "{order}"', src)
                 self.assertIn(f'"{key}"', src)
+                self.assertIn("_mark_exhausted", src)
 
     def test_hal_family_uses_stable_docid_sort(self):
         for site_id in ("anr-hal-science-search", "amu-hal-science-search",

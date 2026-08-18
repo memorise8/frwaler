@@ -87,6 +87,7 @@ class DatacatalogueAdrukOrgBrowserCrawler(BaseCrawler):
             if not records:
                 print(f"[{self.site_id}] page {page} returned 0 records; stopping")
                 reached_cap = False
+                self._mark_exhausted()
                 break
 
             if page == 1:
@@ -156,6 +157,7 @@ class DatacatalogueAdrukOrgBrowserCrawler(BaseCrawler):
                 total_pages = 0
             if total_pages and page >= total_pages:
                 reached_cap = False
+                self._mark_exhausted()
                 break
 
         if reached_cap and pages_attempted > 0:

@@ -417,6 +417,7 @@ class InsermHalScienceSearchCrawler(BaseCrawler):
 
             if not items:
                 print(f"[{self.site_id}] no more list records at start={start}")
+                self._mark_exhausted()
                 break
 
             page += 1
@@ -454,14 +455,16 @@ class InsermHalScienceSearchCrawler(BaseCrawler):
                     print(f"[{self.site_id}] item {item_no} failed: {exc}")
                     continue
 
+            start += len(items)
+            self._advance_cursor({"offset": start}, items_done=len(items))
+
             if items_not_deduped == 0 and items:
                 print(f"[{self.site_id}] all items on page {page} were duplicates; stopping")
                 break
 
-            start += len(items)
-            self._advance_cursor({"offset": start}, items_done=len(items))
             if len(items) < self._PAGE_SIZE:
                 print(f"[{self.site_id}] last page (got {len(items)} < {self._PAGE_SIZE}); done")
+                self._mark_exhausted()
                 break
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")

@@ -224,6 +224,7 @@ class DataGovAuDataCrawler(BaseCrawler):
                 items = self._fetch_page(start)
                 if not items:
                     print(f"[{self.site_id}] No more results at start={start}. Stopping.")
+                    self._mark_exhausted()
                     break
 
                 new_on_page = 0

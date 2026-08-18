@@ -32,20 +32,50 @@ CREATE TABLE IF NOT EXISTS crawl_site_progress (
 
 ## 2. 워커 흐름 (mode=backfill)
 
+> **2026-08-18 보정:** 최초안은 "잘리지 않고 정상 반환"을 완주 신호로 썼다.
+> 전체 브랜치 리뷰가 이 판정을 doaj-org-search(약 1,337만 건)로 검증해 실패를
+> 확인했다: 한 조각(약 200페이지, ~16분)이 25분 예산의 truncation 임계 아래라
+> "안 잘렸다"로 보였고, 그 결과 첫 조각에서 곧바로 완주 처리되어 만 건도 못
+> 걸은 채 체인이 죽었다(10,000/13,373,055). 아래 표는 그 오판을 없앤
+> 교정판이다 — 완주는 이제 크롤러의 명시 신호(`_mark_exhausted` →
+> `delivery_exhausted`) 하나로만 판정하며, 시간·예산(`truncated`)은 이 판정에
+> 전혀 관여하지 않는다. 아울러 "정상 반환과 동시에 취소가 도착하는" 경로
+> (`finish_job` 이 `running→done` 대신 `cancelling→cancelled` 로 떨어지는
+> 경우)도 명시적 취소 경로와 동일하게 체인을 끊도록 고쳤다 — 이전에는 그
+> 경로가 완주·재큐잉을 계속 허용해 운영자의 취소를 무시했다.
+
 ```
 시작: cursor 읽기 → inst.delivery_cursor 주입 → crawl()
-잘림(truncated): 커서 전진했으면 저장 + 같은 (site, backfill) 작업을 큐 맨 뒤 재큐잉
-                 전진 없으면 저장·재큐잉 없음 (무한 루프 가드; job_events 에 stalled 기록)
-완주:            진도 저장 + completed_at 기록, 재큐잉 없음
-취소:            커서는 저장, 재큐잉 없음 (체인 절단 — 운영자 의도 존중)
-실패(예외):      커서 저장 없음 (마지막 성공 지점 유지), 기존 attempts 재시도 체계 적용
+
+정상 반환 (예외 없음):
+  finish_job 이 이 작업을 여전히 소유하는지 먼저 확인한다(반환값이 "done"인지
+  "cancelled"인지 None인지) — lease 회수나 동시 취소로 소유권을 잃었으면
+  아무것도 하지 않는다.
+    소유권 상실(None):        아무것도 하지 않는다(다른 곳이 이 행을 넘겨받았다)
+    "cancelled" (정상 반환과 동시에 취소 확정):
+                               커서는 저장(cursor_enabled 일 때), 완주·재큐잉은 건너뛴다
+    "done":
+      inst.delivery_exhausted 가 참 (크롤러가 목록 끝에 도달했다고 명시):
+                               진도 저장 + completed_at 기록, 재큐잉 없음 — 완주
+      exhausted 아님, 커서 전진 AND 항목 목격(items_done>0 또는 실제 저장>0):
+                               진도 저장 + 같은 (site, backfill) 작업을 큐 맨 뒤 재큐잉
+                               (truncated 여부와 무관 — 잘렸든 안 잘렸든 전진이 있으면 계속)
+      exhausted 아님, 위 조건 미충족:
+                               저장·재큐잉 없음 (무한 루프 가드; job_events 에 stalled 기록)
+취소(CrawlCancelled 예외):      커서는 저장, 재큐잉 없음 (체인 절단 — 운영자 의도 존중)
+신규분 소진(CrawlUpToDate):     완료 신호로 취급 — 진도 저장 + completed_at 기록
+실패(예외):                    커서 저장 없음 (마지막 성공 지점 유지), 기존 attempts 재시도 체계 적용
 ```
 
 - 재큐잉은 새 `crawl_jobs` INSERT — `claim_next_job` 이 `ORDER BY created_at` 이므로
   자동으로 큐 맨 뒤가 되어 다른 사이트가 굶지 않는다.
-- **"커서 전진"이 재큐잉의 유일한 면허** — 어떤 결함도 무한 자동 크롤로 이어질 수 없다.
+- **"커서 전진 + 항목 목격"이 재큐잉의 유일한 면허, "exhausted 신호"가 완주의
+  유일한 면허** — 어떤 결함도 무한 자동 크롤이나 오판된 완주로 이어질 수 없다.
 - oldest_first 크롤러는 `mode=incremental` 에서도 커서를 주입받고, 정상 완료 시
-  전진분을 저장한다(재큐잉은 backfill 전용).
+  전진분을 저장한다(재큐잉·완주 판정은 backfill 전용).
+- `save_progress` 는 커서를 갱신할 때 `completed_at` 을 NULL 로 되돌린다 — 완주
+  후에도 oldest_first 증분이나 뒤늦은 백필 조각이 커서를 다시 전진시키면, 그
+  사이트는 더 이상 "완주"가 아니므로 화면이 거짓을 말하지 않는다.
 
 ## 3. BaseCrawler 계약 (`crawler/base_crawler.py`)
 
@@ -65,15 +95,26 @@ class BaseCrawler:
     self._pending_cursor = None         # _advance_cursor 가 기록, 워커가 회수
     self._cursor_items_done = 0
     self._consecutive_known = 0
+    self._exhausted = False             # (2026-08-18 보정) _mark_exhausted 가 기록
 
     def _advance_cursor(self, cursor: dict, items_done: int = 0) -> None:
         # 메모리에만 기록. DB 저장·커밋은 워커의 몫 (크롤은 한 트랜잭션)
+
+    def _mark_exhausted(self) -> None:
+        # (2026-08-18 보정) 목록 끝까지 걸었다는 명시 신호. 백필 완주 판정의
+        # 유일한 근거 — §2 참고. delivery_exhausted 프로퍼티로 워커가 회수한다.
 ```
 
 `_save_paper_v2` 의 incremental-기보유 분기에서 `_consecutive_known` 을 세고,
 `DELIVERY_ORDER == "newest_first"` 이고 임계에 닿으면 `CrawlUpToDate` 를 올린다.
 새 문서 저장 시 0으로 리셋. `CrawlCancelled` 와 같은 제어 흐름 패턴이라 크롤러
 루프를 고칠 필요가 없다.
+
+**(2026-08-18 보정)** 25개 대형 사이트 크롤러는 각자의 자연스러운 목록 종료
+지점(빈 결과 페이지, `has_next=false`, `totalPages` 도달 등) 바로 앞에서
+`self._mark_exhausted()` 를 호출한다. fetch 실패·JSON 파싱 오류·이번 실행의
+예산/페이지 캡 소진·`limit` 컷은 목록이 끝났다는 뜻이 아니므로 호출하지
+않는다 — 이 구분이 §2 보정의 전제다.
 
 ## 4. 크롤러 패치 (25개)
 

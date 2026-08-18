@@ -9,6 +9,7 @@ metadata is loaded through ``GET /api/item/{id}/meta``.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -34,6 +35,7 @@ class EteraEeBrowseCrawler(BaseCrawler):
     _PAGE_SIZE = 25
     _CURL_TIMEOUT = 45
     _MIN_ABSTRACT_CHARS = 50
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
     def __init__(self, db_conn, delay=1.0, detail_delay=None):
         super().__init__(db_conn=db_conn, delay=delay)
@@ -454,6 +456,7 @@ class EteraEeBrowseCrawler(BaseCrawler):
     def crawl(self, limit=None):
         saved = 0
         start = (self.delivery_cursor or {}).get("offset", 0)
+        start_time = time.time()
 
         raw_start = self._curl(
             self._START_URL,
@@ -467,6 +470,9 @@ class EteraEeBrowseCrawler(BaseCrawler):
         while True:
             if limit is not None and saved >= limit:
                 break
+            if time.time() - start_time > self._MAX_WALL:
+                print(f"[{self.site_id}] Wall-clock budget exceeded. Stopping cleanly.")
+                break
 
             data = self._fetch_browse_page(start)
             if not data:
@@ -477,6 +483,7 @@ class EteraEeBrowseCrawler(BaseCrawler):
             items = results.get("docs") or []
             if not items:
                 print(f"[{self.site_id}] no more items at start={start}")
+                self._mark_exhausted()
                 break
 
             total = results.get("count")

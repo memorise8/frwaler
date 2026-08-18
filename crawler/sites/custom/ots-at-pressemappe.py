@@ -277,6 +277,7 @@ class OtsAtPressemappeCrawler(BaseCrawler):
             items = self._fetch_list_page(page)
             if not items:
                 print(f"[{self.site_id}] page {page} returned no items, stopping pagination")
+                self._mark_exhausted()
                 break
 
             new_on_page = 0

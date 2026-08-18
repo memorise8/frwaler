@@ -94,6 +94,7 @@ class DataGvAtDatasetsCrawler(BaseCrawler):
             items = result.get("results", []) if isinstance(result, dict) else []
             if not items:
                 print(f"[{self.site_id}] page {page}: no records; done")
+                self._mark_exhausted()
                 break
 
             new_urls_on_page = 0
@@ -137,6 +138,7 @@ class DataGvAtDatasetsCrawler(BaseCrawler):
 
             if len(items) < _PAGE_SIZE:
                 print(f"[{self.site_id}] page {page}: last page reached")
+                self._mark_exhausted()
                 break
 
             page += 1

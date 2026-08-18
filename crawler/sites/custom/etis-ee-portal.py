@@ -215,6 +215,7 @@ class EtisEePortalCrawler(BaseCrawler):
                 items = data.get("Items") or []
                 if not items:
                     print(f"[{self.site_id}] page {page}: no items returned. Ending pagination.")
+                    self._mark_exhausted()
                     break
 
                 new_count = 0

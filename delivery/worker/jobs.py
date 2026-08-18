@@ -194,14 +194,19 @@ def retry_job(conn, job_id, *, requested_by=None) -> Optional[dict]:
     return dict(row)
 
 
-def finish_job(conn, job_id, saved_count, *, truncated: bool = False) -> bool:
+def finish_job(conn, job_id, saved_count, *, truncated: bool = False) -> str | None:
     """Terminal transition for a job this call still owns.
 
-    Returns True iff one of the two UPDATEs actually matched a row -- i.e.
-    the job was still 'running' or 'cancelling'. False means the row moved
-    out from under the caller (e.g. recover_stale already reclaimed the
-    lease elsewhere); callers must not persist cursor/completion/requeue
-    state for a job they no longer own.
+    Returns the terminal status the UPDATE actually produced:
+    ``"done"`` when the running-row UPDATE matched, ``"cancelled"`` when the
+    cancelling-row UPDATE matched instead, or ``None`` when neither matched
+    (the row moved out from under the caller -- e.g. recover_stale already
+    reclaimed the lease elsewhere). Callers must not persist cursor,
+    completion, or requeue state for a job they no longer own, and a
+    ``"cancelled"`` result on the normal-return path must be treated exactly
+    like the CrawlCancelled handler: persist the advance, skip completion
+    and requeue -- the operator's cancel breaks the chain even when it lands
+    after the crawler already returned normally.
     """
     row = conn.execute(
         """UPDATE crawl_jobs SET status='done', saved_count=%s, finished_at=clock_timestamp(),
@@ -225,7 +230,11 @@ def finish_job(conn, job_id, saved_count, *, truncated: bool = False) -> bool:
         if cancelled:
             _log(conn,job_id,"cancelled",f"취소 요청에 따라 종료되었습니다. 종료 전 신규 문서 {int(saved_count or 0)}건", "warning")
     conn.commit()
-    return row is not None or cancelled is not None
+    if row is not None:
+        return "done"
+    if cancelled is not None:
+        return "cancelled"
+    return None
 
 
 def fail_job(conn, job_id, error) -> None:
@@ -370,7 +379,13 @@ def load_cursor(conn, site_id) -> Optional[dict]:
 
 
 def save_progress(conn, site_id, cursor: dict, items_delta: int = 0) -> None:
-    """커서 업서트 + items_done 누적. 워커의 종결 전이와 같은 결로 커밋한다."""
+    """커서 업서트 + items_done 누적. 워커의 종결 전이와 같은 결로 커밋한다.
+
+    completed_at 을 함께 NULL 로 되돌린다: 커서가 전진했다는 것은 그 사이트가
+    아직 끝나지 않았다는 증거다. mark_backfill_complete 뒤에도 oldest_first
+    증분이나 뒤늦은 백필 조각이 다시 커서를 전진시킬 수 있고, 그때 완주
+    표시가 남아 있으면 화면이 거짓을 말한다.
+    """
     conn.execute(
         """
         INSERT INTO crawl_site_progress (site_id, cursor, items_done, updated_at)
@@ -378,7 +393,8 @@ def save_progress(conn, site_id, cursor: dict, items_delta: int = 0) -> None:
         ON CONFLICT (site_id) DO UPDATE
            SET cursor = EXCLUDED.cursor,
                items_done = crawl_site_progress.items_done + EXCLUDED.items_done,
-               updated_at = now()
+               updated_at = now(),
+               completed_at = NULL
         """,
         (site_id, json.dumps(cursor), int(items_delta)),
     )

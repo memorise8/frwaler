@@ -67,6 +67,7 @@ class BaseCrawler(ABC):
         self._pending_cursor = None      # _advance_cursor 가 기록, 워커가 회수해 저장
         self._cursor_items_done = 0
         self._consecutive_known = 0
+        self._exhausted = False
 
     # ------------------------------------------------------------------
     # Abstract properties / methods
@@ -127,6 +128,18 @@ class BaseCrawler(ABC):
     @property
     def delivery_cursor_items_done(self):
         return self._cursor_items_done
+
+    def _mark_exhausted(self):
+        """사이트를 끝까지 걸었다(더 가져올 목록이 없다)는 명시 신호.
+
+        백필 완주 판정의 유일한 근거다. 시간·예산으로 완주를 추론하면
+        doaj 의 200페이지 조각(약 16분)이 첫 실행에서 완주로 오판된다.
+        """
+        self._exhausted = True
+
+    @property
+    def delivery_exhausted(self):
+        return self._exhausted
 
     def _request(self, url, params=None, method="GET", retries=3, **kwargs):
         """Make an HTTP request with rate-limiting, retries, and error handling.

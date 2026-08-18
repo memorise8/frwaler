@@ -313,6 +313,25 @@ class WorkerJobsTest(unittest.TestCase):
             ("rc-done-site",)).fetchone()
         self.assertIsNotNone(row["completed_at"])
 
+    def test_save_progress_clears_a_stale_completed_at(self):
+        # 커서가 전진했다는 것은 그 사이트가 아직 끝나지 않았다는 증거다 --
+        # mark_backfill_complete 뒤에도 oldest_first 증분이나 뒤늦은 백필
+        # 조각이 다시 커서를 전진시킬 수 있고, 그때 완주 표시가 남아 있으면
+        # 화면이 거짓을 말한다.
+        from delivery.worker import jobs
+        jobs.save_progress(self.conn, "rc-resurrected-site", {"offset": 900}, items_delta=900)
+        jobs.mark_backfill_complete(self.conn, "rc-resurrected-site")
+        row = self.conn.execute(
+            "SELECT completed_at FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-resurrected-site",)).fetchone()
+        self.assertIsNotNone(row["completed_at"])
+
+        jobs.save_progress(self.conn, "rc-resurrected-site", {"offset": 950}, items_delta=50)
+        row = self.conn.execute(
+            "SELECT completed_at FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-resurrected-site",)).fetchone()
+        self.assertIsNone(row["completed_at"])
+
     def test_backfill_mode_passes_the_db_check_constraint(self):
         from delivery.worker import jobs
         # BE Literal 만이 아니라 DB CHECK 도 backfill 을 받아야 한다 —

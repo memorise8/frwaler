@@ -296,6 +296,7 @@ class CdsCernChCollectionCrawler(BaseCrawler):
             items = hits_block.get("hits") or []
             if not items:
                 print(f"[{self.site_id}] page {page}: empty result; done")
+                self._mark_exhausted()
                 break
 
             # Progress log every 10 pages (and on page 1)

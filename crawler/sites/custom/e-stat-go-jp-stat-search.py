@@ -537,6 +537,7 @@ class EStatGoJpStatSearchCrawler(BaseCrawler):
 
             if not list_items:
                 print(f"[{self.site_id}] page {page}: 0 records; stopping")
+                self._mark_exhausted()
                 break
 
             new_on_page = 0
@@ -577,6 +578,7 @@ class EStatGoJpStatSearchCrawler(BaseCrawler):
                 break
             if not has_next:
                 print(f"[{self.site_id}] page {page}: next page absent; stopping")
+                self._mark_exhausted()
                 break
 
             page += 1

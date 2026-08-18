@@ -99,6 +99,7 @@ class NtrsNasaGovSearchCrawler(BaseCrawler):
             results = data.get("results") or []
             if not results:
                 print(f"[ntrs-nasa-gov-search] empty results on page {page_num}, done")
+                self._mark_exhausted()
                 break
 
             new_on_page = 0

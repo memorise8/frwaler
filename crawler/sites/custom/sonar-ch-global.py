@@ -298,6 +298,7 @@ class SonarChGlobalCrawler(BaseCrawler):
             hits = data.get("hits", {}).get("hits", [])
             if not hits:
                 print(f"[{self.site_id}] page {page}: no results, stopping.")
+                self._mark_exhausted()
                 break
 
             new_on_page = 0

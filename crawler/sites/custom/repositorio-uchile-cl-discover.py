@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import time
@@ -28,6 +29,7 @@ class RepositorioUchileClDiscoverCrawler(BaseCrawler):
     PAGE_SIZE = 20
     BACKOFF_SECONDS = (1, 3, 9)
     MIN_ABSTRACT_CHARS = 100
+    _MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # seconds
 
     def __init__(self, db_conn, delay=1.0, detail_delay=None):
         super().__init__(db_conn=db_conn, delay=delay)
@@ -38,9 +40,13 @@ class RepositorioUchileClDiscoverCrawler(BaseCrawler):
         saved = 0
         page = (self.delivery_cursor or {}).get("page", 1)
         seen_urls = set()
+        start_time = time.time()
 
         while True:
             if limit is not None and saved >= limit:
+                break
+            if time.time() - start_time > self._MAX_WALL:
+                print(f"[{self.site_id}] Wall-clock budget exceeded. Stopping cleanly.")
                 break
 
             list_url = self._list_url(page)
@@ -61,6 +67,7 @@ class RepositorioUchileClDiscoverCrawler(BaseCrawler):
             records = self._parse_list(soup, list_url)
             if not records:
                 print(f"[{self.site_id}] no records found at page {page}; stopping")
+                self._mark_exhausted()
                 break
 
             total = self._total_results(soup)

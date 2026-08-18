@@ -74,6 +74,7 @@ class MofGoKrDocCrawler(BaseCrawler):
             doc_seqs = self._parse_list_seqs(raw)
             if not doc_seqs:
                 print(f"[{self.site_id}] No items on list page {page}; stopping")
+                self._mark_exhausted()
                 break
 
             new_count = 0

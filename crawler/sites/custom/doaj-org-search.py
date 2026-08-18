@@ -161,6 +161,7 @@ class DOAJSearchCrawler(BaseCrawler):
             results = data.get("results") or []
             if not results:
                 print(f"[{self.site_id}] No results at page {page}. Done.")
+                self._mark_exhausted()
                 break
 
             if page == 1:

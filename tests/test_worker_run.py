@@ -504,6 +504,8 @@ class WorkerRunTest(unittest.TestCase):
         self.assertIsNotNone(stalled)
 
     def test_completed_backfill_marks_done_and_stops_chain(self):
+        # 완주는 이제 시간·예산이 아니라 크롤러의 명시 신호(_mark_exhausted)로만
+        # 판정한다 -- 이 신호 없이는 아무리 조용히 정상 반환해도 완주가 아니다.
         from crawler.base_crawler import BaseCrawler
         from delivery.worker import jobs, worker
 
@@ -514,6 +516,7 @@ class WorkerRunTest(unittest.TestCase):
 
             def crawl(self, limit=None):
                 self._advance_cursor({"page": 9})
+                self._mark_exhausted()
 
         jobs.enqueue_job(self.conn, "rc-backfill-done", mode="backfill")
         job = jobs.claim_next_job(self.conn)
@@ -725,8 +728,9 @@ class WorkerRunTest(unittest.TestCase):
         self.assertIsNotNone(skipped)
 
     def test_backfill_with_no_progress_is_not_marked_complete(self):
-        # 아무 것도 걷지 못한 채(커서 보고도, 저장도 없이) 정상 반환한 backfill 은
-        # 완주로 표시하면 안 된다 -- 재시도할 방법이 사라진다.
+        # 아무 것도 걷지 못한 채(커서 보고도, 저장도 없이, exhausted 신호도 없이)
+        # 정상 반환한 backfill 은 완주로 표시하면 안 된다 -- 재시도할 방법이
+        # 사라진다. 전진도 exhausted 도 없으니 재큐잉도 하지 않고 stalled 로 남는다.
         from crawler.base_crawler import BaseCrawler
         from delivery.worker import jobs, worker
 
@@ -746,10 +750,112 @@ class WorkerRunTest(unittest.TestCase):
             "SELECT completed_at FROM crawl_site_progress WHERE site_id=%s",
             ("rc-backfill-noop",)).fetchone()
         self.assertIsNone(row)  # progress row 자체가 생기지 않았다
-        no_progress = self.conn.execute(
-            "SELECT 1 FROM crawl_job_logs WHERE job_id=%s AND event='no_progress'",
+        stalled = self.conn.execute(
+            "SELECT 1 FROM crawl_job_logs WHERE job_id=%s AND event='stalled'",
             (jid,)).fetchone()
-        self.assertIsNotNone(no_progress)
+        self.assertIsNotNone(stalled)
+
+    # --- final fix round: completion requires the explicit exhausted signal -
+
+    def test_fast_chunk_without_exhausted_signal_requeues_not_completes(self):
+        # CRITICAL: doaj 의 200페이지 조각(~16분)은 25분 예산의 truncation 임계
+        # 아래라 "안 잘렸다"로 보인다. 시간으로 완주를 추론하던 예전 로직은
+        # 이 조각을 첫 실행에서 곧바로 완주 처리해 13,373,055 건 중 만 건도
+        # 못 걸은 채 체인이 죽었다. exhausted 신호가 없으면, 잘리지 않고 빨리
+        # 돌아와도 완주가 아니라 재큐잉 대상이어야 한다.
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+
+        class FastChunkCrawler(BaseCrawler):
+            site_id = "rc-backfill-fastchunk"
+            site_name = "RC Backfill Fast Chunk"
+            base_url = "https://rc-backfill-fastchunk.example"
+
+            def crawl(self, limit=None):
+                # 예산 소진으로 조기 반환하는 조각을 흉내낸다 -- 빠르게 끝나고
+                # (안 잘림) _mark_exhausted 는 부르지 않는다.
+                self._advance_cursor({"page": 201}, items_done=200)
+
+        jobs.enqueue_job(self.conn, "rc-backfill-fastchunk", mode="backfill")
+        job = jobs.claim_next_job(self.conn)
+        worker.run_job(self.conn, job,
+                       crawler_registry={"rc-backfill-fastchunk": FastChunkCrawler}, delay=0)
+        row = self.conn.execute(
+            "SELECT completed_at FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-backfill-fastchunk",)).fetchone()
+        self.assertIsNone(row["completed_at"])
+        queued = self.conn.execute(
+            "SELECT count(*) AS n FROM crawl_jobs WHERE site_id=%s AND status='queued'",
+            ("rc-backfill-fastchunk",)).fetchone()
+        self.assertEqual(queued["n"], 1)
+
+    def test_fetch_failure_shaped_return_requeues_not_completes(self):
+        # 여러 페이지를 걷다가(전진 보고 있음) fetch 실패로 조용히 반환한 조각도
+        # exhausted 신호가 없으니 완주가 아니다 -- 재큐잉된다.
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+
+        class FetchFailureCrawler(BaseCrawler):
+            site_id = "rc-backfill-fetchfail"
+            site_name = "RC Backfill Fetch Failure"
+            base_url = "https://rc-backfill-fetchfail.example"
+
+            def crawl(self, limit=None):
+                page = (self.delivery_cursor or {}).get("page", 1)
+                for _ in range(3):
+                    page += 1
+                    self._advance_cursor({"page": page}, items_done=10)
+                # fetch 실패를 흉내내며 exhausted 없이 조용히 반환한다.
+
+        jobs.enqueue_job(self.conn, "rc-backfill-fetchfail", mode="backfill")
+        job = jobs.claim_next_job(self.conn)
+        worker.run_job(self.conn, job,
+                       crawler_registry={"rc-backfill-fetchfail": FetchFailureCrawler}, delay=0)
+        row = self.conn.execute(
+            "SELECT completed_at, cursor FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-backfill-fetchfail",)).fetchone()
+        self.assertIsNone(row["completed_at"])
+        self.assertEqual(row["cursor"], {"page": 4})
+        queued = self.conn.execute(
+            "SELECT count(*) AS n FROM crawl_jobs WHERE site_id=%s AND status='queued'",
+            ("rc-backfill-fetchfail",)).fetchone()
+        self.assertEqual(queued["n"], 1)
+
+    def test_cancel_during_normal_return_backfill_breaks_chain(self):
+        # HIGH: 취소가 정상 반환과 동시에 도착하면(finish_job 의 running->done
+        # UPDATE 가 더는 매치하지 않고 cancelling->cancelled 로 떨어지는 경우)
+        # 커서는 저장하되 완주·재큐잉은 절대 하지 않는다 -- 운영자의 취소가
+        # 조용히 무시되면 안 된다.
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+
+        class NormalReturnCrawler(BaseCrawler):
+            site_id = "rc-backfill-late-cancel"
+            site_name = "RC Backfill Late Cancel"
+            base_url = "https://rc-backfill-late-cancel.example"
+
+            def crawl(self, limit=None):
+                # 취소를 확인하지 않고 정상 반환한다 -- 취소가 마지막 안전
+                # 경계 이후에 도착한 경우를 흉내낸다.
+                self._advance_cursor({"page": 2}, items_done=5)
+
+        jid = jobs.enqueue_job(self.conn, "rc-backfill-late-cancel", mode="backfill")
+        job = jobs.claim_next_job(self.conn)
+        jobs.cancel_job(self.conn, jid)  # running -> cancelling
+        worker.run_job(self.conn, job,
+                       crawler_registry={"rc-backfill-late-cancel": NormalReturnCrawler}, delay=0)
+        row = self.conn.execute(
+            "SELECT status FROM crawl_jobs WHERE id=%s", (jid,)).fetchone()
+        self.assertEqual(row["status"], "cancelled")
+        self.assertEqual(jobs.load_cursor(self.conn, "rc-backfill-late-cancel"), {"page": 2})
+        progress = self.conn.execute(
+            "SELECT completed_at FROM crawl_site_progress WHERE site_id=%s",
+            ("rc-backfill-late-cancel",)).fetchone()
+        self.assertIsNone(progress["completed_at"])
+        queued = self.conn.execute(
+            "SELECT count(*) AS n FROM crawl_jobs WHERE site_id=%s AND status='queued'",
+            ("rc-backfill-late-cancel",)).fetchone()
+        self.assertEqual(queued["n"], 0)
 
 
 if __name__ == "__main__":
