@@ -473,8 +473,9 @@ describe("truncated runs", () => {
     const text = describeJobOutcome({ status: "done", saved_count: 40, truncated: true });
     expect(text).toContain("시간 제한");
     expect(text).toContain("40");
-    // 다시 돌리면 이어받는다는 것이 핵심 안내다.
-    expect(text).toContain("다시 실행");
+    // 재실행은 해결책이 아니다 — 크롤러는 1페이지부터 다시 걷는다.
+    expect(text).toContain("시간 제한을 늘려");
+    expect(text).not.toContain("이어서");
   });
 
   it("says so even when a truncated run saved nothing", () => {
@@ -529,8 +530,13 @@ export const TRUNCATED_BADGE = "부분 수집";
 ```ts
   if (job.status === "done") {
     const saved = job.saved_count ?? 0;
+    // 재실행하면 이어받는다고 쓰지 않는다. 확인한 사실: 800개 중 이미 받은 것을
+    // 건너뛰는 장치를 가진 크롤러는 사실상 없다(has_blob 0개, _last_save_created 0개,
+    // pdf_downloaded 조회 10개). 재실행은 1페이지부터 다시 걸어 같은 자리에서 또
+    // 잘린다. 실제 해결책은 워커의 LIBERTREE_MAX_WALL_S 를 늘리는 것뿐이다.
     const cut = job.truncated
-      ? "시간 제한(기본 25분)에 걸려 남은 페이지를 건너뛰었습니다. 같은 사이트를 다시 실행하면 이어서 수집합니다. "
+      ? "시간 제한(기본 25분)에 걸려 남은 페이지를 건너뛰었습니다. 다시 실행해도 크롤러가 처음부터 다시 훑기 때문에 같은 지점에서 멈춥니다. "
+        + "이 사이트를 끝까지 받으려면 워커의 시간 제한을 늘려야 합니다(LIBERTREE_MAX_WALL_S). "
       : "";
     if (saved === 0) {
       return cut + "신규 저장 0건입니다. DB에 새로 추가된 문서가 없다는 뜻이며 실패가 아닙니다. "
