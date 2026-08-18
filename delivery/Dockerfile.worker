@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl poppler-ut
     && rm -rf /var/lib/apt/lists/*
 COPY delivery/requirements.txt /app/delivery/requirements.txt
 RUN pip install --no-cache-dir -r /app/delivery/requirements.txt
-COPY crawlers-share/requirements.txt /app/crawler-runtime-requirements.txt
+# vendored from crawlers-share/ -- the release bundle excludes legacy dirs
+COPY delivery/vendor/crawler-runtime-requirements.txt /app/crawler-runtime-requirements.txt
 RUN pip install --no-cache-dir -r /app/crawler-runtime-requirements.txt
 # Playwright crawlers require both the browser binary and its system libraries.
 RUN python -m playwright install --with-deps chromium

@@ -25,8 +25,10 @@ COPY delivery/fe/package.json delivery/fe/package-lock.json ./
 # supported by crawler-health.ts.
 COPY scripts/audit/crawler_status_final.csv /app/scripts/audit/crawler_status_final.csv
 COPY scripts/audit/capacity_final.csv /app/scripts/audit/capacity_final.csv
-COPY libertree-app/src/lib/categories.ts /app/libertree-app/src/lib/categories.ts
-COPY libertree-app/src/lib/doc-type-map.generated.ts /app/libertree-app/src/lib/doc-type-map.generated.ts
+# vendored from libertree-app/src/lib -- the release bundle excludes legacy dirs;
+# in-image destination paths stay identical so runtime readers are untouched
+COPY delivery/vendor/libertree-lib/categories.ts /app/libertree-app/src/lib/categories.ts
+COPY delivery/vendor/libertree-lib/doc-type-map.generated.ts /app/libertree-app/src/lib/doc-type-map.generated.ts
 
 EXPOSE 3002
 CMD ["npm", "run", "start"]

@@ -4,7 +4,8 @@ ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app
 COPY delivery/requirements.txt /app/delivery/requirements.txt
 RUN pip install --no-cache-dir -r /app/delivery/requirements.txt
 # 크롤러 런타임 의존성(requests, beautifulsoup 등)도 필요
-COPY crawlers-share/requirements.txt /app/crawler-runtime-requirements.txt
+# vendored from crawlers-share/ -- the release bundle excludes legacy dirs
+COPY delivery/vendor/crawler-runtime-requirements.txt /app/crawler-runtime-requirements.txt
 RUN pip install --no-cache-dir -r /app/crawler-runtime-requirements.txt
 COPY crawler /app/crawler
 COPY delivery /app/delivery

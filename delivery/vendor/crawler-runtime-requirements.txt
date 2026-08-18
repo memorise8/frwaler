@@ -1,0 +1,28 @@
+# libertree 크롤러 실행에 필요한 파이썬 패키지
+# 설치: pip install -r requirements.txt
+#      python -m playwright install chromium   # (봇 방어 사이트용, 아래 README 참고)
+
+# HTTP / 페치
+requests
+httpx
+curl_cffi
+cloudscraper
+
+# HTML 파싱
+beautifulsoup4
+lxml
+html5lib
+
+# 브라우저 자동화 (JS 챌린지 / 봇 방어 우회)
+playwright
+playwright-stealth
+patchright
+
+# PDF 처리 (본문 추출)
+pdfplumber
+pypdf
+
+# 유틸
+openpyxl
+python-dotenv
+python-dateutil>=2.8
