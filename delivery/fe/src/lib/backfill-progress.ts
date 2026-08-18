@@ -16,7 +16,9 @@ export const formatBackfillPercent = (
   return `${(ratio * 100).toFixed(1)}%`;
 };
 
-export const backfillStateLabel = (row: ProgressRow): string => {
+export type BackfillState = "시작 전" | "진행 중" | "완주";
+
+export const backfillStateLabel = (row: ProgressRow): BackfillState => {
   if (row.completed_at) return "완주";
   if (row.cursor) return "진행 중";
   return "시작 전";

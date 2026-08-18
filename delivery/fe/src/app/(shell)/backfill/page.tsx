@@ -27,7 +27,7 @@ async function loadProgress(): Promise<ProgressSite[] | null> {
   }
 }
 
-const STATE_BADGE_CLASS: Record<string, string> = {
+const STATE_BADGE_CLASS: Record<ReturnType<typeof backfillStateLabel>, string> = {
   "시작 전": "verify-tag",
   "진행 중": "material-tag",
   "완주": "verify-tag verify-tag--collected",
@@ -36,9 +36,11 @@ const STATE_BADGE_CLASS: Record<string, string> = {
 export default async function BackfillProgress() {
   const rows = await loadProgress();
   const siteNameById = new Map(getCrawlerHealth().map((site) => [site.siteId, site.siteName]));
-  const completed = rows?.filter((row) => row.completed_at).length ?? 0;
-  const inProgress = rows?.filter((row) => !row.completed_at && row.cursor).length ?? 0;
-  const notStarted = rows?.filter((row) => !row.completed_at && !row.cursor).length ?? 0;
+  // 요약 카드와 행 배지가 같은 분류 규칙을 쓰도록 라이브러리에서 파생한다 --
+  // 여기서 다시 분기하면 규칙이 바뀔 때 둘이 조용히 어긋난다.
+  const completed = rows?.filter((row) => backfillStateLabel(row) === "완주").length ?? 0;
+  const inProgress = rows?.filter((row) => backfillStateLabel(row) === "진행 중").length ?? 0;
+  const notStarted = rows?.filter((row) => backfillStateLabel(row) === "시작 전").length ?? 0;
 
   return (
     <div className="status-page">

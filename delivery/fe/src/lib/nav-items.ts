@@ -4,6 +4,8 @@ export type NavItem = Readonly<{ href: string; label: string; match: readonly st
 // happens to be organised: start a collection, watch the crawlers doing it,
 // then check what came out of it. Scheduling is a periodic setup task rather
 // than something touched on every visit, so it sits after the daily screens.
+// 백필 sits between watching crawlers and checking results: it is the
+// long-running collection campaign an operator monitors alongside both.
 export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/", label: "수집", match: ["/"] },
   { href: "/crawlers", label: "크롤러 상태", match: ["/crawlers"] },
