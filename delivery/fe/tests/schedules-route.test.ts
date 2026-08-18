@@ -149,19 +149,28 @@ describe("PUT /api/schedules/[siteId]", () => {
 });
 
 describe("DELETE /api/schedules/[siteId]", () => {
-  afterEach(() => { vi.unstubAllGlobals(); });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
 
   const del = (siteId: string) =>
     DELETE(new NextRequest(`http://localhost/api/schedules/${siteId}`, { method: "DELETE" }),
       { params: Promise.resolve({ siteId }) });
 
   it("forwards the delete with the operator token attached", async () => {
+    // operatorHeaders() reads the token from the environment at call time, so
+    // without this the header is simply absent and the assertion below would
+    // be vacuous -- which is exactly how this test used to pass while proving
+    // nothing.
+    vi.stubEnv("DELIVERY_API_TOKEN", "test-token-that-is-at-least-32-characters");
     const fetchMock = vi.fn(async (_url: string, _init: RequestInit) => new Response(JSON.stringify({ deleted: true }), { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
     expect((await del("some-site")).status).toBe(200);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toContain("/schedules/some-site");
     expect(init.method).toBe("DELETE");
+    expect(init.headers).toMatchObject({ "x-delivery-token": "test-token-that-is-at-least-32-characters" });
   });
 
   it("passes a missing schedule through as 404", async () => {
