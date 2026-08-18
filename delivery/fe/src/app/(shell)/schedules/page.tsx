@@ -1,6 +1,15 @@
 import "server-only";
 import ScheduleManager from "./schedule-manager";
 import { getCrawlerHealth } from "@/lib/crawler-health";
+
+// Every other server-data page carries this; without it `next build` treats
+// this route as static and prerenders it. Two things break at once: the
+// audited catalogue CSV is not in the FE build stage (only the runtime
+// image), so the build fails outright -- and had it succeeded, load() would
+// have run against a backend that does not exist during the build, caught its
+// own failure, and baked "연결 안 됨" into the page for the life of the image.
+export const dynamic = "force-dynamic";
+
 type Schedule={id:number;site_id:string;interval_hours:number;mode:string;limit_n:number|null;enabled:boolean;next_run_at:string;last_run_at:string|null};
 const backend=()=>(process.env.BE_URL??"http://127.0.0.1:8080").replace(/\/$/,"");
 async function load():Promise<Schedule[]|null>{try{const r=await fetch(`${backend()}/schedules`,{cache:"no-store",signal:AbortSignal.timeout(8000)});if(!r.ok)return null;return ((await r.json()) as {schedules:Schedule[]}).schedules;}catch{return null;}}
