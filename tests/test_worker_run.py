@@ -411,6 +411,35 @@ class WorkerRunTest(unittest.TestCase):
         with mock.patch.dict(os.environ, {"LIBERTREE_MAX_WALL_S": "2"}):
             self.assertAlmostEqual(worker.truncation_threshold_seconds(), 1.8, places=3)
 
+    # --- cursor contract: up-to-date early stop -------------------------
+
+    def test_incremental_newest_first_stops_after_threshold_known_docs(self):
+        # 같은 문서를 임계+1 회 저장 시도하는 가짜 크롤러: 첫 회는 신규 저장,
+        # 이후는 기보유 → 연속 카운터가 임계에 닿으면 CrawlUpToDate.
+        # 워커 처리(정상 done)는 Task 4 테스트가 고정한다 — 여기서는 크롤러를
+        # 직접 호출해 예외가 crawl() 밖으로 나오는지만 확인한다.
+        from crawler.base_crawler import BaseCrawler, CrawlUpToDate
+
+        class UpToDateCrawler(BaseCrawler):
+            site_id = "rc-uptodate"
+            site_name = "RC UpToDate"
+            base_url = "https://rc-uptodate.example"
+            DELIVERY_ORDER = "newest_first"
+            UP_TO_DATE_THRESHOLD = 3
+
+            def crawl(self, limit=None):
+                for _ in range(10):
+                    self._save_paper_v2({
+                        "site_id": self.site_id, "post_number": "fixed-1",
+                        "meta_url": "http://invalid.invalid/1", "title": "t"})
+                raise AssertionError("threshold 에서 CrawlUpToDate 가 났어야 한다")
+
+        self.db_pg.upsert_site(self.conn, "rc-uptodate", "RC UpToDate", "https://rc-uptodate.example")
+        inst = UpToDateCrawler(db_conn=self.conn, delay=0)
+        inst.delivery_mode = "incremental"
+        with self.assertRaises(CrawlUpToDate):
+            inst.crawl()
+
 
 if __name__ == "__main__":
     unittest.main()

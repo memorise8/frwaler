@@ -15,6 +15,15 @@ class CrawlCancelled(RuntimeError):
     """Cooperative stop raised at safe request/save boundaries."""
 
 
+class CrawlUpToDate(RuntimeError):
+    """Incremental crawl reached already-collected territory (newest-first only).
+
+    Raised from _save_paper_v2 after UP_TO_DATE_THRESHOLD consecutive
+    already-known documents, so custom crawl loops stop without per-crawler
+    changes -- the same control-flow pattern as CrawlCancelled.
+    """
+
+
 class BaseCrawler(ABC):
     """Abstract base class for all site crawlers."""
 
@@ -23,6 +32,10 @@ class BaseCrawler(ABC):
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/120.0.0.0 Safari/537.36"
     )
+
+    # 재개(cursor) 계약 -- 기본값이면 아무것도 달라지지 않는다.
+    DELIVERY_ORDER = "arbitrary"      # newest_first | oldest_first | arbitrary
+    UP_TO_DATE_THRESHOLD = 50
 
     def __init__(self, db_conn, delay=1.0):
         self._conn = db_conn
@@ -38,6 +51,10 @@ class BaseCrawler(ABC):
         self.delivery_mode = "incremental"
         self.delivery_should_cancel = lambda: False
         self._last_save_created = False
+        self.delivery_cursor = None      # 워커가 주입하는 시작점 (읽기 전용으로 쓸 것)
+        self._pending_cursor = None      # _advance_cursor 가 기록, 워커가 회수해 저장
+        self._cursor_items_done = 0
+        self._consecutive_known = 0
 
     # ------------------------------------------------------------------
     # Abstract properties / methods
@@ -75,6 +92,15 @@ class BaseCrawler(ABC):
     def _check_cancelled(self):
         if self.delivery_should_cancel():
             raise CrawlCancelled("crawl cancellation requested")
+
+    def _advance_cursor(self, cursor, items_done=0):
+        """페이지 하나를 끝낼 때 호출: 다음 실행이 시작할 지점을 보고한다.
+
+        메모리에만 기록한다 -- DB 저장과 커밋은 워커의 종결 전이에서 일어난다.
+        크롤 도중에 저장하면 실패한 크롤의 커서가 남는다.
+        """
+        self._pending_cursor = dict(cursor)
+        self._cursor_items_done += int(items_done)
 
     def _request(self, url, params=None, method="GET", retries=3, **kwargs):
         """Make an HTTP request with rate-limiting, retries, and error handling.
@@ -205,9 +231,16 @@ class BaseCrawler(ABC):
         )
         if self.delivery_mode == "incremental" and existing is not None:
             self._last_save_created = False
+            self._consecutive_known += 1
+            if (self.DELIVERY_ORDER == "newest_first"
+                    and self._consecutive_known >= self.UP_TO_DATE_THRESHOLD):
+                raise CrawlUpToDate(
+                    f"{self._consecutive_known} consecutive known documents")
             return existing
         seq_id = backend.insert_document(self._conn, doc)
         self._last_save_created = existing is None
+        if existing is None:
+            self._consecutive_known = 0
         return seq_id
 
     def _conn_is_libertree(self):
