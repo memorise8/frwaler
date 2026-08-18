@@ -105,6 +105,31 @@ class WorkerJobsTest(unittest.TestCase):
         self.assertEqual(schedules.enqueue_due(self.conn),0)
         self.assertEqual(self.conn.execute("SELECT count(*) AS n FROM crawl_jobs WHERE site_id='scheduled'").fetchone()["n"],1)
 
+    def test_delete_schedule_removes_it_and_reports_whether_it_existed(self):
+        from delivery.worker import schedules
+        from crawler import db_pg
+        db_pg.upsert_site(self.conn, "doomed", "Doomed", "https://doomed.invalid")
+        schedules.upsert(self.conn, site_id="doomed", interval_hours=24, created_by="test")
+        self.assertTrue(schedules.delete(self.conn, "doomed"))
+        self.assertEqual(schedules.list_schedules(self.conn), [])
+        # 두 번째 호출은 오류가 아니라 "없었다"이다.
+        self.assertFalse(schedules.delete(self.conn, "doomed"))
+
+    # 예약을 지우는 것과 이미 등록된 작업을 취소하는 것은 다른 행동이다.
+    # 삭제가 조용히 진행 중인 수집을 죽이면 안 된다.
+    def test_delete_schedule_leaves_the_jobs_it_already_created(self):
+        from delivery.worker import schedules
+        from crawler import db_pg
+        db_pg.upsert_site(self.conn, "doomed", "Doomed", "https://doomed.invalid")
+        schedules.upsert(self.conn, site_id="doomed", interval_hours=24, created_by="test")
+        self.conn.execute("UPDATE crawl_schedules SET next_run_at=now() WHERE site_id='doomed'")
+        self.conn.commit()
+        self.assertEqual(schedules.enqueue_due(self.conn), 1)
+        schedules.delete(self.conn, "doomed")
+        remaining = self.conn.execute(
+            "SELECT count(*) AS n FROM crawl_jobs WHERE site_id='doomed'").fetchone()["n"]
+        self.assertEqual(remaining, 1)
+
     def test_claim_transitions_to_running(self):
         from delivery.worker import jobs
         jid = jobs.enqueue_job(self.conn, "s1")

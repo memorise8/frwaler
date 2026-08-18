@@ -303,6 +303,14 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(len(self.client.get("/schedules").json()["schedules"]),1)
         self.assertEqual(self.client.put("/schedules/missing",json={"interval_hours":24}).status_code,404)
 
+    def test_delete_schedule_requires_an_operator_token(self):
+        with mock.patch.dict(os.environ, {"DELIVERY_AUTH_MODE": "token", "DELIVERY_API_TOKEN": "x" * 32}):
+            response = self.client.delete("/schedules/whatever")
+        self.assertEqual(response.status_code, 401)
+
+    def test_delete_unknown_schedule_reports_404(self):
+        self.assertEqual(self.client.delete("/schedules/never-scheduled").status_code, 404)
+
     def test_list_cancel_and_retry_jobs(self):
         created = self.client.post("/jobs", json={"site_id": "s1", "mode": "full"}).json()
         jid = created["id"]

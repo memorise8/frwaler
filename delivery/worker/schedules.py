@@ -16,6 +16,21 @@ def upsert(conn,*,site_id:str,interval_hours:int,mode:str="incremental",limit_n:
 def list_schedules(conn)->list[dict]:return [dict(r) for r in conn.execute("SELECT * FROM crawl_schedules ORDER BY next_run_at,site_id").fetchall()]
 
 
+def delete(conn, site_id: str) -> bool:
+    """Remove a schedule. Returns False when there was nothing to remove.
+
+    Nothing references crawl_schedules, and jobs it created carry only the
+    string requested_by='scheduler', so deleting the row cannot disturb work
+    already queued or running -- the schedule stops repeating, the current
+    collection finishes.
+    """
+    row = conn.execute(
+        "DELETE FROM crawl_schedules WHERE site_id=%s RETURNING id", (site_id,)
+    ).fetchone()
+    conn.commit()
+    return row is not None
+
+
 def enqueue_due(conn)->int:
     rows=conn.execute("""SELECT * FROM crawl_schedules WHERE enabled AND next_run_at<=now()
       ORDER BY next_run_at FOR UPDATE SKIP LOCKED""").fetchall();created=0

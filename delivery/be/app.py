@@ -432,6 +432,16 @@ def create_app(dsn: str) -> FastAPI:
             except ValueError as exc:raise HTTPException(status_code=422,detail=str(exc)) from exc
         finally:conn.close()
 
+    @app.delete("/schedules/{site_id}")
+    def delete_schedule(site_id: str, operator: str = Depends(require_operator)):
+        conn = _conn()
+        try:
+            if not schedules.delete(conn, site_id):
+                raise HTTPException(status_code=404, detail="schedule not found")
+            return {"deleted": True, "site_id": site_id}
+        finally:
+            conn.close()
+
     @app.get("/jobs")
     def get_jobs(status: str | None = None, limit: int = 50, offset: int = 0):
         if status not in (None, "queued", "running", "cancelling", "done", "failed", "cancelled"):
