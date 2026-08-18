@@ -48,6 +48,18 @@ describe("parseQueueSummary", () => {
     expect(parseQueueSummary({ counts: "nope", active: 1 })).toBeNull();
     expect(parseQueueSummary(payload({ active: "many" }))).toBeNull();
   });
+
+  it("refuses a fractional count", () => {
+    expect(parseQueueSummary(payload({ active: 785.5 }))).toBeNull();
+    expect(parseQueueSummary(payload({
+      counts: { queued: 784.5, running: 1, cancelling: 0, done: 19, failed: 0, cancelled: 0 },
+    }))).toBeNull();
+  });
+
+  // 평균이 실수라고 추정을 버리면 안 된다.
+  it("keeps a fractional mean rather than discarding the estimate", () => {
+    expect(parseQueueSummary(payload({ avg_seconds: 22.4 }))!.etaText).not.toBeNull();
+  });
 });
 
 describe("formatEta", () => {
@@ -67,5 +79,19 @@ describe("formatEta", () => {
   it("says nothing when there is no measurement to base it on", () => {
     expect(formatEta(null, 785)).toBeNull();
     expect(formatEta(22, 0)).toBeNull();
+  });
+
+  // 22초 평균에 327건 남은 상태는 804대 수집 중 평범한 값이다. 시·분을 먼저
+  // 쪼갠 뒤 분을 반올림하면 여기서 "약 1시간 60분 남음"이 나왔다.
+  it("never renders a 60-minute component", () => {
+    expect(formatEta(22, 327)).toBe("약 2시간 남음");
+    expect(formatEta(7199, 1)).toBe("약 2시간 남음");
+    expect(formatEta(17999, 1)).toBe("약 5시간 남음");
+  });
+
+  // 평균 소요 시간은 실수가 정상이고(avg()::float8), 남은 건수는 정수여야 한다.
+  it("accepts a fractional mean but not a fractional job count", () => {
+    expect(formatEta(22.4, 10)).toBe("약 4분 남음");
+    expect(formatEta(22, 10.5)).toBeNull();
   });
 });

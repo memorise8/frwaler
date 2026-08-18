@@ -15,20 +15,33 @@ export type QueueProgress = Readonly<{
 }>;
 
 const SECONDS_PER_MINUTE = 60;
-const SECONDS_PER_HOUR = 3600;
+const MINUTES_PER_HOUR = 60;
 
+// Counts are whole things. A fractional "784.5건" is a malformed payload, not
+// a rounding difference worth tolerating.
 const isCount = (value: unknown): value is number =>
+  typeof value === "number" && Number.isInteger(value) && value >= 0;
+
+// A mean duration is legitimately fractional -- the backend computes it with
+// Postgres avg(...)::float8 -- so it gets its own predicate. Squeezing it
+// through isCount would reject a perfectly good 22.4 and silently drop the
+// estimate.
+const isDuration = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value) && value >= 0;
 
 // The worker is a single serial loop -- one site at a time -- so the wait is
 // simply the queue depth times how long one site has been taking.
 export const formatEta = (seconds: number | null, activeJobs: number): string | null => {
-  if (seconds === null || !isCount(seconds) || !isCount(activeJobs) || activeJobs === 0) return null;
-  const total = Math.round(seconds * activeJobs);
-  if (total < SECONDS_PER_MINUTE) return "1분 미만 남음";
-  if (total < SECONDS_PER_HOUR) return `약 ${Math.round(total / SECONDS_PER_MINUTE)}분 남음`;
-  const hours = Math.floor(total / SECONDS_PER_HOUR);
-  const minutes = Math.round((total % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
+  if (seconds === null || !isDuration(seconds) || !isCount(activeJobs) || activeJobs === 0) return null;
+  const totalSeconds = Math.round(seconds * activeJobs);
+  if (totalSeconds < SECONDS_PER_MINUTE) return "1분 미만 남음";
+  // Round to whole minutes BEFORE splitting. Splitting first and rounding the
+  // remainder lets the minute component reach 60: an ordinary 22-second mean
+  // with 327 jobs left rendered "약 1시간 60분 남음".
+  const totalMinutes = Math.round(totalSeconds / SECONDS_PER_MINUTE);
+  if (totalMinutes < MINUTES_PER_HOUR) return `약 ${totalMinutes}분 남음`;
+  const hours = Math.floor(totalMinutes / MINUTES_PER_HOUR);
+  const minutes = totalMinutes % MINUTES_PER_HOUR;
   return minutes === 0 ? `약 ${hours}시간 남음` : `약 ${hours}시간 ${minutes}분 남음`;
 };
 
@@ -44,7 +57,7 @@ export const parseQueueSummary = (payload: unknown): QueueProgress | null => {
   if (!isCount(queued) || !isCount(running) || !isCount(active) || !isCount(finished)) return null;
 
   const avgSeconds = body.avg_seconds;
-  const mean = isCount(avgSeconds) ? avgSeconds : null;
+  const mean = isDuration(avgSeconds) ? avgSeconds : null;
 
   if (active === 0) {
     return { queued, running, active, finished, percent: null, etaText: null,
@@ -54,10 +67,9 @@ export const parseQueueSummary = (payload: unknown): QueueProgress | null => {
   // Against the current sweep, never against all-time history: job records are
   // retained forever, so an all-time denominator would report a fresh 804-site
   // run as already 90% done.
-  const denominator = finished + active;
   return {
     queued, running, active, finished,
-    percent: denominator === 0 ? null : Math.round((finished / denominator) * 100),
+    percent: Math.round((finished / (finished + active)) * 100),
     etaText: formatEta(mean, active),
     headline: `대기 ${queued.toLocaleString("ko-KR")}건 · 실행 중 ${running.toLocaleString("ko-KR")}건`,
   };
