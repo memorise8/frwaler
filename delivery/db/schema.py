@@ -67,6 +67,7 @@ def verify_required_schema(conn) -> None:
         ("crawl_jobs", "lease_expires_at"),
         ("crawl_jobs", "max_attempts"),
         ("crawl_jobs", "next_attempt_at"),
+        ("crawl_jobs", "truncated"),
         ("translation_system_observations", "provider"),
         ("translation_system_observations", "model_version"),
     )
@@ -106,6 +107,7 @@ def init_delivery_schema(conn) -> None:
             ,attempts      INTEGER NOT NULL DEFAULT 0
             ,max_attempts  INTEGER NOT NULL DEFAULT 3 CHECK (max_attempts BETWEEN 1 AND 10)
             ,next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT now()
+            ,truncated     BOOLEAN NOT NULL DEFAULT FALSE
         )
         """
     )
@@ -118,6 +120,7 @@ def init_delivery_schema(conn) -> None:
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS attempts INTEGER NOT NULL DEFAULT 0")
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS max_attempts INTEGER NOT NULL DEFAULT 3")
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT now()")
+    conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS truncated BOOLEAN NOT NULL DEFAULT FALSE")
     conn.execute("""DO $$ BEGIN ALTER TABLE crawl_jobs ADD CONSTRAINT crawl_jobs_mode_check
       CHECK(mode IN('incremental','full')) NOT VALID; EXCEPTION WHEN duplicate_object THEN NULL; END $$""")
     conn.execute("""DO $$ BEGIN ALTER TABLE crawl_jobs ADD CONSTRAINT crawl_jobs_status_check
