@@ -11,16 +11,28 @@ from . import db as db_module
 from . import storage as storage_module
 
 
-class CrawlCancelled(RuntimeError):
+class CrawlControl(BaseException):
+    """Control-flow signals that must pass through crawler code untouched.
+
+    Deliberately BaseException, not Exception: 733 of the 800 site crawlers
+    wrap their save loop in `except Exception: continue`, which would swallow
+    a RuntimeError-based signal and defeat both cooperative cancellation and
+    the incremental early stop. The corpus already re-raises KeyboardInterrupt
+    (735/800), so BaseException-shaped control flow is the established escape
+    hatch. Only the delivery worker may catch these.
+    """
+
+
+class CrawlCancelled(CrawlControl):
     """Cooperative stop raised at safe request/save boundaries."""
 
 
-class CrawlUpToDate(RuntimeError):
+class CrawlUpToDate(CrawlControl):
     """Incremental crawl reached already-collected territory (newest-first only).
 
-    Raised from _save_paper_v2 after UP_TO_DATE_THRESHOLD consecutive
-    already-known documents, so custom crawl loops stop without per-crawler
-    changes -- the same control-flow pattern as CrawlCancelled.
+    Raised from _save_paper_v2 ON the UP_TO_DATE_THRESHOLD-th consecutive
+    already-known document (the first N-1 return silently). Only effective on
+    the libertree/v2 save path -- the legacy sqlite path never counts.
     """
 
 
@@ -98,9 +110,23 @@ class BaseCrawler(ABC):
 
         메모리에만 기록한다 -- DB 저장과 커밋은 워커의 종결 전이에서 일어난다.
         크롤 도중에 저장하면 실패한 크롤의 커서가 남는다.
+
+        cursor 는 스칼라로 이루어진 평평한 dict 여야 한다: dict(cursor) 는 얕은
+        복사라 중첩된 값은 보호되지 않는다.
         """
+        if cursor is None:
+            return
         self._pending_cursor = dict(cursor)
         self._cursor_items_done += int(items_done)
+
+    @property
+    def delivery_pending_cursor(self):
+        """워커가 종결 전이에서 회수하는, 마지막으로 보고된 커서 (없으면 None)."""
+        return self._pending_cursor
+
+    @property
+    def delivery_cursor_items_done(self):
+        return self._cursor_items_done
 
     def _request(self, url, params=None, method="GET", retries=3, **kwargs):
         """Make an HTTP request with rate-limiting, retries, and error handling.
@@ -233,7 +259,7 @@ class BaseCrawler(ABC):
             self._last_save_created = False
             self._consecutive_known += 1
             if (self.DELIVERY_ORDER == "newest_first"
-                    and self._consecutive_known >= self.UP_TO_DATE_THRESHOLD):
+                    and self._consecutive_known >= max(1, self.UP_TO_DATE_THRESHOLD)):
                 raise CrawlUpToDate(
                     f"{self._consecutive_known} consecutive known documents")
             return existing
