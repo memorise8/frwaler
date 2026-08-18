@@ -1,0 +1,179 @@
+<meta charset="utf-8">
+<title>Libertree 운영 설명서</title>
+<style>
+  :root {
+    --canvas: #f7f6f2; --surface: #ffffff; --ink: #23281f; --muted: #6b7263;
+    --rule: #e2e0d8; --moss: #4a6741; --moss-deep: #355030; --moss-wash: #eef2ea;
+    --sand-wash: #f3ead8; --bad: #a3402f; --bad-wash: #f7e8e4; --mono: "SF Mono", "D2Coding", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--canvas); color: var(--ink);
+         font: 16px/1.75 -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif; }
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 3rem 1.25rem 6rem; }
+  header.doc { border-bottom: 3px solid var(--moss); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .eyebrow { font-size: .78rem; letter-spacing: .14em; color: var(--moss-deep); font-weight: 700; }
+  h1 { font-size: 1.9rem; line-height: 1.3; margin: .4rem 0 .6rem; text-wrap: balance; }
+  header.doc p { color: var(--muted); margin: 0; }
+  h2 { font-size: 1.25rem; margin: 3rem 0 .8rem; padding-top: 1.2rem; border-top: 1px solid var(--rule); }
+  h2 .no { color: var(--moss); font-variant-numeric: tabular-nums; margin-right: .45rem; }
+  h3 { font-size: 1.02rem; margin: 1.6rem 0 .5rem; }
+  p { margin: .6rem 0; }
+  code { font-family: var(--mono); font-size: .85em; background: var(--moss-wash); padding: .1em .35em; border-radius: 3px; }
+  pre { background: #2b3026; color: #e8ead9; padding: 1rem 1.1rem; border-radius: 6px;
+        overflow-x: auto; line-height: 1.6; font-size: .82rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th { text-align: left; font-size: .8rem; letter-spacing: .04em; color: var(--muted);
+       border-bottom: 2px solid var(--rule); padding: .4rem .6rem .4rem 0; }
+  td { border-bottom: 1px solid var(--rule); padding: .55rem .6rem .55rem 0; vertical-align: top; }
+  td:first-child { white-space: nowrap; font-weight: 600; }
+  .note { background: var(--sand-wash); border-left: 4px solid var(--moss); padding: .8rem 1rem;
+          border-radius: 0 6px 6px 0; margin: 1rem 0; }
+  .warn { background: var(--bad-wash); border-left: 4px solid var(--bad); padding: .8rem 1rem;
+          border-radius: 0 6px 6px 0; margin: 1rem 0; }
+  .warn strong { color: var(--bad); }
+  .kbd { display: inline-block; background: var(--surface); border: 1px solid var(--rule);
+         border-bottom-width: 2px; border-radius: 4px; padding: 0 .4em; font-family: var(--mono); font-size: .85em; }
+  ol li, ul li { margin: .35rem 0; }
+  .toc { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 1.2rem 1.4rem; }
+  .toc ol { margin: .3rem 0 0; padding-left: 1.3rem; }
+  .toc a { color: var(--moss-deep); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  footer { margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--rule);
+           color: var(--muted); font-size: .85rem; }
+</style>
+
+<div class="wrap">
+<header class="doc">
+  <div class="eyebrow">LIBERTREE 수집 시스템</div>
+  <h1>운영 설명서</h1>
+  <p>804개 사이트 크롤러 · 운영 콘솔 · 백필 — 납품 후 일상 운영 안내 (2026-08-18 기준)</p>
+</header>
+
+<nav class="toc">
+  <strong>차례</strong>
+  <ol>
+    <li><a href="#s1">시스템 구성</a></li>
+    <li><a href="#s2">최초 설치</a></li>
+    <li><a href="#s3">데이터 복원 (전달받은 DB·PDF)</a></li>
+    <li><a href="#s4">일상 운영 — 콘솔 사용법</a></li>
+    <li><a href="#s5">대형 사이트 백필 (이어서 수집)</a></li>
+    <li><a href="#s6">문제가 생겼을 때</a></li>
+    <li><a href="#s7">주요 환경변수</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1"><span class="no">1</span>시스템 구성</h2>
+<p>네 개의 컨테이너가 Docker Compose로 함께 돕니다.</p>
+<table>
+  <tr><th>구성요소</th><th>역할</th></tr>
+  <tr><td>콘솔(FE)</td><td>브라우저 화면. 수집 시작·진행 확인·스케줄 관리 (기본 <code>http://127.0.0.1:3000</code>)</td></tr>
+  <tr><td>API(BE)</td><td>콘솔과 외부 도구가 쓰는 REST API (기본 <code>http://127.0.0.1:8080</code>)</td></tr>
+  <tr><td>워커</td><td>큐에서 작업을 하나씩 꺼내 실제 크롤을 수행. 한 번에 하나(직렬)</td></tr>
+  <tr><td>PostgreSQL</td><td>문서 메타데이터·작업 큐·수집 진도. PDF 원본은 별도 blob 볼륨에 저장</td></tr>
+</table>
+<p>크롤러는 사이트당 하나씩 총 804개가 소스에 포함되어 있으며, 콘솔에서 사이트를 골라
+작업을 등록하면 워커가 해당 크롤러를 실행합니다.</p>
+
+<h2 id="s2"><span class="no">2</span>최초 설치</h2>
+<ol>
+  <li>소스 번들을 풀고 리포지토리 루트에서 <code>delivery/.env</code>를 만듭니다
+      (<code>delivery/.env.example</code> 복사 후 수정).</li>
+  <li>비밀값 두 개를 채웁니다 — 비워 두면 시작을 거부합니다:
+<pre><code># POSTGRES_PASSWORD: 원하는 DB 비밀번호
+# DELIVERY_API_TOKEN: 아래 명령으로 생성
+openssl rand -hex 32</code></pre></li>
+  <li>최초 1회 부트스트랩(스키마 생성 → 기동):
+<pre><code>docker compose -f delivery/docker-compose.yml --profile bootstrap run --rm --build migrate && \
+docker compose -f delivery/docker-compose.yml up -d</code></pre></li>
+  <li>콘솔 접속 → 우측 상단에 API 토큰 입력 → 화면이 데이터를 보여주면 완료입니다.</li>
+</ol>
+<div class="note">업그레이드(새 소스 반영) 때도 같은 <code>migrate</code> 명령을 먼저 실행하세요.
+<code>--build</code>가 반드시 필요합니다 — 없으면 낡은 이미지가 옛 스키마로 조용히 통과할 수 있습니다.</div>
+
+<h2 id="s3"><span class="no">3</span>데이터 복원 (전달받은 DB·PDF)</h2>
+<p>데이터는 소스와 별도로 전달됩니다: PostgreSQL 덤프(<code>.dump</code>, pg_dump -Fc 형식)와
+PDF 디렉터리(blob) 두 가지입니다.</p>
+<ol>
+  <li><strong>DB 복원</strong> — 2절의 부트스트랩을 마친 뒤:
+<pre><code>docker compose -f delivery/docker-compose.yml exec -T postgres \
+  pg_restore -U libertree -d libertree --no-owner /tmp/libertree.dump</code></pre>
+      (덤프 파일을 먼저 컨테이너로 복사: <code>docker cp libertree.dump &lt;postgres컨테이너&gt;:/tmp/</code>)</li>
+  <li><strong>PDF 복원</strong> — 전달받은 blob 디렉터리를 <em>구조 그대로</em> blob 볼륨 경로에 넣습니다.
+      <div class="warn"><strong>중요:</strong> <code>{루트}/{앞4자리}/{다음4자리}/{12자리번호}.pdf</code>
+      디렉터리 구조 자체가 색인입니다. 파일을 평평하게 풀거나 이름을 바꾸면 문서와 PDF의 연결이 끊어집니다.
+      <code>rsync -a</code>로 통째로 복사하세요.</div></li>
+  <li>검증: 콘솔의 수집 상태 화면에서 문서 수가 전달 명세서의 수와 일치하는지 확인합니다.</li>
+</ol>
+
+<h2 id="s4"><span class="no">4</span>일상 운영 — 콘솔 사용법</h2>
+<table>
+  <tr><th>화면</th><th>하는 일</th></tr>
+  <tr><td>수집</td><td>사이트를 골라 수집 작업을 등록하고, 진행 중 작업을 보고, 취소합니다</td></tr>
+  <tr><td>크롤러 상태</td><td>804개 크롤러의 건강 상태 목록</td></tr>
+  <tr><td>백필</td><td>대형 사이트의 장기 수집 진행률 (5절)</td></tr>
+  <tr><td>수집 상태</td><td>DB에 쌓인 문서 통계</td></tr>
+  <tr><td>스케줄</td><td>사이트별 주기 수집 예약 (예: 24시간마다)</td></tr>
+</table>
+
+<h3>수집 모드 세 가지</h3>
+<table>
+  <tr><th>모드</th><th>용도</th></tr>
+  <tr><td>incremental</td><td><strong>평소 사용.</strong> 이미 있는 문서는 건너뛰고 새 문서만 저장. 최신순 사이트는 이미 받은 구간을 만나면 자동으로 일찍 끝납니다</td></tr>
+  <tr><td>full</td><td>전체 재순회 (문서 갱신 반영이 필요할 때만)</td></tr>
+  <tr><td>backfill</td><td>대형 사이트를 여러 조각에 걸쳐 끝까지 받기 — 5절 참고</td></tr>
+</table>
+
+<h3>「부분 수집」 배지</h3>
+<p>완료된 작업 옆에 <strong>부분 수집</strong> 배지가 붙으면, 그 실행이 시간 예산(기본 25분,
+<code>LIBERTREE_MAX_WALL_S</code>)에 걸려 남은 페이지를 건너뛰었다는 뜻입니다. 저장된 문서는
+유효합니다. 같은 자리에서 반복해서 잘리면 그 사이트는 backfill 모드로 돌리세요.</p>
+
+<h2 id="s5"><span class="no">5</span>대형 사이트 백필 (이어서 수집)</h2>
+<p>10만 건이 넘는 사이트 25곳(최대: doaj-org-search 약 1,337만 건)은 한 번의 실행으로
+끝나지 않습니다. backfill 모드는 <strong>어디까지 걸었는지 저장</strong>하고, 잘리면
+<strong>자동으로 다음 조각을 큐에 넣어</strong> 결국 완주합니다.</p>
+
+<h3>시작하기</h3>
+<ol>
+  <li>최초 1회, 진행률 표시용 총량을 시드합니다 (리포지토리 루트에서):
+<pre><code>python3 delivery/scripts/seed_backfill_estimates.py</code></pre></li>
+  <li>사이트별로 백필 시작:
+<pre><code>curl -X POST "http://127.0.0.1:8080/jobs" \
+  -H "Authorization: Bearer $DELIVERY_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"site_id": "doaj-org-search", "mode": "backfill"}'</code></pre></li>
+  <li>이후는 자동입니다. 콘솔 <strong>백필</strong> 화면에서 진행률을 확인하세요.</li>
+</ol>
+
+<h3>체인이 멈추는 세 가지 경우</h3>
+<table>
+  <tr><th>표시</th><th>의미와 대응</th></tr>
+  <tr><td>완주</td><td>크롤러가 목록 끝에 도달했다고 확인함. 정상 종료 — 할 일 없음</td></tr>
+  <tr><td>stalled 경고</td><td>실행됐지만 진도가 나가지 않음(사이트 차단·구조 변경 의심). 작업 상세의 원문 로그 확인 후, 해결되면 backfill을 다시 등록하면 저장된 지점부터 이어갑니다</td></tr>
+  <tr><td>취소</td><td>운영자가 취소하면 체인이 멈춥니다. 커서는 남아 있으므로 다시 등록하면 이어갑니다</td></tr>
+</table>
+<div class="note">백필 조각 사이사이에 다른 사이트의 작업이 정상적으로 끼어 돕니다 — 한 사이트가
+큐를 독점하지 않습니다. doaj 완주는 조각 1,300여 개, 수 주가 걸리는 것이 정상입니다.</div>
+
+<h2 id="s6"><span class="no">6</span>문제가 생겼을 때</h2>
+<table>
+  <tr><th>증상</th><th>확인·조치</th></tr>
+  <tr><td>콘솔 "연결 안 됨"</td><td><code>docker compose -f delivery/docker-compose.yml ps</code>로 be가 떠 있는지, 토큰이 올바른지 확인</td></tr>
+  <tr><td>BE가 시작 거부</td><td>로그에 이유가 적혀 있습니다. 대개 <code>DELIVERY_API_TOKEN</code> 미설정(32자 미만)이거나 스키마 미적용(2절 migrate)</td></tr>
+  <tr><td>신규 저장 0건이 계속</td><td>"새 문서가 없는 날"일 수도, 차단일 수도 있습니다. 작업 상세의 크롤러 원문 로그에서 403·차단 문구를 확인하세요</td></tr>
+  <tr><td>백필이 의심스럽게 일찍 완주</td><td>일부 사이트는 페이지 구조가 바뀌면 빈 목록으로 읽힐 수 있습니다(mof·uchile·etera·adruk). 사이트를 브라우저로 열어 확인 후 backfill 재등록 — 커서가 자동으로 미완주로 돌아갑니다</td></tr>
+  <tr><td>워커가 죽음/재시작 반복</td><td><code>docker compose ... logs worker</code> 확인. 워커는 자동 재시작되며, 진행 중이던 작업은 복구 절차가 다시 큐에 넣습니다</td></tr>
+</table>
+
+<h2 id="s7"><span class="no">7</span>주요 환경변수 (<code>delivery/.env</code>)</h2>
+<table>
+  <tr><th>변수</th><th>기본값</th><th>설명</th></tr>
+  <tr><td>POSTGRES_PASSWORD</td><td>(필수)</td><td>DB 비밀번호</td></tr>
+  <tr><td>DELIVERY_API_TOKEN</td><td>(필수)</td><td>콘솔·API 접근 토큰. <code>openssl rand -hex 32</code>로 생성</td></tr>
+  <tr><td>BE_PORT / FE_PORT</td><td>8080 / 3000</td><td>호스트에 노출할 포트</td></tr>
+  <tr><td>LIBERTREE_MAX_WALL_S</td><td>1500 (25분)</td><td>작업 하나의 시간 예산. 백필에서는 조각 크기가 됩니다. 크게 잡으면 한 사이트가 워커를 오래 붙잡습니다</td></tr>
+</table>
+
+<footer>Libertree 수집 시스템 운영 설명서 · 2026-08-18 · 문의는 납품 담당자에게</footer>
+</div>
