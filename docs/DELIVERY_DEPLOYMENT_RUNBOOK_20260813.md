@@ -175,8 +175,10 @@ Worker가 크롤 작업 하나에 쓸 수 있는 최대 경과 시간(초)입니
 ### 시작
 
 ```bash
-POST /jobs
-{"site_id": "doaj-org-search", "mode": "backfill"}
+curl -X POST "http://127.0.0.1:${BE_PORT:-8080}/jobs" \
+  -H "Authorization: Bearer $DELIVERY_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"site_id": "doaj-org-search", "mode": "backfill"}'
 ```
 
 운영자 토큰이 필요합니다(쓰기 10개 중 하나). 그 site_id에 이미 활성 작업이 있으면
