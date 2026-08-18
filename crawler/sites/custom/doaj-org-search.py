@@ -36,6 +36,7 @@ class DOAJSearchCrawler(BaseCrawler):
     site_id = "doaj-org-search"
     site_name = "Custom: doaj-org-search"
     base_url = "https://doaj.org"
+    DELIVERY_ORDER = "newest_first"
 
     # ------------------------------------------------------------------
     # HTTP helpers
@@ -133,8 +134,9 @@ class DOAJSearchCrawler(BaseCrawler):
         seen_ids: set = set()
         start_time = time.time()
         max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute safety budget
+        start_page = (self.delivery_cursor or {}).get("page", 1)
 
-        for page in range(1, _MAX_PAGES + 1):
+        for page in range(start_page, _MAX_PAGES + 1):
             if time.time() - start_time > max_wall:
                 print(f"[{self.site_id}] Approaching 25-minute budget, stopping cleanly.")
                 break
@@ -293,6 +295,8 @@ class DOAJSearchCrawler(BaseCrawler):
                 except Exception as exc:
                     print(f"[{self.site_id}] item {result.get('id', '?')} failed: {exc}")
                     continue
+
+            self._advance_cursor({"page": page + 1}, items_done=len(results))
 
             time.sleep(self._delay * 0.3)
 

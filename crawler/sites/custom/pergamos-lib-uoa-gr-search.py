@@ -29,6 +29,7 @@ class PergamosLibUoaGrSearchCrawler(BaseCrawler):
     site_id = "pergamos-lib-uoa-gr-search"
     site_name = "Custom: pergamos-lib-uoa-gr-search"
     base_url = "https://pergamos.lib.uoa.gr"
+    DELIVERY_ORDER = "newest_first"
 
     SEARCH_URL = "https://pergamos.lib.uoa.gr/public-api/search"
     TARGET_TYPES = (
@@ -57,7 +58,7 @@ class PergamosLibUoaGrSearchCrawler(BaseCrawler):
     def crawl(self, limit=None):
         start_time = time.monotonic()
         saved = 0
-        page = 0
+        page = (self.delivery_cursor or {}).get("page", 0)
         seen_urls = set()
 
         while True:
@@ -131,6 +132,8 @@ class PergamosLibUoaGrSearchCrawler(BaseCrawler):
                 except Exception as exc:
                     print(f"[{self.site_id}] item {item_label} failed: {exc}")
                     continue
+
+            self._advance_cursor({"page": page + 1}, items_done=len(items))
 
             if new_count == 0:
                 print(f"[{self.site_id}] page {page}: all {len(items)} records already seen; stopping")

@@ -24,6 +24,7 @@ class EteraEeBrowseCrawler(BaseCrawler):
     site_id = "etera-ee-browse"
     site_name = "Custom: etera-ee-browse"
     base_url = "https://www.etera.ee"
+    DELIVERY_ORDER = "newest_first"
 
     _START_URL = "https://www.etera.ee/browse"
     _BROWSE_API = "https://www.etera.ee/api/browse"
@@ -452,7 +453,7 @@ class EteraEeBrowseCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         saved = 0
-        start = 0
+        start = (self.delivery_cursor or {}).get("offset", 0)
 
         raw_start = self._curl(
             self._START_URL,
@@ -512,6 +513,7 @@ class EteraEeBrowseCrawler(BaseCrawler):
                     print(f"[etera-ee-browse] item {item_id} failed: {exc}")
                     continue
 
+            self._advance_cursor({"offset": start + self._PAGE_SIZE}, items_done=len(items))
             start += self._PAGE_SIZE
 
         print(f"[{self.site_id}] done. saved: {saved}")

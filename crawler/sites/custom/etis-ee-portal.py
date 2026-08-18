@@ -50,6 +50,7 @@ class EtisEePortalCrawler(BaseCrawler):
     site_id = "etis-ee-portal"
     site_name = "Custom: etis-ee-portal"
     base_url = "https://www.etis.ee"
+    DELIVERY_ORDER = "arbitrary"
 
     _MIN_ABSTRACT = 100
     _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
@@ -193,7 +194,7 @@ class EtisEePortalCrawler(BaseCrawler):
         saved = 0
         seen_urls: set = set()
         start_time = time.time()
-        page = 1
+        page = (self.delivery_cursor or {}).get("page", 1)
         lim_str = str(limit) if limit is not None else "inf"
 
         try:
@@ -316,6 +317,8 @@ class EtisEePortalCrawler(BaseCrawler):
                     except Exception as exc:
                         print(f"[{self.site_id}] item {guid} failed: {exc}; continuing.")
                         continue
+
+                self._advance_cursor({"page": page + 1}, items_done=len(items))
 
                 if new_count == 0:
                     print(f"[{self.site_id}] page {page}: all items already seen. Ending pagination.")

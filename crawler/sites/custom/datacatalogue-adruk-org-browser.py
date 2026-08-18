@@ -25,6 +25,7 @@ class DatacatalogueAdrukOrgBrowserCrawler(BaseCrawler):
     site_id = "datacatalogue-adruk-org-browser"
     site_name = "Custom: datacatalogue-adruk-org-browser"
     base_url = "https://datacatalogue.adruk.org"
+    DELIVERY_ORDER = "arbitrary"
 
     START_URL = (
         "https://datacatalogue.adruk.org/browser/search"
@@ -50,7 +51,8 @@ class DatacatalogueAdrukOrgBrowserCrawler(BaseCrawler):
             print(f"[{self.site_id}] done. Total saved: 0")
             return 0
 
-        for page in range(1, self.MAX_PAGES + 1):
+        page_start = (self.delivery_cursor or {}).get("page", 1)
+        for page in range(page_start, self.MAX_PAGES + 1):
             if limit is not None and saved >= limit:
                 reached_cap = False
                 break
@@ -135,6 +137,8 @@ class DatacatalogueAdrukOrgBrowserCrawler(BaseCrawler):
                 except Exception as exc:
                     print(f"[{self.site_id}] item {item_label} failed: {exc}")
                     continue
+
+            self._advance_cursor({"page": page + 1}, items_done=len(records))
 
             if not page_had_unseen:
                 print(f"[{self.site_id}] page {page} had no new URLs; stopping")

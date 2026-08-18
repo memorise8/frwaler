@@ -54,6 +54,7 @@ class DataGvAtDatasetsCrawler(BaseCrawler):
     site_id = "data-gv-at-datasets"
     site_name = "Custom: data-gv-at-datasets"
     base_url = _BASE_URL
+    DELIVERY_ORDER = "arbitrary"
 
     detail_delay = 1.0
 
@@ -64,7 +65,7 @@ class DataGvAtDatasetsCrawler(BaseCrawler):
 
         started_at = time.time()
         saved = 0
-        page = 1
+        page = (self.delivery_cursor or {}).get("page", 1)
         seen_urls = set()
         limit_label = limit if limit is not None else "inf"
 
@@ -124,6 +125,8 @@ class DataGvAtDatasetsCrawler(BaseCrawler):
                 except Exception as exc:
                     print(f"[{self.site_id}] item {item_id} failed: {exc}")
                     continue
+
+            self._advance_cursor({"page": page + 1}, items_done=len(items))
 
             if new_urls_on_page == 0:
                 print(f"[{self.site_id}] page {page}: no new URLs; stopping to avoid pagination loop")

@@ -26,6 +26,7 @@ class PrismGoKrHomepageCrawler(BaseCrawler):
     site_id = "prism-go-kr-homepage"
     site_name = "Custom: prism-go-kr-homepage"
     base_url = "https://www.prism.go.kr"
+    DELIVERY_ORDER = "arbitrary"
 
     _SEARCH_API = "https://api.prism.go.kr/prism-be-prtl/search/totalSearch.do"
     _DETAIL_BASE = "https://www.prism.go.kr/homepage/asmt/popup"
@@ -124,7 +125,7 @@ class PrismGoKrHomepageCrawler(BaseCrawler):
             Maximum records to save.  None = unlimited.
         """
         saved = 0
-        page = 0
+        page = (self.delivery_cursor or {}).get("page", 0)
         seen_ids: set[str] = set()
         start_time = time.time()
 
@@ -299,6 +300,8 @@ class PrismGoKrHomepageCrawler(BaseCrawler):
                 except Exception as exc:
                     print(f"[{self.site_id}] item failed: {exc}")
                     continue
+
+            self._advance_cursor({"page": page + 1}, items_done=len(items))
 
             # Infinite-loop guard: if the API silently re-sends the same items.
             if items and new_on_page == 0:

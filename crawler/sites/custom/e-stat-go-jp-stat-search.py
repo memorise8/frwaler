@@ -27,6 +27,7 @@ class EStatGoJpStatSearchCrawler(BaseCrawler):
     site_id = "e-stat-go-jp-stat-search"
     site_name = "Custom: e-stat-go-jp-stat-search"
     base_url = "https://www.e-stat.go.jp"
+    DELIVERY_ORDER = "arbitrary"
 
     _START_URL = "https://www.e-stat.go.jp/stat-search?page=1"
     _LIST_API = "https://www.e-stat.go.jp/retrieve/api_stat"
@@ -501,7 +502,7 @@ class EStatGoJpStatSearchCrawler(BaseCrawler):
     def crawl(self, limit=None):
         start_time = time.time()
         saved = 0
-        page = 1
+        page = (self.delivery_cursor or {}).get("page", 1)
         seen_urls: set[str] = set()
         limit_label = str(limit) if limit is not None else "inf"
 
@@ -565,6 +566,8 @@ class EStatGoJpStatSearchCrawler(BaseCrawler):
                 except Exception as exc:
                     print(f"[{self.site_id}] item {item.get('stat_infid') or detail_url} failed: {exc}")
                     continue
+
+            self._advance_cursor({"page": page + 1}, items_done=len(list_items))
 
             if new_on_page == 0:
                 print(f"[{self.site_id}] page {page}: all URLs already seen; stopping")

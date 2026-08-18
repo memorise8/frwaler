@@ -56,6 +56,7 @@ class NtrsNasaGovSearchCrawler(BaseCrawler):
     site_id = "ntrs-nasa-gov-search"
     site_name = "Custom: ntrs-nasa-gov-search"
     base_url = _BASE
+    DELIVERY_ORDER = "arbitrary"
 
     def crawl(self, limit=None):
         saved = 0
@@ -65,7 +66,7 @@ class NtrsNasaGovSearchCrawler(BaseCrawler):
         MAX_WALL_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
         MAX_PAGES = 200
 
-        page_from = 0
+        page_from = (self.delivery_cursor or {}).get("offset", 0)
         page_num = 0
 
         while True:
@@ -241,6 +242,8 @@ class NtrsNasaGovSearchCrawler(BaseCrawler):
 
             if page_num % 10 == 0:
                 print(f"[ntrs-nasa-gov-search] page {page_num}: saved {saved}/{limit_or_inf}")
+
+            self._advance_cursor({"offset": page_from + _PAGE_SIZE}, items_done=len(results))
 
             if new_on_page == 0:
                 print(f"[ntrs-nasa-gov-search] all items on page {page_num} already seen, stopping")

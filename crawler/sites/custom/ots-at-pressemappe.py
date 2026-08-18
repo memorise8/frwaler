@@ -72,6 +72,7 @@ class OtsAtPressemappeCrawler(BaseCrawler):
     site_id = "ots-at-pressemappe"
     site_name = "Custom: ots-at-pressemappe"
     base_url = _BASE
+    DELIVERY_ORDER = "arbitrary"
 
     def __init__(self, db_conn=None, delay=1.0):
         super().__init__(db_conn=db_conn, delay=delay)
@@ -257,8 +258,9 @@ class OtsAtPressemappeCrawler(BaseCrawler):
         saved = 0
         seen_urls = set()
         limit_str = str(limit) if limit is not None else "inf"
+        page_start = (self.delivery_cursor or {}).get("page", 1)
 
-        for page in range(1, _MAX_PAGES + 1):
+        for page in range(page_start, _MAX_PAGES + 1):
             elapsed = time.monotonic() - start
             if elapsed > _TIME_BUDGET_SECONDS:
                 print(f"[{self.site_id}] time budget ({_TIME_BUDGET_SECONDS}s) exceeded, stopping. saved={saved}")
@@ -405,6 +407,8 @@ class OtsAtPressemappeCrawler(BaseCrawler):
                 except Exception as exc:  # noqa: BLE001 - per-item isolation
                     print(f"[{self.site_id}] item {detail_url} failed: {exc}")
                     continue
+
+            self._advance_cursor({"page": page + 1}, items_done=len(items))
 
             if limit is not None and saved >= limit:
                 break

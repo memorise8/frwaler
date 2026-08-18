@@ -26,6 +26,7 @@ class DataGovAuDataCrawler(BaseCrawler):
     site_id = "data-gov-au-data"
     site_name = "Custom: data-gov-au-data"
     base_url = "https://data.gov.au"
+    DELIVERY_ORDER = "arbitrary"
 
     _API_URL = "https://data.gov.au/data/api/3/action/package_search"
     _DATASET_URL = "https://data.gov.au/data/dataset/{name}"
@@ -205,7 +206,7 @@ class DataGovAuDataCrawler(BaseCrawler):
         saved = 0
         seen_urls: set = set()
         start_time = time.time()
-        start = 0
+        start = (self.delivery_cursor or {}).get("offset", 0)
         page_num = 0
 
         try:
@@ -255,6 +256,8 @@ class DataGovAuDataCrawler(BaseCrawler):
                 if page_num % 10 == 0:
                     lim_str = str(limit) if limit is not None else "inf"
                     print(f"[{self.site_id}] page {page_num}: saved {saved}/{lim_str}")
+
+                self._advance_cursor({"offset": start + self._ROWS_PER_PAGE}, items_done=len(items))
 
                 if new_on_page == 0:
                     print(f"[{self.site_id}] Page {page_num} yielded 0 new records. Stopping.")

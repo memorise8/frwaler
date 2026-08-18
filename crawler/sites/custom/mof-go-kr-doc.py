@@ -24,6 +24,7 @@ class MofGoKrDocCrawler(BaseCrawler):
     site_id = "mof-go-kr-doc"
     site_name = "Custom: mof-go-kr-doc"
     base_url = "https://www.mof.go.kr"
+    DELIVERY_ORDER = "arbitrary"
 
     _LIST_URL = "https://www.mof.go.kr/doc/ko/selectDocList.do"
     _DETAIL_URL = "https://www.mof.go.kr/doc/ko/selectDoc.do"
@@ -40,7 +41,7 @@ class MofGoKrDocCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         saved = 0
-        page = 1
+        page = (self.delivery_cursor or {}).get("page", 1)
         seen_urls: set[str] = set()
         limit_label = limit if limit is not None else "inf"
         t0 = time.monotonic()
@@ -116,6 +117,8 @@ class MofGoKrDocCrawler(BaseCrawler):
                 except Exception as exc:
                     print(f"[{self.site_id}] item docSeq={doc_seq} failed: {exc}")
                     continue
+
+            self._advance_cursor({"page": page + 1}, items_done=len(doc_seqs))
 
             if new_count == 0:
                 print(f"[{self.site_id}] page {page}: 0 new items; stopping")
