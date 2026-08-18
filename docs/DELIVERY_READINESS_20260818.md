@@ -170,7 +170,9 @@ FE       cd delivery/fe && npm test && npm run typecheck && npm run lint      # 
 - 전체 수집 가능 문서(보정): **약 2,433만 건**(24,330,001건,
   `scripts/audit/capacity_corrected.csv`) — 기존 `capacity_final.csv` 합계
   6,109,256 은 감사 파일 ~20개를 병합하지 않은 과소평가였다. 근거:
-  `scripts/audit/CAPACITY_RELIABILITY_20260818.md`
+  `scripts/audit/CAPACITY_RELIABILITY_20260818.md`(분석 단계 추정
+  24,260,462·387개 — **확정값은 실행 산출물인 `capacity_corrected.csv` 의
+  24,330,001·370개**)
 - 추정 저장 용량(보정): **약 31 TB(추정)**(30.8 TB, 사이트별 실측 PDF 비율
   기반 추정) — 전부 수집은 비현실적이며, 무엇을 받을지 선택하는 것이 다음
   설계 과제다 (`HANDOFF_20260818_SCALE.md` §3-4)
