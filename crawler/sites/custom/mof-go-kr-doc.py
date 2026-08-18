@@ -42,6 +42,7 @@ class MofGoKrDocCrawler(BaseCrawler):
     def crawl(self, limit=None):
         saved = 0
         page = (self.delivery_cursor or {}).get("page", 1)
+        page_start = page
         seen_urls: set[str] = set()
         limit_label = limit if limit is not None else "inf"
         t0 = time.monotonic()
@@ -50,7 +51,9 @@ class MofGoKrDocCrawler(BaseCrawler):
             print(f"[{self.site_id}] Done. Total saved: 0")
             return 0
 
-        while page <= self.MAX_PAGES:
+        # MAX_PAGES is a per-run chunk size (not an absolute ceiling) so a resume
+        # from a large cursor still walks a full budget of pages this run.
+        while page < page_start + self.MAX_PAGES:
             if limit is not None and saved >= limit:
                 break
             if self._budget_exhausted(t0):
@@ -126,7 +129,7 @@ class MofGoKrDocCrawler(BaseCrawler):
 
             page += 1
         else:
-            print(f"[{self.site_id}] Safety cap reached at {self.MAX_PAGES} pages")
+            print(f"[{self.site_id}] Safety cap reached at {self.MAX_PAGES} pages this run")
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved

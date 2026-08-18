@@ -195,14 +195,17 @@ class EtisEePortalCrawler(BaseCrawler):
         seen_urls: set = set()
         start_time = time.time()
         page = (self.delivery_cursor or {}).get("page", 1)
+        page_start = page
         lim_str = str(limit) if limit is not None else "inf"
 
         try:
             while True:
                 if limit is not None and saved >= limit:
                     break
-                if page > self._MAX_PAGES:
-                    print(f"[{self.site_id}] Safety cap of {self._MAX_PAGES} pages reached. Stopping.")
+                # _MAX_PAGES is a per-run chunk size (not an absolute ceiling) so a
+                # resume from a large cursor still walks a full budget of pages this run.
+                if page >= page_start + self._MAX_PAGES:
+                    print(f"[{self.site_id}] Safety cap of {self._MAX_PAGES} pages reached this run. Stopping.")
                     break
                 if time.time() - start_time > self._MAX_WALL:
                     print(f"[{self.site_id}] Wall-clock budget exceeded. Stopping cleanly.")

@@ -44,6 +44,7 @@ class OstrnrcanDostrncanCanadaCaSearchCrawler(BaseCrawler):
         start_time = time.monotonic()
         saved = 0
         page = (self.delivery_cursor or {}).get("page", 0)
+        page_start = page
         item_number = 0
         seen_urls = set()
 
@@ -51,8 +52,10 @@ class OstrnrcanDostrncanCanadaCaSearchCrawler(BaseCrawler):
             if limit is not None and saved >= limit:
                 break
 
-            if page >= self.SAFETY_PAGE_CAP:
-                print(f"[{self.site_id}] reached safety cap of {self.SAFETY_PAGE_CAP} pages; stopping")
+            # SAFETY_PAGE_CAP is a per-run chunk size (not an absolute ceiling) so a
+            # resume from a large cursor still walks a full budget of pages this run.
+            if page >= page_start + self.SAFETY_PAGE_CAP:
+                print(f"[{self.site_id}] reached safety cap of {self.SAFETY_PAGE_CAP} pages this run; stopping")
                 break
 
             elapsed = time.monotonic() - start_time

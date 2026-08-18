@@ -254,6 +254,7 @@ class CdsCernChCollectionCrawler(BaseCrawler):
         limit_str = str(limit) if limit is not None else "∞"
         saved = 0
         page = (self.delivery_cursor or {}).get("page", 1)
+        page_start = page
         total_records: int | None = None
         seen_urls: set[str] = set()
 
@@ -270,9 +271,11 @@ class CdsCernChCollectionCrawler(BaseCrawler):
             if limit is not None and saved >= limit:
                 break
 
-            if page > self._MAX_PAGES:
+            # _MAX_PAGES is a per-run chunk size (not an absolute ceiling) so a resume
+            # from a large cursor still walks a full budget of pages this run.
+            if page >= page_start + self._MAX_PAGES:
                 print(
-                    f"[{self.site_id}] safety cap of {self._MAX_PAGES} pages reached; stopping"
+                    f"[{self.site_id}] safety cap of {self._MAX_PAGES} pages reached this run; stopping"
                 )
                 break
 

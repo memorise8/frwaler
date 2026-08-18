@@ -66,6 +66,7 @@ class DataGvAtDatasetsCrawler(BaseCrawler):
         started_at = time.time()
         saved = 0
         page = (self.delivery_cursor or {}).get("page", 1)
+        page_start = page
         seen_urls = set()
         limit_label = limit if limit is not None else "inf"
 
@@ -75,8 +76,10 @@ class DataGvAtDatasetsCrawler(BaseCrawler):
             if time.time() - started_at > _WALL_BUDGET_SECONDS - 30:
                 print(f"[{self.site_id}] approaching 25-minute wall-clock budget; exiting cleanly")
                 break
-            if page > _MAX_PAGES:
-                print(f"[{self.site_id}] safety cap of {_MAX_PAGES} pages reached; stopping")
+            # _MAX_PAGES is a per-run chunk size (not an absolute ceiling) so a resume
+            # from a large cursor still walks a full budget of pages this run.
+            if page >= page_start + _MAX_PAGES:
+                print(f"[{self.site_id}] safety cap of {_MAX_PAGES} pages reached this run; stopping")
                 break
 
             if page % 10 == 0:

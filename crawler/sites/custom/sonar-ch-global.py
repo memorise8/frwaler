@@ -277,7 +277,9 @@ class SonarChGlobalCrawler(BaseCrawler):
         limit_str = str(limit) if limit is not None else "∞"
         start_page = (self.delivery_cursor or {}).get("page", 1)
 
-        for page in range(start_page, _MAX_PAGES + 1):
+        # _MAX_PAGES is a per-run chunk size (not an absolute ceiling) so a resume
+        # from a large cursor still walks a full budget of pages this run.
+        for page in range(start_page, start_page + _MAX_PAGES):
             if time.monotonic() - start_time > _CRAWL_BUDGET_SECS:
                 print(f"[{self.site_id}] 25-minute budget reached at page {page}, stopping.")
                 break
@@ -328,8 +330,8 @@ class SonarChGlobalCrawler(BaseCrawler):
                 print(f"[{self.site_id}] page {page}: all items already seen, stopping.")
                 break
 
-            if page == _MAX_PAGES:
-                print(f"[{self.site_id}] safety cap of {_MAX_PAGES} pages reached, stopping.")
+            if page == start_page + _MAX_PAGES - 1:
+                print(f"[{self.site_id}] safety cap of {_MAX_PAGES} pages reached this run, stopping.")
 
             if limit is None or saved < limit:
                 time.sleep(_RATE_SLEEP)

@@ -56,6 +56,7 @@ class ResearchCollectionEthzChSearchCrawler(BaseCrawler):
         start_time = time.monotonic()
         saved = 0
         page = (self.delivery_cursor or {}).get("page", 0)
+        page_start = page
         seen_urls = set()
 
         while True:
@@ -68,8 +69,10 @@ class ResearchCollectionEthzChSearchCrawler(BaseCrawler):
                       f"exceeded at page {page}; stopping cleanly")
                 break
 
-            if page >= self.SAFETY_PAGE_CAP:
-                print(f"[{self.site_id}] safety cap of {self.SAFETY_PAGE_CAP} pages reached; stopping")
+            # SAFETY_PAGE_CAP is a per-run chunk size (not an absolute ceiling) so a
+            # resume from a large cursor still walks a full budget of pages this run.
+            if page >= page_start + self.SAFETY_PAGE_CAP:
+                print(f"[{self.site_id}] safety cap of {self.SAFETY_PAGE_CAP} pages reached this run; stopping")
                 break
 
             list_url = self._list_url(page)

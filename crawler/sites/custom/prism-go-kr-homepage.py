@@ -126,6 +126,7 @@ class PrismGoKrHomepageCrawler(BaseCrawler):
         """
         saved = 0
         page = (self.delivery_cursor or {}).get("page", 0)
+        page_start = page
         seen_ids: set[str] = set()
         start_time = time.time()
 
@@ -133,9 +134,11 @@ class PrismGoKrHomepageCrawler(BaseCrawler):
             # ── Termination guards ──────────────────────────────────────
             if limit is not None and saved >= limit:
                 break
-            if page >= self._MAX_PAGES:
+            # _MAX_PAGES is a per-run chunk size (not an absolute ceiling) so a resume
+            # from a large cursor still walks a full budget of pages this run.
+            if page >= page_start + self._MAX_PAGES:
                 print(
-                    f"[{self.site_id}] Safety cap of {self._MAX_PAGES} pages reached. Stopping."
+                    f"[{self.site_id}] Safety cap of {self._MAX_PAGES} pages reached this run. Stopping."
                 )
                 break
             elapsed = time.time() - start_time

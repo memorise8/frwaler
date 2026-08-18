@@ -503,6 +503,7 @@ class EStatGoJpStatSearchCrawler(BaseCrawler):
         start_time = time.time()
         saved = 0
         page = (self.delivery_cursor or {}).get("page", 1)
+        page_start = page
         seen_urls: set[str] = set()
         limit_label = str(limit) if limit is not None else "inf"
 
@@ -517,8 +518,10 @@ class EStatGoJpStatSearchCrawler(BaseCrawler):
                 print(f"[{self.site_id}] approaching 25-minute wall-clock budget; exiting cleanly")
                 break
 
-            if page > self._MAX_PAGES:
-                print(f"[{self.site_id}] safety cap of {self._MAX_PAGES} pages reached")
+            # _MAX_PAGES is a per-run chunk size (not an absolute ceiling) so a resume
+            # from a large cursor still walks a full budget of pages this run.
+            if page >= page_start + self._MAX_PAGES:
+                print(f"[{self.site_id}] safety cap of {self._MAX_PAGES} pages reached this run")
                 break
 
             if page % 10 == 0:

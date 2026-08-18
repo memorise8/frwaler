@@ -136,7 +136,9 @@ class DOAJSearchCrawler(BaseCrawler):
         max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute safety budget
         start_page = (self.delivery_cursor or {}).get("page", 1)
 
-        for page in range(start_page, _MAX_PAGES + 1):
+        # _MAX_PAGES is a per-run chunk size (not an absolute ceiling) so a resume
+        # from a large cursor still walks a full budget of pages this run.
+        for page in range(start_page, start_page + _MAX_PAGES):
             if time.time() - start_time > max_wall:
                 print(f"[{self.site_id}] Approaching 25-minute budget, stopping cleanly.")
                 break
@@ -300,8 +302,8 @@ class DOAJSearchCrawler(BaseCrawler):
 
             time.sleep(self._delay * 0.3)
 
-            if page == _MAX_PAGES:
-                print(f"[{self.site_id}] Reached safety cap of {_MAX_PAGES} pages.")
+            if page == start_page + _MAX_PAGES - 1:
+                print(f"[{self.site_id}] Reached safety cap of {_MAX_PAGES} pages this run.")
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved

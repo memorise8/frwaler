@@ -52,7 +52,10 @@ class DatacatalogueAdrukOrgBrowserCrawler(BaseCrawler):
             return 0
 
         page_start = (self.delivery_cursor or {}).get("page", 1)
-        for page in range(page_start, self.MAX_PAGES + 1):
+        pages_attempted = 0
+        # MAX_PAGES is a per-run chunk size (not an absolute ceiling) so a resume
+        # from a large cursor still walks a full budget of pages this run.
+        for page in range(page_start, page_start + self.MAX_PAGES):
             if limit is not None and saved >= limit:
                 reached_cap = False
                 break
@@ -65,6 +68,8 @@ class DatacatalogueAdrukOrgBrowserCrawler(BaseCrawler):
                 )
                 reached_cap = False
                 break
+
+            pages_attempted += 1
 
             if page % 10 == 0:
                 print(f"[{self.site_id}] page {page}: saved {saved}/{limit_or_inf}")
@@ -153,8 +158,8 @@ class DatacatalogueAdrukOrgBrowserCrawler(BaseCrawler):
                 reached_cap = False
                 break
 
-        if reached_cap:
-            print(f"[{self.site_id}] reached safety cap of {self.MAX_PAGES} pages")
+        if reached_cap and pages_attempted > 0:
+            print(f"[{self.site_id}] reached safety cap of {self.MAX_PAGES} pages this run")
 
         print(f"[{self.site_id}] done. Total saved: {saved}")
         return saved

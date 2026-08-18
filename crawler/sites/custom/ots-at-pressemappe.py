@@ -259,12 +259,17 @@ class OtsAtPressemappeCrawler(BaseCrawler):
         seen_urls = set()
         limit_str = str(limit) if limit is not None else "inf"
         page_start = (self.delivery_cursor or {}).get("page", 1)
+        pages_attempted = 0
 
-        for page in range(page_start, _MAX_PAGES + 1):
+        # _MAX_PAGES is a per-run chunk size (not an absolute ceiling) so a resume
+        # from a large cursor still walks a full budget of pages this run.
+        for page in range(page_start, page_start + _MAX_PAGES):
             elapsed = time.monotonic() - start
             if elapsed > _TIME_BUDGET_SECONDS:
                 print(f"[{self.site_id}] time budget ({_TIME_BUDGET_SECONDS}s) exceeded, stopping. saved={saved}")
                 break
+
+            pages_attempted += 1
 
             if page % 10 == 0 or page == 1:
                 print(f"[{self.site_id}] page {page}: saved {saved}/{limit_str}")
@@ -416,7 +421,8 @@ class OtsAtPressemappeCrawler(BaseCrawler):
                 print(f"[{self.site_id}] page {page} yielded 0 new records, stopping")
                 break
         else:
-            print(f"[{self.site_id}] hit safety cap of {_MAX_PAGES} pages")
+            if pages_attempted > 0:
+                print(f"[{self.site_id}] hit safety cap of {_MAX_PAGES} pages this run")
 
         print(f"[{self.site_id}] done: saved {saved}/{limit_str}")
         return saved

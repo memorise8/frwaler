@@ -6,8 +6,10 @@
 _advance_cursor 를 부르지 않거나(전진 보고 없음 → 재큐잉 불가),
 DELIVERY_ORDER 선언이 없다(증분 전략 미지정).
 """
+import os
 import unittest
 from pathlib import Path
+from unittest import mock
 
 CUSTOM = Path(__file__).resolve().parent.parent / "crawler" / "sites" / "custom"
 
@@ -64,3 +66,44 @@ class CursorConformanceTest(unittest.TestCase):
                         "inserm-hal-science-search", "cea-hal-science-cnrgh"):
             with self.subTest(site=site_id):
                 self.assertIn("docid asc", self._source(site_id))
+
+
+class _NetworkAttempt(BaseException):
+    """fetch 시도 감지용 센티널 -- BaseException 이라 크롤러의 except Exception 이 못 삼킨다."""
+
+
+class ResumeEntersLoopTest(unittest.TestCase):
+    """거대 커서로 재개해도 모든 대상이 최소 1회 fetch 를 시도해야 한다.
+
+    고정 절대 캡이 커서 변수에 걸려 있으면 재개가 0페이지를 걷고 조용히
+    끝난다(실제로 9/12 파일에서 발생) -- 그 회귀를 행위로 잡는다. 네트워크
+    진입점 전부를 센티널로 막으므로 실제 요청은 원리적으로 불가능하다.
+    """
+
+    def test_huge_cursor_resume_still_attempts_a_fetch(self):
+        import subprocess
+        import urllib.request
+
+        import requests
+
+        from crawler.sites import CRAWLERS
+
+        def _boom(*a, **k):
+            raise _NetworkAttempt()
+
+        with mock.patch.object(subprocess, "run", _boom), \
+                mock.patch.object(subprocess, "check_output", _boom), \
+                mock.patch.object(subprocess, "Popen", _boom), \
+                mock.patch.object(urllib.request, "urlopen", _boom), \
+                mock.patch.object(requests.Session, "request", _boom), \
+                mock.patch.object(requests, "get", _boom), \
+                mock.patch.object(requests, "post", _boom), \
+                mock.patch.dict(os.environ, {"LIBERTREE_DB_BACKEND": "postgres"}):
+            for site_id, (order, key) in TARGETS.items():
+                with self.subTest(site=site_id):
+                    cls = CRAWLERS[site_id]
+                    inst = cls(db_conn=None)
+                    inst.delivery_mode = "backfill"
+                    inst.delivery_cursor = {key: 10**9}
+                    with self.assertRaises(_NetworkAttempt):
+                        inst.crawl(limit=None)
