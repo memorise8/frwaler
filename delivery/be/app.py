@@ -395,7 +395,12 @@ def create_app(dsn: str) -> FastAPI:
     # Not behind the aggregate TTL cache, unlike /stats and /freshness. Its
     # 30-second window would leave the queue count unchanged for half a minute
     # after a bulk stop, and an operator who cannot see their cancellation land
-    # presses it again. The query is one GROUP BY over idx_jobs_status_created.
+    # presses it again. Three queries run here: the status GROUP BY can use
+    # idx_jobs_status_created(status, created_at), but the finished_24h count
+    # filters on finished_at and the estimate does ORDER BY finished_at DESC --
+    # neither is served by that index. A crawl_jobs(finished_at DESC) index is
+    # the deliberate follow-up if job history grows large, not part of this
+    # wave.
     @app.get("/jobs/summary")
     def get_job_summary():
         conn = _conn()

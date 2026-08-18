@@ -20,7 +20,11 @@ class DeliveryComposeBindingTest(unittest.TestCase):
             self.compose = handle.read()
 
     def test_published_ports_bind_to_loopback_only(self):
-        published = re.findall(r'^\s*-\s*"([^"]+:\d+|\$\{[^}]+\}:\d+|[^"]*)"\s*$',
+        # Matches both quoted ("127.0.0.1:8080:3001") and unquoted
+        # (0.0.0.0:9000:3001) list items -- YAML accepts a bare scalar here
+        # just as happily as a quoted one, and an unquoted entry must not be
+        # able to slip past this guard uncaught.
+        published = re.findall(r'^\s*-\s*"?([^"\s]+:\d+|\$\{[^}]+\}:\d+)"?\s*$',
                                self.compose, flags=re.MULTILINE)
         mappings = [entry for entry in published if re.search(r":\d+$", entry) and "->" not in entry]
         self.assertTrue(mappings, "no published port mappings found -- has the compose file moved?")

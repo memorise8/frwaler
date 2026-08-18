@@ -70,15 +70,25 @@ class WorkerJobsTest(unittest.TestCase):
                 """UPDATE crawl_jobs SET status='done',
                      started_at=now()-interval '20 seconds', finished_at=now() WHERE id=%s""",
                 (job_id,))
-        # 대기 중 취소된 작업: started_at 이 없다. 평균에 들어오면 추정이 0쪽으로 무너진다.
+        # 대기 중 취소된 작업: started_at 이 없다. started_at IS NOT NULL 필터만으로도
+        # 걸러지므로, 이 행 하나만으로는 status='done' 조건이 실제로 pin되는지
+        # 검증하지 못한다.
         cancelled = jobs.enqueue_job(self.conn, "cancelled-in-queue", requested_by="op")
         self.conn.execute(
             "UPDATE crawl_jobs SET status='cancelled', finished_at=now() WHERE id=%s", (cancelled,))
+        # 실행 중 취소된 작업: started_at 이 있고 소요 시간도 1시간으로 크다.
+        # status='done' 필터가 빠지면 이 행이 표본에 들어와 평균이 20초에서 크게
+        # 벗어나므로, status 필터가 실제로 적용되는지를 이 행이 증명한다.
+        cancelled_after_start = jobs.enqueue_job(self.conn, "cancelled-after-start", requested_by="op")
+        self.conn.execute(
+            """UPDATE crawl_jobs SET status='cancelled',
+                 started_at=now()-interval '1 hour', finished_at=now() WHERE id=%s""",
+            (cancelled_after_start,))
         self.conn.commit()
         summary = jobs.summarize_queue(self.conn)
         self.assertEqual(summary["samples"], 3)
         self.assertAlmostEqual(summary["avg_seconds"], 20.0, delta=2.0)
-        self.assertEqual(summary["finished_24h"], 4)
+        self.assertEqual(summary["finished_24h"], 5)
         self.assertEqual(summary["active"], 0)
 
     def test_schedule_enqueues_due_once(self):

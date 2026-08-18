@@ -89,7 +89,13 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(allowed.status_code,200)
 
     def test_job_summary_reports_queue_depth_without_a_token(self):
-        response = self.client.get("/jobs/summary")
+        # setUp patches DELIVERY_AUTH_MODE=disabled, under which this would
+        # pass even with Depends(require_operator) on the route. Patch to a
+        # real token mode here, like test_delete_schedule_requires_an_operator_token
+        # does, and send no header -- the claim is only proven if the route
+        # succeeds while a token is actually being enforced elsewhere.
+        with mock.patch.dict(os.environ, {"DELIVERY_AUTH_MODE": "token", "DELIVERY_API_TOKEN": "x" * 32}):
+            response = self.client.get("/jobs/summary")
         self.assertEqual(response.status_code, 200)
         body = response.json()
         self.assertIn("counts", body)
