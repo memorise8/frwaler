@@ -95,7 +95,7 @@ def init_delivery_schema(conn) -> None:
         CREATE TABLE IF NOT EXISTS crawl_jobs (
             id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
             site_id       TEXT NOT NULL,
-            mode          TEXT NOT NULL DEFAULT 'incremental' CHECK(mode IN('incremental','full')),
+            mode          TEXT NOT NULL DEFAULT 'incremental' CHECK(mode IN('incremental','full','backfill')),
             status        TEXT NOT NULL DEFAULT 'queued' CHECK(status IN('queued','running','cancelling','done','failed','cancelled')),
             limit_n       INTEGER,
             saved_count   INTEGER NOT NULL DEFAULT 0,
@@ -126,8 +126,9 @@ def init_delivery_schema(conn) -> None:
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS max_attempts INTEGER NOT NULL DEFAULT 3")
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT now()")
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS truncated BOOLEAN NOT NULL DEFAULT FALSE")
-    conn.execute("""DO $$ BEGIN ALTER TABLE crawl_jobs ADD CONSTRAINT crawl_jobs_mode_check
-      CHECK(mode IN('incremental','full')) NOT VALID; EXCEPTION WHEN duplicate_object THEN NULL; END $$""")
+    conn.execute("ALTER TABLE crawl_jobs DROP CONSTRAINT IF EXISTS crawl_jobs_mode_check")
+    conn.execute("""ALTER TABLE crawl_jobs ADD CONSTRAINT crawl_jobs_mode_check
+      CHECK(mode IN('incremental','full','backfill')) NOT VALID""")
     conn.execute("""DO $$ BEGIN ALTER TABLE crawl_jobs ADD CONSTRAINT crawl_jobs_status_check
       CHECK(status IN('queued','running','cancelling','done','failed','cancelled')) NOT VALID;
       EXCEPTION WHEN duplicate_object THEN NULL; END $$""")

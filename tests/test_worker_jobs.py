@@ -312,6 +312,14 @@ class WorkerJobsTest(unittest.TestCase):
             ("rc-done-site",)).fetchone()
         self.assertIsNotNone(row["completed_at"])
 
+    def test_backfill_mode_passes_the_db_check_constraint(self):
+        from delivery.worker import jobs
+        # BE Literal 만이 아니라 DB CHECK 도 backfill 을 받아야 한다 —
+        # 워커의 자동 재큐잉은 BE 를 거치지 않고 enqueue_job 으로 직접 INSERT 한다.
+        jid = jobs.enqueue_job(self.conn, "rc-backfill-check", mode="backfill")
+        row = self.conn.execute("SELECT mode FROM crawl_jobs WHERE id=%s", (jid,)).fetchone()
+        self.assertEqual(row["mode"], "backfill")
+
 
 if __name__ == "__main__":
     unittest.main()
