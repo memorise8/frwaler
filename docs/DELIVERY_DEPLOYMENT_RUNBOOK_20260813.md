@@ -47,3 +47,86 @@
 - 53만 건 일괄 등록
 - circuit breaker 우회
 - GPU 1 사용 또는 기존 Elasticsearch/Cloudflare route 임의 변경
+
+## 노출 범위 — 반드시 지켜야 할 전제 (2026-08-18 확정)
+
+**BE를 인터넷이나 사내망에 직접 노출하지 마세요.** 프록시나 방화벽 뒤에 두거나,
+같은 호스트의 FE만 접근하게 두어야 합니다.
+
+조회 API 17개에는 운영자 토큰이 걸려 있지 않습니다. 쓰기 9개 중 8개만 토큰을
+요구합니다(`POST /translation/preview` 는 동사만 POST일 뿐 `SELECT count(*)` 만
+하는 조회입니다). 즉 **포트에 닿을 수 있는 사람은 문서 전체를 읽을 수 있습니다.**
+
+지금 이것을 막고 있는 것은 `delivery/docker-compose.yml` 의 다음 두 줄뿐입니다.
+
+    ports:
+      - "127.0.0.1:${BE_PORT:-8080}:3001"
+      - "127.0.0.1:${FE_PORT:-3000}:3002"
+
+`127.0.0.1:` 을 지우거나 `0.0.0.0:` 으로 바꾸면 이 전제는 즉시 깨집니다.
+`tests/test_delivery_compose.py` 가 그 변경을 실패로 잡습니다.
+
+노출이 꼭 필요하다면 조회 API에도 토큰을 걸어야 하며, 그때는 FE의 서버 사이드
+호출(`getRecentJobs`, `getDatabaseStats`, `getFreshnessStats`,
+`getVerificationStats`, `/schedules`)이 전부 토큰 없이 나가고 있으므로 함께
+고쳐야 합니다. 이들은 실패 시 화면이 조용히 비는 방식이라 빠뜨리면 눈에 띄지
+않습니다.
+
+## 2026-08-18 수정 반영
+
+이 런북이 작성된 뒤 납품을 막는 결함 2건이 수정되었습니다.
+
+- **FE 이미지 빌드 실패** (`4897df6`): `/schedules` 에 `force-dynamic` 이 없어
+  `next build` 가 실패했습니다. 이 런북의 빌드 절차는 그대로 유효하지만,
+  `4897df6` 이전 커밋으로는 FE 이미지를 만들 수 없습니다.
+- **예시 API 토큰** (`e502494`): `.env.example` 은 이제 `DELIVERY_API_TOKEN` 을
+  빈 값으로 배포합니다. **`openssl rand -hex 32` 로 직접 생성해서 채우세요.**
+  비워 두거나 옛 예시 문자열을 그대로 쓰면 BE가 시작을 거부합니다.
+
+## 납품 경로 — 주 경로와 나중 경로 (2026-08-18 확정)
+
+데이터는 소스 번들과 별도로 전달됩니다. **DB 덤프와 PDF blob은 소스 번들에
+포함하지 않기로 결정되었습니다.** 두 경로를 분명히 구분하세요.
+
+### 주 경로 (지금 바로) — 소스 번들만, DB는 비어 있음
+
+지금 전달하는 패키지는 소스 코드만 담고 있고 DB는 빈 상태입니다. 위
+`## 배포 전 필수 순서`와 `delivery/README.md` 3장에 있는 두 단계 부트스트랩만으로
+바로 기동됩니다.
+
+```bash
+docker compose -f delivery/docker-compose.yml --profile bootstrap run --rm migrate && \
+docker compose -f delivery/docker-compose.yml up -d
+```
+
+이것만으로도 완결된 시스템입니다 — 크롤러 804대가 등록되어 바로 수집을 시작할
+수 있습니다. 실측: 기동 7.2초, 전 서비스 healthy 도달까지 17초.
+
+### 나중 경로 — DB 덤프·blob이 별도로 도착했을 때
+
+DB 덤프와 PDF blob은 이후 별도 납품으로 전달됩니다. 송신측(생성) 절차는
+`docs/DELIVERY_PACKAGING.md`를 참고하세요. 수신측은 다음을 수행합니다.
+
+- **DB 덤프**: 이미 기동 중인 Postgres 컨테이너에 restore합니다.
+- **blob**: 검증된 절대경로를 `BLOB_HOST_PATH`에 설정하고, compose 실행에
+  `-f delivery/docker-compose.blob.yml`을 추가합니다. 자세한 절차는
+  `docs/DELIVERY_BLOB_MOUNT.md`를 참고하세요.
+
+blob을 아직 연결하지 않은 상태에서 "PDF 열기" 링크는 **404를 반환합니다. 이것은
+결함이 아니라 설계된 동작입니다.**
+
+blob을 연결하기 전에 반드시 송신측과 수신측이 blob manifest를 대조해야 합니다.
+대조가 끝나기 전에는 Worker가 blob에 쓰기 작업을 하도록 허용하지 마세요.
+
+## 소스 번들 생성 방법과 주의할 함정 (2026-08-18 확정)
+
+소스 번들은 `delivery/scripts/build_release_bundle.sh`로 생성합니다. 이 스크립트는
+내부적으로 `git archive HEAD`를 사용하므로 **커밋되고 추적된 파일만** 번들에
+들어갑니다 — `.env`, `.git`, 커밋 히스토리는 포함되지 않습니다. 실측 결과: 약
+5.5MB, 크롤러 모듈 800개 포함.
+
+**주의할 함정:** 이 저장소는 linked git worktree입니다 — `.git`이 디렉터리가
+아니라 실제 gitdir을 가리키는 포인터 파일입니다. 이 디렉터리를 `tar`로 직접
+압축하면 수신측에서 깨진 저장소가 만들어집니다. 반드시
+`build_release_bundle.sh`를 사용하고, 디렉터리를 통째로 `tar`로 압축하는 방식으로
+대체하지 마세요.
