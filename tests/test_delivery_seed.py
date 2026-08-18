@@ -120,6 +120,22 @@ class SeedCatalogueSitesTest(unittest.TestCase):
         # 재실행해도 행이 늘지 않는다
         self.assertEqual(seed(self.conn, csv_path="scripts/audit/capacity_corrected.csv"), 25)
 
+    def test_seed_never_clobbers_existing_backfill_progress(self):
+        # 시드의 가장 위험한 실수는 진행 중인 백필의 커서를 덮어쓰는 것이다 —
+        # ON CONFLICT 의 SET 절이 total_estimate/updated_at 만 만져야 한다.
+        from delivery.scripts.seed_backfill_estimates import seed
+        from delivery.worker import jobs
+        jobs.save_progress(self.conn, "doaj-org-search", {"page": 4211}, items_delta=210550)
+        seed(self.conn, csv_path="scripts/audit/capacity_corrected.csv")
+        row = self.conn.execute(
+            "SELECT cursor, items_done, total_estimate, completed_at"
+            " FROM crawl_site_progress WHERE site_id=%s",
+            ("doaj-org-search",)).fetchone()
+        self.assertEqual(row["cursor"], {"page": 4211})
+        self.assertEqual(row["items_done"], 210550)
+        self.assertEqual(row["total_estimate"], 13373055)
+        self.assertIsNone(row["completed_at"])
+
     def test_migration_registers_the_real_catalogue(self):
         # End to end against the shipped CSV and the real crawler registry:
         # this is what makes POST /jobs reachable on a new install.
