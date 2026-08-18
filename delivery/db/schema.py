@@ -127,8 +127,9 @@ def init_delivery_schema(conn) -> None:
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT now()")
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS truncated BOOLEAN NOT NULL DEFAULT FALSE")
     conn.execute("ALTER TABLE crawl_jobs DROP CONSTRAINT IF EXISTS crawl_jobs_mode_check")
-    conn.execute("""ALTER TABLE crawl_jobs ADD CONSTRAINT crawl_jobs_mode_check
-      CHECK(mode IN('incremental','full','backfill')) NOT VALID""")
+    conn.execute("""DO $$ BEGIN ALTER TABLE crawl_jobs ADD CONSTRAINT crawl_jobs_mode_check
+      CHECK(mode IN('incremental','full','backfill')) NOT VALID;
+      EXCEPTION WHEN duplicate_object THEN NULL; END $$""")
     conn.execute("""DO $$ BEGIN ALTER TABLE crawl_jobs ADD CONSTRAINT crawl_jobs_status_check
       CHECK(status IN('queued','running','cancelling','done','failed','cancelled')) NOT VALID;
       EXCEPTION WHEN duplicate_object THEN NULL; END $$""")

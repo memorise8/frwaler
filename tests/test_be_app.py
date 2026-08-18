@@ -355,7 +355,10 @@ class BeAppTest(unittest.TestCase):
         # 스키마 수준 검증: backfill 은 작업에서 유효, 스케줄에서 무효.
         r = self.client.post("/jobs", json={"site_id": "rc-no-such-site", "mode": "backfill"})
         self.assertNotEqual(r.status_code, 422)   # mode 로는 거절되지 않는다
-        r2 = self.client.put("/schedules/rc-no-such-site", json={"mode": "backfill"})
+        # interval_hours 를 채워야 422 의 유일한 사유가 mode 가 된다 — 빼면 필수
+        # 필드 누락만으로도 422 라서 mode 회귀를 영원히 못 잡는다.
+        r2 = self.client.put("/schedules/rc-no-such-site",
+                             json={"mode": "backfill", "interval_hours": 24})
         self.assertEqual(r2.status_code, 422)     # 스케줄은 backfill 불허
 
 
