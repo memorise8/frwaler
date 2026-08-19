@@ -242,7 +242,7 @@ FE 내비게이션의 "백필" 메뉴(`/backfill`)가 `GET /progress`를 그대�
 ### 시드 스크립트 — `total_estimate` 채우기
 
 `total_estimate`는 `delivery/scripts/seed_backfill_estimates.py`로 채웁니다.
-`scripts/audit/capacity_corrected.csv`의 `corrected_max`가 10만 건 이상인
+`delivery/vendor/capacity_corrected.csv`의 `corrected_max`가 10만 건 이상인
 사이트만 업서트하며(현재 25개), 재실행해도 무해합니다(업서트) — 단 이미 진행
 중인 행의 `cursor`·`items_done`·`completed_at`은 절대 건드리지 않고
 `total_estimate`만 갱신합니다.

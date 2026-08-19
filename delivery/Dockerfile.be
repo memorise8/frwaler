@@ -11,6 +11,6 @@ COPY crawler /app/crawler
 COPY delivery /app/delivery
 # The migration seeds `sites` from the audit catalogue so a new install can
 # start crawls from the console; without this file it would seed nothing.
-COPY scripts/audit/crawler_status_final.csv /app/scripts/audit/crawler_status_final.csv
+COPY delivery/vendor/crawler_status_final.csv /app/scripts/audit/crawler_status_final.csv
 EXPOSE 3001
 CMD ["uvicorn", "--factory", "--host", "0.0.0.0", "--port", "3001", "delivery.be.entry:app"]

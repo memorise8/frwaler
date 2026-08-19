@@ -15,7 +15,7 @@ from pathlib import Path
 THRESHOLD = 100_000
 
 
-def seed(conn, csv_path="scripts/audit/capacity_corrected.csv") -> int:
+def seed(conn, csv_path="delivery/vendor/capacity_corrected.csv") -> int:
     n = 0
     with Path(csv_path).open(encoding="utf-8-sig", newline="") as f:
         for row in csv.DictReader(f):

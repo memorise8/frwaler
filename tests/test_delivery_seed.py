@@ -111,14 +111,14 @@ class SeedCatalogueSitesTest(unittest.TestCase):
 
     def test_seed_backfill_estimates_upserts_only_100k_sites(self):
         from delivery.scripts.seed_backfill_estimates import seed
-        n = seed(self.conn, csv_path="scripts/audit/capacity_corrected.csv")
+        n = seed(self.conn, csv_path="delivery/vendor/capacity_corrected.csv")
         self.assertEqual(n, 25)
         row = self.conn.execute(
             "SELECT total_estimate FROM crawl_site_progress WHERE site_id=%s",
             ("doaj-org-search",)).fetchone()
         self.assertEqual(row["total_estimate"], 13373055)
         # 재실행해도 행이 늘지 않는다
-        self.assertEqual(seed(self.conn, csv_path="scripts/audit/capacity_corrected.csv"), 25)
+        self.assertEqual(seed(self.conn, csv_path="delivery/vendor/capacity_corrected.csv"), 25)
 
     def test_seed_never_clobbers_existing_backfill_progress(self):
         # 시드의 가장 위험한 실수는 진행 중인 백필의 커서를 덮어쓰는 것이다 —
@@ -126,7 +126,7 @@ class SeedCatalogueSitesTest(unittest.TestCase):
         from delivery.scripts.seed_backfill_estimates import seed
         from delivery.worker import jobs
         jobs.save_progress(self.conn, "doaj-org-search", {"page": 4211}, items_delta=210550)
-        seed(self.conn, csv_path="scripts/audit/capacity_corrected.csv")
+        seed(self.conn, csv_path="delivery/vendor/capacity_corrected.csv")
         row = self.conn.execute(
             "SELECT cursor, items_done, total_estimate, completed_at"
             " FROM crawl_site_progress WHERE site_id=%s",

@@ -15,6 +15,9 @@ PAIRS = [
     ("crawlers-share/requirements.txt", "delivery/vendor/crawler-runtime-requirements.txt"),
     ("libertree-app/src/lib/categories.ts", "delivery/vendor/libertree-lib/categories.ts"),
     ("libertree-app/src/lib/doc-type-map.generated.ts", "delivery/vendor/libertree-lib/doc-type-map.generated.ts"),
+    ("scripts/audit/capacity_corrected.csv", "delivery/vendor/capacity_corrected.csv"),
+    ("scripts/audit/capacity_final.csv", "delivery/vendor/capacity_final.csv"),
+    ("scripts/audit/crawler_status_final.csv", "delivery/vendor/crawler_status_final.csv"),
 ]
 
 

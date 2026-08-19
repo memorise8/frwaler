@@ -36,3 +36,54 @@
 # 저장소 관리 파일 자체도 번들에는 불필요
 /.gitattributes export-ignore
 /.gitignore     export-ignore
+
+# ---- 정보 유출 스캔(2026-08-19) 반영: 내부 자료는 번들에서 제외 ----
+# scripts/ 는 전부 내부 운영 도구(일회성 수집기·마이그레이션·감사 이력·타 고객
+# 작업·터널 스크립트). 빌드·시드가 쓰는 CSV 3종은 delivery/vendor/ 로 이관했다.
+/scripts/ export-ignore
+
+# 내부 스크립트를 임포트하는 테스트도 함께 제외 (고객 환경에선 임포트 실패)
+/tests/test_capacity_correction.py  export-ignore
+/tests/test_backfill_site_fields.py export-ignore
+/tests/test_cleanup_metadata.py     export-ignore
+/tests/test_scan_fake_pdfs.py       export-ignore
+
+# 내부 검증 문서 (SSH 대상·내부 호스트명 포함)
+/delivery/llm/L1_VALIDATION_20260812.md      export-ignore
+/delivery/llm/L2_BENCHMARK_20260812.md       export-ignore
+/delivery/llm/SUMMARY_BENCHMARK_20260812.md  export-ignore
+
+# 내부 문서: 세션 핸드오프·감사 기록·작업 계획 (운영 IP·호스트명·경로 포함).
+# 고객에게는 deliverables/ + 런북 + API 문서 + 안내 문서 2종만 간다.
+/docs/superpowers/ export-ignore
+/docs/proposals/   export-ignore
+/docs/README.md    export-ignore
+/docs/CAPACITY_PIPELINE.md export-ignore
+/docs/CRAWLER_DELIVERY_VERIFICATION.md export-ignore
+/docs/CRAWLER_STATUS_FINAL.md export-ignore
+/docs/CURRENT_STATE.md export-ignore
+/docs/DELIVERY_BATCH_SAFETY_CONTRACT_20260813.md export-ignore
+/docs/DELIVERY_DATABASE_AUDIT_20260812.md export-ignore
+/docs/DELIVERY_FINAL_READINESS_20260813.md export-ignore
+/docs/DELIVERY_LLM_HANDOFF_20260812.md export-ignore
+/docs/DELIVERY_MVP_HANDOFF_20260812.md export-ignore
+/docs/DELIVERY_MVP_RUNTIME_AUDIT_20260812.md export-ignore
+/docs/DELIVERY_PACKAGING.md export-ignore
+/docs/DELIVERY_PHASE0_REGRESSION_AUDIT_20260812.md export-ignore
+/docs/DELIVERY_PRODUCT_PLAN_20260812.md export-ignore
+/docs/DELIVERY_Q1_REHEARSAL_20260813.md export-ignore
+/docs/DELIVERY_READINESS_20260818.md export-ignore
+/docs/DELIVERY_SUMMARY_QUALITY_CONTRACT_20260812.md export-ignore
+/docs/DELIVERY_SUMMARY_QUALITY_HANDOFF_20260812.md export-ignore
+/docs/DELIVERY_SUMMARY_TRANSLATION_CONTRACT_20260812.md export-ignore
+/docs/DELIVERY_TRANSLATION_PLAN_20260812.md export-ignore
+/docs/HANDOFF.md export-ignore
+/docs/HANDOFF_20260818_SCALE.md export-ignore
+/docs/LIBERTREE_DATA_REVIEW.md export-ignore
+/docs/NEXT_SESSION_PROMPT.md export-ignore
+/docs/PROGRESS_20260805.md export-ignore
+/docs/SESSION_HANDOFF_2026-06-05.md export-ignore
+/docs/audit_recovery_categories.md export-ignore
+/docs/country_library_ui_plan.md export-ignore
+/docs/dashboard_1994_funnel_plan.md export-ignore
+/docs/uncollected_sites_directory_plan.md export-ignore

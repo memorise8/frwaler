@@ -23,8 +23,8 @@ COPY delivery/fe/package.json delivery/fe/package-lock.json ./
 # The current frontend reads the audited crawler catalogue and taxonomy at
 # request time. Keep only those inputs in the runtime image, at the same paths
 # supported by crawler-health.ts.
-COPY scripts/audit/crawler_status_final.csv /app/scripts/audit/crawler_status_final.csv
-COPY scripts/audit/capacity_final.csv /app/scripts/audit/capacity_final.csv
+COPY delivery/vendor/crawler_status_final.csv /app/scripts/audit/crawler_status_final.csv
+COPY delivery/vendor/capacity_final.csv /app/scripts/audit/capacity_final.csv
 # vendored from libertree-app/src/lib -- the release bundle excludes legacy dirs;
 # in-image destination paths stay identical so runtime readers are untouched
 COPY delivery/vendor/libertree-lib/categories.ts /app/libertree-app/src/lib/categories.ts
