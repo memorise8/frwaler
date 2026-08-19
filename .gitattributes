@@ -2,18 +2,22 @@
 # 번들은 "납품 시스템의 현재 스냅샷"만 담는다 — 이전 세대 앱과 무관 프로젝트,
 # 옛 루트 잔재는 넘기지 않는다. (git archive 가 export-ignore 를 존중한다)
 
+# 모든 패턴은 / 로 루트에 고정한다. 미고정 패턴은 모든 깊이에서 매칭되어
+# delivery/data/site-taxonomy.json(BE 시작 필수), delivery/fe/src/app/api/
+# (FE 프록시)까지 지운다 — 실제로 번들 콜드스타트에서 BE 크래시로 발현했다.
+
 # 무관 프로젝트
-api/            export-ignore
-crawlers-share/ export-ignore
-ecip-frontend/  export-ignore
-ecip-library/   export-ignore
-finolaw/        export-ignore
+/api/           export-ignore
+/crawlers-share/ export-ignore
+/ecip-frontend/ export-ignore
+/ecip-library/  export-ignore
+/finolaw/       export-ignore
 
 # 이전 세대 libertree/frwaler 앱과 그 흔적
-libertree-app/  export-ignore
-livertree       export-ignore
-data/           export-ignore
-docker/         export-ignore
+/libertree-app/ export-ignore
+/livertree      export-ignore
+/data/          export-ignore
+/docker/        export-ignore
 
 # 옛 루트 잔재 (납품 스택은 delivery/ 아래의 것을 쓴다)
 # 반드시 / 로 루트에 고정할 것 — 고정하지 않으면 delivery/docker-compose.yml,
