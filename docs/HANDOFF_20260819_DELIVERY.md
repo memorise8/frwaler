@@ -23,6 +23,22 @@
 
 ---
 
+## 0.5 코드 전달 경로 — GitHub (2026-08-19 추가)
+
+- **https://github.com/memorise8/libertree-delivery** (비공개) — 검증된 번들 트리로
+  만든 **깨끗한 새 저장소**(1커밋 `6cdb81a`, 1,490파일). 우리 히스토리·내부 문서 없음.
+  로컬 사본: `/mnt/raid/ruci_workspace/frwaler-delivery-out/release-repo`
+- 고객 계정 **jongdori** 에게 Read 초대 발송됨(2026-08-19, 7일 내 수락 필요).
+  수락 여부 확인: `GET /repos/memorise8/libertree-delivery/collaborators/jongdori`
+- **업데이트 절차**: 본 저장소 갱신 → `git archive HEAD | tar -x` 를 release-repo 에
+  풀고 새 스냅샷 커밋 → push → 고객은 pull + migrate --build + up -d.
+  **주의: 원본(frwaler) 저장소·히스토리는 절대 공유하지 않는다.**
+- 번역 API: 고객이 `.env` 의 TRANSLATION_EXTERNAL_*(OpenAI 호환) 또는
+  TRANSLATION_INTERNAL_*(Ollama 호환) 중 하나를 채우면 콘솔 번역 화면·큐가 그대로
+  동작. 비우면 번역만 안전 실패, 수집 무영향. (설명서에 이 절 추가는 TODO)
+
+---
+
 ## 1. 이번 납품에서 개발·완료된 것 (전부 리뷰·실물검증 통과, 푸시됨)
 
 ### A2 — 부분 수집 표시 (완료)
