@@ -166,8 +166,16 @@ services:
       TRANSLATION_INTERNAL_MODEL: ${TRANSLATION_INTERNAL_MODEL:-}
       TRANSLATION_WORKER_ID: ${TRANSLATION_WORKER_ID:-delivery-worker-1}
       LIBERTREE_MAX_WALL_S: ${LIBERTREE_MAX_WALL_S:-1500}
+      SCIENCEON_KEY: ${SCIENCEON_KEY:-}
+      SCIENCEON_CLIENT_ID: ${SCIENCEON_CLIENT_ID:-}
+      SCIENCEON_MAC_ADDRESS: ${SCIENCEON_MAC_ADDRESS:-}
+      SCIENCEON_TOKEN_CACHE: ${SCIENCEON_TOKEN_CACHE:-/data/runtime/scienceon_token.json}
+      SCIENCEON_SLICE_BUDGET: ${SCIENCEON_SLICE_BUDGET:-4}
+      SCIENCEON_INCREMENTAL_YEARS: ${SCIENCEON_INCREMENTAL_YEARS:-2}
+      SCIENCEON_INCREMENTAL_PAGES: ${SCIENCEON_INCREMENTAL_PAGES:-3}
     volumes:
       - blob:/data/blob
+      - runtime:/data/runtime
     depends_on:
       postgres:
         condition: service_healthy
@@ -194,3 +202,4 @@ services:
 volumes:
   pgdata:
   blob:
+  runtime:

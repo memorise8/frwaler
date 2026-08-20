@@ -2897,6 +2897,14 @@
       "country": "캐나다",
       "doc_type": "보고서"
     },
+    "scienceon-api": {
+      "country": "대한민국",
+      "doc_type": "논문"
+    },
+    "scienceon-foreign-api": {
+      "country": "다국가",
+      "doc_type": "논문"
+    },
     "scourt-go-kr-portal": {
       "country": "한국",
       "doc_type": "보도자료"

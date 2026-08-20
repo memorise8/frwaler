@@ -112,13 +112,24 @@ class SeedCatalogueSitesTest(unittest.TestCase):
     def test_seed_backfill_estimates_upserts_only_100k_sites(self):
         from delivery.scripts.seed_backfill_estimates import seed
         n = seed(self.conn, csv_path="delivery/vendor/capacity_corrected.csv")
-        self.assertEqual(n, 25)
+        self.assertEqual(n, 27)
         row = self.conn.execute(
             "SELECT total_estimate FROM crawl_site_progress WHERE site_id=%s",
             ("doaj-org-search",)).fetchone()
         self.assertEqual(row["total_estimate"], 13373055)
+        scienceon = self.conn.execute(
+            "SELECT site_id,total_estimate FROM crawl_site_progress "
+            "WHERE site_id LIKE 'scienceon%' ORDER BY site_id"
+        ).fetchall()
+        self.assertEqual(
+            [(row["site_id"], row["total_estimate"]) for row in scienceon],
+            [
+                ("scienceon-api", 30917778),
+                ("scienceon-foreign-api", 153222882),
+            ],
+        )
         # 재실행해도 행이 늘지 않는다
-        self.assertEqual(seed(self.conn, csv_path="delivery/vendor/capacity_corrected.csv"), 25)
+        self.assertEqual(seed(self.conn, csv_path="delivery/vendor/capacity_corrected.csv"), 27)
 
     def test_seed_never_clobbers_existing_backfill_progress(self):
         # 시드의 가장 위험한 실수는 진행 중인 백필의 커서를 덮어쓰는 것이다 —

@@ -723,6 +723,8 @@ sastind-gov-cn-n10086200,중국 완료,474,48,count_timeout,lower_bound,-426,,0.
 scaht-org-en,Switzerland Research Centers,641,,,unmeasured,,zero_parsed,0.0374,,,451,count_only_c_full.csv,1,single_source,1.34
 science-astron-nl-science-astron,Dutch Research Centers,117,0,count_timeout,lower_bound,-117,,0.0,0,0.0,3,reverify44.csv,1,single_source,0.01
 science-libraries-canada-ca-eng,Canadian Research Centers,31,0,count_timeout,lower_bound,-31,,0.5806,0,0.0,34,count_only_c_full.csv,7,corroborated,0.1
+scienceon-api,ScienceON,10447,30917778,scienceon_api_count,exact,30907331,,,,,30917778,scienceon_api_audit,1,direct_api,
+scienceon-foreign-api,ScienceON,0,153222882,scienceon_api_count,exact,153222882,,,,,153222882,scienceon_api_audit,1,direct_api,
 scourt-go-kr-portal,한국완료,982,541,count_timeout,lower_bound,-441,,0.0,0,0.0,3402,exact_probe.csv,1,single_source,0.0
 scp-nl-publicaties,Dutch Research Centers,243,246,count_crawl,exact,3,,0.9794,241,0.49,285,count_only_totalscan.csv,3,corroborated,0.57
 search-nal-usda-gov-discovery,USA Executive Departments,452,,,unmeasured,,zero_parsed,0.0022,,,422,count_only_totalscan.csv,3,corroborated,1.25
