@@ -10,24 +10,14 @@
       "type": "none"
     },
     "selectors": {
-      "item_container": "ul.menu li",
-      "item_link": "a",
-      "item_link_attr": "href",
-      "title": null,
-      "date": null,
-      "category": null
+      "item_container": "article li",
+      "item_link": "a[href*=\"/budget/appropriations/\"][href$=\"/highlights\"]"
     }
   },
   "detail_page": {
     "selectors": {
-      "title": null,
-      "abstract": null,
-      "authors": null,
-      "date": null,
-      "pdf_link": null,
-      "keywords": null,
-      "department": null,
-      "doi": null
+      "abstract": "article .field--name-body",
+      "pdf_link": "article a[href$=\".pdf\"]"
     }
   },
   "options": {

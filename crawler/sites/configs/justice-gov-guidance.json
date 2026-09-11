@@ -1,6 +1,21 @@
 {
   "site_id": "justice-gov-guidance",
-  "site_name": "justice.gov - Guidance",
+  "site_name": "DOJ — Guidance Documents",
   "base_url": "https://www.justice.gov",
-  "crawl_type": "single-page"
+  "crawl_type": "html",
+  "list_page": {
+    "url": "https://www.justice.gov/guidance",
+    "pagination": {
+      "type": "query_param",
+      "param": "page",
+      "start": 0,
+      "step": 1
+    },
+    "selectors": {
+      "item_container": "article.guidance-document-item",
+      "item_link": "h2 a[href]",
+      "date": ".node-date",
+      "category": ".node-component .field__item"
+    }
+  }
 }

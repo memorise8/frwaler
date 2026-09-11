@@ -1,6 +1,16 @@
 {
   "site_id": "doi-gov-performance-reports",
-  "site_name": "doi.gov - Performance Reports",
+  "site_name": "DOI — Performance Reports",
   "base_url": "https://www.doi.gov",
-  "crawl_type": "single-page"
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.doi.gov/performance/performance-reports",
+    "selectors": {
+      "link": "article a[href$=\".pdf\"]",
+      "category_heading": "h2"
+    }
+  },
+  "options": {
+    "delay": 1.5
+  }
 }

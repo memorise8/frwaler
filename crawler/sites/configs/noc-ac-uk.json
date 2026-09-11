@@ -1,49 +1,16 @@
 {
   "site_id": "noc-ac-uk",
-  "site_name": "noc.ac.uk",
-  "base_url": "https://noc.ac.uk",
-  "crawl_type": "html",
+  "site_name": "National Oceanography Centre — Literature and Brochures",
+  "base_url": "https://www.noc.ac.uk",
+  "crawl_type": "single-page",
   "list_page": {
-    "url": "https://noc.ac.uk/about-us/literature-brochures",
-    "params": {},
-    "pagination": {
-      "type": "none",
-      "param": null,
-      "start": 1,
-      "step": 1
-    },
+    "url": "https://www.noc.ac.uk/who-we-are/our-purpose/literature-and-brochures",
     "selectors": {
-      "item_container": "tr",
-      "item_link": "a[href]",
-      "item_link_attr": "href",
-      "title": null,
-      "date": null,
-      "category": null
-    }
-  },
-  "detail_page": {
-    "selectors": {
-      "title": null,
-      "abstract": null,
-      "authors": null,
-      "date": null,
-      "pdf_link": null,
-      "keywords": null,
-      "department": null,
-      "doi": null
+      "link": "main a.document-link[href$=\".pdf\"]",
+      "category_heading": "h2"
     }
   },
   "options": {
-    "delay": 1.5,
-    "id_regex": null
-  },
-  "metadata": {
-    "analyzed_from": "https://noc.ac.uk/about-us/literature-brochures",
-    "detail_sample": null,
-    "confidence": 0.0
-  }
-}    "analyzed_from": "https://noc.ac.uk/publications",
-    "detail_sample": null,
-    "confidence": 0.0
+    "delay": 1.5
   }
 }

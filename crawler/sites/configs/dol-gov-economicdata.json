@@ -1,6 +1,16 @@
 {
   "site_id": "dol-gov-economicdata",
-  "site_name": "dol.gov - Economicdata",
+  "site_name": "DOL — Economic Data",
   "base_url": "https://www.dol.gov",
-  "crawl_type": "single-page"
+  "crawl_type": "single-page",
+  "list_page": {
+    "url": "https://www.dol.gov/general/topic/statistics",
+    "selectors": {
+      "link": "main a[href$=\".pdf\"]",
+      "category_heading": "h2"
+    }
+  },
+  "options": {
+    "delay": 1.5
+  }
 }

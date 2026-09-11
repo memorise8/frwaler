@@ -149,6 +149,7 @@ class GenericCrawler(BaseCrawler):
         page_num = pagination.get("start", 1)
         page_param = pagination.get("param", "page")
         saved = 0
+        seen_urls = set()
 
         while True:
             if limit is not None and saved >= limit:
@@ -170,6 +171,7 @@ class GenericCrawler(BaseCrawler):
                 break
 
             print(f"[{self.site_id}] Page {page_num}: found {len(items)} items")
+            new_items = 0
 
             for item_info in items:
                 if limit is not None and saved >= limit:
@@ -177,6 +179,10 @@ class GenericCrawler(BaseCrawler):
 
                 # Fetch detail page if we have a URL
                 detail_url = item_info.get("detail_url")
+                if not detail_url or detail_url in seen_urls:
+                    continue
+                seen_urls.add(detail_url)
+                new_items += 1
                 if detail_url and detail_cfg.get("selectors"):
                     paper = self._fetch_detail(detail_url, item_info, detail_cfg)
                 else:
@@ -189,6 +195,10 @@ class GenericCrawler(BaseCrawler):
                     label = f"{saved}/{limit}" if limit else str(saved)
                     print(f"[{self.site_id}] Saved {label} papers...")
 
+            # A static list must be fetched once. Some paginated sites also
+            # repeat their last page indefinitely instead of returning empty.
+            if pagination.get("type") != "query_param" or not new_items:
+                break
             page_num += pagination.get("step", 1)
 
         print(f"[{self.site_id}] Done. Saved {saved} papers.")

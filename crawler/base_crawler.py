@@ -28,7 +28,8 @@ class BaseCrawler(ABC):
             "User-Agent": self.USER_AGENT,
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8",
             "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
-            "Accept-Encoding": "gzip, deflate, br",
+            # Keep requests' negotiated encodings: advertising Brotli when
+            # its optional decoder is absent produces unreadable HTML.
             "Connection": "keep-alive",
         })
 
