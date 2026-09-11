@@ -68,6 +68,8 @@ class RecoveredSourcesTest(unittest.TestCase):
 
     def test_legacy_ids_resolve_to_working_specialized_implementations(self):
         for legacy, current in [('ncha-gov-cn', 'ncha-gov-cn-col'),
+                                ('arcep-fr', 'arcep-fr-actualites'),
+                                ('scaht-org', 'scaht-org-en'),
                                 ('directives-doe-gov-directives-', 'directives-doe-gov-directives-browse')]:
             with self.subTest(site=legacy):
                 crawler = CRAWLERS[legacy](None)

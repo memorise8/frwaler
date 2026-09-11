@@ -1,14 +1,16 @@
 FROM python:3.12-slim AS base
 WORKDIR /app
 ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app
-# Custom crawlers (e.g. crawler/sites/custom/datos-gob-mx-dataset.py) shell out
-# to the system `curl` binary via subprocess; python:3.12-slim does not ship it.
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
+# Custom crawlers shell out to curl and pdftotext (from poppler-utils).
+# Neither binary ships in python:3.12-slim.
+RUN apt-get update && apt-get install -y --no-install-recommends curl poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 COPY delivery/requirements.txt /app/delivery/requirements.txt
 RUN pip install --no-cache-dir -r /app/delivery/requirements.txt
 COPY crawlers-share/requirements.txt /app/crawler-runtime-requirements.txt
 RUN pip install --no-cache-dir -r /app/crawler-runtime-requirements.txt
+# Browser-based crawlers need the browser executable and its system libraries.
+RUN python -m playwright install --with-deps chromium
 COPY crawler /app/crawler
 COPY delivery /app/delivery
 CMD ["python", "-m", "delivery.worker.worker", "--poll", "5"]
