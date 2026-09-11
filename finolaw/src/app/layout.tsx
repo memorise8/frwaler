@@ -27,6 +27,7 @@ const NAV = [
   { href: "/admin/summary", label: "요약 결과", icon: "🧠" },
   { href: "/smart-find", label: "URL 크롤링", icon: "🛰️" },
   { href: "/auto-add", label: "Auto-Add", icon: "✨" },
+  { href: "/crawler-status", label: "크롤러 상태", icon: "🟢" },
   { href: "/crawler", label: "크롤러 관리", icon: "⚙️" },
 ];
 
@@ -62,7 +63,7 @@ export default function RootLayout({
               ))}
             </nav>
             <span className="hidden sm:inline text-xs text-slate-400 dark:text-slate-500 font-mono">
-              port 3002
+              port 3001
             </span>
             <ThemeToggle />
           </div>
