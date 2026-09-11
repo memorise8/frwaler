@@ -5,6 +5,7 @@ import json
 import os
 import re
 import uuid
+from datetime import datetime
 
 from bs4 import BeautifulSoup
 from .base_crawler import BaseCrawler
@@ -242,6 +243,13 @@ class GenericCrawler(BaseCrawler):
             if date_sel:
                 date_tag = row.select_one(date_sel)
                 date = date_tag.get_text(strip=True) if date_tag else ""
+                date_format = selectors.get("date_format")
+                if date and date_format:
+                    try:
+                        date = datetime.strptime(date, date_format).date().isoformat()
+                    except ValueError:
+                        # Preserve the observed value when the source changes.
+                        pass
 
             category = ""
             cat_sel = selectors.get("category")

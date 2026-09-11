@@ -1,45 +1,28 @@
 {
   "site_id": "gsi-ie",
-  "site_name": "www.gsi.ie",
+  "site_name": "Geological Survey Ireland — Publications",
   "base_url": "https://www.gsi.ie",
   "crawl_type": "html",
   "list_page": {
-    "url": "https://www.gsi.ie/en-ie/publications/Pages/default.aspx",
-    "params": {},
+    "url": "https://www.gsi.ie/publications/",
     "pagination": {
-      "type": "none",
-      "param": null,
-      "start": 1,
-      "step": 1
+      "type": "none"
     },
     "selectors": {
-      "item_container": "#sideNavContents ul#zz2_RootAspMenu > li.static",
-      "item_link": "a.ms-core-listMenu-item[href]",
-      "item_link_attr": "href",
-      "title": "span.menu-item-text",
-      "date": null,
-      "category": null
+      "item_container": ".publication-item",
+      "item_link": ".publication-content h3 a[href]",
+      "date": ".publication-content em",
+      "date_format": "Published %d %B %Y"
     }
   },
   "detail_page": {
     "selectors": {
-      "title": "#DeltaPlaceHolderMain .content > h1",
-      "abstract": "#DeltaPlaceHolderMain .content .ms-rtestate-field",
-      "authors": "#DeltaPlaceHolderMain .content .ms-rtestate-field p:nth-of-type(3)",
-      "date": "#DeltaPlaceHolderMain .content #divPubDate",
-      "pdf_link": null,
-      "keywords": "#DeltaPlaceHolderMain .content dl.tag-links dd a",
-      "department": null,
-      "doi": null
+      "title": "h1",
+      "abstract": ".publication-content",
+      "pdf_link": ".publication-content a[href$=\".pdf\"]"
     }
   },
   "options": {
-    "delay": 1.5,
-    "id_regex": null
-  },
-  "metadata": {
-    "analyzed_from": "https://www.gsi.ie/en-ie/publications/Pages/default.aspx",
-    "detail_sample": "https://www.gsi.ie/en-ie/publications/Pages/Quarry-Directory.aspx",
-    "confidence": 1.0
+    "delay": 1.5
   }
 }

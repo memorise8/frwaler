@@ -70,6 +70,8 @@ class RecoveredSourcesTest(unittest.TestCase):
         for legacy, current in [('ncha-gov-cn', 'ncha-gov-cn-col'),
                                 ('arcep-fr', 'arcep-fr-actualites'),
                                 ('scaht-org', 'scaht-org-en'),
+                                ('baw-de', 'baw-de-en'),
+                                ('pasteur-fr', 'pasteur-fr-en'),
                                 ('directives-doe-gov-directives-', 'directives-doe-gov-directives-browse')]:
             with self.subTest(site=legacy):
                 crawler = CRAWLERS[legacy](None)
@@ -111,6 +113,57 @@ class RecoveredSourcesTest(unittest.TestCase):
         crawler._save_paper = Mock()
         self.assertEqual(crawler.crawl(), 0)
         crawler._save_paper.assert_not_called()
+
+    def test_gsi_selects_publications_and_normalizes_observed_date(self):
+        crawler = CRAWLERS['gsi-ie'](None)
+        soup = BeautifulSoup('<nav><a href="/publications/">Publications</a></nav>'
+            '<div class="publication-item"><div class="publication-thumbnail"><a href="/blank"></a></div>'
+            '<div class="publication-content"><h3><a href="/publications/publication/report/">Report</a></h3>'
+            '<em>Published 21 July 2026</em></div></div>', 'html.parser')
+        items = crawler._extract_list_items(soup, crawler._config['list_page']['selectors'])
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0]['title'], 'Report')
+        self.assertEqual(items[0]['published_date'], '2026-07-21')
+        self.assertTrue(items[0]['detail_url'].endswith('/publication/report/'))
+
+    def test_pasteur_redesign_list_date_and_pagination(self):
+        crawler = CRAWLERS['pasteur-fr-en'](None)
+        soup = BeautifulSoup('<main><article class="teaser -news"><h3 class="teaser__heading">'
+            '<a href="/en/whats-new/press-area/press-releases-and-press-kits/report">Research news</a></h3>'
+            '<div class="teaser__meta">16 July 2026 · 3 min de lecture</div>'
+            '<p class="teaser__label">Press Release</p></article>'
+            '<li class="pager__item--next"><a href="?page=1">Next</a></li></main>', 'html.parser')
+        items = crawler._parse_list(soup)
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0]['listed_date'], '2026-07-16')
+        self.assertEqual(items[0]['category'], 'Press Release')
+        self.assertTrue(crawler._has_next_page(soup))
+        self.assertEqual(crawler._list_url(1), crawler.START_URL + '?page=1')
+        self.assertFalse(crawler._has_next_page(BeautifulSoup('<main/>', 'html.parser')))
+
+    def test_pasteur_redesign_extracts_body_without_footer(self):
+        crawler = CRAWLERS['pasteur-fr-en'](None)
+        html = '<main><h1>Research news</h1><p class="hero__meta"><time>16 July 2026</time></p>'
+        html += '<section class="paragraph--type--texte-reprise"><p>First research paragraph.</p></section>'
+        html += '<section class="paragraph--type--texte-reprise"><p>Second research paragraph.</p></section>'
+        html += '</main><footer><p>Unrelated footer</p></footer>'
+        result = crawler._parse_detail(BeautifulSoup(html, 'html.parser'), html, {}, 'https://www.pasteur.fr/en/report')
+        self.assertEqual(result['published_date'], '2026-07-16')
+        self.assertIn('Second research paragraph.', result['abstract'])
+        self.assertNotIn('Unrelated footer', result['abstract'])
+
+    def test_baw_stores_live_document_url_without_inventing_day(self):
+        crawler = CRAWLERS['baw-de'](None, delay=0)
+        pdf = 'https://izw.baw.de/reports/2024.pdf'
+        crawler._fetch_items = Mock(return_value=[{'title': 'Annual Report 2024', 'pdf_url': pdf}])
+        crawler._curl_get_bytes = Mock(return_value=b'%PDF-test')
+        crawler._extract_pdf_text = Mock(return_value='A real report paragraph. ' * 20)
+        crawler._save_paper = Mock()
+        self.assertEqual(crawler.crawl(limit=1), 1)
+        paper = crawler._save_paper.call_args.args[0]
+        self.assertEqual(paper['url'], pdf)
+        self.assertIsNone(paper['published_date'])
+        self.assertEqual(json.loads(paper['metadata'])['year'], '2024')
 
 
 if __name__ == '__main__':

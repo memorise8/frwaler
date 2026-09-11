@@ -110,7 +110,8 @@ class BawDeEnCrawler(BaseCrawler):
                     if filename
                     else hashlib.sha1(pdf_url.encode()).hexdigest()[:20]
                 )
-                published_date = f"{year}-01-01" if year else None
+                # A report year is not an exact publication date.
+                published_date = None
 
                 time.sleep(self.detail_delay)
                 pdf_bytes = self._curl_get_bytes(pdf_url, context=f"item {idx + 1} PDF")
@@ -147,7 +148,7 @@ class BawDeEnCrawler(BaseCrawler):
                     "authors": None,
                     "publisher": self.PUBLISHER,
                     "journal": None,
-                    "url": self._LIST_URL,
+                    "url": pdf_url,
                     "pdf_url": pdf_url,
                     "keywords": "annual report,BAW,waterways,hydraulic engineering,Germany",
                     "category": self.CATEGORY,

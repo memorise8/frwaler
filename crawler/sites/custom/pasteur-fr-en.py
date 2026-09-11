@@ -8,6 +8,7 @@ import os
 import re
 import subprocess
 import time
+from datetime import datetime
 from html import unescape
 from urllib.parse import unquote, urljoin, urlparse
 
@@ -21,7 +22,7 @@ class PasteurFrEnCrawler(BaseCrawler):
     site_name = "Custom: pasteur-fr-en"
     base_url = "https://www.pasteur.fr"
 
-    START_URL = "https://www.pasteur.fr/en/search-press?field_pst_doc_type=49"
+    START_URL = "https://www.pasteur.fr/en/whats-new/press-area/press-releases-and-press-kits"
     BACKOFF_SECONDS = (1, 3, 9)
     CURL_TIMEOUT = 45
     MAX_PAGES = 200
@@ -59,7 +60,7 @@ class PasteurFrEnCrawler(BaseCrawler):
             raw, effective_list_url = self._curl_get_text(
                 list_url,
                 context=f"list page {page}",
-                referer=self.base_url + "/en/search-press",
+                referer=self.START_URL,
             )
             if not raw:
                 print(f"[{self.site_id}] list page {page} failed; stopping")
@@ -268,8 +269,8 @@ class PasteurFrEnCrawler(BaseCrawler):
 
     def _parse_list(self, soup):
         records = []
-        for row in soup.select(".view-search-press .views-row"):
-            title_link = row.select_one(".views-field-title a[href]")
+        for row in soup.select(".view-search-press .views-row, main article.teaser.-news"):
+            title_link = row.select_one(".views-field-title a[href], .teaser__heading a[href]")
             if not title_link:
                 title_link = row.select_one("a[href*='/press-documents/']")
             if not title_link:
@@ -285,7 +286,7 @@ class PasteurFrEnCrawler(BaseCrawler):
             if not title:
                 continue
 
-            date_el = row.select_one(".views-field-field-date .date-display-single")
+            date_el = row.select_one(".views-field-field-date .date-display-single, .teaser__meta")
             listed_date_raw = ""
             listed_date = ""
             if date_el:
@@ -299,7 +300,7 @@ class PasteurFrEnCrawler(BaseCrawler):
             body_el = row.select_one(".views-field-body .field-content")
             list_abstract = self._clean_text(body_el.get_text(" ", strip=True)) if body_el else ""
 
-            category_el = row.select_one(".press_doc_type")
+            category_el = row.select_one(".press_doc_type, .teaser__label")
             category = self._clean_text(category_el.get_text(" ", strip=True)) if category_el else ""
 
             image_el = row.select_one(".views-field-field-vignette img")
@@ -345,6 +346,10 @@ class PasteurFrEnCrawler(BaseCrawler):
 
         body_el = soup.select_one(".article__content .body") or soup.select_one("article .body")
         body_text = self._clean_text(body_el.get_text(" ", strip=True)) if body_el else ""
+        if not body_text:
+            # The redesigned page uses separate text sections, without article.
+            sections = soup.select("main .paragraph--type--texte-reprise")
+            body_text = self._clean_text(" ".join(section.get_text(" ", strip=True) for section in sections))
         json_body = self._clean_text(json_ld.get("articleBody"))
         og_description = self._clean_text(self._meta_content(soup, "og:description"))
         abstract = body_text or json_body or og_description or record.get("list_abstract") or ""
@@ -611,10 +616,11 @@ class PasteurFrEnCrawler(BaseCrawler):
     def _list_url(self, page):
         if page <= 0:
             return self.START_URL
-        return f"{self.START_URL}&page={page}"
+        separator = "&" if "?" in self.START_URL else "?"
+        return f"{self.START_URL}{separator}page={page}"
 
     def _has_next_page(self, soup):
-        return soup.select_one("li.pager-next a[href]") is not None
+        return soup.select_one("li.pager-next a[href], .pager__item--next a[href]") is not None
 
     def _absolute_url(self, href):
         href = (href or "").strip()
@@ -628,7 +634,7 @@ class PasteurFrEnCrawler(BaseCrawler):
         return slug or None
 
     def _detail_date_raw(self, soup, json_ld):
-        date_el = soup.select_one(".content__date .date-display-single")
+        date_el = soup.select_one(".content__date .date-display-single, .hero__meta time")
         if date_el:
             value = date_el.get("content") or date_el.get_text(" ", strip=True)
             if value:
@@ -658,6 +664,13 @@ class PasteurFrEnCrawler(BaseCrawler):
         if not raw:
             return ""
         text = self._clean_text(str(raw))
+        # List cards append a reading-time label after a middle dot.
+        human_date = text.split("·", 1)[0].strip()
+        for fmt in ("%d %B %Y", "%d %b %Y"):
+            try:
+                return datetime.strptime(human_date, fmt).date().isoformat()
+            except ValueError:
+                pass
         match = re.search(r"(\d{4})[-./](\d{1,2})[-./](\d{1,2})", text)
         if match:
             year, month, day = match.groups()

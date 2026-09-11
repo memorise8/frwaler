@@ -1,47 +1,28 @@
 {
   "site_id": "bfe-admin-ch",
-  "site_name": "www.bfe.admin.ch",
+  "site_name": "Bundesamt für Energie — Medienmitteilungen",
   "base_url": "https://www.bfe.admin.ch",
   "crawl_type": "html",
   "list_page": {
-    "url": "https://www.bfe.admin.ch/bfe/de/home/news-und-medien/medienmitteilungen/mm-test.html",
-    "params": {
-      "dyn_startDate": "01.01.2023"
-    },
+    "url": "https://www.bfe.admin.ch/de/medienmitteilungen",
     "pagination": {
-      "type": "none",
-      "param": null,
-      "start": 1,
-      "step": 1
+      "type": "none"
     },
     "selectors": {
-      "item_container": "tr",
-      "item_link": "a[href]",
-      "item_link_attr": "href",
-      "title": null,
-      "date": null,
-      "category": null
+      "item_container": ".card__content",
+      "item_link": "a[href^=\"/de/newnsb/\"]",
+      "title": "h3",
+      "date": ".meta-info__item"
     }
   },
   "detail_page": {
     "selectors": {
-      "title": null,
-      "abstract": null,
-      "authors": null,
-      "date": null,
-      "pdf_link": null,
-      "keywords": null,
-      "department": null,
-      "doi": null
+      "title": "h1",
+      "abstract": ".container__center--xs",
+      "pdf_link": "main a[href$=\".pdf\"]"
     }
   },
   "options": {
-    "delay": 1.5,
-    "id_regex": null
-  },
-  "metadata": {
-    "analyzed_from": "https://www.bfe.admin.ch/bfe/de/home/news-und-medien/medienmitteilungen/mm-test.html?dyn_startDate=01.01.2023",
-    "detail_sample": null,
-    "confidence": 0.0
+    "delay": 1.5
   }
 }
