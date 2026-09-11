@@ -1,20 +1,10 @@
 # -*- coding: utf-8 -*-
-"""BFE (Bundesamt für Energie) publications database crawler.
+"""BFE publications database crawler.
 
-List source: pubdb.bfe.admin.ch publications search, reached through the
-www.bfe.admin.ch "exturl" proxy wrapper. The path segment between
-``.exturl.html/`` and the trailing ``.html`` is a base64 (URL-safe variant)
-encoding of the real ``pubdb.bfe.admin.ch`` target URL, e.g.::
-
-    aHR0cHM6Ly9wdWJkYi5iZmUuYWRtaW4uY2gvZGUvc3VjaGU=  ->  https://pubdb.bfe.admin.ch/de/suche
-
-Pagination is done by constructing ``https://pubdb.bfe.admin.ch/de/suche?page=N&x=1``
-URLs ourselves and base64-encoding them (rather than following the site's own
-``<a>`` pagination links, though those are equivalent).
-
-There is no detail/abstract page and no JSON API for this site, so the
-abstract is synthesized from real crawled list-page metadata (title,
-published date, file type, size, available languages, publication id).
+Fetch the live pubdb.bfe.admin.ch search directly, with page=N pagination.
+The historical bfe.admin.ch exturl wrapper was removed during site migration;
+its link decoder remains for compatibility with older listing fragments.
+Abstracts describe observed list metadata, not extracted PDF body text.
 """
 
 import base64
@@ -24,7 +14,7 @@ import re
 import subprocess
 import sys
 import time
-from urllib.parse import unquote
+from urllib.parse import unquote, urljoin
 
 sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler  # absolute import — spec_from_file_location
@@ -116,10 +106,8 @@ class BfeAdminChBfeCrawler(BaseCrawler):
 
     @staticmethod
     def _build_page_url(page_num):
-        """Build the exturl-wrapped URL for search results page ``page_num`` (1-indexed)."""
-        target = f"{_SEARCH_BASE}?page={page_num}&x=1"
-        encoded = base64.urlsafe_b64encode(target.encode("utf-8")).decode("ascii")
-        return f"{_EXTURL_PREFIX}{encoded}.html"
+        """Use the live publication database; the old BFE wrapper was removed."""
+        return f"{_SEARCH_BASE}?page={page_num}&x=1"
 
     @staticmethod
     def _decode_exturl_href(href):
@@ -133,6 +121,8 @@ class BfeAdminChBfeCrawler(BaseCrawler):
             marker = ".exturl.html/"
             idx = href.find(marker)
             if idx == -1:
+                if re.match(r"^/(de|fr|it|en)/publication/download/\d+", href):
+                    return urljoin(_SEARCH_BASE, href)
                 return None
             seg = href[idx + len(marker):]
             seg = seg.rsplit(".html", 1)[0]
@@ -191,7 +181,7 @@ class BfeAdminChBfeCrawler(BaseCrawler):
         items = []
         divs = soup.find_all("div", class_="list-group-item")
         if not divs:
-            return [], True
+            raise ValueError("BFE response has neither publication records nor an explicit empty-results message")
 
         for div in divs:
             try:
@@ -315,9 +305,9 @@ class BfeAdminChBfeCrawler(BaseCrawler):
                         # Prefer DE, else whichever language link is present first.
                         chosen_lang = "DE" if "DE" in lang_links else next(iter(lang_links))
                         chosen_href = lang_links[chosen_lang]
-                        original_url = self.base_url.rstrip("/") + chosen_href if chosen_href.startswith("/") else chosen_href
 
                         pdf_url = self._decode_exturl_href(chosen_href)
+                        original_url = pdf_url
                         if not pdf_url:
                             print(f"[{self.site_id}] Skipping '{title[:50]}' (id={pub_id}): could not decode download link")
                             continue
