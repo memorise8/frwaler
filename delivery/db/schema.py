@@ -26,3 +26,6 @@ def init_delivery_schema(conn) -> None:
         "CREATE INDEX IF NOT EXISTS idx_jobs_status_created ON crawl_jobs(status, created_at)"
     )
     conn.commit()
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_site_created ON crawl_jobs(site_id, created_at DESC, id DESC)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_site_finished ON crawl_jobs(site_id, finished_at DESC, id DESC) WHERE status IN ('done','failed','cancelled')")
+    conn.commit()

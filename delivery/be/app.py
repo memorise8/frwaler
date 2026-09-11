@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from crawler import db_pg
 from delivery.worker import jobs
+from delivery.crawler_status import collect_status
 
 
 class JobIn(BaseModel):
@@ -26,6 +27,18 @@ def create_app(dsn: str) -> FastAPI:
 
     def _conn():
         return db_pg.open_db(dsn)
+
+    @app.get("/crawler-status")
+    def crawler_status(site_id: str | None = None):
+        try:
+            conn = _conn()
+            try:
+                return collect_status(conn, site_id)
+            finally:
+                conn.close()
+        except Exception:
+            # Unavailable evidence must not look like an empty job history.
+            return JSONResponse(status_code=503, content={"detail": "crawler status unavailable"})
 
     @app.get("/health")
     def health():

@@ -27,7 +27,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <span>Libertree</span>
             </Link>
             <nav aria-label="운영 메뉴">
-              <Link className="nav-link nav-link-active" href="/">크롤러 상태</Link>
+              <Link className="nav-link" href="/status">수집기별 현재 상태</Link>
+              <Link className="nav-link" href="/">이전 검사 카탈로그</Link>
               <span className="nav-link nav-link-disabled">수집 작업</span>
               <span className="nav-link nav-link-disabled">수집 결과</span>
             </nav>
