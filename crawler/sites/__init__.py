@@ -15,6 +15,10 @@ CRAWLERS = {
     'fsc': FSCCrawler,
 }
 
+# Keep discovery failures visible to diagnostics without exposing exception
+# messages (which can contain credentials or local infrastructure paths).
+REGISTRY_ERRORS = []
+
 # Auto-discover JSON config files and register GenericCrawler instances
 _configs_dir = os.path.join(os.path.dirname(__file__), "configs")
 if os.path.isdir(_configs_dir):
@@ -37,8 +41,8 @@ if os.path.isdir(_configs_dir):
                             super().__init__(self._config_path, db_conn, delay)
                     return _ConfiguredCrawler
                 CRAWLERS[_site_id] = _make_factory(_cfg_file, _cfg)
-        except (json.JSONDecodeError, KeyError):
-            pass
+        except (json.JSONDecodeError, KeyError) as _exc:
+            REGISTRY_ERRORS.append({"source": os.path.basename(_cfg_file), "error": type(_exc).__name__})
 
 # Auto-discover custom Python crawlers from sites/custom/
 _custom_dir = os.path.join(os.path.dirname(__file__), "custom")
@@ -65,5 +69,5 @@ if os.path.isdir(_custom_dir):
                         and _attr.site_id
                         and _attr.site_id not in CRAWLERS):
                     CRAWLERS[_attr.site_id] = _attr
-        except Exception:
-            pass
+        except Exception as _exc:
+            REGISTRY_ERRORS.append({"source": os.path.basename(_py_file), "error": type(_exc).__name__})

@@ -42,26 +42,24 @@ export const TRUNCATED_BADGE = "부분 수집";
 // claim to know it, only explain why 0 is not evidence of failure.
 export const describeJobOutcome = (job: JobOutcomeInput): string => {
   if (job.status === "failed") {
-    return job.error
+    const saved = job.saved_count ?? 0;
+    const partial = saved > 0 ? `실패 전 신규 저장 ${saved.toLocaleString("ko-KR")}건은 유지됩니다. ` : "";
+    return partial + (job.error
       ? `작업이 실패했습니다: ${job.error}`
-      : "작업이 실패했습니다. 실패 사유가 기록되지 않았습니다.";
+      : "작업이 실패했습니다. 실패 사유가 기록되지 않았습니다.");
   }
   if (job.status === "cancelled") {
     return "작업이 취소되었습니다.";
   }
   if (job.status === "done") {
     const saved = job.saved_count ?? 0;
-    // 재실행하면 이어받는다고 쓰지 않는다. 확인한 사실: 800개 중 이미 받은 것을
-    // 건너뛰는 장치를 가진 크롤러는 사실상 없다(has_blob 0개, _last_save_created 0개,
-    // pdf_downloaded 조회 10개). 재실행은 1페이지부터 다시 걸어 같은 자리에서 또
-    // 잘린다. 실제 해결책은 워커의 LIBERTREE_MAX_WALL_S 를 늘리는 것뿐이다.
     const cut = job.truncated
-      ? "시간 제한(기본 25분)에 걸려 남은 페이지를 건너뛰었습니다. 다시 실행해도 크롤러가 처음부터 다시 훑기 때문에 같은 지점에서 멈춥니다. "
-        + "이 사이트를 끝까지 받으려면 워커의 시간 제한을 늘려야 합니다(LIBERTREE_MAX_WALL_S). "
+      ? "시간 제한으로 이번 실행이 종료되었습니다. 백필 재개를 지원하는 사이트는 작업 현황에서 후속 작업을 확인하세요. "
+        + "재개를 지원하지 않는 사이트는 재실행 시 처음부터 수집할 수 있습니다. "
       : "";
     if (saved === 0) {
-      return cut + "신규 저장 0건입니다. DB에 새로 추가된 문서가 없다는 뜻이며 실패가 아닙니다. "
-        + "이미 수집된 문서만 다시 처리했을 수 있습니다. 크롤러가 실제로 처리한 문서 수는 이 화면에서 확인할 수 없습니다.";
+      return cut + "신규 저장 0건입니다. 신규 문서가 없다는 뜻이며, 이 수치만으로 수집 성공 여부를 판단할 수 없습니다. "
+        + "기존 문서 재처리 또는 요청 실패 가능성이 있으므로 작업 로그와 건강 점검 결과를 확인하세요.";
     }
     return cut + `신규 저장 ${saved.toLocaleString("ko-KR")}건입니다.`;
   }

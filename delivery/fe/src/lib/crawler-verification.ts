@@ -38,8 +38,8 @@ export type VerificationState =
 
 export const resolveVerificationState = (row: VerificationRow | undefined): VerificationState => {
   if (!row || row.jobs === 0) return "unrun";
-  if (row.best_saved_count > 0) return "collected";
   if (row.last_status === "failed") return "failed";
+  if (row.best_saved_count > 0) return "collected";
   if (row.last_status === "cancelled" || row.last_status === "cancelling") return "cancelled";
   return "ran_empty";
 };

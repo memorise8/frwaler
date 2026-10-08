@@ -94,15 +94,29 @@ services:
       LIBERTREE_PG_DSN: postgresql://${POSTGRES_USER:-libertree}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-libertree}
       LIBERTREE_DB_BACKEND: postgres
       LIBERTREE_BLOB_ROOT: /data/blob
+      CANCER_FR_CATALOGUE_DES_PUBLIC_KEY: ${CANCER_FR_CATALOGUE_DES_PUBLIC_KEY:-}
+      EDUCATION_GOVT_NZ_OUR_WORK_KEY: ${EDUCATION_GOVT_NZ_OUR_WORK_KEY:-}
+      EDUCATION_GOVT_NZ_SEARCH_KEY: ${EDUCATION_GOVT_NZ_SEARCH_KEY:-}
+      INRAE_FR_ACTUALITES_KEY: ${INRAE_FR_ACTUALITES_KEY:-}
+      NKVTS_NO_ENGLISH_KEY: ${NKVTS_NO_ENGLISH_KEY:-}
+      PHFSCIENCE_NZ_DIGITAL_LIBRARY_KEY: ${PHFSCIENCE_NZ_DIGITAL_LIBRARY_KEY:-}
+      PHFSCIENCE_NZ_NEWS_PUBLICATIONS_KEY: ${PHFSCIENCE_NZ_NEWS_PUBLICATIONS_KEY:-}
+      TRANSPARENCY_GOV_AU_PUBLICATIONS_KEY: ${TRANSPARENCY_GOV_AU_PUBLICATIONS_KEY:-}
+      SCIENCEON_KEY: ${SCIENCEON_KEY:-}
+      SCIENCEON_CLIENT_ID: ${SCIENCEON_CLIENT_ID:-}
+      SCIENCEON_MAC_ADDRESS: ${SCIENCEON_MAC_ADDRESS:-}
       DELIVERY_AUTH_MODE: ${DELIVERY_AUTH_MODE:-token}
       DELIVERY_API_TOKEN: ${DELIVERY_API_TOKEN:-}
       DELIVERY_DB_POOL_MIN: ${DELIVERY_DB_POOL_MIN:-1}
       DELIVERY_DB_POOL_MAX: ${DELIVERY_DB_POOL_MAX:-10}
       DELIVERY_AGGREGATE_CACHE_SECONDS: ${DELIVERY_AGGREGATE_CACHE_SECONDS:-30}
+      CRAWLER_HEALTH_REPORT_DIR: /data/health
+      CRAWLER_HEALTH_STALE_HOURS: ${CRAWLER_HEALTH_STALE_HOURS:-48}
       TRANSLATION_INTERNAL_MODEL: ${TRANSLATION_INTERNAL_MODEL:-}
       TRANSLATION_EXTERNAL_MODEL: ${TRANSLATION_EXTERNAL_MODEL:-}
     volumes:
       - blob:/data/blob
+      - health-reports:/data/health:ro
     ports:
       - "127.0.0.1:${BE_PORT:-8080}:3001"
     depends_on:
@@ -166,6 +180,14 @@ services:
       TRANSLATION_INTERNAL_MODEL: ${TRANSLATION_INTERNAL_MODEL:-}
       TRANSLATION_WORKER_ID: ${TRANSLATION_WORKER_ID:-delivery-worker-1}
       LIBERTREE_MAX_WALL_S: ${LIBERTREE_MAX_WALL_S:-1500}
+      CANCER_FR_CATALOGUE_DES_PUBLIC_KEY: ${CANCER_FR_CATALOGUE_DES_PUBLIC_KEY:-}
+      EDUCATION_GOVT_NZ_OUR_WORK_KEY: ${EDUCATION_GOVT_NZ_OUR_WORK_KEY:-}
+      EDUCATION_GOVT_NZ_SEARCH_KEY: ${EDUCATION_GOVT_NZ_SEARCH_KEY:-}
+      INRAE_FR_ACTUALITES_KEY: ${INRAE_FR_ACTUALITES_KEY:-}
+      NKVTS_NO_ENGLISH_KEY: ${NKVTS_NO_ENGLISH_KEY:-}
+      PHFSCIENCE_NZ_DIGITAL_LIBRARY_KEY: ${PHFSCIENCE_NZ_DIGITAL_LIBRARY_KEY:-}
+      PHFSCIENCE_NZ_NEWS_PUBLICATIONS_KEY: ${PHFSCIENCE_NZ_NEWS_PUBLICATIONS_KEY:-}
+      TRANSPARENCY_GOV_AU_PUBLICATIONS_KEY: ${TRANSPARENCY_GOV_AU_PUBLICATIONS_KEY:-}
       SCIENCEON_KEY: ${SCIENCEON_KEY:-}
       SCIENCEON_CLIENT_ID: ${SCIENCEON_CLIENT_ID:-}
       SCIENCEON_MAC_ADDRESS: ${SCIENCEON_MAC_ADDRESS:-}
@@ -197,9 +219,46 @@ services:
     # will keep idling/retrying instead of vanishing -- visible in `docker
     # compose ps` and logs -- which is what an unattended package needs.
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-m", "delivery.health.worker_check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging: *delivery-logging
+
+  file-worker:
+    build:
+      context: ..
+      dockerfile: delivery/Dockerfile.worker
+    command: ["python", "-m", "delivery.files.worker"]
+    environment:
+      LIBERTREE_PG_DSN: postgresql://${POSTGRES_USER:-libertree}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-libertree}
+      LIBERTREE_DB_BACKEND: postgres
+      LIBERTREE_BLOB_ROOT: /data/blob
+      FILE_STAGE_TIMEOUT_SECONDS: ${FILE_STAGE_TIMEOUT_SECONDS:-180}
+    volumes:
+      - blob:/data/blob
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres-password-guard:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    init: true
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 128
+    healthcheck:
+      test: ["CMD", "python", "-m", "delivery.files.check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     logging: *delivery-logging
 
 volumes:
   pgdata:
   blob:
   runtime:
+  health-reports:

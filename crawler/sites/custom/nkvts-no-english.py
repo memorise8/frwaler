@@ -20,7 +20,8 @@ sys.path.insert(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
 )
 
-from crawler.base_crawler import BaseCrawler  # noqa: E402
+from crawler.base_crawler import BaseCrawler
+from crawler.search_credentials import check_search_response, search_failure  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Algolia credentials (public, read-only search key exposed in page HTML)
@@ -134,14 +135,17 @@ class NKVTSEnglishCrawler(BaseCrawler):
                     timeout=30,
                 )
                 resp.raise_for_status()
-                return resp.json()
+                return check_search_response(self, resp.json(), 'hits')
             except Exception as exc:
+                status = getattr(getattr(exc, 'response', None), 'status_code', None)
+                if status in (401,403,429):
+                    return search_failure(self, 'rate_limited' if status == 429 else 'authentication_failed')
                 print(
                     f"[{self.site_id}] Algolia p{page} attempt {attempt+1}/3: {exc}"
                 )
                 if attempt < 2:
                     time.sleep(wait)
-        return None
+        return search_failure(self)
 
     # ------------------------------------------------------------------
     # Detail page fetch + parse

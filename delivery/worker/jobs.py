@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 import os
 
+from crawler.search_credentials import redact
+
 from typing import Optional
 
 
@@ -21,6 +23,8 @@ class ActiveJobError(RuntimeError):
 
 
 def _log(conn,job_id:int,event:str,message:str,level:str="info") -> None:
+    from crawler.search_credentials import redact
+    message = redact(message or '')
     conn.execute(
         "INSERT INTO crawl_job_logs(job_id,level,event,message,created_at)"
         " VALUES(%s,%s,%s,%s,clock_timestamp())",
@@ -35,7 +39,7 @@ def log_event(conn, job_id: int, event: str, message: str, level: str = "info") 
     _log(conn, job_id, event, message, level)
 
 
-def enqueue_job(conn, site_id, mode="incremental", limit_n=None, requested_by=None) -> int:
+def enqueue_job(conn, site_id, mode="incremental", limit_n=None, requested_by=None, *, process_files=False) -> int:
     conn.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s,0))",(site_id,))
     active=conn.execute("""SELECT id FROM crawl_jobs WHERE site_id=%s
       AND status IN('queued','running','cancelling') LIMIT 1""",(site_id,)).fetchone()
@@ -44,10 +48,10 @@ def enqueue_job(conn, site_id, mode="incremental", limit_n=None, requested_by=No
         raise ActiveJobError(f"active crawl job {active['id']}")
     row = conn.execute(
         """
-        INSERT INTO crawl_jobs (site_id, mode, limit_n, requested_by)
-        VALUES (%s, %s, %s, %s) RETURNING id
+        INSERT INTO crawl_jobs (site_id, mode, limit_n, requested_by, process_files)
+        VALUES (%s, %s, %s, %s, %s) RETURNING id
         """,
-        (site_id, mode, limit_n, requested_by),
+        (site_id, mode, limit_n, requested_by, process_files),
     ).fetchone()
     _log(conn,row["id"],"queued","수집 작업이 등록되었습니다.")
     conn.commit()
@@ -67,7 +71,7 @@ def claim_next_job(conn, *, worker_id: str = "crawl-worker-1", lease_seconds: in
              FOR UPDATE SKIP LOCKED
              LIMIT 1
          )
-        RETURNING id, site_id, mode, limit_n, attempts, max_attempts
+        RETURNING id, site_id, mode, limit_n, attempts, max_attempts, process_files
         """, (worker_id, lease_seconds)
     ).fetchone()
     if row:_log(conn,row["id"],"started","Worker가 수집을 시작했습니다.")
@@ -147,6 +151,8 @@ def cancel_job(conn, job_id) -> Optional[dict]:
         event = "cancelled" if row["status"] == "cancelled" else "cancel_requested"
         message = "대기 중인 작업이 취소되었습니다." if row["status"] == "cancelled" else "실행 중인 작업에 취소가 요청되었습니다. 현재 수집 단위가 끝나면 중단됩니다."
         _log(conn,job_id,event,message,"warning")
+        conn.execute("""UPDATE document_file_jobs SET status='cancelled',token=NULL,
+          lease_expires_at=NULL,updated_at=now() WHERE crawl_job_id=%s AND status IN ('queued','running')""", (job_id,))
     conn.commit()
     return dict(row) if row is not None else None
 
@@ -158,7 +164,7 @@ def retry_job(conn, job_id, *, requested_by=None) -> Optional[dict]:
     A row lock prevents two concurrent retry requests from both succeeding.
     """
     source = conn.execute(
-        """SELECT id, site_id, mode, limit_n, requested_by
+        """SELECT id, site_id, mode, limit_n, requested_by, process_files
              FROM crawl_jobs
             WHERE id=%s AND status IN ('failed', 'cancelled') AND retried_by IS NULL
             FOR UPDATE""",
@@ -168,13 +174,13 @@ def retry_job(conn, job_id, *, requested_by=None) -> Optional[dict]:
         conn.rollback()
         return None
     row = conn.execute(
-        """INSERT INTO crawl_jobs (site_id, mode, limit_n, requested_by, retry_of)
-             VALUES (%s, %s, %s, %s, %s)
+        """INSERT INTO crawl_jobs (site_id, mode, limit_n, requested_by, retry_of, process_files)
+             VALUES (%s, %s, %s, %s, %s, %s)
           RETURNING *""",
         (
             source["site_id"], source["mode"], source["limit_n"],
             requested_by if requested_by is not None else source["requested_by"],
-            source["id"],
+            source["id"], source["process_files"],
         ),
     ).fetchone()
     # Mark the source as consumed by this retry while preserving its status.
@@ -237,16 +243,29 @@ def finish_job(conn, job_id, saved_count, *, truncated: bool = False) -> str | N
     return None
 
 
-def fail_job(conn, job_id, error) -> None:
+def fail_job(conn, job_id, error, *, saved_count=0) -> str | None:
+    # Cancellation takes precedence, including failures that arrive while the
+    # crawler is returning. Keep already committed documents visible in history.
     row = conn.execute(
-        """UPDATE crawl_jobs SET status='failed', error=%s, finished_at=clock_timestamp(),
+        """UPDATE crawl_jobs SET status='failed', error=%s, saved_count=%s, finished_at=clock_timestamp(),
                worker_id=NULL,lease_expires_at=NULL
-            WHERE id=%s AND status IN ('running','cancelling') RETURNING id""",
-        ((error or "")[:2000], job_id),
+            WHERE id=%s AND status='running' RETURNING id""",
+        (redact(error or '')[:2000], max(0, int(saved_count)), job_id),
     ).fetchone()
     if row:
         _log(conn,job_id,"failed","수집 작업이 실패했습니다.","error")
+        conn.commit()
+        return "failed"
+    cancelled = conn.execute(
+        """UPDATE crawl_jobs SET status='cancelled', saved_count=%s, finished_at=clock_timestamp(),
+               worker_id=NULL,lease_expires_at=NULL
+            WHERE id=%s AND status='cancelling' RETURNING id""",
+        (max(0, int(saved_count)), job_id),
+    ).fetchone()
+    if cancelled:
+        _log(conn, job_id, "cancelled", "취소 요청에 따라 종료되었습니다.", "warning")
     conn.commit()
+    return "cancelled" if cancelled else None
 
 
 def prune_crawler_output(conn, *, retention_days: int = None) -> int:

@@ -15,6 +15,7 @@ import time
 from datetime import datetime
 
 from crawler.base_crawler import BaseCrawler
+from crawler.search_credentials import check_search_response, search_failure
 
 _ALGOLIA_APP_ID = "EE0122B7GY"
 _ALGOLIA_API_KEY = os.environ.get("PHFSCIENCE_NZ_NEWS_PUBLICATIONS_KEY", "")
@@ -112,7 +113,7 @@ class PhfScienceNzNewsPublicationsCrawler(BaseCrawler):
                 )
                 text = result.stdout.decode("utf-8", errors="replace")
                 if text.strip():
-                    return json.loads(text)
+                    return check_search_response(self, json.loads(text), 'hits')
                 if attempt < 2:
                     time.sleep(backoff[attempt])
             except Exception as exc:
@@ -124,7 +125,7 @@ class PhfScienceNzNewsPublicationsCrawler(BaseCrawler):
                     time.sleep(backoff[attempt])
                 else:
                     print(f"[{self.site_id}] Algolia failed: {exc}")
-        return None
+        return search_failure(self)
 
     # ------------------------------------------------------------------
     # Abstract enrichment

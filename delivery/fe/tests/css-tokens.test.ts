@@ -8,11 +8,7 @@ const css = (): string => readFileSync(new URL("../src/app/globals.css", import.
  * Anything added here must be provably set on <html> or <body> by
  * application code, not merely assumed to exist.
  */
-const EXTERNALLY_PROVIDED = new Set<string>([
-  // Set on <html> by next/font via sansKR.variable / serifKR.variable — see src/app/fonts.ts.
-  "--font-sans",
-  "--font-serif",
-]);
+const EXTERNALLY_PROVIDED = new Set<string>();
 
 /**
  * Every :root block's declaration body, in source order. A stylesheet can

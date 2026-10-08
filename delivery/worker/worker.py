@@ -13,7 +13,7 @@ import json
 import shutil
 import threading
 from collections import deque
-from contextlib import redirect_stdout
+from contextlib import redirect_stdout, redirect_stderr
 
 from . import jobs
 from . import schedules
@@ -69,13 +69,16 @@ class _TeeCapture:
         self._partial = ""
 
     def write(self, text):
-        self._stream.write(text)
+        from crawler.search_credentials import redact
+        length = len(text)
         self._partial += text
         while "\n" in self._partial:
             line, self._partial = self._partial.split("\n", 1)
+            line = redact(line)
+            self._stream.write(line + '\n')
             if line.strip():
                 self._lines.append(line[:500])
-        return len(text)
+        return length
 
     def flush(self):
         self._stream.flush()
@@ -87,9 +90,10 @@ class _TeeCapture:
         return getattr(self._stream, name)
 
     def lines(self):
+        from crawler.search_credentials import redact
         tail = list(self._lines)
         if self._partial.strip():
-            tail.append(self._partial[:500])
+            tail.append(redact(self._partial)[:500])
         return tail
 
 
@@ -132,13 +136,30 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
     if cls is None:
         jobs.fail_job(conn, job["id"], f"no crawler for site_id={site_id!r}")
         return 0
+    if crawler_registry is None:
+        from delivery.capabilities import validate_request, CapabilityError
+        try:
+            validate_request(site_id, job.get('mode', 'incremental'), trial=True)
+        except CapabilityError as exc:
+            jobs.fail_job(conn, job['id'], str(exc))
+            return 0
+    from crawler.search_credentials import missing_credentials
+    missing = missing_credentials(site_id)
+    if missing:
+        jobs.fail_job(conn, job['id'], 'configuration: ' + ', '.join(missing))
+        return 0
     before = _count_site_docs(conn, site_id)
+    process_files = job.get("process_files", False)
+    from delivery.files import jobs as file_jobs
+    before_seq = conn.execute("SELECT COALESCE(max(seq_id),0) AS n FROM documents WHERE site_id=%s", (site_id,)).fetchone()["n"] if process_files else 0
     capture = _TeeCapture(sys.stdout, CRAWL_OUTPUT_LINES)
     # Recorded after each terminal transition, never before: fail_job rolls the
     # connection back first, and both it and finish_job commit, so writing the
     # output earlier would either be discarded or ride on the crawl's own
     # transaction.
     def record_output():
+        if process_files:
+            file_jobs.enqueue_new(conn, job["id"], site_id, before_seq)
         jobs.log_crawler_output(conn, job["id"], capture.lines())
 
     # 재개(cursor) 계약: backfill 은 늘 이전 커서에서, oldest_first incremental
@@ -150,6 +171,12 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
     order = getattr(cls, "DELIVERY_ORDER", "arbitrary")
     cursor_enabled = mode == "backfill" or (mode == "incremental" and order == "oldest_first")
     start_cursor = jobs.load_cursor(conn, site_id) if cursor_enabled else None
+    version = getattr(cls, 'DELIVERY_CURSOR_VERSION', None)
+    if version and start_cursor and start_cursor.get('version') != version:
+        # Legacy offsets may already have skipped a partial page. Re-scan once
+        # with deduplication rather than continuing from an untrustworthy offset.
+        start_cursor = None
+        jobs.log_event(conn, job['id'], 'cursor_upgrade', '재개 위치 형식 변경으로 처음부터 중복을 확인하며 재탐색합니다.', level='warning')
 
     # Computed before the crawl runs: a malformed LIBERTREE_MAX_WALL_S must fail
     # here, not after a successful crawl -- failing late orphans a completed
@@ -158,8 +185,10 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
     started = time.monotonic()
     inst = None
     try:
-        with redirect_stdout(capture):
+        with redirect_stdout(capture), redirect_stderr(capture):
             inst = cls(db_conn=conn, delay=delay)
+            if process_files:
+                inst.delivery_document_saved = lambda seq: file_jobs.enqueue(conn, job["id"], seq)
             inst.delivery_mode = mode
             inst.delivery_should_cancel = should_cancel or (lambda: False)
             inst.delivery_cursor = start_cursor
@@ -198,6 +227,15 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
         record_output()
         return 0
     saved = _count_site_docs(conn, site_id) - before
+    source_failure = getattr(inst, "delivery_source_failure", None)
+    if source_failure:
+        # Explicit crawler evidence, not a guess from zero new rows or stdout.
+        finished = jobs.fail_job(conn, job["id"], f"source failure: {source_failure}",
+                                 saved_count=max(0, saved))
+        if finished is not None and cursor_enabled:
+            _persist_advance(conn, site_id, inst, start_cursor, mode)
+        record_output()
+        return max(0, saved)
     # truncated 는 이제 finish_job 의 truncated 컬럼(운영자에게 "시간에 걸렸다"는
     # 정보)에만 쓰인다 -- 완료·재큐잉 판정에는 더 이상 관여하지 않는다. doaj 의
     # 200페이지 조각(~16분)은 25분 예산의 truncation 임계 아래라 "안 잘렸다"로
@@ -231,7 +269,8 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
                 # created_at 순서상 큐 맨 뒤.
                 try:
                     jobs.enqueue_job(conn, site_id, mode="backfill",
-                                     limit_n=job.get("limit_n"), requested_by="auto-backfill")
+                                     limit_n=job.get("limit_n"), requested_by="auto-backfill",
+                                     process_files=process_files)
                 except jobs.ActiveJobError:
                     # 경쟁 행이 이미 있다 -- 체인은 그 행이 잇는다. 죽을 일이 아니다.
                     jobs.log_event(conn, job["id"], "requeue_skipped",

@@ -15,7 +15,7 @@ const enqueueOne = async (siteId: string, request: BulkRunRequest): Promise<Bulk
     const response = await fetch(`${backendUrl()}/jobs`, {
       method: "POST",
       headers: operatorHeaders(true),
-      body: JSON.stringify({ site_id: siteId, mode: request.mode, limit_n: request.limit }),
+      body: JSON.stringify({ site_id: siteId, mode: request.mode, limit_n: request.limit, trial: request.trial === true }),
       cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     });

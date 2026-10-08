@@ -27,7 +27,6 @@
 /docker-compose.yml  export-ignore
 /README-install.md   export-ignore
 /.env.example        export-ignore
-/.dockerignore       export-ignore
 /all_urls.txt        export-ignore
 /html_list.csv       export-ignore
 /input.xlsx          export-ignore
@@ -88,3 +87,4 @@
 /docs/dashboard_1994_funnel_plan.md export-ignore
 /docs/uncollected_sites_directory_plan.md export-ignore
 /docs/HANDOFF_20260819_DELIVERY.md export-ignore
+/delivery/DEVELOPMENT_PLAN_20261007.html export-ignore

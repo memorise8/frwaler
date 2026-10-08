@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Libertree 수집기 검색 API 키 설정 안내</title>
+<style>
+body{font-family:system-ui,sans-serif;color:#172435;line-height:1.7;max-width:1100px;margin:40px auto;padding:0 24px}h1{font-size:28px}h2{margin-top:36px;font-size:21px}table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:12px;border:1px solid #d4dde5;text-align:left;vertical-align:top}th{background:#edf3f7}code{overflow-wrap:anywhere}pre{background:#f3f6f9;border:1px solid #d4dde5;padding:16px;overflow:auto;line-height:1.5}.notice{border-left:4px solid #b5750a;background:#fff7e7;padding:16px}.muted{color:#536575}@media print{body{margin:0;max-width:none}pre{white-space:pre-wrap}h2{break-after:avoid}tr{break-inside:avoid}}
+</style>
+</head>
+<body>
+<h1>수집기 검색 API 키 설정 안내</h1>
+<p class="muted">작성일: 2026-10-08 · 대상: Libertree 납품 시스템 운영 담당자</p>
+<p><a href="납품_이슈현황_및_개선계획_20261008.html">수집·이어받기와 검색 키 설정 — 현재 상황 및 개선 계획 보기</a></p>
+<p>이 문서는 8개 사이트별 검색 API 키의 용도와 적용 방법을 설명합니다. 키 값은 포함하지 않습니다. GPT 번역·요약 키, 시스템 로그인 토큰, ScienceON 인증 설정과는 별개입니다.</p>
+<div class="notice"><strong>이번 배포 후보의 확인 상태</strong><br>8개 키의 값은 공급사에 보유되어 있습니다. 이번 코드에는 BE·Worker·health 및 검사 하위 프로세스 전달을 반영했습니다. 실제 키 값은 포함하지 않았으며, API 인증 성공·권한·만료·고객 서버 반영은 아직 미검증입니다. 기존 전달본에는 이 전달 설정이 없었습니다.</div>
+
+<h2>1. 키별 사용처</h2>
+<table>
+<thead><tr><th>환경변수 / 수집기 ID</th><th>사용 방식</th><th>미설정 시 영향</th></tr></thead>
+<tbody>
+<tr><td><code>CANCER_FR_CATALOGUE_DES_PUBLIC_KEY</code><br><code>cancer-fr-catalogue-des-public</code></td><td>Cancer FR 출판물 목록의 Algolia 검색. HTML 목록 수집에서 저장한 문서가 없을 때 사용하는 보조 경로.</td><td>HTML 경로가 동작하면 키 없이 수집될 수 있습니다. Algolia 보조 경로는 인증 실패할 수 있습니다.</td></tr>
+<tr><td><code>EDUCATION_GOVT_NZ_OUR_WORK_KEY</code><br><code>education-govt-nz-our-work</code></td><td>뉴질랜드 교육부 Our Work 목록의 Algolia 검색.</td><td>주 검색 경로가 인증 실패해 목록을 가져오지 못할 수 있습니다.</td></tr>
+<tr><td><code>EDUCATION_GOVT_NZ_SEARCH_KEY</code><br><code>education-govt-nz-search</code></td><td>뉴질랜드 교육부 검색 목록의 Algolia 검색.</td><td>주 검색 경로가 인증 실패해 목록을 가져오지 못할 수 있습니다.</td></tr>
+<tr><td><code>INRAE_FR_ACTUALITES_KEY</code><br><code>inrae-fr-actualites</code></td><td>INRAE 뉴스 목록의 Algolia 검색.</td><td>주 검색 경로가 인증 실패해 목록을 가져오지 못할 수 있습니다.</td></tr>
+<tr><td><code>NKVTS_NO_ENGLISH_KEY</code><br><code>nkvts-no-english</code></td><td>NKVTS 영문 자료의 Algolia 검색.</td><td>주 검색 경로가 인증 실패해 목록을 가져오지 못할 수 있습니다.</td></tr>
+<tr><td><code>PHFSCIENCE_NZ_DIGITAL_LIBRARY_KEY</code><br><code>phfscience-nz-digital-library</code></td><td>PHF Science 디지털 자료실의 Algolia 검색 및 연도별 목록 조회.</td><td>주 검색 경로가 인증 실패해 목록을 가져오지 못할 수 있습니다.</td></tr>
+<tr><td><code>PHFSCIENCE_NZ_NEWS_PUBLICATIONS_KEY</code><br><code>phfscience-nz-news-publications</code></td><td>PHF Science 뉴스·출판물의 Algolia 검색.</td><td>주 검색 경로가 인증 실패해 목록을 가져오지 못할 수 있습니다.</td></tr>
+<tr><td><code>TRANSPARENCY_GOV_AU_PUBLICATIONS_KEY</code><br><code>transparency-gov-au-publications</code></td><td>호주 Transparency Portal 출판물 목록의 Azure Search 검색.</td><td>주 검색 경로가 인증 실패해 목록을 가져오지 못할 수 있습니다.</td></tr>
+</tbody></table>
+<p>이번 버전은 필수 키 누락을 실행 전에 감지합니다. 검색 응답의 인증 실패(401·403), 호출 제한(429), 네트워크 실패, 잘못된 응답과 정상 빈 목록을 구분하도록 보완했습니다. Cancer FR 키는 보조 경로용이므로 미설정만으로 HTML 수집을 막지 않습니다. 각 사이트의 실제 오류 응답은 실사이트 검증이 필요합니다.</p>
+
+<h2>2. 키가 사용되는 흐름</h2>
+<p><strong>서버 설정 → 수집 Worker의 환경변수 → 사이트별 검색 API 요청 → 문서 목록·상세 정보 수집</strong></p>
+<p>Algolia를 사용하는 7개 수집기는 대상 사이트의 애플리케이션 ID·검색 인덱스와 함께 <code>X-Algolia-API-Key</code> 헤더로 키를 전송합니다. Transparency 수집기는 대상 Azure Search 서비스에 <code>api-key</code> 헤더로 전송합니다. 문서 목록을 검색하는 용도이며, 이 키만으로 PDF 다운로드·텍스트 추출 성공까지 보장되지는 않습니다.</p>
+<p>수집기 설정 예시는 이 키들을 공개 읽기 전용 검색 키로 분류합니다. 실제 보유 키의 권한은 별도 확인이 필요합니다. 대상 사이트 서비스에 맞는 키를 사용해야 하며, 고객이 별도 Algolia·Azure 계정을 만들어 발급한 키로 대체할 수 없습니다. 두 변수가 같은 기관을 가리키더라도 임의로 같은 값을 넣지 않습니다.</p>
+
+<h2>3. 기존 납품본의 설정 상태</h2>
+<ul>
+<li><code>crawler/.env.example</code>에 8개 변수 이름이 있으며 값은 비어 있습니다. 실제 <code>.env</code>는 기존 압축파일에 포함되지 않았습니다.</li>
+<li><code>delivery/.env.example</code>와 기본 <code>docker-compose.yml</code>에는 이 8개 키의 Worker 전달 설정이 없습니다.</li>
+<li>호스트의 <code>crawler/.env</code> 또는 <code>delivery/.env</code>에 값을 기록하는 것만으로 납품 Worker 컨테이너에 자동 전달되지 않습니다.</li>
+<li>수집기 모듈이 로딩될 때 환경변수를 읽으므로, 값을 변경하면 Worker 컨테이너를 새 설정으로 재생성해야 합니다.</li>
+</ul>
+
+<h2>4. Docker 적용 절차</h2>
+<p>아래는 고객 환경에 적용할 때 사용할 예시입니다. 현재 서버 설정을 변경한 것은 아닙니다. 기존 <code>delivery/.env</code>의 DB·인증·저장소 설정은 유지하고 아래 항목을 추가합니다. 실제 값은 공급사와 합의한 별도 전달 경로로 받아 입력합니다.</p>
+<pre><code>CANCER_FR_CATALOGUE_DES_PUBLIC_KEY=
+EDUCATION_GOVT_NZ_OUR_WORK_KEY=
+EDUCATION_GOVT_NZ_SEARCH_KEY=
+INRAE_FR_ACTUALITES_KEY=
+NKVTS_NO_ENGLISH_KEY=
+PHFSCIENCE_NZ_DIGITAL_LIBRARY_KEY=
+PHFSCIENCE_NZ_NEWS_PUBLICATIONS_KEY=
+TRANSPARENCY_GOV_AU_PUBLICATIONS_KEY=</code></pre>
+<p>이번 버전의 기본 Compose에 키 전달 설정이 포함되어 있습니다. 별도의 keys 오버라이드를 만들 필요는 없습니다. 실행 중 작업을 정리하고 DB·파일 백업 후, 새 코드로 마이그레이션하고 서비스를 갱신합니다. 저장소 루트 기준:</p>
+<pre><code>docker compose --env-file delivery/.env -f delivery/docker-compose.yml --profile tools run --rm --build migrate
+docker compose --env-file delivery/.env -f delivery/docker-compose.yml up -d --build --force-recreate be fe worker file-worker</code></pre>
+<p>기존 호스트 PDF 저장소를 사용하면 두 명령 모두 <code>-f delivery/docker-compose.blob.yml</code>을 추가하고 기존 프로젝트명·볼륨 설정을 유지합니다. health 사용 시 <code>delivery/docker-compose.health.yml</code>을 함께 지정해 health 서비스도 재생성합니다. 키만 교체할 때는 BE·Worker 및 사용 중인 health 재생성이 필요합니다.</p>
+<h2>5. 설정값을 노출하지 않는 확인</h2>
+<p>Worker에서 다음 명령을 실행하면 값 대신 설정 여부만 표시합니다. 아래 명령도 운영 환경의 기존 Compose 파일 조합을 유지해 사용합니다.</p>
+<pre><code>docker compose --env-file delivery/.env -f delivery/docker-compose.yml exec -T worker python - &lt;&lt;'PY'
+import os
+keys = (
+    "CANCER_FR_CATALOGUE_DES_PUBLIC_KEY",
+    "EDUCATION_GOVT_NZ_OUR_WORK_KEY",
+    "EDUCATION_GOVT_NZ_SEARCH_KEY",
+    "INRAE_FR_ACTUALITES_KEY",
+    "NKVTS_NO_ENGLISH_KEY",
+    "PHFSCIENCE_NZ_DIGITAL_LIBRARY_KEY",
+    "PHFSCIENCE_NZ_NEWS_PUBLICATIONS_KEY",
+    "TRANSPARENCY_GOV_AU_PUBLICATIONS_KEY",
+)
+for key in keys:
+    print(key, "설정됨" if os.environ.get(key, "").strip() else "미설정")
+PY</code></pre>
+<p>이 검사는 환경변수 존재 여부만 확인합니다. API 인증 성공 검사는 별도입니다. 실제 값을 출력하는 <code>printenv</code>, 전체 <code>docker inspect</code>, 렌더링된 Compose 설정을 고객 회신 자료에 첨부하지 않습니다.</p>
+
+<h2>6. 동작 확인과 납품 판정</h2>
+<ol>
+<li>수집기별 검색 API에서 인증이 성공하고 정상 형식의 응답이 오는지 확인합니다. HTTP 200이라도 응답 내용과 대상 목록을 확인합니다.</li>
+<li>시험용 DB에서 FE로 소량 수집을 실행하고, 검색 결과·문서 저장·중복 처리 결과를 각각 확인합니다. 운영 FE 실행은 실제 작업을 등록하므로 단순 연결 검사와 구분합니다.</li>
+<li>Cancer FR은 HTML 경로 성공과 Algolia 보조 경로 인증 성공을 별도 기록합니다. HTML 수집 성공만으로 키가 유효하다고 판정하지 않습니다.</li>
+<li>PDF 주소가 있는 샘플은 실제 파일 저장까지 별도로 확인합니다. 검색 키 검증과 PDF 검증은 다른 항목입니다.</li>
+</ol>
+<table><thead><tr><th>확인 결과</th><th>점검 방향</th></tr></thead><tbody>
+<tr><td>환경변수 미설정</td><td>.env 입력과 Worker 전달 설정, 컨테이너 재생성 여부 확인</td></tr>
+<tr><td>401·403 또는 인증 관련 응답</td><td>키 유효성, 대상 서비스·인덱스 일치, 접근 제한 확인</td></tr>
+<tr><td>429 또는 타임아웃</td><td>요청 빈도 제한·네트워크 상태 확인. 키 오류로 단정하지 않음</td></tr>
+<tr><td>저장 0건</td><td>기존 문서 중복, 검색 필터, 응답 오류를 구분. 정상·실패 어느 쪽으로도 단정하지 않음</td></tr>
+</tbody></table>
+<div class="notice"><strong>health 전달 경로 반영</strong><br>health 컨테이너와 검사 하위 프로세스 허용 목록에 8개 키를 연결했습니다. 더미 값으로 전달 구성을 검사했으며, 실제 사이트 인증 성공으로 판정한 것은 아닙니다. health 표본 수집의 성공도 전체 사이트 수집 완료를 뜻하지 않습니다.</div>
+
+<h2>7. 납품 시 함께 확인할 기록</h2>
+<p>각 수집기별로 <strong>키 보유 여부 / 고객 Worker 전달 여부 / API 인증 결과 / 소량 문서 저장 결과 / PDF 결과 / 검증 일시·코드 버전</strong>을 기록합니다. 현재 8개 키 모두 공급사 보유 확인 상태이며, 고객 환경 적용과 실제 API 검증 결과는 미확인입니다. 실제 키 값, 키가 포함된 요청 헤더·명령줄·로그는 본 문서에 포함하지 않습니다.</p>
+<p class="muted">근거: 기존 전달 압축파일의 설정 예시·Compose 구성과 8개 수집기 소스, 현재 작업 코드의 health 검사 환경변수 전달 경로를 확인했습니다.</p>
+</body>
+</html>

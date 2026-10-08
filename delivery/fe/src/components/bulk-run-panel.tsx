@@ -33,7 +33,7 @@ export default function BulkRunPanel({ siteIds, label }: Readonly<{ siteIds: rea
   const [startedJobIds, setStartedJobIds] = useState<readonly number[]>([]);
   const [confirmStopAll, setConfirmStopAll] = useState(false);
 
-  const parsed = parseBulkRunRequest({ siteIds, mode, limit: Number(limit) });
+  const parsed = parseBulkRunRequest({ siteIds, mode, limit: Number(limit), trial: confirmed });
   const working = state.kind === "working" ? state.verb : null;
   const busy = working !== null;
   const canRun = parsed.ok && confirmed && !busy;
@@ -45,7 +45,7 @@ export default function BulkRunPanel({ siteIds, label }: Readonly<{ siteIds: rea
       const response = await fetch("/api/jobs/bulk", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ siteIds, mode, limit: Number(limit) }),
+        body: JSON.stringify({ siteIds, mode, limit: Number(limit), trial: confirmed }),
       });
       const payload = await response.json() as { error?: string; summary?: BulkSummary; problems?: readonly BulkOutcome[]; jobIds?: readonly number[] };
       if (!response.ok || !payload.summary) {
@@ -129,7 +129,7 @@ export default function BulkRunPanel({ siteIds, label }: Readonly<{ siteIds: rea
             <span>
               {count.toLocaleString("ko-KR")}개 사이트에 각각 최대 {Number.isFinite(perSite) ? perSite.toLocaleString("ko-KR") : "?"}건
               {mode === "full" ? ", 전체 수집 모드" : ""}으로 작업을 등록합니다. 최대 {worstCase.toLocaleString("ko-KR")}건을 외부 사이트에서 내려받게 되며,
-              워커가 한 번에 한 사이트씩 처리하므로 모두 끝나기까지 수 시간이 걸릴 수 있습니다. 실행하려면 확인이 필요합니다.
+              워커가 한 번에 한 사이트씩 처리하므로 모두 끝나기까지 수 시간이 걸릴 수 있습니다. 수집기별 순서·건수 계산이 미검증인 시험 실행임을 확인합니다.
             </span>
           </label>
 

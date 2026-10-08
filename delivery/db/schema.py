@@ -47,7 +47,7 @@ REQUIRED_TABLES = (
     "crawl_job_logs", "crawl_schedules", "translation_batches", "translation_jobs",
     "translation_job_attempts", "translation_worker_heartbeats",
     "translation_system_observations", "document_summaries", "document_summary_quality",
-    "crawl_site_progress",
+    "crawl_site_progress", "document_file_jobs", "file_worker_heartbeat",
 )
 
 
@@ -69,6 +69,8 @@ def verify_required_schema(conn) -> None:
         ("crawl_jobs", "max_attempts"),
         ("crawl_jobs", "next_attempt_at"),
         ("crawl_jobs", "truncated"),
+        ("crawl_jobs", "process_files"),
+        ("crawl_jobs", "job_type"),
         ("translation_system_observations", "provider"),
         ("translation_system_observations", "model_version"),
         ("crawl_site_progress", "cursor"),
@@ -116,6 +118,22 @@ def init_delivery_schema(conn) -> None:
         )
         """
     )
+    conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS process_files BOOLEAN NOT NULL DEFAULT FALSE")
+    conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS job_type TEXT NOT NULL DEFAULT 'crawl'")
+    conn.execute("""CREATE TABLE IF NOT EXISTS document_file_jobs(
+      id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      crawl_job_id BIGINT NOT NULL REFERENCES crawl_jobs(id) ON DELETE CASCADE,
+      seq_id BIGINT NOT NULL REFERENCES documents(seq_id) ON DELETE CASCADE,
+      status TEXT NOT NULL DEFAULT 'queued' CHECK(status IN('queued','running','done','failed','skipped','cancelled')),
+      pdf_status TEXT NOT NULL DEFAULT 'pending' CHECK(pdf_status IN('pending','done','failed','unavailable')),
+      text_status TEXT NOT NULL DEFAULT 'pending' CHECK(text_status IN('pending','done','failed','skipped')),
+      attempts INTEGER NOT NULL DEFAULT 0,token TEXT,lease_expires_at TIMESTAMPTZ,error TEXT,
+      next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      UNIQUE(crawl_job_id,seq_id))""")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_file_jobs_due ON document_file_jobs(status,next_attempt_at,id)")
+    conn.execute("""CREATE TABLE IF NOT EXISTS file_worker_heartbeat(
+      id INTEGER PRIMARY KEY CHECK(id=1),last_seen_at TIMESTAMPTZ NOT NULL)""")
     # Upgrade Phase 0 databases without requiring a destructive migration.
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS retry_of BIGINT REFERENCES crawl_jobs(id)")
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS retried_by BIGINT REFERENCES crawl_jobs(id)")

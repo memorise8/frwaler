@@ -21,8 +21,13 @@ class BeAppTest(unittest.TestCase):
 
         self.auth_patch=mock.patch.dict(os.environ,{"DELIVERY_AUTH_MODE":"disabled"})
         self.auth_patch.start()
+        from delivery import capabilities
+        original_source = capabilities._source
+        source_patch = mock.patch.object(capabilities, "_source", side_effect=lambda site: {"source_hash":"fixture", "resume_signals":True} if site == "s1" else original_source(site))
+        source_patch.start()
+        self.addCleanup(source_patch.stop)
         conn = db_pg.open_db(TEST_PG_DSN)
-        for t in ("document_summary_quality", "translation_job_attempts", "translation_worker_heartbeats", "translation_system_observations", "translation_jobs", "translation_batches", "document_summaries", "crawl_job_logs", "crawl_schedules", "crawl_jobs", "document_translations", "document_lang", "documents", "sites"):
+        for t in ("document_file_jobs", "file_worker_heartbeat", "document_summary_quality", "translation_job_attempts", "translation_worker_heartbeats", "translation_system_observations", "translation_jobs", "translation_batches", "document_summaries", "crawl_job_logs", "crawl_schedules", "crawl_jobs", "document_translations", "document_lang", "documents", "sites"):
             conn.execute(f"DROP TABLE IF EXISTS {t} CASCADE")
         conn.commit()
         db_pg.init_db(conn)
@@ -45,10 +50,51 @@ class BeAppTest(unittest.TestCase):
         conn.close()
         self.client = TestClient(create_app(TEST_PG_DSN))
 
+    def test_file_pipeline_option_and_authenticated_actions(self):
+        from crawler import db_pg
+        from delivery.files import jobs as files
+        from delivery.worker import jobs
+        token="f" * 32
+        with mock.patch.dict(os.environ, {"DELIVERY_AUTH_MODE":"token", "DELIVERY_API_TOKEN":token}):
+            headers={"x-delivery-token":token}
+            response=self.client.post("/jobs",json={"trial": True, "site_id":"s1","process_files":True},headers=headers)
+            self.assertEqual(response.status_code,200)
+            jid=response.json()["id"]
+            conn=db_pg.open_db(TEST_PG_DSN)
+            try:
+                self.assertEqual(jobs.claim_next_job(conn)["process_files"],True)
+                files.enqueue(conn,jid,self.seq)
+                jobs.finish_job(conn,jid,1)
+            finally:
+                conn.close()
+            detail=self.client.get(f"/jobs/{jid}").json()
+            self.assertTrue(detail["process_files"])
+            self.assertEqual(detail["files"]["total"],1)
+            self.assertEqual(self.client.post(f"/jobs/{jid}/files/cancel").status_code,401)
+            self.assertEqual(self.client.post(f"/jobs/{jid}/files/cancel",headers=headers).json()["changed"],1)
+            self.assertEqual(self.client.post(f"/jobs/{jid}/files/retry",headers=headers).json()["changed"],1)
+            self.assertEqual(self.client.post(f"/jobs/{jid}/files/execute",headers=headers).status_code,422)
+
     def test_health_ok(self):
         r = self.client.get("/health")
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.json()["status"], "ok")
+
+    def test_crawl_requires_explicit_trial_but_configuration_response_never_exposes_keys(self):
+        rejected = self.client.post('/jobs', json={'site_id':'s1','limit_n':3})
+        self.assertEqual(rejected.status_code,422)
+        accepted = self.client.get('/sites/s1/capabilities')
+        self.assertEqual(accepted.status_code,200)
+        self.assertEqual(accepted.json()['verification']['live'],'not_verified')
+
+    def test_file_backfill_route_is_authenticated_and_preview_does_not_enqueue(self):
+        token='x'*32
+        with mock.patch.dict(os.environ,{'DELIVERY_AUTH_MODE':'token','DELIVERY_API_TOKEN':token}):
+            self.assertEqual(self.client.post('/files/backfill',json={'site_id':'s1'}).status_code,401)
+            response=self.client.post('/files/backfill',json={'site_id':'s1','include_existing':True},headers={'x-delivery-token':token})
+            self.assertEqual(response.status_code,200)
+            self.assertEqual(response.json()['selected'],1)
+            self.assertIsNone(response.json()['job_id'])
 
     def test_get_document(self):
         r = self.client.get(f"/documents/{self.seq}")
@@ -83,8 +129,8 @@ class BeAppTest(unittest.TestCase):
     def test_mutations_require_configured_operator_token(self):
         token="test-secret-token-that-is-at-least-32-characters"
         with mock.patch.dict(os.environ,{"DELIVERY_AUTH_MODE":"token","DELIVERY_API_TOKEN":token}):
-            denied=self.client.post("/jobs",json={"site_id":"s1"})
-            allowed=self.client.post("/jobs",json={"site_id":"s1"},headers={"x-delivery-token":token})
+            denied=self.client.post("/jobs",json={"trial": True, "site_id":"s1"})
+            allowed=self.client.post("/jobs",json={"trial": True, "site_id":"s1"},headers={"x-delivery-token":token})
         self.assertEqual(denied.status_code,401)
         self.assertEqual(allowed.status_code,200)
 
@@ -112,7 +158,7 @@ class BeAppTest(unittest.TestCase):
 
     def test_missing_operator_token_configuration_fails_closed(self):
         with mock.patch.dict(os.environ,{"DELIVERY_AUTH_MODE":"token","DELIVERY_API_TOKEN":""}):
-            response=self.client.post("/jobs",json={"site_id":"s1"})
+            response=self.client.post("/jobs",json={"trial": True, "site_id":"s1"})
         self.assertEqual(response.status_code,503)
 
     def test_backend_startup_auth_validation_rejects_missing_secret(self):
@@ -284,7 +330,7 @@ class BeAppTest(unittest.TestCase):
         conn.close();self.assertEqual(count,0)
 
     def test_post_and_get_job(self):
-        r = self.client.post("/jobs", json={"site_id": "s1", "mode": "full", "limit_n": 3})
+        r = self.client.post("/jobs", json={"trial": True, "site_id": "s1", "mode": "full", "limit_n": 3})
         self.assertEqual(r.status_code, 200)
         jid = r.json()["id"]
         r2 = self.client.get(f"/jobs/{jid}")
@@ -294,20 +340,20 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(r2.json()["logs"][0]["event"],"queued")
 
     def test_crawl_job_validates_site_mode_limit_and_active_duplicate(self):
-        self.assertEqual(self.client.post("/jobs",json={"site_id":"missing"}).status_code,404)
-        self.assertEqual(self.client.post("/jobs",json={"site_id":"s1","mode":"unsafe"}).status_code,422)
-        self.assertEqual(self.client.post("/jobs",json={"site_id":"s1","limit_n":0}).status_code,422)
-        first=self.client.post("/jobs",json={"site_id":"s1","mode":"incremental"})
+        self.assertEqual(self.client.post("/jobs",json={"trial": True, "site_id":"missing"}).status_code,404)
+        self.assertEqual(self.client.post("/jobs",json={"trial": True, "site_id":"s1","mode":"unsafe"}).status_code,422)
+        self.assertEqual(self.client.post("/jobs",json={"trial": True, "site_id":"s1","limit_n":0}).status_code,422)
+        first=self.client.post("/jobs",json={"trial": True, "site_id":"s1","mode":"incremental"})
         self.assertEqual(first.status_code,200)
-        duplicate=self.client.post("/jobs",json={"site_id":"s1","mode":"full"})
+        duplicate=self.client.post("/jobs",json={"trial": True, "site_id":"s1","mode":"full"})
         self.assertEqual(duplicate.status_code,409)
 
     def test_schedule_api(self):
-        made=self.client.put("/schedules/s1",json={"interval_hours":24,"limit_n":20})
+        made=self.client.put("/schedules/s1",json={"trial": True, "interval_hours":24,"limit_n":20})
         self.assertEqual(made.status_code,200)
         self.assertEqual(made.json()["site_id"],"s1")
         self.assertEqual(len(self.client.get("/schedules").json()["schedules"]),1)
-        self.assertEqual(self.client.put("/schedules/missing",json={"interval_hours":24}).status_code,404)
+        self.assertEqual(self.client.put("/schedules/missing",json={"trial": True, "interval_hours":24}).status_code,404)
 
     def test_delete_schedule_requires_an_operator_token(self):
         with mock.patch.dict(os.environ, {"DELIVERY_AUTH_MODE": "token", "DELIVERY_API_TOKEN": "x" * 32}):
@@ -318,7 +364,7 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(self.client.delete("/schedules/never-scheduled").status_code, 404)
 
     def test_list_cancel_and_retry_jobs(self):
-        created = self.client.post("/jobs", json={"site_id": "s1", "mode": "full"}).json()
+        created = self.client.post("/jobs", json={"trial": True, "site_id": "s1", "mode": "full"}).json()
         jid = created["id"]
         listed = self.client.get("/jobs?status=queued&limit=10").json()
         self.assertEqual([row["id"] for row in listed["jobs"]], [jid])
@@ -329,16 +375,16 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(self.client.post(f"/jobs/{jid}/cancel").status_code, 409)
 
         retried = self.client.post(
-            f"/jobs/{jid}/retry", json={"requested_by": "test-operator"}
+            f"/jobs/{jid}/retry", json={"trial": True, "requested_by": "test-operator"}
         )
         self.assertEqual(retried.status_code, 200)
         self.assertEqual(retried.json()["status"], "queued")
         self.assertEqual(retried.json()["retry_of"], jid)
-        self.assertEqual(self.client.post(f"/jobs/{jid}/retry", json={}).status_code, 409)
+        self.assertEqual(self.client.post(f"/jobs/{jid}/retry", json={"trial": True}).status_code, 409)
 
     def test_job_management_not_found_and_invalid_filter(self):
         self.assertEqual(self.client.post("/jobs/999999/cancel").status_code, 404)
-        self.assertEqual(self.client.post("/jobs/999999/retry", json={}).status_code, 404)
+        self.assertEqual(self.client.post("/jobs/999999/retry", json={"trial": True}).status_code, 404)
         self.assertEqual(self.client.get("/jobs?status=bogus").status_code, 422)
 
     def test_progress_endpoint_returns_rows_without_a_token(self):
@@ -357,6 +403,24 @@ class BeAppTest(unittest.TestCase):
         self.assertEqual(rows["rc-prog-site"]["items_done"], 200)
         self.assertIn("docs_in_db", rows["rc-prog-site"])
 
+    def test_progress_distinguishes_active_backfill_from_saved_cursor(self):
+        from crawler import db_pg
+        from delivery.worker import jobs
+        conn = db_pg.open_db(TEST_PG_DSN)
+        try:
+            jobs.save_progress(conn, "rc-stopped", {"page": 2}, items_delta=10)
+            jobs.enqueue_job(conn, "rc-stopped", mode="incremental")
+            jid = jobs.enqueue_job(conn, "rc-new-backfill", mode="backfill")
+            rows = {s["site_id"]: s for s in self.client.get("/progress").json()["sites"]}
+            self.assertIsNone(rows["rc-stopped"]["active_status"])
+            self.assertEqual(rows["rc-new-backfill"]["active_status"], "queued")
+            self.assertEqual(rows["rc-new-backfill"]["active_job_id"], jid)
+            self.assertEqual(rows["rc-new-backfill"]["items_done"], 0)
+            self.assertIsNone(rows["rc-new-backfill"]["cursor"])
+            self.assertIsNotNone(rows["rc-new-backfill"]["updated_at"])
+        finally:
+            conn.close()
+
     def test_get_freshness(self):
         r = self.client.get("/freshness")
         self.assertEqual(r.status_code, 200)
@@ -369,12 +433,12 @@ class BeAppTest(unittest.TestCase):
 
     def test_backfill_mode_is_accepted_by_job_schema_but_not_schedule_schema(self):
         # 스키마 수준 검증: backfill 은 작업에서 유효, 스케줄에서 무효.
-        r = self.client.post("/jobs", json={"site_id": "rc-no-such-site", "mode": "backfill"})
+        r = self.client.post("/jobs", json={"trial": True, "site_id": "rc-no-such-site", "mode": "backfill"})
         self.assertNotEqual(r.status_code, 422)   # mode 로는 거절되지 않는다
         # interval_hours 를 채워야 422 의 유일한 사유가 mode 가 된다 — 빼면 필수
         # 필드 누락만으로도 422 라서 mode 회귀를 영원히 못 잡는다.
         r2 = self.client.put("/schedules/rc-no-such-site",
-                             json={"mode": "backfill", "interval_hours": 24})
+                             json={"trial": True, "mode": "backfill", "interval_hours": 24})
         self.assertEqual(r2.status_code, 422)     # 스케줄은 backfill 불허
 
 

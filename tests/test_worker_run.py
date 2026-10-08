@@ -49,6 +49,63 @@ class WorkerRunTest(unittest.TestCase):
         os.environ.pop("LIBERTREE_DB_BACKEND", None)
         self.conn.close()
 
+    def test_reported_source_failure_preserves_documents_cursor_and_stops_chain(self):
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+
+        class PartialFailureCrawler(BaseCrawler):
+            site_id = "fake"; site_name = "Fake"; base_url = "https://fake.example"
+            def crawl(inner, limit=None):
+                self.db_pg.insert_document(inner._conn, {"site_id": "fake", "post_number": "partial",
+                                                         "meta_url": "https://fake/partial", "title": "Saved"})
+                inner._advance_cursor({"page": 2}, items_done=1)
+                inner._report_source_failure("fetch_failed")
+
+        jid = jobs.enqueue_job(self.conn, "fake", mode="backfill")
+        saved = worker.run_job(self.conn, jobs.claim_next_job(self.conn), {"fake": PartialFailureCrawler}, delay=0)
+        row = self.conn.execute("SELECT status, saved_count, error FROM crawl_jobs WHERE id=%s", (jid,)).fetchone()
+        self.assertEqual((saved, row["status"], row["saved_count"]), (1, "failed", 1))
+        self.assertIn("fetch_failed", row["error"])
+        self.assertEqual(jobs.load_cursor(self.conn, "fake"), {"page": 2})
+        self.assertEqual(self.conn.execute("SELECT count(*) AS n FROM crawl_jobs").fetchone()["n"], 1)
+        self.assertIsNone(self.conn.execute("SELECT completed_at FROM crawl_site_progress WHERE site_id='fake'").fetchone()["completed_at"])
+
+    def test_doaj_fetch_failure_is_failed_but_valid_empty_page_is_done(self):
+        from unittest import mock
+        from crawler.sites import CRAWLERS
+        from delivery.worker import jobs, worker
+        cls = CRAWLERS["doaj-org-search"]
+        for response, expected in [(None, "failed"), ('{"error":"blocked"}', "failed"), ('{"results":[]}', "done")]:
+            with self.subTest(response=response), mock.patch.object(cls, "_curl_get", return_value=response):
+                jid = jobs.enqueue_job(self.conn, "doaj-org-search", mode="full")
+                worker.run_job(self.conn, jobs.claim_next_job(self.conn), {"doaj-org-search": cls}, delay=0)
+                row = self.conn.execute("SELECT status, saved_count FROM crawl_jobs WHERE id=%s", (jid,)).fetchone()
+                self.assertEqual((row["status"], row["saved_count"]), (expected, 0))
+
+    def test_reported_failure_respects_concurrent_cancel(self):
+        from crawler.base_crawler import BaseCrawler
+        from delivery.worker import jobs, worker
+        class FailingCrawler(BaseCrawler):
+            site_id = "fake"; site_name = "Fake"; base_url = "https://fake.example"
+            def crawl(inner, limit=None):
+                inner._advance_cursor({"page": 2}, items_done=1)
+                inner._report_source_failure("fetch_failed")
+        jid = jobs.enqueue_job(self.conn, "fake", mode="backfill")
+        job = jobs.claim_next_job(self.conn)
+        jobs.cancel_job(self.conn, jid)
+        worker.run_job(self.conn, job, {"fake": FailingCrawler}, delay=0)
+        self.assertEqual(jobs.job_detail(self.conn, jid)["job"]["status"], "cancelled")
+        self.assertEqual(jobs.load_cursor(self.conn, "fake"), {"page": 2})
+
+    def test_failure_does_not_change_an_already_terminal_job(self):
+        from delivery.worker import jobs
+        jid = jobs.enqueue_job(self.conn, "fake")
+        jobs.claim_next_job(self.conn)
+        jobs.finish_job(self.conn, jid, saved_count=3)
+        self.assertIsNone(jobs.fail_job(self.conn, jid, "late failure", saved_count=9))
+        self.assertEqual(jobs.job_detail(self.conn, jid)["job"]["saved_count"], 3)
+        self.assertEqual(jobs.job_detail(self.conn, jid)["job"]["status"], "done")
+
     def test_run_job_saves_and_finishes(self):
         from delivery.worker import jobs, worker
         jid = jobs.enqueue_job(self.conn, "fake", mode="full")

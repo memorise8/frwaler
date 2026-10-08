@@ -15,6 +15,7 @@ export type BulkMode = "incremental" | "full";
 
 export type BulkRunRequest = Readonly<{
   siteIds: readonly string[];
+  trial?: boolean;
   mode: BulkMode;
   limit: number;
 }>;
@@ -54,7 +55,7 @@ export const parseBulkRunRequest = (body: unknown): BulkParseResult => {
     return { ok: false, error: `사이트당 최대 건수는 ${BULK_LIMIT_MIN}~${BULK_LIMIT_MAX.toLocaleString("ko-KR")} 사이의 정수여야 합니다.` };
   }
 
-  return { ok: true, value: { siteIds, mode, limit } };
+  return { ok: true, value: { siteIds, mode, limit, ...(input.trial === true ? {trial: true} : {}) } };
 };
 
 export type BulkOutcome = Readonly<

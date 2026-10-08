@@ -61,6 +61,7 @@ class EnsLyonHalScienceSearchCrawler(BaseCrawler):
     site_name = "Custom: ens-lyon-hal-science-search"
     base_url = "https://ens-lyon.hal.science"
     DELIVERY_ORDER = "oldest_first"
+    DELIVERY_CURSOR_VERSION = 2
 
     # ------------------------------------------------------------------
     # Network helpers
@@ -191,9 +192,10 @@ class EnsLyonHalScienceSearchCrawler(BaseCrawler):
             if page % 10 == 0 and page > 0:
                 print(f"[{self.site_id}] page {page}: saved {saved}/{limit_str}")
 
-            start_offset = cursor_offset + page * _ROWS
+            start_offset = cursor_offset
             data = self._fetch_page(start_offset, _ROWS)
             if data is None:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] Failed to fetch page {page}. Stopping.")
                 break
 
@@ -208,11 +210,14 @@ class EnsLyonHalScienceSearchCrawler(BaseCrawler):
                 print(f"[{self.site_id}] Total available on server: {total}")
 
             new_on_page = 0
+            consumed = 0
+            page_failed = False
 
             for doc in docs:
                 if limit is not None and saved >= limit:
                     break
 
+                consumed += 1
                 try:
                     hal_id = doc.get("halId_s") or ""
                     docid = doc.get("docid")
@@ -323,17 +328,23 @@ class EnsLyonHalScienceSearchCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     new_on_page += 1
                     print(f"[{self.site_id}] Saved {saved}/{limit_str}: {title[:60]}")
 
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
+                    page_failed = True
                     print(f"[{self.site_id}] item {doc.get('docid', '?')} failed: {exc}")
                     continue
 
-            self._advance_cursor({"offset": start_offset + len(docs)}, items_done=len(docs))
+            if page_failed:
+                break  # Retry this page; never advance past failed items.
+            cursor_offset = start_offset + consumed
+            self._advance_cursor({"offset": cursor_offset, "version": 2}, items_done=consumed)
 
             # If an entire page produced zero new records, pagination has looped
             if new_on_page == 0 and page > 0:

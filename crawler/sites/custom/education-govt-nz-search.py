@@ -16,6 +16,7 @@ from urllib.parse import unquote
 
 sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler
+from crawler.search_credentials import check_search_response, search_failure
 
 _ALGOLIA_APP_ID = "ZJYLA4J4R6"
 _ALGOLIA_API_KEY = os.environ.get("EDUCATION_GOVT_NZ_SEARCH_KEY", "")
@@ -66,16 +67,14 @@ class EducationGovtNzSearchCrawler(BaseCrawler):
                 if resp is None:
                     raise RuntimeError("_request returned None")
                 data = resp.json()
-                if "results" not in data:
-                    raise ValueError(f"Unexpected Algolia response: {str(data)[:200]}")
-                return data
+                return check_search_response(self, data, 'results')
             except Exception as exc:
                 print(
                     f"[{self.site_id}] Algolia page={page} attempt={attempt+1}/3 error: {exc}"
                 )
                 if attempt < 2:
                     time.sleep(wait)
-        return None
+        return search_failure(self)
 
     def _parse_date(self, created_ms) -> Optional[str]:
         if not created_ms:

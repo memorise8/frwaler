@@ -16,6 +16,7 @@ from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 
 from crawler.base_crawler import BaseCrawler
+from crawler.search_credentials import check_search_response, search_failure
 
 
 class InraeFrActualitesCrawler(BaseCrawler):
@@ -219,13 +220,15 @@ class InraeFrActualitesCrawler(BaseCrawler):
             context=f"algolia page {page}",
         )
         if not raw:
-            return None, None
+            return search_failure(self), None
         try:
-            data = json.loads(raw)
+            data = check_search_response(self, json.loads(raw), 'hits')
+            if data is None:
+                return search_failure(self), None
             return data.get("hits", []), data.get("nbPages")
         except (json.JSONDecodeError, Exception) as exc:
             print(f"[{self.site_id}] Algolia JSON parse error at page {page}: {exc}")
-            return None, None
+            return search_failure(self), None
 
     def _hit_url(self, hit):
         """Return absolute detail URL for a hit."""

@@ -26,6 +26,7 @@ from datetime import datetime, timezone
 from typing import Dict, Iterable, List, Optional, Tuple
 
 from crawler.base_crawler import BaseCrawler
+from crawler.search_credentials import check_search_response, search_failure
 
 
 class CancerFrCataloguePublicCrawler(BaseCrawler):
@@ -547,12 +548,12 @@ class CancerFrCataloguePublicCrawler(BaseCrawler):
         }
         raw = self._curl_post_json(self._ALGOLIA_URL, payload)
         if not raw:
-            return None
+            return search_failure(self)
         try:
-            return json.loads(self._decode(raw))
+            return check_search_response(self, json.loads(self._decode(raw)), 'hits')
         except Exception as exc:
             print(f"[{self.site_id}] Algolia JSON parse failed on page {page}: {exc}")
-            return None
+            return search_failure(self)
 
     @staticmethod
     def _candidate_from_algolia(hit: Dict, query: str) -> Optional[Dict]:

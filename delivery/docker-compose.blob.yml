@@ -14,3 +14,9 @@ services:
         source: ${BLOB_HOST_PATH:?set BLOB_HOST_PATH to the verified blob directory}
         target: /data/blob
 
+
+  file-worker:
+    volumes:
+      - type: bind
+        source: ${BLOB_HOST_PATH:?set BLOB_HOST_PATH to the verified blob directory}
+        target: /data/blob

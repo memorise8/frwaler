@@ -29,7 +29,10 @@ async function loadProgress(): Promise<ProgressSite[] | null> {
 
 const STATE_BADGE_CLASS: Record<ReturnType<typeof backfillStateLabel>, string> = {
   "시작 전": "verify-tag",
+  "대기 중": "verify-tag",
   "진행 중": "material-tag",
+  "취소 처리 중": "verify-tag",
+  "중단됨": "verify-tag",
   "완주": "verify-tag verify-tag--collected",
 };
 
@@ -41,6 +44,8 @@ export default async function BackfillProgress() {
   const completed = rows?.filter((row) => backfillStateLabel(row) === "완주").length ?? 0;
   const inProgress = rows?.filter((row) => backfillStateLabel(row) === "진행 중").length ?? 0;
   const notStarted = rows?.filter((row) => backfillStateLabel(row) === "시작 전").length ?? 0;
+  const stopped = rows?.filter((row) => backfillStateLabel(row) === "중단됨").length ?? 0;
+  const waiting = rows?.filter((row) => ["대기 중", "취소 처리 중"].includes(backfillStateLabel(row))).length ?? 0;
 
   return (
     <div className="status-page">
@@ -62,7 +67,9 @@ export default async function BackfillProgress() {
           <div className="summary-grid">
             <article className="summary-card"><span>전체 사이트</span><strong>{rows.length.toLocaleString("ko-KR")}</strong><small>백필 기록 있음</small></article>
             <article className="summary-card summary-card--good"><span>완주</span><strong>{completed.toLocaleString("ko-KR")}</strong><small>백필 완료</small></article>
-            <article className="summary-card summary-card--secondary"><span>진행 중</span><strong>{inProgress.toLocaleString("ko-KR")}</strong><small>커서 저장됨</small></article>
+            <article className="summary-card summary-card--secondary"><span>진행 중</span><strong>{inProgress.toLocaleString("ko-KR")}</strong><small>실행 중인 백필 작업</small></article>
+            <article className="summary-card"><span>대기·취소 처리 중</span><strong>{waiting.toLocaleString("ko-KR")}</strong><small>작업 상태 기준</small></article>
+            <article className="summary-card"><span>중단됨</span><strong>{stopped.toLocaleString("ko-KR")}</strong><small>커서는 있으나 활성 작업 없음</small></article>
             <article className="summary-card"><span>시작 전</span><strong>{notStarted.toLocaleString("ko-KR")}</strong><small>아직 커서 없음</small></article>
           </div>
 

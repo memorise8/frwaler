@@ -37,6 +37,8 @@ class DOAJSearchCrawler(BaseCrawler):
     site_name = "Custom: doaj-org-search"
     base_url = "https://doaj.org"
     DELIVERY_ORDER = "newest_first"
+    # A known prefix may be a previous limited run, not the historical boundary.
+    DELIVERY_STOP_ON_KNOWN = False
 
     # ------------------------------------------------------------------
     # HTTP helpers
@@ -45,7 +47,7 @@ class DOAJSearchCrawler(BaseCrawler):
     def _curl_get(self, url: str, retries: int = 3):
         """GET via curl with exponential-backoff retries. Returns body str or None."""
         cmd = [
-            "curl", "-sk", "--tls-max", "1.3", "--max-time", "30",
+            "curl", "-skf", "--tls-max", "1.3", "--max-time", "30",
             "-H", f"User-Agent: {self.USER_AGENT}",
             "-H", "Accept: application/json",
             url,
@@ -55,7 +57,7 @@ class DOAJSearchCrawler(BaseCrawler):
             try:
                 result = subprocess.run(cmd, capture_output=True, timeout=35)
                 text = result.stdout.decode("utf-8", errors="replace").strip()
-                if text:
+                if result.returncode == 0 and text:
                     return text
                 if attempt < retries - 1:
                     wait = delays[attempt]
@@ -135,6 +137,7 @@ class DOAJSearchCrawler(BaseCrawler):
         start_time = time.time()
         max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute safety budget
         start_page = (self.delivery_cursor or {}).get("page", 1)
+        start_offset = (self.delivery_cursor or {}).get("offset", 0)
 
         # _MAX_PAGES is a per-run chunk size (not an absolute ceiling) so a resume
         # from a large cursor still walks a full budget of pages this run.
@@ -149,16 +152,21 @@ class DOAJSearchCrawler(BaseCrawler):
             url = self._build_url(page)
             raw = self._curl_get(url)
             if not raw:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] Failed to fetch page {page}. Stopping.")
                 break
 
             try:
                 data = json.loads(raw)
             except json.JSONDecodeError as exc:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] JSON decode error at page {page}: {exc}. Stopping.")
                 break
 
-            results = data.get("results") or []
+            if not isinstance(data, dict) or not isinstance(data.get("results"), list):
+                self._report_source_failure("invalid_response")
+                break
+            results = data["results"]
             if not results:
                 print(f"[{self.site_id}] No results at page {page}. Done.")
                 self._mark_exhausted()
@@ -172,8 +180,17 @@ class DOAJSearchCrawler(BaseCrawler):
                 lim_str = str(limit) if limit is not None else "inf"
                 print(f"[{self.site_id}] page {page}: saved {saved}/{lim_str}")
 
-            for result in results:
+            page_failed = False
+            page_complete = True
+            offset = start_offset if page == start_page else 0
+            for item_index, result in enumerate(results):
+                if item_index < offset:
+                    continue
                 if limit is not None and saved >= limit:
+                    page_complete = False
+                    if not page_failed:
+                        self._advance_cursor({"page": page, "offset": item_index},
+                                             items_done=item_index - offset)
                     break
 
                 try:
@@ -286,7 +303,8 @@ class DOAJSearchCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
 
                     lim_str = str(limit) if limit is not None else "inf"
                     print(f"[{self.site_id}] Saved {saved}/{lim_str}: {title[:60]}")
@@ -296,10 +314,14 @@ class DOAJSearchCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
-                    print(f"[{self.site_id}] item {result.get('id', '?')} failed: {exc}")
+                    self._report_source_failure("item_failed")
+                    page_failed = True
+                    print(f"[{self.site_id}] item failed: {type(exc).__name__}")
                     continue
 
-            self._advance_cursor({"page": page + 1}, items_done=len(results))
+            if page_failed or not page_complete:
+                break  # Resume this page; never skip a failed item permanently.
+            self._advance_cursor({"page": page + 1}, items_done=max(0, len(results) - offset))
 
             time.sleep(self._delay * 0.3)
 

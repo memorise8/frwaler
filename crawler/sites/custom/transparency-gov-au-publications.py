@@ -17,6 +17,7 @@ from typing import Optional
 from urllib.parse import unquote
 
 from crawler.base_crawler import BaseCrawler
+from crawler.search_credentials import check_search_response, search_failure
 
 
 class TransparencyGovAuPublicationsCrawler(BaseCrawler):
@@ -158,14 +159,20 @@ class TransparencyGovAuPublicationsCrawler(BaseCrawler):
                 )
                 resp.raise_for_status()
                 data = resp.json()
-                return data.get("value", [])
+                data = check_search_response(self, data, 'value')
+                return data['value'] if data is not None else []
             except Exception as exc:
+                status = getattr(getattr(exc, 'response', None), 'status_code', None)
+                if status in (401,403,429):
+                    search_failure(self, 'rate_limited' if status == 429 else 'authentication_failed')
+                    return []
                 wait = backoff[attempt]
                 print(
                     f"[{self.site_id}] fetch attempt {attempt + 1}/3 failed: {exc}; "
                     f"retrying in {wait}s"
                 )
                 time.sleep(wait)
+        search_failure(self)
         return []
 
     def _build_paper(self, item: dict) -> Optional[dict]:

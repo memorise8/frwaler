@@ -17,9 +17,15 @@ describe("formatBackfillPercent", () => {
 });
 
 describe("backfillStateLabel", () => {
-  it("distinguishes the three states", () => {
+  it("shows an active job ahead of historical completion", () => {
+    const row = { cursor: { page: 4 }, completed_at: "2026-08-18T00:00:00Z" };
+    expect(backfillStateLabel({ ...row, active_status: "running" })).toBe("진행 중");
+    expect(backfillStateLabel({ ...row, active_status: "queued" })).toBe("대기 중");
+    expect(backfillStateLabel({ ...row, active_status: "cancelling" })).toBe("취소 처리 중");
+  });
+  it("does not mistake a saved cursor for a running job", () => {
     expect(backfillStateLabel({ cursor: null, completed_at: null })).toBe("시작 전");
-    expect(backfillStateLabel({ cursor: { page: 4 }, completed_at: null })).toBe("진행 중");
+    expect(backfillStateLabel({ cursor: { page: 4 }, completed_at: null })).toBe("중단됨");
     expect(backfillStateLabel({ cursor: { page: 4 }, completed_at: "2026-08-18T00:00:00Z" })).toBe("완주");
   });
 });

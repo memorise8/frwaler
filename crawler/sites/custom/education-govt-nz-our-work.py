@@ -18,6 +18,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from crawler.base_crawler import BaseCrawler
+from crawler.search_credentials import check_search_response, search_failure
 
 
 class EducationGovtNzOurWorkCrawler(BaseCrawler):
@@ -87,7 +88,7 @@ class EducationGovtNzOurWorkCrawler(BaseCrawler):
             try:
                 r = subprocess.run(cmd, capture_output=True, text=True, timeout=35)
                 if r.stdout.strip():
-                    return json.loads(r.stdout)
+                    return check_search_response(self, json.loads(r.stdout), 'results')
                 if attempt < retries - 1:
                     time.sleep(3 * (attempt + 1))
             except Exception as exc:
@@ -96,7 +97,7 @@ class EducationGovtNzOurWorkCrawler(BaseCrawler):
                     time.sleep(3 * (attempt + 1))
                 else:
                     print(f"[{self.site_id}] Algolia failed after {retries} attempts: {exc}")
-        return None
+        return search_failure(self)
 
     # ------------------------------------------------------------------
     # Abstract extraction from Next.js RSC HTML

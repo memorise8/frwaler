@@ -21,6 +21,7 @@ from delivery.be.access import require_operator
 from delivery.be.blob_delivery import resolve_blob
 from delivery.worker import jobs
 from delivery.worker import schedules
+from delivery.files import jobs as file_jobs
 from delivery.translation import jobs as translation_jobs
 from delivery.db.schema import verify_required_schema
 from delivery.translation.observations import prune as prune_observations, record as record_observation
@@ -32,6 +33,8 @@ class JobIn(BaseModel):
     model_config=ConfigDict(extra="forbid")
     site_id: str = Field(min_length=1,max_length=200,pattern=r"^[A-Za-z0-9._-]+$")
     mode: Literal["incremental","full","backfill"] = "incremental"
+    process_files: bool = False
+    trial: bool = False
     limit_n: int | None = Field(default=None,ge=1,le=1000)
     requested_by: str | None = Field(default=None,max_length=100)
 
@@ -39,6 +42,18 @@ class JobIn(BaseModel):
 class RetryIn(BaseModel):
     model_config=ConfigDict(extra="forbid")
     requested_by: str | None = Field(default=None,max_length=100)
+    trial: bool = False
+
+
+class FileBackfillIn(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    site_id: str = Field(min_length=1,max_length=200,pattern=r'^[A-Za-z0-9._-]+$')
+    after_seq: int = Field(default=0, ge=0)
+    limit_n: int = Field(default=100, ge=1, le=1000)
+    include_existing: bool = False
+    dry_run: bool = True
+    collected_from: date | None = None
+    collected_to: date | None = None
 
 
 class ScheduleIn(BaseModel):
@@ -47,6 +62,7 @@ class ScheduleIn(BaseModel):
     mode:Literal["incremental","full"]="incremental"
     limit_n:int|None=Field(default=100,ge=1,le=1000)
     enabled:bool=True
+    trial:bool=False
 
 
 class ObservationIn(BaseModel):
@@ -105,6 +121,23 @@ def create_app(dsn: str) -> FastAPI:
         except Exception:  # database coordinates and errors are not public health data
             return JSONResponse(status_code=503, content={"status": "error"})
         return {"status": "ok"}
+
+    @app.get("/health/crawlers", dependencies=[Depends(require_operator)])
+    def get_crawler_health():
+        from delivery.health.overview import crawler_overview
+        return aggregates.get_or_create("crawler_health", crawler_overview)
+
+    @app.get("/health/system", dependencies=[Depends(require_operator)])
+    def get_system_health():
+        from delivery.health.overview import system_overview
+        try:
+            conn = _conn()
+            try:
+                return system_overview(conn)
+            finally:
+                conn.close()
+        except Exception:
+            return JSONResponse(status_code=503, content={"database": "unavailable"})
 
     @app.get("/ready")
     def ready():
@@ -380,14 +413,42 @@ def create_app(dsn: str) -> FastAPI:
         try:
             if conn.execute("SELECT 1 FROM sites WHERE site_id=%s",(body.site_id,)).fetchone() is None:
                 raise HTTPException(status_code=404,detail="site not found")
+            from delivery.capabilities import validate_request, CapabilityError
+            try:
+                validate_request(body.site_id, body.mode, trial=body.trial)
+            except CapabilityError as exc:
+                raise HTTPException(status_code=422, detail=str(exc)) from exc
             try:
                 jid = jobs.enqueue_job(conn, body.site_id, mode=body.mode,
-                                       limit_n=body.limit_n, requested_by=operator)
+                                       limit_n=body.limit_n, requested_by=operator, process_files=body.process_files)
             except jobs.ActiveJobError as exc:
                 raise HTTPException(status_code=409,detail="site already has an active job") from exc
         finally:
             conn.close()
         return {"id": jid}
+
+    @app.get('/sites/{site_id}/capabilities', dependencies=[Depends(require_operator)])
+    def get_capabilities(site_id: str):
+        from delivery.capabilities import capabilities, CapabilityError
+        try:
+            return capabilities(site_id)
+        except CapabilityError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.post('/files/backfill')
+    def post_file_backfill(body: FileBackfillIn, operator: str = Depends(require_operator)):
+        if body.collected_from and body.collected_to and body.collected_from > body.collected_to:
+            raise HTTPException(status_code=422, detail='수집 기간의 시작일이 종료일보다 늦습니다.')
+        conn = _conn()
+        try:
+            if conn.execute('SELECT 1 FROM sites WHERE site_id=%s', (body.site_id,)).fetchone() is None:
+                raise HTTPException(status_code=404, detail='site not found')
+            return file_jobs.backfill(conn, body.site_id, after_seq=body.after_seq,
+                                      limit=body.limit_n, include_existing=body.include_existing,
+                                      dry_run=body.dry_run, requested_by=operator,
+                                      collected_from=body.collected_from, collected_to=body.collected_to)
+        finally:
+            conn.close()
 
     # Declared before /jobs/{job_id}: FastAPI matches in declaration order, and
     # the literal path must win over the parameterised one.
@@ -415,10 +476,26 @@ def create_app(dsn: str) -> FastAPI:
         try:
             rows = conn.execute(
                 """
-                SELECT p.site_id, p.cursor, p.items_done, p.total_estimate,
-                       p.updated_at, p.completed_at,
-                       (SELECT count(*) FROM documents d WHERE d.site_id = p.site_id) AS docs_in_db
-                  FROM crawl_site_progress p
+                WITH tracked AS (
+                    SELECT site_id FROM crawl_site_progress
+                    UNION
+                    SELECT site_id FROM crawl_jobs WHERE mode='backfill'
+                      AND status IN ('queued','running','cancelling')
+                )
+                SELECT tracked.site_id, p.cursor, COALESCE(p.items_done, 0) AS items_done, p.total_estimate,
+                       COALESCE(p.updated_at, active.created_at) AS updated_at, p.completed_at,
+                       active.status AS active_status, active.id AS active_job_id,
+                       (SELECT count(*) FROM documents d WHERE d.site_id = tracked.site_id) AS docs_in_db
+                  FROM tracked
+                  LEFT JOIN crawl_site_progress p ON p.site_id = tracked.site_id
+                  LEFT JOIN LATERAL (
+                    SELECT j.id, j.status, j.created_at FROM crawl_jobs j
+                     WHERE j.site_id = tracked.site_id AND j.mode = 'backfill'
+                       AND j.status IN ('queued','running','cancelling')
+                     ORDER BY CASE j.status WHEN 'cancelling' THEN 0
+                                            WHEN 'running' THEN 1 ELSE 2 END, j.id DESC
+                     LIMIT 1
+                  ) active ON true
                  ORDER BY p.completed_at NULLS FIRST, p.updated_at DESC
                 """).fetchall()
             return {"sites": [dict(r) for r in rows]}
@@ -430,11 +507,27 @@ def create_app(dsn: str) -> FastAPI:
         conn = _conn()
         try:
             row = jobs.job_detail(conn,job_id)
+            if row is not None and row["job"].get("process_files"):
+                row["job"]["files"] = file_jobs.summary(conn, job_id)
         finally:
             conn.close()
         if row is None:
             raise HTTPException(status_code=404, detail="job not found")
         return {**row["job"],"logs":row["logs"]}
+
+    @app.post("/jobs/{job_id}/files/{action}")
+    def manage_job_files(job_id: int, action: Literal["retry","cancel"], operator: str = Depends(require_operator)):
+        conn = _conn()
+        try:
+            job = conn.execute("SELECT process_files,status FROM crawl_jobs WHERE id=%s", (job_id,)).fetchone()
+            if job is None:
+                raise HTTPException(status_code=404, detail="job not found")
+            if not job['process_files'] or job['status'] not in ('done','failed'):
+                raise HTTPException(status_code=409, detail="file actions require a finished metadata job")
+            changed = file_jobs.retry_failed(conn, job_id) if action == "retry" else file_jobs.cancel(conn, job_id)
+            return {"changed": changed, "files": file_jobs.summary(conn, job_id)}
+        finally:
+            conn.close()
 
     @app.get("/schedules")
     def get_schedules():
@@ -448,6 +541,12 @@ def create_app(dsn: str) -> FastAPI:
         try:
             if conn.execute("SELECT 1 FROM sites WHERE site_id=%s",(site_id,)).fetchone() is None:
                 raise HTTPException(status_code=404,detail="site not found")
+            from delivery.capabilities import validate_request, CapabilityError
+            if body.enabled:
+                try:
+                    validate_request(site_id, body.mode, trial=body.trial)
+                except CapabilityError as exc:
+                    raise HTTPException(status_code=422, detail=str(exc)) from exc
             try:return schedules.upsert(conn,site_id=site_id,interval_hours=body.interval_hours,
               mode=body.mode,limit_n=body.limit_n,enabled=body.enabled,created_by=operator)
             except ValueError as exc:raise HTTPException(status_code=422,detail=str(exc)) from exc
@@ -496,6 +595,13 @@ def create_app(dsn: str) -> FastAPI:
     def post_retry_job(job_id: int, body: RetryIn | None = None,operator:str=Depends(require_operator)):
         conn = _conn()
         try:
+            source = conn.execute('SELECT site_id,mode FROM crawl_jobs WHERE id=%s', (job_id,)).fetchone()
+            if source:
+                from delivery.capabilities import validate_request, CapabilityError
+                try:
+                    validate_request(source['site_id'], source['mode'], trial=bool(body and body.trial))
+                except CapabilityError as exc:
+                    raise HTTPException(status_code=422, detail=str(exc)) from exc
             row = jobs.retry_job(
                 conn, job_id, requested_by=operator
             )

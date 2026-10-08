@@ -48,6 +48,7 @@ class BaseCrawler(ABC):
     # 재개(cursor) 계약 -- 기본값이면 아무것도 달라지지 않는다.
     DELIVERY_ORDER = "arbitrary"      # newest_first | oldest_first | arbitrary
     UP_TO_DATE_THRESHOLD = 50
+    DELIVERY_STOP_ON_KNOWN = True
 
     def __init__(self, db_conn, delay=1.0):
         self._conn = db_conn
@@ -68,6 +69,7 @@ class BaseCrawler(ABC):
         self._cursor_items_done = 0
         self._consecutive_known = 0
         self._exhausted = False
+        self._source_failure = None
 
     # ------------------------------------------------------------------
     # Abstract properties / methods
@@ -141,6 +143,22 @@ class BaseCrawler(ABC):
     def delivery_exhausted(self):
         return self._exhausted
 
+    def _report_source_failure(self, reason):
+        """Report a failed listing without relying on exceptions or log parsing.
+
+        Call only after retries/fallbacks are exhausted. Use a fixed reason,
+        never a response body, credential, or request URL. The worker preserves
+        saved documents and the last completed page, but stops the backfill chain.
+        """
+        if reason not in {"fetch_failed", "invalid_response", "item_failed", "authentication_failed", "rate_limited", "configuration"}:
+            raise ValueError("unknown source failure reason")
+        if not self._source_failure:
+            self._source_failure = reason
+
+    @property
+    def delivery_source_failure(self):
+        return self._source_failure
+
     def _request(self, url, params=None, method="GET", retries=3, **kwargs):
         """Make an HTTP request with rate-limiting, retries, and error handling.
 
@@ -157,6 +175,10 @@ class BaseCrawler(ABC):
                 response.raise_for_status()
                 return response
             except requests.RequestException as exc:
+                status = getattr(getattr(exc, 'response', None), 'status_code', None)
+                if status in (401,403,429) and any(str(k).lower() == 'x-algolia-api-key' for k in kwargs.get('headers', {})):
+                    self._report_source_failure('rate_limited' if status == 429 else 'authentication_failed')
+                    return None
                 print(f"[{self.site_id}] Request error (attempt {attempt + 1}/{retries}) for {url}: {exc}")
                 if attempt < retries - 1:
                     wait = (attempt + 1) * 3
@@ -271,7 +293,10 @@ class BaseCrawler(ABC):
         if self.delivery_mode == "incremental" and existing is not None:
             self._last_save_created = False
             self._consecutive_known += 1
-            if (self.DELIVERY_ORDER == "newest_first"
+            callback = getattr(self, "delivery_document_saved", None)
+            if callback:
+                callback(existing)
+            if (self.DELIVERY_STOP_ON_KNOWN and self.DELIVERY_ORDER == "newest_first"
                     and self._consecutive_known >= max(1, self.UP_TO_DATE_THRESHOLD)):
                 raise CrawlUpToDate(
                     f"{self._consecutive_known} consecutive known documents")
@@ -280,6 +305,9 @@ class BaseCrawler(ABC):
         self._last_save_created = existing is None
         if existing is None:
             self._consecutive_known = 0
+        callback = getattr(self, "delivery_document_saved", None)
+        if callback:
+            callback(seq_id)
         return seq_id
 
     def _conn_is_libertree(self):

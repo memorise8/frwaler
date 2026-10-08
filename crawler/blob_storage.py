@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import tempfile
 from pathlib import Path
 
 # 1조 - 1 (10^12 - 1)
@@ -87,8 +88,19 @@ def save_pdf(
     path = get_blob_path(seq_id, "pdf", root)
     path.parent.mkdir(parents=True, exist_ok=True)
     data = bytes(content)
-    with open(path, "wb") as f:
-        f.write(data)
+    # A failed refresh must not truncate the previous valid file. Replace only
+    # after the complete candidate has been written on the same filesystem.
+    fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(data)
+            f.flush()
+            os.fsync(f.fileno())
+            os.fchmod(f.fileno(), path.stat().st_mode & 0o777 if path.exists() else 0o644)
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
     size = len(data)
     sha = hashlib.sha256(data).hexdigest()
     return path, size, sha

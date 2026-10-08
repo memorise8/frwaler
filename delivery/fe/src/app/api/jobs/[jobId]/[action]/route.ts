@@ -14,7 +14,7 @@ export async function POST(_request: Request, context: RouteContext): Promise<Ne
     const response = await fetch(`${backendUrl()}/jobs/${jobId}/${action}`, {
       method: "POST",
       headers: operatorHeaders(true),
-      body: action === "retry" ? JSON.stringify({ requested_by: "delivery-fe" }) : undefined,
+      body: action === "retry" ? JSON.stringify({ requested_by: "delivery-fe", trial: true }) : undefined,
       cache: "no-store",
       signal: AbortSignal.timeout(10_000),
     });

@@ -39,11 +39,11 @@ describe("jobStatusLabel", () => {
 });
 
 describe("describeJobOutcome", () => {
-  it("explains a zero saved_count as no-new-documents, not failure", () => {
+  it("does not infer success or failure from zero new documents", () => {
     const message = describeJobOutcome({ status: "done", saved_count: 0 });
     expect(message).toContain("0건");
-    expect(message).toContain("실패가 아닙니다");
-    expect(message).toContain("이 화면에서 확인할 수 없습니다");
+    expect(message).toContain("판단할 수 없습니다");
+    expect(message).toContain("작업 로그");
   });
 
   it("treats a missing saved_count the same as zero", () => {
@@ -53,6 +53,11 @@ describe("describeJobOutcome", () => {
 
   it("reports a positive saved_count plainly", () => {
     expect(describeJobOutcome({ status: "done", saved_count: 3 })).toBe("신규 저장 3건입니다.");
+  });
+
+  it("keeps partially saved documents visible after failure", () => {
+    expect(describeJobOutcome({ status: "failed", saved_count: 3, error: "fetch_failed" }))
+      .toContain("실패 전 신규 저장 3건은 유지됩니다");
   });
 
   it("surfaces the backend error text for a failed job", () => {
@@ -85,9 +90,8 @@ describe("truncated runs", () => {
     const text = describeJobOutcome({ status: "done", saved_count: 40, truncated: true });
     expect(text).toContain("시간 제한");
     expect(text).toContain("40");
-    // 재실행은 해결책이 아니다 — 크롤러는 1페이지부터 다시 걷는다.
-    expect(text).toContain("시간 제한을 늘려");
-    expect(text).not.toMatch(/이어(서|받)/);
+    expect(text).toContain("백필 재개를 지원하는 사이트");
+    expect(text).toContain("후속 작업");
   });
 
   it("says so even when a truncated run saved nothing", () => {

@@ -24,7 +24,7 @@ describe("resolveVerificationState", () => {
   // from here, which is exactly what an IP-block verdict needs disproving.
   it("treats any past save as proof the crawler works here", () => {
     expect(resolveVerificationState(row({ best_saved_count: 5, last_saved_count: 0 }))).toBe("collected");
-    expect(resolveVerificationState(row({ best_saved_count: 5, last_status: "failed" }))).toBe("collected");
+    expect(resolveVerificationState(row({ best_saved_count: 5, last_status: "failed" }))).toBe("failed");
   });
 
   it("reports a failed latest run when nothing was ever saved", () => {

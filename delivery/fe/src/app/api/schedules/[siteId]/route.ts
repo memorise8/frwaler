@@ -15,6 +15,7 @@ type ScheduleRequest = {
   readonly mode?: unknown;
   readonly limit_n?: unknown;
   readonly enabled?: unknown;
+  readonly trial?: unknown;
 };
 
 export async function PUT(request: NextRequest, context: { params: Promise<{ siteId: string }> }) {
@@ -58,7 +59,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ sit
     const response = await fetch(`${backend()}/schedules/${encodeURIComponent(siteId)}`, {
       method: "PUT",
       headers: operatorHeaders(true),
-      body: JSON.stringify({ interval_hours: intervalHours, mode, limit_n: limitResult.limit, enabled: body.enabled }),
+      body: JSON.stringify({ interval_hours: intervalHours, mode, limit_n: limitResult.limit, enabled: body.enabled, trial: body.trial === true }),
       cache: "no-store",
       signal: AbortSignal.timeout(8000),
     });

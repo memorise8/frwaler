@@ -9,6 +9,7 @@ export type NavItem = Readonly<{ href: string; label: string; match: readonly st
 export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/", label: "수집", match: ["/"] },
   { href: "/crawlers", label: "크롤러 상태", match: ["/crawlers"] },
+  { href: "/health", label: "건강 점검", match: ["/health"] },
   { href: "/backfill", label: "백필", match: ["/backfill"] },
   { href: "/collected", label: "수집 상태", match: ["/collected"] },
   { href: "/documents", label: "문서 탐색", match: ["/documents"] },

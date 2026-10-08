@@ -30,6 +30,7 @@ class InsermHalScienceSearchCrawler(BaseCrawler):
     site_name = "Custom: inserm-hal-science-search"
     base_url = "https://inserm.hal.science"
     DELIVERY_ORDER = "oldest_first"
+    DELIVERY_CURSOR_VERSION = 2
 
     _START_URL = (
         "https://inserm.hal.science/search/index/?q=%2A&rows=30"
@@ -404,10 +405,12 @@ class InsermHalScienceSearchCrawler(BaseCrawler):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] list fetch error at start={start}: {exc}")
                 break
 
             if data is None:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] list fetch failed at start={start}; stopping")
                 break
 
@@ -429,10 +432,13 @@ class InsermHalScienceSearchCrawler(BaseCrawler):
                 print(f"[{self.site_id}] page {page}: saved {saved}/{limit_or_inf}")
 
             items_not_deduped = 0
+            consumed = 0
+            page_failed = False
             for offset, doc in enumerate(items, start=1):
                 if limit is not None and saved >= limit:
                     break
 
+                consumed += 1
                 item_no = start + offset
                 try:
                     docid = self._first_value(doc, "docid")
@@ -450,17 +456,24 @@ class InsermHalScienceSearchCrawler(BaseCrawler):
                         continue
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     counter = f"{saved}/{limit}" if limit is not None else str(saved)
                     print(f"[{self.site_id}] saved {counter}: {paper['title'][:80]}")
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
+                    page_failed = True
                     print(f"[{self.site_id}] item {item_no} failed: {exc}")
                     continue
 
-            start += len(items)
-            self._advance_cursor({"offset": start}, items_done=len(items))
+            if page_failed:
+                break
+            start += consumed
+            self._advance_cursor({"offset": start, "version": 2}, items_done=consumed)
+            if consumed < len(items):
+                break
 
             if items_not_deduped == 0 and items:
                 print(f"[{self.site_id}] all items on page {page} were duplicates; stopping")

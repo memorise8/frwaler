@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import FileProgress from "@/components/file-progress";
+import type { FileSummary } from "@/lib/file-jobs";
 import { TRUNCATED_BADGE, jobStatusLabel } from "@/lib/job-status";
 import { formatJobDuration } from "@/lib/job-duration";
 import { parseQueueSummary, type QueueProgress } from "@/lib/queue-progress";
 
-type Job = { id: number; site_id: string; status: string; saved_count: number; error?: string | null; created_at: string; started_at?: string | null; finished_at?: string | null; truncated?: boolean; logs?:{event:string;message:string;created_at:string}[] };
+type Job = { job_type?: string; files?: FileSummary; process_files?: boolean; id: number; site_id: string; status: string; saved_count: number; error?: string | null; created_at: string; started_at?: string | null; finished_at?: string | null; truncated?: boolean; logs?:{event:string;message:string;created_at:string}[] };
 
 export function JobDashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -36,6 +38,21 @@ export function JobDashboard() {
     await load();
   };
   const detail=async(job:Job)=>{try{const response=await fetch(`/api/jobs/${job.id}`,{cache:"no-store"});if(!response.ok)throw new Error();setSelected(await response.json() as Job);}catch{setMessage("작업 상세를 불러올 수 없습니다.");}};
+  const selectedId = selected?.id;
+  useEffect(() => {
+    if (!selectedId) return;
+    let cancelled = false;
+    const timer = window.setInterval(async () => {
+      try {
+        const response = await fetch(`/api/jobs/${selectedId}`, { cache: "no-store" });
+        if (response.ok && !cancelled) {
+          const value = await response.json() as Job;
+          if (!cancelled) setSelected(value);
+        }
+      } catch { /* The existing snapshot remains visible; manual refresh is available. */ }
+    }, 3000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [selectedId]);
   return <section className="catalogue-section" aria-label="최근 수집 작업" id="jobs">
     <div className="section-heading"><div><p className="eyebrow">CRAWL JOBS</p><h2>최근 작업 현황</h2></div><button type="button" onClick={() => void load()}>새로고침</button></div>
     {message && <aside className="snapshot-note snapshot-note--unavailable"><strong>연결 안내</strong><span>{message}</span></aside>}
@@ -52,7 +69,7 @@ export function JobDashboard() {
         )}
       </div>
     )}
-    {jobs.length > 0 ? <div className="table-shell"><table><thead><tr><th>ID</th><th>수집기</th><th>상태</th><th className="number" title="DB에 새로 추가된 문서 수입니다. 이미 수집된 문서만 재처리한 경우 0으로 표시될 수 있으며, 이는 실패가 아닙니다.">신규 저장</th><th title="워커가 실제로 크롤러를 돌린 시간입니다. 신규 0건인데 오래 걸렸다면 작업 번호를 눌러 크롤러 기록을 확인하세요.">소요</th><th>실패 사유</th><th>관리</th></tr></thead><tbody>{jobs.map((job) => <tr key={job.id}><td><button onClick={()=>void detail(job)}>#{job.id}</button></td><td><code>{job.site_id}</code></td><td>{jobStatusLabel(job.status)}{job.truncated && <span className="job-badge job-badge--cut">{TRUNCATED_BADGE}</span>}</td><td className="number">{job.saved_count}</td><td>{formatJobDuration(job.started_at, job.finished_at) ?? "-"}</td><td>{job.error ?? "-"}</td><td>{["queued", "running"].includes(job.status) ? <button onClick={() => void act(job, "cancel")}>취소</button> : ["failed", "cancelled"].includes(job.status) ? <button onClick={() => void act(job, "retry")}>재시도</button> : "-"}</td></tr>)}</tbody></table></div> : !message && <div className="catalogue-prompt"><div><strong>등록된 작업이 없습니다.</strong><p>위에서 사이트를 검색해 선택하면 바로 수집을 시작할 수 있습니다.</p></div></div>}
-    {selected&&<aside className="job-log"><div><strong>작업 #{selected.id} 기록</strong><button onClick={()=>setSelected(null)}>닫기</button></div>{selected.logs?.map((log,index)=><p className={log.event==="crawler_output"?"job-log-crawler":undefined} key={`${log.created_at}-${index}`}><time>{log.event==="crawler_output"?"크롤러":new Date(log.created_at).toLocaleTimeString("ko-KR")}</time><span>{log.message}</span></p>)}</aside>}
+    {jobs.length > 0 ? <div className="table-shell"><table><thead><tr><th>ID</th><th>수집기</th><th>상태</th><th className="number" title="DB에 새로 추가된 문서 수입니다. 이미 수집된 문서만 재처리한 경우 0으로 표시될 수 있으며, 성공 여부는 로그와 파일 처리 결과를 함께 확인하세요.">신규 저장</th><th title="워커가 실제로 크롤러를 돌린 시간입니다. 신규 0건인데 오래 걸렸다면 작업 번호를 눌러 크롤러 기록을 확인하세요.">소요</th><th>실패 사유</th><th>관리</th></tr></thead><tbody>{jobs.map((job) => <tr key={job.id}><td><button onClick={()=>void detail(job)}>#{job.id}</button></td><td><code>{job.site_id}</code></td><td>{job.job_type === "file_backfill" ? "파일 처리 요청 · " : job.process_files && "문서 "}{jobStatusLabel(job.status)}{job.process_files && <button onClick={() => void detail(job)}>PDF·텍스트 확인</button>}{job.truncated && <span className="job-badge job-badge--cut">{TRUNCATED_BADGE}</span>}</td><td className="number">{job.saved_count}</td><td>{formatJobDuration(job.started_at, job.finished_at) ?? "-"}</td><td>{job.error ?? "-"}</td><td>{["queued", "running"].includes(job.status) ? <button onClick={() => void act(job, "cancel")}>취소</button> : ["failed", "cancelled"].includes(job.status) ? <button onClick={() => void act(job, "retry")}>재시도</button> : "-"}</td></tr>)}</tbody></table></div> : !message && <div className="catalogue-prompt"><div><strong>등록된 작업이 없습니다.</strong><p>위에서 사이트를 검색해 선택하면 바로 수집을 시작할 수 있습니다.</p></div></div>}
+    {selected&&<aside className="job-log"><div><strong>작업 #{selected.id} 기록</strong><button onClick={()=>setSelected(null)}>닫기</button></div>{selected.files && <FileProgress jobId={selected.id} metadataStatus={selected.status} files={selected.files} onChange={() => void detail(selected)} />}{selected.logs?.map((log,index)=><p className={log.event==="crawler_output"?"job-log-crawler":undefined} key={`${log.created_at}-${index}`}><time>{log.event==="crawler_output"?"크롤러":new Date(log.created_at).toLocaleTimeString("ko-KR")}</time><span>{log.message}</span></p>)}</aside>}
   </section>;
 }

@@ -42,6 +42,9 @@ __pycache__/
 crawler/.env
 crawler/.env.*
 !crawler/.env.example
+**/.env
+**/.env.*
+!**/.env.example
 
 # Test outputs / planning
 .omc/

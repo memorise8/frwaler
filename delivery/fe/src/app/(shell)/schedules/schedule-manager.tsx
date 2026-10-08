@@ -9,17 +9,19 @@ type Schedule = { id: number; site_id: string; interval_hours: number; mode: str
 type SiteOption = { siteId: string; siteName: string };
 
 export default function ScheduleManager({ initialRows, sites }: { initialRows: Schedule[]; sites: SiteOption[] }) {
+  const [trial, setTrial] = useState(false);
   const [rows, setRows] = useState(initialRows);
   const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null);
 
   const save = async (siteId: string, body: object) => {
     setMessage(null);
+    if ("enabled" in body && body.enabled && !trial) { setMessage({text: "미검증 수집기의 시험 예약 실행을 확인해 주세요.", error: true}); return; }
     let response: Response;
     try {
       response = await fetch(`/api/schedules/${encodeURIComponent(siteId)}`, {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({...body, trial}),
       });
     } catch {
       setMessage({ text: SCHEDULE_SAVE_NETWORK_ERROR_MESSAGE, error: true });
@@ -88,6 +90,7 @@ export default function ScheduleManager({ initialRows, sites }: { initialRows: S
 
   return (
     <>
+      <label className="run-confirm"><input type="checkbox" checked={trial} onChange={event => setTrial(event.target.checked)} />수집 순서와 이어받기가 미검증인 시험 예약임을 확인합니다.</label>
       <form className="document-filters" onSubmit={submit}>
         <label><span>사이트 ID</span><input name="site_id" required placeholder="예: government-se-publications" list="site-options" autoComplete="off" /></label>
         <label><span>수집 주기</span><select name="interval_hours" defaultValue="168"><option value="24">매일</option><option value="168">매주</option><option value="720">매월</option></select></label>

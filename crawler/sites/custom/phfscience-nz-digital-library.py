@@ -15,6 +15,7 @@ from urllib.parse import urlencode, urljoin, urlparse
 from bs4 import BeautifulSoup
 
 from crawler.base_crawler import BaseCrawler
+from crawler.search_credentials import check_search_response, search_failure
 
 
 class PhfscienceNzDigitalLibraryCrawler(BaseCrawler):
@@ -252,15 +253,13 @@ class PhfscienceNzDigitalLibraryCrawler(BaseCrawler):
             context=context,
         )
         if not raw:
-            return None
+            return search_failure(self)
         try:
             data = json.loads(raw)
         except json.JSONDecodeError as exc:
             print(f"[{self.site_id}] {context} returned invalid JSON: {exc}")
-            return None
-        if data.get("message") and not data.get("hits"):
-            print(f"[{self.site_id}] {context} API message: {data.get('message')}")
-        return data
+            return search_failure(self)
+        return check_search_response(self, data, 'hits')
 
     def _parse_list_hits(self, hits):
         records = []

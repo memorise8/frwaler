@@ -12,12 +12,28 @@
   --sand-wash: #efe9da;
   --bad: #9e463b;
   --bad-wash: #f3e4df;
+  /* System fonts keep delivery builds independent of Google Fonts access. */
+  --font-sans: "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+  --font-serif: "AppleMyungjo", "Batang", "Iowan Old Style", serif;
   --sans: var(--font-sans,"Malgun Gothic",sans-serif);
   --serif: var(--font-serif,"Iowan Old Style",serif);
   --mono: "SFMono-Regular",Consolas,monospace;
 }
 
 /* Global reset & base elements */
+
+/* Diagnostics keep neutral states distinct from actual failures. */
+.status-page.health-page { gap: 20px; }
+.health-page .summary-card { min-height: 110px; padding: 16px; }
+.health-page .summary-card strong { font-size: 2rem; }
+.health-page .snapshot-note strong { min-width: 4rem; }
+.health-page .section-heading h1 { margin-bottom: 0; }
+.health-page .section-heading p { margin-block: 4px; }
+.health-page .health-badge--unknown { color: var(--muted); background: var(--sand-wash); }
+
+@media (max-width: 800px) {
+  .masthead .nav-link { flex: 0 0 auto; white-space: nowrap; }
+}
 
 * {
   box-sizing: border-box;
@@ -2584,3 +2600,9 @@ code {
 .job-badge { display: inline-block; margin-left: .4rem; padding: .05rem .35rem; border-radius: 2px;
              font-size: .75rem; font-weight: 650; white-space: nowrap; }
 .job-badge--cut { background: var(--sand-wash); color: var(--ink); }
+
+.file-progress { border: 1px solid #d8dedb; padding: 16px; margin: 16px 0; overflow-wrap: anywhere; }
+.file-progress h3 { margin: 0 0 10px; }
+.file-progress p { margin: 8px 0; }
+.file-progress-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.file-progress li { margin: 8px 0; }
