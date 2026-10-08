@@ -14,6 +14,32 @@ from delivery.health.probe import child_environment, run_probe, sample_metadata
 
 
 class HealthRecordsTest(unittest.TestCase):
+    def test_registry_scope_includes_additional_sites_without_changing_default(self):
+        from delivery.health.inventory import inventory
+        from crawler.sites import CRAWLERS
+        delivered=inventory()
+        full=inventory(include_registry=True)
+        delivered_ids={r['site_id'] for r in delivered['sites']}
+        self.assertEqual({r['site_id'] for r in full['sites']},delivered_ids|set(CRAWLERS))
+        self.assertGreater(len(full['sites']),len(delivered['sites']))
+        self.assertEqual(sum(r['in_delivery_catalogue'] for r in full['sites']),len(delivered['sites']))
+        self.assertTrue(all(r['source_hash'] and r['code_status']=='ready' for r in full['sites']))
+
+    def test_resume_requires_same_profile_source_and_valid_attempt(self):
+        from delivery.health.runner import reusable_result
+        site={'site_id':'fixture','source_hash':'code-v1'}
+        profile={'id':'frozen-environment-1','limit':3,'timeout':60,'delay':1}
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            record={**site,'probe_profile':profile,'state':'blocked','checked_at':datetime.now(timezone.utc).isoformat()}
+            atomic_json(site_path(root,'fixture'),record)
+            self.assertEqual(reusable_result(root,site,profile)['state'],'blocked')
+            self.assertIsNone(reusable_result(root,{**site,'source_hash':'code-v2'},profile))
+            self.assertIsNone(reusable_result(root,site,{**profile,'id':'different-credentials'}))
+            self.assertIsNone(reusable_result(root,site,{**profile,'limit':6}))
+            site_path(root,'fixture').write_text('{')
+            self.assertIsNone(reusable_result(root,site,profile))
+
     def test_entire_catalogue_loads_without_hidden_discovery_errors(self):
         from delivery.health.inventory import inventory
         report = inventory()

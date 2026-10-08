@@ -13,17 +13,23 @@ ROOT = Path(__file__).resolve().parents[2]
 CATALOGUE = ROOT / "delivery/vendor/crawler_status_final.csv"
 
 
-@lru_cache(maxsize=1)
-def inventory() -> dict:
+@lru_cache(maxsize=2)
+def inventory(include_registry: bool = False) -> dict:
     from crawler.sites import CRAWLERS, REGISTRY_ERRORS
 
     rows = []
     with CATALOGUE.open(encoding="utf-8-sig") as handle:
         catalogue = list(csv.DictReader(handle))
-    for entry in catalogue:
+    delivered = {entry['site_id'].strip() for entry in catalogue}
+    entries = list(catalogue)
+    if include_registry:
+        entries.extend({'site_id':site_id,'site_name':getattr(cls,'site_name',site_id)}
+                       for site_id,cls in sorted(CRAWLERS.items()) if site_id not in delivered)
+    for entry in entries:
         site_id = entry["site_id"].strip()
         cls = CRAWLERS.get(site_id)
         row = {"site_id": site_id, "site_name": entry.get("site_name") or site_id,
+               "in_delivery_catalogue": site_id in delivered,
                "audit_status": entry.get("status", ""), "audit_reason": entry.get("reason", ""),
                "code_status": "missing", "source": None, "source_hash": None,
                "resume_signals": False, "time_budget_signal": False,
@@ -65,7 +71,7 @@ def inventory() -> dict:
                 row.update(code_status="invalid", notes=[type(exc).__name__])
         rows.append(row)
     return {"sites": rows, "registry_errors": REGISTRY_ERRORS,
-            "summary": {"catalogue": len(rows), "registry_keys": len(CRAWLERS),
+            "summary": {"catalogue": len(catalogue), "selected": len(rows), "registry_keys": len(CRAWLERS),
                         "code": dict(Counter(r["code_status"] for r in rows)),
                         "resume_signals": sum(r["resume_signals"] for r in rows),
                         "time_budget_signals": sum(r["time_budget_signal"] for r in rows)}}
