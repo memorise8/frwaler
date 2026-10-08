@@ -1,5 +1,152 @@
 # libertree-delivery 설치 가이드
 
+## 식별값·날짜·테스트 자료 원복 수정 (2026-10-08 후속 후보)
+
+이번 후속 후보에는 확인된 결함 수정과 조사·보정·제한적 원복 도구의 격리 검증이 포함됩니다.
+업체 회신 2026-10-08-r2에 따라 BUG-01의 목표는 누락 조사·보충이고, BUG-03의 범위는
+실제 DB 전체 사이트·문서입니다. 원복 도구나 KRIVET 표본 성공만으로 이 확대 범위를 완료 처리하지 않습니다. 운영 DB의
+기존 자료 보정·삭제와 고객 서버 배포는 수행하지 않았습니다. 이전 후보의 검증
+기록은 아래에 보존하며, 아래 2026-10-08 초기 기록과 후속 결과를 구분합니다.
+
+### KRIVET 식별값과 수집 재개
+
+`krivet-re-kr`는 쿼리 순서에 관계없이 `pstNo`를 문서 식별값으로 사용합니다.
+예시 두 URL의 값은 각각 `NH0000000791`, `NH0000000821`입니다.
+`pstNo` 누락·중복·잘못된 호스트는 오류로 처리하며 메뉴 번호로 대체하지 않습니다.
+별도 수집기 `krivet-re-kr-kor`의 규칙은 바꾸지 않았습니다.
+
+기존 잘못된 ID가 남아 있거나 동일 ID의 문서가 여러 개면 재수집을 차단합니다.
+아래 보정 도구의 충돌 보고서를 검토하고 기존 문서를 먼저 보정한 뒤 수집을 재개합니다.
+보정은 `seq_id`와 파일·번역·요약 연결을 유지합니다. URL의 메뉴/쿼리 순서가 달라도
+동일 `pstNo`의 기존 문서를 재사용합니다. 충돌 문서는 자동 병합·삭제하지 않습니다.
+
+KRIVET는 매번 첫 페이지부터 중복을 제거하며 재탐색합니다. 신규 없는 두 페이지만으로
+종료하지 않고, 신규 저장 건수만 제한에 포함합니다. 이 방식은 오래된 페이지를 다시
+읽을 수 있습니다. 날짜순 이어받기와 변경 중인 원본 목록 전체의 완전성은 보장하지 않습니다.
+일회용 PostgreSQL에 실사이트 자료를 3건씩 두 번 저장해 총 6건과 서로 다른 ID를 확인했습니다.
+이 검사는 PDF·텍스트 확보나 사이트 전체 수집 완료를 뜻하지 않습니다.
+
+### 날짜 저장·조회 계약과 업그레이드
+
+먼저 기존 절차대로 백업 후 명시적 `python -m delivery.be.migrate`를 실행합니다.
+마이그레이션은 `published_date`와 `listed_date` 각각에 `_raw`, `_status`, `_precision`
+TEXT 컬럼을 추가합니다. 기존 행의 상태는 `legacy_unchecked`이며 기존 값은 자동 변환하지 않습니다.
+새 버전 BE는 이 컬럼이 없으면 시작 검증에서 중단합니다. SQLite는 명시적 `init_db`로
+같은 컬럼을 추가할 수 있습니다. 기존 SQLite→PostgreSQL 이관 도구도 날짜 메타데이터를 보존합니다.
+
+공통 v2 SQLite/PostgreSQL 저장 경로에서 완전한 날짜는 `YYYY-MM-DD`로 저장합니다.
+각 필드의 원문은 저장 함수에 들어온 문자열이며, 사이트 파서가 앞서 가공한 원문까지 복원하는
+것은 아닙니다. `02 octobre 2026`은 `2026-10-02`로 변환합니다. `07.08.2026`처럼
+숫자 일/월 순서가 확인되지 않은 값은 정규 날짜를 NULL로 두고 원문과 `ambiguous` 상태를 보존합니다.
+연/월만 있으면 `partial` 및 `year`/`month` 정밀도를 기록하고 날짜를 임의로 채우지 않습니다.
+상태는 `normalized`, `missing`, `partial`, `ambiguous`, `invalid`, `unrecognized`,
+기존 자료의 `legacy_unchecked`로 구분합니다. 발행일과 게시일은 서로 복사하지 않습니다.
+
+숫자 날짜의 일/월 순서는 사이트 증거 없이 추정하지 않습니다. 새 수집에 필요한 사이트 규칙은
+`crawler/document_dates.py`의 `SITE_DATE_ORDERS`에 근거 fixture와 함께 추가해야 합니다.
+현재 이 목록은 비어 있습니다. 날짜 보정 CLI의 `--date-order`는 해당 배치에만 적용됩니다.
+구형 `crawler/db.py`의 독립 legacy DB는 이번 v2 날짜 계약 대상이 아닙니다.
+
+날짜 범위 검색·정렬은 유효한 완전 ISO 날짜만 사용합니다. 미확정 날짜는 범위 검색에서
+제외되고 정렬 시 뒤에 놓입니다. 화면에는 원문과 `날짜 확인 필요` 또는 `부분 날짜`를 표시합니다.
+기존 비정규 날짜는 보정 전까지 날짜 조건을 해제해서 조회할 수 있습니다.
+
+### 기존 자료 보정 도구
+
+도구는 납품 대상 `delivery/scripts/repair_metadata.py`에 있습니다. 기본 연결 대상은 없으며,
+별도로 설정한 `REPAIR_PG_DSN` 또는 `--sqlite`를 사용합니다. DSN에 운영 연결을 설정하는 것은
+운영 변경 단계이므로 실제 DB 구조·대상·백업을 먼저 검토해야 합니다. 아래는 명령 형식입니다.
+
+```bash
+# 읽기 전용 미리보기: 마이그레이션 이후, 사이트별 최대 1,000건
+python -m delivery.scripts.repair_metadata plan --kind krivet --site-id krivet-re-kr --plan krivet-plan.json
+python -m delivery.scripts.repair_metadata plan --kind dates --site-id SITE --after-seq 0 --limit 500 --plan dates-plan.json
+# 사이트가 DMY 형식임을 확인한 배치에만 추가:
+# --date-order DMY --format-evidence '사이트 형식 근거 또는 검토 기록'
+
+# 검토된 계획 적용 / 동일 계획으로 변경 취소
+python -m delivery.scripts.repair_metadata apply --plan krivet-plan.json
+python -m delivery.scripts.repair_metadata restore --plan krivet-plan.json
+```
+
+계획 JSON에는 변경 전/후 값·충돌·미해결 날짜·다음 `after_seq`와 체크섬이 있습니다.
+계획 파일은 0600 권한으로 생성하며 기존 파일을 덮어쓰지 않습니다. 적용 전 이 파일을
+별도 보관하세요. 적용/취소는 트랜잭션이며 미리보기 이후 관련 값이 바뀌면 중단합니다.
+동일 계획의 재실행은 이미 반영된 행을 다시 변경하지 않습니다. 단계별 배치를 검토하고
+모든 대상이 처리됐는지 별도로 집계해야 합니다. 테스트 성공은 운영 자료 보정 완료가 아닙니다.
+
+### 실제 저장 데이터 전수 조사와 누락 대조
+
+`delivery/scripts/audit_documents.py`는 납품 목록 밖을 포함해 실제 `documents`의 모든 행과
+사이트를 읽습니다. ID NULL/빈 값/공백, 중복 키 그룹과 서로 다른 URL 수, 날짜 해석 상태,
+URL·제목 누락, 알려진 참조 관계의 고아 행을 조사합니다. PostgreSQL은 일관된 읽기 전용
+스냅샷과 서버 커서를 사용합니다. 현 DB의 외래키 목록도 남깁니다. 원본 PDF/TXT 내용은
+이 도구에서 검사하지 않으며 DB 플래그를 파일 검증으로 간주하지 않습니다.
+
+```bash
+# 연결은 AUDIT_PG_DSN 환경변수로 별도 지정합니다. 기본 DB는 없습니다.
+python -m delivery.scripts.audit_documents --out /path/to/new-private-audit
+# SQLite 덤프 파일도 읽기 전용으로 조사할 수 있습니다.
+python -m delivery.scripts.audit_documents --sqlite /path/to/copied.db --out /path/to/new-private-audit
+# 확보한 원본 응답의 목록과 비교할 때:
+python -m delivery.scripts.audit_documents --out /path/to/new-private-audit --source-manifest source-scope.json
+```
+
+결과는 사이트별 건수·상태를 담은 `summary.json`과 행별 문제/중복 후보/원본 대조 결과의
+`findings.jsonl`입니다. 출력 디렉터리는 새 0700 디렉터리로 만들며 기존 결과를 덮어쓰지 않습니다.
+원본 목록 JSON은 `site_id`, `observed_at`(시간대 포함 관측 시각), `scope`(페이지·기간·확보 범위),
+`documents` 배열을 포함하고 각 문서는 `post_number`, `meta_url`을 갖습니다.
+중복된 원본 ID 목록은 조용히 합치지 않고 검토를 요구합니다.
+
+현재 원본 식별 규칙을 확인한 사이트는 KRIVET입니다. 다른 사이트의 중복 그룹은 게시판별
+번호 재사용 등 정상 사례일 수 있어 `requires_site_rule_and_source_review`로 남깁니다.
+KRIVET도 잘못된 키로 이미 저장된 문서는 누락과 구분합니다. 확인된 원본 범위 밖의 완전성은
+판정하지 않습니다. 다른 사이트의 키/URL 차이는 미수집 확정으로 처리하지 않습니다.
+
+고객 누락 조사는 실제 테스트 일시·시간대·사이트·작업·배포 버전과 전후 로그/커서를 먼저
+확정해야 합니다. 이후 원본 목록 대조 → 누락 확정/의심/근거 부족 구분 → 기존 자료를
+보존하는 겹치는 구간 재탐색·보충 → 원본 재대조 순으로 진행합니다. 현재 fixture에서는
+KRIVET 기존 8건의 ID를 유지한 채 뒤쪽 누락 2건을 보충해 원본 10건과 일치함을 확인했습니다.
+고객 DB 전체와 당시 원본 증거는 아직 조사하지 않았으므로 실제 누락 해소·기존 자료 전수 보정은
+완료되지 않았습니다. 아래 원복 도구는 검토 결과 제한적 원복이 필요한 경우에만 사용합니다.
+
+### 지정 테스트 자료의 안전 원복
+
+`delivery/scripts/recover_test_data.py`는 PostgreSQL 전용입니다. 오늘 날짜 전체를 선택하지 않습니다.
+확인한 단일 `site_id`, 명시적 `seq_id` JSON 배열, 시간대가 포함된 수집 구간
+(`[시작, 종료)`), 명시적 blob 루트가 모두 필요합니다. 원본 DB/파일 전체의 별도 백업도 유지하세요.
+
+1. 수집·예약·번역·파일 Worker를 중지하고 해당 사이트의 활성 예약과 대기/실행 작업을 정리합니다.
+   도구는 실행 중 작업·활성 예약·워커 소유 번역을 발견하면 중단합니다. 서비스 중지는 자동화하지 않습니다.
+2. 고객 실제 스키마와 대상 목록을 대조합니다. 새 외래키·사용자 트리거·지원하지 않는 참조 구조는
+   자동 처리하지 않습니다. 테스트 전 커서가 있으면 전체 행을 JSON 배열로 제공하며, 없었던 경우는 `[]`입니다.
+   KRIVET에 한해 검증한 재탐색 정책 `--krivet-rescan`을 선택할 수 있습니다. 다른 사이트의 커서를 추정하지 않습니다.
+3. 읽기 전용 계획을 만들고 문서·연결 행·커서·파일 목록을 검토합니다. 계획 작성은 일관성을 위해 잠깐 테이블 잠금을 잡습니다.
+4. `--workers-stopped`는 실제 서비스 중지를 확인한 뒤만 사용합니다. 파일 백업은 blob 루트 밖의
+   새 0700 디렉터리에 보관합니다. 공간과 무결성 검사가 실패하면 처리를 중단합니다.
+5. 적용은 대상 번역의 RESTRICT와 연결 행의 CASCADE를 확인해 트랜잭션으로 처리하며 수집 작업 이력은 보존합니다.
+   DB 반영 후 원본 파일을 백업 보관소로 격리합니다. 중간 실패 시 같은 명령을 재실행하면 남은 파일 처리를 이어갑니다.
+6. 취소는 백업에서 같은 `seq_id`, 연결 행, 이전 커서, 파일을 복원합니다. 복원 중 실패도 재실행 가능합니다.
+   재수집한 동등 문서나 변경된 파일이 있으면 덮어쓰지 않고 검토를 요구합니다.
+
+```bash
+# RECOVERY_PG_DSN을 검토 대상 DB로 별도 설정한 뒤 실행합니다.
+python -m delivery.scripts.recover_test_data plan --plan recovery-plan.json --site-id krivet-re-kr   --seq-ids confirmed-seq-ids.json --collected-from 2026-10-08T09:00:00+09:00   --collected-to 2026-10-08T10:00:00+09:00 --blob-root /path/to/blobs --krivet-rescan
+# 다른 사이트에서는 --krivet-rescan 대신 --cursor-before pre-test-progress.json을 사용합니다.
+python -m delivery.scripts.recover_test_data apply --plan recovery-plan.json   --blob-root /path/to/blobs --backup-dir /path/to/private-backup --workers-stopped
+python -m delivery.scripts.recover_test_data restore --plan recovery-plan.json   --blob-root /path/to/blobs --backup-dir /path/to/private-backup --workers-stopped
+```
+
+삭제 후 새로 수집하면 새 `seq_id`가 발급됩니다. 옛 파일을 새 ID에 자동 연결하지 않으므로
+파일 작업을 다시 실행해야 합니다. 백업 복원은 기존 ID와 파일 연결을 되살립니다.
+고객 DB의 실제 구조·대상은 아직 확인하지 않았으므로 고객 운영 삭제 가능 여부는 판정하지 않았습니다.
+
+전체 등록 1,245개(납품 806개·추가 439개)의 정적 조사표를 갱신했습니다. 신규 건수 검토 대상은
+KRIVET를 포함한 10개이며 나머지 1,235개를 정상으로 판정하지 않습니다. 다중 쿼리 ID 추출
+추가 검토 후보 8개가 있으나 확인된 버그 수는 아닙니다. 실인증·전수 실사이트·전체 수집 완전성·
+전체 배포 설치/복구 인수는 별도 잔여 항목입니다.
+
+
 ## 이번 배포 후보의 수집 규칙과 제한 (2026-10-08)
 
 이번 버전은 배포 후보입니다. 실제 사이트 인증, PostgreSQL 신규 설치·업그레이드,
@@ -96,8 +243,8 @@ docker compose --env-file delivery/.env -f delivery/docker-compose.yml \
 갱신되지 않습니다.
 
 이번 세션 검증: FE 테스트·타입·린트·빌드와 로컬 PDF/파일 처리 테스트를 수행합니다.
-현재 실행 환경은 Docker 및 로컬 서버 소켓 접근을 허용하지 않아 PostgreSQL 통합
-테스트와 실제 브라우저 실행 검증은 배포 전에 별도로 완료해야 합니다.
+초기 후보 검증 환경에서는 Docker·소켓 접근 제한으로 PostgreSQL 검사가 미실행이었습니다.
+후속 후보는 별도 일회용 PostgreSQL에서 회귀 검증했습니다. 고객 환경 인수와 구분합니다.
 
 
 ## 수집 결과 정확성 보강 (2026-10-07)
@@ -225,20 +372,8 @@ FE의 사용자 접근 인증은 기존 배포 경계(인증 프록시 등)를 �
 | 호스트 | 용도 | 시점 |
 |--------|------|------|
 | `registry.npmjs.org` | FE의 npm 의존성 설치 (`npm ci`) | 빌드 시 |
-| `fonts.googleapis.com`, `fonts.gstatic.com` | FE가 `next/font/google`으로 Noto Sans/Serif KR 폰트를 내려받아 셀프호스팅 | **빌드 시에만** |
 
-FE는 `next/font/google` (`delivery/fe/src/app/fonts.ts`)을 사용해 빌드 타임에 Google Fonts에서
-폰트 파일을 내려받고, 그 결과물을 이미지 안에 셀프호스팅합니다. **런타임에는 Google에 어떤 요청도
-보내지 않습니다** — 폰트 요청은 오직 `docker compose build` (또는 `up --build`) 실행 시 한 번만
-발생합니다.
-
-`registry.npmjs.org`는 허용하면서 `fonts.gstatic.com`은 막혀 있는 네트워크(예: 사내 프록시 화이트리스트)에서는
-FE 빌드가 **하드 실패**합니다. 에어갭/폐쇄망 환경이라면 이 폰트 다운로드를 반드시 사전에 우회해야 합니다.
-
-> **에어갭 대안:** `next/font/google` 대신 `next/font/local`로 전환하고, 필요한 폰트 파일(`.woff2`)을
-> 리포지토리에 커밋해 두는 방법이 있습니다. 다만 이 경우 Google Fonts가 요청 시 자동으로 제공하는
-> 유니코드 범위별 서브셋 분할(unicode-range slicing) 최적화는 포기해야 합니다. 이 전환은 현재
-> 적용되어 있지 않습니다.
+FE는 한글 시스템 글꼴을 사용하며 Google Fonts 다운로드에 의존하지 않습니다.
 
 ### 필수 소프트웨어
 

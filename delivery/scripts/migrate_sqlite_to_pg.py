@@ -59,6 +59,12 @@ CREATE TABLE IF NOT EXISTS documents (
     title             TEXT NOT NULL,
     published_date    TEXT,
     listed_date       TEXT,
+    published_date_raw TEXT,
+    published_date_status TEXT DEFAULT 'legacy_unchecked',
+    published_date_precision TEXT,
+    listed_date_raw TEXT,
+    listed_date_status TEXT DEFAULT 'legacy_unchecked',
+    listed_date_precision TEXT,
     authors           TEXT,
     publisher         TEXT,
     journal           TEXT,
@@ -295,6 +301,11 @@ def seq_boundary(con: sqlite3.Connection, limit: int | None) -> int | None:
 def load_tables(psql: Psql, con: sqlite3.Connection, boundary: int | None) -> dict[str, int]:
     counts: dict[str, int] = {}
     for table, columns, src_table, seq_col, order_by in TABLES:
+        if table == "documents":
+            existing = {row[1] for row in con.execute('PRAGMA table_info(documents)')}
+            metadata = tuple(f"{field}_{suffix}" for field in ("published_date","listed_date")
+                             for suffix in ("raw","status","precision"))
+            columns = columns + tuple(name for name in metadata if name in existing)
         sql = source_query(columns, src_table, seq_col, order_by, boundary)
         t0 = time.time()
         print(f"  [{table}] 적재 중…", flush=True)
@@ -422,6 +433,10 @@ def main() -> int:
     t0 = time.time()
     print("\n=== 1. 스키마 생성 ===")
     psql.run(DDL_TABLES)
+    for field in ("published_date","listed_date"):
+        for suffix in ("raw","status","precision"):
+            default = " DEFAULT 'legacy_unchecked'" if suffix == "status" else ""
+            psql.run(f"ALTER TABLE documents ADD COLUMN IF NOT EXISTS {field}_{suffix} TEXT{default};")
     print("  테이블 6종 생성(IF NOT EXISTS)")
 
     print("\n=== 2. 데이터 적재 ===")

@@ -187,7 +187,8 @@ class GenericCrawler(BaseCrawler):
 
                 if paper:
                     self._save_paper(paper)
-                    created = self.delivery_mode == "full" or self._last_save_created
+                    created = (self._last_save_created if self.site_id == "krivet-re-kr"
+                               else self.delivery_mode == "full" or self._last_save_created)
                     if created:
                         saved += 1
                         page_created += 1
@@ -196,7 +197,8 @@ class GenericCrawler(BaseCrawler):
 
             if self.delivery_mode == "incremental":
                 unchanged_pages = unchanged_pages + 1 if page_created == 0 else 0
-                if unchanged_pages >= 2:
+                stop_pages = self._config.get("options", {}).get("stop_after_unchanged_pages", 2)
+                if stop_pages and unchanged_pages >= stop_pages:
                     print(f"[{self.site_id}] Two unchanged pages reached; incremental crawl complete.")
                     break
 
@@ -494,6 +496,13 @@ class GenericCrawler(BaseCrawler):
 
     def _extract_id(self, url):
         """Extract an external ID from a URL using config regex or fallback."""
+        if self.site_id == "krivet-re-kr":
+            from .document_identity import krivet_id
+            try:
+                return krivet_id(url)
+            except ValueError:
+                self._source_failure = "invalid_document_id"
+                raise
         id_regex = self._config.get("options", {}).get("id_regex")
         if id_regex:
             match = re.search(id_regex, url)

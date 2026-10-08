@@ -78,6 +78,8 @@ def verify_required_schema(conn) -> None:
         ("crawl_site_progress", "total_estimate"),
         ("crawl_site_progress", "completed_at"),
     )
+    from crawler.document_dates import DATE_METADATA_FIELDS
+    required_columns += tuple(("documents", name) for name in DATE_METADATA_FIELDS)
     for table, column in required_columns:
         present = conn.execute("""SELECT 1 FROM information_schema.columns
           WHERE table_schema='public' AND table_name=%s AND column_name=%s""", (table, column)).fetchone()

@@ -12,8 +12,8 @@ TAXONOMY_PATH = Path(__file__).resolve().parents[1] / "data" / "site-taxonomy.js
 
 def _safe_date(column: str) -> str:
     """PostgreSQL 16 expression that never casts an invalid free-form date."""
-    value = f"substring({column}, 1, 10)"
-    return f"CASE WHEN pg_input_is_valid({value}, 'date') THEN {value}::date END"
+    return (f"CASE WHEN {column} ~ '^[0-9]{{4}}-[0-9]{{2}}-[0-9]{{2}}$' "
+            f"AND pg_input_is_valid({column}, 'date') THEN {column}::date END")
 
 
 def load_taxonomy(path: Path = TAXONOMY_PATH) -> dict[str, dict[str, str]]:
@@ -123,7 +123,8 @@ def collect_catalogue(conn, filters: CatalogueFilters,
     else:
         order = "collected_at DESC NULLS LAST, seq_id DESC"
     items = conn.execute(base + f"""
-        SELECT seq_id, site_id, site_name, country, doc_type, title, published_date,
+        SELECT seq_id, site_id, site_name, country, doc_type, title, published_date, published_date_raw,
+               published_date_status, published_date_precision,
                collected_at, authors, publisher, journal, lang,
                pdf_downloaded <> 0 AS has_pdf, text_extracted <> 0 AS has_text,
                EXISTS (SELECT 1 FROM document_translations tr
@@ -148,6 +149,7 @@ def collect_catalogue(conn, filters: CatalogueFilters,
             "pages": math.ceil(total / filters.page_size) if total else 0,
         },
         "facets": facets,
-        "query": {"q": filters.q, "sort": filters.sort},
+        "query": {"q": filters.q, "sort": filters.sort,
+                  "date_policy": "complete_iso_dates_only; unresolved_dates_excluded_from_date_ranges"},
         "measured_at": datetime.now(timezone.utc),
     }

@@ -17,6 +17,9 @@ import sqlite3
 from pathlib import Path
 from typing import Any, Optional
 
+from .document_dates import DATE_METADATA_FIELDS, normalize_document_dates, migrate_date_columns
+from .document_identity import find_krivet_document
+
 DB_PATH = Path(__file__).resolve().parent.parent / "libertree-app" / "data" / "libertree.db"
 
 
@@ -92,6 +95,7 @@ def init_db(conn: sqlite3.Connection) -> None:
             ON documents(site_id, post_number, meta_url);
         """
     )
+    migrate_date_columns(conn, postgres=False)
     conn.commit()
 
 
@@ -135,7 +139,7 @@ DOCUMENT_INSERT_FIELDS = (
     "pdf_downloaded", "text_extracted",
     "pdf_size_bytes", "pdf_sha256",
     "summary", "summary_model", "summary_at",
-)
+) + DATE_METADATA_FIELDS
 
 
 def insert_document(conn: sqlite3.Connection, doc: dict) -> int:
@@ -165,6 +169,7 @@ def insert_document(conn: sqlite3.Connection, doc: dict) -> int:
     if existing is not None:
         return existing
 
+    doc = normalize_document_dates(doc)
     payload = {k: doc.get(k) for k in DOCUMENT_INSERT_FIELDS}
     payload["pdf_downloaded"] = int(payload.get("pdf_downloaded") or 0)
     payload["text_extracted"] = int(payload.get("text_extracted") or 0)
@@ -293,6 +298,8 @@ def find_by_dedup_key(
     (SQLite UNIQUE treats NULL as distinct, so this is the practical
     semantic for "no post number known").
     """
+    if site_id == "krivet-re-kr":
+        return find_krivet_document(conn, site_id, post_number, meta_url, postgres=False)
     if post_number is None:
         row = conn.execute(
             """

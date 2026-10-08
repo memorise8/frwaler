@@ -40,6 +40,8 @@ def inventory() -> dict:
                                "crawler/search_credentials.py", "delivery/capabilities.py",
                                "crawler/stealth_fetcher.py", "crawler/playwright_fetcher.py",
                                "crawler/libertree_adapter.py",
+                               "crawler/document_dates.py", "crawler/document_identity.py",
+                               "crawler/db_libertree.py", "crawler/db_pg.py",
                                "delivery/health/probe.py"):
                     digest.update((ROOT / shared).read_bytes())
                 config = getattr(cls, "_config_path", None)

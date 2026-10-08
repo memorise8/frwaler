@@ -10,7 +10,7 @@ from crawler.search_credentials import credential_status, missing_credentials
 
 HAL_RESUME = frozenset(('anr-hal-science-search','amu-hal-science-search','cea-hal-science-cnrgh',
                        'ehess-hal-science-search','ens-lyon-hal-science-search','inserm-hal-science-search'))
-COUNT_REVIEWED = HAL_RESUME | {'doaj-org-search','scienceon-api','scienceon-foreign-api'}
+COUNT_REVIEWED = HAL_RESUME | {'doaj-org-search','scienceon-api','scienceon-foreign-api','krivet-re-kr'}
 
 
 class CapabilityError(ValueError):
@@ -29,6 +29,8 @@ def _source(site_id):
     digest = hashlib.sha256(text.encode())
     root = Path(__file__).resolve().parents[1]
     for name in ('crawler/base_crawler.py', 'crawler/search_credentials.py',
+                 'crawler/db_libertree.py', 'crawler/db_pg.py', 'crawler/libertree_adapter.py',
+                 'crawler/document_dates.py', 'crawler/document_identity.py',
                  'delivery/capabilities.py', 'delivery/worker/worker.py'):
         digest.update((root/name).read_bytes())
     config = getattr(cls, '_config_path', None)
@@ -44,7 +46,7 @@ def capabilities(site_id):
     hal = site_id in HAL_RESUME
     scienceon = site_id.startswith('scienceon-')
     reviewed = site_id in COUNT_REVIEWED
-    order = '문서 ID 오름차순' if hal else ('등록일 내림차순' if site_id == 'doaj-org-search' else ('최근 연도·자료 유형·API 응답 순서' if scienceon else '수집기별 순서 · 미검증'))
+    order = '문서 ID 오름차순' if hal else ('등록일 내림차순' if site_id == 'doaj-org-search' else ('최근 연도·자료 유형·API 응답 순서' if scienceon else ('사이트 목록 순서 · 첫 페이지부터 중복 제거 재탐색' if site_id == 'krivet-re-kr' else '수집기별 순서 · 미검증')))
     def mode(label, support='unknown', allowed=True, trial=True, reason='실제 사이트 검증 전 시험 실행입니다.'):
         return dict(label=label, support=support, allowed=allowed, requires_trial=trial, reason=reason)
     return {'site_id':site_id, **source, 'order':order,

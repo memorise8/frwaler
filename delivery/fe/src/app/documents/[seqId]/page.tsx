@@ -1,3 +1,4 @@
+import { documentDate } from "@/lib/document-date";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDocumentDetail } from "@/lib/document-detail";
@@ -50,7 +51,8 @@ export default async function DocumentDetailPage({ params }: Readonly<{ params: 
       <div><dt>저자</dt><dd>{document.source.authors || "정보 없음"}</dd></div>
       <div><dt>발행처</dt><dd>{document.source.publisher || "정보 없음"}</dd></div>
       <div><dt>저널·간행물</dt><dd>{document.source.journal || "정보 없음"}</dd></div>
-      <div><dt>발행일</dt><dd>{formatDate(document.source.published_date)}</dd></div>
+      <div><dt>발행일</dt><dd>{documentDate(document.source.published_date, document.source.published_date_raw, document.source.published_date_status)}</dd></div>
+      <div><dt>게시일</dt><dd>{documentDate(document.source.listed_date, document.source.listed_date_raw, document.source.listed_date_status)}</dd></div>
       <div><dt>수집일</dt><dd>{formatDate(document.source.collected_at)}</dd></div>
       <div><dt>문서 번호</dt><dd>{document.seq_id.toLocaleString("ko-KR")}</dd></div>
     </dl>

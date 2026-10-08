@@ -15,6 +15,8 @@ export type DocumentDetail = Readonly<{
     lang: string; title: string; abstract: string | null; authors: string | null;
     publisher: string | null; journal: string | null; keywords: string | null;
     published_date: string | null; listed_date: string | null; collected_at: string | null;
+    published_date_raw?: string | null; published_date_status?: string | null;
+    listed_date_raw?: string | null; listed_date_status?: string | null;
     summary: string | null; summary_model: string | null; meta_url: string; pdf_url: string | null;
   }>;
   translations: Readonly<{ target_locale: string; title: Translation | null; description: Translation | null }>;

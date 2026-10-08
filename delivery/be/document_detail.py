@@ -52,7 +52,9 @@ def collect_document_detail(conn, seq_id: int, taxonomy: dict | None = None) -> 
         "source": {
             key: row[key] for key in (
                 "lang", "title", "abstract", "authors", "publisher", "journal", "keywords",
-                "published_date", "listed_date", "collected_at", "summary", "summary_model",
+                "published_date", "listed_date", "published_date_raw", "published_date_status",
+                "published_date_precision", "listed_date_raw", "listed_date_status",
+                "listed_date_precision", "collected_at", "summary", "summary_model",
                 "meta_url", "pdf_url",
             )
         },

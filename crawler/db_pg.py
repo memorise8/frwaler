@@ -9,6 +9,9 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
+from .document_dates import DATE_METADATA_FIELDS, normalize_document_dates, migrate_date_columns
+from .document_identity import find_krivet_document
+
 import psycopg
 from psycopg.rows import dict_row
 
@@ -21,7 +24,7 @@ DOCUMENT_INSERT_FIELDS = (
     "pdf_downloaded", "text_extracted",
     "pdf_size_bytes", "pdf_sha256",
     "summary", "summary_model", "summary_at",
-)
+) + DATE_METADATA_FIELDS
 
 
 def open_db(dsn: str) -> psycopg.Connection:
@@ -76,6 +79,7 @@ def init_db(conn: psycopg.Connection) -> None:
     conn.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_doc_dedup ON documents(site_id, post_number, meta_url)"
     )
+    migrate_date_columns(conn, postgres=True)
     conn.commit()
 
 
@@ -95,6 +99,8 @@ def upsert_site(conn, site_id, site_name, site_url, sheet: Optional[str] = None)
 
 
 def find_by_dedup_key(conn, site_id, post_number, meta_url) -> Optional[int]:
+    if site_id == "krivet-re-kr":
+        return find_krivet_document(conn, site_id, post_number, meta_url, postgres=True)
     if post_number is None:
         row = conn.execute(
             "SELECT seq_id FROM documents WHERE site_id=%s AND post_number IS NULL AND meta_url=%s LIMIT 1",
@@ -120,6 +126,7 @@ def insert_document(conn, doc: dict) -> int:
     if existing is not None:
         return existing
 
+    doc = normalize_document_dates(doc)
     payload = {k: doc.get(k) for k in DOCUMENT_INSERT_FIELDS}
     payload["pdf_downloaded"] = int(payload.get("pdf_downloaded") or 0)
     payload["text_extracted"] = int(payload.get("text_extracted") or 0)

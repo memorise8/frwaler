@@ -156,7 +156,7 @@ def paper_to_document(paper: Dict[str, Any]) -> Dict[str, Any]:
         if paper.get(k) and k not in enriched_meta:
             enriched_meta[k] = paper[k]
 
-    posted_date = paper.get("posted_date") or _pick(metadata, _POSTED_DATE_KEYS)
+    posted_date = paper.get("listed_date") or paper.get("posted_date") or _pick(metadata, _POSTED_DATE_KEYS)
     journal = paper.get("journal") or _pick(metadata, _JOURNAL_KEYS)
     original_filename = (
         paper.get("original_filename")

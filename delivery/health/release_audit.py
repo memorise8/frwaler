@@ -4,6 +4,7 @@ import csv
 import json
 from collections import Counter
 from pathlib import Path
+from urllib.parse import urlsplit, parse_qsl
 
 from crawler.sites import CRAWLERS, REGISTRY_ERRORS
 from delivery.capabilities import capabilities
@@ -20,7 +21,22 @@ def main():
     rows=[]
     for site in sorted(CRAWLERS):
         data=capabilities(site)
+        cls=CRAWLERS[site]
+        config_path=getattr(cls,'_config_path',None)
+        config=json.loads(Path(config_path).read_text()) if config_path else {}
+        sample=config.get('metadata',{}).get('detail_sample','') or ''
+        candidates=(len(parse_qsl(urlsplit(sample).query))>1 and
+                    not config.get('options',{}).get('id_regex') and site!='krivet-re-kr')
+        aliases=[key for key,value in CRAWLERS.items() if key!=site and value is cls]
+        source=Path(cls.crawl.__code__.co_filename).read_text()
         rows.append({'site_id':site,'in_delivery_catalogue':site in ids,
+                     'registration':'same_class_alias' if aliases else 'independent_class_semantics_unverified',
+                     'same_class_aliases':','.join(sorted(aliases)),
+                     'identity_verification':'fixture_tested' if site=='krivet-re-kr' else 'unverified',
+                     'multi_query_id_review_candidate':candidates,
+                     'date_storage_contract':'v2_complete_iso_with_raw_status_precision',
+                     'site_date_format_verification':'unverified',
+                     'save_path_signal':'base_save_paper' if '_save_paper(' in source else 'needs_individual_review',
                      'order':data['order'],'count_semantics':data['count_semantics'],
                      'resume_signals_only':data['resume_signals'],
                      'chronological_resume':data['features']['chronological_resume'],

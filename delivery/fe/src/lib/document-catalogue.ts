@@ -8,6 +8,9 @@ export type DocumentItem = Readonly<{
   doc_type: string;
   title: string;
   published_date: string | null;
+  published_date_raw?: string | null;
+  published_date_status?: string | null;
+  published_date_precision?: string | null;
   collected_at: string | null;
   authors: string | null;
   publisher: string | null;

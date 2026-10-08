@@ -1,3 +1,4 @@
+import { documentDate } from "@/lib/document-date";
 import Form from "next/form";
 import Link from "next/link";
 import { getDocumentCatalogue } from "@/lib/document-catalogue";
@@ -62,6 +63,7 @@ export default async function DocumentsPage({ searchParams }: Readonly<{ searchP
         <label><span>정렬</span><select name="sort" defaultValue={selected.sort}><option value="">기본 정렬</option>{selected.q && <option value="relevance">관련도순</option>}<option value="published_desc">최신 발행일</option><option value="collected_desc">최신 수집일</option><option value="seq_desc">최근 등록순</option></select></label>
         <div className="document-filter-actions"><button type="submit">검색</button><Link href="/documents">조건 초기화</Link></div>
       </Form>
+      <p>발행일 범위 검색에는 연·월·일이 확인된 문서만 포함됩니다. 부분 날짜나 확인이 필요한 날짜의 문서는 날짜 조건을 해제해 확인하세요.</p>
     </section>
 
     {!result.ok && <section className={`catalogue-message catalogue-message--${result.kind}`} role="status"><strong>{result.kind === "invalid" ? "검색 조건을 확인해 주세요." : "문서 목록을 불러올 수 없습니다."}</strong><p>{result.kind === "invalid" ? "날짜 범위나 필터 값이 올바른지 확인한 뒤 다시 검색해 주세요." : "데이터 서비스 연결 상태를 확인한 뒤 잠시 후 다시 시도해 주세요."}</p></section>}
@@ -77,7 +79,7 @@ export default async function DocumentsPage({ searchParams }: Readonly<{ searchP
             <p className="document-byline">{[item.authors, item.publisher, item.journal].filter(Boolean).join(" · ") || "저자·발행처 정보 없음"}</p>
             <div className="document-badges"><span>{item.lang === "unknown" ? "언어 미측정" : item.lang.toUpperCase()}</span>{item.has_pdf && <span className="available">PDF</span>}{item.has_text && <span className="available">TEXT</span>}{item.has_translation && <span className="translated">한국어 번역</span>}</div>
           </div>
-          <div className="document-card-side"><span>발행 {readableDate(item.published_date)}</span><span>수집 {readableDate(item.collected_at)}</span><a href={item.meta_url} target="_blank" rel="noreferrer">원문 사이트 ↗</a></div>
+          <div className="document-card-side"><span>발행 {documentDate(item.published_date, item.published_date_raw, item.published_date_status)}</span><span>수집 {readableDate(item.collected_at)}</span><a href={item.meta_url} target="_blank" rel="noreferrer">원문 사이트 ↗</a></div>
         </article>
       </li>)}</ol> : <div className="document-empty"><strong>조건에 맞는 문서가 없습니다.</strong><p>검색어를 줄이거나 필터 조건을 초기화해 보세요.</p></div>}
       {data.pagination.pages > 1 && <nav className="pagination" aria-label="문서 결과 페이지 이동">
