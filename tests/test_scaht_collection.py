@@ -67,5 +67,48 @@ class ScahtCollectionTests(unittest.TestCase):
         self.assertEqual(self.count(), 8)
 
 
+class ScahtDateTests(unittest.TestCase):
+    def setUp(self):
+        self.conn = sqlite3.connect(':memory:')
+        self.addCleanup(self.conn.close)
+        db_libertree.init_db(self.conn)
+        db_libertree.upsert_site(self.conn, 'scaht-org-en', 'SCAHT', 'https://www.scaht.org')
+        self.enterContext(patch.dict(os.environ, {'LIBERTREE_DB_BACKEND': 'sqlite'}))
+
+    def persist(self, source, slug):
+        c = module.SCAHTOrgEnCrawler(self.conn)
+        c.delivery_mode = 'full'
+        record = {'url': f'https://www.scaht.org/en/publications/{slug}/', 'slug': slug,
+                  'title': 'Research', 'listed_date_raw': '5 Jun 2026', 'listed_date': '2026-06-05'}
+        detail = {'title': 'Research', 'published_date_raw': 'June 5, 2026', 'published_date': '2026-06-05'}
+        with patch.object(c, '_fetch_scaht_detail', return_value=detail), patch.object(c, '_fetch_source_metadata', return_value=source):
+            paper = c._fetch_parse_save_item(record, 'fixture')
+        c._save_paper(paper)
+        return self.conn.execute('SELECT published_date,published_date_raw,published_date_status,published_date_precision,listed_date,listed_date_raw FROM documents WHERE post_number=?', (slug,)).fetchone()
+
+    def test_crossref_partial_dates_preserve_precision_through_real_save(self):
+        c = module.SCAHTOrgEnCrawler(self.conn)
+        for parts, raw, precision in (([2025], '2025', 'year'), ([2025, 7], '2025-07', 'month')):
+            with self.subTest(parts=parts):
+                source = c._crossref_message_to_source({'published': {'date-parts': [parts]}}, 'https://api.crossref.org/works/example')
+                row = self.persist(source, raw)
+                self.assertEqual(row[:4], (None, raw, 'partial', precision))
+                self.assertEqual(row[4:], ('2026-06-05', '5 Jun 2026'))
+
+    def test_publisher_ambiguous_and_invalid_dates_do_not_fall_back(self):
+        for raw, status in (('03/04/2025', 'ambiguous'), ('2025-02-31', 'invalid'), ('2025', 'partial')):
+            with self.subTest(raw=raw):
+                c = module.SCAHTOrgEnCrawler(self.conn)
+                html = f'<html><head><meta name="citation_publication_date" content="{raw}"></head><body>Research</body></html>'
+                with patch.object(c, '_curl_get', return_value=(html, 'https://publisher.invalid/record', 200, 'text/html')):
+                    source = c._fetch_publisher_metadata('https://publisher.invalid/record', 'fixture')
+                row = self.persist(source, status)
+                self.assertEqual(row[:3], (None, raw, status))
+
+    def test_complete_date_normalizes_but_keeps_source_text(self):
+        row = self.persist({'published_date_raw': 'February 3, 2025', 'published_date': '2025-02-03'}, 'complete')
+        self.assertEqual(row[:4], ('2025-02-03', 'February 3, 2025', 'normalized', 'day'))
+
+
 if __name__ == '__main__':
     unittest.main()

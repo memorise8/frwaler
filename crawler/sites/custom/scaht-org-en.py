@@ -27,37 +27,12 @@ from urllib.parse import parse_qs, quote, unquote, urljoin, urlparse
 # Absolute import - spec_from_file_location has no package context.
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 from crawler.base_crawler import BaseCrawler  # noqa: E402
+from crawler.document_dates import normalize_date  # noqa: E402
 
 
 _SITE_ID = "scaht-org-en"
 _PARSERS = ("html5lib", "lxml", "html.parser")
 _RETRY_WAITS = (1, 3, 9)
-_MONTHS = {
-    "jan": 1,
-    "january": 1,
-    "feb": 2,
-    "february": 2,
-    "mar": 3,
-    "march": 3,
-    "apr": 4,
-    "april": 4,
-    "may": 5,
-    "jun": 6,
-    "june": 6,
-    "jul": 7,
-    "july": 7,
-    "aug": 8,
-    "august": 8,
-    "sep": 9,
-    "sept": 9,
-    "september": 9,
-    "oct": 10,
-    "october": 10,
-    "nov": 11,
-    "november": 11,
-    "dec": 12,
-    "december": 12,
-}
 
 
 def _make_soup(raw, context="html"):
@@ -94,52 +69,22 @@ def _clean_html_fragment(value):
 
 
 def _parse_date(raw):
-    value = _clean_text(raw)
-    if not value:
-        return None
-
-    match = re.search(r"\b(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})\b", value)
-    if match:
-        return f"{match.group(1)}-{int(match.group(2)):02d}-{int(match.group(3)):02d}"
-
-    match = re.search(r"\b(\d{4})[-/.](\d{1,2})\b", value)
-    if match:
-        return f"{match.group(1)}-{int(match.group(2)):02d}-01"
-
-    for pattern in (
-        r"\b(\d{1,2})\s+([A-Za-z]{3,12})\s+(\d{4})\b",
-        r"\b([A-Za-z]{3,12})\s+(\d{1,2}),?\s+(\d{4})\b",
-    ):
-        match = re.search(pattern, value)
-        if not match:
-            continue
-        if match.group(1).isdigit():
-            day = int(match.group(1))
-            month = _MONTHS.get(match.group(2).lower())
-            year = int(match.group(3))
-        else:
-            month = _MONTHS.get(match.group(1).lower())
-            day = int(match.group(2))
-            year = int(match.group(3))
-        if month:
-            return f"{year:04d}-{month:02d}-{day:02d}"
-
-    match = re.search(r"\b(19|20)\d{2}\b", value)
-    if match:
-        return f"{match.group(0)}-01-01"
-    return None
+    return normalize_date(raw)['value']
 
 
 def _date_from_parts(parts):
+    return _parse_date(_raw_date_from_parts(parts))
+
+
+def _raw_date_from_parts(parts):
+    """Serialize Crossref's date precision without filling absent components."""
     if not parts:
         return None
-    try:
-        year = int(parts[0])
-        month = int(parts[1]) if len(parts) > 1 else 1
-        day = int(parts[2]) if len(parts) > 2 else 1
-    except (TypeError, ValueError):
-        return None
-    return f"{year:04d}-{month:02d}-{day:02d}"
+    if (not isinstance(parts, (list, tuple)) or not 1 <= len(parts) <= 3
+            or any(type(value) is not int for value in parts)):
+        return json.dumps(parts, ensure_ascii=False)
+    return '-'.join(str(value).zfill(4 if index == 0 else 2)
+                    for index, value in enumerate(parts))
 
 
 def _join_semicolon(values):
@@ -414,8 +359,12 @@ class SCAHTOrgEnCrawler(BaseCrawler):
             return None
 
         abstract = _clean_text(source.get("abstract") or detail.get("abstract") or "")
-        listed_date = record.get("listed_date")
-        published_date = source.get("published_date") or detail.get("published_date") or listed_date
+        listed_date = record.get("listed_date_raw") or record.get("listed_date")
+        # Keep the chosen source's raw precision, including partial/invalid
+        # dates. A missing canonical day must not replace it with a list date.
+        published_date = (source.get("published_date_raw") or source.get("published_date")
+                          or detail.get("published_date_raw") or detail.get("published_date")
+                          or listed_date)
         slug = record.get("slug") or _slug_from_url(record.get("url"))
         if not slug:
             slug = hashlib.sha1(record["url"].encode("utf-8", errors="replace")).hexdigest()
@@ -436,7 +385,7 @@ class SCAHTOrgEnCrawler(BaseCrawler):
 
         metadata = {
             "posted_date": record.get("listed_date_raw"),
-            "posted_date_iso": listed_date,
+            "posted_date_iso": _parse_date(listed_date),
             "listed_date": listed_date,
             "detail_date_raw": detail.get("published_date_raw"),
             "originalFilename": original_filename,
@@ -616,6 +565,7 @@ class SCAHTOrgEnCrawler(BaseCrawler):
             or ((message.get("issued") or {}).get("date-parts") or [])
         )
         published_date = _date_from_parts(date_parts[0]) if date_parts else None
+        published_date_raw = _raw_date_from_parts(date_parts[0]) if date_parts else None
         journal = self._first_value(message.get("container-title"))
         pdf_url = self._pdf_from_crossref_links(message.get("link") or [])
         abstract = _clean_html_fragment(message.get("abstract") or "")
@@ -631,6 +581,7 @@ class SCAHTOrgEnCrawler(BaseCrawler):
             "published": message.get("published"),
             "published-online": message.get("published-online"),
             "published-print": message.get("published-print"),
+            "issued": message.get("issued"),
             "URL": message.get("URL"),
             "resource": message.get("resource"),
             "link": message.get("link"),
@@ -649,6 +600,7 @@ class SCAHTOrgEnCrawler(BaseCrawler):
             "volume": message.get("volume"),
             "issue": message.get("issue"),
             "published_date": published_date,
+            "published_date_raw": published_date_raw,
             "doi": (message.get("DOI") or "").lower() or None,
             "pdf_url": pdf_url,
             "keywords": message.get("subject") or [],
@@ -729,6 +681,7 @@ class SCAHTOrgEnCrawler(BaseCrawler):
             "journal": journal or None,
             "journal_raw": journal or None,
             "published_date": _parse_date(published_date_raw),
+            "published_date_raw": published_date_raw,
             "doi": doi,
             "pdf_url": pdf_url,
             "keywords": keywords,
