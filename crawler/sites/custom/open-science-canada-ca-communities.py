@@ -109,6 +109,10 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
                     if uuid in seen_items:
                         continue
                     seen_items.add(uuid)
+                    # Search results include collection navigation entries as
+                    # well as documents. They count toward source pagination.
+                    if item.get('type') in ('collection', 'community'):
+                        continue
                     time.sleep(self._delay)
                     self._check_cancelled()
                     detail = self._fetch_item(uuid)

@@ -95,6 +95,16 @@ class OpenScienceDeliveryScopes(CoupledContract,unittest.TestCase):
         c=self.configured(self.module.OpenScienceCanadaCaCommunitiesCrawler(self.conn));body=b'{"note":"HTTP200 in source"}\n'
         with patch.object(self.module.subprocess,'run',return_value=Mock(returncode=0,stdout=body+b'\n200',stderr=b'')):
             self.assertEqual(c._curl_get('https://fixture.invalid/'),body.decode())
+    def test_collection_entities_are_counted_for_paging_but_not_fetched_as_documents(self):
+        c=self.crawler();original=self.fetch.side_effect;collection='00000009-0000-0000-0000-000000000000'
+        def fetch(url,context='request'):
+            result=original(url,context)
+            if '/discover/search/objects' in url and parse_qs(urlsplit(url).query)['scope']==[self.ADDITIONAL]:
+                search=result['_embedded']['searchResult'];search['page']['totalElements']=9
+                if search['page']['number']==2:search['_embedded']['objects'].append({'_embedded':{'indexableObject':{'uuid':collection,'type':'collection','name':'Soils','metadata':{'dc.title':[{'value':'Soils'}]}}}})
+            return result
+        self.fetch.side_effect=fetch;self.assertEqual(c.crawl(),8);self.assertFalse(c.delivery_source_failure)
+        self.assertFalse(any('/items/'+collection in call.args[0] for call in self.fetch.call_args_list))
 
 @unittest.skipUnless(os.environ.get('TEST_PG_DSN'),'requires owned disposable PostgreSQL')
 class OpenScienceDeliveryScopesPostgres(OpenScienceDeliveryScopes):
