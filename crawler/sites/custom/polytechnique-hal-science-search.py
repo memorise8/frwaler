@@ -137,8 +137,10 @@ class PolytechniqueHalScienceSearchCrawler(BaseCrawler):
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.time()
+        start_offset = 0
 
         for page in range(_MAX_PAGES):
+            self._check_cancelled()
             # Wall-clock budget guard
             if time.time() - start_time > _CRAWL_BUDGET_SECS:
                 print(f"[{self.site_id}] 25-minute budget reached after {page} pages. Exiting.")
@@ -155,10 +157,7 @@ class PolytechniqueHalScienceSearchCrawler(BaseCrawler):
                 print(f"[{self.site_id}] page {page}: saved {saved}/{limit_str}")
 
             rows_this_page = _ROWS
-            if limit is not None:
-                rows_this_page = min(_ROWS, limit - saved)
 
-            start_offset = page * _ROWS
             data = self._fetch_page(start_offset, rows_this_page)
             if data is None:
                 print(f"[{self.site_id}] Failed to fetch page {page}. Stopping.")
@@ -176,6 +175,7 @@ class PolytechniqueHalScienceSearchCrawler(BaseCrawler):
             new_on_page = 0
 
             for doc in docs:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -191,6 +191,8 @@ class PolytechniqueHalScienceSearchCrawler(BaseCrawler):
                     if dedup_key in seen_urls:
                         continue
                     seen_urls.add(dedup_key)
+                    # Source progress includes records excluded from saving.
+                    new_on_page += 1
 
                     # Title
                     title_list = doc.get("title_s") or []
@@ -300,8 +302,8 @@ class PolytechniqueHalScienceSearchCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
-                    new_on_page += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] Saved {saved}/{limit_str}: {title[:60]}")
 
                 except KeyboardInterrupt:
@@ -311,10 +313,12 @@ class PolytechniqueHalScienceSearchCrawler(BaseCrawler):
                     continue
 
             # If an entire page produced zero new records, pagination has looped
+            start_offset += len(docs)
+
             if new_on_page == 0 and page > 0:
                 print(
                     f"[{self.site_id}] No new records on page {page} "
-                    "(all skipped or already seen). Stopping."
+                    "(all source identifiers already seen). Stopping."
                 )
                 break
 

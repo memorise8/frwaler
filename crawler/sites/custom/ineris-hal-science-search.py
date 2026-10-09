@@ -153,6 +153,7 @@ class InerisHalScienceSearchCrawler(BaseCrawler):
         start_time = time.time()
 
         for page in range(_MAX_PAGES):
+            self._check_cancelled()
             if time.time() - start_time > _CRAWL_BUDGET_SECS:
                 print(f"[{self.site_id}] 25-minute budget reached after {page} pages. Exiting.")
                 break
@@ -167,8 +168,6 @@ class InerisHalScienceSearchCrawler(BaseCrawler):
                 print(f"[{self.site_id}] page {page}: saved {saved}/{limit_str}")
 
             rows_this_page = _ROWS
-            if limit is not None:
-                rows_this_page = min(_ROWS, limit - saved)
 
             time.sleep(self._delay)
 
@@ -189,6 +188,7 @@ class InerisHalScienceSearchCrawler(BaseCrawler):
             new_on_page = 0
 
             for doc in docs:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -201,6 +201,8 @@ class InerisHalScienceSearchCrawler(BaseCrawler):
                     if dedup_key in seen_ids:
                         continue
                     seen_ids.add(dedup_key)
+                    # Source progress includes records excluded from saving.
+                    new_on_page += 1
 
                     # Title
                     title_list = doc.get("title_s") or []
@@ -306,8 +308,8 @@ class InerisHalScienceSearchCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
-                    new_on_page += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] Saved {saved}/{limit_str}: {title[:60]}")
 
                 except KeyboardInterrupt:
@@ -323,7 +325,7 @@ class InerisHalScienceSearchCrawler(BaseCrawler):
             if new_on_page == 0 and page > 0:
                 print(
                     f"[{self.site_id}] No new records on page {page} "
-                    "(all seen or skipped). Stopping."
+                    "(all source identifiers already seen). Stopping."
                 )
                 break
 
