@@ -61,21 +61,22 @@ class UNGenevaEnCrawler(BaseCrawler):
     _SITE_SUFFIX = r"\s*\|\s*The United Nations Office at Geneva\s*$"
 
     def crawl(self, limit=None):
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         deadline = time.time() + _WALL_CLOCK_MIN * 60
         saved = 0
         seen_urls: set[str] = set()
         limit_str = str(limit) if limit is not None else "∞"
 
         for page in range(0, _MAX_PAGES):
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
 
             if time.time() > deadline:
+                self._report_source_failure('invalid_response')
                 print(f"[ungeneva-org-en] 25-minute wall-clock budget reached at page {page}. Stopping.")
-                break
-
-            if page == _MAX_PAGES - 1:
-                print(f"[ungeneva-org-en] Safety cap of {_MAX_PAGES} pages reached. Stopping.")
                 break
 
             if page > 0 and page % 10 == 0:
@@ -84,16 +85,19 @@ class UNGenevaEnCrawler(BaseCrawler):
             list_url = f"{self._LIST_URL}?page={page}"
             raw = _curl_get(list_url)
             if not raw:
+                self._report_source_failure('fetch_failed')
                 print(f"[ungeneva-org-en] Failed to fetch list page {page}. Stopping.")
                 break
 
             try:
                 soup = _make_soup(raw)
             except Exception as exc:
+                self._report_source_failure('invalid_response')
                 print(f"[ungeneva-org-en] BeautifulSoup failed on list page {page}: {exc}. Skipping.")
                 continue
 
             if soup is None:
+                self._report_source_failure('invalid_response')
                 print(f"[ungeneva-org-en] Could not parse list page {page}. Stopping.")
                 break
 
@@ -104,6 +108,7 @@ class UNGenevaEnCrawler(BaseCrawler):
 
             new_on_page = 0
             for row in rows:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -125,7 +130,7 @@ class UNGenevaEnCrawler(BaseCrawler):
                 time_tag = row.find("time")
                 list_date = ""
                 if time_tag and time_tag.get("datetime"):
-                    list_date = time_tag["datetime"][:10]
+                    list_date = time_tag["datetime"]
 
                 external_id = href.rstrip("/").split("/")[-1]
 
@@ -137,12 +142,14 @@ class UNGenevaEnCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(f"[ungeneva-org-en] item {full_url} failed: {exc}. Continuing.")
                     continue
 
                 time.sleep(self._delay)
 
             if new_on_page == 0:
+                self._report_source_failure('invalid_response')
                 print(f"[ungeneva-org-en] All items on page {page} already seen. Stopping.")
                 break
 
@@ -151,7 +158,11 @@ class UNGenevaEnCrawler(BaseCrawler):
             if not next_link:
                 print(f"[ungeneva-org-en] No next-page link after page {page}. Done.")
                 break
+        else:
+            if limit is None or saved < limit:
+                self._report_source_failure('invalid_response')
 
+        self._check_cancelled()
         print(f"[ungeneva-org-en] Done. Total saved: {saved}")
         return saved
 
@@ -159,16 +170,19 @@ class UNGenevaEnCrawler(BaseCrawler):
         """Fetch detail page, parse, and persist. Returns True if saved."""
         raw = _curl_get(url)
         if not raw:
+            self._report_source_failure('item_failed')
             print(f"[ungeneva-org-en] Failed to fetch detail {url}")
             return False
 
         try:
             soup = _make_soup(raw)
         except Exception as exc:
+            self._report_source_failure('item_failed')
             print(f"[ungeneva-org-en] Parse error for {url}: {exc}")
             return False
 
         if soup is None:
+            self._report_source_failure('item_failed')
             return False
 
         # Title: <title> tag, strip site-name suffix
@@ -185,7 +199,7 @@ class UNGenevaEnCrawler(BaseCrawler):
         if time_tag:
             raw_dt = time_tag.get("datetime", "")
             if raw_dt:
-                published_date = raw_dt[:10]
+                published_date = raw_dt
 
         # Abstract: full text from div.text-long (Drupal body field)
         body_div = soup.find("div", class_="text-long")
@@ -225,4 +239,4 @@ class UNGenevaEnCrawler(BaseCrawler):
             "department": "United Nations Office at Geneva",
             "metadata": json.dumps({"source_url": url}, ensure_ascii=False),
         })
-        return True
+        return self._last_save_created

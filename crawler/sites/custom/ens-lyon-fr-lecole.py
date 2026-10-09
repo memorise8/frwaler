@@ -45,21 +45,27 @@ class EnsLyonFrLecoleCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         saved = 0
         seen_urls = set()
         start_time = time.monotonic()
 
         page_num = 0
         while True:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
 
             elapsed = time.monotonic() - start_time
             if elapsed > self.WALL_CLOCK_LIMIT:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] wall-clock limit reached ({elapsed:.0f}s); stopping")
                 break
 
             if page_num >= self.MAX_PAGES:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] safety cap of {self.MAX_PAGES} pages reached; stopping")
                 break
 
@@ -70,11 +76,13 @@ class EnsLyonFrLecoleCrawler(BaseCrawler):
             list_url = f"{self.LIST_URL}?page={page_num}"
             raw = self._curl_get(list_url, context=f"list page {page_num}")
             if not raw:
+                self._report_source_failure('fetch_failed')
                 print(f"[{self.site_id}] failed to fetch list page {page_num}; stopping")
                 break
 
             soup = self._make_soup(raw, context=f"list page {page_num}")
             if soup is None:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] failed to parse list page {page_num}; stopping")
                 break
 
@@ -85,6 +93,7 @@ class EnsLyonFrLecoleCrawler(BaseCrawler):
 
             new_on_page = 0
             for article in articles:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -112,17 +121,20 @@ class EnsLyonFrLecoleCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(f"[{self.site_id}] item node_{node_id} failed: {exc}")
                     continue
 
                 time.sleep(self._delay)
 
             if new_on_page == 0:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] page {page_num}: all URLs already seen; stopping")
                 break
 
             page_num += 1
 
+        self._check_cancelled()
         print(f"[{self.site_id}] done. Total saved: {saved}")
         return saved
 
@@ -134,11 +146,13 @@ class EnsLyonFrLecoleCrawler(BaseCrawler):
         """Fetch and parse one article detail page. Returns True if saved."""
         raw = self._curl_get(detail_url, context=f"node {node_id}")
         if not raw:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] node {node_id}: fetch failed; skipping")
             return False
 
         soup = self._make_soup(raw, context=f"node {node_id}")
         if soup is None:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] node {node_id}: parse failed; skipping")
             return False
 
@@ -231,7 +245,7 @@ class EnsLyonFrLecoleCrawler(BaseCrawler):
         }
 
         self._save_paper(paper)
-        return True
+        return self._last_save_created
 
     # ------------------------------------------------------------------
     # Network

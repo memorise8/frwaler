@@ -142,6 +142,15 @@ class CnipaAnnualCounts(AnnualContract,unittest.TestCase):
         values=list(row.values()) if isinstance(row,dict) else list(row)
         self.assertEqual(values,['https://english.cnipa.gov.cn/module/download/down.jsp?i_ID=186070&colID=3261']*2)
 
+    def test_proxy_safety_cap_retains_prefix_without_unsupported_failure_code(self):
+        c=self.crawler()
+        def fetch(url,**kw):
+            n=int(parse_qs(urlsplit(url).query)['page'][0])
+            return f'<datastore><record><![CDATA[<a title="Section {n}" href="/art/2025/7/11/art_1336_{n}.html">Report</a>]]></record><totalpage>201</totalpage></datastore>'
+        self.fetch.side_effect=fetch
+        items=c._fetch_via_dataproxy('1336','42','2025')
+        self.assertEqual(len(items),200);self.assertEqual(c.delivery_source_failure,'invalid_response')
+
 for cls in (MoeAnnualCounts,CnipaAnnualCounts):
     pg=type(cls.__name__+'Postgres',(cls,),{'BACKEND':'postgres'})
     globals()[pg.__name__]=unittest.skipUnless(os.environ.get('TEST_PG_DSN'),'requires owned disposable PostgreSQL')(pg)

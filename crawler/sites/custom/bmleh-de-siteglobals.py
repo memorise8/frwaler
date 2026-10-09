@@ -147,8 +147,8 @@ class BmlehDeSiteglobalsCrawler(BaseCrawler):
         p = soup.find("p", class_="c-search-resultsperpage__p")
         if not p:
             return None
-        m = re.search(r"von\s+(\d+)", p.get_text())
-        return int(m.group(1)) if m else None
+        m = re.search(r"von\s+((?:\d{1,3}(?:\.\d{3})+|\d+))(?![\d.])", p.get_text())
+        return int(m.group(1).replace('.', '')) if m else None
 
     def _parse_list_items(self, soup) -> list:
         items = []
@@ -286,12 +286,14 @@ class BmlehDeSiteglobalsCrawler(BaseCrawler):
 
         raw = self._fetch(detail_url)
         if not raw:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] failed to fetch detail page: {detail_url}")
             return False
 
         try:
             soup = _make_soup(raw)
         except Exception as exc:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] HTML parse error for {detail_url}: {exc}")
             return False
 
@@ -367,13 +369,16 @@ class BmlehDeSiteglobalsCrawler(BaseCrawler):
         }
 
         self._save_paper(paper)
-        return True
+        return self._last_save_created
 
     # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         saved = 0
         seen_urls: set = set()
         start_time = time.time()
@@ -385,24 +390,29 @@ class BmlehDeSiteglobalsCrawler(BaseCrawler):
 
         try:
             while True:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
                 if page > self._MAX_PAGES:
+                    self._report_source_failure('invalid_response')
                     print(f"[{self.site_id}] Safety cap of {self._MAX_PAGES} pages reached. Stopping.")
                     break
                 elapsed = time.time() - start_time
                 if elapsed > self._MAX_WALL:
+                    self._report_source_failure('invalid_response')
                     print(f"[{self.site_id}] Wall-clock budget ({self._MAX_WALL}s) exceeded. Stopping cleanly.")
                     break
 
                 raw = self._fetch(current_url)
                 if not raw:
+                    self._report_source_failure('fetch_failed')
                     print(f"[{self.site_id}] Failed to fetch list page {page} ({current_url}). Stopping.")
                     break
 
                 try:
                     soup = _make_soup(raw)
                 except Exception as exc:
+                    self._report_source_failure('invalid_response')
                     print(f"[{self.site_id}] HTML parse error on list page {page}: {exc}. Stopping.")
                     break
 
@@ -418,6 +428,7 @@ class BmlehDeSiteglobalsCrawler(BaseCrawler):
 
                 new_count = 0
                 for it in items:
+                    self._check_cancelled()
                     if limit is not None and saved >= limit:
                         break
 
@@ -433,6 +444,7 @@ class BmlehDeSiteglobalsCrawler(BaseCrawler):
                             lim_str = str(limit) if limit is not None else "inf"
                             print(f"[{self.site_id}] Saved {saved}/{lim_str}: {it['title'][:60]}")
                     except Exception as exc:
+                        self._report_source_failure('item_failed')
                         print(f"[{self.site_id}] item {detail_url} failed: {exc}")
                         continue
 
@@ -443,9 +455,12 @@ class BmlehDeSiteglobalsCrawler(BaseCrawler):
                 if limit is not None and saved >= limit:
                     break
                 if new_count == 0:
+                    self._report_source_failure('invalid_response')
                     print(f"[{self.site_id}] Page {page} yielded 0 new records (possible pagination loop). Stopping.")
                     break
                 if list_id is None:
+                    if total_results is None or len(seen_urls) < total_results:
+                        self._report_source_failure('invalid_response')
                     print(f"[{self.site_id}] Could not discover pagination id after page {page}. Stopping.")
                     break
 
@@ -463,5 +478,6 @@ class BmlehDeSiteglobalsCrawler(BaseCrawler):
             print(f"[{self.site_id}] Interrupted by user. Saved {saved} so far.")
             raise
 
+        self._check_cancelled()
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved

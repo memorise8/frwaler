@@ -370,7 +370,7 @@ class CnipaAnnualReportCrawler(BaseCrawler):
 
             if page >= safety_cap:
                 if page < total_pages:
-                    self._report_source_failure('page_limit')
+                    self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] Safety cap of {safety_cap} pages reached for col {col_id}")
                 break
             if page >= total_pages:
