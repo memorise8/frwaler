@@ -59,7 +59,9 @@ class TransparencyGovAuPublicationsCrawler(BaseCrawler):
         limit_or_inf = limit if limit is not None else "∞"
 
         page = 0
+        skip = 0
         while True:
+            self._check_cancelled()
             if page >= self._SAFETY_CAP:
                 print(f"[{self.site_id}] safety cap of {self._SAFETY_CAP} pages reached")
                 break
@@ -71,10 +73,8 @@ class TransparencyGovAuPublicationsCrawler(BaseCrawler):
             if limit is not None and saved >= limit:
                 break
 
-            skip = page * self._PAGE_SIZE
+            # Source windows are independent of the number of new DB rows.
             top = self._PAGE_SIZE
-            if limit is not None:
-                top = min(top, limit - saved)
 
             if page > 0 and page % 10 == 0:
                 print(f"[{self.site_id}] page {page}: saved {saved}/{limit_or_inf}")
@@ -84,6 +84,7 @@ class TransparencyGovAuPublicationsCrawler(BaseCrawler):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure('fetch_failed')
                 print(f"[{self.site_id}] page {page} fetch failed: {exc}")
                 break
 
@@ -93,6 +94,7 @@ class TransparencyGovAuPublicationsCrawler(BaseCrawler):
 
             new_in_page = 0
             for item in items:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -107,20 +109,21 @@ class TransparencyGovAuPublicationsCrawler(BaseCrawler):
                     if paper is None:
                         continue
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     title = item.get("Title", "?")[:60]
                     print(f"[{self.site_id}] item '{title}' failed: {exc}")
                     continue
 
             if new_in_page == 0:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] page {page}: no new items, stopping")
                 break
 
-            # Last page: fewer items than requested
-            if len(items) < self._PAGE_SIZE:
-                break
-
+            # A short server window alone does not prove end of source.
+            skip += len(items)
             page += 1
             time.sleep(self._delay)
 

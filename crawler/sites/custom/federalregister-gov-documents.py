@@ -35,6 +35,7 @@ class FederalRegisterDocsCrawler(BaseCrawler):
 
         try:
             while True:
+                self._check_cancelled()
                 # Exit: limit reached
                 if limit is not None and saved >= limit:
                     break
@@ -49,12 +50,8 @@ class FederalRegisterDocsCrawler(BaseCrawler):
                     print(f"[{self.site_id}] 25-minute wall-clock budget reached. Stopping.")
                     break
 
-                # Never fetch more items than needed
+                # Keep page boundaries independent of newly inserted rows.
                 per_page = self._PAGE_SIZE
-                if limit is not None:
-                    per_page = min(per_page, limit - saved)
-                    if per_page <= 0:
-                        break
 
                 # Build params as list of tuples (handles bracket-style keys correctly)
                 params = [
@@ -67,16 +64,21 @@ class FederalRegisterDocsCrawler(BaseCrawler):
 
                 resp = self._request(self._API_BASE, params=params)
                 if resp is None:
+                    self._report_source_failure('fetch_failed')
                     print(f"[{self.site_id}] Failed to fetch page {page} after retries. Stopping.")
                     break
 
                 try:
                     data = resp.json()
                 except Exception as exc:
+                    self._report_source_failure('invalid_response')
                     print(f"[{self.site_id}] JSON parse error at page {page}: {exc}. Stopping.")
                     break
 
-                results = data.get("results") or []
+                if not isinstance(data, dict) or not isinstance(data.get('results'), list):
+                    self._report_source_failure('invalid_response')
+                    break
+                results = data['results']
                 if not results:
                     print(f"[{self.site_id}] No results at page {page}. Done.")
                     break
@@ -88,6 +90,7 @@ class FederalRegisterDocsCrawler(BaseCrawler):
 
                 page_new = 0
                 for item in results:
+                    self._check_cancelled()
                     if limit is not None and saved >= limit:
                         break
 
@@ -96,10 +99,15 @@ class FederalRegisterDocsCrawler(BaseCrawler):
                         doc_number = (item.get("document_number") or "").strip()
 
                         # URL deduplication — prevents infinite loops if paginator loops
-                        if html_url:
-                            if html_url in seen_urls:
-                                continue
-                            seen_urls.add(html_url)
+                        dedup_key = html_url or doc_number
+                        if not dedup_key:
+                            self._report_source_failure('invalid_response')
+                            continue
+                        if dedup_key in seen_urls:
+                            continue
+                        seen_urls.add(dedup_key)
+                        # Excluded records still advance the source window.
+                        page_new += 1
 
                         title = (item.get("title") or "").strip()
                         if not title:
@@ -185,11 +193,12 @@ class FederalRegisterDocsCrawler(BaseCrawler):
                         }
 
                         self._save_paper(paper)
-                        saved += 1
-                        page_new += 1
+                        if self._last_save_created:
+                            saved += 1
                         print(f"[{self.site_id}] Saved {saved}/{limit_str}: {title[:60]}")
 
                     except Exception as exc:
+                        self._report_source_failure('item_failed')
                         print(f"[{self.site_id}] item {doc_number!r} failed: {exc}")
                         continue
 
@@ -199,6 +208,7 @@ class FederalRegisterDocsCrawler(BaseCrawler):
 
                 # All items on this page were already seen → infinite loop guard
                 if page_new == 0 and len(results) > 0:
+                    self._report_source_failure('invalid_response')
                     print(f"[{self.site_id}] Page {page}: all items already seen. Stopping.")
                     break
 
