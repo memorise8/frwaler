@@ -132,6 +132,25 @@ class ApiResumeContract:
 
 
 class FederalCursorContract:
+    def test_number_and_original_url_jointly_preserve_source_identity(self):
+        rows = [
+            {'document_number':'94-11593','html_url':'https://fixture.invalid/1994/original'},
+            {'document_number':'94-11593','html_url':'https://fixture.invalid/1995/original'},
+            {'document_number':'distinct-number','html_url':'https://fixture.invalid/1995/original'},
+        ]
+        rows = [dict(row,title='Research',abstract='Scientific evidence. '*10) for row in rows]
+        before = None
+        for expected in (3,0):
+            crawler=self.cls(self.conn);self.addCleanup(crawler._session.close)
+            response=Mock();response.json.return_value={'results':rows,'count':3,'total_pages':1,'next_page_url':None}
+            crawler._request=Mock(return_value=response)
+            self.assertEqual(crawler.crawl(),expected)
+            saved=self.conn.execute('SELECT post_number,meta_url,seq_id FROM documents ORDER BY seq_id').fetchall()
+            values=[tuple(row.values()) if isinstance(row,dict) else tuple(row) for row in saved]
+            self.assertEqual({row[:2] for row in values},{(row['document_number'],row['html_url']) for row in rows})
+            if before is not None:self.assertEqual(values,before)
+            before=values
+
     def cursor_crawl(self, corrupt=None):
         crawler = self.cls(self.conn); self.addCleanup(crawler._session.close)
         calls = []

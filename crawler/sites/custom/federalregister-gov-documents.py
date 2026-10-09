@@ -47,6 +47,95 @@ class FederalRegisterDocsCrawler(BaseCrawler):
             raise ValueError('next page changes query scope')
         return url
 
+    def _paper_from_item(self, item):
+        """Map original source fields; exclusions remain explicit return values."""
+        html_url = (item.get("html_url") or "").strip()
+        doc_number = (item.get("document_number") or "").strip()
+        title = (item.get("title") or "").strip()
+        if not title:
+            print(f"[{self.site_id}] Skipping item with no title ({doc_number})")
+            return None
+
+        # Abstract: prefer full abstract, fall back to excerpts
+        abstract = (item.get("abstract") or "").strip()
+        if len(abstract) < 50:
+            fallback = (item.get("excerpts") or "").strip()
+            if len(fallback) > len(abstract):
+                abstract = fallback
+
+        if len(abstract) < 50:
+            print(f"[{self.site_id}] Skipping {doc_number}: abstract too short ({len(abstract)} chars)")
+            return None
+
+        # Supplement to guarantee >= 100 chars (edge case: FR items
+        # with very short abstracts like single-sentence notices)
+        if len(abstract) < 100:
+            doc_type_str = (item.get("type") or "").strip()
+            agencies_raw = item.get("agencies") or []
+            anames = [a.get("name", "") for a in agencies_raw if a.get("name")]
+            supplement = (
+                f" [Document type: {doc_type_str}."
+                f" Published by: {'; '.join(anames)}."
+                f" Document number: {doc_number}.]"
+            )
+            abstract = abstract + supplement
+
+        pub_date = (item.get("publication_date") or "").strip()
+        pdf_url = (item.get("pdf_url") or "").strip() or None
+        doc_type = (item.get("type") or "").strip()
+
+        # Publisher: join all agency names with ";"
+        agencies = item.get("agencies") or []
+        agency_names = [a.get("name", "") for a in agencies if a.get("name")]
+        publisher = "; ".join(agency_names) if agency_names else None
+
+        # Sub-agencies (parent_id != None) collected for metadata
+        sub_agencies = [
+            a.get("name", "")
+            for a in agencies
+            if a.get("name") and a.get("parent_id") is not None
+        ]
+
+        # Topics as keywords
+        topics = item.get("topics") or []
+        keywords = ", ".join(str(t) for t in topics) if topics else None
+
+        # original_filename from the last path segment of pdf_url
+        original_filename = None
+        if pdf_url:
+            tail = pdf_url.rstrip("/").split("/")[-1].split("?")[0].split("#")[0]
+            if "." in tail and len(tail) <= 200:
+                original_filename = tail
+
+        paper = {
+            "site_id": self.site_id,
+            "external_id": doc_number,
+            "post_number": doc_number,
+            "url": html_url,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "posted_date": pub_date,
+            "listed_date": pub_date,
+            "authors": None,
+            "publisher": publisher,
+            "pdf_url": pdf_url,
+            "keywords": keywords,
+            "category": doc_type,
+            "original_filename": original_filename,
+            "doi": None,
+            "metadata": json.dumps({
+                "posted_date": pub_date,
+                "document_number": doc_number,
+                "document_type": doc_type,
+                "sub_agencies": sub_agencies,
+                "agency_slugs": [a.get("slug", "") for a in agencies],
+                "public_inspection_pdf_url": item.get("public_inspection_pdf_url"),
+            }, ensure_ascii=False),
+        }
+
+        return paper
+
     def crawl(self, limit=None):
         saved = 0
         page = 1
@@ -122,9 +211,9 @@ class FederalRegisterDocsCrawler(BaseCrawler):
                         html_url = (item.get("html_url") or "").strip()
                         doc_number = (item.get("document_number") or "").strip()
 
-                        # URL deduplication — prevents infinite loops if paginator loops
-                        dedup_key = html_url or doc_number
-                        if not dedup_key:
+                        # Publisher numbers can be reused; preserve their original URLs.
+                        dedup_key = (doc_number, html_url)
+                        if not doc_number or not html_url:
                             self._report_source_failure('invalid_response')
                             continue
                         if dedup_key in seen_urls:
@@ -133,93 +222,14 @@ class FederalRegisterDocsCrawler(BaseCrawler):
                         # Excluded records still advance the source window.
                         page_new += 1
 
-                        title = (item.get("title") or "").strip()
-                        if not title:
-                            print(f"[{self.site_id}] Skipping item with no title ({doc_number})")
+                        paper = self._paper_from_item(item)
+                        if paper is None:
                             continue
-
-                        # Abstract: prefer full abstract, fall back to excerpts
-                        abstract = (item.get("abstract") or "").strip()
-                        if len(abstract) < 50:
-                            fallback = (item.get("excerpts") or "").strip()
-                            if len(fallback) > len(abstract):
-                                abstract = fallback
-
-                        if len(abstract) < 50:
-                            print(f"[{self.site_id}] Skipping {doc_number}: abstract too short ({len(abstract)} chars)")
-                            continue
-
-                        # Supplement to guarantee >= 100 chars (edge case: FR items
-                        # with very short abstracts like single-sentence notices)
-                        if len(abstract) < 100:
-                            doc_type_str = (item.get("type") or "").strip()
-                            agencies_raw = item.get("agencies") or []
-                            anames = [a.get("name", "") for a in agencies_raw if a.get("name")]
-                            supplement = (
-                                f" [Document type: {doc_type_str}."
-                                f" Published by: {'; '.join(anames)}."
-                                f" Document number: {doc_number}.]"
-                            )
-                            abstract = abstract + supplement
-
-                        pub_date = (item.get("publication_date") or "").strip()
-                        pdf_url = (item.get("pdf_url") or "").strip() or None
-                        doc_type = (item.get("type") or "").strip()
-
-                        # Publisher: join all agency names with ";"
-                        agencies = item.get("agencies") or []
-                        agency_names = [a.get("name", "") for a in agencies if a.get("name")]
-                        publisher = "; ".join(agency_names) if agency_names else None
-
-                        # Sub-agencies (parent_id != None) collected for metadata
-                        sub_agencies = [
-                            a.get("name", "")
-                            for a in agencies
-                            if a.get("name") and a.get("parent_id") is not None
-                        ]
-
-                        # Topics as keywords
-                        topics = item.get("topics") or []
-                        keywords = ", ".join(str(t) for t in topics) if topics else None
-
-                        # original_filename from the last path segment of pdf_url
-                        original_filename = None
-                        if pdf_url:
-                            tail = pdf_url.rstrip("/").split("/")[-1].split("?")[0].split("#")[0]
-                            if "." in tail and len(tail) <= 200:
-                                original_filename = tail
-
-                        paper = {
-                            "site_id": self.site_id,
-                            "external_id": doc_number,
-                            "post_number": doc_number,
-                            "url": html_url,
-                            "title": title,
-                            "abstract": abstract,
-                            "published_date": pub_date,
-                            "posted_date": pub_date,
-                            "listed_date": pub_date,
-                            "authors": None,
-                            "publisher": publisher,
-                            "pdf_url": pdf_url,
-                            "keywords": keywords,
-                            "category": doc_type,
-                            "original_filename": original_filename,
-                            "doi": None,
-                            "metadata": json.dumps({
-                                "posted_date": pub_date,
-                                "document_number": doc_number,
-                                "document_type": doc_type,
-                                "sub_agencies": sub_agencies,
-                                "agency_slugs": [a.get("slug", "") for a in agencies],
-                                "public_inspection_pdf_url": item.get("public_inspection_pdf_url"),
-                            }, ensure_ascii=False),
-                        }
 
                         self._save_paper(paper)
                         if self._last_save_created:
                             saved += 1
-                        print(f"[{self.site_id}] Saved {saved}/{limit_str}: {title[:60]}")
+                        print(f"[{self.site_id}] Saved {saved}/{limit_str}: {paper['title'][:60]}")
 
                     except Exception as exc:
                         self._report_source_failure('item_failed')
