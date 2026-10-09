@@ -180,6 +180,18 @@ class EnsLyonFrLecoleCrawler(BaseCrawler):
                 if len(body_text) > len(abstract):
                     abstract = body_text
 
+            # Current Drupal articles store their body in ordered paragraph
+            # fields. Restrict these to main so footer/navigation fields cannot
+            # turn an empty article into an apparently collectable document.
+            main = soup.select_one("main")
+            if main:
+                paragraph_text = " ".join(
+                    self._node_text(node)
+                    for node in main.select(".field--name-bp-text")
+                ).strip()
+                if len(paragraph_text) > len(abstract):
+                    abstract = paragraph_text
+
         if len(abstract) < self.MIN_ABSTRACT_CHARS:
             print(
                 f"[{self.site_id}] node {node_id}: abstract too short "

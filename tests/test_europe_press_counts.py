@@ -68,6 +68,27 @@ class BmlehCounts(EuropePressContract,unittest.TestCase):
 
 class EnsLyonCounts(EuropePressContract,unittest.TestCase):
     SITE='ens-lyon-fr-lecole';CLASS='EnsLyonFrLecoleCrawler';LIST_METHOD='_curl_get';LIST_MODULE=False
+    def test_short_summary_recovers_ordered_article_paragraphs_without_footer(self):
+        c=self.crawler();original=self.fetch.side_effect
+        first='First source paragraph describing the published research findings. '*3
+        second='Second source paragraph giving the evidence and implications. '*3
+        def fetch(url,**kw):
+            if '/report-' not in url:return original(url,**kw)
+            return '<h1>Research report</h1><main><div class="field--name-field-article-resume">Short publisher summary.</div><div class="field--name-bp-text">'+first+'</div><div class="field--name-bp-text">'+second+'</div></main><footer><div class="field--name-bp-text">UNRELATED FOOTER '+('Navigation '*100)+'</div></footer>'
+        self.fetch.side_effect=fetch
+        for expected in (3,3,2,0):self.assertEqual(c.crawl(limit=3),expected)
+        for r in self.conn.execute('SELECT abstract FROM documents'):
+            self.assertEqual(r['abstract'] if isinstance(r,dict) else r[0],' '.join((first+second).split()))
+    def test_external_body_field_does_not_promote_empty_article(self):
+        c=self.crawler();original=self.fetch.side_effect
+        self.fetch.side_effect=lambda url,**kw:original(url,**kw) if '/report-' not in url else '<h1>Empty article</h1><main><div class="field--name-bp-text">Video</div></main><footer><div class="field--name-bp-text">'+('Unrelated navigation '*100)+'</div></footer>'
+        self.assertEqual(c.crawl(),0);self.assertEqual(self.count(),0)
+    def test_sufficient_summary_preserved_when_article_paragraphs_exist(self):
+        c=self.crawler();original=self.fetch.side_effect
+        self.fetch.side_effect=lambda url,**kw:original(url,**kw)+'<main><div class="field--name-bp-text">'+('Longer body '*100)+'</div></main>'
+        self.assertEqual(c.crawl(),8)
+        for r in self.conn.execute('SELECT abstract FROM documents'):
+            self.assertEqual(r['abstract'] if isinstance(r,dict) else r[0],('Original publisher research and publication evidence. '*10).strip())
     def test_source_publication_label_retains_raw_text_and_date_precision(self):
         self.date_values=['Date de publication 2025','Date de publication juillet 2025','Date de publication 31/02/2025','Date de publication 23/04/2026','Date de publication 23/04/2026 suffix','Date de publication 03/04/2025','Date de publication 2025-07-11','Date de publication 2025-07']
         self.assertEqual(self.crawler().crawl(),8)
