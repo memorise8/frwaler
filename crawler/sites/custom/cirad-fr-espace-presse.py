@@ -13,35 +13,14 @@ import re
 import subprocess
 import time
 from html import unescape
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
 from crawler.base_crawler import BaseCrawler
-
-# ---------------------------------------------------------------------------
-# French month name → zero-padded month number
-# ---------------------------------------------------------------------------
-_FR_MONTHS = {
-    "janvier": "01", "février": "02", "fevrier": "02",
-    "mars": "03", "avril": "04", "mai": "05", "juin": "06",
-    "juillet": "07", "août": "08", "aout": "08",
-    "septembre": "09", "octobre": "10", "novembre": "11", "décembre": "12",
-    "decembre": "12",
-}
-
+from crawler.document_dates import normalize_date
 
 def _parse_french_date(text: str) -> str | None:
     """'29 avril 2026' → '2026-04-29'. Returns None if unparseable."""
-    if not text:
-        return None
-    t = text.strip().lower()
-    m = re.match(r"(\d{1,2})\s+(\S+)\s+(\d{4})", t)
-    if not m:
-        return None
-    day, month_fr, year = m.groups()
-    month = _FR_MONTHS.get(month_fr)
-    if not month:
-        return None
-    return f"{year}-{month}-{int(day):02d}"
+    return normalize_date(text)['value']
 
 
 def _strip_html(html: str) -> str:
@@ -79,13 +58,17 @@ class CiradFrEspacePresseCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None) -> int:
+        self._check_cancelled()
         saved = 0
         seen_urls: set[str] = set()
         limit_str = str(limit) if limit is not None else "inf"
         wall_start = time.time()
         MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
+        url = self.LIST_URL
+        seen_pages = set()
 
         for page_num in range(1, self.MAX_PAGES + 1):
+            self._check_cancelled()
             # ── wall-clock guard ────────────────────────────────────────
             if time.time() - wall_start > MAX_WALL:
                 print(f"[{self.site_id}] wall-clock budget reached at page {page_num}; stopping")
@@ -96,18 +79,24 @@ class CiradFrEspacePresseCrawler(BaseCrawler):
                 break
 
             # ── fetch list page ─────────────────────────────────────────
-            url = self.LIST_URL if page_num == 1 else f"{self.LIST_URL}?page={page_num}"
+            if url in seen_pages:
+                self._report_source_failure('invalid_response')
+                break
+            seen_pages.add(url)
             raw = self._fetch(url, context=f"list p{page_num}")
             if not raw:
+                self._report_source_failure('fetch_failed')
                 print(f"[{self.site_id}] list page {page_num} failed; stopping")
                 break
 
             try:
                 soup = _make_soup(raw)
             except Exception as exc:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] list page {page_num} parse error: {exc}; stopping")
                 break
             if soup is None:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] list page {page_num} unparseable; stopping")
                 break
 
@@ -118,6 +107,7 @@ class CiradFrEspacePresseCrawler(BaseCrawler):
 
             new_on_page = 0
             for card in cards:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -166,6 +156,7 @@ class CiradFrEspacePresseCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(f"[{self.site_id}] item {full_url} failed: {exc}")
                     continue
 
@@ -175,14 +166,24 @@ class CiradFrEspacePresseCrawler(BaseCrawler):
 
             # ── end-of-pagination detection ──────────────────────────────
             if new_on_page == 0:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] page {page_num}: no new items; stopping")
                 break
 
             # Check for rel="next" link; absent → last page
-            has_next = bool(soup.find("a", rel="next"))
-            if not has_next:
+            next_link = soup.find("a", rel="next")
+            if not next_link:
                 print(f"[{self.site_id}] page {page_num}: last page reached")
                 break
+            target = urljoin(url, next_link.get('href', ''))
+            parsed = urlsplit(target)
+            origin = urlsplit(self.LIST_URL)
+            if (not next_link.get('href') or parsed.scheme != origin.scheme
+                    or parsed.netloc != origin.netloc or parsed.path != origin.path
+                    or target in seen_pages):
+                self._report_source_failure('invalid_response')
+                break
+            url = target
 
         else:
             print(f"[{self.site_id}] safety cap of {self.MAX_PAGES} pages reached")
@@ -206,15 +207,18 @@ class CiradFrEspacePresseCrawler(BaseCrawler):
         """Fetch + parse one detail page; save via _save_paper. Returns True if saved."""
         raw = self._fetch(full_url, context=f"detail {slug}")
         if not raw:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] detail fetch failed: {full_url}")
             return False
 
         try:
             soup = _make_soup(raw)
         except Exception as exc:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] detail parse error {full_url}: {exc}")
             return False
         if soup is None:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] detail unparseable: {full_url}")
             return False
 
@@ -249,13 +253,13 @@ class CiradFrEspacePresseCrawler(BaseCrawler):
         published_date = None
         pub_meta = soup.find("meta", property="article:published_time")
         if pub_meta and pub_meta.get("content"):
-            published_date = pub_meta["content"][:10]  # YYYY-MM-DD
+            published_date = pub_meta["content"]
         if not published_date:
             hero_date_el = soup.find("span", class_="Hero-date")
             if hero_date_el:
-                published_date = _parse_french_date(hero_date_el.get_text(strip=True))
+                published_date = hero_date_el.get_text(strip=True)
         if not published_date:
-            published_date = list_date
+            published_date = list_date_raw
 
         # Category
         hero_cat_el = soup.find("span", class_="Hero-cat")
@@ -279,8 +283,8 @@ class CiradFrEspacePresseCrawler(BaseCrawler):
             "title": title,
             "abstract": abstract,
             "published_date": published_date,
-            "posted_date": list_date,
-            "listed_date": list_date,
+            "posted_date": list_date_raw,
+            "listed_date": list_date_raw,
             "publisher": "CIRAD",
             "keywords": keywords,
             "category": category,
@@ -288,7 +292,7 @@ class CiradFrEspacePresseCrawler(BaseCrawler):
         }
 
         self._save_paper(paper)
-        return True
+        return self._last_save_created
 
     # ------------------------------------------------------------------
     # HTTP helper

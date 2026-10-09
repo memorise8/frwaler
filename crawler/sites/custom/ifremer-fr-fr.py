@@ -16,28 +16,12 @@ import re
 import subprocess
 import time
 import unicodedata
-from datetime import datetime
 from email.message import Message
 from html import unescape
 from urllib.parse import unquote, urljoin, urlparse
 
 from crawler.base_crawler import BaseCrawler
-
-
-_FR_MONTHS = {
-    "janvier": "01",
-    "fevrier": "02",
-    "mars": "03",
-    "avril": "04",
-    "mai": "05",
-    "juin": "06",
-    "juillet": "07",
-    "aout": "08",
-    "septembre": "09",
-    "octobre": "10",
-    "novembre": "11",
-    "decembre": "12",
-}
+from crawler.document_dates import normalize_date
 
 
 def _normalize_space(value: str | None) -> str:
@@ -58,29 +42,7 @@ def _ascii_fold(value: str) -> str:
 
 def _parse_date(value: str | None) -> str | None:
     """Parse ISO datetimes or French display dates to YYYY-MM-DD."""
-    if not value:
-        return None
-
-    raw = _normalize_space(value)
-    if not raw:
-        return None
-
-    m = re.search(r"(\d{4})-(\d{2})-(\d{2})", raw)
-    if m:
-        return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
-
-    folded = _ascii_fold(raw)
-    m = re.search(r"(\d{1,2})\s+([a-z]+)\s+(\d{4})", folded)
-    if m:
-        day, month_name, year = m.groups()
-        month = _FR_MONTHS.get(month_name)
-        if month:
-            return f"{year}-{month}-{int(day):02d}"
-
-    try:
-        return datetime.fromisoformat(raw.replace("Z", "+00:00")).date().isoformat()
-    except ValueError:
-        return None
+    return normalize_date(value)['value']
 
 
 def _make_soup(raw: str):
@@ -178,6 +140,7 @@ class IfremerFrFrCrawler(BaseCrawler):
     BACKOFFS = (1, 3, 9)
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         seen_urls = set()
         limit_or_inf = limit if limit is not None else "inf"
@@ -185,6 +148,7 @@ class IfremerFrFrCrawler(BaseCrawler):
 
         try:
             for p in range(self.MAX_PAGES):
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -198,6 +162,7 @@ class IfremerFrFrCrawler(BaseCrawler):
                 list_url = self.START_URL if p == 0 else f"{self.START_URL}?page={p}"
                 raw = self._curl_get(list_url, context=f"list page {p}")
                 if not raw:
+                    self._report_source_failure('fetch_failed')
                     print(f"[{self.site_id}] page {p}: empty list response; stopping")
                     break
 
@@ -209,6 +174,7 @@ class IfremerFrFrCrawler(BaseCrawler):
 
                 new_urls_on_page = 0
                 for idx, item in enumerate(items, start=1):
+                    self._check_cancelled()
                     if limit is not None and saved >= limit:
                         break
                     if self._near_time_limit(started):
@@ -232,10 +198,12 @@ class IfremerFrFrCrawler(BaseCrawler):
                     except KeyboardInterrupt:
                         raise
                     except Exception as exc:
+                        self._report_source_failure('item_failed')
                         print(f"[{self.site_id}] item {item_url} failed: {exc}")
                         continue
 
                 if new_urls_on_page == 0:
+                    self._report_source_failure('invalid_response')
                     print(f"[{self.site_id}] page {p}: no new records; stopping")
                     break
 
@@ -363,12 +331,12 @@ class IfremerFrFrCrawler(BaseCrawler):
             return None
 
         title = _normalize_space(link.get_text(" ", strip=True))
-        time_el = node.select_one("time[datetime]")
+        time_el = node.select_one("time")
         listed_date_raw = ""
         listed_date = None
         if time_el:
-            listed_date_raw = _normalize_space(time_el.get_text(" ", strip=True))
-            listed_date = _parse_date(time_el.get("datetime") or listed_date_raw)
+            listed_date_raw = time_el.get("datetime") or _normalize_space(time_el.get_text(" ", strip=True))
+            listed_date = _parse_date(listed_date_raw)
 
         teaser_el = node.select_one(".field--name-field-teaser")
         teaser = _normalize_space(teaser_el.get_text(" ", strip=True)) if teaser_el else ""
@@ -392,6 +360,7 @@ class IfremerFrFrCrawler(BaseCrawler):
         url = item["url"]
         raw = self._curl_get(url, context=f"detail p{page_index} item {item_index}")
         if not raw:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] item {url} failed: detail fetch returned empty")
             return False
 
@@ -405,8 +374,8 @@ class IfremerFrFrCrawler(BaseCrawler):
             print(f"[{self.site_id}] item {url} skipped: abstract too short ({len(abstract)} chars)")
             return False
 
-        published_date = detail.get("published_date") or item.get("listed_date")
-        listed_date = item.get("listed_date") or published_date
+        published_date = detail.get("published_date_raw") or item.get("listed_date_raw")
+        listed_date = item.get("listed_date_raw") or published_date
         pdf_url = detail.get("pdf_url") or item.get("pdf_url")
         original_filename = (
             _filename_from_url(pdf_url)
@@ -474,7 +443,7 @@ class IfremerFrFrCrawler(BaseCrawler):
             "metadata": json.dumps(metadata, ensure_ascii=False, sort_keys=True),
         }
         self._save_paper(paper)
-        return True
+        return self._last_save_created
 
     def _parse_detail_page(self, soup, raw: str, list_item: dict) -> dict:
         article = soup.select_one("article.node--type-press") or soup
@@ -489,12 +458,12 @@ class IfremerFrFrCrawler(BaseCrawler):
         if canonical_el:
             canonical = _absolute_url(self.base_url, canonical_el.get("href"))
 
-        date_el = article.select_one(".date time[datetime]") or article.select_one("time[datetime]")
+        date_el = article.select_one(".date time") or article.select_one("time")
         published_date_raw = ""
         published_date = None
         if date_el:
-            published_date_raw = _normalize_space(date_el.get_text(" ", strip=True))
-            published_date = _parse_date(date_el.get("datetime") or published_date_raw)
+            published_date_raw = date_el.get("datetime") or _normalize_space(date_el.get_text(" ", strip=True))
+            published_date = _parse_date(published_date_raw)
 
         pdf_link = article.select_one('a[href*=".pdf"]')
         pdf_url = _absolute_url(self.base_url, pdf_link.get("href")) if pdf_link else None
