@@ -291,6 +291,28 @@ docker compose --env-file delivery/.env -f delivery/docker-compose.yml \
 
 ## 수집기 건강 점검 (2026-10-07)
 
+원문 범위 조사에는 별도의 읽기 전용 도구를 사용할 수 있습니다.
+DB·blob·비밀 설정을 마운트하지 않은 조사 환경에서 실행합니다.
+
+```sh
+python -m delivery.health.scope_inventory --out /reports/source-inventory.json
+python -m delivery.health.source_observer --inventory /reports/source-inventory.json \
+  --out /reports/entry-observation-attempt-1 --workers 4 --timeout 20
+```
+
+첫 도구는 등록된 모든 수집기의 정적 원문 시작점 후보·목록 설정·제한 신호를
+조사합니다. 두 번째 도구는 후보 URL의 응답을 검사하며 수집기를 실행하지 않습니다.
+새 결과 폴더만 허용하고, 같은 프로세스 내 호스트별 동시 요청을 1개로 제한합니다.
+리다이렉트도 같은 제한을 따르며 429/Retry-After는 해당 호스트의 후속 요청을
+보류합니다. 여러 observer 프로세스의 호스트 제한은 공유하지 않으므로 동시에
+별도 observer를 실행하지 않습니다. DNS·요청·응답 크기를 제한하고 인증 URL 및
+내부 주소는 조사하지 않습니다. 응답 본문·쿠키·오류 메시지는 보고서에 저장하지
+않으며 숫자 후보·선택자 일치 건수·본문 해시·HTTP 상태만 기록합니다.
+
+이 결과는 실제 수집기의 접속/파싱 성공, 완전한 원문 범위 또는 총량 인증이 아닙니다.
+홈페이지 fallback과 미검토 API 시작점을 구분하며, 총건수 후보가 나와도 현재 총량은
+미확인으로 유지합니다. 상세 파싱·DB 저장·재개·파일 검증은 별도로 수행해야 합니다.
+
 `/health` 화면은 전체 카탈로그의 코드 로딩 상태, 최근 소량 검사 결과,
 DB 구조, 워커 응답, 원본 PDF 표본을 보여줍니다. 화면 조회·새로고침은 외부
 사이트에 요청하거나 수집 작업을 등록하지 않습니다.
