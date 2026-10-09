@@ -46,9 +46,12 @@ class FileAuditTests(unittest.TestCase):
         self.gate = Mock(); self.gate.enter.side_effect = lambda url: contextlib.nullcontext()
         self.enterContext(patch('delivery.health.file_audit.RequestGate', return_value=self.gate))
         self.enterContext(patch('delivery.health.file_audit.socket.getaddrinfo', return_value=[(2, 1, 6, '', ('8.8.8.8', 443))]))
-        self.status = 200; self.body = text_pdf(); self.location = None; self.requests = []
+        self.status = 200; self.body = text_pdf(); self.location = None; self.requests = []; self.failures_left = 0
         def send(adapter, request, **kwargs):
             self.requests.append(request.url)
+            if self.failures_left:
+                self.failures_left -= 1
+                raise requests.ConnectionError('remote closed connection')
             response = requests.Response(); response.status_code = self.status
             response.request = request; response.url = request.url; response.raw = io.BytesIO(self.body)
             response.headers['Retry-After'] = '120'
@@ -126,6 +129,34 @@ class FileAuditTests(unittest.TestCase):
         self.assertEqual(result['state'], 'manifest_files_incomplete')
         self.assertEqual(len(self.requests), 3)
         self.assertEqual([v['state'] for v in result['files'].values()], ['text_failed', 'verified', 'verified'])
+
+    def test_transient_transport_error_has_one_bounded_retry(self):
+        self.failures_left = 1
+        with patch('delivery.health.file_audit.time.sleep'):
+            result = self.audit()
+        self.assertEqual(result['state'], 'manifest_files_verified')
+        self.assertEqual(len(self.requests), 4)
+        self.assertEqual([v['success'] for v in result['files']['0']['download_attempts']], [False, True])
+
+    def test_repeated_transport_failure_keeps_other_files_running(self):
+        self.failures_left = 2
+        with patch('delivery.health.file_audit.time.sleep'):
+            result = self.audit()
+        self.assertEqual(result['state'], 'manifest_files_incomplete')
+        self.assertEqual(len(self.requests), 4)
+        self.assertEqual([v['state'] for v in result['files'].values()], ['download_failed', 'verified', 'verified'])
+
+    def test_reviewed_legacy_transport_failure_can_resume_preserved_files(self):
+        self.audit(stop_after=1)
+        file = self.root/'out/files.json'; report = json.loads(file.read_text())
+        report.update(state='incomplete', reason='native_file_download_failed')
+        report['files']['1'] = {'seq_id': 2, 'state': 'download_failed', 'error': 'request error: disconnected'}
+        file.write_text(json.dumps(report))
+        with self.assertRaises(ValueError): self.audit(resume=True)
+        result = self.audit(resume=True, retry_transport_failure=True)
+        self.assertEqual(result['state'], 'manifest_files_verified')
+        self.assertEqual(result['runs'][-1]['reused_verified'], 1)
+        self.assertEqual(len(result['files']['1']['download_attempts']), 2)
 
 
 if __name__ == '__main__':

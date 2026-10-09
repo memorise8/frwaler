@@ -14,6 +14,7 @@ import signal
 import socket
 import sqlite3
 import tempfile
+import time
 from urllib.parse import urlsplit
 
 import requests
@@ -70,7 +71,7 @@ class AuditSession(requests.Session):
             return super().send(request, **kwargs)
 
 
-def run(output, database, review, manifest, gate_dir, *, resume=False, stop_after=None):
+def run(output, database, review, manifest, gate_dir, *, resume=False, stop_after=None, retry_transport_failure=False):
     output, database = Path(output), Path(database)
     reviewed = json.loads(Path(review).read_text())
     source = json.loads(Path(manifest).read_text())
@@ -85,7 +86,13 @@ def run(output, database, review, manifest, gate_dir, *, resume=False, stop_afte
     fingerprint = {'database_sha256': digest(database), 'manifest_sha256': digest(manifest), 'review_sha256': digest(review)}
     if resume:
         report = json.loads((output/'files.json').read_text())
-        if report['inputs'] != fingerprint or report['state'] not in ('checkpointed', 'running', 'manifest_files_verified'):
+        retryable = (retry_transport_failure and report['state'] == 'incomplete'
+                     and report.get('reason') == 'native_file_download_failed'
+                     and any(f.get('state') == 'download_failed' and (f.get('error') or '').startswith('request error:')
+                             for f in report['files'].values())
+                     and all(f.get('state') == 'verified' or (f.get('error') or '').startswith('request error:')
+                             for f in report['files'].values()))
+        if report['inputs'] != fingerprint or not (retryable or report['state'] in ('checkpointed', 'running', 'manifest_files_verified')):
             raise ValueError('resume requires unchanged inputs and a resumable checkpoint')
     else:
         output.mkdir(parents=True, exist_ok=False)
@@ -106,9 +113,12 @@ def run(output, database, review, manifest, gate_dir, *, resume=False, stop_afte
         conn.close(); raise ValueError('copied database identities differ from manifest')
     if any(r['pdf_url'] != expected[str(r['post_number'])]['native_primary_file_url'] for r in rows):
         conn.close(); raise ValueError('copied database file URLs differ from manifest')
-    run_info = {'started_at': utc_now(), 'resume': resume, 'newly_processed': 0, 'reused_verified': 0}
+    run_info = {'started_at': utc_now(), 'resume': resume, 'retry_transport_failure': retry_transport_failure,
+                'newly_processed': 0, 'reused_verified': 0}
     report['runs'].append(run_info); report['state'] = 'running'
-    save = lambda: atomic_json(output/'files.json', report)
+    report.pop('reason', None)
+    def save():
+        report['updated_at'] = utc_now(); atomic_json(output/'files.json', report)
     gate = RequestGate(gate_dir, delay=1.5)
     blobs = output/'blobs'; blobs.mkdir(exist_ok=True)
     previous = signal.signal(signal.SIGALRM, lambda s, f: (_ for _ in ()).throw(AuditStop('wall_budget_reached')))
@@ -136,14 +146,23 @@ def run(output, database, review, manifest, gate_dir, *, resume=False, stop_afte
                     raise AuditStop('disk_budget_reached')
                 if sum(f.get('pdf_bytes', 0) for f in report['files'].values()) >= 1024**3:
                     raise AuditStop('aggregate_download_budget_reached')
-                item = {'seq_id': seq, 'state': 'downloading'}
+                attempts = list((cached or {}).get('download_attempts', []))
+                if cached and cached.get('error') and not attempts:
+                    attempts.append({'success': False, 'error': cached['error'], 'from_previous_attempt': True})
+                item = {'seq_id': seq, 'state': 'downloading', 'download_attempts': attempts}
                 report['files'][key] = item; save()
-                with gate.enter(row['pdf_url']):
-                    result = download_pdf_for(conn, seq, row['pdf_url'], session=session,
-                                              timeout=45, max_size=100*1024**2, blob_root=blobs)
+                result = {'success': False, 'error': 'transport_attempt_budget_exhausted'}
+                while len(attempts) < 2:
+                    with gate.enter(row['pdf_url']):
+                        result = download_pdf_for(conn, seq, row['pdf_url'], session=session,
+                                                  timeout=45, max_size=100*1024**2, blob_root=blobs)
+                    attempts.append({'at': utc_now(), 'success': result['success'], 'error': result['error']})
+                    save()
+                    if result['success'] or not (result['error'] or '').startswith('request error:'): break
+                    if len(attempts) < 2: time.sleep(3)
                 if not result['success']:
                     item.update(state='download_failed', error=result['error'])
-                    if (result['error'] or '').startswith(('http 404:', 'http 410:')):
+                    if (result['error'] or '').startswith(('http 404:', 'http 410:', 'request error:', 'transport_attempt_budget_exhausted')):
                         run_info['newly_processed'] += 1; save(); continue
                     # HTML challenge/login pages must not trigger alternate-URL
                     # attempts or retries against other documents on the host.
@@ -187,9 +206,10 @@ def main():
         parser.add_argument('--'+arg, required=True)
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--stop-after', type=int)
+    parser.add_argument('--retry-transport-failure', action='store_true')
     args = parser.parse_args()
     result = run(args.output, args.database, args.review, args.manifest, args.gate_dir,
-                 resume=args.resume, stop_after=args.stop_after)
+                 resume=args.resume, stop_after=args.stop_after, retry_transport_failure=args.retry_transport_failure)
     print(json.dumps({'state': result['state'], 'processed': len(result['files'])}))
     return 0 if result['state'] in ('checkpointed', 'manifest_files_verified') else 1
 
