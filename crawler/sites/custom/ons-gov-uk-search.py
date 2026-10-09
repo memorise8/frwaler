@@ -11,11 +11,9 @@ API endpoint:
 
 import json
 import os
-import re
 import subprocess
 import sys
 import time
-from datetime import datetime
 
 sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler
@@ -78,19 +76,8 @@ def _curl_get(url: str, *, accept: str = "application/json",
 
 
 def _parse_date(raw: str) -> str:
-    """Convert ISO datetime or '12 November 2015' to YYYY-MM-DD."""
-    if not raw:
-        return ""
-    # ISO with fractional seconds: 2016-01-07T14:07:17.639Z
-    m = re.match(r"(\d{4}-\d{2}-\d{2})", raw)
-    if m:
-        return m.group(1)
-    # "12 November 2015"
-    try:
-        return datetime.strptime(raw.strip(), "%d %B %Y").strftime("%Y-%m-%d")
-    except ValueError:
-        pass
-    return ""
+    """Pass the complete source text to conservative shared normalization."""
+    return "" if raw is None else str(raw)
 
 
 class OnsGovUkSearchCrawler(BaseCrawler):
@@ -137,7 +124,7 @@ class OnsGovUkSearchCrawler(BaseCrawler):
     def _process_item(self, item: dict) -> bool:
         """Parse, enrich and save one search result item.
 
-        Returns True if the item was saved, False if skipped.
+        Returns True only for a newly inserted document.
         """
         uri = item.get("uri", "")
         if not uri:
@@ -155,6 +142,9 @@ class OnsGovUkSearchCrawler(BaseCrawler):
         # If summary from search API is too short, try the /data endpoint.
         if len(abstract) < _ABSTRACT_MIN:
             detail = self._fetch_detail(uri)
+            if not isinstance(detail, dict):
+                self._report_source_failure("item_failed")
+                return False
             if detail:
                 desc = detail.get("description", {})
                 richer = (
@@ -177,6 +167,9 @@ class OnsGovUkSearchCrawler(BaseCrawler):
         # --- Detail page (for downloads / richer metadata) --------------
         if detail is None:
             detail = self._fetch_detail(uri)
+        if not isinstance(detail, dict):
+            self._report_source_failure("item_failed")
+            return False
 
         desc = {}
         downloads = []
@@ -259,7 +252,7 @@ class OnsGovUkSearchCrawler(BaseCrawler):
             "original_filename": original_filename,
             "metadata": metadata,
         })
-        return True
+        return bool(self._last_save_created)
 
     # ------------------------------------------------------------------
     # Main crawl loop
@@ -271,6 +264,7 @@ class OnsGovUkSearchCrawler(BaseCrawler):
         Paginates the ONS beta search API with offset-based pagination.
         Skips items whose abstract is shorter than _ABSTRACT_MIN chars.
         """
+        self._check_cancelled()
         saved = 0
         limit_or_inf = limit if limit is not None else float("inf")
         seen_urls: set[str] = set()
@@ -280,11 +274,13 @@ class OnsGovUkSearchCrawler(BaseCrawler):
 
         try:
             for content_type in _CONTENT_TYPES:
+                self._check_cancelled()
                 if saved >= limit_or_inf:
                     break
 
                 offset = 0
                 while saved < limit_or_inf:
+                    self._check_cancelled()
                     if page >= _SAFETY_CAP:
                         print(
                             f"[{_SITE_ID}] safety cap of {_SAFETY_CAP} pages reached, stopping"
@@ -295,12 +291,23 @@ class OnsGovUkSearchCrawler(BaseCrawler):
                         print(f"[{_SITE_ID}] 25-minute wall-clock budget exceeded, stopping")
                         return saved
 
-                    data = self._search_page(offset, content_type)
-                    if not data:
+                    try:
+                        data = self._search_page(offset, content_type)
+                    except Exception:
+                        self._report_source_failure("fetch_failed")
+                        return saved
+                    if data is None:
+                        self._report_source_failure("fetch_failed")
                         print(f"[{_SITE_ID}] no data at offset {offset} ({content_type}), stopping type")
-                        break
+                        return saved
+                    if not isinstance(data, dict) or not isinstance(data.get("items"), list):
+                        self._report_source_failure("invalid_response")
+                        return saved
 
-                    items = data.get("items", [])
+                    items = data["items"]
+                    if any(not isinstance(item, dict) or not item.get("uri") for item in items):
+                        self._report_source_failure("invalid_response")
+                        return saved
                     if not items:
                         print(f"[{_SITE_ID}] empty items at offset {offset} ({content_type}), end of type")
                         break
@@ -313,6 +320,7 @@ class OnsGovUkSearchCrawler(BaseCrawler):
 
                     new_this_page = 0
                     for item in items:
+                        self._check_cancelled()
                         if saved >= limit_or_inf:
                             break
 
@@ -331,10 +339,12 @@ class OnsGovUkSearchCrawler(BaseCrawler):
                         except KeyboardInterrupt:
                             raise
                         except Exception as exc:
+                            self._report_source_failure("item_failed")
                             print(f"[{_SITE_ID}] item {item_url} failed: {exc}")
                             continue
 
                     if new_this_page == 0:
+                        self._report_source_failure("invalid_response")
                         print(
                             f"[{_SITE_ID}] all items on page {page} ({content_type}) already seen, "
                             f"stopping type"

@@ -6,12 +6,10 @@ HTML-only (no JSON API). Paginates via ?page=N on the listing page.
 """
 
 import json
-import re
 import subprocess
 import sys
 import os
 import time
-from datetime import datetime
 from urllib.parse import urljoin, unquote
 
 # Absolute import required — spec_from_file_location has no package context
@@ -62,20 +60,8 @@ def _curl_get(url, retries=3):
 
 
 def _parse_date(raw):
-    """Parse '14 May 2026' or ISO-8601 prefix to YYYY-MM-DD. Returns '' on failure."""
-    if not raw:
-        return ""
-    raw = raw.strip()
-    m = re.match(r"(\d{4}-\d{2}-\d{2})", raw)
-    if m:
-        return m.group(1)
-    for fmt in ("%d %B %Y", "%B %Y"):
-        try:
-            dt = datetime.strptime(raw, fmt)
-            return dt.strftime("%Y-%m-%d") if "%d" in fmt else dt.strftime("%Y-%m-01")
-        except ValueError:
-            continue
-    return raw[:10] if len(raw) >= 10 else raw
+    """Preserve source precision; a month-only date must never acquire a day."""
+    return "" if raw is None else str(raw)
 
 
 class GovScotStatisticsCrawler(BaseCrawler):
@@ -84,12 +70,14 @@ class GovScotStatisticsCrawler(BaseCrawler):
     base_url = _BASE_URL
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         limit_val = limit if limit is not None else float("inf")
         saved = 0
         seen_urls = set()
         start_time = time.time()
 
         for page in range(1, _MAX_PAGES + 1):
+            self._check_cancelled()
             if time.time() - start_time > _CRAWL_BUDGET_SECS:
                 print(f"[{_SITE_ID}] 25-min budget reached at page {page}, stopping.")
                 break
@@ -106,11 +94,13 @@ class GovScotStatisticsCrawler(BaseCrawler):
             )
             raw = _curl_get(url)
             if not raw:
+                self._report_source_failure("fetch_failed")
                 print(f"[{_SITE_ID}] page {page}: fetch failed, stopping.")
                 break
 
             soup = _bs4(raw)
             if soup is None:
+                self._report_source_failure("invalid_response")
                 print(f"[{_SITE_ID}] page {page}: parse failed, stopping.")
                 break
 
@@ -154,10 +144,12 @@ class GovScotStatisticsCrawler(BaseCrawler):
                 })
 
             if not new_items:
+                self._report_source_failure("invalid_response")
                 print(f"[{_SITE_ID}] page {page}: all items already seen (loop detected), stopping.")
                 break
 
             for item_data in new_items:
+                self._check_cancelled()
                 if saved >= limit_val:
                     break
                 if time.time() - start_time > _CRAWL_BUDGET_SECS:
@@ -169,6 +161,7 @@ class GovScotStatisticsCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{_SITE_ID}] item {item_data.get('detail_url', '?')} failed: {exc}")
                     continue
                 time.sleep(self._delay)
@@ -186,11 +179,13 @@ class GovScotStatisticsCrawler(BaseCrawler):
 
         raw = _curl_get(detail_url)
         if not raw:
+            self._report_source_failure("item_failed")
             print(f"[{_SITE_ID}] item {slug}: fetch failed, skipping.")
             return False
 
         soup = _bs4(raw)
         if soup is None:
+            self._report_source_failure("item_failed")
             print(f"[{_SITE_ID}] item {slug}: parse failed, skipping.")
             return False
 
@@ -357,4 +352,4 @@ class GovScotStatisticsCrawler(BaseCrawler):
         }
 
         self._save_paper(paper)
-        return True
+        return bool(self._last_save_created)

@@ -17,7 +17,6 @@ import os
 import re
 import subprocess
 import time
-from datetime import datetime
 from urllib.parse import parse_qs, unquote, urlencode, urljoin, urlparse
 
 from crawler.base_crawler import BaseCrawler
@@ -49,6 +48,7 @@ class DataGovUKSearchCrawler(BaseCrawler):
     base_url = _BASE_URL
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         if limit is not None and limit <= 0:
             return 0
 
@@ -60,6 +60,7 @@ class DataGovUKSearchCrawler(BaseCrawler):
         limit_label = limit if limit is not None else "inf"
 
         while True:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
             if time.time() - started_at > _WALL_BUDGET_SECONDS - 30:
@@ -71,13 +72,18 @@ class DataGovUKSearchCrawler(BaseCrawler):
             if page % 10 == 0:
                 print(f"[{self.site_id}] page {page}: saved {saved}/{limit_label}")
 
-            items, has_next, discovered_next_url = self._fetch_list_page(page, next_url)
+            try:
+                items, has_next, discovered_next_url = self._fetch_list_page(page, next_url)
+            except Exception:
+                self._report_source_failure("fetch_failed")
+                break
             if not items:
                 print(f"[{self.site_id}] page {page}: no records; done")
                 break
 
             new_urls_on_page = 0
             for item in items:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -97,11 +103,13 @@ class DataGovUKSearchCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     item_id = item.get("external_id") or item.get("slug") or url
                     print(f"[{self.site_id}] item {item_id} failed: {exc}")
                     continue
 
             if new_urls_on_page == 0:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] page {page}: no new URLs; stopping to avoid pagination loop")
                 break
             if not has_next:
@@ -132,6 +140,7 @@ class DataGovUKSearchCrawler(BaseCrawler):
     def _process_item(self, item):
         detail = self._fetch_package(item)
         if not detail:
+            self._report_source_failure("item_failed")
             print(f"[{self.site_id}] item {item.get('url') or '?'} skipped: detail unavailable")
             return False
 
@@ -182,7 +191,7 @@ class DataGovUKSearchCrawler(BaseCrawler):
             "metadata": json.dumps(metadata, ensure_ascii=False, sort_keys=True),
         }
         self._save_paper(paper)
-        return True
+        return bool(self._last_save_created)
 
     def _build_record(self, item, detail):
         extras = self._extras_dict(detail)
@@ -368,18 +377,30 @@ class DataGovUKSearchCrawler(BaseCrawler):
             accept="application/json,*/*;q=0.8",
         )
         if not raw:
+            self._report_source_failure("fetch_failed")
             return [], False, None
         try:
             payload = json.loads(raw)
         except json.JSONDecodeError as exc:
             print(f"[{self.site_id}] list API JSON parse failed on page {page}: {exc}")
+            self._report_source_failure("invalid_response")
             return [], False, None
-        if not payload.get("success"):
-            print(f"[{self.site_id}] package_search failed on page {page}: {payload.get('error')}")
+        if not isinstance(payload, dict) or not payload.get("success"):
+            self._report_source_failure("invalid_response")
             return [], False, None
 
-        result = payload.get("result") or {}
-        records = result.get("results") or []
+        result = payload.get("result")
+        if not isinstance(result, dict) or not isinstance(result.get("results"), list):
+            self._report_source_failure("invalid_response")
+            return [], False, None
+        records = result["results"]
+        count = result.get("count")
+        if type(count) is not int or count < 0 or any(not isinstance(r, dict) for r in records):
+            self._report_source_failure("invalid_response")
+            return [], False, None
+        if not records and start < count:
+            self._report_source_failure("invalid_response")
+            return [], False, None
         items = []
         for record in records:
             if not isinstance(record, dict):
@@ -402,7 +423,6 @@ class DataGovUKSearchCrawler(BaseCrawler):
                     "source": "package_search",
                 }
             )
-        count = result.get("count") or 0
         has_next = bool(records) and start + len(records) < count
         return items, has_next, self._search_url_for_page(page + 1) if has_next else None
 
@@ -608,29 +628,12 @@ class DataGovUKSearchCrawler(BaseCrawler):
         return None
 
     def _parse_date(self, value):
+        """Retain source precision and invalid text for shared normalization."""
         if not value:
             return None
         if isinstance(value, list):
             value = self._first_value(value)
-        text = self._clean_text(str(value))
-        match = re.search(r"(\d{4})-(\d{2})-(\d{2})", text)
-        if match:
-            return f"{match.group(1)}-{match.group(2)}-{match.group(3)}"
-
-        text = re.sub(r"(\d+)(st|nd|rd|th)", r"\1", text, flags=re.IGNORECASE)
-        for fmt in (
-            "%d %B %Y",
-            "%d %b %Y",
-            "%B %d %Y",
-            "%b %d %Y",
-            "%a, %d %b %Y %H:%M:%S %z",
-            "%a, %d %b %Y %H:%M:%S %Z",
-        ):
-            try:
-                return datetime.strptime(text, fmt).date().isoformat()
-            except ValueError:
-                continue
-        return None
+        return None if value is None else str(value)
 
     def _ids_from_dataset_url(self, url):
         parsed = urlparse(url)

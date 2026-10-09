@@ -40,6 +40,10 @@ def normalize_date(value, *, order=None):
     if re.fullmatch(r"\d{4}", text):
         result.update(status="partial" if 1 <= int(text) <= 9999 else "invalid", precision="year")
         return result
+    match = re.fullmatch(r"([a-z]+)\.?\s+(\d{4})", folded)
+    if match and match[1] in _MONTHS:
+        result.update(status="partial" if 1 <= int(match[2]) <= 9999 else "invalid", precision="month")
+        return result
     match = re.fullmatch(r"(\d{4})[-/.](\d{1,2})", text)
     if match:
         y, m = map(int, match.groups())

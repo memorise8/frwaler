@@ -17,6 +17,15 @@ CONFIG = Path(__file__).resolve().parents[1] / 'crawler/sites/configs/krivet-re-
 
 
 class DateContractTests(unittest.TestCase):
+    def test_named_month_retains_precision_without_inventing_day(self):
+        for raw, status, precision in [('July 2025', 'partial', 'month'),
+                                       (' FÉVRIER 2024 ', 'partial', 'month'),
+                                       ('Jan. 0000', 'invalid', 'month'),
+                                       ('July 2025 extra', 'unrecognized', None),
+                                       ('Unknown 2025', 'unrecognized', None)]:
+            with self.subTest(raw=raw):
+                self.assertEqual(normalize_date(raw), {'value': None, 'raw': raw, 'status': status, 'precision': precision})
+
     def test_formats_and_uncertainty(self):
         for raw, order, expected, status in [
             ('2026-08-07', None, '2026-08-07', 'normalized'),
