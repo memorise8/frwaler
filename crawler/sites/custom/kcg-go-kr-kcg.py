@@ -113,13 +113,8 @@ def _strip_html(tag) -> str:
 
 
 def _parse_date(raw: str) -> str | None:
-    """YYYY.MM.DD or YYYY-MM-DD → ISO YYYY-MM-DD. Returns None if no match."""
-    if not raw:
-        return None
-    m = re.search(r"(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})", raw)
-    if m:
-        return f"{m.group(1)}-{m.group(2).zfill(2)}-{m.group(3).zfill(2)}"
-    return None
+    """Keep the original date text for conservative shared normalization."""
+    return None if raw is None else str(raw)
 
 
 # ---------------------------------------------------------------------------
@@ -132,6 +127,7 @@ class KcgGoKrKcgCrawler(BaseCrawler):
     base_url = "https://www.kcg.go.kr"
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         limit_or_inf = limit if limit is not None else float("inf")
         seen_urls: set = set()
@@ -142,6 +138,7 @@ class KcgGoKrKcgCrawler(BaseCrawler):
 
         page = 1
         while True:
+            self._check_cancelled()
             # Budget checks
             if (time.time() - start_time) / 60 >= MAX_MINUTES:
                 print(f"[{self.site_id}] wall-clock budget {MAX_MINUTES}m reached, stopping")
@@ -166,11 +163,13 @@ class KcgGoKrKcgCrawler(BaseCrawler):
                 "noticeAt": "Y",
             })
             if not raw:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] page {page}: list fetch failed, stopping")
                 break
 
             soup = _make_soup(raw)
             if not soup:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] page {page}: parse failed, stopping")
                 break
 
@@ -181,6 +180,7 @@ class KcgGoKrKcgCrawler(BaseCrawler):
 
             new_this_page = 0
             for row in rows:
+                self._check_cancelled()
                 if saved >= limit_or_inf:
                     break
 
@@ -197,12 +197,14 @@ class KcgGoKrKcgCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] item {row.get('ntt_sn')} failed: {exc}")
                     continue
 
                 time.sleep(self._delay)
 
             if new_this_page == 0:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] page {page}: all items already seen, stopping")
                 break
 
@@ -217,11 +219,13 @@ class KcgGoKrKcgCrawler(BaseCrawler):
 
         raw = _curl_get(url)
         if not raw:
+            self._report_source_failure("item_failed")
             print(f"[{self.site_id}] detail fetch failed for nttSn={ntt_sn}")
             return False
 
         soup = _make_soup(raw)
         if not soup:
+            self._report_source_failure("item_failed")
             print(f"[{self.site_id}] detail parse failed for nttSn={ntt_sn}")
             return False
 
@@ -327,7 +331,7 @@ class KcgGoKrKcgCrawler(BaseCrawler):
             "publisher": "해양경찰청",
             "metadata": json.dumps(metadata, ensure_ascii=False),
         })
-        return True
+        return bool(self._last_save_created)
 
 
 # ---------------------------------------------------------------------------

@@ -95,12 +95,14 @@ class KisdiRekrBbsCrawler(BaseCrawler):
 
     def crawl(self, limit=None) -> int:
         """Crawl KISDI BBS and save records. Returns count saved."""
+        self._check_cancelled()
         saved = 0
         seen_urls: set[str] = set()
         limit_label = str(limit) if limit is not None else "∞"
         start_time = time.time()
 
         for page in range(1, _MAX_PAGES + 1):
+            self._check_cancelled()
             # Wall-clock budget: 25 minutes
             if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[kisdi-re-kr-bbs] 25-minute budget reached; stopping at page {page}.")
@@ -114,14 +116,16 @@ class KisdiRekrBbsCrawler(BaseCrawler):
 
             raw = _curl_get(_LIST_URL, {"key": _KEY, "pageIndex": str(page)})
             if not raw:
+                self._report_source_failure("fetch_failed")
                 print(f"[kisdi-re-kr-bbs] page {page}: empty response, stopping.")
                 break
 
             try:
                 soup = _bs(raw)
             except Exception as exc:
-                print(f"[kisdi-re-kr-bbs] page {page}: parse error {exc}, skipping.")
-                continue
+                self._report_source_failure("invalid_response")
+                print(f"[kisdi-re-kr-bbs] page {page}: parse error {exc}, stopping.")
+                break
 
             bbs_sns = re.findall(r"goView\('(\d+)'", raw)
             if not bbs_sns:
@@ -130,6 +134,7 @@ class KisdiRekrBbsCrawler(BaseCrawler):
 
             new_on_page = 0
             for bbs_sn in bbs_sns:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -146,12 +151,14 @@ class KisdiRekrBbsCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[kisdi-re-kr-bbs] item {bbs_sn} failed: {exc}")
                     continue
 
                 time.sleep(_RATE)
 
             if new_on_page == 0:
+                self._report_source_failure("invalid_response")
                 print(f"[kisdi-re-kr-bbs] page {page}: all items already seen, stopping.")
                 break
 
@@ -166,15 +173,17 @@ class KisdiRekrBbsCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def _fetch_and_save(self, bbs_sn: str, detail_url: str) -> bool:
-        """Fetch detail page, parse, validate, save. Returns True if saved."""
+        """Fetch, parse and save; return True only for a newly inserted row."""
         raw = _curl_get(detail_url)
         if not raw:
+            self._report_source_failure("item_failed")
             print(f"[kisdi-re-kr-bbs] item {bbs_sn}: no response from detail page")
             return False
 
         try:
             soup = _bs(raw)
         except Exception as exc:
+            self._report_source_failure("item_failed")
             print(f"[kisdi-re-kr-bbs] item {bbs_sn}: parse error {exc}")
             return False
 
@@ -197,7 +206,7 @@ class KisdiRekrBbsCrawler(BaseCrawler):
             if "등록일" in _text(strong_tag):
                 parent = strong_tag.parent
                 date_text = _text(parent).replace("등록일", "").strip()
-                published_date = date_text.replace(".", "-")[:10]
+                published_date = date_text
                 break
 
         # Abstract — from <div class="content">
@@ -256,4 +265,4 @@ class KisdiRekrBbsCrawler(BaseCrawler):
             ),
         }
         self._save_paper(paper)
-        return True
+        return bool(self._last_save_created)

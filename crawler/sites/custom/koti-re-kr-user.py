@@ -89,12 +89,16 @@ class KotiReKrUserCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None) -> int:
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         saved = 0
         seen: set[str] = set()
         start_time = time.time()
         limit_display = str(limit) if limit is not None else "∞"
 
         for page in range(1, _MAX_PAGES + 1):
+            self._check_cancelled()
             elapsed = time.time() - start_time
             if elapsed >= _WALL_CLOCK_BUDGET_SECS:
                 print(f"[{_SITE_ID}] Wall-clock budget reached ({elapsed:.0f}s). Stopping.")
@@ -106,6 +110,7 @@ class KotiReKrUserCrawler(BaseCrawler):
             list_url = f"{_LIST_URL}?pg={page}&pp={_PAGE_SIZE}&sort=new"
             html = _curl_get(list_url, referer=_BASE_URL)
             if not html:
+                self._report_source_failure("fetch_failed")
                 print(f"[{_SITE_ID}] Failed to fetch list page {page}. Stopping.")
                 break
 
@@ -122,10 +127,12 @@ class KotiReKrUserCrawler(BaseCrawler):
                 seen.add(b)
 
             if not new_bbs:
+                self._report_source_failure("invalid_response")
                 print(f"[{_SITE_ID}] All items on page {page} already seen. End of pagination.")
                 break
 
             for bbs_no in new_bbs:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
                 try:
@@ -135,6 +142,7 @@ class KotiReKrUserCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{_SITE_ID}] item {bbs_no} failed: {exc}")
                 time.sleep(1.0)
 
@@ -152,19 +160,22 @@ class KotiReKrUserCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def _fetch_and_save(self, bbs_no: str, referer: str) -> bool:
-        """Fetch detail page for bbs_no, parse metadata, and save. Returns True if saved."""
+        """Fetch and save bbs_no; return True only for a newly inserted row."""
         detail_url = f"{_DETAIL_BASE}?bbs_no={bbs_no}"
         html = _curl_get(detail_url, referer=referer)
         if not html:
+            self._report_source_failure("item_failed")
             print(f"[{_SITE_ID}] Failed to fetch bbs_no={bbs_no}")
             return False
 
         try:
             soup = _make_soup(html)
         except Exception as exc:
+            self._report_source_failure("item_failed")
             print(f"[{_SITE_ID}] HTML parse failed bbs_no={bbs_no}: {exc}")
             return False
         if not soup:
+            self._report_source_failure("item_failed")
             print(f"[{_SITE_ID}] No soup for bbs_no={bbs_no}")
             return False
 
@@ -183,8 +194,7 @@ class KotiReKrUserCrawler(BaseCrawler):
                 p = li.find("p")
                 if p:
                     raw_date = p.get_text(strip=True)
-                    # "2025.10.31" → "2025-10-31"
-                    published_date = raw_date.replace(".", "-").strip("-")
+                    published_date = raw_date
                 break
 
         # -- Authors --
@@ -248,7 +258,7 @@ class KotiReKrUserCrawler(BaseCrawler):
             "metadata": json.dumps({"bbs_no": bbs_no}, ensure_ascii=False),
         }
         self._save_paper(paper)
-        return True
+        return bool(self._last_save_created)
 
     # ------------------------------------------------------------------
     # Parsing helpers
