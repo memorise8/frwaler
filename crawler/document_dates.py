@@ -55,6 +55,17 @@ def normalize_date(value, *, order=None):
         return result
     folded = ''.join(c for c in unicodedata.normalize('NFKD', text.lower())
                      if not unicodedata.combining(c))
+    weekday_date = re.fullmatch(
+        r"(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday),\s*"
+        r"([a-z]+)\s+(\d{1,2}),?\s+(\d{4})", folded)
+    if weekday_date and weekday_date[1] in _MONTHS:
+        result['precision'] = 'day'
+        try:
+            value = date(int(weekday_date[3]), _MONTHS[weekday_date[1]], int(weekday_date[2]))
+            result.update(value=value.isoformat(), status='normalized')
+        except ValueError:
+            result['status'] = 'invalid'
+        return result
     # Structured publication XML commonly supplies year/month/day components.
     # Preserve the joined source text and do not supply an absent day.
     year_first = re.fullmatch(r"(\d{4})\s+([a-z]+|\d{1,2})(?:\s+(\d{1,2}))?", folded)

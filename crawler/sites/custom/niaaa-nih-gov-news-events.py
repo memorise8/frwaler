@@ -20,7 +20,6 @@ import os
 import re
 import subprocess
 import time
-from datetime import datetime
 
 from crawler.base_crawler import BaseCrawler
 
@@ -90,20 +89,8 @@ def _make_soup(html: str):
 
 
 def _parse_date(text: str) -> str:
-    """Return the first date found in *text* as YYYY-MM-DD, or ''."""
-    m = _DATE_RE.search(text)
-    if not m:
-        return ""
-    if m.group(1):  # weekday-prefixed form
-        month_str, day_str, year_str = m.group(1), m.group(2), m.group(3)
-    else:
-        month_str, day_str, year_str = m.group(4), m.group(5), m.group(6)
-    try:
-        return datetime.strptime(
-            f"{month_str} {day_str} {year_str}", "%B %d %Y"
-        ).strftime("%Y-%m-%d")
-    except ValueError:
-        return ""
+    """Retain a standalone date header; do not extract a date from prose."""
+    return text if _DATE_RE.fullmatch(text.strip()) else ""
 
 
 def _strip_header_tokens(text: str, title: str) -> str:
@@ -154,12 +141,16 @@ class NIAAANewsEventsCrawler(BaseCrawler):
     # ------------------------------------------------------------------ #
 
     def crawl(self, limit=None):
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.time()
         limit_str = str(limit) if limit is not None else "inf"
 
         for page in range(_MAX_PAGES):
+            self._check_cancelled()
             # Wall-clock budget
             if time.time() - start_time > _WALL_CLOCK_S:
                 print(
@@ -178,6 +169,7 @@ class NIAAANewsEventsCrawler(BaseCrawler):
             page_url = f"{_LIST_URL}?page={page}"
             raw = _curl_get(page_url, self.USER_AGENT)
             if not raw:
+                self._report_source_failure('fetch_failed')
                 print(
                     f"[niaaa-nih-gov-news-events] failed to fetch listing page {page}. Stopping."
                 )
@@ -191,12 +183,14 @@ class NIAAANewsEventsCrawler(BaseCrawler):
             # Detect end of real pagination: all links already seen → loop-back
             new_links = [(href, title) for href, title in article_links if href not in seen_urls]
             if not new_links:
+                self._report_source_failure('invalid_response')
                 print(
                     f"[niaaa-nih-gov-news-events] all items on page {page} already seen. Done."
                 )
                 break
 
             for href, title in new_links:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -213,6 +207,7 @@ class NIAAANewsEventsCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(f"[niaaa-nih-gov-news-events] item {href!r} failed: {exc}")
                     continue
 
@@ -237,7 +232,10 @@ class NIAAANewsEventsCrawler(BaseCrawler):
         """
         soup = _make_soup(html)
         if soup is None:
-            return self._parse_listing_regex(html)
+            links = self._parse_listing_regex(html)
+            if not links:
+                self._report_source_failure('invalid_response')
+            return links
 
         # Restrict to <main> content area so nav links are excluded
         root = soup.find("main") or soup
@@ -289,11 +287,12 @@ class NIAAANewsEventsCrawler(BaseCrawler):
     # ------------------------------------------------------------------ #
 
     def _fetch_and_save(self, href: str, list_title: str) -> bool:
-        """Fetch one detail page, parse it, and save. Returns True on success."""
+        """Fetch and parse a detail; return True only for a new database row."""
         detail_url = f"{self.base_url}{href}"
 
         raw = _curl_get(detail_url, self.USER_AGENT)
         if not raw:
+            self._report_source_failure('item_failed')
             print(
                 f"[niaaa-nih-gov-news-events] failed to fetch {href} after 3 attempts, skipping."
             )
@@ -301,6 +300,7 @@ class NIAAANewsEventsCrawler(BaseCrawler):
 
         soup = _make_soup(raw)
         if soup is None:
+            self._report_source_failure('item_failed')
             print(f"[niaaa-nih-gov-news-events] parse failed for {href}, skipping.")
             return False
 
@@ -313,13 +313,19 @@ class NIAAANewsEventsCrawler(BaseCrawler):
         # Main content block
         main = soup.find("main")
         if not main:
+            self._report_source_failure('item_failed')
             print(f"[niaaa-nih-gov-news-events] no <main> on {href}, skipping.")
             return False
 
         main_text = main.get_text(separator=" ", strip=True)
 
-        # Date
-        published_date = _parse_date(main_text)
+        # Prefer structured publication text; preserve its precision and errors.
+        # Legacy pages expose a standalone header, not necessarily a <time>.
+        stamp = main.find('time')
+        published_date = ((stamp.get('datetime') or stamp.get_text(' ', strip=True)) if stamp else '')
+        if not published_date:
+            published_date = next((_parse_date(text) for text in main.stripped_strings
+                                   if text != title and _parse_date(text)), '')
 
         # Abstract: strip the title/category/date/image header tokens
         abstract = _strip_header_tokens(main_text, title)
@@ -357,4 +363,4 @@ class NIAAANewsEventsCrawler(BaseCrawler):
         }
 
         self._save_paper(paper)
-        return True
+        return self._last_save_created
