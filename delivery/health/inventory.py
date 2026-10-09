@@ -53,6 +53,8 @@ def inventory(include_registry: bool = False) -> dict:
                     digest.update((ROOT / shared).read_bytes())
                 if site_id in HAL_CHECKPOINT_RESUME:
                     digest.update((ROOT/"crawler/hal_checkpoint.py").read_bytes())
+                if site_id == 'federalregister-gov-documents':
+                    digest.update((ROOT/'crawler/federal_checkpoint.py').read_bytes())
                 config = getattr(cls, "_config_path", None)
                 if config:
                     digest.update(Path(config).read_bytes())

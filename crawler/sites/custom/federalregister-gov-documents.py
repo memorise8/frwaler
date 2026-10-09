@@ -27,7 +27,7 @@ class FederalRegisterDocsCrawler(BaseCrawler):
     _AGENCY_SLUG = "health-and-human-services-department"
     _PAGE_SIZE = 200  # FR API supports up to 1000; 200 is safe and fast
 
-    def _checked_next_url(self, url):
+    def _checked_next_url(self, url, *, date_range=None):
         """Follow provider pagination only within the unchanged API query."""
         if not isinstance(url, str):
             raise ValueError('invalid next page URL')
@@ -38,6 +38,9 @@ class FederalRegisterDocsCrawler(BaseCrawler):
         params = parse_qs(parsed.query, keep_blank_values=True)
         expected = {'conditions[agencies][]': self._AGENCY_SLUG,
                     'conditions[search_type_id]': '3', 'order': 'newest', 'per_page': str(self._PAGE_SIZE)}
+        if date_range is not None:
+            expected.update({'conditions[publication_date][gte]':date_range[0],
+                             'conditions[publication_date][lte]':date_range[1]})
         if (any(params.get(k) != [v] for k,v in expected.items())
                 or set(params)-set(expected)-{'page', 'format', 'search_after_cursor'}
                 or (params.get('format') is not None and params['format'] != ['json'])
@@ -46,6 +49,12 @@ class FederalRegisterDocsCrawler(BaseCrawler):
                 or ('search_after_cursor' in params and (len(params['search_after_cursor']) != 1 or not params['search_after_cursor'][0]))):
             raise ValueError('next page changes query scope')
         return url
+
+    def crawl_date_range(self, lower, upper, expected_count, *, limit=None, max_pages=200, wall_seconds=1500):
+        """Persist one reviewed date range; never declare whole-site exhaustion."""
+        from crawler.federal_checkpoint import crawl_range
+        return crawl_range(self, lower, upper, expected_count, limit=limit,
+                           max_pages=max_pages, wall_seconds=wall_seconds)
 
     def _paper_from_item(self, item):
         """Map original source fields; exclusions remain explicit return values."""
