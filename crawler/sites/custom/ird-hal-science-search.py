@@ -82,7 +82,7 @@ class IrdHalScienceSearchCrawler(BaseCrawler):
             "start": start,
             "wt": "json",
             "fl": _FIELDS,
-            "sort": "producedDate_tdate desc",
+            "sort": "producedDate_tdate desc,docid asc",
             # Multiple fq values — Solr AND-s them
             "fq": [
                 "collCode_s:IRD",

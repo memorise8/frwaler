@@ -1,0 +1,488 @@
+[
+  {
+    "site_id": "cnam-hal-science-ceet",
+    "endpoint": "https://api.archives-ouvertes.fr/search/",
+    "query_pairs": [
+      [
+        "q",
+        "*"
+      ],
+      [
+        "rows",
+        "30"
+      ],
+      [
+        "start",
+        "0"
+      ],
+      [
+        "wt",
+        "json"
+      ],
+      [
+        "fl",
+        "docid,halId_s,title_s,abstract_s,authFullName_s,producedDate_tdate,submittedDate_tdate,docType_s,subType_s,keyword_s,files_s,doi_s,journalTitle_s,publisher_s,instStructName_s,labStructName_s,domain_s,language_s,series_s,volume_s,issue_s,uri_s"
+      ],
+      [
+        "fq",
+        "collCode_s:CEET"
+      ],
+      [
+        "fq",
+        "submitType_s:file"
+      ],
+      [
+        "fq",
+        "docType_s:(COMM OR THESE OR ART)"
+      ]
+    ]
+  },
+  {
+    "site_id": "cnam-hal-science-search",
+    "endpoint": "https://api.archives-ouvertes.fr/search/",
+    "query_pairs": [
+      [
+        "q",
+        "*"
+      ],
+      [
+        "rows",
+        "30"
+      ],
+      [
+        "start",
+        "0"
+      ],
+      [
+        "fq",
+        "submitType_s:file"
+      ],
+      [
+        "fq",
+        "docType_s:(OTHER OR REPORT)"
+      ],
+      [
+        "fq",
+        "collCode_s:CNAM"
+      ],
+      [
+        "fl",
+        "docid,halId_s,version_i,uri_s,title_s,en_title_s,fr_title_s,abstract_s,en_abstract_s,fr_abstract_s,keyword_s,en_keyword_s,fr_keyword_s,authFullName_s,producedDate_s,publicationDate_s,submittedDate_s,releasedDate_s,fileMain_s,files_s,doiId_s,docType_s,domain_s,primaryDomain_s,labStructName_s,instStructName_s,journalTitle_s,bookTitle_s,conferenceTitle_s,language_s,licence_s,citationRef_s,collCode_s,label_s,serie_s,volume_s,issue_s,publisher_s,reportNumber_s,openAccess_bool"
+      ],
+      [
+        "wt",
+        "json"
+      ],
+      [
+        "sort",
+        "submittedDate_tdate desc"
+      ]
+    ]
+  },
+  {
+    "site_id": "enc-hal-science-search",
+    "endpoint": "https://api.archives-ouvertes.fr/search/enc/",
+    "query_pairs": [
+      [
+        "q",
+        "*"
+      ],
+      [
+        "rows",
+        "30"
+      ],
+      [
+        "start",
+        "0"
+      ],
+      [
+        "fq",
+        "submitType_s:file"
+      ],
+      [
+        "fq",
+        "docType_s:(ART OR ETABTHESE OR COMM OR MEM)"
+      ],
+      [
+        "fl",
+        "docid,halId_s,version_i,uri_s,title_s,en_title_s,fr_title_s,abstract_s,en_abstract_s,fr_abstract_s,keyword_s,en_keyword_s,fr_keyword_s,authFullName_s,producedDate_s,publicationDate_s,submittedDate_s,releasedDate_s,fileMain_s,doiId_s,docType_s,domain_s,primaryDomain_s,labStructName_s,instStructName_s,journalTitle_s,bookTitle_s,conferenceTitle_s,language_s,licence_s,citationRef_s,label_s"
+      ],
+      [
+        "wt",
+        "json"
+      ]
+    ]
+  },
+  {
+    "site_id": "enpc-hal-science-search",
+    "endpoint": "https://api.archives-ouvertes.fr/search/enpc/",
+    "query_pairs": [
+      [
+        "q",
+        "*"
+      ],
+      [
+        "rows",
+        "30"
+      ],
+      [
+        "start",
+        "0"
+      ],
+      [
+        "fq",
+        "submitType_s:file"
+      ],
+      [
+        "fq",
+        "docType_s:(REPORT OR OTHER)"
+      ],
+      [
+        "fl",
+        "docid,halId_s,version_i,uri_s,title_s,submittedDate_s"
+      ],
+      [
+        "wt",
+        "json"
+      ]
+    ]
+  },
+  {
+    "site_id": "enssib-hal-science-search",
+    "endpoint": "https://api.archives-ouvertes.fr/search/enssib/",
+    "query_pairs": [
+      [
+        "q",
+        "*"
+      ],
+      [
+        "rows",
+        "30"
+      ],
+      [
+        "start",
+        "0"
+      ],
+      [
+        "wt",
+        "json"
+      ],
+      [
+        "fl",
+        "docid,halId_s,uri_s,title_s,abstract_s,en_abstract_s,authFullName_s,producedDate_s,submittedDate_tdate,docType_s,keyword_s,en_keyword_s,fileMain_s,files_s,doiId_s,journalTitle_s,publisher_s,instStructName_s,labStructName_s,domain_s,language_s,volume_s,issue_s"
+      ],
+      [
+        "fq",
+        "submitType_s:file"
+      ],
+      [
+        "fq",
+        "docType_s:(REPORT OR OTHER)"
+      ]
+    ]
+  },
+  {
+    "site_id": "envt-hal-science-search",
+    "endpoint": "https://api.archives-ouvertes.fr/search/envt/",
+    "query_pairs": [
+      [
+        "q",
+        "*"
+      ],
+      [
+        "rows",
+        "30"
+      ],
+      [
+        "start",
+        "0"
+      ],
+      [
+        "fq",
+        "submitType_s:file"
+      ],
+      [
+        "fq",
+        "docType_s:(ART OR THESE OR MEM OR COMM)"
+      ],
+      [
+        "fl",
+        "docid,halId_s,version_i,uri_s,title_s,submittedDate_s"
+      ],
+      [
+        "wt",
+        "json"
+      ]
+    ]
+  },
+  {
+    "site_id": "espci-hal-science-search",
+    "endpoint": "https://api.archives-ouvertes.fr/search/",
+    "query_pairs": [
+      [
+        "q",
+        "*"
+      ],
+      [
+        "rows",
+        "30"
+      ],
+      [
+        "start",
+        "0"
+      ],
+      [
+        "wt",
+        "json"
+      ],
+      [
+        "fl",
+        "halId_s,docid,title_s,abstract_s,publicationDate_s,producedDate_s,authFullName_s,structName_s,doi_s,keyword_s,fileMain_s,files_s,uri_s,linkExtUrl_s,journalTitle_s,docType_s,domain_s"
+      ],
+      [
+        "fq",
+        "submitType_s:file"
+      ],
+      [
+        "fq",
+        "docType_s:(REPORT OR OTHER)"
+      ],
+      [
+        "fq",
+        "structId_i:301585"
+      ],
+      [
+        "sort",
+        "producedDate_s desc"
+      ]
+    ]
+  },
+  {
+    "site_id": "hal-science-afd",
+    "endpoint": "https://api.archives-ouvertes.fr/search/AFD/",
+    "query_pairs": [
+      [
+        "q",
+        "*"
+      ],
+      [
+        "rows",
+        "30"
+      ],
+      [
+        "start",
+        "0"
+      ],
+      [
+        "wt",
+        "json"
+      ],
+      [
+        "fl",
+        "docid,halId_s,title_s,abstract_s,authFullName_s,producedDate_s,submittedDate_s,docType_s,keyword_s,files_s,fileMain_s,doi_s,journalTitle_s,journalIssn_s,publisher_s,instStructName_s,labStructName_s,domain_s,language_s,label_s"
+      ],
+      [
+        "fq",
+        "submitType_s:file"
+      ],
+      [
+        "fq",
+        "docType_s:(REPORT OR OTHER)"
+      ],
+      [
+        "sort",
+        "producedDate_s desc"
+      ]
+    ]
+  },
+  {
+    "site_id": "hec-hal-science-search",
+    "endpoint": "https://api.archives-ouvertes.fr/search/hec/",
+    "query_pairs": [
+      [
+        "q",
+        "*"
+      ],
+      [
+        "rows",
+        "30"
+      ],
+      [
+        "start",
+        "0"
+      ],
+      [
+        "fq",
+        "submitType_s:file"
+      ],
+      [
+        "fq",
+        "docType_s:(THESE OR ART OR COMM)"
+      ],
+      [
+        "fl",
+        "docid,halId_s,uri_s,submittedDate_s"
+      ],
+      [
+        "wt",
+        "json"
+      ],
+      [
+        "sort",
+        "submittedDate_tdate desc"
+      ]
+    ]
+  },
+  {
+    "site_id": "icn-hal-science-search",
+    "endpoint": "https://api.archives-ouvertes.fr/search/",
+    "query_pairs": [
+      [
+        "q",
+        "*"
+      ],
+      [
+        "rows",
+        "30"
+      ],
+      [
+        "start",
+        "0"
+      ],
+      [
+        "wt",
+        "json"
+      ],
+      [
+        "fl",
+        "docid,halId_s,title_s,abstract_s,authFullName_s,producedDate_s,submittedDate_s,publicationDate_tdate,docType_s,keyword_s,fileMain_s,files_s,doi_s,journalTitle_s,publisher_s,instStructName_s,labStructName_s,domain_s,language_s,volume_s,issue_s,page_s,serie_s,label_s,openAccess_bool"
+      ],
+      [
+        "fq",
+        "instStructId_i:462936"
+      ],
+      [
+        "fq",
+        "submitType_s:file"
+      ],
+      [
+        "fq",
+        "docType_s:(ART OR COMM)"
+      ]
+    ]
+  },
+  {
+    "site_id": "inria-hal-science-search",
+    "endpoint": "https://api.archives-ouvertes.fr/search/inria/",
+    "query_pairs": [
+      [
+        "q",
+        "collCode_s:INRIA2"
+      ],
+      [
+        "rows",
+        "30"
+      ],
+      [
+        "start",
+        "0"
+      ],
+      [
+        "sort",
+        "submittedDate_s desc"
+      ],
+      [
+        "fq",
+        "submitType_s:file"
+      ],
+      [
+        "fq",
+        "docType_s:REPORT"
+      ],
+      [
+        "fl",
+        "docid,halId_s,version_i,uri_s,title_s,submittedDate_s"
+      ],
+      [
+        "wt",
+        "json"
+      ]
+    ]
+  },
+  {
+    "site_id": "ird-hal-science-search",
+    "endpoint": "https://api.archives-ouvertes.fr/search/",
+    "query_pairs": [
+      [
+        "q",
+        "*"
+      ],
+      [
+        "rows",
+        "30"
+      ],
+      [
+        "start",
+        "0"
+      ],
+      [
+        "wt",
+        "json"
+      ],
+      [
+        "fl",
+        "docid,halId_s,title_s,abstract_s,authFullName_s,producedDate_s,submittedDate_s,docType_s,keyword_s,fileMain_s,uri_s,doi_s,journalTitle_s,publisher_s,labStructName_s,instStructName_s,domain_s,language_s,collCode_s"
+      ],
+      [
+        "sort",
+        "producedDate_tdate desc"
+      ],
+      [
+        "fq",
+        "collCode_s:IRD"
+      ],
+      [
+        "fq",
+        "docType_s:OTHER"
+      ],
+      [
+        "fq",
+        "abstract_s:[* TO *]"
+      ]
+    ]
+  },
+  {
+    "site_id": "polytechnique-hal-science-search",
+    "endpoint": "https://api.archives-ouvertes.fr/search/polytechnique/",
+    "query_pairs": [
+      [
+        "q",
+        "*"
+      ],
+      [
+        "rows",
+        "30"
+      ],
+      [
+        "start",
+        "0"
+      ],
+      [
+        "wt",
+        "json"
+      ],
+      [
+        "fl",
+        "docid,halId_s,title_s,abstract_s,authFullName_s,producedDate_s,submittedDate_s,releasedDate_s,docType_s,keyword_s,fileMain_s,doi_s,journalTitle_s,publisher_s,instStructName_s,labStructName_s,domain_s,language_s,volume_s,issue_s,serie_s,label_s,uri_s"
+      ],
+      [
+        "fq",
+        "submitType_s:file"
+      ],
+      [
+        "fq",
+        "docType_s:(ART OR THESE OR COMM OR MEM)"
+      ]
+    ]
+  }
+]

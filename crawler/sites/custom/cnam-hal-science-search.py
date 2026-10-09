@@ -240,7 +240,7 @@ class CnamHalScienceSearchCrawler(BaseCrawler):
             ("fq", "collCode_s:CNAM"),
             ("fl", _FIELDS),
             ("wt", "json"),
-            ("sort", "submittedDate_tdate desc"),
+            ("sort", "submittedDate_tdate desc,docid asc"),
         ]
         return _API_BASE + "?" + urlencode(params)
 

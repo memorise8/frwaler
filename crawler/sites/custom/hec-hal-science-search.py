@@ -187,7 +187,7 @@ class HecHalScienceSearchCrawler(BaseCrawler):
             ("fq", "docType_s:(THESE OR ART OR COMM)"),
             ("fl", "docid,halId_s,uri_s,submittedDate_s"),
             ("wt", "json"),
-            ("sort", "submittedDate_tdate desc"),
+            ("sort", "submittedDate_tdate desc,docid asc"),
         ]
         return _API_BASE + "?" + urlencode(params)
 

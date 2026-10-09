@@ -81,6 +81,7 @@ class EnssibHalScienceSearchCrawler(BaseCrawler):
             "q": "*",
             "rows": rows,
             "start": start,
+            "sort": "docid asc",
             "wt": "json",
             "fl": _FIELDS,
             # Multiple fq values — Solr AND-s them

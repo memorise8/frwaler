@@ -308,7 +308,7 @@ class InriaHalScienceSearchCrawler(BaseCrawler):
             ("q", self._QUERY),
             ("rows", str(self._PAGE_SIZE)),
             ("start", str(start)),
-            ("sort", "submittedDate_s desc"),
+            ("sort", "submittedDate_s desc,docid asc"),
             ("fq", self._LIST_FILTERS[0]),
             ("fq", self._LIST_FILTERS[1]),
             ("fl", self._LIST_FIELDS),

@@ -86,7 +86,7 @@ class HalScienceAfdCrawler(BaseCrawler):
                 "submitType_s:file",
                 "docType_s:(REPORT OR OTHER)",
             ],
-            "sort": "producedDate_s desc",
+            "sort": "producedDate_s desc,docid asc",
         }
         raw = self._curl_get(_API_URL, params)
         if not raw:

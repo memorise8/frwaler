@@ -232,6 +232,7 @@ class EnpcHalScienceSearchCrawler(BaseCrawler):
             ("q", "*"),
             ("rows", str(self._PAGE_SIZE)),
             ("start", str(start)),
+            ("sort", "docid asc"),
             ("fq", "submitType_s:file"),
             ("fq", "docType_s:(REPORT OR OTHER)"),
             ("fl", self._LIST_FIELDS),

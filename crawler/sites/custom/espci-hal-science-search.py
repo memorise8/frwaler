@@ -90,7 +90,7 @@ class EspciHalScienceSearchCrawler(BaseCrawler):
                 "docType_s:(REPORT OR OTHER)",
                 f"structId_i:{_STRUCT_ID}",
             ],
-            "sort": "producedDate_s desc",
+            "sort": "producedDate_s desc,docid asc",
         }
         raw = self._curl_get(_API_URL, params)
         if not raw:
