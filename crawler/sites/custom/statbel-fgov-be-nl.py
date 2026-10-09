@@ -64,11 +64,8 @@ def _url_slug(url: str) -> str:
 
 
 def _parse_date(dt_attr: str) -> str | None:
-    """Extract YYYY-MM-DD from a datetime attribute."""
-    if not dt_attr:
-        return None
-    m = re.match(r"(\d{4}-\d{2}-\d{2})", dt_attr)
-    return m.group(1) if m else None
+    """Retain source precision; shared normalization validates the full value."""
+    return dt_attr or None
 
 
 def _extract_node_id(html_text: str) -> str | None:
@@ -252,6 +249,9 @@ class StatbelFgovBeNlCrawler(BaseCrawler):
 
     def crawl(self, limit=None) -> int:
         """Crawl Statbel NL news with English listing fallback."""
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.time()
@@ -279,6 +279,7 @@ class StatbelFgovBeNlCrawler(BaseCrawler):
         use_nl_list = True  # Try Dutch listing first; fall back to English on TSPD
 
         for page in range(self.MAX_PAGES):
+            self._check_cancelled()
             if time.time() - start_time > self.MAX_WALL_SECONDS:
                 print(f"[{self.site_id}] 25-min budget reached at page {page}; stopping.")
                 break
@@ -293,16 +294,27 @@ class StatbelFgovBeNlCrawler(BaseCrawler):
                 if raw and not _is_tspd(raw):
                     # Dutch listing succeeded — parse directly
                     soup = _make_soup(raw, context=f"nl list {page}")
-                    records = _parse_listing_page(soup, list_url) if soup else []
+                    if soup is None:
+                        self._report_source_failure('invalid_response')
+                        break
+                    records = _parse_listing_page(soup, list_url)
                     if not records:
                         print(f"[{self.site_id}] Dutch listing empty at page {page}; stopping.")
                         break
+                    if not any(r['url'] and r['url'] not in seen_urls for r in records):
+                        self._report_source_failure('invalid_response')
+                        break
                     saved += self._save_nl_records(
-                        records, seen_urls, limit, cookie_jar
+                        records, seen_urls, None if limit is None else limit-saved, cookie_jar
                     )
                     time.sleep(self.RATE_SLEEP)
                     continue
                 else:
+                    # Language listings have no proven page-for-page identity.
+                    # Preserve progress rather than skipping to EN page N.
+                    if page:
+                        self._report_source_failure('fetch_failed')
+                        break
                     print(f"[{self.site_id}] Dutch listing TSPD/failed at page {page}; "
                           "switching to English listing.")
                     use_nl_list = False
@@ -311,11 +323,15 @@ class StatbelFgovBeNlCrawler(BaseCrawler):
             list_url = f"{self.EN_LIST_URL}?page={page}"
             raw = _curl_get(cookie_jar, list_url)
             if not raw or _is_tspd(raw):
+                self._report_source_failure('fetch_failed')
                 print(f"[{self.site_id}] English listing failed at page {page}; stopping.")
                 break
 
             soup = _make_soup(raw, context=f"en list {page}")
-            records = _parse_listing_page(soup, list_url) if soup else []
+            if soup is None:
+                self._report_source_failure('invalid_response')
+                break
+            records = _parse_listing_page(soup, list_url)
             if not records:
                 print(f"[{self.site_id}] English listing empty at page {page}; stopping.")
                 break
@@ -323,10 +339,12 @@ class StatbelFgovBeNlCrawler(BaseCrawler):
             new_records = [r for r in records
                            if r["url"] not in seen_urls and r["url"]]
             if not new_records:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] page {page}: all items already seen; stopping.")
                 break
 
             for record in new_records:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
                 if record["url"] in seen_urls:
@@ -338,6 +356,7 @@ class StatbelFgovBeNlCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(f"[{self.site_id}] item '{record['url']}' failed: {exc}")
                     continue
 
@@ -352,6 +371,7 @@ class StatbelFgovBeNlCrawler(BaseCrawler):
     def _save_nl_records(self, records, seen_urls, limit, cookie_jar) -> int:
         saved = 0
         for record in records:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
             url = record["url"]
@@ -364,6 +384,7 @@ class StatbelFgovBeNlCrawler(BaseCrawler):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure('item_failed')
                 print(f"[{self.site_id}] item '{url}' failed: {exc}")
                 continue
 
@@ -371,16 +392,18 @@ class StatbelFgovBeNlCrawler(BaseCrawler):
         return saved
 
     def _process_nl_item(self, cookie_jar: str, record: dict) -> int:
-        """Fetch Dutch detail page and save. Returns 1 on success."""
+        """Fetch Dutch detail and return the actual new-row count."""
         url = record["url"]
         raw = _curl_get(cookie_jar, url)
         if not raw or _is_tspd(raw):
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] Dutch detail blocked/failed: {url}")
             return 0
 
         html_text = raw.decode("utf-8", errors="replace")
         soup = _make_soup(raw, context=f"nl detail {url}")
         if not soup:
+            self._report_source_failure('item_failed')
             return 0
 
         detail = _parse_detail_page(soup, url, html_text)
@@ -405,11 +428,13 @@ class StatbelFgovBeNlCrawler(BaseCrawler):
         # Step 1: fetch English detail to get hreflang=nl URL
         en_raw = _curl_get(cookie_jar, en_url)
         if not en_raw or _is_tspd(en_raw):
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] English detail blocked/failed: {en_url}")
             return 0
 
         en_soup = _make_soup(en_raw, context=f"en detail {en_url}")
         if not en_soup:
+            self._report_source_failure('item_failed')
             return 0
 
         nl_url = _extract_hreflang_nl(en_soup)
@@ -421,14 +446,17 @@ class StatbelFgovBeNlCrawler(BaseCrawler):
         time.sleep(self.RATE_SLEEP)
 
         # Step 2: fetch Dutch detail
+        self._check_cancelled()
         nl_raw = _curl_get(cookie_jar, nl_url)
         if not nl_raw or _is_tspd(nl_raw):
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] Dutch detail blocked/failed: {nl_url}")
             return 0
 
         html_text = nl_raw.decode("utf-8", errors="replace")
         nl_soup = _make_soup(nl_raw, context=f"nl detail {nl_url}")
         if not nl_soup:
+            self._report_source_failure('item_failed')
             return 0
 
         detail = _parse_detail_page(nl_soup, nl_url, html_text)
@@ -446,7 +474,7 @@ class StatbelFgovBeNlCrawler(BaseCrawler):
 
     def _save_item(self, nl_url: str, listed_date, category,
                    listing_title: str, detail: dict) -> int:
-        """Build paper dict and save. Returns 1 on success, 0 on skip."""
+        """Build and save a paper; return 1 only for a newly stored row."""
         title = detail.get("title") or listing_title
         abstract = detail.get("abstract", "")
 
@@ -481,4 +509,4 @@ class StatbelFgovBeNlCrawler(BaseCrawler):
             "category": category,
             "metadata": json.dumps(metadata, ensure_ascii=False),
         })
-        return 1
+        return int(self._last_save_created)
