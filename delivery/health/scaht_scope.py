@@ -22,7 +22,7 @@ ENTRY = 'https://www.scaht.org/en/publications/'
 HOSTS = {'www.scaht.org', 'scaht.org'}
 
 
-def parse_listing(body, page):
+def parse_listing(body, page, *, clamped_page=None):
     soup = BeautifulSoup(body, 'html.parser')
     records = []
     for item in soup.select('.publications-item'):
@@ -63,13 +63,15 @@ def parse_listing(body, page):
         raise ValueError('missing_next_with_later_pages')
     current = soup.select_one('ul.pagination .active .page-link')
     current_number = re.match(r'^\s*(\d+)', current.get_text() if current else '')
-    if records and (not current_number or int(current_number[1]) != page):
+    if records and (not current_number or int(current_number[1]) not in {page, clamped_page}):
         raise ValueError('current_page_not_confirmed')
     return {'records': records, 'next_page': next_pages[0] if next_pages else None,
             'active_page': int(current_number[1]) if current_number else None}
 
 
-def enumerate_scope(output, gate_dir, *, max_pages=200):
+def enumerate_scope(output, gate_dir, *, max_pages=200, passes=2):
+    if passes not in (1, 2):
+        raise ValueError('passes must be 1 or 2')
     output = Path(output)
     output.mkdir(parents=True, exist_ok=False)
     gate = RequestGate(gate_dir, delay=1.5)
@@ -79,10 +81,12 @@ def enumerate_scope(output, gate_dir, *, max_pages=200):
               'source_reported_total': None, 'enumerable_total': None,
               'full_collection_verified': False, 'snapshot_guarantee': False,
               'source_filters': 'English publication list, all visible pages; no date/type filter',
-              'passes': [], 'requests': [], 'max_pages': max_pages}
+              'passes': [], 'requests': [], 'max_pages': max_pages,
+              'requested_passes': passes,
+              'enumerator_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
     def save():
         atomic_json(output/'scope.json', report)
-    def fetch(page, label):
+    def fetch(page, label, *, clamped_page=None):
         url = ENTRY + '?page=' + str(page)
         with gate.enter(url):
             response = fetch_once(url)
@@ -100,10 +104,10 @@ def enumerate_scope(output, gate_dir, *, max_pages=200):
         if response['status'] != 200 or not response['body_complete']:
             raise ValueError('list_response_not_complete_http_200')
         (output/(label + '.html')).write_bytes(body)
-        return parse_listing(body, page)
+        return parse_listing(body, page, clamped_page=clamped_page)
     save()
     try:
-        for pass_number in (1, 2):
+        for pass_number in range(1, passes + 1):
             traversal = {'number': pass_number, 'pages': [], 'records': [], 'overlapping_ids': []}
             report['passes'].append(traversal)
             seen = set()
@@ -128,15 +132,22 @@ def enumerate_scope(output, gate_dir, *, max_pages=200):
                 traversal['records'].extend(records)
                 save()
                 if parsed['next_page'] is None:
-                    after = fetch(page + 1, f'pass-{pass_number}-after-last')
-                    if after['records'] or after['next_page'] is not None:
-                        raise ValueError('after_last_not_empty')
-                    traversal['end_evidence'] = 'last_nonempty_has_no_next_and_following_page_empty'
+                    after = fetch(page + 1, f'pass-{pass_number}-after-last', clamped_page=page)
+                    if after['next_page'] is not None:
+                        raise ValueError('after_last_still_has_next')
+                    if not after['records'] and after['active_page'] == page + 1:
+                        traversal['end_evidence'] = 'last_nonempty_has_no_next_and_following_page_empty'
+                    elif after['records'] == records and after['active_page'] == page:
+                        traversal['end_evidence'] = 'no_next_and_following_request_clamps_to_identical_last_page'
+                    else:
+                        raise ValueError('after_last_not_verified_empty_or_clamped')
                     break
                 page = parsed['next_page']
-        first, second = report['passes']
-        if first['pages'] != second['pages'] or first['records'] != second['records']:
-            raise ValueError('source_changed_between_complete_traversals')
+        first = report['passes'][0]
+        if passes == 2:
+            second = report['passes'][1]
+            if first['pages'] != second['pages'] or first['records'] != second['records']:
+                raise ValueError('source_changed_between_complete_traversals')
         by_id = {}
         for record in first['records']:
             previous = by_id.get(record['external_id'])
@@ -146,8 +157,11 @@ def enumerate_scope(output, gate_dir, *, max_pages=200):
         manifest = sorted(by_id.values(), key=lambda r: r['external_id'])
         atomic_json(output/'manifest.json', manifest)
         overlap = bool(first['overlapping_ids'])
-        report.update(state='matching_traversals_with_overlap' if overlap else 'two_matching_traversals_observed',
-                      enumerable_total=None if overlap else len(manifest), observed_unique_count=len(manifest),
+        state = 'matching_traversals_with_overlap' if overlap else 'two_matching_traversals_observed'
+        if passes == 1:
+            state = 'single_traversal_observed_requires_comparison'
+        report.update(state=state,
+                      enumerable_total=None if overlap or passes == 1 else len(manifest), observed_unique_count=len(manifest),
                       list_occurrences=len(first['records']),
                       count_quality='lower_bound_pagination_overlap_requires_review' if overlap else 'observed_unique_ids_in_declared_scope',
                       manifest_sha256=hashlib.sha256((output/'manifest.json').read_bytes()).hexdigest())
@@ -166,8 +180,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', required=True)
     parser.add_argument('--gate-dir', required=True)
+    parser.add_argument('--passes', type=int, choices=(1, 2), default=2)
     args = parser.parse_args()
-    result = enumerate_scope(args.output, args.gate_dir)
+    result = enumerate_scope(args.output, args.gate_dir, passes=args.passes)
     print(json.dumps({k: result[k] for k in ('state', 'enumerable_total', 'full_collection_verified')}))
     return 0 if result['state'] == 'two_matching_traversals_observed' else 1
 

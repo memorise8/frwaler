@@ -60,6 +60,23 @@ class ScahtScopeTests(unittest.TestCase):
         self.assertIsNone(result['enumerable_total'])
         self.assertTrue(manifest)
 
+    def test_after_last_clamp_requires_identical_records_and_active_page(self):
+        traversal = [page(1, ['a', 'b'], 2), page(2, ['c']), page(2, ['c'])]
+        result, manifest, _ = self.run_responses(traversal * 2)
+        self.assertEqual(result['enumerable_total'], 3)
+        self.assertTrue(manifest)
+        for after in (page(1, ['a', 'b']), page(2, ['changed']), b'<html>Error</html>'):
+            result, manifest, _ = self.run_responses(traversal[:2]+[after])
+            self.assertEqual(result['state'], 'incomplete')
+            self.assertFalse(manifest)
+
+    def test_single_pass_cannot_certify_total(self):
+        result, manifest, _ = self.run_responses([page(1, ['a']), page(1, ['a'])], passes=1)
+        self.assertEqual(result['state'], 'single_traversal_observed_requires_comparison')
+        self.assertEqual(result['observed_unique_count'], 1)
+        self.assertIsNone(result['enumerable_total'])
+        self.assertTrue(manifest)
+
     def test_rate_limit_persists_cooldown(self):
         result, manifest, gate = self.run_responses([{'status': 429, 'headers': {'retry-after': '120'}, 'body': b'', 'body_complete': True}])
         self.assertEqual(result['state'], 'host_cooldown_deferred')
