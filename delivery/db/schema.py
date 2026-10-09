@@ -47,7 +47,7 @@ REQUIRED_TABLES = (
     "crawl_job_logs", "crawl_schedules", "translation_batches", "translation_jobs",
     "translation_job_attempts", "translation_worker_heartbeats",
     "translation_system_observations", "document_summaries", "document_summary_quality",
-    "crawl_site_progress", "document_file_jobs", "file_worker_heartbeat",
+    "crawl_site_progress", "crawl_scopes", "document_file_jobs", "file_worker_heartbeat",
 )
 
 
@@ -71,6 +71,7 @@ def verify_required_schema(conn) -> None:
         ("crawl_jobs", "truncated"),
         ("crawl_jobs", "process_files"),
         ("crawl_jobs", "job_type"),
+        ("crawl_jobs", "scope_id"),
         ("translation_system_observations", "provider"),
         ("translation_system_observations", "model_version"),
         ("crawl_site_progress", "cursor"),
@@ -122,6 +123,12 @@ def init_delivery_schema(conn) -> None:
     )
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS process_files BOOLEAN NOT NULL DEFAULT FALSE")
     conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS job_type TEXT NOT NULL DEFAULT 'crawl'")
+    conn.execute("""CREATE TABLE IF NOT EXISTS crawl_scopes(
+      scope_id TEXT PRIMARY KEY, site_id TEXT NOT NULL, definition JSONB NOT NULL,
+      cursor JSONB, items_done BIGINT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), completed_at TIMESTAMPTZ)""")
+    conn.execute("ALTER TABLE crawl_jobs ADD COLUMN IF NOT EXISTS scope_id TEXT REFERENCES crawl_scopes(scope_id)")
     conn.execute("""CREATE TABLE IF NOT EXISTS document_file_jobs(
       id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
       crawl_job_id BIGINT NOT NULL REFERENCES crawl_jobs(id) ON DELETE CASCADE,

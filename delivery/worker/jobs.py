@@ -39,7 +39,12 @@ def log_event(conn, job_id: int, event: str, message: str, level: str = "info") 
     _log(conn, job_id, event, message, level)
 
 
-def enqueue_job(conn, site_id, mode="incremental", limit_n=None, requested_by=None, *, process_files=False) -> int:
+def enqueue_job(conn, site_id, mode="incremental", limit_n=None, requested_by=None, *, process_files=False, scope_id=None) -> int:
+    if scope_id is not None:
+        from delivery.worker import scopes
+        if mode != 'backfill':
+            raise ValueError('scoped collection requires backfill mode')
+        scopes.load(conn, scope_id, site_id)
     conn.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s,0))",(site_id,))
     active=conn.execute("""SELECT id FROM crawl_jobs WHERE site_id=%s
       AND status IN('queued','running','cancelling') LIMIT 1""",(site_id,)).fetchone()
@@ -48,10 +53,10 @@ def enqueue_job(conn, site_id, mode="incremental", limit_n=None, requested_by=No
         raise ActiveJobError(f"active crawl job {active['id']}")
     row = conn.execute(
         """
-        INSERT INTO crawl_jobs (site_id, mode, limit_n, requested_by, process_files)
-        VALUES (%s, %s, %s, %s, %s) RETURNING id
+        INSERT INTO crawl_jobs (site_id, mode, limit_n, requested_by, process_files, scope_id)
+        VALUES (%s, %s, %s, %s, %s, %s) RETURNING id
         """,
-        (site_id, mode, limit_n, requested_by, process_files),
+        (site_id, mode, limit_n, requested_by, process_files, scope_id),
     ).fetchone()
     _log(conn,row["id"],"queued","수집 작업이 등록되었습니다.")
     conn.commit()
@@ -71,7 +76,7 @@ def claim_next_job(conn, *, worker_id: str = "crawl-worker-1", lease_seconds: in
              FOR UPDATE SKIP LOCKED
              LIMIT 1
          )
-        RETURNING id, site_id, mode, limit_n, attempts, max_attempts, process_files
+        RETURNING id, site_id, mode, limit_n, attempts, max_attempts, process_files, scope_id
         """, (worker_id, lease_seconds)
     ).fetchone()
     if row:_log(conn,row["id"],"started","Worker가 수집을 시작했습니다.")
@@ -164,7 +169,7 @@ def retry_job(conn, job_id, *, requested_by=None) -> Optional[dict]:
     A row lock prevents two concurrent retry requests from both succeeding.
     """
     source = conn.execute(
-        """SELECT id, site_id, mode, limit_n, requested_by, process_files
+        """SELECT id, site_id, mode, limit_n, requested_by, process_files, scope_id
              FROM crawl_jobs
             WHERE id=%s AND status IN ('failed', 'cancelled') AND retried_by IS NULL
             FOR UPDATE""",
@@ -173,14 +178,22 @@ def retry_job(conn, job_id, *, requested_by=None) -> Optional[dict]:
     if source is None:
         conn.rollback()
         return None
+    if source['scope_id'] is not None:
+        # A scoped retry must not race a different observation or whole-site run.
+        conn.execute('SELECT pg_advisory_xact_lock(hashtextextended(%s,0))', (source['site_id'],))
+        active = conn.execute("""SELECT id FROM crawl_jobs WHERE site_id=%s
+          AND status IN ('queued','running','cancelling') LIMIT 1""", (source['site_id'],)).fetchone()
+        if active:
+            conn.rollback()
+            raise ActiveJobError(f"active crawl job {active['id']}")
     row = conn.execute(
-        """INSERT INTO crawl_jobs (site_id, mode, limit_n, requested_by, retry_of, process_files)
-             VALUES (%s, %s, %s, %s, %s, %s)
+        """INSERT INTO crawl_jobs (site_id, mode, limit_n, requested_by, retry_of, process_files, scope_id)
+             VALUES (%s, %s, %s, %s, %s, %s, %s)
           RETURNING *""",
         (
             source["site_id"], source["mode"], source["limit_n"],
             requested_by if requested_by is not None else source["requested_by"],
-            source["id"], source["process_files"],
+            source["id"], source["process_files"], source["scope_id"],
         ),
     ).fetchone()
     # Mark the source as consumed by this retry while preserving its status.
@@ -381,7 +394,22 @@ def job_detail(conn,job_id:int) -> dict | None:
     row=conn.execute("SELECT * FROM crawl_jobs WHERE id=%s",(job_id,)).fetchone()
     if not row:return None
     logs=conn.execute("SELECT id,level,event,message,created_at FROM crawl_job_logs WHERE job_id=%s ORDER BY id",(job_id,)).fetchall()
-    return {"job":dict(row),"logs":[dict(item) for item in logs]}
+    result = {"job":dict(row),"logs":[dict(item) for item in logs]}
+    if row.get('scope_id') is not None:
+        from delivery.worker import scopes
+        try:
+            scope = scopes.load(conn, row['scope_id'], row['site_id'])
+        except ValueError:
+            result['scope'] = {'scope_id': row['scope_id'], 'validation_failed': True,
+                               'whole_site_completion': False, 'files_verified': False}
+            return result
+        definition = scope['definition']
+        result['scope'] = {'scope_id': scope['scope_id'], 'kind': definition['kind'],
+                           'observation_id': definition['observation_id'],
+                           'lower': definition['lower'], 'upper': definition['upper'],
+                           'items_done': scope['items_done'], 'completed_at': scope['completed_at'],
+                           'whole_site_completion': False, 'files_verified': False}
+    return result
 
 
 # ---------------------------------------------------------------------------

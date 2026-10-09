@@ -33,7 +33,8 @@ def _source(site_id):
     for name in ('crawler/base_crawler.py', 'crawler/search_credentials.py',
                  'crawler/db_libertree.py', 'crawler/db_pg.py', 'crawler/libertree_adapter.py',
                  'crawler/document_dates.py', 'crawler/document_identity.py',
-                 'delivery/capabilities.py', 'delivery/worker/worker.py'):
+                 'delivery/capabilities.py', 'delivery/worker/worker.py',
+                 'delivery/worker/jobs.py', 'delivery/worker/scopes.py', 'delivery/db/schema.py'):
         digest.update((root/name).read_bytes())
     config = getattr(cls, '_config_path', None)
     if config:

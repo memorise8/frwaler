@@ -19,8 +19,12 @@ def digest(value):
 
 
 def source_hash(crawler):
+    return source_hash_for_class(type(crawler))
+
+
+def source_hash_for_class(cls):
     root = Path(__file__).parent
-    source = hashlib.sha256(Path(type(crawler).crawl.__code__.co_filename).read_bytes())
+    source = hashlib.sha256(Path(cls.crawl.__code__.co_filename).read_bytes())
     for path in (__file__, *(root/name for name in ('base_crawler.py','document_dates.py','document_identity.py',
                                                   'libertree_adapter.py','db_libertree.py','db_pg.py'))):
         source.update(Path(path).read_bytes())
@@ -156,6 +160,26 @@ class _PlanBudget(BaseException):
     """Stop at a saved checkpoint without converting a budget into fetch failure."""
 
 
+def normalize_plan(lower, upper, ranges):
+    """Validate the exact contiguous date scope before queuing or fetching."""
+    if (not isinstance(ranges, list) or not 1 <= len(ranges) <= 10000
+            or date.fromisoformat(lower).isoformat() != lower
+            or date.fromisoformat(upper).isoformat() != upper):
+        raise ValueError('invalid plan configuration')
+    normalized = []; next_lower = lower
+    for entry in ranges:
+        lo, hi, count = entry['lower'], entry['upper'], entry['expected_count']
+        if (lo != next_lower or date.fromisoformat(lo).isoformat() != lo
+                or date.fromisoformat(hi).isoformat() != hi or lo > hi
+                or type(count) is not int or not 0 <= count < 1500):
+            raise ValueError('noncontiguous or overlarge date range')
+        normalized.append({'lower': lo, 'upper': hi, 'expected_count': count})
+        next_lower = (date.fromisoformat(hi) + timedelta(days=1)).isoformat()
+    if normalized[-1]['upper'] != upper:
+        raise ValueError('bounds do not match partition')
+    return normalized
+
+
 def crawl_plan(crawler, lower, upper, ranges, *, limit=None, max_requests=200, wall_seconds=1500):
     """Walk an explicit complete date partition; keep whole-site completion separate.
 
@@ -166,19 +190,9 @@ def crawl_plan(crawler, lower, upper, ranges, *, limit=None, max_requests=200, w
     crawler._check_cancelled()
     try:
         if (type(max_requests) is not int or max_requests < 2 or wall_seconds <= 0
-                or (limit is not None and (type(limit) is not int or limit < 0))
-                or not isinstance(ranges,list) or not 1 <= len(ranges) <= 10000
-                or date.fromisoformat(lower).isoformat()!=lower or date.fromisoformat(upper).isoformat()!=upper):
+                or (limit is not None and (type(limit) is not int or limit < 0))):
             raise ValueError('invalid plan configuration')
-        normalized=[];next_lower=lower
-        for entry in ranges:
-            lo,hi,count=entry['lower'],entry['upper'],entry['expected_count']
-            if (lo!=next_lower or date.fromisoformat(lo).isoformat()!=lo or date.fromisoformat(hi).isoformat()!=hi
-                    or lo>hi or type(count) is not int or not 0 <= count < 1500):
-                raise ValueError('noncontiguous or overlarge date range')
-            normalized.append({'lower':lo,'upper':hi,'expected_count':count})
-            next_lower=(date.fromisoformat(hi)+timedelta(days=1)).isoformat()
-        if normalized[-1]['upper']!=upper:raise ValueError('bounds do not match partition')
+        normalized = normalize_plan(lower, upper, ranges)
     except (KeyError,TypeError,ValueError,OverflowError):
         crawler._report_source_failure('configuration')
         return 0

@@ -109,7 +109,7 @@ def _count_site_docs(conn, site_id) -> int:
     return int(row["n"])
 
 
-def _persist_advance(conn, site_id, inst, start_cursor, mode) -> bool:
+def _persist_advance(conn, site_id, inst, start_cursor, mode, scope_id=None) -> bool:
     """크롤러가 보고한 전진을 저장. 전진 없으면 False (저장도 없음).
 
     completed_at 은 backfill 전진일 때만 지운다: oldest_first incremental 은
@@ -121,6 +121,10 @@ def _persist_advance(conn, site_id, inst, start_cursor, mode) -> bool:
     pending = getattr(inst, "delivery_pending_cursor", None)
     if pending is None or pending == start_cursor:
         return False
+    if scope_id is not None:
+        from delivery.worker import scopes
+        scopes.save_progress(conn, scope_id, pending, getattr(inst, "delivery_cursor_items_done", 0))
+        return True
     jobs.save_progress(conn, site_id, pending,
                        items_delta=getattr(inst, "delivery_cursor_items_done", 0),
                        clear_completed=(mode == "backfill"))
@@ -136,7 +140,19 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
     if cls is None:
         jobs.fail_job(conn, job["id"], f"no crawler for site_id={site_id!r}")
         return 0
-    if crawler_registry is None:
+    scope_id = job.get('scope_id')
+    scope = None
+    if scope_id is not None:
+        from delivery.worker import scopes
+        try:
+            if job.get('mode') != 'backfill':
+                raise ValueError('scoped collection requires backfill mode')
+            scope = scopes.load(conn, scope_id, site_id, cls)
+        except (KeyError, TypeError, ValueError, OverflowError) as exc:
+            conn.rollback()
+            jobs.fail_job(conn, job['id'], f'configuration: {exc}')
+            return 0
+    if crawler_registry is None and scope is None:
         from delivery.capabilities import validate_request, CapabilityError
         try:
             validate_request(site_id, job.get('mode', 'incremental'), trial=True)
@@ -170,9 +186,9 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
     mode = job.get("mode", "incremental")
     order = getattr(cls, "DELIVERY_ORDER", "arbitrary")
     cursor_enabled = mode == "backfill" or (mode == "incremental" and order == "oldest_first")
-    start_cursor = jobs.load_cursor(conn, site_id) if cursor_enabled else None
+    start_cursor = scope['cursor'] if scope is not None else (jobs.load_cursor(conn, site_id) if cursor_enabled else None)
     version = getattr(cls, 'DELIVERY_CURSOR_VERSION', None)
-    if version and start_cursor and start_cursor.get('version') != version:
+    if scope is None and version and start_cursor and start_cursor.get('version') != version:
         # Legacy offsets may already have skipped a partial page. Re-scan once
         # with deduplication rather than continuing from an untrustworthy offset.
         start_cursor = None
@@ -192,7 +208,13 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
             inst.delivery_mode = mode
             inst.delivery_should_cancel = should_cancel or (lambda: False)
             inst.delivery_cursor = start_cursor
-            inst.crawl(limit=job.get("limit_n"))
+            if scope is not None:
+                definition = scope['definition']
+                inst.crawl_date_plan(definition['lower'], definition['upper'], definition['ranges'],
+                                     limit=job.get('limit_n'), max_requests=20,
+                                     wall_seconds=wall_budget_seconds())
+            else:
+                inst.crawl(limit=job.get("limit_n"))
     except CrawlUpToDate:
         # 신규분이 소진됐다는 정상 신호 -- 완료로 종결하고 잘림 판정은 하지 않는다.
         conn.rollback()
@@ -201,8 +223,8 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
         if finished is not None and cursor_enabled:
             # 소유권이 있다면 커서는 항상 남긴다 -- 취소든 완료든 up-to-date
             # 까지 걸은 것은 진짜다.
-            _persist_advance(conn, site_id, inst, start_cursor, mode)
-            if mode == "backfill" and finished == "done":
+            _persist_advance(conn, site_id, inst, start_cursor, mode, scope_id)
+            if scope is None and mode == "backfill" and finished == "done":
                 # backfill 이 완주 대신 up-to-date 를 만난 경우도 완료다: 신규가
                 # 없다는 뜻이지, 못 걸었다는 뜻이 아니다. 단, 정상 반환과 동시에
                 # 취소가 도착했다면(finished == "cancelled") 완료로 표시하지
@@ -216,16 +238,19 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
         finished = jobs.finish_job(conn, job["id"], saved_count=saved)
         # 취소여도 걸은 만큼은 진짜다: 커서는 남기고, 체인(재큐잉)만 끊는다.
         if finished is not None and cursor_enabled:
-            _persist_advance(conn, site_id, inst, start_cursor, mode)
+            _persist_advance(conn, site_id, inst, start_cursor, mode, scope_id)
         record_output()
         return saved
     except Exception as exc:  # noqa: BLE001
         # SQL errors leave psycopg transactions aborted; clear that state before
         # recording the durable failure transition.
         conn.rollback()
-        jobs.fail_job(conn, job["id"], f"{type(exc).__name__}: {exc}")
+        saved = max(0, _count_site_docs(conn, site_id) - before)
+        finished = jobs.fail_job(conn, job["id"], f"{type(exc).__name__}: {exc}", saved_count=saved)
+        if finished is not None and cursor_enabled and inst is not None:
+            _persist_advance(conn, site_id, inst, start_cursor, mode, scope_id)
         record_output()
-        return 0
+        return saved
     saved = _count_site_docs(conn, site_id) - before
     source_failure = getattr(inst, "delivery_source_failure", None)
     if source_failure:
@@ -233,7 +258,7 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
         finished = jobs.fail_job(conn, job["id"], f"source failure: {source_failure}",
                                  saved_count=max(0, saved))
         if finished is not None and cursor_enabled:
-            _persist_advance(conn, site_id, inst, start_cursor, mode)
+            _persist_advance(conn, site_id, inst, start_cursor, mode, scope_id)
         record_output()
         return max(0, saved)
     # truncated 는 이제 finish_job 의 truncated 컬럼(운영자에게 "시간에 걸렸다"는
@@ -248,13 +273,29 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
         # CrawlCancelled 예외 경로와 동일하게 다룬다: 커서는 남기고 완료·재큐잉은
         # 건너뛴다 -- 그러지 않으면 운영자의 취소가 조용히 무시된다.
         if cursor_enabled:
-            _persist_advance(conn, site_id, inst, start_cursor, mode)
+            _persist_advance(conn, site_id, inst, start_cursor, mode, scope_id)
     elif finished == "done":
         # 이 작업을 아직 우리가 소유할 때만 커서/완료/재큐잉을 만진다. finished
         # 가 None 이면(=lease 가 이미 회수되어 다른 곳에서 이 행을 넘겨받았으면)
         # 아무것도 만지지 않는다.
-        advanced = cursor_enabled and _persist_advance(conn, site_id, inst, start_cursor, mode)
-        if mode == "backfill":
+        advanced = cursor_enabled and _persist_advance(conn, site_id, inst, start_cursor, mode, scope_id)
+        if scope is not None:
+            if getattr(inst, 'delivery_date_plan_exhausted', False):
+                scopes.mark_complete(conn, scope_id)
+                jobs.log_event(conn, job['id'], 'scope_completed', '지정한 날짜 범위 처리가 완료되었습니다. 사이트 전체·파일 검증은 별도입니다.')
+                conn.commit()
+            elif advanced:
+                # Empty/excluded ranges also advance a valid observed scope.
+                try:
+                    jobs.enqueue_job(conn, site_id, mode='backfill', limit_n=job.get('limit_n'),
+                                     requested_by='auto-scoped-backfill', process_files=process_files, scope_id=scope_id)
+                except jobs.ActiveJobError:
+                    jobs.log_event(conn, job['id'], 'requeue_skipped', '활성 작업이 있어 범위 작업의 자동 재개를 멈춥니다.', level='warning')
+                    conn.commit()
+            else:
+                jobs.log_event(conn, job['id'], 'stalled', '범위 진도가 전진하지 않아 자동 재개를 멈춥니다.', level='warning')
+                conn.commit()
+        elif mode == "backfill":
             # 항목 목격의 증거는 크롤러의 보고(items_done)와 실제 저장 수 중
             # 어느 쪽이든 인정한다 -- 보고를 빠뜨린 크롤러 때문에 진짜 전진이
             # 있는 체인을 끊으면 안 된다.
