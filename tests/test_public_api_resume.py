@@ -8,6 +8,7 @@ from pathlib import Path
 import sqlite3
 import unittest
 from unittest.mock import Mock, patch
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 from crawler import db_libertree
 from crawler.base_crawler import BaseCrawler, CrawlCancelled
@@ -130,9 +131,43 @@ class ApiResumeContract:
         self.assertFalse(crawler.delivery_exhausted)
 
 
+class FederalCursorContract:
+    def cursor_crawl(self, corrupt=None):
+        crawler = self.cls(self.conn); self.addCleanup(crawler._session.close)
+        calls = []
+        def request(url, params=None):
+            query = dict(params) if params else {k:v[0] for k,v in parse_qs(urlsplit(url).query).items()}
+            page = int(query['page']); calls.append(page)
+            if page > 1: self.assertEqual(query['search_after_cursor'], f'cursor-{page}')
+            rows = [{'document_number': str(n), 'html_url': f'https://fixture.invalid/{n}',
+                     'title': f'Research {n}', 'abstract': 'Scientific evidence. '*10} for n in range((page-1)*3, page*3)]
+            nxt = dict(query, page=str(page+1), search_after_cursor=f'cursor-{page+1}', format='json')
+            link = crawler._API_BASE+'?'+urlencode(nxt) if page < 3 else None
+            if corrupt == 'foreign': link = 'https://outside.test/api?'+urlencode(nxt)
+            if corrupt == 'scope':
+                nxt['conditions[agencies][]'] = 'different-agency'; link = crawler._API_BASE+'?'+urlencode(nxt)
+            response = Mock(); response.json.return_value = {'results': rows, 'count': 3, 'total_pages': 1, 'next_page_url': link}
+            return response
+        crawler._request = request
+        return crawler.crawl(), calls, crawler
+
+    def test_server_cursor_continues_beyond_reported_page_total(self):
+        saved, calls, crawler = self.cursor_crawl()
+        self.assertEqual(saved, 9); self.assertEqual(calls, [1, 2, 3])
+        self.assertIsNone(crawler.delivery_source_failure)
+
+    def test_next_links_cannot_change_host_or_query_membership(self):
+        for corruption in ('foreign', 'scope'):
+            with self.subTest(corruption=corruption):
+                _, calls, crawler = self.cursor_crawl(corruption)
+                self.assertEqual(calls, [1])
+                self.assertEqual(crawler.delivery_source_failure, 'invalid_response')
+
+
 for name, site in [('FederalRegister', 'federalregister-gov-documents'), ('Transparency', 'transparency-gov-au-publications')]:
-    globals()[name] = type(name, (ApiResumeContract, unittest.TestCase), {'SITE': site})
-    pg = type(name+'Postgres', (ApiResumeContract, unittest.TestCase), {'SITE': site, 'BACKEND': 'postgres'})
+    bases = (FederalCursorContract, ApiResumeContract, unittest.TestCase) if name == 'FederalRegister' else (ApiResumeContract, unittest.TestCase)
+    globals()[name] = type(name, bases, {'SITE': site})
+    pg = type(name+'Postgres', bases, {'SITE': site, 'BACKEND': 'postgres'})
     globals()[name+'Postgres'] = unittest.skipUnless(os.environ.get('TEST_PG_DSN'), 'requires owned disposable PostgreSQL')(pg)
 del pg
 

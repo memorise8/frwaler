@@ -5,6 +5,7 @@ import json
 import os
 import sys
 import time
+from urllib.parse import parse_qs, urlsplit
 
 # Absolute import — spec_from_file_location has no package context
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -26,10 +27,32 @@ class FederalRegisterDocsCrawler(BaseCrawler):
     _AGENCY_SLUG = "health-and-human-services-department"
     _PAGE_SIZE = 200  # FR API supports up to 1000; 200 is safe and fast
 
+    def _checked_next_url(self, url):
+        """Follow provider pagination only within the unchanged API query."""
+        if not isinstance(url, str):
+            raise ValueError('invalid next page URL')
+        parsed, origin = urlsplit(url), urlsplit(self._API_BASE)
+        if (parsed.scheme != origin.scheme or parsed.netloc != origin.netloc
+                or parsed.path != origin.path or parsed.fragment):
+            raise ValueError('next page outside reviewed API')
+        params = parse_qs(parsed.query, keep_blank_values=True)
+        expected = {'conditions[agencies][]': self._AGENCY_SLUG,
+                    'conditions[search_type_id]': '3', 'order': 'newest', 'per_page': str(self._PAGE_SIZE)}
+        if (any(params.get(k) != [v] for k,v in expected.items())
+                or set(params)-set(expected)-{'page', 'format', 'search_after_cursor'}
+                or (params.get('format') is not None and params['format'] != ['json'])
+                or len(params.get('page', [])) != 1 or not params['page'][0].isdigit()
+                or int(params['page'][0]) < 1
+                or ('search_after_cursor' in params and (len(params['search_after_cursor']) != 1 or not params['search_after_cursor'][0]))):
+            raise ValueError('next page changes query scope')
+        return url
+
     def crawl(self, limit=None):
         saved = 0
         page = 1
         seen_urls = set()
+        next_request = None
+        seen_page_urls = set()
         start_time = time.time()
         limit_str = str(limit) if limit is not None else "inf"
 
@@ -42,6 +65,7 @@ class FederalRegisterDocsCrawler(BaseCrawler):
 
                 # Safety cap: 200 pages
                 if page > 200:
+                    self._report_source_failure('configuration')
                     print(f"[{self.site_id}] Safety cap of 200 pages reached. Stopping.")
                     break
 
@@ -62,7 +86,7 @@ class FederalRegisterDocsCrawler(BaseCrawler):
                     ("page", str(page)),
                 ]
 
-                resp = self._request(self._API_BASE, params=params)
+                resp = self._request(next_request) if next_request else self._request(self._API_BASE, params=params)
                 if resp is None:
                     self._report_source_failure('fetch_failed')
                     print(f"[{self.site_id}] Failed to fetch page {page} after retries. Stopping.")
@@ -212,8 +236,25 @@ class FederalRegisterDocsCrawler(BaseCrawler):
                     print(f"[{self.site_id}] Page {page}: all items already seen. Stopping.")
                     break
 
-                # End-of-pagination
-                if page >= total_pages:
+                # Prefer the provider's cursor continuation. Displayed totals
+                # must not override an explicit next-page link.
+                if 'next_page_url' in data:
+                    value = data['next_page_url']
+                    if value is None or value == '':
+                        break
+                    try:
+                        next_request = self._checked_next_url(value)
+                    except (TypeError, ValueError):
+                        self._report_source_failure('invalid_response')
+                        break
+                    if next_request in seen_page_urls:
+                        self._report_source_failure('invalid_response')
+                        break
+                    seen_page_urls.add(next_request)
+                elif next_request is not None:
+                    self._report_source_failure('invalid_response')
+                    break
+                elif page >= total_pages:
                     print(f"[{self.site_id}] Reached last page ({page}/{total_pages}). Done.")
                     break
 
