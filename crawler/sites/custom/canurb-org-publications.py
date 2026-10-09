@@ -203,15 +203,16 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
         # Date from JSON-LD datePublished
         published_date = self._extract_published_date(soup) or ""
 
-        # Abstract: og:description → list excerpt
-        abstract = (
+        # Some publisher pages reuse another report's social description.
+        # Prefer the current article's body and preserve the fallback source.
+        social_description = (
             self._meta(soup, "og:description")
             or self._meta(soup, "description")
-            or record.get("excerpt", "")
         )
-        if len(abstract) < _MIN_ABSTRACT:
-            # Try to extract from the__content / with__content
-            abstract = self._extract_body_text(soup) or abstract
+        body_excerpt = self._extract_body_text(soup)
+        abstract = body_excerpt or social_description or record.get("excerpt", "")
+        abstract_source = ('detail_body_excerpt' if body_excerpt else
+                           'social_description' if social_description else 'listing_excerpt')
 
         if len(abstract) < _MIN_ABSTRACT:
             print(f"[{self.site_id}] skipping {url}: abstract too short ({len(abstract)} chars)")
@@ -243,6 +244,8 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
             "excerpt": record.get("excerpt", ""),
             "og_url": self._meta(soup, "og:url"),
             "pdf_candidates": self._pdf_links(soup, url),
+            "abstract_source": abstract_source,
+            "social_description_raw": social_description,
         }
 
         paper = {
@@ -333,9 +336,10 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
         return ""
 
     def _extract_body_text(self, soup) -> str:
-        # Try elementor widget text or the__content
+        # Scope body selectors to the article, excluding surrounding sidebars.
+        root = soup.find("article") or soup.find("main") or soup
         for sel in (".the__content", ".with__content", ".entry-content", ".elementor-text-editor"):
-            node = soup.select_one(sel)
+            node = root.select_one(sel)
             if node:
                 # Remove noise
                 for tag in node.find_all(["script", "style", "nav", "header", "footer"]):
