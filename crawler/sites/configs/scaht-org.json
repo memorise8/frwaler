@@ -4,29 +4,29 @@
   "base_url": "https://www.scaht.org",
   "crawl_type": "html",
   "list_page": {
-    "url": "https://www.scaht.org/en/research/publications/",
+    "url": "https://www.scaht.org/en/publications/",
     "params": {},
     "pagination": {
-      "type": "none",
-      "param": null,
+      "type": "query_param",
+      "param": "page",
       "start": 1,
       "step": 1
     },
     "selectors": {
-      "item_container": "div.row.pt-4 div.col-md-8.offset-md-2 > a[href]:has(> h4)",
-      "item_link": ":scope",
+      "item_container": ".publications-item",
+      "item_link": "a[href]",
       "item_link_attr": "href",
-      "title": "h4.mb-0",
-      "date": "+ p.text-dark + p.text-primary",
-      "category": "+ p.text-dark + p.text-primary"
+      "title": "a[href]",
+      "date": ".publications-date",
+      "category": null
     }
   },
   "detail_page": {
     "selectors": {
-      "title": null,
+      "title": ".publication-title h1",
       "abstract": null,
-      "authors": null,
-      "date": null,
+      "authors": ".publication-authors p",
+      "date": ".publication-date",
       "pdf_link": null,
       "keywords": null,
       "department": null,
@@ -38,8 +38,10 @@
     "id_regex": null
   },
   "metadata": {
-    "analyzed_from": "https://www.scaht.org/en/research/publications/",
+    "analyzed_from": "https://www.scaht.org/en/publications/",
     "detail_sample": null,
-    "confidence": 0.67
+    "confidence": 0.67,
+    "previous_analyzed_from": "https://www.scaht.org/en/research/publications/",
+    "verification": "Current list and one detail DOM observed 2026-10-10 KST; full enumeration and publisher attachments remain unverified"
   }
 }
