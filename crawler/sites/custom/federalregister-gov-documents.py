@@ -56,6 +56,12 @@ class FederalRegisterDocsCrawler(BaseCrawler):
         return crawl_range(self, lower, upper, expected_count, limit=limit,
                            max_pages=max_pages, wall_seconds=wall_seconds)
 
+    def crawl_date_plan(self, lower, upper, ranges, *, limit=None, max_requests=200, wall_seconds=1500):
+        """Persist all ranges of an explicit date plan with a resumable cursor."""
+        from crawler.federal_checkpoint import crawl_plan
+        return crawl_plan(self, lower, upper, ranges, limit=limit,
+                          max_requests=max_requests, wall_seconds=wall_seconds)
+
     def _paper_from_item(self, item):
         """Map original source fields; exclusions remain explicit return values."""
         html_url = (item.get("html_url") or "").strip()
