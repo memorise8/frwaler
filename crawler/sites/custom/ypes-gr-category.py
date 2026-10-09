@@ -56,12 +56,14 @@ class YpesGrCategoryCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         seen_ids: set[str] = set()
         start_wall = time.time()
         limit_label = str(limit) if limit is not None else "∞"
 
         for page in range(1, self.MAX_PAGES + 1):
+            self._check_cancelled()
             if time.time() - start_wall > self.MAX_WALL_SECONDS:
                 print(
                     f"[{self.site_id}] wall-clock limit ({self.MAX_WALL_SECONDS}s) reached "
@@ -87,30 +89,42 @@ class YpesGrCategoryCrawler(BaseCrawler):
 
             raw = self._curl_get(api_url, context=f"API page {page}")
             if not raw:
+                self._report_source_failure('fetch_failed')
                 print(f"[{self.site_id}] API fetch failed at page {page}; stopping")
                 break
 
             try:
                 posts = json.loads(raw.decode("utf-8", errors="replace"))
             except Exception as exc:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] JSON parse error at page {page}: {exc}; stopping")
                 break
 
-            if not isinstance(posts, list) or len(posts) == 0:
+            if not isinstance(posts, list):
+                self._report_source_failure('invalid_response')
+                break
+            if len(posts) == 0:
                 print(f"[{self.site_id}] page {page}: empty response; end of list")
                 break
 
             if page % 10 == 0 or page == 1:
                 print(f"[{self.site_id}] page {page}: saved {saved}/{limit_label}")
 
+            new_on_page = 0
             for post in posts:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
-                post_id = str(post.get("id", ""))
-                if not post_id or post_id in seen_ids:
+                native_id = post.get('id') if isinstance(post, dict) else None
+                if type(native_id) is not int or native_id <= 0:
+                    self._report_source_failure('invalid_response')
+                    continue
+                post_id = str(native_id)
+                if post_id in seen_ids:
                     continue
                 seen_ids.add(post_id)
+                new_on_page += 1
 
                 try:
                     n = self._process_post(post)
@@ -119,12 +133,18 @@ class YpesGrCategoryCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     url = post.get("link", post_id)
                     print(f"[{self.site_id}] item {url} failed: {exc}; skipping")
                     continue
 
                 time.sleep(self._delay)
 
+            if new_on_page == 0:
+                self._report_source_failure('invalid_response')
+                break
+
+        self._check_cancelled()
         print(f"[{self.site_id}] crawl complete: saved {saved}")
         return saved
 
@@ -136,7 +156,7 @@ class YpesGrCategoryCrawler(BaseCrawler):
         post_id = str(post.get("id", ""))
         url = post.get("link", "") or ""
         date_raw = post.get("date", "") or ""
-        published_date = date_raw[:10] if date_raw else None
+        published_date = date_raw
 
         # Title
         title_raw = (post.get("title") or {}).get("rendered", "") or ""
@@ -185,7 +205,7 @@ class YpesGrCategoryCrawler(BaseCrawler):
             "doi": None,
             "metadata": json.dumps(meta, ensure_ascii=False),
         })
-        return 1
+        return int(self._last_save_created)
 
     # ------------------------------------------------------------------
     # Helpers

@@ -72,6 +72,7 @@ class MintourGovGrDeltiaTypoyCrawler(BaseCrawler):
     CURL_MARKER = "__MINTOUR_CURL_META__:"
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         page = 1
         seen_urls = set()
@@ -79,6 +80,7 @@ class MintourGovGrDeltiaTypoyCrawler(BaseCrawler):
         limit_or_inf = str(limit) if limit is not None else "∞"
 
         while True:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
             if page > self.MAX_PAGES:
@@ -96,11 +98,13 @@ class MintourGovGrDeltiaTypoyCrawler(BaseCrawler):
             list_url = self._list_url(page)
             raw = self._curl_get(list_url, context=f"list page {page}")
             if not raw:
+                self._report_source_failure('fetch_failed')
                 print(f"[{self.site_id}] list page {page} failed or returned empty; stopping")
                 break
 
             soup = self._make_soup(raw, context=f"list page {page}")
             if soup is None:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] list page {page} could not be parsed; stopping")
                 break
 
@@ -111,6 +115,7 @@ class MintourGovGrDeltiaTypoyCrawler(BaseCrawler):
 
             new_on_page = 0
             for idx, record in enumerate(records, start=1):
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -133,10 +138,12 @@ class MintourGovGrDeltiaTypoyCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(f"[{self.site_id}] item {url} failed: {exc}")
                     continue
 
             if new_on_page == 0:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] page {page}: no new records; stopping")
                 break
 
@@ -146,17 +153,20 @@ class MintourGovGrDeltiaTypoyCrawler(BaseCrawler):
 
             page += 1
 
+        self._check_cancelled()
         print(f"[{self.site_id}] done. Total saved: {saved}")
         return saved
 
     def _process_record(self, record, label):
         detail_raw = self._curl_get(record["url"], context=f"detail {label}")
         if not detail_raw:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] item {label} skipped: detail fetch failed")
             return 0
 
         soup = self._make_soup(detail_raw, context=f"detail {label}")
         if soup is None:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] item {label} skipped: detail parse failed")
             return 0
 
@@ -218,7 +228,7 @@ class MintourGovGrDeltiaTypoyCrawler(BaseCrawler):
             "metadata": json.dumps(metadata, ensure_ascii=False),
         }
         self._save_paper(paper)
-        return 1
+        return int(self._last_save_created)
 
     def _list_url(self, page):
         if page <= 1:

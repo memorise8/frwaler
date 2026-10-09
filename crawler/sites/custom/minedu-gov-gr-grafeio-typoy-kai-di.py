@@ -150,6 +150,7 @@ class MineduGovGrGrafeioTypoyKaiDiCrawler(BaseCrawler):
     base_url = _BASE_URL
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         seen_urls = set()
         start_offset = 0
@@ -158,6 +159,7 @@ class MineduGovGrGrafeioTypoyKaiDiCrawler(BaseCrawler):
         limit_str = str(limit) if limit is not None else "∞"
 
         while True:
+            self._check_cancelled()
             # Wall-clock budget
             if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{_SITE_ID}] 25-minute budget reached at page {page}. Exiting cleanly.")
@@ -177,12 +179,14 @@ class MineduGovGrGrafeioTypoyKaiDiCrawler(BaseCrawler):
             list_url = f"{_LIST_URL}?start={start_offset}" if start_offset > 0 else _LIST_URL
             raw = _curl_get(list_url)
             if not raw:
+                self._report_source_failure('fetch_failed')
                 print(f"[{_SITE_ID}] Failed to fetch listing page {page} (start={start_offset}). Stopping.")
                 break
 
             try:
                 soup = _make_soup(raw)
             except Exception as exc:
+                self._report_source_failure('invalid_response')
                 print(f"[{_SITE_ID}] Failed to parse listing page {page}: {exc}. Stopping.")
                 break
 
@@ -190,6 +194,7 @@ class MineduGovGrGrafeioTypoyKaiDiCrawler(BaseCrawler):
                 "div", class_="custom-category-listing"
             )
             if not container:
+                self._report_source_failure('invalid_response')
                 print(f"[{_SITE_ID}] No article list container at page {page}. Stopping.")
                 break
 
@@ -212,10 +217,12 @@ class MineduGovGrGrafeioTypoyKaiDiCrawler(BaseCrawler):
             # Detect pagination loop
             new_articles = [a for a in articles if a["url"] not in seen_urls]
             if not new_articles and page > 1:
+                self._report_source_failure('invalid_response')
                 print(f"[{_SITE_ID}] All articles on page {page} already seen. Stopping.")
                 break
 
             for article_meta in articles:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -232,6 +239,7 @@ class MineduGovGrGrafeioTypoyKaiDiCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(f"[{_SITE_ID}] item {url} failed: {exc}")
                     continue
 
@@ -240,11 +248,12 @@ class MineduGovGrGrafeioTypoyKaiDiCrawler(BaseCrawler):
             start_offset += _PAGE_SIZE
             page += 1
 
+        self._check_cancelled()
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
 
     def _process_article(self, meta: dict) -> int:
-        """Fetch and save one article. Returns 1 if saved, 0 if skipped."""
+        """Fetch and persist one article; return 1 only for a newly created row."""
         url = meta["url"]
         title = meta["title"]
 
@@ -253,12 +262,14 @@ class MineduGovGrGrafeioTypoyKaiDiCrawler(BaseCrawler):
 
         raw = _curl_get(url)
         if not raw:
+            self._report_source_failure('item_failed')
             print(f"[{_SITE_ID}] Failed to fetch detail: {url}")
             return 0
 
         try:
             soup = _make_soup(raw)
         except Exception as exc:
+            self._report_source_failure('item_failed')
             print(f"[{_SITE_ID}] Parse error for {url}: {exc}")
             return 0
 
@@ -272,6 +283,7 @@ class MineduGovGrGrafeioTypoyKaiDiCrawler(BaseCrawler):
                 content_div = div
                 break
         if not content_div:
+            self._report_source_failure('item_failed')
             print(f"[{_SITE_ID}] No item-page div: {url}")
             return 0
 
@@ -321,4 +333,4 @@ class MineduGovGrGrafeioTypoyKaiDiCrawler(BaseCrawler):
         }
 
         self._save_paper(paper)
-        return 1
+        return int(self._last_save_created)

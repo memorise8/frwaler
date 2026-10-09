@@ -72,12 +72,14 @@ class MinscfaGovGrGrafeioTypouCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         seen_urls: set[str] = set()
         start_wall = time.time()
         limit_label = str(limit) if limit is not None else "∞"
 
         for page in range(1, self.MAX_PAGES + 1):
+            self._check_cancelled()
             # Wall-clock guard
             elapsed = time.time() - start_wall
             if elapsed > self.MAX_WALL_SECONDS:
@@ -93,11 +95,13 @@ class MinscfaGovGrGrafeioTypouCrawler(BaseCrawler):
             list_url = self._list_url(page)
             raw = self._curl_get(list_url, context=f"list page {page}")
             if not raw:
+                self._report_source_failure('fetch_failed')
                 print(f"[{self.site_id}] list fetch failed at page {page}; stopping")
                 break
 
             soup = self._make_soup(raw, context=f"list page {page}")
             if soup is None:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] failed to parse list page {page}; stopping")
                 break
 
@@ -111,7 +115,9 @@ class MinscfaGovGrGrafeioTypouCrawler(BaseCrawler):
                     f"[{self.site_id}] page {page}: saved {saved}/{limit_label}"
                 )
 
+            new_on_page = 0
             for record in records:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -119,6 +125,7 @@ class MinscfaGovGrGrafeioTypouCrawler(BaseCrawler):
                 if not url or url in seen_urls:
                     continue
                 seen_urls.add(url)
+                new_on_page += 1
 
                 try:
                     n = self._process_record(record)
@@ -127,11 +134,17 @@ class MinscfaGovGrGrafeioTypouCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(f"[{self.site_id}] item {url} failed: {exc}; skipping")
                     continue
 
                 time.sleep(self.detail_delay)
 
+            if new_on_page == 0:
+                self._report_source_failure('invalid_response')
+                break
+
+        self._check_cancelled()
         print(f"[{self.site_id}] crawl complete: saved {saved}")
         return saved
 
@@ -145,17 +158,19 @@ class MinscfaGovGrGrafeioTypouCrawler(BaseCrawler):
         return f"{self.START_URL}page/{page}/"
 
     def _process_record(self, record: dict) -> int:
-        """Fetch detail page, build paper dict, save. Returns 1 on success, 0 on skip."""
+        """Fetch and persist a detail; return 1 only for a newly created row."""
         url = record["url"]
         post_number = record.get("post_number")
 
         raw = self._curl_get(url, context=f"detail {post_number}")
         if not raw:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] detail fetch failed for {url}; skipping")
             return 0
 
         soup = self._make_soup(raw, context=f"detail {url}")
         if soup is None:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] detail parse failed for {url}; skipping")
             return 0
 
@@ -213,7 +228,7 @@ class MinscfaGovGrGrafeioTypouCrawler(BaseCrawler):
             "doi": None,
             "metadata": json.dumps(meta, ensure_ascii=False),
         })
-        return 1
+        return int(self._last_save_created)
 
     def _parse_list_page(self, soup: BeautifulSoup) -> list[dict]:
         records = []

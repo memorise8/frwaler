@@ -52,6 +52,7 @@ class MinistryOfJusticeGrCrawler(BaseCrawler):
     )
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         page = 1
         seen_urls: set[str] = set()
@@ -59,6 +60,7 @@ class MinistryOfJusticeGrCrawler(BaseCrawler):
         limit_or_inf = limit if limit is not None else "inf"
 
         while True:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
             if page > self._MAX_PAGES:
@@ -74,11 +76,13 @@ class MinistryOfJusticeGrCrawler(BaseCrawler):
             list_url = self._list_url(page)
             raw = self._curl_get(list_url, context=f"list page {page}")
             if not raw:
+                self._report_source_failure('fetch_failed')
                 print(f"[{self.site_id}] list page {page} failed; stopping")
                 break
 
             soup = _make_soup(raw)
             if soup is None:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] list page {page} could not be parsed; stopping")
                 break
 
@@ -89,10 +93,12 @@ class MinistryOfJusticeGrCrawler(BaseCrawler):
 
             new_items = [item for item in items if item["url"] not in seen_urls]
             if not new_items:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] page {page} returned 0 new records; done")
                 break
 
             for item in new_items:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -108,6 +114,7 @@ class MinistryOfJusticeGrCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     item_label = item.get("post_id") or url
                     print(f"[{self.site_id}] item {item_label} failed: {exc}")
                     continue
@@ -120,6 +127,7 @@ class MinistryOfJusticeGrCrawler(BaseCrawler):
 
             page += 1
 
+        self._check_cancelled()
         print(f"[{self.site_id}] done. Total saved: {saved}")
         return saved
 
@@ -129,11 +137,13 @@ class MinistryOfJusticeGrCrawler(BaseCrawler):
 
         detail_raw = self._curl_get(url, context=f"detail {post_id or url}")
         if not detail_raw:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] detail failed after retries: {post_id or url}")
             return 0
 
         soup = _make_soup(detail_raw)
         if soup is None:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] detail parse failed: {post_id or url}")
             return 0
 
@@ -208,7 +218,7 @@ class MinistryOfJusticeGrCrawler(BaseCrawler):
             "metadata": json.dumps(metadata, ensure_ascii=False),
         }
         self._save_paper(paper)
-        return 1
+        return int(self._last_save_created)
 
     def _list_url(self, page: int) -> str:
         if page <= 1:
