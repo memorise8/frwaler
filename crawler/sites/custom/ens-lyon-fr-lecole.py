@@ -166,7 +166,7 @@ class EnsLyonFrLecoleCrawler(BaseCrawler):
         # Date: element text is "Date de publication23/04/2026"
         date_el = soup.select_one(".field--name-field-article-date")
         date_raw = self._node_text(date_el) if date_el else ""
-        published_date = self._parse_date_dmy(date_raw)
+        published_date = date_raw
 
         # Abstract: .field--name-field-article-resume (typically ~500+ chars)
         resume_el = soup.select_one(".field--name-field-article-resume")

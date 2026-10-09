@@ -68,6 +68,13 @@ class BmlehCounts(EuropePressContract,unittest.TestCase):
 
 class EnsLyonCounts(EuropePressContract,unittest.TestCase):
     SITE='ens-lyon-fr-lecole';CLASS='EnsLyonFrLecoleCrawler';LIST_METHOD='_curl_get';LIST_MODULE=False
+    def test_source_publication_label_retains_raw_text_and_date_precision(self):
+        self.date_values=['Date de publication 2025','Date de publication juillet 2025','Date de publication 31/02/2025','Date de publication 23/04/2026','Date de publication 23/04/2026 suffix','Date de publication 03/04/2025','Date de publication 2025-07-11','Date de publication 2025-07']
+        self.assertEqual(self.crawler().crawl(),8)
+        rows=self.conn.execute('SELECT published_date,published_date_raw,published_date_status,published_date_precision FROM documents ORDER BY seq_id').fetchall()
+        actual=[tuple(r.values()) if isinstance(r,dict) else tuple(r) for r in rows]
+        expected=[(None,'partial','year'),(None,'partial','month'),(None,'invalid','day'),('2026-04-23','normalized','day'),(None,'unrecognized',None),('2025-04-03','normalized','day'),('2025-07-11','normalized','day'),(None,'partial','month')]
+        self.assertEqual(actual,[(value,raw,status,precision) for raw,(value,status,precision) in zip(self.date_values,expected)])
 
 class UNGenevaCounts(EuropePressContract,unittest.TestCase):
     SITE='ungeneva-org-en';CLASS='UNGenevaEnCrawler';LIST_METHOD='_curl_get';LIST_MODULE=True

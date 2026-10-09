@@ -16,9 +16,15 @@ SITE_DATE_ORDERS: dict[str, str] = {
     # Public ONERA press listings expose 02/10/2026 alongside 22/07/2026.
     # Native HTML persistence fixtures verify day/month order and raw retention.
     'onera-fr-fr': 'DMY',
+    # ENS Lyon's publication fields expose 02/07/2026 and 25/06/2026;
+    # retained listing/detail observations agree on the labeled DMY format.
+    'ens-lyon-fr-lecole': 'DMY',
 }
 # Reviewed source-field labels only; never search for dates in arbitrary prose.
-SITE_DATE_LABELS = {'onera-fr-fr': r'Publié le\s+(.+)'}
+SITE_DATE_LABELS = {
+    'onera-fr-fr': r'Publié le\s+(.+)',
+    'ens-lyon-fr-lecole': r'Date de publication\s*(.+)',
+}
 
 _MONTHS = {}
 for number, names in enumerate((
