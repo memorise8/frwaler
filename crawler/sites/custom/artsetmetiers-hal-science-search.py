@@ -80,6 +80,9 @@ class ArtsetmetiersHalScienceSearchCrawler(BaseCrawler):
             "q": "*",
             "rows": rows,
             "start": start,
+            # Unsorted windows overlap in live HAL responses. A unique key
+            # gives deterministic pagination without changing query membership.
+            "sort": "docid asc",
             "wt": "json",
             "fl": _FIELDS,
             # Multiple fq values — Solr AND-s them

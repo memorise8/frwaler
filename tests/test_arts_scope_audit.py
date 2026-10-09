@@ -36,7 +36,7 @@ class ArtsAuditTests(unittest.TestCase):
         with self.assertRaises(AuditStop):
             classify_records(docs)
 
-    def run_case(self, *, status=200, change_after_inventory=False, contract_mismatch=False, raw_date='2025'):
+    def run_case(self, *, status=200, change_after_inventory=False, contract_mismatch=False, raw_date='2025', unstable_without_sort=False):
         spec = importlib.util.spec_from_file_location('arts_contract_fixture', ROOT/'crawler/sites/custom'/f'{SITE}.py')
         module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
         captured = {}
@@ -59,6 +59,10 @@ class ArtsAuditTests(unittest.TestCase):
             params = dict(parse_qsl(urlsplit(argv[-1]).query))
             start, rows = int(params['start']), int(params['rows'])
             calls.append(start)
+            if unstable_without_sort:
+                rows = min(rows, 4)
+                if params.get('sort') != 'docid asc' and start == 4:
+                    start = 3
             page = [dict(d) for d in docs[start:start+rows]]
             if change_after_inventory and len(calls) > 2 and page:
                 page[0]['title_s'] = ['Source changed']
@@ -125,6 +129,10 @@ class ArtsAuditTests(unittest.TestCase):
     def test_different_boundary_contract_is_rejected(self):
         with self.assertRaises(ValueError):
             self.run_case(contract_mismatch=True)
+
+    def test_unique_order_prevents_overlapping_source_windows(self):
+        report, _, _ = self.run_case(unstable_without_sort=True)
+        self.assertEqual(report['state'], 'enumerated_and_code_eligible_metadata_reconciled')
 
 
 if __name__ == '__main__':
