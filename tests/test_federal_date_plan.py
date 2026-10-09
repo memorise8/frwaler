@@ -23,7 +23,7 @@ class FederalDatePlanTests(unittest.TestCase):
         params = parse_qs(urlsplit(url).query)
         self.assertEqual(params['conditions[agencies][]'], ['health-and-human-services-department'])
         self.assertEqual(params['conditions[search_type_id]'], ['3'])
-        self.assertEqual(params['per_page'], ['1'])
+        self.assertEqual(params['per_page'], ['200'])
         docs = [{'document_number': f'id-{n}', 'publication_date': f'2025-01-0{n}'} for n in range(1, 5)]
         lo = params.get('conditions[publication_date][gte]', ['0001-01-01'])[0]
         hi = params.get('conditions[publication_date][lte]', ['9999-12-31'])[0]
@@ -87,6 +87,24 @@ class FederalDatePlanTests(unittest.TestCase):
         report = run(self.output, self.root/'gate', fetch=lambda *a, **k: self.response({}, status=429))
         self.assertEqual(report['state'], 'host_cooldown_deferred')
         self.gate.defer.assert_called_once()
+
+    def test_multiple_sample_records_are_valid_with_short_server_window(self):
+        def multiple(url, **kwargs):
+            result = self.fetch(url, **kwargs)
+            data = json.loads(result['body'])
+            if 'publication_date' not in url:
+                dates = ('2025-01-01', '2025-01-02') if 'order=oldest' in url else ('2025-01-04', '2025-01-03')
+                data['results'] = [{'document_number': d, 'publication_date': d} for d in dates]
+            return self.response(data)
+        report = run(self.output, self.root/'gate', leaf_limit=3, fetch=multiple)
+        self.assertEqual(report['state'], 'disjoint_date_range_counts_observed')
+
+    def test_wrong_oldest_order_cannot_define_date_bounds(self):
+        data = {'count': 2, 'results': [{'document_number': 'a', 'publication_date': '2025-01-02'},
+                                       {'document_number': 'b', 'publication_date': '2025-01-01'}]}
+        report = run(self.output, self.root/'gate', fetch=lambda *a, **k: self.response(data))
+        self.assertEqual(report['reason'], 'date_order_not_honored')
+        self.assertEqual(report['bounds'], {})
 
     def test_single_day_limit_never_claims_full_scope(self):
         with self.assertRaises(AuditStop): partition('2025-01-01', '2025-01-01')

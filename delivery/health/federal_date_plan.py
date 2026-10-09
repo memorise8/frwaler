@@ -9,7 +9,7 @@ import hashlib
 import json
 from pathlib import Path
 import signal
-from urllib.parse import urlencode
+from urllib.parse import urlencode, parse_qs, urlsplit
 
 from crawler.sites import CRAWLERS
 from .federal_persistence import SITE
@@ -21,7 +21,7 @@ from .source_observer import fetch_once, retry_after
 
 def query_url(cls, *, order='newest', lower=None, upper=None):
     pairs = [('conditions[agencies][]', cls._AGENCY_SLUG), ('conditions[search_type_id]', '3'),
-             ('order', order), ('per_page', '1'), ('page', '1')]
+             ('order', order), ('per_page', '200'), ('page', '1')]
     if lower is not None: pairs.append(('conditions[publication_date][gte]', lower))
     if upper is not None: pairs.append(('conditions[publication_date][lte]', upper))
     return cls._API_BASE+'?'+urlencode(pairs)
@@ -88,12 +88,18 @@ def run(output, gate_dir, *, resume=False, request_budget=200, leaf_limit=1500, 
         if not isinstance(data, dict) or not isinstance(data.get('results'), list) or type(data.get('count')) is not int:
             raise AuditStop('source_schema_invalid')
         docs, count = data['results'], data['count']
-        if count < 0 or len(docs) != min(1, count): raise AuditStop('source_count_or_sample_inconsistent')
+        if (count < 0 or (count == 0 and docs)
+                or (count > 0 and not 1 <= len(docs) <= min(200, count))):
+            raise AuditStop('source_count_or_sample_inconsistent')
+        dates = []
         for doc in docs:
             if not isinstance(doc, dict) or not doc.get('document_number'): raise AuditStop('source_identity_missing')
             published = date.fromisoformat(doc['publication_date']).isoformat()
+            dates.append(published)
             if (lower and published < lower) or (upper and published > upper):
                 raise AuditStop('date_filter_not_honored')
+        descending = parse_qs(urlsplit(url).query)['order'] == ['newest']
+        if dates != sorted(dates, reverse=descending): raise AuditStop('date_order_not_honored')
         return data, filename
 
     save()
