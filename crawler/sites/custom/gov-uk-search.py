@@ -66,11 +66,8 @@ def _strip_html(html: str) -> str:
 
 
 def _parse_date(dt_str: str | None) -> str:
-    """Extract YYYY-MM-DD from ISO datetime string."""
-    if not dt_str:
-        return ""
-    m = re.match(r"(\d{4}-\d{2}-\d{2})", dt_str)
-    return m.group(1) if m else ""
+    """Retain source precision; shared persistence validates complete dates."""
+    return dt_str if dt_str is not None else ""
 
 
 # ---------------------------------------------------------------------------
@@ -85,6 +82,7 @@ class GovUKSearchCrawler(BaseCrawler):
     base_url = "https://www.gov.uk"
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         page = 1
         seen_urls = set()
@@ -92,6 +90,7 @@ class GovUKSearchCrawler(BaseCrawler):
         limit_str = str(limit) if limit is not None else "∞"
 
         while True:
+            self._check_cancelled()
             # Wall-clock budget: 25 minutes
             if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[gov-uk-search] 25-minute wall-clock budget reached. Stopping.")
@@ -116,16 +115,21 @@ class GovUKSearchCrawler(BaseCrawler):
             )
             raw = _curl_get(list_url)
             if not raw:
+                self._report_source_failure("fetch_failed")
                 print(f"[gov-uk-search] Failed to fetch list page {page}. Stopping.")
                 break
 
             try:
                 data = json.loads(raw)
             except json.JSONDecodeError:
+                self._report_source_failure("invalid_response")
                 print(f"[gov-uk-search] Invalid JSON at list page {page}. Stopping.")
                 break
 
-            html = data.get("search_results", "") or ""
+            if not isinstance(data,dict) or not isinstance(data.get("search_results"),str):
+                self._report_source_failure("invalid_response")
+                break
+            html = data["search_results"]
             if not html:
                 print(f"[gov-uk-search] Empty search_results at page {page}. Done.")
                 break
@@ -140,11 +144,13 @@ class GovUKSearchCrawler(BaseCrawler):
 
             new_paths = [p for p in pub_paths if p not in seen_urls]
             if not new_paths:
+                self._report_source_failure("invalid_response")
                 print(f"[gov-uk-search] No new items at page {page} (all duplicates). Done.")
                 break
 
             # --- Process each publication ---
             for path in pub_paths:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
                 if path in seen_urls:
@@ -162,6 +168,7 @@ class GovUKSearchCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[gov-uk-search] item {path} failed: {exc}")
                     continue
 
@@ -181,17 +188,19 @@ class GovUKSearchCrawler(BaseCrawler):
     def _crawl_item(self, path: str) -> bool:
         """Fetch Content API for one publication and save it.
 
-        Returns True if the item was saved, False if skipped.
+        Returns True only for a newly inserted row, False for existing/skipped items.
         """
         api_url = f"{_CONTENT_API}{path}"
         raw = _curl_get(api_url)
         if not raw:
+            self._report_source_failure("item_failed")
             print(f"[gov-uk-search] Detail fetch failed for {path}")
             return False
 
         try:
             doc = json.loads(raw)
         except json.JSONDecodeError:
+            self._report_source_failure("item_failed")
             print(f"[gov-uk-search] Detail JSON parse failed for {path}")
             return False
 
@@ -294,4 +303,4 @@ class GovUKSearchCrawler(BaseCrawler):
         }
 
         self._save_paper(paper)
-        return True
+        return bool(self._last_save_created)
