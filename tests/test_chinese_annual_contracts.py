@@ -87,6 +87,47 @@ class CnipaAnnualCounts(AnnualContract,unittest.TestCase):
         self.assertTrue(c._process_item({'title':'Annual report','pdf_url':url,'col_id':'1001','date_str':'2025'},'2025'))
         row=self.conn.execute('SELECT meta_url FROM documents').fetchone();self.assertEqual(row['meta_url'] if isinstance(row,dict) else row[0],url)
 
+    def test_apostrophes_and_entities_in_titles_are_preserved(self):
+        c=self.crawler();original=self.fetch.side_effect
+        self.fetch.side_effect=lambda url,**kw:original(url,**kw).replace('Annual section',"Commissioner's &quot;Annual&quot; section")
+        self.assertEqual(c.crawl(),8)
+        rows=self.conn.execute('SELECT title FROM documents ORDER BY seq_id').fetchall()
+        self.assertEqual([r['title'] if isinstance(r,dict) else r[0] for r in rows],[f'Commissioner\'s "Annual" section {n}' for n in range(1,9)])
+
+    def test_body_and_detail_pdf_are_saved_without_footer_or_caption_pollution(self):
+        c=self.crawler();original=self.fetch.side_effect;body='Actual publisher article text and annual statistics. '*5
+        def fetch(url,**kw):
+            raw=original(url,**kw)
+            if 'dataproxy.jsp' in url:raw=re.sub(r' href="/attach/0/report-\d+\.pdf"','',raw)
+            if '/art/' in url:raw='<div class="en_article"><p>'+body+'</p><a href="/2018-06/annual.pdf">Download caption</a></div><footer>Wrong footer</footer>'
+            return raw
+        self.fetch.side_effect=fetch;papers=[];save=c._save_paper
+        def emit(p):papers.append(dict(p));return save(p)
+        c._save_paper=emit;self.assertEqual(c.crawl(),8)
+        for paper in papers:
+            self.assertEqual(paper['abstract'],body.strip())
+            self.assertEqual(paper['pdf_url'],'https://english.cnipa.gov.cn/2018-06/annual.pdf')
+            self.assertEqual(json.loads(paper['metadata'])['abstract_source'],'article_body')
+
+    def test_pdf_caption_is_not_mistaken_for_body_and_multiple_files_are_explicit(self):
+        c=self.crawler();original=self.fetch.side_effect
+        def fetch(url,**kw):
+            raw=original(url,**kw)
+            if 'dataproxy.jsp' in url:raw=re.sub(r' href="/attach/0/report-\d+\.pdf"','',raw)
+            if '/art/' in url:raw='<div class="en_article"><a href="/a.pdf">'+('Report title '*10)+'</a><a href="/b.pdf">Annex</a></div>'
+            return raw
+        self.fetch.side_effect=fetch;papers=[];save=c._save_paper
+        def emit(p):papers.append(dict(p));return save(p)
+        c._save_paper=emit;self.assertEqual(c.crawl(),8)
+        for paper in papers:
+            self.assertTrue(paper['abstract'].startswith('Catalog metadata only'))
+            self.assertIsNone(paper['pdf_url'])
+            self.assertTrue(json.loads(paper['metadata'])['primary_pdf_ambiguous'])
+
+    def test_meta_description_preserves_apostrophes(self):
+        text="Commissioner's source description with quoted document information. "*3
+        self.assertEqual(self.module._extract_meta_tags('<meta name="description" content="'+text+'">')['description'],text)
+
 for cls in (MoeAnnualCounts,CnipaAnnualCounts):
     pg=type(cls.__name__+'Postgres',(cls,),{'BACKEND':'postgres'})
     globals()[pg.__name__]=unittest.skipUnless(os.environ.get('TEST_PG_DSN'),'requires owned disposable PostgreSQL')(pg)

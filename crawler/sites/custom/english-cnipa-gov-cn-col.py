@@ -4,7 +4,7 @@
 Hierarchy:
   Main page (col1336) → year sub-collections (col3568=2024, col3480=2023, …)
   Each year page → dataproxy XML records with title/date/PDF URL/article URL
-  Article detail pages → metadata tags (content body is always empty PDF-only)
+  Article detail pages → metadata, article body and source-linked attachments
 """
 
 import json
@@ -13,6 +13,7 @@ import re
 import subprocess
 import sys
 import time
+from urllib.parse import urljoin, urlsplit
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
@@ -91,7 +92,10 @@ def _build_abstract(year_label: str, title: str) -> str:
 
 
 def _extract_meta_tags(html: str) -> dict:
-    """Fast regex extraction of <meta name=... content=...> pairs."""
+    """Read quoted attribute values without truncating apostrophes in content."""
+    soup = _make_soup(html)
+    if soup is not None:
+        return {node['name']: node.get('content', '') for node in soup.select('meta[name]')}
     result: dict = {}
     # name before content
     for m in re.finditer(
@@ -106,6 +110,27 @@ def _extract_meta_tags(html: str) -> dict:
     ):
         result.setdefault(m.group(2), m.group(1))
     return result
+
+
+def _article_content(html: str, url: str) -> tuple[str, list[str]]:
+    """Limit body/attachment extraction to the publisher's article container."""
+    soup = _make_soup(html)
+    node = soup.select_one('.en_article') if soup is not None else None
+    if node is None:
+        return '', []
+    for noise in node.select('script, style, nav, header, footer, noscript'):
+        noise.decompose()
+    pdfs = []
+    for link in node.select('a[href]'):
+        target = urljoin(url, link['href'])
+        parsed = urlsplit(target)
+        if parsed.scheme in ('http', 'https') and parsed.path.lower().endswith('.pdf'):
+            if target not in pdfs:
+                pdfs.append(target)
+            # A download caption by itself is not the document body.
+            link.decompose()
+    text = re.sub(r'\s+', ' ', node.get_text(' ', strip=True)).strip()
+    return text, pdfs
 
 
 # ---------------------------------------------------------------------------
@@ -400,10 +425,14 @@ class CnipaAnnualReportCrawler(BaseCrawler):
         date_str = None
         art_id = None
 
-        # Title from title= attribute
-        m = re.search(r'title=["\']([^"\']+)["\']', cdata)
-        if m:
-            title = (m.group(1)
+        # Parse attributes so a quoted title may contain apostrophes/quotes.
+        soup = _make_soup(cdata)
+        titled = soup.find(attrs={'title': True}) if soup is not None else None
+        if titled is not None:
+            title = titled['title']
+        m = re.search(r'title=(["\'])(.*?)\1', cdata, re.S)
+        if title is None and m:
+            title = (m.group(2)
                      .replace("&#39;", "'")
                      .replace("&amp;", "&")
                      .replace("&lt;", "<")
@@ -476,6 +505,8 @@ class CnipaAnnualReportCrawler(BaseCrawler):
 
         # Fetch article detail page for metadata
         page_meta: dict = {}
+        article_text = ''
+        article_pdfs = []
         if art_url:
             html = _curl_get(art_url)
             if not html:
@@ -484,6 +515,7 @@ class CnipaAnnualReportCrawler(BaseCrawler):
             if html:
                 try:
                     page_meta = _extract_meta_tags(html)
+                    article_text, article_pdfs = _article_content(html, art_url)
                 except Exception as exc:
                     self._report_source_failure('item_failed')
                     print(f"[{self.site_id}] meta-extract failed for {art_url}: {exc}")
@@ -494,12 +526,20 @@ class CnipaAnnualReportCrawler(BaseCrawler):
                      or page_meta.get("article:title")
                      or f"CNIPA Annual Report {year_label} — Section {art_id}")
 
-        # Source description when available; otherwise explicitly metadata only.
+        if not pdf_url and len(article_pdfs) == 1:
+            pdf_url = article_pdfs[0]
+
+        # Preserve attributable article text; captions alone remain metadata.
         raw_desc = page_meta.get("description", "").strip()
-        if len(raw_desc) >= 50:
+        if len(article_text) >= 50:
+            abstract = article_text
+            abstract_source = 'article_body'
+        elif len(raw_desc) >= 50:
             abstract = raw_desc
+            abstract_source = 'publisher_description'
         else:
             abstract = _build_abstract(year_label, title)
+            abstract_source = 'catalog_metadata_only'
 
         if len(abstract) < 50:
             print(f"[{self.site_id}] Skipping '{title}': abstract too short ({len(abstract)} chars)")
@@ -548,8 +588,10 @@ class CnipaAnnualReportCrawler(BaseCrawler):
                     "posted_date": date_str,
                     "originalFilename": original_filename,
                     "guid": page_meta.get("guid"),
-                    "abstract_source": 'publisher_description' if len(raw_desc) >= 50 else 'catalog_metadata_only',
-                    "document_body_extracted": False,
+                    "abstract_source": abstract_source,
+                    "document_body_extracted": abstract_source == 'article_body',
+                    "article_pdf_urls": article_pdfs,
+                    "primary_pdf_ambiguous": not pdf_url and len(article_pdfs) > 1,
                     "native_article_id_missing": art_id is None,
                 },
                 ensure_ascii=False,
