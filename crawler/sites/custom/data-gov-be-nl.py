@@ -9,14 +9,12 @@ Belgium's DCAT Linked Data Fragments endpoint.
 
 from __future__ import annotations
 
-import email.utils
 import json
 import os
 import re
 import subprocess
 import sys
 import time
-from datetime import datetime
 from urllib.parse import quote, unquote, urlencode, urljoin, urlparse
 
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -88,6 +86,7 @@ class DataGovBeNlCrawler(BaseCrawler):
 
     def _crawl_impl(self, limit=None):
         """Crawl the Dutch PDF dataset listing and persist document records."""
+        self._check_cancelled()
         if limit is not None and limit <= 0:
             return 0
 
@@ -103,6 +102,7 @@ class DataGovBeNlCrawler(BaseCrawler):
         rss_by_slug = self._fetch_rss_map()
 
         while True:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
             if time.time() - started_at > _WALL_BUDGET_SECONDS - 30:
@@ -115,10 +115,14 @@ class DataGovBeNlCrawler(BaseCrawler):
             list_url = _LIST_URL if page == 0 else f"{_LIST_URL}?page={page}"
             raw = self._curl_get(list_url, accept="text/html,application/xhtml+xml,*/*;q=0.8")
             if not raw:
+                self._report_source_failure('fetch_failed')
                 print(f"[{self.site_id}] list page {page} failed or empty; stopping")
                 break
 
             items, has_next = self._parse_list_page(raw, list_url)
+            if items is None:
+                self._report_source_failure('invalid_response')
+                break
             if not items:
                 print(f"[{self.site_id}] page {page}: no records; done")
                 break
@@ -128,6 +132,7 @@ class DataGovBeNlCrawler(BaseCrawler):
 
             new_urls_on_page = 0
             for item in items:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -150,11 +155,15 @@ class DataGovBeNlCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     item_id = slug or url or "?"
                     print(f"[{self.site_id}] item {item_id} failed: {exc}")
                     continue
 
             if new_urls_on_page == 0:
+                if limit is not None and saved >= limit:
+                    break
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] page {page}: no new URLs; stopping to avoid pagination loop")
                 break
 
@@ -273,14 +282,19 @@ class DataGovBeNlCrawler(BaseCrawler):
         return None
 
     def _fetch_ldf(self, params):
+        self._check_cancelled()
         query = urlencode(params, quote_via=quote)
         url = f"{_LDF_URL}?{query}"
         # The LDF server's negotiation is strict; adding a broad wildcard can
         # make it return the human HTML view instead of parseable N-Triples.
         raw = self._curl_get(url, accept="application/n-triples")
         if not raw:
+            self._report_source_failure('item_failed')
             return []
-        return self._parse_ntriples(raw)
+        triples = self._parse_ntriples(raw)
+        if not triples and any(line.strip() and not line.lstrip().startswith('#') for line in raw.splitlines()):
+            self._report_source_failure('item_failed')
+        return triples
 
     # ------------------------------------------------------------------
     # List and RSS parsing
@@ -289,7 +303,7 @@ class DataGovBeNlCrawler(BaseCrawler):
     def _parse_list_page(self, raw, page_url):
         soup = self._make_soup(raw)
         if soup is None:
-            return [], False
+            return None, False
 
         rows = soup.select("article.node--type-dataset")
         if not rows:
@@ -338,9 +352,11 @@ class DataGovBeNlCrawler(BaseCrawler):
     def _fetch_rss_map(self):
         raw = self._curl_get(_RSS_URL, accept="application/rss+xml,application/xml,text/xml,*/*;q=0.8")
         if not raw:
+            self._report_source_failure('item_failed')
             return {}
         soup = self._make_soup(raw, prefer_xml=True)
-        if soup is None:
+        if soup is None or soup.find('rss') is None or soup.find('channel') is None:
+            self._report_source_failure('item_failed')
             return {}
 
         out = {}
@@ -428,7 +444,7 @@ class DataGovBeNlCrawler(BaseCrawler):
             "metadata": json.dumps(metadata, ensure_ascii=False, sort_keys=True),
         }
         self._save_paper(paper)
-        return True
+        return self._last_save_created
 
     def _build_record(self, item, slug):
         rss = item.get("rss") or {}
@@ -910,29 +926,8 @@ class DataGovBeNlCrawler(BaseCrawler):
 
     @staticmethod
     def _parse_date(raw):
-        if not raw:
-            return None
-        raw = str(raw).strip()
-        if not raw:
-            return None
-        match = re.search(r"(\d{4})-(\d{2})-(\d{2})", raw)
-        if match:
-            return "-".join(match.groups())
-        match = re.search(r"(\d{4})(\d{2})(\d{2})", raw)
-        if match:
-            return "-".join(match.groups())
-        try:
-            dt = email.utils.parsedate_to_datetime(raw)
-            if dt:
-                return dt.date().isoformat()
-        except Exception:
-            pass
-        for fmt in ("%d/%m/%Y", "%d-%m-%Y", "%Y/%m/%d"):
-            try:
-                return datetime.strptime(raw[:10], fmt).date().isoformat()
-            except ValueError:
-                continue
-        return None
+        """Keep graph/RSS date text; shared persistence validates full values."""
+        return None if raw is None else str(raw)
 
     @staticmethod
     def _uri_tail(value):
