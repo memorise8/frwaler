@@ -105,20 +105,8 @@ class InerisHalScienceSearchCrawler(BaseCrawler):
 
     @staticmethod
     def _parse_date(raw):
-        """Normalise various HAL date formats to YYYY-MM-DD."""
-        if not raw:
-            return ""
-        s = str(raw).strip()
-        m = re.match(r"(\d{4}-\d{2}-\d{2})", s)
-        if m:
-            return m.group(1)
-        m = re.match(r"(\d{4}-\d{2})$", s)
-        if m:
-            return m.group(1) + "-01"
-        m = re.match(r"(\d{4})$", s)
-        if m:
-            return m.group(1) + "-01-01"
-        return s[:10] if len(s) >= 10 else s
+        """Preserve source precision; the database date contract normalizes it."""
+        return "" if raw is None else str(raw)
 
     @staticmethod
     def _extract_filename(url):

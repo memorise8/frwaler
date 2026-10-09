@@ -36,23 +36,26 @@ class ArtsAuditTests(unittest.TestCase):
         with self.assertRaises(AuditStop):
             classify_records(docs)
 
-    def run_case(self, *, status=200, change_after_inventory=False, contract_mismatch=False, raw_date='2025', unstable_without_sort=False):
-        spec = importlib.util.spec_from_file_location('arts_contract_fixture', ROOT/'crawler/sites/custom'/f'{SITE}.py')
+    def run_case(self, *, status=200, change_after_inventory=False, contract_mismatch=False, raw_date='2025', unstable_without_sort=False, site=SITE, english_fallback=False, enumerated_scope=False):
+        spec = importlib.util.spec_from_file_location('arts_contract_fixture', ROOT/'crawler/sites/custom'/f'{site}.py')
         module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
         captured = {}
         def capture(url, params):
             captured.update(endpoint=url, query_pairs=parse_qsl(urlencode(params, doseq=True)))
             return '{"response":{"numFound":0,"docs":[]}}'
-        crawler = module.ArtsetmetiersHalScienceSearchCrawler(None)
+        crawler = next(v for v in vars(module).values() if isinstance(v, type) and getattr(v, 'site_id', None) == site)(None)
         with patch.object(crawler, '_curl_get', side_effect=capture):
             crawler._fetch_page(0, module._ROWS)
         crawler._session.close()
-        contract = dict(captured, site_id=SITE)
+        contract = dict(captured, site_id=site)
         docs = [record(n) for n in range(1, 13)]
         for doc in docs:
             doc['producedDate_s'] = raw_date
         docs[-1]['abstract_s'] = ['short']
         docs[-2]['title_s'] = []
+        if english_fallback:
+            docs[0]['en_abstract_s'] = docs[0]['abstract_s']
+            docs[0]['abstract_s'] = []
         calls = []
         gate = Mock(); gate.enter.side_effect = lambda url: contextlib.nullcontext()
         def curl(argv, original, args, kwargs):
@@ -72,13 +75,18 @@ class ArtsAuditTests(unittest.TestCase):
             root = Path(directory)
             (root/'contracts.json').write_text(json.dumps([contract]))
             (root/'boundary.json').write_text(json.dumps({
-                'site_id': SITE, 'source_reported_total': len(docs),
+                'site_id': site, 'source_reported_total': len(docs),
                 'boundary_state': 'sampled_boundaries_accessible_not_full_enumeration',
                 'query_contract_sha256': 'wrong' if contract_mismatch else hashlib.sha256(json.dumps(contract, sort_keys=True).encode()).hexdigest()}))
+            if enumerated_scope:
+                proof = json.loads((root/'boundary.json').read_text())
+                proof.pop('boundary_state')
+                proof.update(state='observed_query_ids_enumerated', observed_unique_ids=len(docs), source_id_enumeration_complete_for_observation=True)
+                (root/'boundary.json').write_text(json.dumps(proof))
             with patch('delivery.health.arts_scope_audit.RequestGate', return_value=gate), \
                     patch('delivery.health.arts_scope_audit.curl_header_probe', side_effect=curl), \
                     patch('crawler.base_crawler.time.sleep'), contextlib.redirect_stdout(io.StringIO()):
-                report = run(root/'out', root/'gate', root/'contracts.json', root/'boundary.json')
+                report = run(root/'out', root/'gate', root/'contracts.json', root/'boundary.json', site=site)
             db = root/'out/audit.sqlite'
             dates = None
             if db.exists():
@@ -95,6 +103,14 @@ class ArtsAuditTests(unittest.TestCase):
         self.assertFalse(report['full_collection_verified'])
         self.assertFalse(report['files_verified'])
         self.assertFalse(report['exclusion_policy_accepted'])
+
+    def test_enssib_native_contract_includes_english_abstract_fallback(self):
+        report, _, dates = self.run_case(site='enssib-hal-science-search', english_fallback=True, enumerated_scope=True)
+        self.assertEqual(report['state'], 'enumerated_and_code_eligible_metadata_reconciled')
+        self.assertEqual(report['site_id'], 'enssib-hal-science-search')
+        self.assertEqual([p['actual_new'] for p in report['phases']], [3, 3, 2, 2, 0])
+        self.assertEqual((report['source_unique_count'], report['code_eligible_count']), (12, 10))
+        self.assertEqual(dates, (None, '2025', 'year'))
 
     def test_source_change_stops_before_save(self):
         report, _, _ = self.run_case(change_after_inventory=True)

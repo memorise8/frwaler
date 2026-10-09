@@ -111,22 +111,8 @@ class IcpHalScienceSearchCrawler(BaseCrawler):
 
     @staticmethod
     def _parse_date(raw: str) -> str:
-        """Normalise various HAL date formats to YYYY-MM-DD."""
-        if not raw:
-            return ""
-        # Full ISO datetime / "YYYY-MM-DD HH:MM:SS" / "YYYY-MM-DDTHH:MM:SSZ"
-        m = re.match(r"(\d{4}-\d{2}-\d{2})", raw)
-        if m:
-            return m.group(1)
-        # YYYY-MM
-        m = re.match(r"(\d{4}-\d{2})$", raw)
-        if m:
-            return m.group(1) + "-01"
-        # YYYY
-        m = re.match(r"(\d{4})$", raw)
-        if m:
-            return m.group(1) + "-01-01"
-        return raw[:10] if len(raw) >= 10 else raw
+        """Preserve source precision; the database date contract normalizes it."""
+        return "" if raw is None else str(raw)
 
     @staticmethod
     def _extract_filename(url: str) -> str:

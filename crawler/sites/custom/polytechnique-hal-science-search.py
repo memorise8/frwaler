@@ -106,19 +106,8 @@ class PolytechniqueHalScienceSearchCrawler(BaseCrawler):
 
     @staticmethod
     def _parse_date(raw: str) -> str:
-        """Normalise various HAL date formats to YYYY-MM-DD."""
-        if not raw:
-            return ""
-        m = re.match(r"(\d{4}-\d{2}-\d{2})", raw)
-        if m:
-            return m.group(1)
-        m = re.match(r"(\d{4}-\d{2})$", raw)
-        if m:
-            return m.group(1) + "-01"
-        m = re.match(r"(\d{4})$", raw)
-        if m:
-            return m.group(1) + "-01-01"
-        return raw[:10] if len(raw) >= 10 else raw
+        """Preserve source precision; the database date contract normalizes it."""
+        return "" if raw is None else str(raw)
 
     @staticmethod
     def _extract_filename(url: str) -> str:

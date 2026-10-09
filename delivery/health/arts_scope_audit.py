@@ -1,4 +1,4 @@
-"""Enumerate the bounded ENSAM code query, then reconcile native SQLite saves.
+"""Enumerate reviewed bounded HAL queries, then reconcile native SQLite saves.
 
 The original title/abstract exclusions are reported, not endorsed as the user's
 full collection policy. File downloads and institution-wide scope remain open.
@@ -24,10 +24,13 @@ from .scaht_persistence import AuditStop
 
 ROOT = Path(__file__).resolve().parents[2]
 SITE = 'artsetmetiers-hal-science-search'
+SUPPORTED_SITES = (SITE, 'enssib-hal-science-search')
 
 
-def classify_records(records):
+def classify_records(records, *, site=SITE):
     """Independent mapping of the reviewed adapter's identity/save predicate."""
+    if site not in SUPPORTED_SITES:
+        raise ValueError('adapter save predicate has not been reviewed')
     manifest = []
     seen_source, seen_keys, seen_urls = set(), set(), set()
     for doc in records:
@@ -38,7 +41,8 @@ def classify_records(records):
         if not source_id or source_id in seen_source or not key or key in seen_keys or not url or url in seen_urls:
             raise AuditStop('missing_or_colliding_source_identity')
         seen_source.add(source_id); seen_keys.add(key); seen_urls.add(url)
-        titles, abstracts = doc.get('title_s') or [], doc.get('abstract_s') or []
+        titles = doc.get('title_s') or []
+        abstracts = doc.get('abstract_s') or (doc.get('en_abstract_s') if site == 'enssib-hal-science-search' else None) or []
         if not isinstance(titles, list) or not isinstance(abstracts, list):
             raise AuditStop('unexpected_title_or_abstract_schema')
         title = titles[0].strip() if titles else ''
@@ -50,27 +54,38 @@ def classify_records(records):
     return manifest
 
 
-def run(output, gate_dir, contracts, boundary):
+def run(output, gate_dir, contracts, boundary, *, site=SITE):
+    if site not in SUPPORTED_SITES:
+        raise ValueError("adapter save predicate has not been reviewed")
     if os.environ.get('LIBERTREE_DB_BACKEND', 'sqlite') != 'sqlite':
         raise ValueError('audit requires SQLite backend')
     os.environ['LIBERTREE_DB_BACKEND'] = 'sqlite'
     output = Path(output); output.mkdir(parents=True, exist_ok=False)
-    contract = next(c for c in json.loads(Path(contracts).read_text()) if c['site_id'] == SITE)
+    contract = next(c for c in json.loads(Path(contracts).read_text()) if c['site_id'] == site)
     reviewed = json.loads(Path(boundary).read_text())
     expected_total = reviewed['source_reported_total']
     contract_hash = hashlib.sha256(json.dumps(contract, sort_keys=True).encode()).hexdigest()
-    if (reviewed['site_id'] != SITE or type(expected_total) is not int or not 0 < expected_total <= 500
+    reviewed_scope = (
+        reviewed.get('boundary_state') == 'sampled_boundaries_accessible_not_full_enumeration'
+        or (reviewed.get('state') == 'observed_query_ids_enumerated'
+            and reviewed.get('observed_unique_ids') == expected_total
+            and reviewed.get('source_id_enumeration_complete_for_observation') is True)
+    )
+    if (reviewed['site_id'] != site or type(expected_total) is not int or not 0 < expected_total <= 500
             or reviewed.get('query_contract_sha256') != contract_hash
-            or reviewed.get('boundary_state') != 'sampled_boundaries_accessible_not_full_enumeration'):
+            or not reviewed_scope):
         raise ValueError('requires reviewed positive bounded query total')
-    source_file = ROOT/'crawler/sites/custom'/f'{SITE}.py'
+    source_file = ROOT/'crawler/sites/custom'/f'{site}.py'
     spec = importlib.util.spec_from_file_location('reviewed_arts_native', source_file)
     module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+    from crawler.base_crawler import BaseCrawler
+    cls = next(value for value in vars(module).values() if isinstance(value, type) and issubclass(value, BaseCrawler) and getattr(value, 'site_id', None) == site)
     gate = RequestGate(gate_dir, delay=1.5)
-    report = {'site_id': SITE, 'started_at': utc_now(), 'state': 'running',
+    report = {'site_id': site, 'started_at': utc_now(), 'state': 'running',
               'source_file_sha256': hashlib.sha256(source_file.read_bytes()).hexdigest(),
+              'reviewed_scope_evidence_sha256': hashlib.sha256(Path(boundary).read_bytes()).hexdigest(),
               'query_contract': contract, 'expected_api_total': expected_total,
-              'scope': 'exact ENSAM code query; metadata and declared code exclusions only',
+              'scope': 'exact reviewed HAL code query; metadata and declared code exclusions only',
               'operating_database_touched': False, 'files_verified': False,
               'full_collection_verified': False, 'requests': [], 'phases': []}
     def save(): atomic_json(output/'audit.json', report)
@@ -103,7 +118,7 @@ def run(output, gate_dir, contracts, boundary):
     save()
     try:
         with patch.object(subprocess, 'run', command):
-            source_crawler = module.ArtsetmetiersHalScienceSearchCrawler(None)
+            source_crawler = cls(None)
             records, offset = [], 0
             while True:
                 data = source_crawler._fetch_page(offset, module._ROWS)
@@ -121,7 +136,7 @@ def run(output, gate_dir, contracts, boundary):
                 offset += len(docs)
             if len(records) != expected_total:
                 raise AuditStop('source_enumeration_count_mismatch')
-            manifest = classify_records(records)
+            manifest = classify_records(records, site=site)
             atomic_json(output/'manifest.json', manifest)
             expected = {r['post_number'] for r in manifest if r['code_save_eligible']}
             report.update(source_unique_count=len(manifest), code_eligible_count=len(expected),
@@ -135,12 +150,12 @@ def run(output, gate_dir, contracts, boundary):
             for index, (limit, cancel_after) in enumerate(((3, None), (3, None), (None, 2), (None, None), (None, None)), 1):
                 conn = sqlite3.connect(database)
                 try:
-                    db_libertree.init_db(conn); db_libertree.upsert_site(conn, SITE, SITE, 'https://artsetmetiers.hal.science')
+                    db_libertree.init_db(conn); db_libertree.upsert_site(conn, site, site, cls.base_url)
                     count = lambda: conn.execute('SELECT count(*) FROM documents').fetchone()[0]
                     before = count(); prior = dict(conn.execute('SELECT post_number,seq_id FROM documents'))
                     phase = {'number': index, 'before': before, 'limit_new': limit, 'cancel_after': cancel_after, 'state': 'running'}
                     report['phases'].append(phase); save()
-                    crawler = module.ArtsetmetiersHalScienceSearchCrawler(conn)
+                    crawler = cls(conn)
                     crawler.delivery_mode = 'incremental'
                     if cancel_after:
                         crawler.delivery_should_cancel = lambda: count() >= before + cancel_after
@@ -194,8 +209,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('output', 'gate-dir', 'contracts', 'boundary'):
         parser.add_argument('--'+name, required=True)
+    parser.add_argument('--site', choices=SUPPORTED_SITES, default=SITE)
     args = parser.parse_args()
-    result = run(args.output, args.gate_dir, args.contracts, args.boundary)
+    result = run(args.output, args.gate_dir, args.contracts, args.boundary, site=args.site)
     print(json.dumps({k: result.get(k) for k in ('state', 'source_unique_count', 'code_eligible_count')}))
     return 0 if result['state'] == 'enumerated_and_code_eligible_metadata_reconciled' else 1
 
