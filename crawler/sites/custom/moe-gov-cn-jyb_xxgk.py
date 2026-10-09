@@ -81,44 +81,16 @@ def _extract_post_number(url: str) -> str | None:
 
 
 def _extract_content(html: str) -> str:
-    """Extract article body text with multiple fallback strategies."""
-    # Strategy 1: TRS_Editor (modern MOE pages)
-    idx = html.find("TRS_Editor")
-    if idx != -1:
-        chunk = html[idx:]
-        text = _strip_tags(chunk)
-        # Remove the "TRS_Editor" prefix itself
-        text = re.sub(r"^TRS_Editor\s*", "", text)
-        if len(text) >= _ABSTRACT_MIN_CHARS:
-            return text
-
-    # Strategy 2: id="content" div
-    m = re.search(r'id=["\']content["\']', html)
-    if m:
-        chunk = html[m.start():]
-        # Try to find end of content div
-        end = chunk.find("</div>", 200)
-        if end == -1:
-            end = 20000
-        text = _strip_tags(chunk[:end])
-        if len(text) >= _ABSTRACT_MIN_CHARS:
-            return text
-
-    # Strategy 3: collect all <p> paragraphs that contain Chinese text
+    """Extract only the article containers observed in modern and legacy pages."""
     soup = _make_soup(html)
-    if soup:
-        paras = []
-        for p in soup.find_all("p"):
-            t = p.get_text(" ", strip=True)
-            if t and len(t) > 10 and re.search(r"[一-鿿]", t):
-                paras.append(t)
-        text = " ".join(paras)
-        if len(text) >= _ABSTRACT_MIN_CHARS:
-            return text
-
-    # Strategy 4: entire body stripped
-    text = _strip_tags(html)
-    return text
+    if soup is None:
+        return ""
+    node = soup.select_one('.TRS_Editor') or soup.select_one('#downloadContent') or soup.select_one('#content')
+    if node is None:
+        return ""
+    for noise in node.select('script, style, nav, header, footer, noscript'):
+        noise.decompose()
+    return re.sub(r'\s+', ' ', node.get_text(' ', strip=True)).strip()
 
 
 def _parse_list_page(html: str, list_url: str) -> list[dict]:
@@ -179,6 +151,7 @@ class MoeGovCnJybXxgkCrawler(BaseCrawler):
         super().__init__(db_conn, delay)
 
     def crawl(self, limit=None) -> int:
+        self._check_cancelled()
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.time()
@@ -187,6 +160,7 @@ class MoeGovCnJybXxgkCrawler(BaseCrawler):
         # This site has all articles on a single list page (no paginator).
         # The page loop is kept for robustness / future-proofing.
         for page_num in range(1, _MAX_PAGES + 1):
+            self._check_cancelled()
             # Wall-clock budget check
             elapsed = time.time() - start_time
             if elapsed >= _WALL_CLOCK_BUDGET:
@@ -210,6 +184,7 @@ class MoeGovCnJybXxgkCrawler(BaseCrawler):
             print(f"[{_SITE_ID}] Fetching list page {page_num}: {list_url}")
             raw = _curl_get(list_url)
             if not raw:
+                self._report_source_failure('fetch_failed')
                 print(f"[{_SITE_ID}] Failed to fetch list page {page_num}, stopping.")
                 break
 
@@ -230,6 +205,7 @@ class MoeGovCnJybXxgkCrawler(BaseCrawler):
                 seen_urls.add(it["url"])
 
             for it in new_items:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -241,16 +217,18 @@ class MoeGovCnJybXxgkCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(f"[{_SITE_ID}] item failed ({it.get('url', '?')}): {exc}")
                     continue
 
                 time.sleep(self._delay)
 
+        self._check_cancelled()
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
 
     def _process_item(self, it: dict, start_time: float) -> bool:
-        """Fetch detail page, extract content, save. Returns True if saved."""
+        """Fetch and persist article content; return whether a new row was created."""
         url = it["url"]
         title = it["title"]
         listed_date = it.get("listed_date", "")
@@ -261,6 +239,7 @@ class MoeGovCnJybXxgkCrawler(BaseCrawler):
         # Fetch detail page with retry
         detail_html = None
         for attempt in range(3):
+            self._check_cancelled()
             detail_html = _curl_get(url)
             if detail_html:
                 break
@@ -269,11 +248,15 @@ class MoeGovCnJybXxgkCrawler(BaseCrawler):
             time.sleep(wait)
 
         if not detail_html:
+            self._report_source_failure('item_failed')
             print(f"[{_SITE_ID}] Failed to fetch detail page: {url}")
             return False
 
         # Extract content / abstract
         abstract = _extract_content(detail_html)
+        if not abstract:
+            self._report_source_failure('item_failed')
+            return False
 
         if len(abstract) < _ABSTRACT_MIN_CHARS:
             print(f"[{_SITE_ID}] Abstract too short ({len(abstract)} chars) for {url}, skipping.")
@@ -284,7 +267,7 @@ class MoeGovCnJybXxgkCrawler(BaseCrawler):
         pdf_match = re.search(r'href=["\']([^"\']*\.pdf)["\']', detail_html, re.I)
         if pdf_match:
             raw_pdf = pdf_match.group(1)
-            pdf_url = raw_pdf if raw_pdf.startswith("http") else _BASE_URL + raw_pdf
+            pdf_url = urljoin(url, raw_pdf)
 
         original_filename = None
         if pdf_url:
@@ -321,4 +304,4 @@ class MoeGovCnJybXxgkCrawler(BaseCrawler):
         }
 
         self._save_paper(paper)
-        return True
+        return self._last_save_created

@@ -83,12 +83,10 @@ def _parse_date(raw: str | None) -> str | None:
 
 
 def _build_abstract(year_label: str, title: str) -> str:
-    """Construct a ≥100-char synthetic abstract for an annual report section."""
+    """Describe known catalog metadata without inventing document contents."""
     return (
-        f"CNIPA Annual Report {year_label} — {title}. "
-        f"Published by the China National Intellectual Property Administration (CNIPA), "
-        f"this document is part of the official annual report series for {year_label}, "
-        f"covering intellectual property statistics, policies, and developments in China."
+        f"Catalog metadata only (document body not extracted). "
+        f"Publisher: {_PUBLISHER}. Collection: {year_label}. Title: {title}."
     )
 
 
@@ -120,6 +118,9 @@ class CnipaAnnualReportCrawler(BaseCrawler):
     base_url = "https://english.cnipa.gov.cn"
 
     def crawl(self, limit=None):
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         saved = 0
         seen_urls: set = set()
         limit_n = float("inf") if limit is None else int(limit)
@@ -128,6 +129,7 @@ class CnipaAnnualReportCrawler(BaseCrawler):
 
         year_cols = self._get_year_collections()
         if not year_cols:
+            self._report_source_failure('invalid_response')
             print(f"[{self.site_id}] ERROR: no year collections found on main page")
             return 0
 
@@ -135,6 +137,7 @@ class CnipaAnnualReportCrawler(BaseCrawler):
 
         col_idx = 0
         for year_label, col_url in year_cols:
+            self._check_cancelled()
             if saved >= limit_n:
                 break
             if time.time() - start_ts > MAX_SECS:
@@ -153,9 +156,11 @@ class CnipaAnnualReportCrawler(BaseCrawler):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure('item_failed')
                 print(f"[{self.site_id}] year {year_label} failed: {exc}")
                 continue
 
+        self._check_cancelled()
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
 
@@ -166,6 +171,7 @@ class CnipaAnnualReportCrawler(BaseCrawler):
     def _get_year_collections(self) -> list:
         html = _curl_get(_START_URL)
         if not html:
+            self._report_source_failure('fetch_failed')
             return []
         soup = _make_soup(html)
         if not soup:
@@ -225,6 +231,7 @@ class CnipaAnnualReportCrawler(BaseCrawler):
 
         html = _curl_get(col_url)
         if not html:
+            self._report_source_failure('fetch_failed')
             print(f"[{self.site_id}] Failed to fetch {col_url}")
             return 0
 
@@ -240,6 +247,7 @@ class CnipaAnnualReportCrawler(BaseCrawler):
 
         saved = 0
         for item in items:
+            self._check_cancelled()
             if saved >= remaining:
                 break
             if time.time() - start_ts > max_secs:
@@ -258,6 +266,7 @@ class CnipaAnnualReportCrawler(BaseCrawler):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure('item_failed')
                 title_hint = item.get("title") or item.get("art_id") or "?"
                 print(f"[{self.site_id}] item {title_hint!r} failed: {exc}")
                 continue
@@ -284,9 +293,11 @@ class CnipaAnnualReportCrawler(BaseCrawler):
     def _fetch_via_dataproxy(self, col_id: str, unit_id: str, year_label: str) -> list:
         """Fetch all pages via the jpage dataproxy API."""
         items: list = []
+        seen_keys = set()
         safety_cap = 200
 
         for page in range(1, safety_cap + 1):
+            self._check_cancelled()
             url = (
                 f"{_BASE_URL}/module/web/jpage/dataproxy.jsp"
                 f"?page={page}&webid={_WEBID}&path={_BASE_URL}/"
@@ -295,21 +306,41 @@ class CnipaAnnualReportCrawler(BaseCrawler):
             )
             raw = _curl_get(url)
             if not raw:
+                self._report_source_failure('fetch_failed')
                 break
 
             records = re.findall(r"<record><!\[CDATA\[([\s\S]*?)\]\]></record>", raw)
             if not records:
+                if not re.search(r'<totalrecord>0</totalrecord>', raw):
+                    self._report_source_failure('invalid_response')
                 break
 
+            new_on_page = 0
             for rec in records:
                 item = self._parse_record_cdata(rec, col_id, year_label)
                 if item:
+                    key = (item.get('art_url'), item.get('pdf_url'), item.get('art_id'), item.get('title'))
+                    if key in seen_keys:
+                        continue
+                    seen_keys.add(key)
+                    new_on_page += 1
                     items.append(item)
+                else:
+                    self._report_source_failure('invalid_response')
+
+            if not new_on_page:
+                self._report_source_failure('invalid_response')
+                break
 
             m = re.search(r"<totalpage>(\d+)</totalpage>", raw)
-            total_pages = int(m.group(1)) if m else 1
+            if not m or int(m.group(1)) < page:
+                self._report_source_failure('invalid_response')
+                break
+            total_pages = int(m.group(1))
 
             if page >= safety_cap:
+                if page < total_pages:
+                    self._report_source_failure('page_limit')
                 print(f"[{self.site_id}] Safety cap of {safety_cap} pages reached for col {col_id}")
                 break
             if page >= total_pages:
@@ -447,18 +478,23 @@ class CnipaAnnualReportCrawler(BaseCrawler):
         page_meta: dict = {}
         if art_url:
             html = _curl_get(art_url)
+            if not html:
+                self._report_source_failure('item_failed')
+                return False
             if html:
                 try:
                     page_meta = _extract_meta_tags(html)
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(f"[{self.site_id}] meta-extract failed for {art_url}: {exc}")
+                    return False
 
         if not title:
             title = (page_meta.get("ArticleTitle")
                      or page_meta.get("article:title")
                      or f"CNIPA Annual Report {year_label} — Section {art_id}")
 
-        # Abstract: article body is always empty on this site → synthetic
+        # Source description when available; otherwise explicitly metadata only.
         raw_desc = page_meta.get("description", "").strip()
         if len(raw_desc) >= 50:
             abstract = raw_desc
@@ -471,11 +507,11 @@ class CnipaAnnualReportCrawler(BaseCrawler):
 
         # Dates
         raw_date = date_str or page_meta.get("pubdate", "")
-        pub_date = _parse_date(raw_date)
+        pub_date = raw_date
         listed_date = pub_date
 
         # URL fields
-        url = art_url or (
+        url = art_url or pdf_url or (
             f"{_BASE_URL}/module/download/down.jsp?i_ID={art_id}&colID={col_id}"
             if art_id and col_id else ""
         )
@@ -512,10 +548,13 @@ class CnipaAnnualReportCrawler(BaseCrawler):
                     "posted_date": date_str,
                     "originalFilename": original_filename,
                     "guid": page_meta.get("guid"),
+                    "abstract_source": 'publisher_description' if len(raw_desc) >= 50 else 'catalog_metadata_only',
+                    "document_body_extracted": False,
+                    "native_article_id_missing": art_id is None,
                 },
                 ensure_ascii=False,
             ),
         }
 
         self._save_paper(paper)
-        return True
+        return self._last_save_created
