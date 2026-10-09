@@ -12,7 +12,6 @@ import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
-from email.utils import parsedate_to_datetime
 
 # Absolute import — spec_from_file_location has no package context.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -76,25 +75,6 @@ def _make_soup(html: str):
     return None
 
 
-def _parse_rss_date(date_str: str) -> str:
-    """Parse RFC-2822 date → 'YYYY-MM-DD'."""
-    if not date_str:
-        return ""
-    try:
-        return parsedate_to_datetime(date_str).strftime("%Y-%m-%d")
-    except Exception:
-        m = re.search(r"(\d{1,2}) (\w{3}) (\d{4})", date_str)
-        if m:
-            _M = {
-                "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04",
-                "May": "05", "Jun": "06", "Jul": "07", "Aug": "08",
-                "Sep": "09", "Oct": "10", "Nov": "11", "Dec": "12",
-            }
-            d, mon, y = m.group(1), m.group(2), m.group(3)
-            return f"{y}-{_M.get(mon, '01')}-{int(d):02d}"
-    return ""
-
-
 # ---------------------------------------------------------------------------
 # Crawler
 # ---------------------------------------------------------------------------
@@ -112,8 +92,11 @@ class BoverketSeEnCrawler(BaseCrawler):
         Parameters
         ----------
         limit:
-            Maximum number of records to save. ``None`` means unlimited.
+            Maximum number of newly stored records. ``None`` has no row limit.
         """
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         start_time = time.time()
         MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
@@ -122,10 +105,11 @@ class BoverketSeEnCrawler(BaseCrawler):
         limit_str = str(limit) if limit is not None else "∞"
 
         # ------------------------------------------------------------------
-        # Step 1: Fetch & parse RSS listing (all publications in one feed).
+        # Feed membership is observed here; archive completeness is unverified.
         # ------------------------------------------------------------------
         rss_raw = _curl_get(_RSS_URL)
         if not rss_raw:
+            self._report_source_failure('fetch_failed')
             print(f"[{self.site_id}] Failed to fetch RSS listing. Aborting.")
             return saved
 
@@ -133,6 +117,9 @@ class BoverketSeEnCrawler(BaseCrawler):
         try:
             root = ET.fromstring(rss_raw)
             channel = root.find("channel")
+            if root.tag != 'rss' or channel is None:
+                self._report_source_failure('invalid_response')
+                return saved
             if channel is not None:
                 for el in channel.findall("item"):
                     def _t(tag, _el=el):
@@ -146,6 +133,7 @@ class BoverketSeEnCrawler(BaseCrawler):
                         "pub_date":  _t("pubDate"),
                     })
         except ET.ParseError as exc:
+            self._report_source_failure('invalid_response')
             print(f"[{self.site_id}] RSS parse error: {exc}. Aborting.")
             return saved
 
@@ -175,6 +163,7 @@ class BoverketSeEnCrawler(BaseCrawler):
             new_on_page = 0
 
             for item in batch:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -200,6 +189,7 @@ class BoverketSeEnCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(f"[{self.site_id}] item {url} failed: {exc}; continuing")
                     continue
 
@@ -223,15 +213,16 @@ class BoverketSeEnCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def _fetch_and_save(self, item: dict) -> bool:
-        """Fetch detail page, extract fields, save. Returns True on success."""
+        """Fetch and save a detail; return whether a new database row was made."""
         url = item["url"]
         guid = item["guid"]
         title = item["title"]
         rss_desc = item["rss_desc"]
-        pub_date = _parse_rss_date(item["pub_date"])
+        pub_date = item["pub_date"]
 
         raw_html = _curl_get(url)
         if not raw_html:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] Could not fetch detail page: {url}")
             return False
 
@@ -241,6 +232,9 @@ class BoverketSeEnCrawler(BaseCrawler):
             soup = _make_soup(raw_html)
         except Exception as exc:
             print(f"[{self.site_id}] BeautifulSoup failed for {url}: {exc}")
+        if soup is None:
+            self._report_source_failure('item_failed')
+            return False
 
         # --- Abstract: main-body paragraphs (full text) ---
         abstract = ""
@@ -303,7 +297,7 @@ class BoverketSeEnCrawler(BaseCrawler):
 
         # Supplement published_date from metadata Year if RSS date missing
         if not pub_date and pub_meta.get("Year"):
-            pub_date = f"{pub_meta['Year']}-01-01"
+            pub_date = pub_meta['Year']
 
         external_id = guid if guid else url.rstrip("/").split("/")[-2]
 
@@ -325,4 +319,4 @@ class BoverketSeEnCrawler(BaseCrawler):
         }
 
         self._save_paper(paper)
-        return True
+        return self._last_save_created

@@ -34,6 +34,25 @@ def normalize_date(value, *, order=None):
     if not text:
         return result
     result["status"] = "unrecognized"
+    # RSS timestamps: require the entire RFC-style value, including a valid
+    # clock and explicit zone. Keep the source's calendar day, not UTC's day.
+    rfc = re.fullmatch(
+        r"(?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun),\s+)?"
+        r"(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+"
+        r"(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?\s+(GMT|UT|UTC|[+-]\d{4})",
+        text, re.IGNORECASE)
+    if rfc:
+        day, month, year, hour, minute, second, zone = rfc.groups()
+        result["precision"] = "day"
+        try:
+            parsed = datetime(int(year), _MONTHS[month.lower()], int(day),
+                              int(hour), int(minute), int(second or 0))
+            if zone[0] in '+-' and (int(zone[1:3]) > 23 or int(zone[3:]) > 59):
+                raise ValueError('invalid timezone offset')
+            result.update(value=parsed.date().isoformat(), status="normalized")
+        except ValueError:
+            result["status"] = "invalid"
+        return result
     folded = ''.join(c for c in unicodedata.normalize('NFKD', text.lower())
                      if not unicodedata.combining(c))
     parts = None
