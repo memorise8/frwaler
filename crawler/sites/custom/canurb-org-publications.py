@@ -200,8 +200,12 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
         post_id = record.get("post_id") or self._post_id_from_body(soup)
         external_id = post_id or self._slug_from_url(url)
 
-        # Date from JSON-LD datePublished
-        published_date = self._extract_published_date(soup) or ""
+        # The report's visible Date field can precede the webpage's posting
+        # date by years and often supplies only a month or a year.
+        web_date_published = self._extract_published_date(soup) or ""
+        detail_publication_date = self._detail_publication_date(soup)
+        published_date = (detail_publication_date if detail_publication_date is not None
+                          else web_date_published)
 
         # Some publisher pages reuse another report's social description.
         # Prefer the current article's body and preserve the fallback source.
@@ -246,6 +250,9 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
             "pdf_candidates": self._pdf_links(soup, url),
             "abstract_source": abstract_source,
             "social_description_raw": social_description,
+            "publication_date_source": ('detail_publication_date' if detail_publication_date is not None
+                                        else 'web_date_published_fallback'),
+            "web_date_published_raw": web_date_published,
         }
 
         paper = {
@@ -262,7 +269,7 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
             "category": category,
             "keywords": keywords,
             "published_date": published_date,
-            "listed_date": published_date,
+            "listed_date": web_date_published,
             "url": url,
             "pdf_url": pdf_url or None,
             "doi": "",
@@ -334,6 +341,18 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
         if raw:
             return raw
         return ""
+
+    def _detail_publication_date(self, soup) -> str | None:
+        node = soup.select_one('article .single__date')
+        if node is None:
+            return None
+        label = node.find('h3', recursive=False)
+        value = node.find('div', recursive=False)
+        if label is None or value is None or self._clean_text(label).casefold() != 'date:':
+            return None
+        # Empty, partial and unrecognized source values remain explicit; the
+        # normalizer must not manufacture a day from the webpage timestamp.
+        return self._clean_text(value)
 
     def _extract_body_text(self, soup) -> str:
         # Scope body selectors to the article, excluding surrounding sidebars.
