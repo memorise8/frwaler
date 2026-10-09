@@ -55,6 +55,32 @@ class LinkedPublicationCounts(CoupledContract, unittest.TestCase):
         soup = c._make_soup('<article class="publications post-1"><a href="javascript:alert(1)"><h4>Bad link</h4></a></article>')
         self.assertEqual(c._parse_list(soup), [])
 
+    def test_primary_report_precedes_summary_and_all_pdf_links_are_emitted(self):
+        c = self.crawler(); original_fetch = self.fetch.side_effect
+        labels = {3:'Launch', 4:'Final Report', 5:'Read the Report',
+                  6:'Download Full Report', 7:'Read the Final Report', 8:'Archive Report'}
+        def fetch(url, **kw):
+            raw = original_fetch(url, **kw)
+            if '/publications/report-' not in url:
+                return raw
+            number = int(url.rstrip('/').rsplit('-', 1)[1])
+            return raw+f'<a href="/files/summary-{number}.pdf">Executive Summary</a><a class="links__to" href="/files/full-{number}.pdf">{labels[number]}</a>'
+        self.fetch.side_effect = fetch
+        original_save = c._save_paper; emitted = {}
+        def save(paper):
+            emitted[str(paper['external_id'])] = dict(paper)
+            return original_save(paper)
+        c._save_paper = save
+        self.assertEqual(c.crawl(), 8)
+        rows = self.conn.execute('SELECT post_number,pdf_url FROM documents').fetchall()
+        actual = {r['post_number']:r['pdf_url'] for r in rows} if self.BACKEND == 'postgres' else dict(rows)
+        for number in range(3, 9):
+            selected = 'summary' if number == 8 else 'full'
+            self.assertEqual(actual[str(number)], f'https://canurb.org/files/{selected}-{number}.pdf')
+            metadata = json.loads(emitted[str(number)]['metadata'])
+            self.assertEqual({r['url'] for r in metadata['pdf_candidates']},
+                             {f'https://canurb.org/files/summary-{number}.pdf', f'https://canurb.org/files/full-{number}.pdf'})
+
 
 @unittest.skipUnless(os.environ.get('TEST_PG_DSN'), 'requires owned disposable PostgreSQL')
 class LinkedPublicationPostgres(LinkedPublicationCounts):

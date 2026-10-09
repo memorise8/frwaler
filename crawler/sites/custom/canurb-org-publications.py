@@ -242,6 +242,7 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
             "post_id": post_id,
             "excerpt": record.get("excerpt", ""),
             "og_url": self._meta(soup, "og:url"),
+            "pdf_candidates": self._pdf_links(soup, url),
         }
 
         paper = {
@@ -345,12 +346,32 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
         return ""
 
     def _find_pdf_url(self, soup, base_url: str) -> str:
-        # First: look for explicit PDF launch links
+        links = self._pdf_links(soup, base_url)
+        # Publisher primary actions can occur after executive summaries and
+        # translations. Preserve those variants, but prefer the full report.
+        for labels in ({'launch'},
+                       {'final report', 'read the final report', 'full report', 'download full report'},
+                       {'read the report', 'read report', 'download report'}):
+            for link in links:
+                if link['label'].casefold() in labels:
+                    return link['url']
+        return links[0]['url'] if links else ''
+
+    def _pdf_links(self, soup, base_url: str) -> list[dict]:
+        links = []
+        seen = set()
         for a in soup.find_all("a", href=True):
             href = a.get("href", "").strip()
-            if ".pdf" in href.lower():
-                return urljoin(base_url, href)
-        return ""
+            if '.pdf' not in href.lower():
+                continue
+            url = urljoin(base_url, href)
+            parsed = urlsplit(url)
+            if parsed.scheme not in ('http', 'https') or not parsed.hostname or parsed.username or parsed.password:
+                continue
+            if url not in seen:
+                links.append({'url': url, 'label': self._clean_text(a)})
+                seen.add(url)
+        return links
 
     def _extract_keywords(self, soup) -> str:
         tags: list[str] = []
