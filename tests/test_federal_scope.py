@@ -78,6 +78,65 @@ class FederalScopeTests(unittest.TestCase):
         self.assertEqual(result['reason'], 'cursor_terminal_before_reported_lower_bound')
         self.assertFalse((self.root/'out/manifest.json').exists())
 
+    def range_fetch(self, url, **kwargs):
+        response = self.fetch(url, **kwargs); data = json.loads(response['body'])
+        data['count'] = 6
+        for doc in data['results']: doc['publication_date'] = '2025-01-01'
+        if data['next_page_url'] is None: data.pop('next_page_url')
+        response['body'] = json.dumps(data).encode()
+        return response
+
+    def range_audit(self, **kwargs):
+        return run(self.root/'out', self.root/'gate',
+                   date_range={'lower': '2025-01-01', 'upper': '2025-01-02', 'expected_count': 6}, **kwargs)
+
+    def test_bounded_date_range_accepts_omitted_terminal_link_only_at_expected_count(self):
+        result = self.range_audit(fetch=self.range_fetch)
+        self.assertEqual(result['state'], 'provider_cursor_terminal_observed')
+        self.assertEqual(result['observed_unique_ids'], 6)
+        self.assertFalse(result['full_collection_verified'])
+
+    def test_date_range_checkpoint_keeps_exact_filter_and_expected_count(self):
+        first = self.range_audit(fetch=self.range_fetch, page_budget=1)
+        self.assertEqual(first['state'], 'checkpointed')
+        final = self.range_audit(fetch=self.range_fetch, resume=True)
+        self.assertEqual(final['state'], 'provider_cursor_terminal_observed')
+        self.assertEqual(self.calls, [1, 2, 3])
+
+    def test_date_range_rejects_outside_dates(self):
+        def bad(url, **kwargs):
+            response = self.range_fetch(url, **kwargs); data = json.loads(response['body'])
+            data['results'][0]['publication_date'] = '2024-01-01'
+            response['body'] = json.dumps(data).encode(); return response
+        result = self.range_audit(fetch=bad)
+        self.assertEqual(result['reason'], 'date_filter_not_honored')
+
+    def test_changed_date_filter_in_next_link_is_rejected_before_request(self):
+        def bad(url, **kwargs):
+            response = self.range_fetch(url, **kwargs); data = json.loads(response['body'])
+            data['next_page_url'] = data['next_page_url'].replace('2025-01-01', '2024-01-01')
+            response['body'] = json.dumps(data).encode(); return response
+        result = self.range_audit(fetch=bad)
+        self.assertEqual(result['reason'], 'continuation_changes_date_range')
+        self.assertEqual(self.calls, [1])
+
+    def test_date_range_premature_terminal_is_not_complete(self):
+        self.mode = 'premature'
+        result = self.range_audit(fetch=self.range_fetch)
+        self.assertEqual(result['reason'], 'date_range_terminal_count_mismatch')
+
+    def test_date_range_count_change_stops_enumeration(self):
+        result = self.range_audit(fetch=self.fetch)
+        self.assertEqual(result['reason'], 'date_range_count_changed')
+
+    def test_schema_error_response_is_saved_for_review(self):
+        def bad(url, **kwargs):
+            response = self.fetch(url, **kwargs); response['body'] = b'{"message":"unexpected"}'
+            return response
+        result = run(self.root/'out', self.root/'gate', fetch=bad)
+        self.assertEqual(result['reason'], 'source_schema_invalid')
+        self.assertEqual((self.root/'out'/result['last_response']['evidence']).read_bytes(), b'{"message":"unexpected"}')
+
 
 if __name__ == '__main__':
     unittest.main()
