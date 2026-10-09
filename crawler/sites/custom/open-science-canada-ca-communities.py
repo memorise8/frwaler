@@ -21,6 +21,7 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
     base_url = "https://open-science.canada.ca"
 
     COMMUNITY_ID = "307d8eca-9337-48d3-a296-6ea96f5a75c5"
+    COMMUNITY_IDS = (COMMUNITY_ID, "00a6222f-4761-4167-81e1-44007f19557f")
     START_URL = (
         "https://open-science.canada.ca/communities/"
         "307d8eca-9337-48d3-a296-6ea96f5a75c5?page=1&spc.sf=score"
@@ -35,105 +36,123 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
     MIN_ABSTRACT_CHARS = 100
 
     def crawl(self, limit=None):
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         saved = 0
-        page = 0
-        item_number = 0
-
-        while True:
+        seen_items = set()
+        for scope in self.COMMUNITY_IDS:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
-
-            list_data = self._fetch_list(page)
-            if not list_data:
-                print(f"[{self.site_id}] list API failed at page {page + 1}; stopping")
+            self._active_community = scope
+            count, complete = self._crawl_community(None if limit is None else limit-saved, seen_items)
+            saved += count
+            if not complete:
                 break
+        self._check_cancelled()
+        return saved
 
-            records = self._list_records(list_data)
+    def _crawl_community(self, limit, seen_items):
+        saved = 0
+        page = 0
+        scope_items = set()
+        expected_pages = expected_total = None
+        while True:
+            self._check_cancelled()
+            if limit is not None and saved >= limit:
+                return saved, False
+            data = self._fetch_list(page)
+            if not data:
+                self._report_source_failure('fetch_failed')
+                return saved, False
+            try:
+                result = data['_embedded']['searchResult']
+                info = result['page']
+                total_pages, total = info['totalPages'], info['totalElements']
+                records = result.get('_embedded', {}).get('objects', [])
+            except (KeyError, TypeError, AttributeError):
+                self._report_source_failure('invalid_response')
+                return saved, False
+            if (type(total_pages) is not int or total_pages < 0 or
+                    type(total) is not int or total < 0 or
+                    type(info.get('number')) is not int or info['number'] != page or
+                    not isinstance(records, list) or
+                    (expected_pages is not None and total_pages != expected_pages) or
+                    (expected_total is not None and total != expected_total)):
+                self._report_source_failure('invalid_response')
+                return saved, False
+            expected_pages, expected_total = total_pages, total
             if not records:
-                print(f"[{self.site_id}] no records returned at page {page + 1}; stopping")
-                break
-
-            page_info = list_data.get("_embedded", {}).get("searchResult", {}).get("page", {})
-            total = page_info.get("totalElements")
-            print(
-                f"[{self.site_id}] page {page + 1}: discovered {len(records)} records"
-                + (f" of {total}" if total is not None else "")
-            )
-
+                if total != len(scope_items):
+                    self._report_source_failure('invalid_response')
+                    return saved, False
+                return saved, True
+            if page >= total_pages:
+                self._report_source_failure('invalid_response')
+                return saved, False
+            new_in_scope = 0
             for record in records:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
-                    break
-
-                item_number += 1
+                    return saved, False
                 try:
+                    item = self._indexable_object(record)
+                    uuid = item.get('uuid') or item.get('id')
+                    if not isinstance(uuid, str) or not uuid:
+                        raise RuntimeError('missing source identity')
+                    if uuid in scope_items:
+                        self._report_source_failure('invalid_response')
+                        continue
+                    scope_items.add(uuid)
+                    new_in_scope += 1
+                    if uuid in seen_items:
+                        continue
+                    seen_items.add(uuid)
                     time.sleep(self._delay)
-
-                    list_item = self._indexable_object(record)
-                    uuid = (list_item.get("uuid") or list_item.get("id") or "").strip()
-                    if not uuid:
-                        raise RuntimeError("list record has no item uuid")
-
+                    self._check_cancelled()
                     detail = self._fetch_item(uuid)
-                    if not detail:
-                        raise RuntimeError("item detail API failed after retries")
-
+                    if not detail or (detail.get('uuid') or detail.get('id')) != uuid:
+                        raise RuntimeError('missing or mismatched item detail')
                     bitstreams = self._fetch_bitstreams(detail, uuid)
                     parsed = self._parse_item(detail, bitstreams)
-
-                    abstract = parsed["abstract"]
-                    if len(abstract) < 50:
-                        print(
-                            f"[{self.site_id}] item {item_number} skipped: "
-                            f"abstract too short ({len(abstract)} chars)"
-                        )
+                    if getattr(self, '_access_held', False):
+                        return saved, False
+                    if len(parsed['abstract']) < self.MIN_ABSTRACT_CHARS:
                         continue
-                    if len(abstract) < self.MIN_ABSTRACT_CHARS:
-                        print(
-                            f"[{self.site_id}] item {item_number} skipped: "
-                            f"abstract below save threshold ({len(abstract)} chars)"
-                        )
-                        continue
-
                     paper = {
-                        "id": None,
-                        "site_id": self.site_id,
-                        "external_id": parsed["external_id"],
-                        "title": parsed["title"],
-                        "authors": json.dumps(parsed["authors"], ensure_ascii=False),
-                        "abstract": abstract,
-                        "category": parsed["category"],
-                        "keywords": json.dumps(parsed["keywords"], ensure_ascii=False),
-                        "published_date": parsed["published_date"],
-                        "url": parsed["url"],
-                        "pdf_url": parsed["pdf_url"],
-                        "doi": parsed["doi"],
-                        "department": parsed["department"],
-                        "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
+                        'id': None, 'site_id': self.site_id,
+                        'external_id': parsed['external_id'], 'title': parsed['title'],
+                        'authors': json.dumps(parsed['authors'], ensure_ascii=False),
+                        'abstract': parsed['abstract'], 'category': parsed['category'],
+                        'keywords': json.dumps(parsed['keywords'], ensure_ascii=False),
+                        'published_date': parsed['published_date'],
+                        'listed_date': parsed['listed_date'],
+                        'url': parsed['url'], 'pdf_url': parsed['pdf_url'],
+                        'doi': parsed['doi'], 'department': parsed['department'],
+                        'metadata': json.dumps(parsed['metadata'], ensure_ascii=False),
                     }
-
                     self._save_paper(paper)
                     if self._last_save_created:
                         saved += 1
-                    counter = f"{saved}/{limit}" if limit else str(saved)
-                    print(f"[{self.site_id}] saved {counter}: {parsed['title'][:90]}")
                 except Exception as exc:
-                    print(f"[{self.site_id}] item {item_number} failed: {exc}")
-                    continue
-
-            page_meta = self._page_meta(list_data)
-            total_pages = page_meta.get("totalPages")
-            if total_pages is not None and page + 1 >= int(total_pages):
-                break
-            if len(records) < self.PAGE_SIZE:
-                break
+                    self._report_source_failure('item_failed')
+                    print(f"[{self.site_id}] item failed: {exc}")
+                if getattr(self, '_access_held', False):
+                    return saved, False
+            if new_in_scope == 0:
+                self._report_source_failure('invalid_response')
+                return saved, False
+            if page == total_pages-1:
+                if len(scope_items) != total:
+                    self._report_source_failure('invalid_response')
+                    return saved, False
+                return saved, True
             page += 1
-
-        print(f"[{self.site_id}] done. Total saved: {saved}")
-        return saved
 
     def _fetch_list(self, page):
         params = {
-            "scope": self.COMMUNITY_ID,
+            "scope": getattr(self, '_active_community', self.COMMUNITY_ID),
             "query": "*",
             "page": str(page),
             "size": str(self.PAGE_SIZE),
@@ -154,25 +173,37 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
             or f"{self.ITEM_API_URL.format(uuid=uuid)}/bundles"
         )
         bundles_data = self._curl_json(bundles_url, context=f"item {uuid} bundles")
+        if not bundles_data:
+            raise RuntimeError('bundle metadata fetch failed')
+        if 'bundles' not in (bundles_data.get('_embedded') or {}) and (bundles_data.get('page') or {}).get('totalElements') != 0:
+            raise RuntimeError('invalid bundle metadata')
+        if (bundles_data.get('page') or {}).get('totalPages', 1) > 1:
+            raise RuntimeError('bundle pagination not fully resolved')
         bundles = bundles_data.get("_embedded", {}).get("bundles", []) if bundles_data else []
         if not isinstance(bundles, list):
-            return []
+            raise RuntimeError('invalid bundle metadata')
 
         ordered = sorted(bundles, key=lambda b: 0 if b.get("name") == "ORIGINAL" else 1)
         bitstreams = []
         for bundle in ordered:
+            self._check_cancelled()
+            if bundle.get('name') != 'ORIGINAL':
+                continue
             href = bundle.get("_links", {}).get("bitstreams", {}).get("href")
             if not href:
-                continue
+                raise RuntimeError('missing original bitstream metadata link')
             data = self._curl_json(
                 href,
                 context=f"item {uuid} bundle {bundle.get('name') or bundle.get('uuid')} bitstreams",
             )
             if not data:
-                continue
-            found = data.get("_embedded", {}).get("bitstreams", [])
-            if isinstance(found, list):
-                bitstreams.extend(found)
+                raise RuntimeError('original bitstream metadata fetch failed')
+            if (data.get('page') or {}).get('totalPages', 1) > 1:
+                raise RuntimeError('original bitstream pagination not fully resolved')
+            found = data.get("_embedded", {}).get("bitstreams", [] if (data.get('page') or {}).get('totalElements') == 0 else None)
+            if not isinstance(found, list):
+                raise RuntimeError('invalid original bitstream metadata')
+            bitstreams.extend(found)
         return bitstreams
 
     def _curl_json(self, url, context="request"):
@@ -198,8 +229,10 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
             "curl",
             "--tls-max",
             "1.3",
-            "-skL",
+            "-sSL",
             "--fail",
+            "--write-out",
+            "\n%{http_code}",
             "--compressed",
             "--max-time",
             "45",
@@ -218,12 +251,20 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
 
         last_error = ""
         for attempt in range(3):
+            self._check_cancelled()
             try:
                 result = subprocess.run(cmd, capture_output=True, timeout=55)
+                self._check_cancelled()
                 stdout = result.stdout or b""
                 stderr = (result.stderr or b"").decode("utf-8", errors="replace").strip()
-                if result.returncode == 0 and stdout.strip():
-                    return stdout.decode("utf-8", errors="replace")
+                body, separator, status_text = stdout.rpartition(b'\n')
+                status = int(status_text) if separator and status_text.isdigit() else 0
+                if status in (401,403,429):
+                    self._access_held = True
+                    self._report_source_failure('rate_limited' if status == 429 else 'authentication_failed')
+                    return None
+                if result.returncode == 0 and 200 <= status < 300 and body.strip():
+                    return body.decode("utf-8", errors="replace")
                 last_error = stderr or f"curl exit {result.returncode}; empty response"
             except subprocess.TimeoutExpired as exc:
                 last_error = f"curl timeout after {exc.timeout}s"
@@ -237,6 +278,7 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
             )
             if attempt < 2:
                 print(f"[{self.site_id}] retrying in {wait}s...")
+                self._check_cancelled()
                 time.sleep(wait)
 
         print(f"[{self.site_id}] {context} curl failed after 3 attempts: {last_error}")
@@ -295,18 +337,10 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
             or self._metadata_first(metadata, ("dc.subject",), preferred_languages=("en", None))
             or self._metadata_first(metadata, ("dc.type",), preferred_languages=("en", None))
         )
-        published_date = self._normalize_date(
-            self._metadata_first(
-                metadata,
-                (
-                    "dc.date.issued",
-                    "dc.date.accepted",
-                    "dc.date.available",
-                    "dc.date.accessioned",
-                    "dc.date.submitted",
-                ),
-            )
-        )
+        # Issued and repository accession dates have different meanings.
+        # Let the common persistence adapter classify the original precision.
+        published_date = self._metadata_first(metadata, ('dc.date.issued',))
+        listed_date = self._metadata_first(metadata, ('dc.date.accessioned',))
         url = self._item_url(item, metadata, uuid)
         doi = self._normalize_doi(
             self._metadata_first(metadata, ("dc.identifier.doi",))
@@ -317,10 +351,10 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
 
         metadata_summary = {
             "source_format": "json",
-            "start_url": self.START_URL,
+            "start_url": f"{self.base_url}/communities/{getattr(self, '_active_community', self.COMMUNITY_ID)}",
             "list_api": self.LIST_API_URL,
             "detail_api": self.ITEM_API_URL.format(uuid=uuid),
-            "community_id": self.COMMUNITY_ID,
+            "community_id": getattr(self, '_active_community', self.COMMUNITY_ID),
             "uuid": uuid,
             "handle": item.get("handle"),
             "name": item.get("name"),
@@ -344,6 +378,7 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
             "category": category,
             "keywords": keywords,
             "published_date": published_date,
+            "listed_date": listed_date,
             "url": url,
             "pdf_url": pdf_url,
             "doi": doi,
@@ -480,22 +515,6 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
             if value:
                 values.append(value)
         return self._dedupe(values)
-
-    @staticmethod
-    def _normalize_date(value):
-        if not value:
-            return ""
-        text = str(value)
-        match = re.search(r"(\d{4})[-/](\d{2})[-/](\d{2})", text)
-        if match:
-            return f"{match.group(1)}-{match.group(2)}-{match.group(3)}"
-        match = re.search(r"(\d{4})[-/](\d{2})", text)
-        if match:
-            return f"{match.group(1)}-{match.group(2)}-01"
-        match = re.search(r"\b(\d{4})\b", text)
-        if match:
-            return f"{match.group(1)}-01-01"
-        return ""
 
     @staticmethod
     def _normalize_doi(value):
