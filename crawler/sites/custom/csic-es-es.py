@@ -416,7 +416,8 @@ class CsicEsEsCrawler(BaseCrawler):
                             ensure_ascii=False,
                         ),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[csic-es-es] Saved {saved}/{limit_str}: {title[:70]}")
 
                 except KeyboardInterrupt:

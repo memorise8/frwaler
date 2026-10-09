@@ -129,7 +129,8 @@ class LibCssnCnZyCrawler(BaseCrawler):
                         continue
 
                     self._save_paper(item)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     time.sleep(1.0)
 
                 except KeyboardInterrupt:

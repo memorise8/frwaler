@@ -333,7 +333,8 @@ class MiSeArkivCrawler(BaseCrawler):
                                 ensure_ascii=False,
                             ),
                         })
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                         print(f"[mi-se-arkiv] saved [{saved}] {title[:60]}")
 
                     except KeyboardInterrupt:

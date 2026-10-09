@@ -372,7 +372,8 @@ class DrugsandalcoholIeCgiCrawler(BaseCrawler):
 
                     try:
                         self._save_paper(paper)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                         limit_str = str(limit) if limit is not None else "inf"
                         print(f"[{self.site_id}] saved {saved}/{limit_str}: {paper['title'][:60]}")
                     except Exception as exc:

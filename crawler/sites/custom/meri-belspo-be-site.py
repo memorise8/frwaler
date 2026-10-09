@@ -286,7 +286,8 @@ class MeriBelspoBeSiteCrawler(BaseCrawler):
                 }
 
                 self._save_paper(paper)
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 print(f"[{_LOG}] saved {saved}: {full_title[:60]}")
 
                 time.sleep(self._delay)

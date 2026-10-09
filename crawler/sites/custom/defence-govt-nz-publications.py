@@ -371,7 +371,8 @@ class DefenceGovtNzPublicationsCrawler(BaseCrawler):
                         "original_filename": orig_fname,
                         "metadata": json.dumps(metadata, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(
                         f"[{_SITE_ID}] saved {saved}/{limit_display}: "
                         f"{item['title'][:60]}"

@@ -703,7 +703,8 @@ class StamiNoEnCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     suffix = f"/{limit}" if limit is not None else ""
                     print(f"[stami-no-en] saved {saved}{suffix}: {title[:80]}")
                 except KeyboardInterrupt:

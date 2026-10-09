@@ -263,7 +263,8 @@ class ReportsNlrNlCollectionsCrawler(BaseCrawler):
                         "original_filename": orig_filename,
                         "metadata": json.dumps(metadata_dict, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] Saved {saved}/{limit_or_inf}: {title[:70]}")
 
                 except KeyboardInterrupt:

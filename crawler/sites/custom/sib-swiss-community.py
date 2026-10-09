@@ -286,7 +286,8 @@ class SibSwissCommunity(BaseCrawler):
                         "author_string": author_string,
                     }, ensure_ascii=False),
                 })
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 print(f"[sib-swiss-community] saved {saved}/{lim_str}: {title[:60]}")
 
             except KeyboardInterrupt:

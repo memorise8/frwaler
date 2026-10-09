@@ -64,7 +64,8 @@ class MOHWCrawler(BaseCrawler):
                 paper = self._fetch_detail(list_no, basic_info)
                 if paper:
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     effective_label = f"{saved}/{limit}" if limit else str(saved)
                     print(f"[{self.site_id}] Saved {effective_label} papers...")
 

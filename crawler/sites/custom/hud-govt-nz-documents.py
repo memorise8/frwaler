@@ -392,7 +392,8 @@ class HudGovtNzDocumentsCrawler(BaseCrawler):
                             "document_type": "Statistics and research",
                         }, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] Saved {saved}/{limit_label}: {title[:60]}")
 
                 except KeyboardInterrupt:

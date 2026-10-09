@@ -120,7 +120,8 @@ class MinagricGrTheMinistry2Crawler(BaseCrawler):
                     "metadata": json.dumps(parsed.get("metadata", {}), ensure_ascii=False),
                 }
                 self._save_paper(paper)
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 limit_label = str(limit) if limit is not None else "inf"
                 print(f"[{self.site_id}] saved {saved}/{limit_label}: {parsed['title'][:80]}")
 

@@ -206,7 +206,8 @@ class ConsultEnvironmentGovtNzWasteCrawler(BaseCrawler):
                         )
                         continue
                     self._save_paper(record)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(
                         f"[{_SITE_ID}] [{saved}] {record.get('title','')[:70]}"
                     )

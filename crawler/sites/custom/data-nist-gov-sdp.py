@@ -250,7 +250,8 @@ class NistSdpCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{_SITE_ID}] Saved {saved}/{limit_label}: {title[:70]}")
 
                 except KeyboardInterrupt:

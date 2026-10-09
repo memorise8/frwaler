@@ -305,7 +305,8 @@ class IFAURapporterCrawler(BaseCrawler):
                         continue
 
                     self._save_paper(detail)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(
                         f"[{self.site_id}] saved [{saved}] "
                         f"{detail.get('title', '')[:60]}"

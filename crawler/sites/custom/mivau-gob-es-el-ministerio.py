@@ -448,7 +448,8 @@ class MivauGobEsElMinisterioCrawler(BaseCrawler):
                         "original_filename": detail.get("original_filename"),
                         "metadata": json.dumps(metadata, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{_SITE_ID}] saved {saved}/{limit_or_inf}: {(detail.get('title') or item['title'])[:80]}")
                 except KeyboardInterrupt:
                     raise

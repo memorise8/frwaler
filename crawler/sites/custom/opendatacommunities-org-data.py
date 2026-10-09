@@ -384,7 +384,8 @@ class OpenDataCommunitiesDataCrawler(BaseCrawler):
                 seen_urls.add(detail_url)
 
                 self._save_paper(dataset)
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 print(
                     f"[{_SITE_ID}] Saved ({saved}): {title} "
                     f"| abstract={len(abstract)} chars"

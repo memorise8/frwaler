@@ -277,7 +277,8 @@ class IncheonIC010205Crawler(BaseCrawler):
                         continue
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] saved {saved}/{lim_str}: {paper['title'][:60]}")
 
                 except KeyboardInterrupt:

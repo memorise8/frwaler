@@ -200,7 +200,8 @@ class InternationalAndraFrDocumentsAndVisualCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     lim_sfx = f"/{limit}" if limit is not None else ""
                     print(f"[{SITE_ID}] saved {saved}{lim_sfx}: {title[:80]}")
 

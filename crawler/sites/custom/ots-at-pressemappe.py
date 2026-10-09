@@ -418,7 +418,8 @@ class OtsAtPressemappeCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                 except Exception as exc:  # noqa: BLE001 - per-item isolation
                     print(f"[{self.site_id}] item {detail_url} failed: {exc}")
                     continue

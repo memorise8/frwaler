@@ -429,7 +429,8 @@ class BmlehDeEnCrawler(BaseCrawler):
                     if doc is None:
                         continue
                     self._save_paper(doc)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] Saved {saved}/{lim_str}: {doc['title'][:60]}")
                 except Exception as exc:
                     print(f"[{self.site_id}] item failed ({href}): {exc}; continuing.")

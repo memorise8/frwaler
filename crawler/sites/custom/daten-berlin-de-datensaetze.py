@@ -127,7 +127,8 @@ class DatenBerlinDeDatensaetzeCrawler(BaseCrawler):
                         continue
 
                     self._save_paper(self._paper_from_parsed(parsed))
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(
                         f"[{self.site_id}] saved {saved}/{limit_or_inf}: "
                         f"{parsed.get('title', '')[:80]}"

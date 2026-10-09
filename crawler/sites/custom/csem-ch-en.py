@@ -126,7 +126,8 @@ class CSEMChEnCrawler(BaseCrawler):
                         continue
 
                     self._save_paper(self._paper_from_parsed(parsed))
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:

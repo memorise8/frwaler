@@ -213,7 +213,8 @@ class AvoindataSuomiFiDataCrawler(BaseCrawler):
                         if record is None:
                             continue
                         self._save_paper(record)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                     except KeyboardInterrupt:
                         raise
                     except Exception as exc:

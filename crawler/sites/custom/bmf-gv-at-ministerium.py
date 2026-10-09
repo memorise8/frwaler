@@ -278,7 +278,8 @@ class BmfGvAtMinisteriumCrawler(BaseCrawler):
                 }
 
                 self._save_paper(paper)
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 limit_label = f"/{limit}" if limit is not None else ""
                 print(f"[bmf-gv-at-ministerium] page 1: saved {saved}{limit_label}")
 

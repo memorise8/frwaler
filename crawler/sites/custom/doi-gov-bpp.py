@@ -131,7 +131,8 @@ class DOIGovBPPCrawler(BaseCrawler):
 
                     try:
                         self._save_paper(rec)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                     except Exception as exc:
                         print(
                             f"[doi-gov-bpp] save failed for "

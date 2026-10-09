@@ -270,7 +270,8 @@ class HarcResearchOrgNewsCrawler(BaseCrawler):
                         ensure_ascii=False,
                     ),
                 })
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 time.sleep(self._delay)
 
             except KeyboardInterrupt:

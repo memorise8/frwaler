@@ -283,7 +283,8 @@ class CmiNoPublicationsCrawler(BaseCrawler):
                             print(f"[cmi-no-publications] item {ext_id} ({detail_url}): abstract too short, skipping")
                             continue
                         self._save_paper(paper)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                     except Exception as exc:
                         print(f"[cmi-no-publications] item {ext_id} ({detail_url}) failed: {exc}")
                         continue

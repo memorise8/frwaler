@@ -374,7 +374,8 @@ class IssibernChResultsCrawler(BaseCrawler):
                             "publisher": "International Space Science Institute",
                             "metadata": item.get("metadata"),
                         })
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                     except Exception as exc:
                         print(
                             f"[issibern-ch-results] save error for "

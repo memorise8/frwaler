@@ -25,7 +25,8 @@ class SiteContract:
     BACKEND = 'sqlite'
 
     def setUp(self):
-        spec = importlib.util.spec_from_file_location('fixture_' + self.SITE.replace('-', '_'), ROOT/'crawler/sites/custom'/f'{self.SITE}.py')
+        source_name = getattr(self, 'SOURCE_NAME', self.SITE)
+        spec = importlib.util.spec_from_file_location('fixture_' + self.SITE.replace('-', '_'), ROOT/'crawler/sites/custom'/f'{source_name}.py')
         self.module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(self.module)
         backend = db_libertree
@@ -138,6 +139,60 @@ class AcademieCounts(SiteContract, unittest.TestCase):
         return c
 
 
+class AcccAboutCounts(SiteContract, unittest.TestCase):
+    SITE = 'accc-gov-au-about-us'
+
+    def crawler(self):
+        c = self.configured(self.module.AcccGovAuAboutUsCrawler(self.conn))
+        c._fetch_list_page = lambda page: str(page)
+        c._parse_list_page = lambda page: [{'url': f'https://www.accc.gov.au/doc/{n}', 'n': n} for n in {0: range(1, 6), 1: range(6, 9)}.get(int(page), [])]
+        c._fetch_detail = lambda url: url
+        c._parse_detail = lambda raw, item: {'external_id': str(item['n']), 'title': f"Research {item['n']}", 'url': item['url'], 'abstract': 'Scientific abstract. ' * 10}
+        return c
+
+
+class AmfCounts(SiteContract, unittest.TestCase):
+    SITE = 'amf-france-org-fr'
+
+    def crawler(self):
+        c = self.configured(self.module.AMFFranceOrgFrCrawler(self.conn))
+        c._fetch_sitemap_urls = lambda: [(f'https://www.amf-france.org/fr/doc/{n}', '2026-06-05') for n in range(1, 9)]
+        self.enterContext(patch.object(self.module, '_curl_get', side_effect=lambda url: (url, {})))
+        self.enterContext(patch.object(self.module, '_extract_article', side_effect=lambda html, url: {'external_id': url.rsplit('/', 1)[-1], 'title': 'Scientific research', 'abstract': 'Scientific abstract. ' * 10}))
+        return c
+
+
+class GobAgencyCounts(SiteContract, unittest.TestCase):
+    SITE = 'gob-mx-agricultura'
+    SOURCE_NAME = 'gob-mx-prensa'
+
+    def crawler(self):
+        c = self.configured(self.module._VARIANTS[self.SITE](self.conn))
+        population = getattr(self, 'population', 8)
+        page_size = getattr(self, 'page_size', 5)
+        def listing(url, **kwargs):
+            page = int(parse_qs(urlsplit(url).query)['page'][0])
+            ids = range((page-1)*page_size+1, min(page*page_size, population)+1)
+            return ' '.join(f'<a href="/{c.AGENCY}/prensa/record-{n}">Record {n}</a>' for n in ids)
+        c._get = listing
+        c._fetch_article = lambda path: {'external_id': path.rsplit('/', 1)[-1], 'title': 'Scientific research', 'url': 'https://www.gob.mx'+path, 'abstract': 'Scientific abstract. ' * 10}
+        return c
+
+    def test_twenty_thousand_known_then_three_three_remaining(self):
+        self.population, self.page_size = 20200, 1000
+        c = self.crawler()
+        placeholder = '%s' if self.BACKEND == 'postgres' else '?'
+        cursor = self.conn.cursor()
+        cursor.executemany('INSERT INTO documents (site_id,post_number,meta_url,title) VALUES ('+','.join([placeholder]*4)+')',
+                           [(self.SITE, f'record-{n}', f'https://www.gob.mx/{c.AGENCY}/prensa/record-{n}', 'Existing research') for n in range(1, 20001)])
+        self.conn.commit()
+        for added, total in ((3, 20003), (3, 20006), (194, 20200)):
+            c = self.crawler()
+            c.delivery_mode = 'incremental'
+            self.assertEqual(c.crawl(limit=added), added)
+            self.assertEqual(self.count(), total)
+
+
 @unittest.skipUnless(os.environ.get('TEST_PG_DSN'), 'requires owned disposable PostgreSQL')
 class AcmaPostgresCounts(AcmaCounts):
     BACKEND = 'postgres'
@@ -150,6 +205,21 @@ class AcccPostgresCounts(AcccCounts):
 
 @unittest.skipUnless(os.environ.get('TEST_PG_DSN'), 'requires owned disposable PostgreSQL')
 class AcademiePostgresCounts(AcademieCounts):
+    BACKEND = 'postgres'
+
+
+@unittest.skipUnless(os.environ.get('TEST_PG_DSN'), 'requires owned disposable PostgreSQL')
+class AcccAboutPostgresCounts(AcccAboutCounts):
+    BACKEND = 'postgres'
+
+
+@unittest.skipUnless(os.environ.get('TEST_PG_DSN'), 'requires owned disposable PostgreSQL')
+class AmfPostgresCounts(AmfCounts):
+    BACKEND = 'postgres'
+
+
+@unittest.skipUnless(os.environ.get('TEST_PG_DSN'), 'requires owned disposable PostgreSQL')
+class GobAgencyPostgresCounts(GobAgencyCounts):
     BACKEND = 'postgres'
 
 

@@ -257,7 +257,8 @@ class NiooKnawNlEnCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     limit_label = str(limit) if not limit_inf else "∞"
                     print(f"[{_SITE_ID}] Saved {saved}/{limit_label}: {listing_title[:70]}")
 

@@ -283,7 +283,8 @@ class FtcGovKrWwwCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[ftc-go-kr-www] Saved {saved}/{limit_str}: "
                           f"{item['title'][:60]}")
 

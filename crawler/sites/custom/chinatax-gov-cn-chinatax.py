@@ -297,7 +297,8 @@ class ChinataxGovCnCrawler(BaseCrawler):
                             "channel_id": _CHANNEL_ID,
                         }, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] saved {saved}/{limit_str}: {title[:60]}")
 
                 except KeyboardInterrupt:

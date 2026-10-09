@@ -230,7 +230,8 @@ class KediReKrKhomeCrawler(BaseCrawler):
 
                     paper = self._build_paper(item, detail)
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[kedi-re-kr-khome] saved {saved}/{limit_str}: {paper['title'][:70]}")
 
                 except KeyboardInterrupt:

@@ -321,7 +321,8 @@ class EPAIENewsReleasesCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     lim_str = str(limit) if limit is not None else "inf"
                     print(f"[epa-ie-news-releases] saved {saved}/{lim_str}: {title[:60]}")
 

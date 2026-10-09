@@ -197,7 +197,8 @@ class CaeEcoFrPresseCae0Crawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[cae-eco-fr-presse-cae-0] saved {saved}: {title[:60]}")
 
                     time.sleep(1.0)

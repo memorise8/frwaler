@@ -272,7 +272,8 @@ class CaitecOrgCnN6Crawler(BaseCrawler):
                             "category": "研究报告",
                         }, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
 
                 except KeyboardInterrupt:
                     raise

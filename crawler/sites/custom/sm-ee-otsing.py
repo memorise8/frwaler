@@ -135,7 +135,8 @@ class SmEeOtsingCrawler(BaseCrawler):
 
                     record["metadata"] = json.dumps(record["metadata"], ensure_ascii=False)
                     self._save_paper(record)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{_SITE_ID}] saved {saved}/{limit_or_inf}: {record['title'][:80]}")
                 except KeyboardInterrupt:
                     raise

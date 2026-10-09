@@ -327,7 +327,8 @@ class NihGovNewsEventsCrawler(BaseCrawler):
 
                 try:
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f'[nih-gov-news-events] saved {saved}/{limit_display}: {title[:70]}')
                 except Exception as exc:
                     print(f'[nih-gov-news-events] save failed for {article_url}: {exc}')

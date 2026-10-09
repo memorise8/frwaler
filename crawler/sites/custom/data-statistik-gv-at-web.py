@@ -123,7 +123,8 @@ class DataStatistikGvAtWebCrawler(BaseCrawler):
                         continue
 
                     self._save_paper(record)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
 
                     if limit is None or saved < limit:
                         time.sleep(max(float(getattr(self, "_delay", 1.0)), 0.0))

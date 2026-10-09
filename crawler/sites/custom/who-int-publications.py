@@ -387,7 +387,8 @@ class WHOPublicationsCrawler(BaseCrawler):
                             ensure_ascii=False,
                         ),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(
                         f"[who-int-publications] saved {saved}/{limit_str}: "
                         f"{title[:70]}"

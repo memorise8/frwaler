@@ -434,7 +434,8 @@ class GovScotPublicationsCrawler(BaseCrawler):
 
                 try:
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(
                         f"[{_SITE_ID}] saved {saved}/{limit_str}: "
                         f"{stub['title'][:60]}"

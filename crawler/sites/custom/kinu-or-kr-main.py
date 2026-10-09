@@ -248,7 +248,8 @@ class KinuOrKrMainCrawler(BaseCrawler):
                             ensure_ascii=False,
                         ),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
 
                 except KeyboardInterrupt:
                     raise

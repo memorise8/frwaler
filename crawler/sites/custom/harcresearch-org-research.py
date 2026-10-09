@@ -352,7 +352,8 @@ class HarcResearchCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] Saved {saved}/{limit_or_inf}: {title[:60]}")
 
                 elif is_pdf:
@@ -390,7 +391,8 @@ class HarcResearchCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] Saved {saved}/{limit_or_inf}: {title[:60]} [PDF]")
 
                 else:

@@ -187,7 +187,8 @@ class DpmcGovtNzPublicationsCrawler(BaseCrawler):
                 # --- save ---
                 try:
                     self._save_paper(result)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{_SITE_ID}] Saved {saved}/{limit_display}: {result['title'][:60]}")
                 except KeyboardInterrupt:
                     raise

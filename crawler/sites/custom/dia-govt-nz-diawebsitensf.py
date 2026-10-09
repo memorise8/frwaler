@@ -419,7 +419,8 @@ class DIAGovtNZCrawler(BaseCrawler):
                 if paper is None:
                     continue
                 self._save_paper(paper)
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 lim_str = str(limit) if limit is not None else "∞"
                 print(f"[{_SITE_ID}] Saved {saved}/{lim_str}: {paper['title'][:60]}")
             except KeyboardInterrupt:

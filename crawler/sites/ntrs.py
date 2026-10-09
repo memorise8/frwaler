@@ -53,7 +53,8 @@ class NTRSCrawler(BaseCrawler):
 
                 paper = self._parse_item(item)
                 self._save_paper(paper)
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
 
             effective_total = total if limit is None else min(total, limit)
             print(f"[{self.site_id}] Crawled {saved}/{effective_total} papers...")

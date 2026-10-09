@@ -304,7 +304,8 @@ class DHSNewsReleasesCrawler(BaseCrawler):
                         "original_filename": None,
                         "metadata": fields["metadata"],
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[dhs-gov-news-releases] Saved {saved}/{limit_str}: "
                           f"{fields['title'][:60]}")
 

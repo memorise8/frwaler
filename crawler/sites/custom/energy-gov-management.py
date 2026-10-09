@@ -392,7 +392,8 @@ class EnergyGovManagementCrawler(BaseCrawler):
                             continue
 
                         self._save_paper(item)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                         print(f"[{self.site_id}] Saved {saved}/{lim_str}: {item['title'][:60]}")
                     except Exception as exc:
                         row_id = row.get("ID", "?")

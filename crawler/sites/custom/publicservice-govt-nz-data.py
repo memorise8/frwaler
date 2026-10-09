@@ -485,7 +485,8 @@ class PublicServiceGovtNzDataCrawler(BaseCrawler):
                     if not paper:
                         continue
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                 except Exception as exc:
                     print(f"[{self.site_id}] item {idx} failed: {exc}")
                     continue

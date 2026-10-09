@@ -367,7 +367,8 @@ class PARNSFGovSearchCrawler(BaseCrawler):
                                                   ensure_ascii=False,
                                               ),
                         })
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                         print(
                             f"[par-nsf-gov-search] Saved {saved}/{limit_str}: "
                             f"{item['title'][:60]}"

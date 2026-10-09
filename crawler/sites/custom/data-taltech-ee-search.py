@@ -276,7 +276,8 @@ class DataTaltechEeSearchCrawler(BaseCrawler):
                         "category": category,
                         "metadata": json.dumps(metadata_dict, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] saved {saved}/{limit_label}: {title[:60]}")
 
                     time.sleep(self._delay)

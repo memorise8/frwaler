@@ -160,7 +160,8 @@ class NasaGov2025NewsReleasesCrawler(BaseCrawler):
                         "original_filename": None,
                         "metadata": json.dumps(metadata_dict, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] Saved {saved}/{limit_str}: {title[:60]}")
 
                     time.sleep(self._delay)

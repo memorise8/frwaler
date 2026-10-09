@@ -338,7 +338,8 @@ class MimitGovItCrawler(BaseCrawler):
                             "originalFilename": original_filename,
                         }, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[mimit-gov-it-it] Saved {saved}: {title[:70]}")
 
                 except KeyboardInterrupt:

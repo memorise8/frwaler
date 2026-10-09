@@ -122,7 +122,8 @@ class GovGrSearchCrawler(BaseCrawler):
                         continue
 
                     self._save_paper(self._paper_from_record(parsed))
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] saved {saved}/{limit_display}: {parsed['title'][:90]}")
                 except Exception as exc:
                     print(f"[gov-gr-search] item {item_label} failed: {exc}")

@@ -281,7 +281,8 @@ class CerRecGcCaEnCrawler(BaseCrawler):
                 pub = _extract_publication(cat_soup, cat_url)
                 if pub:
                     self._save_paper(pub)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     if saved >= limit_val:
                         break
             except KeyboardInterrupt:
@@ -322,7 +323,8 @@ class CerRecGcCaEnCrawler(BaseCrawler):
                     pub = _extract_publication(sub_soup, sub_url)
                     if pub:
                         self._save_paper(pub)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                     else:
                         # If still no abstract, try one more level deep
                         deep_links = _get_sub_links(sub_soup, seen_urls)
@@ -344,7 +346,8 @@ class CerRecGcCaEnCrawler(BaseCrawler):
                                 dpub = _extract_publication(deep_soup, deep_url)
                                 if dpub:
                                     self._save_paper(dpub)
-                                    saved += 1
+                                    if self._last_save_created:
+                                        saved += 1
                             except KeyboardInterrupt:
                                 raise
                             except Exception as exc:

@@ -232,7 +232,8 @@ class MvaGovCnGongkaiCrawler(BaseCrawler):
                         "original_filename": None,
                         "metadata": json.dumps(metadata_dict, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
 
                 except KeyboardInterrupt:
                     raise

@@ -375,7 +375,8 @@ class HatvpFrActualitesCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{_SITE_ID}] saved {saved}: {paper['title'][:70]}")
 
                 except KeyboardInterrupt:

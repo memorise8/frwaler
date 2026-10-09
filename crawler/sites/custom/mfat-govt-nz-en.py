@@ -569,7 +569,8 @@ class MFATAnnualReportsCrawler(BaseCrawler):
                         "listing_source": source or "seed",
                     }, ensure_ascii=False),
                 })
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 print(f"[mfat-govt-nz-en] saved {saved}/{limit_label}: {title[:60]}")
 
             except KeyboardInterrupt:

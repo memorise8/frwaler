@@ -334,7 +334,8 @@ class MiitGovCnZcCrawler(BaseCrawler):
                         "original_filename": detail["original_filename"],
                         "metadata": json.dumps(meta_payload, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
 
                 except KeyboardInterrupt:
                     raise

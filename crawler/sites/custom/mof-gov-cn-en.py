@@ -235,7 +235,8 @@ class MofGovCnEnCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[mof-gov-cn-en] saved #{saved}: {title[:70]}")
 
                 except KeyboardInterrupt:

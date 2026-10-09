@@ -338,7 +338,8 @@ class FafoNoEnCrawler(BaseCrawler):
                             continue
 
                         self._save_paper(detail)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                         lim_str = str(limit) if limit is not None else "∞"
                         print(f"[fafo-no-en] saved {saved}/{lim_str}: {detail.get('title', '')[:60]}")
 

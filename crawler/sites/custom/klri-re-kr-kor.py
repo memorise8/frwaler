@@ -373,7 +373,8 @@ class KlriReKrKorCrawler(BaseCrawler):
                             ensure_ascii=False,
                         ),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[klri-re-kr-kor] saved {saved}/{limit_str}: {title[:60]}")
 
                 except KeyboardInterrupt:

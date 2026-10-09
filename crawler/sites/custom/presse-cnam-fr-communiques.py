@@ -273,7 +273,8 @@ class PresseCnamFrCommuniquesCrawler(BaseCrawler):
                         )
                         continue
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:

@@ -174,7 +174,8 @@ class PhfscienceNzDigitalLibraryCrawler(BaseCrawler):
                             "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
                         }
                         self._save_paper(paper)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                         counter = f"{saved}/{limit}" if limit is not None else str(saved)
                         print(f"[{self.site_id}] saved {counter}: {parsed['title'][:90]}")
                     except Exception as exc:

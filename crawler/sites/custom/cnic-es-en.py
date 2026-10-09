@@ -314,7 +314,8 @@ class CnicEsEnCrawler(BaseCrawler):
                             "list_intro": item.get("list_intro", ""),
                         }, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     new_on_page += 1
                     print(f"[cnic-es-en] Saved {saved}/{limit_str}: {item['title'][:70]}")
 

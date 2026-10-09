@@ -145,7 +145,8 @@ class IrbUsiChPublicationsCrawler(BaseCrawler):
                             )
                             continue
                         self._save_paper(self._build_paper(pub, abstract, external_id=pmid))
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                     except KeyboardInterrupt:
                         raise
                     except Exception as exc:
@@ -169,7 +170,8 @@ class IrbUsiChPublicationsCrawler(BaseCrawler):
                         continue
                     ext_id = hashlib.sha1(pub["external_url"].encode()).hexdigest()[:16]
                     self._save_paper(self._build_paper(pub, abstract, external_id=ext_id))
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:

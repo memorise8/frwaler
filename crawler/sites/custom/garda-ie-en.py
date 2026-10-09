@@ -311,7 +311,8 @@ class GardaIeEnCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     limit_label = str(limit) if limit is not None else "∞"
                     print(f"[garda-ie-en] Saved {saved}/{limit_label}: {title[:70]}")
 

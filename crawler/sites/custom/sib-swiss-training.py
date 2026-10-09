@@ -257,7 +257,8 @@ class SibSwissTrainingCrawler(BaseCrawler):
 
                     record["site_id"] = self.site_id
                     self._save_paper(record)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
 
                 except KeyboardInterrupt:
                     raise

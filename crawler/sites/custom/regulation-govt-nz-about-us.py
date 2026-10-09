@@ -341,7 +341,8 @@ class RegulationGovtNzAboutUsCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] Saved {saved}/{limit_str}: {title[:60]}")
 
                 except KeyboardInterrupt:

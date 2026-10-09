@@ -288,7 +288,8 @@ class SFIChEnCrawler(BaseCrawler):
 
                         paper["site_id"] = self.site_id
                         self._save_paper(paper)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
 
                     except KeyboardInterrupt:
                         raise

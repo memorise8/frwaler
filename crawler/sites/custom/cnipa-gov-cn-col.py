@@ -359,7 +359,8 @@ class CnipaGovCnColCrawler(BaseCrawler):
                             "i_articleid": article_id,
                         }, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] Saved {saved}: {title[:60]}")
 
                 except KeyboardInterrupt:

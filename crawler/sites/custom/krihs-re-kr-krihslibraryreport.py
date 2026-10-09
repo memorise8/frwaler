@@ -421,7 +421,8 @@ class KRIHSLibraryReportCrawler(BaseCrawler):
                         "category": detail.get("category", ""),
                         "metadata": json.dumps(meta, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{_SITE_ID}] saved {saved}/{limit_str}: {item['title'][:60]}")
 
                 except KeyboardInterrupt:

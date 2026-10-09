@@ -333,7 +333,8 @@ class TIGTAReportsCrawler(BaseCrawler):
                 }
 
                 self._save_paper(paper)
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 print(f"[tigta-gov-reports] Saved [{saved}]: {title[:65]}")
 
             except KeyboardInterrupt:

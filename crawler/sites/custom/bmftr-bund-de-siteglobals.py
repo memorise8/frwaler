@@ -312,7 +312,8 @@ class BmftrBundDeSiteglobalsCrawler(BaseCrawler):
                         "journal": None,
                         "metadata": json.dumps(metadata, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
 
                 except KeyboardInterrupt:
                     raise

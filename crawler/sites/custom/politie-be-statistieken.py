@@ -339,7 +339,8 @@ class PolitieBeMorfologieRapportenCrawler(BaseCrawler):
                 time.sleep(max(0.0, self._delay * 0.2))  # light rate-limit (no detail fetches)
 
                 self._save_paper(record)
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 print(f"[{_SITE_ID}] saved {saved}/{lim_or_inf}: {title[:80]}")
 
             except KeyboardInterrupt:

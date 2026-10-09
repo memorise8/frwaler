@@ -406,7 +406,8 @@ class SmDkPubikationerCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[sm-dk-publikationer] saved {saved}/{limit_display}: "
                           f"{item['title'][:70]}")
 

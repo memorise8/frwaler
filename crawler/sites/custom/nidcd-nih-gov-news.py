@@ -237,7 +237,8 @@ class NidcdNihGovNewsCrawler(BaseCrawler):
                         "department": "NIDCD",
                         "metadata": json.dumps({"source": "nidcd-news", "page": page}),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[nidcd-nih-gov-news] saved {saved}: {title[:70]}")
                 except KeyboardInterrupt:
                     raise

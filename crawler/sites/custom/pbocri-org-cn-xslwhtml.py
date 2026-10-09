@@ -330,7 +330,8 @@ class PbocriOrgCnXslwhtmlCrawler(BaseCrawler):
                                 "metadata": json.dumps({}, ensure_ascii=False),
                             }
                             self._save_paper(paper)
-                            saved += 1
+                            if self._last_save_created:
+                                saved += 1
                             print(f"[pbocri-org-cn-xslwhtml] Saved {saved}/{limit_str}: "
                                   f"{item['title'][:60]}")
 
@@ -390,7 +391,8 @@ class PbocriOrgCnXslwhtmlCrawler(BaseCrawler):
                                 ),
                             }
                             self._save_paper(paper)
-                            saved += 1
+                            if self._last_save_created:
+                                saved += 1
                             print(f"[pbocri-org-cn-xslwhtml] Saved {saved}/{limit_str}: "
                                   f"{title[:60]}")
 

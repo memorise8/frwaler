@@ -391,7 +391,8 @@ class NHCGovCnWjwCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(
                         f"[nhc-gov-cn-wjw] saved {saved}/{limit_str}: "
                         f"{final_title[:60]}",

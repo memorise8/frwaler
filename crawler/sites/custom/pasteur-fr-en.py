@@ -133,7 +133,8 @@ class PasteurFrEnCrawler(BaseCrawler):
 
                     paper = self._paper_from_parsed(parsed)
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(
                         f"[{self.site_id}] saved {saved}/{limit_or_inf}: "
                         f"{parsed.get('title', '')[:80]}"

@@ -197,7 +197,8 @@ class KICCEMainCrawler(BaseCrawler):
                         ),
                     }
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(
                         f"[kicce-re-kr-main] saved [{saved}/{lim_str}] "
                         f"{it['title'][:60]}"

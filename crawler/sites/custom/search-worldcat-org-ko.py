@@ -870,7 +870,8 @@ class SearchWorldcatOrgKoCrawler(BaseCrawler):
                         )
 
                         self._save_paper(paper)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                         print(
                             f"[{self.site_id}] saved {saved}/{limit_or_inf}: "
                             f"{(paper.get('title') or item_label)[:80]}"

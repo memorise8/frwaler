@@ -119,7 +119,8 @@ class RepositorioUchileClDiscoverCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     counter = f"{saved}/{limit}" if limit else str(saved)
                     print(f"[{self.site_id}] saved {counter}: {parsed['title'][:90]}")
                 except Exception as exc:

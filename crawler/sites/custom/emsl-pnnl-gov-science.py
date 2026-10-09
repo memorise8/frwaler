@@ -586,7 +586,8 @@ class EmslPnnlGovScienceCrawler(BaseCrawler):
                         continue
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                 except Exception as exc:
                     item_id = item.get("post_number") or item.get("url") or index
                     print(f"[{_SITE_ID}] item {item_id} failed: {exc}")

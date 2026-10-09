@@ -229,7 +229,8 @@ class GAGovAuSearchCrawler(BaseCrawler):
                                     ensure_ascii=False,
                                 ),
                             })
-                            saved += 1
+                            if self._last_save_created:
+                                saved += 1
                             print(
                                 f"[{_SITE_ID}] saved {saved}/{limit_display}: "
                                 f"{title[:60]}"

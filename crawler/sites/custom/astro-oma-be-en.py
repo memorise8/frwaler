@@ -687,7 +687,8 @@ class AstroOmaBeEnCrawler(BaseCrawler):
                                 "metadata": _json_dumps(metadata),
                             }
                         )
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                     except KeyboardInterrupt:
                         raise
                     except Exception as exc:

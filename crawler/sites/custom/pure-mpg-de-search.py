@@ -328,7 +328,8 @@ class PureMpgDeSearchCrawler(BaseCrawler):
                         "original_filename": original_filename or None,
                         "metadata": json.dumps(metadata_blob, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     limit_label = str(limit) if limit is not None else "∞"
                     print(
                         f"[{self.site_id}] saved {saved}/{limit_label}: "

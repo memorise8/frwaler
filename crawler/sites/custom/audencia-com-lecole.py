@@ -125,7 +125,8 @@ class AudenciaComLecoleCrawler(BaseCrawler):
                         continue
 
                     self._save_paper(self._build_paper(parsed))
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] saved {saved}/{limit_str}: {parsed['title'][:80]}")
 
                 except KeyboardInterrupt:

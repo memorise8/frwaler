@@ -136,7 +136,8 @@ class PresseCurieFrSectionCrawler(BaseCrawler):
                             "original_filename": parsed["original_filename"],
                             "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
                         })
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                         print(f"[{self.site_id}] saved {saved}: {parsed['title'][:80]}")
 
                     except KeyboardInterrupt:

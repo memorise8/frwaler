@@ -379,7 +379,8 @@ class HecEduEnCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[hec-edu-en] Saved {saved}/{limit_str}: {card['title'][:60]}")
 
                 except KeyboardInterrupt:

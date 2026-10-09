@@ -44,7 +44,8 @@ class SaluteGovItNewCrawler(BaseCrawler):
             if paper is None:
                 continue
             self._save_paper(paper)
-            saved += 1
+            if self._last_save_created:
+                saved += 1
             time.sleep(self._delay)
 
         print(f"[{self.site_id}] saved {saved} records")

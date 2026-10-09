@@ -331,7 +331,8 @@ class SafefoodNetNewsCrawler(BaseCrawler):
                     if detail is None:
                         continue
                     self._save_paper(detail)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     if limit is not None and saved >= limit:
                         done = True
                         break

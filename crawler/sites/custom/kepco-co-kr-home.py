@@ -356,7 +356,8 @@ class KepcoCoKrHomeCrawler(BaseCrawler):
                         "category": "보도자료",
                         "metadata": json.dumps(meta, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] saved boardNo={board_no}: {title[:50]}")
 
                     time.sleep(self._delay)

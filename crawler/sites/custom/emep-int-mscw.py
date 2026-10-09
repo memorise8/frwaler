@@ -341,7 +341,8 @@ class EMEPMSCWCrawler(BaseCrawler):
 
             try:
                 self._save_paper(entry)
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 print(
                     f"[emep-int-mscw] Saved {saved}/{limit_str}: "
                     f"{entry.get('title', '')[:60]}"

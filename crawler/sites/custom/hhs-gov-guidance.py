@@ -325,7 +325,8 @@ class HhsGovGuidanceCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper_dict)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
 
                 except KeyboardInterrupt:
                     raise

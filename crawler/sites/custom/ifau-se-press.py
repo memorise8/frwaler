@@ -300,7 +300,8 @@ class IFAUPressCrawler(BaseCrawler):
                     paper["site_id"] = self.site_id
                     paper["id"] = None
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[ifau-se-press] saved {saved}/{limit_str}: {paper['title'][:60]}")
 
                 except KeyboardInterrupt:

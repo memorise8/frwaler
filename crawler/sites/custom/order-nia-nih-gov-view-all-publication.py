@@ -287,7 +287,8 @@ class OrderNiaNihGovViewAllPublicationCrawler(BaseCrawler):
                             continue
 
                         self._save_paper(paper)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                         print(f"[{self.site_id}] Saved {saved}/{limit_str}: {paper['title'][:60]}")
                     except Exception as exc:  # noqa: BLE001 - one bad item must not kill the run
                         print(f"[{self.site_id}] item {href} failed: {exc}")

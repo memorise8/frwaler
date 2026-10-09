@@ -618,7 +618,8 @@ class IiReKrBaseCrawler(BaseCrawler):
                     if paper is None:
                         continue
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] saved {saved}/{limit_or_inf}: {paper['title'][:60]}")
                 except KeyboardInterrupt:
                     raise

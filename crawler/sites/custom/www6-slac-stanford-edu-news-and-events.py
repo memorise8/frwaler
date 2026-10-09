@@ -343,7 +343,8 @@ class SLACNewsCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] Saved {saved}/{limit_str}: {card['title'][:70]}")
 
                 except KeyboardInterrupt:

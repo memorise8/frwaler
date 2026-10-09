@@ -282,7 +282,8 @@ class JsearchMwrGovCnCrawler(BaseCrawler):
                         "keywords": None,
                         "metadata": json.dumps(raw_meta, ensure_ascii=False),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
 
                 except Exception as exc:
                     doc_id_str = item.get("documentId", "?")

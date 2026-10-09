@@ -432,7 +432,8 @@ class HeliosEieGrHeliosCrawler(BaseCrawler):
                             continue
 
                         self._save_paper(item)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                         print(
                             f"[helios-eie-gr-helios] saved {saved}/{limit_str}: "
                             f"{item['title'][:70]}"

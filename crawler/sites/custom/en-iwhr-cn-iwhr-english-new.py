@@ -172,7 +172,8 @@ class IWHREnglishNewCrawler(BaseCrawler):
 
                 try:
                     self._save_paper(paper_dict)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                 except Exception as exc:
                     print(f"[en-iwhr-cn-iwhr-english-new] save error {detail_url}: {exc}")
                     continue

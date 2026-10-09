@@ -281,7 +281,8 @@ class DeltaresNlEnCrawler(BaseCrawler):
                         continue
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(
                         f"[deltares-nl-en] saved {saved}/{limit_str}: "
                         f"{paper.get('title', '')[:70]}"

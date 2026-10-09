@@ -339,7 +339,8 @@ class EnvironmentGovtNzPublicationsCrawler(BaseCrawler):
                     "original_filename": original_filename,
                     "metadata": json.dumps(meta) if meta else None,
                 })
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 time.sleep(self._delay)
 
             except KeyboardInterrupt:

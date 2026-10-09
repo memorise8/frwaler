@@ -271,7 +271,8 @@ class DataMfeGovtNzTablesCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     limit_str = str(limit) if limit is not None else "inf"
                     print(f"[{self.site_id}] Saved {saved}/{limit_str}: {title[:60]}")
 

@@ -115,7 +115,8 @@ class PubshopBmbwfGvAtIndexphpCrawler(BaseCrawler):
                         continue
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] saved {saved}/{limit_str}: {paper['title'][:80]}")
 
                 except KeyboardInterrupt:

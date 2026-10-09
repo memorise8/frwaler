@@ -349,7 +349,8 @@ class KhsGoKrNewsBbzCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(
                         f"[khs-go-kr-newsbbz] Saved {saved}/{limit_label}: "
                         f"{item['title'][:60]}"

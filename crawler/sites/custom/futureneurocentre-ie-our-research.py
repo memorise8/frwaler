@@ -760,7 +760,8 @@ class FutureNeuroCentreOurResearchCrawler(BaseCrawler):
                         continue
 
                     self._save_paper(record)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] saved {saved}/{limit_or_inf}: {record['title'][:80]}")
                     time.sleep(self.detail_delay)
                 except KeyboardInterrupt:

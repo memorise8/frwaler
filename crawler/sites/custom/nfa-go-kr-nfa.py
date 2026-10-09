@@ -331,7 +331,8 @@ class NfaGoKrNfaCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     lim_s = str(limit) if limit is not None else "∞"
                     print(f"[nfa-go-kr-nfa] saved {saved}/{lim_s}: {title[:60]}")
 
