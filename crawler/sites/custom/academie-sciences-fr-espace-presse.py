@@ -299,6 +299,7 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
             return 0
 
         for page_num in range(1, _MAX_PAGES + 1):
+            self._check_cancelled()
             if time.time() - started_at >= _BUDGET_SECONDS - 30:
                 print(f"[{self.site_id}] wall-clock budget approaching at page {page_num}; stopping")
                 break
@@ -324,6 +325,7 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
 
             new_on_page = 0
             for item_index, item in enumerate(items, start=1):
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
                 if time.time() - started_at >= _BUDGET_SECONDS - 30:
@@ -534,7 +536,7 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
             "metadata": _json_dumps(metadata),
         }
         self._save_paper(paper)
-        return True
+        return self._last_save_created
 
     def _extract_pdf_text(self, pdf_bytes, url):
         try:

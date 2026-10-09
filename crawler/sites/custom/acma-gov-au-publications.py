@@ -118,6 +118,7 @@ class AcmaGovAuPublicationsCrawler(BaseCrawler):
         limit_label = str(limit) if limit is not None else "inf"
 
         for section_url, category in self.SECTIONS:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
             if time.monotonic() - start_time > self.WALL_CLOCK_BUDGET_SEC:
@@ -127,6 +128,7 @@ class AcmaGovAuPublicationsCrawler(BaseCrawler):
 
             page = 1
             while True:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
                 if page > self.MAX_PAGES_PER_SECTION:
@@ -154,6 +156,7 @@ class AcmaGovAuPublicationsCrawler(BaseCrawler):
 
                 new_items = [it for it in items if it["url"] not in seen_urls]
                 for it in new_items:
+                    self._check_cancelled()
                     seen_urls.add(it["url"])
 
                 for it in new_items:
@@ -167,7 +170,8 @@ class AcmaGovAuPublicationsCrawler(BaseCrawler):
                         if paper is None:
                             continue
                         self._save_paper(paper)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                         print(f"[{self.site_id}] saved {saved}/{limit_label}: "
                               f"{paper['title'][:70]}")
                     except KeyboardInterrupt:

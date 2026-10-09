@@ -226,6 +226,7 @@ class ACCCGovAuSearchCrawler(BaseCrawler):
         limit_display = str(limit) if limit is not None else "∞"
 
         for page_num in range(max_pages):
+            self._check_cancelled()
             # Wall-clock budget check
             if time.time() - crawl_start > max_wall:
                 print(f"[accc-gov-au-search] 25-minute wall clock budget reached. Stopping.")
@@ -252,6 +253,7 @@ class ACCCGovAuSearchCrawler(BaseCrawler):
 
             new_on_page = 0
             for item in items:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -310,7 +312,8 @@ class ACCCGovAuSearchCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[accc-gov-au-search] saved {saved}/{limit_display}: "
                           f"{item['title'][:60]}")
 
