@@ -6,6 +6,7 @@ import { getDocumentCatalogue } from "@/lib/document-catalogue";
 import { getVerificationStats } from "@/lib/database-stats";
 import { contradictsAudit, describeVerification, indexVerification, resolveVerificationState, VERIFICATION_LABEL } from "@/lib/crawler-verification";
 import RunPanel from "@/components/run-panel";
+import DatePlanPanel from "@/components/date-plan-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -140,6 +141,7 @@ export default async function CrawlerDetail({ params }: Readonly<{ params: Promi
       </section>
 
       <RunPanel siteId={crawler.siteId} status={crawler.status} category={crawler.category} reason={crawler.reason} />
+      {siteId === "federalregister-gov-documents" && <DatePlanPanel />}
     </div>
   );
 }

@@ -45,6 +45,25 @@ class RetryIn(BaseModel):
     trial: bool = False
 
 
+class DateRangeIn(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    lower: str = Field(pattern=r'^\d{4}-\d{2}-\d{2}$')
+    upper: str = Field(pattern=r'^\d{4}-\d{2}-\d{2}$')
+    expected_count: int = Field(strict=True, ge=0, lt=1500)
+
+
+class DatePlanIn(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    site_id: Literal['federalregister-gov-documents']
+    lower: str = Field(pattern=r'^\d{4}-\d{2}-\d{2}$')
+    upper: str = Field(pattern=r'^\d{4}-\d{2}-\d{2}$')
+    ranges: list[DateRangeIn] = Field(min_length=1, max_length=10000)
+    observation_id: str = Field(min_length=1, max_length=200)
+    limit_n: int | None = Field(default=100, strict=True, ge=1, le=1000)
+    process_files: bool = False
+    trial: bool = False
+
+
 class FileBackfillIn(BaseModel):
     model_config = ConfigDict(extra='forbid')
     site_id: str = Field(min_length=1,max_length=200,pattern=r'^[A-Za-z0-9._-]+$')
@@ -435,6 +454,27 @@ def create_app(dsn: str) -> FastAPI:
         except CapabilityError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
+    @app.post('/jobs/date-plan')
+    def post_date_plan(body: DatePlanIn, operator: str = Depends(require_operator)):
+        from delivery.worker import scopes
+        if not body.trial:
+            raise HTTPException(status_code=422, detail='검증 전 날짜 범위 기능입니다. 시험 실행 확인이 필요합니다.')
+        conn = _conn()
+        try:
+            if conn.execute('SELECT 1 FROM sites WHERE site_id=%s', (body.site_id,)).fetchone() is None:
+                raise HTTPException(status_code=404, detail='site not found')
+            try:
+                jid = scopes.enqueue_date_plan(conn, site_id=body.site_id, lower=body.lower, upper=body.upper,
+                    ranges=[r.model_dump() for r in body.ranges], observation_id=body.observation_id,
+                    limit_n=body.limit_n, requested_by=operator, process_files=body.process_files)
+            except jobs.ActiveJobError as exc:
+                raise HTTPException(status_code=409, detail='site already has an active job') from exc
+            except (KeyError, TypeError, ValueError, OverflowError) as exc:
+                raise HTTPException(status_code=422, detail='날짜 범위·총량 관측 계획이 올바르지 않습니다.') from exc
+            return {'id': jid, 'scope': jobs.job_detail(conn, jid)['scope']}
+        finally:
+            conn.close()
+
     @app.post('/files/backfill')
     def post_file_backfill(body: FileBackfillIn, operator: str = Depends(require_operator)):
         if body.collected_from and body.collected_to and body.collected_from > body.collected_to:
@@ -513,7 +553,7 @@ def create_app(dsn: str) -> FastAPI:
             conn.close()
         if row is None:
             raise HTTPException(status_code=404, detail="job not found")
-        return {**row["job"],"logs":row["logs"]}
+        return {**row["job"],"logs":row["logs"], **({'scope': row['scope']} if 'scope' in row else {})}
 
     @app.post("/jobs/{job_id}/files/{action}")
     def manage_job_files(job_id: int, action: Literal["retry","cancel"], operator: str = Depends(require_operator)):
@@ -595,16 +635,24 @@ def create_app(dsn: str) -> FastAPI:
     def post_retry_job(job_id: int, body: RetryIn | None = None,operator:str=Depends(require_operator)):
         conn = _conn()
         try:
-            source = conn.execute('SELECT site_id,mode FROM crawl_jobs WHERE id=%s', (job_id,)).fetchone()
+            source = conn.execute('SELECT site_id,mode,scope_id FROM crawl_jobs WHERE id=%s', (job_id,)).fetchone()
             if source:
                 from delivery.capabilities import validate_request, CapabilityError
                 try:
-                    validate_request(source['site_id'], source['mode'], trial=bool(body and body.trial))
-                except CapabilityError as exc:
+                    if source.get('scope_id') is not None:
+                        from crawler.sites import CRAWLERS
+                        from delivery.worker import scopes
+                        if not body or not body.trial or source['mode'] != 'backfill':
+                            raise CapabilityError('검증 전 날짜 범위 기능입니다. 시험 실행 확인이 필요합니다.')
+                        scopes.load(conn, source['scope_id'], source['site_id'], CRAWLERS[source['site_id']])
+                    else:
+                        validate_request(source['site_id'], source['mode'], trial=bool(body and body.trial))
+                except (CapabilityError, ValueError, KeyError, TypeError, OverflowError) as exc:
                     raise HTTPException(status_code=422, detail=str(exc)) from exc
-            row = jobs.retry_job(
-                conn, job_id, requested_by=operator
-            )
+            try:
+                row = jobs.retry_job(conn, job_id, requested_by=operator)
+            except jobs.ActiveJobError as exc:
+                raise HTTPException(status_code=409, detail='site already has an active job') from exc
             if row is not None:
                 return row
             current = conn.execute(
