@@ -9,7 +9,7 @@ import re
 import subprocess
 import time
 from html import unescape
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
 from crawler.base_crawler import BaseCrawler
 
@@ -126,9 +126,15 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
             if link_tag is None:
                 continue
             url = link_tag.get("href", "").strip()
-            if not url or "/publications/" not in url:
+            if not url:
                 continue
             url = urljoin(_BASE_URL, url)
+            target = urlsplit(url)
+            if target.scheme not in ('http', 'https') or not target.hostname or target.username or target.password:
+                continue
+            link_type = ('direct_pdf' if target.path.lower().endswith('.pdf') else
+                         'external_publication' if target.hostname not in ('canurb.org', 'www.canurb.org') else
+                         'detail_html')
 
             title_tag = article.select_one("h4")
             title = self._clean_text(title_tag) if title_tag else self._clean_text(link_tag)
@@ -164,6 +170,7 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
                 "url": url,
                 "category": category,
                 "excerpt": excerpt,
+                "link_type": link_type,
             })
         return records
 
@@ -172,6 +179,8 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def _process_record(self, record: dict) -> bool:
+        if record.get('link_type') in ('direct_pdf', 'external_publication'):
+            return self._save_linked_publication(record)
         url = record["url"]
         raw = self._curl_get(url, context=f"detail {record['post_id'] or url}")
         if not raw:
@@ -258,6 +267,37 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
         }
 
         self._save_paper(paper)
+        return self._last_save_created
+
+    def _save_linked_publication(self, record: dict) -> bool:
+        """Use the publisher's card metadata for non-detail publication links.
+
+        Binary files and other publishers' pages are separate resources. Keep
+        their metadata provenance explicit; file retrieval is the file worker's
+        responsibility and an external page is not a CANURB detail template.
+        """
+        abstract = record.get('excerpt', '')
+        if len(abstract) < _MIN_ABSTRACT:
+            return False
+        url = record['url']
+        post_id = record.get('post_id')
+        pdf_url = url if record['link_type'] == 'direct_pdf' else None
+        self._save_paper({
+            'site_id': self.site_id,
+            'external_id': post_id or self._slug_from_url(url),
+            'post_number': post_id or None,
+            'title': record['title'], 'abstract': abstract,
+            'publisher': 'Canadian Urban Institute',
+            'category': record.get('category', ''),
+            'url': url, 'pdf_url': pdf_url,
+            'original_filename': urlsplit(pdf_url).path.rsplit('/', 1)[-1] if pdf_url else None,
+            'published_date': None, 'listed_date': None,
+            'metadata': json.dumps({
+                'post_id': post_id, 'excerpt': abstract,
+                'metadata_source_url': _LIST_URL,
+                'link_type': record['link_type'], 'linked_resource_fetched': False,
+            }, ensure_ascii=False),
+        })
         return self._last_save_created
 
     # ------------------------------------------------------------------
