@@ -11,7 +11,6 @@ Starting URL reference:
 
 import json
 import os
-import re
 import subprocess
 import sys
 import time
@@ -20,6 +19,7 @@ import urllib.parse
 # Absolute import — spec_from_file_location has no package context.
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 from crawler.base_crawler import BaseCrawler
+from crawler.document_dates import normalize_date
 
 _API_URL = "https://api.archives-ouvertes.fr/search/"
 _FIELDS = (
@@ -104,22 +104,8 @@ class ArtsetmetiersHalScienceSearchCrawler(BaseCrawler):
 
     @staticmethod
     def _parse_date(raw: str) -> str:
-        """Normalise various HAL date formats to YYYY-MM-DD."""
-        if not raw:
-            return ""
-        # Full ISO datetime: 2023-06-14T15:20:11Z
-        m = re.match(r"(\d{4}-\d{2}-\d{2})", raw)
-        if m:
-            return m.group(1)
-        # YYYY-MM
-        m = re.match(r"(\d{4}-\d{2})$", raw)
-        if m:
-            return m.group(1) + "-01"
-        # YYYY
-        m = re.match(r"(\d{4})$", raw)
-        if m:
-            return m.group(1) + "-01-01"
-        return raw[:10] if len(raw) >= 10 else raw
+        """Return only valid complete dates; persistence receives raw values."""
+        return normalize_date(raw)['value'] or ""
 
     @staticmethod
     def _extract_filename(url: str) -> str:
@@ -220,9 +206,11 @@ class ArtsetmetiersHalScienceSearchCrawler(BaseCrawler):
                     keywords = ", ".join(str(k) for k in keywords_list)
 
                     # Dates
-                    produced_date = self._parse_date(str(doc.get("producedDate_s") or ""))
+                    # Preserve original precision and invalid values for the
+                    # shared storage date contract; never synthesize a day.
+                    produced_date = str(doc.get("producedDate_s") or "")
                     submitted_raw = str(doc.get("submittedDate_tdate") or "")
-                    posted_date = self._parse_date(submitted_raw)
+                    posted_date = submitted_raw
 
                     # Document type / category
                     doc_type = str(doc.get("docType_s") or "")
