@@ -89,6 +89,7 @@ class MolitGoKrUsrCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         """Crawl molit.go.kr press-release list pages and persist each item."""
+        self._check_cancelled()
         # Korean gov sites use self-signed / unknown-CA certs; skip verification.
         self._session.verify = False
 
@@ -98,6 +99,7 @@ class MolitGoKrUsrCrawler(BaseCrawler):
         t0 = time.time()
 
         while True:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
             if page > self._MAX_PAGES:
@@ -118,12 +120,14 @@ class MolitGoKrUsrCrawler(BaseCrawler):
                 verify=False,
             )
             if resp is None:
+                self._report_source_failure("fetch_failed")
                 print(f"[molit-go-kr-usr] list page {page} failed, stopping")
                 break
 
             try:
                 soup = _parse_html(resp.content.decode("utf-8", errors="replace"))
             except Exception as exc:
+                self._report_source_failure("invalid_response")
                 print(f"[molit-go-kr-usr] parse error page {page}: {exc}")
                 break
 
@@ -134,6 +138,7 @@ class MolitGoKrUsrCrawler(BaseCrawler):
 
             new_on_page = 0
             for row in rows:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -189,10 +194,12 @@ class MolitGoKrUsrCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[molit-go-kr-usr] item {item_id} failed: {exc}")
                     continue
 
             if new_on_page == 0:
+                self._report_source_failure("invalid_response")
                 print(f"[molit-go-kr-usr] no new items on page {page}, stopping")
                 break
 
@@ -205,11 +212,12 @@ class MolitGoKrUsrCrawler(BaseCrawler):
 
     def _process_item(self, *, item_id, detail_url, list_title,
                       category, listed_date, post_number):
-        """Fetch detail page, extract all fields, save. Returns 1 on save, 0 on skip."""
+        """Fetch detail and save; return 1 only for an actual newly inserted row."""
         time.sleep(self._delay)
 
         resp = _fetch_with_retry(self._session, detail_url)
         if resp is None:
+            self._report_source_failure("item_failed")
             print(f"[molit-go-kr-usr] detail {item_id}: all retries failed, skipping")
             return 0
 
@@ -218,11 +226,13 @@ class MolitGoKrUsrCrawler(BaseCrawler):
         try:
             soup = _parse_html(html)
         except Exception as exc:
+            self._report_source_failure("item_failed")
             print(f"[molit-go-kr-usr] HTML parse error {item_id}: {exc}, skipping")
             return 0
 
         bd_view = soup.find("div", class_="bd_view")
         if not bd_view:
+            self._report_source_failure("item_failed")
             print(f"[molit-go-kr-usr] no bd_view for {item_id}, skipping")
             return 0
 
@@ -258,7 +268,7 @@ class MolitGoKrUsrCrawler(BaseCrawler):
                     if key == "담당부서":
                         department = val
                     elif key == "등록일":
-                        published_date = val.split()[0] if val else None
+                        published_date = val or None
 
         # Attachments
         pdf_url = None
@@ -335,7 +345,7 @@ class MolitGoKrUsrCrawler(BaseCrawler):
             "journal": None,
             "metadata": json.dumps(metadata, ensure_ascii=False),
         })
-        return 1
+        return int(self._last_save_created)
 
     def _build_abstract(self, *, item_id, title, og_title, bullets, pdf_url):
         """

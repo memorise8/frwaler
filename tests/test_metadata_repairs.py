@@ -17,6 +17,15 @@ CONFIG = Path(__file__).resolve().parents[1] / 'crawler/sites/configs/krivet-re-
 
 
 class DateContractTests(unittest.TestCase):
+    def test_compact_complete_date_is_validated_without_losing_original(self):
+        for raw, value, status, precision in [('20250711','2025-07-11','normalized','day'),
+                                              ('20250230',None,'invalid','day'),
+                                              ('00000101',None,'invalid','day'),
+                                              ('20250711 extra',None,'unrecognized',None),
+                                              ('prefix20250711',None,'unrecognized',None)]:
+            with self.subTest(raw=raw):
+                self.assertEqual(normalize_date(raw), {'value':value,'raw':raw,'status':status,'precision':precision})
+
     def test_named_month_retains_precision_without_inventing_day(self):
         for raw, status, precision in [('July 2025', 'partial', 'month'),
                                        (' FÉVRIER 2024 ', 'partial', 'month'),

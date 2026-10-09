@@ -57,8 +57,9 @@ def normalize_date(value, *, order=None):
         return result
     match = re.fullmatch(r"(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})\.?", text)
     korean = re.fullmatch(r"(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일", text)
-    if match or korean:
-        parts = tuple(map(int, (match or korean).groups()))
+    compact = re.fullmatch(r"(\d{4})(\d{2})(\d{2})", text)
+    if match or korean or compact:
+        parts = tuple(map(int, (match or korean or compact).groups()))
     elif re.match(r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}", text):
         try:
             parsed = datetime.fromisoformat(text.replace('Z', '+00:00'))

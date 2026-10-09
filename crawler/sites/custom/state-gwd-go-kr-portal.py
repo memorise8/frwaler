@@ -244,12 +244,13 @@ class StateGwdGoKrPortalCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def _process_item(self, list_item: dict) -> bool:
-        """Fetch detail + HWP, build abstract, save.  Returns True if saved."""
+        """Fetch detail + HWP and save; return True only for an actual new row."""
         seq = list_item["seq"]
         title = list_item["title"]
 
         detail = self._fetch_detail(seq)
         if not detail:
+            self._report_source_failure("item_failed")
             print(f"[{self.site_id}] Detail fetch failed for seq={seq}, skipping.")
             return False
 
@@ -276,6 +277,8 @@ class StateGwdGoKrPortalCrawler(BaseCrawler):
             hwp_bytes = self._download_bytes(hwp_url)
             if hwp_bytes:
                 abstract = _extract_prvtext(hwp_bytes)
+            else:
+                self._report_source_failure("item_failed")
 
         # Fallback: title (often < 50 chars → item will be skipped below)
         if not abstract:
@@ -310,13 +313,14 @@ class StateGwdGoKrPortalCrawler(BaseCrawler):
             }, ensure_ascii=False),
         }
         self._save_paper(paper)
-        return True
+        return bool(self._last_save_created)
 
     # ------------------------------------------------------------------
     # Main crawl loop
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         page = 1
         seen_urls: set[str] = set()
@@ -324,6 +328,7 @@ class StateGwdGoKrPortalCrawler(BaseCrawler):
         max_pages = 200
 
         while True:
+            self._check_cancelled()
             # --- exit conditions ---
             if limit is not None and saved >= limit:
                 break
@@ -342,6 +347,7 @@ class StateGwdGoKrPortalCrawler(BaseCrawler):
             # --- fetch list page (with retry) ---
             items = None
             for _r in range(3):
+                self._check_cancelled()
                 items = self._fetch_list_page(page)
                 if items is not None:
                     break
@@ -350,6 +356,7 @@ class StateGwdGoKrPortalCrawler(BaseCrawler):
                 time.sleep(wait)
 
             if items is None:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] Page {page}: giving up after 3 retries. Stopping.")
                 break
             if not items:
@@ -359,6 +366,7 @@ class StateGwdGoKrPortalCrawler(BaseCrawler):
             # --- deduplication ---
             new_items = [i for i in items if i["url"] not in seen_urls]
             if not new_items and page > 1:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] Page {page}: all items already seen. Stopping.")
                 break
             for i in new_items:
@@ -366,6 +374,7 @@ class StateGwdGoKrPortalCrawler(BaseCrawler):
 
             # --- process each item ---
             for item in new_items:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -379,6 +388,7 @@ class StateGwdGoKrPortalCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] Item seq={item.get('seq')} failed: {exc}")
                     continue
 

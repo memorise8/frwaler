@@ -93,29 +93,21 @@ def _curl(method: str, url: str, *, data: str | None = None,
 
 
 def _fmt_date(raw: str | None) -> str | None:
-    """Convert 'YYYY.MM.DD' or 'YYYYMMDD' to 'YYYY-MM-DD'."""
-    if not raw:
-        return None
-    m = re.search(r"(\d{4})[.\-](\d{2})[.\-](\d{2})", raw)
-    if m:
-        return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
-    m = re.search(r"(\d{4})(\d{2})(\d{2})", raw)
-    if m:
-        return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
-    return None
+    """Keep original source text; shared normalization validates full dates."""
+    return None if raw is None else str(raw)
 
 
 # ---------------------------------------------------------------------------
 # Parsing
 # ---------------------------------------------------------------------------
 
-def _parse_list_page(html: str) -> list[dict]:
+def _parse_list_page(html: str) -> list[dict] | None:
     """Return list of {dpim_id, post_number, title, listed_date} from one page."""
     items: list[dict] = []
     try:
         soup = _make_soup(html)
         if not soup:
-            return items
+            return None
         tbody = soup.find("tbody")
         if not tbody:
             return items
@@ -134,7 +126,7 @@ def _parse_list_page(html: str) -> list[dict]:
 
             row_text = tr.get_text()
             dm = re.search(r"(\d{4})\.(\d{2})\.(\d{2})", row_text)
-            listed_date = f"{dm.group(1)}-{dm.group(2)}-{dm.group(3)}" if dm else None
+            listed_date = dm.group(0) if dm else None
 
             items.append({
                 "dpim_id": dpim_id,
@@ -144,6 +136,7 @@ def _parse_list_page(html: str) -> list[dict]:
             })
     except Exception as exc:
         print(f"[{_SITE_ID}] list parse error: {exc}")
+        return None
     return items
 
 
@@ -179,7 +172,7 @@ def _parse_detail_page(html: str, dpim_id: str) -> dict | None:
         for li in detail_ul.find_all("li"):
             text = li.get_text()
             if "작성일" in text:
-                published_date = _fmt_date(text)
+                published_date = _fmt_date(text.replace("작성일", "", 1).strip().lstrip(":").strip())
             elif "작성자" in text:
                 span = li.find("span")
                 raw = text.replace(span.get_text(strip=True) if span else "", "")
@@ -254,12 +247,16 @@ class MndGoKrUserCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None) -> int:
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         saved = 0
         seen: set[str] = set()
         start_time = time.time()
         limit_display = str(limit) if limit is not None else "∞"
 
         for page in range(1, _MAX_PAGES + 1):
+            self._check_cancelled()
             elapsed = time.time() - start_time
             if elapsed >= _WALL_CLOCK_SECS:
                 print(f"[{_SITE_ID}] wall-clock budget reached ({elapsed:.0f}s), stopping.")
@@ -275,16 +272,21 @@ class MndGoKrUserCrawler(BaseCrawler):
                          data=f"page={page}&layout=",
                          referer=_LIST_REFERER)
             if not html:
+                self._report_source_failure("fetch_failed")
                 print(f"[{_SITE_ID}] failed to fetch list page {page}. Stopping.")
                 break
 
             items = _parse_list_page(html)
+            if items is None:
+                self._report_source_failure("invalid_response")
+                break
             if not items:
                 print(f"[{_SITE_ID}] no items on page {page}. End of pagination.")
                 break
 
             new_items = [it for it in items if it["dpim_id"] not in seen]
             if not new_items:
+                self._report_source_failure("invalid_response")
                 print(f"[{_SITE_ID}] all items on page {page} already seen. Stopping.")
                 break
             for it in new_items:
@@ -293,6 +295,7 @@ class MndGoKrUserCrawler(BaseCrawler):
             for it in new_items:
                 if limit is not None and saved >= limit:
                     break
+                self._check_cancelled()
                 try:
                     ok = self._fetch_and_save(it)
                     if ok:
@@ -300,6 +303,7 @@ class MndGoKrUserCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{_SITE_ID}] item {it['dpim_id']} failed: {exc}")
                 time.sleep(self._delay)
 
@@ -320,11 +324,13 @@ class MndGoKrUserCrawler(BaseCrawler):
 
         html = _curl("GET", detail_url, referer=_LIST_REFERER)
         if not html:
+            self._report_source_failure("item_failed")
             print(f"[{_SITE_ID}] failed to fetch {dpim_id}")
             return False
 
         detail = _parse_detail_page(html, dpim_id)
         if not detail:
+            self._report_source_failure("item_failed")
             print(f"[{_SITE_ID}] parse returned None for {dpim_id}")
             return False
 
@@ -375,4 +381,4 @@ class MndGoKrUserCrawler(BaseCrawler):
             "metadata": json.dumps(metadata, ensure_ascii=False),
         }
         self._save_paper(paper)
-        return True
+        return bool(self._last_save_created)
