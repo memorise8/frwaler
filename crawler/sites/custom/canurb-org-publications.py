@@ -8,7 +8,6 @@ import os
 import re
 import subprocess
 import time
-from datetime import datetime
 from html import unescape
 from urllib.parse import urljoin
 
@@ -33,6 +32,7 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         seen_urls: set[str] = set()
         t_start = time.monotonic()
@@ -42,6 +42,7 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
         # anyway to stay compatible with any future pagination.
         page = 1
         while True:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
             if page > _PAGE_SAFETY_CAP:
@@ -54,11 +55,13 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
             page_url = _LIST_URL if page == 1 else f"{_LIST_URL}page/{page}/"
             raw = self._curl_get(page_url, context=f"list page {page}")
             if not raw:
+                self._report_source_failure('fetch_failed')
                 print(f"[{self.site_id}] list page {page} fetch failed; stopping")
                 break
 
             soup = self._make_soup(raw)
             if soup is None:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] list page {page} parse failed; stopping")
                 break
 
@@ -73,6 +76,7 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
                 seen_urls.add(r["url"])
 
             if not new_records:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] page {page}: all URLs already seen; stopping")
                 break
 
@@ -81,6 +85,7 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
                 print(f"[{self.site_id}] page {page}: saved {saved}/{lim_str}")
 
             for record in new_records:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
                 if time.monotonic() - t_start > _CRAWL_BUDGET_SECS:
@@ -96,6 +101,7 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(f"[{self.site_id}] item {record.get('url', '?')} failed: {exc}")
                     continue
 
@@ -252,7 +258,7 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
         }
 
         self._save_paper(paper)
-        return True
+        return self._last_save_created
 
     # ------------------------------------------------------------------
     # Helpers
@@ -271,16 +277,18 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
                 items = data
             else:
                 continue
+            if not isinstance(items, list):
+                continue
             for item in items:
                 if not isinstance(item, dict):
                     continue
-                raw = item.get("datePublished") or item.get("dateModified") or ""
-                if raw:
-                    return self._normalize_date(raw)
+                raw = item.get("datePublished")
+                if isinstance(raw, str) and raw.strip():
+                    return raw
         # Fallback: meta article:published_time
         raw = self._meta(soup, "article:published_time") or ""
         if raw:
-            return self._normalize_date(raw)
+            return raw
         return ""
 
     def _extract_body_text(self, soup) -> str:
@@ -337,31 +345,6 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
             tag = soup.find("meta", attrs=attrs)
             if tag and tag.get("content"):
                 return self._clean_text(tag["content"])
-        return ""
-
-    def _normalize_date(self, raw: str) -> str:
-        text = self._clean_text(raw)
-        if not text:
-            return ""
-        # ISO datetime: 2025-06-20T13:58:44+00:00
-        m = re.match(r"(\d{4})-(\d{2})-(\d{2})", text)
-        if m:
-            return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
-        # "June 2025" or "June 20, 2025"
-        m = re.search(r"([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})", text)
-        if m:
-            try:
-                dt = datetime.strptime(f"{m.group(1)} {m.group(2)} {m.group(3)}", "%B %d %Y")
-                return dt.strftime("%Y-%m-%d")
-            except ValueError:
-                pass
-        m = re.search(r"([A-Za-z]+)\s+(\d{4})", text)
-        if m:
-            try:
-                dt = datetime.strptime(f"{m.group(1)} {m.group(2)}", "%B %Y")
-                return dt.strftime("%Y-%m-01")
-            except ValueError:
-                pass
         return ""
 
     def _clean_text(self, value) -> str:

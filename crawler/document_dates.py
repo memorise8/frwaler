@@ -12,7 +12,11 @@ DATE_FIELDS = ("published_date", "listed_date")
 DATE_METADATA_FIELDS = tuple(f"{field}_{suffix}" for field in DATE_FIELDS
                              for suffix in ("raw", "status", "precision"))
 # Add site rules only with a source-format regression fixture and evidence.
-SITE_DATE_ORDERS: dict[str, str] = {}
+SITE_DATE_ORDERS: dict[str, str] = {
+    # Public ONERA press listings expose 02/10/2026 alongside 22/07/2026.
+    # Native HTML persistence fixtures verify day/month order and raw retention.
+    'onera-fr-fr': 'DMY',
+}
 
 _MONTHS = {}
 for number, names in enumerate((

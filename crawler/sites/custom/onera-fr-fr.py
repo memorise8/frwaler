@@ -21,6 +21,7 @@ from typing import Any
 from urllib.parse import unquote, urljoin, urlparse, parse_qs
 
 from crawler.base_crawler import BaseCrawler
+from crawler.document_dates import normalize_date
 
 
 _BASE_URL = "https://www.onera.fr"
@@ -32,25 +33,6 @@ _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _CURL_TIMEOUT = 35
 _MIN_ABSTRACT_CHARS = 100
-
-_FR_MONTHS = {
-    "janvier": 1,
-    "fevrier": 2,
-    "février": 2,
-    "mars": 3,
-    "avril": 4,
-    "mai": 5,
-    "juin": 6,
-    "juillet": 7,
-    "aout": 8,
-    "août": 8,
-    "septembre": 9,
-    "octobre": 10,
-    "novembre": 11,
-    "decembre": 12,
-    "décembre": 12,
-}
-
 
 def _compact_text(text: str | None) -> str:
     if not text:
@@ -71,26 +53,8 @@ def _make_soup(raw: str):
 
 
 def _parse_date(raw: str | None) -> str | None:
-    """Parse ONERA dates such as '24/04/2025' or 'Publié le 24/04/2025'."""
-    text = _compact_text(raw).lower()
-    if not text:
-        return None
-
-    m = re.search(r"(\d{1,2})/(\d{1,2})/(\d{4})", text)
-    if m:
-        day, month, year = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
-        return f"{year:04d}-{month:02d}-{day:02d}"
-
-    m = re.search(r"(\d{1,2})\s+([a-zéûôîàèùç]+)\s+(\d{4})", text, re.I)
-    if m:
-        month = _FR_MONTHS.get(m.group(2).lower())
-        if month:
-            return f"{int(m.group(3)):04d}-{month:02d}-{int(m.group(1)):02d}"
-
-    m = re.search(r"(\d{4})-(\d{2})-(\d{2})", text)
-    if m:
-        return m.group(0)
-    return None
+    """Normalize complete dates only; raw fields are retained at persistence."""
+    return normalize_date(raw, order='DMY')['value']
 
 
 def _filename_from_url(url: str | None) -> str | None:
@@ -128,10 +92,11 @@ class OneraFrFrCrawler(BaseCrawler):
     site_name = "Custom: onera-fr-fr"
     base_url = _BASE_URL
 
-    START_PAGE = 1
+    START_PAGE = 0
     DETAIL_DELAY = 1.0
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         seen_urls: set[str] = set()
         started_at = time.time()
@@ -140,6 +105,7 @@ class OneraFrFrCrawler(BaseCrawler):
         limit_or_inf = str(limit) if limit is not None else "inf"
 
         while scanned < _MAX_PAGES:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
             if time.time() - started_at >= _MAX_WALL_SECONDS:
@@ -150,11 +116,13 @@ class OneraFrFrCrawler(BaseCrawler):
             list_url = f"{_LIST_URL}?page={page}"
             raw = self._fetch(list_url, context=f"list page {page}")
             if not raw:
+                self._report_source_failure('fetch_failed')
                 print(f"[{self.site_id}] list page {page}: fetch failed; stopping")
                 break
 
             soup = self._soup(raw, context=f"list page {page}")
             if soup is None:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] list page {page}: parse failed; stopping")
                 break
 
@@ -172,10 +140,12 @@ class OneraFrFrCrawler(BaseCrawler):
                 new_items.append(item)
 
             if not new_items:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] page {page}: no new records; stopping")
                 break
 
             for index, item in enumerate(new_items, start=1):
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
                 try:
@@ -191,6 +161,7 @@ class OneraFrFrCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     label = item.get("url") or item.get("title") or f"page {page} item {index}"
                     print(f"[{self.site_id}] item {label} failed: {exc}")
                     continue
@@ -203,6 +174,7 @@ class OneraFrFrCrawler(BaseCrawler):
                 print(f"[{self.site_id}] page {page}: no next page; stopping")
                 break
             if next_page <= page:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] page {page}: paginator did not advance; stopping")
                 break
             page = next_page
@@ -329,11 +301,13 @@ class OneraFrFrCrawler(BaseCrawler):
 
         raw = self._fetch(url, context=f"detail {item.get('slug') or url}")
         if not raw:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] item {url} failed: detail fetch returned no body")
             return False
 
         soup = self._soup(raw, context=f"detail {url}")
         if soup is None:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] item {url} failed: detail parse returned no soup")
             return False
 
@@ -345,8 +319,8 @@ class OneraFrFrCrawler(BaseCrawler):
             print(f"[{self.site_id}] abstract too short ({len(abstract)} chars) for {url}; skipping")
             return False
 
-        listed_date = item.get("listed_date")
-        published_date = detail.get("published_date") or listed_date
+        listed_date = item.get("listed_date_raw")
+        published_date = detail.get("published_date_raw") or listed_date
         node_id = detail.get("node_id")
         slug = item.get("slug") or _slug_from_url(url)
         external_id = node_id or slug or url
@@ -358,7 +332,7 @@ class OneraFrFrCrawler(BaseCrawler):
         metadata = {
             "posted_date": item.get("listed_date_raw"),
             "listed_date_raw": item.get("listed_date_raw"),
-            "listed_date": listed_date,
+            "listed_date": item.get("listed_date"),
             "published_date_raw": detail.get("published_date_raw"),
             "originalFilename": original_filename,
             "journal_raw": None,
@@ -400,7 +374,7 @@ class OneraFrFrCrawler(BaseCrawler):
             "metadata": json.dumps(metadata, ensure_ascii=False),
         }
         self._save_paper(paper)
-        return True
+        return self._last_save_created
 
     def _parse_detail(self, soup, raw: str, item: dict[str, Any]) -> dict[str, Any]:
         title = ""
