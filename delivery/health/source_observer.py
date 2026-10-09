@@ -13,6 +13,8 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 import hashlib
+import gzip
+import io
 import ipaddress
 import json
 import os
@@ -23,6 +25,7 @@ import sys
 import tempfile
 import threading
 import time
+import zlib
 from urllib.parse import urljoin, urlsplit
 
 from .results import atomic_json, site_path, utc_now
@@ -119,7 +122,7 @@ def fetch_once(url, timeout=20):
                 for line in block.splitlines()[1:]:
                     if b':' in line:
                         key, value = line.split(b':', 1)
-                        if key.lower() in (b'content-type', b'location', b'retry-after'):
+                        if key.lower() in (b'content-type', b'content-encoding', b'location', b'retry-after'):
                             headers[key.decode().lower()] = value.decode('latin-1').strip()
         try:
             status = int(result.stdout)
@@ -184,6 +187,23 @@ def inspect_body(body, content_type, selectors=None):
     return result
 
 
+def decode_observation_body(body, encoding):
+    """Decode unsolicited gzip within the same bound; keep wire bytes untouched."""
+    encoding = (encoding or '').strip().lower()
+    if encoding not in ('', 'identity', 'gzip', 'x-gzip'):
+        raise ValueError('unsupported_content_encoding')
+    if encoding in ('gzip', 'x-gzip') or body.startswith(b'\x1f\x8b'):
+        try:
+            with gzip.GzipFile(fileobj=io.BytesIO(body)) as stream:
+                decoded = stream.read(MAX_BODY + 1)
+        except (OSError, EOFError, zlib.error) as exc:
+            raise ValueError('invalid_compressed_body') from exc
+        if len(decoded) > MAX_BODY:
+            raise ValueError('decoded_body_limit')
+        return decoded, 'gzip'
+    return body, 'identity'
+
+
 def observe(site, gate, *, timeout=20, fetch=fetch_once):
     started = time.monotonic()
     entry = site.get('selected_entry')
@@ -229,8 +249,17 @@ def observe(site, gate, *, timeout=20, fetch=fetch_once):
                                        429: 'rate_limited'}.get(status, 'http_error')
                     break
                 result['body_sha256'] = hashlib.sha256(response['body']).hexdigest()
-                if response['body_complete']:
-                    result['body_observation'] = inspect_body(response['body'], headers.get('content-type', ''), site.get('list_selectors'))
+                if not response['body_complete']:
+                    result['state'] = 'body_limit'
+                    break
+                try:
+                    body, encoding = decode_observation_body(response['body'], headers.get('content-encoding'))
+                except ValueError as exc:
+                    result['state'] = str(exc)
+                    break
+                result.update(decoded_body_bytes=len(body), decoded_body_sha256=hashlib.sha256(body).hexdigest(),
+                              body_decoding=encoding)
+                result['body_observation'] = inspect_body(body, headers.get('content-type', ''), site.get('list_selectors'))
                 result['state'] = 'entry_responded_scope_unverified'
                 break
             else:

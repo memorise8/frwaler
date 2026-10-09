@@ -1,4 +1,6 @@
 import json
+import gzip
+import hashlib
 from concurrent.futures import ThreadPoolExecutor
 import threading
 import time
@@ -115,6 +117,43 @@ class SourceObserverTest(unittest.TestCase):
         r = observe(self.site(), HostGate(0), fetch=lambda *a, **kw: response)
         self.assertEqual(r['state'], 'body_limit')
         self.assertNotIn('body_observation', r)
+
+    def test_unsolicited_gzip_is_decoded_without_losing_wire_hash(self):
+        source = b'{"total":27,"token":"not-persisted"}'
+        wire = gzip.compress(source)
+        for encoding in (None, 'gzip', 'GZIP', 'x-gzip'):
+            with self.subTest(encoding=encoding):
+                headers = {'content-type': 'application/json'}
+                if encoding: headers['content-encoding'] = encoding
+                r = observe(self.site(), HostGate(0), fetch=lambda *a, **kw:self.response(body=wire,headers=headers))
+                self.assertEqual(r['body_observation']['count_candidates'][0]['value'],27)
+                self.assertEqual(r['body_sha256'],hashlib.sha256(wire).hexdigest())
+                self.assertEqual(r['decoded_body_sha256'],hashlib.sha256(source).hexdigest())
+                self.assertIsNone(r['current_total'])
+                self.assertNotIn('not-persisted',json.dumps(r))
+
+    def test_expanded_gzip_body_cannot_exceed_observation_budget(self):
+        wire = gzip.compress(b'X' * 10000)
+        with patch('delivery.health.source_observer.MAX_BODY',64):
+            r = observe(self.site(), HostGate(0), fetch=lambda *a, **kw:self.response(body=wire))
+        self.assertEqual(r['state'],'decoded_body_limit')
+        self.assertNotIn('body_observation',r)
+
+    def test_corrupt_and_unsupported_encoded_bodies_are_not_parsed(self):
+        cases = [(b'not gzip','gzip','invalid_compressed_body'),
+                 (gzip.compress(b'{"total":8}')[:-4],'gzip','invalid_compressed_body'),
+                 (b'{"total":8}','br','unsupported_content_encoding')]
+        for body,encoding,state in cases:
+            with self.subTest(state=state):
+                r=observe(self.site(),HostGate(0),fetch=lambda *a,**kw:self.response(body=body,headers={'content-type':'application/json','content-encoding':encoding}))
+                self.assertEqual(r['state'],state)
+                self.assertNotIn('body_observation',r)
+
+    def test_incomplete_body_without_curl_error_is_not_success(self):
+        response=self.response();response['body_complete']=False
+        r=observe(self.site(),HostGate(0),fetch=lambda *a,**kw:response)
+        self.assertEqual(r['state'],'body_limit')
+        self.assertNotIn('body_observation',r)
 
 
 if __name__ == '__main__':
