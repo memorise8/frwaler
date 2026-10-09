@@ -313,6 +313,16 @@ python -m delivery.health.source_observer --inventory /reports/source-inventory.
 홈페이지 fallback과 미검토 API 시작점을 구분하며, 총건수 후보가 나와도 현재 총량은
 미확인으로 유지합니다. 상세 파싱·DB 저장·재개·파일 검증은 별도로 수행해야 합니다.
 
+검토한 API 조건의 경계 확인은 `python -m delivery.health.capacity_probe
+--contracts <reviewed-contracts.json> --out <new-result-directory>`로 실행합니다.
+현재 HAL Solr와 DOAJ 응답·페이지 규칙만 지원합니다. 입력 계약에는 사이트 ID,
+API 종류(`hal_solr`/`doaj`), endpoint, query_pairs, 저장 전 제외 조건을 기록합니다.
+실제 수집기 코드의 기관·자료 유형 필터를 먼저 대조해야 하며 범용 숫자 추출 결과를
+계약으로 승격하지 않습니다. 첫·중간·마지막·끝 다음 페이지의 건수 및 식별값을
+점검하되 전 ID 열거, 실제 저장 대상 총수, 전체 수집 완료는 계속 미검증으로 둡니다.
+원문 총수 변경·반복 페이지·깊은 페이지 접근 실패는 별도 결과로 남깁니다.
+이 도구와 원문 응답 observer는 동시에 실행하지 않습니다.
+
 `/health` 화면은 전체 카탈로그의 코드 로딩 상태, 최근 소량 검사 결과,
 DB 구조, 워커 응답, 원본 PDF 표본을 보여줍니다. 화면 조회·새로고침은 외부
 사이트에 요청하거나 수집 작업을 등록하지 않습니다.
