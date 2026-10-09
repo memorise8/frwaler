@@ -47,9 +47,17 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 from crawler.base_crawler import BaseCrawler
 
 
-_SCOPE = "aa75d318-67b9-41ef-b89c-d33db195a08e"
+# All five browse URLs assigned to this collector in the delivery URL table.
+# Keep the previously collected scope first; UUID identity spans scopes.
+_SCOPES = (
+    "aa75d318-67b9-41ef-b89c-d33db195a08e",
+    "38e1d29e-3f53-4755-868e-a36b75554f81",
+    "9e4177d9-b92b-4778-a84a-e27f482addb4",
+    "f8d85de1-7de0-4348-bca3-10784f86ae71",
+    "d533961b-ecdb-497c-b850-8f8dd0594939",
+)
 _PAGE_SIZE = 20
-_PAGE_CAP = 200
+_PAGE_CAP = 200  # Fallback only when the source does not report a page count.
 _CRAWL_BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _RETRY_WAITS = (1, 3, 9)
 _MIN_ABSTRACT_CHARS = 50
@@ -367,105 +375,112 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
             return 0
         start_time = time.time()
         saved = 0
-        page = 0
-        seen_urls = set()
-        limit_display = limit if limit is not None else "inf"
+        seen_items = set()
+        for scope in _SCOPES:
+            self._check_cancelled()
+            remaining = None if limit is None else limit - saved
+            if remaining is not None and remaining <= 0:
+                break
+            count, finished = self._crawl_scope(scope, remaining, start_time, seen_items)
+            saved += count
+            if not finished:
+                break
+        self._check_cancelled()
+        print(f"[{self.site_id}] done: saved {saved} papers")
+        return saved
 
-        try:
-            while True:
+    def _crawl_scope(self, scope, limit, start_time, seen_items):
+        """Traverse one source scope; cross-scope overlap is not a repeated page."""
+        saved = 0
+        page = 0
+        scope_items = set()
+        expected_pages = None
+        expected_total = None
+        while True:
+            self._check_cancelled()
+            if limit is not None and saved >= limit:
+                return saved, False
+            if expected_pages is None and page >= _PAGE_CAP:
+                self._report_source_failure('invalid_response')
+                return saved, False
+            if time.time() - start_time > _CRAWL_BUDGET_SECONDS:
+                self._report_source_failure('invalid_response')
+                return saved, False
+            data = self._fetch_json(
+                f"{self.base_url}/server/api/discover/browses/title/items",
+                params={"scope": scope, "size": _PAGE_SIZE, "page": page},
+            )
+            if not data:
+                self._report_source_failure('fetch_failed')
+                return saved, False
+            if not isinstance(data, dict) or not isinstance(data.get('page', {}), dict):
+                self._report_source_failure('invalid_response')
+                return saved, False
+            info = data.get('page', {})
+            total_pages = info.get('totalPages')
+            total = info.get('totalElements')
+            if (total_pages is not None and
+                    (type(total_pages) is not int or total_pages < 0)) or (
+                    total is not None and (type(total) is not int or total < 0)):
+                self._report_source_failure('invalid_response')
+                return saved, False
+            if ('number' in info and (type(info['number']) is not int or info['number'] != page)) or (
+                    expected_pages is not None and total_pages != expected_pages) or (
+                    expected_total is not None and total != expected_total):
+                self._report_source_failure('invalid_response')
+                return saved, False
+            expected_pages = total_pages
+            expected_total = total
+            embedded = data.get('_embedded', {})
+            if not isinstance(embedded, dict):
+                self._report_source_failure('invalid_response')
+                return saved, False
+            items = embedded.get('items', [] if total == 0 else None)
+            if not isinstance(items, list):
+                self._report_source_failure('invalid_response')
+                return saved, False
+            if not items:
+                if (total is not None and len(scope_items) != total) or (
+                        total_pages is not None and page < total_pages and total != 0):
+                    self._report_source_failure('invalid_response')
+                    return saved, False
+                return saved, True
+            if total_pages == 0 or (total_pages is not None and page >= total_pages):
+                self._report_source_failure('invalid_response')
+                return saved, False
+            new_in_scope = 0
+            for item in items:
                 self._check_cancelled()
                 if limit is not None and saved >= limit:
-                    break
-                if page >= _PAGE_CAP:
+                    return saved, False
+                uuid_ = (item.get('uuid') or item.get('id')) if isinstance(item, dict) else None
+                if not isinstance(uuid_, str) or not uuid_:
                     self._report_source_failure('invalid_response')
-                    print(f"[{self.site_id}] hit safety page cap ({_PAGE_CAP} pages), stopping")
-                    break
-                elapsed = time.time() - start_time
-                if elapsed > _CRAWL_BUDGET_SECONDS:
+                    continue
+                if uuid_ in scope_items:
                     self._report_source_failure('invalid_response')
-                    print(f"[{self.site_id}] approaching time budget ({elapsed:.0f}s elapsed), stopping cleanly")
-                    break
-                if page % 10 == 0:
-                    print(f"[{self.site_id}] page {page}: saved {saved}/{limit_display}")
-
-                data = self._fetch_json(
-                    f"{self.base_url}/server/api/discover/browses/title/items",
-                    params={
-                        "scope": _SCOPE,
-                        "size": _PAGE_SIZE,
-                        "page": page,
-                    },
-                )
-                if not data:
-                    self._report_source_failure('fetch_failed')
-                    print(f"[{self.site_id}] page {page}: fetch failed, stopping")
-                    break
-
+                    continue
+                scope_items.add(uuid_)
+                new_in_scope += 1
+                if uuid_ in seen_items:
+                    continue
+                seen_items.add(uuid_)
+                handle = item.get('handle')
+                item_url = f"https://hdl.handle.net/{handle}" if handle else f"{self.base_url}/items/{uuid_}"
                 try:
-                    items_on_page = data["_embedded"]["items"]
-                except (KeyError, TypeError):
-                    if isinstance(data, dict) and (data.get('page') or {}).get('totalElements') == 0:
-                        items_on_page = []
-                    else:
-                        self._report_source_failure('invalid_response')
-                        break
-                if not isinstance(items_on_page, list):
-                    self._report_source_failure('invalid_response')
-                    break
-
-                if not items_on_page:
-                    print(f"[{self.site_id}] page {page}: no items returned, stopping")
-                    break
-
-                new_on_page = 0
-                for item in items_on_page:
-                    self._check_cancelled()
-                    if limit is not None and saved >= limit:
-                        break
-                    try:
-                        if not isinstance(item, dict):
-                            self._report_source_failure('invalid_response')
-                            continue
-                        uuid_ = item.get("uuid") or item.get("id")
-                        if not uuid_:
-                            self._report_source_failure('invalid_response')
-                            continue
-                        handle = item.get("handle")
-                        item_url = f"https://hdl.handle.net/{handle}" if handle else f"{self.base_url}/items/{uuid_}"
-                        if item_url in seen_urls:
-                            continue
-                        seen_urls.add(item_url)
-                        new_on_page += 1
-
-                        if self._process_item(item, item_url):
-                            saved += 1
-                    except Exception as exc:  # noqa: BLE001 - one bad item must never abort the run
-                        self._report_source_failure('item_failed')
-                        bad_id = item.get("uuid") if isinstance(item, dict) else "?"
-                        print(f"[{self.site_id}] item {bad_id} failed: {exc}")
-                    if getattr(self, '_pdf_access_held', False):
-                        break
-
+                    if self._process_item(item, item_url):
+                        saved += 1
+                except Exception as exc:
+                    self._report_source_failure('item_failed')
+                    print(f"[{self.site_id}] item {uuid_} failed: {exc}")
                 if getattr(self, '_pdf_access_held', False):
-                    break
-
-                if new_on_page == 0:
+                    return saved, False
+            if new_in_scope == 0:
+                self._report_source_failure('invalid_response')
+                return saved, False
+            if total_pages is not None and page == total_pages - 1:
+                if total is not None and len(scope_items) != total:
                     self._report_source_failure('invalid_response')
-                    print(f"[{self.site_id}] page {page}: repeated source records, stopping")
-                    break
-
-                total_pages = (data.get("page") or {}).get("totalPages")
-                if total_pages is not None and (isinstance(total_pages, bool) or not isinstance(total_pages, int) or total_pages < 1):
-                    self._report_source_failure('invalid_response')
-                    break
-                if total_pages is not None and page >= total_pages - 1:
-                    print(f"[{self.site_id}] page {page}: reached last page ({total_pages} total), stopping")
-                    break
-
-                page += 1
-        except KeyboardInterrupt:
-            raise
-
-        self._check_cancelled()
-        print(f"[{self.site_id}] done: saved {saved} papers across {page + 1} page(s)")
-        return saved
+                    return saved, False
+                return saved, True
+            page += 1
