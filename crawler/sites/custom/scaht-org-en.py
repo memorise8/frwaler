@@ -265,6 +265,7 @@ class SCAHTOrgEnCrawler(BaseCrawler):
 
         try:
             while page <= self.MAX_PAGES:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
                 if self._near_deadline(start_time):
@@ -281,6 +282,7 @@ class SCAHTOrgEnCrawler(BaseCrawler):
 
                 new_on_page = 0
                 for item_no, record in enumerate(records, start=1):
+                    self._check_cancelled()
                     if limit is not None and saved >= limit:
                         break
                     if self._near_deadline(start_time):
@@ -308,7 +310,8 @@ class SCAHTOrgEnCrawler(BaseCrawler):
                             )
                             continue
                         self._save_paper(paper)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                     except KeyboardInterrupt:
                         raise
                     except Exception as exc:
@@ -334,7 +337,9 @@ class SCAHTOrgEnCrawler(BaseCrawler):
     def _fetch_list_page(self, page, active_list_url):
         candidates = []
         if page == 1 and active_list_url is None:
-            candidates = [self.START_URL, self.LIVE_LIST_URL]
+            # The historical route is a verified 404. Start with the current
+            # publication list instead of repeating that failure every run.
+            candidates = [self.LIVE_LIST_URL]
         else:
             base = active_list_url or self.LIVE_LIST_URL
             candidates = [self._page_url(base, page)]
