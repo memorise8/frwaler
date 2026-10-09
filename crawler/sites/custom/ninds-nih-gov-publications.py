@@ -194,7 +194,7 @@ class NINDSNIHPublicationsCrawler(BaseCrawler):
             if date_div:
                 t = date_div.find("time")
                 if t and t.get("datetime"):
-                    result["published_date"] = t["datetime"][:10]
+                    result["published_date"] = t["datetime"]
 
             # Topics / keywords from field--name-field-topic
             topics_div = soup.find(
@@ -319,12 +319,8 @@ class NINDSNIHPublicationsCrawler(BaseCrawler):
                 title = detail.get("title") or item["title"]
                 abstract = detail.get("abstract") or item["description"]
 
-                # Normalise published_date to YYYY-MM-DD
-                published_date = detail.get("published_date", "")
-                if not published_date and item["date_str"]:
-                    dm = re.match(r"(\d{2})/(\d{4})", item["date_str"])
-                    if dm:
-                        published_date = f"{dm.group(2)}-{dm.group(1)}-01"
+                # Preserve raw precision; the shared DB contract normalizes dates.
+                published_date = detail.get("published_date") or item["date_str"]
 
                 pdf_url = detail.get("pdf_url") or item["pdf_url"]
                 keywords = detail.get("keywords", "[]")

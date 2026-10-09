@@ -45,6 +45,12 @@ def normalize_date(value, *, order=None):
         y, m = map(int, match.groups())
         result.update(status="partial" if 1 <= y <= 9999 and 1 <= m <= 12 else "invalid", precision="month")
         return result
+    # Month/year has no day-order ambiguity; retain the original source text.
+    match = re.fullmatch(r"(\d{1,2})/(\d{4})", text)
+    if match:
+        m, y = map(int, match.groups())
+        result.update(status="partial" if 1 <= y <= 9999 and 1 <= m <= 12 else "invalid", precision="month")
+        return result
     match = re.fullmatch(r"(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})\.?", text)
     korean = re.fullmatch(r"(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일", text)
     if match or korean:
