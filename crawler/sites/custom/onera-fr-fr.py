@@ -12,11 +12,14 @@ Drupal node ID through ``rel=shortlink`` and ``drupal-settings-json``.
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import re
 import subprocess
+import tempfile
 import time
 from html import unescape
+from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urljoin, urlparse, parse_qs
 
@@ -164,6 +167,8 @@ class OneraFrFrCrawler(BaseCrawler):
                     self._report_source_failure('item_failed')
                     label = item.get("url") or item.get("title") or f"page {page} item {index}"
                     print(f"[{self.site_id}] item {label} failed: {exc}")
+                    if self.delivery_source_failure in ('authentication_failed', 'rate_limited'):
+                        return saved
                     continue
 
             if page % 10 == 0:
@@ -315,6 +320,14 @@ class OneraFrFrCrawler(BaseCrawler):
         title = detail.get("title") or item.get("title") or "(untitled)"
         abstract = detail.get("abstract") or item.get("list_abstract") or detail.get("meta_description") or ""
         abstract = _compact_text(abstract)
+        html_abstract = abstract
+        pdf_url = detail.get("pdf_url")
+        pdf_provenance = {}
+        if len(abstract) < _MIN_ABSTRACT_CHARS and pdf_url:
+            abstract, pdf_provenance = self._abstract_from_pdf(pdf_url)
+            if len(abstract) < _MIN_ABSTRACT_CHARS:
+                self._report_source_failure('item_failed')
+                return False
         if len(abstract) < _MIN_ABSTRACT_CHARS:
             print(f"[{self.site_id}] abstract too short ({len(abstract)} chars) for {url}; skipping")
             return False
@@ -325,7 +338,6 @@ class OneraFrFrCrawler(BaseCrawler):
         slug = item.get("slug") or _slug_from_url(url)
         external_id = node_id or slug or url
         post_number = node_id or slug
-        pdf_url = detail.get("pdf_url")
         original_filename = detail.get("original_filename") or _filename_from_url(pdf_url)
         canonical_url = detail.get("canonical_url") or url
 
@@ -349,7 +361,10 @@ class OneraFrFrCrawler(BaseCrawler):
             "pdf_filename": original_filename,
             "content_type": "communiques",
             "list_title": item.get("title"),
+            **pdf_provenance,
         }
+        if pdf_provenance:
+            metadata['html_abstract_raw'] = html_abstract
 
         paper = {
             "id": f"{self.site_id}:{external_id}",
@@ -375,6 +390,69 @@ class OneraFrFrCrawler(BaseCrawler):
         }
         self._save_paper(paper)
         return self._last_save_created
+
+    def _abstract_from_pdf(self, pdf_url: str) -> tuple[str, dict]:
+        """Read an excerpt from the publisher-linked PDF when HTML lacks body.
+
+        Temporary extraction does not publish a blob or set file-worker flags.
+        Every redirect stays inside the reviewed publisher's file collection.
+        """
+        from delivery.files.worker import run_stage
+
+        target = pdf_url
+        max_bytes = 10 * 1024 * 1024
+        started = time.monotonic()
+        for _ in range(4):
+            self._check_cancelled()
+            parsed = urlparse(target)
+            if (parsed.scheme != 'https' or parsed.netloc != 'www.onera.fr'
+                    or not parsed.path.startswith('/sites/default/files/')
+                    or not parsed.path.lower().endswith('.pdf')):
+                raise RuntimeError('publisher PDF outside reviewed file scope')
+            with self._session.get(target, stream=True, timeout=(10, 30), allow_redirects=False) as response:
+                if response.status_code in (401, 403, 429):
+                    self._report_source_failure('rate_limited' if response.status_code == 429 else 'authentication_failed')
+                    raise RuntimeError('publisher PDF access unavailable')
+                if response.status_code in (301, 302, 303, 307, 308):
+                    if not response.headers.get('Location'):
+                        raise RuntimeError('publisher PDF redirect lacks destination')
+                    target = urljoin(target, response.headers['Location'])
+                    continue
+                if response.status_code != 200:
+                    raise RuntimeError('publisher PDF fetch failed')
+                if int(response.headers.get('Content-Length', '0')) > max_bytes:
+                    raise RuntimeError('publisher PDF size budget exceeded')
+                content = bytearray()
+                for chunk in response.iter_content(65536):
+                    self._check_cancelled()
+                    content.extend(chunk)
+                    if len(content) > max_bytes or time.monotonic() - started > 60:
+                        raise RuntimeError('publisher PDF download budget exceeded')
+            break
+        else:
+            raise RuntimeError('publisher PDF redirect budget exceeded')
+        if not content.startswith(b'%PDF-'):
+            raise RuntimeError('publisher response is not PDF')
+        self._check_cancelled()
+        with tempfile.TemporaryDirectory(prefix='onera-pdf-') as directory:
+            root = Path(directory)
+            (root/'source.pdf').write_bytes(content)
+            result = run_stage('text', root, timeout=45)
+            self._check_cancelled()
+            if not result.get('success'):
+                raise RuntimeError('publisher PDF text extraction failed')
+            with (root/'output.txt').open(encoding='utf-8') as handle:
+                excerpt = _compact_text(handle.read(12000))[:3000]
+            with (root/'output.txt').open('rb') as handle:
+                text_hash = hashlib.file_digest(handle, 'sha256').hexdigest()
+        return excerpt, {
+            'abstract_source': 'publisher_pdf_text_excerpt',
+            'abstract_pdf_url': pdf_url,
+            'abstract_pdf_final_url': target,
+            'abstract_pdf_sha256': hashlib.sha256(content).hexdigest(),
+            'abstract_pdf_text_sha256': text_hash,
+            'abstract_pdf_text_characters': result.get('chars'),
+        }
 
     def _parse_detail(self, soup, raw: str, item: dict[str, Any]) -> dict[str, Any]:
         title = ""
