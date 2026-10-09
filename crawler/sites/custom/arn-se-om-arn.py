@@ -81,22 +81,26 @@ class ArnSeOmArnCrawler(BaseCrawler):
         All items are on a single page — no pagination loop needed.
         Returns count of saved documents.
         """
+        self._check_cancelled()
         start_time = time.time()
         max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
         print(f"[{self.site_id}] Fetching: {self._LIST_URL}")
         raw = self._curl_get(self._LIST_URL)
         if not raw:
+            self._report_source_failure("fetch_failed")
             print(f"[{self.site_id}] ERROR: failed to fetch list page")
             return 0
 
         try:
             soup = self._make_soup(raw)
         except Exception as exc:
+            self._report_source_failure("invalid_response")
             print(f"[{self.site_id}] ERROR: HTML parse failed: {exc}")
             return 0
 
         if soup is None:
+            self._report_source_failure("invalid_response")
             print(f"[{self.site_id}] ERROR: all parsers failed")
             return 0
 
@@ -119,6 +123,7 @@ class ArnSeOmArnCrawler(BaseCrawler):
             or soup.find("body")
         )
         if main is None:
+            self._report_source_failure("invalid_response")
             print(f"[{self.site_id}] ERROR: cannot find content area")
             return 0
 
@@ -130,6 +135,7 @@ class ArnSeOmArnCrawler(BaseCrawler):
         limit_label = str(limit) if limit is not None else "∞"
 
         for idx, anchor in enumerate(pdf_links):
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
 
@@ -214,7 +220,8 @@ class ArnSeOmArnCrawler(BaseCrawler):
                 }
 
                 self._save_paper(paper)
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
 
                 if saved % 10 == 0:
                     print(f"[{self.site_id}] page 1: saved {saved}/{limit_label}")
@@ -222,6 +229,7 @@ class ArnSeOmArnCrawler(BaseCrawler):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure("item_failed")
                 print(f"[{self.site_id}] item {idx} failed: {exc}")
                 continue
 

@@ -203,6 +203,7 @@ class AsiaPacificCaMediaCrawler(BaseCrawler):
 
         limit=None → all items; limit=N → at most N items.
         """
+        self._check_cancelled()
         seen_urls: set[str] = set()
         saved = 0
         start_time = time.time()
@@ -212,6 +213,7 @@ class AsiaPacificCaMediaCrawler(BaseCrawler):
         print(f"[{self.site_id}] Fetching list page…")
         html = self._fetch_list_html()
         if not html:
+            self._report_source_failure("fetch_failed")
             print(f"[{self.site_id}] Failed to fetch list page. Aborting.")
             return 0
 
@@ -233,6 +235,7 @@ class AsiaPacificCaMediaCrawler(BaseCrawler):
         # ---- Phase 2: fetch detail for each path --------------------------
         for idx, path in enumerate(all_paths, 1):
             # Wall-clock guard
+            self._check_cancelled()
             if time.time() - start_time > max_wall_seconds:
                 print(f"[{self.site_id}] Wall-clock budget reached after {idx-1} items. Stopping.")
                 break
@@ -259,6 +262,7 @@ class AsiaPacificCaMediaCrawler(BaseCrawler):
 
                 detail = self._fetch_detail(path)
                 if not detail:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] item {path} failed: empty response")
                     continue
 
@@ -303,7 +307,8 @@ class AsiaPacificCaMediaCrawler(BaseCrawler):
                 }
 
                 self._save_paper(paper)
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 limit_str = str(limit_eff) if limit_eff is not None else "inf"
                 print(f"[{self.site_id}] Saved {saved}/{limit_str}: {title[:60]}")
 
@@ -317,6 +322,7 @@ class AsiaPacificCaMediaCrawler(BaseCrawler):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure("item_failed")
                 print(f"[{self.site_id}] item {path} failed: {exc}")
                 continue
 

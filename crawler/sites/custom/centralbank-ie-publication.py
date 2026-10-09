@@ -237,6 +237,7 @@ class CentralBankIEPublicationCrawler(BaseCrawler):
         limit:
             Maximum number of records to save.  ``None`` means unlimited.
         """
+        self._check_cancelled()
         crawl_start = time.time()
         max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
         limit_display = str(limit) if limit is not None else "∞"
@@ -245,6 +246,7 @@ class CentralBankIEPublicationCrawler(BaseCrawler):
         print(f"[{_SITE_ID}] Fetching listing page: {_LIST_URL}")
         html = _curl_get(_LIST_URL)
         if not html:
+            self._report_source_failure("fetch_failed")
             print(f"[{_SITE_ID}] Failed to fetch listing page. Aborting.")
             return 0
 
@@ -261,6 +263,7 @@ class CentralBankIEPublicationCrawler(BaseCrawler):
 
         for idx, rec in enumerate(records):
             # ── Limit / budget guards ────────────────────────────────────
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
             if time.time() - crawl_start > max_wall:
@@ -357,7 +360,8 @@ class CentralBankIEPublicationCrawler(BaseCrawler):
                 }
 
                 self._save_paper(paper)
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 print(f"[{_SITE_ID}] saved {saved}/{limit_display}: {doc_name[:60]}")
 
                 if saved % 10 == 0:
@@ -368,6 +372,7 @@ class CentralBankIEPublicationCrawler(BaseCrawler):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure("item_failed")
                 print(f"[{_SITE_ID}] item {idx} failed: {exc}")
                 continue
 

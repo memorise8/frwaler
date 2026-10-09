@@ -121,14 +121,14 @@ class AuriReKrPublicationCrawler(BaseCrawler):
     # List-page parser
     # ------------------------------------------------------------------
 
-    def _fetch_list_page(self, page: int) -> list[dict]:
-        """Fetch one list page; return list of item-dicts (empty = no more pages)."""
+    def _fetch_list_page(self, page: int) -> list[dict] | None:
+        """Return parsed items; None indicates a failed fetch or parser."""
         raw = self._curl(self._LIST_URL, {**self._LIST_QS, "nPage": page})
         if not raw:
-            return []
+            return None
         soup = _make_soup(raw)
         if soup is None:
-            return []
+            return None
 
         items: list[dict] = []
         for li in soup.select("div.galleryList li"):
@@ -190,10 +190,10 @@ class AuriReKrPublicationCrawler(BaseCrawler):
             },
         )
         if not raw:
-            return {}
+            raise ValueError("missing or unparseable detail response")
         soup = _make_soup(raw)
         if soup is None:
-            return {}
+            raise ValueError("missing or unparseable detail response")
 
         result: dict = {}
 
@@ -274,6 +274,7 @@ class AuriReKrPublicationCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         """Crawl AURI 연구보고서 list and save to DB. Returns saved count."""
+        self._check_cancelled()
         saved      = 0
         seen_urls: set[str] = set()
         start_time = time.monotonic()
@@ -281,6 +282,7 @@ class AuriReKrPublicationCrawler(BaseCrawler):
 
         for page in range(1, self._MAX_PAGES + 1):
             # ── budget / limit checks ──────────────────────────────────
+            self._check_cancelled()
             if saved >= cap:
                 break
             if time.monotonic() - start_time > self._MAX_WALL:
@@ -299,9 +301,13 @@ class AuriReKrPublicationCrawler(BaseCrawler):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] page {page} list-fetch failed: {exc}")
-                continue
+                break
 
+            if items is None:
+                self._report_source_failure("fetch_failed")
+                break
             if not items:
                 print(f"[{self.site_id}] page {page}: no items returned. Done.")
                 break
@@ -315,6 +321,7 @@ class AuriReKrPublicationCrawler(BaseCrawler):
 
             # ── per-item processing ────────────────────────────────────
             for item in items:
+                self._check_cancelled()
                 if saved >= cap:
                     break
 
@@ -405,13 +412,15 @@ class AuriReKrPublicationCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     lbl = str(limit) if limit is not None else "∞"
                     print(f"[{self.site_id}] saved {saved}/{lbl}: {title[:60]}")
 
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] item {pub_id} failed: {exc}")
                     continue
 

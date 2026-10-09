@@ -586,7 +586,9 @@ class CancerFrCataloguePublicCrawler(BaseCrawler):
         return time.time() - start_time >= self._WALL_CLOCK_BUDGET - 10
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
+        primary_records_seen = 0
         seen_urls = set()
         seen_page_urls = set()
         start_time = time.time()
@@ -596,6 +598,7 @@ class CancerFrCataloguePublicCrawler(BaseCrawler):
         page = 1
         next_url: Optional[str] = self._START_URL
         while next_url and page <= self._PAGE_CAP:
+            self._check_cancelled()
             if self._limit_reached(saved, limit):
                 break
             if self._budget_nearly_done(start_time):
@@ -603,6 +606,7 @@ class CancerFrCataloguePublicCrawler(BaseCrawler):
                 print(f"[{self.site_id}] Done. Total saved: {saved}")
                 return saved
             if next_url in seen_page_urls:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] pagination loop detected at page {page}; stopping")
                 break
             seen_page_urls.add(next_url)
@@ -612,12 +616,14 @@ class CancerFrCataloguePublicCrawler(BaseCrawler):
 
             raw = self._curl_get(next_url)
             if not raw:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] list page {page} failed; stopping HTML phase")
                 break
 
             candidates, parsed_next_url = self._parse_list_page(raw, next_url)
             page_new = 0
             for candidate in candidates:
+                self._check_cancelled()
                 if self._limit_reached(saved, limit):
                     break
                 detail_url = candidate.get("url")
@@ -629,11 +635,14 @@ class CancerFrCataloguePublicCrawler(BaseCrawler):
                     paper = self._fetch_detail_record(candidate)
                     if not paper:
                         continue
+                    primary_records_seen += 1
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     page_new += 1
                     print(f"[{self.site_id}] Saved {saved}/{limit_str}: {paper['title'][:80]}")
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] item {detail_url} failed: {exc}")
                     continue
 
@@ -650,14 +659,16 @@ class CancerFrCataloguePublicCrawler(BaseCrawler):
         # Phase 2: last-resort Algolia rescue. The target HTML list is the
         # normal full-depth source; Algolia currently contains stale catalogue
         # URLs, so use it only if the filtered pages produced no usable item.
-        if saved > 0:
+        if primary_records_seen > 0 or self.delivery_source_failure:
             print(f"[{self.site_id}] Done. Total saved: {saved}")
             return saved
 
         progress_page = max(page, 1)
         for query in self._ALGOLIA_QUERIES:
+            self._check_cancelled()
             algolia_page = 0
             while algolia_page < self._PAGE_CAP:
+                self._check_cancelled()
                 if self._limit_reached(saved, limit):
                     break
                 if self._budget_nearly_done(start_time):
@@ -677,6 +688,7 @@ class CancerFrCataloguePublicCrawler(BaseCrawler):
 
                 page_new = 0
                 for hit in hits:
+                    self._check_cancelled()
                     if self._limit_reached(saved, limit):
                         break
                     candidate = self._candidate_from_algolia(hit, query)
@@ -694,10 +706,12 @@ class CancerFrCataloguePublicCrawler(BaseCrawler):
                         if not self._is_target_collection(paper.get("category") or ""):
                             continue
                         self._save_paper(paper)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                         page_new += 1
                         print(f"[{self.site_id}] Saved {saved}/{limit_str}: {paper['title'][:80]}")
                     except Exception as exc:
+                        self._report_source_failure("item_failed")
                         print(f"[{self.site_id}] item {detail_url} failed: {exc}")
                         continue
 
