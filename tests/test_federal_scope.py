@@ -23,7 +23,9 @@ class FederalScopeTests(unittest.TestCase):
         records = [{'document_number': str(n), 'title': f'Research {n}', 'html_url': f'https://example.test/{n}',
                     'abstract': 'Research evidence. '*10} for n in range((page-1)*2, page*2)]
         if page == 2: records[0]['abstract'] = 'short'
-        if self.mode == 'duplicate' and page == 2: records[0]['document_number'] = '0'
+        if self.mode in ('duplicate', 'reused_number') and page == 2:
+            records[0]['document_number'] = '0'
+            if self.mode == 'duplicate': records[0]['html_url'] = 'https://example.test/0'
         nxt = dict(query, page=str(page+1), search_after_cursor=f'cursor-{page+1}', format='json')
         link = url.split('?')[0]+'?'+urlencode(nxt) if page < 3 else None
         if self.mode == 'premature': link = None
@@ -59,6 +61,15 @@ class FederalScopeTests(unittest.TestCase):
         self.assertEqual(result['reason'], 'repeated_source_identifiers')
         self.assertEqual(result['observed_unique_ids'], 2)
         self.assertFalse((self.root/'out/manifest.json').exists())
+
+    def test_reused_publisher_number_preserves_different_original_urls(self):
+        self.mode = 'reused_number'; result = self.audit()
+        self.assertEqual(result['state'], 'provider_cursor_terminal_observed')
+        self.assertEqual(result['observed_unique_source_records'], 6)
+        self.assertEqual(result['observed_distinct_document_numbers'], 5)
+        manifest = json.loads((self.root/'out/manifest.json').read_text())
+        repeated = [r for r in manifest if r['document_number'] == '0']
+        self.assertEqual(len({r['source_record_key'] for r in repeated}), 2)
 
     def test_changed_query_link_stops_before_following(self):
         self.mode = 'scope'; result = self.audit()

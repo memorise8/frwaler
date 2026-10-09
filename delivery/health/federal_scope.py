@@ -19,6 +19,13 @@ from .scaht_persistence import AuditStop
 from .source_observer import fetch_once, retry_after
 
 
+def source_record_key(document_number, meta_url):
+    """Publisher numbers recur historically; preserve distinct original URLs."""
+    if not isinstance(meta_url, str) or not meta_url.strip():
+        raise AuditStop('missing_source_metadata_url')
+    return json.dumps([document_number, meta_url], ensure_ascii=False, separators=(',', ':'))
+
+
 def summarize(records):
     items = []
     for doc in records:
@@ -27,7 +34,8 @@ def summarize(records):
         title = (doc.get('title') or '').strip()
         abstract = max(len((doc.get('abstract') or '').strip()), len((doc.get('excerpts') or '').strip()))
         reason = 'missing_title' if not title else 'abstract_or_excerpt_shorter_than_50' if abstract < 50 else None
-        items.append({'document_number': key, 'meta_url': doc.get('html_url'), 'pdf_url': doc.get('pdf_url'),
+        items.append({'document_number': key, 'source_record_key': source_record_key(key, doc.get('html_url')),
+                      'meta_url': doc.get('html_url'), 'pdf_url': doc.get('pdf_url'),
                       'publication_date': doc.get('publication_date'), 'code_save_eligible': reason is None,
                       'code_exclusion_reason': reason,
                       'record_sha256': hashlib.sha256(json.dumps(doc, sort_keys=True).encode()).hexdigest()})
@@ -86,7 +94,7 @@ def run(output, gate_dir, *, resume=False, page_budget=100, fetch=fetch_once, da
             if page['request_url'] != expected_url: raise ValueError('checkpoint cursor chain mismatch')
             body = (output/page['evidence']).read_bytes()
             if hashlib.sha256(body).hexdigest() != page['body_sha256']: raise ValueError('checkpoint body hash mismatch')
-            data = json.loads(body); items = inspect_data(data, len(seen_ids)); ids = [i['document_number'] for i in items]
+            data = json.loads(body); items = inspect_data(data, len(seen_ids)); ids = [i['source_record_key'] for i in items]
             if len(ids) != len(set(ids)) or seen_ids.intersection(ids): raise ValueError('checkpoint repeated IDs')
             manifest.extend(items); seen_ids.update(ids); seen_urls.add(expected_url)
             expected_url = data.get('next_page_url')
@@ -99,6 +107,7 @@ def run(output, gate_dir, *, resume=False, page_budget=100, fetch=fetch_once, da
                   'next_url': initial_url, 'source_file_sha256': source_hash, 'pages': [], 'runs': [],
                   'observed_unique_ids': 0, 'first_reported_count': None,
                   'date_range': date_range,
+                  'source_identity_contract': 'publisher document_number plus original html_url; repeated numbers are retained',
                   'scope': 'exact HHS code-query provider cursor stream, observed source IDs and code exclusions',
                   'full_collection_verified': False, 'immutable_snapshot_verified': False,
                   'exclusion_policy_accepted': False, 'database_persistence_verified': False, 'files_verified': False}
@@ -135,7 +144,7 @@ def run(output, gate_dir, *, resume=False, page_budget=100, fetch=fetch_once, da
                 report['failed_request'] = {'http_status': response['status'], 'curl_exit': response['curl_exit']}
                 raise AuditStop('source_http_or_body_incomplete')
             data = json.loads(response['body'])
-            items = inspect_data(data, len(seen_ids)); ids = [item['document_number'] for item in items]
+            items = inspect_data(data, len(seen_ids)); ids = [item['source_record_key'] for item in items]
             if len(ids) != len(set(ids)) or seen_ids.intersection(ids): raise AuditStop('repeated_source_identifiers')
             next_url = data.get('next_page_url')
             if next_url is not None and not isinstance(next_url, str): raise AuditStop('invalid_provider_cursor')
@@ -152,6 +161,8 @@ def run(output, gate_dir, *, resume=False, page_budget=100, fetch=fetch_once, da
                                         'body_sha256': body_hash, 'evidence': filename})
                 manifest.extend(items); seen_ids.update(ids); seen_urls.add(url)
                 report.update(next_url=next_url, observed_unique_ids=len(seen_ids),
+                              observed_unique_source_records=len(seen_ids),
+                              observed_distinct_document_numbers=len({m['document_number'] for m in manifest}),
                               observed_code_eligible=sum(m['code_save_eligible'] for m in manifest))
                 run_info['pages_added'] += 1; save()
             finally:
