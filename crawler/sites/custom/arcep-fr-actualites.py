@@ -289,17 +289,17 @@ class ArcepFrActualitesCrawler(BaseCrawler):
     # ------------------------------------------------------------------ #
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         limit_str = str(limit) if limit is not None else "∞"
         saved = 0
         seen_ids: set[str] = set()
         start_time = time.time()
 
-        chash = self._get_chash()
-
         page = 1
         next_url: str | None = None  # override for next-page link extraction
 
         try:
+            chash = self._get_chash()
             saved = self._crawl_loop(limit, limit_str, chash, saved, seen_ids, start_time, page, next_url)
         finally:
             self._close_browser()
@@ -307,6 +307,7 @@ class ArcepFrActualitesCrawler(BaseCrawler):
 
     def _crawl_loop(self, limit, limit_str, chash, saved, seen_ids, start_time, page, next_url):
         while True:
+            self._check_cancelled()
             # --- Safety / budget checks ---
             if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute wall-clock budget reached; stopping cleanly")
@@ -330,6 +331,7 @@ class ArcepFrActualitesCrawler(BaseCrawler):
 
             html = self._curl(list_url)
             if not html:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] Failed to fetch page {page}; stopping")
                 break
 
@@ -340,6 +342,7 @@ class ArcepFrActualitesCrawler(BaseCrawler):
 
             new_on_page = 0
             for item in items:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -351,6 +354,7 @@ class ArcepFrActualitesCrawler(BaseCrawler):
                     continue
                 if dedup_key:
                     seen_ids.add(dedup_key)
+                new_on_page += 1
 
                 abstract = item.get("abstract", "")
                 if len(abstract) < _MIN_ABSTRACT_SAVE:
@@ -399,8 +403,8 @@ class ArcepFrActualitesCrawler(BaseCrawler):
                             ensure_ascii=False,
                         ),
                     })
-                    saved += 1
-                    new_on_page += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(
                         f"[{self.site_id}] Saved {saved}/{limit_str}: "
                         f"{item['title'][:70]}"
@@ -408,13 +412,15 @@ class ArcepFrActualitesCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] item {ext_id} failed: {exc}; continuing")
                     continue
 
                 time.sleep(self._delay)
 
-            # Zero new records → end of real data (dedup/empty page)
+            # Repeated source items are a pagination failure, not exhaustion.
             if new_on_page == 0:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] Page {page} yielded no new records; stopping")
                 break
 

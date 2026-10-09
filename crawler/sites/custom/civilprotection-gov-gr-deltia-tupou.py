@@ -80,12 +80,14 @@ class CivilprotectionGovGrDeltia(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         seen_urls: set = set()
         page = 0
         t0 = time.monotonic()
 
         while True:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
             if time.monotonic() - t0 > self._BUDGET_SECS:
@@ -98,11 +100,13 @@ class CivilprotectionGovGrDeltia(BaseCrawler):
             list_url = self._list_url(page)
             raw = self._get(list_url, referer=self.base_url + "/")
             if not raw:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] list fetch failed at page {page}; stopping")
                 break
 
             soup = self._make_soup(raw, context=f"list page {page}")
             if soup is None:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] list parse failed at page {page}; stopping")
                 break
 
@@ -113,6 +117,7 @@ class CivilprotectionGovGrDeltia(BaseCrawler):
 
             new_this_page = 0
             for idx, row in enumerate(rows, start=1):
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
                 label = f"p{page}.r{idx}"
@@ -123,6 +128,7 @@ class CivilprotectionGovGrDeltia(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] item {label} failed: {exc}")
                     continue
 
@@ -131,6 +137,7 @@ class CivilprotectionGovGrDeltia(BaseCrawler):
                 print(f"[{self.site_id}] page {page}: saved {saved}/{lim_s}")
 
             if new_this_page == 0:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] page {page}: no new items; stopping")
                 break
 
@@ -212,7 +219,8 @@ class CivilprotectionGovGrDeltia(BaseCrawler):
             "original_filename": parsed["original_filename"],
             "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
         })
-        saved += 1
+        if self._last_save_created:
+            saved += 1
         lim_s = f"/{limit}" if limit is not None else ""
         print(f"[{self.site_id}] saved {saved}{lim_s}: {parsed['title'][:80]}")
 

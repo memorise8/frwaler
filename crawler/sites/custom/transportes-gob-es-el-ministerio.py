@@ -255,6 +255,7 @@ class TransportesGobEsElMinisterioCrawler(BaseCrawler):
     base_url = _BASE_URL
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         start_time = time.time()
         saved = 0
         seen_urls: set[str] = set()
@@ -264,11 +265,13 @@ class TransportesGobEsElMinisterioCrawler(BaseCrawler):
         print(f"[{_SITE_ID}] fetching page 0 from {_LIST_URL}")
         raw0 = _curl(_LIST_URL, _HTML_HEADERS)
         if not raw0:
+            self._report_source_failure("fetch_failed")
             print(f"[{_SITE_ID}] failed to fetch initial page; aborting")
             return 0
 
         soup0 = _make_soup(raw0)
         if not soup0:
+            self._report_source_failure("invalid_response")
             print(f"[{_SITE_ID}] failed to parse initial page; aborting")
             return 0
 
@@ -279,6 +282,7 @@ class TransportesGobEsElMinisterioCrawler(BaseCrawler):
             """Process items; return True to continue, False when limit hit."""
             nonlocal saved
             for item in items:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     return False
 
@@ -329,12 +333,14 @@ class TransportesGobEsElMinisterioCrawler(BaseCrawler):
                             ensure_ascii=False,
                         ),
                     })
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{_SITE_ID}] saved {saved}/{limit_str}: {item['title'][:70]}")
 
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{_SITE_ID}] item {url} failed: {exc}; continuing")
                     continue
 
@@ -348,10 +354,12 @@ class TransportesGobEsElMinisterioCrawler(BaseCrawler):
 
         # --- Pages 1+ via AJAX ---
         if not dom_id:
+            self._report_source_failure("invalid_response")
             print(f"[{_SITE_ID}] no DOM ID; cannot paginate via AJAX. returning {saved}")
             return saved
 
         for page_num in range(1, _MAX_PAGES + 1):
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
 
@@ -368,6 +376,7 @@ class TransportesGobEsElMinisterioCrawler(BaseCrawler):
 
             soup = _fetch_ajax_soup(page_num, dom_id)
             if soup is None:
+                self._report_source_failure("fetch_failed")
                 print(f"[{_SITE_ID}] AJAX page {page_num} returned no data; stopping")
                 break
 
@@ -379,6 +388,7 @@ class TransportesGobEsElMinisterioCrawler(BaseCrawler):
             # Stop if all items already seen (silent loop-back guard)
             new_items = [i for i in items if i["url"] not in seen_urls]
             if not new_items:
+                self._report_source_failure("invalid_response")
                 print(f"[{_SITE_ID}] page {page_num}: all items already seen; stopping")
                 break
 

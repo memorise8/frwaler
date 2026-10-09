@@ -31,6 +31,7 @@ class InriaFrFrCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         try:
             return self._crawl_impl(limit)
         finally:
@@ -43,6 +44,7 @@ class InriaFrFrCrawler(BaseCrawler):
         start_time = time.time()
 
         while True:
+            self._check_cancelled()
             # 25-minute wall-clock budget
             if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute budget reached; stopping.")
@@ -65,11 +67,13 @@ class InriaFrFrCrawler(BaseCrawler):
 
             raw = self._curl_get(list_url, context=f"list page {page}")
             if not raw:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] Failed to fetch list page {page}; stopping.")
                 break
 
             soup = self._make_soup(raw, context=f"list page {page}")
             if soup is None:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] Failed to parse list page {page}; stopping.")
                 break
 
@@ -105,6 +109,7 @@ class InriaFrFrCrawler(BaseCrawler):
             print(f"[{self.site_id}] page {page}: {len(new_items)} new article(s) to fetch")
 
             for idx, (detail_url, list_title, list_tag) in enumerate(new_items):
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -112,11 +117,13 @@ class InriaFrFrCrawler(BaseCrawler):
                     time.sleep(self._delay)
                     detail_raw = self._curl_get(detail_url, context=f"detail {detail_url}")
                     if not detail_raw:
+                        self._report_source_failure("item_failed")
                         print(f"[{self.site_id}] item {detail_url} failed: empty response; skipping")
                         continue
 
                     detail_soup = self._make_soup(detail_raw, context=f"detail {detail_url}")
                     if detail_soup is None:
+                        self._report_source_failure("item_failed")
                         print(f"[{self.site_id}] item {detail_url} failed: parse error; skipping")
                         continue
 
@@ -147,13 +154,15 @@ class InriaFrFrCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     counter = f"{saved}/{limit}" if limit else str(saved)
                     print(f"[{self.site_id}] saved {counter}: {parsed['title'][:80]}")
 
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] item {detail_url} failed: {exc}; continue")
                     continue
 
