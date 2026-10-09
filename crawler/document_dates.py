@@ -55,6 +55,22 @@ def normalize_date(value, *, order=None):
         return result
     folded = ''.join(c for c in unicodedata.normalize('NFKD', text.lower())
                      if not unicodedata.combining(c))
+    # Structured publication XML commonly supplies year/month/day components.
+    # Preserve the joined source text and do not supply an absent day.
+    year_first = re.fullmatch(r"(\d{4})\s+([a-z]+|\d{1,2})(?:\s+(\d{1,2}))?", folded)
+    if year_first:
+        year, month_text, day_text = year_first.groups()
+        month = int(month_text) if month_text.isdigit() else _MONTHS.get(month_text)
+        if month is None:
+            return result
+        result['precision'] = 'day' if day_text is not None else 'month'
+        try:
+            parsed = date(int(year), month, int(day_text) if day_text is not None else 1)
+            result.update(value=parsed.isoformat() if day_text is not None else None,
+                          status='normalized' if day_text is not None else 'partial')
+        except ValueError:
+            result['status'] = 'invalid'
+        return result
     parts = None
     if re.fullmatch(r"\d{4}", text):
         result.update(status="partial" if 1 <= int(text) <= 9999 else "invalid", precision="year")

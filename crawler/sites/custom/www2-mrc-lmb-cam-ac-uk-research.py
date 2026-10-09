@@ -15,6 +15,7 @@ import re
 import subprocess
 import sys
 import time
+import xml.etree.ElementTree as ET
 from typing import Dict, Optional, Set
 
 sys.path.insert(0, ".")
@@ -31,11 +32,6 @@ PUBMED_EFETCH = (
     "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
     "?db=pubmed&retmode=xml&id={pmid}"
 )
-MONTH_MAP = {
-    "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04",
-    "May": "05", "Jun": "06", "Jul": "07", "Aug": "08",
-    "Sep": "09", "Oct": "10", "Nov": "11", "Dec": "12",
-}
 
 # ---------------------------------------------------------------------------
 # helpers
@@ -94,15 +90,15 @@ def _curl(url: str, method: str = "GET", data: Optional[Dict] = None,
 
 
 def _parse_date(text: str) -> Optional[str]:
-    """Extract ISO date from strings like 'May 2026' or 'Epub 2026 May 11'."""
+    """Extract source date text from a citation without adding missing parts."""
     # 'Month YYYY'
     m = re.search(r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})", text)
     if m:
-        return f"{m.group(2)}-{MONTH_MAP[m.group(1)]}-01"
+        return m.group(0)
     # 'YYYY Mon DD'
     m2 = re.search(r"(\d{4})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})", text)
     if m2:
-        return f"{m2.group(1)}-{MONTH_MAP[m2.group(2)]}-{m2.group(3).zfill(2)}"
+        return m2.group(0)
     return None
 
 
@@ -112,6 +108,9 @@ def _fetch_pubmed_xml(pmid: str) -> Optional[str]:
 
 def _parse_pubmed_xml(xml: str) -> Dict:
     """Parse PubMed efetch XML into a dict with abstract, authors, doi, etc."""
+    root = ET.fromstring(xml)
+    if root.tag != 'PubmedArticleSet' or len(root.findall('PubmedArticle')) != 1:
+        raise ValueError('expected one PubMed article')
     result: Dict = {}
 
     # Abstract (structured or simple)
@@ -154,20 +153,20 @@ def _parse_pubmed_xml(xml: str) -> Dict:
         result["doi"] = doi_m.group(1).strip()
 
     # Published date (prefer PubDate, fall back to ArticleDate)
-    pubdate_m = re.search(r"<PubDate>(.*?)</PubDate>", xml, re.DOTALL)
-    if pubdate_m:
-        pd = pubdate_m.group(1)
-        year_m = re.search(r"<Year>(\d{4})</Year>", pd)
-        month_m = re.search(r"<Month>([^<]+)</Month>", pd)
-        day_m = re.search(r"<Day>(\d+)</Day>", pd)
-        if year_m:
-            year = year_m.group(1)
-            month = "01"
-            if month_m:
-                raw_m = month_m.group(1).strip()
-                month = MONTH_MAP.get(raw_m, raw_m.zfill(2) if raw_m.isdigit() else "01")
-            day = day_m.group(1).zfill(2) if day_m else "01"
-            result["published_date"] = f"{year}-{month}-{day}"
+    for node in (root.find('.//PubDate'), root.find('.//ArticleDate')):
+        if node is None:
+            continue
+        medline = node.findtext('MedlineDate')
+        if medline and medline.strip():
+            result['published_date'] = medline.strip()
+            break
+        components = [(node.findtext(tag) or '').strip() for tag in ('Year', 'Month', 'Day')]
+        while components and not components[-1]:
+            components.pop()
+        if components:
+            # Internal gaps remain explicit, so a lone day cannot become a month.
+            result['published_date'] = ' '.join(value or '?' for value in components)
+            break
 
     # Volume / Issue
     vol_m = re.search(r"<Volume>([^<]+)</Volume>", xml)
@@ -204,6 +203,9 @@ class MrcLmbResearchCrawler(BaseCrawler):
     base_url = "https://www2.mrc-lmb.cam.ac.uk"
 
     def crawl(self, limit=None):
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         limit_or_inf = limit if limit is not None else float("inf")
         saved = 0
         seen_urls: Set[str] = set()
@@ -213,11 +215,13 @@ class MrcLmbResearchCrawler(BaseCrawler):
         # --- Page 1: parse from initial HTML ---
         html = _curl(LISTING_URL)
         if not html:
+            self._report_source_failure('fetch_failed')
             print(f"[{SITE_ID}] Failed to fetch listing page")
             return saved
 
         soup = _make_soup(html)
         if not soup:
+            self._report_source_failure('invalid_response')
             print(f"[{SITE_ID}] Failed to parse listing page HTML")
             return saved
 
@@ -229,6 +233,7 @@ class MrcLmbResearchCrawler(BaseCrawler):
 
         p = 1
         while saved < limit_or_inf:
+            self._check_cancelled()
             if time.time() - start_time > MAX_WALL:
                 print(f"[{SITE_ID}] Wall clock budget reached at page {p}, stopping")
                 break
@@ -244,17 +249,20 @@ class MrcLmbResearchCrawler(BaseCrawler):
             else:
                 page_html = self._fetch_ajax_page(p, nonce)
                 if not page_html:
+                    self._report_source_failure('fetch_failed')
                     break
                 page_soup = _make_soup(page_html)
                 if not page_soup:
+                    self._report_source_failure('invalid_response')
                     break
                 pub_divs = page_soup.find_all("div", class_="wp-block-klug-publication")
 
             if not pub_divs:
                 break
 
-            new_this_page = 0
+            seen_before_page = len(seen_urls)
             for pub_div in pub_divs:
+                self._check_cancelled()
                 if saved >= limit_or_inf:
                     break
                 if time.time() - start_time > MAX_WALL:
@@ -265,17 +273,19 @@ class MrcLmbResearchCrawler(BaseCrawler):
                     ok = self._process_pub(pub_div, seen_urls)
                     if ok:
                         saved += 1
-                        new_this_page += 1
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(f"[{SITE_ID}] item failed: {exc}")
                     continue
 
                 time.sleep(1.0)  # rate-limit between PubMed fetches
 
-            if new_this_page == 0:
-                # All items on this page were already seen → end of pagination
+            if len(seen_urls) == seen_before_page:
+                self._report_source_failure('invalid_response')
+                # Repeated source page; database-known or excluded rows alone
+                # must not prevent traversal to later source pages.
                 break
 
             p += 1
@@ -326,7 +336,7 @@ class MrcLmbResearchCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def _process_pub(self, pub_div, seen_urls: Set[str]) -> bool:
-        """Parse one Klug publication div and save it. Returns True if saved."""
+        """Parse a Klug publication; return True only for a new database row."""
         # Title is on the <a> tag itself (class klug-publication__title)
         title_tag = pub_div.find(class_="klug-publication__title")
         if not title_tag:
@@ -381,6 +391,7 @@ class MrcLmbResearchCrawler(BaseCrawler):
         keywords = None
 
         if pmid:
+            self._check_cancelled()
             xml_text = _fetch_pubmed_xml(pmid)
             if xml_text:
                 pm = _parse_pubmed_xml(xml_text)
@@ -396,6 +407,8 @@ class MrcLmbResearchCrawler(BaseCrawler):
                 keywords = pm.get("keywords")
                 if not journal_name and pm.get("journal"):
                     journal_name = pm["journal"]
+            else:
+                self._report_source_failure('item_failed')
 
         if not abstract or len(abstract) < 50:
             print(f"[{SITE_ID}] skipping (abstract too short/missing): {title[:60]}")
@@ -428,4 +441,4 @@ class MrcLmbResearchCrawler(BaseCrawler):
             "metadata": json.dumps(metadata, ensure_ascii=False),
         }
         self._save_paper(paper)
-        return True
+        return self._last_save_created
