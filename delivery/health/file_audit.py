@@ -124,6 +124,7 @@ def run(output, database, review, manifest, gate_dir, *, resume=False, stop_afte
     previous = signal.signal(signal.SIGALRM, lambda s, f: (_ for _ in ()).throw(AuditStop('wall_budget_reached')))
     signal.alarm(3600)
     save()
+    item = None
     try:
         with AuditSession(gate, hosts, report, save) as session:
             for row in rows:
@@ -137,6 +138,7 @@ def run(output, database, review, manifest, gate_dir, *, resume=False, stop_afte
                             or not pdf_is_valid(pdf, cached['pdf_sha256'])
                             or pdf.stat().st_size != cached['pdf_bytes']
                             or not txt.is_file() or digest(txt) != cached['text_sha256']):
+                        cached['state'] = 'integrity_failed'
                         raise AuditStop('cached_file_integrity_mismatch')
                     run_info['reused_verified'] += 1
                     continue
@@ -188,10 +190,16 @@ def run(output, database, review, manifest, gate_dir, *, resume=False, stop_afte
                     report['files'].get(k, {}).get('state') == 'verified' for k in expected
                 ) else 'manifest_files_incomplete')
     except NetworkDeferred as exc:
+        if item is not None and item['state'] in ('downloading', 'extracting'):
+            item.update(state='deferred', error='host_cooldown_deferred')
         report.update(state='host_cooldown_deferred', retry_at=exc.retry_at)
     except AuditStop as exc:
+        if item is not None and item['state'] in ('downloading', 'extracting'):
+            item.update(state='blocked' if str(exc) == 'source_access_denied' else 'interrupted', error=str(exc))
         report.update(state='incomplete', reason=str(exc))
     except Exception as exc:
+        if item is not None and item['state'] in ('downloading', 'extracting'):
+            item.update(state='interrupted', exception_type=type(exc).__name__)
         report.update(state='incomplete', exception_type=type(exc).__name__)
     finally:
         signal.alarm(0); signal.signal(signal.SIGALRM, previous)

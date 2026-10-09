@@ -95,6 +95,7 @@ class FileAuditTests(unittest.TestCase):
         self.status = 403
         result = self.audit()
         self.assertEqual(result['reason'], 'source_access_denied')
+        self.assertEqual(result['files']['0']['state'], 'blocked')
         self.assertEqual(len(self.requests), 1)
         with self.assertRaises(ValueError): self.audit(resume=True)
 
@@ -102,6 +103,7 @@ class FileAuditTests(unittest.TestCase):
         self.status = 429
         result = self.audit()
         self.assertEqual(result['state'], 'host_cooldown_deferred')
+        self.assertEqual(result['files']['0']['state'], 'deferred')
         self.gate.defer.assert_called_once()
         self.assertEqual(len(self.requests), 1)
 
@@ -117,6 +119,7 @@ class FileAuditTests(unittest.TestCase):
         pdf = next((self.root/'out/blobs').rglob('*.pdf')); pdf.write_bytes(b'corrupted')
         result = self.audit(resume=True)
         self.assertEqual(result['reason'], 'cached_file_integrity_mismatch')
+        self.assertEqual(result['files']['0']['state'], 'integrity_failed')
         self.assertEqual(len(self.requests), 1)
 
     def test_single_parser_failure_keeps_other_document_verification_running(self):
