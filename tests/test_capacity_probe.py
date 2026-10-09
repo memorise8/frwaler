@@ -66,7 +66,7 @@ class CapacityProbeTest(unittest.TestCase):
             parse_page('hal_solr', b'{"response":{"numFound":true,"docs":[]}}')
 
     def test_unreviewed_response_schema_does_not_send_request(self):
-        c = self.contract();c['kind'] = 'ots'
+        c = self.contract();c['kind'] = 'unreviewed_api'
         result = probe(c, HostGate(0), fetch=lambda *a, **kw: self.fail('unreviewed request'))
         self.assertEqual(result['boundary_state'], 'response_schema_requires_review')
 
@@ -86,6 +86,35 @@ class CapacityProbeTest(unittest.TestCase):
         self.assertEqual(result['boundary_state'], 'boundary_access_unverified')
         self.assertEqual(result['source_reported_total'], 10000)
         self.assertIsNone(result['enumerable_total'])
+
+    def test_ots_total_is_total_count_not_current_page_count(self):
+        c = self.contract();c.update(kind='ots', query_pairs=[('query', ''), ('emittentId', '54')])
+        def fetch(url, **kwargs):
+            query = parse_qs(urlsplit(url).query)
+            page = int(query['page'][0])
+            self.assertEqual(query['emittentId'], ['54'])
+            records = [{'key': str(page), 'emittentId': 54}] if page <= 5 else []
+            data = {'error': None, 'meta': {'totalCount': '5', 'count': len(records), 'emittentId': '54', 'page': str(page)}, 'result': records}
+            return {'status': 200, 'curl_exit': 0, 'body_complete': True, 'headers': {}, 'body': json.dumps(data).encode()}
+        result = probe(c, HostGate(0), fetch=fetch)
+        self.assertEqual(result['source_reported_total'], 5)
+        self.assertEqual(result['boundary_state'], 'sampled_boundaries_accessible_not_full_enumeration')
+        def reset_total(url, **kwargs):
+            response = fetch(url, **kwargs)
+            data = json.loads(response['body'])
+            if not data['result']:
+                data['meta']['totalCount'] = '0'
+            response['body'] = json.dumps(data).encode()
+            return response
+        result = probe(c, HostGate(0), fetch=reset_total)
+        self.assertEqual(result['boundary_state'], 'terminal_page_resets_reported_total_requires_review')
+
+    def test_ots_error_count_and_total_are_validated(self):
+        for data in ({'error': 'failure', 'meta': {'totalCount': '5', 'count': 0}, 'result': []},
+                     {'meta': {'totalCount': True, 'count': 0}, 'result': []},
+                     {'meta': {'totalCount': '5', 'count': 1}, 'result': []}):
+            with self.assertRaises(ValueError):
+                parse_page('ots', json.dumps(data).encode())
 
 
 if __name__ == '__main__':

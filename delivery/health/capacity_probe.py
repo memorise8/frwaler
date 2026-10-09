@@ -26,6 +26,14 @@ def parse_page(kind, body):
     elif kind == 'doaj':
         total, records = data['total'], data['results']
         keys = [r.get('id') for r in records] if isinstance(records, list) else []
+    elif kind == 'ots':
+        raw_total, records = data['meta']['totalCount'], data['result']
+        if type(raw_total) is not int and not (isinstance(raw_total, str) and raw_total.isdecimal()):
+            raise ValueError('invalid_ots_total')
+        total = int(raw_total)
+        if data.get('error') or not isinstance(records, list) or data['meta']['count'] != len(records):
+            raise ValueError('ots_error_or_count_mismatch')
+        keys = [r.get('key') for r in records]
     else:
         raise ValueError('unreviewed_response_schema')
     if isinstance(total, bool) or not isinstance(total, int) or total < 0 or not isinstance(records, list):
@@ -40,12 +48,14 @@ def parse_page(kind, body):
 def query_url(contract, offset):
     kind = contract['kind']
     params = [(k, v) for k, v in contract['query_pairs']
-              if k not in ('rows', 'start', 'pageSize', 'page')]
+              if k not in ('rows', 'start', 'pageSize', 'page', 'maxCountPerPage')]
     if kind == 'hal_solr':
         params += [('rows', 1), ('start', offset)]
     elif kind == 'doaj':
         # Real crawler's page size; page 1 corresponds to offset 0.
         params += [('pageSize', 50), ('page', offset // 50 + 1)]
+    elif kind == 'ots':
+        params += [('maxCountPerPage', 1), ('page', offset + 1)]
     else:
         raise ValueError('unreviewed_pagination_schema')
     url = contract['endpoint'] + '?' + urlencode(params)
@@ -63,7 +73,7 @@ def probe(contract, gate, *, fetch=fetch_once):
               'enumerable_total': None, 'full_id_enumeration': 'not_performed',
               'save_eligible_total': None, 'full_collection_verified': False,
               'boundary_checks': [], 'boundary_state': 'not_started'}
-    if contract['kind'] not in ('hal_solr', 'doaj'):
+    if contract['kind'] not in ('hal_solr', 'doaj', 'ots'):
         result['boundary_state'] = 'response_schema_requires_review'
         return result
 
@@ -82,6 +92,13 @@ def probe(contract, gate, *, fetch=fetch_once):
                 row['state'] = 'request_failed_or_incomplete'
                 return None
             page = parse_page(contract['kind'], response['body'])
+            if contract['kind'] == 'ots':
+                data = json.loads(response['body'])
+                expected_emittent = dict(contract['query_pairs']).get('emittentId')
+                if (expected_emittent is None or str(data['meta'].get('emittentId')) != str(expected_emittent)
+                        or any(str(r.get('emittentId')) != str(expected_emittent) for r in data['result'])
+                        or str(data['meta'].get('page')) != str(offset + 1)):
+                    raise ValueError('ots_scope_or_page_mismatch')
             row.update(state='parsed', **page)
             return page
         except HostDeferred:
@@ -118,7 +135,10 @@ def probe(contract, gate, *, fetch=fetch_once):
             result['boundary_state'] = 'boundary_access_unverified'
             return result
         if page['total'] != total:
-            result['boundary_state'] = 'source_changed_between_observations'
+            result['boundary_state'] = ('terminal_page_resets_reported_total_requires_review'
+                                       if contract['kind'] == 'ots' and offset == after
+                                       and page['total'] == 0 and page['records'] == 0
+                                       else 'source_changed_between_observations')
             return result
         expected = max(0, min(page_size, total-offset))
         if page['records'] != expected:

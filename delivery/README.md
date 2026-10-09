@@ -315,8 +315,10 @@ python -m delivery.health.source_observer --inventory /reports/source-inventory.
 
 검토한 API 조건의 경계 확인은 `python -m delivery.health.capacity_probe
 --contracts <reviewed-contracts.json> --out <new-result-directory>`로 실행합니다.
-현재 HAL Solr와 DOAJ 응답·페이지 규칙만 지원합니다. 입력 계약에는 사이트 ID,
-API 종류(`hal_solr`/`doaj`), endpoint, query_pairs, 저장 전 제외 조건을 기록합니다.
+현재 HAL Solr, DOAJ, OTS 응답·페이지 규칙을 지원합니다. 입력 계약에는 사이트 ID,
+API 종류(`hal_solr`/`doaj`/`ots`), endpoint, query_pairs, 저장 전 제외 조건을 기록합니다.
+OTS는 `meta.totalCount`와 현재 페이지 `meta.count`를 구분하고 기관 조건과 응답 기관을
+대조합니다. 끝 다음 페이지에서 총량 필드가 0으로 바뀌면 별도 검토 대상으로 남깁니다.
 실제 수집기 코드의 기관·자료 유형 필터를 먼저 대조해야 하며 범용 숫자 추출 결과를
 계약으로 승격하지 않습니다. 첫·중간·마지막·끝 다음 페이지의 건수 및 식별값을
 점검하되 전 ID 열거, 실제 저장 대상 총수, 전체 수집 완료는 계속 미검증으로 둡니다.
@@ -330,6 +332,21 @@ API 종류(`hal_solr`/`doaj`), endpoint, query_pairs, 저장 전 제외 조건�
 동일 링크 반복, HTTP 실패, 선택자 오류, API 전용 검사 필요를 분리합니다.
 다음 페이지 링크가 달라져도 상세 파싱·전체 열거·저장·재개 성공을 뜻하지 않습니다.
 호스트 제한은 이 프로세스 안에서만 공유되므로 다른 원문 조사 도구와 순서대로 실행합니다.
+
+DOAJ 공개 OAI의 별도 수집 경로는 `python -m delivery.health.doaj_oai_probe
+--out <new-result-directory> --pages 4`로 확인합니다. `ListRecords/oai_dc`를 사용하며
+최대 8페이지, 페이지별 식별값 중복·삭제 표시·필드 존재·이어받기 토큰 반복을 검사합니다.
+토큰과 문서 본문은 저장하지 않습니다. 이 결과는 기존 검색 API 수집기를 변경하거나
+전체 열거·DB 저장·최신성·파일 수집을 검증한 결과가 아닙니다. OAI 응답 총량과 검색
+API 총량은 범위가 다를 수 있으므로 합산하거나 서로 대체하지 않습니다.
+
+설정형 수집기는 HTML·단일 페이지 모두 실제 신규 저장만 건수 제한에 포함합니다.
+페이지 설정이 없으면 첫 목록 뒤에서 멈추고 설정 문제를 보고하며, 페이지 인자가
+무시되어 같은 링크 집합이 재등장하면 원문 응답 문제로 중단합니다. 두 경우 모두 전체
+완료로 표시하지 않습니다. 순서가 확인되지 않은 목록은 기존 자료 두 페이지만으로
+조기 종료하지 않습니다. 재개는 원문별 별도 계약이 필요하며 이 공통 수정으로 자동
+이어받기가 추가되지는 않습니다. NCHA 설정의 숫자 ID 선택자는 CSS 문법만 수정했고,
+실제 목록·페이지 이동·상세 추출 검증은 별도입니다.
 
 `/health` 화면은 전체 카탈로그의 코드 로딩 상태, 최근 소량 검사 결과,
 DB 구조, 워커 응답, 원본 PDF 표본을 보여줍니다. 화면 조회·새로고침은 외부
