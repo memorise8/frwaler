@@ -68,12 +68,23 @@ class ScahtCollectionTests(unittest.TestCase):
 
 
 class ScahtDateTests(unittest.TestCase):
+    BACKEND = 'sqlite'
+
     def setUp(self):
-        self.conn = sqlite3.connect(':memory:')
+        backend = db_libertree
+        if self.BACKEND == 'postgres':
+            from crawler import db_pg
+            backend = db_pg
+            self.conn = backend.open_db(os.environ['TEST_PG_DSN'])
+            self.conn.execute('DROP SCHEMA public CASCADE')
+            self.conn.execute('CREATE SCHEMA public')
+            self.conn.commit()
+        else:
+            self.conn = sqlite3.connect(':memory:')
         self.addCleanup(self.conn.close)
-        db_libertree.init_db(self.conn)
-        db_libertree.upsert_site(self.conn, 'scaht-org-en', 'SCAHT', 'https://www.scaht.org')
-        self.enterContext(patch.dict(os.environ, {'LIBERTREE_DB_BACKEND': 'sqlite'}))
+        backend.init_db(self.conn)
+        backend.upsert_site(self.conn, 'scaht-org-en', 'SCAHT', 'https://www.scaht.org')
+        self.enterContext(patch.dict(os.environ, {'LIBERTREE_DB_BACKEND': self.BACKEND}))
 
     def persist(self, source, slug):
         c = module.SCAHTOrgEnCrawler(self.conn)
@@ -84,7 +95,10 @@ class ScahtDateTests(unittest.TestCase):
         with patch.object(c, '_fetch_scaht_detail', return_value=detail), patch.object(c, '_fetch_source_metadata', return_value=source):
             paper = c._fetch_parse_save_item(record, 'fixture')
         c._save_paper(paper)
-        return self.conn.execute('SELECT published_date,published_date_raw,published_date_status,published_date_precision,listed_date,listed_date_raw FROM documents WHERE post_number=?', (slug,)).fetchone()
+        fields = ['published_date', 'published_date_raw', 'published_date_status', 'published_date_precision', 'listed_date', 'listed_date_raw']
+        placeholder = '%s' if self.BACKEND == 'postgres' else '?'
+        row = self.conn.execute('SELECT '+','.join(fields)+' FROM documents WHERE post_number='+placeholder, (slug,)).fetchone()
+        return tuple(row[field] for field in fields) if isinstance(row, dict) else row
 
     def test_crossref_partial_dates_preserve_precision_through_real_save(self):
         c = module.SCAHTOrgEnCrawler(self.conn)
@@ -108,6 +122,11 @@ class ScahtDateTests(unittest.TestCase):
     def test_complete_date_normalizes_but_keeps_source_text(self):
         row = self.persist({'published_date_raw': 'February 3, 2025', 'published_date': '2025-02-03'}, 'complete')
         self.assertEqual(row[:4], ('2025-02-03', 'February 3, 2025', 'normalized', 'day'))
+
+
+@unittest.skipUnless(os.environ.get('TEST_PG_DSN'), 'requires owned disposable PostgreSQL')
+class ScahtPostgresDateTests(ScahtDateTests):
+    BACKEND = 'postgres'
 
 
 if __name__ == '__main__':
