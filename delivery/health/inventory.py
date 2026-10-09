@@ -16,6 +16,7 @@ CATALOGUE = ROOT / "delivery/vendor/crawler_status_final.csv"
 @lru_cache(maxsize=2)
 def inventory(include_registry: bool = False) -> dict:
     from crawler.sites import CRAWLERS, REGISTRY_ERRORS
+    from delivery.capabilities import HAL_CHECKPOINT_RESUME
 
     rows = []
     with CATALOGUE.open(encoding="utf-8-sig") as handle:
@@ -50,6 +51,8 @@ def inventory(include_registry: bool = False) -> dict:
                                "crawler/db_libertree.py", "crawler/db_pg.py",
                                "delivery/health/probe.py", "delivery/health/diagnostics.py", "delivery/health/request_gate.py"):
                     digest.update((ROOT / shared).read_bytes())
+                if site_id in HAL_CHECKPOINT_RESUME:
+                    digest.update((ROOT/"crawler/hal_checkpoint.py").read_bytes())
                 config = getattr(cls, "_config_path", None)
                 if config:
                     digest.update(Path(config).read_bytes())
@@ -58,7 +61,7 @@ def inventory(include_registry: bool = False) -> dict:
                              if isinstance(node, ast.Constant) and isinstance(node.value, str)}
                 row.update(source=str(path.relative_to(ROOT)), source_hash=digest.hexdigest(),
                            code_status="abstract" if inspect.isabstract(cls) else "ready",
-                           resume_signals={"delivery_cursor", "_advance_cursor", "_mark_exhausted"} <= names,
+                           resume_signals=site_id in HAL_CHECKPOINT_RESUME or {"delivery_cursor", "_advance_cursor", "_mark_exhausted"} <= names,
                            time_budget_signal="LIBERTREE_MAX_WALL_S" in constants)
                 if not row["resume_signals"]:
                     row["notes"].append("resume_not_verified")

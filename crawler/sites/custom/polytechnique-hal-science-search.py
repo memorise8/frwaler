@@ -21,6 +21,7 @@ import urllib.parse
 # Absolute import — spec_from_file_location has no package context.
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 from crawler.base_crawler import BaseCrawler
+from crawler.hal_checkpoint import VERSION, crawl_hal
 
 _API_URL = "https://api.archives-ouvertes.fr/search/polytechnique/"
 _FIELDS = (
@@ -37,6 +38,7 @@ _MIN_ABSTRACT_LEN = 100
 
 
 class PolytechniqueHalScienceSearchCrawler(BaseCrawler):
+    DELIVERY_CURSOR_VERSION = VERSION
     site_id = "polytechnique-hal-science-search"
     site_name = "Custom: polytechnique-hal-science-search"
     base_url = "https://polytechnique.hal.science"
@@ -122,197 +124,120 @@ class PolytechniqueHalScienceSearchCrawler(BaseCrawler):
     # Main crawl
     # ------------------------------------------------------------------
 
+    def _paper_from_doc(self, doc):
+        hal_id = doc.get("halId_s") or ""
+        docid = str(doc.get("docid") or "")
+        uri = str(doc.get("uri_s") or "")
+        url = uri or (f"https://hal.science/{hal_id}" if hal_id else "")
+        # Title
+        title_list = doc.get("title_s") or []
+        title = title_list[0].strip() if title_list else ""
+        if not title:
+            # Fall back to label_s
+            label = str(doc.get("label_s") or "")
+            title = label[:200] if label else ""
+        if not title:
+            print(f"[{self.site_id}] Skipping doc {docid}: no title")
+            return None
+
+        # Abstract — skip if too short
+        abstract_list = doc.get("abstract_s") or []
+        abstract = abstract_list[0].strip() if abstract_list else ""
+        if len(abstract) < _MIN_ABSTRACT_LEN:
+            print(
+                f"[{self.site_id}] Skipping doc {docid}: abstract too short "
+                f"({len(abstract)} chars)"
+            )
+            return None
+
+        # Authors
+        authors_list = doc.get("authFullName_s") or []
+        authors = "; ".join(str(a) for a in authors_list)
+
+        # Keywords
+        keywords_list = doc.get("keyword_s") or []
+        keywords = ", ".join(str(k) for k in keywords_list)
+
+        # Dates
+        produced_date = self._parse_date(str(doc.get("producedDate_s") or ""))
+        submitted_raw = str(doc.get("submittedDate_s") or "")
+        posted_date = self._parse_date(submitted_raw)
+        listed_date = posted_date or self._parse_date(
+            str(doc.get("releasedDate_s") or "")
+        )
+
+        # Document type / category
+        doc_type = str(doc.get("docType_s") or "")
+
+        # Journal
+        journal = str(doc.get("journalTitle_s") or "")
+
+        # DOI
+        doi_raw = doc.get("doi_s")
+        doi = doi_raw[0] if isinstance(doi_raw, list) else str(doi_raw or "")
+
+        # Publisher — prefer explicit publisher, fall back to institution
+        publisher_raw = doc.get("publisher_s") or []
+        inst_list = doc.get("instStructName_s") or []
+        if publisher_raw:
+            publisher = "; ".join(
+                str(p) for p in (publisher_raw if isinstance(publisher_raw, list) else [publisher_raw])
+            )
+        else:
+            publisher = "; ".join(str(i) for i in inst_list[:3])
+
+        # PDF URL and filename
+        pdf_url = str(doc.get("fileMain_s") or "")
+        original_filename = self._extract_filename(pdf_url)
+
+        # Extra metadata
+        domain_list = doc.get("domain_s") or []
+        lab_list = doc.get("labStructName_s") or []
+        lang_raw = doc.get("language_s") or ""
+        lang = lang_raw[0] if isinstance(lang_raw, list) else str(lang_raw)
+        volume = str(doc.get("volume_s") or "")
+        issue_raw = doc.get("issue_s") or []
+        issue = issue_raw[0] if isinstance(issue_raw, list) and issue_raw else str(issue_raw or "")
+        serie = str(doc.get("serie_s") or "")
+
+        metadata = {
+            "posted_date": submitted_raw,
+            "originalFilename": original_filename,
+            "halId": hal_id,
+            "docType": doc_type,
+            "domains": domain_list,
+            "labStructName": lab_list,
+            "instStructName": [str(i) for i in inst_list],
+            "language": lang,
+            "journal_raw": journal,
+            "volume": volume,
+            "issue": issue,
+            "series": serie,
+        }
+
+        paper = {
+            "site_id": self.site_id,
+            "external_id": hal_id or docid,
+            "post_number": docid,
+            "title": title,
+            "abstract": abstract,
+            "published_date": produced_date,
+            "listed_date": listed_date,
+            "posted_date": posted_date,
+            "authors": authors,
+            "publisher": publisher,
+            "journal": journal,
+            "url": url,
+            "pdf_url": pdf_url,
+            "keywords": keywords,
+            "category": doc_type,
+            "doi": doi,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
+
+        return paper
+
     def crawl(self, limit=None):
-        limit_str = str(limit) if limit is not None else "∞"
-        saved = 0
-        seen_urls: set[str] = set()
-        start_time = time.time()
-        start_offset = 0
-
-        for page in range(_MAX_PAGES):
-            self._check_cancelled()
-            # Wall-clock budget guard
-            if time.time() - start_time > _CRAWL_BUDGET_SECS:
-                print(f"[{self.site_id}] 25-minute budget reached after {page} pages. Exiting.")
-                break
-
-            if limit is not None and saved >= limit:
-                break
-
-            if page == _MAX_PAGES - 1:
-                print(f"[{self.site_id}] Safety cap of {_MAX_PAGES} pages reached. Logging and exiting.")
-
-            # Progress log every 10 pages
-            if page % 10 == 0 and page > 0:
-                print(f"[{self.site_id}] page {page}: saved {saved}/{limit_str}")
-
-            rows_this_page = _ROWS
-
-            data = self._fetch_page(start_offset, rows_this_page)
-            if data is None:
-                print(f"[{self.site_id}] Failed to fetch page {page}. Stopping.")
-                break
-
-            docs = data.get("response", {}).get("docs", [])
-            if not docs:
-                print(f"[{self.site_id}] No more documents at page {page} (start={start_offset}). Done.")
-                break
-
-            if page == 0:
-                total = data.get("response", {}).get("numFound", "?")
-                print(f"[{self.site_id}] Total available on server: {total}")
-
-            new_on_page = 0
-
-            for doc in docs:
-                self._check_cancelled()
-                if limit is not None and saved >= limit:
-                    break
-
-                try:
-                    hal_id = doc.get("halId_s") or ""
-                    docid = str(doc.get("docid") or "")
-                    # Prefer uri_s (canonical HAL URL), fall back to constructed URL
-                    uri = str(doc.get("uri_s") or "")
-                    url = uri or (f"https://hal.science/{hal_id}" if hal_id else "")
-
-                    # URL-based deduplication
-                    dedup_key = url or docid
-                    if dedup_key in seen_urls:
-                        continue
-                    seen_urls.add(dedup_key)
-                    # Source progress includes records excluded from saving.
-                    new_on_page += 1
-
-                    # Title
-                    title_list = doc.get("title_s") or []
-                    title = title_list[0].strip() if title_list else ""
-                    if not title:
-                        # Fall back to label_s
-                        label = str(doc.get("label_s") or "")
-                        title = label[:200] if label else ""
-                    if not title:
-                        print(f"[{self.site_id}] Skipping doc {docid}: no title")
-                        continue
-
-                    # Abstract — skip if too short
-                    abstract_list = doc.get("abstract_s") or []
-                    abstract = abstract_list[0].strip() if abstract_list else ""
-                    if len(abstract) < _MIN_ABSTRACT_LEN:
-                        print(
-                            f"[{self.site_id}] Skipping doc {docid}: abstract too short "
-                            f"({len(abstract)} chars)"
-                        )
-                        continue
-
-                    # Authors
-                    authors_list = doc.get("authFullName_s") or []
-                    authors = "; ".join(str(a) for a in authors_list)
-
-                    # Keywords
-                    keywords_list = doc.get("keyword_s") or []
-                    keywords = ", ".join(str(k) for k in keywords_list)
-
-                    # Dates
-                    produced_date = self._parse_date(str(doc.get("producedDate_s") or ""))
-                    submitted_raw = str(doc.get("submittedDate_s") or "")
-                    posted_date = self._parse_date(submitted_raw)
-                    listed_date = posted_date or self._parse_date(
-                        str(doc.get("releasedDate_s") or "")
-                    )
-
-                    # Document type / category
-                    doc_type = str(doc.get("docType_s") or "")
-
-                    # Journal
-                    journal = str(doc.get("journalTitle_s") or "")
-
-                    # DOI
-                    doi_raw = doc.get("doi_s")
-                    doi = doi_raw[0] if isinstance(doi_raw, list) else str(doi_raw or "")
-
-                    # Publisher — prefer explicit publisher, fall back to institution
-                    publisher_raw = doc.get("publisher_s") or []
-                    inst_list = doc.get("instStructName_s") or []
-                    if publisher_raw:
-                        publisher = "; ".join(
-                            str(p) for p in (publisher_raw if isinstance(publisher_raw, list) else [publisher_raw])
-                        )
-                    else:
-                        publisher = "; ".join(str(i) for i in inst_list[:3])
-
-                    # PDF URL and filename
-                    pdf_url = str(doc.get("fileMain_s") or "")
-                    original_filename = self._extract_filename(pdf_url)
-
-                    # Extra metadata
-                    domain_list = doc.get("domain_s") or []
-                    lab_list = doc.get("labStructName_s") or []
-                    lang_raw = doc.get("language_s") or ""
-                    lang = lang_raw[0] if isinstance(lang_raw, list) else str(lang_raw)
-                    volume = str(doc.get("volume_s") or "")
-                    issue_raw = doc.get("issue_s") or []
-                    issue = issue_raw[0] if isinstance(issue_raw, list) and issue_raw else str(issue_raw or "")
-                    serie = str(doc.get("serie_s") or "")
-
-                    metadata = {
-                        "posted_date": submitted_raw,
-                        "originalFilename": original_filename,
-                        "halId": hal_id,
-                        "docType": doc_type,
-                        "domains": domain_list,
-                        "labStructName": lab_list,
-                        "instStructName": [str(i) for i in inst_list],
-                        "language": lang,
-                        "journal_raw": journal,
-                        "volume": volume,
-                        "issue": issue,
-                        "series": serie,
-                    }
-
-                    paper = {
-                        "site_id": self.site_id,
-                        "external_id": hal_id or docid,
-                        "post_number": docid,
-                        "title": title,
-                        "abstract": abstract,
-                        "published_date": produced_date,
-                        "listed_date": listed_date,
-                        "posted_date": posted_date,
-                        "authors": authors,
-                        "publisher": publisher,
-                        "journal": journal,
-                        "url": url,
-                        "pdf_url": pdf_url,
-                        "keywords": keywords,
-                        "category": doc_type,
-                        "doi": doi,
-                        "original_filename": original_filename,
-                        "metadata": json.dumps(metadata, ensure_ascii=False),
-                    }
-
-                    self._save_paper(paper)
-                    if self._last_save_created:
-                        saved += 1
-                    print(f"[{self.site_id}] Saved {saved}/{limit_str}: {title[:60]}")
-
-                except KeyboardInterrupt:
-                    raise
-                except Exception as exc:
-                    print(f"[{self.site_id}] item {doc.get('docid', '?')} failed: {exc}")
-                    continue
-
-            # If an entire page produced zero new records, pagination has looped
-            start_offset += len(docs)
-
-            if new_on_page == 0 and page > 0:
-                print(
-                    f"[{self.site_id}] No new records on page {page} "
-                    "(all source identifiers already seen). Stopping."
-                )
-                break
-
-            time.sleep(self._delay)
-
-        print(f"[{self.site_id}] Done. Total saved: {saved}")
-        return saved
+        return crawl_hal(self, self._fetch_page, self._paper_from_doc, limit=limit,
+                         rows=_ROWS, max_pages=_MAX_PAGES, wall_seconds=_CRAWL_BUDGET_SECS)

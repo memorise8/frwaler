@@ -10,7 +10,9 @@ from crawler.search_credentials import credential_status, missing_credentials
 
 HAL_RESUME = frozenset(('anr-hal-science-search','amu-hal-science-search','cea-hal-science-cnrgh',
                        'ehess-hal-science-search','ens-lyon-hal-science-search','inserm-hal-science-search'))
-COUNT_REVIEWED = HAL_RESUME | {'doaj-org-search','scienceon-api','scienceon-foreign-api','krivet-re-kr'}
+HAL_CHECKPOINT_RESUME = frozenset(('envt-hal-science-search', 'inria-hal-science-search',
+                                 'polytechnique-hal-science-search'))
+COUNT_REVIEWED = HAL_RESUME | HAL_CHECKPOINT_RESUME | {'doaj-org-search','scienceon-api','scienceon-foreign-api','krivet-re-kr'}
 
 
 class CapabilityError(ValueError):
@@ -36,7 +38,9 @@ def _source(site_id):
     config = getattr(cls, '_config_path', None)
     if config:
         digest.update(Path(config).read_bytes())
-    return {'source_hash':digest.hexdigest(), 'resume_signals':{'delivery_cursor','_advance_cursor','_mark_exhausted'} <= attrs}
+    if site_id in HAL_CHECKPOINT_RESUME:
+        digest.update((root/'crawler/hal_checkpoint.py').read_bytes())
+    return {'source_hash':digest.hexdigest(), 'resume_signals':site_id in HAL_CHECKPOINT_RESUME or {'delivery_cursor','_advance_cursor','_mark_exhausted'} <= attrs}
 
 
 def capabilities(site_id):

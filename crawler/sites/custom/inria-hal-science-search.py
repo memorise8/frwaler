@@ -15,9 +15,11 @@ from urllib.parse import unquote, urlencode, urlparse
 from bs4 import BeautifulSoup
 
 from crawler.base_crawler import BaseCrawler
+from crawler.hal_checkpoint import VERSION, crawl_hal
 
 
 class InriaHalScienceSearchCrawler(BaseCrawler):
+    DELIVERY_CURSOR_VERSION = VERSION
     site_id = "inria-hal-science-search"
     site_name = "Custom: inria-hal-science-search"
     base_url = "https://inria.hal.science"
@@ -567,108 +569,14 @@ class InriaHalScienceSearchCrawler(BaseCrawler):
     # Main crawl
     # ------------------------------------------------------------------
 
+    def _paper_from_list_item(self, item):
+        time.sleep(self.detail_delay)
+        detail = self._fetch_detail(item)
+        if not detail:
+            raise ValueError("missing HAL detail")
+        return self._paper_from_doc(detail)
+
     def crawl(self, limit=None):
-        saved = 0
-        start = 0
-        page = 0
-        seen_urls = set()
-        total = None
-        t_start = time.time()
-        limit_or_inf = limit if limit is not None else "inf"
-
-        while True:
-            if limit is not None and saved >= limit:
-                break
-
-            if page >= self._MAX_PAGES:
-                print(f"[{self.site_id}] reached safety cap of {self._MAX_PAGES} pages; stopping")
-                break
-
-            elapsed = time.time() - t_start
-            if elapsed >= self._WALL_CLOCK_BUDGET - self._WALL_CLOCK_MARGIN:
-                print(
-                    f"[{self.site_id}] approaching 25-minute wall-clock budget "
-                    f"({elapsed:.0f}s elapsed); stopping cleanly"
-                )
-                break
-
-            try:
-                data = self._fetch_list(start)
-            except KeyboardInterrupt:
-                raise
-            except Exception as exc:
-                print(f"[{self.site_id}] list fetch error at start={start}: {exc}")
-                break
-
-            response = (data or {}).get("response") or {}
-            items = response.get("docs") or []
-            if total is None:
-                total = response.get("numFound")
-                if total is not None:
-                    print(f"[{self.site_id}] API records: {total}")
-
-            if not items:
-                print(f"[{self.site_id}] no more list records at start={start}")
-                break
-
-            page += 1
-            if page % 10 == 0:
-                print(f"[{self.site_id}] page {page}: saved {saved}/{limit_or_inf}")
-
-            new_records = 0
-            for offset, item in enumerate(items, start=1):
-                if limit is not None and saved >= limit:
-                    break
-
-                elapsed = time.time() - t_start
-                if elapsed >= self._WALL_CLOCK_BUDGET - self._WALL_CLOCK_MARGIN:
-                    print(
-                        f"[{self.site_id}] approaching 25-minute wall-clock budget "
-                        f"({elapsed:.0f}s elapsed); stopping cleanly"
-                    )
-                    return saved
-
-                item_no = start + offset
-                try:
-                    uri = self._first_value(item, "uri_s")
-                    docid = self._first_value(item, "docid")
-                    hal_id = self._first_value(item, "halId_s")
-                    dedup_key = uri or docid or hal_id
-                    if dedup_key and dedup_key in seen_urls:
-                        continue
-                    if dedup_key:
-                        seen_urls.add(dedup_key)
-                    new_records += 1
-
-                    time.sleep(self.detail_delay)
-                    detail = self._fetch_detail(item)
-                    if not detail:
-                        print(f"[{self.site_id}] item {item_no} failed: missing detail")
-                        continue
-
-                    paper = self._paper_from_doc(detail)
-                    if not paper:
-                        continue
-
-                    self._save_paper(paper)
-                    if self._last_save_created:
-                        saved += 1
-                    counter = f"{saved}/{limit}" if limit is not None else str(saved)
-                    print(f"[{self.site_id}] saved {counter}: {paper['title'][:80]}")
-                except KeyboardInterrupt:
-                    raise
-                except Exception as exc:
-                    print(f"[{self.site_id}] item {item_no} failed: {exc}")
-                    continue
-
-            if new_records == 0:
-                print(f"[{self.site_id}] no new records at page {page}; stopping")
-                break
-
-            start += len(items)
-            if len(items) < self._PAGE_SIZE:
-                print(f"[{self.site_id}] last page (got {len(items)} < {self._PAGE_SIZE}); done")
-                break
-
-        print(f"[{self.site_id}] Done. Total saved: {saved}")
-        return saved
+        return crawl_hal(self, lambda start, rows: self._fetch_list(start),
+                         self._paper_from_list_item, limit=limit, rows=self._PAGE_SIZE,
+                         max_pages=self._MAX_PAGES, wall_seconds=self._WALL_CLOCK_BUDGET - self._WALL_CLOCK_MARGIN)
