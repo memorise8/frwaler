@@ -113,6 +113,7 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
     def _fetch_json(self, url, params=None):
         last_exc = None
         for attempt in range(3):
+            self._check_cancelled()
             try:
                 resp = self._session.get(url, params=params, timeout=30)
                 resp.raise_for_status()
@@ -146,7 +147,7 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
                 for bs in bitstreams:
                     href = bs.get("_links", {}).get("content", {}).get("href")
                     name = bs.get("name")
-                    if href:
+                    if href and isinstance(name, str) and name.lower().endswith('.pdf'):
                         return href, name
         except Exception as exc:  # noqa: BLE001
             print(f"[{self.site_id}] bundle parse error: {exc}")
@@ -188,9 +189,9 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
             post_number = uuid_
 
         published_raw = _first_value(meta, "dc.date.issued")
-        published_date = _parse_date(published_raw)
+        published_date = published_raw
         listed_raw = _first_value(meta, "dc.date.accessioned")
-        listed_date = _parse_date(listed_raw)
+        listed_date = listed_raw
 
         # Pass raw lists (not pre-joined strings) for authors/publisher: DSpace
         # author values are "Last, First" and a pre-joined string would be
@@ -219,14 +220,20 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
         pdf_url = None
         original_filename = None
         try:
+            self._check_cancelled()
             time.sleep(_DETAIL_DELAY)
             bundles = self._fetch_json(
                 f"{self.base_url}/server/api/core/items/{uuid_}/bundles",
                 params={"embed": "bitstreams"},
             )
+            if not isinstance(bundles, dict) or ('_embedded' not in bundles and (bundles.get('page') or {}).get('totalElements') != 0):
+                self._report_source_failure('item_failed')
+                return False
             pdf_url, original_filename = self._extract_pdf(bundles)
         except Exception as exc:  # noqa: BLE001
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] bundle fetch failed for {uuid_}: {exc}")
+            return False
 
         metadata_dict = {
             "posted_date": listed_raw,
@@ -265,13 +272,16 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
         }
 
         self._save_paper(paper)
-        return True
+        return self._last_save_created
 
     # ------------------------------------------------------------------
     # crawl
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         start_time = time.time()
         saved = 0
         page = 0
@@ -280,13 +290,16 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
 
         try:
             while True:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
                 if page >= _PAGE_CAP:
+                    self._report_source_failure('invalid_response')
                     print(f"[{self.site_id}] hit safety page cap ({_PAGE_CAP} pages), stopping")
                     break
                 elapsed = time.time() - start_time
                 if elapsed > _CRAWL_BUDGET_SECONDS:
+                    self._report_source_failure('invalid_response')
                     print(f"[{self.site_id}] approaching time budget ({elapsed:.0f}s elapsed), stopping cleanly")
                     break
                 if page % 10 == 0:
@@ -301,13 +314,21 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
                     },
                 )
                 if not data:
+                    self._report_source_failure('fetch_failed')
                     print(f"[{self.site_id}] page {page}: fetch failed, stopping")
                     break
 
                 try:
                     items_on_page = data["_embedded"]["items"]
                 except (KeyError, TypeError):
-                    items_on_page = []
+                    if isinstance(data, dict) and (data.get('page') or {}).get('totalElements') == 0:
+                        items_on_page = []
+                    else:
+                        self._report_source_failure('invalid_response')
+                        break
+                if not isinstance(items_on_page, list):
+                    self._report_source_failure('invalid_response')
+                    break
 
                 if not items_on_page:
                     print(f"[{self.site_id}] page {page}: no items returned, stopping")
@@ -315,33 +336,41 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
 
                 new_on_page = 0
                 for item in items_on_page:
+                    self._check_cancelled()
                     if limit is not None and saved >= limit:
                         break
                     try:
                         if not isinstance(item, dict):
+                            self._report_source_failure('invalid_response')
                             continue
                         uuid_ = item.get("uuid") or item.get("id")
                         if not uuid_:
+                            self._report_source_failure('invalid_response')
                             continue
                         handle = item.get("handle")
                         item_url = f"https://hdl.handle.net/{handle}" if handle else f"{self.base_url}/items/{uuid_}"
                         if item_url in seen_urls:
                             continue
                         seen_urls.add(item_url)
+                        new_on_page += 1
 
                         if self._process_item(item, item_url):
                             saved += 1
-                            new_on_page += 1
                     except Exception as exc:  # noqa: BLE001 - one bad item must never abort the run
+                        self._report_source_failure('item_failed')
                         bad_id = item.get("uuid") if isinstance(item, dict) else "?"
                         print(f"[{self.site_id}] item {bad_id} failed: {exc}")
                         continue
 
                 if new_on_page == 0:
-                    print(f"[{self.site_id}] page {page}: 0 new records saved, stopping")
+                    self._report_source_failure('invalid_response')
+                    print(f"[{self.site_id}] page {page}: repeated source records, stopping")
                     break
 
                 total_pages = (data.get("page") or {}).get("totalPages")
+                if total_pages is not None and (isinstance(total_pages, bool) or not isinstance(total_pages, int) or total_pages < 1):
+                    self._report_source_failure('invalid_response')
+                    break
                 if total_pages is not None and page >= total_pages - 1:
                     print(f"[{self.site_id}] page {page}: reached last page ({total_pages} total), stopping")
                     break
@@ -350,5 +379,6 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
         except KeyboardInterrupt:
             raise
 
+        self._check_cancelled()
         print(f"[{self.site_id}] done: saved {saved} papers across {page + 1} page(s)")
         return saved

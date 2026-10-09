@@ -414,9 +414,16 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
         if stripped.startswith("{"):
             try:
                 data = json.loads(raw)
+                if not isinstance(data, dict) or not any(key in data for key in ('ResultsList', 'results')):
+                    self._report_source_failure('invalid_response')
+                    return [], None
                 html = data.get("ResultsList") or data.get("results") or ""
+                if not isinstance(html, str) or data.get('loadmore') not in (None, True, False):
+                    self._report_source_failure('invalid_response')
+                    return [], None
                 return self._parse_listing_html(html, source_url), data.get("loadmore")
             except Exception as exc:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] JSON response parse failed: {exc}")
                 return [], None
         return self._parse_listing_html(raw, source_url), self._has_next_from_html(raw)
@@ -450,11 +457,7 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
                     f"{day_el.get_text(' ', strip=True) if day_el else ''} "
                     f"{month_el.get_text(' ', strip=True) if month_el else ''}"
                 )
-                published_date = _parse_date(
-                    day_el.get_text(" ", strip=True) if day_el else None,
-                    month_el.get_text(" ", strip=True) if month_el else None,
-                    date_raw,
-                )
+                published_date = date_raw
 
                 dl = item.find("a", href=re.compile(r"/download/\d+"))
                 download_url = self._canonical_url(dl.get("href", "")) if dl else None
@@ -570,12 +573,7 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
         return False
 
     def _date_from_title(self, title: str) -> str | None:
-        m = re.search(r"(20\d{2}|19\d{2})\s*[–-]\s*(?:\d{2}|20\d{2}|19\d{2})", title)
-        if m:
-            return f"{m.group(1)}-01-01"
-        m = re.search(r"(20\d{2}|19\d{2})", title)
-        if m:
-            return f"{m.group(1)}-01-01"
+        # A title's coverage period does not establish a publication date.
         return None
 
     def _abstract_from_pdf_text(self, text: str | None) -> tuple[str | None, str | None]:
@@ -583,7 +581,7 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
             return None, None
 
         cleaned = _clean_text(text)
-        date = _parse_date(raw=cleaned)
+        date = None  # Dates anywhere in body prose are not publication metadata.
         starts = [
             "The New Zealand transport system",
             "The Ministry and the wider",
@@ -679,17 +677,25 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
         }
 
     def _save_record(self, record: dict[str, Any]) -> bool:
+        self._check_cancelled()
+        if record.get('external_id') is None or not str(record['external_id']).strip():
+            self._report_source_failure('invalid_response')
+            return False
         paper = self._record_to_paper(record)
         if paper is None:
             return False
         self._save_paper(paper)
-        return True
+        return self._last_save_created
 
     # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
+        self._live_fallback_allowed = False
         start_time = time.time()
         saved = 0
         seen_urls: set[str] = set()
@@ -703,11 +709,12 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
 
         try:
             saved = self._crawl_live(limit, seen_urls, start_time)
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 print(f"[{self.site_id}] done. total saved: {saved}")
                 return saved
 
-            if saved == 0 and budget_left():
+            if self._live_fallback_allowed and budget_left():
                 print(f"[{self.site_id}] live endpoint unavailable; trying archive fallback")
                 saved += self._crawl_archive_fallback(
                     limit, seen_urls, saved, limit_or_inf, start_time
@@ -715,6 +722,7 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
         except KeyboardInterrupt:
             raise
 
+        self._check_cancelled()
         print(f"[{self.site_id}] done. total saved: {saved}")
         return saved
 
@@ -723,9 +731,11 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
         limit_or_inf = str(limit) if limit is not None else "inf"
 
         for page in range(1, self._MAX_PAGES + 1):
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
             if time.time() - start_time >= self._MAX_SECONDS - 30:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] approaching 25-minute wall-clock budget; stopping")
                 break
             if page % 10 == 0:
@@ -734,9 +744,13 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
             page_url = self._page_url((page - 1) * self._PAGE_SIZE)
             raw = self._curl_text(page_url, headers=self._ajax_headers(), retries=2)
             if not raw:
+                self._report_source_failure('fetch_failed')
+                self._live_fallback_allowed = True
                 print(f"[{self.site_id}] page {page}: empty response")
                 break
             if _is_incapsula(raw):
+                self._report_source_failure('authentication_failed')
+                self._live_fallback_allowed = False
                 print(f"[{self.site_id}] page {page}: Incapsula block detected")
                 break
 
@@ -747,6 +761,7 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
 
             new_this_page = 0
             for idx, record in enumerate(records, 1):
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
                 dedupe = record.get("url") or record.get("download_url")
@@ -762,6 +777,7 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(
                         f"[{self.site_id}] item "
                         f"{record.get('external_id') or idx} failed: {exc}"
@@ -769,11 +785,14 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
                     continue
 
             if new_this_page == 0:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] page {page}: all records already seen")
                 break
             if has_next is False:
                 break
         else:
+            if limit is None or saved < limit:
+                self._report_source_failure('invalid_response')
             print(f"[{self.site_id}] safety cap of {self._MAX_PAGES} pages reached")
 
         return saved
@@ -790,11 +809,14 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
         cdx_searched = False
 
         while snapshot_batches:
+            self._check_cancelled()
             snapshots = snapshot_batches.pop(0)
             for snap in reversed(snapshots):
+                self._check_cancelled()
                 if limit is not None and saved_so_far + saved >= limit:
                     break
                 if time.time() - start_time >= self._MAX_SECONDS - 30:
+                    self._report_source_failure('invalid_response')
                     print(f"[{self.site_id}] approaching 25-minute wall-clock budget; stopping")
                     return saved
 
@@ -818,6 +840,7 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
 
                 new_this_page = 0
                 for idx, record in enumerate(records, 1):
+                    self._check_cancelled()
                     if limit is not None and saved_so_far + saved >= limit:
                         break
                     dedupe = record.get("url") or record.get("download_url")
@@ -833,12 +856,14 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
                     except KeyboardInterrupt:
                         raise
                     except Exception as exc:
+                        self._report_source_failure('item_failed')
                         print(
                             f"[{self.site_id}] item "
                             f"{record.get('external_id') or idx} failed: {exc}"
                         )
                         continue
 
+                self._check_cancelled()
                 if limit is not None and saved_so_far + saved >= limit:
                     return saved
                 if new_this_page == 0:
@@ -861,4 +886,5 @@ class TransportGovtNZDocumentsAndPublicCrawler(BaseCrawler):
             if snapshots:
                 snapshot_batches.append(snapshots)
 
+        self._check_cancelled()
         return saved

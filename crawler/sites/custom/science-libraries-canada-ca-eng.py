@@ -144,17 +144,22 @@ class ScienceLibrariesCanadaCaEngCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         start = time.monotonic()
         saved = 0
         seen_urls = set()
         limit_label = limit if limit is not None else "inf"
 
         for page in range(1, self._MAX_PAGES + 1):
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
 
             elapsed = time.monotonic() - start
             if elapsed > self._MAX_WALL:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] wall-clock budget ({self._MAX_WALL}s) reached at page {page}, exiting")
                 break
 
@@ -162,12 +167,14 @@ class ScienceLibrariesCanadaCaEngCrawler(BaseCrawler):
             time.sleep(self._delay)
             html = _fetch(list_url)
             if not html:
+                self._report_source_failure('fetch_failed')
                 print(f"[{self.site_id}] page {page}: failed to fetch list page after retries, stopping")
                 break
 
             try:
                 soup = _make_soup(html)
             except Exception as exc:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] page {page}: failed to parse list page: {exc}, stopping")
                 break
 
@@ -178,6 +185,7 @@ class ScienceLibrariesCanadaCaEngCrawler(BaseCrawler):
 
             new_hrefs = 0
             for article in items:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -203,6 +211,7 @@ class ScienceLibrariesCanadaCaEngCrawler(BaseCrawler):
                     if self._crawl_detail(href, title):
                         saved += 1
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(f"[{self.site_id}] item {href or '?'} failed: {exc}")
                     continue
 
@@ -210,11 +219,15 @@ class ScienceLibrariesCanadaCaEngCrawler(BaseCrawler):
                 print(f"[{self.site_id}] page {page}: saved {saved}/{limit_label}")
 
             if new_hrefs == 0:
+                self._report_source_failure('invalid_response')
                 print(f"[{self.site_id}] page {page}: no new records (pagination repeat), stopping")
                 break
         else:
+            if limit is None or saved < limit:
+                self._report_source_failure('invalid_response')
             print(f"[{self.site_id}] reached safety cap of {self._MAX_PAGES} pages")
 
+        self._check_cancelled()
         print(f"[{self.site_id}] done: saved {saved} papers")
         return saved
 
@@ -226,17 +239,20 @@ class ScienceLibrariesCanadaCaEngCrawler(BaseCrawler):
         time.sleep(self._delay)
         html = _fetch(href)
         if not html:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] detail fetch failed (all retries): {href}")
             return False
 
         try:
             soup = _make_soup(html)
         except Exception as exc:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] detail parse failed: {href}: {exc}")
             return False
 
         table = soup.select_one("table.table-viewobject")
         if table is None:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] no metadata table: {href}")
             return False
 
@@ -315,10 +331,10 @@ class ScienceLibrariesCanadaCaEngCrawler(BaseCrawler):
             doi = a.get_text(strip=True) if a is not None else _text(doi_td)
 
         published_date_raw = _text(fields.get("Date published"))
-        published_date = _parse_date(published_date_raw)
+        published_date = published_date_raw
 
         listed_date_raw = _text(fields.get("Record created"))
-        listed_date = _parse_date(listed_date_raw)
+        listed_date = listed_date_raw
 
         modified_raw = _text(fields.get("Record modified"))
         series_raw = _text(fields.get("Series"))
@@ -332,7 +348,7 @@ class ScienceLibrariesCanadaCaEngCrawler(BaseCrawler):
         if download_td is not None:
             a = download_td.find("a")
             if a is not None and a.get("href"):
-                pdf_url = urljoin(self.base_url, a["href"])
+                pdf_url = urljoin(href, a["href"])
 
         original_filename = None
         if pdf_url:
@@ -386,4 +402,4 @@ class ScienceLibrariesCanadaCaEngCrawler(BaseCrawler):
         }
 
         self._save_paper(paper)
-        return True
+        return self._last_save_created
