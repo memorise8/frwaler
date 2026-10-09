@@ -271,6 +271,7 @@ class CsoIeEnCrawler(BaseCrawler):
 
         Returns the number of documents saved.
         """
+        self._check_cancelled()
         saved = 0
         limit_eff = limit if limit is not None else float("inf")
         seen_urls = set()
@@ -281,6 +282,7 @@ class CsoIeEnCrawler(BaseCrawler):
 
         try:
             for year in range(current_year, _EARLIEST_YEAR - 1, -1):
+                self._check_cancelled()
                 if saved >= limit_eff:
                     break
                 if time.time() - start_time > _MAX_SECONDS:
@@ -295,20 +297,22 @@ class CsoIeEnCrawler(BaseCrawler):
                 page_count += 1
 
                 if not html:
-                    print(f"[{_SITE_ID}] failed to fetch list for year {year}, skipping")
-                    continue
+                    self._report_source_failure("fetch_failed")
+                    print(f"[{_SITE_ID}] failed to fetch list for year {year}, stopping")
+                    break
 
                 items = _parse_list_page(html)
                 if not items:
-                    # No press releases for this year (likely too old)
-                    print(f"[{_SITE_ID}] no items found for year {year}, stopping")
-                    break
+                    # An empty archive year does not prove older years are empty.
+                    print(f"[{_SITE_ID}] no items found for year {year}")
+                    continue
 
                 new_items = [it for it in items if it["url"] not in seen_urls]
                 if not new_items:
                     continue
 
                 for it in new_items:
+                    self._check_cancelled()
                     if saved >= limit_eff:
                         break
                     if time.time() - start_time > _MAX_SECONDS:
@@ -320,6 +324,8 @@ class CsoIeEnCrawler(BaseCrawler):
                     try:
                         time.sleep(self._delay)
                         detail_html = _curl_get(it["url"])
+                        if not detail_html:
+                            raise RuntimeError("detail fetch failed")
                         detail = _extract_detail(detail_html)
 
                         abstract = detail.get("abstract", "")
@@ -365,7 +371,8 @@ class CsoIeEnCrawler(BaseCrawler):
                         }
 
                         self._save_paper(paper)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
 
                         if saved % 10 == 0:
                             lim_str = str(limit) if limit is not None else "inf"
@@ -377,6 +384,7 @@ class CsoIeEnCrawler(BaseCrawler):
                     except KeyboardInterrupt:
                         raise
                     except Exception as exc:
+                        self._report_source_failure("item_failed")
                         print(f"[{_SITE_ID}] item failed ({it.get('url', '?')}): {exc}")
                         continue
 

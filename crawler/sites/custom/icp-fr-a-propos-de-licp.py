@@ -39,6 +39,7 @@ class ICPFrAPropsDeLICPCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         seen_urls: set[str] = set()
         limit_or_inf = limit if limit is not None else float('inf')
@@ -47,17 +48,20 @@ class ICPFrAPropsDeLICPCrawler(BaseCrawler):
         # The site delivers all press releases on a single HTML page.
         # We iterate only once (page=1) but keep the pagination scaffold for safety.
         for page_num in range(1, self.PAGE_CAP + 1):
+            self._check_cancelled()
             if time.time() - start_time > self.MAX_WALL_SECONDS:
                 print(f"[{self.site_id}] wall-clock budget reached; stopping after page {page_num-1}")
                 break
 
             raw = self._curl_get(self.LIST_URL)
             if not raw:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] could not fetch list page; stopping")
                 break
 
             soup = self._make_soup(raw, context="list page")
             if soup is None:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] could not parse list page; stopping")
                 break
 
@@ -68,6 +72,7 @@ class ICPFrAPropsDeLICPCrawler(BaseCrawler):
 
             new_on_page = 0
             for idx, record in enumerate(records, start=1):
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -95,7 +100,8 @@ class ICPFrAPropsDeLICPCrawler(BaseCrawler):
 
                     record['abstract'] = abstract[:4000]
                     self._save_paper(record)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
 
                     if saved % 10 == 0:
                         print(
@@ -108,6 +114,7 @@ class ICPFrAPropsDeLICPCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] item {idx} failed: {exc}")
                     continue
 

@@ -22,10 +22,10 @@ class CoupledContract(SiteContract):
 
     def test_cancel_before_listing_performs_no_fetch(self):
         c = self.crawler(); c.delivery_should_cancel = lambda: True
-        name = {'arn-se-om-arn': '_curl_get', 'asiapacific-ca-media': '_fetch_list_html',
+        name = getattr(self, 'LIST_METHOD', None) or {'arn-se-om-arn': '_curl_get', 'asiapacific-ca-media': '_fetch_list_html',
                 'centralbank-ie-publication': '_curl_get', 'auri-re-kr-publication': '_fetch_list_page',
                 'cancer-fr-catalogue-des-public': '_curl_get'}[self.SITE]
-        owner = self.module if self.SITE == 'centralbank-ie-publication' else c
+        owner = self.module if getattr(self, 'LIST_MODULE', False) or self.SITE == 'centralbank-ie-publication' else c
         with patch.object(owner, name) as fetch:
             with self.assertRaises(CrawlCancelled): c.crawl()
             fetch.assert_not_called()

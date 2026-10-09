@@ -383,6 +383,7 @@ class EmDkAktueltCrawler(BaseCrawler):
         # Step 1 — get year links from the index page
         html = _curl_get(_INDEX_URL)
         if not html:
+            self._report_source_failure("fetch_failed")
             print("[em-dk-aktuelt] failed to fetch index page")
             return []
 
@@ -397,6 +398,7 @@ class EmDkAktueltCrawler(BaseCrawler):
                 year_paths.append(p)
 
         if not year_paths:
+            self._report_source_failure("invalid_response")
             print("[em-dk-aktuelt] no year paths found on index page")
             return []
 
@@ -432,6 +434,7 @@ class EmDkAktueltCrawler(BaseCrawler):
             if re.search(r"/(\d{4})/", p)
         }
         for year_path in year_paths:
+            self._check_cancelled()
             yr = year_path.rstrip("/").split("/")[-1]
             if yr in covered_years:
                 continue
@@ -440,6 +443,8 @@ class EmDkAktueltCrawler(BaseCrawler):
             if yr_html:
                 found = _extract_months(yr_html)
                 print(f"[em-dk-aktuelt] year {yr}: {found} month paths")
+            else:
+                self._report_source_failure("fetch_failed")
 
         return month_paths
 
@@ -451,25 +456,32 @@ class EmDkAktueltCrawler(BaseCrawler):
         self,
         month_path: str,
         max_items: int | None = None,
-    ) -> list[str]:
-        """Return unique item detail-page URLs for all items in one month page.
+        deadline: float | None = None,
+    ):
+        """Yield unique detail URLs while walking the month source pages.
 
         Paginates through the GoBasic proxy.gba API until lastPage=true or max_items reached.
         """
+        self._check_cancelled()
         html = _curl_get(_BASE_URL + month_path)
         if not html:
+            self._report_source_failure("fetch_failed")
             print(f"[em-dk-aktuelt] failed to fetch month page: {month_path}")
-            return []
+            return
 
         config = _extract_itemlist_config(html)
         if not config:
+            self._report_source_failure("invalid_response")
             print(f"[em-dk-aktuelt] no itemlist config in month page: {month_path}")
-            return []
+            return
 
-        results: list[str] = []
+        produced = 0
         seen_urls: set = set()
 
         for page_num in range(1, _MAX_PAGES + 1):
+            self._check_cancelled()
+            if deadline is not None and time.time() > deadline:
+                return
             if page_num == _MAX_PAGES:
                 print(
                     f"[em-dk-aktuelt] safety cap of {_MAX_PAGES} pages reached "
@@ -491,12 +503,14 @@ class EmDkAktueltCrawler(BaseCrawler):
 
             resp = _curl_post_proxy(month_path, payload)
             if resp is None:
+                self._report_source_failure("fetch_failed")
                 print(
                     f"[em-dk-aktuelt] proxy.gba failed for {month_path} page {page_num}"
                 )
                 break
 
-            if not resp.get("success"):
+            if not isinstance(resp, dict) or not resp.get("success"):
+                self._report_source_failure("invalid_response")
                 print(
                     f"[em-dk-aktuelt] proxy.gba non-success for {month_path}: {resp}"
                 )
@@ -504,20 +518,28 @@ class EmDkAktueltCrawler(BaseCrawler):
 
             value = resp.get("value", {})
             if isinstance(value, dict) and not value.get("success", True):
+                self._report_source_failure("invalid_response")
                 print(
                     f"[em-dk-aktuelt] proxy.gba inner error for {month_path}: "
                     f"{value.get('errorMessage', '')}"
                 )
                 break
 
-            page_html = value.get("page", "") if isinstance(value, dict) else ""
-            last_page = value.get("lastPage", True) if isinstance(value, dict) else True
+            if not isinstance(value, dict) or not isinstance(value.get("lastPage"), bool):
+                self._report_source_failure("invalid_response")
+                return
+            page_html = value.get("page", "")
+            last_page = value["lastPage"]
 
             if not page_html:
+                if not last_page:
+                    self._report_source_failure("invalid_response")
                 break
 
             urls = _extract_item_urls(page_html)
             if not urls:
+                if not last_page:
+                    self._report_source_failure("invalid_response")
                 break
 
             new_urls = [u for u in urls if u not in seen_urls]
@@ -525,25 +547,29 @@ class EmDkAktueltCrawler(BaseCrawler):
 
             if not new_urls:
                 # Paginator silently looped back to page 1 — stop
+                self._report_source_failure("invalid_response")
                 break
 
             for u in new_urls:
-                if max_items is not None and len(results) >= max_items:
+                self._check_cancelled()
+                if max_items is not None and produced >= max_items:
                     break
-                results.append(u)
+                produced += 1
+                yield u
 
             if last_page:
                 break
-            if max_items is not None and len(results) >= max_items:
+            if max_items is not None and produced >= max_items:
                 break
 
-        return results
+        return
 
     # ------------------------------------------------------------------
     # Main crawl loop
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         seen_urls: set = set()
         limit_display = limit if limit is not None else "inf"
@@ -551,6 +577,7 @@ class EmDkAktueltCrawler(BaseCrawler):
 
         month_paths = self._discover_month_paths()
         if not month_paths:
+            self._report_source_failure("invalid_response")
             print("[em-dk-aktuelt] no month pages discovered, aborting.")
             return 0
 
@@ -560,6 +587,7 @@ class EmDkAktueltCrawler(BaseCrawler):
         )
 
         for month_idx, month_path in enumerate(month_paths):
+            self._check_cancelled()
             if time.time() > deadline:
                 print(
                     f"[em-dk-aktuelt] {_WALL_MINUTES}-minute wall-clock budget "
@@ -575,13 +603,14 @@ class EmDkAktueltCrawler(BaseCrawler):
                     f"{month_path}, saved {saved}/{limit_display}"
                 )
 
-            remaining = (limit - saved) if limit is not None else None
-            item_urls = self._fetch_month_item_urls(month_path, max_items=remaining)
+            # A source URL may already exist in the DB: only new saves consume limit.
+            item_urls = self._fetch_month_item_urls(month_path, deadline=deadline)
 
             if item_urls:
                 time.sleep(0.5)
 
             for item_url in item_urls:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
                 if time.time() > deadline:
@@ -594,6 +623,7 @@ class EmDkAktueltCrawler(BaseCrawler):
                     time.sleep(_DETAIL_DELAY)
                     html = _curl_get(item_url)
                     if not html:
+                        self._report_source_failure("item_failed")
                         print(
                             f"[em-dk-aktuelt] item fetch failed, skipping: {item_url}"
                         )
@@ -601,6 +631,7 @@ class EmDkAktueltCrawler(BaseCrawler):
 
                     detail = _parse_detail(item_url, html)
                     if not detail:
+                        self._report_source_failure("item_failed")
                         print(
                             f"[em-dk-aktuelt] item parse failed, skipping: {item_url}"
                         )
@@ -615,15 +646,19 @@ class EmDkAktueltCrawler(BaseCrawler):
                         continue
 
                     self._save_paper(detail)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(
                         f"[em-dk-aktuelt] saved [{saved}] "
                         f"{detail.get('title', '')[:70]}"
                     )
+                    if limit is not None and saved >= limit:
+                        return saved
 
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[em-dk-aktuelt] item {item_url} failed: {exc}")
                     continue
 

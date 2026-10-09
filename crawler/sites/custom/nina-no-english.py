@@ -85,9 +85,11 @@ class NINAOlderSeriesCrawler(BaseCrawler):
         try:
             items = json.loads(raw)
         except (ValueError, TypeError) as exc:
+            self._report_source_failure("invalid_response")
             print(f"[{self.site_id}] failed to parse JSON: {exc}")
             return []
         if not isinstance(items, list):
+            self._report_source_failure("invalid_response")
             print(f"[{self.site_id}] unexpected JSON shape (not a list)")
             return []
 
@@ -171,6 +173,7 @@ class NINAOlderSeriesCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         start_time = time.time()
         saved = 0
         seen_ids = set()
@@ -180,6 +183,7 @@ class NINAOlderSeriesCrawler(BaseCrawler):
         print(f"[{self.site_id}] fetching {_LIST_URL}")
         raw = self._curl_cffi_get(_LIST_URL)
         if not raw:
+            self._report_source_failure("fetch_failed")
             print(f"[{self.site_id}] failed to fetch listing JSON")
             return 0
 
@@ -197,6 +201,7 @@ class NINAOlderSeriesCrawler(BaseCrawler):
         processed_on_page = 0
 
         for i, entry in enumerate(entries, 1):
+            self._check_cancelled()
             try:
                 # Wall-clock budget
                 if time.time() - start_time > _WALL_BUDGET:
@@ -240,7 +245,8 @@ class NINAOlderSeriesCrawler(BaseCrawler):
                 }
 
                 self._save_paper(paper)
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 processed_on_page += 1
                 print(f"[{self.site_id}] saved {saved}/{limit_str}: {entry['title'][:60]}")
 
@@ -253,6 +259,7 @@ class NINAOlderSeriesCrawler(BaseCrawler):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure("item_failed")
                 print(f"[{self.site_id}] item {i} failed: {exc}")
                 continue
 

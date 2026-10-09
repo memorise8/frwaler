@@ -34,6 +34,7 @@ class InternationalGCTransparencyTranspaCrawler(BaseCrawler):
     base_url = "https://www.international.gc.ca"
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         seen_urls: set[str] = set()
         start_time = time.time()
@@ -42,11 +43,13 @@ class InternationalGCTransparencyTranspaCrawler(BaseCrawler):
         # Fetch the index / list page (follows redirect automatically via -L)
         raw = self._curl_get(INDEX_URL, context="list")
         if not raw:
+            self._report_source_failure("fetch_failed")
             print(f"[{SITE_ID}] list endpoint failed")
             return saved
 
         soup = self._make_soup(raw)
         if soup is None:
+            self._report_source_failure("invalid_response")
             print(f"[{SITE_ID}] list endpoint could not be parsed")
             return saved
 
@@ -56,6 +59,7 @@ class InternationalGCTransparencyTranspaCrawler(BaseCrawler):
         print(f"[{SITE_ID}] page {page_num}: saved {saved}/{limit if limit is not None else 'inf'}")
 
         for idx, record in enumerate(records, start=1):
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
 
@@ -110,7 +114,8 @@ class InternationalGCTransparencyTranspaCrawler(BaseCrawler):
                 }
 
                 self._save_paper(paper)
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 label = f"{saved}/{limit}" if limit is not None else str(saved)
                 print(f"[{SITE_ID}] saved {label}: {parsed['title'][:80]}")
 
@@ -121,6 +126,7 @@ class InternationalGCTransparencyTranspaCrawler(BaseCrawler):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure("item_failed")
                 print(f"[{SITE_ID}] item {idx} failed: {exc}")
                 continue
 
