@@ -49,7 +49,9 @@ def read_result(root: Path, site: dict, *, now: datetime | None = None,
     if not path.exists():
         return {"state": "unchecked", "checked_at": None}
     try:
-        if path.stat().st_size > 16384:
+        # Metadata diagnostics contain up to 100 bounded events. The API still
+        # returns only FIELDS, not the diagnostic payload or arbitrary extras.
+        if path.stat().st_size > 256 * 1024:
             raise ValueError("oversized report")
         result = json.loads(path.read_text())
         if result["site_id"] != site["site_id"] or result["state"] not in STATES:

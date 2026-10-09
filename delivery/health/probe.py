@@ -24,6 +24,7 @@ from unittest.mock import patch
 from urllib.parse import urlsplit
 
 from .results import atomic_json, utc_now
+from .diagnostics import Diagnostics, curl_header_probe
 from crawler.search_credentials import missing_credentials
 
 
@@ -33,6 +34,10 @@ class ProbeComplete(BaseException):
 
 class UnsupportedProbe(BaseException):
     pass
+
+
+class ProbeRateLimited(BaseException):
+    """Stop this diagnostic attempt before a crawler retries HTTP 429."""
 
 
 class QuietOutput(io.TextIOBase):
@@ -51,6 +56,7 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
 
     stats = {"sample_count": 0, "invalid_count": 0, "http_errors": 0,
              "blocked": 0, "network_errors": 0, "unsupported": 0}
+    diagnostics = Diagnostics(lambda: atomic_json(progress, {**stats, "diagnostics": diagnostics.data}))
     seen = set()
     conn = sqlite3.connect(":memory:")
     conn.row_factory = sqlite3.Row
@@ -69,6 +75,7 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
 
     def denied(*args, **kwargs):
         stats["unsupported"] += 1
+        diagnostics.event("storage_denied", origin=None)
         raise UnsupportedProbe()
 
     def capture(instance, doc):
@@ -81,20 +88,24 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
             valid = False
         if not valid:
             stats["invalid_count"] += 1
-            atomic_json(progress, stats)
+            diagnostics.event("metadata", valid=False, title_present=bool(isinstance(title, str) and title.strip()),
+                              public_url_shape=bool(parsed.scheme in ("http", "https") and parsed.netloc) if 'parsed' in locals() else False)
             return None
         key = hashlib.sha256((title.strip() + str(url)).encode()).digest()
+        instance._last_save_created = key not in seen
         if key not in seen:
             seen.add(key)
             stats["sample_count"] += 1
-        instance._last_save_created = True
-        atomic_json(progress, stats)
+        diagnostics.event("metadata", valid=True, unique_samples=stats["sample_count"])
         if stats["sample_count"] >= limit:
             raise ProbeComplete()
         return stats["sample_count"]
 
-    def wrap_request(original):
+    def wrap_request(original, transport):
         def request(*args, **kwargs):
+            method = kwargs.get("method", args[1] if len(args) > 1 else "UNKNOWN")
+            url = kwargs.get("url", args[2] if len(args) > 2 else "")
+            row = diagnostics.request(transport, method, url)
             try:
                 response = original(*args, **kwargs)
                 status = getattr(response, "status_code", 0)
@@ -102,26 +113,82 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
                     stats["http_errors"] += 1
                 if status in (401, 403, 429):
                     stats["blocked"] += 1
+                diagnostics.finish_request(row, status=status)
+                if status == 429:
+                    from .source_observer import retry_after
+                    diagnostics.data['rate_limit'] = {'host': row.get('host') if row else None,
+                        'retry_at_epoch': retry_after(getattr(response, 'headers', {}).get('Retry-After'))}
+                    raise ProbeRateLimited()
                 return response
-            except Exception:
+            except Exception as exc:
                 stats["network_errors"] += 1
+                diagnostics.finish_request(row, exc=exc)
                 raise
-            finally:
-                atomic_json(progress, stats)
         return request
+
+    def wrap_browser_navigation(original):
+        def navigate(page, url, *args, **kwargs):
+            row = diagnostics.request('playwright_navigation', 'GET', url)
+            try:
+                response = original(page, url, *args, **kwargs)
+                status = getattr(response, 'status', None)
+                if status and status >= 400:
+                    stats['http_errors'] += 1
+                if status in (401,403,429):
+                    stats['blocked'] += 1
+                diagnostics.finish_request(row, status=status)
+                if status == 429:
+                    from .source_observer import retry_after
+                    diagnostics.data['rate_limit'] = {'host': row.get('host') if row else None,
+                        'retry_at_epoch': retry_after(getattr(response, 'headers', {}).get('retry-after'))}
+                    raise ProbeRateLimited()
+                return response
+            except Exception as exc:
+                stats['network_errors'] += 1
+                diagnostics.finish_request(row, exc=exc)
+                raise
+        return navigate
 
     original_run = subprocess.run
 
     def run_command(command, *args, **kwargs):
-        result = original_run(command, *args, **kwargs)
-        if isinstance(command, (tuple, list)) and command and Path(str(command[0])).name in ("curl", "wget"):
+        transport = Path(str(command[0])).name if isinstance(command, (tuple, list)) and command else None
+        urls = [v for v in command if isinstance(v, str) and v.startswith(('https://', 'http://'))] if transport in ('curl', 'wget') else []
+        row = diagnostics.request(transport, "UNKNOWN", urls[0] if len(urls)==1 else "") if transport in ("curl", "wget") else None
+        try:
+            if transport == 'curl':
+                result, statuses, retry_at = curl_header_probe(command, original_run, args, kwargs)
+                status = statuses[-1] if statuses else None
+                if row is not None:
+                    row['response_statuses'] = statuses
+                if status and status >= 400:
+                    stats['http_errors'] += 1
+                if status in (401, 403, 429):
+                    stats['blocked'] += 1
+            else:
+                result = original_run(command, *args, **kwargs)
+                status = None
+        except Exception as exc:
+            if transport in ("curl", "wget"):
+                stats["network_errors"] += 1
+                diagnostics.finish_request(row, exc=exc)
+            raise
+        if transport in ("curl", "wget"):
             if result.returncode:
                 stats["network_errors"] += 1
-                atomic_json(progress, stats)
+            diagnostics.finish_request(row, status=status, returncode=result.returncode)
+            if status == 429:
+                from .source_observer import retry_after
+                diagnostics.data['rate_limit'] = {'host': row.get('host') if row else None,
+                                                 'retry_at_epoch': retry_at or retry_after(None)}
+                raise ProbeRateLimited()
         return result
 
     state = None
     exception_type = None
+    instance = None
+    stop_reason = "returned_without_completion_proof"
+    stopped_exception = None
     try:
         with contextlib.ExitStack() as stack:
             for name in ("_save_paper", "_save_paper_v2", "_save_document", "_save_paper_legacy"):
@@ -139,16 +206,22 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
                     stack.enter_context(patch.object(module, name, denied))
             stack.enter_context(patch("sqlite3.connect", denied))
             stack.enter_context(patch("psycopg.connect", denied))
-            stack.enter_context(patch.object(requests.Session, "request", wrap_request(requests.Session.request)))
+            stack.enter_context(patch.object(requests.Session, "request", wrap_request(requests.Session.request, "requests")))
             try:
                 from curl_cffi.requests import Session
-                stack.enter_context(patch.object(Session, "request", wrap_request(Session.request)))
+                stack.enter_context(patch.object(Session, "request", wrap_request(Session.request, "curl_cffi")))
+            except ImportError:
+                pass
+            try:
+                from playwright.sync_api import Page
+                stack.enter_context(patch.object(Page, 'goto', wrap_browser_navigation(Page.goto)))
             except ImportError:
                 pass
             stack.enter_context(patch.object(subprocess, "run", run_command))
             stack.enter_context(contextlib.redirect_stdout(QuietOutput()))
             stack.enter_context(contextlib.redirect_stderr(QuietOutput()))
             instance = cls(db_conn=conn, delay=delay)
+            diagnostics.install_methods(instance, stack)
             # Scratch storage has no production dedup state. ScienceON explicitly
             # rejects full mode; its incremental path is the bounded sample API.
             instance.delivery_mode = "incremental" if str(cls.site_id).startswith('scienceon-') else "full"
@@ -157,13 +230,20 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
                      "authentication_failed": "blocked", "rate_limited": "blocked", "configuration": "configuration",
                      "item_failed": "error"}.get(getattr(instance, "delivery_source_failure", None))
     except ProbeComplete:
-        pass
+        stop_reason = "sample_limit"
     except UnsupportedProbe:
         state = "unsupported"
+        stop_reason = "unsupported_storage_contract"
+    except ProbeRateLimited:
+        state = 'blocked'
+        stop_reason = 'rate_limited'
     except Exception as exc:
         exception_type = type(exc).__name__
         state = "error"
+        stop_reason = "exception"
+        stopped_exception = exc
     finally:
+        diagnostics.stop(stop_reason, instance, stopped_exception)
         conn.close()
     if stats["unsupported"]:
         state = "unsupported"
@@ -175,7 +255,8 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
         state = "network_error"
     elif stats["invalid_count"]:
         state = "invalid_data"
-    return {**stats, "state": state or "empty", "exception_type": exception_type}
+    return {**stats, "state": state or "empty", "exception_type": exception_type,
+            "diagnostics": diagnostics.data}
 
 
 def child_environment(scratch: Path, timeout: float) -> dict:
@@ -206,11 +287,13 @@ def run_probe(site: dict, *, timeout: float = 60, limit: int = 3, delay: float =
     started = time.monotonic()
     result = {"site_id": site["site_id"], "state": "error", "sample_count": 0,
               "invalid_count": 0, "http_errors": 0, "source_hash": site["source_hash"],
-              "scope": "metadata_sample_only"}
+              "scope": "metadata_sample_only", "diagnostics": {"schema": 1, "events": [], "stop_reason": "not_started"}}
     if site["code_status"] != "ready":
         result["state"] = "unsupported"
+        result['diagnostics']['stop_reason'] = 'unsupported_code_status'
     elif missing_credentials(site['site_id']):
         result["state"] = "configuration"
+        result['diagnostics'].update(stop_reason='missing_credentials', missing_credentials=missing_credentials(site['site_id']))
     else:
         with tempfile.TemporaryDirectory(prefix="crawler-probe-") as directory:
             scratch = Path(directory)
@@ -222,19 +305,27 @@ def run_probe(site: dict, *, timeout: float = 60, limit: int = 3, delay: float =
                        str(output), str(progress), str(limit), str(delay)]
             process = subprocess.Popen(command, cwd=scratch, env=env, start_new_session=True,
                                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            try:
-                process.wait(timeout=timeout)
-                if process.returncode == 0 and output.exists():
-                    data = json.loads(output.read_text())
-                    result.update({k: data.get(k) for k in ("state", "sample_count", "invalid_count", "http_errors", "exception_type")})
-            except subprocess.TimeoutExpired:
-                result["state"] = "timeout"
+            def load_progress(reason):
                 if progress.exists():
                     try:
                         partial = json.loads(progress.read_text())
                         result.update({k: partial.get(k, 0) for k in ("sample_count", "invalid_count", "http_errors")})
+                        if isinstance(partial.get("diagnostics"), dict):
+                            result["diagnostics"] = partial["diagnostics"]
                     except (ValueError, OSError):
                         pass
+                result['diagnostics']['stop_reason'] = reason
+            try:
+                process.wait(timeout=timeout)
+                if process.returncode == 0 and output.exists():
+                    data = json.loads(output.read_text())
+                    result.update({k: data.get(k) for k in ("state", "sample_count", "invalid_count", "http_errors", "exception_type", "diagnostics")})
+                else:
+                    result['child_returncode'] = process.returncode
+                    load_progress('child_exit_without_result')
+            except subprocess.TimeoutExpired:
+                result["state"] = "timeout"
+                load_progress('hard_timeout')
             finally:
                 # Even a normally exiting crawler can leave browser processes.
                 try:
