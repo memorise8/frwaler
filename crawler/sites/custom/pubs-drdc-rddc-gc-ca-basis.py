@@ -448,9 +448,11 @@ class PubsDrdcRddcGcCaBasisCrawler(BaseCrawler):
         page = 0
 
         list_url = self._sdf_url()
+        seen_pages = {list_url}
         print(f"[{self.site_id}] Fetching SDF list: {list_url}")
         raw = self._curl(list_url, timeout=60)
         if not raw:
+            self._report_source_failure("fetch_failed")
             print(f"[{self.site_id}] SDF list page failed to load")
             return 0
 
@@ -474,6 +476,7 @@ class PubsDrdcRddcGcCaBasisCrawler(BaseCrawler):
 
         while True:
             for idx, item in enumerate(items):
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
                 if time.time() - start_time > self._MAX_WALL_SECS:
@@ -489,6 +492,7 @@ class PubsDrdcRddcGcCaBasisCrawler(BaseCrawler):
                     time.sleep(self._delay)
                     detail_raw = self._curl(url)
                     if not detail_raw:
+                        self._report_source_failure("item_failed")
                         print(f"[{self.site_id}] item {idx+1} failed: detail fetch failed for {url}")
                         continue
 
@@ -510,13 +514,15 @@ class PubsDrdcRddcGcCaBasisCrawler(BaseCrawler):
                         continue
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     counter = f"{saved}/{limit}" if limit is not None else str(saved)
                     print(f"[{self.site_id}] saved {counter}: {paper['title'][:80]}")
 
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] item {idx+1} failed: {exc}")
                     continue
 
@@ -525,12 +531,17 @@ class PubsDrdcRddcGcCaBasisCrawler(BaseCrawler):
                 break
             if not next_url:
                 break
+            if next_url in seen_pages:
+                self._report_source_failure("invalid_response")
+                break
+            seen_pages.add(next_url)
             if page >= self._PAGE_CAP:
                 print(f"[{self.site_id}] Reached page cap ({self._PAGE_CAP}); stopping")
                 break
 
             raw = self._curl(next_url, timeout=60)
             if not raw:
+                self._report_source_failure("fetch_failed")
                 break
             items = self._parse_list_page(raw)
             if not items:
@@ -583,11 +594,13 @@ class PubsDrdcRddcGcCaBasisCrawler(BaseCrawler):
 
         saved = 0
         cursor = "*"
+        seen_cursors = set()
         page = 0
         seen_ids: set[str] = set()
         start_time = time.time()
 
         while True:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
             if time.time() - start_time > self._MAX_WALL_SECS:
@@ -596,6 +609,10 @@ class PubsDrdcRddcGcCaBasisCrawler(BaseCrawler):
             if page >= self._PAGE_CAP:
                 print(f"[{self.site_id}] Page cap ({self._PAGE_CAP}) reached in OpenAlex fallback")
                 break
+            if cursor in seen_cursors:
+                self._report_source_failure("invalid_response")
+                break
+            seen_cursors.add(cursor)
 
             params = {
                 "filter": f"institutions.ror:{self._OPENALEX_ROR}",
@@ -612,16 +629,21 @@ class PubsDrdcRddcGcCaBasisCrawler(BaseCrawler):
 
             raw = self._curl(api_url, timeout=30)
             if not raw:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] OpenAlex request failed on page {page+1}")
                 break
 
             try:
                 data = json.loads(raw)
             except json.JSONDecodeError as exc:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] OpenAlex JSON parse error: {exc}")
                 break
 
-            results = data.get("results", [])
+            if not isinstance(data, dict) or not isinstance(data.get("results"), list):
+                self._report_source_failure("invalid_response")
+                break
+            results = data["results"]
             if not results:
                 print(f"[{self.site_id}] OpenAlex: no more results at page {page+1}")
                 break
@@ -632,6 +654,7 @@ class PubsDrdcRddcGcCaBasisCrawler(BaseCrawler):
                 print(f"[{self.site_id}] page {page}: saved {saved}/{count_str}")
 
             for work in results:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -723,13 +746,15 @@ class PubsDrdcRddcGcCaBasisCrawler(BaseCrawler):
                     }
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     counter = f"{saved}/{limit}" if limit is not None else str(saved)
                     print(f"[{self.site_id}] saved {counter}: {title[:80]}")
 
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] OpenAlex item failed: {exc}")
                     continue
 
@@ -754,6 +779,7 @@ class PubsDrdcRddcGcCaBasisCrawler(BaseCrawler):
         Attempts the primary BASIS site first; falls back to the OpenAlex
         metadata API if the site is unreachable (e.g. from non-Canadian IPs).
         """
+        self._check_cancelled()
         if self._site_reachable():
             print(f"[{self.site_id}] BASIS site reachable — crawling directly")
             return self._crawl_basis(limit)

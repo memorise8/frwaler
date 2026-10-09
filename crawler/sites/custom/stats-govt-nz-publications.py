@@ -307,6 +307,7 @@ class StatsGovtNzPublicationsCrawler(BaseCrawler):
     # ── Main crawl entry point ────────────────────────────────────────────────
 
     def crawl(self, limit: int | None = None) -> int:
+        self._check_cancelled()
         t0 = time.time()
         MAX_WALL = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
         seen_urls: set[str] = set()
@@ -339,6 +340,7 @@ class StatsGovtNzPublicationsCrawler(BaseCrawler):
         limit_s = str(limit) if limit is not None else "∞"
 
         while True:
+            self._check_cancelled()
             if time.time() - t0 > max_wall:
                 print(f"[{self.site_id}] Wall-clock budget hit at page {page}. Stopping.")
                 break
@@ -368,11 +370,13 @@ class StatsGovtNzPublicationsCrawler(BaseCrawler):
                     time.sleep(wait)
                     html = None
                 if not html:
+                    self._report_source_failure("fetch_failed")
                     print(f"[{self.site_id}] Cannot fetch page {page}. Stopping.")
                     break
 
             pv = _parse_pv_data(html)
             if not pv:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] No pageViewData on page {page}. Stopping.")
                 break
 
@@ -387,6 +391,7 @@ class StatsGovtNzPublicationsCrawler(BaseCrawler):
 
             new_on_page = 0
             for item in items:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
                 page_link = item.get("PageLink") or ""
@@ -410,15 +415,18 @@ class StatsGovtNzPublicationsCrawler(BaseCrawler):
                     if paper is None:
                         continue
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] saved {saved}/{limit_s}: {paper['title'][:70]}")
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] item failed ({page_link}): {exc}")
                     continue
 
             if new_on_page == 0:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] page {page}: all items already seen. Done.")
                 break
 
@@ -440,7 +448,9 @@ class StatsGovtNzPublicationsCrawler(BaseCrawler):
     ) -> int:
         saved = 0
         limit_s = str(limit) if limit is not None else "∞"
-        cdx_limit = min(1000, max(200, (limit or 50) * 10))
+        # A bounded archive window is independent of the requested new-save count.
+        # This cap does not certify complete archive or current-source coverage.
+        cdx_limit = 1000
 
         # Collect CC records from multiple URL patterns
         patterns = [
@@ -450,11 +460,10 @@ class StatsGovtNzPublicationsCrawler(BaseCrawler):
         ]
         all_records: list[dict] = []
         for pat in patterns:
+            self._check_cancelled()
             recs = self._cc_cdx_query(pat, limit=cdx_limit)
             print(f"[{self.site_id}] CC CDX '{pat}': {len(recs)} records")
             all_records.extend(recs)
-            if limit is not None and len(all_records) >= limit * 5:
-                break
 
         # Deduplicate by URL (keep first occurrence)
         seen_cc: dict[str, dict] = {}
@@ -466,6 +475,7 @@ class StatsGovtNzPublicationsCrawler(BaseCrawler):
         print(f"[{self.site_id}] {len(unique)} unique CC records to process")
 
         for i, record in enumerate(unique):
+            self._check_cancelled()
             if time.time() - t0 > max_wall:
                 print(f"[{self.site_id}] Wall-clock budget hit. Stopping.")
                 break
@@ -480,16 +490,19 @@ class StatsGovtNzPublicationsCrawler(BaseCrawler):
             try:
                 html = self._cc_fetch_warc(record)
                 if not html:
+                    self._report_source_failure("item_failed")
                     continue
 
                 pv = _parse_pv_data(html)
                 if not pv:
+                    self._report_source_failure("item_failed")
                     continue
 
                 # Listing pages have PaginatedBlockPages; process each item
                 paged_items = pv.get("PaginatedBlockPages")
                 if paged_items:
                     for item in paged_items:
+                        self._check_cancelled()
                         if limit is not None and saved >= limit:
                             break
                         page_link = item.get("PageLink") or ""
@@ -502,7 +515,8 @@ class StatsGovtNzPublicationsCrawler(BaseCrawler):
                         if paper is None:
                             continue
                         self._save_paper(paper)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
                         print(f"[{self.site_id}] saved {saved}/{limit_s}: {paper['title'][:70]}")
                 else:
                     # Individual publication page
@@ -510,7 +524,8 @@ class StatsGovtNzPublicationsCrawler(BaseCrawler):
                     if paper is None:
                         continue
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] saved {saved}/{limit_s}: {paper['title'][:70]}")
 
                 if i % 10 == 0 and i > 0:
@@ -521,6 +536,7 @@ class StatsGovtNzPublicationsCrawler(BaseCrawler):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure("item_failed")
                 print(f"[{self.site_id}] record {url} failed: {exc}")
                 continue
 

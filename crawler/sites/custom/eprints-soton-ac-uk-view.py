@@ -154,9 +154,11 @@ class EprintsSotonAcUkViewCrawler(BaseCrawler):
     def _get_years(self) -> list[str]:
         raw = self._curl(_INDEX_URL)
         if not raw:
+            self._report_source_failure("fetch_failed")
             return []
         soup = self._parse_html(raw)
         if soup is None:
+            self._report_source_failure("invalid_response")
             return []
         years = []
         for a in soup.find_all("a", href=True):
@@ -175,9 +177,11 @@ class EprintsSotonAcUkViewCrawler(BaseCrawler):
         url = _YEAR_LIST_URL.format(year=year)
         raw = self._curl(url)
         if not raw:
+            self._report_source_failure("fetch_failed")
             return []
         soup = self._parse_html(raw)
         if soup is None:
+            self._report_source_failure("invalid_response")
             return []
         urls: list[str] = []
         seen: set[str] = set()
@@ -368,6 +372,7 @@ class EprintsSotonAcUkViewCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit: int | None = None) -> int:
+        self._check_cancelled()
         try:
             return self._crawl_inner(limit)
         finally:
@@ -381,12 +386,14 @@ class EprintsSotonAcUkViewCrawler(BaseCrawler):
 
         years = self._get_years()
         if not years:
+            self._report_source_failure("invalid_response")
             print(f"[{self.site_id}] No years found on index page; aborting.")
             return 0
         print(f"[{self.site_id}] Found {len(years)} year pages: {years[0]}–{years[-1]}")
 
         year_page_count = 0
         for year in years:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
 
@@ -413,6 +420,7 @@ class EprintsSotonAcUkViewCrawler(BaseCrawler):
                 continue
 
             for detail_url in eprint_urls:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -428,6 +436,7 @@ class EprintsSotonAcUkViewCrawler(BaseCrawler):
                 try:
                     paper = self._parse_detail_page(detail_url)
                     if paper is None:
+                        self._report_source_failure("item_failed")
                         print(f"[{self.site_id}] item {detail_url} failed: could not fetch/parse")
                         continue
 
@@ -440,12 +449,14 @@ class EprintsSotonAcUkViewCrawler(BaseCrawler):
                         continue
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     print(f"[{self.site_id}] saved {saved}/{limit_str}: {paper.get('title', '')[:80]}")
 
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] item {detail_url} failed: {exc}")
                     continue
                 finally:

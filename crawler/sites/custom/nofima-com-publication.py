@@ -169,6 +169,7 @@ class NofimaCOMPublicationCrawler(BaseCrawler):
 
     # ------------------------------------------------------------------
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         seen_urls = set()
         page = 1
@@ -185,6 +186,7 @@ class NofimaCOMPublicationCrawler(BaseCrawler):
 
     def _crawl_inner(self, limit, limit_str, saved, seen_urls, page, start_time):
         while True:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
             if page > self._MAX_PAGES:
@@ -199,26 +201,32 @@ class NofimaCOMPublicationCrawler(BaseCrawler):
 
             raw = self._fetch_html(list_url)
             if not raw:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] Failed to fetch list page {page}, stopping")
                 break
 
             soup = _make_soup(raw)
             if soup is None:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] Failed to parse list page {page}, stopping")
                 break
 
             # Extract publication links from cards
             pub_links = []
-            for a in soup.find_all("a", class_="card-publication"):
+            source_links = soup.find_all("a", class_="card-publication")
+            for a in source_links:
                 href = (a.get("href") or "").strip()
                 if re.search(r"/publication/\d+/", href) and href not in seen_urls:
                     pub_links.append(href)
 
             if not pub_links:
+                if source_links:
+                    self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] No new publication links on page {page}, stopping")
                 break
 
             for detail_url in pub_links:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -227,16 +235,19 @@ class NofimaCOMPublicationCrawler(BaseCrawler):
                 try:
                     paper = self._fetch_detail(detail_url)
                     if paper is None:
+                        self._report_source_failure("item_failed")
                         continue
                     abstract = paper.get("abstract") or ""
                     if len(abstract) < 50:
                         print(f"[{self.site_id}] Skipping {detail_url}: abstract too short ({len(abstract)} chars)")
                         continue
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] item {detail_url} failed: {exc}")
                     continue
 
