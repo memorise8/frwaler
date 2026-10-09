@@ -42,6 +42,20 @@ def caller():
     return None
 
 
+def caller_chain():
+    chain = []
+    frame = inspect.currentframe()
+    try:
+        while frame and len(chain) < 6:
+            location = source_location(frame)
+            if location:
+                chain.append(location)
+            frame = frame.f_back
+    finally:
+        del frame
+    return chain
+
+
 def exception_locations(exc):
     frames = []
     tb = exc.__traceback__
@@ -131,9 +145,10 @@ class Diagnostics:
 
     def request(self, transport, method, url):
         method = str(method).upper()
+        chain = caller_chain()
         return self.event("request", transport=transport,
                           method=method if method in {"GET", "POST", "HEAD", "PUT", "DELETE", "OPTIONS", "PATCH"} else "OTHER",
-                          host=host_only(url), origin=caller(), state="running")
+                          host=host_only(url), origin=chain[0] if chain else None, source_chain=chain, state="running")
 
     def finish_request(self, row, *, status=None, exc=None, returncode=None):
         fields = {'state': "exception" if exc else "returned"}

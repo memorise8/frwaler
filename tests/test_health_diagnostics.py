@@ -66,6 +66,15 @@ class HealthDiagnosticsTests(unittest.TestCase):
         self.assertEqual(result['diagnostics']['event_counts']['request'], 1)
         self.assertEqual(result['diagnostics']['rate_limit']['host'], 'fixture.invalid')
 
+    def test_persistent_gate_prevents_next_probe_from_requesting_limited_host(self):
+        import os
+        with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ,{'CRAWLER_PROBE_GATE_DIR':folder}):
+            first=self.probe(status=429)
+            second=self.probe(status=200)
+        self.assertEqual(first['diagnostics']['stop_reason'],'rate_limited')
+        self.assertEqual(second['diagnostics']['stop_reason'],'host_cooldown_deferred')
+        self.assertEqual(second['diagnostics']['event_counts'].get('request',0),0)
+
     def test_error_messages_and_urls_are_not_saved(self):
         result = self.probe(error=requests.ConnectionError('secret authentication URL and body'))
         self.assertEqual(result['state'], 'network_error')

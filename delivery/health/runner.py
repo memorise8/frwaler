@@ -50,6 +50,7 @@ def main() -> int:
     parser.add_argument("--interval", type=int, default=0, help="seconds between scans; 0 runs once")
     parser.add_argument("--resume", action="store_true", help="retain completed attempts for the same frozen profile")
     parser.add_argument("--profile-id", help="identifier for frozen image, credentials and environment (no secret values)")
+    parser.add_argument('--gate-dir', type=Path, help='shared state directory for instrumented request-chain serialization and host cooldowns')
     args = parser.parse_args()
     if not (1 <= args.timeout <= 600 and 1 <= args.limit <= 10 and
             0.1 <= args.delay <= 10 and 1 <= args.workers <= 4 and
@@ -58,6 +59,9 @@ def main() -> int:
     if args.resume and (not args.profile_id or args.interval):
         parser.error('--resume requires --profile-id and a one-off scan')
     profile={'id':args.profile_id,'timeout':args.timeout,'limit':args.limit,'delay':args.delay}
+    if args.gate_dir is not None:
+        args.gate_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+        profile['request_governance'] = 'shared_serial_instrumented_request_chains_v1'
     data = inventory(include_registry=args.all_registered or bool(args.site))
     args.report_dir.mkdir(parents=True, exist_ok=True)
     if args.audit:
@@ -92,7 +96,8 @@ def main() -> int:
                     'scope':'metadata_sample_only','probe_profile':profile}
             atomic_json(args.report_dir / "scan.json", scan)
             with ThreadPoolExecutor(max_workers=args.workers) as executor:
-                futures = {executor.submit(run_probe, site, timeout=args.timeout, limit=args.limit, delay=args.delay): site
+                options = {'gate_dir': args.gate_dir} if args.gate_dir is not None else {}
+                futures = {executor.submit(run_probe, site, timeout=args.timeout, limit=args.limit, delay=args.delay, **options): site
                            for site in pending}
                 for future in as_completed(futures):
                     site = futures[future]

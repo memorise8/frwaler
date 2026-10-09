@@ -25,6 +25,7 @@ from urllib.parse import urlsplit
 
 from .results import atomic_json, utc_now
 from .diagnostics import Diagnostics, curl_header_probe
+from .request_gate import RequestGate, NetworkDeferred, UngovernedRequest
 from crawler.search_credentials import missing_credentials
 
 
@@ -57,6 +58,9 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
     stats = {"sample_count": 0, "invalid_count": 0, "http_errors": 0,
              "blocked": 0, "network_errors": 0, "unsupported": 0}
     diagnostics = Diagnostics(lambda: atomic_json(progress, {**stats, "diagnostics": diagnostics.data}))
+    gate_path = os.environ.get('CRAWLER_PROBE_GATE_DIR')
+    gate = RequestGate(gate_path, delay=delay) if gate_path else None
+    diagnostics.data['request_governance'] = ('shared_serial_instrumented_request_chains' if gate else 'not_enabled')
     seen = set()
     conn = sqlite3.connect(":memory:")
     conn.row_factory = sqlite3.Row
@@ -118,13 +122,29 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
                     from .source_observer import retry_after
                     diagnostics.data['rate_limit'] = {'host': row.get('host') if row else None,
                         'retry_at_epoch': retry_after(getattr(response, 'headers', {}).get('Retry-After'))}
+                    if gate:
+                        gate.defer(url, diagnostics.data['rate_limit']['retry_at_epoch'], getattr(response, 'url', None))
                     raise ProbeRateLimited()
                 return response
             except Exception as exc:
                 stats["network_errors"] += 1
                 diagnostics.finish_request(row, exc=exc)
                 raise
-        return request
+        return guarded(request, lambda args, kwargs: kwargs.get('url', args[2] if len(args)>2 else None))
+
+    def guarded(function, get_url):
+        def controlled(*args, **kwargs):
+            if gate is None:
+                return function(*args, **kwargs)
+            url = get_url(args, kwargs)
+            row = diagnostics.event('request_gate', state='waiting')
+            with gate.enter(url):
+                diagnostics.update(row, state='acquired')
+                try:
+                    return function(*args, **kwargs)
+                finally:
+                    diagnostics.update(row, state='released')
+        return controlled
 
     def wrap_browser_navigation(original):
         def navigate(page, url, *args, **kwargs):
@@ -141,13 +161,15 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
                     from .source_observer import retry_after
                     diagnostics.data['rate_limit'] = {'host': row.get('host') if row else None,
                         'retry_at_epoch': retry_after(getattr(response, 'headers', {}).get('retry-after'))}
+                    if gate:
+                        gate.defer(url, diagnostics.data['rate_limit']['retry_at_epoch'], getattr(response, 'url', None))
                     raise ProbeRateLimited()
                 return response
             except Exception as exc:
                 stats['network_errors'] += 1
                 diagnostics.finish_request(row, exc=exc)
                 raise
-        return navigate
+        return guarded(navigate, lambda args, kwargs: kwargs.get('url', args[1] if len(args)>1 else None))
 
     original_run = subprocess.run
 
@@ -181,8 +203,20 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
                 from .source_observer import retry_after
                 diagnostics.data['rate_limit'] = {'host': row.get('host') if row else None,
                                                  'retry_at_epoch': retry_at or retry_after(None)}
+                if gate:
+                    gate.defer(urls[0], diagnostics.data['rate_limit']['retry_at_epoch'])
                 raise ProbeRateLimited()
         return result
+
+    def governed_command(command, *args, **kwargs):
+        transport = Path(str(command[0])).name if isinstance(command, (tuple, list)) and command else None
+        if gate is None or transport not in ('curl', 'wget'):
+            return run_command(command, *args, **kwargs)
+        urls = [v for v in command if isinstance(v,str) and v.startswith(('http://','https://'))]
+        header_sink = any(str(v) in ('-D','--dump-header') or str(v).startswith(('-D','--dump-header=')) for v in command[1:])
+        if transport == 'wget' or kwargs.get('shell') or len(urls)!=1 or header_sink:
+            raise UngovernedRequest()
+        return guarded(run_command, lambda a,kw: urls[0])(command, *args, **kwargs)
 
     state = None
     exception_type = None
@@ -217,7 +251,7 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
                 stack.enter_context(patch.object(Page, 'goto', wrap_browser_navigation(Page.goto)))
             except ImportError:
                 pass
-            stack.enter_context(patch.object(subprocess, "run", run_command))
+            stack.enter_context(patch.object(subprocess, "run", governed_command))
             stack.enter_context(contextlib.redirect_stdout(QuietOutput()))
             stack.enter_context(contextlib.redirect_stderr(QuietOutput()))
             instance = cls(db_conn=conn, delay=delay)
@@ -237,6 +271,13 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
     except ProbeRateLimited:
         state = 'blocked'
         stop_reason = 'rate_limited'
+    except NetworkDeferred as exc:
+        state = 'blocked'
+        stop_reason = 'host_cooldown_deferred'
+        diagnostics.data['rate_limit'] = {'host': exc.host, 'retry_at_epoch': exc.retry_at}
+    except UngovernedRequest:
+        state = 'unsupported'
+        stop_reason = 'unattributed_or_ungoverned_transport'
     except Exception as exc:
         exception_type = type(exc).__name__
         state = "error"
@@ -281,7 +322,8 @@ def child_environment(scratch: Path, timeout: float) -> dict:
     return env
 
 
-def run_probe(site: dict, *, timeout: float = 60, limit: int = 3, delay: float = 1) -> dict:
+def run_probe(site: dict, *, timeout: float = 60, limit: int = 3, delay: float = 1,
+              gate_dir: Path | None = None) -> dict:
     if not 1 <= limit <= 10 or not 1 <= timeout <= 600 or not 0.1 <= delay <= 10:
         raise ValueError("probe limits out of range")
     started = time.monotonic()
@@ -300,6 +342,8 @@ def run_probe(site: dict, *, timeout: float = 60, limit: int = 3, delay: float =
             output, progress = scratch / "result.json", scratch / "progress.json"
             # cwd is disposable; the package root is explicitly on PYTHONPATH.
             env = child_environment(scratch, timeout)
+            if gate_dir is not None:
+                env['CRAWLER_PROBE_GATE_DIR'] = str(Path(gate_dir).resolve())
             env["PYTHONPATH"] = str(Path(__file__).resolve().parents[2])
             command = [sys.executable, "-m", "delivery.health.probe", site["site_id"],
                        str(output), str(progress), str(limit), str(delay)]

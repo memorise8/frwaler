@@ -48,7 +48,7 @@ def inventory(include_registry: bool = False) -> dict:
                                "crawler/libertree_adapter.py",
                                "crawler/document_dates.py", "crawler/document_identity.py",
                                "crawler/db_libertree.py", "crawler/db_pg.py",
-                               "delivery/health/probe.py", "delivery/health/diagnostics.py"):
+                               "delivery/health/probe.py", "delivery/health/diagnostics.py", "delivery/health/request_gate.py"):
                     digest.update((ROOT / shared).read_bytes())
                 config = getattr(cls, "_config_path", None)
                 if config:
