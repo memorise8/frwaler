@@ -51,6 +51,15 @@ class ScahtScopeTests(unittest.TestCase):
         self.assertEqual(result['failure_reason'], 'page_budget_reached_not_exhausted')
         self.assertFalse(manifest)
 
+    def test_partial_page_overlap_kept_as_lower_bound(self):
+        traversal = [page(1, ['a', 'b'], 2), page(2, ['b', 'c']), page(3, [])]
+        result, manifest, _ = self.run_responses(traversal * 2)
+        self.assertEqual(result['state'], 'matching_traversals_with_overlap')
+        self.assertEqual(result['observed_unique_count'], 3)
+        self.assertEqual(result['list_occurrences'], 4)
+        self.assertIsNone(result['enumerable_total'])
+        self.assertTrue(manifest)
+
     def test_rate_limit_persists_cooldown(self):
         result, manifest, gate = self.run_responses([{'status': 429, 'headers': {'retry-after': '120'}, 'body': b'', 'body_complete': True}])
         self.assertEqual(result['state'], 'host_cooldown_deferred')

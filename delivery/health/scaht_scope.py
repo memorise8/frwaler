@@ -104,9 +104,10 @@ def enumerate_scope(output, gate_dir, *, max_pages=200):
     save()
     try:
         for pass_number in (1, 2):
-            traversal = {'number': pass_number, 'pages': [], 'records': []}
+            traversal = {'number': pass_number, 'pages': [], 'records': [], 'overlapping_ids': []}
             report['passes'].append(traversal)
             seen = set()
+            fingerprints = set()
             page = 1
             while True:
                 if page > max_pages:
@@ -116,8 +117,11 @@ def enumerate_scope(output, gate_dir, *, max_pages=200):
                 if not records:
                     raise ValueError('empty_page_before_explicit_end')
                 ids = {r['external_id'] for r in records}
-                if ids & seen:
-                    raise ValueError('overlap_or_repeated_page')
+                fingerprint = tuple(sorted(ids))
+                if fingerprint in fingerprints:
+                    raise ValueError('repeated_page')
+                fingerprints.add(fingerprint)
+                traversal['overlapping_ids'].extend(sorted(ids & seen))
                 seen.update(ids)
                 traversal['pages'].append({'page': page, 'ids': sorted(ids),
                                            'next_page': parsed['next_page']})
@@ -133,10 +137,19 @@ def enumerate_scope(output, gate_dir, *, max_pages=200):
         first, second = report['passes']
         if first['pages'] != second['pages'] or first['records'] != second['records']:
             raise ValueError('source_changed_between_complete_traversals')
-        manifest = sorted(first['records'], key=lambda r: r['external_id'])
+        by_id = {}
+        for record in first['records']:
+            previous = by_id.get(record['external_id'])
+            if previous is not None and previous != record:
+                raise ValueError('same_id_has_conflicting_metadata')
+            by_id[record['external_id']] = record
+        manifest = sorted(by_id.values(), key=lambda r: r['external_id'])
         atomic_json(output/'manifest.json', manifest)
-        report.update(state='two_matching_traversals_observed', enumerable_total=len(manifest),
-                      count_quality='observed_unique_ids_in_declared_scope',
+        overlap = bool(first['overlapping_ids'])
+        report.update(state='matching_traversals_with_overlap' if overlap else 'two_matching_traversals_observed',
+                      enumerable_total=None if overlap else len(manifest), observed_unique_count=len(manifest),
+                      list_occurrences=len(first['records']),
+                      count_quality='lower_bound_pagination_overlap_requires_review' if overlap else 'observed_unique_ids_in_declared_scope',
                       manifest_sha256=hashlib.sha256((output/'manifest.json').read_bytes()).hexdigest())
     except NetworkDeferred as exc:
         report.update(state='host_cooldown_deferred', retry_at=exc.retry_at)
