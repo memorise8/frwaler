@@ -366,6 +366,7 @@ class IsaeEnsmaCrawler(BaseCrawler):
         limit_or_inf = limit if limit is not None else "∞"
 
         while True:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
 
@@ -381,11 +382,8 @@ class IsaeEnsmaCrawler(BaseCrawler):
                 )
                 break
 
-            # Fetch slightly more than needed so skipped items don't force extra round trips
+            # Source windows are independent of the requested new-save count.
             rows = self._PAGE_SIZE
-            if limit is not None:
-                rows = min(self._PAGE_SIZE, max(limit - saved, 1) + self._PAGE_SIZE)
-                rows = min(rows, self._PAGE_SIZE)
 
             try:
                 data = self._fetch_page(start, rows)
@@ -411,7 +409,9 @@ class IsaeEnsmaCrawler(BaseCrawler):
             if page % 10 == 0:
                 print(f"[{self.site_id}] page {page}: saved {saved}/{limit_or_inf}")
 
+            new_source_ids = 0
             for offset, item in enumerate(items, start=1):
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -424,13 +424,15 @@ class IsaeEnsmaCrawler(BaseCrawler):
                         continue
                     if dedup_key:
                         seen_ids.add(dedup_key)
+                        new_source_ids += 1
 
                     paper = self._paper_from_doc(item)
                     if not paper:
                         continue
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
                     counter = f"{saved}/{limit}" if limit is not None else str(saved)
                     print(f"[{self.site_id}] saved {counter}: {paper['title'][:80]}")
                 except KeyboardInterrupt:
@@ -440,8 +442,9 @@ class IsaeEnsmaCrawler(BaseCrawler):
                     continue
 
             start += len(items)
-            if len(items) < self._PAGE_SIZE:
-                print(f"[{self.site_id}] last page (got {len(items)} < {self._PAGE_SIZE}); done")
+            if new_source_ids == 0:
+                self._report_source_failure('invalid_response')
+                print(f"[{self.site_id}] response has no unseen source identifiers; stopping without exhaustion proof")
                 break
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")

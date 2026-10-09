@@ -12,7 +12,7 @@ from crawler import db_libertree
 from crawler.base_crawler import BaseCrawler, CrawlCancelled
 
 ROOT = Path(__file__).resolve().parents[1]
-SITES = ('artsetmetiers', 'enscp', 'enssib', 'icn', 'icp', 'ineris', 'ird', 'polytechnique')
+SITES = ('artsetmetiers', 'enscp', 'enssib', 'icn', 'icp', 'ineris', 'ird', 'polytechnique', 'isae-ensma')
 
 
 class HalOffsetContract:
@@ -39,22 +39,28 @@ class HalOffsetContract:
         self.enterContext(patch.dict(os.environ, {'LIBERTREE_DB_BACKEND': self.BACKEND}))
         self.enterContext(contextlib.redirect_stdout(io.StringIO()))
         self.enterContext(patch.object(self.module.time, 'sleep'))
-        self.enterContext(patch.object(self.module, '_ROWS', 3))
+        if hasattr(self.module, '_ROWS'):
+            self.enterContext(patch.object(self.module, '_ROWS', 3))
+        else:
+            self.enterContext(patch.object(self.cls, '_PAGE_SIZE', 3))
 
     def count(self):
         row = self.conn.execute('SELECT count(*) AS n FROM documents').fetchone()
         return row['n'] if isinstance(row, dict) else row[0]
 
-    def crawl(self, limit=None, *, filtered=(), response_cap=None, cancel_at=None):
+    def crawl(self, limit=None, *, filtered=(), response_cap=None, cancel_at=None, repeat_first=False):
         records = [{'docid': n+1, 'halId_s': f'hal-{n+1}', 'uri_s': f'https://hal.science/hal-{n+1}',
                     'title_s': [f'Scientific research {n+1}'], 'abstract_s': ['short' if n in filtered else 'Scientific abstract. '*10]} for n in range(9)]
         c = self.cls(self.conn)
+        self.last_crawler = c
         c.delivery_mode = 'full'
         if cancel_at is not None:
             c.delivery_should_cancel = lambda: self.count() >= cancel_at
         offsets = []
         def fetch(start, size):
             offsets.append(start)
+            if repeat_first:
+                start = 0
             size = min(size, response_cap) if response_cap else size
             return {'response': {'numFound': len(records), 'docs': records[start:start+size]}}
         with patch.object(c, '_fetch_page', side_effect=fetch):
@@ -84,6 +90,12 @@ class HalOffsetContract:
         self.assertEqual(self.count(), 2)
         self.assertEqual(self.crawl()[0], 7)
         self.assertEqual(self.count(), 9)
+
+    def test_repeated_api_window_stops_without_exhaustion_claim(self):
+        returned, offsets = self.crawl(response_cap=2, repeat_first=True)
+        self.assertEqual((returned, self.count()), (2, 2))
+        self.assertEqual(len(offsets), 2)
+        self.assertFalse(self.last_crawler.delivery_exhausted)
 
 
 for institution in SITES:
