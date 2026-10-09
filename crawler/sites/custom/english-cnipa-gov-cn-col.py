@@ -13,6 +13,7 @@ import re
 import subprocess
 import sys
 import time
+from html import unescape
 from urllib.parse import urljoin, urlsplit
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -121,15 +122,19 @@ def _article_content(html: str, url: str) -> tuple[str, list[str]]:
     for noise in node.select('script, style, nav, header, footer, noscript'):
         noise.decompose()
     pdfs = []
+    captions = set()
     for link in node.select('a[href]'):
         target = urljoin(url, link['href'])
         parsed = urlsplit(target)
         if parsed.scheme in ('http', 'https') and parsed.path.lower().endswith('.pdf'):
             if target not in pdfs:
                 pdfs.append(target)
+            captions.add(' '.join(link.get_text(' ', strip=True).split()).casefold())
             # A download caption by itself is not the document body.
             link.decompose()
     text = re.sub(r'\s+', ' ', node.get_text(' ', strip=True)).strip()
+    if text.casefold() in captions:
+        text = ''
     return text, pdfs
 
 
@@ -395,7 +400,7 @@ class CnipaAnnualReportCrawler(BaseCrawler):
         # Fallback: parse download links (older image-grid format)
         seen_ids: set = set()
         for m in re.finditer(r'href=["\']([^"\']*down\.jsp\?i_ID=(\d+)[^"\']*)["\']', html):
-            href = m.group(1)
+            href = unescape(m.group(1))
             art_id = m.group(2)
             if art_id in seen_ids:
                 continue
@@ -442,20 +447,20 @@ class CnipaAnnualReportCrawler(BaseCrawler):
         # Direct PDF — /attach/0/hash.pdf (dataproxy response)
         m = re.search(r'href=["\']([^"\']*?/attach/[^"\']+\.pdf)["\']', cdata, re.IGNORECASE)
         if m:
-            href = m.group(1)
+            href = unescape(m.group(1))
             pdf_url = href if href.startswith("http") else _BASE_URL + href
 
         # Download redirect — down.jsp?i_ID=… (page-embedded HTML)
         if not pdf_url:
             m = re.search(r'href=["\']([^"\']*?down\.jsp\?i_ID=\d+[^"\']*)["\']', cdata)
             if m:
-                href = m.group(1)
+                href = unescape(m.group(1))
                 pdf_url = href if href.startswith("http") else _BASE_URL + href
 
         # Article URL (often in an HTML comment inside CDATA)
         m = re.search(r'href=["\']([^"\']*?/art/[^"\']+\.html)["\']', cdata)
         if m:
-            href = m.group(1)
+            href = unescape(m.group(1))
             art_url = href if href.startswith("http") else _BASE_URL + href
 
         # Art ID from article URL
@@ -525,6 +530,9 @@ class CnipaAnnualReportCrawler(BaseCrawler):
             title = (page_meta.get("ArticleTitle")
                      or page_meta.get("article:title")
                      or f"CNIPA Annual Report {year_label} — Section {art_id}")
+
+        if article_text.casefold() == ' '.join(title.split()).casefold():
+            article_text = ''
 
         if not pdf_url and len(article_pdfs) == 1:
             pdf_url = article_pdfs[0]

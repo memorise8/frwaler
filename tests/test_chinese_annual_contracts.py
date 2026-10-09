@@ -128,6 +128,20 @@ class CnipaAnnualCounts(AnnualContract,unittest.TestCase):
         text="Commissioner's source description with quoted document information. "*3
         self.assertEqual(self.module._extract_meta_tags('<meta name="description" content="'+text+'">')['description'],text)
 
+    def test_repeated_download_caption_paragraph_is_not_document_body(self):
+        caption='Ⅶ Exchanges with Hong Kong SAR, Macao SAR and Taiwan, China'
+        body,pdfs=self.module._article_content('<div class="en_article"><p>'+caption+'</p><a href="/2017-10/report.pdf">'+caption+'</a></div>','https://english.cnipa.gov.cn/art/report.html')
+        self.assertEqual(body,'')
+        self.assertEqual(pdfs,['https://english.cnipa.gov.cn/2017-10/report.pdf'])
+
+    def test_legacy_download_url_entities_are_decoded_before_persistence(self):
+        c=self.crawler();html='<a href="https://english.cnipa.gov.cn/module/download/down.jsp?i_ID=186070&amp;colID=3261"><img alt="" src="/cover.png"></a>'
+        items=c._parse_page_items(html,'3261','2022')
+        self.assertEqual(len(items),1);self.assertTrue(c._process_item(items[0],'2022'))
+        row=self.conn.execute('SELECT pdf_url,meta_url FROM documents').fetchone()
+        values=list(row.values()) if isinstance(row,dict) else list(row)
+        self.assertEqual(values,['https://english.cnipa.gov.cn/module/download/down.jsp?i_ID=186070&colID=3261']*2)
+
 for cls in (MoeAnnualCounts,CnipaAnnualCounts):
     pg=type(cls.__name__+'Postgres',(cls,),{'BACKEND':'postgres'})
     globals()[pg.__name__]=unittest.skipUnless(os.environ.get('TEST_PG_DSN'),'requires owned disposable PostgreSQL')(pg)
