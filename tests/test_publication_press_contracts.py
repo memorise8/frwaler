@@ -144,6 +144,37 @@ class OneraCounts(PublicationContract, unittest.TestCase):
         for row in self.conn.execute('SELECT published_date,published_date_raw,published_date_status FROM documents').fetchall():
             self.assertEqual(tuple(row.values()) if isinstance(row, dict) else tuple(row), (None, '2025', 'partial'))
 
+    def test_publisher_date_label_is_normalized_without_losing_raw_text(self):
+        c = self.crawler(); original = self.fetch.side_effect
+        def fetch(url, **kw):
+            raw = original(url, **kw)
+            if self.is_list(url):
+                return raw
+            number = int(url.rsplit('-', 1)[1])
+            return raw.replace('class="bg-white">', 'class="bg-white"><div class="date">Publié le '+self.dates[number-1][0]+'</div>')
+        self.fetch.side_effect = fetch
+        self.assertEqual(c.crawl(), 8)
+        rows = self.conn.execute('SELECT published_date,published_date_raw,published_date_precision,published_date_status FROM documents ORDER BY seq_id').fetchall()
+        for row, (raw, value, precision, status) in zip(rows, self.dates):
+            self.assertEqual(tuple(row.values()) if isinstance(row, dict) else tuple(row),
+                             (value, 'Publié le '+raw, precision, status))
+
+
+class SiteDateLabelTests(unittest.TestCase):
+    def test_label_rule_is_site_specific_and_does_not_extract_substrings(self):
+        from crawler.document_dates import normalize_document_dates
+        for site, raw, value, status in [
+            ('onera-fr-fr', 'Publié le 02/10/2026', '2026-10-02', 'normalized'),
+            ('onera-fr-fr', 'Publié le 31/02/2026', None, 'invalid'),
+            ('onera-fr-fr', 'Publié le 02/10/2026 extra', None, 'unrecognized'),
+            ('onera-fr-fr', 'Mis à jour le 02/10/2026', None, 'unrecognized'),
+            ('other-site', 'Publié le 02/10/2026', None, 'unrecognized')]:
+            with self.subTest(site=site, raw=raw):
+                doc = normalize_document_dates({'site_id':site, 'published_date':raw})
+                self.assertEqual(doc['published_date'], value)
+                self.assertEqual(doc['published_date_raw'], raw)
+                self.assertEqual(doc['published_date_status'], status)
+
 
 for cls in (CanurbCounts, OneraCounts):
     pg = type(cls.__name__+'Postgres', (cls,), {'BACKEND': 'postgres'})

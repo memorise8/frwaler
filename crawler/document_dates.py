@@ -17,6 +17,8 @@ SITE_DATE_ORDERS: dict[str, str] = {
     # Native HTML persistence fixtures verify day/month order and raw retention.
     'onera-fr-fr': 'DMY',
 }
+# Reviewed source-field labels only; never search for dates in arbitrary prose.
+SITE_DATE_LABELS = {'onera-fr-fr': r'Publié le\s+(.+)'}
 
 _MONTHS = {}
 for number, names in enumerate((
@@ -153,7 +155,12 @@ def normalize_document_dates(doc, *, order=None):
     result = dict(doc)
     order = order or SITE_DATE_ORDERS.get(doc.get("site_id"))
     for field in DATE_FIELDS:
-        parsed = normalize_date(doc.get(field), order=order)
+        raw = doc.get(field)
+        label = SITE_DATE_LABELS.get(doc.get('site_id'))
+        match = re.fullmatch(label, str(raw).strip(), re.IGNORECASE) if label and raw is not None else None
+        parsed = normalize_date(match[1] if match else raw, order=order)
+        if match:
+            parsed['raw'] = str(raw)
         result[field] = parsed["value"]
         for suffix in ("raw", "status", "precision"):
             result[f"{field}_{suffix}"] = parsed[suffix]
