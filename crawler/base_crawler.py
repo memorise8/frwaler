@@ -261,7 +261,16 @@ class BaseCrawler(ABC):
         """
         self._check_cancelled()
         doc_dict.setdefault("site_id", self.site_id)
-        return db_module.upsert_document(self._conn, doc_dict)
+        external_id = doc_dict.get("external_id")
+        existing = None
+        if external_id is not None:
+            existing = self._conn.execute(
+                "SELECT id FROM documents WHERE site_id = ? AND external_id = ?",
+                (doc_dict["site_id"], external_id),
+            ).fetchone()
+        result = db_module.upsert_document(self._conn, doc_dict)
+        self._last_save_created = existing is None
+        return result
 
     # ------------------------------------------------------------------
     # libertree v2 — INSERT into the new ``data/libertree.db`` schema

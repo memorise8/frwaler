@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Config-driven generic crawler that reads JSON config files."""
 
+import hashlib
 import json
 import os
 import re
@@ -31,6 +32,7 @@ class GenericCrawler(BaseCrawler):
         self._browser = None
         self._playwright = None
         self._cloudscraper = None
+        self.delivery_listing_stop = None
         if self._fetch_method == "cloudscraper":
             import cloudscraper
             self._cloudscraper = cloudscraper.create_scraper()
@@ -52,6 +54,10 @@ class GenericCrawler(BaseCrawler):
         try:
             if crawl_type == "api":
                 return self._crawl_api(limit)
+            if not isinstance(self._config.get("list_page"), dict) or not self._config["list_page"].get("url"):
+                self.delivery_listing_stop = "missing_list_configuration"
+                self._report_source_failure("configuration")
+                return 0
             if crawl_type == "single-page":
                 return self._crawl_single_page(limit)
             return self._crawl_html(limit)
@@ -148,32 +154,57 @@ class GenericCrawler(BaseCrawler):
 
         page_num = pagination.get("start", 1)
         page_param = pagination.get("param", "page")
+        query_pagination = pagination.get("type") == "query_param"
+        step = pagination.get("step", 1)
+        if query_pagination and (type(page_num) is not int or type(step) is not int
+                                 or step <= 0 or not isinstance(page_param, str) or not page_param.strip()):
+            self.delivery_listing_stop = "invalid_pagination_configuration"
+            self._report_source_failure("configuration")
+            return 0
         saved = 0
         unchanged_pages = 0
+        seen_pages = set()
 
         while True:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
+                self.delivery_listing_stop = "new_document_limit"
                 break
 
             # Build list page URL with pagination
             params = dict(list_cfg.get("params", {}))
-            if pagination.get("type") == "query_param":
+            if query_pagination:
                 params[page_param] = page_num
 
             soup = self._fetch_page(list_cfg["url"], params=params)
             if soup is None:
+                self.delivery_listing_stop = "fetch_failed"
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] Failed to fetch list page {page_num}. Stopping.")
                 break
             items = self._extract_list_items(soup, selectors)
 
             if not items:
+                # An empty selector result can mean a changed DOM or a blocked
+                # response. It is not evidence of complete source exhaustion.
+                self.delivery_listing_stop = "empty_listing_unverified"
                 print(f"[{self.site_id}] No items found on page {page_num}. Stopping.")
                 break
+
+            fingerprint = hashlib.sha256(json.dumps(sorted({
+                item.get("detail_url", "") for item in items
+            }), ensure_ascii=False).encode()).digest()
+            if fingerprint in seen_pages:
+                self.delivery_listing_stop = "repeated_listing"
+                self._report_source_failure("invalid_response")
+                break
+            seen_pages.add(fingerprint)
 
             print(f"[{self.site_id}] Page {page_num}: found {len(items)} items")
             page_created = 0
 
             for item_info in items:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -187,22 +218,31 @@ class GenericCrawler(BaseCrawler):
 
                 if paper:
                     self._save_paper(paper)
-                    created = (self._last_save_created if self.site_id == "krivet-re-kr"
-                               else self.delivery_mode == "full" or self._last_save_created)
-                    if created:
+                    if self._last_save_created:
                         saved += 1
                         page_created += 1
                     label = f"{saved}/{limit}" if limit else str(saved)
                     print(f"[{self.site_id}] Saved {label} papers...")
+                else:
+                    self._report_source_failure("item_failed")
 
-            if self.delivery_mode == "incremental":
+            if limit is not None and saved >= limit:
+                self.delivery_listing_stop = "new_document_limit"
+                break
+            if not query_pagination:
+                self.delivery_listing_stop = "pagination_unavailable"
+                self._report_source_failure("configuration")
+                break
+
+            if self.delivery_mode == "incremental" and self.DELIVERY_ORDER == "newest_first":
                 unchanged_pages = unchanged_pages + 1 if page_created == 0 else 0
                 stop_pages = self._config.get("options", {}).get("stop_after_unchanged_pages", 2)
                 if stop_pages and unchanged_pages >= stop_pages:
-                    print(f"[{self.site_id}] Two unchanged pages reached; incremental crawl complete.")
+                    self.delivery_listing_stop = "unchanged_pages"
+                    print(f"[{self.site_id}] {stop_pages} unchanged pages reached; stopping incremental crawl.")
                     break
 
-            page_num += pagination.get("step", 1)
+            page_num += step
 
         print(f"[{self.site_id}] Done. Saved {saved} papers.")
         return saved
@@ -375,6 +415,8 @@ class GenericCrawler(BaseCrawler):
 
         soup = self._fetch_page(list_cfg["url"])
         if soup is None:
+            self.delivery_listing_stop = "fetch_failed"
+            self._report_source_failure("fetch_failed")
             print(f"[{self.site_id}] Failed to fetch page. Stopping.")
             return 0
 
@@ -384,6 +426,7 @@ class GenericCrawler(BaseCrawler):
         links = soup.select(link_sel)
 
         if not links:
+            self.delivery_listing_stop = "empty_listing_unverified"
             print(f"[{self.site_id}] No links found with '{link_sel}'. Stopping.")
             return 0
 
@@ -394,6 +437,7 @@ class GenericCrawler(BaseCrawler):
 
         saved = 0
         for tag in links:
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
 
@@ -443,11 +487,12 @@ class GenericCrawler(BaseCrawler):
                 "metadata": json.dumps({}, ensure_ascii=False),
             }
             self._save_paper(paper)
-            if self.delivery_mode == "full" or self._last_save_created:
+            if self._last_save_created:
                 saved += 1
             label = f"{saved}/{limit}" if limit else str(saved)
             print(f"[{self.site_id}] Saved {label} items...")
 
+        self.delivery_listing_stop = "new_document_limit" if limit is not None and saved >= limit else "single_page_unverified"
         print(f"[{self.site_id}] Done. Saved {saved} items.")
         return saved
 
@@ -456,6 +501,8 @@ class GenericCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def _crawl_api(self, limit=None):
+        self.delivery_listing_stop = "api_not_implemented"
+        self._report_source_failure("configuration")
         print(f"[{self.site_id}] API crawling not yet implemented for generic configs.")
         return 0
 

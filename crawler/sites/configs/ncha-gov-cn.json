@@ -13,7 +13,7 @@
       "step": 1
     },
     "selectors": {
-      "item_container": "#18241 .zfxxgk_zdgkc table.inter tbody tr.me",
+      "item_container": "[id=\"18241\"] .zfxxgk_zdgkc table.inter tbody tr.me",
       "item_link": "td:nth-child(3) a[href]",
       "item_link_attr": "href",
       "title": "td:nth-child(3) a[href]",
