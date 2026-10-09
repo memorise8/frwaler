@@ -122,17 +122,7 @@ class NOAARepositoryViewCrawler(BaseCrawler):
 
         # Published date — usually year-only ("2026") or full ISO
         pub_date_raw = get_meta('citation_publication_date')
-        published_date = None
-        if pub_date_raw:
-            pub_date_raw = pub_date_raw.strip()
-            if re.match(r'^\d{4}$', pub_date_raw):
-                published_date = pub_date_raw
-            elif re.match(r'^\d{4}/\d{2}/\d{2}$', pub_date_raw):
-                published_date = pub_date_raw.replace('/', '-')
-            elif re.match(r'^\d{4}-\d{2}-\d{2}$', pub_date_raw):
-                published_date = pub_date_raw
-            else:
-                published_date = pub_date_raw
+        published_date = pub_date_raw
 
         # Publisher — strip ror.org / URL suffixes, semicolon-join multiple
         publishers_raw = get_meta_all('citation_publisher')
@@ -193,20 +183,36 @@ class NOAARepositoryViewCrawler(BaseCrawler):
         }
 
     def _process_item(self, noaa_id, seen_urls):
-        """Fetch and save one item. Returns True if saved, False otherwise."""
+        """Return actual new-save status separately from source presence."""
+        self._last_item_present = False
+        self._last_item_fetch_failed = False
         item_url = f"{self._DETAIL_BASE}{noaa_id}"
         if item_url in seen_urls:
+            self._last_item_present = item_url in self._seen_present_urls
             return False
         seen_urls.add(item_url)
 
         time.sleep(self._delay)
         detail_html = self._curl_get(item_url)
-        if not detail_html or self._is_not_found(detail_html):
+        if not detail_html:
+            self._last_item_fetch_failed = True
+            self._report_source_failure('item_failed')
+            return False
+        if 'Access Denied' in detail_html[:600]:
+            self._last_item_fetch_failed = True
+            self._report_source_failure('authentication_failed')
+            return False
+        if self._is_not_found(detail_html):
             return False
 
         paper = self._parse_detail(detail_html, noaa_id)
         if not paper:
+            self._last_item_fetch_failed = True
+            self._report_source_failure('item_failed')
             return False
+
+        self._last_item_present = True
+        self._seen_present_urls.add(item_url)
 
         abstract = paper.get('abstract') or ''
         if len(abstract) < 50:
@@ -214,11 +220,15 @@ class NOAARepositoryViewCrawler(BaseCrawler):
             return False
 
         self._save_paper(paper)
-        return True
+        return self._last_save_created
 
     def crawl(self, limit=None):
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         saved = 0
         seen_urls = set()
+        self._seen_present_urls = set()
         start_time = time.time()
         limit_or_inf = limit if limit is not None else float('inf')
 
@@ -229,6 +239,7 @@ class NOAARepositoryViewCrawler(BaseCrawler):
         min_browse_id = None
 
         while not browse_done and saved < limit_or_inf:
+            self._check_cancelled()
             if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute budget reached, stopping")
                 return saved
@@ -240,16 +251,20 @@ class NOAARepositoryViewCrawler(BaseCrawler):
             )
             html = self._curl_get(list_url)
             if not html or self._is_not_found(html):
+                self._report_source_failure('fetch_failed')
                 print(f"[{self.site_id}] List page failed at offset {offset}, ending browse phase")
-                browse_done = True
-                break
+                return saved
 
             ids = self._parse_list_ids(html)
             if not ids:
                 browse_done = True
                 break
+            if all(f'{self._DETAIL_BASE}{nid}' in seen_urls for nid in ids):
+                self._report_source_failure('invalid_response')
+                return saved
 
             for noaa_id in ids:
+                self._check_cancelled()
                 if saved >= limit_or_inf:
                     return saved
                 try:
@@ -264,6 +279,7 @@ class NOAARepositoryViewCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(f"[{self.site_id}] item {noaa_id} failed: {exc}")
                     continue
 
@@ -281,13 +297,14 @@ class NOAARepositoryViewCrawler(BaseCrawler):
 
         # Start just below the lowest ID seen in browse/recent
         if min_browse_id is None:
-            min_browse_id = "72459"
+            return saved
 
         current_id = int(min_browse_id) - 1
         seq_items = 0
         consecutive_misses = 0
 
         while saved < limit_or_inf and current_id > 0:
+            self._check_cancelled()
             if time.time() - start_time > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
                 print(f"[{self.site_id}] 25-minute budget reached, stopping")
                 break
@@ -307,14 +324,15 @@ class NOAARepositoryViewCrawler(BaseCrawler):
             try:
                 if self._process_item(noaa_id, seen_urls):
                     saved += 1
-                    consecutive_misses = 0
-                else:
-                    consecutive_misses += 1
+                if self._last_item_fetch_failed:
+                    break
+                consecutive_misses = 0 if self._last_item_present else consecutive_misses+1
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure('item_failed')
                 print(f"[{self.site_id}] item {noaa_id} failed: {exc}")
-                consecutive_misses += 1
+                consecutive_misses = 0 if self._last_item_present else consecutive_misses+1
 
             current_id -= 1
 

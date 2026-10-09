@@ -13,7 +13,6 @@ import re
 import sys
 import time
 import urllib.parse
-from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
@@ -35,19 +34,27 @@ class DorasDcuIeViewCrawler(BaseCrawler):
 
     # ------------------------------------------------------------------
     def crawl(self, limit=None):
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         limit_label = str(limit) if limit is not None else "inf"
         print(f"[{self.site_id}] starting crawl limit={limit_label}")
         start_time = time.time()
 
         records = self._fetch_json_export()
-        if not records:
+        if records is None:
+            self._report_source_failure('fetch_failed')
             print(f"[{self.site_id}] ERROR: could not fetch JSON export")
             return 0
 
         print(f"[{self.site_id}] fetched {len(records)} records")
 
         # Newest-first so MAX(post_number) stop logic works for incremental runs
-        records.sort(key=lambda r: r.get("eprintid") or 0, reverse=True)
+        try:
+            records.sort(key=lambda r: int(r.get("eprintid") or 0), reverse=True)
+        except (TypeError, ValueError):
+            self._report_source_failure('invalid_response')
+            return 0
 
         saved = 0
         seen_ids: set = set()
@@ -55,6 +62,7 @@ class DorasDcuIeViewCrawler(BaseCrawler):
         total = len(records)
 
         for batch_start in range(0, total, self._PAGE_SIZE):
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
 
@@ -85,6 +93,7 @@ class DorasDcuIeViewCrawler(BaseCrawler):
                 )
 
             for rec in batch:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -99,6 +108,7 @@ class DorasDcuIeViewCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(
                         f"[{self.site_id}] item "
                         f"{rec.get('eprintid', '?')} failed: {exc}"
@@ -115,17 +125,21 @@ class DorasDcuIeViewCrawler(BaseCrawler):
     def _fetch_json_export(self):
         """Download full JSON export with 3-attempt exponential back-off."""
         backoffs = [1, 3, 9]
+        reason = 'fetch_failed'
         for attempt, backoff in enumerate(backoffs):
+            self._check_cancelled()
             try:
+                reason = 'fetch_failed'
                 resp = self._session.get(self._JSON_EXPORT_URL, timeout=180)
                 resp.raise_for_status()
+                reason = 'invalid_response'
                 try:
                     data = resp.json()
                 except Exception:
                     data = json.loads(
                         resp.content.decode("utf-8", errors="replace")
                     )
-                if isinstance(data, list):
+                if isinstance(data, list) and all(isinstance(r, dict) for r in data):
                     return data
                 print(
                     f"[{self.site_id}] unexpected JSON type "
@@ -140,10 +154,11 @@ class DorasDcuIeViewCrawler(BaseCrawler):
                 )
             if attempt < 2:
                 time.sleep(backoff)
+        self._report_source_failure(reason)
         return None
 
     def _process_record(self, rec, seen_ids: set) -> bool:
-        """Parse one EPrints JSON record and persist it. Returns True if saved."""
+        """Parse an EPrints record; return True only for a new database row."""
         eprintid = rec.get("eprintid")
         if not eprintid:
             return False
@@ -181,7 +196,7 @@ class DorasDcuIeViewCrawler(BaseCrawler):
 
         raw_datestamp = str(rec.get("datestamp") or "").strip()
         # datestamp = repository deposit timestamp → listed_date
-        posted_date = raw_datestamp[:10] if len(raw_datestamp) >= 10 else None
+        posted_date = raw_datestamp or None
 
         # --- PDF + filename ------------------------------------------------
         pdf_url, original_filename = self._extract_pdf(eprintid, rec)
@@ -233,6 +248,7 @@ class DorasDcuIeViewCrawler(BaseCrawler):
             "title": title,
             "abstract": abstract,
             "published_date": published_date,
+            "listed_date": posted_date,
             "posted_date": posted_date,
             "authors": authors,
             "publisher": institution,
@@ -245,7 +261,7 @@ class DorasDcuIeViewCrawler(BaseCrawler):
             "doi": "",
             "metadata": json.dumps(metadata_raw, ensure_ascii=False),
         })
-        return True
+        return self._last_save_created
 
     def _extract_pdf(self, eprintid: int, rec: dict) -> tuple:
         """Return (pdf_url, original_filename) for the first public PDF doc."""
@@ -270,17 +286,5 @@ class DorasDcuIeViewCrawler(BaseCrawler):
 
 
 def _normalize_date(raw: str):
-    """Return ISO date string from EPrints date field."""
-    if not raw:
-        return None
-    raw = raw.strip()
-    for fmt in (
-        "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S",
-        "%Y-%m-%d", "%Y-%m", "%Y",
-    ):
-        try:
-            dt = datetime.strptime(raw[: len(fmt)], fmt)
-            return dt.strftime("%Y-%m-%d")
-        except ValueError:
-            continue
-    return raw[:10] if len(raw) >= 10 else raw
+    """Retain source date text; shared persistence validates its precision."""
+    return raw or None
