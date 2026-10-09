@@ -348,6 +348,7 @@ class VaGovVetdataCrawler(BaseCrawler):
         any value (3, 500, or None for unlimited).  A seen_urls set
         guards against duplicate file links on the page.
         """
+        self._check_cancelled()
         start_time = time.monotonic()
         max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute budget
         lim_str = str(limit) if limit is not None else "∞"
@@ -356,6 +357,7 @@ class VaGovVetdataCrawler(BaseCrawler):
         html = self._curl_get(_REPORT_URL)
         if not html:
             print(f"[{_SITE_ID}] ERROR: Failed to fetch report page")
+            self._report_source_failure("fetch_failed")
             return 0
 
         print(f"[{_SITE_ID}] Parsing ({len(html):,} bytes)")
@@ -363,6 +365,7 @@ class VaGovVetdataCrawler(BaseCrawler):
             all_records = self._parse_reports(html)
         except Exception as exc:
             print(f"[{_SITE_ID}] Parse error: {exc}")
+            self._report_source_failure("invalid_response")
             return 0
 
         if not all_records:
@@ -390,6 +393,7 @@ class VaGovVetdataCrawler(BaseCrawler):
         print(f"[{_SITE_ID}] page 1: saved {saved}/{lim_str}")
 
         for i, record in enumerate(deduped):
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
 
@@ -430,7 +434,8 @@ class VaGovVetdataCrawler(BaseCrawler):
                     "original_filename": record.get("original_filename"),
                     "metadata": record.get("metadata", "{}"),
                 })
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
                 if saved % 10 == 0:
                     print(f"[{_SITE_ID}] page 1: saved {saved}/{lim_str}")
                 elif saved <= 5:
@@ -442,6 +447,7 @@ class VaGovVetdataCrawler(BaseCrawler):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure("item_failed")
                 print(
                     f"[{_SITE_ID}] item {i} failed: {exc} — "
                     f"title={record.get('title', '?')[:50]}"

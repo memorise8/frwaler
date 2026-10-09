@@ -269,6 +269,7 @@ class SwissPolarChExpeditionsCrawler(BaseCrawler):
     base_url = "https://swisspolar.ch"
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved = 0
         target = float("inf") if limit is None else max(0, int(limit))
         limit_or_inf = "inf" if limit is None else str(target)
@@ -277,6 +278,7 @@ class SwissPolarChExpeditionsCrawler(BaseCrawler):
 
         try:
             for page in range(1, _PAGE_CAP + 1):
+                self._check_cancelled()
                 if saved >= target:
                     break
                 if time.monotonic() - start >= _MAX_WALL_SECONDS - 30:
@@ -292,6 +294,7 @@ class SwissPolarChExpeditionsCrawler(BaseCrawler):
 
                 new_on_page = 0
                 for index, record in enumerate(records, start=1):
+                    self._check_cancelled()
                     if saved >= target:
                         break
                     if time.monotonic() - start >= _MAX_WALL_SECONDS - 30:
@@ -318,7 +321,8 @@ class SwissPolarChExpeditionsCrawler(BaseCrawler):
 
                         paper["abstract"] = abstract
                         self._save_paper(paper)
-                        saved += 1
+                        if self._last_save_created:
+                            saved += 1
 
                         sleep_for = self._delay if self._delay is not None else 1.0
                         if sleep_for > 0:
@@ -326,11 +330,13 @@ class SwissPolarChExpeditionsCrawler(BaseCrawler):
                     except KeyboardInterrupt:
                         raise
                     except Exception as exc:
+                        self._report_source_failure("item_failed")
                         label = record.get("post_number") or record.get("doi") or index
                         print(f"[{self.site_id}] item {label} failed: {exc}")
                         continue
 
                 if new_on_page == 0:
+                    self._report_source_failure("invalid_response")
                     print(f"[{self.site_id}] page {page}: no new URLs; stopping")
                     break
                 if not has_next:
@@ -351,24 +357,31 @@ class SwissPolarChExpeditionsCrawler(BaseCrawler):
         url = _WP_LIST_API.format(page=page)
         raw = _curl_get(url, accept="Accept: application/json,*/*;q=0.8")
         if not raw:
+            self._report_source_failure("fetch_failed")
             return [], False
 
         try:
             data = json.loads(raw)
         except Exception as exc:
             print(f"[{self.site_id}] list JSON parse failed on page {page}: {exc}")
+            self._report_source_failure("invalid_response")
             return [], False
 
-        if not isinstance(data, list) or not data:
+        if not isinstance(data, list):
+            self._report_source_failure("invalid_response")
+            return [], False
+        if not data:
             return [], False
 
         page_obj = data[0]
         content = ((page_obj.get("content") or {}).get("rendered") or "")
         if not content:
+            self._report_source_failure("invalid_response")
             return [], False
 
         soup = _make_soup(content)
         if soup is None:
+            self._report_source_failure("invalid_response")
             return [], False
 
         page_text = soup.get_text(" ", strip=True)

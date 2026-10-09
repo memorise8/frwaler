@@ -219,18 +219,22 @@ class SanteGouvFrMinistereCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def _collect_article_urls(
-        self, pw_page, cat_url: str, max_count: int = 9999
-    ) -> list[str]:
+        self, pw_page, cat_url: str, max_count: Optional[int] = None,
+        start_ts: Optional[float] = None,
+    ):
         """Walk a listing page using ?max_articles=N links (cumulative load-more).
 
-        Returns deduplicated absolute article URLs found up to *max_count*.
+        Yields deduplicated source URLs; new database saves are limited by crawl.
         """
         seen:   set[str]  = set()
         result: list[str] = []
         max_articles_param: Optional[int] = None  # None = default first page
 
         for page_n in range(200):  # Safety cap: 200 pagination steps
-            if len(result) >= max_count:
+            self._check_cancelled()
+            if start_ts is not None and time.time() - start_ts > self._CRAWL_BUDGET_S:
+                break
+            if max_count is not None and len(result) >= max_count:
                 break
 
             url = (
@@ -240,6 +244,7 @@ class SanteGouvFrMinistereCrawler(BaseCrawler):
             )
             html = self._fetch(pw_page, url)
             if not html:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] listing fetch failed: {url}")
                 break
 
@@ -249,6 +254,7 @@ class SanteGouvFrMinistereCrawler(BaseCrawler):
                 soup = None
             main_el = soup.find("main") if soup else None
             if not main_el:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] no <main> on listing: {url}")
                 break
 
@@ -262,7 +268,12 @@ class SanteGouvFrMinistereCrawler(BaseCrawler):
                     seen.add(full)
                     new_found.append(full)
 
-            result.extend(new_found)
+            for article_url in new_found:
+                self._check_cancelled()
+                if max_count is not None and len(result) >= max_count:
+                    return
+                result.append(article_url)
+                yield article_url
 
             cat_label = cat_url.rstrip("/").split("/")[-1] or "root"
             if page_n % 10 == 0:
@@ -279,11 +290,14 @@ class SanteGouvFrMinistereCrawler(BaseCrawler):
                     more_param = int(m.group(1))
                     break
 
-            if more_param is None or not new_found:
+            if more_param is None:
+                break
+            if not new_found or (max_articles_param is not None and more_param <= max_articles_param):
+                self._report_source_failure("invalid_response")
                 break
             max_articles_param = more_param
 
-        return result
+        return
 
     # ------------------------------------------------------------------
     # Article detail parsing
@@ -449,9 +463,11 @@ class SanteGouvFrMinistereCrawler(BaseCrawler):
         -------
         int  Number of records actually saved.
         """
+        self._check_cancelled()
         try:
             import playwright  # noqa: F401
         except ImportError:
+            self._report_source_failure("configuration")
             print(
                 f"[{self.site_id}] ERROR: playwright not installed — "
                 "run: pip install playwright && playwright install chromium"
@@ -469,43 +485,28 @@ class SanteGouvFrMinistereCrawler(BaseCrawler):
             print(f"[{self.site_id}] Loading documentation index …", flush=True)
             index_html = self._fetch(pw_page, self._START_URL)
             if not index_html:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] Failed to load index — aborting.")
                 return saved
 
             cat_urls = self._get_category_urls(index_html)
             print(f"[{self.site_id}] Found {len(cat_urls)} category URLs", flush=True)
 
-            # ── Step 2: Collect article URLs from each listing page ──────────
-            all_article_urls: list[str] = []
-            for cat_url in cat_urls:
-                if time.time() - start_ts > self._CRAWL_BUDGET_S:
-                    print(f"[{self.site_id}] 25-min budget reached during listing phase")
-                    break
-                want = (
-                    None
-                    if limit is None
-                    else limit - saved - len(all_article_urls)
-                )
-                if want is not None and want <= 0:
-                    break
-                urls = self._collect_article_urls(
-                    pw_page, cat_url,
-                    max_count=(want if want is not None else 9999),
-                )
-                for u in urls:
-                    if u not in seen_urls:
-                        seen_urls.add(u)
-                        all_article_urls.append(u)
+            def article_urls():
+                for cat_url in cat_urls:
+                    self._check_cancelled()
+                    if time.time() - start_ts > self._CRAWL_BUDGET_S:
+                        return
+                    for u in self._collect_article_urls(pw_page, cat_url, start_ts=start_ts):
+                        if u not in seen_urls:
+                            seen_urls.add(u)
+                            yield u
 
-            print(
-                f"[{self.site_id}] Collected {len(all_article_urls)} unique article URLs",
-                flush=True,
-            )
-
-            # ── Step 3: Fetch and parse each article detail page ────────────
+            # Fetch details as source URLs arrive, stopping only after new saves.
             limit_n = limit if limit is not None else float("inf")
 
-            for i, art_url in enumerate(all_article_urls):
+            for i, art_url in enumerate(article_urls()):
+                self._check_cancelled()
                 if saved >= limit_n:
                     break
                 if time.time() - start_ts > self._CRAWL_BUDGET_S:
@@ -521,6 +522,7 @@ class SanteGouvFrMinistereCrawler(BaseCrawler):
                 try:
                     html = self._fetch(pw_page, art_url)
                     if not html:
+                        self._report_source_failure("item_failed")
                         print(f"[{self.site_id}] item {i} fetch failed: {art_url}")
                         continue
 
@@ -529,12 +531,16 @@ class SanteGouvFrMinistereCrawler(BaseCrawler):
                         continue
 
                     self._save_paper(paper)
-                    saved += 1
+                    if self._last_save_created:
+                        saved += 1
+                    if saved >= limit_n:
+                        break
                     time.sleep(self._delay)
 
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] item {art_url} failed: {exc}")
                     continue
 

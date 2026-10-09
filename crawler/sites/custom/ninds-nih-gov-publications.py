@@ -226,17 +226,13 @@ class NINDSNIHPublicationsCrawler(BaseCrawler):
     # Main crawl
     # ------------------------------------------------------------------
 
-    def crawl(self, limit=None) -> int:
-        start_time = time.time()
-        limit_val = limit if limit is not None else float("inf")
-        saved = 0
+    def _iter_listing_items(self, start_time):
+        """Yield source records page by page, independently of new-save limits."""
         seen_urls: set[str] = set()
-        all_items: list[dict] = []
-
-        # ── Phase 1: walk listing pages ───────────────────────────────
         total_known: int | None = None
 
         for page in range(self._MAX_PAGES):
+            self._check_cancelled()
             elapsed = time.time() - start_time
             if elapsed > self._WALL_BUDGET:
                 print(
@@ -248,6 +244,7 @@ class NINDSNIHPublicationsCrawler(BaseCrawler):
             list_url = f"{self.base_url}/publications?page={page}"
             html = self._curl_get(list_url)
             if not html:
+                self._report_source_failure("fetch_failed")
                 print(
                     f"[{self.site_id}] failed to fetch listing page {page}, stopping."
                 )
@@ -263,6 +260,8 @@ class NINDSNIHPublicationsCrawler(BaseCrawler):
             new_items = [it for it in items if it["url"] not in seen_urls]
 
             if not new_items:
+                if items or (total_known is not None and len(seen_urls) < total_known):
+                    self._report_source_failure("invalid_response")
                 print(
                     f"[{self.site_id}] no new items on page {page}, "
                     "pagination complete."
@@ -270,35 +269,31 @@ class NINDSNIHPublicationsCrawler(BaseCrawler):
                 break
 
             for it in new_items:
+                self._check_cancelled()
                 seen_urls.add(it["url"])
-                all_items.append(it)
+                yield page, it
 
             if page % 10 == 0:
                 print(
                     f"[{self.site_id}] page {page}: "
-                    f"collected {len(all_items)} URLs so far"
+                    f"collected {len(seen_urls)} URLs so far"
                 )
 
-            # Stop collecting listing pages early if we already have enough
-            if limit is not None and len(all_items) >= limit:
+            if total_known is not None and len(seen_urls) >= total_known:
                 break
-
-            # Detect last page from total
-            if total_known is not None:
-                max_page = (total_known - 1) // self._ITEMS_PER_PAGE
-                if page >= max_page:
-                    break
 
             time.sleep(self._delay)
 
-        print(
-            f"[{self.site_id}] collected {len(all_items)} publication URLs"
-        )
+    def crawl(self, limit=None) -> int:
+        self._check_cancelled()
+        start_time = time.time()
+        limit_val = limit if limit is not None else float("inf")
+        saved = 0
+        if limit_val <= 0:
+            return saved
 
-        # ── Phase 2: fetch detail pages and save ──────────────────────
-        to_fetch = all_items if limit is None else all_items[:limit]
-
-        for idx, item in enumerate(to_fetch):
+        for page, item in self._iter_listing_items(start_time):
+            self._check_cancelled()
             if time.time() - start_time > self._WALL_BUDGET:
                 print(
                     f"[{self.site_id}] wall-clock budget exhausted at "
@@ -312,6 +307,7 @@ class NINDSNIHPublicationsCrawler(BaseCrawler):
             try:
                 detail_html = self._curl_get(url)
                 if not detail_html:
+                    self._report_source_failure("item_failed")
                     print(
                         f"[{self.site_id}] item {url} failed: "
                         "curl returned None, skipping"
@@ -371,7 +367,10 @@ class NINDSNIHPublicationsCrawler(BaseCrawler):
                 }
 
                 self._save_paper(paper)
-                saved += 1
+                if self._last_save_created:
+                    saved += 1
+                if saved >= limit_val:
+                    break
 
                 if saved % 10 == 0:
                     print(
@@ -382,6 +381,7 @@ class NINDSNIHPublicationsCrawler(BaseCrawler):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure("item_failed")
                 print(f"[{self.site_id}] item {url} failed: {exc}")
                 continue
 

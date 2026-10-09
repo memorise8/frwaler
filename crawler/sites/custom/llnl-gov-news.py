@@ -135,16 +135,19 @@ class LLNLGovNewsCrawler(BaseCrawler):
     base_url  = "https://www.llnl.gov"
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         saved        = 0
-        seen_urls: set[str] = set()
         start_time   = time.time()
         max_wall     = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))    # 25-minute wall-clock budget
         max_pages    = 200        # safety cap
         page_num     = 0
+        offset       = 0
+        seen_source_ids = set()
 
         limit_or_inf = limit if limit is not None else float("inf")
 
         while saved < limit_or_inf:
+            self._check_cancelled()
             if time.time() - start_time > max_wall:
                 print(f"[llnl-gov-news] 25-minute budget reached, stopping at saved={saved}")
                 break
@@ -152,16 +155,16 @@ class LLNLGovNewsCrawler(BaseCrawler):
                 print(f"[llnl-gov-news] Safety cap of {max_pages} pages reached, stopping")
                 break
 
-            offset     = page_num * _PAGE_SIZE
-            remaining  = int(limit_or_inf - saved) if limit is not None else _PAGE_SIZE
-            fetch_size = min(_PAGE_SIZE, remaining) if limit is not None else _PAGE_SIZE
-
             if page_num % 10 == 0:
                 print(f"[llnl-gov-news] page {page_num}: saved {saved}/{limit if limit else 'inf'}")
 
-            items = _fetch_page(offset, fetch_size)
+            items = _fetch_page(offset, _PAGE_SIZE)
             if items is None:
+                self._report_source_failure("fetch_failed")
                 print(f"[llnl-gov-news] fetch failed at page {page_num}, stopping")
+                break
+            if not isinstance(items, list):
+                self._report_source_failure("invalid_response")
                 break
             if not items:
                 print(f"[llnl-gov-news] empty page at offset={offset}, pagination done")
@@ -170,13 +173,19 @@ class LLNLGovNewsCrawler(BaseCrawler):
             new_this_page = 0
 
             for item in items:
+                self._check_cancelled()
                 if saved >= limit_or_inf:
                     break
 
                 try:
                     nid = str(item.get("nid") or "").strip()
                     if not nid:
+                        self._report_source_failure("invalid_response")
                         continue
+                    if nid in seen_source_ids:
+                        continue
+                    seen_source_ids.add(nid)
+                    new_this_page += 1
 
                     title = (item.get("title") or "").strip()
                     if not title:
@@ -193,11 +202,6 @@ class LLNLGovNewsCrawler(BaseCrawler):
                         detail_url = f"{_WWW_BASE}{alias_path}"
                     else:
                         detail_url = f"{_WWW_BASE}/news"
-
-                    # URL-level deduplication
-                    if detail_url in seen_urls:
-                        continue
-                    seen_urls.add(detail_url)
 
                     # Abstract — body_value is a ~300-char teaser from the API
                     body_raw = item.get("body_value") or item.get("body_mini_value") or ""
@@ -248,21 +252,24 @@ class LLNLGovNewsCrawler(BaseCrawler):
                         "metadata":          json.dumps(meta, ensure_ascii=False),
                     })
 
-                    saved         += 1
-                    new_this_page += 1
+                    if self._last_save_created:
+                        saved += 1
 
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     nid_str = item.get("nid", "?") if isinstance(item, dict) else "?"
                     print(f"[llnl-gov-news] item nid={nid_str} failed: {exc}")
                     continue
 
             if new_this_page == 0:
+                self._report_source_failure("invalid_response")
                 print(f"[llnl-gov-news] no new items on page {page_num}, stopping")
                 break
 
             page_num += 1
+            offset += len(items)
             # Rate-limit between page fetches (no per-item detail-page fetch)
             if saved < limit_or_inf:
                 time.sleep(1.0)
