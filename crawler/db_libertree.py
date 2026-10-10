@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from .document_dates import DATE_METADATA_FIELDS, normalize_document_dates, migrate_date_columns
-from .document_identity import find_krivet_document
+from .document_identity import find_krivet_document, find_kei_document
 
 DB_PATH = Path(__file__).resolve().parent.parent / "libertree-app" / "data" / "libertree.db"
 
@@ -300,6 +300,8 @@ def find_by_dedup_key(
     """
     if site_id == "krivet-re-kr":
         return find_krivet_document(conn, site_id, post_number, meta_url, postgres=False)
+    if site_id == "kei-re-kr-eliblistes":
+        return find_kei_document(conn, site_id, post_number, meta_url, postgres=False)
     if post_number is None:
         row = conn.execute(
             """

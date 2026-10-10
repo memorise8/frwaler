@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from .document_dates import DATE_METADATA_FIELDS, normalize_document_dates, migrate_date_columns
-from .document_identity import find_krivet_document
+from .document_identity import find_krivet_document, find_kei_document
 
 import psycopg
 from psycopg.rows import dict_row
@@ -101,6 +101,8 @@ def upsert_site(conn, site_id, site_name, site_url, sheet: Optional[str] = None)
 def find_by_dedup_key(conn, site_id, post_number, meta_url) -> Optional[int]:
     if site_id == "krivet-re-kr":
         return find_krivet_document(conn, site_id, post_number, meta_url, postgres=True)
+    if site_id == "kei-re-kr-eliblistes":
+        return find_kei_document(conn, site_id, post_number, meta_url, postgres=True)
     if post_number is None:
         row = conn.execute(
             "SELECT seq_id FROM documents WHERE site_id=%s AND post_number IS NULL AND meta_url=%s LIMIT 1",

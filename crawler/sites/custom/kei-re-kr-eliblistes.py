@@ -244,12 +244,16 @@ class KeiReKrEliblistesCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         saved = 0
         seen_urls = set()
         start_time = time.time()
         limit_str = str(limit) if limit is not None else "∞"
 
         for page in range(1, self._MAX_PAGES + 1):
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
 
@@ -279,6 +283,7 @@ class KeiReKrEliblistesCrawler(BaseCrawler):
             new_on_page = 0
 
             for item in items:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -348,6 +353,9 @@ class KeiReKrEliblistesCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
+                    if self.delivery_mode == 'backfill':
+                        return saved
                     print(f"[{self.site_id}] item {c_id} failed: {exc}; continuing")
                     continue
 
