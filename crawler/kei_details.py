@@ -106,7 +106,7 @@ def parse_detail(html, item):
         publication = date if date_label == '발간일' else None
         listed = date if date_label in ('작성일시', '작성일', '등록일') else item.get('date_raw')
         writer = fields.get('작성자', '')
-        body = main.select_one(':scope > .tb_contents')
+        bodies = main.select(':scope > .tb_contents')
         contents = ''
     else:
         for node in main.select('.report_title .right > ul > li'):
@@ -119,10 +119,16 @@ def parse_detail(html, item):
         listed = item.get('date_raw')
         for label in ('저자', '연구진'):
             authors.extend(part.strip() for part in re.split(r'[;,]', fields.get(label, '')) if part.strip())
-        body = main.select_one('#view2')
+        bodies = main.select('#view2')
         contents = text(main.select_one('#view1'))
-    if body is None:
+    if not bodies:
         raise ValueError('KEI source body container missing')
+    # A broken quote in the preceding contents table (observed at 681569)
+    # lets lxml attach id="view2" to a span and absorb the site footer.
+    # Such a repaired node is neither a report body nor an empty-body proof.
+    if len(bodies) != 1 or bodies[0].name != 'div':
+        raise ValueError('KEI source body container malformed or ambiguous')
+    body = bodies[0]
     for node in body.select('script,style,nav'):
         node.decompose()
     value = text(body)

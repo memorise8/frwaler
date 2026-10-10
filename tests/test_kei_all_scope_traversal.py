@@ -49,6 +49,20 @@ class KeiTraversal(unittest.TestCase):
         names = [r[0] for r in cur.description]
         return [dict(r) if hasattr(r, 'keys') else dict(zip(names, r)) for r in cur]
 
+    def test_malformed_body_identity_stops_before_save_or_PDF_fallback(self):
+        def change(raw, scope, query):
+            if query.get('act') == ['view']:
+                return raw.replace('<div id="view2">', '<span id="view2">')
+            return raw
+        self.change_source = change
+        c = self.crawler(); c.delivery_mode = 'backfill'
+        self.assertEqual(c.crawl(limit=2), 0)
+        self.assertEqual(self.count(), 0)
+        self.assertEqual(c.delivery_source_failure, 'item_failed')
+        self.assertFalse(c.delivery_exhausted)
+        self.assertEqual(c.delivery_pending_cursor['offset'], 0)
+        c._session.get.assert_not_called()
+
     def test_all_eleven_scopes_same_numeric_ids_repeat_zero_and_date_roles(self):
         c = self.crawler()
         self.assertEqual(c.crawl(), 32)

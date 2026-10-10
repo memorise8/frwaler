@@ -34,6 +34,29 @@ def fixture(scope='board-0028', *, body='<p>실제 본문</p>', filename='report
 
 
 class KeiDetails(unittest.TestCase):
+    def test_repaired_span_cannot_supply_footer_as_report_body(self):
+        raw, item = fixture('researchreport', body='')
+        changed = raw.replace('<div id="view2"></div>',
+                              '<span id="view2">' + '만족도 조사 개인정보처리방침 ' * 20 + '</span>')
+        with self.assertRaisesRegex(ValueError, 'body container malformed'):
+            parse_detail(changed, item)
+
+    def test_unclosed_contents_attribute_cannot_reassign_body_identity(self):
+        raw, item = fixture('researchreport', body='')
+        changed = raw.replace('<div id="view1">목차: 방법, 결과</div>',
+                              '<div id="view1"><p><span style="letter-spacing: -0.\n</div>')
+        changed = changed.replace('<div id="view2">', '<div class="view" id="view2">')
+        with self.assertRaisesRegex(ValueError, 'body container malformed'):
+            parse_detail(changed, item)
+
+    def test_multiple_body_containers_are_not_silently_selected(self):
+        for scope, marker in [('researchreport', '<div id="view2">'),
+                              ('board-0028', '<div class="tb_contents">')]:
+            raw, item = fixture(scope)
+            changed = raw.replace(marker, marker + '첫 본문</div>' + marker)
+            with self.subTest(scope=scope), self.assertRaisesRegex(ValueError, 'body container malformed or ambiguous'):
+                parse_detail(changed, item)
+
     def test_HTTP200_style_truncated_document_is_not_an_empty_body(self):
         raw,item=fixture('researchreport')
         truncated='<!DOCTYPE html><html><body>'+raw.split('<em>2026-09-30',1)[0]+'<em>'
