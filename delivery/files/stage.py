@@ -45,9 +45,11 @@ def execute(stage, directory, url=None):
         finally:
             conn.close()
     if stage == 'text':
-        from crawler.converter import extract_text_pdf
+        from crawler.converter import PDFTextAccessError, extract_text_pdf
         try:
             text = extract_text_pdf(root / 'source.pdf')
+        except PDFTextAccessError as exc:
+            return {'success': False, 'error': exc.code}
         except Exception:
             return {'success': False, 'error': 'parse_failed'}
         if not text or not text.strip():

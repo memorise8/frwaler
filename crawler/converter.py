@@ -7,6 +7,13 @@ import zipfile
 from bs4 import BeautifulSoup
 
 
+class PDFTextAccessError(Exception):
+    """A valid PDF cannot be extracted with its supplied access permissions."""
+    def __init__(self, code):
+        self.code = code
+        super().__init__(code)
+
+
 def extract_text_hwp(filepath):
     """Extract text from HWP (binary) via PrvText OLE stream."""
     import olefile
@@ -51,9 +58,19 @@ def extract_text_pdf(filepath):
     """Extract text from PDF using pdfplumber (if available) or fallback."""
     try:
         import pdfplumber
+        from pdfminer.pdfdocument import PDFPasswordIncorrect
 
-        with pdfplumber.open(filepath) as pdf:
-            pages = [p.extract_text() or "" for p in pdf.pages]
+        try:
+            with pdfplumber.open(filepath) as pdf:
+                if not pdf.doc.is_extractable:
+                    raise PDFTextAccessError('pdf_copy_restricted')
+                pages = [p.extract_text() or "" for p in pdf.pages]
+        except Exception as exc:
+            # Recent pdfplumber wraps pdfminer errors, retaining their context.
+            cause = exc.__cause__ or exc.__context__
+            if isinstance(exc, PDFPasswordIncorrect) or isinstance(cause, PDFPasswordIncorrect):
+                raise PDFTextAccessError('pdf_password_required') from exc
+            raise
         return "\n\n".join(pages).strip()
     except ImportError:
         pass
@@ -62,6 +79,13 @@ def extract_text_pdf(filepath):
         from PyPDF2 import PdfReader
 
         reader = PdfReader(filepath)
+        if reader.is_encrypted:
+            # Empty is the ordinary public-reader password; no supplied secret,
+            # owner-password attempt or restriction removal is performed.
+            if not reader.decrypt(''):
+                raise PDFTextAccessError('pdf_password_required')
+            if not int(reader.trailer['/Encrypt'].get('/P', 0)) & 16:
+                raise PDFTextAccessError('pdf_copy_restricted')
         pages = [p.extract_text() or "" for p in reader.pages]
         return "\n\n".join(pages).strip()
     except ImportError:
