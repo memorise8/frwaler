@@ -48,6 +48,18 @@ class KrivetScopes(SiteContract,unittest.TestCase):
         self.assertEqual(r['title'],'Research NH5');self.assertFalse(r['published_date_raw']);self.assertEqual(r['listed_date_raw'],'2026.07.31')
         q=parse_qs(urlsplit(r['pdf_url']).query);self.assertEqual(q['pstgClsfCd'],['KBD002']);self.assertEqual(q['pstgAtchNo'],['2'])
         self.assertNotIn('Researcher',r['abstract']);self.assertIn(BODY.strip(),r['abstract'])
+    def test_attachments_use_the_publishers_observed_download_route(self):
+        c=self.crawler()
+        for menu in ('15','19','23','12'):
+            c._active_menu=menu;raw=detail(menu,'PB1')
+            if menu=='12':raw=raw.replace("'report.pdf')", "'R11002')")
+            parsed=c._parse_detail_page(raw)
+            for attachment in parsed['attachments']:
+                url=urlsplit(attachment['url']);self.assertEqual(url.path,'/com/file/fileDown.do')
+                fields=parse_qs(url.query);self.assertEqual(fields['pstNo'],['PB1'])
+                if menu in ('15','19'):self.assertEqual(fields['fileName'],['report.pdf'])
+                elif menu=='12':self.assertEqual(fields['fileName'],['Research PB1'])
+                else:self.assertNotIn('fileName',fields)
     def test_raw_publication_date_keeps_invalid_suffix(self):
         self.source_date='2026.07.31 uncertain';c=self.crawler();c.crawl();r=self.conn.execute("SELECT published_date_raw,published_date_status FROM documents WHERE post_number='PB1'").fetchone()
         self.assertEqual(tuple(r.values()) if isinstance(r,dict) else tuple(r),('2026.07.31 uncertain','unrecognized'))

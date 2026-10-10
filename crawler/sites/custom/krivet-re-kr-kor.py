@@ -169,12 +169,20 @@ class KrivetReKrKorCrawler(BaseCrawler):
             params = dict(fileDownDiv='NOTICOMM', pstNo=uid, pstgAtchNo=attachment)
             if classification:
                 params['pstgClsfCd'] = classification
+            if menu in ('15', '19') and len(args) >= 3:
+                params['fileName'] = args[2].replace("\\'", "'")
+            elif menu == '12' and len(args) >= 3 and args[2] in ('R11002', 'R11004'):
+                title = _text(root.select_one('.pub_tit'))
+                if title:
+                    params['fileName'] = title + ('_요약' if args[2] == 'R11004' else '')
             name = button.get('title') or _text(button)
             classes = button.get('class', [])
             pdf_named = '.pdf' in name.lower() or 'icon_file_pdf' in classes
             known_other = bool(re.search(r'\.(?:hwpx?|docx?|xlsx?|zip|pptx?)(?:\s|$)', name, re.I)) or any(
                 c in classes for c in ('icon_file_hwp', 'icon_file_hwpx', 'icon_file_doc', 'icon_file_xls', 'icon_file_zip'))
-            attachments.append(dict(url=f'{_BASE_URL}/kor/com/fileDown.do?'+urlencode(params),
+            # comUtil.fileDown uses this public endpoint. Observed GET and
+            # browser-form POST return identical PDF bytes for the same fields.
+            attachments.append(dict(url=f'{_BASE_URL}/com/file/fileDown.do?'+urlencode(params),
                                     pst_no=uid, attachment=attachment, name=name,
                                     source_call=call, pdf_named=pdf_named,
                                     publication_download_candidate='btn_down' in classes and not known_other))
