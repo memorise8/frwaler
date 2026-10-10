@@ -136,6 +136,12 @@ def _parse_detail(html):
     categories = [_text(a) for a in main.select('p.category a')]
     pdfs = list(dict.fromkeys(urljoin(_BASE_URL, a['href']) for a in main.find_all('a', href=True)
                               if urlsplit(a['href']).path.lower().endswith('.pdf')))
+    # Narrative citations are not the article's downloadable file. ADR marks
+    # its attachment list with li.download; preserve every other PDF as a
+    # reference requiring separate source association and file verification.
+    attachments = list(dict.fromkeys(
+        urljoin(_BASE_URL, a['href']) for a in main.select('li.download a[href]')
+        if urlsplit(a['href']).path.lower().endswith('.pdf')))
     report_links = sorted({urldefrag(urljoin(_BASE_URL, a['href']))[0] for a in content.find_all('a', href=True)
                            if urlsplit(urljoin(_BASE_URL, a['href'])).netloc == 'reports.adruk.org'})
     authors, parts = [], []
@@ -151,7 +157,11 @@ def _parse_detail(html):
             authors = [s.strip() for s in re.split(r'\s+and\s+|;\s*', re.sub(r'^Authors?\s*:\s*', '', text, flags=re.I)) if s.strip()]
         parts.append(text)
     return dict(title=title, abstract=' '.join(parts), date_raw=date_raw, authors=authors,
-                categories=categories, pdf_url=pdfs[0] if pdfs else None, pdf_urls=pdfs, report_links=report_links)
+                categories=categories, pdf_url=attachments[0] if attachments else None,
+                pdf_urls=pdfs, attachment_pdf_urls=attachments,
+                reference_pdf_urls=[u for u in pdfs if u not in attachments],
+                primary_pdf_binding='explicit_download_list' if attachments else 'no_explicit_attachment',
+                report_links=report_links)
 
 
 class AdrukOrgNewsPublicationsCrawler(BaseCrawler):
@@ -424,7 +434,9 @@ class AdrukOrgNewsPublicationsCrawler(BaseCrawler):
                         self._check_cancelled()
                         if item['direct_pdf']:
                             detail = dict(title=item['list_title'], abstract=item['list_abstract'], date_raw=item['listed_date_raw'],
-                                          authors=[], categories=[], pdf_url=item['url'], report_links=[])
+                                          authors=[], categories=[], pdf_url=item['url'], pdf_urls=[item['url']],
+                                          attachment_pdf_urls=[item['url']], reference_pdf_urls=[],
+                                          primary_pdf_binding='direct_listing_PDF', report_links=[])
                         else:
                             detail = _parse_detail(self._html(item['url']))
                             if detail['title'] != item['list_title']:
@@ -438,9 +450,16 @@ class AdrukOrgNewsPublicationsCrawler(BaseCrawler):
                                 raise ValueError('ambiguous annual report identity')
                             if candidates:
                                 url, report = candidates[0]
-                                if url not in detail['report_links'] and (not pdf_url or not self._same_pdf(pdf_url, report['pdf_url'])):
-                                    raise ValueError('annual representation mismatch')
-                                pdf_url = pdf_url or report['pdf_url']
+                                # The annual root identifies its own report;
+                                # unrelated strategies/citations never win by order.
+                                if url in detail['report_links']:
+                                    pdf_url = report['pdf_url']
+                                else:
+                                    matching_pdfs = [u for u in detail.get('pdf_urls', [])
+                                                     if self._same_pdf(u, report['pdf_url'])]
+                                    if not matching_pdfs:
+                                        raise ValueError('annual representation mismatch')
+                                    pdf_url = matching_pdfs[0]
                                 annual_match = url
                         abstract = detail['abstract'] or item['list_abstract']
                         provenance = {}
@@ -454,7 +473,12 @@ class AdrukOrgNewsPublicationsCrawler(BaseCrawler):
                                      original_filename=unquote(urlsplit(pdf_url).path.rsplit('/', 1)[-1]) if pdf_url else None,
                                      authors=detail['authors'], publisher=_PUBLISHER, keywords=', '.join(detail['categories']),
                                      metadata=json.dumps(dict(source_scope=scope, source_listed_date_raw=item['listed_date_raw'],
-                                                              annual_report_url=annual_match, **provenance), ensure_ascii=False))
+                                                              annual_report_url=annual_match,
+                                                              source_pdf_candidates=detail.get('pdf_urls', []),
+                                                              source_attachment_pdf_urls=detail.get('attachment_pdf_urls', []),
+                                                              source_reference_pdf_urls=detail.get('reference_pdf_urls', []),
+                                                              primary_pdf_binding='annual_report_identity' if annual_match else detail.get('primary_pdf_binding', 'direct_listing_PDF'),
+                                                              **provenance), ensure_ascii=False))
                         self._save_paper(paper)
                         if self._last_save_created:
                             saved += 1
