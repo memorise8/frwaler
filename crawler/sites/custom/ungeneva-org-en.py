@@ -10,35 +10,30 @@ import subprocess
 import time
 
 from crawler.base_crawler import BaseCrawler
+from crawler.ungeneva_traversal import UNGenevaTraversal
 
-_BACKOFF = (1, 3, 9)
 _MIN_ABSTRACT = 50
 _WALL_CLOCK_MIN = 25
 _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 
 
 def _curl_get(url: str, timeout: int = 30) -> str | None:
-    """GET via curl with TLS workaround; returns decoded body or None on failure."""
+    """Accept one complete HTTP200 response with ordinary TLS verification."""
     cmd = [
-        "curl", "--tls-max", "1.3", "-sk", "-L",
+        "curl", "--tls-max", "1.3", "-sS",
         "--max-time", str(timeout),
         "-A", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         "-H", "Accept: text/html,application/xhtml+xml,*/*;q=0.8",
-        url,
+        "--write-out", "\n%{http_code}", "--url", url,
     ]
-    last_exc = None
-    for delay in _BACKOFF:
-        try:
-            result = subprocess.run(cmd, capture_output=True, timeout=timeout + 5)
-            body = result.stdout.decode("utf-8", errors="replace")
-            if body.strip():
-                return body
-        except Exception as exc:
-            last_exc = exc
-        time.sleep(delay)
-    if last_exc:
-        print(f"[ungeneva-org-en] curl failed for {url}: {last_exc}")
-    return None
+    try:
+        result = subprocess.run(cmd, capture_output=True, timeout=timeout + 5)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    body, separator, status = result.stdout.rpartition(b"\n")
+    if result.returncode or not separator or status != b"200" or not body.strip():
+        return None
+    return body.decode("utf-8", errors="replace")
 
 
 def _make_soup(html: str):
@@ -52,7 +47,7 @@ def _make_soup(html: str):
     return None
 
 
-class UNGenevaEnCrawler(BaseCrawler):
+class UNGenevaEnCrawler(UNGenevaTraversal, BaseCrawler):
     site_id = "ungeneva-org-en"
     site_name = "Custom: ungeneva-org-en"
     base_url = "https://www.ungeneva.org"
@@ -60,7 +55,20 @@ class UNGenevaEnCrawler(BaseCrawler):
     _LIST_URL = "https://www.ungeneva.org/en/news-media/press-release"
     _SITE_SUFFIX = r"\s*\|\s*The United Nations Office at Geneva\s*$"
 
+    MAX_PAGES = _MAX_PAGES
+    WALL_CLOCK_LIMIT = _WALL_CLOCK_MIN * 60
+    MIN_ABSTRACT_CHARS = _MIN_ABSTRACT
+
+    def _ung_fetch(self, url):
+        return _curl_get(url)
+
+    @staticmethod
+    def _ung_soup(raw):
+        return _make_soup(raw)
+
     def crawl(self, limit=None):
+        if self.delivery_mode == 'backfill':
+            return self._crawl_ung_backfill(limit)
         self._check_cancelled()
         if limit is not None and limit <= 0:
             return 0
@@ -171,20 +179,22 @@ class UNGenevaEnCrawler(BaseCrawler):
         raw = _curl_get(url)
         if not raw:
             self._report_source_failure('item_failed')
-            print(f"[ungeneva-org-en] Failed to fetch detail {url}")
             return False
-
         try:
-            soup = _make_soup(raw)
-        except Exception as exc:
+            paper = self._parse_article(url, external_id, fallback_date, raw)
+        except Exception:
             self._report_source_failure('item_failed')
-            print(f"[ungeneva-org-en] Parse error for {url}: {exc}")
             return False
+        if paper is None:
+            return False
+        self._last_processed_seq_id = self._save_paper(paper)
+        return self._last_save_created
 
+    def _parse_article(self, url, external_id, fallback_date, raw):
+        """Preserve the original metadata fields while separating parsing from saving."""
+        soup = _make_soup(raw)
         if soup is None:
-            self._report_source_failure('item_failed')
-            return False
-
+            raise ValueError('UN Geneva source markup unavailable')
         # Title: <title> tag, strip site-name suffix
         title_tag = soup.find("title")
         title = title_tag.get_text(strip=True) if title_tag else ""
@@ -192,6 +202,9 @@ class UNGenevaEnCrawler(BaseCrawler):
         if not title:
             og = soup.find("meta", property="og:title")
             title = (og.get("content", "") if og else "").strip()
+
+        if not title:
+            raise ValueError('UN Geneva source title missing')
 
         # Published date: first <time datetime="...">
         time_tag = soup.find("time", attrs={"datetime": True})
@@ -209,21 +222,17 @@ class UNGenevaEnCrawler(BaseCrawler):
             abstract = re.sub(r"\s+", " ", abstract).strip()
 
         # Fallback to og:description if body is missing or too short
-        if len(abstract) < _MIN_ABSTRACT:
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
             og_desc = soup.find("meta", property="og:description")
             if og_desc:
                 candidate = og_desc.get("content", "").strip()
                 if len(candidate) > len(abstract):
                     abstract = candidate
 
-        if len(abstract) < _MIN_ABSTRACT:
-            print(
-                f"[ungeneva-org-en] Abstract too short ({len(abstract)} chars) "
-                f"for {url}. Skipping."
-            )
-            return False
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
 
-        self._save_paper({
+        return {
             "id": None,
             "site_id": self.site_id,
             "external_id": external_id,
@@ -238,5 +247,4 @@ class UNGenevaEnCrawler(BaseCrawler):
             "doi": "",
             "department": "United Nations Office at Geneva",
             "metadata": json.dumps({"source_url": url}, ensure_ascii=False),
-        })
-        return self._last_save_created
+        }
