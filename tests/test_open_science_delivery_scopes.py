@@ -58,6 +58,30 @@ class OpenScienceDeliveryScopes(CoupledContract,unittest.TestCase):
             self.assertEqual(tuple(r.values()) if isinstance(r,dict) else tuple(r),('missing','2026-08-04'))
     def test_failed_attachment_metadata_is_incomplete_not_no_attachment(self):
         self.fail_bundles=True;c=self.crawler();self.assertEqual(c.crawl(),0);self.assertEqual(c.delivery_source_failure,'item_failed')
+    def test_docx_source_is_retained_as_attachment_not_saved_as_pdf(self):
+        c=self.crawler();original=self.fetch.side_effect;papers=[];save=c._save_paper
+        def fetch(url,context='request'):
+            result=original(url,context)
+            if url.endswith('/bitstreams'):
+                result['_embedded']['bitstreams'][0]['name']='ScientificReport.DOCX'
+            return result
+        def capture(paper):papers.append(dict(paper));return save(paper)
+        self.fetch.side_effect=fetch;c._save_paper=capture
+        self.assertEqual(c.crawl(),8)
+        self.assertTrue(all(not p['pdf_url'] for p in papers))
+        for paper in papers:
+            attachments=json.loads(paper['metadata'])['bitstreams']
+            self.assertEqual(len(attachments),1);self.assertEqual(attachments[0]['name'],'ScientificReport.DOCX');self.assertTrue(attachments[0]['content_url'])
+        for row in self.conn.execute('SELECT pdf_url,pdf_downloaded FROM documents'):
+            values=tuple(row.values()) if isinstance(row,dict) else tuple(row)
+            self.assertFalse(values[0]);self.assertFalse(values[1])
+        self.assertEqual(c.crawl(),0)
+
+    def test_pdf_selection_skips_missing_content_link_without_losing_other_files(self):
+        c=self.crawler()
+        refs=[{'name':'missing.pdf','bundleName':'ORIGINAL'}, {'name':'notes.docx','bundleName':'ORIGINAL','_links':{'content':{'href':'https://fixture.invalid/notes.docx'}}}, {'name':'REPORT.PDF','bundleName':'ORIGINAL','_links':{'content':{'href':'https://fixture.invalid/report.pdf'}}}]
+        url,summary=c._select_file(refs);self.assertEqual(url,'https://fixture.invalid/report.pdf');self.assertEqual(len(summary),3)
+
     def test_zero_limit_makes_no_request(self):
         c=self.crawler();self.assertEqual(c.crawl(limit=0),0);self.fetch.assert_not_called()
     def test_error_json_is_not_an_empty_scope(self):

@@ -407,14 +407,10 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
                 summaries.append(summary)
 
         for summary in summaries:
-            if summary["name"].lower().endswith(".pdf"):
+            if summary["name"].lower().endswith(".pdf") and summary["content_url"]:
                 return summary["content_url"], summaries
-        for summary in summaries:
-            if summary.get("bundleName") == "ORIGINAL" and summary["content_url"]:
-                return summary["content_url"], summaries
-        for summary in summaries:
-            if summary["content_url"]:
-                return summary["content_url"], summaries
+        # ORIGINAL also contains DOCX files. Keep their references in the
+        # attachment summary; the PDF worker must not receive a DOCX as pdf_url.
         return "", summaries
 
     def _item_url(self, item, metadata, uuid):
