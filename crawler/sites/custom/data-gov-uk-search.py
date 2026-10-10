@@ -435,7 +435,7 @@ class DataGovUKSearchCrawler(BaseCrawler):
         if soup is None:
             return [], False, None
 
-        rows = soup.select(".dgu-results__result")
+        rows = soup.select(".dgu-results__result, .datagovuk-search-results__item")
         items = []
         for row in rows:
             link = row.select_one("h2 a[href*='/dataset/']") or row.select_one("a[href*='/dataset/']")
@@ -446,8 +446,17 @@ class DataGovUKSearchCrawler(BaseCrawler):
             package_id, slug = self._ids_from_dataset_url(detail_url)
 
             meta = self._metadata_from_dl(row)
+            for entry in row.select(".datagovuk-search-results__item-row"):
+                label = entry.select_one(".datagovuk-search-results__item-label")
+                value = entry.select_one(".datagovuk-search-results__item-value")
+                if label is not None and value is not None:
+                    key = self._clean_text(label.get_text(" ", strip=True)).lower()
+                    key = {"publisher": "published by", "updated": "last updated"}.get(key, key)
+                    meta.setdefault(key, self._clean_text(value.get_text(" ", strip=True)))
             summary = ""
             paragraph = row.find("p")
+            if paragraph is None:
+                paragraph = row.select_one('[class~="datagovuk-!-colour-grey"]')
             if paragraph is not None:
                 summary = self._clean_text(paragraph.get_text(" ", strip=True))
 
