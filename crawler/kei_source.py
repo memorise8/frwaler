@@ -110,7 +110,10 @@ def parse_listing(html, scope, page):
             raise ValueError('KEI missing or repeated document identity')
         ids.add(uid)
         title_text = text(anchor.select_one('.title strong')) if scope == 'board-0009' else text(anchor)
-        title = (anchor.get('title') or '').strip() or title_text
+        attribute_title = (anchor.get('title') or '').strip()
+        # Press cards retain the complete visible headline even when unescaped
+        # quotes cut the HTML title attribute off after its first few words.
+        title = (title_text or attribute_title) if scope == 'board-0009' else (attribute_title or title_text)
         if not title:
             raise ValueError('KEI source listing title missing')
         date = ''

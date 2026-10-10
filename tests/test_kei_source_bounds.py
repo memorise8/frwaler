@@ -21,6 +21,17 @@ def fixture(scope='researchreport',page=1,total=20):
     return info+wrap+''.join(rows)+'</div>'+pager
 
 class KeiLists(unittest.TestCase):
+    def test_press_nonempty_broken_attribute_cannot_truncate_visible_headline(self):
+        raw=fixture('board-0009',total=1).replace('title="Environmental research 1"', 'title="KEI "기후-대기 통합관리의 공편익" 국제 워크숍 개최"').replace('<strong>Environmental research 1</strong>', '<strong>KEI "기후-대기 통합관리의 공편익" 국제 워크숍 개최</strong>')
+        item=parse_listing(raw,'board-0009',1)['items'][0]
+        self.assertEqual(item['title'],'KEI "기후-대기 통합관리의 공편익" 국제 워크숍 개최')
+        self.assertEqual(item['source_key'],'board-0009:1')
+
+    def test_catalogue_keeps_full_attribute_when_visible_title_is_abbreviated(self):
+        item=parse_listing(fixture('researchreport',total=1),'researchreport',1)['items'][0]
+        self.assertEqual(item['title'],'Environmental research 1')
+        self.assertEqual(item['title_text'],'Truncated..')
+
     def test_press_whitespace_attribute_preserves_visible_quoted_title(self):
         raw=fixture('board-0009',total=1).replace('title="Environmental research 1"', 'title="  "GMO 작물 천덕꾸러기 될 지도""').replace('<strong>Environmental research 1</strong>', '<strong>  "GMO 작물 천덕꾸러기 될 지도"</strong>')
         item=parse_listing(raw,'board-0009',1)['items'][0]
