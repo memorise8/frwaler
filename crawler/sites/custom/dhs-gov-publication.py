@@ -172,6 +172,7 @@ class DHSPublicationCrawler(BaseCrawler):
         limit : int or None
             Maximum records to save (None = unlimited).
         """
+        self._check_cancelled()
         limit_str  = str(limit) if limit is not None else "inf"
         saved      = 0
         seen_urls: set = set()
@@ -182,7 +183,9 @@ class DHSPublicationCrawler(BaseCrawler):
         # ── Step 1: fetch listing page ────────────────────────────────────
         print(f"[{self.site_id}] Fetching listing page: {_LISTING_URL}")
         html = _fetch_playwright(_LISTING_URL)
+        self._check_cancelled()
         if not html:
+            self._report_source_failure("fetch_failed")
             print(f"[{self.site_id}] Failed to fetch listing page. Aborting.")
             return 0
 
@@ -191,6 +194,7 @@ class DHSPublicationCrawler(BaseCrawler):
         # ── Step 2: parse attachment table ───────────────────────────────
         records = _parse_listing_page(html)
         if not records:
+            self._report_source_failure("invalid_response")
             print(f"[{self.site_id}] No records parsed from listing page. Aborting.")
             return 0
 
@@ -204,6 +208,7 @@ class DHSPublicationCrawler(BaseCrawler):
         record_idx = 0
 
         while record_idx < len(records):
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
 
@@ -236,6 +241,7 @@ class DHSPublicationCrawler(BaseCrawler):
 
                 title = record["title"].strip()
                 if not title:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] Skipping record with empty title")
                     continue
 
@@ -250,7 +256,7 @@ class DHSPublicationCrawler(BaseCrawler):
                     f"Document: {title}. "
                     f"Type: {ext}. "
                     f"Size: {size}. "
-                    f"Published: {date_raw}."
+                    f"Listing date: {date_raw}."
                 )
 
                 if len(abstract) < 50:
@@ -259,8 +265,6 @@ class DHSPublicationCrawler(BaseCrawler):
                         f"abstract too short ({len(abstract)} chars)"
                     )
                     continue
-
-                date_iso = _parse_date_mdy(date_raw)
 
                 # post_number: fiscal year number (e.g. "2025") — natural sort key
                 fy_m = re.search(r'\bFY\s*(\d{4})\b', title, re.IGNORECASE)
@@ -280,8 +284,8 @@ class DHSPublicationCrawler(BaseCrawler):
                     "post_number":      post_number,
                     "title":            title,
                     "abstract":         abstract,
-                    "published_date":   date_iso,
-                    "listed_date":      date_iso,
+                    "published_date":   None,  # The source column says Date, not publication date.
+                    "listed_date":      date_raw,  # Preserve the exact source cell for normalization.
                     "url":              _LISTING_URL,
                     "pdf_url":          pdf_url,
                     "publisher":        "U.S. Department of Homeland Security",
@@ -316,6 +320,7 @@ class DHSPublicationCrawler(BaseCrawler):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure("item_failed")
                 print(f"[{self.site_id}] item {record_idx} failed: {exc}")
                 continue
 

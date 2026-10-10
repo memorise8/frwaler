@@ -13,6 +13,11 @@ DATE_METADATA_FIELDS = tuple(f"{field}_{suffix}" for field in DATE_FIELDS
                              for suffix in ("raw", "status", "precision"))
 # Add site rules only with a source-format regression fixture and evidence.
 SITE_DATE_ORDERS: dict[str, str] = {
+    # DHS file tables: all 871 nonempty retained Date cells match MDY and
+    # their source sort timestamps (e.g. 01/22/2026 and 01/23/2026).
+    # These are listing dates; publication dates are not established.
+    'dhs-gov-congressional-approp': 'MDY',
+    'dhs-gov-publication': 'MDY',
     # Both delivered ALRC listings use DD.MM.YYYY, including 29.02.2012
     # and 31.08.1995. Publication/tabled dates remain separate source fields.
     'alrc-gov-au-publications': 'DMY',

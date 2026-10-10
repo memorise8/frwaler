@@ -207,6 +207,7 @@ class DHSCongressionalAppropCrawler(BaseCrawler):
         limit : int or None
             Maximum records to save (None = unlimited).
         """
+        self._check_cancelled()
         limit_str  = str(limit) if limit is not None else "inf"
         saved      = 0
         seen_urls: set = set()
@@ -217,12 +218,15 @@ class DHSCongressionalAppropCrawler(BaseCrawler):
         # ── Step 1: main listing page ────────────────────────────────────
         print(f"[{self.site_id}] Fetching main listing page: {_START_URL}")
         main_html = _fetch_playwright(_START_URL)
+        self._check_cancelled()
         if not main_html:
+            self._report_source_failure("fetch_failed")
             print(f"[{self.site_id}] Failed to fetch main listing page. Aborting.")
             return 0
 
         year_urls = _extract_year_urls(main_html)
         if not year_urls:
+            self._report_source_failure("invalid_response")
             print(f"[{self.site_id}] No year pages found on main listing page. Aborting.")
             return 0
 
@@ -230,6 +234,7 @@ class DHSCongressionalAppropCrawler(BaseCrawler):
 
         # ── Step 2: iterate year pages ───────────────────────────────────
         for page_num, year_url in enumerate(year_urls, 1):
+            self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
 
@@ -251,14 +256,18 @@ class DHSCongressionalAppropCrawler(BaseCrawler):
             time.sleep(self._delay)
 
             try:
+                self._check_cancelled()
                 year_html = _fetch_playwright(year_url)
+                self._check_cancelled()
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] Error fetching {year_url}: {exc}")
                 continue
 
             if not year_html:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] Skipping {year_url}: no HTML returned")
                 continue
 
@@ -267,10 +276,12 @@ class DHSCongressionalAppropCrawler(BaseCrawler):
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] Error parsing {year_url}: {exc}")
                 continue
 
             if not records:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] page {page_num} ({year}): 0 records — skipping")
                 continue
 
@@ -278,6 +289,7 @@ class DHSCongressionalAppropCrawler(BaseCrawler):
 
             # ── Step 3: save records from this year page ─────────────────
             for record in records:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -292,6 +304,7 @@ class DHSCongressionalAppropCrawler(BaseCrawler):
 
                     title = record["title"].strip()
                     if not title:
+                        self._report_source_failure("item_failed")
                         print(f"[{self.site_id}] Skipping record with empty title on {year_url}")
                         continue
 
@@ -317,7 +330,6 @@ class DHSCongressionalAppropCrawler(BaseCrawler):
 
                     # Date
                     date_raw = record.get("date_raw", "")
-                    date_iso = _parse_date_mdy(date_raw)
 
                     # Agency sub-unit = text before first em-dash or hyphen separator
                     agency = ""
@@ -345,8 +357,8 @@ class DHSCongressionalAppropCrawler(BaseCrawler):
                         "post_number":      post_number,
                         "title":            title,
                         "abstract":         abstract,
-                        "published_date":   date_iso,
-                        "listed_date":      date_iso,
+                        "published_date":   None,  # The source column says Date, not publication date.
+                        "listed_date":      date_raw,  # Preserve the exact source cell for normalization.
                         "url":              year_url,
                         "pdf_url":          pdf_url,
                         "publisher":        "U.S. Department of Homeland Security",
@@ -380,6 +392,7 @@ class DHSCongressionalAppropCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] item failed ({record.get('title', '')[:50]}): {exc}")
                     continue
 
