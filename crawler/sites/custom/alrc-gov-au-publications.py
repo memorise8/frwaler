@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""ALRC final reports crawler.
+"""ALRC final reports and the second, explicitly delivered PDF search scope.
 
 Starting URL: https://www.alrc.gov.au/publications/final-report/
 
@@ -24,13 +24,14 @@ from urllib.parse import unquote, urljoin, urlparse
 # context when these custom crawlers are loaded by tests/tools.
 sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler
+from crawler.alrc_scope import inspect_listing, list_url, same_url
+from crawler.alrc_traversal import AlrcTraversal
 
 
 SITE_ID = "alrc-gov-au-publications"
 BASE_URL = "https://www.alrc.gov.au"
 START_URL = f"{BASE_URL}/publications/final-report/"
 PUBLISHER = "Australian Law Reform Commission"
-SAFETY_PAGE_CAP = 200
 MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 ABSTRACT_MIN_CHARS = 50
 USER_AGENT = (
@@ -40,13 +41,17 @@ USER_AGENT = (
 )
 
 
-def _curl_get(url: str, *, timeout: int = 30, retries: int = 3) -> str | None:
-    """Fetch URL with curl and retry 1s, 3s, 9s before giving up."""
+def _curl_get(url: str, *, timeout: int = 30) -> str:
+    """Retain HTTP/access failures instead of parsing error pages as records."""
     cmd = [
         "curl",
+        "-q",
         "--tls-max",
         "1.3",
-        "-skL",
+        "--silent",
+        "--show-error",
+        "--proto", "=https",
+        "--max-filesize", str(2 * 1024 ** 2),
         "--max-time",
         str(timeout),
         "-H",
@@ -55,32 +60,20 @@ def _curl_get(url: str, *, timeout: int = 30, retries: int = 3) -> str | None:
         "Accept: text/html,application/xhtml+xml,application/json,*/*;q=0.8",
         "-H",
         "Accept-Language: en-AU,en;q=0.9",
-        url,
+        "--write-out", "\n%{http_code}",
+        "--url", url,
     ]
-    waits = (1, 3, 9)
-    for attempt in range(retries):
-        if attempt > 0:
-            time.sleep(waits[min(attempt - 1, len(waits) - 1)])
-        try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                timeout=timeout + 5,
-                check=False,
-            )
-            raw = result.stdout.decode("utf-8", errors="replace")
-            if result.returncode == 0 and raw.strip():
-                return raw
-            print(
-                f"[{SITE_ID}] fetch failed for {url}: "
-                f"exit={result.returncode}, attempt {attempt + 1}/{retries}"
-            )
-        except Exception as exc:
-            print(
-                f"[{SITE_ID}] curl error for {url}: {exc}, "
-                f"attempt {attempt + 1}/{retries}"
-            )
-    return None
+    result = subprocess.run(cmd, capture_output=True, timeout=timeout + 5, check=False)
+    body, _, code = result.stdout.rpartition(b"\n")
+    status = int(code) if code.isdigit() else 0
+    if status in (401, 403, 429, 503):
+        raise PermissionError(f'ALRC HTTP {429 if status == 503 else status}')
+    if result.returncode or status != 200 or not body.strip():
+        raise ValueError('ALRC response incomplete or non-success')
+    from delivery.health.access_challenge import access_challenge
+    if access_challenge(body):
+        raise PermissionError('ALRC access challenge')
+    return body.decode('utf-8', errors='strict')
 
 
 def _make_soup(raw: str):
@@ -268,6 +261,8 @@ def _parse_list_page(html: str) -> tuple[list[dict], bool]:
                     "listed_date": _parse_date(listed_raw),
                     "snippet": snippet,
                     "source": "html.section-listing-item",
+                    "type_label": _clean_text(node.get_text(' ', strip=True)) if
+                        (node := row.select_one('.section-listing-item-type')) else None,
                 }
             )
         except Exception as exc:
@@ -284,9 +279,12 @@ def _best_pdf_link(soup) -> str | None:
         return None
 
     pdf_links: list[tuple[int, str]] = []
-    for index, link in enumerate(soup.find_all("a", href=True)):
+    root = _content_root(soup)
+    links = list(root.find_all('a', href=True)) if root else []
+    links.extend(soup.select('#main-content .alrc-publication-action-pdf a[href]'))
+    for index, link in enumerate(links):
         href = link.get("href") or ""
-        if ".pdf" not in href.lower():
+        if not urlparse(href).path.lower().endswith('.pdf'):
             continue
         text = _clean_text(" ".join([link.get_text(" ", strip=True), link.get("title") or ""]))
         score = 0
@@ -310,14 +308,12 @@ def _content_root(soup):
         return None
     return (
         soup.select_one("#main-content main.content")
-        or soup.select_one("#main-content")
         or soup.find("main")
         or soup.find("article")
-        or soup.body
     )
 
 
-def _extract_abstract(soup, fallback: str = "") -> str:
+def _extract_abstract(soup) -> str:
     root = _content_root(soup)
     parts: list[str] = []
     if root:
@@ -326,7 +322,13 @@ def _extract_abstract(soup, fallback: str = "") -> str:
                 noisy.decompose()
             except Exception:
                 pass
-        for tag in root.find_all(["p", "li"]):
+        body = root.select_one('.wysiwyg') or root
+        blocks = ('p', 'li', 'td', 'th', 'blockquote', 'h2', 'h3', 'h4', 'h5', 'h6')
+        for tag in body.find_all(blocks):
+            if any(parent.name in blocks for parent in tag.parents if parent is not body):
+                continue
+            if set(tag.get('class', [])) & {'post-date', 'post-meta'}:
+                continue
             text = _clean_text(tag.get_text(" ", strip=True))
             if not text:
                 continue
@@ -337,12 +339,9 @@ def _extract_abstract(soup, fallback: str = "") -> str:
                 continue
             if "quick exit" in low or "stay informed" in low:
                 continue
-            if len(text) >= 30:
-                parts.append(text)
+            parts.append(text)
 
     abstract = _clean_text(" ".join(parts))
-    if fallback and len(fallback) > len(abstract):
-        abstract = _clean_text(fallback)
     return abstract
 
 
@@ -377,10 +376,7 @@ def _parse_detail_page(html: str, url: str, stub: dict) -> dict:
     )
 
     og_description = _meta_content(soup, "og:description", "description")
-    fallback_abstract = stub.get("snippet") or og_description
-    abstract = _extract_abstract(soup, fallback=fallback_abstract)
-    if not abstract and og_description:
-        abstract = og_description
+    abstract = _extract_abstract(soup)
 
     pdf_url = _best_pdf_link(soup)
     original_filename = _filename_from_url(pdf_url)
@@ -445,127 +441,62 @@ def _parse_detail_page(html: str, url: str, stub: dict) -> dict:
     }
 
 
-class ALRCGovAuPublicationsCrawler(BaseCrawler):
-    """Crawler for ALRC final-report publications."""
+class ALRCGovAuPublicationsCrawler(AlrcTraversal, BaseCrawler):
+    """Traverse both delivered source lists with restartable source anchors."""
 
     site_id = "alrc-gov-au-publications"
     site_name = "Custom: alrc-gov-au-publications"
     base_url = "https://www.alrc.gov.au"
 
-    def crawl(self, limit=None):
-        saved = 0
-        seen_urls: set[str] = set()
-        started_at = time.monotonic()
-        limit_or_inf = str(limit) if limit is not None else "inf"
-        page = 0
+    def _alrc_wall_seconds(self):
+        return MAX_WALL_SECONDS
 
-        for page in range(1, SAFETY_PAGE_CAP + 1):
-            if limit is not None and saved >= limit:
-                break
-            if time.monotonic() - started_at >= MAX_WALL_SECONDS - 30:
-                print(f"[{SITE_ID}] approaching 25-minute wall-clock budget; stopping")
-                break
+    def _alrc_fetch(self, url):
+        self._check_cancelled()
+        time.sleep(self._delay)
+        self._check_cancelled()
+        raw = _curl_get(url)
+        self._check_cancelled()
+        if not raw or not re.search(r'</html\s*>', raw, re.I):
+            raise ValueError('ALRC HTML document incomplete')
+        return raw
 
-            if page % 10 == 0:
-                print(f"[{SITE_ID}] page {page}: saved {saved}/{limit_or_inf}")
+    def _alrc_list(self, scope, page):
+        raw = self._alrc_fetch(list_url(scope, page))
+        items, _ = _parse_list_page(raw)
+        for item in items:
+            parsed = urlparse(item['url'])
+            if parsed.scheme != 'https' or parsed.netloc != 'www.alrc.gov.au' or parsed.fragment:
+                raise ValueError('ALRC listing document outside source host')
+        return items, inspect_listing(_make_soup(raw), items, scope, page)
 
-            list_url = _list_page_url(page)
-            raw = _curl_get(list_url)
-            if not raw:
-                print(f"[{SITE_ID}] page {page}: fetch failed; stopping")
-                break
-
-            items, has_next = _parse_list_page(raw)
-            if not items:
-                print(f"[{SITE_ID}] page {page}: no records; stopping")
-                break
-
-            new_on_page = 0
-            for item in items:
-                if limit is not None and saved >= limit:
-                    break
-                item_url = item.get("url")
-                if not item_url:
-                    continue
-                if item_url in seen_urls:
-                    continue
-                seen_urls.add(item_url)
-                new_on_page += 1
-
-                try:
-                    time.sleep(getattr(self, "_delay", 1.0))
-                    detail_html = _curl_get(item_url)
-                    if not detail_html:
-                        print(f"[{SITE_ID}] item {item_url} failed: empty detail response")
-                        continue
-
-                    detail = _parse_detail_page(detail_html, item_url, item)
-                    title = detail.get("title") or item.get("title") or ""
-                    abstract = _clean_text(detail.get("abstract") or item.get("snippet") or "")
-                    if len(abstract) < ABSTRACT_MIN_CHARS:
-                        print(f"[{SITE_ID}] skipping {item_url}: abstract <50 chars")
-                        continue
-
-                    native_id = detail.get("wp_post_id") or item.get("slug") or item_url
-                    post_number = detail.get("wp_post_id") or item.get("slug")
-                    listed_date = item.get("listed_date")
-                    published_date = detail.get("published_date") or listed_date
-                    original_filename = detail.get("original_filename")
-
-                    metadata = dict(detail.get("metadata") or {})
-                    metadata.update(
-                        {
-                            "posted_date": item.get("listed_date_raw"),
-                            "post_number": post_number,
-                            "external_id": native_id,
-                            "detail_url": item_url,
-                        }
-                    )
-                    if original_filename and not metadata.get("originalFilename"):
-                        metadata["originalFilename"] = original_filename
-
-                    paper = {
-                        "id": f"{self.site_id}:{native_id}",
-                        "site_id": self.site_id,
-                        "external_id": str(native_id) if native_id is not None else item_url,
-                        "post_number": str(post_number) if post_number is not None else None,
-                        "title": title,
-                        "abstract": abstract,
-                        "published_date": published_date,
-                        "listed_date": listed_date,
-                        "posted_date": listed_date,
-                        "authors": detail.get("authors") or "",
-                        "publisher": PUBLISHER,
-                        "department": "",
-                        "journal": "",
-                        "url": item_url,
-                        "pdf_url": detail.get("pdf_url"),
-                        "keywords": detail.get("keywords") or "",
-                        "category": detail.get("category") or "Final Report",
-                        "doi": "",
-                        "original_filename": original_filename,
-                        "metadata": json.dumps(metadata, ensure_ascii=False, default=str),
-                    }
-
-                    self._save_paper(paper)
-                    if self._last_save_created:
-                        saved += 1
-                    print(f"[{SITE_ID}] saved {saved}/{limit_or_inf}: {title[:80]}")
-                except KeyboardInterrupt:
-                    raise
-                except Exception as exc:
-                    print(f"[{SITE_ID}] item {item_url} failed: {exc}")
-                    continue
-
-            if new_on_page == 0:
-                print(f"[{SITE_ID}] page {page}: 0 new records; stopping")
-                break
-            if not has_next:
-                print(f"[{SITE_ID}] page {page}: next page link absent; stopping")
-                break
-
-        if page >= SAFETY_PAGE_CAP:
-            print(f"[{SITE_ID}] safety cap of {SAFETY_PAGE_CAP} pages reached")
-
-        print(f"[{SITE_ID}] done: saved {saved}/{limit_or_inf}")
-        return saved
+    def _alrc_paper(self, item, scope, source_list_url):
+        item_url = item['url']
+        raw = self._alrc_fetch(item_url)
+        soup = _make_soup(raw)
+        canonical = soup.select_one('link[rel="canonical"][href]') if soup else None
+        if not canonical or not same_url(canonical['href'], item_url) or not soup.find('h1'):
+            raise ValueError('ALRC detail URL identity missing or changed')
+        detail = _parse_detail_page(raw, item_url, item)
+        title = detail.get('title') or ''
+        abstract = _clean_text(detail.get('abstract') or '')
+        if not title or len(abstract) < ABSTRACT_MIN_CHARS:
+            return None
+        native_id = detail.get('wp_post_id') or item.get('slug') or item_url
+        post_number = detail.get('wp_post_id') or item.get('slug')
+        metadata = dict(detail.get('metadata') or {})
+        metadata.update(posted_date=item.get('listed_date_raw'), post_number=post_number,
+                        external_id=native_id, detail_url=item_url,
+                        source_list_url=source_list_url, source_scope=scope,
+                        source_type_label=item.get('type_label'))
+        return dict(id=f'{self.site_id}:{native_id}', site_id=self.site_id,
+                    external_id=str(native_id), post_number=post_number, title=title,
+                    abstract=abstract,
+                    published_date=metadata.get('date_published_raw') or item.get('listed_date_raw'),
+                    listed_date=item.get('listed_date_raw'), posted_date=item.get('listed_date_raw'),
+                    authors=detail.get('authors') or '', publisher=PUBLISHER,
+                    department='', journal='', url=item_url, pdf_url=detail.get('pdf_url'),
+                    keywords=detail.get('keywords') or '',
+                    category=item.get('type_label') or ('Final Report' if scope == 'final-report' else ''),
+                    doi='', original_filename=detail.get('original_filename'),
+                    metadata=json.dumps(metadata, ensure_ascii=False, default=str))

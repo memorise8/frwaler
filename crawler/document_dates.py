@@ -13,6 +13,9 @@ DATE_METADATA_FIELDS = tuple(f"{field}_{suffix}" for field in DATE_FIELDS
                              for suffix in ("raw", "status", "precision"))
 # Add site rules only with a source-format regression fixture and evidence.
 SITE_DATE_ORDERS: dict[str, str] = {
+    # Both delivered ALRC listings use DD.MM.YYYY, including 29.02.2012
+    # and 31.08.1995. Publication/tabled dates remain separate source fields.
+    'alrc-gov-au-publications': 'DMY',
     # Two retained ACPR study details expose 30/07/2026, matching their
     # listing dates 30 Juillet 2026. Keep raw values beside normalized dates.
     'acpr-banque-france-fr-fr': 'DMY',
