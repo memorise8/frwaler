@@ -23,9 +23,11 @@ from urllib.parse import unquote, urljoin, urlparse, urlunparse
 from bs4 import BeautifulSoup
 
 from crawler.base_crawler import BaseCrawler
+from crawler.ens_lyon_traversal import EnsLyonTraversal, digest
+from delivery.health.access_challenge import access_challenge
 
 
-class EnsLyonFrLecoleCrawler(BaseCrawler):
+class EnsLyonFrLecoleCrawler(EnsLyonTraversal, BaseCrawler):
     site_id = "ens-lyon-fr-lecole"
     site_name = "Custom: ens-lyon-fr-lecole"
     base_url = "https://www.ens-lyon.fr"
@@ -46,6 +48,11 @@ class EnsLyonFrLecoleCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        if self.delivery_mode == 'backfill':
+            return self._crawl_ens_backfill(limit)
+        return self._crawl_listing(limit)
+
+    def _crawl_listing(self, limit=None):
         self._check_cancelled()
         if limit is not None and limit <= 0:
             return 0
@@ -151,18 +158,37 @@ class EnsLyonFrLecoleCrawler(BaseCrawler):
             print(f"[{self.site_id}] node {node_id}: fetch failed; skipping")
             return False
 
+        paper = self._parse_article(node_id, detail_url, raw)
+        if paper is None:
+            return False
+        self._last_processed_seq_id = self._save_paper(paper)
+        return self._last_save_created
+
+    def _parse_article(self, node_id, detail_url, raw):
+        """Parse without saving so excluded prefix evidence can be rechecked."""
+        self._ens_last_exclusion = None
+        if access_challenge(raw):
+            self._report_source_failure('authentication_failed')
+            return None
+
         soup = self._make_soup(raw, context=f"node {node_id}")
         if soup is None:
             self._report_source_failure('item_failed')
             print(f"[{self.site_id}] node {node_id}: parse failed; skipping")
-            return False
+            return None
+
+        source_ids = {str(n.get('data-history-node-id')) for n in soup.select('article[data-history-node-id]')}
+        if source_ids and source_ids != {str(node_id)}:
+            self._report_source_failure('item_failed')
+            return None
 
         # Title
         h1 = soup.select_one("h1")
         title = self._node_text(h1)
         if not title:
+            self._report_source_failure('item_failed')
             print(f"[{self.site_id}] node {node_id}: no title; skipping")
-            return False
+            return None
 
         # Date: element text is "Date de publication23/04/2026"
         date_el = soup.select_one(".field--name-field-article-date")
@@ -194,11 +220,18 @@ class EnsLyonFrLecoleCrawler(BaseCrawler):
                     abstract = paragraph_text
 
         if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            if date_el is None or not soup.select_one(
+                '.field--name-field-article-resume, .field--name-body, main .field--name-bp-text'
+            ):
+                self._report_source_failure('item_failed')
+                return None
+            self._ens_last_exclusion = digest([node_id, detail_url, title, date_raw, abstract,
+                                               'source_body_below_minimum', self.MIN_ABSTRACT_CHARS])
             print(
                 f"[{self.site_id}] node {node_id}: abstract too short "
                 f"({len(abstract)} chars); skipping"
             )
-            return False
+            return None
 
         # A body citation can precede the article's own press document in
         # Drupal's sidebar. Prefer an explicitly labelled press document while
@@ -259,8 +292,7 @@ class EnsLyonFrLecoleCrawler(BaseCrawler):
             ),
         }
 
-        self._save_paper(paper)
-        return self._last_save_created
+        return paper
 
     def _pdf_candidates(self, soup):
         candidates, press = [], []
@@ -290,25 +322,41 @@ class EnsLyonFrLecoleCrawler(BaseCrawler):
 
     def _curl_get(self, url, context="request"):
         cmd = [
-            "curl", "--tls-max", "1.3", "-skL", "--compressed",
+            "curl", "--tls-max", "1.3", "-sSL", "--compressed",
             "--connect-timeout", "15",
             "--max-time", str(self.CURL_TIMEOUT),
             "-A", self.USER_AGENT,
             "-H", "Accept: text/html,application/xhtml+xml,*/*;q=0.8",
             "-H", "Accept-Language: fr-FR,fr;q=0.9,en;q=0.7",
+            "--write-out", "\n%{http_code}",
         ]
         cmd.append(url)
 
         last_error = ""
         for attempt in range(1, 4):
+            self._check_cancelled()
             try:
                 result = subprocess.run(
                     cmd, capture_output=True, timeout=self.CURL_TIMEOUT + 10
                 )
-                body = (result.stdout or b"").decode("utf-8", errors="replace")
+                self._check_cancelled()
+                payload = result.stdout or b""
                 if result.returncode != 0:
                     stderr = (result.stderr or b"").decode("utf-8", errors="replace").strip()
-                    raise RuntimeError(stderr or f"curl exit {result.returncode}")
+                    print(f"[{self.site_id}] {context}: incomplete transport ({result.returncode})")
+                    return None
+                body, separator, status = payload.rpartition(b"\n")
+                if not separator or not status.isdigit():
+                    return None
+                status = int(status)
+                if status in (401, 403, 429, 503):
+                    self._report_source_failure('rate_limited' if status in (429, 503) else 'authentication_failed')
+                    return None
+                if status != 200:
+                    if status < 500:
+                        return None
+                    raise RuntimeError(f"HTTP {status}")
+                body = body.decode("utf-8", errors="replace")
                 if not body.strip():
                     raise RuntimeError("empty response")
                 return body
