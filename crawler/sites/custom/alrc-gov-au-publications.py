@@ -327,7 +327,7 @@ def _extract_abstract(soup) -> str:
         for tag in body.find_all(blocks):
             if any(parent.name in blocks for parent in tag.parents if parent is not body):
                 continue
-            if set(tag.get('class', [])) & {'post-date', 'post-meta'}:
+            if 'post-date' in tag.get('class', []):
                 continue
             text = _clean_text(tag.get_text(" ", strip=True))
             if not text:

@@ -162,6 +162,16 @@ class AlrcCounts(SiteContract, unittest.TestCase):
               '<footer><a href="/privacy.pdf">Final Report</a></footer></html>'
         self.assertIsNone(self.module._best_pdf_link(self.module._make_soup(raw)))
 
+    def test_post_meta_class_can_contain_real_introductory_source_prose(self):
+        # Retained Report 143 has this nested template: the outer post-meta
+        # paragraph is the substantive introduction, not a "Filed under" label.
+        raw = '<html><main><h1>Title</h1><section class="wysiwyg">' \
+              '<section class="post"><p class="post-meta">The report was tabled on 6 March 2025.</p></section>' \
+              '<section class="wysiwyg"><p>Findings and evidence.</p></section>' \
+              '</section></main></html>'
+        self.assertEqual(self.module._extract_abstract(self.module._make_soup(raw)),
+                         'The report was tabled on 6 March 2025. Findings and evidence.')
+
     def test_budget_never_exhausts_and_progress_is_resumable(self):
         c=self.backfill();c._alrc_wall_seconds=lambda:0
         self.assertEqual(c.crawl(),0);self.assertEqual(c.delivery_source_failure,'invalid_response')
