@@ -6,6 +6,7 @@ Report metadata uses the publisher's public ``fileType=all`` filter; a listing
 is not evidence that an attachment can be downloaded. Catalogue-only records
 remain explicit body gaps until a source body or a supported policy is available.
 """
+import hashlib
 import json
 import os
 import re
@@ -70,6 +71,7 @@ def _text(node):
 
 
 class KrivetReKrKorCrawler(BaseCrawler):
+    DELIVERY_CURSOR_VERSION = 1
     site_id = _SITE_ID
     site_name = 'Custom: krivet-re-kr-kor'
     base_url = _BASE_URL
@@ -139,6 +141,8 @@ class KrivetReKrKorCrawler(BaseCrawler):
         # A structurally valid empty result is different from missing selectors.
         empty = any(token in soup.get_text(' ', strip=True) for token in
                     ('검색된 결과가 없습니다', '조회된 결과가 없습니다', '등록된 게시물이 없습니다'))
+        if getattr(self, '_cursor_enabled', False) and selected is None and not empty:
+            raise ValueError('backfill requires explicit selected page')
         return int(match.group(1)) if match else None, empty
 
     def _attachments(self, root, menu):
@@ -222,25 +226,95 @@ class KrivetReKrKorCrawler(BaseCrawler):
                     attachments=attachments, primary_attachment=primary,
                     contents='\n\n'.join(n.get_text(strip=True) for n in soup.select('#tl1 pre,#tl3 pre')))
 
+    @staticmethod
+    def _page_identity(items):
+        return hashlib.sha256(json.dumps(
+            [(i['source_ordinal'], i['pst_no'], i['title']) for i in items],
+            ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
+
+    @staticmethod
+    def _cursor_contract():
+        return hashlib.sha256(json.dumps([list(_MENU_SCOPES), 'report:fileType=all'],
+                                         separators=(',', ':')).encode()).hexdigest()
+
+    def _validate_cursor(self, cursor):
+        if (not isinstance(cursor, dict) or cursor.get('version') != self.DELIVERY_CURSOR_VERSION
+                or cursor.get('contract') != self._cursor_contract() or cursor.get('menu') not in _MENU_SCOPES):
+            raise ValueError('changed cursor contract')
+        for key in ('page', 'last_page', 'first_ordinal'):
+            if type(cursor.get(key)) is not int or cursor[key] < 1:
+                raise ValueError('invalid page position')
+        if (cursor['page'] > cursor['last_page'] or type(cursor.get('offset')) is not int
+                or not 0 <= cursor['offset'] <= cursor['first_ordinal']):
+            raise ValueError('invalid item position')
+        previous = cursor.get('previous_ordinal')
+        if cursor['page'] == 1:
+            if previous is not None or cursor.get('previous_hash') != '':
+                raise ValueError('unexpected previous page anchor')
+        elif type(previous) is not int or previous != cursor['first_ordinal'] + 1:
+            raise ValueError('invalid previous row position')
+        for key, required in (('page_hash', True), ('previous_hash', cursor['page'] > 1)):
+            value = cursor.get(key)
+            if not isinstance(value, str) or (required and not re.fullmatch('[0-9a-f]{64}', value)):
+                raise ValueError('invalid page anchor')
+
+    def _checkpoint(self, menu, page, offset, boundary, items, previous_ordinal, previous_hash, items_done=0):
+        if self._cursor_enabled:
+            self._advance_cursor(dict(version=self.DELIVERY_CURSOR_VERSION, contract=self._cursor_contract(),
+                                      menu=menu, page=page, offset=offset, last_page=boundary,
+                                      first_ordinal=items[0]['source_ordinal'], page_hash=self._page_identity(items),
+                                      previous_ordinal=previous_ordinal, previous_hash=previous_hash),
+                                 items_done=items_done)
+
     def crawl(self, limit=None):
         self._check_cancelled()
         if limit is not None and limit <= 0:
             return 0
+        self._cursor_enabled = self.delivery_mode == 'backfill'
+        resume = self.delivery_cursor if self._cursor_enabled else None
+        if resume:
+            try:
+                self._validate_cursor(resume)
+            except (TypeError, ValueError):
+                self._report_source_failure('configuration')
+                return 0
         start = time.monotonic()
         saved = 0
         seen_across = {}
         self.delivery_body_gaps = []
-        for menu in _MENU_SCOPES:
+        start_index = _MENU_SCOPES.index(resume['menu']) if resume else 0
+        for menu in _MENU_SCOPES[start_index:]:
             self._active_menu = menu
-            previous_ordinal = None
-            boundary = None
-            page = 1
+            current_resume = resume if resume and resume['menu'] == menu else None
+            previous_ordinal = current_resume['previous_ordinal'] if current_resume else None
+            previous_hash = current_resume['previous_hash'] if current_resume else ''
+            boundary = current_resume['last_page'] if current_resume else None
+            page = current_resume['page'] if current_resume else 1
+            offset = current_resume['offset'] if current_resume else 0
+            # Mutable lists are not immutable snapshots. Recheck the preceding
+            # page as well as this page before trusting a saved item offset.
+            if current_resume and page > 1:
+                try:
+                    raw_previous = self._fetch_list_page(page - 1)
+                    prior_boundary, _ = self._list_boundary(raw_previous, page - 1)
+                    prior_items = self._parse_list_page(raw_previous)
+                    if (prior_boundary != boundary or not prior_items
+                            or self._page_identity(prior_items) != previous_hash
+                            or prior_items[-1]['source_ordinal'] != previous_ordinal):
+                        raise ValueError('previous source page changed')
+                except PermissionError as exc:
+                    self._report_source_failure('rate_limited' if '429' in str(exc) else 'authentication_failed')
+                    return saved
+                except Exception:
+                    self._report_source_failure('invalid_response')
+                    return saved
             while True:
                 self._check_cancelled()
                 if limit is not None and saved >= limit:
                     return saved
                 if time.monotonic() - start > _WALL_CLOCK_LIMIT:
-                    self._report_source_failure('invalid_response')
+                    if not self._cursor_enabled or self.delivery_cursor_items_done == 0:
+                        self._report_source_failure('invalid_response')
                     return saved
                 if boundary is None and page > _MAX_PAGES:
                     self._report_source_failure('invalid_response')
@@ -257,14 +331,16 @@ class KrivetReKrKorCrawler(BaseCrawler):
                     items = self._parse_list_page(raw)
                     if items and current_boundary is not None and current_boundary < page:
                         raise ValueError('invalid last page')
-                    if page == 1:
+                    if page == 1 and current_resume is None:
                         boundary = current_boundary
                     elif current_boundary != boundary:
                         raise ValueError('changed page boundary')
                     if not items:
-                        if not explicit_empty or (page > 1 and boundary and page <= boundary):
+                        if current_resume or not explicit_empty or (page > 1 and boundary and page <= boundary):
                             raise ValueError('unexpected empty source page')
                         break
+                    if self._cursor_enabled and boundary is None:
+                        raise ValueError('backfill requires an explicit last page')
                     # The publisher can list the same pstNo more than once.
                     # Row positions, not new publication IDs, prove page progress.
                     ordinals = [i['source_ordinal'] for i in items]
@@ -274,24 +350,39 @@ class KrivetReKrKorCrawler(BaseCrawler):
                         raise ValueError('source row positions repeated or skipped')
                     if boundary is not None and page == boundary and ordinals[-1] != 1:
                         raise ValueError('source ended before final row position')
-                    previous_ordinal = ordinals[-1]
+                    if current_resume and (self._page_identity(items) != current_resume['page_hash']
+                                           or ordinals[0] != current_resume['first_ordinal']):
+                        raise ValueError('current source page changed')
+                    if offset > len(items):
+                        raise ValueError('source page shorter than checkpoint')
                 except PermissionError as exc:
                     self._report_source_failure('rate_limited' if '429' in str(exc) else 'authentication_failed')
                     return saved
                 except Exception:
                     self._report_source_failure('invalid_response')
                     return saved
-                for item in items:
+                self._checkpoint(menu, page, offset, boundary, items, previous_ordinal, previous_hash)
+                for index, item in enumerate(items):
+                    if index < offset:
+                        continue
                     self._check_cancelled()
                     if limit is not None and saved >= limit:
+                        return saved
+                    if time.monotonic() - start > _WALL_CLOCK_LIMIT:
+                        if not self._cursor_enabled or self.delivery_cursor_items_done == 0:
+                            self._report_source_failure('invalid_response')
                         return saved
                     uid = item['pst_no']
                     if uid in seen_across:
                         if seen_across[uid] != item['title']:
                             self._report_source_failure('item_failed')
+                            if self._cursor_enabled:
+                                return saved
+                        else:
+                            self._checkpoint(menu, page, index + 1, boundary, items,
+                                             previous_ordinal, previous_hash, items_done=1)
                         continue
                     # Source identity is pstNo, preserving existing DB/file links.
-                    seen_across[uid] = item['title']
                     try:
                         time.sleep(self._delay)
                         self._check_cancelled()
@@ -300,13 +391,19 @@ class KrivetReKrKorCrawler(BaseCrawler):
                         detail = self._parse_detail_page(raw_detail) if raw_detail else None
                         if not detail or not detail['title'] or detail['title'] != item['title']:
                             self._report_source_failure('item_failed')
+                            if self._cursor_enabled:
+                                return saved
                             continue
                         if any(a['pst_no'] != uid for a in detail['attachments']):
                             self._report_source_failure('item_failed')
+                            if self._cursor_enabled:
+                                return saved
                             continue
                         if len(detail['abstract']) < 50:
                             self.delivery_body_gaps.append(dict(menu=menu, pst_no=uid, contents_present=bool(detail['contents'])))
                             self._report_source_failure('item_failed')
+                            if self._cursor_enabled:
+                                return saved
                             continue
                         authors = detail['authors'] or ([re.sub(r'\s*외\s*$', '', item['authors_raw']).strip()] if item['authors_raw'] else [])
                         primary = detail['primary_attachment']
@@ -324,14 +421,25 @@ class KrivetReKrKorCrawler(BaseCrawler):
                         self._save_paper(paper)
                         if self._last_save_created:
                             saved += 1
+                        seen_across[uid] = item['title']
+                        self._checkpoint(menu, page, index + 1, boundary, items,
+                                         previous_ordinal, previous_hash, items_done=1)
                         self._check_cancelled()
                     except PermissionError as exc:
                         self._report_source_failure('rate_limited' if '429' in str(exc) else 'authentication_failed')
                         return saved
                     except Exception:
                         self._report_source_failure('item_failed')
+                        if self._cursor_enabled:
+                            return saved
                 if boundary is not None and page >= boundary:
                     break
+                previous_ordinal = ordinals[-1]
+                previous_hash = self._page_identity(items)
                 page += 1
+                offset = 0
+                current_resume = None
         self._check_cancelled()
+        if not self.delivery_source_failure:
+            self._mark_exhausted()
         return saved
