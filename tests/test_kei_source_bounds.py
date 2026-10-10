@@ -21,6 +21,18 @@ def fixture(scope='researchreport',page=1,total=20):
     return info+wrap+''.join(rows)+'</div>'+pager
 
 class KeiLists(unittest.TestCase):
+    def test_press_whitespace_attribute_preserves_visible_quoted_title(self):
+        raw=fixture('board-0009',total=1).replace('title="Environmental research 1"', 'title="  "GMO 작물 천덕꾸러기 될 지도""').replace('<strong>Environmental research 1</strong>', '<strong>  "GMO 작물 천덕꾸러기 될 지도"</strong>')
+        item=parse_listing(raw,'board-0009',1)['items'][0]
+        self.assertEqual(item['title'],'"GMO 작물 천덕꾸러기 될 지도"')
+        self.assertEqual(item['source_key'],'board-0009:1')
+        self.assertEqual(item['date_raw'],'2026-08-31')
+
+    def test_press_both_titles_blank_remains_an_explicit_hold(self):
+        raw=fixture('board-0009',total=1).replace('Environmental research 1','   ')
+        with self.assertRaisesRegex(ValueError,'listing title missing'):
+            parse_listing(raw,'board-0009',1)
+
     def test_forum_pager_without_catalogue_keeps_selected_source_catalogue(self):
         # Actual KEI forum links omit elibName; the server then serves research.
         raw=fixture('environmentalforum').replace('&amp;elibName=environmentalforum&amp;nPage=2', '&amp;nPage=2')

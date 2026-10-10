@@ -110,7 +110,7 @@ def parse_listing(html, scope, page):
             raise ValueError('KEI missing or repeated document identity')
         ids.add(uid)
         title_text = text(anchor.select_one('.title strong')) if scope == 'board-0009' else text(anchor)
-        title = (anchor.get('title') or title_text).strip()
+        title = (anchor.get('title') or '').strip() or title_text
         if not title:
             raise ValueError('KEI source listing title missing')
         date = ''
