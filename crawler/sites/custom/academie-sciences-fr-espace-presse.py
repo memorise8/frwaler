@@ -34,6 +34,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from crawler.base_crawler import BaseCrawler
 from crawler.academie_source import editorial_items, parse_article, article_paper, source_url
+from crawler.academie_pdf_dates import publication_date_evidence
 
 
 _SITE_ID = "academie-sciences-fr-espace-presse"
@@ -493,12 +494,16 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
             raise ValueError('Academie source PDF text quality requires review')
         title = _pdf_title_from_text(pdf_text, item.get("title"))
         abstract = _abstract_from_pdf_text(pdf_text, title)
+        if _fold_text(_clean_text(abstract)) == _fold_text(_clean_text(title)):
+            raise ValueError('Academie PDF extraction contains only the title; source body requires review')
         if len(abstract) < _MIN_ABSTRACT_CHARS:
             print(f"[{self.site_id}] skip short abstract {len(abstract)} chars: {pdf_url}")
             return False
 
-        published_date = _date_from_french(pdf_text[:2500]) or item.get("listed_date")
-        listed_date = item.get("listed_date")
+        date_evidence = publication_date_evidence(pdf_text)
+        published_date = date_evidence['published_date_raw']
+        listed_date = (item.get("posted_date_raw") or item.get("listed_datetime")
+                       or item.get("listed_date"))
         external_id = _external_id_from_url(pdf_url)
         post_number = item.get("filename_slug") or external_id
         original_filename = item.get("original_filename")
@@ -514,7 +519,8 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
             "listed_date": listed_date,
             "listed_datetime": item.get("listed_datetime"),
             "posted_date": item.get("posted_date_raw"),
-            "published_date_raw": _date_from_french(pdf_text[:2500]),
+            "published_date_raw": published_date,
+            "publication_date_evidence": date_evidence,
             "originalFilename": original_filename,
             "original_filename": original_filename,
             "filename_slug": item.get("filename_slug"),

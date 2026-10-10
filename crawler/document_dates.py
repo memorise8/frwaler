@@ -31,6 +31,9 @@ SITE_DATE_ORDERS: dict[str, str] = {
 SITE_DATE_LABELS = {
     'onera-fr-fr': r'Publié le\s+(.+)',
     'ens-lyon-fr-lecole': r'Date de publication\s*(.+)',
+    'academie-sciences-fr-espace-presse': (
+        r'(?:(?:Paris,\s*)?le\s+|(?:lundi|mardi|mard\s+i|mercredi|jeudi|vendredi|samedi|dimanche)\s+)(.+)'
+    ),
 }
 
 _MONTHS = {}
@@ -150,6 +153,11 @@ def normalize_date(value, *, order=None):
             parts = (y, b, a) if order == "DMY" else (y, a, b)
         else:
             match = re.fullmatch(r"(\d{1,2})\s+([a-z]+)\.?\s+(\d{4})", folded)
+            if match is None:
+                match = re.fullmatch(
+                    r"(1)er\s+(janvier|fevrier|mars|avril|mai|juin|juillet|aout|septembre|octobre|novembre|decembre)\s+(\d{4})",
+                    folded,
+                )
             reverse = re.fullmatch(r"([a-z]+)\.?\s+(\d{1,2}),?\s+(\d{4})", folded)
             if match and match[2] in _MONTHS:
                 parts = (int(match[3]), _MONTHS[match[2]], int(match[1]))

@@ -17,6 +17,17 @@ CONFIG = Path(__file__).resolve().parents[1] / 'crawler/sites/configs/krivet-re-
 
 
 class DateContractTests(unittest.TestCase):
+    def test_french_first_day_ordinal_is_source_preserving_and_bounded(self):
+        for raw,value,status in [('1er avril 2025','2025-04-01','normalized'),
+                                 ('1er FÉVRIER 2024','2024-02-01','normalized'),
+                                 ('2er avril 2025',None,'unrecognized'),
+                                 ('11er avril 2025',None,'unrecognized'),
+                                 ('1er avril 2025 extra',None,'unrecognized'),
+                                 ('1er avril 0000',None,'invalid')]:
+            with self.subTest(raw=raw):
+                result=normalize_date(raw)
+                self.assertEqual((result['value'],result['status'],result['raw']),(value,status,raw))
+
     def test_compact_complete_date_is_validated_without_losing_original(self):
         for raw, value, status, precision in [('20250711','2025-07-11','normalized','day'),
                                               ('20250230',None,'invalid','day'),
