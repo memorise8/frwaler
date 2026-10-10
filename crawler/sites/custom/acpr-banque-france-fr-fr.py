@@ -14,6 +14,8 @@ import time
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlencode, urljoin, urlsplit
 
+from requests import RequestException
+
 from crawler.base_crawler import BaseCrawler
 
 _BASE = 'https://acpr.banque-france.fr'
@@ -305,7 +307,7 @@ class ACPRBanqueFranceCrawler(BaseCrawler):
     def _failure(self, exc, item=False):
         if isinstance(exc, PermissionError):
             reason = 'rate_limited' if '429' in str(exc) else 'authentication_failed'
-        elif isinstance(exc, ConnectionError):
+        elif isinstance(exc, (ConnectionError, RequestException)):
             reason = 'fetch_failed'
         else:
             reason = 'item_failed' if item else 'invalid_response'
@@ -383,7 +385,7 @@ class ACPRBanqueFranceCrawler(BaseCrawler):
                         self._check_cancelled()
                     except Exception as exc:
                         self._failure(exc, item=True)
-                        if self._cursor_enabled or isinstance(exc, (PermissionError, ConnectionError)):
+                        if self._cursor_enabled or isinstance(exc, (PermissionError, ConnectionError, RequestException)):
                             return saved
                 if page == last:
                     break

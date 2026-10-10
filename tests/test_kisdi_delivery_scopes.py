@@ -63,6 +63,7 @@ class KisdiScopes(SiteContract,unittest.TestCase):
 
     def test_contents_alone_does_not_count_as_body(self):
         c=self.crawler();original=self.fetch.side_effect
+        c._abstract_from_pdf=Mock(side_effect=ValueError('fixture PDF body unavailable'))
         self.fetch.side_effect=lambda method,url,post_fields=None:detail('104',body='') if 'artId=104' in url else original(method,url,post_fields)
         self.assertEqual(c.crawl(),7);self.assertFalse(c.delivery_exhausted);self.assertEqual(c.delivery_source_failure,'item_failed')
         self.assertEqual(self.crawler().crawl(),1)
@@ -136,6 +137,7 @@ class KisdiCursor(KisdiScopes):
 
     def test_body_failure_holds_last_completed_item(self):
         c=self.backfill();original=self.fetch.side_effect
+        c._abstract_from_pdf=Mock(side_effect=ValueError('fixture PDF body unavailable'))
         self.fetch.side_effect=lambda method,url,post_fields=None:detail('104',body='') if 'artId=104' in url else original(method,url,post_fields)
         self.assertEqual(c.crawl(),3);self.assertEqual(c.delivery_source_failure,'item_failed');cursor=c.delivery_pending_cursor;self.assertEqual(cursor['offset'],1)
         c=self.backfill(cursor);self.assertEqual(c.crawl(),5);self.assertTrue(c.delivery_exhausted)

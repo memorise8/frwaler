@@ -10,8 +10,12 @@ import json
 import os
 import re
 import subprocess
+import tempfile
 import time
+from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urljoin, urlsplit
+
+from requests import RequestException
 
 from crawler.base_crawler import BaseCrawler
 
@@ -25,6 +29,7 @@ _SCOPES = {
     'journal': ('m2309145696871', '5850223'),
 }
 _WALL_SECONDS = int(os.environ.get('LIBERTREE_MAX_WALL_S', str(25 * 60)))
+_PDF_MAX_BYTES = 100 * 1024**2
 
 
 def _make_soup(html):
@@ -177,6 +182,9 @@ class KisdiReKrReportCrawler(BaseCrawler):
                 values[label] = _text(li)[len(label):].strip()
         abstract = re.sub(r'^요약\s*', '', _text(soup.find(id='tab1'))).strip()
         toc = re.sub(r'^목차\s*', '', _text(soup.find(id='tab2'))).strip()
+        provenance = {}
+        if len(abstract) < 100 and item.get('pdf_url'):
+            abstract, provenance = self._abstract_from_pdf(item)
         if len(abstract) < 100:
             raise ValueError('source body unavailable; contents alone is insufficient')
         if toc:
@@ -187,7 +195,67 @@ class KisdiReKrReportCrawler(BaseCrawler):
                     posted_date=item['published_date_raw'] or None, url=item['url'], pdf_url=item['pdf_url'],
                     category=values.get('분류정보', ''), keywords=', '.join(_text(s) for s in soup.select('div.tag span')),
                     metadata=json.dumps(dict(master_id=item['master_id'], journal=values.get('게재지', ''),
-                                             volume=values.get('권호', ''), toc=toc), ensure_ascii=False))
+                                             volume=values.get('권호', ''), toc=toc, **provenance), ensure_ascii=False))
+
+    def _abstract_from_pdf(self, item):
+        """Recover an empty HTML summary from its source-linked report PDF.
+
+        Keep artId/master identity and extraction provenance; persistent file
+        artifacts and their flags remain the separate file worker's concern.
+        """
+        from delivery.files.worker import run_stage
+
+        scope = next((name for name, (_, master) in _SCOPES.items() if master == item['master_id']), None)
+        uid = item['art_id']
+        if scope is None or not re.fullmatch(r'[0-9]+', uid) or item['url'] != _detail_url(scope, uid):
+            raise ValueError('unreviewed source PDF document identity')
+        pdf_url = item['pdf_url']
+        parsed = urlsplit(pdf_url)
+        key, master = _SCOPES[scope]
+        if (parsed.scheme != 'https' or parsed.netloc != 'www.kisdi.re.kr'
+                or parsed.path != '/report/fileDown.do' or parsed.fragment
+                or parse_qs(parsed.query, keep_blank_values=True) != dict(key=[key], arrMasterId=[master], id=[uid])):
+            raise ValueError('source PDF download identity mismatch')
+        self._check_cancelled()
+        started, size, digest = time.monotonic(), 0, hashlib.sha256()
+        with tempfile.TemporaryDirectory(prefix='kisdi-source-pdf-') as directory:
+            root = Path(directory)
+            with self._session.get(pdf_url, stream=True, timeout=(10, 45), allow_redirects=False,
+                                   headers={'Referer': item['url']}) as response:
+                if response.status_code in (401, 403, 429):
+                    raise PermissionError(f'HTTP {response.status_code}')
+                if response.status_code != 200:
+                    raise ConnectionError(f'source PDF HTTP {response.status_code}')
+                declared = int(response.headers.get('Content-Length', '0'))
+                if declared < 0 or declared > _PDF_MAX_BYTES:
+                    raise ValueError('source PDF exceeds size budget')
+                with (root / 'source.pdf').open('xb') as handle:
+                    for chunk in response.iter_content(65536):
+                        self._check_cancelled()
+                        size += len(chunk)
+                        if size > _PDF_MAX_BYTES or time.monotonic() - started > 240:
+                            raise ValueError('source PDF download budget exceeded')
+                        digest.update(chunk)
+                        handle.write(chunk)
+            if declared and declared != size:
+                raise ValueError('source PDF truncated or length changed')
+            with (root / 'source.pdf').open('rb') as handle:
+                if handle.read(5) != b'%PDF-':
+                    raise ValueError('source response is not PDF')
+            self._check_cancelled()
+            stage = run_stage('text', root, timeout=120)
+            self._check_cancelled()
+            if not stage.get('success'):
+                raise ValueError('source PDF text unavailable: ' + str(stage.get('error', 'unknown')))
+            with (root / 'output.txt').open(encoding='utf-8') as handle:
+                excerpt = ' '.join(handle.read(12000).split())[:3000]
+            with (root / 'output.txt').open('rb') as handle:
+                text_hash = hashlib.file_digest(handle, 'sha256').hexdigest()
+        if len(excerpt) < 100:
+            raise ValueError('source PDF excerpt below body threshold')
+        return excerpt, dict(abstract_source='publisher_pdf_text_excerpt', abstract_pdf_url=pdf_url,
+                             abstract_pdf_sha256=digest.hexdigest(), abstract_pdf_bytes=size,
+                             abstract_pdf_text_sha256=text_hash, abstract_pdf_text_characters=stage.get('chars'))
 
     def _assert_identity(self, item):
         postgres = os.environ.get('LIBERTREE_DB_BACKEND', 'sqlite').lower() == 'postgres'
@@ -237,7 +305,7 @@ class KisdiReKrReportCrawler(BaseCrawler):
     def _failure(self, exc, item=False):
         if isinstance(exc, PermissionError):
             reason = 'rate_limited' if '429' in str(exc) else 'authentication_failed'
-        elif isinstance(exc, ConnectionError):
+        elif isinstance(exc, (ConnectionError, RequestException)):
             reason = 'fetch_failed'
         else:
             reason = 'item_failed' if item else 'invalid_response'
@@ -315,7 +383,7 @@ class KisdiReKrReportCrawler(BaseCrawler):
                         self._check_cancelled()
                     except Exception as exc:
                         self._failure(exc, item=True)
-                        if self._cursor_enabled or isinstance(exc, (PermissionError, ConnectionError)):
+                        if self._cursor_enabled or isinstance(exc, (PermissionError, ConnectionError, RequestException)):
                             return saved
                 if page == data['last_page']:
                     break

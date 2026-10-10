@@ -89,6 +89,17 @@ class AcprPdfEnrichment(SiteContract, unittest.TestCase):
             self.assertFalse(c.delivery_exhausted)
             self.assertEqual(self.pdf_get.call_count, 1)
 
+    def test_pdf_transport_failures_stop_before_later_documents(self):
+        for mode in ('full', 'backfill'):
+            for error in (requests.ConnectionError('connection interrupted'), requests.ReadTimeout('read timeout')):
+                c = self.crawler(); c.delivery_mode = mode
+                self.pdf_get.side_effect = error
+                self.assertEqual(c.crawl(), 0)
+                self.assertEqual(c.delivery_source_failure, 'fetch_failed')
+                self.assertFalse(c.delivery_exhausted)
+                self.assertEqual(self.pdf_get.call_count, 1)
+                if mode == 'backfill': self.assertEqual(c.delivery_pending_cursor['offset'], 0)
+
     def test_unreviewed_pdf_targets_make_no_request(self):
         c = self.crawler()
         for url in ('http://acpr.banque-france.fr/system/files/x.pdf', 'https://outside.invalid/x.pdf',
