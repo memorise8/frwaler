@@ -19,7 +19,7 @@ class CanurbTraversal:
     DELIVERY_STOP_ON_KNOWN = False
 
     def _catalogue_contract(self):
-        return digest(['canurb-publications-v1', self.base_url + '/publications/',
+        return digest(['canurb-publications-v2', self.base_url + '/publications/',
                        'publisher_cards_including_linked_PDF_and_external_publications'])
 
     def _catalogue_stored(self, item, *, required):

@@ -255,6 +255,7 @@ class CanurbOrgPublicationsCrawler(CanurbTraversal, BaseCrawler):
             "excerpt": record.get("excerpt", ""),
             "og_url": self._meta(soup, "og:url"),
             "pdf_candidates": self._pdf_links(soup, url),
+            "publication_pdf_candidates": self._pdf_links(soup, url, publication_only=True),
             "abstract_source": abstract_source,
             "social_description_raw": social_description,
             "publication_date_source": ('detail_publication_date' if detail_publication_date is not None
@@ -376,7 +377,7 @@ class CanurbOrgPublicationsCrawler(CanurbTraversal, BaseCrawler):
         return ""
 
     def _find_pdf_url(self, soup, base_url: str) -> str:
-        links = self._pdf_links(soup, base_url)
+        links = self._pdf_links(soup, base_url, publication_only=True)
         # Publisher primary actions can occur after executive summaries and
         # translations. Preserve those variants, but prefer the full report.
         for labels in ({'launch'},
@@ -387,10 +388,17 @@ class CanurbOrgPublicationsCrawler(CanurbTraversal, BaseCrawler):
                     return link['url']
         return links[0]['url'] if links else ''
 
-    def _pdf_links(self, soup, base_url: str) -> list[dict]:
+    def _pdf_links(self, soup, base_url: str, *, publication_only=False) -> list[dict]:
         links = []
         seen = set()
-        for a in soup.find_all("a", href=True):
+        root = (soup.find('article') or soup.find('main') or soup) if publication_only else soup
+        for a in root.find_all("a", href=True):
+            if publication_only and any(
+                node.name in ('aside', 'nav', 'header', 'footer')
+                or 'single__related' in node.get('class', [])
+                for node in a.parents
+            ):
+                continue
             href = a.get("href", "").strip()
             if '.pdf' not in href.lower():
                 continue

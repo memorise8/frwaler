@@ -82,6 +82,38 @@ class LinkedPublicationCounts(CoupledContract, unittest.TestCase):
                              {f'https://canurb.org/files/summary-{number}.pdf', f'https://canurb.org/files/full-{number}.pdf'})
 
 
+    def test_related_report_collection_has_no_arbitrary_primary_pdf(self):
+        c = self.crawler(); original_fetch = self.fetch.side_effect; emitted = {}; save = c._save_paper
+        def fetch(url, **kw):
+            raw = original_fetch(url, **kw)
+            if '/publications/report-' not in url:
+                return raw
+            return raw + '<article><a class="links__to" href="https://project.example.org/regions">Launch</a><div class="single__related"><a href="/files/territories.pdf">Regional report</a></div></article>'
+        def persist(paper):
+            emitted[str(paper['external_id'])] = dict(paper)
+            return save(paper)
+        self.fetch.side_effect = fetch; c._save_paper = persist
+        self.assertEqual(c.crawl(), 8)
+        rows = self.conn.execute('SELECT post_number,pdf_url,original_filename FROM documents').fetchall()
+        actual = {r['post_number']:(r['pdf_url'],r['original_filename']) for r in rows} if self.BACKEND == 'postgres' else {r[0]:(r[1],r[2]) for r in rows}
+        for key in map(str, range(3,9)):
+            self.assertEqual(actual[key], (None, None))
+            metadata = json.loads(emitted[key]['metadata'])
+            self.assertEqual(len(metadata['pdf_candidates']), 1)
+            self.assertEqual(metadata['publication_pdf_candidates'], [])
+
+    def test_unrelated_launch_does_not_outrank_article_attachment(self):
+        c = self.crawler()
+        soup = c._make_soup('<aside><a href="/outside.pdf">Launch</a></aside><article><div class="single__related"><a href="/related.pdf">Launch</a></div><div class="the__content"><a href="/actual.pdf">Report archive</a></div></article>')
+        self.assertEqual(c._find_pdf_url(soup, self.module._LIST_URL), 'https://canurb.org/actual.pdf')
+        self.assertEqual(len(c._pdf_links(soup, self.module._LIST_URL)), 3)
+
+    def test_same_pdf_in_related_and_body_keeps_body_role(self):
+        c = self.crawler()
+        soup = c._make_soup('<article><div class="single__related"><a href="/same.pdf">Related report</a></div><div class="the__content"><a href="/same.pdf">Full Report</a></div></article>')
+        self.assertEqual(c._pdf_links(soup, self.module._LIST_URL, publication_only=True), [{'url':'https://canurb.org/same.pdf','label':'Full Report'}])
+
+
 @unittest.skipUnless(os.environ.get('TEST_PG_DSN'), 'requires owned disposable PostgreSQL')
 class LinkedPublicationPostgres(LinkedPublicationCounts):
     BACKEND = 'postgres'

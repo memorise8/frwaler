@@ -107,6 +107,16 @@ class CanurbCursorTests(unittest.TestCase):
         c = self.crawler({'version':1,'page':False})
         self.assertEqual(c.crawl(), 0);self.case.fetch.assert_not_called()
 
+    def test_previous_pdf_role_contract_requires_explicit_cursor_review(self):
+        from crawler.canurb_traversal import digest
+        c = self.crawler();self.assertEqual(c.crawl(limit=3),3)
+        cursor = dict(c.delivery_pending_cursor)
+        cursor['contract'] = digest(['canurb-publications-v1',self.case.module._LIST_URL,
+                                     'publisher_cards_including_linked_PDF_and_external_publications'])
+        c = self.crawler(cursor)
+        self.assertEqual(c.crawl(),0);self.assertEqual(c.delivery_source_failure,'configuration')
+        self.case.fetch.assert_not_called()
+
     def test_next_page_must_be_the_adjacent_publisher_catalogue(self):
         c = self.crawler();fetch = self.case.fetch.side_effect
         self.case.fetch.side_effect = lambda url, **kw: fetch(url, **kw) + '<a rel="next" href="https://other.invalid/page/2/">Next</a>'
