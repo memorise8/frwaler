@@ -74,7 +74,93 @@ IMPERVA_EMPTY = b'''<html><head><META NAME="robots" CONTENT="noindex,nofollow">
 <body></body></html>'''
 
 
+CHALLENGE_VALIDATION = b'''<html><head><title>Challenge Validation</title>
+<script>function cp_clge_done(){location.reload(true);}</script>
+<script src="/challenge/resource/private-challenge-token"></script></head><body>
+<div class="sec-container"><div id="sec-text-container">
+<iframe id="sec-text-if" class="crypto" src="/challenge/text"></iframe></div>
+<div id="sec-if-container"><iframe id="sec-cpt-if" class="crypto" src="/challenge/control"></iframe></div>
+</div><div><input type="hidden" name="verify-url" value="private-challenge-token"></div></body></html>'''
+
+
+HAL_REFUSAL = b'''<html><head><title>Search - HAL Open Archive</title></head><body>
+<nav><a class="logo-HAL" href="//hal.science"><img src="/assets/img/hal-logo-header.png"></a></nav>
+<main class="section-corps" id="skip-link"><h1>Sorry, we are unable to process your request</h1>
+<div class="flash-message"><p>It seems that your request has been identified as coming from a robot.
+If this is not the case, please accept our apologies for the inconvenience.
+You can try your search again by <strong>refreshing the page</strong> or by <strong>going back</strong> in your browser.
+</p></div></main></body></html>'''
+
+
 class ChallengeClassification(unittest.TestCase):
+    def test_hal_robot_refusal_requires_the_complete_error_page(self):
+        for body in (HAL_REFUSAL, HAL_REFUSAL.decode()):
+            self.assertEqual(access_challenge(body), 'hal_robot_access_refusal')
+        for body in (
+            HAL_REFUSAL.replace(b'Search - HAL Open Archive', b'Research about robots'),
+            HAL_REFUSAL.replace(b'logo-HAL', b'ordinary-logo'),
+            HAL_REFUSAL.replace(b'identified as coming from a robot', b'completed successfully'),
+            HAL_REFUSAL.replace(b'<main', b'<article').replace(b'</main>', b'</article>'),
+            HAL_REFUSAL.replace(b'</main>', b'<p>Actual search results</p></main>'),
+            b'x' * (128 * 1024) + HAL_REFUSAL,
+        ):
+            with self.subTest(body=body[:80]):
+                self.assertIsNone(access_challenge(body))
+
+    def test_hal_robot_refusal_200_holds_host(self):
+        site = {'site_id': 'fixture', 'selected_entry': {'url': 'https://example.org/search'}}
+        gate = HostGate(0)
+        response = dict(status=200, curl_exit=0, body_complete=True,
+                        body=HAL_REFUSAL, headers={'content-type': 'text/html'})
+        first = observe(site, gate, fetch=lambda *a, **kw: response)
+        second = observe(site, gate, fetch=lambda *a, **kw: self.fail('fetch after hold'))
+        self.assertEqual(first['state'], 'source_access_challenge')
+        self.assertEqual(first['challenge'], 'hal_robot_access_refusal')
+        self.assertEqual(second['state'], 'host_access_held')
+
+    def test_hal_robot_refusal_200_stops_both_transports(self):
+        for transport in ('requests', 'curl'):
+            result = self.probe(transport, status=200, body=HAL_REFUSAL)
+            self.assertEqual(result['state'], 'blocked')
+            self.assertEqual(result['diagnostics']['stop_reason'], 'source_access_challenge')
+            self.assertEqual(result['sample_count'], 0)
+
+    def test_challenge_validation_requires_empty_active_controls(self):
+        for body in (CHALLENGE_VALIDATION, CHALLENGE_VALIDATION.decode()):
+            self.assertEqual(access_challenge(body), 'javascript_challenge_validation')
+        for body in (
+            CHALLENGE_VALIDATION.replace(b'Challenge Validation', b'Publication list'),
+            CHALLENGE_VALIDATION.replace(b'sec-cpt-if', b'ordinary-frame'),
+            CHALLENGE_VALIDATION.replace(b'verify-url', b'ordinary-input'),
+            CHALLENGE_VALIDATION.replace(b'cp_clge_done', b'ordinary_callback'),
+            CHALLENGE_VALIDATION.replace(b'<script', b'<script type="text/plain"'),
+            CHALLENGE_VALIDATION.replace(b'src="/challenge', b'src="https://example.org/challenge'),
+            CHALLENGE_VALIDATION.replace(b'</body>', b'<main>Research</main></body>'),
+            CHALLENGE_VALIDATION.replace(b'</body>', b'<p>No results</p></body>'),
+            b'x' * (128 * 1024) + CHALLENGE_VALIDATION,
+        ):
+            with self.subTest(body=body[:80]):
+                self.assertIsNone(access_challenge(body))
+
+    def test_challenge_validation_200_holds_host_without_exposing_data(self):
+        site = {'site_id': 'fixture', 'selected_entry': {'url': 'https://example.org/press'}}
+        gate = HostGate(0)
+        response = dict(status=200, curl_exit=0, body_complete=True,
+                        body=CHALLENGE_VALIDATION, headers={'content-type': 'text/html'})
+        first = observe(site, gate, fetch=lambda *a, **kw: response)
+        second = observe(site, gate, fetch=lambda *a, **kw: self.fail('fetch after hold'))
+        self.assertEqual(first['state'], 'source_access_challenge')
+        self.assertEqual(first['challenge'], 'javascript_challenge_validation')
+        self.assertEqual(second['state'], 'host_access_held')
+        self.assertNotIn('private-challenge-token', json.dumps(first))
+
+    def test_challenge_validation_200_stops_both_transports(self):
+        for transport in ('requests', 'curl'):
+            result = self.probe(transport, status=200, body=CHALLENGE_VALIDATION)
+            self.assertEqual(result['state'], 'blocked')
+            self.assertEqual(result['diagnostics']['stop_reason'], 'source_access_challenge')
+            self.assertEqual(result['sample_count'], 0)
+
     def test_empty_imperva_shell_requires_robots_and_active_local_script(self):
         for body in (IMPERVA_EMPTY, IMPERVA_EMPTY.decode()):
             self.assertEqual(access_challenge(body), 'imperva_empty_script_interstitial')

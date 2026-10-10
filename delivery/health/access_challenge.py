@@ -13,9 +13,10 @@ def access_challenge(body):
     js_page_notice = 'please enable javascript to view the page content.'
     aws_js_notice = "in order to continue, we need to verify that you're not a robot."
     human_notice = 'this question is for testing whether you are a human visitor'
+    hal_notice = 'it seems that your request has been identified as coming from a robot.'
     markers = ('human verification', 'pardon our interruption', 'security check',
-               'not a bot!',
-               cookie_notice, human_notice, js_page_notice, aws_js_notice,
+               'not a bot!', 'challenge validation',
+               cookie_notice, human_notice, js_page_notice, aws_js_notice, hal_notice,
                '/_incapsula_resource?')
     if isinstance(prefix, bytes):
         markers = tuple(marker.encode() for marker in markers)
@@ -23,6 +24,50 @@ def access_challenge(body):
         return None
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(prefix, 'html.parser')
+    title = soup.title.get_text(' ', strip=True).casefold() if soup.title else ''
+    if title == 'search - hal open archive' and not soup.find('article'):
+        import re
+        main = soup.select_one('main#skip-link.section-corps')
+        heading = main.find('h1') if main else None
+        message = main.select_one('div.flash-message p') if main else None
+        expected_heading = 'sorry, we are unable to process your request'
+        expected_message = (hal_notice + ' if this is not the case, please accept our apologies '
+                            'for the inconvenience. you can try your search again by refreshing '
+                            'the page or by going back in your browser.')
+        normalize = lambda tag: re.sub(r'\s+', ' ', tag.get_text(' ', strip=True)).casefold()
+        if (heading and message and normalize(heading) == expected_heading
+                and normalize(message) == expected_message
+                and normalize(main) == expected_heading + ' ' + expected_message
+                and soup.select_one('a.logo-HAL[href="//hal.science"] img[src="/assets/img/hal-logo-header.png"]')):
+            return 'hal_robot_access_refusal'
+    if (title == 'challenge validation' and soup.body
+            and not soup.body.get_text(' ', strip=True)
+            and not soup.find(['article', 'main', 'h1', 'form'])):
+        # Observed gob.mx HTTP 200 shell. Require the actual iframe controls
+        # and active reload callback; never execute or return challenge data.
+        import re
+        from urllib.parse import urlsplit
+
+        def local_resource(value):
+            try:
+                resource = urlsplit(value or '')
+            except ValueError:
+                return False
+            return (not resource.scheme and not resource.netloc
+                    and resource.path.startswith('/') and resource.path != '/')
+
+        frames = [soup.select_one(selector) for selector in
+                  ('div.sec-container div#sec-text-container iframe#sec-text-if.crypto[src]',
+                   'div.sec-container div#sec-if-container iframe#sec-cpt-if.crypto[src]')]
+        active = [script for script in soup.find_all('script') if script.get('type')
+                  in (None, 'text/javascript', 'application/javascript', 'module')]
+        callback = any(re.fullmatch(
+            r'\s*function\s+cp_clge_done\(\)\s*\{\s*location\.reload\(true\);?\s*\}\s*',
+            script.get_text()) for script in active if not script.get('src'))
+        if (all(frame and local_resource(frame['src']) for frame in frames)
+                and soup.body.select_one('input[type="hidden"][name="verify-url"]')
+                and callback and any(local_resource(script.get('src')) for script in active)):
+            return 'javascript_challenge_validation'
     if not soup.get_text(' ', strip=True) and not soup.find(['article', 'main', 'h1', 'form']):
         # Both delivered environment.govt.nz scopes returned this empty HTTP
         # 200 shell: robots exclusion plus a local Incapsula script. It is
