@@ -9,7 +9,9 @@ import json
 import os
 import re
 import subprocess
+import tempfile
 import time
+from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlencode, urljoin, urlsplit
 
 from crawler.base_crawler import BaseCrawler
@@ -27,6 +29,7 @@ _SCOPES = {
                   view='.view-id-espaces2_press_release'),
 }
 _WALL_SECONDS = int(os.environ.get('LIBERTREE_MAX_WALL_S', str(25 * 60)))
+_PDF_MAX_BYTES = 20 * 1024**2
 
 
 def _make_soup(html):
@@ -170,8 +173,6 @@ class ACPRBanqueFranceCrawler(BaseCrawler):
             if text and text not in parts:
                 parts.append(text)
         abstract = '\n\n'.join(parts)
-        if len(abstract) < 50:
-            raise ValueError('source body unavailable')
         dates = set()
         for script in soup.select('script[data-drupal-selector="drupal-settings-json"]'):
             data = json.loads(script.string or script.get_text())
@@ -194,12 +195,70 @@ class ACPRBanqueFranceCrawler(BaseCrawler):
                 if url not in pdfs:
                     pdfs.append(url)
         pdf_url = pdfs[0] if pdfs else None
+        provenance = {}
+        if len(abstract) < 50 and pdf_url:
+            abstract, provenance = self._abstract_from_pdf(pdf_url)
+        if len(abstract) < 50:
+            raise ValueError('source body unavailable')
         return dict(site_id=self.site_id, external_id=item['slug'], title=item['title'], abstract=abstract,
                     published_date=date_raw or None, posted_date=item['listed_date_raw'] or None,
                     url=item['url'], pdf_url=pdf_url,
                     original_filename=unquote(urlsplit(pdf_url).path.rsplit('/', 1)[-1]) if pdf_url else None,
                     authors=[], publisher='ACPR - Autorité de contrôle prudentiel et de résolution',
-                    category=item['category'], metadata=json.dumps(dict(source_pdf_urls=pdfs), ensure_ascii=False))
+                    category=item['category'], metadata=json.dumps(dict(source_pdf_urls=pdfs, **provenance), ensure_ascii=False))
+
+    def _abstract_from_pdf(self, pdf_url):
+        """Extract the linked publisher PDF when the notice has no HTML body.
+
+        This metadata excerpt does not mark file-worker downloads or TXT output
+        complete. The native file worker must persist and verify those separately.
+        """
+        from delivery.files.worker import run_stage
+
+        parsed = urlsplit(pdf_url)
+        if (parsed.scheme != 'https' or parsed.netloc != 'acpr.banque-france.fr'
+                or not parsed.path.startswith('/system/files/')
+                or not parsed.path.lower().endswith('.pdf') or parsed.query or parsed.fragment):
+            raise ValueError('unreviewed source PDF destination')
+        self._check_cancelled()
+        started, size, digest = time.monotonic(), 0, hashlib.sha256()
+        with tempfile.TemporaryDirectory(prefix='acpr-source-pdf-') as directory:
+            root = Path(directory)
+            with self._session.get(pdf_url, stream=True, timeout=(10, 45), allow_redirects=False) as response:
+                if response.status_code in (401, 403, 429):
+                    raise PermissionError(f'HTTP {response.status_code}')
+                if response.status_code != 200:
+                    raise ConnectionError(f'source PDF HTTP {response.status_code}')
+                declared = int(response.headers.get('Content-Length', '0'))
+                if declared < 0 or declared > _PDF_MAX_BYTES:
+                    raise ValueError('source PDF exceeds size budget')
+                with (root / 'source.pdf').open('xb') as handle:
+                    for chunk in response.iter_content(65536):
+                        self._check_cancelled()
+                        size += len(chunk)
+                        if size > _PDF_MAX_BYTES or time.monotonic() - started > 180:
+                            raise ValueError('source PDF download budget exceeded')
+                        digest.update(chunk)
+                        handle.write(chunk)
+            if declared and declared != size:
+                raise ValueError('source PDF truncated or length changed')
+            with (root / 'source.pdf').open('rb') as handle:
+                if handle.read(5) != b'%PDF-':
+                    raise ValueError('source response is not PDF')
+            self._check_cancelled()
+            stage = run_stage('text', root, timeout=120)
+            self._check_cancelled()
+            if not stage.get('success'):
+                raise ValueError('source PDF text unavailable: ' + str(stage.get('error', 'unknown')))
+            with (root / 'output.txt').open(encoding='utf-8') as handle:
+                excerpt = ' '.join(handle.read(12000).split())[:3000]
+            with (root / 'output.txt').open('rb') as handle:
+                text_hash = hashlib.file_digest(handle, 'sha256').hexdigest()
+        if len(excerpt) < 50:
+            raise ValueError('source PDF excerpt below body threshold')
+        return excerpt, dict(abstract_source='publisher_pdf_text_excerpt', abstract_pdf_url=pdf_url,
+                             abstract_pdf_sha256=digest.hexdigest(), abstract_pdf_bytes=size,
+                             abstract_pdf_text_sha256=text_hash, abstract_pdf_text_characters=stage.get('chars'))
 
     def _assert_identity(self, item):
         postgres = os.environ.get('LIBERTREE_DB_BACKEND', 'sqlite').lower() == 'postgres'

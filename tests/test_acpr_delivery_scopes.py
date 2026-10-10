@@ -29,9 +29,10 @@ def listing(scope,page,*,ids=None,size=2):
     return f'<main><div class="view {VIEWS[scope]}">{"".join(cards)}{pager}</div></main>'
 
 
-def detail(uid,*,date='14 Septembre 2026',body=BODY):
+def detail(uid,*,date='14 Septembre 2026',body=BODY,pdf=True):
     settings=json.dumps({'piano_props':{'custom_publication_statistic_date':date}})
-    return f'<h1>Research {uid}</h1><script data-drupal-selector="drupal-settings-json" type="application/json">{settings}</script><article class="node"><div class="field--name-body"><p>{body}</p></div><a data-file-extension="pdf" href="/system/files/{uid}.pdf">Télécharger</a></article>'
+    link=f'<a data-file-extension="pdf" href="/system/files/{uid}.pdf">Télécharger</a>' if pdf else ''
+    return f'<h1>Research {uid}</h1><script data-drupal-selector="drupal-settings-json" type="application/json">{settings}</script><article class="node"><div class="field--name-body"><p>{body}</p></div>{link}</article>'
 
 
 class AcprScopes(SiteContract,unittest.TestCase):
@@ -83,7 +84,7 @@ class AcprScopes(SiteContract,unittest.TestCase):
 
     def test_missing_body_does_not_borrow_navigation_or_footer(self):
         c=self.crawler();original=self.fetch.side_effect
-        self.fetch.side_effect=lambda url:detail('s4',body='')+f'<footer><p>{BODY}</p></footer>' if url.endswith('/s4') else original(url)
+        self.fetch.side_effect=lambda url:detail('s4',body='',pdf=False)+f'<footer><p>{BODY}</p></footer>' if url.endswith('/s4') else original(url)
         self.assertEqual(c.crawl(),7);self.assertEqual(c.delivery_source_failure,'item_failed');self.assertFalse(c.delivery_exhausted);self.assertEqual(self.crawler().crawl(),1)
 
     def test_detail_title_mismatch_is_not_saved(self):
@@ -134,7 +135,7 @@ class AcprCursor(AcprScopes):
     def test_body_and_save_failures_hold_position(self):
         for failure in ('body','save'):
             c=self.backfill();original=self.fetch.side_effect;save=c._save_paper
-            if failure=='body':self.fetch.side_effect=lambda url:detail('s4',body='') if url.endswith('/s4') else original(url)
+            if failure=='body':self.fetch.side_effect=lambda url:detail('s4',body='',pdf=False) if url.endswith('/s4') else original(url)
             else:
                 def fail(paper):
                     if paper['external_id']=='s4':raise RuntimeError('save failed')
