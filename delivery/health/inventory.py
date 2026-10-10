@@ -3,11 +3,12 @@ from __future__ import annotations
 
 import ast
 import csv
-import hashlib
 import inspect
 from collections import Counter
 from functools import lru_cache
 from pathlib import Path
+
+from .provenance import SourceProvenance
 
 ROOT = Path(__file__).resolve().parents[2]
 CATALOGUE = ROOT / "delivery/vendor/crawler_status_final.csv"
@@ -18,6 +19,7 @@ def inventory(include_registry: bool = False) -> dict:
     from crawler.sites import CRAWLERS, REGISTRY_ERRORS
     from delivery.capabilities import HAL_CHECKPOINT_RESUME
 
+    provenance = SourceProvenance(ROOT)
     rows = []
     with CATALOGUE.open(encoding="utf-8-sig") as handle:
         catalogue = list(csv.DictReader(handle))
@@ -42,26 +44,29 @@ def inventory(include_registry: bool = False) -> dict:
                 tree = ast.parse(source)
                 # Include shared save/fetch code in probe provenance, not only
                 # the site module. A code update invalidates old live evidence.
-                digest = hashlib.sha256(source.encode())
-                for shared in ("crawler/base_crawler.py", "crawler/generic_crawler.py",
-                               "crawler/search_credentials.py", "delivery/capabilities.py",
-                               "crawler/stealth_fetcher.py", "crawler/playwright_fetcher.py",
-                               "crawler/libertree_adapter.py",
-                               "crawler/document_dates.py", "crawler/document_identity.py",
-                               "crawler/db_libertree.py", "crawler/db_pg.py",
-                               "delivery/health/probe.py", "delivery/health/diagnostics.py", "delivery/health/request_gate.py"):
-                    digest.update((ROOT / shared).read_bytes())
+                dependencies = [
+                    "crawler/base_crawler.py", "crawler/generic_crawler.py",
+                    "crawler/search_credentials.py", "delivery/capabilities.py",
+                    "crawler/stealth_fetcher.py", "crawler/playwright_fetcher.py",
+                    "crawler/libertree_adapter.py", "crawler/document_dates.py",
+                    "crawler/document_identity.py", "crawler/db_libertree.py", "crawler/db_pg.py",
+                    "delivery/health/probe.py", "delivery/health/diagnostics.py",
+                    "delivery/health/request_gate.py", "delivery/health/inventory.py",
+                ]
                 if site_id in HAL_CHECKPOINT_RESUME:
-                    digest.update((ROOT/"crawler/hal_checkpoint.py").read_bytes())
+                    dependencies.append("crawler/hal_checkpoint.py")
                 if site_id == 'federalregister-gov-documents':
-                    digest.update((ROOT/'crawler/federal_checkpoint.py').read_bytes())
+                    dependencies.append("crawler/federal_checkpoint.py")
                 config = getattr(cls, "_config_path", None)
                 if config:
-                    digest.update(Path(config).read_bytes())
+                    dependencies.append(str(Path(config).resolve().relative_to(ROOT)))
+                source_hash, source_files = provenance.fingerprint(cls, dependencies)
                 names = {node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)}
                 constants = {node.value for node in ast.walk(tree)
                              if isinstance(node, ast.Constant) and isinstance(node.value, str)}
-                row.update(source=str(path.relative_to(ROOT)), source_hash=digest.hexdigest(),
+                row.update(source=str(path.relative_to(ROOT)), source_hash=source_hash,
+                           source_files=source_files,
+                           source_hash_scheme="local_static_import_closure_v2",
                            code_status="abstract" if inspect.isabstract(cls) else "ready",
                            resume_signals=site_id in HAL_CHECKPOINT_RESUME or {"delivery_cursor", "_advance_cursor", "_mark_exhausted"} <= names,
                            time_budget_signal="LIBERTREE_MAX_WALL_S" in constants)
