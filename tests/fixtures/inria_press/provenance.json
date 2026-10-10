@@ -1,0 +1,6 @@
+{
+  "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/inria-fr-fr-exact-delivered-entries/scope-0-0.body",
+  "source_sha256": "49d0dc16ba9a9bad9608b3f625c2763205f6fab7b10cc0459efadcc59a654071",
+  "selector": "article.news",
+  "fixture_sha256": "4625f1ada304c76d36515f75d664b1ebe66a147680f2d0e56a65ebf427d8d88a"
+}

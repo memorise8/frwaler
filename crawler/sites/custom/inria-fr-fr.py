@@ -85,7 +85,9 @@ class InriaFrFrCrawler(BaseCrawler):
             new_items: list[tuple[str, str, str]] = []  # (detail_url, list_title, list_tag)
             for art in articles:
                 about = (art.get("about") or "").strip()
-                if not about or not about.startswith("/fr/"):
+                # Drupal also publishes French links through index.php,
+                # including a percent-encoded dot. Keep the source URL intact.
+                if not re.match(r"^/(?:index(?:\.|%2[eE])php/)?fr/", about):
                     continue
                 if about in seen_urls:
                     continue
