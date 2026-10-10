@@ -7,6 +7,13 @@ _KEI_ELIB_MIDS = {
     'researchreport': 'a10101010000',
     'environmentalforum': 'a10102010000',
 }
+_KEI_BOARD_MIDS = {
+    '0028': 'a10102020000', '0031': 'a10102050000',
+    '0032': 'a10102060000', '0033': 'a10102070200',
+    '0054': 'a10102100000', '0057': 'a10102120000',
+    '0075': 'a10102130000', '0081': 'a10102180000',
+    '0009': 'a10307020000',
+}
 
 
 def kei_elib_id(url):
@@ -27,10 +34,40 @@ def kei_elib_id(url):
     return names[0], ids[0]
 
 
+def kei_document_id(url):
+    """Keep catalogue IDs and each delivered board's IDs in separate scopes."""
+    parsed = urlsplit(url)
+    query = parse_qs(parsed.query, keep_blank_values=True)
+    if parsed.path == '/elibList.es':
+        if 'list_no' in query or 'bid' in query:
+            raise ValueError('ambiguous_kei_catalogue_identifier')
+        return kei_elib_id(url)
+    if (parsed.scheme != 'https' or parsed.netloc != 'www.kei.re.kr'
+            or parsed.path != '/board.es'):
+        raise ValueError('invalid_kei_document_destination')
+    boards, ids = query.get('bid', []), query.get('list_no', [])
+    if (len(boards) != 1 or boards[0] not in _KEI_BOARD_MIDS
+            or query.get('mid') != [_KEI_BOARD_MIDS[boards[0]]]):
+        raise ValueError('invalid_kei_board_scope')
+    if (len(ids) != 1 or not re.fullmatch('[0-9]+', ids[0])
+            or query.get('act') != ['view'] or 'c_id' in query or 'elibName' in query):
+        raise ValueError('invalid_kei_board_identifier')
+    return 'board-' + boards[0], ids[0]
+
+
 def find_kei_document(conn, site_id, post_number, meta_url, *, postgres=False):
     if site_id != 'kei-re-kr-eliblistes':
         return None
-    wanted = kei_elib_id(meta_url)
+    wanted = kei_document_id(meta_url)
+    scoped = post_number == ':'.join(wanted)
+    board = wanted[0].startswith('board-')
+    # New boards must not insert a bare list_no into the old catalogue ID
+    # namespace. Matching historical rows may still retain their original ID.
+    known_scopes = set(_KEI_ELIB_MIDS) | {'board-' + bid for bid in _KEI_BOARD_MIDS}
+    named_scope = post_number.split(':', 1)[0] if isinstance(post_number, str) and ':' in post_number else None
+    if (board and not scoped) or (named_scope in known_scopes and not scoped):
+        raise ValueError('kei_scoped_post_number_required')
+    parameter = 'list_no' if board else 'c_id'
     mark = '%s' if postgres else '?'
     # Historical imports can have original ordinal IDs; don't require replacing
     # them with c_id or rewriting their links. Resolve the source identity first
@@ -43,25 +80,28 @@ def find_kei_document(conn, site_id, post_number, meta_url, *, postgres=False):
         f'SELECT seq_id,post_number,meta_url FROM documents WHERE site_id={mark} '
         f'AND (post_number={mark} OR meta_url LIKE {mark} OR meta_url LIKE {mark} '
         f"OR meta_url LIKE {mark} OR meta_url LIKE {mark} ESCAPE '\\')",
-        (site_id, post_number, '%c_id=' + wanted[1] + '&%', '%c_id=' + wanted[1],
-         '%c_id=' + wanted[1] + '#%', '%\\%%'),
+        (site_id, post_number, '%' + parameter + '=' + wanted[1] + '&%',
+         '%' + parameter + '=' + wanted[1],
+         '%' + parameter + '=' + wanted[1] + '#%', '%\\%%'),
     ).fetchall()
     matches, conflicting_ids = [], []
     for row in rows:
         seq, stored_id, url = (row['seq_id'], row['post_number'], row['meta_url']) if hasattr(row, 'keys') else row
         try:
-            key = kei_elib_id(url)
+            key = kei_document_id(url)
         except (TypeError, ValueError):
             query = parse_qs(urlsplit(url or '').query, keep_blank_values=True)
-            if stored_id == post_number or wanted[1] in query.get('c_id', []):
+            if stored_id == post_number or wanted[1] in query.get(parameter, []):
                 raise ValueError('kei_legacy_identity_requires_review')
             continue
         if key == wanted:
             matches.append(seq)
-        elif stored_id == post_number or key[1] == wanted[1]:
+        elif stored_id == post_number or (not scoped and key[1] == wanted[1]):
             conflicting_ids.append(seq)
     if len(matches) > 1:
         raise ValueError('kei_identity_collision_requires_review')
+    if scoped and conflicting_ids:
+        raise ValueError('kei_scoped_identifier_collision_requires_review')
     if matches:
         return matches[0]
     if conflicting_ids:
