@@ -450,19 +450,19 @@ class DataGovUKSearchCrawler(BaseCrawler):
                 label = entry.select_one(".datagovuk-search-results__item-label")
                 value = entry.select_one(".datagovuk-search-results__item-value")
                 if label is not None and value is not None:
-                    key = self._clean_text(label.get_text(" ", strip=True)).lower()
+                    key = self._html_node_text(label).lower()
                     key = {"publisher": "published by", "updated": "last updated"}.get(key, key)
-                    meta.setdefault(key, self._clean_text(value.get_text(" ", strip=True)))
+                    meta.setdefault(key, self._html_node_text(value))
             summary = ""
             paragraph = row.find("p")
             if paragraph is None:
                 paragraph = row.select_one('[class~="datagovuk-!-colour-grey"]')
             if paragraph is not None:
-                summary = self._clean_text(paragraph.get_text(" ", strip=True))
+                summary = self._html_node_text(paragraph)
 
             items.append(
                 {
-                    "title": self._clean_text(link.get_text(" ", strip=True)),
+                    "title": self._html_node_text(link),
                     "abstract": summary,
                     "publisher": meta.get("published by"),
                     "listed_date_raw": meta.get("last updated"),
@@ -496,14 +496,20 @@ class DataGovUKSearchCrawler(BaseCrawler):
         print(f"[{self.site_id}] HTML parse failed with all parsers: {last_error}")
         return None
 
+    @staticmethod
+    def _html_node_text(node):
+        # BeautifulSoup has already decoded HTML entities. Preserve literal
+        # entity strings and angle brackets in the resulting visible text.
+        return re.sub(r"\s+", " ", node.get_text(" ", strip=True)).strip()
+
     def _metadata_from_dl(self, root):
         out = {}
         for dt in root.select("dt"):
-            key = self._clean_text(dt.get_text(" ", strip=True)).rstrip(":").lower()
+            key = self._html_node_text(dt).rstrip(":").lower()
             dd = dt.find_next_sibling("dd")
             if not key or dd is None:
                 continue
-            out[key] = self._clean_text(dd.get_text(" ", strip=True))
+            out[key] = self._html_node_text(dd)
         return out
 
     # ------------------------------------------------------------------

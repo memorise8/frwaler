@@ -43,6 +43,33 @@ class DataGovCurrentLayoutCounts(DataGovCounts):
         self.assertEqual(crawler.crawl(), 8)
         crawler._fetch_api_list_page.assert_not_called()
 
+    def test_HTML_visible_text_is_not_decoded_or_stripped_twice(self):
+        crawler = self.crawler()
+        title = 'OSNI Causeway Coast &amp; Glens <subset>'
+        publisher = 'Research &amp; Evidence'
+        summary = 'Values < 20 > 10 and &amp; markers are source text.'
+        for layout in ['legacy', 'current']:
+            with self.subTest(layout=layout):
+                if layout == 'legacy':
+                    css = 'dgu-results__result'
+                    metadata = f'<dl><dt>Published by</dt><dd>{escape(publisher)}</dd></dl>'
+                    description = f'<p>{escape(summary)}</p>'
+                else:
+                    css = 'datagovuk-search-results__item'
+                    metadata = (
+                        '<div class="datagovuk-search-results__item-row">'
+                        '<div class="datagovuk-search-results__item-label">Publisher</div>'
+                        f'<div class="datagovuk-search-results__item-value">{escape(publisher)}</div></div>'
+                    )
+                    description = f'<div class="datagovuk-!-colour-grey">{escape(summary)}</div>'
+                raw = (f'<div class="{css}"><h2><a href="/dataset/record-1">'
+                       f'{escape(title)}</a></h2>{metadata}{description}</div>')
+                rows, _, _ = crawler._parse_html_list(raw, self.module._START_URL)
+                self.assertEqual(len(rows), 1)
+                self.assertEqual(rows[0]['title'], title)
+                self.assertEqual(rows[0]['publisher'], publisher)
+                self.assertEqual(rows[0]['abstract'], summary)
+
     def test_current_fields_keep_updated_date_role_and_source_summary(self):
         crawler = self.crawler()
         rows, has_next, next_url = crawler._parse_html_list(
