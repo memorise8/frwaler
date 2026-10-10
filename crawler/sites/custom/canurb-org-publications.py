@@ -12,6 +12,7 @@ from html import unescape
 from urllib.parse import urljoin, urlsplit
 
 from crawler.base_crawler import BaseCrawler
+from crawler.canurb_traversal import CanurbTraversal
 
 _SITE_ID = "canurb-org-publications"
 _BASE_URL = "https://canurb.org"
@@ -22,7 +23,7 @@ _PAGE_SAFETY_CAP = 200
 _CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
-class CanurbOrgPublicationsCrawler(BaseCrawler):
+class CanurbOrgPublicationsCrawler(CanurbTraversal, BaseCrawler):
     site_id = "canurb-org-publications"
     site_name = "Custom: canurb-org-publications"
     base_url = "https://canurb.org"
@@ -32,12 +33,18 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        if self.delivery_mode == 'backfill':
+            return self._crawl_catalogue_backfill(
+                limit, max_pages=_PAGE_SAFETY_CAP, max_seconds=_CRAWL_BUDGET_SECS)
+        return self._crawl_listing(limit)
+
+    def _crawl_listing(self, limit=None):
         self._check_cancelled()
         saved = 0
         seen_urls: set[str] = set()
         t_start = time.monotonic()
 
-        # The publications listing page loads all ~93 entries on a single page
+        # The observed publications listing loads its entries on a single page
         # (FacetWP loop, no traditional pagination). We walk it page-by-page
         # anyway to stay compatible with any future pagination.
         page = 1
@@ -277,7 +284,7 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
             "metadata": json.dumps(metadata, ensure_ascii=False),
         }
 
-        self._save_paper(paper)
+        self._last_processed_seq_id = self._save_paper(paper)
         return self._last_save_created
 
     def _save_linked_publication(self, record: dict) -> bool:
@@ -293,7 +300,7 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
         url = record['url']
         post_id = record.get('post_id')
         pdf_url = url if record['link_type'] == 'direct_pdf' else None
-        self._save_paper({
+        self._last_processed_seq_id = self._save_paper({
             'site_id': self.site_id,
             'external_id': post_id or self._slug_from_url(url),
             'post_number': post_id or None,
@@ -455,21 +462,34 @@ class CanurbOrgPublicationsCrawler(BaseCrawler):
 
     def _curl_get(self, url: str, context: str = "request") -> str | None:
         cmd = [
-            "curl", "--tls-max", "1.3", "-skL", "--compressed",
+            "curl", "--tls-max", "1.3", "-sSL", "--compressed",
             "--max-time", "45", "--connect-timeout", "15",
             "-A", self.USER_AGENT,
             "-H", "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "-H", "Accept-Language: en-CA,en;q=0.9",
             "-H", f"Referer: {_BASE_URL}/",
-            url,
+            '--write-out', '\n%{http_code}', url,
         ]
         last_error = ""
         for attempt in range(3):
+            self._check_cancelled()
             try:
                 result = subprocess.run(cmd, capture_output=True, timeout=55)
+                self._check_cancelled()
                 stdout = result.stdout or b""
-                if result.returncode == 0 and stdout.strip():
-                    return stdout.decode("utf-8", errors="replace")
+                body, separator, raw_status = stdout.rpartition(b'\n')
+                status = int(raw_status) if separator and raw_status.isdigit() else 0
+                if status in (401, 403, 429, 503):
+                    self._report_source_failure('rate_limited' if status in (429, 503) else 'authentication_failed')
+                    return None
+                if result.returncode == 0 and status == 200 and body.strip():
+                    from delivery.health.access_challenge import access_challenge
+                    if access_challenge(body):
+                        self._report_source_failure('authentication_failed')
+                        return None
+                    return body.decode("utf-8", errors="replace")
+                if status and status < 500:
+                    return None
                 last_error = (result.stderr or b"").decode("utf-8", errors="replace").strip()
                 last_error = last_error or f"curl exit {result.returncode}; empty"
             except subprocess.TimeoutExpired:
