@@ -50,6 +50,9 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
             saved += count
             if not complete:
                 break
+        else:
+            if not self.delivery_source_failure:
+                self._mark_exhausted()
         self._check_cancelled()
         return saved
 
@@ -115,7 +118,7 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
                         continue
                     time.sleep(self._delay)
                     self._check_cancelled()
-                    detail = self._fetch_item(uuid)
+                    detail = item if self._complete_inline_item(item, uuid) else self._fetch_item(uuid)
                     if not detail or (detail.get('uuid') or detail.get('id')) != uuid:
                         raise RuntimeError('missing or mismatched item detail')
                     bitstreams = self._fetch_bitstreams(detail, uuid)
@@ -123,6 +126,9 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
                     if getattr(self, '_access_held', False):
                         return saved, False
                     if len(parsed['abstract']) < self.MIN_ABSTRACT_CHARS:
+                        # A catalogue entry without a usable body is an unresolved
+                        # collection gap, not successful source exhaustion.
+                        self._report_source_failure('item_failed')
                         continue
                     paper = {
                         'id': None, 'site_id': self.site_id,
@@ -171,43 +177,74 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
             context=f"item {uuid} detail",
         )
 
-    def _fetch_bitstreams(self, item, uuid):
-        bundles_url = (
-            item.get("_links", {}).get("bundles", {}).get("href")
-            or f"{self.ITEM_API_URL.format(uuid=uuid)}/bundles"
-        )
-        bundles_data = self._curl_json(bundles_url, context=f"item {uuid} bundles")
-        if not bundles_data:
-            raise RuntimeError('bundle metadata fetch failed')
-        if 'bundles' not in (bundles_data.get('_embedded') or {}) and (bundles_data.get('page') or {}).get('totalElements') != 0:
-            raise RuntimeError('invalid bundle metadata')
-        if (bundles_data.get('page') or {}).get('totalPages', 1) > 1:
-            raise RuntimeError('bundle pagination not fully resolved')
-        bundles = bundles_data.get("_embedded", {}).get("bundles", []) if bundles_data else []
-        if not isinstance(bundles, list):
-            raise RuntimeError('invalid bundle metadata')
+    def _complete_inline_item(self, item, uuid):
+        """DSpace embeds full Item resources in search results; summaries need GET."""
+        expected = self.ITEM_API_URL.format(uuid=uuid)
+        links = item.get('_links') or {}
+        return (item.get('type') == 'item' and item.get('uuid') == uuid
+                and item.get('id') == uuid
+                and all(key in item for key in ('name', 'handle', 'metadata'))
+                and isinstance(item['metadata'], dict)
+                and all(isinstance(values, list) and all(isinstance(v, dict) and
+                        (v.get('value') is None or isinstance(v.get('value'), str)) for v in values)
+                        for values in item['metadata'].values())
+                and all(type(item.get(flag)) is bool for flag in ('inArchive', 'discoverable', 'withdrawn'))
+                and (links.get('self') or {}).get('href') == expected
+                and (links.get('bundles') or {}).get('href') == expected + '/bundles')
 
-        ordered = sorted(bundles, key=lambda b: 0 if b.get("name") == "ORIGINAL" else 1)
-        bitstreams = []
-        for bundle in ordered:
+    @staticmethod
+    def _complete_embedded_page(data, key, expected_url):
+        if not isinstance(data, dict):
+            raise RuntimeError('missing embedded metadata page')
+        info = data.get('page') or {}
+        records = (data.get('_embedded') or {}).get(key, [])
+        if (any(type(info.get(k)) is not int for k in ('number', 'size', 'totalPages', 'totalElements'))
+                or info['number'] != 0 or info['size'] <= 0 or info['totalElements'] < 0
+                or info['totalPages'] != (info['totalElements'] + info['size'] - 1) // info['size']
+                or info['totalPages'] > 1 or not isinstance(records, list)
+                or len(records) != info['totalElements']
+                or any(not isinstance(r, dict) for r in records)
+                or (data.get('_links', {}).get('self') or {}).get('href') != expected_url):
+            raise RuntimeError('incomplete or mismatched embedded metadata page')
+        return records
+
+    def _fetch_bitstreams(self, item, uuid):
+        expected = self.ITEM_API_URL.format(uuid=uuid) + '/bundles'
+        bundles_url = (item.get('_links', {}).get('bundles') or {}).get('href', expected)
+        if bundles_url != expected:
+            raise RuntimeError('unreviewed item bundle destination')
+        url = bundles_url + '?embed=bitstreams'
+        data = self._curl_json(url, context=f'item {uuid} embedded bundles')
+        bundles = self._complete_embedded_page(data, 'bundles', url)
+        ids = [b.get('uuid') for b in bundles]
+        if any(not isinstance(uid, str) or not uid for uid in ids) or len(ids) != len(set(ids)):
+            raise RuntimeError('missing or duplicate source bundle identity')
+        bitstreams, seen = [], set()
+        for bundle in bundles:
             self._check_cancelled()
+            if bundle.get('type') != 'bundle':
+                raise RuntimeError('invalid source bundle type')
             if bundle.get('name') != 'ORIGINAL':
                 continue
-            href = bundle.get("_links", {}).get("bitstreams", {}).get("href")
-            if not href:
-                raise RuntimeError('missing original bitstream metadata link')
-            data = self._curl_json(
-                href,
-                context=f"item {uuid} bundle {bundle.get('name') or bundle.get('uuid')} bitstreams",
-            )
-            if not data:
-                raise RuntimeError('original bitstream metadata fetch failed')
-            if (data.get('page') or {}).get('totalPages', 1) > 1:
-                raise RuntimeError('original bitstream pagination not fully resolved')
-            found = data.get("_embedded", {}).get("bitstreams", [] if (data.get('page') or {}).get('totalElements') == 0 else None)
-            if not isinstance(found, list):
-                raise RuntimeError('invalid original bitstream metadata')
-            bitstreams.extend(found)
+            href = f"{self.base_url}/server/api/core/bundles/{bundle['uuid']}/bitstreams"
+            if (bundle.get('_links', {}).get('bitstreams') or {}).get('href') != href:
+                raise RuntimeError('unreviewed original bitstream destination')
+            tree = (bundle.get('_embedded') or {}).get('bitstreams')
+            for bit in self._complete_embedded_page(tree, 'bitstreams', href):
+                uid = bit.get('uuid')
+                checksum = bit.get('checkSum') or {}
+                if (not isinstance(uid, str) or not re.fullmatch(r'[0-9a-fA-F-]{36}', uid)
+                        or uid in seen or bit.get('type') != 'bitstream'
+                        or bit.get('bundleName') != 'ORIGINAL'
+                        or not isinstance(bit.get('name'), str) or not bit['name'].strip()
+                        or type(bit.get('sizeBytes')) is not int or bit['sizeBytes'] < 0
+                        or checksum.get('checkSumAlgorithm') != 'MD5'
+                        or not re.fullmatch(r'[0-9a-fA-F]{32}', str(checksum.get('value', '')))
+                        or (bit.get('_links', {}).get('content') or {}).get('href') !=
+                            f'{self.base_url}/server/api/core/bitstreams/{uid}/content'):
+                    raise RuntimeError('invalid or duplicate original bitstream identity')
+                seen.add(uid)
+                bitstreams.append(bit)
         return bitstreams
 
     def _curl_json(self, url, context="request"):

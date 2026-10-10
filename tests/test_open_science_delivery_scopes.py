@@ -13,7 +13,8 @@ class OpenScienceDeliveryScopes(CoupledContract,unittest.TestCase):
         body='' if n in getattr(self,'excluded',set()) else 'Original scientific publication evidence. '*10
         metadata={'dc.title':[{'value':f'Research {n}','language':'en'}],'dc.description.abstract':[{'value':body,'language':'en'}],'dc.date.issued':[{'value':getattr(self,'dates',['2025-07-11']*8)[n-1]}],'dc.date.accessioned':[{'value':'2026-08-04T13:20:17Z'}]}
         if getattr(self,'no_issued_date',False):metadata.pop('dc.date.issued')
-        return {'uuid':f'{n:08d}-0000-0000-0000-000000000000','handle':f'123456789/{n}','metadata':metadata}
+        uid=f'{n:08d}-0000-0000-0000-000000000000';base='https://open-science.canada.ca/server/api/core/items/'+uid
+        return {'uuid':uid,'id':uid,'type':'item','name':f'Research {n}','inArchive':True,'discoverable':True,'withdrawn':False,'handle':f'123456789/{n}','metadata':metadata,'_links':{'self':{'href':base},'bundles':{'href':base+'/bundles'}}}
     def crawler(self):
         c=self.configured(self.module.OpenScienceCanadaCaCommunitiesCrawler(self.conn));c.PAGE_SIZE=3
         def fetch(url,context='request'):
@@ -24,11 +25,13 @@ class OpenScienceDeliveryScopes(CoupledContract,unittest.TestCase):
                 objects=[{'_embedded':{'indexableObject':self.item(n)}} for n in ids[page*3:(page+1)*3]]
                 return {'_embedded':{'searchResult':{'_embedded':{'objects':objects},'page':{'number':page,'size':3,'totalPages':(len(ids)+2)//3,'totalElements':len(ids)}}}}
             uid=url.split('/core/')[1].split('/')[1];n=int(uid[:8])
-            if url.endswith('/bundles'):
+            if urlsplit(url).path.endswith('/bundles'):
+                self.assertEqual(parse_qs(urlsplit(url).query),{'embed':['bitstreams']})
                 if getattr(self,'fail_bundles',False):return None
-                return {'_embedded':{'bundles':[{'name':'ORIGINAL','_links':{'bitstreams':{'href':f'https://open-science.canada.ca/server/api/core/bundles/{uid}/bitstreams'}}}]},'page':{'number':0,'totalPages':1,'totalElements':1}}
-            if url.endswith('/bitstreams'):
-                return {'_embedded':{'bitstreams':[{'uuid':uid,'name':f'report-{n}.pdf','bundleName':'ORIGINAL','_links':{'content':{'href':f'https://open-science.canada.ca/server/api/core/bitstreams/{uid}/content'}}}]},'page':{'number':0,'totalPages':1,'totalElements':1}}
+                bit={'uuid':uid,'id':uid,'type':'bitstream','name':f'report-{n}.pdf','bundleName':'ORIGINAL','sizeBytes':123,'checkSum':{'checkSumAlgorithm':'MD5','value':'a'*32},'_links':{'content':{'href':f'https://open-science.canada.ca/server/api/core/bitstreams/{uid}/content'}}}
+                biturl=f'https://open-science.canada.ca/server/api/core/bundles/{uid}/bitstreams'
+                tree={'_embedded':{'bitstreams':[bit]},'page':{'number':0,'size':20,'totalPages':1,'totalElements':1},'_links':{'self':{'href':biturl}}}
+                return {'_embedded':{'bundles':[{'uuid':uid,'name':'ORIGINAL','type':'bundle','_links':{'bitstreams':{'href':biturl}},'_embedded':{'bitstreams':tree}}]},'page':{'number':0,'size':20,'totalPages':1,'totalElements':1},'_links':{'self':{'href':url}}}
             return self.item(n)
         c._curl_json=self.fetch=Mock(side_effect=fetch);c._curl_get=Mock(return_value='<main></main>');return c
     def test_both_delivery_communities_and_overlap_page_reach_all8(self):
@@ -62,8 +65,8 @@ class OpenScienceDeliveryScopes(CoupledContract,unittest.TestCase):
         c=self.crawler();original=self.fetch.side_effect;papers=[];save=c._save_paper
         def fetch(url,context='request'):
             result=original(url,context)
-            if url.endswith('/bitstreams'):
-                result['_embedded']['bitstreams'][0]['name']='ScientificReport.DOCX'
+            if '/bundles?' in url:
+                result['_embedded']['bundles'][0]['_embedded']['bitstreams']['_embedded']['bitstreams'][0]['name']='ScientificReport.DOCX'
             return result
         def capture(paper):papers.append(dict(paper));return save(paper)
         self.fetch.side_effect=fetch;c._save_paper=capture
@@ -81,6 +84,42 @@ class OpenScienceDeliveryScopes(CoupledContract,unittest.TestCase):
         c=self.crawler()
         refs=[{'name':'missing.pdf','bundleName':'ORIGINAL'}, {'name':'notes.docx','bundleName':'ORIGINAL','_links':{'content':{'href':'https://fixture.invalid/notes.docx'}}}, {'name':'REPORT.PDF','bundleName':'ORIGINAL','_links':{'content':{'href':'https://fixture.invalid/report.pdf'}}}]
         url,summary=c._select_file(refs);self.assertEqual(url,'https://fixture.invalid/report.pdf');self.assertEqual(len(summary),3)
+
+    def test_complete_inline_metadata_does_not_request_redundant_item_details(self):
+        c=self.crawler();self.assertEqual(c.crawl(),8);self.assertTrue(c.delivery_exhausted)
+        self.assertFalse(any('/core/items/' in call.args[0] and '/bundles?' not in call.args[0] for call in self.fetch.call_args_list))
+        self.assertEqual(sum('/bundles?' in call.args[0] for call in self.fetch.call_args_list),8)
+
+    def test_incomplete_inline_metadata_fetches_real_item_representation(self):
+        c=self.crawler();original=self.fetch.side_effect
+        def fetch(url,context='request'):
+            result=original(url,context)
+            if '/discover/search/objects' in url:
+                for r in result['_embedded']['searchResult']['_embedded']['objects']:r['_embedded']['indexableObject'].pop('metadata')
+            return result
+        self.fetch.side_effect=fetch;self.assertEqual(c.crawl(),8);self.assertTrue(c.delivery_exhausted)
+        self.assertEqual(sum('/core/items/' in x.args[0] and '/bundles?' not in x.args[0] for x in self.fetch.call_args_list),8)
+
+    def test_unresolved_body_gap_marks_job_incomplete_after_later_records(self):
+        self.excluded={1};c=self.crawler();self.assertEqual(c.crawl(),7)
+        self.assertEqual(c.delivery_source_failure,'item_failed');self.assertFalse(c.delivery_exhausted)
+
+    def test_incomplete_embedded_bundle_counts_and_unsafe_content_are_rejected(self):
+        for problem in ('wrong_count','missing_page','missing_embedding','duplicate_bitstream','foreign_content','missing_checksum'):
+            with self.subTest(problem=problem):
+                c=self.crawler();original=self.fetch.side_effect
+                def fetch(url,context='request'):
+                    result=original(url,context)
+                    if '/bundles?' in url:
+                        bundle=result['_embedded']['bundles'][0];tree=bundle['_embedded']['bitstreams'];bit=tree['_embedded']['bitstreams'][0]
+                        if problem=='wrong_count':tree['page']['totalElements']=2
+                        if problem=='missing_page':tree.pop('page')
+                        if problem=='missing_embedding':bundle.pop('_embedded')
+                        if problem=='duplicate_bitstream':tree['_embedded']['bitstreams'].append(dict(bit));tree['page']['totalElements']=2
+                        if problem=='foreign_content':bit['_links']['content']['href']='https://other.invalid/file.pdf'
+                        if problem=='missing_checksum':bit.pop('checkSum')
+                    return result
+                self.fetch.side_effect=fetch;self.assertEqual(c.crawl(),0);self.assertEqual(c.delivery_source_failure,'item_failed');self.assertFalse(c.delivery_exhausted)
 
     def test_zero_limit_makes_no_request(self):
         c=self.crawler();self.assertEqual(c.crawl(limit=0),0);self.fetch.assert_not_called()
@@ -105,7 +144,7 @@ class OpenScienceDeliveryScopes(CoupledContract,unittest.TestCase):
         c=self.crawler();original=self.fetch.side_effect
         def fetch(url,context='request'):
             result=original(url,context)
-            if url.endswith('/bitstreams'):result['page'].update(totalPages=2,totalElements=21)
+            if '/bundles?' in url:result['_embedded']['bundles'][0]['_embedded']['bitstreams']['page'].update(totalPages=2,totalElements=21)
             return result
         self.fetch.side_effect=fetch;self.assertEqual(c.crawl(),0);self.assertEqual(c.delivery_source_failure,'item_failed')
     def test_real_transport_access_denial_is_held_without_retry(self):
@@ -152,4 +191,18 @@ class OpenScienceDeliveryWorker(unittest.TestCase):
                 self.assertEqual((returned,detail['saved_count'],detail['status']),(expected,expected,'cancelled' if cancel else 'done'))
                 self.assertEqual(case.count()-before,expected)
             self.assertEqual(case.count(),8)
+        finally:case.doCleanups()
+
+    def test_native_worker_preserves_body_gap_as_failed_after_other_records_saved(self):
+        from delivery.db.schema import init_delivery_schema
+        from delivery.worker import jobs,worker
+        case=OpenScienceDeliveryScopesPostgres(methodName='test_repeat_three_reaches_remainder_and_then_zero')
+        try:
+            case.setUp();init_delivery_schema(case.conn);case.excluded={1};c=case.crawler()
+            jid=jobs.enqueue_job(case.conn,case.SITE,mode='backfill')
+            returned=worker.run_job(case.conn,jobs.claim_next_job(case.conn),{case.SITE:lambda **kw:c},delay=0)
+            job=jobs.job_detail(case.conn,jid)['job']
+            self.assertEqual((returned,job['saved_count'],job['status']),(7,7,'failed'))
+            self.assertIn('item_failed',job['error']);self.assertIsNone(jobs.claim_next_job(case.conn));self.assertFalse(c.delivery_exhausted)
+            case.excluded=set();c=case.crawler();self.assertEqual(c.crawl(),1);self.assertEqual(case.count(),8);self.assertTrue(c.delivery_exhausted)
         finally:case.doCleanups()
