@@ -1,342 +1,484 @@
 # -*- coding: utf-8 -*-
-"""ADR UK Impact Case Studies crawler.
+"""ADR UK's delivered impact, publications and annual-report metadata scopes.
 
-Starting URL : https://www.adruk.org/news-publications/impact-case-studies/
-Pagination   : https://www.adruk.org/our-mission/our-impact/{N}/  (N = 1, 2, …)
-10 items/page, ~114 total (~12 pages).
+Annual index destinations are reconciled with listed annual publications. Their
+own report PDFs are primary files; linked HTML chapters are not extra records.
+File-worker/full-content validation remains separate from metadata exhaustion.
 """
-
+import hashlib
 import json
 import os
+from pathlib import Path
 import re
 import subprocess
-import sys
+import tempfile
 import time
-from datetime import datetime
+from urllib.parse import unquote, urldefrag, urljoin, urlsplit
 
-sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler
 
-_SITE_ID = "adruk-org-news-publications"
-_BASE_URL = "https://www.adruk.org"
-_LIST_PAGE_0 = "https://www.adruk.org/news-publications/impact-case-studies/"
-_LIST_PAGE_N = "https://www.adruk.org/our-mission/our-impact/{n}/"
-_PUBLISHER = "ADR UK"
-_UA = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-)
+_SITE_ID = 'adruk-org-news-publications'
+_BASE_URL = 'https://www.adruk.org'
+_PUBLISHER = 'ADR UK'
+_ANNUAL_INDEX = _BASE_URL + '/news-publications/annual-reports/'
+_SCOPES = {
+    'impact': dict(entry='/news-publications/impact-case-studies/', pages='/our-mission/our-impact/',
+                   detail='/our-mission/our-impact/article/', model='model-impact-cases'),
+    'publications': dict(entry='/news-publications/publications-reports/', pages='/news-publications/publications-reports/',
+                         detail='/news-publications/publications-reports/publication/', model='model-publications-amp-amp-reports'),
+}
+_WALL_CLOCK_LIMIT = int(os.environ.get('LIBERTREE_MAX_WALL_S', str(25 * 60)))
+_PDF_MAX_BYTES = 200 * 1024 * 1024
 
 
-# ---------------------------------------------------------------------------
-# Helpers (module-level, keep re-usable without self)
-# ---------------------------------------------------------------------------
-
-def _make_soup(html: str):
-    """Parse HTML with fallback chain: html5lib → lxml → html.parser."""
+def _make_soup(html):
     from bs4 import BeautifulSoup
-    for parser in ("html5lib", "lxml", "html.parser"):
-        try:
-            return BeautifulSoup(html, parser)
-        except Exception:
-            continue
-    return None
+    return BeautifulSoup(html, 'html.parser')
 
 
-def _curl_get(url: str, *, timeout: int = 30, retries: int = 3) -> str | None:
-    """Fetch URL via curl with TLS-max 1.3 and exponential-backoff retries."""
-    cmd = [
-        "curl", "-skL", "--tls-max", "1.3", "--max-time", str(timeout),
-        "-H", f"User-Agent: {_UA}",
-        "-H", "Accept: text/html,application/xhtml+xml,*/*;q=0.8",
-        "-H", "Accept-Language: en-GB,en;q=0.9",
-        url,
-    ]
+def _text(node):
+    return node.get_text(' ', strip=True) if node else ''
+
+
+def _hash(value):
+    return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+
+def _curl_get(url, *, timeout=30, retries=3, check_cancelled=None):
+    cmd = ['curl', '-sSL', '--tls-max', '1.3', '--max-time', str(timeout),
+           '-H', 'User-Agent: Mozilla/5.0', '-H', 'Accept: text/html,application/xhtml+xml,*/*;q=0.8',
+           '--write-out', '\n%{http_code}', url]
     for attempt in range(retries):
+        if check_cancelled:
+            check_cancelled()
         try:
             result = subprocess.run(cmd, capture_output=True, timeout=timeout + 5)
-            raw = result.stdout.decode("utf-8", errors="replace")
-            if raw.strip():
-                return raw
-        except Exception as exc:
-            if attempt >= retries - 1:
-                print(f"[{_SITE_ID}] curl error: {exc}")
+            if check_cancelled:
+                check_cancelled()
+            body, separator, raw_status = result.stdout.rpartition(b'\n')
+            status = int(raw_status) if separator and raw_status.isdigit() else 0
+            if status in (401, 403, 429, 503):
+                raise PermissionError(f'HTTP {status}')
+            if result.returncode == 0 and status == 200 and body:
+                from delivery.health.access_challenge import access_challenge
+                if access_challenge(body):
+                    raise PermissionError('source access challenge')
+                return body.decode('utf-8', errors='replace')
+            if status and status < 500:
                 return None
+        except PermissionError:
+            raise
+        except (subprocess.TimeoutExpired, OSError):
+            pass
         if attempt < retries - 1:
-            wait = [1, 3, 9][attempt]
-            print(f"[{_SITE_ID}] empty/error for {url}, retry {attempt + 1}/{retries} in {wait}s")
-            time.sleep(wait)
+            if check_cancelled:
+                check_cancelled()
+            time.sleep(3 ** attempt)
     return None
 
 
-def _parse_date(raw: str) -> str:
-    """'22 April 2026' or 'April 2026' → 'YYYY-MM-DD'. Never raises."""
-    if not raw:
-        return ""
-    raw = raw.strip()
-    for fmt in ("%d %B %Y", "%d %b %Y", "%B %Y", "%b %Y", "%Y-%m-%d"):
-        try:
-            dt = datetime.strptime(raw, fmt)
-            return dt.strftime("%Y-%m-%d") if "%d" in fmt else dt.strftime("%Y-%m-01")
-        except ValueError:
-            continue
-    return raw
+def _list_url(scope, page):
+    cfg = _SCOPES[scope]
+    return _BASE_URL + (cfg['entry'] if page == 0 else cfg['pages'] + str(page) + '/')
 
 
-def _strip_tags(html: str) -> str:
-    text = re.sub(r"<[^>]+>", " ", html)
-    text = re.sub(r"&nbsp;", " ", text)
-    text = re.sub(r"&[a-zA-Z#0-9]+;", " ", text)
-    return re.sub(r"\s+", " ", text).strip()
-
-
-# ---------------------------------------------------------------------------
-# Parser functions
-# ---------------------------------------------------------------------------
-
-def _parse_listing(html: str) -> list[dict]:
-    """Return list of {url, slug, listed_date_raw, list_title, list_abstract}."""
+def _parse_listing(html, scope='impact'):
+    cfg = _SCOPES[scope]
     records = []
-    soup = _make_soup(html)
-    if soup is None:
-        return records
-    for rec in soup.find_all("div", class_=re.compile(r"record\s+model-impact-cases")):
-        a = rec.find("a", href=True)
-        if not a:
-            continue
-        href = a["href"]
-        # Only real article links, not filter links
-        if not re.match(r"^/our-mission/our-impact/[^?#]+/$", href):
-            continue
-        slug = href.rstrip("/").split("/")[-1]
-        if not slug:
-            continue
-        date_span = rec.find("span", class_="date")
-        listed_date_raw = date_span.get_text(strip=True) if date_span else ""
-        h2 = rec.find("h2")
-        list_title = h2.get_text(strip=True) if h2 else ""
-        # Short abstract from listing page
-        paras = rec.find_all("p")
-        list_abstract = " ".join(
-            p.get_text(strip=True) for p in paras
-            if "fauxLink" not in " ".join(p.get("class") or [])
-        )
-        records.append({
-            "url": _BASE_URL + href,
-            "slug": slug,
-            "listed_date_raw": listed_date_raw,
-            "list_title": list_title,
-            "list_abstract": list_abstract,
-        })
+    for box in _make_soup(html).select('div.record.' + cfg['model']):
+        anchor = box.find('a', href=True)
+        if not anchor:
+            raise ValueError('listing record without a target')
+        url = urljoin(_BASE_URL, anchor['href'])
+        parsed = urlsplit(url)
+        direct_pdf = scope == 'publications' and parsed.path.startswith('/fileadmin/') and parsed.path.lower().endswith('.pdf')
+        if (parsed.scheme != 'https' or parsed.netloc != 'www.adruk.org' or parsed.query or parsed.fragment
+                or not (parsed.path.startswith(cfg['detail']) or direct_pdf)):
+            raise ValueError('unreviewed listing target')
+        title = _text(box.find('h2'))
+        if not title:
+            raise ValueError('listing record without title')
+        records.append(dict(url=url, slug=parsed.path.rstrip('/').rsplit('/', 1)[-1],
+                            list_title=title, listed_date_raw=_text(box.select_one('span.date')),
+                            list_abstract=' '.join(_text(p) for p in box.find_all('p') if 'fauxLink' not in (p.get('class') or [])),
+                            direct_pdf=direct_pdf))
     return records
 
 
-def _parse_detail(html: str) -> dict:
-    """Extract title, abstract, authors, categories, pdf_url, doi from detail page."""
-    result = {
-        "title": "",
-        "abstract": "",
-        "authors": [],
-        "categories": [],
-        "pdf_url": None,
-        "original_filename": None,
-        "date_raw": "",
-        "doi": "",
-    }
+def _listing(html, scope, page):
     soup = _make_soup(html)
-    if soup is None:
-        return result
+    matches = set(re.findall(r'Displaying results (\d+) to (\d+) out of (\d+)', _text(soup)))
+    if len(matches) != 1:
+        raise ValueError('missing or ambiguous listing range')
+    first, last, total = map(int, matches.pop())
+    items = _parse_listing(html, scope)
+    if total == 0:
+        if (first, last, page, len(items)) != (0, 0, 0, 0):
+            raise ValueError('invalid empty listing')
+    elif (first < 1 or last < first or last > total or len(items) != last - first + 1
+          or page == 0 and first != 1 or len({x['url'] for x in items}) != len(items)):
+        raise ValueError('listing range does not match records')
+    nexts = {urljoin(_BASE_URL, a['href']) for a in soup.find_all('a', href=True) if _text(a) == 'Next »'}
+    if nexts != ({_list_url(scope, page + 1)} if last < total else set()):
+        raise ValueError('missing, repeated or unexpected next link')
+    return dict(items=items, first=first, last=last, total=total,
+                page_hash=_hash([(i['url'], i['list_title'], i['listed_date_raw']) for i in items]))
 
-    # Title
-    h1 = soup.find("h1")
-    if h1:
-        span = h1.find("span")
-        result["title"] = (span or h1).get_text(strip=True)
 
-    # Main content block
-    main = soup.find("div", class_=re.compile(r"news\s+single\s+model-impact-cases"))
-    if main is None:
-        main = soup.find("div", class_="tx-llcatalog-pi") or soup
-
-    # Date
-    date_span = main.find("span", class_="date")
-    result["date_raw"] = date_span.get_text(strip=True) if date_span else ""
-
-    # Categories / tags
-    cat_p = main.find("p", class_="category")
-    if cat_p:
-        result["categories"] = [a.get_text(strip=True) for a in cat_p.find_all("a")]
-
-    # Content div — contains the full body
-    content = main.find("div", class_="content")
-    if content is None:
-        content = main
-
-    # Remove the image div so it doesn't pollute text
-    for img_div in content.find_all("div", class_="image"):
-        img_div.decompose()
-
-    # Extract authors and build full abstract
-    text_parts = []
-    for tag in content.find_all(["p", "h3", "h4", "ul", "li"]):
-        text = tag.get_text(separator=" ", strip=True)
+def _parse_detail(html):
+    soup = _make_soup(html)
+    main = soup.select_one('.news.single.model-impact-cases,.news.single.model-publications-amp-amp-reports')
+    content = main.select_one('.content') if main else None
+    if not main or not content or not soup.find('h1'):
+        raise ValueError('missing document body structure')
+    title = _text(soup.find('h1'))
+    date_raw = _text(main.select_one('span.date'))
+    categories = [_text(a) for a in main.select('p.category a')]
+    pdfs = list(dict.fromkeys(urljoin(_BASE_URL, a['href']) for a in main.find_all('a', href=True)
+                              if urlsplit(a['href']).path.lower().endswith('.pdf')))
+    report_links = sorted({urldefrag(urljoin(_BASE_URL, a['href']))[0] for a in content.find_all('a', href=True)
+                           if urlsplit(urljoin(_BASE_URL, a['href'])).netloc == 'reports.adruk.org'})
+    authors, parts = [], []
+    for node in content.select('script,style,nav,.image'):
+        node.decompose()
+    for node in content.find_all(['p', 'h2', 'h3', 'h4', 'li']):
+        if node.find_parent(['p', 'li']):
+            continue
+        text = _text(node)
         if not text:
             continue
-        # Detect author line
-        if tag.name == "p" and re.match(r"Author[s]?\s*:", text, re.IGNORECASE):
-            author_raw = re.sub(r"^Author[s]?\s*:\s*", "", text, flags=re.IGNORECASE).strip()
-            # Split on " and " or ";" preserving full names
-            parts = re.split(r"\s+and\s+|;\s*", author_raw)
-            result["authors"] = [p.strip() for p in parts if p.strip()]
-        text_parts.append(text)
+        if re.match(r'Authors?\s*:', text, re.I):
+            authors = [s.strip() for s in re.split(r'\s+and\s+|;\s*', re.sub(r'^Authors?\s*:\s*', '', text, flags=re.I)) if s.strip()]
+        parts.append(text)
+    return dict(title=title, abstract=' '.join(parts), date_raw=date_raw, authors=authors,
+                categories=categories, pdf_url=pdfs[0] if pdfs else None, pdf_urls=pdfs, report_links=report_links)
 
-    result["abstract"] = " ".join(text_parts)
-
-    # DOI
-    doi_match = re.search(r"https?://doi\.org/(10\.[^\s\"'<>]+)", html)
-    if doi_match:
-        result["doi"] = doi_match.group(1).rstrip(")")
-
-    # PDF link
-    for a in main.find_all("a", href=True):
-        href = a["href"]
-        if href.lower().endswith(".pdf"):
-            url = href if href.startswith("http") else _BASE_URL + href
-            result["pdf_url"] = url
-            result["original_filename"] = url.rstrip("/").split("/")[-1].split("?")[0]
-            break
-
-    return result
-
-
-# ---------------------------------------------------------------------------
-# Crawler class
-# ---------------------------------------------------------------------------
 
 class AdrukOrgNewsPublicationsCrawler(BaseCrawler):
-    site_id = "adruk-org-news-publications"
-    site_name = "Custom: adruk-org-news-publications"
-    base_url = "https://www.adruk.org"
+    site_id = _SITE_ID
+    site_name = 'Custom: adruk-org-news-publications'
+    base_url = _BASE_URL
+    DELIVERY_CURSOR_VERSION = 1
+
+    def _html(self, url):
+        self._check_cancelled()
+        raw = _curl_get(url, check_cancelled=self._check_cancelled)
+        self._check_cancelled()
+        if not raw:
+            raise ConnectionError('source HTML unavailable')
+        return raw
+
+    def _annual_sources(self):
+        soup = _make_soup(self._html(_ANNUAL_INDEX))
+        main = soup.find('main')
+        if not main or 'annual report' not in _text(soup.find('h1')).lower():
+            raise ValueError('missing annual index')
+        roots = {}
+        for a in main.find_all('a', href=True):
+            url = urljoin(_ANNUAL_INDEX, a['href'])
+            parsed = urlsplit(url)
+            if parsed.netloc != 'reports.adruk.org':
+                continue
+            if (parsed.scheme != 'https' or parsed.query or parsed.fragment
+                    or not re.fullmatch(r'/annual-report-(20\d{2})-(20\d{2})/', parsed.path)):
+                raise ValueError('unreviewed annual report index target')
+            roots[url] = _text(a)
+        if not roots:
+            raise ValueError('annual index contains no report references')
+        reports = {}
+        for url, label in roots.items():
+            self._check_cancelled()
+            year = re.search(r'20\d{2}', urlsplit(url).path).group()
+            soup = _make_soup(self._html(url))
+            main = soup.find('main')
+            if not main or year not in _text(soup.find('h1')) or 'annual report' not in _text(soup.find('h1')).lower():
+                raise ValueError('annual report identity mismatch')
+            pdfs = set()
+            for a in main.find_all('a', href=True):
+                target = urldefrag(urljoin(url, a['href']))[0]
+                path = unquote(urlsplit(target).path)
+                if (path.lower().endswith('.pdf') and year in path
+                        and 'annual' in path.lower() and 'report' in path.lower()):
+                    self._validate_pdf_url(target)
+                    pdfs.add(target)
+            if len(pdfs) != 1:
+                raise ValueError('annual report needs a unique own-report PDF')
+            reports[url] = dict(label=label, year=year, pdf_url=pdfs.pop())
+        self.delivery_annual_reports = reports
+        return reports
+
+    @staticmethod
+    def _validate_pdf_url(url):
+        parsed = urlsplit(url)
+        if (parsed.scheme != 'https' or parsed.netloc not in ('www.adruk.org', 'reports.adruk.org')
+                or not parsed.path.startswith('/fileadmin/') or not parsed.path.lower().endswith('.pdf')
+                or parsed.query or parsed.fragment):
+            raise ValueError('PDF outside reviewed publisher file scope')
+
+    def _pdf_bytes(self, url):
+        started = time.monotonic()
+        for _ in range(4):
+            self._check_cancelled()
+            self._validate_pdf_url(url)
+            with self._session.get(url, stream=True, timeout=(10, 30), allow_redirects=False) as response:
+                if response.status_code in (401, 403, 429, 503):
+                    raise PermissionError(f'HTTP {response.status_code}')
+                if response.status_code in (301, 302, 303, 307, 308):
+                    if not response.headers.get('Location'):
+                        raise ValueError('PDF redirect without destination')
+                    url = urljoin(url, response.headers['Location'])
+                    continue
+                if response.status_code != 200:
+                    raise ConnectionError('PDF response unavailable')
+                content = bytearray()
+                if int(response.headers.get('Content-Length', '0')) > _PDF_MAX_BYTES:
+                    raise ValueError('PDF size budget exceeded')
+                for chunk in response.iter_content(65536):
+                    self._check_cancelled()
+                    content.extend(chunk)
+                    if len(content) > _PDF_MAX_BYTES or time.monotonic() - started > 180:
+                        raise ValueError('PDF download budget exceeded')
+                if (response.headers.get('Content-Length') and not response.headers.get('Content-Encoding')
+                        and int(response.headers['Content-Length']) != len(content)):
+                    raise ValueError('incomplete PDF response')
+                if not content.startswith(b'%PDF-'):
+                    raise ValueError('publisher response is not PDF')
+                return bytes(content)
+        raise ValueError('PDF redirect budget exceeded')
+
+    def _same_pdf(self, left, right):
+        if left == right:
+            return True
+        # A matching filename on different hosts alone is not identity evidence.
+        return hashlib.sha256(self._pdf_bytes(left)).digest() == hashlib.sha256(self._pdf_bytes(right)).digest()
+
+    def _pdf_body(self, url):
+        from delivery.files.worker import run_stage
+        content = self._pdf_bytes(url)
+        with tempfile.TemporaryDirectory(prefix='adruk-pdf-body-') as directory:
+            root = Path(directory)
+            (root / 'source.pdf').write_bytes(content)
+            result = run_stage('text', root, timeout=60)
+            self._check_cancelled()
+            if not result.get('success'):
+                raise ValueError('PDF body unavailable: ' + str(result.get('error')))
+            with (root / 'output.txt').open(encoding='utf-8') as handle:
+                abstract = re.sub(r'\s+', ' ', handle.read(12000)).strip()[:3000]
+            with (root / 'output.txt').open('rb') as handle:
+                text_hash = hashlib.file_digest(handle, 'sha256').hexdigest()
+        return abstract, dict(abstract_source='publisher_pdf_text_excerpt', abstract_pdf_url=url,
+                              abstract_pdf_sha256=hashlib.sha256(content).hexdigest(),
+                              abstract_pdf_text_sha256=text_hash, abstract_pdf_text_characters=result.get('chars'))
+
+    @staticmethod
+    def _contract():
+        return _hash([_SCOPES, _ANNUAL_INDEX])
+
+    def _validate_cursor(self, cursor):
+        if (not isinstance(cursor, dict) or cursor.get('version') != self.DELIVERY_CURSOR_VERSION
+                or cursor.get('contract') != self._contract() or cursor.get('scope') not in _SCOPES):
+            raise ValueError('changed cursor contract')
+        for key in ('page', 'offset', 'first', 'last', 'total', 'previous_last'):
+            if type(cursor.get(key)) is not int or cursor[key] < 0:
+                raise ValueError('invalid cursor position')
+        if (not 1 <= cursor['first'] <= cursor['last'] <= cursor['total']
+                or cursor['offset'] > cursor['last'] - cursor['first'] + 1):
+            raise ValueError('invalid cursor range')
+        for key in ('page_hash', 'annual_hash'):
+            if not re.fullmatch('[0-9a-f]{64}', cursor.get(key, '')):
+                raise ValueError('invalid cursor anchor')
+        if cursor['page'] == 0:
+            if cursor['first'] != 1 or cursor['previous_last'] != 0 or cursor.get('previous_hash') != '':
+                raise ValueError('invalid first-page anchor')
+        elif (cursor['previous_last'] + 1 != cursor['first']
+              or not re.fullmatch('[0-9a-f]{64}', cursor.get('previous_hash', ''))):
+            raise ValueError('invalid previous-page anchor')
+        matched = json.loads(cursor.get('annual_matched', ''))
+        if not isinstance(matched, list) or any(not isinstance(x, str) for x in matched) or len(matched) != len(set(matched)):
+            raise ValueError('invalid annual representation checkpoint')
+        if cursor['scope'] == 'impact' and matched:
+            raise ValueError('annual matches before publications scope')
+        return set(matched)
+
+    def _checkpoint(self, scope, page, offset, data, previous, matched, annual_hash, items_done=0):
+        if not self._cursor_enabled:
+            return
+        self._advance_cursor(dict(version=self.DELIVERY_CURSOR_VERSION, contract=self._contract(), scope=scope,
+                                  page=page, offset=offset, first=data['first'], last=data['last'], total=data['total'],
+                                  page_hash=data['page_hash'], previous_last=previous[0], previous_hash=previous[1],
+                                  annual_hash=annual_hash, annual_matched=json.dumps(sorted(matched))), items_done=items_done)
+
+    def _assert_stored_identity(self, item):
+        postgres = os.environ.get('LIBERTREE_DB_BACKEND', 'sqlite').lower() == 'postgres'
+        if postgres or self._conn_is_libertree():
+            placeholder = '%s' if postgres else '?'
+            # The general dedup key contains BOTH post_number and meta_url;
+            # it cannot detect a changed URL for an existing source identifier.
+            rows = self._conn.execute(
+                f'SELECT post_number,meta_url FROM documents WHERE site_id={placeholder} '
+                f'AND (post_number={placeholder} OR meta_url={placeholder})',
+                (self.site_id, item['slug'], item['url']),
+            ).fetchall()
+            if len(rows) > 1:
+                raise ValueError('ambiguous stored source identity requires review')
+            for row in rows:
+                post, url = (row['post_number'], row['meta_url']) if hasattr(row, 'keys') else row
+                if post != item['slug'] or url != item['url']:
+                    raise ValueError('stored source identity requires review')
 
     def crawl(self, limit=None):
-        saved = 0
-        seen_urls: set[str] = set()
-        limit_display = limit if limit is not None else "∞"
-        start_time = time.time()
-        MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
-        MAX_PAGES = 200
-
-        page = 0  # 0 → first listing URL, N → /our-mission/our-impact/N/
-
-        while True:
-            # --- Guards ---
-            if limit is not None and saved >= limit:
-                break
-            if page >= MAX_PAGES:
-                print(f"[{_SITE_ID}] Safety cap of {MAX_PAGES} pages reached. Stopping.")
-                break
-            if time.time() - start_time > MAX_SECONDS:
-                print(f"[{_SITE_ID}] 25-minute wall-clock budget reached. Stopping.")
-                break
-
-            # --- Fetch listing page ---
-            list_url = _LIST_PAGE_0 if page == 0 else _LIST_PAGE_N.format(n=page)
-            if page > 0:
-                time.sleep(1.0)
-
-            html = _curl_get(list_url)
-            if not html:
-                print(f"[{_SITE_ID}] Failed to fetch listing page {page + 1} ({list_url}). Stopping.")
-                break
-
-            records = _parse_listing(html)
-            if not records:
-                print(f"[{_SITE_ID}] No records on page {page + 1}. Done.")
-                break
-
-            # Deduplicate across pages
-            new_records = [r for r in records if r["url"] not in seen_urls]
-            if not new_records:
-                print(f"[{_SITE_ID}] All URLs on page {page + 1} already seen. Stopping.")
-                break
-            for r in new_records:
-                seen_urls.add(r["url"])
-
-            if (page + 1) % 10 == 0:
-                print(f"[{_SITE_ID}] page {page + 1}: saved {saved}/{limit_display}")
-
-            # --- Fetch & save each item ---
-            for rec in new_records:
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
+        self._source_failure = None
+        self._exhausted = False
+        self._pending_cursor = None
+        self._cursor_items_done = 0
+        started = time.monotonic()
+        self._cursor_enabled = self.delivery_mode == 'backfill'
+        resume = self.delivery_cursor if self._cursor_enabled else None
+        matched = set()
+        if resume is not None:
+            try:
+                matched = self._validate_cursor(resume)
+            except Exception:
+                self._report_source_failure('configuration')
+                return 0
+        saved, seen = 0, {}
+        self.delivery_body_provenance = []
+        try:
+            if time.monotonic() - started > _WALL_CLOCK_LIMIT:
+                raise ValueError('wall budget before progress')
+            annual = self._annual_sources()
+            annual_hash = _hash(annual)
+            if resume and (resume['annual_hash'] != annual_hash or not matched <= set(annual)):
+                raise ValueError('annual source representations changed')
+        except PermissionError as exc:
+            self._report_source_failure('rate_limited' if '429' in str(exc) else 'authentication_failed')
+            return 0
+        except ConnectionError:
+            self._report_source_failure('fetch_failed')
+            return 0
+        except Exception:
+            self._report_source_failure('invalid_response')
+            return 0
+        for scope in _SCOPES:
+            if resume and list(_SCOPES).index(scope) < list(_SCOPES).index(resume['scope']):
+                continue
+            current = resume if resume and scope == resume['scope'] else None
+            page, offset = (current['page'], current['offset']) if current else (0, 0)
+            total = current['total'] if current else None
+            previous = (current['previous_last'], current['previous_hash']) if current else (0, '')
+            while True:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
-                    break
-                if time.time() - start_time > MAX_SECONDS:
-                    print(f"[{_SITE_ID}] 25-minute budget reached mid-page. Stopping.")
-                    break
-
+                    return saved
+                if time.monotonic() - started > _WALL_CLOCK_LIMIT:
+                    if not self._cursor_enabled or self.delivery_cursor_items_done == 0:
+                        self._report_source_failure('invalid_response')
+                    return saved
                 try:
-                    time.sleep(self._delay)
-                    detail_html = _curl_get(rec["url"])
-                    if not detail_html:
-                        print(f"[{_SITE_ID}] Failed to fetch {rec['url']}. Skipping.")
+                    if current and page > 0:
+                        anchor = _listing(self._html(_list_url(scope, page - 1)), scope, page - 1)
+                        if (anchor['last'], anchor['page_hash']) != previous or anchor['total'] != total:
+                            raise ValueError('previous source page changed')
+                    data = _listing(self._html(_list_url(scope, page)), scope, page)
+                    if total is not None and data['total'] != total:
+                        raise ValueError('source total changed')
+                    total = data['total']
+                    if total == 0:
+                        if current:
+                            raise ValueError('checkpointed page became empty')
+                        break
+                    if data['first'] != previous[0] + 1:
+                        raise ValueError('source positions repeated or skipped')
+                    if current and any(data[k] != current[k] for k in ('first', 'last', 'total', 'page_hash')):
+                        raise ValueError('current source page changed')
+                    if offset > len(data['items']):
+                        raise ValueError('source page shorter than checkpoint')
+                except PermissionError as exc:
+                    self._report_source_failure('rate_limited' if '429' in str(exc) else 'authentication_failed')
+                    return saved
+                except ConnectionError:
+                    self._report_source_failure('fetch_failed')
+                    return saved
+                except Exception:
+                    self._report_source_failure('invalid_response')
+                    return saved
+                self._checkpoint(scope, page, offset, data, previous, matched, annual_hash)
+                for index, item in enumerate(data['items']):
+                    if index < offset:
                         continue
-
-                    detail = _parse_detail(detail_html)
-
-                    title = detail["title"] or rec["list_title"]
-                    abstract = detail["abstract"] or rec["list_abstract"]
-
-                    if not abstract or len(abstract) < 50:
-                        print(f"[{_SITE_ID}] Abstract <50 chars for {rec['url']}. Skipping.")
-                        continue
-
-                    published_date = _parse_date(detail["date_raw"] or rec["listed_date_raw"])
-                    listed_date = _parse_date(rec["listed_date_raw"])
-
-                    authors_str = "; ".join(detail["authors"])
-                    categories = detail["categories"]
-                    keywords = ", ".join(categories) if categories else ""
-                    category = categories[0] if categories else ""
-
-                    slug = rec["slug"]
-
-                    paper = {
-                        "site_id": self.site_id,
-                        "external_id": slug,
-                        "post_number": slug,
-                        "title": title,
-                        "abstract": abstract,
-                        "published_date": published_date,
-                        "posted_date": listed_date,
-                        "url": rec["url"],
-                        "pdf_url": detail["pdf_url"] or "",
-                        "original_filename": detail["original_filename"] or "",
-                        "authors": authors_str,
-                        "publisher": _PUBLISHER,
-                        "department": "",
-                        "journal": "",
-                        "keywords": keywords,
-                        "category": category,
-                        "doi": detail["doi"],
-                        "metadata": json.dumps({
-                            "posted_date": rec["listed_date_raw"],
-                            "originalFilename": detail["original_filename"],
-                            "categories": categories,
-                            "slug": slug,
-                        }, ensure_ascii=False),
-                    }
-
-                    self._save_paper(paper)
-                    if self._last_save_created:
-                        saved += 1
-                    print(f"[{_SITE_ID}] Saved {saved}/{limit_display}: {title[:70]}")
-
-                except KeyboardInterrupt:
-                    raise
-                except Exception as exc:
-                    print(f"[{_SITE_ID}] item {rec.get('url', '?')} failed: {exc}")
-                    continue
-
-            page += 1
-
-        print(f"[{_SITE_ID}] Done. Total saved: {saved}")
+                    self._check_cancelled()
+                    if limit is not None and saved >= limit:
+                        return saved
+                    if time.monotonic() - started > _WALL_CLOCK_LIMIT:
+                        if not self._cursor_enabled or self.delivery_cursor_items_done == 0:
+                            self._report_source_failure('invalid_response')
+                        return saved
+                    try:
+                        if item['slug'] in seen and seen[item['slug']] != item['url']:
+                            raise ValueError('source slug collision')
+                        self._assert_stored_identity(item)
+                        time.sleep(self._delay)
+                        self._check_cancelled()
+                        if item['direct_pdf']:
+                            detail = dict(title=item['list_title'], abstract=item['list_abstract'], date_raw=item['listed_date_raw'],
+                                          authors=[], categories=[], pdf_url=item['url'], report_links=[])
+                        else:
+                            detail = _parse_detail(self._html(item['url']))
+                            if detail['title'] != item['list_title']:
+                                raise ValueError('detail/list identity mismatch')
+                        pdf_url = detail['pdf_url']
+                        annual_match = None
+                        if 'annual report' in detail['title'].lower():
+                            year_match = re.search(r'20\d{2}', detail['title'])
+                            candidates = [(url, r) for url, r in annual.items() if year_match and r['year'] == year_match.group()]
+                            if len(candidates) > 1:
+                                raise ValueError('ambiguous annual report identity')
+                            if candidates:
+                                url, report = candidates[0]
+                                if url not in detail['report_links'] and (not pdf_url or not self._same_pdf(pdf_url, report['pdf_url'])):
+                                    raise ValueError('annual representation mismatch')
+                                pdf_url = pdf_url or report['pdf_url']
+                                annual_match = url
+                        abstract = detail['abstract'] or item['list_abstract']
+                        provenance = {}
+                        if len(abstract) < 50 and pdf_url:
+                            abstract, provenance = self._pdf_body(pdf_url)
+                        if len(abstract) < 50:
+                            raise ValueError('source body gap')
+                        paper = dict(site_id=self.site_id, external_id=item['slug'], title=detail['title'], abstract=abstract,
+                                     published_date=detail['date_raw'] or item['listed_date_raw'] or None,
+                                     posted_date=item['listed_date_raw'] or None, url=item['url'], pdf_url=pdf_url,
+                                     original_filename=unquote(urlsplit(pdf_url).path.rsplit('/', 1)[-1]) if pdf_url else None,
+                                     authors=detail['authors'], publisher=_PUBLISHER, keywords=', '.join(detail['categories']),
+                                     metadata=json.dumps(dict(source_scope=scope, source_listed_date_raw=item['listed_date_raw'],
+                                                              annual_report_url=annual_match, **provenance), ensure_ascii=False))
+                        self._save_paper(paper)
+                        if self._last_save_created:
+                            saved += 1
+                        if provenance:
+                            self.delivery_body_provenance.append(dict(post_number=item['slug'], **provenance))
+                        if annual_match:
+                            matched.add(annual_match)
+                        seen[item['slug']] = item['url']
+                        self._checkpoint(scope, page, index + 1, data, previous, matched, annual_hash, items_done=1)
+                        self._check_cancelled()
+                    except PermissionError as exc:
+                        self._report_source_failure('rate_limited' if '429' in str(exc) else 'authentication_failed')
+                        return saved
+                    except Exception:
+                        self._report_source_failure('item_failed')
+                        if self._cursor_enabled:
+                            return saved
+                if data['last'] == total:
+                    break
+                previous = (data['last'], data['page_hash'])
+                page, offset, current = page + 1, 0, None
+        self._check_cancelled()
+        if matched != set(annual):
+            self._report_source_failure('item_failed')
+        if not self.delivery_source_failure:
+            self._mark_exhausted()
         return saved
