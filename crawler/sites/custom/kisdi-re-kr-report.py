@@ -1,279 +1,326 @@
 # -*- coding: utf-8 -*-
-"""KISDI Premium Report (www.kisdi.re.kr) crawler.
+"""KISDI's three delivered publication scopes, with guarded backfill cursors.
 
-List:   GET  https://www.kisdi.re.kr/report/list.do?key=KEY&arrMasterId=MID&pageIndex=N
-Detail: POST https://www.kisdi.re.kr/report/view.do?key=KEY&masterId=MID&arrMasterId=MID&artId=AID
-        body: pageIndex=1
+Source artId values remain unchanged. Scope/master conflicts are held for review
+instead of merging documents or changing historical identifiers. A contents list
+alone does not establish that the publication's abstract/body was collected.
 """
-
+import hashlib
 import json
 import os
 import re
 import subprocess
 import time
+from urllib.parse import parse_qs, urlencode, urljoin, urlsplit
 
 from crawler.base_crawler import BaseCrawler
 
-_KEY = "m2101113024153"
-_MASTER_ID = "3934560"
-_LIST_URL = "https://www.kisdi.re.kr/report/list.do"
-_DETAIL_URL = "https://www.kisdi.re.kr/report/view.do"
-_FILE_DOWN = "https://www.kisdi.re.kr/report/fileDown.do"
+_BASE = 'https://www.kisdi.re.kr'
+_LIST_URL = _BASE + '/report/list.do'
+_DETAIL_URL = _BASE + '/report/view.do'
+_FILE_DOWN = _BASE + '/report/fileDown.do'
+_SCOPES = {
+    'basic': ('m2101113024153', '3934560'),
+    'premium': ('m2101113025536', '3934550'),
+    'journal': ('m2309145696871', '5850223'),
+}
+_WALL_SECONDS = int(os.environ.get('LIBERTREE_MAX_WALL_S', str(25 * 60)))
 
 
-def _make_soup(html: str):
+def _make_soup(html):
     from bs4 import BeautifulSoup
-    for parser in ("html5lib", "lxml", "html.parser"):
-        try:
-            return BeautifulSoup(html, parser)
-        except Exception:
-            continue
-    return None
+    return BeautifulSoup(html, 'html.parser')
+
+
+def _text(node):
+    return re.sub(r'\s+', ' ', node.get_text(' ', strip=True)).strip() if node else ''
+
+
+def _hash(value):
+    return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+
+def _list_url(scope, page):
+    key, master = _SCOPES[scope]
+    return _LIST_URL + '?' + urlencode(dict(key=key, arrMasterId=master, pageIndex=page))
+
+
+def _detail_url(scope, art_id):
+    key, master = _SCOPES[scope]
+    return _DETAIL_URL + '?' + urlencode(dict(key=key, masterId=master, arrMasterId=master, artId=art_id))
+
+
+def _listing(html, scope, page):
+    soup = _make_soup(html)
+    key, master = _SCOPES[scope]
+    form = soup.select_one('form#frm')
+    if not form or not soup.select_one('ul#dataList'):
+        raise ValueError('missing source listing structure')
+    master_input = form.select_one('input[name="arrMasterId"]')
+    per_page = form.select_one('input[name="recordCountPerPage"]')
+    if not master_input or master_input.get('value') != master or not per_page:
+        raise ValueError('source scope mismatch')
+    size = int(per_page.get('value', ''))
+    total = int(_text(soup.select_one('#pageCurrEIndex')).replace(',', ''))
+    current = int(_text(soup.select_one('#pageCurrSIndex')))
+    last = int(_text(soup.select_one('#pageMaxIndex')))
+    if size <= 0 or total < 0:
+        raise ValueError('invalid source count')
+    if total == 0:
+        if page != 1 or current not in (0, 1) or last not in (0, 1):
+            raise ValueError('invalid empty source page')
+    elif current != page or not 1 <= page <= last or last != (total + size - 1) // size:
+        raise ValueError('source pagination mismatch')
+    items = []
+    for card in soup.select('ul#dataList > li'):
+        anchors = card.select('a[onclick]')
+        targets = [(a, re.fullmatch(r"\s*goView\('([0-9]+)',\s*'([0-9]+)'\);?\s*", a['onclick'])) for a in anchors]
+        targets = [(a, match) for a, match in targets if match]
+        if len(targets) != 1:
+            raise ValueError('missing or ambiguous source document target')
+        anchor, match = targets[0]
+        if match[1] != master:
+            raise ValueError('cross-master listing target')
+        art_id = match[2]
+        title = _text(anchor.find('strong', recursive=False))
+        if not title:
+            raise ValueError('source document title missing')
+        date_raw = ''
+        for li in anchor.select('li'):
+            label = _text(li.find('strong'))
+            if label == '발행일':
+                date_raw = _text(li)[len(label):].strip()
+        downloads = set()
+        for a in card.select('a.download[href]'):
+            url = urljoin(_BASE, a['href'])
+            parsed = urlsplit(url)
+            if (parsed.scheme != 'https' or parsed.netloc != 'www.kisdi.re.kr'
+                    or parsed.path != '/report/fileDown.do' or parsed.fragment
+                    or parse_qs(parsed.query) != dict(key=[key], arrMasterId=[master], id=[art_id])):
+                raise ValueError('unreviewed source download identity')
+            downloads.add(url)
+        if len(downloads) > 1:
+            raise ValueError('multiple primary download references')
+        items.append(dict(art_id=art_id, master_id=master, title=title, published_date_raw=date_raw,
+                          url=_detail_url(scope, art_id), pdf_url=next(iter(downloads), None)))
+    expected = min(size, total - (page - 1) * size) if total else 0
+    if len(items) != expected or len({x['art_id'] for x in items}) != len(items):
+        raise ValueError('source listing count or identity mismatch')
+    return dict(items=items, total=total, last_page=last, page_size=size,
+                page_hash=_hash([(r['master_id'], r['art_id'], r['title'], r['published_date_raw'], r['pdf_url']) for r in items]))
 
 
 class KisdiReKrReportCrawler(BaseCrawler):
-    site_id = "kisdi-re-kr-report"
-    site_name = "Custom: kisdi-re-kr-report"
-    base_url = "https://www.kisdi.re.kr"
+    site_id = 'kisdi-re-kr-report'
+    site_name = 'Custom: kisdi-re-kr-report'
+    base_url = _BASE
+    DELIVERY_CURSOR_VERSION = 1
 
-    # ------------------------------------------------------------------
-    # Network
-    # ------------------------------------------------------------------
-
-    def _curl(self, method: str, url: str, post_fields: dict | None = None) -> str | None:
-        cmd = [
-            "curl", "--tls-max", "1.3", "-sk", "--max-time", "30",
-            "-X", method,
-            "-H", f"User-Agent: {self.USER_AGENT}",
-            "-H", "Referer: https://www.kisdi.re.kr/report/list.do",
-        ]
+    def _curl(self, method, url, post_fields=None):
+        cmd = ['curl', '--tls-max', '1.3', '-sS', '--max-time', '30', '-X', method,
+               '-H', f'User-Agent: {self.USER_AGENT}', '-H', 'Referer: ' + _LIST_URL,
+               '--write-out', '\n%{http_code}']
         if post_fields:
-            cmd += ["-H", "Content-Type: application/x-www-form-urlencoded"]
-            for k, v in post_fields.items():
-                cmd += ["--data-urlencode", f"{k}={v}"]
+            for key, value in post_fields.items():
+                cmd += ['--data-urlencode', f'{key}={value}']
         cmd.append(url)
-
         for attempt in range(3):
+            self._check_cancelled()
             try:
                 result = subprocess.run(cmd, capture_output=True, timeout=35)
-                text = result.stdout.decode("utf-8", errors="replace")
-                if text.strip():
-                    return text
-                if attempt < 2:
-                    wait = (attempt + 1) * 3
-                    print(f"[kisdi-re-kr-report] Empty response (attempt {attempt + 1}/3), "
-                          f"retry in {wait}s...")
-                    time.sleep(wait)
-            except Exception as e:
-                if attempt < 2:
-                    wait = (attempt + 1) * 3
-                    print(f"[kisdi-re-kr-report] curl error (attempt {attempt + 1}/3): {e}, "
-                          f"retry in {wait}s...")
-                    time.sleep(wait)
-                else:
-                    print(f"[kisdi-re-kr-report] curl failed after 3 attempts: {e}")
+                self._check_cancelled()
+                raw, separator, code = result.stdout.rpartition(b'\n')
+                status = int(code) if separator and code.isdigit() else 0
+                if status in (401, 403, 429):
+                    raise PermissionError(f'HTTP {status}')
+                # Service failures are not authentication failures. Do not send
+                # retries while a busy publisher may be asking for a cooldown.
+                if status == 503:
+                    raise ConnectionError('HTTP 503')
+                from delivery.health.access_challenge import access_challenge
+                if access_challenge(raw):
+                    raise PermissionError('source access challenge')
+                if result.returncode == 0 and status == 200 and raw:
+                    return raw.decode('utf-8', errors='replace')
+                if status and status < 500:
+                    return None
+            except (PermissionError, ConnectionError):
+                raise
+            except (OSError, subprocess.TimeoutExpired):
+                pass
+            if attempt < 2:
+                self._check_cancelled()
+                time.sleep(3 * (attempt + 1))
         return None
 
-    def _fetch_list(self, page: int) -> str | None:
-        url = f"{_LIST_URL}?key={_KEY}&arrMasterId={_MASTER_ID}&pageIndex={page}"
-        return self._curl("GET", url)
+    def _fetch_list(self, page, scope='basic'):
+        raw = self._curl('GET', _list_url(scope, page))
+        if not raw:
+            raise ConnectionError('source listing unavailable')
+        return raw
 
-    def _fetch_detail(self, art_id: str) -> str | None:
-        url = (f"{_DETAIL_URL}?key={_KEY}&masterId={_MASTER_ID}"
-               f"&arrMasterId={_MASTER_ID}&artId={art_id}")
-        return self._curl("POST", url, {"pageIndex": "1"})
+    def _fetch_detail(self, art_id, scope='basic'):
+        raw = self._curl('POST', _detail_url(scope, art_id), {'pageIndex': '1'})
+        if not raw:
+            raise ConnectionError('source detail unavailable')
+        return raw
 
-    # ------------------------------------------------------------------
-    # Parsing
-    # ------------------------------------------------------------------
+    def _parse_detail(self, html, item):
+        soup = _make_soup(html)
+        title = _text(soup.find('h4', id='h4Title'))
+        if not title or title != item['title']:
+            raise ValueError('source detail/list identity mismatch')
+        values = {}
+        for li in soup.select('ul#data > li'):
+            label = _text(li.find('strong'))
+            if label:
+                values[label] = _text(li)[len(label):].strip()
+        abstract = re.sub(r'^요약\s*', '', _text(soup.find(id='tab1'))).strip()
+        toc = re.sub(r'^목차\s*', '', _text(soup.find(id='tab2'))).strip()
+        if len(abstract) < 100:
+            raise ValueError('source body unavailable; contents alone is insufficient')
+        if toc:
+            abstract += '\n\n[목차] ' + toc
+        return dict(site_id=self.site_id, external_id=item['art_id'], title=title, abstract=abstract,
+                    authors=[v.strip() for v in re.split(r'[,，]', values.get('저자', '')) if v.strip()],
+                    published_date=values.get('발행일') or item['published_date_raw'] or None,
+                    posted_date=item['published_date_raw'] or None, url=item['url'], pdf_url=item['pdf_url'],
+                    category=values.get('분류정보', ''), keywords=', '.join(_text(s) for s in soup.select('div.tag span')),
+                    metadata=json.dumps(dict(master_id=item['master_id'], journal=values.get('게재지', ''),
+                                             volume=values.get('권호', ''), toc=toc), ensure_ascii=False))
 
-    def _parse_list(self, html: str) -> list:
-        """Extract artId strings from goView('MASTERID', 'ARTID') calls."""
-        return re.findall(r"goView\('\d+',\s*'(\d+)'\)", html)
+    def _assert_identity(self, item):
+        postgres = os.environ.get('LIBERTREE_DB_BACKEND', 'sqlite').lower() == 'postgres'
+        if not postgres and not self._conn_is_libertree():
+            return
+        mark = '%s' if postgres else '?'
+        rows = self._conn.execute(f'SELECT post_number,meta_url FROM documents WHERE site_id={mark} '
+                                  f'AND (post_number={mark} OR meta_url={mark})',
+                                  (self.site_id, item['art_id'], item['url'])).fetchall()
+        if len(rows) > 1:
+            raise ValueError('ambiguous stored source identity')
+        for row in rows:
+            post, url = (row['post_number'], row['meta_url']) if hasattr(row, 'keys') else row
+            if post != item['art_id'] or url != item['url']:
+                raise ValueError('stored source identity requires review')
 
-    def _parse_detail(self, html: str, art_id: str) -> dict | None:
-        try:
-            soup = _make_soup(html)
-        except Exception as e:
-            print(f"[kisdi-re-kr-report] soup error for {art_id}: {e}")
-            return None
+    @staticmethod
+    def _contract():
+        return _hash(_SCOPES)
 
-        h4 = soup.find("h4", id="h4Title")
-        if not h4:
-            return None
-        title = h4.get_text(strip=True)
-        if not title:
-            return None
+    def _validate_cursor(self, cursor):
+        if (not isinstance(cursor, dict) or cursor.get('version') != self.DELIVERY_CURSOR_VERSION
+                or cursor.get('contract') != self._contract() or cursor.get('scope') not in _SCOPES):
+            raise ValueError('invalid cursor contract')
+        for key in ('page', 'offset', 'total', 'last_page', 'page_size'):
+            if type(cursor.get(key)) is not int or cursor[key] < (0 if key == 'offset' else 1):
+                raise ValueError('invalid cursor range')
+        if (cursor['page'] > cursor['last_page']
+                or cursor['last_page'] != (cursor['total'] + cursor['page_size'] - 1) // cursor['page_size']
+                or cursor['offset'] > min(cursor['page_size'], cursor['total'] - (cursor['page'] - 1) * cursor['page_size'])):
+            raise ValueError('invalid cursor page or offset')
+        if not re.fullmatch('[0-9a-f]{64}', cursor.get('page_hash', '')):
+            raise ValueError('invalid cursor anchor')
+        if cursor['page'] == 1:
+            if cursor.get('previous_hash') != '':
+                raise ValueError('unexpected previous-page anchor')
+        elif not re.fullmatch('[0-9a-f]{64}', cursor.get('previous_hash', '')):
+            raise ValueError('missing previous-page anchor')
 
-        author = ""
-        published_date = ""
-        category = ""
-        journal = ""
-        volume = ""
-        data_ul = soup.find("ul", id="data")
-        if data_ul:
-            for li in data_ul.find_all("li"):
-                strong = li.find("strong")
-                if not strong:
-                    continue
-                label = strong.get_text(strip=True)
-                val = li.get_text(strip=True)[len(label):].strip()
-                if label == "저자":
-                    author = val
-                elif label == "발행일":
-                    published_date = val
-                elif label == "분류정보":
-                    category = val
-                elif label == "게재지":
-                    journal = val
-                elif label == "권호":
-                    volume = val
+    def _checkpoint(self, scope, page, offset, data, previous_hash, done=0):
+        if self._cursor_enabled:
+            self._advance_cursor(dict(version=self.DELIVERY_CURSOR_VERSION, contract=self._contract(), scope=scope,
+                                      page=page, offset=offset, total=data['total'], last_page=data['last_page'],
+                                      page_size=data['page_size'], page_hash=data['page_hash'], previous_hash=previous_hash),
+                                 items_done=done)
 
-        keywords = []
-        tag_div = soup.find("div", class_="tag")
-        if tag_div:
-            keywords = [sp.get_text(strip=True) for sp in tag_div.find_all("span")]
-            keywords = [k.strip() for k in keywords if k.strip()]
-
-        tab1 = soup.find(id="tab1")
-        abstract = ""
-        if tab1:
-            abstract = tab1.get_text(separator=" ", strip=True)
-            abstract = re.sub(r"^요약\s*", "", abstract).strip()
-
-        tab2 = soup.find(id="tab2")
-        toc = ""
-        if tab2:
-            toc = tab2.get_text(separator=" ", strip=True)
-            toc = re.sub(r"^목차\s*", "", toc).strip()
-
-        if abstract and toc:
-            full_abstract = abstract + "\n\n[목차] " + toc
-        elif toc:
-            full_abstract = "[목차] " + toc
+    def _failure(self, exc, item=False):
+        if isinstance(exc, PermissionError):
+            reason = 'rate_limited' if '429' in str(exc) else 'authentication_failed'
+        elif isinstance(exc, ConnectionError):
+            reason = 'fetch_failed'
         else:
-            full_abstract = abstract
-
-        authors_list = [a.strip() for a in re.split(r"[,，]", author) if a.strip()] if author else []
-        return {
-            "title": title,
-            "authors": json.dumps(authors_list, ensure_ascii=False),
-            "abstract": full_abstract,
-            "category": category,
-            "keywords": json.dumps(keywords, ensure_ascii=False),
-            "published_date": published_date,
-            "pdf_url": f"{_FILE_DOWN}?key={_KEY}&arrMasterId={_MASTER_ID}&id={art_id}",
-            "metadata": json.dumps(
-                {"journal": journal, "volume": volume, "toc": toc},
-                ensure_ascii=False,
-            ),
-        }
-
-    # ------------------------------------------------------------------
-    # Main crawl
-    # ------------------------------------------------------------------
+            reason = 'item_failed' if item else 'invalid_response'
+        self._report_source_failure(reason)
 
     def crawl(self, limit=None):
-        start_time = time.time()
-        MAX_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
-        MAX_PAGES = 200
-
-        seen_urls = set()
-        saved = 0
-        page = 1
-        limit_str = str(limit) if limit is not None else "∞"
-
-        while True:
-            if time.time() - start_time > MAX_SECONDS:
-                print(f"[kisdi-re-kr-report] 25-minute budget reached. Exiting cleanly.")
-                break
-
-            if limit is not None and saved >= limit:
-                break
-
-            if page > MAX_PAGES:
-                print(f"[kisdi-re-kr-report] Safety cap of {MAX_PAGES} pages reached. Stopping.")
-                break
-
-            if page % 10 == 0:
-                print(f"[kisdi-re-kr-report] page {page}: saved {saved}/{limit_str}")
-
-            raw = self._fetch_list(page)
-            if not raw:
-                print(f"[kisdi-re-kr-report] Failed to fetch page {page}. Stopping.")
-                break
-
-            art_ids = self._parse_list(raw)
-            if not art_ids:
-                print(f"[kisdi-re-kr-report] No items on page {page}. Done.")
-                break
-
-            new_ids = [a for a in art_ids if a not in seen_urls]
-            if not new_ids:
-                print(f"[kisdi-re-kr-report] Page {page} all already seen. Done.")
-                break
-
-            for art_id in art_ids:
-                if limit is not None and saved >= limit:
-                    break
-
-                if art_id in seen_urls:
-                    continue
-                seen_urls.add(art_id)
-
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
+        self._source_failure, self._exhausted, self._pending_cursor, self._cursor_items_done = None, False, None, 0
+        self._cursor_enabled = self.delivery_mode == 'backfill'
+        resume = self.delivery_cursor if self._cursor_enabled else None
+        if resume is not None:
+            try:
+                self._validate_cursor(resume)
+            except Exception:
+                self._report_source_failure('configuration')
+                return 0
+        started, saved, seen = time.monotonic(), 0, {}
+        def budget_hit():
+            if time.monotonic() - started <= _WALL_SECONDS:
+                return False
+            if not self._cursor_enabled or self.delivery_cursor_items_done == 0:
+                self._report_source_failure('invalid_response')
+            return True
+        for scope in _SCOPES:
+            if resume and list(_SCOPES).index(scope) < list(_SCOPES).index(resume['scope']):
+                continue
+            current = resume if resume and scope == resume['scope'] else None
+            page, offset = (current['page'], current['offset']) if current else (1, 0)
+            previous = current['previous_hash'] if current else ''
+            bounds = tuple(current[k] for k in ('total', 'last_page', 'page_size')) if current else None
+            while True:
+                self._check_cancelled()
+                if limit is not None and saved >= limit or budget_hit():
+                    return saved
                 try:
-                    time.sleep(self._delay)
-
-                    detail_html = self._fetch_detail(art_id)
-                    if not detail_html:
-                        print(f"[kisdi-re-kr-report] item {art_id} failed: no response")
-                        continue
-
-                    parsed = self._parse_detail(detail_html, art_id)
-                    if not parsed:
-                        print(f"[kisdi-re-kr-report] item {art_id} failed: parse returned None")
-                        continue
-
-                    abstract = parsed.get("abstract", "")
-                    if len(abstract) < 100:
-                        print(f"[kisdi-re-kr-report] item {art_id} skipped: "
-                              f"abstract too short ({len(abstract)} chars)")
-                        continue
-
-                    url = (f"https://www.kisdi.re.kr/report/view.do"
-                           f"?key={_KEY}&masterId={_MASTER_ID}"
-                           f"&arrMasterId={_MASTER_ID}&artId={art_id}")
-
-                    paper = {
-                        "id": None,
-                        "site_id": self.site_id,
-                        "external_id": art_id,
-                        "title": parsed["title"],
-                        "authors": parsed["authors"],
-                        "abstract": abstract,
-                        "category": parsed.get("category", ""),
-                        "keywords": parsed.get("keywords", "[]"),
-                        "published_date": parsed.get("published_date", ""),
-                        "url": url,
-                        "pdf_url": parsed.get("pdf_url", ""),
-                        "doi": "",
-                        "department": "",
-                        "metadata": parsed.get("metadata", "{}"),
-                    }
-
-                    self._save_paper(paper)
-                    if self._last_save_created:
-                        saved += 1
-                    print(f"[kisdi-re-kr-report] Saved {saved}/{limit_str}: "
-                          f"{parsed['title'][:60]}")
-
-                except KeyboardInterrupt:
-                    raise
+                    if current and page > 1:
+                        anchor = _listing(self._fetch_list(page - 1, scope), scope, page - 1)
+                        if anchor['page_hash'] != previous or tuple(anchor[k] for k in ('total', 'last_page', 'page_size')) != bounds:
+                            raise ValueError('previous source page changed')
+                    data = _listing(self._fetch_list(page, scope), scope, page)
+                    actual_bounds = tuple(data[k] for k in ('total', 'last_page', 'page_size'))
+                    if bounds is not None and actual_bounds != bounds:
+                        raise ValueError('source pagination changed')
+                    if current and data['page_hash'] != current['page_hash']:
+                        raise ValueError('current source page changed')
+                    if page > 1 and data['page_hash'] == previous:
+                        raise ValueError('source page repeated')
+                    bounds = actual_bounds
+                    if data['total'] == 0:
+                        break
                 except Exception as exc:
-                    print(f"[kisdi-re-kr-report] item {art_id} failed: {exc}")
-                    continue
-
-            page += 1
-
-        print(f"[kisdi-re-kr-report] Done. Total saved: {saved}")
+                    self._failure(exc)
+                    return saved
+                self._checkpoint(scope, page, offset, data, previous)
+                for index, item in enumerate(data['items']):
+                    if index < offset:
+                        continue
+                    self._check_cancelled()
+                    if limit is not None and saved >= limit or budget_hit():
+                        return saved
+                    try:
+                        if item['art_id'] in seen and seen[item['art_id']] != item['url']:
+                            raise ValueError('cross-scope source identity collision')
+                        self._assert_identity(item)
+                        time.sleep(self._delay)
+                        self._check_cancelled()
+                        paper = self._parse_detail(self._fetch_detail(item['art_id'], scope), item)
+                        self._save_paper(paper)
+                        if self._last_save_created:
+                            saved += 1
+                        seen[item['art_id']] = item['url']
+                        self._checkpoint(scope, page, index + 1, data, previous, done=1)
+                        self._check_cancelled()
+                    except Exception as exc:
+                        self._failure(exc, item=True)
+                        if self._cursor_enabled or isinstance(exc, (PermissionError, ConnectionError)):
+                            return saved
+                if page == data['last_page']:
+                    break
+                previous, page, offset, current = data['page_hash'], page + 1, 0, None
+        self._check_cancelled()
+        if not self.delivery_source_failure:
+            self._mark_exhausted()
         return saved
