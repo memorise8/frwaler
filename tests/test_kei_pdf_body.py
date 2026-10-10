@@ -26,6 +26,8 @@ class KeiPdfBody(unittest.TestCase):
         return self.crawler
 
     def stage(self, stage, root, timeout):
+        if stage == 'pdf_body_coverage':
+            return dict(success=True, coverage={'state':'no_dominant_raster_signal','fidelity_verified':False})
         self.assertEqual(stage, 'text'); self.assertEqual(timeout, 120)
         self.assertEqual((root/'source.pdf').read_bytes(), self.payload)
         (root/'output.txt').write_text('Source report text with actual research findings. ' * 100)
@@ -40,6 +42,7 @@ class KeiPdfBody(unittest.TestCase):
         self.assertEqual(meta['abstract_pdf_sha256'], hashlib.sha256(self.payload).hexdigest())
         self.assertEqual(meta['abstract_source'], 'publisher_pdf_text_excerpt')
         self.assertFalse(meta['full_text_fidelity_verified'])
+        self.assertFalse(meta['abstract_pdf_body_coverage']['fidelity_verified'])
         self.assertNotIn('pdf_downloaded', meta)
         self.assertNotIn('text_extracted', meta)
         self.assertFalse(c._session.get.call_args.kwargs['allow_redirects'])
@@ -99,11 +102,21 @@ class KeiPdfBody(unittest.TestCase):
     def test_mild_diagnostics_are_preserved_without_claiming_fidelity(self):
         c=self.setup_source()
         def stage(stage,root,timeout):
+            if stage=='pdf_body_coverage':return self.stage(stage,root,timeout)
             value='Report text. '*300+'\uf09f';(root/'output.txt').write_text(value)
             return dict(success=True,chars=len(value),quality={'state':'review','signals':['private_use_characters']})
         with patch('delivery.files.worker.run_stage',side_effect=stage):_,meta=source_pdf_excerpt(c,self.item,self.detail)
         self.assertEqual(meta['abstract_pdf_text_quality']['state'],'review')
         self.assertFalse(meta['full_text_fidelity_verified'])
+
+    def test_long_clean_text_does_not_override_dominant_raster_body_or_failed_inspection(self):
+        for error in ('pdf_body_coverage_review_required','stage_timeout','pdf_body_coverage_unavailable'):
+            c=self.setup_source()
+            def stage(name,root,timeout):
+                if name=='pdf_body_coverage':return dict(success=False,error=error)
+                return self.stage(name,root,timeout)
+            with patch('delivery.files.worker.run_stage',side_effect=stage),self.assertRaisesRegex(ValueError,error):
+                source_pdf_excerpt(c,self.item,self.detail)
 
     def test_initial_cancellation_happens_before_download(self):
         c=self.setup_source();c._check_cancelled.side_effect=CrawlCancelled()

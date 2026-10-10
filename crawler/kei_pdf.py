@@ -77,6 +77,11 @@ def source_pdf_excerpt(crawler, item, detail):
             raise ValueError('KEI source PDF text unavailable: ' + str(stage.get('error', 'unknown')))
         if (stage.get('quality') or {}).get('state') == 'review_required':
             raise ValueError('KEI source PDF text requires quality review')
+        coverage = run_stage('pdf_body_coverage', root, timeout=120)
+        crawler._check_cancelled()
+        if not coverage.get('success'):
+            raise ValueError('KEI source PDF body coverage unavailable: '
+                             + str(coverage.get('error', 'unknown')))
         textfile = root / 'output.txt'
         with textfile.open(encoding='utf-8') as handle:
             excerpt = ' '.join(handle.read(12000).split())[:3000]
@@ -90,4 +95,5 @@ def source_pdf_excerpt(crawler, item, detail):
                          abstract_pdf_bytes=size, abstract_pdf_text_sha256=text_hash,
                          abstract_pdf_text_characters=stage.get('chars'),
                          abstract_pdf_text_quality=stage.get('quality'),
+                         abstract_pdf_body_coverage=coverage['coverage'],
                          abstract_excerpt_quality=quality, full_text_fidelity_verified=False)

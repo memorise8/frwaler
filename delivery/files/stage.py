@@ -46,6 +46,18 @@ def _fallback_text(root):
 
 def execute(stage, directory, url=None):
     root = Path(directory)
+    if stage == 'pdf_body_coverage':
+        from crawler.converter import PDFTextAccessError
+        from .pdf_body_coverage import inspect_pdf
+        try:
+            coverage = inspect_pdf(root / 'source.pdf')
+        except PDFTextAccessError as exc:
+            return {'success': False, 'error': exc.code}
+        except Exception:
+            return {'success': False, 'error': 'pdf_body_coverage_unavailable'}
+        if coverage['state'] == 'review_required':
+            return {'success': False, 'error': 'pdf_body_coverage_review_required', 'coverage': coverage}
+        return {'success': True, 'coverage': coverage}
     if stage == 'pdf':
         import requests
         from crawler.pdf_downloader import download_pdf_for
