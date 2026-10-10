@@ -13,6 +13,9 @@ DATE_METADATA_FIELDS = tuple(f"{field}_{suffix}" for field in DATE_FIELDS
                              for suffix in ("raw", "status", "precision"))
 # Add site rules only with a source-format regression fixture and evidence.
 SITE_DATE_ORDERS: dict[str, str] = {
+    # Two retained ACPR study details expose 30/07/2026, matching their
+    # listing dates 30 Juillet 2026. Keep raw values beside normalized dates.
+    'acpr-banque-france-fr-fr': 'DMY',
     # Public ONERA press listings expose 02/10/2026 alongside 22/07/2026.
     # Native HTML persistence fixtures verify day/month order and raw retention.
     'onera-fr-fr': 'DMY',

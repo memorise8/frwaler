@@ -93,7 +93,13 @@ def _listing(html, scope, page):
     if len(active) != 1 or _page_number(urljoin(_list_url(scope, page), active[0]['href']), scope) != page:
         raise ValueError('source current page mismatch')
     last = max(numbers)
-    following = pager.select('a[rel~="next"]')
+    # The publisher marks its previous arrow rel="next" too. Validate the
+    # destinations, accepting that adjacent previous link without following it.
+    directional = [(a, _page_number(urljoin(_list_url(scope, page), a['href']), scope))
+                   for a in pager.select('a[rel~="next"]')]
+    if any(number not in (page - 1, page + 1) for _, number in directional):
+        raise ValueError('source pagination skips or repeats a page')
+    following = [a for a, number in directional if number == page + 1]
     if len(following) != (1 if page < last else 0):
         raise ValueError('missing or unexpected source next page')
     next_url = urljoin(_list_url(scope, page), following[0]['href']) if following else None

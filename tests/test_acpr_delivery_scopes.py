@@ -23,6 +23,7 @@ def listing(scope,page,*,ids=None,size=2):
     last=max(0,(len(all_ids)-1)//size);items=all_ids[page*size:(page+1)*size];cards=[]
     for uid in items:cards.append(f'<a class="card card-vertical" href="{DETAILS[scope]}{uid}"><h3 class="card-title">Research {uid}</h3><span class="category-btn-grid">Publication</span><small>14 Septembre 2026</small></a>')
     links=f'<a aria-current="page" href="{page_url(scope,page)}">{page+1}</a><a href="{page_url(scope,last)}">Last</a>'
+    if page>0:links+=f'<a rel="next" title="Aller à la page précédente" href="{page_url(scope,page-1)}">Previous</a>'
     if page<last:links+=f'<a rel="next" href="{page_url(scope,page+1)}">Next</a>'
     pager=f'<nav class="pager">{links}</nav>' if all_ids else '<div class="view-empty">Aucun résultat</div>'
     return f'<main><div class="view {VIEWS[scope]}">{"".join(cards)}{pager}</div></main>'
@@ -51,11 +52,11 @@ class AcprScopes(SiteContract,unittest.TestCase):
             for page in (0,1):self.assertIn(page_url(scope,page),[r.args[0] for r in self.fetch.call_args_list])
         self.assertEqual(set(self.identities()),{'s1','s2','s3','s4','p5','p6','p7','p8'})
 
-    def test_partial_ambiguous_and_invalid_raw_dates_survive_native_storage(self):
-        for date,status,precision in [('Septembre 2026','partial','month'),('03/04/2026','ambiguous','day'),('14 Septembre 2026 incertain','unrecognized',None)]:
+    def test_reviewed_dmy_partial_and_invalid_raw_dates_survive_native_storage(self):
+        for date,normalized,status,precision in [('Septembre 2026',None,'partial','month'),('03/04/2026','2026-04-03','normalized','day'),('30/07/2026','2026-07-30','normalized','day'),('14 Septembre 2026 incertain',None,'unrecognized',None)]:
             self.source_date=date;c=self.crawler();self.assertEqual(c.crawl(limit=1),1)
             row=self.conn.execute('SELECT published_date,published_date_raw,published_date_status,published_date_precision,listed_date,listed_date_raw FROM documents').fetchone();values=tuple(row.values()) if isinstance(row,dict) else tuple(row)
-            self.assertEqual(values[:4],(None,date,status,precision));self.assertEqual(str(values[4]),'2026-09-14');self.assertEqual(values[5],'14 Septembre 2026')
+            self.assertEqual(str(values[0]) if values[0] else None,normalized);self.assertEqual(values[1:4],(date,status,precision));self.assertEqual(str(values[4]),'2026-09-14');self.assertEqual(values[5],'14 Septembre 2026')
             self.conn.execute('DELETE FROM documents');self.conn.commit()
 
     def test_filter_loss_or_injected_filter_is_rejected(self):
@@ -63,6 +64,17 @@ class AcprScopes(SiteContract,unittest.TestCase):
             c=self.crawler();original=self.fetch.side_effect
             self.fetch.side_effect=lambda url:original(url).replace('format%5B5412600%5D=5412600&',replacement)
             self.assertEqual(c.crawl(),0);self.assertEqual(c.delivery_source_failure,'invalid_response');self.assertFalse(c.delivery_exhausted)
+
+    def test_previous_link_mislabeled_next_is_not_followed(self):
+        for scope in PATHS:
+            for page in (0,1,2):
+                data=self.module._listing(listing(scope,page,ids=['a','b','c','d','e','f']),scope,page)
+                self.assertEqual(data['next_url'],page_url(scope,page+1) if page<2 else None)
+
+    def test_missing_forward_link_or_nonadjacent_rel_next_is_rejected(self):
+        raw=listing('studies',1,ids=['a','b','c','d','e','f'])
+        for altered in (raw.replace('rel="next" href="'+page_url('studies',2)+'"','href="'+page_url('studies',2)+'"'),raw.replace('rel="next" href="'+page_url('studies',2)+'"','rel="next" href="'+page_url('studies',3)+'"')):
+            with self.assertRaises(ValueError):self.module._listing(altered,'studies',1)
 
     def test_zero_limit_and_initial_cancel_make_no_requests(self):
         c=self.crawler();self.assertEqual(c.crawl(limit=0),0);self.fetch.assert_not_called();c.delivery_should_cancel=lambda:True
