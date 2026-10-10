@@ -47,13 +47,16 @@ class KeiTraversal:
         raw = self._curl_get(item['url'], referer=listing_url)
         if not raw:
             raise ConnectionError('KEI source detail unavailable')
-        return parse_detail(raw, item)
+        return parse_detail(raw, item, allow_pdf_recovery=True)
 
     def _scope_paper(self, item, detail):
         if item.get('title_quality') or title_quality(detail['title']):
             raise ValueError('KEI source title quality requires review')
         abstract, provenance = detail['abstract'], {}
-        if len(abstract) < self._MIN_ABSTRACT and detail['primary_PDF_candidate']:
+        malformed = detail.get('body_classification') == 'malformed_source_HTML_requires_PDF'
+        if malformed and not detail['primary_PDF_candidate']:
+            raise ValueError('KEI malformed source body requires validated PDF recovery')
+        if (malformed or len(abstract) < self._MIN_ABSTRACT) and detail['primary_PDF_candidate']:
             from crawler.kei_pdf import source_pdf_excerpt
             abstract, provenance = source_pdf_excerpt(self, item, detail)
         if len(abstract) < self._MIN_ABSTRACT:

@@ -2,7 +2,7 @@
 import json
 import os
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlsplit
 
 from crawler.base_crawler import CrawlCancelled
@@ -62,6 +62,35 @@ class KeiTraversal(unittest.TestCase):
         self.assertFalse(c.delivery_exhausted)
         self.assertEqual(c.delivery_pending_cursor['offset'], 0)
         c._session.get.assert_not_called()
+
+    def test_known_damaged_body_uses_only_validated_PDF_text_and_preserves_identity(self):
+        def change(raw, scope, query):
+            if query.get('act') == ['view']:
+                return raw.replace('<div id="view1">목차: 방법, 결과</div>',
+                                   '<div id="view1"><p><span style="letter-spacing: -0.\n</div>').replace(
+                                       '<div id="view2">', '<div class="view" id="view2">')
+            return raw
+        self.change_source = change
+        c = self.crawler(); c.delivery_mode = 'backfill'
+        excerpt = 'Actual verified source PDF report text. ' * 10
+        with patch('crawler.kei_pdf.source_pdf_excerpt', return_value=(excerpt, {})) as recover:
+            self.assertEqual(c.crawl(limit=1), 1)
+        detail = recover.call_args.args[2]
+        self.assertIsNone(detail['abstract'])
+        self.assertEqual(detail['body_classification'], 'malformed_source_HTML_requires_PDF')
+        rows = self.rows()
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['abstract'], excerpt)
+        self.assertEqual(rows[0]['post_number'], detail['source_key'])
+        self.assertEqual(rows[0]['pdf_url'], detail['primary_PDF_candidate']['url'])
+        self.assertFalse(rows[0]['pdf_downloaded'])
+        before = self.rows()
+        c = self.crawler(); c.delivery_mode = 'backfill'
+        with patch('crawler.kei_pdf.source_pdf_excerpt', side_effect=ValueError('pdf_copy_restricted')):
+            self.assertEqual(c.crawl(limit=1), 0)
+        self.assertEqual(c.delivery_source_failure, 'item_failed')
+        self.assertEqual(self.rows(), before)
+        self.assertEqual(c.delivery_pending_cursor['offset'], 0)
 
     def test_all_eleven_scopes_same_numeric_ids_repeat_zero_and_date_roles(self):
         c = self.crawler()

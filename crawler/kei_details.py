@@ -4,6 +4,7 @@ Parsing a source page is separate from body eligibility, native persistence and
 file acceptance. In particular, image alt text and attachment filenames are not
 article bodies, and a writer's timestamp is not a publication date.
 """
+import hashlib
 import re
 from pathlib import PurePosixPath
 from urllib.parse import parse_qs, urljoin, urlsplit
@@ -45,7 +46,37 @@ def _attachment(link, item):
                 file_bytes_verified=False)
 
 
-def parse_detail(html, item):
+def _known_repaired_body(nodes, html):
+    return (len(nodes) == 1 and nodes[0].name in ('span', 'p')
+            and re.fullmatch(r'[\s\S]*</div>\s*<div class=', nodes[0].get('style', ''))
+            and html.count('<div class="view" id="view2">') == 1)
+
+
+def _verify_recovery_metadata(html, item, title, fields, files):
+    """A second parser must agree on metadata outside the damaged contents."""
+    soup = BeautifulSoup(html, 'html.parser')
+    for name, wanted in [('mid', SCOPES[item['scope']][1]),
+                         ('elibName', SCOPES[item['scope']][2]),
+                         ('c_id', item['source_id'])]:
+        _identity(soup, name, wanted)
+    mains = soup.select('.tstyle_view')
+    if len(mains) != 1:
+        raise ValueError('KEI PDF recovery metadata container ambiguous')
+    main = mains[0]
+    other_fields = {}
+    for node in main.select('.report_title .right > ul > li'):
+        label, value = text(node.find('span')), text(node.find('em'))
+        if label in other_fields:
+            raise ValueError('KEI PDF recovery metadata field ambiguous')
+        if label:
+            other_fields[label] = value
+    other_files = [_attachment(n, item) for n in main.select('.add_file_list a.file-down[href]')]
+    if (text(main.select_one('.report_title .right .tit')) != title or other_fields != fields
+            or other_files != files or not _known_repaired_body(main.select('#view2'), html)):
+        raise ValueError('KEI PDF recovery source metadata disagrees between parsers')
+
+
+def parse_detail(html, item, *, allow_pdf_recovery=False):
     """Read a detail only when its scope and source ID agree with the listing."""
     # The server can finish an HTTP 200 response halfway through rendering a
     # report (observed at an unclosed publication-date field). HTML parsers
@@ -126,34 +157,49 @@ def parse_detail(html, item):
     # A broken quote in the preceding contents table (observed at 681569)
     # lets lxml attach id="view2" to a span and absorb the site footer.
     # Such a repaired node is neither a report body nor an empty-body proof.
-    if len(bodies) != 1 or bodies[0].name != 'div':
+    malformed = len(bodies) != 1 or bodies[0].name != 'div'
+    if malformed and not (allow_pdf_recovery and not board and _known_repaired_body(bodies, html)):
         raise ValueError('KEI source body container malformed or ambiguous')
     body = bodies[0]
-    for node in body.select('script,style,nav'):
-        node.decompose()
-    value = text(body)
-    images = [dict(url=urljoin(item['url'], n['src']), alt=n.get('alt', ''))
-              for n in body.select('img[src]')]
+    if malformed:
+        value, images, contents = None, None, None
+    else:
+        for node in body.select('script,style,nav'):
+            node.decompose()
+        value = text(body)
+        images = [dict(url=urljoin(item['url'], n['src']), alt=n.get('alt', ''))
+                  for n in body.select('img[src]')]
     files = [_attachment(link, item) for link in main.select('.add_file_list a.file-down[href]')]
+    if malformed:
+        _verify_recovery_metadata(html, item, title, fields, files)
+        if not any(f['extension'] == '.pdf' for f in files):
+            raise ValueError('KEI malformed source body has no validated PDF attachment')
     if separator_variant:
         listed_downloads = {f['url'] for f in item.get('attachments', [])
                             if f.get('kind') == 'download' and f.get('url')}
         if (not publication or publication != item.get('date_raw')
                 or not listed_downloads.intersection(f['url'] for f in files)):
             raise ValueError('KEI detail title differs without date and attachment corroboration')
-    return dict(scope=scope, source_id=uid, source_key=f'{scope}:{uid}',
+    result = dict(scope=scope, source_id=uid, source_key=f'{scope}:{uid}',
                 source_url=item['url'], title=title, listing_title=listing_title,
                 title_binding=('exact' if title == listing_title else
                                'source_title_whitespace_normalized' if title == normalized_listing else
                                'source_title_separator_variant_with_date_and_attachment' if separator_variant else
                                'source_listing_prefix_with_ellipsis'),
                 abstract=value, contents=contents,
-                body_classification=('source_text_present' if value else
+                body_classification=('malformed_source_HTML_requires_PDF' if malformed else
+                                     'source_text_present' if value else
                                      'empty_text_with_images' if images else 'empty_text'),
-                body_ends_with_ellipsis=value.endswith(('...', '…')),
+                body_ends_with_ellipsis=None if malformed else value.endswith(('...', '…')),
                 body_images=images, published_date_raw=publication,
                 listed_date_raw=listed or None, source_listing_date_raw=item.get('date_raw'),
                 detail_date_label=date_label, raw_fields=fields,
                 authors=authors, writer=writer, attachments=files,
                 primary_PDF_candidate=next((f for f in files if f['extension'] == '.pdf'), None),
                 file_bytes_verified=False, full_text_fidelity_verified=False)
+    if malformed:
+        result['HTML_body_failure'] = dict(reason='source_body_attribute_consumed_container',
+                                          source_HTML_sha256=hashlib.sha256(html.encode()).hexdigest(),
+                                          repaired_tag=body.name,
+                                          metadata_independently_corroborated=True)
+    return result
