@@ -125,6 +125,23 @@ def _listing(html, scope, page):
                 page_hash=_hash([(i['url'], i['list_title'], i['listed_date_raw']) for i in items]))
 
 
+def _poster_collection_pdfs(content):
+    """Poster title links belong to the named collection, without a primary."""
+    links, active_level = [], None
+    for node in content.find_all(['h2', 'h3', 'h4', 'p']):
+        if node.name.startswith('h'):
+            level = int(node.name[1])
+            if _text(node).casefold() == 'poster presentations':
+                active_level = level
+            elif active_level is not None and level <= active_level:
+                active_level = None
+        elif active_level is not None:
+            for anchor in node.select('strong a[href], b a[href]'):
+                if _text(anchor) and urlsplit(anchor['href']).path.lower().endswith('.pdf'):
+                    links.append(urljoin(_BASE_URL, anchor['href']))
+    return list(dict.fromkeys(links))
+
+
 def _parse_detail(html):
     soup = _make_soup(html)
     main = soup.select_one('.news.single.model-impact-cases,.news.single.model-publications-amp-amp-reports')
@@ -145,7 +162,9 @@ def _parse_detail(html):
     buttons = list(dict.fromkeys(
         urljoin(_BASE_URL, a['href']) for a in content.select('p.button a[href]')
         if urlsplit(a['href']).path.lower().endswith('.pdf')))
-    attachments = list(dict.fromkeys(downloads + buttons))
+    primary_files = list(dict.fromkeys(downloads + buttons))
+    collection_files = _poster_collection_pdfs(content)
+    attachments = list(dict.fromkeys(primary_files + collection_files))
     report_links = sorted({urldefrag(urljoin(_BASE_URL, a['href']))[0] for a in content.find_all('a', href=True)
                            if urlsplit(urljoin(_BASE_URL, a['href'])).netloc == 'reports.adruk.org'})
     authors, parts = [], []
@@ -161,11 +180,12 @@ def _parse_detail(html):
             authors = [s.strip() for s in re.split(r'\s+and\s+|;\s*', re.sub(r'^Authors?\s*:\s*', '', text, flags=re.I)) if s.strip()]
         parts.append(text)
     return dict(title=title, abstract=' '.join(parts), date_raw=date_raw, authors=authors,
-                categories=categories, pdf_url=attachments[0] if attachments else None,
-                pdf_urls=pdfs, attachment_pdf_urls=attachments,
+                categories=categories, pdf_url=primary_files[0] if primary_files else None,
+                pdf_urls=pdfs, attachment_pdf_urls=attachments, collection_pdf_urls=collection_files,
                 reference_pdf_urls=[u for u in pdfs if u not in attachments],
                 primary_pdf_binding=('explicit_download_list' if downloads else
-                                     'explicit_publication_button' if buttons else 'no_explicit_attachment'),
+                                     'explicit_publication_button' if buttons else
+                                     'collection_without_primary_PDF' if collection_files else 'no_explicit_attachment'),
                 report_links=report_links)
 
 
@@ -481,6 +501,7 @@ class AdrukOrgNewsPublicationsCrawler(BaseCrawler):
                                                               annual_report_url=annual_match,
                                                               source_pdf_candidates=detail.get('pdf_urls', []),
                                                               source_attachment_pdf_urls=detail.get('attachment_pdf_urls', []),
+                                                              source_collection_pdf_urls=detail.get('collection_pdf_urls', []),
                                                               source_reference_pdf_urls=detail.get('reference_pdf_urls', []),
                                                               primary_pdf_binding='annual_report_identity' if annual_match else detail.get('primary_pdf_binding', 'direct_listing_PDF'),
                                                               **provenance), ensure_ascii=False))

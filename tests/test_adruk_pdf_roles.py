@@ -39,6 +39,26 @@ class AdrukPDFRoles(unittest.TestCase):
         self.assertIsNone(d['pdf_url'])
         self.assertEqual(d['reference_pdf_urls'],['https://www.adruk.org/fileadmin/navigation.pdf'])
 
+    def test_poster_collection_keeps_every_poster_without_arbitrary_primary(self):
+        body = '<h3>Poster presentations</h3><p><strong><a href="/files/a.pdf">Poster A</a></strong></p><p><strong><a href="/files/b.pdf">Poster B</a></strong></p>'
+        d = module._parse_detail(self.page(body))
+        self.assertIsNone(d['pdf_url'])
+        self.assertEqual(d['collection_pdf_urls'],['https://www.adruk.org/files/a.pdf','https://www.adruk.org/files/b.pdf'])
+        self.assertEqual(d['attachment_pdf_urls'],d['collection_pdf_urls'])
+        self.assertEqual(d['reference_pdf_urls'],[])
+        self.assertEqual(d['primary_pdf_binding'],'collection_without_primary_PDF')
+
+    def test_poster_collection_stops_at_peer_heading_and_keeps_citations_separate(self):
+        body = '<p><strong><a href="/before.pdf">Background</a></strong></p><h3>Poster presentations</h3><p><strong><a href="/poster.pdf">Poster</a></strong> cites <a href="/citation.pdf">a review</a></p><h3>Related research</h3><p><strong><a href="/after.pdf">Other research</a></strong></p>'
+        d = module._parse_detail(self.page(body))
+        self.assertEqual(d['attachment_pdf_urls'],['https://www.adruk.org/poster.pdf'])
+        self.assertEqual(d['reference_pdf_urls'],['https://www.adruk.org/before.pdf','https://www.adruk.org/citation.pdf','https://www.adruk.org/after.pdf'])
+
+    def test_explicit_primary_remains_ahead_of_poster_collection(self):
+        d = module._parse_detail(self.page('<h3>Poster presentations</h3><p><strong><a href="/poster.pdf">Poster</a></strong></p>','<li class="download pdf"><a href="/proceedings.pdf">Proceedings</a></li>'))
+        self.assertEqual(d['pdf_url'],'https://www.adruk.org/proceedings.pdf')
+        self.assertEqual(d['attachment_pdf_urls'],['https://www.adruk.org/proceedings.pdf','https://www.adruk.org/poster.pdf'])
+
 class AdrukPDFPersistence(unittest.TestCase):
     BACKEND='sqlite'
     def setUp(self):
@@ -80,6 +100,18 @@ class AdrukPDFPersistence(unittest.TestCase):
         self.case.fetch.side_effect=lambda url,**kw:fixtures.detail('P5',linked=False) if '/publication/P5/' in url else old(url,**kw)
         self.assertEqual(c.crawl(),8)
         row=self.case.conn.execute("SELECT pdf_url FROM documents WHERE post_number='P5'").fetchone();self.assertEqual(row['pdf_url'] if isinstance(row,dict) else row[0],fixtures.ROOT+'/fileadmin/Annual_Report_2025-26.pdf')
+
+    def test_native_poster_collection_payload_does_not_assign_first_file_as_primary(self):
+        import json
+        c=self.case.crawler();old=self.case.fetch.side_effect;captured=[];save=c._save_paper
+        def fetch(url,**kwargs):
+            raw=old(url,**kwargs)
+            if '/article/I1/' in url:raw=raw.replace('</div></div>','<h3>Poster presentations</h3><p><strong><a href="/poster.pdf">Poster title</a></strong></p></div></div>')
+            return raw
+        def capture(paper):captured.append(paper);return save(paper)
+        self.case.fetch.side_effect=fetch;c._save_paper=capture;self.assertEqual(c.crawl(limit=1),1)
+        row=self.case.conn.execute('SELECT pdf_url FROM documents').fetchone();self.assertIsNone(row['pdf_url'] if isinstance(row,dict) else row[0])
+        meta=json.loads(captured[0]['metadata']);self.assertEqual(meta['source_collection_pdf_urls'],[fixtures.ROOT+'/poster.pdf']);self.assertEqual(meta['source_attachment_pdf_urls'],[fixtures.ROOT+'/poster.pdf'])
 
 @unittest.skipUnless(os.environ.get('TEST_PG_DSN'),'requires disposable owned PostgreSQL')
 class AdrukPDFPersistencePostgres(AdrukPDFPersistence):BACKEND='postgres'
