@@ -189,8 +189,15 @@ class KrivetReKrKorCrawler(BaseCrawler):
         return attachments
 
     def _parse_detail_page(self, html):
-        soup = _make_soup(html)
         menu = getattr(self, '_active_menu', '15')
+        if menu == '23':
+            # Press bodies contain nested tables and misnested inline tags.
+            # html.parser can close the outer article cell at an inner </td>
+            # and silently lose all following paragraphs (e.g. F420100272).
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(html, 'lxml')
+        else:
+            soup = _make_soup(html)
         title_tag = soup.select_one('.pub_tit') if menu != '23' else soup.select_one('th.tb_tit')
         if not title_tag or not _text(title_tag):
             return None
@@ -200,10 +207,16 @@ class KrivetReKrKorCrawler(BaseCrawler):
             if not container:
                 return None
             for tr in container.select('tr'):
+                if tr.find_parent('table') is not container:
+                    continue
                 th, td = tr.find('th'), tr.find('td')
                 if th and td and _text(th) in ('등록일', '발행일'):
                     fields[_text(th)] = _text(td)
-            abstract = '\n\n'.join(n.get_text('\n', strip=True) for n in container.select('tbody tr > td[colspan="2"]'))
+            abstract = '\n\n'.join(
+                n.get_text('\n', strip=True)
+                for n in container.select('tbody tr > td[colspan="2"]')
+                if n.find_parent('table') is container
+            )
         else:
             container = soup
             for dl in soup.select('dl.sub_dl'):

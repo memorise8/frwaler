@@ -28,6 +28,24 @@ def detail(menu,uid,date='2026.07.31',body=BODY):
 
 class KrivetScopes(SiteContract,unittest.TestCase):
     SITE='krivet-re-kr-kor'
+    def test_press_misnested_inline_tags_keep_body_after_nested_table(self):
+        c=self.crawler();original=self.fetch.side_effect
+        body=('<p><table><tbody><tr><td><span><strong><p>Lead</span></p>'
+              '</strong><p>Summary</p></td></tr></tbody></table></p>'
+              '<p>The required final paragraph describes the complete research findings.</p>')
+        raw=detail('23','NH5',body=body)+'<footer>Unrelated contact information</footer>'
+        self.fetch.side_effect=lambda u,p,**k:raw if p.get('pstNo')=='NH5' else original(u,p,**k)
+        self.assertEqual(c.crawl(),8)
+        r=self.conn.execute("SELECT abstract,listed_date_raw FROM documents WHERE post_number='NH5'").fetchone()
+        actual=tuple(r.values()) if isinstance(r,dict) else tuple(r)
+        self.assertEqual(actual,('Lead\nSummary\nThe required final paragraph describes the complete research findings.','2026.07.31'))
+
+    def test_press_nested_two_column_table_body_is_not_duplicated(self):
+        c=self.crawler();c._active_menu='23'
+        body='<p>Introduction</p><table><tbody><tr><td colspan="2">Inner body</td></tr></tbody></table><p>Conclusion</p>'
+        parsed=c._parse_detail_page(detail('23','NH5',body=body))
+        self.assertEqual(parsed['abstract'],'Introduction\nInner body\nConclusion')
+
     def crawler(self):
         c=self.configured(self.module.KrivetReKrKorCrawler(self.conn));self.addCleanup(c._session.close)
         scopes={'15':['PB1','PB2'],'19':['PB3','PB4'],'23':['NH5','NH6'],'12':['PB7','PB8']}
