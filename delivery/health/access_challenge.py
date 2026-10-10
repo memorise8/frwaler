@@ -15,13 +15,33 @@ def access_challenge(body):
     human_notice = 'this question is for testing whether you are a human visitor'
     markers = ('human verification', 'pardon our interruption', 'security check',
                'not a bot!',
-               cookie_notice, human_notice, js_page_notice, aws_js_notice)
+               cookie_notice, human_notice, js_page_notice, aws_js_notice,
+               '/_incapsula_resource?')
     if isinstance(prefix, bytes):
         markers = tuple(marker.encode() for marker in markers)
     if not any(marker in prefix.lower() for marker in markers):
         return None
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(prefix, 'html.parser')
+    if not soup.get_text(' ', strip=True) and not soup.find(['article', 'main', 'h1', 'form']):
+        # Both delivered environment.govt.nz scopes returned this empty HTTP
+        # 200 shell: robots exclusion plus a local Incapsula script. It is
+        # not an empty catalogue. Ignore inert examples and normal content.
+        from urllib.parse import parse_qs, urlsplit
+        robots = soup.find('meta', attrs={'name': lambda value: value and value.casefold() == 'robots'})
+        directives = {v.strip().casefold() for v in (robots.get('content', '') if robots else '').split(',')}
+        if directives == {'noindex', 'nofollow'}:
+            for script in soup.find_all('script', src=True):
+                if script.get('type') not in (None, 'text/javascript', 'application/javascript', 'module'):
+                    continue
+                try:
+                    resource = urlsplit(script['src'])
+                except ValueError:
+                    continue
+                if (not resource.scheme and not resource.netloc
+                        and resource.path == '/_Incapsula_Resource'
+                        and parse_qs(resource.query).get('SWJIYLWA')):
+                    return 'imperva_empty_script_interstitial'
     if not soup.find(['article', 'main']):
         # Earth-Prints returned HTTP 202 with an otherwise empty AWS WAF
         # challenge container and this noscript fallback (no page title).

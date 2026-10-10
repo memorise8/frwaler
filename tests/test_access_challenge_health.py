@@ -69,7 +69,49 @@ In order to continue, we need to verify that you're not a robot.
 This requires JavaScript. Enable JavaScript and then reload the page.</noscript></body></html>'''
 
 
+IMPERVA_EMPTY = b'''<html><head><META NAME="robots" CONTENT="noindex,nofollow">
+<script src="/_Incapsula_Resource?SWJIYLWA=private-challenge-token"></script>
+<body></body></html>'''
+
+
 class ChallengeClassification(unittest.TestCase):
+    def test_empty_imperva_shell_requires_robots_and_active_local_script(self):
+        for body in (IMPERVA_EMPTY, IMPERVA_EMPTY.decode()):
+            self.assertEqual(access_challenge(body), 'imperva_empty_script_interstitial')
+        for body in (
+            IMPERVA_EMPTY.replace(b'noindex,nofollow', b'index,follow'),
+            IMPERVA_EMPTY.replace(b'NAME="robots"', b'NAME="description"'),
+            IMPERVA_EMPTY.replace(b'/_Incapsula_Resource?', b'/ordinary.js?'),
+            IMPERVA_EMPTY.replace(b'SWJIYLWA=', b'example='),
+            IMPERVA_EMPTY.replace(b'src="/', b'src="https://example.org/'),
+            IMPERVA_EMPTY.replace(b'<script ', b'<script type="text/plain" '),
+            IMPERVA_EMPTY.replace(b'<script ', b'<pre ').replace(b'</script>', b'</pre>'),
+            IMPERVA_EMPTY.replace(b'</body>', b'<article>Publication</article></body>'),
+            IMPERVA_EMPTY.replace(b'</body>', b'<p>No search results</p></body>'),
+            IMPERVA_EMPTY.replace(b'</body>', b'<main></main></body>'),
+            b'x' * (128 * 1024) + IMPERVA_EMPTY,
+        ):
+            with self.subTest(body=body[:80]):
+                self.assertIsNone(access_challenge(body))
+
+    def test_empty_imperva_200_holds_host_without_revealing_resource_token(self):
+        site = {'site_id': 'fixture', 'selected_entry': {'url': 'https://example.org/publications'}}
+        gate = HostGate(0)
+        response = dict(status=200, curl_exit=0, body_complete=True, body=IMPERVA_EMPTY, headers={'content-type': 'text/html'})
+        first = observe(site, gate, fetch=lambda *a, **kw: response)
+        second = observe(site, gate, fetch=lambda *a, **kw: self.fail('fetch after hold'))
+        self.assertEqual(first['state'], 'source_access_challenge')
+        self.assertEqual(first['challenge'], 'imperva_empty_script_interstitial')
+        self.assertEqual(second['state'], 'host_access_held')
+        self.assertNotIn('private-challenge-token', json.dumps(first))
+
+    def test_empty_imperva_200_stops_both_probe_transports(self):
+        for transport in ('requests', 'curl'):
+            result = self.probe(transport, status=200, body=IMPERVA_EMPTY)
+            self.assertEqual(result['state'], 'blocked')
+            self.assertEqual(result['diagnostics']['stop_reason'], 'source_access_challenge')
+            self.assertEqual(result['sample_count'], 0)
+
     def test_aws_js_requires_noscript_interstitial_and_active_provider_resource(self):
         for body in (AWS_JAVASCRIPT, AWS_JAVASCRIPT.decode()):
             self.assertEqual(access_challenge(body), 'aws_waf_javascript_verification')
