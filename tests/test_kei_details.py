@@ -34,6 +34,22 @@ def fixture(scope='board-0028', *, body='<p>실제 본문</p>', filename='report
 
 
 class KeiDetails(unittest.TestCase):
+    def test_HTTP200_style_truncated_document_is_not_an_empty_body(self):
+        raw,item=fixture('researchreport')
+        truncated='<!DOCTYPE html><html><body>'+raw.split('<em>2026-09-30',1)[0]+'<em>'
+        with self.assertRaisesRegex(ValueError,'source HTML document incomplete'):
+            parse_detail(truncated,item)
+
+    def test_truncation_after_usable_body_still_holds_the_document(self):
+        raw,item=fixture('researchreport',body='<p>'+('실제 연구 내용 '*30)+'</p>')
+        with self.assertRaisesRegex(ValueError,'source HTML document incomplete'):
+            parse_detail('<html><body>'+raw,item)
+
+    def test_complete_document_and_fragment_preserve_identical_fields(self):
+        raw,item=fixture('researchreport')
+        expected=parse_detail(raw,item)
+        self.assertEqual(parse_detail('<!DOCTYPE html><HTML lang="ko"><body>'+raw+'</body></HTML>\n<!-- tail -->',item),expected)
+
     def test_catalogue_attribute_whitespace_is_preserved_but_compared_consistently(self):
         raw,item=fixture('researchreport')
         title=item['title'].replace(' ', '  ', 1)

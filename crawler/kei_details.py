@@ -47,6 +47,12 @@ def _attachment(link, item):
 
 def parse_detail(html, item):
     """Read a detail only when its scope and source ID agree with the listing."""
+    # The server can finish an HTTP 200 response halfway through rendering a
+    # report (observed at an unclosed publication-date field). HTML parsers
+    # repair those tags, which must not turn a partial document into a body gap
+    # or an apparently usable body. Fragments remain useful for parser callers.
+    if re.search(r'<html\b', html, re.I) and not re.search(r'</html\s*>', html, re.I):
+        raise ValueError('KEI source HTML document incomplete')
     scope, uid = item['scope'], item['source_id']
     if scope not in SCOPES or not isinstance(uid, str) or not re.fullmatch(r'[0-9]+', uid):
         raise ValueError('KEI invalid requested detail identity')
