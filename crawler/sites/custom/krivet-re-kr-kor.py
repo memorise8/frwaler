@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-"""KRIVET 한국직업능력연구원 학술지 crawler (krivet-re-kr-kor).
+"""KRIVET's four delivered menus: journals, conference papers, press and reports.
 
-List page:   GET https://www.krivet.re.kr/kor/sub.do?menuSn=15&pageIndex=N
-Detail page: GET https://www.krivet.re.kr/kor/sub.do?menuSn=15&pstNo=PB...
-
-Abstract built from 내용(KOR) + 내용(ENG) <pre> blocks in the detail page.
+Source publication and registration dates stay separate and retain precision.
+Report metadata uses the publisher's public ``fileType=all`` filter; a listing
+is not evidence that an attachment can be downloaded. Catalogue-only records
+remain explicit body gaps until a source body or a supported policy is available.
 """
-
 import json
 import os
 import re
@@ -19,424 +18,313 @@ from urllib.parse import urlencode
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from crawler.base_crawler import BaseCrawler
 
-_SITE_ID = "krivet-re-kr-kor"
-_BASE_URL = "https://www.krivet.re.kr"
-_LIST_URL = f"{_BASE_URL}/kor/sub.do"
-_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
-_WALL_CLOCK_LIMIT = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
+_SITE_ID = 'krivet-re-kr-kor'
+_BASE_URL = 'https://www.krivet.re.kr'
+_LIST_URL = f'{_BASE_URL}/kor/sub.do'
+# Preserve the previously collected menu first and existing publication IDs.
+_MENU_SCOPES = ('15', '19', '23', '12')
+_MAX_PAGES = int(os.environ.get('LIBERTREE_MAX_PAGES', '200'))  # Unknown-boundary fallback only.
+_WALL_CLOCK_LIMIT = int(os.environ.get('LIBERTREE_MAX_WALL_S', str(25 * 60)))
 
 
-def _curl_get(url: str, params: dict | None = None, retries: int = 3) -> str | None:
-    """GET via curl with TLS workaround and exponential backoff (1s, 3s, 9s)."""
+def _curl_get(url, params=None, retries=3, check_cancelled=None):
     if params:
-        url = url + "?" + urlencode(params)
-
-    cmd = [
-        "curl", "--tls-max", "1.3", "-sk", "--max-time", "30",
-        "-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-              "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "-H", "Accept-Language: ko-KR,ko;q=0.9,en-US;q=0.8",
-        "-H", f"Referer: {_BASE_URL}/kor/sub.do?menuSn=15",
-        url,
-    ]
-
+        url += ('&' if '?' in url else '?') + urlencode(params)
+    cmd = ['curl', '--tls-max', '1.3', '-sSL', '--max-time', '30',
+           '-H', 'User-Agent: Mozilla/5.0', '-H', 'Accept-Language: ko-KR,ko;q=0.9,en-US;q=0.8',
+           '--write-out', '\n%{http_code}', url]
     for attempt in range(retries):
+        if check_cancelled:
+            check_cancelled()
         try:
             result = subprocess.run(cmd, capture_output=True, timeout=35)
-            raw = result.stdout
-            if raw:
-                try:
-                    return raw.decode("utf-8")
-                except UnicodeDecodeError:
-                    return raw.decode("utf-8", errors="replace")
-            if attempt < retries - 1:
-                wait = 3 ** attempt  # 1s, 3s
-                time.sleep(wait)
-        except subprocess.TimeoutExpired:
-            if attempt < retries - 1:
-                time.sleep(3 ** attempt)
-        except Exception as exc:
-            if attempt < retries - 1:
-                time.sleep(3 ** attempt)
-            else:
-                print(f"[{_SITE_ID}] curl error after {retries} attempts: {exc}")
+            if check_cancelled:
+                check_cancelled()
+            body, separator, raw_status = result.stdout.rpartition(b'\n')
+            status = int(raw_status) if separator and raw_status.isdigit() else 0
+            if status in (401, 403, 429):
+                raise PermissionError(f'HTTP {status}')
+            if result.returncode == 0 and status == 200 and body:
+                return body.decode('utf-8', errors='replace')
+            # Do not turn a denial/not-found/error page into an empty list.
+            if status and status < 500:
+                return None
+        except PermissionError:
+            raise
+        except (subprocess.TimeoutExpired, OSError):
+            pass
+        if attempt < retries - 1:
+            if check_cancelled:
+                check_cancelled()
+            time.sleep(3 ** attempt)
     return None
 
 
-def _make_soup(html: str):
-    """Parse HTML with fallback parser chain; returns BeautifulSoup or None."""
+def _make_soup(html):
     from bs4 import BeautifulSoup
-    for parser in ("html5lib", "lxml", "html.parser"):
-        try:
-            return BeautifulSoup(html, parser)
-        except Exception:
-            continue
-    return None
+    return BeautifulSoup(html, 'html.parser')
 
 
-def _parse_date(raw: str) -> str:
-    """'2025.12.31' or '20251231' → '2025-12-31'."""
-    m = re.match(r"(\d{4})[.\-/](\d{2})[.\-/](\d{2})", raw.strip())
-    if m:
-        return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
-    m2 = re.match(r"(\d{4})(\d{2})(\d{2})", raw.strip())
-    if m2:
-        return f"{m2.group(1)}-{m2.group(2)}-{m2.group(3)}"
-    return raw.strip()
+def _text(node):
+    return node.get_text(' ', strip=True) if node else ''
 
 
 class KrivetReKrKorCrawler(BaseCrawler):
-    """Crawler for KRIVET 한국직업능력연구원 학술지."""
-
     site_id = _SITE_ID
-    site_name = "Custom: krivet-re-kr-kor"
+    site_name = 'Custom: krivet-re-kr-kor'
     base_url = _BASE_URL
 
-    # ------------------------------------------------------------------
-    # Internal fetchers
-    # ------------------------------------------------------------------
+    def _fetch_list_page(self, page_index):
+        params = {'menuSn': self._active_menu, 'pageIndex': str(page_index)}
+        if self._active_menu == '12':
+            params['fileType'] = 'all'
+        return _curl_get(_LIST_URL, params, check_cancelled=self._check_cancelled)
 
-    def _fetch_list_page(self, page_index: int) -> str | None:
-        return _curl_get(_LIST_URL, {"menuSn": "15", "pageIndex": str(page_index)})
+    def _fetch_detail_page(self, pst_no):
+        return _curl_get(_LIST_URL, {'menuSn': self._active_menu, 'pstNo': pst_no},
+                         check_cancelled=self._check_cancelled)
 
-    def _fetch_detail_page(self, pst_no: str) -> str | None:
-        return _curl_get(_LIST_URL, {"menuSn": "15", "pstNo": pst_no})
-
-    # ------------------------------------------------------------------
-    # Parsers
-    # ------------------------------------------------------------------
-
-    def _parse_list_page(self, html: str) -> list[dict]:
-        """Return list of item dicts from the list page tbody."""
+    def _parse_list_page(self, html):
+        soup = _make_soup(html)
         items = []
-        try:
-            soup = _make_soup(html)
-            if not soup:
-                return items
-            tbody = soup.find("tbody")
-            if not tbody:
-                return items
-            for row in tbody.find_all("tr"):
-                try:
-                    cells = row.find_all("td")
-                    if len(cells) < 4:
-                        continue
-                    anchor = cells[1].find("a")
-                    if not anchor:
-                        continue
-                    # onclick="homeRschPublicationsList.selectDetail('PB0000000788');return false;"
-                    m = re.search(r"selectDetail\('([^']+)'\)", anchor.get("onclick", ""))
-                    if not m:
-                        continue
-                    pst_no = m.group(1)
-                    title = anchor.get_text(strip=True)
-
-                    # English title (pub_sub_tit) and publication (pub_sub_tit2)
-                    eng_title = ""
-                    publication = ""
-                    for p in cells[1].find_all("p"):
-                        cls = " ".join(p.get("class", []))
-                        if "pub_sub_tit2" in cls:
-                            publication = p.get_text(strip=True)
-                        elif "pub_sub_tit" in cls:
-                            eng_title = p.get_text(strip=True)
-
-                    # Authors — strip button popup elements
-                    auth_cell = cells[2]
-                    for btn in auth_cell.find_all("button"):
-                        btn.decompose()
-                    authors_raw = auth_cell.get_text(strip=True)
-
-                    date_text = cells[3].get_text(strip=True)
-
-                    # File info from icon_file button title attribute
-                    file_name = ""
-                    if len(cells) > 4:
-                        file_btn = cells[4].find("button", class_="icon_file")
-                        if file_btn:
-                            file_name = file_btn.get("title", "")
-
-                    # Attachment number from fileDown call in list row
-                    atch_no = ""
-                    for btn_any in cells[1].find_all("button") + (
-                        [cells[4]] if len(cells) > 4 else []
-                    ):
-                        onclick_str = btn_any.get("onclick", "") if hasattr(btn_any, "get") else ""
-                        am = re.search(
-                            r"fileDown\('[^']+',\s*'([^']+)',\s*'(\d+)'",
-                            onclick_str,
-                        )
-                        if am:
-                            atch_no = am.group(2)
-                            break
-
-                    items.append({
-                        "pst_no": pst_no,
-                        "title": title,
-                        "eng_title": eng_title,
-                        "publication": publication,
-                        "authors_raw": authors_raw,
-                        "date_text": date_text,
-                        "file_name": file_name,
-                        "atch_no": atch_no,
-                    })
-                except Exception:
+        for table in soup.find_all('table'):
+            headers = [_text(th) for th in table.select('thead th')]
+            if '제목' not in headers:
+                continue
+            for row in table.select('tbody tr'):
+                cells = row.find_all('td', recursive=False)
+                if len(cells) != len(headers):
+                    if any(re.search(r'select(?:Detail|View)\(', a.get('onclick', '')) for a in row.find_all('a')):
+                        raise ValueError('changed publication columns')
                     continue
-        except Exception:
-            pass
+                values = dict(zip(headers, cells))
+                title_cell = values['제목']
+                links = [(a, re.search(r"(?:selectDetail|selectView)\(['\"]([^'\"]+)['\"]\)", a.get('onclick', '')))
+                         for a in title_cell.find_all('a')]
+                links = [(a, match) for a, match in links if match]
+                if len(links) != 1:
+                    raise ValueError('unrecognized publication link')
+                anchor, match = links[0]
+                author_cell = values.get('저자')
+                if author_cell:
+                    for button in author_cell.find_all('button'):
+                        button.decompose()
+                items.append({'pst_no': match.group(1), 'title': _text(anchor),
+                              'eng_title': _text(title_cell.select_one('.pub_sub_tit')),
+                              'publication': _text(title_cell.select_one('.pub_sub_tit2')),
+                              'authors_raw': _text(author_cell),
+                              'published_raw': _text(values.get('발행일')),
+                              'listed_raw': _text(values.get('등록일')),
+                              'category': _text(values.get('분류'))})
         return items
 
-    def _parse_detail_page(self, html: str) -> dict | None:
-        """Extract full record from the detail page; returns None on hard failure."""
-        try:
-            soup = _make_soup(html)
-            if not soup:
-                return None
+    def _list_boundary(self, html, page):
+        soup = _make_soup(html)
+        form = soup.find('form', attrs={'name': 'searchForm'})
+        if not form:
+            raise ValueError('missing source search form')
+        fields = {n.get('name'): n.get('value', '') for n in form.find_all('input') if n.get('name')}
+        if fields.get('menuSn') != self._active_menu:
+            raise ValueError('source menu mismatch')
+        if self._active_menu == '12' and fields.get('fileType') != 'all':
+            raise ValueError('source report filter mismatch')
+        if not any('제목' in [_text(th) for th in table.select('thead th')] for table in soup.find_all('table')):
+            raise ValueError('missing publication table')
+        selected = soup.select_one('a.on[title="선택됨"]')
+        if selected and _text(selected) != str(page):
+            raise ValueError('source page mismatch')
+        last = soup.select_one('a.page_last')
+        match = re.search(r'selectList\((\d+)\)', last.get('onclick', '')) if last else None
+        # A structurally valid empty result is different from missing selectors.
+        empty = any(token in soup.get_text(' ', strip=True) for token in
+                    ('검색된 결과가 없습니다', '조회된 결과가 없습니다', '등록된 게시물이 없습니다'))
+        return int(match.group(1)) if match else None, empty
 
-            # Title
-            title_tag = soup.find(class_="pub_tit")
-            title = title_tag.get_text(strip=True) if title_tag else ""
+    def _attachments(self, root, menu):
+        attachments = []
+        for button in root.select('[onclick]'):
+            call = button.get('onclick', '')
+            match = re.search(r'\.fileDown\((.*?)\)', call)
+            if not match:
+                continue
+            args = re.findall(r"'((?:\\.|[^'])*)'", match.group(1))
+            if len(args) < 2:
+                continue
+            # Publication detail callbacks take (pstNo, attachment, ...).
+            # Press callbacks take (classification, pstNo, attachment).
+            if menu == '23':
+                if len(args) < 3:
+                    continue
+                classification, uid, attachment = args[:3]
+            else:
+                uid, attachment = args[:2]
+                classification = 'DA' if menu in ('12', '19') else None
+            if not attachment.isdigit():
+                continue
+            params = dict(fileDownDiv='NOTICOMM', pstNo=uid, pstgAtchNo=attachment)
+            if classification:
+                params['pstgClsfCd'] = classification
+            name = button.get('title') or _text(button)
+            classes = button.get('class', [])
+            pdf_named = '.pdf' in name.lower() or 'icon_file_pdf' in classes
+            known_other = bool(re.search(r'\.(?:hwpx?|docx?|xlsx?|zip|pptx?)(?:\s|$)', name, re.I)) or any(
+                c in classes for c in ('icon_file_hwp', 'icon_file_hwpx', 'icon_file_doc', 'icon_file_xls', 'icon_file_zip'))
+            attachments.append(dict(url=f'{_BASE_URL}/kor/com/fileDown.do?'+urlencode(params),
+                                    pst_no=uid, attachment=attachment, name=name,
+                                    source_call=call, pdf_named=pdf_named,
+                                    publication_download_candidate='btn_down' in classes and not known_other))
+        return attachments
 
-            # English title (h5 with pub_sub_tit — inside the view header)
-            eng_h5 = soup.find("h5", class_="pub_sub_tit")
-            eng_title = eng_h5.get_text(strip=True) if eng_h5 else ""
-
-            # DL key→value metadata: 저자 / 분류정보 / 발행기관 / 발행일 / 등록일
-            authors: list[str] = []
-            category = ""
-            publisher = ""
-            published_date = ""
-            reg_date = ""
-
-            for dl in soup.find_all("dl", class_="sub_dl"):
-                dts = dl.find_all("dt")
-                dds = dl.find_all("dd")
-                for dt, dd in zip(dts, dds):
-                    key = dt.get_text(strip=True)
-                    if key in ("저자", "저자명"):
-                        for span in dd.find_all("span"):
-                            for btn in span.find_all("button"):
-                                btn.decompose()
-                            name = span.get_text(strip=True)
-                            if name:
-                                authors.append(name)
-                    elif key == "분류정보":
-                        category = dd.get_text(strip=True)
-                    elif key == "발행기관":
-                        publisher = dd.get_text(strip=True)
-                    elif key == "발행일":
-                        published_date = _parse_date(dd.get_text(strip=True))
-                    elif key == "등록일":
-                        reg_date = _parse_date(dd.get_text(strip=True))
-
-            # Keywords (주제어 section → rel_box)
-            keywords: list[str] = []
-            for h5_kw in soup.find_all("h5", class_="sub_tit4"):
-                if "주제어" in h5_kw.get_text():
-                    rb = h5_kw.find_next("div", class_="rel_box")
-                    if rb:
-                        keywords = [k.strip() for k in rb.get_text(strip=True).split(",") if k.strip()]
-                    break
-
-            # Korean abstract (tl2) + English abstract (tl4)
-            kor_abs = ""
-            tl2 = soup.find("div", id="tl2")
-            if tl2:
-                pre = tl2.find("pre")
-                if pre:
-                    kor_abs = pre.get_text(strip=True)
-
-            eng_abs = ""
-            tl4 = soup.find("div", id="tl4")
-            if tl4:
-                pre = tl4.find("pre")
-                if pre:
-                    eng_abs = pre.get_text(strip=True)
-
-            abstract = "\n\n".join(p for p in [kor_abs, eng_abs] if p)
-
-            # Attachment number from btn_down button onclick
-            atch_no = ""
-            atch_pst_no = ""
-            btn_down = soup.find("button", class_="btn_down")
-            if btn_down:
-                am = re.search(
-                    r"fileDown\('([^']+)','(\d+)'", btn_down.get("onclick", "")
-                )
-                if am:
-                    atch_pst_no = am.group(1)
-                    atch_no = am.group(2)
-
-            return {
-                "title": title,
-                "eng_title": eng_title,
-                "authors": authors,
-                "category": category,
-                "publisher": publisher,
-                "published_date": published_date,
-                "reg_date": reg_date,
-                "keywords": keywords,
-                "abstract": abstract,
-                "atch_no": atch_no,
-                "atch_pst_no": atch_pst_no,
-            }
-        except Exception as exc:
-            print(f"[{_SITE_ID}] detail parse error: {exc}")
+    def _parse_detail_page(self, html):
+        soup = _make_soup(html)
+        menu = getattr(self, '_active_menu', '15')
+        title_tag = soup.select_one('.pub_tit') if menu != '23' else soup.select_one('th.tb_tit')
+        if not title_tag or not _text(title_tag):
             return None
-
-    # ------------------------------------------------------------------
-    # Main crawl
-    # ------------------------------------------------------------------
+        fields, authors = {}, []
+        if menu == '23':
+            container = title_tag.find_parent('table')
+            if not container:
+                return None
+            for tr in container.select('tr'):
+                th, td = tr.find('th'), tr.find('td')
+                if th and td and _text(th) in ('등록일', '발행일'):
+                    fields[_text(th)] = _text(td)
+            abstract = '\n\n'.join(n.get_text('\n', strip=True) for n in container.select('tbody tr > td[colspan="2"]'))
+        else:
+            container = soup
+            for dl in soup.select('dl.sub_dl'):
+                for dt, dd in zip(dl.find_all('dt'), dl.find_all('dd')):
+                    label = _text(dt)
+                    for button in dd.find_all('button'):
+                        button.decompose()
+                    fields[label] = _text(dd)
+                    if label in ('저자', '저자명'):
+                        authors = [_text(n) for n in dd.find_all('span') if _text(n)] or ([_text(dd)] if _text(dd) else [])
+            abstract = '\n\n'.join(n.get_text(strip=True) for n in soup.select('#tl2 pre,#tl4 pre'))
+        keywords = []
+        for heading in soup.select('h5.sub_tit4'):
+            if '주제어' in _text(heading):
+                node = heading.find_next('div', class_='rel_box')
+                keywords = [k.strip() for k in _text(node).split(',') if k.strip()]
+                break
+        attachments = self._attachments(container, menu)
+        # Prefer explicitly labelled PDFs. Publication full-text buttons without
+        # a filename remain unverified references, never downloaded-file evidence.
+        primary = next((a for a in attachments if a['pdf_named']), None)
+        if not primary:
+            primary = next((a for a in attachments if a['publication_download_candidate']), None)
+        return dict(title=_text(title_tag), eng_title=_text(soup.select_one('h5.pub_sub_tit')),
+                    authors=authors, category=fields.get('분류정보', ''), publisher=fields.get('발행기관', ''),
+                    published_date=fields.get('발행일', ''), reg_date=fields.get('등록일', ''),
+                    doi=fields.get('DOI', ''), keywords=keywords, abstract=abstract,
+                    attachments=attachments, primary_attachment=primary,
+                    contents='\n\n'.join(n.get_text(strip=True) for n in soup.select('#tl1 pre,#tl3 pre')))
 
     def crawl(self, limit=None):
-        """Crawl KRIVET 학술대회논문 with full pagination.
-
-        Stops when:
-          - saved >= limit
-          - page returns 0 new pst_no values (empty or loop detected)
-          - safety cap of 200 pages
-          - wall-clock budget (25 min) exceeded
-        """
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
+        start = time.monotonic()
         saved = 0
-        page = 1
-        seen_pst: set[str] = set()
-        start_time = time.time()
-        limit_str = str(limit) if limit is not None else "∞"
-
-        while True:
-            # Limit check
-            if limit is not None and saved >= limit:
-                break
-
-            # Safety cap
-            if page > _MAX_PAGES:
-                print(f"[{_SITE_ID}] Safety cap of {_MAX_PAGES} pages reached. Stopping.")
-                break
-
-            # Wall-clock budget
-            if time.time() - start_time > _WALL_CLOCK_LIMIT:
-                print(f"[{_SITE_ID}] Wall-clock budget exceeded. Stopping.")
-                break
-
-            # Progress log
-            if page == 1 or page % 10 == 0:
-                print(f"[{_SITE_ID}] page {page}: saved {saved}/{limit_str}")
-
-            # Fetch list page
-            time.sleep(self._delay)
-            try:
-                raw = self._fetch_list_page(page)
-            except KeyboardInterrupt:
-                raise
-            except Exception as exc:
-                print(f"[{_SITE_ID}] list page {page} fetch error: {exc}. Stopping.")
-                break
-
-            if not raw:
-                print(f"[{_SITE_ID}] Empty list response at page {page}. Stopping.")
-                break
-
-            items = self._parse_list_page(raw)
-            if not items:
-                print(f"[{_SITE_ID}] No items at page {page}. Done.")
-                break
-
-            # URL deduplication / loop guard
-            new_items = []
-            for item in items:
-                if item["pst_no"] not in seen_pst:
-                    seen_pst.add(item["pst_no"])
-                    new_items.append(item)
-
-            if not new_items:
-                print(f"[{_SITE_ID}] Page {page}: all items already seen (pagination loop). Stopping.")
-                break
-
-            # Process each new item
-            for item in new_items:
+        seen_across = {}
+        self.delivery_body_gaps = []
+        for menu in _MENU_SCOPES:
+            self._active_menu = menu
+            seen_menu = set()
+            boundary = None
+            page = 1
+            while True:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
-                    break
-
-                pst_no = item["pst_no"]
-
+                    return saved
+                if time.monotonic() - start > _WALL_CLOCK_LIMIT:
+                    self._report_source_failure('time_budget')
+                    return saved
+                if boundary is None and page > _MAX_PAGES:
+                    self._report_source_failure('page_budget')
+                    return saved
+                time.sleep(self._delay)
+                self._check_cancelled()
                 try:
-                    time.sleep(self._delay)
-                    detail_html = self._fetch_detail_page(pst_no)
-                    if not detail_html:
-                        print(f"[{_SITE_ID}] item {pst_no}: empty detail response. Skipping.")
+                    raw = self._fetch_list_page(page)
+                    self._check_cancelled()
+                    if not raw:
+                        self._report_source_failure('fetch_failed')
+                        return saved
+                    current_boundary, explicit_empty = self._list_boundary(raw, page)
+                    items = self._parse_list_page(raw)
+                    if items and current_boundary is not None and current_boundary < page:
+                        raise ValueError('invalid last page')
+                    if page == 1:
+                        boundary = current_boundary
+                    elif current_boundary != boundary:
+                        raise ValueError('changed page boundary')
+                    if not items:
+                        if not explicit_empty or (page > 1 and boundary and page <= boundary):
+                            raise ValueError('unexpected empty source page')
+                        break
+                    ids = [i['pst_no'] for i in items]
+                    if len(ids) != len(set(ids)) or seen_menu.intersection(ids):
+                        raise ValueError('repeated source page identities')
+                    seen_menu.update(ids)
+                except PermissionError as exc:
+                    self._report_source_failure('rate_limited' if '429' in str(exc) else 'authentication_failed')
+                    return saved
+                except Exception:
+                    self._report_source_failure('invalid_response')
+                    return saved
+                for item in items:
+                    self._check_cancelled()
+                    if limit is not None and saved >= limit:
+                        return saved
+                    uid = item['pst_no']
+                    if uid in seen_across:
+                        if seen_across[uid] != item['title']:
+                            self._report_source_failure('item_failed')
                         continue
-
-                    detail = self._parse_detail_page(detail_html)
-                    if not detail:
-                        print(f"[{_SITE_ID}] item {pst_no}: parse failed. Skipping.")
-                        continue
-
-                    abstract = detail.get("abstract") or ""
-                    if len(abstract) < 50:
-                        print(
-                            f"[{_SITE_ID}] item {pst_no}: abstract too short "
-                            f"({len(abstract)} chars). Skipping."
-                        )
-                        continue
-
-                    title = detail.get("title") or item.get("title") or ""
-                    if not title:
-                        print(f"[{_SITE_ID}] item {pst_no}: no title. Skipping.")
-                        continue
-
-                    authors = detail.get("authors") or []
-                    if not authors:
-                        raw_auth = re.sub(r"\s*외\s*$", "", item.get("authors_raw", "")).strip()
-                        authors = [raw_auth] if raw_auth else []
-
-                    published_date = detail.get("published_date") or _parse_date(item.get("date_text", ""))
-
-                    # PDF download URL (POST endpoint — stored as reference)
-                    atch_no = detail.get("atch_no") or item.get("atch_no") or ""
-                    file_pst = detail.get("atch_pst_no") or pst_no
-                    pdf_url = (
-                        f"{_BASE_URL}/kor/com/fileDown.do"
-                        f"?fileDownDiv=NOTICOMM&pstgClsfCd=NOTISTDY"
-                        f"&pstNo={file_pst}&pstgAtchNo={atch_no}"
-                        if atch_no else ""
-                    )
-
-                    detail_url = f"{_BASE_URL}/kor/sub.do?menuSn=15&pstNo={pst_no}"
-
-                    paper = {
-                        "id": None,
-                        "site_id": self.site_id,
-                        "external_id": pst_no,
-                        "title": title,
-                        "authors": json.dumps(authors, ensure_ascii=False),
-                        "abstract": abstract,
-                        "category": detail.get("category") or "",
-                        "keywords": json.dumps(detail.get("keywords") or [], ensure_ascii=False),
-                        "published_date": published_date,
-                        "url": detail_url,
-                        "pdf_url": pdf_url,
-                        "doi": "",
-                        "department": detail.get("publisher") or "",
-                        "metadata": json.dumps({
-                            "eng_title": detail.get("eng_title") or item.get("eng_title") or "",
-                            "publication": item.get("publication") or "",
-                            "reg_date": detail.get("reg_date") or "",
-                            "file_name": item.get("file_name") or "",
-                        }, ensure_ascii=False),
-                    }
-
-                    self._save_paper(paper)
-                    if self._last_save_created:
-                        saved += 1
-                    print(f"[{_SITE_ID}] Saved {saved}/{limit_str}: {title[:60]}")
-
-                except KeyboardInterrupt:
-                    raise
-                except Exception as exc:
-                    print(f"[{_SITE_ID}] item {pst_no} failed: {exc}; continuing")
-                    continue
-
-            page += 1
-
-        print(f"[{_SITE_ID}] Done. Total saved: {saved}")
+                    # Source identity is pstNo, preserving existing DB/file links.
+                    seen_across[uid] = item['title']
+                    try:
+                        time.sleep(self._delay)
+                        self._check_cancelled()
+                        raw_detail = self._fetch_detail_page(uid)
+                        self._check_cancelled()
+                        detail = self._parse_detail_page(raw_detail) if raw_detail else None
+                        if not detail or not detail['title'] or detail['title'] != item['title']:
+                            self._report_source_failure('item_failed')
+                            continue
+                        if any(a['pst_no'] != uid for a in detail['attachments']):
+                            self._report_source_failure('item_failed')
+                            continue
+                        if len(detail['abstract']) < 50:
+                            self.delivery_body_gaps.append(dict(menu=menu, pst_no=uid, contents_present=bool(detail['contents'])))
+                            self._report_source_failure('item_failed')
+                            continue
+                        authors = detail['authors'] or ([re.sub(r'\s*외\s*$', '', item['authors_raw']).strip()] if item['authors_raw'] else [])
+                        primary = detail['primary_attachment']
+                        paper = dict(site_id=self.site_id, external_id=uid, title=detail['title'],
+                                     authors=authors, abstract=detail['abstract'], category=detail['category'] or item['category'],
+                                     keywords=detail['keywords'], published_date=detail['published_date'] or item['published_raw'] or None,
+                                     posted_date=detail['reg_date'] or item['listed_raw'] or None,
+                                     url=_LIST_URL+'?'+urlencode(dict(menuSn=menu, pstNo=uid)),
+                                     pdf_url=primary['url'] if primary else None, doi=detail['doi'],
+                                     publisher=detail['publisher'], department=detail['publisher'],
+                                     metadata=json.dumps(dict(menu=menu, eng_title=detail['eng_title'] or item['eng_title'],
+                                                              publication=item['publication'], reg_date=detail['reg_date'],
+                                                              attachments=detail['attachments'],
+                                                              primary_attachment_type_verified=False), ensure_ascii=False))
+                        self._save_paper(paper)
+                        if self._last_save_created:
+                            saved += 1
+                        self._check_cancelled()
+                    except PermissionError as exc:
+                        self._report_source_failure('rate_limited' if '429' in str(exc) else 'authentication_failed')
+                        return saved
+                    except Exception:
+                        self._report_source_failure('item_failed')
+                if boundary is not None and page >= boundary:
+                    break
+                page += 1
+        self._check_cancelled()
         return saved
