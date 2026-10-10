@@ -11,10 +11,11 @@ BODY='The original publication describes education and employment research. '*4
 def listing(menu,ids,page=1,last=1,date='2026.07.31'):
     headers=['번호','분류','제목','등록일','첨부'] if menu=='23' else ['번호','제목','저자','등록일' if menu=='19' else '발행일','첨부']
     rows=[]
-    for uid in ids:
+    for row_index,uid in enumerate(ids):
+        ordinal=str((last-page)*len(ids)+len(ids)-row_index)
         link=f'''<a onclick="site.{'selectView' if menu in ('19','23') else 'selectDetail'}('{uid}')">Research {uid}</a>'''
         attachment=f'''<button class="icon_file" onclick="site.fileDown('da','{uid}','1','report.pdf')" title="report.pdf">download</button>'''
-        cells=[uid,'보도자료',link,date,attachment] if menu=='23' else [uid,link,'Researcher',date,attachment]
+        cells=[ordinal,'보도자료',link,date,attachment] if menu=='23' else [ordinal,link,'Researcher',date,attachment]
         rows.append('<tr>'+''.join('<td>'+x+'</td>' for x in cells)+'</tr>')
     if not ids:rows=['<tr><td colspan="5">검색된 결과가 없습니다.</td></tr>']
     return f'''<form name="searchForm"><input name="menuSn" value="{menu}"><input name="fileType" value="all"></form><table><thead><tr>{''.join('<th>'+x+'</th>' for x in headers)}</tr></thead><tbody>{''.join(rows)}</tbody></table><a class="page_last" onclick="site.selectList({last})"></a><a class="on" title="선택됨">{page}</a>'''
@@ -89,6 +90,27 @@ class KrivetScopes(SiteContract,unittest.TestCase):
                     if 'pstNo' in p:return original(u,p,**k)
                     page=int(p['pageIndex']);return listing(p['menuSn'],['PB1'],1 if page==2 and not changed else page,3 if page==2 and changed else 2)
                 self.fetch.side_effect=fetch;c.crawl();self.assertEqual(c.delivery_source_failure,'invalid_response')
+    def test_publisher_repeated_id_with_advancing_ordinals_does_not_stop_scope(self):
+        c=self.crawler()
+        def fetch(u,p,**k):
+            if 'pstNo' in p:return detail(p['menuSn'],p['pstNo'])
+            if p['menuSn']!='15':return listing(p['menuSn'],[])
+            page=int(p['pageIndex']);return listing('15',['PB1','PB2'] if page==1 else ['PB2','PB3'],page,2)
+        self.fetch.side_effect=fetch;self.assertEqual(c.crawl(),3);self.assertFalse(c.delivery_source_failure)
+        before=self.identities();self.assertEqual(c.crawl(),0);self.assertEqual(self.identities(),before)
+    def test_new_ids_with_skipped_source_ordinal_are_incomplete(self):
+        c=self.crawler()
+        def fetch(u,p,**k):
+            if 'pstNo' in p:return detail(p['menuSn'],p['pstNo'])
+            page=int(p['pageIndex']);raw=listing(p['menuSn'],['PB1','PB2'] if page==1 else ['PB3','PB4'],page,2)
+            return raw.replace('<td>2</td>','<td>1</td>') if page==2 else raw
+        self.fetch.side_effect=fetch;self.assertEqual(c.crawl(),2);self.assertEqual(c.delivery_source_failure,'invalid_response')
+    def test_same_page_publisher_duplicate_is_one_document(self):
+        c=self.crawler()
+        def fetch(u,p,**k):
+            if 'pstNo' in p:return detail(p['menuSn'],p['pstNo'])
+            return listing(p['menuSn'],['PB1','PB1'] if p['menuSn']=='15' else [])
+        self.fetch.side_effect=fetch;self.assertEqual(c.crawl(),1);self.assertFalse(c.delivery_source_failure)
     def test_time_and_unknown_page_budgets_report_supported_failure(self):
         c=self.crawler()
         with patch.object(self.module,'_WALL_CLOCK_LIMIT',-1):

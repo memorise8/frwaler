@@ -110,6 +110,7 @@ class KrivetReKrKorCrawler(BaseCrawler):
                     for button in author_cell.find_all('button'):
                         button.decompose()
                 items.append({'pst_no': match.group(1), 'title': _text(anchor),
+                              'source_ordinal': int(_text(values.get('번호')).replace(',', '')),
                               'eng_title': _text(title_cell.select_one('.pub_sub_tit')),
                               'publication': _text(title_cell.select_one('.pub_sub_tit2')),
                               'authors_raw': _text(author_cell),
@@ -231,7 +232,7 @@ class KrivetReKrKorCrawler(BaseCrawler):
         self.delivery_body_gaps = []
         for menu in _MENU_SCOPES:
             self._active_menu = menu
-            seen_menu = set()
+            previous_ordinal = None
             boundary = None
             page = 1
             while True:
@@ -264,10 +265,16 @@ class KrivetReKrKorCrawler(BaseCrawler):
                         if not explicit_empty or (page > 1 and boundary and page <= boundary):
                             raise ValueError('unexpected empty source page')
                         break
-                    ids = [i['pst_no'] for i in items]
-                    if len(ids) != len(set(ids)) or seen_menu.intersection(ids):
-                        raise ValueError('repeated source page identities')
-                    seen_menu.update(ids)
+                    # The publisher can list the same pstNo more than once.
+                    # Row positions, not new publication IDs, prove page progress.
+                    ordinals = [i['source_ordinal'] for i in items]
+                    if min(ordinals) < 1 or ordinals != list(range(ordinals[0], ordinals[0] - len(items), -1)):
+                        raise ValueError('invalid source row positions')
+                    if previous_ordinal is not None and ordinals[0] != previous_ordinal - 1:
+                        raise ValueError('source row positions repeated or skipped')
+                    if boundary is not None and page == boundary and ordinals[-1] != 1:
+                        raise ValueError('source ended before final row position')
+                    previous_ordinal = ordinals[-1]
                 except PermissionError as exc:
                     self._report_source_failure('rate_limited' if '429' in str(exc) else 'authentication_failed')
                     return saved
