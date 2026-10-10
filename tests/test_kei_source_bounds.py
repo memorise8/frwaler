@@ -21,6 +21,19 @@ def fixture(scope='researchreport',page=1,total=20):
     return info+wrap+''.join(rows)+'</div>'+pager
 
 class KeiLists(unittest.TestCase):
+    def test_forum_pager_without_catalogue_keeps_selected_source_catalogue(self):
+        # Actual KEI forum links omit elibName; the server then serves research.
+        raw=fixture('environmentalforum').replace('&amp;elibName=environmentalforum&amp;nPage=2', '&amp;nPage=2')
+        data=parse_listing(raw,'environmentalforum',1)
+        query=parse_qs(urlsplit(data['next_url']).query)
+        self.assertEqual(query['elibName'],['environmentalforum'])
+        self.assertEqual(query['nPage'],['2'])
+        self.assertEqual(query['mid'],['a10102010000'])
+
+    def test_explicit_wrong_catalogue_in_pager_is_never_repaired(self):
+        raw=fixture('environmentalforum').replace('&amp;elibName=environmentalforum&amp;nPage=2', '&amp;elibName=researchreport&amp;nPage=2')
+        with self.assertRaises(ValueError):parse_listing(raw,'environmentalforum',1)
+
     def test_all_eleven_routes_preserve_scope_source_id_title_date_and_next_url(self):
         self.assertEqual(len(SCOPES),11)
         for scope in SCOPES:

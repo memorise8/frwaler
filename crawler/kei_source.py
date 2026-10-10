@@ -58,6 +58,20 @@ def page_number(url, scope):
     return int(q.get('nPage', ['1'])[0])
 
 
+def listing_destination(url, scope):
+    """Keep the catalogue selected by the validated source search form.
+
+    KEI's forum pager omits elibName even though the next request defaults to
+    researchreport. Add only that missing selector; explicit mismatches, page
+    numbers, filters and destinations still pass the strict existing checks.
+    """
+    page_number(url, scope)
+    query = scope_query(url, scope)
+    if SCOPES[scope][0] == '/elibList.es' and 'elibName' not in query:
+        return url + '&elibName=' + SCOPES[scope][2]
+    return url
+
+
 def parse_listing(html, scope, page):
     if scope not in SCOPES or type(page) is not int or page < 1:
         raise ValueError('invalid KEI requested scope or page')
@@ -120,7 +134,7 @@ def parse_listing(html, scope, page):
         if not 1 <= number <= last_page:
             raise ValueError('KEI source pager exceeds declared bounds')
         if number == page + 1:
-            next_urls.add(url)
+            next_urls.add(listing_destination(url, scope))
     if page < last_page and len(next_urls) != 1:
         raise ValueError('KEI adjacent next-page link missing or ambiguous')
     if page == last_page and next_urls:
