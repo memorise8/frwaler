@@ -31,8 +31,51 @@ JS_HUMAN = b'''<html><head><script src="/TSPD/private-challenge-token"></script>
 <audio id="captcha_audio"></audio><b>What code is in the image?</b>
 <input id="ans" name="answer" type="text"><button>submit</button></body></html>'''
 
+MYRA = b'''<html><head><title>Security Check</title>
+<script src="https://www.myrasecurity.com/x-myracloud-00000000000000000000000000000000/"></script>
+</head><body><h1>Security</h1><h2>Security Check</h2>
+<p>Our systems have detected unusual traffic from your computer network.</p>
+<a href="/myracloud-captcha/?q=private-challenge-token">here</a>
+<p>You must confirm that you are human.</p></body></html>'''
+
 
 class ChallengeClassification(unittest.TestCase):
+    def test_myra_requires_notice_provider_script_and_active_control(self):
+        self.assertEqual(access_challenge(MYRA), 'myra_human_verification')
+        self.assertEqual(access_challenge(MYRA.decode()), 'myra_human_verification')
+        for body in (
+            MYRA.replace(b'<title>Security Check', b'<title>Security research'),
+            MYRA.replace(b'You must confirm that you are human.', b'Ordinary server maintenance.'),
+            MYRA.replace(b'myracloud-captcha/', b'publications/'),
+            MYRA.replace(b'www.myrasecurity.com/', b'www.myrasecurity.com.example.org/'),
+            MYRA.replace(b'https://www.myrasecurity.com/', b'https://[invalid/'),
+            MYRA.replace(b'<script ', b'<a ').replace(b'</script>', b'</a>'),
+            MYRA.replace(b'</body>', b'<article>Security research</article></body>'),
+            MYRA.replace(b'</body>', b'<main>Publications</main></body>'),
+            b'x' * (128 * 1024) + MYRA,
+        ):
+            with self.subTest(body=body[:80]):
+                self.assertIsNone(access_challenge(body))
+
+    def test_myra_503_holds_host_without_repeating_or_exposing_control(self):
+        site = {'site_id':'fixture', 'selected_entry':{'url':'https://example.org/list'}}
+        gate = HostGate(0)
+        response = dict(status=503,curl_exit=0,body_complete=True,body=MYRA,
+                        headers={'content-type':'text/html'})
+        first = observe(site,gate,fetch=lambda *a,**kw:response)
+        second = observe(site,gate,fetch=lambda *a,**kw:self.fail('fetch after host hold'))
+        self.assertEqual(first['state'], 'source_access_challenge')
+        self.assertEqual(first['challenge'], 'myra_human_verification')
+        self.assertEqual(second['state'], 'host_access_held')
+        self.assertNotIn('private-challenge-token', json.dumps(first))
+
+    def test_myra_503_stops_supported_probe_transports_before_retry(self):
+        for transport in ('requests', 'curl'):
+            result = self.probe(transport, status=503, body=MYRA)
+            self.assertEqual(result['state'], 'blocked')
+            self.assertEqual(result['diagnostics']['stop_reason'], 'source_access_challenge')
+            self.assertEqual(result['sample_count'], 0)
+
     def test_javascript_human_interstitial_requires_observed_active_controls(self):
         self.assertEqual(access_challenge(JS_HUMAN), 'javascript_human_verification')
         self.assertEqual(access_challenge(JS_HUMAN.decode()), 'javascript_human_verification')

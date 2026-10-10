@@ -11,7 +11,8 @@ def access_challenge(body):
     prefix = body[:128 * 1024]
     cookie_notice = 'this website requires js enabled and cookies'
     human_notice = 'this question is for testing whether you are a human visitor'
-    markers = ('human verification', 'pardon our interruption', cookie_notice, human_notice)
+    markers = ('human verification', 'pardon our interruption', 'security check',
+               cookie_notice, human_notice)
     if isinstance(prefix, bytes):
         markers = tuple(marker.encode() for marker in markers)
     if not any(marker in prefix.lower() for marker in markers):
@@ -42,6 +43,23 @@ def access_challenge(body):
                 ):
                     return 'javascript_cookie_verification'
     title = soup.title.get_text(' ', strip=True).casefold() if soup.title else ''
+    if title == 'security check' and not soup.find(['article', 'main']):
+        # The observed BMF HTTP 503 is a Myra human-verification page, not
+        # an ordinary temporary server failure. Require active controls and
+        # the provider resource so articles mentioning Myra are unaffected.
+        import re
+        text = soup.get_text(' ', strip=True).casefold()
+        notice = ('our systems have detected unusual traffic from your computer network.' in text
+                  and 'you must confirm that you are human.' in text)
+        control = any(link['href'].split('?', 1)[0] == '/myracloud-captcha/'
+                      for link in soup.find_all('a', href=True))
+        resource = any(
+            re.fullmatch(r'https://(?:www\.)?myrasecurity\.com/x-myracloud-[0-9a-f]{32}/',
+                         script['src'])
+            for script in soup.find_all('script', src=True)
+        )
+        if notice and control and resource:
+            return 'myra_human_verification'
     if title == 'pardon our interruption':
         # The observed CKAN API returned HTTP 200 with this Imperva page.
         # Require both its bot notice and an active style/script resource;
