@@ -34,6 +34,16 @@ def fixture(scope='board-0028', *, body='<p>실제 본문</p>', filename='report
 
 
 class KeiDetails(unittest.TestCase):
+    def test_catalogue_attribute_whitespace_is_preserved_but_compared_consistently(self):
+        raw,item=fixture('researchreport')
+        title=item['title'].replace(' ', '  ', 1)
+        r=parse_detail(raw.replace(item['title'],title),dict(item,title=title))
+        self.assertEqual(r['title'],item['title'])
+        self.assertEqual(r['listing_title'],title)
+        self.assertEqual(r['title_binding'],'source_title_whitespace_normalized')
+        with self.assertRaises(ValueError):
+            parse_detail(raw,dict(item,title=title+' 다른 제목'))
+
     def test_damaged_source_title_is_held_for_review(self):
         raw,item=fixture()
         for changed,wanted in [(raw.replace(item['title'],'Source\ufffdtitle'),dict(item,title='Source\ufffdtitle')),

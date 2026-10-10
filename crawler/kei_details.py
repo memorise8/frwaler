@@ -67,10 +67,14 @@ def parse_detail(html, item):
     listing_title = item['title']
     if item.get('title_quality') or title_quality(listing_title) or title_quality(title):
         raise ValueError('KEI source title quality requires review')
-    truncated = (listing_title.endswith(('..', '…'))
-                 and bool(listing_title.rstrip('.…'))
-                 and title.startswith(listing_title.rstrip('.…')))
-    if not title or (title != listing_title and not truncated):
+    # Catalogue title attributes can retain repeated whitespace while the
+    # displayed detail is normalized by text(). Preserve the original attribute
+    # in listing_title and compare both source strings on the same basis.
+    normalized_listing = ' '.join(listing_title.split())
+    truncated = (normalized_listing.endswith(('..', '…'))
+                 and bool(normalized_listing.rstrip('.…'))
+                 and title.startswith(normalized_listing.rstrip('.…')))
+    if not title or (title != normalized_listing and not truncated):
         raise ValueError('KEI detail title differs from source listing')
     fields, authors, writer = {}, [], ''
     if board:
@@ -113,7 +117,9 @@ def parse_detail(html, item):
     files = [_attachment(link, item) for link in main.select('.add_file_list a.file-down[href]')]
     return dict(scope=scope, source_id=uid, source_key=f'{scope}:{uid}',
                 source_url=item['url'], title=title, listing_title=listing_title,
-                title_binding='exact' if title == listing_title else 'source_listing_prefix_with_ellipsis',
+                title_binding=('exact' if title == listing_title else
+                               'source_title_whitespace_normalized' if title == normalized_listing else
+                               'source_listing_prefix_with_ellipsis'),
                 abstract=value, contents=contents,
                 body_classification=('source_text_present' if value else
                                      'empty_text_with_images' if images else 'empty_text'),
