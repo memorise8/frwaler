@@ -136,12 +136,16 @@ def _parse_detail(html):
     categories = [_text(a) for a in main.select('p.category a')]
     pdfs = list(dict.fromkeys(urljoin(_BASE_URL, a['href']) for a in main.find_all('a', href=True)
                               if urlsplit(a['href']).path.lower().endswith('.pdf')))
-    # Narrative citations are not the article's downloadable file. ADR marks
-    # its attachment list with li.download; preserve every other PDF as a
-    # reference requiring separate source association and file verification.
-    attachments = list(dict.fromkeys(
+    # ADR also publishes report buttons without a separate download list.
+    # Prefer the explicit download list for the primary URL, then retain every
+    # report-button variant. Ordinary narrative links still require review.
+    downloads = list(dict.fromkeys(
         urljoin(_BASE_URL, a['href']) for a in main.select('li.download a[href]')
         if urlsplit(a['href']).path.lower().endswith('.pdf')))
+    buttons = list(dict.fromkeys(
+        urljoin(_BASE_URL, a['href']) for a in content.select('p.button a[href]')
+        if urlsplit(a['href']).path.lower().endswith('.pdf')))
+    attachments = list(dict.fromkeys(downloads + buttons))
     report_links = sorted({urldefrag(urljoin(_BASE_URL, a['href']))[0] for a in content.find_all('a', href=True)
                            if urlsplit(urljoin(_BASE_URL, a['href'])).netloc == 'reports.adruk.org'})
     authors, parts = [], []
@@ -160,7 +164,8 @@ def _parse_detail(html):
                 categories=categories, pdf_url=attachments[0] if attachments else None,
                 pdf_urls=pdfs, attachment_pdf_urls=attachments,
                 reference_pdf_urls=[u for u in pdfs if u not in attachments],
-                primary_pdf_binding='explicit_download_list' if attachments else 'no_explicit_attachment',
+                primary_pdf_binding=('explicit_download_list' if downloads else
+                                     'explicit_publication_button' if buttons else 'no_explicit_attachment'),
                 report_links=report_links)
 
 

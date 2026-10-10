@@ -24,6 +24,20 @@ class AdrukPDFRoles(unittest.TestCase):
     def test_external_explicit_attachment_keeps_original_URL(self):
         d=module._parse_detail(self.page('','<li class="download pdf"><a href="https://publisher.invalid/report.pdf">Partner report</a></li>'))
         self.assertEqual(d['pdf_url'],'https://publisher.invalid/report.pdf')
+    def test_publication_button_without_download_list_is_an_attachment(self):
+        d=module._parse_detail(self.page('<a href="https://citation.invalid/background.pdf">Background</a><p class="button more"><strong><a href="https://publisher.invalid/report.pdf">Read full publication</a></strong></p>'))
+        self.assertEqual(d['pdf_url'],'https://publisher.invalid/report.pdf')
+        self.assertEqual(d['primary_pdf_binding'],'explicit_publication_button')
+        self.assertEqual(d['reference_pdf_urls'],['https://citation.invalid/background.pdf'])
+    def test_download_list_priority_and_report_button_variant_are_preserved(self):
+        d=module._parse_detail(self.page('<p class="button"><a href="/fileadmin/button.pdf">Read publication</a></p>','<li class="download pdf"><a href="/fileadmin/download.pdf">Download report</a></li>'))
+        self.assertEqual(d['attachment_pdf_urls'],['https://www.adruk.org/fileadmin/download.pdf','https://www.adruk.org/fileadmin/button.pdf'])
+        self.assertEqual(d['pdf_url'],d['attachment_pdf_urls'][0])
+        self.assertEqual(d['primary_pdf_binding'],'explicit_download_list')
+    def test_button_outside_article_content_is_not_an_attachment(self):
+        d=module._parse_detail(self.page('','<p class="button"><a href="/fileadmin/navigation.pdf">Navigation</a></p>'))
+        self.assertIsNone(d['pdf_url'])
+        self.assertEqual(d['reference_pdf_urls'],['https://www.adruk.org/fileadmin/navigation.pdf'])
 
 class AdrukPDFPersistence(unittest.TestCase):
     BACKEND='sqlite'
@@ -51,6 +65,15 @@ class AdrukPDFPersistence(unittest.TestCase):
             return raw
         self.case.fetch.side_effect=fetch;self.assertEqual(c.crawl(),8)
         row=self.case.conn.execute("SELECT pdf_url FROM documents WHERE post_number='P5'").fetchone();self.assertEqual(row['pdf_url'] if isinstance(row,dict) else row[0],fixtures.ANNUAL_PDF)
+    def test_native_save_keeps_external_publication_button(self):
+        c=self.case.crawler();old=self.case.fetch.side_effect
+        def fetch(url,**kwargs):
+            raw=old(url,**kwargs)
+            if '/article/I1/' in url:raw=raw.replace('</div></div>','<p class="button"><a href="https://publisher.invalid/report.pdf">Read full publication</a></p></div></div>')
+            return raw
+        self.case.fetch.side_effect=fetch;self.assertEqual(c.crawl(limit=1),1)
+        row=self.case.conn.execute('SELECT pdf_url FROM documents').fetchone()
+        self.assertEqual(row['pdf_url'] if isinstance(row,dict) else row[0],'https://publisher.invalid/report.pdf')
     def test_annual_inline_identity_without_report_root_link_is_supported(self):
         c=self.case.crawler();old=self.case.fetch.side_effect
         c._pdf_bytes=lambda url:b'identical retained annual fixture bytes'
