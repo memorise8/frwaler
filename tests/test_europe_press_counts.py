@@ -68,6 +68,36 @@ class BmlehCounts(EuropePressContract,unittest.TestCase):
 
 class EnsLyonCounts(EuropePressContract,unittest.TestCase):
     SITE='ens-lyon-fr-lecole';CLASS='EnsLyonFrLecoleCrawler';LIST_METHOD='_curl_get';LIST_MODULE=False
+    def test_press_sidebar_PDF_wins_over_earlier_body_report_and_keeps_candidates(self):
+        import json
+        c=self.crawler();original=self.fetch.side_effect;papers=[];save=c._save_paper
+        def fetch(url,**kw):
+            raw=original(url,**kw)
+            if '/report-' in url:
+                raw+='<main><a href="https://reference.invalid/report.pdf">rapport</a></main><aside><div class="block-article-bloc"><a href="/press%20release.pdf">Télécharger le communiqué</a><a href="/annex.pdf">Annexe</a></div></aside>'
+            return raw
+        self.fetch.side_effect=fetch
+        def persist(paper):papers.append(paper);return save(paper)
+        c._save_paper=persist;self.assertEqual(c.crawl(limit=1),1)
+        row=self.conn.execute('SELECT pdf_url,original_filename FROM documents').fetchone()
+        values=tuple(row.values()) if isinstance(row,dict) else tuple(row)
+        self.assertEqual(values,('https://www.ens-lyon.fr/press%20release.pdf','press release.pdf'))
+        meta=json.loads(papers[0]['metadata'])
+        self.assertEqual(meta['source_pdf_candidates'],['https://reference.invalid/report.pdf','https://www.ens-lyon.fr/press%20release.pdf','https://www.ens-lyon.fr/annex.pdf'])
+        self.assertEqual(meta['primary_pdf_binding'],'explicit_press_document')
+        self.assertEqual(meta['source_press_pdf_urls'],['https://www.ens-lyon.fr/press%20release.pdf'])
+        self.assertEqual(c.crawl(limit=1),1)
+    def test_explicit_press_label_outside_article_does_not_override_article(self):
+        c=self.crawler();s=c._make_soup('<nav><a href="/nav.pdf">Communiqué de presse</a></nav><main><a href="https://partner.invalid/release.pdf">Télécharger le communiqué</a></main>')
+        all_pdfs,press=c._pdf_candidates(s)
+        self.assertEqual(press,['https://partner.invalid/release.pdf']);self.assertEqual(len(all_pdfs),2)
+    def test_decomposed_accent_and_duplicate_press_anchors_keep_source_order(self):
+        c=self.crawler();s=c._make_soup('<main><a href="/a.pdf">COMMUNIQUE\u0301</a><a href="/a.pdf">communiqué de presse</a><a href="/b.pdf">Dossier de presse complet</a></main>')
+        all_pdfs,press=c._pdf_candidates(s)
+        self.assertEqual(all_pdfs,press);self.assertEqual(press,['https://www.ens-lyon.fr/a.pdf','https://www.ens-lyon.fr/b.pdf'])
+    def test_unlabelled_candidates_remain_explicitly_unverified(self):
+        c=self.crawler();s=c._make_soup('<main><a href="/paper.pdf">Scientific paper</a></main>')
+        self.assertEqual(c._pdf_candidates(s),(['https://www.ens-lyon.fr/paper.pdf'],[]))
     def test_short_summary_recovers_ordered_article_paragraphs_without_footer(self):
         c=self.crawler();original=self.fetch.side_effect
         first='First source paragraph describing the published research findings. '*3

@@ -16,6 +16,7 @@ import os
 import re
 import subprocess
 import time
+import unicodedata
 from html import unescape
 from urllib.parse import unquote, urljoin, urlparse, urlunparse
 
@@ -199,19 +200,14 @@ class EnsLyonFrLecoleCrawler(BaseCrawler):
             )
             return False
 
-        # PDF link: first <a href> that contains .pdf
-        pdf_url = None
+        # A body citation can precede the article's own press document in
+        # Drupal's sidebar. Prefer an explicitly labelled press document while
+        # retaining every PDF candidate for attachment/association review.
+        pdfs, press_pdfs = self._pdf_candidates(soup)
+        pdf_url = next(iter(press_pdfs or pdfs), None)
         original_filename = None
-        for a in soup.select("a[href]"):
-            href = (a.get("href") or "").strip()
-            if ".pdf" in href.lower():
-                pdf_url = urljoin(self.base_url, href)
-                raw_fn = href.split("/")[-1].split("?")[0]
-                try:
-                    original_filename = unquote(raw_fn)
-                except Exception:
-                    original_filename = raw_fn
-                break
+        if pdf_url:
+            original_filename = unquote(urlparse(pdf_url).path.rsplit("/", 1)[-1])
 
         # Category
         cat_el = soup.select_one(".field--name-field-article-type")
@@ -251,6 +247,13 @@ class EnsLyonFrLecoleCrawler(BaseCrawler):
                     "originalFilename": original_filename or "",
                     "node_id": node_id,
                     "category": category or "",
+                    "source_pdf_candidates": pdfs,
+                    "source_press_pdf_urls": press_pdfs,
+                    "primary_pdf_binding": (
+                        "explicit_press_document" if press_pdfs else
+                        "first_source_candidate_role_unverified" if pdfs else
+                        "no_PDF_candidate"
+                    ),
                 },
                 ensure_ascii=False,
             ),
@@ -258,6 +261,28 @@ class EnsLyonFrLecoleCrawler(BaseCrawler):
 
         self._save_paper(paper)
         return self._last_save_created
+
+    def _pdf_candidates(self, soup):
+        candidates, press = [], []
+        for link in soup.select("a[href]"):
+            href = (link.get("href") or "").strip()
+            if ".pdf" not in href.lower():
+                continue
+            url = urljoin(self.base_url, href)
+            if url not in candidates:
+                candidates.append(url)
+            # The article sidebar is outside <main> on the actual site.
+            in_article = link.find_parent("main") is not None or any(
+                "block-article-bloc" in (parent.get("class") or [])
+                for parent in link.parents if getattr(parent, "attrs", None)
+            )
+            if not in_article:
+                continue
+            label = unicodedata.normalize("NFC", self._node_text(link)).casefold()
+            if re.search(r"\bcommuniqué\b|\bdossier(?:\s+de\s+presse|\s+#)|\balerte\s+presse\b", label):
+                if url not in press:
+                    press.append(url)
+        return candidates, press
 
     # ------------------------------------------------------------------
     # Network
