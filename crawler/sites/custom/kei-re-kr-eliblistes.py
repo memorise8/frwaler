@@ -16,6 +16,7 @@ import subprocess
 import time
 
 from crawler.base_crawler import BaseCrawler
+from crawler.kei_source import parse_listing, page_number
 
 _BASE = "https://www.kei.re.kr"
 _MID = "a10101010000"
@@ -89,7 +90,7 @@ class KeiReKrEliblistesCrawler(BaseCrawler):
     site_name = "Custom: kei-re-kr-eliblistes"
     base_url = _BASE
 
-    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
+    _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "0"))  # explicit run budget only; 0 means source bounds
     _TIMEOUT_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))   # 25-minute wall-clock budget
     _MIN_ABSTRACT = 50        # skip items with a shorter abstract
     _RATE_SLEEP = 1.0         # seconds between detail fetches
@@ -102,6 +103,7 @@ class KeiReKrEliblistesCrawler(BaseCrawler):
         """GET via curl --tls-max 1.3, retrying 3x with 1s/3s/9s backoff."""
         cmd = [
             "curl", "--tls-max", "1.3", "-sk", "--max-time", "30",
+            "--write-out", "\n%{http_code}",
             "-H", f"User-Agent: {self.USER_AGENT}",
             "-H", "Accept-Language: ko-KR,ko;q=0.9,en-US;q=0.8",
             "-H", "Accept: text/html,application/xhtml+xml,*/*;q=0.8",
@@ -111,15 +113,24 @@ class KeiReKrEliblistesCrawler(BaseCrawler):
         cmd.append(url)
 
         for attempt in range(3):
+            self._check_cancelled()
             try:
                 result = subprocess.run(cmd, capture_output=True, timeout=35)
-                text = result.stdout.decode("utf-8", errors="replace")
-                if text.strip():
-                    return text
+                self._check_cancelled()
+                body, separator, status_text = (result.stdout or b'').rpartition(b'\n')
+                status = int(status_text) if separator and status_text.isdigit() else 0
+                if status in (401, 403, 429):
+                    self._access_held = True
+                    self._report_source_failure('rate_limited' if status == 429 else 'authentication_failed')
+                    return None
+                if result.returncode == 0 and 200 <= status < 300 and body.strip():
+                    return body.decode("utf-8", errors="replace")
             except Exception as exc:
                 print(f"[{self.site_id}] curl error (attempt {attempt + 1}/3) for {url}: {exc}")
             if attempt < 2:
+                self._check_cancelled()
                 time.sleep([1, 3, 9][attempt])
+        self._report_source_failure('fetch_failed')
         return None
 
     # ------------------------------------------------------------------
@@ -127,58 +138,23 @@ class KeiReKrEliblistesCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def _fetch_list_page(self, page):
-        """Fetch one list page; return list of item-dicts (empty = no more pages)."""
-        list_url = f"{_BASE}/elibList.es?mid={_MID}&act=list&nPage={page}&keyField=&keyWord="
+        """Read the real source bounds and follow its exact adjacent-page link."""
+        list_url = (f"{_BASE}/elibList.es?mid={_MID}" if page == 1
+                    else getattr(self, '_next_list_url', None))
+        if not list_url or page_number(list_url, 'researchreport') != page:
+            raise ValueError('KEI adjacent source page not available')
         raw = self._curl_get(list_url, referer=self.base_url)
         if not raw:
-            return []
-
-        try:
-            soup = _bs4(raw)
-        except Exception as exc:
-            print(f"[{self.site_id}] list page {page} parse error: {exc}")
-            return []
-
-        dbody = soup.find("div", class_="dbody")
-        if not dbody:
-            return []
-
-        items = []
-        for idx, ul in enumerate(dbody.find_all("ul", recursive=False), start=1):
-            anchor = ul.find("a", href=re.compile(r"act=view"))
-            if not anchor:
-                continue
-            m = re.search(r"c_id=(\d+)", anchor.get("href", ""))
-            if not m:
-                continue
-            c_id = m.group(1)
-
-            num_li = ul.find("li", class_="num")
-            post_number = _text(num_li)
-
-            sec_li = ul.find("li", class_="sec")
-            category = _text(sec_li)
-
-            date_li = ul.find("li", class_=lambda c: c and "date" in c)
-            date_raw = _text(date_li)
-
-            title = _text(anchor) or anchor.get("title", "").strip()
-
-            detail_url = (
-                f"{_BASE}/elibList.es?mid={_MID}&elibName=researchreport&class_id="
-                f"&act=view&c_id={c_id}&rn={idx}&nPage={page}&keyField=&keyWord="
-            )
-
-            items.append({
-                "c_id": c_id,
-                "post_number": post_number,
-                "category": category,
-                "date_raw": date_raw,
-                "title": title,
-                "url": detail_url,
-                "list_url": list_url,
-            })
-        return items
+            raise ConnectionError('KEI source listing unavailable')
+        parsed = parse_listing(raw, 'researchreport', page)
+        bounds = parsed['total'], parsed['last_page']
+        if getattr(self, '_list_bounds', None) not in (None, bounds):
+            raise ValueError('KEI source listing bounds changed during traversal')
+        self._list_bounds, self._next_list_url = bounds, parsed['next_url']
+        return [dict(c_id=r['source_id'], post_number=r['post_number'],
+                     category=r['category'], date_raw=r['date_raw'], title=r['title'],
+                     url=r['url'], list_url=list_url, source_attachments=r['attachments'])
+                for r in parsed['items']]
 
     # ------------------------------------------------------------------
     # Detail-page parsing
@@ -224,7 +200,7 @@ class KeiReKrEliblistesCrawler(BaseCrawler):
                     elif key == "연구진" and val:
                         team = val
                     elif key == "발간일" and val:
-                        published_date = _norm_date(val)
+                        published_date = val
 
             authors = ([author_main] if author_main else []) + _parse_names(team)
             result["authors"] = authors
@@ -248,33 +224,38 @@ class KeiReKrEliblistesCrawler(BaseCrawler):
         if limit is not None and limit <= 0:
             return 0
         saved = 0
-        seen_urls = set()
+        seen_ids = set()
+        self._list_bounds, self._next_list_url = None, None
         start_time = time.time()
         limit_str = str(limit) if limit is not None else "∞"
 
-        for page in range(1, self._MAX_PAGES + 1):
+        page = 1
+        while True:
             self._check_cancelled()
             if limit is not None and saved >= limit:
                 break
 
+            if self._MAX_PAGES > 0 and page > self._MAX_PAGES:
+                self._report_source_failure('invalid_response')
+                break
+
             elapsed = time.time() - start_time
             if elapsed > self._TIMEOUT_SECS:
-                print(f"[{self.site_id}] Wall-clock budget ({self._TIMEOUT_SECS}s) exceeded at page {page}. Exiting cleanly.")
+                self._report_source_failure('invalid_response')
+                print(f"[{self.site_id}] Wall-clock budget reached before source exhaustion at page {page}.")
                 break
 
             if page % 10 == 0:
                 print(f"[{self.site_id}] page {page}: saved {saved}/{limit_str}")
-
-            if page == self._MAX_PAGES:
-                print(f"[{self.site_id}] Reached safety cap of {self._MAX_PAGES} pages.")
 
             try:
                 items = self._fetch_list_page(page)
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
+                self._report_source_failure('invalid_response' if isinstance(exc, ValueError) else 'fetch_failed')
                 print(f"[{self.site_id}] list page {page} failed: {exc}")
-                continue
+                break
 
             if not items:
                 print(f"[{self.site_id}] page {page}: no items returned. Done.")
@@ -288,31 +269,38 @@ class KeiReKrEliblistesCrawler(BaseCrawler):
                     break
 
                 url = item["url"]
-                if url in seen_urls:
-                    continue
-                seen_urls.add(url)
+                if item["c_id"] in seen_ids:
+                    self._report_source_failure('invalid_response')
+                    return saved
+                seen_ids.add(item["c_id"])
                 new_on_page += 1
 
                 c_id = item["c_id"]
                 try:
                     time.sleep(self._RATE_SLEEP)
                     detail = self._fetch_detail(url, referer=item["list_url"])
+                    if getattr(self, '_access_held', False):
+                        return saved
 
                     title = detail.get("title") or item["title"]
                     if not title:
-                        print(f"[{self.site_id}] item {c_id}: no title, skipping.")
+                        self._report_source_failure('item_failed')
+                        if self.delivery_mode == 'backfill':
+                            return saved
                         continue
 
                     abstract = detail.get("abstract", "")
                     if len(abstract) < self._MIN_ABSTRACT:
-                        print(f"[{self.site_id}] item {c_id}: abstract too short ({len(abstract)} chars), skipping.")
+                        self._report_source_failure('item_failed')
+                        if self.delivery_mode == 'backfill':
+                            return saved
                         continue
 
                     authors_str = "; ".join(detail.get("authors") or [])
                     category = detail.get("category") or item["category"]
 
-                    published_date = detail.get("published_date") or _norm_date(item["date_raw"])
-                    listed_date = _norm_date(item["date_raw"]) or published_date
+                    published_date = detail.get("published_date") or item["date_raw"] or None
+                    listed_date = item["date_raw"] or None
 
                     pdf_url = detail.get("pdf_url", "")
                     original_filename = detail.get("original_filename", "")
@@ -360,8 +348,14 @@ class KeiReKrEliblistesCrawler(BaseCrawler):
                     continue
 
             if new_on_page == 0 and page > 1:
-                print(f"[{self.site_id}] No new URLs on page {page} (all seen). Done.")
+                self._report_source_failure('invalid_response')
                 break
+            if self._list_bounds is not None and page == self._list_bounds[1]:
+                # Other delivered scopes still need native detail implementations.
+                # Do not publish whole-site exhaustion from this catalogue alone.
+                self._report_source_failure('configuration')
+                break
+            page += 1
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
