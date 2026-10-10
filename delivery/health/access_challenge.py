@@ -9,13 +9,29 @@ def access_challenge(body):
     if not isinstance(body, (str, bytes)) or not body:
         return None
     prefix = body[:128 * 1024]
-    markers = ('human verification', 'pardon our interruption')
+    cookie_notice = 'this website requires js enabled and cookies'
+    markers = ('human verification', 'pardon our interruption', cookie_notice)
     if isinstance(prefix, bytes):
         markers = tuple(marker.encode() for marker in markers)
     if not any(marker in prefix.lower() for marker in markers):
         return None
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(prefix, 'html.parser')
+    if soup.body and not soup.find(['article', 'main', 'h1']):
+        # Observed on all three delivered Andra publication filters. Require
+        # the otherwise empty interstitial and an active local redirect, so
+        # ordinary articles quoting its notice remain ordinary content.
+        notices = soup.body.find_all('noscript')
+        notice = (len(notices) == 1 and
+                  notices[0].get_text(' ', strip=True).casefold() == cookie_notice)
+        if notice and soup.body.get_text(' ', strip=True).casefold() == cookie_notice:
+            import re
+            for script in soup.body.find_all('script', src=False):
+                if re.fullmatch(
+                    r"\s*window\.location\.href\s*=\s*(['\"])/redirect_[A-Z0-9=]+/[^'\"\r\n]*\1\s*;?\s*",
+                    script.get_text(),
+                ):
+                    return 'javascript_cookie_verification'
     title = soup.title.get_text(' ', strip=True).casefold() if soup.title else ''
     if title == 'pardon our interruption':
         # The observed CKAN API returned HTTP 200 with this Imperva page.

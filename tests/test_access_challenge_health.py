@@ -22,8 +22,46 @@ IMPERVA = b'''<html><head><title>Pardon Our Interruption</title>
 <style>.wait { background: white url("/_Incapsula_Resource?private-challenge-token"); }</style>
 </head><body>Something about your browser made us think you were a bot.</body></html>'''
 
+COOKIE_REDIRECT = b'''<html><head></head><body>
+<script>window.location.href='/redirect_TESTCHALLENGE123====/publications?f=230';</script>
+<noscript>This website requires JS enabled and cookies</noscript></body></html>'''
+
 
 class ChallengeClassification(unittest.TestCase):
+    def test_cookie_interstitial_requires_notice_empty_body_and_active_redirect(self):
+        self.assertEqual(access_challenge(COOKIE_REDIRECT), 'javascript_cookie_verification')
+        self.assertEqual(access_challenge(COOKIE_REDIRECT.decode()), 'javascript_cookie_verification')
+        for body in (
+            COOKIE_REDIRECT.replace(b'<script>', b'<pre>').replace(b'</script>', b'</pre>'),
+            COOKIE_REDIRECT.replace(b'/redirect_TESTCHALLENGE123====/', b'/ordinary-page/'),
+            COOKIE_REDIRECT.replace(b'<noscript>', b'<p>').replace(b'</noscript>', b'</p>'),
+            COOKIE_REDIRECT.replace(b'</body>', b'<article>Publication text</article></body>'),
+            COOKIE_REDIRECT.replace(b'</body>', b'<p>Real publication</p></body>'),
+            COOKIE_REDIRECT.replace(b'window.location.href=', b'// window.location.href='),
+            b'x' * (128 * 1024) + COOKIE_REDIRECT,
+        ):
+            with self.subTest(body=body[:80]):
+                self.assertIsNone(access_challenge(body))
+
+    def test_cookie_200_entry_holds_host_and_does_not_expose_redirect(self):
+        site = {'site_id':'fixture', 'selected_entry':{'url':'https://example.org/publications'}}
+        gate = HostGate(0)
+        response = dict(status=200,curl_exit=0,body_complete=True,body=COOKIE_REDIRECT,
+                        headers={'content-type':'text/html'})
+        first = observe(site,gate,fetch=lambda *a,**kw:response)
+        second = observe(site,gate,fetch=lambda *a,**kw:self.fail('fetch after host hold'))
+        self.assertEqual(first['state'], 'source_access_challenge')
+        self.assertEqual(second['state'], 'host_access_held')
+        self.assertNotIn('TESTCHALLENGE123', json.dumps(first))
+
+    def test_cookie_200_stops_requests_and_curl_before_redirect_or_retry(self):
+        for transport in ('requests', 'curl'):
+            result = self.probe(transport, status=200, body=COOKIE_REDIRECT)
+            self.assertEqual(result['state'], 'blocked')
+            self.assertEqual(result['diagnostics']['stop_reason'], 'source_access_challenge')
+            self.assertEqual(result['sample_count'], 0)
+            self.assertNotIn('TESTCHALLENGE123', json.dumps(result))
+
     def test_imperva_requires_title_bot_notice_and_active_resource(self):
         self.assertEqual(access_challenge(IMPERVA), 'imperva_browser_verification')
         self.assertEqual(access_challenge(IMPERVA.decode()), 'imperva_browser_verification')
