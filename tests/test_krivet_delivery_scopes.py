@@ -89,6 +89,19 @@ class KrivetScopes(SiteContract,unittest.TestCase):
                     if 'pstNo' in p:return original(u,p,**k)
                     page=int(p['pageIndex']);return listing(p['menuSn'],['PB1'],1 if page==2 and not changed else page,3 if page==2 and changed else 2)
                 self.fetch.side_effect=fetch;c.crawl();self.assertEqual(c.delivery_source_failure,'invalid_response')
+    def test_time_and_unknown_page_budgets_report_supported_failure(self):
+        c=self.crawler()
+        with patch.object(self.module,'_WALL_CLOCK_LIMIT',-1):
+            self.assertEqual(c.crawl(),0)
+        self.assertEqual(c.delivery_source_failure,'invalid_response')
+        c=self.crawler();original=self.fetch.side_effect
+        def fetch(u,p,**k):
+            raw=original(u,p,**k)
+            return raw.replace('class="page_last"','class="unavailable_last"') if 'pageIndex' in p else raw
+        self.fetch.side_effect=fetch
+        with patch.object(self.module,'_MAX_PAGES',1):
+            self.assertEqual(c.crawl(),2)
+        self.assertEqual(c.delivery_source_failure,'invalid_response')
     def test_overlap_only_menu_does_not_hide_later_menu(self):
         c=self.crawler();original=self.fetch.side_effect
         self.fetch.side_effect=lambda u,p,**k:listing('19',['PB1','PB2']) if p.get('menuSn')=='19' and 'pageIndex' in p else original(u,p,**k)

@@ -239,10 +239,10 @@ class KrivetReKrKorCrawler(BaseCrawler):
                 if limit is not None and saved >= limit:
                     return saved
                 if time.monotonic() - start > _WALL_CLOCK_LIMIT:
-                    self._report_source_failure('time_budget')
+                    self._report_source_failure('invalid_response')
                     return saved
                 if boundary is None and page > _MAX_PAGES:
-                    self._report_source_failure('page_budget')
+                    self._report_source_failure('invalid_response')
                     return saved
                 time.sleep(self._delay)
                 self._check_cancelled()
