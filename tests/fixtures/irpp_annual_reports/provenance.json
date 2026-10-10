@@ -1,0 +1,6 @@
+{
+  "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/irpp-org-about-the-irpp-exact-delivered-entries/scope-0-0.body",
+  "source_sha256": "f0bd694b8e580028c3a550da3414bc994105038d392f8ae37d1ce3c006d7e355",
+  "selector": "div.annual-report",
+  "fixture_sha256": "caa269aaefc9e0d5622a63efe6b3583bd85024f5dd35595c03bce6d1037cb736"
+}

@@ -190,11 +190,9 @@ class IRPPOrgAboutTheIRPPCrawler(BaseCrawler):
                 post_number = (
                     year_label if re.fullmatch(r"\d{4}", year_label) else None
                 )
-                published_date = (
-                    f"{year_label}-09-01"
-                    if re.fullmatch(r"\d{4}", year_label)
-                    else None
-                )
+                # The index labels reports by year, without a publication
+                # month or day. Preserve that label without inventing a date.
+                published_date = None
 
                 reports.append(
                     {
