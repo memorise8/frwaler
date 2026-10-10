@@ -19,6 +19,13 @@ from bs4 import BeautifulSoup
 from crawler.base_crawler import BaseCrawler
 
 
+class _PDFTextUnavailable(RuntimeError):
+    def __init__(self, code, provenance):
+        super().__init__('source PDF text unavailable: ' + code)
+        self.code = code
+        self.provenance = provenance
+
+
 class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
     site_id = "open-science-canada-ca-communities"
     site_name = "Custom: open-science-canada-ca-communities"
@@ -399,6 +406,7 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
         return records
 
     def _fetch_bitstreams(self, item, uuid):
+        self._repository_text_sources = {}
         expected = self.ITEM_API_URL.format(uuid=uuid) + '/bundles'
         bundles_url = (item.get('_links', {}).get('bundles') or {}).get('href', expected)
         if bundles_url != expected:
@@ -435,6 +443,12 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
                     raise RuntimeError('invalid or duplicate original bitstream identity')
                 seen.add(uid)
                 bitstreams.append(bit)
+        # Keep publisher TEXT separate from ORIGINAL attachment metadata. Its
+        # nested contract is checked only if PDF text extraction needs it.
+        text_bundles = [b for b in bundles if b.get('name') == 'TEXT']
+        for bit in bitstreams:
+            self._repository_text_sources[bit['_links']['content']['href']] = (
+                bit['uuid'], bit['name'], text_bundles)
         return bitstreams
 
     def _curl_json(self, url, context="request"):
@@ -556,7 +570,10 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
         pdf_url, file_summaries = self._select_file(bitstreams)
         pdf_provenance = {}
         if len(abstract) < self.MIN_ABSTRACT_CHARS and pdf_url:
-            abstract, pdf_provenance = self._abstract_from_pdf(pdf_url, bitstreams)
+            try:
+                abstract, pdf_provenance = self._abstract_from_pdf(pdf_url, bitstreams)
+            except _PDFTextUnavailable as exc:
+                abstract, pdf_provenance = self._abstract_from_repository_text(pdf_url, bitstreams, exc)
 
         authors = self._metadata_values(
             metadata,
@@ -671,7 +688,8 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
             result = run_stage('text', root, timeout=120)
             self._check_cancelled()
             if not result.get('success'):
-                raise RuntimeError('source PDF text unavailable: ' + str(result.get('error', 'unknown')))
+                raise _PDFTextUnavailable(str(result.get('error', 'unknown')), dict(
+                    abstract_pdf_sha256=digest.hexdigest(), abstract_pdf_md5=md5.hexdigest()))
             with (root / 'output.txt').open(encoding='utf-8') as handle:
                 excerpt = ' '.join(handle.read(12000).split())[:3000]
             with (root / 'output.txt').open('rb') as handle:
@@ -681,6 +699,65 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
         return excerpt, dict(abstract_source='repository_pdf_text_excerpt', abstract_pdf_url=pdf_url,
                              abstract_pdf_sha256=digest.hexdigest(), abstract_pdf_md5=md5.hexdigest(),
                              abstract_pdf_text_sha256=text_hash, abstract_pdf_text_characters=result.get('chars'))
+
+    def _abstract_from_repository_text(self, pdf_url, bitstreams, failure):
+        """Read an explicitly published TEXT file without extracting the PDF."""
+        source = getattr(self, '_repository_text_sources', {}).get(pdf_url)
+        originals = [b for b in bitstreams if (b.get('_links', {}).get('content') or {}).get('href') == pdf_url]
+        if not source or len(originals) != 1 or source[:2] != (originals[0].get('uuid'), originals[0].get('name')):
+            raise failure
+        candidates = []
+        for bundle in source[2]:
+            if bundle.get('type') != 'bundle' or bundle.get('name') != 'TEXT':
+                raise RuntimeError('invalid repository TEXT bundle')
+            href = f"{self.base_url}/server/api/core/bundles/{bundle['uuid']}/bitstreams"
+            if (bundle.get('_links', {}).get('bitstreams') or {}).get('href') != href:
+                raise RuntimeError('unreviewed repository TEXT destination')
+            for bit in self._complete_embedded_page((bundle.get('_embedded') or {}).get('bitstreams'), 'bitstreams', href):
+                if bit.get('name') == source[1] + '.txt':
+                    candidates.append(bit)
+        if len(candidates) != 1:
+            raise RuntimeError('missing or ambiguous repository TEXT counterpart')
+        bit = candidates[0]
+        uid, size = bit.get('uuid'), bit.get('sizeBytes')
+        checksum = bit.get('checkSum') or {}
+        url = (bit.get('_links', {}).get('content') or {}).get('href')
+        if (not isinstance(uid, str) or not re.fullmatch(r'[0-9a-fA-F-]{36}', uid)
+                or bit.get('type') != 'bitstream' or bit.get('bundleName') != 'TEXT'
+                or type(size) is not int or not 0 < size <= 10 * 1024**2
+                or checksum.get('checkSumAlgorithm') != 'MD5'
+                or not re.fullmatch(r'[0-9a-fA-F]{32}', str(checksum.get('value', '')))
+                or url != f'{self.base_url}/server/api/core/bitstreams/{uid}/content'):
+            raise RuntimeError('unreviewed repository TEXT identity, size or checksum')
+        self._check_cancelled()
+        started, raw = time.monotonic(), bytearray()
+        with self._session.get(url, stream=True, timeout=(10, 45), allow_redirects=False) as response:
+            if response.status_code in (401, 403, 429):
+                self._access_held = True
+                self._report_source_failure('rate_limited' if response.status_code == 429 else 'authentication_failed')
+                raise RuntimeError('source TEXT access held')
+            if response.status_code != 200 or int(response.headers.get('Content-Length', '0')) > size:
+                raise RuntimeError('source TEXT response requires review')
+            for chunk in response.iter_content(65536):
+                self._check_cancelled()
+                raw.extend(chunk)
+                if len(raw) > size or time.monotonic() - started > 60:
+                    raise RuntimeError('source TEXT size or time budget exceeded')
+        if len(raw) != size or hashlib.md5(raw).hexdigest() != checksum['value'].lower():
+            raise RuntimeError('source TEXT size or checksum mismatch')
+        text = raw.decode('utf-8-sig')
+        if '\x00' in text or re.match(r'\s*(?:<!doctype\s+html|<html\b|%PDF-)', text, re.I):
+            raise RuntimeError('source TEXT is not plain text')
+        excerpt = ' '.join(text[:12000].split())[:3000]
+        if len(excerpt) < self.MIN_ABSTRACT_CHARS:
+            raise RuntimeError('source TEXT excerpt below body threshold')
+        return excerpt, dict(abstract_source='repository_published_text_excerpt',
+                             abstract_pdf_url=pdf_url, abstract_pdf_text_failure=failure.code,
+                             abstract_repository_text_url=url, abstract_repository_text_uuid=uid,
+                             abstract_repository_text_sha256=hashlib.sha256(raw).hexdigest(),
+                             abstract_repository_text_md5=hashlib.md5(raw).hexdigest(),
+                             abstract_repository_text_bytes=len(raw), abstract_repository_text_characters=len(text),
+                             **failure.provenance)
 
     def _select_file(self, bitstreams):
         summaries = []
