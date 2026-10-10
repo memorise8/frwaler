@@ -1,0 +1,71 @@
+{
+  "pages": [
+    {
+      "file": "page-0.html",
+      "source_file": "kjonnsforskning-no-nb-exact-delivered-entries/scope-1-0.body",
+      "source_sha256": "bb757de55603e9b02be6728275e5fef7fe73c7c36379777e89ba0ea64a472a46",
+      "source_url": "https://kjonnsforskning.no/nb/tidsskrift-for-kjonnsforskning",
+      "fixture_sha256": "974a47d442757fefbd34010f54bff7efbff110b060ea2da69d05cd3fba0979bb",
+      "extraction": "Retained source issue anchors and complete pager; no generated issue records."
+    },
+    {
+      "file": "page-1.html",
+      "source_file": "seventh-eight-public-followups/000.body",
+      "source_sha256": "9592ec9fa7cd31a021ba1df8a8fc64ac75e8f13f598bb4bb5e4fc7d631ec25cf",
+      "source_url": "https://kjonnsforskning.no/nb/tidsskrift-for-kjonnsforskning?page=1",
+      "fixture_sha256": "92031324f1cba4993e8ea08d86e0ffc2d51d84e925b83995108b8990dd866fe3",
+      "extraction": "Retained source issue anchors and complete pager; no generated issue records."
+    },
+    {
+      "file": "page-2.html",
+      "source_file": "seventh-eight-public-followups/001.body",
+      "source_sha256": "a6df9fdc0aa4518548615ac08eec1e8c6d2987be5b9f90d615e97366281aaf0b",
+      "source_url": "https://kjonnsforskning.no/nb/tidsskrift-for-kjonnsforskning?page=2",
+      "fixture_sha256": "389e3e62e1613ace532e1ccb9408ef5b087da7190778fde80243ec1bd6c224fd",
+      "extraction": "Retained source issue anchors and complete pager; no generated issue records."
+    },
+    {
+      "file": "page-3.html",
+      "source_file": "seventh-eight-public-followups/002.body",
+      "source_sha256": "9f9bc5bad8fddbc51ff536ca8efeecfa7df2891bd0118576e5ef6a20947017d0",
+      "source_url": "https://kjonnsforskning.no/nb/tidsskrift-for-kjonnsforskning?page=3",
+      "fixture_sha256": "c43a239f9db17c76671ab24d8cd3a7cea5c247a47b988803e0f0f84d229f688a",
+      "extraction": "Retained source issue anchors and complete pager; no generated issue records."
+    },
+    {
+      "file": "page-4.html",
+      "source_file": "seventh-eight-public-followups/003.body",
+      "source_sha256": "885b218defee7172a4f5795ad94eb80fd146cac205f6e91f2d21f2232ccbce71",
+      "source_url": "https://kjonnsforskning.no/nb/tidsskrift-for-kjonnsforskning?page=4",
+      "fixture_sha256": "8f0fe1cf01570b739f355d98e0409680a60c6b0f0698df963c679cf45ed33905",
+      "extraction": "Retained source issue anchors and complete pager; no generated issue records."
+    },
+    {
+      "file": "page-5.html",
+      "source_file": "seventh-eight-public-followups/004.body",
+      "source_sha256": "995a5711d70750a715266daf460a33509b5a2f9373bd8a29f02cf2ec5a995931",
+      "source_url": "https://kjonnsforskning.no/nb/tidsskrift-for-kjonnsforskning?page=5",
+      "fixture_sha256": "68f95c43848adc5f18047e94c9b8468834f54a1a7279c935a42b4fc5389a187e",
+      "extraction": "Retained source issue anchors and complete pager; no generated issue records."
+    },
+    {
+      "file": "page-6.html",
+      "source_file": "seventh-eight-public-followups/005.body",
+      "source_sha256": "9472e3f2c012c4f2513442af483b15710d95e273f8d1ce26ec13b1ded808edea",
+      "source_url": "https://kjonnsforskning.no/nb/tidsskrift-for-kjonnsforskning?page=6",
+      "fixture_sha256": "8d2255d35dfee80de943fd1c9601c29b6599530d18715c1191b1f33021466917",
+      "extraction": "Retained source issue anchors and complete pager; no generated issue records."
+    },
+    {
+      "file": "page-7.html",
+      "source_file": "seventh-eight-public-followups/006.body",
+      "source_sha256": "301602281bae3b5c7dd6a9f3a327cf7f371cb131481e033300b624d49be239a6",
+      "source_url": "https://kjonnsforskning.no/nb/tidsskrift-for-kjonnsforskning?page=7",
+      "fixture_sha256": "81a278cb9a599e9e5a1208a502e19cc90e70aae8a9b199fa3ad9a5018f69c82f",
+      "extraction": "Retained source issue anchors and complete pager; no generated issue records."
+    }
+  ],
+  "source_unique_issue_paths": 190,
+  "first_page24_preserved": true,
+  "scope": "journal issue discovery only; no article content or DB acceptance"
+}

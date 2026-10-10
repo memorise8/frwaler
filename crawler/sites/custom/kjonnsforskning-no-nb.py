@@ -12,6 +12,7 @@ import re
 import subprocess
 import time
 from html import unescape
+from urllib.parse import urljoin, urlsplit
 
 from crawler.base_crawler import BaseCrawler
 
@@ -96,6 +97,20 @@ def _get_issue_paths(html: str) -> list[str]:
             seen.add(p)
             paths.append(p)
     return paths
+
+
+def _get_next_issue_index_url(html: str, current_url: str) -> str | None:
+    soup = _make_soup(html)
+    if soup is None:
+        raise ValueError("Cannot parse journal index pagination")
+    link = soup.select_one('.pager__item--next a[href]')
+    if link is None:
+        return None
+    target = urljoin(current_url, link['href'])
+    parsed, start = urlsplit(target), urlsplit(_START_URL)
+    if (parsed.scheme, parsed.netloc, parsed.path) != (start.scheme, start.netloc, start.path):
+        raise ValueError("Journal index next link leaves the configured index")
+    return target
 
 
 def _get_article_urls_from_issue(html: str) -> list[str]:
@@ -285,12 +300,37 @@ class KjonnsforskningSiteCrawler(BaseCrawler):
 
         # ── Step 1: collect issue page paths ─────────────────────────────
         print(f"[{self.site_id}] Fetching main page: {_START_URL}")
-        main_html = _curl_get(_START_URL)
-        if not main_html:
-            print(f"[{self.site_id}] Cannot fetch main page. Abort.")
-            return 0
-
-        issue_paths = _get_issue_paths(main_html)
+        issue_paths: list[str] = []
+        seen_paths: set[str] = set()
+        seen_indexes: set[str] = set()
+        index_url = _START_URL
+        while index_url:
+            self._check_cancelled()
+            if (time.time() - start_time) / 60 >= MAX_WALL_MIN:
+                self._report_source_failure("Journal index discovery exceeded wall-clock budget")
+                break
+            if index_url in seen_indexes:
+                self._report_source_failure(f"Journal index repeats a page: {index_url}")
+                break
+            seen_indexes.add(index_url)
+            index_html = _curl_get(index_url)
+            if not index_html:
+                self._report_source_failure(f"Cannot fetch journal index: {index_url}")
+                break
+            page_paths = _get_issue_paths(index_html)
+            if not page_paths:
+                self._report_source_failure(f"Journal index has no issue entries: {index_url}")
+                break
+            if all(path in seen_paths for path in page_paths):
+                self._report_source_failure(f"Journal index repeats issue entries: {index_url}")
+                break
+            for path in page_paths:
+                if path not in seen_paths:
+                    seen_paths.add(path)
+                    issue_paths.append(path)
+            index_url = _get_next_issue_index_url(index_html, index_url)
+            if index_url:
+                time.sleep(0.5)
         if not issue_paths:
             print(f"[{self.site_id}] No issue pages found. Abort.")
             return 0
