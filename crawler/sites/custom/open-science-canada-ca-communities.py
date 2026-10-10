@@ -3,10 +3,13 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import subprocess
 import time
+import tempfile
+from pathlib import Path
 from html import unescape
 from urllib.parse import urlencode
 
@@ -363,6 +366,10 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
                     if fallback:
                         abstract = fallback
         abstract = self._clean_text(abstract)
+        pdf_url, file_summaries = self._select_file(bitstreams)
+        pdf_provenance = {}
+        if len(abstract) < self.MIN_ABSTRACT_CHARS and pdf_url:
+            abstract, pdf_provenance = self._abstract_from_pdf(pdf_url, bitstreams)
 
         authors = self._metadata_values(
             metadata,
@@ -388,8 +395,6 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
             or self._doi_from_text(self._metadata_first(metadata, ("dc.identifier.citation",)))
         )
         department = self._metadata_first(metadata, ("dc.publisher",), preferred_languages=("en", None))
-        pdf_url, file_summaries = self._select_file(bitstreams)
-
         metadata_summary = {
             "source_format": "json",
             "start_url": f"{self.base_url}/communities/{getattr(self, '_active_community', self.COMMUNITY_ID)}",
@@ -409,6 +414,7 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
             "document_type": self._metadata_first(metadata, ("dc.type",), preferred_languages=("en", None)),
             "bitstreams": file_summaries,
             "metadata_keys": sorted(metadata.keys()),
+            **pdf_provenance,
         }
 
         return {
@@ -426,6 +432,68 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
             "department": department,
             "metadata": metadata_summary,
         }
+
+    def _abstract_from_pdf(self, pdf_url, bitstreams):
+        """Use only this item's verified ORIGINAL PDF; do not publish file flags."""
+        from delivery.files.worker import run_stage
+
+        matches = [b for b in bitstreams if (b.get('_links', {}).get('content') or {}).get('href') == pdf_url]
+        if len(matches) != 1:
+            raise RuntimeError('ambiguous source PDF reference')
+        bit = matches[0]
+        uid = bit.get('uuid', '')
+        checksum = bit.get('checkSum') or {}
+        expected_size = bit.get('sizeBytes')
+        if (not isinstance(uid, str) or not re.fullmatch(r'[0-9a-fA-F-]{36}', uid)
+                or pdf_url != f'{self.base_url}/server/api/core/bitstreams/{uid}/content'
+                or bit.get('bundleName') != 'ORIGINAL'
+                or not str(bit.get('name', '')).lower().endswith('.pdf')
+                or type(expected_size) is not int or not 0 < expected_size <= 100 * 1024**2
+                or checksum.get('checkSumAlgorithm') != 'MD5'
+                or not re.fullmatch(r'[0-9a-fA-F]{32}', str(checksum.get('value', '')))):
+            raise RuntimeError('unreviewed source PDF identity, size or checksum')
+        self._check_cancelled()
+        started = time.monotonic()
+        with tempfile.TemporaryDirectory(prefix='open-science-pdf-') as directory:
+            root = Path(directory)
+            md5, digest, size = hashlib.md5(), hashlib.sha256(), 0
+            with self._session.get(pdf_url, stream=True, timeout=(10, 45), allow_redirects=False) as response:
+                if response.status_code in (401, 403, 429):
+                    self._access_held = True
+                    self._report_source_failure('rate_limited' if response.status_code == 429 else 'authentication_failed')
+                    raise RuntimeError('source PDF access held')
+                if response.status_code != 200:
+                    raise RuntimeError('source PDF response requires review')
+                if int(response.headers.get('Content-Length', '0')) > expected_size:
+                    raise RuntimeError('source PDF exceeds declared size')
+                with (root / 'source.pdf').open('xb') as handle:
+                    for chunk in response.iter_content(65536):
+                        self._check_cancelled()
+                        size += len(chunk)
+                        if size > expected_size or time.monotonic() - started > 180:
+                            raise RuntimeError('source PDF download budget exceeded')
+                        md5.update(chunk)
+                        digest.update(chunk)
+                        handle.write(chunk)
+            if size != expected_size or md5.hexdigest() != checksum['value'].lower():
+                raise RuntimeError('source PDF size or checksum mismatch')
+            with (root / 'source.pdf').open('rb') as handle:
+                if handle.read(5) != b'%PDF-':
+                    raise RuntimeError('source response is not PDF')
+            self._check_cancelled()
+            result = run_stage('text', root, timeout=120)
+            self._check_cancelled()
+            if not result.get('success'):
+                raise RuntimeError('source PDF text unavailable: ' + str(result.get('error', 'unknown')))
+            with (root / 'output.txt').open(encoding='utf-8') as handle:
+                excerpt = ' '.join(handle.read(12000).split())[:3000]
+            with (root / 'output.txt').open('rb') as handle:
+                text_hash = hashlib.file_digest(handle, 'sha256').hexdigest()
+        if len(excerpt) < self.MIN_ABSTRACT_CHARS:
+            raise RuntimeError('source PDF excerpt below body threshold')
+        return excerpt, dict(abstract_source='repository_pdf_text_excerpt', abstract_pdf_url=pdf_url,
+                             abstract_pdf_sha256=digest.hexdigest(), abstract_pdf_md5=md5.hexdigest(),
+                             abstract_pdf_text_sha256=text_hash, abstract_pdf_text_characters=result.get('chars'))
 
     def _select_file(self, bitstreams):
         summaries = []

@@ -33,7 +33,7 @@ class OpenScienceDeliveryScopes(CoupledContract,unittest.TestCase):
                 tree={'_embedded':{'bitstreams':[bit]},'page':{'number':0,'size':20,'totalPages':1,'totalElements':1},'_links':{'self':{'href':biturl}}}
                 return {'_embedded':{'bundles':[{'uuid':uid,'name':'ORIGINAL','type':'bundle','_links':{'bitstreams':{'href':biturl}},'_embedded':{'bitstreams':tree}}]},'page':{'number':0,'size':20,'totalPages':1,'totalElements':1},'_links':{'self':{'href':url}}}
             return self.item(n)
-        c._curl_json=self.fetch=Mock(side_effect=fetch);c._curl_get=Mock(return_value='<main></main>');return c
+        c._curl_json=self.fetch=Mock(side_effect=fetch);c._curl_get=Mock(return_value='<main></main>');c._session.get=Mock(side_effect=RuntimeError('unavailable fixture PDF'));return c
     def test_both_delivery_communities_and_overlap_page_reach_all8(self):
         c=self.crawler();self.assertEqual(c.crawl(),8);self.assertFalse(c.delivery_source_failure)
         scopes={parse_qs(urlsplit(call.args[0]).query)['scope'][0] for call in self.fetch.call_args_list if '/discover/search/objects' in call.args[0]}
