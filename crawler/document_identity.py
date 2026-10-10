@@ -16,6 +16,42 @@ _KEI_BOARD_MIDS = {
 }
 
 
+def is_cso_press_release_url(url):
+    if not isinstance(url, str):
+        return False
+    try:
+        parsed = urlsplit(url)
+    except ValueError:
+        return False
+    return (parsed.scheme == 'https' and parsed.netloc == 'www.cso.ie'
+            and not parsed.query and not parsed.fragment
+            and re.fullmatch(r'/en/csolatestnews/pressreleases/\d{4}pressreleases/[^/]+/',
+                             parsed.path) is not None)
+
+
+def find_cso_document(conn, site_id, meta_url, *, postgres=False):
+    """Keep historical IDs when the current CSO list supplies only a URL.
+
+    Current month modules share an ID between several links. Link positions
+    and a detail page's unrelated content spans cannot replace old IDs. Match
+    only the exact published release URL, preserving every existing field.
+    Multiple historical rows for that URL require review, never a merge.
+    """
+    if site_id != 'cso-ie-en' or not is_cso_press_release_url(meta_url):
+        raise ValueError('invalid_cso_release_identity')
+    mark = '%s' if postgres else '?'
+    rows = conn.execute(
+        f'SELECT seq_id FROM documents WHERE site_id={mark} AND meta_url={mark} LIMIT 2',
+        (site_id, meta_url),
+    ).fetchall()
+    if len(rows) > 1:
+        raise ValueError('cso_identity_collision_requires_review')
+    if not rows:
+        return None
+    row = rows[0]
+    return row['seq_id'] if hasattr(row, 'keys') else row[0]
+
+
 def kei_elib_id(url):
     """Document identity from KEI's published catalogue links, not row position."""
     parsed = urlsplit(url)

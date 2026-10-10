@@ -5,16 +5,19 @@ Target: https://www.cso.ie/en/csolatestnews/pressreleases/2025pressreleases/
 """
 
 import json
+import html as htmlmod
 import os
 import re
 import subprocess
 import sys
 import time
 from datetime import datetime
+from urllib.parse import urljoin
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from crawler.base_crawler import BaseCrawler
+from crawler.document_identity import is_cso_press_release_url
 
 _SITE_ID = "cso-ie-en"
 _BASE_URL = "https://www.cso.ie"
@@ -113,6 +116,27 @@ def _parse_list_page(html):
     return _parse_list_regex(html)
 
 
+def _module_link_item(href, label, anchor):
+    """Read the current monthly modules without inventing a document number."""
+    if not re.fullmatch(r'\d+_link_\d+', anchor or ''):
+        return None
+    url = urljoin(_BASE_URL, href)
+    if not is_cso_press_release_url(url):
+        return None
+    match = re.fullmatch(r'(.+?)\s+-\s+(\d{1,2}\s+[A-Za-z]+\s+\d{4})', label.strip())
+    if not match:
+        return None
+    listed_date = _parse_date_str(match[2])
+    try:
+        datetime.strptime(listed_date or '', '%Y-%m-%d')
+    except ValueError:
+        return None
+    # The prefix identifies a monthly CMS module; the suffix is its mutable
+    # link position. Neither is the release's old numeric node ID.
+    return dict(url=url, title=match[1], listed_date=listed_date,
+                node_id=None, listing_anchor=anchor)
+
+
 def _parse_list_bs4(soup):
     items = []
     seen = set()
@@ -161,6 +185,10 @@ def _parse_list_bs4(soup):
         url = (_BASE_URL + href) if not href.startswith("http") else href
         items.append({"url": url, "title": title, "listed_date": listed_date, "node_id": node_id})
 
+    for link in soup.select('.conferencePapers .moduleBody a[href]'):
+        item = _module_link_item(link['href'], link.get_text(' ', strip=True), link.get('id'))
+        if item and item['url'] not in {row['url'] for row in items}:
+            items.append(item)
     return items
 
 
@@ -187,6 +215,13 @@ def _parse_list_regex(html):
             "listed_date": _parse_date_str(date_str.strip()),
             "node_id": node_id,
         })
+    for match in re.finditer(r'<a\b([^>]+)>(.*?)</a>', html, re.DOTALL | re.IGNORECASE):
+        attrs = dict((m[1].lower(), htmlmod.unescape(m[3])) for m in re.finditer(
+            r'\b(href|id)\s*=\s*([\"\'])(.*?)\2', match[1], re.DOTALL | re.IGNORECASE))
+        label = htmlmod.unescape(re.sub(r'<[^>]+>', ' ', match[2]))
+        item = _module_link_item(attrs.get('href', ''), re.sub(r'\s+', ' ', label).strip(), attrs.get('id'))
+        if item and item['url'] not in {row['url'] for row in items}:
+            items.append(item)
     return items
 
 
@@ -342,6 +377,7 @@ class CsoIeEnCrawler(BaseCrawler):
                         metadata = json.dumps(
                             {
                                 "node_id": it["node_id"],
+                                "listing_anchor": it.get("listing_anchor"),
                                 "listed_date": listed_date,
                                 "year": year,
                             },

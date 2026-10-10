@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from .document_dates import DATE_METADATA_FIELDS, normalize_document_dates, migrate_date_columns
-from .document_identity import find_krivet_document, find_kei_document
+from .document_identity import find_krivet_document, find_kei_document, find_cso_document, is_cso_press_release_url
 
 import psycopg
 from psycopg.rows import dict_row
@@ -103,6 +103,8 @@ def find_by_dedup_key(conn, site_id, post_number, meta_url) -> Optional[int]:
         return find_krivet_document(conn, site_id, post_number, meta_url, postgres=True)
     if site_id == "kei-re-kr-eliblistes":
         return find_kei_document(conn, site_id, post_number, meta_url, postgres=True)
+    if site_id == "cso-ie-en" and is_cso_press_release_url(meta_url):
+        return find_cso_document(conn, site_id, meta_url, postgres=True)
     if post_number is None:
         row = conn.execute(
             "SELECT seq_id FROM documents WHERE site_id=%s AND post_number IS NULL AND meta_url=%s LIMIT 1",
