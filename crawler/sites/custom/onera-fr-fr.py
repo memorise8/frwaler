@@ -25,6 +25,7 @@ from urllib.parse import unquote, urljoin, urlparse, parse_qs
 
 from crawler.base_crawler import BaseCrawler
 from crawler.document_dates import normalize_date
+from crawler.onera_traversal import OneraTraversal
 
 
 _BASE_URL = "https://www.onera.fr"
@@ -90,7 +91,7 @@ def _class_contains(fragment: str):
     return predicate
 
 
-class OneraFrFrCrawler(BaseCrawler):
+class OneraFrFrCrawler(OneraTraversal, BaseCrawler):
     site_id = "onera-fr-fr"
     site_name = "Custom: onera-fr-fr"
     base_url = _BASE_URL
@@ -99,6 +100,12 @@ class OneraFrFrCrawler(BaseCrawler):
     DETAIL_DELAY = 1.0
 
     def crawl(self, limit=None):
+        if self.delivery_mode == 'backfill':
+            return self._crawl_press_backfill(limit, max_pages=_MAX_PAGES,
+                                              max_seconds=_MAX_WALL_SECONDS)
+        return self._crawl_listing(limit)
+
+    def _crawl_listing(self, limit=None):
         self._check_cancelled()
         saved = 0
         seen_urls: set[str] = set()
@@ -206,14 +213,24 @@ class OneraFrFrCrawler(BaseCrawler):
                         "Accept-Language: fr-FR,fr;q=0.9,en;q=0.8",
                         "-H",
                         "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8",
+                        "--write-out", "\n%{http_code}",
                         url,
                     ],
                     capture_output=True,
                     timeout=_CURL_TIMEOUT + 10,
                 )
-                body = result.stdout.decode("utf-8", errors="replace")
-                if body.strip():
+                payload, separator, status_bytes = result.stdout.rpartition(b'\n')
+                status = int(status_bytes) if separator and status_bytes.isdigit() else 0
+                from delivery.health.access_challenge import access_challenge
+                if status in (401, 403, 429, 503) or access_challenge(payload):
+                    self._report_source_failure('rate_limited' if status in (429, 503)
+                                                else 'authentication_failed')
+                    return None
+                body = payload.decode("utf-8", errors="replace")
+                if result.returncode == 0 and status == 200 and body.strip():
                     return body
+                if status and status < 500:
+                    return None
                 err = result.stderr.decode("utf-8", errors="replace").strip()
                 err = err or f"empty response, curl exit {result.returncode}"
             except subprocess.TimeoutExpired:
@@ -310,6 +327,11 @@ class OneraFrFrCrawler(BaseCrawler):
             print(f"[{self.site_id}] item {url} failed: detail fetch returned no body")
             return False
 
+        from delivery.health.access_challenge import access_challenge
+        if access_challenge(raw):
+            self._report_source_failure('authentication_failed')
+            return False
+
         soup = self._soup(raw, context=f"detail {url}")
         if soup is None:
             self._report_source_failure('item_failed')
@@ -388,7 +410,9 @@ class OneraFrFrCrawler(BaseCrawler):
             "original_filename": original_filename,
             "metadata": json.dumps(metadata, ensure_ascii=False),
         }
-        self._save_paper(paper)
+        if self.delivery_mode == 'backfill' and canonical_url != url:
+            raise ValueError('ONERA canonical identity requires source review')
+        self._last_processed_seq_id = self._save_paper(paper)
         return self._last_save_created
 
     def _abstract_from_pdf(self, pdf_url: str) -> tuple[str, dict]:
