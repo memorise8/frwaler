@@ -24,6 +24,7 @@ export default function FileProgress({ jobId, metadataStatus, files, onChange }:
     <h3>PDF 다운로드 · 텍스트 추출</h3>
     <p>대상 {files.total}건 · PDF 확보 {files.pdf_done}건 · 텍스트 확보 {files.text_done}건</p>
     <p>대기 {files.queued} · 처리 중 {files.running} · 완료 {files.done} · 실패 {files.failed} · PDF 주소 없음 {files.skipped} · 중지 {files.cancelled}</p>
+    {Boolean(files.text_quality_review) && <p role="status">문자 손상 등으로 원문 대조가 필요한 추출문 {files.text_quality_review}건이 있습니다. 텍스트 확보 건수와 내용 품질은 별도로 확인해야 합니다.</p>}
     {!terminal && <p>문서 수집이 끝난 후 파일 처리를 시작합니다. 수집을 취소하면 대기 중인 파일 처리도 중지됩니다.</p>}
     {terminal && files.total === 0 && <p>이번 수집에서 파일 처리 대상으로 등록한 문서가 없습니다.</p>}
     {terminal && filesActive(files) && !files.worker_alive && <p role="status">파일 처리 워커의 응답이 없습니다. 워커가 실행되면 대기 작업을 처리합니다.</p>}
@@ -37,6 +38,7 @@ export default function FileProgress({ jobId, metadataStatus, files, onChange }:
       <ul>{files.items.map(item => <li key={item.seq_id}><Link href={`/documents/${item.seq_id}`}>문서 #{item.seq_id}</Link>{" · "}
         PDF {item.pdf_status === "done" ? "확보" : item.pdf_status === "unavailable" ? "주소 없음" : item.pdf_status === "failed" ? "실패" : "대기"}
         {" · "}텍스트 {item.text_status === "done" ? "확보" : item.text_status === "failed" ? "실패" : item.text_status === "skipped" ? "건너뜀" : "대기"}
+        {item.text_quality?.state === "review" && " · 문자 품질 검토 필요"}
         {item.error && ` · ${fileErrorLabel(item.error)}`}</li>)}</ul>
     </details>}
   </section>;

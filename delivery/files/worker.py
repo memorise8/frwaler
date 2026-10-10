@@ -15,9 +15,29 @@ import time
 
 from crawler import blob_storage
 from . import jobs
+from .text_quality import inspect_file
 
 
 def run_stage(stage, directory, url=None, *, timeout=180):
+    result = _run_stage_once(stage, directory, url, timeout=timeout)
+    if (stage == 'text' and result.get('error') in ('stage_timeout', 'text_quality_review_required')
+            and (Path(directory) / 'source.pdf').is_file()):
+        # The first process group has already been killed and reaped. The
+        # extra attempt stays within the file job's 2*timeout+120 second lease.
+        fallback = _run_stage_once('text_fallback', directory, timeout=min(timeout, 60))
+        if fallback.get('success'):
+            fallback['quality']['recovery_from'] = result['error']
+            return fallback
+        # Never trade explicit access denial for an opaque timeout/quality error.
+        if fallback.get('error') in ('pdf_copy_restricted', 'pdf_password_required'):
+            return fallback
+        result['fallback_error'] = fallback.get('error')
+        if 'quality' in result and 'quality' in fallback:
+            result['quality']['fallback'] = fallback['quality']
+    return result
+
+
+def _run_stage_once(stage, directory, url=None, *, timeout=180):
     root = Path(directory)
     (root / 'result.json').unlink(missing_ok=True)
     proc = subprocess.Popen([sys.executable, '-m', 'delivery.files.stage'],
@@ -70,11 +90,12 @@ def process(conn, task, *, root, executor=run_stage, timeout=180):
     root.mkdir(parents=True, exist_ok=True)
     pdf_done = False
     text_done = False
+    text_quality = None
     def finish(status, error=None, retry=False, unavailable=False):
         jobs.finish(conn, task, status=status,
                     pdf_status='done' if pdf_done else ('unavailable' if unavailable else 'failed'),
                     text_status='done' if text_done else ('skipped' if unavailable else ('failed' if pdf_done else 'pending')),
-                    error=error, retry=retry)
+                    error=error, retry=retry, text_quality=text_quality)
     # Session-level document lock also serializes separate crawl jobs referring
     # to the same PDF. Commits in the DB helpers do not release this lock.
     lock = conn.execute('SELECT pg_try_advisory_lock(84721,%s::integer) AS locked', (int(task['seq_id']) % 2147483647,)).fetchone()['locked']
@@ -126,8 +147,17 @@ def process(conn, task, *, root, executor=run_stage, timeout=180):
                 doc['text_extracted'] = 0
             text_done = bool(doc['text_extracted'] and txt.is_file() and txt.stat().st_size > 0)
             if text_done:
-                finish('done')
-                return
+                text_quality = inspect_file(txt, engine='existing_file')
+                if text_quality['state'] != 'review_required':
+                    finish('done')
+                    return
+                # Preserve the original bytes as evidence, but do not keep
+                # advertising a severely damaged cached extraction as valid.
+                if not jobs.owns(conn, task):
+                    conn.rollback()
+                    return
+                db_pg.update_document_text(conn, task['seq_id'], extracted=False)
+                text_done = False
             if not jobs.owns(conn, task):
                 conn.rollback()
                 return
@@ -139,6 +169,7 @@ def process(conn, task, *, root, executor=run_stage, timeout=180):
             if not jobs.owns(conn, task):
                 conn.rollback()
                 return
+            text_quality = result.get('quality', text_quality)
             if not result.get('success'):
                 finish('failed', result.get('error','parse_failed'), retry=result.get('error') == 'stage_timeout')
                 return
@@ -146,6 +177,16 @@ def process(conn, task, *, root, executor=run_stage, timeout=180):
             if not candidate.is_file() or not candidate.stat().st_size:
                 finish('failed', 'no_text_layer')
                 return
+            # Also check injected/custom executors before publishing their file.
+            checked = inspect_file(candidate, engine=(text_quality or {}).get('engine'))
+            if checked['state'] == 'review_required':
+                text_quality = checked
+                finish('failed', 'text_quality_review_required')
+                return
+            for key in ('recovery_from', 'fallback'):
+                if text_quality and key in text_quality:
+                    checked[key] = text_quality[key]
+            text_quality = checked
             publish(candidate, txt)
             db_pg.update_document_text(conn, task['seq_id'], extracted=True)
             text_done = True

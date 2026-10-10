@@ -72,6 +72,7 @@ def verify_required_schema(conn) -> None:
         ("crawl_jobs", "process_files"),
         ("crawl_jobs", "job_type"),
         ("crawl_jobs", "scope_id"),
+        ("document_file_jobs", "text_quality"),
         ("translation_system_observations", "provider"),
         ("translation_system_observations", "model_version"),
         ("crawl_site_progress", "cursor"),
@@ -140,6 +141,7 @@ def init_delivery_schema(conn) -> None:
       next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       UNIQUE(crawl_job_id,seq_id))""")
+    conn.execute("ALTER TABLE document_file_jobs ADD COLUMN IF NOT EXISTS text_quality JSONB")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_file_jobs_due ON document_file_jobs(status,next_attempt_at,id)")
     conn.execute("""CREATE TABLE IF NOT EXISTS file_worker_heartbeat(
       id INTEGER PRIMARY KEY CHECK(id=1),last_seen_at TIMESTAMPTZ NOT NULL)""")

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import uuid
+import json
 
 
 def backfill(conn, site_id, *, after_seq=0, limit=100, include_existing=False, dry_run=True,
@@ -91,14 +92,15 @@ def owns(conn, task):
     return row is not None
 
 
-def finish(conn, task, *, status, pdf_status, text_status, error=None, retry=False):
+def finish(conn, task, *, status, pdf_status, text_status, error=None, retry=False, text_quality=None):
     if retry and task['attempts'] < 3:
         status = 'queued'
     conn.execute("""UPDATE document_file_jobs SET status=%s,pdf_status=%s,text_status=%s,
-        error=%s,token=NULL,lease_expires_at=NULL,updated_at=now(),
+        error=%s,text_quality=COALESCE(%s::jsonb,text_quality),token=NULL,lease_expires_at=NULL,updated_at=now(),
         next_attempt_at=now()+make_interval(secs=>%s)
         WHERE id=%s AND token=%s AND status='running'""",
-        (status, pdf_status, text_status, error, 30 * (2 ** min(task['attempts'], 3)), task['id'], task['token']))
+        (status, pdf_status, text_status, error, json.dumps(text_quality) if text_quality is not None else None,
+         30 * (2 ** min(task['attempts'], 3)), task['id'], task['token']))
     conn.commit()
 
 
@@ -108,13 +110,15 @@ def summary(conn, job_id):
     counts = {key: 0 for key in ('queued','running','done','failed','skipped','cancelled')}
     counts.update({r['status']: int(r['n']) for r in rows})
     stages = conn.execute("""SELECT count(*) FILTER(WHERE pdf_status='done') AS pdf_done,
-        count(*) FILTER(WHERE text_status='done') AS text_done
+        count(*) FILTER(WHERE text_status='done') AS text_done,
+        count(*) FILTER(WHERE text_quality->>'state' IN ('review','review_required')) AS text_quality_review
         FROM document_file_jobs WHERE crawl_job_id=%s""", (job_id,)).fetchone()
-    recent = conn.execute("""SELECT seq_id,status,pdf_status,text_status,error,attempts,updated_at
+    recent = conn.execute("""SELECT seq_id,status,pdf_status,text_status,error,attempts,updated_at,text_quality
         FROM document_file_jobs WHERE crawl_job_id=%s
         ORDER BY CASE WHEN status='failed' THEN 0 ELSE 1 END,updated_at DESC,id DESC LIMIT 20""", (job_id,)).fetchall()
     heartbeat = conn.execute("SELECT last_seen_at>now()-interval '120 seconds' AS alive FROM file_worker_heartbeat WHERE id=1").fetchone()
     return {**counts, 'total': sum(counts.values()), 'pdf_done': stages['pdf_done'],
+            'text_quality_review': stages['text_quality_review'],
             'text_done': stages['text_done'], 'worker_alive': bool(heartbeat and heartbeat['alive']),
             'items': [dict(r) for r in recent]}
 
