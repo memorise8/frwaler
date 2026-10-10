@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import subprocess
 import time
@@ -37,11 +38,15 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
     PAGE_SIZE = 25
     BACKOFF_SECONDS = (1, 3, 9)
     MIN_ABSTRACT_CHARS = 100
+    DELIVERY_CURSOR_VERSION = 1
+    BACKFILL_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
     def crawl(self, limit=None):
         self._check_cancelled()
         if limit is not None and limit <= 0:
             return 0
+        if self.delivery_mode == 'backfill':
+            return self._crawl_backfill(limit)
         saved = 0
         seen_items = set()
         for scope in self.COMMUNITY_IDS:
@@ -133,19 +138,7 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
                         # collection gap, not successful source exhaustion.
                         self._report_source_failure('item_failed')
                         continue
-                    paper = {
-                        'id': None, 'site_id': self.site_id,
-                        'external_id': parsed['external_id'], 'title': parsed['title'],
-                        'authors': json.dumps(parsed['authors'], ensure_ascii=False),
-                        'abstract': parsed['abstract'], 'category': parsed['category'],
-                        'keywords': json.dumps(parsed['keywords'], ensure_ascii=False),
-                        'published_date': parsed['published_date'],
-                        'listed_date': parsed['listed_date'],
-                        'url': parsed['url'], 'pdf_url': parsed['pdf_url'],
-                        'doi': parsed['doi'], 'department': parsed['department'],
-                        'metadata': json.dumps(parsed['metadata'], ensure_ascii=False),
-                    }
-                    self._save_paper(paper)
+                    self._save_parsed(parsed)
                     if self._last_save_created:
                         saved += 1
                 except Exception as exc:
@@ -162,6 +155,200 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
                     return saved, False
                 return saved, True
             page += 1
+
+    def _save_parsed(self, parsed):
+        paper = {
+            'id': None, 'site_id': self.site_id,
+            'external_id': parsed['external_id'], 'title': parsed['title'],
+            'authors': json.dumps(parsed['authors'], ensure_ascii=False),
+            'abstract': parsed['abstract'], 'category': parsed['category'],
+            'keywords': json.dumps(parsed['keywords'], ensure_ascii=False),
+            'published_date': parsed['published_date'],
+            'listed_date': parsed['listed_date'],
+            'url': parsed['url'], 'pdf_url': parsed['pdf_url'],
+            'doi': parsed['doi'], 'department': parsed['department'],
+            'metadata': json.dumps(parsed['metadata'], ensure_ascii=False),
+        }
+        self._save_paper(paper)
+
+    @staticmethod
+    def _cursor_hash(value):
+        return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True,
+                                          separators=(',', ':')).encode()).hexdigest()
+
+    def _cursor_contract(self):
+        return self._cursor_hash([self.COMMUNITY_IDS, self.PAGE_SIZE, '*', 'score,DESC',
+                                  self.DELIVERY_CURSOR_VERSION])
+
+    def _validate_cursor(self, cursor):
+        if (not isinstance(cursor, dict) or type(cursor.get('version')) is not int
+                or cursor['version'] != self.DELIVERY_CURSOR_VERSION
+                or cursor.get('contract') != self._cursor_contract()
+                or cursor.get('scope') not in self.COMMUNITY_IDS):
+            raise ValueError('invalid source cursor contract')
+        for key in ('page', 'offset', 'page_items', 'total', 'total_pages'):
+            if type(cursor.get(key)) is not int or cursor[key] < 0:
+                raise ValueError('invalid source cursor range')
+        if (cursor['total_pages'] != (cursor['total'] + self.PAGE_SIZE - 1) // self.PAGE_SIZE
+                or cursor['page'] > max(cursor['total_pages'] - 1, 0)
+                or cursor['page_items'] != min(self.PAGE_SIZE, cursor['total'] - cursor['page'] * self.PAGE_SIZE)
+                or cursor['offset'] > cursor['page_items']):
+            raise ValueError('inconsistent source cursor position')
+        for key in ('page_hash', 'prefix_hash'):
+            if not isinstance(cursor.get(key), str) or not re.fullmatch('[0-9a-f]{64}', cursor[key]):
+                raise ValueError('invalid source cursor anchor')
+
+    def _backfill_page(self, scope, page):
+        self._active_community = scope
+        raw = self._fetch_list(page)
+        if not raw:
+            raise ConnectionError('source list unavailable')
+        result = raw['_embedded']['searchResult']
+        info = result['page']
+        records = result.get('_embedded', {}).get('objects', [])
+        if (any(type(info.get(k)) is not int for k in ('number', 'size', 'totalPages', 'totalElements'))
+                or info['number'] != page or info['size'] != self.PAGE_SIZE
+                or info['totalElements'] < 0
+                or info['totalPages'] != (info['totalElements'] + self.PAGE_SIZE - 1) // self.PAGE_SIZE
+                or page > max(info['totalPages'] - 1, 0) or not isinstance(records, list)
+                or len(records) != min(self.PAGE_SIZE, info['totalElements'] - page * self.PAGE_SIZE)):
+            raise ValueError('incomplete source pagination')
+        items = [self._indexable_object(r) for r in records]
+        ids = [i.get('uuid') for i in items]
+        if (any(not isinstance(uid, str) or not re.fullmatch('[0-9a-fA-F-]{36}', uid) for uid in ids)
+                or len(set(ids)) != len(ids)
+                or any(i.get('type') not in ('item', 'collection', 'community') for i in items)):
+            raise ValueError('invalid or repeated source identity')
+        return dict(items=items, total=info['totalElements'], total_pages=info['totalPages'],
+                    page_hash=self._cursor_hash(items))
+
+    def _stored_cursor_item(self, item):
+        """No merging or rewriting when stored identities disagree with the source."""
+        postgres = os.environ.get('LIBERTREE_DB_BACKEND', 'sqlite').lower() == 'postgres'
+        if not postgres and not self._conn_is_libertree():
+            raise ValueError('backfill requires the delivery document database')
+        uid = item['uuid']
+        url = self._item_url(item, item.get('metadata') or {}, uid)
+        mark = '%s' if postgres else '?'
+        rows = self._conn.execute(f'SELECT post_number,meta_url FROM documents WHERE site_id={mark} '
+                                  f'AND (post_number={mark} OR meta_url={mark})',
+                                  (self.site_id, uid, url)).fetchall()
+        if len(rows) > 1:
+            raise ValueError('ambiguous stored source identity')
+        for row in rows:
+            post, stored_url = (row['post_number'], row['meta_url']) if hasattr(row, 'keys') else row
+            if post != uid or stored_url != url:
+                raise ValueError('stored source identity requires review')
+        return bool(rows)
+
+    def _backfill_checkpoint(self, scope, page, offset, data, prefix, done=0):
+        self._advance_cursor(dict(version=self.DELIVERY_CURSOR_VERSION, contract=self._cursor_contract(),
+                                  scope=scope, page=page, offset=offset, page_items=len(data['items']),
+                                  total=data['total'], total_pages=data['total_pages'],
+                                  page_hash=data['page_hash'], prefix_hash=prefix), items_done=done)
+
+    def _crawl_backfill(self, limit):
+        self._source_failure, self._exhausted, self._pending_cursor, self._cursor_items_done = None, False, None, 0
+        resume = self.delivery_cursor
+        if resume is not None:
+            try:
+                self._validate_cursor(resume)
+            except Exception:
+                self._report_source_failure('configuration')
+                return 0
+        started, saved = time.monotonic(), 0
+        prefix = self._cursor_hash(['source-prefix', self._cursor_contract()])
+        seen = {}
+        matched = resume is None
+
+        def budget():
+            if time.monotonic() - started < self.BACKFILL_WALL_SECONDS:
+                return False
+            if self.delivery_cursor_items_done == 0:
+                self._report_source_failure('invalid_response')
+            return True
+
+        for scope in self.COMMUNITY_IDS:
+            page, expected_bounds, scope_ids = 0, None, set()
+            while True:
+                self._check_cancelled()
+                if (matched and limit is not None and saved >= limit) or budget():
+                    return saved
+                try:
+                    data = self._backfill_page(scope, page)
+                    bounds = data['total'], data['total_pages']
+                    if expected_bounds is not None and expected_bounds != bounds:
+                        raise ValueError('source scope bounds changed')
+                    expected_bounds = bounds
+                    ids = {i['uuid'] for i in data['items']}
+                    if scope_ids & ids:
+                        raise ValueError('source page repeats earlier identities')
+                    scope_ids.update(ids)
+                    at_resume = bool(resume and scope == resume['scope'] and page == resume['page'])
+                    if at_resume:
+                        if (prefix != resume['prefix_hash'] or data['page_hash'] != resume['page_hash']
+                                or bounds != (resume['total'], resume['total_pages'])
+                                or len(data['items']) != resume['page_items']):
+                            raise ValueError('source prefix or resume page changed')
+                        matched = True
+                    offset = resume['offset'] if at_resume else 0
+                    # Recheck the complete source prefix and its persisted rows.
+                    # This catches equal-count changes even in earlier scopes.
+                    for index, item in enumerate(data['items']):
+                        if matched and index >= offset:
+                            break
+                        uid = item['uuid']
+                        if item['type'] == 'item' and not self._stored_cursor_item(item):
+                            raise ValueError('cursor references a missing persisted document')
+                        fingerprint = self._cursor_hash(item)
+                        if uid in seen and seen[uid] != fingerprint:
+                            raise ValueError('cross-scope source identity changed')
+                        seen[uid] = fingerprint
+                    if matched:
+                        self._backfill_checkpoint(scope, page, offset, data, prefix)
+                except Exception as exc:
+                    self._report_source_failure('fetch_failed' if isinstance(exc, ConnectionError) else 'invalid_response')
+                    return saved
+                if matched:
+                    for index in range(offset, len(data['items'])):
+                        self._check_cancelled()
+                        if (limit is not None and saved >= limit) or budget():
+                            return saved
+                        item = data['items'][index]
+                        uid, fingerprint = item['uuid'], self._cursor_hash(item)
+                        try:
+                            if uid in seen and seen[uid] != fingerprint:
+                                raise ValueError('cross-scope source identity changed')
+                            if item['type'] == 'item' and not self._stored_cursor_item(item):
+                                time.sleep(self._delay)
+                                self._check_cancelled()
+                                detail = item if self._complete_inline_item(item, uid) else self._fetch_item(uid)
+                                if not detail or (detail.get('uuid') or detail.get('id')) != uid:
+                                    raise ValueError('missing or mismatched item detail')
+                                parsed = self._parse_item(detail, self._fetch_bitstreams(detail, uid))
+                                if getattr(self, '_access_held', False):
+                                    return saved
+                                if len(parsed['abstract']) < self.MIN_ABSTRACT_CHARS:
+                                    raise ValueError('unresolved source body gap')
+                                self._save_parsed(parsed)
+                                if self._last_save_created:
+                                    saved += 1
+                            seen[uid] = fingerprint
+                            self._backfill_checkpoint(scope, page, index + 1, data, prefix, done=1)
+                            self._check_cancelled()
+                        except Exception:
+                            self._report_source_failure('item_failed')
+                            return saved
+                prefix = self._cursor_hash([prefix, scope, page, data['page_hash'], *bounds])
+                if page == max(data['total_pages'] - 1, 0):
+                    break
+                page += 1
+        self._check_cancelled()
+        if not matched:
+            self._report_source_failure('invalid_response')
+        elif not self.delivery_source_failure:
+            self._mark_exhausted()
+        return saved
 
     def _fetch_list(self, page):
         params = {

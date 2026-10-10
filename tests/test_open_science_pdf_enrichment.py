@@ -63,6 +63,15 @@ class OpenSciencePdfCounts(CoupledContract,unittest.TestCase):
 
     def test_access_denial_stops_before_later_items(self):
         self.pdf_status=403;c=self.crawler();self.assertEqual(c.crawl(),0);self.assertEqual(c.delivery_source_failure,'authentication_failed');self.assertEqual(self.pdf_get.call_count,1)
+    def test_backfill_access_denial_keeps_first_unprocessed_position(self):
+        self.pdf_status=403;c=self.crawler();c.delivery_mode='backfill'
+        self.assertEqual(c.crawl(),0);self.assertEqual(c.delivery_source_failure,'authentication_failed')
+        self.assertEqual(c.delivery_pending_cursor['offset'],0);self.assertEqual(self.pdf_get.call_count,1);self.assertFalse(c.delivery_exhausted)
+    def test_backfill_pdf_recovery_then_resume_preserves_saved_rows(self):
+        c=self.crawler();c.delivery_mode='backfill';self.assertEqual(c.crawl(limit=3),3)
+        cursor=c.delivery_pending_cursor;before=self.identities();c=self.crawler();c.delivery_mode='backfill';c.delivery_cursor=cursor
+        self.assertEqual(c.crawl(),5);self.assertTrue(c.delivery_exhausted)
+        self.assertTrue(all(self.identities()[key]==value for key,value in before.items()));self.assertEqual(self.pdf_get.call_count,1)
     def test_off_repository_redirect_is_not_fetched(self):
         self.redirect='https://outside.invalid/report.pdf';c=self.crawler();self.assertEqual(c.crawl(),6)
         self.assertTrue(c.delivery_source_failure);self.assertFalse(any('outside.invalid' in call.args[0] for call in self.pdf_get.call_args_list))

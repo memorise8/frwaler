@@ -193,7 +193,7 @@ class OpenScienceDeliveryWorker(unittest.TestCase):
             self.assertEqual(case.count(),8)
         finally:case.doCleanups()
 
-    def test_native_worker_preserves_body_gap_as_failed_after_other_records_saved(self):
+    def test_native_backfill_worker_holds_at_first_body_gap(self):
         from delivery.db.schema import init_delivery_schema
         from delivery.worker import jobs,worker
         case=OpenScienceDeliveryScopesPostgres(methodName='test_repeat_three_reaches_remainder_and_then_zero')
@@ -202,7 +202,8 @@ class OpenScienceDeliveryWorker(unittest.TestCase):
             jid=jobs.enqueue_job(case.conn,case.SITE,mode='backfill')
             returned=worker.run_job(case.conn,jobs.claim_next_job(case.conn),{case.SITE:lambda **kw:c},delay=0)
             job=jobs.job_detail(case.conn,jid)['job']
-            self.assertEqual((returned,job['saved_count'],job['status']),(7,7,'failed'))
+            self.assertEqual((returned,job['saved_count'],job['status']),(0,0,'failed'))
+            self.assertEqual(c.delivery_pending_cursor['offset'],0)
             self.assertIn('item_failed',job['error']);self.assertIsNone(jobs.claim_next_job(case.conn));self.assertFalse(c.delivery_exhausted)
-            case.excluded=set();c=case.crawler();self.assertEqual(c.crawl(),1);self.assertEqual(case.count(),8);self.assertTrue(c.delivery_exhausted)
+            case.excluded=set();c=case.crawler();self.assertEqual(c.crawl(),8);self.assertEqual(case.count(),8);self.assertTrue(c.delivery_exhausted)
         finally:case.doCleanups()
