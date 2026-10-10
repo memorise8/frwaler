@@ -27,6 +27,7 @@ from .results import atomic_json, utc_now
 from .diagnostics import Diagnostics, curl_header_probe
 from .request_gate import RequestGate, NetworkDeferred, UngovernedRequest
 from crawler.search_credentials import missing_credentials
+from .access_challenge import access_challenge
 
 
 class ProbeComplete(BaseException):
@@ -39,6 +40,10 @@ class UnsupportedProbe(BaseException):
 
 class ProbeRateLimited(BaseException):
     """Stop this diagnostic attempt before a crawler retries HTTP 429."""
+
+
+class ProbeAccessChallenge(BaseException):
+    """Do not let collector retries or parsers consume an authentication wall."""
 
 
 class QuietOutput(io.TextIOBase):
@@ -76,6 +81,13 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
         return sqlite3.SQLITE_OK
 
     conn.set_authorizer(authorize)
+
+    def stop_on_challenge(body, row):
+        challenge = access_challenge(body)
+        if challenge:
+            stats['blocked'] += 1
+            diagnostics.data['access_challenge'] = {'kind': challenge, 'host': row.get('host') if row else None}
+            raise ProbeAccessChallenge()
 
     def denied(*args, **kwargs):
         stats["unsupported"] += 1
@@ -118,6 +130,9 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
                 if status in (401, 403, 429):
                     stats["blocked"] += 1
                 diagnostics.finish_request(row, status=status)
+                # Do not force a streaming response to download merely to inspect it.
+                if not kwargs.get('stream', False):
+                    stop_on_challenge(getattr(response, 'content', None), row)
                 if status == 429:
                     from .source_observer import retry_after
                     diagnostics.data['rate_limit'] = {'host': row.get('host') if row else None,
@@ -199,6 +214,7 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
             if result.returncode:
                 stats["network_errors"] += 1
             diagnostics.finish_request(row, status=status, returncode=result.returncode)
+            stop_on_challenge(getattr(result, 'stdout', None), row)
             if status == 429:
                 from .source_observer import retry_after
                 diagnostics.data['rate_limit'] = {'host': row.get('host') if row else None,
@@ -271,6 +287,9 @@ def sample_metadata(cls, *, limit: int, delay: float, progress: Path) -> dict:
     except ProbeRateLimited:
         state = 'blocked'
         stop_reason = 'rate_limited'
+    except ProbeAccessChallenge:
+        state = 'blocked'
+        stop_reason = 'source_access_challenge'
     except NetworkDeferred as exc:
         state = 'blocked'
         stop_reason = 'host_cooldown_deferred'

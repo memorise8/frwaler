@@ -30,11 +30,16 @@ from urllib.parse import urljoin, urlsplit
 
 from .results import atomic_json, site_path, utc_now
 from .scope_inventory import public_url
+from .access_challenge import access_challenge
 
 MAX_BODY = 2 * 1024 * 1024
 
 
 class HostDeferred(Exception):
+    pass
+
+
+class HostAccessHeld(Exception):
     pass
 
 
@@ -61,12 +66,14 @@ class HostGate:
 
     def state(self, host):
         with self._guard:
-            return self._hosts.setdefault(host, {'lock': threading.Lock(), 'last_end': 0, 'defer_until': 0})
+            return self._hosts.setdefault(host, {'lock': threading.Lock(), 'last_end': 0, 'defer_until': 0, 'access_held': False})
 
     @contextmanager
     def enter(self, host):
         state = self.state(host)
         with state['lock']:
+            if state['access_held']:
+                raise HostAccessHeld()
             if state['defer_until'] > time.time():
                 raise HostDeferred()
             wait = state['last_end'] + self.delay - time.monotonic()
@@ -84,6 +91,10 @@ class HostGate:
 
     def cooldowns(self):
         return {h: s['defer_until'] for h, s in self._hosts.items() if s['defer_until'] > time.time()}
+
+    def hold_access(self, host):
+        # Held for this observation batch. No guessed expiry for human approval.
+        self.state(host)['access_held'] = True
 
 
 def public_address(host, port):
@@ -230,9 +241,22 @@ def observe(site, gate, *, timeout=20, fetch=fetch_once):
                     headers = response['headers']
                     if response['status'] == 429 or (response['status'] == 503 and headers.get('retry-after')):
                         gate.defer(host, headers.get('retry-after'))
+                    challenge = None
+                    if response['body_complete'] and not response['curl_exit']:
+                        try:
+                            decoded, _ = decode_observation_body(response['body'], headers.get('content-encoding'))
+                            challenge = access_challenge(decoded)
+                        except ValueError:
+                            pass
+                    if challenge:
+                        gate.hold_access(host)
                 result['hops'].append({'url': url, 'http_status': response['status'],
                                        'curl_exit': response['curl_exit'], 'body_bytes': len(response['body']),
                                        'body_complete': response['body_complete']})
+                if challenge:
+                    result.update(state='source_access_challenge', challenge=challenge,
+                                  body_sha256=hashlib.sha256(response['body']).hexdigest())
+                    break
                 if response['curl_exit']:
                     result['state'] = {28: 'timeout', 60: 'tls_verification_failed', 63: 'body_limit'}.get(response['curl_exit'], 'transport_error')
                     break
@@ -266,6 +290,8 @@ def observe(site, gate, *, timeout=20, fetch=fetch_once):
                 result['state'] = 'redirect_limit'
         except HostDeferred:
             result['state'] = 'host_cooldown_deferred'
+        except HostAccessHeld:
+            result['state'] = 'host_access_held'
         except Exception as exc:
             result.update(state='observation_error', exception_type=type(exc).__name__)
     result.update(observed_at=utc_now(), elapsed_s=round(time.monotonic()-started, 3))
