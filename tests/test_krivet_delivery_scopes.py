@@ -28,6 +28,50 @@ def detail(menu,uid,date='2026.07.31',body=BODY):
 
 class KrivetScopes(SiteContract,unittest.TestCase):
     SITE='krivet-re-kr-kor'
+    def test_press_source_controls_hold_even_when_native_replacements_are_mild(self):
+        c=self.crawler();original=self.fetch.side_effect
+        raw=detail('23','NH5',body=BODY+'\x00'*33)
+        c._active_menu='23';parsed=c._parse_detail_page(raw)
+        quality=c._body_quality(raw,parsed)
+        self.assertEqual(quality['native']['state'],'review')
+        self.assertEqual(quality['source_body']['counts']['control_characters'],33)
+        self.assertEqual(quality['state'],'review_required')
+        self.assertTrue(parsed['abstract'].endswith('\ufffd'*33))
+        self.fetch.side_effect=lambda u,p,**k:raw if p.get('pstNo')=='NH5' else original(u,p,**k)
+        self.assertEqual(c.crawl(),7)
+        self.assertIsNone(self.conn.execute("SELECT seq_id FROM documents WHERE post_number='NH5'").fetchone())
+        self.assertEqual(c.delivery_body_quality_holds[0]['pst_no'],'NH5')
+        self.assertEqual(c.delivery_source_failure,'item_failed')
+        self.assertFalse(c.delivery_exhausted)
+
+    def test_source_controls_outside_body_do_not_reject_clean_article(self):
+        c=self.crawler();original=self.fetch.side_effect
+        raw=detail('23','NH5')+'<footer>'+'\x00'*100+'</footer>'
+        self.fetch.side_effect=lambda u,p,**k:raw if p.get('pstNo')=='NH5' else original(u,p,**k)
+        self.assertEqual(c.crawl(),8)
+        self.assertEqual(c.delivery_body_quality_reviews,[])
+        self.assertFalse(c.delivery_source_failure)
+
+    def test_mild_body_review_preserves_native_text_and_does_not_lower_threshold(self):
+        c=self.crawler();original=self.fetch.side_effect
+        raw=detail('23','NH5',body=BODY+'\x00'*18)
+        self.fetch.side_effect=lambda u,p,**k:raw if p.get('pstNo')=='NH5' else original(u,p,**k)
+        self.assertEqual(c.crawl(),8)
+        row=self.conn.execute("SELECT abstract FROM documents WHERE post_number='NH5'").fetchone()
+        self.assertEqual(row['abstract'] if isinstance(row,dict) else row[0],BODY+'\ufffd'*18)
+        self.assertEqual(c.delivery_body_quality_reviews[0]['quality']['state'],'review')
+        self.assertEqual(c.delivery_body_quality_holds,[])
+
+    def test_publication_controls_and_native_replacement_corruption_hold(self):
+        c=self.crawler();original=self.fetch.side_effect
+        def fetch(u,p,**k):
+            if p.get('pstNo')=='PB2':return detail('15','PB2',body=BODY+'\x00'*33)
+            if p.get('pstNo')=='NH5':return detail('23','NH5',body=BODY+'\ufffd'*100)
+            return original(u,p,**k)
+        self.fetch.side_effect=fetch
+        self.assertEqual(c.crawl(),6)
+        self.assertEqual([h['pst_no'] for h in c.delivery_body_quality_holds],['PB2','NH5'])
+
     def test_press_misnested_inline_tags_keep_body_after_nested_table(self):
         c=self.crawler();original=self.fetch.side_effect
         body=('<p><table><tbody><tr><td><span><strong><p>Lead</span></p>'

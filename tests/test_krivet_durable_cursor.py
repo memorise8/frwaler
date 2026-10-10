@@ -65,6 +65,23 @@ class KrivetCursor(KrivetScopes):
         self.assertEqual(c.delivery_source_failure, 'item_failed')
         self.assertFalse(c.delivery_exhausted)
 
+    def test_source_corruption_holds_cursor_until_source_recovers(self):
+        c = self.backfill()
+        original = self.fetch.side_effect
+        self.fetch.side_effect = lambda u,p,**kw: detail('23','NH5',body='Original research body. '*20+'\x00'*33) if p.get('pstNo')=='NH5' else original(u,p,**kw)
+        self.assertEqual(c.crawl(),4)
+        self.assertEqual(c.delivery_source_failure,'item_failed')
+        self.assertFalse(c.delivery_exhausted)
+        cursor = json.loads(json.dumps(c.delivery_pending_cursor))
+        self.assertEqual((cursor['menu'],cursor['offset']),('23',0))
+        self.assertEqual(c.delivery_body_quality_holds[0]['pst_no'],'NH5')
+        before = self.identities()
+        c = self.backfill(cursor)
+        self.assertEqual(c.crawl(),4)
+        self.assertTrue(c.delivery_exhausted)
+        self.assertTrue(all(self.identities()[k]==v for k,v in before.items()))
+        self.assertEqual(self.backfill(c.delivery_pending_cursor).crawl(),0)
+
     def test_current_page_identity_drift_stops_before_saving(self):
         c = self.backfill(); c.crawl(limit=3)
         c = self.backfill(c.delivery_pending_cursor)

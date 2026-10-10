@@ -18,6 +18,7 @@ from urllib.parse import urlencode
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from crawler.base_crawler import BaseCrawler
+from delivery.files.text_quality import inspect_text
 
 _SITE_ID = 'krivet-re-kr-kor'
 _BASE_URL = 'https://www.krivet.re.kr'
@@ -247,6 +248,34 @@ class KrivetReKrKorCrawler(BaseCrawler):
                     attachments=attachments, primary_attachment=primary,
                     contents='\n\n'.join(n.get_text(strip=True) for n in soup.select('#tl1 pre,#tl3 pre')))
 
+    def _body_quality(self, raw_html, detail):
+        """Keep the saved body intact; inspect controls before lxml replaces NUL.
+
+        The second parser is diagnostic only. Its handling of malformed nested
+        tables is not suitable for replacing the native press body.
+        """
+        native = inspect_text(detail['abstract'])
+        source = None
+        unidentified = False
+        if getattr(self, '_active_menu', '15') == '23' and '\x00' in raw_html:
+            soup = _make_soup(raw_html)
+            title = soup.select_one('th.tb_tit')
+            table = title.find_parent('table') if title else None
+            if table is None or _text(title) != detail['title']:
+                unidentified = True
+            else:
+                cells = [n for n in table.select('tbody tr > td[colspan="2"]')
+                         if n.find_parent('table') is table]
+                if not cells:
+                    unidentified = True
+                else:
+                    source = inspect_text('\n\n'.join(n.get_text('\n', strip=True) for n in cells))
+        states = [native['state']] + ([source['state']] if source else [])
+        state = ('review_required' if unidentified or 'review_required' in states
+                 else 'review' if 'review' in states else 'no_obvious_defects')
+        return dict(state=state, native=native, source_body=source,
+                    source_body_unidentified=unidentified, body_modified=False)
+
     @staticmethod
     def _page_identity(items):
         return hashlib.sha256(json.dumps(
@@ -303,6 +332,8 @@ class KrivetReKrKorCrawler(BaseCrawler):
         saved = 0
         seen_across = {}
         self.delivery_body_gaps = []
+        self.delivery_body_quality_reviews = []
+        self.delivery_body_quality_holds = []
         start_index = _MENU_SCOPES.index(resume['menu']) if resume else 0
         for menu in _MENU_SCOPES[start_index:]:
             self._active_menu = menu
@@ -416,6 +447,15 @@ class KrivetReKrKorCrawler(BaseCrawler):
                                 return saved
                             continue
                         if any(a['pst_no'] != uid for a in detail['attachments']):
+                            self._report_source_failure('item_failed')
+                            if self._cursor_enabled:
+                                return saved
+                            continue
+                        quality = self._body_quality(raw_detail, detail)
+                        if quality['state'] != 'no_obvious_defects':
+                            self.delivery_body_quality_reviews.append(dict(menu=menu, pst_no=uid, quality=quality))
+                        if quality['state'] == 'review_required':
+                            self.delivery_body_quality_holds.append(dict(menu=menu, pst_no=uid, quality=quality))
                             self._report_source_failure('item_failed')
                             if self._cursor_enabled:
                                 return saved
