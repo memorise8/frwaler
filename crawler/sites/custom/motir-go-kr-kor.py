@@ -41,6 +41,7 @@ def _make_soup(raw_html: str):
 _DATE_RE = re.compile(r"(\d{4})-(\d{2})-(\d{2})")
 _DIST_DATE_RE = re.compile(r"배포\s*(\d{4})\s*[.\s]\s*(\d{1,2})\s*[.\s]\s*(\d{1,2})")
 _VIEW_ID_RE = re.compile(r"article\.view\('(\d+)'\)")
+_VIEW_PATH_ID_RE = re.compile(r"/kor/article/[^/?#]+/(\d+)/view(?:[?#]|$)")
 _JS_HREF_RE = re.compile(r"location\.href='([^']+)'")
 
 
@@ -109,10 +110,13 @@ class MotirGoKrKorCrawler(BaseCrawler):
 
         for tr in tbody.find_all("tr", recursive=False):
             try:
-                anchor = tr.find("a", href=lambda h: bool(h) and "article.view" in h)
+                anchor = tr.find(
+                    "a", href=lambda h: bool(h) and (
+                        _VIEW_ID_RE.search(h) or _VIEW_PATH_ID_RE.search(h)))
                 if anchor is None:
                     continue
-                m = _VIEW_ID_RE.search(anchor.get("href") or "")
+                href = anchor.get("href") or ""
+                m = _VIEW_ID_RE.search(href) or _VIEW_PATH_ID_RE.search(href)
                 if not m:
                     continue
                 bbs_seq_n = m.group(1)

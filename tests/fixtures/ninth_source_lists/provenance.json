@@ -1,0 +1,30 @@
+{
+  "extracted_at": "2026-10-11",
+  "source_evidence_root": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010",
+  "sources": [
+    {
+      "fixture": "motir-native.html",
+      "source_file": "ninth-eight-public-boundaries/009.body",
+      "source_sha256": "3d707e3f561050deadd9ce5c8e74c5c4a1235a86be063209fca41900c40b9909",
+      "selector": "#mytable"
+    },
+    {
+      "fixture": "motir-publications.html",
+      "source_file": "motir-go-kr-kor-exact-delivered-entries/scope-0-0.body",
+      "source_sha256": "a1fdc024407bedf41c9ca56d1d542d83938c13ae446d3ca7e4de7822a681a7b3",
+      "selector": "#mytable"
+    },
+    {
+      "fixture": "nec-press.html",
+      "source_file": "nec-go-kr-site-exact-delivered-entries/scope-0-0.body",
+      "source_sha256": "548d1cca78d4049e10cf6caf254db8c486dfd6d868d660ababa5d2f5d9fb8072",
+      "selector": "div.tableList"
+    },
+    {
+      "fixture": "nec-research.html",
+      "source_file": "nec-go-kr-site-exact-delivered-entries/scope-1-0.body",
+      "source_sha256": "4a26a66d447918d0a88279e6e7ebeeb56b958689687db447fbff771f9e557955",
+      "selector": "div.tableList"
+    }
+  ]
+}

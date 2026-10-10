@@ -10,6 +10,7 @@ import re
 import subprocess
 import tempfile
 import time
+from urllib.parse import urljoin
 
 from crawler.base_crawler import BaseCrawler
 
@@ -141,7 +142,7 @@ def _parse_list_page(html):
         pdf_url = ""
         orig_fn = ""
         if pdf_a:
-            pdf_url = pdf_a.get("href", "")
+            pdf_url = urljoin(_LIST_URL, pdf_a.get("href", ""))
             t = pdf_a.get("title", "")
             orig_fn = t.replace(" 파일다운로드", "").strip() if t else ""
 
@@ -195,7 +196,7 @@ def _parse_detail_page(html):
         if not href:
             continue
         if ".pdf" in href.lower() or "Download.do" in href:
-            result["pdf_url"] = href
+            result["pdf_url"] = urljoin(_LIST_URL, href)
             t = a.get("title", "")
             orig = t.replace(" 파일다운로드", "").strip() if t else ""
             if not orig:
