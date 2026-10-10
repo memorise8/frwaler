@@ -1,0 +1,16 @@
+[
+  {
+    "fixture": "fss-krds-list.html",
+    "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/fss-or-kr-fss-exact-delivered-entries/scope-0-0.body",
+    "source_sha256": "fa6a420b636566cd75c63871fb0bb19de27cab1b71dd6ffc08c46b040eca9c43",
+    "selection": ".krds-table-wrap",
+    "fixture_sha256": "a0f496859a4512140fc4338a72c1b8d93d2f1e56a862f0126b2263abf60edc4c"
+  },
+  {
+    "fixture": "gichd-new-route-list.html",
+    "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/gichd-org-publications-resourc-exact-delivered-entries/scope-0-1.body",
+    "source_sha256": "4ba2c5e4e5729f937450f9cd8d3edceb0727d75436a99c5c88e6151b84ca300c",
+    "selection": "all div.news.list.publications, including the separate featured grid",
+    "fixture_sha256": "e7c0a7112341f6d56a6cefd1d858955711cd653cb9238c8953e8b91b1a30fd2d"
+  }
+]

@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """GICHD Publications crawler.
 
-Live discovery notes, 2026-06-04:
+Live discovery notes, updated 2026-10-11:
 - List endpoint is server-rendered TYPO3 HTML at
-  https://www.gichd.org/publications-resources/publications/
-- Pagination is HTML at /publications-resources/publications/{offset}/ where
+  https://www.gichd.org/publications-resources/publications-and-reports/
+- Pagination is HTML at /publications-resources/publications-and-reports/{offset}/ where
   the visible second page is suffix /1/.
+- Old publication links remain valid inputs and retain their slug-based IDs.
 - RSS exists but only exposes the first 10 latest publications, so it is not
   sufficient for full-depth crawling.
 """
@@ -151,7 +152,7 @@ class GichdPublicationsCrawler(BaseCrawler):
     site_name = "Custom: gichd-org-publications-resourc"
     base_url = "https://www.gichd.org"
 
-    _LIST_START_URL = "https://www.gichd.org/publications-resources/publications/"
+    _LIST_START_URL = "https://www.gichd.org/publications-resources/publications-and-reports/"
     _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
     _WALL_CLOCK_BUDGET_S = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
     _ABSTRACT_MIN_CHARS = 50
@@ -235,11 +236,14 @@ class GichdPublicationsCrawler(BaseCrawler):
         if parsed.netloc and parsed.netloc != "www.gichd.org":
             return None
         path = parsed.path
-        prefix = "/publications-resources/publications/"
-        if not path.startswith(prefix):
+        prefixes = (
+            "/publications-resources/publications/",
+            "/publications-resources/publications-and-reports/",
+        )
+        if not path.startswith(prefixes):
             return None
         slug = path.rstrip("/").split("/")[-1]
-        if not slug or slug.isdigit() or slug in {"publications", "rss"}:
+        if not slug or slug.isdigit() or slug in {"publications", "publications-and-reports", "rss"}:
             return None
         return urljoin(self.base_url, path.rstrip("/") + "/")
 

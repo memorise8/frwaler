@@ -115,8 +115,10 @@ class FssOrKrFssCrawler(BaseCrawler):
         soup = _make_soup(html)
         if soup:
             try:
-                blist = soup.find("div", class_="bd-list")
-                table = blist.find("table") if blist else None
+                table = soup.select_one(".krds-table-wrap table.list-data")
+                if table is None:
+                    blist = soup.find("div", class_="bd-list")
+                    table = blist.find("table") if blist else None
                 tbody = table.find("tbody") if table else None
                 trs = tbody.find_all("tr", recursive=False) if tbody else []
                 for tr in trs:
