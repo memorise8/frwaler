@@ -132,19 +132,16 @@ class MFDSBoardCrawler(BaseCrawler):
                 seq = m.group(1)
                 title = a.get_text(separator=" ", strip=True)
 
-                # Find date in the closest winfo container
+                # Keep dates within this record: the current layout places the
+                # registration date in right_column, beside the content column.
                 date_str = ""
-                node = a.parent
-                for _ in range(8):
-                    if node is None:
-                        break
-                    winfo = node.find(class_=re.compile(r'winfo|date'))
-                    if winfo:
-                        dm = re.search(r'(\d{4}-\d{2}-\d{2})', winfo.get_text())
+                row = a.find_parent("li") or a.find_parent("tr")
+                if row is not None:
+                    for date_node in row.select(".right_column, .winfo, .date"):
+                        dm = re.search(r'(\d{4}-\d{2}-\d{2})', date_node.get_text())
                         if dm:
                             date_str = dm.group(1)
                             break
-                    node = node.parent
 
                 items.append((seq, title, date_str))
         else:
