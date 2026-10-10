@@ -22,6 +22,10 @@ SITE_DATE_ORDERS: dict[str, str] = {
     # ENS Lyon's publication fields expose 02/07/2026 and 25/06/2026;
     # retained listing/detail observations agree on the labeled DMY format.
     'ens-lyon-fr-lecole': 'DMY',
+    # All 29 retained press-linked Academie article pages use DD.MM.YYYY
+    # (including 26.08.2025 and 23.12.2022). This is their portal date;
+    # the original newspaper/PDF publication date stays separate.
+    'academie-sciences-fr-espace-presse': 'DMY',
 }
 # Reviewed source-field labels only; never search for dates in arbitrary prose.
 SITE_DATE_LABELS = {

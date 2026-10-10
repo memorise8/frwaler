@@ -33,6 +33,7 @@ from pathlib import Path
 # absolute import -- spec_from_file_location has no package context
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from crawler.base_crawler import BaseCrawler
+from crawler.academie_source import editorial_items, parse_article, article_paper, source_url
 
 
 _SITE_ID = "academie-sciences-fr-espace-presse"
@@ -43,7 +44,6 @@ _VIEW_NAME = "press_area"
 _VIEW_DISPLAY_ID = "page_1"
 _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _BUDGET_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
-_RETRY_DELAYS = (1, 3, 9)
 _MIN_ABSTRACT_CHARS = 50
 _USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -318,7 +318,11 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
                 print(f"[{self.site_id}] list page {page_num} unparseable; stopping")
                 break
 
-            items, has_next = self._parse_list_items(soup, page_num, list_url)
+            try:
+                items, has_next = self._parse_list_items(soup, page_num, list_url)
+            except ValueError:
+                self._report_source_failure('invalid_response')
+                return saved
             if not items:
                 print(f"[{self.site_id}] page {page_num}: no records; stopping")
                 break
@@ -332,7 +336,7 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
                     print(f"[{self.site_id}] wall-clock budget approaching during page {page_num}; stopping")
                     return saved
 
-                item_url = item["pdf_url"]
+                item_url = item.get("detail_url") or item["pdf_url"]
                 if item_url in seen_urls:
                     continue
                 seen_urls.add(item_url)
@@ -341,12 +345,16 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
                 try:
                     if self._process_item(item):
                         saved += 1
+                    if self.delivery_source_failure:
+                        return saved
                     time.sleep(self.detail_delay)
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
                     print(f"[{self.site_id}] item {page_num}.{item_index} failed: {exc}")
-                    continue
+                    if not self.delivery_source_failure:
+                        self._report_source_failure('item_failed')
+                    return saved
 
             if page_num % 10 == 0:
                 print(f"[{self.site_id}] page {page_num}: saved {saved}/{limit_or_inf}")
@@ -368,56 +376,42 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
         return f"{_START_URL}?{urllib.parse.urlencode({'page': query_page})}"
 
     def _fetch_bytes(self, url, *, accept=None, context=None, max_time=60):
-        headers = [
-            "-H",
-            f"User-Agent: {_USER_AGENT}",
-            "-H",
-            "Accept-Language: fr-FR,fr;q=0.9,en;q=0.8",
-        ]
+        if self.delivery_source_failure:
+            return None
+        cmd = ["curl", "-q", "--silent", "--show-error", "--proto", "=https",
+               "--max-time", str(max_time), "--max-filesize", str(200 * 1024 ** 2),
+               "-H", f"User-Agent: {_USER_AGENT}",
+               "-H", "Accept-Language: fr-FR,fr;q=0.9,en;q=0.8"]
         if accept:
-            headers.extend(["-H", f"Accept: {accept}"])
-
-        cmd = [
-            "curl",
-            "--tls-max",
-            "1.3",
-            "-skL",
-            "--max-time",
-            str(max_time),
-            *headers,
-            url,
-        ]
-
-        label = context or url
-        for attempt, wait in enumerate(_RETRY_DELAYS, start=1):
-            try:
-                result = subprocess.run(
-                    cmd,
-                    capture_output=True,
-                    timeout=max_time + 10,
-                )
-                if result.returncode == 0 and result.stdout:
-                    return result.stdout
-                stderr = result.stderr.decode("utf-8", errors="replace").strip()
-                print(
-                    f"[{self.site_id}] curl attempt {attempt}/3 failed for "
-                    f"{label}: rc={result.returncode} {stderr[:200]}"
-                )
-            except KeyboardInterrupt:
-                raise
-            except Exception as exc:
-                print(f"[{self.site_id}] curl attempt {attempt}/3 failed for {label}: {exc}")
-
-            if attempt < len(_RETRY_DELAYS):
-                time.sleep(wait)
-
-        return None
+            cmd.extend(["-H", f"Accept: {accept}"])
+        cmd.extend(["--write-out", "\n%{http_code}", "--url", url])
+        try:
+            result = subprocess.run(cmd, capture_output=True, timeout=max_time + 10)
+            body, _, code = result.stdout.rpartition(b"\n")
+            status = int(code) if code.isdigit() else 0
+            if result.returncode or status != 200 or not body:
+                reason = ('authentication_failed' if status in (401, 403) else
+                          'rate_limited' if status in (429, 503) else 'fetch_failed')
+                self._report_source_failure(reason)
+                return None
+            from delivery.health.access_challenge import access_challenge
+            if access_challenge(body):
+                self._report_source_failure('authentication_failed')
+                return None
+            return body
+        except (OSError, subprocess.SubprocessError):
+            self._report_source_failure('fetch_failed')
+            return None
 
     def _fetch_text(self, url, *, accept=None, context=None, max_time=60):
         raw = self._fetch_bytes(url, accept=accept, context=context, max_time=max_time)
         if raw is None:
             return None
-        return raw.decode("utf-8", errors="replace")
+        value = raw.decode("utf-8", errors="replace")
+        if not re.search(r'<html\b', value, re.I) or not re.search(r'</html\s*>', value, re.I):
+            self._report_source_failure('invalid_response')
+            return None
+        return value
 
     def _parse_list_items(self, soup, page_num, list_url):
         view = None
@@ -426,18 +420,20 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
             if heading and "communique de presse" in _fold_text(heading.get_text(" ", strip=True)):
                 view = candidate
                 break
-        root = view or soup
+        if view is None:
+            raise ValueError('Academie press list container missing')
+        root = view
         rows = root.select("div.views-row")
         items = []
 
         for row in rows:
             link = row.select_one("h4.ParagraphAccordion-item-title a[href]")
             if not link:
-                continue
+                raise ValueError('Academie press list row link missing')
             href = link.get("href") or ""
-            full_url = _normalize_url(urllib.parse.urljoin(self.base_url, href))
-            if ".pdf" not in urllib.parse.urlsplit(full_url).path.lower():
-                continue
+            full_url = source_url(list_url, href)
+            if not urllib.parse.urlsplit(full_url).path.lower().endswith('.pdf'):
+                raise ValueError('Academie unreviewed paginated source type')
 
             time_el = link.find("time") or row.find("time")
             listed_datetime = time_el.get("datetime") if time_el else None
@@ -460,9 +456,24 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
 
         pager = root.select_one('ul[data-drupal-views-infinite-scroll-pager] a[rel="next"]')
         has_next = bool(pager and pager.get("href"))
+        if has_next and urllib.parse.urljoin(list_url, pager['href']) != self._list_url(page_num):
+            raise ValueError('Academie non-adjacent or foreign source paginator')
+        for item in editorial_items(soup, page_num, list_url):
+            if item['kind'] == 'PDF':
+                item['filename_slug'] = _slug_from_filename(item['original_filename'])
+            items.append(item)
         return items, has_next
 
     def _process_item(self, item):
+        if item.get('kind') == 'HTML':
+            raw = self._fetch_text(item['detail_url'], accept='text/html,*/*', context='explicit press article')
+            if not raw:
+                raise ConnectionError('Academie source article unavailable')
+            detail = parse_article(raw, item)
+            if len(detail['abstract']) < _MIN_ABSTRACT_CHARS:
+                raise ValueError('Academie source article body below accepted threshold')
+            self._last_processed_seq_id = self._save_paper(article_paper(self.site_id, detail))
+            return self._last_save_created
         pdf_url = item["pdf_url"]
         pdf_bytes = self._fetch_bytes(
             pdf_url,
@@ -474,7 +485,12 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
             print(f"[{self.site_id}] item {pdf_url} failed: PDF fetch returned no body")
             return False
 
+        if not pdf_bytes.startswith(b'%PDF-'):
+            raise ValueError('Academie source response is not a PDF')
         pdf_text = self._extract_pdf_text(pdf_bytes, pdf_url)
+        from delivery.files.text_quality import inspect_text
+        if inspect_text(pdf_text)['state'] == 'review_required':
+            raise ValueError('Academie source PDF text quality requires review')
         title = _pdf_title_from_text(pdf_text, item.get("title"))
         abstract = _abstract_from_pdf_text(pdf_text, title)
         if len(abstract) < _MIN_ABSTRACT_CHARS:
@@ -535,7 +551,7 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
             "original_filename": original_filename,
             "metadata": _json_dumps(metadata),
         }
-        self._save_paper(paper)
+        self._last_processed_seq_id = self._save_paper(paper)
         return self._last_save_created
 
     def _extract_pdf_text(self, pdf_bytes, url):

@@ -134,9 +134,23 @@ class AcademieCounts(SiteContract, unittest.TestCase):
         def items(soup, page, url):
             return ([{'pdf_url': f'https://www.academie-sciences.fr/files/{n}.pdf', 'title': f'Research document {n}', 'original_filename': f'{n}.pdf', 'filename_slug': str(n), 'listed_date': '2026-06-05'} for n in self.ids_for_url(url)], page == 1)
         c._parse_list_items = items
-        c._fetch_bytes = lambda *args, **kwargs: b'fixture bytes: PDF decoding is outside this test'
+        c._fetch_bytes = lambda *args, **kwargs: b'%PDF-fixture: PDF decoding is outside this count test'
         c._extract_pdf_text = lambda *args: 'Scientific research title\n' + 'A sufficiently long account of scientific research and its published results. ' * 20
         return c
+
+    def test_one_save_failure_is_recovered_on_overlap_restart(self):
+        c=self.crawler();save=c._save_paper;attempts=[]
+        def failing(paper):
+            attempts.append(paper)
+            if len(attempts)==4:
+                raise RuntimeError('injected save failure before commit')
+            return save(paper)
+        with patch.object(c,'_save_paper',side_effect=failing):
+            self.assertEqual(c.crawl(),3)
+        self.assertEqual(c.delivery_source_failure,'item_failed')
+        before=self.identities()
+        self.assertEqual(self.crawler().crawl(),5)
+        self.assertTrue(all(self.identities()[key]==seq for key,seq in before.items()))
 
 
 class AcccAboutCounts(SiteContract, unittest.TestCase):
