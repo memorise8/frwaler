@@ -18,8 +18,33 @@ CHALLENGE = b'''<html><head><title>Human Verification</title>
 <script src="https://example.captcha.awswaf.com/challenge/captcha.js"></script>
 </head><body><div id="captcha-container"></div></body></html>'''
 
+IMPERVA = b'''<html><head><title>Pardon Our Interruption</title>
+<style>.wait { background: white url("/_Incapsula_Resource?private-challenge-token"); }</style>
+</head><body>Something about your browser made us think you were a bot.</body></html>'''
+
 
 class ChallengeClassification(unittest.TestCase):
+    def test_imperva_requires_title_bot_notice_and_active_resource(self):
+        self.assertEqual(access_challenge(IMPERVA), 'imperva_browser_verification')
+        self.assertEqual(access_challenge(IMPERVA.decode()), 'imperva_browser_verification')
+        for body in (IMPERVA.replace(b'Pardon Our Interruption', b'Security report'),
+                     IMPERVA.replace(b'made us think you were a bot', b'normal document'),
+                     IMPERVA.replace(b'<style>', b'<pre>').replace(b'</style>', b'</pre>'),
+                     IMPERVA.replace(b'/_Incapsula_Resource?', b'/ordinary-image?'),
+                     b'x' * (128 * 1024) + IMPERVA):
+            self.assertIsNone(access_challenge(body))
+
+    def test_imperva_200_compressed_entry_holds_host_without_retry(self):
+        site = {'site_id':'fixture', 'selected_entry':{'url':'https://example.org/api'}}
+        gate = HostGate(0)
+        response = dict(status=200,curl_exit=0,body_complete=True,body=gzip.compress(IMPERVA),
+                        headers={'content-type':'text/html','content-encoding':'gzip'})
+        first = observe(site,gate,fetch=lambda *a,**kw:response)
+        second = observe(site,gate,fetch=lambda *a,**kw:self.fail('fetch after host hold'))
+        self.assertEqual(first['state'],'source_access_challenge')
+        self.assertEqual(second['state'],'host_access_held')
+        self.assertNotIn('private-challenge-token',json.dumps(first))
+
     def test_article_about_captcha_and_ordinary_405_are_not_challenges(self):
         for body in (b'<h1>Method Not Allowed</h1>',
                      b'<title>Security report</title><p>Human Verification captcha.awswaf.com</p>',
@@ -51,7 +76,7 @@ class ChallengeClassification(unittest.TestCase):
         for _ in range(2):
             self.assertEqual(observe(site,gate,fetch=lambda *a,**kw:response)['state'],'http_error')
 
-    def probe(self, transport, *, status=405, partial=False):
+    def probe(self, transport, *, status=405, partial=False, body=CHALLENGE):
         class Fixture(BaseCrawler):
             site_id='fixture'
             site_name='Fixture'
@@ -65,10 +90,10 @@ class ChallengeClassification(unittest.TestCase):
                     except Exception:
                         pass
                 raise AssertionError('collector must not continue after the challenge')
-        response=requests.Response();response.status_code=status;response._content=CHALLENGE
+        response=requests.Response();response.status_code=status;response._content=body
         def run(command,*a,**kw):
             Path(command[2]).write_bytes(f'HTTP/2 {status}\r\n\r\n'.encode())
-            return subprocess.CompletedProcess(command,0,stdout=CHALLENGE,stderr=b'')
+            return subprocess.CompletedProcess(command,0,stdout=body,stderr=b'')
         with tempfile.TemporaryDirectory() as folder,patch.object(requests.Session,'request',return_value=response) as request,patch('subprocess.run',side_effect=run) as command:
             result=sample_metadata(Fixture,limit=3,delay=0,progress=Path(folder)/'progress.json')
             self.assertEqual(command.call_count if transport=='curl' else request.call_count,1)
@@ -83,6 +108,13 @@ class ChallengeClassification(unittest.TestCase):
                     self.assertEqual(result['state'],'blocked')
                     self.assertEqual(result['diagnostics']['stop_reason'],'source_access_challenge')
                     self.assertEqual(result['sample_count'],0)
+
+    def test_imperva_200_stops_requests_and_curl_after_one_request(self):
+        for transport in ('requests','curl'):
+            result=self.probe(transport,status=200,body=IMPERVA)
+            self.assertEqual(result['state'],'blocked')
+            self.assertEqual(result['diagnostics']['stop_reason'],'source_access_challenge')
+            self.assertEqual(result['sample_count'],0)
 
     def test_prior_sample_stays_partial_when_later_page_is_challenged(self):
         result=self.probe('requests',partial=True)
