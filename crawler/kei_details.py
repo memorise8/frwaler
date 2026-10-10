@@ -47,9 +47,18 @@ def _attachment(link, item):
 
 
 def _known_repaired_body(nodes, html):
-    return (len(nodes) == 1 and nodes[0].name in ('span', 'p')
-            and re.fullmatch(r'[\s\S]*</div>\s*<div class=', nodes[0].get('style', ''))
-            and html.count('<div class="view" id="view2">') == 1)
+    if len(nodes) != 1 or html.count('<div class="view" id="view2">') != 1:
+        return False
+    node = nodes[0]
+    style = (node.name in ('span', 'p') and
+             re.fullmatch(r'[\s\S]*</div>\s*<div class=', node.get('style', '')))
+    # The retained pages for 681576, 681297 and 677895 end the contents
+    # inside p.align ("jus" or an empty prefix). Both parsers then assign
+    # the following div's ID to that p. Only its independent metadata can
+    # be used for PDF recovery; its repaired text is never a report body.
+    align = (node.name == 'p' and
+             re.fullmatch(r'(?:jus)?\s*</div>\s*<div class=', node.get('align', '')))
+    return bool(style or align)
 
 
 def _verify_recovery_metadata(html, item, title, fields, files):

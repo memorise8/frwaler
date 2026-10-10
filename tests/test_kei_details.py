@@ -34,6 +34,45 @@ def fixture(scope='board-0028', *, body='<p>실제 본문</p>', filename='report
 
 
 class KeiDetails(unittest.TestCase):
+    def test_truncated_align_attribute_allows_metadata_only_PDF_recovery(self):
+        raw, item = fixture('researchreport', body='')
+        expected = parse_detail(raw, item)
+        for prefix in ('', 'jus'):
+            changed = raw.replace('<div id="view1">목차: 방법, 결과</div>',
+                                  '<div id="view1"><p align="' + prefix + '\n</div>')
+            changed = changed.replace('<div id="view2">', '<div class="view" id="view2">')
+            with self.subTest(prefix=prefix):
+                with self.assertRaisesRegex(ValueError, 'body container malformed'):
+                    parse_detail(changed, item)
+                actual = parse_detail(changed, item, allow_pdf_recovery=True)
+                for field in ('title', 'source_key', 'source_url', 'raw_fields', 'authors',
+                              'attachments', 'published_date_raw', 'primary_PDF_candidate'):
+                    self.assertEqual(actual[field], expected[field])
+                for field in ('abstract', 'contents', 'body_images'):
+                    self.assertIsNone(actual[field])
+                self.assertTrue(actual['HTML_body_failure']['metadata_independently_corroborated'])
+                with self.assertRaisesRegex(ValueError, 'no validated PDF'):
+                    parse_detail(changed.replace('report.pdf', 'report.hwp'), item, allow_pdf_recovery=True)
+                with self.assertRaisesRegex(ValueError, 'HTML document incomplete'):
+                    parse_detail('<html><body>' + changed, item, allow_pdf_recovery=True)
+
+    def test_align_recovery_rejects_other_damage_and_ambiguous_body_markers(self):
+        raw, item = fixture('researchreport', body='')
+        for prefix in ('left', 'justify', 'unknown'):
+            changed = raw.replace('<div id="view1">목차: 방법, 결과</div>',
+                                  '<div id="view1"><p align="' + prefix + '\n</div>')
+            changed = changed.replace('<div id="view2">', '<div class="view" id="view2">')
+            with self.subTest(prefix=prefix), self.assertRaisesRegex(ValueError, 'body container malformed'):
+                parse_detail(changed, item, allow_pdf_recovery=True)
+        changed = raw.replace('<div id="view2">', '<p align="jus" id="view2">')
+        with self.assertRaisesRegex(ValueError, 'body container malformed'):
+            parse_detail(changed, item, allow_pdf_recovery=True)
+        changed = raw.replace('<div id="view1">목차: 방법, 결과</div>',
+                              '<div id="view1"><p align="jus\n</div>').replace(
+                                  '<div id="view2">', '<div class="view" id="view2">')
+        with self.assertRaisesRegex(ValueError, 'body container malformed'):
+            parse_detail(changed + '<div class="view" id="view2"></div>', item, allow_pdf_recovery=True)
+
     def test_known_source_damage_requires_explicit_PDF_recovery_and_keeps_failure(self):
         raw, item = fixture('researchreport', body='')
         changed = raw.replace('<div id="view1">목차: 방법, 결과</div>',

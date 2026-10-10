@@ -92,6 +92,30 @@ class KeiTraversal(unittest.TestCase):
         self.assertEqual(self.rows(), before)
         self.assertEqual(c.delivery_pending_cursor['offset'], 0)
 
+    def test_align_damaged_body_holds_at_cursor_until_validated_PDF_body_available(self):
+        def change(raw, scope, query):
+            if query.get('act') == ['view']:
+                return raw.replace('<div id="view1">목차: 방법, 결과</div>',
+                                   '<div id="view1"><p align="jus\n</div>').replace(
+                                       '<div id="view2">', '<div class="view" id="view2">')
+            return raw
+        self.change_source = change
+        c = self.crawler(); c.delivery_mode = 'backfill'
+        with patch('crawler.kei_pdf.source_pdf_excerpt', side_effect=ValueError('pdf_copy_restricted')):
+            self.assertEqual(c.crawl(limit=1), 0)
+        self.assertEqual(self.count(), 0)
+        self.assertEqual(c.delivery_source_failure, 'item_failed')
+        self.assertEqual(c.delivery_pending_cursor['offset'], 0)
+        cursor = c.delivery_pending_cursor
+        c = self.crawler(); c.delivery_mode = 'backfill'; c.delivery_cursor = cursor
+        excerpt = 'Verified source PDF research body, never repaired source HTML. ' * 10
+        with patch('crawler.kei_pdf.source_pdf_excerpt', return_value=(excerpt, {})) as recover:
+            self.assertEqual(c.crawl(limit=1), 1)
+        self.assertIsNone(recover.call_args.args[2]['abstract'])
+        self.assertEqual(self.rows()[0]['abstract'], excerpt)
+        self.assertEqual(c.delivery_pending_cursor['offset'], 1)
+        self.assertFalse(self.rows()[0]['pdf_downloaded'])
+
     def test_all_eleven_scopes_same_numeric_ids_repeat_zero_and_date_roles(self):
         c = self.crawler()
         self.assertEqual(c.crawl(), 32)
