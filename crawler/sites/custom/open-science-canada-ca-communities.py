@@ -17,6 +17,7 @@ from urllib.parse import urlencode
 from bs4 import BeautifulSoup
 
 from crawler.base_crawler import BaseCrawler
+from crawler.open_science_titles import source_title
 
 
 class _PDFTextUnavailable(RuntimeError):
@@ -535,8 +536,7 @@ class OpenScienceCanadaCaCommunitiesCrawler(BaseCrawler):
         if not uuid:
             raise RuntimeError("detail record has no uuid")
 
-        title = self._metadata_first(metadata, ("dc.title",), preferred_languages=("en",))
-        title = title or self._clean_text(item.get("name") or "")
+        title = source_title(item)
         if not title:
             raise RuntimeError(f"{uuid} has no title")
 
