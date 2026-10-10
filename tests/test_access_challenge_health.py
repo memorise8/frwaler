@@ -62,7 +62,51 @@ TSPD_JAVASCRIPT = b'''<html><head><script type="text/javascript">var token="priv
 </head><body></body></html>'''
 
 
+AWS_JAVASCRIPT = b'''<html><head><title></title>
+<script src="https://fixture.region.token.awswaf.com/a/b/challenge.js"></script>
+</head><body><div id="challenge-container"></div><noscript><h1>JavaScript is disabled</h1>
+In order to continue, we need to verify that you're not a robot.
+This requires JavaScript. Enable JavaScript and then reload the page.</noscript></body></html>'''
+
+
 class ChallengeClassification(unittest.TestCase):
+    def test_aws_js_requires_noscript_interstitial_and_active_provider_resource(self):
+        for body in (AWS_JAVASCRIPT, AWS_JAVASCRIPT.decode()):
+            self.assertEqual(access_challenge(body), 'aws_waf_javascript_verification')
+        for body in (
+            AWS_JAVASCRIPT.replace(b'<noscript>', b'<p>').replace(b'</noscript>', b'</p>'),
+            AWS_JAVASCRIPT.replace(b'challenge-container', b'research-example'),
+            AWS_JAVASCRIPT.replace(b'JavaScript is disabled', b'JavaScript research'),
+            AWS_JAVASCRIPT.replace(b'token.awswaf.com/', b'token.awswaf.com.example.org/'),
+            AWS_JAVASCRIPT.replace(b'https://fixture.region.token.awswaf.com/', b'https://[invalid/'),
+            AWS_JAVASCRIPT.replace(b'/challenge.js', b'/challenge.js.fake'),
+            AWS_JAVASCRIPT.replace(b'<script ', b'<script type="text/plain" '),
+            AWS_JAVASCRIPT.replace(b'<script ', b'<pre ').replace(b'</script>', b'</pre>'),
+            AWS_JAVASCRIPT.replace(b'</body>', b'<article>Research</article></body>'),
+            AWS_JAVASCRIPT.replace(b'</body>', b'<p>Real document</p></body>'),
+            b'x' * (128 * 1024) + AWS_JAVASCRIPT,
+        ):
+            with self.subTest(body=body[:80]):
+                self.assertIsNone(access_challenge(body))
+
+    def test_aws_js_202_holds_host_without_repeating(self):
+        site = {'site_id': 'fixture', 'selected_entry': {'url': 'https://example.org/search'}}
+        gate = HostGate(0)
+        response = dict(status=202, curl_exit=0, body_complete=True, body=gzip.compress(AWS_JAVASCRIPT),
+                        headers={'content-type': 'text/html', 'content-encoding': 'gzip'})
+        first = observe(site, gate, fetch=lambda *a, **kw: response)
+        second = observe(site, gate, fetch=lambda *a, **kw: self.fail('fetch after hold'))
+        self.assertEqual(first['state'], 'source_access_challenge')
+        self.assertEqual(first['challenge'], 'aws_waf_javascript_verification')
+        self.assertEqual(second['state'], 'host_access_held')
+
+    def test_aws_js_202_stops_both_probe_transports(self):
+        for transport in ('requests', 'curl'):
+            result = self.probe(transport, status=202, body=AWS_JAVASCRIPT)
+            self.assertEqual(result['state'], 'blocked')
+            self.assertEqual(result['diagnostics']['stop_reason'], 'source_access_challenge')
+            self.assertEqual(result['sample_count'], 0)
+
     def test_tspd_js_notice_requires_empty_interstitial_and_active_local_resource(self):
         for body in (TSPD_JAVASCRIPT, TSPD_JAVASCRIPT.decode()):
             self.assertEqual(access_challenge(body), 'tspd_javascript_verification')

@@ -11,16 +11,41 @@ def access_challenge(body):
     prefix = body[:128 * 1024]
     cookie_notice = 'this website requires js enabled and cookies'
     js_page_notice = 'please enable javascript to view the page content.'
+    aws_js_notice = "in order to continue, we need to verify that you're not a robot."
     human_notice = 'this question is for testing whether you are a human visitor'
     markers = ('human verification', 'pardon our interruption', 'security check',
                'not a bot!',
-               cookie_notice, human_notice, js_page_notice)
+               cookie_notice, human_notice, js_page_notice, aws_js_notice)
     if isinstance(prefix, bytes):
         markers = tuple(marker.encode() for marker in markers)
     if not any(marker in prefix.lower() for marker in markers):
         return None
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(prefix, 'html.parser')
+    if not soup.find(['article', 'main']):
+        # Earth-Prints returned HTTP 202 with an otherwise empty AWS WAF
+        # challenge container and this noscript fallback (no page title).
+        import re
+        from urllib.parse import urlsplit
+        notices = soup.find_all('noscript')
+        notice = notices[0] if len(notices) == 1 else None
+        heading = notice.find('h1') if notice else None
+        expected = ('javascript is disabled ' + aws_js_notice
+                    + ' this requires javascript. enable javascript and then reload the page.')
+        text = re.sub(r'\s+', ' ', soup.get_text(' ', strip=True)).casefold()
+        if (notice and heading and heading.get_text(' ', strip=True).casefold() == 'javascript is disabled'
+                and text == expected and soup.select_one('div#challenge-container')):
+            for script in soup.find_all('script', src=True):
+                if script.get('type') not in (None, 'text/javascript', 'application/javascript', 'module'):
+                    continue
+                try:
+                    resource = urlsplit(script['src'])
+                except ValueError:
+                    continue
+                if (resource.scheme == 'https'
+                        and (resource.hostname or '').endswith('.token.awswaf.com')
+                        and resource.path.endswith('/challenge.js')):
+                    return 'aws_waf_javascript_verification'
     if not soup.find(['article', 'main', 'h1']):
         # Observed HTTP 200 catalogue responses from data.gov.be contain only
         # this noscript support notice and an active local TSPD resource.
