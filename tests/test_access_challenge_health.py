@@ -46,7 +46,58 @@ ANUBIS = b'''<html><head><title>Making sure you're not a bot!</title>
 </main></body></html>'''
 
 
+TURNSTILE = b'''<html><head><title>Security Check</title>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head><body><main><h1>Security check</h1>
+<p id="security-status">Checking your browser. You will continue automatically.</p>
+<form id="turnstile-form" method="post"><input type="hidden" name="csrf" value="private-challenge-token">
+<div class="cf-turnstile" data-sitekey="public-site-key" data-callback="done"></div></form>
+<noscript>JavaScript is required to complete this security check.</noscript>
+</main></body></html>'''
+
+
 class ChallengeClassification(unittest.TestCase):
+    def test_turnstile_requires_security_interstitial_and_active_provider_control(self):
+        self.assertEqual(access_challenge(TURNSTILE), 'turnstile_browser_verification')
+        self.assertEqual(access_challenge(TURNSTILE.decode()), 'turnstile_browser_verification')
+        for body in (
+            TURNSTILE.replace(b'<title>Security Check', b'<title>Contact form'),
+            TURNSTILE.replace(b'<h1>Security check', b'<h1>Contact us'),
+            TURNSTILE.replace(b'Checking your browser.', b'Please enter your question.'),
+            TURNSTILE.replace(b'JavaScript is required', b'JavaScript is optional'),
+            TURNSTILE.replace(b'method="post"', b'method="get"'),
+            TURNSTILE.replace(b'class="cf-turnstile"', b'class="example"'),
+            TURNSTILE.replace(b'data-sitekey=', b'data-example='),
+            TURNSTILE.replace(b'challenges.cloudflare.com/', b'challenges.cloudflare.com.example.org/'),
+            TURNSTILE.replace(b'https://challenges.cloudflare.com/', b'https://[invalid/'),
+            TURNSTILE.replace(b'/api.js"', b'/api.js.fake"'),
+            TURNSTILE.replace(b'<script ', b'<script type="text/plain" '),
+            TURNSTILE.replace(b'<script ', b'<pre ').replace(b'</script>', b'</pre>'),
+            TURNSTILE.replace(b'</body>', b'<article>Turnstile research</article></body>'),
+            b'x' * (128 * 1024) + TURNSTILE,
+        ):
+            with self.subTest(body=body[:80]):
+                self.assertIsNone(access_challenge(body))
+
+    def test_turnstile_200_holds_host_without_repeating_or_exposing_token(self):
+        site = {'site_id': 'fixture', 'selected_entry': {'url': 'https://example.org/search'}}
+        gate = HostGate(0)
+        response = dict(status=200, curl_exit=0, body_complete=True, body=gzip.compress(TURNSTILE),
+                        headers={'content-type': 'text/html', 'content-encoding': 'gzip'})
+        first = observe(site, gate, fetch=lambda *a, **kw: response)
+        second = observe(site, gate, fetch=lambda *a, **kw: self.fail('fetch after host hold'))
+        self.assertEqual(first['state'], 'source_access_challenge')
+        self.assertEqual(first['challenge'], 'turnstile_browser_verification')
+        self.assertEqual(second['state'], 'host_access_held')
+        self.assertNotIn('private-challenge-token', json.dumps(first))
+
+    def test_turnstile_200_stops_both_supported_probe_transports(self):
+        for transport in ('requests', 'curl'):
+            result = self.probe(transport, status=200, body=TURNSTILE)
+            self.assertEqual(result['state'], 'blocked')
+            self.assertEqual(result['diagnostics']['stop_reason'], 'source_access_challenge')
+            self.assertEqual(result['sample_count'], 0)
+
     def test_anubis_requires_interstitial_and_active_local_module(self):
         self.assertEqual(access_challenge(ANUBIS), 'anubis_proof_of_work_verification')
         self.assertEqual(access_challenge(ANUBIS.decode()), 'anubis_proof_of_work_verification')

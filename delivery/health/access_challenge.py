@@ -56,6 +56,33 @@ def access_challenge(body):
                 and module['src'].split('?', 1)[0]
                 == '/.within.website/x/cmd/anubis/static/js/main.mjs'):
             return 'anubis_proof_of_work_verification'
+    if title == 'security check' and not soup.find('article'):
+        # Observed on the four delivered Drugs and Alcohol search scopes.
+        # A regular page with a Turnstile form is not itself an interstitial.
+        heading = soup.find('h1')
+        status = soup.find('p', id='security-status')
+        form = soup.find('form', id='turnstile-form')
+        notice = soup.find('noscript')
+        control = form.select_one('.cf-turnstile[data-sitekey]') if form else None
+        if (heading and heading.get_text(' ', strip=True).casefold() == title
+                and status and status.get_text(' ', strip=True).casefold()
+                == 'checking your browser. you will continue automatically.'
+                and notice and notice.get_text(' ', strip=True).casefold()
+                == 'javascript is required to complete this security check.'
+                and form and str(form.get('method', '')).casefold() == 'post'
+                and control):
+            from urllib.parse import urlsplit
+            for script in soup.find_all('script', src=True):
+                if script.get('type') not in (None, 'text/javascript', 'application/javascript', 'module'):
+                    continue
+                try:
+                    resource = urlsplit(script['src'])
+                except ValueError:
+                    continue
+                if (resource.scheme == 'https'
+                        and resource.hostname == 'challenges.cloudflare.com'
+                        and resource.path == '/turnstile/v0/api.js'):
+                    return 'turnstile_browser_verification'
     if title == 'security check' and not soup.find(['article', 'main']):
         # The observed BMF HTTP 503 is a Myra human-verification page, not
         # an ordinary temporary server failure. Require active controls and
