@@ -15,7 +15,7 @@ def access_challenge(body):
     human_notice = 'this question is for testing whether you are a human visitor'
     hal_notice = 'it seems that your request has been identified as coming from a robot.'
     markers = ('human verification', 'pardon our interruption', 'security check',
-               'not a bot!', 'challenge validation',
+               'not a bot!', 'challenge validation', 'radware page',
                cookie_notice, human_notice, js_page_notice, aws_js_notice, hal_notice,
                '/_incapsula_resource?')
     if isinstance(prefix, bytes):
@@ -25,6 +25,25 @@ def access_challenge(body):
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(prefix, 'html.parser')
     title = soup.title.get_text(' ', strip=True).casefold() if soup.title else ''
+    if title == 'radware page' and soup.body and not soup.find(['article', 'main', 'h1']):
+        # Observed tourism ministry HTTP 200 loader. Inspect its bounded
+        # structure only; never execute the connector or expose its tokens.
+        import re
+        notice = soup.select_one('.container .content p.verify-message')
+        incident = soup.select_one('div.incident-id p')
+        provider = soup.find('meta', attrs={'property': 'og:url'})
+        text = re.sub(r'\s+', ' ', soup.body.get_text(' ', strip=True)).casefold()
+        active = [script.get_text() for script in soup.find_all('script', src=False)
+                  if script.get('type') in (None, 'text/javascript', 'application/javascript', 'module')]
+        connector = any('SSJSConnectorObj' in script and 'validate.perfdrive.com' in script
+                        and re.search(r'''["']/[a-zA-Z0-9-]+/stormcaster\.js["']''', script)
+                        for script in active)
+        if (notice and notice.get_text(' ', strip=True).casefold()
+                == 'verifying your browser before proceeding...'
+                and incident and provider and provider.get('content') == 'https://radware.com/'
+                and re.fullmatch(r'verifying your browser before proceeding\.\.\.\s+incident id:\s+[a-z0-9-]+', text)
+                and connector):
+            return 'radware_browser_verification'
     if title == 'search - hal open archive' and not soup.find('article'):
         import re
         main = soup.select_one('main#skip-link.section-corps')

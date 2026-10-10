@@ -92,7 +92,55 @@ You can try your search again by <strong>refreshing the page</strong> or by <str
 </p></div></main></body></html>'''
 
 
+RADWARE = b'''<html><head><title>Radware Page</title>
+<meta property="og:url" content="https://radware.com/">
+<script>var token="private-challenge-token";window["SSJSConnectorObj"]={};
+var resource="/fixture-provider/stormcaster.js";var validation="validate.perfdrive.com";</script>
+</head><body><div class="container"><div class="content">
+<p class="verify-message">Verifying your browser before proceeding...</p></div></div>
+<div class="incident-id"><p><span>Incident ID:</span> private-incident-id</p></div></body></html>'''
+
+
 class ChallengeClassification(unittest.TestCase):
+    def test_radware_requires_loader_notice_provider_and_active_connector(self):
+        for body in (RADWARE, RADWARE.decode()):
+            self.assertEqual(access_challenge(body), 'radware_browser_verification')
+        for body in (
+            RADWARE.replace(b'<title>Radware Page', b'<title>Article about Radware Page'),
+            RADWARE.replace(b'https://radware.com/', b'https://example.org/'),
+            RADWARE.replace(b'Verifying your browser before proceeding...', b'No publications found'),
+            RADWARE.replace(b'validate.perfdrive.com', b'example.org'),
+            RADWARE.replace(b'"/fixture-provider/stormcaster.js"', b'"https://example.org/fixture-provider/stormcaster.js"'),
+            RADWARE.replace(b'<script>', b'<script type="application/json">'),
+            RADWARE.replace(b'<script>', b'<pre>').replace(b'</script>', b'</pre>'),
+            RADWARE.replace(b'</body>', b'<article>Research on Radware</article></body>'),
+            RADWARE.replace(b'</body>', b'<main>Ordinary results</main></body>'),
+            RADWARE.replace(b'</body>', b'<p>Ordinary content</p></body>'),
+            b'x' * (128 * 1024) + RADWARE,
+        ):
+            with self.subTest(body=body[:80]):
+                self.assertIsNone(access_challenge(body))
+
+    def test_radware_200_holds_host_without_exposing_challenge_data(self):
+        site = {'site_id': 'fixture', 'selected_entry': {'url': 'https://example.org/press'}}
+        gate = HostGate(0)
+        response = dict(status=200, curl_exit=0, body_complete=True, body=RADWARE,
+                        headers={'content-type': 'text/html'})
+        first = observe(site, gate, fetch=lambda *a, **kw: response)
+        second = observe(site, gate, fetch=lambda *a, **kw: self.fail('fetch after host hold'))
+        self.assertEqual(first['state'], 'source_access_challenge')
+        self.assertEqual(first['challenge'], 'radware_browser_verification')
+        self.assertEqual(second['state'], 'host_access_held')
+        self.assertNotIn('private-challenge-token', json.dumps(first))
+        self.assertNotIn('private-incident-id', json.dumps(first))
+
+    def test_radware_200_stops_both_probe_transports(self):
+        for transport in ('requests', 'curl'):
+            result = self.probe(transport, status=200, body=RADWARE)
+            self.assertEqual(result['state'], 'blocked')
+            self.assertEqual(result['diagnostics']['stop_reason'], 'source_access_challenge')
+            self.assertEqual(result['sample_count'], 0)
+
     def test_hal_robot_refusal_requires_the_complete_error_page(self):
         for body in (HAL_REFUSAL, HAL_REFUSAL.decode()):
             self.assertEqual(access_challenge(body), 'hal_robot_access_refusal')
