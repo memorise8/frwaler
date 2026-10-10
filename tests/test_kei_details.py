@@ -34,6 +34,13 @@ def fixture(scope='board-0028', *, body='<p>실제 본문</p>', filename='report
 
 
 class KeiDetails(unittest.TestCase):
+    def test_damaged_source_title_is_held_for_review(self):
+        raw,item=fixture()
+        for changed,wanted in [(raw.replace(item['title'],'Source\ufffdtitle'),dict(item,title='Source\ufffdtitle')),
+                               (raw,dict(item,title_quality={'state':'requires_review'}))]:
+            with self.assertRaisesRegex(ValueError,'title quality requires review'):
+                parse_detail(changed,wanted)
+
     def test_all_eleven_scope_ids_and_explicit_date_roles(self):
         for scope in SCOPES:
             with self.subTest(scope=scope):

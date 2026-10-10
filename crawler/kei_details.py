@@ -10,7 +10,7 @@ from urllib.parse import parse_qs, urljoin, urlsplit
 
 from bs4 import BeautifulSoup
 
-from crawler.kei_source import SCOPES, scope_query, text
+from crawler.kei_source import SCOPES, scope_query, text, title_quality
 
 
 def _identity(soup, name, wanted):
@@ -65,6 +65,8 @@ def parse_detail(html, item):
     main = mains[0]
     title = text(main.select_one(':scope > .title' if board else '.report_title .right .tit'))
     listing_title = item['title']
+    if item.get('title_quality') or title_quality(listing_title) or title_quality(title):
+        raise ValueError('KEI source title quality requires review')
     truncated = (listing_title.endswith(('..', '…'))
                  and bool(listing_title.rstrip('.…'))
                  and title.startswith(listing_title.rstrip('.…')))

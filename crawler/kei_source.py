@@ -31,6 +31,16 @@ def text(node):
     return re.sub(r'\s+', ' ', node.get_text(' ', strip=True)).strip() if node else ''
 
 
+def title_quality(value):
+    """Retain source identities while flagging damaged title characters."""
+    replacement = value.count('\ufffd')
+    controls = sum((ord(c) < 32 and c not in '\t\n\r') or 127 <= ord(c) <= 159 for c in value)
+    if replacement or controls:
+        return dict(state='requires_review', replacement_characters=replacement,
+                    control_characters=controls)
+    return None
+
+
 def scope_query(url, scope):
     path, mid, name = SCOPES[scope]
     parsed = urlsplit(url)
@@ -130,6 +140,9 @@ def parse_listing(html, scope, page):
                           title=title, title_text=title_text, date_raw=date,
                           post_number=text(card.select_one('li.num')),
                           category=text(card.select_one('li.sec')), url=url, attachments=attachments))
+        quality = title_quality(title)
+        if quality:
+            items[-1]['title_quality'] = quality
     next_urls = set()
     for a in soup.select('.board_pager a[href]'):
         url = urljoin(BASE, a['href'])

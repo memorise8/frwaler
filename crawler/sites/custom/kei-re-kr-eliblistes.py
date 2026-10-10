@@ -16,7 +16,7 @@ import subprocess
 import time
 
 from crawler.base_crawler import BaseCrawler
-from crawler.kei_source import parse_listing, page_number
+from crawler.kei_source import parse_listing, page_number, title_quality
 
 _BASE = "https://www.kei.re.kr"
 _MID = "a10101010000"
@@ -283,6 +283,8 @@ class KeiReKrEliblistesCrawler(BaseCrawler):
                         return saved
 
                     title = detail.get("title") or item["title"]
+                    if title_quality(title or ''):
+                        raise ValueError('KEI source title quality requires review')
                     if not title:
                         self._report_source_failure('item_failed')
                         if self.delivery_mode == 'backfill':

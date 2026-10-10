@@ -21,6 +21,21 @@ def fixture(scope='researchreport',page=1,total=20):
     return info+wrap+''.join(rows)+'</div>'+pager
 
 class KeiLists(unittest.TestCase):
+    def test_normal_title_attribute_line_breaks_are_not_corruption(self):
+        raw=fixture(total=1).replace('title="Environmental research 1"','title="Environmental\nresearch\t1"')
+        item=parse_listing(raw,'researchreport',1)['items'][0]
+        self.assertNotIn('title_quality',item)
+        self.assertEqual(item['source_key'],'researchreport:1')
+
+    def test_source_null_title_is_flagged_without_losing_its_id_or_date(self):
+        raw=fixture('board-0009',total=1).replace('Environmental research 1','Source\x00title')
+        item=parse_listing(raw,'board-0009',1)['items'][0]
+        self.assertEqual(item['source_key'],'board-0009:1')
+        self.assertEqual(item['date_raw'],'2026-08-31')
+        self.assertEqual(item['title'],'Source\ufffdtitle')
+        self.assertEqual(item['title_quality']['state'],'requires_review')
+        self.assertEqual(item['title_quality']['replacement_characters'],1)
+
     def test_press_nonempty_broken_attribute_cannot_truncate_visible_headline(self):
         raw=fixture('board-0009',total=1).replace('title="Environmental research 1"', 'title="KEI "기후-대기 통합관리의 공편익" 국제 워크숍 개최"').replace('<strong>Environmental research 1</strong>', '<strong>KEI "기후-대기 통합관리의 공편익" 국제 워크숍 개최</strong>')
         item=parse_listing(raw,'board-0009',1)['items'][0]
@@ -84,6 +99,12 @@ class KeiLists(unittest.TestCase):
             with self.assertRaises(ValueError):page_number(u,'researchreport')
 
 class KeiBounds(KeiIdentity):
+    def test_damaged_detail_title_is_not_persisted_as_a_healthy_article(self):
+        c=self.crawler();c.delivery_mode='backfill'
+        c._fetch_detail=lambda *args,**kw:dict(title='Source\ufffdtitle',abstract='Source body. '*20)
+        self.assertEqual(c.crawl(),0);self.assertEqual(self.count(),0)
+        self.assertEqual(c.delivery_source_failure,'item_failed')
+
     def test_default_traversal_reaches_page_201_instead_of_silently_stopping_at_200(self):
         c=self.crawler();self.assertEqual(c._MAX_PAGES,0)
         one=c._fetch_list_page(1)[0];requests=[]
