@@ -56,7 +56,51 @@ TURNSTILE = b'''<html><head><title>Security Check</title>
 </main></body></html>'''
 
 
+TSPD_JAVASCRIPT = b'''<html><head><script type="text/javascript">var token="private-challenge-token";</script>
+<script type="text/javascript" src="/TSPD/0123456789abcdef?type=8"></script>
+<noscript>Please enable JavaScript to view the page content.<br/>Your support ID is: 123456789.</noscript>
+</head><body></body></html>'''
+
+
 class ChallengeClassification(unittest.TestCase):
+    def test_tspd_js_notice_requires_empty_interstitial_and_active_local_resource(self):
+        for body in (TSPD_JAVASCRIPT, TSPD_JAVASCRIPT.decode()):
+            self.assertEqual(access_challenge(body), 'tspd_javascript_verification')
+        for body in (
+            TSPD_JAVASCRIPT.replace(b'<noscript>', b'<p>').replace(b'</noscript>', b'</p>'),
+            TSPD_JAVASCRIPT.replace(b'Your support ID is: 123456789.', b'Ordinary fallback.'),
+            TSPD_JAVASCRIPT.replace(b'/TSPD/', b'/scripts/'),
+            TSPD_JAVASCRIPT.replace(b'src="/TSPD/', b'src="https://example.org/TSPD/'),
+            TSPD_JAVASCRIPT.replace(b'type="text/javascript"', b'type="text/plain"'),
+            TSPD_JAVASCRIPT.replace(b'<script ', b'<pre ').replace(b'</script>', b'</pre>'),
+            TSPD_JAVASCRIPT.replace(b'</body>', b'<article>Research</article></body>'),
+            TSPD_JAVASCRIPT.replace(b'</body>', b'<main>Catalogue</main></body>'),
+            TSPD_JAVASCRIPT.replace(b'</body>', b'<p>Real content</p></body>'),
+            b'x' * (128 * 1024) + TSPD_JAVASCRIPT,
+        ):
+            with self.subTest(body=body[:80]):
+                self.assertIsNone(access_challenge(body))
+
+    def test_tspd_js_200_holds_host_without_exposing_support_id(self):
+        site = {'site_id': 'fixture', 'selected_entry': {'url': 'https://example.org/search'}}
+        gate = HostGate(0)
+        response = dict(status=200, curl_exit=0, body_complete=True, body=gzip.compress(TSPD_JAVASCRIPT),
+                        headers={'content-type': 'text/html', 'content-encoding': 'gzip'})
+        first = observe(site, gate, fetch=lambda *a, **kw: response)
+        second = observe(site, gate, fetch=lambda *a, **kw: self.fail('fetch after hold'))
+        self.assertEqual(first['challenge'], 'tspd_javascript_verification')
+        self.assertEqual(first['state'], 'source_access_challenge')
+        self.assertEqual(second['state'], 'host_access_held')
+        self.assertNotIn('123456789', json.dumps(first))
+        self.assertNotIn('private-challenge-token', json.dumps(first))
+
+    def test_tspd_js_200_stops_both_probe_transports(self):
+        for transport in ('requests', 'curl'):
+            result = self.probe(transport, status=200, body=TSPD_JAVASCRIPT)
+            self.assertEqual(result['state'], 'blocked')
+            self.assertEqual(result['diagnostics']['stop_reason'], 'source_access_challenge')
+            self.assertEqual(result['sample_count'], 0)
+
     def test_turnstile_requires_security_interstitial_and_active_provider_control(self):
         self.assertEqual(access_challenge(TURNSTILE), 'turnstile_browser_verification')
         self.assertEqual(access_challenge(TURNSTILE.decode()), 'turnstile_browser_verification')

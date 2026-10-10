@@ -10,16 +10,33 @@ def access_challenge(body):
         return None
     prefix = body[:128 * 1024]
     cookie_notice = 'this website requires js enabled and cookies'
+    js_page_notice = 'please enable javascript to view the page content.'
     human_notice = 'this question is for testing whether you are a human visitor'
     markers = ('human verification', 'pardon our interruption', 'security check',
                'not a bot!',
-               cookie_notice, human_notice)
+               cookie_notice, human_notice, js_page_notice)
     if isinstance(prefix, bytes):
         markers = tuple(marker.encode() for marker in markers)
     if not any(marker in prefix.lower() for marker in markers):
         return None
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(prefix, 'html.parser')
+    if not soup.find(['article', 'main', 'h1']):
+        # Observed HTTP 200 catalogue responses from data.gov.be contain only
+        # this noscript support notice and an active local TSPD resource.
+        # Do not mistake an article, quoted example or ordinary JS fallback
+        # for the interstitial, and never return the support ID or script data.
+        import re
+        notices = soup.find_all('noscript')
+        text = soup.get_text(' ', strip=True).casefold()
+        if (len(notices) == 1
+                and notices[0].get_text(' ', strip=True).casefold() == text
+                and re.fullmatch(re.escape(js_page_notice)
+                                 + r'\s+your support id is:\s*\d+\.', text)):
+            for script in soup.find_all('script', src=True):
+                if (script.get('type') in (None, 'text/javascript', 'application/javascript', 'module')
+                        and re.fullmatch(r'/TSPD/[0-9a-f]+(?:\?[^\s]*)?', script['src'])):
+                    return 'tspd_javascript_verification'
     if not soup.find(['article', 'main', 'h1']):
         text = soup.get_text(' ', strip=True).casefold()
         if (human_notice in text and 'what code is in the image?' in text
