@@ -26,8 +26,44 @@ COOKIE_REDIRECT = b'''<html><head></head><body>
 <script>window.location.href='/redirect_TESTCHALLENGE123====/publications?f=230';</script>
 <noscript>This website requires JS enabled and cookies</noscript></body></html>'''
 
+JS_HUMAN = b'''<html><head><script src="/TSPD/private-challenge-token"></script></head>
+<body>This question is for testing whether you are a human visitor and to prevent automated spam submission.
+<audio id="captcha_audio"></audio><b>What code is in the image?</b>
+<input id="ans" name="answer" type="text"><button>submit</button></body></html>'''
+
 
 class ChallengeClassification(unittest.TestCase):
+    def test_javascript_human_interstitial_requires_observed_active_controls(self):
+        self.assertEqual(access_challenge(JS_HUMAN), 'javascript_human_verification')
+        self.assertEqual(access_challenge(JS_HUMAN.decode()), 'javascript_human_verification')
+        for body in (
+            JS_HUMAN.replace(b'/TSPD/', b'/ordinary-script/'),
+            JS_HUMAN.replace(b'<script ', b'<a ').replace(b'</script>', b'</a>'),
+            JS_HUMAN.replace(b'name="answer"', b'name="search"'),
+            JS_HUMAN.replace(b'captcha_audio', b'article_audio'),
+            JS_HUMAN.replace(b'What code is in the image?', b'Normal publication'),
+            JS_HUMAN.replace(b'</body>', b'<article>Security research</article></body>'),
+        ):
+            self.assertIsNone(access_challenge(body))
+
+    def test_javascript_human_200_entry_holds_host_without_retry(self):
+        site = {'site_id':'fixture', 'selected_entry':{'url':'https://example.org/annual'}}
+        gate = HostGate(0)
+        response = dict(status=200,curl_exit=0,body_complete=True,body=JS_HUMAN,
+                        headers={'content-type':'text/html'})
+        first = observe(site,gate,fetch=lambda *a,**kw:response)
+        second = observe(site,gate,fetch=lambda *a,**kw:self.fail('fetch after host hold'))
+        self.assertEqual(first['state'], 'source_access_challenge')
+        self.assertEqual(second['state'], 'host_access_held')
+        self.assertNotIn('private-challenge-token', json.dumps(first))
+
+    def test_javascript_human_200_stops_both_supported_probe_transports(self):
+        for transport in ('requests', 'curl'):
+            result = self.probe(transport, status=200, body=JS_HUMAN)
+            self.assertEqual(result['state'], 'blocked')
+            self.assertEqual(result['diagnostics']['stop_reason'], 'source_access_challenge')
+            self.assertEqual(result['sample_count'], 0)
+
     def test_cookie_interstitial_requires_notice_empty_body_and_active_redirect(self):
         self.assertEqual(access_challenge(COOKIE_REDIRECT), 'javascript_cookie_verification')
         self.assertEqual(access_challenge(COOKIE_REDIRECT.decode()), 'javascript_cookie_verification')

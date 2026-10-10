@@ -10,13 +10,22 @@ def access_challenge(body):
         return None
     prefix = body[:128 * 1024]
     cookie_notice = 'this website requires js enabled and cookies'
-    markers = ('human verification', 'pardon our interruption', cookie_notice)
+    human_notice = 'this question is for testing whether you are a human visitor'
+    markers = ('human verification', 'pardon our interruption', cookie_notice, human_notice)
     if isinstance(prefix, bytes):
         markers = tuple(marker.encode() for marker in markers)
     if not any(marker in prefix.lower() for marker in markers):
         return None
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(prefix, 'html.parser')
+    if not soup.find(['article', 'main', 'h1']):
+        text = soup.get_text(' ', strip=True).casefold()
+        if (human_notice in text and 'what code is in the image?' in text
+                and soup.select_one('input#ans[name="answer"][type="text"]')
+                and soup.select_one('audio#captcha_audio')
+                and any(script['src'].startswith('/TSPD/')
+                        for script in soup.find_all('script', src=True))):
+            return 'javascript_human_verification'
     if soup.body and not soup.find(['article', 'main', 'h1']):
         # Observed on all three delivered Andra publication filters. Require
         # the otherwise empty interstitial and an active local redirect, so
