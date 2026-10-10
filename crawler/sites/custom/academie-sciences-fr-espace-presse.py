@@ -35,6 +35,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from crawler.base_crawler import BaseCrawler
 from crawler.academie_source import editorial_items, parse_article, article_paper, source_url
 from crawler.academie_pdf_dates import publication_date_evidence
+from crawler.academie_traversal import AcademieTraversal
 
 
 _SITE_ID = "academie-sciences-fr-espace-presse"
@@ -281,7 +282,13 @@ def _abstract_from_pdf_text(text, title):
     return _clean_text(" ".join(fallback_lines))
 
 
-class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
+class AcademieSciencesFrEspacePresseCrawler(AcademieTraversal, BaseCrawler):
+    _AC_START_URL = _START_URL
+    MAX_PAGES = _MAX_PAGES
+    MIN_ABSTRACT_CHARS = _MIN_ABSTRACT_CHARS
+    WALL_CLOCK_LIMIT = max(0, _BUDGET_SECONDS - 30)
+    _ac_soup = staticmethod(_make_soup)
+    _ac_external_id = staticmethod(_external_id_from_url)
     site_id = "academie-sciences-fr-espace-presse"
     site_name = "Custom: academie-sciences-fr-espace-presse"
     base_url = "https://www.academie-sciences.fr"
@@ -291,85 +298,7 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
         self.detail_delay = delay if detail_delay is None else detail_delay
 
     def crawl(self, limit=None):
-        saved = 0
-        seen_urls = set()
-        limit_or_inf = limit if limit is not None else "inf"
-        started_at = time.time()
-
-        if limit is not None and limit <= 0:
-            return 0
-
-        for page_num in range(1, _MAX_PAGES + 1):
-            self._check_cancelled()
-            if time.time() - started_at >= _BUDGET_SECONDS - 30:
-                print(f"[{self.site_id}] wall-clock budget approaching at page {page_num}; stopping")
-                break
-            if limit is not None and saved >= limit:
-                break
-
-            query_page = page_num - 1
-            list_url = self._list_url(query_page)
-            raw = self._fetch_text(list_url, accept="text/html,*/*", context=f"list page {page_num}")
-            if not raw:
-                print(f"[{self.site_id}] list page {page_num} failed; stopping")
-                break
-
-            soup = _make_soup(raw)
-            if soup is None:
-                print(f"[{self.site_id}] list page {page_num} unparseable; stopping")
-                break
-
-            try:
-                items, has_next = self._parse_list_items(soup, page_num, list_url)
-            except ValueError:
-                self._report_source_failure('invalid_response')
-                return saved
-            if not items:
-                print(f"[{self.site_id}] page {page_num}: no records; stopping")
-                break
-
-            new_on_page = 0
-            for item_index, item in enumerate(items, start=1):
-                self._check_cancelled()
-                if limit is not None and saved >= limit:
-                    break
-                if time.time() - started_at >= _BUDGET_SECONDS - 30:
-                    print(f"[{self.site_id}] wall-clock budget approaching during page {page_num}; stopping")
-                    return saved
-
-                item_url = item.get("detail_url") or item["pdf_url"]
-                if item_url in seen_urls:
-                    continue
-                seen_urls.add(item_url)
-                new_on_page += 1
-
-                try:
-                    if self._process_item(item):
-                        saved += 1
-                    if self.delivery_source_failure:
-                        return saved
-                    time.sleep(self.detail_delay)
-                except KeyboardInterrupt:
-                    raise
-                except Exception as exc:
-                    print(f"[{self.site_id}] item {page_num}.{item_index} failed: {exc}")
-                    if not self.delivery_source_failure:
-                        self._report_source_failure('item_failed')
-                    return saved
-
-            if page_num % 10 == 0:
-                print(f"[{self.site_id}] page {page_num}: saved {saved}/{limit_or_inf}")
-
-            if new_on_page == 0:
-                print(f"[{self.site_id}] page {page_num}: no new items; stopping")
-                break
-            if not has_next:
-                print(f"[{self.site_id}] page {page_num}: last page reached")
-                break
-        else:
-            print(f"[{self.site_id}] safety cap of {_MAX_PAGES} pages reached")
-
-        return saved
+        return self._crawl_ac(limit)
 
     def _list_url(self, query_page):
         if query_page <= 0:
@@ -466,15 +395,28 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
         return items, has_next
 
     def _process_item(self, item):
+        self._last_processed_seq_id = None
+        self._last_save_created = False
+        paper = self._prepare_item(item)
+        if paper is None:
+            if not self._ac_last_exclusion:
+                raise ValueError('Academie source item not stored or explicitly excluded')
+            print(f"[{self.site_id}] source body excluded: {item.get('detail_url') or item['pdf_url']}: {self._ac_last_exclusion_reason}")
+            return False
+        self._last_processed_seq_id = self._save_paper(paper)
+        return self._last_save_created
+
+    def _prepare_item(self, item):
+        self._ac_last_exclusion = None
+        self._ac_last_exclusion_reason = None
         if item.get('kind') == 'HTML':
             raw = self._fetch_text(item['detail_url'], accept='text/html,*/*', context='explicit press article')
             if not raw:
                 raise ConnectionError('Academie source article unavailable')
             detail = parse_article(raw, item)
-            if len(detail['abstract']) < _MIN_ABSTRACT_CHARS:
-                raise ValueError('Academie source article body below accepted threshold')
-            self._last_processed_seq_id = self._save_paper(article_paper(self.site_id, detail))
-            return self._last_save_created
+            if len(detail['abstract']) < self.MIN_ABSTRACT_CHARS:
+                return self._ac_exclude_body(item, raw.encode('utf-8'), detail['abstract'], 'HTML_body_below_threshold')
+            return article_paper(self.site_id, detail)
         pdf_url = item["pdf_url"]
         pdf_bytes = self._fetch_bytes(
             pdf_url,
@@ -483,8 +425,7 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
             max_time=90,
         )
         if not pdf_bytes:
-            print(f"[{self.site_id}] item {pdf_url} failed: PDF fetch returned no body")
-            return False
+            raise ConnectionError('Academie source PDF unavailable')
 
         if not pdf_bytes.startswith(b'%PDF-'):
             raise ValueError('Academie source response is not a PDF')
@@ -495,10 +436,9 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
         title = _pdf_title_from_text(pdf_text, item.get("title"))
         abstract = _abstract_from_pdf_text(pdf_text, title)
         if _fold_text(_clean_text(abstract)) == _fold_text(_clean_text(title)):
-            raise ValueError('Academie PDF extraction contains only the title; source body requires review')
-        if len(abstract) < _MIN_ABSTRACT_CHARS:
-            print(f"[{self.site_id}] skip short abstract {len(abstract)} chars: {pdf_url}")
-            return False
+            return self._ac_exclude_body(item, pdf_bytes, pdf_text, 'PDF_extraction_contains_only_title')
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return self._ac_exclude_body(item, pdf_bytes, pdf_text, 'PDF_body_below_threshold')
 
         date_evidence = publication_date_evidence(pdf_text)
         published_date = date_evidence['published_date_raw']
@@ -557,8 +497,7 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
             "original_filename": original_filename,
             "metadata": _json_dumps(metadata),
         }
-        self._last_processed_seq_id = self._save_paper(paper)
-        return self._last_save_created
+        return paper
 
     def _extract_pdf_text(self, pdf_bytes, url):
         try:
@@ -571,13 +510,12 @@ class AcademieSciencesFrEspacePresseCrawler(BaseCrawler):
         except KeyboardInterrupt:
             raise
         except Exception as exc:
-            print(f"[{self.site_id}] pdftotext failed for {url}: {exc}")
-            return ""
+            raise ValueError('Academie PDF extraction failed; source exclusion not established') from exc
 
         text = result.stdout.decode("utf-8", errors="replace")
-        if result.returncode != 0 and not text:
+        if result.returncode != 0:
             stderr = result.stderr.decode("utf-8", errors="replace").strip()
-            print(f"[{self.site_id}] pdftotext failed for {url}: rc={result.returncode} {stderr[:200]}")
+            raise ValueError(f'Academie PDF extraction failed: rc={result.returncode} {stderr[:200]}')
         return text
 
     def _category_from_title(self, title, filename):

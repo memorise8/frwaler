@@ -130,7 +130,7 @@ class AcademieCounts(SiteContract, unittest.TestCase):
 
     def crawler(self):
         c = self.configured(self.module.AcademieSciencesFrEspacePresseCrawler(self.conn))
-        c._fetch_text = lambda url, **kwargs: f'<div data-url="{url}"></div>'
+        c._fetch_text = lambda url, **kwargs: f'<html><div data-url="{url}"></div></html>'
         def items(soup, page, url):
             return ([{'pdf_url': f'https://www.academie-sciences.fr/files/{n}.pdf', 'title': f'Research document {n}', 'original_filename': f'{n}.pdf', 'filename_slug': str(n), 'listed_date': '2026-06-05'} for n in self.ids_for_url(url)], page == 1)
         c._parse_list_items = items

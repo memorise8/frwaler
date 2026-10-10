@@ -1,4 +1,5 @@
 """Publication precision, event exclusion, raw retention and native persistence."""
+import json
 import os
 import unittest
 from crawler.academie_pdf_dates import publication_date_evidence
@@ -54,8 +55,10 @@ class PDFDatePersistence(AcademieSections):
     def test_native_title_only_PDF_is_incomplete_not_a_fabricated_body(self):
         c=self.crawler()
         c._extract_pdf_text=lambda *a:'LES FEMMES (ET LES FILLES) EN SCIENCES\n\fLes dernières parutions\n\f'
-        self.assertEqual(c.crawl(),0);self.assertEqual(self.rows(),[])
-        self.assertEqual(c.delivery_source_failure,'item_failed')
+        self.assertEqual(c.crawl(),2)
+        self.assertTrue(all(not r['meta_url'].endswith('.pdf') for r in self.rows()))
+        self.assertIsNone(c.delivery_source_failure)
+        self.assertEqual(len(json.loads(c.delivery_pending_cursor['exclusions_json'])),4)
 
     def test_native_PDF_dates_preserve_month_and_list_raw_without_fallback(self):
         c=self.crawler()
