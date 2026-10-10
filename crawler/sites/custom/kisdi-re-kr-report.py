@@ -18,6 +18,7 @@ from urllib.parse import parse_qs, urlencode, urljoin, urlsplit
 from requests import RequestException
 
 from crawler.base_crawler import BaseCrawler
+from crawler.source_cursor_prefix import prefix_seed, advance_prefix, verify_source_prefix
 
 _BASE = 'https://www.kisdi.re.kr'
 _LIST_URL = _BASE + '/report/list.do'
@@ -289,6 +290,8 @@ class KisdiReKrReportCrawler(BaseCrawler):
             raise ValueError('invalid cursor page or offset')
         if not re.fullmatch('[0-9a-f]{64}', cursor.get('page_hash', '')):
             raise ValueError('invalid cursor anchor')
+        if 'prefix_hash' in cursor and not re.fullmatch('[0-9a-f]{64}', str(cursor['prefix_hash'])):
+            raise ValueError('invalid source prefix anchor')
         if cursor['page'] == 1:
             if cursor.get('previous_hash') != '':
                 raise ValueError('unexpected previous-page anchor')
@@ -299,7 +302,8 @@ class KisdiReKrReportCrawler(BaseCrawler):
         if self._cursor_enabled:
             self._advance_cursor(dict(version=self.DELIVERY_CURSOR_VERSION, contract=self._contract(), scope=scope,
                                       page=page, offset=offset, total=data['total'], last_page=data['last_page'],
-                                      page_size=data['page_size'], page_hash=data['page_hash'], previous_hash=previous_hash),
+                                      page_size=data['page_size'], page_hash=data['page_hash'], previous_hash=previous_hash,
+                                      prefix_hash=self._cursor_prefix_hash),
                                  items_done=done)
 
     def _failure(self, exc, item=False):
@@ -325,6 +329,17 @@ class KisdiReKrReportCrawler(BaseCrawler):
                 self._report_source_failure('configuration')
                 return 0
         started, saved, seen = time.monotonic(), 0, {}
+        self._cursor_prefix_hash = prefix_seed(self._contract())
+        if resume:
+            try:
+                self._cursor_prefix_hash, seen = verify_source_prefix(
+                    self, resume, _SCOPES, first_page=1,
+                    load_page=lambda scope, page: _listing(self._fetch_list(page, scope), scope, page),
+                    bounds=lambda data: (data['total'], data['last_page'], data['page_size']), identity_key='art_id',
+                    date_key='published_date_raw', deadline=started + _WALL_SECONDS)
+            except Exception as exc:
+                self._failure(exc)
+                return 0
         def budget_hit():
             if time.monotonic() - started <= _WALL_SECONDS:
                 return False
@@ -369,7 +384,7 @@ class KisdiReKrReportCrawler(BaseCrawler):
                     if limit is not None and saved >= limit or budget_hit():
                         return saved
                     try:
-                        if item['art_id'] in seen and seen[item['art_id']] != item['url']:
+                        if item['art_id'] in seen:
                             raise ValueError('cross-scope source identity collision')
                         self._assert_identity(item)
                         time.sleep(self._delay)
@@ -385,6 +400,9 @@ class KisdiReKrReportCrawler(BaseCrawler):
                         self._failure(exc, item=True)
                         if self._cursor_enabled or isinstance(exc, (PermissionError, ConnectionError, RequestException)):
                             return saved
+                if self._cursor_enabled:
+                    self._cursor_prefix_hash = advance_prefix(
+                        self._cursor_prefix_hash, scope, page, data['page_hash'], (data['total'], data['last_page'], data['page_size']))
                 if page == data['last_page']:
                     break
                 previous, page, offset, current = data['page_hash'], page + 1, 0, None
