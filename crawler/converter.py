@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Convert downloaded HWP/HWPX/PDF files to Markdown."""
+"""Convert downloaded HWP/HWPX/PDF/DOCX files to Markdown."""
 
 import os
 import zipfile
@@ -163,7 +163,9 @@ def convert_file(filepath):
         # OLE2 compound document — almost certainly HWP in our dataset
         return extract_text_hwp(filepath)
     elif sniffed == 'zip':
-        # ZIP-based — try HWPX first (most ZIP blobs in our dataset are HWPX)
+        from .docx_text import extract_text_docx, is_docx_package
+        if is_docx_package(filepath):
+            return extract_text_docx(filepath)
         return extract_text_hwpx(filepath)
     elif sniffed == 'hwp':
         return extract_text_hwp(filepath)
