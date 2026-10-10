@@ -117,6 +117,7 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
     site_id = "nemertes-library-upatras-gr-browse"
     site_name = "Custom: nemertes-library-upatras-gr-browse"
     base_url = "https://nemertes.library.upatras.gr"
+    DELIVERY_CURSOR_VERSION = 1
 
     # ------------------------------------------------------------------
     # low-level HTTP helper (own retry/backoff schedule, per spec)
@@ -128,6 +129,7 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
             self._check_cancelled()
             try:
                 resp = self._session.get(url, params=params, timeout=30)
+                self._check_cancelled()
                 resp.raise_for_status()
                 try:
                     return resp.json()
@@ -136,6 +138,10 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
                     return json.loads(text)
             except Exception as exc:  # noqa: BLE001 - defensive, must never crash the run
                 last_exc = exc
+                status = getattr(getattr(exc, 'response', None), 'status_code', None)
+                if status in (401, 403, 429):
+                    self._report_source_failure('rate_limited' if status == 429 else 'authentication_failed')
+                    return None
                 print(f"[{self.site_id}] request error (attempt {attempt + 1}/3) for {url}: {exc}")
                 if attempt < len(_RETRY_WAITS):
                     time.sleep(_RETRY_WAITS[attempt])
@@ -170,6 +176,7 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def _process_item(self, item, item_url):
+        self._item_consumed = False
         meta = item.get("metadata") or {}
 
         title = _first_value(meta, "dc.title") or _clean(item.get("name")) or None
@@ -288,6 +295,7 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
         }
 
         self._save_paper(paper)
+        self._item_consumed = True
         return self._last_save_created
 
     def _abstract_from_pdf(self, pdf_url, bundles):
@@ -369,33 +377,108 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
     # crawl
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _page_identity(items):
+        return hashlib.sha256(json.dumps([item.get('uuid') or item.get('id') for item in items],
+                                         separators=(',', ':')).encode()).hexdigest()
+
+    @staticmethod
+    def _cursor_contract():
+        return hashlib.sha256(json.dumps([list(_SCOPES), _PAGE_SIZE], separators=(',', ':')).encode()).hexdigest()
+
+    def _validate_cursor(self, cursor):
+        if not isinstance(cursor, dict) or cursor.get('version') != self.DELIVERY_CURSOR_VERSION:
+            raise ValueError('unsupported cursor')
+        if cursor.get('contract') != self._cursor_contract() or cursor.get('scope') not in _SCOPES:
+            raise ValueError('changed scope contract')
+        for key in ('page', 'offset', 'consumed', 'total_pages', 'total'):
+            if type(cursor.get(key)) is not int or cursor[key] < 0:
+                raise ValueError('invalid position')
+        if cursor['offset'] > _PAGE_SIZE:
+            raise ValueError('invalid item offset')
+        if cursor['consumed'] != cursor['page'] * _PAGE_SIZE:
+            raise ValueError('invalid completed-page membership count')
+        if cursor['total_pages'] != (cursor['total'] + _PAGE_SIZE - 1) // _PAGE_SIZE:
+            raise ValueError('invalid saved source totals')
+        for key, required in [('page_hash', cursor['offset'] > 0), ('previous_hash', cursor['page'] > 0)]:
+            value = cursor.get(key)
+            if not isinstance(value, str) or (value and not re.fullmatch('[0-9a-f]{64}', value)) or (required and not value):
+                raise ValueError('invalid source anchor')
+
+    def _checkpoint(self, scope, page, offset, consumed, total_pages, total, page_hash, previous_hash, items_done=0):
+        if self._cursor_enabled:
+            self._advance_cursor(dict(version=self.DELIVERY_CURSOR_VERSION, contract=self._cursor_contract(),
+                                      scope=scope, page=page, offset=offset, consumed=consumed,
+                                      total_pages=total_pages, total=total, page_hash=page_hash,
+                                      previous_hash=previous_hash), items_done=items_done)
+
     def crawl(self, limit=None):
         self._check_cancelled()
         if limit is not None and limit <= 0:
             return 0
+        self._cursor_enabled = self.delivery_mode == 'backfill'
+        resume = self.delivery_cursor if self._cursor_enabled else None
+        if resume:
+            try:
+                self._validate_cursor(resume)
+            except (TypeError, ValueError):
+                self._report_source_failure('configuration')
+                return 0
         start_time = time.time()
         saved = 0
         seen_items = set()
-        for scope in _SCOPES:
+        start_index = _SCOPES.index(resume['scope']) if resume else 0
+        finished = False
+        for scope in _SCOPES[start_index:]:
             self._check_cancelled()
             remaining = None if limit is None else limit - saved
             if remaining is not None and remaining <= 0:
                 break
-            count, finished = self._crawl_scope(scope, remaining, start_time, seen_items)
+            count, finished = self._crawl_scope(scope, remaining, start_time, seen_items,
+                                                resume if resume and resume['scope'] == scope else None)
             saved += count
             if not finished:
                 break
+        else:
+            if finished and not self.delivery_source_failure:
+                self._mark_exhausted()
         self._check_cancelled()
-        print(f"[{self.site_id}] done: saved {saved} papers")
+        print(f'[{self.site_id}] done: saved {saved} papers')
         return saved
 
-    def _crawl_scope(self, scope, limit, start_time, seen_items):
-        """Traverse one source scope; cross-scope overlap is not a repeated page."""
+    def _crawl_scope(self, scope, limit, start_time, seen_items, resume=None):
+        """Resume only verified item positions; a failed item stops backfill.
+
+        Title-ordered source pages are mutable. Re-check the previous page and
+        current page identities/totals before using a saved offset. A detected
+        change requires source review/re-enumeration, never a guessed skip.
+        This is not an immutable snapshot or a substitute for full-source audits.
+        """
         saved = 0
-        page = 0
+        page = resume['page'] if resume else 0
+        offset = resume['offset'] if resume else 0
+        consumed = resume['consumed'] if resume else 0
+        expected_pages = resume['total_pages'] if resume else None
+        expected_total = resume['total'] if resume else None
+        previous_hash = resume['previous_hash'] if resume else ''
+        previous_ids = set()
         scope_items = set()
-        expected_pages = None
-        expected_total = None
+        if resume and page > 0:
+            prior = self._fetch_json(f'{self.base_url}/server/api/discover/browses/title/items',
+                                     params={'scope': scope, 'size': _PAGE_SIZE, 'page': page - 1})
+            if not prior:
+                self._report_source_failure('fetch_failed')
+                return saved, False
+            try:
+                info = prior['page'];items = prior['_embedded']['items']
+                if (info['number'] != page - 1 or info['totalPages'] != expected_pages
+                        or info['totalElements'] != expected_total or not isinstance(items, list)
+                        or self._page_identity(items) != previous_hash):
+                    raise ValueError('previous source boundary changed')
+                previous_ids = {item.get('uuid') or item.get('id') for item in items}
+            except (KeyError, TypeError, ValueError, AttributeError):
+                self._report_source_failure('invalid_response')
+                return saved, False
         while True:
             self._check_cancelled()
             if limit is not None and saved >= limit:
@@ -404,83 +487,96 @@ class NemertesLibraryUpatrasGrBrowseCrawler(BaseCrawler):
                 self._report_source_failure('invalid_response')
                 return saved, False
             if time.time() - start_time > _CRAWL_BUDGET_SECONDS:
-                self._report_source_failure('invalid_response')
+                if not self._cursor_enabled or self.delivery_pending_cursor is None:
+                    self._report_source_failure('invalid_response')
                 return saved, False
-            data = self._fetch_json(
-                f"{self.base_url}/server/api/discover/browses/title/items",
-                params={"scope": scope, "size": _PAGE_SIZE, "page": page},
-            )
+            data = self._fetch_json(f'{self.base_url}/server/api/discover/browses/title/items',
+                                    params={'scope': scope, 'size': _PAGE_SIZE, 'page': page})
+            self._check_cancelled()
             if not data:
                 self._report_source_failure('fetch_failed')
                 return saved, False
-            if not isinstance(data, dict) or not isinstance(data.get('page', {}), dict):
+            try:
+                if not isinstance(data, dict) or not isinstance(data.get('page', {}), dict):
+                    raise ValueError('invalid source envelope')
+                info = data.get('page', {})
+                total_pages, total = info.get('totalPages'), info.get('totalElements')
+                if (total_pages is not None and (type(total_pages) is not int or total_pages < 0)) or (
+                        total is not None and (type(total) is not int or total < 0)):
+                    raise ValueError('invalid source totals')
+                if ('number' in info and (type(info['number']) is not int or info['number'] != page)) or (
+                        expected_pages is not None and total_pages != expected_pages) or (
+                        expected_total is not None and total != expected_total):
+                    raise ValueError('source page or total changed')
+                if self._cursor_enabled and (total is None or total_pages is None or info.get('number') != page):
+                    raise ValueError('backfill requires explicit source page and total')
+                embedded = data.get('_embedded', {})
+                if not isinstance(embedded, dict):
+                    raise ValueError('invalid source items')
+                items = embedded.get('items', [] if total == 0 else None)
+                if not isinstance(items, list):
+                    raise ValueError('invalid source items')
+                ids = [(item.get('uuid') or item.get('id')) if isinstance(item, dict) else None for item in items]
+                if any(not isinstance(uid, str) or not uid for uid in ids) or len(set(ids)) != len(ids):
+                    raise ValueError('invalid or duplicate source identities')
+                if set(ids).intersection(scope_items | previous_ids):
+                    raise ValueError('repeated source page identities')
+                page_hash = self._page_identity(items)
+                if resume and resume['page_hash'] and page_hash != resume['page_hash']:
+                    raise ValueError('current source page identities changed')
+                if offset > len(items):
+                    raise ValueError('source page shorter than saved offset')
+                if not items:
+                    if (total is not None and consumed != total) or (total_pages is not None and page < total_pages and total != 0):
+                        raise ValueError('premature empty source page')
+                    return saved, True
+                if total_pages == 0 or (total_pages is not None and page >= total_pages):
+                    raise ValueError('source page beyond declared end')
+            except (KeyError, TypeError, ValueError, AttributeError):
                 self._report_source_failure('invalid_response')
                 return saved, False
-            info = data.get('page', {})
-            total_pages = info.get('totalPages')
-            total = info.get('totalElements')
-            if (total_pages is not None and
-                    (type(total_pages) is not int or total_pages < 0)) or (
-                    total is not None and (type(total) is not int or total < 0)):
-                self._report_source_failure('invalid_response')
-                return saved, False
-            if ('number' in info and (type(info['number']) is not int or info['number'] != page)) or (
-                    expected_pages is not None and total_pages != expected_pages) or (
-                    expected_total is not None and total != expected_total):
-                self._report_source_failure('invalid_response')
-                return saved, False
-            expected_pages = total_pages
-            expected_total = total
-            embedded = data.get('_embedded', {})
-            if not isinstance(embedded, dict):
-                self._report_source_failure('invalid_response')
-                return saved, False
-            items = embedded.get('items', [] if total == 0 else None)
-            if not isinstance(items, list):
-                self._report_source_failure('invalid_response')
-                return saved, False
-            if not items:
-                if (total is not None and len(scope_items) != total) or (
-                        total_pages is not None and page < total_pages and total != 0):
-                    self._report_source_failure('invalid_response')
-                    return saved, False
-                return saved, True
-            if total_pages == 0 or (total_pages is not None and page >= total_pages):
-                self._report_source_failure('invalid_response')
-                return saved, False
-            new_in_scope = 0
-            for item in items:
+            expected_pages, expected_total = total_pages, total
+            self._checkpoint(scope, page, offset, consumed, total_pages, total, page_hash, previous_hash)
+            for index, item in enumerate(items):
+                if index < offset:
+                    continue
                 self._check_cancelled()
                 if limit is not None and saved >= limit:
                     return saved, False
-                uuid_ = (item.get('uuid') or item.get('id')) if isinstance(item, dict) else None
-                if not isinstance(uuid_, str) or not uuid_:
-                    self._report_source_failure('invalid_response')
-                    continue
-                if uuid_ in scope_items:
-                    self._report_source_failure('invalid_response')
-                    continue
-                scope_items.add(uuid_)
-                new_in_scope += 1
-                if uuid_ in seen_items:
-                    continue
-                seen_items.add(uuid_)
-                handle = item.get('handle')
-                item_url = f"https://hdl.handle.net/{handle}" if handle else f"{self.base_url}/items/{uuid_}"
-                try:
-                    if self._process_item(item, item_url):
-                        saved += 1
-                except Exception as exc:
-                    self._report_source_failure('item_failed')
-                    print(f"[{self.site_id}] item {uuid_} failed: {exc}")
-                if getattr(self, '_pdf_access_held', False):
+                if time.time() - start_time > _CRAWL_BUDGET_SECONDS:
+                    if not self._cursor_enabled:
+                        self._report_source_failure('invalid_response')
                     return saved, False
-            if new_in_scope == 0:
-                self._report_source_failure('invalid_response')
-                return saved, False
+                uuid_ = ids[index]
+                if uuid_ not in seen_items:
+                    handle = item.get('handle')
+                    item_url = f'https://hdl.handle.net/{handle}' if handle else f'{self.base_url}/items/{uuid_}'
+                    self._item_consumed = False
+                    try:
+                        if self._process_item(item, item_url):
+                            saved += 1
+                    except Exception as exc:
+                        self._report_source_failure('item_failed')
+                        print(f'[{self.site_id}] item {uuid_} failed: {exc}')
+                    if self._cursor_enabled and not self._item_consumed:
+                        self._report_source_failure('item_failed')
+                        return saved, False
+                    if getattr(self, '_pdf_access_held', False):
+                        return saved, False
+                    seen_items.add(uuid_)
+                self._checkpoint(scope, page, index + 1, consumed, total_pages, total,
+                                 page_hash, previous_hash, items_done=1)
+                self._check_cancelled()
+            scope_items.update(ids)
+            consumed += len(items)
             if total_pages is not None and page == total_pages - 1:
-                if total is not None and len(scope_items) != total:
+                if total is not None and consumed != total:
                     self._report_source_failure('invalid_response')
                     return saved, False
                 return saved, True
+            previous_hash = page_hash
+            previous_ids = set(ids)
             page += 1
+            offset = 0
+            resume = None
+            self._checkpoint(scope, page, 0, consumed, total_pages, total, '', previous_hash)
