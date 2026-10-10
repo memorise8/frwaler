@@ -1,6 +1,8 @@
 """Preview/apply/restore exact, source-reviewed KRIVET attachment URL changes.
 
-Only pdf_url is writable. Evidence is a separately reviewed source manifest;
+Only the custom collector krivet-re-kr-kor is targeted; the separate generic
+krivet-re-kr collector is not included. Only pdf_url is writable.
+Evidence is a separately reviewed source manifest;
 source references do not certify PDF bytes or authorize resetting file flags.
 """
 import argparse
@@ -15,7 +17,7 @@ from urllib.parse import parse_qs, urlsplit
 from crawler.document_identity import krivet_id
 from delivery.scripts.repair_metadata import execute, rows, locked_documents, is_pg, digest, write_private
 
-SITE = 'krivet-re-kr'
+SITE = 'krivet-re-kr-kor'
 OLD_PATH = '/kor/com/fileDown.do'
 NEW_PATH = '/com/file/fileDown.do'
 

@@ -55,6 +55,9 @@ class AttachmentRepair(unittest.TestCase):
         self.seed();execute(self.conn,'UPDATE documents SET post_number=?',('incorrect-legacy-id',));self.conn.commit();plan=self.plan();self.assertTrue(plan['plan']['unresolved']);self.assertFalse(plan['plan']['changes'])
     def test_other_site_is_never_selected(self):
         self.seed();self.backend.upsert_site(self.conn,'other','Other','https://example.invalid');execute(self.conn,'UPDATE documents SET site_id=?',('other',));self.conn.commit();self.assertEqual(self.plan()['plan']['changes'],[])
+    def test_separate_generic_krivet_collector_is_not_modified(self):
+        self.seed();self.backend.upsert_site(self.conn,'krivet-re-kr','Generic KRIVET','https://www.krivet.re.kr')
+        execute(self.conn,'UPDATE documents SET site_id=?',('krivet-re-kr',));self.conn.commit();self.assertEqual(self.plan()['plan']['changes'],[])
     def test_batch_requires_bounded_integer_limits(self):
         self.seed()
         for limit in [True,0,1001]:
