@@ -327,7 +327,7 @@ class CancerFrCataloguePublicCrawler(BaseCrawler):
                 summary = self._node_text(p)
                 if summary:
                     break
-            pdf_link = li.select_one('a[href*="/content/download/"][href*=".pdf"]')
+            pdf_link = li.select_one('a[href*="/content/download/"][href*=".pdf" i]')
             pdf_url = self._absolute_url(self.base_url, pdf_link["href"]) if pdf_link else None
             records.append(
                 {
@@ -379,7 +379,7 @@ class CancerFrCataloguePublicCrawler(BaseCrawler):
             if meta and meta.get("content"):
                 result["abstract"] = self._clean_text(meta["content"])
 
-        pdf_link = soup.select_one('a[href*="/content/download/"][href*=".pdf"]')
+        pdf_link = soup.select_one('a[href*="/content/download/"][href*=".pdf" i]')
         if pdf_link:
             result["pdf_url"] = self._absolute_url(self.base_url, pdf_link["href"])
             result["original_filename"] = self._filename_from_url(result["pdf_url"])
