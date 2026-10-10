@@ -5,6 +5,7 @@ import os
 import re
 import time
 from urllib.parse import urlencode
+from requests.exceptions import RequestException
 
 from crawler.document_identity import find_kei_document
 from crawler.kei_details import parse_detail
@@ -51,18 +52,22 @@ class KeiTraversal:
     def _scope_paper(self, item, detail):
         if item.get('title_quality') or title_quality(detail['title']):
             raise ValueError('KEI source title quality requires review')
-        if len(detail['abstract']) < self._MIN_ABSTRACT:
+        abstract, provenance = detail['abstract'], {}
+        if len(abstract) < self._MIN_ABSTRACT and detail['primary_PDF_candidate']:
+            from crawler.kei_pdf import source_pdf_excerpt
+            abstract, provenance = source_pdf_excerpt(self, item, detail)
+        if len(abstract) < self._MIN_ABSTRACT:
             raise ValueError('KEI source body below accepted text threshold')
         pdf = detail['primary_PDF_candidate']
         return dict(site_id=self.site_id, external_id=item['source_key'],
-                    title=detail['title'], abstract=detail['abstract'],
+                    title=detail['title'], abstract=abstract,
                     published_date=detail['published_date_raw'],
                     listed_date=detail['listed_date_raw'], authors=detail['authors'],
                     publisher='한국환경연구원', url=item['url'],
                     pdf_url=pdf['url'] if pdf else None,
                     original_filename=pdf['filename'] if pdf else None,
                     category=item.get('category', ''),
-                    metadata=json.dumps(detail, ensure_ascii=False))
+                    metadata=json.dumps(dict(detail, **provenance), ensure_ascii=False))
 
     def _stored_scope_digest(self, item):
         postgres = os.environ.get('LIBERTREE_DB_BACKEND', 'sqlite').lower() == 'postgres'
@@ -105,7 +110,11 @@ class KeiTraversal:
             raise ValueError('KEI previous page anchor missing')
 
     def _scope_failure(self, exc, item=False):
-        self._report_source_failure('fetch_failed' if isinstance(exc, ConnectionError)
+        if isinstance(exc, PermissionError):
+            self._report_source_failure('rate_limited' if any(n in str(exc) for n in ('429', '503'))
+                                        else 'authentication_failed')
+            return
+        self._report_source_failure('fetch_failed' if isinstance(exc, (ConnectionError, RequestException))
                                     else 'item_failed' if item else 'invalid_response')
 
     def _crawl_scopes(self, limit=None):
@@ -207,7 +216,7 @@ class KeiTraversal:
                             self._check_cancelled()
                         except Exception as exc:
                             self._scope_failure(exc, item=True)
-                            if enabled or isinstance(exc, ConnectionError) or self._access_held:
+                            if enabled or isinstance(exc, (ConnectionError, PermissionError, RequestException)) or self._access_held:
                                 return saved
                 prefix = advance_prefix(prefix, scope, page, data['page_hash'], bounds)
                 if page == data['last_page']:

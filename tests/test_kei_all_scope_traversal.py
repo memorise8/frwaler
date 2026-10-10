@@ -2,6 +2,7 @@
 import json
 import os
 import unittest
+from unittest.mock import Mock
 from urllib.parse import parse_qs, urlsplit
 
 from crawler.base_crawler import CrawlCancelled
@@ -20,6 +21,9 @@ class KeiTraversal(unittest.TestCase):
     def crawler(self):
         c = self.module.KeiReKrEliblistesCrawler(self.conn, delay=0)
         c._RATE_SLEEP = 0
+        # Traversal fixtures have no retained file bytes. PDF transport and
+        # extraction outcomes are exercised separately in test_kei_pdf_body.
+        c._session.get = Mock(side_effect=ValueError('fixture PDF text unavailable'))
         self.addCleanup(c._session.close)
         self.calls = []
 
