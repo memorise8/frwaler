@@ -39,7 +39,55 @@ MYRA = b'''<html><head><title>Security Check</title>
 <p>You must confirm that you are human.</p></body></html>'''
 
 
+ANUBIS = b'''<html><head><title>Making sure you're not a bot!</title>
+<script id="anubis_challenge" type="application/json">{"challenge":"private-challenge-token"}</script>
+</head><body><main><h1 id="title">Making sure you're not a bot!</h1>
+<script id="anubis-main" type="module" src="/.within.website/x/cmd/anubis/static/js/main.mjs?cacheBuster=v1.27.0"></script>
+</main></body></html>'''
+
+
 class ChallengeClassification(unittest.TestCase):
+    def test_anubis_requires_interstitial_and_active_local_module(self):
+        self.assertEqual(access_challenge(ANUBIS), 'anubis_proof_of_work_verification')
+        self.assertEqual(access_challenge(ANUBIS.decode()), 'anubis_proof_of_work_verification')
+        # CERN escapes the apostrophe in both the title and the heading.
+        for apostrophe in (b'&#39;', b'&#x27;', b'&apos;'):
+            self.assertEqual(access_challenge(ANUBIS.replace(b"'", apostrophe)),
+                             'anubis_proof_of_work_verification')
+        for body in (
+            ANUBIS.replace(b'<title>Making sure', b'<title>Article about making sure'),
+            ANUBIS.replace(b'<h1 id="title">Making sure', b'<h1 id="title">Article about making sure'),
+            ANUBIS.replace(b'id="anubis_challenge"', b'id="article-example"'),
+            ANUBIS.replace(b'type="application/json"', b'type="ignore"'),
+            ANUBIS.replace(b'type="module"', b'type="ignore"'),
+            ANUBIS.replace(b'src="/.within.website/', b'src="https://example.org/.within.website/'),
+            ANUBIS.replace(b'main.mjs?', b'main.mjs.fake?'),
+            ANUBIS.replace(b'<script ', b'<pre ').replace(b'</script>', b'</pre>'),
+            ANUBIS.replace(b'</body>', b'<article>Research about Anubis</article></body>'),
+            b'x' * (128 * 1024) + ANUBIS,
+        ):
+            with self.subTest(body=body[:80]):
+                self.assertIsNone(access_challenge(body))
+
+    def test_anubis_200_holds_host_without_repeating_or_exposing_challenge(self):
+        site = {'site_id':'fixture', 'selected_entry':{'url':'https://example.org/collection'}}
+        gate = HostGate(0)
+        response = dict(status=200,curl_exit=0,body_complete=True,body=gzip.compress(ANUBIS),
+                        headers={'content-type':'text/html','content-encoding':'gzip'})
+        first = observe(site,gate,fetch=lambda *a,**kw:response)
+        second = observe(site,gate,fetch=lambda *a,**kw:self.fail('fetch after host hold'))
+        self.assertEqual(first['state'], 'source_access_challenge')
+        self.assertEqual(first['challenge'], 'anubis_proof_of_work_verification')
+        self.assertEqual(second['state'], 'host_access_held')
+        self.assertNotIn('private-challenge-token', json.dumps(first))
+
+    def test_anubis_200_stops_both_supported_probe_transports(self):
+        for transport in ('requests', 'curl'):
+            result = self.probe(transport, status=200, body=ANUBIS)
+            self.assertEqual(result['state'], 'blocked')
+            self.assertEqual(result['diagnostics']['stop_reason'], 'source_access_challenge')
+            self.assertEqual(result['sample_count'], 0)
+
     def test_myra_requires_notice_provider_script_and_active_control(self):
         self.assertEqual(access_challenge(MYRA), 'myra_human_verification')
         self.assertEqual(access_challenge(MYRA.decode()), 'myra_human_verification')

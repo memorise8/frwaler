@@ -12,6 +12,7 @@ def access_challenge(body):
     cookie_notice = 'this website requires js enabled and cookies'
     human_notice = 'this question is for testing whether you are a human visitor'
     markers = ('human verification', 'pardon our interruption', 'security check',
+               'not a bot!',
                cookie_notice, human_notice)
     if isinstance(prefix, bytes):
         markers = tuple(marker.encode() for marker in markers)
@@ -43,6 +44,18 @@ def access_challenge(body):
                 ):
                     return 'javascript_cookie_verification'
     title = soup.title.get_text(' ', strip=True).casefold() if soup.title else ''
+    if title == "making sure you're not a bot!" and not soup.find('article'):
+        # Observed HTTP 200 on both delivered CERN collection routes. Require
+        # the interstitial heading, challenge data and an active local module;
+        # an article discussing Anubis is not evidence of an access challenge.
+        heading = soup.find('h1', id='title')
+        challenge = soup.find('script', id='anubis_challenge', type='application/json')
+        module = soup.find('script', id='anubis-main', type='module', src=True)
+        if (heading and heading.get_text(' ', strip=True).casefold() == title
+                and challenge and module
+                and module['src'].split('?', 1)[0]
+                == '/.within.website/x/cmd/anubis/static/js/main.mjs'):
+            return 'anubis_proof_of_work_verification'
     if title == 'security check' and not soup.find(['article', 'main']):
         # The observed BMF HTTP 503 is a Myra human-verification page, not
         # an ordinary temporary server failure. Require active controls and
