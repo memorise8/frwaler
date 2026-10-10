@@ -6,7 +6,7 @@
   "list_page": {
     "url": "https://eprr.lanl.gov/",
     "params": {
-      "f%5BdocType_f%5D%5B%5D": "Full+Paper"
+      "f[docType_f][]": "Full Paper"
     },
     "pagination": {
       "type": "query_param",
