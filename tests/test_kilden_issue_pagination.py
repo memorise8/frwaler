@@ -21,8 +21,15 @@ def load():
     obj = object.__new__(cls)
     obj._delay = 0
     obj._check_cancelled = lambda: None
+    obj._source_failure = None
     failures = []
-    obj._report_source_failure = failures.append
+    report_failure = obj._report_source_failure
+
+    def report(reason):
+        report_failure(reason)  # Exercise the common crawler's supported error-code contract.
+        failures.append(reason)
+
+    obj._report_source_failure = report
     return module, obj, failures
 
 
@@ -61,14 +68,16 @@ class KildenIssuePagination(unittest.TestCase):
         saved, requested = replay(module, obj, {module._START_URL: (FIXTURES / 'page-0.html').read_text()})
         self.assertEqual(saved, 0)
         self.assertEqual(len([url for url in requested if '/nb/tidsskriftet/' in url]), 24)
-        self.assertEqual(failures, ['Cannot fetch journal index: ' + module._START_URL + '?page=1'])
+        self.assertEqual(failures, ['fetch_failed'])
+        self.assertEqual(obj.delivery_source_failure, 'fetch_failed')
 
     def test_repeated_page_content_cannot_look_like_completed_pagination(self):
         module, obj, failures = load()
         raw = (FIXTURES / 'page-0.html').read_text()
         _, requested = replay(module, obj, {module._START_URL: raw, module._START_URL + '?page=1': raw})
         self.assertEqual(len([url for url in requested if '/nb/tidsskriftet/' in url]), 24)
-        self.assertEqual(failures, ['Journal index repeats issue entries: ' + module._START_URL + '?page=1'])
+        self.assertEqual(failures, ['invalid_response'])
+        self.assertEqual(obj.delivery_source_failure, 'invalid_response')
 
     def test_index_next_link_stays_on_configured_source(self):
         module, _, _ = load()

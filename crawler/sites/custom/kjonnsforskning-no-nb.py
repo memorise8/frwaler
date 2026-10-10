@@ -307,22 +307,22 @@ class KjonnsforskningSiteCrawler(BaseCrawler):
         while index_url:
             self._check_cancelled()
             if (time.time() - start_time) / 60 >= MAX_WALL_MIN:
-                self._report_source_failure("Journal index discovery exceeded wall-clock budget")
+                print(f"[{self.site_id}] Journal index discovery exceeded wall-clock budget")
                 break
             if index_url in seen_indexes:
-                self._report_source_failure(f"Journal index repeats a page: {index_url}")
+                self._report_source_failure("invalid_response")
                 break
             seen_indexes.add(index_url)
             index_html = _curl_get(index_url)
             if not index_html:
-                self._report_source_failure(f"Cannot fetch journal index: {index_url}")
+                self._report_source_failure("fetch_failed")
                 break
             page_paths = _get_issue_paths(index_html)
             if not page_paths:
-                self._report_source_failure(f"Journal index has no issue entries: {index_url}")
+                self._report_source_failure("invalid_response")
                 break
             if all(path in seen_paths for path in page_paths):
-                self._report_source_failure(f"Journal index repeats issue entries: {index_url}")
+                self._report_source_failure("invalid_response")
                 break
             for path in page_paths:
                 if path not in seen_paths:

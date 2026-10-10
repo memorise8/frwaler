@@ -194,22 +194,28 @@ class KliimaministeeriumEeOtsingCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def _fetch_page(self, page_num):
-        """Fetch one page from the search API. Returns (docs, total_found)."""
+        """Return (docs, total_found), with an unknown total on a failed response."""
         url = (
             f"{self._API_URL}"
             f"?sort_by={self._SORT_BY}&type={self._LIST_TYPE}&page={page_num}"
         )
         raw = self._curl(url)
         if not raw:
-            return [], 0
+            self._report_source_failure("fetch_failed")
+            return [], None
         try:
             data = json.loads(raw)
         except Exception as exc:
             print(f"[{_SITE_ID}] JSON parse error on page {page_num}: {exc}")
-            return [], 0
-        resp = data.get("response", {})
-        total = resp.get("numFound", 0) or 0
-        docs = resp.get("docs") or []
+            self._report_source_failure("invalid_response")
+            return [], None
+        resp = data.get("response") if isinstance(data, dict) else None
+        total = resp.get("numFound") if isinstance(resp, dict) else None
+        docs = resp.get("docs") if isinstance(resp, dict) else None
+        if (type(total) is not int or total < 0 or not isinstance(docs, list)
+                or not all(isinstance(doc, dict) for doc in docs)):
+            self._report_source_failure("invalid_response")
+            return [], None
         return docs, total
 
     # ------------------------------------------------------------------
@@ -246,6 +252,10 @@ class KliimaministeeriumEeOtsingCrawler(BaseCrawler):
                 print(f"[{_SITE_ID}] safety cap of {self._MAX_PAGES} pages reached; stopping")
 
             docs, total = self._fetch_page(page)
+
+            if total is None:
+                print(f"[{_SITE_ID}] page {page}: source response unavailable; total unknown")
+                break
 
             if page == 0:
                 print(f"[{_SITE_ID}] total available: {total}")
