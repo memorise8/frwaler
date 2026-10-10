@@ -80,7 +80,15 @@ def parse_detail(html, item):
     truncated = (normalized_listing.endswith(('..', '…'))
                  and bool(normalized_listing.rstrip('.…'))
                  and title.startswith(normalized_listing.rstrip('.…')))
-    if not title or (title != normalized_listing and not truncated):
+    # The catalogue and detail for 699539 use different middle-dot glyphs.
+    # Keep both source strings; this limited comparison additionally requires
+    # the same publication date and an identical explicit download below.
+    separators = {'·', '‧', 'ㆍ'}
+    separator_variant = (not board and title != normalized_listing
+                         and len(title) == len(normalized_listing)
+                         and all(a == b or (a in separators and b in separators)
+                                 for a, b in zip(title, normalized_listing)))
+    if not title or (title != normalized_listing and not truncated and not separator_variant):
         raise ValueError('KEI detail title differs from source listing')
     fields, authors, writer = {}, [], ''
     if board:
@@ -121,10 +129,17 @@ def parse_detail(html, item):
     images = [dict(url=urljoin(item['url'], n['src']), alt=n.get('alt', ''))
               for n in body.select('img[src]')]
     files = [_attachment(link, item) for link in main.select('.add_file_list a.file-down[href]')]
+    if separator_variant:
+        listed_downloads = {f['url'] for f in item.get('attachments', [])
+                            if f.get('kind') == 'download' and f.get('url')}
+        if (not publication or publication != item.get('date_raw')
+                or not listed_downloads.intersection(f['url'] for f in files)):
+            raise ValueError('KEI detail title differs without date and attachment corroboration')
     return dict(scope=scope, source_id=uid, source_key=f'{scope}:{uid}',
                 source_url=item['url'], title=title, listing_title=listing_title,
                 title_binding=('exact' if title == listing_title else
                                'source_title_whitespace_normalized' if title == normalized_listing else
+                               'source_title_separator_variant_with_date_and_attachment' if separator_variant else
                                'source_listing_prefix_with_ellipsis'),
                 abstract=value, contents=contents,
                 body_classification=('source_text_present' if value else

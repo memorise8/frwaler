@@ -67,6 +67,41 @@ class KeiDetails(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'title quality requires review'):
                 parse_detail(changed,wanted)
 
+    def test_middle_dot_variant_requires_same_date_and_explicit_download(self):
+        raw,item=fixture('researchreport')
+        file_url=parse_detail(raw,item)['attachments'][0]['url']
+        detail_title='자원순환정책 중ㆍ장기 과제'
+        listed_title='자원순환정책 중‧장기 과제'
+        raw=raw.replace(item['title'],detail_title)
+        item=dict(item,title=listed_title,attachments=[dict(url=file_url,kind='download')])
+        parsed=parse_detail(raw,item)
+        self.assertEqual(parsed['title'],detail_title)
+        self.assertEqual(parsed['listing_title'],listed_title)
+        self.assertEqual(parsed['title_binding'],'source_title_separator_variant_with_date_and_attachment')
+        for change in [dict(attachments=[]),dict(attachments=[dict(url=file_url,kind='viewer')]),
+                       dict(attachments=[dict(url=file_url+'x',kind='download')]),
+                       dict(date_raw=None),dict(date_raw='2020-01-01')]:
+            with self.subTest(change=change),self.assertRaisesRegex(ValueError,'without date and attachment corroboration'):
+                parse_detail(raw,dict(item,**change))
+        for title in ['자원순환정책 중장기 과제','자원순환정책 중-장기 과제',
+                      '자원순환정책 중‧장기 다른 과제','자원순환정책 중‧장기 과제...']:
+            with self.subTest(title=title),self.assertRaises(ValueError):
+                parse_detail(raw,dict(item,title=title))
+
+    def test_middle_dot_comparison_does_not_relax_source_identity_or_quality(self):
+        raw,item=fixture('researchreport')
+        file_url=parse_detail(raw,item)['attachments'][0]['url']
+        raw=raw.replace(item['title'],'환경 중ㆍ장기 과제')
+        item=dict(item,title='환경 중‧장기 과제',attachments=[dict(url=file_url,kind='download')])
+        for changed in [raw.replace('name="c_id" value="123"','name="c_id" value="456"'),
+                        raw.replace('library.kei.re.kr','outside.invalid'),
+                        raw.replace('중ㆍ장기','중ㆍ장\ufffd기')]:
+            with self.subTest(changed=changed),self.assertRaises(ValueError):
+                parse_detail(changed,item)
+        raw,item=fixture('board-0028')
+        with self.assertRaisesRegex(ValueError,'differs from source listing'):
+            parse_detail(raw.replace(item['title'],'환경 중ㆍ장기 과제'),dict(item,title='환경 중‧장기 과제'))
+
     def test_all_eleven_scope_ids_and_explicit_date_roles(self):
         for scope in SCOPES:
             with self.subTest(scope=scope):
