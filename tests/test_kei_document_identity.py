@@ -20,6 +20,20 @@ class KeiIdentity(SiteContract,unittest.TestCase):
             ids={1:range(101,105),2:range(105,109)}.get(page,[])
             return [dict(c_id=str(i),post_number=str(109-i),category='연구',date_raw='2026-08-31',title=f'연구 {i}',url=detail_url(str(i),page=page+getattr(self,'position_shift',0),row=index+1),list_url='https://www.kei.re.kr/elibList.es') for index,i in enumerate(ids)]
         c._fetch_list_page=listing;c._fetch_detail=lambda url,referer:dict(abstract='환경 연구의 본문과 분석 방법 및 결과에 관한 충분한 설명입니다. '*10,published_date='2026-08-31',authors=['연구자'],pdf_url='https://library.kei.re.kr/pyxis-api/1/digital-files/fixture')
+        # Identity tests retain controlled responses; production all-scope HTML
+        # parsing and durable resumes are covered by test_kei_all_scope_traversal.
+        from crawler.kei_source import SCOPES
+        from crawler.kei_traversal import digest
+        def scope_page(scope,page):
+            old=c._fetch_list_page(page) if scope=='researchreport' else []
+            items=[dict(r,source_id=r['c_id'],source_key=scope+':'+r['c_id'],scope=scope,attachments=[]) for r in old]
+            total,last=getattr(c,'_list_bounds',None) or (8,2)
+            if scope!='researchreport':total,last=0,1
+            return dict(items=items,total=total,last_page=last,page=page,page_hash=digest(items),url='https://www.kei.re.kr'+SCOPES[scope][0]+'?mid='+SCOPES[scope][1])
+        def scope_detail(item,listing_url):
+            d=c._fetch_detail(item['url'],referer=listing_url)
+            return dict(title=d.get('title') or item['title'],abstract=d.get('abstract',''),authors=d.get('authors',[]),published_date_raw=d.get('published_date') or item['date_raw'],listed_date_raw=item['date_raw'],primary_PDF_candidate=dict(url=d['pdf_url'],filename=d.get('original_filename','')) if d.get('pdf_url') else None)
+        c._scope_page=scope_page;c._scope_detail=scope_detail
         return c
 
     def test_same_document_at_changed_page_does_not_create_more_rows(self):

@@ -112,24 +112,24 @@ class KeiBounds(KeiIdentity):
             requests.append(page);c._list_bounds=(201,201)
             return [dict(one,c_id=str(page),url=one['url'].replace('c_id=101','c_id='+str(page)))]
         c._fetch_list_page=listing;self.assertEqual(c.crawl(),201);self.assertEqual(requests,list(range(1,202)));self.assertEqual(self.count(),201)
-        self.assertFalse(c.delivery_exhausted) # Remaining delivered routes not yet native.
+        self.assertTrue(c.delivery_exhausted) # Fixture explicitly supplies the other ten empty scopes.
     def test_real_list_parser_follows_published_next_link_and_retains_bounds(self):
         c=self.crawler();c._fetch_list_page=self.module.KeiReKrEliblistesCrawler._fetch_list_page.__get__(c)
         c._curl_get=Mock(side_effect=lambda url,**kw:fixture(page=int(parse_qs(urlsplit(url).query).get('nPage',['1'])[0]),total=11))
         self.assertEqual(c.crawl(),11);self.assertEqual(c._list_bounds,(11,2));self.assertEqual(c._curl_get.call_count,2)
-        self.assertEqual(c.delivery_source_failure,'configuration');self.assertFalse(c.delivery_exhausted)
+        self.assertIsNone(c.delivery_source_failure);self.assertTrue(c.delivery_exhausted)
     def test_explicit_page_budget_reports_incomplete(self):
         c=self.crawler();c._MAX_PAGES=1;self.assertEqual(c.crawl(),4);self.assertEqual(c.delivery_source_failure,'invalid_response');self.assertFalse(c.delivery_exhausted)
     def test_wall_budget_reports_incomplete(self):
         c=self.crawler();c._TIMEOUT_SECS=0
-        with patch.object(self.module.time,'time',side_effect=[0,1]):self.assertEqual(c.crawl(),0)
+        with patch.object(self.module.time,'monotonic',side_effect=[0,1]):self.assertEqual(c.crawl(),0)
         self.assertEqual(c.delivery_source_failure,'invalid_response')
     def test_body_gap_is_reported_and_backfill_does_not_skip_it(self):
         c=self.crawler();c._fetch_detail=lambda *a,**kw:{};c.delivery_mode='backfill';self.assertEqual(c.crawl(),0);self.assertEqual(c.delivery_source_failure,'item_failed')
     def test_list_exception_stops_instead_of_skipping_to_later_pages(self):
         c=self.crawler();c._fetch_list_page=Mock(side_effect=ValueError('source mismatch'));self.assertEqual(c.crawl(),0);self.assertEqual(c._fetch_list_page.call_count,1);self.assertEqual(c.delivery_source_failure,'invalid_response')
     def test_http_access_denials_are_held_and_not_parsed_as_articles(self):
-        for status,reason in [(401,'authentication_failed'),(403,'authentication_failed'),(429,'rate_limited')]:
+        for status,reason in [(401,'authentication_failed'),(403,'authentication_failed'),(429,'rate_limited'),(503,'rate_limited')]:
             c=self.crawler()
             with patch.object(self.module.subprocess,'run',return_value=SimpleNamespace(stdout=b'<html>Access denied</html>\n'+str(status).encode(),returncode=0)) as run:self.assertIsNone(c._curl_get(BASE));self.assertEqual(run.call_count,1)
             self.assertEqual(c.delivery_source_failure,reason)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""KEI 한국환경연구원 발간물(연구보고서) crawler.
+"""KEI 한국환경연구원: all eleven delivered catalogue and board scopes.
 
 Starting URL: https://www.kei.re.kr/elibList.es?mid=a10101010000
 
@@ -16,7 +16,9 @@ import subprocess
 import time
 
 from crawler.base_crawler import BaseCrawler
+from crawler.kei_traversal import KeiTraversal
 from crawler.kei_source import parse_listing, page_number, title_quality
+from delivery.health.access_challenge import access_challenge
 
 _BASE = "https://www.kei.re.kr"
 _MID = "a10101010000"
@@ -83,8 +85,8 @@ def _find_abstract(soup):
     return re.sub(r"\s+", " ", div.get_text(" ", strip=True)).strip()
 
 
-class KeiReKrEliblistesCrawler(BaseCrawler):
-    """Crawler for KEI 한국환경연구원 발간물(연구보고서)."""
+class KeiReKrEliblistesCrawler(KeiTraversal, BaseCrawler):
+    """Traverse reviewed KEI scope links with durable backfill checkpoints."""
 
     site_id = "kei-re-kr-eliblistes"
     site_name = "Custom: kei-re-kr-eliblistes"
@@ -119,9 +121,9 @@ class KeiReKrEliblistesCrawler(BaseCrawler):
                 self._check_cancelled()
                 body, separator, status_text = (result.stdout or b'').rpartition(b'\n')
                 status = int(status_text) if separator and status_text.isdigit() else 0
-                if status in (401, 403, 429):
+                if status in (401, 403, 429, 503) or access_challenge(body):
                     self._access_held = True
-                    self._report_source_failure('rate_limited' if status == 429 else 'authentication_failed')
+                    self._report_source_failure('rate_limited' if status in (429, 503) else 'authentication_failed')
                     return None
                 if result.returncode == 0 and 200 <= status < 300 and body.strip():
                     return body.decode("utf-8", errors="replace")
@@ -220,144 +222,4 @@ class KeiReKrEliblistesCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
-        self._check_cancelled()
-        if limit is not None and limit <= 0:
-            return 0
-        saved = 0
-        seen_ids = set()
-        self._list_bounds, self._next_list_url = None, None
-        start_time = time.time()
-        limit_str = str(limit) if limit is not None else "∞"
-
-        page = 1
-        while True:
-            self._check_cancelled()
-            if limit is not None and saved >= limit:
-                break
-
-            if self._MAX_PAGES > 0 and page > self._MAX_PAGES:
-                self._report_source_failure('invalid_response')
-                break
-
-            elapsed = time.time() - start_time
-            if elapsed > self._TIMEOUT_SECS:
-                self._report_source_failure('invalid_response')
-                print(f"[{self.site_id}] Wall-clock budget reached before source exhaustion at page {page}.")
-                break
-
-            if page % 10 == 0:
-                print(f"[{self.site_id}] page {page}: saved {saved}/{limit_str}")
-
-            try:
-                items = self._fetch_list_page(page)
-            except KeyboardInterrupt:
-                raise
-            except Exception as exc:
-                self._report_source_failure('invalid_response' if isinstance(exc, ValueError) else 'fetch_failed')
-                print(f"[{self.site_id}] list page {page} failed: {exc}")
-                break
-
-            if not items:
-                print(f"[{self.site_id}] page {page}: no items returned. Done.")
-                break
-
-            new_on_page = 0
-
-            for item in items:
-                self._check_cancelled()
-                if limit is not None and saved >= limit:
-                    break
-
-                url = item["url"]
-                if item["c_id"] in seen_ids:
-                    self._report_source_failure('invalid_response')
-                    return saved
-                seen_ids.add(item["c_id"])
-                new_on_page += 1
-
-                c_id = item["c_id"]
-                try:
-                    time.sleep(self._RATE_SLEEP)
-                    detail = self._fetch_detail(url, referer=item["list_url"])
-                    if getattr(self, '_access_held', False):
-                        return saved
-
-                    title = detail.get("title") or item["title"]
-                    if title_quality(title or ''):
-                        raise ValueError('KEI source title quality requires review')
-                    if not title:
-                        self._report_source_failure('item_failed')
-                        if self.delivery_mode == 'backfill':
-                            return saved
-                        continue
-
-                    abstract = detail.get("abstract", "")
-                    if len(abstract) < self._MIN_ABSTRACT:
-                        self._report_source_failure('item_failed')
-                        if self.delivery_mode == 'backfill':
-                            return saved
-                        continue
-
-                    authors_str = "; ".join(detail.get("authors") or [])
-                    category = detail.get("category") or item["category"]
-
-                    published_date = detail.get("published_date") or item["date_raw"] or None
-                    listed_date = item["date_raw"] or None
-
-                    pdf_url = detail.get("pdf_url", "")
-                    original_filename = detail.get("original_filename", "")
-
-                    post_number = item["post_number"] if item["post_number"].isdigit() else (item["post_number"] or None)
-
-                    paper = {
-                        "site_id": self.site_id,
-                        "external_id": c_id,
-                        "post_number": post_number,
-                        "title": title,
-                        "abstract": abstract,
-                        "published_date": published_date,
-                        "listed_date": listed_date,
-                        "authors": authors_str,
-                        "publisher": _PUBLISHER,
-                        "department": "",
-                        "journal": "",
-                        "url": url,
-                        "pdf_url": pdf_url,
-                        "keywords": "",
-                        "category": category,
-                        "doi": "",
-                        "original_filename": original_filename,
-                        "metadata": json.dumps({
-                            "posted_date": item["date_raw"],
-                            "originalFilename": original_filename,
-                            "c_id": c_id,
-                            "post_number_raw": item["post_number"],
-                        }, ensure_ascii=False),
-                    }
-
-                    self._save_paper(paper)
-                    if self._last_save_created:
-                        saved += 1
-                    print(f"[{self.site_id}] saved {saved}/{limit_str}: {title[:60]}")
-
-                except KeyboardInterrupt:
-                    raise
-                except Exception as exc:
-                    self._report_source_failure('item_failed')
-                    if self.delivery_mode == 'backfill':
-                        return saved
-                    print(f"[{self.site_id}] item {c_id} failed: {exc}; continuing")
-                    continue
-
-            if new_on_page == 0 and page > 1:
-                self._report_source_failure('invalid_response')
-                break
-            if self._list_bounds is not None and page == self._list_bounds[1]:
-                # Other delivered scopes still need native detail implementations.
-                # Do not publish whole-site exhaustion from this catalogue alone.
-                self._report_source_failure('configuration')
-                break
-            page += 1
-
-        print(f"[{self.site_id}] Done. Total saved: {saved}")
-        return saved
+        return self._crawl_scopes(limit)
