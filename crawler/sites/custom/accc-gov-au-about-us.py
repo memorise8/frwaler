@@ -14,6 +14,7 @@ from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 
 from crawler.base_crawler import BaseCrawler
+from delivery.health.access_challenge import access_challenge
 
 _SITE_ID = "accc-gov-au-about-us"
 _BASE_URL = "https://www.accc.gov.au"
@@ -357,7 +358,11 @@ class AcccGovAuAboutUsCrawler(BaseCrawler):
 
             if not raw:
                 print(f"[{_SITE_ID}] empty list response at page {page}; stopping")
-                break
+                self._report_source_failure('fetch_failed')
+                return saved
+            if access_challenge(raw):
+                self._report_source_failure('authentication_failed')
+                return saved
 
             items = self._parse_list_page(raw)
             if not items:
@@ -387,7 +392,11 @@ class AcccGovAuAboutUsCrawler(BaseCrawler):
                     raw_detail = self._fetch_detail(url)
                     if not raw_detail:
                         print(f"[{_SITE_ID}] item {url} failed: empty detail response")
-                        continue
+                        self._report_source_failure('fetch_failed')
+                        return saved
+                    if access_challenge(raw_detail):
+                        self._report_source_failure('authentication_failed')
+                        return saved
 
                     paper = self._parse_detail(raw_detail, item)
 

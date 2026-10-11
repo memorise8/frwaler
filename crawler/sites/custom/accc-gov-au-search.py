@@ -16,6 +16,7 @@ from datetime import datetime
 # Absolute import — required because spec_from_file_location has no package context.
 sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler
+from delivery.health.access_challenge import access_challenge
 
 _BASE = "https://www.accc.gov.au"
 _SEARCH_URL = f"{_BASE}/search"
@@ -238,8 +239,12 @@ class ACCCGovAuSearchCrawler(BaseCrawler):
             url = f"{_SEARCH_URL}?query={_QUERY}&page={page_num}"
             raw = _curl_get(url)
             if not raw:
-                print(f"[accc-gov-au-search] page {page_num}: failed to fetch, skipping")
-                continue
+                print(f"[accc-gov-au-search] page {page_num}: failed to fetch, stopping")
+                self._report_source_failure('fetch_failed')
+                return saved
+            if access_challenge(raw):
+                self._report_source_failure('authentication_failed')
+                return saved
 
             items = _parse_list_page(raw)
             if not items:
@@ -270,10 +275,13 @@ class ACCCGovAuSearchCrawler(BaseCrawler):
 
                     # Fetch detail page
                     detail_html = _curl_get(item_url)
-                    if detail_html:
-                        detail = _parse_detail_page(detail_html, item_url)
-                    else:
-                        detail = {"abstract": item.get("snippet", ""), "pdf_url": ""}
+                    if not detail_html:
+                        self._report_source_failure('fetch_failed')
+                        return saved
+                    if access_challenge(detail_html):
+                        self._report_source_failure('authentication_failed')
+                        return saved
+                    detail = _parse_detail_page(detail_html, item_url)
 
                     abstract = detail["abstract"] or item.get("snippet", "")
 

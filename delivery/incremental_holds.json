@@ -88,5 +88,29 @@
     "evidence": "incremental-rollout-20261012/batch-023-academie/order-review.json",
     "evidence_sha256": "67a47903dab6534ff8b4cd383ff307de0d63b6b500c310f244f4a7e61159a6bb",
     "native_health_note": "Dated pager76 is only part of the 120-target delivered scope. Editorial44 lack list dates and the current first linked press pair is reversed. Existing source-body exclusion and file/image holds remain separate."
+  },
+  "accc-gov-au-about-us": {
+    "reason": "observed_http403_edge_access_denied_source_identity_order_and_exhaustion_unverified",
+    "classification": "full_rescan_required",
+    "source_sha256": "815ead4034d19e6c3d485894232428162d7ccba85dc51afaa5d1a17d186ddef5",
+    "dependency_source_sha256": {
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
+    },
+    "reviewed_at": "2026-10-11T20:12:10.900572+00:00",
+    "evidence": "incremental-rollout-20261012/batch-024-accc/access-review.json",
+    "evidence_sha256": "8648d59e711bbcef3a4f07e236bf2f80ea14e4b5469d427618f9449b08b001ae",
+    "native_health_note": "Observed exact native entry HTTP403 edge refusal. No source total/order/end inferred. Native error/empty transport responses now fail explicitly instead of empty-list success; current source bodies remain inaccessible on audited path."
+  },
+  "accc-gov-au-search": {
+    "reason": "observed_http403_edge_access_denied_source_identity_order_and_exhaustion_unverified",
+    "classification": "full_rescan_required",
+    "source_sha256": "74de2413431e6b86ba6e852e66f3d2135dfffe9c9fad0930503e1b6120106e21",
+    "dependency_source_sha256": {
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
+    },
+    "reviewed_at": "2026-10-11T20:12:10.900572+00:00",
+    "evidence": "incremental-rollout-20261012/batch-024-accc/access-review.json",
+    "evidence_sha256": "8648d59e711bbcef3a4f07e236bf2f80ea14e4b5469d427618f9449b08b001ae",
+    "native_health_note": "Observed exact native entry HTTP403 edge refusal. No source total/order/end inferred. Native error/empty transport responses now fail explicitly instead of empty-list success; current source bodies remain inaccessible on audited path."
   }
 }

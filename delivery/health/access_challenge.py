@@ -15,6 +15,7 @@ def access_challenge(body):
     human_notice = 'this question is for testing whether you are a human visitor'
     hal_notice = 'it seems that your request has been identified as coming from a robot.'
     markers = ('human verification', 'pardon our interruption', 'security check',
+               'access denied', 'errors.edgesuite.net/',
                'not a bot!', 'challenge validation', 'radware page',
                '/.within.website/x/cmd/anubis/', '/tspd/',
                cookie_notice, human_notice, js_page_notice, aws_js_notice, hal_notice,
@@ -26,6 +27,15 @@ def access_challenge(body):
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(prefix, 'html.parser')
     title = soup.title.get_text(' ', strip=True).casefold() if soup.title else ''
+    if title == 'access denied' and soup.body and not soup.find(['article', 'main', 'form']):
+        # Observed ACCC HTTP 403 edge refusal. Classify the bounded error shape,
+        # without returning its reference number or treating article text as a gate.
+        headings = soup.find_all('h1')
+        body_text = soup.body.get_text(' ', strip=True).casefold()
+        if (len(headings) == 1 and headings[0].get_text(' ', strip=True).casefold() == 'access denied'
+                and "you don't have permission to access" in body_text
+                and 'on this server.' in body_text and 'https://errors.edgesuite.net/' in body_text):
+            return 'akamai_access_denied'
     if title == 'vérification de sécurité' and not soup.find(['article', 'main']):
         # Observed localized TSPD CAPTCHA on the French health ministry.
         # Inspect the notice and active controls, without reading the image,

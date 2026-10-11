@@ -578,6 +578,27 @@ Batch 023: Académie des sciences — 전체 편집 범위의 날짜 부재/역�
   건너뛰었다. batch-023-academie/order-review.json 및 postgres-review.json 참조.
 - 재검토: python -m delivery.scripts.review_academie_incremental --source <continuous 경로> --probe <목록 및 대표 기사 캡처> --out <새 검토 파일>
 
+
+Batch 024: ACCC 두 수집기 — 접근 차단을 정상 종료로 오인하지 않도록 수정
+- 납품 URL 두 곳과 search의 정확한 native 첫 요청 URL을 총 HTTP3회 측정했다.
+  모두 HTTP403/Akamai Access Denied 응답이며 재시도나 우회를 하지 않았다. 이 측정 경로의
+  접근 실패로 분류하고 소스 건수·정렬·안정 ID·끝 도달은 미확정으로 남겼다.
+- HTML entity로 인코딩된 provider URL도 식별하는 공통 차단 감지를 추가했다. title/h1,
+  권한 거부 안내와 provider 문자열이 함께 있어야 하며 기사/main/form 내용은 제외한다.
+  응답의 참조 번호를 상태 사유에 넣지 않는다.
+- 두 native 수집기가 차단/빈 전송 응답을 받으면 source failure를 보고하도록 수정했다.
+  search가 실패한 목록을 건너뛰며 200페이지를 반복하거나 실패한 상세를 목록 snippet으로
+  대체해 성공 처리하는 경로를 막았다. 정상 목록/상세의 저장 필드와 ID는 유지했다.
+- native와 공통 차단 helper 해시에 결합한 full_rescan_required 보류를 기록했다.
+  접근이 회복되면 정렬·범위·끝 관측을 다시 검토해야 한다. 분류를 전체 수집 완료로 보지 않는다.
+- 새 PostgreSQL DB에서 실제 캡처된 403 body를 native curl 경계에 재생했다. 두 사이트 모두
+  최초/재실행 요청1/1회, 상세0/0회, 저장0/0건, job failed/authentication_failed였다.
+  기준점은 미완료이며 자동 후속 작업도 생기지 않았다. 재생 자체의 live HTTP는0회다.
+- 단위·정상 수집·공통 worker 회귀105개와 격리 PG1개가 통과했다. 환경 의존3개는 단위
+  실행에서 건너뛰었다. batch-024-accc/access-review.json 및 postgres-review.json 참조.
+  기존 전수검증 goal은 계속 일시정지이고 운영 DB/배포/외부 발송은 수행하지 않았다.
+- 재검토: python -m delivery.scripts.review_accc_incremental --root <batch 캡처 경로> --out <새 파일>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.
