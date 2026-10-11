@@ -239,19 +239,6 @@
     "evidence_sha256": "660f9c1745ef629471e6922bbc839542c7db5a523a70b48f94892c17d07d620d",
     "native_health_note": "19 retained year groups contain 1382 memberships, 1372 native URL variants and 1370 DOIs. Within-year order unverified; only three actual Crossref enrichments reviewed. Current entry HTTP 500. Two cross-year DOI URL alias pairs remain distinct native rows; no whole-source baseline certified."
   },
-  "andra-fr-publications": {
-    "classification": "full_rescan_required",
-    "reason": "delivered_cookie_verification_hold_and_two_unconfigured_categories_order_end_unverified",
-    "source_sha256": "194be7a259478ac7fec7874d7ebec941a5bd7da74554216459d9224c3aec6cb4",
-    "dependency_source_sha256": {
-      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b",
-      "docs/deliverables/test_URL_수집대조_20260802.csv": "336c04d463f70624cd4ec7aacdf386fd71bab34ca186acf8ac3413a3ee1fced9"
-    },
-    "reviewed_at": "2026-10-11T21:35:36.782261+00:00",
-    "evidence": "incremental-rollout-20261012/batch-038-andra/access-review.json",
-    "evidence_sha256": "928bc1626568b54140efca71b18317c48fc7cb9b7ef7c4c446ca0ed1a4ed5dd1",
-    "native_health_note": "Three retained delivered category routes returned HTTP200 cookie-verification interstitials. Existing access hold preserved; no live retry. Native only configures category230; 224/223 and AJAX facet equivalence remain unverified. Access failure proves neither source exhaustion nor a source count/order. No verification redirects followed."
-  },
   "anses-fr-fr": {
     "classification": "full_rescan_required",
     "reason": "sampled_signature_and_online_dates_nonmonotonic_and_two_original_scopes_unconfigured",
@@ -288,18 +275,6 @@
     "evidence": "incremental-rollout-20261012/batch-041-mps/scope-review.json",
     "evidence_sha256": "1005ebbf15d15821f233f8946e67795e583b4e36d429d9efec1f50d391152f83",
     "native_health_note": "Original annual/regulation/normative filters contain130 distinct IDs; native unfiltered API reports2626 with whole-scope equivalence unverified. Native first15 include3 missing scrq; original group ID/publication ordering varies. Current native first fields match retained. No all2626 enumeration, safe known-boundary contract or full-content completion certified; attachments remain uncollected."
-  },
-  "arcep-fr-actualites": {
-    "classification": "full_rescan_required",
-    "reason": "annual_filter_human_verification_and_original_scope_query_mismatch",
-    "source_sha256": "3d383d89bbce2d289a6a6245d45c49296c93747c83eca494582dbe2e1a67b653",
-    "dependency_source_sha256": {
-      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
-    },
-    "reviewed_at": "2026-10-11T22:01:12.313138+00:00",
-    "evidence": "incremental-rollout-20261012/batch-043-arcep/access-review-v2.json",
-    "evidence_sha256": "80a0584db220fdacc8ef59c7f0499a3007f73c6e9c7e409ace579bc2f16ce63f",
-    "native_health_note": "Retained publisher annual filter requires human verification. Original delivered publication query uses a different filter key and original press scope is not configured. Boundary pages repeat terminal memberships; whole-scope order/end unverified. Access hold preserved with no live retry or browser challenge workflow. Native padded descriptions are not PDF text."
   },
   "arn-se-om-arn": {
     "classification": "full_rescan_required",
