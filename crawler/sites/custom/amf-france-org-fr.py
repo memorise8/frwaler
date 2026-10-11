@@ -17,6 +17,7 @@ from xml.etree import ElementTree as ET
 
 sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler
+from delivery.health.access_challenge import access_challenge
 
 _BS4_PARSERS = ["html5lib", "lxml", "html.parser"]
 
@@ -41,28 +42,22 @@ def _curl_get(url, retries=3, timeout=30):
                 [
                     "curl",
                     "--tls-max", "1.3",
-                    "-sk",
+                    "-fsk",
                     "-L",
                     "--max-time", str(timeout),
                     "-A",
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                     "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                     "-H", "Accept-Language: fr-FR,fr;q=0.9",
-                    "-D", "-",  # dump headers to stdout
                     url,
                 ],
                 capture_output=True,
                 timeout=timeout + 5,
             )
             raw = result.stdout
-            # Split headers from body
-            parts = raw.split(b"\r\n\r\n", 1)
-            if len(parts) == 2:
-                body = parts[1]
-            else:
-                body = raw
-            text = body.decode("utf-8", errors="replace")
-            if text:
+            # Body only: redirect/proxy header blocks must not enter XML/HTML.
+            text = raw.decode("utf-8", errors="replace")
+            if result.returncode == 0 and text.strip():
                 return text, {}
             if attempt < retries - 1:
                 wait = 3 ** attempt
@@ -210,12 +205,20 @@ class AMFFranceOrgFrCrawler(BaseCrawler):
         text, _ = _curl_get(self.SITEMAP_URL)
         if not text:
             print("[amf-france-org-fr] Sitemap fetch failed")
+            self._report_source_failure('fetch_failed')
+            return []
+        if access_challenge(text):
+            self._report_source_failure('authentication_failed')
             return []
 
         try:
             root = ET.fromstring(text)
         except ET.ParseError as exc:
             print(f"[amf-france-org-fr] Sitemap XML parse error: {exc}")
+            self._report_source_failure('invalid_response')
+            return []
+        if root.tag != '{http://www.sitemaps.org/schemas/sitemap/0.9}urlset':
+            self._report_source_failure('invalid_response')
             return []
 
         ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
@@ -288,7 +291,11 @@ class AMFFranceOrgFrCrawler(BaseCrawler):
                     html, _ = _curl_get(article_url)
                     if not html:
                         print(f"[amf-france-org-fr] item {article_url} failed: empty response")
-                        continue
+                        self._report_source_failure('fetch_failed')
+                        return saved
+                    if access_challenge(html):
+                        self._report_source_failure('authentication_failed')
+                        return saved
 
                     fields = _extract_article(html, article_url)
 
@@ -310,7 +317,7 @@ class AMFFranceOrgFrCrawler(BaseCrawler):
                         "url": canonical,
                         "title": title,
                         "abstract": abstract,
-                        "published_date": fields.get("published_date") or lastmod,
+                        "published_date": fields.get("published_date"),
                         "listed_date": lastmod,
                         "authors": None,
                         "publisher": "AMF - Autorité des marchés financiers",

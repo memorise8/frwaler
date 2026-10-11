@@ -894,6 +894,35 @@ Batch 035: Ames 뉴스 — 목록 날짜/ID 미노출 및 추가 범위 미검�
   원본 상세/파일 전체 검증과 추가2개 분류 전수 검증은 미완료다.
 - 재검토: python -m delivery.scripts.review_ames_incremental --source <continuous 경로> --probe <현재 첫 목록> --out <새 검토 파일>
 
+
+Batch 036: AMF — 납품 목록/사이트맵 범위 불일치와 과거 URL 재사용 분류
+- 보존된 두 실제 client feed1171행/고유1167 URL을 원본 payload와 대조했다. native의
+  communique 경로 필터 사이트맵은769행/765 URL이며 client 고유404 URL이 빠진다.
+  사이트맵에만 있는22개 후보와 현재 URL2개를 공유하는 과거 membership4개의 별도 정체성은
+  여전히 미해결이다. 임의의 과거 ID나 버전 URL을 만들지 않는다.
+- 현재 사이트맵은 HTTP1회200, native 필터 결과769행의 URL/lastmod/정렬 전체가 보존과 같다.
+  두 client feed는 이번에 다시 요청하지 않았으므로 과거 대조와 현재 관측을 구분했다.
+  lastmod는 수정일이며 납품 범위 전체의 발행일 순서나 소진 증거가 아니다.
+- full_rescan_required로 분류하고 원본 범위 동등성·역사적 ID·전체 완료는 미확정으로 둔다.
+  기존200개 상세 시도 상한도 남아 있다. 단순히 전체 사이트맵을 읽었거나200건 저장했다고
+  전체 수집 완료로 표시하지 않는다.
+- curl은 HTTP 오류와 전송 실패의 부분 body를 반환하지 않는다. 응답 header 덤프를 body와
+  섞던 경로를 제거하여 redirect/proxy header가 XML에 남는 문제와 body의 빈 줄 절단을 막았다.
+  사이트맵/상세 실패·차단·잘못된 XML 또는 미지원 sitemapindex는 source failure로 기록한다.
+- 상세에 발행일이 없을 때 사이트맵 수정일을 발행일로 대입하던 fallback을 제거했다.
+  native listed_date는 기존 lastmod 값을 유지하지만 발행일과의 동등성을 주장하지 않는다.
+  상세 추출·날짜 파싱 함수의 AST는 같고 실제 보존 상세41개의 ID/발행일/본문 해시도 같다.
+- 새 PostgreSQL 기본 worker에서 실제 사이트맵·실제 상세4개와 합성 상세196개를 재생했다.
+  최초/재실행 요청201/201회(사이트맵1/1, 상세200/200), 저장200/0건이다. 같은200개를 다시
+  조회하고 native 후보 중565개는 미시도이며 기준점은 모두 미완료/full_rescan_required다.
+- 실제 상세4개의 ID/날짜/제목/본문/PDF 경로를 보존했고 합성196개는 발행일 NULL을 유지한다.
+  이200개는 실제 전체 본문/파일 검증 수가 아니다. 전송 실패 시 사이트맵3회 재시도 후
+  작업 실패로 끝나고 기존200행은 바뀌지 않는다. 중복0을 요청 절감으로 표시하지 않는다.
+- 계수는 재시도를 포함한 native curl command이며 redirect hop 수는 아니다. 재생 live HTTP는0회다.
+  단위·공통 worker 회귀99개와 PG1개 통과, 환경 의존3개는 단위 실행에서 제외했다.
+  batch-036-amf/scope-review.json, native-parser-review.json 및 postgres-review.json 참조.
+- 재검토: python -m delivery.scripts.review_amf_incremental --source <continuous 경로> --probe <현재 사이트맵> --out <새 검토 파일>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.

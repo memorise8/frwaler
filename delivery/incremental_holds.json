@@ -213,5 +213,18 @@
     "evidence": "incremental-rollout-20261012/batch-035-ames/order-review.json",
     "evidence_sha256": "34d855cf1a6cd82208ba03a598700a2ae6dd445006c7caa213628d1fe00e42a3",
     "native_health_note": "Original 102 news-release cards lack list dates/node IDs; only one actual detail identity/date checked. Native additionally visits two categories outside the delivered URL scope. Current first ten list fields match retained source. No safe known-boundary stop or permanent impossibility inferred."
+  },
+  "amf-france-org-fr": {
+    "classification": "full_rescan_required",
+    "reason": "native_sitemap_scope_omits_delivered_rows_and_shared_URL_history_unresolved",
+    "source_sha256": "1aba45c2624e04c2f7d4f9809c2b2bc310138f539d5e274c4971f01eb901ec61",
+    "dependency_source_sha256": {
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b",
+      "docs/deliverables/test_URL_수집대조_20260802.csv": "336c04d463f70624cd4ec7aacdf386fd71bab34ca186acf8ac3413a3ee1fced9"
+    },
+    "reviewed_at": "2026-10-11T21:22:11.132210+00:00",
+    "evidence": "incremental-rollout-20261012/batch-036-amf/scope-review.json",
+    "evidence_sha256": "f7752498c0c1ff21f5c561121abdc5dd5cabeea3f1dd6fc2e515cd2a817da743",
+    "native_health_note": "Retained original feeds have 1167 unique URLs; native path-filtered sitemap omits 404. Four historical memberships share two current URLs without distinct historical IDs. Current native 769 entries/765 URLs match retained data. Native cap remains 200; sitemap lastmod is not a publication date. Original scope/end and historical identity remain unresolved."
   }
 }
