@@ -104,14 +104,6 @@ class AstronNlAboutCrawler(BaseCrawler):
         return None
 
     @staticmethod
-    def _year_to_date(title_year):
-        """Return ISO date for the last year mentioned (e.g. '2003–2004' → '2004-12-31')."""
-        years = re.findall(r"(?:19|20)\d{2}", title_year)
-        if years:
-            return f"{years[-1]}-12-31"
-        return None
-
-    @staticmethod
     def _year_to_post_number(title_year):
         """Return a clean post_number string from a year title."""
         years = re.findall(r"\d{4}", title_year)
@@ -282,10 +274,14 @@ class AstronNlAboutCrawler(BaseCrawler):
                 if not external_id:
                     external_id = post_number
 
-                published_date = self._year_to_date(title_year)
+                # A reporting period does not specify when the report was
+                # published. The list provides no publication date.
+                published_date = None
 
                 metadata = {
                     "title_year": title_year,
+                    "reporting_period_raw": title_year,
+                    "year_role": "reporting_period",
                     "file_size": file_size,
                     "file_type": item.get("file_type") or "pdf",
                     "source_page": _LIST_URL,
