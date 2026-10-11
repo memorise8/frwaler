@@ -65,5 +65,14 @@
     "evidence": "incremental-rollout-20261012/batch-019-bfr/final-archive-guard/review.json",
     "evidence_sha256": "a977ff7cbf51f81d35b7bbc1868702615f51607beff37a970ab7c2822d32bdd6",
     "native_health_note": "Default adapter covers annual and scientific catalogues; a scientific record returns an archive with 20 PDFs and 3 HTML files. Primary member and attachment association remain unimplemented; annual-only acceptance is not a global baseline."
+  },
+  "cells-es-en": {
+    "reason": "static_catalogue_reporting_years_not_publication_dates_and_native_anchor_ids_nonnumeric",
+    "classification": "full_rescan_required",
+    "source_sha256": "6774feeb6318cbe22459642aa4a20b0371ed92521b327a8294e4f6b0ae3f33c3",
+    "reviewed_at": "2026-10-11T19:55:39.155009+00:00",
+    "evidence": "incremental-rollout-20261012/batch-022-cells/order-review.json",
+    "evidence_sha256": "7091d68e15e5288b27b6674147fbea7d9f75323b970bf8367c4bdb39a8d34eae",
+    "native_health_note": "All 12 static references match retained source. Report years are not publication dates; native invented January 1 values removed. PDF bodies and original institutional scope remain unverified."
   }
 }

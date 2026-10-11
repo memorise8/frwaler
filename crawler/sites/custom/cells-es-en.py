@@ -233,10 +233,11 @@ class CellsEsEnCrawler(BaseCrawler):
                         continue
                     seen_urls.add(pdf_url)
 
-                    # Year and date from title
+                    # The title names the reporting period, not a publication
+                    # date. Preserve its year in metadata without inventing Jan 1.
                     year_m = re.search(r"(\d{4})", title)
                     year = year_m.group(1) if year_m else None
-                    pub_date = f"{year}-01-01" if year else None
+                    pub_date = None
 
                     # Original filename: segment before @@download
                     fname_m = re.search(r"/([^/]+\.pdf)/", pdf_path, re.IGNORECASE)

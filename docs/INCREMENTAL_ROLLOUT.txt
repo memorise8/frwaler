@@ -525,6 +525,33 @@ Batch 021: ASN/ASNR — 빠진 전문가 보고서 목록을 포함한 두 범�
   대조: python -m delivery.scripts.review_asn_incremental --source <continuous 경로> --out <새 파일>
   실제 native 저장 대조는 --root <실측 경로> 추가. batch-021-asn/review.json 참조.
 
+
+Batch 022: CELLS — 발행 순서 미확정 분류 및 가짜 1월 1일 날짜 제거
+- 현재 공개 corporate-publications 목록을 HTTP 1회로 확인했다. 12개 렌더링 항목과 내부
+  직렬화 블록의 12개 PDF 참조가 일치하고, 보존 목록과 ID/제목/파일명/URL/순서가 같다.
+  페이지는 static Document이며 pager나 동적 listing 블록이 없다. embedded items_total=0은
+  페이지 자식 수이므로 실제 PDF 보고서 12건을 0건으로 처리하지 않는다. 내부 localhost
+  주소는 문자열 경로 대조에만 사용하고 연결하지 않았다.
+- 목록의 2024~2013은 보고 대상 연도다. 개별 발행일/time/datetime/파일 참조 발행 메타데이터는
+  없고 container의 created/effective/modified만 있다. 실제 저장 식별자는 activity-report-YYYY
+  anchor이며 숫자 순번이 아니다. 컨테이너 날짜나 보고 연도를 발행 순서로 바꾸지 않고
+  full_rescan_required로 분류했다. 향후 개별 날짜나 pager가 추가되면 기존 근거를 재검토한다.
+- native가 제목 연도에서 YYYY-01-01 발행일/목록일을 만들던 동작을 제거했다. source에 없는
+  날짜는 None으로 두고 native paper의 metadata.year, 제목, 식별자, 파일 연결은 유지한다.
+  원래 전체 AST에서 pub_date 할당만 None으로 바뀌었음을 비교했다. 운영 저장행의 과거
+  날짜를 수정한 것은 아니다. 실제 PDF에서 날짜를 확인하거나 본문 정확성을 인증하지 않았다.
+- 현재 native 코드 해시에 결합한 근거 분류를 추가했다. worker는 검증 안 된 최신순 선언을
+  사용하지 않고 기존 full fallback으로 실행한다. 새 PostgreSQL DB에서 초기/재실행은
+  native curl 요청 명령 13/13회(목록1+PDF12), 저장12/0건이며 기준점은 미완료로 유지했다.
+- PG 측정은 해시 검증된 실제 목록 HTML과 합성 PDF 바이트/추출 stdout을 사용했다.
+  subprocess curl 경계에서 요청을 계수했고 live HTTP는 0회다. 12개 ID/제목/파일명을 대조하고
+  발행일/목록일 및 raw 값이 모두 None인지 확인했다. 재실행의 기존 행도 바뀌지 않았다.
+  목록 HTTP200, 중복 저장0, 합성 본문 DB 저장을 전체 PDF/실제 본문/기관 전체 완료로 해석하지 않는다.
+- 공통·분류·날짜 회귀30개와 PostgreSQL worker1개가 통과했다. 환경 의존3개는 단위 실행에서
+  건너뛰었다. 정적 분류 근거는 batch-022-cells/order-review.json, 요청 경계와 합성 조건은
+  postgres-review.json에 기록한다. 전체 수집 검증 goal은 계속 일시정지 상태다.
+- 재검토: python -m delivery.scripts.review_cells_incremental --source <continuous 경로> --probe <현재 목록 캡처> --out <새 검토 파일>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.
