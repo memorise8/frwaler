@@ -3,7 +3,7 @@
 
 Target: https://www.centralesupelec.fr/presse/communiques
 Strategy: parse Drupal 10 list pages (HTML, ?page=N), follow /node/<id>
-redirects for full abstract, save PDF links from the article teaser.
+redirects for full abstract, save original file links from the article teaser.
 """
 
 import json
@@ -11,7 +11,7 @@ import os
 import re
 import subprocess
 import time
-from urllib.parse import unquote
+from urllib.parse import unquote, urljoin, urlsplit
 
 from crawler.base_crawler import BaseCrawler
 
@@ -115,6 +115,11 @@ class CentraleSupelecPresseCrawler(BaseCrawler):
 
         items = []
         for article in soup.find_all('article', attrs={'data-history-node-id': True}):
+            # Drupal also renders the catalogue's own article on every page,
+            # including the empty boundary. Only teaser cards are publications.
+            link_a = article.select_one('.wrap-teaser-content a.h5[href]')
+            if link_a is None:
+                continue
             node_id = (article.get('data-history-node-id') or '').strip()
             if not node_id:
                 continue
@@ -126,13 +131,15 @@ class CentraleSupelecPresseCrawler(BaseCrawler):
                 link_a = article.find('a', class_='h5')
                 title = link_a.get_text(' ', strip=True) if link_a else ''
 
-            # PDF URL (the list-page link targets the PDF directly)
-            link_a = article.find('a', class_='h5', href=True)
+            # The shared pdf_url column also preserves original non-PDF file
+            # links. Keep Office URLs and filenames without labelling their
+            # bytes as PDFs or claiming the PDF worker can process them.
             pdf_url = ''
-            if link_a:
-                href = link_a.get('href', '')
-                if href.lower().endswith('.pdf'):
-                    pdf_url = href if href.startswith('http') else self.base_url + href
+            href = urljoin(self.base_url, link_a.get('href', ''))
+            parsed_link = urlsplit(href)
+            if (parsed_link.scheme in ('https', 'http') and parsed_link.netloc
+                    and parsed_link.path.lower().endswith(('.pdf', '.docx', '.xlsx'))):
+                pdf_url = href
 
             # Date
             date_div = article.find('div', class_='releasing-date')
@@ -204,12 +211,16 @@ class CentraleSupelecPresseCrawler(BaseCrawler):
 
     def crawl(self, limit=None):
         """Crawl list pages, fetch detail pages for full abstracts, save."""
+        if limit is not None and limit <= 0:
+            return 0
+        self._check_cancelled()
         saved = 0
         seen_node_ids = set()
         start_time = time.time()
         limit_display = str(limit) if limit is not None else '∞'
 
         for page_num in range(self._MAX_PAGES):
+            self._check_cancelled()
             # Wall-clock budget
             if (time.time() - start_time) / 60 >= self._MAX_WALL_MINUTES:
                 print(f"[{self.site_id}] Wall-clock budget {self._MAX_WALL_MINUTES}min "
@@ -230,6 +241,7 @@ class CentraleSupelecPresseCrawler(BaseCrawler):
             list_url = f"{self._LIST_URL}?page={page_num}"
             try:
                 html, _ = self._curl_get(list_url)
+                self._check_cancelled()
             except KeyboardInterrupt:
                 raise
 
@@ -248,9 +260,10 @@ class CentraleSupelecPresseCrawler(BaseCrawler):
                 print(f"[{self.site_id}] No items on page {page_num}. Done.")
                 break
 
-            # Deduplicate (node 34538 is pinned and appears on every page)
+            # Deduplicate publication nodes within this crawl.
             new_items = [it for it in items if it['node_id'] not in seen_node_ids]
             for it in new_items:
+                self._check_cancelled()
                 seen_node_ids.add(it['node_id'])
 
             if not new_items:
@@ -265,28 +278,37 @@ class CentraleSupelecPresseCrawler(BaseCrawler):
                 node_id = it['node_id']
                 try:
                     time.sleep(self._delay)
+                    self._check_cancelled()
 
                     # Fetch detail page for full abstract + canonical URL
                     full_text, page_url, detail_pdf_url = self._fetch_detail(node_id)
+                    self._check_cancelled()
 
                     abstract = full_text.strip() if full_text else it['teaser'].strip()
-
-                    if len(abstract) < 50:
-                        print(f"[{self.site_id}] Skipping node {node_id}: "
-                              f"abstract too short ({len(abstract)} chars)")
-                        continue
-
                     pdf_url = it['pdf_url'] or detail_pdf_url or None
+
+                    if not it['title'] or (len(abstract) < 50 and not pdf_url):
+                        self._report_source_failure('item_failed')
+                        print(f"[{self.site_id}] Skipping node {node_id}: "
+                              f"missing title or short abstract without a source file ({len(abstract)} chars)")
+                        continue
 
                     # Extract original filename from PDF URL
                     original_filename = None
                     if pdf_url:
-                        raw_name = pdf_url.rstrip('/').split('/')[-1]
+                        raw_name = urlsplit(pdf_url).path.rstrip('/').split('/')[-1]
                         try:
                             original_filename = unquote(raw_name)
                         except Exception:
                             original_filename = raw_name
 
+                    metadata = {'node_id': node_id, 'posted_date': it['raw_date']}
+                    if pdf_url and len(abstract) < 50:
+                        metadata['source_abstract_state'] = 'empty' if not abstract else 'short'
+                        metadata['source_fulltext_file_url'] = pdf_url
+                    if pdf_url and urlsplit(pdf_url).path.lower().endswith(('.docx', '.xlsx')):
+                        metadata['source_file_type'] = urlsplit(pdf_url).path.rsplit('.', 1)[-1].lower()
+                        metadata['source_file_conversion_pending'] = True
                     paper = {
                         'site_id': self.site_id,
                         'external_id': node_id,
@@ -305,10 +327,7 @@ class CentraleSupelecPresseCrawler(BaseCrawler):
                         'doi': None,
                         'department': None,
                         'journal': None,
-                        'metadata': json.dumps({
-                            'node_id': node_id,
-                            'posted_date': it['raw_date'],
-                        }, ensure_ascii=False),
+                        'metadata': json.dumps(metadata, ensure_ascii=False),
                     }
 
                     self._save_paper(paper)

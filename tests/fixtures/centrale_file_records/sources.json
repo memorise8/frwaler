@@ -1,0 +1,85 @@
+{
+  "sources": [
+    {
+      "url": "https://www.centralesupelec.fr/presse/centralesupelec-lance-une-chaire-sur-les-mathematiques-appliquees-et-lia-pour-linnovation",
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentysixth-centrale_node_destinations/000.body",
+      "sha256": "8a2068321f63f0451a00083dfde11e72d1c61b0cd3e6d745082dcd4707c578c8",
+      "fixture_file": "centrale_node_destinations-0.html"
+    },
+    {
+      "url": "https://www.centralesupelec.fr/presse/letude",
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentysixth-centrale_node_destinations/001.body",
+      "sha256": "d55e86ae2285e6d4daedb90049f1c196f922d91dc2924d21117ef61de5a36c83",
+      "fixture_file": "centrale_node_destinations-1.html"
+    },
+    {
+      "url": "https://www.centralesupelec.fr/presse/lancement-de-prism-centre-national-de-medecine-de-precision",
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentysixth-centrale_node_destinations/002.body",
+      "sha256": "49eecab1ae456507412fec539c05f1f6e47102b4dca85c5e4bec700e4ed3faf4",
+      "fixture_file": "centrale_node_destinations-2.html"
+    },
+    {
+      "url": "https://www.centralesupelec.fr/sites/default/files/vss-enquete_vss_cs_21-22-vdef2.xlsx",
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentysixth-centrale_other/000.body",
+      "sha256": "98ce64edcba85e3ff8ec2fa603d519551c8b5b34668bbf0aad0dd017f4e45538",
+      "fixture_file": "centrale_other-0.xlsx"
+    },
+    {
+      "url": "https://www.centralesupelec.fr/sites/default/files/prism_cp_lancement.docx",
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentysixth-centrale_other/001.body",
+      "sha256": "392ece57ae610bf760e5351508c15c18fa5f7d26ed89914289502bb7ac852f99",
+      "fixture_file": "centrale_other-1.docx"
+    }
+  ],
+  "records": [
+    {
+      "node_id": "299767",
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/centralesupelec-fr-presse-exact-delivered-entries/scope-0-0.body",
+      "source_sha256": "8b2a7e9db4f1fbebdc16725621e04688047daa0ace5f04d0e80174cf9901a3ee",
+      "url": "https://www.centralesupelec.fr/sites/default/files/communiques-de-presse/CentraleSupelec_Servier_260914_CP_Chaire_VF.pdf",
+      "native": {
+        "node_id": "299767",
+        "title": "CentraleSupélec lance une chaire sur les mathématiques appliquées et l’IA pour l’innovation thérapeutique avec Servier",
+        "pdf_url": "https://www.centralesupelec.fr/sites/default/files/communiques-de-presse/CentraleSupelec_Servier_260914_CP_Chaire_VF.pdf",
+        "published_date": "2026-09-14",
+        "raw_date": "Publié le 14 septembre 2026",
+        "teaser": "Labellisée par l’Institut DataIA, cette première chaire en santé de l’école ambitionne, pour les deux partenaires, de renouveler les approches thérapeutiques actuellement utilisées, dans le but d’offrir aux patients des solutions"
+      }
+    },
+    {
+      "node_id": "35355",
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentysixth-centrale/009.body",
+      "source_sha256": "a9ceaeec816a2f2fa8aaa47e67a8d8174bd5b9a2f6e5afd444d8b80b38c9be0f",
+      "url": "https://www.centralesupelec.fr/sites/default/files/vss-enquete_vss_cs_21-22-vdef2.xlsx",
+      "native": {
+        "node_id": "35355",
+        "title": "L'étude",
+        "pdf_url": "",
+        "published_date": "2022-09-28",
+        "raw_date": "Publié le 28 septembre 2022",
+        "teaser": ""
+      }
+    },
+    {
+      "node_id": "35403",
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentysixth-centrale/014.body",
+      "source_sha256": "66edddc4aa6e1c384b20beca5ae0b9c912184a99b8bbbcdfd9bc43a9cc80a988",
+      "url": "https://www.centralesupelec.fr/sites/default/files/prism_cp_lancement.docx",
+      "native": {
+        "node_id": "35403",
+        "title": "Lancement de Prism, Centre National de Médecine de Précision",
+        "pdf_url": "",
+        "published_date": "2020-03-24",
+        "raw_date": "Publié le 24 mars 2020",
+        "teaser": ""
+      }
+    }
+  ],
+  "before_commit": "243b190df838cd8f17172bec793a8ad3c5d458f1",
+  "before_source_sha256": "325defa458e47b36ace84ae483fd98a70d3ba889aa9e9ce7b1a2b08397a68900",
+  "scoped_three_original_cards_no_landing_or_pagination": true,
+  "first_list_source": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/centralesupelec-fr-presse-exact-delivered-entries/scope-0-0.body",
+  "first_list_sha256": "8b2a7e9db4f1fbebdc16725621e04688047daa0ace5f04d0e80174cf9901a3ee",
+  "boundary_source": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentysixth-centrale/020.body",
+  "boundary_sha256": "fc26689131f9648aff4f02dc61b89ebf29be5e9c51d0001982b56f482cf4995f"
+}
