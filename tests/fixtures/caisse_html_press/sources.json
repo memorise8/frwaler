@@ -1,0 +1,22 @@
+{
+  "list-page0.html": {
+    "source_file": "caissedesdepots-fr-communiques-de-press-exact-delivered-entries/scope-0-1.body",
+    "sha256": "72ffcdeda90b902b3c84d6cbb12fe1d361ba37ab5b017e048ae312b657dbbf82"
+  },
+  "list-page254.html": {
+    "source_file": "twentyfifth-caisse/001.body",
+    "sha256": "1c69b77e8328ae75fd0f7059c7b9d08e91422b36fad6c55de64e600e3d09aab0"
+  },
+  "list-page255.html": {
+    "source_file": "twentyfifth-caisse/002.body",
+    "sha256": "270b80a5bf65f021dbb5770af5b0e95500bb726592159a66e2f7c01ef2cfde3e"
+  },
+  "list-page256.html": {
+    "source_file": "twentyfifth-caisse/003.body",
+    "sha256": "f870c67f3bdd9ba08ab8f1ea11cf5a8502206317c362ac246bc994e8bcfc3faf"
+  },
+  "first-detail.html": {
+    "source_file": "twentyfifth-caisse/004.body",
+    "sha256": "4ce7a34795aae6d8fd9e8124ab1c1b14c3c482051b4f029a78e2cb9819e9d3fb"
+  }
+}
