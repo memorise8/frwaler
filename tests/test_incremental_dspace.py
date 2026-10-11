@@ -72,10 +72,29 @@ class DSpaceIncrementalTests(unittest.TestCase):
         self.assertIsNotNone(self.conn.execute('SELECT 1 FROM documents WHERE post_number=?',(item(20)['uuid'],)).fetchone())
         self.assertEqual(sum(u.endswith('/bundles') for u,p in self.calls),1)
 
+    def test_new_older_scope_head_survives_newer_known_scope_boundary(self):
+        self.data={self.scopes[0]:[item(i) for i in range(20,32)],self.scopes[1]:[item(i) for i in range(1,7)]}
+        c,a=self.instance();Collector(c,a,self.policy).run()
+        self.data[self.scopes[1]].append(item(7));self.calls=[];c,a=self.instance()
+        collector=Collector(c,a,self.policy)
+        self.assertEqual(collector.run(),1)
+        self.assertIsNotNone(self.conn.execute('SELECT 1 FROM documents WHERE post_number=?',(item(7)['uuid'],)).fetchone())
+        self.assertEqual(sum(u.endswith('/bundles') for u,p in self.calls),1)
+        self.assertGreater(collector.stats['listed'],6)
+
     def test_scope_overlap_is_deduplicated(self):
         self.data[self.scopes[1]].append(item(11));c,a=self.instance()
         self.assertEqual(Collector(c,a,self.policy).run(),12)
         self.assertEqual(self.conn.execute('SELECT count(*) FROM documents').fetchone()[0],12)
+
+    def test_incremental_checkpoint_preserves_unemitted_new_scope_head(self):
+        self.data={self.scopes[0]:[item(i) for i in range(20,32)],self.scopes[1]:[item(i) for i in range(1,7)]}
+        c,a=self.instance();Collector(c,a,self.policy).run()
+        self.data[self.scopes[1]].append(item(7));self.calls=[];c,a=self.instance()
+        self.assertEqual(Collector(c,a,Policy(max_pages=1,full_check_days=0)).run(),0)
+        self.assertEqual(Store(self.conn,c.site_id).state()['phase'],'discover')
+        c,a=self.instance();self.assertEqual(Collector(c,a,self.policy).run(),1)
+        self.assertEqual(sum(u.endswith('/bundles') for u,p in self.calls),1)
 
     def test_discovery_budget_resumes_persisted_merge_heads(self):
         c,a=self.instance();Collector(c,a,Policy(max_pages=1,full_check_days=0)).run()

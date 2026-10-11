@@ -70,6 +70,15 @@ class BankIncrementalTests(unittest.TestCase):
         self.calls=[];c,a=self.instance();self.assertEqual(Collector(c,a,self.policy).run(),1)
         self.assertEqual(sum('/item-' in u for u in self.calls),1)
 
+    def test_new_older_research_head_survives_newer_known_scope_boundary(self):
+        self.docs={'scope-0':list(range(24,12,-1)),'scope-1':list(range(6,0,-1))}
+        c,a=self.instance();Collector(c,a,self.policy).run()
+        self.docs['scope-1'].insert(0,7);self.calls=[];c,a=self.instance();collector=Collector(c,a,self.policy)
+        self.assertEqual(collector.run(),1)
+        self.assertIsNotNone(self.conn.execute("SELECT 1 FROM documents WHERE post_number='7'").fetchone())
+        self.assertEqual(sum('/item-' in u for u in self.calls),1)
+        self.assertGreater(collector.stats['listed'],6)
+
     def test_partial_delivery_resumes_without_list_or_prefetched_detail_replay(self):
         c,a=self.instance();self.assertEqual(Collector(c,a,self.policy).run(limit=3),3)
         self.assertFalse(Store(self.conn,c.site_id).state().get('baseline_complete',False))

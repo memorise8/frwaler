@@ -1,5 +1,7 @@
 """Default worker integration in a fresh owned DB, without deleting documents."""
 import os
+import json
+from pathlib import Path
 import unittest
 from unittest.mock import Mock,patch
 from urllib.parse import urlsplit
@@ -51,5 +53,12 @@ class DSpaceWorkerTests(unittest.TestCase):
             state=Store(conn,cls.site_id).state();self.assertTrue(state['baseline_complete'])
             self.assertEqual(state['last_run']['stop_reason'],'known_boundary_plus_overlap')
             self.assertEqual(state['last_run']['save_attempts'],0)
+
+        output=os.environ.get('INCREMENTAL_DSPACE_WORKER_REPORT')
+        if output:
+            self.assertFalse(Path(output).exists())
+            Path(output).write_text(json.dumps({'status':'passed','fixture_transport':True,'live_http_requests':0,
+                'database':urlsplit(DSN).path[1:],'saved_new':counts,'requests':request_counts,'details':detail_counts,
+                'existing_rows_unchanged':True,'source_documents_deleted':False},indent=2)+'\n')
 
 if __name__=='__main__':unittest.main()

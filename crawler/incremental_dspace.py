@@ -10,7 +10,7 @@ import hashlib
 import re
 from pathlib import Path
 
-from .incremental import Entry, Page, UnsupportedSource, _date, encoded
+from .incremental import Entry, Page, Store, UnsupportedSource, _date, encoded
 from .incremental_adapters import Adapter
 
 NEMERTES_SCOPES = (
@@ -82,18 +82,20 @@ class NemertesAdapter(Adapter):
     def fetch(self, cursor, direction):
         if cursor is None:
             cursor={'streams':[{'scope':scope,'page':0,'buffer':[],'done':False,
-                                'total':None,'anchor':None,'previous_ids':[],'last_date':None}
+                                'total':None,'anchor':None,'previous_ids':[],'last_date':None,
+                                'known_pages':0,'unknown_ids':[]}
                                for scope in self.scope['scopes']]}
         else:
             cursor=copy.deepcopy(cursor)
         if [s.get('scope') for s in cursor.get('streams',[])]!=list(self.scope['scopes']):
             raise ValueError('DSpace cursor scope changed')
+        incremental=direction=='newest'
         output=[];emitted=set()
         while len(output)<self.rows:
             # Before selecting a head, every unfinished scope contributes one.
             # Never stop on known records in scope A before inspecting scope B.
             for stream in cursor['streams']:
-                if stream['buffer'] or stream['done']:
+                if stream['done'] or (stream['buffer'] and (not incremental or stream['page']>=2)):
                     continue
                 page=stream['page']
                 if stream['anchor'] is not None:
@@ -108,7 +110,12 @@ class NemertesAdapter(Adapter):
                     raise ValueError('DSpace repeated source page')
                 if items and stream['last_date'] is not None and stamp(items[0])>stream['last_date']:
                     raise UnsupportedSource('dspace_browse_cross_page_order_changed')
-                stream.update(buffer=items,total=total,page=page+1,anchor=fingerprint,
+                if incremental:
+                    db=Store(self.crawler._conn,self.crawler.site_id)
+                    unknown=[d['uuid'] for d in items if not db.known(d['uuid']) or not self.exists(Entry(d['uuid'],d))]
+                    stream['unknown_ids'].extend(unknown)
+                    stream['known_pages']=stream['known_pages']+1 if items and not unknown else 0
+                stream.update(buffer=stream['buffer']+items,total=total,page=page+1,anchor=fingerprint,
                               previous_ids=ids,done=(total==0 or page+1==pages),
                               last_date=stamp(items[-1]) if items else stream['last_date'])
             candidates=[s for s in cursor['streams'] if s['buffer']]
@@ -116,11 +123,14 @@ class NemertesAdapter(Adapter):
                 break
             selected=max(candidates,key=lambda s:(stamp(s['buffer'][0]),s['buffer'][0]['uuid']))
             item=selected['buffer'].pop(0)
+            if item['uuid'] in selected['unknown_ids']:selected['unknown_ids'].remove(item['uuid'])
             if item['uuid'] not in emitted:
                 output.append(Entry(item['uuid'],item,first(item['metadata'],'dc.date.accessioned')))
                 emitted.add(item['uuid'])
         exhausted=all(s['done'] and not s['buffer'] for s in cursor['streams'])
-        return Page(output,cursor,exhausted,'all delivered browse scope pages exhausted' if exhausted else '')
+        safe=all((s['done'] or s['known_pages']>=2) and not s['unknown_ids'] for s in cursor['streams'])
+        return Page(output,cursor,exhausted,'all delivered browse scope pages exhausted' if exhausted else '',
+                    boundary_safe=safe if incremental else True)
 
     def materialize(self,item):
         c=self.crawler;uid=item['uuid'];meta=item.get('metadata') or {}

@@ -106,13 +106,14 @@ class BankOfCanadaAdapter(Adapter):
         definitions={s['scope']:s for s in self.scope['scopes']}
         if cursor is None:
             cursor={'streams':[{'scope':s,'page':1,'buffer':[],'done':False,'last':None,'total':None,
-                                'anchor':None,'ids':[],'last_date':None} for s in definitions]}
+                                'anchor':None,'ids':[],'last_date':None,'known_pages':0,'unknown_ids':[]} for s in definitions]}
         else:cursor=copy.deepcopy(cursor)
         if [s['scope'] for s in cursor['streams']]!=list(definitions):raise ValueError('Bank of Canada cursor scope mismatch')
+        incremental=direction=='newest'
         entries=[];emitted=set()
         while len(entries)<self.rows:
             for stream in cursor['streams']:
-                if stream['done'] or stream['buffer']:continue
+                if stream['done'] or (stream['buffer'] and (not incremental or stream['page']>2)):continue
                 scope=definitions[stream['scope']];page=stream['page']
                 if stream['anchor'] is not None:
                     _,last,total,anchor=self.read(scope,page-1,resolve_dates=False)
@@ -125,16 +126,24 @@ class BankOfCanadaAdapter(Adapter):
                     raise ValueError('Bank of Canada adjacent pages overlap')
                 if stream['last_date'] is not None and _date(records[0]['_order_date'])>stream['last_date']:
                     raise UnsupportedSource('bankofcanada_cross_page_order_changed')
-                stream.update(buffer=records,page=page+1,done=page==last,last=last,total=total,anchor=anchor,
+                if incremental:
+                    db=Store(self.crawler._conn,self.crawler.site_id)
+                    unknown=[r['post_id'] for r in records if not db.known(r['post_id']) or not self.exists(Entry(r['post_id'],r))]
+                    stream['unknown_ids'].extend(unknown)
+                    stream['known_pages']=stream['known_pages']+1 if records and not unknown else 0
+                stream.update(buffer=stream['buffer']+records,page=page+1,done=page==last,last=last,total=total,anchor=anchor,
                               ids=[r['post_id'] for r in records],last_date=_date(records[-1]['_order_date']))
             candidates=[s for s in cursor['streams'] if s['buffer']]
             if not candidates:break
             stream=max(candidates,key=lambda s:(_date(s['buffer'][0]['_order_date']),s['buffer'][0]['post_id']))
             record=stream['buffer'].pop(0);key=record['post_id']
+            if key in stream['unknown_ids']:stream['unknown_ids'].remove(key)
             if key not in emitted:
                 entries.append(Entry(key,record,record['_order_date']));emitted.add(key)
         exhausted=all(s['done'] and not s['buffer'] for s in cursor['streams'])
-        return Page(entries,cursor,exhausted,'all delivered archive terminal pages consumed' if exhausted else '')
+        safe=all((s['done'] or s['known_pages']>=2) and not s['unknown_ids'] for s in cursor['streams'])
+        return Page(entries,cursor,exhausted,'all delivered archive terminal pages consumed' if exhausted else '',
+                    boundary_safe=safe if incremental else True)
 
     def materialize(self,record):
         return record.get('_paper') or self.detail_paper(record)[0]
