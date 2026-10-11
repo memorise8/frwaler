@@ -16,7 +16,7 @@ def access_challenge(body):
     hal_notice = 'it seems that your request has been identified as coming from a robot.'
     markers = ('human verification', 'pardon our interruption', 'security check',
                'not a bot!', 'challenge validation', 'radware page',
-               '/.within.website/x/cmd/anubis/',
+               '/.within.website/x/cmd/anubis/', '/tspd/',
                cookie_notice, human_notice, js_page_notice, aws_js_notice, hal_notice,
                '/_incapsula_resource?')
     if isinstance(prefix, bytes):
@@ -26,6 +26,26 @@ def access_challenge(body):
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(prefix, 'html.parser')
     title = soup.title.get_text(' ', strip=True).casefold() if soup.title else ''
+    if title == 'vérification de sécurité' and not soup.find(['article', 'main']):
+        # Observed localized TSPD CAPTCHA on the French health ministry.
+        # Inspect the notice and active controls, without reading the image,
+        # executing JavaScript, or retaining support IDs or challenge tokens.
+        import re
+        normalize = lambda tag: re.sub(r'\s+', ' ', tag.get_text(' ', strip=True)).casefold()
+        headings = soup.find_all('h1')
+        question = soup.select_one('div.captcha-question')
+        notice = ('afin de protéger nos services et vos données, '
+                  'veuillez confirmer que vous êtes un utilisateur humain.')
+        if (len(headings) == 1 and normalize(headings[0]) == title
+                and any(normalize(p) == notice for p in soup.find_all('p'))
+                and question and normalize(question) == 'veuillez saisir le code affiché dans l’image'
+                and soup.select_one('input#ans[name="answer"][type="text"]')
+                and soup.select_one('audio#captcha_audio')
+                and soup.select_one('button#jar[type="button"]')
+                and any(script.get('type') in (None, 'text/javascript', 'application/javascript', 'module')
+                        and re.fullmatch(r'/TSPD/[0-9a-f]+(?:\?[^\s]*)?', script['src'])
+                        for script in soup.find_all('script', src=True))):
+            return 'javascript_human_verification'
     if title == 'radware page' and soup.body and not soup.find(['article', 'main', 'h1']):
         # Observed tourism ministry HTTP 200 loader. Inspect its bounded
         # structure only; never execute the connector or expose its tokens.

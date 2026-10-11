@@ -31,6 +31,16 @@ JS_HUMAN = b'''<html><head><script src="/TSPD/private-challenge-token"></script>
 <audio id="captcha_audio"></audio><b>What code is in the image?</b>
 <input id="ans" name="answer" type="text"><button>submit</button></body></html>'''
 
+FRENCH_TSPD = '''<html><head><meta charset="utf-8"><title>Vérification de sécurité</title>
+<script type="text/javascript" src="/TSPD/0123456789abcdef?token=private-challenge-token"></script>
+</head><body><h1>Vérification de sécurité</h1>
+<p>Afin de protéger nos services et vos données,
+veuillez confirmer que vous êtes un utilisateur humain.</p>
+<audio id="captcha_audio"></audio>
+<div class="captcha-question">Veuillez saisir le code affiché dans l’image</div>
+<input id="ans" name="answer" type="text" value=""><button id="jar" type="button">submit</button>
+<div>Identifiant de support : 123456789</div></body></html>'''.encode('utf-8')
+
 MYRA = b'''<html><head><title>Security Check</title>
 <script src="https://www.myrasecurity.com/x-myracloud-00000000000000000000000000000000/"></script>
 </head><body><h1>Security</h1><h2>Security Check</h2>
@@ -111,6 +121,43 @@ var resource="/fixture-provider/stormcaster.js";var validation="validate.perfdri
 
 
 class ChallengeClassification(unittest.TestCase):
+    def test_french_tspd_requires_observed_notice_and_active_controls(self):
+        for body in (FRENCH_TSPD, FRENCH_TSPD.decode()):
+            self.assertEqual(access_challenge(body), 'javascript_human_verification')
+        for body in (
+            FRENCH_TSPD.replace(b'/TSPD/', b'/ordinary-script/'),
+            FRENCH_TSPD.replace(b'/TSPD/', b'https://example.org/TSPD/'),
+            FRENCH_TSPD.replace(b'text/javascript', b'application/json'),
+            FRENCH_TSPD.replace(b'name="answer"', b'name="search"'),
+            FRENCH_TSPD.replace(b'captcha_audio', b'article_audio'),
+            FRENCH_TSPD.replace(b'captcha-question', b'article-question'),
+            FRENCH_TSPD.replace(b'id="jar"', b'id="search"'),
+            FRENCH_TSPD.replace(b'<h1>', b'<h2>').replace(b'</h1>', b'</h2>'),
+            FRENCH_TSPD.replace(b'</body>', b'<article>Security research</article></body>'),
+            b' ' * (128 * 1024) + FRENCH_TSPD,
+        ):
+            with self.subTest(body=body[:80]):
+                self.assertIsNone(access_challenge(body))
+
+    def test_french_tspd_holds_host_without_exposing_challenge(self):
+        site = {'site_id': 'fixture', 'selected_entry': {'url': 'https://example.org/reports'}}
+        gate = HostGate(0)
+        response = dict(status=200, curl_exit=0, body_complete=True, body=FRENCH_TSPD,
+                        headers={'content-type': 'text/html'})
+        first = observe(site, gate, fetch=lambda *a, **kw: response)
+        second = observe(site, gate, fetch=lambda *a, **kw: self.fail('fetch after host hold'))
+        self.assertEqual(first['state'], 'source_access_challenge')
+        self.assertEqual(second['state'], 'host_access_held')
+        for token in ['private-challenge-token', '123456789']:
+            self.assertNotIn(token, json.dumps(first))
+
+    def test_french_tspd_stops_both_probe_transports(self):
+        for transport in ('requests', 'curl'):
+            result = self.probe(transport, status=200, body=FRENCH_TSPD)
+            self.assertEqual(result['state'], 'blocked')
+            self.assertEqual(result['diagnostics']['stop_reason'], 'source_access_challenge')
+            self.assertEqual(result['sample_count'], 0)
+
     def test_radware_requires_loader_notice_provider_and_active_connector(self):
         for body in (RADWARE, RADWARE.decode()):
             self.assertEqual(access_challenge(body), 'radware_browser_verification')
