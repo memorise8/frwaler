@@ -1,0 +1,38 @@
+[
+  {
+    "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/nineteenth-arrow/003.body",
+    "source_sha256": "fed5227a0239ff69b40b5cf96a4ef7776a248a79f3eaf7e4d3ab19b0ddd550f7",
+    "full_source_records": 100,
+    "fixture_selected_records": 3,
+    "fixture_sha256": "0b18c6994393b3f38554f1d1f39d3ec508b19bdefa43ca7837ffad077011df81",
+    "fixture_preserves_actual_token_and_record_fields_but_reduces_records": true,
+    "external_ids": [
+      "engscheleart2-1255",
+      "creaart-1001",
+      "creaart-1002"
+    ]
+  },
+  {
+    "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/nineteenth-arrow_next/000.body",
+    "source_sha256": "6bf634a3cdb9e1005d6136f1f1365df3966bbe42dc67851dbbe4ade7572b01b5",
+    "full_source_records": 100,
+    "fixture_selected_records": 2,
+    "fixture_sha256": "cacba63670ea64577d7e0a6c6dc320a23ddd60c81ec385ee773c10fb4d4113e6",
+    "fixture_preserves_actual_token_and_record_fields_but_reduces_records": true,
+    "external_ids": [
+      "creaart-1213",
+      "creaart-1212"
+    ]
+  },
+  {
+    "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/nineteenth-arrow_last/000.body",
+    "source_sha256": "99d71fa23316308e0ca3258a89fd7a9578ce010e0928de17f7ffc5e1a6200d0b",
+    "full_source_records": 31,
+    "fixture_selected_records": 1,
+    "fixture_sha256": "ac6cade04084bc2cb3f52eff02af6d829641b2442a72931a624fbd233147ebee",
+    "fixture_preserves_actual_token_and_record_fields_but_reduces_records": true,
+    "external_ids": [
+      "creaart-1054"
+    ]
+  }
+]

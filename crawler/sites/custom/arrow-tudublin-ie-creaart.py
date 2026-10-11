@@ -82,6 +82,7 @@ class ArrowTudublinIeCreaartCrawler(BaseCrawler):
         seen_urls = set()
         page = 0
         resumption_token = None
+        seen_resumption_tokens = set()
         start_time = time.time()
         limit_or_inf = limit if limit is not None else "∞"
 
@@ -133,7 +134,6 @@ class ArrowTudublinIeCreaartCrawler(BaseCrawler):
                 print(f"[{self.site_id}] No records on page {page}. Done.")
                 break
 
-            new_on_page = 0
             for record in records:
                 if limit is not None and saved >= limit:
                     break
@@ -149,7 +149,6 @@ class ArrowTudublinIeCreaartCrawler(BaseCrawler):
                     ok = self._process_record(record, seen_urls)
                     if ok:
                         saved += 1
-                        new_on_page += 1
 
                 except KeyboardInterrupt:
                     raise
@@ -161,12 +160,13 @@ class ArrowTudublinIeCreaartCrawler(BaseCrawler):
             rt_el = list_records.find("oai:resumptionToken", _NS)
             if rt_el is not None and rt_el.text and rt_el.text.strip():
                 resumption_token = rt_el.text.strip()
+                if resumption_token in seen_resumption_tokens:
+                    self._report_source_failure("pagination_loop")
+                    print(f"[{self.site_id}] Repeated OAI resumption token; stopping before a loop.")
+                    break
+                seen_resumption_tokens.add(resumption_token)
             else:
                 print(f"[{self.site_id}] No more pages after page {page}. Done.")
-                break
-
-            if new_on_page == 0:
-                print(f"[{self.site_id}] All items on page {page} were duplicates. Stopping.")
                 break
 
             time.sleep(1.0)
@@ -175,7 +175,7 @@ class ArrowTudublinIeCreaartCrawler(BaseCrawler):
         return saved
 
     def _process_record(self, record, seen_urls):
-        """Parse one OAI record and persist it. Returns True if saved, False otherwise."""
+        """Parse and persist an OAI record; return True only for a newly created row."""
         header = record.find("oai:header", _NS)
         if header is None:
             return False
@@ -308,5 +308,7 @@ class ArrowTudublinIeCreaartCrawler(BaseCrawler):
         }
 
         self._save_paper(paper)
-        print(f"[{self.site_id}] Saved: {title[:70]}")
-        return True
+        if self._last_save_created:
+            print(f"[{self.site_id}] Saved: {title[:70]}")
+            return True
+        return False

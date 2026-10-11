@@ -1,0 +1,133 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:OAI-PMH xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns0="http://www.openarchives.org/OAI/2.0/" xmlns:ns2="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/   http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+	<ns0:responseDate>2026-10-11T04:12:40Z</ns0:responseDate>
+	<ns0:request verb="ListRecords" set="publication:creaart" metadataPrefix="oai_dc">http://arrow.tudublin.ie/do/oai/</ns0:request>
+	
+	<ns0:ListRecords>
+			
+<ns0:record>
+	<ns0:header>
+		<ns0:identifier>oai:arrow.tudublin.ie:engscheleart2-1255</ns0:identifier>
+		<ns0:datestamp>2022-03-07T10:39:09Z</ns0:datestamp>
+				<ns0:setSpec>publication:research</ns0:setSpec>
+				<ns0:setSpec>publication:engschele</ns0:setSpec>
+				<ns0:setSpec>publication:biodev</ns0:setSpec>
+				<ns0:setSpec>publication:engscheleart2</ns0:setSpec>
+				<ns0:setSpec>publication:createart</ns0:setSpec>
+				<ns0:setSpec>publication:colleges</ns0:setSpec>
+				<ns0:setSpec>publication:faceng</ns0:setSpec>
+				<ns0:setSpec>publication:creaart</ns0:setSpec>
+				<ns0:setSpec>publication:create</ns0:setSpec>
+				<ns0:setSpec>publication:teapot</ns0:setSpec>
+			</ns0:header>
+	<ns0:metadata>
+		<ns2:dc xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+			<dc:title>An Investigation of the Role of Spatial Ability in Representing and Solving Word Problems Among Engineering Students</dc:title>
+<dc:creator>Duffy, Gavin</dc:creator>
+<dc:creator>Sorby, Sheryl A</dc:creator>
+<dc:creator>Bowe, Brian</dc:creator>
+<dc:description>Background
+Spatial ability is significantly related to performance in engineering education. Problem solving, an activity that is highly relevant to engineering education, has been linked to spatial ability.
+Purpose/Hypothesis
+To what extent is spatial ability related to problem solving among engineering students and how do approaches to problem representation and solution vary with spatial ability level?
+Design/Method
+Three instruments – a spatial ability test, word math problems and accompanying core math competency questions – were administered to two samples of first year engineering students in two different countries. Data were analyzed at the test level to evaluate the relationship of spatial ability to problem representation and solution. A detailed item level analysis was conducted to compare approach to problem solving with spatial ability level.
+Results
+Spatial ability was found to be significantly related to problem solving but not to the core competency questions indicating the relationship was limited to the problem representation phase and not the solution phase. Key aspects of representation were identified for each problem to reveal a more pronounced relationship between representation and spatial ability than between problem solving (representation and solution) and spatial ability.
+Conclusions
+Problem solving can be considered to consist of two cognitively distinct phases: spatial ability is significantly related to problem representation but not to problem solution. Hence, this study shows that spatial ability plays a key role in engineering education that is not limited to visualization of imagery but extends to thinking during problem solving, a non-routine activity that requires mental representation.</dc:description>
+<dc:date>2020-07-08T07:00:00Z</dc:date>
+<dc:type>article</dc:type>
+<dc:format>application/pdf</dc:format>
+<dc:identifier>https://arrow.tudublin.ie/engscheleart2/228</dc:identifier>
+<dc:identifier>info:doi/10.1002/jee.20349</dc:identifier>
+<dc:identifier>https://arrow.tudublin.ie/context/engscheleart2/article/1255/viewcontent/JEE_paper_submitted_version_for_Arrow.pdf</dc:identifier>
+<dc:rights>Available under a Creative Commons Attribution Non-Commercial Share Alike 4.0 International Licence</dc:rights>
+<dc:source>Articles</dc:source>
+<dc:publisher>Technological University Dublin</dc:publisher>
+
+<dc:contributor>National Science Foundation</dc:contributor>
+
+<dc:subject>cognitive theories</dc:subject>
+<dc:subject>problem representation</dc:subject>
+<dc:subject>problem-solving</dc:subject>
+<dc:subject>spatial ability</dc:subject>
+<dc:subject>visualization</dc:subject>
+<dc:subject>Cognitive Psychology</dc:subject>
+
+		</ns2:dc>
+	</ns0:metadata>
+</ns0:record>
+
+			
+<ns0:record>
+	<ns0:header>
+		<ns0:identifier>oai:arrow.tudublin.ie:creaart-1001</ns0:identifier>
+		<ns0:datestamp>2021-04-16T08:37:13Z</ns0:datestamp>
+				<ns0:setSpec>publication:creaart</ns0:setSpec>
+			</ns0:header>
+	<ns0:metadata>
+		<ns2:dc xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+			<dc:title>Do greenhouse gases impact our respiratory system? A study of the effect of greenhouse gas emissions on respiratory disease related mortality in Ireland</dc:title>
+<dc:creator>Priyadarshini, Anushree</dc:creator>
+<dc:creator>Kenny, Christina</dc:creator>
+<dc:description>Respiratory-related deaths are one of the major causes of morbidity and mortality every year in the developed world. Previous research outlines that greenhouse gas emission levels have a negative effect on respiratory health and can cause worsening of symptoms. This study examines the impact of greenhouse gas emissions on respiratory disease related mortality in Ireland from 2007-2017 using Statbank data from Central Statistics Office, Ireland. Analysis shows that over the last decade, while greenhouse gases emissions in Ireland have reduced by 1.1%, respiratory disease related mortality has increased on an average by 2.1%. Results indicate that greenhouse gas emis- sions have no significant relationship (p&gt;0.05) with deaths as a result of respiratory diseases, indi- cating that the increasing levels of respiratory disease related mortality in Ireland cannot be at- tributed to greenhouse gas emissions.</dc:description>
+<dc:date>2020-12-01T08:00:00Z</dc:date>
+<dc:type>conferencepaper</dc:type>
+<dc:format>application/pdf</dc:format>
+<dc:identifier>https://arrow.tudublin.ie/creaart/2</dc:identifier>
+<dc:identifier>https://arrow.tudublin.ie/context/creaart/article/1001/viewcontent/GHG_Mortality.pdf</dc:identifier>
+<dc:rights>Available under a Creative Commons Attribution Non-Commercial Share Alike 4.0 International Licence</dc:rights>
+<dc:source>Articles</dc:source>
+<dc:publisher>Technological University Dublin</dc:publisher>
+
+
+
+<dc:subject>GHG emissions; Respiratory diseases; Mortality</dc:subject>
+<dc:subject>Engineering</dc:subject>
+
+		</ns2:dc>
+	</ns0:metadata>
+</ns0:record>
+
+			
+<ns0:record>
+	<ns0:header>
+		<ns0:identifier>oai:arrow.tudublin.ie:creaart-1002</ns0:identifier>
+		<ns0:datestamp>2021-04-18T12:06:36Z</ns0:datestamp>
+				<ns0:setSpec>publication:creaart</ns0:setSpec>
+			</ns0:header>
+	<ns0:metadata>
+		<ns2:dc xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+			<dc:title>Leniency and Damages: Where Is the Conflict?</dc:title>
+<dc:creator>Marvao, Catarina, Dr.</dc:creator>
+<dc:creator>Buccirossi, Paolo</dc:creator>
+<dc:creator>Spagnolo, Giancarlo</dc:creator>
+<dc:description>Damage actions may reduce leniency programs’ attractiveness for cartel participants if their cooperation with the competition authority increases the chance that the cartel’s victims will sue them. This apparent conflict between public and private antitrust enforcement led to calls for a legal compromise. We show that the conflict is due to the legislation and a compromise is not required: limiting the victims’ ability to recover their loss is not necessary to preserve the effectiveness of leniency programs and may be counterproductive. We show that damage actions will actually improve its effectiveness, if the civil liability of the immunity recipient is minimized and full access to all evidence collected by the competition authority, is granted to claimants. Our results help compare the EU and US damage systems and directly question the 2014 EU Directive which tries to protect leniency programs’ effectiveness by restricting access to leniency statements in subsequent damage actions.</dc:description>
+<dc:date>2020-06-01T07:00:00Z</dc:date>
+<dc:type>article</dc:type>
+<dc:format>application/pdf</dc:format>
+<dc:identifier>https://arrow.tudublin.ie/creaart/3</dc:identifier>
+<dc:identifier>info:doi/10.1086/711392</dc:identifier>
+<dc:identifier>https://arrow.tudublin.ie/context/creaart/article/1002/viewcontent/JLS__2_.pdf</dc:identifier>
+<dc:rights>Available under a Creative Commons Attribution Non-Commercial Share Alike 4.0 International Licence</dc:rights>
+<dc:source>Articles</dc:source>
+<dc:publisher>Technological University Dublin</dc:publisher>
+
+
+<dc:contributor>ELEVATE Fellowship (ELEVATEPD/2013/29)</dc:contributor>
+<dc:subject>Private and public enforcement</dc:subject>
+<dc:subject>cartels</dc:subject>
+<dc:subject>competition policy</dc:subject>
+<dc:subject>Leniency Program</dc:subject>
+<dc:subject>Industrial Organization</dc:subject>
+
+		</ns2:dc>
+	</ns0:metadata>
+</ns0:record>
+
+			
+<ns0:resumptionToken completeListSize="231" cursor="0">19171828/oai_dc/100//</ns0:resumptionToken>
+		
+		</ns0:ListRecords>
+</ns0:OAI-PMH>

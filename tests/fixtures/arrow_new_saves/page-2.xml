@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:OAI-PMH xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns0="http://www.openarchives.org/OAI/2.0/" xmlns:ns2="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/   http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+	<ns0:responseDate>2026-10-11T04:17:23Z</ns0:responseDate>
+	<ns0:request verb="ListRecords" resumptionToken="19171828/oai_dc/200//">http://arrow.tudublin.ie/do/oai/</ns0:request>
+	
+	<ns0:ListRecords>
+			
+<ns0:record>
+	<ns0:header>
+		<ns0:identifier>oai:arrow.tudublin.ie:creaart-1054</ns0:identifier>
+		<ns0:datestamp>2026-08-11T14:13:45Z</ns0:datestamp>
+				<ns0:setSpec>publication:creaart</ns0:setSpec>
+			</ns0:header>
+	<ns0:metadata>
+		<ns2:dc xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+			<dc:title>Friends and family Matter Most: a trend analysis of increasing e-cigarette use among Irish teenagers and sociodemographic, personal, peer and familial associations</dc:title>
+<dc:creator>Hanafin, Joan</dc:creator>
+<dc:creator>Sunday, Salome</dc:creator>
+<dc:creator>Clancy, Luke</dc:creator>
+<dc:description>Background
+E-cigarette ever-use and current-use among teenagers has increased worldwide, including in Ireland.  Methods
+We use data from two Irish waves (2015, 2019) of the European School Survey Project on Alcohol and other Drugs (ESPAD) to investigate gender and teenage e-cigarette use (n = 3421 16-year-olds). Using chi-square analyses, we report changes in e-cigarette ever-use, current-use, and associated variables. Using multivariable logistic regression, we analyse the increase in e-cigarette use and socio-demographic, personal, peer and familial associations, focusing on gender differences.  Results
+E-cigarette ever-use increased from 23% in 2015 to 37% in 2019, and current-use from 10 to 18%. Compared with 2015, the odds in 2019, of becoming both an e-cigarette ever-user and current-user, were significantly higher for girls than boys (ever-use: AOR 2.67 vs 2.04; current-use: AOR 3.11 vs 1.96). Smoking and e-cigarette use are linked but never-smokers who try e-cigarettes rose significantly from 33 to 67% and those using e-cigarettes to quit smoking decreased significantly from 17 to 3%. Almost two-thirds of respondents (66%) in 2019 said that their reason for trying e-cigarettes was “out of curiosity”. Peer smoking is significantly associated with likelihood of e-cigarette ever-use (AOR 6.52) and current-use (AOR 5.45). If “Most/All friends smoke”, odds were significantly higher for boys than for girls (ever-use AOR 7.07 vs 6.23; current-use AOR 5.90 vs 5.31). Less parental monitoring is significantly associated with greater e-cigarette ever-use (AOR 3.96) and current-use (4.48), and having parents who usually don’t know where their child is on Saturday nights was also associated with significantly higher odds for boys than for girls (ever-use AOR 5.42 vs 3.33; current-use AOR 5.50 vs 3.50).  Conclusion
+Respondents had significantly higher odds of being e-cigarette ever- and current-users in 2019 compared with 2015. Use is higher among boys but girls are increasingly at risk. Two-thirds had never smoked cigarettes at first e-cigarette use; two-thirds used out of curiosity but few (3%) for smoking cessation. The most prominent risk factors for e-cigarette use were peer- and parent-related, especially so for boys. Interventions that take account of friend and family influences may provide mechanisms for preventing an increasing risk of nicotine addiction.</dc:description>
+<dc:date>2021-10-01T07:00:00Z</dc:date>
+<dc:type>article</dc:type>
+<dc:format>application/pdf</dc:format>
+<dc:identifier>https://arrow.tudublin.ie/creaart/50</dc:identifier>
+<dc:identifier>info:doi/10.1186/s12889-021-12113-9</dc:identifier>
+<dc:identifier>https://arrow.tudublin.ie/context/creaart/article/1054/viewcontent/Hanafin_et_al_2021_Friends_and_Family_Matter_Most.pdf</dc:identifier>
+<dc:rights>Available under a Creative Commons Attribution Non-Commercial Share Alike 4.0 International Licence</dc:rights>
+<dc:rights>http://creativecommons.org/licenses/by-nc-sa/4.0/</dc:rights>
+<dc:source>Articles</dc:source>
+<dc:publisher>Technological University Dublin</dc:publisher>
+
+<dc:contributor>Department of Health,  RCDHT Grant 184</dc:contributor>
+<dc:contributor>ESPAD Ireland, YETI</dc:contributor>
+<dc:subject>E-cigarettes</dc:subject>
+<dc:subject>Teenagers</dc:subject>
+<dc:subject>Gender</dc:subject>
+<dc:subject>Peer smoking</dc:subject>
+<dc:subject>Parental monitoring</dc:subject>
+<dc:subject>ESPAD</dc:subject>
+<dc:subject>Ireland</dc:subject>
+<dc:subject>Medicine and Health Sciences</dc:subject>
+<dc:subject>Social and Behavioral Sciences</dc:subject>
+
+		</ns2:dc>
+	</ns0:metadata>
+</ns0:record>
+
+			
+<ns0:resumptionToken completeListSize="231" cursor="200" />
+		
+		</ns0:ListRecords>
+</ns0:OAI-PMH>

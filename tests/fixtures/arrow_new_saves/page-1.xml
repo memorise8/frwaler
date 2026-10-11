@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:OAI-PMH xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns0="http://www.openarchives.org/OAI/2.0/" xmlns:ns2="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/   http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+	<ns0:responseDate>2026-10-11T04:15:46Z</ns0:responseDate>
+	<ns0:request verb="ListRecords" resumptionToken="19171828/oai_dc/100//">http://arrow.tudublin.ie/do/oai/</ns0:request>
+	
+	<ns0:ListRecords>
+			
+<ns0:record>
+	<ns0:header>
+		<ns0:identifier>oai:arrow.tudublin.ie:creaart-1213</ns0:identifier>
+		<ns0:datestamp>2023-07-11T15:06:27Z</ns0:datestamp>
+				<ns0:setSpec>publication:creaart</ns0:setSpec>
+			</ns0:header>
+	<ns0:metadata>
+		<ns2:dc xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+			<dc:title>The Future of Clinical Trials of Myopia Control</dc:title>
+<dc:creator>Bullimore, Mark A.</dc:creator>
+<dc:creator>Brennan, Noel A.</dc:creator>
+<dc:creator>Flintcroft, Daniel I.</dc:creator>
+<dc:description>In the field of myopia control, effective optical or pharmaceutical therapies are now available to patients in many markets. This creates challenges for the conduct of placebo-controlled, randomised clinical trials, including ethics, recruitment, retention, selective loss of faster progressors and non-protocol treatments: 1. Ethics: It is valid to question whether withholding treatment in control subjects is ethical. 2. Recruitment: Availability of treatments is making recruitment into clinical trials more difficult. 3. Retention: If masking is not possible, parents may immediately withdraw their child if randomised to no treatment. 4. Selective loss: Withdrawal of fast progressors in the control group leading to a control group biased towards low progression. 5. Non-protocol treatment: Parents may access other myopia treatments in addition to those within the trial. We propose that future trials may adopt one of the following designs: A Non-inferiority trials using an approved drug or device as the control. The choice will depend on whether a regulatory agency has approved the drug or device. B Short conventional efficacy trials where data are subsequently entered into a model created from previous clinical trials, which allows robust prediction of long-term treatment efficacy from the initial efficacy. C Virtual control group trials based on data relating to axial elongation, myopia progression or both, accounting for subject's age and race. D Short-term control data from a cohort, for example, 1 year or less, and applying an appropriate, proportional annual reduction in axial elongation to that population and extrapolating to subsequent years. E Time-to- treatment- failure trials using survival analysis; once a treated or control subject progresses or elongates by a given amount, they exit the study and can be offered treatment. In summary, the future development of new treatments in myopia control will be hampered if significant changes are not made to the design of clinical trials in this area.</dc:description>
+<dc:date>2023-01-01T08:00:00Z</dc:date>
+<dc:type>article</dc:type>
+<dc:format>application/pdf</dc:format>
+<dc:identifier>https://arrow.tudublin.ie/creaart/182</dc:identifier>
+<dc:identifier>info:doi/10.1111/opo.13120</dc:identifier>
+<dc:identifier>https://arrow.tudublin.ie/context/creaart/article/1213/viewcontent/Ophthalmic_Physiologic_Optic___2023___Bullimore___The_future_of_clinical_trials_of_myopia_control.pdf</dc:identifier>
+<dc:rights>http://creativecommons.org/licenses/by-sa/4.0/</dc:rights>
+<dc:source>Articles</dc:source>
+<dc:publisher>Technological University Dublin</dc:publisher>
+
+<dc:contributor>Supported in part by Johnson &amp; Johnson Vision.</dc:contributor>
+
+<dc:subject>Clinical trials</dc:subject>
+<dc:subject>myopia</dc:subject>
+<dc:subject>myopia control</dc:subject>
+<dc:subject>myopia progression</dc:subject>
+<dc:subject>Engineering</dc:subject>
+<dc:subject>Optometry</dc:subject>
+
+		</ns2:dc>
+	</ns0:metadata>
+</ns0:record>
+
+			
+<ns0:record>
+	<ns0:header>
+		<ns0:identifier>oai:arrow.tudublin.ie:creaart-1212</ns0:identifier>
+		<ns0:datestamp>2023-07-12T09:43:37Z</ns0:datestamp>
+				<ns0:setSpec>publication:creaart</ns0:setSpec>
+			</ns0:header>
+	<ns0:metadata>
+		<ns2:dc xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+			<dc:title>Casting a shadow: harm from known drinkers</dc:title>
+<dc:creator>Hope, Ann</dc:creator>
+<dc:creator>Barry, Joe</dc:creator>
+<dc:creator>Byrne, Sean</dc:creator>
+<dc:creator>Stanesby, Oliver</dc:creator>
+<dc:description>Abstract
+Introduction: This paper examines the negative consequences of having a known drinker in one’s life. Method: The first dedicated national survey on alcohol’s harm to others (AH20) in Ireland was undertaken in 2015. Data was gathered by a cross sectional probability sample of 2,005 adults (18+yrs). Using a 12 month time-frame, respondents were asked about adverse effects they experienced due to known drinkers. Results: Overall, two in five people experiencing harm from known drinkers. Intangible harm was more common (38%) than tangible harm (24%). Stress/anxiety was the most common harm. The youngest age group was most at risk of tangible harm, those under 60 were most at risk of intangible harm. Closeness of the relationship to known heavy drinkers increased the risk of harm, with partners and household members of heavy drinkers most at risk. Respondents who were risky drinkers were more likely to report harm from known drinkers. Respondents with a close relationship to heavy drinkers and those with both a close and an extended relationship to heavy drinkers reported lower life satisfaction than those who did not know heavy drinkers. Conclusion: Having a known drinker in one’s life can cast a shadow on an individual’s health and well-being and the closer the proximity relationship to known heavy drinkers the greater the shadow. To reduce AH20, a broad alcohol policy framework is needed, that incorporates effective measures to reduce harm across the population and improve relevant services in local communities. The implementation of the recently passed Public Health Alcohol Act can help identify and implement the necessary actions to reduce alcohol-related harm in Ireland.</dc:description>
+<dc:date>2018-06-01T07:00:00Z</dc:date>
+<dc:type>article</dc:type>
+<dc:format>application/pdf</dc:format>
+<dc:identifier>https://arrow.tudublin.ie/creaart/183</dc:identifier>
+<dc:identifier>info:doi/10.21427/bp6d-w730</dc:identifier>
+<dc:identifier>https://arrow.tudublin.ie/context/creaart/article/1212/viewcontent/auto_convert.pdf</dc:identifier>
+<dc:rights>http://creativecommons.org/licenses/by-sa/4.0/</dc:rights>
+<dc:source>Articles</dc:source>
+<dc:publisher>Technological University Dublin</dc:publisher>
+
+<dc:contributor>Health Services Executive</dc:contributor>
+
+<dc:subject>alcohol’s harm to others</dc:subject>
+<dc:subject>general population</dc:subject>
+<dc:subject>known drinkers</dc:subject>
+<dc:subject>Public Health</dc:subject>
+<dc:subject>Social and Behavioral Sciences</dc:subject>
+
+		</ns2:dc>
+	</ns0:metadata>
+</ns0:record>
+
+			
+<ns0:resumptionToken completeListSize="231" cursor="100">19171828/oai_dc/200//</ns0:resumptionToken>
+		
+		</ns0:ListRecords>
+</ns0:OAI-PMH>
