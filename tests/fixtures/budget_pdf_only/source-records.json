@@ -1,0 +1,2694 @@
+{
+    "data": [
+        {
+            "date": "2025/11/04",
+            "pMin": "Mark Carney",
+            "fMin": "François-Philippe Champagne",
+            "website": {
+                "en": "/2025/home-accueil-en.html",
+                "fr": "/2025/home-accueil-fr.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget",
+                        "path": "/2025/report-rapport/pdf/budget-2025.pdf"
+                    },
+                    {
+                        "title": "Our plan: Building Canada strong",
+                        "path": "/2025/report-rapport/pdf/budget-2025-our-plan.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "title": "Budget",
+                        "path": "/2025/report-rapport/pdf/budget-de-2025.pdf"
+                    },
+                    {
+                        "title": "Notre plan : Bâtir un Canada fort",
+                        "path": "/2025/report-rapport/pdf/budget-de-2025-notre-plan.pdf"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2025",
+                "fr": "Budget de 2025"
+            }
+        },
+        {
+            "date": "2024/04/16",
+            "pMin": "Justin Trudeau",
+            "fMin": "Chrystia Freeland",
+            "website": {
+                "en": "/2024/home-accueil-en.html",
+                "fr": "/2024/home-accueil-fr.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget",
+                        "path": "/2024/report-rapport/budget-2024.pdf"
+                    },
+                    {
+                        "title": "Statement and Impacts Report on Gender, Diversity, and Quality of Life",
+                        "path": "/2024/report-rapport/gdql-egdqv-en.pdf"
+                    },
+                    {
+                        "title": "Tax Measures: Supplementary Information",
+                        "path": "/2024/report-rapport/tm-mf-en.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "title": "Budget",
+                        "path": "/2024/report-rapport/budget-de-2024.pdf"
+                    },
+                    {
+                        "title": "Énoncé et Rapport sur les répercussions sur le genre, la diversité et la qualité de vie",
+                        "path": "/2024/report-rapport/gdql-egdqv-fr.pdf"
+                    },
+                    {
+                        "title": "Mesures fiscales : Renseignements supplémentaires",
+                        "path": "/2024/report-rapport/tm-mf-fr.pdf"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2024",
+                "fr": "Budget de 2024"
+            }
+        },
+        {
+            "date": "2023/03/28",
+            "pMin": "Justin Trudeau",
+            "fMin": "Chrystia Freeland",
+            "website": {
+                "en": "/2023/home-accueil-en.html",
+                "fr": "/2023/home-accueil-fr.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget",
+                        "path": "/2023/pdf/budget-2023-en.pdf"
+                    },
+                    {
+                        "title": "Statement and Impacts Report on Gender, Diversity, and Quality of Life",
+                        "path": "/2023/pdf/gdql-egdqv-2023-en.pdf"
+                    },
+                    {
+                        "title": "Tax Measures: Supplementary Information",
+                        "path": "/2023/pdf/tm-mf-2023-en.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "title": "Budget",
+                        "path": "/2023/pdf/budget-2023-fr.pdf"
+                    },
+                    {
+                        "title": "Énoncé et Rapport sur les répercussions sur le genre, la diversité et la qualité de vie",
+                        "path": "/2023/pdf/gdql-egdqv-2023-fr.pdf"
+                    },
+                    {
+                        "title": "Mesures fiscales : Renseignements supplémentaires",
+                        "path": "/2023/pdf/tm-mf-2023-fr.pdf"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2023",
+                "fr": "Budget de 2023"
+            }
+        },
+        {
+            "date": "2022/04/07",
+            "pMin": "Justin Trudeau",
+            "fMin": "Chrystia Freeland",
+            "website": {
+                "en": "/2022/home-accueil-en.html",
+                "fr": "/2022/home-accueil-fr.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget",
+                        "path": "/2022/pdf/budget-2022-en.pdf"
+                    },
+                    {
+                        "title": "Statement and Impacts Report on Gender, Diversity, and Quality of Life",
+                        "path": "/2022/pdf/gdql-egdqv-2022-en.pdf"
+                    },
+                    {
+                        "title": "Tax Measures: Supplementary Information",
+                        "path": "/2022/pdf/tm-mf-2022-en.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "title": "Budget",
+                        "path": "/2022/pdf/budget-2022-fr.pdf"
+                    },
+                    {
+                        "title": "Énoncé et Rapport sur les répercussions sur le genre, la diversité et la qualité de vie",
+                        "path": "/2022/pdf/gdql-egdqv-2022-fr.pdf"
+                    },
+                    {
+                        "title": "Mesures fiscales : Renseignements supplémentaires",
+                        "path": "/2022/pdf/tm-mf-2022-fr.pdf"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2022",
+                "fr": "Budget de 2022"
+            }
+        },
+        {
+            "date": "2021/04/19",
+            "pMin": "Justin Trudeau",
+            "fMin": "Chrystia Freeland",
+            "website": {
+                "en": "/2021/home-accueil-en.html",
+                "fr": "/2021/home-accueil-fr.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget",
+                        "path": "/2021/pdf/budget-2021-en.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "title": "Budget",
+                        "path": "/2021/pdf/budget-2021-fr.pdf"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2021",
+                "fr": "Budget de 2021"
+            }
+        },
+        {
+            "date": "2019/03/19",
+            "pMin": "Justin Trudeau",
+            "fMin": "Bill Morneau",
+            "website": {
+                "en": "/2019/home-accueil-en.html",
+                "fr": "/2019/home-accueil-fr.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/2019/docs/plan/budget-2019-en.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/2019/docs/speech-discours/2019-03-19-en.pdf"
+                    },
+                    {
+                        "title": "News Release",
+                        "path": "/2019/docs/nrc/2019-03-19-en.pdf"
+                    },
+                    {
+                        "title": "The Canada Training Benefit",
+                        "path": "/2019/docs/themes/good-jobs-de-bons-emplois-en.pdf"
+                    },
+                    {
+                        "title": "An Affordable Place to Call Home",
+                        "path": "/2019/docs/themes/housing-logement-en.pdf"
+                    },
+                    {
+                        "title": "A Secure and Dignified Retirement for Canadians",
+                        "path": "/2019/docs/themes/seniors-aines-en.pdf"
+                    },
+                    {
+                        "title": "Moving Forward on Implementing National Pharmacare",
+                        "path": "/2019/docs/themes/pharmacare-assurance-medicaments-en.pdf"
+                    },
+                    {
+                        "title": "Advancing Reconciliation With Indigenous Peoples",
+                        "path": "/2019/docs/nrc/indigenous-autochtones-en.pdf"
+                    },
+                    {
+                        "title": "Building a Better Canada: Universal High-Speed Internet",
+                        "path": "/2019/docs/nrc/infrastructure-infrastructures-internet-en.pdf"
+                    },
+                    {
+                        "title": "Strong Communities, Affordable Electricity and a Clean Economy",
+                        "path": "/2019/docs/nrc/infrastructure-infrastructures-electricity-electricite-en.pdf"
+                    },
+                    {
+                        "title": "Gender Report",
+                        "path": "/2019/docs/gba-acs/gbs-acs-en.pdf"
+                    },
+                    {
+                        "title": "Investing in Young Canadians",
+                        "path": "/2019/docs/youth-jeunes/youth-jeunes-en.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "title": "Plan budgétaire",
+                        "path": "/2019/docs/plan/budget-2019-fr.pdf"
+                    },
+                    {
+                        "title": "Discours",
+                        "path": "/2019/docs/speech-discours/2019-03-19-fr.pdf"
+                    },
+                    {
+                        "title": "Communiqué",
+                        "path": "/2019/docs/nrc/2019-03-19-fr.pdf"
+                    },
+                    {
+                        "title": "Allocation canadienne pour la formation",
+                        "path": "/2019/docs/themes/good-jobs-de-bons-emplois-fr.pdf"
+                    },
+                    {
+                        "title": "Un chez-soi abordable",
+                        "path": "/2019/docs/themes/housing-logement-fr.pdf"
+                    },
+                    {
+                        "title": "Une retraite sûre et digne pour les Canadiens",
+                        "path": "/2019/docs/themes/seniors-aines-fr.pdf"
+                    },
+                    {
+                        "title": "Aller de l’avant avec la mise en oeuvre du programme national d’assurance-médicaments",
+                        "path": "/2019/docs/themes/pharmacare-assurance-medicaments-fr.pdf"
+                    },
+                    {
+                        "title": "Faire avancer la réconciliation avec les peuples autochtones",
+                        "path": "/2019/docs/nrc/indigenous-autochtones-fr.pdf"
+                    },
+                    {
+                        "title": "Bâtir un Canada meilleur : Accès universel à Internet haute vitesse",
+                        "path": "/2019/docs/nrc/infrastructure-infrastructures-internet-fr.pdf"
+                    },
+                    {
+                        "title": "Des communautés fortes, une électricité abordable et une économie propre",
+                        "path": "/2019/docs/nrc/infrastructure-infrastructures-electricity-electricite-fr.pdf"
+                    },
+                    {
+                        "title": "Rapport sur l'égalité entre les sexes",
+                        "path": "/2019/docs/gba-acs/gbs-acs-fr.pdf"
+                    },
+                    {
+                        "title": "Investir dans les jeunes Canadiens",
+                        "path": "/2019/docs/youth-jeunes/youth-jeunes-fr.pdf"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2019",
+                "fr": "Budget de 2019"
+            }
+        },
+        {
+            "date": "2018/02/27",
+            "pMin": "Justin Trudeau",
+            "fMin": "Bill Morneau",
+            "website": {
+                "en": "/2018/home-accueil-en.html",
+                "fr": "/2018/home-accueil-fr.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/2018/docs/plan/budget-2018-en.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/2018/docs/speech-discours/2018-03-22-en.pdf"
+                    },
+                    {
+                        "title": "Tax Measures: Supplementary Information",
+                        "path": "/2018/docs/tm-mf/tax-measures-mesures-fiscales-2018-en.pdf"
+                    },
+                    {
+                        "title": "News Release",
+                        "path": "/2018/docs/nrc/2018-02-27-en.pdf"
+                    },
+                    {
+                        "title": "Equality + Growth – A Strong Middle Class",
+                        "path": "/2018/docs/themes/equality-growth-egalite-croissance-en.pdf"
+                    },
+                    {
+                        "title": "Progress",
+                        "path": "/2018/docs/themes/progress-progres-en.pdf"
+                    },
+                    {
+                        "title": "Reconciliation",
+                        "path": "/2018/docs/themes/reconciliation-en.pdf"
+                    },
+                    {
+                        "title": "Advancement",
+                        "path": "/2018/docs/themes/advancement-avancement-en.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "title": "Plan budgétaire",
+                        "path": "/2018/docs/plan/budget-2018-fr.pdf"
+                    },
+                    {
+                        "title": "Discours",
+                        "path": "/2018/docs/speech-discours/2018-03-22-fr.pdf"
+                    },
+                    {
+                        "title": "Mesures fiscales : renseignements supplémentaires",
+                        "path": "/2018/docs/tm-mf/tax-measures-mesures-fiscales-2018-fr.pdf"
+                    },
+                    {
+                        "title": "Communiqué",
+                        "path": "/2018/docs/nrc/2018-02-27-fr.pdf"
+                    },
+                    {
+                        "title": "Égalité + Croissance – Une classe moyenne forte",
+                        "path": "/2018/docs/themes/equality-growth-egalite-croissance-fr.pdf"
+                    },
+                    {
+                        "title": "Progrès",
+                        "path": "/2018/docs/themes/progress-progres-fr.pdf"
+                    },
+                    {
+                        "title": "Réconciliation",
+                        "path": "/2018/docs/themes/reconciliation-fr.pdf"
+                    },
+                    {
+                        "title": "Avancement",
+                        "path": "/2018/docs/themes/advancement-avancement-fr.pdf"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2018",
+                "fr": "Budget de 2018"
+            }
+        },
+        {
+            "date": "2017/03/22",
+            "pMin": "Justin Trudeau",
+            "fMin": "Bill Morneau",
+            "website": {
+                "en": "/2017/home-accueil-en.html",
+                "fr": "/2017/home-accueil-fr.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/2017/docs/plan/budget-2017-en.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/2017/docs/speech-discours/2017-03-22-en.pdf"
+                    },
+                    {
+                        "title": "Budget 2017 in 3 Minutes",
+                        "path": "/2017/docs/plan/budget2017-3min-eng.pdf"
+                    },
+                    {
+                        "title": "Tax Measures: Supplementary Information",
+                        "path": "/2017/docs/tm-mf/tax-measures-mesures-fiscales-2017-en.pdf"
+                    },
+                    {
+                        "title": "News Release",
+                        "path": "/2017/docs/nrc/2017-03-22-en.pdf"
+                    },
+                    {
+                        "title": "Skills, Innovation and Middle Class Jobs",
+                        "path": "/2017/docs/themes/Innovation_en.pdf"
+                    },
+                    {
+                        "title": "Communities Built for Change",
+                        "path": "/2017/docs/themes/Infrastructure_en.pdf"
+                    },
+                    {
+                        "title": "Tax Fairness for the Middle Class",
+                        "path": "/2017/docs/themes/tax-fairness-equite-fiscale-en.pdf"
+                    },
+                    {
+                        "title": "A Strong Canada at Home and in the World",
+                        "path": "/2017/docs/themes/strong-canada-fort-en.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "title": "Plan budgétaire",
+                        "path": "/2017/docs/plan/budget-2017-fr.pdf"
+                    },
+                    {
+                        "title": "Discours",
+                        "path": "/2017/docs/speech-discours/2017-03-22-fr.pdf"
+                    },
+                    {
+                        "title": "Le budget de 2017 en 3 minutes",
+                        "path": "/2017/docs/plan/budget2017-3min-fra.pdf"
+                    },
+                    {
+                        "title": "Mesures fiscales : renseignements supplémentaires",
+                        "path": "/2017/docs/tm-mf/tax-measures-mesures-fiscales-2017-fr.pdf"
+                    },
+                    {
+                        "title": "Communiqué",
+                        "path": "/2017/docs/nrc/2017-03-22-fr.pdf"
+                    },
+                    {
+                        "title": "Compétences, innovation et emplois pour la classe moyenne",
+                        "path": "/2017/docs/themes/Innovation_fr.pdf"
+                    },
+                    {
+                        "title": "Équité fiscale pour la classe moyenne",
+                        "path": "/2017/docs/themes/tax-fairness-equite-fiscale-fr.pdf"
+                    },
+                    {
+                        "title": "Des communautés conçues pour l’avenir",
+                        "path": "/2017/docs/themes/Infrastructure_fr.pdf"
+                    },
+                    {
+                        "title": "Un Canada fort à l’échelle nationale et internationale",
+                        "path": "/2017/docs/themes/strong-canada-fort-fr.pdf"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2017",
+                "fr": "Budget de 2017"
+            }
+        },
+        {
+            "date": "2016/03/22",
+            "pMin": "Justin Trudeau",
+            "fMin": "Bill Morneau",
+            "website": {
+                "en": "/2016/home-accueil-en.html",
+                "fr": "/2016/home-accueil-fr.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/2016/docs/plan/budget2016-en.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/2016/docs/speech-discours/2016-03-22-en.pdf"
+                    },
+                    {
+                        "title": "Tax Measures: Supplementary Information",
+                        "path": "/2016/docs/tm-mf/tax-measures-mesures-fiscales-2016-en.pdf"
+                    },
+                    {
+                        "title": "News Release",
+                        "path": "/2016/docs/nrc/2016-03-22-en.pdf"
+                    },
+                    {
+                        "title": "Strengthening the Middle Class",
+                        "path": "/2016/docs/themes/middle-class-classe-moyenne-en.pdf"
+                    },
+                    {
+                        "title": "An Innovative and Clean Economy",
+                        "path": "/2016/docs/themes/economy-economie-en.pdf"
+                    },
+                    {
+                        "title": "An Inclusive and Fair Canada",
+                        "path": "/2016/docs/themes/inclusive-fair-inclusif-equitable-en.pdf"
+                    },
+                    {
+                        "title": "Canada in the World",
+                        "path": "/2016/docs/themes/world-monde-en.pdf"
+                    },
+                    {
+                        "title": "Open Transparent Government",
+                        "path": "/2016/docs/themes/open-transparent-ouvert-en.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "title": "Plan budgétaire",
+                        "path": "/2016/docs/plan/budget2016-fr.pdf"
+                    },
+                    {
+                        "title": "Discours",
+                        "path": "/2016/docs/speech-discours/2016-03-22-fr.pdf"
+                    },
+                    {
+                        "title": "Mesures fiscales : renseignements supplémentaires",
+                        "path": "/2016/docs/tm-mf/tax-measures-mesures-fiscales-2016-fr.pdf"
+                    },
+                    {
+                        "title": "Communiqué",
+                        "path": "/2016/docs/nrc/2016-03-22-fr.pdf"
+                    },
+                    {
+                        "title": "Renforcer la classe moyenne",
+                        "path": "/2016/docs/themes/middle-class-classe-moyenne-fr.pdf"
+                    },
+                    {
+                        "title": "Une économie innovatrice et propre",
+                        "path": "/2016/docs/themes/economy-economie-fr.pdf"
+                    },
+                    {
+                        "title": "Un Canada inclusif et équitable",
+                        "path": "/2016/docs/themes/inclusive-fair-inclusif-equitable-fr.pdf"
+                    },
+                    {
+                        "title": "La place du Canada dans le monde",
+                        "path": "/2016/docs/themes/world-monde-fr.pdf"
+                    },
+                    {
+                        "title": "Un gouvernement ouvert et transparent",
+                        "path": "/2016/docs/themes/open-transparent-ouvert-fr.pdf"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2016",
+                "fr": "Budget de 2016"
+            }
+        },
+        {
+            "date": "2015/04/21",
+            "pMin": "Stephen Harper",
+            "fMin": "Joe Oliver",
+            "website": {
+                "en": "/2015/home-accueil-eng.html",
+                "fr": "/2015/home-accueil-fra.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/2015/docs/plan/budget2015-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/2015/docs/bb/brief-bref-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/2015/docs/speech-discours/speech-discours-eng.pdf"
+                    },
+                    {
+                        "title": "Balancing the Budget",
+                        "path": "/2015/docs/themes/balancing-budget-equilibrer-eng.pdf"
+                    },
+                    {
+                        "title": "Training a Highly Skilled Workforce",
+                        "path": "/2015/docs/themes/skilled-workforce-maindoeuvre-qualifiee-eng.pdf"
+                    },
+                    {
+                        "title": "Protecting Canadians",
+                        "path": "/2015/docs/themes/protecting-cdn-proteger-eng.pdf"
+                    },
+                    {
+                        "title": "Industry and Innovation",
+                        "path": "/2015/docs/themes/industry-innovation-industrie-eng.pdf"
+                    },
+                    {
+                        "title": "Supporting a Strong Manufacturing Sector",
+                        "path": "/2015/docs/themes/manufacturing-fabrication-eng.pdf"
+                    },
+                    {
+                        "title": "Building Infrastructure, Creating Jobs",
+                        "path": "/2015/docs/themes/infrastructure-eng.pdf"
+                    },
+                    {
+                        "title": "Helping Small Businesses and Entrepreneurs Create Jobs",
+                        "path": "/2015/docs/themes/small-businesses-entrepreneurs-petites-entreprises-eng.pdf"
+                    },
+                    {
+                        "title": "Helping Families Make Ends Meet",
+                        "path": "/2015/docs/themes/families-familles-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/2015/docs/plan/budget2015-fra.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/2015/docs/bb/brief-bref-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/2015/docs/speech-discours/speech-discours-fra.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/2015/docs/themes/balancing-budget-equilibrer-fra.pdf",
+                        "title": "Rétablir l'équilibre budgétaire"
+                    },
+                    {
+                        "path": "/2015/docs/themes/skilled-workforce-maindoeuvre-qualifiee-fra.pdf",
+                        "title": "Former une main-d'oeuvre hautement qualifiée"
+                    },
+                    {
+                        "path": "/2015/docs/themes/protecting-cdn-proteger-fra.pdf",
+                        "title": "Protéger les Canadiens"
+                    },
+                    {
+                        "path": "/2015/docs/themes/industry-innovation-industrie-fra.pdf",
+                        "title": "L'industrie et de l'innovation"
+                    },
+                    {
+                        "path": "/2015/docs/themes/manufacturing-fabrication-fra.pdf",
+                        "title": "Soutenir le dynamisme du secteur de la fabrication"
+                    },
+                    {
+                        "path": "/2015/docs/themes/infrastructure-fra.pdf",
+                        "title": "Bâtir des infrastructures,créer des emplois"
+                    },
+                    {
+                        "path": "/2015/docs/themes/small-businesses-entrepreneurs-petites-entreprises-fra.pdf",
+                        "title": "Aider les petites entreprises et les entrepreneurs à créer des emplois"
+                    },
+                    {
+                        "path": "/2015/docs/themes/families-familles-fra.pdf",
+                        "title": "Aider les familles à joindre les deux bouts"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2015",
+                "fr": "Budget de 2015"
+            }
+        },
+        {
+            "date": "2014/02/11",
+            "pMin": "Stephen Harper",
+            "fMin": "Jim Flaherty",
+            "website": {
+                "en": "/2014/home-accueil-eng.html",
+                "fr": "/2014/home-accueil-fra.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/2014/docs/plan/pdf/budget2014-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/2014/docs/bb/pdf/brief-bref-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/2014/docs/speech-discours/pdf/speech-discours-e.pdf"
+                    },
+                    {
+                        "title": "Jobs Report: The State of the Canadian Labour Market",
+                        "path": "/2014/docs/jobs-emplois/pdf/jobs-emplois-eng.pdf"
+                    },
+                    {
+                        "title": "The Road to Balance",
+                        "path": "/2014/docs/themes/pdf/road-voie-eng.pdf"
+                    },
+                    {
+                        "title": "Supporting Families and Communities",
+                        "path": "/2014/docs/themes/pdf/famcom-famcol-eng.pdf"
+                    },
+                    {
+                        "title": "Supporting Jobs and Growth",
+                        "path": "/2014/docs/themes/pdf/jobs-emplois-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/2014/docs/plan/pdf/budget2014-fra.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/2014/docs/bb/pdf/brief-bref-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/2014/docs/speech-discours/pdf/speech-discours-f.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/2014/docs/jobs-emplois/pdf/jobs-emplois-fra.pdf",
+                        "title": "Rapport sur l'emploi: Le point sur le marché du travail canadien"
+                    },
+                    {
+                        "path": "/2014/docs/themes/pdf/road-voie-fra.pdf",
+                        "title": "La voie de l'équilibre budgétaire"
+                    },
+                    {
+                        "path": "/2014/docs/themes/pdf/famcom-famcol-fra.pdf",
+                        "title": "Appuyer les familles et les collectivités"
+                    },
+                    {
+                        "path": "/2014/docs/themes/pdf/jobs-emplois-fra.pdf",
+                        "title": "Soutenir l'emploi et la croissance"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2014",
+                "fr": "Budget de 2014"
+            }
+        },
+        {
+            "date": "2013/03/21",
+            "pMin": "Stephen Harper",
+            "fMin": "Jim Flaherty",
+            "website": {
+                "en": "/2013/home-accueil-eng.html",
+                "fr": "/2013/home-accueil-fra.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/2013/doc/plan/budget2013-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/2013/doc/bb/Brief-Bref-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/2013/doc/speech-discours/speech-eng.pdf"
+                    },
+                    {
+                        "title": "New Building Canada Plan",
+                        "path": "/2013/doc/themes/infrastructure-eng.pdf"
+                    },
+                    {
+                        "title": "Creating High-Paying Jobs and Helping Businesses Succeed",
+                        "path": "/2013/doc/themes/manufacturing-eng.pdf"
+                    },
+                    {
+                        "title": "New Canada Job Grant",
+                        "path": "/2013/doc/themes/skills-eng.pdf"
+                    },
+                    {
+                        "title": "Improving the Integrity of the Tax System",
+                        "path": "/2013/doc/themes/tax-system-regime-fiscal-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/2013/doc/plan/budget2013-fra.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/2013/doc/bb/Brief-Bref-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/2013/doc/speech-discours/speech-fra.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/2013/doc/themes/infrastructure-fra.pdf",
+                        "title": "Le nouveau plan Chantiers Canada"
+                    },
+                    {
+                        "path": "/2013/doc/themes/secteur-manufacturier-fra.pdf",
+                        "title": "Créer des emplois bien rémunérés et aider les entreprises à prospérer"
+                    },
+                    {
+                        "path": "/2013/doc/themes/competences-fra.pdf",
+                        "title": "La nouvelle subvention canadienne pour l'emploi"
+                    },
+                    {
+                        "path": "/2013/doc/themes/tax-system-regime-fiscal-fra.pdf",
+                        "title": "Améliorer l'intégrité du régime fiscal"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2013",
+                "fr": "Budget de 2013"
+            }
+        },
+        {
+            "date": "2012/03/29",
+            "pMin": "Stephen Harper",
+            "fMin": "Jim Flaherty",
+            "website": {
+                "en": "/2012/home-accueil-eng.html",
+                "fr": "/2012/home-accueil-fra.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/2012/plan/pdf/Plan2012-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/2012/rd-dc/brief-bref-2012-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/2012/rd-dc/speech-eng.pdf"
+                    },
+                    {
+                        "title": "Jobs And Opportunities for Canadians",
+                        "path": "/2012/themes/theme1-eng.pdf"
+                    },
+                    {
+                        "title": "Eliminating the Penny",
+                        "path": "/2012/themes/theme2-eng.pdf"
+                    },
+                    {
+                        "title": "Old Age Security",
+                        "path": "/2012/themes/theme3-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/2012/plan/pdf/Plan2012-fra.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/2012/rd-dc/brief-bref-2012-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/2012/rd-dc/speech-fra.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/2012/themes/theme1-fra.pdf",
+                        "title": "Emplois et Perspectives pour les Canadiens"
+                    },
+                    {
+                        "path": "/2012/themes/theme2-eng.pdf",
+                        "title": "Éliminer les pièces d'un cent"
+                    },
+                    {
+                        "path": "/2012/themes/theme3-fra.pdf",
+                        "title": "Sécurité de la vieillesse"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2012",
+                "fr": "Budget de 2012"
+            }
+        },
+        {
+            "date": "2011/06/06",
+            "pMin": "Stephen Harper",
+            "fMin": "Jim Flaherty",
+            "website": {
+                "en": "/2011/home-accueil-eng.html",
+                "fr": "/2011/home-accueil-fra.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/2011/plan/Budget2011-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/2011/glance-apercu/brief-bref-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/2011/speech-discours/speech-discours-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/2011/plan/Budget2011-fra.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/2011/glance-apercu/brief-bref-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/2011/speech-discours/speech-discours-fra.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2011 - June",
+                "fr": "Budget de 2011 - juin"
+            }
+        },
+        {
+            "date": "2011/03/22",
+            "pMin": "Stephen Harper",
+            "fMin": "Jim Flaherty",
+            "website": {
+                "en": "/march-mars-2011/home-accueil-eng.html",
+                "fr": "/march-mars-2011/home-accueil-fra.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/march-mars-2011/plan/Budget2011-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/march-mars-2011/glance-apercu/brief-bref-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/march-mars-2011/speech-discours/speech-discours-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/march-mars-2011/plan/Budget2011-fra.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/march-mars-2011/glance-apercu/brief-bref-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/march-mars-2011/speech-discours/speech-discours-fra.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2011 - March",
+                "fr": "Budget de 2011 - mars"
+            }
+        },
+        {
+            "date": "2010/03/04",
+            "pMin": "Stephen Harper",
+            "fMin": "Jim Flaherty",
+            "website": {
+                "en": "/2010/home-accueil-eng.html",
+                "fr": "/2010/home-accueil-fra.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/2010/pdf/budget-planbudgetaire-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/2010/pdf/brief-bref-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/2010/pdf/speech-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/2010/pdf/budget-planbudgetaire-fra.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/2010/pdf/brief-bref-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/2010/pdf/discours-fra.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2010",
+                "fr": "Budget de 2010"
+            }
+        },
+        {
+            "date": "2009/01/27",
+            "pMin": "Stephen Harper",
+            "fMin": "Jim Flaherty",
+            "website": {
+                "en": "/2009/home-accueil-eng.html",
+                "fr": "/2009/home-accueil-fra.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/2009/pdf/budget-planbugetaire-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/2009/pdf/brief-bref-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/2009/pdf/speech-discours-eng.pdf"
+                    },
+                    {
+                        "title": "Overview",
+                        "path": "/2009/pdf/pamphlet-depliant1-eng.pdf"
+                    },
+                    {
+                        "title": "Building On an Impressive Record of Tax Relief",
+                        "path": "/2009/pdf/pamphlet-depliant2-eng.pdf"
+                    },
+                    {
+                        "title": "The Home Renovation Tax Credit",
+                        "path": "/2009/pdf/pamphlet-depliant3-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/2009/pdf/budget-planbugetaire-fra.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/2009/pdf/brief-bref-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/2009/pdf/speech-discours-fra.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/2009/pdf/pamphlet-depliant1-fra.pdf",
+                        "title": "Vue d'ensemble"
+                    },
+                    {
+                        "path": "/2009/pdf/pamphlet-depliant2-fra.pdf",
+                        "title": "Renforcer un bilan d'allégements fiscaux éloquent"
+                    },
+                    {
+                        "path": "/2009/pdf/pamphlet-depliant3-fra.pdf",
+                        "title": "Le crédit d'impôt pour la rénovation domiciliaire"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2009",
+                "fr": "Budget de 2009"
+            }
+        },
+        {
+            "date": "2008/02/26",
+            "pMin": "Stephen Harper",
+            "fMin": "Jim Flaherty",
+            "website": {
+                "en": "/2008/home-accueil-eng.html",
+                "fr": "/2008/home-accueil-fra.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/2008/pdf/plan-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/2008/pdf/brief-bref-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/2008/pdf/speech-discours-eng.pdf"
+                    },
+                    {
+                        "title": "Overview",
+                        "path": "/2008/pdf/pamphlet-depliant1-eng.pdf"
+                    },
+                    {
+                        "title": "Investing for Tomorrow",
+                        "path": "/2008/pdf/pamphlet-depliant3-eng.pdf"
+                    },
+                    {
+                        "title": "Tax-Free Savings Account (TFSA)",
+                        "path": "/2008/pdf/pamphlet-depliant4-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/2008/pdf/plan-fra.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/2008/pdf/brief-bref-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/2008/pdf/speech-discours-fra.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/2008/pdf/pamphlet-depliant1-fra.pdf",
+                        "title": "Vue d'ensemble"
+                    },
+                    {
+                        "path": "/2008/pdf/pamphlet-depliant3-fra.pdf",
+                        "title": "Investir dans l'avenir"
+                    },
+                    {
+                        "path": "/2008/pdf/pamphlet-depliant4-fra.pdf",
+                        "title": "Compte d'épargne libre d'impôt (CELI)"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2008",
+                "fr": "Budget de 2008"
+            }
+        },
+        {
+            "date": "2007/03/19",
+            "pMin": "Stephen Harper",
+            "fMin": "Jim Flaherty",
+            "website": {
+                "en": "/2007/index-eng.html",
+                "fr": "/2007/index-fra.html"
+            },
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/2007/pdf/bp2007e.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/2007/pdf/briefe.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/2007/pdf/speeche.pdf"
+                    },
+                    {
+                        "title": "Capital Markets",
+                        "path": "/2007/pdf/bkcmae.pdf"
+                    },
+                    {
+                        "title": "Fiscal Balance Booklet",
+                        "path": "/2007/pdf/bkfbsfe.pdf"
+                    },
+                    {
+                        "title": "Fiscal Balance Pamphlet",
+                        "path": "/2007/pdf/parfbse.pdf"
+                    },
+                    {
+                        "title": "Security",
+                        "path": "/2007/pdf/paasce.pdf"
+                    },
+                    {
+                        "title": "Budget at a Glance",
+                        "path": "/2007/pdf/pabage.pdf"
+                    },
+                    {
+                        "title": "Environment and Health",
+                        "path": "/2007/pdf/papemhe.pdf"
+                    },
+                    {
+                        "title": "Tax Relief",
+                        "path": "/2007/pdf/patrfbe.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/2007/pdf/bp2007f.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/2007/pdf/brieff.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/2007/pdf/speechf.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/2007/pdf/bkcmaf.pdf",
+                        "title": "Les marchés de capitaux"
+                    },
+                    {
+                        "path": "/2007/pdf/bkfbsff.pdf",
+                        "title": "Livret de l'équilibre fiscal"
+                    },
+                    {
+                        "path": "/2007/pdf/parfbsf.pdf",
+                        "title": "Dépliant de l'équilibre fiscal"
+                    },
+                    {
+                        "path": "/2007/pdf/paascf.pdf",
+                        "title": "Sécurité"
+                    },
+                    {
+                        "path": "/2007/pdf/pabagf.pdf",
+                        "title": "Vue d'ensemble"
+                    },
+                    {
+                        "path": "/2007/pdf/papemhf.pdf",
+                        "title": "Environnement et santé"
+                    },
+                    {
+                        "path": "/2007/pdf/patrfbf.pdf",
+                        "title": "Allégement fiscal"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2007",
+                "fr": "Budget de 2007"
+            }
+        },
+        {
+            "date": "2006/05/02",
+            "pMin": "Stephen Harper",
+            "fMin": "Jim Flaherty",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/budget06/pdf/bp2006e.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/budget06/pdf/briefe.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/budget06/pdf/speeche.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/budget06/pdf/bp2006f.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/archives/budget06/pdf/brieff.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/budget06/pdf/speechf.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2006",
+                "fr": "Budget de 2006"
+            }
+        },
+        {
+            "date": "2005/02/23",
+            "pMin": "Paul Martin",
+            "fMin": "Ralph Goodale",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/budget05/pdf/bp2005e.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/budget05/pdf/briefe.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/budget05/pdf/speeche.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/budget05/pdf/bp2005f.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/archives/budget05/pdf/brieff.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/budget05/pdf/speechf.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2005",
+                "fr": "Budget de 2005"
+            }
+        },
+        {
+            "date": "2004/03/23",
+            "pMin": "Paul Martin",
+            "fMin": "Ralph Goodale",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/budget04/pdf/bp2004e.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/budget04/pdf/briefe.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/budget04/pdf/speeche.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/budget04/pdf/bp2004f.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/archives/budget04/pdf/brieff.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/budget04/pdf/speechf.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2004",
+                "fr": "Budget de 2004"
+            }
+        },
+        {
+            "date": "2003/02/18",
+            "pMin": "Jean Chrétien",
+            "fMin": "John Manley",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/budget03/pdf/bp2003e.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/budget03/pdf/briefe.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/budget03/pdf/speeche.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/budget03/pdf/bp2003f.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/archives/budget03/pdf/brieff.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/budget03/pdf/speechf.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2003",
+                "fr": "Budget de 2003"
+            }
+        },
+        {
+            "date": "2001/12/10",
+            "parlNum": "37",
+            "pMin": "Jean Chrétien",
+            "fMin": "Paul Martin",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/budget01/pdf/bpe.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/budget01/pdf/briefe.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/budget01/pdf/speeche.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/budget01/pdf/bpf.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/archives/budget01/pdf/brieff.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/budget01/pdf/speechf.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2001",
+                "fr": "Budget de 2001"
+            }
+        },
+        {
+            "date": "2000/02/28",
+            "pMin": "Jean Chrétien",
+            "fMin": "Paul Martin",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/budget00/pdf/bpe.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/budget00/pdf/briefe.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/budget00/pdf/speeche.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/budget00/pdf/bpf.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/archives/budget00/pdf/brieff.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/budget00/pdf/speechf.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 2000",
+                "fr": "Budget de 2000"
+            }
+        },
+        {
+            "date": "1999/02/16",
+            "pMin": "Jean Chrétien",
+            "fMin": "Paul Martin",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/budget99/bp/bp99e.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/budget99/binb/binbe.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/budget99/speech/speeche.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/budget99/bp/bp99f.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/archives/budget99/binb/binbf.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/budget99/speech/speechf.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1999",
+                "fr": "Budget de 1999"
+            }
+        },
+        {
+            "date": "1998/02/24",
+            "pMin": "Jean Chrétien",
+            "fMin": "Paul Martin",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/budget98/bp/bp98e.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/budget98/binb/binbe.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/budget98/speech/speeche.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/budget98/bp/bp98f.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/archives/budget98/binb/binbf.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/budget98/speech/speechf.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1998",
+                "fr": "Budget de 1998"
+            }
+        },
+        {
+            "date": "1997/02/18",
+            "pMin": "Jean Chrétien",
+            "fMin": "Paul Martin",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/budget97/binb/bp/bp97e.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/budget97/binb/binbe.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/budget97/speech/speeche.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/budget97/binb/bp/bp97f.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/archives/budget97/speech/speechf.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/budget97/speech/speechf.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1997",
+                "fr": "Budget de 1997"
+            }
+        },
+        {
+            "date": "1996/03/06",
+            "pMin": "Jean Chrétien",
+            "fMin": "Paul Martin",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/budget96/bp/bp96e.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/budget96/binb/brief.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/budget96/speech/speech.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/budget96/bp/bp96f.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/archives/budget96/binb/bref.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/budget96/speech/discours.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1996",
+                "fr": "Budget de 1996"
+            }
+        },
+        {
+            "date": "1995/02/27",
+            "pMin": "Jean Chrétien",
+            "fMin": "Paul Martin",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/budget95/binb/budget1995-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/budget95/binb/brief.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/budget95/speech/speech.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/budget95/binb/budget1995-fra.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/archives/budget95/binb/bref.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/budget95/speech/discours.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1995",
+                "fr": "Budget de 1995"
+            }
+        },
+        {
+            "date": "1994/02/22",
+            "pMin": "Jean Chrétien",
+            "fMin": "Paul Martin",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/1994-plan-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1994-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1994-sd-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1994-plan-fra.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/archives/1994-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1994-sd-fra.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1994",
+                "fr": "Budget de 1994"
+            }
+        },
+        {
+            "date": "1993/03/26",
+            "pMin": "Brian Mulroney",
+            "fMin": "Don Mazankowski",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/1993-plan-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1993-brf-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1993-plan-fra.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/archives/1993-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1993",
+                "fr": "Budget de 1993"
+            }
+        },
+        {
+            "date": "1992/02/25",
+            "pMin": "Brian Mulroney",
+            "fMin": "Don Mazankowski",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1992-sd-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Papers",
+                        "path": "/archives/1992-pap-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1992-sd-fra.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/archives/1992-pap-fra.pdf",
+                        "title": "Documents budgétaires"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1992",
+                "fr": "Budget de 1992"
+            }
+        },
+        {
+            "date": "1991/02/26",
+            "pMin": "Brian Mulroney",
+            "fMin": "Michael Wilson",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/1991-plan-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1991-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1991-sd-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1991-plan-fra.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/archives/1991-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1991-sd-fra.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1991",
+                "fr": "Budget de 1991"
+            }
+        },
+        {
+            "date": "1990/02/20",
+            "pMin": "Brian Mulroney",
+            "fMin": "Michael Wilson",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/1990-plan-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1990-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1990-sd-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1990-plan-fra.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/archives/1990-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1990-sd-fra.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1990",
+                "fr": "Budget de 1990"
+            }
+        },
+        {
+            "date": "1989/04/27",
+            "pMin": "Brian Mulroney",
+            "fMin": "Michael Wilson",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1989-sd-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Papers",
+                        "path": "/archives/1989-pap-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1989-sd-fra.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/archives/1989-pap-fra.pdf",
+                        "title": "Document budgétaires"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1989",
+                "fr": "Budget de 1989"
+            }
+        },
+        {
+            "date": "1988/02/10",
+            "pMin": "Brian Mulroney",
+            "fMin": "Michael Wilson",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1988-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1988-sd-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Papers",
+                        "path": "/archives/1988-pap-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1988-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1988-sd-fra.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/archives/1988-pap-fra.pdf",
+                        "title": "Documents budgétaires"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1988",
+                "fr": "Budget de 1988"
+            }
+        },
+        {
+            "date": "1987/02/18",
+            "pMin": "Brian Mulroney",
+            "fMin": "Michael Wilson",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1987-sd-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Papers",
+                        "path": "/archives/1987-pap-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1987-sd-fra.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/archives/1987-pap-fra.pdf",
+                        "title": "Documents budgétaires"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1987",
+                "fr": "Budget de 1987"
+            }
+        },
+        {
+            "date": "1986/02/26",
+            "pMin": "Brian Mulroney",
+            "fMin": "Michael Wilson",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1986-sd-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1986-sd-fra.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1986",
+                "fr": "Budget de 1986"
+            }
+        },
+        {
+            "date": "1985/05/23",
+            "pMin": "Brian Mulroney",
+            "fMin": "Michael Wilson",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1985-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1985-sd-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Papers",
+                        "path": "/archives/1985-pap-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1985-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1985-sd-fra.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/archives/1985-pap-fra.pdf",
+                        "title": "Documents budgétaires"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1985",
+                "fr": "Budget de 1985"
+            }
+        },
+        {
+            "date": "1984/02/15",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "Marc Lalonde",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1984-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1984-sd-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Papers",
+                        "path": "/archives/1984-pap-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1984-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1984-sd-fra.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/archives/1984-pap-fra.pdf",
+                        "title": "Documents budgétaires"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1984",
+                "fr": "Budget de 1984"
+            }
+        },
+        {
+            "date": "1983/04/19",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "Marc Lalonde",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1983-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1983-sd-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Papers",
+                        "path": "/archives/1983-pap-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1983-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1983-sd-fra.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/archives/1983-pap-fra.pdf",
+                        "title": "Document budgétaires"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1983",
+                "fr": "Budget de 1983"
+            }
+        },
+        {
+            "date": "1982/06/28",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "Allan MacEachen",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/1982-plan-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1982-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Papers",
+                        "path": "/archives/1982-pap-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1982-plan-fra.pdf",
+                        "title": "Plan budgétaires"
+                    },
+                    {
+                        "path": "/archives/1982-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1982-pap-fra.pdf",
+                        "title": "Documents budgétaires"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1982",
+                "fr": "Budget de 1982"
+            }
+        },
+        {
+            "date": "1981/11/12",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "Allan MacEachen",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1981-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1981-sd-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Papers",
+                        "path": "/archives/1981-pap-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1981-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1981-sd-fra.pdf",
+                        "title": "Exposé budgeetaire"
+                    },
+                    {
+                        "path": "/archives/1981-pap-fra.pdf",
+                        "title": "Documents budgétaires"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1981",
+                "fr": "Budget de 1981"
+            }
+        },
+        {
+            "date": "1980/10/28",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "Allan MacEachen",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/1980-plan-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1980-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Papers",
+                        "path": "/archives/1980-pap-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1980-plan-fra.pdf",
+                        "title": "Plan budgétaire"
+                    },
+                    {
+                        "path": "/archives/1980-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1980-pap-fra.pdf",
+                        "title": "Documents budgétaires"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1980",
+                "fr": "Budget de 1980"
+            }
+        },
+        {
+            "date": "1979/12/11",
+            "pMin": "Joe Clark",
+            "fMin": "John Crosbie",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1979-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1979-sd-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Papers",
+                        "path": "/archives/1979-pap-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1979-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1979-sd-fra.pdf",
+                        "title": "Exposé budgétaires"
+                    },
+                    {
+                        "path": "/archives/1979-pap-fra.pdf",
+                        "title": "Documents budgétaires"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1979",
+                "fr": "Budget de 1979"
+            }
+        },
+        {
+            "date": "1978/11/16",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "Jean Chrétien",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1978-NO-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1978-NO-sd-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Papers",
+                        "path": "/archives/1978-NO-pap-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1978-NO-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1978-NO-sd-fra.pdf",
+                        "title": "Exposé budgétaires"
+                    },
+                    {
+                        "path": "/archives/1978-NO-pap-fra.pdf",
+                        "title": "Documents budgétaires"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1978",
+                "fr": "Budget de 1978"
+            }
+        },
+        {
+            "date": "1978/04/10",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "Jean Chrétien",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/1978-AL-plan-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1978-AL-brf-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1978-AL-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1978-AL-plan-fra.pdf",
+                        "title": "Plan budgétaire"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1978",
+                "fr": "Budget de 1978"
+            }
+        },
+        {
+            "date": "1977/03/31",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "Donald Macdonald",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Plan",
+                        "path": "/archives/1977-plan-eng.pdf"
+                    },
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1977-brf-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1977-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1977-plan-fra.pdf",
+                        "title": "Document budgétaire"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1977",
+                "fr": "Budget de 1977"
+            }
+        },
+        {
+            "date": "1976/05/25",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "Donald Macdonald",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1976-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1976-sd-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Papers",
+                        "path": "/archives/1976-pap-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1976-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1976-sd-fra.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/archives/1976-pap-fra.pdf",
+                        "title": "Document budgétaires"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1976",
+                "fr": "Budget de 1976"
+            }
+        },
+        {
+            "date": "1975/06/23",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "John Turner",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1975-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1975-sd-eng.pdf"
+                    },
+                    {
+                        "title": "Statement of Financial Transcripts",
+                        "path": "/archives/1975-tran-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1975-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1975-sd-fra.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/archives/1975-tran-eng.pdf",
+                        "title": "État des transactions financières"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1975",
+                "fr": "Budget de 1975"
+            }
+        },
+        {
+            "date": "1974/11/18",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "John Turner",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget in Brief",
+                        "path": "/archives/1974-NO-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1974-NO-sd-eng.pdf"
+                    },
+                    {
+                        "title": "Notices of Ways and Means Motions",
+                        "path": "/archives/1974-NO-wmam-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1974-NO-brf-fra.pdf",
+                        "title": "Budget en bref"
+                    },
+                    {
+                        "path": "/archives/1974-NO-sd-fra.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/archives/1974-NO-wmam-fra.pdf",
+                        "title": "Avis de motion des voies et moyens"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1974",
+                "fr": "Budget de 1974"
+            }
+        },
+        {
+            "date": "1974/05/06",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "John Turner",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Highlights",
+                        "path": "/archives/1974-MA-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1974-MA-sd-eng.pdf"
+                    },
+                    {
+                        "title": "Notices of Ways and Means Motions",
+                        "path": "/archives/1974-MA-wmam-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1974-MA-sd-fra.pdf",
+                        "title": "Discours"
+                    },
+                    {
+                        "path": "/archives/1974-MA-brf-fra.pdf",
+                        "title": "Faits Saillants"
+                    },
+                    {
+                        "path": "/archives/1974-MA-wmam-fra.pdf",
+                        "title": "Avis de motion des voies et moyens"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1974",
+                "fr": "Budget de 1974"
+            }
+        },
+        {
+            "date": "1973/02/19",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "John Turner",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Highlights of the Budget",
+                        "path": "/archives/1973-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1973-sd-eng.pdf"
+                    },
+                    {
+                        "title": "Notices of Ways and Means Motions",
+                        "path": "/archives/1973-wmam-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1973-brf-fra.pdf",
+                        "title": "Faits saillants"
+                    },
+                    {
+                        "path": "/archives/1973-sd-fra.pdf",
+                        "title": "Exposé budgétaire"
+                    },
+                    {
+                        "path": "/archives/1973-wmam-fra.pdf",
+                        "title": "Avis de motion des voies et moyens"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1973",
+                "fr": "Budget de 1973"
+            }
+        },
+        {
+            "date": "1972/05/08",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "John Turner",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Highlights",
+                        "path": "/archives/1972-brf-eng.pdf"
+                    },
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1972-sd-eng.pdf"
+                    },
+                    {
+                        "title": "Review of Government Accounts",
+                        "path": "/archives/1972-73-rv-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1972-brf-fra.pdf",
+                        "title": "Faits saillants"
+                    },
+                    {
+                        "path": "/archives/1972-sd-fra.pdf",
+                        "title": "Exposé budgétaire"
+                    },
+                    {
+                        "path": "/archives/1972-73-rv-fra.pdf",
+                        "title": "Documents Budgétaires: Revue des comptes de l'état"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1972",
+                "fr": "Budget de 1972"
+            }
+        },
+        {
+            "date": "1971/06/18",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "Edgar Benson",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1971-sd-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1971-sd-fra.pdf",
+                        "title": "Exposé budgétaire"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1971",
+                "fr": "Budget de 1971"
+            }
+        },
+        {
+            "date": "1970/03/12",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "Edgar Benson",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1970-sd-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1970-sd-fra.pdf",
+                        "title": "Exposé budgétaire"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1970",
+                "fr": "Budget de 1970"
+            }
+        },
+        {
+            "date": "1969/06/03",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "Edgar Benson",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1969-sd-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1969-sd-fra.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1969",
+                "fr": "Budget de 1969"
+            }
+        },
+        {
+            "date": "1968/10/22",
+            "pMin": "Pierre Elliott Trudeau",
+            "fMin": "Edgar Benson",
+            "publications": {
+                "en": [
+                    {
+                        "title": "Budget Speech",
+                        "path": "/archives/1968-sd-eng.pdf"
+                    }
+                ],
+                "fr": [
+                    {
+                        "path": "/archives/1968-sd-fra.pdf",
+                        "title": "Discours"
+                    }
+                ]
+            },
+            "title": {
+                "en": "Budget 1968",
+                "fr": "Budget de 1968"
+            }
+        }
+    ]
+}

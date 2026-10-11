@@ -1,0 +1,32 @@
+{
+  "original_crawler_sha256": "e27717534cfe60d65be011b72be86a52adbede03c78e1700abedc80d5ba45af3",
+  "original_JSON_sha256": "1f0dc6ea0ddda2537939f9640cad05c191ff9c8e894448767a6f1e7120571786",
+  "PDF_fixtures": [
+    {
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentyfourth-budget_PDFs/000.body",
+      "source_url": "https://budget.canada.ca/archives/budget06/pdf/bp2006e.pdf",
+      "source_sha256": "d2a6101853124ad0559f01ca8801b5f853365fcd999b4fd60d30267e83a40d91",
+      "source_pages": 302,
+      "fixture": "2006-first-two-pages.pdf",
+      "fixture_sha256": "1379c1a69a540d8fd26bbe2725a6d5e7d096af412160b3575fb23269a9495e2d",
+      "selected_original_pages_one_based": [
+        1,
+        2
+      ],
+      "fixture_is_a_page_subset_not_whole_source_PDF": true
+    },
+    {
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentyfourth-budget_PDF64/000.body",
+      "source_url": "https://budget.canada.ca/archives/1968-sd-eng.pdf",
+      "source_sha256": "a728ff7774f99baceb3ce14a9c26bba41d9fa99557abc17f0e978cff8c972ca6",
+      "source_pages": 446,
+      "fixture": "1968-first-two-pages.pdf",
+      "fixture_sha256": "9bef5348f7f523c1d831eb3b6fcb28846977a75dcc8de95385e7a81d74ebe3bd",
+      "selected_original_pages_one_based": [
+        1,
+        2
+      ],
+      "fixture_is_a_page_subset_not_whole_source_PDF": true
+    }
+  ]
+}

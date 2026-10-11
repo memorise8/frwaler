@@ -4,11 +4,14 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import re
 import subprocess
+import tempfile
 import time
 from html import unescape
+from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
@@ -24,6 +27,7 @@ class BudgetCanadaCaHomeAccueilEnhtmlCrawler(BaseCrawler):
     START_URL = "https://budget.canada.ca/home-accueil-en.html"
     BACKOFF_SECONDS = (1, 3, 9)
     MIN_ABSTRACT_CHARS = 50
+    MAX_PDF_BYTES = 64 * 1024 * 1024
 
     def crawl(self, limit=None):
         saved = 0
@@ -58,24 +62,31 @@ class BudgetCanadaCaHomeAccueilEnhtmlCrawler(BaseCrawler):
 
             try:
                 record = self._parse_list_record(item, idx, list_url)
-                if not record["url"]:
-                    raise RuntimeError("list record has no English detail URL")
-                if record["url"] in seen_urls:
+                source_url = record["url"] or record["pdf_url"]
+                if not source_url:
+                    raise RuntimeError("list record has no English website or PDF")
+                if source_url in seen_urls:
                     continue
-                seen_urls.add(record["url"])
+                seen_urls.add(source_url)
 
                 time.sleep(self._delay)
-                detail_raw = self._curl_get(record["url"], context=f"item {idx} detail")
-                if not detail_raw:
-                    raise RuntimeError("detail fetch failed after retries")
+                if record["url"]:
+                    detail_raw = self._curl_get(record["url"], context=f"item {idx} detail")
+                    if not detail_raw:
+                        raise RuntimeError("detail fetch failed after retries")
 
-                detail_soup = self._make_soup(detail_raw)
-                if detail_soup is None:
-                    raise RuntimeError("detail HTML could not be parsed")
+                    detail_soup = self._make_soup(detail_raw)
+                    if detail_soup is None:
+                        raise RuntimeError("detail HTML could not be parsed")
+                    parsed = self._parse_detail(detail_soup, record)
+                else:
+                    parsed = self._parse_pdf_record(record, self._curl_pdf(source_url))
 
-                parsed = self._parse_detail(detail_soup, record)
                 abstract = parsed["abstract"]
-                if len(abstract) < self.MIN_ABSTRACT_CHARS:
+                # A valid PDF without a text layer still has an original
+                # catalogue identity and file. Keep that record and expose
+                # its text status; do not manufacture an abstract or run OCR.
+                if record["url"] and len(abstract) < self.MIN_ABSTRACT_CHARS:
                     print(
                         f"[{self.site_id}] item {idx} skipped: "
                         f"abstract too short ({len(abstract)} chars)"
@@ -110,6 +121,67 @@ class BudgetCanadaCaHomeAccueilEnhtmlCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done. Total saved: {saved}")
         return saved
+
+    def _curl_pdf(self, url):
+        self._check_cancelled()
+        if urlparse(url).scheme not in {"http", "https"}:
+            raise ValueError("PDF URL must use HTTP or HTTPS")
+        result = subprocess.run(
+            ["curl", "--fail", "--silent", "--show-error", "--location",
+             "--proto", "=http,https", "--proto-redir", "=http,https",
+             "--max-redirs", "10", "--max-time", "45", "--connect-timeout", "15",
+             "--max-filesize", str(self.MAX_PDF_BYTES), "-A", self.USER_AGENT, url],
+            capture_output=True, timeout=55,
+        )
+        if result.returncode:
+            error = result.stderr.decode("utf-8", errors="replace").strip()
+            raise RuntimeError(f"PDF fetch failed (curl {result.returncode}): {error}")
+        self._check_cancelled()
+        return result.stdout
+
+    def _parse_pdf_record(self, record, raw):
+        import pdfplumber
+        from delivery.files.worker import run_stage
+
+        self._check_cancelled()
+        if not raw or len(raw) > self.MAX_PDF_BYTES or not raw.lstrip().startswith(b"%PDF-"):
+            raise ValueError("PDF response is missing, oversized, or not a PDF")
+        with pdfplumber.open(io.BytesIO(raw)) as pdf:
+            page_count = len(pdf.pages)
+            pdf_metadata = dict(pdf.metadata or {})
+        if not page_count:
+            raise ValueError("PDF has no pages")
+        # The 1968 original has a deep page tree. Reuse the bounded,
+        # permission-aware Poppler stage instead of relaxing parser limits.
+        with tempfile.TemporaryDirectory(prefix="budget-pdf-") as directory:
+            root = Path(directory)
+            (root / "source.pdf").write_bytes(raw)
+            result = run_stage("text_fallback", root, timeout=60)
+            if result.get("error") == "text_extractor_unavailable":
+                result = run_stage("text", root, timeout=60)
+            self._check_cancelled()
+            text = (root / "output.txt").read_text(encoding="utf-8") if result.get("success") else ""
+        text = self._normalize_text(text)
+        text_status = result.get("error") or (
+            "limited_text" if len(text) < self.MIN_ABSTRACT_CHARS else "text_available"
+        )
+        metadata = dict(record["metadata"])
+        metadata.update({
+            "source_format": "json+pdf",
+            "abstract_source": "PDF text excerpt; not a publisher-supplied abstract",
+            "date_source": "budget.json catalogue budget date",
+            "pdf_sha256": hashlib.sha256(raw).hexdigest(),
+            "pdf_bytes": len(raw),
+            "pdf_pages": page_count,
+            "pdf_text_chars": len(text),
+            "pdf_text_status": text_status,
+            "pdf_text_quality": result.get("quality"),
+            "pdf_creation_date_raw": str(pdf_metadata.get("CreationDate") or ""),
+            "pdf_modification_date_raw": str(pdf_metadata.get("ModDate") or ""),
+            "ocr_performed": False,
+        })
+        return dict(record, url=record["pdf_url"], abstract=self._join_limited([text]),
+                    metadata=metadata)
 
     def _discover_list_endpoint(self, soup, start_raw):
         page_title = self._clean_text(soup.find("title")).lower()

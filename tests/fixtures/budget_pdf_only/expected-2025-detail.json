@@ -1,0 +1,60 @@
+{
+  "external_id": "2025-home-accueil-en-html",
+  "title": "Budget 2025",
+  "authors": [
+    "Department of Finance Canada"
+  ],
+  "abstract": "A plan to spend less to invest more through generational investments that will build Canada’s economy to be the strongest in the G7.",
+  "category": "Federal Budget",
+  "keywords": [
+    "Federal budget",
+    "Budget 2025",
+    "Budget",
+    "Public finance"
+  ],
+  "published_date": "2025-11-04",
+  "url": "https://budget.canada.ca/2025/home-accueil-en.html",
+  "pdf_url": "https://budget.canada.ca/2025/report-rapport/pdf/budget-2025.pdf",
+  "department": "Department of Finance Canada",
+  "metadata": {
+    "source_format": "json+html",
+    "start_url": "https://budget.canada.ca/home-accueil-en.html",
+    "list_endpoint": "https://budget.canada.ca/budget.json",
+    "detail_endpoint": "https://budget.canada.ca/2025/home-accueil-en.html",
+    "list_index": 1,
+    "date_raw": "2025/11/04",
+    "prime_minister": "Mark Carney",
+    "finance_minister": "François-Philippe Champagne",
+    "website": {
+      "en": "/2025/home-accueil-en.html",
+      "fr": "/2025/home-accueil-fr.html"
+    },
+    "publications": {
+      "en": [
+        {
+          "title": "Budget",
+          "path": "/2025/report-rapport/pdf/budget-2025.pdf"
+        },
+        {
+          "title": "Our plan: Building Canada strong",
+          "path": "/2025/report-rapport/pdf/budget-2025-our-plan.pdf"
+        }
+      ],
+      "fr": [
+        {
+          "title": "Budget",
+          "path": "/2025/report-rapport/pdf/budget-de-2025.pdf"
+        },
+        {
+          "title": "Notre plan : Bâtir un Canada fort",
+          "path": "/2025/report-rapport/pdf/budget-de-2025-notre-plan.pdf"
+        }
+      ]
+    },
+    "canonical_url": "https://budget.canada.ca/2025/home-accueil-en.html",
+    "abstract_source": "priority body text",
+    "dcterms_description": "",
+    "meta_description": "Homepage — Part of Budget 2025.",
+    "modified_date": "2025-11-04"
+  }
+}

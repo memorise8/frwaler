@@ -1,0 +1,3852 @@
+[
+  {
+    "external_id": "2025-home-accueil-en-html",
+    "title": "Budget 2025",
+    "published_date": "2025-11-04",
+    "url": "https://budget.canada.ca/2025/home-accueil-en.html",
+    "pdf_url": "https://budget.canada.ca/2025/report-rapport/pdf/budget-2025.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2025",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2025/home-accueil-en.html",
+      "list_index": 1,
+      "date_raw": "2025/11/04",
+      "prime_minister": "Mark Carney",
+      "finance_minister": "François-Philippe Champagne",
+      "website": {
+        "en": "/2025/home-accueil-en.html",
+        "fr": "/2025/home-accueil-fr.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget",
+            "path": "/2025/report-rapport/pdf/budget-2025.pdf"
+          },
+          {
+            "title": "Our plan: Building Canada strong",
+            "path": "/2025/report-rapport/pdf/budget-2025-our-plan.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "title": "Budget",
+            "path": "/2025/report-rapport/pdf/budget-de-2025.pdf"
+          },
+          {
+            "title": "Notre plan : Bâtir un Canada fort",
+            "path": "/2025/report-rapport/pdf/budget-de-2025-notre-plan.pdf"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2024-home-accueil-en-html",
+    "title": "Budget 2024",
+    "published_date": "2024-04-16",
+    "url": "https://budget.canada.ca/2024/home-accueil-en.html",
+    "pdf_url": "https://budget.canada.ca/2024/report-rapport/budget-2024.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2024",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2024/home-accueil-en.html",
+      "list_index": 2,
+      "date_raw": "2024/04/16",
+      "prime_minister": "Justin Trudeau",
+      "finance_minister": "Chrystia Freeland",
+      "website": {
+        "en": "/2024/home-accueil-en.html",
+        "fr": "/2024/home-accueil-fr.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget",
+            "path": "/2024/report-rapport/budget-2024.pdf"
+          },
+          {
+            "title": "Statement and Impacts Report on Gender, Diversity, and Quality of Life",
+            "path": "/2024/report-rapport/gdql-egdqv-en.pdf"
+          },
+          {
+            "title": "Tax Measures: Supplementary Information",
+            "path": "/2024/report-rapport/tm-mf-en.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "title": "Budget",
+            "path": "/2024/report-rapport/budget-de-2024.pdf"
+          },
+          {
+            "title": "Énoncé et Rapport sur les répercussions sur le genre, la diversité et la qualité de vie",
+            "path": "/2024/report-rapport/gdql-egdqv-fr.pdf"
+          },
+          {
+            "title": "Mesures fiscales : Renseignements supplémentaires",
+            "path": "/2024/report-rapport/tm-mf-fr.pdf"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2023-home-accueil-en-html",
+    "title": "Budget 2023",
+    "published_date": "2023-03-28",
+    "url": "https://budget.canada.ca/2023/home-accueil-en.html",
+    "pdf_url": "https://budget.canada.ca/2023/pdf/budget-2023-en.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2023",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2023/home-accueil-en.html",
+      "list_index": 3,
+      "date_raw": "2023/03/28",
+      "prime_minister": "Justin Trudeau",
+      "finance_minister": "Chrystia Freeland",
+      "website": {
+        "en": "/2023/home-accueil-en.html",
+        "fr": "/2023/home-accueil-fr.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget",
+            "path": "/2023/pdf/budget-2023-en.pdf"
+          },
+          {
+            "title": "Statement and Impacts Report on Gender, Diversity, and Quality of Life",
+            "path": "/2023/pdf/gdql-egdqv-2023-en.pdf"
+          },
+          {
+            "title": "Tax Measures: Supplementary Information",
+            "path": "/2023/pdf/tm-mf-2023-en.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "title": "Budget",
+            "path": "/2023/pdf/budget-2023-fr.pdf"
+          },
+          {
+            "title": "Énoncé et Rapport sur les répercussions sur le genre, la diversité et la qualité de vie",
+            "path": "/2023/pdf/gdql-egdqv-2023-fr.pdf"
+          },
+          {
+            "title": "Mesures fiscales : Renseignements supplémentaires",
+            "path": "/2023/pdf/tm-mf-2023-fr.pdf"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2022-home-accueil-en-html",
+    "title": "Budget 2022",
+    "published_date": "2022-04-07",
+    "url": "https://budget.canada.ca/2022/home-accueil-en.html",
+    "pdf_url": "https://budget.canada.ca/2022/pdf/budget-2022-en.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2022",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2022/home-accueil-en.html",
+      "list_index": 4,
+      "date_raw": "2022/04/07",
+      "prime_minister": "Justin Trudeau",
+      "finance_minister": "Chrystia Freeland",
+      "website": {
+        "en": "/2022/home-accueil-en.html",
+        "fr": "/2022/home-accueil-fr.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget",
+            "path": "/2022/pdf/budget-2022-en.pdf"
+          },
+          {
+            "title": "Statement and Impacts Report on Gender, Diversity, and Quality of Life",
+            "path": "/2022/pdf/gdql-egdqv-2022-en.pdf"
+          },
+          {
+            "title": "Tax Measures: Supplementary Information",
+            "path": "/2022/pdf/tm-mf-2022-en.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "title": "Budget",
+            "path": "/2022/pdf/budget-2022-fr.pdf"
+          },
+          {
+            "title": "Énoncé et Rapport sur les répercussions sur le genre, la diversité et la qualité de vie",
+            "path": "/2022/pdf/gdql-egdqv-2022-fr.pdf"
+          },
+          {
+            "title": "Mesures fiscales : Renseignements supplémentaires",
+            "path": "/2022/pdf/tm-mf-2022-fr.pdf"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2021-home-accueil-en-html",
+    "title": "Budget 2021",
+    "published_date": "2021-04-19",
+    "url": "https://budget.canada.ca/2021/home-accueil-en.html",
+    "pdf_url": "https://budget.canada.ca/2021/pdf/budget-2021-en.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2021",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2021/home-accueil-en.html",
+      "list_index": 5,
+      "date_raw": "2021/04/19",
+      "prime_minister": "Justin Trudeau",
+      "finance_minister": "Chrystia Freeland",
+      "website": {
+        "en": "/2021/home-accueil-en.html",
+        "fr": "/2021/home-accueil-fr.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget",
+            "path": "/2021/pdf/budget-2021-en.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "title": "Budget",
+            "path": "/2021/pdf/budget-2021-fr.pdf"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2019-home-accueil-en-html",
+    "title": "Budget 2019",
+    "published_date": "2019-03-19",
+    "url": "https://budget.canada.ca/2019/home-accueil-en.html",
+    "pdf_url": "https://budget.canada.ca/2019/docs/plan/budget-2019-en.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2019",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2019/home-accueil-en.html",
+      "list_index": 6,
+      "date_raw": "2019/03/19",
+      "prime_minister": "Justin Trudeau",
+      "finance_minister": "Bill Morneau",
+      "website": {
+        "en": "/2019/home-accueil-en.html",
+        "fr": "/2019/home-accueil-fr.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/2019/docs/plan/budget-2019-en.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/2019/docs/speech-discours/2019-03-19-en.pdf"
+          },
+          {
+            "title": "News Release",
+            "path": "/2019/docs/nrc/2019-03-19-en.pdf"
+          },
+          {
+            "title": "The Canada Training Benefit",
+            "path": "/2019/docs/themes/good-jobs-de-bons-emplois-en.pdf"
+          },
+          {
+            "title": "An Affordable Place to Call Home",
+            "path": "/2019/docs/themes/housing-logement-en.pdf"
+          },
+          {
+            "title": "A Secure and Dignified Retirement for Canadians",
+            "path": "/2019/docs/themes/seniors-aines-en.pdf"
+          },
+          {
+            "title": "Moving Forward on Implementing National Pharmacare",
+            "path": "/2019/docs/themes/pharmacare-assurance-medicaments-en.pdf"
+          },
+          {
+            "title": "Advancing Reconciliation With Indigenous Peoples",
+            "path": "/2019/docs/nrc/indigenous-autochtones-en.pdf"
+          },
+          {
+            "title": "Building a Better Canada: Universal High-Speed Internet",
+            "path": "/2019/docs/nrc/infrastructure-infrastructures-internet-en.pdf"
+          },
+          {
+            "title": "Strong Communities, Affordable Electricity and a Clean Economy",
+            "path": "/2019/docs/nrc/infrastructure-infrastructures-electricity-electricite-en.pdf"
+          },
+          {
+            "title": "Gender Report",
+            "path": "/2019/docs/gba-acs/gbs-acs-en.pdf"
+          },
+          {
+            "title": "Investing in Young Canadians",
+            "path": "/2019/docs/youth-jeunes/youth-jeunes-en.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "title": "Plan budgétaire",
+            "path": "/2019/docs/plan/budget-2019-fr.pdf"
+          },
+          {
+            "title": "Discours",
+            "path": "/2019/docs/speech-discours/2019-03-19-fr.pdf"
+          },
+          {
+            "title": "Communiqué",
+            "path": "/2019/docs/nrc/2019-03-19-fr.pdf"
+          },
+          {
+            "title": "Allocation canadienne pour la formation",
+            "path": "/2019/docs/themes/good-jobs-de-bons-emplois-fr.pdf"
+          },
+          {
+            "title": "Un chez-soi abordable",
+            "path": "/2019/docs/themes/housing-logement-fr.pdf"
+          },
+          {
+            "title": "Une retraite sûre et digne pour les Canadiens",
+            "path": "/2019/docs/themes/seniors-aines-fr.pdf"
+          },
+          {
+            "title": "Aller de l’avant avec la mise en oeuvre du programme national d’assurance-médicaments",
+            "path": "/2019/docs/themes/pharmacare-assurance-medicaments-fr.pdf"
+          },
+          {
+            "title": "Faire avancer la réconciliation avec les peuples autochtones",
+            "path": "/2019/docs/nrc/indigenous-autochtones-fr.pdf"
+          },
+          {
+            "title": "Bâtir un Canada meilleur : Accès universel à Internet haute vitesse",
+            "path": "/2019/docs/nrc/infrastructure-infrastructures-internet-fr.pdf"
+          },
+          {
+            "title": "Des communautés fortes, une électricité abordable et une économie propre",
+            "path": "/2019/docs/nrc/infrastructure-infrastructures-electricity-electricite-fr.pdf"
+          },
+          {
+            "title": "Rapport sur l'égalité entre les sexes",
+            "path": "/2019/docs/gba-acs/gbs-acs-fr.pdf"
+          },
+          {
+            "title": "Investir dans les jeunes Canadiens",
+            "path": "/2019/docs/youth-jeunes/youth-jeunes-fr.pdf"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2018-home-accueil-en-html",
+    "title": "Budget 2018",
+    "published_date": "2018-02-27",
+    "url": "https://budget.canada.ca/2018/home-accueil-en.html",
+    "pdf_url": "https://budget.canada.ca/2018/docs/plan/budget-2018-en.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2018",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2018/home-accueil-en.html",
+      "list_index": 7,
+      "date_raw": "2018/02/27",
+      "prime_minister": "Justin Trudeau",
+      "finance_minister": "Bill Morneau",
+      "website": {
+        "en": "/2018/home-accueil-en.html",
+        "fr": "/2018/home-accueil-fr.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/2018/docs/plan/budget-2018-en.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/2018/docs/speech-discours/2018-03-22-en.pdf"
+          },
+          {
+            "title": "Tax Measures: Supplementary Information",
+            "path": "/2018/docs/tm-mf/tax-measures-mesures-fiscales-2018-en.pdf"
+          },
+          {
+            "title": "News Release",
+            "path": "/2018/docs/nrc/2018-02-27-en.pdf"
+          },
+          {
+            "title": "Equality + Growth – A Strong Middle Class",
+            "path": "/2018/docs/themes/equality-growth-egalite-croissance-en.pdf"
+          },
+          {
+            "title": "Progress",
+            "path": "/2018/docs/themes/progress-progres-en.pdf"
+          },
+          {
+            "title": "Reconciliation",
+            "path": "/2018/docs/themes/reconciliation-en.pdf"
+          },
+          {
+            "title": "Advancement",
+            "path": "/2018/docs/themes/advancement-avancement-en.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "title": "Plan budgétaire",
+            "path": "/2018/docs/plan/budget-2018-fr.pdf"
+          },
+          {
+            "title": "Discours",
+            "path": "/2018/docs/speech-discours/2018-03-22-fr.pdf"
+          },
+          {
+            "title": "Mesures fiscales : renseignements supplémentaires",
+            "path": "/2018/docs/tm-mf/tax-measures-mesures-fiscales-2018-fr.pdf"
+          },
+          {
+            "title": "Communiqué",
+            "path": "/2018/docs/nrc/2018-02-27-fr.pdf"
+          },
+          {
+            "title": "Égalité + Croissance – Une classe moyenne forte",
+            "path": "/2018/docs/themes/equality-growth-egalite-croissance-fr.pdf"
+          },
+          {
+            "title": "Progrès",
+            "path": "/2018/docs/themes/progress-progres-fr.pdf"
+          },
+          {
+            "title": "Réconciliation",
+            "path": "/2018/docs/themes/reconciliation-fr.pdf"
+          },
+          {
+            "title": "Avancement",
+            "path": "/2018/docs/themes/advancement-avancement-fr.pdf"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2017-home-accueil-en-html",
+    "title": "Budget 2017",
+    "published_date": "2017-03-22",
+    "url": "https://budget.canada.ca/2017/home-accueil-en.html",
+    "pdf_url": "https://budget.canada.ca/2017/docs/plan/budget-2017-en.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2017",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2017/home-accueil-en.html",
+      "list_index": 8,
+      "date_raw": "2017/03/22",
+      "prime_minister": "Justin Trudeau",
+      "finance_minister": "Bill Morneau",
+      "website": {
+        "en": "/2017/home-accueil-en.html",
+        "fr": "/2017/home-accueil-fr.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/2017/docs/plan/budget-2017-en.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/2017/docs/speech-discours/2017-03-22-en.pdf"
+          },
+          {
+            "title": "Budget 2017 in 3 Minutes",
+            "path": "/2017/docs/plan/budget2017-3min-eng.pdf"
+          },
+          {
+            "title": "Tax Measures: Supplementary Information",
+            "path": "/2017/docs/tm-mf/tax-measures-mesures-fiscales-2017-en.pdf"
+          },
+          {
+            "title": "News Release",
+            "path": "/2017/docs/nrc/2017-03-22-en.pdf"
+          },
+          {
+            "title": "Skills, Innovation and Middle Class Jobs",
+            "path": "/2017/docs/themes/Innovation_en.pdf"
+          },
+          {
+            "title": "Communities Built for Change",
+            "path": "/2017/docs/themes/Infrastructure_en.pdf"
+          },
+          {
+            "title": "Tax Fairness for the Middle Class",
+            "path": "/2017/docs/themes/tax-fairness-equite-fiscale-en.pdf"
+          },
+          {
+            "title": "A Strong Canada at Home and in the World",
+            "path": "/2017/docs/themes/strong-canada-fort-en.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "title": "Plan budgétaire",
+            "path": "/2017/docs/plan/budget-2017-fr.pdf"
+          },
+          {
+            "title": "Discours",
+            "path": "/2017/docs/speech-discours/2017-03-22-fr.pdf"
+          },
+          {
+            "title": "Le budget de 2017 en 3 minutes",
+            "path": "/2017/docs/plan/budget2017-3min-fra.pdf"
+          },
+          {
+            "title": "Mesures fiscales : renseignements supplémentaires",
+            "path": "/2017/docs/tm-mf/tax-measures-mesures-fiscales-2017-fr.pdf"
+          },
+          {
+            "title": "Communiqué",
+            "path": "/2017/docs/nrc/2017-03-22-fr.pdf"
+          },
+          {
+            "title": "Compétences, innovation et emplois pour la classe moyenne",
+            "path": "/2017/docs/themes/Innovation_fr.pdf"
+          },
+          {
+            "title": "Équité fiscale pour la classe moyenne",
+            "path": "/2017/docs/themes/tax-fairness-equite-fiscale-fr.pdf"
+          },
+          {
+            "title": "Des communautés conçues pour l’avenir",
+            "path": "/2017/docs/themes/Infrastructure_fr.pdf"
+          },
+          {
+            "title": "Un Canada fort à l’échelle nationale et internationale",
+            "path": "/2017/docs/themes/strong-canada-fort-fr.pdf"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2016-home-accueil-en-html",
+    "title": "Budget 2016",
+    "published_date": "2016-03-22",
+    "url": "https://budget.canada.ca/2016/home-accueil-en.html",
+    "pdf_url": "https://budget.canada.ca/2016/docs/plan/budget2016-en.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2016",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2016/home-accueil-en.html",
+      "list_index": 9,
+      "date_raw": "2016/03/22",
+      "prime_minister": "Justin Trudeau",
+      "finance_minister": "Bill Morneau",
+      "website": {
+        "en": "/2016/home-accueil-en.html",
+        "fr": "/2016/home-accueil-fr.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/2016/docs/plan/budget2016-en.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/2016/docs/speech-discours/2016-03-22-en.pdf"
+          },
+          {
+            "title": "Tax Measures: Supplementary Information",
+            "path": "/2016/docs/tm-mf/tax-measures-mesures-fiscales-2016-en.pdf"
+          },
+          {
+            "title": "News Release",
+            "path": "/2016/docs/nrc/2016-03-22-en.pdf"
+          },
+          {
+            "title": "Strengthening the Middle Class",
+            "path": "/2016/docs/themes/middle-class-classe-moyenne-en.pdf"
+          },
+          {
+            "title": "An Innovative and Clean Economy",
+            "path": "/2016/docs/themes/economy-economie-en.pdf"
+          },
+          {
+            "title": "An Inclusive and Fair Canada",
+            "path": "/2016/docs/themes/inclusive-fair-inclusif-equitable-en.pdf"
+          },
+          {
+            "title": "Canada in the World",
+            "path": "/2016/docs/themes/world-monde-en.pdf"
+          },
+          {
+            "title": "Open Transparent Government",
+            "path": "/2016/docs/themes/open-transparent-ouvert-en.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "title": "Plan budgétaire",
+            "path": "/2016/docs/plan/budget2016-fr.pdf"
+          },
+          {
+            "title": "Discours",
+            "path": "/2016/docs/speech-discours/2016-03-22-fr.pdf"
+          },
+          {
+            "title": "Mesures fiscales : renseignements supplémentaires",
+            "path": "/2016/docs/tm-mf/tax-measures-mesures-fiscales-2016-fr.pdf"
+          },
+          {
+            "title": "Communiqué",
+            "path": "/2016/docs/nrc/2016-03-22-fr.pdf"
+          },
+          {
+            "title": "Renforcer la classe moyenne",
+            "path": "/2016/docs/themes/middle-class-classe-moyenne-fr.pdf"
+          },
+          {
+            "title": "Une économie innovatrice et propre",
+            "path": "/2016/docs/themes/economy-economie-fr.pdf"
+          },
+          {
+            "title": "Un Canada inclusif et équitable",
+            "path": "/2016/docs/themes/inclusive-fair-inclusif-equitable-fr.pdf"
+          },
+          {
+            "title": "La place du Canada dans le monde",
+            "path": "/2016/docs/themes/world-monde-fr.pdf"
+          },
+          {
+            "title": "Un gouvernement ouvert et transparent",
+            "path": "/2016/docs/themes/open-transparent-ouvert-fr.pdf"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2015-home-accueil-eng-html",
+    "title": "Budget 2015",
+    "published_date": "2015-04-21",
+    "url": "https://budget.canada.ca/2015/home-accueil-eng.html",
+    "pdf_url": "https://budget.canada.ca/2015/docs/plan/budget2015-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2015",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2015/home-accueil-eng.html",
+      "list_index": 10,
+      "date_raw": "2015/04/21",
+      "prime_minister": "Stephen Harper",
+      "finance_minister": "Joe Oliver",
+      "website": {
+        "en": "/2015/home-accueil-eng.html",
+        "fr": "/2015/home-accueil-fra.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/2015/docs/plan/budget2015-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/2015/docs/bb/brief-bref-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/2015/docs/speech-discours/speech-discours-eng.pdf"
+          },
+          {
+            "title": "Balancing the Budget",
+            "path": "/2015/docs/themes/balancing-budget-equilibrer-eng.pdf"
+          },
+          {
+            "title": "Training a Highly Skilled Workforce",
+            "path": "/2015/docs/themes/skilled-workforce-maindoeuvre-qualifiee-eng.pdf"
+          },
+          {
+            "title": "Protecting Canadians",
+            "path": "/2015/docs/themes/protecting-cdn-proteger-eng.pdf"
+          },
+          {
+            "title": "Industry and Innovation",
+            "path": "/2015/docs/themes/industry-innovation-industrie-eng.pdf"
+          },
+          {
+            "title": "Supporting a Strong Manufacturing Sector",
+            "path": "/2015/docs/themes/manufacturing-fabrication-eng.pdf"
+          },
+          {
+            "title": "Building Infrastructure, Creating Jobs",
+            "path": "/2015/docs/themes/infrastructure-eng.pdf"
+          },
+          {
+            "title": "Helping Small Businesses and Entrepreneurs Create Jobs",
+            "path": "/2015/docs/themes/small-businesses-entrepreneurs-petites-entreprises-eng.pdf"
+          },
+          {
+            "title": "Helping Families Make Ends Meet",
+            "path": "/2015/docs/themes/families-familles-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/2015/docs/plan/budget2015-fra.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/2015/docs/bb/brief-bref-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/2015/docs/speech-discours/speech-discours-fra.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/2015/docs/themes/balancing-budget-equilibrer-fra.pdf",
+            "title": "Rétablir l'équilibre budgétaire"
+          },
+          {
+            "path": "/2015/docs/themes/skilled-workforce-maindoeuvre-qualifiee-fra.pdf",
+            "title": "Former une main-d'oeuvre hautement qualifiée"
+          },
+          {
+            "path": "/2015/docs/themes/protecting-cdn-proteger-fra.pdf",
+            "title": "Protéger les Canadiens"
+          },
+          {
+            "path": "/2015/docs/themes/industry-innovation-industrie-fra.pdf",
+            "title": "L'industrie et de l'innovation"
+          },
+          {
+            "path": "/2015/docs/themes/manufacturing-fabrication-fra.pdf",
+            "title": "Soutenir le dynamisme du secteur de la fabrication"
+          },
+          {
+            "path": "/2015/docs/themes/infrastructure-fra.pdf",
+            "title": "Bâtir des infrastructures,créer des emplois"
+          },
+          {
+            "path": "/2015/docs/themes/small-businesses-entrepreneurs-petites-entreprises-fra.pdf",
+            "title": "Aider les petites entreprises et les entrepreneurs à créer des emplois"
+          },
+          {
+            "path": "/2015/docs/themes/families-familles-fra.pdf",
+            "title": "Aider les familles à joindre les deux bouts"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2014-home-accueil-eng-html",
+    "title": "Budget 2014",
+    "published_date": "2014-02-11",
+    "url": "https://budget.canada.ca/2014/home-accueil-eng.html",
+    "pdf_url": "https://budget.canada.ca/2014/docs/plan/pdf/budget2014-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2014",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2014/home-accueil-eng.html",
+      "list_index": 11,
+      "date_raw": "2014/02/11",
+      "prime_minister": "Stephen Harper",
+      "finance_minister": "Jim Flaherty",
+      "website": {
+        "en": "/2014/home-accueil-eng.html",
+        "fr": "/2014/home-accueil-fra.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/2014/docs/plan/pdf/budget2014-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/2014/docs/bb/pdf/brief-bref-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/2014/docs/speech-discours/pdf/speech-discours-e.pdf"
+          },
+          {
+            "title": "Jobs Report: The State of the Canadian Labour Market",
+            "path": "/2014/docs/jobs-emplois/pdf/jobs-emplois-eng.pdf"
+          },
+          {
+            "title": "The Road to Balance",
+            "path": "/2014/docs/themes/pdf/road-voie-eng.pdf"
+          },
+          {
+            "title": "Supporting Families and Communities",
+            "path": "/2014/docs/themes/pdf/famcom-famcol-eng.pdf"
+          },
+          {
+            "title": "Supporting Jobs and Growth",
+            "path": "/2014/docs/themes/pdf/jobs-emplois-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/2014/docs/plan/pdf/budget2014-fra.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/2014/docs/bb/pdf/brief-bref-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/2014/docs/speech-discours/pdf/speech-discours-f.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/2014/docs/jobs-emplois/pdf/jobs-emplois-fra.pdf",
+            "title": "Rapport sur l'emploi: Le point sur le marché du travail canadien"
+          },
+          {
+            "path": "/2014/docs/themes/pdf/road-voie-fra.pdf",
+            "title": "La voie de l'équilibre budgétaire"
+          },
+          {
+            "path": "/2014/docs/themes/pdf/famcom-famcol-fra.pdf",
+            "title": "Appuyer les familles et les collectivités"
+          },
+          {
+            "path": "/2014/docs/themes/pdf/jobs-emplois-fra.pdf",
+            "title": "Soutenir l'emploi et la croissance"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2013-home-accueil-eng-html",
+    "title": "Budget 2013",
+    "published_date": "2013-03-21",
+    "url": "https://budget.canada.ca/2013/home-accueil-eng.html",
+    "pdf_url": "https://budget.canada.ca/2013/doc/plan/budget2013-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2013",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2013/home-accueil-eng.html",
+      "list_index": 12,
+      "date_raw": "2013/03/21",
+      "prime_minister": "Stephen Harper",
+      "finance_minister": "Jim Flaherty",
+      "website": {
+        "en": "/2013/home-accueil-eng.html",
+        "fr": "/2013/home-accueil-fra.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/2013/doc/plan/budget2013-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/2013/doc/bb/Brief-Bref-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/2013/doc/speech-discours/speech-eng.pdf"
+          },
+          {
+            "title": "New Building Canada Plan",
+            "path": "/2013/doc/themes/infrastructure-eng.pdf"
+          },
+          {
+            "title": "Creating High-Paying Jobs and Helping Businesses Succeed",
+            "path": "/2013/doc/themes/manufacturing-eng.pdf"
+          },
+          {
+            "title": "New Canada Job Grant",
+            "path": "/2013/doc/themes/skills-eng.pdf"
+          },
+          {
+            "title": "Improving the Integrity of the Tax System",
+            "path": "/2013/doc/themes/tax-system-regime-fiscal-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/2013/doc/plan/budget2013-fra.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/2013/doc/bb/Brief-Bref-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/2013/doc/speech-discours/speech-fra.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/2013/doc/themes/infrastructure-fra.pdf",
+            "title": "Le nouveau plan Chantiers Canada"
+          },
+          {
+            "path": "/2013/doc/themes/secteur-manufacturier-fra.pdf",
+            "title": "Créer des emplois bien rémunérés et aider les entreprises à prospérer"
+          },
+          {
+            "path": "/2013/doc/themes/competences-fra.pdf",
+            "title": "La nouvelle subvention canadienne pour l'emploi"
+          },
+          {
+            "path": "/2013/doc/themes/tax-system-regime-fiscal-fra.pdf",
+            "title": "Améliorer l'intégrité du régime fiscal"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2012-home-accueil-eng-html",
+    "title": "Budget 2012",
+    "published_date": "2012-03-29",
+    "url": "https://budget.canada.ca/2012/home-accueil-eng.html",
+    "pdf_url": "https://budget.canada.ca/2012/plan/pdf/Plan2012-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2012",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2012/home-accueil-eng.html",
+      "list_index": 13,
+      "date_raw": "2012/03/29",
+      "prime_minister": "Stephen Harper",
+      "finance_minister": "Jim Flaherty",
+      "website": {
+        "en": "/2012/home-accueil-eng.html",
+        "fr": "/2012/home-accueil-fra.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/2012/plan/pdf/Plan2012-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/2012/rd-dc/brief-bref-2012-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/2012/rd-dc/speech-eng.pdf"
+          },
+          {
+            "title": "Jobs And Opportunities for Canadians",
+            "path": "/2012/themes/theme1-eng.pdf"
+          },
+          {
+            "title": "Eliminating the Penny",
+            "path": "/2012/themes/theme2-eng.pdf"
+          },
+          {
+            "title": "Old Age Security",
+            "path": "/2012/themes/theme3-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/2012/plan/pdf/Plan2012-fra.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/2012/rd-dc/brief-bref-2012-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/2012/rd-dc/speech-fra.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/2012/themes/theme1-fra.pdf",
+            "title": "Emplois et Perspectives pour les Canadiens"
+          },
+          {
+            "path": "/2012/themes/theme2-eng.pdf",
+            "title": "Éliminer les pièces d'un cent"
+          },
+          {
+            "path": "/2012/themes/theme3-fra.pdf",
+            "title": "Sécurité de la vieillesse"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2011-home-accueil-eng-html",
+    "title": "Budget 2011 - June",
+    "published_date": "2011-06-06",
+    "url": "https://budget.canada.ca/2011/home-accueil-eng.html",
+    "pdf_url": "https://budget.canada.ca/2011/plan/Budget2011-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2011 - June",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2011/home-accueil-eng.html",
+      "list_index": 14,
+      "date_raw": "2011/06/06",
+      "prime_minister": "Stephen Harper",
+      "finance_minister": "Jim Flaherty",
+      "website": {
+        "en": "/2011/home-accueil-eng.html",
+        "fr": "/2011/home-accueil-fra.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/2011/plan/Budget2011-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/2011/glance-apercu/brief-bref-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/2011/speech-discours/speech-discours-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/2011/plan/Budget2011-fra.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/2011/glance-apercu/brief-bref-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/2011/speech-discours/speech-discours-fra.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "march-mars-2011-home-accueil-eng-html",
+    "title": "Budget 2011 - March",
+    "published_date": "2011-03-22",
+    "url": "https://budget.canada.ca/march-mars-2011/home-accueil-eng.html",
+    "pdf_url": "https://budget.canada.ca/march-mars-2011/plan/Budget2011-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2011 - March",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/march-mars-2011/home-accueil-eng.html",
+      "list_index": 15,
+      "date_raw": "2011/03/22",
+      "prime_minister": "Stephen Harper",
+      "finance_minister": "Jim Flaherty",
+      "website": {
+        "en": "/march-mars-2011/home-accueil-eng.html",
+        "fr": "/march-mars-2011/home-accueil-fra.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/march-mars-2011/plan/Budget2011-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/march-mars-2011/glance-apercu/brief-bref-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/march-mars-2011/speech-discours/speech-discours-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/march-mars-2011/plan/Budget2011-fra.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/march-mars-2011/glance-apercu/brief-bref-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/march-mars-2011/speech-discours/speech-discours-fra.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2010-home-accueil-eng-html",
+    "title": "Budget 2010",
+    "published_date": "2010-03-04",
+    "url": "https://budget.canada.ca/2010/home-accueil-eng.html",
+    "pdf_url": "https://budget.canada.ca/2010/pdf/budget-planbudgetaire-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2010",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2010/home-accueil-eng.html",
+      "list_index": 16,
+      "date_raw": "2010/03/04",
+      "prime_minister": "Stephen Harper",
+      "finance_minister": "Jim Flaherty",
+      "website": {
+        "en": "/2010/home-accueil-eng.html",
+        "fr": "/2010/home-accueil-fra.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/2010/pdf/budget-planbudgetaire-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/2010/pdf/brief-bref-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/2010/pdf/speech-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/2010/pdf/budget-planbudgetaire-fra.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/2010/pdf/brief-bref-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/2010/pdf/discours-fra.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2009-home-accueil-eng-html",
+    "title": "Budget 2009",
+    "published_date": "2009-01-27",
+    "url": "https://budget.canada.ca/2009/home-accueil-eng.html",
+    "pdf_url": "https://budget.canada.ca/2009/pdf/budget-planbugetaire-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2009",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2009/home-accueil-eng.html",
+      "list_index": 17,
+      "date_raw": "2009/01/27",
+      "prime_minister": "Stephen Harper",
+      "finance_minister": "Jim Flaherty",
+      "website": {
+        "en": "/2009/home-accueil-eng.html",
+        "fr": "/2009/home-accueil-fra.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/2009/pdf/budget-planbugetaire-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/2009/pdf/brief-bref-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/2009/pdf/speech-discours-eng.pdf"
+          },
+          {
+            "title": "Overview",
+            "path": "/2009/pdf/pamphlet-depliant1-eng.pdf"
+          },
+          {
+            "title": "Building On an Impressive Record of Tax Relief",
+            "path": "/2009/pdf/pamphlet-depliant2-eng.pdf"
+          },
+          {
+            "title": "The Home Renovation Tax Credit",
+            "path": "/2009/pdf/pamphlet-depliant3-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/2009/pdf/budget-planbugetaire-fra.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/2009/pdf/brief-bref-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/2009/pdf/speech-discours-fra.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/2009/pdf/pamphlet-depliant1-fra.pdf",
+            "title": "Vue d'ensemble"
+          },
+          {
+            "path": "/2009/pdf/pamphlet-depliant2-fra.pdf",
+            "title": "Renforcer un bilan d'allégements fiscaux éloquent"
+          },
+          {
+            "path": "/2009/pdf/pamphlet-depliant3-fra.pdf",
+            "title": "Le crédit d'impôt pour la rénovation domiciliaire"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2008-home-accueil-eng-html",
+    "title": "Budget 2008",
+    "published_date": "2008-02-26",
+    "url": "https://budget.canada.ca/2008/home-accueil-eng.html",
+    "pdf_url": "https://budget.canada.ca/2008/pdf/plan-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2008",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2008/home-accueil-eng.html",
+      "list_index": 18,
+      "date_raw": "2008/02/26",
+      "prime_minister": "Stephen Harper",
+      "finance_minister": "Jim Flaherty",
+      "website": {
+        "en": "/2008/home-accueil-eng.html",
+        "fr": "/2008/home-accueil-fra.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/2008/pdf/plan-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/2008/pdf/brief-bref-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/2008/pdf/speech-discours-eng.pdf"
+          },
+          {
+            "title": "Overview",
+            "path": "/2008/pdf/pamphlet-depliant1-eng.pdf"
+          },
+          {
+            "title": "Investing for Tomorrow",
+            "path": "/2008/pdf/pamphlet-depliant3-eng.pdf"
+          },
+          {
+            "title": "Tax-Free Savings Account (TFSA)",
+            "path": "/2008/pdf/pamphlet-depliant4-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/2008/pdf/plan-fra.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/2008/pdf/brief-bref-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/2008/pdf/speech-discours-fra.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/2008/pdf/pamphlet-depliant1-fra.pdf",
+            "title": "Vue d'ensemble"
+          },
+          {
+            "path": "/2008/pdf/pamphlet-depliant3-fra.pdf",
+            "title": "Investir dans l'avenir"
+          },
+          {
+            "path": "/2008/pdf/pamphlet-depliant4-fra.pdf",
+            "title": "Compte d'épargne libre d'impôt (CELI)"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "2007-index-eng-html",
+    "title": "Budget 2007",
+    "published_date": "2007-03-19",
+    "url": "https://budget.canada.ca/2007/index-eng.html",
+    "pdf_url": "https://budget.canada.ca/2007/pdf/bp2007e.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2007",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "https://budget.canada.ca/2007/index-eng.html",
+      "list_index": 19,
+      "date_raw": "2007/03/19",
+      "prime_minister": "Stephen Harper",
+      "finance_minister": "Jim Flaherty",
+      "website": {
+        "en": "/2007/index-eng.html",
+        "fr": "/2007/index-fra.html"
+      },
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/2007/pdf/bp2007e.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/2007/pdf/briefe.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/2007/pdf/speeche.pdf"
+          },
+          {
+            "title": "Capital Markets",
+            "path": "/2007/pdf/bkcmae.pdf"
+          },
+          {
+            "title": "Fiscal Balance Booklet",
+            "path": "/2007/pdf/bkfbsfe.pdf"
+          },
+          {
+            "title": "Fiscal Balance Pamphlet",
+            "path": "/2007/pdf/parfbse.pdf"
+          },
+          {
+            "title": "Security",
+            "path": "/2007/pdf/paasce.pdf"
+          },
+          {
+            "title": "Budget at a Glance",
+            "path": "/2007/pdf/pabage.pdf"
+          },
+          {
+            "title": "Environment and Health",
+            "path": "/2007/pdf/papemhe.pdf"
+          },
+          {
+            "title": "Tax Relief",
+            "path": "/2007/pdf/patrfbe.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/2007/pdf/bp2007f.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/2007/pdf/brieff.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/2007/pdf/speechf.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/2007/pdf/bkcmaf.pdf",
+            "title": "Les marchés de capitaux"
+          },
+          {
+            "path": "/2007/pdf/bkfbsff.pdf",
+            "title": "Livret de l'équilibre fiscal"
+          },
+          {
+            "path": "/2007/pdf/parfbsf.pdf",
+            "title": "Dépliant de l'équilibre fiscal"
+          },
+          {
+            "path": "/2007/pdf/paascf.pdf",
+            "title": "Sécurité"
+          },
+          {
+            "path": "/2007/pdf/pabagf.pdf",
+            "title": "Vue d'ensemble"
+          },
+          {
+            "path": "/2007/pdf/papemhf.pdf",
+            "title": "Environnement et santé"
+          },
+          {
+            "path": "/2007/pdf/patrfbf.pdf",
+            "title": "Allégement fiscal"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-2006-2006-05-02",
+    "title": "Budget 2006",
+    "published_date": "2006-05-02",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/budget06/pdf/bp2006e.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2006",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 20,
+      "date_raw": "2006/05/02",
+      "prime_minister": "Stephen Harper",
+      "finance_minister": "Jim Flaherty",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/budget06/pdf/bp2006e.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/budget06/pdf/briefe.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/budget06/pdf/speeche.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/budget06/pdf/bp2006f.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/archives/budget06/pdf/brieff.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/budget06/pdf/speechf.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-2005-2005-02-23",
+    "title": "Budget 2005",
+    "published_date": "2005-02-23",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/budget05/pdf/bp2005e.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2005",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 21,
+      "date_raw": "2005/02/23",
+      "prime_minister": "Paul Martin",
+      "finance_minister": "Ralph Goodale",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/budget05/pdf/bp2005e.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/budget05/pdf/briefe.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/budget05/pdf/speeche.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/budget05/pdf/bp2005f.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/archives/budget05/pdf/brieff.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/budget05/pdf/speechf.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-2004-2004-03-23",
+    "title": "Budget 2004",
+    "published_date": "2004-03-23",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/budget04/pdf/bp2004e.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2004",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 22,
+      "date_raw": "2004/03/23",
+      "prime_minister": "Paul Martin",
+      "finance_minister": "Ralph Goodale",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/budget04/pdf/bp2004e.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/budget04/pdf/briefe.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/budget04/pdf/speeche.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/budget04/pdf/bp2004f.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/archives/budget04/pdf/brieff.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/budget04/pdf/speechf.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-2003-2003-02-18",
+    "title": "Budget 2003",
+    "published_date": "2003-02-18",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/budget03/pdf/bp2003e.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2003",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 23,
+      "date_raw": "2003/02/18",
+      "prime_minister": "Jean Chrétien",
+      "finance_minister": "John Manley",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/budget03/pdf/bp2003e.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/budget03/pdf/briefe.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/budget03/pdf/speeche.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/budget03/pdf/bp2003f.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/archives/budget03/pdf/brieff.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/budget03/pdf/speechf.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-2001-2001-12-10",
+    "title": "Budget 2001",
+    "published_date": "2001-12-10",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/budget01/pdf/bpe.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2001",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 24,
+      "date_raw": "2001/12/10",
+      "prime_minister": "Jean Chrétien",
+      "finance_minister": "Paul Martin",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/budget01/pdf/bpe.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/budget01/pdf/briefe.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/budget01/pdf/speeche.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/budget01/pdf/bpf.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/archives/budget01/pdf/brieff.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/budget01/pdf/speechf.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-2000-2000-02-28",
+    "title": "Budget 2000",
+    "published_date": "2000-02-28",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/budget00/pdf/bpe.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 2000",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 25,
+      "date_raw": "2000/02/28",
+      "prime_minister": "Jean Chrétien",
+      "finance_minister": "Paul Martin",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/budget00/pdf/bpe.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/budget00/pdf/briefe.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/budget00/pdf/speeche.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/budget00/pdf/bpf.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/archives/budget00/pdf/brieff.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/budget00/pdf/speechf.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1999-1999-02-16",
+    "title": "Budget 1999",
+    "published_date": "1999-02-16",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/budget99/bp/bp99e.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1999",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 26,
+      "date_raw": "1999/02/16",
+      "prime_minister": "Jean Chrétien",
+      "finance_minister": "Paul Martin",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/budget99/bp/bp99e.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/budget99/binb/binbe.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/budget99/speech/speeche.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/budget99/bp/bp99f.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/archives/budget99/binb/binbf.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/budget99/speech/speechf.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1998-1998-02-24",
+    "title": "Budget 1998",
+    "published_date": "1998-02-24",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/budget98/bp/bp98e.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1998",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 27,
+      "date_raw": "1998/02/24",
+      "prime_minister": "Jean Chrétien",
+      "finance_minister": "Paul Martin",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/budget98/bp/bp98e.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/budget98/binb/binbe.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/budget98/speech/speeche.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/budget98/bp/bp98f.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/archives/budget98/binb/binbf.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/budget98/speech/speechf.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1997-1997-02-18",
+    "title": "Budget 1997",
+    "published_date": "1997-02-18",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/budget97/binb/bp/bp97e.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1997",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 28,
+      "date_raw": "1997/02/18",
+      "prime_minister": "Jean Chrétien",
+      "finance_minister": "Paul Martin",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/budget97/binb/bp/bp97e.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/budget97/binb/binbe.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/budget97/speech/speeche.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/budget97/binb/bp/bp97f.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/archives/budget97/speech/speechf.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/budget97/speech/speechf.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1996-1996-03-06",
+    "title": "Budget 1996",
+    "published_date": "1996-03-06",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/budget96/bp/bp96e.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1996",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 29,
+      "date_raw": "1996/03/06",
+      "prime_minister": "Jean Chrétien",
+      "finance_minister": "Paul Martin",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/budget96/bp/bp96e.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/budget96/binb/brief.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/budget96/speech/speech.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/budget96/bp/bp96f.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/archives/budget96/binb/bref.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/budget96/speech/discours.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1995-1995-02-27",
+    "title": "Budget 1995",
+    "published_date": "1995-02-27",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/budget95/binb/budget1995-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1995",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 30,
+      "date_raw": "1995/02/27",
+      "prime_minister": "Jean Chrétien",
+      "finance_minister": "Paul Martin",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/budget95/binb/budget1995-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/budget95/binb/brief.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/budget95/speech/speech.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/budget95/binb/budget1995-fra.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/archives/budget95/binb/bref.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/budget95/speech/discours.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1994-1994-02-22",
+    "title": "Budget 1994",
+    "published_date": "1994-02-22",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1994-plan-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1994",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 31,
+      "date_raw": "1994/02/22",
+      "prime_minister": "Jean Chrétien",
+      "finance_minister": "Paul Martin",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/1994-plan-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1994-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1994-sd-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1994-plan-fra.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/archives/1994-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1994-sd-fra.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1993-1993-03-26",
+    "title": "Budget 1993",
+    "published_date": "1993-03-26",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1993-plan-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1993",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 32,
+      "date_raw": "1993/03/26",
+      "prime_minister": "Brian Mulroney",
+      "finance_minister": "Don Mazankowski",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/1993-plan-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1993-brf-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1993-plan-fra.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/archives/1993-brf-fra.pdf",
+            "title": "Budget en bref"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1992-1992-02-25",
+    "title": "Budget 1992",
+    "published_date": "1992-02-25",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1992-sd-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1992",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 33,
+      "date_raw": "1992/02/25",
+      "prime_minister": "Brian Mulroney",
+      "finance_minister": "Don Mazankowski",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1992-sd-eng.pdf"
+          },
+          {
+            "title": "Budget Papers",
+            "path": "/archives/1992-pap-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1992-sd-fra.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/archives/1992-pap-fra.pdf",
+            "title": "Documents budgétaires"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1991-1991-02-26",
+    "title": "Budget 1991",
+    "published_date": "1991-02-26",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1991-plan-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1991",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 34,
+      "date_raw": "1991/02/26",
+      "prime_minister": "Brian Mulroney",
+      "finance_minister": "Michael Wilson",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/1991-plan-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1991-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1991-sd-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1991-plan-fra.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/archives/1991-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1991-sd-fra.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1990-1990-02-20",
+    "title": "Budget 1990",
+    "published_date": "1990-02-20",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1990-plan-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1990",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 35,
+      "date_raw": "1990/02/20",
+      "prime_minister": "Brian Mulroney",
+      "finance_minister": "Michael Wilson",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/1990-plan-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1990-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1990-sd-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1990-plan-fra.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/archives/1990-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1990-sd-fra.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1989-1989-04-27",
+    "title": "Budget 1989",
+    "published_date": "1989-04-27",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1989-sd-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1989",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 36,
+      "date_raw": "1989/04/27",
+      "prime_minister": "Brian Mulroney",
+      "finance_minister": "Michael Wilson",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1989-sd-eng.pdf"
+          },
+          {
+            "title": "Budget Papers",
+            "path": "/archives/1989-pap-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1989-sd-fra.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/archives/1989-pap-fra.pdf",
+            "title": "Document budgétaires"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1988-1988-02-10",
+    "title": "Budget 1988",
+    "published_date": "1988-02-10",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1988-brf-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1988",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 37,
+      "date_raw": "1988/02/10",
+      "prime_minister": "Brian Mulroney",
+      "finance_minister": "Michael Wilson",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1988-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1988-sd-eng.pdf"
+          },
+          {
+            "title": "Budget Papers",
+            "path": "/archives/1988-pap-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1988-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1988-sd-fra.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/archives/1988-pap-fra.pdf",
+            "title": "Documents budgétaires"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1987-1987-02-18",
+    "title": "Budget 1987",
+    "published_date": "1987-02-18",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1987-sd-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1987",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 38,
+      "date_raw": "1987/02/18",
+      "prime_minister": "Brian Mulroney",
+      "finance_minister": "Michael Wilson",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1987-sd-eng.pdf"
+          },
+          {
+            "title": "Budget Papers",
+            "path": "/archives/1987-pap-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1987-sd-fra.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/archives/1987-pap-fra.pdf",
+            "title": "Documents budgétaires"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1986-1986-02-26",
+    "title": "Budget 1986",
+    "published_date": "1986-02-26",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1986-sd-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1986",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 39,
+      "date_raw": "1986/02/26",
+      "prime_minister": "Brian Mulroney",
+      "finance_minister": "Michael Wilson",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1986-sd-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1986-sd-fra.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1985-1985-05-23",
+    "title": "Budget 1985",
+    "published_date": "1985-05-23",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1985-brf-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1985",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 40,
+      "date_raw": "1985/05/23",
+      "prime_minister": "Brian Mulroney",
+      "finance_minister": "Michael Wilson",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1985-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1985-sd-eng.pdf"
+          },
+          {
+            "title": "Budget Papers",
+            "path": "/archives/1985-pap-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1985-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1985-sd-fra.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/archives/1985-pap-fra.pdf",
+            "title": "Documents budgétaires"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1984-1984-02-15",
+    "title": "Budget 1984",
+    "published_date": "1984-02-15",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1984-brf-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1984",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 41,
+      "date_raw": "1984/02/15",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "Marc Lalonde",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1984-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1984-sd-eng.pdf"
+          },
+          {
+            "title": "Budget Papers",
+            "path": "/archives/1984-pap-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1984-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1984-sd-fra.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/archives/1984-pap-fra.pdf",
+            "title": "Documents budgétaires"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1983-1983-04-19",
+    "title": "Budget 1983",
+    "published_date": "1983-04-19",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1983-brf-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1983",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 42,
+      "date_raw": "1983/04/19",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "Marc Lalonde",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1983-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1983-sd-eng.pdf"
+          },
+          {
+            "title": "Budget Papers",
+            "path": "/archives/1983-pap-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1983-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1983-sd-fra.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/archives/1983-pap-fra.pdf",
+            "title": "Document budgétaires"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1982-1982-06-28",
+    "title": "Budget 1982",
+    "published_date": "1982-06-28",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1982-plan-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1982",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 43,
+      "date_raw": "1982/06/28",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "Allan MacEachen",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/1982-plan-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1982-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Papers",
+            "path": "/archives/1982-pap-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1982-plan-fra.pdf",
+            "title": "Plan budgétaires"
+          },
+          {
+            "path": "/archives/1982-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1982-pap-fra.pdf",
+            "title": "Documents budgétaires"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1981-1981-11-12",
+    "title": "Budget 1981",
+    "published_date": "1981-11-12",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1981-brf-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1981",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 44,
+      "date_raw": "1981/11/12",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "Allan MacEachen",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1981-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1981-sd-eng.pdf"
+          },
+          {
+            "title": "Budget Papers",
+            "path": "/archives/1981-pap-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1981-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1981-sd-fra.pdf",
+            "title": "Exposé budgeetaire"
+          },
+          {
+            "path": "/archives/1981-pap-fra.pdf",
+            "title": "Documents budgétaires"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1980-1980-10-28",
+    "title": "Budget 1980",
+    "published_date": "1980-10-28",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1980-plan-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1980",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 45,
+      "date_raw": "1980/10/28",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "Allan MacEachen",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/1980-plan-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1980-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Papers",
+            "path": "/archives/1980-pap-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1980-plan-fra.pdf",
+            "title": "Plan budgétaire"
+          },
+          {
+            "path": "/archives/1980-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1980-pap-fra.pdf",
+            "title": "Documents budgétaires"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1979-1979-12-11",
+    "title": "Budget 1979",
+    "published_date": "1979-12-11",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1979-brf-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1979",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 46,
+      "date_raw": "1979/12/11",
+      "prime_minister": "Joe Clark",
+      "finance_minister": "John Crosbie",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1979-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1979-sd-eng.pdf"
+          },
+          {
+            "title": "Budget Papers",
+            "path": "/archives/1979-pap-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1979-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1979-sd-fra.pdf",
+            "title": "Exposé budgétaires"
+          },
+          {
+            "path": "/archives/1979-pap-fra.pdf",
+            "title": "Documents budgétaires"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1978-1978-11-16",
+    "title": "Budget 1978",
+    "published_date": "1978-11-16",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1978-NO-brf-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1978",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 47,
+      "date_raw": "1978/11/16",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "Jean Chrétien",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1978-NO-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1978-NO-sd-eng.pdf"
+          },
+          {
+            "title": "Budget Papers",
+            "path": "/archives/1978-NO-pap-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1978-NO-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1978-NO-sd-fra.pdf",
+            "title": "Exposé budgétaires"
+          },
+          {
+            "path": "/archives/1978-NO-pap-fra.pdf",
+            "title": "Documents budgétaires"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1978-1978-04-10",
+    "title": "Budget 1978",
+    "published_date": "1978-04-10",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1978-AL-plan-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1978",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 48,
+      "date_raw": "1978/04/10",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "Jean Chrétien",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/1978-AL-plan-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1978-AL-brf-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1978-AL-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1978-AL-plan-fra.pdf",
+            "title": "Plan budgétaire"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1977-1977-03-31",
+    "title": "Budget 1977",
+    "published_date": "1977-03-31",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1977-plan-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1977",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 49,
+      "date_raw": "1977/03/31",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "Donald Macdonald",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Plan",
+            "path": "/archives/1977-plan-eng.pdf"
+          },
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1977-brf-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1977-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1977-plan-fra.pdf",
+            "title": "Document budgétaire"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1976-1976-05-25",
+    "title": "Budget 1976",
+    "published_date": "1976-05-25",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1976-brf-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1976",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 50,
+      "date_raw": "1976/05/25",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "Donald Macdonald",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1976-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1976-sd-eng.pdf"
+          },
+          {
+            "title": "Budget Papers",
+            "path": "/archives/1976-pap-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1976-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1976-sd-fra.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/archives/1976-pap-fra.pdf",
+            "title": "Document budgétaires"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1975-1975-06-23",
+    "title": "Budget 1975",
+    "published_date": "1975-06-23",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1975-brf-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1975",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 51,
+      "date_raw": "1975/06/23",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "John Turner",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1975-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1975-sd-eng.pdf"
+          },
+          {
+            "title": "Statement of Financial Transcripts",
+            "path": "/archives/1975-tran-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1975-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1975-sd-fra.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/archives/1975-tran-eng.pdf",
+            "title": "État des transactions financières"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1974-1974-11-18",
+    "title": "Budget 1974",
+    "published_date": "1974-11-18",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1974-NO-brf-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1974",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 52,
+      "date_raw": "1974/11/18",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "John Turner",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget in Brief",
+            "path": "/archives/1974-NO-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1974-NO-sd-eng.pdf"
+          },
+          {
+            "title": "Notices of Ways and Means Motions",
+            "path": "/archives/1974-NO-wmam-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1974-NO-brf-fra.pdf",
+            "title": "Budget en bref"
+          },
+          {
+            "path": "/archives/1974-NO-sd-fra.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/archives/1974-NO-wmam-fra.pdf",
+            "title": "Avis de motion des voies et moyens"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1974-1974-05-06",
+    "title": "Budget 1974",
+    "published_date": "1974-05-06",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1974-MA-brf-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1974",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 53,
+      "date_raw": "1974/05/06",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "John Turner",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Highlights",
+            "path": "/archives/1974-MA-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1974-MA-sd-eng.pdf"
+          },
+          {
+            "title": "Notices of Ways and Means Motions",
+            "path": "/archives/1974-MA-wmam-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1974-MA-sd-fra.pdf",
+            "title": "Discours"
+          },
+          {
+            "path": "/archives/1974-MA-brf-fra.pdf",
+            "title": "Faits Saillants"
+          },
+          {
+            "path": "/archives/1974-MA-wmam-fra.pdf",
+            "title": "Avis de motion des voies et moyens"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1973-1973-02-19",
+    "title": "Budget 1973",
+    "published_date": "1973-02-19",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1973-brf-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1973",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 54,
+      "date_raw": "1973/02/19",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "John Turner",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Highlights of the Budget",
+            "path": "/archives/1973-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1973-sd-eng.pdf"
+          },
+          {
+            "title": "Notices of Ways and Means Motions",
+            "path": "/archives/1973-wmam-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1973-brf-fra.pdf",
+            "title": "Faits saillants"
+          },
+          {
+            "path": "/archives/1973-sd-fra.pdf",
+            "title": "Exposé budgétaire"
+          },
+          {
+            "path": "/archives/1973-wmam-fra.pdf",
+            "title": "Avis de motion des voies et moyens"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1972-1972-05-08",
+    "title": "Budget 1972",
+    "published_date": "1972-05-08",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1972-brf-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1972",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 55,
+      "date_raw": "1972/05/08",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "John Turner",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Highlights",
+            "path": "/archives/1972-brf-eng.pdf"
+          },
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1972-sd-eng.pdf"
+          },
+          {
+            "title": "Review of Government Accounts",
+            "path": "/archives/1972-73-rv-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1972-brf-fra.pdf",
+            "title": "Faits saillants"
+          },
+          {
+            "path": "/archives/1972-sd-fra.pdf",
+            "title": "Exposé budgétaire"
+          },
+          {
+            "path": "/archives/1972-73-rv-fra.pdf",
+            "title": "Documents Budgétaires: Revue des comptes de l'état"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1971-1971-06-18",
+    "title": "Budget 1971",
+    "published_date": "1971-06-18",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1971-sd-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1971",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 56,
+      "date_raw": "1971/06/18",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "Edgar Benson",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1971-sd-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1971-sd-fra.pdf",
+            "title": "Exposé budgétaire"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1970-1970-03-12",
+    "title": "Budget 1970",
+    "published_date": "1970-03-12",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1970-sd-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1970",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 57,
+      "date_raw": "1970/03/12",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "Edgar Benson",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1970-sd-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1970-sd-fra.pdf",
+            "title": "Exposé budgétaire"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1969-1969-06-03",
+    "title": "Budget 1969",
+    "published_date": "1969-06-03",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1969-sd-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1969",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 58,
+      "date_raw": "1969/06/03",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "Edgar Benson",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1969-sd-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1969-sd-fra.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "external_id": "budget-1968-1968-10-22",
+    "title": "Budget 1968",
+    "published_date": "1968-10-22",
+    "url": "",
+    "pdf_url": "https://budget.canada.ca/archives/1968-sd-eng.pdf",
+    "category": "Federal Budget",
+    "keywords": [
+      "Federal budget",
+      "Budget 1968",
+      "Budget",
+      "Public finance"
+    ],
+    "authors": [
+      "Department of Finance Canada"
+    ],
+    "department": "Department of Finance Canada",
+    "metadata": {
+      "source_format": "json+html",
+      "start_url": "https://budget.canada.ca/home-accueil-en.html",
+      "list_endpoint": "https://budget.canada.ca/budget.json",
+      "detail_endpoint": "",
+      "list_index": 59,
+      "date_raw": "1968/10/22",
+      "prime_minister": "Pierre Elliott Trudeau",
+      "finance_minister": "Edgar Benson",
+      "website": {},
+      "publications": {
+        "en": [
+          {
+            "title": "Budget Speech",
+            "path": "/archives/1968-sd-eng.pdf"
+          }
+        ],
+        "fr": [
+          {
+            "path": "/archives/1968-sd-fra.pdf",
+            "title": "Discours"
+          }
+        ]
+      }
+    }
+  }
+]
