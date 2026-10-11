@@ -150,5 +150,17 @@
     "evidence": "incremental-rollout-20261012/batch-028-afp-search/order-review.json",
     "evidence_sha256": "e7d681966b76006f71f8aa11cc76cc68a235c5da6629f5e2fb66dee98838c8f6",
     "native_health_note": "All 53 retained search records preserve the earlier parser fix. Both date and numeric node ID order reverse repeatedly; two rows lack both fields. Current first 12 fields match. Search results are not PDF counts and original detail bodies remain separately unverified."
+  },
+  "africamuseum-be-en": {
+    "classification": "full_rescan_required",
+    "reason": "month_precision_listing_dates_and_detail_only_node_IDs_prevent_verified_early_stop",
+    "source_sha256": "e46c29eb4c90a65c387a619a42615e1e5196783087e93f965fc6c861d57c645e",
+    "dependency_source_sha256": {
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
+    },
+    "reviewed_at": "2026-10-11T20:49:04.929245+00:00",
+    "evidence": "incremental-rollout-20261012/batch-030-africamuseum/order-review.json",
+    "evidence_sha256": "eeffdc074c00719a621992981b483a82854c08a3ae25e9b1d0427e8584dd2e76",
+    "native_health_note": "All 99 source months and exact original URLs preserved. Month precision does not establish within-month chronology for known-boundary stopping; Drupal IDs are detail-only. Four retained real detail identities preserved. All 99 actual bodies/files and numeric identities remain unverified."
   }
 }

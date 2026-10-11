@@ -730,6 +730,32 @@ Batch 029: AFP News Centre — 공통 증분 연결 및 실제 날짜 범위19�
 - 실측: python -m delivery.scripts.measure_afp_news_incremental --out <새 폴더> --gate-dir <공유 request-gate>
 - 대조: python -m delivery.scripts.review_afp_news_incremental --root <실측 폴더> --out <새 검토 파일>
 
+
+Batch 030: AfricaMuseum — 월 정밀도 보존 및 증분 중단 불가 분류
+- 보존된10개 목록/인접 빈 페이지와99개 URL 대장, 실제 상세4개를 해시 대조했다.
+  현재 첫 목록 HTTP1회로10개 native 파싱 필드가 보존과 같음을 확인했다. 나머지 목록을
+  현재 다시 요청하지 않았으며 과거99개 범위 자료와 현재 관측을 구분했다.
+- 목록99개는 모두 YYYY-MM 정밀도다. 원문 date_raw의 월과 native 파싱값이 전부 일치한다.
+  목록 식별자는 slug/URL이고 Drupal node ID는 상세에서 얻는다. 월 안의 순서는 미확정이므로
+  연속 기존 항목이나 기존 한 페이지에서 중단하는 현재 공통 방식의 안전성을 인증하지 않고
+  full_rescan_required로 분류했다. YYYY-MM-01을 만들어 날짜순 근거로 쓰지 않는다.
+- 기존 구경로44개 복원과 encoded slug 보존, 이미지/텍스트 행 병합은 유지했다. 실제4개
+  상세의 native paper 전체와 ID가 보존 검토 결과와 일치한다. 전체99개 상세의 ID까지
+  확인했다고 주장하지 않는다. 추후 월 전체를 확인하는 다른 증분 계약은 별도 검토 대상이다.
+- native 목록/상세의 전송 실패나 알려진 차단을 source failure로 보고하고 종료한다.
+  실패한 상세를 건너뛰어 정상 완료처럼 보이게 하는 동작을 막았다. 정상 파싱/날짜/저장
+  필드 변환은 변경하지 않았다.
+- 새 PostgreSQL 기본 worker에서 실제 목록11개·실제 상세4개와 합성 상세95개를 재생했다.
+  최초/재실행 curl command110/110회(목록11/11, 상세99/99), 저장99/0건이며 기존행이 같다.
+  합성 상세에는 Drupal ID를 만들지 않고 native slug fallback을 사용했다. 그95개의 실제
+  node ID·본문은 미검증으로 유지한다. 재생 자체의 live HTTP는0회다.
+- 저장99건 모두 published/listed date는 NULL이고 raw 값은 원본 YYYY-MM이며 임의의 일자는
+  없다. 실제4개는 원래 ID/전체 native paper를 보존했고99개 URL도 그대로다. 기준점은
+  미완료/full_rescan_required이며 중복0을 요청 절감으로 표시하지 않는다.
+- 단위·기존 목록 parser·공통 worker 회귀101개와 PG1개 통과, 환경 의존3개는 단위 실행에서
+  제외했다. batch-030-africamuseum/order-review.json 및 postgres-review.json 참조.
+- 재검토: python -m delivery.scripts.review_africamuseum_incremental --source <continuous 경로> --probe <현재 첫 목록> --out <새 검토 파일>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.

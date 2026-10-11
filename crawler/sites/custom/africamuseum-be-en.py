@@ -15,6 +15,7 @@ from urllib.parse import urljoin, urlsplit
 
 sys.path.insert(0, '.')
 from crawler.base_crawler import BaseCrawler
+from delivery.health.access_challenge import access_challenge
 
 _MONTH_MAP = {
     'january': '01', 'february': '02', 'march': '03', 'april': '04',
@@ -276,7 +277,11 @@ class AfricamuseumBeEnCrawler(BaseCrawler):
             html = self._curl_get(url)
             if not html:
                 print(f"[africamuseum-be-en] failed to fetch list page {page}, stopping.")
-                break
+                self._report_source_failure('fetch_failed')
+                return saved
+            if access_challenge(html):
+                self._report_source_failure('authentication_failed')
+                return saved
 
             items = self._parse_list_page(html)
             if not items:
@@ -303,7 +308,11 @@ class AfricamuseumBeEnCrawler(BaseCrawler):
                     detail_html = self._curl_get(detail_url)
                     if not detail_html:
                         print(f"[africamuseum-be-en] failed to fetch detail: {slug}")
-                        continue
+                        self._report_source_failure('fetch_failed')
+                        return saved
+                    if access_challenge(detail_html):
+                        self._report_source_failure('authentication_failed')
+                        return saved
 
                     paper = self._parse_detail_page(detail_html, slug, listed_date, snippet, detail_url)
                     if not paper:
