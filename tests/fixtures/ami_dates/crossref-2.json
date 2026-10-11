@@ -1,0 +1,827 @@
+{
+  "indexed": {
+    "date-parts": [
+      [
+        2026,
+        10,
+        2
+      ]
+    ],
+    "date-time": "2026-10-02T22:49:28Z",
+    "timestamp": 1790981368127,
+    "version": "4.1.0"
+  },
+  "reference-count": 51,
+  "publisher": "Royal Society of Chemistry (RSC)",
+  "issue": "22",
+  "license": [
+    {
+      "start": {
+        "date-parts": [
+          [
+            2024,
+            5,
+            14
+          ]
+        ],
+        "date-time": "2024-05-14T00:00:00Z",
+        "timestamp": 1715644800000
+      },
+      "content-version": "vor",
+      "delay-in-days": 134,
+      "URL": "http://creativecommons.org/licenses/by-nc/3.0/"
+    }
+  ],
+  "funder": [
+    {
+      "DOI": "10.13039/501100001711",
+      "name": "Schweizerischer Nationalfonds zur Förderung der Wissenschaftlichen Forschung",
+      "doi-asserted-by": "publisher",
+      "award": [
+        "193174"
+      ],
+      "award-info": [
+        {
+          "award-number": [
+            "193174"
+          ]
+        }
+      ],
+      "id": [
+        {
+          "id": "10.13039/501100001711",
+          "id-type": "DOI",
+          "asserted-by": "publisher"
+        }
+      ]
+    },
+    {
+      "DOI": "10.13039/501100004189",
+      "name": "Max-Planck-Gesellschaft",
+      "doi-asserted-by": "publisher",
+      "id": [
+        {
+          "id": "10.13039/501100004189",
+          "id-type": "DOI",
+          "asserted-by": "publisher"
+        }
+      ]
+    }
+  ],
+  "content-domain": {
+    "domain": [
+      "rsc.org"
+    ],
+    "crossmark-restriction": true
+  },
+  "short-container-title": [
+    "J. Mater. Chem. C"
+  ],
+  "abstract": "<jats:p>Mixed ionic-electronic conduction is revealed in Dion–Jacobson (DJ) and Ruddlesden–Popper phases based on aromatic spacer cations, with higher activation energies for ion migration and thermal stability for DJ systems, relevant to their application.</jats:p>",
+  "DOI": "10.1039/d4tc01010h",
+  "type": "journal-article",
+  "created": {
+    "date-parts": [
+      [
+        2024,
+        5,
+        14
+      ]
+    ],
+    "date-time": "2024-05-14T05:14:46Z",
+    "timestamp": 1715663686000
+  },
+  "page": "7909-7915",
+  "update-policy": "https://doi.org/10.1039/rsc_crossmark_policy",
+  "source": "Crossref",
+  "is-referenced-by-count": 21,
+  "title": [
+    "Mixed ionic-electronic conduction in Ruddlesden–Popper and Dion–Jacobson layered hybrid perovskites with aromatic organic spacers"
+  ],
+  "prefix": "10.1039",
+  "volume": "12",
+  "author": [
+    {
+      "given": "Algirdas",
+      "family": "Dučinskas",
+      "sequence": "first",
+      "affiliation": [
+        {
+          "name": "Laboratory of Photonics and Interfaces, École Polytechnique Fédéralé de Lausanne, 1015 Lausanne, Switzerland"
+        },
+        {
+          "name": "Max Planck Institute for Solid State Research, Heisenbergstr. 1, 70569 Stuttgart, Germany"
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "given": "Mina",
+      "family": "Jung",
+      "sequence": "additional",
+      "affiliation": [
+        {
+          "name": "Max Planck Institute for Solid State Research, Heisenbergstr. 1, 70569 Stuttgart, Germany"
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "ORCID": "https://orcid.org/0000-0001-5267-3467",
+      "authenticated-orcid": false,
+      "given": "Ya-Ru",
+      "family": "Wang",
+      "sequence": "additional",
+      "affiliation": [
+        {
+          "name": "Max Planck Institute for Solid State Research, Heisenbergstr. 1, 70569 Stuttgart, Germany"
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "ORCID": "https://orcid.org/0000-0002-9965-3460",
+      "authenticated-orcid": false,
+      "given": "Jovana V.",
+      "family": "Milić",
+      "sequence": "additional",
+      "affiliation": [
+        {
+          "name": "Laboratory of Photonics and Interfaces, École Polytechnique Fédéralé de Lausanne, 1015 Lausanne, Switzerland"
+        },
+        {
+          "name": "Adolphe Merkle Institute, University of Fribourg, 1700 Fribourg, Switzerland"
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "ORCID": "https://orcid.org/0000-0002-9923-5963",
+      "authenticated-orcid": false,
+      "given": "Davide",
+      "family": "Moia",
+      "sequence": "additional",
+      "affiliation": [
+        {
+          "name": "Max Planck Institute for Solid State Research, Heisenbergstr. 1, 70569 Stuttgart, Germany"
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "ORCID": "https://orcid.org/0000-0002-0068-0195",
+      "authenticated-orcid": false,
+      "given": "Michael",
+      "family": "Grätzel",
+      "sequence": "additional",
+      "affiliation": [
+        {
+          "name": "Laboratory of Photonics and Interfaces, École Polytechnique Fédéralé de Lausanne, 1015 Lausanne, Switzerland"
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "ORCID": "https://orcid.org/0000-0003-2274-6068",
+      "authenticated-orcid": false,
+      "given": "Joachim",
+      "family": "Maier",
+      "sequence": "additional",
+      "affiliation": [
+        {
+          "name": "Max Planck Institute for Solid State Research, Heisenbergstr. 1, 70569 Stuttgart, Germany"
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    }
+  ],
+  "member": "292",
+  "published-online": {
+    "date-parts": [
+      [
+        2024
+      ]
+    ]
+  },
+  "reference": [
+    {
+      "key": "D4TC01010H/cit1/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "3106",
+      "DOI": "10.1021/acs.jpclett.7b00975",
+      "volume": "8",
+      "author": "Tress",
+      "year": "2017",
+      "journal-title": "J. Phys. Chem. Lett."
+    },
+    {
+      "key": "D4TC01010H/cit2/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "8382",
+      "DOI": "10.1021/jacs.8b13594",
+      "volume": "141",
+      "author": "Senocrate",
+      "year": "2019",
+      "journal-title": "J. Am. Chem. Soc."
+    },
+    {
+      "key": "D4TC01010H/cit3/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "1808843",
+      "DOI": "10.1002/adfm.201808843",
+      "volume": "29",
+      "author": "Wang",
+      "year": "2019",
+      "journal-title": "Adv. Funct. Mater."
+    },
+    {
+      "key": "D4TC01010H/cit4/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "629074",
+      "DOI": "10.3389/fenrg.2021.629074",
+      "volume": "9",
+      "author": "Futscher",
+      "year": "2021",
+      "journal-title": "Front. Energy Res."
+    },
+    {
+      "key": "D4TC01010H/cit5/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "5889",
+      "DOI": "10.1021/acs.jpclett.9b00613",
+      "volume": "10",
+      "author": "Bisquert",
+      "year": "2019",
+      "journal-title": "J. Phys. Chem. Lett."
+    },
+    {
+      "key": "D4TC01010H/cit6/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "e2000073",
+      "DOI": "10.1002/hlca.202000073",
+      "volume": "103",
+      "author": "Enocrate",
+      "year": "2020",
+      "journal-title": "Helv. Chim. Acta"
+    },
+    {
+      "key": "D4TC01010H/cit7/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "5638",
+      "DOI": "10.1021/acs.jpclett.2c01303",
+      "volume": "13",
+      "author": "Park",
+      "year": "2022",
+      "journal-title": "J. Phys. Chem. Lett."
+    },
+    {
+      "key": "D4TC01010H/cit8/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "3401",
+      "DOI": "10.1021/acsenergylett.2c01663",
+      "volume": "10",
+      "author": "Sakhatskyi",
+      "year": "2022",
+      "journal-title": "ACS Energy Lett."
+    },
+    {
+      "key": "D4TC01010H/cit9/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "3789",
+      "DOI": "10.1021/acs.jpclett.2c00790",
+      "volume": "13",
+      "author": "Bisquert",
+      "year": "2022",
+      "journal-title": "J. Phys. Chem. Lett."
+    },
+    {
+      "key": "D4TC01010H/cit10/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "2264",
+      "DOI": "10.1039/C9EE00476A",
+      "volume": "12",
+      "author": "Ferdani",
+      "year": "2019",
+      "journal-title": "Energy Environ. Sci."
+    },
+    {
+      "key": "D4TC01010H/cit11/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "286",
+      "DOI": "10.1021/acs.accounts.5b00420",
+      "volume": "49",
+      "author": "Yuan",
+      "year": "2016",
+      "journal-title": "Acc. Chem. Res."
+    },
+    {
+      "key": "D4TC01010H/cit12/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "1571",
+      "DOI": "10.1021/acsenergylett.7b00442",
+      "volume": "2",
+      "author": "Lin",
+      "year": "2017",
+      "journal-title": "ACS Energy Lett."
+    },
+    {
+      "key": "D4TC01010H/cit13/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "684",
+      "DOI": "10.1021/acsenergylett.8b00047",
+      "volume": "3",
+      "author": "Xiao",
+      "year": "2018",
+      "journal-title": "ACS Energy Lett."
+    },
+    {
+      "key": "D4TC01010H/cit14/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "1",
+      "DOI": "10.1039/b007070j",
+      "volume": "1",
+      "author": "Mitzi",
+      "year": "2001",
+      "journal-title": "J. Chem. Soc., Dalton Trans."
+    },
+    {
+      "key": "D4TC01010H/cit15/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "4558",
+      "DOI": "10.1021/acs.chemrev.5b00715",
+      "volume": "116",
+      "author": "Saparov",
+      "year": "2016",
+      "journal-title": "Chem. Rev."
+    },
+    {
+      "key": "D4TC01010H/cit16/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "4",
+      "DOI": "10.1038/s41578-018-0065-0",
+      "volume": "4",
+      "author": "Grancini",
+      "year": "2019",
+      "journal-title": "Nat. Rev. Mater."
+    },
+    {
+      "key": "D4TC01010H/cit17/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "19099",
+      "DOI": "10.1021/jacs.9b09945",
+      "volume": "141",
+      "author": "Mao",
+      "year": "2019",
+      "journal-title": "J. Am. Chem. Soc."
+    },
+    {
+      "key": "D4TC01010H/cit18/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "2230",
+      "DOI": "10.1021/acs.chemrev.0c01006",
+      "volume": "121",
+      "author": "Li",
+      "year": "2021",
+      "journal-title": "Chem. Rev."
+    },
+    {
+      "key": "D4TC01010H/cit19/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "2499",
+      "DOI": "10.1021/acsenergylett.1c01015",
+      "volume": "6",
+      "author": "Mathew",
+      "year": "2021",
+      "journal-title": "ACS Energy Lett."
+    },
+    {
+      "key": "D4TC01010H/cit20/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "943",
+      "DOI": "10.1021/acsenergylett.2c02463",
+      "volume": "8",
+      "author": "Chen",
+      "year": "2023",
+      "journal-title": "ACS Energy Lett."
+    },
+    {
+      "key": "D4TC01010H/cit21/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "2200768",
+      "DOI": "10.1002/aenm.202200768",
+      "volume": "12",
+      "author": "Wang",
+      "year": "2022",
+      "journal-title": "Adv. Energy Mater."
+    },
+    {
+      "key": "D4TC01010H/cit22/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "565",
+      "DOI": "10.1021/acsmaterialslett.0c00124",
+      "volume": "2",
+      "author": "Cho",
+      "year": "2020",
+      "journal-title": "ACS Mater. Lett."
+    },
+    {
+      "key": "D4TC01010H/cit23/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "3775",
+      "DOI": "10.1021/jacs.8b00542",
+      "volume": "140",
+      "author": "Mao",
+      "year": "2018",
+      "journal-title": "J. Am. Chem. Soc."
+    },
+    {
+      "key": "D4TC01010H/cit24/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "150",
+      "DOI": "10.1021/acs.nanolett.8b03552",
+      "volume": "19",
+      "author": "Li",
+      "year": "2018",
+      "journal-title": "Nano Lett."
+    },
+    {
+      "key": "D4TC01010H/cit25/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "2003428",
+      "DOI": "10.1002/adfm.202003428",
+      "volume": "30",
+      "author": "Gélvez-Rueda",
+      "year": "2020",
+      "journal-title": "Adv. Funct. Mater."
+    },
+    {
+      "key": "D4TC01010H/cit26/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "337",
+      "DOI": "10.1021/acsenergylett.0c02344",
+      "volume": "6",
+      "author": "Dučinskas",
+      "year": "2020",
+      "journal-title": "ACS Energy Lett."
+    },
+    {
+      "key": "D4TC01010H/cit27/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "10325",
+      "DOI": "10.1021/acs.jpclett.1c02937",
+      "volume": "12",
+      "author": "Dučinskas",
+      "year": "2021",
+      "journal-title": "J. Phys. Chem. Lett."
+    },
+    {
+      "key": "D4TC01010H/cit28/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "2101163",
+      "DOI": "10.1002/adfm.202101163",
+      "volume": "31",
+      "author": "Alanazi",
+      "year": "2021",
+      "journal-title": "Adv. Funct. Mater."
+    },
+    {
+      "key": "D4TC01010H/cit29/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "2101523",
+      "DOI": "10.1002/adom.202101523",
+      "volume": "9",
+      "author": "Lai",
+      "year": "2021",
+      "journal-title": "Adv. Opt. Mater."
+    },
+    {
+      "key": "D4TC01010H/cit30/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "6289",
+      "DOI": "10.1021/acs.chemmater.8b01840",
+      "volume": "30",
+      "author": "Lermer",
+      "year": "2018",
+      "journal-title": "Chem. Mater."
+    },
+    {
+      "key": "D4TC01010H/cit31/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "7905",
+      "DOI": "10.1002/anie.201500014",
+      "volume": "54",
+      "author": "Yang",
+      "year": "2015",
+      "journal-title": "Angew. Chem., Int. Ed."
+    },
+    {
+      "key": "D4TC01010H/cit32/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "7863",
+      "DOI": "10.1002/ange.201701724",
+      "volume": "129",
+      "author": "Senocrate",
+      "year": "2017",
+      "journal-title": "Angew. Chem., Int. Ed."
+    },
+    {
+      "key": "D4TC01010H/cit33/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "833",
+      "DOI": "10.1002/ange.202005853",
+      "volume": "133",
+      "author": "Kim",
+      "year": "2021",
+      "journal-title": "Angew. Chem."
+    },
+    {
+      "key": "D4TC01010H/cit34/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "13335",
+      "DOI": "10.1039/D3CP01182H",
+      "volume": "25",
+      "author": "Moia",
+      "year": "2023",
+      "journal-title": "Phys. Chem. Chem. Phys."
+    },
+    {
+      "key": "D4TC01010H/cit35/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "1566",
+      "DOI": "10.1021/acsenergylett.1c00227",
+      "volume": "6",
+      "author": "Moia",
+      "year": "2021",
+      "journal-title": "ACS Energy Lett."
+    },
+    {
+      "key": "D4TC01010H/cit36/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "69",
+      "DOI": "10.1016/j.ssi.2018.03.029",
+      "volume": "321",
+      "author": "Senocrate",
+      "year": "2018",
+      "journal-title": "Solid State Ionics"
+    },
+    {
+      "key": "D4TC01010H/cit37/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "520",
+      "DOI": "10.1021/acs.accounts.0c00749",
+      "volume": "54",
+      "author": "Kamat",
+      "year": "2021",
+      "journal-title": "Acc. Chem. Res."
+    },
+    {
+      "key": "D4TC01010H/cit38/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "10847",
+      "DOI": "10.1039/C8TA04537B",
+      "volume": "6",
+      "author": "Senocrate",
+      "year": "2018",
+      "journal-title": "J. Mater. Chem. A"
+    },
+    {
+      "key": "D4TC01010H/cit39/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "719",
+      "DOI": "10.1021/acs.chemmater.0c04139",
+      "volume": "33",
+      "author": "Senocrate",
+      "year": "2021",
+      "journal-title": "Chem. Mater."
+    },
+    {
+      "key": "D4TC01010H/cit40/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "21803",
+      "DOI": "10.1021/acs.jpcc.8b06814",
+      "volume": "122",
+      "author": "Senocrate",
+      "year": "2018",
+      "journal-title": "J. Phys. Chem. C"
+    },
+    {
+      "key": "D4TC01010H/cit41/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "1497",
+      "DOI": "10.1039/C9MH00445A",
+      "volume": "6",
+      "author": "Futscher",
+      "year": "2019",
+      "journal-title": "Mater. Horiz."
+    },
+    {
+      "key": "D4TC01010H/cit42/1",
+      "first-page": "202108720",
+      "volume": "34",
+      "author": "Muscarella",
+      "year": "2022",
+      "journal-title": "Adv. Mater."
+    },
+    {
+      "key": "D4TC01010H/cit43/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "7127",
+      "DOI": "10.1021/acs.jpclett.0c01822",
+      "volume": "11",
+      "author": "McGovern",
+      "year": "2020",
+      "journal-title": "J. Phys. Chem. Lett."
+    },
+    {
+      "key": "D4TC01010H/cit44/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "1500477",
+      "DOI": "10.1002/aenm.201500477",
+      "volume": "5",
+      "author": "Conings",
+      "year": "2015",
+      "journal-title": "Adv. Energy Mater."
+    },
+    {
+      "key": "D4TC01010H/cit45/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "10048",
+      "DOI": "10.1021/jacs.5b03615",
+      "volume": "137",
+      "author": "Haruyama",
+      "year": "2015",
+      "journal-title": "J. Am. Chem. Soc."
+    },
+    {
+      "key": "D4TC01010H/cit46/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "22604",
+      "DOI": "10.1039/C9TA08848B",
+      "volume": "7",
+      "author": "García-Rodríguez",
+      "year": "2019",
+      "journal-title": "J. Mater. Chem. A"
+    },
+    {
+      "key": "D4TC01010H/cit47/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "10334",
+      "DOI": "10.1038/ncomms10334",
+      "volume": "7",
+      "author": "Meloni",
+      "year": "2016",
+      "journal-title": "Nat. Commun."
+    },
+    {
+      "key": "D4TC01010H/cit48/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "1108",
+      "DOI": "10.1039/C8CC09236B",
+      "volume": "55",
+      "author": "Souza",
+      "year": "2019",
+      "journal-title": "Chem. Commun."
+    },
+    {
+      "key": "D4TC01010H/cit49/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "1906995",
+      "DOI": "10.1002/adma.201906995",
+      "volume": "32",
+      "author": "Tan",
+      "year": "2020",
+      "journal-title": "Adv. Mater."
+    },
+    {
+      "key": "D4TC01010H/cit50/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "11467",
+      "DOI": "10.1039/D0CP01119C",
+      "volume": "22",
+      "author": "Mahapatra",
+      "year": "2020",
+      "journal-title": "Phys. Chem. Chem.\nPhys."
+    },
+    {
+      "key": "D4TC01010H/cit51/1",
+      "doi-asserted-by": "crossref",
+      "first-page": "794",
+      "DOI": "10.1016/j.joule.2018.11.026",
+      "volume": "3",
+      "author": "Ahmad",
+      "year": "2019",
+      "journal-title": "Joule"
+    }
+  ],
+  "container-title": [
+    "Journal of Materials Chemistry C"
+  ],
+  "original-title": [],
+  "language": "en",
+  "link": [
+    {
+      "URL": "http://pubs.rsc.org/en/content/articlepdf/2024/TC/D4TC01010H",
+      "content-type": "unspecified",
+      "content-version": "vor",
+      "intended-application": "similarity-checking"
+    }
+  ],
+  "deposited": {
+    "date-parts": [
+      [
+        2026,
+        7,
+        2
+      ]
+    ],
+    "date-time": "2026-07-02T03:48:59Z",
+    "timestamp": 1782964139000
+  },
+  "score": 1,
+  "resource": {
+    "primary": {
+      "URL": "https://pubs.rsc.org/tc/article/12/22/7909-7915/877450"
+    }
+  },
+  "subtitle": [],
+  "short-title": [],
+  "issued": {
+    "date-parts": [
+      [
+        2024
+      ]
+    ]
+  },
+  "references-count": 51,
+  "journal-issue": {
+    "issue": "22",
+    "published-print": {
+      "date-parts": [
+        [
+          2024,
+          6,
+          6
+        ]
+      ]
+    }
+  },
+  "URL": "https://doi.org/10.1039/d4tc01010h",
+  "relation": {},
+  "ISSN": [
+    "2050-7526",
+    "2050-7534"
+  ],
+  "issn-type": [
+    {
+      "value": "2050-7526",
+      "type": "print"
+    },
+    {
+      "value": "2050-7534",
+      "type": "electronic"
+    }
+  ],
+  "subject": [],
+  "published": {
+    "date-parts": [
+      [
+        2024
+      ]
+    ]
+  }
+}

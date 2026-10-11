@@ -1,0 +1,1308 @@
+{
+  "indexed": {
+    "date-parts": [
+      [
+        2026,
+        10,
+        5
+      ]
+    ],
+    "date-time": "2026-10-05T20:56:00Z",
+    "timestamp": 1791233760088,
+    "version": "4.1.0"
+  },
+  "reference-count": 80,
+  "publisher": "American Chemical Society (ACS)",
+  "license": [
+    {
+      "start": {
+        "date-parts": [
+          [
+            2026,
+            10,
+            5
+          ]
+        ],
+        "date-time": "2026-10-05T00:00:00Z",
+        "timestamp": 1791158400000
+      },
+      "content-version": "stm-asf",
+      "delay-in-days": 0,
+      "URL": "https://doi.org/10.15223/policy-029"
+    },
+    {
+      "start": {
+        "date-parts": [
+          [
+            2026,
+            10,
+            5
+          ]
+        ],
+        "date-time": "2026-10-05T00:00:00Z",
+        "timestamp": 1791158400000
+      },
+      "content-version": "stm-asf",
+      "delay-in-days": 0,
+      "URL": "https://doi.org/10.15223/policy-037"
+    },
+    {
+      "start": {
+        "date-parts": [
+          [
+            2026,
+            10,
+            5
+          ]
+        ],
+        "date-time": "2026-10-05T00:00:00Z",
+        "timestamp": 1791158400000
+      },
+      "content-version": "stm-asf",
+      "delay-in-days": 0,
+      "URL": "https://doi.org/10.15223/policy-045"
+    }
+  ],
+  "funder": [
+    {
+      "DOI": "10.13039/100000061",
+      "name": "Fogarty International Center",
+      "doi-asserted-by": "publisher",
+      "award": [
+        "R01NS108934"
+      ],
+      "award-info": [
+        {
+          "award-number": [
+            "R01NS108934"
+          ]
+        }
+      ],
+      "id": [
+        {
+          "id": "10.13039/100000061",
+          "id-type": "DOI",
+          "asserted-by": "publisher"
+        }
+      ]
+    },
+    {
+      "DOI": "10.13039/501100002923",
+      "name": "Consejo Nacional de Investigaciones Cient?ficas y T?cnicas",
+      "doi-asserted-by": "publisher",
+      "id": [
+        {
+          "id": "10.13039/501100002923",
+          "id-type": "DOI",
+          "asserted-by": "publisher"
+        }
+      ]
+    },
+    {
+      "DOI": "10.13039/501100006668",
+      "name": "Fondo para la Investigaci?n Cient?fica y Tecnol?gica",
+      "doi-asserted-by": "publisher",
+      "award": [
+        "PICT2018-0995"
+      ],
+      "award-info": [
+        {
+          "award-number": [
+            "PICT2018-0995"
+          ]
+        }
+      ],
+      "id": [
+        {
+          "id": "10.13039/501100006668",
+          "id-type": "DOI",
+          "asserted-by": "publisher"
+        }
+      ]
+    }
+  ],
+  "content-domain": {
+    "domain": [],
+    "crossmark-restriction": false
+  },
+  "short-container-title": [],
+  "abstract": "<jats:title>Abstract</jats:title>\n                  <jats:p>In vivo imaging of dynamic subcellular brain structures is key to understanding several phenomena in neuroscience. However, in the fruit fly, its implementation has been hindered by a trade-off among spatial resolution, speed, photobleaching, phototoxicity, and setup complexity required to access specific target regions of the small brain of Drosophila. Here, we present DrosoScope: a single-objective light-sheet microscope customized for in vivo imaging of adult flies and optimized for maximum resolution. With it, we imaged the axonal projections of small lateral ventral neurons (s-LNvs) in intact adult flies. We imaged the plasma membrane, cytoplasm, mitochondria, and dense-core vesicles with high spatial resolution of up to 310 nm, lower photobleaching than confocal microscopy, lower invasiveness and reduced sample-mounting complexity than alternative light-sheet technologies, and without relying on potentially phototoxic pulsed infrared lasers. Furthermore, we implemented active focus stabilization and sample-drift correction. Combined, these features enabled time-lapse brain imaging in living flies for up to 5 h, revealing neuronal plasticity and dynamic mitochondrial transport.</jats:p>",
+  "DOI": "10.1021/acsphotonics.6c01278",
+  "type": "journal-article",
+  "created": {
+    "date-parts": [
+      [
+        2026,
+        10,
+        5
+      ]
+    ],
+    "date-time": "2026-10-05T20:01:31Z",
+    "timestamp": 1791230491000
+  },
+  "source": "Crossref",
+  "is-referenced-by-count": 0,
+  "title": [
+    "Single-Objective\nLight-Sheet Microscopy Allows Long-Term,\nHigh-Resolution\n                    <i>In Vivo</i>\n                    Brain Imaging of\n                    <i>Drosophila</i>"
+  ],
+  "prefix": "10.1021",
+  "author": [
+    {
+      "given": "Francisco J.",
+      "family": "Tassara",
+      "sequence": "first",
+      "affiliation": [
+        {
+          "name": "Fundación Instituto Leloir , ,",
+          "place": [
+            "Buenos Aires, Argentina, C1405"
+          ]
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "ORCID": "https://orcid.org/0000-0003-4886-9445",
+      "authenticated-orcid": true,
+      "given": "Mariano",
+      "family": "Barella",
+      "sequence": "additional",
+      "affiliation": [
+        {
+          "name": "Adolphe Merkle Institute, University of Fribourg , Chemin des Verdiers 4 , ,",
+          "place": [
+            "Fribourg, Switzerland, CH-1700"
+          ]
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "given": "Tomás Sebastián",
+      "family": "Fernández Troncoso",
+      "sequence": "additional",
+      "affiliation": [
+        {
+          "name": "Fundación Instituto Leloir , ,",
+          "place": [
+            "Buenos Aires, Argentina, C1405"
+          ]
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "given": "Lourdes",
+      "family": "Simó",
+      "sequence": "additional",
+      "affiliation": [
+        {
+          "name": "Fundación Instituto Leloir , ,",
+          "place": [
+            "Buenos Aires, Argentina, C1405"
+          ]
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "given": "M. Mailén",
+      "family": "Folgueira Serrao",
+      "sequence": "additional",
+      "affiliation": [
+        {
+          "name": "Fundación Instituto Leloir , ,",
+          "place": [
+            "Buenos Aires, Argentina, C1405"
+          ]
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "given": "Micaela",
+      "family": "Rodriguez-Caron",
+      "sequence": "additional",
+      "affiliation": [
+        {
+          "name": "Fundación Instituto Leloir , ,",
+          "place": [
+            "Buenos Aires, Argentina, C1405"
+          ]
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "given": "Juan Ignacio",
+      "family": "Ispizua",
+      "sequence": "additional",
+      "affiliation": [
+        {
+          "name": "Fundación Instituto Leloir , ,",
+          "place": [
+            "Buenos Aires, Argentina, C1405"
+          ]
+        },
+        {
+          "name": "University of Washington , , , ,",
+          "place": [
+            "Seattle, Washington, United States, 98195-1800"
+          ]
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "given": "Mark H.",
+      "family": "Ellisman",
+      "sequence": "additional",
+      "affiliation": [
+        {
+          "name": "University of California , , La Jolla, , ,",
+          "place": [
+            "San Diego, California, United States, 92093-0608"
+          ]
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "given": "Horacio O.",
+      "family": "de la Iglesia",
+      "sequence": "additional",
+      "affiliation": [
+        {
+          "name": "University of Washington , , , ,",
+          "place": [
+            "Seattle, Washington, United States, 98195-1800"
+          ]
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "given": "M. Fernanda",
+      "family": "Ceriani",
+      "sequence": "additional",
+      "affiliation": [
+        {
+          "name": "Fundación Instituto Leloir , ,",
+          "place": [
+            "Buenos Aires, Argentina, C1405"
+          ]
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    },
+    {
+      "ORCID": "https://orcid.org/0000-0002-4524-3423",
+      "authenticated-orcid": true,
+      "given": "Julián",
+      "family": "Gargiulo",
+      "sequence": "additional",
+      "affiliation": [
+        {
+          "name": "Fundación Instituto Leloir , ,",
+          "place": [
+            "Buenos Aires, Argentina, C1405"
+          ]
+        },
+        {
+          "name": "Universidad Nacional de San Martín , , ,",
+          "place": [
+            "Buenos Aires, Argentina, B1650"
+          ]
+        }
+      ],
+      "role": [
+        {
+          "vocabulary": "crossref",
+          "role": "author"
+        }
+      ]
+    }
+  ],
+  "member": "316",
+  "published-online": {
+    "date-parts": [
+      [
+        2026,
+        10,
+        5
+      ]
+    ]
+  },
+  "reference": [
+    {
+      "key": "2026100516012771900_cit1",
+      "doi-asserted-by": "publisher",
+      "first-page": "139",
+      "DOI": "10.1038/s41586-024-07686-5",
+      "article-title": "Whole-brain annotation and multi-connectome cell typing of Drosophila",
+      "volume": "634",
+      "author": "Schlegel",
+      "year": "2024",
+      "journal-title": "Nature"
+    },
+    {
+      "key": "2026100516012771900_cit2",
+      "doi-asserted-by": "publisher",
+      "first-page": "5504",
+      "DOI": "10.1016/j.cell.2026.08.015",
+      "article-title": "Sexual dimorphism in the complete Drosophila male central\nnervous\nsystem connectome",
+      "volume": "189",
+      "author": "Berg",
+      "year": "2026",
+      "journal-title": "Cell"
+    },
+    {
+      "key": "2026100516012771900_cit3",
+      "doi-asserted-by": "publisher",
+      "first-page": "957",
+      "DOI": "10.1038/s41586-026-10735-w",
+      "article-title": "Distributed control circuits across a brain-and-cord\nconnectome",
+      "volume": "656",
+      "author": "Bates",
+      "year": "2026",
+      "journal-title": "Nature"
+    },
+    {
+      "key": "2026100516012771900_cit4",
+      "doi-asserted-by": "publisher",
+      "first-page": "366",
+      "DOI": "10.1126/science.1090782",
+      "article-title": "Transformation\nof Olfactory Representations\nin the Drosophila Antennal Lobe",
+      "volume": "303",
+      "author": "Wilson",
+      "year": "2004",
+      "journal-title": "Science"
+    },
+    {
+      "key": "2026100516012771900_cit5",
+      "doi-asserted-by": "publisher",
+      "first-page": "2389",
+      "DOI": "10.1016/j.cub.2017.06.076",
+      "article-title": "Whole-Brain\nCalcium Imaging Reveals\nan Intrinsic Functional Network in Drosophila",
+      "volume": "27",
+      "author": "Mann",
+      "year": "2017",
+      "journal-title": "Curr. Biol."
+    },
+    {
+      "key": "2026100516012771900_cit6",
+      "doi-asserted-by": "publisher",
+      "first-page": "872",
+      "DOI": "10.1038/s41467-018-02873-1",
+      "article-title": "Long-term\noptical brain imaging in live adult fruit\nflies",
+      "volume": "9",
+      "author": "Huang",
+      "year": "2018",
+      "journal-title": "Nat. Commun."
+    },
+    {
+      "key": "2026100516012771900_cit7",
+      "doi-asserted-by": "publisher",
+      "first-page": "18374",
+      "DOI": "10.1073/pnas.1216287110",
+      "article-title": "High-speed laser microsurgery\nof alert fruit flies for fluorescence\nimaging of neural activity",
+      "volume": "110",
+      "author": "Sinha",
+      "year": "2013",
+      "journal-title": "Proc. Natl. Acad.\nSci. U. S. A."
+    },
+    {
+      "key": "2026100516012771900_cit8",
+      "doi-asserted-by": "publisher",
+      "first-page": "32",
+      "DOI": "10.3390/chemosensors5040032",
+      "article-title": "Illuminating brain activities with\nfluorescent protein-based biosensors",
+      "volume": "5",
+      "author": "Chen",
+      "year": "2017",
+      "journal-title": "Chemosensors"
+    },
+    {
+      "key": "2026100516012771900_cit9",
+      "doi-asserted-by": "publisher",
+      "first-page": "14",
+      "DOI": "10.1002/dneu.22032",
+      "article-title": "Circadian expression\nof the presynaptic active zone protein bruchpilot\nin the lamina of Drosophila melanogaster",
+      "volume": "73",
+      "author": "Górska-Andrzejak",
+      "year": "2013",
+      "journal-title": "Dev.\nNeurobiol."
+    },
+    {
+      "key": "2026100516012771900_cit10",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1371/journal.pbio.0060069",
+      "article-title": "Circadian Remodeling of Neuronal\nCircuits Involved in Rhythmic Behavior",
+      "volume": "6",
+      "author": "Fernández",
+      "year": "2008",
+      "journal-title": "PLoS\nBiol."
+    },
+    {
+      "key": "2026100516012771900_cit11",
+      "doi-asserted-by": "publisher",
+      "first-page": "2161",
+      "DOI": "10.1016/j.cub.2014.07.063",
+      "article-title": "Circadian pacemaker\nneurons change synaptic contacts\nacross the day",
+      "volume": "24",
+      "author": "Gorostiza",
+      "year": "2014",
+      "journal-title": "Curr. Biol."
+    },
+    {
+      "key": "2026100516012771900_cit12",
+      "doi-asserted-by": "publisher",
+      "first-page": "2702",
+      "DOI": "10.1016/j.cub.2023.05.054",
+      "article-title": "Modulation and neural\ncorrelates of postmating sleep plasticity in Drosophila females",
+      "volume": "33",
+      "author": "Duhart",
+      "year": "2023",
+      "journal-title": "Curr. Biol."
+    },
+    {
+      "key": "2026100516012771900_cit13",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.7554/eLife.57395",
+      "article-title": "Optical control\nof ERK and AKT signaling\npromotes axon regeneration and functional recovery of PNS and CNS\nin Drosophila",
+      "volume": "9",
+      "author": "Wang",
+      "year": "2020",
+      "journal-title": "Elife"
+    },
+    {
+      "key": "2026100516012771900_cit14",
+      "doi-asserted-by": "publisher",
+      "first-page": "67",
+      "DOI": "10.1038/s43586-022-00147-1",
+      "article-title": "Two-photon\ncalcium imaging of neuronal activity",
+      "volume": "2",
+      "author": "Grienberger",
+      "year": "2022",
+      "journal-title": "Nat. Rev.\nMethods Primers"
+    },
+    {
+      "key": "2026100516012771900_cit15",
+      "doi-asserted-by": "publisher",
+      "first-page": "1168",
+      "DOI": "10.1038/s41593-020-0668-9",
+      "article-title": "SPARC enables genetic\nmanipulation of precise proportions of cells",
+      "volume": "23",
+      "author": "Isaacman-Beck",
+      "year": "2020",
+      "journal-title": "Nat. Neurosci."
+    },
+    {
+      "key": "2026100516012771900_cit16",
+      "doi-asserted-by": "publisher",
+      "first-page": "823",
+      "DOI": "10.1016/j.neuron.2006.05.019",
+      "article-title": "Principles of Two-Photon Excitation\nMicroscopy and\nIts Applications to Neuroscience",
+      "volume": "50",
+      "author": "Svoboda",
+      "year": "2006",
+      "journal-title": "Neuron"
+    },
+    {
+      "key": "2026100516012771900_cit17",
+      "doi-asserted-by": "publisher",
+      "first-page": "271",
+      "DOI": "10.1016/S0092-8674(03)00004-7",
+      "article-title": "Two-photon\ncalcium imaging reveals an odor-evoked map of activity in the fly\nbrain",
+      "volume": "112",
+      "author": "Wang",
+      "year": "2003",
+      "journal-title": "Cell"
+    },
+    {
+      "key": "2026100516012771900_cit18",
+      "doi-asserted-by": "publisher",
+      "first-page": "93",
+      "DOI": "10.1038/s41593-020-00743-y",
+      "article-title": "Auditory activity is\ndiverse and widespread throughout the central brain of Drosophila",
+      "volume": "24",
+      "author": "Pacheco",
+      "year": "2021",
+      "journal-title": "Nat. Neurosci."
+    },
+    {
+      "key": "2026100516012771900_cit19",
+      "doi-asserted-by": "publisher",
+      "first-page": "620",
+      "DOI": "10.1038/nn.4516",
+      "article-title": "Video-rate volumetric functional imaging of the brain\nat synaptic\nresolution",
+      "volume": "20",
+      "author": "Lu",
+      "year": "2017",
+      "journal-title": "Nat. Neurosci."
+    },
+    {
+      "key": "2026100516012771900_cit20",
+      "doi-asserted-by": "publisher",
+      "first-page": "8078",
+      "DOI": "10.1523/JNEUROSCI.1272-16.2016",
+      "article-title": "Direction\nselectivity in drosophila emerges from preferred-direction enhancement\nand null-direction suppression",
+      "volume": "36",
+      "author": "Leong",
+      "year": "2016",
+      "journal-title": "J. Neurosci."
+    },
+    {
+      "key": "2026100516012771900_cit21",
+      "doi-asserted-by": "publisher",
+      "first-page": "535",
+      "DOI": "10.1038/nmeth.1468",
+      "article-title": "Two-photon calcium imaging\nfrom head-fixed Drosophila during optomotor\nwalking behavior",
+      "volume": "7",
+      "author": "Seelig",
+      "year": "2010",
+      "journal-title": "Nat. Methods"
+    },
+    {
+      "key": "2026100516012771900_cit22",
+      "doi-asserted-by": "publisher",
+      "first-page": "710",
+      "DOI": "10.1016/j.cub.2023.12.063",
+      "article-title": "Mapping\nthe neural dynamics of locomotion across the\nDrosophila brain",
+      "volume": "34",
+      "author": "Brezovec",
+      "year": "2024",
+      "journal-title": "Curr. Biol."
+    },
+    {
+      "key": "2026100516012771900_cit23",
+      "doi-asserted-by": "publisher",
+      "first-page": "578",
+      "DOI": "10.1016/j.cub.2020.10.081",
+      "article-title": "A Paradoxical\nKind of Sleep in Drosophila melanogaster",
+      "volume": "31",
+      "author": "Tainton-Heap",
+      "year": "2021",
+      "journal-title": "Curr.\nBiol."
+    },
+    {
+      "key": "2026100516012771900_cit24",
+      "doi-asserted-by": "publisher",
+      "first-page": "747",
+      "DOI": "10.1038/s41586-022-04909-5",
+      "article-title": "The neuronal logic of how internal\nstates control food choice",
+      "volume": "607",
+      "author": "Münch",
+      "year": "2022",
+      "journal-title": "Nature"
+    },
+    {
+      "key": "2026100516012771900_cit25",
+      "doi-asserted-by": "publisher",
+      "first-page": "244",
+      "DOI": "10.1038/s41586-021-03497-0",
+      "article-title": "Coupling\nof activity, metabolism and behaviour across the Drosophila brain",
+      "volume": "593",
+      "author": "Mann",
+      "year": "2021",
+      "journal-title": "Nature"
+    },
+    {
+      "key": "2026100516012771900_cit26",
+      "doi-asserted-by": "publisher",
+      "first-page": "1243",
+      "DOI": "10.1016/j.celrep.2018.06.119",
+      "article-title": "Temperature Rise under\nTwo-Photon Optogenetic Brain Stimulation",
+      "volume": "24",
+      "author": "Picot",
+      "year": "2018",
+      "journal-title": "Cell\nRep."
+    },
+    {
+      "key": "2026100516012771900_cit27",
+      "doi-asserted-by": "publisher",
+      "first-page": "114190",
+      "DOI": "10.1016/j.celrep.2024.114190",
+      "article-title": "Dendrite architecture\ndetermines mitochondrial distribution patterns\nin vivo",
+      "volume": "43",
+      "author": "Donovan",
+      "year": "2024",
+      "journal-title": "Cell Rep."
+    },
+    {
+      "key": "2026100516012771900_cit28",
+      "doi-asserted-by": "publisher",
+      "first-page": "7153",
+      "DOI": "10.1038/s41598-020-64060-x",
+      "article-title": "In vivo large-scale\nanalysis of Drosophila neuronal\ncalcium traces by automated tracking of single somata",
+      "volume": "10",
+      "author": "Delestro",
+      "year": "2020",
+      "journal-title": "Sci. Rep."
+    },
+    {
+      "key": "2026100516012771900_cit29",
+      "doi-asserted-by": "publisher",
+      "first-page": "1449",
+      "DOI": "10.1016/j.neuron.2015.05.026",
+      "article-title": "Representations of\nTaste Modality in the Drosophila Brain",
+      "volume": "86",
+      "author": "Harris",
+      "year": "2015",
+      "journal-title": "Neuron"
+    },
+    {
+      "key": "2026100516012771900_cit30",
+      "doi-asserted-by": "publisher",
+      "first-page": "1",
+      "DOI": "10.7554/eLife.85202",
+      "article-title": "Global change\nin brain state during spontaneous and forced walk in drosophila is\ncomposed of combined activity patterns of different neuron classes",
+      "volume": "12",
+      "author": "Aimon",
+      "year": "2023",
+      "journal-title": "Elife"
+    },
+    {
+      "key": "2026100516012771900_cit31",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1371/journal.pbio.2006732",
+      "article-title": "Fast near-whole-brain imaging in\nadult drosophila during\nresponses to stimuli and behavior",
+      "volume": "17",
+      "author": "Aimon",
+      "year": "2019",
+      "journal-title": "PLoS Biol."
+    },
+    {
+      "key": "2026100516012771900_cit32",
+      "doi-asserted-by": "publisher",
+      "first-page": "569",
+      "DOI": "10.1038/s41587-024-02249-5",
+      "article-title": "Long-term intravital\nsubcellular imaging with confocal scanning light-field\nmicroscopy",
+      "volume": "43",
+      "author": "Lu",
+      "year": "2025",
+      "journal-title": "Nat. Biotechnol."
+    },
+    {
+      "key": "2026100516012771900_cit33",
+      "doi-asserted-by": "publisher",
+      "first-page": "295",
+      "DOI": "10.1146/annurev-neuro-070918-050357",
+      "article-title": "Light-Sheet Microscopy\nin Neuroscience",
+      "volume": "42",
+      "author": "Hillman",
+      "year": "2019",
+      "journal-title": "Annu. Rev. Neurosci."
+    },
+    {
+      "key": "2026100516012771900_cit34",
+      "doi-asserted-by": "publisher",
+      "first-page": "73",
+      "DOI": "10.1038/s43586-021-00069-4",
+      "article-title": "Light sheet fluorescence\nmicroscopy",
+      "volume": "1",
+      "author": "Stelzer",
+      "year": "2021",
+      "journal-title": "Nat. Rev. Methods Primers"
+    },
+    {
+      "key": "2026100516012771900_cit35",
+      "doi-asserted-by": "publisher",
+      "first-page": "7924",
+      "DOI": "10.1038/ncomms8924",
+      "article-title": "Whole-central nervous\nsystem functional imaging in larval Drosophila",
+      "volume": "6",
+      "author": "Lemon",
+      "year": "2015",
+      "journal-title": "Nat. Commun."
+    },
+    {
+      "key": "2026100516012771900_cit36",
+      "doi-asserted-by": "publisher",
+      "first-page": "413",
+      "DOI": "10.1038/nmeth.2434",
+      "article-title": "Whole-brain\nfunctional imaging at cellular resolution using light-sheet microscopy",
+      "volume": "10",
+      "author": "Ahrens",
+      "year": "2013",
+      "journal-title": "Nat. Methods"
+    },
+    {
+      "key": "2026100516012771900_cit37",
+      "doi-asserted-by": "publisher",
+      "first-page": "641",
+      "DOI": "10.1038/nmeth.3402",
+      "article-title": "3D high- and super-resolution imaging using single-objective SPIM",
+      "volume": "12",
+      "author": "Galland",
+      "year": "2015",
+      "journal-title": "Nat. Methods"
+    },
+    {
+      "key": "2026100516012771900_cit38",
+      "doi-asserted-by": "publisher",
+      "first-page": "421",
+      "DOI": "10.1038/nmeth.2411",
+      "article-title": "Single-molecule imaging of transcription factor binding\nto DNA in live mammalian cells",
+      "volume": "10",
+      "author": "Gebhardt",
+      "year": "2013",
+      "journal-title": "Nat. Methods"
+    },
+    {
+      "key": "2026100516012771900_cit39",
+      "doi-asserted-by": "publisher",
+      "first-page": "976",
+      "DOI": "10.1126/science.aad3997",
+      "article-title": "Synchronous\nDrosophila circadian\npacemakers display nonsynchronous Ca2+ rhythms in vivo",
+      "volume": "351",
+      "author": "Liang",
+      "year": "2016",
+      "journal-title": "Science"
+    },
+    {
+      "key": "2026100516012771900_cit40",
+      "doi-asserted-by": "publisher",
+      "first-page": "1",
+      "DOI": "10.1117/1.JBO.28.6.066501",
+      "article-title": "Enhanced neuroimaging with a calcium sensor in ex-vivo Drosophila\nmelanogaster brains using closed-loop adaptive optics light-sheet\nfluorescence microscopy",
+      "volume": "28",
+      "author": "Hubert",
+      "year": "2023",
+      "journal-title": "J. Biomed. Opt."
+    },
+    {
+      "key": "2026100516012771900_cit41",
+      "doi-asserted-by": "publisher",
+      "first-page": "28",
+      "DOI": "10.1038/s41592-020-01027-w",
+      "article-title": "Single-objective\nlight sheet microscopy",
+      "volume": "18",
+      "author": "Strack",
+      "year": "2021",
+      "journal-title": "Nat. Methods"
+    },
+    {
+      "key": "2026100516012771900_cit42",
+      "first-page": "20306",
+      "volume-title": "Optically sectioned imaging\nby oblique plane microscopy.",
+      "author": "Dunsby",
+      "year": "2008"
+    },
+    {
+      "key": "2026100516012771900_cit43",
+      "doi-asserted-by": "publisher",
+      "first-page": "13027",
+      "DOI": "10.1364/OE.26.013027",
+      "article-title": "Integrated\none- and two-photon scanned oblique plane illumination (SOPi) microscopy\nfor rapid volumetric imaging",
+      "volume": "26",
+      "author": "Kumar",
+      "year": "2018",
+      "journal-title": "Opt. Express"
+    },
+    {
+      "key": "2026100516012771900_cit44",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.7554/eLife.57681",
+      "article-title": "A versatile\noblique\nplane microscope for large-scale and high-resolution imaging of subcellular\ndynamics",
+      "volume": "9",
+      "author": "Sapoznik",
+      "year": "2020",
+      "journal-title": "Elife"
+    },
+    {
+      "key": "2026100516012771900_cit45",
+      "doi-asserted-by": "publisher",
+      "first-page": "461",
+      "DOI": "10.1038/s41592-022-01417-2",
+      "article-title": "DaXi -high-resolution, large imaging volume and multi-view single-objective\nlight-sheet microscopy",
+      "volume": "19",
+      "author": "Yang",
+      "year": "2022",
+      "journal-title": "Nat. Methods"
+    },
+    {
+      "key": "2026100516012771900_cit46",
+      "doi-asserted-by": "publisher",
+      "first-page": "501",
+      "DOI": "10.1038/s41592-019-0401-3",
+      "article-title": "Epi-illumination SPIM\nfor volumetric imaging with high spatial-temporal\nresolution",
+      "volume": "16",
+      "author": "Yang",
+      "year": "2019",
+      "journal-title": "Nat. Methods"
+    },
+    {
+      "key": "2026100516012771900_cit47",
+      "doi-asserted-by": "publisher",
+      "first-page": "113",
+      "DOI": "10.1038/nphoton.2014.323",
+      "article-title": "Swept confocally-aligned\nplanar excitation (SCAPE) microscopy for\nhigh-speed volumetric imaging of behaving organisms",
+      "volume": "9",
+      "author": "Bouchard",
+      "year": "2015",
+      "journal-title": "Nat. Photonics"
+    },
+    {
+      "key": "2026100516012771900_cit48",
+      "doi-asserted-by": "publisher",
+      "first-page": "1054",
+      "DOI": "10.1038/s41592-019-0579-4",
+      "article-title": "Real-time volumetric microscopy of in vivo dynamics\nand large-scale\nsamples with SCAPE 2.0",
+      "volume": "16",
+      "author": "Voleti",
+      "year": "2019",
+      "journal-title": "Nat. Methods"
+    },
+    {
+      "key": "2026100516012771900_cit49",
+      "doi-asserted-by": "publisher",
+      "first-page": "5572",
+      "DOI": "10.1038/s41467-023-41261-2",
+      "article-title": "The spatial and temporal\nstructure of neural activity across the\nfly brain",
+      "volume": "14",
+      "author": "Schaffer",
+      "year": "2023",
+      "journal-title": "Nat. Commun."
+    },
+    {
+      "issue": "3",
+      "key": "2026100516012771900_cit50",
+      "doi-asserted-by": "publisher",
+      "first-page": "74",
+      "DOI": "10.3389/neuro.04.003.2007",
+      "article-title": "Evaluating a genetically encoded\noptical sensor of\nneural activity using electrophysiology in intact adult fruit flies",
+      "volume": "1",
+      "author": "Jayaraman",
+      "year": "2007",
+      "journal-title": "Front. Neural Circuits"
+    },
+    {
+      "key": "2026100516012771900_cit51",
+      "doi-asserted-by": "publisher",
+      "first-page": "1627",
+      "DOI": "10.1364/BOE.10.001627",
+      "article-title": "Optical properties\nof adult Drosophila brains in one-, two-, and three-photon microscopy",
+      "volume": "10",
+      "author": "Hsu",
+      "year": "2019",
+      "journal-title": "Biomed. Opt. Express"
+    },
+    {
+      "key": "2026100516012771900_cit52",
+      "doi-asserted-by": "publisher",
+      "first-page": "880",
+      "DOI": "10.1016/j.optcom.2007.10.007",
+      "article-title": "An optical technique\nfor remote focusing in microscopy",
+      "volume": "281",
+      "author": "Botcherby",
+      "year": "2008",
+      "journal-title": "Opt. Commun."
+    },
+    {
+      "key": "2026100516012771900_cit53",
+      "unstructured": "Millett-Sikking, A.; Thayer, N. H.; Bohnert, A.; York, A. G.\n          4D imaging via remote\nrefocus.; zenodo, 2018. 10.5281/zenodo.1146084."
+    },
+    {
+      "key": "2026100516012771900_cit54",
+      "doi-asserted-by": "publisher",
+      "first-page": "1216",
+      "DOI": "10.1364/BOE.553545",
+      "article-title": "Active remote focus stabilization\nin oblique plane\nmicroscopy",
+      "volume": "16",
+      "author": "Nguyen",
+      "year": "2025",
+      "journal-title": "Biomed. Opt. Express"
+    },
+    {
+      "key": "2026100516012771900_cit55",
+      "doi-asserted-by": "publisher",
+      "first-page": "3346",
+      "DOI": "10.1364/BOE.389654",
+      "article-title": "Tilt (in)variant\nlateral scan in oblique plane microscopy:\na geometrical optics approach",
+      "volume": "11",
+      "author": "Kumar",
+      "year": "2020",
+      "journal-title": "Biomed. Opt.\nExpress"
+    },
+    {
+      "key": "2026100516012771900_cit56",
+      "doi-asserted-by": "publisher",
+      "first-page": "238",
+      "DOI": "10.1038/nature04192",
+      "article-title": "A resetting signal\nbetween Drosophila pacemakers synchronizes morning and evening activity",
+      "volume": "438",
+      "author": "Stoleru",
+      "year": "2005",
+      "journal-title": "Nature"
+    },
+    {
+      "key": "2026100516012771900_cit57",
+      "doi-asserted-by": "publisher",
+      "first-page": "791",
+      "DOI": "10.1016/s0092-8674(00)81676-1",
+      "article-title": "A pdf neuropeptide\ngene mutation and ablation of PDF neurons each cause severe abnormalities\nof behavioral circadian rhythms in Drosophila",
+      "volume": "99",
+      "author": "Renn",
+      "year": "1999",
+      "journal-title": "Cell"
+    },
+    {
+      "key": "2026100516012771900_cit58",
+      "doi-asserted-by": "publisher",
+      "first-page": "177",
+      "DOI": "10.1002/cne.903370202",
+      "article-title": "Pigment-dispersing\nhormone-immunoreactive neurons in\nthe nervous system of wild-type Drosophila melanogaster and of several\nmutants with altered circadian rhythmicity",
+      "volume": "337",
+      "author": "Helfrich-Förster",
+      "year": "1993",
+      "journal-title": "J. Comp. Neurol."
+    },
+    {
+      "key": "2026100516012771900_cit59",
+      "doi-asserted-by": "publisher",
+      "first-page": "13195",
+      "DOI": "10.1523/JNEUROSCI.2075-14.2014",
+      "article-title": "Peptidergic Cell-Specific Synaptotagmins\nin Drosophila: Localization to Dense-Core Granules and Regulation\nby the bHLH Protein DIMMED",
+      "volume": "34",
+      "author": "Park",
+      "year": "2014",
+      "journal-title": "J. Neurosci."
+    },
+    {
+      "key": "2026100516012771900_cit60",
+      "doi-asserted-by": "publisher",
+      "first-page": "156",
+      "DOI": "10.1364/OL.33.000156",
+      "article-title": "Efficient\nsubpixel image registration\nalgorithms",
+      "volume": "33",
+      "author": "Guizar-Sicairos",
+      "year": "2008",
+      "journal-title": "Opt. Lett."
+    },
+    {
+      "key": "2026100516012771900_cit61",
+      "doi-asserted-by": "publisher",
+      "first-page": "237",
+      "DOI": "10.1111/j.1365-2818.2012.03613.x",
+      "article-title": "Three-dimensional motion\ntracking for high-resolution optical microscopy,\nin vivo",
+      "volume": "246",
+      "author": "Bakalar",
+      "year": "2012",
+      "journal-title": "J. Microsc."
+    },
+    {
+      "key": "2026100516012771900_cit62",
+      "doi-asserted-by": "publisher",
+      "first-page": "4507",
+      "DOI": "10.1038/srep04507",
+      "article-title": "Automated\nmotion artifact removal for intravital microscopy, without a priori\ninformation",
+      "volume": "4",
+      "author": "Lee",
+      "year": "2014",
+      "journal-title": "Sci. Rep."
+    },
+    {
+      "key": "2026100516012771900_cit63",
+      "doi-asserted-by": "publisher",
+      "first-page": "1",
+      "DOI": "10.1111/boc.202400082",
+      "article-title": "Revealing mitochondrial architecture and functions\nwith single molecule localization microscopy",
+      "volume": "117",
+      "author": "Jolivet",
+      "year": "2025",
+      "journal-title": "Biol. Cell"
+    },
+    {
+      "key": "2026100516012771900_cit64",
+      "doi-asserted-by": "publisher",
+      "first-page": "5808",
+      "DOI": "10.1016/j.cub.2025.10.046",
+      "article-title": "Daily ultrastructural remodeling of clock neurons",
+      "volume": "35",
+      "author": "Ispizua",
+      "year": "2025",
+      "journal-title": "Curr. Biol."
+    },
+    {
+      "key": "2026100516012771900_cit65",
+      "doi-asserted-by": "publisher",
+      "first-page": "55",
+      "DOI": "10.1364/JOSA.62.000055",
+      "article-title": "Bayesian-Based\nIterative Method of Image Restoration",
+      "volume": "62",
+      "author": "Richardson",
+      "year": "1972",
+      "journal-title": "J. Opt.\nSoc. Am."
+    },
+    {
+      "key": "2026100516012771900_cit66",
+      "doi-asserted-by": "publisher",
+      "first-page": "4",
+      "DOI": "10.1002/0471143030.cb0411s59",
+      "article-title": "Two-photon excitation microscopy for the study of living\ncells and tissues",
+      "author": "Benninger",
+      "year": "2013",
+      "journal-title": "Curr. Protoc Cell Biol."
+    },
+    {
+      "key": "2026100516012771900_cit67",
+      "doi-asserted-by": "publisher",
+      "first-page": "1410",
+      "DOI": "10.1364/BOE.444525",
+      "article-title": "Commercially\nderived\nversatile optical architecture for two-photon STED, wavelength mixing\nand label-free microscopy",
+      "volume": "13",
+      "author": "Peres",
+      "year": "2022",
+      "journal-title": "Biomed. Opt. Express"
+    },
+    {
+      "key": "2026100516012771900_cit68",
+      "doi-asserted-by": "publisher",
+      "first-page": "190",
+      "DOI": "10.1016/j.conb.2018.03.007",
+      "article-title": "High-speed 3D imaging\nof cellular activity in the brain\nusing axially-extended beams and light sheets",
+      "volume": "50",
+      "author": "Hillman",
+      "year": "2018",
+      "journal-title": "Curr. Opin. Neurobiol."
+    },
+    {
+      "key": "2026100516012771900_cit69",
+      "unstructured": "Millett-Sikking, A.\n          \n          Snoutclub; zenodo, 2025. DOI:10.5281/zenodo.14861847."
+    },
+    {
+      "key": "2026100516012771900_cit70",
+      "first-page": "7204",
+      "article-title": "Dual-view\noblique plane microscopy",
+      "volume-title": "Biomed. Opt. Express\n 2020,",
+      "author": "Sparks",
+      "year": "2021"
+    },
+    {
+      "key": "2026100516012771900_cit71",
+      "doi-asserted-by": "publisher",
+      "first-page": "2755",
+      "DOI": "10.1038/s41467-023-43650-z",
+      "article-title": "Projective light-sheet microscopy with flexible parameter\nselection",
+      "volume": "15",
+      "author": "Chen",
+      "year": "2024",
+      "journal-title": "Nat. Commun."
+    },
+    {
+      "key": "2026100516012771900_cit72",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.1073/pnas.2404232121",
+      "article-title": "Hyperspectral oblique\nplane microscopy enables spontaneous, label-free imaging of biological\ndynamic processes in live animals",
+      "volume": "121",
+      "author": "Guo",
+      "year": "2024",
+      "journal-title": "Proc. Natl.\nAcad. Sci. U. S. A."
+    },
+    {
+      "key": "2026100516012771900_cit73",
+      "doi-asserted-by": "publisher",
+      "first-page": "1419",
+      "DOI": "10.1038/s41592-022-01635-8",
+      "article-title": "Resolution doubling in light-sheet microscopy via oblique plane structured\nillumination",
+      "volume": "19",
+      "author": "Chen",
+      "year": "2022",
+      "journal-title": "Nat. Methods"
+    },
+    {
+      "key": "2026100516012771900_cit74",
+      "doi-asserted-by": "publisher",
+      "first-page": "4498",
+      "DOI": "10.1364/BOE.524013",
+      "article-title": "Adaptive optics in an\noblique plane microscope",
+      "volume": "15",
+      "author": "McFadden",
+      "year": "2024",
+      "journal-title": "Biomed. Opt. Express."
+    },
+    {
+      "key": "2026100516012771900_cit75",
+      "unstructured": "Millett-Sikking, A.; et al.\n          High NA single-objective light-sheet; Zenodo, 2019. 10.5281/ZENODO.3376243."
+    },
+    {
+      "key": "2026100516012771900_cit76",
+      "doi-asserted-by": "publisher",
+      "DOI": "10.5281/zenodo.3554784",
+      "article-title": "Crossbill:\nan open access single objective light-sheet microscopy platform",
+      "author": "Kumar",
+      "year": "2019",
+      "journal-title": "bioRxiv"
+    },
+    {
+      "key": "2026100516012771900_cit77",
+      "doi-asserted-by": "publisher",
+      "first-page": "353",
+      "DOI": "10.1177/0748730412455918",
+      "article-title": "A mechanism for circadian\ncontrol of pacemaker neuron excitability",
+      "volume": "27",
+      "author": "Ruben",
+      "year": "2012",
+      "journal-title": "J.\nBiol. Rhythms"
+    },
+    {
+      "key": "2026100516012771900_cit78",
+      "doi-asserted-by": "publisher",
+      "first-page": "2124",
+      "DOI": "10.1016/j.neuron.2022.04.008",
+      "article-title": "Walking strides direct rapid and\nflexible recruitment of visual circuits for course control in Drosophila",
+      "volume": "110",
+      "author": "Fujiwara",
+      "year": "2022",
+      "journal-title": "Neuron"
+    },
+    {
+      "key": "2026100516012771900_cit79",
+      "doi-asserted-by": "publisher",
+      "first-page": "100381",
+      "DOI": "10.1016/j.xpro.2021.100381",
+      "article-title": "Photo-labeling\nneurons in the Drosophila\nbrain",
+      "volume": "2",
+      "author": "Li",
+      "year": "2021",
+      "journal-title": "STAR Protoc."
+    },
+    {
+      "key": "2026100516012771900_cit80",
+      "doi-asserted-by": "publisher",
+      "first-page": "1",
+      "DOI": "10.1186/s12859-017-1934-z",
+      "article-title": "ImageJ2: ImageJ for\nthe next generation\nof scientific image data",
+      "volume": "18",
+      "author": "Rueden",
+      "year": "2017",
+      "journal-title": "BMC Bioinf."
+    }
+  ],
+  "container-title": [
+    "ACS Photonics"
+  ],
+  "original-title": [],
+  "language": "en",
+  "link": [
+    {
+      "URL": "https://pubs.acs.org/doi/pdf/10.1021/acsphotonics.6c01278",
+      "content-type": "application/pdf",
+      "content-version": "vor",
+      "intended-application": "unspecified"
+    },
+    {
+      "URL": "https://pubs.acs.org/apchd5/article-pdf/doi/10.1021/acsphotonics.6c01278/68749895/acsphotonics.6c01278.pdf",
+      "content-type": "application/pdf",
+      "content-version": "vor",
+      "intended-application": "syndication"
+    },
+    {
+      "URL": "https://pubs.acs.org/apchd5/article-pdf/doi/10.1021/acsphotonics.6c01278/68749895/acsphotonics.6c01278.pdf",
+      "content-type": "unspecified",
+      "content-version": "vor",
+      "intended-application": "similarity-checking"
+    }
+  ],
+  "deposited": {
+    "date-parts": [
+      [
+        2026,
+        10,
+        5
+      ]
+    ],
+    "date-time": "2026-10-05T20:09:48Z",
+    "timestamp": 1791230988000
+  },
+  "score": 1,
+  "resource": {
+    "primary": {
+      "URL": "https://pubs.acs.org/apchd5/article/doi/10.1021/acsphotonics.6c01278/5444804/Single-Objective-Light-Sheet-Microscopy-Allows"
+    }
+  },
+  "subtitle": [],
+  "short-title": [],
+  "issued": {
+    "date-parts": [
+      [
+        2026,
+        10,
+        5
+      ]
+    ]
+  },
+  "references-count": 80,
+  "URL": "https://doi.org/10.1021/acsphotonics.6c01278",
+  "relation": {},
+  "ISSN": [
+    "2330-4022"
+  ],
+  "issn-type": [
+    {
+      "value": "2330-4022",
+      "type": "electronic"
+    }
+  ],
+  "subject": [],
+  "published": {
+    "date-parts": [
+      [
+        2026,
+        10,
+        5
+      ]
+    ]
+  }
+}

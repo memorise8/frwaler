@@ -179,17 +179,17 @@ class AmiSwissEnCrawler(BaseCrawler):
 
     @staticmethod
     def _crossref_date(msg: dict) -> str:
-        """Extract best ISO date from CrossRef message dict."""
-        for key in ("published", "published-print", "published-online", "issued", "created"):
+        """Preserve publication date precision; registry creation is a different role."""
+        for key in ("published", "published-print", "published-online", "issued"):
             dp = (msg.get(key) or {}).get("date-parts", [[]])
             if dp and dp[0]:
                 parts = dp[0]
                 if len(parts) >= 3:
                     return f"{parts[0]:04d}-{int(parts[1]):02d}-{int(parts[2]):02d}"
                 if len(parts) == 2:
-                    return f"{parts[0]:04d}-{int(parts[1]):02d}-01"
+                    return f"{parts[0]:04d}-{int(parts[1]):02d}"
                 if len(parts) == 1:
-                    return f"{parts[0]:04d}-01-01"
+                    return f"{parts[0]:04d}"
         return ""
 
     # ------------------------------------------------------------------
@@ -259,8 +259,9 @@ class AmiSwissEnCrawler(BaseCrawler):
                             continue
 
                         # Dates
-                        published_date = self._crossref_date(cf) or f"{entry['year']}-01-01"
-                        listed_date = f"{entry['year']}-01-01"
+                        crossref_date = self._crossref_date(cf)
+                        published_date = crossref_date or entry["year"]
+                        listed_date = entry["year"]
 
                         # Authors: prefer CrossRef structured list
                         cf_authors = cf.get("author") or []
@@ -295,6 +296,17 @@ class AmiSwissEnCrawler(BaseCrawler):
                             "posted_date": listed_date,
                             "journal_raw": entry["journal"],
                             "crossref_type": cf.get("type"),
+                            "source_publication_year_raw": entry["year"],
+                            "listed_date_role": "source_publication_year_group",
+                            "published_date_source": "crossref_publication_date" if crossref_date else "source_publication_year",
+                            "crossref_dates_raw": {
+                                key: cf[key] for key in
+                                ("published", "published-print", "published-online", "issued", "created")
+                                if key in cf
+                            },
+                            "publication_year_conflict": bool(
+                                crossref_date and crossref_date[:4] != entry["year"]
+                            ),
                         }
                         if volume:
                             meta["volume"] = volume
