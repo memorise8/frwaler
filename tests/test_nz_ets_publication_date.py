@@ -53,8 +53,16 @@ class NzEtsPublicationDateTests(unittest.TestCase):
         self.assertIn('Closed 29 Jun 2025', source.get_text(' ', strip=True))
         paper = self.parse(0)
         self.assertEqual(paper['published_date'], '2025-08-19')
-        self.assertEqual({k: v for k, v in paper.items() if k not in ('published_date', 'metadata')},
-                         {k: v for k, v in self.before[0].items() if k not in ('published_date', 'metadata')})
+        self.assertEqual({k: v for k, v in paper.items() if k not in ('published_date', 'metadata', 'abstract')},
+                         {k: v for k, v in self.before[0].items() if k not in ('published_date', 'metadata', 'abstract')})
+        # The original parser omitted radio answers. Preserve every old text
+        # answer while also retaining the source's selected options.
+        for block in self.before[0]['abstract'].split('\n\n'):
+            question, answer = block.split('\nA: ', 1)
+            self.assertIn(question, paper['abstract'])
+            self.assertIn(answer, paper['abstract'])
+        self.assertIn('A: Unsure Possible legislation.', paper['abstract'])
+        self.assertIn('A: Option 1: Status quo', paper['abstract'])
         metadata = json.loads(paper['metadata'])
         for key, value in json.loads(self.before[0]['metadata']).items():
             self.assertEqual(metadata[key], value)
@@ -110,9 +118,10 @@ class NzEtsPublicationDateTests(unittest.TestCase):
                 after = dict(prior_conn.execute('SELECT * FROM documents').fetchone())
                 if kind == 'legacy':
                     self.assertEqual(after['published_date'], '2025-08-19')
+                    self.assertEqual(after['abstract'], papers[0]['abstract'])
                     self.assertEqual(
-                        {k: v for k, v in old.items() if k not in ('published_date', 'metadata')},
-                        {k: v for k, v in after.items() if k not in ('published_date', 'metadata')})
+                        {k: v for k, v in old.items() if k not in ('published_date', 'metadata', 'abstract')},
+                        {k: v for k, v in after.items() if k not in ('published_date', 'metadata', 'abstract')})
                 else:
                     # The existing v2 save path does not rewrite an existing row.
                     self.assertEqual(old, after)

@@ -1,0 +1,38 @@
+{
+  "sources": [
+    {
+      "file": "list-first.html",
+      "url": "https://consult.environment.govt.nz/climate/nz-ets-unit-settings-and-regulatory-updates-2025/consultation/published_select_respondent",
+      "source_file": "twentyseventh-nz/000.body",
+      "sha256": "863751e5490a2511e0b0705aa7182e4f445c4d0fbc6a5678cf2594b3eb014faa"
+    },
+    {
+      "file": "list-last.html",
+      "url": "https://consult.environment.govt.nz/climate/nz-ets-unit-settings-and-regulatory-updates-2025/consultation/published_select_respondent?_b_index=60",
+      "source_file": "twentyseventh-nz_remaining/000.body",
+      "sha256": "c2a59532705f4fa4769becd93005ffe894c6b490cb6af7210db6a0d8e8d2d14b"
+    },
+    {
+      "file": "detail-first.html",
+      "url": "https://consult.environment.govt.nz/climate/nz-ets-unit-settings-and-regulatory-updates-2025/consultation/view_respondent?uuId=640885614",
+      "source_file": "twentyseventh-actual_details/000.body",
+      "sha256": "3efa323a6741bcd53c5f695c56beef986e1a561c99922d1b2ffc18a05e429872",
+      "uid": "640885614"
+    },
+    {
+      "file": "detail-second.html",
+      "url": "https://consult.environment.govt.nz/climate/nz-ets-unit-settings-and-regulatory-updates-2025/consultation/view_respondent?uuId=164143508",
+      "source_file": "twentyeighth-nz_ETS_remaining_details/000.body",
+      "sha256": "62f76810f91bffdc495a015c8a86b15af3992e679e3ebfcf4144793137ca747e",
+      "uid": "164143508"
+    },
+    {
+      "file": "detail-last.html",
+      "url": "https://consult.environment.govt.nz/climate/nz-ets-unit-settings-and-regulatory-updates-2025/consultation/view_respondent?uuId=350025618",
+      "source_file": "twentyseventh-actual_details/001.body",
+      "sha256": "9cea73a7152ade20092f9a6996f83a59b3da56a4cc043c817b4b5bbeece78d43",
+      "uid": "350025618"
+    }
+  ],
+  "lists_are_actual_unfiltered_pages": true
+}

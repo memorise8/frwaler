@@ -1,0 +1,25 @@
+{
+  "source_commit": "ed283a933d70415c66b38c4491bf149b59962bd2",
+  "sources": [
+    {
+      "uid": "804102122",
+      "source_observed_url": "https://consult.environment.govt.nz/climate/nz-ets-unit-settings-and-regulatory-updates-2025/consultation/view_respondent?uuId=804102122",
+      "canonical_native_url": "https://consult.environment.govt.nz/climate/nz-ets-unit-settings-and-regulatory-updates-2025/consultation/view_respondent?uuId=804102122",
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentyeighth-nz_ETS_remaining_details/014.body",
+      "source_sha256": "dc26759f79270ebe18731b2073494c6f707194a8fdd99d64442e60e3107bad49",
+      "before_retained": false,
+      "after_retained": false,
+      "fixture_file": "response-0.html"
+    },
+    {
+      "uid": "338634102",
+      "source_observed_url": "https://consult.environment.govt.nz/climate/nz-ets-unit-settings-and-regulatory-updates-2025/consultation/view_respondent?uuId=338634102",
+      "canonical_native_url": "https://consult.environment.govt.nz/climate/nz-ets-unit-settings-and-regulatory-updates-2025/consultation/view_respondent?uuId=338634102",
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentyeighth-nz_ETS_remaining_details/017.body",
+      "source_sha256": "dfdcfd5bbdf5c66f294e592a2883e87cb9fc20685242c27163bf64e1dd084097",
+      "before_retained": false,
+      "after_retained": false,
+      "fixture_file": "response-1.html"
+    }
+  ]
+}

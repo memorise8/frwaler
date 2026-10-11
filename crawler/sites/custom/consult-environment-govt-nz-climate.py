@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Crawler for NZ ETS published submissions on consult.environment.govt.nz."""
 
+import hashlib
 import json
 import os
 import re
@@ -100,8 +101,20 @@ class ConsultEnvironmentGovtNzClimateCrawler(BaseCrawler):
             question_text = h4.get_text(strip=True) if h4 else ""
 
             ans_texts = []
-            for ans in q.find_all("div", attrs={"data-test-hook": True}):
-                t = ans.get_text(separator=" ", strip=True)
+            for ans in q.select("[data-test-hook]"):
+                if ans.get('data-test-hook') == 'subquestion-radio':
+                    # Citizen Space renders published choices as spans. Only
+                    # the checked option is an answer; the other labels are
+                    # displayed too, but were not selected by the respondent.
+                    if not ans.select_one('.fa-check'):
+                        continue
+                    option = ans.find_parent(class_='cs-fake-radio-checkbox-container')
+                    label = option.select_one('.cs-fake-radio-checkbox-label') if option else None
+                    t = label.get_text(' ', strip=True) if label else ''
+                elif ans.name == 'div':
+                    t = ans.get_text(separator=" ", strip=True)
+                else:
+                    continue
                 if t:
                     ans_texts.append(t)
             answer_text = " ".join(ans_texts).strip()
@@ -174,107 +187,106 @@ class ConsultEnvironmentGovtNzClimateCrawler(BaseCrawler):
     # Main crawl
     # ------------------------------------------------------------------
 
+    def _validate_list_url(self, url):
+        expected = urlsplit(self.base_url + self._CONSULTATION_PATH
+                            + '/consultation/published_select_respondent')
+        parsed = urlsplit(url)
+        query = parse_qs(parsed.query, keep_blank_values=True)
+        if ((parsed.scheme, parsed.netloc, parsed.path)
+                != (expected.scheme, expected.netloc, expected.path)
+                or set(query) - {'_b_index'}
+                or len(query.get('_b_index', ['0'])) != 1
+                or not query.get('_b_index', ['0'])[0].isdigit()):
+            raise ValueError('invalid NZ ETS source list URL')
+        return int(query.get('_b_index', ['0'])[0])
+
+    def _parse_source_list(self, raw, url):
+        offset = self._validate_list_url(url)
+        soup = self._make_soup(raw)
+        main = soup.select_one('main')
+        if main is None or not any(
+                re.fullmatch(r'\d+ Published responses', h.get_text(' ', strip=True))
+                for h in main.select('h3')):
+            raise ValueError('missing published response catalogue')
+        heading = main.select_one('h1')
+        if heading is None or heading.get_text(' ', strip=True) != self._CONSULTATION_TITLE:
+            raise ValueError('source consultation changed')
+        ids = self._get_respondent_uuids(main)
+        next_url = self._get_next_page_url(main)
+        if next_url and (not ids or self._validate_list_url(next_url) <= offset):
+            raise ValueError('source next page does not advance')
+        pager = main.select_one('nav.cs-pagination-widget')
+        page = re.search(r'Page (\d+) of (\d+)', pager.get_text(' ', strip=True)) if pager else None
+        if page and int(page[1]) < int(page[2]) and not next_url:
+            raise ValueError('source next page missing before declared last page')
+        return ids, next_url
+
     def crawl(self, limit=None):
+        self._exhausted = False
+        self._source_failure = None
+        if limit is not None and limit <= 0:
+            return 0
+        self._check_cancelled()
+        initial_url = (self.base_url + self._CONSULTATION_PATH
+                       + '/consultation/published_select_respondent')
+        cursor = dict(self.delivery_cursor or {})
+        scope = cursor.get('scope', 'nz_ets_2025')
+        list_url = cursor.get('list_url', initial_url)
+        index = cursor.get('next_index', 0)
+        expected_digest = cursor.get('list_digest', '')
+        if (cursor.get('version', 1) != 1 or scope not in ('nz_ets_2025', 'done')
+                or type(index) is not int or index < 0
+                or not isinstance(expected_digest, str)
+                or (index and not re.fullmatch(r'[a-f0-9]{64}', expected_digest))):
+            raise ValueError('invalid NZ ETS source cursor')
+        if scope != 'done':
+            self._validate_list_url(list_url)
         saved = 0
-        seen_urls = set()
-        start_time = time.time()
-        max_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
-
-        list_url = (
-            f"{self.base_url}{self._CONSULTATION_PATH}"
-            "/consultation/published_select_respondent"
-        )
-        next_url = list_url
-        page_num = 0
-
-        while True:
-            if time.time() - start_time > max_seconds:
-                print(f"[{self.site_id}] 25-minute budget reached, stopping.")
-                break
-
-            if limit is not None and saved >= limit:
-                break
-
-            if page_num >= 200:
-                print(f"[{self.site_id}] Safety cap of 200 pages reached, stopping.")
-                break
-
-            # --- Fetch respondent list page ---
-            html = self._fetch_html(next_url)
-            if not html:
-                print(f"[{self.site_id}] Failed to fetch list page: {next_url}")
-                break
-
+        started = time.monotonic()
+        budget = int(os.environ.get('LIBERTREE_MAX_WALL_S', str(25 * 60)))
+        while scope != 'done':
+            self._check_cancelled()
+            if (limit is not None and saved >= limit) or time.monotonic() - started >= budget:
+                return saved
             try:
-                soup = self._make_soup(html)
-            except Exception as exc:
-                print(f"[{self.site_id}] Failed to parse list page {next_url}: {exc}")
-                break
-
-            # Extract new uuIds (dedup across pages)
-            all_uuids = self._get_respondent_uuids(soup)
-            new_uuids = []
-            for uid in all_uuids:
-                canonical = (
-                    f"{self.base_url}{self._CONSULTATION_PATH}"
-                    f"/consultation/view_respondent?uuId={uid}"
-                )
-                if canonical not in seen_urls:
-                    seen_urls.add(canonical)
-                    new_uuids.append(uid)
-
-            if not new_uuids:
-                print(
-                    f"[{self.site_id}] No new respondents on page {page_num + 1}, stopping."
-                )
-                break
-
-            # Capture next-page URL before processing items
-            next_url_candidate = self._get_next_page_url(soup)
-
-            # --- Fetch and save each respondent ---
-            for uid in new_uuids:
-                if limit is not None and saved >= limit:
-                    break
-                if time.time() - start_time > max_seconds:
-                    break
-
-                detail_url = (
-                    f"{self.base_url}{self._CONSULTATION_PATH}"
-                    f"/consultation/view_respondent?uuId={uid}"
-                )
-
-                try:
-                    html_detail = self._fetch_html(detail_url)
-                    if not html_detail:
-                        print(f"[{self.site_id}] item {uid} failed: empty response")
-                        continue
-
-                    paper = self._parse_respondent(html_detail, uid, detail_url)
+                raw = self._fetch_html(list_url)
+                self._check_cancelled()
+                if not raw:
+                    self._report_source_failure('fetch_failed')
+                    raise ValueError('empty published response list')
+                ids, next_url = self._parse_source_list(raw, list_url)
+                digest = hashlib.sha256(json.dumps(ids).encode()).hexdigest()
+                if (expected_digest and digest != expected_digest) or index > len(ids):
+                    raise ValueError('source list changed since checkpoint; overlap review required')
+                for offset in range(index, len(ids)):
+                    self._check_cancelled()
+                    if (limit is not None and saved >= limit) or time.monotonic() - started >= budget:
+                        return saved
+                    uid = ids[offset]
+                    detail_url = (self.base_url + self._CONSULTATION_PATH
+                                  + '/consultation/view_respondent?uuId=' + uid)
+                    raw_detail = self._fetch_html(detail_url)
+                    self._check_cancelled()
+                    if not raw_detail:
+                        self._report_source_failure('fetch_failed')
+                        raise ValueError('empty published response detail')
+                    paper = self._parse_respondent(raw_detail, uid, detail_url)
                     if paper is None:
-                        continue
-
+                        self._report_source_failure('item_failed')
+                        raise ValueError('published response content requires review')
                     self._save_paper(paper)
                     if self._last_save_created:
                         saved += 1
-
-                except KeyboardInterrupt:
-                    raise
-                except Exception as exc:
-                    print(f"[{self.site_id}] item {uid} failed: {exc}")
-                    continue
-
-            page_num += 1
-
-            if page_num % 10 == 0:
-                limit_str = str(limit) if limit is not None else "inf"
-                print(
-                    f"[{self.site_id}] page {page_num}: saved {saved}/{limit_str}"
-                )
-
-            if not next_url_candidate:
-                break
-
-            next_url = next_url_candidate
-
+                    self._advance_cursor(dict(version=1, scope=scope, list_url=list_url,
+                                              next_index=offset + 1, list_digest=digest), items_done=1)
+            except Exception:
+                self._report_source_failure('invalid_response')
+                raise
+            list_url = next_url or ''
+            scope = 'nz_ets_2025' if next_url else 'done'
+            index, expected_digest = 0, ''
+            self._advance_cursor(dict(version=1, scope=scope, list_url=list_url,
+                                      next_index=0, list_digest=''))
+        self._check_cancelled()
+        self._mark_exhausted()
         return saved
