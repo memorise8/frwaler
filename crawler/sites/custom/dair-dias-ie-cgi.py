@@ -3,14 +3,14 @@
 
 Uses the EPrints JSON export endpoint (export_dias_JSON.js) filtered to
 type=article (matching the advanced-search starting URL). The endpoint
-returns the full matching result set in a single response with complete
-abstracts and metadata — no detail-page fetches are needed. Pagination is
-therefore performed in-memory over the fetched list, in page-size chunks,
-to satisfy limit/logging/safety-cap semantics.
+returns the full matching result set with available abstracts and metadata;
+no detail-page fetches are needed. A durable position and export digest allow
+interrupted work to resume without skipping changed or failed records.
 
 PDF URL pattern: {base_url}/{eprintid}/{pos}/{filename}
 """
 
+import hashlib
 import json
 import os
 import re
@@ -35,10 +35,6 @@ _EXP = (
     "|metadata_visibility:metadata_visibility:ANY:EQ:show"
 )
 _EXP_ENCODED = urllib.parse.quote(_EXP, safe="")
-
-_PAGE_SIZE = 20
-_SAFETY_CAP_PAGES = 200
-_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25 minutes
 
 
 class DairDiasIeCgiCrawler(BaseCrawler):
@@ -181,12 +177,6 @@ class DairDiasIeCgiCrawler(BaseCrawler):
             return None
 
         abstract = (rec.get("abstract") or "").strip()
-        if len(abstract) < 50:
-            print(
-                f"[{self.site_id}] skip eprintid={eprintid}: "
-                f"abstract too short ({len(abstract)} chars)"
-            )
-            return None
 
         authors = self._build_authors(rec.get("creators") or [])
         published_date = self._parse_date(rec.get("date"))
@@ -257,111 +247,75 @@ class DairDiasIeCgiCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
-        """Crawl the DIAS repository via the JSON bulk export.
-
-        The export endpoint returns the full type=article result set in
-        one response; pagination below walks that list in fixed-size
-        chunks so limit/logging/safety-cap/dedup semantics match a normal
-        paginated crawl.
-
-        Parameters
-        ----------
-        limit:
-            Maximum records to save. None = unlimited.
-        """
-        saved = 0
-        seen_urls = set()
-        start_time = time.time()
-        limit_or_inf = limit if limit is not None else float("inf")
-
-        print(f"[{self.site_id}] fetching bulk export...")
-        all_records = self._fetch_all_records()
-        if not all_records:
-            print(f"[{self.site_id}] no records returned from export. Done.")
+        """Save the complete article export with a durable position checkpoint."""
+        self._exhausted = False
+        self._source_failure = None
+        if limit is not None and limit <= 0:
             return 0
-        print(f"[{self.site_id}] export returned {len(all_records)} candidate records")
-
-        page_num = 0  # 0-based page counter (for logging / safety cap)
-        offset = 0
-
-        while True:
-            try:
-                # --- time budget ---
-                elapsed = time.time() - start_time
-                if elapsed >= _BUDGET_SECS:
-                    print(f"[{self.site_id}] 25-minute budget reached. Stopping cleanly.")
-                    break
-
-                # --- limit ---
-                if saved >= limit_or_inf:
-                    break
-
-                # --- safety cap ---
-                if page_num >= _SAFETY_CAP_PAGES:
-                    print(f"[{self.site_id}] Safety cap of {_SAFETY_CAP_PAGES} pages reached. Stopping.")
-                    break
-
-                # --- progress log every 10 pages ---
-                if page_num > 0 and page_num % 10 == 0:
-                    limit_str = str(limit) if limit is not None else "∞"
-                    print(f"[{self.site_id}] page {page_num}: saved {saved}/{limit_str}")
-
-                # --- slice the current page out of the bulk result ---
-                page_records = all_records[offset:offset + _PAGE_SIZE]
-                if not page_records:
-                    print(f"[{self.site_id}] no records at offset {offset}. Done.")
-                    break
-
-                # --- process records ---
-                new_on_page = 0
-                for rec in page_records:
-                    if saved >= limit_or_inf:
-                        break
-
-                    eprintid = rec.get("eprintid")
-                    url_key = f"{self.base_url}/{eprintid}/"
-
-                    if url_key in seen_urls:
-                        continue
-                    seen_urls.add(url_key)
-                    new_on_page += 1
-
-                    try:
-                        paper = self._record_to_paper(rec)
-                    except Exception as exc:
-                        print(f"[{self.site_id}] item eprintid={eprintid} parse failed: {exc}")
-                        continue
-
-                    if paper is None:
-                        continue
-
-                    try:
-                        self._save_paper(paper)
-                        if self._last_save_created:
-                            saved += 1
-                        limit_str = str(limit) if limit is not None else "∞"
-                        print(f"[{self.site_id}] saved {saved}/{limit_str}: {paper['title'][:60]}")
-                    except Exception as exc:
-                        print(f"[{self.site_id}] save failed for eprintid={eprintid}: {exc}")
-                        continue
-
-                    time.sleep(0.2)  # gentle pacing; no per-item network fetch
-
-                # --- pagination termination conditions ---
-                if new_on_page == 0 and page_records:
-                    print(f"[{self.site_id}] all records on page {page_num} already seen (loop detected). Stopping.")
-                    break
-
-                if len(page_records) < _PAGE_SIZE:
-                    print(f"[{self.site_id}] partial page ({len(page_records)} < {_PAGE_SIZE}). Done.")
-                    break
-
-                offset += len(page_records)
-                page_num += 1
-
-            except KeyboardInterrupt:
-                print(f"[{self.site_id}] interrupted by user.")
-                raise
-
-        print(f"[{self.site_id}] Done. Total saved: {saved}")
-        return saved
+        self._check_cancelled()
+        cursor = dict(self.delivery_cursor or {})
+        scope = cursor.get("scope", "articles")
+        index = cursor.get("next_index", 0)
+        total = cursor.get("total", 0)
+        expected_digest = cursor.get("export_digest", "")
+        if (type(cursor.get("version", 1)) is not int or cursor.get("version", 1) != 1
+                or scope not in ("articles", "done")
+                or type(index) is not int or type(total) is not int
+                or not 0 <= index <= total
+                or not isinstance(expected_digest, str)
+                or (cursor and (total <= 0 or not re.fullmatch(r"[a-f0-9]{64}", expected_digest)))
+                or (scope == "done" and index != total)):
+            raise ValueError("invalid DAIR export cursor")
+        if scope == "done":
+            self._mark_exhausted()
+            return 0
+        started = time.monotonic()
+        budget = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
+        if time.monotonic() - started >= budget:
+            return 0
+        saved = 0
+        try:
+            records = self._fetch_all_records()
+            self._check_cancelled()
+            if not isinstance(records, list) or not records:
+                self._report_source_failure("fetch_failed")
+                raise ValueError("missing or empty DAIR article export")
+            ids = []
+            for record in records:
+                if (not isinstance(record, dict)
+                        or type(record.get("eprintid")) is not int or record["eprintid"] <= 0
+                        or record.get("type") != "article"
+                        or record.get("eprint_status") != "archive"
+                        or record.get("metadata_visibility") != "show"):
+                    raise ValueError("invalid DAIR article identity or export scope")
+                ids.append(record["eprintid"])
+            if len(set(ids)) != len(ids):
+                raise ValueError("duplicate DAIR article identity in export")
+            digest = hashlib.sha256(json.dumps(records, sort_keys=True,
+                                               separators=(",", ":")).encode()).hexdigest()
+            if expected_digest and (expected_digest != digest or total != len(records)):
+                raise ValueError("DAIR export changed since checkpoint; overlap review required")
+            total = len(records)
+            for offset in range(index, total):
+                self._check_cancelled()
+                if ((limit is not None and saved >= limit)
+                        or time.monotonic() - started >= budget):
+                    return saved
+                paper = self._record_to_paper(records[offset])
+                if paper is None:
+                    self._report_source_failure("item_failed")
+                    raise ValueError("DAIR article could not be parsed")
+                self._check_cancelled()
+                self._save_paper(paper)
+                if self._last_save_created:
+                    saved += 1
+                self._advance_cursor(dict(version=1, scope="articles", next_index=offset + 1,
+                                          total=total, export_digest=digest), items_done=1)
+            self._check_cancelled()
+            self._advance_cursor(dict(version=1, scope="done", next_index=total,
+                                      total=total, export_digest=digest))
+            self._mark_exhausted()
+            return saved
+        except Exception:
+            self._report_source_failure("invalid_response")
+            raise

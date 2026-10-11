@@ -1,0 +1,11 @@
+{
+  "description": "Complete actual public native JSON export; all1054IDs independently match original53HTMLpages; no generated rows.",
+  "url": "https://dair.dias.ie/cgi/search/archive/advanced/export_dias_JSON.js?screen=Search&dataset=archive&_action_export=1&output=JSON&exp=0%7C1%7C-date%2Fcreators_name%2Ftitle%7Carchive%7C-%7Ctype%3Atype%3AANY%3AEQ%3Aarticle%7C-%7Ceprint_status%3Aeprint_status%3AANY%3AEQ%3Aarchive%7Cmetadata_visibility%3Ametadata_visibility%3AANY%3AEQ%3Ashow&n=",
+  "observed_at": "2026-10-11T14:08:44.192695+00:00",
+  "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentyninth-dair_native_export16MiB/000.body",
+  "source_sha256": "c8995d14112a9285e1029bf439f289a40f374f38654e4dfd72c49ba083864caf",
+  "gzip_file": "all1054.json.gz",
+  "gzip_sha256": "8cbd45e0a24061e834f3925fb30a46daaa516f1a5e21b830d8419a5f4e0aeb27",
+  "records": 1054,
+  "before_source_commit": "f74d8066c73258c9299011306909d6ab8205f360"
+}
