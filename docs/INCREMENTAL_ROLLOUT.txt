@@ -623,6 +623,36 @@ Batch 025: ACMA — 제외된 원본 검색 범위와 전송 실패 보류
   batch-025-acma/scope-final-review.json 및 postgres-review.json 참조.
 - 재검토: python -m delivery.scripts.review_acma_incremental --source <continuous 경로> --probe <현재 관측 경로> --out <새 검토 파일>
 
+
+Batch 026: ADAPT — 기존 WordPress publications 전체 범위에 공통 증분 연결
+- 보존된 native API35페이지3499개 ID/URL과 인접 page36의 명시적 WP400 범위 초과 응답을
+  해시 대조했다. 이번 실제 처음/마지막/인접 요청3회도 보존 body와 일치하고 현재 header는
+  X-WP-Total3499/TotalPages35였다. 전체 중간 페이지를 현재 다시 요청한 것은 아니다.
+- 전체3499개 CMS date는 내림차순이고 누락이 없다. 논문 ACF date는 누락1개/역전443회,
+  숫자 ID는 역전829회다. 숫자 크기나 논문 발행일로 최신순을 가정하지 않고 첫 완주 때
+  CMS date 첫/끝과 전 항목의 방향을 공통 engine에서 판별한다. 기존 저장 날짜를 바꾸지 않는다.
+- 기존 native endpoint/필드/전체 journal type을 그대로 사용한다. 기본 worker에 adapter를
+  연결하고 요청/정렬/완주/pending 저장을 공통 engine에 맡긴다. total/page header와 행 수,
+  앞 페이지 해시, 페이지 간 ID/URL 중복을 검증한다. 끝은 정확한 total과 인접 명시적
+  rest_post_invalid_page_number/status400 둘을 관측해야 인정한다. 다른 오류는 끝이 아니다.
+- 상세 처리에는 기존 _process_item/외부 초록 resolver를 재사용한다. 모든 provider 요청을
+  계수하고 허용된 두 API 외 요청이나 redirect는 중단한다. 초록 미확보는 영구 제외가 아니라
+  pending 유지이며 완료 기준점도 남기지 않는다. 원래 native 코드는 변경하지 않았다.
+- 새 PostgreSQL 기본 worker에서 실제 보존3499개 metadata 객체를 합성 외부 초록과 함께
+  저장했다. 요청 수는 부분3건저장/이어받기/재실행73/3496/3회, 외부초록3/3496/0회,
+  신규 저장3/3496/0건이다. 첫 단계에서 전체 목록을 소진했어도 pending이 남아 기준점은
+  미완료이며 이어받기를 끝낸 뒤에만 완료된다. 전체 저장 순서와 명시된10개 저장필드를 대조했다.
+- 이어서 같은 소유 격리 DB에서 실제 목록만 재실행했다. 외부 API 호출은 금지한 상태에서
+  실제 HTTP3회, 상세0회, 저장0건, known_boundary_plus_overlap 중단과3499개 기존행 불변을
+  확인했다. 전체 실제 HTTP는 경계3+재실행3=6회다. 초기 fixture 본문은 실제 초록이 아니다.
+- 공개 HTML의 조건부3498건과 API3499건의 범위 동등성, 외부 title검색 초록의 논문 일치,
+  원문/파일 완주는 별도 미검증으로 유지한다. 이번 연결은 기존 native API scope의 증분
+  동작을 의미하며 기존 전수검증 goal을 재개하거나 기관 전체 수집을 인증한 것이 아니다.
+- 공통·adapter 단위34개와 전체 metadata PG1개가 통과했다. 환경 의존3개는 단위 실행에서
+  제외했다. batch-026-adapt/order-review.json, postgres-final-review.json 및 live-repeat/audit.json 참조.
+- 재검토: python -m delivery.scripts.review_adaptcentre_incremental --source <continuous 경로> --probe <현재 경계 캡처> --out <새 검토 파일>
+- 실측: python -m delivery.scripts.measure_adaptcentre_repeat --dsn <소유 incremental_rollout_adapt_ DB> --base <계획 경로> --out <새 폴더>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.

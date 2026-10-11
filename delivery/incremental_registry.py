@@ -16,6 +16,7 @@ from crawler.incremental_ungeneva import UNGenevaAdapter
 from crawler.incremental_bfr import BfRAdapter
 from crawler.incremental_archives_nationales import ArchivesNationalesAdapter
 from crawler.incremental_asn import ASNAdapter
+from crawler.incremental_adaptcentre import AdaptCentreAdapter
 
 ADDITIONAL_ADAPTERS = {'federalregister-gov-documents': FederalAdapter,
                        'nemertes-library-upatras-gr-browse': NemertesAdapter,
@@ -32,7 +33,8 @@ ADDITIONAL_ADAPTERS = {'federalregister-gov-documents': FederalAdapter,
                        'ungeneva-org-en': UNGenevaAdapter,
                        'bfr-bund-de-en': BfRAdapter,
                        'archives-nationales-culture-gouv-fr-presse': ArchivesNationalesAdapter,
-                       'asn-fr-information': ASNAdapter}
+                       'asn-fr-information': ASNAdapter,
+                       'adaptcentre-ie-research': AdaptCentreAdapter}
 
 
 def adapter_for(crawler):
