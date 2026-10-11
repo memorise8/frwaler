@@ -302,6 +302,8 @@ class BmiGvAt114Crawler(BaseCrawler):
                 print(f"[bmi-gv-at-114] item {idx} save failed: {exc}")
                 continue
 
+            if not self._last_save_created:
+                continue
             saved += 1
             print(f"[bmi-gv-at-114] [{saved}/{limit_str}] {paper['title'][:70]}")
 
