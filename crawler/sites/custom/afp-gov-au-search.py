@@ -95,7 +95,11 @@ def _parse_list_page(html: str) -> list:
             title_div = row.find("div", class_="search-result__title")
             if not title_div:
                 continue
-            link_tag = title_div.find("a")
+            # Most search cards put the destination in a separate "Read this"
+            # link; older cards still link the title itself.
+            link_tag = title_div.find("a", href=True)
+            if link_tag is None:
+                link_tag = row.select_one(".search-result__meta a[href]")
             if not link_tag:
                 continue
             href = link_tag.get("href", "").strip()
@@ -103,7 +107,7 @@ def _parse_list_page(html: str) -> list:
                 continue
             if not href.startswith("http"):
                 href = _BASE + href
-            title = link_tag.get_text(strip=True)
+            title = title_div.get_text(strip=True)
             if not title:
                 continue
 
