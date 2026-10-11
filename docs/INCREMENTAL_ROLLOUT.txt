@@ -402,6 +402,30 @@ Batch 017: CANURB — 목록 날짜 부재와 ID 역전을 근거로 전체 재�
   기존 외부 파일 보류, 모든 첨부와 기관 전체 범위 검증은 별개다. batch-017-canurb/review.json 참조.
 - 재검토: python -m delivery.scripts.review_canurb_incremental --source <continuous 경로> --probe <새 목록 응답 경로> --out <새 검토 파일>
 
+Batch 018: UN Geneva — 연도별 재사용 slug를 전체 URL로 구별
+- 원래 /en/ press-release 목록의 10페이지·92개 URL과 다음 빈 페이지를 검증했다.
+  첫 완주에서 전체 datetime 흐름으로 최신순을 판별한다. native slug는 85개이며 2개 slug가
+  각각 5개·4개 문서에 재사용된다. 발견/기존 항목 판별은 연도를 포함한 전체 URL로 하고,
+  저장되는 원래 slug+URL 조합은 유지한다. slug만으로 중복 처리하지 않는다.
+- 기존 _ung_page/_ung_detail/_ung_row를 재사용한다. 현재 페이지/인접 next/최종 pager,
+  이전 페이지 해시, 페이지 간 반복과 source card 수를 검증한다. 프랑스어 canonical은
+  기존 same-path French alternate가 명시된 경우만 허용하며 실제 1건의 /en/ 저장 URL을 유지한다.
+- 본문은 발견 중 검증해 durable pending에 보존하고 오래된 날짜부터 저장한다. native가
+  명시적으로 제외한 짧은 본문은 fingerprint와 항목을 cursor에 기록하고 이어받기에서
+  재검증한다. 제외 근거가 바뀌면 완료를 보류하고, 전체 점검에서는 정상화된 본문을 저장한다.
+  이번 실제 92건에는 본문 제외가 없었다. 기존 본문·날짜·빈 pdf_url 등 native 필드는 유지한다.
+- 실제 부분 저장/이어받기/재실행은 HTTP 112/0/3회, 상세 92/0/0회, 신규 저장 3/89/0건이었다.
+  112회는 목록 20회와 상세 92회이며 이어받기는 추가 HTTP 없이 대기열에서 저장했다.
+  전체 실제 응답 115개의 해시와 92건 저장 필드를 native 저장 정규화까지 적용해 대조했다.
+- 새 PostgreSQL 기본 worker fixture는 요청 20/0/3회, 상세 12/0/0회, 저장 3/9/0건이다.
+  단위·회귀 250개와 PostgreSQL worker 1개가 통과했고 환경 의존 89개는 건너뛰었다.
+- 보존 목록 92건도 검증했다. manifest의 제목 2개 NBSP는 native 공백 정규화로 비교하며
+  다른 필드는 원래 값과 일치한다. 격리 DB 메타데이터 기준점 완료와 전체 파일/기관 범위
+  완료는 구분한다. 기존 첨부 파일 403 보류와 native 파일 연결 미검증 상태는 남아 있다.
+- 측정: python -m delivery.scripts.measure_ungeneva_incremental --out <새 경로> --gate-dir <공용 gate>
+  보존 대조: python -m delivery.scripts.review_ungeneva_incremental --source <continuous 경로> --out <새 검토 파일>
+  실측 대조: 위 명령에 --root <실측 경로> 추가. batch-018-ungeneva/review.json 참조.
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.
