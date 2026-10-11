@@ -16,6 +16,7 @@ import time
 from urllib.parse import urljoin, urlparse, unquote
 
 from crawler.base_crawler import BaseCrawler
+from delivery.health.access_challenge import access_challenge
 
 _BASE = "https://www.apra.gov.au"
 _LIST_URL = (
@@ -55,7 +56,7 @@ def _curl(url, retries=3):
         try:
             result = subprocess.run(
                 [
-                    "curl", "--tls-max", "1.3", "-sk",
+                    "curl", "--tls-max", "1.3", "-fsk",
                     "-A", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
                     "-L", "--max-time", "30", url,
                 ],
@@ -183,11 +184,16 @@ class APRAStatisticsCrawler(BaseCrawler):
             raw = _curl(list_url)
             if not raw:
                 print(f"[apra-gov-au-statistics] Failed to fetch listing page {page}, stopping.")
+                self._report_source_failure('fetch_failed')
                 break
+            if access_challenge(raw):
+                self._report_source_failure('authentication_failed')
+                return saved
 
             soup = _bs(raw)
             if not soup:
                 print(f"[apra-gov-au-statistics] Failed to parse listing page {page}, stopping.")
+                self._report_source_failure('invalid_response')
                 break
 
             articles = soup.select("div.views-row")
@@ -237,12 +243,17 @@ class APRAStatisticsCrawler(BaseCrawler):
                     detail_raw = _curl(detail_url)
                     if not detail_raw:
                         print(f"[apra-gov-au-statistics] detail fetch failed: {detail_url}")
-                        continue
+                        self._report_source_failure('fetch_failed')
+                        return saved
+                    if access_challenge(detail_raw):
+                        self._report_source_failure('authentication_failed')
+                        return saved
 
                     detail_soup = _bs(detail_raw)
                     if not detail_soup:
                         print(f"[apra-gov-au-statistics] detail parse failed: {detail_url}")
-                        continue
+                        self._report_source_failure('invalid_response')
+                        return saved
 
                     # Title from H1 (fallback to link text)
                     h1 = detail_soup.find("h1")
@@ -299,14 +310,15 @@ class APRAStatisticsCrawler(BaseCrawler):
                         "metadata": json.dumps(metadata, ensure_ascii=False),
                     })
 
-                    if row_id:
+                    if self._last_save_created:
                         saved += 1
 
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
                     print(f"[apra-gov-au-statistics] item failed ({detail_url if 'detail_url' in dir() else '?'}): {exc}")
-                    continue
+                    self._report_source_failure('item_failed')
+                    return saved
 
             if new_on_page == 0:
                 print(f"[apra-gov-au-statistics] No new items on page {page}, stopping.")

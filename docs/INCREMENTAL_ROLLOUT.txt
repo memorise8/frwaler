@@ -1043,6 +1043,40 @@ Batch 041: MPS — 무필터 범위와 불완전 정렬 키 분류
 - 재검토: python -m delivery.scripts.review_mps_incremental --source <continuous 경로> --probe <현재 native 첫 목록> --out <새 검토 파일>
 
 
+
+Batch 042: APRA — 기존 통계 시리즈 범위의 공통 증분 연결
+- 보존된 원본 statistics 리다이렉트 결과와7개 후속 목록을 해시 검증했다. 고유63개
+  시리즈 URL 전체의 Published 날짜가 누락 없이 최신순이고, total63·마지막 pager·
+  인접 필터 유지 빈 응답이 일치한다. 실제 native 첫 목록1회200의10개 필드도 같다.
+- APRAAdapter를 기본 registry에 연결했다. 필터 echo, 현재/다음 page, 결과 범위와 총량,
+  이전 페이지 anchor, URL 중복을 검사한다. 전체 목록 소진과 pending 소진 후에만
+  기준점이 완료되고, 저장은 오래된 것부터 한다. 재수집은 기존 경계+겹침1페이지다.
+- native 통계 시리즈만 지원하는 계약이다. 원본 추가2개 범위는 미설정이며63은 개별
+  통계 파일/회차 수가 아니다. 안정된 시리즈 URL 안의 내용 변경에는 주기적 전체 점검이
+  필요하다. 수정/누락을 변경 대장에 기록하며 기존 문서를 자동 삭제·덮어쓰지 않는다.
+- materialize는 기존 제목/본문/날짜/PDF/slug 규칙을 유지한다. 실제 첫 상세의 출력은
+  수정 전 검토 및 현재 native crawler와 모두 같다. 첫 PDF는 glossary이고 최신 주자료는
+  XLSX라는 한계도 유지한다. 최신 주자료를 수집했다고 표시하지 않는다.
+- native backfill의 HTTP/접근/상세 실패는 명시적으로 보고한다. 반환 row ID가 있다고
+  기존행을 새 저장으로 세던 조건을 _last_save_created로 바꿨고 회귀 테스트했다.
+- 새 PostgreSQL worker에서 실제 목록8개·실제 상세1개·합성 상세62개를 재생했다.
+  부분 저장/이어받기/재실행 요청17/60/3회, 상세3/60/0회, 저장3/60/0건이다.
+  첫 부분 저장은 discovery 완료여도 기준점 미완료, 이어받기 후 fixture 기준점만 완료다.
+  전체63행은 날짜 오름차순 저장이고 native ID/날짜/실제 첫 상세 메타데이터가 같다.
+- 위 소유 fixture DB에서 실제 재실행은 HTTP3회, 상세0회, 저장0건으로
+  known_boundary_plus_overlap에서 멈췄다.63개 기존행은 그대로다. 보존한 실제3개
+  응답의 해시와 목록 필드를 별도 대조했다. 총 실제 HTTP는 첫 관측1+재실행3=4회다.
+- 실제63개 전체 상세 수집 또는 추가 범위/개별 파일 검증은 미완료다. 합성 상세가 포함된
+  기준점을 실제 수집 완료의 증거로 쓰지 않는다. 운영 DB는 변경하지 않았다.
+- 최신순/오래된 순, 신규 오래된순 저장, 부분 저장 이어받기, 이전 목록 변동, 잘못된
+  종료/필터/중복, 상세 실패 pending, 주기적 수정·누락 탐지와 native 중복 건수 회귀를
+  포함해 단위·공통 회귀100개와 PG1개 통과, 환경 의존3개는 단위 실행에서 제외했다.
+  batch-042-apra/order-review.json, postgres-review.json, live-repeat/audit.json,
+  live-independent-review.json 참조.
+- 재검토: python -m delivery.scripts.review_apra_incremental --source <continuous 경로> --probe <현재 첫 목록> --out <새 검토 파일>
+- 실제 재실행: python -m delivery.scripts.measure_apra_repeat --dsn <소유 APRA fixture DB> --base <결과 경로> --out <새 출력 폴더>
+
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.
