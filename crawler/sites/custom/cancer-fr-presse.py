@@ -286,6 +286,9 @@ class CancerFrPresseCrawler(BaseCrawler):
         Walks paginated list pages, fetches each detail page, and saves
         via self._save_paper(). Returns the count of saved records.
         """
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         saved = 0
         seen_urls: set[str] = set()
         crawl_start = time.time()
@@ -293,6 +296,7 @@ class CancerFrPresseCrawler(BaseCrawler):
         total_pages = 0
 
         for page in range(1, _MAX_PAGES + 1):
+            self._check_cancelled()
             # Wall-clock budget
             if time.time() - crawl_start > _WALL_CLOCK_SECS:
                 print(f"[{_SITE_ID}] wall-clock budget reached; stopping.")
@@ -312,6 +316,7 @@ class CancerFrPresseCrawler(BaseCrawler):
             )
 
             raw = self._curl(list_url)
+            self._check_cancelled()
             if not raw:
                 print(f"[{_SITE_ID}] page {page}: fetch failed; stopping list walk.")
                 break
@@ -341,6 +346,7 @@ class CancerFrPresseCrawler(BaseCrawler):
 
             # Fetch and save detail pages from this list page
             for url in new_urls:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
                 if time.time() - crawl_start > _WALL_CLOCK_SECS:
@@ -349,6 +355,7 @@ class CancerFrPresseCrawler(BaseCrawler):
 
                 try:
                     raw_detail = self._curl(url)
+                    self._check_cancelled()
                     if not raw_detail:
                         print(f"[{_SITE_ID}] item {url} fetch failed; skipping.")
                         continue
@@ -357,6 +364,7 @@ class CancerFrPresseCrawler(BaseCrawler):
                     if paper is None:
                         continue
 
+                    self._check_cancelled()
                     self._save_paper(paper)
                     if self._last_save_created:
                         saved += 1

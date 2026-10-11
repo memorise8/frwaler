@@ -2,6 +2,9 @@ import importlib.util,json,sqlite3,unittest
 from pathlib import Path
 from bs4 import BeautifulSoup
 from crawler import db,db_libertree
+from crawler.base_crawler import CrawlCancelled
+from unittest.mock import patch
+import contextlib,io
 ROOT=Path(__file__).resolve().parents[1]
 SPEC=importlib.util.spec_from_file_location('cancer_fr_revision',ROOT/'crawler/sites/custom/cancer-fr-presse.py')
 M=importlib.util.module_from_spec(SPEC);SPEC.loader.exec_module(M)
@@ -44,4 +47,21 @@ class CancerFrRevisionDateTests(unittest.TestCase):
             for p in self.papers():obj._save_paper(p);self.assertFalse(obj._last_save_created)
             self.assertEqual(rows,[dict(x) for x in c.execute('SELECT * FROM documents')]);self.assertEqual(len(rows),2)
             self.assertTrue(all(not x.get('published_date') and not x.get('posted_date') for x in rows))
+    def test_actual_save_cancellation_and_replay_with_no_request_when_stopped(self):
+        c=sqlite3.connect(':memory:');c.row_factory=sqlite3.Row;self.addCleanup(c.close)
+        db.init_db(c);db.register_site(c,self.obj.site_id,self.obj.site_id,self.obj.base_url)
+        obj=M.CancerFrPresseCrawler(c,delay=0)
+        lookup={p['url']:(F/(name+'.html')).read_text() for name,p in zip(['first','last'],self.old)}
+        lookup[M._LIST_BASE+'?'+M._LIST_QUERY]='scoped listing supplied by test'
+        obj.delivery_should_cancel=lambda:c.execute('SELECT COUNT(*) FROM documents').fetchone()[0]>=1
+        with patch.object(obj,'_curl',side_effect=lookup.__getitem__),patch.object(obj,'_parse_list_page',return_value=([p['url'] for p in self.old],1)),patch.object(M.time,'sleep'),contextlib.redirect_stdout(io.StringIO()):
+            with self.assertRaises(CrawlCancelled):obj.crawl()
+            first=dict(c.execute('SELECT * FROM documents').fetchone())
+            obj.delivery_should_cancel=lambda:False
+            self.assertEqual(obj.crawl(),1);self.assertEqual(obj.crawl(),0)
+            self.assertEqual(first,dict(c.execute('SELECT * FROM documents ORDER BY id LIMIT 1').fetchone()))
+        with patch.object(obj,'_curl',side_effect=AssertionError('unexpected request')):
+            self.assertEqual(obj.crawl(limit=0),0)
+            obj.delivery_should_cancel=lambda:True
+            with self.assertRaises(CrawlCancelled):obj.crawl()
 if __name__=='__main__':unittest.main()
