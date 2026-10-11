@@ -358,6 +358,31 @@ Batch 015: BMLV — 날짜 없는 항목과 비단조 ID를 근거로 전체 재
   건너뛰었다. batch-015-bmlv/review.json에 분류 근거와 측정치를 보존한다.
 - 재검토: python -m delivery.scripts.review_bmlv_incremental --source <continuous 경로> --probe <4개 응답 경로> --out <새 검토 파일>
 
+Batch 016: ONERA — native PDF 보강과 공통 대기열 연결
+- 원래 프랑스어 press 14페이지의 목록 날짜/URL을 사용한다. 정렬 방향은 전체 날짜 흐름을
+  공통 엔진으로 판별하며 숫자 node ID나 과거 선언을 정렬 근거로 쓰지 않는다. 오래된 순으로
+  바뀌고 최신 쪽 역순 접근이 없는 경우 full_rescan_required로 남긴다.
+- 기존 _process_item의 저장 전 처리를 _materialize_item으로 분리했다. 반환 실패값을 None으로
+  바꾼 부분과 저장 호출을 제외하면 AST가 같음을 검증했다. 기존 native 저장 경로와 PDF를
+  통한 짧은 HTML 본문 보강, 날짜 원문, 원래 Drupal node ID, canonical URL을 유지한다.
+- 원래 view, 인접 next 링크, 페이지 크기와 이전 페이지 해시를 확인한다. 마지막 next 부재와
+  바로 다음 페이지의 명시적 빈 view가 모두 확인되어야 소진으로 인정한다. 반복 membership,
+  node ID 누락/충돌, canonical 변경, 본문/PDF 실패는 완료 처리하지 않는다.
+- 보존된 168건을 manifest와 대조했으며 2개 제목의 중복 공백은 기존 _compact_text로 비교했다.
+  보존 14페이지와 새로 관측한 인접 빈 페이지의 시점을 구분해 기록한다.
+- 실제 격리 DB에서 3건 부분 저장/165건 이어받기/재실행의 요청은 31/172/3회였다.
+  상세는 3/165/0회, PDF 본문 보강은 0/7/0회, 신규 저장은 3/165/0건이다. 소진을 관측한 뒤
+  오래된 날짜부터 168건 모두 저장했고 재실행은 목록 3회만으로 중단했다. 기존 행은 불변이다.
+- 실제 응답 206개의 해시를 검증하고 168건의 native node ID/제목/본문/날짜/PDF 필드를
+  기존 저장 변환과 날짜 정규화까지 적용해 독립 대조했다. PDF 보강 7건도 캡처 bytes에서
+  재추출했다. 사전 probe 2회를 포함한 실제 요청은 총 208회다. 전체 파일 재검증과는 구분한다.
+- 새 PostgreSQL 기본 worker fixture에서 요청 11/9/3회, 상세 3/9/0회, 저장 3/9/0건을 확인했다.
+  단위·회귀 228개와 PostgreSQL worker 1개가 통과했고 환경 의존 74개는 건너뛰었다.
+  실제 사이트 실측·별도 필드 대조 결과는 batch-016-onera/review.json에 기록한다.
+- 측정: python -m delivery.scripts.measure_onera_incremental --out <새 경로> --gate-dir <공용 gate>
+  보존 대조: python -m delivery.scripts.review_onera_incremental --source <continuous 경로> --probe <실제 목록 probe> --out <새 검토 파일>
+  실측 대조: python -m delivery.scripts.review_onera_incremental --source <continuous 경로> --root <실측 경로> --out <새 검토 파일>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.

@@ -11,6 +11,7 @@ from crawler.incremental_acpr import ACPRAdapter
 from crawler.incremental_adruk import AdrukAdapter
 from crawler.incremental_audencia import AudenciaAdapter
 from crawler.incremental_ens_lyon import EnsLyonAdapter
+from crawler.incremental_onera import OneraAdapter
 
 ADDITIONAL_ADAPTERS = {'federalregister-gov-documents': FederalAdapter,
                        'nemertes-library-upatras-gr-browse': NemertesAdapter,
@@ -22,7 +23,8 @@ ADDITIONAL_ADAPTERS = {'federalregister-gov-documents': FederalAdapter,
                        'acpr-banque-france-fr-fr': ACPRAdapter,
                        'adruk-org-news-publications': AdrukAdapter,
                        'audencia-com-lecole': AudenciaAdapter,
-                       'ens-lyon-fr-lecole': EnsLyonAdapter}
+                       'ens-lyon-fr-lecole': EnsLyonAdapter,
+                       'onera-fr-fr': OneraAdapter}
 
 
 def adapter_for(crawler):

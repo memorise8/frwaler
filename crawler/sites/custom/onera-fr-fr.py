@@ -316,27 +316,34 @@ class OneraFrFrCrawler(OneraTraversal, BaseCrawler):
         return None
 
     def _process_item(self, item: dict[str, Any]) -> bool:
+        paper = self._materialize_item(item)
+        if paper is None:
+            return False
+        self._last_processed_seq_id = self._save_paper(paper)
+        return self._last_save_created
+
+    def _materialize_item(self, item: dict[str, Any]) -> dict | None:
         url = item.get("url")
         if not url:
             print(f"[{self.site_id}] item missing url; skipping")
-            return False
+            return None
 
         raw = self._fetch(url, context=f"detail {item.get('slug') or url}")
         if not raw:
             self._report_source_failure('item_failed')
             print(f"[{self.site_id}] item {url} failed: detail fetch returned no body")
-            return False
+            return None
 
         from delivery.health.access_challenge import access_challenge
         if access_challenge(raw):
             self._report_source_failure('authentication_failed')
-            return False
+            return None
 
         soup = self._soup(raw, context=f"detail {url}")
         if soup is None:
             self._report_source_failure('item_failed')
             print(f"[{self.site_id}] item {url} failed: detail parse returned no soup")
-            return False
+            return None
 
         detail = self._parse_detail(soup, raw, item)
         title = detail.get("title") or item.get("title") or "(untitled)"
@@ -349,10 +356,10 @@ class OneraFrFrCrawler(OneraTraversal, BaseCrawler):
             abstract, pdf_provenance = self._abstract_from_pdf(pdf_url)
             if len(abstract) < _MIN_ABSTRACT_CHARS:
                 self._report_source_failure('item_failed')
-                return False
+                return None
         if len(abstract) < _MIN_ABSTRACT_CHARS:
             print(f"[{self.site_id}] abstract too short ({len(abstract)} chars) for {url}; skipping")
-            return False
+            return None
 
         listed_date = item.get("listed_date_raw")
         published_date = detail.get("published_date_raw") or listed_date
@@ -412,8 +419,7 @@ class OneraFrFrCrawler(OneraTraversal, BaseCrawler):
         }
         if self.delivery_mode == 'backfill' and canonical_url != url:
             raise ValueError('ONERA canonical identity requires source review')
-        self._last_processed_seq_id = self._save_paper(paper)
-        return self._last_save_created
+        return paper
 
     def _abstract_from_pdf(self, pdf_url: str) -> tuple[str, dict]:
         """Read an excerpt from the publisher-linked PDF when HTML lacks body.
