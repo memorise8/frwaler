@@ -215,6 +215,7 @@ class CmiNoPublicationsCrawler(BaseCrawler):
             "publication_period": date_period,
             "publication_status": publication_status,
             "publication_date_role": "journal_publication_header",
+            "source_abstract_state": "present" if abstract else "empty",
             "journal_raw": journal_raw or None,
             "node_id": ext_id,
         }
@@ -304,9 +305,6 @@ class CmiNoPublicationsCrawler(BaseCrawler):
                         paper = self._parse_detail(detail_url, ext_id)
                         if paper is None:
                             print(f"[cmi-no-publications] item {ext_id} ({detail_url}): failed to parse, skipping")
-                            continue
-                        if not paper.get("abstract") or len(paper["abstract"]) < 50:
-                            print(f"[cmi-no-publications] item {ext_id} ({detail_url}): abstract too short, skipping")
                             continue
                         self._save_paper(paper)
                         if self._last_save_created:

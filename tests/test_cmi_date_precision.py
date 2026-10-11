@@ -1,4 +1,5 @@
-import importlib.util,json,sqlite3,unittest
+import contextlib,io,importlib.util,json,sqlite3,unittest
+from crawler.base_crawler import CrawlCancelled
 from pathlib import Path
 from unittest.mock import patch
 from crawler import db,db_libertree
@@ -34,4 +35,18 @@ class CmiDatePrecisionTests(unittest.TestCase):
    for p in papers:obj._save_paper(p);self.assertFalse(obj._last_save_created)
    self.assertEqual(rows,[dict(x) for x in c.execute('SELECT * FROM documents')]);self.assertEqual(len(rows),3)
    self.assertTrue(all(not x.get('published_date') and not x.get('posted_date') and not x.get('listed_date') for x in rows))
+ def test_actual_oldest_empty_abstract_retained_by_native_crawl_and_resume(self):
+  _,papers=self.papers();items=[(p['url'],p['external_id']) for p in papers];lookup={p['url']:(F/(label+'.html')).read_text() for label,p in zip(['forthcoming','month','year'],papers)}
+  for kind in ['legacy','v2']:
+   c=sqlite3.connect(':memory:');c.row_factory=sqlite3.Row;self.addCleanup(c.close);cls=M.CmiNoPublicationsCrawler
+   if kind=='legacy':db.init_db(c);db.register_site(c,cls.site_id,cls.site_id,cls.base_url)
+   else:db_libertree.init_db(c);c.execute('INSERT INTO sites(site_id,site_name,site_url) VALUES(?,?,?)',(cls.site_id,cls.site_id,cls.base_url));c.commit()
+   obj=cls(c,delay=0);obj.delivery_should_cancel=lambda:c.execute('SELECT COUNT(*) FROM documents').fetchone()[0]>=1
+   with patch.object(obj,'_fetch_list_page',return_value='three actual source candidates'),patch.object(obj,'_extract_list_items',return_value=items),patch.object(M,'_curl_get',side_effect=lookup.__getitem__),patch.object(M.time,'sleep'),contextlib.redirect_stdout(io.StringIO()):
+    with self.assertRaises(CrawlCancelled):obj.crawl()
+    first=dict(c.execute('SELECT * FROM documents').fetchone());obj.delivery_should_cancel=lambda:False
+    self.assertEqual(obj.crawl(limit=1),1);self.assertEqual(obj.crawl(),1);self.assertEqual(obj.crawl(),0)
+   rows=[dict(x) for x in c.execute('SELECT * FROM documents')];self.assertEqual(len(rows),3);self.assertEqual(first,rows[0]);last=rows[-1]
+   self.assertEqual(last.get('external_id',last.get('post_number')),'1605');self.assertFalse(last['abstract']);self.assertTrue(last.get('meta_url'))
+  self.assertEqual(json.loads(papers[-1]['metadata'])['source_abstract_state'],'empty');self.assertIn('0305-750X',papers[-1]['doi'])
 if __name__=='__main__':unittest.main()
