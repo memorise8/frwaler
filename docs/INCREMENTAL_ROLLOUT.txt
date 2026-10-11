@@ -383,6 +383,25 @@ Batch 016: ONERA — native PDF 보강과 공통 대기열 연결
   보존 대조: python -m delivery.scripts.review_onera_incremental --source <continuous 경로> --probe <실제 목록 probe> --out <새 검토 파일>
   실측 대조: python -m delivery.scripts.review_onera_incremental --source <continuous 경로> --root <실측 경로> --out <새 검토 파일>
 
+Batch 017: CANURB — 목록 날짜 부재와 ID 역전을 근거로 전체 재점검 분류
+- 새 실제 목록 1회를 공용 gate로 관측했다. 원래 98개 카드의 모든 native 필드와 순서가
+  보존 관측과 같다. 목록 날짜/time/datetime은 없고 숫자 WordPress ID는 26곳에서 역전된다.
+  첫 ID 10313과 마지막 ID 431만 비교하면 잘못된 최신순 판정이 될 수 있으므로 전체 흐름을
+  공통 observe_order/infer_order에 넣어 order_ambiguous임을 확인했다.
+- native 소스 해시에 결합한 full_rescan_required를 추가했다. 직접 PDF 1개와 외부 사이트
+  1개 카드도 목록 범위에 포함하며 본문 속 연도나 부분 날짜를 임의의 정렬 날짜로 만들지 않는다.
+- 보존된 실제 응답 97개의 해시를 검증하고 새 PostgreSQL 기본 worker에서 98건을 저장했다.
+  초기/재실행 요청은 97/97회(목록 1, 상세 96), 신규 저장은 98/0건이다. 모든 ID/URL의 저장,
+  기존 행 불변, 월 단위 85건·연도 단위 5건의 정밀도 보존과 baseline_complete=false를 확인했다.
+  HTTP 응답 재생 측정이며 실제 사이트 전체 상세 재요청으로 표현하지 않는다.
+- 보존 응답에는 CANURB 상세 주소에서 placemakingcommunity.ca로 이동한 1건이 포함된다.
+  최초 시험에서 주소 일치 전제가 이를 감지했으며, 요청 주소/캡처 최종 주소를 구분해
+  기록했다. 같은 호스트에서 끝 슬래시가 추가된 이동 1건도 별도로 보존했다. 첫 격리 DB는
+  보존하고 새 v2 DB로 재검증했다. 외부 목적지에 새 요청은 하지 않았다.
+- 증분 단위·회귀 172개와 PostgreSQL worker 1개가 통과했고 환경 의존 16개는 건너뛰었다.
+  기존 외부 파일 보류, 모든 첨부와 기관 전체 범위 검증은 별개다. batch-017-canurb/review.json 참조.
+- 재검토: python -m delivery.scripts.review_canurb_incremental --source <continuous 경로> --probe <새 목록 응답 경로> --out <새 검토 파일>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.

@@ -45,5 +45,14 @@
     "evidence": "incremental-rollout-20261012/batch-015-bmlv/order-review.json",
     "evidence_sha256": "8e9cf03828483bc2d3aaa2c83a9200d74fe4ca52436ae4085a8f6fea737ec7fd",
     "native_health_note": "Native fallback covers only 18 type-14 publications, leaving 217 other delivered publications unconfigured. This classification is not full-source health or completion certification."
+  },
+  "canurb-org-publications": {
+    "reason": "listing_dates_absent_and_wordpress_ids_nonmonotonic_in_complete_public_catalogue",
+    "classification": "full_rescan_required",
+    "source_sha256": "21dfff8ec208010ce69f701114a625da4bb17f27f09e2512d36423e5476a14bc",
+    "reviewed_at": "2026-10-11T18:56:04.361160+00:00",
+    "evidence": "incremental-rollout-20261012/batch-017-canurb/order-review.json",
+    "evidence_sha256": "4e1bd8403f8632433c6d2779bb1d05ac459f76b9bb88045b9ed87a87d4d1f113",
+    "native_health_note": "98-card public catalogue includes direct PDF and external publication cards. No listing dates; IDs have 26 interior reversals. Existing external file holds remain separate from metadata replay."
   }
 }
