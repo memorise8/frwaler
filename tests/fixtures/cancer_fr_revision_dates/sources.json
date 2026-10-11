@@ -1,0 +1,12 @@
+[
+  {
+    "file": "first.html",
+    "url": "https://www.cancer.fr/presse/registre-national-des-cancers-medipath-transmet-des-premiers-jeux-de-donnees-a-l-inca",
+    "sha256": "a2b33eee15ade611dbf460485b977271ce3016c38774eeff46b2d98ccd5f3792"
+  },
+  {
+    "file": "last.html",
+    "url": "https://www.cancer.fr/presse/l-institut-national-du-cancer-cree-le-premier-living-lab-d-envergure-nationale-pour-developper-des-services-innovants-afin-d-aider-nos-concitoyens",
+    "sha256": "7d3ebe8d42dbc8e16da4de3e6ac449722d91d600b8de635841f86ca2261c632e"
+  }
+]

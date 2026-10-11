@@ -14,6 +14,7 @@ import re
 import subprocess
 import time
 import urllib.parse
+from datetime import date
 
 from crawler.base_crawler import BaseCrawler
 
@@ -177,6 +178,7 @@ class CancerFrPresseCrawler(BaseCrawler):
 
         # "Mis à jour le" date — <time datetime="YYYY-MM-DD"> in article-section-date
         updated_date = None
+        time_el = None
         date_p = soup.find("p", class_="article-section-date")
         if date_p:
             time_el = date_p.find("time")
@@ -185,6 +187,11 @@ class CancerFrPresseCrawler(BaseCrawler):
             else:
                 txt = re.sub(r"Mis\s+[àa]\s+jour\s+le\s*", "", date_p.get_text(strip=True), flags=re.I)
                 updated_date = _parse_date_fr(txt)
+        if updated_date:
+            try:
+                date.fromisoformat(updated_date)
+            except ValueError:
+                updated_date = None
 
         # Bold intro paragraph: "Publié le DD mois YYYY, [body...]"
         intro_div = soup.find(
@@ -203,8 +210,12 @@ class CancerFrPresseCrawler(BaseCrawler):
         )
         if m_pub:
             published_date = _parse_date_fr(m_pub.group(1))
-        if not published_date:
-            published_date = updated_date
+        # A revision date is not evidence of publication or first posting.
+        if published_date:
+            try:
+                date.fromisoformat(published_date)
+            except ValueError:
+                published_date = None
 
         # Abstract: intro paragraph is the primary source
         abstract = intro_text
@@ -245,14 +256,19 @@ class CancerFrPresseCrawler(BaseCrawler):
             "title": title,
             "abstract": abstract,
             "published_date": published_date,
-            "posted_date": updated_date,
+            "posted_date": None,
             "url": url,
             "pdf_url": pdf_url,
             "publisher": "Institut national du cancer",
             "original_filename": original_filename,
             "metadata": json.dumps(
                 {
-                    "posted_date": updated_date,
+                    "posted_date": None,
+                    "revision_date": updated_date,
+                    "revision_date_role": "article_revision",
+                    "revision_date_raw": date_p.get_text(" ", strip=True) if date_p else None,
+                    "revision_datetime_raw": time_el.get("datetime") if date_p and time_el else None,
+                    "publication_date_raw": m_pub.group(1) if m_pub else None,
                     "originalFilename": original_filename,
                     "slug": slug,
                 },
