@@ -162,5 +162,19 @@
     "evidence": "incremental-rollout-20261012/batch-030-africamuseum/order-review.json",
     "evidence_sha256": "eeffdc074c00719a621992981b483a82854c08a3ae25e9b1d0427e8584dd2e76",
     "native_health_note": "All 99 source months and exact original URLs preserved. Month precision does not establish within-month chronology for known-boundary stopping; Drupal IDs are detail-only. Four retained real detail identities preserved. All 99 actual bodies/files and numeric identities remain unverified."
+  },
+  "ag-gov-au-publications": {
+    "classification": "full_rescan_required",
+    "reason": "original_pdf_search_scope_excluded_and_transport_unavailable_order_and_end_unverified",
+    "source_sha256": "0aeaccf2c13ea1b6a199f525799cd67838e5497abe292dc27861cdec9e0f6b37",
+    "dependency_source_sha256": {
+      "crawler/stealth_fetcher.py": "d55da3d4f1069913762f8d3a12bb485f799e04f0d860f07723ca137f04e02382",
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b",
+      "docs/deliverables/test_URL_수집대조_20260802.csv": "336c04d463f70624cd4ec7aacdf386fd71bab34ca186acf8ac3413a3ee1fced9"
+    },
+    "reviewed_at": "2026-10-11T20:53:14.823322+00:00",
+    "evidence": "incremental-rollout-20261012/batch-031-ag/scope-review.json",
+    "evidence_sha256": "7c27301fdb7f480e5ab86f301884d188c97e29b30d41878d5f9da0b9ec25517a",
+    "native_health_note": "Original eight scopes include an excluded PDF search; seven native sections each cap at 30 pages. Only the first integrity entry was probed and timed out. Other seven original scopes not currently requested. Source total/order/end remain unverified."
   }
 }

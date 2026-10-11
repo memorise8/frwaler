@@ -756,6 +756,29 @@ Batch 030: AfricaMuseum — 월 정밀도 보존 및 증분 중단 불가 분류
   제외했다. batch-030-africamuseum/order-review.json 및 postgres-review.json 참조.
 - 재검토: python -m delivery.scripts.review_africamuseum_incremental --source <continuous 경로> --probe <현재 첫 목록> --out <새 검토 파일>
 
+
+Batch 031: AG 법무부 — 원본 검색 범위 누락 및 전송 실패 분류
+- 원본 CSV8개 경로와 native7개 section을 대조했다. PDF 검색은 코드에서 제외되어 있고,
+  각 section에는30페이지 상한이 있다. 현재 첫 Integrity 경로만 HTTP1회 시도했고
+  ReadTimeout으로 body를 얻지 못했다. 나머지 원본7개 경로는 현재 요청하지 않았다.
+  과거 같은 경로의 HTTP/2 오류92·HTTP/1.1 시간 초과28 및 빈 body 해시도 확인했다.
+- 목록/상세 전송 실패 또는 알려진 차단을 source failure로 보고하고 중단하도록 수정했다.
+  실패한 section이나 detail을 건너뛰고 정상 작업 완료로 처리하던 경로를 막았다.
+  정상 source body의 날짜·URL slug·본문·PDF 우선 추출은 유지한다.
+- 범위 동등성/정렬/끝을 확인하지 못했으므로 full_rescan_required로 분류한다.
+  수집량이나 날짜/ID 방향을 추정하지 않으며 현재 모든8개 경로가 접근 불가라고도 하지 않는다.
+  소스/stealth fetcher/차단 판별/원본 CSV가 변경되면 이 분류는 재검토 대상이다.
+- 새 PostgreSQL 기본 worker에서7개 native section 모두를 합성 HTML로 재생했다.
+  공통문서1개를 여러 section에 배치한8개 고유 문서이며 최초/재실행 호출15/15회
+  (목록7/7, 상세8/8), 저장8/0건이다. 기존행·native ID/날짜/본문/PDF 경로를 보존했다.
+- 모든 전송 계층 실패 시3계층×3재시도=9회 호출 후 첫 section에서 실패하고 기존행은
+  유지한다. 이 수치는 StealthSession 계층 호출 수이며 실제 wire HTTP/browser 하위 요청
+  수가 아니다. 재생 테스트의 live HTTP는0회, 기준점은 모두 미완료/full_rescan_required다.
+  중복0건을 증분 요청 절감으로 표시하지 않는다.
+- 단위·공통·worker 회귀96개와 PG1개 통과, 환경 의존3개는 단위 실행에서 제외했다.
+  batch-031-ag/scope-review.json 및 postgres-review.json 참조. 전체 소스/파일 검증은 미완료다.
+- 재검토: python -m delivery.scripts.review_ag_incremental --source <continuous 경로> --probe <현재 첫 경로 캡처> --out <새 검토 파일>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.
