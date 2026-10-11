@@ -1,0 +1,74 @@
+[
+  {
+    "scope": "scope-0",
+    "delivered_url": "https://www.bankofcanada.ca/press/press-releases/",
+    "archive_url": "https://www.bankofcanada.ca/press/press-releases/",
+    "widget_id": "multitaxonomytaglist-cfct-module-effbb0fd500f83b8ae3d9bc9fa5cbee4",
+    "source_page_id": "32860",
+    "rows_per_page": 10
+  },
+  {
+    "scope": "scope-1",
+    "delivered_url": "https://www.bankofcanada.ca/research/browse/",
+    "archive_url": "https://www.bankofcanada.ca/research/browse/",
+    "widget_id": "multitaxonomytaglist-cfct-module-efad19394ccb68ea740af7ec8776cc85",
+    "source_page_id": "44526",
+    "rows_per_page": 10
+  },
+  {
+    "scope": "scope-2",
+    "delivered_url": "https://www.bankofcanada.ca/publications/annual-reports-quarterly-financial-reports/",
+    "archive_url": "https://www.bankofcanada.ca/publications/annual-reports-quarterly-financial-reports/",
+    "widget_id": "multitaxonomytaglist-cfct-module-5ec17e378c825a82c5601cea5b09c99e",
+    "source_page_id": "22202",
+    "rows_per_page": 5
+  },
+  {
+    "scope": "scope-3",
+    "delivered_url": "https://www.bankofcanada.ca/publications/mpr/",
+    "archive_url": "https://www.bankofcanada.ca/publications/mpr/",
+    "widget_id": "multitaxonomytaglist-cfct-module-707d8fedb1fe2fa7bbd7e4834ddaeea3",
+    "source_page_id": "28152",
+    "rows_per_page": 10
+  },
+  {
+    "scope": "scope-4",
+    "delivered_url": "https://www.bankofcanada.ca/publications/bos/",
+    "archive_url": "https://www.bankofcanada.ca/publications/browse/?content_type%5B%5D=540&content_type%5B%5D=540",
+    "widget_id": "multitaxonomytaglist-cfct-module-c5d00e20fb0a4da3ad700b3e64b366e3",
+    "source_page_id": "169645",
+    "rows_per_page": 10
+  },
+  {
+    "scope": "scope-5",
+    "delivered_url": "https://www.bankofcanada.ca/publications/canadian-survey-of-consumer-expectations/",
+    "archive_url": "https://www.bankofcanada.ca/publications/browse/?content_type%5B%5D=21396&content_type%5B%5D=21396",
+    "widget_id": "multitaxonomytaglist-cfct-module-c5d00e20fb0a4da3ad700b3e64b366e3",
+    "source_page_id": "169645",
+    "rows_per_page": 10
+  },
+  {
+    "scope": "scope-6",
+    "delivered_url": "https://www.bankofcanada.ca/publications/financial-stability-report/",
+    "archive_url": "https://www.bankofcanada.ca/publications/financial-stability-report/",
+    "widget_id": "multitaxonomytaglist-cfct-module-cb6202fc38cfe77e41269f25c4fb6a20",
+    "source_page_id": "231835",
+    "rows_per_page": 5
+  },
+  {
+    "scope": "scope-7",
+    "delivered_url": "https://www.bankofcanada.ca/publications/financial-system-survey/",
+    "archive_url": "https://www.bankofcanada.ca/publications/financial-system-survey/",
+    "widget_id": "multitaxonomytaglist-cfct-module-c7af0e95b92d9e9dc111fe959d12fab1",
+    "source_page_id": "231845",
+    "rows_per_page": 5
+  },
+  {
+    "scope": "scope-8",
+    "delivered_url": "https://www.bankofcanada.ca/publications/browse/",
+    "archive_url": "https://www.bankofcanada.ca/publications/browse/",
+    "widget_id": "multitaxonomytaglist-cfct-module-c5d00e20fb0a4da3ad700b3e64b366e3",
+    "source_page_id": "169645",
+    "rows_per_page": 10
+  }
+]

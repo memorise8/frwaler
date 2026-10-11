@@ -16,5 +16,16 @@
     "reviewed_at": "2026-10-11T15:54:32.559092+00:00",
     "classification": "full_rescan_required",
     "native_health_note": "Partial chronological menus do not certify the whole delivered scope."
+  },
+  "bankofcanada-ca-publications": {
+    "reason": "delivered_external_research_dependency_access_challenge_and_external_detail_identity_date_contract_unverified",
+    "classification": "full_rescan_required",
+    "source_sha256": "a7395b7bd320f72f354db69dabc76a25ae1e922a4059fe3d830385c5da1614bd",
+    "adapter": "BankOfCanadaAdapter",
+    "adapter_source_sha256": "871b3a5843200731f524855b72172258343c43e526648ab1ff835a35b2f8c17c",
+    "reviewed_at": "2026-10-11T16:22:09.336683+00:00",
+    "evidence": "incremental-rollout-20261012/batch-005-bankofcanada/global-hold-review.json",
+    "evidence_sha256": "e43804b1e40aab641cae95d01856fcef0945d50a7b7cc88b6a58f3005cd1dbfc",
+    "native_health_note": "Legacy has only 1 of 9 delivered scopes; new nine-scope adapter fails closed at unverified external details. Scoped consumer-survey success is not global acceptance."
   }
 }

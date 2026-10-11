@@ -45,11 +45,18 @@ def eligibility(site_id, cls):
             'automatic_order': 'infer_first_last_and_all_non_pinned_items' if adapter else 'unavailable_without_list_contract',
             'periodic_full_check': True, 'baseline_complete': False,
             'runtime_verification': 'not_verified_by_static_classification'}
-    hold = reviewed_hold(site_id, cls) if adapter is None else None
+    hold = reviewed_hold(site_id, cls)
+    if hold and adapter is not None:
+        adapter_cls = ADDITIONAL_ADAPTERS.get(site_id)
+        if (hold.get('adapter') != adapter or adapter_cls is None
+                or hashlib.sha256(Path(adapter_cls.fetch.__code__.co_filename).read_bytes()).hexdigest()
+                != hold.get('adapter_source_sha256')):
+            hold = None
     if hold:
-        result.update(reason=hold['reason'], order_review=hold,
-                      automatic_order='reviewed_listing_order_ambiguous',
-                      runtime_verification='native_fallback_measured_separately_not_full_source_completion')
+        result.update(classification='full_rescan_required', reason=hold['reason'], order_review=hold,
+                      automatic_order='reviewed_scope_dependency_unresolved' if adapter else 'reviewed_listing_order_ambiguous',
+                      runtime_verification=('adapter_subset_verified_global_dependency_held' if adapter else
+                                            'native_fallback_measured_separately_not_full_source_completion'))
     return result
 
 
