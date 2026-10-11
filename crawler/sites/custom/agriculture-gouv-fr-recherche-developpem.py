@@ -22,6 +22,7 @@ import time
 from datetime import datetime
 
 from crawler.base_crawler import BaseCrawler
+from delivery.health.access_challenge import access_challenge
 
 _SITE_ID = "agriculture-gouv-fr-recherche-developpem"
 _BASE_URL = "https://agriculture.gouv.fr"
@@ -71,7 +72,7 @@ def _curl_get(url: str, retries: int = 4) -> str | None:
             if _MARKER in raw:
                 raw, _, status = raw.rpartition(_MARKER)
                 status = status.strip()
-            if raw.strip() and status not in ("429",) and not status.startswith("5"):
+            if result.returncode == 0 and raw.strip() and re.fullmatch(r"2\d\d", status):
                 return raw
             print(
                 f"[{_SITE_ID}] fetch retry ({attempt + 1}/{retries}) for {url}: "
@@ -146,13 +147,18 @@ class AgricultureGouvFrCrawler(BaseCrawler):
             list_raw = _curl_get(_LIST_URL.format(pg=pg))
             if not list_raw:
                 print(f"[{_SITE_ID}] Failed to fetch listing page {pg}. Stopping.")
-                break
+                self._report_source_failure('fetch_failed')
+                return saved
+            if access_challenge(list_raw):
+                self._report_source_failure('authentication_failed')
+                return saved
 
             try:
                 list_soup = _make_soup(list_raw)
             except Exception as exc:
-                print(f"[{_SITE_ID}] HTML parse error on listing page {pg}: {exc}. Skipping.")
-                continue
+                print(f"[{_SITE_ID}] HTML parse error on listing page {pg}: {exc}. Stopping.")
+                self._report_source_failure('invalid_response')
+                return saved
 
             # --- parse article cards ---
             # Article cards are identified by: div.fr-card__body that contains
@@ -217,14 +223,19 @@ class AgricultureGouvFrCrawler(BaseCrawler):
                     time.sleep(self._delay)
                     detail_raw = _curl_get(card["url"])
                     if not detail_raw:
-                        print(f"[{_SITE_ID}] item {card['url']} failed: empty response. Skipping.")
-                        continue
+                        print(f"[{_SITE_ID}] item {card['url']} failed: empty response. Stopping.")
+                        self._report_source_failure('fetch_failed')
+                        return saved
+                    if access_challenge(detail_raw):
+                        self._report_source_failure('authentication_failed')
+                        return saved
 
                     try:
                         detail_soup = _make_soup(detail_raw)
                     except Exception as exc:
-                        print(f"[{_SITE_ID}] item {card['url']} HTML parse failed: {exc}. Skipping.")
-                        continue
+                        print(f"[{_SITE_ID}] item {card['url']} HTML parse failed: {exc}. Stopping.")
+                        self._report_source_failure('invalid_response')
+                        return saved
 
                     # Full title from h1
                     h1 = detail_soup.find("h1")

@@ -188,5 +188,18 @@
     "evidence": "incremental-rollout-20261012/batch-032-agri/order-review.json",
     "evidence_sha256": "cdae0acb07b30f1da8a7e25778961665f392105df606b99ab66c1417c9444327",
     "native_health_note": "Retained 125 rows in eight static tables include five date reversals in the first table. Three published archive routes remain uncollected. Current audited entry returned HTTP403 challenge; current source count unknown. Native dates are insertion dates and generated metadata abstracts are not verified file bodies."
+  },
+  "agriculture-gouv-fr-recherche-developpem": {
+    "classification": "full_rescan_required",
+    "reason": "original_scope_query_mismatch_and_theme_pagination_end_unverified",
+    "source_sha256": "87b529994ef05244169f1909dbc0ac7b107d8592448ae1da253802594ea3821f",
+    "dependency_source_sha256": {
+      "docs/deliverables/test_URL_수집대조_20260802.csv": "336c04d463f70624cd4ec7aacdf386fd71bab34ca186acf8ac3413a3ee1fced9",
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
+    },
+    "reviewed_at": "2026-10-11T21:03:46.792802+00:00",
+    "evidence": "incremental-rollout-20261012/batch-033-agriculture/scope-review.json",
+    "evidence_sha256": "a9f227ed0c055cdc06b3157cc801d14fdc1149476fa95422f920c16eaef7e484",
+    "native_health_note": "Three original paths differ from the native press query. Retained original press reports 1686/422 versus native current 2001/501; theme advertises last page 5 yet page 6 has 20 new cards and page 7 repeats 6. No full-scope order/end or summed total certified; native cap remains 200."
   }
 }
