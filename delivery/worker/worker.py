@@ -214,7 +214,7 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
                                      limit=job.get('limit_n'), max_requests=20,
                                      wall_seconds=wall_budget_seconds())
             else:
-                from crawler.incremental_adapters import adapter_for
+                from delivery.incremental_registry import adapter_for
                 from crawler.incremental import Collector, Policy
                 adapter = adapter_for(inst)
                 if adapter is not None:

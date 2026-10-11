@@ -36,7 +36,8 @@ def _source(site_id):
                  'delivery/capabilities.py', 'delivery/worker/worker.py',
                  'delivery/worker/jobs.py', 'delivery/worker/scopes.py', 'delivery/db/schema.py',
                  'crawler/incremental.py', 'crawler/incremental_adapters.py',
-                 'crawler/hal_incremental_scopes.json', 'delivery/incremental_status.py'):
+                 'crawler/hal_incremental_scopes.json', 'delivery/incremental_status.py',
+                 'delivery/incremental_registry.py', 'crawler/incremental_federal.py'):
         digest.update((root/name).read_bytes())
     config = getattr(cls, '_config_path', None)
     if config:

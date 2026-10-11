@@ -9,7 +9,10 @@ from crawler.incremental_adapters import HAL_SCOPES
 def eligibility(site_id, cls):
     reason = 'listing_identity_order_and_end_contract_unverified'
     adapter = None
-    if site_id in HAL_SCOPES:
+    from delivery.incremental_registry import ADDITIONAL_ADAPTERS
+    if site_id in ADDITIONAL_ADAPTERS:
+        adapter = ADDITIONAL_ADAPTERS[site_id].__name__
+    elif site_id in HAL_SCOPES:
         adapter = 'HALAdapter'
     elif site_id == 'doaj-org-search':
         adapter = 'DOAJAdapter'

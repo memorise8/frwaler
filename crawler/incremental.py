@@ -33,6 +33,7 @@ class Page:
     next_cursor: dict | None
     exhausted: bool = False
     evidence: str = ""
+    checkpoint_only: bool = False
 
 
 @dataclass
@@ -224,7 +225,9 @@ class Collector:
                     keys = [e.key for e in page.entries]
                     if any(not isinstance(k, str) or not k.strip() for k in keys) or len(keys) != len(set(keys)):
                         raise UnsupportedSource("unstable_list_identities")
-                    if not page.entries and not page.exhausted:
+                    if page.checkpoint_only and (page.entries or page.exhausted or not page.evidence):
+                        raise ValueError("invalid structural checkpoint")
+                    if not page.entries and not page.exhausted and not page.checkpoint_only:
                         raise ValueError("empty listing without exhaustion evidence")
                     ordinary = [e for e in page.entries if not e.pinned]
                     all_known = bool(ordinary)
@@ -264,7 +267,7 @@ class Collector:
                         # boundary. Always consume another complete overlap page.
                         if found_new:
                             state["overlap"] = None
-                        elif state["overlap"] is not None:
+                        elif page.entries and state["overlap"] is not None:
                             state["overlap"] -= 1
                             boundary = state["overlap"] <= 0
                         if state["overlap"] is None and (all_known or state["streak"] >= p.known_run):
