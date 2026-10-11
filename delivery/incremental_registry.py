@@ -2,9 +2,11 @@
 from crawler.incremental_adapters import adapter_for as original_adapter_for
 from crawler.incremental_federal import FederalAdapter
 from crawler.incremental_dspace import NemertesAdapter
+from crawler.incremental_ots import OTSAdapter
 
 ADDITIONAL_ADAPTERS = {'federalregister-gov-documents': FederalAdapter,
-                       'nemertes-library-upatras-gr-browse': NemertesAdapter}
+                       'nemertes-library-upatras-gr-browse': NemertesAdapter,
+                       'ots-at-pressemappe': OTSAdapter}
 
 
 def adapter_for(crawler):

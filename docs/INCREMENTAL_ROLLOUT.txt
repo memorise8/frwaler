@@ -71,6 +71,27 @@ Batch 003: AMOLF·KRIVET 증분 보류 분류
 - 검토 재현: python -m delivery.scripts.review_incremental_order_holds --source <보존된 continuous 경로> --out <새 경로>
   격리 worker 측정은 tests.test_incremental_order_holds_worker이며 기존 DB/테이블을 삭제하지 않는다.
 
+Batch 004: OTS / Bundesministerium für Inneres
+- 기존 API와 발행기관 emittentId=54 및 원본 OTS 문서 키를 유지한다. 기본 query는 빈 문자열이다.
+  API의 count는 현재 페이지 건수이며 totalCount만 전체 쿼리 건수로 읽는다.
+- 발행기관, 문서 키/날짜, 게시 timestamp, 페이지 번호/건수/총 페이지 수를 검증한다.
+  첫 완주의 전체 timestamp 관측으로 정렬을 판별하고 오래된 순일 경우 재수집을 마지막 페이지부터 읽는다.
+  다음 페이지에 가기 전에 직전 페이지의 해시와 전체 건수를 재확인한다.
+- 과거 문서 하나가 article을 배열 대신 숫자 키 객체로 반환하는 버그를 실제 측정 중 발견했다.
+  빠진 번호가 있는 객체도 숫자 순으로 처리한다(2 다음에 10). 임의의 비숫자 키는 조용히 버리지 않는다.
+  짧거나 빈 원문은 보충하지 않고 그대로 저장한다. 본문 추출은 기존 파서의 text/structured 규칙을 재사용한다.
+- 대표 범위는 같은 기관의 Phishing 검색 18건이다. 전체 API 보고 수 6,724건과 구분한다.
+  최초 목록 11회 뒤 부분 저장 3회, 재개 중 상세 4회/3건 저장 후 위 형식 오류로 중단했다.
+  보존된 6건과 미처리 12건을 유지한 채, 격리 DB의 코드 계약만 검토 기록과 함께 갱신했다.
+  수정 후 목록 재조회 없이 상세 12회/12건 저장, 재실행 목록 3회/상세 0회/신규 저장 0건이었다.
+  총 요청 33회에는 형식 오류를 일으킨 HTTP 200 응답도 포함한다. 실패 기록을 성공 기록과 함께 보존한다.
+- DB의 18개 키와 전체 대표 목록 키가 일치하고 저장 순서는 timestamp 오름차순이다.
+  버그가 난 문서의 원문 text/structured 23개 단락이 12,100자 본문에 보존된 것을 별도로 확인했다.
+- 새 PostgreSQL DB의 기본 worker fixture는 최초 10회/3건, 재개 9회/9건, 재실행 3회/0건이었다.
+  이 검증도 숫자 객체 본문과 기존 저장 행 불변을 포함한다. 운영 DB 계약 변경은 수행하지 않았다.
+- 재현: python -m delivery.scripts.measure_ots_incremental --out <새 경로> --gate-dir <공용 gate> --query Phishing
+  --resume은 동일한 실패 측정의 DB/범위에서만 재개한다. 코드 계약이 바뀌면 명시적 검토 없이 재사용하지 않는다.
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.

@@ -38,7 +38,7 @@ def _source(site_id):
                  'crawler/incremental.py', 'crawler/incremental_adapters.py',
                  'crawler/hal_incremental_scopes.json', 'delivery/incremental_status.py',
                  'delivery/incremental_registry.py', 'crawler/incremental_federal.py', 'crawler/incremental_dspace.py',
-                 'delivery/incremental_holds.json'):
+                 'delivery/incremental_holds.json', 'crawler/incremental_ots.py'):
         digest.update((root/name).read_bytes())
     config = getattr(cls, '_config_path', None)
     if config:
