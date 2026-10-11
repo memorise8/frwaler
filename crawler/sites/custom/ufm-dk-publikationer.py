@@ -79,9 +79,10 @@ class UfmDkPublikationerCrawler(BaseCrawler):
 
     site_id = "ufm-dk-publikationer"
     site_name = "Custom: ufm-dk-publikationer"
-    base_url = "https://ufm.dk"
+    # The legacy domain now redirects every path to the new homepage.
+    base_url = "https://fudm.dk"
 
-    _LIST_BASE = "https://ufm.dk/publikationer"
+    _LIST_BASE = "https://fudm.dk/publikationer/"
 
     # ------------------------------------------------------------------
     # Internal fetch (requests session with curl fallback)
