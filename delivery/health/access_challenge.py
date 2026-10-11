@@ -16,6 +16,7 @@ def access_challenge(body):
     hal_notice = 'it seems that your request has been identified as coming from a robot.'
     markers = ('human verification', 'pardon our interruption', 'security check',
                'not a bot!', 'challenge validation', 'radware page',
+               '/.within.website/x/cmd/anubis/',
                cookie_notice, human_notice, js_page_notice, aws_js_notice, hal_notice,
                '/_incapsula_resource?')
     if isinstance(prefix, bytes):
@@ -170,14 +171,25 @@ def access_challenge(body):
                 ):
                     return 'javascript_cookie_verification'
     title = soup.title.get_text(' ', strip=True).casefold() if soup.title else ''
-    if title == "making sure you're not a bot!" and not soup.find('article'):
-        # Observed HTTP 200 on both delivered CERN collection routes. Require
-        # the interstitial heading, challenge data and an active local module;
-        # an article discussing Anubis is not evidence of an access challenge.
+    if not soup.find('article'):
+        # CERN uses Anubis's default heading; Universidad de Chile supplies
+        # its own title and Spanish heading. For the latter require the
+        # actual loader controls as well as challenge data and active module.
         heading = soup.find('h1', id='title')
         challenge = soup.find('script', id='anubis_challenge', type='application/json')
         module = soup.find('script', id='anubis-main', type='module', src=True)
-        if (heading and heading.get_text(' ', strip=True).casefold() == title
+        status = soup.find('p', id='status')
+        error = soup.find('p', id='anubis-script-error')
+        progress = soup.select_one('div#progress[role="progressbar"][aria-labelledby="status"]')
+        default_heading = (title == "making sure you're not a bot!" and heading
+                           and heading.get_text(' ', strip=True).casefold() == title)
+        custom_loader = (heading and heading.get_text(' ', strip=True) and title
+                         and status and status.get_text(' ', strip=True).casefold() == 'loading...'
+                         and error and error.get_text(' ', strip=True).casefold()
+                         == 'anubis could not load its javascript. the server may be overloaded. '
+                            'please reload the page to try again.'
+                         and progress)
+        if ((default_heading or custom_loader)
                 and challenge and module
                 and module['src'].split('?', 1)[0]
                 == '/.within.website/x/cmd/anubis/static/js/main.mjs'):

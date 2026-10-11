@@ -45,6 +45,15 @@ ANUBIS = b'''<html><head><title>Making sure you're not a bot!</title>
 <script id="anubis-main" type="module" src="/.within.website/x/cmd/anubis/static/js/main.mjs?cacheBuster=v1.27.0"></script>
 </main></body></html>'''
 
+ANUBIS_CUSTOM_TITLE = '''<html><head><title>Repositorio Académico - Universidad de Chile</title>
+<script id="anubis_challenge" type="application/json">{"challenge":"private-challenge-token"}</script>
+</head><body><h1 id="title">Verificando acceso al Repositorio Académico</h1>
+<p id="status">Loading...</p>
+<p id="anubis-script-error" style="display:none;">Anubis could not load its JavaScript. The server may be overloaded. Please reload the page to try again.</p>
+<script id="anubis-main" type="module" src="/.within.website/x/cmd/anubis/static/js/main.mjs?cacheBuster=v1.26.2+dirty"></script>
+<div id="progress" role="progressbar" aria-labelledby="status"><div class="bar-inner"></div></div>
+</body></html>'''.encode('utf-8')
+
 
 TURNSTILE = b'''<html><head><title>Security Check</title>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -399,6 +408,44 @@ class ChallengeClassification(unittest.TestCase):
     def test_anubis_200_stops_both_supported_probe_transports(self):
         for transport in ('requests', 'curl'):
             result = self.probe(transport, status=200, body=ANUBIS)
+            self.assertEqual(result['state'], 'blocked')
+            self.assertEqual(result['diagnostics']['stop_reason'], 'source_access_challenge')
+            self.assertEqual(result['sample_count'], 0)
+
+    def test_anubis_custom_title_requires_actual_loader_controls(self):
+        for body in (ANUBIS_CUSTOM_TITLE, ANUBIS_CUSTOM_TITLE.decode()):
+            self.assertEqual(access_challenge(body), 'anubis_proof_of_work_verification')
+        for body in (
+            ANUBIS_CUSTOM_TITLE.replace(b'id="title"', b'id="article-heading"'),
+            ANUBIS_CUSTOM_TITLE.replace(b'id="anubis_challenge"', b'id="example"'),
+            ANUBIS_CUSTOM_TITLE.replace(b'type="application/json"', b'type="ignore"'),
+            ANUBIS_CUSTOM_TITLE.replace(b'type="module"', b'type="ignore"'),
+            ANUBIS_CUSTOM_TITLE.replace(b'src="/.within.website/', b'src="https://example.org/.within.website/'),
+            ANUBIS_CUSTOM_TITLE.replace(b'Loading...', b'No records found'),
+            ANUBIS_CUSTOM_TITLE.replace(b'Anubis could not load its JavaScript.', b'Ordinary server maintenance.'),
+            ANUBIS_CUSTOM_TITLE.replace(b'role="progressbar"', b'role="presentation"'),
+            ANUBIS_CUSTOM_TITLE.replace(b'aria-labelledby="status"', b'aria-labelledby="article"'),
+            ANUBIS_CUSTOM_TITLE.replace(b'</body>', b'<article>Research on Anubis</article></body>'),
+            ANUBIS_CUSTOM_TITLE.replace(b'<script ', b'<pre ').replace(b'</script>', b'</pre>'),
+            b'x' * (128 * 1024) + ANUBIS_CUSTOM_TITLE,
+        ):
+            with self.subTest(body=body[:80]):
+                self.assertIsNone(access_challenge(body))
+
+    def test_anubis_custom_title_holds_host_without_exposing_challenge(self):
+        site = {'site_id': 'fixture', 'selected_entry': {'url': 'https://example.org/search'}}
+        gate = HostGate(0)
+        response = dict(status=200, curl_exit=0, body_complete=True, body=ANUBIS_CUSTOM_TITLE,
+                        headers={'content-type': 'text/html; charset=utf-8'})
+        first = observe(site, gate, fetch=lambda *a, **kw: response)
+        second = observe(site, gate, fetch=lambda *a, **kw: self.fail('fetch after host hold'))
+        self.assertEqual(first['state'], 'source_access_challenge')
+        self.assertEqual(second['state'], 'host_access_held')
+        self.assertNotIn('private-challenge-token', json.dumps(first))
+
+    def test_anubis_custom_title_stops_both_probe_transports(self):
+        for transport in ('requests', 'curl'):
+            result = self.probe(transport, status=200, body=ANUBIS_CUSTOM_TITLE)
             self.assertEqual(result['state'], 'blocked')
             self.assertEqual(result['diagnostics']['stop_reason'], 'source_access_challenge')
             self.assertEqual(result['sample_count'], 0)
