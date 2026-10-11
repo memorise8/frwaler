@@ -1,0 +1,22 @@
+[
+  {
+    "scope": "dossier",
+    "list_URL": "https://www.cerema.fr/fr/presse/dossier",
+    "list_source": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/cerema-fr-fr-exact-delivered-entries/scope-0-0.body",
+    "list_sha256": "256c87806803a424d63df535b3b5a4c43609bac00ec5ae637272c9fa8ee2c3f9",
+    "fixture_transformation": "retainfirstactualcardandremoveallpageritemsforonetargetscopednativeDBtest",
+    "detail_URL": "https://www.cerema.fr/fr/presse/dossier/inventaire-national-friches-bilan-annuel-au-1er-juillet-2026",
+    "detail_source": "twentysixth-cerema_details/000.body",
+    "detail_sha256": "5defc433e5267d1667c218d21c48de9f594cfbd5eb2ea4225d752e566d383672"
+  },
+  {
+    "scope": "document",
+    "list_URL": "https://www.cerema.fr/fr/presse/document",
+    "list_source": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/cerema-fr-fr-exact-delivered-entries/scope-1-0.body",
+    "list_sha256": "985c03392bedef8ae6a9e4bc2853936b05d7f18b0d4719e557e3e329c6fae447",
+    "fixture_transformation": "retainfirstactualcardandremoveallpageritemsforonetargetscopednativeDBtest",
+    "detail_URL": "https://www.cerema.fr/fr/presse/document/institut-carnot-clim-adapt-rapport-activite-2025",
+    "detail_source": "twentysixth-cerema_details/001.body",
+    "detail_sha256": "44d4d6ddc4da405d87294f1fac0e00f2c8b6db48bdd51e02d6416c65654b4b9e"
+  }
+]

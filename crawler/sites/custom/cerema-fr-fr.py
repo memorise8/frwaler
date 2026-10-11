@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """Crawler for Cerema (Centre d'études et d'expertise sur les risques, l'environnement, la mobilité et l'aménagement).
 
-Target: https://www.cerema.fr/fr/presse/dossier
+Targets: https://www.cerema.fr/fr/presse/dossier and /fr/presse/document
 Drupal 11 Views listing — HTML pagination (?page=N), 15 items/page.
 """
 
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import re
 import subprocess
@@ -20,6 +21,7 @@ from crawler.base_crawler import BaseCrawler
 _SITE_ID = "cerema-fr-fr"
 _BASE_URL = "https://www.cerema.fr"
 _LIST_URL = "https://www.cerema.fr/fr/presse/dossier"
+_LIST_SCOPES = {"dossier": _LIST_URL, "document": _BASE_URL + "/fr/presse/document"}
 _PAGE_SIZE = 15
 _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 100
@@ -169,8 +171,8 @@ class CeremaFrFrCrawler(BaseCrawler):
     # List page parsing
     # ------------------------------------------------------------------
 
-    def _fetch_list_page(self, page: int) -> str | None:
-        url = _LIST_URL if page == 0 else f"{_LIST_URL}?page={page}"
+    def _fetch_list_page(self, page: int, list_url: str = _LIST_URL) -> str | None:
+        url = list_url if page == 0 else f"{list_url}?page={page}"
         return self._curl(url, referer=_BASE_URL + "/")
 
     def _parse_list_page(self, raw: str) -> list[dict]:
@@ -318,7 +320,7 @@ class CeremaFrFrCrawler(BaseCrawler):
 
         metadata = {
             "source": "cerema.fr press listing + detail page",
-            "list_url": _LIST_URL,
+            "list_url": item.get("source_list_url", _LIST_URL),
             "canonical_url": url,
             "node_id": node_id,
             "slug": slug,
@@ -350,78 +352,105 @@ class CeremaFrFrCrawler(BaseCrawler):
     # Main crawl loop
     # ------------------------------------------------------------------
 
+    def _parse_source_page(self, raw, scope, page):
+        soup = self._parse_html(raw)
+        selector = ".view-id-press_release" if scope == "dossier" else ".view-id-document_reference_press"
+        view = soup.select_one(selector) if soup else None
+        if view is None or soup.find("h1") is None:
+            raise ValueError("expected original source catalogue not found")
+        items = self._parse_list_page(raw)
+        if len(items) != len(view.select(".views-row")):
+            raise ValueError("source rows could not all be parsed")
+        if len({x["url"] for x in items}) != len(items):
+            raise ValueError("duplicate source URLs within page")
+        links = {urljoin(_LIST_SCOPES[scope], a["href"])
+                 for a in view.select(".pager__item--next a[href]")}
+        if len(links) > 1:
+            raise ValueError("ambiguous source next page")
+        next_page = None
+        if links:
+            target = urlparse(next(iter(links)))
+            expected = urlparse(_LIST_SCOPES[scope])
+            if (target.scheme, target.netloc, target.path) != (expected.scheme, expected.netloc, expected.path):
+                raise ValueError("source next page changed catalogue")
+            if parse_qs(target.query) != {"page": [str(page + 1)]} or not items:
+                raise ValueError("invalid source next page")
+            next_page = page + 1
+        elif items:
+            for link in view.select(".pager__item--last a[href]"):
+                last = parse_qs(urlparse(link["href"]).query).get("page", [])
+                if last and last[0].isdigit() and int(last[0]) > page:
+                    raise ValueError("source next page missing before declared last page")
+        for item in items:
+            item["source_list_url"] = _LIST_SCOPES[scope]
+        return items, next_page
+
     def crawl(self, limit=None):
+        self._exhausted = False
+        self._source_failure = None
+        if limit is not None and limit <= 0:
+            return 0
+        self._check_cancelled()
+        cursor = dict(self.delivery_cursor or {})
+        scope, page, index = cursor.get("scope", "dossier"), cursor.get("page", 0), cursor.get("next_index", 0)
+        if (cursor.get("version", 1) != 1 or scope not in (*_LIST_SCOPES, "done")
+                or type(page) is not int or page < 0 or type(index) is not int or index < 0):
+            raise ValueError("invalid Cerema source cursor")
+        expected_digest = cursor.get("list_digest", "")
         saved = 0
-        seen_urls: set[str] = set()
-        limit_label = str(limit) if limit is not None else "∞"
-        crawl_start = time.time()
-
-        for page in range(_MAX_PAGES):
-            # 25-minute wall-clock budget
-            if time.time() - crawl_start > int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60))):
-                print(f"[{_SITE_ID}] 25-minute wall-clock budget reached; stopping.")
-                break
-
+        start = time.monotonic()
+        budget = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
+        while scope != "done":
+            self._check_cancelled()
             if limit is not None and saved >= limit:
-                break
-
-            if page > 0 and page % 10 == 0:
-                print(f"[{_SITE_ID}] page {page}: saved {saved}/{limit_label}")
-
+                return saved
+            if time.monotonic() - start >= budget:
+                return saved
+            if page >= _MAX_PAGES:
+                self._report_source_failure("configuration")
+                return saved
             try:
-                raw = self._fetch_list_page(page)
-            except KeyboardInterrupt:
-                raise
-            except Exception as exc:
-                print(f"[{_SITE_ID}] failed to fetch list page {page}: {exc}")
-                break
-
-            if not raw:
-                print(f"[{_SITE_ID}] empty list response at page {page}; stopping")
-                break
-
-            items = self._parse_list_page(raw)
-            if not items:
-                print(f"[{_SITE_ID}] no rows on page {page}; stopping")
-                break
-
-            new_items = [it for it in items if it["url"] not in seen_urls]
-            if not new_items:
-                print(f"[{_SITE_ID}] all URLs on page {page} already seen; stopping")
-                break
-
-            if page == _MAX_PAGES - 1:
-                print(f"[{_SITE_ID}] safety cap of {_MAX_PAGES} pages reached; stopping")
-
-            for item in new_items:
-                if limit is not None and saved >= limit:
-                    break
-
-                url = item["url"]
-                seen_urls.add(url)
-
-                try:
+                raw = self._fetch_list_page(page, _LIST_SCOPES[scope])
+                self._check_cancelled()
+                if not raw:
+                    self._report_source_failure("fetch_failed")
+                    raise ValueError("empty source response")
+                items, next_page = self._parse_source_page(raw, scope, page)
+                digest = hashlib.sha256(json.dumps([x["url"] for x in items], ensure_ascii=False).encode()).hexdigest()
+                if (expected_digest and expected_digest != digest) or index > len(items):
+                    raise ValueError("source list changed since checkpoint; overlap review required")
+                for offset in range(index, len(items)):
+                    self._check_cancelled()
+                    if limit is not None and saved >= limit:
+                        return saved
+                    if time.monotonic() - start >= budget:
+                        return saved
+                    item = items[offset]
                     time.sleep(self._detail_delay)
-                    raw_detail = self._fetch_detail(url)
+                    self._check_cancelled()
+                    raw_detail = self._fetch_detail(item["url"])
+                    self._check_cancelled()
                     if not raw_detail:
-                        print(f"[{_SITE_ID}] item {url} failed: empty detail response")
-                        continue
-
+                        self._report_source_failure("fetch_failed")
+                        raise ValueError("empty detail response")
                     paper = self._parse_detail(raw_detail, item)
-                    abstract = paper.get("abstract") or ""
-                    if len(abstract) < _ABSTRACT_MIN_CHARS:
-                        print(f"[{_SITE_ID}] item {url} skipped: abstract too short ({len(abstract)} chars)")
-                        continue
-
+                    if len(paper.get("abstract") or "") < _ABSTRACT_MIN_CHARS:
+                        self._report_source_failure("item_failed")
+                        raise ValueError("source abstract requires review before advancing cursor")
                     self._save_paper(paper)
                     if self._last_save_created:
                         saved += 1
-
-                except KeyboardInterrupt:
-                    raise
-                except Exception as exc:
-                    print(f"[{_SITE_ID}] item {url} failed: {exc}")
-                    continue
-
-        print(f"[{_SITE_ID}] crawl complete: saved {saved}/{limit_label}")
+                    self._advance_cursor(dict(version=1, scope=scope, page=page,
+                                              next_index=offset+1, list_digest=digest), items_done=1)
+            except Exception:
+                self._report_source_failure("invalid_response")
+                raise
+            if next_page is not None:
+                page = next_page
+            else:
+                scope, page = ("document", 0) if scope == "dossier" else ("done", 0)
+            index, expected_digest = 0, ""
+            self._advance_cursor(dict(version=1, scope=scope, page=page, next_index=0, list_digest=""))
+        self._check_cancelled()
+        self._mark_exhausted()
         return saved
