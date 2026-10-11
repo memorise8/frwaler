@@ -14,6 +14,7 @@ import os
 import re
 import subprocess
 import time
+from datetime import date
 from urllib.parse import urljoin
 
 from crawler.base_crawler import BaseCrawler
@@ -78,18 +79,32 @@ def _split_by_br(fragment_html: str) -> list:
     return out
 
 
+def _publication_date(raw: str):
+    """Return a real day, source precision and period without inventing a day."""
+    text = _clean_text(raw).lower()
+    if not text:
+        return None, "missing", None
+    if re.fullmatch(r"\d{4}", text) and 1 <= int(text) <= 9999:
+        return None, "year", text
+    match = re.fullmatch(r"(?:(\d{1,2})(?:er)?\s+)?([a-zéûôàêç]+)\s+(\d{4})", text)
+    if not match:
+        return None, "unparsed", None
+    day, month_name, year = match.groups()
+    month = _MONTHS_FR.get(month_name)
+    if month is None or not 1 <= int(year) <= 9999:
+        return None, "invalid", None
+    if day is None:
+        return None, "month", f"{year}-{month:02d}"
+    try:
+        value = date(int(year), month, int(day)).isoformat()
+    except ValueError:
+        return None, "invalid", None
+    return value, "day", value
+
+
 def _parse_fr_date(raw: str) -> str:
-    """Parse a French 'mois AAAA' string (e.g. 'décembre 2012') to ISO YYYY-MM-01."""
-    if not raw:
-        return ""
-    m = re.search(r"([A-Za-zéûôàêç]+)\s+(\d{4})", raw)
-    if not m:
-        y = re.search(r"(\d{4})", raw)
-        return f"{y.group(1)}-01-01" if y else ""
-    month_name = m.group(1).lower()
-    year = int(m.group(2))
-    month = _MONTHS_FR.get(month_name, 1)
-    return f"{year:04d}-{month:02d}-01"
+    """Return ISO only when the citation supplies a valid calendar day."""
+    return _publication_date(raw)[0] or ""
 
 
 class CepiiFrCepiiCrawler(BaseCrawler):
@@ -327,8 +342,8 @@ class CepiiFrCepiiCrawler(BaseCrawler):
                             )
                             continue
 
-                        published_date = _parse_fr_date(detail.get("date_raw", "")) or None
-                        listed_date = published_date
+                        published_date, date_precision, date_period = _publication_date(detail.get("date_raw", ""))
+                        listed_date = None
 
                         authors = "; ".join(detail.get("authors") or [])
                         pdf_url = detail.get("pdf_url")
@@ -339,10 +354,13 @@ class CepiiFrCepiiCrawler(BaseCrawler):
                                 original_filename = tail
 
                         meta = {
-                            "posted_date": detail.get("date_raw") or "",
                             "node_id": no_doc,
                             "report_number": detail.get("report_no") or "",
                             "series": "CEPII Research Report",
+                            "publication_date_raw": detail.get("date_raw") or "",
+                            "publication_date_precision": date_precision,
+                            "publication_period": date_period,
+                            "publication_date_role": "report_citation_publication",
                         }
                         if original_filename:
                             meta["originalFilename"] = original_filename
