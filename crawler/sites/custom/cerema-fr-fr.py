@@ -328,6 +328,20 @@ class CeremaFrFrCrawler(BaseCrawler):
         if pdf_url and len(abstract) < _ABSTRACT_MIN_CHARS:
             metadata["source_abstract_state"] = "empty" if not abstract else "short"
             metadata["source_fulltext_file_url"] = pdf_url
+        if art and len(abstract) < _ABSTRACT_MIN_CHARS:
+            resources = []
+            seen_resources = set()
+            for link in art.select('.field--name-field-paragraph-link-link .document-link a[href]'):
+                href = link.get('href', '').strip()
+                target = urljoin(url, href)
+                if (not href or href.startswith('#') or urlparse(target).scheme not in ('http', 'https')
+                        or not urlparse(target).netloc or target in seen_resources):
+                    continue
+                seen_resources.add(target)
+                resources.append({"url": target, "label": self._one_line(link.get_text(' ', strip=True))})
+            if resources:
+                metadata["source_abstract_state"] = "empty" if not abstract else "short"
+                metadata["source_resource_links"] = resources
 
         return {
             "id": external_id,
@@ -438,7 +452,8 @@ class CeremaFrFrCrawler(BaseCrawler):
                         raise ValueError("empty detail response")
                     paper = self._parse_detail(raw_detail, item)
                     if (len(paper.get("abstract") or "") < _ABSTRACT_MIN_CHARS
-                            and not paper.get("pdf_url")):
+                            and not paper.get("pdf_url")
+                            and not json.loads(paper["metadata"]).get("source_resource_links")):
                         self._report_source_failure("item_failed")
                         raise ValueError("source abstract requires review before advancing cursor")
                     self._save_paper(paper)

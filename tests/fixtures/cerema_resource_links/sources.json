@@ -1,0 +1,8 @@
+{
+  "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentysixth-cerema_all_details_dns15/211.body",
+  "source_sha256": "cb0ccbfbe2c69a9735623344d8bedf07c1b3f9a173d2c895d38e8a4755f3cea2",
+  "list_source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentysixth-cerema/019.body",
+  "list_source_sha256": "261bc813c0cf18069f04c57aa0a0b808189391540472c36bd1dd485da6049927",
+  "before_source_commit": "c199e8e41c71e51d636a05d7d5c4ce9cbefe553a",
+  "scoped_fixture": "Last actualdocumentcard retained; othercards/paginationremoved. ExactthreeofficialresourceURLs come from actualdetail, not fabricatedPDFs."
+}
