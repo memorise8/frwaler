@@ -1,0 +1,10 @@
+{
+  "url": "https://www.arn.se/om-arn/arsredovisning/",
+  "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/arn-se-om-arn-exact-delivered-entries/scope-2-0.body",
+  "source_sha256": "ec77378562e78fbc9eff61d4fac50474c6c62c3751f5833fbe8ee70cd970c7ee",
+  "fixture_is_content_excerpt": true,
+  "actual_first_PDF_sha256": "73a696cd70a05a302f4fbbfff74e4deef22a98c27e0c41ebb012825c72e515b2",
+  "first_PDF_report_period": "2025",
+  "first_PDF_signature_date_raw": "Stockholm den 20 februari 2026",
+  "signature_date_is_not_publication_date": true
+}

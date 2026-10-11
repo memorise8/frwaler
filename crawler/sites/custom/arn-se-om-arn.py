@@ -177,8 +177,9 @@ class ArnSeOmArnCrawler(BaseCrawler):
                 # original filename = last path segment
                 original_filename = href.rstrip("/").split("/")[-1]
 
-                # published_date: first day of the report year
-                published_date = f"{year}-01-01" if year.isdigit() else None
+                # The filename year is the reporting period, not a publication
+                # or listing date. The source list supplies neither date.
+                published_date = None
 
                 # external_id and post_number: the year is the natural key
                 external_id = year
@@ -211,6 +212,9 @@ class ArnSeOmArnCrawler(BaseCrawler):
                     "metadata": json.dumps(
                         {
                             "year": year,
+                            "reporting_period_year_raw": year,
+                            "year_role": "reporting_period",
+                            "published_date_source": None,
                             "original_filename": original_filename,
                             "posted_date": published_date,
                             "source_page": self._LIST_URL,
