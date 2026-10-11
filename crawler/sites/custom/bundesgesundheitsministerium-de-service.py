@@ -34,7 +34,7 @@ _DE_MONTHS = {
 
 
 def _parse_stand_date(raw: str) -> str:
-    """Parse 'März 2025' or 'Stand: März 2025' into YYYY-MM-DD."""
+    """Retain the month precision of a revision label, never invent a day."""
     raw = re.sub(r"Stand:\s*", "", raw).strip()
     m = re.search(r"(\w+)\s+(\d{4})", raw)
     if not m:
@@ -44,7 +44,7 @@ def _parse_stand_date(raw: str) -> str:
     month = _DE_MONTHS.get(month_word, "")
     if not month:
         return ""
-    return f"{year}-{month}-01"
+    return f"{year}-{month}"
 
 
 class BundesgesundheitsministeriumDeServiceCrawler(BaseCrawler):
@@ -199,6 +199,7 @@ class BundesgesundheitsministeriumDeServiceCrawler(BaseCrawler):
                 # Download metadata spans
                 pub_type = ""
                 published_date = ""
+                stand_date_raw = ""
                 article_nr = ""
                 pages_count = ""
                 dl_data = card.select_one(".c-teaser__download__data")
@@ -208,7 +209,7 @@ class BundesgesundheitsministeriumDeServiceCrawler(BaseCrawler):
                         if "Artikel-Nr." in text:
                             article_nr = re.sub(r"Artikel-Nr\.\s*:?\s*", "", text).strip()
                         elif "Stand:" in text:
-                            published_date = _parse_stand_date(text)
+                            stand_date_raw = text
                         elif "Seiten:" in text:
                             pages_count = re.sub(r"Seiten:\s*", "", text).strip()
                         elif text and not pub_type:
@@ -232,6 +233,7 @@ class BundesgesundheitsministeriumDeServiceCrawler(BaseCrawler):
                     "category": category,
                     "pub_type": pub_type,
                     "published_date": published_date,
+                    "stand_date_raw": stand_date_raw,
                     "article_nr": article_nr,
                     "pages_count": pages_count,
                     "pdf_url": pdf_url,
@@ -277,7 +279,10 @@ class BundesgesundheitsministeriumDeServiceCrawler(BaseCrawler):
                 original_filename = pdf_href.rsplit("/", 1)[-1]
 
         # Metadata spans (refine from detail if list had blanks)
-        published_date = item.get("published_date", "")
+        # Stand describes the revision/edition, not publication or listing.
+        # Do not reuse a previously fabricated first-of-month list date.
+        published_date = ""
+        stand_date_raw = item.get("stand_date_raw", "")
         article_nr = item.get("article_nr", "")
         pub_type = item.get("pub_type", "")
         pages_count = item.get("pages_count", "")
@@ -287,8 +292,8 @@ class BundesgesundheitsministeriumDeServiceCrawler(BaseCrawler):
                 text = self._one_line(span.get_text(" ", strip=True))
                 if "Artikel-Nr." in text and not article_nr:
                     article_nr = re.sub(r"Artikel-Nr\.\s*:?\s*", "", text).strip()
-                elif "Stand:" in text and not published_date:
-                    published_date = _parse_stand_date(text)
+                elif "Stand:" in text:
+                    stand_date_raw = text
                 elif "Seiten:" in text and not pages_count:
                     pages_count = re.sub(r"Seiten:\s*", "", text).strip()
                 elif text and not pub_type:
@@ -313,6 +318,13 @@ class BundesgesundheitsministeriumDeServiceCrawler(BaseCrawler):
             "pub_type": pub_type,
             "pages": pages_count,
             "originalFilename": original_filename,
+            "date_evidence": ([{
+                "raw": stand_date_raw,
+                "value": _parse_stand_date(stand_date_raw) or None,
+                "precision": "month" if _parse_stand_date(stand_date_raw) else "unknown",
+                "role": "revision",
+                "source": "Stand",
+            }] if stand_date_raw else []),
         }
 
         return {
