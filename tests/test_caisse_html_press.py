@@ -103,6 +103,17 @@ class CaisseHtmlPressTests(unittest.TestCase):
         self.assertEqual(MODULE._parse_french_date('septembre 2026'), '')
         self.assertEqual(MODULE._parse_french_date('23 septembre 2026'), '2026-09-23')
 
+    def test_actual_last_page_PDF_only_detail_retained_without_invented_body(self):
+        item=self.crawler._parse_page((FIXTURE/'list-page255.html').read_text())[0]
+        with patch.object(self.crawler,'_curl_get',return_value=(FIXTURE/'last-detail.html').read_text()):
+            paper=self.crawler._paper(item)
+        self.assertEqual(paper['abstract'],'')
+        self.assertTrue(paper['pdf_url'].endswith('.pdf'))
+        self.assertEqual(paper['external_id'],item['pdf_href'])
+        self.assertIn('full text pending',json.loads(paper['metadata'])['abstract_source'])
+        self.crawler._save_paper(paper)
+        self.assertEqual(self.conn.execute('SELECT COUNT(*) FROM documents').fetchone()[0],1)
+
     def test_existing_wrong_attachment_is_held_without_deleting_files_or_rekeying(self):
         from tempfile import TemporaryDirectory
         item = self.items()[0]

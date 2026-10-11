@@ -223,8 +223,6 @@ class CaisseDesDepotsCommPresseCrawler(BaseCrawler):
             if text:
                 paragraphs.append(text)
         abstract = "\n\n".join(paragraphs)
-        if not abstract:
-            raise ValueError("press detail has no source body")
         date_node = main.select_one(".c-metatag--date")
         date_raw = " ".join(date_node.get_text(" ", strip=True).split()) if date_node else ""
         published_raw = re.sub(r"^Date de publication\s*", "", date_raw).strip()
@@ -235,10 +233,13 @@ class CaisseDesDepotsCommPresseCrawler(BaseCrawler):
             href = urljoin(item["url"], a["href"])
             if urlsplit(href).scheme in {"http", "https"} and urlsplit(href).path.lower().endswith(".pdf") and href not in pdfs:
                 pdfs.append(href)
+        if not abstract and not pdfs:
+            raise ValueError("press detail has neither source body nor PDF attachment")
         title = " ".join(main.select_one("h1.page__title").get_text(" ", strip=True).split())
         return dict(title=title, abstract=abstract, published_date=published,
                     publication_date_raw=date_raw, pdf_urls=pdfs,
-                    abstract_source="original HTML press body")
+                    abstract_source="original HTML press body" if abstract else
+                    "no HTML body; source PDF attachment full text pending")
 
     def _paper(self, item):
         url = item["url"]

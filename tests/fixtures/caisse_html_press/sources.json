@@ -18,5 +18,9 @@
   "first-detail.html": {
     "source_file": "twentyfifth-caisse/004.body",
     "sha256": "4ce7a34795aae6d8fd9e8124ab1c1b14c3c482051b4f029a78e2cb9819e9d3fb"
+  },
+  "last-detail.html": {
+    "source_file": "twentyfifth-caisse_details_PDF/002.body",
+    "sha256": "a5280a95b2403a05af7e50562e5d3465233b39d934f8e4eb46de9407c55fe441"
   }
 }
