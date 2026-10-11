@@ -1,0 +1,21 @@
+{
+  "pdf-only-multilingual.html": {
+    "source_file": "twentyfifth-cae_details/000.body",
+    "sha256": "d5c2d7d4e56fcf115b96987bb19562f779999d6bfb8812c675897401bd64669b",
+    "url": "https://cae-eco.fr/lue-doit-se-munir-dune-strategie-europeenne-ciblee-et-coherente-pour-faire-face-a-la-domination-industrielle-croissante-de-la-chine-communique-de-presse"
+  },
+  "pdf-only-report.html": {
+    "source_file": "twentyfifth-cae_details/004.body",
+    "sha256": "77bdbc9d22ea4a64c304b8fbd13a06545d0b0cbf1f4f17d849234a49e2893692",
+    "url": "https://cae-eco.fr/communique-de-presse-2024-2025-le-cae-fait-le-bilan"
+  },
+  "with-summary.html": {
+    "source_file": "twentyfifth-cae/001.body",
+    "sha256": "0af930010924c8d21c555a84e77c4f067f1e8265c7d1f645a8ca369c99d88e23",
+    "url": "https://cae-eco.fr/les-vingt-trois-membres-du-cae-proposent-une-strategie-economique-de-ruptures-pour-la-france"
+  },
+  "list.html": {
+    "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/cae-eco-fr-presse-cae-0-exact-delivered-entries/scope-0-0.body",
+    "sha256": "46df9bf348e5a86227ca3d7567dd6d8fca924039364403f1075f085db9b96b6f"
+  }
+}

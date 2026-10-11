@@ -53,6 +53,9 @@ class CaeEcoFrPresseCae0Crawler(BaseCrawler):
     base_url = BASE
 
     def crawl(self, limit=None):
+        self._check_cancelled()
+        if limit is not None and limit <= 0:
+            return 0
         limit_or_inf = limit if limit is not None else float("inf")
         saved = 0
         seen_urls = set()
@@ -62,6 +65,7 @@ class CaeEcoFrPresseCae0Crawler(BaseCrawler):
 
         page = 0
         while page < MAX_PAGES:
+            self._check_cancelled()
             if (time.time() - start_time) / 60 >= MAX_MINUTES:
                 print(f"[cae-eco-fr-presse-cae-0] {MAX_MINUTES}min budget reached, stopping.")
                 break
@@ -86,6 +90,7 @@ class CaeEcoFrPresseCae0Crawler(BaseCrawler):
 
             new_on_page = 0
             for art in articles:
+                self._check_cancelled()
                 if saved >= limit_or_inf:
                     break
 
@@ -108,6 +113,7 @@ class CaeEcoFrPresseCae0Crawler(BaseCrawler):
 
                 try:
                     detail_raw = _curl(article_url)
+                    self._check_cancelled()
                     if not detail_raw:
                         print(f"[cae-eco-fr-presse-cae-0] item {slug} fetch failed, skipping.")
                         continue
@@ -133,9 +139,6 @@ class CaeEcoFrPresseCae0Crawler(BaseCrawler):
                             if len(c) > 50:
                                 abstract = c
                                 break
-                    if len(abstract) < 50:
-                        print(f"[cae-eco-fr-presse-cae-0] item {slug} abstract <50 chars, skipping.")
-                        continue
 
                     # Date from schedule icon list item
                     published_date = None
@@ -154,6 +157,18 @@ class CaeEcoFrPresseCae0Crawler(BaseCrawler):
                         pdf_path = pdf_tag.get("href", "")
                         pdf_url = f"{BASE}{pdf_path}" if pdf_path.startswith("/") else pdf_path
                         original_filename = pdf_path.split("/")[-1]
+
+                    # The original press archive includes PDF-only entries.
+                    # Keep their actual attachment without inventing a summary.
+                    if not abstract and not pdf_url:
+                        self._report_source_failure("invalid_response")
+                        raise ValueError("source press entry has neither summary nor PDF")
+                    pdf_urls = []
+                    for link in detail.select('a[href*="/static/pdf/"][href$=".pdf"]'):
+                        href = link["href"]
+                        url = f"{BASE}{href}" if href.startswith("/") else href
+                        if url not in pdf_urls:
+                            pdf_urls.append(url)
 
                     # post_number from PDF filename N{num} pattern
                     post_number = None
@@ -175,6 +190,8 @@ class CaeEcoFrPresseCae0Crawler(BaseCrawler):
                         authors_list = list_authors
 
                     metadata = {"posted_date": published_date, "slug": slug}
+                    metadata["source_pdf_urls"] = pdf_urls
+                    metadata["abstract_source"] = "original source metadata" if abstract else "source PDF full text pending"
                     if original_filename:
                         metadata["originalFilename"] = original_filename
 
@@ -196,6 +213,7 @@ class CaeEcoFrPresseCae0Crawler(BaseCrawler):
                         "metadata": json.dumps(metadata, ensure_ascii=False),
                     }
 
+                    self._check_cancelled()
                     self._save_paper(paper)
                     if self._last_save_created:
                         saved += 1
