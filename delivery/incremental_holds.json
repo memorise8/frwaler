@@ -54,5 +54,16 @@
     "evidence": "incremental-rollout-20261012/batch-017-canurb/order-review.json",
     "evidence_sha256": "4e1bd8403f8632433c6d2779bb1d05ac459f76b9bb88045b9ed87a87d4d1f113",
     "native_health_note": "98-card public catalogue includes direct PDF and external publication cards. No listing dates; IDs have 26 interior reversals. Existing external file holds remain separate from metadata replay."
+  },
+  "bfr-bund-de-en": {
+    "reason": "bfr_download_archive_not_pdf_requires_primary_member_contract",
+    "classification": "full_rescan_required",
+    "source_sha256": "8d02ea2a294c7fbfdb74f328ac4490417fb1b7c731afb85952601f4f3c795452",
+    "adapter_source_sha256": "1c0a07d148468c6375ecde8928fe17e7114095b7c7a190b8748eb70444e6aef0",
+    "reviewed_at": "2026-10-11T19:21:12.768176+00:00",
+    "adapter": "BfRAdapter",
+    "evidence": "incremental-rollout-20261012/batch-019-bfr/final-archive-guard/review.json",
+    "evidence_sha256": "a977ff7cbf51f81d35b7bbc1868702615f51607beff37a970ab7c2822d32bdd6",
+    "native_health_note": "Default adapter covers annual and scientific catalogues; a scientific record returns an archive with 20 PDFs and 3 HTML files. Primary member and attachment association remain unimplemented; annual-only acceptance is not a global baseline."
   }
 }

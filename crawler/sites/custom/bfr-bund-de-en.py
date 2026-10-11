@@ -110,100 +110,9 @@ class BfrBundDeEnCrawler(BaseCrawler):
                         continue
                     seen_external_ids.add(external_id)
 
-                    time.sleep(self.detail_delay)
-                    detail_soup = None
-                    detail_effective_url = url
-                    if url:
-                        detail_raw, detail_effective_url = self._curl_get_text(
-                            url,
-                            context=f"item {item_number} detail",
-                            referer=self.START_URL,
-                        )
-                        if not detail_raw:
-                            raise RuntimeError("detail fetch failed after retries")
-                        detail_soup = self._make_soup(
-                            detail_raw,
-                            context=f"item {item_number} detail",
-                        )
-                        if detail_soup is None:
-                            raise RuntimeError("detail HTML could not be parsed")
-
-                    parsed = self._parse_detail(detail_soup, record)
-                    abstract = parsed.get("abstract") or ""
-                    pdf_text = ""
-                    abstract_source = parsed.get("abstract_source") or "detail"
-
-                    if len(abstract) < self.PREFERRED_ABSTRACT_CHARS and pdf_url:
-                        pdf_bytes, effective_pdf_url = self._curl_get_bytes(
-                            pdf_url,
-                            context=f"item {item_number} PDF",
-                            referer=detail_effective_url or self.START_URL,
-                            accept="application/pdf,*/*;q=0.8",
-                        )
-                        if not pdf_bytes:
-                            raise RuntimeError("PDF fetch failed after retries")
-                        parsed["pdf_url"] = effective_pdf_url or pdf_url
-                        pdf_text = self._extract_pdf_text(
-                            pdf_bytes,
-                            context=f"item {item_number} PDF",
-                        )
-                        pdf_abstract = self._abstract_from_pdf_text(
-                            pdf_text,
-                            parsed.get("meta_description") or "",
-                        )
-                        if len(pdf_abstract) > len(abstract):
-                            abstract = pdf_abstract
-                            abstract_source = "pdf_text"
-
-                    if len(abstract) < self.MIN_ABSTRACT_CHARS:
-                        print(
-                            f"[{self.site_id}] item {item_number} skipped: "
-                            f"abstract too short ({len(abstract)} chars)"
-                        )
+                    paper = self._materialize_record(record, api_endpoint, restriction_filters, item_number)
+                    if paper is None:
                         continue
-                    if len(abstract) < self.PREFERRED_ABSTRACT_CHARS:
-                        print(
-                            f"[{self.site_id}] item {item_number} skipped: "
-                            f"abstract below preferred length ({len(abstract)} chars)"
-                        )
-                        continue
-
-                    doi = parsed.get("doi") or self._extract_doi(pdf_text)
-                    authors = parsed.get("authors") or self._extract_authors(pdf_text)
-                    keywords = parsed.get("keywords") or []
-                    category = parsed.get("category") or record.get("category") or "Annual reports"
-                    if category and category not in keywords:
-                        keywords.append(category)
-
-                    metadata = {
-                        "source": "TYPO3 Solr mini-suche JSON API",
-                        "api_endpoint": api_endpoint,
-                        "restriction_filters": restriction_filters,
-                        "list_record": record.get("raw") or {},
-                        "detail_url": detail_effective_url or url,
-                        "abstract_source": abstract_source,
-                        "meta_description": parsed.get("meta_description") or "",
-                        "isbn": parsed.get("isbn") or "",
-                        "issn": parsed.get("issn") or "",
-                        "download": record.get("download") or {},
-                    }
-
-                    paper = {
-                        "id": None,
-                        "site_id": self.site_id,
-                        "external_id": external_id,
-                        "title": parsed.get("title") or title,
-                        "authors": json.dumps(authors, ensure_ascii=False),
-                        "abstract": abstract,
-                        "category": category,
-                        "keywords": json.dumps(keywords, ensure_ascii=False),
-                        "published_date": parsed.get("published_date") or record.get("published_date") or "",
-                        "url": url,
-                        "pdf_url": parsed.get("pdf_url") or pdf_url,
-                        "doi": doi,
-                        "department": "German Federal Institute for Risk Assessment (BfR)",
-                        "metadata": json.dumps(metadata, ensure_ascii=False),
-                    }
 
                     self._save_paper(paper)
                     if self._last_save_created:
@@ -222,6 +131,108 @@ class BfrBundDeEnCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done. Total saved: {saved}")
         return saved
+
+    def _materialize_record(self, record, api_endpoint, restriction_filters, item_number=1):
+        url = record.get("url") or ""
+        pdf_url = record.get("pdf_url") or ""
+        title = record.get("title") or ""
+        external_id = record.get("external_id") or self._external_id(url, pdf_url)
+        time.sleep(self.detail_delay)
+        detail_soup = None
+        detail_effective_url = url
+        if url:
+            detail_raw, detail_effective_url = self._curl_get_text(
+                url,
+                context=f"item {item_number} detail",
+                referer=self.START_URL,
+            )
+            if not detail_raw:
+                raise RuntimeError("detail fetch failed after retries")
+            detail_soup = self._make_soup(
+                detail_raw,
+                context=f"item {item_number} detail",
+            )
+            if detail_soup is None:
+                raise RuntimeError("detail HTML could not be parsed")
+
+        parsed = self._parse_detail(detail_soup, record)
+        abstract = parsed.get("abstract") or ""
+        pdf_text = ""
+        abstract_source = parsed.get("abstract_source") or "detail"
+
+        if len(abstract) < self.PREFERRED_ABSTRACT_CHARS and pdf_url:
+            pdf_bytes, effective_pdf_url = self._curl_get_bytes(
+                pdf_url,
+                context=f"item {item_number} PDF",
+                referer=detail_effective_url or self.START_URL,
+                accept="application/pdf,*/*;q=0.8",
+            )
+            if not pdf_bytes:
+                raise RuntimeError("PDF fetch failed after retries")
+            parsed["pdf_url"] = effective_pdf_url or pdf_url
+            pdf_text = self._extract_pdf_text(
+                pdf_bytes,
+                context=f"item {item_number} PDF",
+            )
+            pdf_abstract = self._abstract_from_pdf_text(
+                pdf_text,
+                parsed.get("meta_description") or "",
+            )
+            if len(pdf_abstract) > len(abstract):
+                abstract = pdf_abstract
+                abstract_source = "pdf_text"
+
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            print(
+                f"[{self.site_id}] item {item_number} skipped: "
+                f"abstract too short ({len(abstract)} chars)"
+            )
+            return None
+        if len(abstract) < self.PREFERRED_ABSTRACT_CHARS:
+            print(
+                f"[{self.site_id}] item {item_number} skipped: "
+                f"abstract below preferred length ({len(abstract)} chars)"
+            )
+            return None
+
+        doi = parsed.get("doi") or self._extract_doi(pdf_text)
+        authors = parsed.get("authors") or self._extract_authors(pdf_text)
+        keywords = parsed.get("keywords") or []
+        category = parsed.get("category") or record.get("category") or "Annual reports"
+        if category and category not in keywords:
+            keywords.append(category)
+
+        metadata = {
+            "source": "TYPO3 Solr mini-suche JSON API",
+            "api_endpoint": api_endpoint,
+            "restriction_filters": restriction_filters,
+            "list_record": record.get("raw") or {},
+            "detail_url": detail_effective_url or url,
+            "abstract_source": abstract_source,
+            "meta_description": parsed.get("meta_description") or "",
+            "isbn": parsed.get("isbn") or "",
+            "issn": parsed.get("issn") or "",
+            "download": record.get("download") or {},
+        }
+
+        paper = {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": parsed.get("title") or title,
+            "authors": json.dumps(authors, ensure_ascii=False),
+            "abstract": abstract,
+            "category": category,
+            "keywords": json.dumps(keywords, ensure_ascii=False),
+            "published_date": parsed.get("published_date") or record.get("published_date") or "",
+            "url": url,
+            "pdf_url": parsed.get("pdf_url") or pdf_url,
+            "doi": doi,
+            "department": "German Federal Institute for Risk Assessment (BfR)",
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
+
+        return paper
 
     # ------------------------------------------------------------------
     # Network helpers

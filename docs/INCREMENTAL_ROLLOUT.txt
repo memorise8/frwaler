@@ -426,6 +426,41 @@ Batch 018: UN Geneva — 연도별 재사용 slug를 전체 URL로 구별
   보존 대조: python -m delivery.scripts.review_ungeneva_incremental --source <continuous 경로> --out <새 검토 파일>
   실측 대조: 위 명령에 --root <실측 경로> 추가. batch-018-ungeneva/review.json 참조.
 
+Batch 019: BfR — 두 납품 범위 연결 및 과학보고서 ZIP 처리 보류
+- 기본 어댑터가 연차보고서 24건과 기존에 빠진 과학보고서 15건을 함께 읽는다. 실제 현재
+  7개 목록과 두 인접 빈 경계를 보존 목록과 대조했다. 각 원래 필터, 총량, 페이지 번호/크기,
+  UID/URL/날짜/PDF 필드와 두 범위의 최신순 흐름이 일치한다. 숫자 UID는 정렬에 쓰지 않는다.
+- 두 목록을 날짜로 합치되 각 목록의 기존 항목 페이지와 겹침 페이지를 확인하고, 아직
+  전달하지 않은 신규 ID가 있으면 중단하지 않는다. 오래된 날짜의 새 과학보고서가 다른
+  범위의 최신 기존 항목 뒤에 가려지는 회귀 사례를 검증했다.
+- 원래 native 저장 전 처리를 _materialize_record로 분리했다. 원래 문장들의 AST가 같으며
+  짧은 본문 continue만 None 반환으로 바뀌고 저장은 원래 crawl에서 수행됨을 증명했다.
+- 첫 실측은 Annual report 2004(UID 315)의 본문·PDF 모두 부재에서 완료를 보류했다.
+  native의 명시적 짧은 본문 제외를 cursor에 fingerprint로 보존하고 재개 시 재검증하도록
+  보완했다. PDF가 있는데 추출되지 않은 경우나 기존 저장 문서는 이 제외로 바꾸지 않는다.
+- 두 번째 전체 실측은 과학보고서 MetaPath workshop의 ZIP에서 중단됐다. 실제 응답은
+  18,255,153바이트 ZIP이며 PDF 20개와 HTML 3개가 있다. 대표 보고서/발표자료/투표 결과의
+  파일 관계를 보존하는 처리가 아직 없으므로 전체 완료 또는 단순 본문 제외로 처리하지 않는다.
+- 최종 코드는 비PDF 바이트를 pdftotext에 넘기기 전에 UnsupportedSource로 보류한다.
+  새 SQLite DB에서 실제 캡처 38개를 동일 순서로 재생해 full_rescan_required, 기준점 미완료,
+  대기열 12건 보존을 확인했다. ZIP 멤버는 파일시스템에 풀지 않고 구성만 검토했다.
+- native·adapter 해시에 결합한 보류 분류를 추가했다. 이는 현재 ZIP 파일 처리 미지원이며,
+  날짜/ID 자체가 증분 불가하다는 판단은 아니다. 어댑터의 기본 범위는 계속 두 납품 범위다.
+  연차보고서만 검증한 결과로 전체 39건의 기준점을 인증하지 않는다.
+- 실제 연차보고서 범위는 24건 중 UID 315 한 건을 명시적으로 제외하고 23건을 저장했다.
+  부분 저장/이어받기/재실행은 HTTP 56/1/4회, 상세 24/1/0회, PDF 보강 22/0/0회,
+  신규 저장 3/20/0건이다. 이어받기 상세 1회는 제외 근거 재검증이다. 캡처 61개와 23개 저장
+  문서의 native 필드·PDF 본문을 기존 저장 정규화까지 적용해 대조했다. 이전 probe 4회,
+  첫 실패 17회, ZIP 실패 38회를 포함한 이번 실제 요청은 총 120회다.
+- 최종 기본 PostgreSQL worker fixture는 요청 22/0/7회, 상세 12/0/0회, 저장 3/9/0건이었다.
+  단위·회귀 236개와 PostgreSQL worker 1개가 통과했고 환경 의존 66개는 건너뛰었다.
+  실제 측정·최종 단위검증 수치는 batch-019-bfr/review.json에 기록한다. 앞선 두 실패 캡처와
+  그 DB도 그대로 보존했다. 목록 전체 확인과 실제 본문/첨부 완료는 구분한다.
+- 측정: python -m delivery.scripts.measure_bfr_incremental --scope annual --out <새 경로> --gate-dir <공용 gate>
+  목록 대조: python -m delivery.scripts.review_bfr_incremental --source <continuous 경로> --out <새 파일>
+  실제 목록 캡처 대조는 --list-capture <초기 전체 목록 캡처>, 저장 대조는 --root <성공한 범위 측정> 추가.
+  ZIP 보류 재생: python -m delivery.scripts.review_bfr_archive_hold --capture <ZIP 실패 캡처> --out <새 경로>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.

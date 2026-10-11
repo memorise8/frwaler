@@ -45,4 +45,11 @@ class OrderHoldTests(unittest.TestCase):
         self.assertEqual(result['classification'],'pending_initial_exhaustion')
         self.assertNotIn('order_review',result)
 
+    def test_bfr_archive_contract_keeps_global_baseline_unverified(self):
+        site='bfr-bund-de-en';result=eligibility(site,CRAWLERS[site])
+        self.assertEqual(result['adapter'],'BfRAdapter')
+        self.assertEqual(result['classification'],'full_rescan_required')
+        self.assertIn('archive_not_pdf',result['reason'])
+        self.assertFalse(result['baseline_complete'])
+
 if __name__=='__main__':unittest.main()
