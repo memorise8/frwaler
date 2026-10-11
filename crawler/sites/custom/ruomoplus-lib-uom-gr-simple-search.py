@@ -59,7 +59,11 @@ _GREEK_MONTH3 = {
     "αυγ": 8, "σεπ": 9, "οκτ": 10, "νοε": 11, "δεκ": 12,
 }
 
-_GREEK_DATE_RE = re.compile(r"\d{1,2}-[Α-Ωα-ωΆ-Ώά-ώ]{3,6}-\d{4}")
+# The source uses e.g. Μαΐ: U+0390 lies outside the alphabet ranges below
+# the capital/lowercase alpha characters. Include accented Greek and combining
+# marks so both precomposed and decomposed source spellings retain their date.
+_GREEK_MONTH_TOKEN = r"[\u0370-\u03ff\u1f00-\u1fff\u0300-\u036f]+"
+_GREEK_DATE_RE = re.compile(r"\d{1,2}-" + _GREEK_MONTH_TOKEN + r"-\d{4}")
 
 _LABEL_KEY_MAP = {
     "τομος": "volume",
@@ -269,7 +273,7 @@ class RuomoplusLibUomGrSimpleSearchCrawler(BaseCrawler):
     def _parse_greek_date(self, raw: str | None) -> str | None:
         if not raw:
             return None
-        m = re.match(r"(\d{1,2})-([Α-Ωα-ωΆ-Ώά-ώ]+)-(\d{4})", raw.strip())
+        m = re.match(r"(\d{1,2})-(" + _GREEK_MONTH_TOKEN + r")-(\d{4})", raw.strip())
         if not m:
             return None
         day, mon_raw, year = m.groups()
