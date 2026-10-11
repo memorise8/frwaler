@@ -216,10 +216,16 @@ class CancerGovAboutNciCrawler(BaseCrawler):
 
             # Extract page-level updated date from <time datetime="...">
             article_date = None
+            article_date_raw = None
+            article_datetime_raw = None
             try:
                 m = re.search(r'<time[^>]+datetime="(\d{4}-\d{2}-\d{2})', raw)
                 if m:
                     article_date = m.group(1)
+                time_node = _make_soup(raw).find("time")
+                if time_node:
+                    article_date_raw = time_node.get_text(" ", strip=True)
+                    article_datetime_raw = time_node.get("datetime")
             except Exception:
                 pass
 
@@ -263,13 +269,6 @@ class CancerGovAboutNciCrawler(BaseCrawler):
                     original_filename = pdf_url.split("#")[0].rstrip("/").rsplit("/", 1)[-1]
                     external_id = _slug_from_url(pdf_url)
 
-                    published_date = None
-                    if fy_year:
-                        try:
-                            published_date = f"{int(fy_year) - 1}-01-01"
-                        except ValueError:
-                            pass
-
                     paper = {
                         "id": None,
                         "site_id": self.site_id,
@@ -277,8 +276,11 @@ class CancerGovAboutNciCrawler(BaseCrawler):
                         "post_number": fy_year,
                         "title": title,
                         "abstract": abstract,
-                        "published_date": published_date,
-                        "listed_date": article_date,
+                        # A budget fiscal year is a coverage period. The
+                        # catalogue's Updated label belongs to the web page.
+                        # Neither establishes a document publication date.
+                        "published_date": None,
+                        "listed_date": None,
                         "authors": "",
                         "publisher": "National Cancer Institute",
                         "department": "National Cancer Institute",
@@ -292,7 +294,12 @@ class CancerGovAboutNciCrawler(BaseCrawler):
                         "metadata": json.dumps({
                             "fy_year": fy_year,
                             "highlights": highlights,
-                            "posted_date": article_date,
+                            "posted_date": None,
+                            "fiscal_year_role": "budget_coverage_period",
+                            "landing_updated_date": article_date,
+                            "landing_updated_date_raw": article_date_raw,
+                            "landing_updated_datetime_raw": article_datetime_raw,
+                            "landing_updated_date_role": "catalogue_page_update",
                             "originalFilename": original_filename,
                             "landing_url": _LANDING_URL,
                         }, ensure_ascii=False),
