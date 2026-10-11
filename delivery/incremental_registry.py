@@ -1,8 +1,10 @@
 """Extension point for rollout batches; preserves fd420d8 adapter contracts."""
 from crawler.incremental_adapters import adapter_for as original_adapter_for
 from crawler.incremental_federal import FederalAdapter
+from crawler.incremental_dspace import NemertesAdapter
 
-ADDITIONAL_ADAPTERS = {'federalregister-gov-documents': FederalAdapter}
+ADDITIONAL_ADAPTERS = {'federalregister-gov-documents': FederalAdapter,
+                       'nemertes-library-upatras-gr-browse': NemertesAdapter}
 
 
 def adapter_for(crawler):

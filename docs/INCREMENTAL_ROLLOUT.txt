@@ -31,6 +31,25 @@ python -m delivery.scripts.measure_incremental_batch --out <새 출력 경로> -
 INCREMENTAL_ROLLOUT_TEST_DSN을 쓸 때는 비어 있는 incremental_rollout_ 접두사의 전용 PostgreSQL DB를 사용한다.
 테스트는 기존 테이블을 truncate/drop하지 않으며 기존 documents 테이블이 있으면 실행하지 않는다.
 
+Batch 002: Nemertes (기존 5개 browse 범위 합계 26,521건)
+- 기존 title/items endpoint의 dateaccessioned,desc 정렬을 사용한다. discovery/search/objects는
+  같은 scope에서도 49건 대신 87건을 반환했으므로 기존 납품 범위를 대체하지 않는다.
+- 대표 49건 범위에서 기존 제목순과 날짜순의 UUID 집합 일치 및 날짜 내림차순을 관측했다.
+- 5개 범위의 머리 항목을 모두 읽은 뒤 날짜순으로 합친다. 한 범위에서 기존 항목을 만났다는
+  이유만으로 아직 확인하지 않은 다른 범위의 새 항목을 건너뛰지 않는다.
+- 최초 전체 목록 완주 시 공통 엔진이 실제 순서를 판별한다. UUID, 날짜, 페이지 건수,
+  이전 페이지 fingerprint와 페이지 간 순서를 검사하고 변경 시 완료 판정을 중단한다.
+- 목록 버퍼와 합치기 커서를 DB에 저장하고, 전체 목록 발견 후 오래된 것부터 저장한다.
+- 짧거나 빈 초록은 그대로 보존한다. 상세 요청은 bundle 메타데이터에 한정하고 PDF 본문은
+  다운로드하지 않는다. bundle/bitstream 추가 페이지가 관측되면 검토 필요 오류를 낸다.
+- 재현: python -m delivery.scripts.measure_nemertes_incremental --out <새 경로> --gate-dir <공용 gate>
+  원래 5개 중 49건의 한 범위만 실측한다. 전체 26,521건 대조를 수행했다는 의미가 아니다.
+- 실측 결과: 최초 부분 저장 8회 요청/3건 저장, 재개 46회/46건 저장, 재실행 3회/0건 저장.
+  재개 시 목록 재요청 0회, 재실행 시 상세(bundle) 조회 0회이며 기존 문서 행은 동일했다.
+  저장된 49개 UUID는 기존 제목순 전체 응답과 일치하고 저장 순서는 accession 날짜 오름차순이다.
+- tests.test_incremental_dspace_worker는 새로운 incremental_rollout_ PostgreSQL DB에서
+  기본 worker를 검증한다. 5개 범위를 날짜순으로 합친 fixture이며 실시간 관측과 구분한다.
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.
