@@ -108,6 +108,21 @@ class IncrementalTests(unittest.TestCase):
         self.assertEqual(len(source.calls),3)
         self.assertTrue(all(d == 'newest' for _,d in source.calls))
 
+    def test_adapter_can_veto_merged_boundary_until_other_streams_are_safe(self):
+        self.run_source(list(range(1,31)))
+        self.c = self.crawler()
+        source = Source(self.c, list(range(1,31)))
+        native = source.fetch
+        def guarded(cursor, direction):
+            page = native(cursor, direction)
+            page.boundary_safe = page.next_cursor['position'] >= 9
+            return page
+        source.fetch = guarded
+        self.assertEqual(Collector(self.c,source,self.policy).run(),0)
+        self.assertEqual(len(source.calls),3)
+        self.assertEqual(source.detail_requests,0)
+        self.assertEqual(self.state()['last_run']['stop_reason'],'known_boundary_plus_overlap')
+
     def test_known_pins_do_not_hide_new_records(self):
         self.run_source(list(range(1,31)),pins=(1,2,3))
         self.c = self.crawler()

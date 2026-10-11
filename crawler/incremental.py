@@ -34,6 +34,9 @@ class Page:
     exhausted: bool = False
     evidence: str = ""
     checkpoint_only: bool = False
+    # Merged sources may still have unseen new entries in another stream.
+    # A local known streak cannot close the combined discovery until safe.
+    boundary_safe: bool = True
 
 
 @dataclass
@@ -273,7 +276,7 @@ class Collector:
                         if state["overlap"] is None and (all_known or state["streak"] >= p.known_run):
                             state["overlap"] = p.overlap_pages
                     state["cursor"] = page.next_cursor
-                    if page.exhausted or boundary:
+                    if page.exhausted or (boundary and page.boundary_safe):
                         state["discovery_exhausted"] = page.exhausted
                         state["stop_reason"] = "source_exhausted" if page.exhausted else "known_boundary_plus_overlap"
                         state["phase"] = "deliver"
