@@ -1,0 +1,29 @@
+[
+  {
+    "category": "bachelorthesis",
+    "list_url": "https://arcnl.nl/publications/types/bachelorthesis",
+    "detail_url": "https://arcnl.nl/publications/population-kinetics-from-a-two-level-atomic-model",
+    "source_file": "arcnl-nl-publications-exact-delivered-entries/scope-0-0.body",
+    "source_sha256": "9b379a84ad00a0a95d3e3e8c06fc172bb94f1c80970ea77acad5c3a05a79e32c",
+    "detail_file": "eighteenth-arcnl/002.body",
+    "detail_sha256": "2b44bbd30fd4e89a5b66990b02f29933f805770a01ccd499bdef299cc751e813"
+  },
+  {
+    "category": "masterthesis",
+    "list_url": "https://arcnl.nl/publications/types/masterthesis",
+    "detail_url": "https://arcnl.nl/publications/vision-transformers-for-accurate-overlay-metrology",
+    "source_file": "arcnl-nl-publications-exact-delivered-entries/scope-1-0.body",
+    "source_sha256": "147411681abe012f0c102fec0e9b4450fd52dd83b575cce00ce2ad063550a1a1",
+    "detail_file": "eighteenth-arcnl/006.body",
+    "detail_sha256": "db51b0fb9f27317b0ade8ae51336dc047ddc691b02eefb1979cbc65271baa29d"
+  },
+  {
+    "category": "phdthesis",
+    "list_url": "https://arcnl.nl/publications/types/phdthesis",
+    "detail_url": "https://arcnl.nl/publications/heavy-hitters",
+    "source_file": "arcnl-nl-publications-exact-delivered-entries/scope-2-0.body",
+    "source_sha256": "7d061eddd0fd075dc8c178d6a1e0a6fc1ec728340f35f3eb7fbf3e4956dbbf46",
+    "detail_file": "eighteenth-arcnl/013.body",
+    "detail_sha256": "560563052f4ff4cf6e29be203cdf7e6ddbde2ef0086697c5617f08ee6ec98fbd"
+  }
+]

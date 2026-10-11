@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-"""ARCNL publications (Bachelor Thesis) crawler.
+"""ARCNL bachelor, master and doctoral thesis publications crawler.
 
-Target: https://arcnl.nl/publications/types/bachelorthesis
+Targets: /publications/types/{bachelorthesis,masterthesis,phdthesis}
 WordPress site with custom post type 'aa_publications'.
 
-Listing pages: /publications/types/bachelorthesis/page/{N}
+Listing pages: /publications/types/{category}/page/{N}
 Detail pages:  /publications/{slug}
 
 Detail page structure (.article__main):
@@ -24,6 +24,11 @@ import time
 from crawler.base_crawler import BaseCrawler
 
 _LIST_URL = "https://arcnl.nl/publications/types/bachelorthesis"
+_LIST_SCOPES = (
+    ("bachelorthesis", _LIST_URL),
+    ("masterthesis", "https://arcnl.nl/publications/types/masterthesis"),
+    ("phdthesis", "https://arcnl.nl/publications/types/phdthesis"),
+)
 _PAGE_CAP = 200
 
 _MONTH_MAP = {
@@ -81,8 +86,8 @@ class ArcnlNlPublicationsCrawler(BaseCrawler):
     site_name = "Custom: arcnl-nl-publications"
     base_url = "https://arcnl.nl"
 
-    def _list_page_links(self, page: int) -> list[str]:
-        url = _LIST_URL if page == 1 else f"{_LIST_URL}/page/{page}"
+    def _list_page_links(self, page: int, list_url: str = _LIST_URL) -> list[str]:
+        url = list_url if page == 1 else f"{list_url}/page/{page}"
         raw = _curl_get(url)
         if not raw:
             return []
@@ -244,97 +249,100 @@ class ArcnlNlPublicationsCrawler(BaseCrawler):
         seen_urls: set[str] = set()
         start_time = time.time()
         limit_str = str(limit) if limit is not None else "inf"
-        page = 1
-
-        while page <= _PAGE_CAP:
-            if time.time() - start_time > 1500:
-                print("[arcnl-nl-publications] 25-min budget reached, stopping.")
+        for category, list_url in _LIST_SCOPES:
+            if (limit is not None and saved >= limit) or time.time() - start_time > 1500:
                 break
-            if limit is not None and saved >= limit:
-                break
-            if page % 10 == 0:
-                print(f"[arcnl-nl-publications] page {page}: saved {saved}/{limit_str}")
-            if page == _PAGE_CAP:
-                print(f"[arcnl-nl-publications] Safety cap of {_PAGE_CAP} pages reached.")
+            page = 1
 
-            links = self._list_page_links(page)
-            if not links:
-                print(f"[arcnl-nl-publications] page {page}: no links found. Done.")
-                break
-
-            new_links = [l for l in links if l not in seen_urls]
-            if not new_links:
-                print(f"[arcnl-nl-publications] page {page}: all links already seen. Done.")
-                break
-
-            for link in new_links:
+            while page <= _PAGE_CAP:
+                if time.time() - start_time > 1500:
+                    print("[arcnl-nl-publications] 25-min budget reached, stopping.")
+                    break
                 if limit is not None and saved >= limit:
                     break
-                seen_urls.add(link)
+                if page % 10 == 0:
+                    print(f"[arcnl-nl-publications] page {page}: saved {saved}/{limit_str}")
+                if page == _PAGE_CAP:
+                    print(f"[arcnl-nl-publications] Safety cap of {_PAGE_CAP} pages reached.")
 
-                try:
-                    time.sleep(self._delay)
-                    data = self._parse_detail(link)
-                    if not data:
-                        print(f"[arcnl-nl-publications] fetch failed: {link}")
-                        continue
+                links = self._list_page_links(page, list_url)
+                if not links:
+                    print(f"[arcnl-nl-publications] page {page}: no links found. Done.")
+                    break
 
-                    title = data.get("title", "")
-                    abstract = data.get("abstract", "")
+                new_links = [l for l in links if l not in seen_urls]
+                if not new_links:
+                    print(f"[arcnl-nl-publications] page {page}: all links already seen. Done.")
+                    break
 
-                    if not title:
-                        print(f"[arcnl-nl-publications] no title, skipping: {link}")
-                        continue
-                    if len(abstract) < 50:
+                for link in new_links:
+                    if limit is not None and saved >= limit:
+                        break
+                    seen_urls.add(link)
+
+                    try:
+                        time.sleep(self._delay)
+                        data = self._parse_detail(link)
+                        if not data:
+                            print(f"[arcnl-nl-publications] fetch failed: {link}")
+                            continue
+
+                        title = data.get("title", "")
+                        abstract = data.get("abstract", "")
+
+                        if not title:
+                            print(f"[arcnl-nl-publications] no title, skipping: {link}")
+                            continue
+                        if len(abstract) < 50:
+                            print(
+                                f"[arcnl-nl-publications] abstract too short "
+                                f"({len(abstract)} chars), skipping: {link}"
+                            )
+                            continue
+
+                        post_id = data.get("post_id")
+                        paper = {
+                            "site_id": self.site_id,
+                            "external_id": post_id,
+                            "post_number": post_id,
+                            "title": title,
+                            "abstract": abstract,
+                            "published_date": data.get("published_date", ""),
+                            "listed_date": data.get("published_date", ""),
+                            "authors": data.get("authors", ""),
+                            "publisher": data.get("publisher", ""),
+                            "department": data.get("group", ""),
+                            "journal": None,
+                            "url": link,
+                            "pdf_url": data.get("pdf_url"),
+                            "original_filename": data.get("original_filename"),
+                            "keywords": None,
+                            "category": category,
+                            "doi": None,
+                            "metadata": json.dumps(
+                                {
+                                    "posted_date": data.get("pub_date_raw", ""),
+                                    "reference": data.get("reference", ""),
+                                    "group": data.get("group", ""),
+                                    "originalFilename": data.get("original_filename"),
+                                },
+                                ensure_ascii=False,
+                            ),
+                        }
+                        self._save_paper(paper)
+                        if self._last_save_created:
+                            saved += 1
                         print(
-                            f"[arcnl-nl-publications] abstract too short "
-                            f"({len(abstract)} chars), skipping: {link}"
+                            f"[arcnl-nl-publications] Saved {saved}/{limit_str}: {title[:60]}"
                         )
+
+                    except KeyboardInterrupt:
+                        raise
+                    except Exception as exc:
+                        print(f"[arcnl-nl-publications] item failed ({link}): {exc}")
                         continue
 
-                    post_id = data.get("post_id")
-                    paper = {
-                        "site_id": self.site_id,
-                        "external_id": post_id,
-                        "post_number": post_id,
-                        "title": title,
-                        "abstract": abstract,
-                        "published_date": data.get("published_date", ""),
-                        "listed_date": data.get("published_date", ""),
-                        "authors": data.get("authors", ""),
-                        "publisher": data.get("publisher", ""),
-                        "department": data.get("group", ""),
-                        "journal": None,
-                        "url": link,
-                        "pdf_url": data.get("pdf_url"),
-                        "original_filename": data.get("original_filename"),
-                        "keywords": None,
-                        "category": "bachelorthesis",
-                        "doi": None,
-                        "metadata": json.dumps(
-                            {
-                                "posted_date": data.get("pub_date_raw", ""),
-                                "reference": data.get("reference", ""),
-                                "group": data.get("group", ""),
-                                "originalFilename": data.get("original_filename"),
-                            },
-                            ensure_ascii=False,
-                        ),
-                    }
-                    self._save_paper(paper)
-                    if self._last_save_created:
-                        saved += 1
-                    print(
-                        f"[arcnl-nl-publications] Saved {saved}/{limit_str}: {title[:60]}"
-                    )
-
-                except KeyboardInterrupt:
-                    raise
-                except Exception as exc:
-                    print(f"[arcnl-nl-publications] item failed ({link}): {exc}")
-                    continue
-
-            page += 1
+                page += 1
 
         print(f"[arcnl-nl-publications] Done. Total saved: {saved}")
         return saved
