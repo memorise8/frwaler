@@ -196,6 +196,10 @@ class CmiNoPublicationsCrawler(BaseCrawler):
         abstract = ""
         text_div = soup.find("div", class_="publication-text")
         if text_div:
+            # Embedded publisher pages can contain scripts and styles. html5lib
+            # exposes their contents through get_text(), unlike other parsers.
+            for element in text_div.find_all(["script", "style"]):
+                element.decompose()
             abstract = text_div.get_text(" ", strip=True)
         abstract = re.sub(r"\s+", " ", abstract).strip()
 

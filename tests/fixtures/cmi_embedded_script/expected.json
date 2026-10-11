@@ -1,0 +1,25 @@
+{
+  "nonabstract_fields": {
+    "site_id": "cmi-no-publications",
+    "external_id": "6280",
+    "post_number": "6280",
+    "title": "Kriser og kriger – er det bruk for oss nå?",
+    "published_date": null,
+    "posted_date": null,
+    "listed_date": null,
+    "authors": "Gunnar Sørbø",
+    "publisher": "Chr. Michelsen Institute",
+    "department": null,
+    "journal": "Norsk antropologisk tidsskrift",
+    "url": "https://www.cmi.no/publications/6280-kriser-og-kriger-er-det-bruk-for-oss-na",
+    "pdf_url": null,
+    "keywords": null,
+    "category": "Journal Article",
+    "doi": "https://doi.org/10.18261",
+    "original_filename": null,
+    "metadata": "{\"publication_date_raw\": \"Journal Article | 2017\", \"publication_date_precision\": \"year\", \"publication_period\": \"2017\", \"publication_status\": null, \"publication_date_role\": \"journal_publication_header\", \"source_abstract_state\": \"present\", \"journal_raw\": \"Norsk antropologisk tidsskrift\", \"node_id\": \"6280\"}"
+  },
+  "expected_abstract_characters": 39507,
+  "expected_abstract_sha256": "5a87ec1306f001293c65ad026b4160f825f746b36091b3a3d640bc092c6f3783",
+  "prior_abstract_characters": 40325
+}
