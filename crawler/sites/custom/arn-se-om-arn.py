@@ -33,7 +33,7 @@ class ArnSeOmArnCrawler(BaseCrawler):
             try:
                 result = subprocess.run(
                     [
-                        "curl", "--tls-max", "1.3", "-sk", "--max-time", "30",
+                        "curl", "--tls-max", "1.3", "-fsk", "--max-time", "30",
                         "-A", self.USER_AGENT,
                         url,
                     ],
@@ -41,12 +41,17 @@ class ArnSeOmArnCrawler(BaseCrawler):
                     timeout=40,
                 )
                 body = result.stdout
-                if not body:
+                if result.returncode != 0 or not body:
                     continue
                 try:
-                    return body.decode("utf-8")
+                    text = body.decode("utf-8")
                 except UnicodeDecodeError:
-                    return body.decode("utf-8", errors="replace")
+                    text = body.decode("utf-8", errors="replace")
+                from delivery.health.access_challenge import access_challenge
+                if access_challenge(text):
+                    self._report_source_failure("authentication_failed")
+                    return None
+                return text
             except subprocess.TimeoutExpired:
                 print(f"[{self.site_id}] curl timeout: {url}")
             except Exception as exc:
@@ -130,7 +135,12 @@ class ArnSeOmArnCrawler(BaseCrawler):
         pdf_links = main.find_all("a", href=re.compile(r'\.pdf', re.I))
         print(f"[{self.site_id}] Found {len(pdf_links)} PDF links")
 
+        if not pdf_links:
+            self._report_source_failure("invalid_response")
+            return 0
+
         saved = 0
+        seen_years = set()
         seen_urls: set = set()
         limit_label = str(limit) if limit is not None else "∞"
 
@@ -165,6 +175,10 @@ class ArnSeOmArnCrawler(BaseCrawler):
                 # Extract year from filename or href
                 year_m = re.search(r'(\d{4})', href)
                 year = year_m.group(1) if year_m else "unknown"
+                if not year.isdigit() or year in seen_years:
+                    self._report_source_failure("invalid_response")
+                    return saved
+                seen_years.add(year)
 
                 # Link text → title
                 link_text = anchor.get_text(strip=True)

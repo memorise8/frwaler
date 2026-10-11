@@ -300,5 +300,18 @@
     "evidence": "incremental-rollout-20261012/batch-043-arcep/access-review-v2.json",
     "evidence_sha256": "80a0584db220fdacc8ef59c7f0499a3007f73c6e9c7e409ace579bc2f16ce63f",
     "native_health_note": "Retained publisher annual filter requires human verification. Original delivered publication query uses a different filter key and original press scope is not configured. Boundary pages repeat terminal memberships; whole-scope order/end unverified. Access hold preserved with no live retry or browser challenge workflow. Native padded descriptions are not PDF text."
+  },
+  "arn-se-om-arn": {
+    "classification": "full_rescan_required",
+    "reason": "reporting_period_IDs_not_arrival_chronology_and_three_original_scopes_unconfigured",
+    "source_sha256": "a1e2d197fe5aa59580c6b40fe33297a2de4d9930b6090667fcdd22b264d24e74",
+    "dependency_source_sha256": {
+      "docs/deliverables/test_URL_수집대조_20260802.csv": "336c04d463f70624cd4ec7aacdf386fd71bab34ca186acf8ac3413a3ee1fced9",
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
+    },
+    "reviewed_at": "2026-10-11T22:26:58.482719+00:00",
+    "evidence": "incremental-rollout-20261012/batch-046-arn/order-review.json",
+    "evidence_sha256": "6264f8a704b36196b840f6207c7a57f0e23e1bcfcd8f51b2afde92ca3a2e5c24",
+    "native_health_note": "Only annual-report metadata is configured. Reporting-year IDs and page update timestamp do not establish report arrival order. Three original scopes remain unconfigured. One listing request on repeat is full-list rescanning; native abstracts are constructed descriptions, not PDF contents."
   }
 }
