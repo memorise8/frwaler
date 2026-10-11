@@ -53,6 +53,38 @@ class CiradFrEspacePresseCrawler(BaseCrawler):
     MIN_ABSTRACT = 50        # skip items with shorter abstracts
     CURL_TIMEOUT = 30
 
+    def _save_document(self, doc_dict):
+        """Disambiguate new legacy rows without changing existing row keys.
+
+        Article slugs are reused across years. Legacy storage deduplicates on
+        external_id alone; v2 already includes meta_url in its identity and
+        does not use this method.
+        """
+        doc = dict(doc_dict)
+        url = doc.get("meta_url") or ""
+        parsed = urlsplit(url)
+        prefix = "/espace-presse/communiques-de-presse/"
+        if (parsed.scheme != "https" or parsed.netloc != "www.cirad.fr"
+                or not parsed.path.startswith(prefix)
+                or not re.fullmatch(r"\d{4}/[^/]+", parsed.path[len(prefix):])
+                or parsed.query or parsed.fragment):
+            raise ValueError(f"Cannot establish CIRAD article identity: {url}")
+        matches = self._conn.execute(
+            "SELECT external_id FROM documents WHERE site_id = ? AND meta_url = ?",
+            (self.site_id, url),
+        ).fetchall()
+        if len(matches) > 1 or (matches and not matches[0][0]):
+            raise ValueError(f"Ambiguous existing CIRAD article identity: {url}")
+        key = matches[0][0] if matches else "press:" + parsed.path[len(prefix):]
+        occupied = self._conn.execute(
+            "SELECT meta_url FROM documents WHERE site_id = ? AND external_id = ?",
+            (self.site_id, key),
+        ).fetchone()
+        if occupied is not None and occupied[0] != url:
+            raise ValueError(f"Conflicting existing CIRAD article key: {key}")
+        doc["external_id"] = key
+        return super()._save_document(doc)
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------

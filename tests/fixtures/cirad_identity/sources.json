@@ -1,0 +1,42 @@
+{
+  "sources": [
+    {
+      "url": "https://www.cirad.fr/espace-presse/communiques-de-presse/2023/immunite-des-plantes",
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentysixth-cirad_collision_details/000.body",
+      "sha256": "f697191fb293fcf961453e8836e5192cd6820523b961d2de21fe809fabc095cb",
+      "fixture_file": "2023-detail.html",
+      "candidate": {
+        "full_url": "https://www.cirad.fr/espace-presse/communiques-de-presse/2023/immunite-des-plantes",
+        "slug": "immunite-des-plantes",
+        "list_title": "Bonne entente de voisinage chez les plantes pour mieux résister aux maladies",
+        "list_date_raw": "13 septembre 2023",
+        "list_date": "2023-09-13",
+        "list_category": "Résultats & impact",
+        "tags": [
+          "Santé"
+        ]
+      }
+    },
+    {
+      "url": "https://www.cirad.fr/espace-presse/communiques-de-presse/2021/immunite-des-plantes",
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentysixth-cirad_collision_details/001.body",
+      "sha256": "66e75f26ab30897c135881cdc8ef12e3da2ece6a76a49a3ddadd7e6fb5e26eec",
+      "fixture_file": "2021-detail.html",
+      "candidate": {
+        "full_url": "https://www.cirad.fr/espace-presse/communiques-de-presse/2021/immunite-des-plantes",
+        "slug": "immunite-des-plantes",
+        "list_title": "L’immunité des plantes : pour des cultures résistantes aux maladies",
+        "list_date_raw": "8 avril 2021",
+        "list_date": "2021-04-08",
+        "list_category": "Vient de sortir",
+        "tags": [
+          "Agroécologie",
+          "Santé"
+        ]
+      }
+    }
+  ],
+  "before_commit": "2c82982e7f2fde95544df928bffab50bd2cc13a3",
+  "before_source_sha256": "2731910048dfb4ae95aeecec27e0b9b3bfd3bc296fa7be23ad828cfa1ac3caa8",
+  "scoped_list_fixture": "Two actual original cards, copied unchanged from separate original pages into one fixture, no pager. This is a scoped collision resume regression, not full454source crawl."
+}
