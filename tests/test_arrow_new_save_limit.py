@@ -70,7 +70,7 @@ class ArrowNewSaveLimitTests(unittest.TestCase):
         count, attempted, created, requests, failures = replay(repeat_first=True)
         self.assertEqual(count, 3)
         self.assertEqual(len(requests), 2)
-        self.assertEqual(failures, ['pagination_loop'])
+        self.assertEqual(failures, ['invalid_response'])
 
 
 if __name__ == '__main__':

@@ -313,5 +313,17 @@
     "evidence": "incremental-rollout-20261012/batch-046-arn/order-review.json",
     "evidence_sha256": "6264f8a704b36196b840f6207c7a57f0e23e1bcfcd8f51b2afde92ca3a2e5c24",
     "native_health_note": "Only annual-report metadata is configured. Reporting-year IDs and page update timestamp do not establish report arrival order. Three original scopes remain unconfigured. One listing request on repeat is full-list rescanning; native abstracts are constructed descriptions, not PDF contents."
+  },
+  "arrow-tudublin-ie-creaart": {
+    "classification": "full_rescan_required",
+    "reason": "native_OAI_dates_and_crosslisted_IDs_nonmonotonic_HTML_year_groups_no_verified_newest_access",
+    "source_sha256": "010fefc05c00f3c5a8737d41b780bdd8092be38eb1daedd87c36f217baac0add",
+    "dependency_source_sha256": {
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
+    },
+    "reviewed_at": "2026-10-11T22:35:39.850664+00:00",
+    "evidence": "incremental-rollout-20261012/batch-047-arrow/order-review-v2.json",
+    "evidence_sha256": "3092a2bacd8a915d3c900fd7628638595db203da0765bf0cf81c8ed9b0c90406",
+    "native_health_note": "All 231 retained OAI records and original HTML memberships agree, but OAI update dates, publication dates and crosslisted native IDs are nonmonotonic. HTML groups are year-only and display numbers also reverse. Native eligible 229 records preserve all fields; two source records have no abstract. Repeated full OAI harvesting is measured separately from incremental early stopping. OAI from-date harvesting is not implemented or validated."
   }
 }

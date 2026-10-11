@@ -16,7 +16,7 @@ import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler
@@ -39,13 +39,13 @@ def _curl_get(url, retries=3):
     for attempt in range(retries):
         try:
             result = subprocess.run(
-                ["curl", "-sk", "--tls-max", "1.3", "--max-time", "30",
+                ["curl", "-fsk", "--tls-max", "1.3", "--max-time", "30",
                  "-A", "Mozilla/5.0", url],
                 capture_output=True,
                 timeout=35,
             )
             data = result.stdout
-            if data and data.strip():
+            if result.returncode == 0 and data and data.strip():
                 return data
         except Exception as exc:
             print(f"[arrow-tudublin-ie-creaart] curl error (attempt {attempt + 1}/{retries}): {exc}")
@@ -104,7 +104,7 @@ class ArrowTudublinIeCreaartCrawler(BaseCrawler):
                 url = (f"{_OAI_BASE}?verb=ListRecords"
                        f"&metadataPrefix=oai_dc&set=publication:creaart")
             else:
-                url = f"{_OAI_BASE}?verb=ListRecords&resumptionToken={resumption_token}"
+                url = f"{_OAI_BASE}?verb=ListRecords&resumptionToken={quote(resumption_token, safe='/')}"
 
             page += 1
             if page == 1 or page % 10 == 0:
@@ -112,17 +112,32 @@ class ArrowTudublinIeCreaartCrawler(BaseCrawler):
 
             raw = _curl_get(url)
             if not raw:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] Empty response on page {page}. Stopping.")
+                break
+
+            from delivery.health.access_challenge import access_challenge
+            if access_challenge(raw):
+                self._report_source_failure("authentication_failed")
                 break
 
             try:
                 root = ET.fromstring(raw)
             except ET.ParseError as exc:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] XML parse error on page {page}: {exc}. Stopping.")
+                break
+
+            request = root.find("oai:request", _NS)
+            expected = {"verb": "ListRecords", "resumptionToken": resumption_token} if resumption_token else {
+                "verb": "ListRecords", "metadataPrefix": "oai_dc", "set": "publication:creaart"}
+            if root.tag != "{" + _NS["oai"] + "}OAI-PMH" or request is None or request.attrib != expected:
+                self._report_source_failure("invalid_response")
                 break
 
             list_records = root.find("oai:ListRecords", _NS)
             if list_records is None:
+                self._report_source_failure("invalid_response")
                 # May be an OAI error element
                 err = root.find("oai:error", _NS)
                 msg = _text(err) if err is not None else "(unknown)"
@@ -131,6 +146,7 @@ class ArrowTudublinIeCreaartCrawler(BaseCrawler):
 
             records = list_records.findall("oai:record", _NS)
             if not records:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] No records on page {page}. Done.")
                 break
 
@@ -147,21 +163,24 @@ class ArrowTudublinIeCreaartCrawler(BaseCrawler):
                             oai_id = _text(id_el)
 
                     ok = self._process_record(record, seen_urls)
+                    if getattr(self, "delivery_source_failure", None):
+                        return saved
                     if ok:
                         saved += 1
 
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] item {oai_id} failed: {exc}")
-                    continue
+                    return saved
 
             # Check for next page
             rt_el = list_records.find("oai:resumptionToken", _NS)
             if rt_el is not None and rt_el.text and rt_el.text.strip():
                 resumption_token = rt_el.text.strip()
                 if resumption_token in seen_resumption_tokens:
-                    self._report_source_failure("pagination_loop")
+                    self._report_source_failure("invalid_response")
                     print(f"[{self.site_id}] Repeated OAI resumption token; stopping before a loop.")
                     break
                 seen_resumption_tokens.add(resumption_token)
@@ -178,24 +197,31 @@ class ArrowTudublinIeCreaartCrawler(BaseCrawler):
         """Parse and persist an OAI record; return True only for a newly created row."""
         header = record.find("oai:header", _NS)
         if header is None:
+            self._report_source_failure("invalid_response")
             return False
         if header.get("status") == "deleted":
             return False
 
         oai_id   = _text(header.find("oai:identifier", _NS))
         datestamp = _text(header.find("oai:datestamp", _NS))
+        if not oai_id or "publication:creaart" not in [_text(e) for e in header.findall("oai:setSpec", _NS)]:
+            self._report_source_failure("invalid_response")
+            return False
         listed_date = _parse_date(datestamp)
 
         metadata_el = record.find("oai:metadata", _NS)
         if metadata_el is None:
+            self._report_source_failure("invalid_response")
             return False
         dc = metadata_el.find("oai_dc:dc", _NS)
         if dc is None:
+            self._report_source_failure("invalid_response")
             return False
 
         # Core fields
         title = _text(dc.find("dc:title", _NS))
         if not title:
+            self._report_source_failure("invalid_response")
             return False
 
         abstract = _text(dc.find("dc:description", _NS))
@@ -243,6 +269,7 @@ class ArrowTudublinIeCreaartCrawler(BaseCrawler):
                     break
 
         if not page_url:
+            self._report_source_failure("invalid_response")
             return False
 
         # Dedup

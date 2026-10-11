@@ -1202,6 +1202,36 @@ Batch 046: ARN — 보고 대상 연도와 게시 순서를 구분한 전체 재
 - 실제 재실행: LIBERTREE_DB_BACKEND=postgres python -m delivery.scripts.measure_arn_repeat --dsn <소유 ARN12 DB> --base <결과 경로> --out <새 출력 폴더>
 
 
+
+Batch 047: Arrow Creative Arts — OAI 순서 불확정 분류와 오류 처리 수정
+- 원본 HTML231개 URL과 OAI3페이지(100/100/31)의 URL 집합이 같다. 초록 없는2건을
+  기존 규칙대로 제외한229건의 native 메타데이터 전체 필드를 이전 캡처와 대조했다.
+  crosslisting ID와 URL도 유지했다. 날짜/ID의 처음과 끝만으로 방향을 단정하지 않았다.
+- OAI 갱신 시각은 인접202쌍 증가/28쌍 감소, 발행일은92/99, ID 숫자 끝부분도168/62로
+  섞여 있다. HTML은 연도별 그룹만 제공하고 표시 번호도115/115로 비단조적이다.
+  현재 목록에서 안전한 최신 접근을 검증하지 못해 full_rescan_required로 분류했다.
+  OAI from 날짜 수집은 미구현·미검증이며 플랫폼 자체가 영구적으로 증분 불가라는 뜻은 아니다.
+- native는 curl HTTP 오류, 접근 확인, XML/OAI 오류, 잘못된 set/token request echo,
+  누락된 ID/필수 메타데이터와 저장 실패를 명시적으로 보고한다. 반복 토큰의 기존 잘못된
+  오류 코드 pagination_loop를 지원되는 invalid_response로 고쳤다. 불투명 토큰도 안전하게 인코딩한다.
+- 실제 보존 OAI3개만 사용한 새 소유 PG 기본 worker에서 부분 저장/재조회/재실행은
+  요청1/3/3회, 저장 시도3/229/229회, 신규3/226/0건이다. 전송 실패/OAI 오류/반복 토큰/
+  잘못된 범위는 요청3/1/2/1회 후 실패한다. 기존229행은 그대로이며 어느 단계도 기준점을
+  완료하지 않는다. DOI는 native 필드 대조에 포함되지만 documents에 DOI 전용 열은 없다.
+- 현재 서버의 실제 재실행도 목록3회·상세/PDF0회·저장 시도229회·신규0건이다.
+  마지막 resumptionToken에서 끝나며 기존 항목에서 조기 중단하는 증분 성공은 아니다.
+  실제229개 메타데이터는 보존 응답과 같다. 전체 PDF 내용/다운로드 검증은 하지 않았다.
+- 최초 관측1회와 최종 재실행3회 외에 계측 스크립트의 DB backend 환경 누락으로 실패한
+  시도1회가 있어 이번 실제 HTTP는 총5회다. 해당 DB 트랜잭션은 닫힐 때 롤백됐고 기존행
+  불변을 최종 실행에서 확인했다. 실패 로그/DB를 보존하고 계측 스크립트에 backend를 명시했다.
+  PG 테스트의 잘못된 기대값/존재하지 않는 열 참조도 수정하여 새 v3 DB에서 재검증했다.
+- 단위·공통·기존 회귀106개와 PG1개 통과, 환경 의존3개는 단위 실행에서 제외했다.
+  운영 DB 변경/배포/외부 발송/문서 삭제는 없다. batch-047-arrow/order-review-v2.json,
+  postgres-review-v3.json, live-repeat-v2/audit.json, live-independent-review.json 참조.
+- 재검토: python -m delivery.scripts.review_arrow_incremental --source <continuous 경로> --probe <첫 목록 관측> --out <새 검토 파일>
+- 실제 재실행: python -m delivery.scripts.measure_arrow_repeat --dsn <소유 Arrow229 DB> --base <결과 경로> --out <새 출력 폴더>
+
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.
