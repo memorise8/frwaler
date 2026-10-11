@@ -1,0 +1,26 @@
+[
+  {
+    "fixture": "frontmatter-0.txt",
+    "fixture_sha256": "ffa9aa429fe2fbd2e1017a73c0ff5753391f1bd4f63371ed4e76fedadbc0de06",
+    "source_url": "https://www.bmf.gv.at/dam/jcr:11b6a026-fcda-4045-8642-3a4a2efc5a03/Monitoringkonzept%20der%20Nationalen%20Strategie_final.pdf",
+    "source_PDF_sha256": "3d67c01d08e1a11da0514129dc9620c1f5ac377ab2758ecf89e268d351badbd2",
+    "source_PDF_bytes": 308406,
+    "excerpt": "First3000characters of actualpdftotextdefault nativeextraction; not wholePDFfixture"
+  },
+  {
+    "fixture": "frontmatter-1.txt",
+    "fixture_sha256": "f82b18321e6f552559344fb59c9ba227e292c302b6b1f12c5718eeb79d7f3f0a",
+    "source_url": "https://www.bmf.gv.at/dam/jcr:8aa16854-e01f-4920-acc5-e79ae00559cc/Nationale%20Finanzbildungsstrategie_Fortschrittsbericht%202025.pdf",
+    "source_PDF_sha256": "e289d07693dd909094b2d87cfff4998722c65e9945b7f6c34ccc64a0015f3703",
+    "source_PDF_bytes": 1144677,
+    "excerpt": "First3000characters of actualpdftotextdefault nativeextraction; not wholePDFfixture"
+  },
+  {
+    "fixture": "frontmatter-2.txt",
+    "fixture_sha256": "baac26099469209a0c69a183ebf95a13d8d5d32c330ebe74ddb8746ce78bf6ee",
+    "source_url": "https://www.bmf.gv.at/dam/jcr:5724f57a-3dbd-40cc-9045-3e3708b72c47/BMF-Evaluationsbericht%20Quotenregelung%202024.pdf",
+    "source_PDF_sha256": "bd3319d43317ebbeba657900ae464388aa959a0431064a0f55c58ac8d15dad0b",
+    "source_PDF_bytes": 446433,
+    "excerpt": "First3000characters of actualpdftotextdefault nativeextraction; not wholePDFfixture"
+  }
+]

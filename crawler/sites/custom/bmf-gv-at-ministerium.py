@@ -7,6 +7,7 @@ import re
 import subprocess
 import tempfile
 import time
+from datetime import date
 from urllib.parse import unquote, urljoin
 
 from crawler.base_crawler import BaseCrawler
@@ -36,28 +37,62 @@ def _make_soup(html):
     raise RuntimeError("all BS4 parsers failed")
 
 
+def _publication_date_evidence(text):
+    """Read explicit frontmatter datelines without promoting cited/report years."""
+    months = dict(_MONTH_DE, january="01", february="02", march="03",
+                  may="05", june="06", july="07", october="10", december="12")
+    month_names = "|".join(months)
+    value_pattern = (
+        r"20\d{2}-\d{2}-\d{2}|"
+        r"(?:\d{1,2}\.?\s+)?(?:" + month_names + r")\s+20\d{2}|20\d{2}"
+    )
+    pattern = (
+        r"^\s*(?:Wien|Vienna|Veröffentlicht|Erscheinungsdatum|Publication date|Published)"
+        r"\s*[,：:]\s*(?P<value>" + value_pattern + r")\s*\.?\s*$"
+    )
+    candidates = []
+    for match in re.finditer(pattern, text[:3000], re.IGNORECASE | re.MULTILINE):
+        raw_value = match.group("value")
+        value = None
+        precision = None
+        if re.fullmatch(r"20\d{2}-\d{2}-\d{2}", raw_value):
+            try:
+                value = date.fromisoformat(raw_value).isoformat()
+                precision = "day"
+            except ValueError:
+                continue
+        elif re.fullmatch(r"20\d{2}", raw_value):
+            value, precision = raw_value, "year"
+        else:
+            parts = re.fullmatch(
+                r"(?:(\d{1,2})\.?\s+)?(" + month_names + r")\s+(20\d{2})",
+                raw_value, re.IGNORECASE,
+            )
+            if not parts:
+                continue
+            day, month, year = parts.groups()
+            month = months[month.lower()]
+            if day:
+                try:
+                    value = date(int(year), int(month), int(day)).isoformat()
+                    precision = "day"
+                except ValueError:
+                    continue
+            else:
+                value, precision = f"{year}-{month}", "month"
+        candidates.append({"raw": match.group(0).strip(), "value": value,
+                           "precision": precision, "role": "publication_dateline"})
+    distinct = {candidate["value"] for candidate in candidates}
+    chosen = candidates[0] if len(distinct) == 1 else None
+    return {"value": chosen["value"] if chosen else None,
+            "raw": chosen["raw"] if chosen else None,
+            "precision": chosen["precision"] if chosen else None,
+            "candidates": candidates, "conflict": len(distinct) > 1}
+
+
 def _extract_date(text, filename=""):
-    """Best-effort ISO date extraction from PDF text or filename."""
-    snippet = text[:3000]
-    # ISO date
-    m = re.search(r'\b(20\d{2})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b', snippet)
-    if m:
-        return m.group(0)
-    # German "Monat YYYY"
-    pat = r'\b(' + "|".join(_MONTH_DE) + r')\s+(20\d{2})\b'
-    m = re.search(pat, snippet, re.IGNORECASE)
-    if m:
-        mon = _MONTH_DE[m.group(1).lower()]
-        return f"{m.group(2)}-{mon}-01"
-    # Year from filename
-    m = re.search(r'(20\d{2})', filename)
-    if m:
-        return f"{m.group(1)}-01-01"
-    # Year anywhere in snippet
-    m = re.search(r'\b(20\d{2})\b', snippet)
-    if m:
-        return f"{m.group(1)}-01-01"
-    return None
+    """Keep source precision; filenames and unlabelled years are not dates."""
+    return _publication_date_evidence(text)["value"]
 
 
 class BmfGvAtMinisteriumCrawler(BaseCrawler):
@@ -225,6 +260,7 @@ class BmfGvAtMinisteriumCrawler(BaseCrawler):
                 # --- abstract & date ---
                 abstract = ""
                 published_date = None
+                date_evidence = _publication_date_evidence("")
 
                 if is_pdf:
                     time.sleep(self._delay)
@@ -234,7 +270,8 @@ class BmfGvAtMinisteriumCrawler(BaseCrawler):
                         abstract = re.sub(r"\s+", " ", raw_text[:5000]).strip()
                         if len(abstract) > 3000:
                             abstract = abstract[:3000]
-                        published_date = _extract_date(raw_text, filename)
+                        date_evidence = _publication_date_evidence(raw_text)
+                        published_date = date_evidence["value"]
                 else:
                     # Non-PDF: build abstract from category + title description
                     abstract = (
@@ -274,6 +311,7 @@ class BmfGvAtMinisteriumCrawler(BaseCrawler):
                         "category": category,
                         "is_pdf": is_pdf,
                         "href": item["href"],
+                        "publication_date_evidence": date_evidence,
                     }, ensure_ascii=False),
                 }
 
