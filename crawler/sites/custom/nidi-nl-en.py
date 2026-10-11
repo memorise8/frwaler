@@ -117,16 +117,8 @@ def _parse_date(raw: str | None) -> str | None:
         if month:
             return f"{match.group(3)}-{month:02d}-{int(match.group(1)):02d}"
 
-    match = re.search(r"\b([A-Za-zÀ-ÿ]+)\s+((?:19|20)\d{2})\b", text)
-    if match:
-        month = _MONTHS.get(match.group(1).lower())
-        if month:
-            return f"{match.group(2)}-{month:02d}-01"
-
-    match = re.search(r"\b((?:19|20)\d{2})\b", text)
-    if match:
-        return f"{match.group(1)}-01-01"
-
+    # A citation year or month is not an exact publication day. Keep its
+    # original precision in year_raw/posted_date_raw and source metadata.
     return None
 
 

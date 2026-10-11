@@ -1,0 +1,7 @@
+{
+  "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/nidi-nl-en-exact-delivered-entries/scope-0-0.body",
+  "source_sha256": "78e962d2c34c582acc8407296a15d7a1441ff0ae440123bb80b3fbac1e320cbe",
+  "selector": "ul.related-list__publications",
+  "source_memberships": 100,
+  "extracted_at": "2026-10-11"
+}
