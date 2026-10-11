@@ -158,6 +158,37 @@ class BundeskanzleramtGvAtBundeskanzleramtCrawler(BaseCrawler):
     site_name = "Custom: bundeskanzleramt-gv-at-bundeskanzleramt"
     base_url = "https://www.bundeskanzleramt.gv.at"
 
+    def _save_document(self, doc_dict):
+        """Keep legacy row identities while distinguishing reused news slugs.
+
+        The legacy schema deduplicates on external_id alone. The v2 path
+        already includes meta_url and does not call this method.
+        """
+        doc = dict(doc_dict)
+        url = doc.get("meta_url") or ""
+        parsed = urlsplit(url)
+        prefix = _LIST_BASE + "/"
+        if (parsed.scheme != "https" or parsed.netloc != "www.bundeskanzleramt.gv.at"
+                or not parsed.path.startswith(prefix) or not parsed.path.endswith(".html")):
+            raise ValueError(f"Cannot establish legacy news identity: {url}")
+        matches = self._conn.execute(
+            "SELECT external_id FROM documents WHERE site_id = ? AND meta_url = ?",
+            (self.site_id, url),
+        ).fetchall()
+        if len(matches) > 1 or (matches and not matches[0][0]):
+            raise ValueError(f"Ambiguous existing legacy news identity: {url}")
+        # A previously stored URL retains its key and therefore its row/file
+        # references. New records use the complete year/month-qualified path.
+        key = matches[0][0] if matches else "news:" + parsed.path[len(prefix):]
+        occupied = self._conn.execute(
+            "SELECT meta_url FROM documents WHERE site_id = ? AND external_id = ?",
+            (self.site_id, key),
+        ).fetchone()
+        if occupied is not None and occupied[0] != url:
+            raise ValueError(f"Conflicting existing legacy news key: {key}")
+        doc["external_id"] = key
+        return super()._save_document(doc)
+
     def crawl(self, limit=None):
         saved = 0
         seen_urls = set()
