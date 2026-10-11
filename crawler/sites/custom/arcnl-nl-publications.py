@@ -57,10 +57,10 @@ def _curl_get(url: str, retries: int = 3) -> str | None:
     for attempt in range(retries):
         try:
             result = subprocess.run(
-                ["curl", "--tls-max", "1.3", "-sk", "--max-time", "30", url],
+                ["curl", "--tls-max", "1.3", "-fsk", "--max-time", "30", url],
                 capture_output=True, text=True, errors="replace", timeout=35,
             )
-            if result.stdout.strip():
+            if result.returncode == 0 and result.stdout.strip():
                 return result.stdout
         except Exception as exc:
             print(f"[arcnl-nl-publications] curl error attempt {attempt+1}: {exc}")
@@ -86,9 +86,19 @@ class ArcnlNlPublicationsCrawler(BaseCrawler):
     site_name = "Custom: arcnl-nl-publications"
     base_url = "https://arcnl.nl"
 
+    def _fetch(self, url):
+        from delivery.health.access_challenge import access_challenge
+        raw = _curl_get(url)
+        if not raw:
+            self._report_source_failure("fetch_failed")
+        elif access_challenge(raw):
+            self._report_source_failure("authentication_failed")
+            return None
+        return raw
+
     def _list_page_links(self, page: int, list_url: str = _LIST_URL) -> list[str]:
         url = list_url if page == 1 else f"{list_url}/page/{page}"
-        raw = _curl_get(url)
+        raw = self._fetch(url)
         if not raw:
             return []
         soup = _make_soup(raw)
@@ -114,8 +124,8 @@ class ArcnlNlPublicationsCrawler(BaseCrawler):
                     links.append(href)
         return links
 
-    def _parse_detail(self, url: str) -> dict | None:
-        raw = _curl_get(url)
+    def _parse_detail(self, url: str, raw=None) -> dict | None:
+        raw = self._fetch(url) if raw is None else raw
         if not raw:
             return None
         try:
@@ -244,6 +254,39 @@ class ArcnlNlPublicationsCrawler(BaseCrawler):
             "original_filename": original_filename,
         }
 
+    def _paper(self, data, link, category):
+        title, abstract = data.get("title", ""), data.get("abstract", "")
+        post_id = data.get("post_id")
+        paper = {
+            "site_id": self.site_id,
+            "external_id": post_id,
+            "post_number": post_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": data.get("published_date", ""),
+            "listed_date": data.get("published_date", ""),
+            "authors": data.get("authors", ""),
+            "publisher": data.get("publisher", ""),
+            "department": data.get("group", ""),
+            "journal": None,
+            "url": link,
+            "pdf_url": data.get("pdf_url"),
+            "original_filename": data.get("original_filename"),
+            "keywords": None,
+            "category": category,
+            "doi": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": data.get("pub_date_raw", ""),
+                    "reference": data.get("reference", ""),
+                    "group": data.get("group", ""),
+                    "originalFilename": data.get("original_filename"),
+                },
+                ensure_ascii=False,
+            ),
+        }
+        return paper
+
     def crawl(self, limit=None):
         saved = 0
         seen_urls: set[str] = set()
@@ -266,6 +309,8 @@ class ArcnlNlPublicationsCrawler(BaseCrawler):
                     print(f"[arcnl-nl-publications] Safety cap of {_PAGE_CAP} pages reached.")
 
                 links = self._list_page_links(page, list_url)
+                if getattr(self, "delivery_source_failure", None):
+                    return saved
                 if not links:
                     print(f"[arcnl-nl-publications] page {page}: no links found. Done.")
                     break
@@ -285,14 +330,15 @@ class ArcnlNlPublicationsCrawler(BaseCrawler):
                         data = self._parse_detail(link)
                         if not data:
                             print(f"[arcnl-nl-publications] fetch failed: {link}")
-                            continue
+                            self._report_source_failure("fetch_failed")
+                            return saved
 
                         title = data.get("title", "")
                         abstract = data.get("abstract", "")
 
                         if not title:
-                            print(f"[arcnl-nl-publications] no title, skipping: {link}")
-                            continue
+                            self._report_source_failure("invalid_response")
+                            return saved
                         if len(abstract) < 50:
                             print(
                                 f"[arcnl-nl-publications] abstract too short "
@@ -300,35 +346,7 @@ class ArcnlNlPublicationsCrawler(BaseCrawler):
                             )
                             continue
 
-                        post_id = data.get("post_id")
-                        paper = {
-                            "site_id": self.site_id,
-                            "external_id": post_id,
-                            "post_number": post_id,
-                            "title": title,
-                            "abstract": abstract,
-                            "published_date": data.get("published_date", ""),
-                            "listed_date": data.get("published_date", ""),
-                            "authors": data.get("authors", ""),
-                            "publisher": data.get("publisher", ""),
-                            "department": data.get("group", ""),
-                            "journal": None,
-                            "url": link,
-                            "pdf_url": data.get("pdf_url"),
-                            "original_filename": data.get("original_filename"),
-                            "keywords": None,
-                            "category": category,
-                            "doi": None,
-                            "metadata": json.dumps(
-                                {
-                                    "posted_date": data.get("pub_date_raw", ""),
-                                    "reference": data.get("reference", ""),
-                                    "group": data.get("group", ""),
-                                    "originalFilename": data.get("original_filename"),
-                                },
-                                ensure_ascii=False,
-                            ),
-                        }
+                        paper = self._paper(data, link, category)
                         self._save_paper(paper)
                         if self._last_save_created:
                             saved += 1
@@ -340,7 +358,8 @@ class ArcnlNlPublicationsCrawler(BaseCrawler):
                         raise
                     except Exception as exc:
                         print(f"[arcnl-nl-publications] item failed ({link}): {exc}")
-                        continue
+                        self._report_source_failure("fetch_failed")
+                        return saved
 
                 page += 1
 
