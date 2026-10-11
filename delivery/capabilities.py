@@ -41,7 +41,7 @@ def _source(site_id):
                  'delivery/incremental_holds.json', 'crawler/incremental_ots.py',
                  'crawler/incremental_bankofcanada.py', 'crawler/bankofcanada_incremental_scopes.json',
                  'crawler/incremental_carabinieri.py', 'crawler/incremental_kisdi.py',
-                 'crawler/incremental_open_science.py', 'crawler/incremental_acpr.py', 'crawler/incremental_adruk.py', 'crawler/incremental_audencia.py', 'crawler/incremental_ens_lyon.py', 'crawler/ens_lyon_traversal.py', 'crawler/incremental_onera.py', 'crawler/onera_traversal.py', 'crawler/incremental_ungeneva.py', 'crawler/ungeneva_traversal.py', 'crawler/incremental_bfr.py', 'crawler/incremental_archives_nationales.py', 'crawler/incremental_asn.py', 'crawler/incremental_adaptcentre.py', 'crawler/incremental_afp_news.py', 'crawler/incremental_alrc.py', 'crawler/incremental_apra.py', 'crawler/incremental_arcnl.py', 'crawler/incremental_arcom.py'):
+                 'crawler/incremental_open_science.py', 'crawler/incremental_acpr.py', 'crawler/incremental_adruk.py', 'crawler/incremental_audencia.py', 'crawler/incremental_ens_lyon.py', 'crawler/ens_lyon_traversal.py', 'crawler/incremental_onera.py', 'crawler/onera_traversal.py', 'crawler/incremental_ungeneva.py', 'crawler/ungeneva_traversal.py', 'crawler/incremental_bfr.py', 'crawler/incremental_archives_nationales.py', 'crawler/incremental_asn.py', 'crawler/incremental_adaptcentre.py', 'crawler/incremental_afp_news.py', 'crawler/incremental_alrc.py', 'crawler/incremental_apra.py', 'crawler/incremental_arcnl.py', 'crawler/incremental_arcom.py', 'crawler/incremental_artsetmetiers.py'):
         digest.update((root/name).read_bytes())
     config = getattr(cls, '_config_path', None)
     if config:

@@ -22,6 +22,7 @@ from crawler.incremental_alrc import ALRCAdapter
 from crawler.incremental_apra import APRAAdapter
 from crawler.incremental_arcnl import ARCNLAdapter
 from crawler.incremental_arcom import ARCOMAdapter
+from crawler.incremental_artsetmetiers import ArtsetmetiersAdapter
 
 ADDITIONAL_ADAPTERS = {'federalregister-gov-documents': FederalAdapter,
                        'nemertes-library-upatras-gr-browse': NemertesAdapter,
@@ -44,7 +45,8 @@ ADDITIONAL_ADAPTERS = {'federalregister-gov-documents': FederalAdapter,
                        'alrc-gov-au-publications': ALRCAdapter,
                        'apra-gov-au-statistics': APRAAdapter,
                        'arcnl-nl-publications': ARCNLAdapter,
-                       'arcom-fr-presse': ARCOMAdapter}
+                       'arcom-fr-presse': ARCOMAdapter,
+                       'artsetmetiers-fr-fr': ArtsetmetiersAdapter}
 
 
 def adapter_for(crawler):

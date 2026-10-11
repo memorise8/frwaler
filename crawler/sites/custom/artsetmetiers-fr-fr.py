@@ -97,7 +97,7 @@ class ArtsetmetiersFrFrCrawler(BaseCrawler):
                 time.sleep(delays[attempt])
             try:
                 cmd = [
-                    "curl", "--tls-max", "1.3", "-sk", "--max-time", "30",
+                    "curl", "--tls-max", "1.3", "-fsk", "--max-time", "30",
                     "-H", f"User-Agent: {self.USER_AGENT}",
                     "-H", "Accept: text/html,application/xhtml+xml,*/*;q=0.8",
                     "-H", "Accept-Language: fr-FR,fr;q=0.9,en;q=0.8",
@@ -107,6 +107,10 @@ class ArtsetmetiersFrFrCrawler(BaseCrawler):
                     cmd, capture_output=True, timeout=35
                 )
                 if result.returncode == 0 and result.stdout:
+                    from delivery.health.access_challenge import access_challenge
+                    if access_challenge(result.stdout):
+                        self._report_source_failure("authentication_failed")
+                        return None
                     return result.stdout.decode("utf-8", errors="replace")
                 print(
                     f"[{self.site_id}] page {page_num} attempt {attempt + 1}/3:"
@@ -117,6 +121,7 @@ class ArtsetmetiersFrFrCrawler(BaseCrawler):
                     f"[{self.site_id}] page {page_num} attempt {attempt + 1}/3:"
                     f" fetch error: {exc}"
                 )
+        self._report_source_failure("fetch_failed")
         return None
 
     def _parse_list_page(self, html: str) -> list[dict]:
@@ -176,6 +181,43 @@ class ArtsetmetiersFrFrCrawler(BaseCrawler):
     # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
+
+    def _paper(self, item):
+        """Preserve native list metadata and file identity for shared delivery."""
+        pdf_url, title, abstract, date_str = (item[k] for k in ("pdf_url", "title", "abstract", "date"))
+        # ---- Build external_id / original_filename from S3 path
+        try:
+            parsed_url = urllib.parse.urlparse(pdf_url)
+            raw_filename = parsed_url.path.split("/")[-1]
+            filename = urllib.parse.unquote(raw_filename)
+        except Exception:
+            filename = pdf_url.split("/")[-1]
+
+        # external_id: use the decoded S3 filename as stable unique key
+        external_id = filename
+
+        paper = {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            # url → meta_url via libertree_adapter
+            "url": pdf_url,
+            "pdf_url": pdf_url,
+            "title": title,
+            "abstract": abstract,
+            "published_date": date_str,
+            "posted_date": date_str,
+            "publisher": "Arts et Métiers",
+            "original_filename": filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": date_str,
+                    "originalFilename": filename,
+                    "s3_url": pdf_url,
+                },
+                ensure_ascii=False,
+            ),
+        }
+        return paper
 
     def crawl(self, limit=None):
         """Crawl all press-release list pages and persist records.
@@ -266,38 +308,7 @@ class ArtsetmetiersFrFrCrawler(BaseCrawler):
                         )
                         continue
 
-                    # ---- Build external_id / original_filename from S3 path
-                    try:
-                        parsed_url = urllib.parse.urlparse(pdf_url)
-                        raw_filename = parsed_url.path.split("/")[-1]
-                        filename = urllib.parse.unquote(raw_filename)
-                    except Exception:
-                        filename = pdf_url.split("/")[-1]
-
-                    # external_id: use the decoded S3 filename as stable unique key
-                    external_id = filename
-
-                    paper = {
-                        "site_id": self.site_id,
-                        "external_id": external_id,
-                        # url → meta_url via libertree_adapter
-                        "url": pdf_url,
-                        "pdf_url": pdf_url,
-                        "title": title,
-                        "abstract": abstract,
-                        "published_date": date_str,
-                        "posted_date": date_str,
-                        "publisher": "Arts et Métiers",
-                        "original_filename": filename,
-                        "metadata": json.dumps(
-                            {
-                                "posted_date": date_str,
-                                "originalFilename": filename,
-                                "s3_url": pdf_url,
-                            },
-                            ensure_ascii=False,
-                        ),
-                    }
+                    paper = self._paper(item)
 
                     self._save_paper(paper)
                     if self._last_save_created:
@@ -307,8 +318,9 @@ class ArtsetmetiersFrFrCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure("item_failed")
                     print(f"[{self.site_id}] item failed: {exc}")
-                    continue
+                    return saved
 
             # Rate-limit between page fetches
             time.sleep(self._delay)

@@ -1232,6 +1232,40 @@ Batch 047: Arrow Creative Arts — OAI 순서 불확정 분류와 오류 처리 
 - 실제 재실행: python -m delivery.scripts.measure_arrow_repeat --dsn <소유 Arrow229 DB> --base <결과 경로> --out <새 출력 폴더>
 
 
+
+Batch 048: Arts et Métiers — 원본 보도자료 목록의 메타데이터 증분 연결
+- 납품 CSV의 유일한 원본 /fr/communiques-de-presse 범위를 유지했다. 보존된45개 목록과
+  바로 다음 빈 페이지를 검증해 PDF 참조225개, 기존100자 요약 규칙의 저장 대상223개를
+  구분했다. 2개의 짧은 요약을 가짜 문서로 채우지 않으며 페이지의 파트너 링크도 제외한다.
+- 원본225개 날짜는2026-06-18부터2016-01-11까지 증가0쌍/감소207쌍이다. 공통 엔진이
+  첫 완주에서 최신순을 판별하도록 ArtsetmetiersAdapter를 연결했다. 최초·마지막·끝 응답을
+  현재 서버에서3회 확인했고 보존된 목록의 모든 메타데이터가 일치한다.
+- canonical/원본 view/검색·날짜 필터/현재·다음·마지막 페이지/행 개수/정확한 날짜/PDF URL을
+  검사한다. 이전 페이지 anchor와 마지막 페이지 수가 달라지면 중단하고 pending을 유지한다.
+  페이지 사이 중복 ID 및 최신순 역전은 full_rescan_required로 전환한다. 끝은 마지막 pager와
+  바로 다음 같은 범위의 빈 view를 함께 확인한다. 첫 수집 완료는 pending 저장까지 끝난 뒤다.
+- 상세 요청 없이 native 목록 파서와 새로 분리한 _paper 매핑을 재사용했다. 이전 커밋의 native를
+  동일46개 실제 HTML로 실행해223개 paper 전체 필드를 대조했다. PDF URL/파일명 기반 기존 ID,
+  제목 공백, 본문 요약, 날짜, 원본 파일명 등은 그대로다. curl HTTP/접근 확인·저장 실패도 보고한다.
+- 새 소유 PostgreSQL 기본 worker: 최초3건/이어받기220건/재실행0건, 요청90/0/3회,
+  상세/PDF0회다. 최초90회는45개 목록과 다음 단계에서 이전 페이지를 재확인한44회, 끝 확인1회다.
+  최초3건 시 기준점은 미완료이고 나머지는 목록 요청 없이 oldest-first로 저장한다. 전체223행은
+  날짜 오름차순이고 모든 저장 필드가 원본 native와 같다. 합성 문서 본문은0개다.
+- 실제 재실행은 첫 목록/동일 anchor 재확인/다음 목록의3회·상세/PDF0회·저장 시도0회·신규0건,
+  known_boundary_plus_overlap 종료다. 기존223행 불변과 실제 응답 해시·필드를 별도로 검증했다.
+  현재 경계 확인3회+실제 재실행3회로 이번 실제 HTTP는6회다.
+- 최신순/오래된 순, 신규 oldest-first 저장, 겹침 누락2건 복구, 한 페이지 전체 짧은 요약 제외,
+  저장 실패 이어받기, 잘못된 끝/범위/날짜/중복, 주기적 수정·누락 기록 및 공통 회귀102개와
+  PG1개가 통과했다. 환경 의존3개는 단위 실행에서 제외했다. 공백 정리로 계약 해시가 바뀌어
+  기존 소유 DB를 초기화하지 않고 새 v2 DB에서 최종 검증했으며 v1 결과도 보존했다.
+- 메타데이터223건이 PDF223개 다운로드 완료를 뜻하지 않는다. 원본225개 전체 파일은 미검증이며
+  격리 DB 기준점은 운영 DB 완료 증거가 아니다. 운영 DB 변경/배포/외부 발송/문서 삭제는 없다.
+  batch-048-artsetmetiers/order-review-v3.json, postgres-review-v2.json, live-repeat/audit.json,
+  live-independent-review.json 참조.
+- 재검토: python -m delivery.scripts.review_artsetmetiers_incremental --source <continuous 경로> --probe <현재 경계 관측> --out <새 검토 파일>
+- 실제 재실행: python -m delivery.scripts.measure_artsetmetiers_repeat --dsn <소유 Arts223 DB> --base <결과 경로> --out <새 출력 폴더>
+
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.
