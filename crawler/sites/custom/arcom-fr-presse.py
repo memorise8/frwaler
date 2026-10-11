@@ -49,7 +49,7 @@ _UA = (
 def _curl_get(url, retries=3):
     """GET via curl; returns response text (str) or None."""
     cmd = [
-        'curl', '--tls-max', '1.3', '-skL', '--max-time', '30',
+        'curl', '--tls-max', '1.3', '-fskL', '--max-time', '30',
         '-H', 'Accept: text/html,application/xhtml+xml,*/*;q=0.8',
         '-H', 'Accept-Language: fr-FR,fr;q=0.9,en;q=0.8',
         '-H', f'User-Agent: {_UA}',
@@ -59,7 +59,7 @@ def _curl_get(url, retries=3):
         try:
             result = subprocess.run(cmd, capture_output=True, timeout=40)
             text = result.stdout.decode('utf-8', errors='replace')
-            if text.strip():
+            if result.returncode == 0 and text.strip():
                 return text
             if attempt < retries - 1:
                 time.sleep((attempt + 1) * 3)
@@ -103,6 +103,16 @@ class ArcomFrPresseCrawler(BaseCrawler):
         '&sort_bef_combine=field_date_de_decision_value_ASC'
     )
 
+    def _fetch_html(self, url):
+        from delivery.health.access_challenge import access_challenge
+        raw = _curl_get(url)
+        if not raw:
+            self._report_source_failure('fetch_failed')
+        elif access_challenge(raw):
+            self._report_source_failure('authentication_failed')
+            return None
+        return raw
+
     def crawl(self, limit=None):
         saved = 0
         seen_urls = set()
@@ -122,14 +132,15 @@ class ArcomFrPresseCrawler(BaseCrawler):
                 print(f'[arcom-fr-presse] Wall-clock budget reached at page {page}; exiting cleanly.')
                 break
 
-            list_url = self._LIST_BASE + f'&page={page}'
-            html = _curl_get(list_url)
+            list_url = self._LIST_BASE + (f'&page={page}' if page else '')
+            html = self._fetch_html(list_url)
             if not html:
                 print(f'[arcom-fr-presse] Failed to fetch listing page {page}; stopping.')
                 break
 
             soup = _make_soup(html)
             if not soup:
+                self._report_source_failure('invalid_response')
                 print(f'[arcom-fr-presse] Failed to parse listing page {page}; stopping.')
                 break
 
@@ -165,6 +176,8 @@ class ArcomFrPresseCrawler(BaseCrawler):
                 try:
                     paper = self._fetch_detail(slug, detail_url)
                     if paper is None:
+                        if self.delivery_source_failure:
+                            return saved
                         continue
                     self._save_paper(paper)
                     if self._last_save_created:
@@ -173,8 +186,9 @@ class ArcomFrPresseCrawler(BaseCrawler):
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
+                    self._report_source_failure('item_failed')
                     print(f'[arcom-fr-presse] item {slug} failed: {exc}')
-                    continue
+                    return saved
 
             page += 1
 
@@ -183,24 +197,15 @@ class ArcomFrPresseCrawler(BaseCrawler):
 
         return saved
 
-    def _fetch_detail(self, slug, url):
-        """Fetch + parse one detail page. Returns paper dict or None."""
-        html = None
-        for attempt in range(3):
-            html = _curl_get(url)
-            if html:
-                break
-            if attempt < 2:
-                wait = (attempt + 1) * 3
-                print(f'[arcom-fr-presse] Retry {attempt + 1}/3 for {slug}')
-                time.sleep(wait)
-
+    def _fetch_detail(self, slug, url, html=None):
+        """Fetch or parse an already checked response, preserving native fields."""
+        html = self._fetch_html(url) if html is None else html
         if not html:
-            print(f'[arcom-fr-presse] Failed to fetch detail {slug} after 3 attempts; skipping.')
             return None
 
         soup = _make_soup(html)
         if not soup:
+            self._report_source_failure('invalid_response')
             print(f'[arcom-fr-presse] Failed to parse {slug}; skipping.')
             return None
 

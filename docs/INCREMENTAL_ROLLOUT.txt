@@ -1135,6 +1135,41 @@ Batch 044: ARCNL — 원본 세 학위 목록의 공통 증분 연결
 - 실제 재실행: python -m delivery.scripts.measure_arcnl_repeat --dsn <소유 ARCNL fixture DB> --base <결과 경로> --out <새 출력 폴더>
 
 
+
+Batch 045: ARCOM — 오래된 순 목록 누락을 확인하고 최신순 필터로 증분 연결
+- 원본 Communiqué de presse(type16) ASC 목록은310개 표시 항목에 고유 URL309개였으며,
+  2025-09-16 자료가 페이지4/5 경계에서 반복됐다. 날짜는 전체 오름차순이지만 고유 항목
+  완주 증거로 쓰지 않았다. 현재 첫 ASC 목록도 동일 날짜 자료의 내부 위치 변경이 있다.
+- 사이트가 제공하는 DESC를 확인했다. 같은 필터의7개 목록+인접 빈 페이지에서310개 고유
+  URL과 전체 최신순 날짜를 확인했다. 기존309개 제목/날짜가 모두 같고 Nantes 지역 TV
+  공고1건이 추가로 나타난다. 이전 반복 항목을 별개 문서로 세거나 전체 중복 저장으로 혼동하지 않는다.
+- 기본 registry에 ARCOMAdapter를 연결했다. 동일 원본 type16·빈 날짜 범위를 유지하며
+  명시적인 최신순 조회를 사용한다. 정렬은 첫 전체 목록 증거에서 판별한다. 필터/총량/현재·
+  다음 페이지/날짜/이전 페이지 항목/고유 URL/인접 빈 응답을 검사한다. 향후 페이지 사이
+  중복은 full_rescan_required로 전환하며 기준점을 거짓 완료 처리하지 않는다.
+- native의 상세 제목/본문/날짜/slug/PDF 매핑을 재사용하고 실제 상세1개의 모든 필드를
+  수정 전과 대조했다. 짧은 본문은 완료로 넘기지 않고 full_rescan_required로 남긴다.
+  native의 HTTP 실패 보고 누락과 상세3×3 중첩 재시도도 수정했다. page=0의301은
+  검토한 정식 목록 주소를 직접 쓰도록 제거했다. 기존 native ASC fallback 자체는 범위 참고용이다.
+- 새 소유 PostgreSQL 기본 worker: 실제 DESC 목록8개·실제 상세1개·합성 상세309개로
+  부분 저장/이어받기/재실행 요청17/307/3회, 상세3/307/0회, 신규3/307/0건을 확인했다.
+  최초3건 저장 시 기준점은 미완료이고, 이어받기는 목록 요청 없이 나머지307건을 저장한다.
+  모든310행은 날짜 오름차순 저장이며 실제 상세의 메타데이터도 보존된다.
+- 실제 재실행은 HTTP3회·상세0회·신규0건으로 known_boundary_plus_overlap에서 멈췄다.
+  310개 기존행이 그대로이며 실제3개 응답 해시와 목록 필드를 별도 검증했다. 최초 redirect1회,
+  정식 ASC/DESC 양끝3회, DESC 나머지/끝6회, 실제 재실행3회로 이 배치 실제 요청은13회다.
+- 최신/오래된 순, 중단 후 이어받기, 신규 오래된 순 저장, 겹침에서 누락2건만 상세 조회,
+  잘못된 종료/필터/총량/중복/상세, 주기적 수정/누락 기록, native 실패·중복 저장 집계 회귀를
+  포함해 단위·공통104개와 PG1개 통과, 환경 의존3개는 단위 실행에서 제외했다.
+- 310은 현재 원본 보도자료 필터 범위다. 별도 /archive-liste와 과거 CSA의 점진적 통합 자료를
+  포함한 전체 역사 수량으로 쓰지 않는다. 실제310개 전체 상세·파일 검증도 미완료다.
+  fixture 기준점을 운영 DB의 완료 증거로 쓰지 않는다. 운영 DB 변경/배포/외부 발송/문서 삭제는 없다.
+  batch-045-arcom/order-review.json, postgres-review.json, live-repeat/audit.json,
+  live-independent-review.json 참조.
+- 재검토: python -m delivery.scripts.review_arcom_incremental --source <continuous 경로> --batch <batch-045-arcom 경로> --out <새 검토 파일>
+- 실제 재실행: python -m delivery.scripts.measure_arcom_repeat --dsn <소유 ARCOM fixture DB> --base <결과 경로> --out <새 출력 폴더>
+
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.
