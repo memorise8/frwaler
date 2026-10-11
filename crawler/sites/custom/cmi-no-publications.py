@@ -7,12 +7,14 @@ Pagination   : https://www.cmi.no/publications/search?page={N}&pubtype=journal-a
 Detail page  : https://www.cmi.no/publications/{numeric-id}-{slug}
 """
 
+import hashlib
 import json
 import os
 import re
 import subprocess
 import time
 from datetime import date
+from urllib.parse import parse_qs, urlsplit
 
 from crawler.base_crawler import BaseCrawler
 
@@ -254,76 +256,101 @@ class CmiNoPublicationsCrawler(BaseCrawler):
     # Crawl
     # ------------------------------------------------------------------
 
+    def _source_page(self, soup, requested_page):
+        if soup is None:
+            self._report_source_failure("fetch_failed")
+            raise ValueError("missing CMI source list")
+        pager = soup.select_one("div.pagination")
+        active = pager.select("a.active[href]") if pager else []
+        if len(active) != 1:
+            raise ValueError("CMI source pagination is missing or ambiguous")
+        pages = []
+        for anchor in pager.select("a[href]"):
+            parts = urlsplit(anchor["href"])
+            query = parse_qs(parts.query)
+            if (parts.path != "/publications/search"
+                    or parts.netloc not in ("", "www.cmi.no")
+                    or parts.scheme not in ("", "https")
+                    or set(query) != {"page", "pubtype"}
+                    or query["pubtype"] != ["journal-articles"]
+                    or len(query["page"]) != 1
+                    or not query["page"][0].isdigit()):
+                raise ValueError("CMI source pagination changed scope")
+            number = int(query["page"][0])
+            if number < 1:
+                raise ValueError("invalid CMI source page number")
+            pages.append(number)
+            if anchor is active[0] and number != requested_page:
+                raise ValueError("CMI source page clamped or did not advance")
+        items = self._extract_list_items(soup)
+        if (not items or len({u for u, _ in items}) != len(items)
+                or len({key for _, key in items}) != len(items)):
+            raise ValueError("empty or ambiguous CMI source list")
+        return items, max(pages)
+
     def crawl(self, limit=None):
-        start_time = time.time()
-        budget_seconds = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
-        safety_page_cap = 200
-
+        self._exhausted = False
+        self._source_failure = None
+        if limit is not None and limit <= 0:
+            return 0
+        self._check_cancelled()
+        cursor = dict(self.delivery_cursor or {})
+        scope = cursor.get("scope", "journal_articles")
+        page = cursor.get("page", 1)
+        index = cursor.get("next_index", 0)
+        last_page = cursor.get("last_page", 0)
+        expected_digest = cursor.get("list_digest", "")
+        if (cursor.get("version", 1) != 1 or scope not in ("journal_articles", "done")
+                or type(page) is not int or page < 1
+                or type(index) is not int or index < 0
+                or type(last_page) is not int or last_page < 0
+                or not isinstance(expected_digest, str)
+                or (index and not re.fullmatch(r"[a-f0-9]{64}", expected_digest))
+                or (scope == "done" and (index or expected_digest or last_page != page))):
+            raise ValueError("invalid CMI source cursor")
         saved = 0
-        page = 1
-        seen_urls = set()
-        limit_display = limit if limit is not None else "inf"
-
-        try:
-            while True:
-                if limit is not None and saved >= limit:
-                    break
-
-                elapsed = time.time() - start_time
-                if elapsed > budget_seconds:
-                    print(f"[cmi-no-publications] time budget ({budget_seconds}s) exceeded at page {page}, stopping")
-                    break
-
-                if page > safety_page_cap:
-                    print(f"[cmi-no-publications] reached safety cap of {safety_page_cap} pages, stopping")
-                    break
-
+        started = time.monotonic()
+        budget = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
+        while scope != "done":
+            self._check_cancelled()
+            if (limit is not None and saved >= limit) or time.monotonic() - started >= budget:
+                return saved
+            try:
                 soup = self._fetch_list_page(page)
-                if soup is None:
-                    print(f"[cmi-no-publications] page {page}: failed to fetch/parse, stopping")
-                    break
-
-                list_items = self._extract_list_items(soup)
-                if not list_items:
-                    print(f"[cmi-no-publications] page {page}: 0 items, stopping (end of pagination)")
-                    break
-
-                new_items = [(u, eid) for (u, eid) in list_items if u not in seen_urls]
-                if not new_items:
-                    print(f"[cmi-no-publications] page {page}: all items already seen, stopping (paginator loop)")
-                    break
-
-                for detail_url, ext_id in new_items:
-                    if limit is not None and saved >= limit:
-                        break
-
-                    elapsed = time.time() - start_time
-                    if elapsed > budget_seconds:
-                        print(f"[cmi-no-publications] time budget ({budget_seconds}s) exceeded, stopping")
-                        break
-
-                    seen_urls.add(detail_url)
-
-                    try:
-                        time.sleep(self._delay)
-                        paper = self._parse_detail(detail_url, ext_id)
-                        if paper is None:
-                            print(f"[cmi-no-publications] item {ext_id} ({detail_url}): failed to parse, skipping")
-                            continue
-                        self._save_paper(paper)
-                        if self._last_save_created:
-                            saved += 1
-                    except Exception as exc:
-                        print(f"[cmi-no-publications] item {ext_id} ({detail_url}) failed: {exc}")
-                        continue
-
-                if page % 10 == 0:
-                    print(f"[cmi-no-publications] page {page}: saved {saved}/{limit_display}")
-
+                self._check_cancelled()
+                items, observed_last = self._source_page(soup, page)
+                digest = hashlib.sha256(json.dumps(items).encode()).hexdigest()
+                if ((expected_digest and digest != expected_digest) or index > len(items)
+                        or (last_page and observed_last != last_page)):
+                    raise ValueError("CMI source list changed since checkpoint; overlap review required")
+                last_page = observed_last
+                for offset in range(index, len(items)):
+                    self._check_cancelled()
+                    if (limit is not None and saved >= limit) or time.monotonic() - started >= budget:
+                        return saved
+                    detail_url, ext_id = items[offset]
+                    time.sleep(self._delay)
+                    self._check_cancelled()
+                    paper = self._parse_detail(detail_url, ext_id)
+                    self._check_cancelled()
+                    if paper is None:
+                        self._report_source_failure("item_failed")
+                        raise ValueError("CMI source detail could not be parsed")
+                    self._save_paper(paper)
+                    if self._last_save_created:
+                        saved += 1
+                    self._advance_cursor(dict(version=1, scope=scope, page=page,
+                                              next_index=offset + 1, last_page=last_page,
+                                              list_digest=digest), items_done=1)
+            except Exception:
+                self._report_source_failure("invalid_response")
+                raise
+            scope = "done" if page == last_page else "journal_articles"
+            if scope != "done":
                 page += 1
-        except KeyboardInterrupt:
-            print(f"[cmi-no-publications] interrupted by user at page {page}, saved {saved}")
-            raise
-
-        print(f"[cmi-no-publications] done: saved {saved}/{limit_display} after {page - 1} pages")
+            index, expected_digest = 0, ""
+            self._advance_cursor(dict(version=1, scope=scope, page=page,
+                                      next_index=0, last_page=last_page, list_digest=""))
+        self._check_cancelled()
+        self._mark_exhausted()
         return saved
