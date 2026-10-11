@@ -3,7 +3,7 @@
 
 Starting URL : https://www.cmi.no/publications/search?pubtype=journal-articles
 Pagination   : https://www.cmi.no/publications/search?page={N}&pubtype=journal-articles
-               (20 items/page; end reached when a page has 0 items)
+               (20 items/page; requests beyond the last page may repeat it)
 Detail page  : https://www.cmi.no/publications/{numeric-id}-{slug}
 """
 
@@ -12,6 +12,7 @@ import os
 import re
 import subprocess
 import time
+from datetime import date
 
 from crawler.base_crawler import BaseCrawler
 
@@ -61,18 +62,39 @@ def _make_soup(html):
     return None
 
 
-def _parse_month_year(text):
-    """Parse 'Jun 2026' (or similar) -> 'YYYY-MM-01'."""
+def _publication_date(raw):
+    """Preserve header date precision and forthcoming status separately."""
+    text = re.sub(r"\s+", " ", raw or "").strip().rsplit("|", 1)[-1].strip().lower()
+    status = "forthcoming" if re.search(r"\bforthcoming\b", text) else None
+    if status:
+        text = re.sub(r"^forthcoming\s*", "", text).strip()
     if not text:
-        return None
-    m = re.search(r"([A-Za-z]{3,9})\.?\s+(\d{4})", text)
-    if not m:
-        return None
-    mon_key = m.group(1)[:3].lower()
-    mm = _MONTH_MAP.get(mon_key)
-    if not mm:
-        return None
-    return f"{m.group(2)}-{mm}-01"
+        return None, "missing", None, status
+    if re.fullmatch(r"\d{4}", text) and 1 <= int(text) <= 9999:
+        return None, "year", text, status
+    match = re.fullmatch(r"(?:(\d{1,2})\s+)?([a-z]+)\.?\s+(\d{4})", text)
+    if not match:
+        return None, "unparsed", None, status
+    day, name, year = match.groups()
+    months = dict(_MONTH_MAP)
+    months.update({name: f"{i:02d}" for i, name in enumerate(
+        ("january", "february", "march", "april", "may", "june", "july", "august",
+         "september", "october", "november", "december"), 1)})
+    month = months.get(name)
+    if month is None or not 1 <= int(year) <= 9999:
+        return None, "invalid", None, status
+    if day is None:
+        return None, "month", f"{year}-{month}", status
+    try:
+        value = date(int(year), int(month), int(day)).isoformat()
+    except ValueError:
+        return None, "invalid", None, status
+    return None if status else value, "day", value, status
+
+
+def _parse_month_year(text):
+    """Return a publication day only when the source supplies one."""
+    return _publication_date(text)[0]
 
 
 class CmiNoPublicationsCrawler(BaseCrawler):
@@ -150,7 +172,7 @@ class CmiNoPublicationsCrawler(BaseCrawler):
 
         pubdate_div = header.find("div", class_="publishdate")
         pubdate_raw = pubdate_div.get_text(" ", strip=True) if pubdate_div else ""
-        published_date = _parse_month_year(pubdate_raw)
+        published_date, date_precision, date_period, publication_status = _publication_date(pubdate_raw)
 
         author_div = header.find("div", class_="publication-author")
         authors = None
@@ -188,7 +210,11 @@ class CmiNoPublicationsCrawler(BaseCrawler):
             original_filename = pdf_url.rstrip("/").split("/")[-1].split("?")[0]
 
         metadata = {
-            "posted_date": pubdate_raw,
+            "publication_date_raw": pubdate_raw,
+            "publication_date_precision": date_precision,
+            "publication_period": date_period,
+            "publication_status": publication_status,
+            "publication_date_role": "journal_publication_header",
             "journal_raw": journal_raw or None,
             "node_id": ext_id,
         }
@@ -204,8 +230,8 @@ class CmiNoPublicationsCrawler(BaseCrawler):
             "title": title,
             "abstract": abstract,
             "published_date": published_date,
-            "posted_date": published_date,
-            "listed_date": published_date,
+            "posted_date": None,
+            "listed_date": None,
             "authors": authors,
             "publisher": "Chr. Michelsen Institute",
             "department": None,

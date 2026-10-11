@@ -1,0 +1,20 @@
+[
+  {
+    "label": "forthcoming",
+    "url": "https://www.cmi.no/publications/10057-war-comes-home-conflict-exposure-and-intimate-partner-violence-in-ethiopia",
+    "source_file": "twentysixth-cmi/003.body",
+    "source_sha256": "6773fb6960d22816c5eeb1e844192e6297323f6ea1acccf093fc6c02e59a5c41"
+  },
+  {
+    "label": "month",
+    "url": "https://www.cmi.no/publications/10017-cessation-and-the-temporary-turn-in-asylum-las-and-practice",
+    "source_file": "twentysixth-cmi_details/000.body",
+    "source_sha256": "ccc194eeef30b6579fb1b971ba1d563525667e6d149717a0c868b63857ea401f"
+  },
+  {
+    "label": "year",
+    "url": "https://www.cmi.no/publications/1605-bangladesh-gradual-development-or-deepening",
+    "source_file": "twentysixth-cmi_details/001.body",
+    "source_sha256": "65e52f3e4a3a44446ae987e868783d1d693d2309517404e14a24cc5420a49293"
+  }
+]
