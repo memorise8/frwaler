@@ -9,10 +9,21 @@ import json
 import re
 import subprocess
 import time
+from urllib.parse import quote, urljoin, urlsplit, urlunsplit
 
 from crawler.base_crawler import BaseCrawler
 
 BASE = "https://cae-eco.fr"
+
+
+def _pdf_request_url(href):
+    """Encode source URL characters without guessing at path/query boundaries."""
+    parts = urlsplit(urljoin(BASE + "/", href))
+    if parts.scheme not in {"http", "https"} or not parts.netloc:
+        raise ValueError("invalid source PDF URL")
+    safe = "/%:@!$&'()*+,;=-._~"
+    return urlunsplit((parts.scheme, parts.netloc, quote(parts.path, safe=safe),
+                      quote(parts.query, safe=safe + "?"), quote(parts.fragment, safe=safe + "?")))
 
 
 def _bs4(raw):
@@ -51,6 +62,18 @@ class CaeEcoFrPresseCae0Crawler(BaseCrawler):
     site_id = "cae-eco-fr-presse-cae-0"
     site_name = "Custom: cae-eco-fr-presse-cae-0"
     base_url = BASE
+
+    def _save_document(self, document):
+        # A legacy upsert would delete existing files when pdf_url changes.
+        # Historical raw URLs need a separate repair preserving those files.
+        rows = self._conn.execute(
+            "SELECT pdf_url FROM documents WHERE site_id=? AND external_id=?",
+            (self.site_id, document.get("external_id")),
+        ).fetchall()
+        if len(rows) > 1 or rows and (rows[0][0] or "") != (document.get("pdf_url") or ""):
+            self._report_source_failure("invalid_response")
+            raise ValueError("existing attachment identity differs; preserve files pending repair review")
+        return super()._save_document(document)
 
     def crawl(self, limit=None):
         self._check_cancelled()
@@ -159,11 +182,13 @@ class CaeEcoFrPresseCae0Crawler(BaseCrawler):
 
                     # PDF URL and original filename
                     pdf_url = None
+                    pdf_url_raw = None
                     original_filename = None
                     pdf_tag = detail.select_one('a[href*="/static/pdf/"][href$=".pdf"]')
                     if pdf_tag:
                         pdf_path = pdf_tag.get("href", "")
-                        pdf_url = f"{BASE}{pdf_path}" if pdf_path.startswith("/") else pdf_path
+                        pdf_url_raw = urljoin(BASE + "/", pdf_path)
+                        pdf_url = _pdf_request_url(pdf_path)
                         original_filename = pdf_path.split("/")[-1]
 
                     # The original press archive includes PDF-only entries.
@@ -172,9 +197,13 @@ class CaeEcoFrPresseCae0Crawler(BaseCrawler):
                         self._report_source_failure("invalid_response")
                         raise ValueError("source press entry has neither summary nor PDF")
                     pdf_urls = []
+                    pdf_urls_raw = []
                     for link in detail.select('a[href*="/static/pdf/"][href$=".pdf"]'):
                         href = link["href"]
-                        url = f"{BASE}{href}" if href.startswith("/") else href
+                        raw_url = urljoin(BASE + "/", href)
+                        if raw_url not in pdf_urls_raw:
+                            pdf_urls_raw.append(raw_url)
+                        url = _pdf_request_url(href)
                         if url not in pdf_urls:
                             pdf_urls.append(url)
 
@@ -199,6 +228,8 @@ class CaeEcoFrPresseCae0Crawler(BaseCrawler):
 
                     metadata = {"posted_date": published_date, "slug": slug}
                     metadata["source_pdf_urls"] = pdf_urls
+                    metadata["source_pdf_urls_raw"] = pdf_urls_raw
+                    metadata["primary_pdf_url_raw"] = pdf_url_raw
                     metadata["abstract_source"] = abstract_source if abstract else "source PDF full text pending"
                     if original_filename:
                         metadata["originalFilename"] = original_filename

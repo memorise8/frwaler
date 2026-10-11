@@ -1,0 +1,12 @@
+{
+  "detail_file": "twentyfifth-cae_details/002.body",
+  "detail_sha256": "580af1b64617311e3140f89b2031313f72ad0db3002253c7d2462b22f1bc800e",
+  "article_url": "https://cae-eco.fr/face-a-lessoufflement-democratique-reformer-les-institutions-communique-de-presse",
+  "original_PDF_url": "https://cae-eco.fr/static/pdf/Communique-presse-N92-Institutions 20260623_def.pdf",
+  "failed_PDF_response": {
+    "status": 0,
+    "curl_exit": 3,
+    "headers": {},
+    "body_complete": false
+  }
+}
