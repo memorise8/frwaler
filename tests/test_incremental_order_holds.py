@@ -6,7 +6,7 @@ from delivery.incremental_status import eligibility,reviewed_hold
 
 class OrderHoldTests(unittest.TestCase):
     def test_reviewed_holds_preserve_evidence_and_never_certify_baseline(self):
-        for site in ('amolf-nl-publications','krivet-re-kr-kor'):
+        for site in ('amolf-nl-publications','krivet-re-kr-kor','bmleh-de-en'):
             with self.subTest(site=site):
                 result=eligibility(site,CRAWLERS[site])
                 self.assertEqual(result['classification'],'full_rescan_required')
