@@ -1,0 +1,91 @@
+{
+  "response": {
+    "numFound": 166,
+    "start": 0,
+    "numFoundExact": true,
+    "docs": [
+      {
+        "id": "3oiwb2-content-entity:node/4326:et",
+        "title": "Euroopa Liidu toetus kohalikele omavalitsustele integratsiooniteenuste osutamiseks kolmandate riikide kodanikele",
+        "content_type": "article",
+        "uri": "/euroopa-liidu-toetus-kohalikele-omavalitsustele-integratsiooniteenuste-osutamiseks-kolmandate",
+        "created": "2026-05-25T12:09:07Z",
+        "langcode": "et"
+      },
+      {
+        "id": "3oiwb2-content-entity:node/4229:et",
+        "title": "Siseministeeriumi kasutatavad välisvahendid",
+        "content_type": "article",
+        "uri": "/siseministeeriumi-kasutatavad-valisvahendid",
+        "created": "2026-02-19T19:50:02Z",
+        "langcode": "et"
+      },
+      {
+        "id": "3oiwb2-content-entity:node/4193:et",
+        "title": "Kohalike omavalitsuste turvalisuse arenguprogrammi teine lend",
+        "content_type": "article",
+        "uri": "/kohalike-omavalitsuste-turvalisuse-arenguprogrammi-teine-lend",
+        "created": "2026-02-03T08:30:54Z",
+        "langcode": "et"
+      },
+      {
+        "id": "3oiwb2-content-entity:node/4144:et",
+        "title": "Andmekaitse tingimused",
+        "content_type": "article",
+        "uri": "/andmekaitse-tingimused",
+        "created": "2025-12-09T14:18:20Z",
+        "langcode": "et"
+      },
+      {
+        "id": "3oiwb2-content-entity:node/4120:et",
+        "title": "Eesti, Leedu, Läti, Norra, Poola, Rootsi ja Soome ministrite ühisavaldus",
+        "content_type": "article",
+        "uri": "/eesti-leedu-lati-norra-poola-rootsi-ja-soome-ministrite-uhisavaldus",
+        "created": "2025-11-13T07:51:44Z",
+        "langcode": "et"
+      },
+      {
+        "id": "3oiwb2-content-entity:node/4084:et",
+        "title": "Elanikkonnakaitse",
+        "content_type": "article",
+        "uri": "/tegevusvaldkonnad/kindel-sisejulgeolek/elanikkonnakaitse",
+        "created": "2025-10-15T09:46:23Z",
+        "langcode": "et"
+      },
+      {
+        "id": "3oiwb2-content-entity:node/4068:et",
+        "title": "Rahvusvaheline kaitse",
+        "content_type": "article",
+        "uri": "/tegevusvaldkonnad/tohus-rahvastikuhaldus/rahvusvaheline-kaitse",
+        "created": "2025-09-29T11:05:50Z",
+        "langcode": "et"
+      },
+      {
+        "id": "3oiwb2-content-entity:node/4053:et",
+        "title": "Teabelehed",
+        "content_type": "article",
+        "uri": "/KOV2025",
+        "created": "2025-09-08T16:18:27Z",
+        "langcode": "et"
+      },
+      {
+        "id": "3oiwb2-content-entity:node/4052:et",
+        "title": "Korduma kippuvad küsimused rahvusvahelise kaitse õigustiku reformi kohta",
+        "content_type": "article",
+        "uri": "/korduma-kippuvad-kusimused-rahvusvahelise-kaitse-oigustiku-reformi-kohta",
+        "created": "2025-09-04T17:24:12Z",
+        "langcode": "et"
+      },
+      {
+        "id": "3oiwb2-content-entity:node/3940:et",
+        "title": "Vaata üle enda kontaktandmed rahvastikuregistris",
+        "content_type": "article",
+        "uri": "/vaata-ule-enda-kontaktandmed-rahvastikuregistris-0",
+        "created": "2025-04-29T12:04:10Z",
+        "langcode": "et"
+      }
+    ]
+  },
+  "code": 200,
+  "_fixture_source_sha256": "b058c9ee7511d04b45c383bb29ca2d18ef34aa4baecfec261b4839814cddef03"
+}

@@ -3,10 +3,10 @@
 
 Endpoints:
   list  GET https://search.service.eu-live.vportal.ee/v1/search/siseministeerium
-             ?sort_by=created&type=Artikkel&page={p}
+             ?sort_by=created&filters[type]=Artikkel&page={p}&langcode=et&limit=10
         Requires: Referer + Origin headers from https://www.siseministeerium.ee
         Returns Solr JSON: response.numFound, response.docs[].
-        Default page size = 10, page is 0-indexed.
+        Default page size = 10, page is 1-indexed.
 
   detail  GET https://www.siseministeerium.ee{doc.uri}
         HTML page; lead text in .field--name-field-lead-text;
@@ -194,7 +194,8 @@ class SiseministeeriumEeOtsingCrawler(BaseCrawler):
         """Fetch one page from the search API. Returns (docs, total_found)."""
         url = (
             f"{self._API_URL}"
-            f"?sort_by={self._SORT_BY}&type={self._LIST_TYPE}&page={page_num}"
+            f"?sort_by={self._SORT_BY}&filters%5Btype%5D={self._LIST_TYPE}"
+            f"&page={page_num}&langcode=et&limit={self._PAGE_SIZE}"
         )
         raw = self._curl(url)
         if not raw:
@@ -218,14 +219,15 @@ class SiseministeeriumEeOtsingCrawler(BaseCrawler):
         print(f"[{_SITE_ID}] starting crawl (limit={limit_str})")
         print(
             f"[{_SITE_ID}] list API: {self._API_URL}"
-            f"?sort_by={self._SORT_BY}&type={self._LIST_TYPE}&page={{p}}"
+            f"?sort_by={self._SORT_BY}&filters%5Btype%5D={self._LIST_TYPE}"
+            f"&page={{p}}&langcode=et&limit={self._PAGE_SIZE}"
         )
 
         saved = 0
         seen_urls = set()
         start_time = time.time()
 
-        for page in range(self._MAX_PAGES):
+        for page in range(1, self._MAX_PAGES + 1):
             if limit is not None and saved >= limit:
                 break
 
@@ -234,12 +236,12 @@ class SiseministeeriumEeOtsingCrawler(BaseCrawler):
                 print(f"[{_SITE_ID}] 25-minute budget reached at page {page}; stopping")
                 break
 
-            if page == self._MAX_PAGES - 1:
-                print(f"[{_SITE_ID}] safety cap of {self._MAX_PAGES} pages reached; stopping")
+            if page == self._MAX_PAGES:
+                print(f"[{_SITE_ID}] processing final configured page ({self._MAX_PAGES})")
 
             docs, total = self._fetch_page(page)
 
-            if page == 0:
+            if page == 1:
                 print(f"[{_SITE_ID}] total available: {total}")
 
             if not docs:
