@@ -453,9 +453,16 @@ class SozialministeriumGvAtServicesCrawler(BaseCrawler):
                 continue
             records.extend(self._parse_group_records(group, group_title, page_url))
 
-        has_next = bool(
-            content.select_one('a[rel="next"], .pagination .next a, a.next')
-            or content.find("a", string=re.compile(r"Weiter|Nächste|Next", re.I))
+        next_links = content.select('a[rel="next"], .pagination .next a, a.next')
+        next_links.extend(content.find_all(
+            "a", string=re.compile(r"^\s*(?:Weiter|Nächste(?:\s+Seite)?|Next(?:\s+page)?)\s*$", re.I)
+        ))
+        # The table of contents includes "Weitere Studien ..." fragment links.
+        # They navigate within this page and do not indicate another list page.
+        has_next = any(
+            link.get("href", "").strip()
+            and not link["href"].strip().startswith("#")
+            for link in next_links
         )
         return records, has_next
 
