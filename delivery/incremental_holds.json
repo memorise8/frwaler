@@ -176,5 +176,17 @@
     "evidence": "incremental-rollout-20261012/batch-031-ag/scope-review.json",
     "evidence_sha256": "7c27301fdb7f480e5ab86f301884d188c97e29b30d41878d5f9da0b9ec25517a",
     "native_health_note": "Original eight scopes include an excluded PDF search; seven native sections each cap at 30 pages. Only the first integrity entry was probed and timed out. Other seven original scopes not currently requested. Source total/order/end remain unverified."
+  },
+  "agri-ee-ministeerium-uudised": {
+    "classification": "full_rescan_required",
+    "reason": "embedded_table_dates_nonmonotonic_and_published_history_routes_uncollected",
+    "source_sha256": "b38b014032b99a9b519f6f5d8f67e07741d067e32d795134c94c059da5c9a0df",
+    "dependency_source_sha256": {
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
+    },
+    "reviewed_at": "2026-10-11T21:00:16.981721+00:00",
+    "evidence": "incremental-rollout-20261012/batch-032-agri/order-review.json",
+    "evidence_sha256": "cdae0acb07b30f1da8a7e25778961665f392105df606b99ab66c1417c9444327",
+    "native_health_note": "Retained 125 rows in eight static tables include five date reversals in the first table. Three published archive routes remain uncollected. Current audited entry returned HTTP403 challenge; current source count unknown. Native dates are insertion dates and generated metadata abstracts are not verified file bodies."
   }
 }

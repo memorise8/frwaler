@@ -19,6 +19,7 @@ from urllib.parse import unquote, urljoin, urlparse
 from bs4 import BeautifulSoup
 
 from crawler.base_crawler import BaseCrawler
+from delivery.health.access_challenge import access_challenge
 
 try:
     from curl_cffi import requests as _cffi_requests
@@ -33,8 +34,10 @@ _SITE_ID = "agri-ee-ministeerium-uudised"
 def _is_cf_challenge(raw):
     if not raw:
         return False
-    head = raw[:2000].lower()
-    return "just a moment" in head and "challenges.cloudflare.com" in head
+    head = raw[:20000].lower()
+    return bool(re.search(r'<title>\s*just a moment[^<]*</title>', head)) and any(
+        marker in head for marker in ('challenges.cloudflare.com', '_cf_chl_opt', '/cdn-cgi/challenge-platform/')
+    )
 
 
 class AgriEeMinisteeriumUudisedCrawler(BaseCrawler):
@@ -82,12 +85,17 @@ class AgriEeMinisteeriumUudisedCrawler(BaseCrawler):
             raw = self._curl_text(page_url, context=f"list page {page}", referer=self.base_url)
             if not raw:
                 print(f"[{_SITE_ID}] page {page}: empty list response; stopping")
-                break
+                self._report_source_failure('fetch_failed')
+                return saved
+            if _is_cf_challenge(raw) or access_challenge(raw):
+                self._report_source_failure('authentication_failed')
+                return saved
 
             soup = self._make_soup(raw, context=f"list page {page}")
             if soup is None:
                 print(f"[{_SITE_ID}] page {page}: HTML parse failed; stopping")
-                break
+                self._report_source_failure('invalid_response')
+                return saved
 
             records = self._parse_records(soup)
             if not records:
@@ -121,7 +129,8 @@ class AgriEeMinisteeriumUudisedCrawler(BaseCrawler):
                     )
                     if headers is None:
                         print(f"[{_SITE_ID}] item {item_index} failed: metadata HEAD failed")
-                        continue
+                        self._report_source_failure('fetch_failed')
+                        return saved
 
                     paper = self._record_to_paper(record, headers, page_url)
                     abstract = paper.get("abstract") or ""
@@ -182,7 +191,7 @@ class AgriEeMinisteeriumUudisedCrawler(BaseCrawler):
             "curl",
             "--tls-max",
             "1.3",
-            "-skL",
+            "-fskL",
             "--compressed",
             "--connect-timeout",
             "15",
@@ -217,7 +226,7 @@ class AgriEeMinisteeriumUudisedCrawler(BaseCrawler):
                     last_error = f"HTTP {r.status_code}"
                 else:
                     text = r.text
-                    if text.strip() and not _is_cf_challenge(text):
+                    if r.status_code < 400 and text.strip() and not _is_cf_challenge(text):
                         return text
                     last_error = "empty/challenge response" if text.strip() else "empty response"
             except Exception as exc:
@@ -249,7 +258,7 @@ class AgriEeMinisteeriumUudisedCrawler(BaseCrawler):
             "curl",
             "--tls-max",
             "1.3",
-            "-skLI",
+            "-fskLI",
             "--compressed",
             "--connect-timeout",
             "15",
