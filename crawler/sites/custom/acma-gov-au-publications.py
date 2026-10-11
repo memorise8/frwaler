@@ -48,6 +48,7 @@ from bs4 import BeautifulSoup  # noqa: E402
 
 from crawler.base_crawler import BaseCrawler  # noqa: E402
 from crawler.stealth_fetcher import StealthSession  # noqa: E402
+from delivery.health.access_challenge import access_challenge  # noqa: E402
 
 
 def _clean(value) -> str:
@@ -99,12 +100,16 @@ class AcmaGovAuPublicationsCrawler(BaseCrawler):
     def _fetch(self, url):
         for attempt in range(self.FETCH_RETRIES):
             html, info = self._stealth.fetch_html(url)
+            if access_challenge(html) or info.get("final_reason") in ("403_forbidden", "cloudflare_challenge"):
+                self._report_source_failure('authentication_failed')
+                return None
             if html and info.get("final_reason") == "ok":
                 return html
             print(f"[{self.site_id}] fetch attempt {attempt + 1}/"
                   f"{self.FETCH_RETRIES} failed for {url}: {info.get('final_reason')}")
             if attempt < self.FETCH_RETRIES - 1:
                 time.sleep(2 * (attempt + 1))
+        self._report_source_failure('fetch_failed')
         return None
 
     # ------------------------------------------------------------------
@@ -144,8 +149,9 @@ class AcmaGovAuPublicationsCrawler(BaseCrawler):
                 html = self._fetch(page_url)
                 if html is None:
                     print(f"[{self.site_id}] {category}: page {page} fetch "
-                          f"failed; next section")
-                    break
+                          f"failed; stopping")
+                    self._report_source_failure(self.delivery_source_failure or 'fetch_failed')
+                    return saved
 
                 soup = BeautifulSoup(html, "html.parser")
                 items = self._parse_listing(soup)
@@ -168,6 +174,8 @@ class AcmaGovAuPublicationsCrawler(BaseCrawler):
                         time.sleep(self._delay)
                         paper = self._scrape_detail(it, category)
                         if paper is None:
+                            if self.delivery_source_failure:
+                                return saved
                             continue
                         self._save_paper(paper)
                         if self._last_save_created:
@@ -239,6 +247,7 @@ class AcmaGovAuPublicationsCrawler(BaseCrawler):
         html = self._fetch(item["url"])
         if html is None:
             print(f"[{self.site_id}] detail fetch failed: {item['url']}")
+            self._report_source_failure(self.delivery_source_failure or 'fetch_failed')
             return None
         soup = BeautifulSoup(html, "html.parser")
 

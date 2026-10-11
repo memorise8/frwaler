@@ -112,5 +112,19 @@
     "evidence": "incremental-rollout-20261012/batch-024-accc/access-review.json",
     "evidence_sha256": "8648d59e711bbcef3a4f07e236bf2f80ea14e4b5469d427618f9449b08b001ae",
     "native_health_note": "Observed exact native entry HTTP403 edge refusal. No source total/order/end inferred. Native error/empty transport responses now fail explicitly instead of empty-list success; current source bodies remain inaccessible on audited path."
+  },
+  "acma-gov-au-publications": {
+    "classification": "full_rescan_required",
+    "reason": "original_pdf_search_scope_excluded_and_transport_unavailable_order_and_end_unverified",
+    "source_sha256": "7808595ff9a8259c14c7ba0ed1b36a0328e60c4867e9bb0fd6bf4a9e732dd31a",
+    "dependency_source_sha256": {
+      "crawler/stealth_fetcher.py": "d55da3d4f1069913762f8d3a12bb485f799e04f0d860f07723ca137f04e02382",
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b",
+      "docs/deliverables/test_URL_수집대조_20260802.csv": "336c04d463f70624cd4ec7aacdf386fd71bab34ca186acf8ac3413a3ee1fced9"
+    },
+    "reviewed_at": "2026-10-11T20:19:57.765520+00:00",
+    "evidence": "incremental-rollout-20261012/batch-025-acma/scope-final-review.json",
+    "evidence_sha256": "1193f1dfa0b8463e8ca1692280c1b0e95ca49e09f4a1edc044935056f97ffd7e",
+    "native_health_note": "Original three-scope equivalence unverified: PDF search excluded and native sections capped at 30 pages. Current publication entry timed out; retained media requests failed HTTP2/HTTP1. No source count, ordering or exhaustion inferred."
   }
 }

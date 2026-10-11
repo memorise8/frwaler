@@ -599,6 +599,30 @@ Batch 024: ACCC 두 수집기 — 접근 차단을 정상 종료로 오인하지
   기존 전수검증 goal은 계속 일시정지이고 운영 DB/배포/외부 발송은 수행하지 않았다.
 - 재검토: python -m delivery.scripts.review_accc_incremental --root <batch 캡처 경로> --out <새 파일>
 
+
+Batch 025: ACMA — 제외된 원본 검색 범위와 전송 실패 보류
+- 원본 납품 CSV의 ACMA URL3개를 보존 association 및 CSV 해시와 대조했다. native는
+  publications/media-releases 두 곳만 설정하고 PDF search를 명시적으로 제외한다.
+  각 목록30페이지 제한도 있어 이 두 목록의 일부 성공을 전체 범위 완료로 인정하지 않는다.
+- 보존 media-releases HTTP2 curl92/HTTP1 curl28 실패와 빈 body 해시를 확인했다.
+  이번 publications 첫 요청도 단일 요청 후 ReadTimeout이며 추가 재시도/다른 경로 우회는
+  하지 않았다. 전체 건수·순서·끝 관측은 불명이다. 원본 검색과 두 목록의 동등성도 미확정이다.
+- 원본 CSV, native, stealth fetcher 및 차단 helper 해시에 결합한 full_rescan_required
+  보류를 추가했다. 접근 회복 후 원본3범위, 안정 ID/정렬/끝 계약을 검토해야 연결할 수 있다.
+- native에서 목록/상세 전송 실패가 정상 종료·다음 section 진행으로 숨겨지지 않도록
+  fetch_failed를 보고한다. 알려진 차단 응답은 authentication_failed로 보고하고 종료한다.
+  정상 상세의 원래 날짜·slug ID·파일 연결·본문 파싱은 유지했다. 공통 stealth fallback과
+  기존 재시도 정책을 바꾼 것은 아니므로 실제 내부 요청 수를 과소 보고하지 않는다.
+- 새 PostgreSQL에서 합성 HTML로 두 범위 중복1건 포함3건을 원래 파서/worker로 저장했다.
+  최초/재실행 transport-layer 호출5/5회, 상세3/3회, 저장3/0건이고 기존 행은 같다.
+  실패 fixture는 기존3회 재시도×3 transport layer=9회 후 failed/fetch_failed로 종료하고
+  다음 section 및 자동 후속 job은 실행하지 않았다. 기준점은 항상 미완료였다.
+- 이 계수는 네트워크 구현 직전의 StealthSession layer 호출이며 실제 wire HTTP나 브라우저
+  subrequest 수가 아니다. 실제 현재 사이트 본문 검증도 아니다. 재생 live 요청은0회다.
+  단위·정상 수집 회귀99개와 PG1개 통과, 환경 의존3개는 단위 실행에서 제외했다.
+  batch-025-acma/scope-final-review.json 및 postgres-review.json 참조.
+- 재검토: python -m delivery.scripts.review_acma_incremental --source <continuous 경로> --probe <현재 관측 경로> --out <새 검토 파일>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.
