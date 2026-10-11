@@ -247,6 +247,36 @@ Batch 011: ACPR — 원래 연구자료 필터와 보도자료의 날짜순 병�
 - 측정: python -m delivery.scripts.measure_acpr_incremental --out <새 경로> --gate-dir <공용 gate> --first-year 2025 --last-year 2026
   목록 대조: python -m delivery.scripts.review_acpr_incremental --source <continuous 경로> --out <새 검토 파일>
 
+Batch 012: ADR UK — 두 원래 목록과 연차보고서 연결 보존
+- 기본 adapter는 impact/publications 두 범위를 날짜로 병합한다. 보존된 원문 35페이지와
+  목록 341건(사례 117·발행물 224)의 ID/URL/제목/원문 날짜/목록 본문을 그대로 대조했다.
+  페이지별 범위 연속성·전체 건수·직전 페이지 해시·날짜 순서·slug 충돌을 검증한다.
+- 기존 native 상세→paper 생성 블록을 _materialize로 추출했다. 추출 전후 AST가 일치하며,
+  직접 PDF와 본문 복구, 명시적 첨부/포스터 컬렉션/인용 PDF 구분을 재사용한다.
+  증분 경로의 HTML은 감사 가능한 _request로 보내고 PDF 요청도 기존 전송 계층을 사용한다.
+- 연차보고서 index와 5개 root는 발행물의 별칭이며 추가 문서로 집계하지 않는다.
+  최초 발견 시 발행물과 해당 보고서 PDF의 관계를 검증하고 paper를 durable queue에 보존한다.
+  모든 root가 대표되는 것을 확인해야 소진을 승인한다. 저장 순서는 오래된 항목부터다.
+- 재실행에서는 두 페이지 분량의 기존 항목·겹침과 각 범위의 아직 내보내지 않은 신규 ID를
+  함께 확인한다. 연차보고서 index/root 조회는 별도 보조 요청으로 계수한다.
+  완료된 동일 계약에서 검증한 연결만 재사용하고, label/PDF 등 변경된 연결은 다시 검증한다.
+  수정된 기존 문서는 주기적 전체 점검에서 변경 기록으로 남기며 기존 행을 덮어쓰지 않는다.
+- 실제 publications 224건을 새 SQLite에 저장했다. 부분 저장/이어받기/재실행의
+  HTTP 요청은 58/133/9회, HTML 상세는 5/132/0회, 저장은 3/221/0건이었다.
+  재실행 9회는 목록 3회와 연차보고서 index/root 보조 확인 6회이며 상세/PDF 요청은 없다.
+  전체 실측 200개 응답의 해시 및 224건의 native 필드를 독립 재생으로 대조했다.
+  연차보고서 5개 연결과 본문 부족 직접 PDF 1건의 텍스트 복구도 대조했다.
+- 새 PostgreSQL 기본 worker fixture는 두 범위 12건으로 요청 14/8/8회,
+  상세 2/8/0회, 저장 3/9/0건이었다. 테스트 140개와 PostgreSQL worker 1개가 통과했고,
+  환경 의존 테스트 43개는 건너뛰었다. 초기 측정의 요청 수 예상 오류와 보고서 환경 변수
+  수정 전 DB는 보존했으며, 최종 검증은 별도의 새 DB에서 수행했다.
+- 대표 실측은 publications 전체 범위다. 원래 impact 범위의 지속 HTTP 500 한 건은
+  이번 측정 대상이 아니며, 전체 사이트의 첫 기준점 완료로 표시하지 않는다.
+  원문 PDF/모든 첨부 파일의 다운로드 또는 전문 검증 완료도 별도로 남는다.
+- 측정: python -m delivery.scripts.measure_adruk_incremental --out <새 경로> --gate-dir <공용 gate>
+  보존 목록: python -m delivery.scripts.review_adruk_incremental --source <continuous 경로> --out <새 검토 파일>
+  실측 대조: python -m delivery.scripts.review_adruk_live --root <실측 경로> --source <continuous 경로> --out <새 검토 파일>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.

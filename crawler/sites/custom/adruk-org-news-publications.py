@@ -361,6 +361,58 @@ class AdrukOrgNewsPublicationsCrawler(BaseCrawler):
                 if post != item['slug'] or url != item['url']:
                     raise ValueError('stored source identity requires review')
 
+    def _materialize(self, item, scope, annual):
+        """Build the same delivered record for native and incremental runners."""
+        if item['direct_pdf']:
+            detail = dict(title=item['list_title'], abstract=item['list_abstract'], date_raw=item['listed_date_raw'],
+                          authors=[], categories=[], pdf_url=item['url'], pdf_urls=[item['url']],
+                          attachment_pdf_urls=[item['url']], reference_pdf_urls=[],
+                          primary_pdf_binding='direct_listing_PDF', report_links=[])
+        else:
+            detail = _parse_detail(self._html(item['url']))
+            if detail['title'] != item['list_title']:
+                raise ValueError('detail/list identity mismatch')
+        pdf_url = detail['pdf_url']
+        annual_match = None
+        if 'annual report' in detail['title'].lower():
+            year_match = re.search(r'20\d{2}', detail['title'])
+            candidates = [(url, r) for url, r in annual.items() if year_match and r['year'] == year_match.group()]
+            if len(candidates) > 1:
+                raise ValueError('ambiguous annual report identity')
+            if candidates:
+                url, report = candidates[0]
+                # The annual root identifies its own report;
+                # unrelated strategies/citations never win by order.
+                if url in detail['report_links']:
+                    pdf_url = report['pdf_url']
+                else:
+                    matching_pdfs = [u for u in detail.get('pdf_urls', [])
+                                     if self._same_pdf(u, report['pdf_url'])]
+                    if not matching_pdfs:
+                        raise ValueError('annual representation mismatch')
+                    pdf_url = matching_pdfs[0]
+                annual_match = url
+        abstract = detail['abstract'] or item['list_abstract']
+        provenance = {}
+        if len(abstract) < 50 and pdf_url:
+            abstract, provenance = self._pdf_body(pdf_url)
+        if len(abstract) < 50:
+            raise ValueError('source body gap')
+        paper = dict(site_id=self.site_id, external_id=item['slug'], title=detail['title'], abstract=abstract,
+                     published_date=detail['date_raw'] or item['listed_date_raw'] or None,
+                     posted_date=item['listed_date_raw'] or None, url=item['url'], pdf_url=pdf_url,
+                     original_filename=unquote(urlsplit(pdf_url).path.rsplit('/', 1)[-1]) if pdf_url else None,
+                     authors=detail['authors'], publisher=_PUBLISHER, keywords=', '.join(detail['categories']),
+                     metadata=json.dumps(dict(source_scope=scope, source_listed_date_raw=item['listed_date_raw'],
+                                              annual_report_url=annual_match,
+                                              source_pdf_candidates=detail.get('pdf_urls', []),
+                                              source_attachment_pdf_urls=detail.get('attachment_pdf_urls', []),
+                                              source_collection_pdf_urls=detail.get('collection_pdf_urls', []),
+                                              source_reference_pdf_urls=detail.get('reference_pdf_urls', []),
+                                              primary_pdf_binding='annual_report_identity' if annual_match else detail.get('primary_pdf_binding', 'direct_listing_PDF'),
+                                              **provenance), ensure_ascii=False))
+        return paper, annual_match, provenance
+
     def crawl(self, limit=None):
         self._check_cancelled()
         if limit is not None and limit <= 0:
@@ -457,54 +509,7 @@ class AdrukOrgNewsPublicationsCrawler(BaseCrawler):
                         self._assert_stored_identity(item)
                         time.sleep(self._delay)
                         self._check_cancelled()
-                        if item['direct_pdf']:
-                            detail = dict(title=item['list_title'], abstract=item['list_abstract'], date_raw=item['listed_date_raw'],
-                                          authors=[], categories=[], pdf_url=item['url'], pdf_urls=[item['url']],
-                                          attachment_pdf_urls=[item['url']], reference_pdf_urls=[],
-                                          primary_pdf_binding='direct_listing_PDF', report_links=[])
-                        else:
-                            detail = _parse_detail(self._html(item['url']))
-                            if detail['title'] != item['list_title']:
-                                raise ValueError('detail/list identity mismatch')
-                        pdf_url = detail['pdf_url']
-                        annual_match = None
-                        if 'annual report' in detail['title'].lower():
-                            year_match = re.search(r'20\d{2}', detail['title'])
-                            candidates = [(url, r) for url, r in annual.items() if year_match and r['year'] == year_match.group()]
-                            if len(candidates) > 1:
-                                raise ValueError('ambiguous annual report identity')
-                            if candidates:
-                                url, report = candidates[0]
-                                # The annual root identifies its own report;
-                                # unrelated strategies/citations never win by order.
-                                if url in detail['report_links']:
-                                    pdf_url = report['pdf_url']
-                                else:
-                                    matching_pdfs = [u for u in detail.get('pdf_urls', [])
-                                                     if self._same_pdf(u, report['pdf_url'])]
-                                    if not matching_pdfs:
-                                        raise ValueError('annual representation mismatch')
-                                    pdf_url = matching_pdfs[0]
-                                annual_match = url
-                        abstract = detail['abstract'] or item['list_abstract']
-                        provenance = {}
-                        if len(abstract) < 50 and pdf_url:
-                            abstract, provenance = self._pdf_body(pdf_url)
-                        if len(abstract) < 50:
-                            raise ValueError('source body gap')
-                        paper = dict(site_id=self.site_id, external_id=item['slug'], title=detail['title'], abstract=abstract,
-                                     published_date=detail['date_raw'] or item['listed_date_raw'] or None,
-                                     posted_date=item['listed_date_raw'] or None, url=item['url'], pdf_url=pdf_url,
-                                     original_filename=unquote(urlsplit(pdf_url).path.rsplit('/', 1)[-1]) if pdf_url else None,
-                                     authors=detail['authors'], publisher=_PUBLISHER, keywords=', '.join(detail['categories']),
-                                     metadata=json.dumps(dict(source_scope=scope, source_listed_date_raw=item['listed_date_raw'],
-                                                              annual_report_url=annual_match,
-                                                              source_pdf_candidates=detail.get('pdf_urls', []),
-                                                              source_attachment_pdf_urls=detail.get('attachment_pdf_urls', []),
-                                                              source_collection_pdf_urls=detail.get('collection_pdf_urls', []),
-                                                              source_reference_pdf_urls=detail.get('reference_pdf_urls', []),
-                                                              primary_pdf_binding='annual_report_identity' if annual_match else detail.get('primary_pdf_binding', 'direct_listing_PDF'),
-                                                              **provenance), ensure_ascii=False))
+                        paper, annual_match, provenance = self._materialize(item, scope, annual)
                         self._save_paper(paper)
                         if self._last_save_created:
                             saved += 1
