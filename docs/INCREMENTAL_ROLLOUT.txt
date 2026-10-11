@@ -1077,6 +1077,33 @@ Batch 042: APRA — 기존 통계 시리즈 범위의 공통 증분 연결
 - 실제 재실행: python -m delivery.scripts.measure_apra_repeat --dsn <소유 APRA fixture DB> --base <결과 경로> --out <새 출력 폴더>
 
 
+
+Batch 043: ARCEP — 연례필터 접근 보류와 원본 필터 불일치 분류
+- 보존 원본/경계10개 응답의 해시와 native 파싱 개수·next URL을 재검증했다. 원본
+  publication[filters][type]와 활성 publicationlist[filters][type]는 다른 query key다.
+  native는 연례 type15만 구성하며 원본 보도자료 범위는 지원하지 않는다.
+- 보존된 활성 연례필터 응답은 javascript_human_verification이다. 기존 접근 보류를
+  유지하여 실제 HTTP0회다. 보도자료/출판물 전체가 차단됐다고 일반화하지 않는다.
+  마지막 다음 페이지는 원래 마지막 항목을 반복하며 빈 페이지 소진으로 처리할 수 없다.
+- full_rescan_required로 분류했다. 원본 범위·연례필터 전체순서·끝은 미확정이다.
+  source reported/implied count를 이번 전체열거 또는 현재 전체 수집 건수로 쓰지 않는다.
+- native의 자동 headless browser 실행을 제거하고 일반 HTML 단일 요청에서 접근 확인,
+  redirect, HTTP 오류를 명시적 실패로 처리한다. cHash가 발견되지 않았을 때 오래된
+  상수로 query를 만들어 계속하던 fallback도 중단한다. JS challenge를 실행하지 않는다.
+- 새 PostgreSQL 기본 worker에서 합성 cHash 발견 페이지+보존된 실제 차단 형태를 재생했다.
+  최초/재실행 요청 method호출2/2회, browser/detail0회, 저장0건, 작업 authentication_failed,
+  기준점 미완료다. 별도로 실제 관측 원래 URL에서도 해당 body의 guard를1회 재생했다.
+- worker의 차단 body는 native 구성 URL로 옮긴 테스트 응답이며 관측 URL과 query가 다르다.
+  현재 native URL이 같은 응답을 반환한다는 증거로 쓰지 않는다. 합성/이식 사실과 원래
+  관측 경로를 postgres-review.json에 명시했다. 현재 실제 접근 재검증은 하지 않았다.
+- native 목록/item 파서·paper 생성은 AST/본문 비교로 동일하다. 기존 저장 실패 기록과
+  다음 정상 항목 처리·재시작 복구 계약을 유지했고 해당 SQLite 회귀도 통과했다.
+  추가 설명/패딩으로 만든 abstract를 PDF 본문 검증으로 세지 않는다.
+- 단위·기존 count/recovery·공통 회귀105개와 PG1개 통과, 환경 의존3개 제외다.
+  batch-043-arcep/access-review-v2.json, native-parser-review.json, postgres-review.json 참조.
+- 재검토: python -m delivery.scripts.review_arcep_incremental --source <continuous 경로> --out <새 검토 파일>
+
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.
