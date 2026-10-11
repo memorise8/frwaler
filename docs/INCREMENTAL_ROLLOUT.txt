@@ -923,6 +923,28 @@ Batch 036: AMF — 납품 목록/사이트맵 범위 불일치와 과거 URL 재
   batch-036-amf/scope-review.json, native-parser-review.json 및 postgres-review.json 참조.
 - 재검토: python -m delivery.scripts.review_amf_incremental --source <continuous 경로> --probe <현재 사이트맵> --out <새 검토 파일>
 
+
+Batch 037: AMI — 연도 내부 정렬 미확정과 Crossref 실패 구분
+- 보존된 연도 메뉴와19개 연도 응답, membership1382행을 해시 검증했다. native 연도별
+  DOI 중복 제거 후1372 URL/1370 DOI다. 같은 DOI의 두 연도별 URL 쌍은 기존처럼 별도 행이며
+  DOI 수준 중복0이라고 표시하지 않는다. 목록 날짜는 연도뿐이며 연도 내부 순서는 미확정이다.
+- full_rescan_required로 분류했다. 현재 시작 URL은 실제 HTTP1회500/빈 응답이며 지금의
+  전체 건수를 추정하지 않는다. 보존된 Crossref 실제3개만 대조했고 전체1370개 조회는 아니다.
+- curl의 HTTP/부분 전송 실패, 연도/외부 조회 실패, 잘못된 DOI 응답, 항목 처리 예외를
+  실패로 보고하고 중단한다. 올바른 DOI의 초록 없음은 정상 제외와 구분한다. 기존 날짜 파싱과
+  paper 생성은 그대로이며 연도/월 정밀도에 임의 월일을 추가하지 않는다.
+- 새 PostgreSQL에서 실제 목록20개·Crossref3개와 합성 Crossref1367개를 재생했다.
+  실제 초록 적격2개/제외1개이며 합성 조회는 URL 별칭 때문에 실행당1369회다.
+  최초/재실행 요청1392/1392회(목록20/20, Crossref1372/1372), 저장1371/0건이다.
+  저장된 고유 DOI1369개이며 기존1371행은 그대로다. 중복 저장0은 요청 절감이 아니다.
+- Crossref 실패 단계는 목록2+외부 재시도3=5회 후 작업 실패, 저장0건이다. 모든 단계의
+  baseline_complete=false이며 실제 전체 수집 완료를 뜻하지 않는다. 재생 live HTTP는0회다.
+  계수는 native curl command 기준이고 redirect hop 수는 측정하지 않았다.
+- 단위·날짜·공통 worker 회귀106개와 PG1개 통과, 환경 의존3개는 단위 실행에서 제외했다.
+  batch-037-ami/order-review-v2.json, native-parser-review.json, postgres-review.json 참조.
+- 재검토: python -m delivery.scripts.review_ami_incremental --source <continuous 경로> --probe <현재 첫 목록> --out <새 검토 파일>
+
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.

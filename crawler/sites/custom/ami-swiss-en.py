@@ -15,6 +15,7 @@ import subprocess
 import time
 
 from crawler.base_crawler import BaseCrawler
+from delivery.health.access_challenge import access_challenge
 
 try:
     from bs4 import BeautifulSoup as _BS
@@ -65,7 +66,7 @@ class AmiSwissEnCrawler(BaseCrawler):
     def _curl_get(self, url: str) -> str | None:
         """GET via curl with exponential-backoff retries. Returns decoded text or None."""
         cmd = [
-            "curl", "-skL", "--tls-max", "1.3", "--max-time", "30",
+            "curl", "-fskL", "--tls-max", "1.3", "--max-time", "30",
             "-H", f"User-Agent: {self.USER_AGENT}",
             url,
         ]
@@ -74,7 +75,7 @@ class AmiSwissEnCrawler(BaseCrawler):
             try:
                 result = subprocess.run(cmd, capture_output=True, timeout=35)
                 text = result.stdout.decode("utf-8", errors="replace")
-                if text.strip():
+                if result.returncode == 0 and text.strip():
                     return text
                 if attempt < 2:
                     print(f"[{self.site_id}] empty response, retry in {waits[attempt]}s: {url}")
@@ -95,8 +96,14 @@ class AmiSwissEnCrawler(BaseCrawler):
         """Return list of publication years (newest first) from main page."""
         raw = self._curl_get(self._LIST_URL)
         if not raw:
+            self._report_source_failure('fetch_failed')
+            return []
+        if access_challenge(raw):
+            self._report_source_failure('authentication_failed')
             return []
         years = sorted(set(re.findall(r'name="year" value="(\d{4})"', raw)), reverse=True)
+        if not years:
+            self._report_source_failure('invalid_response')
         return years
 
     def _parse_year_page(self, html: str, year: str) -> list:
@@ -106,6 +113,7 @@ class AmiSwissEnCrawler(BaseCrawler):
             soup = _make_soup(html)
         except Exception as exc:
             print(f"[{self.site_id}] HTML parse error for year {year}: {exc}")
+            self._report_source_failure('invalid_response')
             return entries
 
         article = soup.find("article", class_="bg-white")
@@ -163,10 +171,16 @@ class AmiSwissEnCrawler(BaseCrawler):
         url = f"{self._CROSSREF_BASE}/{doi}"
         raw = self._curl_get(url)
         if not raw:
+            self._report_source_failure('fetch_failed')
             return {}
         try:
-            return json.loads(raw).get("message", {})
+            msg = json.loads(raw).get("message", {})
+            if not isinstance(msg, dict) or str(msg.get('DOI') or '').casefold() != doi.casefold():
+                self._report_source_failure('invalid_response')
+                return {}
+            return msg
         except (json.JSONDecodeError, AttributeError, ValueError):
+            self._report_source_failure('invalid_response')
             return {}
 
     @staticmethod
@@ -225,12 +239,18 @@ class AmiSwissEnCrawler(BaseCrawler):
                 year_url = f"{self._LIST_URL}?year={year}"
                 raw = self._curl_get(year_url)
                 if not raw:
-                    print(f"[{self.site_id}] Failed to fetch year {year}. Skipping.")
-                    continue
+                    print(f"[{self.site_id}] Failed to fetch year {year}. Stopping.")
+                    self._report_source_failure('fetch_failed')
+                    return saved
+                if access_challenge(raw):
+                    self._report_source_failure('authentication_failed')
+                    return saved
 
                 entries = self._parse_year_page(raw, year)
                 if not entries:
                     print(f"[{self.site_id}] No entries found for year {year}.")
+                    if getattr(self, 'delivery_source_failure', None):
+                        return saved
                     continue
 
                 for entry in entries:
@@ -252,6 +272,8 @@ class AmiSwissEnCrawler(BaseCrawler):
                         # Fetch CrossRef for abstract + structured metadata
                         time.sleep(self._delay)
                         cf = self._fetch_crossref(doi) if doi else {}
+                        if getattr(self, 'delivery_source_failure', None):
+                            return saved
 
                         abstract = _strip_jats(cf.get("abstract") or "")
                         if len(abstract) < self._MIN_ABSTRACT:
@@ -343,9 +365,10 @@ class AmiSwissEnCrawler(BaseCrawler):
                     except Exception as exc:
                         print(
                             f"[{self.site_id}] item failed "
-                            f"(doi={entry.get('doi', '?')}): {exc}; continuing."
+                            f"(doi={entry.get('doi', '?')}): {exc}; stopping."
                         )
-                        continue
+                        self._report_source_failure('item_failed')
+                        return saved
 
                 if page_num % 10 == 0:
                     lim_str = str(limit) if limit is not None else "inf"

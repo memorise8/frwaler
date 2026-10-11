@@ -226,5 +226,17 @@
     "evidence": "incremental-rollout-20261012/batch-036-amf/scope-review.json",
     "evidence_sha256": "f7752498c0c1ff21f5c561121abdc5dd5cabeea3f1dd6fc2e515cd2a817da743",
     "native_health_note": "Retained original feeds have 1167 unique URLs; native path-filtered sitemap omits 404. Four historical memberships share two current URLs without distinct historical IDs. Current native 769 entries/765 URLs match retained data. Native cap remains 200; sitemap lastmod is not a publication date. Original scope/end and historical identity remain unresolved."
+  },
+  "ami-swiss-en": {
+    "classification": "full_rescan_required",
+    "reason": "year_only_source_groups_do_not_define_within_year_incremental_order",
+    "source_sha256": "1c9fa1ee4a37bc7475a2c7c85727eae3e217bf453a28b70ae60fc9feae4bba0c",
+    "dependency_source_sha256": {
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
+    },
+    "reviewed_at": "2026-10-11T21:31:56.080186+00:00",
+    "evidence": "incremental-rollout-20261012/batch-037-ami/order-review-v2.json",
+    "evidence_sha256": "660f9c1745ef629471e6922bbc839542c7db5a523a70b48f94892c17d07d620d",
+    "native_health_note": "19 retained year groups contain 1382 memberships, 1372 native URL variants and 1370 DOIs. Within-year order unverified; only three actual Crossref enrichments reviewed. Current entry HTTP 500. Two cross-year DOI URL alias pairs remain distinct native rows; no whole-source baseline certified."
   }
 }
