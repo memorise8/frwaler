@@ -399,7 +399,18 @@ class AgriEeMinisteeriumUudisedCrawler(BaseCrawler):
         if title_cell is None or date_cell is None:
             return None
 
-        title_link = title_cell.find("a", href=True)
+        # Some source rows wrap a file link in another, empty topic link.
+        # Prefer the actual labelled file; parser repair may otherwise leave
+        # the empty outer anchor first and silently drop the entire study.
+        title_link = next(
+            (a for a in title_cell.select(".type-file a[href]")
+             if self._clean(a.get_text(" ", strip=True))), None,
+        )
+        if title_link is None:
+            title_link = next(
+                (a for a in title_cell.find_all("a", href=True)
+                 if self._clean(a.get_text(" ", strip=True))), None,
+            )
         action_link = action_cell.find("a", href=True) if action_cell else None
         link = title_link or action_link
         if not link:

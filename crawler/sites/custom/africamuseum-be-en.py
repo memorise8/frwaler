@@ -11,6 +11,7 @@ import re
 import subprocess
 import sys
 import time
+from urllib.parse import urljoin, urlsplit
 
 sys.path.insert(0, '.')
 from crawler.base_crawler import BaseCrawler
@@ -111,13 +112,21 @@ class AfricamuseumBeEnCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def _parse_list_page(self, html):
-        """Return list of (slug, title, listed_date, snippet) from one page.
+        """Return (slug, title, listed_date, snippet, source_url) rows.
 
         Each Drupal views-row contains both an image link and a title link to
         the same article URL, so we deduplicate by slug within the page.
         """
         items = []
-        seen_slugs = set()
+        url_positions = {}
+        news_path = re.compile(r'^/en/(?:research/(?:discover/)?)?news/[^/?#]+$')
+
+        def target(href):
+            url = urljoin(self._LIST_BASE, href)
+            parts = urlsplit(url)
+            if parts.hostname == 'www.africamuseum.be' and news_path.match(parts.path):
+                return parts.path.rsplit('/', 1)[-1], url
+            return None
         try:
             soup = _make_soup(html)
             if soup is None:
@@ -125,28 +134,20 @@ class AfricamuseumBeEnCrawler(BaseCrawler):
 
             rows = soup.find_all('div', class_=re.compile(r'views-row'))
             if not rows:
-                # Fallback: regex slug extraction only (already deduped via dict.fromkeys)
-                slugs = list(dict.fromkeys(
-                    re.findall(r'/en/research/news/([a-zA-Z0-9_-]+)', html)
-                ))
-                return [(s, None, None, None) for s in slugs]
+                links = dict.fromkeys(
+                    t for a in soup.find_all('a', href=True)
+                    if (t := target(a['href']))
+                )
+                return [(slug, None, None, None, url) for slug, url in links]
 
             for row in rows:
                 try:
                     # Slug / URL
-                    link = row.find('a', href=re.compile(r'/en/research/news/\w'))
+                    link = next((a for a in row.find_all('a', href=True)
+                                 if target(a['href'])), None)
                     if not link:
                         continue
-                    href = link.get('href', '')
-                    slug_m = re.search(r'/en/research/news/([a-zA-Z0-9_-]+)', href)
-                    if not slug_m:
-                        continue
-                    slug = slug_m.group(1)
-
-                    # Deduplicate within this page (image link + title link → same slug)
-                    if slug in seen_slugs:
-                        continue
-                    seen_slugs.add(slug)
+                    slug, source_url = target(link['href'])
 
                     # Title
                     h_tag = row.find(['h3', 'h2', 'h4', 'h1'])
@@ -159,7 +160,19 @@ class AfricamuseumBeEnCrawler(BaseCrawler):
                     snippet_m = _MONTH_PAT.search(full_text)
                     snippet = full_text[snippet_m.end():].strip() if snippet_m else ''
 
-                    items.append((slug, title, listed_date, snippet))
+                    # Drupal can put the image and text in separate views-row
+                    # elements. Keep one identity while filling fields from the
+                    # text row instead of discarding it after the image link.
+                    if source_url in url_positions:
+                        position = url_positions[source_url]
+                        previous = items[position]
+                        items[position] = (
+                            slug, previous[1] or title,
+                            previous[2] or listed_date, previous[3] or snippet, source_url,
+                        )
+                    else:
+                        url_positions[source_url] = len(items)
+                        items.append((slug, title, listed_date, snippet, source_url))
                 except Exception as exc:
                     print(f"[africamuseum-be-en] row parse error: {exc}")
                     continue
@@ -169,7 +182,7 @@ class AfricamuseumBeEnCrawler(BaseCrawler):
 
         return items
 
-    def _parse_detail_page(self, html, slug, listed_date=None, snippet=None):
+    def _parse_detail_page(self, html, slug, listed_date=None, snippet=None, source_url=None):
         """Return paper dict or None. Skips items with short abstracts."""
         try:
             soup = _make_soup(html)
@@ -212,7 +225,7 @@ class AfricamuseumBeEnCrawler(BaseCrawler):
                 return None
 
             external_id = node_id or slug
-            url = f"https://www.africamuseum.be/en/research/news/{slug}"
+            url = source_url or f"https://www.africamuseum.be/en/research/news/{slug}"
 
             return {
                 'site_id': self.site_id,
@@ -272,19 +285,18 @@ class AfricamuseumBeEnCrawler(BaseCrawler):
 
             # Skip fully-seen pages (dedup guard against paginator loops)
             new_items = [
-                (slug, t, d, sn) for slug, t, d, sn in items
-                if f"/en/research/news/{slug}" not in seen_urls
+                (slug, t, d, sn, target_url) for slug, t, d, sn, target_url in items
+                if target_url not in seen_urls
             ]
             if not new_items:
                 print(f"[africamuseum-be-en] all items on page {page} already seen, stopping.")
                 break
 
-            for slug, title, listed_date, snippet in new_items:
+            for slug, title, listed_date, snippet, detail_url in new_items:
                 if limit is not None and saved >= limit:
                     break
 
-                detail_url = f"https://www.africamuseum.be/en/research/news/{slug}"
-                seen_urls.add(f"/en/research/news/{slug}")
+                seen_urls.add(detail_url)
 
                 try:
                     time.sleep(self._RATE_SLEEP)
@@ -293,7 +305,7 @@ class AfricamuseumBeEnCrawler(BaseCrawler):
                         print(f"[africamuseum-be-en] failed to fetch detail: {slug}")
                         continue
 
-                    paper = self._parse_detail_page(detail_html, slug, listed_date, snippet)
+                    paper = self._parse_detail_page(detail_html, slug, listed_date, snippet, detail_url)
                     if not paper:
                         continue
 
