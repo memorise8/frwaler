@@ -17,5 +17,15 @@
   "list.html": {
     "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/cae-eco-fr-presse-cae-0-exact-delivered-entries/scope-0-0.body",
     "sha256": "46df9bf348e5a86227ca3d7567dd6d8fca924039364403f1075f085db9b96b6f"
+  },
+  "body-without-PDF.html": {
+    "source_file": "twentyfifth-cae_details/018.body",
+    "sha256": "dd355cb5bae54200892a2d59008b9d8df7c070cc2d30a05fc62b73f2be3d87d7",
+    "url": "https://cae-eco.fr/objectif-plein-emploi-pourquoi-et-comment-communique-de-presse"
+  },
+  "actual-PDF-only.html": {
+    "source_file": "twentyfifth-cae_details/035.body",
+    "sha256": "c00c1fcce95db87e4107da793e5aa578a36a12cf24ad9281f9f1b971575beab7",
+    "url": "https://cae-eco.fr/le-triple-defi-du-marche-europeen-de-l-electricite-communique-de-presse"
   }
 }

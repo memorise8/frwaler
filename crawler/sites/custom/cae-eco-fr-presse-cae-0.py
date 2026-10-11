@@ -139,6 +139,14 @@ class CaeEcoFrPresseCae0Crawler(BaseCrawler):
                             if len(c) > 50:
                                 abstract = c
                                 break
+                    abstract_source = "original source metadata"
+                    if len(abstract) < 50 and h1:
+                        body = h1.parent.parent.select_one(":scope > div.p-3")
+                        if body:
+                            body_text = body.get_text(" ", strip=True)
+                            if body_text:
+                                abstract = body_text
+                                abstract_source = "original HTML press body"
 
                     # Date from schedule icon list item
                     published_date = None
@@ -191,7 +199,7 @@ class CaeEcoFrPresseCae0Crawler(BaseCrawler):
 
                     metadata = {"posted_date": published_date, "slug": slug}
                     metadata["source_pdf_urls"] = pdf_urls
-                    metadata["abstract_source"] = "original source metadata" if abstract else "source PDF full text pending"
+                    metadata["abstract_source"] = abstract_source if abstract else "source PDF full text pending"
                     if original_filename:
                         metadata["originalFilename"] = original_filename
 
