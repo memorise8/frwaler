@@ -50,6 +50,27 @@ Batch 002: Nemertes (기존 5개 browse 범위 합계 26,521건)
 - tests.test_incremental_dspace_worker는 새로운 incremental_rollout_ PostgreSQL DB에서
   기본 worker를 검증한다. 5개 범위를 날짜순으로 합친 fixture이며 실시간 관측과 구분한다.
 
+Batch 003: AMOLF·KRIVET 증분 보류 분류
+- 보존된 AMOLF 380페이지/7,593개 URL과 KRIVET 874페이지/8,715개 목록 행의 해시를 검증했다.
+  이는 이미 확보한 원문 재분석이며, 전체 수집을 새로 수행하거나 전수검증 goal을 재개한 것이 아니다.
+- AMOLF의 목록 항목에는 datetime이 없고 인용문 연도와 URL slug로는 같은 연도 내 순서를
+  판별할 수 없다. 기존 목록 selector는 현재 첫 페이지의 20건 중 0건을 찾는다.
+  full_rescan_required는 증분 중단을 허용하지 않는 분류다. 기존 파서 정상이나 전체 수집 가능
+  판정을 뜻하지 않으며, AMOLF 목록 파서 수리는 별도 미해결 사항으로 남는다.
+- KRIVET 메뉴 19·23은 보존된 목록 날짜가 내림차순이지만 메뉴 15·12에는 날짜 역전이 있다.
+  보고서는 최신등록순인데 목록에 발행일만 제공한다. 등록일을 발행일로 대체하거나 가변 목록
+  번호를 영속 ID로 간주하지 않는다. 네 메뉴 전체를 두 메뉴의 관측으로 인증하지 않는다.
+- 공용 gate를 통한 새 요청 3회로 AMOLF 첫 페이지와 KRIVET 메뉴 12 첫 페이지/15의 13페이지를
+  재확인했다. 사이트 차단을 우회하거나 원문 전체를 다시 요청하지 않았다.
+- delivery/incremental_holds.json은 원본 수집기 코드 및 원문 검토 파일의 SHA256을 보존한다.
+  원본 코드가 바뀌면 보류 근거의 유효성을 다시 확인한다. 새 어댑터가 연결되면 그 경로가 우선한다.
+- 새 격리 PostgreSQL에서 기본 worker의 재실행을 측정했다. KRIVET의 네 메뉴 합성 fixture는
+  최초/재실행 모두 목록 4회+상세 8회, 저장 8건/0건이었다. 중복 0건이 증분 요청 감소를 뜻하지 않는다.
+  AMOLF는 현재 HTML 재생 시 최초/재실행 모두 목록 1회, 저장 0건이었다. 파서 문제를 완료로 기록하지 않는다.
+  두 사이트 모두 baseline_complete=false 및 full_rescan_required가 유지됐다.
+- 검토 재현: python -m delivery.scripts.review_incremental_order_holds --source <보존된 continuous 경로> --out <새 경로>
+  격리 worker 측정은 tests.test_incremental_order_holds_worker이며 기존 DB/테이블을 삭제하지 않는다.
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.

@@ -1,9 +1,19 @@
 """Machine-readable eligibility, separate from source health/full verification."""
 from __future__ import annotations
 import json
+import hashlib
 from pathlib import Path
 
 from crawler.incremental_adapters import HAL_SCOPES
+
+
+def reviewed_hold(site_id, cls):
+    """A reviewed hold is valid only for the exact native crawler source."""
+    holds = json.loads(Path(__file__).with_name('incremental_holds.json').read_text())
+    hold = holds.get(site_id)
+    if hold and hashlib.sha256(Path(cls.crawl.__code__.co_filename).read_bytes()).hexdigest() == hold['source_sha256']:
+        return hold
+    return None
 
 
 def eligibility(site_id, cls):
@@ -28,13 +38,19 @@ def eligibility(site_id, cls):
         else:
             reason = 'html_stable_identity_and_explicit_end_not_configured'
     supported_candidate = adapter is not None and adapter != 'NTRSAdapter'
-    return {'site_id': site_id, 'adapter': adapter,
+    result = {'site_id': site_id, 'adapter': adapter,
             'classification': 'pending_initial_exhaustion' if supported_candidate else 'full_rescan_required',
             'reason': 'order_inferred_after_first_complete_scan' if supported_candidate else reason,
             'declared_order_before': getattr(cls, 'DELIVERY_ORDER', 'arbitrary'),
             'automatic_order': 'infer_first_last_and_all_non_pinned_items' if adapter else 'unavailable_without_list_contract',
             'periodic_full_check': True, 'baseline_complete': False,
             'runtime_verification': 'not_verified_by_static_classification'}
+    hold = reviewed_hold(site_id, cls) if adapter is None else None
+    if hold:
+        result.update(reason=hold['reason'], order_review=hold,
+                      automatic_order='reviewed_listing_order_ambiguous',
+                      runtime_verification='native_fallback_measured_separately_not_full_source_completion')
+    return result
 
 
 def inventory():

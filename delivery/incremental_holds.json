@@ -1,0 +1,20 @@
+{
+  "amolf-nl-publications": {
+    "reason": "list_datetime_absent_and_url_slugs_not_chronological_ids",
+    "source_sha256": "ccf41ddc3469d086650a1df688c048b32b9f0127cca77aa41fab9ec086e2067c",
+    "evidence": "incremental-rollout-20261012/batch-003-order-holds/retained/order-review.json",
+    "evidence_sha256": "595f6fdcbb5850193b1a392e731f2aaf0619e07461e9b2b1ce69369b807ee8f5",
+    "reviewed_at": "2026-10-11T15:54:32.559092+00:00",
+    "classification": "full_rescan_required",
+    "native_health_note": "obsolete_list_selectors_separate_repair_required"
+  },
+  "krivet-re-kr-kor": {
+    "reason": "menus_15_12_visible_dates_nonmonotonic_and_opaque_post_ids",
+    "source_sha256": "bc5af12df58b5ae5a1f9167f1109ceaa166fe331ee76c6e23687caafc5ebb6ab",
+    "evidence": "incremental-rollout-20261012/batch-003-order-holds/retained/order-review.json",
+    "evidence_sha256": "595f6fdcbb5850193b1a392e731f2aaf0619e07461e9b2b1ce69369b807ee8f5",
+    "reviewed_at": "2026-10-11T15:54:32.559092+00:00",
+    "classification": "full_rescan_required",
+    "native_health_note": "Partial chronological menus do not certify the whole delivered scope."
+  }
+}
