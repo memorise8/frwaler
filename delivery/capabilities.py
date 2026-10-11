@@ -39,7 +39,8 @@ def _source(site_id):
                  'crawler/hal_incremental_scopes.json', 'delivery/incremental_status.py',
                  'delivery/incremental_registry.py', 'crawler/incremental_federal.py', 'crawler/incremental_dspace.py',
                  'delivery/incremental_holds.json', 'crawler/incremental_ots.py',
-                 'crawler/incremental_bankofcanada.py', 'crawler/bankofcanada_incremental_scopes.json'):
+                 'crawler/incremental_bankofcanada.py', 'crawler/bankofcanada_incremental_scopes.json',
+                 'crawler/incremental_carabinieri.py'):
         digest.update((root/name).read_bytes())
     config = getattr(cls, '_config_path', None)
     if config:

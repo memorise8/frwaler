@@ -4,11 +4,13 @@ from crawler.incremental_federal import FederalAdapter
 from crawler.incremental_dspace import NemertesAdapter
 from crawler.incremental_ots import OTSAdapter
 from crawler.incremental_bankofcanada import BankOfCanadaAdapter
+from crawler.incremental_carabinieri import CarabinieriAdapter
 
 ADDITIONAL_ADAPTERS = {'federalregister-gov-documents': FederalAdapter,
                        'nemertes-library-upatras-gr-browse': NemertesAdapter,
                        'ots-at-pressemappe': OTSAdapter,
-                       'bankofcanada-ca-publications': BankOfCanadaAdapter}
+                       'bankofcanada-ca-publications': BankOfCanadaAdapter,
+                       'carabinieri-it-in-vostro-aiuto': CarabinieriAdapter}
 
 
 def adapter_for(crawler):
