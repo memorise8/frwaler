@@ -146,11 +146,12 @@ class OmMpBeNlCrawler(BaseCrawler):
             )
             category = self._clean(cat_div) if cat_div else ""
 
-            # Detail URL — last /nl/artikel/ or /nl/blog-post/ link in article
+            # Older Dutch archive entries use /nl/article/; keep their
+            # published paths and the existing slug identity unchanged.
             detail_path = ""
             for a in art.find_all("a", href=True):
                 href = a["href"]
-                if re.match(r"/nl/(artikel|blog-post)/", href):
+                if re.match(r"/nl/(artikel|article|blog-post)/", href):
                     detail_path = href
             if not detail_path or not title:
                 continue

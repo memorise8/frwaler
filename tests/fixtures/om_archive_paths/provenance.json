@@ -1,0 +1,12 @@
+[
+  {
+    "fixture": "first10.html",
+    "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/om-mp-be-nl-exact-delivered-entries/scope-1-0.body",
+    "source_sha256": "040df9838273dee4dcea46a6b92b0d6781606cd4256932292750cb75540c47d6"
+  },
+  {
+    "fixture": "last2.html",
+    "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/tenth-eight-public-followups/016.body",
+    "source_sha256": "f9848da6faf55b2c52f4915f8dae89e7661abf9fb6998719dd8fbacb218b03c2"
+  }
+]
