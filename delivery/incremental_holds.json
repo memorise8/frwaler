@@ -36,5 +36,14 @@
     "evidence": "incremental-rollout-20261012/batch-006-bmleh/order-review.json",
     "evidence_sha256": "6234a8166a0bd09c80b2c41ff8cc3706794ec2dd34d354b4b9df81b867a3865a",
     "native_health_note": "Legacy only covers the 26-item English advisory list; press, law and linked archive scopes remain unconfigured. Full rescan classification is not all-scope health certification."
+  },
+  "bmlv-gv-at-wissen-forschung": {
+    "reason": "delivered_conference_scope_missing_date_invalid_detail_date_and_nonchronological_ids",
+    "classification": "full_rescan_required",
+    "source_sha256": "e286a20226f2851a0746e533a78851d21e59149b9a383e5383637e2ea5d4c1c8",
+    "reviewed_at": "2026-10-11T18:38:51.572220+00:00",
+    "evidence": "incremental-rollout-20261012/batch-015-bmlv/order-review.json",
+    "evidence_sha256": "8e9cf03828483bc2d3aaa2c83a9200d74fe4ca52436ae4085a8f6fea737ec7fd",
+    "native_health_note": "Native fallback covers only 18 type-14 publications, leaving 217 other delivered publications unconfigured. This classification is not full-source health or completion certification."
   }
 }

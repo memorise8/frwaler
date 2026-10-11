@@ -339,6 +339,25 @@ Batch 014: ENS Lyon — 명시적 본문 제외와 페이지 경계 중복 보�
   실제 대조: python -m delivery.scripts.review_ens_live --root <실측 경로> --source <continuous 경로> --out <새 검토 파일>
   최종 코드 재생/실제 재실행: python -m delivery.scripts.replay_ens_current --capture <실측 경로> --out <새 경로> --gate-dir <공용 gate>
 
+Batch 015: BMLV — 날짜 없는 항목과 비단조 ID를 근거로 전체 재점검 분류
+- 실제 목록 3개와 날짜 없는 항목의 상세 1개를 공용 gate로 확인했다. 목록은 보존 증거와
+  같은 235개 고유 publication/날짜를 포함한다. 328개 contribution membership은 별도 단위다.
+- conference 목록의 ID 760은 목록 날짜가 없고 상세 books:release_date도 0000-00-01이다.
+  상세 표시 영역에도 발행일이 없다. 세 목록 모두 숫자 ID의 역전이 있어 날짜·ID 어느 쪽도
+  전체 범위의 안전한 중단 기준으로 입증되지 않았다. 월·연도 표기는 원래 정밀도로 보존한다.
+  부분 날짜만으로 비정렬이라고 단정하지 않는다. type 10의 79개 위치는 관측 간 달라졌으며
+  원래 순서와 현재 순서 차이도 증거에 보존했다.
+- native 소스 해시에 결합한 full_rescan_required 분류를 추가했다. native는 type 14의
+  18개만 수집하며 납품 대상 나머지 217개는 미구현 상태다. 이 분류를 전 범위 수집/health
+  완료나 235개 실제 상세 검증으로 사용하지 않는다.
+- 새 PostgreSQL DB의 기본 worker에 실제 목록과 가상 상세·contribution 응답을 넣어
+  두 번 실행했다. 요청은 37/37회(목록 1, publication 상세 18, contribution 18), 신규 저장은
+  18/0건이다. 기존 행 불변과 baseline_complete=false를 확인했다. 실제 HTTP 재실행 실측과
+  구분하며 이 fixture는 실제 본문·PDF의 품질을 입증하지 않는다.
+- 증분 단위·회귀 테스트 161개와 PostgreSQL worker 1개가 통과했고 환경 의존 14개는
+  건너뛰었다. batch-015-bmlv/review.json에 분류 근거와 측정치를 보존한다.
+- 재검토: python -m delivery.scripts.review_bmlv_incremental --source <continuous 경로> --probe <4개 응답 경로> --out <새 검토 파일>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.
