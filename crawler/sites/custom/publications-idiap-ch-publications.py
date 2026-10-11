@@ -17,6 +17,7 @@ import subprocess
 import time
 import urllib.parse
 from typing import Any
+from datetime import date
 
 from crawler.base_crawler import BaseCrawler
 
@@ -27,34 +28,6 @@ _START_URL = f"{_BASE_URL}/publications/articles"
 _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 _MIN_ABSTRACT_CHARS = 100
-
-_MONTHS = {
-    "jan": "01",
-    "january": "01",
-    "feb": "02",
-    "february": "02",
-    "mar": "03",
-    "march": "03",
-    "apr": "04",
-    "april": "04",
-    "may": "05",
-    "jun": "06",
-    "june": "06",
-    "jul": "07",
-    "july": "07",
-    "aug": "08",
-    "august": "08",
-    "sep": "09",
-    "sept": "09",
-    "september": "09",
-    "oct": "10",
-    "october": "10",
-    "nov": "11",
-    "november": "11",
-    "dec": "12",
-    "december": "12",
-}
-
 
 def _clean_text(value: Any) -> str:
     if value is None:
@@ -108,19 +81,19 @@ def _normalise_doi(raw: str | None) -> str | None:
 
 
 def _iso_date_from_parts(year_raw: str | None, month_raw: str | None = None) -> str | None:
-    year_match = re.search(r"(?:19|20)\d{2}", year_raw or "")
-    if not year_match:
+    """Keep day precision only when the source actually supplies a full date.
+
+    The catalogue's Year and optional Month fields do not establish a day.
+    Their original values remain in listed_date_raw and detail metadata.
+    """
+    value = _clean_text(year_raw)
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
         return None
-    year = year_match.group(0)
-    month = "01"
-    if month_raw:
-        month_text = _clean_text(month_raw).lower()
-        numeric = re.search(r"\b(1[0-2]|0?[1-9])\b", month_text)
-        if numeric:
-            month = f"{int(numeric.group(1)):02d}"
-        else:
-            month = _MONTHS.get(month_text[:3], _MONTHS.get(month_text, "01"))
-    return f"{year}-{month}-01"
+    try:
+        return date.fromisoformat(value).isoformat()
+    except ValueError:
+        return None
+
 
 
 class PublicationsIdiapChPublicationsCrawler(BaseCrawler):
