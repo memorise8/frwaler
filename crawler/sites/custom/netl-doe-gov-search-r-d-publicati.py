@@ -202,8 +202,11 @@ class NETLDoeRDPublicationsCrawler(BaseCrawler):
             if not item:
                 continue
 
+            # Descriptions can mention other reports using this same URL path.
+            # The source's Details action identifies the current result.
             uuid_m = re.search(
-                r'/energy-analysis/details\?id=([a-f0-9-]{36})', item, re.I
+                r'''<a\b[^>]*\bhref\s*=\s*["']/energy-analysis/details\?id=([a-f0-9-]{36})["'][^>]*>\s*Details\s*</a>''',
+                item, re.I,
             )
             if not uuid_m:
                 continue

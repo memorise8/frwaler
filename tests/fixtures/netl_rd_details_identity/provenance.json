@@ -1,0 +1,22 @@
+{
+  "sources": [
+    {
+      "fixture": "year2026.html",
+      "fixture_sha256": "2682724891d4cac297ff3b28195a6540e676d54c7d5a878bc5926048697eea68",
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/netl-native-RD-year2026/response.body",
+      "source_sha256": "545991d309283ff776542120dfaab23b934e2df61cf1e6d0fd4d4e0f18115e61",
+      "source_audit": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/netl-native-RD-year2026/audit.json",
+      "source_audit_sha256": "f7b91ab8ecca972dbd568d43572e6552e87d984dbdd4309dccd19c68f0b35cb3",
+      "redaction": "Only public result panel retained; ASP.NET form state excluded"
+    },
+    {
+      "fixture": "year2025.html",
+      "fixture_sha256": "7b2b256650b213b66ce61d1f082d9db1e6e09da68dcc3ab2399eb3d2c9adf2e2",
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/netl-native-RD-year2025/response.body",
+      "source_sha256": "a76dc6aa6490b09b7520c7381548ad61ba9ca1acd5c14d547fa2ea266cd48d3c",
+      "source_audit": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/netl-native-RD-year2025/audit.json",
+      "source_audit_sha256": "3b21cce3de17172b0a7d8e3c1687611e4d6288b7bb17bb0c747578db083d72b8",
+      "redaction": "Only public result panel retained; ASP.NET form state excluded"
+    }
+  ]
+}
