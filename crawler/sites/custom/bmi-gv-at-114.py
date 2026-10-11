@@ -113,7 +113,12 @@ class BmiGvAt114Crawler(BaseCrawler):
 
     def _parse_block(self, block, idx: int) -> dict | None:
         """Parse one <details> block into a paper dict. Returns None to skip."""
-        summary_tag = block.find("summary")
+        dl = block.find("dl")
+        # Year accordions contain document accordions. Use the heading that
+        # owns the fields we parse, not the enclosing year. Keep the existing
+        # index/URL and PDF deduplication so this correction does not rekey rows.
+        record_block = dl.find_parent("details") if dl else block
+        summary_tag = record_block.find("summary", recursive=False)
         if not summary_tag:
             return None
         title = self._clean(summary_tag.get_text(" ", strip=True))
@@ -124,7 +129,6 @@ class BmiGvAt114Crawler(BaseCrawler):
         fields: dict[str, list[str]] = {}
         pdf_hrefs: list[str] = []
 
-        dl = block.find("dl")
         if dl:
             cur_key = None
             for child in dl.children:

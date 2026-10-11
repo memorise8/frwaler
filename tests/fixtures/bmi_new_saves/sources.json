@@ -1,6 +1,6 @@
 {
   "url": "https://www.bmi.gv.at/114/start.html",
   "retained_response_sha256": "3c2aac5e24a6e24538323631ee888e838036433616c6ce93f654195ae5babc94",
-  "fixture_sha256": "f79e1aa80c093289817d2830568b7c891028dcf6dec8ca45f9f446794e7cc87b",
-  "extraction": "All45main details blocks, in source order; no network in tests."
+  "fixture_sha256": "3a0d86a6b2c2be36de8a6781aa29e6b3a1d4246299c77c75a0554a46480734a4",
+  "extraction": "Entire original main element preserves nested year groups exactly once:45 details,3 year groups,42 leaf disclosures."
 }

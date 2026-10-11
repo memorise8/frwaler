@@ -6,6 +6,8 @@ import sqlite3
 import unittest
 from unittest.mock import patch
 
+from bs4 import BeautifulSoup
+
 from crawler import db, db_libertree
 from crawler.base_crawler import CrawlCancelled
 
@@ -43,6 +45,29 @@ def isolated_crawler(legacy=False):
 
 
 class BmiNewSaveLimitTests(unittest.TestCase):
+    def test_year_group_uses_document_title_and_preserves_existing_url(self):
+        with isolated_crawler() as (crawler, conn):
+            soup = BeautifulSoup(HTML, 'html5lib')
+            blocks = soup.select('details')
+            group = crawler._parse_block(blocks[9], 10)
+            document = crawler._parse_block(blocks[10], 11)
+            self.assertEqual(group['title'], 'TUNISIA - Socio-Economic Survey 2025')
+            self.assertEqual(group['title'], document['title'])
+            self.assertEqual(group['pdf_url'], document['pdf_url'])
+            self.assertEqual(group['external_id'], document['external_id'])
+            self.assertEqual(group['url'], MODULE._LIST_URL + '#item-10')
+
+    def test_stored_titles_are_document_headings_not_year_groups(self):
+        with isolated_crawler() as (crawler, conn):
+            self.assertEqual(crawler.crawl(), 42)
+            titles = [r[0] for r in conn.execute('SELECT title FROM documents')]
+            self.assertFalse({'2023', '2024', '2025'} & set(titles))
+            soup = BeautifulSoup(HTML, 'html5lib')
+            document_titles = [crawler._clean(block.find('summary', recursive=False).get_text(' ', strip=True))
+                               for block in soup.select('details')
+                               if block.find('details') is None]
+            self.assertCountEqual(titles, document_titles)
+
     def test_v2_repeat_reports_zero_and_preserves_existing_rows(self):
         with isolated_crawler() as (crawler, conn):
             self.assertEqual(crawler.crawl(), 42)
