@@ -41,7 +41,7 @@ def _source(site_id):
                  'delivery/incremental_holds.json', 'crawler/incremental_ots.py',
                  'crawler/incremental_bankofcanada.py', 'crawler/bankofcanada_incremental_scopes.json',
                  'crawler/incremental_carabinieri.py', 'crawler/incremental_kisdi.py',
-                 'crawler/incremental_open_science.py', 'crawler/incremental_acpr.py', 'crawler/incremental_adruk.py', 'crawler/incremental_audencia.py'):
+                 'crawler/incremental_open_science.py', 'crawler/incremental_acpr.py', 'crawler/incremental_adruk.py', 'crawler/incremental_audencia.py', 'crawler/incremental_ens_lyon.py', 'crawler/ens_lyon_traversal.py'):
         digest.update((root/name).read_bytes())
     config = getattr(cls, '_config_path', None)
     if config:

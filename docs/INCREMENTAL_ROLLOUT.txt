@@ -306,6 +306,39 @@ Batch 013: Audencia — 목록 URL과 기존 Drupal 저장 ID 분리
   보존 목록: python -m delivery.scripts.review_audencia_incremental --source <continuous 경로> --out <새 검토 파일>
   실측 대조: python -m delivery.scripts.review_audencia_live --root <실측 경로> --source <continuous 경로> --out <새 검토 파일>
 
+Batch 014: ENS Lyon — 명시적 본문 제외와 페이지 경계 중복 보류
+- 기본 press 목록의 카드 날짜를 사용한다. 보존 목록의 숫자 ID는 36곳에서 역전돼 정렬
+  근거로 쓰지 않는다. 원래 _ens_page와 _parse_article를 재사용하며 현재/마지막/다음 pager,
+  이전 페이지 해시와 날짜 흐름을 검증한다. 최종 다음 페이지의 빈 view도 관측해야 한다.
+- 과거 관측은 239개 membership/238개 고유 ID이며 605900이 페이지 7·8에 반복됐다.
+  현재 실제 관측은 중복 없는 고유 ID 239개다. 과거 ID/URL을 모두 포함하고, 이전 관측에
+  없던 593421(2021-01-22)을 추가 확인했다. 두 관측의 차이를 단순 중복 제거로 감추지 않는다.
+  페이지 간 같은 ID/URL/날짜가 재등장해도 다른 행을 놓친 스냅샷일 수 있으므로 완료를
+  보류하고 대조를 요구한다. 과거 중복 스냅샷으로 미완료 상태가 유지되는 회귀 검증을 했다.
+- 기존 native는 본문 100자 미만을 명시적으로 제외한다. 현재 대상은 1999년 날짜의 테스트
+  문서 1605424 한 건이다. 오류 HTML이나 본문 컨테이너 누락은 제외로 바꾸지 않는다.
+  제외 fingerprint와 원래 item을 cursor에 기록하고 정상 본문은 durable pending에 보존한다.
+  실제 저장은 오래된 날짜부터 수행하며, 제외 항목을 가짜 documents 행으로 만들지 않는다.
+- 이어받기는 정상 본문을 다시 요청하지 않고 제외 근거를 재확인한다. 근거가 달라지면
+  pending과 미완료 상태를 보존한다. 기존 저장 문서가 짧아져도 조용히 제외하지 않는다.
+  정상 완료 후 주기적 전체 점검에서 제외 문서가 충분한 본문으로 바뀌었으면 새로 저장한다.
+- 실제 20페이지와 다음 빈 페이지, 239개 상세를 관측했다. 부분 저장/이어받기/재실행은
+  HTTP 279/1/3회, 상세 239/1/0회, 저장 3/235/0건이었다. 이어받기 상세 1회는 제외 근거 확인이다.
+  238개 저장 문서의 native ID/URL/제목/본문/날짜/PDF를 기존 저장 정규화까지 적용해 대조했다.
+- 이 첫 실제 관측 후 중복 거부 검사를 강화했다. 최종 코드로 모든 실제 응답을 새 DB에서
+  재생해 요청 순서와 저장 필드(수집 시각 제외)가 완전히 같음을 확인했다. 최종 코드의
+  실제 재실행도 별도로 목록 3회/상세 0회/신규 0건을 확인했다. 초기 코드의 관측과 최종 코드
+  재생·재실행을 별도 증거로 보존하며, 과거 중복 허용 재생 결과는 superseded로 표시했다.
+- 새 PostgreSQL 기본 worker fixture는 13개 고유 항목/12개 저장/1개 제외로 요청 23/1/3회,
+  상세 13/1/0회, 저장 3/9/0건이었다. 단위·회귀 테스트 142개와 PostgreSQL worker 1개가
+  통과했고, 환경 의존 테스트 77개는 건너뛰었다.
+- 격리 DB의 원래 메타데이터 범위 기준점은 완료됐다. 외부 primary 파일 8건 등 기존 파일
+  검증 보류와 운영 DB 상태는 별개이며, 전체 파일/전문 또는 전수 검증 완료로 표시하지 않는다.
+- 실제 측정: python -m delivery.scripts.measure_ens_incremental --out <새 경로> --gate-dir <공용 gate>
+  과거 스냅샷 보류 검증: python -m delivery.scripts.review_ens_incremental --source <continuous 경로> --out <새 경로>
+  실제 대조: python -m delivery.scripts.review_ens_live --root <실측 경로> --source <continuous 경로> --out <새 검토 파일>
+  최종 코드 재생/실제 재실행: python -m delivery.scripts.replay_ens_current --capture <실측 경로> --out <새 경로> --gate-dir <공용 gate>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.
