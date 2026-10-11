@@ -1,0 +1,49 @@
+{
+  "source_url": "https://bra.se/4.6af85320191e4f4f8b94593/12.6af85320191e4f4f8b945a2.htm?state=executePaging&isRenderingAjaxPagingResult=true&query=%2A%3A%2A&startAtHit=290",
+  "observed_at": "2026-10-11T06:55:25.102733+00:00",
+  "source_sha256": "a09226d6b8a5a444d1b014aae459d511b0a991f644be84180aea36afb13eee07",
+  "retained_source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentythird-bra_catalogues/028.body",
+  "expected_memberships": [
+    {
+      "url": "/english/publications/archive/2000-08-09-violent-assault-on-children",
+      "title": "Violent assault on children"
+    },
+    {
+      "url": "/english/publications/archive/2000-08-09-the-sanction-system-for-young-offenders",
+      "title": "The sanction system for young offenders"
+    },
+    {
+      "url": "/brainenglish/publications/archive/thesanctionsystemforyoungoffenders.5.70ef4bcf195240e670332a9.html",
+      "title": "The sanction system for young offenders"
+    },
+    {
+      "url": "/english/publications/archive/2000-08-09-manifestations-of-racism",
+      "title": "Manifestations of racism"
+    },
+    {
+      "url": "/english/publications/archive/2000-08-09-the-criminalisation-of-narcotic-drug-misuse",
+      "title": "The criminalisation of narcotic drug misuse"
+    },
+    {
+      "url": "/english/publications/archive/2000-08-09-strategic-offences",
+      "title": "Strategic offences"
+    },
+    {
+      "url": "/english/publications/archive/2000-08-09-prohibition-of-the-purchase-of-sexual-services",
+      "title": "Prohibition of the purchase of sexual services"
+    },
+    {
+      "url": "/english/publications/archive/2000-08-09-from-major-swindles-to-minor-fiddles",
+      "title": "From major swindles to minor fiddles"
+    },
+    {
+      "url": "/english/publications/archive/2000-08-09-juvenile-robbery-in-malmo-and-stockholm",
+      "title": "Juvenile robbery in Malmö and Stockholm"
+    },
+    {
+      "url": "/english/publications/archive/2000-08-03-victim-offender-mediation",
+      "title": "Victim-offender mediation"
+    }
+  ],
+  "scope": "actual English catalogue offset290; no detail/file/DB acceptance claim"
+}

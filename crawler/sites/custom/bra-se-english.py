@@ -124,8 +124,6 @@ def _parse_list_items(html: str) -> list[dict]:
     for block in hit_blocks:
         if "sv-search-hit" not in block:
             continue
-        if "/english/publications/" not in block:
-            continue
         try:
             item = _parse_single_item(block)
             if item:
@@ -151,7 +149,10 @@ def _parse_single_item(block: str) -> Optional[dict]:
     url_path = link_m.group(1).strip()
     title = _strip_tags(link_m.group(2))
 
-    if not url_path.startswith("/english/publications/"):
+    # The current English catalogue still links some reports through the
+    # legacy namespace. Keep the published URL so existing identities stay
+    # stable, and continue excluding other language/content namespaces.
+    if not url_path.startswith(("/english/publications/", "/brainenglish/publications/")):
         return None
     if not title:
         return None
