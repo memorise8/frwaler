@@ -34,7 +34,9 @@ def _source(site_id):
                  'crawler/db_libertree.py', 'crawler/db_pg.py', 'crawler/libertree_adapter.py',
                  'crawler/document_dates.py', 'crawler/document_identity.py',
                  'delivery/capabilities.py', 'delivery/worker/worker.py',
-                 'delivery/worker/jobs.py', 'delivery/worker/scopes.py', 'delivery/db/schema.py'):
+                 'delivery/worker/jobs.py', 'delivery/worker/scopes.py', 'delivery/db/schema.py',
+                 'crawler/incremental.py', 'crawler/incremental_adapters.py',
+                 'crawler/hal_incremental_scopes.json', 'delivery/incremental_status.py'):
         digest.update((root/name).read_bytes())
     config = getattr(cls, '_config_path', None)
     if config:
@@ -43,20 +45,27 @@ def _source(site_id):
         digest.update((root/'crawler/hal_checkpoint.py').read_bytes())
     if site_id == 'federalregister-gov-documents':
         digest.update((root/'crawler/federal_checkpoint.py').read_bytes())
-    return {'source_hash':digest.hexdigest(), 'resume_signals':site_id in HAL_CHECKPOINT_RESUME or {'delivery_cursor','_advance_cursor','_mark_exhausted'} <= attrs}
+    from delivery.incremental_status import eligibility
+    shared_adapter = eligibility(site_id, cls)['adapter']
+    return {'source_hash':digest.hexdigest(), 'resume_signals':shared_adapter is not None or site_id in HAL_CHECKPOINT_RESUME or {'delivery_cursor','_advance_cursor','_mark_exhausted'} <= attrs}
 
 
 def capabilities(site_id):
     source = _source(site_id)
     if source is None:
         raise CapabilityError('등록된 수집기가 없습니다.')
+    from delivery.incremental_status import eligibility
+    from crawler.sites import CRAWLERS
+    shared = eligibility(site_id, CRAWLERS[site_id])
     hal = site_id in HAL_RESUME
     scienceon = site_id.startswith('scienceon-')
     reviewed = site_id in COUNT_REVIEWED
     order = '문서 ID 오름차순' if hal else ('등록일 내림차순' if site_id == 'doaj-org-search' else ('최근 연도·자료 유형·API 응답 순서' if scienceon else ('사이트 목록 순서 · 첫 페이지부터 중복 제거 재탐색' if site_id == 'krivet-re-kr' else '수집기별 순서 · 미검증')))
+    if shared['adapter'] == 'HALAdapter':
+        order = '제출일·고유 ID: 최초 오름차순, 재수집 내림차순'
     def mode(label, support='unknown', allowed=True, trial=True, reason='실제 사이트 검증 전 시험 실행입니다.'):
         return dict(label=label, support=support, allowed=allowed, requires_trial=trial, reason=reason)
-    return {'site_id':site_id, **source, 'order':order,
+    return {'site_id':site_id, **source, 'shared_incremental':shared, 'order':order,
             'count_semantics':'new_documents' if reviewed else 'unverified',
             'verification':{'level':'code_review' if reviewed else 'unverified',
                             'live':'not_verified', 'checked_at':None},
@@ -66,13 +75,13 @@ def capabilities(site_id):
                         'latest':'limited' if site_id == 'doaj-org-search' else 'unknown',
                         'pdf':'conditional_on_pdf_url', 'text':'conditional_on_text_layer'},
             'modes':{
-                'incremental':mode('신규 이어받기 · ID순' if hal else ('신규 확인 · 최신 등록순' if site_id == 'doaj-org-search' else '신규 확인 · 시험 수집'),
+                'incremental':mode('신규 확인 · 제출일순' if shared['adapter'] == 'HALAdapter' else ('신규 확인 · 최신 등록순' if site_id == 'doaj-org-search' else '신규 확인 · 시험 수집'),
                                    'limited' if reviewed else 'unknown'),
                 'full':mode('전체 범위 탐색 · 시험', 'unsupported' if scienceon else 'unknown', not scienceon,
                             reason='ScienceON은 과거 수집 모드를 사용해야 합니다.' if scienceon else '내부 페이지·시간 제한이 남아 있습니다.'),
                 'backfill':mode('과거 수집 · 자동 이어받기', 'limited' if source['resume_signals'] else 'unsupported',
                                 source['resume_signals'], reason='목록 변경 시 재개 위치의 완전성은 미검증입니다.' if source['resume_signals'] else '재개 계약이 확인되지 않은 수집기입니다.')},
-            'limitations':['날짜 기준 신규 이어받기는 아직 지원하지 않습니다.',
+            'limitations':['공통 증분은 최초 소스 소진과 대기 항목 저장 완료 후 활성화됩니다. 미지원 목록은 주기적 전체 재점검 대상입니다.',
                             '무제한은 건수 제한만 해제하며 전체 수집 완료를 보장하지 않습니다.',
                             '페이지 위치 기반 재개는 원본 목록 변경 시 재검증이 필요합니다.']}
 

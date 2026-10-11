@@ -48,6 +48,7 @@ REQUIRED_TABLES = (
     "translation_job_attempts", "translation_worker_heartbeats",
     "translation_system_observations", "document_summaries", "document_summary_quality",
     "crawl_site_progress", "crawl_scopes", "document_file_jobs", "file_worker_heartbeat",
+    "crawl_incremental_state", "crawl_incremental_pending", "crawl_incremental_known", "crawl_incremental_changes",
 )
 
 
@@ -96,6 +97,8 @@ def verify_required_schema(conn) -> None:
 
 def init_delivery_schema(conn) -> None:
     """Create delivery control tables if absent (idempotent). Phase 0: crawl_jobs."""
+    from crawler.incremental import init_schema as init_incremental_schema
+    init_incremental_schema(conn)
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS crawl_jobs (

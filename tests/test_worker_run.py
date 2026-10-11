@@ -75,8 +75,10 @@ class WorkerRunTest(unittest.TestCase):
         from crawler.sites import CRAWLERS
         from delivery.worker import jobs, worker
         cls = CRAWLERS["doaj-org-search"]
-        for response, expected in [(None, "failed"), ('{"error":"blocked"}', "failed"), ('{"results":[]}', "done")]:
-            with self.subTest(response=response), mock.patch.object(cls, "_curl_get", return_value=response):
+        for response, expected in [(None, "failed"), ({"error":"blocked"}, "failed"), ({"results":[],"total":0}, "done")]:
+            fake = mock.Mock()
+            fake.json.return_value = response
+            with self.subTest(response=response), mock.patch.object(cls, "_request", return_value=fake if response is not None else None):
                 jid = jobs.enqueue_job(self.conn, "doaj-org-search", mode="full")
                 worker.run_job(self.conn, jobs.claim_next_job(self.conn), {"doaj-org-search": cls}, delay=0)
                 row = self.conn.execute("SELECT status, saved_count FROM crawl_jobs WHERE id=%s", (jid,)).fetchone()
@@ -116,14 +118,14 @@ class WorkerRunTest(unittest.TestCase):
         self.assertEqual(row["status"], "done")
         self.assertEqual(row["saved_count"], 2)
 
-    def test_worker_propagates_requested_mode_to_crawler(self):
+    def test_unadapted_incremental_uses_full_rescan_without_unsafe_early_stop(self):
         from delivery.worker import jobs, worker
         seen=[]
         class ModeCrawler(_FakeCrawler):
             def crawl(self,limit=None): seen.append(self.delivery_mode)
         jobs.enqueue_job(self.conn,"fake",mode="incremental")
         worker.run_job(self.conn,jobs.claim_next_job(self.conn),{"fake":ModeCrawler},delay=0)
-        self.assertEqual(seen,["incremental"])
+        self.assertEqual(seen,["full"])
 
     def test_base_crawler_stops_at_safe_cancellation_boundary(self):
         from crawler.base_crawler import BaseCrawler
@@ -719,9 +721,8 @@ class WorkerRunTest(unittest.TestCase):
                        crawler_registry={"rc-newest-touch": TouchyNewestFirstCrawler}, delay=0)
         self.assertEqual(jobs.load_cursor(self.conn, "rc-newest-touch"), {"page": 300})
 
-    def test_backfill_up_to_date_persists_advance_and_completes(self):
-        # backfill 이 완주 대신 CrawlUpToDate 를 만나도 완료 신호다: 커서는
-        # 저장하고 completed_at 도 찍는다.
+    def test_backfill_up_to_date_persists_advance_without_claiming_exhaustion(self):
+        # A known boundary is not evidence that the source was exhausted.
         from crawler.base_crawler import BaseCrawler, CrawlUpToDate
         from delivery.worker import jobs, worker
 
@@ -742,7 +743,7 @@ class WorkerRunTest(unittest.TestCase):
         row = self.conn.execute(
             "SELECT completed_at FROM crawl_site_progress WHERE site_id=%s",
             ("rc-backfill-uptodate",)).fetchone()
-        self.assertIsNotNone(row["completed_at"])
+        self.assertIsNone(row["completed_at"])
         jrow = self.conn.execute(
             "SELECT status, truncated FROM crawl_jobs WHERE id=%s", (jid,)).fetchone()
         self.assertEqual((jrow["status"], jrow["truncated"]), ("done", False))

@@ -214,7 +214,33 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
                                      limit=job.get('limit_n'), max_requests=20,
                                      wall_seconds=wall_budget_seconds())
             else:
-                inst.crawl(limit=job.get("limit_n"))
+                from crawler.incremental_adapters import adapter_for
+                from crawler.incremental import Collector, Policy
+                adapter = adapter_for(inst)
+                if adapter is not None:
+                    # The shared queue has its own durable discovery/delivery
+                    # cursor; a legacy backfill cursor is never a full baseline.
+                    cursor_enabled = True
+                    policy = Policy(
+                        known_run=int(os.environ.get("LIBERTREE_KNOWN_RUN", "50")),
+                        overlap_pages=int(os.environ.get("LIBERTREE_OVERLAP_PAGES", "1")),
+                        full_check_days=float(os.environ.get("LIBERTREE_FULL_CHECK_DAYS", "30")),
+                        max_pages=int(os.environ.get("LIBERTREE_MAX_PAGES", "200")),
+                        wall_seconds=wall_budget_seconds())
+                    Collector(inst, adapter, policy).run(limit=job.get("limit_n"))
+                else:
+                    # A save-time known streak cannot establish the initial
+                    # baseline or the required extra list page. Unadapted sites
+                    # use full traversal and are reported as unsupported.
+                    inst.DELIVERY_STOP_ON_KNOWN = False
+                    if mode == "incremental":
+                        inst.delivery_mode = "full"
+                    from delivery.incremental_status import eligibility
+                    from crawler.incremental import Store
+                    fallback = Store(conn, site_id)
+                    fallback.checkpoint({**eligibility(site_id, cls), "support": "full_rescan_required",
+                                         "phase": "legacy_full_rescan", "baseline_complete": False})
+                    inst.crawl(limit=job.get("limit_n"))
     except CrawlUpToDate:
         # 신규분이 소진됐다는 정상 신호 -- 완료로 종결하고 잘림 판정은 하지 않는다.
         conn.rollback()
@@ -224,11 +250,10 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
             # 소유권이 있다면 커서는 항상 남긴다 -- 취소든 완료든 up-to-date
             # 까지 걸은 것은 진짜다.
             _persist_advance(conn, site_id, inst, start_cursor, mode, scope_id)
-            if scope is None and mode == "backfill" and finished == "done":
-                # backfill 이 완주 대신 up-to-date 를 만난 경우도 완료다: 신규가
-                # 없다는 뜻이지, 못 걸었다는 뜻이 아니다. 단, 정상 반환과 동시에
-                # 취소가 도착했다면(finished == "cancelled") 완료로 표시하지
-                # 않는다 -- 일반 경로의 취소 처리와 대칭이어야 한다.
+            if (scope is None and mode == "backfill" and finished == "done"
+                    and getattr(inst, "delivery_exhausted", False)):
+                # Only an independently observed source end can certify the
+                # backfill; a known boundary alone is insufficient.
                 jobs.mark_backfill_complete(conn, site_id)
         record_output()
         return saved
@@ -299,7 +324,8 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
             # 항목 목격의 증거는 크롤러의 보고(items_done)와 실제 저장 수 중
             # 어느 쪽이든 인정한다 -- 보고를 빠뜨린 크롤러 때문에 진짜 전진이
             # 있는 체인을 끊으면 안 된다.
-            items_seen = getattr(inst, "delivery_cursor_items_done", 0) > 0 or saved > 0
+            items_seen = (getattr(inst, "delivery_cursor_items_done", 0) > 0 or saved > 0
+                          or getattr(inst, "delivery_incremental_pending", False))
             if getattr(inst, "delivery_exhausted", False):
                 # 크롤러가 "끝까지 걸었다"고 명시했을 때만 완주다. 시간·예산으로
                 # 추론하지 않는다 -- 그것이 이 판정을 바꾼 이유다.
