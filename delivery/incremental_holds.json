@@ -264,5 +264,17 @@
     "evidence": "incremental-rollout-20261012/batch-039-anses/order-review.json",
     "evidence_sha256": "961e0d8341ea6ef6af0d98e80fac813b2f7f946803db81a5d241d717e97ba443",
     "native_health_note": "Native only visits opinions/reports; original press and tools scopes are unconfigured. Sampled first/second/last opinion pages show signature-date and online-date inversions plus missing online dates. Current first ten IDs/order match, but two records lost online dates/keywords/thematics. All6199 IDs and actual PDFs are unverified; sampled boundaries do not certify full chronology or completion."
+  },
+  "ansto-gov-au-search": {
+    "classification": "full_rescan_required",
+    "reason": "undated_search_order_and_direct_PDF_media_omitted_by_native_parser",
+    "source_sha256": "ff7d80b76ba7a72345d3fe8d024f9e619ca893e4574ad6910b475563ed8cb002",
+    "dependency_source_sha256": {
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
+    },
+    "reviewed_at": "2026-10-11T21:44:09.138240+00:00",
+    "evidence": "incremental-rollout-20261012/batch-040-ansto/scope-review.json",
+    "evidence_sha256": "100f24a476f67360a5a7171781c59fe73a94612656d7fb724de50d03caae4dc7",
+    "native_health_note": "Two actual AJAX pages contain 40 undated hits but native regex parses only28 HTML candidates and omits12 direct PDF media on page1. Current page1 reproduces8 HTML/12 omitted media; one retained omitted response is a PDF. Full list chronology and all2100 IDs unverified. Native media omission remains unresolved. PDF path month no longer invents publication day."
   }
 }

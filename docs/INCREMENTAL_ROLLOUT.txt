@@ -993,6 +993,30 @@ Batch 039: ANSES — 날짜 순서 역전과 원본 범위 누락 분류
 - 재검토: python -m delivery.scripts.review_anses_incremental --source <continuous 경로> --probe <현재 첫 목록> --out <새 검토 파일>
 
 
+
+Batch 040: ANSTO — 날짜 없는 혼합 검색과 직접 PDF 누락 분류
+- 실제 보존 AJAX 첫2개 페이지의40개 검색 결과를 재검토했다. native는 HTML28개만
+  파싱하고 두 번째 페이지의 직접 PDF media12개를 누락한다. 빠진 첫 media 응답의
+  실제 PDF signature/57987bytes와 해시도 확인했다. 전체2100개 ID 검증은 아니다.
+- 현재 두 번째 AJAX 페이지 HTTP1회200에서 native8개와 누락media12개가 그대로다.
+  표본 목록에는 날짜 필드가 없고 Drupal ID는 상세에서만 얻는다. 검색 결과를 임의로
+  최신순으로 가정하지 않으며 full_rescan_required로 분류한다. 직접 PDF 누락은 미해결이다.
+- curl의 HTTP/부분 전송 실패, AJAX JSON/insert 오류, 목록/상세 접근 확인 및 상세 실패를
+  명시적으로 보고하고 멈춘다. PDF 파일 경로의 연월을 발행일 YYYY-MM-01로 만들던
+  fallback을 제거했다. 정상 JSON-LD 발행일·본문·node ID·PDF 링크와 저장 필드는 유지한다.
+- 새 PostgreSQL에서 실제 AJAX2개와 합성 상세28개를 재생했다. 부분 저장/재순회/반복/
+  첫상세실패의 curl4/33/33/4회, 상세3/28/28/3회, 저장3/25/0/0건이다. 재실행은
+  상세28개를 다시 조회한다. 기존행은 유지되지만 중복0을 증분 요청 절감으로 표시하지 않는다.
+- 합성 상세에는 node ID·발행일 없이 PDF 경로 연월만 넣었다. 원래 slug ID를 유지하며
+  발행일은 NULL이다. 합성 상세28개를 실제 콘텐츠 검증으로 세지 않는다. 누락media는
+  worker가 조회하지 않았고 원본 전체 PDF를 수집했다는 결과도 아니다.
+- page2는 통제된 전송 실패로 끝낸다. 원본의 끝을 앞당기지 않으며 모든 기준점은 미완료다.
+  재생 live HTTP0회, curl 계수는 재시도 포함이며 redirect hop 수는 별도 미측정이다.
+- 단위·공통 worker 회귀99개와 PG1개 통과, 환경 의존3개는 단위 실행에서 제외했다.
+  batch-040-ansto/scope-review.json, native-parser-review.json, postgres-review.json 참조.
+- 재검토: python -m delivery.scripts.review_ansto_incremental --source <continuous 경로> --probe <현재 AJAX page1> --out <새 검토 파일>
+
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.

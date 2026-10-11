@@ -16,6 +16,13 @@ import urllib.parse
 # Absolute import — spec_from_file_location has no package context.
 sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler
+from delivery.health.access_challenge import access_challenge
+
+
+class SourceFailure(RuntimeError):
+    def __init__(self, reason):
+        self.reason = reason
+        super().__init__(reason)
 
 _SITE_ID = "ansto-gov-au-search"
 _BASE = "https://www.ansto.gov.au"
@@ -39,7 +46,7 @@ def _curl_get(
 ) -> str | None:
     """Fetch *url* via curl (TLS-max 1.3). Returns decoded text or None."""
     cmd = [
-        "curl", "-skL", "--tls-max", "1.3", "--max-time", str(timeout),
+        "curl", "-fskL", "--tls-max", "1.3", "--max-time", str(timeout),
         "-H", ("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
         "-H", "Accept: text/html,application/xhtml+xml,application/json,*/*;q=0.8",
@@ -52,7 +59,7 @@ def _curl_get(
         try:
             result = subprocess.run(cmd, capture_output=True, timeout=timeout + 15)
             raw = result.stdout.decode("utf-8", errors="replace")
-            if raw.strip():
+            if result.returncode == 0 and raw.strip():
                 return raw
             if attempt < retries - 1:
                 wait = 1 * (3 ** attempt)   # 1 s, 3 s, 9 s
@@ -144,7 +151,9 @@ def _fetch_search_page(page_num: int) -> list[dict]:
         ],
     )
     if not raw:
-        return []
+        raise SourceFailure('fetch_failed')
+    if access_challenge(raw):
+        raise SourceFailure('authentication_failed')
 
     # Drupal sometimes wraps AJAX JSON in <textarea>…</textarea>
     raw = raw.strip()
@@ -156,18 +165,20 @@ def _fetch_search_page(page_num: int) -> list[dict]:
         resp = json.loads(raw)
     except Exception as exc:
         print(f"[{_SITE_ID}] JSON parse error on search page {page_num}: {exc}")
-        return []
+        raise SourceFailure('invalid_response') from exc
 
     # The AJAX response is a list of command dicts.  The 'insert' command
     # whose method is 'replaceWith' contains the rendered result HTML.
     html = ""
+    if not isinstance(resp, list) or any(not isinstance(cmd, dict) for cmd in resp):
+        raise SourceFailure('invalid_response')
     for cmd in resp:
         if cmd.get("command") == "insert" and cmd.get("method") == "replaceWith":
             html = cmd.get("data", "")
             break
 
     if not html:
-        return []
+        raise SourceFailure('invalid_response')
 
     items: list[dict] = []
     # Each result teaser renders as: <h2><a href="/path">Title</a></h2>
@@ -191,7 +202,9 @@ def _fetch_detail(url: str) -> dict:
     """
     raw = _curl_get(url)
     if not raw:
-        return {}
+        raise SourceFailure('fetch_failed')
+    if access_challenge(raw):
+        raise SourceFailure('authentication_failed')
 
     # --- Drupal node ID (from embedded settings JSON) ---
     node_id = ""
@@ -265,11 +278,7 @@ def _fetch_detail(url: str) -> dict:
     if candidate:
         pdf_url = candidate if candidate.startswith("http") else _BASE + candidate
 
-    # --- Fallback date from PDF path (e.g. /2020-05/filename.pdf) ---
-    if not published_date and pdf_url:
-        dm = re.search(r"/(\d{4}-\d{2})/", pdf_url)
-        if dm:
-            published_date = dm.group(1) + "-01"
+    # A file-path month is not a publication date. Preserve a missing date.
 
     return {
         "abstract": abstract,
@@ -310,7 +319,11 @@ class AnstoGovAuSearchCrawler(BaseCrawler):
             if page_num % 10 == 0:
                 print(f"[{_SITE_ID}] page {page_num}: saved {saved}/{limit_display}")
 
-            items = _fetch_search_page(page_num)
+            try:
+                items = _fetch_search_page(page_num)
+            except SourceFailure as exc:
+                self._report_source_failure(exc.reason)
+                return saved
             if not items:
                 print(f"[{_SITE_ID}] page {page_num}: no results returned. Stopping.")
                 break
@@ -333,7 +346,8 @@ class AnstoGovAuSearchCrawler(BaseCrawler):
                     detail = _fetch_detail(item["url"])
                     if not detail:
                         print(f"[{_SITE_ID}] item failed (no detail): {item['url']}")
-                        continue
+                        self._report_source_failure('item_failed')
+                        return saved
 
                     abstract = detail.get("abstract", "")
                     if len(abstract) < _MIN_ABSTRACT:
@@ -389,9 +403,13 @@ class AnstoGovAuSearchCrawler(BaseCrawler):
 
                 except KeyboardInterrupt:
                     raise
+                except SourceFailure as exc:
+                    self._report_source_failure(exc.reason)
+                    return saved
                 except Exception as exc:
                     print(f"[{_SITE_ID}] item {item['url']} failed: {exc}")
-                    continue
+                    self._report_source_failure('item_failed')
+                    return saved
 
         if page_num == _MAX_PAGES - 1:
             print(f"[{_SITE_ID}] safety cap of {_MAX_PAGES} pages reached.")
