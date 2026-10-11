@@ -4,12 +4,14 @@
 Starting URL: https://www.centralbank.ie/publication/corporate-reports/annual-reports
 
 All records are embedded in the listing page HTML as a JavaScript ``appData``
-array — no separate API call is required.  Detail pages are fetched for recent
-years (≥ 2020) to obtain richer abstract text; older years fall back to a
-synthesised summary that is always ≥ 100 chars.
+array. Both delivered annual-report and press-release scopes are traversed,
+including the linked archive of press-release PDF compilations. Source-only
+abstracts and stable per-page checkpoints are retained.
 """
 
 import json
+import hashlib
+from datetime import datetime
 import os
 import re
 import subprocess
@@ -185,196 +187,213 @@ def _fetch_detail_text(year: str) -> str:
                 parts.append(t)
 
         text = re.sub(r"\s+", " ", " ".join(parts)).strip()
-        return text[:3000] if text else ""
+        return text if text else ""
 
     except Exception:
         return ""
 
 
-def _build_abstract(doc_name: str, date_raw: str, size: str, detail_text: str) -> str:
-    """Return a reliable abstract (always ≥ 100 chars).
-
-    The synthesised summary is always appended so the result is non-trivial even
-    for older documents without individual detail pages.
-    """
-    year = _extract_year(doc_name)
-    year_phrase = f" for {year}" if year else ""
-
-    synthesised = (
-        f"The {doc_name} is an official publication of the Central Bank of Ireland, "
-        f"published on {date_raw}. This document covers the Central Bank's regulatory "
-        f"activities, financial stability assessments, governance structures, and "
-        f"performance indicators{year_phrase}. "
-        f"Available as a PDF document ({size})."
-    )
-
-    if detail_text and len(detail_text) >= 30:
-        combined = detail_text.rstrip() + " " + synthesised
-        return combined[:5000]
-    return synthesised
+_PRESS_URL = _BASE + '/news-media/press-releases'
+_ARCHIVE_URL = _PRESS_URL + '/press-release-archive'
 
 
-# ---------------------------------------------------------------------------
-# Crawler class
-# ---------------------------------------------------------------------------
+def _source_date(raw, fmt='%d/%m/%Y'):
+    try:
+        return datetime.strptime(raw.strip(), fmt).date().isoformat()
+    except (ValueError, TypeError, AttributeError):
+        return None
+
+
+def _records(html):
+    match = re.search(r'var appData\s*=\s*(\[.*?\]);', html, re.S)
+    if not match:
+        raise ValueError('source appData array missing')
+    raw = re.sub(r'decodeTitle\(("(?:[^"\\]|\\.)*")\)', r'\1', match[1])
+    records = json.loads(re.sub(r',\s*]', ']', raw))
+    if not isinstance(records, list) or not records:
+        raise ValueError('source appData array empty or invalid')
+    urls = []
+    for rec in records:
+        if not rec.get('documentName') or not rec.get('url'):
+            raise ValueError('source document identity missing')
+        urls.append(urllib.parse.urljoin(_BASE, rec['url']))
+    if len(urls) != len(set(urls)):
+        raise ValueError('source appData repeats a document URL')
+    return records
+
 
 class CentralBankIEPublicationCrawler(BaseCrawler):
-    """Crawler for Central Bank of Ireland annual reports publication listing."""
+    site_id = _SITE_ID
+    site_name = 'Custom: centralbank-ie-publication'
+    base_url = _BASE
+    DELIVERY_STOP_ON_KNOWN = False
 
-    site_id = "centralbank-ie-publication"
-    site_name = "Custom: centralbank-ie-publication"
-    base_url = "https://www.centralbank.ie"
+    def _fetch(self, url):
+        self._check_cancelled()
+        time.sleep(self._delay)
+        raw = _curl_get(url)
+        self._check_cancelled()
+        if not raw:
+            raise ValueError('source fetch failed: ' + url)
+        return raw
+
+    def _parse_press_page(self, raw, page):
+        soup = _make_soup(raw)
+        heading = soup.select_one('main h1')
+        if not heading or heading.get_text(' ', strip=True) != 'Press Releases':
+            raise ValueError('press catalogue heading missing')
+        items = []
+        for h in soup.select('h2.spotlight-title'):
+            a = h.select_one('a[href]')
+            if not a:
+                raise ValueError('press item URL missing')
+            url = urllib.parse.urljoin(_BASE, a['href'])
+            parsed = urllib.parse.urlsplit(url)
+            if parsed.scheme != 'https' or parsed.netloc != 'www.centralbank.ie' or not parsed.path.startswith('/news/article/'):
+                raise ValueError('press item URL outside original scope')
+            labels = [x.get_text(' ', strip=True) for x in h.parent.select('.spotlight-label')]
+            items.append(dict(url=url, title=a.get_text(' ', strip=True), date_raw=labels[0] if labels else ''))
+        if len({x['url'] for x in items}) != len(items):
+            raise ValueError('press catalogue repeats a document')
+        next_links = [a for a in soup.select('.pagination a[href]') if a.get_text(' ', strip=True) == 'Next page']
+        if len(next_links) > 1:
+            raise ValueError('ambiguous next page')
+        next_page = None
+        if next_links and next_links[0]['href'] != '#':
+            url = urllib.parse.urljoin(_BASE, next_links[0]['href'])
+            if url != _PRESS_URL + '/' + str(page + 1):
+                raise ValueError('source next page skips, repeats or leaves press scope')
+            next_page = page + 1
+        if not items and next_page:
+            raise ValueError('empty press page advertises further results')
+        if items and not next_links:
+            raise ValueError('press pagination end not established')
+        return items, next_page
+
+    def _press_paper(self, item):
+        soup = _make_soup(self._fetch(item['url']))
+        article = soup.select_one('article')
+        if not article or not article.select_one('h1'):
+            raise ValueError('press article body missing')
+        title = article.select_one('h1').get_text(' ', strip=True)
+        tags = article.select_one('.news-tags')
+        date_raw = tags.select_one('span').get_text(' ', strip=True) if tags and tags.select_one('span') else ''
+        publication = _source_date(date_raw, '%d %B %Y')
+        pdfs = []
+        for a in article.select('a[href]'):
+            url = urllib.parse.urljoin(item['url'], a['href'])
+            parsed = urllib.parse.urlsplit(url)
+            if parsed.scheme in ('http', 'https') and parsed.path.lower().endswith('.pdf') and url not in pdfs:
+                pdfs.append(url)
+        article.select_one('h1').decompose()
+        if tags:
+            tags.decompose()
+        for node in article.select('script,style,nav'):
+            node.decompose()
+        abstract = article.get_text(' ', strip=True)
+        if not title or not abstract:
+            raise ValueError('press article has no source title or body')
+        identity = 'press:' + urllib.parse.urlsplit(item['url']).path
+        return dict(site_id=self.site_id, external_id=identity, post_number=identity,
+            title=title, abstract=abstract, url=item['url'], pdf_url=pdfs[0] if pdfs else None,
+            published_date=publication, listed_date=_source_date(item['date_raw'], '%d %B %Y'),
+            publisher=_PUBLISHER, category='Press Releases',
+            original_filename=urllib.parse.unquote(urllib.parse.urlsplit(pdfs[0]).path.rsplit('/', 1)[-1]) if pdfs else None,
+            metadata=json.dumps(dict(publication_date_raw=date_raw, publication_date_role='article_date',
+                listing_date_raw=item['date_raw'], source_pdf_urls=pdfs, abstract_source='original article body'), ensure_ascii=False))
+
+    def _pdf_paper(self, rec, scope):
+        name = rec['documentName'].strip()
+        url = urllib.parse.urljoin(_BASE, rec['url'])
+        filename = urllib.parse.urlsplit(url).path.rsplit('/', 1)[-1]
+        if not filename.lower().endswith('.pdf'):
+            raise ValueError('source document is not a PDF URL')
+        external_id = re.sub(r'\.pdf$', '', filename, flags=re.I)
+        raw_date = rec.get('date', '')
+        year = _extract_year(name)
+        annual = scope == 'annual'
+        # Retain all existing annual external IDs, post numbers and metadata URLs.
+        detail_url = (_BASE + '/publication/corporate-reports/central-bank-annual-report-and-annual-performance-statement-' + year
+                      if year and int(year) >= 2020 else _LIST_URL) if annual else url
+        self._check_cancelled()
+        if annual and year:
+            time.sleep(self._delay)
+        abstract = _fetch_detail_text(year) if annual and year else ''
+        self._check_cancelled()
+        if not annual:
+            external_id = 'press-archive:' + external_id
+        date_value = _source_date(raw_date)
+        return dict(site_id=self.site_id, external_id=external_id, post_number=(year or external_id) if annual else external_id,
+            title=name, abstract=abstract, authors=None, publisher=_PUBLISHER, department=_PUBLISHER,
+            journal=None, category='Annual Reports' if annual else 'Press Release Archive',
+            keywords='annual report,central bank,ireland,corporate report' if annual else 'press release archive,central bank,ireland',
+            published_date=date_value if annual else None, listed_date=date_value, url=detail_url,
+            pdf_url=url, doi=None, original_filename=filename,
+            metadata=json.dumps(dict(posted_date=raw_date if annual else None, originalFilename=filename,
+                size=rec.get('size',''), translatedVersion=rec.get('translatedVersion',''),docType=rec.get('type','pdf'),year=year,
+                listing_date_raw=raw_date,listing_date_role='annual_report_listing_date' if annual else 'archive_index_date_not_article_publication',
+                abstract_source='original annual report detail' if abstract else 'source PDF full text pending'),ensure_ascii=False))
 
     def crawl(self, limit=None):
-        """Crawl all annual reports from the CBI publication listing page.
-
-        All records are embedded in the listing page HTML — a single fetch is
-        enough to discover every item (no pagination).  Detail pages are fetched
-        for recent years (≥ 2020) to enrich the abstract with real content.
-
-        Parameters
-        ----------
-        limit:
-            Maximum number of records to save.  ``None`` means unlimited.
-        """
         self._check_cancelled()
-        crawl_start = time.time()
-        max_wall = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))  # 25-minute wall-clock budget
-        limit_display = str(limit) if limit is not None else "∞"
-
-        # ── Fetch listing page ───────────────────────────────────────────
-        print(f"[{_SITE_ID}] Fetching listing page: {_LIST_URL}")
-        html = _curl_get(_LIST_URL)
-        if not html:
-            self._report_source_failure("fetch_failed")
-            print(f"[{_SITE_ID}] Failed to fetch listing page. Aborting.")
+        if limit is not None and limit <= 0:
             return 0
-
-        records = _parse_app_data(html)
-        if not records:
-            print(f"[{_SITE_ID}] No records found in appData. Aborting.")
-            return 0
-
-        total = len(records)
-        print(f"[{_SITE_ID}] Found {total} records. Crawling up to {limit_display}.")
-
+        self._exhausted = False
+        self._source_failure = None
+        cursor = dict(self.delivery_cursor or {})
+        scope = cursor.get('scope', 'annual')
+        page = cursor.get('page', 1)
+        index = cursor.get('next_index', 0)
+        if (scope not in ('annual','press','archive','done') or type(page) is not int or page < 1
+                or type(index) is not int or index < 0 or cursor.get('version', 1) != 1):
+            raise ValueError('invalid source cursor')
+        expected = cursor.get('list_digest', '')
         saved = 0
-        seen_urls: set[str] = set()
-
-        for idx, rec in enumerate(records):
-            # ── Limit / budget guards ────────────────────────────────────
+        start = time.monotonic()
+        budget = int(os.environ.get('LIBERTREE_MAX_WALL_S', str(25*60)))
+        while scope != 'done':
             self._check_cancelled()
             if limit is not None and saved >= limit:
-                break
-            if time.time() - crawl_start > max_wall:
-                print(f"[{_SITE_ID}] Wall-clock budget reached at item {idx}. Stopping.")
-                break
-
+                return saved
+            if time.monotonic() - start >= budget:
+                return saved
+            url = _LIST_URL if scope == 'annual' else _ARCHIVE_URL if scope == 'archive' else _PRESS_URL + ('/'+str(page) if page > 1 else '')
             try:
-                doc_name = rec.get("documentName", "").strip()
-                date_raw = rec.get("date", "").strip()
-                pdf_rel = rec.get("url", "").strip()
-                size = rec.get("size", "").strip()
-                translated = rec.get("translatedVersion", "").strip()
-                doc_type = rec.get("type", "pdf")
-
-                if not doc_name or not pdf_rel:
-                    print(f"[{_SITE_ID}] item {idx}: missing name or URL, skipping.")
-                    continue
-
-                # ── Build full PDF URL ───────────────────────────────────
-                pdf_url = pdf_rel if pdf_rel.startswith("http") else _BASE + pdf_rel
-
-                if pdf_url in seen_urls:
-                    print(f"[{_SITE_ID}] item {idx}: duplicate URL, skipping.")
-                    continue
-                seen_urls.add(pdf_url)
-
-                # ── Dates ────────────────────────────────────────────────
-                published_date = _parse_date(date_raw)
-                year = _extract_year(doc_name)
-
-                # ── external_id / original_filename ─────────────────────
-                parsed_path = urllib.parse.urlparse(pdf_url).path
-                filename = parsed_path.split("/")[-1]
-                original_filename = filename.split("?")[0]
-                external_id = re.sub(r"\.pdf$", "", original_filename, flags=re.IGNORECASE)
-
-                # ── Detail page (abstract enrichment for recent years) ───
-                time.sleep(self._delay)
-                detail_text = _fetch_detail_text(year) if year else ""
-
-                abstract = _build_abstract(doc_name, date_raw, size, detail_text)
-
-                if len(abstract) < 50:
-                    print(
-                        f"[{_SITE_ID}] item {idx} '{doc_name[:40]}': "
-                        f"abstract too short ({len(abstract)}c), skipping."
-                    )
-                    continue
-
-                # ── Detail page URL ──────────────────────────────────────
-                try:
-                    year_int = int(year) if year else 0
-                except ValueError:
-                    year_int = 0
-
-                if year_int >= 2020:
-                    detail_url = (
-                        f"{_BASE}/publication/corporate-reports/"
-                        f"central-bank-annual-report-and-annual-performance-statement-{year}"
-                    )
+                raw = self._fetch(url)
+                if scope == 'press':
+                    items, next_page = self._parse_press_page(raw, page)
+                    identities = [x['url'] for x in items]
                 else:
-                    detail_url = _LIST_URL
-
-                # ── Assemble paper dict ──────────────────────────────────
-                paper = {
-                    "site_id":           self.site_id,
-                    "external_id":       external_id,
-                    "post_number":       year or external_id,
-                    "title":             doc_name,
-                    "abstract":          abstract,
-                    "authors":           None,
-                    "publisher":         _PUBLISHER,
-                    "department":        _PUBLISHER,
-                    "journal":           None,
-                    "category":          "Annual Reports",
-                    "keywords":          "annual report,central bank,ireland,corporate report",
-                    "published_date":    published_date,
-                    "listed_date":       published_date,
-                    "url":               detail_url,
-                    "pdf_url":           pdf_url,
-                    "doi":               None,
-                    "original_filename": original_filename,
-                    "metadata":          json.dumps(
-                        {
-                            "posted_date":       date_raw,
-                            "originalFilename":  original_filename,
-                            "size":              size,
-                            "translatedVersion": translated,
-                            "docType":           doc_type,
-                            "year":              year,
-                        },
-                        ensure_ascii=False,
-                    ),
-                }
-
-                self._save_paper(paper)
-                if self._last_save_created:
-                    saved += 1
-                print(f"[{_SITE_ID}] saved {saved}/{limit_display}: {doc_name[:60]}")
-
-                if saved % 10 == 0:
-                    print(
-                        f"[{_SITE_ID}] page 1: saved {saved}/{limit_display}"
-                    )
-
-            except KeyboardInterrupt:
+                    items = _records(raw)
+                    identities = [urllib.parse.urljoin(_BASE, x['url']) for x in items]
+                    next_page = None
+                digest = hashlib.sha256(json.dumps(identities,ensure_ascii=False).encode()).hexdigest()
+                if (expected and expected != digest) or index > len(items):
+                    raise ValueError('source list changed since checkpoint; restart overlap review required')
+                for offset in range(index, len(items)):
+                    self._check_cancelled()
+                    if limit is not None and saved >= limit:
+                        return saved
+                    if time.monotonic() - start >= budget:
+                        return saved
+                    paper = self._press_paper(items[offset]) if scope == 'press' else self._pdf_paper(items[offset], scope)
+                    self._save_paper(paper)
+                    if self._last_save_created:
+                        saved += 1
+                    self._advance_cursor(dict(version=1,scope=scope,page=page,next_index=offset+1,list_digest=digest),items_done=1)
+            except Exception:
+                self._report_source_failure('invalid_response')
                 raise
-            except Exception as exc:
-                self._report_source_failure("item_failed")
-                print(f"[{_SITE_ID}] item {idx} failed: {exc}")
-                continue
-
-        print(f"[{_SITE_ID}] Done. Total saved: {saved}")
+            if scope == 'annual':
+                scope, page = 'press', 1
+            elif scope == 'press' and next_page:
+                page = next_page
+            elif scope == 'press':
+                scope, page = 'archive', 1
+            else:
+                scope, page = 'done', 1
+            index, expected = 0, ''
+            self._advance_cursor(dict(version=1,scope=scope,page=page,next_index=0,list_digest=''))
+        self._check_cancelled()
+        self._mark_exhausted()
         return saved

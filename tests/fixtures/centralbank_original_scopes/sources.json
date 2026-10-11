@@ -1,0 +1,38 @@
+{
+  "press-page1.html": {
+    "file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/centralbank-ie-publication-exact-delivered-entries/scope-0-0.body",
+    "sha256": "e6f1e324ba63d1092ecbe634f9635b7121ea87b2d1c5fb2325391ca13af4ad5c"
+  },
+  "annual.html": {
+    "file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/centralbank-ie-publication-exact-delivered-entries/scope-1-0.body",
+    "sha256": "73c9b1399bd0c2bc874c882be7af76589eddd82f6443639c6590708a5e886356"
+  },
+  "press-page2.html": {
+    "file": "twentyfifth-centralbank/000.body",
+    "sha256": "c99a25297feb322f24177c3e6ad02c44054869266210e8adb1f2c7e47f54ea4b"
+  },
+  "archive.html": {
+    "file": "twentyfifth-centralbank/002.body",
+    "sha256": "cd786be7e465a262a48b1626c48d5df7d315fe8716eb227df6a1c2596349de3c"
+  },
+  "annual-detail.html": {
+    "file": "twentyfifth-centralbank/003.body",
+    "sha256": "347a8054f369a8632e17e7730898cef8b6bd2ecb082e5f188c9b16230de469b3"
+  },
+  "press-page132.html": {
+    "file": "twentyfifth-centralbank_remaining/124.body",
+    "sha256": "b6211f81816ec0f3b7fd0a24be23a2eb512d3dc1fbb555e1fa6f4be0defe7a39"
+  },
+  "press-page133.html": {
+    "file": "twentyfifth-centralbank_remaining/125.body",
+    "sha256": "4a567cdb258ce2357e8ccc97e8214886d568107ce2e67442474499774028b98f"
+  },
+  "press-first.html": {
+    "file": "twentyfifth-detail_gap/002.body",
+    "sha256": "6b5dade8e7bfaba50669f5adb881c58fe78fb56810addd2a591f53c6ce2db3e1"
+  },
+  "press-last.html": {
+    "file": "twentyfifth-detail_gap/003.body",
+    "sha256": "16dd3d582e5aebe10c94b8669af356eeb342a52ab0aadcb4d9e77604c139ba59"
+  }
+}
