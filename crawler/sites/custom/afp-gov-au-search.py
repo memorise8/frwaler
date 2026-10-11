@@ -15,6 +15,7 @@ import time
 # Absolute import — required because spec_from_file_location has no package context.
 sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler
+from delivery.health.access_challenge import access_challenge
 
 _BASE = "https://afp.gov.au"
 _SEARCH_URL = f"{_BASE}/search"
@@ -238,7 +239,11 @@ class AFPGovAuSearchCrawler(BaseCrawler):
             raw = _curl_get(page_url)
             if not raw:
                 print(f"[{_SITE_ID}] page {page_num}: failed to fetch. Stopping.")
-                break
+                self._report_source_failure('fetch_failed')
+                return saved
+            if access_challenge(raw):
+                self._report_source_failure('authentication_failed')
+                return saved
 
             items = _parse_list_page(raw)
             if not items:
@@ -260,10 +265,13 @@ class AFPGovAuSearchCrawler(BaseCrawler):
                     time.sleep(self._delay)
 
                     detail_html = _curl_get(item_url)
-                    if detail_html:
-                        detail = _parse_detail_page(detail_html, item_url)
-                    else:
-                        detail = {"abstract": item.get("snippet", ""), "pdf_url": ""}
+                    if not detail_html:
+                        self._report_source_failure('fetch_failed')
+                        return saved
+                    if access_challenge(detail_html):
+                        self._report_source_failure('authentication_failed')
+                        return saved
+                    detail = _parse_detail_page(detail_html, item_url)
 
                     abstract = detail["abstract"] or item.get("snippet", "")
 

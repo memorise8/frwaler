@@ -138,5 +138,17 @@
     "evidence": "incremental-rollout-20261012/batch-027-afd/order-review.json",
     "evidence_sha256": "c0bba1e5579e808d0dae97559b20348696932c9d1814262184c1c0afdc320f3d",
     "native_health_note": "Current first publication page has 21 missing card dates and nonnumeric URL identities; Drupal document node IDs are in details. First/last boundary rows match retained responses. Detail-date discovery/alternative verified sort is not implemented; press scope remains unconfigured. No original full collection or permanent inability claimed."
+  },
+  "afp-gov-au-search": {
+    "classification": "full_rescan_required",
+    "reason": "search_results_nonmonotonic_dates_and_node_IDs_with_two_missing_identity_date_rows",
+    "source_sha256": "1ec83311bfa88941c084d164c56128baf618bfe0dc9dadf13c8cef9521fdf2d0",
+    "dependency_source_sha256": {
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
+    },
+    "reviewed_at": "2026-10-11T20:37:05.018226+00:00",
+    "evidence": "incremental-rollout-20261012/batch-028-afp-search/order-review.json",
+    "evidence_sha256": "e7d681966b76006f71f8aa11cc76cc68a235c5da6629f5e2fb66dee98838c8f6",
+    "native_health_note": "All 53 retained search records preserve the earlier parser fix. Both date and numeric node ID order reverse repeatedly; two rows lack both fields. Current first 12 fields match. Search results are not PDF counts and original detail bodies remain separately unverified."
   }
 }
