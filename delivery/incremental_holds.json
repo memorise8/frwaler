@@ -126,5 +126,17 @@
     "evidence": "incremental-rollout-20261012/batch-025-acma/scope-final-review.json",
     "evidence_sha256": "1193f1dfa0b8463e8ca1692280c1b0e95ca49e09f4a1edc044935056f97ffd7e",
     "native_health_note": "Original three-scope equivalence unverified: PDF search excluded and native sections capped at 30 pages. Current publication entry timed out; retained media requests failed HTTP2/HTTP1. No source count, ordering or exhaustion inferred."
+  },
+  "afd-fr-fr": {
+    "classification": "full_rescan_required",
+    "reason": "publication_listing_dates_missing_and_node_IDs_detail_only_order_unverified",
+    "source_sha256": "eb5318c2ebf791dfa4a22b909859946fdc3e935ab11bc0bdc624fcbe4a243564",
+    "dependency_source_sha256": {
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
+    },
+    "reviewed_at": "2026-10-11T20:32:26.522207+00:00",
+    "evidence": "incremental-rollout-20261012/batch-027-afd/order-review.json",
+    "evidence_sha256": "c0bba1e5579e808d0dae97559b20348696932c9d1814262184c1c0afdc320f3d",
+    "native_health_note": "Current first publication page has 21 missing card dates and nonnumeric URL identities; Drupal document node IDs are in details. First/last boundary rows match retained responses. Detail-date discovery/alternative verified sort is not implemented; press scope remains unconfigured. No original full collection or permanent inability claimed."
   }
 }

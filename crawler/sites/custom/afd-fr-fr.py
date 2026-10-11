@@ -24,6 +24,7 @@ from pathlib import Path
 # Absolute import — spec_from_file_location has no package context
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from crawler.base_crawler import BaseCrawler  # noqa: E402
+from delivery.health.access_challenge import access_challenge  # noqa: E402
 
 try:
     from bs4 import BeautifulSoup as _BS
@@ -137,17 +138,23 @@ class AfdFrFrCrawler(BaseCrawler):
             raw = _curl_get(list_url)
             if not raw:
                 print(f"[afd-fr-fr] Failed to fetch list page {page}. Stopping.")
-                break
+                self._report_source_failure('fetch_failed')
+                return saved
+            if access_challenge(raw):
+                self._report_source_failure('authentication_failed')
+                return saved
 
             try:
                 soup = _make_soup(raw)
             except Exception as exc:
                 print(f"[afd-fr-fr] Parse error on list page {page}: {exc}. Stopping.")
-                break
+                self._report_source_failure('invalid_response')
+                return saved
 
             if soup is None:
                 print(f"[afd-fr-fr] Could not build soup for list page {page}. Stopping.")
-                break
+                self._report_source_failure('invalid_response')
+                return saved
 
             cards = soup.find_all("div", class_="views-row")
             if not cards:
@@ -180,6 +187,8 @@ class AfdFrFrCrawler(BaseCrawler):
                     ok = self._process_item(detail_url)
                     if ok:
                         saved += 1
+                    elif self.delivery_source_failure:
+                        return saved
                 except KeyboardInterrupt:
                     raise
                 except Exception as exc:
@@ -196,6 +205,10 @@ class AfdFrFrCrawler(BaseCrawler):
         raw = _curl_get(detail_url)
         if not raw:
             print(f"[afd-fr-fr] Could not fetch detail page {detail_url}. Skipping.")
+            self._report_source_failure('fetch_failed')
+            return False
+        if access_challenge(raw):
+            self._report_source_failure('authentication_failed')
             return False
 
         # Drupal JSON — the richest metadata source
@@ -337,4 +350,4 @@ class AfdFrFrCrawler(BaseCrawler):
 
         self._save_paper(paper)
         print(f"[afd-fr-fr] Saved [{nid}]: {title[:70]}")
-        return True
+        return bool(self._last_save_created)
