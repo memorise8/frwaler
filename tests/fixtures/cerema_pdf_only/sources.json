@@ -1,0 +1,18 @@
+{
+  "detail_source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentysixth-cerema_all_details_dns15/102.body",
+  "detail_sha256": "0e113f181a9fba0b70ce59c148e6962077b00e3e99547849597e3c435f7c86b1",
+  "list_source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentysixth-cerema/011.body",
+  "list_sha256": "01c3190b01eb7dafeb854d9aa99dd9117d141e72108801cbe5998445cd703322",
+  "original_reference": {
+    "scope": 0,
+    "url": "https://www.cerema.fr/fr/presse/dossier/vague-froid-s-adapter-se-deplacer-toute-securite",
+    "title": "Vague de froid : s'adapter et se déplacer en toute sécurité",
+    "date_raw": "12 Jan 2021",
+    "summary": "",
+    "source_page": "https://www.cerema.fr/fr/presse/dossier?page=12",
+    "source_file": "twentysixth-cerema/011.body",
+    "source_sha256": "01c3190b01eb7dafeb854d9aa99dd9117d141e72108801cbe5998445cd703322"
+  },
+  "before_source_commit": "fcca52db1684825f669eb3393036614ade5957cc",
+  "scoped_fixture": "Actual PDF-only card retained from original list page; other cards and pager removed. Scope proof only, not full294."
+}

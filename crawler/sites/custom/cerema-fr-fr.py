@@ -325,6 +325,9 @@ class CeremaFrFrCrawler(BaseCrawler):
             "node_id": node_id,
             "slug": slug,
         }
+        if pdf_url and len(abstract) < _ABSTRACT_MIN_CHARS:
+            metadata["source_abstract_state"] = "empty" if not abstract else "short"
+            metadata["source_fulltext_file_url"] = pdf_url
 
         return {
             "id": external_id,
@@ -434,7 +437,8 @@ class CeremaFrFrCrawler(BaseCrawler):
                         self._report_source_failure("fetch_failed")
                         raise ValueError("empty detail response")
                     paper = self._parse_detail(raw_detail, item)
-                    if len(paper.get("abstract") or "") < _ABSTRACT_MIN_CHARS:
+                    if (len(paper.get("abstract") or "") < _ABSTRACT_MIN_CHARS
+                            and not paper.get("pdf_url")):
                         self._report_source_failure("item_failed")
                         raise ValueError("source abstract requires review before advancing cursor")
                     self._save_paper(paper)
