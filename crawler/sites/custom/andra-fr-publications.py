@@ -3,17 +3,13 @@
 
 Starting URL: https://www.andra.fr/publications?f%5B0%5D=facet_doc_cat%3A230
 
-Access strategy
----------------
-www.andra.fr sits behind an F5 BIG-IP bot-mitigation layer:
-
-  1. GET /publications?...  →  200 + short cookie c1 + JS redirect URL.
-  2. GET /redirect_XXX/...  with c1  →  307 + long session cookie c2.
-  3. GET /publications?...  with c2  →  200 real HTML.
-
-Paginated URLs (?page=N, N≥1) trigger a Drupal reCAPTCHA challenge even via
-Playwright.  Instead we use Drupal's Views AJAX endpoint (/views/ajax), which
-returns JSON containing the rendered article HTML without reCAPTCHA.
+Access state
+------------
+The delivered category routes returned cookie-verification interstitials.
+Recognized access gates and verification redirects stop with an explicit
+source failure. No source count, ordering or exhaustion follows from them.
+The legacy Views AJAX path is retained for permitted ordinary responses;
+its equivalence to all three delivered categories remains unverified.
 
 We extract the `view_dom_id` from the initial page load and pass it to each
 AJAX request.  The pager embedded in the AJAX response tells us the last page
@@ -42,6 +38,7 @@ if str(_pkg_root) not in sys.path:
     sys.path.insert(0, str(_pkg_root))
 
 from crawler.base_crawler import BaseCrawler  # noqa: E402
+from delivery.health.access_challenge import access_challenge
 
 _BASE      = "https://www.andra.fr"
 _START_URL = f"{_BASE}/publications?f%5B0%5D=facet_doc_cat%3A230"
@@ -102,23 +99,34 @@ class AndraFrPublicationsCrawler(BaseCrawler):
             try:
                 r = subprocess.run(cmd, capture_output=True, timeout=60)
                 text = r.stdout.decode("utf-8", errors="replace")
-                if text:
+                if r.returncode == 0 and text:
+                    headers, body = self._split_hb(text)
+                    if access_challenge(body):
+                        self._report_source_failure('authentication_failed')
+                        return None
+                    status = re.match(r'HTTP/\S+\s+(\d{3})', headers)
+                    if status and int(status[1]) >= 400:
+                        self._report_source_failure('fetch_failed')
+                        return None
                     return text
             except Exception as exc:
                 print(f"[{self.site_id}] curl error (attempt {attempt+1}): {exc}")
             if attempt < 2:
                 time.sleep(3 ** attempt)
+        self._report_source_failure('fetch_failed')
         return None
 
     @staticmethod
     def _split_hb(raw: str) -> tuple[str, str]:
         if not raw:
             return "", ""
-        for sep in ("\r\n\r\n", "\n\n"):
-            idx = raw.find(sep)
-            if idx >= 0:
-                return raw[:idx], raw[idx + len(sep):]
-        return "", raw
+        headers = ""
+        while raw.startswith('HTTP/'):
+            boundary = re.search(r'\r?\n\r?\n', raw)
+            if not boundary:
+                return headers, raw
+            headers, raw = raw[:boundary.start()], raw[boundary.end():]
+        return headers, raw
 
     @staticmethod
     def _pick_cookie(raw: str) -> str | None:
@@ -131,11 +139,11 @@ class AndraFrPublicationsCrawler(BaseCrawler):
         return m.group(1) if m else None
 
     # ------------------------------------------------------------------ #
-    # Bot-protection handshake
+    # Initial access check (legacy method name retained)
     # ------------------------------------------------------------------ #
 
     def _handshake(self, start_url: str | None = None) -> str | None:
-        """3-step F5 bot-mitigation handshake.  Returns c2 cookie or None."""
+        """Return an ordinary response cookie; stop on verification redirects."""
         if start_url is None:
             start_url = _START_URL
         raw1 = self._curl(start_url)
@@ -145,11 +153,10 @@ class AndraFrPublicationsCrawler(BaseCrawler):
         redir = self._pick_redir_js(raw1)
         if not redir:
             return c1  # no challenge
-        url2 = redir if redir.startswith("http") else f"{_BASE}{redir}"
-        raw2 = self._curl(url2, cookie=c1)
-        if not raw2:
-            return None
-        return self._pick_cookie(raw2)
+        # A challenge redirect is not a publication-list response. Preserve
+        # the access hold instead of following its verification workflow.
+        self._report_source_failure('authentication_failed')
+        return None
 
     def _load_html(self, url: str, cookie: str) -> tuple[str | None, str]:
         """Fetch a URL with bot-protection cookie. Returns (body, cookie)."""
@@ -158,12 +165,8 @@ class AndraFrPublicationsCrawler(BaseCrawler):
             return None, cookie
         _, body = self._split_hb(raw)
         if self._pick_redir_js(body):
-            # Cookie expired — refresh
-            print(f"[{self.site_id}] Cookie stale; refreshing …")
-            cookie = self._handshake(url) or cookie
-            raw2 = self._curl(url, cookie=cookie)
-            if raw2:
-                _, body = self._split_hb(raw2)
+            self._report_source_failure('authentication_failed')
+            return None, cookie
         return (body if body and len(body) > 200 else None), cookie
 
     # ------------------------------------------------------------------ #
@@ -216,6 +219,8 @@ class AndraFrPublicationsCrawler(BaseCrawler):
                 post_data=post_data,
             )
             if not raw:
+                if self.delivery_source_failure:
+                    return None
                 time.sleep(3 ** attempt)
                 continue
             # raw may start with HTTP headers if curl -D - was used; strip them
@@ -227,10 +232,12 @@ class AndraFrPublicationsCrawler(BaseCrawler):
                 for cmd in cmds:
                     if cmd.get("command") == "insert" and cmd.get("data"):
                         return cmd["data"]
-                return ""  # valid JSON but no insert → end of results
+                self._report_source_failure('invalid_response')
+                return None  # missing insert does not prove source exhaustion
             except Exception as exc:
                 print(f"[{self.site_id}] AJAX parse error page {page_num}: {exc}")
                 time.sleep(3 ** attempt)
+        self._report_source_failure('invalid_response')
         return None
 
     @staticmethod
@@ -372,17 +379,22 @@ class AndraFrPublicationsCrawler(BaseCrawler):
         cookie = self._handshake()
         if not cookie:
             print(f"[{self.site_id}] Handshake failed; aborting.")
+            if not self.delivery_source_failure:
+                self._report_source_failure('authentication_failed')
             return 0
 
         # Step 2: load filtered page → extract view_dom_id
         html, cookie = self._load_html(_START_URL, cookie)
         if not html:
             print(f"[{self.site_id}] Could not load start page; aborting.")
+            if not self.delivery_source_failure:
+                self._report_source_failure('fetch_failed')
             return 0
 
         view_dom_id = self._get_view_dom_id(html)
         if not view_dom_id:
             print(f"[{self.site_id}] Could not extract view_dom_id; aborting.")
+            self._report_source_failure('invalid_response')
             return 0
         print(f"[{self.site_id}] view_dom_id={view_dom_id[:16]}…")
 

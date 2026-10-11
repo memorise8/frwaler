@@ -238,5 +238,18 @@
     "evidence": "incremental-rollout-20261012/batch-037-ami/order-review-v2.json",
     "evidence_sha256": "660f9c1745ef629471e6922bbc839542c7db5a523a70b48f94892c17d07d620d",
     "native_health_note": "19 retained year groups contain 1382 memberships, 1372 native URL variants and 1370 DOIs. Within-year order unverified; only three actual Crossref enrichments reviewed. Current entry HTTP 500. Two cross-year DOI URL alias pairs remain distinct native rows; no whole-source baseline certified."
+  },
+  "andra-fr-publications": {
+    "classification": "full_rescan_required",
+    "reason": "delivered_cookie_verification_hold_and_two_unconfigured_categories_order_end_unverified",
+    "source_sha256": "194be7a259478ac7fec7874d7ebec941a5bd7da74554216459d9224c3aec6cb4",
+    "dependency_source_sha256": {
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b",
+      "docs/deliverables/test_URL_수집대조_20260802.csv": "336c04d463f70624cd4ec7aacdf386fd71bab34ca186acf8ac3413a3ee1fced9"
+    },
+    "reviewed_at": "2026-10-11T21:35:36.782261+00:00",
+    "evidence": "incremental-rollout-20261012/batch-038-andra/access-review.json",
+    "evidence_sha256": "928bc1626568b54140efca71b18317c48fc7cb9b7ef7c4c446ca0ed1a4ed5dd1",
+    "native_health_note": "Three retained delivered category routes returned HTTP200 cookie-verification interstitials. Existing access hold preserved; no live retry. Native only configures category230; 224/223 and AJAX facet equivalence remain unverified. Access failure proves neither source exhaustion nor a source count/order. No verification redirects followed."
   }
 }

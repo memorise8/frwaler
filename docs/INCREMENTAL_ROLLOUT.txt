@@ -945,6 +945,28 @@ Batch 037: AMI — 연도 내부 정렬 미확정과 Crossref 실패 구분
 - 재검토: python -m delivery.scripts.review_ami_incremental --source <continuous 경로> --probe <현재 첫 목록> --out <새 검토 파일>
 
 
+
+Batch 038: ANDRA — 기존 접근 보류와 미설정 납품 분류 확인
+- 원본 납품 CSV의3개 분류230/224/223을 기존 응답과 대조했다.2026-10-10 실제 HTTP200
+  응답3개는 모두 cookie verification interstitial이며 감사 파일·body 해시를 재검증했다.
+  접근 상태 변경 증거가 없으므로 기존 재요청 보류를 유지했고 이번 실제 HTTP는0회다.
+- native 설정은230만 포함한다.224/223과 AJAX의 필터 동등성·전체 목록 정렬·식별자·끝은
+  미확정이다. full_rescan_required로 분류하되 빈 소스나 영구적 증분 불가로 단정하지 않는다.
+- 알려진 접근 확인 body와 확인용 JS redirect를 source authentication failure로 기록한다.
+  redirect handshake를 따라가지 않고 AJAX 중첩 재시도도 즉시 멈춘다. 전송 실패/HTTP 오류와
+  AJAX insert 누락을 정상 빈 목록 또는 소진으로 처리하지 않는다.
+- proxy CONNECT 등 연속 header를 분리하면서 body의 빈 줄은 유지한다. 기존 기사 파싱,
+  PDF 본문 추출, view ID/마지막 페이지 추출 및 paper 생성은 AST/본문 대조로 보존했다.
+- 새 PostgreSQL 기본 worker에서 실제 native 시작 응답을 재생했다. 최초/재실행 각각
+  curl1회, redirect/AJAX/PDF0회, 저장0건, 작업 failed(authentication_failed)다.
+  기준점은 둘 다 미완료이며 queued 후속 작업도 없다. 다른2개 원본 응답을 포함한3개
+  접근 형태도 원래 URL에서 직접 guard 재생했다. 이3개를 native 범위 지원으로 세지 않는다.
+- 단위·공통 worker 회귀101개와 PG1개 통과, 환경 의존3개는 단위 실행에서 제외했다.
+  batch-038-andra/access-review.json, native-parser-review.json, postgres-review.json 참조.
+  PDF/전체 목록을 수집했다는 결과가 아니며 현재 가용총량도 미확정이다.
+- 재검토: python -m delivery.scripts.review_andra_incremental --source <continuous 경로> --out <새 검토 파일>
+
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.
