@@ -221,6 +221,32 @@ Batch 010: Open Science Canada — 원래 두 커뮤니티의 등록 시각순 �
 - 측정: python -m delivery.scripts.measure_open_science_incremental --out <새 경로> --gate-dir <공용 gate> --query potato
   목록 대조: python -m delivery.scripts.review_open_science_incremental --source <continuous 경로> --capture <정렬 목록 관측 경로> --out <새 검토 파일>
 
+Batch 011: ACPR — 원래 연구자료 필터와 보도자료의 날짜순 병합
+- 기본 수집은 기존 studies/press 두 범위다. 연구자료의 format[5412591]/format[5412600] 및
+  빈 원문 검색어를 모든 페이지에서 보존한다. URL slug와 원래 상세 URL을 저장 식별자로 유지한다.
+- 보존된 원문 62페이지의 해시 및 733개 목록 payload를 새 파서와 대조했다.
+  연구자료 233건·보도자료 500건이며, 병합한 첫 완주에서 전체 날짜 내림차순을 관측했다.
+  정확한 날짜가 없거나 정렬이 바뀌거나 범위 간 같은 slug가 다른 URL을 가리키면 증분 완료를 막는다.
+- 기존 native 목록 파서를 재사용하도록 날짜 필터 인자를 선택적으로 추가했다.
+  기본 인자가 없으면 기존 URL/필터/커서 동작은 같다. 추가 인자로도 두 형식 필터나 원문 검색어를
+  바꿀 수 없다. 이전 링크가 rel=next로 표시되는 원래 사이트의 예외도 그대로 검증한다.
+- 실제 사이트는 연도만 주면 20페이지 전체를 반환했다. 시작 월 01/종료 월 12까지 주어야
+  2025~2026년 연구자료가 3페이지/32건으로 제한됐다. 어댑터는 응답 날짜의 범위 이탈을 거부한다.
+  이 범위는 대표 측정에만 적용하며 기본 factory는 두 범위 전체를 연결한다.
+- 이전 페이지 해시와 마지막 페이지 경계, 범위별 기존 항목 페이지+겹침, 미전달 신규 ID를
+  durable cursor에 보존한다. 기존 HTML 본문/PDF 복구와 DMY 원문 날짜 보존 규칙을 재사용한다.
+- 실제 대표 32건을 새 SQLite에서 측정했다. 최초 목록 5회+상세 3회/3건 저장,
+  이어받기 상세 29회/29건 저장, 재실행 목록 3회/상세 0회/신규 0건이었다.
+  40개 응답의 해시, ID 집합, 오래된 날짜부터 저장, 실제 제목·본문·URL·PDF 링크·원문 날짜를 대조했다.
+  이 32개 ID는 기존 전체 목록의 2025~2026년 부분집합과 일치했다. PDF 바이트 요청은 없었다.
+- 새 PostgreSQL의 기본 worker fixture는 두 범위/12건으로 요청 9/9/6회,
+  상세 3/9/0회, 저장 3/9/0건을 기록했다. 기존 행과 부분 저장 시 미완료 상태를 보존했다.
+  테스트 145개와 신규 PostgreSQL worker 1개가 통과했고 환경 의존 테스트 54개는 건너뛰었다.
+- 기존 전체 파일 조사에서의 HTTP 403/미관측 파일은 이번 연결로 해소된 것이 아니다.
+  733건 전체를 새 엔진으로 저장하거나 모든 원문 PDF 다운로드를 완료했다고 표시하지 않는다.
+- 측정: python -m delivery.scripts.measure_acpr_incremental --out <새 경로> --gate-dir <공용 gate> --first-year 2025 --last-year 2026
+  목록 대조: python -m delivery.scripts.review_acpr_incremental --source <continuous 경로> --out <새 검토 파일>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.

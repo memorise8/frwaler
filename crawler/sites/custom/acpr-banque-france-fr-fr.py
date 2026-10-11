@@ -48,25 +48,43 @@ def _hash(value):
     return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 
 
-def _list_url(scope, page):
+def _scope_query(scope, query=None):
+    original = _SCOPES[scope]['query']
+    if query is None:
+        return original
+    date_keys = {'start-date_year', 'start-date_month', 'end-date_year', 'end-date_month'}
+    if scope != 'studies' or set(query) != set(original):
+        raise ValueError('unreviewed source filter override')
+    for key, value in query.items():
+        if key not in date_keys:
+            if value != original[key]:
+                raise ValueError('source override changed delivered format or text filter')
+        elif not isinstance(value, str) or (value and not re.fullmatch(r'[0-9]{4}' if key.endswith('year') else r'(?:0?[1-9]|1[0-2])', value)):
+            raise ValueError('invalid source date filter')
+    return query
+
+
+def _list_url(scope, page, query=None):
     cfg = _SCOPES[scope]
-    return _BASE + cfg['path'] + '?' + urlencode(dict(cfg['query'], page=page))
+    return _BASE + cfg['path'] + '?' + urlencode(dict(_scope_query(scope, query), page=page))
 
 
-def _page_number(url, scope):
+def _page_number(url, scope, query=None):
     cfg, parsed = _SCOPES[scope], urlsplit(url)
+    expected = _scope_query(scope, query)
     query = parse_qs(parsed.query, keep_blank_values=True)
     pages = query.pop('page', [])
     if (parsed.scheme != 'https' or parsed.netloc != 'acpr.banque-france.fr'
             or parsed.path != cfg['path'] or parsed.fragment or len(pages) != 1
             or not re.fullmatch(r'[0-9]+', pages[0])
-            or query != {k: [v] for k, v in cfg['query'].items()}):
+            or query != {k: [v] for k, v in expected.items()}):
         raise ValueError('source pagination changed delivered filters or destination')
     return int(pages[0])
 
 
-def _listing(html, scope, page):
+def _listing(html, scope, page, query=None):
     cfg = _SCOPES[scope]
+    _scope_query(scope, query)
     soup = _make_soup(html)
     root = soup.select_one(cfg['view'])
     if not root:
@@ -94,22 +112,22 @@ def _listing(html, scope, page):
         return dict(items=[], last_page=0, next_url=None, page_hash=_hash([]))
     if not pager:
         raise ValueError('missing source pagination proof')
-    numbers = [_page_number(urljoin(_list_url(scope, page), a['href']), scope) for a in pager.select('a[href]')]
+    numbers = [_page_number(urljoin(_list_url(scope, page, query), a['href']), scope, query) for a in pager.select('a[href]')]
     active = pager.select('a[aria-current="page"]')
-    if len(active) != 1 or _page_number(urljoin(_list_url(scope, page), active[0]['href']), scope) != page:
+    if len(active) != 1 or _page_number(urljoin(_list_url(scope, page, query), active[0]['href']), scope, query) != page:
         raise ValueError('source current page mismatch')
     last = max(numbers)
     # The publisher marks its previous arrow rel="next" too. Validate the
     # destinations, accepting that adjacent previous link without following it.
-    directional = [(a, _page_number(urljoin(_list_url(scope, page), a['href']), scope))
+    directional = [(a, _page_number(urljoin(_list_url(scope, page, query), a['href']), scope, query))
                    for a in pager.select('a[rel~="next"]')]
     if any(number not in (page - 1, page + 1) for _, number in directional):
         raise ValueError('source pagination skips or repeats a page')
     following = [a for a, number in directional if number == page + 1]
     if len(following) != (1 if page < last else 0):
         raise ValueError('missing or unexpected source next page')
-    next_url = urljoin(_list_url(scope, page), following[0]['href']) if following else None
-    if next_url and _page_number(next_url, scope) != page + 1:
+    next_url = urljoin(_list_url(scope, page, query), following[0]['href']) if following else None
+    if next_url and _page_number(next_url, scope, query) != page + 1:
         raise ValueError('source pagination skips or repeats a page')
     return dict(items=items, last_page=last, next_url=next_url,
                 page_hash=_hash([(x['url'], x['title'], x['listed_date_raw']) for x in items]))

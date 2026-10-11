@@ -7,6 +7,7 @@ from crawler.incremental_bankofcanada import BankOfCanadaAdapter
 from crawler.incremental_carabinieri import CarabinieriAdapter
 from crawler.incremental_kisdi import KisdiAdapter
 from crawler.incremental_open_science import OpenScienceAdapter
+from crawler.incremental_acpr import ACPRAdapter
 
 ADDITIONAL_ADAPTERS = {'federalregister-gov-documents': FederalAdapter,
                        'nemertes-library-upatras-gr-browse': NemertesAdapter,
@@ -14,7 +15,8 @@ ADDITIONAL_ADAPTERS = {'federalregister-gov-documents': FederalAdapter,
                        'bankofcanada-ca-publications': BankOfCanadaAdapter,
                        'carabinieri-it-in-vostro-aiuto': CarabinieriAdapter,
                        'kisdi-re-kr-report': KisdiAdapter,
-                       'open-science-canada-ca-communities': OpenScienceAdapter}
+                       'open-science-canada-ca-communities': OpenScienceAdapter,
+                       'acpr-banque-france-fr-fr': ACPRAdapter}
 
 
 def adapter_for(crawler):
