@@ -9,6 +9,13 @@ import time
 import urllib.parse
 
 from crawler.base_crawler import BaseCrawler
+from delivery.health.access_challenge import access_challenge
+
+
+class SourceFailure(RuntimeError):
+    def __init__(self, reason):
+        self.reason = reason
+        super().__init__(reason)
 
 _API_URL = "https://app.mps.gov.cn/gdnps/searchIndex.jsp"
 _DETAIL_URL_TPL = "https://app.mps.gov.cn/gdnps/pc/content.jsp?id={}&mtype=4"
@@ -44,7 +51,7 @@ def _encode_params(params: dict) -> str:
 
 def _curl_fetch(url: str, user_agent: str) -> str | None:
     cmd = [
-        "curl", "--tls-max", "1.3", "-sk", "--max-time", "30",
+        "curl", "--tls-max", "1.3", "-fsk", "--max-time", "30",
         "-H", f"User-Agent: {user_agent}",
         "-H", "Accept: application/json, */*",
         "-H", "Referer: https://app.mps.gov.cn/gdnps/pc/index.jsp?mtype=4",
@@ -54,7 +61,7 @@ def _curl_fetch(url: str, user_agent: str) -> str | None:
         result = subprocess.run(cmd, capture_output=True, timeout=35,
                                 errors="replace", encoding="utf-8")
         out = result.stdout.strip()
-        return out if out else None
+        return out if result.returncode == 0 and out else None
     except Exception:
         return None
 
@@ -72,7 +79,15 @@ def _fetch_with_retry(url: str, user_agent: str, retries: int = 3) -> dict | Non
         try:
             raw = _curl_fetch(url, user_agent)
             if raw:
-                return _parse_jsonp(raw)
+                if access_challenge(raw):
+                    raise SourceFailure('authentication_failed')
+                data = _parse_jsonp(raw)
+                if (not isinstance(data, dict) or not isinstance(data.get('resultMap'), list)
+                        or any(not isinstance(item, dict) for item in data['resultMap'])):
+                    raise SourceFailure('invalid_response')
+                return data
+        except SourceFailure:
+            raise
         except Exception:
             pass
         if attempt < retries - 1:
@@ -114,9 +129,13 @@ class AppMpsGovCnGdnpsCrawler(BaseCrawler):
         url = self._detail_url(item_id)
         data = _fetch_with_retry(url, self.USER_AGENT)
         if not data:
+            self._report_source_failure('fetch_failed')
             return None
         items = data.get("resultMap", [])
-        return items[0] if items else None
+        if len(items) != 1 or str(items[0].get('id', '')).strip() != str(item_id).strip():
+            self._report_source_failure('invalid_response')
+            return None
+        return items[0]
 
     def crawl(self, limit=None):
         saved = 0
@@ -138,9 +157,14 @@ class AppMpsGovCnGdnpsCrawler(BaseCrawler):
             if page == _MAX_PAGES:
                 print(f"[{self.site_id}] Safety cap of {_MAX_PAGES} pages reached.")
 
-            data = _fetch_with_retry(self._list_url(page), self.USER_AGENT)
+            try:
+                data = _fetch_with_retry(self._list_url(page), self.USER_AGENT)
+            except SourceFailure as exc:
+                self._report_source_failure(exc.reason)
+                return saved
             if data is None:
                 print(f"[{self.site_id}] Failed to fetch page {page}. Stopping.")
+                self._report_source_failure('fetch_failed')
                 break
 
             items = data.get("resultMap", [])
@@ -169,6 +193,8 @@ class AppMpsGovCnGdnpsCrawler(BaseCrawler):
                     detail = None
                     for attempt in range(3):
                         detail = self._fetch_detail(item_id)
+                        if self.delivery_source_failure:
+                            return saved
                         if detail is not None:
                             break
                         wait = [1, 3, 9][attempt]
@@ -177,7 +203,8 @@ class AppMpsGovCnGdnpsCrawler(BaseCrawler):
 
                     if detail is None:
                         print(f"[{self.site_id}] item {item_id} failed: no detail. Skipping.")
-                        continue
+                        self._report_source_failure('fetch_failed')
+                        return saved
 
                     title = (detail.get("title") or item.get("title") or "").strip()
                     if not title:
@@ -272,9 +299,13 @@ class AppMpsGovCnGdnpsCrawler(BaseCrawler):
 
                 except KeyboardInterrupt:
                     raise
+                except SourceFailure as exc:
+                    self._report_source_failure(exc.reason)
+                    return saved
                 except Exception as exc:
                     print(f"[{self.site_id}] item {item.get('id', '?')} failed: {exc}")
-                    continue
+                    self._report_source_failure('item_failed')
+                    return saved
 
             if new_on_page == 0:
                 print(f"[{self.site_id}] Page {page} had no new items (all duplicates). Stopping.")

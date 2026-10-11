@@ -276,5 +276,17 @@
     "evidence": "incremental-rollout-20261012/batch-040-ansto/scope-review.json",
     "evidence_sha256": "100f24a476f67360a5a7171781c59fe73a94612656d7fb724de50d03caae4dc7",
     "native_health_note": "Two actual AJAX pages contain 40 undated hits but native regex parses only28 HTML candidates and omits12 direct PDF media on page1. Current page1 reproduces8 HTML/12 omitted media; one retained omitted response is a PDF. Full list chronology and all2100 IDs unverified. Native media omission remains unresolved. PDF path month no longer invents publication day."
+  },
+  "app-mps-gov-cn-gdnps": {
+    "classification": "full_rescan_required",
+    "reason": "native_unfiltered_scope_equivalence_and_incomplete_scrq_order_unverified",
+    "source_sha256": "6213b8a6f3f9b5afdf64970efab6db644bd6abebc0685d1b0fe98256c43ede91",
+    "dependency_source_sha256": {
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
+    },
+    "reviewed_at": "2026-10-11T21:48:00.868902+00:00",
+    "evidence": "incremental-rollout-20261012/batch-041-mps/scope-review.json",
+    "evidence_sha256": "1005ebbf15d15821f233f8946e67795e583b4e36d429d9efec1f50d391152f83",
+    "native_health_note": "Original annual/regulation/normative filters contain130 distinct IDs; native unfiltered API reports2626 with whole-scope equivalence unverified. Native first15 include3 missing scrq; original group ID/publication ordering varies. Current native first fields match retained. No all2626 enumeration, safe known-boundary contract or full-content completion certified; attachments remain uncollected."
   }
 }
