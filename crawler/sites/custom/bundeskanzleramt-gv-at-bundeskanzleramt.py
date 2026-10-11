@@ -6,6 +6,7 @@ import os
 import re
 import subprocess
 import time
+from urllib.parse import parse_qs, urljoin, urlsplit
 
 try:
     from bs4 import BeautifulSoup
@@ -109,6 +110,47 @@ def _discover_year_slugs(soup) -> list:
     return slugs
 
 
+def _next_year_page(soup, current_url):
+    """Follow the archive's enabled next link without crossing year scopes."""
+    link = soup.select_one("li.page-next:not(.disabled) a[href]")
+    if link is None:
+        return None
+    next_url = urljoin(current_url, link["href"])
+    current, following = urlsplit(current_url), urlsplit(next_url)
+    current_page = parse_qs(current.query).get("currentPage", ["0"])
+    next_page = parse_qs(following.query).get("currentPage", [])
+    if (following.scheme != current.scheme or following.netloc != current.netloc
+            or following.path != current.path or len(next_page) != 1
+            or not next_page[0].isdigit() or len(current_page) != 1
+            or not current_page[0].isdigit()
+            or int(next_page[0]) <= int(current_page[0])):
+        raise ValueError(f"Invalid archive pagination: {current_url} -> {next_url}")
+    return next_url
+
+
+def _iter_year_pages(year_slugs, start_soup, should_stop):
+    """Yield each published page; an existing record never ends a year scan."""
+    for year_slug in year_slugs:
+        url = f"{_BASE_URL}{_LIST_BASE}/{year_slug}.html"
+        first = True
+        while not should_stop():
+            if first and year_slug == "2024" and start_soup is not None:
+                soup = start_soup
+                start_soup = None
+            else:
+                raw = _curl_get(url)
+                soup = _make_soup(raw) if raw else None
+            if soup is None:
+                raise RuntimeError(f"Could not load archive page: {url}")
+            yield year_slug, soup
+            if should_stop():
+                return
+            url = _next_year_page(soup, url)
+            if url is None:
+                break
+            first = False
+
+
 class BundeskanzleramtGvAtBundeskanzleramtCrawler(BaseCrawler):
     """Crawler for Bundeskanzleramt Austria government news."""
 
@@ -147,7 +189,11 @@ class BundeskanzleramtGvAtBundeskanzleramtCrawler(BaseCrawler):
 
         # ── Step 2: walk year pages ─────────────────────────────────────────
         page_num = 0
-        for year_slug in year_slugs:
+        def should_stop():
+            return ((limit is not None and saved >= limit)
+                    or time.time() - start_time > MAX_SECONDS)
+
+        for year_slug, list_soup in _iter_year_pages(year_slugs, start_soup, should_stop):
             if limit is not None and saved >= limit:
                 break
             if time.time() - start_time > MAX_SECONDS:
@@ -162,21 +208,6 @@ class BundeskanzleramtGvAtBundeskanzleramtCrawler(BaseCrawler):
             if page_num % 10 == 1:
                 print(f"[{_SITE_ID}] page {page_num}: year={year_slug}, "
                       f"saved {saved}/{limit_or_inf}")
-
-            # Reuse the already-fetched soup for 2024; fetch others fresh
-            if year_slug == "2024" and start_soup is not None:
-                list_soup = start_soup
-                start_soup = None  # free it after first use
-            else:
-                list_url = f"{self.base_url}{_LIST_BASE}/{year_slug}.html"
-                raw_list = _curl_get(list_url)
-                if not raw_list:
-                    print(f"[{_SITE_ID}] Failed to fetch listing {year_slug}, skipping.")
-                    continue
-                list_soup = _make_soup(raw_list)
-                if not list_soup:
-                    print(f"[{_SITE_ID}] Failed to parse listing {year_slug}, skipping.")
-                    continue
 
             # Collect article cards from the listing page
             cards = []

@@ -1,0 +1,30 @@
+{
+  "observed_at": "2026-10-11T07:27:40.696949+00:00",
+  "scope": "2026 year archive; raw public first plus all3published following pages; other8years kept in audit",
+  "records": [
+    {
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/bundeskanzleramt-gv-at-bundeskanzleramt-exact-delivered-entries/scope-1-0.body",
+      "source_url": "https://www.bundeskanzleramt.gv.at/bundeskanzleramt/nachrichten-der-bundesregierung/2026.html",
+      "fixture": "scope-1-page-0.html",
+      "sha256": "2c218a97ea17bc2408e61f15b2d7d8223f038bbc014b9f249a64623ae5b271d4"
+    },
+    {
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentyfourth-bka/000.body",
+      "source_url": "https://www.bundeskanzleramt.gv.at/bundeskanzleramt/nachrichten-der-bundesregierung/2026.html?currentPage=1",
+      "fixture": "scope-1-page-1.html",
+      "sha256": "f91144cee270e629824a940390cecddcf30e5660446443e945b23fa947b0d9d9"
+    },
+    {
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentyfourth-bka/001.body",
+      "source_url": "https://www.bundeskanzleramt.gv.at/bundeskanzleramt/nachrichten-der-bundesregierung/2026.html?currentPage=2",
+      "fixture": "scope-1-page-2.html",
+      "sha256": "93c09c3cb796d1b3f00972876d2518154bbc0ced073082fd1ab4a6e0f1cda951"
+    },
+    {
+      "source_file": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentyfourth-bka/002.body",
+      "source_url": "https://www.bundeskanzleramt.gv.at/bundeskanzleramt/nachrichten-der-bundesregierung/2026.html?currentPage=3",
+      "fixture": "scope-1-page-3.html",
+      "sha256": "3248f900b073f5cb3d4f0c70b5288da2aa55cba55d943a158af9b631d6d0bef6"
+    }
+  ]
+}
