@@ -1,0 +1,155 @@
+{
+  "content": {
+    "page": {
+      "documentType": "publicationPage",
+      "template": "N/A",
+      "culture": "da-DK",
+      "createDate": "2024-02-21T08:43:35.71Z",
+      "pageLanguageVersions": [
+        {
+          "cultureName": "da-dk",
+          "pageUrl": "/aktuelt/publikationer/rapporter/groen-skattereform-endelig-afrapportering"
+        }
+      ],
+      "id": "e32a35b6-8c77-44db-a2a5-90762d3212f4",
+      "parent": {
+        "asideHeadlineOverwrite": "",
+        "id": "c194a472-d7a8-496e-8f38-9c8d84687c5a",
+        "name": "Rapporter"
+      },
+      "name": "Grøn skattereform - endelig afrapportering",
+      "url": "/aktuelt/publikationer/rapporter/groen-skattereform-endelig-afrapportering",
+      "properties": {
+        "navigationTitle": null,
+        "navigationDescription": null,
+        "umbracoNaviHide": false,
+        "pageTransportLinksHide": null,
+        "highlighted": false,
+        "pageTransportLinksInOtherView": null,
+        "defaultOpenChatbot": null,
+        "chatbotTenant": null,
+        "segment": null,
+        "hideAdditionalTopArea": null,
+        "hidePageInBreadcrumbs": null,
+        "langPickerHide": false,
+        "footerHeading": null,
+        "footerContent": null,
+        "alertContent": null,
+        "bannerContent": null,
+        "author": null,
+        "internalComment": null,
+        "title": null,
+        "subject": [
+          {
+            "contentType": "subject",
+            "name": "SKM Ikke defineret",
+            "createDate": "2023-07-04T10:17:24.843Z",
+            "updateDate": "2023-07-04T10:17:24.843Z",
+            "route": {
+              "path": "/analyseemneord/skm-analysemneord/skm-ikke-defineret",
+              "queryString": null,
+              "startItem": {
+                "id": "16023716-a450-4b82-abea-5f5a789f1646",
+                "path": "delt-indhold"
+              }
+            },
+            "id": "eccdb1b1-5308-4415-867a-4ac68d6e1cf8",
+            "properties": {}
+          }
+        ],
+        "hideFromSearchEngine": false,
+        "soMeImage": null,
+        "description": null,
+        "asideContent": null,
+        "referenceOId": null,
+        "referenceVId": null,
+        "referenceNodeId": null,
+        "migrationRemark": null,
+        "notPublishedInDap": false,
+        "pageSection": null,
+        "pageSections": null,
+        "text": {
+          "markup": "<p>I denne rapport behandles primært regulering, der skal bidrage til at reducere de biologiske udledninger i landbruget.</p>",
+          "blocks": []
+        },
+        "date": "2024-02-21T00:00:00Z",
+        "heading": "Grøn skattereform - endelig afrapportering ",
+        "teaser": "Ekspertgruppen er blevet bedt om at udarbejde forslag til, hvordan der kan indrettes en hensigtsmæssig regulering, der bidrager til at reducere udledningen af drivhusgasser fra dansk territorium. Reguleringen skal med afsæt i klimalovens guidende principper vægte hensyn til samfundsøkonomisk effektivitet med ønsket om at tilgodese blandt andet eksisterende erhvervsstruktur og lækagerisiko.",
+        "pdf": [
+          {
+            "id": "4de77164-ce7e-4c66-aefe-ca84fcfb66dd",
+            "name": "Grøn Skattereform. Endelig Afrapportering. Tilgængeliggjort",
+            "mediaType": "umbracoMediaArticle",
+            "url": "/media/jjypotl4/groen-skattereform-endelig-afrapportering-tilgaengeliggjort.pdf",
+            "extension": "pdf",
+            "width": null,
+            "height": null,
+            "bytes": 5974124,
+            "properties": {}
+          }
+        ],
+        "picture": {
+          "items": [
+            {
+              "content": {
+                "contentType": "picture",
+                "id": "390cb31b-e0d9-4145-8376-f5a3aaeba0f1",
+                "properties": {
+                  "image": [
+                    {
+                      "focalPoint": {
+                        "left": 0.5,
+                        "top": 0.5
+                      },
+                      "crops": [],
+                      "id": "d888fa59-bc29-4f74-90b3-9a42fe4da8a0",
+                      "name": "Rapport Grøn Skattereform Endelig Afrapportering",
+                      "mediaType": "Image",
+                      "url": "/media/l53irwbj/rapport_groen-skattereform-endelig-afrapportering.png",
+                      "extension": "png",
+                      "width": 451,
+                      "height": 638,
+                      "bytes": 372344,
+                      "properties": {
+                        "altText": "\"\""
+                      }
+                    }
+                  ],
+                  "altText": "\"\""
+                }
+              },
+              "settings": null
+            }
+          ]
+        },
+        "image": null,
+        "tags": [
+          {
+            "contentType": "tag",
+            "name": "Grøn omstilling",
+            "createDate": "2023-09-29T08:37:11.317Z",
+            "updateDate": "2023-09-29T08:42:59.177Z",
+            "route": {
+              "path": "/emner/skm-emner/groen-omstilling",
+              "queryString": null,
+              "startItem": {
+                "id": "16023716-a450-4b82-abea-5f5a789f1646",
+                "path": "delt-indhold"
+              }
+            },
+            "id": "ba12504f-9e9f-4464-8dbc-b3cd8e7fc703",
+            "properties": {
+              "customText": null,
+              "generatedKey": null
+            }
+          }
+        ],
+        "moduleMarginBottom": null,
+        "hideRelatedPages": null,
+        "filters": null
+      },
+      "childPages": [],
+      "lastUpdated": "2024-04-17T08:18:02.127Z"
+    }
+  }
+}

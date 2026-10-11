@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""SKM.dk press releases crawler — skm-dk-aktuelt.
+"""Danish tax ministry press releases and reports — skm-dk-aktuelt.
 
 Strategy:
-  1. Parse sitemap.xml to discover all press-release URLs.
+  1. Parse sitemap.xml to discover both delivered press-release and report scopes.
   2. Detect the current Next.js buildId from the listing page.
   3. For each detail URL, fetch /_next/data/{buildId}/...json to get clean JSON
      (avoids parsing full HTML; falls back to HTML + __NEXT_DATA__ on 404).
@@ -14,17 +14,19 @@ import os
 import re
 import subprocess
 import time
+import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
+from urllib.parse import urljoin, urlsplit
 
 from crawler.base_crawler import BaseCrawler
 
-_BASE = "https://skm.dk"
-_SITEMAP_URL = "https://skm.dk/sitemap.xml"
+# The original skm.dk catalogue redirects to this ministry domain.
+_BASE = "https://svmn.dk"
+_SITEMAP_URL = _BASE + "/sitemap.xml"
 _LISTING_PATH = "/aktuelt/presse-nyheder/pressemeddelelser"
 _LISTING_URL = _BASE + _LISTING_PATH
 
-# Sitemap entry prefix for press releases
-_SITEMAP_PREFIX = _BASE + _LISTING_PATH + "/"
+_SCOPE_PATHS = (_LISTING_PATH + "/", "/aktuelt/publikationer/rapporter/")
 
 _RATE_SLEEP = 1.0      # seconds between detail fetches
 _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))       # safety cap (not real pages here, kept for spec compliance)
@@ -38,7 +40,7 @@ _WALL_MINUTES = 25     # budget per crawl
 def _curl_get(url: str, retries: int = 3) -> str | None:
     """GET via curl with TLS-1.3 fallback; returns body text or None."""
     cmd = [
-        "curl", "-sk", "--tls-max", "1.3", "--max-time", "30",
+        "curl", "-sS", "--tls-max", "1.3", "--max-time", "30",
         "-H", "Accept: text/html,application/json,application/xml,*/*;q=0.8",
         "-H", "Accept-Language: da-DK,da;q=0.9,en;q=0.7",
         "-H", (
@@ -120,27 +122,38 @@ def _extract_next_data(html: str) -> dict | None:
 # ---------------------------------------------------------------------------
 
 class SkmDkAktueltCrawler(BaseCrawler):
-    """Crawler for SKM Pressemeddelelser (skm.dk press releases)."""
+    """Crawler for the two delivered Danish tax ministry publication scopes."""
 
     site_id = "skm-dk-aktuelt"
     site_name = "Custom: skm-dk-aktuelt"
-    base_url = "https://skm.dk"
+    base_url = _BASE
 
     # -----------------------------------------------------------------------
     # Discovery helpers
     # -----------------------------------------------------------------------
 
     def _get_sitemap_urls(self) -> list[str]:
-        """Parse sitemap.xml and return all press-release URLs (newest-first)."""
+        """Return press-release and report URLs in the source sitemap order."""
         raw = _curl_get(_SITEMAP_URL)
         if not raw:
             print("[skm-dk-aktuelt] Failed to fetch sitemap.xml")
             return []
-        urls = re.findall(
-            r"<loc>(https://skm\.dk/aktuelt/presse-nyheder/pressemeddelelser/[^<]+)</loc>",
-            raw,
-        )
-        print(f"[skm-dk-aktuelt] Sitemap: found {len(urls)} press-release URLs")
+        try:
+            root = ET.fromstring(raw)
+        except ET.ParseError:
+            print("[skm-dk-aktuelt] Invalid sitemap XML")
+            return []
+        urls = []
+        for node in root.iter():
+            if node.tag.rsplit("}", 1)[-1] != "loc":
+                continue
+            url = (node.text or "").strip()
+            parsed = urlsplit(url)
+            if (parsed.scheme == "https" and parsed.hostname in ("svmn.dk", "skm.dk")
+                    and any(parsed.path.startswith(prefix) and parsed.path != prefix
+                            for prefix in _SCOPE_PATHS)):
+                urls.append(url)
+        print(f"[skm-dk-aktuelt] Sitemap: found {len(urls)} publication URLs")
         return urls
 
     def _get_build_id(self) -> str | None:
@@ -163,7 +176,7 @@ class SkmDkAktueltCrawler(BaseCrawler):
 
     def _fetch_detail_json(self, url: str, build_id: str) -> dict | None:
         """Fetch /_next/data/{build_id}/{path}.json — returns pageProps dict."""
-        path = url.replace(_BASE, "")          # e.g. /aktuelt/.../slug
+        path = urlsplit(url).path
         json_url = f"{_BASE}/_next/data/{build_id}{path}.json"
         raw = _curl_get(json_url)
         if not raw or not raw.strip().startswith("{"):
@@ -237,16 +250,26 @@ class SkmDkAktueltCrawler(BaseCrawler):
         if types_raw and isinstance(types_raw[0], dict):
             category = types_raw[0].get("name") or ""
 
-        # Check for any PDF links in the text markup
+        # Reports expose their main PDF as structured media, outside body markup.
         pdf_url = None
         original_filename = None
-        if isinstance(text_block, dict):
+        publication_files = props.get("pdf") or []
+        if isinstance(publication_files, list):
+            for media in publication_files:
+                if not isinstance(media, dict) or not media.get("url"):
+                    continue
+                if (media.get("extension", "").lower() == "pdf"
+                        or urlsplit(media["url"]).path.lower().endswith(".pdf")):
+                    pdf_url = urljoin(_BASE, media["url"])
+                    original_filename = urlsplit(pdf_url).path.rsplit("/", 1)[-1]
+                    break
+        if pdf_url is None and isinstance(text_block, dict):
             raw_markup = text_block.get("markup") or ""
             pdf_m = re.search(r'href="([^"]*\.pdf[^"]*)"', raw_markup, re.IGNORECASE)
             if pdf_m:
                 pdf_url = pdf_m.group(1)
                 if not pdf_url.startswith("http"):
-                    pdf_url = _BASE + pdf_url
+                    pdf_url = urljoin(_BASE, pdf_url)
                 original_filename = pdf_url.rstrip("/").split("/")[-1].split("?")[0] or None
 
         # metadata: all native fields not mapped above
@@ -264,6 +287,7 @@ class SkmDkAktueltCrawler(BaseCrawler):
             "subject": subject_names,
             "culture": page.get("culture"),
             "slug": slug,
+            "publication_files": publication_files,
         }
 
         return {

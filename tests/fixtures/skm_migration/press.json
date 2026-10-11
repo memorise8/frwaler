@@ -1,0 +1,219 @@
+{
+  "content": {
+    "page": {
+      "documentType": "newsPage",
+      "template": "N/A",
+      "culture": "da-DK",
+      "createDate": "2023-09-12T11:45:57.157Z",
+      "pageLanguageVersions": [
+        {
+          "cultureName": "da-dk",
+          "pageUrl": "/aktuelt/presse-nyheder/pressemeddelelser/et-nyt-it-system-i-skatteforvaltningen-letter-momsbetalingen-af-eu-handel-for-danske-virksomheder"
+        }
+      ],
+      "id": "a1655e89-1cd9-4f7b-8a43-2f959502a758",
+      "parent": {
+        "asideHeadlineOverwrite": "",
+        "id": "1c188e83-4b90-4d36-a2d5-271a428a5147",
+        "name": "Pressemeddelelser"
+      },
+      "name": "Et nyt it-system i Skatteforvaltningen letter momsbetalingen af EU-handel for danske virksomheder",
+      "url": "/aktuelt/presse-nyheder/pressemeddelelser/et-nyt-it-system-i-skatteforvaltningen-letter-momsbetalingen-af-eu-handel-for-danske-virksomheder",
+      "properties": {
+        "navigationTitle": null,
+        "navigationDescription": null,
+        "umbracoNaviHide": false,
+        "pageTransportLinksHide": null,
+        "highlighted": false,
+        "pageTransportLinksInOtherView": null,
+        "defaultOpenChatbot": null,
+        "chatbotTenant": null,
+        "segment": null,
+        "hideAdditionalTopArea": null,
+        "hidePageInBreadcrumbs": null,
+        "langPickerHide": false,
+        "footerHeading": null,
+        "footerContent": null,
+        "alertContent": null,
+        "bannerContent": null,
+        "author": null,
+        "internalComment": null,
+        "title": null,
+        "subject": [
+          {
+            "contentType": "subject",
+            "name": "SKM Ikke defineret",
+            "createDate": "2023-07-04T10:17:24.843Z",
+            "updateDate": "2023-07-04T10:17:24.843Z",
+            "route": {
+              "path": "/analyseemneord/skm-analysemneord/skm-ikke-defineret",
+              "queryString": null,
+              "startItem": {
+                "id": "16023716-a450-4b82-abea-5f5a789f1646",
+                "path": "delt-indhold"
+              }
+            },
+            "id": "eccdb1b1-5308-4415-867a-4ac68d6e1cf8",
+            "properties": {}
+          }
+        ],
+        "hideFromSearchEngine": false,
+        "soMeImage": null,
+        "asideContent": null,
+        "referenceOId": null,
+        "referenceVId": null,
+        "referenceNodeId": null,
+        "migrationRemark": null,
+        "notPublishedInDap": false,
+        "pageSection": null,
+        "pageSections": null,
+        "description": null,
+        "date": "2023-09-12T00:00:00Z",
+        "heading": "Et nyt it-system i Skatteforvaltningen letter momsbetalingen af EU-handel for danske virksomheder",
+        "teaser": "Sammen med fælles EU-momsregler medvirker it-systemet til at lette danske virksomheders administration, styrke deres konkurrenceevne og kvalificere skattemyndighedernes momskontroller. 2.000 danske virksomheder har foreløbig meldt sig til ordningen, viser nye tal.",
+        "picture": {
+          "items": [
+            {
+              "content": {
+                "contentType": "picture",
+                "id": "438e25d2-1336-43a0-a09d-5a21716b9cf1",
+                "properties": {
+                  "image": [
+                    {
+                      "focalPoint": {
+                        "left": 0.5,
+                        "top": 0.5
+                      },
+                      "crops": [],
+                      "id": "197337bf-3af7-4d34-bcf8-389963c6fcaf",
+                      "name": "Borger Skattebetaling",
+                      "mediaType": "Image",
+                      "url": "/media/Skatteministeriet/Billeder_-_arkiv/Aktuelt/Nyheder/borger-skattebetaling.jpg",
+                      "extension": "jpg",
+                      "width": 5616,
+                      "height": 3748,
+                      "bytes": 7864331,
+                      "properties": {
+                        "altText": "Illustrationsfoto"
+                      }
+                    }
+                  ],
+                  "altText": "\"\""
+                }
+              },
+              "settings": null
+            }
+          ]
+        },
+        "caption": null,
+        "image": null,
+        "text": {
+          "markup": "<p>Tøj, elektronik og bøger. Og alle mulige andre typer af forbrugsvarer. Det er blevet hverdag for danskerne at handle mange af deres ting på internettet. Og i stort omfang. Det vurderes således, at danskerne handler for ca. 180 milliarder kroner gennem internetbaserede butikker hvert år. Cirka 50 milliarder kroner af handlerne foregår gennem udenlandske netbutikker. Og et nyt it-system i Skatteforvaltningen gør nu sammen med nye fælles EU-momsregler momsbetalingen lettere for indtil videre cirka 2.000 danske virksomheder. Det glæder skatteminister Jeppe Bruus:<br><br>”I takt med at danskernes indkøb i stort omfang flyttes over til netbutikker også i udlandet, er det vigtigt, at Skatteforvaltningen kvalificeret kan understøtte den udvikling. Og det er virkelig positivt, at det nye it-system ’One Stop Moms 2’ sammen med nye fælles EU-regler på området markant letter de danske virksomheders administration i forhold til momsbetalingerne og samtidig styrker danske virksomheders konkurrenceevne. Det bekræfter erhvervsorganisationerne og en række virksomheder, som Skattestyrelsen har været i tæt dialog med også,” siger skatteministeren.<br><br>Siden ordningen trådte i kraft den 1. juli 2022, er der løbet cirka 7,6 milliarder kroner gennem OSM2-systemet. Alene i 2022 løb der cirka 4,5 milliarder kroner gennem OSM2 fra andre EU-lande og tredjelande.<br><br>Samtidig trådte nye EU-momsregler i kraft den 1. juli 2021, som ensretter beløbsgrænserne for, om virksomheder skal afregne moms i deres hjemland eller i landet, hvor varen købes. Det sikrer bl.a., at virksomheder i lande med lav moms i og uden for EU ikke længere har en konkurrencefordel i forhold til danske virksomheder. Cirka 125.000 virksomheder i EU har tilmeldt sig ordningen, hvor cirka 2.000 af dem er danske. Reglerne styrker både danske virksomheders konkurrenceevne og medvirker til, at flere EU-virksomheder betaler moms til Danmark.<br><br>”Det er samtidig en stor gevinst for skattemyndighederne, at de nu med it-systemet og de fælles EU-momsregler får et bedre overblik over, hvilke virksomheder og platforme i udlandet som sælger til danske borgere. Og forudsætningerne for myndighedernes momskontrol forbedres dermed også betragteligt,” siger Jeppe Bruus.<br><br><a href=\"https://sktst.dk/publikationer/nyt-system-goer-det-lettere-for-virksomheder-at-betale-moms-af-eu-handel\">Læs mere om ’One Stop Moms 2’ og de nye fælles EU-momsregler her.</a><br><br><strong>Pressekontakt:<br></strong>Skatteministeriets pressefunktion:<br>Tlf. 72 22 23 24<br>E-mail: presse@skm.dk</p>",
+          "blocks": []
+        },
+        "expirationDate": null,
+        "types": [
+          {
+            "contentType": "type",
+            "name": "Pressemeddelelser",
+            "createDate": "2023-08-28T14:33:40.113Z",
+            "updateDate": "2023-08-28T14:33:40.113Z",
+            "route": {
+              "path": "/nyhedstyper/skm-nyhedstyper/pressemeddelelser",
+              "queryString": null,
+              "startItem": {
+                "id": "16023716-a450-4b82-abea-5f5a789f1646",
+                "path": "delt-indhold"
+              }
+            },
+            "id": "b506f588-22c3-47d4-903c-8d469fc33ea6",
+            "properties": {}
+          }
+        ],
+        "tags": [
+          {
+            "contentType": "tag",
+            "name": "Moms",
+            "createDate": "2023-08-29T07:34:12.05Z",
+            "updateDate": "2023-08-29T07:34:12.05Z",
+            "route": {
+              "path": "/emner/skm-emner/moms",
+              "queryString": null,
+              "startItem": {
+                "id": "16023716-a450-4b82-abea-5f5a789f1646",
+                "path": "delt-indhold"
+              }
+            },
+            "id": "91fec154-822d-4632-bc72-912394da5f68",
+            "properties": {
+              "customText": null,
+              "generatedKey": null
+            }
+          },
+          {
+            "contentType": "tag",
+            "name": "Skat",
+            "createDate": "2023-08-29T07:36:32.897Z",
+            "updateDate": "2023-08-29T07:36:32.897Z",
+            "route": {
+              "path": "/emner/skm-emner/skat",
+              "queryString": null,
+              "startItem": {
+                "id": "16023716-a450-4b82-abea-5f5a789f1646",
+                "path": "delt-indhold"
+              }
+            },
+            "id": "b0a08fa4-cee1-4fe8-a739-dd691d31f621",
+            "properties": {
+              "customText": null,
+              "generatedKey": null
+            }
+          },
+          {
+            "contentType": "tag",
+            "name": "EU",
+            "createDate": "2023-08-29T07:36:52.57Z",
+            "updateDate": "2023-08-29T07:36:52.57Z",
+            "route": {
+              "path": "/emner/skm-emner/eu",
+              "queryString": null,
+              "startItem": {
+                "id": "16023716-a450-4b82-abea-5f5a789f1646",
+                "path": "delt-indhold"
+              }
+            },
+            "id": "53027d6f-a620-4ed0-ba55-18af0277b5b9",
+            "properties": {
+              "customText": null,
+              "generatedKey": null
+            }
+          },
+          {
+            "contentType": "tag",
+            "name": "Virksomheder",
+            "createDate": "2023-08-29T07:42:41.223Z",
+            "updateDate": "2023-08-29T07:42:41.223Z",
+            "route": {
+              "path": "/emner/skm-emner/virksomheder",
+              "queryString": null,
+              "startItem": {
+                "id": "16023716-a450-4b82-abea-5f5a789f1646",
+                "path": "delt-indhold"
+              }
+            },
+            "id": "929d9a5b-d836-4b27-97c7-4eb83d06a294",
+            "properties": {
+              "customText": null,
+              "generatedKey": null
+            }
+          }
+        ],
+        "moduleMarginBottom": null,
+        "hideRelatedPages": null,
+        "filters": null
+      },
+      "childPages": [],
+      "lastUpdated": "2024-01-15T14:01:36.523Z"
+    }
+  }
+}
