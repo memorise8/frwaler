@@ -103,14 +103,25 @@ class CassengCssncnSkyResearchCrawler(BaseCrawler):
     # Listing page
     # ------------------------------------------------------------------
 
-    def _fetch_list(self):
-        """Fetch the journals listing page and return [(title, abs_url), ...]."""
-        raw = self._curl_get(_LIST_URL)
+    def _fetch_list(self, page=0):
+        """Read one source-declared journal page without changing item fields."""
+        self._check_cancelled()
+        page_url = _LIST_URL if page == 0 else urljoin(_LIST_URL, f"index_{page}.shtml")
+        raw = self._curl_get(page_url)
+        self._check_cancelled()
         if not raw:
-            return []
+            raise RuntimeError("journal listing fetch failed")
+        count = re.search(r"var countPage\s*=\s*(\d+)", raw)
+        current = re.search(r"var currentPage\s*=\s*(\d+)", raw)
+        if not count or not current or int(current.group(1)) != page or int(count.group(1)) <= page:
+            raise ValueError("invalid source journal pagination")
+        if page == 0:
+            self._source_page_count = int(count.group(1))
+        elif int(count.group(1)) != self._source_page_count:
+            raise ValueError("journal source page count changed during traversal")
         soup = self._make_soup(raw)
         if soup is None:
-            return []
+            raise ValueError("journal listing HTML could not be parsed")
 
         results = []
         # Journal entries are inside <ul class="cont3-1text cont3-2text">
@@ -127,11 +138,22 @@ class CassengCssncnSkyResearchCrawler(BaseCrawler):
             if not href or href.lower().startswith(("javascript:", "mailto:", "#")):
                 continue
             title = self._clean(a.get("title") or a.get_text(" ", strip=True))
-            abs_url = urljoin(_LIST_URL, href)
+            abs_url = urljoin(page_url, href)
             if abs_url and title:
                 results.append({"title": title, "url": abs_url})
 
+        if not results:
+            raise ValueError("source-declared journal page has no entries")
         return results
+
+    def _iter_list_pages(self, should_stop=lambda: False):
+        page = 0
+        while page == 0 or page < self._source_page_count:
+            self._check_cancelled()
+            if should_stop():
+                return
+            yield page, self._fetch_list(page)
+            page += 1
 
     # ------------------------------------------------------------------
     # Detail page
@@ -299,99 +321,45 @@ class CassengCssncnSkyResearchCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def crawl(self, limit=None):
+        self._check_cancelled()
         if limit is not None and limit <= 0:
             return 0
-
         start_time = time.monotonic()
         saved = 0
-        pages_seen = 0
-        seen_urls: set = set()
-        limit_or_inf = limit if limit is not None else "inf"
-
-        # This site has a single listing page (no pagination), but we wrap
-        # in the standard page-loop to satisfy the full-depth crawl requirement
-        # and the safety-cap / time-budget guards.
-        page = 0
-        while pages_seen < self._MAX_PAGES:
+        seen_urls = set()
+        def should_stop():
             if limit is not None and saved >= limit:
-                break
-            elapsed = time.monotonic() - start_time
-            if elapsed >= self._MAX_SECONDS - self._BUDGET_MARGIN_S:
-                print(f"[{self.site_id}] approaching 25 min budget; exiting cleanly")
-                break
-
-            if page > 0:
-                # This site has no page 2+; stop after page 0.
-                break
-
-            rows = self._fetch_list()
-            pages_seen += 1
-
-            if not rows:
-                print(f"[{self.site_id}] page {page}: no rows; stopping")
-                break
-
-            new_on_page = 0
-            for idx, row in enumerate(rows, start=1):
-                if limit is not None and saved >= limit:
-                    break
-                elapsed = time.monotonic() - start_time
-                if elapsed >= self._MAX_SECONDS - self._BUDGET_MARGIN_S:
-                    print(f"[{self.site_id}] approaching 25 min budget; exiting cleanly")
+                return True
+            if time.monotonic() - start_time >= self._MAX_SECONDS - self._BUDGET_MARGIN_S:
+                raise TimeoutError("journal traversal time budget reached before completion")
+            return False
+        for page, rows in self._iter_list_pages(should_stop):
+            for row in rows:
+                self._check_cancelled()
+                if should_stop():
                     return saved
-
                 detail_url = self._clean(row.get("url", ""))
                 if not detail_url:
-                    print(f"[{self.site_id}] item {idx} skipped: missing detail URL")
-                    continue
+                    raise ValueError("journal entry is missing its detail URL")
                 if detail_url in seen_urls:
-                    continue
+                    raise ValueError("source journal URL repeated across pages")
                 seen_urls.add(detail_url)
-                new_on_page += 1
-
-                try:
-                    if self.detail_delay:
-                        time.sleep(self.detail_delay)
-                    raw_detail = self._curl_get(detail_url, referer=_LIST_URL)
-                    if not raw_detail:
-                        raise RuntimeError("empty detail response after retries")
-
-                    paper = self._parse_detail(row, detail_url, raw_detail)
-
-                    if not paper.get("title"):
-                        print(f"[{self.site_id}] item {idx} skipped: missing title")
-                        continue
-
-                    abstract = self._clean(paper.get("abstract", ""))
-                    if len(abstract) < self._MIN_ABSTRACT_CHARS:
-                        print(
-                            f"[{self.site_id}] item {idx} skipped: "
-                            f"short abstract ({len(abstract)} chars)"
-                        )
-                        continue
-                    paper["abstract"] = abstract
-
-                    self._save_paper(paper)
-                    if self._last_save_created:
-                        saved += 1
-
-                except KeyboardInterrupt:
-                    raise
-                except Exception as exc:
-                    print(f"[{self.site_id}] item {detail_url} failed: {exc}")
+                if self.detail_delay:
+                    time.sleep(self.detail_delay)
+                self._check_cancelled()
+                raw_detail = self._curl_get(detail_url, referer=_LIST_URL)
+                self._check_cancelled()
+                if not raw_detail:
+                    raise RuntimeError("journal detail fetch failed")
+                paper = self._parse_detail(row, detail_url, raw_detail)
+                if not paper.get("title"):
+                    raise ValueError("journal detail has no title")
+                abstract = self._clean(paper.get("abstract", ""))
+                if len(abstract) < self._MIN_ABSTRACT_CHARS:
+                    print(f"[{self.site_id}] item {detail_url} skipped: short abstract ({len(abstract)} chars)")
                     continue
-
-            if page % 10 == 0:
-                print(f"[{self.site_id}] page {page}: saved {saved}/{limit_or_inf}")
-
-            if new_on_page == 0:
-                print(f"[{self.site_id}] page {page}: 0 new records; stopping")
-                break
-
-            # Single-page site — no next-page link
-            break
-
-        if pages_seen >= self._MAX_PAGES:
-            print(f"[{self.site_id}] reached safety page cap {self._MAX_PAGES}; stopping")
-
+                paper["abstract"] = abstract
+                self._save_paper(paper)
+                if self._last_save_created:
+                    saved += 1
         return saved

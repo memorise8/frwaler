@@ -1,0 +1,50 @@
+{
+  "page0.html": {
+    "source_file": "casseng-cssn-cn-sky_research-exact-delivered-entries/scope-0-0.body",
+    "sha256": "e19d6c7622a21c3a877f04aeb271de02f527b93db8bda8806973e0d393365474"
+  },
+  "page1.html": {
+    "source_file": "twentyfifth-cass/000.body",
+    "sha256": "467c0bd82079eada29954619d11c650925f688eaf9f0345d2b7dbeeee377bc96"
+  },
+  "page2.html": {
+    "source_file": "twentyfifth-cass/001.body",
+    "sha256": "d350f5af382abd573c624811830e52283f6d248e08b8ab7e10043558c8fb8198"
+  },
+  "page3.html": {
+    "source_file": "twentyfifth-cass/002.body",
+    "sha256": "51a7a07fb58322d8242925ade78ef5fce12f63c47715ef882c610113f2b74133"
+  },
+  "page4.html": {
+    "source_file": "twentyfifth-cass/003.body",
+    "sha256": "4070781e26cb5a876b24c9b87f3bb71486b3f1d27123765445391857d3947219"
+  },
+  "page5.html": {
+    "source_file": "twentyfifth-cass/004.body",
+    "sha256": "2b1391191711401a8c36f378a6b1e1fc50ba4ef059b33618bfb00d834a4a6341"
+  },
+  "page6.html": {
+    "source_file": "twentyfifth-cass/005.body",
+    "sha256": "2bfe8282a4baad6069f68ab5af9fd9412e7af3bffbf2490f6c405b8dd7ef36e7"
+  },
+  "page7.html": {
+    "source_file": "twentyfifth-cass/006.body",
+    "sha256": "0df81a3ec31f162801f85e26b11cc5cd7ed23b65cc65071ea41b61e76add4aa0"
+  },
+  "page8.html": {
+    "source_file": "twentyfifth-cass/007.body",
+    "sha256": "e215a1651ead6d2ccd724ff421be6881b51c4f35979d46a762cd5d1e157c5765"
+  },
+  "page9.html": {
+    "source_file": "twentyfifth-cass/008.body",
+    "sha256": "3dde3db5ecadbc47d6cc5e81549c96d35d2c09372f80ac71f5fc56885589730c"
+  },
+  "page10.html": {
+    "source_file": "twentyfifth-cass/009.body",
+    "sha256": "e6927aa1534bdc85cc437393879fd0689baf984c2b48233a5d09fa6c22680af9"
+  },
+  "japanese-studies-detail.html": {
+    "source_file": "twentyfifth-cass_older/001.body",
+    "sha256": "c09c637c6bc11c31060a81c82b94376e576b1bb471bf1469fa5c045d43b1d1ec"
+  }
+}
