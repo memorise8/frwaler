@@ -1,0 +1,24 @@
+{
+  "baseline_commit": "a3704acb12af01ec983ba6a0da40b2fad4eb4b96",
+  "sources": [
+    {
+      "file": "consultation.html",
+      "source_file": "consult-environment-govt-nz-climate-exact-delivered-entries/scope-1-0.body",
+      "sha256": "ca7cacfd83922edfae584f2dca136ff142247a321246e6e91685149d86fca23b"
+    },
+    {
+      "file": "response-0.html",
+      "source_file": "twentyseventh-actual_details/000.body",
+      "sha256": "3efa323a6741bcd53c5f695c56beef986e1a561c99922d1b2ffc18a05e429872",
+      "url": "https://consult.environment.govt.nz/climate/nz-ets-unit-settings-and-regulatory-updates-2025/consultation/view_respondent?uuId=640885614",
+      "uid": "640885614"
+    },
+    {
+      "file": "response-1.html",
+      "source_file": "twentyseventh-actual_details/001.body",
+      "sha256": "9cea73a7152ade20092f9a6996f83a59b3da56a4cc043c817b4b5bbeece78d43",
+      "url": "https://consult.environment.govt.nz/climate/nz-ets-unit-settings-and-regulatory-updates-2025/consultation/view_respondent?_b_index=60&uuId=350025618",
+      "uid": "350025618"
+    }
+  ]
+}

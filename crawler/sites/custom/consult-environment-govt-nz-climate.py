@@ -6,6 +6,7 @@ import os
 import re
 import subprocess
 import time
+from urllib.parse import parse_qs, urljoin, urlsplit
 
 from crawler.base_crawler import BaseCrawler
 
@@ -84,7 +85,7 @@ class ConsultEnvironmentGovtNzClimateCrawler(BaseCrawler):
         return href if href.startswith("http") else self.base_url + href
 
     def _parse_respondent(self, html, uid, detail_url):
-        """Parse a respondent page. Returns paper_dict or None if abstract too short."""
+        """Retain published response text and explicitly public attachments."""
         try:
             soup = self._make_soup(html)
         except Exception as exc:
@@ -118,7 +119,21 @@ class ConsultEnvironmentGovtNzClimateCrawler(BaseCrawler):
 
         abstract = "\n\n".join(qa_parts)
 
-        if len(abstract) < 50:
+        attachments = []
+        seen_attachments = set()
+        for link in soup.select('main a[href]'):
+            target = urljoin(detail_url, link['href'])
+            parsed = urlsplit(target)
+            query = parse_qs(parsed.query)
+            if (parsed.scheme != 'https' or parsed.netloc != urlsplit(self.base_url).netloc
+                    or parsed.path != self._CONSULTATION_PATH + '/consultation/download_public_attachment'
+                    or query.get('uuId') != [uid] or not query.get('sqId')
+                    or target in seen_attachments):
+                continue
+            seen_attachments.add(target)
+            attachments.append({'url': target, 'filename': link.get_text(' ', strip=True)})
+
+        if len(abstract) < 50 and not attachments:
             print(
                 f"[{self.site_id}] uuId={uid}: abstract too short "
                 f"({len(abstract)} chars), skipping"
@@ -127,22 +142,33 @@ class ConsultEnvironmentGovtNzClimateCrawler(BaseCrawler):
 
         title = submitter_name or f"Response {uid}"
 
-        return {
+        metadata = {
+            "posted_date": self._PUBLISHED_DATE,
+            "publication_date_role": "published_submissions_cohort_date",
+            "uuId": uid,
+            "consultation": self._CONSULTATION_TITLE,
+            "consultation_closed": self._CLOSED_DATE,
+        }
+        if attachments:
+            metadata['source_public_attachments'] = attachments
+            if len(abstract) < 50:
+                metadata['source_abstract_state'] = 'short' if abstract else 'empty'
+
+        paper = {
             "site_id": self.site_id,
             "external_id": uid,
             "url": detail_url,
             "title": title,
             "abstract": abstract,
-            "published_date": self._CLOSED_DATE,
+            "published_date": self._PUBLISHED_DATE,
             "authors": submitter_name,
             "publisher": self._PUBLISHER,
-            "metadata": json.dumps({
-                "posted_date": self._PUBLISHED_DATE,
-                "uuId": uid,
-                "consultation": self._CONSULTATION_TITLE,
-                "consultation_closed": self._CLOSED_DATE,
-            }),
+            "metadata": json.dumps(metadata),
         }
+        if attachments:
+            paper['pdf_url'] = attachments[0]['url']
+            paper['original_filename'] = attachments[0]['filename']
+        return paper
 
     # ------------------------------------------------------------------
     # Main crawl
