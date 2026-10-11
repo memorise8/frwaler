@@ -110,7 +110,10 @@ class BawDeEnCrawler(BaseCrawler):
                     if filename
                     else hashlib.sha1(pdf_url.encode()).hexdigest()[:20]
                 )
-                published_date = f"{year}-01-01" if year else None
+                # The catalogue title identifies the reporting period. It does
+                # not supply a publication date (the 2024 report was issued in
+                # July 2025), so do not invent January 1 from that year.
+                published_date = None
 
                 time.sleep(self.detail_delay)
                 pdf_bytes = self._curl_get_bytes(pdf_url, context=f"item {idx + 1} PDF")
@@ -133,6 +136,8 @@ class BawDeEnCrawler(BaseCrawler):
                     "soap_endpoint": self._SOAP_ENDPOINT,
                     "soap_source": self._SOAP_SOURCE,
                     "year": year,
+                    "reporting_period_year_raw": year,
+                    "year_role": "reporting_period",
                     "originalFilename": filename,
                     "posted_date": published_date,
                 }

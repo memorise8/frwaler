@@ -1,0 +1,12 @@
+{
+  "source_url": "https://www.baw.de/content/v2/publis/ws.php",
+  "method": "POST",
+  "source_scope": "getPublis language=en source=geschaeftsberichte",
+  "source_capture": "twentieth-baw_SOAP/audit.json",
+  "source_body_sha256": "ffa69336c645b8c5599edb3e604f66b16ce9015feefac7dbfca48b6f6d120db9",
+  "records": 14,
+  "reporting_years": "2011..2024",
+  "source_PDF_2024_sha256": "04ac5b43c2fcb901fbe873a08c31061f9ca7c997ffece66ae4ee0d45ccc502cd",
+  "PDF_2024_observation": "37 PDF pages,28640540bytes. Imprint Karlsruhe · Juli 2025; reporting2024 is notpublication2024-01-01. PDF creation timestamp is not used as publication date.",
+  "test_scope": "Actual SOAP list14date/identity unit replay; PDF extraction replaced for list-wide test; not proof14PDFdownloads or actual DB writes."
+}
