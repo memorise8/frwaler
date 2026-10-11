@@ -119,116 +119,10 @@ class AsnFrInformationCrawler(BaseCrawler):
 
                     slug = urlparse(detail_url).path.rstrip("/").rsplit("/", 1)[-1]
 
-                    # Fetch detail page
-                    time.sleep(self._delay)
-                    detail_raw = self._curl_get(detail_url, context=f"detail {slug}")
-
-                    abstract = ""
-                    pdf_url: str | None = None
-                    published_date = listed_date
-                    original_filename: str | None = None
-                    post_number: str | None = None
-
-                    if detail_raw:
-                        dsoup = self._make_soup(detail_raw, context=f"detail {slug}")
-                        if dsoup:
-                            # Full body: main-content RichText only (skip footer error/success divs)
-                            rich = dsoup.select_one(".Wrapper-gridMain .RichText")
-                            if rich is None:
-                                rich = dsoup.select_one(".RichText")
-                            if rich:
-                                # Collect only .ezrichtext-field text, not link labels
-                                parts = []
-                                for field in rich.select(".ezrichtext-field"):
-                                    t = self._clean_text(field.get_text(" ", strip=True))
-                                    if t and len(t) > 2:
-                                        parts.append(t)
-                                if parts:
-                                    abstract = " ".join(parts)[:_MAX_ABSTRACT]
-                                else:
-                                    abstract = self._clean_text(
-                                        rich.get_text(" ", strip=True)
-                                    )[:_MAX_ABSTRACT]
-
-                            # Published date
-                            date2 = dsoup.select_one(".ArticleHeader-date")
-                            if date2:
-                                parsed = _parse_date_fr(date2.get_text(" ", strip=True))
-                                if parsed:
-                                    published_date = parsed
-
-                            # First PDF link → main report
-                            for a in dsoup.find_all("a", href=True):
-                                h = a.get("href", "")
-                                if not h:
-                                    continue
-                                h_low = h.lower()
-                                if h_low.endswith(".pdf") or (
-                                    "/content/download/" in h_low and "/file/" in h_low
-                                ):
-                                    pdf_url = urljoin(_REAL_BASE, h)
-                                    fname = urlparse(pdf_url).path.rsplit("/", 1)[-1]
-                                    original_filename = unquote(fname) if fname else None
-                                    # Extract numeric content ID from /content/download/{id}/
-                                    m = re.search(r"/content/download/(\d+)/", h)
-                                    if m:
-                                        post_number = m.group(1)
-                                    break
-
-                    # Fallback abstract → teaser text from list page
-                    if not abstract:
-                        abstract = teaser_text
-
-                    # Fallback abstract → meta description
-                    if len(abstract) < _MIN_ABSTRACT and detail_raw:
-                        dsoup2 = self._make_soup(detail_raw, context=f"detail-meta {slug}")
-                        if dsoup2:
-                            for meta in dsoup2.find_all("meta"):
-                                name = meta.get("name", "") or meta.get("property", "")
-                                if name in ("description", "og:description"):
-                                    cand = self._clean_text(meta.get("content", ""))
-                                    if len(cand) > len(abstract):
-                                        abstract = cand
-
-                    if len(abstract) < _MIN_ABSTRACT:
-                        print(
-                            f"[{self.site_id}] skip {slug}: abstract too short "
-                            f"({len(abstract)} chars)"
-                        )
+                    paper = self._materialize_item(dict(title=title, url=detail_url,
+                        listed_date=listed_date, teaser_text=teaser_text, slug=slug))
+                    if paper is None:
                         continue
-
-                    external_id = post_number or slug
-
-                    paper = {
-                        "id": None,
-                        "site_id": self.site_id,
-                        "external_id": external_id,
-                        "post_number": post_number,
-                        "title": title,
-                        "abstract": abstract,
-                        "published_date": published_date,
-                        "listed_date": listed_date,
-                        "authors": None,
-                        "publisher": "Autorité de sûreté nucléaire et de radioprotection",
-                        "department": None,
-                        "journal": None,
-                        "url": detail_url,
-                        "pdf_url": pdf_url,
-                        "keywords": None,
-                        "category": "Rapports de l'ASNR",
-                        "doi": None,
-                        "original_filename": original_filename,
-                        "metadata": json.dumps(
-                            {
-                                "posted_date": listed_date,
-                                "originalFilename": original_filename,
-                                "slug": slug,
-                                "content_id": post_number,
-                                "category": "Rapports de l'ASNR",
-                            },
-                            ensure_ascii=False,
-                        ),
-                    }
 
                     self._save_paper(paper)
                     if self._last_save_created:
@@ -254,6 +148,125 @@ class AsnFrInformationCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    def _materialize_item(self, item):
+        """Native detail materialization shared with the durable collector."""
+        title = item["title"]
+        detail_url = item["url"]
+        listed_date = item["listed_date"]
+        teaser_text = item["teaser_text"]
+        slug = item["slug"]
+        # Fetch detail page
+        time.sleep(self._delay)
+        detail_raw = self._curl_get(detail_url, context=f"detail {slug}")
+
+        abstract = ""
+        pdf_url: str | None = None
+        published_date = listed_date
+        original_filename: str | None = None
+        post_number: str | None = None
+
+        if detail_raw:
+            dsoup = self._make_soup(detail_raw, context=f"detail {slug}")
+            if dsoup:
+                # Full body: main-content RichText only (skip footer error/success divs)
+                rich = dsoup.select_one(".Wrapper-gridMain .RichText")
+                if rich is None:
+                    rich = dsoup.select_one(".RichText")
+                if rich:
+                    # Collect only .ezrichtext-field text, not link labels
+                    parts = []
+                    for field in rich.select(".ezrichtext-field"):
+                        t = self._clean_text(field.get_text(" ", strip=True))
+                        if t and len(t) > 2:
+                            parts.append(t)
+                    if parts:
+                        abstract = " ".join(parts)[:_MAX_ABSTRACT]
+                    else:
+                        abstract = self._clean_text(
+                            rich.get_text(" ", strip=True)
+                        )[:_MAX_ABSTRACT]
+
+                # Published date
+                date2 = dsoup.select_one(".ArticleHeader-date")
+                if date2:
+                    parsed = _parse_date_fr(date2.get_text(" ", strip=True))
+                    if parsed:
+                        published_date = parsed
+
+                # First PDF link → main report
+                for a in dsoup.find_all("a", href=True):
+                    h = a.get("href", "")
+                    if not h:
+                        continue
+                    h_low = h.lower()
+                    if h_low.endswith(".pdf") or (
+                        "/content/download/" in h_low and "/file/" in h_low
+                    ):
+                        pdf_url = urljoin(_REAL_BASE, h)
+                        fname = urlparse(pdf_url).path.rsplit("/", 1)[-1]
+                        original_filename = unquote(fname) if fname else None
+                        # Extract numeric content ID from /content/download/{id}/
+                        m = re.search(r"/content/download/(\d+)/", h)
+                        if m:
+                            post_number = m.group(1)
+                        break
+
+        # Fallback abstract → teaser text from list page
+        if not abstract:
+            abstract = teaser_text
+
+        # Fallback abstract → meta description
+        if len(abstract) < _MIN_ABSTRACT and detail_raw:
+            dsoup2 = self._make_soup(detail_raw, context=f"detail-meta {slug}")
+            if dsoup2:
+                for meta in dsoup2.find_all("meta"):
+                    name = meta.get("name", "") or meta.get("property", "")
+                    if name in ("description", "og:description"):
+                        cand = self._clean_text(meta.get("content", ""))
+                        if len(cand) > len(abstract):
+                            abstract = cand
+
+        if len(abstract) < _MIN_ABSTRACT:
+            print(
+                f"[{self.site_id}] skip {slug}: abstract too short "
+                f"({len(abstract)} chars)"
+            )
+            return None
+
+        external_id = post_number or slug
+
+        paper = {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "authors": None,
+            "publisher": "Autorité de sûreté nucléaire et de radioprotection",
+            "department": None,
+            "journal": None,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "keywords": None,
+            "category": "Rapports de l'ASNR",
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": listed_date,
+                    "originalFilename": original_filename,
+                    "slug": slug,
+                    "content_id": post_number,
+                    "category": "Rapports de l'ASNR",
+                },
+                ensure_ascii=False,
+            ),
+        }
+        return paper
 
     # ------------------------------------------------------------------
     # Helpers
