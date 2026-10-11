@@ -701,6 +701,35 @@ Batch 028: AFP 검색 — 전체53개 검색 결과의 비단조 정렬 분류
   날짜/ID/소스 끝 계약과 공통 증분 연결은 다음 배치에서 검토한다.
 - 재검토: python -m delivery.scripts.review_afp_search_incremental --source <continuous 경로> --probe <현재 검색 캡처> --out <새 검토 파일>
 
+
+Batch 029: AFP News Centre — 공통 증분 연결 및 실제 날짜 범위19건 검증
+- 기본 adapter는 기존 /news-centre 전체 뉴스(All, 키워드/날짜 제한 없음)를 사용한다.
+  대표 실측만 source form에 공개된 date_from/date_to(2026-10-01~12)를 적용했다.
+  두 범위는 서로 다른 contract로 분리해 부분 범위 기준점을 전체 범위에 재사용하지 않는다.
+- 실제 필터 화면은8/8/3건과 인접 빈 페이지다. 마지막의 next 부재만으로 끝을 인정하지 않고
+  다음 페이지에서 동일 h1/view/form/필터 값을 확인한 뒤 관측된 header+filters만 있는 구조를
+  검사한다. 빈 DOM, 다른 필터, 오류 메시지, 추가 콘텐츠는 종료로 인정하지 않는다.
+- 현재 page size는8이지만 과거 보존 페이지는12였다. 고정 페이지당 건수를 전체량으로
+  곱하지 않고 실제 모든 card/node ID/URL을 검증한다. 매 페이지 앞 anchor를 재확인하고
+  페이지 간 중복이나 node ID/상세 ID 불일치는 중단한다. 숫자 ID를 시간순 근거로 삼지 않는다.
+- 정확한 timezone 포함 목록 datetime을 Entry.date로 사용한다. 첫 소진 후 모든 날짜로
+  순서를 판별하고 oldest-first이면 임의로 page0을 새 쪽으로 간주하지 않고 full rescan으로
+  돌린다. 기존 native parser와 _build_paper, 날짜/메타데이터/파일명 처리는 그대로 재사용한다.
+  상세 본문 미확보는 pending 유지이며 선택적 파일 HEAD도 감사 transport에서 계수한다.
+- 실제 소유 SQLite DB에서 부분3건/이어받기16건/재실행0건을 확인했다. HTTP9/16/3회,
+  목록6/0/3회, 상세3/16/0회, HEAD0회다. 첫3건 저장 때 목록은 소진됐지만 기준점은 미완료,
+  이어받기가 끝난 뒤에만 완료다. 재실행은 known_boundary_plus_overlap에서 멈춘다.
+- 실제 캡처를 해시 검증하고 native parser로19건을 다시 구성해 ID/URL 및 명시된11개
+  저장 필드를 DB와 대조했다. 원래 날짜순 오래된 항목부터 저장했고 기존행은 그대로다.
+  실측은 합성 source body를 사용하지 않았다. 기관 전체 역사·첨부 파일 완료를 뜻하지 않는다.
+- 새 PostgreSQL 기본 worker에서는 날짜 제한 없는 합성12건으로 요청11/9/3회,
+  상세3/9/0회, 저장3/9/0건을 검증했다. 단위34개+PG1개 통과, 환경 의존3개는 단위 실행에서
+  제외했다. 전체 실제 HTTP는 초기 관측2+경계3+실측28=33회이며 request gate를 적용했다.
+- batch-029-afp-news/live-independent-review.json, live/audit.json, postgres-review.json 참조.
+  기존 전수검증 goal은 계속 일시정지다. AFP 검색의 비단조 순서 분류는 별도로 유지한다.
+- 실측: python -m delivery.scripts.measure_afp_news_incremental --out <새 폴더> --gate-dir <공유 request-gate>
+- 대조: python -m delivery.scripts.review_afp_news_incremental --root <실측 폴더> --out <새 검토 파일>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.
