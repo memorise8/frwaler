@@ -1,0 +1,7 @@
+{
+  "posts_source": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentysixth-climate/001.body",
+  "posts_sha256": "6d0e5c259ec911f457ebe50f0985fd68caf6b8e748002bf59a21602c03edb47b",
+  "selection": "first4 of actual100 records; full121 original replay kept in audit output",
+  "boundary_source": "/mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/continuous-20261010/twentysixth-climate_API_remaining/001.body",
+  "boundary_sha256": "09dfdcbf25753dca182b7dc2e1fc75a1c2079f269794c9763b23d20d51627f54"
+}

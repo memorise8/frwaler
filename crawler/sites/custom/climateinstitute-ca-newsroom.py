@@ -3,7 +3,7 @@
 
 Uses the WordPress REST API (/wp-json/wp/v2/news) which returns full content
 in the list endpoint — no per-item detail fetches needed.
-Total corpus: ~108 posts in ~2 pages at per_page=100.
+The current corpus is enumerated until an explicit API boundary is returned.
 """
 
 import html
@@ -63,6 +63,11 @@ class ClimateInstituteNewsroomCrawler(BaseCrawler):
         Paginates through /wp-json/wp/v2/news until the limit is reached,
         no new records appear, or a safety cap is hit.
         """
+        self._exhausted = False
+        self._source_failure = None
+        if limit is not None and limit <= 0:
+            return 0
+        self._check_cancelled()
         saved = 0
         page = 1
         seen_urls: set = set()
@@ -73,6 +78,7 @@ class ClimateInstituteNewsroomCrawler(BaseCrawler):
         limit_display = str(limit) if limit is not None else "inf"
 
         while True:
+            self._check_cancelled()
             # Time budget
             if time.time() - start_time > MAX_SECONDS:
                 print(f"[{self.site_id}] 25-minute budget reached. Stopping cleanly.")
@@ -96,23 +102,38 @@ class ClimateInstituteNewsroomCrawler(BaseCrawler):
             )
 
             raw = _curl_get(url, site_id=self.site_id)
+            self._check_cancelled()
             if not raw:
+                self._report_source_failure("fetch_failed")
                 print(f"[{self.site_id}] Failed to fetch page {page} after retries. Stopping.")
                 break
 
             try:
                 posts = json.loads(raw)
             except json.JSONDecodeError as exc:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] JSON decode error at page {page}: {exc}. Stopping.")
                 break
 
-            # WP REST API returns a dict with "code" when page number exceeds total pages
+            # Only the documented out-of-range response proves exhaustion.
             if isinstance(posts, dict):
-                print(f"[{self.site_id}] API returned error at page {page}: {posts.get('code', posts)}. Done.")
+                data = posts.get("data")
+                if (page > 1 and posts.get("code") == "rest_post_invalid_page_number"
+                        and isinstance(data, dict) and data.get("status") == 400):
+                    if not self.delivery_source_failure:
+                        self._mark_exhausted()
+                else:
+                    status = data.get("status") if isinstance(data, dict) else None
+                    reason = ("authentication_failed" if status in (401, 403) else
+                              "rate_limited" if status == 429 else "invalid_response")
+                    self._report_source_failure(reason)
                 break
-
-            if not isinstance(posts, list) or not posts:
-                print(f"[{self.site_id}] No items at page {page}. Done.")
+            if not isinstance(posts, list):
+                self._report_source_failure("invalid_response")
+                break
+            if not posts:
+                if not self.delivery_source_failure:
+                    self._mark_exhausted()
                 break
 
             if page % 10 == 0:
@@ -121,6 +142,7 @@ class ClimateInstituteNewsroomCrawler(BaseCrawler):
             new_on_page = 0
 
             for post in posts:
+                self._check_cancelled()
                 if limit is not None and saved >= limit:
                     break
 
@@ -137,6 +159,7 @@ class ClimateInstituteNewsroomCrawler(BaseCrawler):
 
                     title = _strip_html(post.get("title", {}).get("rendered", ""))
                     if not title:
+                        self._report_source_failure("item_failed")
                         print(f"[{self.site_id}] Post {post_id} has no title, skipping.")
                         continue
 
@@ -147,6 +170,7 @@ class ClimateInstituteNewsroomCrawler(BaseCrawler):
                     if len(abstract) < 50:
                         abstract = _strip_html(excerpt_html)
                     if len(abstract) < 50:
+                        self._report_source_failure("item_failed")
                         print(
                             f"[{self.site_id}] Post {post_id} abstract too short "
                             f"({len(abstract)} chars), skipping."
@@ -185,6 +209,7 @@ class ClimateInstituteNewsroomCrawler(BaseCrawler):
                         ),
                     }
 
+                    self._check_cancelled()
                     self._save_paper(paper)
                     if self._last_save_created:
                         saved += 1
@@ -192,17 +217,21 @@ class ClimateInstituteNewsroomCrawler(BaseCrawler):
                     print(f"[{self.site_id}] Saved {saved}/{limit_display}: {title[:60]}")
 
                 except Exception as exc:
-                    print(f"[{self.site_id}] Post {post.get('id', '?')} failed: {exc}")
+                    self._report_source_failure("item_failed")
+                    post_id = post.get("id", "?") if isinstance(post, dict) else "?"
+                    print(f"[{self.site_id}] Post {post_id} failed: {exc}")
                     continue
 
             # All items on this page were already seen — pagination loop detected
             if new_on_page == 0 and posts:
+                self._report_source_failure("invalid_response")
                 print(f"[{self.site_id}] No new records on page {page} (all duplicates). Done.")
                 break
 
             page += 1
             # Sleep between pages (not per-item: list API returns full content)
             if limit is None or saved < limit:
+                self._check_cancelled()
                 time.sleep(self._delay)
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
