@@ -967,6 +967,32 @@ Batch 038: ANDRA — 기존 접근 보류와 미설정 납품 분류 확인
 - 재검토: python -m delivery.scripts.review_andra_incremental --source <continuous 경로> --out <새 검토 파일>
 
 
+
+Batch 039: ANSES — 날짜 순서 역전과 원본 범위 누락 분류
+- 원본3개 납품 URL과 각 첫 목록의 native 필드를 보존 검토와 대조했다. native는 의견·보고서
+  경로만 순회하며 보도자료와 도구 자료는 미설정이다. 각 범위를 합산해 전체 건수로 쓰지 않는다.
+- 의견 목록의 첫10개/두 번째10개/마지막9개와 인접 빈 페이지를 해시 검증했다. 첫 목록
+  서명일과 마지막 목록 온라인 게시일에 순서 역전이 있고 두 번째 목록의 게시일1개는 없다.
+  양 끝 일부 표본으로6199개 전체 ID·정렬·내용을 검증했다고 하지 않는다.
+- 현재 검토된 canonical 첫 목록 HTTP1회200의10개 ID·순서는 보존본과 같다. 첫2개 항목의
+  온라인 게시일·키워드·주제 필드가 비어 있어 전체 필드 일치를 주장하지 않고 변경값을
+  order-review.json에 보존했다. 제목·서명일은 같다. 최신순 추정 없이 full_rescan_required다.
+- 전송/HTTP 상태 실패와 알려진 접근 확인 body, 목록 parser 실패, PDF 처리 예외를
+  source failure로 기록한다. pdftotext 실패와 성공했지만 텍스트가 없는 문서를 구분한다.
+  기존 목록/상세/본문/ID/날짜 파싱 및 paper 생성은 AST/본문 비교로 유지했다.
+- 새 PostgreSQL worker에서 실제 첫2개 목록20개 ID와 합성 PDF/추출 결과20개를 사용했다.
+  부분 저장/재순회/반복/첫PDF실패의 curl 호출4/25/25/4회, PDF3/20/20/3회,
+  저장3/17/0/0건이다. 재시도 포함이며 redirect hop 수는 아니고 추출 프로세스도 별도 계수다.
+- 목록 page2는 통제된 전송 실패로 끝낸다. 보존된 끝 페이지를 앞당겨 재생하거나 전체
+  소진으로 만들지 않는다. 부분 저장 뒤 기존행은 유지되고 추가17건이 들어가지만 반복 시
+  PDF20개를 다시 읽는다. 중복 저장0은 증분 요청 절감을 뜻하지 않는다.
+- 재순회/반복/실패 작업은 failed, 모든 기준점은 미완료다. 실제 PDF 검증·전체 수집과
+  native 이어받기 효율 검증은 성공으로 표시하지 않는다. 재생 live HTTP는0회다.
+- 단위·공통 worker 회귀100개와 PG1개 통과, 환경 의존3개는 단위 실행에서 제외했다.
+  batch-039-anses/order-review.json, native-parser-review.json, postgres-review.json 참조.
+- 재검토: python -m delivery.scripts.review_anses_incremental --source <continuous 경로> --probe <현재 첫 목록> --out <새 검토 파일>
+
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.

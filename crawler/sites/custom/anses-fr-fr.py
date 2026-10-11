@@ -14,6 +14,7 @@ from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 
 from crawler.base_crawler import BaseCrawler
+from delivery.health.access_challenge import access_challenge
 
 
 class AnsesFrFrCrawler(BaseCrawler):
@@ -58,11 +59,14 @@ class AnsesFrFrCrawler(BaseCrawler):
             )
             if not raw:
                 print(f"[{self.site_id}] list endpoint failed at page {page}; stopping")
+                if not self.delivery_source_failure:
+                    self._report_source_failure('fetch_failed')
                 break
 
             soup = self._make_soup(raw, context=f"list page {page}")
             if soup is None:
                 print(f"[{self.site_id}] list page {page} could not be parsed; stopping")
+                self._report_source_failure('invalid_response')
                 break
 
             records = self._parse_list(soup)
@@ -102,6 +106,8 @@ class AnsesFrFrCrawler(BaseCrawler):
                         pdf_bytes,
                         context=f"item {item_label} PDF detail",
                     )
+                    if self.delivery_source_failure:
+                        return saved
                     parsed = self._parse_detail(record, pdf_text, effective_pdf_url)
                     abstract = parsed.get("abstract") or ""
                     if len(abstract) < self.MIN_ABSTRACT_CHARS:
@@ -135,7 +141,9 @@ class AnsesFrFrCrawler(BaseCrawler):
                     print(f"[{self.site_id}] saved {counter}: {parsed['title'][:90]}")
                 except Exception as exc:
                     print(f"[anses-fr-fr] item {item_label} failed: {exc}")
-                    continue
+                    if not self.delivery_source_failure:
+                        self._report_source_failure('item_failed')
+                    return saved
 
             if limit is not None and saved >= limit:
                 break
@@ -208,7 +216,10 @@ class AnsesFrFrCrawler(BaseCrawler):
 
                 if result.returncode != 0:
                     raise RuntimeError(stderr or f"curl exit {result.returncode}")
-                if http_code and http_code.isdigit() and int(http_code) >= 400:
+                if access_challenge(body):
+                    self._report_source_failure('authentication_failed')
+                    return None, effective_url
+                if not http_code.isdigit() or not 200 <= int(http_code) < 300:
                     raise RuntimeError(f"HTTP {http_code} for {effective_url}")
                 if not body:
                     raise RuntimeError(f"empty response for {effective_url}")
@@ -225,6 +236,7 @@ class AnsesFrFrCrawler(BaseCrawler):
                     time.sleep(wait)
 
         print(f"[{self.site_id}] {context} curl failed after 3 attempts: {last_error}")
+        self._report_source_failure('fetch_failed')
         return None, url
 
     def _split_curl_output(self, raw, fallback_url):
@@ -390,6 +402,7 @@ class AnsesFrFrCrawler(BaseCrawler):
             ],
         ]
         last_error = ""
+        extracted_successfully = False
         for cmd in attempts:
             try:
                 result = subprocess.run(
@@ -399,6 +412,8 @@ class AnsesFrFrCrawler(BaseCrawler):
                     timeout=self.PDF_TEXT_TIMEOUT,
                 )
                 text = (result.stdout or b"").decode("utf-8", errors="replace")
+                if result.returncode == 0:
+                    extracted_successfully = True
                 if result.returncode == 0 and text.strip():
                     return text
                 stderr = (result.stderr or b"").decode(
@@ -412,6 +427,8 @@ class AnsesFrFrCrawler(BaseCrawler):
             except Exception as exc:
                 last_error = str(exc)
         print(f"[{self.site_id}] {context} text extraction failed: {last_error}")
+        if not extracted_successfully:
+            self._report_source_failure('item_failed')
         return ""
 
     def _build_abstract(self, text):

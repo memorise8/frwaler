@@ -251,5 +251,18 @@
     "evidence": "incremental-rollout-20261012/batch-038-andra/access-review.json",
     "evidence_sha256": "928bc1626568b54140efca71b18317c48fc7cb9b7ef7c4c446ca0ed1a4ed5dd1",
     "native_health_note": "Three retained delivered category routes returned HTTP200 cookie-verification interstitials. Existing access hold preserved; no live retry. Native only configures category230; 224/223 and AJAX facet equivalence remain unverified. Access failure proves neither source exhaustion nor a source count/order. No verification redirects followed."
+  },
+  "anses-fr-fr": {
+    "classification": "full_rescan_required",
+    "reason": "sampled_signature_and_online_dates_nonmonotonic_and_two_original_scopes_unconfigured",
+    "source_sha256": "2aabfbc59ef1794c2e37373a64c4a226ecfcf57e60ebc62bd102ab4b7c8d70c9",
+    "dependency_source_sha256": {
+      "docs/deliverables/test_URL_수집대조_20260802.csv": "336c04d463f70624cd4ec7aacdf386fd71bab34ca186acf8ac3413a3ee1fced9",
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
+    },
+    "reviewed_at": "2026-10-11T21:40:08.940657+00:00",
+    "evidence": "incremental-rollout-20261012/batch-039-anses/order-review.json",
+    "evidence_sha256": "961e0d8341ea6ef6af0d98e80fac813b2f7f946803db81a5d241d717e97ba443",
+    "native_health_note": "Native only visits opinions/reports; original press and tools scopes are unconfigured. Sampled first/second/last opinion pages show signature-date and online-date inversions plus missing online dates. Current first ten IDs/order match, but two records lost online dates/keywords/thematics. All6199 IDs and actual PDFs are unverified; sampled boundaries do not certify full chronology or completion."
   }
 }
