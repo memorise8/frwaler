@@ -277,6 +277,35 @@ Batch 012: ADR UK — 두 원래 목록과 연차보고서 연결 보존
   보존 목록: python -m delivery.scripts.review_adruk_incremental --source <continuous 경로> --out <새 검토 파일>
   실측 대조: python -m delivery.scripts.review_adruk_live --root <실측 경로> --source <continuous 경로> --out <새 검토 파일>
 
+Batch 013: Audencia — 목록 URL과 기존 Drupal 저장 ID 분리
+- 기본 factory는 기존 press_releases 목록 전체를 연결한다. 21페이지 246건과 마지막 다음
+  페이지의 명시적 빈 결과를 보존 원문으로 재생하고 ID/제목/원문 날짜/카테고리를 대조했다.
+  목록의 모든 날짜가 내림차순이다. 첫 완주와 queue 저장 완료 전에는 기준점을 승인하지 않는다.
+- 발견 key는 원래 상세 URL이다. 상세를 읽어야 나오는 Drupal node ID를 목록 ID로 추정하지
+  않는다. 기존 native _parse_detail/_build_paper의 숫자 ID와 저장 필드를 그대로 유지한다.
+  URL/기존 저장 ID 충돌·canonical/제목 불일치·본문 부족은 해당 pending을 완료로 넘기지 않는다.
+- 원래 view·전체 건수·페이지당 행 수·현재/다음/마지막 링크·직전 페이지 해시를 확인한다.
+  총 건수와 최종 pager에 더해 인접 페이지의 명시적 빈 결과가 있어야 소진을 승인한다.
+  페이지/시간 예산은 durable checkpoint이며 native의 임의 200페이지 한도를 완료로 취급하지 않는다.
+- category 선택은 대표 측정 전용 인자다. 기본에는 필터가 없다. 선택값의 응답 echo와 모든
+  pager의 scope를 검증한다. 공식 Formations(56) 필터는 82건을 반환했다.
+- 기본 HTTP 헤더는 Brotli 해제기가 없는 실행 환경에서도 br을 광고하고 있었다.
+  첫 probe의 17,732바이트는 시스템 Brotli decoder로 해제해 원래 목록임을 확인했다.
+  새 어댑터는 gzip/deflate만 요청한다. 재관측 원문의 native 목록 값은 해제된 첫 응답과 같았다.
+  이 검증에는 추가 네트워크 요청이 없었고, 공통 BaseCrawler의 기존 계약은 변경하지 않았다.
+- 실제 category=56 범위 82건의 부분 저장/이어받기/재실행은 HTTP 17/79/3회,
+  상세 3/79/0회, 저장 3/79/0건이었다. 재실행은 목록 3회로 알려진 경계와 겹침에서 중단했다.
+  99개 응답 해시와 82개 원래 Drupal 숫자 ID, native 저장 필드(기존 정규화 적용)를 대조했다.
+  82개 URL은 원래 246건의 부분집합이며, 오래된 날짜부터 저장되고 기존 행이 보존됐다.
+- 새 PostgreSQL 기본 worker fixture는 12건으로 HTTP 11/9/3회, 상세 3/9/0회,
+  저장 3/9/0건을 기록했다. 테스트 88개와 PostgreSQL worker 1개가 통과했고
+  환경 의존 테스트 3개는 건너뛰었다.
+- 실측과 PostgreSQL worker 결과는 batch-013-audencia/review.json에 보존한다.
+  대표 범위의 완료를 전체 246건 본문이나 모든 파일 완료로 표시하지 않는다.
+- 측정: python -m delivery.scripts.measure_audencia_incremental --out <새 경로> --gate-dir <공용 gate>
+  보존 목록: python -m delivery.scripts.review_audencia_incremental --source <continuous 경로> --out <새 검토 파일>
+  실측 대조: python -m delivery.scripts.review_audencia_live --root <실측 경로> --source <continuous 경로> --out <새 검토 파일>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.

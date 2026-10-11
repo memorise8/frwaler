@@ -9,6 +9,7 @@ from crawler.incremental_kisdi import KisdiAdapter
 from crawler.incremental_open_science import OpenScienceAdapter
 from crawler.incremental_acpr import ACPRAdapter
 from crawler.incremental_adruk import AdrukAdapter
+from crawler.incremental_audencia import AudenciaAdapter
 
 ADDITIONAL_ADAPTERS = {'federalregister-gov-documents': FederalAdapter,
                        'nemertes-library-upatras-gr-browse': NemertesAdapter,
@@ -18,7 +19,8 @@ ADDITIONAL_ADAPTERS = {'federalregister-gov-documents': FederalAdapter,
                        'kisdi-re-kr-report': KisdiAdapter,
                        'open-science-canada-ca-communities': OpenScienceAdapter,
                        'acpr-banque-france-fr-fr': ACPRAdapter,
-                       'adruk-org-news-publications': AdrukAdapter}
+                       'adruk-org-news-publications': AdrukAdapter,
+                       'audencia-com-lecole': AudenciaAdapter}
 
 
 def adapter_for(crawler):
