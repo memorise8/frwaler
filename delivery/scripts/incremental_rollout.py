@@ -12,6 +12,7 @@ from pathlib import Path
 from crawler.sites import CRAWLERS
 from crawler.incremental_adapters import HAL_SCOPES
 from delivery.health.results import atomic_json, utc_now
+from delivery.incremental_status import dependencies_current
 
 
 def build(ledger, previous=None):
@@ -39,9 +40,10 @@ def build(ledger, previous=None):
             row.update(status='classified',classification='full_rescan_required',
                        reason='original_collection_access_challenge; proxy_membership_equivalence_unverified',
                        evidence='incremental-implementation-20261011/probe/probe.json',batch='baseline-fd420d8')
-        if site in previous and previous[site].get('source_sha256')==row['source_sha256']:
+        if (site in previous and previous[site].get('source_sha256')==row['source_sha256']
+                and dependencies_current(previous[site].get('dependency_source_sha256', {}))):
             row.update({k:v for k,v in previous[site].items()
-                        if k in ('status','reason','classification','evidence','batch','commit')})
+                        if k in ('status','reason','classification','evidence','batch','commit','dependency_source_sha256')})
         rows.append(row)
     rows.sort(key=lambda r:(not r['delivery'],-r['priority_count'],r['site_id']))
     return {'updated_at':utc_now(),'goal_status':'active','registered':len(rows),
@@ -59,6 +61,8 @@ def accept(report,review):
         row=by_id[item['site_id']]
         if item.get('source_sha256')!=row['source_sha256']:
             raise ValueError('batch reviewed a different source')
+        if not dependencies_current(item.get('dependency_source_sha256', {})):
+            raise ValueError('batch reviewed different source helpers')
         row.update(item,batch=review['batch'],commit=review['commit'],evidence=review['evidence'])
     report['counts']=dict(Counter(r['status'] for r in report['sites']))
     report['updated_at']=utc_now()

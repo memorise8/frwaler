@@ -552,6 +552,32 @@ Batch 022: CELLS — 발행 순서 미확정 분류 및 가짜 1월 1일 날짜 
   postgres-review.json에 기록한다. 전체 수집 검증 goal은 계속 일시정지 상태다.
 - 재검토: python -m delivery.scripts.review_cells_incremental --source <continuous 경로> --probe <현재 목록 캡처> --out <새 검토 파일>
 
+
+Batch 023: Académie des sciences — 전체 편집 범위의 날짜 부재/역전 검증
+- 이 수집기의 전체 납품 범위는 날짜 있는 paginated PDF 76건과 별도 편집 목록 44건,
+  총120개 명시된 타깃이다. 기존 native의 전체 범위 누락 수정과 durable cursor는 유지했다.
+  보존된 8개 목록 및 인접 빈 페이지, 120개 파싱 결과를 현재 코드로 해시 대조했다.
+- 편집 목록 44건은 목록 날짜가 없으며 저장 ID도 URL 경로/slug다. linked press 기사 22건의
+  실제 보존 상세 날짜에는 중간 역전이 있다. 현재 첫 목록 54건(페이지10+편집44)이 보존과
+  같고, 대표 두 기사의 실제 현재 날짜도 화면 순서로 2025-08-26 다음 2025-09-03이다.
+  실제 새 HTTP는 목록1+기사2=3회다. 전체120개 현재 본문을 다시 요청했다고 주장하지 않는다.
+- 날짜가 있는 76건만으로 전체 early stop을 인증하지 않고 full_rescan_required로 분류했다.
+  보존 소스 중 본문 제외 PDF1건은 그대로 별도 상태다. 실제 첨부·이미지 보류와 기관 전체
+  수집 완료 여부도 이 분류로 해결된 것으로 처리하지 않는다.
+- 분류 근거를 native와 academie_source/traversal/pdf_dates 세 helper의 해시에 결합했다.
+  helper 변경/삭제 시 기존 보류 근거를 무효화하고, rollout queue의 완료 분류도 pending으로
+  되돌린다. stale helper 해시를 가진 새 batch review는 수락하지 않는다. helper 의존성이
+  없는 기존 review 형식과 adapter 우선 규칙은 유지한다.
+- 새 PostgreSQL 기본 worker에서 실제 보존 목록/HTML/PDF 바이트를 재생했다. PDF91개는
+  합성 텍스트를 넣지 않고 pdftotext를 실제 실행했으며 HTML29개도 원래 파서로 처리했다.
+  최초/재실행 transport 호출은129/129회(목록9+HTML29+PDF91), 저장119/0건이다. 기준점은
+  full_rescan_required/미완료 상태로 유지했고 기존119행이 변경되지 않았다. 신규 저장0건을
+  증분 요청 절감으로 오해하지 않도록 모두 기록했다. 재생 자체의 live HTTP는0회다.
+- 119개 native paper와 저장 정규화 후 필드/날짜를 기존 검증 결과와 전수 대조했다.
+  공통·분류·queue 회귀31개와 PostgreSQL worker1개가 통과했고 환경 의존3개는 단위 실행에서
+  건너뛰었다. batch-023-academie/order-review.json 및 postgres-review.json 참조.
+- 재검토: python -m delivery.scripts.review_academie_incremental --source <continuous 경로> --probe <목록 및 대표 기사 캡처> --out <새 검토 파일>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.

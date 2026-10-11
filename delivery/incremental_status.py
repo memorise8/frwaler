@@ -12,8 +12,20 @@ def reviewed_hold(site_id, cls):
     holds = json.loads(Path(__file__).with_name('incremental_holds.json').read_text())
     hold = holds.get(site_id)
     if hold and hashlib.sha256(Path(cls.crawl.__code__.co_filename).read_bytes()).hexdigest() == hold['source_sha256']:
+        if not dependencies_current(hold.get('dependency_source_sha256', {})):
+            return None
         return hold
     return None
+
+
+def dependencies_current(dependencies):
+    """A reviewed helper is part of the evidence, even if imports stay unchanged."""
+    root = Path(__file__).resolve().parents[1]
+    try:
+        return all(hashlib.sha256((root/name).read_bytes()).hexdigest() == expected
+                   for name, expected in dependencies.items())
+    except OSError:
+        return False
 
 
 def eligibility(site_id, cls):

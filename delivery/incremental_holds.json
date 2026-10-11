@@ -74,5 +74,19 @@
     "evidence": "incremental-rollout-20261012/batch-022-cells/order-review.json",
     "evidence_sha256": "7091d68e15e5288b27b6674147fbea7d9f75323b970bf8367c4bdb39a8d34eae",
     "native_health_note": "All 12 static references match retained source. Report years are not publication dates; native invented January 1 values removed. PDF bodies and original institutional scope remain unverified."
+  },
+  "academie-sciences-fr-espace-presse": {
+    "reason": "undated_editorial_sections_and_nonchronological_press_article_dates_prevent_global_early_stop",
+    "classification": "full_rescan_required",
+    "source_sha256": "b011878bd7daf925ec07656a2cb3523e875bdbf9400e568e5e79ab7ea9abcf71",
+    "dependency_source_sha256": {
+      "crawler/academie_source.py": "8fac866595bcee7096d8de59f202748c1122cb82ef0f96682e53141b2b081eb6",
+      "crawler/academie_traversal.py": "6a6e6264d61e0fd55aa58f757e6e93c1e1e9ad9ee1ef6e72d6af24a1e070f35c",
+      "crawler/academie_pdf_dates.py": "69de487ec0702564836882c9ba54dc08c1b282854ba32e6314b171f0f18454f5"
+    },
+    "reviewed_at": "2026-10-11T20:03:31.831645+00:00",
+    "evidence": "incremental-rollout-20261012/batch-023-academie/order-review.json",
+    "evidence_sha256": "67a47903dab6534ff8b4cd383ff307de0d63b6b500c310f244f4a7e61159a6bb",
+    "native_health_note": "Dated pager76 is only part of the 120-target delivered scope. Editorial44 lack list dates and the current first linked press pair is reversed. Existing source-body exclusion and file/image holds remain separate."
   }
 }
