@@ -29,6 +29,7 @@ from urllib.parse import unquote, urljoin, urlparse
 # Absolute import: spec_from_file_location has no package context.
 sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler
+from delivery.health.access_challenge import access_challenge
 
 
 SITE_ID = "ameslab-gov-news"
@@ -168,8 +169,12 @@ class AmeslabGovNewsCrawler(BaseCrawler):
                     raise
 
                 if not raw:
-                    print(f"[{self.site_id}] {slug} page {page}: fetch failed or empty; stopping category")
-                    break
+                    print(f"[{self.site_id}] {slug} page {page}: fetch failed or empty; stopping")
+                    self._report_source_failure('fetch_failed')
+                    return saved
+                if access_challenge(raw):
+                    self._report_source_failure('authentication_failed')
+                    return saved
 
                 items = self._parse_list_page(raw, list_url, category_label)
                 if not items:
@@ -194,7 +199,11 @@ class AmeslabGovNewsCrawler(BaseCrawler):
                         detail_raw = self._curl_get(item_url, label=f"item {index} ({slug})")
                         if not detail_raw:
                             print(f"[{self.site_id}] item {item_url} failed: empty detail response")
-                            continue
+                            self._report_source_failure('fetch_failed')
+                            return saved
+                        if access_challenge(detail_raw):
+                            self._report_source_failure('authentication_failed')
+                            return saved
 
                         detail = self._parse_detail_page(detail_raw, item_url, category_label)
                         paper = self._build_paper(item, detail)
@@ -240,7 +249,7 @@ class AmeslabGovNewsCrawler(BaseCrawler):
             "curl",
             "--tls-max",
             "1.3",
-            "-skL",
+            "-fskL",
             "--connect-timeout",
             "15",
             "--max-time",
@@ -288,7 +297,7 @@ class AmeslabGovNewsCrawler(BaseCrawler):
             "curl",
             "--tls-max",
             "1.3",
-            "-skIL",
+            "-fskIL",
             "--connect-timeout",
             "10",
             "--max-time",

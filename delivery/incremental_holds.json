@@ -201,5 +201,17 @@
     "evidence": "incremental-rollout-20261012/batch-033-agriculture/scope-review.json",
     "evidence_sha256": "a9f227ed0c055cdc06b3157cc801d14fdc1149476fa95422f920c16eaef7e484",
     "native_health_note": "Three original paths differ from the native press query. Retained original press reports 1686/422 versus native current 2001/501; theme advertises last page 5 yet page 6 has 20 new cards and page 7 repeats 6. No full-scope order/end or summed total certified; native cap remains 200."
+  },
+  "ameslab-gov-news": {
+    "classification": "full_rescan_required",
+    "reason": "listing_dates_and_node_IDs_detail_only_with_two_extra_native_categories_unreviewed",
+    "source_sha256": "0c6f56aeebb7fcc27244d9e1a5591cb0fd1c0017c416c14bc2b08ea341f9e415",
+    "dependency_source_sha256": {
+      "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
+    },
+    "reviewed_at": "2026-10-11T21:18:01.604230+00:00",
+    "evidence": "incremental-rollout-20261012/batch-035-ames/order-review.json",
+    "evidence_sha256": "34d855cf1a6cd82208ba03a598700a2ae6dd445006c7caa213628d1fe00e42a3",
+    "native_health_note": "Original 102 news-release cards lack list dates/node IDs; only one actual detail identity/date checked. Native additionally visits two categories outside the delivered URL scope. Current first ten list fields match retained source. No safe known-boundary stop or permanent impossibility inferred."
   }
 }

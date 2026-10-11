@@ -868,6 +868,32 @@ Batch 034: ALRC — 두 납품 목록을 공통 증분 엔진에 연결
 - 소스 대조: python -m delivery.scripts.review_alrc_incremental --source <continuous 경로> --probe <현재 두 첫 목록> --out <새 검토 파일>
 - 실제 재실행: python -m delivery.scripts.measure_alrc_repeat --dsn <소유 ALRC fixture DB> --base <결과 경로> --out <새 출력 폴더>
 
+
+Batch 035: Ames 뉴스 — 목록 날짜/ID 미노출 및 추가 범위 미검토 분류
+- 원본 납품 news-releases의11개 목록과 인접 빈 페이지를 해시 검증했다.102개 고유 URL의
+  제목·snippet은 이전 대장과 같고 모든 card에 time/datetime/Drupal node ID가 없다.
+  현재 첫 목록 HTTP1회200의10개 native 파싱 필드도 보존 응답과 같다.
+- 실제 첫 상세1개는 원래 node ID2824와 날짜/본문을 유지한다. 이1개로 전체 목록의 날짜순
+  또는 나머지101개 상세 ID를 추정하지 않는다. native는 납품 URL과 다른 in-the-news와
+  feature-stories도 순회하며 이 두 범위의 동등성은 별도 미확정이다.
+- 목록의 기존 항목을 만났다는 이유만으로 중단할 근거가 없어 full_rescan_required로 분류했다.
+  날짜/ID 사전 수집 등 다른 계약을 향후 검토할 수 있고 영구적 증분 불가능이라고 하지 않는다.
+- native 목록/상세 실패나 알려진 차단을 source failure로 보고하고 중단한다. curl GET/HEAD에
+  HTTP 오류 실패 옵션을 넣었다. 기존 정상 목록/상세/본문/태그/ID 추출·paper 생성의 AST는
+  수정 전과 같음을 별도 검토 파일로 확인했다.
+- 새 PostgreSQL 기본 worker에서 실제12개 목록·실제 상세1개와 합성 상세103개를 재생했다.
+  원본102건+합성 추가 범위2건=테스트104건이며 추가 분류에는 같은 원본 URL도 넣었다.
+  최초/재실행 curl 호출120/120회(목록16/16, 상세104/104), 저장104/0건이고 기존행은 같다.
+- 합성103개에는 Drupal ID·날짜를 넣지 않았다. 원래 slug fallback/NULL 날짜를 사용했고
+  실제 첫 상세의 ID/날짜/본문은 그대로다. 이 테스트의104건은 원본 전체 건수가 아니다.
+  전송 실패는 첫 목록3회 재시도 후 실패하며 다른 분류로 넘어가지 않고 기존행을 유지한다.
+- 기준점은 모두 미완료/full_rescan_required다. 중복0을 요청 절감으로 표시하지 않으며
+  native curl command 계수와 실제 redirect hop 수를 구분한다. 재생 live HTTP는0회다.
+- 단위·공통 worker 회귀97개와 PG1개 통과, 환경 의존3개는 단위 실행에서 제외했다.
+  batch-035-ames/order-review.json, native-parser-review.json 및 postgres-review.json 참조.
+  원본 상세/파일 전체 검증과 추가2개 분류 전수 검증은 미완료다.
+- 재검토: python -m delivery.scripts.review_ames_incremental --source <continuous 경로> --probe <현재 첫 목록> --out <새 검토 파일>
+
 남은 작업과 기준
 모든 등록 수집기의 queue 상태를 확인해 pending이 없어야 종료할 수 있다.
 접근 차단/인증 필요/정렬 불명/안정적 식별 불가/범위 불명은 각각 증거를 남기고 다른 항목을 계속한다.
