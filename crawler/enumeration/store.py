@@ -100,7 +100,7 @@ class Store:
         current = self.site(site_id)
         if current and current["plan_fp"] == plan_fp:
             state = current["state"]
-            if current["status"] in ("complete", "complete_with_mismatch"):
+            if current["status"] in ("complete", "complete_with_mismatch", "complete_unverified"):
                 # A completed enumeration re-runs from scratch as a fresh pass;
                 # saved items are skipped through the item ledger.
                 state = {}

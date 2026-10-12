@@ -62,7 +62,7 @@ plan.json ─► SitePlan ─► Strategy.batches(progress)  ── yields Batch
   | 404, 410 | `PermanentFailure(http_404/http_410)` | 항목: 대장 기록 후 계속. 목록 탐색: 끝 판정 근거 |
   | 기타 4xx(400, 405, 422…) | `PermanentFailure(http_4xx)` | 같음 |
   | 전송 오류, 5xx, 429 | 재시도(`retries`, 지수 대기, 429는 Retry-After 존중·상한) 후 `TransientFailure` | 항목: 대장(일시 실패, 시도 횟수) 후 계속, 다음 실행에서 `item_max_attempts`까지 재시도. 목록: 해당 실행 중단(미완료) |
-  | 401/403/407/451, JS/봇 챌린지 본문(`access_challenge`), 로그인 폼, robots 거부 | `AccessBlocked` | **우회하지 않는다**. 사이트 상태를 `access_blocked`로 기록하고 그 사이트 진행을 멈춘다. 이후 실행도 사람이 검토해 `--refresh`로 풀기 전까지 요청하지 않는다 |
+  | 401/403/407/451, JS/봇 챌린지 본문(`access_challenge`), 로그인 경로 리다이렉트, robots 거부 | `AccessBlocked` | **우회하지 않는다**. 사이트 상태를 `access_blocked`로 기록하고 그 사이트 진행을 멈춘다. 이후 실행도 사람이 검토해 `--refresh`로 풀기 전까지 요청하지 않는다 |
 * robots.txt: 호스트별 1회(같은 게이트 경유) 조회. RFC 9309에 따라 4xx(401/403 포함)는 "규칙 없음"으로 보고
   (페이지 자체의 401/403은 별도로 접근 차단 처리), 5xx/전송 오류는 허용을 추측하지 않고 일시 실패로 진행을 멈춘다.
   `respect_robots: false`는 plan에서 명시할 때만.
@@ -137,7 +137,8 @@ enum_event(id PK, site_id, at, kind, detail JSON)   -- 접근 차단, 구간 불
 4. 대조: 구간 첫 페이지의 사이트 보고 총건수 `T`와 구간의 고유 목록 수 `N`.
    * `T > hidden_cap`(예: 10000) → 읽지 않고 즉시 하위 구간(year→month→day)으로 분할(`split`).
    * 읽은 뒤 `N < T`이고 더 쪼갤 수 있으면 분할(숨은 상한 의심). 이미 저장된 항목은 대장에서 건너뛰므로 비용은 목록 요청뿐.
-   * `N == T` → `complete(total_matched)`. 총건수 없음 → `complete(exhausted_no_total)`.
+   * `N == T` → `complete(total_matched)`. 총건수 없음 → 항목이 있으면 `complete(exhausted_no_total)`,
+     빈 구간이면 `unverified`(필터 거부/파서 고장과 구분 불가 — 사이트는 `complete_unverified`, 보고서에 구간 목록).
    * 그 외 → `mismatch`(T, N 기록). 일 단위에서도 상한 초과면 `cap_unsplittable`.
 5. `overall_total_check`가 켜져 있으면 필터 없는 목록의 총건수를 한 번 읽어 구간 합계와 비교(날짜 없는 항목
    누락 탐지). 모든 구간이 complete/split이고 불일치가 없으면 사이트 complete, 불일치가 있으면 `complete_with_mismatch`.
@@ -148,7 +149,10 @@ enum_event(id PK, site_id, at, kind, detail JSON)   -- 접근 차단, 구간 불
   마지막 다음 페이지의 400 `rest_post_invalid_page_number`를 끝으로 인정), `ckan`(`package_search?sort=metadata_created asc&rows&start`,
   `result.count`), `dspace7`(`/server/api/discover/search/objects?sort=dc.date.accessioned,ASC&page&size`, `page.totalElements`, 시작 0),
   `generic`(직접 지정). 프리셋 값은 plan에서 덮어쓸 수 있다.
-* 앞에서부터 읽는다. 끝 판정: 빈 페이지, 설정된 끝 상태코드(`end_statuses`), 페이지 반복(clamp/wrap), 총건수 도달.
+* 앞에서부터 읽는다. 끝 후보: 빈 페이지, 404/410, 설정된 끝 상태코드(`end_statuses`), 페이지 반복(clamp/wrap).
+  끝 후보는 한 번 다시 읽고(일시적 빈 쪽이면 계속 진행), 다음 쪽도 비어 있어야 끝으로 확정한다. 다음 쪽에 항목이 있으면
+  `empty_page_inside_range`로 미완료. 그 밖의 4xx는 끝이 아니라 실패(미완료)다.
+* 정렬 무시 감지: 내보낸 항목의 날짜가 거꾸로 가면(`max_order_violations`, 기본 0) `sort_order_not_ascending`으로 멈춘다.
 * `overlap_pages`(기본 0): 켜면 p를 읽은 뒤 p-1을 재독해 삭제로 앞당겨진 항목을 잡는다.
 * 완료: 소진 + (총건수 없음 또는 고유 목록 수 = 총건수). 불일치면 `complete_with_mismatch`.
 
@@ -265,7 +269,9 @@ enum_event(id PK, site_id, at, kind, detail JSON)   -- 접근 차단, 구간 불
   `null`이면 사실상 무제한(10^9)이고 수집기 자체의 시간 예산이 남는다.
 * 페이지 시작 번호: GenericCrawler는 기존 `pagination.start`를 쓰고, plan의 `legacy.start_page`로 덮어쓸 수 있다.
 * 필터 인코딩: GenericCrawler `params`에 이미 인코딩된 키(`type%5B170%5D`)가 있으면 requests가 `%255B`로
-  이중 인코딩하던 문제를 `urls.decode_preencoded`로 고쳤다(이미 인코딩된 형태만 한 번 디코드).
+  이중 인코딩하던 문제는 **plan 플래그로만** 고친다: `legacy: {"decode_preencoded_params": true}`이면
+  `options.decode_preencoded_params`가 켜지고 `%XX`가 있는 키/값만 `unquote_plus`로 한 번 디코드한다. 플래그가 없으면 기존 URL 그대로
+  (`tests/test_enumeration_review.py`가 설정 전체의 이전/이후 URL을 비교).
 * 첫 페이지 누락: 새 틀은 `check_unparameterized_first_page`로 검증. 기존 수집기는 plan의 `start_page` 덮어쓰기로 교정.
 * 적용 경로: 배달 워커(`delivery/worker/worker.py`)가 수집기 인스턴스를 만든 직후
   `legacy.apply_overrides_from_env`를 호출한다. 환경변수 `LIBERTREE_ENUMERATION_PLAN`이 없으면 아무것도 하지 않는다.
@@ -284,4 +290,27 @@ segments_mismatch, files_{pending,done,failed}, oldest_item`. JSON(상세 포함
 * 구간 내부/사이트맵 순서는 소스 순서에 의존한다(사이트맵 lastmod 미사용). "오래된 순"은 구간 단위로 보장.
 * wrap이 첫 페이지가 아닌 `p mod N` 페이지로 되돌아가는 사이트는 `beyond` 술어가 단조가 아니다(미지원, 키 반복으로 탐지 시 중단).
 * 커스텀 수집기 메서드가 내부에서 curl/requests를 직접 호출하면 게이트를 우회할 수 있다. 어댑터는 해당 수집기 모듈의
-  `subprocess`/`requests`를 호출 차단 프록시로 바꿔 우회를 **오류로 드러낸다**(`adapter_ungated_network`).
+  호출 구간을 `guard.guarded()`(스레드 지역)로 감싸 socket 연결, 프로세스 실행(curl/브라우저), `os.system`을
+  **오류로 드러낸다**(`adapter_ungated_network`). 파이썬 socket을 거치지 않는 네이티브 코드(curl_cffi 내장 libcurl 등)는 잡지 못한다.
+
+## 13. 코드 검토 반영 (2026-10-12)
+
+| 항목 | 반영 |
+|---|---|
+| C1 기존 행과 식별값 | 등록 수집기가 있는 사이트는 `adapter.type=crawler` + 목록 `parser.type=adapter`만 허용(plan 검증에서 거부). GenericCrawler 설정 사이트는 `_extract_list_items`(=`_make_absolute`)와 `_extract_id`를 그대로 쓴다. 실행 전 **식별값 사전 점검**: 시작 목록 쪽(사이트맵은 기존 행 URL) 표본 N개(기본 5)의 (post_number, meta_url)을 틀의 실제 경로로 계산해 읽기 전용 기존 DB(`--reference-db` 또는 `--reference-pg-dsn-env`)와 대조하고, 일치율이 기준(기본 1.0) 미만이거나 비교 가능한 행이 없으면 `config_error`로 실행 거부. 기존 행이 없는 사이트는 `no_reference_rows`로 통과. |
+| C2 끝 오판 | `fetch_page`는 404/410·`end_statuses`만 빈 쪽으로 바꾸고 다른 4xx는 실패로 올린다. 마지막 쪽 후보 L은 L, L+1, L+2를 새로 읽어 확인(실패 시 탐색 1회 재시도, 그래도 실패면 `last_page_unconfirmed`). 실제 쪽의 내용이 다른 쪽 번호에서 반복되면(`page mod N`) `repeated_page_content`. 범위 안 빈 쪽은 한 번 다시 읽고 여전히 비면 미완료. 겹쳐 읽기가 `max_overlap_walk`에 닿으면 `overlap_walk_limit`(미완료). |
+| H1 로그인 | 로그인 폼은 차단이 아니라 의심 표시(`login_suspect`): 페이지 제목/주 제목이 로그인이거나 폼 밖에 링크가 하나도 없을 때만. 목록에서 항목이 나오면 무시, 항목 0개면 `review_pending`(이벤트 `login_form_review`, 영구 보류 아님), 상세면 항목 실패 `login_required_suspect`. |
+| H2 저장 안전 | 저장 실패 시 `conn.rollback()`, `external_id`는 `str`, 문자열의 NUL 제거. `tests/test_enumeration_pg.py`가 SQLite와 임시 PG DB(`enum_test_<시각>`, 끝나면 삭제)에서 같은 시나리오를 돈다. |
+| H3 | 위 5.2 참고(`unverified`, `complete_unverified`). |
+| H4 | `guard.py` 스레드 지역 감시(위 12 참고). |
+| H5 | 위 10 참고(플래그 뒤로 이동, `unquote_plus`). |
+| M1 | 파일 대기열 기록 → 항목 `saved` 기록 순서. |
+| M2 | 429가 연속 3회(`rate_limit_stop`)거나 Retry-After가 `max_retry_wait_s`보다 길면 사이트를 `incomplete(rate_limited_cooldown)`로 멈추고 `cooldown_until`을 상태에 기록. 그 전에는 다시 실행해도 요청하지 않는다(`cooling_down`). |
+| M4 | 5.3 참고. |
+| M5 | 사이트맵 URL 수는 `sitemap_url_count_not_independent`로 표시하고 gap을 계산하지 않는다. |
+| M7 | 모듈 상수 덮어쓰기는 `legacy.restore_all()`로 되돌리며 워커가 매 작업 시작 전에 호출한다. |
+| G1 중복 0 | 저장 직전 (site_id, post_number) 행이 있으면 새 행을 만들지 않고 `existing_post_number`로 대장 기록 + `duplicate_post_number` 이벤트. 실행 전/후로 `group by site_id, post_number having count(*)>1`의 초과 행 수를 세어 결과/보고서에 `duplicates{before,after,new}`; `new>0`이면 `failed_duplicates`. |
+| G2 날짜 | 저장은 언제나 수집기 `_save_paper` → `insert_document`의 `normalize_document_dates`(값/원문/상태/정밀도)를 거친다. 목록/JSON의 **원문 날짜 문자열**을 넘기고, 없으면 빈 값(사이트맵 lastmod는 쓰지 않음). 보고서에 `published_date_fill`, `listed_date_fill`. |
+| G3 격리 DB | CLI는 문서 DB가 지정되지 않았거나 이름이 `enum_`으로 시작하지 않으면 시작을 거부(`--i-know-this-is-isolated`로만 예외). PG는 `LIBERTREE_PG_DSN`의 dbname으로 판정. |
+
+새 사이트 상태: `complete_unverified`, `review_pending`, `failed_duplicates`.

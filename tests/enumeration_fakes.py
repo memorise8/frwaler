@@ -185,12 +185,13 @@ class Env:
                        backoff_s=0, respect_robots=plan.get("respect_robots"), **kw)
 
     def run(self, site, handler, *, crawler=None, today="2026-10-12", transport=None, refresh=False,
-            retry_only=False, **fetch_kw):
+            retry_only=False, reference_conn=None, identity_required=False, **fetch_kw):
         plan = self.plan(site)
         transport = transport or FakeTransport(handler)
         adapter = Adapter(self.site_id, plan.raw.get("adapter"), self.conn, crawler=crawler, base_url=plan.base_url)
         try:
-            runner = SiteRunner(plan, self.store, self.fetcher(plan, transport, **fetch_kw), adapter, today=today)
+            runner = SiteRunner(plan, self.store, self.fetcher(plan, transport, **fetch_kw), adapter, today=today,
+                                reference_conn=reference_conn, identity_required=identity_required)
             result = runner.run(refresh=refresh, retry_only=retry_only)
         finally:
             adapter.close()
@@ -203,7 +204,8 @@ class Env:
 
 
 def wp_handler(n, per_page_max=100, base="https://wp.test"):
-    posts = [{"id": i, "link": f"{base}/?p={i}", "date": f"2010-01-{(i % 28) + 1:02d}T00:00:00",
+    posts = [{"id": i, "link": f"{base}/?p={i}",
+              "date": (date(2010, 1, 1) + timedelta(days=i)).isoformat() + "T00:00:00",
               "title": {"rendered": f"Post {i}"}} for i in range(1, n + 1)]
 
     def handler(url):

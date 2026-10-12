@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from crawler.enumeration.http import (AccessBlocked, BudgetExhausted, Fetcher, PermanentFailure,  # noqa: E402
-                                      Response, TransientFailure, TransportError)
+                                      RateLimited, Response, TransientFailure, TransportError)
 from crawler.enumeration.urls import build_url, decode_preencoded  # noqa: E402
 from tests.enumeration_fakes import FakeTransport  # noqa: E402
 
@@ -77,9 +77,10 @@ class FetcherTest(unittest.TestCase):
         self.assertEqual(f.get("https://a.test/x").status, 200)
         self.assertGreaterEqual(self.sleeps[0], 6)
         f, t = self.fetcher(lambda u: Response(429, {"Retry-After": "86400"}, b""), max_retry_wait_s=120)
-        with self.assertRaises(TransientFailure) as ctx:
+        with self.assertRaises(RateLimited) as ctx:
             f.get("https://a.test/x")
-        self.assertEqual((ctx.exception.reason, len(t.urls)), ("rate_limited", 1))
+        self.assertEqual((ctx.exception.reason, len(t.urls)), ("rate_limited_cooldown", 1))
+        self.assertGreater(ctx.exception.retry_at, 80000)
 
     def test_refusal_blocks_every_later_request(self):
         f, t = self.fetcher(lambda u: Response(403, {}, b"denied"))

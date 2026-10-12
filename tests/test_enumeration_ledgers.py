@@ -127,14 +127,14 @@ class FailureLedgerTest(unittest.TestCase):
         self.assertEqual((result["status"], result["stop_reason"]),
                          ("access_blocked", "challenge:browser_security_challenge"))
 
-    def test_login_form_listing_is_access_blocked(self):
+    def test_login_form_listing_is_review_pending(self):
         def handler(url):
             if url.endswith("/robots.txt"):
                 return Response(404, {}, b"")
             return Response(200, {"Content-Type": "text/html"},
                             html('<form><input name="user"><input type="password" name="pw"></form>'))
         result = self.env.run(board_plan(), handler)
-        self.assertEqual((result["status"], result["stop_reason"]), ("access_blocked", "login_form"))
+        self.assertEqual((result["status"], result["stop_reason"]), ("review_pending", "login_form"))
 
     def test_robots_disallow_is_not_bypassed(self):
         board = FakeBoard(25, robots=b"User-agent: *\nDisallow: /view\n")

@@ -33,6 +33,50 @@ def open_documents_db(db_path):
     return get_backend("sqlite").open_db(db_path)
 
 
+ISOLATED_PREFIX = "enum_"
+
+
+def documents_target(db_path):
+    """(backend, database name) the run would write documents to."""
+    if os.environ.get("LIBERTREE_DB_BACKEND", "sqlite").lower() == "postgres":
+        from psycopg.conninfo import conninfo_to_dict
+        dsn = os.environ.get("LIBERTREE_PG_DSN") or ""
+        return "postgres", (conninfo_to_dict(dsn).get("dbname") if dsn else None)
+    return "sqlite", (Path(db_path).name if db_path else None)
+
+
+def require_isolated(db_path, override=False):
+    """G3: documents must go to a separate database named enum_* (or an explicit override)."""
+    backend, name = documents_target(db_path)
+    if not name:
+        raise SystemExit(f"refusing to start: no isolated documents database given ({backend}); "
+                         f"pass --db enum_<name>.db (or LIBERTREE_PG_DSN with dbname=enum_<name>)")
+    if not name.startswith(ISOLATED_PREFIX) and not override:
+        raise SystemExit(f"refusing to start: documents database '{name}' is not isolated "
+                         f"(name must start with '{ISOLATED_PREFIX}', or pass --i-know-this-is-isolated)")
+    return backend, name
+
+
+def open_reference(path=None, dsn_env=None):
+    """Read-only connection to the database holding the legacy crawlers' rows."""
+    if dsn_env:
+        from crawler.db_backend import get_backend
+        conn = get_backend("postgres").open_db(os.environ[dsn_env])
+        conn.read_only = True
+        return conn
+    if path:
+        import sqlite3
+        conn = sqlite3.connect(f"file:{Path(path).resolve()}?mode=ro", uri=True)
+        conn.row_factory = sqlite3.Row
+        return conn
+    return None
+
+
+def registered_site_ids():
+    from crawler.sites import CRAWLERS
+    return set(CRAWLERS)
+
+
 def registered_crawler(site_id, conn):
     from crawler.sites import CRAWLERS
     cls = CRAWLERS.get(site_id)
@@ -60,7 +104,8 @@ def make_adapter(plan, conn, crawler_factory=registered_crawler):
 
 
 def run_site(plan, store, conn, state_dir, *, transport=None, refresh=False, retry_only=False, files=False,
-             blob_root=None, today=None, crawler_factory=registered_crawler, log=print):
+             blob_root=None, today=None, crawler_factory=registered_crawler, log=print, reference_conn=None,
+             identity_required=False, identity_sample=5, identity_threshold=1.0):
     try:
         adapter = make_adapter(plan, conn, crawler_factory)
     except (AdapterConfigError, ValueError) as exc:
@@ -68,8 +113,10 @@ def run_site(plan, store, conn, state_dir, *, transport=None, refresh=False, ret
         store.finish_site(plan.site_id, "config_error", str(exc))
         return {"site_id": plan.site_id, "status": "config_error", "stop_reason": str(exc)}
     try:
-        result = SiteRunner(plan, store, make_fetcher(plan, state_dir, transport), adapter,
-                            today=today, log=log).run(refresh=refresh, retry_only=retry_only)
+        result = SiteRunner(plan, store, make_fetcher(plan, state_dir, transport), adapter, today=today, log=log,
+                            reference_conn=reference_conn, identity_required=identity_required,
+                            identity_sample=identity_sample, identity_threshold=identity_threshold,
+                            ).run(refresh=refresh, retry_only=retry_only)
     finally:
         adapter.close()
     if files:
@@ -94,13 +141,24 @@ def main(argv=None):
     p.add_argument("--refresh", action="store_true", help="re-enumerate sites already complete")
     p.add_argument("--retry-failed", action="store_true", help="only retry transient item failures")
     p.add_argument("--report-only", action="store_true")
+    p.add_argument("--i-know-this-is-isolated", dest="isolated_override", action="store_true",
+                   help="allow a documents database whose name does not start with enum_")
+    p.add_argument("--reference-db", default=None,
+                   help="read-only sqlite DB with the legacy crawlers' rows (identity precheck)")
+    p.add_argument("--reference-pg-dsn-env", default=None,
+                   help="name of an env var holding a read-only DSN with the legacy rows")
+    p.add_argument("--identity-sample", type=int, default=5)
+    p.add_argument("--identity-threshold", type=float, default=1.0)
     args = p.parse_args(argv)
+    if not args.report_only:
+        require_isolated(args.db, args.isolated_override)
     if not 1 <= args.workers <= 16:
         p.error("--workers must be within 1..16")
     plan_data = load_plan(args.plan)
     sites = args.site or sorted(plan_data["sites"])
+    registered = registered_site_ids()
     try:
-        plans = [site_plan(plan_data, s) for s in sites]
+        plans = [site_plan(plan_data, s, registered=registered) for s in sites]
     except PlanError as exc:
         p.error(str(exc))
     state_dir = Path(args.state_dir)
@@ -126,16 +184,27 @@ def main(argv=None):
                 return {"site_id": plan.site_id, "files": FilePass(
                     store, fetcher, blob_root=args.blob_root or state_dir / "files", doc_conn=conn,
                     max_attempts=plan.get("file_max_attempts"), max_bytes=plan.get("file_max_bytes")).run(plan.site_id)}
-            return run_site(plan, store, conn, state_dir, refresh=args.refresh, retry_only=args.retry_failed,
-                            files=args.files, blob_root=args.blob_root)
+            reference = open_reference(args.reference_db, args.reference_pg_dsn_env)
+            try:
+                return run_site(plan, store, conn, state_dir, refresh=args.refresh, retry_only=args.retry_failed,
+                                files=args.files, blob_root=args.blob_root, reference_conn=reference,
+                                identity_required=plan.site_id in registered, identity_sample=args.identity_sample,
+                                identity_threshold=args.identity_threshold)
+            finally:
+                if reference is not None:
+                    reference.close()
         finally:
             conn.close()
 
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         results = list(pool.map(one, plans))
-    write_report(store, sites, report_dir)
+    conn = open_documents_db(args.db)
+    try:
+        write_report(store, sites, report_dir, doc_conn=conn)
+    finally:
+        conn.close()
     print(json.dumps(results, ensure_ascii=False, default=str))
-    return 0 if all(r.get("status") not in ("failed",) for r in results) else 1
+    return 0 if all(r.get("status") not in ("failed", "failed_duplicates") for r in results) else 1
 
 
 if __name__ == "__main__":

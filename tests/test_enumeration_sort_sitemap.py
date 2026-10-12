@@ -35,7 +35,8 @@ class OldestFirstSortTest(unittest.TestCase):
         ids = [int(d["post_number"]) for d in self.env.docs()]
         self.assertEqual(ids, list(range(1, 251)))
         lists = [u for u in transport.urls if "wp-json" in u]
-        self.assertEqual(len(lists), 4)  # 3 pages + the 400 page after the end
+        # 3 pages, the 400 end page, its confirming re-read and the next page (also 400)
+        self.assertEqual(len(lists), 6)
 
     def test_wordpress_total_mismatch(self):
         handler = wp_handler(120)
@@ -54,7 +55,7 @@ class OldestFirstSortTest(unittest.TestCase):
 
     def test_ckan_offset_paging(self):
         datasets = [{"id": f"id-{i}", "name": f"ds-{i}", "title": f"Dataset {i}",
-                     "metadata_created": f"2015-01-{(i % 28) + 1:02d}T00:00:00"} for i in range(1, 231)]
+                     "metadata_created": f"2015-{1 + i // 28:02d}-{(i % 28) + 1:02d}T00:00:00"} for i in range(1, 231)]
 
         def handler(url):
             parts = urlsplit(url)
@@ -75,12 +76,12 @@ class OldestFirstSortTest(unittest.TestCase):
         self.assertEqual([d["post_number"] for d in docs], [f"id-{i}" for i in range(1, 231)])
         self.assertEqual(docs[0]["meta_url"], "https://ckan.test/dataset/ds-1")
         starts = [parse_qs(urlsplit(u).query)["start"][0] for u in transport.urls if "package_search" in u]
-        self.assertEqual(starts, ["0", "100", "200", "300"])
+        self.assertEqual(starts, ["0", "100", "200", "300", "300", "400"])  # end re-read + neighbour
 
     def test_dspace7_discover_objects(self):
         objs = [{"_embedded": {"indexableObject": {
             "uuid": f"u{i}", "handle": f"123/{i}", "name": f"Item {i}",
-            "metadata": {"dc.date.accessioned": [{"value": f"2012-02-{(i % 28) + 1:02d}T10:00:00Z"}]}}}}
+            "metadata": {"dc.date.accessioned": [{"value": f"2012-{1 + i // 28:02d}-{(i % 28) + 1:02d}T10:00:00Z"}]}}}}
             for i in range(1, 46)]
 
         def handler(url):

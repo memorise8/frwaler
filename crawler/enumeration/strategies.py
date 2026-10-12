@@ -15,7 +15,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from datetime import date, datetime
 
-from .http import PermanentFailure
+from .http import LoginReview, PermanentFailure
 from .parsing import Item, Page
 from .urls import build_url, normalize_key_url
 
@@ -71,13 +71,20 @@ class Strategy:
         return build_url(url or self.listing["url"], params)
 
     def fetch_page(self, url):
+        """Listing page. Only 404/410 and configured end statuses become empty
+        end-candidate pages; any other 4xx propagates (never read as an end)."""
         try:
             resp = self.ctx.fetcher.get(url, accept_statuses=tuple(self.listing.get("end_statuses", ())))
         except PermanentFailure as exc:
-            return Page([], None, exc.status or 0, {"error": exc.reason})
+            if exc.status in (404, 410):
+                return Page([], None, exc.status, {"error": exc.reason})
+            raise
         if resp.status in tuple(self.listing.get("end_statuses", ())):
             return Page([], None, resp.status, {"end_status": resp.status})
-        return self.ctx.parser.parse(resp)
+        page = self.ctx.parser.parse(resp)
+        if not page.items and page.extra.get("login_suspect"):
+            raise LoginReview("login_form", url, resp.status)
+        return page
 
     def known(self, segment, keys):
         """Keys already seen: in the item ledger or listed in this segment generation."""
@@ -107,6 +114,7 @@ class LastPageBackward(Strategy):
         super().__init__(ctx)
         self.cfg = ctx.plan.section("last_page")
         self.cache = {}
+        self.real = {}  # page number -> fingerprint of pages judged real during the search
 
     def get(self, n):
         if n not in self.cache:
@@ -122,9 +130,15 @@ class LastPageBackward(Strategy):
             return "wrap"
         if n > self.start_page and self.get(n - 1).fingerprint == page.fingerprint:
             return "clamp"
+        for other, fp in self.real.items():
+            if other != n and fp == page.fingerprint:
+                # A real page's content repeating at another page number (e.g.
+                # "page mod N") makes beyond() non-monotone: no end can be trusted.
+                raise StrategyStop("incomplete", "repeated_page_content")
+        self.real[n] = page.fingerprint
         return None
 
-    def find_last_page(self, first):
+    def search_last_page(self, first):
         s = self.start_page
         cap = self.max_pages()
         cap_page = None if cap is None else s + cap - 1
@@ -150,6 +164,40 @@ class LastPageBackward(Strategy):
                 else:
                     hi = mid
             return lo, self.beyond(lo + 1, first)
+
+    def confirmed(self, last, kind, first):
+        """Re-read L, L+1, L+2 fresh: L must be real and both neighbours beyond."""
+        if kind == "page_cap":
+            return True
+        for n in (last, last + 1, last + 2):
+            self.cache.pop(n, None)
+            self.real.pop(n, None)
+        if self.beyond(last, first) is not None:
+            return False
+        return self.beyond(last + 1, first) is not None and self.beyond(last + 2, first) is not None
+
+    def find_last_page(self, first):
+        for attempt in range(2):
+            last, kind = self.search_last_page(first)
+            if self.confirmed(last, kind, first):
+                return last, kind
+            self.ctx.store.event(self.ctx.site_id, "last_page_unconfirmed", {"candidate": last, "end_kind": kind,
+                                                                            "attempt": attempt + 1})
+            self.cache = {self.start_page: first}
+            self.real = {}
+        raise StrategyStop("incomplete", "last_page_unconfirmed")
+
+    def read_in_range(self, n):
+        """A page inside the known range must not be empty; re-read once before giving up."""
+        page = self.get(n)
+        if page.items:
+            return page
+        self.cache.pop(n, None)
+        page = self.get(n)
+        if not page.items:
+            self.ctx.store.event(self.ctx.site_id, "empty_page_in_range", {"page": n, "status": page.status})
+            raise StrategyStop("incomplete", f"empty_page_inside_range:{n}")
+        return page
 
     def batches(self):
         ctx, seg = self.ctx, self.SEGMENT
@@ -181,45 +229,51 @@ class LastPageBackward(Strategy):
         walk_limit = int(self.cfg.get("max_overlap_walk", 20))
         bounded_end = cursor["end_kind"] in ("wrap", "page_cap")
         k = cursor["next_page"]
+        walk_limited = cursor.get("walk_limited", False)
         while k >= s:
             self.cache.clear()
-            page = self.get(k)
-            if not page.items:
-                ctx.store.event(ctx.site_id, "empty_page_in_range", {"page": k, "status": page.status})
+            page = self.read_in_range(k)
             pages = [page]
             seen_now = set(page.keys)
             n = k + 1
             # Re-read the next-older page(s) after reading k: items pushed from k
             # to k+1 by insertions at the top are caught here. Keep walking while
             # a re-read page holds nothing already seen (shift > one page).
-            while overlap and n - k <= walk_limit:
+            while overlap:
                 if n > last and bounded_end:
                     break
-                older = self.get(n)
+                if n - k > walk_limit:
+                    # Shifted items may lie further up: never certify this pass.
+                    walk_limited = True
+                    ctx.store.event(ctx.site_id, "overlap_walk_limit", {"page": k, "walked_to": n - 1})
+                    break
+                older = self.read_in_range(n) if n <= last else self.get(n)
                 pages.insert(0, older)
                 seen_before = self.known(seg, older.keys) | (seen_now & set(older.keys))
                 seen_now |= set(older.keys)
                 if not older.items or (n - k >= overlap and seen_before):
                     break
-                if n - k == walk_limit:
-                    ctx.store.event(ctx.site_id, "overlap_walk_limit", {"page": k, "walked_to": n})
                 n += 1
             ordered = []
             for p in pages:
                 ordered.extend(reversed(p.items))
             listed = [i.key for p in pages for i in p.items]
-            cursor = dict(cursor, next_page=k - 1)
+            cursor = dict(cursor, next_page=k - 1, walk_limited=walk_limited)
             if page.total is not None:
                 # The total seen on the final (start) page read is the one that
                 # matches the set of items listed by the end of the pass.
                 cursor["last_total"] = page.total
-            done = k == s
+            done = k == s and not walk_limited
             yield Batch(seg, ordered, cursor, listed,
                         segment_status="complete" if done else None,
                         evidence=f"last_page_{cursor['end_kind']}_reached_start" if done else None)
             k -= 1
         if cursor["end_kind"] == "page_cap":
             self.outcome = ("incomplete", "page_cap_reached")
+            return
+        if walk_limited:
+            ctx.store.update_segment(ctx.site_id, ctx.plan_fp, seg, status="running", evidence="overlap_walk_limit")
+            self.outcome = ("incomplete", "overlap_walk_limit")
             return
         total = cursor.get("last_total", cursor.get("first_total"))
         listed = ctx.store.listed_count(ctx.site_id, ctx.plan_fp)
@@ -247,6 +301,10 @@ class _ForwardPager(Strategy):
             if cap is not None and n - self.start_page >= cap:
                 return "page_cap", cursor.get("total")
             page = self.fetch_page(self.page_url(n, extra_params, url=url))
+            if not page.items:
+                # An end candidate is re-read once; a transient empty/404 page is
+                # not the end of the source.
+                page = self.fetch_page(self.page_url(n, extra_params, url=url))
             if n == self.start_page and page.total is not None:
                 cursor["total"] = page.total
             elif page.total is not None and cursor.get("total") is None:
@@ -256,6 +314,10 @@ class _ForwardPager(Strategy):
             if not page.items:
                 kind = (f"end_status_{page.status}" if page.extra.get("end_status") else
                         "not_found" if page.status in (404, 410) else "empty_page")
+                after = self.fetch_page(self.page_url(n + 1, extra_params, url=url))
+                if after.items:
+                    ctx.store.event(ctx.site_id, "empty_page_in_range", {"segment": seg, "page": n})
+                    raise StrategyStop("incomplete", f"empty_page_inside_range:{seg}:{n}")
                 return kind, cursor.get("total")
             fp = page.fingerprint
             if n > self.start_page and fp in (cursor.get("prev_fp"), cursor.get("first_fp")):
@@ -326,12 +388,26 @@ class OldestFirstSort(_ForwardPager):
         ctx = self.ctx
         cfg = ctx.plan.section("oldest_sort")
         gen = self.forward(self.SEGMENT, overlap=int(cfg.get("overlap_pages", 0)))
+        allowed = int(cfg.get("max_order_violations", 0))
+        violations, last_date, seen = 0, None, set()
         while True:
             try:
-                yield next(gen)
+                batch = next(gen)
             except StopIteration as stop:
                 end, total = stop.value
                 break
+            for item in batch.items:
+                if item.key in seen or not item.date:
+                    continue
+                seen.add(item.key)
+                if last_date is not None and item.date < last_date:
+                    violations += 1
+                last_date = max(last_date or item.date, item.date)
+            if violations > allowed:
+                # The sort parameter was ignored or does not mean "oldest first".
+                ctx.store.event(ctx.site_id, "sort_order_not_ascending", {"violations": violations})
+                raise StrategyStop("incomplete", "sort_order_not_ascending")
+            yield batch
         if end == "page_cap":
             self.outcome = ("incomplete", "page_cap_reached")
             return
@@ -502,7 +578,11 @@ class DateRangeSplit(_ForwardPager):
                 ctx.store.update_segment(ctx.site_id, ctx.plan_fp, key, status="running", detail=detail)
                 self.outcome = ("incomplete", "page_cap_reached")
                 return
-            if total is None:
+            if total is None and listed == 0:
+                # Nothing listed and nothing reported: indistinguishable from a
+                # rejected filter or a broken parser. Not completion evidence.
+                status, evidence = "unverified", f"empty_without_total_{end}"
+            elif total is None:
                 status, evidence = "complete", f"exhausted_no_total_{end}"
             elif listed == total:
                 status, evidence = "complete", "total_matched"
@@ -529,8 +609,13 @@ class DateRangeSplit(_ForwardPager):
         if overall is not None and overall != listed:
             ctx.store.event(ctx.site_id, "overall_total_mismatch", {"overall_total": overall, "listed": listed})
             bad.append("overall_total")
-        self.outcome = ("complete_with_mismatch", "segments:" + ",".join(bad[:20])) if bad else \
-            ("complete", "all_segments_reconciled")
+        unverified = [r["segment_key"] for r in rows if r["status"] == "unverified"]
+        if bad:
+            self.outcome = ("complete_with_mismatch", "segments:" + ",".join(bad[:20]))
+        elif unverified:
+            self.outcome = ("complete_unverified", "unverified_segments:" + ",".join(unverified[:20]))
+        else:
+            self.outcome = ("complete", "all_segments_reconciled")
 
 
 # ---------------------------------------------------------------------------

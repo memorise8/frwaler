@@ -1,27 +1,23 @@
-"""Reuse existing crawlers' detail parsing and save path without their fetch loops.
+"""Reuse existing crawlers' parsing and save path without their fetch loops.
 
 The framework fetches every page itself (through the gate) and hands the
 content to the crawler's parsing method; saving always goes through the
-crawler instance's ``_save_paper`` so dedup (site_id, post_number, meta_url)
-and the sqlite/Postgres routing stay exactly as they are.
+crawler instance's ``_save_paper`` so dedup (site_id, post_number, meta_url),
+date normalization and the sqlite/Postgres routing stay exactly as they are.
 
-Any network access attempted from inside a reused crawler method (its own
-curl/requests calls) is turned into an explicit ``AdapterUngatedNetwork``
-stop instead of silently bypassing the request gate.
+Reused crawler methods run inside ``guard.guarded()``: any socket connect or
+process spawn they attempt becomes an explicit ``AdapterUngatedNetwork`` stop
+instead of silently bypassing the request gate.
 """
 from __future__ import annotations
 
 import json
-import sys
-import types
+import sqlite3
 
-from .http import EnumerationStop
+from .guard import AdapterUngatedNetwork, guarded
+from .http import PermanentFailure
 
-_NETWORK_MODULES = ("subprocess", "requests", "httpx", "urllib3", "cloudscraper", "curl_cffi", "pycurl")
-
-
-class AdapterUngatedNetwork(EnumerationStop):
-    pass
+__all__ = ["Adapter", "AdapterConfigError", "AdapterUngatedNetwork", "clean_paper", "paper_identity"]
 
 
 class AdapterConfigError(ValueError):
@@ -37,6 +33,40 @@ class _Blocked:
 
     def __call__(self, *args, **kwargs):
         raise AdapterUngatedNetwork(f"adapter_ungated_network:{self._name}")
+
+
+def _strip_nul(value):
+    if isinstance(value, str):
+        return value.replace("\x00", "")
+    if isinstance(value, list):
+        return [_strip_nul(v) for v in value]
+    return value
+
+
+def clean_paper(paper):
+    """NUL characters are rejected by PostgreSQL text; post_number is always text."""
+    out = {k: _strip_nul(v) for k, v in paper.items()}
+    if out.get("external_id") is not None and not isinstance(out["external_id"], str):
+        out["external_id"] = str(out["external_id"])
+    return out
+
+
+def paper_identity(paper):
+    """(post_number, meta_url) exactly as BaseCrawler._save_paper will store them."""
+    from crawler import libertree_adapter
+    doc = libertree_adapter.paper_to_document(dict(paper))
+    post_number = doc.get("external_id")
+    meta_url = doc.get("meta_url") or doc.get("pdf_url") or ""
+    return (None if post_number is None else str(post_number)), meta_url
+
+
+def _query(conn, sql, args):
+    if not isinstance(conn, sqlite3.Connection):
+        sql = sql.replace("?", "%s")
+    row = conn.execute(sql, args).fetchone()
+    if row is None:
+        return None
+    return row[0] if not hasattr(row, "keys") else row[list(row.keys())[0]]
 
 
 def _make_plan_generic(site_id, base_url, config, conn):
@@ -74,7 +104,7 @@ def paper_from_item(site_id, item, extract_id=None):
         "abstract": payload.get("abstract") or "",
         "category": payload.get("category", ""),
         "keywords": json.dumps(payload.get("keywords") or [], ensure_ascii=False),
-        "published_date": payload.get("published_date") or item.date or "",
+        "published_date": payload.get("published_date") or "",
         "url": item.url,
         "pdf_url": payload.get("pdf_url", ""),
         "doi": payload.get("doi", ""),
@@ -90,7 +120,7 @@ class Adapter:
         self.site_id = site_id
         self.cfg = cfg or {"type": "list_only"}
         self.mode = self.cfg.get("type", "list_only")
-        self._restore = []
+        self.conn = conn
         if self.mode == "crawler":
             if crawler is None:
                 raise AdapterConfigError("adapter type 'crawler' requires a registered crawler")
@@ -124,19 +154,13 @@ class Adapter:
             if method in ("browser", "cloudscraper"):
                 # cloudscraper is a WAF bypass; browser fetching is not governed here.
                 raise AdapterConfigError(f"fetch_method_{method}_unsupported")
-            return
-        module = sys.modules.get(type(c).__module__)
-        if module is not None:
-            for name in _NETWORK_MODULES:
-                value = module.__dict__.get(name)
-                if isinstance(value, types.ModuleType):
-                    self._restore.append((module, name, value))
-                    setattr(module, name, _Blocked(name))
+        elif self.mode == "crawler" and not (self.cfg.get("detail_method") or self.cfg.get("paper_method")
+                                             or self.cfg.get("list_returns_paper")):
+            # The paper (and so post_number/meta_url) must come from the crawler's own code.
+            raise AdapterConfigError("custom crawler adapter needs detail_method, paper_method or list_returns_paper")
 
     def close(self):
-        for module, name, value in self._restore:
-            setattr(module, name, value)
-        self._restore = []
+        """Nothing process-wide is left behind (the guard is thread-local and inert)."""
 
     # -- listing -------------------------------------------------------------
     def parse_list(self, resp):
@@ -145,11 +169,14 @@ class Adapter:
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(resp.text(), "html.parser")
             selectors = (c._config.get("list_page") or {}).get("selectors", {})
-            return c._extract_list_items(soup, selectors)
+            with guarded():
+                return c._extract_list_items(soup, selectors)
         name = self.cfg.get("list_method")
         if not name:
             raise AdapterConfigError("listing parser 'adapter' requires adapter.list_method")
-        return getattr(c, name)(*self._args(self.cfg.get("list_args", ["html"]), resp, None))
+        args = self._args(self.cfg.get("list_args", ["html"]), resp, None)
+        with guarded():
+            return getattr(c, name)(*args)
 
     def _args(self, spec, resp, item):
         out = []
@@ -187,12 +214,17 @@ class Adapter:
         """Return a paper dict (or None). Detail requests go through ``fetcher``."""
         c = self.crawler
         if not self.needs_detail():
-            if self.mode == "crawler" and not self.is_generic and self.cfg.get("list_returns_paper"):
-                paper = dict(item.payload)
-            else:
-                paper = paper_from_item(self.site_id, item, self._legacy_id())
+            with guarded():
+                if self.mode == "crawler" and not self.is_generic and self.cfg.get("paper_method"):
+                    paper = getattr(c, self.cfg["paper_method"])(dict(item.payload))
+                elif self.mode == "crawler" and not self.is_generic and self.cfg.get("list_returns_paper"):
+                    paper = dict(item.payload)
+                else:
+                    paper = paper_from_item(self.site_id, item, self._legacy_id())
             return self._finish(paper, item)
         resp = fetcher.get(item.url)
+        if getattr(resp, "login_suspect", False):
+            raise PermanentFailure("login_required_suspect", item.url, resp.status)
         if self.is_generic and not self.cfg.get("detail_method"):
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(resp.text(), "html.parser")
@@ -200,14 +232,22 @@ class Adapter:
             try:
                 basic = dict(item.payload)
                 extract = self._legacy_id()
-                basic.setdefault("external_id", extract(item.url) if extract and item.url else item.key)
-                basic.setdefault("title", item.title)
-                paper = c._fetch_detail(item.url, basic, c._config.get("detail_page") or {})
+                with guarded():
+                    basic.setdefault("external_id", extract(item.url) if extract and item.url else item.key)
+                    basic.setdefault("title", item.title)
+                    paper = c._fetch_detail(item.url, basic, c._config.get("detail_page") or {})
             finally:
                 del c._fetch_page
             return self._finish(paper, item)
-        result = getattr(c, self.cfg["detail_method"])(*self._args(self.cfg.get("detail_args", ["html", "item"]), resp, item))
+        args = self._args(self.cfg.get("detail_args", ["html", "item"]), resp, item)
+        with guarded():
+            result = getattr(c, self.cfg["detail_method"])(*args)
         return self._finish(result, item)
+
+    def identity(self, item, fetcher):
+        """(post_number, meta_url) this framework would store for ``item`` (no save)."""
+        paper = self.materialize(item, fetcher)
+        return None if paper is None else paper_identity(clean_paper(paper))
 
     def _legacy_id(self):
         """post_number rule: a registered config crawler (or an explicit id_regex) keeps the
@@ -219,16 +259,36 @@ class Adapter:
     def _finish(self, paper, item):
         if not isinstance(paper, dict):
             return None
-        paper = dict(paper)
+        paper = clean_paper(paper)
         paper.setdefault("site_id", self.site_id)
         if not paper.get("url") and not paper.get("meta_url"):
             paper["url"] = item.url
         return paper
 
     # -- save ----------------------------------------------------------------
+    def existing_post_number(self, post_number):
+        if post_number is None:
+            return None
+        return _query(self.conn, "SELECT seq_id FROM documents WHERE site_id=? AND post_number=? ORDER BY seq_id LIMIT 1",
+                      (self.site_id, post_number))
+
     def save(self, paper):
-        seq_id = self.crawler._save_paper(paper)
-        return seq_id, bool(getattr(self.crawler, "_last_save_created", False))
+        """Returns (seq_id, created, note). Never creates a second row for a (site_id, post_number)."""
+        paper = clean_paper(paper)
+        post_number, _ = paper_identity(paper)
+        try:
+            existing = self.existing_post_number(post_number)
+            if existing is not None:
+                return existing, False, "existing_post_number"
+            seq_id = self.crawler._save_paper(paper)
+        except Exception:
+            # psycopg leaves the transaction aborted after any SQL error; without a
+            # rollback every following item would fail too.
+            rollback = getattr(self.conn, "rollback", None)
+            if rollback:
+                rollback()
+            raise
+        return seq_id, bool(getattr(self.crawler, "_last_save_created", False)), None
 
     @staticmethod
     def file_urls(paper):

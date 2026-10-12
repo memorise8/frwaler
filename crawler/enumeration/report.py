@@ -5,16 +5,37 @@ import csv
 import io
 import json
 import os
+import sqlite3
 import tempfile
 from pathlib import Path
 
 CSV_FIELDS = ("site_id", "strategy", "status", "stop_reason", "listed_unique", "saved", "failed_total",
               "failed_by_reason", "independent_evidence", "independent_total", "gap", "segments_total",
-              "segments_incomplete", "segments_mismatch", "files_pending", "files_done", "files_failed",
-              "oldest_item_date", "updated_at")
+              "segments_incomplete", "segments_mismatch", "segments_unverified", "new_duplicates",
+              "identity_match_rate", "published_date_fill", "listed_date_fill", "files_pending", "files_done",
+              "files_failed", "oldest_item_date", "updated_at")
 
 
-def site_report(store, site_id):
+def date_fill(store, site_id, doc_conn):
+    """Share of documents saved through this framework whose date fields are filled."""
+    seq_ids = [r["seq_id"] for r in store._all("SELECT seq_id FROM enum_item WHERE site_id=? AND status='saved' "
+                                                "AND seq_id IS NOT NULL", (site_id,))]
+    if doc_conn is None or not seq_ids:
+        return {"documents": len(seq_ids), "published_date": None, "listed_date": None}
+    filled = {"published_date": 0, "listed_date": 0}
+    mark = "?" if isinstance(doc_conn, sqlite3.Connection) else "%s"
+    for start in range(0, len(seq_ids), 500):
+        chunk = seq_ids[start:start + 500]
+        sql = (f"SELECT published_date, listed_date FROM documents WHERE seq_id IN ({','.join([mark] * len(chunk))})")
+        for row in doc_conn.execute(sql, chunk).fetchall():
+            values = tuple(row[k] for k in row.keys()) if hasattr(row, "keys") else tuple(row)
+            filled["published_date"] += bool(values[0])
+            filled["listed_date"] += bool(values[1])
+    total = len(seq_ids)
+    return {"documents": total, **{k: round(v / total, 4) for k, v in filled.items()}}
+
+
+def site_report(store, site_id, doc_conn=None):
     site = store.site(site_id)
     if site is None:
         return {"site_id": site_id, "status": "not_started"}
@@ -22,7 +43,7 @@ def site_report(store, site_id):
     segments = store.segments(site_id, fp)
     listed = store.listed_count(site_id, fp)
     saved, failed = store.item_counts(site_id)
-    evidence, independent = [], None
+    evidence, independent, sitemap_count = [], None, None
     strategy = site["strategy"]
     if strategy == "date_range_split":
         leaves = [s for s in segments if s["status"] != "split"]
@@ -34,10 +55,12 @@ def site_report(store, site_id):
         if overall is not None:
             evidence.append(f"overall_reported_total={overall}")
     elif strategy == "sitemap":
+        # The sitemap is the enumeration source itself: its URL count cannot be
+        # independent evidence of its own completeness, so no gap is computed.
         urlsets = [s for s in segments if s["evidence"] != "sitemap_index"]
         if urlsets and all(s["reported_total"] is not None for s in urlsets):
-            independent = sum(s["reported_total"] for s in urlsets)
-            evidence.append("sitemap_url_count")
+            evidence.append("sitemap_url_count_not_independent")
+            sitemap_count = sum(s["reported_total"] for s in urlsets)
     else:
         totals = [s["reported_total"] for s in segments if s["reported_total"] is not None]
         if totals:
@@ -45,6 +68,7 @@ def site_report(store, site_id):
             evidence.append("source_reported_total")
     files = store.file_counts(site_id)
     oldest = store.oldest_saved(site_id)
+    fill = date_fill(store, site_id, doc_conn)
     return {
         "site_id": site_id,
         "strategy": strategy,
@@ -57,9 +81,19 @@ def site_report(store, site_id):
         "independent_evidence": evidence or ["none"],
         "independent_total": independent,
         "gap": None if independent is None else independent - listed,
+        "sitemap_url_count": sitemap_count,
         "segments_total": len(segments),
         "segments_incomplete": sum(s["status"] in ("pending", "running", "failed") for s in segments),
         "segments_mismatch": sum(s["status"] in ("mismatch", "cap_unsplittable") for s in segments),
+        "segments_unverified": sum(s["status"] == "unverified" for s in segments),
+        "unverified_segments": [s["segment_key"] for s in segments if s["status"] == "unverified"],
+        "duplicates": site["state"].get("duplicates"),
+        "new_duplicates": (site["state"].get("duplicates") or {}).get("new"),
+        "identity": site["state"].get("identity"),
+        "identity_match_rate": (site["state"].get("identity") or {}).get("match_rate"),
+        "date_fill": fill,
+        "published_date_fill": fill["published_date"],
+        "listed_date_fill": fill["listed_date"],
         "segments": [{k: s[k] for k in ("segment_key", "status", "reported_total", "listed", "evidence")}
                      for s in segments],
         "files_pending": files.get("pending", 0) + files.get("failed_transient", 0),
@@ -85,8 +119,8 @@ def _atomic_text(path, text):
             os.unlink(tmp)
 
 
-def write_report(store, site_ids, out_dir):
-    rows = [site_report(store, s) for s in site_ids]
+def write_report(store, site_ids, out_dir, doc_conn=None):
+    rows = [site_report(store, s, doc_conn=doc_conn) for s in site_ids]
     out_dir = Path(out_dir)
     _atomic_text(out_dir / "completeness.json", json.dumps({"sites": rows}, ensure_ascii=False, indent=1))
     buf = io.StringIO()

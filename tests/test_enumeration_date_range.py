@@ -189,7 +189,7 @@ class DateRangeSplitTest(unittest.TestCase):
 
     def test_resume_skips_completed_segments(self):
         items = make_items()
-        first = self.env.run(plan(), FakeSearch(items), max_requests=4)
+        first = self.env.run(plan(), FakeSearch(items), max_requests=6)
         self.assertEqual((first["status"], first["stop_reason"]), ("incomplete", "request_budget"))
         self.assertEqual(self.segments()["2018"]["status"], "complete")
         transport = FakeTransport(FakeSearch(items))

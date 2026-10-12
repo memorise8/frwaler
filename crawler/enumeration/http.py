@@ -31,7 +31,27 @@ DEFAULT_USER_AGENT = (
 DEFAULT_MAX_BYTES = 50 * 1024 * 1024
 _LOGIN_PATH = re.compile(r"(^|/)(login|signin|sign-in|sso|cas/login|auth)(/|$|\.|\?)", re.I)
 _PASSWORD = re.compile(rb"<input[^>]+type\s*=\s*[\"']?password", re.I)
-_CONTENT = re.compile(rb"<(article|main|table)\b", re.I)
+_LOGIN_WORDS = re.compile(r"\b(log ?in|sign ?in|logon)\b|로그인|connexion|anmelden|inloggen|accedi|iniciar sesi", re.I)
+
+
+def login_page(body):
+    """A page whose main purpose is a login form (not a sidebar login widget).
+
+    True only when a password form exists and either the page title/main
+    heading names a login, or nothing but the form carries links.
+    """
+    if not _PASSWORD.search(body[:262144]):
+        return False
+    from bs4 import BeautifulSoup
+    soup = BeautifulSoup(body[:262144], "html.parser")
+    heads = [soup.title] + soup.find_all(["h1", "h2"], limit=3)
+    if any(h is not None and _LOGIN_WORDS.search(h.get_text(" ", strip=True)) for h in heads):
+        return True
+    for form in soup.find_all("form"):
+        form.decompose()
+    for tag in soup.find_all(["nav", "header", "footer"]):
+        tag.decompose()
+    return not soup.find_all("a", href=True)
 
 
 class FetchError(Exception):
@@ -64,6 +84,18 @@ class AccessBlocked(EnumerationStop):
     """Authentication, refusal, challenge or robots denial. Never bypassed."""
 
 
+class RateLimited(EnumerationStop):
+    """Repeated 429 responses: stop the site and respect a cooldown."""
+
+    def __init__(self, reason, url=None, status=429, retry_at=None):
+        super().__init__(reason, url, status)
+        self.retry_at = retry_at
+
+
+class LoginReview(EnumerationStop):
+    """A listing that is only a login page: stop and wait for review (not a permanent hold)."""
+
+
 class BudgetExhausted(EnumerationStop):
     """Request or wall-clock budget reached; the run stops without completion."""
 
@@ -79,6 +111,7 @@ class Response:
         self.body = body if isinstance(body, bytes) else str(body).encode("utf-8")
         self.url = url
         self._encoding = encoding
+        self.login_suspect = False
 
     def header(self, name, default=None):
         return self.headers.get(name.lower(), default)
@@ -137,7 +170,7 @@ class Fetcher:
     def __init__(self, site_id, transport, gate_dir, *, interval=1.5, max_requests=None,
                  max_runtime_s=None, retries=3, backoff_s=2.0, max_retry_wait_s=120,
                  respect_robots=True, user_agent=DEFAULT_USER_AGENT, encoding=None,
-                 extra_headers=None, clock=time.monotonic, sleep=time.sleep):
+                 extra_headers=None, rate_limit_stop=3, clock=time.monotonic, sleep=time.sleep):
         if not 0 <= float(interval) <= 10:
             raise ValueError("request_interval_s must be within [0, 10]")
         self.site_id = site_id
@@ -158,6 +191,8 @@ class Fetcher:
         self.started = clock()
         self.requests_made = 0
         self.blocked = None
+        self.rate_limit_stop = int(rate_limit_stop)
+        self._consecutive_429 = 0
         self._gates = {}
         self._robots = {}
 
@@ -220,6 +255,7 @@ class Fetcher:
             except TransportError as exc:
                 last = TransientFailure(f"transport:{exc}", url)
             else:
+                self._consecutive_429 = self._consecutive_429 + 1 if resp.status == 429 else 0
                 if resp.status == 429 or resp.status >= 500:
                     if resp.status in accept_statuses:
                         return resp
@@ -228,8 +264,9 @@ class Fetcher:
                     if resp.status == 429:
                         until = retry_after(resp.header("retry-after"), now=time.time())
                         wait = max(wait, until - time.time())
-                        if wait > self.max_retry_wait_s:
-                            raise last
+                        if self._consecutive_429 >= self.rate_limit_stop or wait > self.max_retry_wait_s:
+                            raise RateLimited("rate_limited_cooldown", url, 429,
+                                              retry_at=max(until, time.time() + self.max_retry_wait_s))
                 else:
                     return self._classify(resp, url, accept_statuses) if classify else resp
             if attempt < self.retries - 1:
@@ -258,8 +295,9 @@ class Fetcher:
                 challenge = "browser_security_challenge"
             if challenge:
                 raise self._block(f"challenge:{challenge}", url, status)
-            if _PASSWORD.search(resp.body) and not _CONTENT.search(resp.body):
-                raise self._block("login_form", url, status)
+            # Not a stop by itself: listings with items ignore it, the strategy
+            # decides for empty listings and the runner ledgers detail pages.
+            resp.login_suspect = login_page(resp.body)
         return resp
 
     def _block(self, reason, url, status=None):

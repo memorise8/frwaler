@@ -71,7 +71,9 @@ class SitePlan:
         return hashlib.sha256(json.dumps(contract, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
 
 
-def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S):
+def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
+    """Validate one site. ``registered``: site ids with an existing crawler; such sites
+    must reuse that crawler's listing parser and identity rules (no duplicate rows)."""
     if not isinstance(plan, dict) or not isinstance(plan.get("sites"), dict):
         raise PlanError("plan must contain a 'sites' object")
     if site_id not in plan["sites"]:
@@ -102,6 +104,20 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S):
                 raise PlanError(f"{site_id}: explicit segments require items")
         elif not seg.get("from") or not (seg.get("filter") or {}).get("type", "range"):
             raise PlanError(f"{site_id}: range segments require 'from' and 'filter'")
+    if site_id in set(registered):
+        adapter = raw.get("adapter") or {}
+        if adapter.get("type") != "crawler":
+            raise PlanError(f"{site_id}: registered_crawler_must_be_reused (adapter.type must be 'crawler')")
+        if adapter.get("id_regex"):
+            raise PlanError(f"{site_id}: registered_crawler_must_be_reused (no plan id_regex)")
+        if raw["strategy"] != "sitemap" and (raw["listing"].get("parser") or {}).get("type") != "adapter":
+            raise PlanError(f"{site_id}: registered_crawler_must_be_reused (listing.parser.type must be 'adapter')")
+    if raw["strategy"] == "sitemap" and (raw.get("adapter") or {}).get("detail_method") and \
+            (raw.get("adapter") or {}).get("type") == "crawler":
+        detail_args = (raw.get("adapter") or {}).get("detail_args", ["html", "item"])
+        if "item" in detail_args:
+            # Sitemap items carry no listing payload, so identity could not be checked.
+            raise PlanError(f"{site_id}: sitemap with a detail_method needing list items is not verifiable")
     if raw["strategy"] == "sitemap":
         sm = raw.get("sitemap") or {}
         if not sm.get("sitemap_url") and not sm.get("from_robots"):

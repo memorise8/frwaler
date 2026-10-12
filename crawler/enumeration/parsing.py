@@ -110,12 +110,16 @@ class ListingParser:
 
     def parse(self, resp):
         if self.kind == "html":
-            return self._html(resp)
-        if self.kind == "json":
-            return self._json(resp)
-        if self.kind == "adapter":
-            return self._adapter(resp)
-        raise ValueError(f"unknown listing parser type: {self.kind}")
+            page = self._html(resp)
+        elif self.kind == "json":
+            page = self._json(resp)
+        elif self.kind == "adapter":
+            page = self._adapter(resp)
+        else:
+            raise ValueError(f"unknown listing parser type: {self.kind}")
+        if getattr(resp, "login_suspect", False):
+            page.extra["login_suspect"] = True
+        return page
 
     def _html(self, resp):
         from bs4 import BeautifulSoup
@@ -191,8 +195,13 @@ class ListingParser:
             if isinstance(title, dict):
                 title = title.get("rendered", "")
             raw_date = json_path(record, cfg.get("date", "date"))
+            # The raw source string goes to the save path, which normalizes it
+            # (value/raw/status/precision); nothing is invented when absent.
+            payload = {"record": record, "detail_url": url, "title": str(title or "")}
+            if raw_date:
+                payload["published_date"] = str(raw_date)
             items.append(Item(key=key, url=url, date=date_value(raw_date) if raw_date else None,
-                              title=str(title or ""), payload={"record": record, "detail_url": url}))
+                              title=str(title or ""), payload=payload))
         return Page(items, extract_total(self.total_cfg, resp, data=data), resp.status)
 
     def _adapter(self, resp):
@@ -206,7 +215,8 @@ class ListingParser:
                 continue
             url = row.get(cfg.get("url_field", "detail_url")) or row.get("url") or ""
             url = urljoin(resp.url, str(url)) if url else ""
-            raw_id = row.get(cfg["key_field"]) if cfg.get("key_field") else None
+            # Registered config crawlers return their legacy external_id; use it.
+            raw_id = row.get(cfg.get("key_field", "external_id"))
             if not url and raw_id in (None, ""):
                 continue
             key = self._key(url, raw_id)
