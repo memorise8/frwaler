@@ -17,7 +17,7 @@
       "item_link": "a[href]",
       "item_link_attr": "href",
       "title": "h2 a, h3 a, .views-field-title a",
-      "date": null,
+      "date": ".publication-date",
       "category": null
     }
   },
