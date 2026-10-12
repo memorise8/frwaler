@@ -166,6 +166,29 @@ class IdentityMissingReview(Base):
         self.assertEqual({"identity_missing:1", "adapter_contract_failures:1"}, set(result["stop_reason"].split(";")))
 
 
+class QueryBindingAfterRedirect(Base):
+    """LOW-3: detail/paper query bindings read the item URL as requested."""
+
+    def test_query_binding_uses_item_url(self):
+        plan = site()
+        plan["adapter"]["detail_args"] = ["html", {"source": "query", "path": ["id"]}]
+        c = crawler(self.env, None)
+        c.detail = lambda html, ident: {"external_id": ident, "url": f"https://board.test/view?id={ident}",
+                                        "title": "t"}
+        result = self.env.run(plan, Redirecting(3, page_size=10), crawler=c)
+        self.assertEqual("complete", result["status"], result)
+        self.assertEqual(["1", "2", "3"], sorted(d["post_number"] for d in self.env.docs()))
+
+    def test_final_url_still_available(self):
+        plan = site()
+        plan["adapter"]["detail_args"] = ["html", "final_url", "item"]
+        c = crawler(self.env, None)
+        c.detail = lambda html, url, item: {"external_id": item["external_id"], "url": url, "title": "t"}
+        result = self.env.run(plan, Redirecting(3, page_size=10), crawler=c)
+        self.assertEqual("complete", result["status"], result)
+        self.assertTrue(all("/article/" in d["meta_url"] for d in self.env.docs()))
+
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -168,7 +168,10 @@ class Contract:
             if source == "query":
                 if resp is None:
                     fail("response_required:query")
-                query = parse_qs(urlsplit(resp.url).query, keep_blank_values=True)
+                # Detail/paper stages read the item URL as requested (like ``url``), never
+                # the post-redirect URL; the list stage has no item and reads its own page URL.
+                query = parse_qs(urlsplit(item.url if item is not None else resp.url).query,
+                                 keep_blank_values=True)
                 if any(len(v) != 1 for v in query.values()):
                     fail("ambiguous_query")
                 data = {k: v[0] for k, v in query.items()}
