@@ -1,0 +1,10 @@
+# 제안만 함: 루트 .dockerignore 에 추가하면 빌드 컨텍스트가 더 작아진다 (필수 아님).
+# 시범 이미지에 필요한 것은 crawler/ 와 delivery 일부뿐.
+delivery/fe/
+delivery/be/
+finolaw/
+docs/
+**/*.sqlite
+**/*.sqlite-*
+deploy/enum-pilot/*.csv
+deploy/enum-pilot/plan*.json
