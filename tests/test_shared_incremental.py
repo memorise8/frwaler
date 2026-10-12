@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 from crawler.base_crawler import BaseCrawler, CrawlCancelled
-from crawler.incremental import Collector, Entry, Page, Policy, Store, init_schema
+from crawler.incremental import Collector, Entry, Page, Policy, Store, init_schema, observe_order, infer_order
 
 
 class Crawler(BaseCrawler):
@@ -140,6 +140,35 @@ class IncrementalTests(unittest.TestCase):
         self.assertEqual(len(source.calls),4)
         self.assertEqual(self.c.saved_order,['25'])
 
+    def test_pins_only_page_does_not_consume_overlap_after_restart(self):
+        self.run_source(list(range(1,31)))
+        # The first ordinary page is all known. A page containing only pins
+        # cannot prove that we have inspected the neighbouring ordinary page.
+        self.conn.execute("DELETE FROM docs WHERE id='27'");self.conn.commit()
+        batches = [(30,29,28), (1,2,3), (27,26,25), (24,23,22), (21,20,19)]
+        def source():
+            adapter = Source(self.c, [])
+            def fetch(cursor, direction):
+                index = (cursor or {}).get('index', 0)
+                adapter.calls.append(index)
+                return Page([Entry(str(i), {'external_id':str(i),'title':str(i)},
+                                   pinned=index == 1) for i in batches[index]],
+                            {'index':index+1})
+            adapter.fetch = fetch
+            return adapter
+        self.c = self.crawler()
+        first = source()
+        Collector(self.c,first,Policy(max_pages=2,full_check_days=0)).run()
+        self.assertEqual(self.state()['phase'],'discover')
+        self.assertEqual(self.state()['overlap'],1)
+        self.conn.close();self.conn = sqlite3.connect(self.path)
+        self.c = self.crawler()
+        resumed = source()
+        self.assertEqual(Collector(self.c,resumed,self.policy).run(),1)
+        self.assertEqual(resumed.calls,[2,3,4])
+        self.assertEqual(self.c.saved_order,['27'])
+        self.assertEqual(self.state()['last_run']['stop_reason'],'known_boundary_plus_overlap')
+
     def test_limit_is_not_completion_and_restart_drains_without_requests(self):
         self.run_source(list(range(1,10)),limit=2)
         self.assertFalse(self.state().get('baseline_complete',False))
@@ -236,6 +265,25 @@ class IncrementalTests(unittest.TestCase):
         self.run_source(list(range(1,10)))
         source=Source(self.c,list(range(1,10)));source.contract='different-scope'
         with self.assertRaisesRegex(ValueError,'contract changed'):Collector(self.c,source,self.policy).run()
+
+    def test_exact_dates_infer_both_directions_without_numeric_ids(self):
+        for dates, expected in [(['2026-01-01', '2026-01-02'], 'oldest_first'),
+                                (['2026-01-02', '2026-01-01'], 'newest_first')]:
+            with self.subTest(expected=expected):
+                proof = {}
+                # A pin's old date must not change the ordinary listing proof.
+                observe_order(proof, [Entry('pin', {}, '2000-01-01', True),
+                                      Entry('alpha', {}, dates[0])], False)
+                observe_order(proof, [Entry('beta', {}, dates[1])], False)
+                self.assertEqual(infer_order(proof), (expected, 'date'))
+
+    def test_first_last_dates_alone_cannot_certify_mixed_or_missing_order(self):
+        for dates in [['2026-01-03', '2026-01-01', '2026-01-02'],
+                      ['2026-01-03', '', '2026-01-01'], ['2026', '2025']]:
+            with self.subTest(dates=dates):
+                proof = {}
+                observe_order(proof, [Entry(str(i), {}, d) for i,d in enumerate(dates)], False)
+                self.assertEqual(infer_order(proof), ('arbitrary', 'order_ambiguous'))
 
 
 if __name__=='__main__':unittest.main()

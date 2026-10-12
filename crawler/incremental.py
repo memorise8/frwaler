@@ -270,10 +270,13 @@ class Collector:
                         # boundary. Always consume another complete overlap page.
                         if found_new:
                             state["overlap"] = None
-                        elif page.entries and state["overlap"] is not None:
+                        elif ordinary and state["overlap"] is not None:
+                            # Pins-only pages do not inspect the next ordinary
+                            # slice. Persist the remaining overlap across them,
+                            # including when this run stops at its page budget.
                             state["overlap"] -= 1
                             boundary = state["overlap"] <= 0
-                        if state["overlap"] is None and (all_known or state["streak"] >= p.known_run):
+                        if ordinary and state["overlap"] is None and (all_known or state["streak"] >= p.known_run):
                             state["overlap"] = p.overlap_pages
                     state["cursor"] = page.next_cursor
                     if page.exhausted or (boundary and page.boundary_safe):
