@@ -47,3 +47,12 @@ progress.json의 structure_discovery와 사이트 대장의 같은 필드에 갱
 오인한 것은 parser 수정과 근거 보존 후 제거했다. 기존 마지막/다음 빈 페이지 관측은 유지했다.
 전체1,245개가 measured 또는 근거 있는 unmeasurable로 정리되고8항목의 근거/불가 사유를
 감사한 뒤에만 목표 완료로 보고한다.
+
+응답 요약의 별도 품질 검사
+python -m delivery.scripts.review_structure_discovery --out <discovery-20261012>
+이 명령은 네트워크/DB에 접근하지 않고 완료된 JSON만 읽는다. 원본 site JSON이나 실행 중인
+progress/대장을 덮어쓰지 않고 quality-review.json과 followup-queue.json에 보수적인 판정을 기록한다.
+8필드 누락, 요청 상한, 가장 오래된 ID/날짜 미확정, 마지막 페이지의 날짜 누락, 사이트맵 갱신일과
+발행일 혼동, 반복 ID, 혼합 정렬, 되돌아감/조회 상한, 자체 redirect 등을 후속 확인 대상으로 분리한다.
+따라서 1차 결과의 measured 개수와 이 품질 검사를 통과한 개수는 다를 수 있다. 최종 집계 전
+검사 결과를 사이트별 근거와 대장에 반영해야 하며 needs_review는 완료로 세지 않는다.
