@@ -435,5 +435,49 @@ class ResponseEncodingTest(unittest.TestCase):
         self.assertIn("é", Response(200, {"Content-Type": "text/html"}, body).text())
 
 
+def page(head_title, body):
+    return f"<html><head><title>{head_title}</title></head><body>{body}</body></html>".encode()
+
+
+class LoginPageTest(unittest.TestCase):
+    """MEDIUM-7: a login modal in the page chrome is not a login page; real login pages still are."""
+
+    NAV = "<header><nav><a href='/'>Accueil</a><a href='/pubs'>Publications</a></nav></header>"
+    FOOT = "<footer><a href='/legal'>Mentions</a></footer>"
+
+    def test_header_modal_with_content_is_not_login(self):
+        html = (b"<html><head><title>Rapport annuel 2024</title></head><body><header><nav><a href='/'>Accueil</a>"
+                b"</nav><div class=modal><h2>Connexion</h2><form><input type=password name=p></form></div></header>"
+                b"<main><h1>Rapport annuel 2024</h1><a href='/doc.pdf'>PDF</a></main></body></html>")
+        self.assertFalse(H.login_page(html))
+
+    def test_dialog_outside_header_is_not_login(self):
+        body = (self.NAV + "<main><h1>Étude 12</h1><p>Résumé</p><a href='/e12.pdf'>PDF</a></main>"
+                "<div id='loginModal' class='modal fade' role='dialog'><h2>Log in</h2>"
+                "<form><input type='password' name='pw'></form></div>" + self.FOOT)
+        self.assertFalse(H.login_page(page("Étude 12", body)))
+        body = (self.NAV + "<main><h1>Étude 12</h1><a href='/e12.pdf'>PDF</a></main>"
+                "<dialog><h2>Sign in</h2><form><input type=password></form></dialog>")
+        self.assertFalse(H.login_page(page("Étude 12", body)))
+
+    def test_real_login_pages_still_detected(self):
+        form = "<form><input name=u><input type=password name=p><a href='/forgot'>Mot de passe oublié</a></form>"
+        cases = [
+            page("Connexion | Site", self.NAV + f"<main>{form}<a href='/help'>Aide</a></main>" + self.FOOT),
+            page("Site", self.NAV + f"<main><h1>Sign in</h1>{form}<a href='/help'>Help</a></main>" + self.FOOT),
+            page("Site", self.NAV + f"<main><h2>Connexion</h2>{form}<a href='/help'>Aide</a></main>" + self.FOOT),
+            page("Site", self.NAV + f"<main>{form}</main>" + self.FOOT),  # nothing but the form
+            # A login wall rendered as a modal with no other content.
+            page("Site", self.NAV + f"<div class='modal'><h2>Connexion</h2>{form}</div>" + self.FOOT),
+            # Login heading in a modal and the page title also says login.
+            page("Login", self.NAV + f"<div class='modal'><h2>Log in</h2>{form}</div><main><a href='/x'>x</a></main>"),
+        ]
+        for html in cases:
+            self.assertTrue(H.login_page(html), html)
+
+    def test_no_password_never_login(self):
+        self.assertFalse(H.login_page(page("Connexion", "<h1>Connexion</h1>")))
+
+
 if __name__ == "__main__":
     unittest.main()

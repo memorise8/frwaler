@@ -45,17 +45,37 @@ _PASSWORD = re.compile(rb"<input[^>]+type\s*=\s*[\"']?password", re.I)
 _LOGIN_WORDS = re.compile(r"\b(log ?in|sign ?in|logon)\b|로그인|connexion|anmelden|inloggen|accedi|iniciar sesi", re.I)
 
 
-def login_page(body):
-    """A page whose main purpose is a login form (not a sidebar login widget).
+_OVERLAY = re.compile(r"modal|popup|pop-up|dialog|offcanvas|overlay|dropdown|lightbox", re.I)
+_PASSWORD_TYPE = re.compile(r"^\s*password\s*$", re.I)
 
-    True only when a password form exists and either the page title/main
-    heading names a login, or nothing but the form carries links.
+
+def _overlay(tag):
+    """A modal/dialog/popup container: page chrome, not what the page is for."""
+    if tag.name == "dialog" or str(tag.get("role") or "").lower() in ("dialog", "alertdialog"):
+        return True
+    classes = tag.get("class") or []
+    names = " ".join(classes if isinstance(classes, list) else [str(classes)]) + " " + str(tag.get("id") or "")
+    return bool(_OVERLAY.search(names))
+
+
+def login_page(body):
+    """A page whose main purpose is a login form (not a sidebar/header/modal login widget).
+
+    True only when a password form exists and either the page title/main heading names a
+    login, or nothing but the form carries links. When every password field sits inside a
+    modal/dialog/popup, that overlay's own headings do not count (a site-wide login modal
+    on a content page); the title and the remaining headings still do.
     """
     if not _PASSWORD.search(body[:262144]):
         return False
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(body[:262144], "html.parser")
-    heads = [soup.title] + soup.find_all(["h1", "h2"], limit=3)
+    for tag in soup.find_all(_overlay):
+        tag.decompose()
+    in_content = soup.find("input", attrs={"type": _PASSWORD_TYPE}) is not None
+    # A password field in the content: the headings of the whole page count, as before.
+    heads_soup = BeautifulSoup(body[:262144], "html.parser") if in_content else soup
+    heads = [heads_soup.title] + heads_soup.find_all(["h1", "h2"], limit=3)
     if any(h is not None and _LOGIN_WORDS.search(h.get_text(" ", strip=True)) for h in heads):
         return True
     for form in soup.find_all("form"):
