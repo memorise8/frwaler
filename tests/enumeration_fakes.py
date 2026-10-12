@@ -10,7 +10,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from crawler import db_libertree
 from crawler.enumeration.adapters import Adapter
-from crawler.enumeration.http import Fetcher, Response, TransportError
+from crawler.enumeration.http import Fetcher, Response
 from crawler.enumeration.plan import site_plan
 from crawler.enumeration.runner import SiteRunner
 from crawler.enumeration.store import Store
