@@ -63,8 +63,10 @@ plan.json ─► SitePlan ─► Strategy.batches(progress)  ── yields Batch
   | 기타 4xx(400, 405, 422…) | `PermanentFailure(http_4xx)` | 같음 |
   | 전송 오류, 5xx, 429 | 재시도(`retries`, 지수 대기, 429는 Retry-After 존중·상한) 후 `TransientFailure` | 항목: 대장(일시 실패, 시도 횟수) 후 계속, 다음 실행에서 `item_max_attempts`까지 재시도. 목록: 해당 실행 중단(미완료) |
   | 401/403/407/451, JS/봇 챌린지 본문(`access_challenge`), 로그인 경로 리다이렉트, robots 거부 | `AccessBlocked` | **우회하지 않는다**. 사이트 상태를 `access_blocked`로 기록하고 그 사이트 진행을 멈춘다. 이후 실행도 사람이 검토해 `--refresh`로 풀기 전까지 요청하지 않는다 |
-* robots.txt: 호스트별 1회(같은 게이트 경유) 조회. RFC 9309에 따라 4xx(401/403 포함)는 "규칙 없음"으로 보고
-  (페이지 자체의 401/403은 별도로 접근 차단 처리), 5xx/전송 오류는 허용을 추측하지 않고 일시 실패로 진행을 멈춘다.
+* robots.txt: 호스트별 1회(같은 게이트 경유) 조회. 404/410 등 4xx는 "규칙 없음", 401/403/407/451은 호스트 보류(H09).
+  5xx/429/전송 오류(재시도 후)는 허용을 추측하지 않고 `RobotsUnavailable`(`robots_unavailable:<세부>`)로 사이트 실행을
+  멈춘다(`incomplete`, 재개 가능, 호스트 보류 아님). 같은 Fetcher 안에서 그 출처의 robots는 `ROBOTS_RETRY_S`(300초)
+  동안 다시 요청하지 않고 같은 정지를 낸다(URL마다 robots 재요청 방지). 파일 패스도 같은 정지로 멈춘다(시도 횟수 미증가).
   `respect_robots: false`는 plan에서 명시할 때만.
 * robots 규칙 해석은 표준 `urllib.robotparser`가 아니라 직접 구현한 RFC 9309 매처(`http.parse_robots`)다:
   우리 user agent에 들어 있는 토큰(대소문자 무시)을 이름으로 한 그룹이 있으면 그 그룹들(합침), 없으면 `*` 그룹들.

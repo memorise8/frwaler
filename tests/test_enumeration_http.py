@@ -12,7 +12,8 @@ from pathlib import Path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from crawler.enumeration.http import (AccessBlocked, BudgetExhausted, Fetcher, PermanentFailure,  # noqa: E402
-                                      RateLimited, Response, TransientFailure, TransportError)
+                                      RateLimited, Response, RobotsUnavailable, TransientFailure,
+                                      TransportError)
 from crawler.enumeration.urls import build_url, decode_preencoded  # noqa: E402
 from tests.enumeration_fakes import FakeTransport  # noqa: E402
 
@@ -113,7 +114,7 @@ class FetcherTest(unittest.TestCase):
         self.assertEqual(ctx.exception.reason, "robots_disallowed")
         self.assertEqual(sum(u.endswith("robots.txt") for u in t.urls), 1)
         f, _ = self.fetcher(lambda u: Response(503, {}, b""), respect_robots=True, retries=2)
-        with self.assertRaises(TransientFailure):
+        with self.assertRaises(RobotsUnavailable):
             f.get("https://b.test/x")  # unreachable robots: stop, do not assume permission
         f, _ = self.fetcher(lambda u: Response(404, {}, b"") if u.endswith("robots.txt") else ok(),
                             respect_robots=True)

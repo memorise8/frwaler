@@ -13,7 +13,8 @@ import sqlite3
 import tempfile
 from pathlib import Path
 
-from .http import AccessBlocked, BudgetExhausted, PermanentFailure, PrivateDestination, RateLimited, TransientFailure
+from .http import (AccessBlocked, BudgetExhausted, PermanentFailure, PrivateDestination, RateLimited,
+                   RobotsUnavailable, TransientFailure)
 
 _PAGE = re.compile(rb"/Type\s*/Page(?!s)\b")
 
@@ -136,6 +137,11 @@ class FilePass:
             except RateLimited as exc:
                 stats["stopped"] = exc.reason
                 self._hold_site(site_id, None, exc.reason, retry_at=exc.retry_at)
+                break
+            except RobotsUnavailable as exc:
+                # The file is untouched (no attempt counted); the pass stops, nothing is held.
+                stats["stopped"] = exc.reason
+                self.store.event(site_id, "robots_unavailable", {"reason": exc.reason, "url": url})
                 break
             except BudgetExhausted as exc:
                 stats["stopped"] = exc.reason

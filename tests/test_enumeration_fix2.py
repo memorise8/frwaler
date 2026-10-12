@@ -194,5 +194,62 @@ class RobotsFetcherTest(unittest.TestCase):
         self.assertNotIn("b.test", f._host_delay)
 
 
+class RobotsUnavailableTest(unittest.TestCase):
+    """MEDIUM-3: an unreachable robots.txt stops the site and is not re-requested for every URL."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.clock = FakeClock()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_failure_cached_then_retried_after_ttl(self):
+        def handler(url):
+            return Response(503, {}, b"") if url.endswith("/robots.txt") else ok()
+        t = FakeTransport(handler)
+        f = Fetcher("s", t, Path(self.tmp.name) / "gates", interval=0, retries=3, sleep=lambda s: None,
+                    clock=self.clock.monotonic)
+        for i in range(3):
+            with self.assertRaises(H.RobotsUnavailable) as ctx:
+                f.get(f"https://x.org/p{i}")
+            self.assertEqual(ctx.exception.reason, "robots_unavailable:http_503")
+        self.assertEqual(t.urls, ["https://x.org/robots.txt"] * 3)  # one robots fetch (3 tries), no page
+        self.clock.t += H.ROBOTS_RETRY_S + 1
+        with self.assertRaises(H.RobotsUnavailable):
+            f.get("https://x.org/p9")
+        self.assertEqual(len(t.urls), 6)
+
+    def test_runner_stops_incomplete_without_item_requests(self):
+        from tests.enumeration_fakes import Env, FakeBoard, board_plan
+        env = Env()
+        self.addCleanup(env.close)
+        board = FakeBoard(25)
+
+        def handler(url):
+            return Response(503, {}, b"") if url.endswith("/robots.txt") else board(url)
+        result = env.run(board_plan(), handler)
+        self.assertEqual((result["status"], result["stop_reason"]), ("incomplete", "robots_unavailable:http_503"))
+        urls = result["transport"].urls
+        self.assertTrue(urls and all(u.endswith("/robots.txt") for u in urls), urls)
+        self.assertEqual(len(urls), 3)
+        self.assertIsNone(env.store.host_hold("board.test"))  # not a refusal: no host hold
+        self.assertEqual(env.store.events(env.site_id, "robots_unavailable")[-1]["detail"]["reason"],
+                         "robots_unavailable:http_503")
+
+    def test_file_pass_stops_without_attempt(self):
+        from crawler.enumeration.files import FilePass
+        from tests.enumeration_fakes import Env
+        env = Env()
+        self.addCleanup(env.close)
+        env.store.enqueue_file(env.site_id, 1, "https://cdn.test/a.pdf")
+        t = FakeTransport(lambda u: Response(503, {}, b""))
+        f = Fetcher(env.site_id, t, env.root / "gates", interval=0, sleep=lambda s: None, holds=env.store)
+        stats = FilePass(env.store, f, blob_root=env.root / "blobs").run(env.site_id)
+        self.assertEqual(stats["stopped"], "robots_unavailable:http_503")
+        row = env.store.files(env.site_id)[0]
+        self.assertEqual((row["status"], row["attempts"]), ("pending", 0))
+
+
 if __name__ == "__main__":
     unittest.main()

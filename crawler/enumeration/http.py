@@ -39,6 +39,7 @@ DEFAULT_MAX_BYTES = 50 * 1024 * 1024
 _LOGIN_PATH = re.compile(r"(^|/)(login|logon|signin|sign-in|sso|cas/login|auth|oauth2?|saml|captcha|challenge)"
                          r"(/|$|\.|\?)", re.I)
 REFUSAL_STATUSES = (401, 403, 407, 429, 451)
+ROBOTS_RETRY_S = 300  # an unreachable robots.txt is not asked again sooner (per origin, per Fetcher)
 _PASSWORD = re.compile(rb"<input[^>]+type\s*=\s*[\"']?password", re.I)
 _LOGIN_WORDS = re.compile(r"\b(log ?in|sign ?in|logon)\b|로그인|connexion|anmelden|inloggen|accedi|iniciar sesi", re.I)
 
@@ -275,6 +276,11 @@ class PrivateDestination(EnumerationStop):
         self.host, self.address = host, address
 
 
+class RobotsUnavailable(EnumerationStop):
+    """robots.txt answered 5xx/429 or could not be reached: permission is never assumed.
+    Stops the site run (resumable, not a hold); cached for ROBOTS_RETRY_S per origin."""
+
+
 class LoginReview(EnumerationStop):
     """A listing that is only a login page: stop and wait for review (not a permanent hold)."""
 
@@ -417,6 +423,7 @@ class Fetcher:
         self._gates = {}
         self._host_delay = {}
         self._robots = {}
+        self._robots_failed = {}  # origin -> (retry_after monotonic, reason)
 
     # -- gate ----------------------------------------------------------
     def _gate(self, host):
@@ -485,7 +492,16 @@ class Fetcher:
         parts = urlsplit(url)
         origin = f"{parts.scheme}://{parts.netloc}"
         if origin not in self._robots:
-            self._robots[origin] = self._load_robots(origin)
+            failed = self._robots_failed.get(origin)
+            if failed and self.clock() < failed[0]:
+                raise RobotsUnavailable(failed[1], url)
+            try:
+                self._robots[origin] = self._load_robots(origin)
+            except TransientFailure as exc:
+                reason = f"robots_unavailable:{exc.reason}"
+                self._robots_failed[origin] = (self.clock() + ROBOTS_RETRY_S, reason)
+                raise RobotsUnavailable(reason, url, exc.status) from None
+            self._robots_failed.pop(origin, None)
         rule = self._robots[origin]
         if rule == "unparseable":
             # Never read a file we could not parse as permission.
@@ -494,7 +510,8 @@ class Fetcher:
 
     def _load_robots(self, origin):
         """404/410 and other 4xx: no rules. 401/403/407/451, a challenge/login page or a
-        redirect to a login path: hold (never read as permission). 5xx: transient stop."""
+        redirect to a login path: hold (never read as permission). 5xx/429/transport errors
+        after the retries: TransientFailure, turned into a RobotsUnavailable stop by the caller."""
         url = origin + "/robots.txt"
         for _hop in range(self.max_redirects + 1):
             resp = self._with_retries(url, classify=False)
@@ -602,7 +619,8 @@ class Fetcher:
         """Fetch ``url`` through the gate, following redirects hop by hop.
         Returns a 2xx (or accepted) Response.
 
-        Raises PermanentFailure, TransientFailure, AccessBlocked, RateLimited or BudgetExhausted.
+        Raises PermanentFailure, TransientFailure, AccessBlocked, RateLimited, RobotsUnavailable or
+        BudgetExhausted.
         """
         accept_statuses = tuple(s for s in accept_statuses if s not in REFUSAL_STATUSES)
         current = url

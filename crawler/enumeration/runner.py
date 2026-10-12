@@ -10,7 +10,7 @@ from delivery.scripts.discovery_structure import date_value
 from .adapters import (AdapterConfigError, AdapterUngatedNetwork, IdentityCollision, IdentityMissing,
                        IdentityReview, IdentityRuleConfig)
 from .http import (AccessBlocked, BudgetExhausted, EnumerationStop, LoginReview, PermanentFailure, PrivateDestination,
-                   RateLimited, TransientFailure)
+                   RateLimited, RobotsUnavailable, TransientFailure)
 from .parsing import Item, ListingParser
 from .strategies import STRATEGIES, StrategyStop, today_from
 from .urls import host_of, normalize_key_url, url_identity
@@ -338,6 +338,10 @@ class SiteRunner:
         if isinstance(exc, RateLimited):
             state["cooldown_until"] = exc.retry_at
             st.event(site, "rate_limited_cooldown", {"url": exc.url, "retry_at": exc.retry_at, "reason": exc.reason})
+            return "incomplete", exc.reason
+        if isinstance(exc, RobotsUnavailable):
+            # No permission can be read: stop (resumable), never a host hold.
+            st.event(site, "robots_unavailable", {"reason": exc.reason, "url": exc.url, "status": exc.status})
             return "incomplete", exc.reason
         if isinstance(exc, LoginReview):
             st.event(site, "login_form_review", {"url": exc.url, "reason": exc.reason})
