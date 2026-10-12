@@ -248,8 +248,14 @@ class ListingParser:
     def _adapter(self, resp):
         if self.adapter is None:
             raise ValueError("listing parser type 'adapter' requires a crawler adapter")
-        rows = self.adapter.parse_list(resp) or []
         strict = getattr(self.adapter, "contract", None) is not None
+        if strict and self.adapter.cfg.get("list_source") == "json":
+            try:
+                resp.json()
+            except ValueError:
+                # Same classification as the json parser: a listing error, never an empty page.
+                return Page([], None, resp.status, {"parse_error": "invalid_json"})
+        rows = self.adapter.parse_list(resp) or []
         cfg = self.cfg
         items, seen = [], set()
         for row in rows:

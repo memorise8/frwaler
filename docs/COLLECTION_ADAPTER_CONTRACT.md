@@ -165,3 +165,7 @@ docker run --rm --name enum-test-adapter-20261012-verified \
 
 - 계약 사이트의 adapter 목록 파서는 `listing.parser.url_field`(계약 사이트 기본값 `"url"`) 한 필드만 읽는다. 그 값이 비어도 다른 `url`/`detail_url` 키로 폴백하지 않는다. 계약 없는 경로의 기본값(`detail_url` → `url` 폴백)은 그대로다.
 - `detail_method`가 있는데 행에 URL이 없으면 `adapter_contract:listing_url_missing`으로 거부한다(상세 요청 URL을 만들지 않음). URL과 key가 모두 없으면 종전대로 `listing_identity_missing`. 둘 다 목록 단계 오류이므로 사이트를 멈춘다.
+
+### JSON 목록의 비JSON 응답 (L3)
+
+- `list_source: "json"` 계약 사이트에서 목록 응답이 JSON이 아니면(점검 페이지·HTML 오류 등) 기존 json 파서와 같이 `parse_error: invalid_json` 페이지로 분류한다. 전략은 이를 `listing_parse_error:invalid_json`으로 올리고 사이트는 `incomplete(listing_failed:listing_parse_error:invalid_json)`로 끝난다. 빈 목록이나 runner 오류(`failed`)로 처리하지 않는다.

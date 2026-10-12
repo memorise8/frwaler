@@ -175,6 +175,21 @@ class ContractRunnerTests(unittest.TestCase):
         self.assertEqual((5, 5, 4), (identity["errors"], identity["compared"], identity["matched"]))
         self.assertEqual(6, identity["contract_data_errors"])
 
+    def test_json_source_with_non_json_listing_is_parse_error(self):
+        from crawler.enumeration.http import Response
+        from crawler.enumeration.parsing import ListingParser
+        plan = site(adapter={"type": "crawler", "contract_version": 1, "list_source": "json", "paper_method": "paper"})
+        plan["listing"]["parser"] = {"type": "adapter", "key_field": "id", "url_field": "link"}
+        c = crawler(self.env, None)
+        c.paper = lambda item: {"external_id": str(item["id"]), "url": item["link"], "title": "t"}
+        from crawler.enumeration.adapters import Adapter
+        page = ListingParser(plan["listing"]["parser"], adapter=Adapter("fake-site", plan["adapter"], None, crawler=c)) \
+            .parse(Response(200, {"Content-Type": "text/html"}, "<html>maintenance</html>", "https://board.test/list"))
+        self.assertEqual({"parse_error": "invalid_json"}, page.extra)
+        result = self.env.run(plan, FakeBoard(5), crawler=c)
+        self.assertEqual(("incomplete", "listing_failed:listing_parse_error:invalid_json"),
+                         (result["status"], result["stop_reason"]))
+
     def test_failure_limits_validated(self):
         from crawler.enumeration.plan import PlanError
         for key, value in [("max_consecutive_contract_failures", 0), ("max_consecutive_contract_failures", True),
