@@ -39,10 +39,16 @@ class SiteRunner:
         self.stats = {"batches": 0, "listed": 0, "skipped_known": 0, "saved_new": 0, "saved_existing": 0,
                       "failed_permanent": 0, "failed_transient": 0, "retried": 0}
         self._save_errors = 0
+        self._attempted = set()
 
     # -- items ---------------------------------------------------------------
     def process_item(self, item, segment):
         st, site = self.store, self.site_id
+        if item.key in self._attempted:
+            # Overlap re-reads list items twice; the fetcher already retried.
+            self.stats["skipped_known"] += 1
+            return
+        self._attempted.add(item.key)
         row = st.item(site, item.key)
         max_attempts = int(self.plan.get("item_max_attempts"))
         if row and (row["status"] in ("saved", "failed_permanent", "failed_retries_exhausted")
