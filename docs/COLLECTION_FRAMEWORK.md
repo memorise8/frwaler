@@ -65,12 +65,12 @@ plan.json ─► SitePlan ─► Strategy.batches(progress)  ── yields Batch
   | 401/403/407/451, JS/봇 챌린지 본문(`access_challenge`), 로그인 경로 리다이렉트, robots 거부 | `AccessBlocked` | **우회하지 않는다**. 사이트 상태를 `access_blocked`로 기록하고 그 사이트 진행을 멈춘다. 이후 실행도 사람이 검토해 `--refresh`로 풀기 전까지 요청하지 않는다 |
 * robots.txt: 호스트별 1회(같은 게이트 경유) 조회. 404/410 등 4xx는 "규칙 없음", 401/403/407/451은 호스트 보류(H09).
   5xx/429/전송 오류(재시도 후)는 허용을 추측하지 않고 `RobotsUnavailable`(`robots_unavailable:<세부>`)로 사이트 실행을
-  멈춘다(`incomplete`, 재개 가능, 호스트 보류 아님). 같은 Fetcher 안에서 그 출처의 robots는 `ROBOTS_RETRY_S`(300초)
+  멈추고(`incomplete`, 재개 가능, 호스트 보류 아님) 사이트 상태에 `cooldown_until`(지금+300초)을 남겨 다음 실행도 그동안 요청하지 않는다. robots.txt가 본문 상한을 넘어도 같은 정지. 같은 Fetcher 안에서 그 출처의 robots는 `ROBOTS_RETRY_S`(300초)
   동안 다시 요청하지 않고 같은 정지를 낸다(URL마다 robots 재요청 방지). 파일 패스도 같은 정지로 멈춘다(시도 횟수 미증가).
   `respect_robots: false`는 plan에서 명시할 때만.
 * robots 규칙 해석은 표준 `urllib.robotparser`가 아니라 직접 구현한 RFC 9309 매처(`http.parse_robots`)다:
-  우리 제품 토큰(User-Agent의 첫 제품명, 기본값이면 `Mozilla`, 대소문자 무시 — 이전 robotparser와 같은 선택)을 이름으로 한
-  그룹이 있으면 그 그룹들(합침), 없으면 `*` 그룹들. `Chrome`·`Safari` 등 브라우저 UA의 다른 단어는 그룹을 고르지 않는다
+  우리 제품 토큰(User-Agent의 첫 제품명, 기본값이면 `Mozilla`, 대소문자 무시)과 **값 전체가 같은** 그룹이 있으면
+  (`Mozilla/5.0 (compatible; Yeti/1.1)`처럼 다른 수집기의 UA 문자열 전체는 우리를 고르지 않는다) 그 그룹들(합침), 없으면 `*` 그룹들. `Chrome`·`Safari` 등 브라우저 UA의 다른 단어는 그룹을 고르지 않는다
   (더 느슨한 그룹이 엄격한 `*`를 대신하지 않게). Crawl-delay는 UA 부분 문자열이 일치하는 그룹과 `*` 그룹 값 중 **큰 값**을 쓴다(간격을 줄이지 않게).
   경로+질의에 대해 **가장 긴 패턴**이 이기고 길이가 같으면 Allow. `*`(임의 문자열)와 끝의 `$`(끝 고정) 지원.
   비교 전 퍼센트 인코딩 정규화(비ASCII는 UTF-8 `%XX`, 비예약 문자 `%XX`는 해제, 예약 문자 `%2F` 등은 유지).
@@ -230,7 +230,7 @@ enum_event(id PK, site_id, at, kind, detail JSON)   -- 접근 차단, 구간 불
   * 접근 차단 → `unavailable`(사이트 파일 패스 중단), 404 → `failed`, 일시 실패 → `failed_transient`(재시도 횟수 증가).
   * 파일 URL 하나가 robots 금지 → 그 파일만 `failed`(`robots_disallowed`), 패스는 계속(요청 없음).
   * 본문 열거가 이미 완료(`complete*`)된 사이트에서 파일 패스가 차단을 만나면 사이트 상태는 그대로 두고
-    `state.file_pass_hold`(사유·호스트)와 호스트 보류로 이후 파일 패스를 요청 전에 멈춘다(호스트 보류를 풀면 재개).
+    `state.file_pass_hold`(사유·호스트)와 호스트 보류로 이후 파일 패스를 요청 전에 멈춘다(호스트 보류가 있으면 그것을 풀 때, 없으면(robots 해석 실패·사설 주소 등) `--refresh` 재열거 때 풀린다).
     완료 전 사이트는 이전처럼 `access_blocked`가 된다.
 
 ## 8. plan.json
@@ -393,7 +393,7 @@ segments_mismatch, files_{pending,done,failed}, oldest_item`. JSON(상세 포함
 |---|---|
 | S0 | CLI는 사이트마다 `ensure_documents_db`: 문서 DB에 스키마가 없고 이름이 `enum_`이면 `init_db`(SQLite/PG) 자동 적용, `enum_`이 아니면 스키마를 만들지 않고 거부. 이어서 등록 수집기 클래스(`CRAWLERS`)의 `site_name`/`base_url`(없으면 plan)로 `sites` 행을 idempotent upsert — 기존 수집기가 `crawl()` 안에서 하던 일. 빈 DB 파일에서 시작하는 CLI 종단 테스트 추가. |
 | H08 | 전송 계층은 리다이렉트를 따르지 않는다(`allow_redirects=False`). `Fetcher.get`이 hop마다 hold 확인 → 목적지 robots → 호스트 게이트 → 예산을 거친다. Location이 로그인/인증/챌린지 경로(`login`, `signin`, `sso`, `auth`, `oauth`, `saml`, `captcha`, `challenge` 등)면 따라가지 않고 `login_redirect`로 정지. 최대 5 hop. |
-| H09 | robots 응답 401/403/407/451, 로그인 경로 리다이렉트, 챌린지/로그인 페이지는 **보류**(이전의 RFC 9309 "4xx=규칙 없음"은 401/403에 대해 폐기). 404/410 등 그 밖의 4xx만 "미게시". `Crawl-delay`(소수 허용, 직접 파싱)와 `Request-rate`를 호스트 간격에 반영. 게이트 자체 간격 상한은 10초이므로 그보다 긴 값은 게이트 안에서(호스트 잠금을 쥔 채) `이전 응답 끝 + Crawl-delay - 지금`만큼 더 기다려, 이전 응답 끝부터 다음 요청까지의 실제 간격이 Crawl-delay 이상이 된다(별도 상한 없음 — 매우 큰 값은 `max_runtime_s` 예산이 실행을 끝낸다). plan 검증: `respect_robots=false` 거부, 끝 상태에 401/403/407/429/451·2xx 거부, 404/410 외 상태는 `json_code`/`body_regex` 조건이 있어야 함. Fetcher는 거부 상태를 plan 허용 상태보다 먼저 분류. |
+| H09 | robots 응답 401/403/407/451, 로그인 경로 리다이렉트, 챌린지/로그인 페이지는 **보류**(이전의 RFC 9309 "4xx=규칙 없음"은 401/403에 대해 폐기). 404/410 등 그 밖의 4xx만 "미게시". `Crawl-delay`(소수 허용, 직접 파싱)와 `Request-rate`를 호스트 간격에 반영. 게이트 자체 간격 상한은 10초이므로 그보다 긴 값은 게이트 안에서(호스트 잠금을 쥔 채) `이전 응답 끝 + Crawl-delay - 지금`만큼 더 기다려, 이전 응답 끝부터 다음 요청까지의 실제 간격이 Crawl-delay 이상이 된다(그 기다림이 `max_runtime_s`를 넘기면 자지 않고 `time_budget`으로 멈춘다). 무한대/NaN 값은 무시하고, Crawl-delay/Request-rate 간격이 `MAX_CRAWL_DELAY_S`(300초)를 넘으면 요청마다 기다리지 않고 `access_blocked:robots_crawl_delay_too_long`(호스트 보류 아님)으로 멈춰 사람이 판단한다. plan 검증: `respect_robots=false` 거부, 끝 상태에 401/403/407/429/451·2xx 거부, 404/410 외 상태는 `json_code`/`body_regex` 조건이 있어야 함. Fetcher는 거부 상태를 plan 허용 상태보다 먼저 분류. |
 | H07 | 차단은 사이트 상태(`access_blocked`)와 **호스트 hold 대장**(`enum_host_hold`, 같은 호스트의 모든 site ID가 공유)에 영속. 429 cooldown은 `RequestGate.defer`로 호스트 게이트에 기록되어 다른 site ID/실행/패스도 `host_cooldown`으로 멈춘다. retry-only도 본 실행과 같은 상태 전이를 하고, 파일 패스(`--files`, `--files-only`)는 사이트 hold/cooldown을 먼저 확인하며 새 차단을 사이트·호스트에 기록한다. `--files`는 본 실행과 같은 Fetcher(같은 예산)를 쓴다. hold 해제는 사람이 검토 후 `--refresh`(사이트)와 `--release-host HOST`(호스트)로만. |
 | H01 | 파서는 (키, URL)이 완전히 같은 반복만 버린다. 같은 목록 키에 다른 문서 URL(목록 상태 파라미터 page 등은 무시하고 비교)이 오면 같은 쪽·다른 쪽·재실행 모두 `failed_permanent:listing_identity_conflict`로 별도 대장 행(`<키>#conflict:<해시>`)에 보존, 사이트는 `complete_with_review`. |
 | H02 | 사이트 lease: SQLite는 문서 DB 옆 파일 잠금, PG는 세션 advisory lock(`pg_try_advisory_lock`). 잡혀 있으면 `locked`. 같은 `--site` 중복은 CLI 거부. post_number가 없는 문서는 저장하지 않고 `identity_missing`(검토). 중복 집계는 업체 쿼리처럼 NULL을 한 그룹으로 센다. DB 유일 제약 `UNIQUE(site_id, post_number)`는 **제안만**(기존 데이터 정리가 먼저 필요). |

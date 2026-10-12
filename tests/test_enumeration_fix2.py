@@ -119,7 +119,7 @@ class RobotsMatcherTest(unittest.TestCase):
         self.assertTrue(self.allowed(robots, "https://x.org/x"))
         self.assertFalse(self.allowed(robots, "https://x.org/private/1"))
         # A group naming our product token (first product of the User-Agent) replaces the '*' group.
-        robots = "User-agent: *\nDisallow: /\n\nUser-agent: Mozilla/5.0\nDisallow: /c\n"
+        robots = "User-agent: *\nDisallow: /\n\nUser-agent: Mozilla\nDisallow: /c\n"
         self.assertTrue(self.allowed(robots, "https://x.org/x"))
         self.assertFalse(self.allowed(robots, "https://x.org/c"))
         # Other words of the browser User-Agent never relax a stricter '*' group.
@@ -768,6 +768,139 @@ class LowPriorityFixTest(unittest.TestCase):
             with self.assertRaises(H.BodyTooLarge):
                 transport.request("GET", "https://x.org/big")
         self.assertEqual(Raw.read, [])
+
+
+class ReviewFollowupTest(unittest.TestCase):
+    """Findings of the independent review of this branch."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def fetcher(self, handler, **kw):
+        kw.setdefault("interval", 0)
+        kw.setdefault("sleep", lambda s: None)
+        t = FakeTransport(handler)
+        return Fetcher("s", t, Path(self.tmp.name) / "gates", **kw), t
+
+    def test_full_user_agent_string_group_does_not_select_us(self):
+        robots = ("User-agent: Mozilla/5.0 (compatible; Yeti/1.1; +http://naver.me/spd)\nAllow: /\n\n"
+                  "User-agent: *\nDisallow: /\n")
+        self.assertFalse(H.parse_robots(robots).allows("https://x.org/board", UA))
+        self.assertFalse(H.parse_robots("User-agent: Mozilla/5.0\nAllow: /\n\nUser-agent: *\nDisallow: /\n")
+                         .allows("https://x.org/board", UA))
+        self.assertTrue(H.parse_robots("User-agent: mozilla\nAllow: /\n\nUser-agent: *\nDisallow: /\n")
+                        .allows("https://x.org/board", UA))
+
+    def test_login_popup_on_dedicated_login_page_still_detected(self):
+        html = page("ABC Institute", LoginPageTest.NAV +
+                    "<div class='login-popup layer_pop'><h2>Login</h2><form><input name=id>"
+                    "<input type=password name=pw></form></div><div><a href='/join'>Join</a>"
+                    "<a href='/find'>Find ID</a></div>" + LoginPageTest.FOOT)
+        self.assertTrue(H.login_page(html))
+
+    def test_non_finite_crawl_delay_ignored_and_huge_one_stops(self):
+        self.assertEqual(H.crawl_delay("User-agent: *\nCrawl-delay: nan\n", UA), 0)
+        self.assertEqual(H.crawl_delay("User-agent: *\nCrawl-delay: inf\n", UA), 0)
+
+        def handler(url):
+            if url.endswith("robots.txt"):
+                return Response(200, {"Content-Type": "text/plain"}, b"User-agent: *\nCrawl-delay: 100000\n")
+            return ok()
+        f, t = self.fetcher(handler)
+        with self.assertRaises(H.AccessBlocked) as ctx:
+            f.get("https://x.org/a")
+        self.assertEqual(ctx.exception.reason, "robots_crawl_delay_too_long")
+        self.assertEqual(t.urls, ["https://x.org/robots.txt"])
+
+    def test_crawl_delay_wait_beyond_time_budget_stops(self):
+        clock = FakeClock()
+        sleeps = []
+
+        def handler(url):
+            if url.endswith("robots.txt"):
+                return Response(200, {"Content-Type": "text/plain"}, b"User-agent: *\nCrawl-delay: 60\n")
+            return ok()
+        with mock.patch.object(request_gate, "time", clock), mock.patch.object(H, "time", clock):
+            f, t = self.fetcher(handler, clock=clock.monotonic, sleep=sleeps.append, max_runtime_s=30)
+            # robots.txt was the previous response: the page would wait 60 s > 30 s budget.
+            with self.assertRaises(H.BudgetExhausted):
+                f.get("https://x.org/a")
+        self.assertEqual(sleeps, [])
+        self.assertEqual(t.urls, ["https://x.org/robots.txt"])
+
+    def test_robots_unavailable_persists_a_cooldown(self):
+        import time as _time
+        from tests.enumeration_fakes import Env, FakeBoard, board_plan
+        env = Env()
+        self.addCleanup(env.close)
+        board = FakeBoard(5)
+        handler = lambda u: Response(503, {}, b"") if u.endswith("/robots.txt") else board(u)  # noqa: E731
+        first = env.run(board_plan(), handler)
+        self.assertEqual(first["stop_reason"], "robots_unavailable:http_503")
+        self.assertGreater(env.store.site(env.site_id)["state"]["cooldown_until"], _time.time())
+        second = env.run(board_plan(), handler)
+        self.assertEqual(second["stop_reason"], "cooling_down")
+        self.assertEqual(second["transport"].urls, [])
+
+    def test_oversize_robots_is_cached_as_unavailable(self):
+        def handler(url):
+            return H.BodyTooLarge("body_too_large") if url.endswith("robots.txt") else ok()
+        f, t = self.fetcher(handler)
+        for i in range(3):
+            with self.assertRaises(H.RobotsUnavailable):
+                f.get(f"https://x.org/{i}")
+        self.assertEqual(t.urls, ["https://x.org/robots.txt"])
+
+    def test_file_pass_hold_without_host_hold_is_kept(self):
+        from crawler.enumeration.files import FilePass
+        from tests.enumeration_fakes import Env
+        env = Env()
+        self.addCleanup(env.close)
+        st = env.store
+        st.start_site(env.site_id, "fp", "last_page_backward")
+        st.finish_site(env.site_id, "complete", "done", {})
+        st.enqueue_file(env.site_id, 1, "https://f.test/a.bin", role="attachment")
+
+        def handler(url):
+            if url.endswith("robots.txt"):
+                return Response(200, {"Content-Type": "text/plain"}, b"User-agent: *\nDisallow: /x\n")
+            return ok()
+        with mock.patch.object(H, "parse_robots", side_effect=ValueError("boom")):
+            f = Fetcher(env.site_id, FakeTransport(handler), env.root / "gates", interval=0,
+                        sleep=lambda s: None, holds=st)
+            FilePass(st, f, blob_root=env.root / "b").run(env.site_id)
+        t = FakeTransport(handler)
+        f = Fetcher(env.site_id, t, env.root / "gates", interval=0, sleep=lambda s: None, holds=st)
+        stats = FilePass(st, f, blob_root=env.root / "b").run(env.site_id)
+        self.assertTrue(stats["stopped"].startswith("site_hold"), stats)
+        self.assertEqual(t.urls, [])
+        self.assertEqual(st.site(env.site_id)["status"], "complete")
+
+    def test_multi_member_gzip_sitemap_read_whole(self):
+        import gzip
+        from tests.test_enumeration_sort_sitemap import urlset
+        data = urlset(["https://sm.test/doc/1", "https://sm.test/doc/2"])
+        half = len(data) // 2
+        body = gzip.compress(data[:half]) + gzip.compress(data[half:])
+        from tests.enumeration_fakes import Env
+        env = Env()
+        self.addCleanup(env.close)
+        result = env.run(SitemapFixTest.plan(), SitemapFixTest.handler(body, "application/x-gzip"))
+        self.assertEqual(result["status"], "complete", result)
+        self.assertEqual(len(env.docs()), 2)
+
+    def test_unicode_hold_applies_to_punycode_url(self):
+        from tests.enumeration_fakes import Env
+        env = Env()
+        self.addCleanup(env.close)
+        env.store.hold_host("café.fr", "seeded:test")
+        f = Fetcher("s", FakeTransport(lambda u: ok()), env.root / "gates", interval=0,
+                    sleep=lambda s: None, holds=env.store)
+        with self.assertRaises(H.AccessBlocked):
+            f.get("https://xn--caf-dma.fr/x")
 
 
 if __name__ == "__main__":

@@ -11,10 +11,11 @@ import os
 import re
 import sqlite3
 import tempfile
+import time as _time
 from pathlib import Path
 
 from .http import (AccessBlocked, BudgetExhausted, PermanentFailure, PrivateDestination, RateLimited,
-                   RobotsDisallowed, RobotsUnavailable, TransientFailure)
+                   ROBOTS_RETRY_S, RobotsDisallowed, RobotsUnavailable, TransientFailure)
 from .runner import COMPLETED
 from .urls import host_of
 
@@ -78,7 +79,7 @@ class FilePass:
         if site and site["status"] == "access_blocked":
             return f"site_hold:{site['stop_reason']}"
         held = (site or {}).get("state", {}).get("file_pass_hold") or {}
-        if held.get("status") == "access_blocked" and (not held.get("host") or self.store.host_hold(held["host"])):
+        if held and (not held.get("host_hold") or self.store.host_hold(held["host"])):
             # A refusal met by an earlier file pass of a completed site (until the host is released).
             return f"site_hold:{held['reason']}"
         cooldown = (site or {}).get("state", {}).get("cooldown_until")
@@ -96,7 +97,9 @@ class FilePass:
         if status and (site or {}).get("status") in COMPLETED:
             # A finished enumeration keeps its status; the refusal is kept in the site state
             # (and as the host hold the Fetcher recorded) so later file passes stop first.
-            state["file_pass_hold"] = {"status": status, "reason": reason, "host": host}
+            # Released with the host hold when there is one; otherwise kept until a --refresh run.
+            state["file_pass_hold"] = {"status": status, "reason": reason, "host": host,
+                                       "host_hold": bool(host and self.store.host_hold(host))}
             self.store.save_state(site_id, state)
         elif status:
             self.store.finish_site(site_id, status, reason, state)
@@ -155,9 +158,10 @@ class FilePass:
                 self._hold_site(site_id, None, exc.reason, retry_at=exc.retry_at)
                 break
             except RobotsUnavailable as exc:
-                # The file is untouched (no attempt counted); the pass stops, nothing is held.
+                # The file is untouched (no attempt counted); the pass stops with a short cooldown.
                 stats["stopped"] = exc.reason
                 self.store.event(site_id, "robots_unavailable", {"reason": exc.reason, "url": url})
+                self._hold_site(site_id, None, exc.reason, retry_at=_time.time() + ROBOTS_RETRY_S)
                 break
             except BudgetExhausted as exc:
                 stats["stopped"] = exc.reason

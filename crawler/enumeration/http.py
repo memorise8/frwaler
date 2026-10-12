@@ -18,6 +18,7 @@ from __future__ import annotations
 import hashlib
 import ipaddress
 import json
+import math
 import re
 import socket
 import time
@@ -42,7 +43,10 @@ _LOGIN_PATH = re.compile(r"(^|/)(login|logon|signin|sign-in|sso|cas/login|auth|o
 REFUSAL_STATUSES = (401, 403, 407, 429, 451)
 SLOW_REQUEST_S = 5.0  # gate wait + response time at or above this is kept as a slow sample
 SLOW_SAMPLES = 10
-ROBOTS_RETRY_S = 300  # an unreachable robots.txt is not asked again sooner (per origin, per Fetcher)
+ROBOTS_RETRY_S = 300
+# A Crawl-delay/Request-rate gap above this is not waited out request by request (holding the
+# host lock for hours): the site stops (robots_crawl_delay_too_long) for a person to decide.
+MAX_CRAWL_DELAY_S = 300  # an unreachable robots.txt is not asked again sooner (per origin, per Fetcher)
 _PASSWORD = re.compile(rb"<input[^>]+type\s*=\s*[\"']?password", re.I)
 _LOGIN_WORDS = re.compile(r"\b(log ?in|sign ?in|logon)\b|로그인|connexion|anmelden|inloggen|accedi|iniciar sesi", re.I)
 
@@ -65,8 +69,9 @@ def login_page(body):
 
     True only when a password form exists and either the page title/main heading names a
     login, or nothing but the form carries links. When every password field sits inside a
-    modal/dialog/popup, that overlay's own headings do not count (a site-wide login modal
-    on a content page); the title and the remaining headings still do.
+    modal/dialog/popup and the page has its own <h1> outside overlays and chrome, the
+    overlay's headings do not count (a site-wide login modal on a content page); the title
+    and the remaining headings still do.
     """
     if not _PASSWORD.search(body[:262144]):
         return False
@@ -75,8 +80,16 @@ def login_page(body):
     for tag in soup.find_all(_overlay):
         tag.decompose()
     in_content = soup.find("input", attrs={"type": _PASSWORD_TYPE}) is not None
-    # A password field in the content: the headings of the whole page count, as before.
-    heads_soup = BeautifulSoup(body[:262144], "html.parser") if in_content else soup
+    discount = False
+    if not in_content:
+        # Overlay headings are discounted only when the page has its own main heading outside
+        # the overlays and the page chrome (a content page carrying a site-wide login modal).
+        # A dedicated login page built as a "popup" box has none: its headings still count.
+        rest = BeautifulSoup(body[:262144], "html.parser")
+        for tag in rest.find_all(_overlay) + rest.find_all(["nav", "header", "footer"]):
+            tag.decompose()
+        discount = any(h.get_text(strip=True) for h in rest.find_all("h1"))
+    heads_soup = soup if discount else BeautifulSoup(body[:262144], "html.parser")
     heads = [heads_soup.title] + heads_soup.find_all(["h1", "h2"], limit=3)
     if any(h is not None and _LOGIN_WORDS.search(h.get_text(" ", strip=True)) for h in heads):
         return True
@@ -107,6 +120,8 @@ def crawl_delay(text, user_agent):
             try:
                 delay = float(value)
             except ValueError:
+                continue
+            if not math.isfinite(delay):
                 continue
             for agent in agents:
                 if agent == "*":
@@ -147,8 +162,9 @@ def _agent_applies(agent, user_agent):
     Other words of a browser User-Agent (Chrome, Safari...) do not select a group: such a
     group could otherwise replace a stricter '*' group."""
     product = re.split(r"[/\s]", user_agent.strip().lower(), 1)[0]
-    token = agent.split("/", 1)[0].strip()
-    return bool(token) and token != "*" and token == product
+    # The whole group value must be that bare token: "Mozilla/5.0 (compatible; Yeti/1.1)"
+    # names another crawler's full User-Agent, never us.
+    return bool(product) and agent.strip() == product
 
 
 class RobotsRules:
@@ -532,7 +548,14 @@ class Fetcher:
         if self.blocked is not None:
             raise AccessBlocked(self.blocked.reason, url, self.blocked.status)
         host = host_of(url)
-        held = self.holds.host_hold(host) if (self.holds is not None and host) else None
+        held = None
+        if self.holds is not None and host:
+            held = self.holds.host_hold(host)
+            if not held and "xn--" in host:
+                try:  # a hold may name the host in its Unicode form
+                    held = self.holds.host_hold(host.encode("ascii").decode("idna"))
+                except UnicodeError:
+                    pass
         if held:
             self.blocked = AccessBlocked(f"host_access_hold:{held['reason']}", url)
             raise self.blocked
@@ -558,6 +581,9 @@ class Fetcher:
                     # A longer Crawl-delay is completed here, inside the gate (host lock held),
                     # measured from that same previous response end.
                     remaining = gate._read().get("last_end", 0) + delay - time.time()
+                    if self.max_runtime_s is not None and \
+                            self.clock() + max(remaining, 0) - self.started >= self.max_runtime_s:
+                        raise BudgetExhausted("time_budget")  # never sleep past the budget
                     if remaining > 0:
                         self.sleep(remaining)
                 self.requests_made += 1
@@ -631,12 +657,15 @@ class Fetcher:
                 raise RobotsUnavailable(failed[1], url)
             try:
                 self._robots[origin] = self._load_robots(origin)
-            except TransientFailure as exc:
+            except (TransientFailure, PermanentFailure) as exc:
+                # PermanentFailure here is body_too_large: no readable file, no permission.
                 reason = f"robots_unavailable:{exc.reason}"
                 self._robots_failed[origin] = (self.clock() + ROBOTS_RETRY_S, reason)
                 raise RobotsUnavailable(reason, url, exc.status) from None
             self._robots_failed.pop(origin, None)
         rule = self._robots[origin]
+        if rule == "too_slow":
+            raise self._block("robots_crawl_delay_too_long", url, host_wide=False)
         if rule == "unparseable":
             # Never read a file we could not parse as permission.
             raise self._block("robots_unparseable", url, host_wide=False)
@@ -674,6 +703,8 @@ class Fetcher:
             wanted = max(crawl_delay(text, self.user_agent), rules.request_rate(self.user_agent))
         except Exception:  # noqa: BLE001 - any parser failure means "no permission inferred"
             return "unparseable"
+        if wanted > MAX_CRAWL_DELAY_S:
+            return "too_slow"
         if wanted > self.interval:
             # Keyed to the host whose pages are requested, even if robots.txt was redirected.
             self._host_delay[host_of(origin)] = wanted

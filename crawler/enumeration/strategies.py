@@ -769,12 +769,16 @@ class Sitemap(Strategy):
         body = resp.body
         if body[:2] == b"\x1f\x8b":
             cap = int(self.cfg.get("max_uncompressed_bytes") or SITEMAP_MAX_BYTES)
-            inflater = zlib.decompressobj(16 + zlib.MAX_WBITS)
-            body = inflater.decompress(body, cap + 1)
-            if len(body) > cap:
-                raise _SitemapTooLarge()
-            if not inflater.eof:
-                raise EOFError("truncated gzip sitemap")
+            out, data = b"", body
+            while data:  # every gzip member (concatenated members are valid gzip)
+                inflater = zlib.decompressobj(16 + zlib.MAX_WBITS)
+                out += inflater.decompress(data, cap + 1 - len(out))
+                if len(out) > cap:
+                    raise _SitemapTooLarge()
+                if not inflater.eof:
+                    raise EOFError("truncated gzip sitemap")
+                data = inflater.unused_data
+            body = out
         return ET.fromstring(body)
 
     def roots(self):
