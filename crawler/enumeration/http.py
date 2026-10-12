@@ -42,10 +42,10 @@ _LOGIN_PATH = re.compile(r"(^|/)(login|logon|signin|sign-in|sso|cas/login|auth|o
 REFUSAL_STATUSES = (401, 403, 407, 429, 451)
 SLOW_REQUEST_S = 5.0  # gate wait + response time at or above this is kept as a slow sample
 SLOW_SAMPLES = 10
-ROBOTS_RETRY_S = 300
+ROBOTS_RETRY_S = 300  # an unreachable robots.txt is not asked again sooner (per origin, per Fetcher)
 # A Crawl-delay/Request-rate gap above this is not waited out request by request (holding the
 # host lock for hours): the site stops (robots_crawl_delay_too_long) for a person to decide.
-MAX_CRAWL_DELAY_S = 300  # an unreachable robots.txt is not asked again sooner (per origin, per Fetcher)
+MAX_CRAWL_DELAY_S = 300
 _PASSWORD = re.compile(rb"<input[^>]+type\s*=\s*[\"']?password", re.I)
 _LOGIN_WORDS = re.compile(r"\b(log ?in|sign ?in|logon)\b|로그인|connexion|anmelden|inloggen|accedi|iniciar sesi", re.I)
 
