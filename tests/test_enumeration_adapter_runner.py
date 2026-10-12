@@ -112,7 +112,8 @@ class ContractRunnerTests(unittest.TestCase):
             return good(html, item)
         result = self.run_site(detail)
         self.assertEqual("complete_with_review", result["status"])
-        self.assertIn("adapter_contract_failures:5", result["stop_reason"])
+        # Missing identity is identity_missing review (re-review MEDIUM-2), not a ratio failure.
+        self.assertEqual("identity_missing:5", result["stop_reason"])
         _, failed = self.env.store.item_counts("fake-site")
         self.assertEqual(5, failed["failed_permanent:adapter_contract:paper_identity_missing"])
         self.assertEqual(20, result["stats"]["saved_new"])

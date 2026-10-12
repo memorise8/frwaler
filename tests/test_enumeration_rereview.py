@@ -129,6 +129,43 @@ class ConsecutiveStopResume(Base):
         self.assertEqual("already_complete_retry_only", self.run_site(good, plan)["stop_reason"])
 
 
+class IdentityMissingReview(Base):
+    """MEDIUM-2: missing identity/URL is never tolerated by max_contract_failure_ratio."""
+
+    @staticmethod
+    def detail(missing=("7", "13"), broken=()):
+        def detail(html, item):
+            if item["external_id"] in missing:
+                return {"url": item["url"], "title": "no identity"}
+            if item["external_id"] in broken:
+                raise KeyError("slug")
+            return good(html, item)
+        return detail
+
+    def test_ratio_does_not_hide_identity_missing(self):
+        result = self.run_site(self.detail(), site(max_contract_failure_ratio=0.5))
+        self.assertEqual(("complete_with_review", "identity_missing:2"), (result["status"], result["stop_reason"]))
+
+    def test_url_missing_counts_as_identity_missing(self):
+        def detail(html, item):
+            if item["external_id"] == "9":
+                return {"external_id": "9", "title": "no url"}
+            return good(html, item)
+        plan = site(max_contract_failure_ratio=0.5)
+        board = crawler(self.env, detail)
+        result = self.env.run(plan, self.board, crawler=board)
+        self.assertEqual(("complete_with_review", "identity_missing:1"), (result["status"], result["stop_reason"]))
+
+    def test_ratio_tolerates_parse_errors_but_not_identity(self):
+        result = self.run_site(self.detail(missing=("7",), broken=("13",)), site(max_contract_failure_ratio=0.5))
+        self.assertEqual(("complete_with_review", "identity_missing:1"), (result["status"], result["stop_reason"]))
+
+    def test_default_ratio_reports_both(self):
+        result = self.run_site(self.detail(missing=("7",), broken=("13",)))
+        self.assertEqual("complete_with_review", result["status"])
+        self.assertEqual({"identity_missing:1", "adapter_contract_failures:1"}, set(result["stop_reason"].split(";")))
+
+
 
 if __name__ == "__main__":
     unittest.main()

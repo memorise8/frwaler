@@ -19,6 +19,11 @@ from .urls import host_of, normalize_key_url, url_identity
 # Ledger reasons of items a contract site's registered methods failed on.
 CONTRACT_FAILURE_PREFIXES = ("failed_permanent:parse_error:", "failed_permanent:empty_item",
                              "failed_permanent:adapter_contract:")
+# Contract items with no identity/URL: always identity_missing review, never tolerated
+# by max_contract_failure_ratio (as IdentityMissing is on the non-contract path).
+CONTRACT_IDENTITY_MISSING = ("failed_permanent:adapter_contract:paper_identity_missing",
+                             "failed_permanent:adapter_contract:paper_url_missing")
+
 COMPLETED = ("complete", "complete_with_mismatch", "complete_unverified", "complete_with_review")
 
 # A consecutive contract stop. Its items are failed_permanent in the ledger, so a plain
@@ -424,7 +429,9 @@ class SiteRunner:
         if self.contract:
             # Items a registered method could not turn into a document need a person
             # unless the plan explicitly tolerates that share (default: none).
-            bad = sum(v for k, v in failed.items() if k.startswith(CONTRACT_FAILURE_PREFIXES))
+            counts["identity_missing"] += sum(failed.get(k, 0) for k in CONTRACT_IDENTITY_MISSING)
+            bad = sum(v for k, v in failed.items()
+                      if k.startswith(CONTRACT_FAILURE_PREFIXES) and k not in CONTRACT_IDENTITY_MISSING)
             seen = saved + sum(failed.values())
             ratio = float(self.plan.get("max_contract_failure_ratio") or 0.0)
             if bad and bad / seen > ratio:
