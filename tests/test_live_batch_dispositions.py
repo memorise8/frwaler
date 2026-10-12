@@ -40,5 +40,11 @@ class BatchDispositionTests(unittest.TestCase):
         plan,result=self.sample();result.update(requests=[],scopes=[],actual_HTTP_responses=0)
         self.assertIn('no_live_or_inherited_evidence',disposition(plan,result)['issues'])
 
+    def test_detail_date_condition_is_explicitly_excluded(self):
+        plan,result=self.sample();plan['live_check']='사이트맵 URL 수와 상세 페이지 날짜 확인'
+        result['live_check']=plan['live_check']
+        self.assertEqual(disposition(plan,result)['condition_dispositions'][0]['status'],
+                         'detail_portion_excluded_by_list_only_policy')
+
 
 if __name__=='__main__':unittest.main()

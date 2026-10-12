@@ -88,12 +88,17 @@ def disposition(plan,result):
         if result['count_confidence'] not in ('높음','보통','낮음') or type(result['hidden_cap_suspected']) is not bool:issues.append('invalid_count_qualifiers')
     verdict='strategy_confirmed' if result['status']=='confirmed' else 'access_or_policy_unavailable' if source_stop else 'custom_verification_unavailable'
     clauses=[x.strip() for x in re.split(r';|(?<!\d)\s+(?=\(?\d+\))',plan['live_check']) if x.strip()]
+    conditions=[]
+    for clause in clauses:
+        detail=bool(re.search(r'상세\s*(?:페이지|에서)|(?:each|individual)\s+(?:detail|article)\s+page',clause,re.I))
+        conditions.append(dict(condition=clause,
+            status='detail_portion_excluded_by_list_only_policy' if detail else 'reviewed_native_metadata_conditions' if verdict=='strategy_confirmed' else 'unconfirmed_under_allowed_inability_disposition',
+            grounds=['Latest user instruction restricts new requests to listings and totals; detail-page date checks are not performed.'] if detail else grounds if verdict!='strategy_confirmed' else [result.get('strategy_review',{}).get('scope_basis','semantic_review_missing')],
+            limitation='Unconfirmed conditions are not represented as passed; retained historic detail metadata is not re-fetched.'))
     return dict(site_id=plan['site_id'],delivery=plan['delivery'],verdict=verdict,issues=sorted(set(issues)),
         live_check=plan['live_check'],URL_dispositions=urls,unresolved_reference_dispositions=[dict(**u,disposition='custom_binding_or_budget_required') for u in plan['unresolved_URLs']],
         requirements=list(CHECKS),scope_checks=[dict(url=s['url'],status=s['status'],checks=s['checks']) for s in result['scopes']],
-        condition_dispositions=[dict(condition=c,status='reviewed_native_metadata_conditions' if verdict=='strategy_confirmed' else 'unconfirmed_under_allowed_inability_disposition',
-            grounds=grounds if verdict!='strategy_confirmed' else [result.get('strategy_review',{}).get('scope_basis','semantic_review_missing')],
-            limitation='Unconfirmed conditions are not represented as passed.') for c in clauses],
+        condition_dispositions=conditions,
         strategy=result['strategy'],confidence=result['confidence'],counts={k:result.get(k) for k in count_fields})
 
 

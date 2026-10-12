@@ -48,5 +48,28 @@ class CountEstimateTests(unittest.TestCase):
         self.assertEqual(result['expected_items'],213)
         json.dumps(result)
 
+    def test_incomplete_boundary_retains_observed_header_count(self):
+        url='https://source.example/wp-json/wp/v2/posts'
+        result=estimate_counts(dict(scopes=[dict(url=url,checks={})],requests=[
+            dict(url=url+'?per_page=2&page=1',number=1,status=200,source_headers={'X-WP-Total':'200'})]))
+        self.assertEqual(result['expected_items'],200)
+        self.assertEqual(result['count_confidence'],'낮음')
+        self.assertTrue(result['hidden_cap_suspected'])
+
+    def test_filtered_count_does_not_replace_whole_collection_count(self):
+        url='https://source.example/wp-json/wp/v2/posts'
+        result=estimate_counts(dict(scopes=[dict(url=url,checks={})],requests=[
+            dict(url=url+'?before=2000-01-01',number=1,status=200,source_headers={'X-WP-Total':'12'})]))
+        self.assertIsNone(result['expected_items'])
+        self.assertEqual(result['count_evidence']['observed_reported_counts'][0]['values'],[12])
+
+    def test_failed_and_index_response_totals_are_not_fallback_item_counts(self):
+        url='https://source.example/sitemap.xml'
+        result=estimate_counts(dict(scopes=[dict(url=url,checks={})],requests=[
+            dict(url=url,number=1,status=200,summary=dict(xml_root='sitemapindex',totals=[dict(value=50)])),
+            dict(url=url,number=2,status=500,summary=dict(totals=[dict(value=100)]))]))
+        self.assertIsNone(result['expected_items'])
+        self.assertEqual(result['count_evidence']['observed_reported_counts'],[])
+
 
 if __name__=='__main__':unittest.main()

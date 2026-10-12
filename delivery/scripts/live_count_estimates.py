@@ -82,6 +82,36 @@ def estimate_counts(result):
     if estimate['hidden_cap_suspected'] and estimate['count_confidence']=='높음':estimate['count_confidence']='보통'
     estimate=copy.deepcopy(estimate)
     estimate['count_evidence']['scope_estimates']=scopes
+    # A common probe can stop before completing a scope's boundary checks.
+    # Preserve totals already observed on successful listing responses too;
+    # never turn a sitemap index's number of children into a document total.
+    observations=[]
+    for response in result.get('requests',[]):
+        if response.get('status')!=200 or response.get('error') or response.get('purpose','').startswith('robots_'):continue
+        summary=response.get('summary',{})
+        if summary.get('xml_root')=='sitemapindex':continue
+        totals=list(summary.get('totals',[]))
+        header=response.get('source_headers',{}).get('X-WP-Total')
+        if header is not None and str(header).isdigit():totals.append(dict(value=int(header),source='X-WP-Total'))
+        values=sorted({t['value'] for t in totals if type(t.get('value')) is int and t['value']>=0})
+        if not values:continue
+        observations.append(dict(url=response['url'],response=response['number'],values=values,
+            count_basis=SITEMAP if summary.get('xml_root')=='urlset' else SOURCE,
+            sources=totals,scope_equivalence_verified=False))
+    estimate['count_evidence']['observed_reported_counts']=observations
+    if any(o['count_basis']==SOURCE and any(v>0 and v%100==0 for v in o['values']) for o in observations):
+        estimate['hidden_cap_suspected']=True
+        estimate['count_evidence']['round_total_in_observed_listing_response']=True
+        if estimate['count_confidence']=='높음':estimate['count_confidence']='보통'
+    # Only a single, unchanged collection identity can supply a fallback total.
+    # Date-filtered subsets and unfiltered alternatives have different identities.
+    identities={scope_identity(s['url']) for s in scopes}
+    if estimate['expected_items'] is None and len(identities)==1 and all(s.get('checks',{}).get('total_arithmetic',{}).get('status')!='contradicted' for s in result.get('scopes',[])):
+        candidates=[o for o in observations if scope_identity(o['url']) in identities]
+        values={v for o in candidates for v in o['values']};bases={o['count_basis'] for o in candidates}
+        if len(values)==1 and len(bases)==1:
+            estimate.update(expected_items=next(iter(values)),count_basis=next(iter(bases)),count_confidence='낮음')
+            estimate['count_evidence']['fallback_reason']='Consistent reported total for the sole observed collection identity; boundary arithmetic remains unverified.'
     if result.get('URL_closure',{}).get('scoped_sitemap_observations'):
         estimate['count_evidence']['scoped_sitemap_observations']=result['URL_closure']['scoped_sitemap_observations']
     estimate['count_evidence']['instruction_mentions_recent_N']=instruction_suspicion
