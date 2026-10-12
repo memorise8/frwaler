@@ -74,6 +74,11 @@ def two_items(sid):
 
 class ActualSites(unittest.TestCase):
     def setUp(self):
+        # Install the tripwire before patching socket.connect: otherwise it would wrap
+        # the patch and be dropped when the patch is undone, disabling it for later tests.
+        from crawler.enumeration.guard import guarded
+        with guarded():
+            pass
         def denied(*args, **kwargs):
             raise AssertionError("actual-site fixture attempted network/DB connection")
         for name in ('socket.getaddrinfo', 'socket.socket.connect', 'sqlite3.connect'):
