@@ -72,5 +72,17 @@
       },
       "overall_total_check": true
     }
+  },
+  "_review": {
+    "execution_readiness": "NOT_READY_SCOPE_AND_UNIQUE_ORDER_UNCONFIRMED",
+    "scope": "Registered thesis coar:c_7a1f only; requested ~309k journal scope coar:c_6501 needs clarification.",
+    "sorting_key": "sort=oldest is an API keyword; backing field and unique tie-break not verified",
+    "unique_sort_key_verified": false,
+    "unique_secondary_key_api_support": "확인 못 함; do not invent sort=id or a secondary-sort parameter",
+    "same_date_over_page_size_risk": true,
+    "same_date_risk_basis": "50/page; creation timestamps can tie or be batch-imported; actual live frequency unmeasured",
+    "required_preflight": "For the same frozen range containing >50 same-date records, compare two API-supported sort orders across every page: raw count, unique IDs, intersection/differences, reported total. Require a documented/observed unique key or unique tie-break.",
+    "reconciliation": "overall_total_check=true and segment reported totals versus unique listing IDs are mandatory; any mismatch or unverified/review status is not collection completion",
+    "note": "Review metadata is descriptive, not an execution gate; do not run this candidate before preflight."
   }
 }

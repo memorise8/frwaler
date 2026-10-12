@@ -239,3 +239,33 @@ class Offline(unittest.TestCase):
     def test_no_total_is_unverified(self):
         result=self.run_plan(API([record(1)],missing_total=True))
         self.assertNotEqual('complete',result['status'],result)
+
+    def test_same_date_unstable_offset_loses_36_of_652_and_reconciliation_catches_it(self):
+        # Regression from the user's NTRS incident, reproduced with synthetic SONAR JSON.
+        # Date-only ties change at page 2: 36 old rows replace 36 unseen rows.
+        recs=[record(i) for i in range(652)]
+        class UnstableAPI(API):
+            def __call__(self,url):
+                response=super().__call__(url)
+                if '/api/documents/' not in url:
+                    return response
+                q=parse_qs(urlsplit(url).query)
+                data=response.json()
+                if q.get('page')==['2'] and len(data['hits']['hits'])==50:
+                    ordered=sorted(self.records,key=lambda r:(r['created'],str(r['id'])))
+                    data['hits']['hits'][:36]=copy.deepcopy(ordered[:36])
+                return Response(200,{'Content-Type':'application/json'},json.dumps(data),url)
+        result=self.run_plan(UnstableAPI(recs))
+        self.assertEqual(616,len(self.docs))
+        self.assertEqual('complete_with_mismatch',result['status'],result)
+        leaves=[r for r in self.store.data['segments'].values() if r['status']!='split']
+        bad=[r for r in leaves if r['segment_key']=='2020-01-01'][0]
+        self.assertEqual((616,652,'mismatch'),(bad['listed'],bad['reported_total'],bad['status']))
+        self.assertIn('overall_total',result['stop_reason'])
+
+    def test_same_date_stable_unique_id_tie_break_collects_all_652(self):
+        # Fake API defines stable (created, id) order. Live SONAR support is NOT implied.
+        result=self.run_plan(API([record(i) for i in range(652)]))
+        self.assertEqual('complete',result['status'],result)
+        self.assertEqual(652,len(self.docs))
+        self.assertEqual(0,result['duplicates']['new'])
