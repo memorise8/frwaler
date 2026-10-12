@@ -94,6 +94,11 @@ def extract_total(cfg, resp, text=None, data=None):
     raise ValueError(f"unknown total type: {kind}")
 
 
+def _json_listing(cfg):
+    from .contracts import json_listing
+    return json_listing(cfg)
+
+
 class ListingParser:
     def __init__(self, cfg, *, total_cfg=None, adapter=None):
         self.cfg = cfg or {}
@@ -124,7 +129,7 @@ class ListingParser:
             page.extra["login_suspect"] = True
         contract_json = (self.kind == "adapter" and self.adapter is not None
                          and getattr(self.adapter, "contract", None) is not None
-                         and self.adapter.cfg.get("list_source") == "json")
+                         and _json_listing(self.adapter.cfg))
         if not page.items and not page.extra.get("parse_error") and self.kind != "json" and not contract_json:
             # An empty HTML listing is an end candidate only when the listing's own
             # structure is present; an error/foreign page is a parse error.
@@ -249,7 +254,7 @@ class ListingParser:
         if self.adapter is None:
             raise ValueError("listing parser type 'adapter' requires a crawler adapter")
         strict = getattr(self.adapter, "contract", None) is not None
-        if strict and self.adapter.cfg.get("list_source") == "json":
+        if strict and _json_listing(self.adapter.cfg):
             try:
                 resp.json()
             except ValueError:

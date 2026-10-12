@@ -219,5 +219,44 @@ class PrecheckNonContract(Base):
         self.assertEqual(("config_error", "adapter_contract:paper_not_dict"), (result["status"], result["stop_reason"]))
 
 
+class JsonBoundListMethod(unittest.TestCase):
+    """A contract list method fed the "json" token reads a JSON listing: an empty list
+    is an explicit empty page and a non-JSON body a listing parse error, exactly as
+    with list_source "json" (needed by JSON APIs such as NTRS)."""
+
+    def parse(self, list_args, body, content_type="application/json"):
+        from crawler.enumeration.adapters import Adapter
+        from crawler.enumeration.parsing import ListingParser
+        env = Env()
+        self.addCleanup(env.close)
+        c = crawler(env, good)
+        c.rows = lambda data: [{"url": f"/view?id={r['id']}", "external_id": str(r["id"]), "title": "t"}
+                               for r in data["results"]]
+        cfg = {"type": "crawler", "contract_version": 1, "list_method": "rows", "list_args": list_args,
+               "detail_method": "detail"}
+        parser = ListingParser({"type": "adapter"}, adapter=Adapter(SITE, cfg, None, crawler=c))
+        return parser.parse(Response(200, {"Content-Type": content_type}, body, "https://board.test/api"))
+
+    def test_empty_json_list_is_explicit_empty(self):
+        for args in (["json"], [{"source": "json", "path": []}]):
+            page = self.parse(args, '{"results": []}')
+            self.assertEqual({"explicit_empty": True}, page.extra, args)
+
+    def test_non_json_body_is_invalid_json(self):
+        page = self.parse(["json"], "<html>maintenance</html>", "text/html")
+        self.assertEqual({"parse_error": "invalid_json"}, page.extra)
+
+    def test_html_bound_method_still_needs_marker(self):
+        from crawler.enumeration.adapters import Adapter
+        from crawler.enumeration.parsing import ListingParser
+        env = Env()
+        self.addCleanup(env.close)
+        c = crawler(env, good)
+        cfg = {"type": "crawler", "contract_version": 1, "list_method": "listing", "detail_method": "detail"}
+        page = ListingParser({"type": "adapter"}, adapter=Adapter(SITE, cfg, None, crawler=c)).parse(
+            Response(200, {"Content-Type": "text/html"}, "<html><p>nothing</p></html>", "https://board.test/list"))
+        self.assertEqual({"parse_error": "empty_without_listing_marker"}, page.extra)
+
+
 if __name__ == "__main__":
     unittest.main()

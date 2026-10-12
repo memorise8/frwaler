@@ -121,6 +121,15 @@ def default_args(stage):
     return {"list": ["html"], "detail": ["html", "item"], "paper": ["item"]}[stage]
 
 
+def json_listing(cfg):
+    """The listing is read from the response JSON: list_source "json", or a list method
+    bound to the json token (or a json-source field binding)."""
+    if cfg.get("list_source") == "json":
+        return True
+    bindings = cfg.get("list_args", default_args("list")) + list(cfg.get("list_kwargs", {}).values())
+    return any(b == "json" or (isinstance(b, dict) and b.get("source") == "json") for b in bindings)
+
+
 def uses_item(cfg):
     if cfg.get("list_returns_paper"):
         return True
