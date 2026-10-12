@@ -159,7 +159,31 @@ class Adapter:
                 raise AdapterConfigError("adapter type 'selectors' requires selectors")
         else:
             raise AdapterConfigError(f"unknown adapter type: {self.mode}")
+        self._check_backend()
+        self._check_methods()
         self._prepare_crawler()
+
+    ARG_TOKENS = ("html", "raw", "soup", "json", "url", "item", "resp")
+
+    def _check_backend(self):
+        """The save path (BaseCrawler._save_paper) picks its backend from
+        LIBERTREE_DB_BACKEND; it must agree with the connection actually passed in."""
+        import os
+        wanted = (os.environ.get("LIBERTREE_DB_BACKEND") or "sqlite").lower()
+        actual = "sqlite" if isinstance(self.conn, sqlite3.Connection) else "postgres"
+        if self.conn is not None and wanted != actual:
+            raise AdapterConfigError(f"backend_mismatch:env={wanted},connection={actual}")
+
+    def _check_methods(self):
+        """Configuration mistakes stop the site up front instead of failing every item."""
+        for key in ("list_method", "detail_method", "paper_method"):
+            name = self.cfg.get(key)
+            if name and not callable(getattr(self.crawler, name, None)):
+                raise AdapterConfigError(f"adapter_method_missing:{key}={name}")
+        for key in ("list_args", "detail_args"):
+            for token in self.cfg.get(key) or ():
+                if token not in self.ARG_TOKENS:
+                    raise AdapterConfigError(f"unknown adapter argument token: {token}")
 
     @property
     def is_generic(self):

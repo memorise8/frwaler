@@ -19,6 +19,19 @@ from .urls import normalize_key_url, url_identity
 COMPLETED = ("complete", "complete_with_mismatch", "complete_unverified", "complete_with_review")
 
 
+def transient_db_error(exc):
+    """Database-side trouble (locks, deadlocks, lost connections), not a bad document."""
+    if isinstance(exc, sqlite3.OperationalError):
+        return True
+    try:
+        import psycopg
+        from psycopg import errors
+    except ImportError:
+        return False
+    return isinstance(exc, (psycopg.OperationalError, psycopg.InterfaceError, errors.DeadlockDetected,
+                            errors.SerializationFailure, errors.LockNotAvailable))
+
+
 class SaveBroken(EnumerationStop):
     """Consecutive save failures: the save path itself is broken, not one item."""
 
@@ -78,6 +91,7 @@ class SiteRunner:
                       "identity_missing": 0,
                       "identity_reviews": 0, "failed_permanent": 0, "failed_transient": 0, "retried": 0}
         self._save_errors = 0
+        self._db_errors = 0
         self._attempted = {}
 
     # -- items ---------------------------------------------------------------
@@ -118,6 +132,8 @@ class SiteRunner:
             st.record_item(site, item.key, "failed_transient", reason=f"transient:{exc.reason}", attempt=True, **common)
             self.stats["failed_transient"] += 1
             return
+        except AdapterConfigError:
+            raise  # a configuration mistake stops the site; never ledgered per item
         except Exception as exc:  # parser errors never stop the site
             st.record_item(site, item.key, "failed_permanent", reason=f"parse_error:{type(exc).__name__}",
                            attempt=True, **common)
@@ -156,6 +172,16 @@ class SiteRunner:
             self.stats["failed_permanent"] += 1
             return
         except Exception as exc:
+            if transient_db_error(exc):
+                # Lock/deadlock/connection trouble is about the database, not the
+                # document: retry later instead of freezing a permanent failure.
+                st.record_item(site, item.key, "failed_transient", reason=f"save_transient:{type(exc).__name__}",
+                               attempt=True, **common)
+                self.stats["failed_transient"] += 1
+                self._db_errors += 1
+                if self._db_errors >= int(self.plan.get("max_consecutive_save_errors")):
+                    raise StrategyStop("incomplete", f"database_unavailable:{type(exc).__name__}")
+                return
             st.record_item(site, item.key, "failed_permanent", reason=f"save_error:{type(exc).__name__}",
                            attempt=True, **common)
             self.stats["failed_permanent"] += 1
@@ -164,6 +190,7 @@ class SiteRunner:
                 raise SaveBroken(f"save_failures_consecutive:{type(exc).__name__}")
             return
         self._save_errors = 0
+        self._db_errors = 0
         self._identity_reviews = 0
         if note == "existing_document":
             self.stats["existing_document"] += 1

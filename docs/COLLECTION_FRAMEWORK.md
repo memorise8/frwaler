@@ -353,3 +353,13 @@ segments_mismatch, files_{pending,done,failed}, oldest_item`. JSON(상세 포함
 | H05 | 사이트맵 커서 = (offset, 필터 후 URL 목록 지문). 지문이 바뀌면 그 사이트맵을 처음부터 재열거(`sitemap_changed_restart`). 끝에 현재 URL 전체가 열거됐는지 대조(아니면 `mismatch`). |
 | H06 | 구간 간 같은 키(겹침, `allow_overlap`이 아니면 `segment_overlap`), leaf 보고 합계 ≠ 고유 열거 수(`leaf_total_sum_mismatch`)면 `complete_with_mismatch`. 서로 다른 구간의 첫 쪽이 같으면 필터 무효 의심(`filter_not_effective`) → 해당 구간 `unverified`. |
 | H11 | 가드는 **보안 경계가 아니라 우회 탐지용 tripwire**로 정정. 가드 안에서 시작된 스레드는 가드를 물려받는다(테스트). 남은 한계: 이미 연결된 소켓 재사용, native 소켓(curl_cffi 등), 가드 이전에 만들어진 스레드/실행기, 수집기 생성자와 `_save_paper`(가드 밖). 신뢰가 필요한 경우 수집기 메서드를 실행하지 않는 방식(순수 파서 계약 또는 네트워크 없는 별도 실행 환경)이 필요하다. |
+
+## 17. 교차 검토(Codex) 반영 — 2차 배치
+
+| 항목 | 반영 |
+|---|---|
+| H10 | 저장 중 DB 쪽 일시 장애(SQLite `OperationalError`, psycopg `OperationalError`/`InterfaceError`/deadlock/serialization/lock)는 `failed_transient:save_transient:<형>`(다음 실행 재시도), 연속 `max_consecutive_save_errors`회면 `incomplete(database_unavailable)`. 문서 자체의 저장 오류만 `save_error`(영구). 어댑터 설정 오류(없는 메서드, 모르는 인자 토큰)는 어댑터 생성 시 검사해 사이트 `config_error`로 멈추고 항목 대장에 남기지 않는다. 명시적 재처리: `--reprocess-failed <사유 접두>`(예: `parse_error:`)가 해당 실패 항목의 시도 횟수를 초기화해 재시도 패스에 넣는다. saved 항목은 건드리지 않고, `identity_*`/`listing_identity_conflict`는 데이터 판단이 필요하므로 재처리 대상에서 제외. 어댑터 변경은 plan 지문에 넣지 않는다(진행 보존) — 재처리는 이 명령으로. |
+| H12 | 기본 URL 질의는 순서 있는 다중값 쌍으로 보존(`f=a&f=b`, `fq=..&fq=..`, 빈 값). plan/페이지 파라미터로 주어진 키만 그 키의 모든 값을 첫 위치에서 교체(리스트 값은 여러 쌍). |
+| M01 | 파일 패스의 blob 쓰기(`OSError`)와 문서 DB 갱신 오류는 파일 대장에 `transient:storage_error:<형>`/`db_error:<형>`으로 기록하고 시도 횟수 상한 후 `failed(retries_exhausted:…)`. blob·DB 갱신 후 대장 기록 전 크래시는 다음 패스에서 blob 해시와 `documents.pdf_sha256`이 같으면 다운로드 없이 `done(reconciled_existing_blob)`. `--files`는 본 실행과 같은 Fetcher(예산)를 쓰고, `--files-only`는 plan 예산으로 별도 실행. |
+| M02 | 어댑터 생성 시 문서 연결의 종류와 저장 경로(`LIBERTREE_DB_BACKEND`)가 다르면 `config_error(backend_mismatch:…)`. (전역 환경변수를 바꾸지 않고 검증으로 일치를 강제) |
+| M03 | 보고서에 `saved_current_generation`(현재 plan 세대에 열거된 항목 중 저장된 수, `listed_unique`와 같은 범위)과 `saved_all_time`(= `saved`) 분리. `date_fill`은 `DISTINCT seq_id` 기준. gap=0은 항목 실패 0건을 뜻하지 않는다. |

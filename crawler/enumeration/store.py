@@ -236,6 +236,24 @@ class Store:
         self._exec("UPDATE enum_item SET status='failed_retries_exhausted',updated_at=? "
                    "WHERE site_id=? AND status='failed_transient' AND attempts>=?", (now(), site_id, max_attempts))
 
+    REQUEUE_FORBIDDEN = ("identity_", "listing_identity_conflict")
+
+    def requeue_failed(self, site_id, reason_prefixes):
+        """Explicit reprocessing (after a fixed adapter/parser): failed items whose reason
+        starts with a prefix get a fresh attempt budget; saved items are never touched.
+        Identity conflicts/collisions are excluded: they need a data decision."""
+        total = 0
+        for prefix in reason_prefixes:
+            if any(prefix.startswith(f) or f.startswith(prefix) for f in self.REQUEUE_FORBIDDEN):
+                raise ValueError(f"identity failures cannot be requeued: {prefix}")
+            cur = self._exec("UPDATE enum_item SET status='failed_transient', attempts=0, updated_at=? "
+                             "WHERE site_id=? AND status IN ('failed_permanent','failed_retries_exhausted') "
+                             "AND reason LIKE ?", (now(), site_id, prefix.replace("%", "") + "%"))
+            total += cur.rowcount
+        if total:
+            self.event(site_id, "items_requeued", {"prefixes": list(reason_prefixes), "count": total})
+        return total
+
     def item_counts(self, site_id):
         rows = self._all("SELECT status, reason, COUNT(*) AS n FROM enum_item WHERE site_id=? GROUP BY status, reason",
                          (site_id,))

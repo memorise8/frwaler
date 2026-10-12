@@ -9,7 +9,8 @@ import sqlite3
 import tempfile
 from pathlib import Path
 
-CSV_FIELDS = ("site_id", "strategy", "status", "stop_reason", "listed_unique", "saved", "failed_total",
+CSV_FIELDS = ("site_id", "strategy", "status", "stop_reason", "listed_unique", "saved_current_generation",
+              "saved_all_time", "saved", "failed_total",
               "failed_by_reason", "independent_evidence", "independent_total", "gap", "segments_total",
               "segments_incomplete", "segments_mismatch", "segments_unverified", "new_duplicates",
               "skipped_existing_post_number", "identity_collisions", "identity_reviews", "warnings",
@@ -19,8 +20,9 @@ CSV_FIELDS = ("site_id", "strategy", "status", "stop_reason", "listed_unique", "
 
 def date_fill(store, site_id, doc_conn):
     """Share of documents saved through this framework whose date fields are filled."""
-    seq_ids = [r["seq_id"] for r in store._all("SELECT seq_id FROM enum_item WHERE site_id=? AND status='saved' "
-                                                "AND seq_id IS NOT NULL", (site_id,))]
+    # Documents, not ledger rows: several item keys can resolve to one seq_id.
+    seq_ids = [r["seq_id"] for r in store._all("SELECT DISTINCT seq_id FROM enum_item WHERE site_id=? "
+                                                "AND status='saved' AND seq_id IS NOT NULL", (site_id,))]
     if doc_conn is None or not seq_ids:
         return {"documents": len(seq_ids), "published_date": None, "listed_date": None}
     filled = {"published_date": 0, "listed_date": 0}
@@ -69,6 +71,9 @@ def site_report(store, site_id, doc_conn=None):
             evidence.append("source_reported_total")
     files = store.file_counts(site_id)
     oldest = store.oldest_saved(site_id)
+    saved_current = store._one(
+        "SELECT COUNT(DISTINCT i.item_key) AS n FROM enum_item i JOIN enum_listed l ON l.site_id=i.site_id "
+        "AND l.item_key=i.item_key AND l.plan_fp=? WHERE i.site_id=? AND i.status='saved'", (fp, site_id))["n"]
     fill = date_fill(store, site_id, doc_conn)
     return {
         "site_id": site_id,
@@ -76,7 +81,12 @@ def site_report(store, site_id, doc_conn=None):
         "status": site["status"],
         "stop_reason": site["stop_reason"],
         "listed_unique": listed,
+        # saved/saved_all_time: every generation; saved_current_generation: items of
+        # the current plan's enumeration (comparable with listed_unique). gap=0 does not
+        # mean every listed item was saved.
         "saved": saved,
+        "saved_all_time": saved,
+        "saved_current_generation": saved_current,
         "failed_total": sum(failed.values()),
         "failed_by_reason": failed,
         "independent_evidence": evidence or ["none"],

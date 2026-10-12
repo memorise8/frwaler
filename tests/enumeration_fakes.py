@@ -9,7 +9,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 from crawler import db_libertree
-from crawler.enumeration.adapters import Adapter
+from crawler.enumeration.adapters import Adapter, AdapterConfigError
 from crawler.enumeration.http import Fetcher, Response
 from crawler.enumeration.plan import site_plan
 from crawler.enumeration.runner import SiteRunner
@@ -191,7 +191,13 @@ class Env:
             site_id=None, **fetch_kw):
         plan = self.plan(site, site_id)
         transport = transport or FakeTransport(handler)
-        adapter = Adapter(plan.site_id, plan.raw.get("adapter"), self.conn, crawler=crawler, base_url=plan.base_url)
+        try:
+            adapter = Adapter(plan.site_id, plan.raw.get("adapter"), self.conn, crawler=crawler,
+                              base_url=plan.base_url)
+        except AdapterConfigError as exc:  # same handling as run.run_site
+            self.store.start_site(plan.site_id, plan.fingerprint, plan.strategy)
+            self.store.finish_site(plan.site_id, "config_error", str(exc))
+            return {"site_id": plan.site_id, "status": "config_error", "stop_reason": str(exc)}
         try:
             runner = SiteRunner(plan, self.store, self.fetcher(plan, transport, **fetch_kw), adapter, today=today,
                                 reference_conn=reference_conn, identity_required=identity_required,

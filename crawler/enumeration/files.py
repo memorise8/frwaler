@@ -100,6 +100,10 @@ class FilePass:
             return stats
         for row in self.store.pending_files(site_id, self.max_attempts):
             url, seq_id, role = row["url"], row["seq_id"], row["role"]
+            if self.reconcile(site_id, row):
+                stats["done"] += 1
+                stats["reconciled"] = stats.get("reconciled", 0) + 1
+                continue
             try:
                 resp = self.fetcher.get(url)
             except PermanentFailure as exc:
@@ -147,12 +151,58 @@ class FilePass:
                 continue
             sha = hashlib.sha256(data).hexdigest()
             pages = pdf_page_count(data) if is_pdf(data) else None
-            if role == "pdf" and is_pdf(data):
-                path = self._store_primary(seq_id, data)
-            else:
-                path = self.blob_root / "attachments" / str(seq_id) / f"{sha}.{_ext_for(url, ctype, data)}"
-                _atomic_write(path, data)
+            try:
+                if role == "pdf" and is_pdf(data):
+                    path = self._store_primary(seq_id, data)
+                else:
+                    path = self.blob_root / "attachments" / str(seq_id) / f"{sha}.{_ext_for(url, ctype, data)}"
+                    _atomic_write(path, data)
+            except OSError as exc:
+                self._storage_failure(site_id, row, f"storage_error:{type(exc).__name__}", stats)
+                continue
+            except Exception as exc:  # documents DB update failed (PG rollback below)
+                rollback = getattr(self.doc_conn, "rollback", None)
+                if rollback:
+                    rollback()
+                self._storage_failure(site_id, row, f"db_error:{type(exc).__name__}", stats)
+                continue
             self.store.update_file(site_id, seq_id, url, status="done", size=len(data), sha256=sha, pages=pages,
                                    content_type=ctype, reason=None, path=str(path))
             stats["done"] += 1
         return stats
+
+    def _storage_failure(self, site_id, row, reason, stats):
+        """Disk/DB errors are bounded retries recorded in the file ledger."""
+        attempts = row["attempts"] + 1
+        status = "failed_transient" if attempts < self.max_attempts else "failed"
+        self.store.update_file(site_id, row["seq_id"], row["url"], status=status,
+                               reason=(f"transient:{reason}" if status == "failed_transient"
+                                       else f"retries_exhausted:{reason}"))
+        stats[status] += 1
+
+    def reconcile(self, site_id, row):
+        """A crash after the blob and DB update but before the ledger write: if the
+        stored blob matches the documents row hash, finish without downloading."""
+        if row["role"] != "pdf" or self.doc_conn is None:
+            return False
+        from crawler import blob_storage
+        try:
+            path = blob_storage.get_blob_path(row["seq_id"], "pdf", root=self.blob_root)
+        except (TypeError, ValueError):
+            return False
+        if not path.exists():
+            return False
+        data = path.read_bytes()
+        sha = hashlib.sha256(data).hexdigest()
+        mark = "?" if isinstance(self.doc_conn, sqlite3.Connection) else "%s"
+        doc = self.doc_conn.execute(f"SELECT pdf_downloaded, pdf_sha256 FROM documents WHERE seq_id={mark}",
+                                    (row["seq_id"],)).fetchone()
+        if doc is None:
+            return False
+        values = tuple(doc[k] for k in doc.keys()) if hasattr(doc, "keys") else tuple(doc)
+        if not (values[0] and values[1] == sha):
+            return False
+        self.store.update_file(site_id, row["seq_id"], row["url"], status="done", attempt=False, size=len(data),
+                               sha256=sha, pages=pdf_page_count(data), content_type="application/pdf",
+                               reason="reconciled_existing_blob", path=str(path))
+        return True

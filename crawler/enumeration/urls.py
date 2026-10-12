@@ -32,35 +32,34 @@ def decode_preencoded(params):
 
 
 def build_url(base, params=None, *, drop=()):
-    """Merge ``params`` into ``base``'s query (params win), encoding once.
+    """Merge ``params`` into ``base``'s query, encoding once.
 
-    ``drop`` removes keys from the base query (e.g. a page parameter that
-    must be absent for the unparameterized first-page check).
+    The base query is kept as ordered multi-value pairs (``f=a&f=b``,
+    ``fq=..&fq=..``, blank values). A key given in ``params`` replaces *all*
+    of its base values at the position of its first occurrence (a list value
+    yields several pairs); other keys are never touched. ``drop`` removes keys.
     """
     parts = urlsplit(base)
-    merged = {}
-    order = []
+    overrides = {k: v for k, v in decode_preencoded(params).items() if k not in drop}
+
+    def values(value):
+        if value is None:
+            return []
+        return [str(v) for v in value] if isinstance(value, (list, tuple)) else [str(value)]
+
+    pairs, emitted = [], set()
     for key, value in parse_qsl(parts.query, keep_blank_values=True):
         if key in drop:
             continue
-        if key not in merged:
-            order.append(key)
-        merged[key] = value
-    for key, value in decode_preencoded(params).items():
-        if key in drop:
+        if key in overrides:
+            if key not in emitted:
+                pairs.extend((key, v) for v in values(overrides[key]))
+                emitted.add(key)
             continue
-        if key not in merged:
-            order.append(key)
-        merged[key] = value
-    pairs = []
-    for key in order:
-        value = merged[key]
-        if value is None:
-            continue
-        if isinstance(value, (list, tuple)):
-            pairs.extend((key, str(v)) for v in value)
-        else:
-            pairs.append((key, str(value)))
+        pairs.append((key, value))
+    for key, value in overrides.items():
+        if key not in emitted:
+            pairs.extend((key, v) for v in values(value))
     return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(pairs), ""))
 
 

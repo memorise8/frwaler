@@ -239,6 +239,8 @@ def main(argv=None):
                    help="let registered sites with no reference rows pass the identity check (warned in report)")
     p.add_argument("--release-host", action="append", default=[],
                    help="release a reviewed host hold (refusals are otherwise permanent)")
+    p.add_argument("--reprocess-failed", action="append", default=[], metavar="REASON_PREFIX",
+                   help="give failed items whose reason starts with this prefix a fresh retry (e.g. parse_error:)")
     p.add_argument("--identity-sample", type=int, default=5)
     p.add_argument("--identity-threshold", type=float, default=1.0)
     args = p.parse_args(argv)
@@ -293,6 +295,8 @@ def main(argv=None):
             conn.close()
 
     def _leased(plan, conn):
+        if args.reprocess_failed:
+            store.requeue_failed(plan.site_id, args.reprocess_failed)
         if args.files_only:
             fetcher = make_fetcher(plan, state_dir, max_bytes=plan.get("file_max_bytes"), holds=store)
             return {"site_id": plan.site_id, "files": FilePass(
