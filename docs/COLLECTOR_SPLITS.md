@@ -155,7 +155,7 @@ brgm-fr-fr plan 은 `detail_method: "_build_paper"` 에 틀의 `"soup"` 토큰(h
 
 1. TLS 검증: 10개 plan 은 모두 `verify_ssl: true`(틀 기본값과 같음). 기존 수집기 중 9곳은 `curl -k`(검증 끔)를 쓴다 — climateinstitute(`-skL`), nasa(`-sk`), research-imt(`-sk`), srnl(`-sk`), minfin(`-skL`), home-cern(`-skL`), health-ni(`-sk`), brgm(`-skL`), data-mfe(`-sk`). ukdataservice 만 requests 세션(기본 검증)이다. 인증서 체인이 불완전한 사이트는 기존 crawl() 은 되는데 새 plan 은 전송 오류로 incomplete 가 될 수 있다. 라이브에서 각 호스트의 인증서 검증 성공 여부를 확인해야 한다(검증을 끄는 plan 변경은 하지 않았다).
 2. data-mfe-govt-nz-documents: plan `params` 가 `page`, `page_size` 뿐이고 정렬 파라미터가 없다(기존 crawl() 도 같음). last_page_backward 는 '새 항목이 앞쪽에 추가되는 안정된 순서'를 전제하므로 API 기본 정렬이 그런지, 실행 중 순서가 바뀌지 않는지 라이브로 확인해야 한다.
-3. health-ni-gov-uk-publications: 기존 `_curl_get` 은 `curl -sk`(`-L` 없음)로 리다이렉트를 따라가지 않는다. 틀 Fetcher 는 리다이렉트를 최대 5번 따라간다. 상세 URL 이 리다이렉트되면 기존 crawl() 은 리다이렉트 응답 본문(대개 짧아 건너뜀)을, 새 경로는 최종 페이지를 파싱하므로 저장 여부·필드가 달라질 수 있다. 식별값은 두 경로 모두 요청한 목록 URL 을 쓰도록 맞췄으나(리다이렉트 합성 시험 통과), 실제 리다이렉트 발생 여부와 식별값 차이는 확인 못 함. nasa·research-imt·srnl·data-mfe 도 `-L` 이 없다(목록/상세 응답에 리다이렉트가 있는지 확인 필요).
+3. health-ni-gov-uk-publications: 기존 `_curl_get` 은 `curl -sk`(`-L` 없음)로 리다이렉트를 따라가지 않는다. 틀 Fetcher 는 리다이렉트를 최대 5번 따라간다. 상세 URL 이 리다이렉트되면 기존 crawl() 은 리다이렉트 응답 본문을, 새 경로는 최종 페이지를 파싱하므로 저장 여부·필드가 달라질 수 있다. 식별값은 두 경로 모두 요청한 목록 URL 을 쓰도록 맞췄으나(리다이렉트 합성 시험 통과), 실제 리다이렉트 발생 여부와 식별값 차이는 확인 못 함. nasa·research-imt·srnl·data-mfe 도 `-L` 이 없다(목록/상세 응답에 리다이렉트가 있는지 확인 필요).
 4. research-imt-nord-europe-fr-news: `pdf_url` 은 본문 HTML 의 정규식 일치를 그대로 쓰고 `urljoin` 하지 않는다(기존 crawl() 과 같게 복사). 상대 경로 링크가 있으면 상대 `pdf_url` 이 저장될 수 있다. 실제 본문 링크 형식은 확인 못 함.
 5. WordPress 6곳의 400 `rest_post_invalid_page_number` 본문과 `X-WP-Total` 헤더가 실제로 오는지, 프록시/CDN 이 헤더를 지우지 않는지 확인 못 함. 헤더가 없으면 총건수 대조 없이 complete 가 될 수 있다.
 6. home-cern-news 의 피드 `paged` 초과 응답(합성 시험은 404 가정), brgm·health-ni 의 마지막 쪽 초과 응답(합성 시험은 빈 `<main>` 가정)은 확인 못 함.
@@ -173,3 +173,10 @@ brgm-fr-fr plan 은 `detail_method: "_build_paper"` 에 틀의 `"soup"` 토큰(h
 |`.audit/run-brgm-tests.sh`|`test_enumeration_split_brgm_fr_fr.py`|`brgm-marker-red.log`(8, 오류 1)|
 
 `red.log`/`red-verified.log` 는 `COLLECTOR_SPLITS_AUDIT.json` 의 `test_logs` 에 없다(AST 직렬화 차이 수정 전 red). `COLLECTOR_SPLITS_AUDIT.json` 의 SHA-256·시험 수는 5369fd9 시점 기록이며 이번 리뷰 수정으로 바뀐 파일과는 맞지 않는다(갱신하지 않음; 이번 결과는 이 절과 아래 최종 시험 결과가 기준).
+
+### 리뷰 수정 후 시험 결과
+
+- 병합: `collect-merged-20261013`(6b0da63)을 충돌 없이 병합(869da8c). 병합 직후 기준 **451개 실행, 실패 0, 건너뜀 1**(기존 432 + 틀 fix4 등 19).
+- 최종: **477개 실행, 실패 0, 건너뜀 1** = 병합 기준 451 + 신규 26(WordPress 종료 4, 사이트별 합성 runner 실행 2×10, BRGM 손상 HTML 1, minfin page 바인딩 1). 건너뜀은 TEST_PG_ADMIN_DSN 없는 PostgreSQL 전용 시험.
+- 실행: `--network none` 임시 `enum-test-fix5` 컨테이너(`--rm`), 소스 읽기 전용 마운트 후 `/w` 복사(`.git`/`.audit`/금지 이름 제외), 기존 wheelhouse 로 `pip --no-index` 설치, `python -m unittest discover -s tests -p "test_enumeration_*.py" -t .`. 실제 사이트 요청·DB 서버 접속 0건.
+- 리뷰 재현 스크립트(repro_runs.py) 결과: WordPress 6곳 plan 그대로 `complete`, 점검 페이지/200 JSON 오류/XML 앞 빈 줄 모두 `incomplete` + `listing_failed:listing_parse_error:*`. 짧은 초록 1건 `complete_with_review`, 연속 5건 `config_error` 는 리뷰 수정 5대로 남는다.
