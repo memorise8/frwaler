@@ -55,7 +55,7 @@ AFP는 B가 아닌 C이며 내부 curl 때문에 제외한다. MI는 B지만 3�
 ## 남은 제한
 
 1. **실제 사이트 요청 0건**이다. 목록 순서, 마지막 쪽, API 현재 응답/필터, 총량, robots 허용, 전량 수집·실제 저장·중복 없음은 확인 못 함이다. 등록 코드의 URL/필터/페이지 시작값을 후보로 옮겼다. WordPress 6곳의 400 종료는 아래 '리뷰 수정 1'처럼 `json_code` 가 `rest_post_invalid_page_number` 인 응답으로만 한정했고 400 일반을 허용하지 않았다. 틀의 정책 코드는 약화하지 않았다.
-2. 짧은 초록 필터는 10곳 모두 등록 변환과 같은 기준으로 보존한다(BRGM은 기존 `_build_paper` 내부 필터 재사용). **None을 틀이 empty_item 실패로 처리하는 차이**가 남는다. 연속 실패 중단/검토 완료 규칙이 작동할 수 있어 원본 crawl의 조용한 skip과 실행 상태까지 같다고 주장하지 않는다.
+2. 짧은 초록 필터는 10곳 모두 등록 변환과 같은 기준으로 보존한다(BRGM은 기존 `_build_paper` 내부 필터 재사용). **None을 틀이 empty_item 실패로 처리하는 차이**가 남는다. 연속 실패 중단/검토 완료 규칙이 작동할 수 있어 원본 crawl의 조용한 skip과 실행 상태까지 같다고 주장하지 않는다. 정도와 틀 쪽 해결 제안은 아래 '리뷰 수정 5'에 적었다(코드 변경 없음).
 3. 새 메서드는 기존 문서 조립을 복사한다. 원본 crawl은 그대로이므로 향후 원본 로직만 변경하면 둘이 어긋날 수 있다. 원문 보존·메모리 저장 대조 시험을 함께 갱신해야 한다. 날짜 추정이나 결함 보정은 이번에 하지 않았다.
 4. NASA의 2025 기간과 press-release 타입, Minfin category 62, IMT lang=en/category 75, BRGM Communiqué de presse 필터를 그대로 유지한다. 전체 사이트 데이터로 범위를 넓히지 않았다. MfE는 목록 ID로 원래 API 상세 URL을 만들고 Paper에는 원래 공개 문서 URL을 유지한다.
 5. Health/BRGM의 `main`, CERN RSS의 `channel` 표지는 합성 구조에서만 시험했다. 실제 빈 페이지/오류 페이지 표지로 충분한지 확인 못 함이다. 단순 HTML main 존재만으로 실제 종료를 보증하지 않는다. 목록 리다이렉트와 사이트 측 정렬 변동도 미검증이다.
@@ -135,3 +135,16 @@ brgm-fr-fr plan 은 `detail_method: "_build_paper"` 에 틀의 `"soup"` 토큰(h
 - 얇은 메서드 `_enumeration_detail(raw_html, list_meta, detail_url)` 를 추가했다: `self._make_soup(raw_html, context=f"detail {detail_url}")` 로 파싱하고, None 이면 crawl() 처럼 건너뛰며(None), 아니면 기존 `_build_paper` 를 그대로 호출한다. 기존 메서드는 바꾸지 않았다.
 - plan: `"detail_method": "_enumeration_detail", "detail_args": ["html", "item", "url"]` (`url` 은 요청한 상세 URL = crawl() 의 detail_url).
 - 시험 `test_malformed_detail_html_is_parsed_like_crawl`: 닫히지 않은 `<p>` 가 있는 상세 fixture 로 html5lib/html.parser 의 초록이 실제로 다름을 먼저 확인하고, 원본 crawl() 저장 인자와 새 경로의 정제 전·후 Paper 가 같음을 대조한다. 수정 전 abstract 차이(`\n\n` 대 공백 연결)로 실패를 확인했다.
+
+### 리뷰 수정 5 — 짧은 초록 None 반환의 실행 상태 영향 (문서만, 코드 변경 없음)
+
+새 Paper 메서드는 기존 crawl() 의 짧은 초록/제목 없음 skip 을 그대로 복사해 `None` 을 돌려준다. 기존 crawl() 에서는 조용한 건너뜀이지만, 현재 틀(`runner.process_item`)은 계약 사이트의 `None` 을 `failed_permanent` / `empty_item` 으로 기록하고 계약 실패로 센다. 수집기 쪽에서는 이 차이를 풀 수 없다(필터를 빼면 저장 대상이 넓어지고, 다른 값을 돌려주면 틀이 실패로 본다).
+
+정도(합성 실행으로 확인, `max_contract_failure_ratio` 기본 0, `max_consecutive_contract_failures` 기본 5):
+
+- **1건만 있어도** 사이트 결과가 `complete` 가 아니라 `complete_with_review` / `adapter_contract_failures:1` 이 된다(나머지 문서는 정상 저장).
+- **연속 5건**이면 `config_error` / `adapter_contract_failures_consecutive:empty_item` 로 즉시 중단되고, 다음 실행도 그 항목들을 `--reprocess-failed` 로 다시 넣을 때까지 `adapter_contract_stop_requires_reprocess` 로 멈춘다.
+- 기준 길이: 100자 기준 사이트는 **health-ni-gov-uk-publications, minfin-gov-gr-grafeio-typou(`_MIN_SAVE`), data-mfe-govt-nz-documents**. 나머지 7곳은 50자(IMT 는 본문 100자 미만이면 excerpt 로 대체 후 50자). climateinstitute·data-mfe·brgm 은 제목 없음도 None 이다. 100자 기준 사이트일수록 짧은 공지 비율이 높으면 위 상태가 더 자주 나타날 수 있다(실제 비율은 확인 못 함).
+- plan 에서 `max_contract_failure_ratio` 를 올리면 complete_with_review 는 피할 수 있으나, 진짜 변환 실패도 함께 숨기므로 이번에는 바꾸지 않았다.
+
+틀 쪽 해결 제안(제안만, 이번에 구현하지 않음): 계약에 '의도된 건너뜀'을 표현하는 방법을 둔다. 예를 들어 adapter 계약에 `"paper_none": "skip"` 같은 선언을 허용하고(기본은 지금처럼 실패), 선언된 사이트에서는 Paper 메서드의 `None` 을 `skipped:intentional` 같은 별도 원장 상태로 기록하여 계약 실패 수·연속 실패·검토 판정에서 제외한다. 또는 메서드가 반환할 수 있는 명시적 표지 객체(예: `Skip(reason)`)를 틀이 제공한다. 어느 쪽이든 건너뜀 건수는 보고서에 따로 집계하여 조용히 사라지지 않게 해야 한다.
