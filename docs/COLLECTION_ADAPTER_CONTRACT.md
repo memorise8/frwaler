@@ -8,9 +8,9 @@
 
 | site_id | 반환형·인자·변환 및 판단 | 코드 근거 |
 |---|---|---|
-| afp-gov-au-news-centre | tuple(items,next_url) → dict 행; detail(raw,url) → 부분 dict; _build_paper(item,detail). 연결 검증 대상. | `crawler/sites/custom/afp-gov-au-news-centre.py` crawl:129, _parse_list_page:294, _parse_detail_page:371, _build_paper:414 |
-| africamuseum-be-en | 5열 tuple 행(slug,title,listed_date,snippet,source_url); detail(html,slug,listed_date,snippet,source_url) → Paper. 연결 검증 대상. | `crawler/sites/custom/africamuseum-be-en.py` _parse_list_page:115, _parse_detail_page:186, crawl:257 |
-| culture-gouv-fr-espace-documentation | tuple(items,has_next); detail(html,url) → 부분 dict; _to_paper(list_item,detail). 연결 검증 대상. | `crawler/sites/custom/culture-gouv-fr-espace-documentation.py` _parse_list_page:263, _parse_detail:333, _to_paper:558, crawl:629 |
+| afp-gov-au-news-centre | tuple(items,next_url) → dict 행; detail(raw,url) → 부분 dict; _build_paper(item,detail). 연결 검증 대상(아래 최종 결과 참조). | `crawler/sites/custom/afp-gov-au-news-centre.py` crawl:129, _parse_list_page:294, _parse_detail_page:371, _build_paper:414 |
+| africamuseum-be-en | 5열 tuple 행(slug,title,listed_date,snippet,source_url); detail(html,slug,listed_date,snippet,source_url) → Paper. 연결 검증 대상(아래 최종 결과 참조). | `crawler/sites/custom/africamuseum-be-en.py` _parse_list_page:115, _parse_detail_page:186, crawl:257 |
+| culture-gouv-fr-espace-documentation | tuple(items,has_next); detail(html,url) → 부분 dict; _to_paper(list_item,detail). 연결 검증 대상(아래 최종 결과 참조). | `crawler/sites/custom/culture-gouv-fr-espace-documentation.py` _parse_list_page:263, _parse_detail:333, _to_paper:558, crawl:629 |
 | economie-fgov-be-nl | list[dict]; detail(html,item) → 부분 dict; Paper/ID 조립은 crawl 내부. 계약만으로 해결 불가. | `crawler/sites/custom/economie-fgov-be-nl.py` _parse_listing:113, _parse_detail:172, crawl:262 |
 | health-ni-gov-uk-publications | tuple(items,has_next); detail(raw,card_summary) → 부분 dict; Paper 조립 crawl 내부. 해결 불가. | `crawler/sites/custom/health-ni-gov-uk-publications.py` _parse_list_page:75, _parse_detail:106, crawl:190 |
 | mimit-gov-it-it | list[str URL]; detail(html,url) → 부분 dict; Paper/ID 조립 crawl 내부. URL 정규화만으로 해결 불가. | `crawler/sites/custom/mimit-gov-it-it.py` _parse_list_page:106, _parse_detail_page:128, crawl:234 |
@@ -59,4 +59,61 @@ sitemap에서 item 전체/개별 필드 또는 list_returns_paper가 필요하�
 1. 합성 데이터로 dict/tuple envelope/tuple 행/URL 행/Paper/JSON 경로, 인자·kwargs·query·detail→paper, 잘못된 타입/누락/네트워크 차단/빈 목록/ID 보존을 검증한다.
 2. AFP·AfricaMuseum·Culture·KIT의 실제 등록 메서드를 DB 생성자 없이 불러 직접 호출과 adapter 결과/식별값을 대조한다. 이것은 어댑터 연결 검증이며 plan 60곳 재통과 판정이나 사이트 수집 성공 판정이 아니다.
 3. 보존한 plans-v2.json 12곳과 plans-codex.json 5곳을 모두 e2ebfc9 구현과 새 구현에 넣어 검증·지문·목록·문서/ID 동작을 오프라인에서 비교한다. 각 plan의 등록 코드/선택자는 그대로 쓴다. 커버하지 못한 경로를 명시한다.
-4. 운영/고객/테스트 DB 연결, 서버 생성, 라이브 요청은 하지 않는다. 테스트는 메모리 응답과 conn=None으로 한다. 워크트리 collect-adapter-20261012에만 로컬 커밋한다.
+4. 신규 어댑터 테스트는 메모리 응답과 conn=None을 사용한다. 사용자가 지정한 기존 전체 테스트에는 컨테이너 내부 임시 SQLite 가짜 데이터가 포함된다. 운영/고객 DB 및 PostgreSQL 인스턴스에는 접속하지 않으며 서버를 만들지 않는다. 사이트 라이브 요청은 하지 않는다. 워크트리 collect-adapter-20261012에만 로컬 커밋한다.
+
+
+## 구현 결과와 검증 범위
+
+**통과는 plan 형식·틀 규칙 및 등록 어댑터 연결 검증 통과이며, 끝까지 받을 수 있다는 증거가 아니다.**
+
+새 계약은 `crawler/enumeration/contracts.py`로 분리했다. 기존 Adapter의 분기는 opt-in 지점에 한정했고, plan 검증·새 계약 지문과 ListingParser의 엄격한 행 검사/명시 JSON 빈 목록 처리만 추가했다. 개별 등록 수집기·식별 규칙·날짜 정규화·중복 점검·Fetcher·사설주소 검사·robots·요청 게이트 코드는 바꾸지 않았다. 계약 오류는 `AdapterConfigError` 하위 타입으로 전파되어 사이트가 `config_error`로 중단되며, 반환형 불명 항목을 건너뛰고 완료 처리하지 않는다.
+
+### 24곳 재판정
+
+이전의 거부 24곳 모두 **단순 site_plan 검사 자체는 통과했고**, Adapter 생성에서 같은 오류로 거부됐다. 따라서 이번 비교도 `site_plan(registered 포함) + 실제 등록 클래스의 Adapter 생성/서명 확인`을 한 묶음으로 사용한다. 이 기준으로 기존 0/24 → 신규 계약 후보 **4/24 통과, 20/24 거부 유지**다. 두 집합은 같은 24개 사이트를 비교한 것이며 기타 관련 사이트 수와 합산하지 않는다.
+
+| 새 계약 후보 | 실제로 재사용한 경로 | 확인된 근거 | 남은 제한 |
+|---|---|---|---|
+| afp-gov-au-news-centre | `_parse_list_page(raw,url)[0]` → `_parse_detail_page(raw,url)` → `_build_paper(item,detail)` | 실제 메서드 직접 호출과 새 어댑터의 Paper 전체/identity 동일, 합성 항목 1건 | 실제 목록 범위·끝·빈 목록 marker 유지 미검증 |
+| africamuseum-be-en | 5열 tuple을 이름 붙인 dict로 변경 → 상세 메서드에 원래 scalar 인자 전달 | 실제 목록 tuple/상세 변환의 Paper 전체/identity 동일, 합성 항목 1건 | 마지막 쪽·원천 총량·실제 콘텐츠 미검증 |
+| culture-gouv-fr-espace-documentation | 목록 tuple의 items → `_parse_detail(html,url)` → `_to_paper(list_item,detail)` | 실제 메서드 직접 호출과 Paper 전체/identity 동일, 합성 항목 1건 | 후보 marker가 item selector라 실제 빈 페이지의 종료 판정은 추가 확인 필요 |
+| kit-nl-institute | JSON 목록 배열 → 등록 `_parse_item(item)` | 원래 JSON 행 변환과 Paper 전체/identity 동일, 합성 항목 1건; 상세 요청 없음 | 실제 API 필터 범위·정렬/경계·원천 총량 미검증 |
+
+위 숫자는 `tests.test_enumeration_adapter_sites.ActualSites.test_rejected_24_reclassification`가 원래 24개 입력 전체를 검증해 계산하며, 단순한 효과 추정이 아니다. 실제 메서드 대조는 같은 테스트 모듈의 네 사이트 테스트다. 구체 후보는 `docs/examples/adapter-contract-plans.json`, 원래 거부 입력은 `tests/fixtures/enumeration_adapter/rejected-24.json`에 보존했다. 후보를 원격 시범·운영 plan에 적용하지 않았다.
+
+나머지 20곳의 공통 반환 사유는 여전히 `custom crawler adapter needs detail_method, paper_method or list_returns_paper`다. 첫 표에 실제 반환형·인자·변환 위치와 미해결 사유를 각각 적었다. 특히 다음을 억지로 통과시키지 않았다.
+
+- Paper/ID 조립이 crawl 안에 있는 사이트: 등록 메서드가 없으므로 raw JSON/RSS 행을 Paper라고 선언하지 않았다. CERN RSS도 category/department/metadata 조립이 crawl에 있어 그대로 목록을 저장하는 것은 동등하지 않다.
+- Earth-Prints는 `_fetch_item_detail(uuid)`로 `embed=bundles/bitstreams` 상세를 받은 뒤 `_paper_from_item(item,list_item)`을 실행한다(442~446행). 목록 내 객체만 전달하는 방식은 첨부·메타데이터 보강을 생략하므로 통과 수에 넣지 않았다.
+- EFK는 JSON·HTML의 여러 응답, NIDI는 상세 함수 내부의 추가 네트워크/PDF 처리가 필요하다. 선언적 인자 바인딩으로 네트워크를 우회하지 않는다.
+- Public Health Scotland는 상세의 개별 필드 인자는 표현할 수 있지만 순수 목록 메서드가 없다. 서명만 연결되는 것을 전체 어댑터 통과로 세지 않는다.
+- sitemap item payload 의존, 날짜 하한, POST 목록과 경로 페이지 방식, 사이트 범위 문제는 별도다. 이를 고치면 몇 곳이 더 통과할지는 확인하지 않았다.
+
+### 기존 plan 호환성
+
+12곳+5곳 모두 보존한 원본 plan을 e2ebfc9 구현과 새 구현에 넣어 **plan 검증 결과와 지문, 실제 등록 클래스에서의 어댑터 호출 인자·반환값·최종 Paper/identity, 상세 요청 호출 수**가 같은지 대조한다. 기준 구현은 e2ebfc9의 adapters/parsing/plan 파일을 테스트 fixture로 보존했다. 등록 파서 호출에는 동일한 합성 반환값을 주는 spy를 사용하여 plan별 어댑터 경계 동작을 비교한다. 이는 17개 사이트 실제 HTML의 파싱 정확성이나 전체 수집 성공 회귀검증은 아니다. 기존 전체 테스트와 신규 네 사이트 실제 파서 대조를 별도로 실행한다.
+
+### 알려진 한계
+
+- 실제 사이트 HTTP 요청은 0건이다. 설치 단계의 pip 패키지 내려받기는 사용자 지정 Docker 명령에 포함된다. 테스트의 전송은 합성 응답/가짜 전송이다.
+- 신규 테스트는 DB 연결 없이 실행하며 네 사이트 실메서드 테스트에서 socket/DNS/SQLite 연결 시도를 실패하도록 막았다. 기존 전체 테스트의 임시 SQLite는 컨테이너 내부의 가짜 데이터다. PostgreSQL 전용 테스트는 TEST_PG_ADMIN_DSN 없이 건너뛴다.
+- 새 계약은 등록 코드의 순수 파싱/문서 변환 메서드를 재사용한다. crawl 바깥으로 필터·상태·네트워크·문서 조립 코드를 자동 이식하지 않는다. 이미 등록된 메서드 자체의 파싱 누락이나 ID 의미 오류까지 교정하지 않는다.
+- `guarded()`는 기존 네트워크 tripwire이며 보안 샌드박스가 아니다. 기존에 연결된 소켓/native I/O 등 기존 한계도 유지된다. 임의의 비검토 메서드를 plan에서 호출해도 안전하다고 보증하지 않는다.
+- 실제 빈 페이지/총건수/전체 납품 scope/첨부/증분/저장 동등성을 확인하지 않았고 수집 가능 사이트 수로 일반화하지 않는다. 이번 산출물은 로컬 설계·코드·오프라인 근거다.
+
+### 최종 실행 결과
+
+- Docker 전체 검사: **236개, OK, 건너뜀 1개**(55.755초). 기준 186개 유지 + 신규 50개. 건너뜀은 `TEST_PG_ADMIN_DSN` 없는 PostgreSQL 전용 검사다.
+- 로컬 커밋: 설계/기존 plan 보존 `6e6c008`, 계약 구현/테스트 `84b8ca0`, 계약 오류 즉시 중단 및 추가 검사 `b87b7f5`. 최종 검사는 `b87b7f5` 코드로 실행했다. 이후 변경은 이 결과 문서·JSON·로컬 로그 제외 설정뿐이다.
+- 기준 워크트리 HEAD는 `e2ebfc9`이며 해당 enumeration/설계 파일의 미커밋 변경이 없다. 새 브랜치의 개별 수집기/ID 구현 변경도 없다.
+- 사용한 네 `enum-test-` 컨테이너는 모두 `--rm`으로 제거되었고 개별 이름으로 부재를 확인했다. 로컬 venv, 배포·푸시·병합은 사용하지 않았다.
+- 기계 판독용 결과와 사이트별 판정은 `docs/examples/adapter-contract-audit.json`에 기록했다. 최종 원문 로그는 이 워크트리의 `tests/fixtures/enumeration_adapter/test-run-verified.log`에 남겼으며 반복 실행 로그는 git 제외 대상이다. JSON에 최종 로그 SHA-256을 기록했다.
+
+실행 명령(호스트 shell에서 로그만 리다이렉트):
+
+```sh
+docker run --rm --name enum-test-adapter-20261012-verified \
+  -v /mnt/raid/ruci_workspace/frwaler-collect-adapter:/src:ro \
+  -e PYTHONDONTWRITEBYTECODE=1 python:3.12-slim bash -c \
+  'cp -r /src /w && cd /w && pip install -q -r delivery/requirements.txt -r delivery/vendor/crawler-runtime-requirements.txt && python -m unittest discover -s tests -p "test_enumeration_*.py" -t .'
+```
