@@ -146,7 +146,8 @@ class RobotsMatcherTest(unittest.TestCase):
     def test_crawl_delay_never_shortened_by_a_specific_group(self):
         robots = "User-agent: *\nCrawl-delay: 10\n\nUser-agent: Chrome\nCrawl-delay: 1\n"
         self.assertEqual(H.crawl_delay(robots, UA), 10)
-        robots = "User-agent: *\nCrawl-delay: 2\n\nUser-agent: Chrome\nCrawl-delay: 4.5\n"
+        # "Chrome" is not our product token: like the rule groups, that group does not apply (fix4).
+        robots = "User-agent: *\nCrawl-delay: 2\n\nUser-agent: Mozilla\nCrawl-delay: 4.5\n"
         self.assertEqual(H.crawl_delay(robots, UA), 4.5)
 
     def test_bom_and_comments(self):
@@ -274,7 +275,8 @@ class ItemRobotsTest(unittest.TestCase):
         from tests.enumeration_fakes import FakeBoard, board_plan
         board = FakeBoard(25, robots=b"User-agent: *\nDisallow: /view?id=5$\n")
         result = self.env.run(board_plan(), board)
-        self.assertEqual(result["status"], "complete", result)
+        # The denied item needs a person (review fix: default max_robots_disallowed_ratio 0.0).
+        self.assertEqual(result["status"], "complete_with_review", result)
         row = self.env.store.item(self.env.site_id, "5")
         self.assertEqual((row["status"], row["reason"]), ("failed_permanent", "robots_disallowed"))
         urls = result["transport"].urls
@@ -802,8 +804,10 @@ class ReviewFollowupTest(unittest.TestCase):
         self.assertTrue(H.login_page(html))
 
     def test_non_finite_crawl_delay_ignored_and_huge_one_stops(self):
-        self.assertEqual(H.crawl_delay("User-agent: *\nCrawl-delay: nan\n", UA), 0)
-        self.assertEqual(H.crawl_delay("User-agent: *\nCrawl-delay: inf\n", UA), 0)
+        # Unreadable values are no longer ignored (fix4): the file is read as unparseable.
+        for value in ("nan", "inf"):
+            with self.assertRaises(ValueError):
+                H.crawl_delay(f"User-agent: *\nCrawl-delay: {value}\n", UA)
 
         def handler(url):
             if url.endswith("robots.txt"):

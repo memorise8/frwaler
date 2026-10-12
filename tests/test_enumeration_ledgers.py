@@ -140,7 +140,8 @@ class FailureLedgerTest(unittest.TestCase):
         board = FakeBoard(25, robots=b"User-agent: *\nDisallow: /view\n")
         transport = FakeTransport(board)
         result = self.env.run(board_plan(), board, transport=transport)
-        self.assertEqual((result["status"], result["stop_reason"]), ("access_blocked", "robots_disallowed"))
+        self.assertEqual((result["status"], result["stop_reason"]),
+                         ("access_blocked", "robots_disallowed_consecutive"))
         self.assertFalse([u for u in transport.urls if "/view" in u])
 
     def test_custom_crawler_parsers_reused_and_parse_error_ledgered(self):

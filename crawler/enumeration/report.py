@@ -13,7 +13,8 @@ CSV_FIELDS = ("site_id", "strategy", "status", "stop_reason", "listed_unique", "
               "saved_all_time", "saved", "failed_total",
               "failed_by_reason", "independent_evidence", "independent_total", "gap", "segments_total",
               "segments_incomplete", "segments_mismatch", "segments_unverified", "new_duplicates",
-              "skipped_existing_post_number", "identity_collisions", "identity_reviews", "warnings",
+              "skipped_existing_post_number", "identity_collisions", "identity_reviews", "robots_disallowed",
+              "warnings",
               "identity_match_rate", "published_date_fill", "listed_date_fill", "files_pending", "files_done",
               "files_failed", "oldest_item_date", "request_count", "gate_wait_avg_s", "response_avg_s",
               "crawl_delay_s", "updated_at")
@@ -112,6 +113,8 @@ def site_report(store, site_id, doc_conn=None):
         # Same post_number, different document: never saved, listed for review.
         "identity_collisions": failed.get("failed_permanent:identity_collision", 0),
         "identity_reviews": sum(v for k, v in failed.items() if k.startswith("failed_permanent:identity_review:")),
+        # Detail URLs robots.txt excludes: listed but never requested or saved.
+        "robots_disallowed": failed.get("failed_permanent:robots_disallowed", 0),
         "warnings": site["state"].get("warnings") or [],
         "unverified_segments": [s["segment_key"] for s in segments if s["status"] == "unverified"],
         "duplicates": site["state"].get("duplicates"),
