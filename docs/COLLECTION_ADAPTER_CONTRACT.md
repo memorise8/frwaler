@@ -211,3 +211,19 @@ docker run --rm --name enum-test-adapter-20261012-verified \
 
 - `max_contract_failure_ratio`의 분자·분모는 이 사이트의 **원장 전체 이력**이다. 계약으로 바꾸기 전 실행(계약 없는 경로)에서 남은 `parse_error:*`/`empty_item` 실패도 분자에 들어가고, 그때 저장된 항목도 분모에 들어간다. 원장 행에는 어느 plan 세대에서 처리됐는지가 기록되지 않아 "계약 전환 후 실행분"만 정확히 가려낼 단순한 방법이 없다(`enum_listed` 세대 조인은 재시도 단계 항목을 빠뜨리고, 같은 항목이 다시 목록에 나오면 이전 실패도 그대로 포함한다). 그래서 코드를 바꾸지 않았다.
 - 운영 지침: 계약으로 바꾸기 전에 보고서의 `failed_by_reason`을 확인하고, 이전 실패를 새 계약으로 다시 처리하려면 첫 계약 실행에 `--reprocess-failed parse_error:`/`--reprocess-failed empty_item`을 붙인다. 이전 저장분이 많으면 비율이 희석되어 실제보다 낮게 보일 수 있다. 이것은 남은 한계다.
+
+### json 토큰을 받는 목록 메서드 (NTRS 연결 중 발견)
+
+- 계약 `list_method`가 `json` 토큰(또는 `{source:"json"}` 바인딩)을 받으면 `list_source:"json"`과 같은 목록 규칙을 쓴다: 빈 JSON 목록은 명시적 빈 페이지, JSON이 아닌 응답은 `listing_parse_error:invalid_json`(사이트 `incomplete`). 이전에는 빈 JSON 페이지가 HTML `listing_marker`를 요구해 `empty_without_listing_marker` 오류가 났고, JSON이 아닌 응답은 `resp.json()` 예외가 runner 오류(`failed`)로 새었다. html/raw/soup 토큰 메서드와 계약 없는 plan은 그대로다.
+
+## NTRS(ntrs-nasa-gov-search) 계약 연결
+
+- 등록 수집기에 네트워크 없는 메서드 두 개를 **추가만** 했다: `_parse_search_results(data)`(검색 JSON → `{id,url,title,published_date,result}` 행, id 없는 결과 제외, `results` 목록이 없으면 None), `_paper_from_result(result)`(crawl()이 저장하는 paper와 같은 dict, id·제목 없으면 None). `crawl()`은 바꾸지 않았다(식별값 `post_number=str(id)`, URL `https://ntrs.nasa.gov/citations/{id}`, 저장 필드, 100자 미만 초록 건너뛰기, curl 모두 그대로).
+- plan: `docs/examples/ntrs-contract-plan.json`(산출물 `frwaler-delivery-out/plan-dev-20261008/ntrs-plan-20261012/contract/plan.json`과 동일). 상위 json plan의 CR 범위·질의·offset·구간 분할을 그대로 두고 어댑터만 `list_method`+`paper_method`(상세 요청 없음)로 바꿨다. `site_plan(registered=...)`와 `make_adapter`를 통과한다.
+- 짧은 초록 규칙은 메서드에 넣지 않았다. None을 돌려주면 계약 단계 실패(`empty_item`)로 세어 연속 5건이면 사이트가 멈추기 때문이다(H1 규칙과 충돌). 따라서 **계약 경로의 NTRS 저장 범위는 crawl()보다 넓다**(남은 제한). 제목 없는 결과는 `empty_item` 검토 대상이다.
+- 시험 `tests/test_enumeration_ntrs_contract.py`: 메서드와 crawl()의 paper 동일성, 구간 분할(상한 40·9800), 상세 요청 0, 기존 crawl() DB와 행 동일(짧은 초록 1건 차이), 식별값 사전 점검 일치율 1.0, 예산 중단·재개, 짧은 초록 연속에도 멈추지 않음, 점검 페이지 처리. 라이브 확인 목록(`published[lte]`, 하루 1만 건 초과, robots, page size 100)은 산출물 README에만 적고 코드·plan에 가정으로 넣지 않았다.
+
+### 재리뷰 수정 검증 결과
+
+- Docker 전체 검사(지정 명령, 컨테이너 `enum-test-fix3`, `--rm`): **291개 실행, OK, 건너뜀 1개**(PostgreSQL 전용). 기존 260개 이름 그대로 유지(그중 `test_data_contract_error_is_ledgered_for_review`는 MEDIUM-2에 따라 기대 사유만 `identity_missing:5`로 바꿈) + 신규 31개(`test_enumeration_rereview` 21, `test_enumeration_ntrs_contract` 10). 새 시험은 결함별로 수정 전 실패를 먼저 확인했다.
+- 실제 사이트 요청 0건, DB는 시험 내부 임시 SQLite만 사용했다.
