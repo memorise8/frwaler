@@ -40,3 +40,7 @@ python -m unittest discover -s tests -p 'test_enumeration_*.py' -t .
 ```
 
 원격 53/53 및 55/294 누락 행 전체, 실제 저장 백엔드, 현재 사이트 HTML 변동은 확인하지 못했다. 기존 저장 행의 수정/재수집은 별도 범위다.
+
+## 후속 수정 (공통 generic, 1순위)
+
+`crawler/generic_crawler.py`의 목록 날짜(`_extract_list_items`)와 상세 날짜(`_fetch_detail`)가 자식 요소 텍스트를 구분자 없이 이어 `25Jun2026`을 만들던 것을 공백 구분(`get_text(" ", strip=True)`)으로 바꿨다. 전체 시험 중 실제 날짜 읽기 1185건 비교에서 바뀐 것은 cerema 합성 시험 2건(`25Jun2026` -> `25 Jun 2026`)뿐이고, 기존에 정규화되던 날짜 값은 바뀌지 않았다. 위 표의 `25Jun2026` 행은 이제 `2026-06-25`로 정규화된다. 이미 수집된 cerema-fr 행은 재수집해야 갱신된다.

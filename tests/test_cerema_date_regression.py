@@ -88,17 +88,24 @@ class CeremaDateRegression(unittest.TestCase):
 
     def test_config_reads_visible_date_raw_without_inventing_listed_date(self):
         item = self.generic_items(listing())[0]
-        self.assertEqual(item['published_date'], '25Jun2026')
+        self.assertEqual(item['published_date'], '25 Jun 2026')
         self.assertNotIn('listed_date', item)
         self.assertEqual(self.generic._config['list_page']['selectors']['date'], '.publication-date')
 
-    def test_split_span_raw_survives_as_unrecognized_without_generic_change(self):
+    def test_split_span_date_normalizes_through_generic_extraction(self):
         item = self.generic_items(listing())[0]
         normalized = normalize_document_dates({'site_id': 'cerema-fr', 'published_date': item['published_date']})
-        self.assertEqual(normalized['published_date_raw'], '25Jun2026')
-        self.assertIsNone(normalized['published_date'])
-        self.assertEqual(normalized['published_date_status'], 'unrecognized')
+        self.assertEqual(normalized['published_date_raw'], '25 Jun 2026')
+        self.assertEqual(normalized['published_date'], '2026-06-25')
         self.assertEqual(normalized['listed_date_status'], 'missing')
+
+    def test_generic_detail_date_joins_child_spans_with_space(self):
+        detail = ('<main><h1>Synthetic</h1><div class="publication-date"><span>25</span>'
+                  '<span>Jun</span><span>2026</span></div></main>')
+        self.generic._fetch_page = lambda *args, **kwargs: BeautifulSoup(detail, 'html.parser')
+        cfg = {'selectors': {'date': '.publication-date'}}
+        paper = self.generic._fetch_detail('https://www.cerema.fr/x', {'published_date': ''}, cfg)
+        self.assertEqual(paper['published_date'], '25 Jun 2026')
 
     def test_unsplit_date_normalizes_without_supplying_listed_date(self):
         item = self.generic_items(listing(split=False))[0]

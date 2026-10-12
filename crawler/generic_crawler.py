@@ -289,7 +289,7 @@ class GenericCrawler(BaseCrawler):
             date_sel = selectors.get("date")
             if date_sel:
                 date_tag = row.select_one(date_sel)
-                date = date_tag.get_text(strip=True) if date_tag else ""
+                date = date_tag.get_text(" ", strip=True) if date_tag else ""
 
             category = ""
             cat_sel = selectors.get("category")
@@ -341,7 +341,7 @@ class GenericCrawler(BaseCrawler):
         if sel.get("date"):
             tag = soup.select_one(sel["date"])
             if tag:
-                published_date = self._get_tag_value(tag)
+                published_date = self._get_tag_value(tag, "separator")
                 # Remove common label prefixes (e.g., "날짜 :", "Date:")
                 published_date = re.sub(r"^(날짜|Date|작성일|등록일)\s*[:：]\s*", "", published_date)
 
