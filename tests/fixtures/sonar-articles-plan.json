@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "defaults": {
+    "request_interval_s": 1.5,
+    "max_requests": 20000,
+    "max_runtime_s": 21600,
+    "respect_robots": true,
+    "retries": 1
+  },
+  "sites": {
+    "sonar-ch-global": {
+      "strategy": "date_range_split",
+      "base_url": "https://sonar.ch",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_parse_article_search_results",
+        "list_args": [
+          "json"
+        ],
+        "paper_method": "_paper_from_article_result",
+        "paper_args": [
+          {
+            "source": "item",
+            "path": [
+              "record"
+            ]
+          }
+        ]
+      },
+      "listing": {
+        "url": "https://sonar.ch/api/documents/",
+        "params": {
+          "view": "global",
+          "q": "",
+          "document_type": "coar:c_6501",
+          "sort": "oldest",
+          "size": 50
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 50,
+        "parser": {
+          "type": "adapter",
+          "key_field": "id",
+          "url_field": "url",
+          "date_field": "created",
+          "title_field": "title"
+        },
+        "total": {
+          "type": "json",
+          "path": "hits.total.value"
+        }
+      },
+      "segments": {
+        "mode": "range",
+        "from": "1800",
+        "to": "now",
+        "granularity": "year",
+        "filter": {
+          "type": "query_range",
+          "param": "q",
+          "field": "_created"
+        },
+        "hidden_cap": 9800,
+        "split_to": [
+          "month",
+          "day"
+        ],
+        "within_segment_order": "oldest_first",
+        "overlap_pages": 0
+      },
+      "overall_total_check": true
+    }
+  },
+  "_review": {
+    "execution_readiness": "NOT_READY_UNIQUE_ORDER_AND_SERVER_CONTRACT_UNCONFIRMED",
+    "scope": "Authorized journal articles coar:c_6501; separate from unchanged thesis contract. Prior source report 309816, not a current expected saved count.",
+    "sorting_key": "sort=oldest is an API keyword; backing field and unique tie-break not verified",
+    "unique_sort_key_verified": false,
+    "unique_secondary_key_api_support": "확인 못 함; do not invent sort=id or a secondary-sort parameter",
+    "same_date_over_page_size_risk": true,
+    "same_date_risk_basis": "50/page; creation timestamps can tie or be batch-imported; actual live frequency unmeasured",
+    "required_preflight": "For the same frozen range containing >50 same-date records, compare two API-supported sort orders across every page: raw count, unique IDs, intersection/differences, reported total. Require a documented/observed unique key or unique tie-break.",
+    "reconciliation": "overall_total_check=true and segment reported totals versus unique listing IDs are mandatory; any mismatch or unverified/review status is not collection completion",
+    "note": "Review metadata is descriptive, not an execution gate; do not run this candidate before preflight.",
+    "record_scope_requirement": "metadata.documentType must be the exact string coar:c_6501. Shape not verified against live response; unknown/mismatched types fail closed.",
+    "identity_and_dates": "Reuse registered pid fallback, URLs, published/created raw dates and skip rules. Only category changes to coar:c_6501.",
+    "state_isolation": "Both plans reuse registered site_id sonar-ch-global and host sonar.ch. Use separate state files/output directories, a shared host gate, and sequential runs; do not reuse thesis checkpoints or run scopes concurrently."
+  }
+}

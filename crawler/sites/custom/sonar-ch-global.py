@@ -20,6 +20,7 @@ from crawler.base_crawler import BaseCrawler
 
 _API_URL = "https://sonar.ch/api/documents/"
 _DOC_TYPE = "coar:c_7a1f"
+_ARTICLE_DOC_TYPE = "coar:c_6501"
 _PAGE_SIZE = 50
 _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _CRAWL_BUDGET_SECS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
@@ -300,6 +301,29 @@ class SonarChGlobalCrawler(BaseCrawler):
     def _paper_from_result(self, record):
         """Use the registered Paper and skip rules unchanged, including short abstracts."""
         return self._parse_record(record)
+
+    def _parse_article_search_results(self, data):
+        """Separate, opt-in journal scope; do not label unknown types as articles.
+
+        The contract requires metadata.documentType to be the exact COAR string.
+        Its live response shape must be checked before server execution.
+        """
+        rows = self._parse_search_results(data)
+        if rows is None:
+            return None
+        for row in rows:
+            if row["record"]["metadata"].get("documentType") != _ARTICLE_DOC_TYPE:
+                raise ValueError("SONAR article scope requires metadata.documentType=coar:c_6501")
+        return rows
+
+    def _paper_from_article_result(self, record):
+        """Preserve registered identity/date/skip rules; change only article category."""
+        # Revalidate even when called without the listing method (e.g. identity sampling).
+        self._parse_article_search_results({"hits": {"hits": [record]}})
+        paper = self._parse_record(record)
+        if paper is not None:
+            paper["category"] = _ARTICLE_DOC_TYPE
+        return paper
 
     def crawl(self, limit=None) -> int:
         """Crawl SONAR.ch global journal articles.

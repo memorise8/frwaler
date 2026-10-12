@@ -42,6 +42,8 @@ def record(n, day='2020-01-01', **updates):
 
 
 class API:
+    scope = 'coar:c_7a1f'
+
     def __init__(self, records, *, ignore_filter=False, missing_total=False):
         self.records = records
         self.ignore_filter = ignore_filter
@@ -57,7 +59,7 @@ class API:
             return Response(200, {}, b'User-agent: *\nAllow: /\n', url)
         assert u.path == '/api/documents/', 'detail/file requests forbidden'
         q = {k:v[0] for k,v in parse_qs(u.query, keep_blank_values=True).items()}
-        assert q['document_type'] == 'coar:c_7a1f' and q['view'] == 'global'
+        assert q['document_type'] == self.scope and q['view'] == 'global'
         assert q['sort'] == 'oldest'
         size, page = int(q['size']), int(q['page'])
         self.max_window = max(self.max_window, page*size)

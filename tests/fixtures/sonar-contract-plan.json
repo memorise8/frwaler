@@ -74,8 +74,8 @@
     }
   },
   "_review": {
-    "execution_readiness": "NOT_READY_SCOPE_AND_UNIQUE_ORDER_UNCONFIRMED",
-    "scope": "Registered thesis coar:c_7a1f only; requested ~309k journal scope coar:c_6501 needs clarification.",
+    "execution_readiness": "NOT_READY_UNIQUE_ORDER_AND_SERVER_CONTRACT_UNCONFIRMED",
+    "scope": "Registered thesis coar:c_7a1f unchanged. Journal articles coar:c_6501 are authorized separately in sonar-articles-plan.json.",
     "sorting_key": "sort=oldest is an API keyword; backing field and unique tie-break not verified",
     "unique_sort_key_verified": false,
     "unique_secondary_key_api_support": "확인 못 함; do not invent sort=id or a secondary-sort parameter",
