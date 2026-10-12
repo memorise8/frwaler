@@ -127,3 +127,9 @@ docker run --rm --name enum-test-adapter-20261012-verified \
 - 계약 사이트에서 등록 상세/Paper 메서드가 예외를 내거나(`failed_permanent:parse_error:<예외형>`), 결과가 비어(`failed_permanent:empty_item`) 항목이 원장에 남으면 `adapter_contract_item_failed` 이벤트와 함께 "계약 단계 실패"로 센다. 정상 항목이 나오면 연속 횟수는 0으로 돌아간다.
 - 연속 `max_consecutive_contract_failures`(기본 5, 양의 정수)건이면 `StrategyStop("config_error", "adapter_contract_failures_consecutive:<마지막 사유>")`로 사이트를 멈춘다. 바인딩/필드명 불일치처럼 모든 항목이 실패하는 경우가 이 규칙에 걸린다. 연속 저장 오류(`max_consecutive_save_errors` → `config_error`)와 같은 방식이다. 멈춘 배치는 체크포인트(mark_listed/update_segment)를 남기지 않는다.
 - 연속은 아니지만 원장의 계약 단계 실패가 (saved+실패 전체) 대비 `max_contract_failure_ratio`(기본 0.0, [0,1))를 넘으면 열거가 끝나도 `complete`가 아니라 `complete_with_review`(`adapter_contract_failures:<건수>`)로 강등한다. 기본값 0.0이면 한 건이라도 있으면 검토 대상이다.
+
+### 항목 데이터 오류와 스키마 오류 구분 (M4)
+
+- `ContractError`는 `code`를 가진다. 항목 처리(materialize) 중 나온 코드 중 데이터성 코드 `missing_path`, `paper_identity_missing`, `paper_url_missing`만 그 항목을 `failed_permanent:adapter_contract:<코드>`로 원장에 남기고 계약 단계 실패로 센다(H1 연속/비율 규칙 적용 → 연속이면 `config_error`, 산발이면 `complete_with_review`). 식별값·URL을 대신 만들지 않는다.
+- 그 밖의 코드(`paper_not_dict`, `paper_site_mismatch`, `paper_identity_type`, 인자/서명/스키마 오류 등)와 계약이 아닌 `AdapterConfigError`는 종전대로 즉시 사이트를 `config_error`로 멈추고 원장·체크포인트를 남기지 않는다.
+- 목록 단계(`parse_list`/ListingParser)의 계약 오류는 페이지 단위 판단이므로 이 구분 없이 종전대로 사이트를 멈춘다.

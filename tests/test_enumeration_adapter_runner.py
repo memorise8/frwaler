@@ -105,6 +105,43 @@ class ContractRunnerTests(unittest.TestCase):
         self.assertEqual("config_error", self.env.store.site("fake-site")["status"])
         self.assertEqual(0, result["stats"]["failed_permanent"])
 
+    def test_data_contract_error_is_ledgered_for_review(self):
+        def detail(html, item):
+            if int(item["external_id"]) % 5 == 0:
+                return {"url": item["url"], "title": "no identity"}
+            return good(html, item)
+        result = self.run_site(detail)
+        self.assertEqual("complete_with_review", result["status"])
+        self.assertIn("adapter_contract_failures:5", result["stop_reason"])
+        _, failed = self.env.store.item_counts("fake-site")
+        self.assertEqual(5, failed["failed_permanent:adapter_contract:paper_identity_missing"])
+        self.assertEqual(20, result["stats"]["saved_new"])
+
+    def test_data_contract_error_missing_path_ledgered(self):
+        plan = site()
+        plan["adapter"]["detail_args"] = ["html", {"source": "item", "path": ["optional"]}]
+        board_rows = crawler(self.env, None)
+        board_rows.listing_orig = board_rows.listing
+
+        def listing(html):
+            rows = board_rows.listing_orig(html)
+            for row in rows:
+                if int(row["external_id"]) % 5:
+                    row["optional"] = row["external_id"]
+            return rows
+        board_rows.listing = listing
+        board_rows.detail = lambda html, value: {"external_id": value, "url": "/view?id=" + value, "title": "t"}
+        result = self.env.run(plan, FakeBoard(25, page_size=10), crawler=board_rows)
+        self.assertEqual("complete_with_review", result["status"])
+        _, failed = self.env.store.item_counts("fake-site")
+        self.assertEqual(5, failed['failed_permanent:adapter_contract:missing_path:["optional"]'])
+
+    def test_consecutive_data_contract_errors_stop(self):
+        result = self.run_site(lambda html, item: {"url": item["url"], "title": "no identity"})
+        self.assertEqual(("config_error", "adapter_contract_failures_consecutive:adapter_contract:paper_identity_missing"),
+                         (result["status"], result["stop_reason"]))
+        self.assertEqual(5, result["stats"]["failed_permanent"])
+
     def test_failure_limits_validated(self):
         from crawler.enumeration.plan import PlanError
         for key, value in [("max_consecutive_contract_failures", 0), ("max_consecutive_contract_failures", True),

@@ -13,9 +13,23 @@ from .adapters import AdapterConfigError
 class ContractError(AdapterConfigError):
     """A declared adapter contract cannot be satisfied; never an empty listing."""
 
+    def __init__(self, code):
+        super().__init__("adapter_contract:" + code)
+        self.code = code
+
+    @property
+    def data_error(self):
+        """True when one item's data (not the plan/method schema) lacks a declared value.
+        Raised per item, such an error is ledgered for review instead of stopping the site."""
+        return self.code.split(":", 1)[0] in DATA_CODES
+
+
+# Item-data codes: the binding and method are fine, this item lacks the value.
+DATA_CODES = {"missing_path", "paper_identity_missing", "paper_url_missing"}
+
 
 def fail(code):
-    raise ContractError("adapter_contract:" + code)
+    raise ContractError(code)
 
 
 TOKENS = {"html", "raw", "soup", "json", "url", "item", "resp", "detail"}

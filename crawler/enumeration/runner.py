@@ -149,8 +149,15 @@ class SiteRunner:
             st.record_item(site, item.key, "failed_transient", reason=f"transient:{exc.reason}", attempt=True, **common)
             self.stats["failed_transient"] += 1
             return
-        except AdapterConfigError:
-            raise  # a configuration mistake stops the site; never ledgered per item
+        except AdapterConfigError as exc:
+            if not (self.contract and getattr(exc, "data_error", False)):
+                raise  # a configuration mistake stops the site; never ledgered per item
+            # One item lacks a declared value (contract sites only): ledger it for review;
+            # the consecutive/ratio rules decide whether the whole site is broken.
+            st.record_item(site, item.key, "failed_permanent", reason=str(exc), attempt=True, **common)
+            self.stats["failed_permanent"] += 1
+            self.contract_failure(item, str(exc))
+            return
         except Exception as exc:  # parser errors never stop the site
             st.record_item(site, item.key, "failed_permanent", reason=f"parse_error:{type(exc).__name__}",
                            attempt=True, **common)
