@@ -134,6 +134,27 @@ class LiveCheckTests(unittest.TestCase):
         self.assertEqual(clean_url(value),value)
         self.assertEqual(clean_url(URL+'.xml(또는'),URL+'.xml')
 
+    def test_query_before_explicit_feed_binds_original_list(self):
+        row=dict(site_id='x',live_check='?page=1과 ?page=150의 항목 확인. RSS https://source.example/feed?page=0/1/30 확인',delivery=True,kind='페이지 파라미터')
+        original=dict(scopes=[{'url':URL}],profile=dict(list_selectors={},pagination_config={}))
+        plan=compile_plan(row,original,{},'')
+        urls={x['url'] for group in plan['targets'] for x in group}
+        self.assertIn(URL+'?page=150',urls)
+        self.assertNotIn('https://source.example/feed?page=150',urls)
+
+    def test_public_go_kr_menu_key_is_not_treated_as_secret(self):
+        from delivery.health.scope_inventory import public_url
+        url='https://www.pps.go.kr/kor/bbs/list.do?key=00664&pageIndex=1'
+        self.assertEqual(public_url(url),url)
+        self.assertIsNone(public_url(URL+'?key=secret'))
+
+    def test_sitemap_prefix_count_uses_whole_XML_not_ID_sample(self):
+        raw=('<urlset>'+''.join(f'<url><loc>https://source.example/publication/{n}</loc></url>' for n in range(25))+'</urlset>').encode()
+        result=parse_listing(raw,'https://source.example/sitemap.xml','application/xml',{'live_check':'/publication/ URL 수'})
+        self.assertEqual(len(result['items']),16)
+        self.assertEqual(result['requested_prefix_counts'][0]['count'],25)
+        self.assertEqual(len(result['requested_prefix_counts'][0]['unique_URL_hashes']),25)
+
     def test_scope_alias_query_does_not_attach_to_previous_collection(self):
         row=dict(site_id='x',live_check=URL+'?page=41 그리고 studies ?page=20',delivery=True,kind='페이지 파라미터')
         original=dict(scopes=[{'url':URL},{'url':'https://source.example/studies'}],profile=dict(list_selectors={},pagination_config={}))

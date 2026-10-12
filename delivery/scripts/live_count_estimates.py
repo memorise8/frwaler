@@ -82,5 +82,7 @@ def estimate_counts(result):
     if estimate['hidden_cap_suspected'] and estimate['count_confidence']=='높음':estimate['count_confidence']='보통'
     estimate=copy.deepcopy(estimate)
     estimate['count_evidence']['scope_estimates']=scopes
+    if result.get('URL_closure',{}).get('scoped_sitemap_observations'):
+        estimate['count_evidence']['scoped_sitemap_observations']=result['URL_closure']['scoped_sitemap_observations']
     estimate['count_evidence']['instruction_mentions_recent_N']=instruction_suspicion
     return estimate

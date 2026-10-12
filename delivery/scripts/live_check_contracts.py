@@ -3,6 +3,7 @@ import ast
 import hashlib
 import json
 import re
+import xml.etree.ElementTree as ET
 from datetime import datetime
 from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
 
@@ -61,7 +62,7 @@ def clean_url(value):
     value = value.rstrip('.,;，。)')
     value = re.sub(r'(?<=[=/_])(?:N|K|n)(?:\+1)?(?=[/&?#.]|$)', '1', value)
     # A template still containing a range or an unknown variable is not a URL to call.
-    if re.search(r'\{[^}]+\}|\d+\.\.\d+', value): return None
+    if re.search(r'\{[^}]+\}|\d+\.\.\d+|\.\.\.|…|=(?:YYYY|<[^>]*>)(?:&|$)', value): return None
     return public_url(value)
 
 
@@ -80,6 +81,10 @@ def compile_plan(row, original, hints, source, config=None):
             start,end=int(ranged[2]),int(ranged[3])
             if 0<=end-start<20:
                 for number in range(start,end+1):add(value[:ranged.start(2)]+str(number)+value[ranged.end(3):],role+'_range_member')
+                return
+            if end>start:
+                for number in (start,end):add(value[:ranged.start(2)]+str(number)+value[ranged.end(3):],role+'_bounded_range_endpoint')
+                unresolved.append(dict(value=value[:300],reason='range_full_enumeration_exceeds_per_site_request_budget'))
                 return
         url = clean_url(value)
         if url:
@@ -108,7 +113,8 @@ def compile_plan(row, original, hints, source, config=None):
                 if urlsplit(scope['url']).path in paths:aliases[key.value]=scope['url']
     for match in re.finditer(r'(?<!\S)[?&][^\s<>"\']+', text):
         preceding = [m for m in explicit if m.start()<match.start()]
-        anchor = clean_url(preceding[-1][0]) if preceding else (urls[0]['url'] if urls else None)
+        original_first=next((s['url'] for s in original.get('scopes',[])),None)
+        anchor = clean_url(preceding[-1][0]) if preceding else original_first
         before=text[:match.start()];alias=re.search(r'([A-Za-z][\w-]+)\s+$',before)
         if alias and alias[1] in aliases:anchor=aliases[alias[1]]
         elif re.search(r'목록\s*페이지\s*$',before) and len(original.get('scopes',[]))==1:anchor=original['scopes'][0]['url']
@@ -182,6 +188,21 @@ def at_page(route, number):
 def parse_listing(raw, url, content_type='', plan=None):
     plan=plan or {}; selectors=dict(plan.get('selectors') or {})
     summary=inspect(raw,url,content_type,selectors)
+    if summary.get('xml_root')=='urlset':
+        prefixes=sorted(set(re.findall(r'(?<![\w:])/(?:[\w-]+/)+',plan.get('live_check',''))))
+        if prefixes:
+            root=ET.fromstring(raw);locations=[]
+            for child in list(root):
+                loc=next((e.text for e in child if e.tag.rsplit('}',1)[-1]=='loc'),None)
+                if loc and public_url(loc):locations.append(loc)
+            host=urlsplit(url).hostname.removeprefix('www.')
+            summary['requested_prefix_counts']=[]
+            for prefix in prefixes:
+                matching={loc for loc in locations if urlsplit(loc).hostname.removeprefix('www.')==host and urlsplit(loc).path.startswith(prefix)}
+                summary['requested_prefix_counts'].append(dict(prefix=prefix,count=len(matching),
+                    unique_URL_hashes=sorted(hashlib.sha256(loc.encode()).hexdigest() for loc in matching)[:10000],
+                    hashes_complete=len(matching)<=10000,source='entire_bounded_XML_response'))
+        return summary
     if summary['format']=='json':
         data=json.loads(raw);arrays=[]
         def walk(value,path='',depth=0):

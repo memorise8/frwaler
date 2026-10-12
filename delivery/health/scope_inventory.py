@@ -26,7 +26,8 @@ def public_url(value):
             return None
         # Drupal's public search term is named "keys"; it is not an API key.
         if any(SENSITIVE.search(k) and k.lower() not in ('keys','keyword','keywords')
-               for k, _ in parse_qsl(u.query, keep_blank_values=True)):
+               and not (k.lower()=='key' and (v=='' or u.hostname.endswith('.go.kr') and u.path.endswith('.do') and re.fullmatch(r'\d{1,10}',v)))
+               for k, v in parse_qsl(u.query, keep_blank_values=True)):
             return None
         return urlunsplit((u.scheme, u.netloc, u.path, u.query, ''))
     except ValueError:
