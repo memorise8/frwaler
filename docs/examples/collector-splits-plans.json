@@ -1,0 +1,424 @@
+{
+  "version": 1,
+  "sites": {
+    "brgm-fr-fr": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_build_paper",
+        "detail_args": [
+          "soup",
+          "html",
+          "item",
+          "url"
+        ]
+      },
+      "listing": {
+        "url": "https://www.brgm.fr/fr/actualites?type=Communiqu%C3%A9%20de%20presse",
+        "params": {
+          "page": 0
+        },
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "date_field": "listed_date",
+          "listing_marker": "main"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    },
+    "climateinstitute-ca-newsroom": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://climateinstitute.ca/wp-json/wp/v2/news",
+        "params": {
+          "page": 1,
+          "per_page": 100,
+          "orderby": "date",
+          "order": "desc",
+          "_fields": "id,title,excerpt,content,date,link,slug"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "link",
+          "key_field": "id",
+          "date_field": "date"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    },
+    "data-mfe-govt-nz-documents": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "item",
+          "json"
+        ]
+      },
+      "listing": {
+        "url": "https://data.mfe.govt.nz/services/api/v1.x/documents/",
+        "params": {
+          "page": 1,
+          "page_size": 100
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "id",
+          "date_field": "first_published_at"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    },
+    "health-ni-gov-uk-publications": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_parse_list_page",
+        "list_args": [
+          "html"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ],
+        "list_result": [
+          0
+        ],
+        "detail_method": "_parse_detail",
+        "detail_args": [
+          "html",
+          {
+            "source": "item",
+            "path": [
+              "card_summary"
+            ]
+          }
+        ]
+      },
+      "listing": {
+        "url": "https://www.health-ni.gov.uk/publications",
+        "params": {
+          "page": 0
+        },
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "listing_marker": "main"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    },
+    "home-cern-news": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://home.cern/feed/",
+        "params": {
+          "paged": 1
+        },
+        "page_param": "paged",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "date_field": "published_date",
+          "listing_marker": "channel"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    },
+    "minfin-gov-gr-grafeio-typou": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          {
+            "source": "query",
+            "path": [
+              "page"
+            ],
+            "type": "int"
+          }
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          {
+            "source": "item",
+            "path": [
+              "record"
+            ]
+          },
+          {
+            "source": "item",
+            "path": [
+              "page"
+            ]
+          }
+        ]
+      },
+      "listing": {
+        "url": "https://minfin.gov.gr/wp-json/wp/v2/posts",
+        "params": {
+          "page": 1,
+          "per_page": 100,
+          "categories": 62,
+          "_fields": "id,date,title,link,content,excerpt"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "id",
+          "date_field": "date"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    },
+    "nasa-gov-2025-news-releases": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.nasa.gov/wp-json/wp/v2/press-release",
+        "params": {
+          "page": 1,
+          "per_page": 100,
+          "after": "2025-01-01T00:00:00",
+          "before": "2026-01-01T00:00:00",
+          "_fields": "id,date,slug,title,excerpt,link,content"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "link",
+          "key_field": "id",
+          "date_field": "date"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    },
+    "research-imt-nord-europe-fr-news": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://research.imt-nord-europe.fr/wp-json/wp/v2/posts",
+        "params": {
+          "page": 1,
+          "per_page": 20,
+          "lang": "en",
+          "categories": 75,
+          "_fields": "id,title,excerpt,content,date,link,slug"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "link",
+          "key_field": "id",
+          "date_field": "date"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    },
+    "srnl-gov-newsroom": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "item",
+          "html"
+        ]
+      },
+      "listing": {
+        "url": "https://www.srnl.gov/wp-json/wp/v2/news-releases",
+        "params": {
+          "page": 1,
+          "per_page": 10,
+          "_fields": "id,slug,title,date,link"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "link",
+          "key_field": "id",
+          "date_field": "date"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    },
+    "ukdataservice-ac-uk-2026": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://ukdataservice.ac.uk/wp-json/wp/v2/posts",
+        "params": {
+          "page": 1,
+          "per_page": 100,
+          "_fields": "id,slug,date,title,excerpt,content,tags,categories,link,yoast_head_json"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "link",
+          "key_field": "id",
+          "date_field": "date"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

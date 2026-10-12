@@ -1,0 +1,283 @@
+{
+  "base_commit": "584fe39903986475588ebb8f8d33d9f5b6097d10",
+  "created_at": "2026-10-12T16:16:07.180879+00:00",
+  "site_commits": [
+    {
+      "site_id": "climateinstitute-ca-newsroom",
+      "commit": "86b39a2c1e391429e68f81d4eaf19d018c6144c2",
+      "files": [
+        "crawler/sites/custom/climateinstitute-ca-newsroom.py",
+        "tests/test_enumeration_split_climateinstitute_ca_newsroom.py",
+        "tests/fixtures/collector_splits/climateinstitute-ca-newsroom.json",
+        "docs/examples/collector-splits/climateinstitute-ca-newsroom.json"
+      ]
+    },
+    {
+      "site_id": "nasa-gov-2025-news-releases",
+      "commit": "70cf211ec8afe9434639c94a30b5247e7daf60ba",
+      "files": [
+        "crawler/sites/custom/nasa-gov-2025-news-releases.py",
+        "tests/test_enumeration_split_nasa_gov_2025_news_releases.py",
+        "tests/fixtures/collector_splits/nasa-gov-2025-news-releases.json",
+        "docs/examples/collector-splits/nasa-gov-2025-news-releases.json"
+      ]
+    },
+    {
+      "site_id": "ukdataservice-ac-uk-2026",
+      "commit": "6732847d8c4d753d9dd6366e2b9c6cb08ecdb338",
+      "files": [
+        "crawler/sites/custom/ukdataservice-ac-uk-2026.py",
+        "tests/test_enumeration_split_ukdataservice_ac_uk_2026.py",
+        "tests/fixtures/collector_splits/ukdataservice-ac-uk-2026.json",
+        "docs/examples/collector-splits/ukdataservice-ac-uk-2026.json"
+      ]
+    },
+    {
+      "site_id": "minfin-gov-gr-grafeio-typou",
+      "commit": "de4e5150caca240ca64f7e308b2c24a2397392ae",
+      "files": [
+        "crawler/sites/custom/minfin-gov-gr-grafeio-typou.py",
+        "tests/test_enumeration_split_minfin_gov_gr_grafeio_typou.py",
+        "tests/fixtures/collector_splits/minfin-gov-gr-grafeio-typou.json",
+        "docs/examples/collector-splits/minfin-gov-gr-grafeio-typou.json"
+      ]
+    },
+    {
+      "site_id": "research-imt-nord-europe-fr-news",
+      "commit": "d4174ac8f90d31a91adc363d6a8780f4d4ee4fe7",
+      "files": [
+        "crawler/sites/custom/research-imt-nord-europe-fr-news.py",
+        "tests/test_enumeration_split_research_imt_nord_europe_fr_news.py",
+        "tests/fixtures/collector_splits/research-imt-nord-europe-fr-news.json",
+        "docs/examples/collector-splits/research-imt-nord-europe-fr-news.json"
+      ]
+    },
+    {
+      "site_id": "home-cern-news",
+      "commit": "a636b4fd990a36a61aa068c85da601d680d2fe1e",
+      "files": [
+        "crawler/sites/custom/home-cern-news.py",
+        "tests/test_enumeration_split_home_cern_news.py",
+        "tests/fixtures/collector_splits/home-cern-news.json",
+        "docs/examples/collector-splits/home-cern-news.json"
+      ]
+    },
+    {
+      "site_id": "health-ni-gov-uk-publications",
+      "commit": "efae0f785fd519e0f04be0657e6e7c6b365c0ca4",
+      "files": [
+        "crawler/sites/custom/health-ni-gov-uk-publications.py",
+        "tests/test_enumeration_split_health_ni_gov_uk_publications.py",
+        "tests/fixtures/collector_splits/health-ni-gov-uk-publications.json",
+        "docs/examples/collector-splits/health-ni-gov-uk-publications.json"
+      ]
+    },
+    {
+      "site_id": "brgm-fr-fr",
+      "commit": "e4fe3b54c83c221751b05a3c8c2c6e58b7c6302a",
+      "files": [
+        "crawler/sites/custom/brgm-fr-fr.py",
+        "tests/test_enumeration_split_brgm_fr_fr.py",
+        "tests/fixtures/collector_splits/brgm-fr-fr.json",
+        "docs/examples/collector-splits/brgm-fr-fr.json"
+      ]
+    },
+    {
+      "site_id": "srnl-gov-newsroom",
+      "commit": "76e05587910672ed89ab28bf4af2b411220d7fd9",
+      "files": [
+        "crawler/sites/custom/srnl-gov-newsroom.py",
+        "tests/test_enumeration_split_srnl_gov_newsroom.py",
+        "tests/fixtures/collector_splits/srnl-gov-newsroom.json",
+        "docs/examples/collector-splits/srnl-gov-newsroom.json"
+      ]
+    },
+    {
+      "site_id": "data-mfe-govt-nz-documents",
+      "commit": "8190942a9b12bdbdf9daf5a72cc609280e8e9bda",
+      "files": [
+        "crawler/sites/custom/data-mfe-govt-nz-documents.py",
+        "tests/test_enumeration_split_data_mfe_govt_nz_documents.py",
+        "tests/fixtures/collector_splits/data-mfe-govt-nz-documents.json",
+        "docs/examples/collector-splits/data-mfe-govt-nz-documents.json"
+      ]
+    }
+  ],
+  "selected_sites": 10,
+  "delivery_sites": 10,
+  "prior_B_sites": 38,
+  "excluded_B_sites": 28,
+  "baseline_tests": 361,
+  "new_tests": 70,
+  "final_tests": 431,
+  "final_skipped": 1,
+  "site_requests": 0,
+  "new_test_database_connections": 0,
+  "full_suite_disposable_sqlite_only": true,
+  "production_customer_postgres_connections": 0,
+  "docker_network_disabled": true,
+  "source_invariance": {
+    "climateinstitute-ca-newsroom": {
+      "added_methods": [
+        "_enumeration_items",
+        "_enumeration_paper"
+      ],
+      "preexisting_module_ast_unchanged": true,
+      "source_sha256": "14f5cbb4200a80d6a11975c5daf046931e84c312542b244f72564e1300cdf309"
+    },
+    "nasa-gov-2025-news-releases": {
+      "added_methods": [
+        "_enumeration_items",
+        "_enumeration_paper"
+      ],
+      "preexisting_module_ast_unchanged": true,
+      "source_sha256": "ad7e52186188601d77f857aafcab6084286b28ef0e2b053419940ddc01c73252"
+    },
+    "ukdataservice-ac-uk-2026": {
+      "added_methods": [
+        "_enumeration_items",
+        "_enumeration_paper"
+      ],
+      "preexisting_module_ast_unchanged": true,
+      "source_sha256": "738eb73928f7eae7c9648fc825c87568ca2a18324e84e4b20c8fbd2b2b2c7ae6"
+    },
+    "minfin-gov-gr-grafeio-typou": {
+      "added_methods": [
+        "_enumeration_items",
+        "_enumeration_paper"
+      ],
+      "preexisting_module_ast_unchanged": true,
+      "source_sha256": "6b1da043240b2e669498319008c6e538446684c92f48b41a337f580b93633d1a"
+    },
+    "research-imt-nord-europe-fr-news": {
+      "added_methods": [
+        "_enumeration_items",
+        "_enumeration_paper"
+      ],
+      "preexisting_module_ast_unchanged": true,
+      "source_sha256": "d14cb25e233ff977f4c36fa07a15c0b1c2d5c46bbfd9b87162a330b4a861bd10"
+    },
+    "home-cern-news": {
+      "added_methods": [
+        "_enumeration_items",
+        "_enumeration_paper"
+      ],
+      "preexisting_module_ast_unchanged": true,
+      "source_sha256": "a12abd751ada828907f75096768f328f0d92f67044af50e0f48c06eb8659a174"
+    },
+    "health-ni-gov-uk-publications": {
+      "added_methods": [
+        "_enumeration_paper"
+      ],
+      "preexisting_module_ast_unchanged": true,
+      "source_sha256": "b8c942dd03b5d450d7cbdf179f97236607b57b2165082ee480c3469f3d35738f"
+    },
+    "brgm-fr-fr": {
+      "added_methods": [
+        "_enumeration_items"
+      ],
+      "preexisting_module_ast_unchanged": true,
+      "source_sha256": "7173849e9d6a2900f5703dba90aa4dfe526181505c737e836d1cb415e9589454"
+    },
+    "srnl-gov-newsroom": {
+      "added_methods": [
+        "_enumeration_items",
+        "_enumeration_paper"
+      ],
+      "preexisting_module_ast_unchanged": true,
+      "source_sha256": "229624e329a49be745334c85033f5669f5cc25d0809da117cbe68cb9c93b1675"
+    },
+    "data-mfe-govt-nz-documents": {
+      "added_methods": [
+        "_enumeration_items",
+        "_enumeration_paper"
+      ],
+      "preexisting_module_ast_unchanged": true,
+      "source_sha256": "ff767af91e9a9e4313491bd6798d2a39c85dfe0588d604765d5608fb6800ae77"
+    }
+  },
+  "test_logs": {
+    "baseline.log": {
+      "tests": 361,
+      "seconds": 76.466,
+      "sha256": "ae1b1c2040bd547aaba8183641a8a37f69f7f95377ed484e72251edbcd4fc913",
+      "outcome": "pass",
+      "skipped": 1
+    },
+    "red-final.log": {
+      "tests": 60,
+      "seconds": 0.239,
+      "sha256": "b00a6106175cb2bc6f2f55a552031a56b5b386b348f651319715eaaf90af5b98",
+      "outcome": "expected red: 50 missing-method errors",
+      "skipped": 0
+    },
+    "green-first.log": {
+      "tests": 60,
+      "seconds": 0.286,
+      "sha256": "003e4731c544e2d25eeacf307e05f5b413e7fa3dd617093c364cabc4342e8738",
+      "outcome": "pass",
+      "skipped": 0
+    },
+    "full.log": {
+      "tests": 421,
+      "seconds": 77.162,
+      "sha256": "d814cf61231aa7ea026a37af20b41e7ddd9440c17cd1adc275dceff2ccc29d87",
+      "outcome": "pass",
+      "skipped": 1
+    },
+    "final.log": {
+      "tests": 431,
+      "seconds": 77.183,
+      "sha256": "458c29b220d3899919e3eb57c8c4ca3cc7a5b983093c5864e98f554d42bea3ff",
+      "outcome": "pass",
+      "skipped": 1
+    }
+  },
+  "files_sha256": {
+    "crawler/sites/custom/climateinstitute-ca-newsroom.py": "14f5cbb4200a80d6a11975c5daf046931e84c312542b244f72564e1300cdf309",
+    "tests/test_enumeration_split_climateinstitute_ca_newsroom.py": "6e3464dfc82753816f509de50abbc875cf12e8156b0babbc671aaf6afc8a396a",
+    "tests/fixtures/collector_splits/climateinstitute-ca-newsroom.json": "208f8adce01bcaa1b4ed77bbde67219392805ae0656fda533edf9d26079a9a82",
+    "docs/examples/collector-splits/climateinstitute-ca-newsroom.json": "8da6351c7c6e7da3a97b3b6dee3ccf886ab0125401176c60c1d560a1ce176730",
+    "crawler/sites/custom/nasa-gov-2025-news-releases.py": "ad7e52186188601d77f857aafcab6084286b28ef0e2b053419940ddc01c73252",
+    "tests/test_enumeration_split_nasa_gov_2025_news_releases.py": "7f92fc089a65d93d5d55c6695c9e7c884e43c9b34285c3c987f65b933d12716f",
+    "tests/fixtures/collector_splits/nasa-gov-2025-news-releases.json": "fa539eac682cf6d48e77de2f196ac1ca414e9643c546c65b8bc78ba527fde5b6",
+    "docs/examples/collector-splits/nasa-gov-2025-news-releases.json": "aa42982144b1d3a0d14b6d25f88ca91aea752a5660a31721229660d32e4fc897",
+    "crawler/sites/custom/ukdataservice-ac-uk-2026.py": "738eb73928f7eae7c9648fc825c87568ca2a18324e84e4b20c8fbd2b2b2c7ae6",
+    "tests/test_enumeration_split_ukdataservice_ac_uk_2026.py": "88dc37e58664f452168d976bdc2ec3f8a51da42be29a6b8aa6ab5013e42836fd",
+    "tests/fixtures/collector_splits/ukdataservice-ac-uk-2026.json": "a9b1ed7a86ee7e4ba209e15b7fc406e8babfaa83538afbf4ac9898811130c9a7",
+    "docs/examples/collector-splits/ukdataservice-ac-uk-2026.json": "da1c4c82cf12270754d0a7d5386fe51efe4cdc817e2e9411f5e1481e4c386619",
+    "crawler/sites/custom/minfin-gov-gr-grafeio-typou.py": "6b1da043240b2e669498319008c6e538446684c92f48b41a337f580b93633d1a",
+    "tests/test_enumeration_split_minfin_gov_gr_grafeio_typou.py": "c8eb90594045c30a6aab1ab2c9379dbdf3d4e5e5d29a2f7b2bb1d4e5e9d25d8f",
+    "tests/fixtures/collector_splits/minfin-gov-gr-grafeio-typou.json": "6f9f2985d5b5b6d0a93dc85dac66963ba9809fcc24e58926374f061cdd1d553c",
+    "docs/examples/collector-splits/minfin-gov-gr-grafeio-typou.json": "d2f517552558c1e3462c144e8cfe05643b9408dd5e072c38abcfdf9c32333a24",
+    "crawler/sites/custom/research-imt-nord-europe-fr-news.py": "d14cb25e233ff977f4c36fa07a15c0b1c2d5c46bbfd9b87162a330b4a861bd10",
+    "tests/test_enumeration_split_research_imt_nord_europe_fr_news.py": "ad798108b460b9c1d98c2f53b1cc17599917cfcba76f803ef8a614bac430ea26",
+    "tests/fixtures/collector_splits/research-imt-nord-europe-fr-news.json": "565f69428f00fe2bed8513d5cd9a163042d8e19450c0a8c794068959a5b61ab3",
+    "docs/examples/collector-splits/research-imt-nord-europe-fr-news.json": "65d5a7dff12a38f0fb731d5c2723703f3eb4584e8775779678d2d9a49ed4adeb",
+    "crawler/sites/custom/home-cern-news.py": "a12abd751ada828907f75096768f328f0d92f67044af50e0f48c06eb8659a174",
+    "tests/test_enumeration_split_home_cern_news.py": "327999cd5bbf6068e1034b636af9b25c0c0401785fd211a222e9a01922e68013",
+    "tests/fixtures/collector_splits/home-cern-news.json": "6b59517f17d44a1a34ddea3a14a7d7da60c93227d28b9d5e78a70d88907919ec",
+    "docs/examples/collector-splits/home-cern-news.json": "b9717843418b28c18f5c4686b5e268816c2e6cadcb5162704c0073facc49003e",
+    "crawler/sites/custom/health-ni-gov-uk-publications.py": "b8c942dd03b5d450d7cbdf179f97236607b57b2165082ee480c3469f3d35738f",
+    "tests/test_enumeration_split_health_ni_gov_uk_publications.py": "7a0b55bb9339c6bb58b5c40cd6096feb6571080eae52fd05e80167e690b15afe",
+    "tests/fixtures/collector_splits/health-ni-gov-uk-publications.json": "ca9b838def048569422089083e2c6080e06095e67dfae7ace9db8000915e3ae3",
+    "docs/examples/collector-splits/health-ni-gov-uk-publications.json": "c2e887518e524720c6882a365ec184940635a6e614a25189a484256cb8894761",
+    "crawler/sites/custom/brgm-fr-fr.py": "7173849e9d6a2900f5703dba90aa4dfe526181505c737e836d1cb415e9589454",
+    "tests/test_enumeration_split_brgm_fr_fr.py": "c0d424716561614b7e13c8ed3e18073f2ce070d71296144265d9e35660a881df",
+    "tests/fixtures/collector_splits/brgm-fr-fr.json": "576877fb73a2f191b83d34ad9e0e5753f943910db2ee495056091a2de187bd5e",
+    "docs/examples/collector-splits/brgm-fr-fr.json": "cd3c1926e858f72fe43d429fe7e9ca34ecb9769d4a83b072454a3ccce6728749",
+    "crawler/sites/custom/srnl-gov-newsroom.py": "229624e329a49be745334c85033f5669f5cc25d0809da117cbe68cb9c93b1675",
+    "tests/test_enumeration_split_srnl_gov_newsroom.py": "15b0e009da6cf02e5387e8240c0a56855020baf4e5135a3ff2c9998abcf82480",
+    "tests/fixtures/collector_splits/srnl-gov-newsroom.json": "3f2ef2028dfa92a1ef2efaceb7bc43d212d8e5edb3da9155b6a6476a0b5d9532",
+    "docs/examples/collector-splits/srnl-gov-newsroom.json": "fc34b9a9183e33fb127fffe91746681a3867944c9f076ec01934132b06e2bb93",
+    "crawler/sites/custom/data-mfe-govt-nz-documents.py": "ff767af91e9a9e4313491bd6798d2a39c85dfe0588d604765d5608fb6800ae77",
+    "tests/test_enumeration_split_data_mfe_govt_nz_documents.py": "c660f71b5aaa53cf400870f5e7f2fbd4e1f3933bf08a36b41d077dc373b84cf8",
+    "tests/fixtures/collector_splits/data-mfe-govt-nz-documents.json": "7282cd9023792c4267fd249a41e2a0267397ac85e0fb07e4dbc9ffdc8c695536",
+    "docs/examples/collector-splits/data-mfe-govt-nz-documents.json": "aea7ce1765c3d1e93dc5bd36f2ed536fa13f6f9f3b170b877157145672906210",
+    "tests/collector_split_helpers.py": "bd7d65caa3d664ee2393e0622f5e46958355f75408eebc301238de90909d144a",
+    "docs/examples/collector-splits-plans.json": "809caa7e74122099ff78a80b593216cf25edb69877e15b895d51adc766c5c32a",
+    "docs/COLLECTOR_SPLITS_SELECTION.csv": "0e68c9b1f5fa229314825f5932032da2b7c9d9535693e79509224638cc2ff265",
+    "docs/COLLECTOR_SPLITS_RESULTS.csv": "6b9207676a1cb569629db03b36b0e10dfbf98452f498ecdc921e22922a645a9b",
+    "docs/COLLECTOR_SPLITS.md": "08c79e7022f1f2232602a68e6284a9e54d65a2773ab73aa85c7d6bfbe17e8fd5"
+  }
+}
