@@ -335,10 +335,17 @@ class CrawlDelayValueTest(unittest.TestCase):
         self.assertEqual(self.delay("User-agent: *\nCrawl-delay: 9\n\nUser-agent: Mozilla\nCrawl-delay: 1\n"), 9)
 
     def test_fetcher_stops_on_unreadable_delay_and_waits_on_suffixed_one(self):
+        from unittest import mock
+        import delivery.health.request_gate as request_gate
         from crawler.enumeration import http as H
         from tests.enumeration_fakes import FakeTransport
+        from tests.test_enumeration_fix2 import FakeClock
         env = Env()
         self.addCleanup(env.close)
+        clock = FakeClock()  # the 10 s Crawl-delay is waited on a fake time line
+        for patch in (mock.patch.object(request_gate, "time", clock), mock.patch.object(H, "time", clock)):
+            patch.start()
+            self.addCleanup(patch.stop)
 
         def fetcher(robots):
             def handler(url):
