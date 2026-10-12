@@ -1,49 +1,6 @@
 {
   "version": 1,
   "sites": {
-    "afp-gov-au-news-centre": {
-      "strategy": "last_page_backward",
-      "adapter": {
-        "type": "crawler",
-        "contract_version": 1,
-        "list_method": "_parse_list_page",
-        "list_args": [
-          "html",
-          "url"
-        ],
-        "list_result": [
-          0
-        ],
-        "detail_method": "_parse_detail_page",
-        "detail_args": [
-          "html",
-          "url"
-        ],
-        "paper_method": "_build_paper",
-        "paper_args": [
-          "item",
-          "detail"
-        ]
-      },
-      "listing": {
-        "url": "https://www.afp.gov.au/news-centre",
-        "page_param": "page",
-        "start_page": 0,
-        "parser": {
-          "type": "adapter",
-          "url_field": "url",
-          "date_field": "listed_date",
-          "listing_marker": ".view-solr-news-centre"
-        }
-      },
-      "last_page": {
-        "overlap_pages": 1
-      },
-      "request_interval_s": 1.5,
-      "respect_robots": true,
-      "retries": 1,
-      "verify_ssl": true
-    },
     "africamuseum-be-en": {
       "strategy": "last_page_backward",
       "adapter": {

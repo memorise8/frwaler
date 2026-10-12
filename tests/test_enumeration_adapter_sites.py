@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from crawler.enumeration.adapters import Adapter, clean_paper, paper_identity
+from crawler.enumeration.guard import AdapterUngatedNetwork
 from crawler.enumeration.http import Response
 from crawler.enumeration.parsing import ListingParser
 from crawler.enumeration.plan import site_plan
@@ -64,7 +65,23 @@ class ActualSites(unittest.TestCase):
         for name in ('socket.getaddrinfo', 'socket.socket.connect', 'sqlite3.connect'):
             p=patch(name,denied);p.start();self.addCleanup(p.stop)
 
-    def test_afp_registered_pipeline(self):actual_case('afp-gov-au-news-centre')
+    def test_afp_not_a_candidate(self):
+        # Its registered detail parser shells out to curl for a PDF link without a
+        # filename; the guard stops the whole site, so it is not a contract candidate.
+        plans=json.loads((ROOT/'docs/examples/adapter-contract-plans.json').read_text())
+        self.assertNotIn('afp-gov-au-news-centre',plans['sites'])
+        sid='afp-gov-au-news-centre'
+        cfg={'type':'crawler','contract_version':1,'list_method':'_parse_list_page','list_args':['html','url'],
+             'list_result':[0],'detail_method':'_parse_detail_page','detail_args':['html','url'],
+             'paper_method':'_build_paper','paper_args':['item','detail']}
+        a=Adapter(sid,cfg,None,crawler=load_crawler(sid))
+        resp=Response(200,{'Content-Type':'text/html'},LISTS[sid],'https://www.afp.gov.au/news-centre')
+        item=ListingParser({'type':'adapter','url_field':'url','listing_marker':'.view-solr-news-centre'},adapter=a).parse(resp).items[0]
+        detail=('<html><body><main data-history-node-id="9"><h1>T</h1><p>'+LONG+'</p>'
+                '<a href="/download?f=report.pdf">pdf</a></main></body></html>')
+        with patch('subprocess.Popen._execute_child',side_effect=AssertionError('process actually spawned')), \
+                self.assertRaisesRegex(AdapterUngatedNetwork,r'^adapter_ungated_network:subprocess$'):
+            a.materialize(item,SimpleNamespace(get=lambda url:Response(200,{'Content-Type':'text/html'},detail,url)))
     def test_africamuseum_tuple_scalar_binding(self):actual_case('africamuseum-be-en')
     def test_culture_registered_pipeline(self):actual_case('culture-gouv-fr-espace-documentation')
     def test_culture_redirect_keeps_item_url(self):
@@ -81,5 +98,5 @@ class ActualSites(unittest.TestCase):
                 sp=site_plan(plan,sid,registered=[sid]);Adapter(sid,sp.section('adapter'),None,crawler=load_crawler(sid))
             except ValueError as exc:remaining.append((sid,str(exc)))
             else:passed.append(sid)
-        self.assertEqual(set(new['sites']),set(passed));self.assertEqual(20,len(remaining))
+        self.assertEqual(set(new['sites']),set(passed));self.assertEqual(3,len(passed));self.assertEqual(21,len(remaining))
         self.assertTrue(all(reason=='custom crawler adapter needs detail_method, paper_method or list_returns_paper' for _,reason in remaining))

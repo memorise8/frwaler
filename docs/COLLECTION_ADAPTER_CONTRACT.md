@@ -8,7 +8,7 @@
 
 | site_id | 반환형·인자·변환 및 판단 | 코드 근거 |
 |---|---|---|
-| afp-gov-au-news-centre | tuple(items,next_url) → dict 행; detail(raw,url) → 부분 dict; _build_paper(item,detail). 연결 검증 대상(아래 최종 결과 참조). | `crawler/sites/custom/afp-gov-au-news-centre.py` crawl:129, _parse_list_page:294, _parse_detail_page:371, _build_paper:414 |
+| afp-gov-au-news-centre | tuple(items,next_url) → dict 행; detail(raw,url) → 부분 dict; _build_paper(item,detail). **계약 후보 아님**: 상세 파서가 파일명 없는 PDF 링크에서 `_curl_head_content_disposition`(subprocess curl)을 호출해 guard가 사이트 전체를 `config_error`로 멈춘다(리뷰 M1). 코드로 우회하지 않는다. | `crawler/sites/custom/afp-gov-au-news-centre.py` crawl:129, _parse_list_page:294, _parse_detail_page:371, _build_paper:414 |
 | africamuseum-be-en | 5열 tuple 행(slug,title,listed_date,snippet,source_url); detail(html,slug,listed_date,snippet,source_url) → Paper. 연결 검증 대상(아래 최종 결과 참조). | `crawler/sites/custom/africamuseum-be-en.py` _parse_list_page:115, _parse_detail_page:186, crawl:257 |
 | culture-gouv-fr-espace-documentation | tuple(items,has_next); detail(html,url) → 부분 dict; _to_paper(list_item,detail). 연결 검증 대상(아래 최종 결과 참조). | `crawler/sites/custom/culture-gouv-fr-espace-documentation.py` _parse_list_page:263, _parse_detail:333, _to_paper:558, crawl:629 |
 | economie-fgov-be-nl | list[dict]; detail(html,item) → 부분 dict; Paper/ID 조립은 crawl 내부. 계약만으로 해결 불가. | `crawler/sites/custom/economie-fgov-be-nl.py` _parse_listing:113, _parse_detail:172, crawl:262 |
@@ -70,18 +70,17 @@ sitemap에서 item 전체/개별 필드 또는 list_returns_paper가 필요하�
 
 ### 24곳 재판정
 
-이전의 거부 24곳 모두 **단순 site_plan 검사 자체는 통과했고**, Adapter 생성에서 같은 오류로 거부됐다. 따라서 이번 비교도 `site_plan(registered 포함) + 실제 등록 클래스의 Adapter 생성/서명 확인`을 한 묶음으로 사용한다. 이 기준으로 기존 0/24 → 신규 계약 후보 **4/24 통과, 20/24 거부 유지**다. 두 집합은 같은 24개 사이트를 비교한 것이며 기타 관련 사이트 수와 합산하지 않는다.
+이전의 거부 24곳 모두 **단순 site_plan 검사 자체는 통과했고**, Adapter 생성에서 같은 오류로 거부됐다. 따라서 이번 비교도 `site_plan(registered 포함) + 실제 등록 클래스의 Adapter 생성/서명 확인`을 한 묶음으로 사용한다. 이 기준으로 기존 0/24 → 신규 계약 후보 **3/24 통과, 21/24 거부 유지**다(af1df09의 4/24에서 AFP를 리뷰 M1로 제외). 두 집합은 같은 24개 사이트를 비교한 것이며 기타 관련 사이트 수와 합산하지 않는다.
 
 | 새 계약 후보 | 실제로 재사용한 경로 | 확인된 근거 | 남은 제한 |
 |---|---|---|---|
-| afp-gov-au-news-centre | `_parse_list_page(raw,url)[0]` → `_parse_detail_page(raw,url)` → `_build_paper(item,detail)` | 실제 메서드 직접 호출과 새 어댑터의 Paper 전체/identity 동일, 합성 항목 1건 | 실제 목록 범위·끝·빈 목록 marker 유지 미검증 |
 | africamuseum-be-en | 5열 tuple을 이름 붙인 dict로 변경 → 상세 메서드에 원래 scalar 인자 전달 | 실제 목록 tuple/상세 변환의 Paper 전체/identity 동일, 합성 항목 1건 | 마지막 쪽·원천 총량·실제 콘텐츠 미검증 |
 | culture-gouv-fr-espace-documentation | 목록 tuple의 items → `_parse_detail(html,url)` → `_to_paper(list_item,detail)` | 실제 메서드 직접 호출과 Paper 전체/identity 동일, 합성 항목 1건 | 후보 marker가 item selector라 실제 빈 페이지의 종료 판정은 추가 확인 필요 |
 | kit-nl-institute | JSON 목록 배열 → 등록 `_parse_item(item)` | 원래 JSON 행 변환과 Paper 전체/identity 동일, 합성 항목 1건; 상세 요청 없음 | 실제 API 필터 범위·정렬/경계·원천 총량 미검증 |
 
-위 숫자는 `tests.test_enumeration_adapter_sites.ActualSites.test_rejected_24_reclassification`가 원래 24개 입력 전체를 검증해 계산하며, 단순한 효과 추정이 아니다. 실제 메서드 대조는 같은 테스트 모듈의 네 사이트 테스트다. 구체 후보는 `docs/examples/adapter-contract-plans.json`, 원래 거부 입력은 `tests/fixtures/enumeration_adapter/rejected-24.json`에 보존했다. 후보를 원격 시범·운영 plan에 적용하지 않았다.
+위 숫자는 `tests.test_enumeration_adapter_sites.ActualSites.test_rejected_24_reclassification`가 원래 24개 입력 전체를 검증해 계산하며, 단순한 효과 추정이 아니다. 실제 메서드 대조는 같은 테스트 모듈의 세 사이트 테스트이며, AFP 제외 근거는 `test_afp_not_a_candidate`가 검사한다. 구체 후보는 `docs/examples/adapter-contract-plans.json`, 원래 거부 입력은 `tests/fixtures/enumeration_adapter/rejected-24.json`에 보존했다. 후보를 원격 시범·운영 plan에 적용하지 않았다.
 
-나머지 20곳의 공통 반환 사유는 여전히 `custom crawler adapter needs detail_method, paper_method or list_returns_paper`다. 첫 표에 실제 반환형·인자·변환 위치와 미해결 사유를 각각 적었다. 특히 다음을 억지로 통과시키지 않았다.
+나머지 21곳(AFP 포함, AFP는 후보 plan에서 빠져 원래 입력으로 검사)의 공통 반환 사유는 여전히 `custom crawler adapter needs detail_method, paper_method or list_returns_paper`다. 첫 표에 실제 반환형·인자·변환 위치와 미해결 사유를 각각 적었다. 특히 다음을 억지로 통과시키지 않았다.
 
 - Paper/ID 조립이 crawl 안에 있는 사이트: 등록 메서드가 없으므로 raw JSON/RSS 행을 Paper라고 선언하지 않았다. CERN RSS도 category/department/metadata 조립이 crawl에 있어 그대로 목록을 저장하는 것은 동등하지 않다.
 - Earth-Prints는 `_fetch_item_detail(uuid)`로 `embed=bundles/bitstreams` 상세를 받은 뒤 `_paper_from_item(item,list_item)`을 실행한다(442~446행). 목록 내 객체만 전달하는 방식은 첨부·메타데이터 보강을 생략하므로 통과 수에 넣지 않았다.
@@ -140,3 +139,9 @@ docker run --rm --name enum-test-adapter-20261012-verified \
 - 리다이렉트 뒤 응답 URL(`resp.url`)이 필요하면 `final_url`을 명시한다. 기본 후보 plan은 등록 수집기와 같도록 `url`(=item URL)을 사용한다.
 - 목록 단계에는 item이 없으므로 `request_url`은 거부(`adapter_contract:invalid_argument_token:request_url`)하고, `url`/`final_url`은 목록 응답 URL(`resp.url`)이다. 목록 페이지가 리다이렉트되면 등록 crawl()이 넘기는 요청 페이지 URL과 다를 수 있다(상대 링크 해석 기준만 달라짐). 이 차이는 남은 제한이다.
 - 계약 없는 기존 어댑터 경로의 `url` 토큰(`resp.url`)은 그대로다.
+
+### 상세 메서드 내부 프로세스 호출 사이트 제외 (M1)
+
+- AFP(`afp-gov-au-news-centre`)의 등록 `_parse_detail_page`는 PDF 링크에 파일명이 없으면 `_curl_head_content_disposition`으로 curl을 실행한다. 계약 경로에서 이 호출은 guard에 막혀 `AdapterUngatedNetwork` → 사이트 전체 `config_error`가 된다. 따라서 AFP는 통과 후보에서 빼고 `docs/examples/adapter-contract-plans.json`에서 삭제했다. 재판정은 3/24 통과, 21/24 거부다(`adapter-contract-audit.json` 갱신).
+- guard를 완화하거나 HEAD 요청을 계약 경로가 대신 수행하는 우회는 하지 않았다. AFP를 계약으로 연결하려면 등록 수집기 쪽에서 네트워크 없는 상세 파서를 분리해야 한다(이 작업 범위 밖).
+- 남은 후보 중 AfricaMuseum·Culture·KIT의 등록 목록/상세/Paper 메서드에서는 subprocess/세션 호출을 찾지 못했다(코드 검색 기준, 모든 입력에 대한 증명은 아님).

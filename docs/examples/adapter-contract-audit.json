@@ -21,24 +21,25 @@
     "before_schema_pass": 24,
     "before_adapter_pass": 0,
     "after_schema_pass": 24,
-    "after_adapter_pass": 4,
-    "after_adapter_reject": 20
+    "after_adapter_pass": 3,
+    "after_adapter_reject": 21
   },
   "compatibility": {
     "pilot_plans": 12,
     "previous_passed_plans": 5,
     "evidence": "기준 구현과 현재 구현에 동일 합성 파서 반환값을 넣어 plan·지문·호출 인자·Paper·identity·상세 호출 수를 비교. 실제 HTML 전체 회귀검사는 아님."
   },
-  "actual_registered_method_evidence": "통과 4곳은 사이트당 합성 목록 항목 1건으로 실제 등록 메서드 직접 호출과 새 어댑터 Paper 전체 및 identity 동일성 대조.",
+  "actual_registered_method_evidence": "통과 3곳은 사이트당 합성 목록 항목으로 실제 등록 메서드 직접 호출과 새 어댑터 Paper 전체 및 identity 동일성 대조. AFP는 상세 메서드 내부 curl 호출(파일명 없는 PDF 링크) 때문에 후보에서 제외(af1df09 리뷰 M1).",
   "sites": [
     {
       "site_id": "afp-gov-au-news-centre",
       "schema": "pass",
-      "adapter": "pass",
-      "reason": null,
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
       "full_collection_verified": false,
       "last_page_verified": false,
-      "total_count_verified": false
+      "total_count_verified": false,
+      "contract_excluded_reason": "registered _parse_detail_page calls _curl_head_content_disposition (subprocess curl) for a PDF link without a filename; guard stops the whole site (config_error). Not a contract candidate; not bypassed in code."
     },
     {
       "site_id": "africamuseum-be-en",
