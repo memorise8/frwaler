@@ -50,6 +50,88 @@ class UKDataService2026Crawler(BaseCrawler):
     site_name = "Custom: ukdataservice-ac-uk-2026"
     base_url = "https://ukdataservice.ac.uk"
 
+
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_items(self, data):
+        """Validate a decoded API list; no fetching, storage, or identifier synthesis."""
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            raise ValueError("enumeration listing must be a list of objects")
+        return data
+
+    def _enumeration_paper(self, post):
+        """Pure copy of crawl's Paper conversion and item filters.
+
+        None preserves item rejection; the framework currently records it as empty_item.
+        """
+        post_url = post.get('link', '')
+        post_id = post.get('id')
+        external_id = str(post_id) if post_id is not None else None
+        post_number = external_id
+        title_raw = post.get('title', {})
+        if isinstance(title_raw, dict):
+            title = _strip_html(title_raw.get('rendered', ''))
+        else:
+            title = _strip_html(str(title_raw or ''))
+        if not title:
+            return None
+        raw_date = post.get('date', '')
+        published_date = raw_date[:10] if raw_date else None
+        content_raw = post.get('content', {})
+        if isinstance(content_raw, dict):
+            content_raw = content_raw.get('rendered', '')
+        abstract = _strip_html(content_raw or '')
+        if len(abstract) < 50:
+            excerpt_raw = post.get('excerpt', {})
+            if isinstance(excerpt_raw, dict):
+                excerpt_raw = excerpt_raw.get('rendered', '')
+            abstract = _strip_html(excerpt_raw or '')
+        if len(abstract) < 50:
+            return None
+        authors = ''
+        keywords = ''
+        category = ''
+        yoast = post.get('yoast_head_json') or {}
+        schema = yoast.get('schema') or {}
+        for graph_node in schema.get('@graph', []):
+            if graph_node.get('@type') == 'Article':
+                author_obj = graph_node.get('author') or {}
+                if isinstance(author_obj, dict):
+                    authors = author_obj.get('name', '') or ''
+                kws = graph_node.get('keywords') or []
+                keywords = ','.join(kws) if kws else ''
+                sections = graph_node.get('articleSection') or []
+                category = ','.join(sections) if sections else ''
+                break
+        metadata = {
+            'post_id': post_id,
+            'slug': post.get('slug', ''),
+            'categories': post.get('categories', []),
+            'tags': post.get('tags', []),
+            'posted_date': raw_date,
+        }
+        paper = {
+            'id': None,
+            'site_id': self.site_id,
+            'external_id': external_id,
+            'post_number': post_number,
+            'title': title,
+            'abstract': abstract,
+            'published_date': published_date,
+            'listed_date': published_date,
+            'url': post_url,
+            'pdf_url': None,
+            'authors': authors,
+            'publisher': 'UK Data Service',
+            'department': '',
+            'journal': '',
+            'keywords': keywords,
+            'category': category,
+            'doi': None,
+            'original_filename': None,
+            'metadata': json.dumps(metadata, ensure_ascii=False),
+        }
+        return paper
+
     def crawl(self, limit=None):
         saved = 0
         seen_urls: set = set()
