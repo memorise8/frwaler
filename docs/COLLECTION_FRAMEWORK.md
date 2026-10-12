@@ -63,8 +63,9 @@ plan.json ─► SitePlan ─► Strategy.batches(progress)  ── yields Batch
   | 기타 4xx(400, 405, 422…) | `PermanentFailure(http_4xx)` | 같음 |
   | 전송 오류, 5xx, 429 | 재시도(`retries`, 지수 대기, 429는 Retry-After 존중·상한) 후 `TransientFailure` | 항목: 대장(일시 실패, 시도 횟수) 후 계속, 다음 실행에서 `item_max_attempts`까지 재시도. 목록: 해당 실행 중단(미완료) |
   | 401/403/407/451, JS/봇 챌린지 본문(`access_challenge`), 로그인 폼, robots 거부 | `AccessBlocked` | **우회하지 않는다**. 사이트 상태를 `access_blocked`로 기록하고 그 사이트 진행을 멈춘다 |
-* robots.txt: 호스트별 1회(같은 게이트 경유) 조회. 401/403이면 전체 거부로 간주, 404 등은 허용,
-  5xx/전송 오류는 일시 실패(진행 중단). `respect_robots: false`는 plan에서 명시할 때만.
+* robots.txt: 호스트별 1회(같은 게이트 경유) 조회. RFC 9309에 따라 4xx(401/403 포함)는 "규칙 없음"으로 보고
+  (페이지 자체의 401/403은 별도로 접근 차단 처리), 5xx/전송 오류는 허용을 추측하지 않고 일시 실패로 진행을 멈춘다.
+  `respect_robots: false`는 plan에서 명시할 때만.
 * 전송 계층(`Transport`)은 주입 가능하다. 운영은 `RequestsTransport`(리다이렉트 추적, 본문 상한),
   테스트는 가짜 서버(인프로세스 라우터 또는 127.0.0.1 http.server)만 쓴다.
 
@@ -172,6 +173,12 @@ enum_event(id PK, site_id, at, kind, detail JSON)   -- 접근 차단, 구간 불
 | 전송 오류/5xx/429 (재시도 후) | failed_transient → 다음 실행에서 재시도, `item_max_attempts` 도달 시 failed_retries_exhausted | `transient:<세부>` | 계속 |
 | 401/403/챌린지/로그인/robots | (사이트 단위) | `access_blocked:<세부>` | **사이트 중단**, 우회 없음 |
 
+* 한 실행 안에서 같은 항목은 한 번만 시도한다(겹쳐 읽기로 두 번 나와도 Fetcher가 이미 재시도했으므로).
+  일시 실패 항목은 다음 실행 시작의 재시도 패스에서 다시 시도한다. 완료된 사이트를 다시 실행하면
+  `--refresh`가 없는 한 재열거하지 않고 재시도 패스만 돈다(`--retry-failed`는 언제나 재시도 패스만).
+* `post_number`(중복 판정 키) 규칙: 등록된 설정형 수집기(`adapter.type=crawler`) 또는 `adapter.id_regex`가 있으면
+  기존 `_extract_id` 결과(기존 수집분과 같은 키), 커스텀 수집기는 그 파서가 만든 `external_id`, 그 외에는 목록 식별값.
+
 ## 7. 파일(PDF/첨부) 별도 대장 (files.py)
 
 * 본문 단계에서 `paper.pdf_url`(및 `paper.attachments` 목록)을 `enum_file`에 `pending`으로 넣기만 한다(다운로드 안 함).
@@ -260,6 +267,9 @@ enum_event(id PK, site_id, at, kind, detail JSON)   -- 접근 차단, 구간 불
 * 필터 인코딩: GenericCrawler `params`에 이미 인코딩된 키(`type%5B170%5D`)가 있으면 requests가 `%255B`로
   이중 인코딩하던 문제를 `urls.decode_preencoded`로 고쳤다(이미 인코딩된 형태만 한 번 디코드).
 * 첫 페이지 누락: 새 틀은 `check_unparameterized_first_page`로 검증. 기존 수집기는 plan의 `start_page` 덮어쓰기로 교정.
+* 적용 경로: 배달 워커(`delivery/worker/worker.py`)가 수집기 인스턴스를 만든 직후
+  `legacy.apply_overrides_from_env`를 호출한다. 환경변수 `LIBERTREE_ENUMERATION_PLAN`이 없으면 아무것도 하지 않는다.
+  plan 예: `"gri-re-kr-web": {"strategy": "...", "legacy": {"page_cap": null}}`.
 
 ## 11. 완전성 점검 보고 (report.py)
 

@@ -9,6 +9,7 @@ import uuid
 
 from bs4 import BeautifulSoup
 from .base_crawler import BaseCrawler
+from .enumeration.urls import decode_preencoded
 
 
 class GenericCrawler(BaseCrawler):
@@ -172,7 +173,9 @@ class GenericCrawler(BaseCrawler):
                 break
 
             # Build list page URL with pagination
-            params = dict(list_cfg.get("params", {}))
+            # Config keys such as "type%5B170%5D" are already encoded; requests
+            # would re-encode them to "%255B". Decode those exactly once.
+            params = decode_preencoded(list_cfg.get("params", {}))
             if query_pagination:
                 params[page_param] = page_num
 
