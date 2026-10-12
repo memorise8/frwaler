@@ -691,5 +691,75 @@ class RequestTimingTest(unittest.TestCase):
         self.assertEqual(report["request_count"], result["requests"])
 
 
+class LowPriorityFixTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.sleeps = []
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def fetcher(self, handler, **kw):
+        kw.setdefault("interval", 0)
+        kw.setdefault("respect_robots", False)
+        kw.setdefault("sleep", self.sleeps.append)
+        t = FakeTransport(handler)
+        return Fetcher("s", t, Path(self.tmp.name) / "gates", **kw), t
+
+    def test_dns_failure_is_retried_with_backoff(self):
+        answers = [[], ["93.184.216.34"]]
+        f, t = self.fetcher(lambda u: ok(), resolver=lambda host: answers.pop(0))
+        self.assertEqual(f.get("https://x.org/a").status, 200)
+        self.assertEqual(len(self.sleeps), 1)
+        f, t = self.fetcher(lambda u: ok(), resolver=lambda host: [], retries=3)
+        with self.assertRaises(H.TransientFailure) as ctx:
+            f.get("https://x.org/a")
+        self.assertEqual(ctx.exception.reason, "dns_unresolved")
+        self.assertEqual(t.urls, [])
+
+    def test_503_retry_after_is_honoured_and_long_one_stops(self):
+        answers = [Response(503, {"Retry-After": "30"}, b""), ok()]
+        f, _ = self.fetcher(lambda u: answers.pop(0))
+        self.assertEqual(f.get("https://x.org/a").status, 200)
+        self.assertGreaterEqual(self.sleeps[0], 29)
+        f, t = self.fetcher(lambda u: Response(503, {"Retry-After": "3600"}, b""), max_retry_wait_s=120)
+        with self.assertRaises(H.RateLimited) as ctx:
+            f.get("https://x.org/a")
+        self.assertEqual((ctx.exception.reason, ctx.exception.status, len(t.urls)), ("unavailable_retry_after", 503, 1))
+        # The cooldown is host-wide (gate state), like a 429 cooldown.
+        f2, t2 = self.fetcher(lambda u: ok())
+        with self.assertRaises(H.RateLimited):
+            f2.get("https://x.org/b")
+        self.assertEqual(t2.urls, [])
+
+    def test_body_too_large_is_not_retried(self):
+        f, t = self.fetcher(lambda u: H.BodyTooLarge("body_too_large"), retries=3)
+        with self.assertRaises(H.PermanentFailure) as ctx:
+            f.get("https://x.org/big.pdf")
+        self.assertEqual(ctx.exception.reason, "body_too_large")
+        self.assertEqual(len(t.urls), 1)
+
+    def test_transport_refuses_declared_oversize_body_before_reading(self):
+        class Raw:
+            status_code, url = 200, "https://x.org/big"
+            headers = {"Content-Length": str(10 ** 9)}
+            read = []
+
+            def iter_content(self, n):
+                Raw.read.append(n)
+                yield b"x"
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+        transport = H.RequestsTransport(max_bytes=1000, resolver=lambda h: ["93.184.216.34"])
+        with mock.patch.object(transport.session, "request", return_value=Raw()):
+            with self.assertRaises(H.BodyTooLarge):
+                transport.request("GET", "https://x.org/big")
+        self.assertEqual(Raw.read, [])
+
+
 if __name__ == "__main__":
     unittest.main()

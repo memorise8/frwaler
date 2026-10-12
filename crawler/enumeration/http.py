@@ -353,6 +353,10 @@ class TransportError(Exception):
     """Raised by a transport for connection-level failures."""
 
 
+class BodyTooLarge(TransportError):
+    """The body exceeds the transport's byte limit: retrying would download it again."""
+
+
 _BOMS = ((b"\xef\xbb\xbf", "utf-8"), (b"\xff\xfe", "utf-16-le"), (b"\xfe\xff", "utf-16-be"))
 _CHARSET = re.compile(r"charset\s*=\s*[\"']?\s*([\w.:-]+)", re.I)
 _META_CHARSET = re.compile(rb"<meta[^>]+charset\s*=\s*[\"']?\s*([\w.:-]+)", re.I)
@@ -449,11 +453,14 @@ class RequestsTransport:
             # Redirects are handled hop by hop by Fetcher (gate, budget, robots, holds).
             with self.session.request(method, url, headers=headers or {}, stream=True,
                                       timeout=self.timeout, allow_redirects=False) as r:
+                declared = str(r.headers.get("Content-Length") or "").strip()
+                if declared.isdigit() and int(declared) > self.max_bytes:
+                    raise BodyTooLarge("body_too_large")  # refused before reading the body
                 chunks, size = [], 0
                 for chunk in r.iter_content(64 * 1024):
                     size += len(chunk)
                     if size > self.max_bytes:
-                        raise TransportError("body_too_large")
+                        raise BodyTooLarge("body_too_large")
                     chunks.append(chunk)
                 return Response(r.status_code, dict(r.headers), b"".join(chunks), r.url)
         except self._requests.RequestException as exc:
@@ -673,8 +680,14 @@ class Fetcher:
             wait = self.backoff_s * (3 ** attempt)
             try:
                 resp = self._once(url)
+            except BodyTooLarge:
+                raise PermanentFailure("body_too_large", url) from None
             except TransportError as exc:
                 last = TransientFailure(f"transport:{exc}", url)
+            except TransientFailure as exc:
+                if exc.reason != "dns_unresolved":
+                    raise
+                last = exc  # resolver hiccup: retried with the same backoff, nothing was requested
             else:
                 self._consecutive_429 = self._consecutive_429 + 1 if resp.status == 429 else 0
                 if resp.status == 429 or resp.status >= 500:
@@ -687,6 +700,14 @@ class Fetcher:
                             retry_at = max(until, time.time() + self.max_retry_wait_s)
                             self._defer(url, retry_at)
                             raise RateLimited("rate_limited_cooldown", url, 429, retry_at=retry_at)
+                    elif resp.status == 503 and resp.header("retry-after"):
+                        # Maintenance with a stated return time: wait for it, or stop with a
+                        # host-wide cooldown when it is longer than we may wait.
+                        until = retry_after(resp.header("retry-after"), now=time.time())
+                        wait = max(wait, until - time.time())
+                        if wait > self.max_retry_wait_s:
+                            self._defer(url, until)
+                            raise RateLimited("unavailable_retry_after", url, 503, retry_at=until)
                 else:
                     return self._classify(resp, url, accept_statuses) if classify else resp
             if attempt < self.retries - 1:

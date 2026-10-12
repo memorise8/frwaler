@@ -61,7 +61,7 @@ plan.json ─► SitePlan ─► Strategy.batches(progress)  ── yields Batch
   | 2xx | 성공 | |
   | 404, 410 | `PermanentFailure(http_404/http_410)` | 항목: 대장 기록 후 계속. 목록 탐색: 끝 판정 근거 |
   | 기타 4xx(400, 405, 422…) | `PermanentFailure(http_4xx)` | 같음 |
-  | 전송 오류, 5xx, 429 | 재시도(`retries`, 지수 대기, 429는 Retry-After 존중·상한) 후 `TransientFailure` | 항목: 대장(일시 실패, 시도 횟수) 후 계속, 다음 실행에서 `item_max_attempts`까지 재시도. 목록: 해당 실행 중단(미완료) |
+  | 전송 오류, DNS 해석 실패(`dns_unresolved`), 5xx, 429 | 재시도(`retries`, 지수 대기, 429와 503은 Retry-After 존중·상한) 후 `TransientFailure`. 503의 Retry-After가 `max_retry_wait_s`보다 길면 기다리지 않고 호스트 게이트에 쿨다운을 쓰고 `RateLimited(unavailable_retry_after)`로 멈춘다 | 항목: 대장(일시 실패, 시도 횟수) 후 계속, 다음 실행에서 `item_max_attempts`까지 재시도. 목록: 해당 실행 중단(미완료) |
   | 401/403/407/451, JS/봇 챌린지 본문(`access_challenge`), 로그인 경로 리다이렉트, robots 거부 | `AccessBlocked` | **우회하지 않는다**. 사이트 상태를 `access_blocked`로 기록하고 그 사이트 진행을 멈춘다. 이후 실행도 사람이 검토해 `--refresh`로 풀기 전까지 요청하지 않는다 |
 * robots.txt: 호스트별 1회(같은 게이트 경유) 조회. 404/410 등 4xx는 "규칙 없음", 401/403/407/451은 호스트 보류(H09).
   5xx/429/전송 오류(재시도 후)는 허용을 추측하지 않고 `RobotsUnavailable`(`robots_unavailable:<세부>`)로 사이트 실행을
@@ -78,6 +78,8 @@ plan.json ─► SitePlan ─► Strategy.batches(progress)  ── yields Batch
 * 호스트 정규화: 요청·리다이렉트 hop마다 국제화 도메인(IDN)은 IDNA(punycode)로 바꿔 게이트·robots·보류·요청에 쓴다.
   게이트가 다룰 수 없는 호스트(밑줄 등)는 요청하지 않고 `PermanentFailure(ungovernable_host)` — 항목이면 대장,
   목록이면 `listing_failed`(미완료). robots.txt가 그런 호스트로 리다이렉트되면 `robots_unavailable` 정지.
+* 본문 크기 상한(`RequestsTransport.max_bytes`, 파일 패스는 `file_max_bytes`) 초과는 `PermanentFailure(body_too_large)`로
+  재시도하지 않는다(같은 큰 본문을 반복 다운로드하지 않음). `Content-Length`가 상한을 넘으면 본문을 읽기 전에 끊는다.
 * 전송 계층(`Transport`)은 주입 가능하다. 운영은 `RequestsTransport`(리다이렉트 추적, 본문 상한),
   테스트는 가짜 서버(인프로세스 라우터 또는 127.0.0.1 http.server)만 쓴다.
 
