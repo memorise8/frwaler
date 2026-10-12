@@ -171,7 +171,7 @@ class RobotsRules:
     """Parsed robots.txt (RFC 9309): groups of user-agent lines followed by rules."""
 
     def __init__(self, groups):
-        self.groups = groups  # [{"agents": [...], "rules": [(allow, length, regex)], "rate": float|None}]
+        self.groups = groups  # [{"agents": [...], "rules": [(allow, length, pieces, anchored)], "rate": ...}]
 
     def _groups_for(self, user_agent):
         specific = [g for g in self.groups if any(_agent_applies(a, user_agent) for a in g["agents"])]
@@ -182,8 +182,8 @@ class RobotsRules:
         target = robots_octets((parts.path or "/") + (f"?{parts.query}" if parts.query else ""))
         best = None  # (length, allow): the longest match wins, Allow on equal length
         for group in self._groups_for(user_agent):
-            for allow, length, regex in group["rules"]:
-                if regex.match(target) and (best is None or (length, allow) > best):
+            for allow, length, pieces, anchored in group["rules"]:
+                if _robots_match(pieces, anchored, target) and (best is None or (length, allow) > best):
                     best = (length, allow)
         return True if best is None else best[1]
 
@@ -193,13 +193,34 @@ class RobotsRules:
 
 
 def _robots_pattern(value):
+    """(length, pieces, anchored): the literal pieces between '*' wildcards (a run of '*' is one
+    wildcard) and whether a trailing '$' anchors the end. The length is the rule as written."""
     pattern = robots_octets(value)
     if not pattern.startswith(("/", "*")):
         pattern = "/" + pattern  # a path rule without its leading slash is still a path rule
     anchored = pattern.endswith("$")
     body = pattern[:-1] if anchored else pattern
-    regex = "".join(".*" if ch == "*" else re.escape(ch) for ch in body) + ("$" if anchored else "")
-    return len(pattern), re.compile(regex, re.S)
+    return len(pattern), re.sub(r"\*+", "*", body).split("*"), anchored
+
+
+def _robots_match(pieces, anchored, target):
+    """Prefix match of a '*'-wildcard rule (no regex, no backtracking): the first piece at the
+    start, each further piece at its leftmost place after the previous one, the last at the end
+    when anchored. Leftmost placement is exact for '*'-only patterns; O(len(target) * len(rule))."""
+    if not target.startswith(pieces[0]):
+        return False
+    if len(pieces) == 1:
+        return not anchored or target == pieces[0]
+    pos = len(pieces[0])
+    for piece in pieces[1:-1]:
+        pos = target.find(piece, pos)
+        if pos < 0:
+            return False
+        pos += len(piece)
+    last = pieces[-1]
+    if anchored:
+        return len(target) - len(last) >= pos and target.endswith(last)
+    return target.find(last, pos) >= 0
 
 
 def parse_robots(text):
@@ -221,8 +242,7 @@ def parse_robots(text):
         elif field in ("allow", "disallow"):
             agent_run = False
             if current is not None and value:
-                length, regex = _robots_pattern(value)
-                current["rules"].append((field == "allow", length, regex))
+                current["rules"].append((field == "allow", *_robots_pattern(value)))
         elif field in ("crawl-delay", "request-rate"):
             agent_run = False
             if field == "request-rate" and current is not None:

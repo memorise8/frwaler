@@ -145,5 +145,110 @@ class RobotsItemReviewTest(unittest.TestCase):
         self.assertEqual(row["robots_disallowed"], "1")
 
 
+ROBOTS_TABLE = [
+    # (robots.txt, path, allowed) - RFC 9309 verdicts, unchanged by the matcher rewrite.
+    ("User-agent: *\nDisallow: /private", "/private/x", False),
+    ("User-agent: *\nDisallow: /private", "/public", True),
+    ("User-agent: *\nDisallow: /*.pdf$", "/a/b.pdf", False),
+    ("User-agent: *\nDisallow: /*.pdf$", "/a/b.pdf?x=1", True),
+    ("User-agent: *\nDisallow: /*.pdf$", "/a/b.PDF", True),
+    ("User-agent: *\nDisallow: /folder\nAllow: /folder/", "/folder/page", True),
+    ("User-agent: *\nDisallow: /folder\nAllow: /folder/", "/folder", False),
+    ("User-agent: *\nAllow: /page\nDisallow: /page", "/page", True),
+    ("User-agent: *\nDisallow: /*\nAllow: /$", "/", True),
+    ("User-agent: *\nDisallow: /*\nAllow: /$", "/x", False),
+    ("User-agent: *\nDisallow:", "/anything", True),
+    ("User-agent: *\nDisallow: /", "/anything", False),
+    ("User-agent: Googlebot\nDisallow: /\n\nUser-agent: *\nDisallow: /private", "/x", True),
+    ("User-agent: Googlebot\nDisallow: /\n\nUser-agent: *\nDisallow: /private", "/private", False),
+    ("User-agent: foo\nUser-agent: *\nDisallow: /x", "/x/1", False),
+    ("User-agent: *\nDisallow: /a\n\nUser-agent: *\nDisallow: /b", "/b", False),
+    ("User-agent: *\nDisallow: /a\n\nDisallow: /b", "/b", False),
+    ("User-agent: * # all\nDisallow: /a # secret\n# Disallow: /b", "/a", False),
+    ("User-agent: * # all\nDisallow: /a # secret\n# Disallow: /b", "/b", True),
+    ("﻿User-agent: *\nDisallow: /x", "/x", False),
+    ("User-agent: *\r\nDisallow: /x\r\n", "/x", False),
+    ("User-agent: *\rDisallow: /x\r", "/x", False),
+    ("USER-AGENT: *\nDISALLOW: /X", "/X", False),
+    ("USER-AGENT: *\nDISALLOW: /X", "/x", True),
+    ("User-agent: *\nDisallow: /%7Euser", "/~user/a", False),
+    ("User-agent: *\nDisallow: /검색", "/%EA%B2%80%EC%83%89?q=1", False),
+    ("User-agent: *\nDisallow: /%EA%B2%80", "/%ea%b2%80", False),
+    ("User-agent: *\nDisallow: /*?", "/page?x=1", False),
+    ("User-agent: *\nDisallow: /*?", "/page", True),
+    ("User-agent: *\nDisallow: /*?*sort=", "/list?page=2&sort=asc", False),
+    ("Disallow: /x\nUser-agent: *\nDisallow: /y", "/x", True),
+    ("User-agent: a\nSitemap: https://x/s.xml\nUser-agent: *\nDisallow: /z", "/z", False),
+    ("User-agent: * \nDisallow: /a", "/a", False),
+    ("User-agent: Mozilla\nAllow: /\n\nUser-agent: *\nDisallow: /", "/x", True),
+    ("User-agent: Chrome\nDisallow: /\n\nUser-agent: *\nDisallow:", "/x", True),
+    ("User-agent: mozilla\nDisallow:\n\nUser-agent: *\nDisallow: /", "/x", True),
+    ("User-agent: *\nDisallow: *", "/x", False),
+    ("User-agent: *\nDisallow: /a$b", "/a$b", False),
+    ("User-agent: *\nAllow: /a/*/c\nDisallow: /a/b", "/a/b/c", True),
+    ("Disallow: /", "/x", True),
+    ("User-agent:*\nDisallow:/x", "/x", False),
+    # Not fixed by the RFC; the current verdicts are kept.
+    ("User-agent: Mozilla/5.0\nDisallow: /\n\nUser-agent: *\nDisallow:", "/x", True),
+    ("User-agent: *\nDisallow: private", "/private", False),
+    ("User-agent: Mozi*\nDisallow: /\n\nUser-agent: *\nDisallow:", "/x", True),
+]
+
+
+def regex_reference(rule, target):
+    """The previous regex translation of a robots rule, as the oracle for short inputs."""
+    import re
+    anchored = rule.endswith("$")
+    body = rule[:-1] if anchored else rule
+    regex = "".join(".*" if ch == "*" else re.escape(ch) for ch in body) + ("$" if anchored else "")
+    return re.compile(regex, re.S).match(target) is not None
+
+
+class RobotsMatcherTest(unittest.TestCase):
+    """LOW-3: robots patterns are matched without regex backtracking, with the same verdicts."""
+
+    def allowed(self, robots, path):
+        from crawler.enumeration.http import DEFAULT_USER_AGENT, parse_robots
+        return parse_robots(robots).allows("https://h.test" + path, DEFAULT_USER_AGENT)
+
+    def test_rfc9309_table_unchanged(self):
+        self.assertEqual(len(ROBOTS_TABLE), 44)
+        for robots, path, expected in ROBOTS_TABLE:
+            self.assertIs(self.allowed(robots, path), expected, (robots, path))
+
+    def test_pathological_patterns_are_fast(self):
+        import time
+        from crawler.enumeration.http import DEFAULT_USER_AGENT, parse_robots
+        long_query = "/board/view.do?" + "&".join(f"p{i}=v{i}" for i in range(25))
+        cases = [("/*a*a*a*a*a*a*a*a*a*b$", "/" + "a" * 60, True),
+                 ("/*a*a*a*a*a*a*a*a*a*b$", "/" + "a" * 2000, True),
+                 ("/**********************a**********b$", "/" + "a" * 2000, True),
+                 ("/*?*&*&*&*=x$", long_query, True), ("/*?*sort=*&*filter=", long_query, True),
+                 ("/*/*/*/*/*.pdf$", long_query, True), ("/*?*&*&*&*&*&*=zz$", long_query, True),
+                 ("/*a*a*a*a*b$", long_query, True)]
+        for rule, path, expected in cases:
+            rules = parse_robots("User-agent: *\nDisallow: " + rule)
+            start = time.perf_counter()
+            verdict = rules.allows("https://h.test" + path, DEFAULT_USER_AGENT)
+            self.assertLess(time.perf_counter() - start, 0.1, rule)
+            self.assertIs(verdict, expected, rule)
+
+    def test_collapsed_wildcards_match_like_one(self):
+        self.assertFalse(self.allowed("User-agent: *\nDisallow: /a***b$", "/axxb"))
+        self.assertTrue(self.allowed("User-agent: *\nDisallow: /a***b$", "/axxbc"))
+        self.assertFalse(self.allowed("User-agent: *\nDisallow: /a**\nAllow: /a", "/ab"))  # length 4 > 2
+
+    def test_matches_regex_reference_on_random_rules(self):
+        import random
+        from crawler.enumeration.http import DEFAULT_USER_AGENT, parse_robots
+        rng = random.Random(9309)
+        for _ in range(3000):
+            rule = "/" + "".join(rng.choice("ab*$/") for _ in range(rng.randint(0, 7)))
+            path = "/" + "".join(rng.choice("ab$/") for _ in range(rng.randint(0, 9)))
+            verdict = parse_robots("User-agent: *\nDisallow: " + rule).allows("https://h.test" + path,
+                                                                              DEFAULT_USER_AGENT)
+            self.assertEqual(verdict, not regex_reference(rule, path), (rule, path))
+
+
 if __name__ == "__main__":
     unittest.main()
