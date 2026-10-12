@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "sites": {
+    "minfin-gov-gr-grafeio-typou": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          {
+            "source": "query",
+            "path": [
+              "page"
+            ],
+            "type": "int"
+          }
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          {
+            "source": "item",
+            "path": [
+              "record"
+            ]
+          },
+          {
+            "source": "item",
+            "path": [
+              "page"
+            ]
+          }
+        ]
+      },
+      "listing": {
+        "url": "https://minfin.gov.gr/wp-json/wp/v2/posts",
+        "params": {
+          "page": 1,
+          "per_page": 100,
+          "categories": 62,
+          "_fields": "id,date,title,link,content,excerpt"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "id",
+          "date_field": "date"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
