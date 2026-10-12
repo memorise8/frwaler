@@ -256,3 +256,153 @@ class NtrsNasaGovSearchCrawler(BaseCrawler):
 
         print(f"[ntrs-nasa-gov-search] crawl complete: {saved} documents saved")
         return saved
+
+    # ------------------------------------------------------------------
+    # Network-free parts for the enumeration adapter contract
+    # (docs/examples/ntrs-contract-plan.json). crawl() above is unchanged and does
+    # not use them; the framework fetches the search pages through its Fetcher.
+    # ------------------------------------------------------------------
+
+    def _parse_search_results(self, data):
+        """One parsed search API page -> listing rows (no network).
+
+        Results without an id are skipped, as crawl() does. Each row carries the
+        detail URL crawl() stores and the raw result under "result" for
+        _paper_from_result. None when the page has no "results" list.
+        """
+        results = data.get("results") if isinstance(data, dict) else None
+        if not isinstance(results, list):
+            return None
+        rows = []
+        for item in results:
+            if not isinstance(item, dict) or not item.get("id"):
+                continue
+            submission_id = item["id"]
+            pubs = item.get("publications") or []
+            first = pubs[0] if pubs and isinstance(pubs[0], dict) else {}
+            rows.append({
+                "id": submission_id,
+                "url": f"{_BASE}/citations/{submission_id}",
+                "title": (item.get("title") or "").strip(),
+                "published_date": first.get("publicationDate") or item.get("submittedDate"),
+                "result": item,
+            })
+        return rows
+
+    def _paper_from_result(self, item):
+        """The paper crawl() saves for one search result (no network).
+
+        Same fields and identity (post_number=str(id), url=/citations/{id}) as
+        crawl(). None without an id or a title (crawl() skips those). The short
+        abstract filter (_ABSTRACT_MIN_LEN) is NOT applied here: it stays in
+        crawl() only.
+        """
+        submission_id = item.get("id")
+        if not submission_id:
+            return None
+        detail_url = f"{_BASE}/citations/{submission_id}"
+        title = (item.get("title") or "").strip()
+        if not title:
+            return None
+        abstract = (item.get("abstract") or "").strip()
+
+        # Authors (deduplicated, order preserved)
+        author_names = []
+        seen_authors = set()
+        for aff in (item.get("authorAffiliations") or []):
+            meta = aff.get("meta") or {}
+            name = ((meta.get("author") or {}).get("name") or "").strip()
+            if name and name not in seen_authors:
+                author_names.append(name)
+                seen_authors.add(name)
+        authors = "; ".join(author_names) if author_names else None
+
+        # Publisher / organisations (deduplicated)
+        org_names = []
+        seen_orgs = set()
+        for aff in (item.get("authorAffiliations") or []):
+            meta = aff.get("meta") or {}
+            org_name = ((meta.get("organization") or {}).get("name") or "").strip()
+            if org_name and org_name not in seen_orgs:
+                org_names.append(org_name)
+                seen_orgs.add(org_name)
+        publisher = "; ".join(org_names) if org_names else None
+
+        # Dates
+        pub_date = None
+        pubs = item.get("publications") or []
+        if pubs:
+            pub_date = _parse_date(pubs[0].get("publicationDate"))
+        if not pub_date:
+            pub_date = _parse_date(item.get("submittedDate"))
+
+        listed_date = _parse_date(
+            item.get("distributionDate") or item.get("submittedDate")
+        )
+
+        # Keywords
+        kw_list = item.get("keywords") or []
+        keywords = ", ".join(str(k) for k in kw_list) if kw_list else None
+
+        # Category
+        cats = item.get("subjectCategories") or []
+        category = cats[0] if cats else None
+
+        # PDF download link
+        pdf_url = None
+        original_filename = None
+        downloads = item.get("downloads") or []
+        if downloads:
+            dl = downloads[0]
+            links = dl.get("links") or {}
+            pdf_rel = links.get("pdf") or links.get("original")
+            if pdf_rel:
+                if pdf_rel.startswith("/"):
+                    pdf_url = f"{_BASE}{pdf_rel}"
+                else:
+                    pdf_url = pdf_rel
+            original_filename = dl.get("name")
+
+        # Center
+        center = item.get("center") or {}
+
+        # Metadata: all raw fields not mapped above
+        meta_dict = {
+            "submission_id": submission_id,
+            "stiType": item.get("stiType"),
+            "stiTypeDetails": item.get("stiTypeDetails"),
+            "center_code": center.get("code"),
+            "center_name": center.get("name"),
+            "distribution": item.get("distribution"),
+            "otherReportNumbers": item.get("otherReportNumbers"),
+            "fundingNumbers": [
+                fn.get("number")
+                for fn in (item.get("fundingNumbers") or [])
+                if fn.get("number")
+            ],
+            "status": item.get("status"),
+            "disseminated": item.get("disseminated"),
+            "subjectCategories": cats,
+            "originalFilename": original_filename,
+            "posted_date": listed_date,
+            "category": category,
+        }
+        meta_dict = {k: v for k, v in meta_dict.items() if v is not None}
+
+        return {
+            "site_id": self.site_id,
+            "external_id": str(submission_id),
+            "post_number": str(submission_id),
+            "url": detail_url,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "posted_date": listed_date,
+            "authors": authors,
+            "publisher": publisher,
+            "keywords": keywords,
+            "category": category,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "metadata": meta_dict,
+        }
