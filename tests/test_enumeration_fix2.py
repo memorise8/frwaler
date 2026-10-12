@@ -274,7 +274,8 @@ class ItemRobotsTest(unittest.TestCase):
         from tests.enumeration_fakes import FakeBoard, board_plan
         board = FakeBoard(25, robots=b"User-agent: *\nDisallow: /view?id=5$\n")
         result = self.env.run(board_plan(), board)
-        self.assertEqual(result["status"], "complete", result)
+        # The denied item needs a person (review fix: default max_robots_disallowed_ratio 0.0).
+        self.assertEqual(result["status"], "complete_with_review", result)
         row = self.env.store.item(self.env.site_id, "5")
         self.assertEqual((row["status"], row["reason"]), ("failed_permanent", "robots_disallowed"))
         urls = result["transport"].urls

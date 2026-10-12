@@ -81,5 +81,69 @@ class OverallTotalFailureTest(unittest.TestCase):
         self.assertEqual((result["status"], result["stop_reason"]), ("access_blocked", "robots_disallowed"), result)
 
 
+class RobotsItemReviewTest(unittest.TestCase):
+    """MEDIUM-2: item-level robots denials are counted in the report and warnings and, above
+    max_robots_disallowed_ratio (default 0.0), turn complete into complete_with_review."""
+
+    def setUp(self):
+        self.env = Env()
+
+    def tearDown(self):
+        self.env.close()
+
+    def run_board(self, robots, **over):
+        from tests.enumeration_fakes import FakeBoard, board_plan
+        return self.env.run(board_plan(**over), FakeBoard(25, robots=robots))
+
+    def report(self):
+        from crawler.enumeration.report import site_report
+        return site_report(self.env.store, self.env.site_id, self.env.conn)
+
+    def test_one_denied_item_needs_review_by_default(self):
+        result = self.run_board(b"User-agent: *\nDisallow: /view?id=5$\n")
+        self.assertEqual((result["status"], result["stop_reason"]),
+                         ("complete_with_review", "robots_disallowed:1"), result)
+        report = self.report()
+        self.assertEqual(report["robots_disallowed"], 1)
+        self.assertIn("robots_disallowed:1", report["warnings"])
+
+    def test_ratio_tolerates_and_still_reports(self):
+        result = self.run_board(b"User-agent: *\nDisallow: /view?id=5$\n", max_robots_disallowed_ratio=0.1)
+        self.assertEqual(result["status"], "complete", result)
+        report = self.report()
+        self.assertEqual(report["robots_disallowed"], 1)
+        self.assertEqual(report["warnings"], ["robots_disallowed:1"])
+
+    def test_ratio_exceeded(self):
+        robots = b"User-agent: *\n" + b"".join(b"Disallow: /view?id=%d$\n" % i for i in (2, 5, 8, 11))
+        result = self.run_board(robots, max_robots_disallowed_ratio=0.1)
+        self.assertEqual((result["status"], result["stop_reason"]),
+                         ("complete_with_review", "robots_disallowed:4"), result)
+
+    def test_no_denial_stays_complete(self):
+        result = self.run_board(b"User-agent: *\nDisallow: /private\n")
+        self.assertEqual(result["status"], "complete", result)
+        report = self.report()
+        self.assertEqual(report["robots_disallowed"], 0)
+        self.assertEqual(report["warnings"], [])
+
+    def test_ratio_validated(self):
+        from crawler.enumeration.plan import PlanError
+        from tests.enumeration_fakes import board_plan
+        for bad in (-0.1, 1, 1.5, "0.1", None, True):
+            with self.assertRaises(PlanError, msg=bad):
+                self.env.plan(board_plan(max_robots_disallowed_ratio=bad))
+        self.assertEqual(self.env.plan(board_plan(max_robots_disallowed_ratio=0)).get("max_robots_disallowed_ratio"), 0)
+
+    def test_csv_report_has_the_count(self):
+        import csv
+        from crawler.enumeration.report import write_report
+        self.run_board(b"User-agent: *\nDisallow: /view?id=5$\n")
+        write_report(self.env.store, [self.env.site_id], self.env.root / "out", self.env.conn)
+        with open(self.env.root / "out" / "completeness.csv", encoding="utf-8") as handle:
+            row = next(csv.DictReader(handle))
+        self.assertEqual(row["robots_disallowed"], "1")
+
+
 if __name__ == "__main__":
     unittest.main()

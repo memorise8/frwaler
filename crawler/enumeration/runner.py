@@ -468,6 +468,12 @@ class SiteRunner:
             ratio = float(self.plan.get("max_contract_failure_ratio") or 0.0)
             if bad and bad / seen > ratio:
                 counts["adapter_contract_failures"] = bad
+        # Detail URLs robots.txt excludes were never collected: a person decides unless the plan
+        # explicitly tolerates that share (default: none).
+        robots = failed.get("failed_permanent:robots_disallowed", 0)
+        ratio = float(self.plan.get("max_robots_disallowed_ratio") or 0.0)
+        if robots and robots / (saved + sum(failed.values())) > ratio:
+            counts["robots_disallowed"] = robots
         return {k: v for k, v in counts.items() if v}
 
     def contract_stop_held(self, current):
@@ -584,6 +590,9 @@ class SiteRunner:
             ctx.state["identity"] = identity
         review = self.review_counts()
         self.warnings.extend(f"{k}:{v}" for k, v in review.items())
+        robots = st.item_counts(site)[1].get("failed_permanent:robots_disallowed", 0)
+        if robots and "robots_disallowed" not in review:
+            self.warnings.append(f"robots_disallowed:{robots}")  # tolerated by the plan, still shown
         if status == "complete" and review:
             # Enumeration finished, but items need a person: never a plain "complete".
             status = "complete_with_review"
