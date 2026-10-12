@@ -15,7 +15,8 @@ CSV_FIELDS = ("site_id", "strategy", "status", "stop_reason", "listed_unique", "
               "segments_incomplete", "segments_mismatch", "segments_unverified", "new_duplicates",
               "skipped_existing_post_number", "identity_collisions", "identity_reviews", "warnings",
               "identity_match_rate", "published_date_fill", "listed_date_fill", "files_pending", "files_done",
-              "files_failed", "oldest_item_date", "updated_at")
+              "files_failed", "oldest_item_date", "request_count", "gate_wait_avg_s", "response_avg_s",
+              "crawl_delay_s", "updated_at")
 
 
 def date_fill(store, site_id, doc_conn):
@@ -36,6 +37,11 @@ def date_fill(store, site_id, doc_conn):
             filled["listed_date"] += bool(values[1])
     total = len(seq_ids)
     return {"documents": total, **{k: round(v / total, 4) for k, v in filled.items()}}
+
+
+def _weighted(hosts, field):
+    total = sum(h["requests"] for h in hosts.values())
+    return round(sum(h[field] * h["requests"] for h in hosts.values()) / total, 3) if total else None
 
 
 def site_report(store, site_id, doc_conn=None):
@@ -75,6 +81,8 @@ def site_report(store, site_id, doc_conn=None):
         "SELECT COUNT(DISTINCT i.item_key) AS n FROM enum_item i JOIN enum_listed l ON l.site_id=i.site_id "
         "AND l.item_key=i.item_key AND l.plan_fp=? WHERE i.site_id=? AND i.status='saved'", (fp, site_id))["n"]
     fill = date_fill(store, site_id, doc_conn)
+    timing = site["state"].get("request_timing")
+    hosts = (timing or {}).get("hosts") or {}
     return {
         "site_id": site_id,
         "strategy": strategy,
@@ -119,6 +127,12 @@ def site_report(store, site_id, doc_conn=None):
         "files_done": files.get("done", 0),
         "files_failed": files.get("failed", 0) + files.get("unavailable", 0),
         "oldest_item_date": oldest["item_date"] if oldest else None,
+        # Latest run's request timing (per host: gate wait incl. Crawl-delay vs response time).
+        "request_timing": timing,
+        "request_count": sum(h["requests"] for h in hosts.values()) if hosts else None,
+        "gate_wait_avg_s": _weighted(hosts, "gate_wait_avg_s"),
+        "response_avg_s": _weighted(hosts, "response_avg_s"),
+        "crawl_delay_s": max((h["crawl_delay_s"] for h in hosts.values() if h.get("crawl_delay_s")), default=None),
         "events": [{"kind": e["kind"], "detail": e["detail"], "at": e["at"]}
                    for e in store.events(site_id)[-50:]],
         "updated_at": site["updated_at"],

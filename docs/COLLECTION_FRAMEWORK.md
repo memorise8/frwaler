@@ -322,6 +322,13 @@ source_reported_total, segment_sum_total, sitemap_url_count, independent_evidenc
 segments_mismatch, files_{pending,done,failed}, oldest_item`. JSON(상세 포함)과 CSV(평평한 열)로 쓴다.
 `gap = 독립 근거 총건수 - listed_unique`(근거가 없으면 null — 근거 없음 자체를 보고).
 
+요청 시간 진단: Fetcher가 호스트별로 요청 수, 게이트 대기(간격·Crawl-delay 대기 포함) 평균/최대, 응답 시간 평균/최대,
+적용된 Crawl-delay와 실효 간격(`effective_gap_s`)을 모으고, 게이트 대기+응답이 5초 이상인 요청 중 가장 느린 10건을
+표본으로 남긴다. 실행마다 사이트당 `request_timing` 이벤트 1건(파일 패스는 `scope: file_pass`로 1건)과
+`state.request_timing`(최근 실행)에 기록하고, 보고서 JSON에 `request_timing`, CSV에 `request_count`,
+`gate_wait_avg_s`, `response_avg_s`, `crawl_delay_s`를 낸다. 예: 요청당 11초인 사이트에서 `gate_wait_avg_s`≈10,
+`crawl_delay_s`=10이면 Crawl-delay 때문이고, `response_avg_s`가 크면 사이트 응답이 느린 것이다.
+
 ## 12. 알려진 한계
 
 * 날짜 구간 분할은 날짜 필터에 걸리지 않는 항목(날짜 없음)이나 경계일 항목을 놓칠 수 있다 → `overall_total_check`(range 필터+총건수 plan은 기본 켬)로 탐지만 한다.

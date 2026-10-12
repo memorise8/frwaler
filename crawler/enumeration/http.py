@@ -40,6 +40,8 @@ DEFAULT_MAX_BYTES = 50 * 1024 * 1024
 _LOGIN_PATH = re.compile(r"(^|/)(login|logon|signin|sign-in|sso|cas/login|auth|oauth2?|saml|captcha|challenge)"
                          r"(/|$|\.|\?)", re.I)
 REFUSAL_STATUSES = (401, 403, 407, 429, 451)
+SLOW_REQUEST_S = 5.0  # gate wait + response time at or above this is kept as a slow sample
+SLOW_SAMPLES = 10
 ROBOTS_RETRY_S = 300  # an unreachable robots.txt is not asked again sooner (per origin, per Fetcher)
 _PASSWORD = re.compile(rb"<input[^>]+type\s*=\s*[\"']?password", re.I)
 _LOGIN_WORDS = re.compile(r"\b(log ?in|sign ?in|logon)\b|로그인|connexion|anmelden|inloggen|accedi|iniciar sesi", re.I)
@@ -495,6 +497,8 @@ class Fetcher:
         self._host_delay = {}
         self._robots = {}
         self._robots_failed = {}  # origin -> (retry_after monotonic, reason)
+        self._timing = {}  # host -> aggregated request timing (diagnostics)
+        self._slow = []    # slowest requests (at most SLOW_SAMPLES)
 
     # -- gate ----------------------------------------------------------
     def _gate(self, host):
@@ -532,6 +536,8 @@ class Fetcher:
         headers.update(self.extra_headers)
         delay = self._host_delay.get(host, 0)
         gate = self._gate(host)
+        began = sent = self.clock()
+        outcome = None
         try:
             with gate.enter(url):
                 if delay > gate.delay:
@@ -542,10 +548,54 @@ class Fetcher:
                     if remaining > 0:
                         self.sleep(remaining)
                 self.requests_made += 1
-                return self.transport.request("GET", url, headers=headers)
+                sent = self.clock()
+                try:
+                    resp = self.transport.request("GET", url, headers=headers)
+                except TransportError as exc:
+                    outcome = f"transport:{exc}"
+                    raise
+                outcome = resp.status
+                return resp
         except NetworkDeferred as exc:
             # Another site id (or run) on this host is cooling down after a 429.
             raise RateLimited("host_cooldown", url, 429, retry_at=exc.retry_at) from None
+        finally:
+            if outcome is not None:
+                self._record_timing(host, url, sent - began, self.clock() - sent, outcome)
+
+    # -- diagnostics -----------------------------------------------------
+    def _record_timing(self, host, url, wait, response, outcome):
+        t = self._timing.setdefault(host, {"requests": 0, "gate_wait_s": 0.0, "gate_wait_max_s": 0.0,
+                                           "response_s": 0.0, "response_max_s": 0.0})
+        t["requests"] += 1
+        t["gate_wait_s"] += wait
+        t["gate_wait_max_s"] = max(t["gate_wait_max_s"], wait)
+        t["response_s"] += response
+        t["response_max_s"] = max(t["response_max_s"], response)
+        if wait + response >= SLOW_REQUEST_S:
+            self._slow.append({"host": host, "url": url[:300], "gate_wait_s": round(wait, 3),
+                               "response_s": round(response, 3), "outcome": outcome,
+                               "crawl_delay_s": self._host_delay.get(host)})
+            self._slow.sort(key=lambda s: -(s["gate_wait_s"] + s["response_s"]))
+            del self._slow[SLOW_SAMPLES:]
+
+    def timing_summary(self, *, reset=False):
+        """Per-host request timing since the last reset: count, gate wait (spacing incl.
+        Crawl-delay), response time, the Crawl-delay applied, and the slowest requests."""
+        hosts = {}
+        for host, t in self._timing.items():
+            n = t["requests"] or 1
+            hosts[host] = {"requests": t["requests"],
+                           "gate_wait_avg_s": round(t["gate_wait_s"] / n, 3),
+                           "gate_wait_max_s": round(t["gate_wait_max_s"], 3),
+                           "response_avg_s": round(t["response_s"] / n, 3),
+                           "response_max_s": round(t["response_max_s"], 3),
+                           "crawl_delay_s": self._host_delay.get(host),
+                           "effective_gap_s": max(self.interval, self._host_delay.get(host, 0))}
+        summary = {"hosts": hosts, "slow_samples": list(self._slow), "slow_threshold_s": SLOW_REQUEST_S}
+        if reset:
+            self._timing, self._slow = {}, []
+        return summary
 
     def _defer(self, url, retry_at):
         """Persist a 429 cooldown in the host gate, visible to every Fetcher on the host."""

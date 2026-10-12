@@ -379,6 +379,17 @@ class SiteRunner:
             return "incomplete", f"listing_failed:{exc.reason}"
         return None
 
+    def record_timing(self, state, *, save=True):
+        """One aggregated request-timing event per run (and the latest copy in the site state),
+        so slow sites (Crawl-delay vs slow responses) can be told apart from the state DB."""
+        summary = self.fetcher.timing_summary(reset=True) if hasattr(self.fetcher, "timing_summary") else None
+        if not summary or not summary["hosts"]:
+            return
+        state["request_timing"] = summary
+        self.store.event(self.site_id, "request_timing", summary)
+        if save:
+            self.store.save_state(self.site_id, state)
+
     def review_counts(self):
         _, failed = self.store.item_counts(self.site_id)
         counts = {
@@ -431,7 +442,10 @@ class SiteRunner:
                 else:
                     st.save_state(site, state)
                 st.event(site, "retry_pass_stopped", {"reason": reason})
+                self.record_timing(state)
                 return self._result(status, reason)
+            if current is not None and self.fetcher.requests_made:
+                self.record_timing(state)
             return self._result(current["status"] if current else "not_started",
                                 "retry_only" if retry_only else "already_complete_retry_only")
         doc_conn = self.adapter.conn
@@ -489,6 +503,7 @@ class SiteRunner:
             status = "complete_with_review"
             reason = ";".join(f"{k}:{v}" for k, v in review.items())
         ctx.state["warnings"] = list(self.warnings)
+        self.record_timing(ctx.state, save=False)
         st.finish_site(site, status, reason, ctx.state)
         return self._result(status, reason, identity=identity, duplicates=duplicates)
 

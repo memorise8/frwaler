@@ -640,5 +640,56 @@ class DateRangeBoundaryTest(unittest.TestCase):
         self.assertEqual(result["status"], "complete", result)
 
 
+class RequestTimingTest(unittest.TestCase):
+    """MEDIUM-1: per-host request timing (gate wait, response time, Crawl-delay) reaches the state DB."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.clock = FakeClock()
+        for p in (mock.patch.object(request_gate, "time", self.clock), mock.patch.object(H, "time", self.clock)):
+            p.start()
+            self.addCleanup(p.stop)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_fetcher_summary_shows_crawl_delay_and_slow_requests(self):
+        def handler(url):
+            if url.endswith("/robots.txt"):
+                return Response(200, {"Content-Type": "text/plain"}, b"User-agent: *\nCrawl-delay: 10\n")
+            self.clock.t += 1.0
+            return ok()
+        f = Fetcher("s", FakeTransport(handler), Path(self.tmp.name) / "gates", interval=1.5,
+                    clock=self.clock.monotonic, sleep=self.clock.sleep)
+        for i in range(3):
+            f.get(f"https://slow.test/p{i}")
+        summary = f.timing_summary()
+        host = summary["hosts"]["slow.test"]
+        self.assertEqual(host["requests"], 4)  # robots + 3 pages
+        self.assertEqual(host["crawl_delay_s"], 10)
+        self.assertEqual(host["effective_gap_s"], 10)
+        self.assertGreaterEqual(host["gate_wait_max_s"], 9.9)
+        self.assertAlmostEqual(host["response_avg_s"], 0.75, places=2)
+        self.assertTrue(summary["slow_samples"])
+        self.assertTrue(all(s["host"] == "slow.test" for s in summary["slow_samples"]))
+        self.assertLessEqual(len(summary["slow_samples"]), H.SLOW_SAMPLES)
+        self.assertEqual(f.timing_summary(reset=True)["hosts"]["slow.test"]["requests"], 4)
+        self.assertEqual(f.timing_summary()["hosts"], {})
+
+    def test_runner_records_one_timing_event_and_report_field(self):
+        from crawler.enumeration.report import site_report
+        from tests.enumeration_fakes import Env, FakeBoard, board_plan
+        env = Env()
+        self.addCleanup(env.close)
+        result = env.run(board_plan(), FakeBoard(12))
+        self.assertEqual(result["status"], "complete", result)
+        events = env.store.events(env.site_id, "request_timing")
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["detail"]["hosts"]["board.test"]["requests"], result["requests"])
+        report = site_report(env.store, env.site_id)
+        self.assertEqual(report["request_timing"]["hosts"]["board.test"]["requests"], result["requests"])
+        self.assertEqual(report["request_count"], result["requests"])
+
+
 if __name__ == "__main__":
     unittest.main()

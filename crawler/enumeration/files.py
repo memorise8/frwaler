@@ -199,6 +199,9 @@ class FilePass:
             self.store.update_file(site_id, seq_id, url, status="done", size=len(data), sha256=sha, pages=pages,
                                    content_type=ctype, reason=None, path=str(path))
             stats["done"] += 1
+        timing = self.fetcher.timing_summary(reset=True) if hasattr(self.fetcher, "timing_summary") else None
+        if timing and timing["hosts"]:
+            self.store.event(site_id, "request_timing", dict(timing, scope="file_pass"))
         return stats
 
     def _storage_failure(self, site_id, row, reason, stats):
