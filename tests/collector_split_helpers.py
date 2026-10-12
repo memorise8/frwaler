@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 from crawler.enumeration.adapters import Adapter, clean_paper, paper_identity
 from crawler.enumeration.guard import guarded
@@ -36,6 +36,71 @@ def load(site):
         sys.path[:] = old_path
     cls = next(x for x in vars(module).values() if isinstance(x, type) and getattr(x, 'site_id', None) == site)
     return object.__new__(cls), module
+
+
+WP_PAST_LAST_PAGE = json.dumps({'code': 'rest_post_invalid_page_number',
+                                'message': 'The page number requested is larger than the number of pages available.',
+                                'data': {'status': 400}})
+
+
+def split_plan(site):
+    return json.loads((ROOT/'docs/examples/collector-splits'/(site+'.json')).read_text())['sites'][site]
+
+
+def split_fixture(site):
+    return json.loads((ROOT/'tests/fixtures/collector_splits'/(site+'.json')).read_text())
+
+
+def wp_past_last_page(url=''):
+    """WordPress REST core's answer for a page number past the last page."""
+    return Response(400, {'Content-Type': 'application/json'}, WP_PAST_LAST_PAGE, url)
+
+
+def run_split(site, *, end=None, listing=None, total=None, plan=None, fixture=None):
+    """Synthetic end-to-end run of a shipped plan through the real SiteRunner.run.
+    Fake transport only: the start page (or the page-less URL) serves the fixture
+    listing, every later page serves ``end(url)`` (default: WordPress past-last-page 400).
+    Returns (runner result, saved documents)."""
+    from tests.enumeration_fakes import Env
+    fixture = fixture or split_fixture(site)
+    plan = copy.deepcopy(plan or split_plan(site))
+    # Pacing only (not part of the plan fingerprint): the fake source needs no real wait.
+    plan['request_interval_s'] = 0
+    page_param = plan['listing'].get('page_param', 'page')
+    start = plan['listing'].get('start_page', 1)
+    end = end or wp_past_last_page
+
+    def handler(url):
+        parts = urlsplit(url)
+        if parts.path == '/robots.txt':
+            return Response(404, {}, b'')
+        if url in fixture['details']:
+            value = fixture['details'][url]
+            body = json.dumps(value, ensure_ascii=False) if isinstance(value, dict) else value
+            return Response(200, {'Content-Type': 'application/json' if isinstance(value, dict) else 'text/html'},
+                            body, url)
+        query = parse_qs(parts.query)
+        page = int(query[page_param][0]) if page_param in query else start
+        if page <= start:
+            headers = {'Content-Type': fixture['content_type']}
+            if total is not None:
+                headers['X-WP-Total'] = str(total)
+            return Response(200, headers, fixture['listing_body'] if listing is None else listing, url)
+        return end(url)
+
+    env = Env(site)
+    try:
+        _, module = load(site)
+        cls = next(x for x in vars(module).values() if isinstance(x, type) and getattr(x, 'site_id', None) == site)
+        try:
+            crawler = cls(env.conn, 0)
+        except TypeError:
+            crawler = cls(env.conn)
+        with contextlib.redirect_stdout(io.StringIO()):
+            result = env.run(plan, handler, crawler=crawler)
+        return result, env.docs()
+    finally:
+        env.close()
 
 
 class SplitChecks:

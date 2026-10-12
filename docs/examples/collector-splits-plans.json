@@ -70,6 +70,16 @@
         },
         "page_param": "page",
         "start_page": 1,
+        "end_statuses": [
+          {
+            "status": 400,
+            "json_code": "rest_post_invalid_page_number"
+          }
+        ],
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        },
         "parser": {
           "type": "adapter",
           "url_field": "link",
@@ -252,6 +262,16 @@
         },
         "page_param": "page",
         "start_page": 1,
+        "end_statuses": [
+          {
+            "status": 400,
+            "json_code": "rest_post_invalid_page_number"
+          }
+        ],
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        },
         "parser": {
           "type": "adapter",
           "url_field": "url",
@@ -292,6 +312,16 @@
         },
         "page_param": "page",
         "start_page": 1,
+        "end_statuses": [
+          {
+            "status": 400,
+            "json_code": "rest_post_invalid_page_number"
+          }
+        ],
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        },
         "parser": {
           "type": "adapter",
           "url_field": "link",
@@ -332,6 +362,16 @@
         },
         "page_param": "page",
         "start_page": 1,
+        "end_statuses": [
+          {
+            "status": 400,
+            "json_code": "rest_post_invalid_page_number"
+          }
+        ],
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        },
         "parser": {
           "type": "adapter",
           "url_field": "link",
@@ -371,6 +411,16 @@
         },
         "page_param": "page",
         "start_page": 1,
+        "end_statuses": [
+          {
+            "status": 400,
+            "json_code": "rest_post_invalid_page_number"
+          }
+        ],
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        },
         "parser": {
           "type": "adapter",
           "url_field": "link",
@@ -409,6 +459,16 @@
         },
         "page_param": "page",
         "start_page": 1,
+        "end_statuses": [
+          {
+            "status": 400,
+            "json_code": "rest_post_invalid_page_number"
+          }
+        ],
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        },
         "parser": {
           "type": "adapter",
           "url_field": "link",
