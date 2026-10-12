@@ -66,6 +66,13 @@ plan.json ─► SitePlan ─► Strategy.batches(progress)  ── yields Batch
 * robots.txt: 호스트별 1회(같은 게이트 경유) 조회. RFC 9309에 따라 4xx(401/403 포함)는 "규칙 없음"으로 보고
   (페이지 자체의 401/403은 별도로 접근 차단 처리), 5xx/전송 오류는 허용을 추측하지 않고 일시 실패로 진행을 멈춘다.
   `respect_robots: false`는 plan에서 명시할 때만.
+* robots 규칙 해석은 표준 `urllib.robotparser`가 아니라 직접 구현한 RFC 9309 매처(`http.parse_robots`)다:
+  우리 user agent에 들어 있는 토큰(대소문자 무시)을 이름으로 한 그룹이 있으면 그 그룹들(합침), 없으면 `*` 그룹들.
+  경로+질의에 대해 **가장 긴 패턴**이 이기고 길이가 같으면 Allow. `*`(임의 문자열)와 끝의 `$`(끝 고정) 지원.
+  비교 전 퍼센트 인코딩 정규화(비ASCII는 UTF-8 `%XX`, 비예약 문자 `%XX`는 해제, 예약 문자 `%2F` 등은 유지).
+  빈 `Disallow:`는 규칙 없음(허용). user-agent 줄 앞의 규칙은 어느 그룹에도 속하지 않는다.
+  해석 중 예외가 나면 허용으로 보지 않고 `robots_unparseable`로 사이트를 멈춘다(호스트 보류는 아님).
+  robots.txt가 다른 호스트로 리다이렉트돼도 Crawl-delay는 원래 호스트 간격에 적용한다.
 * 전송 계층(`Transport`)은 주입 가능하다. 운영은 `RequestsTransport`(리다이렉트 추적, 본문 상한),
   테스트는 가짜 서버(인프로세스 라우터 또는 127.0.0.1 http.server)만 쓴다.
 

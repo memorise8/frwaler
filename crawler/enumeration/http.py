@@ -22,7 +22,6 @@ import re
 import socket
 import time
 from pathlib import Path
-from urllib import robotparser
 from urllib.parse import urljoin, urlsplit
 
 from delivery.health.access_challenge import access_challenge
@@ -94,6 +93,98 @@ def crawl_delay(text, user_agent):
             in_rules = True
     value = best if best is not None else star
     return max(0.0, value or 0.0)
+
+
+_UNRESERVED = frozenset(b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
+_HEX = frozenset(b"0123456789abcdefABCDEF")
+
+
+def robots_octets(value):
+    """RFC 9309 2.2.2 comparison form: characters outside printable ASCII become UTF-8
+    %XX, %XX of an unreserved character is decoded, other escapes are upper-cased."""
+    data = value.encode("utf-8")
+    out, i = [], 0
+    while i < len(data):
+        b = data[i]
+        if b == 0x25 and i + 2 < len(data) and data[i + 1] in _HEX and data[i + 2] in _HEX:
+            code = int(data[i + 1:i + 3], 16)
+            out.append(chr(code) if code in _UNRESERVED else "%%%02X" % code)
+            i += 3
+            continue
+        out.append("%%%02X" % b if b <= 0x20 or b >= 0x7F else chr(b))
+        i += 1
+    return "".join(out)
+
+
+def _agent_applies(agent, user_agent):
+    """Group user-agent token vs our user agent (case-insensitive, same rule as crawl_delay)."""
+    return bool(agent) and agent != "*" and agent in user_agent.lower()
+
+
+class RobotsRules:
+    """Parsed robots.txt (RFC 9309): groups of user-agent lines followed by rules."""
+
+    def __init__(self, groups):
+        self.groups = groups  # [{"agents": [...], "rules": [(allow, length, regex)], "rate": float|None}]
+
+    def _groups_for(self, user_agent):
+        specific = [g for g in self.groups if any(_agent_applies(a, user_agent) for a in g["agents"])]
+        return specific or [g for g in self.groups if "*" in g["agents"]]
+
+    def allows(self, url, user_agent):
+        parts = urlsplit(url)
+        target = robots_octets((parts.path or "/") + (f"?{parts.query}" if parts.query else ""))
+        best = None  # (length, allow): the longest match wins, Allow on equal length
+        for group in self._groups_for(user_agent):
+            for allow, length, regex in group["rules"]:
+                if regex.match(target) and (best is None or (length, allow) > best):
+                    best = (length, allow)
+        return True if best is None else best[1]
+
+    def request_rate(self, user_agent):
+        rates = [g["rate"] for g in self._groups_for(user_agent) if g["rate"]]
+        return max(rates) if rates else 0.0
+
+
+def _robots_pattern(value):
+    pattern = robots_octets(value)
+    if not pattern.startswith(("/", "*")):
+        pattern = "/" + pattern  # a path rule without its leading slash is still a path rule
+    anchored = pattern.endswith("$")
+    body = pattern[:-1] if anchored else pattern
+    regex = "".join(".*" if ch == "*" else re.escape(ch) for ch in body) + ("$" if anchored else "")
+    return len(pattern), re.compile(regex, re.S)
+
+
+def parse_robots(text):
+    """Parse robots.txt text into RobotsRules. Unknown lines (Sitemap, ...) are ignored; rules
+    before any user-agent line belong to no group; an empty Disallow/Allow carries no rule."""
+    groups, current, agent_run = [], None, False
+    for raw in text.lstrip("﻿").splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if ":" not in line:
+            continue
+        field, value = (x.strip() for x in line.split(":", 1))
+        field = field.lower()
+        if field == "user-agent":
+            if not agent_run:
+                current = {"agents": [], "rules": [], "rate": None}
+                groups.append(current)
+            current["agents"].append(value.lower())
+            agent_run = True
+        elif field in ("allow", "disallow"):
+            agent_run = False
+            if current is not None and value:
+                length, regex = _robots_pattern(value)
+                current["rules"].append((field == "allow", length, regex))
+        elif field in ("crawl-delay", "request-rate"):
+            agent_run = False
+            if field == "request-rate" and current is not None:
+                numbers = value.split("/")
+                if len(numbers) == 2 and numbers[0].strip().isdigit() and numbers[1].strip().isdigit() \
+                        and int(numbers[0]):
+                    current["rate"] = int(numbers[1]) / int(numbers[0])
+    return RobotsRules(groups)
 
 
 def forbidden_address(value):
@@ -396,7 +487,10 @@ class Fetcher:
         if origin not in self._robots:
             self._robots[origin] = self._load_robots(origin)
         rule = self._robots[origin]
-        return True if rule == "allow_all" else rule.can_fetch(self.user_agent, url)
+        if rule == "unparseable":
+            # Never read a file we could not parse as permission.
+            raise self._block("robots_unparseable", url, host_wide=False)
+        return True if rule == "allow_all" else rule.allows(url, self.user_agent)
 
     def _load_robots(self, origin):
         """404/410 and other 4xx: no rules. 401/403/407/451, a challenge/login page or a
@@ -419,14 +513,16 @@ class Fetcher:
             return "allow_all"
         if self._challenge(resp) or login_page(resp.body):
             raise self._block("robots_challenge", url, resp.status)
-        parser = robotparser.RobotFileParser()
-        parser.parse(resp.text().splitlines())
-        rate = parser.request_rate(self.user_agent)
-        wanted = max(crawl_delay(resp.text(), self.user_agent),
-                     (rate.seconds / rate.requests) if rate and rate.requests else 0.0)
+        text = resp.text()
+        try:
+            rules = parse_robots(text)
+            wanted = max(crawl_delay(text, self.user_agent), rules.request_rate(self.user_agent))
+        except Exception:  # noqa: BLE001 - any parser failure means "no permission inferred"
+            return "unparseable"
         if wanted > self.interval:
-            self._host_delay[host_of(url)] = wanted
-        return parser
+            # Keyed to the host whose pages are requested, even if robots.txt was redirected.
+            self._host_delay[host_of(origin)] = wanted
+        return rules
 
     # -- public ----------------------------------------------------------
     def _with_retries(self, url, *, classify=True, accept_statuses=()):

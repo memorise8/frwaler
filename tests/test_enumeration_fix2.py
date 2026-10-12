@@ -81,5 +81,118 @@ class CrawlDelayTest(unittest.TestCase):
         self.assertTrue(all(12.5 <= g < 13 for g in gaps), gaps)
 
 
+UA = H.DEFAULT_USER_AGENT
+
+
+class RobotsMatcherTest(unittest.TestCase):
+    """HIGH-2: RFC 9309 matching (groups, longest match, Allow on ties, '*' and '$', %-normalisation)."""
+
+    def allowed(self, robots, url, ua=UA):
+        return H.parse_robots(robots).allows(url, ua)
+
+    def test_wildcard_and_end_anchor(self):
+        robots = "User-agent: *\nDisallow: /*?page=\nDisallow: /search/*.php$\n"
+        self.assertFalse(self.allowed(robots, "https://x.org/list?page=2"))
+        self.assertTrue(self.allowed(robots, "https://x.org/list"))
+        self.assertFalse(self.allowed(robots, "https://x.org/search/a/b.php"))
+        self.assertTrue(self.allowed(robots, "https://x.org/search/a/b.php?x=1"))
+        self.assertTrue(self.allowed(robots, "https://x.org/search/a/b.phpx"))
+
+    def test_longest_match_wins_regardless_of_order(self):
+        for robots in ("User-agent: *\nDisallow: /\nAllow: /public\n",
+                       "User-agent: *\nAllow: /public\nDisallow: /\n"):
+            self.assertTrue(self.allowed(robots, "https://x.org/public/x"), robots)
+            self.assertFalse(self.allowed(robots, "https://x.org/other"), robots)
+        robots = "User-agent: *\nAllow: /a\nDisallow: /a/b\n"
+        self.assertFalse(self.allowed(robots, "https://x.org/a/b/c"))
+        self.assertTrue(self.allowed(robots, "https://x.org/a/c"))
+
+    def test_equal_length_allow_wins_and_empty_disallow_allows(self):
+        self.assertTrue(self.allowed("User-agent: *\nDisallow: /page\nAllow: /page\n", "https://x.org/page/1"))
+        self.assertTrue(self.allowed("User-agent: *\nDisallow:\n", "https://x.org/anything"))
+        self.assertFalse(self.allowed("User-agent: *\nDisallow: /\n", "https://x.org/"))
+        self.assertFalse(self.allowed("User-agent: *\nDisallow: /\n", "https://x.org"))
+
+    def test_group_selection(self):
+        robots = ("User-agent: Googlebot\nDisallow: /\n\n"
+                  "User-agent: *\nDisallow: /private\n")
+        self.assertTrue(self.allowed(robots, "https://x.org/x"))
+        self.assertFalse(self.allowed(robots, "https://x.org/private/1"))
+        # A group naming a product token of our user agent replaces the '*' group.
+        robots = "User-agent: *\nDisallow: /\n\nUser-agent: Chrome\nDisallow: /c\n"
+        self.assertTrue(self.allowed(robots, "https://x.org/x"))
+        self.assertFalse(self.allowed(robots, "https://x.org/c"))
+        # Several user-agent lines share one group; groups for the same agent merge.
+        robots = ("User-agent: foo\nUser-agent: *\nDisallow: /a\n\n"
+                  "user-agent: *\ndisallow: /b\n")
+        self.assertFalse(self.allowed(robots, "https://x.org/a"))
+        self.assertFalse(self.allowed(robots, "https://x.org/b"))
+        # Rules before any user-agent line belong to no group.
+        self.assertTrue(self.allowed("Disallow: /\nUser-agent: *\nDisallow: /z\n", "https://x.org/a"))
+        self.assertTrue(self.allowed("", "https://x.org/a"))
+
+    def test_percent_encoding_normalisation(self):
+        robots = "User-agent: *\nDisallow: /caf%C3%A9\nDisallow: /a%7Eb\nDisallow: /é\n"
+        self.assertFalse(self.allowed(robots, "https://x.org/café/1"))
+        self.assertFalse(self.allowed(robots, "https://x.org/caf%c3%a9/1"))
+        self.assertFalse(self.allowed(robots, "https://x.org/a~b"))
+        self.assertFalse(self.allowed(robots, "https://x.org/%C3%A9"))
+        # A reserved character stays encoded: %2F is not '/'.
+        self.assertTrue(self.allowed("User-agent: *\nDisallow: /a/b\n", "https://x.org/a%2Fb"))
+
+    def test_bom_and_comments(self):
+        robots = "﻿User-agent: * # all\nDisallow: /x # no\n"
+        self.assertFalse(self.allowed(robots, "https://x.org/x"))
+
+
+class RobotsFetcherTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def fetcher(self, handler, **kw):
+        kw.setdefault("interval", 0)
+        kw.setdefault("sleep", lambda s: None)
+        t = FakeTransport(handler)
+        return Fetcher("s", t, Path(self.tmp.name) / "gates", **kw), t
+
+    def test_allow_after_disallow_all(self):
+        def handler(url):
+            if url.endswith("/robots.txt"):
+                return Response(200, {"Content-Type": "text/plain"}, b"User-agent: *\nDisallow: /\nAllow: /public\n")
+            return ok()
+        f, _ = self.fetcher(handler)
+        self.assertEqual(f.get("https://x.org/public/x").status, 200)
+        with self.assertRaises(H.AccessBlocked) as ctx:
+            f.get("https://x.org/other")
+        self.assertEqual(ctx.exception.reason, "robots_disallowed")
+
+    def test_unparseable_robots_blocks(self):
+        def handler(url):
+            if url.endswith("/robots.txt"):
+                return Response(200, {"Content-Type": "text/plain"}, b"User-agent: *\nDisallow: /x\n")
+            return ok()
+        f, t = self.fetcher(handler)
+        with mock.patch.object(H, "parse_robots", side_effect=ValueError("boom")):
+            with self.assertRaises(H.AccessBlocked) as ctx:
+                f.get("https://x.org/a")
+        self.assertEqual(ctx.exception.reason, "robots_unparseable")
+        self.assertEqual(t.urls, ["https://x.org/robots.txt"])
+
+    def test_redirected_robots_crawl_delay_keyed_to_origin_host(self):
+        def handler(url):
+            if url == "https://a.test/robots.txt":
+                return Response(301, {"Location": "https://b.test/robots.txt"}, b"")
+            if url == "https://b.test/robots.txt":
+                return Response(200, {"Content-Type": "text/plain"}, b"User-agent: *\nCrawl-delay: 4\n")
+            return ok()
+        f, _ = self.fetcher(handler)
+        f.get("https://a.test/x")
+        self.assertEqual(f._host_delay.get("a.test"), 4)
+        self.assertNotIn("b.test", f._host_delay)
+
+
 if __name__ == "__main__":
     unittest.main()
