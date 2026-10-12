@@ -142,6 +142,25 @@ class LiveCheckTests(unittest.TestCase):
         self.assertIn(URL+'?page=150',urls)
         self.assertNotIn('https://source.example/feed?page=150',urls)
 
+    def test_query_ranges_and_Korean_placeholder_suffix_are_not_literal_pages(self):
+        row=dict(site_id='x',live_check='?page=N을 확인하고 ?page=22~30 비교. ?page=0..N 확인',delivery=True,kind='페이지 파라미터')
+        original=dict(scopes=[{'url':URL}],profile=dict(list_selectors={},pagination_config={}))
+        plan=compile_plan(row,original,{},'')
+        urls={x['url'] for group in plan['targets'] for x in group}
+        self.assertIn(URL+'?page=1',urls)
+        for n in range(22,31):self.assertIn(URL+'?page='+str(n),urls)
+        self.assertFalse(any('..' in u or '~' in u or '%EC' in u for u in urls))
+        self.assertTrue(any('0..N' in u['value'] for u in plan['unresolved_URLs']))
+
+    def test_named_native_endpoint_keeps_requested_taxonomy_filter(self):
+        row=dict(site_id='x',live_check='institute_pub?kit_publication_type=34&per_page=1&order=asc 총건수',delivery=True,kind='WordPress REST')
+        original=dict(scopes=[{'url':URL}],profile=dict(list_selectors={},pagination_config={}))
+        endpoint='https://source.example/wp-json/wp/v2/institute_pub'
+        plan=compile_plan(row,original,{'endpoints':[{'url':endpoint}]},'')
+        urls={x['url'] for group in plan['targets'] for x in group}
+        self.assertIn(endpoint+'?kit_publication_type=34&per_page=1&order=asc',urls)
+        self.assertNotIn(endpoint,urls)
+
     def test_public_go_kr_menu_key_is_not_treated_as_secret(self):
         from delivery.health.scope_inventory import public_url
         url='https://www.pps.go.kr/kor/bbs/list.do?key=00664&pageIndex=1'

@@ -55,14 +55,18 @@ def literal_limits(source, config=None):
     return result
 
 
-def clean_url(value):
+def trim_url_prose(value):
     value=value.split('(또는',1)[0]
     value=re.sub(r'\)(?:의|도|에서)?$','',value)
-    value=re.sub(r'(?<=[0-9/])(?:과|와|의|도|에서)$','',value)
-    value = value.rstrip('.,;，。)')
+    value=re.sub(r'(?<=[0-9/NKn])(?:과|와|의|도|에서|을|를)$','',value)
+    return value.rstrip('.,;，。)')
+
+
+def clean_url(value):
+    value=trim_url_prose(value)
     value = re.sub(r'(?<=[=/_])(?:N|K|n)(?:\+1)?(?=[/&?#.]|$)', '1', value)
     # A template still containing a range or an unknown variable is not a URL to call.
-    if re.search(r'\{[^}]+\}|\d+\.\.\d+|\.\.\.|…|=(?:YYYY|<[^>]*>)(?:&|$)', value): return None
+    if re.search(r'\{[^}]+\}|\d+(?:\.\.|~)(?:\d+|[NKn])|\.\.\.|…|=(?:YYYY|<[^>]*>)(?:&|$)', value): return None
     return public_url(value)
 
 
@@ -76,7 +80,7 @@ def family(url):
 def compile_plan(row, original, hints, source, config=None):
     text = row['live_check']; urls = []; unresolved = []
     def add(value, role):
-        ranged=re.search(r'([?&][\w-]+=)(\d+)\.\.(\d+)',value)
+        ranged=re.search(r'([?&][\w-]+=)(\d+)(?:\.\.|~)(\d+)',value)
         if ranged:
             start,end=int(ranged[2]),int(ranged[3])
             if 0<=end-start<20:
@@ -119,11 +123,10 @@ def compile_plan(row, original, hints, source, config=None):
         if alias and alias[1] in aliases:anchor=aliases[alias[1]]
         elif re.search(r'목록\s*페이지\s*$',before) and len(original.get('scopes',[]))==1:anchor=original['scopes'][0]['url']
         if anchor:
-            fragment=match[0].rstrip('.,;)');parts=urlsplit(anchor)
-            cleaned=clean_url(urlunsplit(parts._replace(query=fragment[1:])))
-            if not cleaned:
-                unresolved.append(dict(value=fragment,reason='query_fragment_not_concrete'));continue
-            changes=parse_qsl(urlsplit(cleaned).query,keep_blank_values=True);keys={k for k,v in changes}
+            fragment=trim_url_prose(match[0]);parts=urlsplit(anchor)
+            changes=[(k,'1' if k.lower() in PAGE_KEYS and re.fullmatch(r'[NKn](?:[ +]1)?',v) else v)
+                     for k,v in parse_qsl(fragment[1:],keep_blank_values=True)]
+            keys={k for k,v in changes}
             pairs=[(k,v) for k,v in parse_qsl(parts.query,keep_blank_values=True) if k not in keys]+changes
             add(urlunsplit(parts._replace(query=urlencode(pairs))), 'explicit_live_check_query')
     origins={urlunsplit(urlsplit(s['url'])._replace(path='/',query='',fragment='')) for s in original.get('scopes',[])}
@@ -142,7 +145,15 @@ def compile_plan(row, original, hints, source, config=None):
     for candidate in hints.get('endpoints', []):
         url = candidate['url']; path = urlsplit(url).path
         # An endpoint named in the requested check is a grounded, inert source hint.
-        if len(path)>4 and (path in text or path.rstrip('/').rsplit('/',1)[-1] in text): add(url, 'source_constant_named_in_live_check')
+        name=path.rstrip('/').rsplit('/',1)[-1]
+        matches=list(re.finditer(r'(?<![\w/])'+re.escape(name)+r'(\?[^\s<>"\']+)',text)) if name else []
+        if len(path)>4 and matches:
+            for match in matches:
+                p=urlsplit(url);changes=parse_qsl(trim_url_prose(match[1])[1:],keep_blank_values=True)
+                keys={k for k,v in changes}
+                pairs=[(k,v) for k,v in parse_qsl(p.query,keep_blank_values=True) if k not in keys]+changes
+                add(urlunsplit(p._replace(query=urlencode(pairs))),'source_constant_named_with_explicit_query')
+        elif len(path)>4 and (path in text or name in text):add(url, 'source_constant_named_in_live_check')
     groups = {}
     for entry in urls:
         groups.setdefault(family(entry['url']), []).append(entry)
