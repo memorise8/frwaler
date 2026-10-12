@@ -147,8 +147,21 @@ class ListingParser:
             container = ((config.get("list_page") or {}).get("selectors") or {}).get("item_container")
         if container is None and self.kind == "html":
             container = "tr"
-        parts = (container or "").split()
-        return " ".join(parts[:-1]) if len(parts) > 1 else None
+        container = container or ""
+        if "," in container:
+            return None  # a selector group has no single ancestor part
+        parts = container.split()[:-1]
+        while parts and parts[-1] in (">", "+", "~"):
+            parts.pop()  # "a > b" -> "a", never the dangling "a >"
+        marker = " ".join(parts)
+        if not marker:
+            return None
+        try:
+            from bs4 import BeautifulSoup
+            BeautifulSoup("", "html.parser").select_one(marker)
+        except Exception:
+            return None  # an unusable derived selector must not turn an empty page into an error
+        return marker
 
     def _html(self, resp):
         from bs4 import BeautifulSoup

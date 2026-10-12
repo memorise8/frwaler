@@ -207,5 +207,27 @@ class PinnedConnectionTest(unittest.TestCase):
         create.assert_not_called()
 
 
+class ListingMarkerDerivationTest(unittest.TestCase):
+    def marker(self, container):
+        from crawler.enumeration.parsing import ListingParser
+        parser = ListingParser.__new__(ListingParser)
+        parser.cfg = {"item_container": container}
+        parser.kind = "html"
+        parser.adapter = None
+        return ListingParser.listing_marker(parser)
+
+    def test_descendant_selector_keeps_ancestor_part(self):
+        self.assertEqual(self.marker("tbody tr"), "tbody")
+
+    def test_child_combinator_never_leaves_dangling_combinator(self):
+        self.assertEqual(self.marker("ul.list > li"), "ul.list")
+        self.assertEqual(self.marker("div.a div.b > li.c"), "div.a div.b")
+
+    def test_selector_without_ancestor_or_with_group_gives_none(self):
+        self.assertIsNone(self.marker("li"))
+        self.assertIsNone(self.marker("ul > li, ol > li"))
+        self.assertIsNone(self.marker("> li"))
+
+
 if __name__ == "__main__":
     unittest.main()
