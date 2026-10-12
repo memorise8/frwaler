@@ -156,3 +156,7 @@ docker run --rm --name enum-test-adapter-20261012-verified \
 
 - `identity_precheck`는 표본 재계산 중 나온 `AdapterConfigError`(계약 `ContractError` 포함)를 다른 ValueError보다 먼저 잡아, 스키마/서명/반환형 오류이면 다시 raise해 사이트를 `config_error(adapter_contract:<코드>)`로 멈춘다. 오류 개수로만 세고 나머지 표본으로 일치율 100%가 나오는 일이 없다.
 - 데이터성 계약 코드(M4)는: 기준 DB 행 표본이고 식별값이 목록 필드에 의존하는 계약(`identity_uses_list_fields`)이면 URL만으로 목록 필드를 재구성할 수 없으므로 `errors`로 센다(종전 설계대로 비교 0건이면 목록 첫 페이지 표본으로 넘어감). 그 밖(목록 첫 페이지 표본 등)에서는 비교 대상의 불일치로 세어 일치율을 낮춘다. 결과에 `contract_data_errors`를 기록한다(계약 사이트만).
+
+### 복사도 guard 안에서 (L1)
+
+- 계약 인자 구성(`item`/`detail`/필드 바인딩의 deepcopy 포함)과 목록 행 정규화(행 deepcopy·JSON 직렬화 검사)를 `guarded()` 안에서 수행한다. 등록 메서드가 돌려준 객체의 `__deepcopy__` 같은 코드도 네트워크/프로세스 tripwire 아래에서 실행된다. Paper 반환 뒤의 `clean_paper`/`paper_identity` 검사는 종전대로 guard 밖이다(dict 사본에 대한 검사).

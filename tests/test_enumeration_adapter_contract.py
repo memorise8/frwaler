@@ -211,6 +211,21 @@ class ContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError,r'^adapter_contract:invalid_argument_token:request_url$'):
             validate_contract(self.cfg(list_args=['html','request_url']))
 
+    def test_copies_of_crawler_objects_run_guarded(self):
+        from crawler.enumeration import guard
+        seen=[]
+        class Lazy(dict):
+            def __deepcopy__(self,memo):
+                seen.append(guard.active());return dict(self)
+        c=Crawler()
+        c.listing=lambda html:[{'url':'/a','external_id':'1','x':Lazy(k='v')}]
+        c.detail=lambda html,item:Lazy(external_id='1',url='https://example.test/a')
+        c.paper=lambda item,detail:{**detail,'title':'t'}
+        a=self.adapter(self.cfg(paper_method='paper',paper_args=['item','detail']),c)
+        a.parse_list(self.response())
+        a.materialize(self.item(),SimpleNamespace(get=lambda url:self.response()))
+        self.assertEqual([True,True],seen)
+
     def test_good_then_bad_row_rejects_whole_page(self):
         c=Crawler();c.listing=lambda html:[{'url':'/good','external_id':'id'},None]
         with self.assertRaises(ContractError):self.parser(self.adapter(crawler=c)).parse(self.response())

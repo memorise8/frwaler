@@ -209,13 +209,19 @@ class Contract:
 
     def call(self, stage, resp=None, item=None, detail=None):
         from .guard import guarded
-        args = [self.value(b, resp, item, detail) for b in self.cfg.get(stage + "_args", default_args(stage))]
-        kwargs = {k: self.value(b, resp, item, detail) for k, b in self.cfg.get(stage + "_kwargs", {}).items()}
         with guarded():
+            # Copies of crawler-returned objects may run crawler code (__deepcopy__ etc.).
+            args = [self.value(b, resp, item, detail) for b in self.cfg.get(stage + "_args", default_args(stage))]
+            kwargs = {k: self.value(b, resp, item, detail) for k, b in self.cfg.get(stage + "_kwargs", {}).items()}
             return getattr(self.crawler, self.cfg[stage + "_method"])(*args, **kwargs)
 
     def rows(self, resp):
+        from .guard import guarded
         raw = resp.json() if self.cfg.get("list_source") == "json" else self.call("list", resp)
+        with guarded():
+            return self._rows(raw)
+
+    def _rows(self, raw):
         rows = select(raw, self.cfg.get("list_result", []))
         if not isinstance(rows, list):
             fail("list_result_not_list")
