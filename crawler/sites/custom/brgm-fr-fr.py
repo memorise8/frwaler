@@ -59,10 +59,13 @@ class BrgmFrFrCrawler(BaseCrawler):
     def _enumeration_items(self, raw):
         """Reuse crawl's card selector and metadata parser without fetching details."""
         soup = self._make_soup(raw, context="enumeration listing")
-        if soup is None or soup.find("main") is None:
-            raise ValueError("enumeration listing has no main marker")
+        if soup is None:
+            raise ValueError("enumeration listing could not be parsed")
+        cards = soup.select("a.bk-article[href]")
+        if not cards and soup.find("main") is None:
+            raise ValueError("empty enumeration listing has no main marker")
         records = []
-        for card in soup.select("a.bk-article[href]"):
+        for card in cards:
             href = card.get("href", "").strip()
             if href:
                 records.append(self._parse_card(card, urljoin(self.base_url, href)))
