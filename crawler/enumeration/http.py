@@ -22,9 +22,10 @@ import re
 import socket
 import time
 from pathlib import Path
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from delivery.health.access_challenge import access_challenge
+from delivery.health.diagnostics import host_only
 from delivery.health.request_gate import NetworkDeferred, RequestGate
 from delivery.health.source_observer import retry_after
 
@@ -223,6 +224,28 @@ def checked_addresses(url, host, resolver):
         if forbidden_address(address):
             raise PrivateDestination(url, host, address)
     return addresses
+
+
+def governed_url(url):
+    """``url`` with an internationalised host written as IDNA (punycode), so the request gate
+    can key it. A host the gate cannot govern (e.g. '_' in a label) is a PermanentFailure:
+    such a URL is never requested."""
+    try:
+        parts = urlsplit(url)
+        host, port = parts.hostname, parts.port
+    except ValueError:
+        raise PermanentFailure("invalid_url", url) from None
+    if host and not host.isascii():
+        try:
+            ascii_host = host.encode("idna").decode("ascii")
+        except UnicodeError:
+            raise PermanentFailure("invalid_host", url) from None
+        userinfo = parts.netloc.rpartition("@")[0]
+        netloc = (userinfo + "@" if userinfo else "") + ascii_host + (f":{port}" if port is not None else "")
+        url = urlunsplit(parts._replace(netloc=netloc))
+    if host_only(url) is None:
+        raise PermanentFailure("ungovernable_host", url)
+    return url
 
 
 class FetchError(Exception):
@@ -524,7 +547,11 @@ class Fetcher:
                 nxt = urljoin(url, resp.header("location"))
                 if _LOGIN_PATH.search(urlsplit(nxt).path or ""):
                     raise self._block("robots_login_redirect", url, resp.status)
-                url = nxt
+                try:
+                    url = governed_url(nxt)
+                except PermanentFailure as exc:
+                    # Never read as "no rules": the caller stops the site (robots_unavailable).
+                    raise TransientFailure(f"redirect_{exc.reason}", nxt) from None
                 continue
             break
         else:
@@ -630,6 +657,10 @@ class Fetcher:
         accept_statuses = tuple(s for s in accept_statuses if s not in REFUSAL_STATUSES)
         current = url
         for _hop in range(self.max_redirects + 1):
+            normalised = governed_url(current)
+            if normalised != current:
+                self._check_holds(current)  # a hold may name the host in its Unicode form
+            current = normalised
             self._check_holds(current)
             if not self._robots_allows(current):
                 # A path-level rule: never a host hold, and never requested.

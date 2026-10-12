@@ -318,5 +318,62 @@ class ItemRobotsTest(unittest.TestCase):
         self.assertTrue(self.env.store.events(self.env.site_id, "file_pass_stopped"))
 
 
+class HostNormalisationTest(unittest.TestCase):
+    """MEDIUM-5: IDN hosts go through the gate as IDNA; ungovernable hosts are a PermanentFailure."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def fetcher(self, handler):
+        t = FakeTransport(handler)
+        return Fetcher("s", t, Path(self.tmp.name) / "gates", interval=0, sleep=lambda s: None), t
+
+    def test_idn_host_is_requested_as_idna(self):
+        f, t = self.fetcher(lambda u: Response(404, {}, b"") if u.endswith("robots.txt") else ok())
+        resp = f.get("https://café.fr:8443/x?q=1")
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(t.urls, ["https://xn--caf-dma.fr:8443/robots.txt", "https://xn--caf-dma.fr:8443/x?q=1"])
+
+    def test_underscore_host_is_permanent_failure_without_request(self):
+        f, t = self.fetcher(lambda u: ok())
+        with self.assertRaises(H.PermanentFailure) as ctx:
+            f.get("https://my_host.example.org/x")
+        self.assertEqual(ctx.exception.reason, "ungovernable_host")
+        self.assertEqual(t.urls, [])
+
+    def test_redirect_to_ungovernable_host(self):
+        def handler(url):
+            if url.endswith("robots.txt"):
+                return Response(404, {}, b"")
+            return Response(302, {"Location": "https://bad_host.example.org/y"}, b"")
+        f, t = self.fetcher(handler)
+        with self.assertRaises(H.PermanentFailure):
+            f.get("https://ok.example.org/x")
+        self.assertFalse([u for u in t.urls if "bad_host" in u])
+
+    def test_robots_redirect_to_ungovernable_host_is_not_permission(self):
+        def handler(url):
+            if url.endswith("robots.txt"):
+                return Response(302, {"Location": "https://bad_host.example.org/robots.txt"}, b"")
+            return ok()
+        f, t = self.fetcher(handler)
+        with self.assertRaises(H.RobotsUnavailable):
+            f.get("https://ok.example.org/x")
+        self.assertEqual(t.urls, ["https://ok.example.org/robots.txt"])
+
+    def test_runner_does_not_crash_on_ungovernable_listing_host(self):
+        from tests.enumeration_fakes import Env, FakeBoard, board_plan
+        env = Env()
+        self.addCleanup(env.close)
+        site = board_plan(base_url="https://my_board.test",
+                          listing={"url": "https://my_board.test/list"})
+        result = env.run(site, FakeBoard(5))
+        self.assertEqual((result["status"], result["stop_reason"]), ("incomplete", "listing_failed:ungovernable_host"))
+        self.assertEqual(result["transport"].urls, [])
+
+
 if __name__ == "__main__":
     unittest.main()

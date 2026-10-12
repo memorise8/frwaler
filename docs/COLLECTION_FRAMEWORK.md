@@ -75,6 +75,9 @@ plan.json ─► SitePlan ─► Strategy.batches(progress)  ── yields Batch
   빈 `Disallow:`는 규칙 없음(허용). user-agent 줄 앞의 규칙은 어느 그룹에도 속하지 않는다.
   해석 중 예외가 나면 허용으로 보지 않고 `robots_unparseable`로 사이트를 멈춘다(호스트 보류는 아님).
   robots.txt가 다른 호스트로 리다이렉트돼도 Crawl-delay는 원래 호스트 간격에 적용한다.
+* 호스트 정규화: 요청·리다이렉트 hop마다 국제화 도메인(IDN)은 IDNA(punycode)로 바꿔 게이트·robots·보류·요청에 쓴다.
+  게이트가 다룰 수 없는 호스트(밑줄 등)는 요청하지 않고 `PermanentFailure(ungovernable_host)` — 항목이면 대장,
+  목록이면 `listing_failed`(미완료). robots.txt가 그런 호스트로 리다이렉트되면 `robots_unavailable` 정지.
 * 전송 계층(`Transport`)은 주입 가능하다. 운영은 `RequestsTransport`(리다이렉트 추적, 본문 상한),
   테스트는 가짜 서버(인프로세스 라우터 또는 127.0.0.1 http.server)만 쓴다.
 
