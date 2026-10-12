@@ -15,9 +15,17 @@ def unknown(reason): return dict(status='unconfirmed',reason=reason)
 
 
 class ProbeSession:
-    def __init__(self, plan, transport, result, persist):
+    def __init__(self, plan, transport, result, persist, *, seed_summaries=False):
         self.plan,self.transport,self.result,self.persist=plan,transport,result,persist
         self.cache={}
+        if seed_summaries:
+            for response in result['requests']:
+                # Only existing bounded metadata is reused. Native WordPress
+                # validation needs the projected JSON payload and is re-read.
+                if response.get('status')==200 and not response.get('error') and response.get('summary',{}).get('format') in ('html','xml'):
+                    self.cache[response['url']]=(response,b'')
+                elif response.get('redirect'):
+                    self.cache[response['url']]=(response,None)
         def record(response):
             response['number']=len(result['requests'])+1
             result['requests'].append(response);persist()
@@ -26,7 +34,16 @@ class ProbeSession:
         record.reserve=reserve;self.record=record
 
     def read(self, url, purpose, *, repeat=False, error_json=False):
-        if not repeat and url in self.cache: return self.cache[url]
+        if not repeat and url in self.cache:
+            number=self.cache[url][0].get('number')
+            self.result.setdefault('reused_metadata_response_numbers',[])
+            if number not in self.result['reused_metadata_response_numbers']:self.result['reused_metadata_response_numbers'].append(number)
+            return self.cache[url]
+        path=urlsplit(url).path
+        if (re.search(r'\.(?:pdf|docx?|xlsx?|zip)$',path,re.I)
+            or re.search(r'/wp-json/wp/v2/[^/]+/\d+/?$',path)
+            or re.search(r'/(?:19|20)\d{2}/\d{1,2}/\d{1,2}/[^/]+',path)):
+            raise ValueError('detail_or_document_URL_excluded_by_list_only_policy')
         policy=self.transport.allowed(url,self.record)
         response,raw=self.transport.fetch_checked(url,purpose,self.record,error_json)
         response['robots_policy']=policy
@@ -126,10 +143,44 @@ def sitemap_probe(session,response,scope):
     scope['limitations'].append('document_type_and_original_collection_membership_require_custom_reconciliation')
 
 
+def offset_probe(session,scope,route):
+    check=scope['checks']
+    first,_=session.read(at_page(route,0),'offset_zero')
+    summary=first.get('summary',{});size=summary.get('item_count',0)
+    totals={v['value'] for v in summary.get('totals',[]) if type(v.get('value')) is int and v['value']>=size}
+    if summary.get('format')!='json' or not size or not summary.get('all_rows_have_identity') or len(totals)!=1:
+        scope['limitations'].append('offset_requires_one_reported_total_and_identifiable_JSON_record_array');return
+    total=next(iter(totals));last_offset=((total-1)//size)*size
+    second,_=session.read(at_page(route,size),'offset_next_page')
+    last,_=session.read(at_page(route,last_offset),'offset_last_from_total')
+    after,_=session.read(at_page(route,last_offset+size),'offset_after_total')
+    again,_=session.read(at_page(route,0),'offset_repeat_first',repeat=True)
+    comparison_next=comparison(first,second);stable=comparison(first,again)['item_IDs_equal']
+    ending=is_empty_boundary(first,after)
+    tail=last.get('summary',{});arithmetic=total==last_offset+tail.get('item_count',-1)
+    counts_stable=all(total in {v.get('value') for v in r.get('summary',{}).get('totals',[])} for r in (second,last,after,again))
+    changed=comparison_next['item_IDs_different'] if last_offset else ending
+    check['first_page_number']=dict(status='offset_not_page_number',first=0,step=size,response=first['number'])
+    check['page_parameter']=dict(status='verified_by_distinct_IDs' if changed else 'unconfirmed',comparison=comparison_next,parameter=route)
+    check['last_and_after']=dict(status='verified' if ending and arithmetic and stable else 'unconfirmed',last_offset=last_offset,
+        last_response=last['number'],after_response=after['number'],after_behavior='typed_empty_record_array' if ending else 'not_confirmed_empty')
+    check['total_arithmetic']=dict(status='verified' if arithmetic and counts_stable else 'unconfirmed',total=total,
+        step=size,page_count=last_offset//size+1,last_count=tail.get('item_count'),formula='last_offset + last_count')
+    check['oldest_item']=dict(status='last_page_sample',item=tail.get('oldest_observed'),global_oldest_proven=False)
+    check['hidden_cap']=dict(status='no_cap_observed_through_reported_end' if ending and arithmetic else 'unconfirmed',absence_of_all_hidden_caps_proven=False)
+    head_dates=[i['date'] for i in summary['items'] if i.get('date')];tail_dates=[i['date'] for i in tail.get('items',[]) if i.get('date')]
+    orders=[summary.get('date_order',{}),tail.get('date_order',{})]
+    newest=bool(head_dates and tail_dates and all(not o.get('missing',1) and not o.get('increasing',1) for o in orders) and min(head_dates)>=max(tail_dates))
+    check['oldest_sort_or_date_filter']=dict(status='native_descending_boundary_sample' if newest else 'unconfirmed',date_filter_execution_verified=False)
+    if ending and arithmetic and stable and counts_stable and changed and newest:
+        scope.update(status='confirmed',strategy='마지막 페이지부터 거꾸로',confidence='보통')
+    scope['limitations'].append('offset and total bound observed; intermediate page sizes and source-wide hidden caps are not exhaustively proven')
+
+
 def page_probe(session,first,scope,route,explicit_urls):
     checks=scope['checks'];first_summary=first.get('summary',{})
     if route['offset']:
-        scope['limitations'].append('offset_step_and_total_contract_require_API_specific_handler');return
+        return offset_probe(session,scope,route)
     pages={}
     def read(number):
         if number not in pages:

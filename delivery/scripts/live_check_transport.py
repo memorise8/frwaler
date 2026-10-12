@@ -23,10 +23,16 @@ class LiveTransport(ReconTransport):
         self.prior=Path(prior);self.robots={};self.robots_locks={};self.retry_used=set()
         state=self.out/'rate-retries.json'
         if state.exists(): self.retry_used=set(json.loads(state.read_text()))
+        shared=self.base/'live-check-20261012'
+        if shared!=self.out and (shared/'rate-retries.json').exists():
+            self.retry_used.update(json.loads((shared/'rate-retries.json').read_text()))
         # Prior restrictions apply to this stage as well. Do not switch routes,
         # hosts or clients in response to a source refusal.
-        if (self.prior/'access-holds.json').exists():
-            previous=json.loads((self.prior/'access-holds.json').read_text())
+        previous={}
+        if (self.prior/'access-holds.json').exists():previous=json.loads((self.prior/'access-holds.json').read_text())
+        if shared!=self.out and (shared/'access-holds.json').exists():
+            previous.update(json.loads((shared/'access-holds.json').read_text()))
+        if previous:
             self.held={**previous,**self.held};atomic_json(self.out/'access-holds.json',self.held)
 
     def gate(self, host):

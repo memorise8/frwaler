@@ -55,10 +55,13 @@ def literal_limits(source, config=None):
 
 
 def clean_url(value):
+    value=value.split('(또는',1)[0]
+    value=re.sub(r'\)(?:의|도|에서)?$','',value)
+    value=re.sub(r'(?<=[0-9/])(?:과|와|의|도|에서)$','',value)
     value = value.rstrip('.,;，。)')
     value = re.sub(r'(?<=[=/_])(?:N|K|n)(?:\+1)?(?=[/&?#.]|$)', '1', value)
     # A template still containing a range or an unknown variable is not a URL to call.
-    if re.search(r'\{[^}]+\}|\d+\.\.\d+|[가-힣]', value): return None
+    if re.search(r'\{[^}]+\}|\d+\.\.\d+', value): return None
     return public_url(value)
 
 
@@ -72,7 +75,21 @@ def family(url):
 def compile_plan(row, original, hints, source, config=None):
     text = row['live_check']; urls = []; unresolved = []
     def add(value, role):
+        ranged=re.search(r'([?&][\w-]+=)(\d+)\.\.(\d+)',value)
+        if ranged:
+            start,end=int(ranged[2]),int(ranged[3])
+            if 0<=end-start<20:
+                for number in range(start,end+1):add(value[:ranged.start(2)]+str(number)+value[ranged.end(3):],role+'_range_member')
+                return
         url = clean_url(value)
+        if url:
+            parts=urlsplit(url);pairs=parse_qsl(parts.query,keep_blank_values=True)
+            for key,number in pairs:
+                if key.lower() in PAGE_KEYS and re.fullmatch(r'\d+(?:[,/]\d+)+',number):
+                    for one in re.split('[,/]',number):
+                        query=urlencode([(k,one if k==key else v) for k,v in pairs])
+                        add(urlunsplit(parts._replace(query=query)),role+'_enumerated_page')
+                    return
         if url and not re.search(r'\.(pdf|docx?|xlsx?|zip)(?:$|\?)', urlsplit(url).path, re.I):
             if url not in {x['url'] for x in urls}: urls.append(dict(url=url, provenance=role))
         elif value: unresolved.append(dict(value=value[:300], reason='nonconcrete_or_document_URL_not_requested'))
@@ -80,12 +97,42 @@ def compile_plan(row, original, hints, source, config=None):
     for match in explicit: add(match[0], 'explicit_live_check_URL')
     # Original scopes remain independent: do not replace several scopes with one endpoint.
     for scope in original.get('scopes', []): add(scope['url'], 'original_registered_scope')
+    # Bind prose aliases such as "studies ?page=20" using inert scope literals.
+    aliases={}
+    for node in ast.walk(ast.parse(source)):
+        if not isinstance(node,ast.Dict):continue
+        for key,value in zip(node.keys,node.values):
+            if not isinstance(key,ast.Constant) or not isinstance(key.value,str) or not isinstance(value,ast.Call):continue
+            paths=[kw.value.value for kw in value.keywords if kw.arg=='path' and isinstance(kw.value,ast.Constant)]
+            for scope in original.get('scopes',[]):
+                if urlsplit(scope['url']).path in paths:aliases[key.value]=scope['url']
     for match in re.finditer(r'(?<!\S)[?&][^\s<>"\']+', text):
         preceding = [m for m in explicit if m.start()<match.start()]
         anchor = clean_url(preceding[-1][0]) if preceding else (urls[0]['url'] if urls else None)
+        before=text[:match.start()];alias=re.search(r'([A-Za-z][\w-]+)\s+$',before)
+        if alias and alias[1] in aliases:anchor=aliases[alias[1]]
+        elif re.search(r'목록\s*페이지\s*$',before) and len(original.get('scopes',[]))==1:anchor=original['scopes'][0]['url']
         if anchor:
             fragment=match[0].rstrip('.,;)');parts=urlsplit(anchor)
-            add(urlunsplit(parts._replace(query=fragment[1:] if fragment.startswith('?') else parts.query+fragment)), 'explicit_live_check_query')
+            cleaned=clean_url(urlunsplit(parts._replace(query=fragment[1:])))
+            if not cleaned:
+                unresolved.append(dict(value=fragment,reason='query_fragment_not_concrete'));continue
+            changes=parse_qsl(urlsplit(cleaned).query,keep_blank_values=True);keys={k for k,v in changes}
+            pairs=[(k,v) for k,v in parse_qsl(parts.query,keep_blank_values=True) if k not in keys]+changes
+            add(urlunsplit(parts._replace(query=urlencode(pairs))), 'explicit_live_check_query')
+    origins={urlunsplit(urlsplit(s['url'])._replace(path='/',query='',fragment='')) for s in original.get('scopes',[])}
+    if len(origins)==1:
+        origin=next(iter(origins))
+        # Only concrete paths actually named in the instruction; never discover
+        # an alternate API after an access refusal (the runner's hold preflight
+        # covers the entire original collection before any targets run).
+        pattern=r'(?<![\w/:])(/?wp-json/wp/v2/[A-Za-z0-9_-]+(?:\?[^\s()<>"\']*)?|/?(?:[A-Za-z0-9_-]+/)*(?:[A-Za-z0-9_-]*sitemap[A-Za-z0-9_-]*\.xml)(?:\?[^\s()<>"\']*)?)'
+        for match in re.finditer(pattern,text):
+            if any(m.start()<=match.start()<m.end() for m in explicit):continue
+            value=match[0]
+            if value.endswith('='):
+                unresolved.append(dict(value=value,reason='required_filter_value_not_supplied'));continue
+            add(urljoin(origin,value.lstrip('/')),'relative_live_check_URL_at_registered_origin')
     for candidate in hints.get('endpoints', []):
         url = candidate['url']; path = urlsplit(url).path
         # An endpoint named in the requested check is a grounded, inert source hint.
@@ -111,14 +158,14 @@ def page_route(url, text='', pagination=None):
     p = urlsplit(url)
     for key,value in parse_qsl(p.query, keep_blank_values=True):
         if key.lower() in PAGE_KEYS and value.isdecimal():
-            return dict(kind='query', key=key, url=url, offset=key.lower() in ('start','offset'), source='explicit_URL')
+            return dict(kind='query', key=key, url=url, offset=key.lower() in ('start','offset','b_start'), source='explicit_URL')
     if re.search(r'/page/\d+/?$', p.path): return dict(kind='path', url=url, source='explicit_URL', offset=False)
     if re.search(r'/page/(?:[NK]|\d+)/',text):
         target=urlunsplit(p._replace(path=p.path.rstrip('/')+'/page/1/'))
         return dict(kind='path',url=target,source='live_check_path_pattern',offset=False)
-    match = re.search(r'[?&]([A-Za-z_][\w-]*)=(?:[NKn]|\d+)(?:\b|&)', text)
-    if match and match[1].lower() in PAGE_KEYS:
-        return dict(kind='query', key=match[1], url=url, offset=match[1].lower() in ('offset','start'), source='live_check_parameter')
+    for match in re.finditer(r'[?&]([A-Za-z_][\w-]*)=(?:[NKn]|\d+)(?:\b|&)', text):
+        if match[1].lower() in PAGE_KEYS:
+            return dict(kind='query', key=match[1], url=url, offset=match[1].lower() in ('offset','start','b_start'), source='live_check_parameter')
     if pagination and pagination.get('param'):
         key = pagination['param']
         return dict(kind='query', key=key, url=url, offset=key.lower() in ('offset','start'), source='collector_config')
@@ -135,6 +182,23 @@ def at_page(route, number):
 def parse_listing(raw, url, content_type='', plan=None):
     plan=plan or {}; selectors=dict(plan.get('selectors') or {})
     summary=inspect(raw,url,content_type,selectors)
+    if summary['format']=='json':
+        data=json.loads(raw);arrays=[]
+        def walk(value,path='',depth=0):
+            if depth>5:return
+            if isinstance(value,dict):
+                for key,child in value.items():walk(child,path+'/'+key,depth+1)
+            elif isinstance(value,list) and (not value or isinstance(value[0],dict)):arrays.append((path,value))
+        walk(data)
+        priorities=['','/results','/response/docs','/hits/hits','/result/results','/data','/items','/records','/content']
+        arrays.sort(key=lambda x:priorities.index(x[0]) if x[0] in priorities else 99)
+        if arrays:
+            path,rows=arrays[0]
+            summary.update(record_array_path=path,record_array_length=len(rows),
+                all_rows_have_identity=len(rows)==summary['item_count'],
+                explicit_empty=not rows and path in priorities and not (isinstance(data,dict) and any(data.get(k) for k in ('error','errors','exception'))))
+            summary['structural_signature']=hashlib.sha256(('json-record-array:'+path).encode()).hexdigest()
+        return summary
     if summary['format']!='html': return summary
     soup=BeautifulSoup(raw,'html.parser')
     root=soup;root_css=None

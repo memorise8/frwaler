@@ -62,7 +62,8 @@ def audit(directory):
     plans=json.loads((directory/'plans.json').read_text())
     queue=json.loads((directory/'input-queue.json').read_text())
     rows=[];pending=[];issues=[]
-    if len(queue)!=615 or len({r['site_id'] for r in queue})!=615 or sum(r['delivery'] is True for r in queue)!=363:
+    total=plans['registered'];delivery=plans['delivery']
+    if len(queue)!=total or len({r['site_id'] for r in queue})!=total or sum(r['delivery'] is True for r in queue)!=delivery:
         issues.append('queue_scope_mismatch')
     if hashlib.sha256((directory/'input-queue.json').read_bytes()).hexdigest()!=plans['queue_sha256']:
         issues.append('queue_hash_mismatch')
@@ -72,7 +73,7 @@ def audit(directory):
         if not path.exists():pending.append(plan['site_id']);continue
         row=audit_site(plan,json.loads(path.read_text()));row['evidence_file']=str(path)
         row['evidence_sha256']=hashlib.sha256(path.read_bytes()).hexdigest();rows.append(row)
-    result=dict(checked_at=utc_now(),total=615,processed=len(rows),pending=pending,
+    result=dict(checked_at=utc_now(),total=total,processed=len(rows),pending=pending,
         queue_issues=issues,integrity_issue_sites=sum(bool(r['integrity_issues']) for r in rows),
         semantic_review_sites=sum(bool(r['review_flags']) for r in rows),
         counts=dict(Counter(r['status'] for r in rows)),sites=rows,

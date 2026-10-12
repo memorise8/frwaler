@@ -16,16 +16,35 @@ from delivery.health.results import atomic_json, utc_now
 from delivery.scripts.live_check_contracts import CHECKS, KINDS, compile_plan
 from delivery.scripts.live_check_probes import ProbeSession, probe_target
 from delivery.scripts.live_check_transport import LiveTransport, LiveStop
+from delivery.scripts.live_count_estimates import estimate_counts
 
 ROOT=Path(__file__).resolve().parents[2]
 DEFAULT_QUEUE=Path('/tmp/claude-1001/-mnt-raid-ruci-workspace/af50b2cc-5966-4982-9f45-a0737ed1cb06/scratchpad/live-check-queue-prioritized.json')
+EXTRA_QUEUE=DEFAULT_QUEUE.with_name('live-check-queue-extra.json')
 
 
-def prepare(out, prior, queue):
+def extra_kind(row):
+    import re
+    text=row['live_check']
+    for pattern,kind in ((r'wp-json|WordPress\s+REST','WordPress REST'),
+                         (r'JSON|API|OAI|GraphQL','JSON·검색 API'),
+                         (r'sitemap|사이트맵','사이트맵'),
+                         (r'POST|AJAX|XHR|JS|렌더링','JS·POST 렌더링'),
+                         (r'리다이렉트|리디렉트|도메인 이전','리다이렉트·도메인'),
+                         (r'page|페이지|쪽','페이지 파라미터')):
+        if re.search(pattern,text,re.I):return kind
+    return '기타'
+
+
+def prepare(out, prior, queue, *, batch='primary'):
     from crawler.sites import CRAWLERS
     source=json.loads(queue.read_text())
-    if len(source)!=615 or len({x['site_id'] for x in source})!=615 or sum(x['delivery'] is True for x in source)!=363:
-        raise ValueError('expected 615 unique sites and 363 delivery sites')
+    expected,delivery_expected=(615,363) if batch=='primary' else (257,219)
+    if len(source)!=expected or len({x['site_id'] for x in source})!=expected or sum(x['delivery'] is True for x in source)!=delivery_expected:
+        raise ValueError(f'expected {expected} unique sites and {delivery_expected} delivery sites')
+    if batch=='extra':
+        for row in source:
+            row['kind']=extra_kind(row);row['kind_basis']='inferred_from_verbatim_live_check_for_common_handler_priority'
     if any(x['kind'] not in KINDS or x['site_id'] not in CRAWLERS for x in source):raise ValueError('unknown queue kind or site')
     manifest={x['site_id']:x for x in json.loads((prior/'manifest.json').read_text())['sites']}
     hints=json.loads((prior/'source-hints.json').read_text())['sites'];plans=[]
@@ -37,11 +56,11 @@ def prepare(out, prior, queue):
     plans.sort(key=lambda r:(not r['delivery'],KINDS.index(r['kind']),r['site_id']))
     (out/'input-queue.json').write_bytes(queue.read_bytes())
     data=dict(created_at=utc_now(),queue_source=str(queue),queue_sha256=hashlib.sha256(queue.read_bytes()).hexdigest(),
-              registered=615,delivery=363,priority=list(KINDS),sites=plans)
+              batch=batch,registered=expected,delivery=delivery_expected,priority=list(KINDS),sites=plans)
     atomic_json(out/'plans.json',data);return data
 
 
-def process(plan, transport, out, budget):
+def process(plan, transport, out, budget, *, seed_summaries=False):
     site=plan['site_id'];path=out/'attempts'/(site+'.json')
     attempts=json.loads(path.read_text())['requests'] if path.exists() else []
     result=dict(site_id=site,delivery=plan['delivery'],kind=plan['kind'],live_check=plan['live_check'],
@@ -49,6 +68,8 @@ def process(plan, transport, out, budget):
       request_budget=budget,documents_saved=0,database_connections=0,source_file=plan['source_file'],
       source_sha256=plan['source_sha256'],static_limits=plan['static_limits'],unresolved_URLs=plan['unresolved_URLs'],
       strategy='불가',confidence='낮음',instruction_coverage='not_yet_verified')
+    if 'sonnet_strategy' in plan or 'opus_strategy' in plan:
+        result['offline_assessment']={key:plan.get(key) for key in ('reason','sonnet_strategy','opus_strategy')}
     def persist():atomic_json(path,result)
     persist()
     hosts={urlsplit(url).hostname for url in plan['original_scope_urls']}
@@ -63,7 +84,7 @@ def process(plan, transport, out, budget):
                       instruction_coverage='all checks unavailable under observed source access hold')
         result['unavailable_checks']={name:dict(status='access_blocked',reason=result['reason']) for name in CHECKS}
     else:
-        session=ProbeSession(plan,transport,result,persist)
+        session=ProbeSession(plan,transport,result,persist,seed_summaries=seed_summaries)
         for target in plan['targets']:
             if (out/'STOP').exists():raise LiveStop()
             scope=probe_target(session,target);result['scopes'].append(scope);persist()
@@ -124,45 +145,60 @@ def summarize(out, base, data):
     results=[]
     for row in data['sites']:
         path=out/'sites'/(row['site_id']+'.json')
-        if path.exists():results.append(json.loads(path.read_text()))
-    summary=dict(updated_at=utc_now(),total=615,processed=len(results),remaining=615-len(results),
-        delivery_processed=sum(r['delivery'] for r in results),delivery_total=363,
+        if path.exists():
+            result=json.loads(path.read_text());estimate=estimate_counts(result)
+            if any(result.get(k)!=v for k,v in estimate.items()):
+                result.update(estimate);atomic_json(path,result)
+            results.append(result)
+    total=data['registered'];batch=data.get('batch','primary')
+    summary=dict(updated_at=utc_now(),batch=batch,total=total,processed=len(results),remaining=total-len(results),
+        delivery_processed=sum(r['delivery'] for r in results),delivery_total=data['delivery'],
         counts=dict(Counter(r['status'] for r in results)),strategies=dict(Counter(r['strategy'] for r in results)),
         confidences=dict(Counter(r['confidence'] for r in results)),requests_recorded=sum(len(r['requests']) for r in results),
         HTTP_responses=sum(r['actual_HTTP_responses'] for r in results),documents_saved=0,database_connections=0,
-        all_sites_processed=len(results)==615,goal_complete=False)
+        all_sites_processed=len(results)==total,goal_complete=False)
+    summary['expected_item_counts_available']=sum(r['expected_items'] is not None for r in results)
+    summary['hidden_cap_suspected_sites']=sum(r['hidden_cap_suspected'] for r in results)
     atomic_json(out/'summary.json',summary);atomic_json(out/'collector-defects.json',dict(updated_at=summary['updated_at'],findings=defects(results)))
-    buffer=io.StringIO();fields=['site_id','delivery','kind','status','strategy','confidence','requests','reason','evidence']
+    buffer=io.StringIO();fields=['site_id','delivery','kind','status','strategy','confidence','expected_items','count_basis','count_confidence','hidden_cap_suspected','requests','reason','evidence']
     writer=csv.DictWriter(buffer,fieldnames=fields);writer.writeheader()
-    for r in results:writer.writerow({**{k:r[k] for k in fields[:6]},'requests':len(r['requests']),'reason':r.get('reason',''),'evidence':str(out/'sites'/(r['site_id']+'.json'))})
+    for r in results:writer.writerow({**{k:r[k] for k in fields[:10]},'requests':len(r['requests']),'reason':r.get('reason',''),'evidence':str(out/'sites'/(r['site_id']+'.json'))})
     temp=out/'summary.csv.tmp';temp.write_text(buffer.getvalue());os.replace(temp,out/'summary.csv')
-    path=base/'progress.json';progress=json.loads(path.read_text());progress['live_structure_check']={**summary,'directory':str(out)};atomic_json(path,progress)
+    path=base/'progress.json';progress=json.loads(path.read_text());progress['live_structure_check' if batch=='primary' else 'live_structure_check_extra']={**summary,'directory':str(out)};atomic_json(path,progress)
     path=base/'continuous-20261010/site-progress.json';ledger=json.loads(path.read_text());mapping={x['site_id']:x for x in results}
     for row in ledger['sites']:
         if row['site_id'] in mapping:
-            r=mapping[row['site_id']];row['live_structure_check']={k:r[k] for k in ('status','strategy','confidence','finished_at','actual_HTTP_responses')}
+            r=mapping[row['site_id']];row['live_structure_check']={k:r[k] for k in ('status','strategy','confidence','finished_at','actual_HTTP_responses','expected_items','count_basis','count_confidence','hidden_cap_suspected')}
             row['live_structure_check']['evidence']=str(out/'sites'/(row['site_id']+'.json'))
+            row['live_structure_check']['batch']=batch
     atomic_json(path,ledger);return summary
 
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--base',required=True,type=Path)
-    parser.add_argument('--queue',type=Path,default=DEFAULT_QUEUE);parser.add_argument('--workers',type=int,default=8)
+    parser.add_argument('--queue',type=Path);parser.add_argument('--workers',type=int,default=8)
+    parser.add_argument('--batch',choices=('primary','extra'),default='primary')
     parser.add_argument('--limit',type=int);parser.add_argument('--budget',type=int,default=30)
     parser.add_argument('--refresh-plans',action='store_true')
     args=parser.parse_args()
     if not 1<=args.workers<=8 or not 8<=args.budget<=30:raise ValueError('bounded worker/request limits required')
-    out=args.base/'live-check-20261012';out.mkdir(parents=True,exist_ok=True);prior=args.base/'discovery-20261012'
+    out=args.base/('live-check-20261012' if args.batch=='primary' else 'live-check-extra-20261012')
+    out.mkdir(parents=True,exist_ok=True);prior=args.base/'discovery-20261012'
+    queue=args.queue or (DEFAULT_QUEUE if args.batch=='primary' else EXTRA_QUEUE)
+    if args.batch=='extra':
+        completion=args.base/'live-check-20261012/primary-completion.json'
+        if not completion.exists() or json.loads(completion.read_text()).get('complete') is not True:
+            raise ValueError('finish and audit the primary 615 before starting the extra 257')
     with (out/'runner.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         if args.refresh_plans and (out/'plans.json').exists():
             (out/'plans.previous.json').write_bytes((out/'plans.json').read_bytes())
-        data=json.loads((out/'plans.json').read_text()) if (out/'plans.json').exists() and not args.refresh_plans else prepare(out,prior,args.queue)
+        data=json.loads((out/'plans.json').read_text()) if (out/'plans.json').exists() and not args.refresh_plans else prepare(out,prior,queue,batch=args.batch)
         transport=LiveTransport(out,prior)
         pending=[r for r in data['sites'] if not (out/'sites'/(r['site_id']+'.json')).exists()]
         if args.limit:pending=pending[:args.limit]
         state=dict(pid=os.getpid(),server=socket.gethostname(),status='running',started_at=utc_now(),scheduled=len(pending),finished=0,workers=args.workers,
-             code_sha256={p:hashlib.sha256((ROOT/'delivery/scripts'/p).read_bytes()).hexdigest() for p in ('live_check_structure.py','live_check_probes.py','live_check_contracts.py','live_check_transport.py')})
+             code_sha256={p:hashlib.sha256((ROOT/'delivery/scripts'/p).read_bytes()).hexdigest() for p in ('live_check_structure.py','live_check_probes.py','live_check_contracts.py','live_check_transport.py','live_count_estimates.py')})
         atomic_json(out/'runner.json',state)
         def run(plan):
             if (out/'STOP').exists():return None

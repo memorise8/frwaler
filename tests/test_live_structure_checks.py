@@ -82,11 +82,25 @@ class LiveCheckTests(unittest.TestCase):
         with self.assertRaises(BudgetReached):session.read(URL+'?page=1','second')
         self.assertEqual(len(transport.calls),1)
 
+    def test_detail_and_document_routes_are_not_requested(self):
+        transport=FakeTransport(lambda url:html(0));session=self.session(transport)
+        for path in ('/report.pdf','/wp-json/wp/v2/posts/123','/2026/10/12/single-article/'):
+            with self.assertRaisesRegex(ValueError,'list_only_policy'):session.read('https://source.example'+path,'entry')
+        self.assertEqual(transport.calls,[])
+
     def test_inherited_access_refusal_is_not_retried_for_robots(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp);old=p/'old';old.mkdir();new=p/'new';new.mkdir()
             (old/'access-holds.json').write_text(json.dumps({'source.example':{'reason':'access_refused','url':URL}}))
             transport=LiveTransport(new,old)
+            with patch.object(transport,'fetch_checked',side_effect=AssertionError('must not fetch')):
+                with self.assertRaisesRegex(AccessStopped,'prior_access_hold'):transport.allowed(URL,lambda r:None)
+
+    def test_extra_batch_inherits_primary_refusal_even_without_old_hold_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp);primary=p/'live-check-20261012';primary.mkdir()
+            (primary/'access-holds.json').write_text(json.dumps({'source.example':{'reason':'access_refused'}}))
+            transport=LiveTransport(p/'live-check-extra-20261012',p/'discovery-20261012')
             with patch.object(transport,'fetch_checked',side_effect=AssertionError('must not fetch')):
                 with self.assertRaisesRegex(AccessStopped,'prior_access_hold'):transport.allowed(URL,lambda r:None)
 
@@ -105,6 +119,67 @@ class LiveCheckTests(unittest.TestCase):
         self.assertEqual(public_url(URL+'?keys=pdf'),URL+'?keys=pdf')
         self.assertIsNone(public_url(URL+'?api_key=secret'))
         self.assertIsNone(public_url(URL+'?token=secret'))
+
+    def test_instruction_particles_ranges_and_relative_endpoints(self):
+        row=dict(site_id='x',live_check=URL+'?page=1과 '+URL+'?page=0..2 및 wp-json/wp/v2/posts 및 sitemap.xml',delivery=True,kind='페이지 파라미터')
+        original=dict(scopes=[{'url':URL}],profile=dict(list_selectors={},pagination_config={}))
+        plan=compile_plan(row,original,{},'')
+        urls={x['url'] for group in plan['targets'] for x in group}
+        self.assertTrue({URL+'?page=0',URL+'?page=1',URL+'?page=2','https://source.example/sitemap.xml','https://source.example/wp-json/wp/v2/posts'}<=urls)
+        self.assertEqual(plan['unresolved_URLs'],[])
+
+    def test_korean_query_value_is_retained(self):
+        from delivery.scripts.live_check_contracts import clean_url
+        value=URL+'?org=재정경제부&page=1'
+        self.assertEqual(clean_url(value),value)
+        self.assertEqual(clean_url(URL+'.xml(또는'),URL+'.xml')
+
+    def test_scope_alias_query_does_not_attach_to_previous_collection(self):
+        row=dict(site_id='x',live_check=URL+'?page=41 그리고 studies ?page=20',delivery=True,kind='페이지 파라미터')
+        original=dict(scopes=[{'url':URL},{'url':'https://source.example/studies'}],profile=dict(list_selectors={},pagination_config={}))
+        plan=compile_plan(row,original,{},"SCOPES={'studies':dict(path='/studies',view='.studies')}")
+        urls={x['url'] for group in plan['targets'] for x in group}
+        self.assertIn('https://source.example/studies?page=20',urls)
+        self.assertNotIn(URL+'?page=20',urls)
+
+    def test_query_fragments_preserve_filters_and_expand_page_choices(self):
+        row=dict(site_id='x',live_check=URL+'?category=press&page=1과 ?page=2/3 및 ?page=50,200',delivery=True,kind='페이지 파라미터')
+        original=dict(scopes=[{'url':URL+'?category=press'}],profile=dict(list_selectors={},pagination_config={}))
+        plan=compile_plan(row,original,{},'')
+        urls={x['url'] for group in plan['targets'] for x in group}
+        self.assertTrue({URL+'?category=press&page='+str(n) for n in (1,2,3,50,200)}<=urls)
+        self.assertFalse(any('%2F' in u or '%EA' in u for u in urls))
+
+    def test_repair_reuses_metadata_without_refetch_or_budget_reset(self):
+        transport=FakeTransport(lambda url:html(0))
+        response=dict(url=URL,status=200,number=1,summary=parse_listing(html(0),URL))
+        result={'requests':[response],'request_budget':1}
+        session=ProbeSession(self.plan(),transport,result,lambda:None,seed_summaries=True)
+        self.assertEqual(session.read(URL,'reuse')[0]['number'],1)
+        self.assertEqual(transport.calls,[])
+        with self.assertRaises(BudgetReached):session.read(URL,'refresh',repeat=True)
+        self.assertEqual(len(result['requests']),1)
+
+    def test_JSON_typed_empty_is_not_an_error_or_unrelated_array(self):
+        head={'status':200,'summary':parse_listing(b'{"items":[{"id":1}],"total":1}',URL,'application/json')}
+        empty={'status':200,'summary':parse_listing(b'{"items":[],"total":1}',URL,'application/json')}
+        error={'status':200,'summary':parse_listing(b'{"items":[],"error":"failure"}',URL,'application/json')}
+        other={'status':200,'summary':parse_listing(b'{"results":[],"total":1}',URL,'application/json')}
+        self.assertTrue(is_empty_boundary(head,empty))
+        self.assertFalse(is_empty_boundary(head,error))
+        self.assertFalse(is_empty_boundary(head,other))
+
+    def test_JSON_offset_last_and_adjacent_empty(self):
+        from urllib.parse import parse_qs,urlsplit
+        def response(url):
+            offset=int(parse_qs(urlsplit(url).query).get('offset',['0'])[0])
+            records=[dict(id=n,date=f'2020-01-0{n}') for n in range(9,0,-1)]
+            return json.dumps(dict(items=records[offset:offset+3],total=9)).encode()
+        scope=probe_target(self.session(FakeTransport(response)),[{'url':URL+'?offset=0'}])
+        self.assertEqual(scope['status'],'confirmed')
+        self.assertEqual(scope['checks']['last_and_after']['last_offset'],6)
+        self.assertEqual(scope['checks']['total_arithmetic']['total'],9)
+        self.assertEqual(scope['strategy'],'마지막 페이지부터 거꾸로')
 
     def test_environment_page_cap_is_preserved_as_default_only(self):
         caps=literal_limits('_MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))')
@@ -164,7 +239,8 @@ class LiveCheckTests(unittest.TestCase):
 
     def test_no_database_or_crawler_execution_in_new_checker(self):
         root=Path(__file__).resolve().parents[1]/'delivery/scripts'
-        for filename in ('live_check_contracts.py','live_check_transport.py','live_check_probes.py','live_check_structure.py'):
+        for filename in ('live_check_contracts.py','live_check_transport.py','live_check_probes.py','live_check_structure.py',
+                         'live_count_estimates.py','repair_live_structure.py','audit_live_structure.py','review_live_defects.py','resolve_live_strategies.py'):
             tree=ast.parse((root/filename).read_text())
             called={n.func.attr for n in ast.walk(tree) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute)}
             self.assertFalse(called & {'crawl','_save_paper','open_db','connect','execute','insert_document'},filename)
