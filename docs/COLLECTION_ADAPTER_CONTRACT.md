@@ -117,3 +117,13 @@ docker run --rm --name enum-test-adapter-20261012-verified \
   -e PYTHONDONTWRITEBYTECODE=1 python:3.12-slim bash -c \
   'cp -r /src /w && cd /w && pip install -q -r delivery/requirements.txt -r delivery/vendor/crawler-runtime-requirements.txt && python -m unittest discover -s tests -p "test_enumeration_*.py" -t .'
 ```
+
+## 리뷰 결함 수정 (브랜치 collect-adapter-fix-20261012, 기준 af1df09)
+
+아래 규칙은 모두 `adapter.contract_version`이 있는 사이트에만 적용된다. 계약 없는 plan의 경로·상태·지문은 바뀌지 않는다.
+
+### 계약 단계 실패의 사이트 상태 (H1)
+
+- 계약 사이트에서 등록 상세/Paper 메서드가 예외를 내거나(`failed_permanent:parse_error:<예외형>`), 결과가 비어(`failed_permanent:empty_item`) 항목이 원장에 남으면 `adapter_contract_item_failed` 이벤트와 함께 "계약 단계 실패"로 센다. 정상 항목이 나오면 연속 횟수는 0으로 돌아간다.
+- 연속 `max_consecutive_contract_failures`(기본 5, 양의 정수)건이면 `StrategyStop("config_error", "adapter_contract_failures_consecutive:<마지막 사유>")`로 사이트를 멈춘다. 바인딩/필드명 불일치처럼 모든 항목이 실패하는 경우가 이 규칙에 걸린다. 연속 저장 오류(`max_consecutive_save_errors` → `config_error`)와 같은 방식이다. 멈춘 배치는 체크포인트(mark_listed/update_segment)를 남기지 않는다.
+- 연속은 아니지만 원장의 계약 단계 실패가 (saved+실패 전체) 대비 `max_contract_failure_ratio`(기본 0.0, [0,1))를 넘으면 열거가 끝나도 `complete`가 아니라 `complete_with_review`(`adapter_contract_failures:<건수>`)로 강등한다. 기본값 0.0이면 한 건이라도 있으면 검토 대상이다.

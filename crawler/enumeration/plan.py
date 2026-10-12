@@ -164,6 +164,13 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
         raise PlanError(f"{site_id}: {exc}") from None
     if has_contract and raw["strategy"] == "sitemap" and uses_item(adapter):
         raise PlanError(f"{site_id}: sitemap with a detail_method needing list items is not verifiable")
+    if has_contract:
+        limit = raw.get("max_consecutive_contract_failures", 5)
+        if type(limit) is not int or limit < 1:
+            raise PlanError(f"{site_id}: max_consecutive_contract_failures must be a positive integer")
+        ratio = raw.get("max_contract_failure_ratio", 0.0)
+        if type(ratio) not in (int, float) or not 0 <= ratio < 1:
+            raise PlanError(f"{site_id}: max_contract_failure_ratio must be within [0, 1)")
     return SitePlan(site_id, raw)
 
 

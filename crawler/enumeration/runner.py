@@ -16,6 +16,10 @@ from .strategies import STRATEGIES, StrategyStop, today_from
 from .urls import host_of, normalize_key_url, url_identity
 
 
+# Ledger reasons of items a contract site's registered methods failed on.
+CONTRACT_FAILURE_PREFIXES = ("failed_permanent:parse_error:", "failed_permanent:empty_item",
+                             "failed_permanent:adapter_contract:")
+
 COMPLETED = ("complete", "complete_with_mismatch", "complete_unverified", "complete_with_review")
 
 
@@ -93,6 +97,19 @@ class SiteRunner:
         self._save_errors = 0
         self._db_errors = 0
         self._attempted = {}
+        # Opt-in adapter contract only: registered-method failures are counted so a
+        # broken binding can never end as a plain "complete".
+        self.contract = getattr(adapter, "contract", None) is not None
+        self._contract_failures = 0
+
+    def contract_failure(self, item, reason):
+        """A contract site's registered method failed for one item (already ledgered)."""
+        if not self.contract:
+            return
+        self.store.event(self.site_id, "adapter_contract_item_failed", {"item": item.key, "reason": reason})
+        self._contract_failures += 1
+        if self._contract_failures >= int(self.plan.get("max_consecutive_contract_failures") or 5):
+            raise StrategyStop("config_error", f"adapter_contract_failures_consecutive:{reason}")
 
     # -- items ---------------------------------------------------------------
     def process_item(self, item, segment):
@@ -138,11 +155,14 @@ class SiteRunner:
             st.record_item(site, item.key, "failed_permanent", reason=f"parse_error:{type(exc).__name__}",
                            attempt=True, **common)
             self.stats["failed_permanent"] += 1
+            self.contract_failure(item, f"parse_error:{type(exc).__name__}")
             return
         if not paper or not str(paper.get("title") or "").strip() or not (paper.get("url") or paper.get("meta_url")):
             st.record_item(site, item.key, "failed_permanent", reason="empty_item", attempt=True, **common)
             self.stats["failed_permanent"] += 1
+            self.contract_failure(item, "empty_item")
             return
+        self._contract_failures = 0
         self._login_details = 0
         try:
             seq_id, created, note = self.adapter.save(paper)
@@ -364,13 +384,21 @@ class SiteRunner:
         return None
 
     def review_counts(self):
-        _, failed = self.store.item_counts(self.site_id)
+        saved, failed = self.store.item_counts(self.site_id)
         counts = {
             "identity_collisions": failed.get("failed_permanent:identity_collision", 0),
             "identity_reviews": sum(v for k, v in failed.items() if k.startswith("failed_permanent:identity_review:")),
             "listing_identity_conflicts": failed.get("failed_permanent:listing_identity_conflict", 0),
             "identity_missing": failed.get("failed_permanent:identity_missing", 0),
         }
+        if self.contract:
+            # Items a registered method could not turn into a document need a person
+            # unless the plan explicitly tolerates that share (default: none).
+            bad = sum(v for k, v in failed.items() if k.startswith(CONTRACT_FAILURE_PREFIXES))
+            seen = saved + sum(failed.values())
+            ratio = float(self.plan.get("max_contract_failure_ratio") or 0.0)
+            if bad and bad / seen > ratio:
+                counts["adapter_contract_failures"] = bad
         return {k: v for k, v in counts.items() if v}
 
     def run(self, *, refresh=False, retry_only=False):
