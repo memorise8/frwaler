@@ -106,6 +106,87 @@ class DataMfeGovtNzDocumentsCrawler(BaseCrawler):
     # Main crawl
     # ------------------------------------------------------------------
 
+
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_items(self, data):
+        """Expose crawl's API detail URL while preserving its document id."""
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            raise ValueError("enumeration listing must be a list of objects")
+        rows = []
+        for item in data:
+            doc_id = item.get("id")
+            if not doc_id:
+                continue  # Same explicit missing-id skip as crawl().
+            rows.append(dict(item, url=f"{_API_BASE}/documents/{doc_id}/"))
+        return rows
+
+    def _enumeration_paper(self, item, detail):
+        """Pure copy of crawl's Paper conversion and item filters.
+
+        None preserves item rejection; the framework currently records it as empty_item.
+        """
+        doc_id = item["id"]
+        id_str = str(doc_id)
+        title = (detail.get('title') or '').strip()
+        if not title:
+            return None
+        description = (detail.get('description') or '').strip()
+        if not description:
+            description = self._strip_html(detail.get('description_html') or '')
+        if len(description) < _ABSTRACT_MIN:
+            return None
+        published_date = self._parse_date(detail.get('first_published_at'))
+        posted_date = self._parse_date(detail.get('published_at'))
+        url_html = detail.get('url_html') or f'https://data.mfe.govt.nz/document/{doc_id}/'
+        url_download = detail.get('url_download') or ''
+        extension = (detail.get('extension') or '').lower()
+        pdf_url = url_download if extension == 'pdf' else None
+        original_filename = self._original_filename(url_html, extension)
+        categories = detail.get('categories') or []
+        category = ', '.join((c.get('name', '') for c in categories if c.get('name')))
+        tags = detail.get('tags') or []
+        keywords = ', '.join(tags) if tags else None
+        group_info = detail.get('group') or {}
+        license_info = detail.get('license') or {}
+        version_info = detail.get('version') or {}
+        metadata_dict = {
+            'posted_date': detail.get('published_at'),
+            'originalFilename': original_filename,
+            'file_size': detail.get('file_size'),
+            'file_size_formatted': detail.get('file_size_formatted'),
+            'extension': extension,
+            'num_views': detail.get('num_views'),
+            'num_downloads': detail.get('num_downloads'),
+            'group_name': group_info.get('name'),
+            'public_access': detail.get('public_access'),
+            'license': license_info.get('title'),
+            'url_download': url_download,
+            'version_id': version_info.get('id'),
+            'node_id': doc_id,
+        }
+        paper = {
+            'id': None,
+            'site_id': self.site_id,
+            'external_id': id_str,
+            'post_number': id_str,
+            'title': title,
+            'abstract': description,
+            'published_date': published_date,
+            'posted_date': posted_date,
+            'url': url_html,
+            'pdf_url': pdf_url,
+            'original_filename': original_filename,
+            'keywords': keywords,
+            'category': category,
+            'publisher': _PUBLISHER,
+            'authors': None,
+            'department': None,
+            'doi': None,
+            'journal': None,
+            'metadata': json.dumps(metadata_dict, ensure_ascii=False),
+        }
+        return paper
+
     def crawl(self, limit=None) -> int:
         saved = 0
         seen_ids: set[str] = set()

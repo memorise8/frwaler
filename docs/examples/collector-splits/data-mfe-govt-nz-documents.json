@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "sites": {
+    "data-mfe-govt-nz-documents": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "item",
+          "json"
+        ]
+      },
+      "listing": {
+        "url": "https://data.mfe.govt.nz/services/api/v1.x/documents/",
+        "params": {
+          "page": 1,
+          "page_size": 100
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "id",
+          "date_field": "first_published_at"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
