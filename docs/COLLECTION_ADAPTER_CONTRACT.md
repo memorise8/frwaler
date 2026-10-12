@@ -169,3 +169,9 @@ docker run --rm --name enum-test-adapter-20261012-verified \
 ### JSON 목록의 비JSON 응답 (L3)
 
 - `list_source: "json"` 계약 사이트에서 목록 응답이 JSON이 아니면(점검 페이지·HTML 오류 등) 기존 json 파서와 같이 `parse_error: invalid_json` 페이지로 분류한다. 전략은 이를 `listing_parse_error:invalid_json`으로 올리고 사이트는 `incomplete(listing_failed:listing_parse_error:invalid_json)`로 끝난다. 빈 목록이나 runner 오류(`failed`)로 처리하지 않는다.
+
+### 수정 브랜치 검증 결과와 남은 제한
+
+- Docker 전체 검사(지정 명령, 컨테이너 `enum-test-fix`, `--rm`): **260개 실행, OK, 건너뜀 1개**(PostgreSQL 전용, `TEST_PG_ADMIN_DSN` 없음). af1df09의 236개 중 `test_afp_registered_pipeline` 1개는 M1에 따라 `test_afp_not_a_candidate`로 대체했고 나머지 235개는 이름 그대로 통과했다(235 유지 + 신규 25 = 260, 신규 중 1개가 AFP 대체). 새 테스트는 결함별로 수정 전 실패를 먼저 확인했다(H1·M4·H2·M1·M3·L1·L2·L3). 로그는 커밋하지 않았다.
+- 실제 사이트 요청 0건, DB는 테스트 내부 임시 SQLite만 사용했다. 위 `adapter-contract-audit.json`의 `test_result`는 af1df09 당시 실행 기록이며 이 표의 실행으로 바꾸지 않았다(재판정 수치와 AFP 항목만 갱신).
+- 남은 제한: 목록 단계 `url`은 리다이렉트 뒤 URL(H2 절), crawl() 인라인 필터 미적용(M2 절), 의도된 `None` 건너뜀과 실패의 구별 불가(M2 절), Paper 반환 뒤 검사는 guard 밖(L1 절), 목록 단계 계약 오류는 페이지 단위로 사이트를 멈춤(M4 절). 실제 사이트의 범위·마지막 쪽·총량은 여전히 확인하지 않았다.
