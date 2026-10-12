@@ -226,6 +226,21 @@ class ContractTests(unittest.TestCase):
         a.materialize(self.item(),SimpleNamespace(get=lambda url:self.response()))
         self.assertEqual([True,True],seen)
 
+    def test_strict_url_field_no_fallback(self):
+        c=Crawler();c.listing=lambda html:[{'source_url':'','url':'https://example.test/other','external_id':'a'}]
+        p=ListingParser({'type':'adapter','listing_marker':'main','url_field':'source_url'},adapter=self.adapter(crawler=c))
+        with self.assertRaisesRegex(ContractError,r'^adapter_contract:listing_url_missing$'):p.parse(self.response())
+        # Without a detail request the key alone identifies the row; the other 'url' is never used.
+        c.paper=lambda item:dict(item)
+        a=self.adapter({'type':'crawler','contract_version':1,'list_method':'listing','paper_method':'paper'},c)
+        item=ListingParser({'type':'adapter','listing_marker':'main','url_field':'source_url'},adapter=a).parse(self.response()).items[0]
+        self.assertEqual(('a',''),(item.key,item.url))
+
+    def test_detail_requires_listing_url(self):
+        c=Crawler();c.listing=lambda html:[{'external_id':'a'}]
+        with self.assertRaisesRegex(ContractError,r'^adapter_contract:listing_url_missing$'):
+            self.parser(self.adapter(crawler=c)).parse(self.response())
+
     def test_good_then_bad_row_rejects_whole_page(self):
         c=Crawler();c.listing=lambda html:[{'url':'/good','external_id':'id'},None]
         with self.assertRaises(ContractError):self.parser(self.adapter(crawler=c)).parse(self.response())

@@ -255,7 +255,11 @@ class ListingParser:
         for row in rows:
             if not isinstance(row, dict):
                 continue
-            url = row.get(cfg.get("url_field", "detail_url")) or row.get("url") or ""
+            if strict:
+                # Only the declared field (default "url"); never another key as a fallback.
+                url = row.get(cfg.get("url_field", "url")) or ""
+            else:
+                url = row.get(cfg.get("url_field", "detail_url")) or row.get("url") or ""
             if strict and not isinstance(url, str):
                 from .contracts import fail
                 fail("listing_url_type")
@@ -268,6 +272,8 @@ class ListingParser:
                     fail("listing_key_type")
                 if not url and raw_id in (None, ""):
                     fail("listing_identity_missing")
+                if not url and self.adapter.cfg.get("detail_method"):
+                    fail("listing_url_missing")  # the detail request needs the item's own URL
             if not url and raw_id in (None, ""):
                 continue
             key = self._key(url, raw_id)

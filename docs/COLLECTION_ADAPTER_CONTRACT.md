@@ -160,3 +160,8 @@ docker run --rm --name enum-test-adapter-20261012-verified \
 ### 복사도 guard 안에서 (L1)
 
 - 계약 인자 구성(`item`/`detail`/필드 바인딩의 deepcopy 포함)과 목록 행 정규화(행 deepcopy·JSON 직렬화 검사)를 `guarded()` 안에서 수행한다. 등록 메서드가 돌려준 객체의 `__deepcopy__` 같은 코드도 네트워크/프로세스 tripwire 아래에서 실행된다. Paper 반환 뒤의 `clean_paper`/`paper_identity` 검사는 종전대로 guard 밖이다(dict 사본에 대한 검사).
+
+### 목록 URL 필드 엄격화 (L2)
+
+- 계약 사이트의 adapter 목록 파서는 `listing.parser.url_field`(계약 사이트 기본값 `"url"`) 한 필드만 읽는다. 그 값이 비어도 다른 `url`/`detail_url` 키로 폴백하지 않는다. 계약 없는 경로의 기본값(`detail_url` → `url` 폴백)은 그대로다.
+- `detail_method`가 있는데 행에 URL이 없으면 `adapter_contract:listing_url_missing`으로 거부한다(상세 요청 URL을 만들지 않음). URL과 key가 모두 없으면 종전대로 `listing_identity_missing`. 둘 다 목록 단계 오류이므로 사이트를 멈춘다.
