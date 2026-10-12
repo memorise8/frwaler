@@ -7,8 +7,10 @@ import json
 import re
 from urllib.parse import parse_qs, urlsplit
 
+from .adapters import AdapterConfigError
 
-class ContractError(ValueError):
+
+class ContractError(AdapterConfigError):
     """A declared adapter contract cannot be satisfied; never an empty listing."""
 
 

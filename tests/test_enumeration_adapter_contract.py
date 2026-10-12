@@ -196,3 +196,18 @@ class ContractTests(unittest.TestCase):
     def test_good_then_bad_row_rejects_whole_page(self):
         c=Crawler();c.listing=lambda html:[{'url':'/good','external_id':'id'},None]
         with self.assertRaises(ContractError):self.parser(self.adapter(crawler=c)).parse(self.response())
+
+    def test_contract_failure_stops_runner_without_save_or_checkpoint(self):
+        from crawler.enumeration.adapters import AdapterConfigError
+        from crawler.enumeration.runner import SiteRunner
+        c=Crawler();c.detail=lambda html,item:[]
+        a=self.adapter(crawler=c)
+        p=site_plan({'sites':{'contract-test':{'strategy':'last_page_backward','listing':{'url':'https://example.test/list','parser':{'type':'adapter'}},'adapter':self.cfg()}}},'contract-test',registered=['contract-test'])
+        def unexpected(*args,**kwargs):self.fail('contract failure must not be saved or swallowed')
+        store=SimpleNamespace(item=lambda *args:None,record_item=unexpected)
+        a.save=unexpected
+        runner=SiteRunner(p,store,SimpleNamespace(get=lambda url:self.response()),a)
+        with self.assertRaisesRegex(AdapterConfigError,'adapter_contract:paper_not_dict') as caught:
+            runner.process_item(self.item(),'all')
+        self.assertEqual(('config_error','adapter_contract:paper_not_dict'),runner._stop_status(caught.exception,{}))
+        self.assertEqual(0,runner.stats['failed_permanent'])
