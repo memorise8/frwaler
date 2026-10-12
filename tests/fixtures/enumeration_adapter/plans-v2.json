@@ -1,0 +1,270 @@
+{
+ "version": 1,
+ "defaults": {
+  "request_interval_s": 1.5,
+  "max_requests": 20000,
+  "max_runtime_s": 21600,
+  "max_pages": null,
+  "retries": 3,
+  "item_max_attempts": 3,
+  "respect_robots": true
+ },
+ "sites": {
+  "cerema-fr": {
+   "strategy": "last_page_backward",
+   "adapter": {
+    "type": "crawler"
+   },
+   "listing": {
+    "url": "https://www.cerema.fr/fr/presse/document",
+    "page_param": "page",
+    "start_page": 0,
+    "parser": {
+     "type": "adapter",
+     "listing_marker": ".view-document-reference-press"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1,
+    "check_unparameterized_first_page": true
+   }
+  },
+  "esri-ie": {
+   "strategy": "last_page_backward",
+   "adapter": {
+    "type": "crawler"
+   },
+   "listing": {
+    "url": "https://www.esri.ie/publications/browse",
+    "page_param": "page",
+    "start_page": 0,
+    "parser": {
+     "type": "adapter",
+     "listing_marker": "div.view-search-publications"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1,
+    "check_unparameterized_first_page": true
+   }
+  },
+  "nioo-knaw-nl": {
+   "strategy": "last_page_backward",
+   "adapter": {
+    "type": "crawler"
+   },
+   "listing": {
+    "url": "https://nioo.knaw.nl/en/pressreleases",
+    "page_param": "page",
+    "start_page": 0,
+    "parser": {
+     "type": "adapter",
+     "listing_marker": "div.view-news.view-display-id-page_press"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1,
+    "check_unparameterized_first_page": true
+   }
+  },
+  "nrscotland-gov-uk": {
+   "strategy": "last_page_backward",
+   "adapter": {
+    "type": "crawler"
+   },
+   "listing": {
+    "url": "https://www.nrscotland.gov.uk/publications/",
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "listing_marker": "div.ds_search-results__list"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1,
+    "check_unparameterized_first_page": true
+   }
+  },
+  "skillsdevelopmentscotland-co-uk": {
+   "strategy": "last_page_backward",
+   "adapter": {
+    "type": "crawler"
+   },
+   "listing": {
+    "url": "https://www.skillsdevelopmentscotland.co.uk/news-events",
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1,
+    "check_unparameterized_first_page": true
+   }
+  },
+  "pubs-usgs-gov": {
+   "strategy": "last_page_backward",
+   "adapter": {
+    "type": "crawler"
+   },
+   "listing": {
+    "url": "https://pubs.usgs.gov/browse/Conference%20Paper/",
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "listing_marker": "div.browse-page"
+    },
+    "total": {
+     "type": "regex",
+     "pattern": "([\\d,]+)\\s+results"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1,
+    "check_unparameterized_first_page": true
+   }
+  },
+  "data-aeronomie-be": {
+   "strategy": "last_page_backward",
+   "adapter": {
+    "type": "crawler"
+   },
+   "listing": {
+    "url": "https://data.aeronomie.be/dataset/?res_format=PDF",
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1,
+    "check_unparameterized_first_page": true
+   }
+  },
+  "dhs-gov-publications": {
+   "strategy": "last_page_backward",
+   "adapter": {
+    "type": "crawler"
+   },
+   "listing": {
+    "url": "https://www.dhs.gov/publications",
+    "page_param": "page",
+    "start_page": 0,
+    "parser": {
+     "type": "adapter",
+     "listing_marker": "main"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1,
+    "check_unparameterized_first_page": true
+   }
+  },
+  "sfi-ch": {
+   "strategy": "last_page_backward",
+   "adapter": {
+    "type": "crawler"
+   },
+   "listing": {
+    "url": "https://www.sfi.ch/en/about-us/press-releases",
+    "page_param": "p",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1,
+    "check_unparameterized_first_page": true
+   }
+  },
+  "cerema-fr-fr": {
+   "strategy": "date_range_split",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_parse_list_page",
+    "list_args": [
+     "html"
+    ],
+    "detail_method": "_parse_detail",
+    "detail_args": [
+     "html",
+     "item"
+    ]
+   },
+   "listing": {
+    "url": "https://www.cerema.fr/fr/presse/{segment}",
+    "page_param": "page",
+    "start_page": 0,
+    "parser": {
+     "type": "adapter",
+     "listing_marker": ".view-id-press_release, .view-id-document_reference_press"
+    }
+   },
+   "segments": {
+    "mode": "explicit",
+    "items": [
+     {
+      "key": "dossier"
+     },
+     {
+      "key": "document"
+     }
+    ]
+   }
+  },
+  "cedelft-eu-reports": {
+   "strategy": "sitemap",
+   "adapter": {
+    "type": "crawler",
+    "detail_method": "_parse_detail",
+    "detail_args": [
+     "url",
+     "html"
+    ]
+   },
+   "sitemap": {
+    "sitemap_url": "https://cedelft.eu/sitemap_index.xml",
+    "index_include": [
+     "report-sitemap\\d*\\.xml"
+    ]
+   }
+  },
+  "audencia-com-lecole": {
+   "strategy": "last_page_backward",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_parse_list",
+    "list_args": [
+     "soup",
+     "url"
+    ],
+    "detail_method": "_parse_detail",
+    "detail_args": [
+     "soup",
+     "html",
+     "item"
+    ]
+   },
+   "listing": {
+    "url": "https://www.audencia.com/lecole/newsroom/communiques-de-presse",
+    "page_param": "page",
+    "start_page": 0,
+    "parser": {
+     "type": "adapter",
+     "url_field": "url",
+     "date_field": "listed_date",
+     "listing_marker": ".view-id-recherche_avancee.view-display-id-press_releases"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1,
+    "check_unparameterized_first_page": true
+   }
+  }
+ }
+}

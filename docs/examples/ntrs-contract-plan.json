@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "defaults": {
+    "request_interval_s": 1.5,
+    "max_requests": 20000,
+    "max_runtime_s": 21600,
+    "max_pages": null,
+    "retries": 3,
+    "item_max_attempts": 3,
+    "respect_robots": true
+  },
+  "sites": {
+    "ntrs-nasa-gov-search": {
+      "strategy": "date_range_split",
+      "base_url": "https://ntrs.nasa.gov",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_parse_search_results",
+        "list_args": ["json"],
+        "paper_method": "_paper_from_result",
+        "paper_args": [{"source": "item", "path": ["result"]}]
+      },
+      "listing": {
+        "url": "https://ntrs.nasa.gov/api/citations/search?stiTypeDetails=Contractor+Report+%28CR%29",
+        "params": {
+          "page[size]": 100,
+          "sort[field]": "publications.publicationDate",
+          "sort[order]": "asc"
+        },
+        "page_param": "page[from]",
+        "page_mode": "offset",
+        "page_size": 100,
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "key_field": "id",
+          "url_field": "url",
+          "date_field": "published_date",
+          "title_field": "title"
+        },
+        "total": {"type": "json", "path": "stats.total"}
+      },
+      "segments": {
+        "mode": "range",
+        "from": "1800",
+        "to": "now",
+        "granularity": "year",
+        "filter": {
+          "type": "range",
+          "from_param": "published[gte]",
+          "to_param": "published[lte]",
+          "date_format": "%Y-%m-%d"
+        },
+        "hidden_cap": 9800,
+        "split_to": ["month", "day"],
+        "within_segment_order": "oldest_first",
+        "overlap_pages": 0
+      },
+      "overall_total_check": true
+    }
+  }
+}

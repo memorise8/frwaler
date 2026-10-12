@@ -16,7 +16,19 @@ from .strategies import STRATEGIES, StrategyStop, today_from
 from .urls import host_of, normalize_key_url, url_identity
 
 
+# Ledger reasons of items a contract site's registered methods failed on.
+CONTRACT_FAILURE_PREFIXES = ("failed_permanent:parse_error:", "failed_permanent:empty_item",
+                             "failed_permanent:adapter_contract:")
+# Contract items with no identity/URL: always identity_missing review, never tolerated
+# by max_contract_failure_ratio (as IdentityMissing is on the non-contract path).
+CONTRACT_IDENTITY_MISSING = ("failed_permanent:adapter_contract:paper_identity_missing",
+                             "failed_permanent:adapter_contract:paper_url_missing")
+
 COMPLETED = ("complete", "complete_with_mismatch", "complete_unverified", "complete_with_review")
+
+# A consecutive contract stop. Its items are failed_permanent in the ledger, so a plain
+# rerun would skip them as known and move the checkpoint past them: held until requeued.
+CONTRACT_STOP = "adapter_contract_failures_consecutive:"
 
 
 def transient_db_error(exc):
@@ -94,6 +106,21 @@ class SiteRunner:
         self._save_errors = 0
         self._db_errors = 0
         self._attempted = {}
+        # Opt-in adapter contract only: registered-method failures are counted so a
+        # broken binding can never end as a plain "complete".
+        self.contract = getattr(adapter, "contract", None) is not None
+        self._contract_failures = 0
+        self._contract_streak = []
+
+    def contract_failure(self, item, reason):
+        """A contract site's registered method failed for one item (already ledgered)."""
+        if not self.contract:
+            return
+        self.store.event(self.site_id, "adapter_contract_item_failed", {"item": item.key, "reason": reason})
+        self._contract_failures += 1
+        self._contract_streak.append(item.key)
+        if self._contract_failures >= int(self.plan.get("max_consecutive_contract_failures") or 5):
+            raise StrategyStop("config_error", f"adapter_contract_failures_consecutive:{reason}")
 
     # -- items ---------------------------------------------------------------
     def process_item(self, item, segment):
@@ -142,17 +169,28 @@ class SiteRunner:
             st.record_item(site, item.key, "failed_transient", reason=f"transient:{exc.reason}", attempt=True, **common)
             self.stats["failed_transient"] += 1
             return
-        except AdapterConfigError:
-            raise  # a configuration mistake stops the site; never ledgered per item
+        except AdapterConfigError as exc:
+            if not (self.contract and getattr(exc, "data_error", False)):
+                raise  # a configuration mistake stops the site; never ledgered per item
+            # One item lacks a declared value (contract sites only): ledger it for review;
+            # the consecutive/ratio rules decide whether the whole site is broken.
+            st.record_item(site, item.key, "failed_permanent", reason=str(exc), attempt=True, **common)
+            self.stats["failed_permanent"] += 1
+            self.contract_failure(item, str(exc))
+            return
         except Exception as exc:  # parser errors never stop the site
             st.record_item(site, item.key, "failed_permanent", reason=f"parse_error:{type(exc).__name__}",
                            attempt=True, **common)
             self.stats["failed_permanent"] += 1
+            self.contract_failure(item, f"parse_error:{type(exc).__name__}")
             return
         if not paper or not str(paper.get("title") or "").strip() or not (paper.get("url") or paper.get("meta_url")):
             st.record_item(site, item.key, "failed_permanent", reason="empty_item", attempt=True, **common)
             self.stats["failed_permanent"] += 1
+            self.contract_failure(item, "empty_item")
             return
+        self._contract_failures = 0
+        self._contract_streak = []
         self._login_details = 0
         self._robots_details = 0
         try:
@@ -271,13 +309,29 @@ class SiteRunner:
         items = [(seq, Item(key=normalize_key_url(url), url=url, payload={"detail_url": url}))
                  for seq, _post, url in sample]
         source = "reference_rows"
-        compared = matched = errors = 0
+        compared = matched = errors = contract_data_errors = 0
         examples = []
+        list_field = self.adapter.identity_uses_list_fields()
 
-        def compare(expected_seq, item):
-            nonlocal compared, matched, errors
+        def compare(expected_seq, item, reference=False):
+            nonlocal compared, matched, errors, contract_data_errors
             try:
                 ident = self.adapter.identity(item, self.fetcher)
+            except AdapterConfigError as exc:
+                if not self.contract:
+                    errors += 1  # non-contract sites: a sample error, exactly as before the contract
+                    return
+                # ContractError is a ValueError: never let it pass as a mere sample error.
+                if not getattr(exc, "data_error", False):
+                    raise
+                contract_data_errors += 1
+                if reference and list_field:
+                    errors += 1  # a reference URL cannot rebuild the listing fields
+                    return
+                compared += 1  # a comparable item the contract cannot identify: a mismatch
+                if len(examples) < 3:
+                    examples.append({"framework": None, "contract_error": str(exc), "reference_seq": expected_seq})
+                return
             except (PermanentFailure, TransientFailure, RobotsDisallowed, ValueError, KeyError, TypeError,
                     AttributeError):
                 errors += 1
@@ -306,7 +360,7 @@ class SiteRunner:
                                  "dedup_match": found})
 
         for seq, item in items:
-            compare(seq, item)
+            compare(seq, item, reference=True)
         listing_items = []
         if not compared and self.plan.strategy != "sitemap":
             # Crawlers whose identity needs list fields cannot rebuild it from a URL.
@@ -314,12 +368,13 @@ class SiteRunner:
             listing_items = strategy.fetch_page(strategy.page_url(strategy.start_page)).items[: self.identity_sample]
             for item in listing_items:
                 compare(None, item)
-        list_field = self.adapter.identity_uses_list_fields()
         result = {"mode": "sampled", "source": source, "reference_rows": total,
                   "sampled_reference": len(items), "sampled_listing": len(listing_items),
                   "sampled": len(items) + len(listing_items), "list_field_identity": list_field,
                   "compared": compared, "matched": matched, "errors": errors, "threshold": self.identity_threshold,
                   "match_rate": (matched / compared) if compared else None, "mismatch_examples": examples}
+        if self.contract:
+            result["contract_data_errors"] = contract_data_errors
         self.store.event(self.site_id, "identity_precheck", result)
         if not compared:
             raise _IdentityStop("identity_unverifiable_no_overlap", result)
@@ -344,6 +399,9 @@ class SiteRunner:
         if isinstance(exc, _IdentityStop):
             return "config_error", exc.reason
         if isinstance(exc, StrategyStop):
+            if self.contract and str(exc.reason).startswith(CONTRACT_STOP):
+                # The items that caused the stop; the hold lasts until they are requeued.
+                state["adapter_contract_stop_items"] = list(self._contract_streak)
             return exc.status, exc.reason
         if isinstance(exc, BudgetExhausted):
             return "incomplete", exc.reason
@@ -393,14 +451,36 @@ class SiteRunner:
             self.store.save_state(self.site_id, state)
 
     def review_counts(self):
-        _, failed = self.store.item_counts(self.site_id)
+        saved, failed = self.store.item_counts(self.site_id)
         counts = {
             "identity_collisions": failed.get("failed_permanent:identity_collision", 0),
             "identity_reviews": sum(v for k, v in failed.items() if k.startswith("failed_permanent:identity_review:")),
             "listing_identity_conflicts": failed.get("failed_permanent:listing_identity_conflict", 0),
             "identity_missing": failed.get("failed_permanent:identity_missing", 0),
         }
+        if self.contract:
+            # Items a registered method could not turn into a document need a person
+            # unless the plan explicitly tolerates that share (default: none).
+            counts["identity_missing"] += sum(failed.get(k, 0) for k in CONTRACT_IDENTITY_MISSING)
+            bad = sum(v for k, v in failed.items()
+                      if k.startswith(CONTRACT_FAILURE_PREFIXES) and k not in CONTRACT_IDENTITY_MISSING)
+            seen = saved + sum(failed.values())
+            ratio = float(self.plan.get("max_contract_failure_ratio") or 0.0)
+            if bad and bad / seen > ratio:
+                counts["adapter_contract_failures"] = bad
         return {k: v for k, v in counts.items() if v}
+
+    def contract_stop_held(self, current):
+        """True while the items of an earlier consecutive contract stop are still
+        failed_permanent (not requeued with --reprocess-failed)."""
+        if not (self.contract and current and current["status"] == "config_error"
+                and str(current.get("stop_reason") or "").startswith(CONTRACT_STOP)):
+            return False
+        keys = (current.get("state") or {}).get("adapter_contract_stop_items")
+        if not keys:
+            return True  # nothing recorded to check: keep holding
+        rows = [self.store.item(self.site_id, k) for k in keys]
+        return any(r is None or r["status"] == "failed_permanent" for r in rows)
 
     def run(self, *, refresh=False, retry_only=False):
         """Enumerate (or resume). A completed site is only re-enumerated with ``refresh``;
@@ -410,6 +490,9 @@ class SiteRunner:
         if current and current["status"] == "access_blocked" and not refresh:
             # Refusals persist across runs and passes; a person must review first.
             return self._result("access_blocked", "access_hold_requires_review")
+        if not refresh and self.contract_stop_held(current):
+            # Like the access hold: no request, no checkpoint move, the stop reason is kept.
+            return self._result("config_error", "adapter_contract_stop_requires_reprocess")
         for url in (plan.listing.get("url"), plan.base_url, plan.section("sitemap").get("sitemap_url")):
             held = self.store.host_hold(host_of(url)) if url and host_of(url) else None
             if held:
@@ -454,6 +537,7 @@ class SiteRunner:
         duplicates_before = duplicate_rows(doc_conn, site)
         state = st.start_site(site, plan.fingerprint, plan.strategy)
         state.pop("cooldown_until", None)
+        state.pop("adapter_contract_stop_items", None)
         parser = ListingParser(plan.listing.get("parser"), total_cfg=plan.listing.get("total"), adapter=self.adapter)
         ctx = Context(site, plan, plan.fingerprint, st, self.fetcher, parser, self.today, state)
         strategy = STRATEGIES[plan.strategy](ctx)

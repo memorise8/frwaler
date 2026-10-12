@@ -94,6 +94,11 @@ def extract_total(cfg, resp, text=None, data=None):
     raise ValueError(f"unknown total type: {kind}")
 
 
+def _json_listing(cfg):
+    from .contracts import json_listing
+    return json_listing(cfg)
+
+
 class ListingParser:
     def __init__(self, cfg, *, total_cfg=None, adapter=None):
         self.cfg = cfg or {}
@@ -122,7 +127,10 @@ class ListingParser:
             raise ValueError(f"unknown listing parser type: {self.kind}")
         if getattr(resp, "login_suspect", False):
             page.extra["login_suspect"] = True
-        if not page.items and not page.extra.get("parse_error") and self.kind != "json":
+        contract_json = (self.kind == "adapter" and self.adapter is not None
+                         and getattr(self.adapter, "contract", None) is not None
+                         and _json_listing(self.adapter.cfg))
+        if not page.items and not page.extra.get("parse_error") and self.kind != "json" and not contract_json:
             # An empty HTML listing is an end candidate only when the listing's own
             # structure is present; an error/foreign page is a parse error.
             marker = self.listing_marker()
@@ -258,16 +266,38 @@ class ListingParser:
     def _adapter(self, resp):
         if self.adapter is None:
             raise ValueError("listing parser type 'adapter' requires a crawler adapter")
+        strict = getattr(self.adapter, "contract", None) is not None
+        if strict and _json_listing(self.adapter.cfg):
+            try:
+                resp.json()
+            except ValueError:
+                # Same classification as the json parser: a listing error, never an empty page.
+                return Page([], None, resp.status, {"parse_error": "invalid_json"})
         rows = self.adapter.parse_list(resp) or []
         cfg = self.cfg
         items, seen = [], set()
         for row in rows:
             if not isinstance(row, dict):
                 continue
-            url = row.get(cfg.get("url_field", "detail_url")) or row.get("url") or ""
+            if strict:
+                # Only the declared field (default "url"); never another key as a fallback.
+                url = row.get(cfg.get("url_field", "url")) or ""
+            else:
+                url = row.get(cfg.get("url_field", "detail_url")) or row.get("url") or ""
+            if strict and not isinstance(url, str):
+                from .contracts import fail
+                fail("listing_url_type")
             url = urljoin(resp.url, str(url)) if url else ""
             # Registered config crawlers return their legacy external_id; use it.
             raw_id = row.get(cfg.get("key_field", "external_id"))
+            if strict:
+                from .contracts import fail
+                if raw_id is not None and type(raw_id) not in (str, int):
+                    fail("listing_key_type")
+                if not url and raw_id in (None, ""):
+                    fail("listing_identity_missing")
+                if not url and self.adapter.cfg.get("detail_method"):
+                    fail("listing_url_missing")  # the detail request needs the item's own URL
             if not url and raw_id in (None, ""):
                 continue
             key = self._key(url, raw_id)

@@ -1,0 +1,534 @@
+{
+  "version": 1,
+  "sites": {
+    "afp-gov-au-news-centre": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_parse_list_page",
+        "list_args": [
+          "html",
+          "url"
+        ]
+      },
+      "listing": {
+        "url": "https://www.afp.gov.au/news-centre",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "africamuseum-be-en": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_parse_list_page",
+        "list_args": [
+          "html"
+        ]
+      },
+      "listing": {
+        "url": "https://www.africamuseum.be/en/research/news?page=9",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "culture-gouv-fr-espace-documentation": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_parse_list_page",
+        "list_args": [
+          "html",
+          "url"
+        ]
+      },
+      "listing": {
+        "url": "https://www.culture.gouv.fr/espace-documentation?resource_type%5B0%5D=50&page=44",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "economie-fgov-be-nl": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_parse_listing",
+        "list_args": [
+          "html"
+        ]
+      },
+      "listing": {
+        "url": "https://economie.fgov.be/nl/publicaties",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "health-ni-gov-uk-publications": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_parse_list_page",
+        "list_args": [
+          "html"
+        ]
+      },
+      "listing": {
+        "url": "https://www.health-ni.gov.uk/publications",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "mimit-gov-it-it": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_parse_list_page",
+        "list_args": [
+          "html"
+        ]
+      },
+      "listing": {
+        "url": "https://www.mimit.gov.it/it/per-i-media/pubblicazioni",
+        "page_param": "start",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter"
+        },
+        "page_mode": "offset",
+        "page_size": 10
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "climateinstitute-ca-newsroom": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler"
+      },
+      "listing": {
+        "url": "https://climateinstitute.ca/wp-json/wp/v2/news?order=asc&per_page=100",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter"
+        },
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "academie-sciences-fr-espace-presse": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler"
+      },
+      "listing": {
+        "url": "https://www.academie-sciences.fr/espace-presse?page=1",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "ifremer-fr-fr": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler"
+      },
+      "listing": {
+        "url": "https://www.ifremer.fr/fr/espace-presse",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "efk-admin-ch-fr": {
+      "strategy": "oldest_first_sort",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_parse_list_records",
+        "list_args": [
+          "json"
+        ]
+      },
+      "listing": {
+        "url": "https://www.efk.admin.ch/fr/wp-json/wp/v2/posts?per_page=20",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter"
+        },
+        "params": {
+          "orderby": "date",
+          "order": "asc"
+        },
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "earth-prints-org": {
+      "strategy": "oldest_first_sort",
+      "adapter": {
+        "type": "crawler"
+      },
+      "listing": {
+        "url": "https://www.earth-prints.org/server/api/discover/search/objects?configuration=researchoutputs&sort=dc.date.accessioned%2CASC&size=25",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter"
+        },
+        "params": {
+          "sort": "dc.date.accessioned,ASC"
+        },
+        "total": {
+          "type": "json",
+          "path": "_embedded.searchResult.page.totalElements"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "kit-nl-institute": {
+      "strategy": "oldest_first_sort",
+      "adapter": {
+        "type": "crawler"
+      },
+      "listing": {
+        "url": "https://www.kit.nl/wp-json/wp/v2/institute_pub?kit_publication_type=34&order=asc&per_page=20",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter"
+        },
+        "params": {
+          "orderby": "date",
+          "order": "asc"
+        },
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "mi-se-arkiv": {
+      "strategy": "oldest_first_sort",
+      "adapter": {
+        "type": "crawler"
+      },
+      "listing": {
+        "url": "https://www.mi.se/wp-json/wp/v2/posts?order=asc&per_page=20",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter"
+        },
+        "params": {
+          "orderby": "date",
+          "order": "asc"
+        },
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "nasa-gov-2025-news-releases": {
+      "strategy": "oldest_first_sort",
+      "adapter": {
+        "type": "crawler"
+      },
+      "listing": {
+        "url": "https://www.nasa.gov/wp-json/wp/v2/press-release?after=2025-01-01T00%3A00%3A00&before=2026-01-01T00%3A00%3A00&order=asc&per_page=100",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter"
+        },
+        "params": {
+          "orderby": "date",
+          "order": "asc"
+        },
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "srnl-gov-newsroom": {
+      "strategy": "oldest_first_sort",
+      "adapter": {
+        "type": "crawler"
+      },
+      "listing": {
+        "url": "https://www.srnl.gov/wp-json/wp/v2/news-releases?orderby=date&order=asc&per_page=20",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter"
+        },
+        "params": {
+          "orderby": "date",
+          "order": "asc"
+        },
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "didaktorika-gr-eadd": {
+      "strategy": "oldest_first_sort",
+      "adapter": {
+        "type": "crawler"
+      },
+      "listing": {
+        "url": "https://www.didaktorika.gr/eadd/simple-search?query=&rpp=100&sort_by=0&order=DESC",
+        "parser": {
+          "type": "adapter"
+        }
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "publichealthscotland-scot-publications": {
+      "strategy": "oldest_first_sort",
+      "adapter": {
+        "type": "crawler"
+      },
+      "listing": {
+        "url": "https://www.publichealthscotland.scot/publications/",
+        "parser": {
+          "type": "adapter"
+        }
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "finance-ni-gov-uk-publications": {
+      "strategy": "sitemap",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_parse_list_page",
+        "list_args": [
+          "html"
+        ]
+      },
+      "sitemap": {
+        "sitemap_url": "https://www.finance-ni.gov.uk/sitemap.xml"
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "nesc-ie-publications": {
+      "strategy": "sitemap",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_parse_list_html",
+        "list_args": [
+          "html"
+        ]
+      },
+      "sitemap": {
+        "sitemap_url": "https://www.nesc.ie/post-sitemap.xml"
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "cnl-ca-news-publications": {
+      "strategy": "sitemap",
+      "adapter": {
+        "type": "crawler"
+      },
+      "sitemap": {
+        "sitemap_url": "https://www.cnl.ca/post-sitemap.xml"
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "home-cern-news": {
+      "strategy": "sitemap",
+      "adapter": {
+        "type": "crawler"
+      },
+      "sitemap": {
+        "sitemap_url": "https://home.cern/sitemap.xml"
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "ntrs-nasa-gov-search": {
+      "strategy": "sitemap",
+      "adapter": {
+        "type": "crawler"
+      },
+      "sitemap": {
+        "sitemap_url": "https://ntrs.nasa.gov/search?stiTypeDetails=Contractor%20Report%20(CR)&page=%7B%22from%22:0,%22size%22:100%7D"
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "mentalhealthcommission-ca-resources": {
+      "strategy": "sitemap",
+      "adapter": {
+        "type": "crawler"
+      },
+      "sitemap": {
+        "sitemap_url": "https://mentalhealthcommission.ca/resource-sitemap.xml"
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "nidi-nl-en": {
+      "strategy": "sitemap",
+      "adapter": {
+        "type": "crawler"
+      },
+      "sitemap": {
+        "sitemap_url": "https://nidi.nl/sitemap_index.xml"
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    }
+  }
+}

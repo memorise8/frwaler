@@ -1,0 +1,253 @@
+{
+  "notice": "통과는 plan 형식·틀 규칙 및 등록 어댑터 연결 검증이며 전체 수집 성공의 증거가 아니다.",
+  "base_commit": "e2ebfc9a76e70276ea4a0ada312b4de8555b7544",
+  "tested_code_commit": "b87b7f5",
+  "test_result": {
+    "total": 236,
+    "baseline": 186,
+    "added": 50,
+    "skipped": 1,
+    "outcome": "OK",
+    "skip_reason": "TEST_PG_ADMIN_DSN 미설정 PostgreSQL 전용 검사",
+    "seconds": 55.755,
+    "log": "tests/fixtures/enumeration_adapter/test-run-verified.log",
+    "log_sha256": "d50de799d0fb39d64ce676efcf5c0235ee8a8249a6bafa5bd617ae3d1d9b2b4b"
+  },
+  "site_network_requests": 0,
+  "database_scope": "신규 어댑터 테스트 conn=None. 기존 전체 테스트는 컨테이너 내부 임시 SQLite 가짜 데이터 사용. 운영/고객/PostgreSQL 연결 없음.",
+  "count_evidence": "tests.test_enumeration_adapter_sites.ActualSites.test_rejected_24_reclassification의 성공한 assertions를 기록. 별도의 실제 수집 실행 결과가 아님.",
+  "comparison": {
+    "sites": 24,
+    "before_schema_pass": 24,
+    "before_adapter_pass": 0,
+    "after_schema_pass": 24,
+    "after_adapter_pass": 3,
+    "after_adapter_reject": 21
+  },
+  "compatibility": {
+    "pilot_plans": 12,
+    "previous_passed_plans": 5,
+    "evidence": "기준 구현과 현재 구현에 동일 합성 파서 반환값을 넣어 plan·지문·호출 인자·Paper·identity·상세 호출 수를 비교. 실제 HTML 전체 회귀검사는 아님."
+  },
+  "actual_registered_method_evidence": "통과 3곳은 사이트당 합성 목록 항목으로 실제 등록 메서드 직접 호출과 새 어댑터 Paper 전체 및 identity 동일성 대조. AFP는 상세 메서드 내부 curl 호출(파일명 없는 PDF 링크) 때문에 후보에서 제외(af1df09 리뷰 M1).",
+  "sites": [
+    {
+      "site_id": "afp-gov-au-news-centre",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false,
+      "contract_excluded_reason": "registered _parse_detail_page calls _curl_head_content_disposition (subprocess curl) for a PDF link without a filename; guard stops the whole site (config_error). Not a contract candidate; not bypassed in code."
+    },
+    {
+      "site_id": "africamuseum-be-en",
+      "schema": "pass",
+      "adapter": "pass",
+      "reason": null,
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "culture-gouv-fr-espace-documentation",
+      "schema": "pass",
+      "adapter": "pass",
+      "reason": null,
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "economie-fgov-be-nl",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "health-ni-gov-uk-publications",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "mimit-gov-it-it",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "climateinstitute-ca-newsroom",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "academie-sciences-fr-espace-presse",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "ifremer-fr-fr",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "efk-admin-ch-fr",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "earth-prints-org",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "kit-nl-institute",
+      "schema": "pass",
+      "adapter": "pass",
+      "reason": null,
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "mi-se-arkiv",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "nasa-gov-2025-news-releases",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "srnl-gov-newsroom",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "didaktorika-gr-eadd",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "publichealthscotland-scot-publications",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "finance-ni-gov-uk-publications",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "nesc-ie-publications",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "cnl-ca-news-publications",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "home-cern-news",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "ntrs-nasa-gov-search",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "mentalhealthcommission-ca-resources",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    },
+    {
+      "site_id": "nidi-nl-en",
+      "schema": "pass",
+      "adapter": "reject",
+      "reason": "custom crawler adapter needs detail_method, paper_method or list_returns_paper",
+      "full_collection_verified": false,
+      "last_page_verified": false,
+      "total_count_verified": false
+    }
+  ],
+  "containers": "본 작업의 enum-test-adapter-20261012-{1,2,final,verified} 네 컨테이너가 모두 제거되었음을 특정 이름 inspect로 확인."
+}
