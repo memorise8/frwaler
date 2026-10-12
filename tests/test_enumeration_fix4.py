@@ -291,5 +291,77 @@ class ConsecutiveRobotsLimitTest(unittest.TestCase):
         self.assertEqual((result["status"], result["stop_reason"]), ("access_blocked", "robots_disallowed"))
 
 
+class CrawlDelayValueTest(unittest.TestCase):
+    """LOW-5: '10s' / '1/10s' are read with their unit; a value that cannot be read in a group that
+    applies to us stops the site (never read as no delay); Crawl-delay groups are chosen like the
+    rule groups (whole product token or '*')."""
+
+    def delay(self, robots):
+        from crawler.enumeration.http import DEFAULT_USER_AGENT, crawl_delay
+        return crawl_delay(robots, DEFAULT_USER_AGENT)
+
+    def rate(self, robots):
+        from crawler.enumeration.http import DEFAULT_USER_AGENT, parse_robots
+        return parse_robots(robots).request_rate(DEFAULT_USER_AGENT)
+
+    def test_second_suffix(self):
+        self.assertEqual(self.delay("User-agent: *\nCrawl-delay: 10s\n"), 10)
+        self.assertEqual(self.delay("User-agent: *\nCrawl-delay: 2.5 S\n"), 2.5)
+        self.assertEqual(self.delay("User-agent: *\nCrawl-delay: 7\n"), 7)
+        self.assertEqual(self.rate("User-agent: *\nRequest-rate: 1/10s\n"), 10)
+        self.assertEqual(self.rate("User-agent: *\nRequest-rate: 1/10\n"), 10)
+        self.assertEqual(self.rate("User-agent: *\nRequest-rate: 2/10\n"), 5)
+        self.assertEqual(self.rate("User-agent: *\nRequest-rate: 1/2m\n"), 120)
+
+    def test_unreadable_values_raise(self):
+        for value in ("abc", "nan", "inf", "-5", "10ms", "1e3"):
+            with self.assertRaises(ValueError, msg=value):
+                self.delay(f"User-agent: *\nCrawl-delay: {value}\n")
+        for value in ("1/10x", "0/10", "1/10s 0800-1700", "fast", "1/-1"):
+            with self.assertRaises(ValueError, msg=value):
+                self.rate(f"User-agent: *\nRequest-rate: {value}\n")
+
+    def test_unreadable_values_of_other_groups_ignored(self):
+        robots = "User-agent: Googlebot\nCrawl-delay: abc\nRequest-rate: soon\n\nUser-agent: *\nCrawl-delay: 3\n"
+        self.assertEqual(self.delay(robots), 3)
+        self.assertEqual(self.rate(robots), 0)
+        self.assertEqual(self.delay("User-agent: *\nCrawl-delay:\n"), 0)
+
+    def test_crawl_delay_group_selection_matches_rule_groups(self):
+        self.assertEqual(self.delay("User-agent: a\nCrawl-delay: 99\n"), 0)
+        self.assertEqual(self.delay("User-agent: Safari\nCrawl-delay: 400\n\nUser-agent: *\nCrawl-delay: 1\n"), 1)
+        self.assertEqual(self.delay("User-agent: Mozilla/5.0 (compatible; Yeti/1.1)\nCrawl-delay: 99\n"), 0)
+        self.assertEqual(self.delay("User-agent: mozilla\nCrawl-delay: 9\n\nUser-agent: *\nCrawl-delay: 1\n"), 9)
+        self.assertEqual(self.delay("User-agent: *\nCrawl-delay: 9\n\nUser-agent: Mozilla\nCrawl-delay: 1\n"), 9)
+
+    def test_fetcher_stops_on_unreadable_delay_and_waits_on_suffixed_one(self):
+        from crawler.enumeration import http as H
+        from tests.enumeration_fakes import FakeTransport
+        env = Env()
+        self.addCleanup(env.close)
+
+        def fetcher(robots):
+            def handler(url):
+                if url.endswith("/robots.txt"):
+                    return Response(200, {"Content-Type": "text/plain"}, robots)
+                return Response(200, {"Content-Type": "text/html"}, b"<html><body><p>x</p></body></html>")
+            t = FakeTransport(handler)
+            return H.Fetcher(env.site_id, t, env.root / "gates", interval=0, sleep=lambda s: None,
+                             holds=env.store), t
+        for robots in (b"User-agent: *\nCrawl-delay: soon\n", b"User-agent: *\nRequest-rate: 1/10x\n"):
+            f, t = fetcher(robots)
+            with self.assertRaises(H.AccessBlocked) as ctx:
+                f.get("https://x.org/a")
+            self.assertEqual(ctx.exception.reason, "robots_unparseable")
+            self.assertEqual(t.urls, ["https://x.org/robots.txt"])
+        f, t = fetcher(b"User-agent: *\nRequest-rate: 1/1000s\n")
+        with self.assertRaises(H.AccessBlocked) as ctx:
+            f.get("https://x.org/a")
+        self.assertEqual(ctx.exception.reason, "robots_crawl_delay_too_long")
+        f, t = fetcher(b"User-agent: *\nCrawl-delay: 10s\n")
+        f.get("https://x.org/a")
+        self.assertEqual(f.timing_summary()["hosts"]["x.org"]["crawl_delay_s"], 10)
+
+
 if __name__ == "__main__":
     unittest.main()

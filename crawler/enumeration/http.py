@@ -18,7 +18,6 @@ from __future__ import annotations
 import hashlib
 import ipaddress
 import json
-import math
 import re
 import socket
 import time
@@ -100,11 +99,18 @@ def login_page(body):
     return not soup.find_all("a", href=True)
 
 
+_SECONDS = re.compile(r"(\d+(?:\.\d*)?|\.\d+)\s*(s?)", re.I)
+_RATE = re.compile(r"(\d+)\s*/\s*(\d+(?:\.\d*)?|\.\d+)\s*([smh]?)", re.I)
+_UNIT_S = {"": 1, "s": 1, "m": 60, "h": 3600}
+
+
 def crawl_delay(text, user_agent):
-    """Crawl-delay (seconds, fractional allowed): the larger of the groups matching this agent and '*'.
-    urllib.robotparser ignores non-integer values, so this reads the file itself."""
+    """Crawl-delay (seconds, fractional allowed, optional 's' suffix): the larger of the groups
+    matching this agent (whole product token, as the rule groups) and '*'.
+    urllib.robotparser ignores non-integer values, so this reads the file itself. A value that
+    cannot be read in a group that applies to us raises ValueError: the caller then reads the
+    file as unparseable (the site stops) instead of as "no delay"."""
     agents, in_rules, best, star = [], False, None, None
-    ua = user_agent.lower()
     for raw in text.splitlines():
         line = raw.split("#", 1)[0].strip()
         if ":" not in line:
@@ -117,16 +123,17 @@ def crawl_delay(text, user_agent):
             agents.append(value.lower())
         elif field == "crawl-delay":
             in_rules = True
-            try:
-                delay = float(value)
-            except ValueError:
+            applies = [a for a in agents if a == "*" or _agent_applies(a, user_agent)]
+            if not applies or not value:
                 continue
-            if not math.isfinite(delay):
-                continue
-            for agent in agents:
+            match = _SECONDS.fullmatch(value)
+            if not match:
+                raise ValueError(f"unreadable Crawl-delay: {value!r}")
+            delay = float(match.group(1))
+            for agent in applies:
                 if agent == "*":
                     star = delay if star is None else star
-                elif agent and agent in ua:
+                else:
                     best = delay
         else:
             in_rules = True
@@ -188,7 +195,11 @@ class RobotsRules:
         return True if best is None else best[1]
 
     def request_rate(self, user_agent):
-        rates = [g["rate"] for g in self._groups_for(user_agent) if g["rate"]]
+        groups = self._groups_for(user_agent)
+        if any(g["rate"] == "unreadable" for g in groups):
+            # Never read as "no rate": the caller reads the file as unparseable (the site stops).
+            raise ValueError("unreadable Request-rate")
+        rates = [g["rate"] for g in groups if g["rate"]]
         return max(rates) if rates else 0.0
 
 
@@ -245,11 +256,14 @@ def parse_robots(text):
                 current["rules"].append((field == "allow", *_robots_pattern(value)))
         elif field in ("crawl-delay", "request-rate"):
             agent_run = False
-            if field == "request-rate" and current is not None:
-                numbers = value.split("/")
-                if len(numbers) == 2 and numbers[0].strip().isdigit() and numbers[1].strip().isdigit() \
-                        and int(numbers[0]):
-                    current["rate"] = int(numbers[1]) / int(numbers[0])
+            if field == "request-rate" and current is not None and value and current["rate"] != "unreadable":
+                # "n/t" with an optional s/m/h unit on t: one request per t/n seconds.
+                match = _RATE.fullmatch(value)
+                if not match or not int(match.group(1)):
+                    current["rate"] = "unreadable"
+                else:
+                    rate = float(match.group(2)) * _UNIT_S[match.group(3).lower()] / int(match.group(1))
+                    current["rate"] = max(rate, current["rate"] or 0.0)
     return RobotsRules(groups)
 
 
