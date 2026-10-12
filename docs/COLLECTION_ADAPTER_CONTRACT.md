@@ -175,3 +175,39 @@ docker run --rm --name enum-test-adapter-20261012-verified \
 - Docker 전체 검사(지정 명령, 컨테이너 `enum-test-fix`, `--rm`): **260개 실행, OK, 건너뜀 1개**(PostgreSQL 전용, `TEST_PG_ADMIN_DSN` 없음). af1df09의 236개 중 `test_afp_registered_pipeline` 1개는 M1에 따라 `test_afp_not_a_candidate`로 대체했고 나머지 235개는 이름 그대로 통과했다(235 유지 + 신규 25 = 260, 신규 중 1개가 AFP 대체). 새 테스트는 결함별로 수정 전 실패를 먼저 확인했다(H1·M4·H2·M1·M3·L1·L2·L3). 로그는 커밋하지 않았다.
 - 실제 사이트 요청 0건, DB는 테스트 내부 임시 SQLite만 사용했다. 위 `adapter-contract-audit.json`의 `test_result`는 af1df09 당시 실행 기록이며 이 표의 실행으로 바꾸지 않았다(재판정 수치와 AFP 항목만 갱신).
 - 남은 제한: 목록 단계 `url`은 리다이렉트 뒤 URL(H2 절), crawl() 인라인 필터 미적용(M2 절), 의도된 `None` 건너뜀과 실패의 구별 불가(M2 절), Paper 반환 뒤 검사는 guard 밖(L1 절), 목록 단계 계약 오류는 페이지 단위로 사이트를 멈춤(M4 절). 실제 사이트의 범위·마지막 쪽·총량은 여전히 확인하지 않았다.
+
+## 독립 재리뷰(COMMENT) 지적 수정 (브랜치 collect-adapter-fix-20261012, 기준 e3c22e7)
+
+이 절의 규칙도 모두 `adapter.contract_version`이 있는 사이트에만 적용된다(LOW-6은 계약 없는 사이트의 종전 동작 복원). 재현 근거는 리뷰 재현 스크립트의 R2(연속 중단 후 재실행), R8(비율과 식별 누락), R10(리다이렉트 후 query)이며, 수정 전 실패를 `tests/test_enumeration_rereview.py`로 먼저 확인했다.
+
+### 연속 중단 뒤 재실행 보류와 복구 절차 (MEDIUM-1)
+
+- 문제: `adapter_contract_failures_consecutive:*`로 멈춘 뒤 그대로 다시 실행하면 중단을 일으킨 항목이 원장에 `failed_permanent`로 남아 `skipped_known`이 되고 체크포인트가 그 뒤로 전진했다. 재실행마다 다음 5건이 새로 실패해 결국 모든 항목이 영구 실패로 굳었다(수정 전 8회 재실행 시 25/25건).
+- 수정: 연속 중단 시 그 연속 구간의 항목 key를 사이트 상태 `adapter_contract_stop_items`에 기록한다. 다음 실행은 사이트 상태가 `config_error`이고 중단 사유가 `adapter_contract_failures_consecutive:`로 시작하며 그 항목 중 하나라도 아직 `failed_permanent`이면 **요청 0건으로** `config_error(adapter_contract_stop_requires_reprocess)`를 돌려준다. 원래 중단 사유·체크포인트·원장은 바뀌지 않는다(access_blocked 보류와 같은 방식). `--retry-failed`도 같이 거부한다. plan을 바꿔 지문이 달라져도 보류는 유지된다(실패 항목이 원장에 남아 같은 방식으로 건너뛰어지므로).
+- 상세 404 같은 `PermanentFailure`는 계약 단계 실패가 아니므로 연속 횟수를 늘리지도, 0으로 되돌리지도 않는다(기록 항목에서도 빠진다).
+
+복구 절차:
+
+1. 보고서/사이트 상태에서 `stop_reason`(`adapter_contract_failures_consecutive:<사유>`)과 `state.adapter_contract_stop_items`를 확인하고 등록 수집기나 계약 바인딩을 고친다.
+2. 같은 명령에 `--reprocess-failed <접두>`를 붙여 다시 실행한다. 접두는 사유의 원장 형태다: `empty_item`(None/빈 결과), `parse_error:`(등록 메서드 예외), `adapter_contract:`(`missing_path`·`paper_identity_missing`·`paper_url_missing` 데이터 오류). 연속 구간에 사유가 섞였으면 접두를 여러 번 준다. 재처리 대상 항목이 모두 재시도 가능 상태가 되면 보류가 풀리고, 그 항목들은 재시도 단계에서 먼저 처리된다. 여전히 실패하면 다시 연속 중단·보류된다.
+3. 실패를 실제 데이터 문제로 받아들이고 나머지를 계속 받으려면 `--refresh`로 보류를 넘긴다. 이때 해당 항목은 `failed_permanent`로 남고 비율 규칙에 따라 검토 대상(`complete_with_review`)으로 집계된다. 단 plan의 `max_contract_failure_ratio` 이내이면 `complete`가 될 수 있다.
+
+### 식별값·URL 누락은 항상 검토 대상 (MEDIUM-2)
+
+- `adapter_contract:paper_identity_missing`, `adapter_contract:paper_url_missing`으로 원장에 남은 항목은 `max_contract_failure_ratio` 분자에서 빼고 비율과 무관하게 `identity_missing` 검토 건수에 더한다. 계약 없는 경로의 `IdentityMissing`(`failed_permanent:identity_missing`)과 같은 키다. 따라서 비율을 0.5로 올려도 식별 누락이 있으면 `complete_with_review(identity_missing:<건수>)`가 된다.
+- 바뀌는 지점: 이전에는 이 항목들이 `adapter_contract_failures:<건수>`로 보고됐고 비율 이내면 `complete`였다. 이제 `identity_missing:<건수>`로 보고된다(`test_data_contract_error_is_ledgered_for_review`의 기대 사유를 이에 맞춰 바꿨다). 연속 중단 규칙(5건 연속이면 `config_error`)에는 종전대로 포함된다.
+- 분모(원장의 saved+실패 전체)는 바꾸지 않았다.
+
+### 상세·Paper 단계 query 바인딩 (LOW-3)
+
+- `{source:"query"}` 바인딩은 상세/Paper 단계에서 **요청 전 item URL**의 query를 읽는다(`url` 토큰과 같은 기준). 리다이렉트 뒤 응답 URL의 query는 읽지 않는다. 목록 단계에는 item이 없으므로 종전대로 목록 응답 URL(`resp.url`)의 query다. 응답이 없는 단계에서는 종전대로 `response_required:query`로 거부한다.
+- 리다이렉트 뒤 URL이 필요하면 `final_url` 토큰을 쓴다.
+
+### 계약 없는 사이트의 사전 점검 (LOW-6)
+
+- `identity_precheck`의 `AdapterConfigError` 재발생은 계약 사이트에만 적용한다. 계약 없는 사이트에서 표본 재계산 중 나온 `AdapterConfigError`(ValueError 하위형)는 M3 이전과 같이 표본 오류(`errors`)로 센다. 계약 사이트의 스키마 오류는 종전대로 `config_error`다.
+
+### 비율의 범위 (LOW-5, 문서화만)
+
+- `max_contract_failure_ratio`의 분자·분모는 이 사이트의 **원장 전체 이력**이다. 계약으로 바꾸기 전 실행(계약 없는 경로)에서 남은 `parse_error:*`/`empty_item` 실패도 분자에 들어가고, 그때 저장된 항목도 분모에 들어간다. 원장 행에는 어느 plan 세대에서 처리됐는지가 기록되지 않아 "계약 전환 후 실행분"만 정확히 가려낼 단순한 방법이 없다(`enum_listed` 세대 조인은 재시도 단계 항목을 빠뜨리고, 같은 항목이 다시 목록에 나오면 이전 실패도 그대로 포함한다). 그래서 코드를 바꾸지 않았다.
+- 운영 지침: 계약으로 바꾸기 전에 보고서의 `failed_by_reason`을 확인하고, 이전 실패를 새 계약으로 다시 처리하려면 첫 계약 실행에 `--reprocess-failed parse_error:`/`--reprocess-failed empty_item`을 붙인다. 이전 저장분이 많으면 비율이 희석되어 실제보다 낮게 보일 수 있다. 이것은 남은 한계다.
