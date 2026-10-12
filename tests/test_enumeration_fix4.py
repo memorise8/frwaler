@@ -250,5 +250,46 @@ class RobotsMatcherTest(unittest.TestCase):
             self.assertEqual(verdict, not regex_reference(rule, path), (rule, path))
 
 
+class ConsecutiveRobotsLimitTest(unittest.TestCase):
+    """LOW-4: max_consecutive_robots_disallowed is validated; its stop is told apart from a
+    listing URL that robots.txt itself denies."""
+
+    def setUp(self):
+        self.env = Env()
+
+    def tearDown(self):
+        self.env.close()
+
+    def test_limit_validated(self):
+        from crawler.enumeration.plan import PlanError
+        from tests.enumeration_fakes import board_plan
+        for bad in (0, -1, 1.5, "5", True, None):
+            with self.assertRaises(PlanError, msg=bad):
+                self.env.plan(board_plan(max_consecutive_robots_disallowed=bad))
+        self.assertEqual(self.env.plan(board_plan()).get("max_consecutive_robots_disallowed"), 5)
+        self.assertEqual(self.env.plan(board_plan(max_consecutive_robots_disallowed=1))
+                         .get("max_consecutive_robots_disallowed"), 1)
+
+    def test_consecutive_stop_reason(self):
+        from tests.enumeration_fakes import FakeBoard, board_plan
+        board = FakeBoard(25, robots=b"User-agent: *\nDisallow: /view\n")
+        result = self.env.run(board_plan(), board)
+        self.assertEqual((result["status"], result["stop_reason"]),
+                         ("access_blocked", "robots_disallowed_consecutive"))
+
+    def test_limit_of_one_stops_at_first_denial(self):
+        from tests.enumeration_fakes import FakeBoard, board_plan
+        board = FakeBoard(25, robots=b"User-agent: *\nDisallow: /view?id=25$\n")
+        result = self.env.run(board_plan(max_consecutive_robots_disallowed=1), board)
+        self.assertEqual((result["status"], result["stop_reason"]),
+                         ("access_blocked", "robots_disallowed_consecutive"))
+
+    def test_listing_denial_keeps_its_reason(self):
+        from tests.enumeration_fakes import FakeBoard, board_plan
+        board = FakeBoard(25, robots=b"User-agent: *\nDisallow: /list\n")
+        result = self.env.run(board_plan(), board)
+        self.assertEqual((result["status"], result["stop_reason"]), ("access_blocked", "robots_disallowed"))
+
+
 if __name__ == "__main__":
     unittest.main()

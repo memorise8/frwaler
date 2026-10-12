@@ -211,7 +211,7 @@ enum_event(id PK, site_id, at, kind, detail JSON)   -- 접근 차단, 구간 불
 | 파서가 빈 결과(None/제목·URL 없음) | failed_permanent | `empty_item` | 계속 |
 | 저장 예외 | failed_permanent | `save_error:<예외형>` | 계속. 단 연속 `max_consecutive_save_errors`(기본 5)회면 저장 경로 고장으로 보고 사이트 중단(`config_error`) |
 | 전송 오류/5xx/429 (재시도 후) | failed_transient → 다음 실행에서 재시도, `item_max_attempts` 도달 시 failed_retries_exhausted | `transient:<세부>` | 계속 |
-| 상세 URL 하나가 robots 금지 | failed_permanent | `robots_disallowed` | 요청하지 않고 계속. 단 연속 `max_consecutive_robots_disallowed`(기본 5)건이면 상세 페이지 전체가 금지된 것으로 보고 사이트 중단(`access_blocked:robots_disallowed`, 호스트 보류 아님) |
+| 상세 URL 하나가 robots 금지 | failed_permanent | `robots_disallowed` | 요청하지 않고 계속. 단 연속 `max_consecutive_robots_disallowed`(양의 정수, 기본 5)건이면 상세 페이지 전체가 금지된 것으로 보고 사이트 중단(`access_blocked:robots_disallowed_consecutive`, 호스트 보류 아님; 목록 URL 자체 금지는 `access_blocked:robots_disallowed`). 끝까지 돌아도 금지 항목 비율이 `max_robots_disallowed_ratio`(기본 0.0)를 넘으면 `complete_with_review`, 건수는 보고서 `robots_disallowed`와 warnings에 표시 |
 | 401/403/챌린지/로그인, 목록·사이트맵 URL의 robots 금지 | (사이트 단위) | `access_blocked:<세부>` | **사이트 중단**, 우회 없음 |
 
 * 한 실행 안에서 같은 항목은 한 번만 시도한다(겹쳐 읽기로 두 번 나와도 Fetcher가 이미 재시도했으므로).

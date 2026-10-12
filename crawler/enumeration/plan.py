@@ -157,6 +157,9 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
         sm = raw.get("sitemap") or {}
         if not sm.get("sitemap_url") and not sm.get("from_robots"):
             raise PlanError(f"{site_id}: sitemap requires sitemap_url or from_robots")
+    robots_limit = raw.get("max_consecutive_robots_disallowed")
+    if type(robots_limit) is not int or robots_limit < 1:
+        raise PlanError(f"{site_id}: max_consecutive_robots_disallowed must be a positive integer")
     robots_ratio = raw.get("max_robots_disallowed_ratio", 0.0)
     if type(robots_ratio) not in (int, float) or not 0 <= robots_ratio < 1:
         raise PlanError(f"{site_id}: max_robots_disallowed_ratio must be within [0, 1)")

@@ -153,8 +153,9 @@ class SiteRunner:
             st.record_item(site, item.key, "failed_permanent", reason=exc.reason, attempt=True, **common)
             self.stats["failed_permanent"] += 1
             self._robots_details += 1
-            if self._robots_details >= int(self.plan.get("max_consecutive_robots_disallowed") or 5):
-                raise AccessBlocked("robots_disallowed", item.url) from None
+            if self._robots_details >= int(self.plan.get("max_consecutive_robots_disallowed")):
+                # Not "robots_disallowed": that names a listing URL robots.txt itself denies.
+                raise AccessBlocked("robots_disallowed_consecutive", item.url) from None
             return
         except PermanentFailure as exc:
             st.record_item(site, item.key, "failed_permanent", reason=exc.reason, attempt=True, **common)
