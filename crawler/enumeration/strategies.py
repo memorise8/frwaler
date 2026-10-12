@@ -559,6 +559,10 @@ class DateRangeSplit(_ForwardPager):
             return dict(spec.get("params") or {})
         start, end, gran = _bounds(key)
         end = min(end, self.today)
+        if flt.get("type") == "query_range":
+            # urlencode at the normal page_url boundary performs the only encoding.
+            # Date-only upper-bound semantics must be checked on the source before use.
+            return {flt["param"]: f"{flt['field']}:[{start.isoformat()} TO {end.isoformat()}]"}
         if flt.get("type", "range") == "range":
             if flt.get("to_inclusive", True) is False:
                 # Half-open [from, to): the upper bound is the day after the range.
@@ -626,6 +630,17 @@ class DateRangeSplit(_ForwardPager):
                     end, total = stop.value
                     break
                 total = batch.reported_total
+                if (self.cfg.get("filter", {}).get("type") == "query_range"
+                        and cap and total is not None and total > cap and not self.can_split(key)):
+                    # This query syntax is capped at the source. At the finest supported
+                    # granularity, do not walk into the window or claim a successful leaf.
+                    ctx.store.update_segment(ctx.site_id, ctx.plan_fp, key, status="cap_unsplittable",
+                                             reported_total=total,
+                                             evidence="reported_total_over_cap_at_finest_granularity",
+                                             detail={"cap": cap})
+                    ctx.store.event(ctx.site_id, "segment_cap_unsplittable", {"segment": key, "total": total})
+                    split_now = True
+                    break
                 if cap and total is not None and total > cap and self.can_split(key) and row["cursor"] is None \
                         and batch.cursor["next_page"] == self.start_page + 1:
                     # Over the hidden cap before reading: split without saving this page.

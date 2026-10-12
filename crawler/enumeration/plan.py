@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -139,6 +140,21 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
                 raise PlanError(f"{site_id}: explicit segments require items")
         elif not seg.get("from") or not (seg.get("filter") or {}).get("type", "range"):
             raise PlanError(f"{site_id}: range segments require 'from' and 'filter'")
+        flt = seg.get("filter") or {}
+        if flt.get("type") == "query_range":
+            # Only a field and a parameter name, never executable templates or URLs.
+            for key in ("param", "field"):
+                value = flt.get(key)
+                if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.]*", value):
+                    raise PlanError(f"{site_id}: query_range requires a literal {key}")
+            if flt.get("to_inclusive", True) is not True:
+                raise PlanError(f"{site_id}: query_range currently requires inclusive date bounds")
+            if raw.get("overall_total_check") is not True:
+                raise PlanError(f"{site_id}: query_range requires overall_total_check=true")
+            from urllib.parse import parse_qs, urlsplit
+            existing = parse_qs(urlsplit(raw["listing"]["url"]).query, keep_blank_values=True)
+            if any(existing.get(flt["param"], [])) or (raw["listing"].get("params") or {}).get(flt["param"]):
+                raise PlanError(f"{site_id}: query_range cannot replace an existing scope query")
     if site_id in set(registered):
         adapter = raw.get("adapter") or {}
         if adapter.get("type") != "crawler":
