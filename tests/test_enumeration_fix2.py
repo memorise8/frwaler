@@ -556,5 +556,89 @@ class SitemapFixTest(unittest.TestCase):
         self.assertEqual((seg["status"], seg["evidence"]), ("failed", "sitemap_too_large"))
 
 
+class DateRangeBoundaryTest(unittest.TestCase):
+    """MEDIUM-9: a range filter whose end the site treats as exclusive loses boundary items while each
+    segment's total still matches; the overall total check (default on) exposes it."""
+
+    def setUp(self):
+        from tests.enumeration_fakes import Env
+        self.env = Env()
+
+    def tearDown(self):
+        self.env.close()
+
+    @staticmethod
+    def items():
+        from datetime import date
+        out, n = [], 0
+        for year in (2018, 2019, 2020):
+            for d in (date(year, 1, 1), date(year, 6, 1), date(year, 12, 31)):
+                n += 1
+                out.append({"id": n, "date": d})
+        return out
+
+    def exclusive_site(self):
+        """FakeSearch whose 'to' parameter is exclusive (to=2018-12-31 drops 2018-12-31)."""
+        from datetime import date, timedelta
+        from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+        from tests.test_enumeration_date_range import FakeSearch
+        search = FakeSearch(self.items())
+
+        def handler(url):
+            parts = urlsplit(url)
+            q = dict(parse_qsl(parts.query, keep_blank_values=True))
+            if "to" in q:
+                q["to"] = (date.fromisoformat(q["to"]) - timedelta(days=1)).isoformat()
+            return search(urlunsplit(parts._replace(query=urlencode(q))))
+        return handler
+
+    def run_plan(self, handler, **over):
+        from tests.test_enumeration_date_range import plan
+        return self.env.run(plan(**over), handler)
+
+    def test_exclusive_end_is_exposed_by_default_overall_check(self):
+        result = self.run_plan(self.exclusive_site())
+        self.assertEqual(result["status"], "complete_with_mismatch", result)
+        self.assertIn("overall_total", result["stop_reason"])
+        event = self.env.store.events(self.env.site_id, "overall_total_mismatch")[-1]["detail"]
+        self.assertEqual(event, {"overall_total": 9, "listed": 6})
+
+    def test_declared_exclusive_end_collects_boundary_items(self):
+        result = self.run_plan(self.exclusive_site(), segments={"filter": {
+            "type": "range", "from_param": "from", "to_param": "to", "to_inclusive": False}})
+        self.assertEqual(result["status"], "complete", result)
+        self.assertEqual(len(self.env.docs()), 9)
+
+    def test_inclusive_site_still_complete(self):
+        from tests.test_enumeration_date_range import FakeSearch
+        result = self.run_plan(FakeSearch(self.items()))
+        self.assertEqual((result["status"], result["stop_reason"]), ("complete", "all_segments_reconciled"))
+        self.assertEqual(self.env.store.site(self.env.site_id)["state"]["overall_total"], 9)
+
+    def test_disabled_overall_check_is_unverified(self):
+        result = self.run_plan(self.exclusive_site(), overall_total_check=False)
+        self.assertEqual((result["status"], result["stop_reason"]),
+                         ("complete_unverified", "overall_total_check_disabled"))
+
+    def test_unavailable_overall_total_is_unverified(self):
+        from tests.test_enumeration_date_range import FakeSearch
+        search = FakeSearch(self.items())
+
+        def handler(url):
+            resp = search(url)
+            if "from=" not in url and "/search" in url:  # the unfiltered listing shows no total
+                resp = Response(resp.status, resp.headers, resp.body.replace(b"Total", b"Shown"))
+            return resp
+        result = self.run_plan(handler)
+        self.assertEqual((result["status"], result["stop_reason"]),
+                         ("complete_unverified", "overall_total_unavailable"))
+
+    def test_parts_and_explicit_plans_unchanged(self):
+        from tests.test_enumeration_date_range import FakeSearch
+        result = self.run_plan(FakeSearch(self.items(), mode="parts"),
+                               segments={"filter": {"type": "parts", "year_param": "year", "month_param": "month"}})
+        self.assertEqual(result["status"], "complete", result)
+
+
 if __name__ == "__main__":
     unittest.main()

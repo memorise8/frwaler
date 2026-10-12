@@ -560,6 +560,9 @@ class DateRangeSplit(_ForwardPager):
         start, end, gran = _bounds(key)
         end = min(end, self.today)
         if flt.get("type", "range") == "range":
+            if flt.get("to_inclusive", True) is False:
+                # Half-open [from, to): the upper bound is the day after the range.
+                end = date.fromordinal(end.toordinal() + 1)
             fmt = flt.get("date_format", "%Y-%m-%d")
             return {flt["from_param"]: start.strftime(fmt), flt["to_param"]: end.strftime(fmt)}
         if flt["type"] == "parts":
@@ -602,10 +605,7 @@ class DateRangeSplit(_ForwardPager):
         for i, key in enumerate(generate_segments(self.cfg, self.today)):
             ctx.store.ensure_segment(ctx.site_id, ctx.plan_fp, key, ordinal=i)
         state = ctx.state
-        if self.plan.raw.get("overall_total_check") and state.get("overall_total") is None:
-            page = self.fetch_page(self.page_url(self.start_page))
-            state["overall_total"] = page.total
-            ctx.store.save_state(ctx.site_id, state)
+        check, boundary = self.overall_check()
         cap = self.cfg.get("hidden_cap")
         reverse = self.cfg.get("within_segment_order", "newest_first") == "newest_first"
         overlap = int(self.cfg.get("overlap_pages", 0))
@@ -664,6 +664,11 @@ class DateRangeSplit(_ForwardPager):
                 ctx.store.event(ctx.site_id, "segment_" + status, dict(detail, segment=key))
             ctx.store.update_segment(ctx.site_id, ctx.plan_fp, key, status=status, evidence=evidence,
                                      reported_total=total, detail=detail)
+        if check and "overall_total" not in state:
+            # Read after the segments, so the total describes the same moment as the listed set.
+            page = self.fetch_page(self.page_url(self.start_page))
+            state["overall_total"] = page.total
+            ctx.store.save_state(ctx.site_id, state)
         rows = ctx.store.segments(ctx.site_id, ctx.plan_fp)
         bad = [r["segment_key"] for r in rows if r["status"] in ("mismatch", "cap_unsplittable")]
         leaves = [r for r in rows if r["status"] != "split"]
@@ -695,7 +700,8 @@ class DateRangeSplit(_ForwardPager):
                 bad.append("leaf_total_sum_vs_unique")
         overall = state.get("overall_total")
         listed = ctx.store.listed_count(ctx.site_id, ctx.plan_fp)
-        if listed == 0 and overall != 0:
+        if listed == 0 and (overall != 0 or self.plan.raw.get("overall_total_check") is not True):
+            # An empty source is accepted only on an explicitly requested overall total of 0.
             self.outcome = ("incomplete", "all_segments_empty_unverified")
             return
         if overall is not None and overall != listed:
@@ -706,8 +712,27 @@ class DateRangeSplit(_ForwardPager):
             self.outcome = ("complete_with_mismatch", "segments:" + ",".join(bad[:20]))
         elif unverified:
             self.outcome = ("complete_unverified", "unverified_segments:" + ",".join(unverified[:20]))
+        elif check and overall is None:
+            self.outcome = ("complete_unverified", "overall_total_unavailable")
+        elif boundary and not check:
+            # Per-segment totals cannot reveal items lost at range boundaries (inclusive vs
+            # exclusive end) or outside every range; only the unfiltered total can.
+            self.outcome = ("complete_unverified", "overall_total_check_disabled"
+                            if self.plan.raw.get("overall_total_check") is False else "overall_total_not_checked")
         else:
             self.outcome = ("complete", "all_segments_reconciled")
+
+    def overall_check(self):
+        """(check, boundary): ``boundary`` when range filters plus a reported total make the
+        overall total the only evidence against boundary losses. The check defaults to on
+        there (unless the listing URL needs a segment); an explicit plan value wins."""
+        flt = self.cfg.get("filter") or {}
+        boundary = (self.cfg.get("mode", "range") != "explicit" and flt.get("type", "range") == "range"
+                    and bool(self.listing.get("total")))
+        explicit = self.plan.raw.get("overall_total_check")
+        if explicit is not None:
+            return bool(explicit), boundary
+        return boundary and "{segment}" not in self.listing["url"], boundary
 
 
 # ---------------------------------------------------------------------------

@@ -152,8 +152,20 @@ enum_event(id PK, site_id, at, kind, detail JSON)   -- 접근 차단, 구간 불
    * `N == T` → `complete(total_matched)`. 총건수 없음 → 항목이 있으면 `complete(exhausted_no_total)`,
      빈 구간이면 `unverified`(필터 거부/파서 고장과 구분 불가 — 사이트는 `complete_unverified`, 보고서에 구간 목록).
    * 그 외 → `mismatch`(T, N 기록). 일 단위에서도 상한 초과면 `cap_unsplittable`.
-5. `overall_total_check`가 켜져 있으면 필터 없는 목록의 총건수를 한 번 읽어 구간 합계와 비교(날짜 없는 항목
-   누락 탐지). 모든 구간이 complete/split이고 불일치가 없으면 사이트 complete, 불일치가 있으면 `complete_with_mismatch`.
+5. `overall_total_check`가 켜져 있으면 구간을 다 읽은 뒤 필터 없는 목록의 총건수를 한 번 읽어 고유 목록 수와 비교
+   (날짜 없는 항목, 구간 밖 항목, **구간 경계 누락** 탐지). 모든 구간이 complete/split이고 불일치가 없으면 사이트
+   complete, 불일치가 있으면 `complete_with_mismatch`.
+   * 기본값: `range` 필터(비 explicit) + `listing.total`이 있는 plan에서는 키가 없으면 **켜진 것으로** 본다
+     (목록 URL에 `{segment}`가 있으면 필터 없는 목록을 만들 수 없어 끔). plan 지문은 바뀌지 않는다(진행 상태 유지).
+     구간별 총건수는 사이트가 같은 필터로 센 값이라 경계에서 빠진 항목을 드러내지 못하기 때문이다.
+   * 그런 plan에서 검사가 꺼져 있으면(`false` 명시 → `overall_total_check_disabled`, `{segment}` URL →
+     `overall_total_not_checked`) 완료는 `complete_unverified`. 검사했는데 필터 없는 목록에서 총건수를 못 읽으면
+     `complete_unverified(overall_total_unavailable)`.
+   * 모든 구간이 비었으면 `overall_total_check: true`를 명시하고 전체 총건수가 0일 때만 완료로 본다(그 외 `incomplete`).
+   * 구간 끝 경계: `segments.filter.to_inclusive`(기본 `true`) — `true`면 `to_param`=구간 마지막 날(양끝 포함),
+     `false`면 `to_param`=다음 날(반열린 구간 `[from, to)`, 사이트가 끝을 배타로 셀 때). 사이트가 어느 쪽인지
+     plan에 명시하라. 잘못 고르면 경계일 항목이 빠지고, 위 전체 총건수 검사가 `overall_total` 불일치로 드러낸다.
+     `to`가 `now`가 아닌 고정 구간이면 그 뒤 항목도 불일치로 잡히므로 검사를 끄면(`false`) `complete_unverified`가 된다.
 
 ### 5.3 oldest_first_sort (정렬 파라미터/API)
 
@@ -252,7 +264,8 @@ enum_event(id PK, site_id, at, kind, detail JSON)   -- 접근 차단, 구간 불
                   "parser": {"type": "html", "item_container": "table tbody tr", "item_link": "a[href]"},
                   "total": {"type": "regex", "pattern": "총\\s*([\\d,]+)\\s*건"}},
       "segments": {"mode": "range", "from": "1990", "to": "now", "granularity": "year",
-                   "filter": {"type": "range", "from_param": "sdate", "to_param": "edate", "date_format": "%Y-%m-%d"},
+                   "filter": {"type": "range", "from_param": "sdate", "to_param": "edate", "date_format": "%Y-%m-%d",
+                              "to_inclusive": true},
                    "hidden_cap": 10000, "split_to": ["month", "day"]},
       "overall_total_check": true
     },
@@ -311,7 +324,7 @@ segments_mismatch, files_{pending,done,failed}, oldest_item`. JSON(상세 포함
 
 ## 12. 알려진 한계
 
-* 날짜 구간 분할은 날짜 필터에 걸리지 않는 항목(날짜 없음)을 놓칠 수 있다 → `overall_total_check`로 탐지만 한다.
+* 날짜 구간 분할은 날짜 필터에 걸리지 않는 항목(날짜 없음)이나 경계일 항목을 놓칠 수 있다 → `overall_total_check`(range 필터+총건수 plan은 기본 켬)로 탐지만 한다.
 * 구간 내부/사이트맵 순서는 소스 순서에 의존한다(사이트맵 lastmod 미사용). "오래된 순"은 구간 단위로 보장.
 * wrap이 첫 페이지가 아닌 `p mod N` 페이지로 되돌아가는 사이트는 `beyond` 술어가 단조가 아니다(미지원, 키 반복으로 탐지 시 중단).
 * 커스텀 수집기 메서드가 내부에서 curl/requests를 직접 호출하면 게이트를 우회할 수 있다. 어댑터는 해당 수집기 모듈의
