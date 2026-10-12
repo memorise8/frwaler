@@ -142,11 +142,15 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
             raise PlanError(f"{site_id}: range segments require 'from' and 'filter'")
         flt = seg.get("filter") or {}
         if flt.get("type") == "query_range":
+            if seg.get("mode", "range") != "range":
+                raise PlanError(f"{site_id}: query_range requires range segment mode")
             # Only a field and a parameter name, never executable templates or URLs.
             for key in ("param", "field"):
                 value = flt.get(key)
                 if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.]*", value):
                     raise PlanError(f"{site_id}: query_range requires a literal {key}")
+            if flt["param"] == raw["listing"].get("page_param", "page"):
+                raise PlanError(f"{site_id}: query_range parameter must differ from page_param")
             if flt.get("to_inclusive", True) is not True:
                 raise PlanError(f"{site_id}: query_range currently requires inclusive date bounds")
             if raw.get("overall_total_check") is not True:

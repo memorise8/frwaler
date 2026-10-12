@@ -40,9 +40,11 @@ class QueryRange(unittest.TestCase):
         d=plan();old=site_plan(d,'example').fingerprint
         d['sites']['example']['segments']['filter']['field']='_updated'
         self.assertNotEqual(old,site_plan(d,'example').fingerprint)
-        for key,value in [('param',None),('field','_created OR *'),('to_inclusive',False)]:
+        for key,value in [('param',None),('param','page'),('field','_created OR *'),('to_inclusive',False)]:
             d=plan();d['sites']['example']['segments']['filter'][key]=value
             with self.assertRaises(PlanError):site_plan(d,'example')
+        d=plan();d['sites']['example']['segments'].update(mode='explicit',items=[{'key':'2020'}])
+        with self.assertRaises(PlanError):site_plan(d,'example')
 
     def test_existing_scope_and_disabled_reconciliation_rejected(self):
         for which in ('url','params','overall'):
