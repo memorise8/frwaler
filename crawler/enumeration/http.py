@@ -226,6 +226,16 @@ def checked_addresses(url, host, resolver):
     return addresses
 
 
+def location_of(resp):
+    """Location header as requests reads it: http.client decodes header bytes as latin-1,
+    so a raw UTF-8 Location is re-encoded and decoded as UTF-8 (unchanged when not UTF-8)."""
+    location = resp.header("location") or ""
+    try:
+        return location.encode("latin-1").decode("utf-8")
+    except UnicodeError:
+        return location
+
+
 def governed_url(url):
     """``url`` with an internationalised host written as IDNA (punycode), so the request gate
     can key it. A host the gate cannot govern (e.g. '_' in a label) is a PermanentFailure:
@@ -544,7 +554,7 @@ class Fetcher:
         for _hop in range(self.max_redirects + 1):
             resp = self._with_retries(url, classify=False)
             if 300 <= resp.status < 400 and resp.header("location"):
-                nxt = urljoin(url, resp.header("location"))
+                nxt = urljoin(url, location_of(resp))
                 if _LOGIN_PATH.search(urlsplit(nxt).path or ""):
                     raise self._block("robots_login_redirect", url, resp.status)
                 try:
@@ -667,7 +677,7 @@ class Fetcher:
                 raise RobotsDisallowed("robots_disallowed", current)
             resp = self._with_retries(current, accept_statuses=accept_statuses)
             if 300 <= resp.status < 400:
-                nxt = urljoin(current, resp.header("location"))
+                nxt = urljoin(current, location_of(resp))
                 if _LOGIN_PATH.search(urlsplit(nxt).path or ""):
                     raise self._block("login_redirect", current, resp.status)
                 current = nxt

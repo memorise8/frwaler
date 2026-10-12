@@ -375,5 +375,34 @@ class HostNormalisationTest(unittest.TestCase):
         self.assertEqual(result["transport"].urls, [])
 
 
+class LocationEncodingTest(unittest.TestCase):
+    """MEDIUM-2: a raw UTF-8 Location (read as latin-1 by http.client) is re-decoded like requests does."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def follow(self, location):
+        def handler(url):
+            if url.endswith("robots.txt"):
+                return Response(404, {}, b"")
+            if url.endswith("/r"):
+                return Response(302, {"Location": location}, b"")
+            return ok()
+        t = FakeTransport(handler)
+        f = Fetcher("s", t, Path(self.tmp.name) / "gates", interval=0, sleep=lambda s: None)
+        f.get("https://x.org/r")
+        return t.urls[-1]
+
+    def test_raw_utf8_location(self):
+        self.assertEqual(self.follow("/café/doc".encode("utf-8").decode("latin-1")), "https://x.org/café/doc")
+
+    def test_latin1_or_ascii_location_unchanged(self):
+        self.assertEqual(self.follow("/caf\xe9"), "https://x.org/caf\xe9")
+        self.assertEqual(self.follow("/caf%C3%A9"), "https://x.org/caf%C3%A9")
+
+
 if __name__ == "__main__":
     unittest.main()
