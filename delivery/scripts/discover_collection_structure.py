@@ -67,7 +67,7 @@ class ReconTransport:
     def hold(self,host,evidence):
         with self.lock:
             self.held[host]=evidence;atomic_json(self.out/'access-holds.json',self.held)
-    def fetch(self,url):
+    def fetch(self,url,*,inspect_error_json=False):
         host=urlsplit(url).hostname
         if not public_url(url):return dict(url=url,status=None,error='not_public_literal_URL',checked_at=utc_now()),None
         with self.lock:held=self.held.get(host)
@@ -85,6 +85,7 @@ class ReconTransport:
                                      headers={'User-Agent':'Libertree-Structure-Recon/1.0','Accept-Encoding':'gzip, deflate',
                                               'Accept':'text/html,application/json,application/xml;q=0.9,*/*;q=0.1'}) as r:
                         ct=r.headers.get('Content-Type','');response.update(status=r.status_code,content_type=ct,HTTP_attempted=True)
+                        response['source_headers']={name:r.headers[name] for name in ('X-WP-Total','X-WP-TotalPages','Date') if name in r.headers}
                         if r.is_redirect:
                             response['redirect']=public_url(urljoin(url,r.headers.get('Location','')))
                             return response,None
@@ -93,7 +94,9 @@ class ReconTransport:
                             response['error']=reason;self.hold(host,dict(url=url,status=r.status_code,reason=reason,at=response['checked_at']))
                             if r.status_code==429:gate.defer(url,retry_after(r.headers.get('Retry-After')))
                             return response,None
-                        if r.status_code>=400:response['error']='HTTP_'+str(r.status_code);return response,None
+                        if r.status_code>=400:
+                            response['error']='HTTP_'+str(r.status_code)
+                            if not (inspect_error_json and r.status_code==400 and 'json' in ct.lower()):return response,None
                         if not any(t in ct.lower() for t in ('html','json','xml','text/plain')):
                             response['error']='non_listing_content_type_body_not_downloaded';return response,None
                         if 'attachment' in r.headers.get('Content-Disposition','').lower():
