@@ -8,14 +8,15 @@ Every query here is decoded exactly once and encoded exactly once.
 from __future__ import annotations
 
 import re
-from urllib.parse import parse_qsl, unquote, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, unquote_plus, urlencode, urlsplit, urlunsplit
 
 _PCT = re.compile(r"%[0-9A-Fa-f]{2}")
 
 
 def _decode_once(value):
     value = "" if value is None else str(value)
-    return unquote(value) if _PCT.search(value) else value
+    # Encoded query text uses '+' for spaces (application/x-www-form-urlencoded).
+    return unquote_plus(value) if _PCT.search(value) else value
 
 
 def decode_preencoded(params):

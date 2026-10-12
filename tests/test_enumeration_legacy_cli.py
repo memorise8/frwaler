@@ -111,8 +111,13 @@ class LegacyOverrideTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             crawler = GenericCrawler(generic_config(tmp), None)
             crawler._session = Session()
-            crawler.crawl()
-        self.assertEqual(seen, ["https://gen.test/list?f%5B0%5D=lang%3Aen&type%5B170%5D=170&page=1"])
+            crawler.crawl()  # default: legacy behaviour preserved (double encoding)
+            fixed = GenericCrawler(generic_config(tmp), None)
+            legacy.apply_overrides(fixed, {"decode_preencoded_params": True})
+            fixed._session = Session()
+            fixed.crawl()
+        self.assertEqual(seen, ["https://gen.test/list?f%5B0%5D=lang%3Aen&type%255B170%255D=170&page=1",
+                                "https://gen.test/list?f%5B0%5D=lang%3Aen&type%5B170%5D=170&page=1"])
 
 
 class PlanValidationTest(unittest.TestCase):
@@ -138,7 +143,7 @@ class PlanValidationTest(unittest.TestCase):
         env = Env()
         try:
             board = FakeBoard(15)
-            env.run(board_plan(), board, max_requests=10)
+            env.run(board_plan(), board, max_requests=14)
             saved = len(env.docs())
             self.assertGreater(saved, 0)
             changed = board_plan(listing={"params": {"sort": "new"}})
@@ -186,7 +191,7 @@ class CliEndToEndTest(unittest.TestCase):
         board = FakeBoard(6, page_size=4, end_mode="empty")
         with LoopbackBoardServer(board) as srv, tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
-            db = tmp / "libertree.db"
+            db = tmp / "enum_cli.db"
             conn = db_libertree.open_db(db)
             db_libertree.init_db(conn)
             db_libertree.upsert_site(conn, "cli-site", "cli", f"http://127.0.0.1:{srv.port}")

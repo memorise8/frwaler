@@ -173,9 +173,11 @@ class GenericCrawler(BaseCrawler):
                 break
 
             # Build list page URL with pagination
-            # Config keys such as "type%5B170%5D" are already encoded; requests
-            # would re-encode them to "%255B". Decode those exactly once.
-            params = decode_preencoded(list_cfg.get("params", {}))
+            params = dict(list_cfg.get("params", {}))
+            if self._config.get("options", {}).get("decode_preencoded_params"):
+                # Opt-in (plan legacy override): keys such as "type%5B170%5D" are
+                # already encoded and requests would send "%255B". Decode once.
+                params = decode_preencoded(params)
             if query_pagination:
                 params[page_param] = page_num
 

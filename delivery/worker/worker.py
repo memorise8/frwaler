@@ -21,6 +21,7 @@ from delivery.translation import jobs as translation_jobs
 from delivery.translation.providers import provider_from_env
 from crawler.base_crawler import CrawlCancelled, CrawlUpToDate
 from crawler.enumeration.legacy import apply_overrides_from_env as apply_legacy_overrides
+from crawler.enumeration.legacy import restore_all as restore_legacy_overrides
 from delivery.translation.observations import prune as prune_observations, record as record_observation
 
 _last_observation_prune = 0.0
@@ -203,8 +204,10 @@ def run_job(conn, job, crawler_registry=None, delay=1.0, should_cancel=None) -> 
     inst = None
     try:
         with redirect_stdout(capture), redirect_stderr(capture):
+            # Undo module-level overrides left by a previous job, then apply this
+            # job's (no-op unless LIBERTREE_ENUMERATION_PLAN supplies them).
+            restore_legacy_overrides()
             inst = cls(db_conn=conn, delay=delay)
-            # No-op unless LIBERTREE_ENUMERATION_PLAN supplies legacy overrides.
             apply_legacy_overrides(inst)
             if process_files:
                 inst.delivery_document_saved = lambda seq: file_jobs.enqueue(conn, job["id"], seq)
