@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "defaults": {
+    "request_interval_s": 1.5,
+    "respect_robots": true,
+    "retries": 1,
+    "verify_ssl": true
+  },
+  "sites": {
+    "krivet-re-kr": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler"
+      },
+      "listing": {
+        "url": "https://www.krivet.re.kr/kor/sub.do",
+        "params": {
+          "menuSn": "23"
+        },
+        "page_param": "pageIndex",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "listing_marker": "table.tb_base.tb_list tbody",
+          "url_field": "detail_url",
+          "date_field": "published_date",
+          "key_field": "external_id"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "babraham-ac-uk-news": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_parse_list_page",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_parse_detail",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.babraham.ac.uk/news/category/news?page=1",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "key_field": "external_id",
+          "listing_marker": "section.grid-container"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "diplomatie-gouv-fr-en": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_parse_list",
+        "list_args": [
+          "soup"
+        ],
+        "detail_method": "_parse_detail",
+        "detail_args": [
+          "soup",
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.diplomatie.gouv.fr/en/press/news",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "key_field": "external_id",
+          "listing_marker": "div#block-diplomatie-content"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "ecologie-gouv-fr-presse": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_parse_list",
+        "list_args": [
+          "soup",
+          "url"
+        ],
+        "detail_method": "_parse_detail",
+        "detail_args": [
+          "soup",
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.ecologie.gouv.fr/presse?page=282",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "date_field": "published_date",
+          "key_field": "external_id",
+          "listing_marker": "div.views-element-container"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "santepubliquefrance-fr-presse": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_parse_list",
+        "list_args": [
+          "soup",
+          "url"
+        ],
+        "detail_method": "_parse_detail",
+        "detail_args": [
+          "soup",
+          "html",
+          "item",
+          "url"
+        ]
+      },
+      "listing": {
+        "url": "https://www.santepubliquefrance.fr/presse",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "date_field": "published_date",
+          "key_field": "external_id",
+          "listing_marker": ".view-page-list.view-list-press"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    }
+  }
+}
