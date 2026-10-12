@@ -190,8 +190,7 @@ class Adapter:
             if self.mode == "crawler" and not self.is_generic and self.cfg.get("list_returns_paper"):
                 paper = dict(item.payload)
             else:
-                extract = c._extract_id if self.is_generic else None
-                paper = paper_from_item(self.site_id, item, extract)
+                paper = paper_from_item(self.site_id, item, self._legacy_id())
             return self._finish(paper, item)
         resp = fetcher.get(item.url)
         if self.is_generic and not self.cfg.get("detail_method"):
@@ -200,7 +199,8 @@ class Adapter:
             c._fetch_page = lambda url, params=None, _soup=soup: _soup
             try:
                 basic = dict(item.payload)
-                basic.setdefault("external_id", c._extract_id(item.url))
+                extract = self._legacy_id()
+                basic.setdefault("external_id", extract(item.url) if extract and item.url else item.key)
                 basic.setdefault("title", item.title)
                 paper = c._fetch_detail(item.url, basic, c._config.get("detail_page") or {})
             finally:
@@ -208,6 +208,13 @@ class Adapter:
             return self._finish(paper, item)
         result = getattr(c, self.cfg["detail_method"])(*self._args(self.cfg.get("detail_args", ["html", "item"]), resp, item))
         return self._finish(result, item)
+
+    def _legacy_id(self):
+        """post_number rule: a registered config crawler (or an explicit id_regex) keeps the
+        legacy ``_extract_id`` so dedup matches rows it saved before; otherwise the listing key."""
+        if self.is_generic and (self.mode == "crawler" or self.cfg.get("id_regex")):
+            return self.crawler._extract_id
+        return None
 
     def _finish(self, paper, item):
         if not isinstance(paper, dict):
