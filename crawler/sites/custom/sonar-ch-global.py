@@ -265,6 +265,42 @@ class SonarChGlobalCrawler(BaseCrawler):
     # Crawl
     # ------------------------------------------------------------------
 
+    def _parse_search_results(self, data):
+        """Normalize API listing records without fetching anything.
+
+        The listing key follows the same pid fallback as _parse_record. An
+        ambiguous identity is rejected rather than synthesized from a URL.
+        """
+        if not isinstance(data, dict) or not isinstance(data.get("hits"), dict):
+            return None
+        hits = data["hits"].get("hits")
+        if not isinstance(hits, list):
+            return None
+        total = data["hits"].get("total")
+        if total is not None and (not isinstance(total, dict) or total.get("relation") != "eq"
+                                  or type(total.get("value")) is not int or total["value"] < 0):
+            raise ValueError("SONAR exact hits.total.value/relation=eq is required")
+        rows = []
+        for hit in hits:
+            if not isinstance(hit, dict) or not isinstance(hit.get("metadata"), dict):
+                raise ValueError("SONAR record/metadata must be objects")
+            metadata = hit["metadata"]
+            pid = metadata.get("pid") or hit.get("id", "")
+            if isinstance(pid, bool) or not isinstance(pid, (str, int)) or not str(pid).strip():
+                raise ValueError("SONAR identity is missing or ambiguous")
+            url = metadata.get("permalink") or f"https://sonar.ch/global/documents/{hit.get('id', '')}"
+            if not metadata.get("permalink") and not hit.get("id"):
+                raise ValueError("SONAR document URL is missing")
+            if not isinstance(url, str):
+                raise ValueError("SONAR document URL must be a string")
+            rows.append({"id": pid, "url": url, "created": hit.get("created"),
+                         "title": self._extract_title(metadata), "record": hit})
+        return rows
+
+    def _paper_from_result(self, record):
+        """Use the registered Paper and skip rules unchanged, including short abstracts."""
+        return self._parse_record(record)
+
     def crawl(self, limit=None) -> int:
         """Crawl SONAR.ch global journal articles.
 

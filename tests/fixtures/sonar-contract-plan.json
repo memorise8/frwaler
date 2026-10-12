@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "defaults": {
+    "request_interval_s": 1.5,
+    "max_requests": 20000,
+    "max_runtime_s": 21600,
+    "respect_robots": true,
+    "retries": 1
+  },
+  "sites": {
+    "sonar-ch-global": {
+      "strategy": "date_range_split",
+      "base_url": "https://sonar.ch",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_parse_search_results",
+        "list_args": [
+          "json"
+        ],
+        "paper_method": "_paper_from_result",
+        "paper_args": [
+          {
+            "source": "item",
+            "path": [
+              "record"
+            ]
+          }
+        ]
+      },
+      "listing": {
+        "url": "https://sonar.ch/api/documents/",
+        "params": {
+          "view": "global",
+          "q": "",
+          "document_type": "coar:c_7a1f",
+          "sort": "oldest",
+          "size": 50
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 50,
+        "parser": {
+          "type": "adapter",
+          "key_field": "id",
+          "url_field": "url",
+          "date_field": "created",
+          "title_field": "title"
+        },
+        "total": {
+          "type": "json",
+          "path": "hits.total.value"
+        }
+      },
+      "segments": {
+        "mode": "range",
+        "from": "1800",
+        "to": "now",
+        "granularity": "year",
+        "filter": {
+          "type": "query_range",
+          "param": "q",
+          "field": "_created"
+        },
+        "hidden_cap": 9800,
+        "split_to": [
+          "month",
+          "day"
+        ],
+        "within_segment_order": "oldest_first",
+        "overlap_pages": 0
+      },
+      "overall_total_check": true
+    }
+  }
+}
