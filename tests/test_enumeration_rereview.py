@@ -189,6 +189,35 @@ class QueryBindingAfterRedirect(Base):
         self.assertTrue(all("/article/" in d["meta_url"] for d in self.env.docs()))
 
 
+class PrecheckNonContract(Base):
+    """LOW-6: a non-contract site's AdapterConfigError during the identity sample is a
+    sample error, exactly as before the contract was added."""
+
+    def test_non_contract_config_error_counts_as_sample_error(self):
+        from tests.test_enumeration_review import reference_db
+        ref = reference_db([(str(i), f"https://board.test/view?id={i}") for i in range(21, 26)])
+        self.addCleanup(ref.close)
+
+        def detail(html, item):
+            if "external_id" not in item:  # reference sample: URL only
+                raise AdapterConfigError("crawler_side_value_error")
+            return {"external_id": item["external_id"], "url": "https://board.test" + item["url"], "title": "t"}
+        plan = site(adapter={"type": "crawler", "list_method": "listing", "detail_method": "detail"})
+        result = self.env.run(plan, self.board, crawler=crawler(self.env, detail), reference_conn=ref,
+                              identity_required=True)
+        self.assertEqual("complete", result["status"], result)
+        self.assertEqual((5, 5, 5), (result["identity"]["errors"], result["identity"]["compared"],
+                                     result["identity"]["matched"]))
+        self.assertNotIn("contract_data_errors", result["identity"])
+
+    def test_contract_schema_error_still_raised(self):
+        from tests.test_enumeration_review import reference_db
+        ref = reference_db([("25", "https://board.test/view?id=25")])
+        self.addCleanup(ref.close)
+        result = self.env.run(site(), self.board, crawler=crawler(self.env, lambda html, item: []),
+                              reference_conn=ref, identity_required=True)
+        self.assertEqual(("config_error", "adapter_contract:paper_not_dict"), (result["status"], result["stop_reason"]))
+
 
 if __name__ == "__main__":
     unittest.main()

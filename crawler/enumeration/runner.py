@@ -307,6 +307,9 @@ class SiteRunner:
             try:
                 ident = self.adapter.identity(item, self.fetcher)
             except AdapterConfigError as exc:
+                if not self.contract:
+                    errors += 1  # non-contract sites: a sample error, exactly as before the contract
+                    return
                 # ContractError is a ValueError: never let it pass as a mere sample error.
                 if not getattr(exc, "data_error", False):
                     raise
