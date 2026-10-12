@@ -33,7 +33,7 @@ AFP는 B가 아닌 C이며 내부 curl 때문에 제외한다. MI는 B지만 3�
 |research-imt-nord-europe-fr-news|`d4174ac8f90d`|_enumeration_items, _enumeration_paper|7 통과|
 |home-cern-news|`a636b4fd990a`|_enumeration_items, _enumeration_paper|7 통과|
 |health-ni-gov-uk-publications|`efae0f785fd5`|_enumeration_paper|7 통과|
-|brgm-fr-fr|`e4fe3b54c83c`|_enumeration_items|7 통과|
+|brgm-fr-fr|`e4fe3b54c83c` + `a03b66c`|_enumeration_items|8 통과|
 |srnl-gov-newsroom|`76e055879106`|_enumeration_items, _enumeration_paper|7 통과|
 |data-mfe-govt-nz-documents|`8190942a9b12`|_enumeration_items, _enumeration_paper|7 통과|
 
@@ -44,9 +44,9 @@ AFP는 B가 아닌 C이며 내부 curl 때문에 제외한다. MI는 B지만 3�
 - 수정 전 기준: **361개 실행, 실패 0, 건너뜀 1**. 현재 통합 브랜치의 실제 기준이며 과거 291/189개 수치를 재사용하지 않았다.
 - 신규 시험을 먼저 작성한 후 최종 red: 60개 실행, 기존 메서드 보존 10개 통과, 새 메서드 부재로 50개 오류. 최초 harness의 Python 버전별 AST 직렬화 차이는 원문 SHA-256 대조로 고쳤고 이 최종 red는 그 수정 후 결과다.
 - 구현 후 최초 신규 60개 통과. 원본 저장 직전 Paper와 **정제 전** 새 메서드 Paper 전체 dict도 대조하도록 보강했고, 정상 빈 목록과 오류 페이지를 구별하는 10개 시험을 추가했다.
-- 최종 전체: **431개 실행, 실패 0, 건너뜀 1** = 기존 361 + 신규 70. 마지막 실행 77.183초. 건너뜀은 TEST_PG_ADMIN_DSN 없는 PostgreSQL 전용 시험이다.
+- 최종 전체: **432개 실행, 실패 0, 건너뜀 1** = 기존 361 + 신규 71. 마지막 실행 76.696초. 건너뜀은 TEST_PG_ADMIN_DSN 없는 PostgreSQL 전용 시험이다.
 - 사이트마다 합성 2항목(총 20항목)에서 기존 crawl이 `_save_paper`에 넘기는 모든 필드와 새 Paper를 비교하고 `paper_identity`도 대조했다. 제목/날짜/PDF/메타데이터가 포함되며 날짜 없음·일부 fallback은 fixture로 다뤘다. 모든 실제 입력 변형을 증명한 것은 아니다.
-- 사이트별 7개: Paper/식별값 동등성, 짧은 초록 거부, 상세 리다이렉트 시 동일성, 호출자 입력 불변, 모든 기존 클래스 메서드 원문 보존, 잘못된 목록/식별 입력 거부, 정상 빈 목록과 오류 페이지 구분. 상세 요청 없는 사이트의 리다이렉트 시험은 추가 요청이 생기지 않는 것도 확인한다.
+- 사이트별 기본 7개(BRGM은 추가 1개, 총 8개): Paper/식별값 동등성, 짧은 초록 거부, 상세 리다이렉트 시 동일성, 호출자 입력 불변, 모든 기존 클래스 메서드 원문 보존, 잘못된 목록/식별 입력 거부, 정상 빈 목록과 오류 페이지 구분. 상세 요청 없는 사이트의 리다이렉트 시험은 추가 요청이 생기지 않는 것도 확인한다.
 - 신규 시험은 생성자와 DB 없이 객체를 만들고 기존 crawl의 HTTP를 메모리 응답, 저장을 메모리 캡처로 바꾼다. 실제 socket/DNS/subprocess/SQLite/psycopg 연결 시도는 실패시키고, 예외가 내부에서 삼켜져도 시도 기록으로 시험을 실패시킨다. Adapter의 상세 전송 대역은 선언된 fixture URL 이외 요청을 거부한다.
 - 기준 커밋과 비교하여 추가 `_enumeration_*` 메서드만 AST에서 제거하면 **모듈 전체 AST가 원본과 동일**하다. 기존 메서드 원문 SHA-256 대조와 함께 crawl·기존 파서·상수·모듈 보조 함수 불변을 확인했다. `crawler/enumeration/`, 저장·날짜 규격·ID·요청 게이트·robots·사설주소 차단 코드는 수정하지 않았다.
 
@@ -71,3 +71,9 @@ python -m unittest discover -s tests -p 'test_enumeration_*.py' -t .
 ```
 
 사용 컨테이너는 모두 `--rm`이며 잔존 여부를 해당 enum-test 이름에 한해 확인한다. 로컬 venv, 실제 수집, DB 보정, 외부 발송은 수행하지 않았다.
+
+## 최종 대조에서 추가한 BRGM 회귀
+
+기존 BRGM은 main 밖 카드도 읽으므로 새 목록 메서드도 그 동작을 보존한다. 본문 카드는 그대로 있으나 main wrapper가 없는 합성 목록을 원본 crawl과 비교하는 시험을 먼저 추가해 8개 중 1개 오류를 재현했다(`.audit/logs/brgm-marker-red.log`). 새 목록 메서드를 보정한 로컬 커밋은 `a03b66c`다. 카드가 없는 페이지의 marker 검사는 유지한다. 최종 전체 432개에서 이 추가 회귀도 통과했다. 기존 crawl/파서는 계속 원문 그대로다.
+
+중간 문서 커밋 `c533096`에는 431개 기준 결과가 있고, 이 최종 문서 갱신은 BRGM 추가 회귀를 반영한다. 기준 361개, 신규 71개, 합계 432개가 최종 수치다. 새 메서드의 로컬 함수 호출 연결도 정적으로 따라가 네트워크/프로세스/DB/저장/대기 호출이 없음을 대조했다(실행 시 차단 시험과 함께 보는 근거이며 일반적인 Python 보안 증명은 아니다).

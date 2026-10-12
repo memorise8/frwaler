@@ -108,8 +108,8 @@
   "prior_B_sites": 38,
   "excluded_B_sites": 28,
   "baseline_tests": 361,
-  "new_tests": 70,
-  "final_tests": 431,
+  "new_tests": 71,
+  "final_tests": 432,
   "final_skipped": 1,
   "site_requests": 0,
   "new_test_database_connections": 0,
@@ -177,7 +177,7 @@
         "_enumeration_items"
       ],
       "preexisting_module_ast_unchanged": true,
-      "source_sha256": "7173849e9d6a2900f5703dba90aa4dfe526181505c737e836d1cb415e9589454"
+      "source_sha256": "6f47cda1aa72dac38b13be8901552ca972c831cf793f305c0e8b2b2229b0d29e"
     },
     "srnl-gov-newsroom": {
       "added_methods": [
@@ -231,6 +231,20 @@
       "sha256": "458c29b220d3899919e3eb57c8c4ca3cc7a5b983093c5864e98f554d42bea3ff",
       "outcome": "pass",
       "skipped": 1
+    },
+    "brgm-marker-red.log": {
+      "tests": 8,
+      "seconds": 0.132,
+      "sha256": "1d4a34b003e6e116a080c72f25943c958fa2b949086cfc724cf7b1c69d3d6163",
+      "outcome": "expected red: 1 error",
+      "skipped": 0
+    },
+    "verified.log": {
+      "tests": 432,
+      "seconds": 76.696,
+      "sha256": "5fe6ffcee3c510967b8fa0ff19998b7af26ebff18bf6a148c0006c34646493fd",
+      "outcome": "pass",
+      "skipped": 1
     }
   },
   "files_sha256": {
@@ -262,8 +276,8 @@
     "tests/test_enumeration_split_health_ni_gov_uk_publications.py": "7a0b55bb9339c6bb58b5c40cd6096feb6571080eae52fd05e80167e690b15afe",
     "tests/fixtures/collector_splits/health-ni-gov-uk-publications.json": "ca9b838def048569422089083e2c6080e06095e67dfae7ace9db8000915e3ae3",
     "docs/examples/collector-splits/health-ni-gov-uk-publications.json": "c2e887518e524720c6882a365ec184940635a6e614a25189a484256cb8894761",
-    "crawler/sites/custom/brgm-fr-fr.py": "7173849e9d6a2900f5703dba90aa4dfe526181505c737e836d1cb415e9589454",
-    "tests/test_enumeration_split_brgm_fr_fr.py": "c0d424716561614b7e13c8ed3e18073f2ce070d71296144265d9e35660a881df",
+    "crawler/sites/custom/brgm-fr-fr.py": "6f47cda1aa72dac38b13be8901552ca972c831cf793f305c0e8b2b2229b0d29e",
+    "tests/test_enumeration_split_brgm_fr_fr.py": "005b8f31d2d9cf04e2c68948ab2804049157722a0ac5c2f99236ba5399a4082a",
     "tests/fixtures/collector_splits/brgm-fr-fr.json": "576877fb73a2f191b83d34ad9e0e5753f943910db2ee495056091a2de187bd5e",
     "docs/examples/collector-splits/brgm-fr-fr.json": "cd3c1926e858f72fe43d429fe7e9ca34ecb9769d4a83b072454a3ccce6728749",
     "crawler/sites/custom/srnl-gov-newsroom.py": "229624e329a49be745334c85033f5669f5cc25d0809da117cbe68cb9c93b1675",
@@ -276,8 +290,118 @@
     "docs/examples/collector-splits/data-mfe-govt-nz-documents.json": "aea7ce1765c3d1e93dc5bd36f2ed536fa13f6f9f3b170b877157145672906210",
     "tests/collector_split_helpers.py": "bd7d65caa3d664ee2393e0622f5e46958355f75408eebc301238de90909d144a",
     "docs/examples/collector-splits-plans.json": "809caa7e74122099ff78a80b593216cf25edb69877e15b895d51adc766c5c32a",
-    "docs/COLLECTOR_SPLITS_SELECTION.csv": "0e68c9b1f5fa229314825f5932032da2b7c9d9535693e79509224638cc2ff265",
-    "docs/COLLECTOR_SPLITS_RESULTS.csv": "6b9207676a1cb569629db03b36b0e10dfbf98452f498ecdc921e22922a645a9b",
-    "docs/COLLECTOR_SPLITS.md": "08c79e7022f1f2232602a68e6284a9e54d65a2773ab73aa85c7d6bfbe17e8fd5"
-  }
+    "docs/COLLECTOR_SPLITS_SELECTION.csv": "11ddd4a1c0a22c51ded6528c10ea08f40efd48323947fa10507b899fa4ff083d",
+    "docs/COLLECTOR_SPLITS_RESULTS.csv": "8dd6b878cd472648aa88052a072ef2a59c80eb599b08495f96689ea4f50134d8",
+    "docs/COLLECTOR_SPLITS.md": "3153d2875efb81ecc066f6aafe4566f97422e79cb2572c2a48b54112250fc7ee"
+  },
+  "purity_check": {
+    "climateinstitute-ca-newsroom": {
+      "reachable_local_methods": [
+        "_enumeration_items",
+        "_enumeration_paper",
+        "_strip_html"
+      ],
+      "direct_network_process_db_save_sleep_sinks": [],
+      "scope": "정적 로컬 함수 연결 대조 + 별도의 실행 시 차단 시험; 임의 Python 코드 전체의 보안 증명 아님"
+    },
+    "nasa-gov-2025-news-releases": {
+      "reachable_local_methods": [
+        "_enumeration_items",
+        "_enumeration_paper",
+        "_strip_html"
+      ],
+      "direct_network_process_db_save_sleep_sinks": [],
+      "scope": "정적 로컬 함수 연결 대조 + 별도의 실행 시 차단 시험; 임의 Python 코드 전체의 보안 증명 아님"
+    },
+    "ukdataservice-ac-uk-2026": {
+      "reachable_local_methods": [
+        "_bs4_strip",
+        "_enumeration_items",
+        "_enumeration_paper",
+        "_strip_html"
+      ],
+      "direct_network_process_db_save_sleep_sinks": [],
+      "scope": "정적 로컬 함수 연결 대조 + 별도의 실행 시 차단 시험; 임의 Python 코드 전체의 보안 증명 아님"
+    },
+    "minfin-gov-gr-grafeio-typou": {
+      "reachable_local_methods": [
+        "_enumeration_items",
+        "_enumeration_paper",
+        "_extract_text",
+        "_filename_from_url",
+        "_find_pdf_url",
+        "_one_line"
+      ],
+      "direct_network_process_db_save_sleep_sinks": [],
+      "scope": "정적 로컬 함수 연결 대조 + 별도의 실행 시 차단 시험; 임의 Python 코드 전체의 보안 증명 아님"
+    },
+    "research-imt-nord-europe-fr-news": {
+      "reachable_local_methods": [
+        "_enumeration_items",
+        "_enumeration_paper",
+        "_strip_html"
+      ],
+      "direct_network_process_db_save_sleep_sinks": [],
+      "scope": "정적 로컬 함수 연결 대조 + 별도의 실행 시 차단 시험; 임의 Python 코드 전체의 보안 증명 아님"
+    },
+    "home-cern-news": {
+      "reachable_local_methods": [
+        "_enumeration_items",
+        "_enumeration_paper",
+        "_parse_rss_page",
+        "_strip_html"
+      ],
+      "direct_network_process_db_save_sleep_sinks": [],
+      "scope": "정적 로컬 함수 연결 대조 + 별도의 실행 시 차단 시험; 임의 Python 코드 전체의 보안 증명 아님"
+    },
+    "health-ni-gov-uk-publications": {
+      "reachable_local_methods": [
+        "_enumeration_paper"
+      ],
+      "direct_network_process_db_save_sleep_sinks": [],
+      "scope": "정적 로컬 함수 연결 대조 + 별도의 실행 시 차단 시험; 임의 Python 코드 전체의 보안 증명 아님"
+    },
+    "brgm-fr-fr": {
+      "reachable_local_methods": [
+        "_enumeration_items",
+        "_make_soup",
+        "_node_text",
+        "_parse_card",
+        "_parse_date",
+        "_strip_accents"
+      ],
+      "direct_network_process_db_save_sleep_sinks": [],
+      "scope": "정적 로컬 함수 연결 대조 + 별도의 실행 시 차단 시험; 임의 Python 코드 전체의 보안 증명 아님"
+    },
+    "srnl-gov-newsroom": {
+      "reachable_local_methods": [
+        "_enumeration_items",
+        "_enumeration_paper",
+        "_extract_abstract",
+        "_extract_pdf_url",
+        "_parse_date",
+        "_strip_html"
+      ],
+      "direct_network_process_db_save_sleep_sinks": [],
+      "scope": "정적 로컬 함수 연결 대조 + 별도의 실행 시 차단 시험; 임의 Python 코드 전체의 보안 증명 아님"
+    },
+    "data-mfe-govt-nz-documents": {
+      "reachable_local_methods": [
+        "_enumeration_items",
+        "_enumeration_paper",
+        "_original_filename",
+        "_parse_date",
+        "_strip_html"
+      ],
+      "direct_network_process_db_save_sleep_sinks": [],
+      "scope": "정적 로컬 함수 연결 대조 + 별도의 실행 시 차단 시험; 임의 Python 코드 전체의 보안 증명 아님"
+    }
+  },
+  "followup_commits": [
+    {
+      "site_id": "brgm-fr-fr",
+      "commit": "a03b66cd07566c68ccc44c225c62ae1d0ce1c39f",
+      "reason": "preserve cards outside main; failing regression first"
+    }
+  ]
 }
