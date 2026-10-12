@@ -25,7 +25,11 @@ def normalize(value):
 def compare(test,sid,plans):
     oldplan=baseline('plan').site_plan(plans,sid,registered=plans['sites'])
     newplan=plan.site_plan(plans,sid,registered=plans['sites'])
-    test.assertEqual(oldplan.raw,newplan.raw);test.assertEqual(oldplan.fingerprint,newplan.fingerprint)
+    # The request-policy fixes added one plan default (never part of the fingerprint); any other key difference must still fail.
+    added={'max_consecutive_robots_disallowed'}
+    test.assertEqual(5,newplan.raw.get('max_consecutive_robots_disallowed'))
+    test.assertEqual(oldplan.raw,{k:v for k,v in newplan.raw.items() if k not in added})
+    test.assertEqual(oldplan.fingerprint,newplan.fingerprint)
     outcomes=[]
     for am,pm in [(baseline('adapters'),baseline('parsing')),(adapters,parsing)]:
         crawler=load_crawler(sid);calls=[]
