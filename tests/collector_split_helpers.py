@@ -99,6 +99,15 @@ class SplitChecks:
         p = site_plan(self.plan, self.SITE, registered=[self.SITE])
         crawler, _ = load(self.SITE)
         adapter = Adapter(self.SITE, p.section('adapter'), None, crawler=crawler)
+        self.raw_papers = []
+        method_name = '_build_paper' if self.SITE=='brgm-fr-fr' else '_enumeration_paper'
+        original = getattr(crawler, method_name)
+        def capture_conversion(*args, **kwargs):
+            result = original(*args, **kwargs)
+            if result is not None:
+                self.raw_papers.append(copy.deepcopy(result))
+            return result
+        setattr(crawler, method_name, capture_conversion)
         url = p.listing['url']
         if p.listing.get('params'):
             url += ('&' if '?' in url else '?') + urlencode(p.listing['params'])
@@ -124,6 +133,7 @@ class SplitChecks:
         expected, _ = self.native()
         self.assertEqual(2, len(expected), 'fixture must exercise two actual saved papers')
         actual = self.pipeline()
+        self.assertEqual(expected, self.raw_papers, 'raw fields must match before adapter cleaning')
         self.assertEqual([clean_paper(p) for p in expected], actual)
         self.assertEqual([paper_identity(p) for p in expected], [paper_identity(p) for p in actual])
         self.assertEqual(2, len({paper_identity(p) for p in actual}))
@@ -164,3 +174,24 @@ class SplitChecks:
             if self.SITE in ['home-cern-news','brgm-fr-fr']: args=['<html><body>error</body></html>']
             with self.assertRaises((ValueError, TypeError)):
                 with guarded(): c._enumeration_items(*args)
+
+    def test_valid_empty_page_and_error_page_are_distinct(self):
+        p = site_plan(self.plan, self.SITE, registered=[self.SITE])
+        crawler, _ = load(self.SITE)
+        adapter = Adapter(self.SITE, p.section('adapter'), None, crawler=crawler)
+        parser = ListingParser(p.listing['parser'], adapter=adapter)
+        url = p.listing['url'] + ('&' if '?' in p.listing['url'] else '?') + urlencode(p.listing.get('params', {}))
+        content_type = self.fixture['content_type']
+        empty = ('[]' if content_type=='application/json' else
+                 '<rss><channel/></rss>' if 'rss' in content_type else '<html><main/></html>')
+        page = parser.parse(Response(200, {'Content-Type':content_type}, empty, url))
+        self.assertEqual([], page.items)
+        self.assertTrue(page.extra.get('explicit_empty'))
+        self.assertNotIn('parse_error', page.extra)
+        try:
+            error_page = parser.parse(Response(200, {'Content-Type':'text/html'}, '<html>maintenance</html>', url))
+        except (ValueError, TypeError):
+            pass  # Registered strict parser rejects a page with the wrong structure.
+        else:
+            self.assertTrue(error_page.extra.get('parse_error'))
+            self.assertFalse(error_page.extra.get('explicit_empty', False))
