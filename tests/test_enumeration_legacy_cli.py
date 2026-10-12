@@ -178,10 +178,19 @@ class LoopbackBoardServer:
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
 
     def __enter__(self):
+        # The framework refuses loopback destinations; this test server is the one
+        # exception, scoped to 127.0.0.1 for the lifetime of the server.
+        from unittest import mock
+        from crawler.enumeration import http
+        real = http.forbidden_address
+        self._allow = mock.patch.object(http, "forbidden_address",
+                                        lambda ip: False if str(ip) == "127.0.0.1" else real(ip))
+        self._allow.start()
         self.thread.start()
         return self
 
     def __exit__(self, *exc):
+        self._allow.stop()
         self.server.shutdown()
         self.server.server_close()
 

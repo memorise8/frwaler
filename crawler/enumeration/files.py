@@ -13,7 +13,7 @@ import sqlite3
 import tempfile
 from pathlib import Path
 
-from .http import AccessBlocked, BudgetExhausted, PermanentFailure, RateLimited, TransientFailure
+from .http import AccessBlocked, BudgetExhausted, PermanentFailure, PrivateDestination, RateLimited, TransientFailure
 
 _PAGE = re.compile(rb"/Type\s*/Page(?!s)\b")
 
@@ -124,6 +124,14 @@ class FilePass:
                 # A refusal met by the file pass holds the site (the Fetcher already
                 # recorded the host hold), exactly like one met by the body run.
                 self._hold_site(site_id, "access_blocked", exc.reason)
+                break
+            except PrivateDestination as exc:
+                self.store.update_file(site_id, seq_id, url, status="unavailable", reason=exc.reason)
+                stats["unavailable"] += 1
+                stats["stopped"] = exc.reason
+                self.store.event(site_id, "private_destination_blocked", {"reason": exc.reason, "url": url,
+                                                                          "host": exc.host, "address": exc.address})
+                self._hold_site(site_id, "private_destination_blocked", exc.reason)
                 break
             except RateLimited as exc:
                 stats["stopped"] = exc.reason

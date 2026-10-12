@@ -362,6 +362,14 @@ segments_mismatch, files_{pending,done,failed}, oldest_item`. JSON(상세 포함
 - 호스트 일치 규칙: URL의 hostname(소문자)과 **정확히 같은 항목**, 또는 상위 도메인의 `*.<접미>` 항목. `*.hal.science`는 `x.hal.science`, `a.b.hal.science`를 막지만 `hal.science` 자체는 막지 않는다(그건 별도 행). `www.` 유무도 서로 다른 호스트이므로 CSV에 둘 다 적는다.
 - 해제는 기존대로 사람이 `--release-host HOST`(+ 사이트는 `--refresh`)로만. 해제 이벤트가 있는 호스트는 같은 CSV를 다시 넘겨도 다시 보류하지 않는다. 같은 실행에서 둘 다 주면 보류 주입 → 해제 순서.
 
+### 16.2 목적지 주소 검사 (서버 내부망 보호)
+
+- 모든 요청(목록·상세·robots·파일)과 모든 리다이렉트 hop 직전에 `Fetcher._once`가 호스트를 해석해 결과 주소를 **전부** 검사한다. 하나라도 사설(10/8, 172.16/12, 192.168/16), 루프백(127/8, ::1), 링크로컬(169.254/16 — 메타데이터 169.254.169.254 포함, fe80::/10), 고유 로컬(fc00::/7), 미지정(0.0.0.0, ::), 멀티캐스트, 예약·공유·문서용 대역(240/4, 100.64/10, 192.0.2/24 등, `ipaddress`의 비공용 판정)이면 요청하지 않는다. IPv4-mapped IPv6(::ffff:10.0.0.1)는 풀어서 본다. IP 리터럴 URL도 같은 검사.
+- 결과: 사이트 상태 `private_destination_blocked`, 사유 `private_destination_blocked:<호스트>:<주소>`, 이벤트 `private_destination_blocked`(host, address, url). 호스트 보류(`enum_host_hold`)에는 넣지 않는다. CLI 종료 코드 1. 파일 패스는 그 파일을 `unavailable`로 두고 패스를 멈춘다.
+- 해석 실패(이름 없음 등)는 요청 없이 `TransientFailure(dns_unresolved)` → 목록이면 `incomplete`.
+- DNS 재바인딩: 운영 전송(`RequestsTransport`)은 새 연결마다 호스트를 한 번 해석·검사하고 **검사한 주소로 연결**한다(urllib3 연결의 `_dns_host` 고정). Host 헤더·SNI·인증서 검증은 원래 이름. 한계: (1) Fetcher 사전 검사와 연결 시 검사는 각각 해석하므로 두 결과가 달라도 연결은 항상 검사를 통과한 주소로만 간다. (2) 고정은 urllib3의 비공개 속성 `_dns_host`(urllib3 1.26/2.x)에 의존한다. (3) 프록시는 쓰지 않는다(`trust_env=False`). (4) 틀 밖의 네트워크(수집기 내부 curl 등)는 가드(tripwire)로만 막히며 이 검사 대상이 아니다.
+- plan으로 끄거나 완화할 수 없다: `allow_private_destinations`, `destination_check`, `resolver` 등과 이름에 `private`가 들어간 키는 plan 검증이 거부한다. 테스트의 루프백 서버만 테스트 코드에서 127.0.0.1을 한정 허용한다.
+
 ## 17. 교차 검토(Codex) 반영 — 2차 배치
 
 | 항목 | 반영 |

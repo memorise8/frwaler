@@ -9,8 +9,8 @@ from delivery.scripts.discovery_structure import date_value
 
 from .adapters import (AdapterConfigError, AdapterUngatedNetwork, IdentityCollision, IdentityMissing,
                        IdentityReview, IdentityRuleConfig)
-from .http import (AccessBlocked, BudgetExhausted, EnumerationStop, LoginReview, PermanentFailure, RateLimited,
-                   TransientFailure)
+from .http import (AccessBlocked, BudgetExhausted, EnumerationStop, LoginReview, PermanentFailure, PrivateDestination,
+                   RateLimited, TransientFailure)
 from .parsing import Item, ListingParser
 from .strategies import STRATEGIES, StrategyStop, today_from
 from .urls import host_of, normalize_key_url, url_identity
@@ -342,6 +342,11 @@ class SiteRunner:
         if isinstance(exc, LoginReview):
             st.event(site, "login_form_review", {"url": exc.url, "reason": exc.reason})
             return "review_pending", exc.reason
+        if isinstance(exc, PrivateDestination):
+            # Not a host hold: an internal address says nothing about the source's consent.
+            st.event(site, "private_destination_blocked", {"reason": exc.reason, "url": exc.url, "host": exc.host,
+                                                           "address": exc.address})
+            return "private_destination_blocked", exc.reason
         if isinstance(exc, AccessBlocked):
             st.event(site, "access_blocked", {"reason": exc.reason, "url": exc.url, "status": exc.status})
             return "access_blocked", exc.reason
@@ -405,7 +410,7 @@ class SiteRunner:
                 # status (held), cooldowns are persisted in the site state.
                 if current is None:
                     st.start_site(site, plan.fingerprint, plan.strategy)
-                if status in ("access_blocked", "review_pending", "config_error"):
+                if status in ("access_blocked", "review_pending", "config_error", "private_destination_blocked"):
                     st.finish_site(site, status, reason, state)
                 else:
                     st.save_state(site, state)

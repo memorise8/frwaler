@@ -16,8 +16,10 @@ on that host) and 429 cooldowns are written into the host's RequestGate.
 from __future__ import annotations
 
 import hashlib
+import ipaddress
 import json
 import re
+import socket
 import time
 from pathlib import Path
 from urllib import robotparser
@@ -94,6 +96,43 @@ def crawl_delay(text, user_agent):
     return max(0.0, value or 0.0)
 
 
+def forbidden_address(value):
+    """True for any address a crawl must never reach: private, loopback, link-local
+    (incl. 169.254.169.254 metadata), unique-local, unspecified, multicast, reserved,
+    shared (100.64/10), documentation/benchmark ranges; IPv4-mapped IPv6 is unwrapped."""
+    ip = ipaddress.ip_address(str(value).split("%", 1)[0])
+    if ip.version == 6 and ip.ipv4_mapped is not None:
+        ip = ip.ipv4_mapped
+    return (not ip.is_global or ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast
+            or ip.is_reserved or ip.is_unspecified)
+
+
+def system_resolve(host):
+    """All addresses the system resolver returns for ``host`` (TCP)."""
+    infos = socket.getaddrinfo(host, None, proto=socket.IPPROTO_TCP)
+    return list(dict.fromkeys(info[4][0] for info in infos))
+
+
+def checked_addresses(url, host, resolver):
+    """Addresses of ``host`` after the destination check. IP literals are checked as is;
+    names are resolved and refused if *any* address is forbidden. No resolver: literals only."""
+    try:
+        addresses = [str(ipaddress.ip_address(host.strip("[]")))]
+    except ValueError:
+        if resolver is None:
+            return []
+        try:
+            addresses = list(resolver(host) or ())
+        except (OSError, UnicodeError):
+            addresses = []
+        if not addresses:
+            raise TransientFailure("dns_unresolved", url)
+    for address in addresses:
+        if forbidden_address(address):
+            raise PrivateDestination(url, host, address)
+    return addresses
+
+
 class FetchError(Exception):
     def __init__(self, reason, url=None, status=None):
         super().__init__(reason)
@@ -134,6 +173,15 @@ class RateLimited(EnumerationStop):
 
 class PolicyRefusal(ValueError):
     """A plan tried to relax the access policy (fixed execution ceiling)."""
+
+
+class PrivateDestination(EnumerationStop):
+    """The destination resolves to a non-public address: never requested, site stopped
+    (not a host hold: it says nothing about the source's consent)."""
+
+    def __init__(self, url, host, address):
+        super().__init__(f"private_destination_blocked:{host}:{address}", url)
+        self.host, self.address = host, address
 
 
 class LoginReview(EnumerationStop):
@@ -183,17 +231,38 @@ class Response:
         return json.loads(self.text())
 
 
+def _pin_connections(session, resolver):
+    """DNS rebinding guard: every new connection resolves and checks its host once and
+    connects to that checked address (``_dns_host``); Host header, SNI and certificate
+    verification keep the original name."""
+    from urllib3.connectionpool import HTTPConnectionPool, HTTPSConnectionPool
+
+    def pinned(base):
+        class Pool(base):
+            def _new_conn(self):
+                conn = super()._new_conn()
+                conn._dns_host = checked_addresses(f"{self.scheme}://{self.host}", self.host, resolver)[0]
+                return conn
+        return Pool
+
+    classes = {"http": pinned(HTTPConnectionPool), "https": pinned(HTTPSConnectionPool)}
+    for adapter in session.adapters.values():
+        adapter.poolmanager.pool_classes_by_scheme = classes
+
+
 class RequestsTransport:
     """Production transport. Bounded body, redirects followed by requests."""
 
-    def __init__(self, *, verify=True, timeout=(10, 60), max_bytes=DEFAULT_MAX_BYTES):
+    def __init__(self, *, verify=True, timeout=(10, 60), max_bytes=DEFAULT_MAX_BYTES, resolver=system_resolve):
         import requests
         self._requests = requests
+        self.resolve = resolver
         self.session = requests.Session()
         self.session.trust_env = False
         self.session.verify = verify
         self.timeout = timeout
         self.max_bytes = max_bytes
+        _pin_connections(self.session, resolver)
 
     def request(self, method, url, *, headers=None):
         try:
@@ -216,7 +285,7 @@ class Fetcher:
                  max_runtime_s=None, retries=3, backoff_s=2.0, max_retry_wait_s=120,
                  respect_robots=True, user_agent=DEFAULT_USER_AGENT, encoding=None,
                  extra_headers=None, rate_limit_stop=3, holds=None, max_redirects=5,
-                 clock=time.monotonic, sleep=time.sleep):
+                 clock=time.monotonic, sleep=time.sleep, resolver=None):
         if not 0 <= float(interval) <= 10:
             raise ValueError("request_interval_s must be within [0, 10]")
         self.site_id = site_id
@@ -241,6 +310,9 @@ class Fetcher:
         self._consecutive_429 = 0
         self.holds = holds
         self.max_redirects = int(max_redirects)
+        # Destination check before every request/hop; the production transport also
+        # pins the connection to the checked address.
+        self.resolver = resolver or getattr(transport, "resolve", None)
         self._gates = {}
         self._host_delay = {}
         self._robots = {}
@@ -275,6 +347,7 @@ class Fetcher:
         host = host_of(url)
         if not host or urlsplit(url).scheme not in ("http", "https"):
             raise PermanentFailure("invalid_url", url)
+        checked_addresses(url, host, self.resolver)
         headers = {"User-Agent": self.user_agent,
                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8"}
         headers.update(self.extra_headers)

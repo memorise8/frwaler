@@ -31,6 +31,12 @@ DEFAULTS = {
 
 # Keys that define *what* is enumerated. Budgets, pacing and adapters do not
 # change the enumeration contract, so changing them keeps progress.
+# The destination address check (no private/loopback/link-local/reserved targets)
+# is not configurable: a plan naming any such switch is refused.
+_FORBIDDEN_KEYS = ("allow_private_destinations", "allow_private_addresses", "allow_private",
+                   "private_destination_check", "destination_check", "resolver", "dns_resolver",
+                   "pinned_addresses", "allow_internal")
+
 _CONTRACT_KEYS = ("strategy", "listing", "segments", "sitemap", "last_page", "oldest_sort", "overall_total_check")
 
 
@@ -98,6 +104,9 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
         raise PlanError(f"site not in plan: {site_id}")
     from .strategies import apply_preset
     raw = {**DEFAULTS, **(plan.get("defaults") or {}), **plan["sites"][site_id]}
+    relaxing = sorted(k for k in raw if k in _FORBIDDEN_KEYS or "private" in k.lower())
+    if relaxing:
+        raise PlanError(f"{site_id}: destination address check cannot be configured by a plan ({relaxing})")
     if raw.get("strategy") not in STRATEGY_NAMES:
         raise PlanError(f"{site_id}: strategy must be one of {STRATEGY_NAMES}")
     # Access policy is an execution ceiling: a plan can tighten, never relax it.

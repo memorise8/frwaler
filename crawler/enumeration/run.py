@@ -199,7 +199,7 @@ def run_site(plan, store, conn, state_dir, *, transport=None, refresh=False, ret
     return result
 
 
-FAILED_STATUSES = ("failed", "failed_duplicates", "config_error")
+FAILED_STATUSES = ("failed", "failed_duplicates", "config_error", "private_destination_blocked")
 REVIEW_STATUSES = ("complete_with_review", "review_pending", "access_blocked", "complete_with_mismatch",
                    "complete_unverified")
 
