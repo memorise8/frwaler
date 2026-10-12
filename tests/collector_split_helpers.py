@@ -16,7 +16,7 @@ from urllib.parse import parse_qs, urlencode, urlsplit
 
 from crawler.enumeration.adapters import Adapter, clean_paper, paper_identity
 from crawler.enumeration.guard import guarded
-from crawler.enumeration.http import Response
+from crawler.enumeration.http import PermanentFailure, Response
 from crawler.enumeration.parsing import ListingParser
 from crawler.enumeration.plan import site_plan
 from crawler.enumeration.urls import build_url
@@ -57,7 +57,7 @@ def wp_past_last_page(url=''):
     return Response(400, {'Content-Type': 'application/json'}, WP_PAST_LAST_PAGE, url)
 
 
-def run_split(site, *, end=None, listing=None, total=None, plan=None, fixture=None):
+def run_split(site, *, end=None, listing=None, listing_type=None, total=None, plan=None, fixture=None):
     """Synthetic end-to-end run of a shipped plan through the real SiteRunner.run.
     Fake transport only: the start page (or the page-less URL) serves the fixture
     listing, every later page serves ``end(url)`` (default: WordPress past-last-page 400).
@@ -83,7 +83,7 @@ def run_split(site, *, end=None, listing=None, total=None, plan=None, fixture=No
         query = parse_qs(parts.query)
         page = int(query[page_param][0]) if page_param in query else start
         if page <= start:
-            headers = {'Content-Type': fixture['content_type']}
+            headers = {'Content-Type': listing_type or fixture['content_type']}
             if total is not None:
                 headers['X-WP-Total'] = str(total)
             return Response(200, headers, fixture['listing_body'] if listing is None else listing, url)
@@ -241,12 +241,19 @@ class SplitChecks:
             # Only Paper conversion is new here; never invent a URL/ID from missing fields.
             with self.assertRaises((KeyError, ValueError, TypeError)):
                 with guarded(): c._enumeration_paper({}, {})
+            return
+        args = [{'error':'not a listing'}]
+        if self.SITE=='minfin-gov-gr-grafeio-typou': args.append(1)
+        if self.SITE in ['home-cern-news','brgm-fr-fr']: args=['<html><body>error</body></html>']
+        try:
+            with guarded(): rows = c._enumeration_items(*args)
+        except PermanentFailure as exc:
+            # Classified by the runner as a listing parse error (incomplete), never runner_error.
+            self.assertTrue(exc.reason.startswith('listing_parse_error:'), exc.reason)
         else:
-            args = [{'error':'not a listing'}]
-            if self.SITE=='minfin-gov-gr-grafeio-typou': args.append(1)
-            if self.SITE in ['home-cern-news','brgm-fr-fr']: args=['<html><body>error</body></html>']
-            with self.assertRaises((ValueError, TypeError)):
-                with guarded(): c._enumeration_items(*args)
+            # An empty result is judged by the plan's listing_marker (see the run tests below).
+            self.assertEqual([], rows)
+            self.assertTrue(self.plan['sites'][self.SITE]['listing']['parser'].get('listing_marker'))
 
     def test_valid_empty_page_and_error_page_are_distinct(self):
         p = site_plan(self.plan, self.SITE, registered=[self.SITE])
@@ -263,8 +270,42 @@ class SplitChecks:
         self.assertNotIn('parse_error', page.extra)
         try:
             error_page = parser.parse(Response(200, {'Content-Type':'text/html'}, '<html>maintenance</html>', url))
-        except (ValueError, TypeError):
-            pass  # Registered strict parser rejects a page with the wrong structure.
+        except PermanentFailure as exc:
+            self.assertTrue(exc.reason.startswith('listing_parse_error:'), exc.reason)
         else:
             self.assertTrue(error_page.extra.get('parse_error'))
             self.assertFalse(error_page.extra.get('explicit_empty', False))
+
+
+class SplitRunChecks:
+    """Synthetic end-to-end runs of the shipped plan through the real SiteRunner.run.
+    The temporary state/documents SQLite of tests.enumeration_fakes.Env is used;
+    network and subprocess calls fail the test."""
+
+    def setUp(self):
+        self.fixture = split_fixture(self.SITE)
+        self.denials = []
+        def denied(*args, **kwargs):
+            self.denials.append('attempted I/O')
+            raise AssertionError('split run attempted network/process I/O')
+        for name in ('socket.getaddrinfo', 'socket.socket.connect', 'socket.socket.connect_ex',
+                     'subprocess.Popen._execute_child'):
+            p = patch(name, denied); p.start(); self.addCleanup(p.stop)
+        self.addCleanup(lambda: self.assertEqual([], self.denials))
+
+    def test_error_listing_ends_incomplete_as_listing_parse_error(self):
+        """Maintenance page, a 200 JSON error object and a blank line before the XML
+        declaration end the real runner as incomplete listing_parse_error, never runner_error."""
+        cases = {'maintenance_page': ('<html><body><p>Site under maintenance</p></body></html>', 'text/html')}
+        if self.fixture['content_type'] == 'application/json':
+            cases['json_error_object'] = (json.dumps({'code': 'rest_no_route', 'message': 'No route',
+                                                      'data': {'status': 404}}), 'application/json')
+        if 'rss' in self.fixture['content_type']:
+            cases['blank_line_before_xml_declaration'] = (
+                '\n<?xml version="1.0" encoding="UTF-8"?>' + self.fixture['listing_body'], self.fixture['content_type'])
+        for name, (body, content_type) in cases.items():
+            with self.subTest(case=name):
+                result, docs = run_split(self.SITE, listing=body, listing_type=content_type)
+                self.assertEqual('incomplete', result['status'], result)
+                self.assertTrue(result['stop_reason'].startswith('listing_failed:listing_parse_error:'), result)
+                self.assertEqual([], docs)

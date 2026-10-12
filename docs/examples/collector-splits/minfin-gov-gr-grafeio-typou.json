@@ -19,7 +19,8 @@
               "page"
             ],
             "type": "int"
-          }
+          },
+          "url"
         ],
         "paper_method": "_enumeration_paper",
         "paper_args": [

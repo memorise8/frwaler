@@ -1,5 +1,5 @@
 import unittest
-from tests.collector_split_helpers import SplitChecks
+from tests.collector_split_helpers import SplitChecks, SplitRunChecks
 
 
 class RegisteredSplit(SplitChecks, unittest.TestCase):
@@ -15,3 +15,7 @@ class PageBinding(unittest.TestCase):
         result, docs = run_split(RegisteredSplit.SITE, total=2)
         self.assertEqual('complete', result['status'], result)
         self.assertEqual(2, len(docs))
+
+
+class RegisteredSplitRun(SplitRunChecks, unittest.TestCase):
+    SITE = 'minfin-gov-gr-grafeio-typou'

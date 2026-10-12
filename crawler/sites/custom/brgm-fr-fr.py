@@ -56,14 +56,17 @@ class BrgmFrFrCrawler(BaseCrawler):
 
 
     # Pure enumeration entry points; existing crawl and parsers stay unchanged.
-    def _enumeration_items(self, raw):
-        """Reuse crawl's card selector and metadata parser without fetching details."""
+    def _enumeration_items(self, raw, url=None):
+        """Reuse crawl's card selector and metadata parser without fetching details.
+
+        An empty result is judged by the plan's listing_marker ("main"): a page
+        without it (maintenance/error page) is a listing parse error, not an end.
+        """
         soup = self._make_soup(raw, context="enumeration listing")
         if soup is None:
-            raise ValueError("enumeration listing could not be parsed")
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:html_unparseable", url)
         cards = soup.select("a.bk-article[href]")
-        if not cards and soup.find("main") is None:
-            raise ValueError("empty enumeration listing has no main marker")
         records = []
         for card in cards:
             href = card.get("href", "").strip()

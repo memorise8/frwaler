@@ -108,10 +108,13 @@ class DataMfeGovtNzDocumentsCrawler(BaseCrawler):
 
 
     # Pure enumeration entry points; existing crawl and parsers stay unchanged.
-    def _enumeration_items(self, data):
+    def _enumeration_items(self, data, url=None):
         """Expose crawl's API detail URL while preserving its document id."""
         if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
-            raise ValueError("enumeration listing must be a list of objects")
+            from crawler.enumeration.http import PermanentFailure
+            # Same class as the framework's own JSON-listing parse errors: the run ends
+            # incomplete (listing_failed:listing_parse_error:...), never as an empty page.
+            raise PermanentFailure("listing_parse_error:items_not_a_list_of_objects", url)
         rows = []
         for item in data:
             doc_id = item.get("id")

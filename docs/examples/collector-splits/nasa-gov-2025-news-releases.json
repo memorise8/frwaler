@@ -12,7 +12,8 @@
         "contract_version": 1,
         "list_method": "_enumeration_items",
         "list_args": [
-          "json"
+          "json",
+          "url"
         ],
         "paper_method": "_enumeration_paper",
         "paper_args": [

@@ -12,7 +12,8 @@
         "contract_version": 1,
         "list_method": "_enumeration_items",
         "list_args": [
-          "html"
+          "html",
+          "url"
         ],
         "detail_method": "_build_paper",
         "detail_args": [
@@ -52,7 +53,8 @@
         "contract_version": 1,
         "list_method": "_enumeration_items",
         "list_args": [
-          "json"
+          "json",
+          "url"
         ],
         "paper_method": "_enumeration_paper",
         "paper_args": [
@@ -102,7 +104,8 @@
         "contract_version": 1,
         "list_method": "_enumeration_items",
         "list_args": [
-          "json"
+          "json",
+          "url"
         ],
         "detail_method": "_enumeration_paper",
         "detail_args": [
@@ -190,7 +193,8 @@
         "contract_version": 1,
         "list_method": "_enumeration_items",
         "list_args": [
-          "html"
+          "html",
+          "url"
         ],
         "paper_method": "_enumeration_paper",
         "paper_args": [
@@ -234,7 +238,8 @@
               "page"
             ],
             "type": "int"
-          }
+          },
+          "url"
         ],
         "paper_method": "_enumeration_paper",
         "paper_args": [
@@ -295,7 +300,8 @@
         "contract_version": 1,
         "list_method": "_enumeration_items",
         "list_args": [
-          "json"
+          "json",
+          "url"
         ],
         "paper_method": "_enumeration_paper",
         "paper_args": [
@@ -345,7 +351,8 @@
         "contract_version": 1,
         "list_method": "_enumeration_items",
         "list_args": [
-          "json"
+          "json",
+          "url"
         ],
         "paper_method": "_enumeration_paper",
         "paper_args": [
@@ -395,7 +402,8 @@
         "contract_version": 1,
         "list_method": "_enumeration_items",
         "list_args": [
-          "json"
+          "json",
+          "url"
         ],
         "detail_method": "_enumeration_paper",
         "detail_args": [
@@ -444,7 +452,8 @@
         "contract_version": 1,
         "list_method": "_enumeration_items",
         "list_args": [
-          "json"
+          "json",
+          "url"
         ],
         "paper_method": "_enumeration_paper",
         "paper_args": [

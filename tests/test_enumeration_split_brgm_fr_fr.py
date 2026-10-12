@@ -1,5 +1,5 @@
 import unittest
-from tests.collector_split_helpers import SplitChecks
+from tests.collector_split_helpers import SplitChecks, SplitRunChecks
 
 
 class RegisteredSplit(SplitChecks, unittest.TestCase):
@@ -12,3 +12,7 @@ class RegisteredSplit(SplitChecks, unittest.TestCase):
         expected, _ = self.native(fixture)
         self.assertEqual(2, len(expected))
         self.assertEqual(expected, self.pipeline(fixture))
+
+
+class RegisteredSplitRun(SplitRunChecks, unittest.TestCase):
+    SITE = 'brgm-fr-fr'

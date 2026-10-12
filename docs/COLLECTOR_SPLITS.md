@@ -109,3 +109,21 @@ minfin plan 의 목록 바인딩 `{"source":"query","path":["page"],"type":"int"
 - 수정: minfin plan 에 `"last_page": {"check_unparameterized_first_page": false, ...}` 를 명시했다. WordPress REST 에서 `page=1` 은 정의상 첫 쪽이며, 기존 crawl() 도 항상 `page=` 를 붙여 요청한다. 대가로 이 사이트는 'page 없는 URL = 시작 쪽' 교차 확인을 하지 않는다.
 - harness 원인: `tests/collector_split_helpers.py` 의 `pipeline()` 은 page 파라미터가 붙은 목록 URL 하나만 파싱하고 전략(첫 쪽 비교)을 실행하지 않았다. 이제 last_page_backward 이고 비교가 켜져 있으면 page 없는 URL 로도 같은 본문을 파싱하여 같은 키가 나오는지 확인한다. 수정 전 minfin 의 사이트별 시험 4개가 이 검사에서 오류로 재현되었다.
 - 추가로 실제 `SiteRunner.run` 합성 실행(`run_split`)으로 minfin 이 complete 로 끝나는지 확인한다.
+
+### 리뷰 수정 3 — 목록 메서드 예외가 runner_error 로 끝나던 문제
+
+새 `_enumeration_items` 들이 `ValueError`/`ET.ParseError` 를 던져 runner 가 분류하지 못하고 `runner_error` 로 끝났다. 수정 후 결과(실제 `SiteRunner.run` 합성 실행, `tests/collector_split_helpers.py` 의 `SplitRunChecks`):
+
+|경우|사이트|수정 후 결과|
+|---|---|---|
+|점검 HTML 페이지(200)|JSON 7곳|`incomplete` / `listing_failed:listing_parse_error:invalid_json` (틀의 기존 판정)|
+|점검 HTML 페이지(200)|brgm-fr-fr, health-ni|`incomplete` / `listing_failed:listing_parse_error:listing_structure_missing` (plan 의 `listing_marker: "main"` 판정)|
+|점검 HTML 페이지(200)|home-cern-news|`incomplete` / `listing_failed:listing_parse_error:invalid_xml`|
+|200 JSON 오류 객체(`{"code":"rest_no_route",...}`)|WordPress 6곳, data-mfe|`incomplete` / `listing_failed:listing_parse_error:items_not_a_list_of_objects`|
+|XML 선언 앞 빈 줄|home-cern-news|`incomplete` / `listing_failed:listing_parse_error:invalid_xml`|
+
+- brgm-fr-fr: 카드가 없을 때의 자체 `main` 검사·예외를 없애고 빈 목록을 돌려주어 plan 의 `listing_marker: "main"` 판정에 맡겼다. `_make_soup` 이 None 이면 `PermanentFailure("listing_parse_error:html_unparseable")`.
+- WordPress 6곳·data-mfe·home-cern-news: 모양이 틀리면 `crawler.enumeration.http.PermanentFailure("listing_parse_error:...", url)` 를 던진다(메서드 안에서 지연 import, 모듈 최상위 import 는 추가하지 않음). 목록 URL 을 이유 기록에 남기려고 plan 의 `list_args` 끝에 `"url"` 을 추가했다.
+- **ContractError 를 쓰지 않은 이유**: 틀(`runner._stop_status`)은 `ContractError`(= `AdapterConfigError`)를 `config_error` 로 분류한다. 그대로 두면 200 JSON 오류 객체는 `config_error` / `adapter_contract:list_result_not_list` 가 되고, CERN 의 빈 줄 XML 은 `[]` 를 돌려도 html.parser 가 `<channel>` 표지를 찾아 '정상 빈 쪽'(끝 후보)이 된다. 요구한 incomplete(listing_parse_error 계열)는 틀이 목록 파싱 오류에 쓰는 `PermanentFailure("listing_parse_error:...")` 와 같은 분류로만 얻을 수 있어 그 형식을 썼다. 틀은 수정하지 않았다.
+- data-mfe-govt-nz-documents 는 리뷰 목록에 없었으나 같은 `raise ValueError` 결함이 있어 같은 방식으로 고쳤다.
+- 시험: `SplitChecks.test_valid_empty_page_and_error_page_are_distinct` 가 `ValueError/TypeError` 를 정상으로 받아들이던 부분(이전 193행)을 없애고 `PermanentFailure(listing_parse_error:...)` 만 허용한다. 새 `SplitRunChecks.test_error_listing_ends_incomplete_as_listing_parse_error` 가 세 경우를 실제 runner 로 확인한다. 수정 전 21개 오류(ValueError/ParseError)를 확인했다.

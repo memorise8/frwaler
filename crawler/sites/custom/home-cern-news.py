@@ -196,11 +196,19 @@ class CernNewsCrawler(BaseCrawler):
 
 
     # Pure enumeration entry points; existing crawl and parsers stay unchanged.
-    def _enumeration_items(self, raw):
-        """Reject non-feed/error responses before reusing the registered RSS parser."""
-        root = ET.fromstring(raw)
+    def _enumeration_items(self, raw, url=None):
+        """Reject non-feed/error responses before reusing the registered RSS parser.
+
+        crawl()'s parser returns [] for these; here they are listing parse errors
+        (the run ends incomplete), never an empty page that could end the listing.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        try:
+            root = ET.fromstring(raw)
+        except ET.ParseError:
+            raise PermanentFailure("listing_parse_error:invalid_xml", url) from None
         if root.tag != "rss" or root.find("channel") is None:
-            raise ValueError("enumeration listing must be an RSS channel")
+            raise PermanentFailure("listing_parse_error:not_an_rss_channel", url)
         return self._parse_rss_page(raw)
 
     def _enumeration_paper(self, item):
