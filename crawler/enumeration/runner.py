@@ -13,7 +13,7 @@ from .http import (AccessBlocked, BudgetExhausted, EnumerationStop, LoginReview,
                    TransientFailure)
 from .parsing import Item, ListingParser
 from .strategies import STRATEGIES, StrategyStop, today_from
-from .urls import normalize_key_url, url_identity
+from .urls import host_of, normalize_key_url, url_identity
 
 
 COMPLETED = ("complete", "complete_with_mismatch", "complete_unverified", "complete_with_review")
@@ -376,6 +376,17 @@ class SiteRunner:
         if current and current["status"] == "access_blocked" and not refresh:
             # Refusals persist across runs and passes; a person must review first.
             return self._result("access_blocked", "access_hold_requires_review")
+        for url in (plan.listing.get("url"), plan.base_url, plan.section("sitemap").get("sitemap_url")):
+            held = self.store.host_hold(host_of(url)) if url and host_of(url) else None
+            if held:
+                # A held host (refused earlier, or seeded) ends the site before any request,
+                # including the identity precheck.
+                reason = f"host_access_hold:{held['reason']}"
+                if current is None:
+                    st.start_site(site, plan.fingerprint, plan.strategy)
+                st.event(site, "access_blocked", {"reason": reason, "url": url, "status": None})
+                st.finish_site(site, "access_blocked", reason)
+                return self._result("access_blocked", reason)
         cooldown = (current or {}).get("state", {}).get("cooldown_until")
         if cooldown and cooldown > time.time():
             return self._result("incomplete", "cooling_down", cooldown_until=cooldown)

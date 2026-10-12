@@ -354,6 +354,14 @@ segments_mismatch, files_{pending,done,failed}, oldest_item`. JSON(상세 포함
 | H06 | 구간 간 같은 키(겹침, `allow_overlap`이 아니면 `segment_overlap`), leaf 보고 합계 ≠ 고유 열거 수(`leaf_total_sum_mismatch`)면 `complete_with_mismatch`. 서로 다른 구간의 첫 쪽이 같으면 필터 무효 의심(`filter_not_effective`) → 해당 구간 `unverified`. |
 | H11 | 가드는 **보안 경계가 아니라 우회 탐지용 tripwire**로 정정. 가드 안에서 시작된 스레드는 가드를 물려받는다(테스트). 남은 한계: 이미 연결된 소켓 재사용, native 소켓(curl_cffi 등), 가드 이전에 만들어진 스레드/실행기, 수집기 생성자와 `_save_paper`(가드 밖). 신뢰가 필요한 경우 수집기 메서드를 실행하지 않는 방식(순수 파서 계약 또는 네트워크 없는 별도 실행 환경)이 필요하다. |
 
+### 16.1 접근 제한 호스트 사전 보류 (`--seed-holds`)
+
+새 상태 디렉터리의 `enum_host_hold`는 비어 있으므로, 이전 조사에서 접근 제한으로 분류된 호스트는 `--seed-holds <csv>`(열 `host`, `reason`; 다른 열은 무시)로 시작 시 보류 대장에 넣는다. 사유는 `seeded:<reason>`으로 기록되고(이미 있는 보류는 덮어쓰지 않음), 이벤트 `host_hold_seeded`가 남는다.
+
+- 사이트 시작 시(식별값 사전 점검보다 먼저) plan의 `listing.url`, `base_url`, `sitemap.sitemap_url` 호스트가 보류 중이면 **요청 0건**으로 `access_blocked(host_access_hold:seeded:<reason>)`. 실행 중 다른 호스트(상세·리다이렉트·파일)는 기존처럼 요청 직전 `Fetcher` 확인에서 멈춘다.
+- 호스트 일치 규칙: URL의 hostname(소문자)과 **정확히 같은 항목**, 또는 상위 도메인의 `*.<접미>` 항목. `*.hal.science`는 `x.hal.science`, `a.b.hal.science`를 막지만 `hal.science` 자체는 막지 않는다(그건 별도 행). `www.` 유무도 서로 다른 호스트이므로 CSV에 둘 다 적는다.
+- 해제는 기존대로 사람이 `--release-host HOST`(+ 사이트는 `--refresh`)로만. 해제 이벤트가 있는 호스트는 같은 CSV를 다시 넘겨도 다시 보류하지 않는다. 같은 실행에서 둘 다 주면 보류 주입 → 해제 순서.
+
 ## 17. 교차 검토(Codex) 반영 — 2차 배치
 
 | 항목 | 반영 |

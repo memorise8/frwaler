@@ -299,7 +299,26 @@ class Store:
                    "ON CONFLICT(host) DO NOTHING", (host, reason, url, site_id, now()))
 
     def host_hold(self, host):
-        return self._one("SELECT * FROM enum_host_hold WHERE host=?", (host,))
+        """Exact host, else a ``*.<suffix>`` entry for any parent domain (subdomains only)."""
+        host = (host or "").lower()
+        labels = host.split(".")
+        candidates = [host] + ["*." + ".".join(labels[i:]) for i in range(1, len(labels))]
+        for candidate in candidates:
+            row = self._one("SELECT * FROM enum_host_hold WHERE host=?", (candidate,))
+            if row:
+                return row
+        return None
+
+    def seed_hold(self, host, reason):
+        """Pre-register an access-restricted host (CLI --seed-holds). A host a person
+        released (--release-host) is not seeded again; an existing hold is kept."""
+        host = host.strip().lower()
+        released = self._one("SELECT 1 AS x FROM enum_event WHERE site_id='*' AND kind='host_hold_released' "
+                             "AND lower(json_extract(detail,'$.host'))=? LIMIT 1", (host,))
+        if released:
+            return False
+        self.hold_host(host, f"seeded:{reason}")
+        return True
 
     def release_host(self, host):
         """Only for a person who reviewed the refusal (CLI --release-host)."""

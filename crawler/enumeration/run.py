@@ -239,6 +239,9 @@ def main(argv=None):
                    help="let registered sites with no reference rows pass the identity check (warned in report)")
     p.add_argument("--release-host", action="append", default=[],
                    help="release a reviewed host hold (refusals are otherwise permanent)")
+    p.add_argument("--seed-holds", default=None, metavar="CSV",
+                   help="CSV (columns host, reason) of access-restricted hosts to hold before any request; "
+                        "'*.example.org' holds every subdomain")
     p.add_argument("--reprocess-failed", action="append", default=[], metavar="REASON_PREFIX",
                    help="give failed items whose reason starts with this prefix a fresh retry (e.g. parse_error:)")
     p.add_argument("--identity-sample", type=int, default=5)
@@ -259,6 +262,16 @@ def main(argv=None):
         p.error(str(exc))
     state_dir = Path(args.state_dir)
     store = Store(state_dir / "enumeration.sqlite")
+    if args.seed_holds:
+        import csv
+        with open(args.seed_holds, newline="", encoding="utf-8") as fh:
+            rows = list(csv.DictReader(fh))
+        if rows and "host" not in rows[0]:
+            p.error("--seed-holds CSV needs a 'host' column")
+        for row in rows:
+            host = (row.get("host") or "").strip()
+            if host and store.seed_hold(host, (row.get("reason") or "").strip() or "access_restricted"):
+                store.event("*", "host_hold_seeded", {"host": host.lower(), "reason": row.get("reason")})
     for host in args.release_host:
         store.release_host(host)
         store.event("*", "host_hold_released", {"host": host})
