@@ -361,11 +361,17 @@ class Fetcher:
         headers = {"User-Agent": self.user_agent,
                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8"}
         headers.update(self.extra_headers)
-        extra = self._host_delay.get(host, 0) - 10
-        if extra > 0:
-            self.sleep(extra)  # Crawl-delay above the gate's 10 s ceiling
+        delay = self._host_delay.get(host, 0)
+        gate = self._gate(host)
         try:
-            with self._gate(host).enter(url):
+            with gate.enter(url):
+                if delay > gate.delay:
+                    # The gate waits at most 10 s after the previous response on this host.
+                    # A longer Crawl-delay is completed here, inside the gate (host lock held),
+                    # measured from that same previous response end.
+                    remaining = gate._read().get("last_end", 0) + delay - time.time()
+                    if remaining > 0:
+                        self.sleep(remaining)
                 self.requests_made += 1
                 return self.transport.request("GET", url, headers=headers)
         except NetworkDeferred as exc:
