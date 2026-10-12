@@ -1,0 +1,220 @@
+"""Listing parsers: HTML selectors, JSON paths, or a reused crawler method.
+
+Each parser turns one listing response into ``Page(items, total, fingerprint)``.
+Identity (``Item.key``) defaults to the absolute detail URL without fragment;
+``id_regex`` or a JSON key can replace it.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+from dataclasses import dataclass, field
+from urllib.parse import urljoin
+
+from delivery.scripts.discovery_structure import date_value
+
+from .urls import normalize_key_url
+
+
+@dataclass
+class Item:
+    key: str
+    url: str
+    date: str | None = None
+    title: str = ""
+    payload: dict = field(default_factory=dict)
+
+
+@dataclass
+class Page:
+    items: list
+    total: int | None = None
+    status: int = 200
+    extra: dict = field(default_factory=dict)
+
+    @property
+    def fingerprint(self):
+        if not self.items:
+            return None
+        return hashlib.sha256("\n".join(i.key for i in self.items).encode()).hexdigest()
+
+    @property
+    def keys(self):
+        return [i.key for i in self.items]
+
+
+def json_path(data, path, default=None):
+    """Dotted path lookup; integer segments index lists. Empty path returns data."""
+    if not path:
+        return data
+    cur = data
+    for part in str(path).split("."):
+        if isinstance(cur, dict):
+            cur = cur.get(part)
+        elif isinstance(cur, list) and part.lstrip("-").isdigit():
+            idx = int(part)
+            cur = cur[idx] if -len(cur) <= idx < len(cur) else None
+        else:
+            return default
+        if cur is None:
+            return default
+    return cur
+
+
+def _to_int(value):
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return int(value)
+    digits = re.sub(r"[,\s.]", "", str(value))
+    return int(digits) if digits.isdigit() else None
+
+
+def extract_total(cfg, resp, text=None, data=None):
+    """Source-reported total from header / JSON path / regex. None when absent."""
+    if not cfg:
+        return None
+    kind = cfg.get("type")
+    if kind == "header":
+        return _to_int(resp.header(cfg["name"]))
+    if kind == "json":
+        if data is None:
+            try:
+                data = resp.json()
+            except ValueError:
+                return None
+        return _to_int(json_path(data, cfg["path"]))
+    if kind == "regex":
+        m = re.search(cfg["pattern"], text if text is not None else resp.text(), re.I | re.S)
+        return _to_int(m.group(1)) if m else None
+    raise ValueError(f"unknown total type: {kind}")
+
+
+class ListingParser:
+    def __init__(self, cfg, *, total_cfg=None, adapter=None):
+        self.cfg = cfg or {}
+        self.kind = self.cfg.get("type", "html")
+        self.total_cfg = total_cfg
+        self.adapter = adapter
+        self.id_regex = re.compile(self.cfg["id_regex"]) if self.cfg.get("id_regex") else None
+
+    def _key(self, url, raw_id=None):
+        if raw_id not in (None, ""):
+            return str(raw_id)
+        if self.id_regex:
+            m = self.id_regex.search(url)
+            if m:
+                return m.group(1) if m.groups() else m.group(0)
+        return normalize_key_url(url)
+
+    def parse(self, resp):
+        if self.kind == "html":
+            return self._html(resp)
+        if self.kind == "json":
+            return self._json(resp)
+        if self.kind == "adapter":
+            return self._adapter(resp)
+        raise ValueError(f"unknown listing parser type: {self.kind}")
+
+    def _html(self, resp):
+        from bs4 import BeautifulSoup
+        text = resp.text()
+        soup = BeautifulSoup(text, "html.parser")
+        cfg = self.cfg
+        if cfg.get("exclude"):
+            for node in soup.select(cfg["exclude"]):
+                node.decompose()
+        items, seen = [], set()
+        for row in soup.select(cfg.get("item_container", "tr")):
+            link = row.select_one(cfg.get("item_link", "a[href]"))
+            if link is None:
+                continue
+            href = link.get(cfg.get("item_link_attr", "href"), "")
+            if not href or href.startswith(("javascript:", "#", "mailto:")):
+                continue
+            url = urljoin(resp.url, href)
+            key = self._key(url)
+            if key in seen:
+                continue
+            seen.add(key)
+            title = ""
+            if cfg.get("title"):
+                node = row.select_one(cfg["title"])
+                title = node.get_text(" ", strip=True) if node else ""
+            title = title or link.get_text(" ", strip=True)
+            raw_date = ""
+            if cfg.get("date"):
+                node = row.select_one(cfg["date"])
+                if node is not None:
+                    raw_date = node.get("datetime") or node.get_text(" ", strip=True)
+            payload = {"detail_url": url, "title": title, "published_date": raw_date}
+            if cfg.get("category"):
+                node = row.select_one(cfg["category"])
+                payload["category"] = node.get_text(" ", strip=True) if node else ""
+            items.append(Item(key=key, url=url, date=date_value(raw_date), title=title, payload=payload))
+        total = extract_total(self.total_cfg, resp, text=text)
+        return Page(items, total, resp.status)
+
+    def _json(self, resp):
+        cfg = self.cfg
+        try:
+            data = resp.json()
+        except ValueError:
+            data = None
+        if data is None:
+            return Page([], extract_total(self.total_cfg, resp), resp.status, {"invalid_json": True})
+        rows = json_path(data, cfg.get("items_path"), []) or []
+        if isinstance(rows, dict):
+            rows = list(rows.values())
+        items, seen = [], set()
+        for row in rows:
+            record = json_path(row, cfg.get("item_path")) if cfg.get("item_path") else row
+            if not isinstance(record, dict):
+                continue
+            raw_id = json_path(record, cfg.get("key")) if cfg.get("key") else None
+            if cfg.get("url_template"):
+                try:
+                    url = cfg["url_template"].format(**{k: v for k, v in record.items() if isinstance(v, (str, int))})
+                except (KeyError, IndexError):
+                    continue
+            else:
+                url = json_path(record, cfg.get("url", "url")) or ""
+            url = urljoin(resp.url, str(url)) if url else ""
+            if not url and raw_id in (None, ""):
+                continue
+            key = self._key(url, raw_id)
+            if key in seen:
+                continue
+            seen.add(key)
+            title = json_path(record, cfg.get("title", "title"))
+            if isinstance(title, dict):
+                title = title.get("rendered", "")
+            raw_date = json_path(record, cfg.get("date", "date"))
+            items.append(Item(key=key, url=url, date=date_value(raw_date) if raw_date else None,
+                              title=str(title or ""), payload={"record": record, "detail_url": url}))
+        return Page(items, extract_total(self.total_cfg, resp, data=data), resp.status)
+
+    def _adapter(self, resp):
+        if self.adapter is None:
+            raise ValueError("listing parser type 'adapter' requires a crawler adapter")
+        rows = self.adapter.parse_list(resp) or []
+        cfg = self.cfg
+        items, seen = [], set()
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            url = row.get(cfg.get("url_field", "detail_url")) or row.get("url") or ""
+            url = urljoin(resp.url, str(url)) if url else ""
+            raw_id = row.get(cfg["key_field"]) if cfg.get("key_field") else None
+            if not url and raw_id in (None, ""):
+                continue
+            key = self._key(url, raw_id)
+            if key in seen:
+                continue
+            seen.add(key)
+            raw_date = row.get(cfg.get("date_field", "published_date")) or ""
+            items.append(Item(key=key, url=url, date=date_value(raw_date) if raw_date else None,
+                              title=str(row.get(cfg.get("title_field", "title")) or ""),
+                              payload=json.loads(json.dumps(row, default=str))))
+        return Page(items, extract_total(self.total_cfg, resp), resp.status)

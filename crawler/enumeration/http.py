@@ -1,0 +1,281 @@
+"""Single governed request path for enumeration.
+
+Every listing, detail, sitemap, robots and file request goes through
+``Fetcher.get``. It serializes requests per host with the same file-locked
+``RequestGate`` the structure reconnaissance uses (minimum gap measured from
+the end of the previous response), enforces request/time budgets, retries
+transient failures a bounded number of times and classifies access refusals
+as a stop condition. Refusals are never retried with other clients.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+import time
+from pathlib import Path
+from urllib import robotparser
+from urllib.parse import urlsplit
+
+from delivery.health.access_challenge import access_challenge
+from delivery.health.request_gate import NetworkDeferred, RequestGate
+from delivery.health.source_observer import retry_after
+
+from .urls import host_of
+
+DEFAULT_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/120.0.0.0 Safari/537.36"
+)
+DEFAULT_MAX_BYTES = 50 * 1024 * 1024
+_LOGIN_PATH = re.compile(r"(^|/)(login|signin|sign-in|sso|cas/login|auth)(/|$|\.|\?)", re.I)
+_PASSWORD = re.compile(rb"<input[^>]+type\s*=\s*[\"']?password", re.I)
+_CONTENT = re.compile(rb"<(article|main|table)\b", re.I)
+
+
+class FetchError(Exception):
+    def __init__(self, reason, url=None, status=None):
+        super().__init__(reason)
+        self.reason = reason
+        self.url = url
+        self.status = status
+
+
+class PermanentFailure(FetchError):
+    """404/410/other 4xx: retrying will not help."""
+
+
+class TransientFailure(FetchError):
+    """Transport error, 5xx or 429 that persisted through the retries."""
+
+
+class EnumerationStop(BaseException):
+    """Stops a site run. BaseException so parser code's ``except Exception`` cannot swallow it."""
+
+    def __init__(self, reason, url=None, status=None):
+        super().__init__(reason)
+        self.reason = reason
+        self.url = url
+        self.status = status
+
+
+class AccessBlocked(EnumerationStop):
+    """Authentication, refusal, challenge or robots denial. Never bypassed."""
+
+
+class BudgetExhausted(EnumerationStop):
+    """Request or wall-clock budget reached; the run stops without completion."""
+
+
+class TransportError(Exception):
+    """Raised by a transport for connection-level failures."""
+
+
+class Response:
+    def __init__(self, status, headers=None, body=b"", url="", encoding=None):
+        self.status = int(status)
+        self.headers = {str(k).lower(): str(v) for k, v in (headers or {}).items()}
+        self.body = body if isinstance(body, bytes) else str(body).encode("utf-8")
+        self.url = url
+        self._encoding = encoding
+
+    def header(self, name, default=None):
+        return self.headers.get(name.lower(), default)
+
+    @property
+    def content_type(self):
+        return self.header("content-type", "") or ""
+
+    def text(self, encoding=None):
+        enc = encoding or self._encoding
+        if not enc:
+            m = re.search(r"charset=([\w-]+)", self.content_type, re.I)
+            if m:
+                enc = m.group(1)
+        if not enc:
+            m = re.search(rb"<meta[^>]+charset=[\"']?([\w-]+)", self.body[:4096], re.I)
+            if m:
+                enc = m.group(1).decode("ascii", "ignore")
+        try:
+            return self.body.decode(enc or "utf-8", errors="replace")
+        except LookupError:
+            return self.body.decode("utf-8", errors="replace")
+
+    def json(self):
+        return json.loads(self.text())
+
+
+class RequestsTransport:
+    """Production transport. Bounded body, redirects followed by requests."""
+
+    def __init__(self, *, verify=True, timeout=(10, 60), max_bytes=DEFAULT_MAX_BYTES):
+        import requests
+        self._requests = requests
+        self.session = requests.Session()
+        self.session.trust_env = False
+        self.session.verify = verify
+        self.timeout = timeout
+        self.max_bytes = max_bytes
+
+    def request(self, method, url, *, headers=None):
+        try:
+            with self.session.request(method, url, headers=headers or {}, stream=True,
+                                      timeout=self.timeout, allow_redirects=True) as r:
+                chunks, size = [], 0
+                for chunk in r.iter_content(64 * 1024):
+                    size += len(chunk)
+                    if size > self.max_bytes:
+                        raise TransportError("body_too_large")
+                    chunks.append(chunk)
+                return Response(r.status_code, dict(r.headers), b"".join(chunks), r.url)
+        except self._requests.RequestException as exc:
+            raise TransportError(type(exc).__name__) from exc
+
+
+class Fetcher:
+    def __init__(self, site_id, transport, gate_dir, *, interval=1.5, max_requests=None,
+                 max_runtime_s=None, retries=3, backoff_s=2.0, max_retry_wait_s=120,
+                 respect_robots=True, user_agent=DEFAULT_USER_AGENT, encoding=None,
+                 extra_headers=None, clock=time.monotonic, sleep=time.sleep):
+        if not 0 <= float(interval) <= 10:
+            raise ValueError("request_interval_s must be within [0, 10]")
+        self.site_id = site_id
+        self.transport = transport
+        self.gate_dir = Path(gate_dir)
+        self.interval = float(interval)
+        self.max_requests = max_requests
+        self.max_runtime_s = max_runtime_s
+        self.retries = max(1, int(retries))
+        self.backoff_s = backoff_s
+        self.max_retry_wait_s = max_retry_wait_s
+        self.respect_robots = respect_robots
+        self.user_agent = user_agent
+        self.encoding = encoding
+        self.extra_headers = dict(extra_headers or {})
+        self.clock = clock
+        self.sleep = sleep
+        self.started = clock()
+        self.requests_made = 0
+        self.blocked = None
+        self._gates = {}
+        self._robots = {}
+
+    # -- gate ----------------------------------------------------------
+    def _gate(self, host):
+        if host not in self._gates:
+            root = self.gate_dir / hashlib.sha256(host.encode()).hexdigest()[:20]
+            self._gates[host] = RequestGate(root, delay=self.interval)
+        return self._gates[host]
+
+    def _check_budget(self):
+        if self.max_requests is not None and self.requests_made >= self.max_requests:
+            raise BudgetExhausted("request_budget")
+        if self.max_runtime_s is not None and self.clock() - self.started >= self.max_runtime_s:
+            raise BudgetExhausted("time_budget")
+
+    def _once(self, url):
+        """One gated request. Returns Response or raises TransportError."""
+        self._check_budget()
+        host = host_of(url)
+        if not host or urlsplit(url).scheme not in ("http", "https"):
+            raise PermanentFailure("invalid_url", url)
+        headers = {"User-Agent": self.user_agent,
+                   "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8"}
+        headers.update(self.extra_headers)
+        try:
+            with self._gate(host).enter(url):
+                self.requests_made += 1
+                return self.transport.request("GET", url, headers=headers)
+        except NetworkDeferred:
+            raise TransientFailure("host_cooldown", url) from None
+
+    # -- robots ----------------------------------------------------------
+    def _robots_allows(self, url):
+        if not self.respect_robots:
+            return True
+        parts = urlsplit(url)
+        origin = f"{parts.scheme}://{parts.netloc}"
+        if origin not in self._robots:
+            # RFC 9309: any 4xx means "no rules" (403 pages are classified by
+            # the page request itself); 5xx/transport persist as a transient
+            # failure, so the run stops instead of guessing permission.
+            resp = self._with_retries(origin + "/robots.txt", classify=False)
+            if 200 <= resp.status < 300:
+                parser = robotparser.RobotFileParser()
+                parser.parse(resp.text().splitlines())
+                self._robots[origin] = parser
+            else:
+                self._robots[origin] = "allow_all"
+        rule = self._robots[origin]
+        return True if rule == "allow_all" else rule.can_fetch(self.user_agent, url)
+
+    # -- public ----------------------------------------------------------
+    def _with_retries(self, url, *, classify=True, accept_statuses=()):
+        last = None
+        for attempt in range(self.retries):
+            wait = self.backoff_s * (3 ** attempt)
+            try:
+                resp = self._once(url)
+            except TransportError as exc:
+                last = TransientFailure(f"transport:{exc}", url)
+            else:
+                if resp.status == 429 or resp.status >= 500:
+                    if resp.status in accept_statuses:
+                        return resp
+                    last = TransientFailure("rate_limited" if resp.status == 429 else f"http_{resp.status}",
+                                            url, resp.status)
+                    if resp.status == 429:
+                        until = retry_after(resp.header("retry-after"), now=time.time())
+                        wait = max(wait, until - time.time())
+                        if wait > self.max_retry_wait_s:
+                            raise last
+                else:
+                    return self._classify(resp, url, accept_statuses) if classify else resp
+            if attempt < self.retries - 1:
+                self.sleep(min(wait, self.max_retry_wait_s))
+        raise last
+
+    def _classify(self, resp, url, accept_statuses):
+        status = resp.status
+        if status in accept_statuses:
+            return resp
+        if status in (401, 407):
+            raise self._block("authentication_required", url, status)
+        if status in (403, 451):
+            raise self._block("access_refused", url, status)
+        if status in (404, 410):
+            raise PermanentFailure(f"http_{status}", url, status)
+        if status >= 400:
+            raise PermanentFailure("http_4xx", url, status)
+        final = resp.url or url
+        if final != url and _LOGIN_PATH.search(urlsplit(final).path or ""):
+            raise self._block("login_redirect", url, status)
+        if "html" in resp.content_type.lower() or resp.body[:200].lstrip().lower().startswith((b"<!doctype", b"<html")):
+            challenge = access_challenge(resp.body)
+            lower = resp.body[:131072].lower()
+            if not challenge and (b"<title>just a moment" in lower or (b"cf-chl-" in lower and b"challenge-platform" in lower)):
+                challenge = "browser_security_challenge"
+            if challenge:
+                raise self._block(f"challenge:{challenge}", url, status)
+            if _PASSWORD.search(resp.body) and not _CONTENT.search(resp.body):
+                raise self._block("login_form", url, status)
+        return resp
+
+    def _block(self, reason, url, status=None):
+        self.blocked = AccessBlocked(reason, url, status)
+        return self.blocked
+
+    def get(self, url, *, accept_statuses=()):
+        """Fetch ``url`` through the gate. Returns a 2xx (or accepted) Response.
+
+        Raises PermanentFailure, TransientFailure, AccessBlocked or BudgetExhausted.
+        """
+        if self.blocked is not None:
+            raise AccessBlocked(self.blocked.reason, url, self.blocked.status)
+        if not self._robots_allows(url):
+            raise self._block("robots_disallowed", url)
+        resp = self._with_retries(url, accept_statuses=accept_statuses)
+        resp.url = resp.url or url
+        resp._encoding = resp._encoding or self.encoding
+        return resp
