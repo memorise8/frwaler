@@ -127,3 +127,11 @@ minfin plan 의 목록 바인딩 `{"source":"query","path":["page"],"type":"int"
 - **ContractError 를 쓰지 않은 이유**: 틀(`runner._stop_status`)은 `ContractError`(= `AdapterConfigError`)를 `config_error` 로 분류한다. 그대로 두면 200 JSON 오류 객체는 `config_error` / `adapter_contract:list_result_not_list` 가 되고, CERN 의 빈 줄 XML 은 `[]` 를 돌려도 html.parser 가 `<channel>` 표지를 찾아 '정상 빈 쪽'(끝 후보)이 된다. 요구한 incomplete(listing_parse_error 계열)는 틀이 목록 파싱 오류에 쓰는 `PermanentFailure("listing_parse_error:...")` 와 같은 분류로만 얻을 수 있어 그 형식을 썼다. 틀은 수정하지 않았다.
 - data-mfe-govt-nz-documents 는 리뷰 목록에 없었으나 같은 `raise ValueError` 결함이 있어 같은 방식으로 고쳤다.
 - 시험: `SplitChecks.test_valid_empty_page_and_error_page_are_distinct` 가 `ValueError/TypeError` 를 정상으로 받아들이던 부분(이전 193행)을 없애고 `PermanentFailure(listing_parse_error:...)` 만 허용한다. 새 `SplitRunChecks.test_error_listing_ends_incomplete_as_listing_parse_error` 가 세 경우를 실제 runner 로 확인한다. 수정 전 21개 오류(ValueError/ParseError)를 확인했다.
+
+### 리뷰 수정 4 — BRGM 상세 파서 일치(html5lib)
+
+brgm-fr-fr plan 은 `detail_method: "_build_paper"` 에 틀의 `"soup"` 토큰(html.parser)을 넘겼으나, 기존 crawl() 은 `self._make_soup`(html5lib → lxml → html.parser 순)으로 파싱한 soup 을 `_build_paper` 에 넘긴다. 손상된 HTML 에서는 결과가 달라진다.
+
+- 얇은 메서드 `_enumeration_detail(raw_html, list_meta, detail_url)` 를 추가했다: `self._make_soup(raw_html, context=f"detail {detail_url}")` 로 파싱하고, None 이면 crawl() 처럼 건너뛰며(None), 아니면 기존 `_build_paper` 를 그대로 호출한다. 기존 메서드는 바꾸지 않았다.
+- plan: `"detail_method": "_enumeration_detail", "detail_args": ["html", "item", "url"]` (`url` 은 요청한 상세 URL = crawl() 의 detail_url).
+- 시험 `test_malformed_detail_html_is_parsed_like_crawl`: 닫히지 않은 `<p>` 가 있는 상세 fixture 로 html5lib/html.parser 의 초록이 실제로 다름을 먼저 확인하고, 원본 crawl() 저장 인자와 새 경로의 정제 전·후 Paper 가 같음을 대조한다. 수정 전 abstract 차이(`\n\n` 대 공백 연결)로 실패를 확인했다.

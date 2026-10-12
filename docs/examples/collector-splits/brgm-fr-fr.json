@@ -15,9 +15,8 @@
           "html",
           "url"
         ],
-        "detail_method": "_build_paper",
+        "detail_method": "_enumeration_detail",
         "detail_args": [
-          "soup",
           "html",
           "item",
           "url"

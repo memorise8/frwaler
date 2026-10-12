@@ -56,6 +56,14 @@ class BrgmFrFrCrawler(BaseCrawler):
 
 
     # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_detail(self, raw_html, list_meta, detail_url):
+        """Parse a detail page exactly like crawl() (self._make_soup, html5lib first)
+        and reuse _build_paper; an unparseable page is skipped as crawl() skips it."""
+        soup = self._make_soup(raw_html, context=f"detail {detail_url}")
+        if soup is None:
+            return None
+        return self._build_paper(soup, raw_html, list_meta, detail_url)
+
     def _enumeration_items(self, raw, url=None):
         """Reuse crawl's card selector and metadata parser without fetching details.
 
