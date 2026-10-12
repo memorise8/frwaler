@@ -44,7 +44,9 @@ def reviewed_tier(result, audit):
     if audit['audited_status'] == 'unmeasurable':
         return '불가'
     raw = result['measured_tier']
-    if audit['audited_status'] == 'needs_review' and raw in ('높음', '보통', '불가'):
+    if audit['audited_status'] == 'needs_review':
+        # An unrecognised custom list/JS shell is insufficient evidence, not
+        # demonstrated source instability. Reserve unstable for contradictions.
         inconsistent = any(any(token in issue for token in
             ('mixed_date_order', 'repeated_identity', 'wraparound', 'changed_on_repeat'))
             for issue in audit['issues'])
@@ -116,6 +118,11 @@ def build(out):
                          'shared_public_ip_servers': 4, 'servers_used': 1,
                          'multiserver_requirement': 'Disjoint host ownership or a shared cross-server gate; independent host locks do not enforce the total rate.',
                          'measured_capacity_ceiling': False},
+              'tier_definitions': {'높음': 'Independent boundary cross-checks accepted by the evidence audit',
+                                   '보통': 'A bounded collection route observed without current audit issues',
+                                   '낮음': 'Accessible or reviewable, but list/date/boundary evidence incomplete',
+                                   '불안정': 'Observed identity/order/pagination contradictions require reconciliation',
+                                   '불가': 'Observed access/transport/entry inability on this server at measurement time'},
               'caveats': ['Tier differences compare estimates with bounded response observations, not source degradation over time.',
                           '불가 is inability observed on this server at this time, not permanent impossibility.',
                           'First-pass completion is separate from unresolved evidence review and whole-source verification.',

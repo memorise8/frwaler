@@ -19,6 +19,10 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(result['changed_sites'], 1)
         self.assertEqual(sum(result['delta_among_processed'].values()), 0)
 
+    def test_unrecognised_list_is_low_evidence_not_observed_instability(self):
+        self.assertEqual(reviewed_tier({'measured_tier':'불안정'},
+            {'audited_status':'needs_review','issues':['scope_0:oldest_identity_unresolved']}), '낮음')
+
     def test_phase_time_excludes_the_pause_and_counts_errors_as_responses(self):
         state = {'started_at':'2026-10-12T01:00:00+00:00','finished_at':'2026-10-12T01:02:00+00:00',
                  'workers':8,'status':'finished','scheduled':4,'finished':4}
