@@ -145,3 +145,9 @@ docker run --rm --name enum-test-adapter-20261012-verified \
 - AFP(`afp-gov-au-news-centre`)의 등록 `_parse_detail_page`는 PDF 링크에 파일명이 없으면 `_curl_head_content_disposition`으로 curl을 실행한다. 계약 경로에서 이 호출은 guard에 막혀 `AdapterUngatedNetwork` → 사이트 전체 `config_error`가 된다. 따라서 AFP는 통과 후보에서 빼고 `docs/examples/adapter-contract-plans.json`에서 삭제했다. 재판정은 3/24 통과, 21/24 거부다(`adapter-contract-audit.json` 갱신).
 - guard를 완화하거나 HEAD 요청을 계약 경로가 대신 수행하는 우회는 하지 않았다. AFP를 계약으로 연결하려면 등록 수집기 쪽에서 네트워크 없는 상세 파서를 분리해야 한다(이 작업 범위 밖).
 - 남은 후보 중 AfricaMuseum·Culture·KIT의 등록 목록/상세/Paper 메서드에서는 subprocess/세션 호출을 찾지 못했다(코드 검색 기준, 모든 입력에 대한 증명은 아님).
+
+### 남은 제한: crawl() 내부의 짧은 초록 필터 (M2, 코드 변경 없음)
+
+- Culture(`MIN_ABSTRACT_CHARS`=50)·KIT(`_ABSTRACT_MIN_CHARS`=50)·AFP(`_MIN_ABSTRACT_CHARS`=50)의 짧은 초록 건너뛰기는 등록 crawl() 루프 안에 인라인으로 있고 분리된 메서드가 없다. 계약 경로는 crawl()을 이식하지 않으므로 이 필터가 없고, 초록이 짧은 문서도 저장 대상이 된다. 즉 **계약 경로의 수집 범위는 등록 수집기보다 넓을 수 있다.** 필터를 계약 쪽에 복제하지 않았다(`test_short_abstract_not_filtered_by_contract`가 이 차이를 고정해 둔다).
+- AfricaMuseum은 같은 필터(`_MIN_ABSTRACT`=100)가 등록 상세 메서드 안에 있어 계약 경로도 `None`을 받는다. 다만 계약 경로는 의도된 건너뜀과 파서 실패를 구별할 수 없으므로 이 항목은 `empty_item`으로 원장에 남고 H1 규칙의 계약 단계 실패로 센다(연속 5건이면 `config_error`, 산발이면 `complete_with_review`).
+- 필터를 맞추려면 등록 수집기에서 필터를 메서드로 분리한 뒤 Paper 단계에 연결해야 한다(이 작업 범위 밖).
