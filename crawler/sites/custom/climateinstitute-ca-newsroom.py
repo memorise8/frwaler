@@ -57,6 +57,58 @@ class ClimateInstituteNewsroomCrawler(BaseCrawler):
     site_name = "Custom: climateinstitute-ca-newsroom"
     base_url = "https://climateinstitute.ca"
 
+
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_items(self, data):
+        """Validate a decoded API list; no fetching, storage, or identifier synthesis."""
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            raise ValueError("enumeration listing must be a list of objects")
+        return data
+
+    def _enumeration_paper(self, post):
+        """Pure copy of crawl's Paper conversion and item filters.
+
+        None preserves item rejection; the framework currently records it as empty_item.
+        """
+        post_id = post.get('id')
+        post_url = post.get('link', '')
+        slug = post.get('slug', '')
+        date_raw = post.get('date', '')
+        title = _strip_html(post.get('title', {}).get('rendered', ''))
+        if not title:
+            return None
+        content_html = post.get('content', {}).get('rendered', '')
+        excerpt_html = post.get('excerpt', {}).get('rendered', '')
+        abstract = _strip_html(content_html)
+        if len(abstract) < 50:
+            abstract = _strip_html(excerpt_html)
+        if len(abstract) < 50:
+            return None
+        published_date = date_raw[:10] if date_raw else None
+        external_id = str(post_id) if post_id is not None else slug
+        post_number = str(post_id) if post_id is not None else None
+        paper = {
+            'site_id': self.site_id,
+            'external_id': external_id,
+            'post_number': post_number,
+            'title': title,
+            'abstract': abstract,
+            'published_date': published_date,
+            'listed_date': published_date,
+            'url': post_url,
+            'pdf_url': None,
+            'authors': None,
+            'publisher': 'Canadian Climate Institute',
+            'department': None,
+            'journal': None,
+            'keywords': None,
+            'category': None,
+            'doi': None,
+            'original_filename': None,
+            'metadata': json.dumps({'posted_date': date_raw, 'slug': slug, 'wp_id': post_id}, ensure_ascii=False),
+        }
+        return paper
+
     def crawl(self, limit=None):
         """Crawl news releases via the WordPress REST API.
 
