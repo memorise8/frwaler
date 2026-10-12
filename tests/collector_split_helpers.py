@@ -19,6 +19,7 @@ from crawler.enumeration.guard import guarded
 from crawler.enumeration.http import Response
 from crawler.enumeration.parsing import ListingParser
 from crawler.enumeration.plan import site_plan
+from crawler.enumeration.urls import build_url
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -179,6 +180,13 @@ class SplitChecks:
         response = Response(200, {'Content-Type':fixture['content_type']}, fixture['listing_body'], url)
         items = ListingParser(p.listing['parser'], adapter=adapter).parse(response).items
         self.assertEqual(2, len(items))
+        if p.strategy == 'last_page_backward' and p.section('last_page').get('check_unparameterized_first_page', True):
+            # The strategy first compares the page-less listing URL with the start page;
+            # list bindings must work on that URL too (or the plan must turn the check off).
+            bare = build_url(p.listing['url'], p.listing.get('params') or {}, drop={p.listing.get('page_param', 'page')})
+            bare_items = ListingParser(p.listing['parser'], adapter=adapter).parse(
+                Response(200, {'Content-Type':fixture['content_type']}, fixture['listing_body'], bare)).items
+            self.assertEqual([i.key for i in items], [i.key for i in bare_items])
         papers = []; calls = []
         def fetch(url):
             self.assertIn(url, fixture['details'], 'undeclared detail request')

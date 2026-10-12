@@ -280,6 +280,7 @@
         }
       },
       "last_page": {
+        "check_unparameterized_first_page": false,
         "overlap_pages": 1
       }
     },

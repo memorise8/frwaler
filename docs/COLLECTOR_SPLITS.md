@@ -101,3 +101,11 @@ WordPress 6곳 plan 의 `listing` 에 다음 두 항목을 넣었다. 둘 다 �
 |minfin-gov-gr-grafeio-typou|**근거 없음**: `_curl_get` 은 HTTP 400 이상을 실패로 보고 3회 재시도 뒤 None → "failed; stopping". 기존 crawl() 은 보통 `len(posts) < 100` (짧은 쪽)에서 먼저 끝나 이 응답에 닿지 않는다. 같은 WordPress REST 코어(`/wp-json/wp/v2/posts`)의 공통 동작에 근거해 넣었으며 실제 응답은 확인 못 함|
 
 시험: `tests/test_enumeration_split_wordpress_end.py` — plan 값 검사, 실제 `SiteRunner.run` 합성 실행(400 종료 → complete, X-WP-Total 불일치 → complete_with_mismatch, 다른 400 → incomplete). 수정 전 26개 subTest 실패를 확인했다.
+
+### 리뷰 수정 2 — minfin page 바인딩과 page 없는 첫 쪽 비교
+
+minfin plan 의 목록 바인딩 `{"source":"query","path":["page"],"type":"int"}` 은 목록 URL 의 `page` 값을 읽는다(기존 crawl() 의 metadata `api_page` 를 같게 만들기 위함). last_page_backward 는 탐색 전에 page 파라미터를 뺀 URL 을 한 번 더 읽어 시작 쪽과 비교하는데, 그 URL 에는 `page` 가 없어 `adapter_contract:missing_path:["page"]` 로 config_error 가 되었다.
+
+- 수정: minfin plan 에 `"last_page": {"check_unparameterized_first_page": false, ...}` 를 명시했다. WordPress REST 에서 `page=1` 은 정의상 첫 쪽이며, 기존 crawl() 도 항상 `page=` 를 붙여 요청한다. 대가로 이 사이트는 'page 없는 URL = 시작 쪽' 교차 확인을 하지 않는다.
+- harness 원인: `tests/collector_split_helpers.py` 의 `pipeline()` 은 page 파라미터가 붙은 목록 URL 하나만 파싱하고 전략(첫 쪽 비교)을 실행하지 않았다. 이제 last_page_backward 이고 비교가 켜져 있으면 page 없는 URL 로도 같은 본문을 파싱하여 같은 키가 나오는지 확인한다. 수정 전 minfin 의 사이트별 시험 4개가 이 검사에서 오류로 재현되었다.
+- 추가로 실제 `SiteRunner.run` 합성 실행(`run_split`)으로 minfin 이 complete 로 끝나는지 확인한다.

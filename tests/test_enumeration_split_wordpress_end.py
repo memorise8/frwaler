@@ -18,7 +18,7 @@ def _no_io(*args, **kwargs):
 
 
 class WordPressEnd(unittest.TestCase):
-    RUN_SITES = [s for s in WORDPRESS if s != 'minfin-gov-gr-grafeio-typou']
+    RUN_SITES = WORDPRESS
 
     def setUp(self):
         for name in ('socket.getaddrinfo', 'socket.socket.connect', 'subprocess.Popen._execute_child'):
