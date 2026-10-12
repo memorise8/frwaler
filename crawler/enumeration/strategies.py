@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import calendar
 import hashlib
-import gzip
 import re
+import zlib
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -717,6 +717,16 @@ def _tag(element):
     return element.tag.rsplit("}", 1)[-1]
 
 
+SITEMAP_MAX_BYTES = 64 * 1024 * 1024  # uncompressed; the protocol limit is 50 MB
+# A 200 answer that is not a sitemap (maintenance/error HTML, truncated body) may be
+# fixed by the next run: such segments are re-queued, at most ``max_attempts`` times.
+_RETRYABLE_SITEMAP = ("invalid_xml", "unknown_xml_root")
+
+
+class _SitemapTooLarge(Exception):
+    pass
+
+
 class Sitemap(Strategy):
     name = "sitemap"
     CHUNK = 200
@@ -733,7 +743,13 @@ class Sitemap(Strategy):
         resp = self.ctx.fetcher.get(url)
         body = resp.body
         if body[:2] == b"\x1f\x8b":
-            body = gzip.decompress(body)
+            cap = int(self.cfg.get("max_uncompressed_bytes") or SITEMAP_MAX_BYTES)
+            inflater = zlib.decompressobj(16 + zlib.MAX_WBITS)
+            body = inflater.decompress(body, cap + 1)
+            if len(body) > cap:
+                raise _SitemapTooLarge()
+            if not inflater.eof:
+                raise EOFError("truncated gzip sitemap")
         return ET.fromstring(body)
 
     def roots(self):
@@ -758,6 +774,11 @@ class Sitemap(Strategy):
         # Roots are re-derived and upserted on every run (crash-safe initialisation).
         for i, url in enumerate(self.roots()):
             ctx.store.ensure_segment(ctx.site_id, ctx.plan_fp, url, ordinal=i)
+        max_attempts = int(self.cfg.get("max_attempts", 3))
+        for r in ctx.store.segments(ctx.site_id, ctx.plan_fp):
+            if r["status"] == "failed" and (r["evidence"] or "").startswith(_RETRYABLE_SITEMAP) \
+                    and int((r["detail"] or {}).get("attempts", 1)) < max_attempts:
+                ctx.store.update_segment(ctx.site_id, ctx.plan_fp, r["segment_key"], status="pending")
         while True:
             rows = ctx.store.segments(ctx.site_id, ctx.plan_fp)
             pending = [r for r in rows if r["status"] in ("pending", "running")]
@@ -771,31 +792,47 @@ class Sitemap(Strategy):
                 ctx.store.update_segment(ctx.site_id, ctx.plan_fp, url, status="failed", evidence=exc.reason)
                 ctx.store.event(ctx.site_id, "sitemap_failed", {"sitemap": url, "reason": exc.reason})
                 continue
-            except (ET.ParseError, OSError, EOFError) as exc:
+            except _SitemapTooLarge:
+                ctx.store.update_segment(ctx.site_id, ctx.plan_fp, url, status="failed", evidence="sitemap_too_large")
+                ctx.store.event(ctx.site_id, "sitemap_failed", {"sitemap": url, "reason": "sitemap_too_large"})
+                continue
+            except (ET.ParseError, OSError, EOFError, zlib.error) as exc:
+                # Retried by later runs (bounded): a maintenance page is not a permanent answer.
+                attempts = int((row["detail"] or {}).get("attempts", 0)) + 1
                 ctx.store.update_segment(ctx.site_id, ctx.plan_fp, url, status="failed",
-                                         evidence=f"invalid_xml:{type(exc).__name__}")
-                ctx.store.event(ctx.site_id, "sitemap_failed", {"sitemap": url, "reason": "invalid_xml"})
+                                         evidence=f"invalid_xml:{type(exc).__name__}",
+                                         detail=dict(row["detail"] or {}, attempts=attempts))
+                ctx.store.event(ctx.site_id, "sitemap_failed", {"sitemap": url, "reason": "invalid_xml",
+                                                                "attempts": attempts})
                 continue
             if _tag(root) == "sitemapindex":
                 base = max((r["ordinal"] for r in rows), default=0) + 1
-                children = []
+                children, listed_children = [], 0
                 for node in root:
                     loc = next(((c.text or "").strip() for c in node if _tag(c) == "loc"), "")
+                    listed_children += bool(loc)
                     if loc and (not self.index_include or any(p.search(loc) for p in self.index_include)):
                         children.append(loc)
                 for i, child in enumerate(children):
                     ctx.store.ensure_segment(ctx.site_id, ctx.plan_fp, child, ordinal=base + i, parent=url)
-                ctx.store.update_segment(ctx.site_id, ctx.plan_fp, url, status="complete",
-                                         evidence="sitemap_index", reported_total=len(children),
-                                         detail={"children": len(children)})
+                # An index naming no sitemap at all is not evidence of an empty source.
+                ctx.store.update_segment(ctx.site_id, ctx.plan_fp, url,
+                                         status="complete" if listed_children else "unverified",
+                                         evidence="sitemap_index" if listed_children else "sitemap_index_empty",
+                                         reported_total=len(children), detail={"children": len(children)})
                 continue
             if _tag(root) != "urlset":
-                ctx.store.update_segment(ctx.site_id, ctx.plan_fp, url, status="failed", evidence="unknown_xml_root")
+                attempts = int((row["detail"] or {}).get("attempts", 0)) + 1
+                ctx.store.update_segment(ctx.site_id, ctx.plan_fp, url, status="failed", evidence="unknown_xml_root",
+                                         detail=dict(row["detail"] or {}, attempts=attempts))
+                ctx.store.event(ctx.site_id, "sitemap_failed", {"sitemap": url, "reason": "unknown_xml_root",
+                                                                "attempts": attempts})
                 continue
-            items = []
+            items, locs = [], 0
             for node in root:
                 fields = {_tag(c): (c.text or "").strip() for c in node}
                 loc = fields.get("loc")
+                locs += bool(loc)
                 if loc and self.wanted(loc):
                     # lastmod is a modification time, never a publication order.
                     items.append(Item(key=normalize_key_url(loc), url=loc, date=None,
@@ -829,15 +866,23 @@ class Sitemap(Strategy):
                     ctx.store.update_segment(ctx.site_id, ctx.plan_fp, url, status="mismatch",
                                              evidence=f"listed_{len(listed)}_of_{total}")
             if total == 0:
-                ctx.store.update_segment(ctx.site_id, ctx.plan_fp, url, status="complete",
-                                         evidence="sitemap_no_matching_urls", reported_total=0)
+                # URLs present but none wanted: a filtering result. No URL at all: unverified
+                # (an emptied or placeholder sitemap is not evidence of an empty source).
+                ctx.store.update_segment(ctx.site_id, ctx.plan_fp, url, status="complete" if locs else "unverified",
+                                         evidence="sitemap_no_matching_urls" if locs else "sitemap_empty_urlset",
+                                         reported_total=0)
         rows = ctx.store.segments(ctx.site_id, ctx.plan_fp)
         failed = [r["segment_key"] for r in rows if r["status"] == "failed"]
         mismatched = [r["segment_key"] for r in rows if r["status"] == "mismatch"]
+        unverified = [r["segment_key"] for r in rows if r["status"] == "unverified"]
         if failed:
             self.outcome = ("incomplete", f"sitemaps_failed:{len(failed)}")
         elif mismatched:
             self.outcome = ("complete_with_mismatch", f"sitemaps_mismatch:{len(mismatched)}")
+        elif ctx.store.listed_count(ctx.site_id, ctx.plan_fp) == 0:
+            self.outcome = ("complete_unverified", "sitemaps_listed_nothing")
+        elif unverified:
+            self.outcome = ("complete_unverified", f"sitemaps_unverified:{len(unverified)}")
         else:
             self.outcome = ("complete", "all_sitemaps_listed")
 

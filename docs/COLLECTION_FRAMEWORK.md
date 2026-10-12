@@ -176,6 +176,14 @@ enum_event(id PK, site_id, at, kind, detail JSON)   -- 접근 차단, 구간 불
 * **lastmod는 게시일이 아니므로 순서 근거로 쓰지 않는다**(payload에 참고로만 보관). 순서가 필요하면
   `order_by_url_number`(URL 속 숫자 id 정규식)로 자식 sitemap 안에서 오름차순 정렬한다. 아니면 문서 순서.
 * 대조: 자식별 필터 통과 URL 수 = 구간 총건수. 모든 자식이 처리되면 complete.
+* URL이 하나도 없는 urlset(`sitemap_empty_urlset`), 자식이 하나도 없는 인덱스(`sitemap_index_empty`)는 구간
+  `unverified`이고, 사이트 전체에서 목록에 오른 항목이 0이면(필터로 전부 빠진 경우 포함) `complete_unverified`
+  (`sitemaps_listed_nothing`). URL은 있지만 필터에 하나도 안 걸린 자식은 그 자체로는 `complete`.
+* 200인데 XML이 아님/깨짐/잘린 gzip(`invalid_xml:*`, `unknown_xml_root`)은 그 실행에서 `failed`(사이트 `incomplete`)이고,
+  다음 실행 시작에 다시 `pending`으로 돌린다(구간 `detail.attempts`, `sitemap.max_attempts` 기본 3회까지). 404 등
+  `PermanentFailure`는 재시도하지 않는다.
+* gzip 해제 크기 상한 `sitemap.max_uncompressed_bytes`(기본 64 MiB; 규격 상한 50 MB). 넘으면 `sitemap_too_large`로
+  `failed`(재시도 안 함, 사이트 `incomplete`).
 
 ## 6. 항목별 실패 대장
 

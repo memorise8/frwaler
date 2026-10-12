@@ -479,5 +479,82 @@ class LoginPageTest(unittest.TestCase):
         self.assertFalse(H.login_page(page("Connexion", "<h1>Connexion</h1>")))
 
 
+class SitemapFixTest(unittest.TestCase):
+    """MEDIUM-8: empty sitemaps are not completion evidence, broken XML is retried, gzip is bounded."""
+
+    def setUp(self):
+        from tests.enumeration_fakes import Env
+        self.env = Env()
+
+    def tearDown(self):
+        self.env.close()
+
+    @staticmethod
+    def plan(**sm):
+        cfg = {"sitemap_url": "https://sm.test/sitemap.xml"}
+        cfg.update(sm)
+        return {"strategy": "sitemap", "request_interval_s": 0, "base_url": "https://sm.test",
+                "adapter": {"type": "selectors", "selectors": {"title": "h1"}}, "sitemap": cfg}
+
+    @staticmethod
+    def handler(sitemap_body, ctype="application/xml"):
+        def handle(url):
+            if url.endswith("/robots.txt"):
+                return Response(404, {}, b"")
+            if url.endswith("/sitemap.xml"):
+                body = sitemap_body() if callable(sitemap_body) else sitemap_body
+                return Response(200, {"Content-Type": ctype}, body)
+            if "/doc/" in url:
+                return Response(200, {"Content-Type": "text/html"}, b"<html><h1>Doc</h1></html>")
+            return Response(404, {}, b"")
+        return handle
+
+    def test_empty_urlset_is_unverified(self):
+        from tests.test_enumeration_sort_sitemap import urlset
+        result = self.env.run(self.plan(), self.handler(urlset([])))
+        self.assertEqual(result["status"], "complete_unverified", result)
+        seg = self.env.store.segments(self.env.site_id, self.env.store.site(self.env.site_id)["plan_fp"])[0]
+        self.assertEqual((seg["status"], seg["evidence"]), ("unverified", "sitemap_empty_urlset"))
+
+    def test_all_urls_filtered_out_is_unverified(self):
+        from tests.test_enumeration_sort_sitemap import urlset
+        result = self.env.run(self.plan(include=["/publications/"]), self.handler(urlset(["https://sm.test/a/"])))
+        self.assertEqual((result["status"], result["stop_reason"]), ("complete_unverified", "sitemaps_listed_nothing"))
+
+    def test_empty_index_is_unverified(self):
+        from tests.test_enumeration_sort_sitemap import INDEX
+        result = self.env.run(self.plan(), self.handler(INDEX.format("").encode()))
+        self.assertEqual(result["status"], "complete_unverified", result)
+
+    def test_maintenance_html_is_retried_next_run(self):
+        from tests.test_enumeration_sort_sitemap import urlset
+        maintenance = b"<html><body><h1>Maintenance</h1><p>Back soon & thanks</p></body></html>"
+        answers = [maintenance, urlset(["https://sm.test/doc/1"])]
+        handler = self.handler(lambda: answers[0])
+        first = self.env.run(self.plan(), handler)
+        self.assertEqual((first["status"], first["stop_reason"]), ("incomplete", "sitemaps_failed:1"))
+        answers.pop(0)
+        second = self.env.run(self.plan(), handler)
+        self.assertEqual(second["status"], "complete", second)
+        self.assertEqual(len(self.env.docs()), 1)
+
+    def test_broken_sitemap_retries_are_bounded(self):
+        broken = b"<html><body>Maintenance & more</body></html>"
+        counts = []
+        for _ in range(5):
+            result = self.env.run(self.plan(), self.handler(broken))
+            counts.append(sum("/sitemap.xml" in u for u in result["transport"].urls))
+            self.assertEqual(result["status"], "incomplete")
+        self.assertEqual(counts, [1, 1, 1, 0, 0])
+
+    def test_gzip_expansion_is_capped(self):
+        import gzip
+        bomb = gzip.compress(b"<urlset>" + b" " * 200_000 + b"</urlset>")
+        result = self.env.run(self.plan(max_uncompressed_bytes=10_000), self.handler(bomb, "application/x-gzip"))
+        self.assertEqual(result["status"], "incomplete")
+        seg = self.env.store.segments(self.env.site_id, self.env.store.site(self.env.site_id)["plan_fp"])[0]
+        self.assertEqual((seg["status"], seg["evidence"]), ("failed", "sitemap_too_large"))
+
+
 if __name__ == "__main__":
     unittest.main()
