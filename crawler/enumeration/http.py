@@ -238,11 +238,21 @@ def _pin_connections(session, resolver):
     from urllib3.connectionpool import HTTPConnectionPool, HTTPSConnectionPool
 
     def pinned(base):
-        class Pool(base):
+        scheme = "https" if issubclass(base, HTTPSConnectionPool) else "http"
+
+        class Connection(base.ConnectionCls):
             def _new_conn(self):
-                conn = super()._new_conn()
-                conn._dns_host = checked_addresses(f"{self.scheme}://{self.host}", self.host, resolver)[0]
-                return conn
+                # urllib3's ``host`` property reads ``_dns_host`` (SNI, certificate check, Host
+                # header), so the checked address may only stand in while the socket is made.
+                name = self._dns_host
+                self._dns_host = checked_addresses(f"{scheme}://{name}", name, resolver)[0]
+                try:
+                    return super()._new_conn()
+                finally:
+                    self._dns_host = name
+
+        class Pool(base):
+            ConnectionCls = Connection
         return Pool
 
     classes = {"http": pinned(HTTPConnectionPool), "https": pinned(HTTPSConnectionPool)}

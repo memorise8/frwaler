@@ -168,5 +168,44 @@ class FetcherTest(unittest.TestCase):
         self.assertLess(elapsed, 1.1)
 
 
+class PinnedConnectionTest(unittest.TestCase):
+    """The checked address is only the socket target; name stays for SNI/cert/Host."""
+
+    def _session(self, addresses):
+        import requests
+        from crawler.enumeration.http import _pin_connections
+        session = requests.Session()
+        _pin_connections(session, lambda host: addresses)
+        return session
+
+    def test_https_connects_to_checked_address_and_keeps_name(self):
+        from unittest import mock
+        session = self._session(["151.101.1.1"])
+        pool = session.adapters["https://"].poolmanager.connection_from_url("https://www.example.test/")
+        targets = []
+
+        def fake_create(address, *a, **k):
+            targets.append(address)
+            raise OSError("stop before connecting")
+
+        with mock.patch("urllib3.connection.connection.create_connection", fake_create):
+            conn = pool.ConnectionCls(host="www.example.test", port=443)
+            with self.assertRaises(Exception):
+                conn._new_conn()
+        self.assertEqual(targets[0][0], "151.101.1.1")
+        self.assertEqual(conn.host, "www.example.test")
+
+    def test_forbidden_address_is_refused_before_connecting(self):
+        from unittest import mock
+        from crawler.enumeration.http import PrivateDestination
+        session = self._session(["10.0.0.5"])
+        pool = session.adapters["https://"].poolmanager.connection_from_url("https://www.example.test/")
+        with mock.patch("urllib3.connection.connection.create_connection") as create:
+            conn = pool.ConnectionCls(host="www.example.test", port=443)
+            with self.assertRaises(PrivateDestination):
+                conn._new_conn()
+        create.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main()
