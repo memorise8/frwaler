@@ -54,6 +54,20 @@ class BrgmFrFrCrawler(BaseCrawler):
     # Main crawl
     # ------------------------------------------------------------------
 
+
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_items(self, raw):
+        """Reuse crawl's card selector and metadata parser without fetching details."""
+        soup = self._make_soup(raw, context="enumeration listing")
+        if soup is None or soup.find("main") is None:
+            raise ValueError("enumeration listing has no main marker")
+        records = []
+        for card in soup.select("a.bk-article[href]"):
+            href = card.get("href", "").strip()
+            if href:
+                records.append(self._parse_card(card, urljoin(self.base_url, href)))
+        return records
+
     def crawl(self, limit=None):
         """Walk paginated press-release list and persist each item."""
         saved = 0
