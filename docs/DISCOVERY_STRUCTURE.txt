@@ -56,3 +56,12 @@ progress/대장을 덮어쓰지 않고 quality-review.json과 followup-queue.jso
 발행일 혼동, 반복 ID, 혼합 정렬, 되돌아감/조회 상한, 자체 redirect 등을 후속 확인 대상으로 분리한다.
 따라서 1차 결과의 measured 개수와 이 품질 검사를 통과한 개수는 다를 수 있다. 최종 집계 전
 검사 결과를 사이트별 근거와 대장에 반영해야 하며 needs_review는 완료로 세지 않는다.
+
+후속 정찰 경로 추출
+python -m delivery.scripts.route_structure_discovery --out <discovery-20261012>
+모든1,245개 코드/설정에서 정적 목록 endpoint와 목록 파서의 CSS 선택자를 추출한다. 코드를
+실행하거나 API에 접속하지 않는다. source-hints.json의 값은 단서이며 측정 완료 근거가 아니다.
+followup-routing.json은 남은 요청 예산, 원본 범위 확인 조건, 기존 선택자/API/날짜 필터와
+비보안 JS 화면의 브라우저 필요 가능성을 분리한다. 인증/차단/로그인/챌린지/속도 제한을
+관측한 사이트는 다른 API 호스트가 코드에 있더라도 대체 접근 후보에서 제외한다.
+이 단계도 실행 중인 1차 탐색기의 site JSON, progress, 대장을 덮어쓰지 않는다.
