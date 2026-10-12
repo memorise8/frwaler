@@ -118,10 +118,13 @@ class RobotsMatcherTest(unittest.TestCase):
                   "User-agent: *\nDisallow: /private\n")
         self.assertTrue(self.allowed(robots, "https://x.org/x"))
         self.assertFalse(self.allowed(robots, "https://x.org/private/1"))
-        # A group naming a product token of our user agent replaces the '*' group.
-        robots = "User-agent: *\nDisallow: /\n\nUser-agent: Chrome\nDisallow: /c\n"
+        # A group naming our product token (first product of the User-Agent) replaces the '*' group.
+        robots = "User-agent: *\nDisallow: /\n\nUser-agent: Mozilla/5.0\nDisallow: /c\n"
         self.assertTrue(self.allowed(robots, "https://x.org/x"))
         self.assertFalse(self.allowed(robots, "https://x.org/c"))
+        # Other words of the browser User-Agent never relax a stricter '*' group.
+        robots = "User-agent: *\nDisallow: /\n\nUser-agent: Chrome\nDisallow:\n"
+        self.assertFalse(self.allowed(robots, "https://x.org/x"))
         # Several user-agent lines share one group; groups for the same agent merge.
         robots = ("User-agent: foo\nUser-agent: *\nDisallow: /a\n\n"
                   "user-agent: *\ndisallow: /b\n")
@@ -139,6 +142,12 @@ class RobotsMatcherTest(unittest.TestCase):
         self.assertFalse(self.allowed(robots, "https://x.org/%C3%A9"))
         # A reserved character stays encoded: %2F is not '/'.
         self.assertTrue(self.allowed("User-agent: *\nDisallow: /a/b\n", "https://x.org/a%2Fb"))
+
+    def test_crawl_delay_never_shortened_by_a_specific_group(self):
+        robots = "User-agent: *\nCrawl-delay: 10\n\nUser-agent: Chrome\nCrawl-delay: 1\n"
+        self.assertEqual(H.crawl_delay(robots, UA), 10)
+        robots = "User-agent: *\nCrawl-delay: 2\n\nUser-agent: Chrome\nCrawl-delay: 4.5\n"
+        self.assertEqual(H.crawl_delay(robots, UA), 4.5)
 
     def test_bom_and_comments(self):
         robots = "﻿User-agent: * # all\nDisallow: /x # no\n"

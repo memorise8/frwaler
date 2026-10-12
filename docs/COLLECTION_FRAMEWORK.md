@@ -69,7 +69,9 @@ plan.json ─► SitePlan ─► Strategy.batches(progress)  ── yields Batch
   동안 다시 요청하지 않고 같은 정지를 낸다(URL마다 robots 재요청 방지). 파일 패스도 같은 정지로 멈춘다(시도 횟수 미증가).
   `respect_robots: false`는 plan에서 명시할 때만.
 * robots 규칙 해석은 표준 `urllib.robotparser`가 아니라 직접 구현한 RFC 9309 매처(`http.parse_robots`)다:
-  우리 user agent에 들어 있는 토큰(대소문자 무시)을 이름으로 한 그룹이 있으면 그 그룹들(합침), 없으면 `*` 그룹들.
+  우리 제품 토큰(User-Agent의 첫 제품명, 기본값이면 `Mozilla`, 대소문자 무시 — 이전 robotparser와 같은 선택)을 이름으로 한
+  그룹이 있으면 그 그룹들(합침), 없으면 `*` 그룹들. `Chrome`·`Safari` 등 브라우저 UA의 다른 단어는 그룹을 고르지 않는다
+  (더 느슨한 그룹이 엄격한 `*`를 대신하지 않게). Crawl-delay는 UA 부분 문자열이 일치하는 그룹과 `*` 그룹 값 중 **큰 값**을 쓴다(간격을 줄이지 않게).
   경로+질의에 대해 **가장 긴 패턴**이 이기고 길이가 같으면 Allow. `*`(임의 문자열)와 끝의 `$`(끝 고정) 지원.
   비교 전 퍼센트 인코딩 정규화(비ASCII는 UTF-8 `%XX`, 비예약 문자 `%XX`는 해제, 예약 문자 `%2F` 등은 유지).
   빈 `Disallow:`는 규칙 없음(허용). user-agent 줄 앞의 규칙은 어느 그룹에도 속하지 않는다.

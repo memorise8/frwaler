@@ -88,7 +88,7 @@ def login_page(body):
 
 
 def crawl_delay(text, user_agent):
-    """Crawl-delay (seconds, fractional allowed) of the group matching this agent or '*'.
+    """Crawl-delay (seconds, fractional allowed): the larger of the groups matching this agent and '*'.
     urllib.robotparser ignores non-integer values, so this reads the file itself."""
     agents, in_rules, best, star = [], False, None, None
     ua = user_agent.lower()
@@ -115,8 +115,9 @@ def crawl_delay(text, user_agent):
                     best = delay
         else:
             in_rules = True
-    value = best if best is not None else star
-    return max(0.0, value or 0.0)
+    # The larger of a matching group's and the '*' group's delay: a group naming a word of a
+    # browser User-Agent must not shorten the spacing the site asks of every crawler.
+    return max(0.0, best or 0.0, star or 0.0)
 
 
 _UNRESERVED = frozenset(b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
@@ -141,8 +142,13 @@ def robots_octets(value):
 
 
 def _agent_applies(agent, user_agent):
-    """Group user-agent token vs our user agent (case-insensitive, same rule as crawl_delay)."""
-    return bool(agent) and agent != "*" and agent in user_agent.lower()
+    """Group user-agent token vs our product token: the first product of our User-Agent
+    ("Mozilla" for the default), case-insensitive, as urllib.robotparser selected groups.
+    Other words of a browser User-Agent (Chrome, Safari...) do not select a group: such a
+    group could otherwise replace a stricter '*' group."""
+    product = re.split(r"[/\s]", user_agent.strip().lower(), 1)[0]
+    token = agent.split("/", 1)[0].strip()
+    return bool(token) and token != "*" and token == product
 
 
 class RobotsRules:
