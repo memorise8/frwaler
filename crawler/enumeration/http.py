@@ -331,6 +331,12 @@ class TransportError(Exception):
     """Raised by a transport for connection-level failures."""
 
 
+_BOMS = ((b"\xef\xbb\xbf", "utf-8"), (b"\xff\xfe", "utf-16-le"), (b"\xfe\xff", "utf-16-be"))
+_CHARSET = re.compile(r"charset\s*=\s*[\"']?\s*([\w.:-]+)", re.I)
+_META_CHARSET = re.compile(rb"<meta[^>]+charset\s*=\s*[\"']?\s*([\w.:-]+)", re.I)
+_META_SCAN = 64 * 1024  # bytes of <head> searched for a <meta> charset
+
+
 class Response:
     def __init__(self, status, headers=None, body=b"", url="", encoding=None):
         self.status = int(status)
@@ -348,13 +354,20 @@ class Response:
         return self.header("content-type", "") or ""
 
     def text(self, encoding=None):
+        """Decoded body. A byte order mark wins (and is stripped), then the given/plan
+        encoding, the Content-Type charset (quoted or not), a <meta> charset in <head>, UTF-8."""
+        for bom, name in _BOMS:
+            if self.body.startswith(bom):
+                return self.body[len(bom):].decode(name, errors="replace")
         enc = encoding or self._encoding
         if not enc:
-            m = re.search(r"charset=([\w-]+)", self.content_type, re.I)
+            m = _CHARSET.search(self.content_type)
             if m:
                 enc = m.group(1)
         if not enc:
-            m = re.search(rb"<meta[^>]+charset=[\"']?([\w-]+)", self.body[:4096], re.I)
+            head = self.body[:_META_SCAN]
+            end = head.lower().find(b"</head")
+            m = _META_CHARSET.search(head if end < 0 else head[:end])
             if m:
                 enc = m.group(1).decode("ascii", "ignore")
         try:

@@ -404,5 +404,36 @@ class LocationEncodingTest(unittest.TestCase):
         self.assertEqual(self.follow("/caf%C3%A9"), "https://x.org/caf%C3%A9")
 
 
+class ResponseEncodingTest(unittest.TestCase):
+    """MEDIUM-6: quoted charset, BOM (also for JSON), meta charset further into <head>."""
+
+    def test_quoted_charset_header(self):
+        for ctype in ('text/html; charset="iso-8859-1"', "text/html; charset='iso-8859-1'", "text/html;charset = ISO-8859-1"):
+            r = Response(200, {"Content-Type": ctype}, "<p>café</p>".encode("latin-1"))
+            self.assertEqual(r.text(), "<p>café</p>", ctype)
+
+    def test_bom_wins_and_is_stripped(self):
+        r = Response(200, {"Content-Type": "application/json"}, b"\xef\xbb\xbf{\"a\": \"\xc3\xa9\"}")
+        self.assertEqual(r.json(), {"a": "é"})
+        r = Response(200, {"Content-Type": "text/html; charset=iso-8859-1"}, b"\xef\xbb\xbf<p>caf\xc3\xa9</p>")
+        self.assertEqual(r.text(), "<p>café</p>")
+        r = Response(200, {}, "﻿<p>café</p>".encode("utf-16-le"))
+        self.assertEqual(r.text(), "<p>café</p>")
+
+    def test_meta_charset_after_large_head(self):
+        head = "<html><head><script>" + "x" * 6000 + "</script><meta charset=\"windows-1252\"></head>"
+        r = Response(200, {"Content-Type": "text/html"}, (head + "<body>café</body></html>").encode("cp1252"))
+        self.assertIn("café", r.text())
+        head = ("<html><head>" + "<!-- pad -->" * 600 +
+                '<meta http-equiv="Content-Type" content="text/html; charset=euc-kr"></head>')
+        r = Response(200, {"Content-Type": "text/html"}, (head + "<body>한글</body>").encode("euc-kr"))
+        self.assertIn("한글", r.text())
+
+    def test_meta_charset_in_body_text_is_ignored(self):
+        body = ("<html><head><title>t</title></head><body><pre>&lt;meta charset=\"iso-8859-1\"&gt;</pre>"
+                '<meta charset="iso-8859-1"> é</body></html>').encode("utf-8")
+        self.assertIn("é", Response(200, {"Content-Type": "text/html"}, body).text())
+
+
 if __name__ == "__main__":
     unittest.main()
