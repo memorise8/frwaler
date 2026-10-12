@@ -212,7 +212,9 @@ class CliEndToEndTest(unittest.TestCase):
                              "--db", str(db)])
             elapsed = __import__("time").monotonic() - began
             self.assertEqual(code, 0)
-            result = json.loads(out.getvalue().strip().splitlines()[-1])[0]
+            lines = out.getvalue().strip().splitlines()
+            result = json.loads(lines[-2])[0]
+            self.assertEqual(json.loads(lines[-1]), {"summary_by_status": {"complete": 1}})
             self.assertEqual(result["status"], "complete", result)
             # robots, page 1, bare page, page 2 probe, page 2..1 backward with overlap: >= 6 gated requests.
             self.assertGreaterEqual(result["requests"], 6)

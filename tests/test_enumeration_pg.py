@@ -74,7 +74,9 @@ def scenario(test, conn, store_path, gates):
     fetcher = Fetcher(SITE, FakeTransport(FakeBoard(6)), gates, interval=0, respect_robots=False,
                       sleep=lambda s: None)
     result = SiteRunner(plan, store, fetcher, adapter, today="2026-10-12").run()
-    test.assertEqual(result["status"], "complete", result)
+    # Item 5 is an identity collision: enumeration finished, but a person must review it.
+    test.assertEqual((result["status"], result["stop_reason"]), ("complete_with_review", "identity_collisions:1"),
+                     result)
     rows = [tuple(r) if not hasattr(r, "keys") else (r["post_number"], r["title"], r["abstract"])
             for r in conn.execute("SELECT post_number, title, abstract FROM documents ORDER BY seq_id").fetchall()]
     test.assertEqual([r[0] for r in rows], ["1", "7", "4", "6"])

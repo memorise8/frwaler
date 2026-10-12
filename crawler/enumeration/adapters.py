@@ -15,9 +15,10 @@ import json
 import sqlite3
 
 from .guard import AdapterUngatedNetwork, guarded
-from .http import PermanentFailure
+from .http import EnumerationStop, PermanentFailure
 
 __all__ = ["Adapter", "AdapterConfigError", "AdapterUngatedNetwork", "IdentityCollision", "IdentityReview",
+           "IdentityRuleConfig", "review_rule",
            "clean_paper", "paper_identity"]
 
 
@@ -27,6 +28,17 @@ class AdapterConfigError(ValueError):
 
 class IdentityReview(Exception):
     """The backend's identity rule refuses this item until a person reviews it."""
+
+
+class IdentityRuleConfig(EnumerationStop):
+    """The backend identity rule rejects how this site computes post_number/meta_url
+    (e.g. krivet_post_number_must_match_pstNo): every item would fail, stop the site."""
+
+
+def review_rule(message):
+    """True for item-level identity problems a person must review (stored-row
+    collisions/repairs); False for rule/configuration errors."""
+    return "requires_review" in message or "repair_required" in message or message.startswith("ambiguous_")
 
 
 class IdentityCollision(Exception):
@@ -253,6 +265,15 @@ class Adapter:
             result = getattr(c, self.cfg["detail_method"])(*args)
         return self._finish(result, item)
 
+    def identity_uses_list_fields(self):
+        """True when post_number/meta_url come from crawler code fed with listing
+        fields, which a URL-only sample cannot reproduce exactly."""
+        if self.mode != "crawler" or self.is_generic:
+            return False
+        if self.cfg.get("paper_method") or self.cfg.get("list_returns_paper"):
+            return True
+        return "item" in self.cfg.get("detail_args", ["html", "item"])
+
     def identity(self, item, fetcher):
         """(post_number, meta_url) this framework would store for ``item`` (no save)."""
         paper = self.materialize(item, fetcher)
@@ -301,7 +322,9 @@ class Adapter:
             try:
                 same = self._backend().find_by_dedup_key(self.conn, self.site_id, post_number, meta_url)
             except ValueError as exc:
-                raise IdentityReview(str(exc)) from None
+                if review_rule(str(exc)):
+                    raise IdentityReview(str(exc)) from None
+                raise IdentityRuleConfig(f"identity_rule_config:{exc}") from None
             if same is None and self.existing_post_number(post_number) is not None:
                 raise IdentityCollision(post_number)
             seq_id = self.crawler._save_paper(paper)

@@ -7,12 +7,16 @@ from dataclasses import dataclass, field
 
 from delivery.scripts.discovery_structure import date_value
 
-from .adapters import AdapterConfigError, AdapterUngatedNetwork, IdentityCollision, IdentityReview
+from .adapters import (AdapterConfigError, AdapterUngatedNetwork, IdentityCollision, IdentityReview,
+                       IdentityRuleConfig)
 from .http import (AccessBlocked, BudgetExhausted, EnumerationStop, LoginReview, PermanentFailure, RateLimited,
                    TransientFailure)
 from .parsing import Item, ListingParser
 from .strategies import STRATEGIES, StrategyStop, today_from
 from .urls import normalize_key_url
+
+
+COMPLETED = ("complete", "complete_with_mismatch", "complete_unverified", "complete_with_review")
 
 
 class SaveBroken(EnumerationStop):
@@ -65,6 +69,7 @@ class SiteRunner:
         self.allow_empty_reference = allow_empty_reference
         self.warnings = []
         self._login_details = 0
+        self._identity_reviews = 0
         self.stats = {"batches": 0, "listed": 0, "skipped_known": 0, "saved_new": 0, "saved_existing": 0,
                       "existing_document": 0, "identity_collisions": 0,
                       "identity_reviews": 0, "failed_permanent": 0, "failed_transient": 0, "retried": 0}
@@ -122,6 +127,9 @@ class SiteRunner:
                                                         "url": paper.get("url") or paper.get("meta_url")})
             self.stats["identity_reviews"] += 1
             self.stats["failed_permanent"] += 1
+            self._identity_reviews += 1
+            if self._identity_reviews >= int(self.plan.get("max_consecutive_identity_reviews") or 5):
+                raise LoginReview("identity_reviews_consecutive", paper.get("url") or paper.get("meta_url"))
             return
         except IdentityCollision as exc:
             st.record_item(site, item.key, "failed_permanent", reason="identity_collision", attempt=True, **common)
@@ -139,6 +147,7 @@ class SiteRunner:
                 raise SaveBroken(f"save_failures_consecutive:{type(exc).__name__}")
             return
         self._save_errors = 0
+        self._identity_reviews = 0
         if note == "existing_document":
             self.stats["existing_document"] += 1
         else:
@@ -209,9 +218,15 @@ class SiteRunner:
             except ValueError as exc:
                 found = f"review:{exc}"
             if expected_seq is None and found is None:
-                return  # listing item the legacy crawler never saved: not comparable
+                # No dedup match: comparable (as a mismatch) only if a stored row shares
+                # the meta_url or the post_number; otherwise the legacy crawler never saved it.
+                near = _rows(ref, "SELECT seq_id FROM documents WHERE site_id=? AND (meta_url=? OR post_number=?) "
+                                  "LIMIT 1", (self.site_id, meta_url, post_number))
+                if not near:
+                    return
             compared += 1
-            if found is not None and (expected_seq is None or found == expected_seq):
+            # Only a real row id is a match; a "review:..." outcome never is.
+            if isinstance(found, int) and (expected_seq is None or found == expected_seq):
                 matched += 1
             elif len(examples) < 3:
                 examples.append({"framework": [post_number, meta_url], "reference_seq": expected_seq,
@@ -219,19 +234,27 @@ class SiteRunner:
 
         for seq, item in items:
             compare(seq, item)
+        listing_items = []
         if not compared and self.plan.strategy != "sitemap":
             # Crawlers whose identity needs list fields cannot rebuild it from a URL.
             source = "listing_start_page"
-            for item in strategy.fetch_page(strategy.page_url(strategy.start_page)).items[: self.identity_sample]:
+            listing_items = strategy.fetch_page(strategy.page_url(strategy.start_page)).items[: self.identity_sample]
+            for item in listing_items:
                 compare(None, item)
-        result = {"mode": "sampled", "source": source, "reference_rows": total, "sampled": len(items),
+        list_field = self.adapter.identity_uses_list_fields()
+        result = {"mode": "sampled", "source": source, "reference_rows": total,
+                  "sampled_reference": len(items), "sampled_listing": len(listing_items),
+                  "sampled": len(items) + len(listing_items), "list_field_identity": list_field,
                   "compared": compared, "matched": matched, "errors": errors, "threshold": self.identity_threshold,
                   "match_rate": (matched / compared) if compared else None, "mismatch_examples": examples}
         self.store.event(self.site_id, "identity_precheck", result)
         if not compared:
             raise _IdentityStop("identity_unverifiable_no_overlap", result)
         if result["match_rate"] < self.identity_threshold:
-            raise _IdentityStop("identity_mismatch", result)
+            # When identity depends on listing fields, rebuilding it from a reference
+            # URL alone can be wrong: say so, so a false alarm can be told apart.
+            raise _IdentityStop("identity_mismatch:sample_recompute_may_be_wrong" if list_field
+                                else "identity_mismatch", result)
         return result
 
     # -- run ------------------------------------------------------------------
@@ -253,7 +276,7 @@ class SiteRunner:
         if cooldown and cooldown > time.time():
             return self._result("incomplete", "cooling_down", cooldown_until=cooldown)
         finished = current and current["plan_fp"] == plan.fingerprint and \
-            current["status"] in ("complete", "complete_with_mismatch", "complete_unverified")
+            current["status"] in COMPLETED
         if retry_only or (finished and not refresh):
             try:
                 self.retry_pass()
@@ -306,7 +329,7 @@ class SiteRunner:
         except AccessBlocked as exc:
             status, reason = "access_blocked", exc.reason
             st.event(site, "access_blocked", {"reason": exc.reason, "url": exc.url, "status": exc.status})
-        except (AdapterUngatedNetwork, SaveBroken) as exc:
+        except (AdapterUngatedNetwork, SaveBroken, IdentityRuleConfig) as exc:
             status, reason = "config_error", exc.reason
             st.event(site, "config_error", {"reason": exc.reason})
         except AdapterConfigError as exc:
@@ -334,6 +357,17 @@ class SiteRunner:
             status, reason = "failed_duplicates", f"new_duplicate_rows:{duplicates['new']}"
         if identity is not None:
             ctx.state["identity"] = identity
+        _, failed = st.item_counts(site)
+        collisions = failed.get("failed_permanent:identity_collision", 0)
+        reviews = sum(v for k, v in failed.items() if k.startswith("failed_permanent:identity_review:"))
+        if collisions:
+            self.warnings.append(f"identity_collisions:{collisions}")
+        if reviews:
+            self.warnings.append(f"identity_reviews:{reviews}")
+        if status == "complete" and (collisions or reviews):
+            # Enumeration finished, but items need a person: never a plain "complete".
+            status = "complete_with_review"
+            reason = ";".join(w for w in self.warnings if w.startswith(("identity_collisions", "identity_reviews")))
         ctx.state["warnings"] = list(self.warnings)
         st.finish_site(site, status, reason, ctx.state)
         return self._result(status, reason, identity=identity, duplicates=duplicates)

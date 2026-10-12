@@ -127,6 +127,22 @@ def run_site(plan, store, conn, state_dir, *, transport=None, refresh=False, ret
     return result
 
 
+FAILED_STATUSES = ("failed", "failed_duplicates", "config_error")
+REVIEW_STATUSES = ("complete_with_review", "review_pending", "access_blocked", "complete_with_mismatch",
+                   "complete_unverified")
+
+
+def exit_code(results):
+    """1: a site failed or is misconfigured; 2: a site needs a person's review; 0 otherwise
+    (incomplete runs are resumable and not an error)."""
+    statuses = {r.get("status") for r in results}
+    if statuses & set(FAILED_STATUSES):
+        return 1
+    if statuses & set(REVIEW_STATUSES):
+        return 2
+    return 0
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="python -m crawler.enumeration.run")
     p.add_argument("--plan", required=True)
@@ -207,7 +223,11 @@ def main(argv=None):
     finally:
         conn.close()
     print(json.dumps(results, ensure_ascii=False, default=str))
-    return 0 if all(r.get("status") not in ("failed", "failed_duplicates") for r in results) else 1
+    summary = {}
+    for r in results:
+        summary[r.get("status")] = summary.get(r.get("status"), 0) + 1
+    print(json.dumps({"summary_by_status": summary}, ensure_ascii=False))
+    return exit_code(results)
 
 
 if __name__ == "__main__":

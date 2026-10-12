@@ -328,3 +328,12 @@ segments_mismatch, files_{pending,done,failed}, oldest_item`. JSON(상세 포함
 | L-1 | 이어받기 첫 쪽이 비어 있으면(삭제로 마지막 쪽이 사라짐) 마지막 쪽을 다시 찾고(`last_page_reprobed`) 더 작은 새 끝에서 계속한다. |
 | L-2 | 규칙 유지·명시: plan 파라미터 값은 `%XX`가 있을 때만 "이미 인코딩된 폼 문자열"로 보고 `unquote_plus`(그때 `+`는 공백), `%XX`가 없으면 `+`를 포함해 글자 그대로. 기본 URL의 질의는 항상 폼 인코딩으로 해석. |
 | L-4 | 사전 점검은 실행마다 최대 표본 수(기본 5)만큼 상세 요청(+대체 시 목록 1회)을 더 쓴다. |
+
+## 15. 재검토 반영 (3차)
+
+| 항목 | 반영 |
+|---|---|
+| M-1 | 열거는 끝났지만 `identity_collision`/`identity_review` 항목이 1건 이상이면 사이트 상태는 `complete_with_review`(사유 `identity_collisions:N;identity_reviews:M`), 보고서 `warnings`에도 건수. 재실행(재시도 패스만)은 상태를 덮어쓰지 않는다. CLI 종료 코드: 1 = `failed`/`failed_duplicates`/`config_error`, 2 = 사람이 볼 상태(`complete_with_review`, `review_pending`, `access_blocked`, `complete_with_mismatch`, `complete_unverified`), 0 = 그 외(`incomplete`는 이어받기 가능). 마지막 줄에 `summary_by_status`. |
+| M-2 | 백엔드 식별 규칙의 `ValueError`는 `*requires_review*`, `*repair_required*`, `ambiguous_*`만 항목 검토(`identity_review`)로, 나머지(예: `krivet_post_number_must_match_pstNo`, `kei_scoped_post_number_required`, `invalid_cso_release_identity`)는 설정 오류로 사이트를 `config_error(identity_rule_config:<규칙>)`로 멈춘다. 항목 검토가 연속 `max_consecutive_identity_reviews`(기본 5)건이면 `review_pending(identity_reviews_consecutive)`. |
+| L-1/L-2 | 사전 점검에서 dedup 결과가 실제 행 id(int)일 때만 일치. 목록 대체 경로는 dedup 일치가 없어도 같은 meta_url 또는 post_number 행이 있으면 불일치로 센다. 결과에 `sampled_reference`, `sampled_listing`, `sampled`(합계). |
+| M-3 (한계) | 식별값이 목록 필드에 의존하는 커스텀 수집기(`paper_method`, `list_returns_paper`, `detail_args`에 `item`)는 참조 행 URL만으로 식별값을 정확히 재계산하지 못할 수 있다. 이런 사이트의 불일치 정지는 사유가 `identity_mismatch:sample_recompute_may_be_wrong`, 결과에 `list_field_identity: true`로 표시되어 오탐 여부를 사람이 가려야 한다. 근본 해결(목록 필드 재현)은 하지 않았다. |

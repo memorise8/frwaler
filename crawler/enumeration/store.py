@@ -100,7 +100,8 @@ class Store:
         current = self.site(site_id)
         if current and current["plan_fp"] == plan_fp:
             state = current["state"]
-            if current["status"] in ("complete", "complete_with_mismatch", "complete_unverified"):
+            if current["status"] in ("complete", "complete_with_mismatch", "complete_unverified",
+                                     "complete_with_review"):
                 # A completed enumeration re-runs from scratch as a fresh pass;
                 # saved items are skipped through the item ledger.
                 state = {}
@@ -121,7 +122,7 @@ class Store:
         self._exec("UPDATE enum_site SET state=?,updated_at=? WHERE site_id=?", (_dumps(state), now(), site_id))
 
     def finish_site(self, site_id, status, stop_reason=None, state=None):
-        completed = now() if status in ("complete", "complete_with_mismatch") else None
+        completed = now() if status in ("complete", "complete_with_mismatch", "complete_with_review") else None
         if state is not None:
             self.save_state(site_id, state)
         self._exec("UPDATE enum_site SET status=?,stop_reason=?,updated_at=?,completed_at=? WHERE site_id=?",
