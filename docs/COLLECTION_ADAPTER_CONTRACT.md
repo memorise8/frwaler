@@ -151,3 +151,8 @@ docker run --rm --name enum-test-adapter-20261012-verified \
 - Culture(`MIN_ABSTRACT_CHARS`=50)·KIT(`_ABSTRACT_MIN_CHARS`=50)·AFP(`_MIN_ABSTRACT_CHARS`=50)의 짧은 초록 건너뛰기는 등록 crawl() 루프 안에 인라인으로 있고 분리된 메서드가 없다. 계약 경로는 crawl()을 이식하지 않으므로 이 필터가 없고, 초록이 짧은 문서도 저장 대상이 된다. 즉 **계약 경로의 수집 범위는 등록 수집기보다 넓을 수 있다.** 필터를 계약 쪽에 복제하지 않았다(`test_short_abstract_not_filtered_by_contract`가 이 차이를 고정해 둔다).
 - AfricaMuseum은 같은 필터(`_MIN_ABSTRACT`=100)가 등록 상세 메서드 안에 있어 계약 경로도 `None`을 받는다. 다만 계약 경로는 의도된 건너뜀과 파서 실패를 구별할 수 없으므로 이 항목은 `empty_item`으로 원장에 남고 H1 규칙의 계약 단계 실패로 센다(연속 5건이면 `config_error`, 산발이면 `complete_with_review`).
 - 필터를 맞추려면 등록 수집기에서 필터를 메서드로 분리한 뒤 Paper 단계에 연결해야 한다(이 작업 범위 밖).
+
+### 식별값 사전 점검과 계약 오류 (M3)
+
+- `identity_precheck`는 표본 재계산 중 나온 `AdapterConfigError`(계약 `ContractError` 포함)를 다른 ValueError보다 먼저 잡아, 스키마/서명/반환형 오류이면 다시 raise해 사이트를 `config_error(adapter_contract:<코드>)`로 멈춘다. 오류 개수로만 세고 나머지 표본으로 일치율 100%가 나오는 일이 없다.
+- 데이터성 계약 코드(M4)는: 기준 DB 행 표본이고 식별값이 목록 필드에 의존하는 계약(`identity_uses_list_fields`)이면 URL만으로 목록 필드를 재구성할 수 없으므로 `errors`로 센다(종전 설계대로 비교 0건이면 목록 첫 페이지 표본으로 넘어감). 그 밖(목록 첫 페이지 표본 등)에서는 비교 대상의 불일치로 세어 일치율을 낮춘다. 결과에 `contract_data_errors`를 기록한다(계약 사이트만).

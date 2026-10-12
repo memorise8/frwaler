@@ -142,6 +142,39 @@ class ContractRunnerTests(unittest.TestCase):
                          (result["status"], result["stop_reason"]))
         self.assertEqual(5, result["stats"]["failed_permanent"])
 
+    def precheck(self, detail, rows):
+        from tests.test_enumeration_review import reference_db
+        ref = reference_db(rows)
+        self.addCleanup(ref.close)
+        return self.env.run(site(), FakeBoard(25, page_size=10), crawler=crawler(self.env, detail),
+                            reference_conn=ref, identity_required=True)
+
+    def test_identity_precheck_raises_contract_schema_error(self):
+        def detail(html, item):
+            url = item.get("detail_url") or item["url"]
+            if url.endswith("=999"):
+                return []
+            return {"external_id": url.split("=")[1], "url": url, "title": "t"}
+        result = self.precheck(detail, [("999", "https://board.test/view?id=999"),
+                                        ("25", "https://board.test/view?id=25")])
+        self.assertEqual(("config_error", "adapter_contract:paper_not_dict"), (result["status"], result["stop_reason"]))
+        self.assertIsNone(result["identity"])
+        self.assertEqual(0, result["stats"]["saved_new"])
+
+    def test_identity_precheck_counts_listing_data_error_as_mismatch(self):
+        def detail(html, item):
+            if "detail_url" in item:  # reference row: list fields cannot be rebuilt from a URL
+                return {"url": item["detail_url"], "title": "t"}
+            if item["external_id"] == "24":
+                return {"url": item["url"], "title": "t"}
+            return {"external_id": item["external_id"], "url": "https://board.test" + item["url"], "title": "t"}
+        result = self.precheck(detail, [(str(i), f"https://board.test/view?id={i}") for i in range(21, 26)])
+        self.assertEqual("config_error", result["status"])
+        self.assertTrue(result["stop_reason"].startswith("identity_mismatch"), result["stop_reason"])
+        identity = result["identity"]
+        self.assertEqual((5, 5, 4), (identity["errors"], identity["compared"], identity["matched"]))
+        self.assertEqual(6, identity["contract_data_errors"])
+
     def test_failure_limits_validated(self):
         from crawler.enumeration.plan import PlanError
         for key, value in [("max_consecutive_contract_failures", 0), ("max_consecutive_contract_failures", True),

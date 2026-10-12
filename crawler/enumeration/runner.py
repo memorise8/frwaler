@@ -287,13 +287,26 @@ class SiteRunner:
         items = [(seq, Item(key=normalize_key_url(url), url=url, payload={"detail_url": url}))
                  for seq, _post, url in sample]
         source = "reference_rows"
-        compared = matched = errors = 0
+        compared = matched = errors = contract_data_errors = 0
         examples = []
+        list_field = self.adapter.identity_uses_list_fields()
 
-        def compare(expected_seq, item):
-            nonlocal compared, matched, errors
+        def compare(expected_seq, item, reference=False):
+            nonlocal compared, matched, errors, contract_data_errors
             try:
                 ident = self.adapter.identity(item, self.fetcher)
+            except AdapterConfigError as exc:
+                # ContractError is a ValueError: never let it pass as a mere sample error.
+                if not getattr(exc, "data_error", False):
+                    raise
+                contract_data_errors += 1
+                if reference and list_field:
+                    errors += 1  # a reference URL cannot rebuild the listing fields
+                    return
+                compared += 1  # a comparable item the contract cannot identify: a mismatch
+                if len(examples) < 3:
+                    examples.append({"framework": None, "contract_error": str(exc), "reference_seq": expected_seq})
+                return
             except (PermanentFailure, TransientFailure, ValueError, KeyError, TypeError, AttributeError):
                 errors += 1
                 return
@@ -321,7 +334,7 @@ class SiteRunner:
                                  "dedup_match": found})
 
         for seq, item in items:
-            compare(seq, item)
+            compare(seq, item, reference=True)
         listing_items = []
         if not compared and self.plan.strategy != "sitemap":
             # Crawlers whose identity needs list fields cannot rebuild it from a URL.
@@ -329,12 +342,13 @@ class SiteRunner:
             listing_items = strategy.fetch_page(strategy.page_url(strategy.start_page)).items[: self.identity_sample]
             for item in listing_items:
                 compare(None, item)
-        list_field = self.adapter.identity_uses_list_fields()
         result = {"mode": "sampled", "source": source, "reference_rows": total,
                   "sampled_reference": len(items), "sampled_listing": len(listing_items),
                   "sampled": len(items) + len(listing_items), "list_field_identity": list_field,
                   "compared": compared, "matched": matched, "errors": errors, "threshold": self.identity_threshold,
                   "match_rate": (matched / compared) if compared else None, "mismatch_examples": examples}
+        if self.contract:
+            result["contract_data_errors"] = contract_data_errors
         self.store.event(self.site_id, "identity_precheck", result)
         if not compared:
             raise _IdentityStop("identity_unverifiable_no_overlap", result)
