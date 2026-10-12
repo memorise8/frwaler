@@ -24,7 +24,9 @@ def public_url(value):
             return None
         if u.port not in (None, 80, 443):
             return None
-        if any(SENSITIVE.search(k) for k, _ in parse_qsl(u.query, keep_blank_values=True)):
+        # Drupal's public search term is named "keys"; it is not an API key.
+        if any(SENSITIVE.search(k) and k.lower() not in ('keys','keyword','keywords')
+               for k, _ in parse_qsl(u.query, keep_blank_values=True)):
             return None
         return urlunsplit((u.scheme, u.netloc, u.path, u.query, ''))
     except ValueError:
