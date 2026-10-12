@@ -666,9 +666,17 @@ class DateRangeSplit(_ForwardPager):
                                      reported_total=total, detail=detail)
         if check and "overall_total" not in state:
             # Read after the segments, so the total describes the same moment as the listed set.
-            page = self.fetch_page(self.page_url(self.start_page))
-            state["overall_total"] = page.total
-            ctx.store.save_state(ctx.site_id, state)
+            try:
+                page = self.fetch_page(self.page_url(self.start_page))
+            except PermanentFailure as exc:
+                # A site that rejects the unfiltered listing (4xx, unparseable page) leaves only the
+                # per-segment evidence. Refusals, robots denial and rate limits are not
+                # PermanentFailure: they still stop the site. Not saved: a later run asks again.
+                ctx.store.event(ctx.site_id, "overall_total_unavailable",
+                                {"reason": exc.reason, "url": exc.url, "status": exc.status})
+            else:
+                state["overall_total"] = page.total
+                ctx.store.save_state(ctx.site_id, state)
         rows = ctx.store.segments(ctx.site_id, ctx.plan_fp)
         bad = [r["segment_key"] for r in rows if r["status"] in ("mismatch", "cap_unsplittable")]
         leaves = [r for r in rows if r["status"] != "split"]
