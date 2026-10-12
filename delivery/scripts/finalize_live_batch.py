@@ -125,8 +125,14 @@ def finalize(base,batch='primary',write_completion=False):
         marker.update(complete=True,disposition_audit=str(out/'disposition-audit.json'),
                       disposition_audit_sha256=hashlib.sha256((out/'disposition-audit.json').read_bytes()).hexdigest())
         atomic_json(out/(batch+'-completion.json'),marker)
+        summary.update(batch_completed=True,final_dispositions=artifact['counts'],
+                       completion_evidence=str(out/(batch+'-completion.json')),
+                       full_collection_verification=False)
+        atomic_json(out/'summary.json',summary)
         progress=json.loads((base/'progress.json').read_text());key='live_structure_check' if batch=='primary' else 'live_structure_check_extra'
-        progress[key].update(batch_completed=True,completion_evidence=str(out/(batch+'-completion.json')))
+        progress[key].update(batch_completed=True,final_dispositions=artifact['counts'],
+                             completion_evidence=str(out/(batch+'-completion.json')),
+                             full_collection_verification=False)
         atomic_json(base/'progress.json',progress)
     return dict(total=plans['registered'],processed=len(reviewed),issue_sites=len(artifact['issues']),counts=artifact['counts'],audit_passed=complete,completion_written=bool(write_completion and complete))
 

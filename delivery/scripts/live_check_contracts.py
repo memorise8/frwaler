@@ -94,6 +94,9 @@ def compile_plan(row, original, hints, source, config=None):
         if url:
             parts=urlsplit(url);pairs=parse_qsl(parts.query,keep_blank_values=True)
             for key,number in pairs:
+                if key.lower() in PAGE_KEYS and re.search(r'[가-힣]|…|\.\.|^[NKn](?:[ +]1)?$',number):
+                    unresolved.append(dict(value=value[:300],reason='nonconcrete_page_parameter_not_requested'))
+                    return
                 if key.lower() in PAGE_KEYS and re.fullmatch(r'\d+(?:[,/]\d+)+',number):
                     for one in re.split('[,/]',number):
                         query=urlencode([(k,one if k==key else v) for k,v in pairs])

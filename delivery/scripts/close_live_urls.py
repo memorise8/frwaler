@@ -8,6 +8,7 @@ explicit, and raw listing bodies are never saved.
 import argparse
 from concurrent.futures import ThreadPoolExecutor,as_completed
 import fcntl
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -33,7 +34,9 @@ def metadata_url(url):
 
 def process(plan,out,transport):
     path=out/'sites'/(plan['site_id']+'.json');result=json.loads(path.read_text())
-    if result.get('URL_closure',{}).get('complete'):return result
+    fingerprint=hashlib.sha256(json.dumps(plan['targets'],sort_keys=True).encode()).hexdigest()
+    previous_closure=result.get('URL_closure',{})
+    if previous_closure.get('complete') and previous_closure.get('targets_sha256')==fingerprint:return result
     if result['status']=='access_blocked':return result
     attempt=out/'attempts'/(plan['site_id']+'.json')
     if attempt.exists():
@@ -44,7 +47,8 @@ def process(plan,out,transport):
     def persist():atomic_json(attempt,result)
     session=ProbeSession(plan,transport,result,persist,seed_summaries=True)
     seen={normalized(r['url']) for r in result['requests']}
-    closure=dict(started_at=utc_now(),observations=[],complete=False)
+    if previous_closure:result.setdefault('URL_closure_history',[]).append(previous_closure)
+    closure=dict(started_at=utc_now(),observations=[],complete=False,targets_sha256=fingerprint)
     result['URL_closure']=closure
     hosts={urlsplit(u).hostname for u in plan['original_scope_urls']}
     hosts.update(urlsplit(s['checks']['domain_migration']['resolved_url']).hostname for s in result['scopes'] if s['checks']['domain_migration'].get('resolved_url'))
@@ -73,7 +77,7 @@ def process(plan,out,transport):
     # The DHS instruction explicitly asks for the union across 1..14. Page 1
     # was measured before prefix metadata existed; refresh only that missing
     # summary, not a detail page or previously completed network traversal.
-    if plan['site_id']=='dhs-gov-congressional-approp' and not closure.get('stopped_reason'):
+    if plan['site_id']=='dhs-gov-congressional-approp' and not closure.get('stopped_reason') and not any(r['url']=='https://www.dhs.gov/sitemap.xml?page=1' and r.get('summary',{}).get('requested_prefix_counts') for r in result['requests']):
         url='https://www.dhs.gov/sitemap.xml?page=1'
         try:session.read(url,'refresh_requested_sitemap_prefix_count',repeat=True)
         except (AccessStopped,BudgetReached,ValueError) as exc:closure['sitemap_refresh_unavailable']=str(exc)
