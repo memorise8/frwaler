@@ -159,6 +159,8 @@ class Adapter:
                 raise AdapterConfigError("adapter type 'selectors' requires selectors")
         else:
             raise AdapterConfigError(f"unknown adapter type: {self.mode}")
+        from .contracts import Contract, validate_contract
+        self.contract = Contract(self.cfg, self.crawler) if validate_contract(self.cfg) else None
         self._check_backend()
         self._check_methods()
         self._prepare_crawler()
@@ -176,6 +178,8 @@ class Adapter:
 
     def _check_methods(self):
         """Configuration mistakes stop the site up front instead of failing every item."""
+        if self.contract is not None:
+            return  # The opt-in contract validates methods, signatures and bindings.
         for key in ("list_method", "detail_method", "paper_method"):
             name = self.cfg.get(key)
             if name and not callable(getattr(self.crawler, name, None)):
@@ -214,6 +218,8 @@ class Adapter:
 
     # -- listing -------------------------------------------------------------
     def parse_list(self, resp):
+        if self.contract is not None:
+            return self.contract.rows(resp)
         c = self.crawler
         if self.is_generic and not self.cfg.get("list_method"):
             from bs4 import BeautifulSoup
@@ -262,6 +268,8 @@ class Adapter:
 
     def materialize(self, item, fetcher):
         """Return a paper dict (or None). Detail requests go through ``fetcher``."""
+        if self.contract is not None:
+            return self._materialize_contract(item, fetcher)
         c = self.crawler
         if not self.needs_detail():
             with guarded():
@@ -294,9 +302,48 @@ class Adapter:
             result = getattr(c, self.cfg["detail_method"])(*args)
         return self._finish(result, item)
 
+    def _materialize_contract(self, item, fetcher):
+        from .contracts import fail
+        resp, detail = None, None
+        if self.cfg.get("detail_method"):
+            resp = fetcher.get(item.url)
+            if getattr(resp, "login_suspect", False):
+                raise PermanentFailure("login_required_suspect", item.url, resp.status)
+            detail = self.contract.call("detail", resp, item)
+            if detail is None:
+                return None
+        if self.cfg.get("paper_method"):
+            paper = self.contract.call("paper", resp, item, detail)
+        elif self.cfg.get("list_returns_paper"):
+            from copy import deepcopy
+            paper = deepcopy(item.payload)
+        else:
+            paper = detail
+        if paper is None:
+            return None
+        if not isinstance(paper, dict):
+            fail("paper_not_dict")
+        if paper.get("site_id", self.site_id) != self.site_id:
+            fail("paper_site_mismatch")
+        # No fallback ID or URL is synthesized by the new contract.
+        paper_url = paper.get("meta_url") or paper.get("url")
+        if not isinstance(paper_url, str) or not paper_url.strip():
+            fail("paper_url_missing")
+        for field in ("external_id", "post_number"):
+            if paper.get(field) is not None and type(paper[field]) not in (str, int):
+                fail("paper_identity_type")
+        paper = clean_paper(paper)
+        post_number, meta_url = paper_identity(paper)
+        if post_number is None or not str(post_number).strip() or not meta_url:
+            fail("paper_identity_missing")
+        return self._finish(paper, item)
+
     def identity_uses_list_fields(self):
         """True when post_number/meta_url come from crawler code fed with listing
         fields, which a URL-only sample cannot reproduce exactly."""
+        if self.contract is not None:
+            from .contracts import uses_item
+            return uses_item(self.cfg)
         if self.mode != "crawler" or self.is_generic:
             return False
         if self.cfg.get("paper_method") or self.cfg.get("list_returns_paper"):

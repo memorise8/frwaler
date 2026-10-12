@@ -122,7 +122,10 @@ class ListingParser:
             raise ValueError(f"unknown listing parser type: {self.kind}")
         if getattr(resp, "login_suspect", False):
             page.extra["login_suspect"] = True
-        if not page.items and not page.extra.get("parse_error") and self.kind != "json":
+        contract_json = (self.kind == "adapter" and self.adapter is not None
+                         and getattr(self.adapter, "contract", None) is not None
+                         and self.adapter.cfg.get("list_source") == "json")
+        if not page.items and not page.extra.get("parse_error") and self.kind != "json" and not contract_json:
             # An empty HTML listing is an end candidate only when the listing's own
             # structure is present; an error/foreign page is a parse error.
             marker = self.listing_marker()
@@ -246,15 +249,25 @@ class ListingParser:
         if self.adapter is None:
             raise ValueError("listing parser type 'adapter' requires a crawler adapter")
         rows = self.adapter.parse_list(resp) or []
+        strict = getattr(self.adapter, "contract", None) is not None
         cfg = self.cfg
         items, seen = [], set()
         for row in rows:
             if not isinstance(row, dict):
                 continue
             url = row.get(cfg.get("url_field", "detail_url")) or row.get("url") or ""
+            if strict and not isinstance(url, str):
+                from .contracts import fail
+                fail("listing_url_type")
             url = urljoin(resp.url, str(url)) if url else ""
             # Registered config crawlers return their legacy external_id; use it.
             raw_id = row.get(cfg.get("key_field", "external_id"))
+            if strict:
+                from .contracts import fail
+                if raw_id is not None and type(raw_id) not in (str, int):
+                    fail("listing_key_type")
+                if not url and raw_id in (None, ""):
+                    fail("listing_identity_missing")
             if not url and raw_id in (None, ""):
                 continue
             key = self._key(url, raw_id)

@@ -1,0 +1,196 @@
+{
+  "version": 1,
+  "sites": {
+    "afp-gov-au-news-centre": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_parse_list_page",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "list_result": [
+          0
+        ],
+        "detail_method": "_parse_detail_page",
+        "detail_args": [
+          "html",
+          "url"
+        ],
+        "paper_method": "_build_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ]
+      },
+      "listing": {
+        "url": "https://www.afp.gov.au/news-centre",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "listing_marker": ".view-solr-news-centre"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "africamuseum-be-en": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_parse_list_page",
+        "list_args": [
+          "html"
+        ],
+        "list_row": {
+          "type": "tuple",
+          "fields": [
+            "slug",
+            "title",
+            "listed_date",
+            "snippet",
+            "source_url"
+          ]
+        },
+        "detail_method": "_parse_detail_page",
+        "detail_args": [
+          "html",
+          {
+            "source": "item",
+            "path": [
+              "slug"
+            ]
+          },
+          {
+            "source": "item",
+            "path": [
+              "listed_date"
+            ]
+          },
+          {
+            "source": "item",
+            "path": [
+              "snippet"
+            ]
+          },
+          {
+            "source": "item",
+            "path": [
+              "source_url"
+            ]
+          }
+        ]
+      },
+      "listing": {
+        "url": "https://www.africamuseum.be/en/research/news?page=9",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "source_url",
+          "date_field": "listed_date",
+          "listing_marker": "main"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "culture-gouv-fr-espace-documentation": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_parse_list_page",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "list_result": [
+          0
+        ],
+        "detail_method": "_parse_detail",
+        "detail_args": [
+          "html",
+          "url"
+        ],
+        "paper_method": "_to_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ]
+      },
+      "listing": {
+        "url": "https://www.culture.gouv.fr/espace-documentation?resource_type%5B0%5D=50&page=44",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "listing_marker": "div.fr-card[data-internalsearch]"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    },
+    "kit-nl-institute": {
+      "strategy": "oldest_first_sort",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_source": "json",
+        "paper_method": "_parse_item",
+        "paper_args": [
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.kit.nl/wp-json/wp/v2/institute_pub?kit_publication_type=34&order=asc&per_page=20",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "link",
+          "key_field": "id",
+          "date_field": "date"
+        },
+        "params": {
+          "orderby": "date",
+          "order": "asc"
+        },
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true
+    }
+  }
+}
