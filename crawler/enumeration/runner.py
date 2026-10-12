@@ -10,7 +10,7 @@ from delivery.scripts.discovery_structure import date_value
 from .adapters import (AdapterConfigError, AdapterUngatedNetwork, IdentityCollision, IdentityMissing,
                        IdentityReview, IdentityRuleConfig)
 from .http import (AccessBlocked, BudgetExhausted, EnumerationStop, LoginReview, PermanentFailure, PrivateDestination,
-                   RateLimited, RobotsUnavailable, TransientFailure)
+                   RateLimited, RobotsDisallowed, RobotsUnavailable, TransientFailure)
 from .parsing import Item, ListingParser
 from .strategies import STRATEGIES, StrategyStop, today_from
 from .urls import host_of, normalize_key_url, url_identity
@@ -85,6 +85,7 @@ class SiteRunner:
                               *(plan.raw.get("url_identity_ignore_params") or ())}
         self.warnings = []
         self._login_details = 0
+        self._robots_details = 0
         self._identity_reviews = 0
         self.stats = {"batches": 0, "listed": 0, "skipped_known": 0, "saved_new": 0, "saved_existing": 0,
                       "existing_document": 0, "identity_collisions": 0, "listing_identity_conflicts": 0,
@@ -119,6 +120,15 @@ class SiteRunner:
                       payload={"url": item.url, "date": item.date, "title": item.title, "payload": item.payload})
         try:
             paper = self.adapter.materialize(item, self.fetcher)
+        except RobotsDisallowed as exc:
+            # One detail URL the site's robots.txt excludes: skip that item, keep the site going.
+            # Consecutive exclusions mean robots.txt covers the detail pages: stop the site.
+            st.record_item(site, item.key, "failed_permanent", reason=exc.reason, attempt=True, **common)
+            self.stats["failed_permanent"] += 1
+            self._robots_details += 1
+            if self._robots_details >= int(self.plan.get("max_consecutive_robots_disallowed") or 5):
+                raise AccessBlocked("robots_disallowed", item.url) from None
+            return
         except PermanentFailure as exc:
             st.record_item(site, item.key, "failed_permanent", reason=exc.reason, attempt=True, **common)
             self.stats["failed_permanent"] += 1
@@ -144,6 +154,7 @@ class SiteRunner:
             self.stats["failed_permanent"] += 1
             return
         self._login_details = 0
+        self._robots_details = 0
         try:
             seq_id, created, note = self.adapter.save(paper)
         except EnumerationStop:
@@ -267,7 +278,8 @@ class SiteRunner:
             nonlocal compared, matched, errors
             try:
                 ident = self.adapter.identity(item, self.fetcher)
-            except (PermanentFailure, TransientFailure, ValueError, KeyError, TypeError, AttributeError):
+            except (PermanentFailure, TransientFailure, RobotsDisallowed, ValueError, KeyError, TypeError,
+                    AttributeError):
                 errors += 1
                 return
             if ident is None:

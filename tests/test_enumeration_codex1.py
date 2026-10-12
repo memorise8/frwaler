@@ -229,7 +229,8 @@ class PersistentHoldTest(unittest.TestCase):
         stats = FilePass(self.env.store, self.env.fetcher(plan, t), blob_root=self.env.root / "b",
                          doc_conn=self.env.conn).run(self.env.site_id)
         self.assertTrue(stats["stopped"].startswith("access_blocked"))
-        self.assertEqual(self.env.store.site(self.env.site_id)["status"], "access_blocked")
+        # The completed enumeration keeps its status; the refusal is a host hold + file-pass hold.
+        self.assertEqual(self.env.store.site(self.env.site_id)["status"], "complete")
         self.assertTrue(self.env.store.host_hold("board.test"))
         t2 = FakeTransport(board)
         stats = FilePass(self.env.store, self.env.fetcher(plan, t2), blob_root=self.env.root / "b",

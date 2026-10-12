@@ -14,7 +14,9 @@ import tempfile
 from pathlib import Path
 
 from .http import (AccessBlocked, BudgetExhausted, PermanentFailure, PrivateDestination, RateLimited,
-                   RobotsUnavailable, TransientFailure)
+                   RobotsDisallowed, RobotsUnavailable, TransientFailure)
+from .runner import COMPLETED
+from .urls import host_of
 
 _PAGE = re.compile(rb"/Type\s*/Page(?!s)\b")
 
@@ -75,19 +77,28 @@ class FilePass:
         site = self.store.site(site_id)
         if site and site["status"] == "access_blocked":
             return f"site_hold:{site['stop_reason']}"
+        held = (site or {}).get("state", {}).get("file_pass_hold") or {}
+        if held.get("status") == "access_blocked" and (not held.get("host") or self.store.host_hold(held["host"])):
+            # A refusal met by an earlier file pass of a completed site (until the host is released).
+            return f"site_hold:{held['reason']}"
         cooldown = (site or {}).get("state", {}).get("cooldown_until")
         if cooldown and cooldown > _time.time():
             return "site_hold:cooling_down"
         return None
 
-    def _hold_site(self, site_id, status, reason, retry_at=None):
+    def _hold_site(self, site_id, status, reason, retry_at=None, host=None):
         site = self.store.site(site_id)
         state = dict((site or {}).get("state") or {})
         if retry_at:
             state["cooldown_until"] = retry_at
         if site is None:
             self.store.start_site(site_id, "files-only", "files")
-        if status:
+        if status and (site or {}).get("status") in COMPLETED:
+            # A finished enumeration keeps its status; the refusal is kept in the site state
+            # (and as the host hold the Fetcher recorded) so later file passes stop first.
+            state["file_pass_hold"] = {"status": status, "reason": reason, "host": host}
+            self.store.save_state(site_id, state)
+        elif status:
             self.store.finish_site(site_id, status, reason, state)
         else:
             self.store.save_state(site_id, state)
@@ -118,13 +129,18 @@ class FilePass:
                 self.store.update_file(site_id, seq_id, url, status=status, reason=reason)
                 stats[status] += 1
                 continue
+            except RobotsDisallowed as exc:
+                # One file URL excluded by robots.txt: a file failure, the pass goes on.
+                self.store.update_file(site_id, seq_id, url, status="failed", reason=exc.reason)
+                stats["failed"] += 1
+                continue
             except AccessBlocked as exc:
                 self.store.update_file(site_id, seq_id, url, status="unavailable", reason=f"access_blocked:{exc.reason}")
                 stats["unavailable"] += 1
                 stats["stopped"] = f"access_blocked:{exc.reason}"
                 # A refusal met by the file pass holds the site (the Fetcher already
                 # recorded the host hold), exactly like one met by the body run.
-                self._hold_site(site_id, "access_blocked", exc.reason)
+                self._hold_site(site_id, "access_blocked", exc.reason, host=host_of(exc.url or url))
                 break
             except PrivateDestination as exc:
                 self.store.update_file(site_id, seq_id, url, status="unavailable", reason=exc.reason)
@@ -132,7 +148,7 @@ class FilePass:
                 stats["stopped"] = exc.reason
                 self.store.event(site_id, "private_destination_blocked", {"reason": exc.reason, "url": url,
                                                                           "host": exc.host, "address": exc.address})
-                self._hold_site(site_id, "private_destination_blocked", exc.reason)
+                self._hold_site(site_id, "private_destination_blocked", exc.reason, host=exc.host)
                 break
             except RateLimited as exc:
                 stats["stopped"] = exc.reason

@@ -21,6 +21,7 @@ DEFAULTS = {
     "max_retry_wait_s": 120,
     "item_max_attempts": 3,
     "max_consecutive_save_errors": 5,
+    "max_consecutive_robots_disallowed": 5,
     "respect_robots": True,
     "user_agent": DEFAULT_USER_AGENT,
     "encoding": None,

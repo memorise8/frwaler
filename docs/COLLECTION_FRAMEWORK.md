@@ -184,7 +184,8 @@ enum_event(id PK, site_id, at, kind, detail JSON)   -- 접근 차단, 구간 불
 | 파서가 빈 결과(None/제목·URL 없음) | failed_permanent | `empty_item` | 계속 |
 | 저장 예외 | failed_permanent | `save_error:<예외형>` | 계속. 단 연속 `max_consecutive_save_errors`(기본 5)회면 저장 경로 고장으로 보고 사이트 중단(`config_error`) |
 | 전송 오류/5xx/429 (재시도 후) | failed_transient → 다음 실행에서 재시도, `item_max_attempts` 도달 시 failed_retries_exhausted | `transient:<세부>` | 계속 |
-| 401/403/챌린지/로그인/robots | (사이트 단위) | `access_blocked:<세부>` | **사이트 중단**, 우회 없음 |
+| 상세 URL 하나가 robots 금지 | failed_permanent | `robots_disallowed` | 요청하지 않고 계속. 단 연속 `max_consecutive_robots_disallowed`(기본 5)건이면 상세 페이지 전체가 금지된 것으로 보고 사이트 중단(`access_blocked:robots_disallowed`, 호스트 보류 아님) |
+| 401/403/챌린지/로그인, 목록·사이트맵 URL의 robots 금지 | (사이트 단위) | `access_blocked:<세부>` | **사이트 중단**, 우회 없음 |
 
 * 한 실행 안에서 같은 항목은 한 번만 시도한다(겹쳐 읽기로 두 번 나와도 Fetcher가 이미 재시도했으므로).
   일시 실패 항목은 다음 실행 시작의 재시도 패스에서 다시 시도한다. 완료된 사이트를 다시 실행하면
@@ -200,6 +201,10 @@ enum_event(id PK, site_id, at, kind, detail JSON)   -- 접근 차단, 구간 불
   * 주 PDF(role=pdf): `blob_storage.save_pdf(seq_id, …)` + 백엔드 `update_document_pdf` — 기존 다운로더와 같은 저장 경로.
   * 첨부(role=attachment): `<blob_root>/attachments/<seq_id>/<sha256>.<ext>`에 저장, 대장에만 기록.
   * 접근 차단 → `unavailable`(사이트 파일 패스 중단), 404 → `failed`, 일시 실패 → `failed_transient`(재시도 횟수 증가).
+  * 파일 URL 하나가 robots 금지 → 그 파일만 `failed`(`robots_disallowed`), 패스는 계속(요청 없음).
+  * 본문 열거가 이미 완료(`complete*`)된 사이트에서 파일 패스가 차단을 만나면 사이트 상태는 그대로 두고
+    `state.file_pass_hold`(사유·호스트)와 호스트 보류로 이후 파일 패스를 요청 전에 멈춘다(호스트 보류를 풀면 재개).
+    완료 전 사이트는 이전처럼 `access_blocked`가 된다.
 
 ## 8. plan.json
 

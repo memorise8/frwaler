@@ -255,6 +255,11 @@ class AccessBlocked(EnumerationStop):
     """Authentication, refusal, challenge or robots denial. Never bypassed."""
 
 
+class RobotsDisallowed(AccessBlocked):
+    """robots.txt disallows this one URL. Not recorded on the Fetcher: a detail or file URL is
+    ledgered as an item failure; a listing/sitemap URL propagates and stops the site."""
+
+
 class RateLimited(EnumerationStop):
     """Repeated 429 responses: stop the site and respect a cooldown."""
 
@@ -627,8 +632,8 @@ class Fetcher:
         for _hop in range(self.max_redirects + 1):
             self._check_holds(current)
             if not self._robots_allows(current):
-                # A path-level rule: hold this site, not the whole host.
-                raise self._block("robots_disallowed", current, host_wide=False)
+                # A path-level rule: never a host hold, and never requested.
+                raise RobotsDisallowed("robots_disallowed", current)
             resp = self._with_retries(current, accept_statuses=accept_statuses)
             if 300 <= resp.status < 400:
                 nxt = urljoin(current, resp.header("location"))

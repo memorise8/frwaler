@@ -251,5 +251,72 @@ class RobotsUnavailableTest(unittest.TestCase):
         self.assertEqual((row["status"], row["attempts"]), ("pending", 0))
 
 
+class ItemRobotsTest(unittest.TestCase):
+    """MEDIUM-4: robots denial of one detail/file URL is an item failure; listing denial still stops."""
+
+    def setUp(self):
+        from tests.enumeration_fakes import Env
+        self.env = Env()
+
+    def tearDown(self):
+        self.env.close()
+
+    def test_detail_url_disallowed_is_item_failure(self):
+        from tests.enumeration_fakes import FakeBoard, board_plan
+        board = FakeBoard(25, robots=b"User-agent: *\nDisallow: /view?id=5$\n")
+        result = self.env.run(board_plan(), board)
+        self.assertEqual(result["status"], "complete", result)
+        row = self.env.store.item(self.env.site_id, "5")
+        self.assertEqual((row["status"], row["reason"]), ("failed_permanent", "robots_disallowed"))
+        urls = result["transport"].urls
+        self.assertNotIn("https://board.test/view?id=5", urls)
+        self.assertIn("https://board.test/view?id=4", urls)
+        self.assertEqual(len(self.env.docs()), 24)
+        self.assertIsNone(self.env.store.host_hold("board.test"))
+
+    def test_listing_url_disallowed_still_stops_site(self):
+        from tests.enumeration_fakes import FakeBoard, board_plan
+        board = FakeBoard(25, robots=b"User-agent: *\nDisallow: /list\n")
+        result = self.env.run(board_plan(), board)
+        self.assertEqual((result["status"], result["stop_reason"]), ("access_blocked", "robots_disallowed"))
+
+    def complete_site_with_files(self, handler, urls):
+        from crawler.enumeration.files import FilePass
+        st = self.env.store
+        st.start_site(self.env.site_id, "fp", "last_page_backward")
+        st.finish_site(self.env.site_id, "complete", "done", {})
+        for i, url in enumerate(urls):
+            st.enqueue_file(self.env.site_id, i + 1, url, role="attachment")
+        t = FakeTransport(handler)
+        f = Fetcher(self.env.site_id, t, self.env.root / "gates", interval=0, sleep=lambda s: None, holds=st)
+        return FilePass(st, f, blob_root=self.env.root / "blobs").run(self.env.site_id), t
+
+    def test_file_url_disallowed_is_file_failure_and_site_stays_complete(self):
+        def handler(url):
+            if url.endswith("/robots.txt"):
+                return Response(200, {"Content-Type": "text/plain"}, b"User-agent: *\nDisallow: /private/\n")
+            return Response(200, {"Content-Type": "application/octet-stream"}, b"data")
+        stats, t = self.complete_site_with_files(handler, ["https://f.test/private/a.bin", "https://f.test/b.bin"])
+        files = {r["url"]: r for r in self.env.store.files(self.env.site_id)}
+        self.assertEqual((files["https://f.test/private/a.bin"]["status"],
+                          files["https://f.test/private/a.bin"]["reason"]), ("failed", "robots_disallowed"))
+        self.assertEqual(files["https://f.test/b.bin"]["status"], "done")
+        self.assertIsNone(stats["stopped"])
+        self.assertEqual(self.env.store.site(self.env.site_id)["status"], "complete")
+
+    def test_file_refusal_holds_host_without_overwriting_complete(self):
+        def handler(url):
+            if url.endswith("/robots.txt"):
+                return Response(404, {}, b"")
+            return Response(403, {}, b"denied")
+        stats, t = self.complete_site_with_files(handler, ["https://f.test/a.bin", "https://f.test/b.bin"])
+        self.assertEqual(stats["stopped"], "access_blocked:access_refused")
+        site = self.env.store.site(self.env.site_id)
+        self.assertEqual(site["status"], "complete")
+        self.assertIsNotNone(self.env.store.host_hold("f.test"))
+        self.assertEqual([u for u in t.urls if not u.endswith("robots.txt")], ["https://f.test/a.bin"])
+        self.assertTrue(self.env.store.events(self.env.site_id, "file_pass_stopped"))
+
+
 if __name__ == "__main__":
     unittest.main()
