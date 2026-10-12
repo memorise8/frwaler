@@ -115,9 +115,13 @@ class FetcherTest(unittest.TestCase):
         f, _ = self.fetcher(lambda u: Response(503, {}, b""), respect_robots=True, retries=2)
         with self.assertRaises(TransientFailure):
             f.get("https://b.test/x")  # unreachable robots: stop, do not assume permission
+        f, _ = self.fetcher(lambda u: Response(404, {}, b"") if u.endswith("robots.txt") else ok(),
+                            respect_robots=True)
+        self.assertEqual(f.get("https://c.test/x").status, 200)  # robots not published: no rules
         f, _ = self.fetcher(lambda u: Response(403, {}, b"") if u.endswith("robots.txt") else ok(),
                             respect_robots=True)
-        self.assertEqual(f.get("https://c.test/x").status, 200)  # RFC 9309: 4xx robots = no rules
+        with self.assertRaises(AccessBlocked):  # refused robots is a hold, not permission
+            f.get("https://c.test/x")
 
     def test_request_and_time_budgets(self):
         f, t = self.fetcher(lambda u: ok(), max_requests=2)

@@ -7,13 +7,13 @@ from dataclasses import dataclass, field
 
 from delivery.scripts.discovery_structure import date_value
 
-from .adapters import (AdapterConfigError, AdapterUngatedNetwork, IdentityCollision, IdentityReview,
-                       IdentityRuleConfig)
+from .adapters import (AdapterConfigError, AdapterUngatedNetwork, IdentityCollision, IdentityMissing,
+                       IdentityReview, IdentityRuleConfig)
 from .http import (AccessBlocked, BudgetExhausted, EnumerationStop, LoginReview, PermanentFailure, RateLimited,
                    TransientFailure)
 from .parsing import Item, ListingParser
 from .strategies import STRATEGIES, StrategyStop, today_from
-from .urls import normalize_key_url
+from .urls import normalize_key_url, url_identity
 
 
 COMPLETED = ("complete", "complete_with_mismatch", "complete_unverified", "complete_with_review")
@@ -47,7 +47,8 @@ def _rows(conn, sql, args):
 def duplicate_rows(conn, site_id):
     """Extra rows per (site_id, post_number): the vendor's
     ``group by site_id, post_number having count(*)>1`` summed as count-1."""
-    rows = _rows(conn, "SELECT COUNT(*) FROM documents WHERE site_id=? AND post_number IS NOT NULL "
+    # NULL post_numbers form one group, exactly like GROUP BY site_id, post_number.
+    rows = _rows(conn, "SELECT COUNT(*) FROM documents WHERE site_id=? "
                        "GROUP BY post_number HAVING COUNT(*)>1", (site_id,))
     return sum(int(r[0]) - 1 for r in rows)
 
@@ -67,24 +68,34 @@ class SiteRunner:
         self.identity_sample = int(identity_sample)
         self.identity_threshold = float(identity_threshold)
         self.allow_empty_reference = allow_empty_reference
+        self.ignore_params = {plan.listing.get("page_param", "page"),
+                              *(plan.raw.get("url_identity_ignore_params") or ())}
         self.warnings = []
         self._login_details = 0
         self._identity_reviews = 0
         self.stats = {"batches": 0, "listed": 0, "skipped_known": 0, "saved_new": 0, "saved_existing": 0,
-                      "existing_document": 0, "identity_collisions": 0,
+                      "existing_document": 0, "identity_collisions": 0, "listing_identity_conflicts": 0,
+                      "identity_missing": 0,
                       "identity_reviews": 0, "failed_permanent": 0, "failed_transient": 0, "retried": 0}
         self._save_errors = 0
-        self._attempted = set()
+        self._attempted = {}
 
     # -- items ---------------------------------------------------------------
     def process_item(self, item, segment):
         st, site = self.store, self.site_id
-        if item.key in self._attempted:
+        seen_url = self._attempted.get(item.key)
+        row = st.item(site, item.key)
+        other = seen_url if seen_url is not None else (row or {}).get("url")
+        if other and not self.same_document_url(other, item.url):
+            # Same listing identity, different document URL: keep the candidate in
+            # the ledger for review instead of silently dropping it.
+            self.listing_conflict(item, segment, other)
+            return
+        if seen_url is not None:
             # Overlap re-reads list items twice; the fetcher already retried.
             self.stats["skipped_known"] += 1
             return
-        self._attempted.add(item.key)
-        row = st.item(site, item.key)
+        self._attempted[item.key] = item.url
         max_attempts = int(self.plan.get("item_max_attempts"))
         if row and (row["status"] in ("saved", "failed_permanent", "failed_retries_exhausted")
                     or (row["status"] == "failed_transient" and row["attempts"] >= max_attempts)):
@@ -131,6 +142,12 @@ class SiteRunner:
             if self._identity_reviews >= int(self.plan.get("max_consecutive_identity_reviews") or 5):
                 raise LoginReview("identity_reviews_consecutive", paper.get("url") or paper.get("meta_url"))
             return
+        except IdentityMissing:
+            st.record_item(site, item.key, "failed_permanent", reason="identity_missing", attempt=True, **common)
+            st.event(site, "identity_missing", {"item": item.key, "url": paper.get("url") or paper.get("meta_url")})
+            self.stats["identity_missing"] += 1
+            self.stats["failed_permanent"] += 1
+            return
         except IdentityCollision as exc:
             st.record_item(site, item.key, "failed_permanent", reason="identity_collision", attempt=True, **common)
             st.event(site, "identity_collision", {"item": item.key, "post_number": str(exc),
@@ -161,6 +178,23 @@ class SiteRunner:
         when = item.date or date_value(paper.get("published_date") or "")
         st.record_item(site, item.key, "saved", seq_id=seq_id, reason=note, attempt=True,
                        **dict(common, date=when, payload=None))
+
+    def same_document_url(self, a, b):
+        """URL equality for one listing identity, ignoring list-state parameters
+        (page numbers etc.) that boards embed in detail links."""
+        return url_identity(a, self.ignore_params) == url_identity(b, self.ignore_params)
+
+    def listing_conflict(self, item, segment, other_url):
+        import hashlib
+        key = f"{item.key}#conflict:{hashlib.sha256(item.url.encode()).hexdigest()[:12]}"
+        if self.store.item(self.site_id, key) is None:
+            self.store.record_item(self.site_id, key, "failed_permanent", reason="listing_identity_conflict",
+                                   url=item.url, segment=segment, date=item.date, attempt=True,
+                                   payload={"url": item.url, "listing_key": item.key, "other_url": other_url,
+                                            "title": item.title, "payload": item.payload})
+            self.store.event(self.site_id, "listing_identity_conflict",
+                             {"listing_key": item.key, "url": item.url, "other_url": other_url})
+        self.stats["listing_identity_conflicts"] += 1
 
     def retry_pass(self):
         max_attempts = int(self.plan.get("item_max_attempts"))
@@ -264,13 +298,56 @@ class SiteRunner:
         out.update(extra)
         return out
 
+    def _stop_status(self, exc, state):
+        """Map a stop to (status, reason), recording holds/cooldowns. Used by every path
+        (full run and retry-only) so a refusal is never forgotten."""
+        st, site = self.store, self.site_id
+        if isinstance(exc, _IdentityStop):
+            return "config_error", exc.reason
+        if isinstance(exc, StrategyStop):
+            return exc.status, exc.reason
+        if isinstance(exc, BudgetExhausted):
+            return "incomplete", exc.reason
+        if isinstance(exc, RateLimited):
+            state["cooldown_until"] = exc.retry_at
+            st.event(site, "rate_limited_cooldown", {"url": exc.url, "retry_at": exc.retry_at, "reason": exc.reason})
+            return "incomplete", exc.reason
+        if isinstance(exc, LoginReview):
+            st.event(site, "login_form_review", {"url": exc.url, "reason": exc.reason})
+            return "review_pending", exc.reason
+        if isinstance(exc, AccessBlocked):
+            st.event(site, "access_blocked", {"reason": exc.reason, "url": exc.url, "status": exc.status})
+            return "access_blocked", exc.reason
+        if isinstance(exc, (AdapterUngatedNetwork, SaveBroken, IdentityRuleConfig)):
+            st.event(site, "config_error", {"reason": exc.reason})
+            return "config_error", exc.reason
+        if isinstance(exc, AdapterConfigError):
+            return "config_error", str(exc)
+        if isinstance(exc, TransientFailure):
+            st.event(site, "listing_transient", {"reason": exc.reason, "url": exc.url})
+            return "incomplete", f"listing_transient:{exc.reason}"
+        if isinstance(exc, PermanentFailure):
+            st.event(site, "listing_failed", {"reason": exc.reason, "url": exc.url})
+            return "incomplete", f"listing_failed:{exc.reason}"
+        return None
+
+    def review_counts(self):
+        _, failed = self.store.item_counts(self.site_id)
+        counts = {
+            "identity_collisions": failed.get("failed_permanent:identity_collision", 0),
+            "identity_reviews": sum(v for k, v in failed.items() if k.startswith("failed_permanent:identity_review:")),
+            "listing_identity_conflicts": failed.get("failed_permanent:listing_identity_conflict", 0),
+            "identity_missing": failed.get("failed_permanent:identity_missing", 0),
+        }
+        return {k: v for k, v in counts.items() if v}
+
     def run(self, *, refresh=False, retry_only=False):
         """Enumerate (or resume). A completed site is only re-enumerated with ``refresh``;
         otherwise (and with ``retry_only``) just the transient item failures are retried."""
         plan, st, site = self.plan, self.store, self.site_id
         current = st.site(site)
         if current and current["status"] == "access_blocked" and not refresh:
-            # Refusals persist across runs; a person must review before the host is contacted again.
+            # Refusals persist across runs and passes; a person must review first.
             return self._result("access_blocked", "access_hold_requires_review")
         cooldown = (current or {}).get("state", {}).get("cooldown_until")
         if cooldown and cooldown > time.time():
@@ -278,12 +355,24 @@ class SiteRunner:
         finished = current and current["plan_fp"] == plan.fingerprint and \
             current["status"] in COMPLETED
         if retry_only or (finished and not refresh):
+            state = dict((current or {}).get("state") or {})
             try:
                 self.retry_pass()
-            except EnumerationStop as exc:
-                st.event(site, "retry_pass_stopped", {"reason": exc.reason})
-                return self._result(current["status"] if current else "not_started",
-                                    f"retry_pass_stopped:{exc.reason}")
+            except BaseException as exc:
+                mapped = self._stop_status(exc, state)
+                if mapped is None:
+                    raise
+                status, reason = mapped
+                # The same transitions as a full run: refusals become the site
+                # status (held), cooldowns are persisted in the site state.
+                if current is None:
+                    st.start_site(site, plan.fingerprint, plan.strategy)
+                if status in ("access_blocked", "review_pending", "config_error"):
+                    st.finish_site(site, status, reason, state)
+                else:
+                    st.save_state(site, state)
+                st.event(site, "retry_pass_stopped", {"reason": reason})
+                return self._result(status, reason)
             return self._result(current["status"] if current else "not_started",
                                 "retry_only" if retry_only else "already_complete_retry_only")
         doc_conn = self.adapter.conn
@@ -312,40 +401,17 @@ class SiteRunner:
                 st.update_segment(site, plan.fingerprint, batch.segment, **fields)
                 self.log(f"[{site}] {batch.segment}: listed {count}, saved_new {self.stats['saved_new']}")
             status, reason = strategy.outcome
-        except _IdentityStop as exc:
-            status, reason, identity = "config_error", exc.reason, exc.detail
-        except StrategyStop as exc:
-            status, reason = exc.status, exc.reason
-        except BudgetExhausted as exc:
-            status, reason = "incomplete", exc.reason
-        except RateLimited as exc:
-            status, reason = "incomplete", exc.reason
-            ctx.state["cooldown_until"] = exc.retry_at
-            st.event(site, "rate_limited_cooldown", {"url": exc.url, "retry_at": exc.retry_at})
-        except LoginReview as exc:
-            # Not a permanent hold: recorded for review, the next run may proceed.
-            status, reason = "review_pending", exc.reason
-            st.event(site, "login_form_review", {"url": exc.url})
-        except AccessBlocked as exc:
-            status, reason = "access_blocked", exc.reason
-            st.event(site, "access_blocked", {"reason": exc.reason, "url": exc.url, "status": exc.status})
-        except (AdapterUngatedNetwork, SaveBroken, IdentityRuleConfig) as exc:
-            status, reason = "config_error", exc.reason
-            st.event(site, "config_error", {"reason": exc.reason})
-        except AdapterConfigError as exc:
-            status, reason = "config_error", str(exc)
-        except TransientFailure as exc:
-            status, reason = "incomplete", f"listing_transient:{exc.reason}"
-            st.event(site, "listing_transient", {"reason": exc.reason, "url": exc.url})
-        except PermanentFailure as exc:
-            status, reason = "incomplete", f"listing_failed:{exc.reason}"
-            st.event(site, "listing_failed", {"reason": exc.reason, "url": exc.url})
         except KeyboardInterrupt:
             st.finish_site(site, "incomplete", "interrupted", ctx.state)
             raise
         except BaseException as exc:
-            st.finish_site(site, "failed", f"runner_error:{type(exc).__name__}", ctx.state)
-            raise
+            mapped = self._stop_status(exc, ctx.state)
+            if mapped is None:
+                st.finish_site(site, "failed", f"runner_error:{type(exc).__name__}", ctx.state)
+                raise
+            status, reason = mapped
+            if isinstance(exc, _IdentityStop):
+                identity = exc.detail
         rollback = getattr(doc_conn, "rollback", None)
         if rollback and not isinstance(doc_conn, sqlite3.Connection):
             rollback()  # never leave an aborted PostgreSQL transaction behind
@@ -357,17 +423,12 @@ class SiteRunner:
             status, reason = "failed_duplicates", f"new_duplicate_rows:{duplicates['new']}"
         if identity is not None:
             ctx.state["identity"] = identity
-        _, failed = st.item_counts(site)
-        collisions = failed.get("failed_permanent:identity_collision", 0)
-        reviews = sum(v for k, v in failed.items() if k.startswith("failed_permanent:identity_review:"))
-        if collisions:
-            self.warnings.append(f"identity_collisions:{collisions}")
-        if reviews:
-            self.warnings.append(f"identity_reviews:{reviews}")
-        if status == "complete" and (collisions or reviews):
+        review = self.review_counts()
+        self.warnings.extend(f"{k}:{v}" for k, v in review.items())
+        if status == "complete" and review:
             # Enumeration finished, but items need a person: never a plain "complete".
             status = "complete_with_review"
-            reason = ";".join(w for w in self.warnings if w.startswith(("identity_collisions", "identity_reviews")))
+            reason = ";".join(f"{k}:{v}" for k, v in review.items())
         ctx.state["warnings"] = list(self.warnings)
         st.finish_site(site, status, reason, ctx.state)
         return self._result(status, reason, identity=identity, duplicates=duplicates)

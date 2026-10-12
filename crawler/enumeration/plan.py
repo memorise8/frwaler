@@ -71,6 +71,24 @@ class SitePlan:
         return hashlib.sha256(json.dumps(contract, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
 
 
+def validate_end_statuses(site_id, entries):
+    """End-of-listing statuses: 404/410 as plain ints; anything else only with a
+    verified body condition ({"status": 400, "json_code": ...} or "body_regex").
+    Refusals (401/403/407/429/451) can never mark an end."""
+    from .http import REFUSAL_STATUSES
+    for entry in entries or ():
+        status = entry.get("status") if isinstance(entry, dict) else entry
+        if not isinstance(status, int) or isinstance(status, bool):
+            raise PlanError(f"{site_id}: invalid end status {entry!r}")
+        if status in REFUSAL_STATUSES or status < 300:
+            raise PlanError(f"{site_id}: status {status} can never be an end condition")
+        if isinstance(entry, dict):
+            if not (entry.get("json_code") or entry.get("body_regex")):
+                raise PlanError(f"{site_id}: end status {status} needs json_code or body_regex")
+        elif status not in (404, 410):
+            raise PlanError(f"{site_id}: end status {status} needs a verified body condition")
+
+
 def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
     """Validate one site. ``registered``: site ids with an existing crawler; such sites
     must reuse that crawler's listing parser and identity rules (no duplicate rows)."""
@@ -82,6 +100,9 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
     raw = {**DEFAULTS, **(plan.get("defaults") or {}), **plan["sites"][site_id]}
     if raw.get("strategy") not in STRATEGY_NAMES:
         raise PlanError(f"{site_id}: strategy must be one of {STRATEGY_NAMES}")
+    # Access policy is an execution ceiling: a plan can tighten, never relax it.
+    if raw.get("respect_robots") is not True:
+        raise PlanError(f"{site_id}: respect_robots cannot be disabled by a plan")
     interval = raw.get("request_interval_s")
     if not isinstance(interval, (int, float)) or not min_interval <= interval <= 10:
         raise PlanError(f"{site_id}: request_interval_s must be within [{min_interval}, 10]")
@@ -94,6 +115,7 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
         start = listing.get("start_page", 1)
         if not isinstance(start, int) or start < 0:
             raise PlanError(f"{site_id}: listing.start_page must be a non-negative integer (0 or 1)")
+        validate_end_statuses(site_id, listing.get("end_statuses", ()))
         if listing.get("page_mode") == "offset" and not isinstance(listing.get("page_size"), int):
             raise PlanError(f"{site_id}: offset paging requires listing.page_size")
         raw["listing"] = listing

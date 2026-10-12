@@ -57,6 +57,76 @@ def require_isolated(db_path, override=False):
     return backend, name
 
 
+def _has_documents_table(conn):
+    import sqlite3
+    if isinstance(conn, sqlite3.Connection):
+        return conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='documents'").fetchone() is not None
+    row = conn.execute("SELECT to_regclass('public.documents') AS r").fetchone()
+    return (row["r"] if hasattr(row, "keys") else row[0]) is not None
+
+
+def ensure_documents_db(conn, site_id, site_name, base_url, *, db_name):
+    """S0: make the documents DB usable from empty. The schema is created only in an
+    isolated enum_* database; the site row (documents.site_id FK) is upserted the
+    way the legacy crawlers do in crawl()."""
+    import sqlite3
+    from crawler.db_backend import get_backend
+    backend = get_backend("sqlite" if isinstance(conn, sqlite3.Connection) else "postgres")
+    isolated = bool(db_name) and str(db_name).startswith(ISOLATED_PREFIX)
+    if not _has_documents_table(conn):
+        if not isolated:
+            raise SystemExit(f"refusing to initialise schema in non-isolated database '{db_name}'")
+        backend.init_db(conn)
+    elif isolated:
+        backend.init_db(conn)  # idempotent: CREATE IF NOT EXISTS + additive date columns
+    backend.upsert_site(conn, site_id, site_name or site_id, base_url or "")
+
+
+class SiteLease:
+    """One enumeration per (documents DB, site) at a time, across processes:
+    a file lock next to a SQLite DB, a session advisory lock on PostgreSQL."""
+
+    def __init__(self, conn, db_path, site_id):
+        import sqlite3
+        self.conn, self.site_id = conn, site_id
+        self.sqlite = isinstance(conn, sqlite3.Connection)
+        self.path = None
+        if self.sqlite:
+            import hashlib
+            base = Path(db_path) if db_path else Path(".")
+            self.path = base.with_name(base.name + f".enum-lease-{hashlib.sha256(site_id.encode()).hexdigest()[:16]}")
+        self.handle = None
+
+    def __enter__(self):
+        if self.sqlite:
+            import fcntl
+            self.handle = open(self.path, "a")
+            try:
+                fcntl.flock(self.handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                self.handle.close()
+                self.handle = None
+                raise RuntimeError(f"site_lease_busy:{self.site_id}") from None
+        else:
+            row = self.conn.execute("SELECT pg_try_advisory_lock(hashtext(%s)) AS ok",
+                                    (f"enum_site:{self.site_id}",)).fetchone()
+            self.conn.commit()
+            if not (row["ok"] if hasattr(row, "keys") else row[0]):
+                raise RuntimeError(f"site_lease_busy:{self.site_id}")
+        return self
+
+    def __exit__(self, *exc):
+        if self.sqlite and self.handle is not None:
+            import fcntl
+            fcntl.flock(self.handle, fcntl.LOCK_UN)
+            self.handle.close()
+        elif not self.sqlite:
+            self.conn.rollback()
+            self.conn.execute("SELECT pg_advisory_unlock(hashtext(%s))", (f"enum_site:{self.site_id}",))
+            self.conn.commit()
+        return False
+
+
 def open_reference(path=None, dsn_env=None):
     """Read-only connection to the database holding the legacy crawlers' rows."""
     if dsn_env:
@@ -85,10 +155,10 @@ def registered_crawler(site_id, conn):
     return cls(db_conn=conn)
 
 
-def make_fetcher(plan, state_dir, transport=None, *, max_bytes=None):
+def make_fetcher(plan, state_dir, transport=None, *, max_bytes=None, holds=None):
     transport = transport or RequestsTransport(verify=plan.get("verify_ssl"),
                                                **({"max_bytes": max_bytes} if max_bytes else {}))
-    return Fetcher(plan.site_id, transport, Path(state_dir) / "gates",
+    return Fetcher(plan.site_id, transport, Path(state_dir) / "gates", holds=holds,
                    interval=plan.get("request_interval_s"), max_requests=plan.get("max_requests"),
                    max_runtime_s=plan.get("max_runtime_s"), retries=plan.get("retries"),
                    backoff_s=plan.get("backoff_s"), max_retry_wait_s=plan.get("max_retry_wait_s"),
@@ -112,15 +182,17 @@ def run_site(plan, store, conn, state_dir, *, transport=None, refresh=False, ret
         store.start_site(plan.site_id, plan.fingerprint, plan.strategy)
         store.finish_site(plan.site_id, "config_error", str(exc))
         return {"site_id": plan.site_id, "status": "config_error", "stop_reason": str(exc)}
+    # One Fetcher (one budget, one set of holds) for the body run and the file pass.
+    fetcher = make_fetcher(plan, state_dir, transport, holds=store,
+                           max_bytes=plan.get("file_max_bytes") if files else None)
     try:
-        result = SiteRunner(plan, store, make_fetcher(plan, state_dir, transport), adapter, today=today, log=log,
+        result = SiteRunner(plan, store, fetcher, adapter, today=today, log=log,
                             reference_conn=reference_conn, identity_required=identity_required,
                             identity_sample=identity_sample, identity_threshold=identity_threshold,
                             allow_empty_reference=allow_empty_reference).run(refresh=refresh, retry_only=retry_only)
     finally:
         adapter.close()
     if files:
-        fetcher = make_fetcher(plan, state_dir, transport, max_bytes=plan.get("file_max_bytes"))
         result["files"] = FilePass(store, fetcher, blob_root=blob_root or Path(state_dir) / "files",
                                    doc_conn=conn, max_attempts=plan.get("file_max_attempts"),
                                    max_bytes=plan.get("file_max_bytes")).run(plan.site_id)
@@ -165,6 +237,8 @@ def main(argv=None):
                    help="name of an env var holding a read-only DSN with the legacy rows")
     p.add_argument("--allow-empty-reference", action="store_true",
                    help="let registered sites with no reference rows pass the identity check (warned in report)")
+    p.add_argument("--release-host", action="append", default=[],
+                   help="release a reviewed host hold (refusals are otherwise permanent)")
     p.add_argument("--identity-sample", type=int, default=5)
     p.add_argument("--identity-threshold", type=float, default=1.0)
     args = p.parse_args(argv)
@@ -172,6 +246,8 @@ def main(argv=None):
         require_isolated(args.db, args.isolated_override)
     if not 1 <= args.workers <= 16:
         p.error("--workers must be within 1..16")
+    if args.site and len(set(args.site)) != len(args.site):
+        p.error("each --site may be given once (one enumeration per site at a time)")
     plan_data = load_plan(args.plan)
     sites = args.site or sorted(plan_data["sites"])
     registered = registered_site_ids()
@@ -181,6 +257,9 @@ def main(argv=None):
         p.error(str(exc))
     state_dir = Path(args.state_dir)
     store = Store(state_dir / "enumeration.sqlite")
+    for host in args.release_host:
+        store.release_host(host)
+        store.event("*", "host_hold_released", {"host": host})
     report_dir = Path(args.report_dir or state_dir / "reports")
     if args.report_only:
         rows = write_report(store, sites, report_dir)
@@ -194,26 +273,41 @@ def main(argv=None):
         except Exception as exc:  # one site's crash must not hide the other sites' results
             return {"site_id": plan.site_id, "status": "failed", "stop_reason": f"runner_error:{type(exc).__name__}"}
 
+    _backend, db_name = documents_target(args.db)
+
     def _one(plan):
         conn = open_documents_db(args.db)
         try:
-            if args.files_only:
-                fetcher = make_fetcher(plan, state_dir, max_bytes=plan.get("file_max_bytes"))
-                return {"site_id": plan.site_id, "files": FilePass(
-                    store, fetcher, blob_root=args.blob_root or state_dir / "files", doc_conn=conn,
-                    max_attempts=plan.get("file_max_attempts"), max_bytes=plan.get("file_max_bytes")).run(plan.site_id)}
-            reference = open_reference(args.reference_db, args.reference_pg_dsn_env)
-            try:
-                return run_site(plan, store, conn, state_dir, refresh=args.refresh, retry_only=args.retry_failed,
-                                files=args.files, blob_root=args.blob_root, reference_conn=reference,
-                                identity_required=plan.site_id in registered, identity_sample=args.identity_sample,
-                                identity_threshold=args.identity_threshold,
-                                allow_empty_reference=args.allow_empty_reference)
-            finally:
-                if reference is not None:
-                    reference.close()
+            from crawler.sites import CRAWLERS
+            cls = CRAWLERS.get(plan.site_id)
+            ensure_documents_db(conn, plan.site_id,
+                                getattr(cls, "site_name", None) or plan.raw.get("site_name") or plan.site_id,
+                                getattr(cls, "base_url", None) or plan.base_url, db_name=db_name)
+            with SiteLease(conn, args.db, plan.site_id):
+                return _leased(plan, conn)
+        except RuntimeError as exc:
+            if str(exc).startswith("site_lease_busy"):
+                return {"site_id": plan.site_id, "status": "locked", "stop_reason": str(exc)}
+            raise
         finally:
             conn.close()
+
+    def _leased(plan, conn):
+        if args.files_only:
+            fetcher = make_fetcher(plan, state_dir, max_bytes=plan.get("file_max_bytes"), holds=store)
+            return {"site_id": plan.site_id, "files": FilePass(
+                store, fetcher, blob_root=args.blob_root or state_dir / "files", doc_conn=conn,
+                max_attempts=plan.get("file_max_attempts"), max_bytes=plan.get("file_max_bytes")).run(plan.site_id)}
+        reference = open_reference(args.reference_db, args.reference_pg_dsn_env)
+        try:
+            return run_site(plan, store, conn, state_dir, refresh=args.refresh, retry_only=args.retry_failed,
+                            files=args.files, blob_root=args.blob_root, reference_conn=reference,
+                            identity_required=plan.site_id in registered, identity_sample=args.identity_sample,
+                            identity_threshold=args.identity_threshold,
+                            allow_empty_reference=args.allow_empty_reference)
+        finally:
+            if reference is not None:
+                reference.close()
 
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         results = list(pool.map(one, plans))

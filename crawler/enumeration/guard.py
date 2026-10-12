@@ -1,13 +1,16 @@
-"""Thread-local network guard for reused crawler methods.
+"""Thread-local network *tripwire* for reused crawler methods.
 
-While a reused crawler method runs inside ``guarded()``, any socket connect,
-process spawn (curl, browsers) or ``os.system`` in *that thread* raises
-``AdapterUngatedNetwork``. Other threads (e.g. other sites' gated fetchers)
-are unaffected. Patches are installed once per process and are inert
-outside a guarded block.
+This is NOT a security boundary. It turns the common ways a reused crawler
+method could bypass the request gate into an explicit ``AdapterUngatedNetwork``
+stop: a new socket connect, a process spawn (curl, browsers) or ``os.system``
+in the guarded thread, and in threads started from it. Other threads (other
+sites' gated fetchers) are unaffected.
 
-Not covered: native code that opens sockets without Python's socket module
-(e.g. curl_cffi/libcurl in-process); see docs/COLLECTION_FRAMEWORK.md.
+Not covered (documented limits): sockets already connected before the guarded
+call (keep-alive reuse via send/recv), native code that opens sockets itself
+(curl_cffi/libcurl, playwright drivers already running), threads that existed
+before the guarded block (e.g. pre-created executor workers), and code paths
+run outside ``guarded()`` such as crawler constructors and ``_save_paper``.
 """
 from __future__ import annotations
 
@@ -67,8 +70,22 @@ def _install():
                 _deny("os.system")
             return orig_system(command)
 
+        orig_thread_start = threading.Thread.start
+
+        def thread_start(self):
+            # Threads started from a guarded block inherit the guard.
+            if active():
+                inner = self.run
+
+                def guarded_run():
+                    with guarded():
+                        inner()
+                self.run = guarded_run
+            return orig_thread_start(self)
+
         socket.socket.connect = connect
         socket.socket.connect_ex = connect_ex
+        threading.Thread.start = thread_start
         subprocess.Popen.__init__ = popen_init
         os.system = system
         _installed = True

@@ -72,3 +72,17 @@ def normalize_key_url(url):
 
 def host_of(url):
     return (urlsplit(url).hostname or "").lower()
+
+
+# List-state parameters boards embed in detail links (page number, offsets...).
+LIST_STATE_PARAMS = {"page", "p", "pageindex", "pageno", "pagenum", "page_no", "page_num", "pagenumber",
+                     "currentpage", "cpage", "npage", "start", "offset"}
+
+
+def url_identity(url, ignore=()):
+    """Comparable form of a detail URL: fragment dropped, host lower-cased, query
+    parameters sorted, list-state parameters (and ``ignore``) removed."""
+    parts = urlsplit(url or "")
+    drop = {k.lower() for k in ignore} | LIST_STATE_PARAMS
+    pairs = sorted((k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if k.lower() not in drop)
+    return urlunsplit((parts.scheme, parts.netloc.lower(), parts.path, urlencode(pairs), ""))

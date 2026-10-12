@@ -479,7 +479,8 @@ class SaveOrderingTest(unittest.TestCase):
                                    ("fake-site", paper["external_id"], paper["url"] + "#dup", "dup"))
                 self._conn.commit()
                 return seq
-        site = board_plan(listing={"parser": {"type": "adapter", "key_field": "post_number"}})
+        site = board_plan(listing={"parser": {"type": "adapter", "key_field": "post_number",
+                                                             "listing_marker": "tbody"}})
         site["adapter"] = {"type": "crawler", "list_method": "_parse_list_page", "list_args": ["html"],
                            "list_returns_paper": False, "paper_method": "_paper"}
         result = self.env.run(site, FakeBoard(3), crawler=Dup(self.env.conn))
@@ -593,7 +594,8 @@ class NetworkGuardTest(unittest.TestCase):
              "        return [{'detail_url': '/view?id='+m, 'post_number': m} "
              "for m in re.findall(r'href=\"/view\\?id=(\\d+)\"', raw)]\n"
              f"    def _detail(self, raw, item):\n{body}\n", ns)
-        site = board_plan(listing={"parser": {"type": "adapter", "key_field": "post_number"}})
+        site = board_plan(listing={"parser": {"type": "adapter", "key_field": "post_number",
+                                                             "listing_marker": "tbody"}})
         site["adapter"] = {"type": "crawler", "list_method": "_parse_list_page", "list_args": ["html"],
                            "detail_method": "_detail", "detail_args": ["html", "item"]}
         return self.env.run(site, FakeBoard(2), crawler=ns["Net"](self.env.conn))
@@ -620,24 +622,31 @@ class NetworkGuardTest(unittest.TestCase):
             server.close()
 
     def test_guard_is_thread_local(self):
+        """Threads that already exist (other sites' fetchers) are not affected;
+        threads started inside the guarded block are (see test_enumeration_codex1)."""
         from crawler.enumeration import guard
         server = socket.socket()
         server.bind(("127.0.0.1", 0))
         server.listen(4)
         port = server.getsockname()[1]
         outcome = {}
+        go, done = threading.Event(), threading.Event()
 
         def other():
+            go.wait(5)
             s = socket.create_connection(("127.0.0.1", port), timeout=2)
             s.close()
             outcome["other"] = "connected"
+            done.set()
+        t = threading.Thread(target=other)
+        t.start()  # started before the guard: an independent thread
         try:
             with guard.guarded():
-                t = threading.Thread(target=other)
-                t.start()
-                t.join()
+                go.set()
+                done.wait(5)
                 with self.assertRaises(AdapterUngatedNetwork):
                     socket.create_connection(("127.0.0.1", port), timeout=1)
+            t.join()
             self.assertEqual(outcome, {"other": "connected"})
         finally:
             server.close()

@@ -17,7 +17,8 @@ import sqlite3
 from .guard import AdapterUngatedNetwork, guarded
 from .http import EnumerationStop, PermanentFailure
 
-__all__ = ["Adapter", "AdapterConfigError", "AdapterUngatedNetwork", "IdentityCollision", "IdentityReview",
+__all__ = ["Adapter", "AdapterConfigError", "AdapterUngatedNetwork", "IdentityCollision", "IdentityMissing",
+           "IdentityReview",
            "IdentityRuleConfig", "review_rule",
            "clean_paper", "paper_identity"]
 
@@ -39,6 +40,10 @@ def review_rule(message):
     """True for item-level identity problems a person must review (stored-row
     collisions/repairs); False for rule/configuration errors."""
     return "requires_review" in message or "repair_required" in message or message.startswith("ambiguous_")
+
+
+class IdentityMissing(Exception):
+    """No post_number: the vendor key (site_id, post_number) cannot be checked."""
 
 
 class IdentityCollision(Exception):
@@ -318,6 +323,8 @@ class Adapter:
         """
         paper = clean_paper(paper)
         post_number, meta_url = paper_identity(paper)
+        if post_number is None or post_number == "":
+            raise IdentityMissing(meta_url)
         try:
             try:
                 same = self._backend().find_by_dedup_key(self.conn, self.site_id, post_number, meta_url)

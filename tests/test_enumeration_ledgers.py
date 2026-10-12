@@ -50,7 +50,7 @@ class FakeCustomCrawler(BaseCrawler):
 
 
 def custom_plan(**adapter):
-    site = board_plan(listing={"parser": {"type": "adapter", "key_field": "post_number"}})
+    site = board_plan(listing={"parser": {"type": "adapter", "key_field": "post_number", "listing_marker": "tbody"}})
     site["adapter"] = {"type": "crawler", "list_method": "_parse_list_page", "list_args": ["html"],
                        "detail_method": "_parse_detail", "detail_args": ["html", "item"], **adapter}
     return site

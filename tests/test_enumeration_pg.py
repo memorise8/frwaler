@@ -64,7 +64,8 @@ class PaperCrawler(BaseCrawler):
 
 
 def scenario(test, conn, store_path, gates):
-    plan_raw = board_plan(listing={"parser": {"type": "adapter", "key_field": "post_number"}})
+    plan_raw = board_plan(listing={"parser": {"type": "adapter", "key_field": "post_number",
+                                                             "listing_marker": "tbody"}})
     plan_raw["adapter"] = {"type": "crawler", "list_method": "_parse_list_page", "list_args": ["html"],
                            "paper_method": "_paper"}
     plan = site_plan({"sites": {SITE: plan_raw}}, SITE, min_interval=0)

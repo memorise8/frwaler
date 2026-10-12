@@ -39,6 +39,8 @@ SCHEMA = (
       pages INTEGER, content_type TEXT, attempts INTEGER NOT NULL DEFAULT 0,
       reason TEXT, path TEXT, updated_at TEXT,
       PRIMARY KEY(site_id, seq_id, url))""",
+    """CREATE TABLE IF NOT EXISTS enum_host_hold(
+      host TEXT PRIMARY KEY, reason TEXT NOT NULL, url TEXT, site_id TEXT, at TEXT NOT NULL)""",
     """CREATE TABLE IF NOT EXISTS enum_event(
       id INTEGER PRIMARY KEY AUTOINCREMENT, site_id TEXT NOT NULL, at TEXT NOT NULL,
       kind TEXT NOT NULL, detail TEXT)""",
@@ -186,6 +188,16 @@ class Store:
                          f"AND item_key IN ({marks})", (site_id, plan_fp, segment_key, *keys))
         return {r["item_key"] for r in rows}
 
+    def keys_in_several_segments(self, site_id, plan_fp, segments):
+        """Number of keys listed in more than one of ``segments``."""
+        if len(segments) < 2:
+            return 0
+        marks = ",".join("?" * len(segments))
+        row = self._one(f"SELECT COUNT(*) AS n FROM (SELECT item_key FROM enum_listed WHERE site_id=? AND plan_fp=? "
+                        f"AND segment_key IN ({marks}) GROUP BY item_key HAVING COUNT(DISTINCT segment_key)>1) t",
+                        (site_id, plan_fp, *segments))
+        return row["n"]
+
     def listed_count(self, site_id, plan_fp):
         return self._one("SELECT COUNT(DISTINCT item_key) AS n FROM enum_listed WHERE site_id=? AND plan_fp=?",
                          (site_id, plan_fp))["n"]
@@ -262,6 +274,18 @@ class Store:
 
     def files(self, site_id):
         return self._all("SELECT * FROM enum_file WHERE site_id=? ORDER BY seq_id, url", (site_id,))
+
+    # -- host holds (shared by every site id on the host) ------------------
+    def hold_host(self, host, reason, url=None, site_id=None):
+        self._exec("INSERT INTO enum_host_hold(host,reason,url,site_id,at) VALUES(?,?,?,?,?) "
+                   "ON CONFLICT(host) DO NOTHING", (host, reason, url, site_id, now()))
+
+    def host_hold(self, host):
+        return self._one("SELECT * FROM enum_host_hold WHERE host=?", (host,))
+
+    def release_host(self, host):
+        """Only for a person who reviewed the refusal (CLI --release-host)."""
+        self._exec("DELETE FROM enum_host_hold WHERE host=?", (host,))
 
     # -- events ------------------------------------------------------------
     def event(self, site_id, kind, detail=None):

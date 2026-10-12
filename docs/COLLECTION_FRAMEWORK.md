@@ -337,3 +337,19 @@ segments_mismatch, files_{pending,done,failed}, oldest_item`. JSON(상세 포함
 | M-2 | 백엔드 식별 규칙의 `ValueError`는 `*requires_review*`, `*repair_required*`, `ambiguous_*`만 항목 검토(`identity_review`)로, 나머지(예: `krivet_post_number_must_match_pstNo`, `kei_scoped_post_number_required`, `invalid_cso_release_identity`)는 설정 오류로 사이트를 `config_error(identity_rule_config:<규칙>)`로 멈춘다. 항목 검토가 연속 `max_consecutive_identity_reviews`(기본 5)건이면 `review_pending(identity_reviews_consecutive)`. |
 | L-1/L-2 | 사전 점검에서 dedup 결과가 실제 행 id(int)일 때만 일치. 목록 대체 경로는 dedup 일치가 없어도 같은 meta_url 또는 post_number 행이 있으면 불일치로 센다. 결과에 `sampled_reference`, `sampled_listing`, `sampled`(합계). |
 | M-3 (한계) | 식별값이 목록 필드에 의존하는 커스텀 수집기(`paper_method`, `list_returns_paper`, `detail_args`에 `item`)는 참조 행 URL만으로 식별값을 정확히 재계산하지 못할 수 있다. 이런 사이트의 불일치 정지는 사유가 `identity_mismatch:sample_recompute_may_be_wrong`, 결과에 `list_field_identity: true`로 표시되어 오탐 여부를 사람이 가려야 한다. 근본 해결(목록 필드 재현)은 하지 않았다. |
+
+## 16. 교차 검토(Codex) 반영 — 1차 배치
+
+| 항목 | 반영 |
+|---|---|
+| S0 | CLI는 사이트마다 `ensure_documents_db`: 문서 DB에 스키마가 없고 이름이 `enum_`이면 `init_db`(SQLite/PG) 자동 적용, `enum_`이 아니면 스키마를 만들지 않고 거부. 이어서 등록 수집기 클래스(`CRAWLERS`)의 `site_name`/`base_url`(없으면 plan)로 `sites` 행을 idempotent upsert — 기존 수집기가 `crawl()` 안에서 하던 일. 빈 DB 파일에서 시작하는 CLI 종단 테스트 추가. |
+| H08 | 전송 계층은 리다이렉트를 따르지 않는다(`allow_redirects=False`). `Fetcher.get`이 hop마다 hold 확인 → 목적지 robots → 호스트 게이트 → 예산을 거친다. Location이 로그인/인증/챌린지 경로(`login`, `signin`, `sso`, `auth`, `oauth`, `saml`, `captcha`, `challenge` 등)면 따라가지 않고 `login_redirect`로 정지. 최대 5 hop. |
+| H09 | robots 응답 401/403/407/451, 로그인 경로 리다이렉트, 챌린지/로그인 페이지는 **보류**(이전의 RFC 9309 "4xx=규칙 없음"은 401/403에 대해 폐기). 404/410 등 그 밖의 4xx만 "미게시". `Crawl-delay`(소수 허용, 직접 파싱)와 `Request-rate`를 호스트 간격에 반영(10초 초과분은 추가 대기). plan 검증: `respect_robots=false` 거부, 끝 상태에 401/403/407/429/451·2xx 거부, 404/410 외 상태는 `json_code`/`body_regex` 조건이 있어야 함. Fetcher는 거부 상태를 plan 허용 상태보다 먼저 분류. |
+| H07 | 차단은 사이트 상태(`access_blocked`)와 **호스트 hold 대장**(`enum_host_hold`, 같은 호스트의 모든 site ID가 공유)에 영속. 429 cooldown은 `RequestGate.defer`로 호스트 게이트에 기록되어 다른 site ID/실행/패스도 `host_cooldown`으로 멈춘다. retry-only도 본 실행과 같은 상태 전이를 하고, 파일 패스(`--files`, `--files-only`)는 사이트 hold/cooldown을 먼저 확인하며 새 차단을 사이트·호스트에 기록한다. `--files`는 본 실행과 같은 Fetcher(같은 예산)를 쓴다. hold 해제는 사람이 검토 후 `--refresh`(사이트)와 `--release-host HOST`(호스트)로만. |
+| H01 | 파서는 (키, URL)이 완전히 같은 반복만 버린다. 같은 목록 키에 다른 문서 URL(목록 상태 파라미터 page 등은 무시하고 비교)이 오면 같은 쪽·다른 쪽·재실행 모두 `failed_permanent:listing_identity_conflict`로 별도 대장 행(`<키>#conflict:<해시>`)에 보존, 사이트는 `complete_with_review`. |
+| H02 | 사이트 lease: SQLite는 문서 DB 옆 파일 잠금, PG는 세션 advisory lock(`pg_try_advisory_lock`). 잡혀 있으면 `locked`. 같은 `--site` 중복은 CLI 거부. post_number가 없는 문서는 저장하지 않고 `identity_missing`(검토). 중복 집계는 업체 쿼리처럼 NULL을 한 그룹으로 센다. DB 유일 제약 `UNIQUE(site_id, post_number)`는 **제안만**(기존 데이터 정리가 먼저 필요). |
+| H03 | 파서가 상태를 구분: 깨진 JSON·items 경로 없음·목록 구조 없는 HTML은 `parse_error` → 목록 실패(미완료). 빈 HTML 목록은 목록 표지(`listing_marker` 또는 항목 선택자의 조상 부분, 예: `tbody tr` → `tbody`)가 있을 때만 "명시적 빈 결과". 표지가 없는 설정은 빈 쪽을 끝으로 쓸 수 없다(plan에 `listing_marker` 필요). WordPress 프리셋은 `rest_post_invalid_page_number`인 400만 끝. 정방향의 반복 쪽은 재확인 후 다음 쪽에 새 키가 있으면 `repeated_page_inside_range`(미완료). |
+| H04 | 날짜 구간·사이트맵 루트 manifest를 매 실행 전체 upsert(멱등). 분할 자식도 부모를 `split`으로 바꾸기 전에 모두 upsert. |
+| H05 | 사이트맵 커서 = (offset, 필터 후 URL 목록 지문). 지문이 바뀌면 그 사이트맵을 처음부터 재열거(`sitemap_changed_restart`). 끝에 현재 URL 전체가 열거됐는지 대조(아니면 `mismatch`). |
+| H06 | 구간 간 같은 키(겹침, `allow_overlap`이 아니면 `segment_overlap`), leaf 보고 합계 ≠ 고유 열거 수(`leaf_total_sum_mismatch`)면 `complete_with_mismatch`. 서로 다른 구간의 첫 쪽이 같으면 필터 무효 의심(`filter_not_effective`) → 해당 구간 `unverified`. |
+| H11 | 가드는 **보안 경계가 아니라 우회 탐지용 tripwire**로 정정. 가드 안에서 시작된 스레드는 가드를 물려받는다(테스트). 남은 한계: 이미 연결된 소켓 재사용, native 소켓(curl_cffi 등), 가드 이전에 만들어진 스레드/실행기, 수집기 생성자와 `_save_paper`(가드 밖). 신뢰가 필요한 경우 수집기 메서드를 실행하지 않는 방식(순수 파서 계약 또는 네트워크 없는 별도 실행 환경)이 필요하다. |

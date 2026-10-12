@@ -9,6 +9,7 @@ reconciled segment total. Budgets/caps never produce a completed outcome.
 from __future__ import annotations
 
 import calendar
+import hashlib
 import gzip
 import re
 import xml.etree.ElementTree as ET
@@ -70,21 +71,48 @@ class Strategy:
         params[self.page_param] = self.page_value(n)
         return build_url(url or self.listing["url"], params)
 
+    def end_conditions(self):
+        out = {}
+        for entry in self.listing.get("end_statuses", ()):
+            if isinstance(entry, dict):
+                out[entry["status"]] = entry
+            else:
+                out[entry] = None
+        return out
+
     def fetch_page(self, url):
-        """Listing page. Only 404/410 and configured end statuses become empty
-        end-candidate pages; any other 4xx propagates (never read as an end)."""
+        """Listing page. Only 404/410 and verified end statuses become empty
+        end-candidate pages; any other 4xx propagates (never read as an end).
+        A page that fails to parse (broken JSON, foreign HTML) is an error, not
+        an empty page."""
+        ends = self.end_conditions()
         try:
-            resp = self.ctx.fetcher.get(url, accept_statuses=tuple(self.listing.get("end_statuses", ())))
+            resp = self.ctx.fetcher.get(url, accept_statuses=tuple(ends))
         except PermanentFailure as exc:
             if exc.status in (404, 410):
-                return Page([], None, exc.status, {"error": exc.reason})
+                return Page([], None, exc.status, {"error": exc.reason, "explicit_empty": True})
             raise
-        if resp.status in tuple(self.listing.get("end_statuses", ())):
-            return Page([], None, resp.status, {"end_status": resp.status})
+        if resp.status in ends:
+            cond = ends[resp.status]
+            if cond is not None and not self._end_body_matches(resp, cond):
+                raise PermanentFailure(f"unverified_error_status_{resp.status}", url, resp.status)
+            return Page([], None, resp.status, {"end_status": resp.status, "explicit_empty": True})
         page = self.ctx.parser.parse(resp)
         if not page.items and page.extra.get("login_suspect"):
             raise LoginReview("login_form", url, resp.status)
+        if page.extra.get("parse_error"):
+            raise PermanentFailure(f"listing_parse_error:{page.extra['parse_error']}", url, resp.status)
         return page
+
+    @staticmethod
+    def _end_body_matches(resp, cond):
+        if cond.get("json_code"):
+            try:
+                data = resp.json()
+            except ValueError:
+                return False
+            return isinstance(data, dict) and data.get("code") == cond["json_code"]
+        return bool(re.search(cond["body_regex"], resp.text()))
 
     def known(self, segment, keys):
         """Keys already seen: in the item ledger or listed in this segment generation."""
@@ -342,7 +370,17 @@ class _ForwardPager(Strategy):
                 return kind, cursor.get("total")
             fp = page.fingerprint
             if n > self.start_page and fp in (cursor.get("prev_fp"), cursor.get("first_fp")):
-                return "repeated_page", cursor.get("total")
+                # A repeat is only an end (clamp/wrap) if it persists and the next
+                # page brings nothing new; otherwise it is a transient or a hole.
+                page = self.fetch_page(self.page_url(n, extra_params, url=url))
+                fp = page.fingerprint
+                if not page.items or fp in (cursor.get("prev_fp"), cursor.get("first_fp")):
+                    after = self.fetch_page(self.page_url(n + 1, extra_params, url=url))
+                    fresh = [k for k in after.keys if k not in self.known(seg, after.keys)]
+                    if fresh:
+                        ctx.store.event(ctx.site_id, "repeated_page_inside_range", {"segment": seg, "page": n})
+                        raise StrategyStop("incomplete", f"repeated_page_inside_range:{seg}:{n}")
+                    return "repeated_page", cursor.get("total")
             pages = [page]
             if overlap and n > self.start_page:
                 # Re-read the previous page: deletions shift items toward lower pages.
@@ -366,7 +404,9 @@ class _ForwardPager(Strategy):
 PRESETS = {
     "wordpress": {
         "params": {"orderby": "date", "order": "asc", "per_page": 100},
-        "page_param": "page", "start_page": 1, "end_statuses": [400],
+        "page_param": "page", "start_page": 1,
+        # Only WordPress's own "past the last page" error ends the listing.
+        "end_statuses": [{"status": 400, "json_code": "rest_post_invalid_page_number"}],
         "parser": {"type": "json", "items_path": "", "key": "id", "url": "link", "date": "date", "title": "title"},
         "total": {"type": "header", "name": "X-WP-Total"},
     },
@@ -557,9 +597,10 @@ class DateRangeSplit(_ForwardPager):
 
     def batches(self):
         ctx = self.ctx
-        if not ctx.store.segments(ctx.site_id, ctx.plan_fp):
-            for i, key in enumerate(generate_segments(self.cfg, self.today)):
-                ctx.store.ensure_segment(ctx.site_id, ctx.plan_fp, key, ordinal=i)
+        # The full deterministic manifest is upserted on every run: a crash in the
+        # middle of a previous initialisation can never leave a range out.
+        for i, key in enumerate(generate_segments(self.cfg, self.today)):
+            ctx.store.ensure_segment(ctx.site_id, ctx.plan_fp, key, ordinal=i)
         state = ctx.state
         if self.plan.raw.get("overall_total_check") and state.get("overall_total") is None:
             page = self.fetch_page(self.page_url(self.start_page))
@@ -625,6 +666,33 @@ class DateRangeSplit(_ForwardPager):
                                      reported_total=total, detail=detail)
         rows = ctx.store.segments(ctx.site_id, ctx.plan_fp)
         bad = [r["segment_key"] for r in rows if r["status"] in ("mismatch", "cap_unsplittable")]
+        leaves = [r for r in rows if r["status"] != "split"]
+        # Ranges are a partition: the same key in two leaves means the filter is
+        # ignored or the ranges overlap; equal first pages mean the filter may not work.
+        allow_overlap = bool(self.cfg.get("allow_overlap"))
+        shared = ctx.store.keys_in_several_segments(ctx.site_id, ctx.plan_fp, [r["segment_key"] for r in leaves])
+        if shared and not allow_overlap:
+            ctx.store.event(ctx.site_id, "segment_overlap", {"shared_keys": shared})
+            bad.append("segment_overlap")
+        by_fp = {}
+        for r in leaves:
+            first_fp = (r["cursor"] or {}).get("first_fp")
+            if first_fp:
+                by_fp.setdefault(first_fp, []).append(r["segment_key"])
+        same_first = [keys for keys in by_fp.values() if len(keys) > 1]
+        if same_first:
+            ctx.store.event(ctx.site_id, "filter_not_effective", {"segments_with_identical_first_page": same_first[:10]})
+            for keys in same_first:
+                for key in keys:
+                    ctx.store.update_segment(ctx.site_id, ctx.plan_fp, key, status="unverified",
+                                             evidence="identical_first_page_across_ranges")
+            rows = ctx.store.segments(ctx.site_id, ctx.plan_fp)
+        totals = [r["reported_total"] for r in leaves]
+        if leaves and all(t is not None for t in totals) and not allow_overlap:
+            unique = ctx.store.listed_count(ctx.site_id, ctx.plan_fp)
+            if sum(totals) != unique:
+                ctx.store.event(ctx.site_id, "leaf_total_sum_mismatch", {"leaf_sum": sum(totals), "unique": unique})
+                bad.append("leaf_total_sum_vs_unique")
         overall = state.get("overall_total")
         listed = ctx.store.listed_count(ctx.site_id, ctx.plan_fp)
         if listed == 0 and overall != 0:
@@ -687,9 +755,9 @@ class Sitemap(Strategy):
 
     def batches(self):
         ctx = self.ctx
-        if not ctx.store.segments(ctx.site_id, ctx.plan_fp):
-            for i, url in enumerate(self.roots()):
-                ctx.store.ensure_segment(ctx.site_id, ctx.plan_fp, url, ordinal=i)
+        # Roots are re-derived and upserted on every run (crash-safe initialisation).
+        for i, url in enumerate(self.roots()):
+            ctx.store.ensure_segment(ctx.site_id, ctx.plan_fp, url, ordinal=i)
         while True:
             rows = ctx.store.segments(ctx.site_id, ctx.plan_fp)
             pending = [r for r in rows if r["status"] in ("pending", "running")]
@@ -738,22 +806,38 @@ class Sitemap(Strategy):
                     return (0, int(m.group(1))) if m else (1, 0)
                 items.sort(key=number)
             total = len(items)
-            offset = (row["cursor"] or {}).get("offset", 0)
+            content_fp = hashlib.sha256("\n".join(i.key for i in items).encode()).hexdigest()
+            cursor = row["cursor"] or {}
+            offset = cursor.get("offset", 0)
+            if cursor and cursor.get("fp") != content_fp:
+                # The sitemap changed since the stored offset: an offset into the new
+                # list is meaningless. Restart; saved URLs are skipped via the ledger.
+                ctx.store.event(ctx.site_id, "sitemap_changed_restart", {"sitemap": url, "offset": offset,
+                                                                         "total": total})
+                offset = 0
             ctx.store.update_segment(ctx.site_id, ctx.plan_fp, url, status="running", reported_total=total)
             while offset < total:
                 chunk = items[offset:offset + self.CHUNK]
                 offset += len(chunk)
                 done = offset >= total
-                yield Batch(url, chunk, {"offset": offset}, [i.key for i in chunk],
+                yield Batch(url, chunk, {"offset": offset, "fp": content_fp}, [i.key for i in chunk],
                             segment_status="complete" if done else None,
                             evidence="sitemap_urls_listed" if done else None, reported_total=total)
+            if total:
+                listed = ctx.store.listed_in_segment(ctx.site_id, ctx.plan_fp, url, [i.key for i in items])
+                if len(listed) != len({i.key for i in items}):
+                    ctx.store.update_segment(ctx.site_id, ctx.plan_fp, url, status="mismatch",
+                                             evidence=f"listed_{len(listed)}_of_{total}")
             if total == 0:
                 ctx.store.update_segment(ctx.site_id, ctx.plan_fp, url, status="complete",
                                          evidence="sitemap_no_matching_urls", reported_total=0)
         rows = ctx.store.segments(ctx.site_id, ctx.plan_fp)
         failed = [r["segment_key"] for r in rows if r["status"] == "failed"]
+        mismatched = [r["segment_key"] for r in rows if r["status"] == "mismatch"]
         if failed:
             self.outcome = ("incomplete", f"sitemaps_failed:{len(failed)}")
+        elif mismatched:
+            self.outcome = ("complete_with_mismatch", f"sitemaps_mismatch:{len(mismatched)}")
         else:
             self.outcome = ("complete", "all_sitemaps_listed")
 

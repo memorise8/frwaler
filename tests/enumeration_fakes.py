@@ -174,22 +174,24 @@ class Env:
         self.conn.close()
         self.tmp.cleanup()
 
-    def plan(self, site):
-        return site_plan({"sites": {self.site_id: site}}, self.site_id, min_interval=0)
+    def plan(self, site, site_id=None):
+        site_id = site_id or self.site_id
+        return site_plan({"sites": {site_id: site}}, site_id, min_interval=0)
 
     def fetcher(self, plan, transport, **kw):
         kw.setdefault("sleep", lambda s: None)
-        return Fetcher(self.site_id, transport, self.root / "gates", interval=plan.get("request_interval_s"),
+        kw.setdefault("holds", self.store)
+        return Fetcher(plan.site_id, transport, self.root / "gates", interval=plan.get("request_interval_s"),
                        max_requests=kw.pop("max_requests", plan.get("max_requests")),
                        max_runtime_s=plan.get("max_runtime_s"), retries=plan.get("retries"),
                        backoff_s=0, respect_robots=plan.get("respect_robots"), **kw)
 
     def run(self, site, handler, *, crawler=None, today="2026-10-12", transport=None, refresh=False,
             retry_only=False, reference_conn=None, identity_required=False, allow_empty_reference=False,
-            **fetch_kw):
-        plan = self.plan(site)
+            site_id=None, **fetch_kw):
+        plan = self.plan(site, site_id)
         transport = transport or FakeTransport(handler)
-        adapter = Adapter(self.site_id, plan.raw.get("adapter"), self.conn, crawler=crawler, base_url=plan.base_url)
+        adapter = Adapter(plan.site_id, plan.raw.get("adapter"), self.conn, crawler=crawler, base_url=plan.base_url)
         try:
             runner = SiteRunner(plan, self.store, self.fetcher(plan, transport, **fetch_kw), adapter, today=today,
                                 reference_conn=reference_conn, identity_required=identity_required,

@@ -17,6 +17,9 @@ from delivery.scripts.discovery_structure import date_value
 from .urls import normalize_key_url
 
 
+_MISSING = object()
+
+
 @dataclass
 class Item:
     key: str
@@ -119,7 +122,33 @@ class ListingParser:
             raise ValueError(f"unknown listing parser type: {self.kind}")
         if getattr(resp, "login_suspect", False):
             page.extra["login_suspect"] = True
+        if not page.items and not page.extra.get("parse_error") and self.kind != "json":
+            # An empty HTML listing is an end candidate only when the listing's own
+            # structure is present; an error/foreign page is a parse error.
+            marker = self.listing_marker()
+            if marker is None:
+                page.extra["parse_error"] = "empty_without_listing_marker"
+            else:
+                from bs4 import BeautifulSoup
+                if BeautifulSoup(resp.text(), "html.parser").select_one(marker) is None:
+                    page.extra["parse_error"] = "listing_structure_missing"
+        if not page.items and not page.extra.get("parse_error"):
+            page.extra["explicit_empty"] = True
         return page
+
+    def listing_marker(self):
+        """CSS selector of the element that holds the list (configured, or the
+        ancestor part of the item container selector, e.g. "tbody" for "tbody tr")."""
+        if self.cfg.get("listing_marker"):
+            return self.cfg["listing_marker"]
+        container = self.cfg.get("item_container")
+        if container is None and self.kind == "adapter" and self.adapter is not None:
+            config = getattr(self.adapter.crawler, "_config", None) or {}
+            container = ((config.get("list_page") or {}).get("selectors") or {}).get("item_container")
+        if container is None and self.kind == "html":
+            container = "tr"
+        parts = (container or "").split()
+        return " ".join(parts[:-1]) if len(parts) > 1 else None
 
     def _html(self, resp):
         from bs4 import BeautifulSoup
@@ -138,10 +167,13 @@ class ListingParser:
             if not href or href.startswith(("javascript:", "#", "mailto:")):
                 continue
             url = urljoin(resp.url, href)
-            key = self._key(url)
-            if key in seen:
+            raw_id = link.get(cfg["item_id_attr"]) if cfg.get("item_id_attr") else None
+            key = self._key(url, raw_id)
+            # Only exact repeats are dropped; the same key with another URL is a
+            # conflict the runner must ledger, never silently discarded.
+            if (key, url) in seen:
                 continue
-            seen.add(key)
+            seen.add((key, url))
             title = ""
             if cfg.get("title"):
                 node = row.select_one(cfg["title"])
@@ -167,10 +199,14 @@ class ListingParser:
         except ValueError:
             data = None
         if data is None:
-            return Page([], extract_total(self.total_cfg, resp), resp.status, {"invalid_json": True})
-        rows = json_path(data, cfg.get("items_path"), []) or []
+            return Page([], extract_total(self.total_cfg, resp), resp.status, {"parse_error": "invalid_json"})
+        rows = json_path(data, cfg.get("items_path"), _MISSING)
+        if rows is _MISSING or rows is None:
+            return Page([], None, resp.status, {"parse_error": "items_path_missing"})
         if isinstance(rows, dict):
             rows = list(rows.values())
+        if not isinstance(rows, list):
+            return Page([], None, resp.status, {"parse_error": "items_not_a_list"})
         items, seen = [], set()
         for row in rows:
             record = json_path(row, cfg.get("item_path")) if cfg.get("item_path") else row
@@ -190,9 +226,9 @@ class ListingParser:
             if not url and raw_id in (None, ""):
                 continue
             key = self._key(url, raw_id)
-            if key in seen:
+            if (key, url) in seen:
                 continue
-            seen.add(key)
+            seen.add((key, url))
             title = json_path(record, cfg.get("title", "title"))
             if isinstance(title, dict):
                 title = title.get("rendered", "")
@@ -222,9 +258,9 @@ class ListingParser:
             if not url and raw_id in (None, ""):
                 continue
             key = self._key(url, raw_id)
-            if key in seen:
+            if (key, url) in seen:
                 continue
-            seen.add(key)
+            seen.add((key, url))
             raw_date = row.get(cfg.get("date_field", "published_date")) or ""
             items.append(Item(key=key, url=url, date=date_value(raw_date) if raw_date else None,
                               title=str(row.get(cfg.get("title_field", "title")) or ""),

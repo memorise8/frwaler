@@ -51,7 +51,9 @@ class OldestFirstSortTest(unittest.TestCase):
                 return Response(404, {}, b"")
             return Response(400, {"Content-Type": "application/json"}, b'{"code":"rest_invalid_param"}')
         result = self.env.run(wp_plan(), handler)
-        self.assertEqual((result["status"], result["stop_reason"]), ("incomplete", "empty_first_page_unverified"))
+        # A 400 that is not WordPress's "invalid page number" is an error, never an end.
+        self.assertEqual((result["status"], result["stop_reason"]),
+                         ("incomplete", "listing_failed:unverified_error_status_400"))
 
     def test_ckan_offset_paging(self):
         datasets = [{"id": f"id-{i}", "name": f"ds-{i}", "title": f"Dataset {i}",

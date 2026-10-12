@@ -13,7 +13,7 @@ import sqlite3
 import tempfile
 from pathlib import Path
 
-from .http import AccessBlocked, BudgetExhausted, PermanentFailure, TransientFailure
+from .http import AccessBlocked, BudgetExhausted, PermanentFailure, RateLimited, TransientFailure
 
 _PAGE = re.compile(rb"/Type\s*/Page(?!s)\b")
 
@@ -68,8 +68,36 @@ class FilePass:
             backend.update_document_pdf(self.doc_conn, seq_id, downloaded=True, size_bytes=size, sha256=sha)
         return path
 
+    def site_hold(self, site_id):
+        """The same persistent holds as the body run: site refusal or cooldown."""
+        import time as _time
+        site = self.store.site(site_id)
+        if site and site["status"] == "access_blocked":
+            return f"site_hold:{site['stop_reason']}"
+        cooldown = (site or {}).get("state", {}).get("cooldown_until")
+        if cooldown and cooldown > _time.time():
+            return "site_hold:cooling_down"
+        return None
+
+    def _hold_site(self, site_id, status, reason, retry_at=None):
+        site = self.store.site(site_id)
+        state = dict((site or {}).get("state") or {})
+        if retry_at:
+            state["cooldown_until"] = retry_at
+        if site is None:
+            self.store.start_site(site_id, "files-only", "files")
+        if status:
+            self.store.finish_site(site_id, status, reason, state)
+        else:
+            self.store.save_state(site_id, state)
+        self.store.event(site_id, "file_pass_stopped", {"reason": reason})
+
     def run(self, site_id):
         stats = {"done": 0, "failed": 0, "failed_transient": 0, "unavailable": 0, "stopped": None}
+        held = self.site_hold(site_id)
+        if held:
+            stats["stopped"] = held
+            return stats
         for row in self.store.pending_files(site_id, self.max_attempts):
             url, seq_id, role = row["url"], row["seq_id"], row["role"]
             try:
@@ -89,6 +117,13 @@ class FilePass:
                 self.store.update_file(site_id, seq_id, url, status="unavailable", reason=f"access_blocked:{exc.reason}")
                 stats["unavailable"] += 1
                 stats["stopped"] = f"access_blocked:{exc.reason}"
+                # A refusal met by the file pass holds the site (the Fetcher already
+                # recorded the host hold), exactly like one met by the body run.
+                self._hold_site(site_id, "access_blocked", exc.reason)
+                break
+            except RateLimited as exc:
+                stats["stopped"] = exc.reason
+                self._hold_site(site_id, None, exc.reason, retry_at=exc.retry_at)
                 break
             except BudgetExhausted as exc:
                 stats["stopped"] = exc.reason

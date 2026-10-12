@@ -6,6 +6,12 @@ Every listing, detail, sitemap, robots and file request goes through
 the end of the previous response), enforces request/time budgets, retries
 transient failures a bounded number of times and classifies access refusals
 as a stop condition. Refusals are never retried with other clients.
+
+Redirects are never followed by the transport: every hop is a separate gated,
+budgeted request preceded by the destination's robots and hold checks, and a
+Location that points at a login/authentication/challenge path is not followed.
+Hard refusals are recorded as persistent host holds (shared by every site id
+on that host) and 429 cooldowns are written into the host's RequestGate.
 """
 from __future__ import annotations
 
@@ -15,7 +21,7 @@ import re
 import time
 from pathlib import Path
 from urllib import robotparser
-from urllib.parse import urlsplit
+from urllib.parse import urljoin, urlsplit
 
 from delivery.health.access_challenge import access_challenge
 from delivery.health.request_gate import NetworkDeferred, RequestGate
@@ -29,7 +35,9 @@ DEFAULT_USER_AGENT = (
     "Chrome/120.0.0.0 Safari/537.36"
 )
 DEFAULT_MAX_BYTES = 50 * 1024 * 1024
-_LOGIN_PATH = re.compile(r"(^|/)(login|signin|sign-in|sso|cas/login|auth)(/|$|\.|\?)", re.I)
+_LOGIN_PATH = re.compile(r"(^|/)(login|logon|signin|sign-in|sso|cas/login|auth|oauth2?|saml|captcha|challenge)"
+                         r"(/|$|\.|\?)", re.I)
+REFUSAL_STATUSES = (401, 403, 407, 429, 451)
 _PASSWORD = re.compile(rb"<input[^>]+type\s*=\s*[\"']?password", re.I)
 _LOGIN_WORDS = re.compile(r"\b(log ?in|sign ?in|logon)\b|로그인|connexion|anmelden|inloggen|accedi|iniciar sesi", re.I)
 
@@ -52,6 +60,38 @@ def login_page(body):
     for tag in soup.find_all(["nav", "header", "footer"]):
         tag.decompose()
     return not soup.find_all("a", href=True)
+
+
+def crawl_delay(text, user_agent):
+    """Crawl-delay (seconds, fractional allowed) of the group matching this agent or '*'.
+    urllib.robotparser ignores non-integer values, so this reads the file itself."""
+    agents, in_rules, best, star = [], False, None, None
+    ua = user_agent.lower()
+    for raw in text.splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if ":" not in line:
+            continue
+        field, value = (x.strip() for x in line.split(":", 1))
+        field = field.lower()
+        if field == "user-agent":
+            if in_rules:
+                agents, in_rules = [], False
+            agents.append(value.lower())
+        elif field == "crawl-delay":
+            in_rules = True
+            try:
+                delay = float(value)
+            except ValueError:
+                continue
+            for agent in agents:
+                if agent == "*":
+                    star = delay if star is None else star
+                elif agent and agent in ua:
+                    best = delay
+        else:
+            in_rules = True
+    value = best if best is not None else star
+    return max(0.0, value or 0.0)
 
 
 class FetchError(Exception):
@@ -90,6 +130,10 @@ class RateLimited(EnumerationStop):
     def __init__(self, reason, url=None, status=429, retry_at=None):
         super().__init__(reason, url, status)
         self.retry_at = retry_at
+
+
+class PolicyRefusal(ValueError):
+    """A plan tried to relax the access policy (fixed execution ceiling)."""
 
 
 class LoginReview(EnumerationStop):
@@ -153,8 +197,9 @@ class RequestsTransport:
 
     def request(self, method, url, *, headers=None):
         try:
+            # Redirects are handled hop by hop by Fetcher (gate, budget, robots, holds).
             with self.session.request(method, url, headers=headers or {}, stream=True,
-                                      timeout=self.timeout, allow_redirects=True) as r:
+                                      timeout=self.timeout, allow_redirects=False) as r:
                 chunks, size = [], 0
                 for chunk in r.iter_content(64 * 1024):
                     size += len(chunk)
@@ -170,7 +215,8 @@ class Fetcher:
     def __init__(self, site_id, transport, gate_dir, *, interval=1.5, max_requests=None,
                  max_runtime_s=None, retries=3, backoff_s=2.0, max_retry_wait_s=120,
                  respect_robots=True, user_agent=DEFAULT_USER_AGENT, encoding=None,
-                 extra_headers=None, rate_limit_stop=3, clock=time.monotonic, sleep=time.sleep):
+                 extra_headers=None, rate_limit_stop=3, holds=None, max_redirects=5,
+                 clock=time.monotonic, sleep=time.sleep):
         if not 0 <= float(interval) <= 10:
             raise ValueError("request_interval_s must be within [0, 10]")
         self.site_id = site_id
@@ -193,21 +239,35 @@ class Fetcher:
         self.blocked = None
         self.rate_limit_stop = int(rate_limit_stop)
         self._consecutive_429 = 0
+        self.holds = holds
+        self.max_redirects = int(max_redirects)
         self._gates = {}
+        self._host_delay = {}
         self._robots = {}
 
     # -- gate ----------------------------------------------------------
     def _gate(self, host):
-        if host not in self._gates:
+        delay = max(self.interval, self._host_delay.get(host, 0))
+        gate = self._gates.get(host)
+        if gate is None or gate.delay != min(delay, 10):
             root = self.gate_dir / hashlib.sha256(host.encode()).hexdigest()[:20]
-            self._gates[host] = RequestGate(root, delay=self.interval)
-        return self._gates[host]
+            gate = self._gates[host] = RequestGate(root, delay=min(delay, 10))
+        return gate
 
     def _check_budget(self):
         if self.max_requests is not None and self.requests_made >= self.max_requests:
             raise BudgetExhausted("request_budget")
         if self.max_runtime_s is not None and self.clock() - self.started >= self.max_runtime_s:
             raise BudgetExhausted("time_budget")
+
+    def _check_holds(self, url):
+        if self.blocked is not None:
+            raise AccessBlocked(self.blocked.reason, url, self.blocked.status)
+        host = host_of(url)
+        held = self.holds.host_hold(host) if (self.holds is not None and host) else None
+        if held:
+            self.blocked = AccessBlocked(f"host_access_hold:{held['reason']}", url)
+            raise self.blocked
 
     def _once(self, url):
         """One gated request. Returns Response or raises TransportError."""
@@ -218,12 +278,25 @@ class Fetcher:
         headers = {"User-Agent": self.user_agent,
                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8"}
         headers.update(self.extra_headers)
+        extra = self._host_delay.get(host, 0) - 10
+        if extra > 0:
+            self.sleep(extra)  # Crawl-delay above the gate's 10 s ceiling
         try:
             with self._gate(host).enter(url):
                 self.requests_made += 1
                 return self.transport.request("GET", url, headers=headers)
+        except NetworkDeferred as exc:
+            # Another site id (or run) on this host is cooling down after a 429.
+            raise RateLimited("host_cooldown", url, 429, retry_at=exc.retry_at) from None
+
+    def _defer(self, url, retry_at):
+        """Persist a 429 cooldown in the host gate, visible to every Fetcher on the host."""
+        gate = self._gate(host_of(url))
+        try:
+            with gate.enter(url):
+                gate.defer(url, retry_at)
         except NetworkDeferred:
-            raise TransientFailure("host_cooldown", url) from None
+            pass
 
     # -- robots ----------------------------------------------------------
     def _robots_allows(self, url):
@@ -232,18 +305,39 @@ class Fetcher:
         parts = urlsplit(url)
         origin = f"{parts.scheme}://{parts.netloc}"
         if origin not in self._robots:
-            # RFC 9309: any 4xx means "no rules" (403 pages are classified by
-            # the page request itself); 5xx/transport persist as a transient
-            # failure, so the run stops instead of guessing permission.
-            resp = self._with_retries(origin + "/robots.txt", classify=False)
-            if 200 <= resp.status < 300:
-                parser = robotparser.RobotFileParser()
-                parser.parse(resp.text().splitlines())
-                self._robots[origin] = parser
-            else:
-                self._robots[origin] = "allow_all"
+            self._robots[origin] = self._load_robots(origin)
         rule = self._robots[origin]
         return True if rule == "allow_all" else rule.can_fetch(self.user_agent, url)
+
+    def _load_robots(self, origin):
+        """404/410 and other 4xx: no rules. 401/403/407/451, a challenge/login page or a
+        redirect to a login path: hold (never read as permission). 5xx: transient stop."""
+        url = origin + "/robots.txt"
+        for _hop in range(self.max_redirects + 1):
+            resp = self._with_retries(url, classify=False)
+            if 300 <= resp.status < 400 and resp.header("location"):
+                nxt = urljoin(url, resp.header("location"))
+                if _LOGIN_PATH.search(urlsplit(nxt).path or ""):
+                    raise self._block("robots_login_redirect", url, resp.status)
+                url = nxt
+                continue
+            break
+        else:
+            raise self._block("robots_redirect_loop", url)
+        if resp.status in (401, 403, 407, 451):
+            raise self._block(f"robots_{resp.status}", url, resp.status)
+        if not 200 <= resp.status < 300:
+            return "allow_all"
+        if self._challenge(resp) or login_page(resp.body):
+            raise self._block("robots_challenge", url, resp.status)
+        parser = robotparser.RobotFileParser()
+        parser.parse(resp.text().splitlines())
+        rate = parser.request_rate(self.user_agent)
+        wanted = max(crawl_delay(resp.text(), self.user_agent),
+                     (rate.seconds / rate.requests) if rate and rate.requests else 0.0)
+        if wanted > self.interval:
+            self._host_delay[host_of(url)] = wanted
+        return parser
 
     # -- public ----------------------------------------------------------
     def _with_retries(self, url, *, classify=True, accept_statuses=()):
@@ -257,30 +351,46 @@ class Fetcher:
             else:
                 self._consecutive_429 = self._consecutive_429 + 1 if resp.status == 429 else 0
                 if resp.status == 429 or resp.status >= 500:
-                    if resp.status in accept_statuses:
-                        return resp
                     last = TransientFailure("rate_limited" if resp.status == 429 else f"http_{resp.status}",
                                             url, resp.status)
                     if resp.status == 429:
                         until = retry_after(resp.header("retry-after"), now=time.time())
                         wait = max(wait, until - time.time())
                         if self._consecutive_429 >= self.rate_limit_stop or wait > self.max_retry_wait_s:
-                            raise RateLimited("rate_limited_cooldown", url, 429,
-                                              retry_at=max(until, time.time() + self.max_retry_wait_s))
+                            retry_at = max(until, time.time() + self.max_retry_wait_s)
+                            self._defer(url, retry_at)
+                            raise RateLimited("rate_limited_cooldown", url, 429, retry_at=retry_at)
                 else:
                     return self._classify(resp, url, accept_statuses) if classify else resp
             if attempt < self.retries - 1:
                 self.sleep(min(wait, self.max_retry_wait_s))
         raise last
 
+    @staticmethod
+    def _challenge(resp):
+        if not ("html" in resp.content_type.lower()
+                or resp.body[:200].lstrip().lower().startswith((b"<!doctype", b"<html"))):
+            return None
+        challenge = access_challenge(resp.body)
+        lower = resp.body[:131072].lower()
+        if not challenge and (b"<title>just a moment" in lower or (b"cf-chl-" in lower and b"challenge-platform" in lower)):
+            challenge = "browser_security_challenge"
+        return challenge
+
     def _classify(self, resp, url, accept_statuses):
         status = resp.status
-        if status in accept_statuses:
-            return resp
+        # Refusals are classified before any plan-accepted status: a plan can
+        # never turn 401/403/407/451 into an ordinary end page.
         if status in (401, 407):
             raise self._block("authentication_required", url, status)
         if status in (403, 451):
             raise self._block("access_refused", url, status)
+        if 300 <= status < 400:
+            if resp.header("location"):
+                return resp  # followed hop by hop by get()
+            raise PermanentFailure("http_3xx_without_location", url, status)
+        if status in accept_statuses:
+            return resp
         if status in (404, 410):
             raise PermanentFailure(f"http_{status}", url, status)
         if status >= 400:
@@ -288,32 +398,42 @@ class Fetcher:
         final = resp.url or url
         if final != url and _LOGIN_PATH.search(urlsplit(final).path or ""):
             raise self._block("login_redirect", url, status)
+        challenge = self._challenge(resp)
+        if challenge:
+            raise self._block(f"challenge:{challenge}", url, status)
         if "html" in resp.content_type.lower() or resp.body[:200].lstrip().lower().startswith((b"<!doctype", b"<html")):
-            challenge = access_challenge(resp.body)
-            lower = resp.body[:131072].lower()
-            if not challenge and (b"<title>just a moment" in lower or (b"cf-chl-" in lower and b"challenge-platform" in lower)):
-                challenge = "browser_security_challenge"
-            if challenge:
-                raise self._block(f"challenge:{challenge}", url, status)
             # Not a stop by itself: listings with items ignore it, the strategy
             # decides for empty listings and the runner ledgers detail pages.
             resp.login_suspect = login_page(resp.body)
         return resp
 
-    def _block(self, reason, url, status=None):
+    def _block(self, reason, url, status=None, *, host_wide=True):
         self.blocked = AccessBlocked(reason, url, status)
+        if host_wide and self.holds is not None and host_of(url):
+            self.holds.hold_host(host_of(url), reason, url, self.site_id)
         return self.blocked
 
     def get(self, url, *, accept_statuses=()):
-        """Fetch ``url`` through the gate. Returns a 2xx (or accepted) Response.
+        """Fetch ``url`` through the gate, following redirects hop by hop.
+        Returns a 2xx (or accepted) Response.
 
-        Raises PermanentFailure, TransientFailure, AccessBlocked or BudgetExhausted.
+        Raises PermanentFailure, TransientFailure, AccessBlocked, RateLimited or BudgetExhausted.
         """
-        if self.blocked is not None:
-            raise AccessBlocked(self.blocked.reason, url, self.blocked.status)
-        if not self._robots_allows(url):
-            raise self._block("robots_disallowed", url)
-        resp = self._with_retries(url, accept_statuses=accept_statuses)
-        resp.url = resp.url or url
-        resp._encoding = resp._encoding or self.encoding
-        return resp
+        accept_statuses = tuple(s for s in accept_statuses if s not in REFUSAL_STATUSES)
+        current = url
+        for _hop in range(self.max_redirects + 1):
+            self._check_holds(current)
+            if not self._robots_allows(current):
+                # A path-level rule: hold this site, not the whole host.
+                raise self._block("robots_disallowed", current, host_wide=False)
+            resp = self._with_retries(current, accept_statuses=accept_statuses)
+            if 300 <= resp.status < 400:
+                nxt = urljoin(current, resp.header("location"))
+                if _LOGIN_PATH.search(urlsplit(nxt).path or ""):
+                    raise self._block("login_redirect", current, resp.status)
+                current = nxt
+                continue
+            resp.url = resp.url or current
+            resp._encoding = resp._encoding or self.encoding
+            return resp
+        raise PermanentFailure("too_many_redirects", url)
