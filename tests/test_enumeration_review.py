@@ -444,13 +444,15 @@ class SaveOrderingTest(unittest.TestCase):
         self.assertEqual(len(self.env.store.files(self.env.site_id)), 1)
 
     def test_existing_post_number_is_not_inserted_again(self):
+        # Different meta_url under the same post_number is a collision for review,
+        # not a "complete" skip (see test_enumeration_review2 for the same-document case).
         db_libertree.insert_document(self.env.conn, {"site_id": "fake-site", "post_number": "3",
                                                      "meta_url": "https://board.test/old/3", "title": "old"})
         result = self.env.run(board_plan(), FakeBoard(5))
-        self.assertEqual(result["status"], "complete", result)
         rows = self.env.conn.execute("SELECT COUNT(*) FROM documents WHERE post_number='3'").fetchone()[0]
         self.assertEqual(rows, 1)
-        self.assertTrue(self.env.store.events(self.env.site_id, "duplicate_post_number"))
+        self.assertEqual(self.env.store.item(self.env.site_id, "3")["reason"], "identity_collision")
+        self.assertTrue(self.env.store.events(self.env.site_id, "identity_collision"))
         self.assertEqual(result["duplicates"]["new"], 0)
 
     def test_new_duplicates_fail_the_site(self):

@@ -17,11 +17,20 @@ import sqlite3
 from .guard import AdapterUngatedNetwork, guarded
 from .http import PermanentFailure
 
-__all__ = ["Adapter", "AdapterConfigError", "AdapterUngatedNetwork", "clean_paper", "paper_identity"]
+__all__ = ["Adapter", "AdapterConfigError", "AdapterUngatedNetwork", "IdentityCollision", "IdentityReview",
+           "clean_paper", "paper_identity"]
 
 
 class AdapterConfigError(ValueError):
     pass
+
+
+class IdentityReview(Exception):
+    """The backend's identity rule refuses this item until a person reviews it."""
+
+
+class IdentityCollision(Exception):
+    """Same (site_id, post_number) as a stored row, but a different document."""
 
 
 class _Blocked:
@@ -266,6 +275,10 @@ class Adapter:
         return paper
 
     # -- save ----------------------------------------------------------------
+    def _backend(self):
+        from crawler.db_backend import get_backend
+        return get_backend("sqlite" if isinstance(self.conn, sqlite3.Connection) else "postgres")
+
     def existing_post_number(self, post_number):
         if post_number is None:
             return None
@@ -273,13 +286,24 @@ class Adapter:
                       (self.site_id, post_number))
 
     def save(self, paper):
-        """Returns (seq_id, created, note). Never creates a second row for a (site_id, post_number)."""
+        """Returns (seq_id, created, note); note is None or "existing_document".
+
+        Order: (1) the backend's dedup rule, including the KRIVET/KEI/CSO
+        review exceptions, which raise ``IdentityReview`` loudly; a match is the
+        same document and takes the normal path (so its files are queued again
+        after a crash). (2) A row with the same (site_id, post_number) but no
+        dedup match is a different document: ``IdentityCollision``, nothing is
+        written and the stored row is left untouched.
+        """
         paper = clean_paper(paper)
-        post_number, _ = paper_identity(paper)
+        post_number, meta_url = paper_identity(paper)
         try:
-            existing = self.existing_post_number(post_number)
-            if existing is not None:
-                return existing, False, "existing_post_number"
+            try:
+                same = self._backend().find_by_dedup_key(self.conn, self.site_id, post_number, meta_url)
+            except ValueError as exc:
+                raise IdentityReview(str(exc)) from None
+            if same is None and self.existing_post_number(post_number) is not None:
+                raise IdentityCollision(post_number)
             seq_id = self.crawler._save_paper(paper)
         except Exception:
             # psycopg leaves the transaction aborted after any SQL error; without a
@@ -288,7 +312,8 @@ class Adapter:
             if rollback:
                 rollback()
             raise
-        return seq_id, bool(getattr(self.crawler, "_last_save_created", False)), None
+        created = bool(getattr(self.crawler, "_last_save_created", False))
+        return seq_id, created, (None if created or same is None else "existing_document")
 
     @staticmethod
     def file_urls(paper):

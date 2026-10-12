@@ -185,13 +185,15 @@ class Env:
                        backoff_s=0, respect_robots=plan.get("respect_robots"), **kw)
 
     def run(self, site, handler, *, crawler=None, today="2026-10-12", transport=None, refresh=False,
-            retry_only=False, reference_conn=None, identity_required=False, **fetch_kw):
+            retry_only=False, reference_conn=None, identity_required=False, allow_empty_reference=False,
+            **fetch_kw):
         plan = self.plan(site)
         transport = transport or FakeTransport(handler)
         adapter = Adapter(self.site_id, plan.raw.get("adapter"), self.conn, crawler=crawler, base_url=plan.base_url)
         try:
             runner = SiteRunner(plan, self.store, self.fetcher(plan, transport, **fetch_kw), adapter, today=today,
-                                reference_conn=reference_conn, identity_required=identity_required)
+                                reference_conn=reference_conn, identity_required=identity_required,
+                                **({"allow_empty_reference": True} if allow_empty_reference else {}))
             result = runner.run(refresh=refresh, retry_only=retry_only)
         finally:
             adapter.close()

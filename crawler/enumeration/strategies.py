@@ -204,7 +204,8 @@ class LastPageBackward(Strategy):
         row = self.segment_row(seg)
         cursor = row["cursor"] or {}
         s = self.start_page
-        if "next_page" not in cursor:
+        resumed = "next_page" in cursor
+        if not resumed:
             first = self.get(s)
             if not first.items:
                 raise StrategyStop("incomplete", "empty_first_page_unverified")
@@ -232,7 +233,27 @@ class LastPageBackward(Strategy):
         walk_limited = cursor.get("walk_limited", False)
         while k >= s:
             self.cache.clear()
-            page = self.read_in_range(k)
+            try:
+                page = self.read_in_range(k)
+            except StrategyStop as stop:
+                if not (resumed and stop.reason.startswith("empty_page_inside_range")):
+                    raise
+                # Deletions between runs can remove the stored last pages. Find the
+                # end again; items already saved are skipped through the ledger.
+                resumed = False
+                first = self.get(s)
+                if not first.items:
+                    raise
+                new_last, kind = self.find_last_page(first)
+                if new_last >= k:
+                    raise
+                ctx.store.event(ctx.site_id, "last_page_reprobed", {"stored_next_page": k, "last_page": new_last,
+                                                                    "end_kind": kind})
+                last, k = new_last, new_last
+                cursor = dict(cursor, last_page=new_last, end_kind=kind, next_page=new_last)
+                bounded_end = kind in ("wrap", "page_cap")
+                continue
+            resumed = False
             pages = [page]
             seen_now = set(page.keys)
             n = k + 1
@@ -389,7 +410,7 @@ class OldestFirstSort(_ForwardPager):
         cfg = ctx.plan.section("oldest_sort")
         gen = self.forward(self.SEGMENT, overlap=int(cfg.get("overlap_pages", 0)))
         allowed = int(cfg.get("max_order_violations", 0))
-        violations, last_date, seen = 0, None, set()
+        violations, prev_date, seen = 0, None, set()
         while True:
             try:
                 batch = next(gen)
@@ -400,9 +421,12 @@ class OldestFirstSort(_ForwardPager):
                 if item.key in seen or not item.date:
                     continue
                 seen.add(item.key)
-                if last_date is not None and item.date < last_date:
+                # Compare with the previous item only: one pinned newest item costs
+                # one violation, not one per following item. Pinned items can be
+                # excluded by the parser (html "exclude", json "exclude_if_true").
+                if prev_date is not None and item.date < prev_date:
                     violations += 1
-                last_date = max(last_date or item.date, item.date)
+                prev_date = item.date
             if violations > allowed:
                 # The sort parameter was ignored or does not mean "oldest first".
                 ctx.store.event(ctx.site_id, "sort_order_not_ascending", {"violations": violations})

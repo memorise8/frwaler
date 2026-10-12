@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 
 from delivery.scripts.discovery_structure import date_value
 
-from .adapters import AdapterConfigError, AdapterUngatedNetwork
+from .adapters import AdapterConfigError, AdapterUngatedNetwork, IdentityCollision, IdentityReview
 from .http import (AccessBlocked, BudgetExhausted, EnumerationStop, LoginReview, PermanentFailure, RateLimited,
                    TransientFailure)
 from .parsing import Item, ListingParser
@@ -50,7 +50,7 @@ def duplicate_rows(conn, site_id):
 
 class SiteRunner:
     def __init__(self, plan, store, fetcher, adapter, *, today=None, log=None, reference_conn=None,
-                 identity_required=False, identity_sample=5, identity_threshold=1.0):
+                 identity_required=False, identity_sample=5, identity_threshold=1.0, allow_empty_reference=False):
         self.plan = plan
         self.site_id = plan.site_id
         self.store = store
@@ -62,8 +62,12 @@ class SiteRunner:
         self.identity_required = identity_required
         self.identity_sample = int(identity_sample)
         self.identity_threshold = float(identity_threshold)
+        self.allow_empty_reference = allow_empty_reference
+        self.warnings = []
+        self._login_details = 0
         self.stats = {"batches": 0, "listed": 0, "skipped_known": 0, "saved_new": 0, "saved_existing": 0,
-                      "existing_post_number": 0, "failed_permanent": 0, "failed_transient": 0, "retried": 0}
+                      "existing_document": 0, "identity_collisions": 0,
+                      "identity_reviews": 0, "failed_permanent": 0, "failed_transient": 0, "retried": 0}
         self._save_errors = 0
         self._attempted = set()
 
@@ -88,6 +92,11 @@ class SiteRunner:
         except PermanentFailure as exc:
             st.record_item(site, item.key, "failed_permanent", reason=exc.reason, attempt=True, **common)
             self.stats["failed_permanent"] += 1
+            if exc.reason == "login_required_suspect":
+                self._login_details += 1
+                limit = int(self.plan.get("max_consecutive_login_details") or 5)
+                if self._login_details >= limit:
+                    raise LoginReview("login_required_details", item.url)
             return
         except TransientFailure as exc:
             st.record_item(site, item.key, "failed_transient", reason=f"transient:{exc.reason}", attempt=True, **common)
@@ -102,10 +111,25 @@ class SiteRunner:
             st.record_item(site, item.key, "failed_permanent", reason="empty_item", attempt=True, **common)
             self.stats["failed_permanent"] += 1
             return
+        self._login_details = 0
         try:
             seq_id, created, note = self.adapter.save(paper)
         except EnumerationStop:
             raise
+        except IdentityReview as exc:
+            st.record_item(site, item.key, "failed_permanent", reason=f"identity_review:{exc}", attempt=True, **common)
+            st.event(site, "identity_review_required", {"item": item.key, "rule": str(exc),
+                                                        "url": paper.get("url") or paper.get("meta_url")})
+            self.stats["identity_reviews"] += 1
+            self.stats["failed_permanent"] += 1
+            return
+        except IdentityCollision as exc:
+            st.record_item(site, item.key, "failed_permanent", reason="identity_collision", attempt=True, **common)
+            st.event(site, "identity_collision", {"item": item.key, "post_number": str(exc),
+                                                  "url": paper.get("url") or paper.get("meta_url")})
+            self.stats["identity_collisions"] += 1
+            self.stats["failed_permanent"] += 1
+            return
         except Exception as exc:
             st.record_item(site, item.key, "failed_permanent", reason=f"save_error:{type(exc).__name__}",
                            attempt=True, **common)
@@ -115,15 +139,14 @@ class SiteRunner:
                 raise SaveBroken(f"save_failures_consecutive:{type(exc).__name__}")
             return
         self._save_errors = 0
-        if note == "existing_post_number":
-            st.event(site, "duplicate_post_number", {"item": item.key, "existing_seq_id": seq_id,
-                                                     "url": paper.get("url") or paper.get("meta_url")})
-            self.stats["existing_post_number"] += 1
+        if note == "existing_document":
+            self.stats["existing_document"] += 1
         else:
             self.stats["saved_new" if created else "saved_existing"] += 1
-        # Files are queued before the item is marked saved: a crash in between
-        # re-processes the item (dedup returns the same row) instead of losing the PDF.
-        if isinstance(seq_id, int) and note is None:
+        # Files are queued before the item is marked saved. A crash anywhere
+        # before the ledger write re-processes the item: the dedup rule returns
+        # the same row and its files are queued again (ON CONFLICT DO NOTHING).
+        if isinstance(seq_id, int):
             for url, role in self.adapter.file_urls(paper):
                 st.enqueue_file(site, seq_id, url, item_key=item.key, role=role)
         when = item.date or date_value(paper.get("published_date") or "")
@@ -143,7 +166,8 @@ class SiteRunner:
     # -- identity check against existing rows ---------------------------------
     def identity_precheck(self, strategy):
         """Recompute (post_number, meta_url) for a sample with this framework's code
-        path and compare with rows the legacy crawler saved (reference DB)."""
+        path and check it against rows the legacy crawler saved (reference DB),
+        using the backend's dedup rule (KRIVET/KEI/CSO aware)."""
         if not self.identity_required:
             return {"mode": "not_required"}
         ref = self.reference_conn
@@ -151,36 +175,57 @@ class SiteRunner:
             raise StrategyStop("config_error", "identity_reference_required")
         total = _rows(ref, "SELECT COUNT(*) FROM documents WHERE site_id=?", (self.site_id,))[0][0]
         if not total:
-            return {"mode": "no_reference_rows", "reference_rows": 0}
-        if self.plan.strategy == "sitemap":
-            sample = _rows(ref, "SELECT meta_url FROM documents WHERE site_id=? ORDER BY seq_id DESC LIMIT ?",
-                           (self.site_id, self.identity_sample))
-            items = [Item(key=normalize_key_url(u), url=u, payload={"detail_url": u}) for (u,) in sample]
-        else:
-            items = strategy.fetch_page(strategy.page_url(strategy.start_page)).items[: self.identity_sample]
+            if not self.allow_empty_reference:
+                # A wrong reference DB or a site_id spelling difference must not pass silently.
+                raise _IdentityStop("identity_reference_empty", {"mode": "no_reference_rows", "reference_rows": 0})
+            self.warnings.append("identity_reference_empty_allowed")
+            self.store.event(self.site_id, "identity_reference_empty_allowed", {})
+            return {"mode": "no_reference_rows_allowed", "reference_rows": 0}
+        from crawler.db_backend import get_backend
+        backend = get_backend("sqlite" if isinstance(ref, sqlite3.Connection) else "postgres")
+        # Sample from the legacy rows themselves (newest first): the first page of an
+        # oldest-first listing holds items the legacy crawler never saved.
+        sample = _rows(ref, "SELECT seq_id, post_number, meta_url FROM documents WHERE site_id=? "
+                            "ORDER BY seq_id DESC LIMIT ?", (self.site_id, self.identity_sample))
+        items = [(seq, Item(key=normalize_key_url(url), url=url, payload={"detail_url": url}))
+                 for seq, _post, url in sample]
+        source = "reference_rows"
         compared = matched = errors = 0
         examples = []
-        for item in items:
+
+        def compare(expected_seq, item):
+            nonlocal compared, matched, errors
             try:
                 ident = self.adapter.identity(item, self.fetcher)
             except (PermanentFailure, TransientFailure, ValueError, KeyError, TypeError, AttributeError):
                 errors += 1
-                continue
+                return
             if ident is None:
                 errors += 1
-                continue
+                return
             post_number, meta_url = ident
-            rows = _rows(ref, "SELECT post_number, meta_url FROM documents WHERE site_id=? AND (meta_url=? OR "
-                              "post_number=?)", (self.site_id, meta_url, post_number))
-            if not rows:
-                continue
+            try:
+                found = backend.find_by_dedup_key(ref, self.site_id, post_number, meta_url)
+            except ValueError as exc:
+                found = f"review:{exc}"
+            if expected_seq is None and found is None:
+                return  # listing item the legacy crawler never saved: not comparable
             compared += 1
-            if any(str(p) == str(post_number) and m == meta_url for p, m in rows):
+            if found is not None and (expected_seq is None or found == expected_seq):
                 matched += 1
             elif len(examples) < 3:
-                examples.append({"framework": [post_number, meta_url], "reference": [list(r) for r in rows[:2]]})
-        result = {"mode": "sampled", "reference_rows": total, "sampled": len(items), "compared": compared,
-                  "matched": matched, "errors": errors, "threshold": self.identity_threshold,
+                examples.append({"framework": [post_number, meta_url], "reference_seq": expected_seq,
+                                 "dedup_match": found})
+
+        for seq, item in items:
+            compare(seq, item)
+        if not compared and self.plan.strategy != "sitemap":
+            # Crawlers whose identity needs list fields cannot rebuild it from a URL.
+            source = "listing_start_page"
+            for item in strategy.fetch_page(strategy.page_url(strategy.start_page)).items[: self.identity_sample]:
+                compare(None, item)
+        result = {"mode": "sampled", "source": source, "reference_rows": total, "sampled": len(items),
+                  "compared": compared, "matched": matched, "errors": errors, "threshold": self.identity_threshold,
                   "match_rate": (matched / compared) if compared else None, "mismatch_examples": examples}
         self.store.event(self.site_id, "identity_precheck", result)
         if not compared:
@@ -289,6 +334,7 @@ class SiteRunner:
             status, reason = "failed_duplicates", f"new_duplicate_rows:{duplicates['new']}"
         if identity is not None:
             ctx.state["identity"] = identity
+        ctx.state["warnings"] = list(self.warnings)
         st.finish_site(site, status, reason, ctx.state)
         return self._result(status, reason, identity=identity, duplicates=duplicates)
 

@@ -176,6 +176,8 @@ class ListingParser:
             record = json_path(row, cfg.get("item_path")) if cfg.get("item_path") else row
             if not isinstance(record, dict):
                 continue
+            if cfg.get("exclude_if_true") and json_path(record, cfg["exclude_if_true"]):
+                continue  # pinned/sticky entries outside the source order
             raw_id = json_path(record, cfg.get("key")) if cfg.get("key") else None
             if cfg.get("url_template"):
                 try:

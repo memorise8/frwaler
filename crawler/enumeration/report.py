@@ -12,6 +12,7 @@ from pathlib import Path
 CSV_FIELDS = ("site_id", "strategy", "status", "stop_reason", "listed_unique", "saved", "failed_total",
               "failed_by_reason", "independent_evidence", "independent_total", "gap", "segments_total",
               "segments_incomplete", "segments_mismatch", "segments_unverified", "new_duplicates",
+              "skipped_existing_post_number", "identity_collisions", "identity_reviews", "warnings",
               "identity_match_rate", "published_date_fill", "listed_date_fill", "files_pending", "files_done",
               "files_failed", "oldest_item_date", "updated_at")
 
@@ -86,6 +87,14 @@ def site_report(store, site_id, doc_conn=None):
         "segments_incomplete": sum(s["status"] in ("pending", "running", "failed") for s in segments),
         "segments_mismatch": sum(s["status"] in ("mismatch", "cap_unsplittable") for s in segments),
         "segments_unverified": sum(s["status"] == "unverified" for s in segments),
+        # Same document met again (dedup rule matched an existing row): counted, not new.
+        "skipped_existing_post_number": store._one(
+            "SELECT COUNT(*) AS n FROM enum_item WHERE site_id=? AND status='saved' AND reason='existing_document'",
+            (site_id,))["n"],
+        # Same post_number, different document: never saved, listed for review.
+        "identity_collisions": failed.get("failed_permanent:identity_collision", 0),
+        "identity_reviews": sum(v for k, v in failed.items() if k.startswith("failed_permanent:identity_review:")),
+        "warnings": site["state"].get("warnings") or [],
         "unverified_segments": [s["segment_key"] for s in segments if s["status"] == "unverified"],
         "duplicates": site["state"].get("duplicates"),
         "new_duplicates": (site["state"].get("duplicates") or {}).get("new"),
@@ -130,6 +139,7 @@ def write_report(store, site_ids, out_dir, doc_conn=None):
         flat = dict(row)
         flat["failed_by_reason"] = ";".join(f"{k}={v}" for k, v in sorted((row.get("failed_by_reason") or {}).items()))
         flat["independent_evidence"] = ";".join(row.get("independent_evidence") or [])
+        flat["warnings"] = ";".join(row.get("warnings") or [])
         writer.writerow(flat)
     _atomic_text(out_dir / "completeness.csv", buf.getvalue())
     return rows

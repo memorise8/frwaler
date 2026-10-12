@@ -50,7 +50,7 @@ class PaperCrawler(BaseCrawler):
         if i == 2:
             paper["external_id"] = 7  # int: must be stored as text '7'
         if i == 5:
-            paper["external_id"] = "7"  # same post_number as item 2, different meta_url
+            paper["external_id"] = "7"  # same post_number as item 2, different document: collision
         return paper
 
     def _save_paper(self, paper):
@@ -82,7 +82,7 @@ def scenario(test, conn, store_path, gates):
     ledger = {r["item_key"]: (r["status"], r["reason"]) for r in
               store._all("SELECT item_key, status, reason FROM enum_item WHERE site_id=?", (SITE,))}
     test.assertEqual(ledger["3"], ("failed_permanent", "save_error:RuntimeError"))
-    test.assertEqual(ledger["5"], ("saved", "existing_post_number"))
+    test.assertEqual(ledger["5"], ("failed_permanent", "identity_collision"))
     test.assertEqual(result["duplicates"]["new"], 0)
     store.close()
 

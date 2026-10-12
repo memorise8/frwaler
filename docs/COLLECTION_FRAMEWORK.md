@@ -314,3 +314,17 @@ segments_mismatch, files_{pending,done,failed}, oldest_item`. JSON(상세 포함
 | G3 격리 DB | CLI는 문서 DB가 지정되지 않았거나 이름이 `enum_`으로 시작하지 않으면 시작을 거부(`--i-know-this-is-isolated`로만 예외). PG는 `LIBERTREE_PG_DSN`의 dbname으로 판정. |
 
 새 사이트 상태: `complete_unverified`, `review_pending`, `failed_duplicates`.
+
+## 14. 재검토 반영 (2026-10-12, 2차)
+
+| 항목 | 반영 |
+|---|---|
+| HIGH-1 | 저장 직전 판정 순서: ① 백엔드 `find_by_dedup_key`(KRIVET/KEI/CSO 규칙 포함)로 같은 문서면 일반 저장 경로를 그대로 탄다(이미 있는 행이면 `existing_document`로 대장 기록, **파일 대기열은 다시 넣는다**). 그래서 `_save_paper` 커밋 직후·파일 대기열 전에 죽어도 재실행에서 PDF가 들어간다. |
+| HIGH-2 | ② dedup 규칙으로는 다른 문서인데 (site_id, post_number) 행이 이미 있으면 `failed_permanent:identity_collision`(이벤트 `identity_collision`), 기존 행은 건드리지 않는다. dedup 규칙 자체가 검토를 요구하면(`*_requires_review` 등) 이 점검보다 먼저 `failed_permanent:identity_review:<규칙>` + 이벤트 `identity_review_required`. 보고서에 `skipped_existing_post_number`, `identity_collisions`, `identity_reviews` 열. `saved`와 `date_fill`은 실제로 그 항목의 문서인 행만 센다. |
+| MEDIUM-3 | 정렬 검사는 직전 항목과 비교(고정 공지 하나는 위반 1회). JSON 파서 `exclude_if_true`(예: WordPress `sticky`)와 HTML `exclude` 선택자로 고정 항목 제외. |
+| MEDIUM-1 | 식별값 사전 점검 표본은 참조 DB의 최신 행 N개(meta_url)에서 뽑아 틀의 계산 결과를 `find_by_dedup_key`로 그 행에 대응시키는지 본다. URL만으로 식별값을 만들 수 없는 수집기(목록 필드가 필요한 커스텀)는 시작 목록 쪽 표본으로 대체. |
+| MEDIUM-2 | 등록 사이트인데 참조 행이 0건이면 `identity_reference_empty`로 거부. `--allow-empty-reference`일 때만 통과하고 보고서 `warnings`에 `identity_reference_empty_allowed`. |
+| MEDIUM-4 | 상세가 로그인 의심인 항목이 연속 `max_consecutive_login_details`(기본 5)건이면 `review_pending(login_required_details)`. |
+| L-1 | 이어받기 첫 쪽이 비어 있으면(삭제로 마지막 쪽이 사라짐) 마지막 쪽을 다시 찾고(`last_page_reprobed`) 더 작은 새 끝에서 계속한다. |
+| L-2 | 규칙 유지·명시: plan 파라미터 값은 `%XX`가 있을 때만 "이미 인코딩된 폼 문자열"로 보고 `unquote_plus`(그때 `+`는 공백), `%XX`가 없으면 `+`를 포함해 글자 그대로. 기본 URL의 질의는 항상 폼 인코딩으로 해석. |
+| L-4 | 사전 점검은 실행마다 최대 표본 수(기본 5)만큼 상세 요청(+대체 시 목록 1회)을 더 쓴다. |

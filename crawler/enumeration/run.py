@@ -105,7 +105,7 @@ def make_adapter(plan, conn, crawler_factory=registered_crawler):
 
 def run_site(plan, store, conn, state_dir, *, transport=None, refresh=False, retry_only=False, files=False,
              blob_root=None, today=None, crawler_factory=registered_crawler, log=print, reference_conn=None,
-             identity_required=False, identity_sample=5, identity_threshold=1.0):
+             identity_required=False, identity_sample=5, identity_threshold=1.0, allow_empty_reference=False):
     try:
         adapter = make_adapter(plan, conn, crawler_factory)
     except (AdapterConfigError, ValueError) as exc:
@@ -116,7 +116,7 @@ def run_site(plan, store, conn, state_dir, *, transport=None, refresh=False, ret
         result = SiteRunner(plan, store, make_fetcher(plan, state_dir, transport), adapter, today=today, log=log,
                             reference_conn=reference_conn, identity_required=identity_required,
                             identity_sample=identity_sample, identity_threshold=identity_threshold,
-                            ).run(refresh=refresh, retry_only=retry_only)
+                            allow_empty_reference=allow_empty_reference).run(refresh=refresh, retry_only=retry_only)
     finally:
         adapter.close()
     if files:
@@ -147,6 +147,8 @@ def main(argv=None):
                    help="read-only sqlite DB with the legacy crawlers' rows (identity precheck)")
     p.add_argument("--reference-pg-dsn-env", default=None,
                    help="name of an env var holding a read-only DSN with the legacy rows")
+    p.add_argument("--allow-empty-reference", action="store_true",
+                   help="let registered sites with no reference rows pass the identity check (warned in report)")
     p.add_argument("--identity-sample", type=int, default=5)
     p.add_argument("--identity-threshold", type=float, default=1.0)
     args = p.parse_args(argv)
@@ -189,7 +191,8 @@ def main(argv=None):
                 return run_site(plan, store, conn, state_dir, refresh=args.refresh, retry_only=args.retry_failed,
                                 files=args.files, blob_root=args.blob_root, reference_conn=reference,
                                 identity_required=plan.site_id in registered, identity_sample=args.identity_sample,
-                                identity_threshold=args.identity_threshold)
+                                identity_threshold=args.identity_threshold,
+                                allow_empty_reference=args.allow_empty_reference)
             finally:
                 if reference is not None:
                     reference.close()
