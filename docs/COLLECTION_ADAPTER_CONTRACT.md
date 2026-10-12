@@ -133,3 +133,10 @@ docker run --rm --name enum-test-adapter-20261012-verified \
 - `ContractError`는 `code`를 가진다. 항목 처리(materialize) 중 나온 코드 중 데이터성 코드 `missing_path`, `paper_identity_missing`, `paper_url_missing`만 그 항목을 `failed_permanent:adapter_contract:<코드>`로 원장에 남기고 계약 단계 실패로 센다(H1 연속/비율 규칙 적용 → 연속이면 `config_error`, 산발이면 `complete_with_review`). 식별값·URL을 대신 만들지 않는다.
 - 그 밖의 코드(`paper_not_dict`, `paper_site_mismatch`, `paper_identity_type`, 인자/서명/스키마 오류 등)와 계약이 아닌 `AdapterConfigError`는 종전대로 즉시 사이트를 `config_error`로 멈추고 원장·체크포인트를 남기지 않는다.
 - 목록 단계(`parse_list`/ListingParser)의 계약 오류는 페이지 단위 판단이므로 이 구분 없이 종전대로 사이트를 멈춘다.
+
+### `url` 토큰의 의미 (H2)
+
+- 계약 사이트의 상세/Paper 단계에서 `url`은 **요청 전 item URL**(`Item.url`, 등록 crawl()이 상세 파서와 `_build_paper`/`_to_paper`에 넘기는 `item_url`과 같은 값)이다. 리다이렉트 뒤 최종 URL로 바뀌지 않는다. 같은 값을 명시하려면 `request_url`을 쓴다.
+- 리다이렉트 뒤 응답 URL(`resp.url`)이 필요하면 `final_url`을 명시한다. 기본 후보 plan은 등록 수집기와 같도록 `url`(=item URL)을 사용한다.
+- 목록 단계에는 item이 없으므로 `request_url`은 거부(`adapter_contract:invalid_argument_token:request_url`)하고, `url`/`final_url`은 목록 응답 URL(`resp.url`)이다. 목록 페이지가 리다이렉트되면 등록 crawl()이 넘기는 요청 페이지 URL과 다를 수 있다(상대 링크 해석 기준만 달라짐). 이 차이는 남은 제한이다.
+- 계약 없는 기존 어댑터 경로의 `url` 토큰(`resp.url`)은 그대로다.

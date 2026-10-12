@@ -193,6 +193,24 @@ class ContractTests(unittest.TestCase):
         with self.assertRaises(AdapterUngatedNetwork):
             self.adapter(self.cfg(paper_method='paper',paper_args=['item','detail']),c).materialize(self.item(),SimpleNamespace(get=lambda url:self.response()))
 
+    def test_url_token_is_item_url_after_redirect(self):
+        seen={}
+        c=Crawler()
+        def detail(html,url,*,final):
+            seen.update(url=url,final=final);return {'external_id':'native','url':url,'title':'t'}
+        c.detail=detail
+        a=self.adapter(self.cfg(detail_args=['html','url'],detail_kwargs={'final':'final_url'}),c)
+        paper=a.materialize(self.item(),SimpleNamespace(get=lambda url:self.response(url=url+'?moved=1')))
+        self.assertEqual({'url':'https://example.test/item','final':'https://example.test/item?moved=1'},seen)
+        self.assertEqual('https://example.test/item',paper_identity(paper)[1])
+        c.detail=lambda html,url:{'external_id':'native','url':url,'title':'t'}
+        a=self.adapter(self.cfg(detail_args=['html','request_url']),c)
+        self.assertEqual('https://example.test/item',a.materialize(self.item(),SimpleNamespace(get=lambda url:self.response(url=url+'-x')))['url'])
+
+    def test_request_url_token_not_in_listing(self):
+        with self.assertRaisesRegex(ContractError,r'^adapter_contract:invalid_argument_token:request_url$'):
+            validate_contract(self.cfg(list_args=['html','request_url']))
+
     def test_good_then_bad_row_rejects_whole_page(self):
         c=Crawler();c.listing=lambda html:[{'url':'/good','external_id':'id'},None]
         with self.assertRaises(ContractError):self.parser(self.adapter(crawler=c)).parse(self.response())

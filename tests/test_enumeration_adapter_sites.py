@@ -24,7 +24,7 @@ LISTS = {
 'kit-nl-institute': json.dumps([{'id':123,'link':'https://www.kit.nl/institute/synthetic','slug':'synthetic','title':{'rendered':'Synthetic title'},'content':{'rendered':'<p>'+LONG+'</p>'},'date':'2026-10-12T00:00:00'}])}
 
 
-def actual_case(sid):
+def actual_case(sid, redirect=False):
     plans=json.loads((ROOT/'docs/examples/adapter-contract-plans.json').read_text())
     sp=site_plan(plans,sid,registered=[sid]);c=load_crawler(sid);direct=load_crawler(sid)
     a=Adapter(sid,sp.section('adapter'),None,crawler=c)
@@ -34,7 +34,8 @@ def actual_case(sid):
     item=rows[0];calls=[]
     def fetch(url):
         calls.append(url)
-        return Response(200,{'Content-Type':'text/html'},DETAIL,url)
+        # A site-side redirect: the final response URL differs from the requested item URL.
+        return Response(200,{'Content-Type':'text/html'},DETAIL,url+'-moved' if redirect else url)
     result=a.materialize(item,SimpleNamespace(get=fetch))
     if sid=='afp-gov-au-news-centre':
         original=direct._parse_list_page(LISTS[sid],resp.url)[0][0]
@@ -66,6 +67,9 @@ class ActualSites(unittest.TestCase):
     def test_afp_registered_pipeline(self):actual_case('afp-gov-au-news-centre')
     def test_africamuseum_tuple_scalar_binding(self):actual_case('africamuseum-be-en')
     def test_culture_registered_pipeline(self):actual_case('culture-gouv-fr-espace-documentation')
+    def test_culture_redirect_keeps_item_url(self):
+        result=actual_case('culture-gouv-fr-espace-documentation',redirect=True)
+        self.assertNotIn('-moved',paper_identity(result)[1])
     def test_kit_registered_json_paper(self):actual_case('kit-nl-institute')
 
     def test_rejected_24_reclassification(self):

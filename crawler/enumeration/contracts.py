@@ -32,7 +32,7 @@ def fail(code):
     raise ContractError(code)
 
 
-TOKENS = {"html", "raw", "soup", "json", "url", "item", "resp", "detail"}
+TOKENS = {"html", "raw", "soup", "json", "url", "request_url", "final_url", "item", "resp", "detail"}
 NEW_KEYS = {"contract_version", "list_source", "list_result", "row_path", "list_row",
             "list_kwargs", "detail_kwargs", "paper_args", "paper_kwargs"}
 
@@ -44,7 +44,8 @@ def _path(path):
 
 
 def _binding(binding, stage):
-    allowed = TOKENS - ({"item", "detail"} if stage == "list" else {"detail"} if stage == "detail" else set())
+    allowed = TOKENS - ({"item", "detail", "request_url"} if stage == "list"
+                        else {"detail"} if stage == "detail" else set())
     if isinstance(binding, str):
         if binding not in allowed:
             fail("invalid_argument_token:" + binding)
@@ -185,6 +186,10 @@ class Contract:
             return deepcopy(item.payload)
         if binding == "detail":
             return deepcopy(detail)
+        if binding in ("url", "request_url") and item is not None:
+            # The item URL as requested, exactly what the registered crawl() passes;
+            # never the post-redirect URL (that is "final_url").
+            return item.url
         if resp is None:
             fail("response_required:" + binding)
         if binding == "html":
@@ -193,7 +198,7 @@ class Contract:
             return resp.body
         if binding == "json":
             return resp.json()
-        if binding == "url":
+        if binding in ("url", "final_url"):
             return resp.url
         if binding == "resp":
             return resp
