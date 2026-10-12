@@ -310,7 +310,7 @@ class SonarChGlobalCrawler(BaseCrawler):
         """
         rows = self._parse_search_results(data)
         if rows is None:
-            return None
+            raise ValueError("SONAR article listing requires hits.hits to be a list")
         for row in rows:
             if row["record"]["metadata"].get("documentType") != _ARTICLE_DOC_TYPE:
                 raise ValueError("SONAR article scope requires metadata.documentType=coar:c_6501")

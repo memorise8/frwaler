@@ -94,7 +94,9 @@ class Articles(unittest.TestCase):
 
     def test_unknown_shape_and_ambiguous_identity_remain_rejected(self):
         for value in ({}, [], {'hits': {'hits': 'unexpected'}}):
-            self.assertIsNone(self.crawler._parse_article_search_results(value))
+            with self.assertRaisesRegex(ValueError, 'article listing'):
+                self.crawler._parse_article_search_results(value)
+        self.assertEqual([], self.crawler._parse_article_search_results({'hits': {'hits': []}}))
         for value in (None, True, [], {}):
             rec = article(1)
             rec['metadata']['pid'] = value
@@ -157,6 +159,20 @@ class Articles(unittest.TestCase):
         self.assertEqual('runner_error:ValueError', self.store.site(SITE)['stop_reason'])
         self.assertEqual({}, self.docs)
         self.assertEqual(2, len(api.urls))  # robots and first listing, no further request
+
+    def test_broken_listing_with_zero_total_is_not_an_empty_source(self):
+        class BrokenAPI(ArticleAPI):
+            def __call__(self, url):
+                response = super().__call__(url)
+                if '/api/documents/' in url:
+                    # A source/schema failure, not the explicit valid hits.hits=[] shape.
+                    return Response(200, {'Content-Type': 'application/json'},
+                                    json.dumps({'hits': {'total': {'value': 0, 'relation': 'eq'}}}), url)
+                return response
+        with self.assertRaisesRegex(ValueError, 'article listing'):
+            self.run_plan(BrokenAPI([]))
+        self.assertEqual('failed', self.store.site(SITE)['status'])
+        self.assertEqual({}, self.docs)
 
     def test_missing_created_is_caught_by_total_reconciliation(self):
         result = self.run_plan(ArticleAPI([article(1), article(2, created='')]))
