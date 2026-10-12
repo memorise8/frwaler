@@ -62,7 +62,7 @@ plan.json ─► SitePlan ─► Strategy.batches(progress)  ── yields Batch
   | 404, 410 | `PermanentFailure(http_404/http_410)` | 항목: 대장 기록 후 계속. 목록 탐색: 끝 판정 근거 |
   | 기타 4xx(400, 405, 422…) | `PermanentFailure(http_4xx)` | 같음 |
   | 전송 오류, 5xx, 429 | 재시도(`retries`, 지수 대기, 429는 Retry-After 존중·상한) 후 `TransientFailure` | 항목: 대장(일시 실패, 시도 횟수) 후 계속, 다음 실행에서 `item_max_attempts`까지 재시도. 목록: 해당 실행 중단(미완료) |
-  | 401/403/407/451, JS/봇 챌린지 본문(`access_challenge`), 로그인 폼, robots 거부 | `AccessBlocked` | **우회하지 않는다**. 사이트 상태를 `access_blocked`로 기록하고 그 사이트 진행을 멈춘다 |
+  | 401/403/407/451, JS/봇 챌린지 본문(`access_challenge`), 로그인 폼, robots 거부 | `AccessBlocked` | **우회하지 않는다**. 사이트 상태를 `access_blocked`로 기록하고 그 사이트 진행을 멈춘다. 이후 실행도 사람이 검토해 `--refresh`로 풀기 전까지 요청하지 않는다 |
 * robots.txt: 호스트별 1회(같은 게이트 경유) 조회. RFC 9309에 따라 4xx(401/403 포함)는 "규칙 없음"으로 보고
   (페이지 자체의 401/403은 별도로 접근 차단 처리), 5xx/전송 오류는 허용을 추측하지 않고 일시 실패로 진행을 멈춘다.
   `respect_robots: false`는 plan에서 명시할 때만.

@@ -113,6 +113,12 @@ def main(argv=None):
         return 0
 
     def one(plan):
+        try:
+            return _one(plan)
+        except Exception as exc:  # one site's crash must not hide the other sites' results
+            return {"site_id": plan.site_id, "status": "failed", "stop_reason": f"runner_error:{type(exc).__name__}"}
+
+    def _one(plan):
         conn = open_documents_db(args.db)
         try:
             if args.files_only:

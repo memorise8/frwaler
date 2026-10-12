@@ -113,6 +113,10 @@ class SiteRunner:
         otherwise (and with ``retry_only``) just the transient item failures are retried."""
         plan, st, site = self.plan, self.store, self.site_id
         current = st.site(site)
+        if current and current["status"] == "access_blocked" and not refresh:
+            # Refusals persist across runs; a person must review before the host is contacted again.
+            return {"site_id": site, "status": "access_blocked", "stop_reason": "access_hold_requires_review",
+                    "stats": dict(self.stats), "requests": self.fetcher.requests_made}
         finished = current and current["plan_fp"] == plan.fingerprint and \
             current["status"] in ("complete", "complete_with_mismatch")
         if retry_only or (finished and not refresh):

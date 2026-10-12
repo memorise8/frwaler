@@ -114,6 +114,11 @@ class FailureLedgerTest(unittest.TestCase):
         self.assertEqual(sum(u.endswith("id=6") for u in transport.urls), 1)  # never retried
         self.assertEqual(len(self.env.docs()), 5)  # items 1..5 saved before the refusal are kept
         self.assertIsNone(self.env.store.site(self.env.site_id)["completed_at"])
+        # The refusal is held: a later run makes no request until reviewed (--refresh).
+        again = FakeTransport(board)
+        held = self.env.run(board_plan(), board, transport=again)
+        self.assertEqual((held["status"], held["stop_reason"]), ("access_blocked", "access_hold_requires_review"))
+        self.assertEqual(again.urls, [])
 
     def test_challenge_page_is_access_blocked(self):
         board = FakeBoard(25)
