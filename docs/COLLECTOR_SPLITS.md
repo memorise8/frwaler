@@ -16,13 +16,13 @@ AFP는 B가 아닌 C이며 내부 curl 때문에 제외한다. MI는 B지만 3�
 
 기존 crawl()과 기존 메서드/상수는 변경하지 않는다. 짧은 초록 필터를 새 Paper 메서드에도 복사하여 저장 대상 확대를 피한다. 다만 반환 None은 현재 틀에서 의도된 skip이 아니라 empty_item 실패로 처리되어 연속 실패/완료 검토 대상이 될 수 있다. 틀을 고치거나 필터를 생략하지 않는다.
 
-사이트 요청과 DB 연결 없이 원본 crawl의 _save_paper를 메모리 캡처로 교체하여 모든 필드 및 paper_identity를 대조한다. 지정된 전체 틀 시험에 원래 들어 있는 컨테이너 임시 SQLite만 사용하며 새 회귀 시험은 sqlite/psycopg/socket/subprocess 호출을 차단한다.
+사이트 요청과 DB 연결 없이 원본 crawl의 _save_paper를 메모리 캡처로 교체하여 모든 필드 및 paper_identity를 대조한다. 지정된 전체 틀 시험에 원래 들어 있는 컨테이너 임시 SQLite만 사용하며 새 회귀 시험(`SplitChecks`)은 sqlite/psycopg/socket/subprocess 호출을 차단한다. 리뷰 수정 후 추가한 합성 실행 시험(`SplitRunChecks`, `test_enumeration_split_wordpress_end.py`)은 틀 시험과 같은 `tests.enumeration_fakes.Env` 의 컨테이너 임시 SQLite(상태 저장소·문서 DB)를 쓰며 socket/subprocess 호출은 차단한다.
 
 기준 전체 시험: 361개 실행, 실패 0, 건너뜀 1(PostgreSQL 전용). 최종 결과는 작업 후 추가한다.
 
 ## 결과
 
-10/10 사이트의 plan 규칙 검사와 실제 등록 클래스를 주입한 Adapter 생성을 통과했다. `docs/examples/collector-splits-plans.json`에 10개 후보를 모았다. 개별 plan은 `docs/examples/collector-splits/`, 사이트별 기계 판독 결과는 `COLLECTOR_SPLITS_RESULTS.csv`에 있다. 후보의 정상적인 실제 사이트 응답/페이지 종료/전량 저장을 검증했다는 뜻은 아니다.
+10/10 사이트의 plan 형식 검사(`site_plan` 규칙 검사 — 형식 검사 통과일 뿐 실행 가능하다는 뜻이 아님)와 실제 등록 클래스를 주입한 Adapter 생성을 통과했다. 최초 납품 시점에는 실제 runner 실행 시험이 없어 WordPress 400 종료·minfin page 바인딩 결함을 놓쳤다(리뷰 수정 1·2·6 참고). `docs/examples/collector-splits-plans.json`에 10개 후보를 모았다. 개별 plan은 `docs/examples/collector-splits/`, 사이트별 기계 판독 결과는 `COLLECTOR_SPLITS_RESULTS.csv`에 있다. 후보의 정상적인 실제 사이트 응답/페이지 종료/전량 저장을 검증했다는 뜻은 아니다.
 
 |사이트|로컬 커밋|추가 메서드|사이트별 시험|
 |---|---|---|---:|
@@ -143,8 +143,33 @@ brgm-fr-fr plan 은 `detail_method: "_build_paper"` 에 틀의 `"soup"` 토큰(h
 정도(합성 실행으로 확인, `max_contract_failure_ratio` 기본 0, `max_consecutive_contract_failures` 기본 5):
 
 - **1건만 있어도** 사이트 결과가 `complete` 가 아니라 `complete_with_review` / `adapter_contract_failures:1` 이 된다(나머지 문서는 정상 저장).
-- **연속 5건**이면 `config_error` / `adapter_contract_failures_consecutive:empty_item` 로 즉시 중단되고, 다음 실행도 그 항목들을 `--reprocess-failed` 로 다시 넣을 때까지 `adapter_contract_stop_requires_reprocess` 로 멈춘다.
+- **연속 5건**이면 `config_error` / `adapter_contract_failures_consecutive:empty_item` 로 즉시 중단된다(합성 실행으로 확인). 다음 실행도 그 항목들을 `--reprocess-failed` 로 다시 넣을 때까지 `adapter_contract_stop_requires_reprocess` 로 멈춘다(`runner.contract_stop_held` 코드 확인, 실행으로는 확인 못 함).
 - 기준 길이: 100자 기준 사이트는 **health-ni-gov-uk-publications, minfin-gov-gr-grafeio-typou(`_MIN_SAVE`), data-mfe-govt-nz-documents**. 나머지 7곳은 50자(IMT 는 본문 100자 미만이면 excerpt 로 대체 후 50자). climateinstitute·data-mfe·brgm 은 제목 없음도 None 이다. 100자 기준 사이트일수록 짧은 공지 비율이 높으면 위 상태가 더 자주 나타날 수 있다(실제 비율은 확인 못 함).
 - plan 에서 `max_contract_failure_ratio` 를 올리면 complete_with_review 는 피할 수 있으나, 진짜 변환 실패도 함께 숨기므로 이번에는 바꾸지 않았다.
 
 틀 쪽 해결 제안(제안만, 이번에 구현하지 않음): 계약에 '의도된 건너뜀'을 표현하는 방법을 둔다. 예를 들어 adapter 계약에 `"paper_none": "skip"` 같은 선언을 허용하고(기본은 지금처럼 실패), 선언된 사이트에서는 Paper 메서드의 `None` 을 `skipped:intentional` 같은 별도 원장 상태로 기록하여 계약 실패 수·연속 실패·검토 판정에서 제외한다. 또는 메서드가 반환할 수 있는 명시적 표지 객체(예: `Skip(reason)`)를 틀이 제공한다. 어느 쪽이든 건너뜀 건수는 보고서에 따로 집계하여 조용히 사라지지 않게 해야 한다.
+
+### 리뷰 수정 6 — 확인 못 함 / 라이브 확인 목록, 결과 CSV, 합성 runner 실행, .audit 정정
+
+**확인 못 함 / 라이브 확인 목록** (코드는 바꾸지 않음; 실제 사이트 요청 0건이라 모두 확인 못 함):
+
+1. TLS 검증: 10개 plan 은 모두 `verify_ssl: true`(틀 기본값과 같음). 기존 수집기 중 9곳은 `curl -k`(검증 끔)를 쓴다 — climateinstitute(`-skL`), nasa(`-sk`), research-imt(`-sk`), srnl(`-sk`), minfin(`-skL`), home-cern(`-skL`), health-ni(`-sk`), brgm(`-skL`), data-mfe(`-sk`). ukdataservice 만 requests 세션(기본 검증)이다. 인증서 체인이 불완전한 사이트는 기존 crawl() 은 되는데 새 plan 은 전송 오류로 incomplete 가 될 수 있다. 라이브에서 각 호스트의 인증서 검증 성공 여부를 확인해야 한다(검증을 끄는 plan 변경은 하지 않았다).
+2. data-mfe-govt-nz-documents: plan `params` 가 `page`, `page_size` 뿐이고 정렬 파라미터가 없다(기존 crawl() 도 같음). last_page_backward 는 '새 항목이 앞쪽에 추가되는 안정된 순서'를 전제하므로 API 기본 정렬이 그런지, 실행 중 순서가 바뀌지 않는지 라이브로 확인해야 한다.
+3. health-ni-gov-uk-publications: 기존 `_curl_get` 은 `curl -sk`(`-L` 없음)로 리다이렉트를 따라가지 않는다. 틀 Fetcher 는 리다이렉트를 최대 5번 따라간다. 상세 URL 이 리다이렉트되면 기존 crawl() 은 리다이렉트 응답 본문(대개 짧아 건너뜀)을, 새 경로는 최종 페이지를 파싱하므로 저장 여부·필드가 달라질 수 있다. 식별값은 두 경로 모두 요청한 목록 URL 을 쓰도록 맞췄으나(리다이렉트 합성 시험 통과), 실제 리다이렉트 발생 여부와 식별값 차이는 확인 못 함. nasa·research-imt·srnl·data-mfe 도 `-L` 이 없다(목록/상세 응답에 리다이렉트가 있는지 확인 필요).
+4. research-imt-nord-europe-fr-news: `pdf_url` 은 본문 HTML 의 정규식 일치를 그대로 쓰고 `urljoin` 하지 않는다(기존 crawl() 과 같게 복사). 상대 경로 링크가 있으면 상대 `pdf_url` 이 저장될 수 있다. 실제 본문 링크 형식은 확인 못 함.
+5. WordPress 6곳의 400 `rest_post_invalid_page_number` 본문과 `X-WP-Total` 헤더가 실제로 오는지, 프록시/CDN 이 헤더를 지우지 않는지 확인 못 함. 헤더가 없으면 총건수 대조 없이 complete 가 될 수 있다.
+6. home-cern-news 의 피드 `paged` 초과 응답(합성 시험은 404 가정), brgm·health-ni 의 마지막 쪽 초과 응답(합성 시험은 빈 `<main>` 가정)은 확인 못 함.
+
+**결과 CSV** (`COLLECTOR_SPLITS_RESULTS.csv`): `plan_validation` 열을 `plan_format_check` 로 바꾸고 값을 '형식 검사 통과(실행 가능 의미 아님)'로 바로잡았다. 합성 runner 실행 결과 열 `synthetic_runner_run` 을 추가했고, `new_tests`(사이트 모듈 시험 수), brgm `added_methods`(`_enumeration_detail` 추가), `new_test_db_connections`(합성 실행의 임시 SQLite 사용 명시)를 갱신했다.
+
+**합성 end-to-end 시험**: `SplitRunChecks.test_shipped_plan_completes_end_to_end` 가 10개 plan 각각을(요청 간격만 0 으로 바꿔) 실제 `SiteRunner.run` 으로 실행해 `complete`·문서 2건 저장을 확인한다. 끝 응답은 WordPress 6곳 400 `rest_post_invalid_page_number`, data-mfe `[]`, home-cern 404, brgm·health-ni 빈 `<main>`. 같은 시험을 5369fd9 의 plan·수집기로 돌리면 6곳이 실패한다(`listing_failed:http_4xx` 5곳, `adapter_contract:missing_path:["page"]` 1곳) — 즉 이 시험이 있었다면 리뷰 지적 1·2 를 잡았다.
+
+**.audit 정정**: `.audit/` 는 git 에 커밋되지 않은 로컬 작업 폴더다(이 워크트리에만 있음). 위 '오프라인 재현' 절은 `.audit/run-tests.sh` 만 적었으나 로그는 세 스크립트로 만들었다. 모두 첫 인자로 컨테이너 이름을 받는다.
+
+|스크립트|실행 범위|만든 로그|
+|---|---|---|
+|`.audit/run-tests.sh`|`test_enumeration_*.py` 전체|`baseline.log`(361), `full.log`(421), `final.log`(431), `verified.log`(432)|
+|`.audit/run-split-tests.sh`|`test_enumeration_split_*.py`|`red.log`·`red-verified.log`(60, 실패 10·오류 50), `red-final.log`(60, 오류 50), `green-first.log`(60)|
+|`.audit/run-brgm-tests.sh`|`test_enumeration_split_brgm_fr_fr.py`|`brgm-marker-red.log`(8, 오류 1)|
+
+`red.log`/`red-verified.log` 는 `COLLECTOR_SPLITS_AUDIT.json` 의 `test_logs` 에 없다(AST 직렬화 차이 수정 전 red). `COLLECTOR_SPLITS_AUDIT.json` 의 SHA-256·시험 수는 5369fd9 시점 기록이며 이번 리뷰 수정으로 바뀐 파일과는 맞지 않는다(갱신하지 않음; 이번 결과는 이 절과 아래 최종 시험 결과가 기준).

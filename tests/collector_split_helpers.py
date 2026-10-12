@@ -309,3 +309,26 @@ class SplitRunChecks:
                 self.assertEqual('incomplete', result['status'], result)
                 self.assertTrue(result['stop_reason'].startswith('listing_failed:listing_parse_error:'), result)
                 self.assertEqual([], docs)
+
+    # Synthetic answer for the page after the last one, per listing kind.
+    END_PAGES = {
+        'data-mfe-govt-nz-documents': (200, 'application/json', '[]'),           # crawl(): empty list = done
+        'home-cern-news': (404, 'text/html', '<html><body>Not found</body></html>'),
+        'brgm-fr-fr': (200, 'text/html', '<html><body><main></main></body></html>'),
+        'health-ni-gov-uk-publications': (200, 'text/html', '<html><body><main></main></body></html>'),
+    }
+
+    def test_shipped_plan_completes_end_to_end(self):
+        """The shipped plan, unmodified apart from pacing, ends normally through the real
+        SiteRunner.run: listing, detail/paper conversion, saving, last-page confirmation."""
+        if self.SITE in self.END_PAGES:
+            status, content_type, body = self.END_PAGES[self.SITE]
+            end = lambda url: Response(status, {'Content-Type': content_type}, body, url)
+        else:
+            end = wp_past_last_page  # WordPress REST past-last-page 400
+        result, docs = run_split(self.SITE, end=end)
+        self.assertEqual('complete', result['status'], result)
+        self.assertTrue(result['stop_reason'].startswith('last_page_'), result)
+        self.assertEqual(2, len(docs))
+        self.assertEqual(2, len({d['post_number'] for d in docs}))
+        self.assertEqual(2, len({d['meta_url'] for d in docs}))
