@@ -46,9 +46,9 @@ SITE_DATE_LABELS = {
 
 _MONTHS = {}
 for number, names in enumerate((
-    "january jan janvier", "february feb fevrier", "march mar mars",
-    "april apr avril", "may mai", "june jun juin", "july jul juillet",
-    "august aug aout", "september sep sept septembre", "october oct octobre",
+    "january jan janv janvier", "february feb fev fevr fevrier", "march mar mars",
+    "april apr avr avril", "may mai", "june jun juin", "july jul juil juillet",
+    "august aug aou aout", "september sep sept septembre", "october oct octobre",
     "november nov novembre", "december dec decembre",
 ), 1):
     for name in names.split():
