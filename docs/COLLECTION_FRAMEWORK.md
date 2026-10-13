@@ -170,16 +170,21 @@ enum_event(id PK, site_id, at, kind, detail JSON)   -- 접근 차단, 구간 불
      `false`면 `to_param`=다음 날(반열린 구간 `[from, to)`, 사이트가 끝을 배타로 셀 때). 사이트가 어느 쪽인지
      plan에 명시하라. 잘못 고르면 경계일 항목이 빠지고, 위 전체 총건수 검사가 `overall_total` 불일치로 드러낸다.
      `to`가 `now`가 아닌 고정 구간이면 그 뒤 항목도 불일치로 잡히므로 검사를 끄면(`false`) `complete_unverified`가 된다.
-   * **정수 식별값 이분 분할**(`segments.filter.type: "query_int_range"`): 날짜로 나눌 수 없고 숫자 id 범위 질의가
-     되는 소스용. plan에 `segments.lo`/`hi`(0 이상 정수, `lo <= hi`)·`hidden_cap`(양의 정수)·`filter.param`/`field`,
-     `listing.total`, `overall_total_check: true`가 필요하다(`from`/`to`/`granularity`/`split_to`는 쓰지 않는다).
-     루트 구간은 `<field>:<lo>-<hi>`(예: `pid:0-9999999`)이고 질의는 `<param>=<field>:[lo TO hi]`(양끝 포함).
-     구간 총건수(`listing.total`)가 `hidden_cap` 이하면 leaf, 초과면 `mid=(lo+hi)//2`로 `[lo,mid]`와 `[mid+1,hi]`
-     두 구간으로 나눈다(서로소, 키가 결정적이라 재개해도 같은 구간). 총건수 0이면 첫 쪽 재확인 1회 뒤 `total_matched`로
-     완료. `lo==hi`인데 상한 초과면 읽지 않고 `cap_unsplittable`. 전체 총건수·leaf 합계·겹침·구간별 총건수↔고유 id 대조는
-     날짜 분할과 같다. 구간 분할 확인에 구간마다 첫 쪽 요청이 한 번 든다(분할되는 구간은 그 쪽을 저장하지 않음).
-     leaf마다 마지막 쪽 뒤의 끝 확인 읽기 3번(빈 쪽 2번 + 다음 쪽)이 추가된다. 서버의 범위 비교가 숫자 비교인지는
-     plan 실행 전 표본으로 확인해야 한다(문자열 비교면 leaf 합계/전체 총건수 대조에서 불일치로 드러난다).
+   * **문자열 접두 범위 트리**(`segments.filter.type: "query_prefix_range"`): 날짜로 나눌 수 없고 id 범위 질의가 되는
+     소스용. 소스가 id를 **문자열 사전순**으로 비교하면(SONAR `pid`로 확인: `[0 TO 99999]`, `[100000 TO 999999]`,
+     `[1000000 TO 9999999]`가 모두 거의 전체를 돌려줌) 정수 중점 이분은 구간이 겹쳐 쓸 수 없다. 대신 반개방 문자열 구간
+     `[A, B)`를 쓴다(질의 `<param>=<field>:[A TO B}`, `:`는 `9` 다음 ASCII 문자). plan: `segments.hidden_cap`(양의 정수),
+     `segments.max_depth`(1~18), `filter.param`/`field`, `listing.total`, `overall_total_check: true`
+     (`from`/`to`/`granularity`/`split_to`는 쓰지 않는다).
+     루트는 `<field>:0-:`(= `[0, :)`, 숫자로 시작하는 모든 id)이고 첫 자리 숫자로 10개(`[d, d+1)`, 9는 `[9, :)`)로 나뉜다.
+     구간 키는 `<field>:<lo>-<hi>`라 재개해도 같은 구간이 나온다. 구간 총건수(`listing.total`)가 `hidden_cap` 이하면
+     leaf, 초과면 `[p, hi)`를 `[p, p0), [p0, p1), …, [p8, p9), [p9, hi)` 11개로 나눈다(서로소, 합 = 부모, 마지막 자식은
+     부모의 상한 유지). 첫 자식 `[p, p0)`에는 id가 정확히 `p`인 문서만 들어 있어 id가 유일하면 상한을 넘을 수 없다.
+     총건수 0이면 첫 쪽 재확인 1회 뒤 `total_matched`로 완료. `lo`가 `max_depth` 자리에 이르렀거나 첫 자식인데 상한을
+     넘으면 읽지 않고 `cap_unsplittable`. 숫자로 시작하지 않는 id는 어느 구간에도 안 잡혀 전체 총건수 대조(`overall_total`)에서
+     불일치로 드러난다. 전체 총건수·leaf 합계·겹침·구간별 총건수↔고유 id 대조는 날짜 분할과 같다.
+     분할되는 구간마다 첫 쪽 요청이 한 번 들고(그 쪽은 저장하지 않음), leaf마다 마지막 쪽 뒤의 끝 확인 읽기 3번
+     (빈 쪽 2번 + 다음 쪽)이 더 든다.
 
 ### 5.3 oldest_first_sort (정렬 파라미터/API)
 
