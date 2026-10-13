@@ -355,3 +355,49 @@ class RegulationGovtNzAboutUsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None or soup.find("main") is None:
+            raise PermanentFailure("listing_parse_error:missing_main_marker")
+        rows = _parse_list_page(html, self.base_url)
+
+        if not rows and soup.find("main").get_text(" ", strip=True):
+            raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing")
+        return rows
+
+    def _enumeration_detail(self, html, item):
+        return _parse_detail_page(html, self.base_url)
+
+    def _enumeration_paper(self, item, detail):
+        title = item['title']
+        slug = item['slug']
+        listed_date_raw = item['listed_date_raw']
+        pub_type = detail.get('pub_type') or 'Proactive release'
+        topics = detail.get('topics') or ''
+        pub_date_raw = detail.get('published_date_raw') or listed_date_raw
+        pdfs = detail.get('pdfs') or []
+        published_date = _parse_date(pub_date_raw)
+        listed_date = _parse_date(listed_date_raw)
+        abstract_parts = [f'Title: {title}']
+        if pub_type:
+            abstract_parts.append(f'Publication type: {pub_type}')
+        if topics:
+            abstract_parts.append(f'Topic(s): {topics}')
+        if pub_date_raw:
+            abstract_parts.append(f'Date published: {pub_date_raw}')
+        abstract_parts.append('Published by the Ministry for Regulation, New Zealand (regulation.govt.nz).')
+        abstract = '\n\n'.join(abstract_parts)
+        if len(abstract) < 50:
+            return None
+        pdf_url = pdfs[0]['url'] if pdfs else None
+        original_filename = pdfs[0]['filename'] if pdfs else None
+        post_number = pdfs[0]['id'] if pdfs else None
+        metadata_payload = {'pub_type': pub_type, 'topics': topics, 'published_date_raw': pub_date_raw, 'listed_date_raw': listed_date_raw, 'posted_date': listed_date_raw, 'pdfs': pdfs, 'slug': slug}
+        paper = {'site_id': self.site_id, 'external_id': slug, 'post_number': post_number, 'title': title, 'abstract': abstract, 'published_date': published_date, 'posted_date': listed_date, 'url': item['url'], 'pdf_url': pdf_url, 'original_filename': original_filename, 'keywords': topics, 'category': pub_type, 'publisher': 'Ministry for Regulation', 'authors': '', 'journal': '', 'doi': '', 'metadata': json.dumps(metadata_payload, ensure_ascii=False)}
+        return paper

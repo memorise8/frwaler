@@ -1,0 +1,18 @@
+{
+  "site_id": "nesc-ie-publications",
+  "listing_body": "{\"success\": true, \"data\": {\"pages\": 1, \"html\": \"<html><head></head><body><main><li class=\\\"nesc-pub-search__item\\\"><a class=\\\"nesc-pub-search__item-link\\\" href=\\\"https://www.nesc.ie/publications/offline-1\\\"><h3 class=\\\"nesc-pub-search__title\\\">Offline 1</h3></a><time class=\\\"nesc-pub-search__date\\\" datetime=\\\"2025-06-12\\\"/><div class=\\\"nesc-pub-search__detail\\\"><dt>Type</dt><dd>Research</dd></div></li><li class=\\\"nesc-pub-search__item\\\"><a class=\\\"nesc-pub-search__item-link\\\" href=\\\"https://www.nesc.ie/publications/offline-2\\\"><h3 class=\\\"nesc-pub-search__title\\\">Offline 2</h3></a><time class=\\\"nesc-pub-search__date\\\" datetime=\\\"2025-06-12\\\"/><div class=\\\"nesc-pub-search__detail\\\"><dt>Type</dt><dd>Research</dd></div></li></main></body></html>\"}}",
+  "content_type": "application/json",
+  "details": {
+    "https://www.nesc.ie/publications/offline-1": "<html><body class=\"postid-101\"><main><div class=\"entry-content\">Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </div><a href=\"https://www.nesc.ie/file/report-1.pdf\">Report</a></main></body></html>",
+    "https://www.nesc.ie/publications/offline-2": "<html><body class=\"postid-102\"><main><div class=\"entry-content\">Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </div><a href=\"https://www.nesc.ie/file/report-2.pdf\">Report</a></main></body></html>"
+  },
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "empty_body": "{\"success\": true, \"data\": {\"pages\": 0, \"html\": \"<html><head></head><body><main></main></body></html>\"}}",
+  "original_method_source_sha256": {
+    "_curl_get": "d6195f01f80bff7695d0bd835cc8e6138c883080b7f9ce13a010879f85389f84",
+    "_make_soup": "0da0a32b179fd737928655dcb2cd2d759746ea6e2fa3546f35f1a8e4dddbfa61",
+    "_parse_list_html": "ffc00a2bfe83747f41aafeffa9de045131fcc832b5b728d3fde9b52477833d7e",
+    "_fetch_detail": "0ffd5658b9954b7c0057a04b1ae240010b2f2f27b9cfb5ae57fc2428653f4478",
+    "crawl": "e6284fde048d1e1342b59f07f443041c883092fa78be80bdb13b01ad3f4772d8"
+  }
+}
