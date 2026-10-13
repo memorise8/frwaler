@@ -284,3 +284,51 @@ class ScienceOnPageErrorTest(unittest.TestCase):
         seen, saved = crawler._collect_terminal("JAKO", "JAKO", 200)
         self.assertEqual((seen, saved), (199, 199))
         self.assertEqual(client.unreadable, [])  # reported then cleared
+
+
+class ScienceOnPassCountTest(unittest.TestCase):
+    """One sort pass is enough when it reaches the reported total."""
+
+    class _Client:
+        def __init__(self, total, per_sort):
+            self.total, self.per_sort = total, per_sort
+            self.unreadable = []
+            self.sorts_read = []
+
+        def search(self, query, **kwargs):
+            return self.total, []
+
+        def iter_search(self, query, *, sort_field=None):
+            self.sorts_read.append(sort_field)
+            for n in self.per_sort[sort_field]:
+                yield {"CN": "JAKO%04d" % n, "DBCode": "JAKO", "Title": "t%d" % n}
+
+    def _crawler(self, client):
+        crawler = SCIENCEON.ScienceOnDomesticCrawler(None, client=client)
+        saved = []
+
+        def save(document):
+            saved.append(document)
+            crawler._last_save_created = True
+            return len(saved)
+
+        crawler._save_paper = save
+        return crawler, saved
+
+    def test_default_order_starts_with_title(self):
+        self.assertEqual(SCIENCEON.ScienceOnDomesticCrawler.SORT_FIELDS[0], "title")
+
+    def test_stops_after_first_pass_that_reaches_total(self):
+        client = self._Client(5, {"title": range(5), "pubyear": range(5)})
+        crawler, saved = self._crawler(client)
+        crawler.SORT_FIELDS = ("title", "pubyear")
+        self.assertEqual(crawler._collect_terminal("JAKO", "JAKO", 5), (5, 5))
+        self.assertEqual(client.sorts_read, ["title"])
+
+    def test_short_first_pass_is_completed_by_the_next_sort(self):
+        client = self._Client(5, {"title": [0, 1, 2], "pubyear": [2, 3, 4]})
+        crawler, saved = self._crawler(client)
+        crawler.SORT_FIELDS = ("title", "pubyear")
+        self.assertEqual(crawler._collect_terminal("JAKO", "JAKO", 5), (5, 5))
+        self.assertEqual(client.sorts_read, ["title", "pubyear"])
+        self.assertEqual(len(saved), 5)

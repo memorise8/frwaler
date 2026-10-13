@@ -380,7 +380,9 @@ class _ScienceOnCrawlerBase(BaseCrawler):
     MAX_PREFIX_LENGTH = 19
     COMPLETENESS = 0.99
     SPLIT_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    SORT_FIELDS = ("pubyear", "title", "jtitle", None)
+    # "title" first: in a sample of five slices (6,700 rows) it returned every record, while
+# "pubyear" (many ties) lost 0-2.2%. Later sorts only run when the total is not reached.
+    SORT_FIELDS = ("title", "pubyear", "jtitle", None)
     ROOTS: tuple[str, ...] = ()
     ROOT_DBCODES: dict[str, frozenset[str] | None] = {}
     ALLOW_UNKNOWN_DBCODE = True
@@ -501,8 +503,8 @@ class _ScienceOnCrawlerBase(BaseCrawler):
                 successful_passes += 1
             except ScienceOnError:
                 continue
-            if successful_passes > 1 and len(seen) >= total:
-                break
+            if successful_passes >= 1 and len(seen) >= total:
+                break  # one pass already reached the reported total
         unreadable = list(getattr(self._client, "unreadable", ()))
         if unreadable:
             self._client.unreadable.clear()
