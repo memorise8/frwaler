@@ -170,6 +170,16 @@ enum_event(id PK, site_id, at, kind, detail JSON)   -- 접근 차단, 구간 불
      `false`면 `to_param`=다음 날(반열린 구간 `[from, to)`, 사이트가 끝을 배타로 셀 때). 사이트가 어느 쪽인지
      plan에 명시하라. 잘못 고르면 경계일 항목이 빠지고, 위 전체 총건수 검사가 `overall_total` 불일치로 드러낸다.
      `to`가 `now`가 아닌 고정 구간이면 그 뒤 항목도 불일치로 잡히므로 검사를 끄면(`false`) `complete_unverified`가 된다.
+   * **정수 식별값 이분 분할**(`segments.filter.type: "query_int_range"`): 날짜로 나눌 수 없고 숫자 id 범위 질의가
+     되는 소스용. plan에 `segments.lo`/`hi`(0 이상 정수, `lo <= hi`)·`hidden_cap`(양의 정수)·`filter.param`/`field`,
+     `listing.total`, `overall_total_check: true`가 필요하다(`from`/`to`/`granularity`/`split_to`는 쓰지 않는다).
+     루트 구간은 `<field>:<lo>-<hi>`(예: `pid:0-9999999`)이고 질의는 `<param>=<field>:[lo TO hi]`(양끝 포함).
+     구간 총건수(`listing.total`)가 `hidden_cap` 이하면 leaf, 초과면 `mid=(lo+hi)//2`로 `[lo,mid]`와 `[mid+1,hi]`
+     두 구간으로 나눈다(서로소, 키가 결정적이라 재개해도 같은 구간). 총건수 0이면 첫 쪽 재확인 1회 뒤 `total_matched`로
+     완료. `lo==hi`인데 상한 초과면 읽지 않고 `cap_unsplittable`. 전체 총건수·leaf 합계·겹침·구간별 총건수↔고유 id 대조는
+     날짜 분할과 같다. 구간 분할 확인에 구간마다 첫 쪽 요청이 한 번 든다(분할되는 구간은 그 쪽을 저장하지 않음).
+     leaf마다 마지막 쪽 뒤의 끝 확인 읽기 3번(빈 쪽 2번 + 다음 쪽)이 추가된다. 서버의 범위 비교가 숫자 비교인지는
+     plan 실행 전 표본으로 확인해야 한다(문자열 비교면 leaf 합계/전체 총건수 대조에서 불일치로 드러난다).
 
 ### 5.3 oldest_first_sort (정렬 파라미터/API)
 
