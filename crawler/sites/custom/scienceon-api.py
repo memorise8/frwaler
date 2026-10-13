@@ -288,34 +288,53 @@ class ScienceOnClient:
 
     PAGE_SIZE = 100
 
-    def _read_page_by_row(self, query: dict, page: int, sort_field: str | None):
-        """Row-by-row fallback for a page the server rejects with E5001.
+    # Block sizes used to narrow down a page the server rejects with E5001. Every size
+    # divides the previous one, so a block of a smaller size maps onto an exact page number.
+    BISECT_SIZES = (100, 50, 25, 5, 1)
 
+    def _read_page_by_row(self, query: dict, page: int, sort_field: str | None):
+        """Narrow down a page the server rejects with E5001.
+
+        The failing block is re-read in smaller blocks (100 -> 50 -> 25 -> 5 -> 1) so a
+        single unreadable record costs about fifteen calls instead of one hundred.
         Returns (total, readable records, number of unreadable rows).
         """
         first = (page - 1) * self.PAGE_SIZE + 1
         records: list[dict] = []
-        lost = 0
-        total = 0
-        for position in range(first, first + self.PAGE_SIZE):
-            try:
-                total, rows = self.search(
-                    query, page=position, row_count=1, sort_field=sort_field
-                )
-            except ScienceOnError as exc:
-                if exc.code != "E5001":
-                    raise
-                lost += 1
-                self.unreadable.append(
-                    {"query": query, "sort": sort_field, "position": position}
-                )
-                continue
-            if not rows:
-                break
-            records.extend(rows)
+        total, lost = self._read_block(query, first, 0, sort_field, records)
         if not total:
             total = first + len(records) + lost - 1
         return total, records, lost
+
+    def _read_block(self, query, first, level, sort_field, records):
+        """Read rows [first, first + size) into ``records``; returns (total, lost)."""
+        size = self.BISECT_SIZES[level]
+        try:
+            total, rows = self.search(
+                query, page=(first - 1) // size + 1, row_count=size, sort_field=sort_field
+            )
+        except ScienceOnError as exc:
+            if exc.code != "E5001":
+                raise
+            if size == 1:
+                self.unreadable.append(
+                    {"query": query, "sort": sort_field, "position": first}
+                )
+                return 0, 1
+            total = lost = 0
+            child = self.BISECT_SIZES[level + 1]
+            for start in range(first, first + size, child):
+                before = len(records)
+                sub_total, sub_lost = self._read_block(
+                    query, start, level + 1, sort_field, records
+                )
+                total = total or sub_total
+                lost += sub_lost
+                if len(records) == before and not sub_lost:
+                    break  # past the last row
+            return total, lost
+        records.extend(rows)
+        return total, 0
 
     def iter_search(
         self, query: dict, *, sort_field: str | None = None

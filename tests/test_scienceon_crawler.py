@@ -250,6 +250,19 @@ class ScienceOnPageErrorTest(unittest.TestCase):
         with self.assertRaises(SCIENCEON.ScienceOnError):
             list(client.iter_search({"CN": "JAKO*"}))
 
+    def test_one_broken_row_costs_few_calls(self):
+        client = self._Client(total=250, broken={153})
+        list(client.iter_search({"CN": "JAKO*"}))
+        self.assertLessEqual(len(client.calls), 25)  # was 100 single-row calls before
+        self.assertEqual(len(client.unreadable), 1)
+
+    def test_last_partial_page_with_broken_row(self):
+        client = self._Client(total=137, broken={137})
+        got = [r["CN"] for r in client.iter_search({"CN": "JAKO*"})]
+        self.assertEqual(len(got), 136)
+        self.assertEqual(len(set(got)), 136)
+        self.assertEqual([u["position"] for u in client.unreadable], [137])
+
     def test_two_broken_rows_on_one_page(self):
         client = self._Client(total=120, broken={5, 77})
         got = [r["CN"] for r in client.iter_search({"CN": "JAKO*"})]
