@@ -13,6 +13,8 @@ import os
 import re
 import subprocess
 import time
+import unicodedata
+from datetime import date
 from html import unescape
 from urllib.parse import urljoin, urlparse, parse_qs
 
@@ -26,10 +28,17 @@ _PAGE_SIZE = 15
 _MAX_PAGES = int(os.environ.get("LIBERTREE_MAX_PAGES", "200"))
 _ABSTRACT_MIN_CHARS = 100
 
+# Exact aliases after accent/case folding; never accept arbitrary prefixes.
 _FR_MONTHS = {
-    "jan": "01", "fév": "02", "fev": "02", "mar": "03", "avr": "04",
-    "mai": "05", "juin": "06", "juil": "07", "aoû": "08", "aou": "08",
-    "sep": "09", "oct": "10", "nov": "11", "déc": "12", "dec": "12",
+    name: f"{number:02d}"
+    for number, names in enumerate((
+        "janvier janv january jan", "fevrier fevr fev february feb",
+        "mars march mar", "avril avr april apr", "mai may",
+        "juin june jun", "juillet juil july jul", "aout aou august aug",
+        "septembre september sept sep", "octobre october oct",
+        "novembre november nov", "decembre december dec",
+    ), 1)
+    for name in names.split()
 }
 
 
@@ -116,20 +125,20 @@ class CeremaFrFrCrawler(BaseCrawler):
 
     @staticmethod
     def _parse_fr_date(day: str, month: str, year: str) -> str:
-        """Convert French day/month-abbrev/year to YYYY-MM-DD."""
-        month_key = month.lower().strip()[:4].rstrip(".")
+        """Convert an explicit French/English calendar date, without guessing."""
+        if not all(isinstance(value, str) for value in (day, month, year)):
+            return ""
+        month_key = ''.join(
+            ch for ch in unicodedata.normalize("NFKD", month.strip().casefold())
+            if not unicodedata.combining(ch)
+        ).removesuffix(".")
         mm = _FR_MONTHS.get(month_key)
-        if not mm:
-            # Try normalising accented chars
-            month_key2 = month_key.replace("é", "e").replace("è", "e").replace("û", "u")
-            mm = _FR_MONTHS.get(month_key2)
-        if not mm:
+        dd, yyyy = day.strip(), year.strip()
+        if not mm or not re.fullmatch(r"[0-9]{1,2}", dd) or not re.fullmatch(r"[0-9]{4}", yyyy):
             return ""
         try:
-            dd = day.strip().zfill(2)
-            yyyy = year.strip()
-            return f"{yyyy}-{mm}-{dd}"
-        except Exception:
+            return date(int(yyyy), int(mm), int(dd)).isoformat()
+        except ValueError:
             return ""
 
     @staticmethod

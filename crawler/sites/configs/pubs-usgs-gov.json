@@ -26,7 +26,7 @@
       "title": "h3.publication-title",
       "abstract": "section#abstract div.abstract-contents",
       "authors": "section#contributors span.contributor",
-      "date": "section#details table.usa-table tbody tr:nth-child(4) td",
+      "date": "section#details table.usa-table tr:has(th:-soup-contains(\"Year Published\")) td",
       "pdf_link": null,
       "keywords": null,
       "department": null,
