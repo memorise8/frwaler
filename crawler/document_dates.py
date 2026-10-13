@@ -116,6 +116,11 @@ def normalize_date(value, *, order=None):
     if re.fullmatch(r"\d{4}", text):
         result.update(status="partial" if 1 <= int(text) <= 9999 else "invalid", precision="year")
         return result
+    # Compact YYYYMM (e.g. ScienceON '194912'): month precision, no day supplied.
+    match = re.fullmatch(r"([0-9]{4})(0[1-9]|1[0-2])", text)
+    if match and int(match[1]) >= 1:
+        result.update(status="partial", precision="month")
+        return result
     match = re.fullmatch(r"([a-z]+)\.?\s+(\d{4})", folded)
     if match and match[1] in _MONTHS:
         result.update(status="partial" if 1 <= int(match[2]) <= 9999 else "invalid", precision="month")
