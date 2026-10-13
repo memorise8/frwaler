@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "defaults": {
+    "request_interval_s": 1.5,
+    "max_requests": 20000,
+    "max_runtime_s": 21600,
+    "respect_robots": true,
+    "retries": 1
+  },
+  "sites": {
+    "sonar-ch-global": {
+      "strategy": "date_range_split",
+      "base_url": "https://sonar.ch",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_parse_article_search_results",
+        "list_args": [
+          "json"
+        ],
+        "paper_method": "_paper_from_article_result",
+        "paper_args": [
+          {
+            "source": "item",
+            "path": [
+              "record"
+            ]
+          }
+        ]
+      },
+      "listing": {
+        "url": "https://sonar.ch/api/documents/",
+        "params": {
+          "view": "global",
+          "q": "",
+          "document_type": "coar:c_6501",
+          "sort": "oldest",
+          "size": 50
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 50,
+        "parser": {
+          "type": "adapter",
+          "key_field": "id",
+          "url_field": "url",
+          "date_field": "created",
+          "title_field": "title"
+        },
+        "total": {
+          "type": "json",
+          "path": "hits.total.value"
+        }
+      },
+      "segments": {
+        "mode": "range",
+        "lo": 0,
+        "hi": 9999999,
+        "filter": {
+          "type": "query_int_range",
+          "param": "q",
+          "field": "pid"
+        },
+        "hidden_cap": 9800,
+        "within_segment_order": "oldest_first",
+        "overlap_pages": 0
+      },
+      "overall_total_check": true
+    }
+  },
+  "_review": {
+    "execution_readiness": "NOT_READY_SORT_STABILITY_AND_PID_RANGE_NUMERIC_SEMANTICS_UNCONFIRMED_ON_SAMPLE",
+    "scope": "Authorized journal articles coar:c_6501; separate from unchanged thesis contract and from the _created date plan (sonar-articles-plan.json, not executable). Prior source report 309816, not a current expected saved count.",
+    "sorting_key": "Segments are disjoint pid ranges (q=pid:[lo TO hi], both ends inclusive), bisected until the reported hits.total.value is <= hidden_cap 9800. sort=oldest is an API keyword; backing field and tie-break not verified, but ties inside a range of <=9800 only matter if the order is unstable between pages.",
+    "unique_sort_key_verified": false,
+    "unique_secondary_key_api_support": "확인 못 함; do not invent sort=id or a secondary-sort parameter",
+    "same_date_over_page_size_risk": false,
+    "same_date_risk_basis": "Not a split-key risk: ranges are by pid, which is unique per document. Page-order stability inside one range is a separate unverified risk (see required_preflight). pid ranges replace _created ranges because _created is the migration time (2021: 306533 records, 2021-02: 298767).",
+    "required_preflight": "Before any server run, on a frozen range of at most 9800 records (for example one leaf-sized pid range), compare sort=oldest against sort=newest over every page: raw count, unique ids, reported total. Also confirm numeric (not lexicographic) range semantics: for pid:[a TO b] every returned metadata.pid must lie numerically in [a,b], and two adjacent ranges must sum to their union's total.",
+    "reconciliation": "overall_total_check=true, leaf reported totals summed versus unique listed ids, overlap between leaves, and per-leaf reported total versus unique ids are mandatory; any mismatch, cap_unsplittable or unverified status is not collection completion",
+    "note": "Review metadata is descriptive, not an execution gate; do not run this candidate before preflight.",
+    "record_scope_requirement": "metadata.documentType must be the exact string coar:c_6501. Shape not verified against live response; unknown/mismatched types fail closed.",
+    "identity_and_dates": "Reuse registered pid fallback, URLs, published/created raw dates and skip rules (_parse_article_search_results/_paper_from_article_result unchanged). Only category changes to coar:c_6501.",
+    "state_isolation": "Both plans reuse registered site_id sonar-ch-global and host sonar.ch. Use separate state files/output directories, a shared host gate, and sequential runs; do not reuse thesis checkpoints or run scopes concurrently.",
+    "pid_range_evidence": "precheck 2026-10-13: pid:[0 TO 250000]=166263 and pid:[250001 TO 9999999]=143553, sum 309816 = unfiltered total. A complementary lexicographic split would also sum exactly, so this does not prove numeric comparison; the overall/leaf-sum/overlap checks fail closed if it is not numeric.",
+    "pid_range_numeric_semantics_verified": false,
+    "estimated_requests": "Synthetic assumptions only; the real pid distribution is not measured. With T=309816 and cap 9800 there are at least 32 leaves. Three synthetic distributions (uniform over 0..465800, 166263 below 250000 plus a sparse tail to 9999999, uniform over 0..9999999) give 32-53 leaf ranges and 6337-6409 requests: per non-empty leaf ceil(T_leaf/50) pages + 3 end-confirmation reads (empty page twice, then the next page), one probe per split range, 2 per empty range, robots and the overall total; about 2.65 h at 1.5 s. Heavier clustering adds only split probes. The deepest page read is 198 (window 9900 < 10000). Under max_requests 20000 and max_runtime_s 21600."
+  }
+}
