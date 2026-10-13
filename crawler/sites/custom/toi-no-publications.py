@@ -22,6 +22,7 @@ from urllib.parse import parse_qs, quote, unquote, urljoin, urlparse
 from bs4 import BeautifulSoup
 
 from crawler.base_crawler import BaseCrawler
+from datetime import date
 
 
 class ToiNoPublicationsCrawler(BaseCrawler):
@@ -159,16 +160,25 @@ class ToiNoPublicationsCrawler(BaseCrawler):
 
     @staticmethod
     def _date_from_parts(parts_obj: Any) -> str | None:
+        if not isinstance(parts_obj, dict):
+            return None
+        rows = parts_obj.get("date-parts")
+        if not isinstance(rows, list) or not rows or not isinstance(rows[0], list):
+            return None
+        parts = rows[0]
+        if not 1 <= len(parts) <= 3 or any(isinstance(v, bool) or not isinstance(v, (int, str)) for v in parts):
+            return None
         try:
-            parts = parts_obj.get("date-parts", [[]])[0]
-        except AttributeError:
+            values = [int(v) for v in parts]
+            if len(values) == 1:
+                date(values[0], 1, 1)
+                return f"{values[0]:04d}"
+            if len(values) == 2:
+                date(values[0], values[1], 1)
+                return f"{values[0]:04d}-{values[1]:02d}"
+            return date(*values).isoformat()
+        except (TypeError, ValueError, OverflowError):
             return None
-        if not parts:
-            return None
-        year = int(parts[0])
-        month = int(parts[1]) if len(parts) > 1 and parts[1] else 1
-        day = int(parts[2]) if len(parts) > 2 and parts[2] else 1
-        return f"{year:04d}-{month:02d}-{day:02d}"
 
     @classmethod
     def _date_from_crossref(cls, rec: dict[str, Any]) -> str | None:

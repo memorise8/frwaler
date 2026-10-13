@@ -16,6 +16,7 @@ from datetime import datetime
 # Absolute import — required because spec_from_file_location has no package context.
 sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler
+from crawler.source_date_text import separate_date_parts
 
 _BASE = "https://treasury.gov.au"
 _LIST_URL = f"{_BASE}/publication"
@@ -74,6 +75,7 @@ def _curl_get(url: str, *, timeout: int = 30, retries: int = 3):
 
 def _parse_date(raw: str) -> str:
     """Convert '28 May 2026' or ISO datetime → 'YYYY-MM-DD'. Returns '' on failure."""
+    raw = separate_date_parts(raw)
     if not raw:
         return ""
     raw = raw.strip()

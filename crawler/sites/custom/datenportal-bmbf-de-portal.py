@@ -63,10 +63,10 @@ def _parse_german_date(text: str):
         month_name, year = m.groups()
         month = _GERMAN_MONTHS.get(month_name.strip().lower())
         if month:
-            return f"{int(year):04d}-{month:02d}-01"
-    m = re.search(r"(\d{4})", text)
+            return f"{int(year):04d}-{month:02d}"
+    m = re.fullmatch(r"\s*(\d{4})\s*", text)
     if m:
-        return f"{m.group(1)}-01-01"
+        return m.group(1)
     return None
 
 

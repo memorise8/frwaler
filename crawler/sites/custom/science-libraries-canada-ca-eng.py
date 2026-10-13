@@ -107,18 +107,16 @@ def _parse_date(raw):
         return raw
     m = re.match(r"^(\d{4})-(\d{2})$", raw)
     if m:
-        return f"{raw}-01"
+        return raw
     m = re.match(r"^(\d{4})$", raw)
     if m:
-        return f"{raw}-01-01"
+        return raw
     for fmt in _DATE_FORMATS:
         try:
-            return datetime.strptime(raw, fmt).strftime("%Y-%m-%d")
+            parsed = datetime.strptime(raw, fmt)
+            return parsed.strftime("%Y-%m-%d" if "%d" in fmt else "%Y-%m")
         except ValueError:
             continue
-    m = re.search(r"(\d{4})", raw)
-    if m:
-        return f"{m.group(1)}-01-01"
     return None
 
 

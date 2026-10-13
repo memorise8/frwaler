@@ -25,6 +25,7 @@ from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 
 from crawler.base_crawler import BaseCrawler
+from crawler.source_date_text import separate_date_parts
 
 
 class PublichealthscotlandScotPublicationsCrawler(BaseCrawler):
@@ -373,6 +374,7 @@ class PublichealthscotlandScotPublicationsCrawler(BaseCrawler):
     # ------------------------------------------------------------------
 
     def _parse_date(self, raw):
+        raw = separate_date_parts(raw)
         text = self._clean_text(raw)
         if not text:
             return ""
@@ -382,7 +384,14 @@ class PublichealthscotlandScotPublicationsCrawler(BaseCrawler):
         m = re.search(r'(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})', text)
         if m:
             day, month_name, year = m.group(1), m.group(2), m.group(3)
-            month_num = self._MONTHS.get(month_name[:3].lower())
+            names = ("january", "february", "march", "april", "may", "june", "july",
+                     "august", "september", "october", "november", "december")
+            key = month_name.lower()
+            month_num = self._MONTHS.get(key)
+            if key in names:
+                month_num = names.index(key) + 1
+            elif key == "sept":
+                month_num = 9
             if month_num:
                 return f"{year}-{month_num:02d}-{int(day):02d}"
         return ""
