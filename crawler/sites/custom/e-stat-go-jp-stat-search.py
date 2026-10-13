@@ -118,7 +118,8 @@ class EStatGoJpStatSearchCrawler(BaseCrawler):
             return None
         match = re.search(r"(\d{4})\s*年\s*(\d{1,2})\s*月", text)
         if match:
-            return f"{match.group(1)}-{int(match.group(2)):02d}-01"
+            month = int(match.group(2))
+            return f"{match.group(1)}-{month:02d}" if 1 <= month <= 12 else None
         return None
 
     @staticmethod
@@ -596,3 +597,181 @@ class EStatGoJpStatSearchCrawler(BaseCrawler):
             page += 1
 
         return saved
+
+    # Enumeration methods consume supplied responses only; no direct I/O.
+
+    def _enumeration_items(self, data, page):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or data.get("error") or data.get("success") is False or "items" not in data or not isinstance(data["items"], str):
+            raise PermanentFailure("listing_parse_error:invalid_estat_envelope")
+        if not data["items"].strip():
+            return []
+        soup = self._soup(data["items"])
+        articles = soup.select("article.stat-resource_list-item")
+        if not articles:
+            raise PermanentFailure("listing_parse_error:missing_estat_articles")
+        rows = []
+        for article in articles:
+            row = self._parse_list_article(article, page, self._list_api_url(page))
+            if not row or not isinstance(row.get("stat_infid"), str) or not row["stat_infid"] or not row.get("url"):
+                raise PermanentFailure("listing_parse_error:missing_stat_infid")
+            rows.append(row)
+        return rows
+
+    def _enumeration_followup(self, item, detail):
+        downloads = detail.get("downloads") or item.get("downloads") or []
+        for d in downloads:
+            if "PDF" in (d.get("file_type") or "").upper():
+                return {"method": "HEAD", "url": d["url"]} if d.get("url") else None
+        return None
+
+    def _enumeration_pdf_info(self, downloads, response):
+        from crawler.enumeration.http import PermanentFailure
+        pdf = next((d for d in downloads if "PDF" in (d.get("file_type") or "").upper()), None)
+        if not pdf:
+            return None, None
+        url = pdf.get("url")
+        filename = None
+        if response is not None:
+            if "html" in response.content_type.lower():
+                raise PermanentFailure("pdf_head_not_pdf", url)
+            headers = "\r\n".join(f"{k}: {v}" for k, v in response.headers.items())
+            filename = self._filename_from_headers(headers)
+        filename = filename or self._filename_from_url(url)
+        if not filename and pdf.get("statInfId"):
+            filename = f"{pdf['statInfId']}.pdf"
+        return url, filename
+
+    def _enumeration_paper(self, list_item, detail, followup):
+        fields = detail.get("fields") or {}
+        stat_infid = list_item.get("stat_infid") or self._stat_infid_from_url(list_item.get("url", ""))
+        if not stat_infid:
+            return None
+
+        downloads = detail.get("downloads") or list_item.get("downloads") or []
+        pdf_url, original_filename = self._enumeration_pdf_info(downloads, followup)
+
+        survey_name = fields.get("政府統計名") or list_item.get("survey_name")
+        toukei_code = fields.get("政府統計コード")
+        overview = fields.get("調査の概要")
+        provided_name = fields.get("提供統計名")
+        table_name = fields.get("統計表名")
+        dataset_overview = fields.get("データセットの概要")
+        category_l = fields.get("統計分野（大分類）")
+        category_s = fields.get("統計分野（小分類）")
+        publisher = fields.get("担当機関")
+        department = fields.get("担当課室")
+        survey_type = fields.get("統計の種類")
+        survey_month_raw = fields.get("調査年月") or list_item.get("survey_month_raw")
+        public_raw = fields.get("公開年月日時分") or list_item.get("listed_date_raw")
+        cycle = fields.get("提供周期")
+        area = fields.get("集計地域区分")
+
+        listed_date = self._iso_date(public_raw) or list_item.get("listed_date")
+        published_date = listed_date or self._survey_month_date(survey_month_raw)
+        category = self._join_unique([category_l, category_s], " / ")
+        file_types = self._join_unique([d.get("file_type") for d in downloads])
+
+        title_parts = [survey_name, provided_name, table_name]
+        title = self._join_unique(title_parts, " - ") or list_item.get("title") or stat_infid
+
+        abstract = self._build_abstract(
+            {
+                "overview": overview,
+                "dataset_overview": dataset_overview,
+                "survey_name": survey_name,
+                "provided_name": provided_name,
+                "table_name": table_name or list_item.get("title"),
+                "category": category,
+                "publisher": publisher,
+                "department": department,
+                "survey_month_raw": survey_month_raw,
+                "public_raw": public_raw,
+                "cycle": cycle,
+                "area": area,
+                "survey_type": survey_type,
+                "file_types": file_types,
+                "og_description": detail.get("og_description"),
+            }
+        )
+
+        if len(abstract) < self._ABSTRACT_MIN:
+            print(f"[{self.site_id}] Skipping {stat_infid}: abstract too short ({len(abstract)} chars)")
+            return None
+
+        keywords = self._join_unique(
+            [
+                survey_name,
+                provided_name,
+                table_name,
+                category_l,
+                category_s,
+                publisher,
+                survey_type,
+                cycle,
+                area,
+                file_types,
+            ],
+            ", ",
+        )
+
+        metadata = {
+            "posted_date": public_raw or listed_date,
+            "originalFilename": original_filename,
+            "journal_raw": None,
+            "series": provided_name or list_item.get("series"),
+            "volume": None,
+            "issue": None,
+            "stat_infid": stat_infid,
+            "statInfId": stat_infid,
+            "toukei_code": toukei_code,
+            "post_number": stat_infid,
+            "listed_date": listed_date,
+            "published_date": published_date,
+            "survey_month_raw": survey_month_raw,
+            "survey_month_date": self._survey_month_date(survey_month_raw),
+            "public_datetime_raw": public_raw,
+            "survey_name": survey_name,
+            "provided_stat_name": provided_name,
+            "table_name": table_name,
+            "dataset_overview": dataset_overview,
+            "category_large": category_l,
+            "category_small": category_s,
+            "publisher": publisher,
+            "department": department,
+            "survey_type": survey_type,
+            "cycle": cycle,
+            "collect_area": area,
+            "file_types": file_types,
+            "file_downloads": downloads,
+            "api_endpoint": self._LIST_API,
+            "list_api_url": list_item.get("list_api_url"),
+            "detail_endpoint": list_item.get("url"),
+            "list_page": list_item.get("list_page"),
+            "list_record": list_item,
+            "detail_fields": fields,
+            "og_title": detail.get("og_title"),
+        }
+
+        return {
+            "id": f"{self.site_id}:{stat_infid}",
+            "site_id": self.site_id,
+            "external_id": stat_infid,
+            "post_number": stat_infid,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "posted_date": listed_date,
+            "authors": None,
+            "publisher": publisher,
+            "department": department,
+            "journal": None,
+            "url": list_item.get("url"),
+            "pdf_url": pdf_url,
+            "keywords": keywords,
+            "category": category,
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }

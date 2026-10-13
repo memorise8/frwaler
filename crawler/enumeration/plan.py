@@ -76,6 +76,8 @@ class SitePlan:
     @property
     def fingerprint(self):
         contract = {k: self.raw.get(k) for k in _CONTRACT_KEYS}
+        if "require_reported_total" in self.raw:
+            contract["require_reported_total"] = self.raw["require_reported_total"]
         adapter = self.raw.get("adapter") or {}
         if "contract_version" in adapter:
             contract["adapter_contract"] = adapter
@@ -120,6 +122,10 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
     interval = raw.get("request_interval_s")
     if not isinstance(interval, (int, float)) or not min_interval <= interval <= 10:
         raise PlanError(f"{site_id}: request_interval_s must be within [{min_interval}, 10]")
+    if "require_reported_total" in raw and type(raw["require_reported_total"]) is not bool:
+        raise PlanError(f"{site_id}: require_reported_total must be boolean")
+    if raw.get("require_reported_total") and raw["strategy"] != "last_page_backward":
+        raise PlanError(f"{site_id}: require_reported_total is supported for last_page_backward only")
     if raw.get("max_pages") is not None and (not isinstance(raw["max_pages"], int) or raw["max_pages"] < 1):
         raise PlanError(f"{site_id}: max_pages must be null or a positive integer")
     if raw["strategy"] != "sitemap":
@@ -132,6 +138,29 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
         validate_end_statuses(site_id, listing.get("end_statuses", ()))
         if listing.get("page_mode") == "offset" and not isinstance(listing.get("page_size"), int):
             raise PlanError(f"{site_id}: offset paging requires listing.page_size")
+        req = listing.get("request")
+        if req is not None:
+            if (not isinstance(req, dict) or set(req) != {"method", "json", "page_field", "read_only"}
+                    or req.get("method") != "POST" or req.get("read_only") is not True
+                    or not isinstance(req.get("json"), dict)
+                    or not isinstance(req.get("page_field"), str) or not req["page_field"]
+                    or req["page_field"] not in req["json"]):
+                raise PlanError(f"{site_id}: invalid_read_only_post_listing")
+            from urllib.parse import urlsplit
+            from .http import READ_ONLY_POST_ENDPOINTS
+            target = urlsplit(listing["url"])
+            if (target.hostname, target.path) not in READ_ONLY_POST_ENDPOINTS:
+                raise PlanError(f"{site_id}: post_endpoint_not_registered_read_only_search")
+            try:
+                encoded = json.dumps(req["json"], allow_nan=False).encode("utf-8")
+            except (ValueError, TypeError):
+                raise PlanError(f"{site_id}: invalid_post_json") from None
+            if len(encoded) > 65536:
+                raise PlanError(f"{site_id}: post_body_too_large")
+            if raw["strategy"] != "last_page_backward":
+                raise PlanError(f"{site_id}: post_listing_requires_last_page_backward")
+            if (raw.get("last_page") or {}).get("check_unparameterized_first_page", True):
+                raise PlanError(f"{site_id}: post_listing_requires_explicit_start_page")
         raw["listing"] = listing
     if raw["strategy"] == "date_range_split":
         seg = raw.get("segments") or {}

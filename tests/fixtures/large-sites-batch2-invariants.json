@@ -1,0 +1,15 @@
+{
+  "e-stat-go-jp-stat-search": {
+    "baseline_ast_sha256": "f6861702f59dd0cc0d046ce128998b64fcd28af6dcbb3eb7fa3cbf21f737a269",
+    "original_month_method": "@staticmethod\ndef _survey_month_date(text: str | None) -> str | None:\n        if not text:\n            return None\n        match = re.search(r\"(\\d{4})\\s*年\\s*(\\d{1,2})\\s*月\", text)\n        if match:\n            return f\"{match.group(1)}-{int(match.group(2)):02d}-01\"\n        return None",
+    "canonical_ast_sha256": "40df0f25c07a85e6bdc151ceea0edfc1fcd2874ca7960d3d62939b6c46d023d3"
+  },
+  "ots-at-pressemappe": {
+    "baseline_ast_sha256": "3e0d2dbdfdb6402764bd723476ddee0631b3ab6de395c856f229bb4edb984568",
+    "canonical_ast_sha256": "abfdbb4b24e33e5545f4bc49b8ac0952c6f547a3b4e033d0adceace08d5a2fde"
+  },
+  "etera-ee-browse": {
+    "baseline_ast_sha256": "581e3991437811ca1242f67138c52015c7c0b167635940dab70a5cc9cc2f2de5",
+    "canonical_ast_sha256": "4f71ad8e776f4418d32f90b3690224d6e8303d0dd9549bebd80f42abf6bfd21a"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "sites": {
+    "etera-ee-browse": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "verify_ssl": true,
+      "retries": 1,
+      "require_reported_total": true,
+      "overall_total_check": true,
+      "last_page": {
+        "overlap_pages": 1,
+        "check_unparameterized_first_page": false
+      },
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "json",
+          "item"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ]
+      },
+      "listing": {
+        "url": "https://www.etera.ee/api/browse",
+        "params": {
+          "start": 0
+        },
+        "page_param": "start",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "id",
+          "date_field": "listed_date"
+        },
+        "total": {
+          "type": "json",
+          "path": "results.count"
+        },
+        "page_mode": "offset",
+        "page_size": 25,
+        "request": {
+          "method": "POST",
+          "json": {
+            "filters": [
+              {
+                "key": "-typ",
+                "value": "page"
+              }
+            ],
+            "start": 0,
+            "limit": 25,
+            "fields": {},
+            "sort": [
+              {
+                "key": "date_created",
+                "asc": false
+              }
+            ],
+            "dateSearch": null,
+            "dateFilter": null,
+            "dateInputs": null,
+            "dateCalendar": null,
+            "favorite": false,
+            "layout": "card",
+            "screen": "browse"
+          },
+          "page_field": "start",
+          "read_only": true
+        }
+      }
+    }
+  },
+  "_review": {
+    "status": "사이트 확인이 더 필요",
+    "server_ready": false,
+    "current_total_verified": false,
+    "page_cap_verified": false,
+    "unique_sort_verified": false,
+    "split_filter_supported": "확인 못 함",
+    "note": "Offline candidate only; synthetic success is not real collection success. Unknown limits/filter syntax are not invented."
+  }
+}

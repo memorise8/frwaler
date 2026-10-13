@@ -31,6 +31,8 @@ from delivery.health.source_observer import retry_after
 
 from .urls import host_of
 
+READ_ONLY_POST_ENDPOINTS = {("etera.ee", "/api/browse"), ("www.etera.ee", "/api/browse")}
+
 DEFAULT_USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -504,16 +506,16 @@ class RequestsTransport:
         self.max_bytes = max_bytes
         _pin_connections(self.session, resolver)
 
-    def request(self, method, url, *, headers=None):
+    def request(self, method, url, *, headers=None, body=None):
         try:
             # Redirects are handled hop by hop by Fetcher (gate, budget, robots, holds).
             with self.session.request(method, url, headers=headers or {}, stream=True,
-                                      timeout=self.timeout, allow_redirects=False) as r:
+                                      timeout=self.timeout, allow_redirects=False, **({"data": body} if body is not None else {})) as r:
                 declared = str(r.headers.get("Content-Length") or "").strip()
-                if declared.isdigit() and int(declared) > self.max_bytes:
+                if method != "HEAD" and declared.isdigit() and int(declared) > self.max_bytes:
                     raise BodyTooLarge("body_too_large")  # refused before reading the body
                 chunks, size = [], 0
-                for chunk in r.iter_content(64 * 1024):
+                for chunk in (() if method == "HEAD" else r.iter_content(64 * 1024)):
                     size += len(chunk)
                     if size > self.max_bytes:
                         raise BodyTooLarge("body_too_large")
@@ -594,7 +596,7 @@ class Fetcher:
             self.blocked = AccessBlocked(f"host_access_hold:{held['reason']}", url)
             raise self.blocked
 
-    def _once(self, url):
+    def _once(self, url, *, method="GET", body=None):
         """One gated request. Returns Response or raises TransportError."""
         self._check_budget()
         host = host_of(url)
@@ -604,6 +606,8 @@ class Fetcher:
         headers = {"User-Agent": self.user_agent,
                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8"}
         headers.update(self.extra_headers)
+        if method == "POST":
+            headers["Content-Type"] = "application/json"
         delay = self._host_delay.get(host, 0)
         gate = self._gate(host)
         began = sent = self.clock()
@@ -623,7 +627,8 @@ class Fetcher:
                 self.requests_made += 1
                 sent = self.clock()
                 try:
-                    resp = self.transport.request("GET", url, headers=headers)
+                    resp = self.transport.request(method, url, headers=headers,
+                                                  **({"body": body} if body is not None else {}))
                 except TransportError as exc:
                     outcome = f"transport:{exc}"
                     raise
@@ -745,12 +750,12 @@ class Fetcher:
         return rules
 
     # -- public ----------------------------------------------------------
-    def _with_retries(self, url, *, classify=True, accept_statuses=()):
+    def _with_retries(self, url, *, classify=True, accept_statuses=(), method="GET", body=None):
         last = None
         for attempt in range(self.retries):
             wait = self.backoff_s * (3 ** attempt)
             try:
-                resp = self._once(url)
+                resp = self._once(url) if method == "GET" else self._once(url, method=method, body=body)
             except BodyTooLarge:
                 raise PermanentFailure("body_too_large", url) from None
             except TransportError as exc:
@@ -833,12 +838,29 @@ class Fetcher:
         return self.blocked
 
     def get(self, url, *, accept_statuses=()):
+        return self.request("GET", url, accept_statuses=accept_statuses)
+
+    def request(self, method, url, *, json_body=None, accept_statuses=()):
         """Fetch ``url`` through the gate, following redirects hop by hop.
         Returns a 2xx (or accepted) Response.
 
         Raises PermanentFailure, TransientFailure, AccessBlocked, RateLimited, RobotsUnavailable or
         BudgetExhausted.
         """
+        if method not in ("GET", "HEAD", "POST"):
+            raise PolicyRefusal("unsupported_read_request_method")
+        if method != "POST" and json_body is not None:
+            raise PolicyRefusal("body_requires_post")
+        body = None
+        if method == "POST":
+            if not isinstance(json_body, dict):
+                raise PolicyRefusal("post_requires_json_object")
+            try:
+                body = json.dumps(json_body, ensure_ascii=False, allow_nan=False).encode("utf-8")
+            except (TypeError, ValueError):
+                raise PolicyRefusal("invalid_post_json") from None
+            if len(body) > 65536:
+                raise PolicyRefusal("post_body_too_large")
         accept_statuses = tuple(s for s in accept_statuses if s not in REFUSAL_STATUSES)
         current = url
         for _hop in range(self.max_redirects + 1):
@@ -847,11 +869,18 @@ class Fetcher:
                 self._check_holds(current)  # a hold may name the host in its Unicode form
             current = normalised
             self._check_holds(current)
+            if method == "POST" and (host_of(current), urlsplit(current).path) not in READ_ONLY_POST_ENDPOINTS:
+                checked_addresses(current, host_of(current), self.resolver)
+                raise PolicyRefusal("post_endpoint_not_registered_read_only_search")
             if not self._robots_allows(current):
                 # A path-level rule: never a host hold, and never requested.
                 raise RobotsDisallowed("robots_disallowed", current)
-            resp = self._with_retries(current, accept_statuses=accept_statuses)
+            resp = (self._with_retries(current, accept_statuses=accept_statuses) if method == "GET" else
+                    self._with_retries(current, accept_statuses=accept_statuses, method=method, body=body))
             if 300 <= resp.status < 400:
+                if method == "POST":
+                    # Never replay a search body at another endpoint, or convert it to GET.
+                    raise PermanentFailure("post_redirect_requires_review", current, resp.status)
                 nxt = urljoin(current, location_of(resp))
                 if _LOGIN_PATH.search(urlsplit(nxt).path or ""):
                     raise self._block("login_redirect", current, resp.status)

@@ -312,8 +312,21 @@ class Adapter:
             detail = self.contract.call("detail", resp, item)
             if detail is None:
                 return None
+        followup = None
+        if self.cfg.get("followup_method"):
+            spec = self.contract.call("followup", resp, item, detail)
+            if spec is not None:
+                if (not isinstance(spec, dict) or set(spec) != {"method", "url"}
+                        or spec.get("method") not in ("GET", "HEAD")
+                        or not isinstance(spec.get("url"), str) or not spec["url"]):
+                    fail("invalid_followup_request")
+                # One declared response only. No catches: refusals/robots/rate/private
+                # destinations cannot fall through to a Paper or another request.
+                followup = fetcher.request(spec["method"], spec["url"])
+                if getattr(followup, "login_suspect", False):
+                    raise PermanentFailure("login_required_suspect", spec["url"], followup.status)
         if self.cfg.get("paper_method"):
-            paper = self.contract.call("paper", resp, item, detail)
+            paper = self.contract.call("paper", resp, item, detail, followup)
         elif self.cfg.get("list_returns_paper"):
             from copy import deepcopy
             paper = deepcopy(item.payload)

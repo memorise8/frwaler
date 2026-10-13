@@ -194,6 +194,7 @@ class OtsAtPressemappeCrawler(BaseCrawler):
             "lead": lead,
             "body": body,
             "date": iso_date,
+            "date_raw": date_match.group(0) if date_match else None,
             "keywords": keywords,
             "emittentName": None,
             "channel": [],
@@ -379,6 +380,8 @@ class OtsAtPressemappeCrawler(BaseCrawler):
 
                     metadata = {
                         "posted_date": posted_date_raw,
+                        "source_published_date_raw": detail.get("date") if detail else fb.get("date_raw"),
+                        "source_listed_date_raw": list_date,
                         "originalFilename": original_filename,
                         "journal_raw": None,
                         "series": None,
@@ -437,3 +440,141 @@ class OtsAtPressemappeCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done: saved {saved}/{limit_str}")
         return saved
+
+    # Enumeration methods consume supplied responses only; no direct I/O.
+
+    def _enumeration_items(self, data):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or data.get("error") or data.get("success") is False or not isinstance(data.get("result"), list) or not isinstance(data.get("meta"), dict):
+            raise PermanentFailure("listing_parse_error:invalid_ots_envelope")
+        rows = []
+        for record in data["result"]:
+            if not isinstance(record, dict) or not isinstance(record.get("key"), str) or not record["key"]:
+                raise PermanentFailure("listing_parse_error:missing_ots_key")
+            if record.get("emittentId") is not None and str(record["emittentId"]) != _EMITTENT_ID:
+                raise PermanentFailure("listing_parse_error:ots_scope_mismatch")
+            key = record["key"]
+            slug = record.get("titleSlug") or ""
+            rows.append({"url": _API_BASE + "/pressrelease/" + key, "key": key, "date": record.get("date"), "record": record, "public_url": f"{_BASE}/presseaussendung/{key}/{slug}"})
+        return rows
+
+    def _enumeration_detail(self, response, item):
+        from crawler.enumeration.http import PermanentFailure
+        try:
+            data = response.json()
+        except ValueError:
+            # Only a successful but unusable API payload may try the declared HTML fallback.
+            return {}
+        if not isinstance(data, dict) or "result" not in data:
+            raise PermanentFailure("detail_parse_error:invalid_ots_envelope")
+        result = data["result"]
+        if result is None:
+            return {}
+        if not isinstance(result, dict):
+            raise PermanentFailure("detail_parse_error:invalid_ots_detail")
+        if result.get("emittentId") is not None and str(result["emittentId"]) != _EMITTENT_ID:
+            raise PermanentFailure("detail_parse_error:ots_scope_mismatch")
+        return result
+
+    def _enumeration_followup(self, item, detail):
+        return {"method": "GET", "url": item["public_url"]} if not detail else None
+
+    def _enumeration_html(self, html):
+        soup = self._soup(html)
+        if soup is None:
+            return None
+
+        title_el = soup.select_one("h1.h1-big") or soup.find("h1")
+        title = title_el.get_text(strip=True) if title_el else None
+
+        lead_el = soup.select_one("p.lead")
+        lead = lead_el.get_text(strip=True) if lead_el else ""
+
+        articles = soup.find_all("article")
+        content_article = None
+        if articles:
+            leaf_articles = [a for a in articles if not a.find("article")]
+            content_article = leaf_articles[-1] if leaf_articles else articles[-1]
+        body_paras = content_article.find_all("p") if content_article else []
+        body = "\n\n".join(p.get_text(" ", strip=True) for p in body_paras)
+
+        date_match = re.search(r"(\d{2})\.(\d{2})\.(\d{4}),\s*(\d{2}:\d{2}:\d{2})", html)
+        iso_date = None
+        if date_match:
+            dd, mm, yyyy, _hhmmss = date_match.groups()
+            iso_date = f"{yyyy}-{mm}-{dd}"
+
+        keywords = [b.get_text(strip=True) for b in soup.select(".keyword-link")]
+
+        return {
+            "title": title,
+            "lead": lead,
+            "body": body,
+            "date": iso_date,
+            "date_raw": date_match.group(0) if date_match else None,
+            "keywords": keywords,
+            "emittentName": None,
+            "channel": [],
+        }
+
+    def _enumeration_paper(self, stub, detail, followup):
+        item = stub["record"]
+        key = item["key"]
+        title_slug = item.get("titleSlug") or ""
+        detail_url = stub["public_url"]
+        posted_date_raw = None
+        list_date = item.get('date')
+        list_time = item.get('time')
+        if list_date:
+            posted_date_raw = f'{list_date} {list_time}'.strip() if list_time else list_date
+        listed_date = self._iso_date(list_date)
+        if detail:
+            item_title = item.get('title')
+            item_title_content = item_title.get('content') if isinstance(item_title, dict) else None
+            title = (detail.get('title') or {}).get('content') or item_title_content
+            if not title:
+                title = title_slug.replace('-', ' ').strip() or None
+            lead = self._normalize_ws((detail.get('lead') or {}).get('content'))
+            abstract = self._build_abstract_from_json(detail, lead)
+            published_date = self._iso_date(detail.get('date')) or listed_date
+            emittent_name = detail.get('emittentName') or item.get('emittentName')
+            channel = detail.get('channel') or item.get('channel') or []
+            keywords = detail.get('keywords') or []
+            pressreleasenumber = detail.get('pressreleasenumber')
+            emittent_id = detail.get('emittentId') or item.get('emittentId')
+            emittent_slug = detail.get('emittentSlug') or item.get('emittentSlug')
+            docsrc = detail.get('docsrc')
+            customer_code = detail.get('customerCode')
+            pdf_url = self._extract_pdf_url(detail)
+        else:
+            fb = self._enumeration_html(followup.text()) if followup is not None else None
+            if not fb:
+                return None
+            title = fb.get('title') or (title_slug.replace('-', ' ').strip() or None)
+            lead = self._normalize_ws(fb.get('lead'))
+            body = self._normalize_ws(fb.get('body'))
+            abstract = self._normalize_ws(f'{lead}\n\n{body}' if lead else body)
+            published_date = fb.get('date') or listed_date
+            emittent_name = fb.get('emittentName') or item.get('emittentName')
+            channel = fb.get('channel') or item.get('channel') or []
+            keywords = fb.get('keywords') or []
+            pressreleasenumber = None
+            emittent_id = item.get('emittentId')
+            emittent_slug = item.get('emittentSlug')
+            docsrc = None
+            customer_code = None
+            pdf_url = None
+        if len(abstract) < _MIN_ABSTRACT_SAVE:
+            return None
+        if not title:
+            title = '(untitled)'
+        category_names = [c.get('name') for c in channel if isinstance(c, dict) and c.get('name')]
+        category = ', '.join(category_names) if category_names else None
+        keywords_str = ', '.join(keywords) if keywords else None
+        publisher = emittent_name or None
+        original_filename = None
+        if pdf_url:
+            original_filename = pdf_url.rstrip('/').rsplit('/', 1)[-1] or None
+        metadata = {'posted_date': posted_date_raw, 'source_published_date_raw': detail.get('date') if detail else fb.get('date_raw'), 'source_listed_date_raw': list_date, 'originalFilename': original_filename, 'journal_raw': None, 'series': None, 'volume': None, 'issue': None, 'ots_id': key, 'aussender_id': emittent_id, 'emittentSlug': emittent_slug, 'titleSlug': title_slug, 'pressreleasenumber': pressreleasenumber, 'docsrc': docsrc, 'customerCode': customer_code, 'channel_raw': channel, 'keywords_raw': keywords}
+        paper = {'id': None, 'site_id': self.site_id, 'external_id': key, 'post_number': key, 'title': title, 'abstract': abstract, 'published_date': published_date, 'listed_date': listed_date, 'authors': '', 'publisher': publisher or '', 'department': None, 'journal': None, 'url': detail_url, 'pdf_url': pdf_url, 'keywords': keywords_str, 'category': category, 'doi': None, 'original_filename': original_filename, 'metadata': json.dumps(metadata, ensure_ascii=False)}
+        return paper

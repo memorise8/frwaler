@@ -87,7 +87,20 @@ class Strategy:
         an empty page."""
         ends = self.end_conditions()
         try:
-            resp = self.ctx.fetcher.get(url, accept_statuses=tuple(ends))
+            request = self.listing.get("request")
+            if request is None:
+                resp = self.ctx.fetcher.get(url, accept_statuses=tuple(ends))
+            else:
+                from copy import deepcopy
+                from urllib.parse import parse_qs, urlsplit
+                query = parse_qs(urlsplit(url).query, keep_blank_values=True)
+                values = query.get(self.page_param, [])
+                if len(values) != 1 or not re.fullmatch(r"[0-9]+", values[0]):
+                    raise PermanentFailure("listing_parse_error:post_page_binding", url)
+                body = deepcopy(request["json"])
+                body[request["page_field"]] = int(values[0])
+                resp = self.ctx.fetcher.request("POST", build_url(url, drop={self.page_param}),
+                                                json_body=body, accept_statuses=tuple(ends))
         except PermanentFailure as exc:
             if exc.status in (404, 410):
                 return Page([], None, exc.status, {"error": exc.reason, "explicit_empty": True})
@@ -327,6 +340,10 @@ class LastPageBackward(Strategy):
         total = cursor.get("last_total", cursor.get("first_total"))
         listed = ctx.store.listed_count(ctx.site_id, ctx.plan_fp)
         ctx.store.update_segment(ctx.site_id, ctx.plan_fp, seg, reported_total=total)
+        if total is None and self.plan.get("require_reported_total"):
+            ctx.store.update_segment(ctx.site_id, ctx.plan_fp, seg, status="running", evidence="reported_total_missing")
+            self.outcome = ("incomplete", "reported_total_missing")
+            return
         if total is not None and total != listed:
             ctx.store.event(ctx.site_id, "total_mismatch", {"reported_total": total, "listed": listed})
             self.outcome = ("complete_with_mismatch", "reported_total_mismatch")

@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "sites": {
+    "e-stat-go-jp-stat-search": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "verify_ssl": true,
+      "retries": 1,
+      "require_reported_total": true,
+      "overall_total_check": true,
+      "last_page": {
+        "overlap_pages": 1,
+        "check_unparameterized_first_page": false
+      },
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          {
+            "source": "query",
+            "path": [
+              "page"
+            ],
+            "type": "int"
+          }
+        ],
+        "detail_method": "_parse_detail",
+        "detail_args": [
+          "url",
+          "html"
+        ],
+        "followup_method": "_enumeration_followup",
+        "followup_args": [
+          "item",
+          "detail"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail",
+          "followup"
+        ]
+      },
+      "listing": {
+        "url": "https://www.e-stat.go.jp/retrieve/api_stat",
+        "params": {
+          "page": 1,
+          "layout": "dataset",
+          "metadata": "1",
+          "data": "1"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "stat_infid",
+          "date_field": "listed_date"
+        }
+      }
+    }
+  },
+  "_review": {
+    "status": "사이트 확인이 더 필요",
+    "server_ready": false,
+    "current_total_verified": false,
+    "page_cap_verified": false,
+    "unique_sort_verified": false,
+    "split_filter_supported": "확인 못 함",
+    "note": "Offline candidate only; synthetic success is not real collection success. Unknown limits/filter syntax are not invented."
+  }
+}

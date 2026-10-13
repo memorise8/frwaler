@@ -426,6 +426,7 @@ class EteraEeBrowseCrawler(BaseCrawler):
             "thumbnail": urljoin(cls.base_url, item.get("thumbnail") or ""),
             "imageCount": item.get("images"),
             "dateMask": item.get("date_mask"),
+            "source_date_to_raw": item.get("date_to"),
             "rawMeta": {
                 key: value for key, value in meta.items()
                 if key != "_list" and isinstance(value, dict)
@@ -526,3 +527,32 @@ class EteraEeBrowseCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done. saved: {saved}")
         return saved
+
+    # Enumeration methods consume supplied responses only; no direct I/O.
+
+    def _enumeration_items(self, data):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or data.get("error") or data.get("success") is False or not isinstance(data.get("results"), dict) or not isinstance(data["results"].get("docs"), list):
+            raise PermanentFailure("listing_parse_error:invalid_etera_envelope")
+        rows = []
+        for record in data["results"]["docs"]:
+            if not isinstance(record, dict):
+                raise PermanentFailure("listing_parse_error:invalid_etera_record")
+            raw_id = record.get("obj_id") or record.get("id")
+            if isinstance(raw_id, bool) or not isinstance(raw_id, (str, int)) or not str(raw_id).strip():
+                raise PermanentFailure("listing_parse_error:missing_etera_id")
+            iid = str(raw_id).strip()
+            rows.append({"url": self._ITEM_META_API.format(item_id=iid), "id": iid, "record": record})
+        return rows
+
+    def _enumeration_detail(self, data, item):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not data or data.get("error"):
+            raise PermanentFailure("detail_parse_error:invalid_etera_meta")
+        return data
+
+    def _enumeration_paper(self, stub, meta):
+        paper = self._paper_from_item(stub["record"], meta)
+        if len(paper.get("abstract") or "") < self._MIN_ABSTRACT_CHARS:
+            return None
+        return paper

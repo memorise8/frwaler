@@ -32,9 +32,10 @@ def fail(code):
     raise ContractError(code)
 
 
-TOKENS = {"html", "raw", "soup", "json", "url", "request_url", "final_url", "item", "resp", "detail"}
+TOKENS = {"html", "raw", "soup", "json", "url", "request_url", "final_url", "item", "resp", "detail", "followup"}
 NEW_KEYS = {"contract_version", "list_source", "list_result", "row_path", "list_row",
-            "list_kwargs", "detail_kwargs", "paper_args", "paper_kwargs"}
+            "list_kwargs", "detail_kwargs", "paper_args", "paper_kwargs",
+            "followup_method", "followup_args", "followup_kwargs"}
 
 
 def _path(path):
@@ -46,6 +47,8 @@ def _path(path):
 def _binding(binding, stage):
     allowed = TOKENS - ({"item", "detail", "request_url"} if stage == "list"
                         else {"detail"} if stage == "detail" else set())
+    if stage != "paper":
+        allowed -= {"followup"}
     if isinstance(binding, str):
         if binding not in allowed:
             fail("invalid_argument_token:" + binding)
@@ -102,7 +105,11 @@ def validate_contract(cfg):
             fail("invalid_tuple_fields")
     elif "fields" in row:
         fail("fields_require_tuple_row")
-    for stage in ("list", "detail", "paper"):
+    if cfg.get("followup_method") and not (cfg.get("detail_method") and cfg.get("paper_method")):
+        fail("followup_requires_detail_and_paper")
+    if not cfg.get("followup_method") and "followup" in cfg.get("paper_args", []):
+        fail("followup_argument_without_method")
+    for stage in ("list", "detail", "followup", "paper"):
         args = cfg.get(stage + "_args", default_args(stage))
         kwargs = cfg.get(stage + "_kwargs", {})
         if not isinstance(args, list) or not isinstance(kwargs, dict) or any(not isinstance(k, str) for k in kwargs):
@@ -111,6 +118,8 @@ def validate_contract(cfg):
             fail("arguments_without_method:" + stage)
         for binding in [*args, *kwargs.values()]:
             _binding(binding, stage)
+            if binding == "followup" and not cfg.get("followup_method"):
+                fail("followup_argument_without_method")
             if (stage == "paper" and cfg.get("paper_method") and not cfg.get("detail_method")
                     and not (binding == "item" or (isinstance(binding, dict) and binding.get("source") == "item"))):
                 fail("paper_response_without_detail")
@@ -118,7 +127,7 @@ def validate_contract(cfg):
 
 
 def default_args(stage):
-    return {"list": ["html"], "detail": ["html", "item"], "paper": ["item"]}[stage]
+    return {"list": ["html"], "detail": ["html", "item"], "paper": ["item"], "followup": ["item", "detail"]}[stage]
 
 
 def json_listing(cfg):
@@ -133,7 +142,7 @@ def json_listing(cfg):
 def uses_item(cfg):
     if cfg.get("list_returns_paper"):
         return True
-    for stage in ("detail", "paper"):
+    for stage in ("detail", "followup", "paper"):
         if not cfg.get(stage + "_method"):
             continue
         bindings = cfg.get(stage + "_args", default_args(stage)) + list(cfg.get(stage + "_kwargs", {}).values())
@@ -158,7 +167,7 @@ class Contract:
         validate_contract(cfg)
         self.cfg = cfg
         self.crawler = crawler
-        for stage in ("list", "detail", "paper"):
+        for stage in ("list", "detail", "followup", "paper"):
             name = cfg.get(stage + "_method")
             if not name:
                 continue
@@ -171,7 +180,7 @@ class Contract:
             except (TypeError, ValueError):
                 fail("method_signature:" + stage)
 
-    def value(self, binding, resp, item, detail):
+    def value(self, binding, resp, item, detail, followup=None):
         if isinstance(binding, dict):
             source = binding["source"]
             if source == "query":
@@ -192,6 +201,8 @@ class Contract:
                     fail("query_not_integer")
                 value = int(value)
             return deepcopy(value)
+        if binding == "followup":
+            return followup
         if binding == "item":
             if item is None:
                 fail("item_required")
@@ -219,12 +230,12 @@ class Contract:
             return BeautifulSoup(resp.text(), "html.parser")
         fail("invalid_argument_token:" + str(binding))
 
-    def call(self, stage, resp=None, item=None, detail=None):
+    def call(self, stage, resp=None, item=None, detail=None, followup=None):
         from .guard import guarded
         with guarded():
             # Copies of crawler-returned objects may run crawler code (__deepcopy__ etc.).
-            args = [self.value(b, resp, item, detail) for b in self.cfg.get(stage + "_args", default_args(stage))]
-            kwargs = {k: self.value(b, resp, item, detail) for k, b in self.cfg.get(stage + "_kwargs", {}).items()}
+            args = [self.value(b, resp, item, detail, followup) for b in self.cfg.get(stage + "_args", default_args(stage))]
+            kwargs = {k: self.value(b, resp, item, detail, followup) for k, b in self.cfg.get(stage + "_kwargs", {}).items()}
             return getattr(self.crawler, self.cfg[stage + "_method"])(*args, **kwargs)
 
     def rows(self, resp):
