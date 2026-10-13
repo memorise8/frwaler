@@ -138,11 +138,11 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
         if seg.get("mode", "range") == "explicit":
             if not seg.get("items"):
                 raise PlanError(f"{site_id}: explicit segments require items")
-        elif (seg.get("filter") or {}).get("type") != "query_int_range" and (
+        elif (seg.get("filter") or {}).get("type") != "query_prefix_range" and (
                 not seg.get("from") or not (seg.get("filter") or {}).get("type", "range")):
             raise PlanError(f"{site_id}: range segments require 'from' and 'filter'")
         flt = seg.get("filter") or {}
-        if flt.get("type") in ("query_range", "query_int_range"):
+        if flt.get("type") in ("query_range", "query_prefix_range"):
             if seg.get("mode", "range") != "range":
                 raise PlanError(f"{site_id}: query_range requires range segment mode")
             # Only a field and a parameter name, never executable templates or URLs.
@@ -160,17 +160,14 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
             existing = parse_qs(urlsplit(raw["listing"]["url"]).query, keep_blank_values=True)
             if any(existing.get(flt["param"], [])) or (raw["listing"].get("params") or {}).get(flt["param"]):
                 raise PlanError(f"{site_id}: query_range cannot replace an existing scope query")
-            if flt["type"] == "query_int_range":
-                # Bisection of [lo, hi]: integer ids, both ends inclusive, split only by hidden_cap.
-                for key in ("lo", "hi"):
-                    if type(seg.get(key)) is not int or seg[key] < 0:
-                        raise PlanError(f"{site_id}: query_int_range requires a non-negative integer {key}")
-                if seg["lo"] > seg["hi"]:
-                    raise PlanError(f"{site_id}: query_int_range requires lo <= hi")
+            if flt["type"] == "query_prefix_range":
+                # Half-open string ranges over digit-prefixed ids (lexicographic comparison).
                 if type(seg.get("hidden_cap")) is not int or seg["hidden_cap"] < 1:
-                    raise PlanError(f"{site_id}: query_int_range requires a positive integer hidden_cap")
+                    raise PlanError(f"{site_id}: query_prefix_range requires a positive integer hidden_cap")
+                if type(seg.get("max_depth")) is not int or not 1 <= seg["max_depth"] <= 18:
+                    raise PlanError(f"{site_id}: query_prefix_range requires max_depth within [1, 18]")
                 if not raw["listing"].get("total"):
-                    raise PlanError(f"{site_id}: query_int_range requires listing.total (the reported range total)")
+                    raise PlanError(f"{site_id}: query_prefix_range requires listing.total (the reported range total)")
     if site_id in set(registered):
         adapter = raw.get("adapter") or {}
         if adapter.get("type") != "crawler":

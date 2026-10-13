@@ -54,14 +54,13 @@
       },
       "segments": {
         "mode": "range",
-        "lo": 0,
-        "hi": 9999999,
         "filter": {
-          "type": "query_int_range",
+          "type": "query_prefix_range",
           "param": "q",
           "field": "pid"
         },
         "hidden_cap": 9800,
+        "max_depth": 9,
         "within_segment_order": "oldest_first",
         "overlap_pages": 0
       },
@@ -69,21 +68,21 @@
     }
   },
   "_review": {
-    "execution_readiness": "NOT_READY_SORT_STABILITY_AND_PID_RANGE_NUMERIC_SEMANTICS_UNCONFIRMED_ON_SAMPLE",
+    "execution_readiness": "NOT_READY_SORT_STABILITY_UNCONFIRMED_ON_SAMPLE",
     "scope": "Authorized journal articles coar:c_6501; separate from unchanged thesis contract and from the _created date plan (sonar-articles-plan.json, not executable). Prior source report 309816, not a current expected saved count.",
-    "sorting_key": "Segments are disjoint pid ranges (q=pid:[lo TO hi], both ends inclusive), bisected until the reported hits.total.value is <= hidden_cap 9800. sort=oldest is an API keyword; backing field and tie-break not verified, but ties inside a range of <=9800 only matter if the order is unstable between pages.",
+    "sorting_key": "Segments are disjoint half-open pid string ranges q=pid:[A TO B} (see pid_comparison), split by the next digit until the reported hits.total.value is <= hidden_cap 9800. sort=oldest is an API keyword; backing field and tie-break not verified.",
     "unique_sort_key_verified": false,
     "unique_secondary_key_api_support": "확인 못 함; do not invent sort=id or a secondary-sort parameter",
     "same_date_over_page_size_risk": false,
     "same_date_risk_basis": "Not a split-key risk: ranges are by pid, which is unique per document. Page-order stability inside one range is a separate unverified risk (see required_preflight). pid ranges replace _created ranges because _created is the migration time (2021: 306533 records, 2021-02: 298767).",
-    "required_preflight": "Before any server run, on a frozen range of at most 9800 records (for example one leaf-sized pid range), compare sort=oldest against sort=newest over every page: raw count, unique ids, reported total. Also confirm numeric (not lexicographic) range semantics: for pid:[a TO b] every returned metadata.pid must lie numerically in [a,b], and two adjacent ranges must sum to their union's total.",
+    "required_preflight": "Before any server run, on a frozen range of at most 9800 records (for example one leaf-sized pid range), compare sort=oldest against sort=newest over every page: raw count, unique ids, reported total. Also sample that the first-digit ranges [0,1) ... [9,:) sum exactly to the unfiltered total and that no pid is shorter than 1 or longer than 9 digits.",
     "reconciliation": "overall_total_check=true, leaf reported totals summed versus unique listed ids, overlap between leaves, and per-leaf reported total versus unique ids are mandatory; any mismatch, cap_unsplittable or unverified status is not collection completion",
     "note": "Review metadata is descriptive, not an execution gate; do not run this candidate before preflight.",
     "record_scope_requirement": "metadata.documentType must be the exact string coar:c_6501. Shape not verified against live response; unknown/mismatched types fail closed.",
     "identity_and_dates": "Reuse registered pid fallback, URLs, published/created raw dates and skip rules (_parse_article_search_results/_paper_from_article_result unchanged). Only category changes to coar:c_6501.",
     "state_isolation": "Both plans reuse registered site_id sonar-ch-global and host sonar.ch. Use separate state files/output directories, a shared host gate, and sequential runs; do not reuse thesis checkpoints or run scopes concurrently.",
-    "pid_range_evidence": "precheck 2026-10-13: pid:[0 TO 250000]=166263 and pid:[250001 TO 9999999]=143553, sum 309816 = unfiltered total. A complementary lexicographic split would also sum exactly, so this does not prove numeric comparison; the overall/leaf-sum/overlap checks fail closed if it is not numeric.",
-    "pid_range_numeric_semantics_verified": false,
-    "estimated_requests": "Synthetic assumptions only; the real pid distribution is not measured. With T=309816 and cap 9800 there are at least 32 leaves. Three synthetic distributions (uniform over 0..465800, 166263 below 250000 plus a sparse tail to 9999999, uniform over 0..9999999) give 32-53 leaf ranges and 6337-6409 requests: per non-empty leaf ceil(T_leaf/50) pages + 3 end-confirmation reads (empty page twice, then the next page), one probe per split range, 2 per empty range, robots and the overall total; about 2.65 h at 1.5 s. Heavier clustering adds only split probes. The deepest page read is 198 (window 9900 < 10000). Under max_requests 20000 and max_runtime_s 21600."
+    "estimated_requests": "Synthetic assumptions only; the real distribution by leading digits is not measured (known: [0,5)=254361, [5,:)=55455, [1,2)=110865, [10,11)=11111, [1,10)=0). Per split range 1 probe (first page, not saved), 10 or 11 children; per non-empty leaf ceil(T_leaf/50) pages + 3 end-confirmation reads; per empty range 2; plus robots and the overall total. Simulated with cap 9800, max_depth 9: (A) ids = integers 1..309816, which approximates the known counts (254261/55555/111111/11111) but not exactly: 31 split ranges, 309 leaves, 1 empty, 7405 requests (3.1 h at 1.5 s); (B) random 6-digit ids: 90 leaves, 6540 requests; (C) random 7-digit ids: 6540; (D) mixed 5-7 digits with 55% leading 1 (n=304553): 180 leaves, 6786. So roughly 6.5k-7.4k requests (2.7-3.1 h), more leaves with denser distribution because a 10-way split gives uneven leaves. Under max_requests 20000 and max_runtime_s 21600.",
+    "pid_comparison": "pid ranges compare as strings (lexicographic), CONFIRMED by the server precheck: pid:[0 TO 99999]=309816, [100000 TO 999999]=309812, [1000000 TO 9999999]=309811 (sum 929439 != 309816), so integer bisection overlaps and is not used. Half-open string ranges are exact: [0 TO 5}=254361 + [5 TO :}=55455 = 309816; [1 TO 2}=110865, [1 TO 10}=0, [10 TO 11}=11111. ':' is the character after '9'. Evidence: precheck-sonar-articles-20261013/FINDINGS.md (end) and result4.json, result5.json under /mnt/raid/ruci_workspace/frwaler-delivery-out/plan-dev-20261008/large-sites-prep-20261013/",
+    "pid_range_tree": "Root [0, :) splits by first digit into [d, d+1) (9 up to ':'). Any other [p, hi) splits into [p, p0), [p0, p1) ... [p8, p9), [p9, hi): children are disjoint and sum to the parent; the first child holds only the id p itself (one document if pids are unique), the last keeps the parent's upper bound. A range still over 9800 at a lo of max_depth (9) digits, or a first child over the cap, is cap_unsplittable. Ids that do not start with a digit fall in no range and are exposed by overall_total_check as a mismatch."
   }
 }

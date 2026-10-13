@@ -1,4 +1,4 @@
-"""Article scope split by pid range bisection: synthetic wire, no network or database.
+"""Article scope split by pid string-prefix range tree: synthetic wire, no network or database.
 
 Reuses the thesis/article offline harness; the date plan fixture stays untouched and
 its _created split is never exercised here.
@@ -54,12 +54,13 @@ class PidAPI:
         self.max_window = max(self.max_window, page * size)
         rows = self.records
         if q.get('q'):
-            lo, hi = map(int, q['q'][len('pid:['):-1].split(' TO '))   # raises on any other shape
-            assert q['q'] == 'pid:[%d TO %d]' % (lo, hi)
-            rows = [r for r in rows if lo <= int(r['metadata']['pid']) <= hi]
+            assert q['q'].startswith('pid:[') and q['q'].endswith('}'), q['q']
+            lo, hi = q['q'][len('pid:['):-1].split(' TO ')
+            # Observed server: pid compares as a string and [A TO B} is half-open.
+            rows = [r for r in rows if lo <= r['metadata']['pid'] < hi]
         else:
             rows = [r for r in rows]
-        rows = sorted(rows, key=lambda r: int(r['metadata']['pid']))
+        rows = sorted(rows, key=lambda r: (r['metadata']['pid'], r['id']))
         total = len(rows) + (0 if q.get('q') else self.overall_delta)
         served = [r for r in rows if r['metadata']['pid'] not in self.hide]
         body = {'hits': {'total': {'value': total, 'relation': 'eq'},
@@ -84,8 +85,9 @@ class ArticlePidSplit(unittest.TestCase):
         plan = site_plan(data, SITE, registered=[SITE])
         date_plan = site_plan(load_plan(DATE_PLAN), SITE, registered=[SITE])
         thesis_plan = site_plan(load_plan(thesis.PLAN), SITE, registered=[SITE])
-        self.assertEqual({'type': 'query_int_range', 'param': 'q', 'field': 'pid'}, plan.section('segments')['filter'])
-        self.assertEqual((0, 9999999, 9800), tuple(plan.section('segments')[k] for k in ('lo', 'hi', 'hidden_cap')))
+        self.assertEqual({'type': 'query_prefix_range', 'param': 'q', 'field': 'pid'}, plan.section('segments')['filter'])
+        self.assertEqual((9800, 9), tuple(plan.section('segments')[k] for k in ('hidden_cap', 'max_depth')))
+        self.assertIn('lexicographic', data['_review']['pid_comparison'])
         self.assertEqual('coar:c_6501', plan.listing['params']['document_type'])
         self.assertEqual((50, 'oldest', 'global'), tuple(plan.listing['params'][k] for k in ('size', 'sort', 'view')))
         self.assertEqual(date_plan.listing, plan.listing)
@@ -96,13 +98,12 @@ class ArticlePidSplit(unittest.TestCase):
         self.assertEqual('coar:c_7a1f', thesis_plan.listing['params']['document_type'])  # thesis plan preserved
         adapter = Adapter(SITE, plan.section('adapter'), None, crawler=self.crawler)
         self.assertFalse(adapter.needs_detail())
-        self.assertIs(False, data['_review']['pid_range_numeric_semantics_verified'])
 
-    def test_bisection_reconciles_with_the_same_article_papers(self):
-        pids = list(range(1, 200, 2)) + list(range(5000, 5060)) + [9000, 9001]
+    def test_prefix_tree_reconciles_with_the_same_article_papers(self):
+        pids = list(range(1, 200, 2)) + list(range(50000, 50060)) + [9000, 9001, 1234567, 1234568]
         records = [article(p) for p in pids]
         api = PidAPI(records)
-        result = self.run_plan(api, self.config(hi=9999, hidden_cap=60))
+        result = self.run_plan(api, self.config(hidden_cap=60))
         self.assertEqual('complete', result['status'], result)
         leaves = self.leaves()
         self.assertTrue(all(r['status'] == 'complete' and r['evidence'] == 'total_matched' for r in leaves.values()))
@@ -114,7 +115,7 @@ class ArticlePidSplit(unittest.TestCase):
             self.assertEqual(clean_paper(self.crawler._paper_from_article_result(rec)), self.docs[rec['metadata']['pid']])
         self.assertEqual({'coar:c_6501'}, {p['category'] for p in self.docs.values()})
         self.assertEqual({'/robots.txt', '/api/documents/'}, {urlsplit(u).path for u in api.urls})
-        self.assertEqual('pid:0-9999', next(iter(sorted(
+        self.assertEqual('pid:0-:', next(iter(sorted(
             (r['segment_key'] for r in self.store.data['segments'].values() if r['parent_key'] is None)))))
 
     def test_default_cap_keeps_every_request_inside_the_10000_window(self):
@@ -125,10 +126,10 @@ class ArticlePidSplit(unittest.TestCase):
         self.assertEqual(20001, len(self.docs))
         # A 9800-record leaf is 196 pages; the end check reads up to page 198 (window 9900 < 10000).
         self.assertLessEqual(api.max_window, 9900)
-        self.assertEqual('pid:[0 TO 9999999]', api.queries()[0])
+        self.assertEqual('pid:[0 TO :}', api.queries()[0])
         self.assertTrue(all(r['reported_total'] <= 9800 for r in self.leaves().values()))
 
-    def test_empty_high_range_completes_without_reading_pages(self):
+    def test_empty_range_completes_without_reading_pages(self):
         records = [article(p) for p in range(1, 90)]
         api = PidAPI(records)
         result = self.run_plan(api, self.config(hidden_cap=60))
@@ -137,8 +138,8 @@ class ArticlePidSplit(unittest.TestCase):
         self.assertTrue(empty)
         self.assertTrue(all(r['status'] == 'complete' and r['evidence'] == 'total_matched' for r in empty))
         for key in (k for k, r in self.leaves().items() if r['reported_total'] == 0):
-            lo, hi = key.split(':')[1].split('-')
-            asked = [u for u in api.urls if parse_qs(urlsplit(u).query).get('q') == ['pid:[%s TO %s]' % (lo, hi)]]
+            lo, hi = key.split(':', 1)[1].split('-')
+            asked = [u for u in api.urls if parse_qs(urlsplit(u).query).get('q') == ['pid:[%s TO %s}' % (lo, hi)]]
             self.assertEqual(['1', '1'], [parse_qs(urlsplit(u).query)['page'][0] for u in asked], key)
 
     def test_one_pid_over_cap_is_never_complete(self):
@@ -149,8 +150,8 @@ class ArticlePidSplit(unittest.TestCase):
             records.append(rec)
         result = self.run_plan(PidAPI(records), self.config(hidden_cap=4))
         self.assertEqual('complete_with_mismatch', result['status'], result)
-        self.assertEqual('cap_unsplittable', self.leaves()['pid:50-50']['status'])
-        self.assertIn('pid:50-50', result['stop_reason'])
+        self.assertEqual('cap_unsplittable', self.leaves()['pid:50-500']['status'])
+        self.assertIn('pid:50-500', result['stop_reason'])
 
     def test_resume_gets_the_same_ranges_and_all_papers(self):
         records = [article(p) for p in range(1, 400, 2)]
@@ -171,15 +172,28 @@ class ArticlePidSplit(unittest.TestCase):
 
     def test_unserved_record_or_wrong_overall_total_is_not_completion(self):
         records = [article(p) for p in range(1, 60)]
-        result = self.run_plan(PidAPI(records, hide=['17']), self.config(hidden_cap=20))
+        result = self.run_plan(PidAPI(records, hide=['17']), self.config(hidden_cap=5))
         self.assertEqual('complete_with_mismatch', result['status'], result)
-        bad = self.leaves()['pid:17-17']
+        bad = self.leaves()['pid:17-170']
         self.assertEqual(('mismatch', 1, 0), (bad['status'], bad['reported_total'], bad['listed']))
         self.assertIn('overall_total', result['stop_reason'])
         self.store, self.docs = MemoryStore(), {}
-        result = self.run_plan(PidAPI(records, overall_delta=2), self.config(hidden_cap=20))
+        result = self.run_plan(PidAPI(records, overall_delta=2), self.config(hidden_cap=5))
         self.assertEqual('complete_with_mismatch', result['status'], result)
         self.assertIn('overall_total', result['stop_reason'])
+
+    def test_ids_that_do_not_start_with_a_digit_are_exposed_by_the_overall_total(self):
+        records = [article(p) for p in range(1, 40)]
+        for odd in ('abc', 'X9', '-4'):
+            rec = article(900)
+            rec['metadata']['pid'] = odd
+            rec['id'] = 'id-' + odd
+            records.append(rec)
+        result = self.run_plan(PidAPI(records), self.config(hidden_cap=20))
+        self.assertEqual('complete_with_mismatch', result['status'], result)
+        self.assertIn('overall_total', result['stop_reason'])
+        self.assertEqual(39, sum(r['reported_total'] for r in self.leaves().values()))
+        self.assertEqual(42, self.store.site(SITE)['state']['overall_total'])
 
     def test_scope_leak_still_stops_before_saving(self):
         records = [article(1), thesis.record(2)]
