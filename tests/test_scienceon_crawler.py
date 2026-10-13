@@ -207,3 +207,67 @@ class ScienceOnWorkerIntegrationTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ScienceOnPageErrorTest(unittest.TestCase):
+    """E5001 on a page: re-read it row by row so only the broken row is lost."""
+
+    class _Client(SCIENCEON.ScienceOnClient):
+        def __init__(self, total, broken, whole_page_error=True):
+            self.total, self.broken = total, set(broken)
+            self.unreadable = []
+            self.calls = []
+            self.delay = 0.0
+            self.should_cancel = lambda: None
+
+        def _wait(self, seconds):
+            pass
+
+        def search(self, query, *, page=1, row_count=100, sort_field=None):
+            self.calls.append((page, row_count))
+            first = (page - 1) * row_count + 1
+            rows = range(first, min(first + row_count, self.total + 1))
+            if self.broken & set(rows):
+                raise SCIENCEON.ScienceOnError("rejected", code="E5001")
+            return self.total, [{"CN": "JAKO%04d" % n} for n in rows]
+
+    def test_only_the_broken_row_is_lost(self):
+        client = self._Client(total=250, broken={153})
+        got = [r["CN"] for r in client.iter_search({"CN": "JAKO*"})]
+        self.assertEqual(len(got), 249)
+        self.assertNotIn("JAKO0153", got)
+        self.assertEqual(len(set(got)), 249)
+        self.assertEqual(len(client.unreadable), 1)
+        self.assertEqual(client.unreadable[0]["position"], 153)
+
+    def test_other_errors_are_not_swallowed(self):
+        client = self._Client(total=250, broken=set())
+
+        def boom(*args, **kwargs):
+            raise SCIENCEON.ScienceOnError("rejected", code="E9999")
+
+        client.search = boom
+        with self.assertRaises(SCIENCEON.ScienceOnError):
+            list(client.iter_search({"CN": "JAKO*"}))
+
+    def test_two_broken_rows_on_one_page(self):
+        client = self._Client(total=120, broken={5, 77})
+        got = [r["CN"] for r in client.iter_search({"CN": "JAKO*"})]
+        self.assertEqual(len(got), 118)
+        self.assertEqual(len(client.unreadable), 2)
+
+    def test_slice_with_one_unreadable_row_still_passes_completeness(self):
+        client = self._Client(total=200, broken={150})
+        crawler = SCIENCEON.ScienceOnDomesticCrawler(None, client=client)
+        crawler.SORT_FIELDS = ("title",)
+        captured = []
+
+        def save(document):
+            captured.append(document)
+            crawler._last_save_created = True
+            return len(captured)
+
+        crawler._save_paper = save
+        seen, saved = crawler._collect_terminal("JAKO", "JAKO", 200)
+        self.assertEqual((seen, saved), (199, 199))
+        self.assertEqual(client.unreadable, [])  # reported then cleared

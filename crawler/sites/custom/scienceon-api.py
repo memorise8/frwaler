@@ -85,6 +85,7 @@ class ScienceOnClient:
         self.base_delay = self.delay
         self.should_cancel = should_cancel or (lambda: None)
         self._tokens: dict | None = None
+        self.unreadable: list[dict] = []
 
     def _wait(self, seconds: float) -> None:
         deadline = time.monotonic() + max(0.0, seconds)
@@ -285,6 +286,37 @@ class ScienceOnClient:
                 records.append(record)
         return total, records
 
+    PAGE_SIZE = 100
+
+    def _read_page_by_row(self, query: dict, page: int, sort_field: str | None):
+        """Row-by-row fallback for a page the server rejects with E5001.
+
+        Returns (total, readable records, number of unreadable rows).
+        """
+        first = (page - 1) * self.PAGE_SIZE + 1
+        records: list[dict] = []
+        lost = 0
+        total = 0
+        for position in range(first, first + self.PAGE_SIZE):
+            try:
+                total, rows = self.search(
+                    query, page=position, row_count=1, sort_field=sort_field
+                )
+            except ScienceOnError as exc:
+                if exc.code != "E5001":
+                    raise
+                lost += 1
+                self.unreadable.append(
+                    {"query": query, "sort": sort_field, "position": position}
+                )
+                continue
+            if not rows:
+                break
+            records.extend(rows)
+        if not total:
+            total = first + len(records) + lost - 1
+        return total, records, lost
+
     def iter_search(
         self, query: dict, *, sort_field: str | None = None
     ) -> Iterator[dict]:
@@ -292,7 +324,16 @@ class ScienceOnClient:
         yielded = 0
         empty_attempts = 0
         while True:
-            total, records = self.search(query, page=page, sort_field=sort_field)
+            try:
+                total, records = self.search(query, page=page, sort_field=sort_field)
+            except ScienceOnError as exc:
+                if exc.code != "E5001":
+                    raise
+                # The server fails the whole page when one record on it cannot be
+                # serialised (verified: one record of 61 under one CN prefix). Re-read
+                # that page row by row so only the broken record is lost.
+                total, records, lost = self._read_page_by_row(query, page, sort_field)
+                yielded += lost
             if not records:
                 if yielded >= total:
                     return
@@ -443,6 +484,15 @@ class _ScienceOnCrawlerBase(BaseCrawler):
                 continue
             if successful_passes > 1 and len(seen) >= total:
                 break
+        unreadable = list(getattr(self._client, "unreadable", ()))
+        if unreadable:
+            self._client.unreadable.clear()
+            print(
+                f"[{self.site_id}] {prefix}* server error E5001 on "
+                f"{len(unreadable)} row reads (rows skipped, not retrievable): "
+                + json.dumps(unreadable[:5], ensure_ascii=False),
+                flush=True,
+            )
         total_now = self._count(prefix) if len(seen) < total else total
         required = max(1, math.ceil(total_now * self.COMPLETENESS))
         if not successful_passes or len(seen) < required:
