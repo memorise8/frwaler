@@ -517,7 +517,30 @@ def _children(key, upper):
     return [k for k in keys if _bounds(k)[0] <= upper]
 
 
+_INT_KEY = re.compile(r"([A-Za-z_][A-Za-z0-9_.]*):(\d+)-(\d+)")
+
+
+def _int_bounds(key):
+    """(field, lo, hi) of a ``field:lo-hi`` key; both ends inclusive."""
+    m = _INT_KEY.fullmatch(key)
+    if not m:
+        raise ValueError(f"not an integer range key: {key!r}")
+    return m.group(1), int(m.group(2)), int(m.group(3))
+
+
+def _int_children(key):
+    """Two disjoint halves covering [lo, hi] exactly: [lo, mid] and [mid+1, hi]."""
+    field, lo, hi = _int_bounds(key)
+    if lo >= hi:
+        return []
+    mid = (lo + hi) // 2
+    return [f"{field}:{lo}-{mid}", f"{field}:{mid + 1}-{hi}"]
+
+
 def generate_segments(cfg, today):
+    if (cfg.get("filter") or {}).get("type") == "query_int_range":
+        # One root covering the whole plan range; the rest comes from bisection.
+        return [f"{cfg['filter']['field']}:{cfg['lo']}-{cfg['hi']}"]
     mode = cfg.get("mode", "range")
     if mode == "explicit":
         return [str(s["key"]) for s in cfg["items"]]
@@ -557,6 +580,9 @@ class DateRangeSplit(_ForwardPager):
         if self.cfg.get("mode") == "explicit":
             spec = next(s for s in self.cfg["items"] if str(s["key"]) == key)
             return dict(spec.get("params") or {})
+        if flt.get("type") == "query_int_range":
+            field, lo, hi = _int_bounds(key)
+            return {flt["param"]: f"{field}:[{lo} TO {hi}]"}
         start, end, gran = _bounds(key)
         end = min(end, self.today)
         if flt.get("type") == "query_range":
@@ -581,6 +607,8 @@ class DateRangeSplit(_ForwardPager):
     def can_split(self, key):
         if self.cfg.get("mode") == "explicit":
             return False
+        if self.cfg.get("filter", {}).get("type") == "query_int_range":
+            return bool(_int_children(key))
         gran = _bounds(key)[2]
         finer = _FINER.get(gran)
         allowed = self.cfg.get("split_to", ["month", "day"])
@@ -597,7 +625,8 @@ class DateRangeSplit(_ForwardPager):
 
     def split(self, key, ordinal):
         ctx = self.ctx
-        for child in _children(key, self.today):
+        int_range = self.cfg.get("filter", {}).get("type") == "query_int_range"
+        for child in (_int_children(key) if int_range else _children(key, self.today)):
             ctx.store.ensure_segment(ctx.site_id, ctx.plan_fp, child, ordinal=ordinal, parent=key)
         ctx.store.update_segment(ctx.site_id, ctx.plan_fp, key, status="split")
         ctx.store.event(ctx.site_id, "segment_split", {"segment": key})
@@ -630,7 +659,7 @@ class DateRangeSplit(_ForwardPager):
                     end, total = stop.value
                     break
                 total = batch.reported_total
-                if (self.cfg.get("filter", {}).get("type") == "query_range"
+                if (self.cfg.get("filter", {}).get("type") in ("query_range", "query_int_range")
                         and cap and total is not None and total > cap and not self.can_split(key)):
                     # This query syntax is capped at the source. At the finest supported
                     # granularity, do not walk into the window or claim a successful leaf.
