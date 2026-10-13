@@ -104,14 +104,14 @@ class Articles(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'identity'):
                 self.crawler._paper_from_article_result(rec)
 
-    def test_existing_skip_rules_apply_to_articles(self):
+    def test_article_keeps_short_abstract_but_still_rejects_untitled(self):
         short = article(1)
         short['metadata']['abstracts'][0]['value'] = 'x' * 99
         no_title = article(2)
         no_title['metadata']['title'] = []
         with contextlib.redirect_stdout(io.StringIO()):
-            self.assertIsNone(self.crawler._paper_from_article_result(short))
             self.assertIsNone(self.crawler._paper_from_article_result(no_title))
+            self.assertEqual('x' * 99, self.crawler._paper_from_article_result(short)['abstract'])
         short['metadata']['abstracts'][0]['value'] = 'x' * 100
         self.assertEqual('coar:c_6501', self.crawler._paper_from_article_result(short)['category'])
 

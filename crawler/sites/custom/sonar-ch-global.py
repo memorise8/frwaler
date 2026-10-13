@@ -183,7 +183,7 @@ class SonarChGlobalCrawler(BaseCrawler):
     # Record parser
     # ------------------------------------------------------------------
 
-    def _parse_record(self, hit: dict) -> dict | None:
+    def _parse_record(self, hit: dict, min_abstract: int = _MIN_ABSTRACT_LEN) -> dict | None:
         doc_id = hit.get("id", "")
         metadata = hit.get("metadata", {})
 
@@ -193,7 +193,7 @@ class SonarChGlobalCrawler(BaseCrawler):
             return None
 
         abstract = self._extract_abstract(metadata)
-        if len(abstract) < _MIN_ABSTRACT_LEN:
+        if len(abstract) < min_abstract:
             print(
                 f"[{self.site_id}] skipping {doc_id}: "
                 f"abstract too short ({len(abstract)} chars)"
@@ -317,10 +317,15 @@ class SonarChGlobalCrawler(BaseCrawler):
         return rows
 
     def _paper_from_article_result(self, record):
-        """Preserve registered identity/date/skip rules; change only article category."""
+        """Preserve registered identity/date/title rules; change only the article category
+        and keep short or empty abstracts (the registered crawl() still skips them).
+
+        A record without a title is still rejected (None). The abstract is kept as
+        stripped text, "" when absent, like the NTRS contract method.
+        """
         # Revalidate even when called without the listing method (e.g. identity sampling).
         self._parse_article_search_results({"hits": {"hits": [record]}})
-        paper = self._parse_record(record)
+        paper = self._parse_record(record, min_abstract=0)
         if paper is not None:
             paper["category"] = _ARTICLE_DOC_TYPE
         return paper
