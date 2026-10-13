@@ -28,7 +28,7 @@
       "title": "div.primary article.module > div.module-content > h1",
       "abstract": "div.primary article.module > div.module-content > div.notes.embedded-content",
       "authors": null,
-      "date": null,
+      "date": "tr:has(th:-soup-contains(\"Created\")) td",
       "pdf_link": "section#dataset-resources ul.resource-list li.resource-item a.resource-url-analytics[href*='/download/'][href$='.pdf']",
       "keywords": "h3#tags_gr + section.tags ul.tag-list a.tag",
       "department": null,
