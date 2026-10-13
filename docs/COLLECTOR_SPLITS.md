@@ -180,3 +180,7 @@ brgm-fr-fr plan 은 `detail_method: "_build_paper"` 에 틀의 `"soup"` 토큰(h
 - 최종: **477개 실행, 실패 0, 건너뜀 1** = 병합 기준 451 + 신규 26(WordPress 종료 4, 사이트별 합성 runner 실행 2×10, BRGM 손상 HTML 1, minfin page 바인딩 1). 건너뜀은 TEST_PG_ADMIN_DSN 없는 PostgreSQL 전용 시험.
 - 실행: `--network none` 임시 `enum-test-fix5` 컨테이너(`--rm`), 소스 읽기 전용 마운트 후 `/w` 복사(`.git`/`.audit`/금지 이름 제외), 기존 wheelhouse 로 `pip --no-index` 설치, `python -m unittest discover -s tests -p "test_enumeration_*.py" -t .`. 실제 사이트 요청·DB 서버 접속 0건.
 - 리뷰 재현 스크립트(repro_runs.py) 결과: WordPress 6곳 plan 그대로 `complete`, 점검 페이지/200 JSON 오류/XML 앞 빈 줄 모두 `incomplete` + `listing_failed:listing_parse_error:*`. 짧은 초록 1건 `complete_with_review`, 연속 5건 `config_error` 는 리뷰 수정 5대로 남는다.
+
+## 2026-10-13 분리 2차
+
+별도 워크트리/기준 01fa542에서 납품 대상 15곳을 검토했다. 12곳의 순수 계약·합성 시험과 미해결 3곳의 이유는 [COLLECTOR_SPLITS2.md](COLLECTOR_SPLITS2.md), [선정 대장](COLLECTOR_SPLITS2_SELECTION.csv)에 기록한다. 통과는 형식·규칙/합성 시험 통과이며 실수집 성공 증거가 아니다. 위 07의 10곳과 이전 선정표는 수정하지 않는다.
