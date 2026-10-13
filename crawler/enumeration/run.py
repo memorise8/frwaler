@@ -195,7 +195,8 @@ def run_site(plan, store, conn, state_dir, *, transport=None, refresh=False, ret
     if files:
         result["files"] = FilePass(store, fetcher, blob_root=blob_root or Path(state_dir) / "files",
                                    doc_conn=conn, max_attempts=plan.get("file_max_attempts"),
-                                   max_bytes=plan.get("file_max_bytes")).run(plan.site_id)
+                                   max_bytes=plan.get("file_max_bytes"), strict_access=True).run(
+                                       plan.site_id, retry_only=retry_only)
     return result
 
 
@@ -208,6 +209,15 @@ def exit_code(results):
     """1: a site failed or is misconfigured; 2: a site needs a person's review; 0 otherwise
     (incomplete runs are resumable and not an error)."""
     statuses = {r.get("status") for r in results}
+    # A completed body does not imply its queued PDFs have been received.
+    for result in results:
+        files = result.get("files") or {}
+        stopped = str(files.get("stopped") or "")
+        if files.get("failed", 0) or "private_destination" in stopped:
+            statuses.add("failed")
+        elif (files.get("unavailable", 0) or stopped.startswith("rate_limited")
+              or (stopped.startswith("site_hold:") and stopped != "site_hold:cooling_down")):
+            statuses.add("access_blocked")
     if statuses & set(FAILED_STATUSES):
         return 1
     if statuses & set(REVIEW_STATUSES):
@@ -227,7 +237,7 @@ def main(argv=None):
     p.add_argument("--files-only", action="store_true")
     p.add_argument("--blob-root", default=None)
     p.add_argument("--refresh", action="store_true", help="re-enumerate sites already complete")
-    p.add_argument("--retry-failed", action="store_true", help="only retry transient item failures")
+    p.add_argument("--retry-failed", action="store_true", help="only retry transient item/file failures")
     p.add_argument("--report-only", action="store_true")
     p.add_argument("--i-know-this-is-isolated", dest="isolated_override", action="store_true",
                    help="allow a documents database whose name does not start with enum_")
@@ -314,7 +324,8 @@ def main(argv=None):
             fetcher = make_fetcher(plan, state_dir, max_bytes=plan.get("file_max_bytes"), holds=store)
             return {"site_id": plan.site_id, "files": FilePass(
                 store, fetcher, blob_root=args.blob_root or state_dir / "files", doc_conn=conn,
-                max_attempts=plan.get("file_max_attempts"), max_bytes=plan.get("file_max_bytes")).run(plan.site_id)}
+                max_attempts=plan.get("file_max_attempts"), max_bytes=plan.get("file_max_bytes"),
+                strict_access=True).run(plan.site_id, retry_only=args.retry_failed)}
         reference = open_reference(args.reference_db, args.reference_pg_dsn_env)
         try:
             return run_site(plan, store, conn, state_dir, refresh=args.refresh, retry_only=args.retry_failed,

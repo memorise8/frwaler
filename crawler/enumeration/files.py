@@ -7,6 +7,7 @@ The primary PDF uses the existing blob layout and ``update_document_pdf``.
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import re
 import sqlite3
@@ -55,21 +56,30 @@ def _atomic_write(path, data):
 
 
 class FilePass:
-    def __init__(self, store, fetcher, *, blob_root, doc_conn=None, max_attempts=3, max_bytes=200 * 1024 * 1024):
+    def __init__(self, store, fetcher, *, blob_root, doc_conn=None, max_attempts=3, max_bytes=200 * 1024 * 1024,
+                 strict_access=False):
         self.store = store
         self.fetcher = fetcher
         self.blob_root = Path(blob_root)
         self.doc_conn = doc_conn
         self.max_attempts = max_attempts
         self.max_bytes = max_bytes
+        # CLI file runs stop the host on the first refusal. Older direct callers
+        # retain path-level robots behavior unless they opt in.
+        self.strict_access = strict_access
 
-    def _store_primary(self, seq_id, data):
+    def _store_primary(self, seq_id, data, url=None):
         from crawler import blob_storage
         from crawler.db_backend import get_backend
         path, size, sha = blob_storage.save_pdf(seq_id, data, root=self.blob_root)
         if self.doc_conn is not None:
             backend = get_backend("sqlite" if isinstance(self.doc_conn, sqlite3.Connection) else "postgres")
             backend.update_document_pdf(self.doc_conn, seq_id, downloaded=True, size_bytes=size, sha256=sha)
+        if self.strict_access:
+            # A document's old blob/hash alone cannot prove a newly queued URL was
+            # downloaded. The receipt binds a complete blob to this file candidate.
+            receipt = {"seq_id": seq_id, "url": url, "size": size, "sha256": sha}
+            _atomic_write(path.with_suffix(".pdf.receipt.json"), json.dumps(receipt).encode("utf-8"))
         return path
 
     def site_hold(self, site_id):
@@ -107,17 +117,39 @@ class FilePass:
             self.store.save_state(site_id, state)
         self.store.event(site_id, "file_pass_stopped", {"reason": reason})
 
-    def run(self, site_id):
+    def run(self, site_id, *, retry_only=False):
+        previous = getattr(self.fetcher, "rate_limit_stop", None)
+        if self.strict_access and previous is not None:
+            self.fetcher.rate_limit_stop = 1
+        try:
+            return self._run(site_id, retry_only=retry_only)
+        finally:
+            if self.strict_access and previous is not None:
+                self.fetcher.rate_limit_stop = previous
+
+    def _run(self, site_id, *, retry_only=False):
         stats = {"done": 0, "failed": 0, "failed_transient": 0, "unavailable": 0, "stopped": None}
         held = self.site_hold(site_id)
         if held:
             stats["stopped"] = held
             return stats
         for row in self.store.pending_files(site_id, self.max_attempts):
+            if retry_only and row["status"] != "failed_transient":
+                continue
             url, seq_id, role = row["url"], row["seq_id"], row["role"]
-            if self.reconcile(site_id, row):
-                stats["done"] += 1
-                stats["reconciled"] = stats.get("reconciled", 0) + 1
+            try:
+                if self.reconcile(site_id, row):
+                    stats["done"] += 1
+                    stats["reconciled"] = stats.get("reconciled", 0) + 1
+                    continue
+            except OSError as exc:
+                self._storage_failure(site_id, row, f"storage_error:{type(exc).__name__}", stats)
+                continue
+            except Exception as exc:
+                rollback = getattr(self.doc_conn, "rollback", None)
+                if rollback:
+                    rollback()
+                self._storage_failure(site_id, row, f"db_error:{type(exc).__name__}", stats)
                 continue
             try:
                 resp = self.fetcher.get(url)
@@ -133,6 +165,14 @@ class FilePass:
                 stats[status] += 1
                 continue
             except RobotsDisallowed as exc:
+                if self.strict_access:
+                    host = host_of(exc.url or url)
+                    self.store.hold_host(host, exc.reason, exc.url or url, site_id)
+                    self.store.update_file(site_id, seq_id, url, status="unavailable", reason=exc.reason)
+                    stats["unavailable"] += 1
+                    stats["stopped"] = exc.reason
+                    self._hold_site(site_id, "access_blocked", exc.reason, host=host)
+                    break
                 # One file URL excluded by robots.txt: a file failure, the pass goes on.
                 self.store.update_file(site_id, seq_id, url, status="failed", reason=exc.reason)
                 stats["failed"] += 1
@@ -155,7 +195,11 @@ class FilePass:
                 break
             except RateLimited as exc:
                 stats["stopped"] = exc.reason
-                self._hold_site(site_id, None, exc.reason, retry_at=exc.retry_at)
+                host = host_of(exc.url or url)
+                if self.strict_access:
+                    self.store.hold_host(host, exc.reason, exc.url or url, site_id)
+                self._hold_site(site_id, "access_blocked" if self.strict_access else None, exc.reason,
+                                retry_at=exc.retry_at, host=host)
                 break
             except RobotsUnavailable as exc:
                 # The file is untouched (no attempt counted); the pass stops with a short cooldown.
@@ -177,17 +221,22 @@ class FilePass:
                 stats["failed"] += 1
                 continue
             expects_pdf = role == "pdf" or url.lower().split("?")[0].endswith(".pdf") or "pdf" in ctype.lower()
-            if expects_pdf and not is_pdf(data):
+            if expects_pdf and (not is_pdf(data) or "html" in ctype.lower()):
                 reason = "html_instead_of_pdf" if b"<html" in data[:2048].lower() else "invalid_pdf_header"
                 self.store.update_file(site_id, seq_id, url, status="failed", reason=reason, content_type=ctype,
                                        size=len(data))
                 stats["failed"] += 1
                 continue
+            if expects_pdf and self.strict_access and b"%%EOF" not in data[-1024:]:
+                # A successful HTTP status may still carry a truncated PDF.
+                # Keep no partial blob; a bounded retry downloads it afresh.
+                self._storage_failure(site_id, row, "incomplete_pdf_eof", stats)
+                continue
             sha = hashlib.sha256(data).hexdigest()
             pages = pdf_page_count(data) if is_pdf(data) else None
             try:
                 if role == "pdf" and is_pdf(data):
-                    path = self._store_primary(seq_id, data)
+                    path = self._store_primary(seq_id, data, url)
                 else:
                     path = self.blob_root / "attachments" / str(seq_id) / f"{sha}.{_ext_for(url, ctype, data)}"
                     _atomic_write(path, data)
@@ -229,8 +278,24 @@ class FilePass:
             return False
         if not path.exists():
             return False
+        if path.stat().st_size > self.max_bytes:
+            return False
         data = path.read_bytes()
+        if not data or not is_pdf(data) or len(data) > self.max_bytes:
+            return False
+        if self.strict_access and b"%%EOF" not in data[-1024:]:
+            return False
         sha = hashlib.sha256(data).hexdigest()
+        if self.strict_access:
+            receipt_path = path.with_suffix(".pdf.receipt.json")
+            if not receipt_path.exists():
+                return False
+            try:
+                receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            except (ValueError, UnicodeError):
+                return False
+            if receipt != {"seq_id": row["seq_id"], "url": row["url"], "size": len(data), "sha256": sha}:
+                return False
         mark = "?" if isinstance(self.doc_conn, sqlite3.Connection) else "%s"
         doc = self.doc_conn.execute(f"SELECT pdf_downloaded, pdf_sha256 FROM documents WHERE seq_id={mark}",
                                     (row["seq_id"],)).fetchone()
