@@ -227,3 +227,10 @@ docker run --rm --name enum-test-adapter-20261012-verified \
 
 - Docker 전체 검사(지정 명령, 컨테이너 `enum-test-fix3`, `--rm`): **291개 실행, OK, 건너뜀 1개**(PostgreSQL 전용). 기존 260개 이름 그대로 유지(그중 `test_data_contract_error_is_ledgered_for_review`는 MEDIUM-2에 따라 기대 사유만 `identity_missing:5`로 바꿈) + 신규 31개(`test_enumeration_rereview` 21, `test_enumeration_ntrs_contract` 10). 새 시험은 결함별로 수정 전 실패를 먼저 확인했다.
 - 실제 사이트 요청 0건, DB는 시험 내부 임시 SQLite만 사용했다.
+
+## SONAR 학술논문(sonar-ch-global, coar:c_6501) 계약: 짧은/빈 초록 저장 = 기존보다 넓은 범위
+
+- 서버 실측(표본 구간 `pid:100-101`): 1,051건 중 191건(18%)이 초록 0자였고 군집해서 나왔다. 계약 메서드가 등록 규칙(초록 100자 미만이면 None)을 따르면 `empty_item` 계약 실패가 연속 5건을 넘어 사이트가 `config_error`(`adapter_contract_failures_consecutive:empty_item`)로 멈춘다.
+- 사용자 결정(NTRS와 같은 방침): `_paper_from_article_result`만 `_parse_record(record, min_abstract=0)`로 호출해 **짧거나 빈 초록 문서도 저장**한다. 초록은 앞뒤 공백만 제거한 그대로이고 없으면 `""`(NTRS 계약 메서드와 같음). 제목이 없으면 이전처럼 None(`empty_item`, 검토 대상). 식별값(pid 대체 규칙)·날짜·분류(`coar:c_6501`) 규칙은 그대로다.
+- **범위 주의**: 이 계약 경로의 저장 범위는 기존 등록 규칙(`crawl()`)보다 넓다. `crawl()`과 학위논문(`coar:c_7a1f`) 계약(`_paper_from_result`, `_parse_record(hit)` 기본값 100자)은 바꾸지 않았다. 보고서에서 두 범위를 같은 수치로 비교하지 않는다.
+- 시험 `tests/test_enumeration_sonar_articles_short_abstract.py`: 빈/짧은/공백/누락 초록 변환과 다른 필드 동일성, 제목 없음 거부, 학위논문 계약과 `crawl()` skip 규칙 불변, 60건 연속 빈 초록 포함 합성 열거가 `complete`로 끝남(수정 전 코드는 같은 입력에서 `config_error`), 군집 속 제목 없는 1건은 `complete_with_review`.
