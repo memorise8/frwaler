@@ -2,7 +2,8 @@
   "e-stat-go-jp-stat-search": {
     "baseline_ast_sha256": "f6861702f59dd0cc0d046ce128998b64fcd28af6dcbb3eb7fa3cbf21f737a269",
     "original_month_method": "@staticmethod\ndef _survey_month_date(text: str | None) -> str | None:\n        if not text:\n            return None\n        match = re.search(r\"(\\d{4})\\s*年\\s*(\\d{1,2})\\s*月\", text)\n        if match:\n            return f\"{match.group(1)}-{int(match.group(2)):02d}-01\"\n        return None",
-    "canonical_ast_sha256": "40df0f25c07a85e6bdc151ceea0edfc1fcd2874ca7960d3d62939b6c46d023d3"
+    "canonical_ast_sha256": "40df0f25c07a85e6bdc151ceea0edfc1fcd2874ca7960d3d62939b6c46d023d3",
+    "original_infid_method": "@staticmethod\ndef _stat_infid_from_url(url: str) -> str | None:\n        parsed = urllib.parse.urlparse(url)\n        params = urllib.parse.parse_qs(parsed.query)\n        value = params.get(\"stat_infid\") or params.get(\"statInfId\")\n        return value[0] if value else None\n"
   },
   "ots-at-pressemappe": {
     "baseline_ast_sha256": "3e0d2dbdfdb6402764bd723476ddee0631b3ab6de395c856f229bb4edb984568",

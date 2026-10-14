@@ -55,7 +55,7 @@
         },
         "total": {
           "type": "json",
-          "path": "meta.count"
+          "path": "meta.totalCount"
         }
       }
     }

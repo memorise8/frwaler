@@ -39,7 +39,7 @@ def fixture(site):
     if site==SITES[1]:
         rows=[dict(key=f'OTS_20250613_OTS00{i}',titleSlug=f'offline-{i}',date='13.06.2025',time='12:30:00',title={'content':f'Title {i}'},emittentId='54',emittentName='BMI',channel=[{'name':'Government'}]) for i in [1,2]]
         details={'https://core2023.ots.at/api/v1/pressrelease/'+r['key']:{'result':dict(title=r['title'],date='2025-06-13',lead={'content':TEXT},article=[{'type':'text','content':TEXT}],emittentId='54',emittentName='BMI',keywords=['Policy'],attachments=[{'url':'https://www.ots.at/doc/source.pdf'}])} for r in rows}
-        return dict(listing={'meta':{'count':2,'totalPages':1},'result':rows},empty={'meta':{'count':2,'totalPages':1},'result':[]},details=details)
+        return dict(listing={'meta':{'count':2,'totalCount':'2','totalPages':1},'result':rows},empty={'meta':{'count':2,'totalCount':'2','totalPages':1},'result':[]},details=details)
     rows=[dict(obj_id=str(i),title=f'Title {i}',date_to='20250200000000',date_mask='YYYYMM',path=f'/zoom/{i}/view?ignored=1',images=1) for i in [101,102]]
     details={f'https://www.etera.ee/api/item/{r["obj_id"]}/meta':{'title':{'values':[r['title']]},'description':{'label':'Abstract','values':[TEXT]},'cf22':{'values':['20250200000000'],'mask':'YYYYMM'},'cf13':{'values':['Vaba']},'classification':{'values':['Book']}} for r in rows}
     return dict(listing={'results':{'count':2,'docs':rows}},empty={'results':{'count':2,'docs':[]}},details=details)
@@ -64,7 +64,7 @@ class Transport:
             if self.total is not None:data['results']['count']=self.total
         else:
             assert method=='GET';page=int(parse_qs(urlsplit(url).query)['page'][0]);data=copy.deepcopy(self.f['listing'] if page==1 else self.f['empty'])
-            if self.total is not None and self.site==SITES[1]:data['meta']['count']=self.total
+            if self.total is not None and self.site==SITES[1]:data['meta']['totalCount']=str(self.total)
         return Response(200,{'Content-Type':'application/json'},json.dumps(data),url)
 
 

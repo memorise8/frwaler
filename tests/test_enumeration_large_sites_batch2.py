@@ -56,6 +56,21 @@ class SiteContracts(NoNetwork):
             with guarded():actual=c._enumeration_paper(i,detail,head)
             self.assertEqual(expected,actual);self.assertEqual('report source.pdf',actual['original_filename'])
 
+    def test_estat_database_type_records_use_statdisp_id(self):
+        c,_=load(SITES[0]);f=fixture(SITES[0])
+        db='<article class="stat-resource_list-item"><a class="stat-item2_parent js-data" href="/stat-search/database?page=1&amp;layout=dataset&amp;statdisp_id=0003423095" data-value="">DB table</a><ul><li class="stat-resource_list-detail-item">Survey</li></ul></article>'
+        items=c._enumeration_items({'items':f['listing']['items']+db},1)
+        self.assertEqual(['000101','000102','statdisp-0003423095'],[i['stat_infid'] for i in items]);self.assertEqual(3,len({i['url'] for i in items}))
+        self.assertIsNone(c._stat_infid_from_url('https://www.e-stat.go.jp/stat-search/database?statdisp_id='))
+
+    def test_estat_total_regex_reads_escaped_header_and_ots_uses_total_count(self):
+        from crawler.enumeration.parsing import extract_total
+        pat=raw_plan(SITES[0])['listing']['total']
+        resp=Response(200,{'Content-Type':'application/json'},r'{"targets":"\n\u003Cspan class=\u0022stat-hit-number js-total_resource\u0022\u003E1,721,215\u003C\/span\u003E","items":""}','u')
+        self.assertEqual(1721215,extract_total(pat,resp))
+        meta={'meta':{'count':10,'totalCount':'6727','totalPages':673},'result':[]}
+        self.assertEqual(6727,extract_total(raw_plan(SITES[1])['listing']['total'],Response(200,{},json.dumps(meta),'u')))
+
     def test_estat_survey_month_never_invents_day(self):
         c,_=load(SITES[0]);self.assertEqual('2025-02',c._survey_month_date('2025年2月'));self.assertIsNone(c._survey_month_date('unknown'))
         f=fixture(SITES[0]);rows=c._enumeration_items(f['listing'],1)
@@ -335,6 +350,7 @@ class PrecisionAndContracts(NoNetwork):
             class Restore(ast.NodeTransformer):
                 def visit_FunctionDef(self,node):
                     if site==SITES[0] and node.name=='_survey_month_date':return ast.parse(expected['original_month_method']).body[0]
+                    if site==SITES[0] and node.name=='_stat_infid_from_url':return ast.parse(expected['original_infid_method']).body[0]
                     return self.generic_visit(node)
                 def visit_Dict(self,node):
                     node=self.generic_visit(node);pairs=[(k,v) for k,v in zip(node.keys,node.values) if not isinstance(k,ast.Constant) or k.value not in {'source_published_date_raw','source_listed_date_raw','source_date_to_raw','date_raw'}]

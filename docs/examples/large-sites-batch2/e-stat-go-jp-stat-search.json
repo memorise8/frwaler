@@ -59,6 +59,10 @@
           "url_field": "url",
           "key_field": "stat_infid",
           "date_field": "listed_date"
+        },
+        "total": {
+          "type": "regex",
+          "pattern": "js-total_resource\\\\u0022\\\\u003E([0-9,]+)"
         }
       }
     }
@@ -66,7 +70,7 @@
   "_review": {
     "status": "사이트 확인이 더 필요",
     "server_ready": false,
-    "current_total_verified": false,
+    "current_total_verified": "probe 2026-10-14: 1,721,215 (page 1, layout=dataset&metadata=1&data=1); matches unique IDs not yet verified",
     "page_cap_verified": false,
     "unique_sort_verified": false,
     "split_filter_supported": "확인 못 함",

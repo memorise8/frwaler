@@ -234,7 +234,11 @@ class EStatGoJpStatSearchCrawler(BaseCrawler):
         parsed = urllib.parse.urlparse(url)
         params = urllib.parse.parse_qs(parsed.query)
         value = params.get("stat_infid") or params.get("statInfId")
-        return value[0] if value else None
+        if value:
+            return value[0]
+        # Database-type records have no stat_infid; their native key is statdisp_id.
+        disp = params.get("statdisp_id")
+        return f"statdisp-{disp[0]}" if disp and disp[0] else None
 
     def _extract_downloads(self, root) -> list[dict[str, Any]]:
         downloads: list[dict[str, Any]] = []
