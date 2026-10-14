@@ -63,6 +63,12 @@ class SiteContracts(NoNetwork):
         self.assertEqual(['000101','000102','statdisp-0003423095'],[i['stat_infid'] for i in items]);self.assertEqual(3,len({i['url'] for i in items}))
         self.assertIsNone(c._stat_infid_from_url('https://www.e-stat.go.jp/stat-search/database?statdisp_id='))
 
+    def test_estat_zero_item_page_is_empty_but_unflagged_no_article_page_is_error(self):
+        c,_=load(SITES[0]);empty='<div class="stat-reset_filter">no data</div>'
+        self.assertEqual([],c._enumeration_items({'items':empty,'zero_item':True},34426))
+        for flag in (False,None):
+            with self.subTest(flag=flag),self.assertRaises(PermanentFailure):c._enumeration_items({'items':empty,'zero_item':flag},1)
+
     def test_estat_total_regex_reads_escaped_header_and_ots_uses_total_count(self):
         from crawler.enumeration.parsing import extract_total
         pat=raw_plan(SITES[0])['listing']['total']

@@ -613,6 +613,8 @@ class EStatGoJpStatSearchCrawler(BaseCrawler):
         soup = self._soup(data["items"])
         articles = soup.select("article.stat-resource_list-item")
         if not articles:
+            if data.get("zero_item") is True:
+                return []
             raise PermanentFailure("listing_parse_error:missing_estat_articles")
         rows = []
         for article in articles:
