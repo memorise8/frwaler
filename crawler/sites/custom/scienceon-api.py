@@ -489,8 +489,10 @@ class _ScienceOnCrawlerBase(BaseCrawler):
         seen: set[str] = set()
         saved = 0
         successful_passes = 0
+        lost_per_pass: list[int] = []  # rows the server rejected with E5001, per finished pass
         query = {"CN": prefix + "*"}
         for sort_field in self.SORT_FIELDS:
+            lost_before = len(getattr(self._client, "unreadable", ()))
             try:
                 for record in self._client.iter_search(query, sort_field=sort_field):
                     self._check_cancelled()
@@ -501,6 +503,7 @@ class _ScienceOnCrawlerBase(BaseCrawler):
                     if self._save_record(root, record):
                         saved += 1
                 successful_passes += 1
+                lost_per_pass.append(len(getattr(self._client, "unreadable", ())) - lost_before)
             except ScienceOnError:
                 continue
             if successful_passes >= 1 and len(seen) >= total:
@@ -516,7 +519,12 @@ class _ScienceOnCrawlerBase(BaseCrawler):
             )
         total_now = self._count(prefix) if len(seen) < total else total
         required = max(1, math.ceil(total_now * self.COMPLETENESS))
-        if not successful_passes or len(seen) < required:
+        # Rows the server itself refuses to return (E5001 in every finished pass) are
+        # reported above as not retrievable; they must not fail a small slice, where one
+        # row is more than the 1% allowance. Any other missing row still fails the slice.
+        lost = min(lost_per_pass) if lost_per_pass else 0
+        accounted = len(seen) + lost >= total_now
+        if not successful_passes or (len(seen) < required and not accounted):
             raise ScienceOnError(
                 f"ScienceON slice incomplete ({len(seen)}/{total_now})"
             )

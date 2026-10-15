@@ -285,6 +285,28 @@ class ScienceOnPageErrorTest(unittest.TestCase):
         self.assertEqual((seen, saved), (199, 199))
         self.assertEqual(client.unreadable, [])  # reported then cleared
 
+    def _collect(self, client, total):
+        crawler = SCIENCEON.ScienceOnDomesticCrawler(None, client=client)
+        crawler.SORT_FIELDS = ("title",)
+        crawler._save_paper = lambda document: setattr(crawler, "_last_save_created", True) or 1
+        return crawler._collect_terminal("JAKO", "JAKO", total)
+
+    def test_small_slice_with_one_unreadable_row_passes(self):
+        client = self._Client(total=85, broken={40})
+        self.assertEqual(self._collect(client, 85), (84, 84))
+
+    def test_small_slice_missing_a_row_without_e5001_still_fails(self):
+        client = self._Client(total=85, broken=set())
+        real = client.search
+
+        def short(query, *, page=1, row_count=100, sort_field=None):
+            total, rows = real(query, page=page, row_count=row_count, sort_field=sort_field)
+            return total, [r for r in rows if r["CN"] != "JAKO0040"]
+
+        client.search = short
+        with self.assertRaises(SCIENCEON.ScienceOnError):
+            self._collect(client, 85)
+
 
 class ScienceOnPassCountTest(unittest.TestCase):
     """One sort pass is enough when it reaches the reported total."""
