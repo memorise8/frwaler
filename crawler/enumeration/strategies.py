@@ -570,6 +570,8 @@ def generate_segments(cfg, today):
         # One root covering every id that starts with a digit; the rest comes from splitting.
         return [f"{cfg['filter']['field']}:{_PREFIX_ROOT[0]}-{_PREFIX_ROOT[1]}"]
     mode = cfg.get("mode", "range")
+    if mode == "partition_tree":
+        return [cfg["root"]]
     if mode == "explicit":
         return [str(s["key"]) for s in cfg["items"]]
     gran = cfg.get("granularity", "year")
@@ -602,9 +604,12 @@ class DateRangeSplit(_ForwardPager):
         super().__init__(ctx)
         self.cfg = ctx.plan.section("segments")
         self.today = ctx.today
+        self.tree = {n["key"]: n for n in self.cfg.get("nodes", [])} if self.cfg.get("mode") == "partition_tree" else {}
 
     def filter_params(self, key):
         flt = self.cfg.get("filter", {})
+        if self.tree:
+            return dict(self.tree[key]["params"])
         if self.cfg.get("mode") == "explicit":
             spec = next(s for s in self.cfg["items"] if str(s["key"]) == key)
             return dict(spec.get("params") or {})
@@ -633,6 +638,8 @@ class DateRangeSplit(_ForwardPager):
         raise ValueError(f"unknown filter type: {flt.get('type')}")
 
     def can_split(self, key):
+        if self.tree:
+            return bool(self.tree[key].get("children"))
         if self.cfg.get("mode") == "explicit":
             return False
         if self.cfg.get("filter", {}).get("type") == "query_prefix_range":
@@ -654,7 +661,9 @@ class DateRangeSplit(_ForwardPager):
     def split(self, key, ordinal):
         ctx = self.ctx
         prefix = self.cfg.get("filter", {}).get("type") == "query_prefix_range"
-        for child in (_prefix_children(key, self.cfg["max_depth"]) if prefix else _children(key, self.today)):
+        children = self.tree[key].get("children", []) if self.tree else (
+            _prefix_children(key, self.cfg["max_depth"]) if prefix else _children(key, self.today))
+        for child in children:
             ctx.store.ensure_segment(ctx.site_id, ctx.plan_fp, child, ordinal=ordinal, parent=key)
         ctx.store.update_segment(ctx.site_id, ctx.plan_fp, key, status="split")
         ctx.store.event(ctx.site_id, "segment_split", {"segment": key})
@@ -677,6 +686,32 @@ class DateRangeSplit(_ForwardPager):
             row = pending[0]
             key = row["segment_key"]
             ctx.store.update_segment(ctx.site_id, ctx.plan_fp, key, status="running")
+            if self.tree:
+                # Count probes are listings through the same Fetcher, with no item saves.
+                # Probe again on resume: a cached manifest is not a current source total.
+                def count(node):
+                    params = self.filter_params(node)
+                    params[self.cfg["count_size_param"]] = 1
+                    return self.fetch_page(self.page_url(self.start_page, params)).total
+                parent_total = count(key)
+                if parent_total is None:
+                    self.outcome = ("incomplete", "partition_total_unavailable:" + key)
+                    return
+                ctx.store.update_segment(ctx.site_id, ctx.plan_fp, key, reported_total=parent_total)
+                if parent_total >= cap:
+                    children = self.tree[key].get("children", [])
+                    if not children:
+                        ctx.store.update_segment(ctx.site_id, ctx.plan_fp, key, status="cap_unsplittable")
+                        self.outcome = ("incomplete", "partition_cap_unsplittable:" + key)
+                        return
+                    totals = [count(child) for child in children]
+                    ctx.store.event(ctx.site_id, "partition_count_check", {
+                        "segment": key, "parent": parent_total, "children": totals})
+                    if any(t is None for t in totals) or sum(totals) != parent_total:
+                        self.outcome = ("incomplete", "partition_child_total_mismatch:" + key)
+                        return
+                    self.split(key, row["ordinal"])
+                    continue
             gen = self.forward(key, self.filter_params(key), url=self.segment_url(key),
                                reverse_within_page=reverse, overlap=overlap)
             split_now = False
@@ -687,6 +722,9 @@ class DateRangeSplit(_ForwardPager):
                     end, total = stop.value
                     break
                 total = batch.reported_total
+                if self.tree and (total != parent_total or total >= cap):
+                    self.outcome = ("incomplete", "partition_count_changed:" + key)
+                    return
                 if (self.cfg.get("filter", {}).get("type") in ("query_range", "query_prefix_range")
                         and cap and total is not None and total > cap and not self.can_split(key)):
                     # This query syntax is capped at the source. At the finest supported
@@ -723,7 +761,7 @@ class DateRangeSplit(_ForwardPager):
                 status, evidence = "complete", f"exhausted_no_total_{end}"
             elif listed == total:
                 status, evidence = "complete", "total_matched"
-            elif listed < total and self.can_split(key):
+            elif listed < total and self.can_split(key) and not self.tree:
                 ctx.store.update_segment(ctx.site_id, ctx.plan_fp, key, reported_total=total,
                                          detail=dict(detail, split_reason="listed_below_total"))
                 self.split(key, row["ordinal"])
@@ -736,7 +774,7 @@ class DateRangeSplit(_ForwardPager):
                 ctx.store.event(ctx.site_id, "segment_" + status, dict(detail, segment=key))
             ctx.store.update_segment(ctx.site_id, ctx.plan_fp, key, status=status, evidence=evidence,
                                      reported_total=total, detail=detail)
-        if check and "overall_total" not in state:
+        if check and "overall_total" not in state and not self.tree:
             # Read after the segments, so the total describes the same moment as the listed set.
             try:
                 page = self.fetch_page(self.page_url(self.start_page))
@@ -750,6 +788,17 @@ class DateRangeSplit(_ForwardPager):
                 state["overall_total"] = page.total
                 ctx.store.save_state(ctx.site_id, state)
         rows = ctx.store.segments(ctx.site_id, ctx.plan_fp)
+        if self.tree:
+            by_key = {r["segment_key"]: r for r in rows}
+            for row in rows:
+                if row["status"] == "split":
+                    totals = [by_key[k]["reported_total"] for k in self.tree[row["segment_key"]]["children"]]
+                    if any(t is None for t in totals) or sum(totals) != row["reported_total"]:
+                        self.outcome = ("incomplete", "partition_final_total_mismatch:" + row["segment_key"])
+                        return
+            # Always refresh the global snapshot for this opt-in mode, including resume.
+            state["overall_total"] = self.fetch_page(self.page_url(self.start_page)).total
+            ctx.store.save_state(ctx.site_id, state)
         bad = [r["segment_key"] for r in rows if r["status"] in ("mismatch", "cap_unsplittable")]
         leaves = [r for r in rows if r["status"] != "split"]
         # Ranges are a partition: the same key in two leaves means the filter is

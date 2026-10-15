@@ -406,3 +406,27 @@ class NtrsNasaGovSearchCrawler(BaseCrawler):
             "original_filename": original_filename,
             "metadata": meta_dict,
         }
+
+
+    def _paper_from_result_with_source_dates(self, item):
+        """Opt-in audit provenance; identity and native date selection stay unchanged."""
+        paper = self._paper_from_result(item)
+        if paper is None:
+            return None
+        pubs = item.get("publications") or []
+        raw_publication = pubs[0].get("publicationDate") if pubs else None
+        # Hand the complete selected text to the shared date normalizer. Its
+        # *_raw/status/precision fields retain timestamps and partial dates.
+        paper["published_date"] = raw_publication if _parse_date(raw_publication) else item.get("submittedDate")
+        paper["posted_date"] = item.get("distributionDate") or item.get("submittedDate")
+        paper["metadata"]["source_dates"] = {
+            "publicationDate": raw_publication,
+            "submittedDate": item.get("submittedDate"),
+            "distributionDate": item.get("distributionDate"),
+            "created": item.get("created"),
+            "publications": pubs,
+            "published_date_selected_from": "publications[0].publicationDate" if _parse_date(raw_publication)
+                else "submittedDate",
+            "submittedDate_publication_semantics": "unconfirmed",
+        }
+        return paper

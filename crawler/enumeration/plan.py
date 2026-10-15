@@ -164,7 +164,13 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
         raw["listing"] = listing
     if raw["strategy"] == "date_range_split":
         seg = raw.get("segments") or {}
-        if seg.get("mode", "range") == "explicit":
+        if seg.get("mode") == "partition_tree":
+            from .partitions import validate_partition_tree
+            try:
+                validate_partition_tree(seg, raw["listing"], raw)
+            except ValueError as exc:
+                raise PlanError(f"{site_id}: {exc}") from None
+        elif seg.get("mode", "range") == "explicit":
             if not seg.get("items"):
                 raise PlanError(f"{site_id}: explicit segments require items")
         elif (seg.get("filter") or {}).get("type") != "query_prefix_range" and (
