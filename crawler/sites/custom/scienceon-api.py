@@ -384,6 +384,11 @@ class _ScienceOnCrawlerBase(BaseCrawler):
 # "pubyear" (many ties) lost 0-2.2%. Later sorts only run when the total is not reached.
     SORT_FIELDS = ("title", "pubyear", "jtitle", None)
     ROOTS: tuple[str, ...] = ()
+    # Roots that stay in ROOTS (so a stored cursor's root_index keeps its meaning) but are
+    # never read. Domestic skips NPAP: it holds 13.1M rows and every row sampled (about
+    # 2,900 across 44 prefixes) was CFFO, which only the foreign site stores, so reading it
+    # here cost about 10 days of requests for no saved rows.
+    SKIP_ROOTS: frozenset[str] = frozenset()
     ROOT_DBCODES: dict[str, frozenset[str] | None] = {}
     ALLOW_UNKNOWN_DBCODE = True
 
@@ -557,6 +562,13 @@ class _ScienceOnCrawlerBase(BaseCrawler):
 
         while root_index < len(self.ROOTS):
             root = self.ROOTS[root_index]
+            if root in self.SKIP_ROOTS:
+                root_index += 1
+                candidate = self.ROOTS[root_index] if root_index < len(self.ROOTS) else ""
+                self._advance_cursor(
+                    {"root_index": root_index, "prefix": candidate}, 0
+                )
+                continue
             if not candidate.startswith(root):
                 candidate = root
             terminal, total = self._terminal(root, candidate)
@@ -595,6 +607,8 @@ class _ScienceOnCrawlerBase(BaseCrawler):
         saved = 0
         for year in range(current_year, current_year - years, -1):
             for root in self.ROOTS:
+                if root in self.SKIP_ROOTS:
+                    continue
                 query = {"CN": root + "*", "PY": str(year)}
                 for page in range(1, pages + 1):
                     self._check_cancelled()
@@ -631,6 +645,7 @@ class ScienceOnDomesticCrawler(_ScienceOnCrawlerBase):
     site_name = "ScienceON 국내 논문"
     base_url = "https://apigateway.kisti.re.kr"
     ROOTS = ("JAKO", "DIKO", "NPAP", "ATN", "ART")
+    SKIP_ROOTS = frozenset({"NPAP"})
     ROOT_DBCODES = {
         "JAKO": frozenset({"JAKO"}),
         "DIKO": frozenset({"DIKO"}),

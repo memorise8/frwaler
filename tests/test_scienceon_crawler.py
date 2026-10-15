@@ -99,6 +99,30 @@ class ScienceOnCrawlerUnitTest(unittest.TestCase):
         self.assertEqual(crawler.delivery_cursor_items_done, 2)
         self.assertFalse(crawler.delivery_exhausted)
 
+    def test_skipped_root_is_passed_over_without_any_request(self):
+        class NoNpapClient:
+            def search(self, query, **kwargs):
+                assert not query["CN"].startswith("NPAP"), "NPAP must not be queried"
+                return 0, []
+
+            def iter_search(self, query, **kwargs):
+                assert not query["CN"].startswith("NPAP"), "NPAP must not be queried"
+                yield from ()
+
+        crawler = SCIENCEON.ScienceOnDomesticCrawler(None, client=NoNpapClient())
+        crawler.ROOTS = ("JAKO", "NPAP", "ATN")
+        crawler.SORT_FIELDS = (None,)
+        crawler.delivery_mode = "backfill"
+        crawler.delivery_cursor = {"root_index": 1, "prefix": "NPAP00415"}
+        self._capture(crawler)
+        crawler.crawl()
+        self.assertTrue(crawler.delivery_exhausted)
+
+    def test_domestic_skips_npap_and_foreign_does_not(self):
+        self.assertIn("NPAP", SCIENCEON.ScienceOnDomesticCrawler.SKIP_ROOTS)
+        self.assertIn("NPAP", SCIENCEON.ScienceOnForeignCrawler.ROOTS)
+        self.assertEqual(SCIENCEON.ScienceOnForeignCrawler.SKIP_ROOTS, frozenset())
+
     def test_incomplete_slice_fails_without_cursor_advance(self):
         class IncompleteClient:
             def search(self, query, **kwargs):
