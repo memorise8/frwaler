@@ -1,0 +1,2109 @@
+{
+  "version": 1,
+  "defaults": {
+    "request_interval_s": 1.5,
+    "max_requests": 50000,
+    "max_runtime_s": 345600,
+    "max_pages": null,
+    "retries": 3,
+    "item_max_attempts": 3,
+    "respect_robots": true
+  },
+  "sites": {
+    "ntrs-nasa-gov-search": {
+      "strategy": "date_range_split",
+      "base_url": "https://ntrs.nasa.gov",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_parse_search_results",
+        "list_args": [
+          "json"
+        ],
+        "paper_method": "_paper_from_result_with_source_dates",
+        "paper_args": [
+          {
+            "source": "item",
+            "path": [
+              "result"
+            ]
+          }
+        ]
+      },
+      "listing": {
+        "url": "https://ntrs.nasa.gov/api/citations/search",
+        "params": {
+          "page[size]": 100,
+          "sort[field]": "id",
+          "sort[order]": "asc"
+        },
+        "page_param": "page[from]",
+        "page_mode": "offset",
+        "page_size": 100,
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "key_field": "id",
+          "url_field": "url",
+          "date_field": "published_date",
+          "title_field": "title"
+        },
+        "total": {
+          "type": "json",
+          "path": "stats.total"
+        }
+      },
+      "segments": {
+        "mode": "partition_tree",
+        "server_verified": false,
+        "root": "all",
+        "nodes": [
+          {
+            "key": "all",
+            "params": {},
+            "children": [
+              "early",
+              "normal",
+              "created-residual"
+            ]
+          },
+          {
+            "key": "early",
+            "params": {
+              "created[lte]": "1899-12-31"
+            },
+            "evidence": "FINDINGS: reported 1; inclusive boundary semantics require confirmation"
+          },
+          {
+            "key": "normal",
+            "params": {
+              "created[gte]": "1900-01-01",
+              "created[lte]": "2099-12-31"
+            },
+            "children": [
+              "1900",
+              "1901",
+              "1902",
+              "1903",
+              "1904",
+              "1905",
+              "1906",
+              "1907",
+              "1908",
+              "1909",
+              "1910",
+              "1911",
+              "1912",
+              "1913",
+              "1914",
+              "1915",
+              "1916",
+              "1917",
+              "1918",
+              "1919",
+              "1920",
+              "1921",
+              "1922",
+              "1923",
+              "1924",
+              "1925",
+              "1926",
+              "1927",
+              "1928",
+              "1929",
+              "1930",
+              "1931",
+              "1932",
+              "1933",
+              "1934",
+              "1935",
+              "1936",
+              "1937",
+              "1938",
+              "1939",
+              "1940",
+              "1941",
+              "1942",
+              "1943",
+              "1944",
+              "1945",
+              "1946",
+              "1947",
+              "1948",
+              "1949",
+              "1950",
+              "1951",
+              "1952",
+              "1953",
+              "1954",
+              "1955",
+              "1956",
+              "1957",
+              "1958",
+              "1959",
+              "1960",
+              "1961",
+              "1962",
+              "1963",
+              "1964",
+              "1965",
+              "1966",
+              "1967",
+              "1968",
+              "1969",
+              "1970",
+              "1971",
+              "1972",
+              "1973",
+              "1974",
+              "1975",
+              "1976",
+              "1977",
+              "1978",
+              "1979",
+              "1980",
+              "1981",
+              "1982",
+              "1983",
+              "1984",
+              "1985",
+              "1986",
+              "1987",
+              "1988",
+              "1989",
+              "1990",
+              "1991",
+              "1992",
+              "1993",
+              "1994",
+              "1995",
+              "1996",
+              "1997",
+              "1998",
+              "1999",
+              "2000",
+              "2001",
+              "2002",
+              "2003",
+              "2004",
+              "2005",
+              "2006",
+              "2007",
+              "2008",
+              "2009",
+              "2010",
+              "2011",
+              "2012",
+              "2013",
+              "2014",
+              "2015",
+              "2016",
+              "2017",
+              "2018",
+              "2019",
+              "2020",
+              "2021",
+              "2022",
+              "2023",
+              "2024",
+              "2025",
+              "2026",
+              "2027",
+              "2028",
+              "2029",
+              "2030",
+              "2031",
+              "2032",
+              "2033",
+              "2034",
+              "2035",
+              "2036",
+              "2037",
+              "2038",
+              "2039",
+              "2040",
+              "2041",
+              "2042",
+              "2043",
+              "2044",
+              "2045",
+              "2046",
+              "2047",
+              "2048",
+              "2049",
+              "2050",
+              "2051",
+              "2052",
+              "2053",
+              "2054",
+              "2055",
+              "2056",
+              "2057",
+              "2058",
+              "2059",
+              "2060",
+              "2061",
+              "2062",
+              "2063",
+              "2064",
+              "2065",
+              "2066",
+              "2067",
+              "2068",
+              "2069",
+              "2070",
+              "2071",
+              "2072",
+              "2073",
+              "2074",
+              "2075",
+              "2076",
+              "2077",
+              "2078",
+              "2079",
+              "2080",
+              "2081",
+              "2082",
+              "2083",
+              "2084",
+              "2085",
+              "2086",
+              "2087",
+              "2088",
+              "2089",
+              "2090",
+              "2091",
+              "2092",
+              "2093",
+              "2094",
+              "2095",
+              "2096",
+              "2097",
+              "2098",
+              "2099"
+            ]
+          },
+          {
+            "key": "created-residual",
+            "params": null,
+            "human_check": "DO NOT EXECUTE: establish missing/empty/future semantics; remove only with exhaustive partition proof or replace whole tree with verified category partition"
+          },
+          {
+            "key": "1900",
+            "params": {
+              "created[gte]": "1900-01-01",
+              "created[lte]": "1900-12-31"
+            }
+          },
+          {
+            "key": "1901",
+            "params": {
+              "created[gte]": "1901-01-01",
+              "created[lte]": "1901-12-31"
+            }
+          },
+          {
+            "key": "1902",
+            "params": {
+              "created[gte]": "1902-01-01",
+              "created[lte]": "1902-12-31"
+            }
+          },
+          {
+            "key": "1903",
+            "params": {
+              "created[gte]": "1903-01-01",
+              "created[lte]": "1903-12-31"
+            }
+          },
+          {
+            "key": "1904",
+            "params": {
+              "created[gte]": "1904-01-01",
+              "created[lte]": "1904-12-31"
+            }
+          },
+          {
+            "key": "1905",
+            "params": {
+              "created[gte]": "1905-01-01",
+              "created[lte]": "1905-12-31"
+            }
+          },
+          {
+            "key": "1906",
+            "params": {
+              "created[gte]": "1906-01-01",
+              "created[lte]": "1906-12-31"
+            }
+          },
+          {
+            "key": "1907",
+            "params": {
+              "created[gte]": "1907-01-01",
+              "created[lte]": "1907-12-31"
+            }
+          },
+          {
+            "key": "1908",
+            "params": {
+              "created[gte]": "1908-01-01",
+              "created[lte]": "1908-12-31"
+            }
+          },
+          {
+            "key": "1909",
+            "params": {
+              "created[gte]": "1909-01-01",
+              "created[lte]": "1909-12-31"
+            }
+          },
+          {
+            "key": "1910",
+            "params": {
+              "created[gte]": "1910-01-01",
+              "created[lte]": "1910-12-31"
+            }
+          },
+          {
+            "key": "1911",
+            "params": {
+              "created[gte]": "1911-01-01",
+              "created[lte]": "1911-12-31"
+            }
+          },
+          {
+            "key": "1912",
+            "params": {
+              "created[gte]": "1912-01-01",
+              "created[lte]": "1912-12-31"
+            }
+          },
+          {
+            "key": "1913",
+            "params": {
+              "created[gte]": "1913-01-01",
+              "created[lte]": "1913-12-31"
+            }
+          },
+          {
+            "key": "1914",
+            "params": {
+              "created[gte]": "1914-01-01",
+              "created[lte]": "1914-12-31"
+            }
+          },
+          {
+            "key": "1915",
+            "params": {
+              "created[gte]": "1915-01-01",
+              "created[lte]": "1915-12-31"
+            }
+          },
+          {
+            "key": "1916",
+            "params": {
+              "created[gte]": "1916-01-01",
+              "created[lte]": "1916-12-31"
+            }
+          },
+          {
+            "key": "1917",
+            "params": {
+              "created[gte]": "1917-01-01",
+              "created[lte]": "1917-12-31"
+            }
+          },
+          {
+            "key": "1918",
+            "params": {
+              "created[gte]": "1918-01-01",
+              "created[lte]": "1918-12-31"
+            }
+          },
+          {
+            "key": "1919",
+            "params": {
+              "created[gte]": "1919-01-01",
+              "created[lte]": "1919-12-31"
+            }
+          },
+          {
+            "key": "1920",
+            "params": {
+              "created[gte]": "1920-01-01",
+              "created[lte]": "1920-12-31"
+            }
+          },
+          {
+            "key": "1921",
+            "params": {
+              "created[gte]": "1921-01-01",
+              "created[lte]": "1921-12-31"
+            }
+          },
+          {
+            "key": "1922",
+            "params": {
+              "created[gte]": "1922-01-01",
+              "created[lte]": "1922-12-31"
+            }
+          },
+          {
+            "key": "1923",
+            "params": {
+              "created[gte]": "1923-01-01",
+              "created[lte]": "1923-12-31"
+            }
+          },
+          {
+            "key": "1924",
+            "params": {
+              "created[gte]": "1924-01-01",
+              "created[lte]": "1924-12-31"
+            }
+          },
+          {
+            "key": "1925",
+            "params": {
+              "created[gte]": "1925-01-01",
+              "created[lte]": "1925-12-31"
+            }
+          },
+          {
+            "key": "1926",
+            "params": {
+              "created[gte]": "1926-01-01",
+              "created[lte]": "1926-12-31"
+            }
+          },
+          {
+            "key": "1927",
+            "params": {
+              "created[gte]": "1927-01-01",
+              "created[lte]": "1927-12-31"
+            }
+          },
+          {
+            "key": "1928",
+            "params": {
+              "created[gte]": "1928-01-01",
+              "created[lte]": "1928-12-31"
+            }
+          },
+          {
+            "key": "1929",
+            "params": {
+              "created[gte]": "1929-01-01",
+              "created[lte]": "1929-12-31"
+            }
+          },
+          {
+            "key": "1930",
+            "params": {
+              "created[gte]": "1930-01-01",
+              "created[lte]": "1930-12-31"
+            }
+          },
+          {
+            "key": "1931",
+            "params": {
+              "created[gte]": "1931-01-01",
+              "created[lte]": "1931-12-31"
+            }
+          },
+          {
+            "key": "1932",
+            "params": {
+              "created[gte]": "1932-01-01",
+              "created[lte]": "1932-12-31"
+            }
+          },
+          {
+            "key": "1933",
+            "params": {
+              "created[gte]": "1933-01-01",
+              "created[lte]": "1933-12-31"
+            }
+          },
+          {
+            "key": "1934",
+            "params": {
+              "created[gte]": "1934-01-01",
+              "created[lte]": "1934-12-31"
+            }
+          },
+          {
+            "key": "1935",
+            "params": {
+              "created[gte]": "1935-01-01",
+              "created[lte]": "1935-12-31"
+            }
+          },
+          {
+            "key": "1936",
+            "params": {
+              "created[gte]": "1936-01-01",
+              "created[lte]": "1936-12-31"
+            }
+          },
+          {
+            "key": "1937",
+            "params": {
+              "created[gte]": "1937-01-01",
+              "created[lte]": "1937-12-31"
+            }
+          },
+          {
+            "key": "1938",
+            "params": {
+              "created[gte]": "1938-01-01",
+              "created[lte]": "1938-12-31"
+            }
+          },
+          {
+            "key": "1939",
+            "params": {
+              "created[gte]": "1939-01-01",
+              "created[lte]": "1939-12-31"
+            }
+          },
+          {
+            "key": "1940",
+            "params": {
+              "created[gte]": "1940-01-01",
+              "created[lte]": "1940-12-31"
+            }
+          },
+          {
+            "key": "1941",
+            "params": {
+              "created[gte]": "1941-01-01",
+              "created[lte]": "1941-12-31"
+            }
+          },
+          {
+            "key": "1942",
+            "params": {
+              "created[gte]": "1942-01-01",
+              "created[lte]": "1942-12-31"
+            }
+          },
+          {
+            "key": "1943",
+            "params": {
+              "created[gte]": "1943-01-01",
+              "created[lte]": "1943-12-31"
+            }
+          },
+          {
+            "key": "1944",
+            "params": {
+              "created[gte]": "1944-01-01",
+              "created[lte]": "1944-12-31"
+            }
+          },
+          {
+            "key": "1945",
+            "params": {
+              "created[gte]": "1945-01-01",
+              "created[lte]": "1945-12-31"
+            }
+          },
+          {
+            "key": "1946",
+            "params": {
+              "created[gte]": "1946-01-01",
+              "created[lte]": "1946-12-31"
+            }
+          },
+          {
+            "key": "1947",
+            "params": {
+              "created[gte]": "1947-01-01",
+              "created[lte]": "1947-12-31"
+            }
+          },
+          {
+            "key": "1948",
+            "params": {
+              "created[gte]": "1948-01-01",
+              "created[lte]": "1948-12-31"
+            }
+          },
+          {
+            "key": "1949",
+            "params": {
+              "created[gte]": "1949-01-01",
+              "created[lte]": "1949-12-31"
+            }
+          },
+          {
+            "key": "1950",
+            "params": {
+              "created[gte]": "1950-01-01",
+              "created[lte]": "1950-12-31"
+            }
+          },
+          {
+            "key": "1951",
+            "params": {
+              "created[gte]": "1951-01-01",
+              "created[lte]": "1951-12-31"
+            }
+          },
+          {
+            "key": "1952",
+            "params": {
+              "created[gte]": "1952-01-01",
+              "created[lte]": "1952-12-31"
+            }
+          },
+          {
+            "key": "1953",
+            "params": {
+              "created[gte]": "1953-01-01",
+              "created[lte]": "1953-12-31"
+            }
+          },
+          {
+            "key": "1954",
+            "params": {
+              "created[gte]": "1954-01-01",
+              "created[lte]": "1954-12-31"
+            }
+          },
+          {
+            "key": "1955",
+            "params": {
+              "created[gte]": "1955-01-01",
+              "created[lte]": "1955-12-31"
+            }
+          },
+          {
+            "key": "1956",
+            "params": {
+              "created[gte]": "1956-01-01",
+              "created[lte]": "1956-12-31"
+            }
+          },
+          {
+            "key": "1957",
+            "params": {
+              "created[gte]": "1957-01-01",
+              "created[lte]": "1957-12-31"
+            }
+          },
+          {
+            "key": "1958",
+            "params": {
+              "created[gte]": "1958-01-01",
+              "created[lte]": "1958-12-31"
+            }
+          },
+          {
+            "key": "1959",
+            "params": {
+              "created[gte]": "1959-01-01",
+              "created[lte]": "1959-12-31"
+            }
+          },
+          {
+            "key": "1960",
+            "params": {
+              "created[gte]": "1960-01-01",
+              "created[lte]": "1960-12-31"
+            }
+          },
+          {
+            "key": "1961",
+            "params": {
+              "created[gte]": "1961-01-01",
+              "created[lte]": "1961-12-31"
+            }
+          },
+          {
+            "key": "1962",
+            "params": {
+              "created[gte]": "1962-01-01",
+              "created[lte]": "1962-12-31"
+            }
+          },
+          {
+            "key": "1963",
+            "params": {
+              "created[gte]": "1963-01-01",
+              "created[lte]": "1963-12-31"
+            }
+          },
+          {
+            "key": "1964",
+            "params": {
+              "created[gte]": "1964-01-01",
+              "created[lte]": "1964-12-31"
+            }
+          },
+          {
+            "key": "1965",
+            "params": {
+              "created[gte]": "1965-01-01",
+              "created[lte]": "1965-12-31"
+            }
+          },
+          {
+            "key": "1966",
+            "params": {
+              "created[gte]": "1966-01-01",
+              "created[lte]": "1966-12-31"
+            }
+          },
+          {
+            "key": "1967",
+            "params": {
+              "created[gte]": "1967-01-01",
+              "created[lte]": "1967-12-31"
+            }
+          },
+          {
+            "key": "1968",
+            "params": {
+              "created[gte]": "1968-01-01",
+              "created[lte]": "1968-12-31"
+            }
+          },
+          {
+            "key": "1969",
+            "params": {
+              "created[gte]": "1969-01-01",
+              "created[lte]": "1969-12-31"
+            }
+          },
+          {
+            "key": "1970",
+            "params": {
+              "created[gte]": "1970-01-01",
+              "created[lte]": "1970-12-31"
+            }
+          },
+          {
+            "key": "1971",
+            "params": {
+              "created[gte]": "1971-01-01",
+              "created[lte]": "1971-12-31"
+            }
+          },
+          {
+            "key": "1972",
+            "params": {
+              "created[gte]": "1972-01-01",
+              "created[lte]": "1972-12-31"
+            }
+          },
+          {
+            "key": "1973",
+            "params": {
+              "created[gte]": "1973-01-01",
+              "created[lte]": "1973-12-31"
+            }
+          },
+          {
+            "key": "1974",
+            "params": {
+              "created[gte]": "1974-01-01",
+              "created[lte]": "1974-12-31"
+            }
+          },
+          {
+            "key": "1975",
+            "params": {
+              "created[gte]": "1975-01-01",
+              "created[lte]": "1975-12-31"
+            }
+          },
+          {
+            "key": "1976",
+            "params": {
+              "created[gte]": "1976-01-01",
+              "created[lte]": "1976-12-31"
+            }
+          },
+          {
+            "key": "1977",
+            "params": {
+              "created[gte]": "1977-01-01",
+              "created[lte]": "1977-12-31"
+            }
+          },
+          {
+            "key": "1978",
+            "params": {
+              "created[gte]": "1978-01-01",
+              "created[lte]": "1978-12-31"
+            }
+          },
+          {
+            "key": "1979",
+            "params": {
+              "created[gte]": "1979-01-01",
+              "created[lte]": "1979-12-31"
+            }
+          },
+          {
+            "key": "1980",
+            "params": {
+              "created[gte]": "1980-01-01",
+              "created[lte]": "1980-12-31"
+            }
+          },
+          {
+            "key": "1981",
+            "params": {
+              "created[gte]": "1981-01-01",
+              "created[lte]": "1981-12-31"
+            }
+          },
+          {
+            "key": "1982",
+            "params": {
+              "created[gte]": "1982-01-01",
+              "created[lte]": "1982-12-31"
+            }
+          },
+          {
+            "key": "1983",
+            "params": {
+              "created[gte]": "1983-01-01",
+              "created[lte]": "1983-12-31"
+            }
+          },
+          {
+            "key": "1984",
+            "params": {
+              "created[gte]": "1984-01-01",
+              "created[lte]": "1984-12-31"
+            }
+          },
+          {
+            "key": "1985",
+            "params": {
+              "created[gte]": "1985-01-01",
+              "created[lte]": "1985-12-31"
+            }
+          },
+          {
+            "key": "1986",
+            "params": {
+              "created[gte]": "1986-01-01",
+              "created[lte]": "1986-12-31"
+            }
+          },
+          {
+            "key": "1987",
+            "params": {
+              "created[gte]": "1987-01-01",
+              "created[lte]": "1987-12-31"
+            }
+          },
+          {
+            "key": "1988",
+            "params": {
+              "created[gte]": "1988-01-01",
+              "created[lte]": "1988-12-31"
+            }
+          },
+          {
+            "key": "1989",
+            "params": {
+              "created[gte]": "1989-01-01",
+              "created[lte]": "1989-12-31"
+            }
+          },
+          {
+            "key": "1990",
+            "params": {
+              "created[gte]": "1990-01-01",
+              "created[lte]": "1990-12-31"
+            }
+          },
+          {
+            "key": "1991",
+            "params": {
+              "created[gte]": "1991-01-01",
+              "created[lte]": "1991-12-31"
+            }
+          },
+          {
+            "key": "1992",
+            "params": {
+              "created[gte]": "1992-01-01",
+              "created[lte]": "1992-12-31"
+            }
+          },
+          {
+            "key": "1993",
+            "params": {
+              "created[gte]": "1993-01-01",
+              "created[lte]": "1993-12-31"
+            }
+          },
+          {
+            "key": "1994",
+            "params": {
+              "created[gte]": "1994-01-01",
+              "created[lte]": "1994-12-31"
+            }
+          },
+          {
+            "key": "1995",
+            "params": {
+              "created[gte]": "1995-01-01",
+              "created[lte]": "1995-12-31"
+            }
+          },
+          {
+            "key": "1996",
+            "params": {
+              "created[gte]": "1996-01-01",
+              "created[lte]": "1996-12-31"
+            }
+          },
+          {
+            "key": "1997",
+            "params": {
+              "created[gte]": "1997-01-01",
+              "created[lte]": "1997-12-31"
+            }
+          },
+          {
+            "key": "1998",
+            "params": {
+              "created[gte]": "1998-01-01",
+              "created[lte]": "1998-12-31"
+            }
+          },
+          {
+            "key": "1999",
+            "params": {
+              "created[gte]": "1999-01-01",
+              "created[lte]": "1999-12-31"
+            }
+          },
+          {
+            "key": "2000",
+            "params": {
+              "created[gte]": "2000-01-01",
+              "created[lte]": "2000-12-31"
+            }
+          },
+          {
+            "key": "2001",
+            "params": {
+              "created[gte]": "2001-01-01",
+              "created[lte]": "2001-12-31"
+            }
+          },
+          {
+            "key": "2002",
+            "params": {
+              "created[gte]": "2002-01-01",
+              "created[lte]": "2002-12-31"
+            }
+          },
+          {
+            "key": "2003",
+            "params": {
+              "created[gte]": "2003-01-01",
+              "created[lte]": "2003-12-31"
+            }
+          },
+          {
+            "key": "2004",
+            "params": {
+              "created[gte]": "2004-01-01",
+              "created[lte]": "2004-12-31"
+            }
+          },
+          {
+            "key": "2005",
+            "params": {
+              "created[gte]": "2005-01-01",
+              "created[lte]": "2005-12-31"
+            }
+          },
+          {
+            "key": "2006",
+            "params": {
+              "created[gte]": "2006-01-01",
+              "created[lte]": "2006-12-31"
+            }
+          },
+          {
+            "key": "2007",
+            "params": {
+              "created[gte]": "2007-01-01",
+              "created[lte]": "2007-12-31"
+            }
+          },
+          {
+            "key": "2008",
+            "params": {
+              "created[gte]": "2008-01-01",
+              "created[lte]": "2008-12-31"
+            }
+          },
+          {
+            "key": "2009",
+            "params": {
+              "created[gte]": "2009-01-01",
+              "created[lte]": "2009-12-31"
+            }
+          },
+          {
+            "key": "2010",
+            "params": {
+              "created[gte]": "2010-01-01",
+              "created[lte]": "2010-12-31"
+            }
+          },
+          {
+            "key": "2011",
+            "params": {
+              "created[gte]": "2011-01-01",
+              "created[lte]": "2011-12-31"
+            }
+          },
+          {
+            "key": "2012",
+            "params": {
+              "created[gte]": "2012-01-01",
+              "created[lte]": "2012-12-31"
+            }
+          },
+          {
+            "key": "2013",
+            "params": {
+              "created[gte]": "2013-01-01",
+              "created[lte]": "2013-12-31"
+            }
+          },
+          {
+            "key": "2014",
+            "params": {
+              "created[gte]": "2014-01-01",
+              "created[lte]": "2014-12-31"
+            }
+          },
+          {
+            "key": "2015",
+            "params": {
+              "created[gte]": "2015-01-01",
+              "created[lte]": "2015-12-31"
+            }
+          },
+          {
+            "key": "2016",
+            "params": {
+              "created[gte]": "2016-01-01",
+              "created[lte]": "2016-12-31"
+            }
+          },
+          {
+            "key": "2017",
+            "params": {
+              "created[gte]": "2017-01-01",
+              "created[lte]": "2017-12-31"
+            }
+          },
+          {
+            "key": "2018",
+            "params": {
+              "created[gte]": "2018-01-01",
+              "created[lte]": "2018-12-31"
+            }
+          },
+          {
+            "key": "2019",
+            "params": {
+              "created[gte]": "2019-01-01",
+              "created[lte]": "2019-12-31"
+            }
+          },
+          {
+            "key": "2020",
+            "params": {
+              "created[gte]": "2020-01-01",
+              "created[lte]": "2020-12-31"
+            }
+          },
+          {
+            "key": "2021",
+            "params": {
+              "created[gte]": "2021-01-01",
+              "created[lte]": "2021-12-31"
+            }
+          },
+          {
+            "key": "2022",
+            "params": {
+              "created[gte]": "2022-01-01",
+              "created[lte]": "2022-12-31"
+            }
+          },
+          {
+            "key": "2023",
+            "params": {
+              "created[gte]": "2023-01-01",
+              "created[lte]": "2023-12-31"
+            }
+          },
+          {
+            "key": "2024",
+            "params": {
+              "created[gte]": "2024-01-01",
+              "created[lte]": "2024-12-31"
+            }
+          },
+          {
+            "key": "2025",
+            "params": {
+              "created[gte]": "2025-01-01",
+              "created[lte]": "2025-12-31"
+            }
+          },
+          {
+            "key": "2026",
+            "params": {
+              "created[gte]": "2026-01-01",
+              "created[lte]": "2026-12-31"
+            },
+            "children": [
+              "2026-01",
+              "2026-02",
+              "2026-03",
+              "2026-04",
+              "2026-05",
+              "2026-06",
+              "2026-07",
+              "2026-08",
+              "2026-09",
+              "2026-10",
+              "2026-11",
+              "2026-12"
+            ]
+          },
+          {
+            "key": "2027",
+            "params": {
+              "created[gte]": "2027-01-01",
+              "created[lte]": "2027-12-31"
+            }
+          },
+          {
+            "key": "2028",
+            "params": {
+              "created[gte]": "2028-01-01",
+              "created[lte]": "2028-12-31"
+            }
+          },
+          {
+            "key": "2029",
+            "params": {
+              "created[gte]": "2029-01-01",
+              "created[lte]": "2029-12-31"
+            }
+          },
+          {
+            "key": "2030",
+            "params": {
+              "created[gte]": "2030-01-01",
+              "created[lte]": "2030-12-31"
+            }
+          },
+          {
+            "key": "2031",
+            "params": {
+              "created[gte]": "2031-01-01",
+              "created[lte]": "2031-12-31"
+            }
+          },
+          {
+            "key": "2032",
+            "params": {
+              "created[gte]": "2032-01-01",
+              "created[lte]": "2032-12-31"
+            }
+          },
+          {
+            "key": "2033",
+            "params": {
+              "created[gte]": "2033-01-01",
+              "created[lte]": "2033-12-31"
+            }
+          },
+          {
+            "key": "2034",
+            "params": {
+              "created[gte]": "2034-01-01",
+              "created[lte]": "2034-12-31"
+            }
+          },
+          {
+            "key": "2035",
+            "params": {
+              "created[gte]": "2035-01-01",
+              "created[lte]": "2035-12-31"
+            }
+          },
+          {
+            "key": "2036",
+            "params": {
+              "created[gte]": "2036-01-01",
+              "created[lte]": "2036-12-31"
+            }
+          },
+          {
+            "key": "2037",
+            "params": {
+              "created[gte]": "2037-01-01",
+              "created[lte]": "2037-12-31"
+            }
+          },
+          {
+            "key": "2038",
+            "params": {
+              "created[gte]": "2038-01-01",
+              "created[lte]": "2038-12-31"
+            }
+          },
+          {
+            "key": "2039",
+            "params": {
+              "created[gte]": "2039-01-01",
+              "created[lte]": "2039-12-31"
+            }
+          },
+          {
+            "key": "2040",
+            "params": {
+              "created[gte]": "2040-01-01",
+              "created[lte]": "2040-12-31"
+            }
+          },
+          {
+            "key": "2041",
+            "params": {
+              "created[gte]": "2041-01-01",
+              "created[lte]": "2041-12-31"
+            }
+          },
+          {
+            "key": "2042",
+            "params": {
+              "created[gte]": "2042-01-01",
+              "created[lte]": "2042-12-31"
+            }
+          },
+          {
+            "key": "2043",
+            "params": {
+              "created[gte]": "2043-01-01",
+              "created[lte]": "2043-12-31"
+            }
+          },
+          {
+            "key": "2044",
+            "params": {
+              "created[gte]": "2044-01-01",
+              "created[lte]": "2044-12-31"
+            }
+          },
+          {
+            "key": "2045",
+            "params": {
+              "created[gte]": "2045-01-01",
+              "created[lte]": "2045-12-31"
+            }
+          },
+          {
+            "key": "2046",
+            "params": {
+              "created[gte]": "2046-01-01",
+              "created[lte]": "2046-12-31"
+            }
+          },
+          {
+            "key": "2047",
+            "params": {
+              "created[gte]": "2047-01-01",
+              "created[lte]": "2047-12-31"
+            }
+          },
+          {
+            "key": "2048",
+            "params": {
+              "created[gte]": "2048-01-01",
+              "created[lte]": "2048-12-31"
+            }
+          },
+          {
+            "key": "2049",
+            "params": {
+              "created[gte]": "2049-01-01",
+              "created[lte]": "2049-12-31"
+            }
+          },
+          {
+            "key": "2050",
+            "params": {
+              "created[gte]": "2050-01-01",
+              "created[lte]": "2050-12-31"
+            }
+          },
+          {
+            "key": "2051",
+            "params": {
+              "created[gte]": "2051-01-01",
+              "created[lte]": "2051-12-31"
+            }
+          },
+          {
+            "key": "2052",
+            "params": {
+              "created[gte]": "2052-01-01",
+              "created[lte]": "2052-12-31"
+            }
+          },
+          {
+            "key": "2053",
+            "params": {
+              "created[gte]": "2053-01-01",
+              "created[lte]": "2053-12-31"
+            }
+          },
+          {
+            "key": "2054",
+            "params": {
+              "created[gte]": "2054-01-01",
+              "created[lte]": "2054-12-31"
+            }
+          },
+          {
+            "key": "2055",
+            "params": {
+              "created[gte]": "2055-01-01",
+              "created[lte]": "2055-12-31"
+            }
+          },
+          {
+            "key": "2056",
+            "params": {
+              "created[gte]": "2056-01-01",
+              "created[lte]": "2056-12-31"
+            }
+          },
+          {
+            "key": "2057",
+            "params": {
+              "created[gte]": "2057-01-01",
+              "created[lte]": "2057-12-31"
+            }
+          },
+          {
+            "key": "2058",
+            "params": {
+              "created[gte]": "2058-01-01",
+              "created[lte]": "2058-12-31"
+            }
+          },
+          {
+            "key": "2059",
+            "params": {
+              "created[gte]": "2059-01-01",
+              "created[lte]": "2059-12-31"
+            }
+          },
+          {
+            "key": "2060",
+            "params": {
+              "created[gte]": "2060-01-01",
+              "created[lte]": "2060-12-31"
+            }
+          },
+          {
+            "key": "2061",
+            "params": {
+              "created[gte]": "2061-01-01",
+              "created[lte]": "2061-12-31"
+            }
+          },
+          {
+            "key": "2062",
+            "params": {
+              "created[gte]": "2062-01-01",
+              "created[lte]": "2062-12-31"
+            }
+          },
+          {
+            "key": "2063",
+            "params": {
+              "created[gte]": "2063-01-01",
+              "created[lte]": "2063-12-31"
+            }
+          },
+          {
+            "key": "2064",
+            "params": {
+              "created[gte]": "2064-01-01",
+              "created[lte]": "2064-12-31"
+            }
+          },
+          {
+            "key": "2065",
+            "params": {
+              "created[gte]": "2065-01-01",
+              "created[lte]": "2065-12-31"
+            }
+          },
+          {
+            "key": "2066",
+            "params": {
+              "created[gte]": "2066-01-01",
+              "created[lte]": "2066-12-31"
+            }
+          },
+          {
+            "key": "2067",
+            "params": {
+              "created[gte]": "2067-01-01",
+              "created[lte]": "2067-12-31"
+            }
+          },
+          {
+            "key": "2068",
+            "params": {
+              "created[gte]": "2068-01-01",
+              "created[lte]": "2068-12-31"
+            }
+          },
+          {
+            "key": "2069",
+            "params": {
+              "created[gte]": "2069-01-01",
+              "created[lte]": "2069-12-31"
+            }
+          },
+          {
+            "key": "2070",
+            "params": {
+              "created[gte]": "2070-01-01",
+              "created[lte]": "2070-12-31"
+            }
+          },
+          {
+            "key": "2071",
+            "params": {
+              "created[gte]": "2071-01-01",
+              "created[lte]": "2071-12-31"
+            }
+          },
+          {
+            "key": "2072",
+            "params": {
+              "created[gte]": "2072-01-01",
+              "created[lte]": "2072-12-31"
+            }
+          },
+          {
+            "key": "2073",
+            "params": {
+              "created[gte]": "2073-01-01",
+              "created[lte]": "2073-12-31"
+            }
+          },
+          {
+            "key": "2074",
+            "params": {
+              "created[gte]": "2074-01-01",
+              "created[lte]": "2074-12-31"
+            }
+          },
+          {
+            "key": "2075",
+            "params": {
+              "created[gte]": "2075-01-01",
+              "created[lte]": "2075-12-31"
+            }
+          },
+          {
+            "key": "2076",
+            "params": {
+              "created[gte]": "2076-01-01",
+              "created[lte]": "2076-12-31"
+            }
+          },
+          {
+            "key": "2077",
+            "params": {
+              "created[gte]": "2077-01-01",
+              "created[lte]": "2077-12-31"
+            }
+          },
+          {
+            "key": "2078",
+            "params": {
+              "created[gte]": "2078-01-01",
+              "created[lte]": "2078-12-31"
+            }
+          },
+          {
+            "key": "2079",
+            "params": {
+              "created[gte]": "2079-01-01",
+              "created[lte]": "2079-12-31"
+            }
+          },
+          {
+            "key": "2080",
+            "params": {
+              "created[gte]": "2080-01-01",
+              "created[lte]": "2080-12-31"
+            }
+          },
+          {
+            "key": "2081",
+            "params": {
+              "created[gte]": "2081-01-01",
+              "created[lte]": "2081-12-31"
+            }
+          },
+          {
+            "key": "2082",
+            "params": {
+              "created[gte]": "2082-01-01",
+              "created[lte]": "2082-12-31"
+            }
+          },
+          {
+            "key": "2083",
+            "params": {
+              "created[gte]": "2083-01-01",
+              "created[lte]": "2083-12-31"
+            }
+          },
+          {
+            "key": "2084",
+            "params": {
+              "created[gte]": "2084-01-01",
+              "created[lte]": "2084-12-31"
+            }
+          },
+          {
+            "key": "2085",
+            "params": {
+              "created[gte]": "2085-01-01",
+              "created[lte]": "2085-12-31"
+            }
+          },
+          {
+            "key": "2086",
+            "params": {
+              "created[gte]": "2086-01-01",
+              "created[lte]": "2086-12-31"
+            }
+          },
+          {
+            "key": "2087",
+            "params": {
+              "created[gte]": "2087-01-01",
+              "created[lte]": "2087-12-31"
+            }
+          },
+          {
+            "key": "2088",
+            "params": {
+              "created[gte]": "2088-01-01",
+              "created[lte]": "2088-12-31"
+            }
+          },
+          {
+            "key": "2089",
+            "params": {
+              "created[gte]": "2089-01-01",
+              "created[lte]": "2089-12-31"
+            }
+          },
+          {
+            "key": "2090",
+            "params": {
+              "created[gte]": "2090-01-01",
+              "created[lte]": "2090-12-31"
+            }
+          },
+          {
+            "key": "2091",
+            "params": {
+              "created[gte]": "2091-01-01",
+              "created[lte]": "2091-12-31"
+            }
+          },
+          {
+            "key": "2092",
+            "params": {
+              "created[gte]": "2092-01-01",
+              "created[lte]": "2092-12-31"
+            }
+          },
+          {
+            "key": "2093",
+            "params": {
+              "created[gte]": "2093-01-01",
+              "created[lte]": "2093-12-31"
+            }
+          },
+          {
+            "key": "2094",
+            "params": {
+              "created[gte]": "2094-01-01",
+              "created[lte]": "2094-12-31"
+            }
+          },
+          {
+            "key": "2095",
+            "params": {
+              "created[gte]": "2095-01-01",
+              "created[lte]": "2095-12-31"
+            }
+          },
+          {
+            "key": "2096",
+            "params": {
+              "created[gte]": "2096-01-01",
+              "created[lte]": "2096-12-31"
+            }
+          },
+          {
+            "key": "2097",
+            "params": {
+              "created[gte]": "2097-01-01",
+              "created[lte]": "2097-12-31"
+            }
+          },
+          {
+            "key": "2098",
+            "params": {
+              "created[gte]": "2098-01-01",
+              "created[lte]": "2098-12-31"
+            }
+          },
+          {
+            "key": "2099",
+            "params": {
+              "created[gte]": "2099-01-01",
+              "created[lte]": "2099-12-31"
+            }
+          },
+          {
+            "key": "2026-01",
+            "params": {
+              "created[gte]": "2026-01-01",
+              "created[lte]": "2026-01-31"
+            }
+          },
+          {
+            "key": "2026-02",
+            "params": {
+              "created[gte]": "2026-02-01",
+              "created[lte]": "2026-02-28"
+            }
+          },
+          {
+            "key": "2026-03",
+            "params": {
+              "created[gte]": "2026-03-01",
+              "created[lte]": "2026-03-31"
+            }
+          },
+          {
+            "key": "2026-04",
+            "params": {
+              "created[gte]": "2026-04-01",
+              "created[lte]": "2026-04-30"
+            }
+          },
+          {
+            "key": "2026-05",
+            "params": {
+              "created[gte]": "2026-05-01",
+              "created[lte]": "2026-05-31"
+            }
+          },
+          {
+            "key": "2026-06",
+            "params": {
+              "created[gte]": "2026-06-01",
+              "created[lte]": "2026-06-30"
+            }
+          },
+          {
+            "key": "2026-07",
+            "params": {
+              "created[gte]": "2026-07-01",
+              "created[lte]": "2026-07-31"
+            }
+          },
+          {
+            "key": "2026-08",
+            "params": {
+              "created[gte]": "2026-08-01",
+              "created[lte]": "2026-08-31"
+            }
+          },
+          {
+            "key": "2026-09",
+            "params": {
+              "created[gte]": "2026-09-01",
+              "created[lte]": "2026-09-30"
+            }
+          },
+          {
+            "key": "2026-10",
+            "params": {
+              "created[gte]": "2026-10-01",
+              "created[lte]": "2026-10-31"
+            },
+            "children": [
+              "2026-10-01",
+              "2026-10-02",
+              "2026-10-03",
+              "2026-10-04",
+              "2026-10-05",
+              "2026-10-06",
+              "2026-10-07",
+              "2026-10-08",
+              "2026-10-09",
+              "2026-10-10",
+              "2026-10-11",
+              "2026-10-12",
+              "2026-10-13",
+              "2026-10-14",
+              "2026-10-15",
+              "2026-10-16",
+              "2026-10-17",
+              "2026-10-18",
+              "2026-10-19",
+              "2026-10-20",
+              "2026-10-21",
+              "2026-10-22",
+              "2026-10-23",
+              "2026-10-24",
+              "2026-10-25",
+              "2026-10-26",
+              "2026-10-27",
+              "2026-10-28",
+              "2026-10-29",
+              "2026-10-30",
+              "2026-10-31"
+            ]
+          },
+          {
+            "key": "2026-11",
+            "params": {
+              "created[gte]": "2026-11-01",
+              "created[lte]": "2026-11-30"
+            }
+          },
+          {
+            "key": "2026-12",
+            "params": {
+              "created[gte]": "2026-12-01",
+              "created[lte]": "2026-12-31"
+            }
+          },
+          {
+            "key": "2026-10-01",
+            "params": {
+              "created[gte]": "2026-10-01",
+              "created[lte]": "2026-10-01"
+            }
+          },
+          {
+            "key": "2026-10-02",
+            "params": {
+              "created[gte]": "2026-10-02",
+              "created[lte]": "2026-10-02"
+            }
+          },
+          {
+            "key": "2026-10-03",
+            "params": {
+              "created[gte]": "2026-10-03",
+              "created[lte]": "2026-10-03"
+            }
+          },
+          {
+            "key": "2026-10-04",
+            "params": {
+              "created[gte]": "2026-10-04",
+              "created[lte]": "2026-10-04"
+            }
+          },
+          {
+            "key": "2026-10-05",
+            "params": {
+              "created[gte]": "2026-10-05",
+              "created[lte]": "2026-10-05"
+            }
+          },
+          {
+            "key": "2026-10-06",
+            "params": {
+              "created[gte]": "2026-10-06",
+              "created[lte]": "2026-10-06"
+            }
+          },
+          {
+            "key": "2026-10-07",
+            "params": {
+              "created[gte]": "2026-10-07",
+              "created[lte]": "2026-10-07"
+            }
+          },
+          {
+            "key": "2026-10-08",
+            "params": {
+              "created[gte]": "2026-10-08",
+              "created[lte]": "2026-10-08"
+            }
+          },
+          {
+            "key": "2026-10-09",
+            "params": {
+              "created[gte]": "2026-10-09",
+              "created[lte]": "2026-10-09"
+            }
+          },
+          {
+            "key": "2026-10-10",
+            "params": {
+              "created[gte]": "2026-10-10",
+              "created[lte]": "2026-10-10"
+            }
+          },
+          {
+            "key": "2026-10-11",
+            "params": {
+              "created[gte]": "2026-10-11",
+              "created[lte]": "2026-10-11"
+            }
+          },
+          {
+            "key": "2026-10-12",
+            "params": {
+              "created[gte]": "2026-10-12",
+              "created[lte]": "2026-10-12"
+            },
+            "children": [
+              "2026-10-12/CONFERENCE_PAPER",
+              "2026-10-12/REPRINT",
+              "2026-10-12/OTHER",
+              "2026-10-12/CONTRACTOR_REPORT",
+              "2026-10-12/PRESENTATION",
+              "2026-10-12/UNRESOLVED"
+            ]
+          },
+          {
+            "key": "2026-10-13",
+            "params": {
+              "created[gte]": "2026-10-13",
+              "created[lte]": "2026-10-13"
+            }
+          },
+          {
+            "key": "2026-10-14",
+            "params": {
+              "created[gte]": "2026-10-14",
+              "created[lte]": "2026-10-14"
+            }
+          },
+          {
+            "key": "2026-10-15",
+            "params": {
+              "created[gte]": "2026-10-15",
+              "created[lte]": "2026-10-15"
+            }
+          },
+          {
+            "key": "2026-10-16",
+            "params": {
+              "created[gte]": "2026-10-16",
+              "created[lte]": "2026-10-16"
+            }
+          },
+          {
+            "key": "2026-10-17",
+            "params": {
+              "created[gte]": "2026-10-17",
+              "created[lte]": "2026-10-17"
+            }
+          },
+          {
+            "key": "2026-10-18",
+            "params": {
+              "created[gte]": "2026-10-18",
+              "created[lte]": "2026-10-18"
+            }
+          },
+          {
+            "key": "2026-10-19",
+            "params": {
+              "created[gte]": "2026-10-19",
+              "created[lte]": "2026-10-19"
+            }
+          },
+          {
+            "key": "2026-10-20",
+            "params": {
+              "created[gte]": "2026-10-20",
+              "created[lte]": "2026-10-20"
+            }
+          },
+          {
+            "key": "2026-10-21",
+            "params": {
+              "created[gte]": "2026-10-21",
+              "created[lte]": "2026-10-21"
+            }
+          },
+          {
+            "key": "2026-10-22",
+            "params": {
+              "created[gte]": "2026-10-22",
+              "created[lte]": "2026-10-22"
+            }
+          },
+          {
+            "key": "2026-10-23",
+            "params": {
+              "created[gte]": "2026-10-23",
+              "created[lte]": "2026-10-23"
+            }
+          },
+          {
+            "key": "2026-10-24",
+            "params": {
+              "created[gte]": "2026-10-24",
+              "created[lte]": "2026-10-24"
+            }
+          },
+          {
+            "key": "2026-10-25",
+            "params": {
+              "created[gte]": "2026-10-25",
+              "created[lte]": "2026-10-25"
+            }
+          },
+          {
+            "key": "2026-10-26",
+            "params": {
+              "created[gte]": "2026-10-26",
+              "created[lte]": "2026-10-26"
+            }
+          },
+          {
+            "key": "2026-10-27",
+            "params": {
+              "created[gte]": "2026-10-27",
+              "created[lte]": "2026-10-27"
+            }
+          },
+          {
+            "key": "2026-10-28",
+            "params": {
+              "created[gte]": "2026-10-28",
+              "created[lte]": "2026-10-28"
+            }
+          },
+          {
+            "key": "2026-10-29",
+            "params": {
+              "created[gte]": "2026-10-29",
+              "created[lte]": "2026-10-29"
+            }
+          },
+          {
+            "key": "2026-10-30",
+            "params": {
+              "created[gte]": "2026-10-30",
+              "created[lte]": "2026-10-30"
+            }
+          },
+          {
+            "key": "2026-10-31",
+            "params": {
+              "created[gte]": "2026-10-31",
+              "created[lte]": "2026-10-31"
+            }
+          },
+          {
+            "key": "2026-10-12/CONFERENCE_PAPER",
+            "params": {
+              "created[gte]": "2026-10-12",
+              "created[lte]": "2026-10-12",
+              "stiType": "CONFERENCE_PAPER"
+            },
+            "human_check": "PROPOSAL ONLY: stiType parameter name and response bucket string known; scalar query syntax, AND and exclusivity unverified. Split further by verified center if >=9800."
+          },
+          {
+            "key": "2026-10-12/REPRINT",
+            "params": {
+              "created[gte]": "2026-10-12",
+              "created[lte]": "2026-10-12",
+              "stiType": "REPRINT"
+            },
+            "human_check": "PROPOSAL ONLY: stiType parameter name and response bucket string known; scalar query syntax, AND and exclusivity unverified. Split further by verified center if >=9800."
+          },
+          {
+            "key": "2026-10-12/OTHER",
+            "params": {
+              "created[gte]": "2026-10-12",
+              "created[lte]": "2026-10-12",
+              "stiType": "OTHER"
+            },
+            "human_check": "PROPOSAL ONLY: stiType parameter name and response bucket string known; scalar query syntax, AND and exclusivity unverified. Split further by verified center if >=9800."
+          },
+          {
+            "key": "2026-10-12/CONTRACTOR_REPORT",
+            "params": {
+              "created[gte]": "2026-10-12",
+              "created[lte]": "2026-10-12",
+              "stiType": "CONTRACTOR_REPORT"
+            },
+            "human_check": "PROPOSAL ONLY: stiType parameter name and response bucket string known; scalar query syntax, AND and exclusivity unverified. Split further by verified center if >=9800."
+          },
+          {
+            "key": "2026-10-12/PRESENTATION",
+            "params": {
+              "created[gte]": "2026-10-12",
+              "created[lte]": "2026-10-12",
+              "stiType": "PRESENTATION"
+            },
+            "human_check": "PROPOSAL ONLY: stiType parameter name and response bucket string known; scalar query syntax, AND and exclusivity unverified. Split further by verified center if >=9800."
+          },
+          {
+            "key": "2026-10-12/UNRESOLVED",
+            "params": null,
+            "human_check": "Complete bucket manifest, empty and missing categories not known. No invented remainder filter."
+          }
+        ],
+        "hidden_cap": 9800,
+        "count_size_param": "page[size]",
+        "within_segment_order": "oldest_first",
+        "overlap_pages": 0
+      },
+      "overall_total_check": true
+    }
+  },
+  "_draft_status": "BLOCKED: server_verified=false; null params deliberately invalid. Complete and verify all partitions before execution; do not only flip the flag.",
+  "_state_instructions": "Reuse existing isolated documents target and blob folder; use new state-dir sibling enumeration-ntrs-created-v2. Copy/reseed existing host holds and serialize all processes sharing ntrs.nasa.gov; never run passes concurrently.",
+  "_manifest_instructions": "All params are absolute cumulative filters, not inherited. For every measured node >=9800, add all year/month/day/category/center children, validate disjoint exhaustive semantics and counts. Current non-2026 years are unresolved leaves until measured; the skeleton is not an executable full-coverage claim."
+}
