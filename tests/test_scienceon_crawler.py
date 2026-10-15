@@ -295,6 +295,21 @@ class ScienceOnPageErrorTest(unittest.TestCase):
         client = self._Client(total=85, broken={40})
         self.assertEqual(self._collect(client, 85), (84, 84))
 
+    def test_later_sort_that_silently_loses_rows_does_not_hide_the_complete_pass(self):
+        client = self._Client(total=85, broken={40})
+        real = client.search
+
+        def search(query, *, page=1, row_count=100, sort_field=None):
+            total, rows = real(query, page=page, row_count=row_count, sort_field=sort_field)
+            if sort_field == "jtitle":  # tie-heavy sort: drops rows without any error
+                rows = [r for r in rows if int(r["CN"][4:]) % 10]
+            return total, rows
+
+        client.search = search
+        crawler = SCIENCEON.ScienceOnDomesticCrawler(None, client=client)
+        crawler._save_paper = lambda document: setattr(crawler, "_last_save_created", True) or 1
+        self.assertEqual(crawler._collect_terminal("JAKO", "JAKO", 85), (84, 84))
+
     def test_small_slice_missing_a_row_without_e5001_still_fails(self):
         client = self._Client(total=85, broken=set())
         real = client.search
