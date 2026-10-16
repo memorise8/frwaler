@@ -1,0 +1,45 @@
+{
+  "nodes": 1508,
+  "leaves": 1449,
+  "split_nodes": 59,
+  "unmeasured_structure": [
+    "2015",
+    "2017",
+    "2019",
+    "2021",
+    "2022",
+    "2023"
+  ],
+  "published_split_leaves": [
+    {
+      "leaf": "2013-08-12/CONFERENCE_PAPER/CDMS",
+      "total": 11781,
+      "split_by": "published year"
+    },
+    {
+      "leaf": "2013-08-12/REPRINT/CDMS",
+      "total": 10057,
+      "split_by": "published year"
+    },
+    {
+      "leaf": "2013-08-14/REPRINT/CDMS",
+      "total": 10534,
+      "split_by": "published year"
+    },
+    {
+      "leaf": "2013-08-23/CONFERENCE_PAPER/JPL",
+      "total": 9926,
+      "split_by": "published year"
+    },
+    {
+      "leaf": "2013-09-03/CONTRACTOR_REPORT/CDMS",
+      "total": 14163,
+      "split_by": "published year"
+    },
+    {
+      "leaf": "2013-09-06/CONFERENCE_PAPER/CDMS",
+      "total": 20390,
+      "split_by": "published year"
+    }
+  ]
+}

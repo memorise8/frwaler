@@ -1,0 +1,23 @@
+{"label": "pub-check", "day": "2013-08-12", "stiType": "CONFERENCE_PAPER", "center": "CDMS", "year": "1985", "expected": 4555, "got": 4555, "ok": true, "ts": "2026-10-15T06:36:59Z"}
+{"label": "pub-check", "day": "2013-08-12", "stiType": "REPRINT", "center": "CDMS", "year": "1985", "expected": 3569, "got": 3569, "ok": true, "ts": "2026-10-15T06:37:00Z"}
+{"label": "pub-check", "day": "2013-08-14", "stiType": "REPRINT", "center": "CDMS", "year": "1989", "expected": 3870, "got": 3870, "ok": true, "ts": "2026-10-15T06:37:02Z"}
+{"label": "pub-check", "day": "2013-08-23", "stiType": "CONFERENCE_PAPER", "center": "JPL", "year": "2002", "expected": 1758, "got": 1758, "ok": true, "ts": "2026-10-15T06:37:03Z"}
+{"label": "pub-check", "day": "2013-09-03", "stiType": "CONTRACTOR_REPORT", "center": "CDMS", "year": "1974", "expected": 2919, "got": 2919, "ok": true, "ts": "2026-10-15T06:37:04Z"}
+{"label": "pub-check", "day": "2013-09-06", "stiType": "CONFERENCE_PAPER", "center": "CDMS", "year": "1993", "expected": 4229, "got": 4229, "ok": true, "ts": "2026-10-15T06:37:06Z"}
+{"label": "pub-check", "day": "2026-10-12", "stiType": "REPRINT", "center": null, "year": "2025", "expected": 1176, "got": 1176, "ok": true, "ts": "2026-10-15T06:37:07Z"}
+{"label": "pub-check", "day": "2026-10-12", "stiType": "ACCEPTED_MANUSCRIPT", "center": null, "year": "2018", "expected": 427, "got": 427, "ok": true, "ts": "2026-10-15T06:37:09Z"}
+{"label": "window", "stiType": "REPRINT", "lo": "2026-10-12T05:30:00", "hi": "2026-10-12T05:34:59", "total": 0, "ts": "2026-10-15T06:37:10Z"}
+{"label": "window", "stiType": "REPRINT", "lo": "2026-10-12T05:35:00", "hi": "2026-10-12T05:39:59", "total": 0, "ts": "2026-10-15T06:37:12Z"}
+{"label": "window", "stiType": "REPRINT", "lo": "2026-10-12T05:40:00", "hi": "2026-10-12T05:44:59", "total": 0, "ts": "2026-10-15T06:37:13Z"}
+{"label": "window", "stiType": "REPRINT", "lo": "2026-10-12T05:45:00", "hi": "2026-10-12T05:49:59", "total": 7773, "ts": "2026-10-15T06:37:15Z"}
+{"label": "window", "stiType": "REPRINT", "lo": "2026-10-12T05:50:00", "hi": "2026-10-12T05:54:59", "total": 9430, "ts": "2026-10-15T06:37:16Z"}
+{"label": "window", "stiType": "REPRINT", "lo": "2026-10-12T05:55:00", "hi": "2026-10-12T05:59:59", "total": 9161, "ts": "2026-10-15T06:37:18Z"}
+{"label": "minute-check", "stiType": "REPRINT", "windows_sum": 26364, "whole_day": 26364, "max_window": 9430, "ok": true, "same_day_total": 26364, "ts": "2026-10-15T06:37:19Z"}
+{"label": "window", "stiType": "ACCEPTED_MANUSCRIPT", "lo": "2026-10-12T05:30:00", "hi": "2026-10-12T05:34:59", "total": 0, "ts": "2026-10-15T06:37:21Z"}
+{"label": "window", "stiType": "ACCEPTED_MANUSCRIPT", "lo": "2026-10-12T05:35:00", "hi": "2026-10-12T05:39:59", "total": 0, "ts": "2026-10-15T06:37:22Z"}
+{"label": "window", "stiType": "ACCEPTED_MANUSCRIPT", "lo": "2026-10-12T05:40:00", "hi": "2026-10-12T05:44:59", "total": 0, "ts": "2026-10-15T06:37:24Z"}
+{"label": "window", "stiType": "ACCEPTED_MANUSCRIPT", "lo": "2026-10-12T05:45:00", "hi": "2026-10-12T05:49:59", "total": 6306, "ts": "2026-10-15T06:37:25Z"}
+{"label": "window", "stiType": "ACCEPTED_MANUSCRIPT", "lo": "2026-10-12T05:50:00", "hi": "2026-10-12T05:54:59", "total": 5045, "ts": "2026-10-15T06:37:27Z"}
+{"label": "window", "stiType": "ACCEPTED_MANUSCRIPT", "lo": "2026-10-12T05:55:00", "hi": "2026-10-12T05:59:59", "total": 1580, "ts": "2026-10-15T06:37:28Z"}
+{"label": "minute-check", "stiType": "ACCEPTED_MANUSCRIPT", "windows_sum": 12931, "whole_day": 12931, "max_window": 6306, "ok": true, "same_day_total": 12931, "ts": "2026-10-15T06:37:30Z"}
+{"label": "DONE4", "requests": 22, "ts": "2026-10-15T06:37:30Z"}
