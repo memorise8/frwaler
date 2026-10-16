@@ -644,7 +644,11 @@ class ScienceOnDomesticCrawler(_ScienceOnCrawlerBase):
     site_id = "scienceon-api"
     site_name = "ScienceON 국내 논문"
     base_url = "https://apigateway.kisti.re.kr"
-    ROOTS = ("JAKO", "DIKO", "NPAP", "ATN", "ART")
+    # ATN is last on purpose: 14.3M rows, 99.8% JAFO (foreign); only about 0.2% (a sample of
+    # 3,600 rows found 7) carry the JAKO code this site stores. ART (596k, all JAKO in the
+    # sample) goes first. Indexes 0-2 are unchanged, so a stored root_index still means the
+    # same root.
+    ROOTS = ("JAKO", "DIKO", "NPAP", "ART", "ATN")
     SKIP_ROOTS = frozenset({"NPAP"})
     ROOT_DBCODES = {
         "JAKO": frozenset({"JAKO"}),
