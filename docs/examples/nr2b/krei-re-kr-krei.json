@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "sites": {
+    "krei-re-kr-krei": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "base_url": "https://www.krei.re.kr",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": ["html", "url"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["html", "item"]
+      },
+      "listing": {
+        "url": "https://www.krei.re.kr/krei/page/24",
+        "page_param": "pageIndex",
+        "start_page": 1,
+        "parser": {"type": "adapter", "key_field": "external_id", "url_field": "url",
+                   "title_field": "title", "date_field": "listed_date_raw",
+                   "listing_marker": "section.noti_sect"}
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}

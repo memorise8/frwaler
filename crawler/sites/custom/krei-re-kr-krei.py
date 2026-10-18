@@ -126,6 +126,10 @@ class KreiReKrKreiCrawler(BaseCrawler):
         raw = self._curl(self._LIST_URL, {"pageIndex": page})
         if not raw:
             return []
+        return self._parse_list_html(raw, page)
+
+    def _parse_list_html(self, raw: str, page: int) -> list[dict]:
+        """Pure parser of one list page (split out of _fetch_list_page, NR2-B)."""
         soup = _make_soup(raw)
         if soup is None:
             return []
@@ -205,7 +209,10 @@ class KreiReKrKreiCrawler(BaseCrawler):
         raw = self._curl(detail_url)
         if not raw:
             return None
+        return self._parse_detail_html(raw)
 
+    def _parse_detail_html(self, raw: str) -> dict | None:
+        """Pure parser of one detail page (split out of _fetch_detail, NR2-B)."""
         soup = _make_soup(raw)
         if soup is None:
             return None
@@ -400,3 +407,62 @@ class KreiReKrKreiCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. The list page
+    # gives the items (detail URL keeps crawl()'s pageIndex of the page it was
+    # listed on); the detail page gives the paper exactly as crawl() merges it.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        m = re.search(r"[?&]pageIndex=(\d+)", url or "")
+        page = int(m.group(1)) if m else 1
+        return [dict(item, external_id=item["pst"], url=item["detail_url"])
+                for item in self._parse_list_html(html, page)]
+
+    def _enumeration_paper(self, html, item):
+        detail = self._parse_detail_html(html)
+        if detail is None:
+            return None
+        detail_url = item["detail_url"]
+        title = detail.get("title") or item.get("title") or ""
+        abstract = detail.get("abstract") or ""
+        if len(abstract) < 50:
+            return None
+        pst = item["pst"]
+        listed_date = _parse_date(item.get("listed_date_raw") or
+                                  detail.get("date_raw") or "")
+        published_date = _parse_date(detail.get("date_raw") or
+                                     item.get("listed_date_raw") or "")
+        dept = (detail.get("dept_detail") or item.get("dept") or "")
+        category = detail.get("category") or ""
+        pdf_url = detail.get("pdf_url")
+        original_filename = detail.get("original_filename")
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": pst,
+            "post_number": pst,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "authors": dept,
+            "publisher": "한국농촌경제연구원",
+            "department": dept,
+            "journal": None,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "doi": None,
+            "keywords": None,
+            "category": category,
+            "original_filename": original_filename,
+            "metadata": json.dumps({
+                "posted_date": item.get("listed_date_raw") or "",
+                "originalFilename": original_filename or "",
+                "pst": pst,
+                "pdf_no": item.get("pdf_no"),
+                "category": category,
+                "department": dept,
+            }, ensure_ascii=False),
+        }
