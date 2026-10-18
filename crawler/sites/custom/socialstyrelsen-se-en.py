@@ -440,3 +440,186 @@ class SocialstyrelseSEENcrawler(BaseCrawler):
             f"elapsed={int(time.time()-start_time)}s"
         )
         return saved
+
+    # ── Pure enumeration conversion (collector-splits; crawl() unchanged) ────
+
+    def _enumeration_items(self, html):
+        """English rows of the single /en/publications/ page, in crawl()'s order and dedup.
+
+        A page without the PublicationListPage props (error or maintenance page)
+        is a listing error; the listing has no empty end page of its own.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:not_html")
+        m = re.search(
+            r"React(?:DOM\.hydrate|DOM\.render)\("
+            r"React\.createElement\(SOS\.Components\.PublicationListPage,\s*(\{)",
+            html,
+        )
+        if not m:
+            raise PermanentFailure("listing_parse_error:publication_list_props_missing")
+        raw = html[m.start(1):]
+        depth, end = 0, 0
+        for j, ch in enumerate(raw):
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    end = j + 1
+                    break
+        try:
+            props = json.loads(raw[:end])
+        except json.JSONDecodeError:
+            raise PermanentFailure("listing_parse_error:publication_list_props_unreadable") from None
+        all_items = props.get("children", [])
+        if not isinstance(all_items, list) or not all_items:
+            raise PermanentFailure("listing_parse_error:publication_list_empty")
+
+        eng_items = [i for i in all_items if i.get("languageId") == self._ENGLISH_LANG_ID]
+        eng_items.sort(key=lambda x: x.get("publishOnWebFrom", ""), reverse=True)
+        rows = []
+        seen_urls: set = set()
+        for item in eng_items:
+            item_url = item.get("url", "")
+            if not item_url or item_url in seen_urls:
+                continue
+            seen_urls.add(item_url)
+            full_url = (
+                f"{self.base_url}{item_url}"
+                if item_url.startswith("/")
+                else item_url
+            )
+            rows.append({
+                "url": full_url,
+                "external_id": item.get("articleNumber", ""),
+                "title": item.get("name", ""),
+                "published_date": item.get("publishOnWebFrom", ""),
+                "record": dict(item),
+            })
+        return rows
+
+    # Must equal the plan's adapter.second_step.selector (checked by the regression test).
+    _ENUM_PDF_SELECTOR = ('a[class*="publication-wrapper__main-doc"][href$=".pdf" i], '
+                          'a[href*="/contentassets/"][href*=".pdf" i]')
+
+    def _enumeration_step_link(self, first_html, first_url):
+        """The PDF link the framework's second step follows (same selector, html.parser,
+        joined to the detail page URL), so the method can check it is crawl()'s PDF."""
+        from urllib.parse import urljoin
+        node = _BS(first_html, "html.parser").select_one(self._ENUM_PDF_SELECTOR)
+        value = (node.get("href") or "").strip() if node is not None else ""
+        return urljoin(first_url, value) if value else None
+
+    def _enumeration_pdf_text(self, data) -> str:
+        """The parsing half of _extract_pdf_text(): first 5 pages through pdfplumber."""
+        if not _HAS_PDFPLUMBER:
+            return ""
+        if not data or len(data) < 512:
+            return ""
+        try:
+            with _pdfplumber.open(io.BytesIO(data)) as pdf:
+                parts = []
+                for page in pdf.pages[:5]:
+                    try:
+                        t = page.extract_text() or ""
+                        if t.strip():
+                            parts.append(t)
+                    except Exception:
+                        continue
+                return "\n\n".join(parts)
+        except Exception as exc:
+            print(f"[{self.site_id}] PDF extract error: {exc}")
+            return ""
+
+    def _enumeration_paper(self, raw, first_html, url, first_url, row):
+        """crawl()'s paper for one publication (ext:two_step_keep_first).
+
+        first_html is the detail page (PDF link, 'Publicerad' date); raw is the PDF the
+        framework fetched as the second step. The PDF link is re-derived from the detail
+        page exactly like crawl(); if the framework fetched a different file the item
+        fails loudly instead of storing another abstract.
+        """
+        item = row["record"]
+        article_number = item.get("articleNumber", "")
+        full_url = row["url"]
+
+        detail = self._parse_detail(first_html)
+        pdf_rel = detail.get("pdf_url")
+        pub_date = detail.get("published_date") or item.get("publishOnWebFrom", "")
+        listed_date = item.get("publishOnWebFrom", "")
+
+        pdf_url: Optional[str] = None
+        if pdf_rel:
+            pdf_url = (
+                f"{self.base_url}{pdf_rel}"
+                if pdf_rel.startswith("/")
+                else pdf_rel
+            )
+
+        abstract = ""
+        if pdf_url:
+            if url == first_url:
+                raise ValueError("second_step_pdf_not_fetched")
+            if self._enumeration_step_link(first_html, first_url) != pdf_url:
+                raise ValueError("second_step_pdf_mismatch")
+            abstract = self._enumeration_pdf_text(raw)
+
+        abstract = abstract.strip()
+        if len(abstract) < 50:
+            return None
+
+        subject_ids_raw = item.get("subjectsId", "") or ""
+        subject_names = []
+        for sid_str in subject_ids_raw.split(","):
+            sid_str = sid_str.strip()
+            if sid_str:
+                try:
+                    subject_names.append(
+                        _SUBJECT_MAP.get(int(sid_str), sid_str)
+                    )
+                except ValueError:
+                    subject_names.append(sid_str)
+        keywords = ", ".join(subject_names)
+
+        mandatory_id_raw = item.get("mandatoryId", "") or ""
+        try:
+            category = _MANDATORY_MAP.get(int(mandatory_id_raw), "")
+        except ValueError:
+            category = mandatory_id_raw
+
+        lang_id_raw = item.get("languageId", "") or ""
+        try:
+            lang_name = _LANGUAGE_MAP.get(int(lang_id_raw), lang_id_raw)
+        except ValueError:
+            lang_name = lang_id_raw
+
+        original_filename: Optional[str] = None
+        if pdf_url:
+            original_filename = os.path.basename(pdf_url.split("?")[0])
+
+        return {
+            "site_id": self.site_id,
+            "external_id": article_number,
+            "post_number": article_number,
+            "title": item.get("name", ""),
+            "abstract": abstract,
+            "published_date": pub_date,
+            "listed_date": listed_date,
+            "url": full_url,
+            "pdf_url": pdf_url,
+            "publisher": "Socialstyrelsen",
+            "keywords": keywords,
+            "category": category,
+            "original_filename": original_filename,
+            "metadata": json.dumps({
+                "posted_date": listed_date,
+                "articleNumber": article_number,
+                "languageId": lang_id_raw,
+                "languageName": lang_name,
+                "subjectsId": subject_ids_raw,
+                "mandatoryId": mandatory_id_raw,
+                "yearId": item.get("yearId", ""),
+            }, ensure_ascii=False),
+        }

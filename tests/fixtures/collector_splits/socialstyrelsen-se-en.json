@@ -1,0 +1,21 @@
+{
+ "site_id": "socialstyrelsen-se-en",
+ "listing_body": "<html><body><div id=\"react_1\"></div><script>ReactDOM.hydrate(React.createElement(SOS.Components.PublicationListPage, {\"heading\": \"Publications\", \"children\": [{\"articleNumber\": \"2031-1-90001\", \"name\": \"Synthetic report one\", \"url\": \"/publikationer/synthetic-report-one-2031-1-90001/\", \"languageId\": \"137\", \"publishOnWebFrom\": \"2031-01-20\", \"subjectsId\": \"154,165\", \"mandatoryId\": \"113\", \"yearId\": \"900\"}, {\"articleNumber\": \"2031-1-90003\", \"name\": \"Syntetisk rapport\", \"url\": \"/publikationer/syntetisk-rapport-2031-1-90003/\", \"languageId\": \"147\", \"publishOnWebFrom\": \"2031-01-25\", \"subjectsId\": \"\", \"mandatoryId\": \"\", \"yearId\": \"900\"}, {\"articleNumber\": \"2030-12-90002\", \"name\": \"Synthetic report two\", \"url\": \"/publikationer/synthetic-report-two-2030-12-90002/\", \"languageId\": \"137\", \"publishOnWebFrom\": \"2030-12-10\", \"subjectsId\": \"\", \"mandatoryId\": \"114\", \"yearId\": \"899\"}]}), document.getElementById(\"react_1\"));</script></body></html>",
+ "content_type": "text/html",
+ "long_text": "Synthetic English report text written only for the offline regression test of this collector and long enough to pass the abstract threshold",
+ "details": {
+  "https://www.socialstyrelsen.se/publikationer/synthetic-report-one-2031-1-90001/": "<html><body><h1>Synthetic report one</h1><span class=\"date\">Publicerad: 2031-01-21</span><a href=\"/contentassets/aaa/other.docx\">Word</a><a class=\"publication-wrapper__main-doc link\" href=\"/contentassets/0000000000000000000000000000aaaa/2031-1-90001.pdf\">Download PDF</a></body></html>",
+  "https://www.socialstyrelsen.se/contentassets/0000000000000000000000000000aaaa/2031-1-90001.pdf": "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj\n4 0 obj\n<< /Length 174 >>\nstream\nBT /F1 12 Tf 72 720 Td (Synthetic English report text written only for the offline regression test of this collector and long enough to pass the abstract threshold one) Tj ET\nendstream\nendobj\n5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\nxref\n0 6\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000241 00000 n \n0000000466 00000 n \ntrailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n536\n%%EOF\n",
+  "https://www.socialstyrelsen.se/publikationer/synthetic-report-two-2030-12-90002/": "<html><body><h1>Synthetic report two</h1><a href=\"/contentassets/aaa/other.docx\">Word</a><a href=\"/contentassets/0000000000000000000000000000bbbb/2030-12-90002.pdf\">Download PDF</a></body></html>",
+  "https://www.socialstyrelsen.se/contentassets/0000000000000000000000000000bbbb/2030-12-90002.pdf": "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj\n4 0 obj\n<< /Length 174 >>\nstream\nBT /F1 12 Tf 72 720 Td (Synthetic English report text written only for the offline regression test of this collector and long enough to pass the abstract threshold two) Tj ET\nendstream\nendobj\n5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\nxref\n0 6\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000241 00000 n \n0000000466 00000 n \ntrailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n536\n%%EOF\n"
+ },
+ "original_method_source_sha256": {
+  "_curl_text": "1172ac74519cd000aa12aa93581f9be7bb5c07041a5dc9469028d92cfa8a0314",
+  "_curl_bytes": "8f2f18b016fe89d8b23bc155f97c17aa7bb8af5c03b2300f905ff8ca285cacc9",
+  "_make_soup": "86766aa7aa3a4073d9593c2e766fedd2caf743dcb94c87774744e44d306a6ff3",
+  "_fetch_all_items": "e7dc64a0671c45cc495812a3c2867a8ee56a7a5c7ce4d5acc86c575ff27f4509",
+  "_parse_detail": "5f006e6b63c61a1a8335573ba326eefc2b06082a7e5c0169e63cc5a66b1822ab",
+  "_extract_pdf_text": "e809434df03e4eb85547975bd072821ef42a68ecf1d2eb0873fa98980ffb5a77",
+  "crawl": "4f27062ee29d18a035f2403b372824022821af564e3d499fb6b2f322cf6bbf37"
+ }
+}
