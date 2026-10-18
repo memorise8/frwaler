@@ -216,7 +216,7 @@ class ListingParser:
     def _json(self, resp):
         cfg = self.cfg
         try:
-            data = resp.json()
+            data = resp.json(jsonp=True) if cfg.get("jsonp") else resp.json()
         except ValueError:
             data = None
         if data is None:
@@ -269,7 +269,7 @@ class ListingParser:
         strict = getattr(self.adapter, "contract", None) is not None
         if strict and _json_listing(self.adapter.cfg):
             try:
-                resp.json()
+                resp.json(jsonp=True) if self.adapter.cfg.get("jsonp") else resp.json()
             except ValueError:
                 # Same classification as the json parser: a listing error, never an empty page.
                 return Page([], None, resp.status, {"parse_error": "invalid_json"})
