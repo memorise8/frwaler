@@ -608,3 +608,185 @@ class CnipaAnnualReportCrawler(BaseCrawler):
 
         self._save_paper(paper)
         return self._last_save_created
+
+    # ------------------------------------------------------------------
+    # Enumeration (pure conversions for the enumeration framework)
+    # ------------------------------------------------------------------
+
+    # Fixed copy of the year sub-collections crawl() discovers on the main page
+    # (/col/col1336/index.html, div.column_list), checked 2026-10-18: column id -> year
+    # label (the link text). A new report year adds a column there: the enumeration plan's
+    # explicit segments and this table must then be updated together (about once a year).
+    _ENUM_COLUMN_YEARS = {
+        "1570": "1999", "1571": "2000", "1572": "2001", "1573": "2002", "1574": "2003",
+        "1575": "2004", "1576": "2005", "1577": "2006", "1578": "2007", "1579": "2008",
+        "1580": "2009", "1581": "2010", "1582": "2011", "1583": "2012", "1584": "2013",
+        "1585": "2014", "1586": "2015", "1587": "2016", "1749": "2017", "2076": "2018",
+        "2159": "2019", "2630": "2020", "2936": "2021", "3261": "2022", "3480": "2023",
+        "3568": "2024", "3698": "2025",
+    }
+    # Year pages without a jpage unitid: crawl() parses their download links from the
+    # column page itself (_parse_page_items) instead of the dataproxy listing.
+    _ENUM_PAGE_COLUMNS = frozenset({"2936", "3261"})
+
+    def _enumeration_items(self, html, url):
+        """Rows of one listing response exactly as crawl() collects them for that year:
+        the jpage dataproxy XML (columnid in the query) or, for a year page without a
+        unitid, the column page /col/col<id>/index.html. The year label comes from the
+        fixed column table; a column outside it stops the listing (plan/table update due)."""
+        from urllib.parse import parse_qs
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str) or not isinstance(url, str):
+            raise PermanentFailure("listing_parse_error:not_text")
+        parts = urlsplit(url)
+        page_match = re.fullmatch(r"/col/col(\d+)/index\.html", parts.path)
+        if parts.path == "/module/web/jpage/dataproxy.jsp":
+            col_id = (parse_qs(parts.query).get("columnid") or [""])[0]
+            via_page = False
+        elif page_match:
+            col_id = page_match.group(1)
+            via_page = True
+        else:
+            raise PermanentFailure("listing_parse_error:unexpected_listing_url")
+        year_label = self._ENUM_COLUMN_YEARS.get(col_id)
+        if year_label is None:
+            raise PermanentFailure(f"listing_parse_error:unknown_column:{col_id or 'missing'}")
+        if via_page != (col_id in self._ENUM_PAGE_COLUMNS):
+            raise PermanentFailure(f"listing_parse_error:column_listing_kind_mismatch:{col_id}")
+        if via_page:
+            if self._extract_unit_id(html):
+                # crawl() would switch this year to the dataproxy listing.
+                raise PermanentFailure(f"listing_parse_error:column_page_has_unitid:{col_id}")
+            items = self._parse_page_items(html, col_id, year_label)
+            if not items:
+                raise PermanentFailure(f"listing_parse_error:column_page_without_items:{col_id}")
+        else:
+            if "<datastore" not in html:
+                raise PermanentFailure("listing_parse_error:not_dataproxy_xml")
+            items = []
+            seen_keys = set()
+            for rec in re.findall(r"<record><!\[CDATA\[([\s\S]*?)\]\]></record>", html):
+                item = self._parse_record_cdata(rec, col_id, year_label)
+                if not item:
+                    continue
+                key = (item.get('art_url'), item.get('pdf_url'), item.get('art_id'), item.get('title'))
+                if key in seen_keys:
+                    continue
+                seen_keys.add(key)
+                items.append(item)
+        rows = []
+        for item in items:
+            art_id = item["art_id"]
+            title = item["title"] or f"CNIPA Annual Report {year_label} — Section {art_id}"
+            external_id = (f"col{col_id}_{art_id}" if art_id
+                           else f"col{col_id}_{re.sub(r'[^a-zA-Z0-9]', '_', title)[:40]}")
+            rows.append(dict(
+                item,
+                # The detail request: the article page; an item without one (crawl() fetches
+                # nothing for it) re-reads this listing page, which the conversion ignores.
+                url=item["art_url"] or url,
+                external_id=external_id,
+                listing_title=title,
+            ))
+        return rows
+
+    def _enumeration_paper(self, detail_html, item):
+        """The paper _process_item() saves for one listing row (None = skipped).
+        ``detail_html`` is the article page; for a row without an article URL crawl()
+        fetches nothing and the response (the listing page itself) is not used."""
+        year_label = item["year_label"]
+        art_id = item.get("art_id")
+        art_url = item.get("art_url")
+        pdf_url = item.get("pdf_url")
+        col_id = item.get("col_id")
+        title = item.get("title")
+        date_str = item.get("date_str")
+
+        page_meta: dict = {}
+        article_text = ''
+        article_pdfs = []
+        if art_url:
+            if not detail_html:
+                print(f"[{self.site_id}] item {title or art_id!r} failed: empty detail response")
+                return None
+            try:
+                page_meta = _extract_meta_tags(detail_html)
+                article_text, article_pdfs = _article_content(detail_html, art_url)
+            except Exception as exc:
+                print(f"[{self.site_id}] meta-extract failed for {art_url}: {exc}")
+                return None
+
+        if not title:
+            title = (page_meta.get("ArticleTitle")
+                     or page_meta.get("article:title")
+                     or f"CNIPA Annual Report {year_label} — Section {art_id}")
+
+        if article_text.casefold() == ' '.join(title.split()).casefold():
+            article_text = ''
+
+        if not pdf_url and len(article_pdfs) == 1:
+            pdf_url = article_pdfs[0]
+
+        raw_desc = page_meta.get("description", "").strip()
+        if len(article_text) >= 50:
+            abstract = article_text
+            abstract_source = 'article_body'
+        elif len(raw_desc) >= 50:
+            abstract = raw_desc
+            abstract_source = 'publisher_description'
+        else:
+            abstract = _build_abstract(year_label, title)
+            abstract_source = 'catalog_metadata_only'
+
+        if len(abstract) < 50:
+            print(f"[{self.site_id}] Skipping '{title}': abstract too short ({len(abstract)} chars)")
+            return None
+
+        raw_date = date_str or page_meta.get("pubdate", "")
+        pub_date = raw_date
+        listed_date = pub_date
+
+        url = art_url or pdf_url or (
+            f"{_BASE_URL}/module/download/down.jsp?i_ID={art_id}&colID={col_id}"
+            if art_id and col_id else ""
+        )
+
+        external_id = f"col{col_id}_{art_id}" if art_id else f"col{col_id}_{re.sub(r'[^a-zA-Z0-9]', '_', title)[:40]}"
+
+        original_filename = None
+        if pdf_url:
+            m = re.search(r"/([^/?#]+\.pdf)", pdf_url, re.IGNORECASE)
+            if m:
+                original_filename = m.group(1)
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": art_id,
+            "title": title,
+            "abstract": abstract,
+            "url": url,
+            "pdf_url": pdf_url,
+            "published_date": pub_date,
+            "listed_date": listed_date,
+            "publisher": _PUBLISHER,
+            "category": f"Annual Report {year_label}",
+            "original_filename": original_filename,
+            "keywords": f"CNIPA,annual report,{year_label},intellectual property,China",
+            "metadata": json.dumps(
+                {
+                    "year": year_label,
+                    "col_id": col_id,
+                    "art_id": art_id,
+                    "posted_date": date_str,
+                    "originalFilename": original_filename,
+                    "guid": page_meta.get("guid"),
+                    "abstract_source": abstract_source,
+                    "document_body_extracted": abstract_source == 'article_body',
+                    "article_pdf_urls": article_pdfs,
+                    "primary_pdf_ambiguous": not pdf_url and len(article_pdfs) > 1,
+                    "native_article_id_missing": art_id is None,
+                },
+                ensure_ascii=False,
+            ),
+        }

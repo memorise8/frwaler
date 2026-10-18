@@ -1,0 +1,33 @@
+{
+ "site_id": "english-cnipa-gov-cn-col",
+ "content_type": "text/xml",
+ "long_text": "Synthetic annual report chapter text for offline equality testing only; it is long enough to be kept as the article body by the crawler.",
+ "hub_body": "<html><body><div class=\"column_list\"><ul><li><a href=\"/col/col3698/index.html\">2025</a></li><li><a href=\"/col/col2936/index.html\">2021</a></li></ul></div></body></html>",
+ "column_bodies": {
+  "3698": "<html><body><div id=\"14819\"></div><script>var param_14819 = {col:1,webid:2,columnid:3698,unitid:'14819'};</script></body></html>",
+  "2936": "<html><body><div class=\"main1\"><a href=\"https://english.cnipa.gov.cn/module/download/down.jsp?i_ID=90000002&colID=2936\"><img src=\"/picture/0/synthetic.png\" alt=\"\"></a></div></body></html>"
+ },
+ "listing_body": "<datastore>\n<nextgroup><![CDATA[]]></nextgroup>\n<recordset>\n<record><![CDATA[\n <li> <a title=\"Synthetic chapter 90000001\" href=\"https://english.cnipa.gov.cn/attach/0/synthetic90000001.pdf\" target=\"_blank\"><!--<a href=\"https://english.cnipa.gov.cn/art/2026/8/4/art_3698_90000001.html\" title=\"Synthetic chapter 90000001\" target=\"_blank\"> --> Synthetic chapter 90000001</a><span>(2026-08-04)</span></li>]]></record>\n</recordset>\n<totalrecord>1</totalrecord><totalpage>1</totalpage>\n</datastore>",
+ "empty_body": "<datastore></datastore>",
+ "details": {
+  "https://english.cnipa.gov.cn/art/2026/8/4/art_3698_90000001.html": "<html><head><meta name=\"ArticleTitle\" content=\"Synthetic chapter 90000001\"><meta name=\"pubdate\" content=\"2026-08-04 10:00\"><meta name=\"description\" content=\"\"><meta name=\"guid\" content=\"synthetic-guid-1\"></head><body><div class=\"en_article\"><p>Synthetic annual report chapter text for offline equality testing only; it is long enough to be kept as the article body by the crawler.</p><a href=\"/attach/0/synthetic90000001.pdf\">Synthetic chapter 90000001</a></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "crawl": "26635736c9ec46b3d6619f4621e9bad7560528e23be8cecd8f66d8ce85bbeb80",
+  "_get_year_collections": "960bc4c195b188e6106e94cfa8b06372a6ed1dddb802ca3c5659cfb838bab3b5",
+  "_crawl_year": "180ad9dee54295af0b9b6d4e61d29c0c47b0f4e7e71dd54e6136c84cbbc672f2",
+  "_extract_unit_id": "38ada07f7c3f384a4c5fd5f0e9edcc84dfdd2a200a5135d34ef62b6b1ee602af",
+  "_fetch_via_dataproxy": "532d5e3839c14706c034eba577ebecefa22f57b89814f086e4cc4ba695fa6fcd",
+  "_parse_page_items": "1890700ff22e51f3290e21e6bf8d277870cac463234ce7930a1fbfd1d74173bf",
+  "_parse_record_cdata": "983181caac080adc40e8cbede9e6497156f21004a52d078fd891d15d29d83541",
+  "_process_item": "816cb37f462f17b38e65ac830526c61340e894cc52a8f4f11dd5e8f2f3ef800c"
+ },
+ "module_function_source_sha256": {
+  "_curl_get": "fb48086a8ac6afb739d543221712d5cc511cdf4968c56d785cc9ef8247650497",
+  "_make_soup": "a9a8c98259fd535684da7277cdd54daba7600bc903755eee029c2db0ae13f60a",
+  "_parse_date": "29487f7d1c203f52c6d663def1a4577bde965197e5a6e20ae9b55e1aa1b0e6b9",
+  "_build_abstract": "78ab13996066afb119d73b57510faf40b240bd98f149707291c9462e33924d27",
+  "_extract_meta_tags": "869602d86713b4fbc9b07af9d71288d580470cea7a3bbd2395f4f6305f8d275c",
+  "_article_content": "cdeb40cdd5ce9bba64725251860813122bb9d463a99fe36a183eb58acef1efd7"
+ }
+}

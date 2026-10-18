@@ -1,0 +1,304 @@
+{
+  "version": 1,
+  "sites": {
+    "english-cnipa-gov-cn-col": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "strategy": "date_range_split",
+      "base_url": "https://english.cnipa.gov.cn",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://english.cnipa.gov.cn/{segment}",
+        "page_param": "page",
+        "start_page": 1,
+        "total": {
+          "type": "regex",
+          "pattern": "<totalrecord>(\\d+)</totalrecord>"
+        },
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "title_field": "listing_title",
+          "listing_marker": "datastore"
+        }
+      },
+      "segments": {
+        "mode": "explicit",
+        "items": [
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1570",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1571",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1572",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1573",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1574",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1575",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1576",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1577",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1578",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1579",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1580",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1581",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1582",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1583",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1584",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1585",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1586",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1587",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=1749",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=2076",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=2159",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=2630",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "col/col2936/index.html"
+          },
+          {
+            "key": "col/col3261/index.html"
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=3480",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=3568",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          },
+          {
+            "key": "module/web/jpage/dataproxy.jsp?columnid=3698",
+            "params": {
+              "webid": "2",
+              "path": "https://english.cnipa.gov.cn/",
+              "unitid": "14819",
+              "webname": "China National Intellectual Property Administration",
+              "permissiontype": "0"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
