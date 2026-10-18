@@ -389,3 +389,68 @@ class KipfReKrKorCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+    # The framework reads the detail with GET on the stored item URL
+    # (view.do?serialNo=N), which serves the same detail page as crawl()'s POST.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html)
+        if soup is None or soup.select_one(".board--card--list") is None:
+            raise PermanentFailure("listing_parse_error:missing_card_list")
+        rows = []
+        for item in self._parse_list(html):
+            serial_no = item["serial_no"]
+            item_url = (
+                f"{_BASE}/kor/Publication/CenterPeriodicals/kiPublish/CB/Center"
+                f"/view.do?serialNo={serial_no}"
+            )
+            rows.append(dict(item, url=item_url))
+        return rows
+
+    def _enumeration_detail(self, html, item):
+        return self._parse_detail(html, item["serial_no"])
+
+    def _enumeration_paper(self, item, detail):
+        serial_no = item["serial_no"]
+        item_url = item["url"]
+        title = detail["title"] or item["title"]
+        if not title:
+            return None
+
+        authors = detail["authors"] or item["authors"]
+        date = detail["date"] or item["date"]
+        keywords = detail["keywords"] or item["keywords"]
+        abstract = detail["abstract"]
+        pdf_url = detail["pdf_url"]
+
+        if date and re.match(r"^\d{4}-\d{2}$", date.strip()):
+            date = date.strip() + "-01"
+
+        if len(abstract) < 100:
+            return None
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": serial_no,
+            "title": title,
+            "authors": json.dumps(authors, ensure_ascii=False),
+            "abstract": abstract,
+            "category": "정기간행물",
+            "keywords": json.dumps(keywords, ensure_ascii=False),
+            "published_date": date,
+            "url": item_url,
+            "pdf_url": pdf_url,
+            "doi": "",
+            "department": "한국조세재정연구원",
+            "metadata": json.dumps(
+                {"serialNo": serial_no, "category": "CB"},
+                ensure_ascii=False,
+            ),
+        }
