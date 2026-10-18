@@ -364,3 +364,28 @@ class DstDkDaCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # parsers above stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """Publication rows of one list page, exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        return [
+            {"pub_id": pub_id, "title": title, "url": self._DETAIL_URL.format(pub_id=pub_id)}
+            for pub_id, title in self._parse_list_page(html)
+        ]
+
+    def _enumeration_paper(self, html, item):
+        """Copy of crawl()'s paper conversion; None keeps crawl()'s skips."""
+        paper = self._parse_detail(html, item["pub_id"])
+        if paper is None:
+            return None
+        if not paper.get("title"):
+            paper["title"] = item.get("title")
+        if len(paper.get("abstract", "")) < 50:
+            return None
+        return paper

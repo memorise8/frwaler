@@ -1,0 +1,20 @@
+{
+ "site_id": "dst-dk-da",
+ "listing_body": "<html><body><main><ul><li><a href=\"/pubomtale/54719\" class=\"t\">Årsrapport 2025</a></li><li><a href=\"/pubomtale/54718\">Statistikprogram 2026</a></li></ul></main></body></html>",
+ "empty_body": "<html><body><main><ul></ul><p>Ingen resultater</p></main></body></html>",
+ "content_type": "text/html",
+ "long_text": "Syntetisk beskrivelse af publikationen til offline test af opdelingen: Danmarks Statistik udgiver årsrapporten med nøgletal for året.",
+ "details": {
+  "https://www.dst.dk/pubomtale/54719": "<html><head><meta property=\"og:title\" content=\"Årsrapport 2025\"><meta property=\"og:description\" content=\"Kort\"><meta name=\"cludo:DstPubReleaseDateTime\" content=\"23-03-2026 08:00\"><meta name=\"cludo:DstPubType\" content=\"Årsrapport\"></head><body><div class=\"showPubContainer\"><p>Syntetisk beskrivelse af publikationen til offline test af opdelingen: Danmarks Statistik udgiver årsrapporten med nøgletal for året.</p><a class=\"show-icon-download\" href=\"/pubfile/54719/aarsrapport\">Hent</a><b>Titel</b>: Kriminalitet<br>Antal sider: 12</div></body></html>",
+  "https://www.dst.dk/pubomtale/54718": "<html><head><meta property=\"og:title\" content=\"Statistikprogram 2026\"><meta property=\"og:description\" content=\"Kort\"><meta name=\"cludo:DstPubReleaseDateTime\" content=\"23-03-2026 08:00\"><meta name=\"cludo:DstPubType\" content=\"Årsrapport\"></head><body><div class=\"showPubContainer\"><p>Syntetisk beskrivelse af publikationen til offline test af opdelingen: Danmarks Statistik udgiver årsrapporten med nøgletal for året.</p><b>Titel</b>: Kriminalitet<br>Antal sider: 12</div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_curl_get": "ac0c8758b3ccbb0e284597fbedfe8a0793cc0159b4004bb0c37943f29dd81258",
+  "_strip_html": "41b7ca873e55c8d7ff667f3aeb4d1e8725a3b4bb04730d88a1f8c246fa0617f7",
+  "_parse_iso_date": "599c0b8cc6f8aee7888d5924956cdc9f895c1c47c54405ecc0cb26c7aaf9065a",
+  "_parse_list_page": "a342a78b8531682fb69a23c0b6d72545bbbab2f1a571eaeabbed7e97d5a19eef",
+  "_extract_abstract": "e55b354a057f917263fe8f551d0cf7597a933fe5d2823c5e6c599e33469850f3",
+  "_parse_detail": "27ec0819f2bc734b3cfebb2c4298d20b4321eceb8cbb8e948927ef3290f44932",
+  "crawl": "56cedb09eaa5dc03a1706a083dbc06f8f29744c3bc6a0e3a5b2a4b8d39c7d992"
+ }
+}
