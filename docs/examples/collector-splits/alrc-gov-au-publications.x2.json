@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "sites": {
+    "alrc-gov-au-publications": {
+      "strategy": "date_range_split",
+      "base_url": "https://www.alrc.gov.au",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.alrc.gov.au/publications/{segment}/page/{page}/",
+        "first_page_url": "https://www.alrc.gov.au/publications/{segment}/",
+        "start_page": 1,
+        "page_size": 10,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "url",
+          "title_field": "title",
+          "date_field": "listed_date",
+          "listing_marker": "section.section-listing"
+        }
+      },
+      "segments": {
+        "mode": "explicit",
+        "allow_overlap": true,
+        "items": [
+          {
+            "key": "final-report",
+            "label": "final-report"
+          },
+          {
+            "key": "delivered-search",
+            "label": "delivered-search",
+            "url": "https://www.alrc.gov.au/page/{page}/?s=pdf&type=all",
+            "first_page_url": "https://www.alrc.gov.au/?s=pdf&type=all"
+          }
+        ]
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

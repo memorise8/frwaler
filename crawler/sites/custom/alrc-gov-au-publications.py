@@ -510,13 +510,26 @@ class ALRCGovAuPublicationsCrawler(AlrcTraversal, BaseCrawler):
 
     _ENUMERATION_SCOPE = 'final-report'
 
+    @classmethod
+    def _enumeration_scope(cls, url):
+        """Delivered scope of a list URL (X2 multi_listing): the PDF search
+        list (/?s=pdf&type=all, /page/N/?s=pdf&type=all) is 'delivered-search',
+        anything else the final-report list (the X1 plan's only scope)."""
+        from urllib.parse import parse_qs, urlsplit
+        parts = urlsplit(url or START_URL)
+        query = parse_qs(parts.query, keep_blank_values=True)
+        if query.get('s') == ['pdf'] and re.fullmatch(r'/(?:page/\d+/?)?', parts.path or '/'):
+            return 'delivered-search'
+        return cls._ENUMERATION_SCOPE
+
     def _enumeration_items(self, html, url=None):
-        """Rows of one final-report list page, parsed and validated as
-        _alrc_list() does (same host check, same publisher-pager check)."""
+        """Rows of one list page of either delivered scope, parsed and validated
+        as _alrc_list() does (same host check, same publisher-pager check)."""
         from urllib.parse import parse_qs, urlsplit
         from crawler.enumeration.http import PermanentFailure
         if not isinstance(html, str):
             raise PermanentFailure('listing_parse_error:expected_html', url)
+        scope = self._enumeration_scope(url)
         parts = urlsplit(url or START_URL)
         match = re.search(r'/page/(\d+)/?$', parts.path)
         paged = (parse_qs(parts.query).get('paged') or [None])[0]
@@ -533,17 +546,21 @@ class ALRCGovAuPublicationsCrawler(AlrcTraversal, BaseCrawler):
                 parsed = urlparse(item['url'])
                 if parsed.scheme != 'https' or parsed.netloc != 'www.alrc.gov.au' or parsed.fragment:
                     raise ValueError('ALRC listing document outside source host')
-            inspect_listing(_make_soup(html), items, self._ENUMERATION_SCOPE, page)
+            inspect_listing(_make_soup(html), items, scope, page)
         except ValueError as exc:
             raise PermanentFailure('listing_parse_error:alrc_listing_invalid', url) from exc
-        source_list_url = list_url(self._ENUMERATION_SCOPE, page)
-        return [dict(item, source_list_url=source_list_url) for item in items]
+        source_list_url = list_url(scope, page)
+        rows = [dict(item, source_list_url=source_list_url) for item in items]
+        if scope != self._ENUMERATION_SCOPE:
+            rows = [dict(row, source_scope=scope) for row in rows]
+        return rows
 
     def _enumeration_paper(self, html, item):
         """Paper from a fetched detail page — _alrc_paper() copied verbatim with
         the fetched HTML in place of _alrc_fetch() (identity unchanged:
-        external_id = WordPress post id, else slug)."""
-        scope = self._ENUMERATION_SCOPE
+        external_id = WordPress post id, else slug). The scope is the row's
+        list (source_scope, set only for the delivered-search list)."""
+        scope = item.get('source_scope') or self._ENUMERATION_SCOPE
         source_list_url = item['source_list_url']
         item_url = item['url']
         raw = html
