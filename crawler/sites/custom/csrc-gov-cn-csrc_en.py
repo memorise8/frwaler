@@ -80,10 +80,15 @@ def _make_bs(html: str):
 
 def _fetch_detail(detail_url: str) -> dict:
     """Fetch detail page; return dict with 'text', 'pdf_url', 'original_filename'."""
-    out: dict = {"text": "", "pdf_url": None, "original_filename": None}
     raw = _curl_get(detail_url)
     if not raw:
-        return out
+        return {"text": "", "pdf_url": None, "original_filename": None}
+    return _detail_from_html(raw, detail_url)
+
+
+def _detail_from_html(raw: str, detail_url: str) -> dict:
+    """Pure parser of a detail page (split out of _fetch_detail, NR2-B)."""
+    out: dict = {"text": "", "pdf_url": None, "original_filename": None}
     try:
         soup = _make_bs(raw)
         if not soup:
@@ -333,3 +338,112 @@ class CSRCEnCrawler(BaseCrawler):
 
         print(f"[csrc-gov-cn-csrc_en] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. The searchList
+    # JSON page gives the rows; the detail page gives text and PDF link; the
+    # paper is built as in crawl().
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        rows = []
+        results = ((data or {}).get("data") or {}).get("results") or [] if isinstance(data, dict) else []
+        for item in results:
+            if not isinstance(item, dict):
+                continue
+            manuscript_id = str(item.get("manuscriptId") or "").strip()
+            if not manuscript_id:
+                continue
+            raw_url = item.get("url") or ""
+            if raw_url.startswith("//"):
+                detail_url = "http:" + raw_url
+            elif raw_url.startswith("/"):
+                detail_url = _BASE + raw_url
+            else:
+                detail_url = raw_url
+            if not detail_url:
+                continue
+            rows.append({"external_id": manuscript_id, "url": detail_url, "item": item})
+        return rows
+
+    def _enumeration_detail(self, html, row):
+        return _detail_from_html(html or "", row["url"])
+
+    def _enumeration_paper(self, row, detail_info):
+        item = row["item"]
+        manuscript_id = row["external_id"]
+        detail_url = row["url"]
+        title = (item.get("title") or "").strip()
+        if not title:
+            return None
+
+
+        # Dates
+        published_time_str = item.get("publishedTimeStr") or ""
+        listed_date = _parse_date(published_time_str)
+
+        pub_ts = item.get("publishedTime")
+        if pub_ts:
+            try:
+                published_date = datetime.fromtimestamp(
+                    pub_ts / 1000, tz=timezone.utc
+                ).strftime("%Y-%m-%d")
+            except Exception:
+                published_date = listed_date
+        else:
+            published_date = listed_date
+
+        channel_name = (item.get("channelName") or "IAC").strip()
+        content_html = item.get("contentHtml") or ""
+
+        detail_info = detail_info or {}
+        detail_text = detail_info.get("text") or ""
+
+        # PDF URL: prefer direct file link from the detail page
+        pdf_url = detail_info.get("pdf_url")
+        original_filename = detail_info.get("original_filename")
+        # Fallback: parse the API's contentHtml field
+        if not pdf_url and content_html:
+            pdf_url, fn = _pdf_from_content_html(content_html)
+            if fn:
+                original_filename = fn
+
+        abstract = _build_abstract(
+            title, channel_name, published_date or listed_date, detail_text
+        )
+
+        if len(abstract) < 50:
+            return None
+
+        paper = {
+            "site_id": self.site_id,
+            "external_id": manuscript_id,
+            "post_number": manuscript_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "publisher": "China Securities Regulatory Commission (CSRC)",
+            "department": "International Advisory Committee (IAC)",
+            "category": channel_name,
+            "authors": None,
+            "keywords": None,
+            "doi": None,
+            "journal": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": published_time_str,
+                    "originalFilename": original_filename,
+                    "manuscriptId": manuscript_id,
+                    "channelId": item.get("channelId"),
+                    "channelName": channel_name,
+                    "websiteId": item.get("websiteId"),
+                    "subTitle": item.get("subTitle"),
+                },
+                ensure_ascii=False,
+            ),
+        }
+        return paper

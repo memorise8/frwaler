@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "sites": {
+    "csrc-gov-cn-csrc_en": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "base_url": "http://www.csrc.gov.cn",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": ["json"],
+        "detail_method": "_enumeration_detail",
+        "detail_args": ["html", "item"],
+        "paper_method": "_enumeration_paper",
+        "paper_args": ["item", "detail"]
+      },
+      "listing": {
+        "url": "http://www.csrc.gov.cn/searchList/b0aaeebcfd8c48a18d5335f3ed455752",
+        "params": {"_isAgg": "true", "_isJson": "true", "_pageSize": "20", "_template": "index",
+                   "_rangeTimeGte": "", "_channelName": ""},
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {"type": "adapter", "key_field": "external_id", "url_field": "url"},
+        "total": {"type": "json", "path": "data.total"}
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}
