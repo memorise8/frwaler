@@ -219,8 +219,19 @@ def _validate_listing_extensions(site_id, raw, listing):
         if not isinstance(link, dict) or not (
                 (set(link) <= {"selector", "attr"} and isinstance(link.get("selector"), str) and link["selector"].strip()
                  and _LITERAL.match(str(link.get("attr", "href"))))
+                or (set(link) == {"selector", "text", "template"} and isinstance(link["selector"], str)
+                    and link["selector"].strip() and link["text"] is True)
                 or (set(link) == {"json_path"} and _LITERAL.match(str(link["json_path"])))):
-            raise PlanError(f"{site_id}: next_link is {{selector, attr}} or {{json_path}}")
+            raise PlanError(f"{site_id}: next_link is {{selector, attr}}, {{selector, text: true, template}} or {{json_path}}")
+        if "template" in link:
+            # The token goes into a fixed address on the listing host (OAI: ?verb=ListRecords&resumptionToken=).
+            from urllib.parse import urlsplit
+            tpl = link["template"]
+            parts = urlsplit(tpl.replace("{token}", "t")) if isinstance(tpl, str) else None
+            if parts is None or tpl.count("{token}") != 1 or parts.scheme not in ("http", "https") or \
+                    (parts.hostname or "").lower() != (urlsplit(listing["url"]).hostname or "").lower() or \
+                    re.search(r"[\s{}]", tpl.replace("{token}", "")):
+                raise PlanError(f"{site_id}: next_link.template must be an absolute URL on the listing host with one {{token}}")
         overlap = (raw.get("oldest_sort") or {}).get("overlap_pages") or (raw.get("segments") or {}).get("overlap_pages")
         if overlap:
             raise PlanError(f"{site_id}: next_link paging cannot re-read earlier pages (overlap_pages)")
