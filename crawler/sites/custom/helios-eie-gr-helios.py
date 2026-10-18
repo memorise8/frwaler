@@ -457,3 +457,26 @@ class HeliosEieGrHeliosCrawler(BaseCrawler):
 
         print(f"[helios-eie-gr-helios] Done. Total saved: {saved}")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None or soup.find("main") is None:
+            raise PermanentFailure("listing_parse_error:missing_main_marker")
+        rows = [{"url": _BASE + h, "handle_path": h} for h in reversed(self._parse_handles(html))]
+
+        if not rows and soup.find("main").get_text(" ", strip=True):
+            raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing")
+        return rows
+
+    def _enumeration_detail(self, html, item):
+        return self._parse_detail(html, item["handle_path"])
+
+    def _enumeration_paper(self, item, detail):
+        if not detail or len(detail.get("abstract") or "") < _MIN_ABSTRACT:
+            return None
+        return detail
