@@ -373,7 +373,11 @@ class Adapter:
             return None
         link = urljoin(resp.url, value)
         if not link.startswith(("http://", "https://")):
-            return None
+            if not step.get("rewrite"):
+                return None
+            # A javascript:downloadFile('enc','seq') link has no address of its own: the rewrite
+            # reads the link text and its template (an absolute URL) gives the address.
+            link = value
         if step.get("rewrite"):
             # ext:second_step_link_rewrite: e.g. a record link -> its MARCXML export address.
             from urllib.parse import unquote, urlsplit
