@@ -255,7 +255,7 @@
   "ansto-gov-au-search": {
     "classification": "full_rescan_required",
     "reason": "undated_search_order_and_direct_PDF_media_omitted_by_native_parser",
-    "source_sha256": "dccbe74e502dd6d0d303a160c82cd93a88bffffaef16f647476bad422920041b",
+    "source_sha256": "50baee1690da3e3bc4cc7f97eb231b37798e489e326b9d34fd34e4588a59be2e",
     "dependency_source_sha256": {
       "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
     },
