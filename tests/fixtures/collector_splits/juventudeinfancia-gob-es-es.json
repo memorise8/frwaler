@@ -1,0 +1,18 @@
+{
+  "site_id": "juventudeinfancia-gob-es-es",
+  "listing_body": "<html><head><title>Notas de prensa</title></head><body><main><div class=\"view view-carrousel view-id-carrousel view-display-id-page_1\"><div class=\"view-content\"><ul><li><div class=\"views-field views-field-title\"><span class=\"field-content\"><a href=\"/es/comunicacion/notas-prensa/offline-1\" hreflang=\"es\">Nota offline 1</a></span></div><div class=\"views-field views-field-created\"><time datetime=\"2026-03-02T10:00:00Z\">x</time></div><div class=\"views-field views-field-field-introduccion\">Introducción 1</div></li><li><div class=\"views-field views-field-title\"><span class=\"field-content\"><a href=\"/es/comunicacion/notas-prensa/offline-2\" hreflang=\"es\">Nota offline 2</a></span></div><div class=\"views-field views-field-created\"><time datetime=\"2025-12-31T10:00:00Z\">x</time></div><div class=\"views-field views-field-field-introduccion\">Introducción 2</div></li></ul></div><nav class=\"pager\"><ul><li class=\"pager__item--last\"><a href=\"?page=64\">Último</a></li></ul></nav></div></main></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.juventudeinfancia.gob.es/es/comunicacion/notas-prensa/offline-1": "<html><head><title>Nota 1</title></head><body><main><article data-history-node-id=\"101\" role=\"article\"><p>Texto sintético de nota de prensa con résumé y 자료 para la prueba de igualdad sin conexión. Texto sintético de nota de prensa con résumé y 자료 para la prueba de igualdad sin conexión. Texto sintético de nota de prensa con résumé y 자료 para la prueba de igualdad sin conexión.</p><p>Segundo párrafo 1.</p><a href=\"/sites/default/files/np-1.pdf\">PDF</a></article></main></body></html>",
+    "https://www.juventudeinfancia.gob.es/es/comunicacion/notas-prensa/offline-2": "<html><head><title>Nota 2</title></head><body><main><article data-history-node-id=\"102\" role=\"article\"><p>Texto sintético de nota de prensa con résumé y 자료 para la prueba de igualdad sin conexión. Texto sintético de nota de prensa con résumé y 자료 para la prueba de igualdad sin conexión. Texto sintético de nota de prensa con résumé y 자료 para la prueba de igualdad sin conexión.</p><p>Segundo párrafo 2.</p></article></main></body></html>"
+  },
+  "long_text": "Texto sintético de nota de prensa con résumé y 자료 para la prueba de igualdad sin conexión. Texto sintético de nota de prensa con résumé y 자료 para la prueba de igualdad sin conexión. Texto sintético de nota de prensa con résumé y 자료 para la prueba de igualdad sin conexión.",
+  "empty_body": "<html><body><main><div class=\"view view-carrousel view-id-carrousel view-display-id-page_1\"></div></main></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "4357712f056124697e9cd7fa03554780196f804fbe474dc6c856b824634f42ed",
+    "_parse_listing": "1db663c5fe45082586247096727ab087281e53924bf627cebb565854e9881cd3",
+    "_fetch_detail": "01010105d8dc16816ce9a8bf72c1f7469cf150d528ec977e13e21b7bd9066c35",
+    "_extract_abstract": "a060f63107be09241dd6af2d6d8f5a0ff20bd55d0e57d87a76d0597d6f7016a1",
+    "_extract_date_from_page": "5712c7565fae9111a2105d9ada27d51bb0b046d05956b11d9cec9f99bb405f3b"
+  }
+}

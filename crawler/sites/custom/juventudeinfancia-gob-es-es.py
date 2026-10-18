@@ -356,3 +356,91 @@ class JuventudeinfanciaGobEsEsCrawler(BaseCrawler):
             if month:
                 return f"{year}-{month}-{int(day):02d}"
         return ""
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L4-20261018). crawl(), _parse_listing() and
+    # _fetch_detail() are unchanged; these methods only parse given HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Listing rows for the enumeration framework (same rows as crawl())."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        rows = self._parse_listing(html)
+        if not rows:
+            soup = _make_soup(html)
+            if soup is not None and soup.select_one("div.view-display-id-page_1 .view-content"):
+                # The view has rows but none parsed: structure changed, not the end.
+                raise PermanentFailure("listing_parse_error:unparsed_view_rows")
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Paper from an already fetched detail page — the post-fetch part of
+        _fetch_detail() copied verbatim (same external_id/post_number rule)."""
+        url = item["url"]
+        if not html:
+            return None
+        try:
+            soup = _make_soup(html)
+        except Exception:
+            return None
+        if not soup:
+            return None
+
+        node_id = ""
+        article = soup.find("article", attrs={"data-history-node-id": True})
+        if article:
+            node_id = article.get("data-history-node-id", "")
+        if not node_id:
+            m = re.search(r'/(?:ca|gl|eu|va|en)/node/(\d+)', html)
+            if m:
+                node_id = m.group(1)
+
+        slug = url.rstrip("/").split("/")[-1]
+
+        abstract = self._extract_abstract(soup, article, item.get("intro", ""))
+        if not abstract or len(abstract) < 50:
+            return None
+
+        published_date = item.get("listed_date", "")
+        if not published_date:
+            published_date = self._extract_date_from_page(soup, html)
+
+        pdf_url = None
+        original_filename = None
+        for a in soup.find_all("a", href=True):
+            href = a["href"]
+            if re.search(r'\.pdf', href, re.I):
+                pdf_url = (_BASE_URL + href) if href.startswith("/") else href
+                raw_name = unquote(urlparse(pdf_url).path.split("/")[-1])
+                if raw_name:
+                    original_filename = raw_name
+                break
+
+        metadata = {
+            "node_id": node_id,
+            "slug": slug,
+            "posted_date": item.get("listed_date", ""),
+        }
+
+        return {
+            "site_id": self.site_id,
+            "external_id": slug,
+            "post_number": node_id if node_id else slug,
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": item.get("listed_date", ""),
+            "url": url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "publisher": "Ministerio de Juventud e Infancia",
+            "department": None,
+            "authors": None,
+            "journal": None,
+            "keywords": None,
+            "category": "Notas de prensa",
+            "doi": None,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
