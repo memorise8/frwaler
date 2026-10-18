@@ -1,0 +1,35 @@
+{
+ "site_id": "xxgk-mot-gov-cn-2020",
+ "listing_body": "<html><body><div class=\"national_development_title\"><span>统计数据</span></div><ul class=\"national_development\"><li><a href=\"../../../../jigou/zhghs/202601/t20260101_9000001.html\" title=\"Synthetic bulletin 1\">Synthetic bulletin 1</a><span>2026-01-01</span></li><li><a href=\"../../../../jigou/zhghs/202602/t20260202_9000002.html\" title=\"Synthetic bulletin 2\">Synthetic bulletin 2</a><span>2026-02-02</span></li></ul><script>createPageHTML(1, 0, \"iframe_list_7232\", \"html\");</script></body></html>",
+ "empty_body": "<html><body><div class=\"national_development_title\"><span>统计数据</span></div><ul class=\"national_development\"></ul><script>createPageHTML(1, 1, \"iframe_list_7232\", \"html\");</script></body></html>",
+ "content_type": "text/html",
+ "long_text": "Synthetic transport statistics bulletin with 中文 text for offline equality testing only, long enough for the threshold.",
+ "details": {
+  "https://xxgk.mot.gov.cn/2020/jigou/zhghs/202601/t20260101_9000001.html": "<html><head><meta name=\"ArticleTitle\" content=\"Synthetic bulletin 1 full\"><meta name=\"PubDate\" content=\"2026-01-01 10:00\"><meta name=\"Keywords\" content=\"交通,统计\"><meta name=\"ColumnName\" content=\"综合规划司\"></head><body><div id=\"Zoom\"><p>Synthetic transport statistics bulletin with 中文 text for offline equality testing only, long enough for the threshold.</p><script>x()</script></div><div class=\"gksqxz_fj\"><a href=\"./P01.pdf\">附件1.pdf</a></div></body></html>",
+  "https://xxgk.mot.gov.cn/2020/jigou/zhghs/202602/t20260202_9000002.html": "<html><head><meta name=\"ArticleTitle\" content=\"Synthetic bulletin 2 full\"><meta name=\"PubDate\" content=\"2026-02-02 10:00\"><meta name=\"Keywords\" content=\"交通,统计\"><meta name=\"ColumnName\" content=\"综合规划司\"></head><body><div id=\"Zoom\"><p>Synthetic transport statistics bulletin with 中文 text for offline equality testing only, long enough for the threshold.</p><script>x()</script></div><div class=\"gksqxz_fj\"><a href=\"./P02.pdf\">附件2.pdf</a></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "__init__": "f73732027b17cde28796c7c374ed9d4394fd4743548b7ba328272f655308a6e2",
+  "_curl_get": "1382f800eae6d314e3cb5211cfcce356bf64c4efb5267c56a76dc92e620dd72a",
+  "_split_curl_status": "174043ec1ba3d0e9fc6460413c2f10889cda5575344da39604714d13fa292d2f",
+  "_decode_bytes": "e6474589a9d52eb537c16ed92a10c383459835fd5781b14ca6a44352adfdb4cf",
+  "_make_soup": "e65b65567969f4ba8f07edf5931154a8dd4c430cb0ecba892415dca81c646ba0",
+  "_clean_text": "adf2c784dd07f0c99faf966268971bd2492dd65dee1500c884f262fea890a3ec",
+  "_text_from_node": "665a2b77332b2f38f0d9dbb30ca47a862a712391ae360c12c29c67b5857478c3",
+  "_date_only": "a12239a27b1e8f128a2e7bffeedce1251272cc9a963735b6e76c8c185091ff30",
+  "_join_values": "4347dd6d5982fd394b3a3306e6d625f5631fa8bcb5c132ce20c742d691af24f4",
+  "_meta": "0ddffc412f46d356aa7853e6424a2abceead8fdcc08e5825b44bb0148d885a9d",
+  "_absolute_url": "4ab5693c0469bf52d0d65f957994b5d4181f9ae03c94b3fbaf1fbc5d2704f664",
+  "_list_url": "ec528a84c8a04cc77464604a7e5f097e8aab3fb448f53fcfef848e06589db037",
+  "_filename_from_url": "4a9dda0214fd2d41ff143b531e7f9a764ecd664689aee004f4be3e2135c309af",
+  "_external_id_from_url": "8c27e975afb068d3718bd885104e22467162ef49f48b2faf3e16f2b63f574d4e",
+  "_node_id_from_url": "01de8f2794e74885c83364f076579f623315cdb310e49ac8be73a353b3d30664",
+  "_parse_list_page": "e8f609a43b7c17870428b520f3934eab65647bdebaa714a316c327923024cc7b",
+  "_extract_info_fields": "d7364aafa5ec2a86dd5f5214a494b84a5e129ebd14a2756f3bbe5ed19e8fcd96",
+  "_extract_body": "8cd8fcfc38d5e85c85e7dd0bda37b84b0746185667aea695006d291bd5b3507b",
+  "_extract_attachments": "33c896e8d62d9cc9c99adbb4f13c584614394509cedf0759d40651650d43c06b",
+  "_parse_detail_page": "74c7ea739304285e44e5296eb542bcdd3e44763f3155ee6316c2078faab8b641",
+  "crawl": "3337f873ca3a32d4f0aa3491983c55dfe3966c08387d0baf4e8b0e234bfad60f"
+ },
+ "short_keeps_items": true
+}

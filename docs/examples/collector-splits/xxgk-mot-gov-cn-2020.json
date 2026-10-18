@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "sites": {
+    "xxgk-mot-gov-cn-2020": {
+      "strategy": "last_page_backward",
+      "base_url": "https://xxgk.mot.gov.cn",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://xxgk.mot.gov.cn/2020/zhengce/863/868/869/iframe_list_7232_{page}.html",
+        "first_page_url": "https://xxgk.mot.gov.cn/2020/zhengce/863/868/869/iframe_list_7232.html",
+        "start_page": 0,
+        "page_size": 15,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "date_field": "listed_date",
+          "title_field": "title",
+          "listing_marker": "ul.national_development"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

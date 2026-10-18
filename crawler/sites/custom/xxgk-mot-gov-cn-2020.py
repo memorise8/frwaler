@@ -574,3 +574,54 @@ class XxgkMotGovCn2020Crawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration (pure conversions for the enumeration framework)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, page_url):
+        """Rows of one static list page exactly as crawl() collects them.
+
+        The crawl page number (1 for iframe_list_7232.html, N+1 for
+        iframe_list_7232_N.html) is recovered from the page URL so the rows (and the
+        metadata built from them) match crawl(). A page without the createPageHTML pager
+        is a listing error, never an empty end page.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:not_html")
+        path = urlparse(page_url or "").path
+        m = re.search(r"/" + re.escape(self._LIST_STEM) + r"_(\d+)\.html$", path)
+        if m:
+            page = int(m.group(1)) + 1
+        elif path.endswith("/" + self._LIST_STEM + ".html"):
+            page = 1
+        else:
+            raise PermanentFailure("listing_parse_error:unexpected_list_url")
+        if not re.search(r"createPageHTML\(\s*\d+\s*,\s*\d+\s*,", html):
+            raise PermanentFailure("listing_parse_error:pager_missing")
+        items, _ = self._parse_list_page(html, page, page_url)
+        rows = []
+        seen_urls = set()
+        for item in items:
+            url = item.get("url")
+            if not url or url in seen_urls:
+                continue
+            seen_urls.add(url)
+            rows.append(item)
+        return rows
+
+    def _enumeration_paper(self, detail_html, item):
+        """The paper crawl() saves for one list row and its detail page (None = skipped)."""
+        if not detail_html:
+            print(f"[{self.site_id}] item failed: empty detail response")
+            return None
+        paper = self._parse_detail_page(detail_html, item)
+        abstract = paper.get("abstract") or ""
+        if len(abstract) < self._MIN_ABSTRACT_CHARS:
+            print(
+                f"[{self.site_id}] item skipped: "
+                f"abstract too short ({len(abstract)} chars)"
+            )
+            return None
+        return paper
