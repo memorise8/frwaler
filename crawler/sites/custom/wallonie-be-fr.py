@@ -146,6 +146,37 @@ class WallonieBeFrCrawler(BaseCrawler):
         return saved
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Listing rows of one page: crawl's _parse_list on crawl's soup (no I/O)."""
+        if not html:
+            return []
+        soup = self._make_soup(html, context="list page")
+        if soup is None:
+            return []
+        return self._parse_list(soup)
+
+    def _enumeration_detail(self, html, final_url, item):
+        """crawl's detail parse (_parse_detail) on the final detail URL (no I/O)."""
+        if not html:
+            return None
+        soup = self._make_soup(html, context="detail")
+        if soup is None:
+            return None
+        return self._parse_detail(soup, html, item, final_url or item.get("url"))
+
+    def _enumeration_paper(self, item, detail):
+        """crawl's short-abstract skip (None) and Paper conversion (_to_paper)."""
+        if not detail:
+            return None
+        abstract = detail.get("abstract") or ""
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        return self._to_paper(detail)
+
+    # ------------------------------------------------------------------
     # Network helpers
     # ------------------------------------------------------------------
 

@@ -1,0 +1,35 @@
+{
+ "site_id": "wallonie-be-fr",
+ "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.",
+ "original_method_source_sha256": {
+  "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+  "crawl": "74b187e9769e02ff7a1a26f8634bc62908441f67b91a261cb4cb869077cb7c90",
+  "_curl_get_text": "84b7ac3612d27b1f9ec09062d861263a84cf582259cc1c6c55941b03d973994c",
+  "_curl_get_bytes": "f8981f8977b6b88dc1dade7492a6dad6b4fe61c8339851cce0c1bebcdbdc5e3c",
+  "_split_curl_output": "a2ec4720a0498bb40072b8f70a18570db828eb14deca7686223678d1ff2296e5",
+  "_make_soup": "3e2f545072b5efae0a79fad49f595ee91f8e788147bd271f597fbf89bffed85f",
+  "_parse_list": "b27f4c1155cd03b6084a1f7407051910ca02c65da5de5e425e4cc9b8d406644b",
+  "_parse_detail": "e32f83fb5d26421912080ed0a842ace73b28226e9f6e0caa1467dde7641ef8b2",
+  "_extract_links": "345993c0180d6b18aa1cfcb3deef14244b5dd104205f2d07286b7f0daec3bafa",
+  "_to_paper": "4fec6302b05d8a62e504123638cde89bc5792fdd0bbc6f16479e696f5cbf05d6",
+  "_list_url": "53d142ff394fade46d09deebba0352ce1383230f7460c0ac340d78b755a7f87b",
+  "_has_next_page": "3763c78eeee301b3579c9172bbd7200dacf765ca0201c3dff6ce2e92cfebde81",
+  "_extract_title": "58c1bb598341b6a8b3346f30f081b1e3efc1b27036d9d1e41578c694d7091ae4",
+  "_node_id_from_drupal_settings": "f8478002148dee60241f672d58279ae8eefdeec827c5c829d983dd5c8034166f",
+  "_meta_description": "da2c8e10b7291b1818f564967efa94afc6fd271c221e3de66adf4b47dbe74529",
+  "_original_filename": "18c42727b5431fcee3b2f069bf961c01cbd6c319ca1065689853d8a6bc673b61",
+  "_filename_from_url": "2a20d8c3898dc1e9b9bcb24b0d652151a00b8847332a28c9f93863717f01ef8a",
+  "_looks_like_pdf_url": "4186dadc10ffe46cbd4383445848724cfe91a02c69e48a5444b22dd0c5fcc11a",
+  "_is_publication_detail_url": "4c5b3931c330d36982442daca95e9c0472a5f08d8b6b6a26c9d4b565c6487512",
+  "_slug_from_url": "a3c0b8c94c81427f7f823fa920330b2bee36a96b233fcc4127c557ec8967df29",
+  "_parse_date": "11ba3d9cb6d17b235223937dd93e4403ce3458293df45aa1c546ae83ed5a35a0",
+  "_clean_text": "0b356425a4335bab5fa3b8ffc93341216bc785f095e234f067bcc22bf7e8a46a"
+ },
+ "content_type": "text/html",
+ "listing_body": "<html><body><main><div id=\"block-w-content\"><spw-mosaic><spw-mosaic-item><spw-card href=\"/fr/publications/offline-one\"><img src=\"/sites/default/files/offline-one.jpg\"><spw-card-content date=\"07.10.2026\"><spw-card-title>Offline One</spw-card-title><spw-card-excerpt>Excerpt Offline One</spw-card-excerpt></spw-card-content></spw-card></spw-mosaic-item><spw-mosaic-item><spw-card href=\"/fr/publications/offline-two\"><img src=\"/sites/default/files/offline-two.jpg\"><spw-card-content date=\"2026-10-06\"><spw-card-title>Offline Two</spw-card-title><spw-card-excerpt>Excerpt Offline Two</spw-card-excerpt></spw-card-content></spw-card></spw-mosaic-item></spw-mosaic><nav class=\"pager\"><spw-pagination total-items=\"2\" items-per-page=\"10\" current-page=\"1\"></spw-pagination></nav></div></main></body></html>",
+ "details": {
+  "https://www.wallonie.be/fr/publications/offline-one": "<html><head><meta name=\"description\" content=\"desc\"></head><body><h1>Offline One</h1><article class=\"node--type-publication\" data-history-node-id=\"48951\"><time datetime=\"2026-10-01T12:00:00Z\">x</time><div class=\"node__content\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.</p><a href=\"/sites/default/files/2026-10/offline-one.pdf\">Télécharger</a></div></article></body></html>",
+  "https://www.wallonie.be/fr/publications/offline-two": "<html><head><meta name=\"description\" content=\"desc\"></head><body><h1>Offline Two</h1><article class=\"node--type-publication\" data-history-node-id=\"48899\"><div class=\"node__content\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.</p></div></article></body></html>"
+ },
+ "empty_body": "<html><body><main><div id=\"block-w-content\"><nav class=\"pager\" role=\"navigation\"><spw-pagination total-items=\"2\" items-per-page=\"10\" current-page=\"2\"></spw-pagination></nav></div></main></body></html>"
+}
