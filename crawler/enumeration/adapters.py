@@ -94,6 +94,13 @@ def segment_of(item):
     return dict(seg) if seg else {"key": None, "label": None, "params": {}}
 
 
+def position_of(item):
+    """ext:list_page_arg: {page (value sent), n (page number), position (1-based)} of the item on
+    its listing page; Nones when not known (identity precheck sample)."""
+    pos = getattr(item, "list_position", None) if item is not None else None
+    return dict(pos) if pos else {"page": None, "n": None, "position": None}
+
+
 def first_response(resp):
     """ext:two_step_keep_first: the first detail page behind a second-step response; the
     response itself when no second step was taken (optional link missing)."""
@@ -191,7 +198,7 @@ class Adapter:
     # ext:two_step_keep_first: the first detail page next to the second-step response.
     FIRST_TOKENS = ("first_html", "first_soup", "first_json", "first_url", "first_resp")
     # ext:pdf_text: text the framework extracted from the detail response (a PDF).
-    DETAIL_ONLY = FIRST_TOKENS + ("pdf_text", "segment")  # segment: ext:multi_listing
+    DETAIL_ONLY = FIRST_TOKENS + ("pdf_text", "segment", "list_position")  # ext:multi_listing, ext:list_page_arg
 
     def _check_backend(self):
         """The save path (BaseCrawler._save_paper) picks its backend from
@@ -282,6 +289,8 @@ class Adapter:
                 out.append(getattr(resp, "pdf_text", None))
             elif token == "segment":
                 out.append(segment_of(item))
+            elif token == "list_position":
+                out.append(position_of(item))
             elif token in self.FIRST_TOKENS:
                 first = first_response(resp)
                 kind = token[len("first_"):]
@@ -360,6 +369,16 @@ class Adapter:
         link = urljoin(resp.url, value)
         if not link.startswith(("http://", "https://")):
             return None
+        if step.get("rewrite"):
+            # ext:second_step_link_rewrite: e.g. a record link -> its MARCXML export address.
+            m = re.search(step["rewrite"]["regex"], link)
+            if not m or any(g is None or g.strip(".") == "" for g in m.groups()):
+                return None
+            link = re.sub(r"\{(\d)\}", lambda r: quote(m.group(int(r.group(1))), safe=""), step["rewrite"]["template"])
+        if step.get("add_params"):
+            # ext:second_step_link_params: fixed parameters the crawler added (e.g. _embed=1).
+            from .urls import build_url
+            link = build_url(link, dict(step["add_params"]))
         if host_of(link) != host_of(resp.url) and host_of(link) not in set(step.get("allow_hosts", [])):
             return None
         return link
@@ -506,7 +525,10 @@ class Adapter:
                 if review_rule(str(exc)):
                     raise IdentityReview(str(exc)) from None
                 raise IdentityRuleConfig(f"identity_rule_config:{exc}") from None
-            if same is None and self.existing_post_number(post_number) is not None:
+            # allow_shared_post_number: the registered crawler stores several rows with one
+            # post_number (e.g. language editions, different meta_url); exact dedup still applies.
+            if same is None and not self.cfg.get("allow_shared_post_number") \
+                    and self.existing_post_number(post_number) is not None:
                 raise IdentityCollision(post_number)
             seq_id = self.crawler._save_paper(paper)
         except Exception:

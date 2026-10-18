@@ -25,21 +25,12 @@ class PdfTextConfigError(ValueError):
 
 
 def validate(spec):
-    """``adapter.pdf_text``: {"args": [...], "timeout_s": 30, "min_bytes": 0}."""
-    if not isinstance(spec, dict) or set(spec) - {"args", "timeout_s", "min_bytes"}:
-        raise PdfTextConfigError("pdf_text must be an object with args, timeout_s, min_bytes")
-    args = spec.get("args", [])
-    if not isinstance(args, list) or not all(isinstance(a, str) for a in args):
-        raise PdfTextConfigError("pdf_text.args must be a list of strings")
-    i = 0
-    while i < len(args):
-        flag = args[i]
-        if flag in FLAGS:
-            i += 1
-        elif flag in VALUED and i + 1 < len(args) and re.fullmatch(VALUED[flag], args[i + 1]):
-            i += 2
-        else:
-            raise PdfTextConfigError(f"pdf_text.args: {flag!r} is not an allowed pdftotext option")
+    """``adapter.pdf_text``: {"args": [...], "retry_args": [...], "timeout_s": 30, "min_bytes": 0}."""
+    if not isinstance(spec, dict) or set(spec) - {"args", "retry_args", "timeout_s", "min_bytes"}:
+        raise PdfTextConfigError("pdf_text must be an object with args, retry_args, timeout_s, min_bytes")
+    for key in ("args", "retry_args"):
+        if key in spec:
+            _validate_args(spec[key], key)
     timeout = spec.get("timeout_s", 30)
     if type(timeout) is not int or not 1 <= timeout <= MAX_TIMEOUT_S:
         raise PdfTextConfigError(f"pdf_text.timeout_s must be an integer in [1, {MAX_TIMEOUT_S}]")
@@ -48,11 +39,36 @@ def validate(spec):
         raise PdfTextConfigError("pdf_text.min_bytes must be a non-negative integer")
 
 
+def _validate_args(args, key):
+    if not isinstance(args, list) or not all(isinstance(a, str) for a in args):
+        raise PdfTextConfigError(f"pdf_text.{key} must be a list of strings")
+    i = 0
+    while i < len(args):
+        flag = args[i]
+        if flag in FLAGS:
+            i += 1
+        elif flag in VALUED and i + 1 < len(args) and re.fullmatch(VALUED[flag], args[i + 1]):
+            i += 2
+        else:
+            raise PdfTextConfigError(f"pdf_text.{key}: {flag!r} is not an allowed pdftotext option")
+
+
 def available():
     return shutil.which("pdftotext") is not None
 
 
 def extract(body, spec):
+    """``args`` first; ``retry_args`` (ext:pdf_text retry) when that gives no text, as crawlers did
+    with "-layout, else -raw"."""
+    text = _run(body, spec, spec.get("args", []))
+    if (text is None or not text.strip()) and "retry_args" in spec:
+        retried = _run(body, spec, spec["retry_args"])
+        if retried is not None:
+            return retried
+    return text
+
+
+def _run(body, spec, args):
     """pdftotext stdout (utf-8, errors replaced, not stripped), or None when the body is shorter
     than min_bytes or the tool fails, exits non-zero or times out."""
     if not body or len(body) < spec.get("min_bytes", 0):
@@ -61,7 +77,7 @@ def extract(body, spec):
     try:
         with os.fdopen(fd, "wb") as fh:
             fh.write(body)
-        result = subprocess.run(["pdftotext", *spec.get("args", []), path, "-"], capture_output=True,
+        result = subprocess.run(["pdftotext", *args, path, "-"], capture_output=True,
                                 timeout=spec.get("timeout_s", 30), stdin=subprocess.DEVNULL,
                                 env={"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "LANG": "C.UTF-8"})
     except (OSError, subprocess.SubprocessError):
