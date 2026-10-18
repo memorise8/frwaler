@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "sites": {
+    "mfds-go-kr-brd": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.mfds.go.kr",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "raw",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "pdf_text",
+          "first_resp",
+          "resp",
+          "item"
+        ],
+        "second_step": {
+          "use": "detail_page",
+          "selector": "ul.bbs_file_view_list li:has(strong:-soup-contains(\".pdf\", \".PDF\", \".Pdf\")) a.bbs_icon_filedown, ul.bbs_file_view_list:not(:has(strong:-soup-contains(\".pdf\", \".PDF\", \".Pdf\"))) li:has(strong) a.bbs_icon_filedown",
+          "attr": "href",
+          "required": false
+        },
+        "pdf_text": {
+          "args": [],
+          "timeout_s": 30,
+          "min_bytes": 200
+        }
+      },
+      "listing": {
+        "url": "https://www.mfds.go.kr/brd/m_99/list.do",
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 10,
+        "parser": {
+          "type": "adapter",
+          "key_field": "external_id",
+          "url_field": "url",
+          "title_field": "title",
+          "date_field": "listed_date",
+          "listing_marker": "div.bbs_list01"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+ "site_id": "mfds-go-kr-brd",
+ "listing_url": "https://www.mfds.go.kr/brd/m_99/list.do?page=1",
+ "listing_body": "<html><body><div class=\"bbs_list01\"><ul><li><div class=\"num\">90002</div><div class=\"center_column\"><a class=\"title\" href=\"./view.do?seq=90002&amp;srchFr=&amp;srchWord=&amp;itm_seq_1=0&amp;page=1\" title=\"자세히보기\">  [보도참고] 합성 제목 1  </a><div class=\"winfo\"><p>담당부서 | 합성과</p></div></div><div class=\"right_column\"><p>등록일 2026-10-16</p></div></li><li><div class=\"num\">90001</div><div class=\"center_column\"><a class=\"title\" href=\"./view.do?seq=90001&amp;srchFr=&amp;srchWord=&amp;itm_seq_1=0&amp;page=1\" title=\"자세히보기\">  [보도참고] 합성 제목 2  </a><div class=\"winfo\"><p>담당부서 | 합성과</p></div></div><div class=\"right_column\"><p>등록일 2026-10-15</p></div></li></ul></div></body></html>",
+ "empty_body": "<html><body><div class=\"bbs_list01\"><ul><li class=\"nodata\">등록된 게시물이 없습니다.</li></ul></div></body></html>",
+ "content_type": "text/html; charset=UTF-8",
+ "long_text": "합성 보도자료 본문입니다. 오프라인 동등성 시험을 위한 문장이며 실제 보도자료가 아닙니다. Synthetic MFDS release.",
+ "details": {
+  "https://www.mfds.go.kr/brd/m_99/view.do?seq=90002&page=1": "<html><body><div class=\"bv_info\"><span>등록일\n\t</span> 2026-10-16</div><ul class=\"bbs_file_view_list\"><li><div class=\"bbs_file_cont\"><strong>[합성] 보도자료.hwpx</strong><a class=\"bbs_icon_filedown\" href=\"./down.do?brd_id=ntc0021&amp;seq=90002&amp;data_tp=A&amp;file_seq=1\">다운받기</a></div></li><li><div class=\"bbs_file_cont\"><strong>[합성] 보도자료.pdf</strong><a class=\"bbs_icon_filedown\" href=\"./down.do?brd_id=ntc0021&amp;seq=90002&amp;data_tp=A&amp;file_seq=2\">다운받기</a></div></li></ul><div class=\"bv_cont\"><p><span>[보도참고] 합성 제목 1</span></p></div></body></html>",
+  "https://www.mfds.go.kr/brd/m_99/down.do?brd_id=ntc0021&seq=90002&data_tp=A&file_seq=2": "%PDF-1.4 synthetic mfds attachment zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+  "https://www.mfds.go.kr/brd/m_99/view.do?seq=90001&page=1": "<html><body><div class=\"bv_info\"><span>등록일\n\t</span> 2026-10-15</div><ul class=\"bbs_file_view_list\"><li><div class=\"bbs_file_cont\"><strong>[합성] 보도자료.hwpx</strong><a class=\"bbs_icon_filedown\" href=\"./down.do?brd_id=ntc0021&amp;seq=90001&amp;data_tp=A&amp;file_seq=1\">다운받기</a></div></li></ul><div class=\"bv_cont\"><p><span>합성 보도자료 본문입니다. 오프라인 동등성 시험을 위한 문장이며 실제 보도자료가 아닙니다. Synthetic MFDS release.</span></p></div></body></html>",
+  "https://www.mfds.go.kr/brd/m_99/down.do?brd_id=ntc0021&seq=90001&data_tp=A&file_seq=1": "PK synthetic hwpx attachment hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh"
+ },
+ "pdf_texts": {
+  "%PDF-1.4 synthetic mfds attachment zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz": "  보도참고자료\n\n합성 보도자료 본문입니다. 오프라인 동등성 시험을 위한 문장이며 실제 보도자료가 아닙니다. Synthetic MFDS release.\n\f끝\n"
+ },
+ "original_method_source_sha256": {
+  "_curl_get": "f3e3ec2223f69328540b0bdb864db49c95fd6e86b9b7f7aa2099be345dc18975",
+  "_decode": "9ca93dee1822d219f382d56d08198db65a9903e13ff260002f0e2b4673103cf5",
+  "_make_soup": "4739b7eb00c1304d6002e4a3cfef0bb23b85bd0c0efd0756f3c8cffc623a12f0",
+  "_parse_list_page": "1e254871ba2958e2bf553135cffe9cf702c8cb57691c29a668aedf85a9621bb8",
+  "_fetch_detail": "ffb5b82b4a3fd2105961a77dc46c1da9cccc86db5e0b17631a60d0d4e79a3498",
+  "_extract_pdf_text": "106e142fcf6d830de98aad6a694103686eeb94e0e26ef9a9f65e8eb7f9fa8e74",
+  "crawl": "61984437416e4ebf0a691b64768fac68e299ae114ba9c35fb77345c55031cec9"
+ }
+}

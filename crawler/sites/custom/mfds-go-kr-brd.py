@@ -265,6 +265,153 @@ class MFDSBoardCrawler(BaseCrawler):
                     pass
 
     # ------------------------------------------------------------------
+    # Enumeration split (collector-splits 방식, crawl() 무변경)
+    # ------------------------------------------------------------------
+
+    # adapter.second_step 선택자: _fetch_detail() 과 같은 첨부 고르기 — 파일명에 ".pdf" 가 든
+    # 첫 첨부, 없으면 첫 첨부(strong + 다운로드 링크가 있는 li). _enumeration_paper 가 고른
+    # 주소가 crawl() 의 선택과 같은지 다시 확인한다.
+    _PDF_NAME_MARKS = '".pdf", ".PDF", ".Pdf"'
+    ENUMERATION_ATTACHMENT_SELECTOR = (
+        'ul.bbs_file_view_list li:has(strong:-soup-contains(' + _PDF_NAME_MARKS + ')) a.bbs_icon_filedown, '
+        'ul.bbs_file_view_list:not(:has(strong:-soup-contains(' + _PDF_NAME_MARKS + '))) '
+        'li:has(strong) a.bbs_icon_filedown'
+    )
+
+    def _enumeration_items(self, raw, url=""):
+        """목록 쪽 바이트 → crawl() 과 같은 디코딩(_decode)·_parse_list_page 행.
+        식별값·상세 주소는 crawl() 그대로: external_id=seq, url=view.do?seq=S&page=1."""
+        from crawler.enumeration.http import PermanentFailure
+
+        html = self._decode(raw)
+        if "bbs_list01" not in html and 'class="title"' not in html:
+            raise PermanentFailure("listing_parse_error:missing_board_list")
+        items = []
+        seen = set()
+        for seq, title, list_date in self._parse_list_page(html):
+            if seq in seen:
+                continue
+            seen.add(seq)
+            items.append({
+                "external_id": seq,
+                "seq": seq,
+                "title": title,
+                "listed_date": list_date,
+                "url": f"{self._VIEW_URL}?seq={seq}&page=1",
+            })
+        return items
+
+    def _enumeration_detail_fields(self, html):
+        """_fetch_detail() 의 파싱 부분(네트워크 없음) → (date_str, pdf_url_or_None, inline_text)."""
+        date_str = ""
+        dm = re.search(r'등록일\s*</span>\s*(\d{4}-\d{2}-\d{2})', html)
+        if dm:
+            date_str = dm.group(1)
+
+        pdf_url = None
+        any_url = None
+        soup = self._make_soup(html)
+        if soup:
+            for li in soup.select("ul.bbs_file_view_list li"):
+                strong = li.find("strong")
+                link = li.find("a", class_="bbs_icon_filedown")
+                if not (strong and link):
+                    continue
+                filename = strong.get_text(strip=True).lower()
+                href = link.get("href", "")
+                href = href.replace("&amp;", "&")
+                if href.startswith("./"):
+                    href = f"https://www.mfds.go.kr/brd/m_99/{href[2:]}"
+                elif href.startswith("/"):
+                    href = f"https://www.mfds.go.kr{href}"
+                if any_url is None:
+                    any_url = href
+                if ".pdf" in filename and pdf_url is None:
+                    pdf_url = href
+        else:
+            for m in re.finditer(
+                r'<strong>([^<]+)</strong>.*?'
+                r'href=["\'](\./down\.do\?[^"\']+)["\'].*?class="bbs_icon_filedown"',
+                html, re.DOTALL | re.IGNORECASE
+            ):
+                fname = m.group(1).lower()
+                href = (m.group(2)
+                        .replace("./", "https://www.mfds.go.kr/brd/m_99/")
+                        .replace("&amp;", "&"))
+                if any_url is None:
+                    any_url = href
+                if ".pdf" in fname and pdf_url is None:
+                    pdf_url = href
+
+            if pdf_url is None and any_url is None:
+                m2 = re.search(r'href=["\'](\./down\.do\?[^"\']+)["\']', html)
+                if m2:
+                    any_url = (m2.group(1)
+                               .replace("./", "https://www.mfds.go.kr/brd/m_99/")
+                               .replace("&amp;", "&"))
+
+        inline_text = ""
+        m3 = re.search(r'class="bv_cont"[^>]*>(.*?)</div>', html, re.DOTALL)
+        if m3:
+            raw_inner = m3.group(1)
+            inline_text = re.sub(r"<[^>]+>", " ", raw_inner)
+            inline_text = re.sub(r"&[a-zA-Z#0-9]+;", " ", inline_text)
+            inline_text = re.sub(r"\s+", " ", inline_text).strip()
+
+        return date_str, pdf_url or any_url, inline_text
+
+    def _enumeration_paper(self, pdf_text, first_resp, resp, item):
+        """상세 쪽(1단계) + 첨부(2단계, ext:pdf_text 로 틀이 뽑은 본문) + 목록 행 →
+        crawl() 이 저장하는 것과 같은 paper (초록 50자 미만이면 None).
+
+        pdf_text 는 crawl() 의 _extract_pdf_text 와 같은 pdftotext 호출(옵션 없음, 30초,
+        200바이트 미만 본문은 없음)의 출력이고, 여기서 같은 공백 압축·strip 을 한다.
+        첨부가 없으면 틀은 1단계 쪽을 그대로 넘기고(required:false) pdf_text 는 None 이다.
+        """
+        from crawler.enumeration.http import PermanentFailure
+
+        seq = item["seq"]
+        title = item["title"]
+        list_date = item.get("listed_date") or ""
+        first = first_resp if first_resp is not None else resp
+        html = self._decode(first.body)
+        date_str, pdf_url, inline_text = self._enumeration_detail_fields(html)
+        fetched = resp.url if resp is not first else None
+        if (pdf_url or None) != (fetched or None):
+            # 틀이 받은 첨부가 crawl() 이 고르는 첨부와 다르면 다른 본문이 된다: 항목 실패.
+            raise PermanentFailure("attachment_choice_mismatch", item.get("url"))
+        published_date = date_str or list_date or ""
+
+        abstract = ""
+        if pdf_url:
+            abstract = re.sub(r"\s+", " ", pdf_text or "").strip()
+        if not abstract:
+            abstract = inline_text
+
+        if len(abstract) < self._MIN_ABSTRACT_LEN:
+            return None
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": seq,
+            "title": title,
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": "보도자료",
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": published_date,
+            "url": f"{self._VIEW_URL}?seq={seq}&page=1",
+            "pdf_url": pdf_url or "",
+            "doi": "",
+            "department": "",
+            "metadata": json.dumps({
+                "board_id": self._BRD_ID,
+                "seq": seq,
+            }, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
