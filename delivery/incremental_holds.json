@@ -205,7 +205,7 @@
   "ameslab-gov-news": {
     "classification": "full_rescan_required",
     "reason": "listing_dates_and_node_IDs_detail_only_with_two_extra_native_categories_unreviewed",
-    "source_sha256": "0c6f56aeebb7fcc27244d9e1a5591cb0fd1c0017c416c14bc2b08ea341f9e415",
+    "source_sha256": "c293a0a3d69664878c1572ef55e2983441481dcb8ef80feb0fdef19102570238",
     "dependency_source_sha256": {
       "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
     },
