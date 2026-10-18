@@ -506,6 +506,13 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
     # Access policy is an execution ceiling: a plan can tighten, never relax it.
     if raw.get("respect_robots") is not True:
         raise PlanError(f"{site_id}: respect_robots cannot be disabled by a plan")
+    # ext:jsonp: a JSON listing wrapped in one callback call (listing parser json, or the adapter's json token).
+    parser_cfg = ((raw.get("listing") or {}).get("parser") or {})
+    for where, value in (("listing.parser.jsonp", parser_cfg.get("jsonp")), ("adapter.jsonp", (raw.get("adapter") or {}).get("jsonp"))):
+        if value is not None and not isinstance(value, bool):
+            raise PlanError(f"{site_id}: {where} must be true or false")
+    if parser_cfg.get("jsonp") and parser_cfg.get("type") != "json":
+        raise PlanError(f"{site_id}: listing.parser.jsonp needs listing.parser.type 'json' (adapter lists use adapter.jsonp)")
     # Every request says it is a collector (user decision 2026-10-19): a plan cannot change it.
     if raw.get("user_agent") != DEFAULT_USER_AGENT:
         raise PlanError(f"{site_id}: user_agent cannot be set by a plan")

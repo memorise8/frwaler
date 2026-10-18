@@ -278,7 +278,7 @@ class Adapter:
                 from bs4 import BeautifulSoup
                 out.append(BeautifulSoup(resp.text(), "html.parser"))
             elif token == "json":
-                out.append(resp.json())
+                out.append(resp.json(jsonp=True) if self.cfg.get("jsonp") else resp.json())
             elif token == "url":
                 out.append(resp.url)
             elif token == "item":
