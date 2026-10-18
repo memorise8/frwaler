@@ -30,6 +30,7 @@
         },
         "page_param": "pageIndex",
         "start_page": 1,
+        "page_size": 18,
         "parser": {
           "type": "adapter",
           "url_field": "detail_api",
