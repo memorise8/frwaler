@@ -364,3 +364,88 @@ class KhsGoKrNewsBbzCrawler(BaseCrawler):
 
         print(f"[khs-go-kr-newsbbz] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (no network); crawl() and the methods
+    # above are unchanged.
+    # ------------------------------------------------------------------
+
+    _ENUM_DETAIL_TMPL = (
+        _DETAIL_URL
+        + "?newsItemId={news_item_id}&sectionId=b_sec_1"
+        "&pageIndex={page_index}&pageUnit=10"
+        "&strWhere=&strValue=&sdate=&edate=&category=&mn=NS_01_02"
+    )
+
+    def _enumeration_items(self, html, url=None):
+        """List-page HTML -> _parse_list() rows plus crawl()'s detail URL.
+
+        crawl() puts the listing page number into the detail URL (pageIndex);
+        it is read from the listing URL (no pageIndex = page 1, as in crawl()).
+        """
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _try_bs4(html)
+        if soup is None or soup.find("table", class_="tbl") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_table")
+        query = parse_qs(urlsplit(url or "").query)
+        try:
+            page_index = int((query.get("pageIndex") or ["1"])[0])
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:bad_page_index")
+        rows = []
+        for item in self._parse_list(html):
+            row = dict(item)
+            row["page_index"] = page_index
+            row["detail_url"] = self._ENUM_DETAIL_TMPL.format(
+                news_item_id=item["news_item_id"], page_index=page_index)
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, html, row):
+        """Detail HTML + list row -> the paper crawl() saves (or None)."""
+        item = {k: row[k] for k in ("post_number", "news_item_id", "title", "department", "date")}
+        news_item_id = item["news_item_id"]
+        detail_url = self._ENUM_DETAIL_TMPL.format(
+            news_item_id=news_item_id, page_index=row["page_index"])
+        if not html:
+            return None
+        detail = self._parse_detail(html)
+        abstract = detail["abstract"]
+
+        if len(abstract) < 50:
+            return None
+
+        published_date = item["date"]
+        detail_page_url = detail_url
+
+        return {
+            "site_id": self.site_id,
+            "external_id": news_item_id,
+            "post_number": item["post_number"],
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "authors": "",
+            "publisher": "국가유산청",
+            "department": item["department"],
+            "url": detail_page_url,
+            "pdf_url": detail["pdf_url"],
+            "original_filename": detail["original_filename"],
+            "keywords": "",
+            "category": "보도자료",
+            "doi": None,
+            "metadata": json.dumps(
+                {
+                    "newsItemId": news_item_id,
+                    "post_number": item["post_number"],
+                    "posted_date": published_date,
+                    "originalFilename": detail["original_filename"],
+                    "attachments": detail["attachments"],
+                },
+                ensure_ascii=False,
+            ),
+        }
