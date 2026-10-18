@@ -1,0 +1,12 @@
+{
+  "site_id": "artsetmetiers-fr-fr",
+  "listing_body": "<html><body><div class=\"view view-espace-presse\"><div class=\"views-row\"><a href=\"https://s3.example-bucket.fr/presse/CP_offline_1.pdf\"><span class=\"day\">11</span><span class=\"month\">oct.</span><span class=\"year\">2026</span><h2>Offline 1</h2><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></a></div><div class=\"views-row\"><a href=\"https://s3.example-bucket.fr/presse/CP_offline_2.pdf\"><span class=\"day\">12</span><span class=\"month\">oct.</span><span class=\"year\">2026</span><h2>Offline 2</h2><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></a></div></div><div class=\"view view-partners-footer\"><div class=\"views-row\"><a href=\"https://partner.example/\">Partner</a></div></div></body></html>",
+  "content_type": "text/html",
+  "details": {},
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "original_method_source_sha256": {
+    "_parse_list_page": "954678a810f0da8062dd94835d8054145fe1fa79cb2f7829979869529c00ed89",
+    "_paper": "cc1990b29f5629af578845870f21dc40be3a9e51160c2351dc03144497a93e98",
+    "crawl": "ab41df8e3178b519d8828500c0be2966672ae870a40d72b5021cbf1fa3d6034b"
+  }
+}

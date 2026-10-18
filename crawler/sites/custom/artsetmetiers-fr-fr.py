@@ -219,6 +219,28 @@ class ArtsetmetiersFrFrCrawler(BaseCrawler):
         }
         return paper
 
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_items(self, html, url=None):
+        """Rows of the press view only: the page also carries contact/partner views whose
+        rows crawl() drops by its empty-title filter, but they would hide the empty page
+        past the end. A page without the press view is a listing parse error."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:not_html", url)
+        soup = _make_soup(html)
+        view = soup.select_one("div.view-espace-presse") if soup is not None else None
+        if view is None:
+            raise PermanentFailure("listing_parse_error:press_view_missing", url)
+        return self._parse_list_page(str(view))
+
+    def _enumeration_paper(self, item):
+        """crawl()'s item filters, then its own _paper conversion (None = crawl's skip)."""
+        if not item["title"]:
+            return None
+        if len(item["abstract"]) < 100:
+            return None
+        return self._paper(item)
+
     def crawl(self, limit=None):
         """Crawl all press-release list pages and persist records.
 
