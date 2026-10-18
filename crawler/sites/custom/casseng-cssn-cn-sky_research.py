@@ -122,7 +122,14 @@ class CassengCssncnSkyResearchCrawler(BaseCrawler):
         soup = self._make_soup(raw)
         if soup is None:
             raise ValueError("journal listing HTML could not be parsed")
+        results = self._list_rows(soup, page_url)
 
+        if not results:
+            raise ValueError("source-declared journal page has no entries")
+        return results
+
+    def _list_rows(self, soup, page_url):
+        """Journal rows of one parsed listing page (no I/O)."""
         results = []
         # Journal entries are inside <ul class="cont3-1text cont3-2text">
         ul = soup.find("ul", class_=re.compile(r"cont3-1text"))
@@ -141,9 +148,6 @@ class CassengCssncnSkyResearchCrawler(BaseCrawler):
             abs_url = urljoin(page_url, href)
             if abs_url and title:
                 results.append({"title": title, "url": abs_url})
-
-        if not results:
-            raise ValueError("source-declared journal page has no entries")
         return results
 
     def _iter_list_pages(self, should_stop=lambda: False):
@@ -363,3 +367,40 @@ class CassengCssncnSkyResearchCrawler(BaseCrawler):
                 if self._last_save_created:
                     saved += 1
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged; same parsing and Paper fields)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw, url):
+        """Rows of one listing page (journals/ = page 0, index_N.shtml = page N).
+
+        The page's own countPage/currentPage must agree with the requested page, as in
+        crawl(); anything else is a listing parse error, never an empty end page.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        m = re.search(r"/index_(\d+)\.shtml$", url or "")
+        page = int(m.group(1)) if m else 0
+        count = re.search(r"var countPage\s*=\s*(\d+)", raw or "")
+        current = re.search(r"var currentPage\s*=\s*(\d+)", raw or "")
+        if not count or not current or int(current.group(1)) != page or int(count.group(1)) <= page:
+            raise PermanentFailure("listing_parse_error:invalid_source_pagination", url)
+        soup = self._make_soup(raw)
+        rows = self._list_rows(soup, url) if soup is not None else []
+        if not rows:
+            raise PermanentFailure("listing_parse_error:declared_page_without_entries", url)
+        return rows
+
+    def _enumeration_detail(self, raw, item, url):
+        """crawl()'s Paper for one journal; None where crawl skips (short abstract)."""
+        detail_url = self._clean(item.get("url", ""))
+        if not detail_url:
+            raise ValueError("journal entry is missing its detail URL")
+        paper = self._parse_detail(item, detail_url, raw)
+        if not paper.get("title"):
+            raise ValueError("journal detail has no title")
+        abstract = self._clean(paper.get("abstract", ""))
+        if len(abstract) < self._MIN_ABSTRACT_CHARS:
+            return None
+        paper["abstract"] = abstract
+        return paper
