@@ -1,0 +1,23 @@
+{
+ "listing_body": "<html><body><main><article><h3><a href=\"/news/2026/01/item-1\">Item 1 title</a></h3><time datetime=\"2026-01-11T09:00:00Z\">11/01/2026</time><div class=\"show-for-large\"><a href=\"/tag/a\">tag1</a></div></article><article><h3><a href=\"/news/2026/02/item-2\">Item 2 title</a></h3><time datetime=\"2026-02-12T09:00:00Z\">12/02/2026</time><div class=\"show-for-large\"><a href=\"/tag/a\">tag2</a></div></article></main></body></html>",
+ "details": {
+  "https://www.babraham.ac.uk/news/2026/01/item-1": "<html><head><meta property=\"og:title\" content=\"Item 1 detail\"><script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\":{\"currentPath\":\"news\\/901\"}}</script></head><body><main><h1>Item 1 detail</h1><time datetime=\"2026-01-11T09:00:00Z\">x</time><p>Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. </p><a href=\"/files/report-1.pdf\">PDF</a> <a href=\"https://doi.org/10.1234/abc1\">doi</a></main></body></html>",
+  "https://www.babraham.ac.uk/news/2026/02/item-2": "<html><head><meta property=\"og:title\" content=\"Item 2 detail\"><script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\":{\"currentPath\":\"news\\/902\"}}</script></head><body><main><h1>Item 2 detail</h1><time datetime=\"2026-02-12T09:00:00Z\">x</time><p>Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. </p><a href=\"/files/report-2.pdf\">PDF</a> <a href=\"https://doi.org/10.1234/abc2\">doi</a></main></body></html>"
+ },
+ "site_id": "babraham-ac-uk-news",
+ "content_type": "text/html",
+ "long_text": "Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. ",
+ "empty_body": "<html><main/></html>",
+ "original_method_source_sha256": {
+  "__init__": "86b07d464f37e29597cb35f777a884f91e90c347c1dd28bcfaa42a3652409fb8",
+  "_curl": "373edb981d010e49acaa6c6285127e5a22b5c072464c726ec791eb8ffaf08d65",
+  "_parse_html": "4c846a2dd390a869293dda3da904a39bf620a1578728ee0977e952104ae86d24",
+  "_clean": "e9a39e4b2746a39e1d0b019161e9a585555831796669dfdc0a384208e9f8eea5",
+  "_one_line": "e9a7b30d474a6dee3c397bd32c1381d8758bb099f9de3e0a8e4526ed0e405dbd",
+  "_parse_iso_date": "4f31d9cc50b32386169b82ec08534c3a7efc8cb352514f9bbae07b7b0904b9e3",
+  "_parse_display_date": "3585a7747d06e847ae4d198e49a4bcff5d08538465e5b4240415eeb03c8f1cf0",
+  "_parse_list_page": "7879695a76af794ebc8e56a8c7e17ef056a9692c5c2ff00aaf2e83ce6403e46c",
+  "_parse_detail": "82c29953c4346e637bff10bbb3ac9ed273369d1cc2c662c103671bff4eb5f932",
+  "crawl": "34ca1ca3444ed1139d08fc5edc186fbd1a84386f712ada570398d8073c251d55"
+ }
+}

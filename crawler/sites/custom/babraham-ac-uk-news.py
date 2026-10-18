@@ -280,6 +280,23 @@ class BabrahamAcUkNewsCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged): same parsers, same skip rule
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        return self._parse_list_page(html)
+
+    def _enumeration_detail(self, html, item):
+        if not html:
+            return None
+        return self._parse_detail(html, item)
+
+    def _enumeration_paper(self, item, detail):
+        if len(detail.get("abstract") or "") < 50:
+            return None
+        return detail
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
