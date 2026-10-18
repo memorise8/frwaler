@@ -142,7 +142,7 @@
   "afp-gov-au-search": {
     "classification": "full_rescan_required",
     "reason": "search_results_nonmonotonic_dates_and_node_IDs_with_two_missing_identity_date_rows",
-    "source_sha256": "1ec83311bfa88941c084d164c56128baf618bfe0dc9dadf13c8cef9521fdf2d0",
+    "source_sha256": "4af08edefb2dd56d5a60dcadb73832819468554f0ff3658198a8f21bd1ad5d50",
     "dependency_source_sha256": {
       "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
     },
