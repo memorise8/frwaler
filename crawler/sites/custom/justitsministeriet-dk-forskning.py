@@ -376,3 +376,61 @@ class JustitsministerietForsknCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] crawl complete: {saved} records saved.")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # module parsers stay unchanged; no fetching or storage happens here.
+    # Each year-range sub-page is one segment (ext:multi_listing discover).
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """Records of one year-range page, exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if not soup:
+            raise PermanentFailure("listing_parse_error:unparseable_html")
+        # crawl() keeps the discovered sub-page address (no query) as the record's page.
+        page_url = (url or "").split("#", 1)[0].split("?", 1)[0]
+        return [dict(rec, url=rec["href"]) for rec in _parse_page(soup, page_url)]
+
+    def _enumeration_paper(self, rec):
+        """Copy of crawl()'s per-record conversion; None keeps crawl()'s skips."""
+        href = rec["href"]
+        title = rec["title"]
+        abstract = rec["abstract"]
+        date_str = rec["date_str"]
+        if not title:
+            return None
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+        pub_date = _parse_date(date_str)
+        ext_id = _external_id(href)
+        orig_filename = _pdf_filename(href)
+        pdf_url = href if (href.lower().endswith(".pdf")) else None
+        meta_url = rec["page_url"]
+        return {
+            "site_id": self.site_id,
+            "external_id": ext_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "listed_date": pub_date,
+            "url": meta_url,
+            "pdf_url": pdf_url or "",
+            "authors": json.dumps([]),
+            "keywords": json.dumps([]),
+            "department": "Justitsministeriets Forskningsenhed",
+            "publisher": "Justitsministeriets Forskningsenhed",
+            "category": "Forskningsrapport",
+            "original_filename": orig_filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": date_str,
+                    "originalFilename": orig_filename,
+                    "source_page": rec["page_url"],
+                    "direct_url": href,
+                },
+                ensure_ascii=False,
+            ),
+        }

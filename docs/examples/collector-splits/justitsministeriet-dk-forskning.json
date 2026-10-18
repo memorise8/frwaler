@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "sites": {
+    "justitsministeriet-dk-forskning": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "date_range_split",
+      "base_url": "https://www.justitsministeriet.dk",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "paper_method": "_enumeration_paper"
+      },
+      "listing": {
+        "url": "https://www.justitsministeriet.dk/forskning/forskningsrapporter/forskningsrapporter-{segment}/",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "href",
+          "title_field": "title",
+          "listing_marker": "div.entry-content"
+        }
+      },
+      "segments": {
+        "mode": "discover",
+        "hub_url": "https://www.justitsministeriet.dk/forskning/forskningsrapporter/",
+        "selector": "a[href*=\"/forskning/forskningsrapporter/forskningsrapporter-\"]",
+        "attr": "href",
+        "key_regex": "/forskning/forskningsrapporter/forskningsrapporter-(\\d{4}-\\d{4})/$",
+        "label": "text",
+        "min_segments": 6
+      }
+    }
+  }
+}
