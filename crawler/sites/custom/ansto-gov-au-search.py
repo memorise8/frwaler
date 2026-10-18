@@ -5,6 +5,7 @@ Starting URL: https://www.ansto.gov.au/search?query=pdf
 Pagination: Drupal 10 Views AJAX at /views/ajax?...&query=pdf&page=N (0-indexed, 20/page, ~2048 results)
 """
 
+import html as html_lib
 import json
 import os
 import re
@@ -45,16 +46,7 @@ def _curl_get(
     extra_headers: list[str] | None = None,
 ) -> str | None:
     """Fetch *url* via curl (TLS-max 1.3). Returns decoded text or None."""
-    cmd = [
-        "curl", "-fskL", "--tls-max", "1.3", "--max-time", str(timeout),
-        "-H", ("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-               "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
-        "-H", "Accept: text/html,application/xhtml+xml,application/json,*/*;q=0.8",
-        "-H", "Accept-Language: en-AU,en;q=0.9",
-    ]
-    for h in (extra_headers or []):
-        cmd += ["-H", h]
-    cmd.append(url)
+    cmd = _curl_cmd(url, timeout=timeout, extra_headers=extra_headers)
     for attempt in range(retries):
         try:
             result = subprocess.run(cmd, capture_output=True, timeout=timeout + 15)
@@ -75,6 +67,68 @@ def _curl_get(
             else:
                 print(f"[{_SITE_ID}] curl failed after {retries} attempts for {url}: {exc}")
     return None
+
+
+def _curl_cmd(url: str, *, timeout: int, extra_headers: list[str] | None = None) -> list[str]:
+    cmd = [
+        "curl", "-fskL", "--tls-max", "1.3", "--max-time", str(timeout),
+        "-H", ("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+               "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
+        "-H", "Accept: text/html,application/xhtml+xml,application/json,*/*;q=0.8",
+        "-H", "Accept-Language: en-AU,en;q=0.9",
+    ]
+    for h in (extra_headers or []):
+        cmd += ["-H", h]
+    cmd.append(url)
+    return cmd
+
+
+def _curl_get_bytes(url: str, *, timeout: int = 60, retries: int = 3) -> bytes | None:
+    """Fetch *url* via curl like _curl_get, keeping the raw bytes (direct PDF media)."""
+    cmd = _curl_cmd(url, timeout=timeout)
+    for attempt in range(retries):
+        try:
+            result = subprocess.run(cmd, capture_output=True, timeout=timeout + 15)
+            if result.returncode == 0 and result.stdout.strip():
+                return result.stdout
+        except Exception as exc:
+            print(f"[{_SITE_ID}] curl error: {exc} for {url}")
+        if attempt < retries - 1:
+            time.sleep(1 * (3 ** attempt))
+    return None
+
+
+# Same tool, flags and limits as the enumeration plan's adapter.pdf_text (ext:pdf_text).
+_PDF_TEXT_ARGS = ["-enc", "UTF-8"]
+_PDF_TEXT_TIMEOUT = 30
+
+
+def _pdf_text(body: bytes) -> str | None:
+    """pdftotext stdout (utf-8, errors replaced), or None when the tool fails or times out."""
+    import tempfile
+    if not body:
+        return None
+    fd, path = tempfile.mkstemp(suffix=".pdf")
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(body)
+        result = subprocess.run(
+            ["pdftotext", *_PDF_TEXT_ARGS, path, "-"], capture_output=True,
+            timeout=_PDF_TEXT_TIMEOUT, stdin=subprocess.DEVNULL,
+            env={"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "LANG": "C.UTF-8"},
+        )
+    except FileNotFoundError:
+        raise SourceFailure('pdf_text_tool_missing') from None
+    except (OSError, subprocess.SubprocessError):
+        return None
+    finally:
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+    if result.returncode != 0:
+        return None
+    return result.stdout.decode("utf-8", errors="replace")
 
 
 # ---------------------------------------------------------------------------
@@ -185,13 +239,35 @@ def _parse_search_response(raw: str, page_num=None) -> list[dict]:
     if not html:
         raise SourceFailure('invalid_response')
 
-    items: list[dict] = []
+    found: list[tuple[int, dict]] = []
     # Each result teaser renders as: <h2><a href="/path">Title</a></h2>
     for m in re.finditer(r'<h2><a href="(/[^"]+)"[^>]*>([^<]+)</a></h2>', html):
         path = m.group(1)
         title = m.group(2).strip()
-        items.append({"title": title, "url": _BASE + path})
-    return items
+        found.append((m.start(), {"title": title, "url": _BASE + path}))
+    # Direct PDF media results: a teaser with no <h2> link, only the media file link
+    # (<a href="/media/N/download?inline" type="application/pdf; ...">file.pdf</a>).
+    headed = [pos for pos, _ in found]
+    for art in re.finditer(r"<article\b.*?</article>", html, re.DOTALL):
+        if any(art.start() <= pos < art.end() for pos in headed):
+            continue
+        mm = _MEDIA_LINK_RE.search(art.group(0))
+        if mm:
+            tm = re.search(r'\btitle="([^"]*)"', mm.group(0))
+            title = html_lib.unescape(mm.group(2).strip() or (tm.group(1) if tm else ""))
+            found.append((art.start(), {"title": title, "url": _BASE + mm.group(1)}))
+    found.sort(key=lambda pair: pair[0])
+    return [item for _, item in found]
+
+
+_MEDIA_LINK_RE = re.compile(
+    r'<a href="(/media/\d+/download[^"]*)"[^>]*\btype="application/pdf[^"]*"[^>]*>([^<]*)</a>'
+)
+_MEDIA_PATH_RE = re.compile(r"^/media/\d+/download")
+
+
+def _is_media_url(url: str) -> bool:
+    return bool(_MEDIA_PATH_RE.match(urllib.parse.urlparse(url).path))
 
 
 # ---------------------------------------------------------------------------
@@ -205,10 +281,69 @@ def _fetch_detail(url: str) -> dict:
     node_id, original_filename.  Empty strings for missing values.
     Returns {} on total fetch failure.
     """
+    if _is_media_url(url):
+        body = _curl_get_bytes(url)
+        if not body:
+            raise SourceFailure('fetch_failed')
+        return _parse_media(body.decode("utf-8", errors="replace"), _pdf_text(body), url)
     raw = _curl_get(url)
     if not raw:
         raise SourceFailure('fetch_failed')
     return _parse_detail(raw, url)
+
+
+def _parse_media(raw: str, pdf_text, url: str) -> dict:
+    """Detail of one direct PDF media result (no I/O): the PDF itself is the document.
+    Abstract = the PDF text with whitespace collapsed (crawl() then applies its usual
+    minimum length); no publication date is shown for media, so none is set."""
+    if not raw.startswith("%PDF") and access_challenge(raw):
+        raise SourceFailure('authentication_failed')
+    abstract = re.sub(r"\s+", " ", pdf_text or "").strip()
+    return {
+        "abstract": abstract,
+        "pdf_url": url,
+        "published_date": "",
+        "node_id": "",
+        "original_filename": _original_filename(url),
+    }
+
+
+_MONTHS = {m: i for i, m in enumerate(
+    ["january", "february", "march", "april", "may", "june", "july", "august",
+     "september", "october", "november", "december"], 1)}
+
+
+def _fallback_published_date(raw: str) -> str:
+    """Publication day the page itself shows when the first JSON-LD block gave none:
+    a datePublished elsewhere in the page's JSON-LD, else the article by-line
+    ("Published on the 24th January 2018 by ..."), else a body that opens with a
+    publication line ("<p><em>Published by NDF staff 30th May 2023</em></p>").
+    An "Updated ..." line is not a publication date and is not used."""
+    m = re.search(r'"datePublished"\s*:\s*"(\d{4}-\d{2}-\d{2})', raw)
+    if m:
+        return m.group(1)
+    for pattern in (
+        r'page__by-line-info">\s*Published on (?:the )?',
+        r'field-body[^>]*>\s*<p>\s*(?:<em>)?\s*Published (?:by|on)\b[^<\d]{0,60}?',
+    ):
+        m = re.search(pattern + _DAY_MONTH_YEAR, raw)
+        if m:
+            return _iso_day(m)
+    return ""
+
+
+_DAY_MONTH_YEAR = r'(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+),?\s+(\d{4})\b'
+
+
+def _iso_day(m) -> str:
+    month = _MONTHS.get(m.group(2).lower())
+    if not month:
+        return ""
+    import datetime
+    try:
+        return datetime.date(int(m.group(3)), month, int(m.group(1))).isoformat()
+    except ValueError:
+        return ""
 
 
 def _parse_detail(raw: str, url: str) -> dict:
@@ -288,7 +423,10 @@ def _parse_detail(raw: str, url: str) -> dict:
     if candidate:
         pdf_url = candidate if candidate.startswith("http") else _BASE + candidate
 
-    # A file-path month is not a publication date. Preserve a missing date.
+    # A file-path month is not a publication date. Preserve a missing date unless
+    # the page itself shows one (JSON-LD elsewhere or the article by-line).
+    if not published_date:
+        published_date = _fallback_published_date(raw)
 
     return {
         "abstract": abstract,
@@ -440,11 +578,15 @@ class AnstoGovAuSearchCrawler(BaseCrawler):
         except SourceFailure as exc:
             raise PermanentFailure(f"listing_parse_error:{exc.reason}") from None
 
-    def _enumeration_detail(self, html, item, url):
-        """crawl()'s Paper for one listed result; None where crawl skips (short abstract)."""
+    def _enumeration_detail(self, html, item, url, pdf_text=None):
+        """crawl()'s Paper for one listed result; None where crawl skips (short abstract).
+        A direct PDF media result uses the framework's pdftotext text (ext:pdf_text)."""
         from crawler.enumeration.http import PermanentFailure
         try:
-            detail = _parse_detail(html, url)
+            if _is_media_url(item["url"]):
+                detail = _parse_media(html, pdf_text, item["url"])
+            else:
+                detail = _parse_detail(html, url)
         except SourceFailure as exc:
             raise PermanentFailure(f"detail_{exc.reason}", url) from None
         abstract = detail.get("abstract", "")

@@ -1,0 +1,24 @@
+LABORATORY TESTWORK TO SUPPORT THE DEVELOPMENT OF URANIUM ISR
+OPERATIONS
+By
+Mark Maley and Bob Ring
+ANSTO Minerals, Australia
+Presenter and Corresponding Author
+Mark Maley
+
+ABSTRACT
+Thorough hydrometallurgical testwork, including extensive mineralogical characterisation, is a critical
+aspect in the evaluation and development of uranium ISR operations. An understanding of the
+uranium and gangue mineralogy of the ore allows the appropriate leaching system (acid or alkaline)
+to be evaluated based on the presence of acid consuming phases such as carbonate minerals.
+Similarly, the potential oxidant requirement can also be assessed by the content of reactive sulphides
+and other reducing phases in the ore. In addition, the presence of other phases such as gypsum,
+which results in carbonate consumption, and clays and organic phases, which can adsorb dissolved
+uranium, can be deleterious.
+ANSTO Minerals (AM) has worked with numerous clients over 30 years to perform all aspects of
+metallurgical testwork in the ISR field, from the evaluation of prospective ISR deposits to supporting
+existing operations. In this time the group has developed an extensive suite of tests and techniques
+for the testing of ores in their amenability to ISR, often utilising the relatively small amount of sample
+available. This includes the use of conventional stirred tank and bottle roll tests to obtain preliminary
+reagent consumption data and provide indicative uranium extraction.
+More accurate data, including

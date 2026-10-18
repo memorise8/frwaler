@@ -1,0 +1,143 @@
+{
+ "_note": "Produced by the collector at 81ba0f7 (before the gx5 fix) from the fixtures in this folder; the fix must reproduce these values byte for byte (only an empty published_date may be filled).",
+ "listing_page1_rows": [
+  {
+   "title": "PhD awarded",
+   "url": "https://www.ansto.gov.au/news/phd-awarded"
+  },
+  {
+   "title": "Work from PLATYPUS and NDF published in Nature Communications",
+   "url": "https://www.ansto.gov.au/news/work-from-platypus-and-ndf-published-nature-communications"
+  },
+  {
+   "title": "Data Analysis",
+   "url": "https://www.ansto.gov.au/user-access/instruments/australian-synchrotron-beamlines/powder-diffraction/data-analysis"
+  },
+  {
+   "title": "User beam schedule",
+   "url": "https://www.ansto.gov.au/user-beam-schedule"
+  },
+  {
+   "title": "A landmark year and bright future at the Australian Synchrotron",
+   "url": "https://www.ansto.gov.au/news/a-landmark-year-and-bright-future-at-australian-synchrotron"
+  },
+  {
+   "title": "PET innovation",
+   "url": "https://www.ansto.gov.au/news/pet-innovation"
+  },
+  {
+   "title": "ANSTO&#039;s Australian Synchrotron Program Advisory Committees (PAC)",
+   "url": "https://www.ansto.gov.au/facilities/australian-synchrotron/anstos-australian-synchrotron-program-advisory-committees-pac%E2%80%AF"
+  },
+  {
+   "title": "Dr Shin-ichiro Yano",
+   "url": "https://www.ansto.gov.au/people/dr-shin-ichiro-yano"
+  }
+ ],
+ "papers": {
+  "news_phd_awarded": {
+   "item": {
+    "title": "PhD awarded",
+    "url": "https://www.ansto.gov.au/news/phd-awarded"
+   },
+   "paper": {
+    "site_id": "ansto-gov-au-search",
+    "external_id": "693",
+    "post_number": "693",
+    "title": "PhD awarded",
+    "abstract": "Rob Russell, Bioanalyst and Biodeuteration Lab Manager within the National Deuteration Facility, has been awarded his PhD in the area of polymer biodeuteration and nanocomposites (2018) from the University of New South Wales, Sydney.\nRob’s thesis, entitled “Characterisation of Polyhydroxyalkanoate blends via biodeuteration, and modification of material properties using carbon nanotubes”, involved the extraction of natural plastics from microbial cultures and modifying the properties by blending and nanocomposite formation using conductive carbon nanotubes. Most of the development work was performed in the NDF, ANSTO, and the labelled polymer blends were mapped using the Infrared beamline at the Australian Synchrotron.\nRob has developed expertise in fermentation process development for bacterial, fungal and algal cultures, and is currently working on biodeuteration of starch. The aim is to provide labelled starch that can be used in contrast variation studies for food research using Small Angle Neutron Scattering (SANS).\n\n\n\n\n\n  \n        \n          \n                    \n        \n\nProtonated/deuterated polymer blend mapped by Infrared microspectroscopy.\nPublished in: Russell et al. Biomacromolecules  2014, 15, 644-649. DOI: 10.1021/bm4017012 Copyright © 2013 American Chemical Society",
+    "url": "https://www.ansto.gov.au/news/phd-awarded",
+    "pdf_url": null,
+    "published_date": "2018-01-24",
+    "listed_date": null,
+    "authors": null,
+    "publisher": "Australian Nuclear Science and Technology Organisation",
+    "department": null,
+    "journal": null,
+    "keywords": null,
+    "category": null,
+    "doi": null,
+    "original_filename": null,
+    "metadata": "{\"node_id\": \"693\", \"search_query\": \"pdf\", \"originalFilename\": null}"
+   }
+  },
+  "tia_pipeline_accelerator": {
+   "item": {
+    "title": "Pipeline Accelerator Voucher Scheme",
+    "url": "https://www.ansto.gov.au/TIA-pipeline-accelerator"
+   },
+   "paper": {
+    "site_id": "ansto-gov-au-search",
+    "external_id": "2361",
+    "post_number": "2361",
+    "title": "Pipeline Accelerator Voucher Scheme",
+    "abstract": "Updated by NDF staff on 7th September, 2026\nThrough the National Collaborative Research Infrastructure Strategy (NCRIS) program, Therapeutic Innovation Australia (TIA), Phenomics Australia, ANSTOs National Deuteration Facility (NDF), Bioplatforms Australia and Microscopy Australia support a network of national research infrastructure to address the medical products challenge in the 2021 National Research Infrastructure (NRI) Roadmap. We collectively offer academic researchers and SMEs access to a diverse range of Australian translational medical research capabilities, from the molecular basis of health and disease through to clinical trials.\nTo encourage access to these capabilities, TIA developed the Pipeline Accelerator, a competitive voucher-style scheme that can subsidise the cost of access to a full range of advanced capabilities. In this Pipeline Accelerator round (2026-27 Round 1), TIA is partnering with Phenomics Australia, the National Deuteration Facility (NDF), Bioplatforms Australia and Microscopy Australia to expand the list of translation expertise necessary for the discovery and translation of medical research.\nThe National Deuteration Facility (NDF) is accessible in this round as a primary Provider. Applicants may propose access to multiple scheme Providers in the one application to support the same project, noting to access a supplementary voucher from Bioplatforms Australia and Microscopy Australia, you must also apply for a TIA, Phenomics Australia and/or NDF voucher for the same project on the same application. \nApplicants should contact NDF as soon as possible (ndf-enquiries@ansto.gov.au) to discuss their project for a feasibility assessment of their request and to obtain a quote for the required service/s, which you will be required to provide in your application. The guidelines for the Pipeline Accelerator are available to download below. In the online application for NCRIS lead agent selection at Step 2, select National Deuteration Facility under 'Primary Voucher'.  \nAccess modes to the NDF available outside of this scheme are through the NDF User Program.\nDownload PDF\nApplications for Pipeline Accelerator 2026-27 Round 1 open 7th September and close on 30th October 2026.",
+    "url": "https://www.ansto.gov.au/TIA-pipeline-accelerator",
+    "pdf_url": null,
+    "published_date": null,
+    "listed_date": null,
+    "authors": null,
+    "publisher": "Australian Nuclear Science and Technology Organisation",
+    "department": null,
+    "journal": null,
+    "keywords": null,
+    "category": null,
+    "doi": null,
+    "original_filename": null,
+    "metadata": "{\"node_id\": \"2361\", \"search_query\": \"pdf\", \"originalFilename\": null}"
+   }
+  },
+  "clip_day_2023": {
+   "item": {
+    "title": "CLIP day 2023",
+    "url": "https://www.ansto.gov.au/clip-day-2023"
+   },
+   "paper": {
+    "site_id": "ansto-gov-au-search",
+    "external_id": "2220",
+    "post_number": "2220",
+    "title": "CLIP day 2023",
+    "abstract": "Published by NDF staff 30th May 2023\nThe annual ACNS-NDF Clip Day event was held 23rd-24th March, 2023, where students and early career researchers associated with ACNS and NDF presented their research.\n\nThe speakers were all of exceptional quality, resulting in excellent audience participation and questions. The attendance and interest from senior ANSTO staff was also a testament to the quality of the research being conducted.\nCongratulations to the award winners! \n\n\n\n\nAward\n\n\nRecipient\n\n\n\n\nACNS/NDF Ambassador Award for Exceptional Communication\n\n\nNisal Wanasingha\n\n\n\n\nACNS/NDF Impact Award for Scientific Contribution\n\n\nFinlay Burke\n\n\n\n\nACNS/NDF Vanguard Award for Technical Excellence\n\n\nMadison Tripp",
+    "url": "https://www.ansto.gov.au/clip-day-2023",
+    "pdf_url": null,
+    "published_date": null,
+    "listed_date": null,
+    "authors": null,
+    "publisher": "Australian Nuclear Science and Technology Organisation",
+    "department": null,
+    "journal": null,
+    "keywords": null,
+    "category": null,
+    "doi": null,
+    "original_filename": null,
+    "metadata": "{\"node_id\": \"2220\", \"search_query\": \"pdf\", \"originalFilename\": null}"
+   }
+  },
+  "news_16th_opalndf": {
+   "item": {
+    "title": "16th OPAL/NDF proposal round closed yesterday",
+    "url": "https://www.ansto.gov.au/news/16th-opalndf-proposal-round-closed-yesterday"
+   },
+   "paper": {
+    "site_id": "ansto-gov-au-search",
+    "external_id": "385",
+    "post_number": "385",
+    "title": "16th OPAL/NDF proposal round closed yesterday",
+    "abstract": "Our 16th proposal round closed last night, with 305 proposals across 6 cold- and 6 thermal-neutron instruments, and both Chemical- and Bio-Deuteration at the National Deuteration Facility. Excluding existing approved programs and the mail-in system on ECHIDNA, 1471 beam days were requested. \nIncluding strong demand from the National Science Council of Taiwan, roughly 44% of demand was from overseas (China, New Zealand, Japan, Korea, India, the USA, the United Kingdom, Germany and 6 other countries in Europe). 42% of demand was from Australian universities and CSIRO, along with 14% from ANSTO itself.",
+    "url": "https://www.ansto.gov.au/news/16th-opalndf-proposal-round-closed-yesterday",
+    "pdf_url": null,
+    "published_date": "2015-09-16",
+    "listed_date": null,
+    "authors": null,
+    "publisher": "Australian Nuclear Science and Technology Organisation",
+    "department": null,
+    "journal": null,
+    "keywords": null,
+    "category": null,
+    "doi": null,
+    "original_filename": null,
+    "metadata": "{\"node_id\": \"385\", \"search_query\": \"pdf\", \"originalFilename\": null}"
+   }
+  }
+ }
+}
