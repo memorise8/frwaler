@@ -407,3 +407,38 @@ class MssGoKrSiteCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+    # The enumeration framework (last_page_backward) ends the listing at the
+    # "board_null" page, so the _MAX_PAGES cap of crawl() does not apply.
+    # crawl() POSTs reSeq to the detail endpoint; the same page is served for a
+    # GET of the paper URL (…&reSeq=N) that crawl() already records, so the
+    # framework requests that URL.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None or soup.find("tbody") is None:
+            raise PermanentFailure("listing_parse_error:missing_tbody")
+        rows = []
+        for item in self._parse_list_page(html):
+            row = dict(item)
+            row["url"] = (
+                f"https://www.mss.go.kr/site/smba/foffice/ex/statDB/"
+                f"StReportContentDetailView.do?gb=1&nodeId=&rcCode=&roCode=&reSeq={item['reSeq']}"
+            )
+            rows.append(row)
+        return rows
+
+    def _enumeration_detail(self, html, item):
+        return self._parse_detail_page(html, item)
+
+    def _enumeration_paper(self, item, detail):
+        abstract = detail.get("abstract", "")
+        if len(abstract) < 50:
+            return None
+        return detail

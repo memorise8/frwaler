@@ -1,0 +1,21 @@
+{
+  "site_id": "mss-go-kr-site",
+  "listing_body": "<html><head><meta charset=\"utf-8\"></head><body><table><tbody><tr><td>9901</td><td class=\"subject\"><a href=\"javascript:doStReportDetailView('9901');\">합성 보고서 1</a></td><td class=\"writeOrg\">중앙행정기관</td><td>2026/10/15</td><td><span class=\"single-file\" data-href=\"/site/smba/foffice/ex/statDB/StReport_fileDownload.do?gb=1&amp;rfSeq=7701\">파일</span></td></tr><tr><td>9902</td><td class=\"subject\"><a href=\"javascript:doStReportDetailView('9902');\">합성 보고서 2</a></td><td class=\"writeOrg\">중앙행정기관</td><td>2026/10/01</td><td><span class=\"single-file\" data-href=\"/site/smba/foffice/ex/statDB/StReport_fileDownload.do?gb=1&amp;rfSeq=7702\">파일</span></td></tr></tbody></table></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.mss.go.kr/site/smba/foffice/ex/statDB/StReportContentDetailView.do?gb=1&nodeId=&rcCode=&roCode=&reSeq=9901": "<html><head><meta charset=\"utf-8\"></head><body><div class=\"board_view\"><h4>합성 보고서 1</h4><table><tr class=\"web\"><th>분야</th><td>무역/국제수지</td><th>발행일</th><td>2026/10/15</td></tr><tr class=\"web\"><th>작성기관</th><td>중앙행정기관</td><th>조사주기</th><td>매월</td></tr><tr><td class=\"contents_box\"><p>중소벤처기업부 조사보고서 합성 요약입니다. 오프라인 비교 시험용 문장이며 실제 통계가 아닙니다. 중소벤처기업부 조사보고서 합성 요약입니다. 오프라인 비교 시험용 문장이며 실제 통계가 아닙니다. 중소벤처기업부 조사보고서 합성 요약입니다. 오프라인 비교 시험용 문장이며 실제 통계가 아닙니다. </p></td></tr></table></div></body></html>",
+    "https://www.mss.go.kr/site/smba/foffice/ex/statDB/StReportContentDetailView.do?gb=1&nodeId=&rcCode=&roCode=&reSeq=9902": "<html><head><meta charset=\"utf-8\"></head><body><div class=\"board_view\"><h4>합성 보고서 2</h4><table><tr class=\"web\"><th>분야</th><td>무역/국제수지</td><th>발행일</th><td>2026/10/01</td></tr><tr class=\"web\"><th>작성기관</th><td>중앙행정기관</td><th>조사주기</th><td>매월</td></tr><tr><td class=\"contents_box\"><p>중소벤처기업부 조사보고서 합성 요약입니다. 오프라인 비교 시험용 문장이며 실제 통계가 아닙니다. 중소벤처기업부 조사보고서 합성 요약입니다. 오프라인 비교 시험용 문장이며 실제 통계가 아닙니다. 중소벤처기업부 조사보고서 합성 요약입니다. 오프라인 비교 시험용 문장이며 실제 통계가 아닙니다. </p></td></tr></table></div></body></html>"
+  },
+  "long_text": "중소벤처기업부 조사보고서 합성 요약입니다. 오프라인 비교 시험용 문장이며 실제 통계가 아닙니다. 중소벤처기업부 조사보고서 합성 요약입니다. 오프라인 비교 시험용 문장이며 실제 통계가 아닙니다. 중소벤처기업부 조사보고서 합성 요약입니다. 오프라인 비교 시험용 문장이며 실제 통계가 아닙니다. ",
+  "empty_body": "<html><head><meta charset=\"utf-8\"></head><body><table><tbody><tr class=\"board_null\"><td colspan=\"6\"><span>등록된 게시물이 없습니다.</span></td></tr></tbody></table></body></html>",
+  "original_method_source_sha256": {
+    "_curl": "e9ff7dd03cc241256a98b6eb51286794785a3da59d6cec9ef9eefaa53f044e6e",
+    "_fetch_list": "7c8f46c15a857cb521c2b04f3eb9783fed0a12e64f7ec4a235a6db5468c8b40c",
+    "_fetch_detail": "53f5cbe8f3d678860a83f56480dff53f4a0081d7e8dd0f9ec55f8eede06313e9",
+    "_parse_list_page": "374d73eb2192af7276f7ffa55fc60284b98bcd9ea2541819ef424d354932e36f",
+    "_parse_detail_page": "889dc5c67cfa0f3da88332d94e6ecebe285afffbf5bfc1ce825531656549830d",
+    "_parse_detail_soup": "cb63faec6f1cf906158df5a3d2a1227a4fd1662c66d4149c2e8f33a7b15340c9",
+    "_parse_detail_regex": "ccba1d868d720d731346631f420852f62ac6ed086b2f9237345fdfc1bda694f3",
+    "crawl": "8bcb423506969afbe28a6f32a3f11c1ad0d808d66adf0e60d0ebc9e2809106a3"
+  }
+}
