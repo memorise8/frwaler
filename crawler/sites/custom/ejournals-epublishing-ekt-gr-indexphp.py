@@ -395,3 +395,44 @@ class EJournalsEKTCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration contract (ND-1, 2026-10-19). crawl() is unchanged.
+    # The plan discovers issues with X3 segments.mode=discover + follow: the journals
+    # catalog links each journal's issue/archive page, archive pages link their own
+    # ?page=N pages and the issue/view/<id> pages; each issue page is a segment
+    # (link_as_url) whose article links are read like _get_article_urls.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw, url):
+        """Article rows of one issue page: the links _get_article_urls keeps (same
+        journal slug, article/view/<N> only, first occurrence order)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        m = re.match(r".*/index\.php/([^/]+)/issue/", url or "")
+        if not m:
+            raise PermanentFailure("listing_parse_error:not_an_issue_url", url)
+        slug = m.group(1)
+        found = re.findall(
+            rf'href="(https://ejournals\.epublishing\.ekt\.gr'
+            rf'/index\.php/{re.escape(slug)}/article/view/(\d+))"',
+            raw,
+        )
+        seen: set[str] = set()
+        rows = []
+        for full_url, article_number in found:
+            if full_url not in seen:
+                seen.add(full_url)
+                rows.append({"url": full_url, "article_view": article_number})
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s _parse_article for one article page, with its skips (parse failure,
+        abstract shorter than 50 characters) as None."""
+        paper = _parse_article(item["url"], html)
+        if not paper:
+            return None
+        if len(paper.get("abstract") or "") < 50:
+            return None
+        return paper
