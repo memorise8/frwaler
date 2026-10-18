@@ -463,3 +463,10 @@ class EducationNIGovUKNewsCrawler(BaseCrawler):
             original_filename = pdf_url.rstrip('/').split('/')[-1].split('?')[0]
         paper = {'site_id': self.site_id, 'external_id': external_id, 'post_number': node_id or None, 'title': title, 'abstract': abstract, 'authors': '', 'publisher': _PUBLISHER, 'department': _PUBLISHER, 'journal': '', 'category': 'news', 'keywords': detail.get('keywords', ''), 'published_date': published_date, 'listed_date': listed_date, 'url': item_url, 'pdf_url': pdf_url, 'doi': '', 'original_filename': original_filename, 'metadata': json.dumps({'posted_date': item.get('date_text', ''), 'originalFilename': original_filename, 'node_id': node_id, 'snippet': item.get('snippet', ''), 'list_page': page_num}, ensure_ascii=False)}
         return paper
+
+    def _enumeration_sitemap_paper(self, html, url):
+        """Sitemap route (the /news listing ignores ?page= on the live site, 2026-10-18):
+        crawl()'s detail-page paper for one sitemap URL. Identity (slug external_id,
+        node_id post_number) is unchanged; listing-only fields (listed_date, snippet,
+        list_page) are absent because a sitemap entry has no listing row."""
+        return self._enumeration_paper({"url": url, "page_num": None}, self._enumeration_detail(html, url))
