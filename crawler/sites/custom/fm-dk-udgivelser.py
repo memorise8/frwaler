@@ -137,7 +137,17 @@ def _fetch_detail(url: str) -> dict:
     raw = _curl_get(url)
     if not raw:
         return result
+    return _parse_detail_html(raw, url)
 
+
+def _parse_detail_html(raw: str, url: str = "") -> dict:
+    """Parse detail page HTML; return {abstract, pdf_url, published_date, original_filename}."""
+    result = {
+        "abstract": "",
+        "pdf_url": None,
+        "published_date": "",
+        "original_filename": None,
+    }
     try:
         soup = _make_soup(raw)
     except Exception as exc:
@@ -209,6 +219,59 @@ class FMDKUdgivelserCrawler(BaseCrawler):
     site_name = "Custom: fm-dk-udgivelser"
     base_url = _BASE
 
+    # Parsing entry points shared by crawl() and the enumeration framework
+    # (adapter list_method / detail_method); no network inside.
+    def _parse_list_page(self, html):
+        return _extract_list_items(html)
+
+    def _paper_from_detail(self, html, item):
+        return self._paper_from_detail_result(_parse_detail_html(html, item.get("url", "")), item)
+
+    def _paper_from_detail_result(self, detail, item):
+        """Paper for one publication (None when the abstract is too short)."""
+        title = item["title"] or "(untitled)"
+        listed_date = item.get("listed_date", "")
+        published_date = detail.get("published_date") or listed_date
+        abstract = detail.get("abstract", "")
+
+        # Skip items with insufficient abstract
+        if len(abstract) < 50:
+            return None
+
+        # Derive identifiers from URL path
+        url_path = item["url"].replace(_BASE, "").rstrip("/")
+        slug = url_path.split("/")[-1] if "/" in url_path else url_path
+        external_id = url_path  # full relative path ensures uniqueness
+
+        pdf_url = detail.get("pdf_url")
+        original_filename = detail.get("original_filename")
+
+        paper = {
+            "site_id": _SITE_ID,
+            "external_id": external_id,
+            "post_number": slug,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "url": item["url"],
+            "pdf_url": pdf_url,
+            "publisher": _PUBLISHER,
+            "authors": None,
+            "journal": None,
+            "keywords": None,
+            "doi": None,
+            "department": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps({
+                "posted_date": listed_date,
+                "originalFilename": original_filename,
+                "short_description": item.get("short_desc", ""),
+                "slug": slug,
+            }, ensure_ascii=False),
+        }
+        return paper
+
     def crawl(self, limit=None):
         """Crawl fm.dk/udgivelser and persist publications to the DB."""
         saved = 0
@@ -271,54 +334,15 @@ class FMDKUdgivelserCrawler(BaseCrawler):
                     time.sleep(self._delay)
                     detail = _fetch_detail(detail_url)
 
-                    title = item["title"] or "(untitled)"
-                    listed_date = item.get("listed_date", "")
-                    published_date = detail.get("published_date") or listed_date
-                    abstract = detail.get("abstract", "")
-
-                    # Skip items with insufficient abstract
-                    if len(abstract) < 50:
-                        print(f"[{_SITE_ID}] skipping short abstract "
-                              f"({len(abstract)} chars): {title[:60]}")
+                    paper = self._paper_from_detail_result(detail, item)
+                    if paper is None:
+                        print(f"[{_SITE_ID}] skipping short abstract: {item['title'][:60]}")
                         continue
-
-                    # Derive identifiers from URL path
-                    url_path = detail_url.replace(_BASE, "").rstrip("/")
-                    slug = url_path.split("/")[-1] if "/" in url_path else url_path
-                    external_id = url_path  # full relative path ensures uniqueness
-
-                    pdf_url = detail.get("pdf_url")
-                    original_filename = detail.get("original_filename")
-
-                    paper = {
-                        "site_id": _SITE_ID,
-                        "external_id": external_id,
-                        "post_number": slug,
-                        "title": title,
-                        "abstract": abstract,
-                        "published_date": published_date,
-                        "listed_date": listed_date,
-                        "url": detail_url,
-                        "pdf_url": pdf_url,
-                        "publisher": _PUBLISHER,
-                        "authors": None,
-                        "journal": None,
-                        "keywords": None,
-                        "doi": None,
-                        "department": None,
-                        "original_filename": original_filename,
-                        "metadata": json.dumps({
-                            "posted_date": listed_date,
-                            "originalFilename": original_filename,
-                            "short_description": item.get("short_desc", ""),
-                            "slug": slug,
-                        }, ensure_ascii=False),
-                    }
 
                     self._save_paper(paper)
                     if self._last_save_created:
                         saved += 1
-                    print(f"[{_SITE_ID}] saved {saved}/{limit_or_inf}: {title[:60]}")
+                    print(f"[{_SITE_ID}] saved {saved}/{limit_or_inf}: {paper['title'][:60]}")
 
                 except KeyboardInterrupt:
                     raise
