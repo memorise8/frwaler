@@ -243,3 +243,87 @@ class NaturalEnglandArcgisSearchCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Saved {saved} items.")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() stays
+    # unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, data):
+        """Features of one items page (?limit=10&startindex=N), as crawl() reads them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("features"), list):
+            raise PermanentFailure("listing_parse_error:expected_feature_collection")
+        return [f for f in data["features"] if isinstance(f, dict) and f.get("id")]
+
+    def _enumeration_paper(self, feature):
+        """Copy of crawl()'s per-feature paper conversion; None keeps crawl()'s skips."""
+        item_id = feature.get("id", "")
+        if not item_id:
+            return None
+        props = feature.get("properties") or {}
+        title = (props.get("title") or "").strip()
+        if not title:
+            return None
+        desc_html = props.get("description") or ""
+        abstract = _strip_html(desc_html)
+        if len(abstract) < _MIN_ABSTRACT:
+            snippet = props.get("snippet") or ""
+            snippet_text = _strip_html(snippet)
+            if len(snippet_text) > len(abstract):
+                abstract = snippet_text
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+        tags = props.get("tags") or []
+        keywords = ", ".join(str(t) for t in tags if t) if tags else None
+        categories = props.get("categories") or []
+        cat_names = []
+        for c in categories:
+            if c and isinstance(c, str):
+                if "/" in c:
+                    cat_names.append(c.rstrip("/").split("/")[-1])
+                else:
+                    cat_names.append(c)
+        category = ", ".join(cat_names) if cat_names else None
+        created_ms = props.get("created")
+        modified_ms = props.get("modified")
+        published_date = _ms_to_date(created_ms)
+        listed_date = _ms_to_date(modified_ms)
+        owner = props.get("owner") or ""
+        publisher = owner or None
+        detail_url = f"{_BASE_URL}/datasets/{item_id}"
+        metadata_dict: dict = {
+            "item_type": props.get("type"),
+            "orgId": props.get("orgId"),
+            "owner": owner,
+            "accessInformation": props.get("accessInformation"),
+            "numViews": props.get("numViews"),
+            "numRatings": props.get("numRatings"),
+            "avgRating": props.get("avgRating"),
+            "size": props.get("size"),
+            "typeKeywords": props.get("typeKeywords"),
+            "categories_raw": categories,
+            "snippet": props.get("snippet"),
+            "created_ms": created_ms,
+            "modified_ms": modified_ms,
+            "posted_date": listed_date,
+        }
+        return {
+            "site_id": _SITE_ID,
+            "external_id": item_id,
+            "post_number": item_id,
+            "title": title,
+            "abstract": abstract,
+            "url": detail_url,
+            "pdf_url": None,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "authors": None,
+            "publisher": publisher,
+            "department": None,
+            "journal": None,
+            "keywords": keywords,
+            "category": category,
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps(metadata_dict, ensure_ascii=False),
+        }

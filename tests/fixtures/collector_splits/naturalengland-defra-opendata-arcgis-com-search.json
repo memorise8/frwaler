@@ -1,0 +1,11 @@
+{
+ "site_id": "naturalengland-defra-opendata-arcgis-com-search",
+ "listing_body": "{\"type\": \"FeatureCollection\", \"features\": [{\"id\": \"bd1d2e200f5b4debb65681363d2c9632\", \"type\": \"Feature\", \"geometry\": null, \"properties\": {\"title\": \"England Peat Map Extent\", \"description\": \"<p>Synthetic dataset description used only for the offline split test: the England Peat Map shows the extent and depth of peaty soils across the country.</p>\", \"snippet\": \"short\", \"tags\": [\"peat\", \"soil\"], \"categories\": [\"/Categories/Soils\"], \"created\": 1740528000000, \"modified\": 1750528000000, \"owner\": \"NaturalEngland\", \"type\": \"Feature Service\"}}, {\"id\": \"ea6bf5eb45ea42668bad478102d47f85\", \"type\": \"Feature\", \"geometry\": null, \"properties\": {\"title\": \"England Peat Map Depth\", \"description\": \"<p>Synthetic dataset description used only for the offline split test: the England Peat Map shows the extent and depth of peaty soils across the country.</p>\", \"snippet\": \"short\", \"tags\": [\"peat\", \"soil\"], \"categories\": [\"/Categories/Soils\"], \"created\": 1740528000000, \"modified\": 1750528000000, \"owner\": \"NaturalEngland\", \"type\": \"Feature Service\"}}], \"links\": []}",
+ "empty_body": "{\"type\": \"FeatureCollection\", \"features\": [], \"links\": []}",
+ "content_type": "application/json",
+ "long_text": "Synthetic dataset description used only for the offline split test: the England Peat Map shows the extent and depth of peaty soils across the country.",
+ "details": {},
+ "original_method_source_sha256": {
+  "crawl": "ca57e8b841b4df0986502f28784a09f5d2e3d8ccf4ca683582be9cf1d7757d85"
+ }
+}

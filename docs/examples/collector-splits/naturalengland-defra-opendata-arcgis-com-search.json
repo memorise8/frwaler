@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "defaults": {
+  "request_interval_s": 1.5,
+  "respect_robots": true,
+  "retries": 1
+ },
+ "sites": {
+  "naturalengland-defra-opendata-arcgis-com-search": {
+   "strategy": "last_page_backward",
+   "base_url": "https://naturalengland-defra.opendata.arcgis.com",
+   "adapter": {
+    "type": "crawler",
+    "contract_version": 1,
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "json"
+    ],
+    "paper_method": "_enumeration_paper",
+    "paper_args": [
+     "item"
+    ]
+   },
+   "listing": {
+    "url": "https://naturalengland-defra.opendata.arcgis.com/api/search/v1/collections/dataset/items",
+    "params": {
+     "limit": "10",
+     "sortBy": "properties.created",
+     "startindex": 1
+    },
+    "page_param": "startindex",
+    "page_mode": "offset",
+    "page_size": 10,
+    "offset_base": 1,
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "key_field": "id"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1
+   }
+  }
+ }
+}
