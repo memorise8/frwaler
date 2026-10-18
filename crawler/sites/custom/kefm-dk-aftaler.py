@@ -308,3 +308,170 @@ class KefmDkAftalerCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Records of the single agreements page — the record-building loop of
+        crawl() copied verbatim (external_id/post_number rules unchanged).
+
+        The source has no pagination (crawl() reads one page): a page number
+        above 1 is declared empty and the plan's listing_marker proves it is
+        still the list page. A start page without records is a listing parse
+        error (crawl() saves nothing there)."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        page = (parse_qs(urlsplit(url or "").query).get("page") or ["1"])[0]
+        if page not in ("", "0", "1"):
+            return []
+        soup = _make_soup(html)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparseable_html", url)
+
+        main = soup.find(attrs={"role": "main"}) or soup
+        seen_urls: set = set()
+        rows = []
+
+        for section in main.find_all("div", class_="module"):
+            heading_tag = section.find(["h1", "h2"])
+            section_heading = heading_tag.get_text(strip=True) if heading_tag else "Aftaler"
+
+            rich_text = section.find("div", class_="rich-text")
+            if not rich_text:
+                continue
+
+            current_subsection = ""
+
+            try:
+                children = list(rich_text.children)
+            except Exception:
+                continue
+
+            for child in children:
+                if not hasattr(child, "name") or child.name is None:
+                    continue
+
+                if child.name in ("h2", "h3", "h4"):
+                    current_subsection = child.get_text(strip=True)
+                    continue
+
+                if child.name != "p":
+                    continue
+
+                try:
+                    links = child.find_all("a", href=True)
+                except Exception:
+                    continue
+
+                if not links:
+                    continue
+
+                try:
+                    para_text = child.get_text(separator=" ", strip=True)
+                except Exception:
+                    para_text = ""
+
+                date_str = _parse_date(para_text)
+
+                for a_tag in links:
+                    href = (a_tag.get("href") or "").strip()
+                    if not href or href == "#":
+                        continue
+
+                    try:
+                        title = a_tag.get_text(strip=True)
+                    except Exception:
+                        continue
+
+                    if not title:
+                        continue
+
+                    resolved = _resolve_url(href)
+
+                    if resolved in seen_urls:
+                        continue
+                    seen_urls.add(resolved)
+
+                    item_id = (a_tag.get("itemid") or "").strip()
+                    mid = _media_id(resolved)
+                    external_id = item_id or mid or hashlib.md5(resolved.encode()).hexdigest()[:16]
+                    post_number = item_id or mid or None
+
+                    is_pdf = (
+                        resolved.lower().endswith(".pdf")
+                        or "/Media/" in resolved
+                        or "/media/" in resolved
+                    )
+                    orig_filename = _filename_from_url(resolved) if is_pdf else ""
+
+                    category = section_heading
+                    if current_subsection:
+                        category = f"{section_heading} — {current_subsection}"
+
+                    date_part = f" ({date_str})" if date_str else ""
+                    sub_part = (
+                        f"\n\nUnderkategori: {current_subsection}"
+                        if current_subsection
+                        else ""
+                    )
+                    abstract = (
+                        f"{section_heading}: {title}{date_part}."
+                        f"{sub_part}\n\n"
+                        f"Udgivet af {_PUBLISHER}. "
+                        f"Aftalen er tilg\xe6ngelig som PDF-dokument via det direkte link."
+                    )
+
+                    if len(abstract) < 50:
+                        continue
+
+                    record = {
+                        "site_id": self.site_id,
+                        "external_id": str(external_id),
+                        "post_number": str(post_number) if post_number else None,
+                        "title": title,
+                        "abstract": abstract,
+                        "published_date": date_str or None,
+                        "posted_date": date_str or None,
+                        "listed_date": date_str or None,
+                        "publisher": _PUBLISHER,
+                        "authors": None,
+                        "department": None,
+                        "journal": None,
+                        "url": self._START_URL,
+                        "pdf_url": resolved if is_pdf else None,
+                        "category": category,
+                        "keywords": None,
+                        "doi": None,
+                        "original_filename": orig_filename or None,
+                        "metadata": json.dumps({
+                            "posted_date": date_str or None,
+                            "section": section_heading,
+                            "subsection": current_subsection or None,
+                            "itemid": item_id or None,
+                            "media_id": mid or None,
+                            "originalFilename": orig_filename or None,
+                            "href_type": (a_tag.get("type") or ""),
+                        }, ensure_ascii=False),
+                    }
+                    rows.append({
+                        "external_id": record["external_id"],
+                        "link": resolved,
+                        "title": title,
+                        "listed_date": date_str or None,
+                        "record": record,
+                    })
+        if not rows:
+            raise PermanentFailure("listing_parse_error:no_agreement_links", url)
+        return rows
+
+    def _enumeration_paper(self, item):
+        """Paper from one listing row: the record crawl() would save, unchanged."""
+        record = item.get("record")
+        if not isinstance(record, dict):
+            return None
+        return dict(record)

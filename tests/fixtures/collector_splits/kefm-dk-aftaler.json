@@ -1,0 +1,12 @@
+{
+  "site_id": "kefm-dk-aftaler",
+  "listing_body": "<html><body><div role=\"main\"><div class=\"module\"><h2>Synthetic agreements 2031</h2><div class=\"rich-text\"><h3>Synthetic subsection</h3><p><a href=\"/Media/639000000000000001/Synthetic agreement one.pdf\" itemid=\"90001\">Synthetic agreement one</a> (februar 2031)</p><p><a href=\"/Media/639000000000000002/Synthetic agreement two.pdf\">Synthetic agreement two</a> (2030)</p></div></div></div></body></html>",
+  "content_type": "text/html",
+  "details": {},
+  "long_text": "Aftalen er tilgængelig som PDF-dokument via det direkte link.",
+  "empty_body": "<html><body><div role=\"main\"><div class=\"module\"></div></div></body></html>",
+  "original_method_source_sha256": {
+    "_curl_get": "153d4e1463b853309b865a4c587fbd5b81267d9878cdb78763975169d58c5edc",
+    "crawl": "4255b4ac050deb475c8075e2d9de21a225611b2fd02f5188d4e3d6a73e4490f0"
+  }
+}
