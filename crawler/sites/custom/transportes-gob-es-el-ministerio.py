@@ -217,6 +217,11 @@ def _fetch_ajax_soup(page: int, dom_id: str):
 def _fetch_detail(url: str) -> tuple[str, str | None, str | None]:
     """Fetch detail page; return (abstract, pdf_url, original_filename)."""
     raw = _curl(url, _HTML_HEADERS)
+    return _detail_from_html(raw)
+
+
+def _detail_from_html(raw) -> tuple[str, str | None, str | None]:
+    """Pure parser of a detail page (split out of _fetch_detail, NR2-B)."""
     soup = _make_soup(raw)
     if not soup:
         return "", None, None
@@ -397,3 +402,47 @@ class TransportesGobEsElMinisterioCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] crawl complete. total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. The listing is
+    # the plain Drupal page (?page=N gives the same rows crawl() reads through
+    # views/ajax); the paper is built from the detail page as in _process(),
+    # with the same teaser fallback and skip rule (abstract < _MIN_ABSTRACT).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw):
+        soup = _make_soup(raw)
+        return _parse_listing(soup) if soup else []
+
+    def _enumeration_paper(self, raw, item):
+        url = item["url"]
+        abstract, pdf_url, original_filename = _detail_from_html(raw)
+        if not abstract or len(abstract) < _MIN_ABSTRACT:
+            abstract = item.get("teaser", "")
+        if not abstract or len(abstract) < _MIN_ABSTRACT:
+            return None
+        slug = item["slug"]
+        node_id = item.get("node_id")
+        return {
+            "site_id": _SITE_ID,
+            "external_id": slug,
+            "post_number": node_id or slug,
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": item.get("date"),
+            "posted_date": item.get("date"),
+            "url": url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "publisher": _PUBLISHER,
+            "category": item.get("category"),
+            "metadata": json.dumps(
+                {
+                    "posted_date": item.get("date"),
+                    "node_id": node_id,
+                    "slug": slug,
+                    "originalFilename": original_filename,
+                },
+                ensure_ascii=False,
+            ),
+        }
