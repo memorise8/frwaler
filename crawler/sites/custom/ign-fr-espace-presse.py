@@ -351,3 +351,114 @@ class IGNEspacePresseCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration conversion (no network): used by crawler.enumeration.
+    # crawl() above is left unchanged; these mirror its listing/detail code.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url=None):
+        """Listing page HTML -> [{"url": article_url}] in crawl() order."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        if not re.search(r"<main[\s>]", html):
+            raise PermanentFailure("listing_parse_error:missing_main")
+        rows = [{"url": f"https://www.ign.fr{path}"} for path in _extract_links(html)]
+        if not rows:
+            raise PermanentFailure("listing_parse_error:no_press_links")
+        return rows
+
+    def _enumeration_paper(self, html, article_url):
+        """Detail page HTML + requested article URL -> the paper crawl() saves, or None."""
+        if not isinstance(html, str) or not html:
+            return None
+
+        # Title
+        title_m = re.search(
+            r'<meta property="og:title" content="([^"]+)"', html
+        )
+        title = _unescape(title_m.group(1)) if title_m else ""
+        if not title:
+            t_m = re.search(r"<title>([^<]+)</title>", html)
+            if t_m:
+                title = _unescape(t_m.group(1).split(" - IGN")[0].strip())
+        if not title:
+            return None
+
+        # Node ID
+        node_id = _extract_node_id(html)
+        slug = article_url.rstrip("/").split("/")[-1]
+        external_id = node_id or slug
+        post_number = node_id  # numeric string when available
+
+        # Dates
+        pub_m = re.search(
+            r'article:published_time[^>]+content="([^"]+)"', html
+        )
+        pub_raw = pub_m.group(1) if pub_m else ""
+        published_date = _parse_date(pub_raw)
+
+        mod_m = re.search(
+            r'article:modified_time[^>]+content="([^"]+)"', html
+        )
+        mod_raw = mod_m.group(1) if mod_m else ""
+
+        # Abstract
+        abstract = _extract_abstract(html)
+        if len(abstract) < 100:
+            return None
+
+        # PDF
+        local_pdfs = re.findall(r'href="(/files/[^"]*\.pdf)"', html, re.I)
+        ext_pdfs = re.findall(r'href="(https?://[^"]*\.pdf)"', html, re.I)
+        pdf_url = None
+        original_filename = None
+        if local_pdfs:
+            pdf_url = f"https://www.ign.fr{local_pdfs[0]}"
+            original_filename = local_pdfs[0].split("/")[-1]
+        elif ext_pdfs:
+            pdf_url = ext_pdfs[0]
+            original_filename = ext_pdfs[0].split("/")[-1]
+
+        cat_m = re.search(
+            r"Communiqué de presse|Dossier de presse|alerte presse|actu presse",
+            html, re.I,
+        )
+        category = cat_m.group(0) if cat_m else "Espace presse"
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "url": article_url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "publisher": (
+                "IGN - Institut national de l'information "
+                "géographique et forestière"
+            ),
+            "authors": None,
+            "department": None,
+            "journal": None,
+            "keywords": None,
+            "category": category,
+            "doi": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": pub_raw,
+                    "modified_date": mod_raw,
+                    "node_id": node_id,
+                    "slug": slug,
+                    "originalFilename": original_filename,
+                    "all_pdfs": (
+                        [f"https://www.ign.fr{p}" for p in local_pdfs]
+                        + ext_pdfs
+                    ),
+                },
+                ensure_ascii=False,
+            ),
+        }

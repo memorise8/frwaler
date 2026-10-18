@@ -1,0 +1,24 @@
+{
+  "site_id": "ign-fr-espace-presse",
+  "listing_body": "<html><body><header><a href=\"/espace-presse\">Espace presse</a></header><main><a href=\"/espace-presse/offline-1\">Offline 1</a><a href=\"/espace-presse/communiques-de-presse-archives\">Archives</a><a href=\"/institut/espace-presse/offline-2\">Offline 2</a><a href=\"/espace-presse/offline-1\">Offline 1 again</a></main></body></html>",
+  "content_type": "text/html",
+  "sitemap_url": "https://www.ign.fr/sitemap.xml",
+  "sitemap_body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://www.ign.fr/</loc><lastmod>2026-10-01T10:00:00+02:00</lastmod></url><url><loc>https://www.ign.fr/espace-presse</loc><lastmod>2026-10-01T10:00:00+02:00</lastmod></url><url><loc>https://www.ign.fr/espace-presse/offline-1</loc><lastmod>2026-10-01T10:00:00+02:00</lastmod></url><url><loc>https://www.ign.fr/espace-presse/communiques-de-presse-archives</loc><lastmod>2026-10-01T10:00:00+02:00</lastmod></url><url><loc>https://www.ign.fr/espace-presse/retombees-medias-archivees</loc><lastmod>2026-10-01T10:00:00+02:00</lastmod></url><url><loc>https://www.ign.fr/institut/espace-presse/offline-2</loc><lastmod>2026-10-01T10:00:00+02:00</lastmod></url><url><loc>https://www.ign.fr/institut/notre-histoire</loc><lastmod>2026-10-01T10:00:00+02:00</lastmod></url></urlset>",
+  "details": {
+    "https://www.ign.fr/espace-presse/offline-1": "<html><head><title>Offline 1 - IGN</title><meta property=\"og:title\" content=\"Offline 1 &amp; co\" /><meta property=\"article:published_time\" content=\"2026-01-11T10:00:00+02:00\" /><meta property=\"article:modified_time\" content=\"2026-01-21T10:00:00+02:00\" /><script type=\"application/json\">{\"path\":{\"currentPath\":\"node/901\"}}</script></head><body><main><nav><p>Navigation paragraph that must be removed from text</p></nav><h1>Offline 1</h1><p>Communiqué de presse</p><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p><a href=\"/files/presse/offline-1.pdf\">PDF</a></main></body></html>",
+    "https://www.ign.fr/institut/espace-presse/offline-2": "<html><head><title>Offline 2 - IGN</title><meta property=\"og:title\" content=\"Offline 2 &amp; co\" /><meta property=\"article:published_time\" content=\"2026-02-12T10:00:00+02:00\" /><meta property=\"article:modified_time\" content=\"2026-02-22T10:00:00+02:00\" /><script type=\"application/json\">{\"path\":{\"currentPath\":\"node/902\"}}</script></head><body><main><nav><p>Navigation paragraph that must be removed from text</p></nav><h1>Offline 2</h1><p>Communiqué de presse</p><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></main></body></html>"
+  },
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "empty_body": "<html><main/></html>",
+  "original_method_source_sha256": {
+    "crawl": "3eb74bfd85df64e661fa6b6f64c9fddba3f17fd778a2f3413d187dfc697a8cd8"
+  },
+  "module_function_source_sha256": {
+    "_curl_get": "42e72626bed99eadfaf4f4ed45a16fe62487004886b8bc06f7ef81214f8d7d9f",
+    "_parse_date": "84ff56f4aa34dda8ec99dc65ca372313b070616718a2ede99221e55a48e71d5d",
+    "_unescape": "a0fe237ef35b04168c5b3c947e371f649a5b70de51717a3cb50eda184506ae93",
+    "_extract_links": "c2e6dd27d2b78274d1fd226afc41c47691cd098d31e91fc14151577d4a269b17",
+    "_extract_node_id": "5a9adb3c6af655b016f946d41ce5c0a28e6631d53ee571fb4062cc4044129056",
+    "_extract_abstract": "c31e040a60db2e3ce88817ada370c0c2e14df6c43a02096b454bf25c62f6762e"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "sites": {
+    "ign-fr-espace-presse": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "strategy": "sitemap",
+      "base_url": "https://www.ign.fr",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "url"
+        ]
+      },
+      "sitemap": {
+        "sitemap_url": "https://www.ign.fr/sitemap.xml",
+        "include": [
+          "^https://www\\.ign\\.fr/(institut/)?espace-presse/[^?#]+$"
+        ],
+        "exclude": [
+          "/espace-presse/communiques-de-presse-archives",
+          "/espace-presse/retombees-medias-archivees$"
+        ]
+      }
+    }
+  }
+}
