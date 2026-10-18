@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "sites": {
+    "hud-govt-nz-documents": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.hud.govt.nz",
+      "request_headers": {
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.hud.govt.nz/documents/search",
+        "params": {
+          "q": "",
+          "_documenttypes[]": "32"
+        },
+        "page_param": "start",
+        "page_mode": "offset",
+        "page_size": 12,
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "fetch_url",
+          "key_field": "dedup_key",
+          "title_field": "title",
+          "listing_marker": "[data-pagination-link], p"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

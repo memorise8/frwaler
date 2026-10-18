@@ -406,3 +406,186 @@ class HudGovtNzDocumentsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (pure parsing; crawl() and the methods above unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """One /documents/search?...&start=N page (JSON {content: HTML fragment,
+        resultsSentence}), parsed by the existing _parse_list_html(). The runner
+        sends X-Requested-With (plan request_headers). ``fetch_url`` is the page
+        crawl() would read (the detail page); items without one point at the
+        public /documents page, whose body _enumeration_paper ignores (crawl()
+        fetches nothing for them). ``dedup_key`` is crawl()'s seen_urls key.
+        Past the last page the source answers 200 with a fragment holding only
+        the pagination (or, far past it, 'There has been an error' + 'Sorry, no
+        results'): an empty list (plan listing_marker). Anything else is a
+        listing parse error."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_json_text")
+        text = html.strip()
+        prefix = "There has been an error"
+        if text.startswith(prefix):
+            text = text[len(prefix):].lstrip()
+        try:
+            data = json.loads(text)
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:invalid_json") from None
+        if not isinstance(data, dict) or not isinstance(data.get("content"), str) \
+                or "resultsSentence" not in data:
+            raise PermanentFailure("listing_parse_error:unexpected_json_shape")
+        content = data["content"]
+        rows = []
+        for item in self._parse_list_html(content):
+            key = item.get("detail_url") or item.get("pdf_url") or item.get("title", "")
+            rows.append(dict(item, dedup_key=key,
+                             fetch_url=item.get("detail_url") or f"{self.base_url}/documents"))
+        if not rows:
+            soup = _make_soup(content)
+            if soup is None or soup.find("div", class_="search-result") is not None or not (
+                    soup.select_one("[data-pagination-link]") is not None
+                    or "no results" in soup.get_text(" ", strip=True).lower()):
+                raise PermanentFailure("listing_parse_error:no_results_structure")
+        return rows
+
+    def _enumeration_detail(self, raw):
+        """_fetch_detail() body copied (same parsing; reads the already fetched HTML,
+        the error print has no URL)."""
+        if not raw:
+            return {}
+
+        try:
+            soup = _make_soup(raw)
+        except Exception as exc:
+            print(f"[{self.site_id}] soup parse error: {exc}")
+            return {}
+        if not soup:
+            return {}
+
+        # Published date from the intro date span
+        published_date = ""
+        date_el = soup.find(class_="page-header__intro-date")
+        if date_el:
+            raw_date = re.sub(r"^Last updated:\s*", "", date_el.get_text(strip=True), flags=re.I)
+            published_date = _parse_date(raw_date)
+
+        # Intro text (exclude the date span)
+        intro_text = ""
+        intro_el = soup.find(class_="page-header__intro")
+        if intro_el:
+            for span in intro_el.find_all(class_="page-header__intro-date"):
+                span.decompose()
+            intro_text = intro_el.get_text(separator=" ", strip=True)
+
+        # Body content from typography blocks (skip hidden elements like outdated-browser notice)
+        body_parts = []
+        for el in soup.find_all(class_="typography"):
+            if el.has_attr("hidden"):
+                continue
+            txt = el.get_text(separator=" ", strip=True)
+            txt = re.sub(r"\s+", " ", txt)
+            if txt and txt not in body_parts:
+                body_parts.append(txt)
+        body_text = " ".join(body_parts)
+
+        # Combine intro + body
+        parts = []
+        if intro_text:
+            parts.append(intro_text)
+        if body_text and body_text.strip() != intro_text.strip():
+            parts.append(body_text)
+        abstract = "\n\n".join(parts)
+
+        # PDF from detail page — detail pages use document-download--file, not linked-pages__download
+        pdf_url = ""
+        orig_fn = ""
+        pdf_a = soup.find("a", class_="document-download--file")
+        if not pdf_a:
+            # fallback: any anchor whose href ends with .pdf
+            pdf_a = soup.find("a", href=re.compile(r"\.pdf(\?|$)", re.I))
+        if pdf_a and pdf_a.get("href"):
+            href = pdf_a["href"]
+            pdf_url = urljoin(self.base_url, href)
+            orig_fn = _original_filename(pdf_url)
+
+        return {
+            "abstract": abstract,
+            "published_date": published_date,
+            "pdf_url": pdf_url,
+            "original_filename": orig_fn,
+        }
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s per-item block copied verbatim (slug = external_id/post_number,
+        unchanged), with the detail page already fetched by the runner. Returns
+        None where crawl() skips (abstract < _ABSTRACT_MIN)."""
+        title = item["title"]
+        date_str = item["date_str"]
+        intro = item["intro"]
+        list_pdf_url = item.get("pdf_url", "")
+        detail_url = item.get("detail_url", "")
+
+        # Slug = external_id / post_number
+        if detail_url:
+            slug = urlparse(detail_url).path.rstrip("/").split("/")[-1]
+        elif list_pdf_url:
+            fn = _original_filename(list_pdf_url)
+            slug = fn[:-4] if fn.lower().endswith(".pdf") else fn
+            if not slug:
+                slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+        else:
+            slug = re.sub(r"[^a-z0-9]+", "-",
+                          title.lower()).strip("-")
+
+        listed_date = _parse_date(date_str)
+
+        abstract = ""
+        published_date = listed_date
+        pdf_url = list_pdf_url
+        original_filename = _original_filename(list_pdf_url)
+
+        if detail_url:
+            det = self._enumeration_detail(html)
+            if det.get("abstract"):
+                abstract = det["abstract"]
+            if det.get("published_date"):
+                published_date = det["published_date"]
+            if det.get("pdf_url"):
+                pdf_url = det["pdf_url"]
+            if det.get("original_filename"):
+                original_filename = det["original_filename"]
+
+        # Fall back to intro if detail didn't yield an abstract
+        if not abstract:
+            abstract = intro
+
+        if len(abstract) < _ABSTRACT_MIN:
+            return None
+
+        if not original_filename and pdf_url:
+            original_filename = _original_filename(pdf_url)
+
+        return {
+            "site_id": self.site_id,
+            "external_id": slug,
+            "post_number": slug,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "url": detail_url or f"{self.base_url}/documents",
+            "pdf_url": pdf_url or None,
+            "original_filename": original_filename or None,
+            "publisher": _PUBLISHER,
+            "authors": None,
+            "keywords": None,
+            "category": "Statistics and research",
+            "doi": None,
+            "metadata": json.dumps({
+                "posted_date": date_str,
+                "originalFilename": original_filename or None,
+                "document_type": "Statistics and research",
+            }, ensure_ascii=False),
+        }
