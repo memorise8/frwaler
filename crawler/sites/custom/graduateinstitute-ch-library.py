@@ -671,6 +671,80 @@ class GraduateInstituteChLibraryCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Enumeration split (framework adapter; crawl() is unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html: str) -> list[dict[str, Any]]:
+        """Cards of one list page exactly as crawl() reads them with _parse_list_page.
+        The has-next flag is left to the framework's end detection. No fetching,
+        storage or new identifiers."""
+        items, _has_next = self._parse_list_page(html)
+        return items
+
+    def _enumeration_detail(self, first_resp, raw: bytes, final_url: str, item: dict[str, Any]) -> dict[str, Any] | None:
+        """crawl()'s Paper for one card.
+
+        ``first_resp`` is the www detail page; ``raw``/``final_url`` the MARCXML export the
+        framework fetched by following the page's repository CTA link rewritten to
+        ``/record/<id>?of=xm`` (ext:two_step_keep_first + ext:second_step_link_rewrite).
+        Without a CTA link (second step optional) both are the www page itself.
+        The record id is re-derived with crawl()'s own rules; a different or missing MARC
+        request raises instead of storing another record's data. Items crawl() skips
+        (abstract under 100 characters) return None (adapter.none_is_rule_skip)."""
+        url = item["url"]
+        item_label = url
+        body = first_resp.body.decode("utf-8", errors="replace")
+        detail_raw = body if body.strip() else None  # _curl_get gives None on a blank body
+        detail: dict[str, Any] = {}
+        record_id = item.get("record_id")
+
+        if not record_id:
+            if detail_raw:
+                detail = self._parse_institute_detail(detail_raw, url)
+                record_id = detail.get("record_id")
+
+        stepped = (
+            urllib.parse.urlsplit(final_url or "").netloc == urllib.parse.urlsplit(_REPOSITORY_BASE).netloc
+            and "/record/" in urllib.parse.urlsplit(final_url or "").path
+        )
+        if record_id:
+            got = re.search(r"/record/(\d+)", urllib.parse.urlsplit(final_url or "").path) if stepped else None
+            if got is None or got.group(1) != str(record_id):
+                raise ValueError(
+                    f"second step fetched {final_url}, crawl() reads MARCXML of record {record_id} for {item_label}"
+                )
+            marc_url = f"{_REPOSITORY_BASE}/record/{record_id}?of=xm"
+            marc_raw = raw.decode("utf-8", errors="replace")
+            if marc_raw.strip():
+                marc = self._parse_marcxml(marc_raw)
+                marc["repository_marc_url"] = marc_url
+                marc["repository_marc_raw"] = marc_raw[:20000]
+            else:
+                marc = {"repository_marc_url": marc_url}
+        else:
+            if stepped:
+                raise ValueError(f"second step fetched {final_url}, crawl() finds no record id for {item_label}")
+            marc = {}
+
+        if not marc.get("abstract") or not marc.get("title"):
+            if not detail and detail_raw:
+                detail = self._parse_institute_detail(detail_raw, url)
+
+        paper = self._build_paper(item, detail, marc)
+        if paper is None:
+            print(f"[{self.site_id}] item {item_label} skipped: missing native ID")
+            return None
+
+        abstract = paper.get("abstract") or ""
+        if len(abstract) < _MIN_ABSTRACT_CHARS:
+            print(
+                f"[{self.site_id}] item {paper.get('external_id')} skipped: "
+                f"abstract too short ({len(abstract)} chars)"
+            )
+            return None
+        return paper
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 

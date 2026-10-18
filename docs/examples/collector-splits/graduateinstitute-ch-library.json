@@ -1,0 +1,56 @@
+{
+ "version": 1,
+ "sites": {
+  "graduateinstitute-ch-library": {
+   "request_interval_s": 1.5,
+   "respect_robots": true,
+   "retries": 1,
+   "strategy": "last_page_backward",
+   "base_url": "https://www.graduateinstitute.ch",
+   "adapter": {
+    "type": "crawler",
+    "contract_version": 1,
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "html"
+    ],
+    "detail_method": "_enumeration_detail",
+    "detail_args": [
+     "first_resp",
+     "raw",
+     "final_url",
+     "item"
+    ],
+    "second_step": {
+     "use": "detail_page",
+     "selector": "[class*=\"field--name-field-cta\"] a[href*=\"repository.graduateinstitute.ch/record/\"]",
+     "attr": "href",
+     "required": false,
+     "allow_hosts": [
+      "repository.graduateinstitute.ch"
+     ],
+     "rewrite": {
+      "regex": "/record/(\\d+)",
+      "template": "https://repository.graduateinstitute.ch/record/{1}?of=xm"
+     }
+    },
+    "none_is_rule_skip": true
+   },
+   "listing": {
+    "url": "https://www.graduateinstitute.ch/catalog-publication?page={page}",
+    "first_page_url": "https://www.graduateinstitute.ch/library/publications-institute",
+    "start_page": 0,
+    "parser": {
+     "type": "adapter",
+     "key_field": "url",
+     "url_field": "url",
+     "date_field": "listed_date",
+     "title_field": "title"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1
+   }
+  }
+ }
+}
