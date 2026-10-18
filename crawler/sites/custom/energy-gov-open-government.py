@@ -431,3 +431,56 @@ class EnergyGovOpenGovCrawler(BaseCrawler):
             if 1990 <= yr <= 2030:
                 return f"{yr}-01-01"
         return None
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() is unchanged. Listing = the
+    # open-government page (_parse_landing_page). The framework fetches each
+    # candidate URL; _enumeration_paper uses that page only where crawl()'s
+    # _resolve_abstract would fetch it (context < 100 chars, not a PDF).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html_text):
+        rows, seen = [], set()
+        for cand in self._parse_landing_page(html_text):
+            dedup_key = cand.get("pdf_url") or cand.get("url") or ""
+            if not dedup_key or dedup_key in seen:
+                continue
+            seen.add(dedup_key)
+            row = dict(cand)
+            row["_nrb_key"] = dedup_key
+            row["_nrb_url"] = cand.get("url") or dedup_key
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, resp, item):
+        cand = {k: v for k, v in item.items() if not k.startswith("_nrb_")}
+        dedup_key = item["_nrb_key"]
+        ctx = cand.get("_abs_ctx", "")
+        abstract = ctx
+        url = cand.get("url", "")
+        if len(ctx) < 100 and url and not url.lower().endswith(".pdf"):
+            body_text = _extract_main_text(resp.text())
+            if len(body_text) > len(ctx):
+                abstract = body_text
+        if len(abstract) < 100:
+            return None
+        return {
+            "site_id": self.site_id,
+            "external_id": cand.get("external_id") or dedup_key,
+            "post_number": cand.get("post_number"),
+            "title": cand.get("title") or "(untitled)",
+            "abstract": abstract[:5000],
+            "published_date": cand.get("published_date"),
+            "listed_date": None,
+            "url": cand.get("url") or dedup_key,
+            "pdf_url": cand.get("pdf_url"),
+            "category": cand.get("category"),
+            "keywords": None,
+            "authors": None,
+            "publisher": "U.S. Department of Energy",
+            "original_filename": cand.get("original_filename"),
+            "metadata": json.dumps({
+                "section": cand.get("category"),
+                "source_href": cand.get("_href"),
+            }),
+        }
