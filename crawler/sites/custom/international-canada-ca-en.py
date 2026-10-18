@@ -475,3 +475,50 @@ class InternationalCanadaCaEnCrawler(BaseCrawler):
             return False
         skip_prefixes = ("skip to ", "we have archived this page")
         return not any(lowered.startswith(p) for p in skip_prefixes)
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() and its transport are unchanged.
+    # Listing = the one report index page (_parse_list); detail = the report
+    # page fetched by the framework, parsed by _parse_detail with crawl()'s
+    # 50-char abstract rule.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        soup = self._make_soup(html)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:invalid_html")
+        # Reports archived on the Library and Archives Canada web archive answer a
+        # "Session Verification" challenge page (2026-10-18), from which crawl() gets
+        # no abstract and saves nothing; they are not requested (never bypassed).
+        return [dict(r) for r in self._parse_list(soup)
+                if r.get("url") and not urlparse(r["url"]).netloc.endswith("wayback.bac-lac.canada.ca")]
+
+    def _enumeration_paper(self, html, item):
+        from crawler.enumeration.http import PermanentFailure
+        detail_soup = self._make_soup(html)
+        if detail_soup is None:
+            raise PermanentFailure("detail_parse_error:invalid_html")
+        parsed = self._parse_detail(detail_soup, dict(item))
+        abstract = parsed["abstract"]
+        if len(abstract) < MIN_ABSTRACT:
+            return None
+        return {
+            "site_id": self.site_id,
+            "external_id": parsed["external_id"],
+            "post_number": parsed["post_number"],
+            "title": parsed["title"],
+            "abstract": abstract,
+            "published_date": parsed["published_date"],
+            "listed_date": parsed["listed_date"],
+            "authors": parsed["authors"],
+            "publisher": parsed["publisher"],
+            "department": parsed["department"],
+            "url": parsed["url"],
+            "pdf_url": parsed["pdf_url"],
+            "keywords": parsed["keywords"],
+            "category": parsed["category"],
+            "doi": None,
+            "original_filename": parsed["original_filename"],
+            "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
+        }

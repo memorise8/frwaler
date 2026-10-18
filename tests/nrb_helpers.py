@@ -38,31 +38,46 @@ def as_text(body):
     return body
 
 
+def _instance(site, conn):
+    _, module = load(site)
+    cls = next(x for x in vars(module).values() if isinstance(x, type) and getattr(x, "site_id", None) == site)
+    try:
+        return cls(conn, 0), module
+    except TypeError:
+        return cls(conn), module
+
+
 def native(site, serve, net_methods=(), module_funcs=(), limit=None, init=None):
     """Run the unchanged crawl(); every name in net_methods (crawler attributes) and
-    module_funcs (module-level functions) answers from serve(url)."""
-    crawler, module = load(site)
-    if init:
-        init(crawler)
-    captured = []
+    module_funcs (module-level functions) answers from serve(url). Papers are captured
+    at _save_paper (nothing stored)."""
+    from tests.enumeration_fakes import Env
+    env = Env(site)
+    try:
+        crawler, module = _instance(site, env.conn)
+        if init:
+            init(crawler)
+        captured = []
 
-    def transport(url, *a, **k):
-        body = serve(url)
-        return None if body is None else as_text(body)
+        def transport(url, *a, **k):
+            body = serve(url)
+            return None if body is None else as_text(body)
 
-    crawler._delay = 0
-    crawler._detail_delay = 0
-    crawler._last_save_created = True
-    crawler._save_paper = lambda paper: captured.append(copy.deepcopy(paper))
-    for name in net_methods:
-        setattr(crawler, name, transport)
-    with contextlib.ExitStack() as stack:
-        for name in module_funcs:
-            stack.enter_context(patch.object(module, name, transport))
-        stack.enter_context(patch("time.sleep", lambda *a: None))
-        with contextlib.redirect_stdout(io.StringIO()):
-            crawler.crawl(limit=limit)
-    return captured
+        crawler._delay = 0
+        crawler._detail_delay = 0
+        crawler._last_save_created = True
+        crawler._save_paper = lambda paper: captured.append(copy.deepcopy(paper))
+        for name in net_methods:
+            setattr(crawler, name, transport)
+        with contextlib.ExitStack() as stack:
+            for name in module_funcs:
+                stack.enter_context(patch.object(module, name, transport))
+            stack.enter_context(patch("time.sleep", lambda *a: None))
+            with contextlib.redirect_stdout(io.StringIO()):
+                crawler.crawl(limit=limit)
+        return captured
+    finally:
+        env.close()
 
 
 def pipeline(site, serve, plan=None, ctype="text/html; charset=utf-8", types=None):
