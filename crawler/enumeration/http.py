@@ -35,6 +35,7 @@ from .urls import host_of
 # is the robots.txt token our groups are chosen by (_agent_applies).
 DEFAULT_USER_AGENT = "LibertreeCollector/1.0 (research data collection; respects robots.txt)"
 DEFAULT_MAX_BYTES = 50 * 1024 * 1024
+_JSONP = re.compile(r"\s*(?:/\*\*/\s*)?[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\s*\((.*)\)\s*;?\s*", re.S)
 _LOGIN_PATH = re.compile(r"(^|/)(login|logon|signin|sign-in|sso|cas/login|auth|oauth2?|saml|captcha|challenge)"
                          r"(/|$|\.|\?)", re.I)
 REFUSAL_STATUSES = (401, 403, 407, 429, 451)
@@ -455,8 +456,15 @@ class Response:
         except LookupError:
             return self.body.decode("utf-8", errors="replace")
 
-    def json(self):
-        return json.loads(self.text())
+    def json(self, jsonp=False):
+        """ext:jsonp: ``jsonp=True`` reads ``callback({...});`` (optionally ``/**/`` first) as its
+        JSON argument; a body that is not one callback call is a ValueError like broken JSON."""
+        if not jsonp:
+            return json.loads(self.text())
+        match = _JSONP.fullmatch(self.text())
+        if match is None:
+            raise ValueError("not_jsonp")
+        return json.loads(match.group(1))
 
 
 def _pin_connections(session, resolver):
