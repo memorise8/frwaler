@@ -40,7 +40,7 @@
   "bmlv-gv-at-wissen-forschung": {
     "reason": "delivered_conference_scope_missing_date_invalid_detail_date_and_nonchronological_ids",
     "classification": "full_rescan_required",
-    "source_sha256": "e286a20226f2851a0746e533a78851d21e59149b9a383e5383637e2ea5d4c1c8",
+    "source_sha256": "a2814299ee7072966ddc56061b9b556064e36384541f03ceaa5b609323c6f1df",
     "reviewed_at": "2026-10-11T18:38:51.572220+00:00",
     "evidence": "incremental-rollout-20261012/batch-015-bmlv/order-review.json",
     "evidence_sha256": "8e9cf03828483bc2d3aaa2c83a9200d74fe4ca52436ae4085a8f6fea737ec7fd",
