@@ -533,3 +533,82 @@ class MsitGoKrBbsCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+    # The enumeration framework (last_page_backward) ends the listing at the page whose
+    # .board_list holds no fn_detail rows ("등록된 게시물이 없습니다."), so the
+    # _MAX_PAGES cap of crawl() does not apply.
+
+    def _enumeration_items(self, raw, url=None):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw, (bytes, bytearray)):
+            raise PermanentFailure("listing_parse_error:expected_bytes")
+        raw = bytes(raw)
+        if _make_soup(raw).select_one(".board_list") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_list")
+        rows = []
+        for item in _parse_list_page(raw):
+            row = dict(item)
+            row["url"] = (
+                f"{_VIEW_URL}?sCode={_SCODE}&mId={_MID}&mPid={_MPID}"
+                f"&bbsSeqNo={_BBS_SEQ_NO}&nttSeqNo={item['ntt_seq_no']}"
+            )
+            rows.append(row)
+        return rows
+
+    def _enumeration_detail(self, raw, item):
+        return _parse_detail_page(raw, item["ntt_seq_no"])
+
+    def _enumeration_paper(self, item, detail):
+        ntt_seq_no = item["ntt_seq_no"]
+        detail_url = item["url"]
+        title = detail["title"] or item.get("title_from_list", "")
+        if not title:
+            return None
+
+        abstract = _build_abstract(
+            content_text=detail["content_text"],
+            all_filenames=detail.get("all_filenames", []),
+            title=title,
+            department=detail.get("department", ""),
+            date_raw=detail.get("date_raw", ""),
+            contact_person=detail.get("contact_person", ""),
+        )
+
+        if len(abstract) < _MIN_ABSTRACT_LEN:
+            return None
+
+        date_raw = detail["date_raw"] or item.get("date_raw", "")
+        published_date = (
+            detail["published_date"] or _parse_date(item.get("date_raw", ""))
+        )
+
+        return {
+            "site_id": self.site_id,
+            "external_id": ntt_seq_no,
+            "post_number": item.get("post_number") or ntt_seq_no,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "url": detail_url,
+            "pdf_url": detail.get("pdf_url"),
+            "original_filename": detail.get("original_filename") or None,
+            "department": detail.get("department") or "",
+            "publisher": "과학기술정보통신부",
+            "authors": detail.get("contact_person") or "",
+            "keywords": None,
+            "doi": None,
+            "category": "연구개발·미래인재",
+            "metadata": json.dumps({
+                "nttSeqNo": ntt_seq_no,
+                "bbsSeqNo": _BBS_SEQ_NO,
+                "posted_date": date_raw,
+                "contact_person": detail.get("contact_person"),
+                "department": detail.get("department"),
+                "atchFileNo": detail.get("atch_file_no"),
+                "fileOrd": detail.get("file_ord"),
+                "originalFilename": detail.get("original_filename"),
+                "all_filenames": detail.get("all_filenames", []),
+            }, ensure_ascii=False),
+        }

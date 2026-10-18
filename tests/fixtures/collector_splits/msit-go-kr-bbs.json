@@ -1,0 +1,15 @@
+{
+  "site_id": "msit-go-kr-bbs",
+  "listing_body": "<html><head><meta charset=\"utf-8\"></head><body><div id=\"result\"><div class=\"board_list\"><div class=\"toggle\"><a href=\"javascript:;\" onclick=\"fn_detail(9100001);\"><div id=\"td_NTT_SJ_0\"></div></a></div><div class=\"toggle\"><a href=\"javascript:;\" onclick=\"fn_detail(9100002);\"><div id=\"td_NTT_SJ_1\"></div></a></div></div></div><script>$('#td_'+'NO'+'_0').html('488');\nvar sHtml='';\nsHtml+= unescape('합성 자료 1');\n$('#td_'+'NTT_SJ'+'_0').html(sHtml);\n$('#td_'+'REG_DT'+'_0').html('2026. 1. 2');\n$('#td_'+'NO'+'_1').html('487');\nvar sHtml='';\nsHtml+= unescape('합성 자료 2');\n$('#td_'+'NTT_SJ'+'_1').html(sHtml);\n$('#td_'+'REG_DT'+'_1').html('2025. 8. 12');\n</script></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.msit.go.kr/bbs/view.do?sCode=user&mId=244&mPid=243&bbsSeqNo=65&nttSeqNo=9100001": "<html><head><meta charset=\"utf-8\"><title>합성 자료 1 | 과학기술정보통신부</title></head><body><div class=\"view_head\"><h2>합성 자료 1</h2><dl class=\"tit_con\"><dt>부서</dt><dd>합성정책과</dd></dl><dl class=\"tit_con\"><dt>작성일</dt><dd>Jan 2, 2026</dd></dl></div><div id=\"cont-wrap\" class=\"view_cont\"><div class=\"texteditor-area-inner\"><p>과학기술정보통신부 연구개발 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. 과학기술정보통신부 연구개발 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. 과학기술정보통신부 연구개발 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. </p></div></div><ul class=\"down_file_new\"><li><a href=\"javascript:;\" onclick=\"fn_download('52001', '1', 'pdf');\">자료52001.pdf</a></li></ul></body></html>",
+    "https://www.msit.go.kr/bbs/view.do?sCode=user&mId=244&mPid=243&bbsSeqNo=65&nttSeqNo=9100002": "<html><head><meta charset=\"utf-8\"><title>합성 자료 2 | 과학기술정보통신부</title></head><body><div class=\"view_head\"><h2>합성 자료 2</h2><dl class=\"tit_con\"><dt>부서</dt><dd>합성정책과</dd></dl><dl class=\"tit_con\"><dt>작성일</dt><dd>Aug 12, 2025</dd></dl></div><div id=\"cont-wrap\" class=\"view_cont\"><div class=\"texteditor-area-inner\"><p>과학기술정보통신부 연구개발 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. 과학기술정보통신부 연구개발 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. 과학기술정보통신부 연구개발 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. </p></div></div><ul class=\"down_file_new\"><li><a href=\"javascript:;\" onclick=\"fn_download('52002', '1', 'pdf');\">자료52002.pdf</a></li></ul></body></html>"
+  },
+  "long_text": "과학기술정보통신부 연구개발 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. 과학기술정보통신부 연구개발 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. 과학기술정보통신부 연구개발 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. ",
+  "empty_body": "<html><head><meta charset=\"utf-8\"></head><body><div id=\"result\"><div class=\"board_list\"><p class=\"no_result\">등록된 게시물이 없습니다.</p></div></div></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "3786c8f8785198aba5cad0d906ff4b546a2125491aaf9ba33dfa648fd4d25c8e"
+  },
+  "short_keeps_items": true
+}

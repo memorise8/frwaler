@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "sites": {
+    "msit-go-kr-bbs": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "raw",
+          "url"
+        ],
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "raw",
+          "item"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ]
+      },
+      "listing": {
+        "url": "https://www.msit.go.kr/bbs/list.do",
+        "params": {
+          "sCode": "user",
+          "mId": "244",
+          "mPid": "243"
+        },
+        "page_param": "pageIndex",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "ntt_seq_no",
+          "url_field": "url",
+          "title_field": "title_from_list",
+          "listing_marker": ".board_list"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
