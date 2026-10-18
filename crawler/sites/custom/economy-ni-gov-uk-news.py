@@ -313,3 +313,8 @@ class EconomyNIGovUKNewsCrawler(BaseCrawler):
         if len(abstract) < 50:
             return None
         return {'id': None, 'site_id': self.site_id, 'external_id': node_id or slug, 'post_number': node_id, 'title': title, 'abstract': abstract, 'published_date': published_date, 'listed_date': published_date, 'url': article_url, 'pdf_url': pdf_url, 'original_filename': pdf_filename, 'publisher': 'Department for the Economy', 'authors': None, 'department': None, 'journal': None, 'keywords': None, 'category': 'News', 'doi': None, 'metadata': json.dumps({'node_id': node_id, 'slug': slug, 'posted_date': published_date, 'originalFilename': pdf_filename}, ensure_ascii=False)}
+
+    def _enumeration_sitemap_paper(self, html, url):
+        """Sitemap route (the /news listing ignores ?page= on the live site, 2026-10-18):
+        same paper as crawl() for one detail page; identity rules are unchanged."""
+        return self._enumeration_paper({"url": url}, self._enumeration_detail(html, url))
