@@ -16,6 +16,7 @@ from datetime import datetime
 
 sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler
+from crawler.source_date_text import separate_date_parts
 
 _SITE_ID = "wti-org-research"
 _BASE_URL = "https://www.wti.org"
@@ -71,13 +72,14 @@ def _curl_get(url: str, *, timeout: int = 30, retries: int = 3):
 
 def _parse_date(raw: str) -> str:
     """'22 Sep 2025', '22 September 2025', etc → 'YYYY-MM-DD'. Never raises."""
+    raw = separate_date_parts(raw)
     if not raw:
         return ""
     raw = raw.strip()
     for fmt in ("%d %B %Y", "%d %b %Y", "%B %Y", "%b %Y", "%Y-%m-%d"):
         try:
             dt = datetime.strptime(raw, fmt)
-            return dt.strftime("%Y-%m-%d") if "%d" in fmt else dt.strftime("%Y-%m-01")
+            return dt.strftime("%Y-%m-%d") if "%d" in fmt else dt.strftime("%Y-%m")
         except ValueError:
             continue
     return raw

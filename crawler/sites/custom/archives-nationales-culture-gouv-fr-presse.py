@@ -23,6 +23,7 @@ import time
 import urllib.parse
 
 from crawler.base_crawler import BaseCrawler
+from crawler.source_date_text import separate_date_parts
 
 _BASE = "https://www.archives-nationales.culture.gouv.fr"
 _LIST_PATH = "/presse"
@@ -142,6 +143,7 @@ class ArchivesNationalesPresseCrawler(BaseCrawler):
     @staticmethod
     def _parse_french_date(text):
         """'Publié(e) le 05 février 2026' → '2026-02-05'."""
+        text = separate_date_parts(text)
         m = re.search(r"(\d{1,2})\s+(\w+)\s+(\d{4})", text.strip())
         if not m:
             return ""
