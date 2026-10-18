@@ -386,3 +386,76 @@ class InfoKorailComInfoCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L4-20261018). crawl(), _parse_list() and
+    # _parse_detail() are unchanged; these methods only parse given HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Listing rows (same as crawl()) plus the detail URL to fetch.
+
+        crawl() adds the current pageIndex to the detail request; the server
+        ignores it and the saved url is the canonical one without it, so the
+        enumeration fetch uses pageIndex=1."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        rows = []
+        for item in self._parse_list(html):
+            row = dict(item)
+            row["url"] = (
+                f"{_DETAIL_URL}?key={_KEY}&bbsNo={_BBS_NO}&nttNo={item['ntt_no']}"
+                f"&searchCtgry=&searchCnd=all&searchKrwd=&integrDeptCode="
+                f"&pageIndex=1"
+            )
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page — copied from crawl() verbatim
+        (external_id = post_number = nttNo, unchanged)."""
+        if not html:
+            return None
+        ntt_no = item["ntt_no"]
+        detail = self._parse_detail(html, ntt_no)
+        abstract = detail["abstract"]
+        if len(abstract) < 50:
+            return None
+
+        title = detail.get("title") or item["title"]
+        published_date = detail.get("published_date") or item["listed_date"]
+        listed_date = item["listed_date"]
+
+        canonical_url = (
+            f"{_DETAIL_URL}?key={_KEY}&bbsNo={_BBS_NO}&nttNo={ntt_no}"
+        )
+
+        return {
+            "site_id": self.site_id,
+            "external_id": ntt_no,
+            "post_number": ntt_no,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "authors": "",
+            "publisher": "한국철도공사",
+            "department": "",
+            "url": canonical_url,
+            "pdf_url": detail["pdf_url"],
+            "original_filename": detail["original_filename"],
+            "keywords": "",
+            "category": "보도자료",
+            "doi": None,
+            "metadata": json.dumps(
+                {
+                    "nttNo": ntt_no,
+                    "bbsNo": _BBS_NO,
+                    "posted_date": listed_date,
+                    "originalFilename": detail["original_filename"],
+                    "attachments": detail["attachments"],
+                },
+                ensure_ascii=False,
+            ),
+        }

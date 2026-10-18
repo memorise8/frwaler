@@ -1,0 +1,17 @@
+{
+  "site_id": "info-korail-com-info",
+  "listing_body": "<html><body><table class=\"bbs_list\"><tbody><tr><td>8001</td><td class=\"title\"><a href=\"./selectBbsNttView.do?key=911&amp;bbsNo=199&amp;nttNo=8001&amp;pageIndex=1\">합성 보도자료 8001<span>새글</span></a></td><td>홍보문화실</td><td>2026-03-04</td></tr><tr><td>8000</td><td class=\"title\"><a href=\"./selectBbsNttView.do?key=911&amp;bbsNo=199&amp;nttNo=8000&amp;pageIndex=1\">합성 보도자료 8000<span>새글</span></a></td><td>홍보문화실</td><td>2026-03-01</td></tr></tbody></table></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://info.korail.com/info/selectBbsNttView.do?key=911&bbsNo=199&nttNo=8001&searchCtgry=&searchCnd=all&searchKrwd=&integrDeptCode=&pageIndex=1": "<html><body><div class=\"detail_title\">합성 보도자료 8001 (상세)</div><ul class=\"detail_info\"><li class=\"date\">등록일 <span>2026-03-02</span></li></ul><table><tr><td class=\"detail_content\"><p>오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test. 오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test. 오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test.</p><script>x()</script></td></tr></table><ul><li class=\"attach_file\"><span class=\"file_name\">보도자료8001.pdf</span><a href=\"./downloadBbsFile.do?atchmnflNo=80019\">down</a></li></ul></body></html>",
+    "https://info.korail.com/info/selectBbsNttView.do?key=911&bbsNo=199&nttNo=8000&searchCtgry=&searchCnd=all&searchKrwd=&integrDeptCode=&pageIndex=1": "<html><body><div class=\"detail_title\">합성 보도자료 8000 (상세)</div><ul class=\"detail_info\"><li class=\"date\">등록일 <span>2026-03-01</span></li></ul><table><tr><td class=\"detail_content\"><p>오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test. 오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test. 오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test.</p><script>x()</script></td></tr></table><ul><li class=\"attach_file\"><span class=\"file_name\">보도자료8000.hwp</span><a href=\"./downloadBbsFile.do?atchmnflNo=80009\">down</a></li></ul></body></html>"
+  },
+  "long_text": "오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test. 오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test. 오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test.",
+  "empty_body": "<html><body><table class=\"bbs_list\"><tbody><tr><td colspan=\"4\">게시물이 없습니다.</td></tr></tbody></table></body></html>",
+  "original_method_source_sha256": {
+    "_curl_get": "6f22c086012d03463386ba5895e0410f4c8093f83d795f926aafba0f7a876619",
+    "_parse_list": "659835bc2453c35c56c70fa3f96134e706b1a519c41a2718182c8b80ea192609",
+    "_parse_detail": "37af4acd7b143da2121400e3b0ab0da49102bc11c02c0332e1d5ca3f520b7752",
+    "crawl": "4b132894231604cf89aecd3175e83a91ea42e93ad6633e262ddce65ba734138e"
+  }
+}
