@@ -199,6 +199,91 @@ class BundesumweltministeriumDeEnCrawler(BaseCrawler):
         return saved
 
     # ------------------------------------------------------------------
+    # Enumeration contract (ND-3, 2026-10-19): pure methods, crawl() unchanged.
+    # The plan reads crawl()'s own English-filter list URL.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """crawl()'s list records for one English-filter list page."""
+        soup = self._make_soup(html or "", context="list page")
+        if soup is None:
+            raise ValueError("list page could not be parsed")
+        rows = []
+        for record in self._parse_list_records(soup, url):
+            row = dict(record)
+            row["_key"] = record.get("external_id") or self._external_id(record)  # listing identity only
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, html, url, record):
+        """crawl()'s paper for one record from its detail page (``url`` = the effective
+        detail URL after redirects, as crawl() stores it). None = crawl()'s skips
+        (non-English list record, abstract below 50 or below the preferred 100 chars)."""
+        record = {k: v for k, v in record.items() if k != "_key"}
+        if record.get("language") and record["language"].lower() != "english":
+            return None
+        external_id = record.get("external_id") or self._external_id(record)
+        if not external_id:
+            raise RuntimeError("record has no stable identifier")
+        detail_url = record.get("url") or ""
+        if not detail_url:
+            raise RuntimeError("record has no detail URL")
+        detail_soup = self._make_soup(html or "", context="detail")
+        if detail_soup is None:
+            raise RuntimeError("detail HTML could not be parsed")
+        effective_detail_url = url
+        effective_list_url = record.get("list_url")
+        detail = self._parse_detail(detail_soup, record, effective_detail_url)
+        abstract = detail.get("abstract") or ""
+        if len(abstract) < self.MIN_ABSTRACT_CHARS or len(abstract) < self.PREFERRED_ABSTRACT_CHARS:
+            return None
+        category = detail.get("publication_type") or record.get("category") or ""
+        keywords = [
+            value
+            for value in [
+                category,
+                detail.get("language") or record.get("language"),
+                detail.get("publication_number") or record.get("publication_number"),
+            ]
+            if value
+        ]
+        metadata = {
+            "source": "TYPO3 BmubPublications HTML",
+            "start_url": self.START_URL,
+            "list_endpoint": effective_list_url,
+            "detail_short_url": detail_url,
+            "detail_url": effective_detail_url,
+            "list_record": record,
+            "facts": detail.get("facts") or {},
+            "date_modified": detail.get("date_modified") or "",
+            "image_url": detail.get("image_url") or record.get("image_url") or "",
+        }
+        paper = {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": detail.get("title") or record.get("title") or "",
+            "authors": json.dumps(["BMUKN"], ensure_ascii=False),
+            "abstract": abstract,
+            "category": category,
+            "keywords": json.dumps(keywords, ensure_ascii=False),
+            "published_date": detail.get("published_date") or "",
+            "url": effective_detail_url or detail_url,
+            "pdf_url": detail.get("pdf_url") or record.get("pdf_url") or "",
+            "doi": "",
+            "department": (
+                "Federal Ministry for the Environment, Climate Action, "
+                "Nature Conservation and Nuclear Safety (BMUKN)"
+            ),
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
+        if not paper["title"]:
+            raise RuntimeError("parsed record has no title")
+        if not paper["url"]:
+            raise RuntimeError("parsed record has no URL")
+        return paper
+
+    # ------------------------------------------------------------------
     # Network and parsing helpers
     # ------------------------------------------------------------------
 
