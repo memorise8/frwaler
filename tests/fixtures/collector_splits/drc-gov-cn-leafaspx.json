@@ -1,0 +1,19 @@
+{
+  "site_id": "drc-gov-cn-leafaspx",
+  "listing_body": "[{\"rows\": [{\"DocId\": 7001, \"DocViewUrl\": \"/DocView.aspx?chnid=378&leafid=1338&docid=7001\", \"AllSubject\": \"合成标题7001\", \"Subject\": \"合成标题7001\", \"DelivedDate\": \"2026-03-02 00:00:00\", \"Author\": \"张三、李四\", \"Source\": \"中国经济时报\", \"KeyWords\": \"政策,解读\", \"Summary\": \"摘要\", \"OuterUrl\": \"\"}, {\"DocId\": 7000, \"DocViewUrl\": \"/DocView.aspx?chnid=378&leafid=1338&docid=7000\", \"AllSubject\": \"合成标题7000\", \"Subject\": \"合成标题7000\", \"DelivedDate\": \"2026-03-01 00:00:00\", \"Author\": \"张三、李四\", \"Source\": \"中国经济时报\", \"KeyWords\": \"政策,解读\", \"Summary\": \"摘要\", \"OuterUrl\": \"\"}], \"totalpage\": 1}]",
+  "content_type": "application/json",
+  "details": {
+    "https://www.drc.gov.cn/DocView.aspx?chnid=378&leafid=1338&docid=7001": "<html><head><meta name=\"ArticleTitle\" content=\"合成标题7001（详情）\"><meta name=\"PubDate\" content=\"2026-03-02\"><meta name=\"Author\" content=\"王五\"><meta name=\"Keywords\" content=\"经济；改革\"></head><body><div id=\"MainContent_docContent\"><p>这是用于离线一致性测试的合成政策解读正文，包含résumé与자료等字符。这是用于离线一致性测试的合成政策解读正文，包含résumé与자료等字符。这是用于离线一致性测试的合成政策解读正文，包含résumé与자료等字符。这是用于离线一致性测试的合成政策解读正文，包含résumé与자료等字符。</p><script>x()</script></div><div id=\"MainContent_docAttachment\"><a href=\"/DownloadFile.aspx?id=7001\">附件7001.pdf</a></div></body></html>",
+    "https://www.drc.gov.cn/DocView.aspx?chnid=378&leafid=1338&docid=7000": "<html><head><meta name=\"ArticleTitle\" content=\"合成标题7000（详情）\"><meta name=\"PubDate\" content=\"2026-03-01\"><meta name=\"Author\" content=\"王五\"><meta name=\"Keywords\" content=\"经济；改革\"></head><body><div id=\"MainContent_docContent\"><p>这是用于离线一致性测试的合成政策解读正文，包含résumé与자료等字符。这是用于离线一致性测试的合成政策解读正文，包含résumé与자료等字符。这是用于离线一致性测试的合成政策解读正文，包含résumé与자료等字符。这是用于离线一致性测试的合成政策解读正文，包含résumé与자료等字符。</p><script>x()</script></div></body></html>"
+  },
+  "long_text": "这是用于离线一致性测试的合成政策解读正文，包含résumé与자료等字符。这是用于离线一致性测试的合成政策解读正文，包含résumé与자료等字符。这是用于离线一致性测试的合成政策解读正文，包含résumé与자료等字符。这是用于离线一致性测试的合成政策解读正文，包含résumé与자료等字符。",
+  "empty_body": "[]",
+  "original_method_source_sha256": {
+    "_curl_get": "a92e3ed22b3d4a51a9e9cd901a3addfd6a27f3842c92e303f32022eedb053541",
+    "_fetch_list_page": "415e249ed7a2b723da725669041f5f6bb6c6d54eec0fbed1b8cab43252a974b3",
+    "_detail_url_from_row": "fd18f5d9717d4eaa8e5aa7506d5976b6a89c06cdc74a74850886e698f6901bfc",
+    "_external_id": "776df86f9d8edf1d2398db415c7fab3dc925b5fca0cec0df9f6b44b3aa3e6c08",
+    "_parse_detail": "0a90720568a6e27117003377780e7ddb6c44aa5ba2a9ba9f1ad7dc2edd82c1b6",
+    "crawl": "68a5508f423d8f3c9866464f57580f86c78cf305cb9912a7f6b3c363110405f1"
+  }
+}

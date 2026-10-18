@@ -385,3 +385,42 @@ class DrcGovCnLeafAspxCrawler(BaseCrawler):
             print(f"[{self.site_id}] reached safety page cap {self._MAX_PAGES}; stopping")
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L4-20261018). crawl(), _fetch_list_page()
+    # and _parse_detail() are unchanged; these methods only parse given data.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Rows of one GetPageDocuments.ashx page, as _fetch_list_page() reads them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, list):
+            raise PermanentFailure("listing_parse_error:expected_json_list", url)
+        if not data:
+            return []
+        block = data[0] if isinstance(data[0], dict) else {}
+        rows = block.get("rows") or []
+        if not isinstance(rows, list) or any(not isinstance(r, dict) for r in rows):
+            raise PermanentFailure("listing_parse_error:rows_not_a_list_of_objects", url)
+        out = []
+        for row in rows:
+            detail_url = self._detail_url_from_row(row)
+            if not detail_url:
+                continue  # crawl() skips rows without a detail URL
+            out.append({"row": row, "url": detail_url, "doc_id": self._external_id(row, detail_url)})
+        return out
+
+    def _enumeration_paper(self, item, raw):
+        """Paper from the fetched DocView bytes — crawl()'s decode, parse and
+        filters (external_id = DocId, unchanged)."""
+        if not raw:
+            return None
+        text = self._decode_bytes(raw) if isinstance(raw, (bytes, bytearray)) else raw
+        paper = self._parse_detail(item["row"], item["url"], text)
+        if not paper.get("title"):
+            return None
+        abstract = self._clean_text(paper.get("abstract"))
+        if len(abstract) < self._MIN_ABSTRACT_CHARS:
+            return None
+        paper["abstract"] = abstract
+        return paper

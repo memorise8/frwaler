@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "sites": {
+    "drc-gov-cn-leafaspx": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.drc.gov.cn",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "item",
+          "raw"
+        ]
+      },
+      "listing": {
+        "url": "https://www.drc.gov.cn/Json/GetPageDocuments.ashx",
+        "params": {
+          "chnid": "378",
+          "leafid": "1338",
+          "pagesize": "100",
+          "sublen": "21",
+          "sumlen": "230",
+          "keyword": "",
+          "expertid": "0"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "doc_id"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
