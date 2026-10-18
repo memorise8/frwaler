@@ -703,3 +703,71 @@ class DifferNlPublicationsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018, X2). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched pages.
+    # Listing: /publications?...&type=thesis&page=N (Drupal, from 0, 25 rows).
+    # Detail: the bibcite page (first step) and the external record its 'URL'
+    # row links to (second step, ext:two_step_keep_first). _parse_detail and
+    # _parse_external_record run unchanged on those two pages.
+    # ------------------------------------------------------------------
+
+    _ENUMERATION_STEP_SELECTOR = (
+        '.bibcite-reference table tr:has(> td:first-child:-soup-contains("URL")) > td:nth-of-type(2) a[href]'
+    )
+
+    class _FetchedPages:
+        """The crawler as _parse_detail/_parse_external_record see it, with
+        _curl_get answered from pages the framework already fetched. A page
+        that was not fetched (e.g. an external record on a host outside the
+        plan) is an item failure, never a silent difference."""
+
+        def __init__(self, inner, pages):
+            self._inner = inner
+            self._pages = pages
+
+        def __getattr__(self, name):
+            return getattr(self._inner, name)
+
+        def _curl_get(self, url, *, referer=None):
+            if url not in self._pages:
+                raise ValueError(f"differ page not fetched by the plan: {url}")
+            return self._pages[url]
+
+        def _parse_external_record(self, url):
+            return type(self._inner)._parse_external_record(self, url)
+
+    def _enumeration_items(self, html, url=None):
+        """Rows of one thesis list page, parsed as _fetch_list_page() does."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        soup = _make_soup(html)
+        if soup is None:
+            return self._parse_list_fallback(html)
+        items, _ = self._parse_list_soup(soup)
+        return items
+
+    def _enumeration_paper(self, html, first_html, item):
+        """Paper exactly as crawl() saves it: _parse_detail on the bibcite page
+        (first_html) with the external record (html, fetched by the second
+        step from the 'URL' row), and crawl()'s skips (no data, no title,
+        abstract under 50 characters -> None)."""
+        from urllib.parse import urljoin
+        detail_url = item["detail_url"]
+        pages = {detail_url: first_html}
+        if html is not first_html and html != first_html:
+            node = _make_soup(first_html).select_one(self._ENUMERATION_STEP_SELECTOR)
+            href = (node.get("href") or "").strip() if node is not None else ""
+            if href:
+                pages[href] = html
+                pages.setdefault(urljoin(detail_url, href), html)
+        paper = type(self)._parse_detail(self._FetchedPages(self, pages), detail_url, item)
+        if not paper:
+            return None
+        if not (paper.get("title") or ""):
+            return None
+        if len(paper.get("abstract") or "") < 50:
+            return None
+        return paper
