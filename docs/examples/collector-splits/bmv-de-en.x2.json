@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "sites": {
+    "bmv-de-en": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.bmv.de",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "pdf_text",
+          "raw",
+          "item"
+        ],
+        "pdf_text": {
+          "args": [
+            "-l",
+            "10"
+          ],
+          "timeout_s": 30,
+          "min_bytes": 0
+        }
+      },
+      "listing": {
+        "url": "https://www.bmv.de/EN/Services/Publications/publications.html?gtp=81202_liste%3D{page}",
+        "first_page_url": "https://www.bmv.de/EN/Services/Publications/publications.html",
+        "start_page": 1,
+        "page_size": 10,
+        "parser": {
+          "type": "adapter",
+          "url_field": "fetch_url",
+          "key_field": "post_number",
+          "title_field": "title",
+          "date_field": "date",
+          "listing_marker": ".card-list li.card-list-item[class*=\"$doc\"]"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

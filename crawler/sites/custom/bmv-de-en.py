@@ -431,3 +431,96 @@ class BmvDeEnCrawler(BaseCrawler):
 
         print(f"[bmv-de-en] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------ #
+    # Pure enumeration contract (L3b-20261018, X2 ext:pdf_text). crawl()
+    # and the existing methods are unchanged; these methods only parse data
+    # the framework fetched. The framework requests each card's PDF (the
+    # detail request) and runs pdftotext on it with crawl()'s arguments
+    # (-l 10); the method applies _extract_pdf_text()'s checks and clean-up.
+    # ------------------------------------------------------------------ #
+
+    def _enumeration_items(self, html, url=None):
+        """Cards of one list page (_parse_list_page). The request URL of a card
+        is its PDF (fetch_url); a card without a PDF falls back to its detail
+        page, which yields no PDF text and is skipped like in crawl()."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        rows = []
+        for item in self._parse_list_page(html):
+            if not (item.get("title") or "").strip() or not item.get("detail_url"):
+                continue  # crawl() never reaches these cards
+            rows.append(dict(item, fetch_url=item.get("pdf_url") or item["detail_url"]))
+        return rows
+
+    @staticmethod
+    def _enumeration_pdf_abstract(pdf_text, raw):
+        """_extract_pdf_text()'s result for already fetched bytes and the
+        framework's pdftotext output: '' unless the body looks like crawl()'s
+        accepted download (over 500 bytes, %PDF), same clean-up and strip."""
+        if not raw or len(raw) <= 500 or raw[:4] != b"%PDF" or pdf_text is None:
+            return ""
+        text = re.sub(r"\f", "\n", pdf_text)
+        text = re.sub(r"[ \t]+", " ", text)
+        text = re.sub(r"\n{3,}", "\n\n", text)
+        return text.strip()
+
+    def _enumeration_paper(self, pdf_text, raw, item):
+        """Paper exactly as crawl() builds it (identity: card post number, else
+        detail slug, else title slug); None when crawl() skips the card
+        (abstract under 50 characters, e.g. no PDF)."""
+        title = (item.get("title") or "").strip()
+        if not title:
+            return None
+        pdf_url = item.get("pdf_url") or ""
+        detail_url = item.get("detail_url") or ""
+
+        original_filename = None
+        if pdf_url:
+            fn = pdf_url.split("?")[0].rstrip("/").split("/")[-1]
+            if fn.lower().endswith(".pdf"):
+                original_filename = fn
+
+        abstract = self._enumeration_pdf_abstract(pdf_text, raw) if pdf_url else ""
+        if len(abstract) < self._MIN_ABSTRACT_CHARS:
+            return None
+
+        pub_date = item.get("date") or ""
+        post_number = item.get("post_number")
+
+        if post_number:
+            external_id = post_number
+        elif detail_url:
+            slug = detail_url.rstrip("/").split("/")[-1].replace(".html", "")
+            external_id = slug
+        else:
+            external_id = re.sub(r"\W+", "-", title.lower())[:80]
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract[:8000],
+            "category": item.get("topic") or "",
+            "keywords": "",
+            "published_date": pub_date,
+            "listed_date": pub_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "doi": "",
+            "department": "",
+            "publisher": "Federal Ministry for Digital and Transport (BMV)",
+            "authors": "",
+            "journal": "",
+            "original_filename": original_filename,
+            "metadata": json.dumps({
+                "posted_date": pub_date,
+                "originalFilename": original_filename,
+                "pub_type": item.get("pub_type") or "",
+                "topic": item.get("topic") or "",
+                "post_number": post_number,
+            }, ensure_ascii=False),
+        }
