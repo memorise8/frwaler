@@ -409,3 +409,46 @@ class EnergyGovManagementCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() and its helpers are unchanged.
+    # The two library pages are the plan's two segments; their embedded
+    # drupalSettings.datatableRows are the rows (_extract_datatable_rows).
+    # Detail = the row's document URL fetched by the framework (redirects
+    # followed; bare energy.gov links are requested on www.energy.gov, whose
+    # certificate is valid): its final URL and Content-Type stand in for crawl()'s
+    # "curl -I -L" resolve of directive media links; delegations use only the
+    # row, as in crawl().
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        source = "delegations" if "delegations-library" in url else "directives"
+        rows = []
+        seen = set()
+        for row in self._extract_datatable_rows(html, f"{source}-library"):
+            row = dict(row)
+            row["_source"] = source
+            dedup_key = row.get("DIRECTLINK") or row.get("URL") or row.get("ID")
+            if not dedup_key or dedup_key in seen:
+                continue
+            seen.add(dedup_key)
+            target = (row.get("URL") if source == "directives" else row.get("DIRECTLINK")) or ""
+            if not target.strip():
+                continue
+            row["_nrb_key"] = dedup_key
+            # The bare energy.gov host fails TLS verification (crawl() uses curl -k);
+            # the same media path on www.energy.gov redirects to the same file.
+            row["_nrb_url"] = re.sub(r"^https://energy\.gov/", "https://www.energy.gov/", target.strip())
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, resp, item):
+        row = {k: v for k, v in item.items() if not k.startswith("_nrb_")}
+        if row.get("_source") == "delegations":
+            return self._build_delegation_item(row)
+        final_url, content_type = resp.url, resp.content_type or ""
+        self._curl_resolve = lambda url: (final_url, content_type)
+        try:
+            return self._build_directive_item(row)
+        finally:
+            del self._curl_resolve

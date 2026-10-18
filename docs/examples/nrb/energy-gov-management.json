@@ -1,0 +1,49 @@
+{
+ "version": 1,
+ "sites": {
+  "energy-gov-management": {
+   "strategy": "date_range_split",
+   "request_interval_s": 1.5,
+   "respect_robots": true,
+   "retries": 1,
+   "verify_ssl": true,
+   "base_url": "https://www.energy.gov",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "html",
+     "url"
+    ],
+    "detail_method": "_enumeration_paper",
+    "detail_args": [
+     "resp",
+     "item"
+    ]
+   },
+   "listing": {
+    "url": "https://www.energy.gov/management/{segment}",
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "key_field": "_nrb_key",
+     "url_field": "_nrb_url",
+     "title_field": "TITLE",
+     "listing_marker": "main"
+    }
+   },
+   "segments": {
+    "mode": "explicit",
+    "items": [
+     {
+      "key": "directives-library"
+     },
+     {
+      "key": "delegations-library"
+     }
+    ]
+   }
+  }
+ }
+}
