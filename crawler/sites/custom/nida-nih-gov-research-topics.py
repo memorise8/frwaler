@@ -440,3 +440,141 @@ class NidaNihGovResearchTopicsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl(),
+    # _fetch_api_page() and _fetch_detail_abstract() stay unchanged.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, raw):
+        """Rows of one API page: crawl()'s per-hit field extraction (no fetch)."""
+        from crawler.enumeration.http import PermanentFailure
+        if isinstance(raw, dict):
+            data = raw
+        else:
+            try:
+                data = json.loads(raw) if isinstance(raw, str) else None
+            except json.JSONDecodeError:
+                data = None
+        if not isinstance(data, dict):
+            raise PermanentFailure("listing_parse_error:expected_api_json")
+        body = data.get("body", data)
+        hits_data = body.get("hits") if isinstance(body, dict) else None
+        if not isinstance(hits_data, dict) or not isinstance(hits_data.get("hits", []), list):
+            raise PermanentFailure("listing_parse_error:missing_hits")
+        rows = []
+        for hit in hits_data.get("hits", []):
+            src = hit.get("_source", {})
+            hit_id = hit.get("_id", "")
+            url_path = self._first(src, "url")
+            if not url_path:
+                continue
+            full_url = urljoin(self.base_url, url_path)
+            title = self._one_line(self._first(src, "title"))
+            if not title:
+                continue
+            nid = self._first(src, "nid")
+            if nid:
+                external_id = str(nid)
+            elif hit_id:
+                external_id = hit_id.split(":")[-1].split("/")[-1]
+            else:
+                external_id = url_path.rsplit("/", 1)[-1] or url_path
+            research_topics = src.get("research_topic") or []
+            drug_topics = src.get("drug_topics_name") or []
+            if not isinstance(research_topics, list):
+                research_topics = []
+            if not isinstance(drug_topics, list):
+                drug_topics = []
+            seen_kw: set = set()
+            keywords_list = []
+            for kw in research_topics + drug_topics:
+                if kw and kw not in seen_kw:
+                    seen_kw.add(kw)
+                    keywords_list.append(kw)
+            rows.append({
+                "url": full_url,
+                "title": title,
+                "external_id": external_id,
+                "hit_id": hit_id,
+                "api_summary": self._one_line(self._first(src, "summary")),
+                "published_date": self._parse_date(self._first(src, "unified_date", "date")),
+                "category": (self._one_line(self._first(src, "content_category_name"))
+                             or self._CATEGORY),
+                "keywords_list": keywords_list,
+                "research_topics": research_topics,
+                "drug_topics": drug_topics,
+                "content_category_id": self._first(src, "content_category_id"),
+            })
+        return rows
+
+    def _enumeration_detail_abstract(self, raw, url):
+        """The parsing half of _fetch_detail_abstract(url)."""
+        if not raw:
+            return ""
+        soup = self._parse_html(raw, context=url[:80])
+        if soup is None:
+            return ""
+        meta_desc = self._one_line(
+            self._meta_content(soup, "description", "abstract", "og:description")
+        )
+        article = (
+            soup.select_one("article[data-history-node-id].content-river")
+            or soup.select_one("article[data-history-node-id]")
+            or soup.select_one("main article")
+            or soup.select_one("main")
+        )
+        body_text = self._extract_article_text(article) if article else ""
+        parts = []
+        seen = set()
+        for candidate in [meta_desc, body_text]:
+            cand = self._clean_text(candidate)
+            if not cand:
+                continue
+            key = cand.lower()[:200]
+            if key in seen:
+                continue
+            seen.add(key)
+            parts.append(cand)
+            if len("\n\n".join(parts)) >= 500:
+                break
+        return self._clean_text("\n\n".join(parts))
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s paper for one hit; the detail page is used only when the API
+        summary is shorter than _MIN_SAVE_ABSTRACT_CHARS (as crawl() does)."""
+        full_url = item["url"]
+        api_summary = item["api_summary"]
+        abstract = api_summary
+        if len(abstract) < self._MIN_SAVE_ABSTRACT_CHARS:
+            fetched = self._enumeration_detail_abstract(html, full_url)
+            if fetched:
+                abstract = fetched
+        if len(abstract) < self._MIN_ABSTRACT_CHARS:
+            return None
+        external_id = item["external_id"]
+        return {
+            "id": external_id,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": item["title"],
+            "authors": json.dumps([self._DEPARTMENT], ensure_ascii=False),
+            "abstract": abstract,
+            "category": item["category"],
+            "keywords": json.dumps(item["keywords_list"], ensure_ascii=False),
+            "published_date": item["published_date"],
+            "url": full_url,
+            "pdf_url": "",
+            "doi": "",
+            "department": self._DEPARTMENT,
+            "metadata": json.dumps(
+                {
+                    "source": "NIDA Elasticsearch API",
+                    "hit_id": item["hit_id"],
+                    "api_summary": api_summary,
+                    "content_category_id": item["content_category_id"],
+                    "research_topics": item["research_topics"],
+                    "drug_topics": item["drug_topics"],
+                },
+                ensure_ascii=False,
+            ),
+        }

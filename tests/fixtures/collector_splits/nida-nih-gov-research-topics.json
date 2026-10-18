@@ -1,0 +1,27 @@
+{
+ "site_id": "nida-nih-gov-research-topics",
+ "listing_body": "{\"body\": {\"hits\": {\"total\": {\"value\": 2}, \"hits\": [{\"_id\": \"entity:node/23025:en\", \"_source\": {\"url\": [\"/publications/drugfacts/criminal-justice\"], \"title\": [\"Facts criminal-justice\"], \"nid\": [23025], \"summary\": [\"Synthetic NIDA publication summary for offline equality testing of the enumeration split, long enough to keep. Synthetic NIDA publication summary for offline equality testing of the enumeration split, long enough to keep. \"], \"unified_date\": [1591012800], \"content_category_name\": [\"DrugFacts\"], \"content_category_id\": [958], \"research_topic\": [\"Opioids\"], \"drug_topics_name\": [\"Heroin\", \"Opioids\"]}}, {\"_id\": \"entity:node/23026:en\", \"_source\": {\"url\": [\"/publications/drugfacts/heroin\"], \"title\": [\"Facts heroin\"], \"nid\": [23026], \"summary\": [\"Brief.\"], \"unified_date\": [1591012800], \"content_category_name\": [\"DrugFacts\"], \"content_category_id\": [958], \"research_topic\": [\"Opioids\"], \"drug_topics_name\": [\"Heroin\", \"Opioids\"]}}]}}}",
+ "content_type": "application/json",
+ "details": {
+  "https://nida.nih.gov/publications/drugfacts/criminal-justice": "<html><body><main><p>unused</p></main></body></html>",
+  "https://nida.nih.gov/publications/drugfacts/heroin": "<html><head><meta name=\"description\" content=\"Heroin facts summary.\"></head><body><main><article data-history-node-id=\"23026\" class=\"content-river\"><p>Synthetic NIDA publication summary for offline equality testing of the enumeration split, long enough to keep. Synthetic NIDA publication summary for offline equality testing of the enumeration split, long enough to keep. </p></article></main></body></html>"
+ },
+ "long_text": "Synthetic NIDA publication summary for offline equality testing of the enumeration split, long enough to keep. Synthetic NIDA publication summary for offline equality testing of the enumeration split, long enough to keep. ",
+ "empty_body": "{\"body\": {\"hits\": {\"total\": {\"value\": 2}, \"hits\": []}}}",
+ "original_method_source_sha256": {
+  "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+  "_curl_get": "dfcea0e36571812098b0974c5cb543578e0fdf1a178da8d9275e52bfd855539b",
+  "_fetch_api_page": "a58c1f2dfecd597072764a17411241c85a613b56c3e6ccad5f69d67a1c69b3ef",
+  "_fetch_detail_page": "cb04811a653e3ed7cf069877110c40f3bf4010026102ba4e8b4b42672db2f714",
+  "_parse_html": "c56607c62c2e789abc8490003fb5f26e6d548affd50af9e97cb98889f115ca88",
+  "_clean_text": "a08f55e3a0fc1b23a10a84974b7a983263296fed9eb965f8517c1fdf48f51b17",
+  "_one_line": "159d46f0e5e2328b8f5396236e4b0af55ccb7a4c6e2e7494edbc12c331a96cb2",
+  "_parse_date": "b2552047f4a0415124fe2993c4d72330de89a894ea3fd1b4061524e2fdbeede6",
+  "_first": "f9c3619546fb3451de60c5f7350d92a3bdcdf20766b7a32fae37346c89e04e62",
+  "_meta_content": "372dcfae32991fa1d5df57b2b5ab14d7e615a511576db285c659636c4cea9cb3",
+  "_extract_article_text": "4a3bc6c24c465b7bb00c4684f8c3b487b9d4fcfd4207daf035c8181ea20be3e6",
+  "_fetch_detail_abstract": "9b283aaeb1d8c295d4d717a5ea10d4316e9aca94978fa51c8334f201fc55539c",
+  "_time_budget_exhausted": "3c49c272b5d3e06f965064a92466f49ebfde5e5676eccf3310b0c644ea65ffd0",
+  "crawl": "ffd2860a31e2443e69a8e9a50ade71dbf19e997001aa5050c988388493f987be"
+ }
+}

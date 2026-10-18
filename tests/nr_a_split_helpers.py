@@ -37,8 +37,9 @@ class NRSplitChecks(SplitChecks):
             return fixture['listing_body'] if len(list_calls) == 1 else fixture['empty_body']
 
         crawler._delay = 0
-        crawler._detail_delay = 0
-        crawler.detail_delay = 0
+        for name in ('_detail_delay', 'detail_delay'):
+            if not callable(getattr(type(crawler), name, None)):
+                setattr(crawler, name, 0)
         crawler._source_failure = None
         crawler.delivery_cursor = None
         crawler._check_cancelled = lambda: None
