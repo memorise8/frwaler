@@ -1,0 +1,24 @@
+{
+ "site_id": "cnipa-gov-cn-col",
+ "listing_body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><datastore><totalrecord>2</totalrecord><totalpage>1</totalpage><recordset><record><![CDATA[<li>            <a href=\"https://www.cnipa.gov.cn/art/2026/9/11/art_89_900001.html\" target=\"_blank\">                 2026年1月 Offline &amp; 统计 1</a>            <span>2026-09-11</span>    </li>]]></record><record><![CDATA[<li>            <a href=\"https://www.cnipa.gov.cn/art/2026/9/12/art_89_900002.html\" target=\"_blank\">                 2026年2月 Offline &amp; 统计 2</a>            <span>2026-09-12</span>    </li>]]></record></recordset></datastore>",
+ "content_type": "text/xml",
+ "details": {
+  "https://www.cnipa.gov.cn/art/2026/9/11/art_89_900001.html": "<html><head><meta name=\"pubdate\" content=\"2026-09-11 10:00\"><meta name=\"i_articleid\" content=\"900001\"><meta name=\"description\" content=\"desc 1\"><meta name=\"keywords\" content=\"专利 执法，统计\"></head><body><meta name=\"ContentStart\"/><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p><meta name=\"ContentEnd\"/><a href=\"/module/download/downfile.jsp?classid=0&showname=%E7%BB%9F%E8%AE%A11.xls&filename=x1.xls\">附件</a></body></html>",
+  "https://www.cnipa.gov.cn/art/2026/9/12/art_89_900002.html": "<html><head><meta name=\"pubdate\" content=\"2026-09-12 10:00\"><meta name=\"i_articleid\" content=\"\"><meta name=\"description\" content=\"desc 2\"><meta name=\"keywords\" content=\"专利 执法，统计\"></head><body><meta name=\"ContentStart\"/><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p><meta name=\"ContentEnd\"/><a href=\"/module/download/downfile.jsp?classid=0&showname=%E7%BB%9F%E8%AE%A12.xls&filename=x2.xls\">附件</a></body></html>"
+ },
+ "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+ "empty_body": "<datastore></datastore>",
+ "short_keeps_items": true,
+ "original_method_source_sha256": {
+  "_curl_get": "9e8ca9bca186ea057ad2b75586dbf87d613a8b1ddc60abdd0ee425dcca4d89d7",
+  "_parse_list_xml": "a4ee92a1671952e202264e765ed900184e1548e2edf2290094cbd85851785018",
+  "_get_meta": "37b7b14738452d79c15ced7bd501aa41098029d2763f6f6c297811a218705259",
+  "_fetch_detail": "64d1bbf50c028fd1d08bd096e2ef7ec696452ebb51cfaf822813c63be9b1f4d7",
+  "_build_abstract": "e4369e3e201cfe7c2ef12fc0b08a145012b959255e807c884b00cd518d0e6770",
+  "crawl": "75c6b7c23f143187ce81393e7fb6d4fa5cf2291d048f40a362cbdf29b54aafd4"
+ },
+ "module_function_source_sha256": {
+  "_make_soup": "bb863c666b692ae89506b18a76413bb2b6329e5709c97ea6cf1c9c6b58975c5c",
+  "_strip_tags": "9959e9001c16e7a08a4bfa53a19d7247cf8fffe7e1104af3535871c40e444843"
+ }
+}

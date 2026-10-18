@@ -243,6 +243,164 @@ class CnipaGovCnColCrawler(BaseCrawler):
         return prefix
 
     # ------------------------------------------------------------------ #
+    # Enumeration (pure conversions for the enumeration framework)        #
+    # ------------------------------------------------------------------ #
+
+    # dataproxy.jsp?page=N (no startrecord/endrecord) answers records
+    # (N-1)*100+1 .. totalrecord: page 1 carries everything, page 2 repeats
+    # all but the first 100. Each page keeps only its own 100-record window.
+    _ENUM_WINDOW = 100
+
+    def _enumeration_items(self, xml_text, page):
+        """List rows of one dataproxy page, restricted to that page's own window.
+
+        Rows are exactly what crawl() gets from ``_parse_list_xml``; crawl() reads
+        page 1 (all records) and skips the repeated ones by URL, so the union is the
+        same. A response that is not a jpage datastore, or whose window no longer has
+        the observed 100-record shape, is a listing parse error.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(xml_text, str) or "<datastore>" not in xml_text:
+            raise PermanentFailure("listing_parse_error:not_a_jpage_datastore")
+        records = re.findall(r"<record><!\[CDATA\[(.*?)\]\]></record>", xml_text, re.DOTALL)
+        if not records:
+            if re.search(r"<datastore>\s*</datastore>", xml_text):
+                return []
+            raise PermanentFailure("listing_parse_error:datastore_without_records")
+        total_m = re.search(r"<totalrecord>(\d+)</totalrecord>", xml_text)
+        pages_m = re.search(r"<totalpage>(\d+)</totalpage>", xml_text)
+        if not total_m or not pages_m:
+            raise PermanentFailure("listing_parse_error:datastore_without_totals")
+        total, total_pages = int(total_m.group(1)), int(pages_m.group(1))
+        window = self._ENUM_WINDOW
+        if (total_pages != -(-total // window) or not 1 <= page <= total_pages
+                or len(records) != total - (page - 1) * window):
+            raise PermanentFailure("listing_parse_error:unexpected_record_window")
+        own = "".join(f"<record><![CDATA[{r}]]></record>" for r in records[:window])
+        _, items = self._parse_list_xml(f"<datastore><recordset>{own}</recordset></datastore>")
+        # Rows that link straight to an attachment (/attach/0/<hash>.doc) have no article
+        # page and no article id, so crawl()'s identity rule gives them none; they are left
+        # out of this route (ND-1 recommendation under the 10-19 delegation, see
+        # work/ND/decisions.csv). Article rows are unchanged.
+        return [row for row in items if row.get("article_id")]
+
+    def _enumeration_detail(self, raw: str) -> dict:
+        """Pure copy of _fetch_detail after its fetch."""
+        result: dict = {
+            "abstract": "",
+            "pdf_url": None,
+            "orig_filename": None,
+            "published_date": "",
+            "keywords": "",
+            "article_id": "",
+        }
+        # Published date
+        pubdate = self._get_meta(raw, "pubdate")
+        if pubdate:
+            dm = re.match(r"(\d{4}-\d{2}-\d{2})", pubdate)
+            result["published_date"] = dm.group(1) if dm else ""
+
+        result["article_id"] = self._get_meta(raw, "i_articleid")
+        description = self._get_meta(raw, "description")
+
+        keywords_raw = self._get_meta(raw, "keywords")
+        if keywords_raw:
+            kws = [k.strip() for k in re.split(r"[\s,，、]+", keywords_raw) if k.strip()]
+            result["keywords"] = ",".join(kws)
+
+        # Abstract: HTML content between ContentStart and ContentEnd meta markers
+        cm = re.search(
+            r'<meta[^>]+ContentStart[^>]*/>(.*?)<meta[^>]+ContentEnd',
+            raw, re.DOTALL,
+        )
+        if cm:
+            result["abstract"] = _strip_tags(cm.group(1))
+
+        # Fallback: article-content div via BeautifulSoup
+        if not result["abstract"]:
+            try:
+                soup = _make_soup(raw)
+                if soup:
+                    content_div = (
+                        soup.find("div", class_="article-content")
+                        or soup.find("div", class_="cont")
+                    )
+                    if content_div:
+                        result["abstract"] = content_div.get_text(separator=" ", strip=True)
+            except Exception:
+                pass
+
+        # Last fallback: description meta
+        if len(result["abstract"]) < 50 and description:
+            result["abstract"] = description
+
+        # PDF / attachment links
+        for pattern in [
+            r'href=["\']([^"\']+\.pdf[^"\']*)["\']',
+            r'href=["\']([^"\']+down\.jsp[^"\']*)["\']',
+            r'href=["\']([^"\']+downfile\.jsp[^"\']*)["\']',
+        ]:
+            pdf_m = re.search(pattern, raw, re.IGNORECASE)
+            if pdf_m:
+                raw_pdf = pdf_m.group(1)
+                result["pdf_url"] = raw_pdf if raw_pdf.startswith("http") else _BASE + raw_pdf
+                sn_m = re.search(r"showname=([^&\"']+)", raw_pdf)
+                if sn_m:
+                    result["orig_filename"] = unquote(sn_m.group(1))
+                elif raw_pdf.lower().endswith(".pdf"):
+                    result["orig_filename"] = raw_pdf.rsplit("/", 1)[-1]
+                break
+
+        return result
+
+    def _enumeration_paper(self, raw, item):
+        """Pure copy of crawl()'s paper assembly for one item and its detail page."""
+        detail = self._enumeration_detail(raw)
+        art_url = item["url"]
+        title = item["title"]
+        listed_date = item.get("listed_date", "")
+        article_id = detail.get("article_id") or item.get("article_id")
+        published_date = detail.get("published_date") or listed_date
+        raw_abstract = detail.get("abstract") or ""
+        pdf_url = detail.get("pdf_url")
+        orig_filename = detail.get("orig_filename")
+
+        if not orig_filename and pdf_url:
+            tail = pdf_url.rstrip("/").split("/")[-1].split("?")[0]
+            if "." in tail:
+                orig_filename = tail
+
+        abstract = self._build_abstract(title, listed_date, raw_abstract)
+
+        if len(abstract) < 50:
+            print(f"[{self.site_id}] abstract <50 chars for {art_url}, skipping.")
+            return None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": article_id,
+            "post_number": article_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "url": art_url,
+            "pdf_url": pdf_url,
+            "keywords": detail.get("keywords") or "知识产权,专利,执法,统计",
+            "authors": "",
+            "publisher": _PUBLISHER,
+            "category": _CATEGORY,
+            "original_filename": orig_filename,
+            "metadata": json.dumps({
+                "posted_date": listed_date,
+                "originalFilename": orig_filename,
+                "columnid": "89",
+                "unitid": "669",
+                "i_articleid": article_id,
+            }, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------ #
     # Main crawl                                                           #
     # ------------------------------------------------------------------ #
 
