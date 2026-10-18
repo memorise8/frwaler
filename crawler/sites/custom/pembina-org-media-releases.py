@@ -11,6 +11,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 
 from crawler.base_crawler import BaseCrawler
+from crawler.source_date_text import separate_date_parts
 
 _MONTHS = {
     'January': '01', 'February': '02', 'March': '03', 'April': '04',
@@ -21,6 +22,7 @@ _MONTHS = {
 
 def _parse_date_text(text):
     """Convert 'May 14, 2026' -> '2026-05-14'."""
+    text = separate_date_parts(text)
     if not text:
         return ''
     m = re.search(

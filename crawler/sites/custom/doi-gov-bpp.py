@@ -415,11 +415,7 @@ class DOIGovBPPCrawler(BaseCrawler):
         tag = soup.find("meta", attrs={"name": "dcterms.date"})
         if tag and tag.get("content"):
             return tag["content"].strip()
-        # 2. Derive from FY year (files published roughly a year before FY start)
-        m = re.search(r"/(\d{4})/highlights", page_url)
-        if m:
-            fy = int(m.group(1))
-            return f"{fy - 1}-01-01"
+        # A fiscal-year URL does not supply a publication date.
         return None
 
     @staticmethod
