@@ -1,0 +1,34 @@
+{
+  "listing_url": "https://www.ifremer.fr/fr/espace-presse?page=0",
+  "listing_body": "<html><body><div class=\"view view-press-releases view-id-press_releases\"><div class=\"field--name-field-ref-press-star\"><div class=\"node node--type-press\"><a class=\"node-title\" href=\"/fr/presse/star-synthetique\">Communiqué vedette</a><div class=\"date\"><time datetime=\"2026-09-17T12:00:00Z\">2026-09-17</time></div><div class=\"field--name-field-teaser\">Résumé Communiqué vedette</div></div></div><div id=\"press-releases\"><div class=\"views-row\"><div class=\"node node--type-press\"><a class=\"node-title\" href=\"/fr/presse/regulier-synthetique\">Communiqué régulier</a><div class=\"date\"><time datetime=\"2026-10-16T12:00:00Z\">2026-10-16</time></div><div class=\"field--name-field-teaser\">Résumé Communiqué régulier</div></div></div></div></div></body></html>",
+  "empty_body": "<html><body><div class=\"view view-press-releases view-id-press_releases\"><div class=\"field--name-field-ref-press-star\"><div class=\"node node--type-press\"><a class=\"node-title\" href=\"/fr/presse/star-synthetique\">Communiqué vedette</a><div class=\"date\"><time datetime=\"2026-09-17T12:00:00Z\">2026-09-17</time></div><div class=\"field--name-field-teaser\">Résumé Communiqué vedette</div></div></div></div></body></html>",
+  "long_text": "Texte synthétique du communiqué de presse pour le test hors ligne. Texte synthétique du communiqué de presse pour le test hors ligne. Texte synthétique du communiqué de presse pour le test hors ligne. ",
+  "details": {
+    "https://www.ifremer.fr/fr/presse/star-synthetique": "<html><head><meta name=\"description\" content=\"Description Communiqué vedette\"><link rel=\"canonical\" href=\"https://www.ifremer.fr/fr/presse/x1454\"><script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\": {\"currentPath\": \"node/1454\"}}</script></head><body><article class=\"node--type-press\"><h1>Communiqué vedette</h1><div class=\"date\"><time datetime=\"2026-09-17T12:00:00Z\">2026-09-17</time></div><div class=\"chapo\"><div class=\"field--name-field-teaser\">Texte synthétique du communiqué de presse pour le test hors ligne. Texte synthétique du communiqué de presse pour le test hors ligne. Texte synthétique du communiqué de presse pour le test hors ligne. </div></div><div class=\"paragraphs-container\"><div class=\"field--name-field-text\"><p>Paragraphe. Publié dans Nature Ecology le 3 mai, doi 10.1234/abc.5678.</p></div></div><a href=\"/sites/default/files/2026-09/cp_vedette.pdf\">PDF</a></article></body></html>",
+    "https://www.ifremer.fr/fr/presse/regulier-synthetique": "<html><head><meta name=\"description\" content=\"Description Communiqué régulier\"><link rel=\"canonical\" href=\"https://www.ifremer.fr/fr/presse/x1474\"><script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\": {\"currentPath\": \"node/1474\"}}</script></head><body><article class=\"node--type-press\"><h1>Communiqué régulier</h1><div class=\"date\"><time datetime=\"2026-10-16T12:00:00Z\">2026-10-16</time></div><div class=\"chapo\"><div class=\"field--name-field-teaser\">Texte synthétique du communiqué de presse pour le test hors ligne. Texte synthétique du communiqué de presse pour le test hors ligne. Texte synthétique du communiqué de presse pour le test hors ligne. </div></div><div class=\"paragraphs-container\"><div class=\"field--name-field-text\"><p>Paragraphe. Publié dans Nature Ecology le 3 mai, doi 10.1234/abc.5678.</p></div></div><a href=\"https://www.ifremer.fr/sites/default/files/2026-10/cp_regulier.pdf\">PDF</a></article></body></html>"
+  },
+  "site_id": "ifremer-fr-fr",
+  "content_type": "text/html",
+  "original_method_source_sha256": {
+    "_normalize_space": "74f3ff2acd63b0d5b9c69fd8e16c2a89987564037dde0a58ad925c0dcf792f85",
+    "_ascii_fold": "5ce6257909e6bff3c2d03ce44b72a7c704585fa1c9e28afdd078c4ee1d3f13d9",
+    "_parse_date": "1891caedcae8ca92b77649cca7c8a3229b377f0a70ed6917da667536d1059292",
+    "_make_soup": "38b9297f173dfdf88d9c10a3d243d36f82ddf119cc8cd8190946426fc42705a5",
+    "_meta_content": "337a45261a7269a6a07ef47a7abde592da8820a1f312af0c769e587526a153ba",
+    "_absolute_url": "a9f0e20910f4623746e25f703606fbdc8a3f2a303dff830ca4e9926c1372a391",
+    "_filename_from_url": "7a468beefaa1f5189d9ac0def42ce897f40aaa40626358b519c74e75077a2fd8",
+    "_filename_from_content_disposition": "cd4fdc90f2eeca8791bab5fb2731f796add17ea5f379967d9cb12ddeb7935314",
+    "_extract_doi": "9d051874ead3e299ce0766e21b545517dafa66bf10801adc62e136d818bf5e59",
+    "_extract_journal": "e61bf56b68651ad9e357974161e20b8b347906b9972f5f78d1347d54e8670082",
+    "crawl": "c0243750c82a0eca14ecd1ab180b9b6fedd09e77ea40f37ec47c6f63aa3a3345",
+    "_near_time_limit": "80f982d1ee6af0ef7da639d50e00adf8fcf5bf570b6566789f0b40ec958d70d9",
+    "_curl_get": "4795e3f1238915739cf78f5efab7d3eb21763259da3d944734337aeb8e172717",
+    "_curl_head_filename": "fee6e62a70cb9de11ad8e9a1cb8fd6b6fa7c3aa32ad9a55a0630f932d8c51774",
+    "_parse_list_page": "bb90a2a32747f892115e3b03cc169eaa3f545acb550534dab683feed6f86447b",
+    "_parse_list_node": "6fa30bdccafb724e7ca401f5e3c6553bf75011fc7aeb5cfe3f277a81dd431cdc",
+    "_process_item": "1c4f796170db3b8a6a9e1404020846f342a8f5f62631607c4fd39860d23e833e",
+    "_parse_detail_page": "1c6ffb928731cd4eade2b6b96dde1e8adbddf8623a23258b4e684e9de0fc2408",
+    "_drupal_settings": "20e7868886e653e3a6d6a8da08828f90db9555c3e1794085d3d3fa2171ce459b",
+    "_join_unique": "50aaa88417fc82193db817d730534fd864791d16f5a859eb4c89e5cc407c46c2"
+  }
+}

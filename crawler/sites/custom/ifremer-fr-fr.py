@@ -546,3 +546,124 @@ class IfremerFrFrCrawler(BaseCrawler):
             seen.add(key)
             result.append(text)
         return _normalize_space(" ".join(result))
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract; original crawl() and transport remain unchanged.
+    # ------------------------------------------------------------------
+
+    _ENUM_LISTING_MARKER = ".view-id-press_releases"
+
+    def _enumeration_items(self, html, url=""):
+        """목록 쪽 HTML → crawl() 과 같은 _parse_list_page 행 dict 목록.
+
+        '추천(star)' 보도자료는 모든 쪽 맨 위에 되풀이되고 일반 목록에서는
+        빠진다. crawl() 은 첫 쪽에서 한 번 보고 seen_urls 로 거르므로, 여기서도
+        첫 쪽(page=0 또는 page 없음)에서만 star 를 내고 다른 쪽에서는 뺀다
+        (이웃 쪽 겹침 방지). 목록 view 가 없으면 오류 쪽, view 는 있는데 일반
+        목록(#press-releases)이 없으면 끝 뒤 빈 쪽이다."""
+        from urllib.parse import parse_qs, urlsplit
+
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup.select_one(self._ENUM_LISTING_MARKER) is None:
+            raise PermanentFailure("listing_parse_error:missing_press_releases_view")
+        values = parse_qs(urlsplit(url or "").query).get("page") or ["0"]
+        try:
+            page_index = int(values[0])
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:bad_page_number")
+        if soup.select_one("#press-releases") is None:
+            return []
+        items, _has_next = self._parse_list_page(soup, page_index)
+        if page_index != 0:
+            items = [item for item in items if not item.get("is_star")]
+        return items
+
+    def _enumeration_paper(self, raw, item):
+        """상세 HTML + 목록 행 → crawl() 의 _process_item 이 저장하는 것과 같은 paper.
+
+        초록 50자 미만은 None. 차이 하나: pdf 주소에서 파일명을 못 얻을 때
+        crawl() 은 HEAD 요청(Content-Disposition)을 하지만, 순수 파싱 메서드는
+        네트워크를 쓰지 않으므로 original_filename 을 None 으로 둔다
+        (식별값 external_id·post_number 와 무관)."""
+        if not raw:
+            return None
+        url = item["url"]
+        page_index = item.get("source_page") or 0
+
+        soup = _make_soup(raw)
+        detail = self._parse_detail_page(soup, raw, item)
+
+        title = detail.get("title") or item.get("title")
+        abstract = detail.get("abstract") or item.get("teaser") or ""
+        abstract = _normalize_space(abstract)
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+
+        published_date = detail.get("published_date_raw") or item.get("listed_date_raw")
+        listed_date = item.get("listed_date_raw") or published_date
+        pdf_url = detail.get("pdf_url") or item.get("pdf_url")
+        original_filename = _filename_from_url(pdf_url)
+        node_id = detail.get("node_id")
+        post_number = node_id or item.get("slug") or None
+        external_id = node_id or item.get("slug") or url
+        doi = _extract_doi(detail.get("full_text") or abstract)
+        journal = _extract_journal(detail.get("full_text") or abstract)
+
+        metadata = {
+            "posted_date": item.get("listed_date_raw"),
+            "listed_date": listed_date,
+            "published_date_raw": detail.get("published_date_raw"),
+            "originalFilename": original_filename,
+            "journal_raw": journal,
+            "series": None,
+            "volume": None,
+            "issue": None,
+            "node_id": node_id,
+            "post_number": post_number,
+            "slug": item.get("slug"),
+            "source_page": item.get("source_page"),
+            "is_star": item.get("is_star"),
+            "list_endpoint": self.START_URL if page_index == 0 else f"{self.START_URL}?page={page_index}",
+            "detail_endpoint": url,
+            "drupal_current_path": detail.get("drupal_current_path"),
+            "list_item": {
+                "title": item.get("title"),
+                "url": item.get("url"),
+                "listed_date_raw": item.get("listed_date_raw"),
+                "listed_date": item.get("listed_date"),
+                "teaser": item.get("teaser"),
+                "pdf_url": item.get("pdf_url"),
+            },
+            "detail": {
+                "title": detail.get("title"),
+                "canonical_url": detail.get("canonical_url"),
+                "description": detail.get("description"),
+                "pdf_url": detail.get("pdf_url"),
+            },
+        }
+
+        return {
+            "id": f"{self.site_id}:{external_id}",
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "posted_date": listed_date,
+            "authors": None,
+            "publisher": "Ifremer",
+            "department": None,
+            "journal": journal,
+            "url": url,
+            "pdf_url": pdf_url,
+            "keywords": None,
+            "category": "Communique de presse",
+            "doi": doi,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False, sort_keys=True),
+        }
