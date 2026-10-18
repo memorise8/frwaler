@@ -1,0 +1,240 @@
+{
+ "site_id": "openresearch-repository-anu-edu-au-search",
+ "listing_body": "{\"_embedded\": {\"searchResult\": {\"page\": {\"totalElements\": 2}, \"_embedded\": {\"objects\": [{\"_embedded\": {\"indexableObject\": {\"uuid\": \"u-1\", \"handle\": \"1885/1001\", \"metadata\": {\"dc.title\": [{\"value\": \"Paper 1001\"}], \"dc.date.accessioned\": [{\"value\": \"2026-10-10T01:02:03Z\"}]}}}}, {\"_embedded\": {\"indexableObject\": {\"uuid\": \"u-2\", \"handle\": \"1885/1002\", \"metadata\": {\"dc.title\": [{\"value\": \"Paper 1002\"}], \"dc.date.accessioned\": [{\"value\": \"2026-10-10T01:02:03Z\"}]}}}}]}}}}",
+ "content_type": "application/json",
+ "details": {
+  "https://openresearch-repository.anu.edu.au/server/api/core/items/u-1?embed=owningCollection/parentCommunity,bundles/bitstreams": {
+   "uuid": "u-1",
+   "handle": "1885/1001",
+   "metadata": {
+    "dc.title": [
+     {
+      "value": "Paper 1001"
+     }
+    ],
+    "dc.description.abstract": [
+     {
+      "value": "Synthetic ANU repository abstract used for offline equality testing of the enumeration split. Synthetic ANU repository abstract used for offline equality testing of the enumeration split. "
+     }
+    ],
+    "dc.date.issued": [
+     {
+      "value": "2025-03-04"
+     }
+    ],
+    "dc.date.accessioned": [
+     {
+      "value": "2026-10-10T01:02:03Z"
+     }
+    ],
+    "dc.contributor.author": [
+     {
+      "value": "Doe, Jane"
+     }
+    ],
+    "local.contributor.affiliation": [
+     {
+      "value": "Doe, Jane; Australian National University"
+     }
+    ],
+    "dc.subject": [
+     {
+      "value": "fire"
+     }
+    ],
+    "dc.type": [
+     {
+      "value": "Journal article"
+     }
+    ],
+    "dc.source": [
+     {
+      "value": "Nature"
+     }
+    ],
+    "local.identifier.doi": [
+     {
+      "value": "https://doi.org/10.1000/x1001"
+     }
+    ]
+   },
+   "_embedded": {
+    "bundles": {
+     "_embedded": {
+      "bundles": [
+       {
+        "name": "ORIGINAL",
+        "_embedded": {
+         "bitstreams": {
+          "_embedded": {
+           "bitstreams": [
+            {
+             "name": "p1001.pdf",
+             "_links": {
+              "content": {
+               "href": "https://openresearch-repository.anu.edu.au/server/api/core/bitstreams/b1001/content"
+              }
+             }
+            }
+           ]
+          }
+         }
+        }
+       }
+      ]
+     }
+    },
+    "owningCollection": {
+     "metadata": {
+      "dc.title": [
+       {
+        "value": "Research Outputs"
+       }
+      ]
+     },
+     "_embedded": {
+      "parentCommunity": {
+       "metadata": {
+        "dc.title": [
+         {
+          "value": "ANU"
+         }
+        ]
+       }
+      }
+     }
+    }
+   }
+  },
+  "https://openresearch-repository.anu.edu.au/server/api/core/items/u-2?embed=owningCollection/parentCommunity,bundles/bitstreams": {
+   "uuid": "u-2",
+   "handle": "1885/1002",
+   "metadata": {
+    "dc.title": [
+     {
+      "value": "Paper 1002"
+     }
+    ],
+    "dc.description.abstract": [
+     {
+      "value": "Synthetic ANU repository abstract used for offline equality testing of the enumeration split. Synthetic ANU repository abstract used for offline equality testing of the enumeration split. "
+     }
+    ],
+    "dc.date.issued": [
+     {
+      "value": "2025-03-04"
+     }
+    ],
+    "dc.date.accessioned": [
+     {
+      "value": "2026-10-10T01:02:03Z"
+     }
+    ],
+    "dc.contributor.author": [
+     {
+      "value": "Doe, Jane"
+     }
+    ],
+    "local.contributor.affiliation": [
+     {
+      "value": "Doe, Jane; Australian National University"
+     }
+    ],
+    "dc.subject": [
+     {
+      "value": "fire"
+     }
+    ],
+    "dc.type": [
+     {
+      "value": "Journal article"
+     }
+    ],
+    "dc.source": [
+     {
+      "value": "Nature"
+     }
+    ],
+    "local.identifier.doi": [
+     {
+      "value": "https://doi.org/10.1000/x1002"
+     }
+    ]
+   },
+   "_embedded": {
+    "bundles": {
+     "_embedded": {
+      "bundles": [
+       {
+        "name": "ORIGINAL",
+        "_embedded": {
+         "bitstreams": {
+          "_embedded": {
+           "bitstreams": [
+            {
+             "name": "p1002.pdf",
+             "_links": {
+              "content": {
+               "href": "https://openresearch-repository.anu.edu.au/server/api/core/bitstreams/b1002/content"
+              }
+             }
+            }
+           ]
+          }
+         }
+        }
+       }
+      ]
+     }
+    },
+    "owningCollection": {
+     "metadata": {
+      "dc.title": [
+       {
+        "value": "Research Outputs"
+       }
+      ]
+     },
+     "_embedded": {
+      "parentCommunity": {
+       "metadata": {
+        "dc.title": [
+         {
+          "value": "ANU"
+         }
+        ]
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "long_text": "Synthetic ANU repository abstract used for offline equality testing of the enumeration split. Synthetic ANU repository abstract used for offline equality testing of the enumeration split. ",
+ "empty_body": "{\"_embedded\": {\"searchResult\": {\"page\": {\"totalElements\": 2}, \"_embedded\": {\"objects\": []}}}}",
+ "original_method_source_sha256": {
+  "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+  "crawl": "7cbd6eeb5247e64f918a6ca90ceedab5c4e7f58c17dc356ca3447920702aa66b",
+  "_curl_get": "cf90220551ce1480bf0687c6010f64effd55792037a21f1eb0df03db2ca5cdfc",
+  "_fetch_json": "d30ad54c90df9222dbba392a605acb4ea5608cabdba4993a240871520c56b9bf",
+  "_list_url": "1196994c406b48f29959b223d8b99f901856df6fa2395d682def339a7acf2b6f",
+  "_extract_objects": "ecec5d74f0d2635b7d2ea01f9bef4f73537668d6fe4455384f8886dd0a4bb276",
+  "_handle_url": "5eb4d1612bcf8b1e21c9414391944c57c5ec9e537b480659c6df10ccf9453f40",
+  "_fetch_and_parse_item": "f53453c8950df8cf22883f0d81fe8ec62650fc3a4f5ee2032657dad3a574b5d3",
+  "_parse_item": "727f6c4d467cacb69122f0cbefcce88831b6db3c812413642bb37fd82558871a",
+  "_author_affiliation_pairs": "dc11bea7e4ac28a0fe15e23d085d3b2e7d6755766b174641aaef86011611aca0",
+  "_extract_doi": "6d93bff19645b1a4b48acde665f7dcd3841272e9a82a212a342796af455ac7ef",
+  "_bundles_from_embedded": "5e91adfd15fc3a9449ed181401c5f79120c395b4b63b8380e3e96a5bafed1598",
+  "_fetch_bundles": "eaa235a323494c8d408d5c39bb720500b71e349677d2bc6c8ccd93ea1b1fe916",
+  "_pdf_from_bundles": "5ce2abd36bb59fd15be0bc30e576f35e500eefe39075cfe829846423f1298d7a",
+  "_make_soup": "e3521a71b8043b0351d195e444f0c6b4ef40f88d9c6285fa744e8f172e1de30c",
+  "_metadata_values": "d77f91c70387af1a284734e110210bc2b32f20a60d80aed1ff92e234d8dc217e",
+  "_all_meta": "cd7c2989923b9106642b0d9516cb76dd0877e8e390b3cdf5fc0d7d50d3a93ba1",
+  "_first_meta": "f8a640083783130bebfdc16b369b7f448e421bfff1219add1b93e5e74c5360f6",
+  "_clean_text": "9f712f7c2225d549d268bebcc8620128f42f6133e1052625e1d11a262fc5ccfc",
+  "_one_line": "159d46f0e5e2328b8f5396236e4b0af55ccb7a4c6e2e7494edbc12c331a96cb2",
+  "_normalize_date": "3abf99bc2d8acacbbbeef2caab2100aa380cd7f77050694d3b6f30136364bf89",
+  "_format_author_name": "3f87f3db3b0aa717756994631ab39d1318d27b358ade16dbe6c673bb9bc0008c",
+  "_dedupe": "573cb63f7a42a25443a98234abf4a1e3f800f2e079962c7095dd34f074a36265"
+ }
+}

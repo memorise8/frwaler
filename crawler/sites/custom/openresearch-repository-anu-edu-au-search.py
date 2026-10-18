@@ -575,3 +575,61 @@ class OpenresearchRepositoryAnuEduAuSearchCrawler(BaseCrawler):
             seen.add(key)
             out.append(key)
         return out
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # existing helpers stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, data):
+        """Rows of one discover/search/objects page; the item REST URL is the detail URL."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("_embedded"), dict):
+            raise PermanentFailure("listing_parse_error:not_a_discover_result")
+        rows = []
+        for obj in self._extract_objects(data):
+            indexable = ((obj or {}).get("_embedded") or {}).get("indexableObject") or {}
+            uuid = indexable.get("uuid") or indexable.get("id")
+            if not uuid:
+                continue  # crawl(): "record has no item uuid" -> item failure, nothing saved
+            rows.append({
+                "uuid": uuid,
+                "indexable": indexable,
+                "detail_url": self._handle_url(indexable) or f"{self.base_url}/items/{uuid}",
+                "url": (f"{self.API_BASE}/core/items/{uuid}"
+                        "?embed=owningCollection/parentCommunity,bundles/bitstreams"),
+                "listed_date": self._first_meta(indexable.get("metadata") or {}, "dc.date.accessioned")[:10] or None,
+            })
+        return rows
+
+    def _enumeration_paper(self, item, data):
+        """crawl()'s _fetch_and_parse_item + paper conversion without the fetch; None keeps its skips."""
+        uuid = item["uuid"]
+        list_indexable = item.get("indexable") or {}
+        indexable = data if isinstance(data, dict) and data.get("metadata") else list_indexable
+        if not indexable or not indexable.get("metadata"):
+            return None
+        parsed = self._parse_item(uuid, indexable, data, item.get("detail_url"))
+        abstract = parsed.get("abstract") or ""
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": parsed["external_id"],
+            "post_number": parsed["post_number"],
+            "title": parsed["title"],
+            "abstract": abstract,
+            "published_date": parsed["published_date"],
+            "posted_date": parsed["listed_date"],
+            "authors": parsed["authors"],
+            "publisher": parsed["publisher"],
+            "department": parsed["department"],
+            "journal": parsed["journal"],
+            "url": parsed["url"],
+            "pdf_url": parsed["pdf_url"],
+            "keywords": parsed["keywords"],
+            "category": parsed["category"],
+            "doi": parsed["doi"],
+            "original_filename": parsed["original_filename"],
+            "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
+        }
