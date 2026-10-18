@@ -234,3 +234,107 @@ class NinNlPublicationsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+    # The enumeration framework (last_page_backward over ?_paged=N) finds the end
+    # page itself, so the _MAX_PAGES cap of crawl() does not apply.
+
+    def _enumeration_items(self, html, url=None):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup.select_one(".facetwp-template") is None:
+            raise PermanentFailure("listing_parse_error:missing_facetwp_template")
+        rows = []
+        for article in soup.select("article.publications-big-card"):
+            title_el = article.select_one("h3.h6")
+            detail_link_el = article.select_one("a.textlink")
+            pdf_link_el = article.select_one("a.iconlink")
+            if not title_el or not detail_link_el:
+                continue
+            title = title_el.get_text(strip=True)
+            detail_url = (detail_link_el.get("href") or "").strip()
+            if not detail_url:
+                continue
+            pdf_url = (pdf_link_el.get("href") or "").strip() if pdf_link_el else ""
+            meta: dict = {}
+            for ml in article.select("div.meta-line"):
+                spans = ml.select("span")
+                if len(spans) >= 2:
+                    key = spans[0].get_text(strip=True)
+                    val = spans[1].get_text(strip=True)
+                    meta[key] = val
+            rows.append({"url": detail_url, "title": title, "pdf_url": pdf_url, "meta": meta})
+        return rows
+
+    def _enumeration_detail(self, html, url):
+        detail_soup = _make_soup(html)
+        post_number = None
+        shortlink_tag = detail_soup.find("link", rel="shortlink")
+        if shortlink_tag:
+            href = shortlink_tag.get("href", "")
+            m = re.search(r'[?&]p=(\d+)', href)
+            if m:
+                post_number = m.group(1)
+        text_div = detail_soup.select_one("div.text")
+        abstract = ""
+        if text_div:
+            abstract = text_div.get_text(separator=" ", strip=True)
+        detail_pdf = None
+        pdf_el = detail_soup.select_one("a.btn.primary.has-icon-left[href*='.pdf']")
+        if pdf_el:
+            detail_pdf = (pdf_el.get("href") or "").strip()
+        return {"post_number": post_number, "abstract": abstract, "pdf_url": detail_pdf}
+
+    def _enumeration_paper(self, item, detail):
+        meta = item.get("meta") or {}
+        title = item["title"]
+        detail_url = item["url"]
+        pdf_url = item.get("pdf_url") or ""
+        research_group = meta.get("Research group", "")
+        year = meta.get("Publication year", "")
+        journal = meta.get("Published in", "")
+        authors_raw = meta.get("Authors", "")
+        authors = "; ".join(a.strip() for a in authors_raw.split(",") if a.strip())
+        post_number = detail.get("post_number")
+        abstract = detail.get("abstract") or ""
+        if len(abstract) < self._MIN_ABSTRACT:
+            return None
+        if not pdf_url:
+            if detail.get("pdf_url"):
+                pdf_url = detail["pdf_url"]
+        slug = detail_url.rstrip("/").split("/")[-1]
+        external_id = post_number or slug
+        published_date = f"{year}-01-01" if year and year.isdigit() else None
+        original_filename = None
+        if pdf_url:
+            tail = pdf_url.rstrip("/").split("/")[-1].split("?")[0].split("#")[0]
+            if "." in tail and len(tail) <= 200:
+                original_filename = tail
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "authors": authors,
+            "publisher": "Netherlands Institute for Neuroscience",
+            "department": research_group,
+            "journal": journal,
+            "url": detail_url,
+            "pdf_url": pdf_url if pdf_url else None,
+            "keywords": "",
+            "category": research_group,
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps({
+                "posted_date": year,
+                "originalFilename": original_filename,
+                "research_group": research_group,
+                "publication_year": year,
+                "post_id": post_number,
+            }, ensure_ascii=False),
+        }
