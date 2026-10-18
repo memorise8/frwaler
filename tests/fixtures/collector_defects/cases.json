@@ -10,7 +10,7 @@
     "empty_html": "<h1>Report 2027</h1><time></time>",
     "partial_html": "<time>2026</time>",
     "partial_expected": null,
-    "outside_date_sha256": "50a4cb3e8cd410901ec03974418c5518f6f5f4d45d009bc26837d6e5c31c765a",
+    "outside_date_sha256": "89c0ed73648fa0f355593bd0357354c68a81359996246c39eaf2e00ef0ccd05b",
     "delivery": true
   },
   {
@@ -112,7 +112,7 @@
     "empty_html": "<h1>Report 2027</h1><time></time>",
     "partial_html": "<time>2026</time>",
     "partial_expected": null,
-    "outside_date_sha256": "00dfa138b61917747b6f2faef6318fcd032dfd56a9d7736709f6b0c77bd4c2bf",
+    "outside_date_sha256": "f3eafefd4b398662b866bab4f9fe6da6ce3f7d86860c8111537aba657b11f07b",
     "delivery": true
   },
   {
@@ -188,7 +188,7 @@
     "empty_html": "<h1>Report 2027</h1><time></time>",
     "partial_html": "<time>2026</time>",
     "partial_expected": "2026",
-    "outside_date_sha256": "afe0d7f349191b707f4872537c54863129329ae4b3618749a3fa53211a17102e",
+    "outside_date_sha256": "9e0e2b97079d6bcaf8fc806c375eec2037348d3885e534dc9475283cf2dcb600",
     "delivery": true
   },
   {
