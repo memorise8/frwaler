@@ -555,3 +555,87 @@ class MintourGovGrDeltiaTypoyCrawler(BaseCrawler):
     def _one_line(self, value):
         text = unescape(str(value or "")).replace("\xa0", " ").replace("\u200b", "")
         return re.sub(r"\s+", " ", text).strip()
+
+    # ------------------------------------------------------------------
+    # Enumeration split (collector-splits 방식; crawl() 은 그대로)
+    # ------------------------------------------------------------------
+
+    _ENUM_LISTING_MARKER = ".elementor-posts-container"
+
+    def _enumeration_items(self, html, url=""):
+        """카테고리 목록 쪽 HTML → crawl() 과 같은 record dict 목록.
+        쪽 번호는 응답 URL(/page/N/ 또는 ?paged=N, 없으면 1)에서 읽는다."""
+        from urllib.parse import parse_qs
+
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html, context="enumeration listing")
+        if soup is None or soup.select_one(
+                self._ENUM_LISTING_MARKER + ", article.elementor-post, article.eael-grid-post") is None:
+            raise PermanentFailure("listing_parse_error:missing_post_grid")
+        parts = urlparse(url or "")
+        match = re.search(r"/page/(\d+)/?$", parts.path)
+        paged = parse_qs(parts.query).get("paged")
+        page = int(match.group(1)) if match else int(paged[0]) if paged and paged[0].isdigit() else 1
+        return self._parse_list_records(soup, page, self._list_url(page))
+
+    def _enumeration_paper(self, html, record):
+        """상세 HTML + 목록 record → _process_record() 가 저장하는 것과 같은 paper.
+        건너뛰는 항목(상세 없음·파싱 실패·초록 50자 미만)은 None."""
+        if not html:
+            return None
+        soup = self._make_soup(html, context="enumeration detail")
+        if soup is None:
+            return None
+        detail = self._parse_detail(soup, record)
+        abstract = detail["abstract"]
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        metadata = {
+            "source": "mintour.gov.gr category HTML + detail HTML",
+            "start_url": self.START_URL,
+            "list_endpoint": self.LIST_URL,
+            "list_url": record.get("list_url"),
+            "api_probe": "WordPress REST API returned 401; rendered category archive used",
+            "node_id": detail["external_id"],
+            "wp_post_id": detail["external_id"],
+            "post_id": detail["external_id"],
+            "slug": detail["slug"],
+            "posted_date": record.get("date_raw") or detail.get("date_raw"),
+            "listed_date": record.get("listed_date"),
+            "published_date_raw": detail.get("date_raw"),
+            "list_excerpt": record.get("excerpt"),
+            "canonical_url": detail.get("canonical_url"),
+            "shortlink": detail.get("shortlink"),
+            "originalFilename": detail.get("original_filename"),
+            "journal_raw": None,
+            "series": None,
+            "volume": None,
+            "issue": None,
+            "list_page": record.get("page"),
+            "native_classes": record.get("classes"),
+            "image_url": record.get("image_url"),
+        }
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": detail["external_id"],
+            "post_number": detail["post_number"],
+            "title": detail["title"],
+            "abstract": abstract,
+            "published_date": detail["published_date"] or record.get("listed_date"),
+            "listed_date": record.get("listed_date"),
+            "posted_date": record.get("listed_date"),
+            "authors": None,
+            "publisher": self.PUBLISHER,
+            "department": "Γραφείο Τύπου",
+            "journal": None,
+            "url": detail.get("canonical_url") or record["url"],
+            "pdf_url": detail.get("pdf_url"),
+            "keywords": self.CATEGORY,
+            "category": self.CATEGORY,
+            "doi": None,
+            "original_filename": detail.get("original_filename"),
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
