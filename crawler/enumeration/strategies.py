@@ -161,7 +161,12 @@ class Strategy:
         except ValueError:
             raise PermanentFailure("listing_parse_error:json_extras", url, resp.status) from None
         if cursor:
-            token = json_path(data, cursor["path"])
+            parent, _, leaf = cursor["path"].rpartition(".")
+            holder = json_path(data, parent) if parent else data
+            # A missing field is told apart from null: on the first page it means a wrong path or
+            # a renamed API (checked by forward_cursor), later pages may omit it on the last page.
+            page.extra["next_cursor_missing"] = not isinstance(holder, dict) or leaf not in holder
+            token = holder.get(leaf) if isinstance(holder, dict) else None
             page.extra["next_cursor"] = None if token in (None, "", False) else str(token)
         if last:
             value = json_path(data, last)
@@ -274,13 +279,15 @@ class LastPageBackward(Strategy):
             # ext:json_page: the source states its last page. Only a candidate: it must pass the
             # same confirmation (L real, L+1 and L+2 beyond) as a searched one, else search.
             cap = self.max_pages()
-            if cap is None or reported <= self.start_page + cap - 1:
-                if self.confirmed(reported, None, first):
-                    kind = self.beyond(reported + 1, first)
-                    return reported, kind
-                self.ctx.store.event(self.ctx.site_id, "reported_last_page_unconfirmed", {"reported": reported})
-                self.cache = {self.start_page: first}
-                self.real = {}
+            cap_page = None if cap is None else self.start_page + cap - 1
+            if cap_page is not None and reported >= cap_page and self.beyond(cap_page, first) is None:
+                # The cap is reached anyway: nothing is requested beyond it (never completion).
+                return cap_page, "page_cap"
+            if (cap_page is None or reported < cap_page) and self.confirmed(reported, None, first):
+                return reported, self.beyond(reported + 1, first)
+            self.ctx.store.event(self.ctx.site_id, "reported_last_page_unconfirmed", {"reported": reported})
+            self.cache = {self.start_page: first}
+            self.real = {}
         for attempt in range(2):
             last, kind = self.search_last_page(first)
             if self.confirmed(last, kind, first):
@@ -484,7 +491,7 @@ class _ForwardPager(Strategy):
         row = self.segment_row(seg)
         cursor = row["cursor"] or {"next_page": self.start_page, "next_token": None, "prev_fp": None, "total": None}
         cap = self.max_pages()
-        seen_tokens = set(cursor.get("seen_tokens") or [])
+        recent = list(cursor.get("recent_tokens") or [])
         while True:
             n = cursor["next_page"]
             if n > self.start_page and cursor.get("next_token") is None:
@@ -497,21 +504,28 @@ class _ForwardPager(Strategy):
                 page = self.fetch_page(request)  # an empty page is re-read once before it ends the segment
             if page.total is not None and cursor.get("total") is None:
                 cursor["total"] = page.total
+            if n == self.start_page and page.items and page.extra.get("next_cursor_missing"):
+                raise StrategyStop("config_error", f"next_cursor_path_missing:{self.listing['next_cursor']['path']}")
             if not page.items:
-                if page.extra.get("next_cursor"):
-                    # An empty page that still points further: not an end, and not safe to skip.
-                    raise StrategyStop("incomplete", f"empty_page_with_next_cursor:{seg}:{n}")
-                return ("empty_first_page" if n == self.start_page else "cursor_empty_page"), cursor.get("total")
+                if n == self.start_page:
+                    return "empty_first_page", cursor.get("total")
+                # Reached by a token (possibly expired on resume): an end only when the reported
+                # total confirms everything was listed; otherwise never counted as complete.
+                listed = ctx.store.segment(ctx.site_id, ctx.plan_fp, seg)["listed"]
+                if not page.extra.get("next_cursor") and cursor.get("total") is not None and listed == cursor["total"]:
+                    return "cursor_end", cursor.get("total")
+                ctx.store.event(ctx.site_id, "empty_page_by_cursor", {"segment": seg, "page": n, "listed": listed,
+                                                                      "total": cursor.get("total")})
+                raise StrategyStop("incomplete", f"empty_page_by_cursor:{seg}:{n}")
             fp = page.fingerprint
             token = page.extra.get("next_cursor")
-            if (n > self.start_page and fp == cursor.get("prev_fp")) or (token is not None and token in seen_tokens):
+            if (n > self.start_page and fp == cursor.get("prev_fp")) or (token is not None and token in recent):
                 ctx.store.event(ctx.site_id, "cursor_loop", {"segment": seg, "page": n})
                 raise StrategyStop("incomplete", f"cursor_loop:{seg}:{n}")
             if token is not None:
-                seen_tokens.add(token)
+                recent = (recent + [token])[-200:]  # most recent tokens, in order
             ordered = list(reversed(page.items)) if reverse_within_page else list(page.items)
-            cursor = dict(cursor, next_page=n + 1, next_token=token, prev_fp=fp,
-                          seen_tokens=sorted(seen_tokens)[-200:])
+            cursor = dict(cursor, next_page=n + 1, next_token=token, prev_fp=fp, recent_tokens=recent)
             yield Batch(seg, ordered, cursor, page.keys, reported_total=cursor.get("total"))
 
 

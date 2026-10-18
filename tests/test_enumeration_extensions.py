@@ -11,7 +11,7 @@ from urllib.parse import parse_qs, urlsplit
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from crawler.enumeration.http import Response  # noqa: E402
-from crawler.enumeration.plan import PlanError, resolve_headers  # noqa: E402
+from crawler.enumeration.plan import PlanError, header_hosts, resolve_headers  # noqa: E402
 from tests.enumeration_fakes import Env, FakeBoard, board_plan, html  # noqa: E402
 
 
@@ -87,8 +87,11 @@ class FingerprintTest(Base):
 
 class HeadersTest(Base):
     def test_validation(self):
-        for name in ("Cookie", "Host", "User-Agent", "X-Forwarded-For", "Proxy-Authorization", "bad header"):
+        for name in ("Cookie", "Cookie2", "Host", "User-Agent", "X-Forwarded-For", "Proxy-Authorization", "bad header",
+                     "X-HTTP-Method-Override", "X-Method-Override", "Authorization", "X-Api-Key", "X-Auth-Token"):
             self.bad(board_plan(request_headers={name: "x"}))
+        self.bad(board_plan(request_headers_env={"X-HTTP-Method-Override": "M"}))
+        self.bad(board_plan(request_headers={"Accept": "x"}, request_headers_hosts=["Bad Host"]))
         self.bad(board_plan(request_headers={"X-A": "a\r\nb"}))
         self.bad(board_plan(request_headers_env={"Authorization": "lower_case"}))
         self.bad(board_plan(request_headers_env={"Authorization": {"env": "KEY", "format": "Bearer"}}))
@@ -104,15 +107,56 @@ class HeadersTest(Base):
         with self.assertRaises(PlanError):
             resolve_headers(raw, {"API_TOKEN": "t0k"})  # missing variable: never sent empty
 
-    def test_headers_reach_every_request_and_robots_still_applies(self):
+    def test_headers_reach_the_plan_host_and_robots_still_applies(self):
         board = FakeBoard(25, robots=b"User-agent: *\nDisallow: /view\n")
         transport = RecordingTransport(lambda m, u, d: board(u))
         site = board_plan(request_headers={"X-Api": "1"})
         plan = self.env.plan(site)
-        result = self.env.run(site, None, transport=transport, extra_headers=resolve_headers(plan.raw))
+        result = self.env.run(site, None, transport=transport, extra_headers=resolve_headers(plan.raw),
+                              header_hosts=header_hosts(plan.raw))
         self.assertTrue(all(h.get("X-Api") == "1" for _, _, h, _ in transport.calls))
         self.assertNotIn("/view", " ".join(u for u in transport.urls if "/view" in u))
         self.assertEqual(result["status"], "access_blocked")
+
+
+    def test_headers_never_follow_a_redirect_or_reach_other_hosts(self):
+        def handle(method, url, data):
+            if url.endswith("/robots.txt"):
+                return Response(404, {}, b"")
+            if url.startswith("https://api.test/"):
+                return Response(302, {"Location": "https://cdn.other.test/x.pdf"}, b"")
+            return Response(200, {"Content-Type": "application/pdf"}, b"%PDF-1.4")
+        transport = RecordingTransport(handle)
+        fetcher = self.env.fetcher(self.env.plan(api_plan()), transport,
+                                   extra_headers={"Authorization": "Bearer s3cret"}, header_hosts=["api.test"])
+        fetcher.get("https://api.test/file")
+        sent = {u: h.get("Authorization") for _, u, h, _ in transport.calls}
+        self.assertEqual(sent["https://api.test/file"], "Bearer s3cret")
+        self.assertIsNone(sent["https://cdn.other.test/x.pdf"])
+        self.assertIsNone(sent["https://cdn.other.test/robots.txt"])
+
+    def test_run_site_reads_the_token_from_the_environment(self):
+        from crawler.enumeration import run as run_mod
+        site = api_plan(request_headers_env={"Authorization": {"env": "X1_TEST_TOKEN", "format": "Bearer {}"}})
+        plan = self.env.plan(site)
+
+        def handle(method, url, data):
+            if url.endswith("/robots.txt"):
+                return Response(404, {}, b"")
+            page = int(parse_qs(urlsplit(url).query).get("page", ["1"])[0])
+            return json_resp({"items": api_items([1, 2]) if page == 1 else []})
+        os.environ.pop("X1_TEST_TOKEN", None)
+        result = run_mod.run_site(plan, self.env.store, self.env.conn, self.env.root, transport=RecordingTransport(handle))
+        self.assertEqual(result["status"], "config_error")
+        self.assertIn("X1_TEST_TOKEN", result["stop_reason"])
+        os.environ["X1_TEST_TOKEN"] = "t0k"
+        try:
+            transport = RecordingTransport(handle)
+            run_mod.run_site(plan, self.env.store, self.env.conn, self.env.root, transport=transport)
+        finally:
+            os.environ.pop("X1_TEST_TOKEN", None)
+        self.assertTrue(transport.calls)
+        self.assertTrue(all(h.get("Authorization") == "Bearer t0k" for _, _, h, _ in transport.calls))
 
 
 class PostListingTest(Base):
@@ -172,6 +216,30 @@ class PostListingTest(Base):
         self.assertNotEqual(result["status"], "complete")
         self.assertNotIn("https://api.test/elsewhere", transport.urls)
 
+    def test_post_redirect_to_login_is_a_refusal_with_a_hold(self):
+        def handle(method, url, data):
+            if url.endswith("/robots.txt"):
+                return Response(404, {}, b"")
+            return Response(302, {"Location": "https://api.test/login?next=/search"}, b"")
+        result = self.go(self.site(), handle)
+        self.assertEqual(result["status"], "access_blocked")
+        self.assertTrue(self.env.store.host_hold("api.test"))
+
+    def test_post_retries_transient_errors_within_the_budget(self):
+        inner, failures = self.handler(list(range(1, 4))), [503]
+
+        def handle(method, url, data):
+            if method == "POST" and failures:
+                failures.pop()
+                return Response(503, {}, b"")
+            return inner(method, url, data)
+        transport = RecordingTransport(handle)
+        result = self.env.run(self.site(), None, transport=transport)
+        self.assertEqual(result["status"], "complete")
+        pages = [json.loads(c[3])["page"] for c in transport.calls if c[0] == "POST"]
+        # 503 on page 1 retried, then the usual end confirmation (empty page 2 re-read, page 3)
+        self.assertEqual(pages, [1, 1, 2, 2, 3])
+
     def test_host_hold_blocks_post(self):
         self.env.store.seed_hold("api.test", "seeded")
         transport = RecordingTransport(self.handler([1, 2]))
@@ -199,6 +267,10 @@ class PathPagingTest(Base):
 
     def test_validation(self):
         self.bad(board_plan(listing={"first_page_url": "https://board.test/news/"}))  # no {page}
+        self.bad({"strategy": "date_range_split", "request_interval_s": 0, "adapter": {"type": "list_only"},
+                  "segments": {"from": "2020", "filter": {"type": "parts", "year_param": "y"}},
+                  "listing": {"url": "https://board.test/{segment}/page/{page}/", "first_page_url": "https://board.test/",
+                              "parser": dict(API_PARSER)}})
         self.bad(self.site(first_page_url="/news/"))
 
     def test_path_paged_board_completes(self):
@@ -241,6 +313,36 @@ class JsonPageTest(Base):
         resumed = [u for u in result["transport"].urls if "after=" in u]
         self.assertTrue(resumed and "after=" in resumed[0])  # continued from the stored token
 
+    def test_resume_sends_the_stored_token_and_does_not_restart(self):
+        site = api_plan(listing={"next_cursor": {"path": "meta.next", "param": "after"}})
+        self.go(site, self.cursor_handler(list(range(1, 11))), max_requests=3)  # robots + 2 pages
+        transport = RecordingTransport(self.cursor_handler(list(range(1, 11))))
+        self.env.run(site, None, transport=transport)
+        lists = [u for u in transport.urls if "/search" in u]
+        self.assertEqual(lists[0], "https://api.test/search?after=6")
+        self.assertTrue(all("after=" in u for u in lists))
+
+    def test_expired_token_on_resume_is_not_completion(self):
+        site = api_plan(listing={"next_cursor": {"path": "meta.next", "param": "after"}})
+        self.go(site, self.cursor_handler(list(range(1, 11))), max_requests=3)
+
+        def expired(method, url, data):
+            if url.endswith("/robots.txt"):
+                return Response(404, {}, b"")
+            return json_resp({"items": [], "meta": {"next": None}})
+        result = self.go(site, expired)
+        self.assertEqual(result["status"], "incomplete")
+        self.assertIn("empty_page_by_cursor", result["stop_reason"])
+
+    def test_missing_cursor_field_on_first_page_is_a_config_error(self):
+        def handle(method, url, data):
+            if url.endswith("/robots.txt"):
+                return Response(404, {}, b"")
+            return json_resp({"items": api_items([1, 2, 3]), "meta": {}})
+        site = api_plan(listing={"next_cursor": {"path": "meta.nxt", "param": "after"}})
+        result = self.go(site, handle)
+        self.assertEqual(result["status"], "config_error")
+
     def test_cursor_loop_is_not_completion(self):
         site = api_plan(listing={"next_cursor": {"path": "meta.next", "param": "after"}})
         result = self.go(site, self.cursor_handler(list(range(1, 20)), loop_at=6))
@@ -277,6 +379,13 @@ class JsonPageTest(Base):
         found = [json.loads(r["detail"]) for r in self.env.store.conn.execute(
             "SELECT detail FROM enum_event WHERE kind='last_page_found'")]
         self.assertEqual(found[0]["last_page"], 10)
+
+    def test_reported_last_page_beyond_the_cap_stops_at_the_cap(self):
+        transport = RecordingTransport(self.last_page_handler(95))
+        result = self.env.run(dict(self.site_last(), max_pages=5), None, transport=transport)
+        self.assertEqual((result["status"], result["stop_reason"]), ("incomplete", "page_cap_reached"))
+        pages = {int(parse_qs(urlsplit(u).query).get("page", ["1"])[0]) for u in transport.urls if "/list" in u}
+        self.assertEqual(max(pages), 5)
 
     def test_wrong_reported_last_page_falls_back_to_search(self):
         transport = RecordingTransport(self.last_page_handler(95, reported=4))

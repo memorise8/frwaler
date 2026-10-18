@@ -527,7 +527,7 @@ class Fetcher:
     def __init__(self, site_id, transport, gate_dir, *, interval=1.5, max_requests=None,
                  max_runtime_s=None, retries=3, backoff_s=2.0, max_retry_wait_s=120,
                  respect_robots=True, user_agent=DEFAULT_USER_AGENT, encoding=None,
-                 extra_headers=None, rate_limit_stop=3, holds=None, max_redirects=5,
+                 extra_headers=None, header_hosts=None, rate_limit_stop=3, holds=None, max_redirects=5,
                  clock=time.monotonic, sleep=time.sleep, resolver=None):
         if not 0 <= float(interval) <= 10:
             raise ValueError("request_interval_s must be within [0, 10]")
@@ -544,6 +544,11 @@ class Fetcher:
         self.user_agent = user_agent
         self.encoding = encoding
         self.extra_headers = dict(extra_headers or {})
+        # Plan headers (ext:headers, possibly an API token) go only to these hosts: never to a
+        # redirect target, a PDF/CDN host or a second-step host elsewhere. Required with headers.
+        self.header_hosts = {h.lower() for h in (header_hosts or ())}
+        if self.extra_headers and not self.header_hosts:
+            raise ValueError("extra_headers need header_hosts")
         self.clock = clock
         self.sleep = sleep
         self.started = clock()
@@ -603,7 +608,8 @@ class Fetcher:
         checked_addresses(url, host, self.resolver)
         headers = {"User-Agent": self.user_agent,
                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8"}
-        headers.update(self.extra_headers)
+        if host.lower() in self.header_hosts:
+            headers.update(self.extra_headers)
         if content_type:
             headers["Content-Type"] = content_type
         delay = self._host_delay.get(host, 0)
@@ -887,6 +893,9 @@ class Fetcher:
         resp = self._with_retries(current, accept_statuses=accept_statuses, method="POST", data=data,
                                   content_type=ctype)
         if 300 <= resp.status < 400:
+            nxt = urljoin(current, location_of(resp))
+            if _LOGIN_PATH.search(urlsplit(nxt).path or ""):
+                raise self._block("login_redirect", current, resp.status)
             raise PermanentFailure("post_redirect_not_followed", current, resp.status)
         resp.url = resp.url or current
         resp._encoding = resp._encoding or self.encoding
