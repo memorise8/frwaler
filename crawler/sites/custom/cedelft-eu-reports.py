@@ -29,6 +29,7 @@ from datetime import datetime
 sys.path.insert(0, ".")
 
 from crawler.base_crawler import BaseCrawler  # noqa: E402
+from crawler.source_date_text import separate_date_parts
 
 try:
     from bs4 import BeautifulSoup  # type: ignore
@@ -65,6 +66,7 @@ def _make_soup(raw: str):
 
 def _parse_date_text(text: str) -> str | None:
     """Convert display date like 'April 2009' or 'June 2022' → 'YYYY-MM-DD'."""
+    text = separate_date_parts(text)
     if not text:
         return None
     text = text.strip()
@@ -77,13 +79,13 @@ def _parse_date_text(text: str) -> str | None:
     if m:
         mo = _MONTH_MAP.get(m.group(1).lower())
         if mo:
-            return f"{m.group(2)}-{mo}-01"
+            return f"{m.group(2)}-{mo}"
     # strptime fallbacks
     for fmt in ("%B %Y", "%b %Y", "%d %B %Y", "%d %b %Y"):
         try:
             dt = datetime.strptime(text, fmt)
             if "%d" not in fmt:
-                return dt.strftime("%Y-%m-01")
+                return dt.strftime("%Y-%m")
             return dt.strftime("%Y-%m-%d")
         except ValueError:
             pass

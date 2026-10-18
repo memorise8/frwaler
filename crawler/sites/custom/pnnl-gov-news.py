@@ -22,6 +22,7 @@ from datetime import datetime
 # Absolute import — spec_from_file_location has no package context.
 sys.path.insert(0, ".")
 from crawler.base_crawler import BaseCrawler
+from crawler.source_date_text import separate_date_parts
 
 _BASE_URL = "https://www.pnnl.gov"
 _VIEWS_AJAX_URL = "https://www.pnnl.gov/views/ajax"
@@ -134,6 +135,7 @@ def _make_soup(html: str):
 
 def _parse_date(text: str) -> str:
     """Convert 'MAY 8, 2026' or 'May 8, 2026' → '2026-05-08'. Empty string on failure."""
+    text = separate_date_parts(text)
     if not text:
         return ""
     text = text.strip()
