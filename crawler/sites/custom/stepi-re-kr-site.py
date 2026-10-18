@@ -319,6 +319,140 @@ class StepiReKrSiteCrawler(BaseCrawler):
 
         return result
 
+    # ── Pure enumeration entry points (crawl() and helpers unchanged) ─────────
+
+    def _enumeration_items(self, html):
+        """Rows of one A0205 list page via the existing parser (no I/O)."""
+        if not isinstance(html, str):
+            return []
+        return self._parse_list_page(html)
+
+    def _enumeration_detail_fields(self, raw):
+        """Pure copy of _fetch_detail's parsing after the fetch (no network)."""
+        if not raw:
+            return {}
+
+        result: dict = {}
+        try:
+            sc_idx = raw.find("subContents")
+            if sc_idx < 0:
+                return {}
+            content = raw[sc_idx: sc_idx + 12000]
+
+            def _dd(label: str) -> str:
+                m = re.search(
+                    rf"<dt>{re.escape(label)}</dt>.*?<dd[^>]*>(.*?)</dd>",
+                    content,
+                    re.DOTALL,
+                )
+                if not m:
+                    return ""
+                raw_dd = re.sub(r"<a[^>]*>.*?</a>", "", m.group(1), flags=re.DOTALL)
+                return self._strip_tags(raw_dd).strip()
+
+            tab_m = re.search(r'class=["\']tabPage["\']>(.*?)</div>', content, re.DOTALL)
+            if tab_m:
+                tab_text = self._strip_tags(tab_m.group(1))
+                tab_text = tab_text.replace("요약 탭컨텐츠", "").strip()
+                if tab_text and tab_text not in ("-", "1", "0", ""):
+                    result["site_abstract"] = tab_text
+
+            subj = _dd("주제분류")
+            if subj:
+                subj = re.sub(r"동일 주제 발간물 찾기", "", subj).strip()
+                if subj:
+                    result["subject"] = subj
+
+            kw = _dd("키워드")
+            if kw and kw not in ("-", ""):
+                result["keywords"] = kw
+
+            cl = _dd("발주처")
+            if cl and cl not in ("-", ""):
+                result["client"] = cl
+
+            pg = _dd("페이지")
+            if pg:
+                result["pages"] = pg
+
+            pdf_m = re.findall(
+                r'data-idx=["\'](\d+)["\'][^>]*data-file=["\']([^"\']+)["\']',
+                content,
+            )
+            if not pdf_m:
+                pdf_m2 = re.findall(
+                    r'data-file=["\']([^"\']+)["\'][^>]*data-idx=["\'](\d+)["\']',
+                    content,
+                )
+                if pdf_m2:
+                    pdf_m = [(b, a) for a, b in pdf_m2]
+            if pdf_m:
+                ri2, fn2 = pdf_m[0]
+                result["pdf_url"] = (
+                    f"{self.base_url}/common/report/Download.do"
+                    f"?reIdx={ri2}&streFileNm={fn2}"
+                    f"&cateCont={self._CATE_CONT}&purpose=1&jobGroup=1"
+                )
+                result["original_filename"] = fn2
+
+        except Exception:
+            pass
+
+        return result
+
+    def _enumeration_paper(self, item, detail_html):
+        """Pure copy of crawl's per-row conversion. As in crawl, the detail page is used
+        only for rows with a reIdx (rows without one point at the list URL)."""
+        item = dict(item)
+        detail: dict = {}
+        if item.get("reidx"):
+            detail = self._enumeration_detail_fields(detail_html)
+
+        for k in (
+            "subject", "keywords", "client", "pages",
+            "pdf_url", "original_filename", "site_abstract",
+        ):
+            if detail.get(k) and not item.get(k):
+                item[k] = detail[k]
+
+        site_ab = (item.get("site_abstract") or "").strip()
+        abstract = (
+            site_ab if len(site_ab) >= 50
+            else self._build_abstract(item)
+        )
+
+        if len(abstract) < 50:
+            return None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": str(item["display_num"]),
+            "url": item["url"],
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": item.get("date") or None,
+            "posted_date": item.get("date") or None,
+            "authors": item.get("authors") or None,
+            "publisher": "STEPI 과학기술정책연구원",
+            "keywords": item.get("keywords") or None,
+            "category": item.get("subject") or None,
+            "pdf_url": item.get("pdf_url") or None,
+            "original_filename": item.get("original_filename") or None,
+            "metadata": json.dumps(
+                {
+                    "reidx": item.get("reidx"),
+                    "display_num": item["display_num"],
+                    "subject": item.get("subject", ""),
+                    "client": item.get("client", ""),
+                    "pages": item.get("pages", ""),
+                    "cate_cont": self._CATE_CONT,
+                    "posted_date": item.get("date", ""),
+                    "originalFilename": item.get("original_filename"),
+                },
+                ensure_ascii=False,
+            ),
+        }
+
     # ── Main crawl loop ────────────────────────────────────────────────────────
 
     def crawl(self, limit=None) -> int:

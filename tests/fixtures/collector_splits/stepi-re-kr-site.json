@@ -1,0 +1,18 @@
+{
+ "site_id": "stepi-re-kr-site",
+ "listing_body": "<html><body><table><tbody>\n<tr><td class=\"webOnly\">1371</td><td class=\"title\"><a href=\"#\">혁신조달 &amp; 성과</a></td><td>홍길동 <a href=\"#\">더보기</a></td><td>2026-09-30</td>\n<td class=\"file\"><a data-file=\"F1371.pdf\" data-idx=\"9001\">PDF</a></td></tr>\n<tr><td class=\"webOnly\">381</td><td class=\"title\"><a href=\"View.do?reIdx=366&amp;cateCont=A0205\">OECD 조사분석</a></td><td>김철수</td><td>2008-02-09</td><td class=\"file\"></td></tr>\n</tbody></table></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.stepi.re.kr/site/stepiko/report/List.do?cateCont=A0205": "<html><body><table><tbody>\n<tr><td class=\"webOnly\">1371</td><td class=\"title\"><a href=\"#\">혁신조달 &amp; 성과</a></td><td>홍길동 <a href=\"#\">더보기</a></td><td>2026-09-30</td>\n<td class=\"file\"><a data-file=\"F1371.pdf\" data-idx=\"9001\">PDF</a></td></tr>\n<tr><td class=\"webOnly\">381</td><td class=\"title\"><a href=\"View.do?reIdx=366&amp;cateCont=A0205\">OECD 조사분석</a></td><td>김철수</td><td>2008-02-09</td><td class=\"file\"></td></tr>\n</tbody></table></body></html>",
+  "https://www.stepi.re.kr/site/stepiko/report/View.do?cateCont=A0205&reIdx=366": "<html><body><div id=\"subContents\"><div class=\"tabPage\">요약 탭컨텐츠 합성 STEPI 보고서 요약 résumé 자료 for offline equality testing of the enumeration split conversion, long enough text.</div>\n<dl><dt>주제분류</dt><dd>과학기술정책 <a href=\"#\">동일 주제 발간물 찾기</a></dd><dt>키워드</dt><dd>OECD, CSTP</dd><dt>발주처</dt><dd>과기부</dd><dt>페이지</dt><dd>120</dd></dl>\n<a data-idx=\"366\" data-file=\"R366.pdf\">다운로드</a></div></body></html>"
+ },
+ "long_text": "합성 STEPI 보고서 요약 résumé 자료 for offline equality testing of the enumeration split conversion, long enough text.",
+ "original_method_source_sha256": {
+  "_curl_get": "eae1d1ffcf65a2cda7504bcfc8414f9e3b62596693ffba8bb2417e5ef49b2437",
+  "_strip_tags": "929373ac171a68b3b35d052d6be36fde89286ae1b781bd5827ff2ce42dfe62f8",
+  "_build_abstract": "db5fd14fc84ed23ce468d720cf13f13754c2115f2a4786e7e80e06801ee95843",
+  "_parse_list_page": "7d78f477529bd15a302ee760ecf12bcb78dde0ee0943b936637b31f3194fc0b3",
+  "_fetch_detail": "3de194bf0c72e762db875e460571e58724e7e4dbe6ccf0df18eb9ed1e7e7c9c7",
+  "crawl": "e27ded3c00a5456003dd9e552b02f72a3a39be0b247224dd30bca6a8874a9ab3"
+ }
+}
