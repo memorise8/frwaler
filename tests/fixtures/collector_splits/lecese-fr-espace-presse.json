@@ -1,0 +1,21 @@
+{
+ "site_id": "lecese-fr-espace-presse",
+ "listing_body": "<html><body><div class=\"views-element-container\"><div class=\"view-page-liste view view-communiques view-id-communiques\"><div class=\"view-content\"><div data-history-node-id=\"20595\"><h3><a href=\"/presse/communiques/mandature-2026-2031\">Mandature 2026-2031</a></h3><div class=\"field--name-field-date\">20/05/2026</div><div class=\"field--name-field-sous-titre\">Sous-titre Mandature 2026-2031</div><div class=\"field--name-field-file-unik-1\"><a href=\"/sites/default/files/communiques/CESE_CP%20mandature.pdf\">PDF</a></div></div><div data-history-node-id=\"20546\"><h3><a href=\"/presse/communiques/crises-sanitaires\">Crises sanitaires</a></h3><div class=\"field--name-field-date\">14/04/2026</div><div class=\"field--name-field-sous-titre\">Sous-titre Crises sanitaires</div></div></div></div></div></body></html>",
+ "empty_body": "<html><body><div class=\"views-element-container\"><div class=\"view-page-liste view view-communiques view-id-communiques\"><div class=\"view-header\"></div></div></div></body></html>",
+ "content_type": "text/html",
+ "long_text": "Texte synthétique du communiqué de presse du CESE utilisé uniquement pour le test hors ligne de la séparation des méthodes, assez long pour passer.",
+ "details": {
+  "https://www.lecese.fr/presse/communiques/mandature-2026-2031": "<html><body><div id=\"main\"><div class=\"field--name-field-cke-unik-1\"><p>Texte synthétique du communiqué de presse du CESE utilisé uniquement pour le test hors ligne de la séparation des méthodes, assez long pour passer.</p></div></div></body></html>",
+  "https://www.lecese.fr/presse/communiques/crises-sanitaires": "<html><body><div id=\"main\"><div class=\"field--name-field-cke-unik-1\"><p>Texte synthétique du communiqué de presse du CESE utilisé uniquement pour le test hors ligne de la séparation des méthodes, assez long pour passer.</p></div></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_curl_get": "da8102834f24b67d6d3dd472879cb3d1fcdb747b18280a327ee5e9e64f13790a",
+  "_parse_list_page": "f914a16a961195a9e0e0805f5d653412aaa1321e62ae3b19f7952320a11c83fc",
+  "_parse_list_soup": "9ad2f5dec7578329249bb905b76b5705cc308e0acf715c471084a07848eccfbb",
+  "_parse_list_regex": "94f7c5aec35746b89fb56bc86e45fa3b70e3ca9632a240f58bba65c4c505c03b",
+  "_parse_detail_abstract": "98f534660bd1aeff2c1f0456b6d0047cc916e5bb5fc14239296a21c447fa55b7",
+  "_parse_detail_soup": "d39654e77715d58631a14369b5bc18e8a2af418541234aec41706039b63f0964",
+  "_parse_detail_regex": "64724d9eead402708fdc4f0fe049d64ec6a6982578e8d5b76381b12d91370793",
+  "crawl": "8c38c3704d6f622e39cfa8e96eabf4f2b95752c677a062c05430e41651163e6e"
+ }
+}

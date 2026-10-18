@@ -386,3 +386,62 @@ class LecesseFrEspacePressCrawler(BaseCrawler):
 
         print(f'[{self.site_id}] Done. Total saved: {saved}')
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # parsers above stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """Press-release rows of one ?page=N list page, exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        return self._parse_list_page(html)
+
+    def _enumeration_paper(self, html, item):
+        """Copy of crawl()'s paper conversion; None keeps crawl()'s skips."""
+        url = item['url']
+        listed_date = _parse_dmy_date(item.get('listed_date_raw', ''))
+        node_id = item.get('node_id', '')
+        slug = url.rstrip('/').split('/')[-1]
+        abstract = self._parse_detail_abstract(html).strip()
+        if len(abstract) < self._SKIP_ABSTRACT_LEN:
+            subtitle = item.get('subtitle', '').strip()
+            if subtitle:
+                abstract = (
+                    (abstract + '\n\n' + subtitle).strip()
+                    if abstract else subtitle
+                )
+        if len(abstract) < 50:
+            return None
+        pdf_url = item.get('pdf_url')
+        original_filename = item.get('original_filename')
+        if pdf_url and not original_filename:
+            original_filename = unquote(pdf_url.rstrip('/').split('/')[-1])
+        return {
+            'id': None,
+            'site_id': self.site_id,
+            'external_id': node_id or slug,
+            'post_number': node_id or slug,
+            'title': item['title'],
+            'abstract': abstract,
+            'published_date': listed_date,
+            'listed_date': listed_date,
+            'authors': '',
+            'publisher': 'Conseil Économique Social et Environnemental (CESE)',
+            'department': '',
+            'journal': '',
+            'url': url,
+            'pdf_url': pdf_url,
+            'keywords': '',
+            'category': '',
+            'doi': '',
+            'original_filename': original_filename,
+            'metadata': json.dumps({
+                'posted_date': item.get('listed_date_raw', ''),
+                'slug': slug,
+                'node_id': node_id,
+                'subtitle': item.get('subtitle', ''),
+                'originalFilename': original_filename,
+            }, ensure_ascii=False),
+        }
