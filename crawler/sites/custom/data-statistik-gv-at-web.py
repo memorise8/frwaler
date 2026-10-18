@@ -575,3 +575,24 @@ class DataStatistikGvAtWebCrawler(BaseCrawler):
             if url and (fmt == "pdf" or urlparse(url).path.lower().endswith(".pdf")):
                 return url, self._filename_from_url(url)
         return None, None
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. The catalog page
+    # gives the items (_parse_catalog_items); the detail request is the item's
+    # JSON API address (json_url, as _fetch_detail asks first) and the paper is
+    # _build_record with crawl()'s skip rules. crawl()'s HTML fallback for a
+    # broken JSON answer is not taken here (the item is skipped instead).
+    # ------------------------------------------------------------------
+
+    def _enumeration_paper(self, html, item):
+        try:
+            data = json.loads(html)
+        except (TypeError, ValueError):
+            return None
+        if not isinstance(data, dict):
+            return None
+        data["_detail_api_url"] = item.get("json_url")
+        record = self._build_record(item, data)
+        if record is None or len(record.get("abstract") or "") < _SHORT_ABSTRACT_MIN:
+            return None
+        return record
