@@ -1,0 +1,23 @@
+{
+ "site_id": "iucn-org-about-iucn",
+ "listing_body": "<html><body><div class=\"view-content\"><a href=\"/resources/annual-reports/synthetic-annual-report-2031\">2031</a><a href=\"/resources/annual-reports/synthetic-annual-report-2031\">2031 again</a><a href=\"/resources/annual-reports/synthetic-annual-report-2030\">2030</a></div></body></html>",
+ "content_type": "text/html",
+ "long_text": "Synthetic annual report summary written only for the offline regression test; it describes imaginary conservation activities and is long enough to pass the abstract threshold.",
+ "short_keeps_items": true,
+ "details": {
+  "https://iucn.org/resources/annual-reports/synthetic-annual-report-2031": "<html><head><title>Synthetic report 1 | IUCN</title></head><body><h1 class=\"title\">Synthetic IUCN annual report 1</h1><div class=\"content-dates\">Year: 2031</div><p><a href=\"https://portals.iucn.org/library/node/900001\">View in library</a></p></body></html>",
+  "https://portals.iucn.org/library/node/900001": "<html><head><meta property=\"DC.title\" content=\"Synthetic IUCN annual report 1\" /><meta property=\"DC.date\" content=\"2031\" /><meta property=\"DC.pdf_url\" content=\"https://portals.iucn.org/libraryten/sites/library/files/documents/2031-001-En.pdf\" /></head><body><a href=\"/library/sites/library/files/documents/2031-001-En.pdf\">Download</a><div class=\"field field--name-body\"><div class=\"field--item\"><p>Synthetic annual report summary written only for the offline regression test; it describes imaginary conservation activities and is long enough to pass the abstract threshold.</p></div></div><div class=\"field field--name-field-pub-keyword\"><a href=\"/k/1\">annual reports</a><a href=\"/k/2\">synthetic</a></div><div class=\"field field--name-field-pub-imprint\"><div class=\"field--item\">Gland : IUCN, 2031</div></div><div class=\"field field--name-field-pub-physical-description\"><div class=\"field--item\">10p.</div></div><div class=\"field field--name-field-pub-publisher\"><div class=\"field--item\">IUCN</div></div></body></html>",
+  "https://iucn.org/resources/annual-reports/synthetic-annual-report-2030": "<html><head><title>Synthetic report 2 | IUCN</title></head><body><h1 class=\"title\">Synthetic IUCN annual report 2</h1><div class=\"content-dates\">Year: 2030</div><p><a href=\"https://portals.iucn.org/library/node/900002\">View in library</a></p></body></html>",
+  "https://portals.iucn.org/library/node/900002": "<html><head><meta property=\"DC.title\" content=\"Synthetic IUCN annual report 2\" /><meta property=\"DC.date\" content=\"2030\" /><meta property=\"DC.pdf_url\" content=\"https://portals.iucn.org/libraryten/sites/library/files/documents/2030-002-En.pdf\" /></head><body><a href=\"/library/sites/library/files/documents/2030-002-En.pdf\">Download</a><div class=\"field field--name-body\"><div class=\"field--item\"><p>Synthetic annual report summary written only for the offline regression test; it describes imaginary conservation activities and is long enough to pass the abstract threshold.</p></div></div><div class=\"field field--name-field-pub-keyword\"><a href=\"/k/1\">annual reports</a><a href=\"/k/2\">synthetic</a></div><div class=\"field field--name-field-pub-imprint\"><div class=\"field--item\">Gland : IUCN, 2030</div></div><div class=\"field field--name-field-pub-physical-description\"><div class=\"field--item\">10p.</div></div><div class=\"field field--name-field-pub-publisher\"><div class=\"field--item\">IUCN</div></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "crawl": "aa66e3b458a127d2a93c4ce72aad64e5a8d5d89dae4bde0f41b32b8aa3cc241d"
+ },
+ "original_function_source_sha256": {
+  "_curl_get": "2e47590d68c9814baefe409fb90905335f3018105c6f83d3f818528c59bee331",
+  "_make_soup": "119858267af117becf19ca62e81e46d69791f8879ed33d79336aaa91ea4c51f4",
+  "_extract_listing_links": "c704143754258f2ce617c5be43f52bafd5ff15229b0da1fc4ed10eb8b4171095",
+  "_extract_detail": "d0462b213279498e5158e5aae5fd721eee735aa8215628b12124a8f0c7d3b09b",
+  "_extract_library_meta": "c4bb03d9285ed640c0247cccebeee611ec0d920265431237904c09ef71b00533"
+ }
+}

@@ -458,3 +458,89 @@ class IucnOrgAboutIucnCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Crawl complete. Saved {saved} records.")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration conversion (collector-splits; crawl() unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Report rows of the single listing page, in crawl()'s order and dedup.
+
+        A page without any /resources/annual-reports/ link (error or maintenance
+        page) is a listing error: the listing has no empty end page of its own.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:not_html")
+        paths = _extract_listing_links(html)
+        if not paths:
+            raise PermanentFailure("listing_parse_error:no_report_links")
+        rows = []
+        seen_urls = set()
+        for path in paths:
+            detail_url = _BASE + path
+            if detail_url in seen_urls:
+                continue
+            seen_urls.add(detail_url)
+            rows.append({
+                "url": detail_url,
+                "path": path,
+                "external_id": path.rstrip("/").split("/")[-1],
+            })
+        return rows
+
+    def _enumeration_paper(self, html, first_html, url, first_url, item):
+        """crawl()'s paper for one report (ext:two_step_keep_first).
+
+        first_html is the iucn.org report page (title, year, library link); html is
+        the IUCN Library record the link points to. When the report page has no
+        library link the framework takes no second step (url == first_url) and the
+        paper is built from the report page alone, like crawl().
+        """
+        path = item["path"]
+        detail_url = _BASE + path
+        title, year, library_url = _extract_detail(first_html, path)
+        if not title:
+            return None
+        lib_meta: dict = {}
+        if library_url and url != first_url and html:
+            lib_meta = _extract_library_meta(html, fallback_title=title, fallback_year=year)
+        if not lib_meta:
+            lib_meta = _extract_library_meta("", fallback_title=title, fallback_year=year)
+
+        abstract = lib_meta.get("abstract", "")
+        if len(abstract) < 50:
+            return None
+
+        pdf_url = lib_meta.get("pdf_url", "")
+        keywords = lib_meta.get("keywords", [])
+        publisher = lib_meta.get("publisher", "IUCN")
+        dc_date = lib_meta.get("dc_date", "")
+
+        pub_year = year or (dc_date[:4] if dc_date else "")
+        published_date = f"{pub_year}-01-01" if pub_year else None
+
+        external_id = path.rstrip("/").split("/")[-1]
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": title,
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": "Annual Report",
+            "keywords": json.dumps(keywords, ensure_ascii=False),
+            "published_date": published_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "doi": "",
+            "department": publisher,
+            "metadata": json.dumps({
+                "publisher": publisher,
+                "imprint": lib_meta.get("imprint", ""),
+                "physical_desc": lib_meta.get("physical_desc", ""),
+                "library_url": library_url,
+                "year": year,
+                "dc_date": dc_date,
+            }, ensure_ascii=False),
+        }

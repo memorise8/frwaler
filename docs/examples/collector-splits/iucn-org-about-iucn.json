@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "sites": {
+    "iucn-org-about-iucn": {
+      "strategy": "last_page_backward",
+      "base_url": "https://iucn.org",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "first_html",
+          "url",
+          "first_url",
+          "item"
+        ],
+        "second_step": {
+          "use": "detail_page",
+          "selector": "a[href*=\"portals.iucn.org/library/node/\"]",
+          "attr": "href",
+          "required": false,
+          "allow_hosts": [
+            "portals.iucn.org"
+          ]
+        }
+      },
+      "listing": {
+        "url": "https://iucn.org/about-iucn/accountability-and-reporting/annual-reports",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
