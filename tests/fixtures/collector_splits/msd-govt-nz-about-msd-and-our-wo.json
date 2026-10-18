@@ -1,0 +1,21 @@
+{
+  "site_id": "msd-govt-nz-about-msd-and-our-wo",
+  "listing_body": "<html><body><div id=\"content\"><div class=\"block\"><h2>2031</h2><div class=\"listing\"><div class=\"title\"><a href=\"synthetic-ris-two.html\">Regulatory Impact Statement: Synthetic two</a></div><div class=\"author\">Synthetic Unit</div><div class=\"date\">2031</div></div><div class=\"listing\"><div class=\"title\"><a href=\"/documents/synthetic-direct.pdf\">Synthetic direct file (PDF 1.2MB)</a></div><div class=\"author\"></div><div class=\"date\">2031</div></div></div><div class=\"block\"><h2>2030</h2><div class=\"listing\"><div class=\"title\"><a href=\"synthetic-sar-one.html\">Supplementary Analysis Report: Synthetic one</a></div><div class=\"author\"></div><div class=\"date\">2030</div></div></div></div></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.msd.govt.nz/about-msd-and-our-work/publications-resources/regulatory-impact-statements/synthetic-ris-two.html": "<html><body><div id=\"content\"><div class=\"block\"><h1>Synthetic two</h1><p>Synthetic regulatory impact statement summary for the offline equality test of the enumeration split; it imitates only the page structure and carries no real content.</p><p><a href=\"/documents/about-msd-and-our-work/publications-resources/regulatory-impact-statements/synthetic-ris-two.pdf\">Download PDF</a></p></div></div></body></html>",
+    "https://www.msd.govt.nz/about-msd-and-our-work/publications-resources/regulatory-impact-statements/synthetic-sar-one.html": "<html><body><div id=\"content\"><div class=\"block\"><h1>Synthetic one</h1><p>Synthetic regulatory impact statement summary for the offline equality test of the enumeration split; it imitates only the page structure and carries no real content.</p><p><a href=\"/documents/about-msd-and-our-work/publications-resources/regulatory-impact-statements/synthetic-sar-one.pdf\">Download PDF</a></p></div></div></body></html>"
+  },
+  "long_text": "Synthetic regulatory impact statement summary for the offline equality test of the enumeration split; it imitates only the page structure and carries no real content.",
+  "empty_body": "<html><body><div id=\"content\"><div class=\"block\"></div></div></body></html>",
+  "original_method_source_sha256": {
+    "_curl_get": "fd206143ca94169454191865f8b0ceec56ccbeeb63715eb89de8ba39019c7ae0",
+    "_fetch_html": "155fb221f46c835f6e855251b5ccc69e5aa48711d98890337c481078a69e7972",
+    "_parse_listing": "ecfc65874582f43c122f089ad7c702286189156abcfb7fed3bf5737cc0b0076b",
+    "_parse_listing_regex": "e2cc938e1cc18f0d1c567dfa0d5c43c80bc6e6e854f1186e222d89ab98892652",
+    "_extract_abstract": "fc9aad1d3ee5c7f3f3c8871392de8e623b88e8b4d077a9c6f1872dc1e99e01a9",
+    "_extract_abstract_regex": "1109666d1908ae436c0ba1f3bb74d656bd92ccf4724c68a84153059937961dc6",
+    "_find_pdf_url": "117c49bdb7f33f891b2806852ea34d470878f1ba2a0fb02cd675dc45ed1f9448",
+    "crawl": "30ec42256996e427e9749d283931e43cc64edf6103c48f84ccd98d54a65c02a8"
+  }
+}

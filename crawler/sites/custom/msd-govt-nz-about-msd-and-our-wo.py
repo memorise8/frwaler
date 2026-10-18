@@ -450,3 +450,95 @@ def _categorise(title: str) -> str:
     if "regulatory impact statement" in tl:
         return "Regulatory Impact Statement"
     return "Regulatory Impact Statement"
+
+
+def _enumeration_items(self, html, url=None):
+    """Rows of the single RIS listing page, parsed with _parse_listing as
+    crawl() does; item_index keeps crawl()'s 1-based position in the full
+    list. Direct PDF/Word links and non-HTML links are left out (crawl()
+    skips them: no abstract). The page has no pagination: a page number
+    above 1 is declared empty and proved by the plan's listing_marker."""
+    from urllib.parse import parse_qs, urlsplit
+    from crawler.enumeration.http import PermanentFailure
+    if not isinstance(html, str):
+        raise PermanentFailure("listing_parse_error:expected_html", url)
+    page = (parse_qs(urlsplit(url or "").query).get("page") or ["1"])[0]
+    if page not in ("", "0", "1"):
+        return []
+    items = self._parse_listing(html)
+    if not items:
+        raise PermanentFailure("listing_parse_error:no_listing_items", url)
+    rows = []
+    seen_urls: set = set()
+    for idx, item in enumerate(items, start=1):
+        if item["url"] in seen_urls:
+            continue
+        seen_urls.add(item["url"])
+        if item["is_pdf"] or item["is_docx"] or not item["is_html"]:
+            continue
+        rows.append(dict(item, item_index=idx))
+    return rows
+
+
+def _enumeration_paper(self, html, item):
+    """Paper from a fetched HTML detail page — the per-item part of crawl()
+    copied verbatim (external_id = page slug without .html)."""
+    url = item["url"]
+    title = item["title"]
+    idx = item["item_index"]
+    if not html:
+        return None
+
+    abstract = self._extract_abstract(html)
+    if len(abstract) < self._MIN_ABSTRACT:
+        return None
+
+    pdf_url = self._find_pdf_url(html, url)
+
+    path_slug = urlparse(url).path.rstrip("/")
+    external_id = path_slug.split("/")[-1].replace(".html", "")
+    if not external_id:
+        external_id = re.sub(r"[^a-zA-Z0-9_-]", "-", title)[:80]
+
+    year = item["year"]
+    pub_date = year if re.match(r"^\d{4}$", year) else None
+
+    author = item.get("author", "").strip()
+    authors_field = author if author else self._PUBLISHER
+
+    original_filename = None
+    if pdf_url:
+        fn = urlparse(pdf_url).path.split("/")[-1]
+        if fn and "." in fn:
+            original_filename = fn
+
+    return {
+        "site_id":           self.site_id,
+        "external_id":       external_id,
+        "title":             title,
+        "abstract":          abstract,
+        "published_date":    pub_date,
+        "posted_date":       pub_date,
+        "url":               url,
+        "pdf_url":           pdf_url,
+        "authors":           authors_field,
+        "publisher":         self._PUBLISHER,
+        "department":        None,
+        "keywords":          None,
+        "doi":               None,
+        "original_filename": original_filename,
+        "category":          _categorise(title),
+        "metadata": json.dumps({
+            "posted_date":      year,
+            "originalFilename": original_filename,
+            "year":             year,
+            "listing_url":      self._LIST_URL,
+            "item_index":       idx,
+        }, ensure_ascii=False),
+    }
+
+
+# Pure enumeration contract (L3b-20261018): attached after the module so
+# crawl() and the class body stay byte-identical; parse-only methods.
+MSDGovtNzRisCrawler._enumeration_items = _enumeration_items
+MSDGovtNzRisCrawler._enumeration_paper = _enumeration_paper
