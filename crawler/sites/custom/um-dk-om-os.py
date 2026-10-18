@@ -305,3 +305,108 @@ class UmDkOmOsCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] done — saved {saved} records")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() is unchanged; these
+    # methods only parse the already fetched listing page.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """PDF rows of the single listing page exactly as crawl() collects them
+        (page description, link text, year, href). The page has no pagination:
+        ``?page=N`` past the start page is declared empty."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url or "")
+        page = (parse_qs(urlsplit(url or "").query).get("page") or ["1"])[0]
+        if page not in ("", "1"):
+            return []
+        soup = _make_soup(html)
+        paragraphs = _extract_plain_paragraphs(soup)
+        if paragraphs:
+            page_description = " ".join(paragraphs)
+        else:
+            page_description = _FALLBACK_DESCRIPTION
+        seen_urls = set()
+        rows = []
+        for a in soup.find_all("a", href=True):
+            href = a["href"].strip()
+            if not href.lower().endswith(".pdf"):
+                continue
+            if href.startswith("/"):
+                pdf_url = _BASE_URL + href
+            elif href.startswith("http"):
+                pdf_url = href
+            else:
+                pdf_url = _BASE_URL + "/" + href
+            if pdf_url in seen_urls:
+                continue
+            seen_urls.add(pdf_url)
+            link_text = a.get_text(separator=" ", strip=True)
+            year_match = re.search(r"\b(20\d\d|199\d)\b", link_text) or \
+                         re.search(r"\b(20\d\d|199\d)\b", href)
+            year = year_match.group(1) if year_match else None
+            rows.append({
+                "url": pdf_url,
+                "link_text": link_text,
+                "year": year,
+                "href": href,
+                "external_id": _extract_media_id(href),
+                "listed_date": f"{year}-01-01" if year else None,
+                "page_description": page_description,
+            })
+        return rows
+
+    def _enumeration_paper(self, item):
+        """Paper of one PDF row — crawl()'s record building copied verbatim
+        (external_id = media hash, post_number = year, url = listing page)."""
+        pdf_url = item["url"]
+        year = item["year"]
+        link_text = item["link_text"]
+        page_description = item["page_description"]
+
+        if year:
+            title = f"Udenrigsministeriets årsrapport {year}"
+        else:
+            title = link_text or "Udenrigsministeriets årsrapport"
+
+        abstract = _build_abstract(page_description, year or "ukendt", title)
+        if len(abstract) < 50:
+            return None
+
+        media_id = _extract_media_id(item["href"])
+        post_number = year if year else media_id
+        orig_filename = _original_filename(pdf_url)
+        published_date = f"{year}-01-01" if year else None
+
+        metadata = {
+            "link_text": link_text,
+            "media_id": media_id,
+            "href": item["href"],
+            "year": year,
+            "source_page": _LIST_URL,
+            "originalFilename": orig_filename,
+            "posted_date": published_date,
+        }
+
+        return {
+            "site_id": _SITE_ID,
+            "external_id": media_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "url": _LIST_URL,
+            "pdf_url": pdf_url,
+            "publisher": _PUBLISHER,
+            "department": "Økonomi og udbud",
+            "authors": None,
+            "journal": None,
+            "keywords": "årsrapport,økonomi,mål og resultater,Udenrigsministeriet",
+            "category": "Årsrapport",
+            "doi": None,
+            "original_filename": orig_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
