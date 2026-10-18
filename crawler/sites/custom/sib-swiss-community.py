@@ -298,3 +298,74 @@ class SibSwissCommunity(BaseCrawler):
 
         print(f"[sib-swiss-community] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() and its helpers are unchanged.
+    # Listing = the 2025 publications page (_parse_page); detail = the same
+    # EuropePMC core query crawl() makes (first result), fetched by the
+    # framework; _enumeration_paper keeps crawl()'s fallbacks and 50-char rule.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        rows = []
+        for pub in self._parse_page(html):
+            row = dict(pub)
+            query = f"DOI:{pub['doi']}"
+            row["_epmc_url"] = (f"{_EPMC_API}?query={urllib.parse.quote(query)}"
+                                f"&format=json&resultType=core")
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, data, item):
+        pub = item
+        results = (data or {}).get("resultList", {}).get("result", []) if isinstance(data, dict) else []
+        epmc = results[0] if results else None
+        doi = pub["doi"]
+        doi_url = pub["doi_url"]
+        title = pub["title"]
+        if epmc:
+            abstract = epmc.get("abstractText", "") or ""
+            pub_date = epmc.get("firstPublicationDate", "") or ""
+            author_string = epmc.get("authorString", "") or pub["author_text"]
+            pmid = epmc.get("pmid", "") or ""
+            pmcid = epmc.get("pmcid", "") or ""
+            ji = epmc.get("journalInfo") or {}
+            journal = (ji.get("journal") or {}).get("title", "") or pub["journal_text"]
+            araw = (epmc.get("authorList") or {}).get("author") or []
+            authors_list = [a.get("fullName", "") for a in araw if a.get("fullName")]
+            if not authors_list and author_string:
+                authors_list = [s.strip() for s in re.split(r",\s*", author_string) if s.strip()]
+        else:
+            abstract = ""
+            pub_date = ""
+            author_string = pub["author_text"]
+            pmid = ""
+            pmcid = ""
+            journal = pub["journal_text"]
+            authors_list = ([s.strip() for s in re.split(r",\s*", author_string) if s.strip()]
+                            if author_string else [])
+        if len(abstract) < 50:
+            return None
+        external_id = re.sub(r"[^A-Za-z0-9._-]", "_", doi)
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": title,
+            "authors": json.dumps(authors_list, ensure_ascii=False),
+            "abstract": abstract,
+            "category": "scientific-publication",
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": pub_date,
+            "url": doi_url,
+            "pdf_url": "",
+            "doi": doi,
+            "department": "",
+            "metadata": json.dumps({
+                "pmid": pmid,
+                "pmcid": pmcid,
+                "journal": journal,
+                "journal_raw": pub["journal_text"],
+                "author_string": author_string,
+            }, ensure_ascii=False),
+        }

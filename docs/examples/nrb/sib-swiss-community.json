@@ -1,0 +1,40 @@
+{
+ "version": 1,
+ "sites": {
+  "sib-swiss-community": {
+   "strategy": "last_page_backward",
+   "request_interval_s": 1.5,
+   "respect_robots": true,
+   "retries": 1,
+   "verify_ssl": true,
+   "base_url": "https://www.sib.swiss",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "html"
+    ],
+    "detail_method": "_enumeration_paper",
+    "detail_args": [
+     "json",
+     "item"
+    ]
+   },
+   "listing": {
+    "url": "https://www.sib.swiss/community/publications/scientific-publications-2025",
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "key_field": "doi",
+     "url_field": "_epmc_url",
+     "title_field": "title",
+     "listing_marker": "main"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1
+   }
+  }
+ }
+}
