@@ -111,6 +111,28 @@ class SecondStepLinkTest(Base):
         self.assertIn("https://board.test/record/2?of=xm", seen)
         self.assertFalse([u for u in seen if u.startswith("http://")])
 
+    def test_existing_parameter_or_fragment_gives_no_link(self):
+        from crawler.enumeration.adapters import Adapter
+        a = Adapter("fake-site", {"type": "selectors", "selectors": {"title": "h1"},
+                                  "second_step": {"use": "detail_page", "selector": "a", "add_params": {"_embed": "1"}}},
+                    None, base_url="https://board.test")
+
+        class R:
+            url = "https://board.test/view?id=1"
+
+            def __init__(self, href):
+                self.href = href
+
+            def text(self):
+                return html(f'<a href="{self.href}">x</a>')
+        self.assertIsNone(a._step_link(R("/x?_embed=0")))
+        self.assertIsNone(a._step_link(R("/#/record/5")))
+        self.assertEqual(a._step_link(R("/x?y=1")), "https://board.test/x?y=1&_embed=1")
+        b = Adapter("fake-site", {"type": "selectors", "selectors": {"title": "h1"}, "second_step": {
+            "use": "detail_page", "selector": "a", "rewrite": {"regex": r"/rec/([^/?]+)", "template": "https://board.test/r/{1}"}}},
+            None, base_url="https://board.test")
+        self.assertEqual(b._step_link(R("/rec/a%20b")), "https://board.test/r/a%20b")  # not double-encoded
+
     def test_validation(self):
         step = {"use": "detail_page", "selector": "a"}
         self.bad(contract_site(second_step=dict(step, add_params={"a b": "1"})))
@@ -180,10 +202,46 @@ class MultiLevelDiscoverTest(Base):
         self.assertEqual(sorted(state), ["1129", "1130", "900"])
         self.assertEqual(state["1130"]["path"], ["Oil Shale", "2022"])
 
-    def test_page_cap_is_incomplete(self):
-        result = self.env.run(self.site(max_pages=2), None, transport=RecordingTransport(self.handler()))
-        self.assertEqual(result["status"], "incomplete", result)
+    def test_page_cap_reads_what_was_found_but_is_not_complete(self):
+        result = self.env.run(self.site(max_pages=3), None, transport=RecordingTransport(self.handler()))
+        self.assertEqual(result["status"], "complete_unverified", result)
         self.assertIn("hub_pages_cap", result["stop_reason"])
+
+    def test_dead_sub_hub_and_downgrade_link(self):
+        base = self.handler()
+        seen = []
+
+        def handle(method, url, data):
+            seen.append(url)
+            path = urlsplit(url).path
+            if path == "/journal/est":
+                return Response(404, {}, b"")
+            if path == "/archive":
+                return Response(200, {"Content-Type": "text/html"}, html(
+                    '<a class="j" href="/journal/oil">Oil</a><a class="j" href="/journal/est">Est</a>'
+                    '<a class="j" href="http://api.test/journal/plain">Plain</a>'))
+            return base(method, url, data)
+        result = self.env.run(self.site(), None, transport=RecordingTransport(handle))
+        self.assertEqual(result["status"], "complete_unverified", result)
+        self.assertIn("sub_hub_failed:404", result["stop_reason"])
+        self.assertFalse([u for u in seen if u.startswith("http://")])
+        state = self.env.store.site(self.env.site_id)["state"]["discovered_segments"]
+        self.assertEqual(sorted(state), ["1129", "1130"])
+
+    def test_path_reaches_the_method(self):
+        got = []
+
+        def paper(item, segment):
+            got.append(segment.get("path"))
+            return {"external_id": str(item["id"]), "url": item["url"], "title": item["title"]}
+        site = self.site()
+        site["adapter"] = {"type": "crawler", "contract_version": 1, "list_source": "json", "list_result": ["items"],
+                           "paper_method": "paper", "paper_args": ["item", "segment"]}
+        site["listing"]["parser"] = {"type": "adapter"}
+        c = make_crawler(self.env, None)
+        c.paper = paper
+        self.env.run(site, None, crawler=c, transport=RecordingTransport(self.handler()))
+        self.assertIn(["Oil Shale", "2022"], got)
 
     def test_validation(self):
         self.bad(self.site(max_depth=9))
@@ -199,6 +257,9 @@ class SharedPostNumberTest(Base):
         result = self.env.run(site, FakeBoard(4), crawler=crawler(self.env, detail))
         # Saved like the crawler did, but the buyer's duplicate check counts them: a person decides.
         self.assertEqual(result["status"], "complete_with_review", result)
+        self.assertIn("shared_post_number_rows:2", result["stop_reason"])
+        # A later pass that adds nothing still reports every shared row (the buyer sees all of them).
+        result = self.env.run(site, FakeBoard(4), crawler=crawler(self.env, detail), refresh=True)
         self.assertIn("shared_post_number_rows:2", result["stop_reason"])
         self.assertEqual(sorted(d["post_number"] for d in self.env.docs()), ["RS-1", "RS-1", "RS-2", "RS-2"])
         env2 = Env()
@@ -216,9 +277,28 @@ class RuleSkipTest(Base):
         return {"external_id": item["external_id"], "url": item["url"], "title": "t"}
 
     def test_rule_skips_are_not_failures(self):
-        result = self.env.run(contract_site(none_is_rule_skip=True), FakeBoard(6), crawler=crawler(self.env, self.detail))
+        site = contract_site(none_is_rule_skip=True, max_rule_skip_ratio=0.6)
+        result = self.env.run(site, FakeBoard(6), crawler=crawler(self.env, self.detail))
         self.assertEqual(result["status"], "complete", result)
         self.assertEqual(result["stats"]["skipped_by_rule"], 3)
+
+    def test_too_many_rule_skips_need_review_or_stop(self):
+        result = self.env.run(contract_site(none_is_rule_skip=True), FakeBoard(6), crawler=crawler(self.env, self.detail))
+        self.assertEqual(result["status"], "complete_with_review", result)  # 50% > default 20%
+        self.assertIn("skipped_by_rule:3", result["stop_reason"])
+        env2 = Env()
+        self.addCleanup(env2.close)
+        result = env2.run(contract_site(none_is_rule_skip=True, max_consecutive_rule_skips=4), FakeBoard(12),
+                          crawler=crawler(env2, lambda h, item: None))  # a broken parser, not a rule
+        self.assertEqual(result["status"], "config_error", result)
+        self.assertIn("rule_skips_consecutive", result["stop_reason"])
+
+    def test_a_non_dict_result_is_not_a_rule_skip(self):
+        site = board_plan()
+        site["adapter"] = {"type": "crawler", "detail_method": "detail", "none_is_rule_skip": True,
+                           "detail_args": ["html", "item"]}
+        result = self.env.run(site, FakeBoard(3), crawler=make_crawler(self.env, lambda h, item: ["not", "a", "dict"]))
+        self.assertNotIn("skipped_by_rule", result["stats"])
         env2 = Env()
         self.addCleanup(env2.close)
         result = env2.run(contract_site(), FakeBoard(6), crawler=crawler(env2, self.detail))
