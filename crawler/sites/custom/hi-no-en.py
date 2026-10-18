@@ -339,3 +339,36 @@ class HiNoEnCrawler(BaseCrawler):
 
         print(f"[hi-no-en] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() is unchanged; these
+    # methods only parse already fetched HTML (no network, no subprocess).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Listing rows in crawl() order (div.item.reportitem h3 a)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        rows = []
+        for href, title, listed_date_raw in _parse_list_items(html):
+            full_url = (_BASE + href) if href.startswith("/") else href
+            rows.append({"url": full_url, "href": href, "title": title,
+                         "listed_date_raw": listed_date_raw})
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page, exactly as crawl() builds it
+        (external_id = data-sqlid or slug via _parse_detail, unchanged)."""
+        if not html:
+            return None
+        paper = _parse_detail(html, item["href"])
+        if not paper:
+            return None
+        abstract = paper.get("abstract") or ""
+        if len(abstract) < 100:
+            return None
+        paper["posted_date"] = _parse_date(item.get("listed_date_raw"))
+        if not paper.get("published_date"):
+            paper["published_date"] = paper["posted_date"]
+        return paper
