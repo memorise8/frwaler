@@ -426,3 +426,88 @@ class FssOrKrFssCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract; original crawl() and transport remain unchanged.
+    # ------------------------------------------------------------------
+
+    _ENUM_LISTING_MARKER = ".krds-table-wrap table.list-data"
+
+    def _enumeration_items(self, html):
+        """목록 쪽 HTML → crawl() 과 같은 _parse_list_rows 행 dict 목록.
+
+        목록 표(table.list-data)가 없으면 오류 쪽으로 보고, 표는 있는데 행이
+        없으면 빈 끝 쪽(정상)으로 돌려준다."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None or soup.select_one(self._ENUM_LISTING_MARKER) is None:
+            raise PermanentFailure("listing_parse_error:missing_list_table")
+        rows = self._parse_list_rows(html)
+        for row in rows:
+            # crawl() 의 _fetch_detail_page 와 같은 상세 주소(쪽 번호 없음).
+            row["detail_url"] = f"{_VIEW_URL}?nttId={row['ntt_id']}&menuNo={_MENU_NO}"
+        return rows
+
+    def _enumeration_paper(self, html, row):
+        """상세 HTML + 목록 행 → crawl() 이 저장하는 것과 같은 paper.
+
+        crawl() 과 같이 600자 미만 응답(오류 쪽)·초록 50자 미만은 None."""
+        if not html or len(html) < 600:
+            return None
+        ntt_id = row["ntt_id"]
+        detail = self._parse_detail(html)
+
+        abstract = self._build_abstract(detail)
+        if len(abstract) < 50:
+            return None
+
+        title = detail["title"] or row["title"] or f"금감원 보도자료 #{ntt_id}"
+        date = detail["date"] or row["date"] or None
+        department = detail["department"] or row["department"] or None
+
+        department_full = department
+        if detail["team"]:
+            department_full = (
+                f"{department};{detail['team']}" if department else detail["team"]
+            )
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": ntt_id,
+            "post_number": row["num"] if row["num"] else None,
+            "title": title,
+            "abstract": abstract,
+            "published_date": date,
+            "listed_date": date,
+            "authors": "",
+            "publisher": _PUBLISHER,
+            "department": department_full,
+            "journal": None,
+            "url": row["url"],
+            "pdf_url": detail["pdf_url"] or None,
+            "keywords": "보도자료",
+            "category": "보도자료",
+            "doi": None,
+            "original_filename": detail["original_filename"] or None,
+            "metadata": json.dumps(
+                {
+                    "nttId": ntt_id,
+                    "bbsId": _BBS_ID,
+                    "menuNo": _MENU_NO,
+                    "posted_date": date,
+                    "originalFilename": detail["original_filename"] or None,
+                    "journal_raw": None,
+                    "series": None,
+                    "volume": None,
+                    "issue": None,
+                    "post_number_raw": row["num"],
+                    "department": department,
+                    "team": detail["team"] or None,
+                    "attachments": detail["attachments"],
+                },
+                ensure_ascii=False,
+            ),
+        }
