@@ -271,3 +271,91 @@ class MeteoSwissPublicationsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------ #
+    # Pure enumeration contract (NR-B); crawl() and its helpers are unchanged.
+    # Listing = the search API page; detail = the publication page fetched by
+    # the framework, parsed by the original _fetch_detail. crawl()'s
+    # short-abstract skip returns None (the plan tolerates these rule skips).
+    # ------------------------------------------------------------------ #
+
+    def _enumeration_items(self, data):
+        from crawler.enumeration.http import PermanentFailure
+        resp = data.get("response") if isinstance(data, dict) else None
+        if not isinstance(resp, dict) or not isinstance(resp.get("docs"), list):
+            raise PermanentFailure("listing_parse_error:invalid_meteoswiss_envelope")
+        rows = []
+        for doc in resp["docs"]:
+            if not isinstance(doc, dict):
+                raise PermanentFailure("listing_parse_error:invalid_meteoswiss_doc")
+            path = doc.get("path", "")
+            if not path:
+                continue
+            # Docs without a 100-char lead stay listed (a page of only such docs must
+            # not look like the end); _enumeration_paper skips them as crawl() does.
+            row = dict(doc)
+            row["_nrb_url"] = f"{self.base_url}{path}"
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        doc = dict(item)
+        doc.pop("_nrb_url", None)
+        path = doc.get("path", "")
+        detail_url = f"{self.base_url}{path}"
+        title = (doc.get("title") or "").strip()
+        abstract = (doc.get("lead") or doc.get("description") or "").strip()
+        if len(abstract) < 100:
+            return None
+        pub_date_raw = doc.get("publicationDate", "") or ""
+        pub_date = pub_date_raw[:10] if pub_date_raw else ""
+        keywords_raw = doc.get("keywords", "") or ""
+        categories = doc.get("categories", []) or []
+        page_sub = doc.get("pageSubType", "") or ""
+        version = doc.get("_version_", "")
+        post_number = str(version) if version else None
+        self._curl_get = lambda url, compressed=True: html
+        try:
+            detail = self._fetch_detail(path)
+        except Exception:
+            detail = {}
+        finally:
+            del self._curl_get
+        authors_raw = detail.get("authors", "") or ""
+        authors = (
+            "; ".join(a.strip() for a in authors_raw.split(",") if a.strip())
+            if authors_raw else ""
+        )
+        pdf_url = detail.get("pdf_url", "") or ""
+        original_filename = detail.get("original_filename", "") or ""
+        edition = detail.get("edition", "") or ""
+        pdf_label = detail.get("pdf_label", "") or ""
+        metadata = {
+            "pageSubType": page_sub,
+            "publicationYear": doc.get("publicationYear", "") or "",
+            "modificationDate": doc.get("modificationDate", "") or "",
+            "categoriesText": doc.get("categoriesText", []) or [],
+            "version": str(version) if version else "",
+        }
+        if edition:
+            metadata["edition"] = edition
+        if pdf_label:
+            metadata["originalFilename"] = pdf_label
+        return {
+            "site_id": self.site_id,
+            "external_id": path,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "listed_date": pub_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "authors": authors,
+            "publisher": "MeteoSwiss",
+            "journal": edition,
+            "keywords": keywords_raw,
+            "category": "; ".join(categories),
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
