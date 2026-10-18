@@ -1,0 +1,19 @@
+{
+  "site_id": "khs-go-kr-cop",
+  "listing_body": "<html><body><table class=\"tbl col data\"><thead><tr><th>번호</th><th>제목</th><th>작성자</th><th>등록일</th><th>첨부파일</th><th>조회수</th></tr></thead><tbody><tr><td data-column=\"번호\">2</td><td data-column=\"제목\"><a href=\"/cop/bbs/selectBoardArticle.do;jsessionid=OFFLINE.x?nttId=101&amp;bbsId=BBSMSTR_1020&amp;pageIndex=1&amp;mn=NS_03_07_04\" class=\"b_tit\"><span>Offline 101</span></a></td><td data-column=\"작성자\">홍길동</td><td data-column=\"등록일\">2026-10-01</td><td data-column=\"첨부\"></td><td data-column=\"조회\">1</td></tr><tr><td data-column=\"번호\">1</td><td data-column=\"제목\"><a href=\"/cop/bbs/selectBoardArticle.do;jsessionid=OFFLINE.x?nttId=102&amp;bbsId=BBSMSTR_1020&amp;pageIndex=1&amp;mn=NS_03_07_04\" class=\"b_tit\"><span>Offline 102</span></a></td><td data-column=\"작성자\">홍길동</td><td data-column=\"등록일\">2026-10-02</td><td data-column=\"첨부\"></td><td data-column=\"조회\">1</td></tr></tbody></table></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.khs.go.kr/cop/bbs/selectBoardArticle.do?nttId=101&bbsId=BBSMSTR_1020&mn=NS_03_07_04": "<html><body><div class=\"board-view-top\"><strong class=\"board-view-title\">Offline 101 통계</strong><ul><li><b>작성자</b><span>담당자101</span></li><li><b>작성일</b><span>2026-10-01</span></li><li><b>전화번호</b><span>042-000-0000</span></li></ul><div class=\"file-container\"><span>stats-101.pdf</span><a href=\"/cmm/fms/BoardFileDown.do;jsessionid=OFFLINE.x?atchFileId=FILE_101&amp;fileSn=0&amp;bbsId=BBSMSTR_1020\">down</a></div></div><div class=\"board-view-content\"><p>Synthetic statistics résumé and Korean 통계 자료 for offline equality testing only. Synthetic statistics résumé and Korean 통계 자료 for offline equality testing only. </p></div></body></html>",
+    "https://www.khs.go.kr/cop/bbs/selectBoardArticle.do?nttId=102&bbsId=BBSMSTR_1020&mn=NS_03_07_04": "<html><body><div class=\"board-view-top\"><strong class=\"board-view-title\">Offline 102 통계</strong><ul><li><b>작성자</b><span>담당자102</span></li><li><b>작성일</b><span>2026-10-02</span></li><li><b>전화번호</b><span>042-000-0000</span></li></ul><div class=\"file-container\"><span>stats-102.pdf</span><a href=\"/cmm/fms/BoardFileDown.do;jsessionid=OFFLINE.x?atchFileId=FILE_102&amp;fileSn=0&amp;bbsId=BBSMSTR_1020\">down</a></div></div><div class=\"board-view-content\"><p>Synthetic statistics résumé and Korean 통계 자료 for offline equality testing only. Synthetic statistics résumé and Korean 통계 자료 for offline equality testing only. </p></div></body></html>"
+  },
+  "long_text": "Synthetic statistics résumé and Korean 통계 자료 for offline equality testing only. Synthetic statistics résumé and Korean 통계 자료 for offline equality testing only. ",
+  "empty_body": "<html><body><table class=\"tbl col data\"><thead><tr><th>번호</th><th>제목</th><th>작성자</th><th>등록일</th><th>첨부파일</th><th>조회수</th></tr></thead><tbody><tr><td colspan=\"6\">등록된 게시물이 없습니다.</td></tr></tbody></table></body></html>",
+  "original_method_source_sha256": {
+    "__init__": "86b07d464f37e29597cb35f777a884f91e90c347c1dd28bcfaa42a3652409fb8",
+    "_curl": "5f7d1d35408de30b520e5fd2d91e9576e58426a9dfa7f6df006194342855fdbb",
+    "_parse_list_page": "3a29d8ad919ef235af0162658f2596d87dd8ca7f807bcac74f7839a3d135f5d8",
+    "_get_max_page": "73c7e8f73eb7df4293275d33c0af5be315a93cd359714418d9a97123c447ab39",
+    "_parse_detail": "a6bf0a605abaa4e494db23bc20643d0dc8d4157121e9ab7b21daff696278cafd",
+    "crawl": "e5f99f6c8e0429931d59cee0b212cdebd4d29ffdd9865f1614431f36888ee05d"
+  }
+}

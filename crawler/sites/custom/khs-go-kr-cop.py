@@ -349,3 +349,67 @@ class KhsGoKrCopCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] done: saved {saved} items total")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (no network); crawl() and the methods
+    # above are unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List-page HTML -> _parse_list_page() rows (ntt_id, detail_url, ...)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        if _make_soup(html).find("table", class_="tbl") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_table")
+        return [dict(item) for item in self._parse_list_page(html)]
+
+    def _enumeration_paper(self, html, row):
+        """Detail HTML + list row -> the paper crawl() saves (or None)."""
+        item = {k: row[k] for k in ("ntt_id", "post_number", "title", "author", "date", "detail_url")}
+        detail_url = item["detail_url"]
+        if not html:
+            return None
+        detail = self._parse_detail(html)
+
+        abstract = detail.get("abstract", "")
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+
+        title = detail.get("detail_title") or item["title"]
+        date_str = detail.get("detail_date") or item["date"]
+        author = detail.get("detail_author") or item["author"]
+
+        pub_date = (
+            date_str
+            if re.match(r'\d{4}-\d{2}-\d{2}', date_str or "")
+            else None
+        )
+
+        metadata: dict = {
+            "nttId": item["ntt_id"],
+            "bbsId": _BBS_ID,
+            "posted_date": date_str or None,
+        }
+        if detail.get("detail_phone"):
+            metadata["phone"] = detail["detail_phone"]
+        if detail.get("original_filename"):
+            metadata["originalFilename"] = detail["original_filename"]
+
+        return {
+            "site_id": _SITE_ID,
+            "external_id": item["ntt_id"],
+            "post_number": item["post_number"],
+            "title": title,
+            "abstract": abstract,
+            "authors": author,
+            "publisher": "국가유산청",
+            "url": detail_url,
+            "pdf_url": detail.get("pdf_url"),
+            "published_date": pub_date,
+            "posted_date": pub_date,
+            "listed_date": pub_date,
+            "original_filename": detail.get("original_filename"),
+            "category": "통계정보",
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
