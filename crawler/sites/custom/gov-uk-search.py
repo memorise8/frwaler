@@ -304,3 +304,111 @@ class GovUKSearchCrawler(BaseCrawler):
 
         self._save_paper(paper)
         return bool(self._last_save_created)
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract; original crawl() and transport remain unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        """검색 JSON 쪽 → crawl() 과 같은 규칙의 출판물 경로(중복 제거, 하위 쪽 제외) 행.
+
+        search_results 가 문자열이 아니면 오류 쪽, 빈 문자열이면 끝 뒤 빈 쪽."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("search_results"), str):
+            raise PermanentFailure("listing_parse_error:invalid_search_response")
+        html = data["search_results"]
+        raw_links = re.findall(r'href="(/government/publications/[^/"]+)"', html)
+        return [{"path": path, "url": f"{_CONTENT_API}{path}"} for path in dict.fromkeys(raw_links)]
+
+    def _enumeration_paper(self, doc, item):
+        """Content API JSON + 목록 행 → _crawl_item() 이 저장하는 것과 같은 paper.
+
+        _crawl_item() 과 같이 JSON 아님·제목 없음·초록 100자 미만은 None."""
+        path = item["path"]
+        if not isinstance(doc, dict):
+            return None
+        title = (doc.get("title") or "").strip()
+        if not title:
+            return None
+
+        content_id = doc.get("content_id", "") or ""
+        base_path = doc.get("base_path") or path
+        description = (doc.get("description") or "").strip()
+        details = doc.get("details") or {}
+
+        body_html = details.get("body") or ""
+        if len(description) >= 100:
+            abstract = description
+        elif body_html:
+            stripped = _strip_html(body_html)
+            abstract = stripped if len(stripped) > len(description) else description
+        else:
+            abstract = description
+        if len(abstract) < 100:
+            return None
+
+        first_pub = doc.get("first_published_at") or details.get("first_public_at") or ""
+        updated = doc.get("public_updated_at") or ""
+        published_date = _parse_date(first_pub)
+        listed_date_raw = updated
+        listed_date = _parse_date(updated)
+
+        links_data = doc.get("links") or {}
+        orgs = links_data.get("organisations") or []
+        publisher = "; ".join(
+            o.get("title", "") for o in orgs if o.get("title")
+        ) or None
+
+        attachments = details.get("attachments") or []
+        pdf_url = None
+        original_filename = None
+        for att in attachments:
+            if att.get("attachment_type") == "file":
+                att_url = att.get("url") or ""
+                if att_url:
+                    pdf_url = att_url
+                    seg = att_url.rstrip("/").split("/")[-1].split("?")[0]
+                    original_filename = seg if seg else None
+                    break
+
+        tags = details.get("tags") or {}
+        browse = tags.get("browse_pages") or []
+        keywords_list = [t.get("title", "") for t in browse if t.get("title")]
+        keywords = ", ".join(keywords_list) if keywords_list else None
+
+        taxons = links_data.get("taxons") or []
+        taxon_titles = [t.get("title", "") for t in taxons if t.get("title")]
+
+        category = doc.get("document_type") or details.get("document_type_label") or None
+        change_history = (details.get("change_history") or [])[:5]
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": content_id,
+            "post_number": content_id,   # UUID is the native identifier; no sequential number
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "authors": None,
+            "publisher": publisher,
+            "department": None,
+            "journal": None,
+            "url": f"{_BASE}{base_path}",
+            "pdf_url": pdf_url,
+            "doi": None,
+            "keywords": keywords,
+            "category": category,
+            "original_filename": original_filename,
+            "metadata": json.dumps({
+                "posted_date": listed_date_raw,
+                "originalFilename": original_filename,
+                "content_id": content_id,
+                "document_type": doc.get("document_type"),
+                "schema_name": doc.get("schema_name"),
+                "taxons": taxon_titles,
+                "change_history": change_history,
+                "attachment_count": len(attachments),
+            }, ensure_ascii=False),
+        }

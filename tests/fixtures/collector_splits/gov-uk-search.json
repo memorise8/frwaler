@@ -1,0 +1,140 @@
+{
+  "listing_url": "https://www.gov.uk/search/research-and-statistics.json?content_store_document_type=research&order=updated-newest&page=1",
+  "listing_body": "{\"search_results\": \"<ul class=\\\"gem-c-document-list\\\"><li><a href=\\\"/government/publications/synthetic-report-one\\\">Synthetic report one</a></li><li><a href=\\\"/government/publications/synthetic-report-one\\\">Synthetic report one (again)</a></li><li><a href=\\\"/government/publications/synthetic-report-two\\\">Synthetic report two</a><a href=\\\"/government/publications/synthetic-report-two/annex\\\">annex</a></li><li><a href=\\\"/government/publications/synthetic-short\\\">Synthetic short</a></li><li><a href=\\\"/guidance/not-a-publication\\\">Guidance</a></li></ul>\", \"total\": 4, \"next_and_prev_links\": \"\"}",
+  "empty_body": "{\"search_results\": \"\", \"total\": 4, \"next_and_prev_links\": \"\"}",
+  "long_text": "Synthetic GOV.UK research description for offline equality testing of the enumeration split path. Synthetic GOV.UK research description for offline equality testing of the enumeration split path. ",
+  "details": {
+    "https://www.gov.uk/api/content/government/publications/synthetic-report-one": {
+      "content_id": "00000000-0000-4000-8000-000000000001",
+      "base_path": "/government/publications/synthetic-report-one",
+      "title": "Synthetic report one",
+      "description": "Synthetic GOV.UK research description for offline equality testing of the enumeration split path. Synthetic GOV.UK research description for offline equality testing of the enumeration split path. ",
+      "document_type": "research",
+      "schema_name": "publication",
+      "first_published_at": "2026-09-15T12:36:00+01:00",
+      "public_updated_at": "2026-10-01T09:00:00+01:00",
+      "details": {
+        "body": "",
+        "attachments": [
+          {
+            "attachment_type": "html",
+            "url": "https://www.gov.uk/x"
+          },
+          {
+            "attachment_type": "file",
+            "url": "https://assets.publishing.service.gov.uk/media/abc/report-one.pdf"
+          }
+        ],
+        "tags": {
+          "browse_pages": [
+            {
+              "title": "Health"
+            }
+          ]
+        },
+        "change_history": [
+          {
+            "note": "First published."
+          }
+        ]
+      },
+      "links": {
+        "organisations": [
+          {
+            "title": "Synthetic Agency"
+          }
+        ],
+        "taxons": [
+          {
+            "title": "Research"
+          }
+        ]
+      }
+    },
+    "https://www.gov.uk/api/content/government/publications/synthetic-report-two": {
+      "content_id": "00000000-0000-4000-8000-000000000002",
+      "base_path": "/government/publications/synthetic-report-two",
+      "title": "Synthetic report two",
+      "description": "Short description.",
+      "document_type": "research",
+      "schema_name": "publication",
+      "first_published_at": "2026-09-15T12:36:00+01:00",
+      "public_updated_at": "2026-10-01T09:00:00+01:00",
+      "details": {
+        "body": "<p>Synthetic GOV.UK research description for offline equality testing of the enumeration split path. Synthetic GOV.UK research description for offline equality testing of the enumeration split path. </p>",
+        "attachments": [],
+        "tags": {
+          "browse_pages": [
+            {
+              "title": "Health"
+            }
+          ]
+        },
+        "change_history": [
+          {
+            "note": "First published."
+          }
+        ]
+      },
+      "links": {
+        "organisations": [
+          {
+            "title": "Synthetic Agency"
+          }
+        ],
+        "taxons": [
+          {
+            "title": "Research"
+          }
+        ]
+      }
+    },
+    "https://www.gov.uk/api/content/government/publications/synthetic-short": {
+      "content_id": "00000000-0000-4000-8000-000000000003",
+      "base_path": "/government/publications/synthetic-short",
+      "title": "Synthetic short",
+      "description": "too short",
+      "document_type": "research",
+      "schema_name": "publication",
+      "first_published_at": "2026-09-15T12:36:00+01:00",
+      "public_updated_at": "2026-10-01T09:00:00+01:00",
+      "details": {
+        "body": "",
+        "attachments": [],
+        "tags": {
+          "browse_pages": [
+            {
+              "title": "Health"
+            }
+          ]
+        },
+        "change_history": [
+          {
+            "note": "First published."
+          }
+        ]
+      },
+      "links": {
+        "organisations": [
+          {
+            "title": "Synthetic Agency"
+          }
+        ],
+        "taxons": [
+          {
+            "title": "Research"
+          }
+        ]
+      }
+    }
+  },
+  "site_id": "gov-uk-search",
+  "content_type": "application/json",
+  "original_method_source_sha256": {
+    "_curl_get": "3e05521808cebcd455a654af6b742aad599a5c3855132b1a863f286c418c2040",
+    "_strip_html": "ae91e3dfed0599d5efb9edbab60eb1eeef8533c89a0a918ba3995f80b4e12d9e",
+    "_parse_date": "75cb19622fad7789b3b7a0adf91abe99f45948e2ef530a640a4dd9425e125e0a",
+    "crawl": "6fc1e6884543bff728bec9b776fcbee98944f964d7940993759ab5bd2e81fb73",
+    "_crawl_item": "9414a0009cf8e8a050e3b14ee2b24711e95ea13f613ee3ac52b542511587f18d"
+  }
+}

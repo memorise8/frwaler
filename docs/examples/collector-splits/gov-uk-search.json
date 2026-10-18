@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "sites": {
+    "gov-uk-search": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.gov.uk",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "json",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.gov.uk/search/research-and-statistics.json",
+        "params": {
+          "content_store_document_type": "research",
+          "order": "updated-newest"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "total": {
+          "type": "json",
+          "path": "total"
+        },
+        "parser": {
+          "type": "adapter",
+          "key_field": "path",
+          "url_field": "url"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
