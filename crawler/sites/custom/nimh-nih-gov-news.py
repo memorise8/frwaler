@@ -293,3 +293,47 @@ class NimhNihGovNewsCrawler(BaseCrawler):
         self._save_paper(paper)
         counter = f"{saved_so_far + 1}/{limit_or_inf}"
         print(f"[{_SITE_ID}] Saved {counter}: {title[:60]}")
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and
+    # _process_article() stay unchanged; no fetching or storage here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html):
+        """Rows of one year page, exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        return _parse_year_page(html)
+
+    def _enumeration_paper(self, html, item):
+        """The parsing half of _process_article(item); None keeps its skip."""
+        url = item["url"]
+        title = item["title"]
+        date_str = item["date"]
+        category = item["category"]
+        listing_summary = item["summary"]
+        abstract = _fetch_article_body(html) if html else ""
+        if not abstract or len(abstract) < 50:
+            abstract = listing_summary
+        if len(abstract) < 50:
+            return None
+        slug = url.rstrip("/").split("/")[-1]
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": slug,
+            "title": title,
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": category,
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": date_str,
+            "url": url,
+            "pdf_url": "",
+            "doi": "",
+            "department": "National Institute of Mental Health",
+            "metadata": json.dumps({
+                "listing_summary": listing_summary,
+                "year_page": date_str[:4] if date_str else "",
+            }, ensure_ascii=False),
+        }

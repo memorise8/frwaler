@@ -1,0 +1,15 @@
+{
+ "site_id": "nimh-nih-gov-news",
+ "listing_body": "<html><body><main><article id=\"main_content_inner\"><dl class=\"aggregator_news\"><div class=\"aggregated_container clearfix\"><a class=\"aggregated_term_news_link\" href=\"/news/science-updates/2025/memories\">New memories</a><p><time datetime=\"2025-05-01\">May 1, 2025</time> • Research Highlight</p><div class=\"aggregated_desc_news_summary\">Summary New memories</div></div><div class=\"aggregated_container clearfix\"><a class=\"aggregated_term_news_link\" href=\"/news/science-updates/2025/bipolar\">Bipolar genetics</a><p><time datetime=\"2025-05-01\">May 1, 2025</time> • Research Highlight</p><div class=\"aggregated_desc_news_summary\">Summary Bipolar genetics</div></div></dl></article></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.nimh.nih.gov/news/science-updates/2025/memories": "<html><body><main><article id=\"main_content_inner\"><h1>New memories</h1><p>May 1, 2025</p><p>Synthetic NIMH science update article paragraph used for offline equality testing of the split, long. Synthetic NIMH science update article paragraph used for offline equality testing of the split, long. </p></article></main></body></html>",
+  "https://www.nimh.nih.gov/news/science-updates/2025/bipolar": "<html><body><main><article id=\"main_content_inner\"><h1>Bipolar genetics</h1><p>May 1, 2025</p><p>Synthetic NIMH science update article paragraph used for offline equality testing of the split, long. Synthetic NIMH science update article paragraph used for offline equality testing of the split, long. </p></article></main></body></html>"
+ },
+ "long_text": "Synthetic NIMH science update article paragraph used for offline equality testing of the split, long. Synthetic NIMH science update article paragraph used for offline equality testing of the split, long. ",
+ "empty_body": "<html><body><main><article id=\"main_content_inner\"><dl class=\"aggregator_news\"></dl></article></main></body></html>",
+ "original_method_source_sha256": {
+  "crawl": "4342cf99e3e169001d30b21d0282d9e9a459bd99c0d2dcfaffe13c7b7bee9f20",
+  "_process_article": "6ac3f47d623ac53369cc46e0bebdcd4e6cdb3590b1113f98988e4ed506e1a6d6"
+ }
+}

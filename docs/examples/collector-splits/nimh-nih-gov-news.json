@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "sites": {
+    "nimh-nih-gov-news": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "date_range_split",
+      "base_url": "https://www.nimh.nih.gov",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.nimh.nih.gov/news/science-updates/{segment}",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "title_field": "title",
+          "date_field": "date",
+          "listing_marker": "dl.aggregator_news"
+        }
+      },
+      "segments": {
+        "mode": "explicit",
+        "items": [
+          {
+            "key": "2025"
+          },
+          {
+            "key": "2024"
+          },
+          {
+            "key": "2023"
+          },
+          {
+            "key": "2022"
+          },
+          {
+            "key": "2021"
+          },
+          {
+            "key": "2020"
+          },
+          {
+            "key": "2019"
+          },
+          {
+            "key": "2018"
+          },
+          {
+            "key": "2017"
+          },
+          {
+            "key": "2016"
+          },
+          {
+            "key": "2015"
+          },
+          {
+            "key": "2014"
+          },
+          {
+            "key": "2013"
+          },
+          {
+            "key": "2012"
+          },
+          {
+            "key": "2011"
+          },
+          {
+            "key": "2010"
+          },
+          {
+            "key": "2009"
+          },
+          {
+            "key": "2008"
+          },
+          {
+            "key": "2007"
+          }
+        ]
+      }
+    }
+  }
+}
