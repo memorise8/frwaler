@@ -1,0 +1,38 @@
+{
+ "site_id": "cancer-fr-catalogue-des-public",
+ "listing_body": "<html><body><main><div class=\"list-articles\"><ul><li class=\"list-articles-item\"><div class=\"card-body\"><h3 class=\"card-title\"><a href=\"/catalogue-des-publications/offline-1\">Offline 1</a></h3><p>List summary 1</p><a href=\"/content/download/801/file/list-1.PDF\">pdf</a></div></li><li class=\"list-articles-item\"></li><li class=\"list-articles-item\"><div class=\"card-body\"><h3 class=\"card-title\"><a href=\"/catalogue-des-publications/offline-2\">Offline 2</a></h3><p>List summary 2</p><a href=\"/content/download/802/file/list-2.PDF\">pdf</a></div></li></ul></div></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.cancer.fr/catalogue-des-publications/offline-1": "<html><head><meta name=\"description\" content=\"meta 1\"></head><body><h1>Offline publication 1</h1><div class=\"publication-block-resume\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></div><a href=\"/content/download/701/file/Offline-1.pdf\">Télécharger</a><div class=\"block-bg-light\"><ul><li><strong>Collection :</strong> Fiches repère</li><li><strong>Public :</strong> Grand public</li><li><strong>Date de publication :</strong> <time datetime=\"2026-03-15\">15 mars 2026</time></li><li><strong>Référence :</strong> REF1</li><li><strong>Format :</strong> PDF</li><li><strong>Langue :</strong> Français</li></ul></div><script>var locationPathArray = [\"1\",\"2\",\"551\"];</script></body></html>",
+  "https://www.cancer.fr/catalogue-des-publications/offline-2": "<html><head><meta name=\"description\" content=\"meta 2\"></head><body><h1>Offline publication 2</h1><div class=\"publication-block-resume\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></div><a href=\"/content/download/702/file/Offline-2.pdf\">Télécharger</a><div class=\"block-bg-light\"><ul><li><strong>Collection :</strong> Fiches repère</li><li><strong>Public :</strong> Grand public</li><li><strong>Date de publication :</strong> <time datetime=\"2026-04-15\">15 mars 2026</time></li><li><strong>Référence :</strong> REF2</li><li><strong>Format :</strong> PDF</li><li><strong>Langue :</strong> Français</li></ul></div><script>var locationPathArray = [\"1\",\"2\",\"552\"];</script></body></html>"
+ },
+ "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+ "empty_body": "<html><body><main><div class=\"list-articles\"><ul></ul></div></main></body></html>",
+ "original_method_source_sha256": {
+  "_curl": "437f5c454c19d8a09a08a47710f2d811c42eac933464427fc2f33cce2519ce7a",
+  "_curl_get": "dc1aead095f020e9666281babdbfabd00cd5dd958c740a3f877b21c0fb3df75f",
+  "_curl_post_json": "efaee07f0790cfc82b6d7d9087dd55634275d53d1a200239c98213eee1b6c8e9",
+  "_decode": "fca034dd376f227050f2bb8403e4b35b31f49dcc079f61fac4ad9c74c46a195f",
+  "_make_soup": "9ee381d562d5c162fe999c0a6ffde3dbf317cb4af9f7fbaedeac7e5e64597d95",
+  "_clean_text": "82f537c9f63289e32d330f99813ae07124f2011117604704620aa5027226a4f7",
+  "_node_text": "7a7ac8ef86926bc8d2ee170d3c276d466e46edb387f92fc5a64e3dd994268c16",
+  "_normalize": "48ed6c72a5947671e63feec006e42c3e04432f5d74fc2ecf8957d217d0495a74",
+  "_is_target_collection": "b163828ca39b7a361c25510c27bee5de9fa76e35c2a44923a1429bdaf9d621f5",
+  "_parse_date": "13e6be2cca912c982b2f7da17e9c79326a7a284eb2876d79a67b67cee8e91747",
+  "_ts_to_iso": "699465988d0cf57e37528727909a3ce839fdf03901204103a16b6bbca7057da9",
+  "_absolute_url": "77d3a8c3381e688e5f7e3687adf880bafaab7b74e87d1e9d47e9591760a03844",
+  "_filename_from_url": "fe8a8165b425234325945b59875f8e330c69dfedaf633cbf9ba2ec7cf9e226e1",
+  "_slug_from_url": "386d8edd4f187eb5552652551a22d7ed080ec451428b1bf4960287e39afa56d9",
+  "_extract_numeric_tail": "17179bc9f0af331054d9690373e9127fb64114e6fb1222e5b36ac0dfdb360f40",
+  "_abstract_from_algolia_text": "ea2a6d8db8825a409ef6f97f04f0950eeedf3e316d935cbdb287d98df7644797",
+  "_list_url": "f8d03de56bdab83fe287257cbf190a5b20585c459c3961eb00ad11b48a60493d",
+  "_parse_list_page": "ad0aaeb2e9c80689edcff8b7af7ac299018baf1aed89fa54c57b09903b6d5894",
+  "_parse_detail": "972f665eb52cb246ec573ae3e06bf79fe26ed7575b01b84ff4ae8ef0cc0c5c8b",
+  "_fetch_detail_record": "8b9c925d8f098d3a026374a5afb1b19115ec180313f91f7fe1f3009d766ba524",
+  "_algolia_page": "ecf2d8879dc5604a0f067ea1227bb18944abe6b72a52988465301f516cab1319",
+  "_candidate_from_algolia": "ae2dfe0ad0492bb83579aec034030b2a685ea21c1176cd745b42659c01ffd3cd",
+  "_limit_reached": "5e6923633ac67b616f12aad3c9b94d46caa2f598eddbe426f9fbd2b667f92ec4",
+  "_budget_nearly_done": "b755aa086ee0df58e6bcc30fb6430493e79a3ec9ce35b92bcde0cb40154964ed",
+  "crawl": "c93ff23de80ec206e67be26e31e37b13b6a637a8213c7641d68b533b4791f4fe"
+ }
+}

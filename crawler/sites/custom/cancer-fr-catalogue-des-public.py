@@ -536,6 +536,127 @@ class CancerFrCataloguePublicCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Enumeration (pure conversions for the enumeration framework)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw, url):
+        """Candidates exactly as crawl() reads them from one filtered catalogue page.
+
+        ``list_page_url`` is ``_list_url(page)``: identical to crawl() on page 1; on
+        later pages crawl() stores the site's own rel=next href (same page, other
+        parameter order). A page without the result list block is a parse error.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw, (bytes, str)):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(raw if isinstance(raw, bytes) else raw.encode("utf-8"))
+        if soup is None or soup.select_one("div.list-articles") is None:
+            raise PermanentFailure("listing_parse_error:missing_catalogue_listing")
+        query = urllib.parse.parse_qs(urllib.parse.urlsplit(url or "").query)
+        page_values = query.get("page") or ["1"]
+        if not re.fullmatch(r"[0-9]+", page_values[0]):
+            raise PermanentFailure("listing_parse_error:invalid_page_parameter")
+        records, _ = self._parse_list_page(raw if isinstance(raw, bytes) else raw.encode("utf-8"),
+                                           self._list_url(int(page_values[0])))
+        return records
+
+    def _enumeration_paper(self, raw: bytes, candidate: Dict) -> Optional[Dict]:
+        """Pure copy of _fetch_detail_record after its detail fetch (same paper or None)."""
+        detail_url = candidate.get("url") or ""
+        if not detail_url:
+            return None
+
+        detail = self._parse_detail(raw, detail_url)
+        title = detail.get("title") or candidate.get("title") or ""
+        abstract = detail.get("abstract") or candidate.get("list_summary") or ""
+
+        if self._normalize(title) in {"oops! an error occurred", "oops an error occurred"}:
+            print(f"[{self.site_id}] skip error page: {detail_url}")
+            return None
+
+        if len(abstract.strip()) < 50:
+            intro = candidate.get("intro_value") or ""
+            meta_text = candidate.get("meta_content__text") or ""
+            abstract = intro or self._abstract_from_algolia_text(meta_text, title)
+        if len(abstract.strip()) < 50:
+            print(
+                f"[{self.site_id}] skip short abstract "
+                f"({len(abstract.strip())} chars): {title[:80]}"
+            )
+            return None
+
+        pdf_url = detail.get("pdf_url") or candidate.get("list_pdf_url")
+        original_filename = (
+            detail.get("original_filename")
+            or self._filename_from_url(pdf_url)
+        )
+
+        listed_date = (
+            detail.get("published_date")
+            or candidate.get("listed_date")
+            or self._ts_to_iso(candidate.get("content_publication_date"))
+        )
+        published_date = detail.get("published_date") or listed_date
+
+        algolia_object_id = candidate.get("objectID") or candidate.get("algolia_object_id")
+        post_number = (
+            self._extract_numeric_tail(algolia_object_id)
+            or detail.get("node_id")
+            or self._extract_numeric_tail(detail.get("pdf_download_id"))
+        )
+        slug = self._slug_from_url(detail_url)
+        external_id = post_number or algolia_object_id or slug or detail_url
+
+        metadata = {
+            "posted_date": listed_date,
+            "originalFilename": original_filename,
+            "journal_raw": None,
+            "series": None,
+            "volume": None,
+            "issue": None,
+            "node_id": detail.get("node_id"),
+            "algolia_object_id": algolia_object_id,
+            "slug": slug,
+            "source": candidate.get("source"),
+            "list_page_url": candidate.get("list_page_url"),
+            "listed_date_raw": listed_date,
+            "published_date_raw": detail.get("published_date_raw"),
+            "collection": detail.get("collection"),
+            "collection_ids": list(self._TARGET_COLLECTION_IDS),
+            "public_target": detail.get("public_target"),
+            "reference": detail.get("reference"),
+            "format": detail.get("format"),
+            "language": detail.get("language"),
+            "pdf_download_id": detail.get("pdf_download_id"),
+            "content_publication_date": candidate.get("content_publication_date"),
+            "year": candidate.get("year"),
+            "list_summary": candidate.get("list_summary"),
+        }
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": str(external_id) if external_id is not None else None,
+            "post_number": str(post_number) if post_number is not None else None,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "posted_date": listed_date,
+            "authors": None,
+            "publisher": "Institut national du cancer",
+            "department": None,
+            "journal": None,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "keywords": None,
+            "category": detail.get("collection") or None,
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Algolia fallback
     # ------------------------------------------------------------------
 
