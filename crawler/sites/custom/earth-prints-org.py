@@ -471,3 +471,40 @@ class EarthPrintsOrgCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L2a 2026-10-18); crawl() is unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        """Rows of one DSpace discover page; the detail fetch goes to the item API."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or "searchResult" not in (data.get("_embedded") or {}):
+            raise PermanentFailure("listing_parse_error:missing_searchResult")
+        rows = []
+        for obj in self._extract_objects(data):
+            list_item = self._item_from_search_object(obj)
+            uuid = list_item.get("uuid") or list_item.get("id")
+            if not uuid:
+                continue
+            rows.append({
+                "uuid": uuid,
+                "api_url": f"{self.API_BASE}/core/items/{uuid}?embed=bundles/bitstreams",
+                "url": self._detail_page_url(list_item),
+                "title": self._clean_text(list_item.get("name") or ""),
+                "list_item": list_item,
+            })
+        return rows
+
+    def _enumeration_detail(self, data):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not data:
+            raise PermanentFailure("detail_parse_error:expected_item_json")
+        return data
+
+    def _enumeration_paper(self, item, detail):
+        """The paper crawl() saves for one item (same 100-char abstract skip)."""
+        paper = self._paper_from_item(detail, list_item=item["list_item"])
+        if len(paper.get("abstract") or "") < self.MIN_SAVE_ABSTRACT_CHARS:
+            return None
+        return paper
