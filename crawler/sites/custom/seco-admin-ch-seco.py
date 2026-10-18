@@ -356,3 +356,23 @@ class SecoAdminChSecoCrawler(BaseCrawler):
 
         print(f'[{self.site_id}] Done. Saved {saved} items.')
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() and _fetch_json are unchanged.
+    # The search row carries everything crawl() saves: the listing returns the
+    # same paper dicts (list_returns_paper) after crawl()'s own skip rules
+    # (_parse_item: kind, lang == 'en', title, abstract length).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get('items'), list):
+            raise PermanentFailure('listing_parse_error:invalid_seco_envelope')
+        papers = []
+        for item in data['items']:
+            if not isinstance(item, dict):
+                raise PermanentFailure('listing_parse_error:invalid_seco_record')
+            paper = self._parse_item(item)
+            if paper is not None:
+                papers.append(paper)
+        return papers

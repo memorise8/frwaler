@@ -1,0 +1,111 @@
+{
+ "listing": {
+  "items": [
+   {
+    "id": "seco_1",
+    "kind": "CONTENT_HUB",
+    "lang": "en",
+    "langGroupId": "g1",
+    "title": "Seco hub",
+    "description": "A sufficiently long description of the press release that easily exceeds the one hundred character minimum used by the crawler.",
+    "publishDate": "2026-06-01T00:00:00Z",
+    "topics": [
+     "x"
+    ],
+    "newsCategory": "medienmitteilung",
+    "content": {
+     "metadata": {
+      "announcementDate": "2026-06-02T09:00:00Z",
+      "slug": "s1"
+     },
+     "systemdata": {
+      "documentId": 555,
+      "firstPublicationDate": "2026-05-31T00:00:00Z"
+     }
+    }
+   },
+   {
+    "id": "seco_2",
+    "kind": "ONSB",
+    "lang": "en",
+    "langGroupId": "g2",
+    "title": "Seco onsb",
+    "description": "",
+    "text": [
+     "<p>A sufficiently long description of the press release that easily exceeds the one hundred character minimum used by the crawler.</p>"
+    ],
+    "publishDate": "2026-05-01T00:00:00Z",
+    "content": {
+     "content": {
+      "id": 777,
+      "publicationDate": "2026-05-01",
+      "departments": [
+       {
+        "name": "EAER"
+       }
+      ],
+      "originators": [
+       {
+        "name": "SECO"
+       }
+      ],
+      "attachments": [
+       {
+        "format": "pdf",
+        "uri": "https://www.newsd.admin.ch/f/1.pdf",
+        "title": "Report"
+       }
+      ],
+      "keywords": [
+       {
+        "name": "trade"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "id": "seco_3",
+    "kind": "ONSB",
+    "lang": "de",
+    "langGroupId": "g2",
+    "title": "Seco de",
+    "description": "A sufficiently long description of the press release that easily exceeds the one hundred character minimum used by the crawler.",
+    "publishDate": "2026-05-01T00:00:00Z",
+    "content": {
+     "content": {
+      "id": 778
+     }
+    }
+   },
+   {
+    "id": "seco_4",
+    "kind": "LINK",
+    "lang": "en",
+    "langGroupId": "g4",
+    "title": "link",
+    "description": "A sufficiently long description of the press release that easily exceeds the one hundred character minimum used by the crawler.",
+    "publishDate": "2026-04-01T00:00:00Z"
+   },
+   {
+    "id": "seco_5",
+    "kind": "ONSB",
+    "lang": "en",
+    "langGroupId": "g5",
+    "title": "Seco short",
+    "description": "short",
+    "publishDate": "2026-03-01T00:00:00Z",
+    "content": {
+     "content": {
+      "id": 779
+     }
+    }
+   }
+  ],
+  "pageResults": 5
+ },
+ "empty": {
+  "items": [],
+  "pageResults": 5
+ }
+}
