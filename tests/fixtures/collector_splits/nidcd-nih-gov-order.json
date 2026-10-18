@@ -1,0 +1,14 @@
+{
+ "site_id": "nidcd-nih-gov-order",
+ "listing_body": "<html><body><main><div class=\"order-pubs\"><div class=\"views-row\"><div class=\"order-item\"><h2><a href=\"/health/hearing-aids\">Pub hearing-aids</a></h2><div class=\"order-desc\"><p>Short listing description for hearing-aids.</p></div><span class=\"downloadpdf\"><a href=\"/sites/default/files/Documents/order/hearing-aids.pdf\">PDF</a></span></div></div><div class=\"views-row\"><div class=\"order-item\"><h2><a href=\"/health/tinnitus\">Pub tinnitus</a></h2><div class=\"order-desc\"><p>Short listing description for tinnitus.</p></div><span class=\"downloadpdf\"><a href=\"/sites/default/files/Documents/order/tinnitus.pdf\">PDF</a></span></div></div></div></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.nidcd.nih.gov/health/hearing-aids": "<html><body><header>h</header><main><article><h1>Pub hearing-aids</h1><p>Synthetic NIDCD publication text for offline equality testing of the enumeration split. Last Reviewed: March 5, 2024. Synthetic NIDCD publication text for offline equality testing of the enumeration split. Last Reviewed: March 5, 2024. </p></article></main></body></html>",
+  "https://www.nidcd.nih.gov/health/tinnitus": "<html><body><header>h</header><main><article><h1>Pub tinnitus</h1><p>Synthetic NIDCD publication text for offline equality testing of the enumeration split. Last Reviewed: March 5, 2024. Synthetic NIDCD publication text for offline equality testing of the enumeration split. Last Reviewed: March 5, 2024. </p></article></main></body></html>"
+ },
+ "long_text": "Synthetic NIDCD publication text for offline equality testing of the enumeration split. Last Reviewed: March 5, 2024. Synthetic NIDCD publication text for offline equality testing of the enumeration split. Last Reviewed: March 5, 2024. ",
+ "empty_body": "<html><body><main><div class=\"order-pubs\"></div></main></body></html>",
+ "original_method_source_sha256": {
+  "crawl": "24c4cdd8d379e03a5018f11b0a64d5a5674dcd083c92fcbe6e4b706f0f556ec3"
+ }
+}

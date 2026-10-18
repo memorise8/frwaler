@@ -261,3 +261,49 @@ class NidcdNihGovOrderCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # module parsers stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html):
+        """Rows of one /order?page=N page, exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        return [{"title": t, "url": u, "short_desc": d, "pdf_url": p}
+                for t, u, d, p in _parse_list_page(html)]
+
+    def _enumeration_paper(self, html, item):
+        """Copy of crawl()'s paper conversion; None keeps crawl()'s skips."""
+        title, pub_url = item["title"], item["url"]
+        short_desc, pdf_url = item["short_desc"], item["pdf_url"]
+        abstract = ""
+        published_date = ""
+        if html:
+            abstract, published_date = _parse_detail_page(html)
+        if len(abstract) < 50:
+            abstract = short_desc
+        if len(abstract) < 50:
+            return None
+        external_id = pub_url.replace(_BASE_URL, "").lstrip("/")
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": title,
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": "Health Information",
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": published_date,
+            "url": pub_url,
+            "pdf_url": pdf_url,
+            "doi": "",
+            "department": (
+                "National Institute on Deafness and Other Communication Disorders"
+            ),
+            "metadata": json.dumps(
+                {"short_description": short_desc}, ensure_ascii=False
+            ),
+        }
