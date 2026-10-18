@@ -409,3 +409,80 @@ class PbocriOrgCnXslwhtmlCrawler(BaseCrawler):
 
         print(f"[pbocri-org-cn-xslwhtml] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # parsers above stay unchanged; no fetching or storage happens here.
+    # Section (category) comes from the list page path, as crawl() pairs
+    # them; PDF-only rows use their list page as framework detail URL
+    # (crawl() fetches nothing for them).
+    # ------------------------------------------------------------------
+    _ENUM_SECTIONS = {"/qklw.html": "期刊论文", "/rmyhgzlw.html": "工作论文"}
+
+    def _enumeration_items(self, html, url):
+        """Rows of one section list page (?page=N), exactly as crawl() parses them."""
+        from urllib.parse import urlparse
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        category = self._ENUM_SECTIONS.get(urlparse(url or "").path)
+        if category is None:
+            raise PermanentFailure("listing_parse_error:unknown_section")
+        rows = []
+        for item in self._parse_list_page(html):
+            rows.append(dict(item, category=category,
+                             detail_url=(url if item["is_pdf"] else item["url"])))
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Copy of crawl()'s per-row conversion; None keeps crawl()'s skips."""
+        doc_id = item["doc_id"]
+        category = item["category"]
+        if item["is_pdf"]:
+            abstract = item["title"]
+            if len(abstract) < 100:
+                return None
+            return {
+                "id": None,
+                "site_id": self.site_id,
+                "external_id": doc_id,
+                "title": item["title"],
+                "authors": json.dumps([], ensure_ascii=False),
+                "abstract": abstract,
+                "category": category,
+                "keywords": json.dumps([], ensure_ascii=False),
+                "published_date": item["pub_date"] or None,
+                "url": item["url"],
+                "pdf_url": item["pdf_url"],
+                "doi": "",
+                "department": "中国人民银行金融研究所",
+                "metadata": json.dumps({}, ensure_ascii=False),
+            }
+        parsed = self._parse_detail(html, doc_id)
+        if parsed is None:
+            return None
+        abstract = parsed["abstract"]
+        if len(abstract) < 100:
+            return None
+        title = parsed["title"] or item["title"]
+        pub_date = parsed["pub_date"] or item["pub_date"] or None
+        authors_list = [parsed["author"]] if parsed["author"] else []
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": doc_id,
+            "title": title,
+            "authors": json.dumps(authors_list, ensure_ascii=False),
+            "abstract": abstract,
+            "category": category,
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": pub_date,
+            "url": item["url"],
+            "pdf_url": "",
+            "doi": "",
+            "department": "中国人民银行金融研究所",
+            "metadata": json.dumps(
+                {"snippet": item["snippet"]},
+                ensure_ascii=False,
+            ),
+        }

@@ -1,0 +1,18 @@
+{
+ "site_id": "pbocri-org-cn-xslwhtml",
+ "listing_body": "<html><body><ul class=\"gdItem\"><li><h1><a href=\"/25278.html\">着力提升我国金融业竞争力</a></h1><p class=\"ellipsis2\">摘要一</p><span>2026-02-04</span></li><li><h1><a href=\"https://www.pbocri.org.cn/25043.html\">夯实碳定价的制度基础</a></h1><p class=\"ellipsis2\">摘要二</p><span>2026-02-04</span></li></ul></body></html>",
+ "empty_body": "<html><body><ul class=\"gdItem\"></ul></body></html>",
+ "content_type": "text/html",
+ "long_text": "金融研究所 시험용 합성 본문입니다. 분리 메서드가 기존 crawl 과 같은 문서를 만드는지 확인하기 위한 긴 문장입니다. 중국 금융업 경쟁력 제고에 관한 글입니다. 충분히 긴 본문을 만들기 위해 문장을 더 붙입니다. 끝.",
+ "details": {
+  "https://www.pbocri.org.cn/25278.html": "<html><body><h1 class=\"title\">着力提升我国金融业竞争力</h1><div class=\"info\">作者：丁志杰  发布时间：2026-02-04</div><div class=\"detial\"><p>金融研究所 시험용 합성 본문입니다. 분리 메서드가 기존 crawl 과 같은 문서를 만드는지 확인하기 위한 긴 문장입니다. 중국 금융업 경쟁력 제고에 관한 글입니다. 충분히 긴 본문을 만들기 위해 문장을 더 붙입니다. 끝.</p></div></body></html>",
+  "https://www.pbocri.org.cn/25043.html": "<html><body><h1 class=\"title\">夯实碳定价的制度基础</h1><div class=\"info\">作者：丁志杰  发布时间：2026-02-04</div><div class=\"detial\"><p>金融研究所 시험용 합성 본문입니다. 분리 메서드가 기존 crawl 과 같은 문서를 만드는지 확인하기 위한 긴 문장입니다. 중국 금융업 경쟁력 제고에 관한 글입니다. 충분히 긴 본문을 만들기 위해 문장을 더 붙입니다. 끝.</p></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_curl_get": "03fe93a8a35390df2cb3e5fcb3996e74ce0a00e90adc09aa56a969c15c7cad6f",
+  "_parse_list_page": "f2f3e566b0cb271b7fd6795f4e81637905c7e9d4cdc7d9e2e811e614024f86fa",
+  "_parse_detail": "5dbf7586c7b302800829d6a3add1740ba5255f864e19ccd1c8284a4016f4e842",
+  "_has_next_page": "d1b524d64a3639c46de368b62f78f9ba5b4b5e3c3eeec12887eb1b30e4142016",
+  "crawl": "03ae0c96151eee89c9b7ba4a1cdc1ebb8dc26bb5730fff392a0a307a105d83cc"
+ }
+}

@@ -1,0 +1,51 @@
+{
+ "version": 1,
+ "defaults": {
+  "request_interval_s": 1.5,
+  "respect_robots": true,
+  "retries": 1
+ },
+ "sites": {
+  "pbocri-org-cn-xslwhtml": {
+   "strategy": "date_range_split",
+   "base_url": "https://www.pbocri.org.cn",
+   "verify_ssl": false,
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "html",
+     "url"
+    ],
+    "detail_method": "_enumeration_paper",
+    "detail_args": [
+     "html",
+     "item"
+    ]
+   },
+   "listing": {
+    "url": "https://www.pbocri.org.cn/{segment}.html",
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "key_field": "url",
+     "url_field": "detail_url",
+     "title_field": "title",
+     "listing_marker": "ul.gdItem"
+    }
+   },
+   "segments": {
+    "mode": "explicit",
+    "items": [
+     {
+      "key": "qklw"
+     },
+     {
+      "key": "rmyhgzlw"
+     }
+    ]
+   }
+  }
+ }
+}
