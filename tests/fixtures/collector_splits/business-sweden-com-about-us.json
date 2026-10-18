@@ -1,0 +1,21 @@
+{
+  "site_id": "business-sweden-com-about-us",
+  "listing_body": "<html><body><div class=\"js-pagination\"><div class=\"CalendarList-item\"><span class=\"CalendarList-itemTime\">March 25, 2031</span><h6 class=\"Heading Heading--h8\"><a href=\"/about-us/media/press-releases/press-releases/2031/synthetic-one/\">Synthetic release one</a></h6><div class=\"CalendarList-itemIntro\"><p>Short snippet.</p></div></div><div class=\"CalendarList-item\"><span class=\"CalendarList-itemTime\">Feb 3, 2031</span><h6 class=\"Heading Heading--h8\"><a href=\"/about-us/media/press-releases/press-releases/2031/synthetic-two/\">Synthetic release two</a></h6><div class=\"CalendarList-itemIntro\"><p>Short snippet.</p></div></div></div><ul><li class=\"Pagination-item Pagination-item--nav next is-disabled\"><a>Next</a></li></ul></body></html>",
+  "content_type": "text/html; charset=utf-8",
+  "details": {
+    "https://www.business-sweden.com/about-us/media/press-releases/press-releases/2031/synthetic-one/": "<html><head><meta name=\"pageid\" content=\"990001\"></head><body><div class=\"ArticleHead-intro\">Press release 26.03.2031</div><div class=\"ArticleHead-banner\">Synthetic lead paragraph for the release.</div><div class=\"Article-body\"><p>Synthetic Business Sweden press release body for the offline equality test only. Synthetic Business Sweden press release body for the offline equality test only. Synthetic Business Sweden press release body for the offline equality test only.</p></div></body></html>",
+    "https://www.business-sweden.com/about-us/media/press-releases/press-releases/2031/synthetic-two/": "<html><head></head><body><div class=\"ArticleHead-intro\">Press release 04.02.2031</div><div class=\"ArticleHead-banner\">Synthetic lead paragraph for the release.</div><div class=\"Article-body\"><p>Synthetic Business Sweden press release body for the offline equality test only. Synthetic Business Sweden press release body for the offline equality test only. Synthetic Business Sweden press release body for the offline equality test only.</p></div></body></html>"
+  },
+  "empty_body": "<html><body><div class=\"js-pagination\"></div></body></html>",
+  "long_text": "Synthetic Business Sweden press release body for the offline equality test only. Synthetic Business Sweden press release body for the offline equality test only. Synthetic Business Sweden press release body for the offline equality test only.",
+  "original_method_source_sha256": {
+    "module:_parse_month_day_year": "37324a3c5505c1e136b8a0ce4e0c41e7f819536f2df233bd72c80d19bd979fe0",
+    "module:_parse_dot_date": "c1c527926f67c2a7fa5c12362765b7ab03352adcdc422fd727bfd2a40c9d51c5",
+    "module:_bs": "8221970e830f21f1e8dc16cc957f246b24a8d867a066262154790d44f4fe3fd5",
+    "module:_text": "31b4ea923ddd3dc8a12ec72a854302bdaa7dc2c9c650bba5a1be7fbe84ca8044",
+    "_curl_get": "02761a2addc4336143aa98a213f9c2ab64c2f2c4bed02886960e17a895dba787",
+    "_parse_list_page": "c551807051f1863695172f1aea81955b7c49db5ab136d8dd730831925afcbb40",
+    "_fetch_detail": "f875a7e67b7deeccc8f135ecc1102b70b3b49456ff48bd8a1b26076e5acea06c",
+    "crawl": "e6c2212c91cef76f9e959d265053030ba7cc1d30da359bdb7e1b44a2da19115d"
+  }
+}

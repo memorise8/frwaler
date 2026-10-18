@@ -226,6 +226,96 @@ class BusinessSwedenPressReleasesCrawler(BaseCrawler):
         return result
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points; crawl() and helpers stay unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw, url=None):
+        """Rows from the registered _parse_list_page. A page without the
+        js-pagination list container is a listing parse error, never an empty page."""
+        from crawler.enumeration.http import PermanentFailure
+        soup = _bs(raw) if isinstance(raw, str) else None
+        if soup is None or soup.find("div", class_="js-pagination") is None:
+            raise PermanentFailure("listing_parse_error:list_container_missing", url)
+        items, _has_next = self._parse_list_page(raw)
+        return items
+
+    def _enumeration_paper(self, html, item):
+        """Pure copy of _fetch_detail's parsing plus crawl()'s conversion (None = skipped)."""
+        result = {}
+        if html:
+            m = re.search(r'<meta\s[^>]*name=["\']pageid["\'][^>]*content=["\'](\d+)["\']', html)
+            if not m:
+                m = re.search(r'<meta\s[^>]*content=["\'](\d+)["\'][^>]*name=["\']pageid["\']', html)
+            if m:
+                result["page_id"] = m.group(1)
+            soup = _bs(html)
+            if soup is not None:
+                intro_div = soup.find(class_="ArticleHead-intro")
+                if intro_div:
+                    intro_text = _text(intro_div)
+                    published_date = _parse_dot_date(intro_text)
+                    if published_date:
+                        result["published_date"] = published_date
+                banner_div = soup.find(class_="ArticleHead-banner")
+                banner_text = _text(banner_div) if banner_div else ""
+                body_div = soup.find(class_="Article-body")
+                body_text = _text(body_div) if body_div else ""
+                parts = []
+                if len(banner_text) > 20:
+                    parts.append(banner_text)
+                if len(body_text) > 20:
+                    parts.append(body_text)
+                if not parts and intro_div:
+                    raw = _text(intro_div)
+                    raw = re.sub(r"^Press release\s+", "", raw, flags=re.IGNORECASE)
+                    if len(raw) > 20:
+                        parts.append(raw)
+                result["abstract"] = "\n\n".join(parts)
+        detail = result
+
+        item_url = item["url"]
+        abstract = detail.get("abstract", "").strip()
+        if len(abstract) < 50:
+            abstract = item.get("snippet", "").strip()
+        if len(abstract) < 50:
+            return None
+
+        published_date = detail.get("published_date", item.get("listed_date", ""))
+        listed_date = item.get("listed_date", published_date)
+        page_id = detail.get("page_id", "")
+
+        slug = [s for s in item_url.rstrip("/").split("/") if s][-1]
+        post_number = page_id if page_id else slug
+        external_id = post_number
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "url": item_url,
+            "pdf_url": None,
+            "authors": "",
+            "publisher": "Business Sweden",
+            "department": "",
+            "journal": "",
+            "keywords": "",
+            "category": "Press Release",
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps({
+                "posted_date": listed_date,
+                "page_id": page_id,
+                "slug": slug,
+                "snippet": item.get("snippet", ""),
+            }, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
