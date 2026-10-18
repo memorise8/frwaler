@@ -351,3 +351,31 @@ class OpmGoKrOpmCrawler(BaseCrawler):
 
         print(f"[opm-go-kr-opm] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (no network); crawl() and the methods
+    # above are unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List-page HTML -> _parse_list_page() rows plus the detail URL
+        that crawl() fetches (and stores as the paper URL)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_bs(html)
+        if soup is None or soup.find("tbody") is None:
+            raise PermanentFailure("listing_parse_error:missing_tbody")
+        rows = []
+        for item in self._parse_list_page(html):
+            row = dict(item)
+            row["url"] = (f"{_LIST_URL}?mode=view&articleNo={item['article_no']}"
+                          f"&article.offset=0&articleLimit={_PAGE_SIZE}")
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, html, row):
+        """Detail HTML + list row -> the paper crawl() saves (or None)."""
+        if not html:
+            return None
+        return self._parse_detail(html, row["article_no"], row["title"], row["dept"], row["date"])

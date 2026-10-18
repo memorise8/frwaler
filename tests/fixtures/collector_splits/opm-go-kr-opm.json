@@ -1,0 +1,20 @@
+{
+  "site_id": "opm-go-kr-opm",
+  "listing_body": "<html><body><table class=\"board\"><thead><tr><th>번호</th></tr></thead><tbody><tr><td>2</td><td class=\"td-left\"><div class=\"c-board-title-wrap\"><a class=\"c-board-title\" href=\"?mode=view&amp;articleNo=160101&amp;article.offset=0&amp;articleLimit=10\">[보도자료] Offline 160101</a></div></td><td>정책관실</td><td> 2026.10.01 </td><td></td><td>5</td></tr><tr><td>1</td><td class=\"td-left\"><div class=\"c-board-title-wrap\"><a class=\"c-board-title\" href=\"?mode=view&amp;articleNo=160102&amp;article.offset=0&amp;articleLimit=10\">[보도자료] Offline 160102</a></div></td><td>정책관실</td><td> 2026.10.02 </td><td></td><td>5</td></tr></tbody></table></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.opm.go.kr/opm/news/press-release.do?mode=view&articleNo=160101&article.offset=0&articleLimit=10": "<html><body><h4>[보도자료] Offline 160101 상세</h4><div class=\"board-etc-wrap\"><ul><li>작성자</li><li>2026.10.01</li></ul></div><div class=\"board-view-file-wrap\"><ul><li><a href=\"?mode=download&articleNo=160101&attachNo=1\">report-160101.pdf</a></li></ul></div><div class=\"board-view-txt\"><p>Synthetic press résumé and Korean 자료 for offline equality testing. Synthetic press résumé and Korean 자료 for offline equality testing. </p></div></body></html>",
+    "https://www.opm.go.kr/opm/news/press-release.do?mode=view&articleNo=160102&article.offset=0&articleLimit=10": "<html><body><h4>[보도자료] Offline 160102 상세</h4><div class=\"board-etc-wrap\"><ul><li>작성자</li><li>2026.10.02</li></ul></div><div class=\"board-view-file-wrap\"><ul><li><a href=\"?mode=download&articleNo=160102&attachNo=1\">report-160102.pdf</a></li></ul></div><div class=\"board-view-txt\"><p>Synthetic press résumé and Korean 자료 for offline equality testing. Synthetic press résumé and Korean 자료 for offline equality testing. </p></div></body></html>"
+  },
+  "long_text": "Synthetic press résumé and Korean 자료 for offline equality testing. Synthetic press résumé and Korean 자료 for offline equality testing. ",
+  "short_keeps_items": true,
+  "empty_body": "<html><body><table class=\"board\"><thead><tr><th>번호</th></tr></thead><tbody><tr><td colspan=\"6\">등록된 게시물이 없습니다.</td></tr></tbody></table></body></html>",
+  "original_method_source_sha256": {
+    "_fetch_list_page": "71689e949015b6e19133c7a4009a9ca4dddbbf3f23f1d8305f8a3899e15565fa",
+    "_parse_list_page": "a5c973373e6a2ca96cec11b7192e7bd828eab53d534d39cba960f2ebf2b77c9b",
+    "_get_last_offset": "fe9389938eb5c00e231aa945e4776f8ba60a200dec8a9c16ce5a3c9061368ad5",
+    "_fetch_detail": "a504cff1547ef30ae9d0b1014789dd137ce47b61721feac6132731dc72c620cd",
+    "_parse_detail": "420976060c37d7f04bed44b9026b81f600594755e9ac1081a86a24b46686331e",
+    "crawl": "e75abb690ccb42e45fc66cc1ed95eefa6459f84b5dd96c592ea6898a2d318630"
+  }
+}
