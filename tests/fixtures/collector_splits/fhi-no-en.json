@@ -1,0 +1,16 @@
+{
+  "site_id": "fhi-no-en",
+  "listing_body": "{\"totalMatching\": 2, \"pageSize\": 25, \"results\": [{\"id\": 900001, \"title\": \"Synthetic report one\", \"description\": \"d1\", \"url\": \"/en/publ/2026/synthetic-report-one/\", \"type\": \"Report\", \"dateCreated\": \"2026-02-11T10:00:00\", \"dateChanged\": \"2026-02-12T10:00:00\", \"isArchived\": false}, {\"id\": 900000, \"title\": \"Synthetic report zero\", \"description\": \"d0\", \"url\": \"/en/publ/2025/synthetic-report-zero/\", \"type\": \"Report\", \"dateCreated\": \"2025-01-10T09:00:00\", \"dateChanged\": \"2025-01-10T09:30:00\", \"isArchived\": true}]}",
+  "content_type": "application/json",
+  "details": {
+    "https://www.fhi.no/en/publ/2026/synthetic-report-one/": "<html><head><script type=\"application/ld+json\">{\"@type\":\"Article\",\"author\":{\"name\":\"Synthetic Author 1\"}}</script></head><body><main><h1>Synthetic report 1</h1><p>Synthetic offline summary paragraph for the enumeration equality test, résumé ÆØÅ. Synthetic offline summary paragraph for the enumeration equality test, résumé ÆØÅ.</p><a href=\"/contentassets/abc1/synthetic-1.pdf\">PDF</a></main></body></html>",
+    "https://www.fhi.no/en/publ/2025/synthetic-report-zero/": "<html><head><script type=\"application/ld+json\">{\"@type\":\"Article\",\"author\":{\"name\":\"Synthetic Author 0\"}}</script></head><body><main><h1>Synthetic report 0</h1><p>Synthetic offline summary paragraph for the enumeration equality test, résumé ÆØÅ. Synthetic offline summary paragraph for the enumeration equality test, résumé ÆØÅ.</p></main></body></html>"
+  },
+  "long_text": "Synthetic offline summary paragraph for the enumeration equality test, résumé ÆØÅ. Synthetic offline summary paragraph for the enumeration equality test, résumé ÆØÅ.",
+  "empty_body": "{\"totalMatching\": 2, \"pageSize\": 25, \"results\": []}",
+  "original_method_source_sha256": {
+    "crawl": "ca0d5d54469f240503c336c0d13a012e78b2b186dc4ab404e32341c0287d77f7",
+    "_fetch_detail": "63977523b285f4b0c63a932dc289d23900f1a38dd09e71045b023dc9e907be53",
+    "_fetch_list_page": "2ecd3be30efeeec182eb7eeb393d53571f164155cc7877ba8d583e7118e15698"
+  }
+}

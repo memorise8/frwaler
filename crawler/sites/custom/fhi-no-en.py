@@ -308,3 +308,135 @@ class FhiNoEnCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done. total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl(), _fetch_list_page()
+    # and _fetch_detail() are unchanged; these methods only parse already
+    # fetched responses (no network, no storage).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Rows of one /api/search page in crawl() order (key: item id)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("results"), list):
+            raise PermanentFailure("listing_parse_error:expected_search_results", url or "")
+        rows = data["results"]
+        if any(not isinstance(row, dict) for row in rows):
+            raise PermanentFailure("listing_parse_error:result_not_an_object", url or "")
+        return [row for row in rows if row.get("url")]
+
+    def _enumeration_detail(self, raw):
+        """The parse part of _fetch_detail() copied verbatim (fetched HTML in)."""
+        if not raw:
+            return {}
+        try:
+            soup = self._parse_html(raw)
+        except Exception as exc:
+            print(f"[{self.site_id}] HTML parse error: {exc}")
+            return {}
+        if soup is None:
+            return {}
+
+        result = {}
+
+        main = soup.find("main") or soup.find(id="main") or soup.body or soup
+        paragraphs = []
+        seen_texts: set = set()
+        for p in main.find_all("p"):
+            text = re.sub(r"\s+", " ", p.get_text(" ", strip=True)).strip()
+            if len(text) >= 30 and text not in seen_texts:
+                seen_texts.add(text)
+                paragraphs.append(text)
+
+        abstract = "\n\n".join(paragraphs)
+
+        if len(abstract) < 50:
+            for attr, name in [("property", "og:description"), ("name", "description")]:
+                meta = soup.find("meta", attrs={attr: name})
+                if meta and meta.get("content", "").strip():
+                    abstract = meta["content"].strip()
+                    break
+
+        result["abstract"] = abstract
+
+        pdf_urls = []
+        for a in soup.find_all("a", href=True):
+            href = str(a["href"])
+            if re.search(r"\.pdf(?:$|[?#])", href, re.I):
+                full = href if href.startswith("http") else urljoin(self.base_url, href)
+                if full not in pdf_urls:
+                    pdf_urls.append(full)
+        result["pdf_url"] = pdf_urls[0] if pdf_urls else ""
+        result["pdf_urls"] = pdf_urls
+
+        for script in soup.find_all("script", type="application/ld+json"):
+            try:
+                schema = json.loads(script.string or "")
+                if isinstance(schema, dict) and "author" in schema:
+                    result["schema_author"] = schema["author"]
+            except (json.JSONDecodeError, TypeError, ValueError):
+                pass
+
+        return result
+
+    def _enumeration_paper(self, item, html):
+        """Paper from a list row and its fetched detail page — crawl()'s
+        conversion copied verbatim (external_id = list item id, unchanged).
+        None keeps crawl()'s skips (short abstract, missing title)."""
+        item_url = item.get("url", "")
+        if not item_url:
+            return None
+        detail_url = urljoin(self.base_url, item_url)
+        detail = self._enumeration_detail(html)
+
+        abstract = (detail.get("abstract") or "").strip()
+        if len(abstract) < 50:
+            return None
+
+        item_id = str(item.get("id", ""))
+        title = item.get("title", "").strip()
+        if not title:
+            return None
+
+        published_date = self._isodate(item.get("dateCreated", ""))
+        listed_date = self._isodate(item.get("dateChanged", ""))
+
+        pdf_url = detail.get("pdf_url", "")
+        original_filename = None
+        if pdf_url:
+            tail = pdf_url.rstrip("/").split("/")[-1].split("?")[0]
+            if "." in tail:
+                original_filename = tail
+
+        schema_author = detail.get("schema_author", "")
+        if isinstance(schema_author, dict):
+            schema_author = schema_author.get("name", "")
+        authors = str(schema_author).strip() if schema_author else ""
+
+        return {
+            "site_id": self.site_id,
+            "external_id": item_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": published_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "publisher": "Norwegian Institute of Public Health",
+            "authors": authors,
+            "department": "Norwegian Institute of Public Health",
+            "category": item.get("type", ""),
+            "keywords": "",
+            "original_filename": original_filename,
+            "metadata": json.dumps({
+                "posted_date": published_date,
+                "listed_date": listed_date,
+                "dateCreated": item.get("dateCreated", ""),
+                "dateChanged": item.get("dateChanged", ""),
+                "node_id": item_id,
+                "contentType": "con-32",
+                "category": item.get("type", ""),
+                "isArchived": item.get("isArchived", False),
+                "pdf_urls": detail.get("pdf_urls", []),
+            }, ensure_ascii=False),
+        }
