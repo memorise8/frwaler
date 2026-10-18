@@ -309,3 +309,107 @@ class CnesFrCommuniquesCrawler(BaseCrawler):
         self._save_paper(paper)
         print(f'[cnes-fr-communiques] saved: {it["title"][:70]}')
         return 1
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L2a 2026-10-18). crawl() is unchanged;
+    # these mirror _fetch_list_page / _process_item without the transport
+    # (tests/test_enumeration_split_cnes_fr_communiques.py compares both).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure('listing_parse_error:expected_html')
+        soup = _make_soup(html)
+        if soup is None or soup.find('main') is None:
+            raise PermanentFailure('listing_parse_error:missing_main_marker')
+        cards = soup.find_all(
+            'article',
+            class_=lambda c: c and 'fr-card' in (c if isinstance(c, str) else ' '.join(c)),
+        )
+        items = []
+        for card in cards:
+            a = card.find('a', class_='fr-card__link')
+            if not a:
+                continue
+            href = a.get('href', '')
+            if not href.startswith('/communiques/'):
+                continue
+            full_url = self.base_url + href
+            slug = href.rstrip('/').rsplit('/', 1)[-1]
+            title = a.get_text(strip=True)
+            date_el = card.find(class_='fr-card__detail')
+            listed_date_raw = date_el.get_text(strip=True) if date_el else ''
+            listed_date = _parse_french_date(listed_date_raw)
+            tags = [t.get_text(strip=True) for t in card.find_all(class_='fr-tag')]
+            items.append({
+                'url': full_url,
+                'slug': slug,
+                'title': title,
+                'listed_date': listed_date,
+                'listed_date_raw': listed_date_raw,
+                'tags': tags,
+            })
+        return items
+
+    def _enumeration_paper(self, html, it):
+        raw = html
+        url = it['url']
+        slug = it['slug']
+        soup = _make_soup(raw)
+        if soup is None:
+            return None
+        pub_date = None
+        pub_match = re.search(r'Publié le (\d{1,2} \w+ \d{4})', raw)
+        if pub_match:
+            pub_date = _parse_french_date(pub_match.group(1))
+        abstract = ''
+        try:
+            abstract = _extract_body_text(soup)
+        except Exception as exc:
+            print(f'[cnes-fr-communiques] body extract error for {url}: {exc}')
+        if len(abstract) < 50:
+            for meta_attr, meta_val in [('property', 'og:description'), ('name', 'description')]:
+                meta_tag = soup.find('meta', attrs={meta_attr: meta_val})
+                if meta_tag:
+                    candidate = meta_tag.get('content', '')
+                    if len(candidate) > len(abstract):
+                        abstract = candidate
+                    break
+        if len(abstract) < 50:
+            return None
+        pdf_url = None
+        original_filename = None
+        pdf_match = re.search(r'href=["\']([^"\']*\.pdf[^"\']*)["\']', raw, re.I)
+        if pdf_match:
+            pdf_raw = pdf_match.group(1)
+            pdf_url = pdf_raw if pdf_raw.startswith('http') else self.base_url + pdf_raw
+            original_filename = pdf_url.rstrip('/').rsplit('/', 1)[-1].split('?')[0]
+        tags = it.get('tags', [])
+        category = tags[0] if tags else None
+        keywords = ','.join(tags[1:]) if len(tags) > 1 else None
+        return {
+            'site_id': self.site_id,
+            'external_id': slug,
+            'post_number': slug,
+            'title': it['title'],
+            'abstract': abstract,
+            'url': url,
+            'pdf_url': pdf_url,
+            'original_filename': original_filename,
+            'published_date': pub_date or it.get('listed_date'),
+            'listed_date': it.get('listed_date'),
+            'category': category,
+            'keywords': keywords,
+            'publisher': 'CNES',
+            'authors': None,
+            'doi': None,
+            'department': None,
+            'journal': None,
+            'metadata': json.dumps({
+                'posted_date': it.get('listed_date_raw'),
+                'tags': tags,
+                'slug': slug,
+                'originalFilename': original_filename,
+            }, ensure_ascii=False),
+        }
