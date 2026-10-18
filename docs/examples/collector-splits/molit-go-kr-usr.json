@@ -1,0 +1,53 @@
+{
+ "version": 1,
+ "defaults": {
+  "request_interval_s": 1.5,
+  "respect_robots": true,
+  "retries": 1
+ },
+ "sites": {
+  "molit-go-kr-usr": {
+   "strategy": "last_page_backward",
+   "base_url": "https://www.molit.go.kr",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "raw",
+     "url"
+    ],
+    "detail_method": "_enumeration_paper",
+    "detail_args": [
+     "first_html",
+     "raw",
+     "item"
+    ],
+    "second_step": {
+     "use": "detail_page",
+     "selector": "div.bd_view li.file a[href*=\"DWN.jsp\"][href*=\".pdf\" i]",
+     "attr": "href",
+     "required": false
+    }
+   },
+   "listing": {
+    "url": "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp",
+    "params": {
+     "psize": "10",
+     "lcmspage": 1
+    },
+    "page_param": "lcmspage",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "key_field": "item_id",
+     "url_field": "url",
+     "title_field": "list_title",
+     "listing_marker": "table.bd_tbl"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1
+   }
+  }
+ }
+}

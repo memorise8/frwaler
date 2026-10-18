@@ -1,0 +1,17 @@
+{
+ "site_id": "molit-go-kr-usr",
+ "listing_body": "<html><body><table class=\"bd_tbl\"><tbody><tr><td class=\"bd_num\">9001</td><td class=\"bd_title\"><a href=\"dtl.jsp?lcmspage=1&id=95092501\">ITS 세계총회 개막 새글</a></td><td class=\"bd_field\">교통</td><td class=\"bd_date\">2026-10-18</td></tr><tr><td class=\"bd_num\">9000</td><td class=\"bd_title\"><a href=\"dtl.jsp?lcmspage=1&id=95092500\">불법하도급 단속 확대 새글</a></td><td class=\"bd_field\">교통</td><td class=\"bd_date\">2026-10-18</td></tr></tbody></table></body></html>",
+ "empty_body": "<html><body><table class=\"bd_tbl\"><tbody></tbody></table></body></html>",
+ "content_type": "text/html",
+ "long_text": "국토교통부 보도자료 시험용 합성 핵심 내용입니다. 분리 메서드가 기존 crawl 과 같은 문서를 만드는지 확인합니다.",
+ "details": {
+  "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?lcmspage=1&id=95092501": "<html><head><meta property=\"og:title\" content=\"세계 첨단 교통기술 강릉에 모인다 - 요약\"></head><body><div class=\"bd_view\"><h4>세계 첨단 교통기술 강릉에 모인다</h4><ul class=\"bd_view_ul_info\"><li><strong>담당부서</strong><span>첨단교통과</span></li><li><strong>등록일</strong><span>2026-10-18 11:00</span></li><li class=\"file\"><a href=\"/LCMS/DWN.jsp?fold=koreaNews/mobile/file&fileName=report%2B1.pdf\" title=\"report 1.pdf 파일 미리보기 새창열림\">report 1.pdf</a></li></ul><ul class=\"bd_view_ul_lst\"><li>국토교통부 보도자료 시험용 합성 핵심 내용입니다. 분리 메서드가 기존 crawl 과 같은 문서를 만드는지 확인합니다.</li><li>둘째 요점</li></ul></div></body></html>",
+  "https://www.molit.go.kr/LCMS/DWN.jsp?fold=koreaNews/mobile/file&fileName=report%2B1.pdf": "%PDF-1.4 tiny",
+  "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?lcmspage=1&id=95092500": "<html><head><meta property=\"og:title\" content=\"불법하도급 단속·체불해소 전방위 확대 - 요약\"></head><body><div class=\"bd_view\"><h4>불법하도급 단속·체불해소 전방위 확대</h4><ul class=\"bd_view_ul_info\"><li><strong>담당부서</strong><span>첨단교통과</span></li><li><strong>등록일</strong><span>2026-10-18 11:00</span></li></ul><ul class=\"bd_view_ul_lst\"><li>국토교통부 보도자료 시험용 합성 핵심 내용입니다. 분리 메서드가 기존 crawl 과 같은 문서를 만드는지 확인합니다.</li><li>둘째 요점</li></ul></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "crawl": "b73136243e82af5d2571440bb5f57cefb460c154c4d52d3bb34a0376ec1da1f5",
+  "_process_item": "4662351f4cb51996dd3179ccdae52946c9fa9fb278d2da0c193918d9355add8d",
+  "_build_abstract": "c3af7ee570c933d53f52e2484d395a16b692b4a8799450f9772821255bedebf8"
+ }
+}

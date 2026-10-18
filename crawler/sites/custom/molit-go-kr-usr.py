@@ -371,3 +371,162 @@ class MolitGoKrUsrCrawler(BaseCrawler):
                 parts.append(seg)
 
         return " | ".join(parts)
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and
+    # _process_item() stay unchanged; no fetching or storage happens here.
+    # The framework fetches the detail page, then (second step) the first
+    # DWN.jsp PDF link; its text comes from the same in-process pdfminer
+    # helper crawl() uses (_extract_pdf_text).
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, raw, url):
+        """List rows of one lst.jsp page, exactly as crawl() reads them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw, (bytes, bytearray)):
+            raise PermanentFailure("listing_parse_error:expected_bytes")
+        soup = _parse_html(bytes(raw).decode("utf-8", errors="replace"))
+        items = []
+        for row in soup.select("table.bd_tbl tbody tr"):
+            num_td = row.select_one("td.bd_num")
+            title_td = row.select_one("td.bd_title")
+            field_td = row.select_one("td.bd_field")
+            date_td = row.select_one("td.bd_date")
+            if not title_td:
+                continue
+            a_tag = title_td.find("a")
+            if not a_tag:
+                continue
+            href = a_tag.get("href", "")
+            try:
+                qs = urllib.parse.parse_qs(urllib.parse.urlparse(href).query)
+                item_id = qs.get("id", [None])[0]
+            except Exception:
+                item_id = None
+            if not item_id:
+                continue
+            detail_url = (
+                f"{self.base_url}/USR/NEWS/m_71/dtl.jsp?lcmspage=1&id={item_id}"
+            )
+            list_title = re.sub(
+                r"\s+(새글|공지)\s*$",
+                "",
+                a_tag.get_text(separator=" ", strip=True),
+            ).strip()
+            items.append({
+                "item_id": item_id,
+                "url": detail_url,
+                "list_title": list_title,
+                "category": field_td.get_text(strip=True) if field_td else None,
+                "listed_date": date_td.get_text(strip=True) if date_td else None,
+                "post_number": num_td.get_text(strip=True) if num_td else None,
+            })
+        return items
+
+    def _enumeration_paper(self, first_html, raw, item):
+        """_process_item() after its fetches. ``first_html`` is the detail page; ``raw`` is
+        the PDF from the second step (or the detail page again when it has no PDF link).
+        None keeps crawl()'s skips."""
+        item_id = item["item_id"]
+        detail_url = item["url"]
+        soup = _parse_html(first_html)
+        bd_view = soup.find("div", class_="bd_view")
+        if not bd_view:
+            return None
+        h4 = bd_view.find("h4")
+        title = h4.get_text(strip=True) if h4 else item.get("list_title")
+        og_meta = soup.find("meta", {"property": "og:title"})
+        og_title = og_meta.get("content", "").strip() if og_meta else ""
+        bullets = []
+        ul_lst = bd_view.find("ul", class_="bd_view_ul_lst")
+        if ul_lst:
+            bullets = [
+                li.get_text(strip=True)
+                for li in ul_lst.find_all("li")
+                if li.get_text(strip=True)
+            ]
+        department = None
+        published_date = None
+        ul_info = bd_view.find("ul", class_="bd_view_ul_info")
+        if ul_info:
+            for li in ul_info.find_all("li"):
+                strong = li.find("strong")
+                span = li.find("span")
+                if strong and span:
+                    key = strong.get_text(strip=True)
+                    val = span.get_text(strip=True)
+                    if key == "담당부서":
+                        department = val
+                    elif key == "등록일":
+                        published_date = val or None
+        pdf_url = None
+        original_filename = None
+        file_li = bd_view.find("li", class_="file")
+        if file_li:
+            for a in file_li.find_all("a"):
+                href = a.get("href", "")
+                title_attr = a.get("title", "")
+                if "DWN.jsp" in href and ".pdf" in href.lower():
+                    pdf_url = (
+                        self.base_url + href
+                        if href.startswith("/")
+                        else href
+                    )
+                    try:
+                        qp = urllib.parse.parse_qs(
+                            urllib.parse.urlparse(href).query
+                        )
+                        fn = qp.get("fileName", [None])[0]
+                        if fn:
+                            original_filename = urllib.parse.unquote_plus(fn)
+                    except Exception:
+                        pass
+                    if not original_filename and title_attr:
+                        original_filename = (
+                            title_attr.split(" 파일")[0].strip()
+                        )
+                    break
+
+        # _build_abstract() with the PDF bytes the framework already fetched.
+        abstract = None
+        pdf_bytes = bytes(raw) if isinstance(raw, (bytes, bytearray)) else b""
+        if pdf_url and len(pdf_bytes) > 200:
+            text = _extract_pdf_text(pdf_bytes)
+            if len(text) >= 100:
+                abstract = text[:800]
+        if abstract is None:
+            seen = set()
+            parts = []
+            for seg in [title, og_title] + bullets:
+                if seg and seg not in seen:
+                    seen.add(seg)
+                    parts.append(seg)
+            abstract = " | ".join(parts)
+        if len(abstract) < 50:
+            return None
+        metadata = {
+            "item_id": item_id,
+            "og_title": og_title,
+            "bullets": bullets,
+        }
+        if department:
+            metadata["department"] = department
+        return {
+            "site_id": self.site_id,
+            "external_id": item_id,
+            "post_number": item.get("post_number"),
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": item.get("listed_date"),
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "department": department,
+            "publisher": "국토교통부",
+            "category": item.get("category"),
+            "keywords": None,
+            "doi": None,
+            "authors": None,
+            "journal": None,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
