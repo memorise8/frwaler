@@ -1,0 +1,19 @@
+{
+ "site_id": "nei-nih-gov-learn-about-eye-heal",
+ "listing_body": "<html><body><main><div class=\"c-filter\"><form>filters</form><div class=\"c-filter__results\"><div class=\"views-row\"><div class=\"outreach-materials-teaser c-teaser en\" data-history-node-id=\"301\"><div class=\"c-teaser__content\"><h2 class=\"c-teaser__header\"><a class=\"c-teaser__link\" href=\"/about/education-and-outreach/outreach-materials/glaucoma-facts\">Material glaucoma-facts</a></h2><a class=\"c-teaser__tag\" href=\"/about/education-and-outreach/outreach-materials?type=45\">Fact sheet</a></div></div></div><div class=\"views-row\"><div class=\"outreach-materials-teaser c-teaser en\" data-history-node-id=\"302\"><div class=\"c-teaser__content\"><h2 class=\"c-teaser__header\"><a class=\"c-teaser__link\" href=\"/about/education-and-outreach/outreach-materials/cataract-facts\">Material cataract-facts</a></h2><a class=\"c-teaser__tag\" href=\"/about/education-and-outreach/outreach-materials?type=45\">Fact sheet</a></div></div></div></div></div></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.nei.nih.gov/about/education-and-outreach/outreach-materials/glaucoma-facts": "<html><body class=\"page node--301\"><main><h1>Material glaucoma-facts</h1><div class=\"body-wrapper\"><p>Synthetic NEI outreach material description used for offline equality testing of the enumeration split. Synthetic NEI outreach material description used for offline equality testing of the enumeration split. </p></div><div class=\"c-item__meta--pub-type\"><span class=\"om-term-label\">Type</span></div><div class=\"c-item__meta--pub-type\">Fact Sheet</div><div class=\"c-item__meta--audience\"><span class=\"om-term-label\">Audience</span></div><div class=\"c-item__meta--audience\">Patients\nCaregivers</div><ul class=\"om-lang-file-list\"><li><a href=\"/sites/default/files/2019-06/glaucoma-facts.pdf\">English PDF</a></li></ul></main></body></html>",
+  "https://www.nei.nih.gov/about/education-and-outreach/outreach-materials/cataract-facts": "<html><body class=\"page node--302\"><main><h1>Material cataract-facts</h1><div class=\"body-wrapper\"><p>Synthetic NEI outreach material description used for offline equality testing of the enumeration split. Synthetic NEI outreach material description used for offline equality testing of the enumeration split. </p></div><div class=\"c-item__meta--pub-type\"><span class=\"om-term-label\">Type</span></div><div class=\"c-item__meta--pub-type\">Fact Sheet</div><div class=\"c-item__meta--audience\"><span class=\"om-term-label\">Audience</span></div><div class=\"c-item__meta--audience\">Patients\nCaregivers</div><ul class=\"om-lang-file-list\"><li><a href=\"/sites/default/files/2021-02/cataract-facts.pdf\">English PDF</a></li></ul></main></body></html>"
+ },
+ "long_text": "Synthetic NEI outreach material description used for offline equality testing of the enumeration split. Synthetic NEI outreach material description used for offline equality testing of the enumeration split. ",
+ "empty_body": "<html><body><main><div class=\"c-filter\"><form>filters</form></div></main></body></html>",
+ "original_method_source_sha256": {
+  "_curl": "9a2cfef80462c49a2d6c280fd33c8c94009b773fd4185060b69585d579537544",
+  "_make_soup": "4416fe238ac8b6a7d0bfc21cd673df47eb33d654f1faf0eb39a2c919bbfc76d4",
+  "_extract_date": "b6978b294eca2b0900691f8470c16d0008017943eff681c587a7a90af83e825d",
+  "_get_listing_items": "9ef73204261a492588e68adb2415fc5cb5808683b983d970071f03f53cf4b3a8",
+  "_parse_detail": "f62d8a1f3f0d98f43bccd61cb9f46146d4aa4071ceb8d54595d4a3ad5faa48f7",
+  "crawl": "ffedd285a91808ea9e7a4083f10bfb418ad47948afe08d5461ee120513385e42"
+ }
+}

@@ -270,3 +270,102 @@ class NeiNihGovLearnAboutEyeHealCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] crawl done: {saved} items saved.")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl(),
+    # _get_listing_items() and _parse_detail() stay unchanged; these are
+    # their parsing parts without the fetch.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html):
+        """Rows of one listing page: the parsing half of _get_listing_items()."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html)
+        if not soup:
+            return []
+        items = []
+        teasers = soup.find_all(
+            "div",
+            class_=lambda c: c and "outreach-materials-teaser" in " ".join(c),
+        )
+        if teasers:
+            for t in teasers:
+                link = t.find("a", class_="c-teaser__link") or t.find("a", href=True)
+                if not link:
+                    continue
+                href = link.get("href", "").strip()
+                if not href or _LIST_PATH + "/" not in href:
+                    continue
+                items.append((href, t.get("data-history-node-id")))
+        else:
+            for a in soup.find_all("a", href=re.compile(rf"{re.escape(_LIST_PATH)}/[^?#]+")):
+                items.append((a["href"].strip(), None))
+        return [{"href": href, "node_id": node_id,
+                 "url": (_BASE_URL + href) if href.startswith("/") else href}
+                for href, node_id in items]
+
+    def _enumeration_paper(self, html, item):
+        """The parsing half of _parse_detail(href, node_id); None keeps its skips.
+        A URL-only item (identity precheck: {"detail_url": url}) works too."""
+        href = item.get("href") or item["detail_url"]
+        node_id = item.get("node_id")
+        item_url = (_BASE_URL + href) if href.startswith("/") else href
+        soup = self._make_soup(html)
+        if not soup:
+            return None
+        h1 = soup.find("h1")
+        title = h1.get_text(strip=True) if h1 else ""
+        if not title:
+            return None
+        body_div = soup.find("div", class_="body-wrapper")
+        abstract = body_div.get_text(separator=" ", strip=True) if body_div else ""
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+        material_type = ""
+        for div in soup.find_all("div", class_="c-item__meta--pub-type"):
+            if not div.find(class_="om-term-label"):
+                material_type = div.get_text(strip=True)
+                break
+        audience = ""
+        for div in soup.find_all("div", class_="c-item__meta--audience"):
+            if not div.find(class_="om-term-label"):
+                audience = "; ".join(
+                    s.strip() for s in div.get_text(separator="\n").split("\n") if s.strip()
+                )
+                break
+        pdf_url = None
+        file_list = soup.find("ul", class_="om-lang-file-list")
+        if file_list:
+            first_a = file_list.find("a", href=True)
+            if first_a:
+                ph = first_a["href"].strip()
+                pdf_url = (_BASE_URL + ph) if ph.startswith("/") else ph
+        published_date = self._extract_date(pdf_url)
+        if not node_id:
+            body_tag = soup.find("body")
+            if body_tag:
+                body_cls = " ".join(body_tag.get("class", []))
+                m = re.search(r"node--(\d+)", body_cls)
+                if m:
+                    node_id = m.group(1)
+        if not node_id:
+            node_id = href.rstrip("/").split("/")[-1]
+        return {
+            "site_id": self.site_id,
+            "external_id": str(node_id),
+            "title": title,
+            "authors": "[]",
+            "abstract": abstract,
+            "category": material_type,
+            "keywords": "[]",
+            "published_date": published_date,
+            "url": item_url,
+            "pdf_url": pdf_url,
+            "doi": None,
+            "department": "National Eye Institute",
+            "metadata": json.dumps(
+                {"audience": audience, "material_type": material_type},
+                ensure_ascii=False,
+            ),
+        }
