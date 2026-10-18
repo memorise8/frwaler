@@ -1,0 +1,43 @@
+{
+ "version": 1,
+ "sites": {
+  "rcaanc-cirnac-gc-ca-eng": {
+   "strategy": "last_page_backward",
+   "request_interval_s": 1.5,
+   "respect_robots": true,
+   "retries": 1,
+   "verify_ssl": true,
+   "base_url": "https://www.rcaanc-cirnac.gc.ca",
+   "adapter": {
+    "type": "crawler",
+    "contract_version": 1,
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "html",
+     "url"
+    ],
+    "detail_method": "_enumeration_paper",
+    "detail_args": [
+     "html",
+     "item"
+    ]
+   },
+   "listing": {
+    "url": "https://www.rcaanc-cirnac.gc.ca/eng/1575131323136/1575131374706",
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "key_field": "external_id",
+     "url_field": "url",
+     "title_field": "title",
+     "date_field": "listed_date",
+     "listing_marker": "main"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1
+   }
+  }
+ }
+}

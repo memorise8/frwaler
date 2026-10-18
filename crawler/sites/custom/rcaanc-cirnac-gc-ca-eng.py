@@ -485,3 +485,23 @@ class RcaancCirnacGcCaEngCrawler(BaseCrawler):
             page_url = next_url
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() is unchanged. Listing = the
+    # resource list page (_parse_list_page; one page, no next link today);
+    # detail = the report page fetched by the framework, _parse_detail with
+    # crawl()'s title / 50-char abstract rules.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        items, _next = _parse_list_page(html, START_URL)
+        return [dict(i) for i in items if i.get("url")]
+
+    def _enumeration_paper(self, html, item):
+        detail_url = item["url"]
+        paper = _parse_detail(detail_url, html, dict(item))
+        if not paper or not paper.get("title"):
+            return None
+        if len(paper.get("abstract") or "") < 50:
+            return None
+        return paper
