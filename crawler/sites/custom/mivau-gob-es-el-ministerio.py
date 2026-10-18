@@ -466,3 +466,66 @@ class MivauGobEsElMinisterioCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] crawl complete. total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. Same list parser
+    # (Drupal zero-based ?page=N, list_page kept 1-based as in crawl()), same
+    # detail parser, paper and skip rule (abstract < _MIN_ABSTRACT).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        m = re.search(r"[?&]page=(\d+)", url or "")
+        page_number = int(m.group(1)) + 1 if m else 1
+        items, _ = _parse_list_page(html, page_number)
+        return items
+
+    def _enumeration_paper(self, html, item):
+        url = item["url"]
+        detail = _parse_detail(html, item)
+        if detail is None:
+            return None
+        abstract = detail.get("abstract") or ""
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+        external_id = detail.get("node_id") or item["slug"]
+        post_number = detail.get("node_id") or item["slug"]
+        metadata = {
+            "posted_date": item.get("posted_raw") or item.get("listed_date"),
+            "listed_date": item.get("listed_date"),
+            "originalFilename": detail.get("original_filename"),
+            "journal_raw": None,
+            "series": None,
+            "volume": None,
+            "issue": None,
+            "node_id": detail.get("node_id"),
+            "slug": item.get("slug"),
+            "list_page": item.get("list_page"),
+            "section": item.get("section"),
+            "archive_terms": detail.get("archive_terms"),
+            "scope": detail.get("scope"),
+            "detail_published_time": detail.get("published_raw"),
+            "detail_modified_time": detail.get("modified_raw"),
+        }
+
+        return {
+            "id": str(uuid.uuid5(uuid.NAMESPACE_URL, url)),
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": detail.get("title") or item["title"],
+            "abstract": abstract,
+            "published_date": detail.get("published_date") or item.get("listed_date"),
+            "listed_date": item.get("listed_date"),
+            "posted_date": item.get("listed_date"),
+            "authors": None,
+            "publisher": _PUBLISHER,
+            "department": detail.get("area"),
+            "journal": None,
+            "url": url,
+            "pdf_url": detail.get("pdf_url"),
+            "keywords": detail.get("keywords"),
+            "category": item.get("category") or "Noticia",
+            "doi": None,
+            "original_filename": detail.get("original_filename"),
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
