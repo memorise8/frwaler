@@ -1,0 +1,31 @@
+{
+  "listing_url": "https://www.ii.re.kr/base/board/list?boardManagementNo=14&menuLevel=2&menuNo=76&page=1",
+  "listing_body": "<html><body><div class=\"board-img\"><div class=\"board-img__list\"><ul><li><div class=\"board-img__img\"><img src=\"/storage/report/2026/08/01/cover_19233.jpg\"></div><div class=\"board-img__text\"><h4 class=\"board-img__text-tit\"><a href=\"/base/board/read?boardManagementNo=14&amp;boardNo=19233&amp;menuLevel=2&amp;menuNo=76\"><span>기본연구</span>합성 보고서 1</a></h4><ul class=\"board-img__text-info\"><li>연구기간 : 2025.01~2025.12</li><li>연구유형 : 기본연구</li><li>연구자 : 홍길동, 김철수</li></ul><p class=\"board-img__text-text\">목록 요약 합성 보고서 1</p></div><div class=\"board-img__link\"><a href=\"/base/linked/report/download?projcd=P19233&amp;seq=1&amp;div=A1&amp;atchSeq=1\">원문</a><a href=\"/base/linked/report/download?projcd=P19233&amp;seq=1&amp;div=A3&amp;atchSeq=2\">요약</a></div></li><li><div class=\"board-img__img\"><img src=\"/storage/report/2026/07/15/cover_19200.jpg\"></div><div class=\"board-img__text\"><h4 class=\"board-img__text-tit\"><a href=\"/base/board/read?boardManagementNo=14&amp;boardNo=19200&amp;menuLevel=2&amp;menuNo=76\"><span>정책연구</span>합성 보고서 2</a></h4><ul class=\"board-img__text-info\"><li>연구기간 : 2025.01~2025.12</li><li>연구유형 : 기본연구</li><li>연구자 : 홍길동, 김철수</li></ul><p class=\"board-img__text-text\">목록 요약 합성 보고서 2</p></div><div class=\"board-img__link\"><a href=\"/base/linked/report/download?projcd=P19200&amp;seq=1&amp;div=A1&amp;atchSeq=1\">원문</a><a href=\"/base/linked/report/download?projcd=P19200&amp;seq=1&amp;div=A3&amp;atchSeq=2\">요약</a></div></li></ul></div></div></body></html>",
+  "empty_body": "<html><body><div class=\"board-img\"><div class=\"board-img__list\"><ul><li><div class=\"board-img__text\"><h4 class=\"board-img__text-tit\">데이터가 없습니다.</h4></div></li></ul></div></div></body></html>",
+  "long_text": "합성 연구개요 본문입니다. Synthetic research report overview for offline equality testing. 합성 연구개요 본문입니다. Synthetic research report overview for offline equality testing. 합성 연구개요 본문입니다. Synthetic research report overview for offline equality testing. ",
+  "details": {
+    "https://www.ii.re.kr/base/board/read?boardManagementNo=14&boardNo=19233&menuLevel=2&menuNo=76": "<html><body><div class=\"board-view\"><div class=\"board-view-top\"><span class=\"board-view-top__tag\">기본연구</span><div class=\"board-view-top__img\"><img src=\"/storage/report/2026/08/01/cover_19233.jpg\" alt=\"표지\"></div><div class=\"board-view-top__text\"><h4>합성 상세 1</h4><ul><li><b>연구자</b><div><a>홍길동</a><a>인천연구원</a></div></li><li><b>발행년도</b><div>2026</div></li><li><b>연구유형</b><div>기본연구</div></li></ul></div></div><div class=\"board-view-contents\"><h5>연구개요</h5><div class=\"board-view-contents__wrap\"><p>합성 연구개요 본문입니다. Synthetic research report overview for offline equality testing. 합성 연구개요 본문입니다. Synthetic research report overview for offline equality testing. 합성 연구개요 본문입니다. Synthetic research report overview for offline equality testing. </p></div><h5>연구목차</h5><div class=\"board-view-contents__wrap\"><p>1장 서론</p></div></div><div class=\"board-view-aside__tag\"><a>#도시</a><a>#정책</a></div><a href=\"/base/linked/report/download?projcd=P19233&amp;seq=1&amp;div=A1&amp;atchSeq=1\">원문 다운로드</a><a href=\"/base/linked/report/download?projcd=P19233&amp;seq=1&amp;div=A3&amp;atchSeq=2\">요약 다운로드</a></div></body></html>",
+    "https://www.ii.re.kr/base/board/read?boardManagementNo=14&boardNo=19200&menuLevel=2&menuNo=76": "<html><body><div class=\"board-view\"><div class=\"board-view-top\"><span class=\"board-view-top__tag\">기본연구</span><div class=\"board-view-top__img\"><img src=\"/storage/report/2026/08/01/cover_19200.jpg\" alt=\"표지\"></div><div class=\"board-view-top__text\"><h4>합성 상세 2</h4><ul><li><b>연구자</b><div><a>홍길동</a><a>인천연구원</a></div></li><li><b>발행년도</b><div>2026</div></li><li><b>연구유형</b><div>기본연구</div></li></ul></div></div><div class=\"board-view-contents\"><h5>연구개요</h5><div class=\"board-view-contents__wrap\"><p>합성 연구개요 본문입니다. Synthetic research report overview for offline equality testing. 합성 연구개요 본문입니다. Synthetic research report overview for offline equality testing. 합성 연구개요 본문입니다. Synthetic research report overview for offline equality testing. </p></div><h5>연구목차</h5><div class=\"board-view-contents__wrap\"><p>1장 서론</p></div></div><div class=\"board-view-aside__tag\"><a>#도시</a><a>#정책</a></div><a href=\"/base/linked/report/download?projcd=P19200&amp;seq=1&amp;div=A1&amp;atchSeq=1\">원문 다운로드</a><a href=\"/base/linked/report/download?projcd=P19200&amp;seq=1&amp;div=A3&amp;atchSeq=2\">요약 다운로드</a></div></body></html>"
+  },
+  "site_id": "ii-re-kr-base",
+  "content_type": "text/html",
+  "original_method_source_sha256": {
+    "_make_soup": "297de96f657976fd983c84f9473681b6478e655079bce72819e1819957c460bb",
+    "_clean_text": "0cf933ba8ae481bc1f931fb8e70722d65071d76ec0e80be7cc37d87c49730a96",
+    "_parse_iso_date": "6bb83247a054894db4285768c8c18df143876f0346bffc4a542732da2567c754",
+    "_date_from_storage_path": "3935d4bdefe085de48cdac139562e383458fb9887020fa5a8213cff208a3d8e8",
+    "_query_value": "e3626234026f2e284aef675a2f61b3fe36e12c57b8fcd0d4d86195d09b129a69",
+    "_split_people": "62515e87e8ab71dbdadb64af9dd265f442048928fad9ba86f6b39381db8483fc",
+    "_looks_like_institution": "ab2c1e1e83f3a5ed76b71c9bb2eabfbc30b03fabf0bdad228eb4ed5a92e85e08",
+    "_curl": "1aba58c1958f6b2d195baf9c11b82c77fef81525d936a771f150849cf29601d6",
+    "_absolute_url": "08668d0c4dd97e199893555c2161782fe0b522e6e89e4d89399f19c094dabf26",
+    "_list_params": "add623eff7cce3a838a6e461ec1e4708a3c719159ffd34cc56e6e88f82e33f69",
+    "_fetch_list_page": "462e65318e3d2c48a813eb0ee199fdfbed5ff1a9d89f1c6e2cf189647d87f23d",
+    "_parse_list_item": "aea1a61a3f10743ff9582a3de67a85d74479a97b9d7e72b18b5eeb268853928c",
+    "_fetch_detail": "f11f3b6f161a791aba0bdafde6ab273bbc15423d9fb984118c3a4f15ad438516",
+    "_original_filename": "f6a903033c115c46c3ddaae6cbbec704a44820fcd47d3706e367e421ca1616a1",
+    "_filename_from_url": "36da83b5d1d386e01f0e391a47360c024fa5036cb4c89eda3ed4d323f894a453",
+    "_paper_from_item": "91ca3fe9295e818f193d688fcb048f019a688b92ff9f46ebb9704a4bf88542d7",
+    "crawl": "bc368f724d2ba9b014399e6aacbeae768863da6ab9d06e0dc366c22490a4868f"
+  }
+}

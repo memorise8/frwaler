@@ -638,3 +638,63 @@ class IiReKrBaseCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract; original crawl() and transport remain unchanged.
+    # ------------------------------------------------------------------
+
+    _ENUM_LISTING_MARKER = "div.board-img__list"
+
+    def _enumeration_source(self, body: str | None):
+        """crawl() 의 파싱 메서드를 그대로 다시 쓰기 위한 대리 객체.
+
+        _curl 만 '이미 받은 HTML 을 돌려주는' 함수로 바꾼다(HEAD 는 None).
+        네트워크·프로세스를 열지 않는다."""
+        crawler = self
+
+        class _HtmlSource:
+            def __getattr__(self, name):
+                # 클래스의 일반 메서드는 이 대리 객체에 묶어(그 안의 self._curl 도
+                # 대리 객체 것을 쓰게) 돌려주고, 나머지(속성·static)는 원래 객체 것.
+                import inspect
+                import types
+                static = inspect.getattr_static(type(crawler), name, None)
+                if inspect.isfunction(static):
+                    return types.MethodType(static, self)
+                return getattr(crawler, name)
+
+            def _curl(self, url, *, params=None, head=False, referer=None):
+                return None if head else body
+
+        return _HtmlSource()
+
+    def _enumeration_items(self, html, url=""):
+        """목록 쪽 HTML → crawl() 과 같은 _fetch_list_page 행 dict 목록.
+
+        목록 틀(div.board-img__list)이 없으면 오류 쪽, 틀은 있는데 행이 없으면
+        ("데이터가 없습니다.") 끝 뒤 빈 쪽이다."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html, "enumeration list")
+        if soup is None or soup.select_one(self._ENUM_LISTING_MARKER) is None:
+            raise PermanentFailure("listing_parse_error:missing_board_img_list")
+        try:
+            page = int(_query_value(url or "", "page") or "1")
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:bad_page_number")
+        items, _has_next = IiReKrBaseCrawler._fetch_list_page(self._enumeration_source(html), page)
+        return items
+
+    def _enumeration_paper(self, html, item):
+        """상세 HTML + 목록 행 → crawl() 이 저장하는 것과 같은 paper (초록 100자 미만은 None).
+
+        차이 하나: crawl() 은 pdf 다운로드 주소에 HEAD 요청을 보내
+        Content-Disposition 파일명을 얻지만, 순수 파싱 메서드는 네트워크를 쓰지
+        않으므로 _original_filename 의 HEAD 실패 경로(주소에서 파일명 추정)를 탄다
+        (식별값 external_id·post_number 와 무관)."""
+        if not html:
+            return None
+        source = self._enumeration_source(html)
+        detail = IiReKrBaseCrawler._fetch_detail(source, item)
+        return IiReKrBaseCrawler._paper_from_item(source, item, detail)
