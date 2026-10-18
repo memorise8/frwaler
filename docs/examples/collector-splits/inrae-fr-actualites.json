@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "sites": {
+    "inrae-fr-actualites": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.inrae.fr",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "request_headers": {
+        "X-Algolia-Application-Id": "DVUTVWXJFU"
+      },
+      "request_headers_env": {
+        "X-Algolia-API-Key": {
+          "env": "INRAE_FR_ACTUALITES_KEY"
+        }
+      },
+      "request_headers_hosts": [
+        "dvutvwxjfu-dsn.algolia.net"
+      ],
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://dvutvwxjfu-dsn.algolia.net/1/indexes/inrae_prod_created_date_desc/query",
+        "method": "POST",
+        "idempotent": true,
+        "body_type": "json",
+        "params": {
+          "query": "",
+          "filters": "field_system_tags_name:\"CP National\"",
+          "hitsPerPage": 20
+        },
+        "page_param": "page",
+        "start_page": 0,
+        "page_size": 20,
+        "total": {
+          "type": "json",
+          "path": "nbHits"
+        },
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "date_field": "published_date",
+          "title_field": "title"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+ "site_id": "inrae-fr-actualites",
+ "listing_body": "{\"hits\": [{\"nid\": 900001, \"objectID\": \"entity:node/900001:fr\", \"title\": \"Communiqué synthétique 900001&nbsp;\", \"url\": \"/actualites/communique-synthetique-a\", \"created\": 1772323200, \"field_update_date\": 1772409600, \"field_tags_name\": [\"Agriculture\", \"Climat\"], \"field_system_tags_name\": [\"CP National\", \"Agriculture\"], \"label_content_type\": \"Communiqué de presse\", \"field_thematic_name\": \"Environnement\", \"name_department\": \"Département synthétique\", \"title_center\": \"Centre synthétique\", \"rendered_item_listing\": \"<div class=\\\"Teaser\\\"><h3>Titre</h3><p class=\\\"Teaser-intro\\\">Texte synthétique d'un communiqué de presse national, écrit uniquement pour le test hors ligne et assez long pour dépasser le seuil de résumé.</p></div>\"}, {\"nid\": 900002, \"objectID\": \"entity:node/900002:fr\", \"title\": \"Communiqué synthétique 900002&nbsp;\", \"url\": \"/actualites/communique-synthetique-b\", \"created\": 1767312000, \"field_update_date\": null, \"field_tags_name\": [\"Agriculture\", \"Climat\"], \"field_system_tags_name\": [\"CP National\", \"Agriculture\"], \"label_content_type\": \"Communiqué de presse\", \"field_thematic_name\": \"Environnement\", \"name_department\": \"Département synthétique\", \"title_center\": \"Centre synthétique\", \"rendered_item_listing\": \"<div class=\\\"Teaser\\\"><h3>Titre</h3><p class=\\\"Teaser-intro\\\">Brève.</p></div>\"}], \"nbHits\": 2, \"page\": 0, \"nbPages\": 1, \"hitsPerPage\": 20}",
+ "empty_body": "{\"hits\": [], \"nbHits\": 2, \"page\": 1, \"nbPages\": 1, \"hitsPerPage\": 20}",
+ "content_type": "application/json",
+ "long_text": "Texte synthétique d'un communiqué de presse national, écrit uniquement pour le test hors ligne et assez long pour dépasser le seuil de résumé.",
+ "details": {
+  "https://www.inrae.fr/actualites/communique-synthetique-a": "<html><head><title>Communiqué A</title></head><body><header><p>Navigation du site INRAE synthétique, ignorée par le test</p></header><article><h1>Communiqué A</h1><div class=\"Share\"><p>Partager ce communiqué sur les réseaux sociaux synthétiques</p></div><p>Texte synthétique d'un communiqué de presse national, écrit uniquement pour le test hors ligne et assez long pour dépasser le seuil de résumé.</p><p>Court.</p></article><footer><p>Pied de page synthétique ignoré par le test hors ligne</p></footer></body></html>",
+  "https://www.inrae.fr/actualites/communique-synthetique-b": "<html><head><title>Communiqué B</title></head><body><header><p>Navigation du site INRAE synthétique, ignorée par le test</p></header><article><h1>Communiqué B</h1><div class=\"Share\"><p>Partager ce communiqué sur les réseaux sociaux synthétiques</p></div><p>Texte synthétique d'un communiqué de presse national, écrit uniquement pour le test hors ligne et assez long pour dépasser le seuil de résumé.</p><p>Court.</p></article><footer><p>Pied de page synthétique ignoré par le test hors ligne</p></footer></body></html>"
+ },
+ "original_method_source_sha256": {
+  "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+  "crawl": "ee7af3bf3bc481e459c9fc92c199469ef516ce94d6e5c78c2b520a841a7f0859",
+  "_algolia_page": "9a4c58cab840dfd2841a380ab30869a547a1f08e5124d31c2cfc9cdff85f7823",
+  "_hit_url": "8af142788442f042c151896d3e7735574d8c5999943c23120355ca9895f8e7d5",
+  "_extract_algolia_abstract": "9464d62c0eb335b2321223b1970fa9706a330b93857b30dc34048046377958e6",
+  "_fetch_detail_abstract": "65851882a1d08dc600e6dc8087f98f67d6e09e89838c3eaa2b30052ddd8e5b5b",
+  "_curl_post": "f126b00f0de42309d8488b091acf571844740446ec2e3d1e167fbcae4c06abac",
+  "_curl_get": "a1a8afb563b3e322267bede917aa6ae6dc487fb8d2a509af177f4a2c45db6da6",
+  "_make_soup": "2985dc7b68213e5fb722055fc4788d7e17129754bd4473f78c861f18cee8b303",
+  "_unix_to_iso": "273ad4a4fe060882dc9ecea18b326a625d2f5e0582b1826bfa57689a13624b33",
+  "_clean_text": "0d5a05f43fd9e30d3771649c1ac49ff5e5e4742ab830808612bde4b7ec3f2a79",
+  "_clean_multiline": "7d1534819e9956946388a8da1b3884579ae6260ab78662562a6c86bd937950ce"
+ }
+}

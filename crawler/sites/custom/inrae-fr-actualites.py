@@ -408,3 +408,134 @@ class InraeFrActualitesCrawler(BaseCrawler):
         text = re.sub(r" *\n+ *", "\n", text)
         text = re.sub(r"\n{3,}", "\n\n", text)
         return text.strip()
+
+    # ------------------------------------------------------------------
+    # Pure enumeration conversion (collector-splits; crawl() unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        """Rows of one Algolia query answer, read exactly as crawl() reads its hits.
+
+        An answer without a ``hits`` list (error object, auth failure) is a listing
+        error, never an empty end page; ``hits: []`` is the valid page after the last.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("hits"), list):
+            raise PermanentFailure("listing_parse_error:algolia_hits_missing")
+        rows = []
+        seen_urls = set()
+        for hit in data["hits"]:
+            if not isinstance(hit, dict):
+                continue
+            detail_url = self._hit_url(hit)
+            if not detail_url or detail_url in seen_urls:
+                continue
+            seen_urls.add(detail_url)
+            nid = hit.get("nid") or "?"
+            pub_date = self._unix_to_iso(hit.get("created"))
+            rows.append({
+                "url": detail_url,
+                "external_id": str(nid),
+                "title": self._clean_text(hit.get("title") or ""),
+                "published_date": pub_date or "",
+                "teaser": self._extract_algolia_abstract(hit),
+                "hit": {
+                    key: hit.get(key)
+                    for key in (
+                        "nid", "objectID", "title", "created", "field_update_date",
+                        "field_tags_name", "field_system_tags_name",
+                        "label_content_type", "field_thematic_name",
+                        "name_department", "title_center",
+                    )
+                },
+            })
+        return rows
+
+    def _enumeration_detail_abstract(self, raw):
+        """Article text of a detail page; the parsing half of _fetch_detail_abstract()."""
+        if not raw:
+            return ""
+        soup = self._make_soup(raw, context="detail page")
+        if soup is None:
+            return ""
+        article = soup.select_one("article") or soup
+        for bad in article.select(
+            "script, style, noscript, header, footer, nav, "
+            ".Teaser, .Share, .fr-share, .breadcrumb, "
+            ".visually-hidden, .sr-only"
+        ):
+            bad.decompose()
+        parts = []
+        for node in article.find_all(["p", "li", "h2", "h3"], recursive=True):
+            text = self._clean_multiline(node.get_text(" ", strip=True))
+            if len(text) >= 40 and text not in parts:
+                parts.append(text)
+        return "\n\n".join(parts[:20])
+
+    def _enumeration_paper(self, detail_html, item):
+        """The paper crawl() saves for one hit row and its detail page (None = skipped).
+
+        Same abstract rule as crawl(): the Algolia teaser, replaced by the detail
+        text when the teaser is under MIN_ABSTRACT_CHARS, or by a longer detail
+        text when it is under MIN_SAVE_ABSTRACT_CHARS.
+        """
+        hit = item["hit"]
+        nid = hit.get("nid") or "?"
+        abstract = item["teaser"]
+        detail = None
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            detail = self._enumeration_detail_abstract(detail_html) or ""
+            abstract = detail
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            print(f"[{self.site_id}] nid={nid} skipped: abstract too short ({len(abstract)} chars)")
+            return None
+        if self.MIN_ABSTRACT_CHARS <= len(abstract) < self.MIN_SAVE_ABSTRACT_CHARS:
+            longer = detail if detail is not None else (self._enumeration_detail_abstract(detail_html) or "")
+            if len(longer) > len(abstract):
+                abstract = longer
+
+        pub_date = self._unix_to_iso(hit.get("created"))
+        upd_date = self._unix_to_iso(hit.get("field_update_date"))
+        tags = hit.get("field_tags_name") or []
+        sys_tags = hit.get("field_system_tags_name") or []
+        return {
+            "site_id": self.site_id,
+            "external_id": str(nid),
+            "post_number": str(nid),
+            "title": self._clean_text(hit.get("title") or ""),
+            "abstract": abstract,
+            "published_date": pub_date,
+            "listed_date": pub_date,
+            "url": item["url"],
+            "pdf_url": None,
+            "keywords": ", ".join(tags),
+            "category": self._clean_text(
+                hit.get("label_content_type")
+                or hit.get("field_thematic_name")
+                or ""
+            ),
+            "department": self._clean_text(hit.get("name_department") or ""),
+            "publisher": "INRAE",
+            "authors": None,
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps(
+                {
+                    "node_id": nid,
+                    "nid": nid,
+                    "objectID": hit.get("objectID"),
+                    "field_thematic_name": hit.get("field_thematic_name"),
+                    "label_content_type": hit.get("label_content_type"),
+                    "field_system_tags_name": sys_tags,
+                    "field_tags_name": tags,
+                    "title_center": hit.get("title_center"),
+                    "name_department": hit.get("name_department"),
+                    "created": hit.get("created"),
+                    "field_update_date": hit.get("field_update_date"),
+                    "updated_date": upd_date,
+                    "posted_date": pub_date,
+                    "originalFilename": None,
+                },
+                ensure_ascii=False,
+            ),
+        }
