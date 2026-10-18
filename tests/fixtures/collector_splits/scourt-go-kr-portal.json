@@ -1,0 +1,23 @@
+{
+  "site_id": "scourt-go-kr-portal",
+  "listing_body": "<html><body><table><tbody><tr><td class=\"mhid\">2</td><td class=\"tit\"> </td><td class=\"tit\"><a href='/portal/news/NewsViewAction.work?pageIndex=1&amp;searchWord=&amp;searchOption=&amp;seqnum=902&amp;gubun=6'> Offline 2 </a></td><td>2026-10-02</td><td class=\"attach mhid\"></td><td class=\"mhid\">5</td></tr><tr><td class=\"mhid\">1</td><td class=\"tit\"> </td><td class=\"tit\"><a href='/portal/news/NewsViewAction.work?pageIndex=1&amp;searchWord=&amp;searchOption=&amp;seqnum=901&amp;gubun=6'> Offline 1 </a></td><td>2026-10-01</td><td class=\"attach mhid\"></td><td class=\"mhid\">5</td></tr></tbody></table><div class=\"pagelist\"><a class=\"selected\" href=\"#\" title=\"현재페이지\">1</a></div></body></html>",
+  "content_type": "text/html",
+  "empty_body": "<html><body><table><tbody></tbody></table><div class=\"pagelist\"><a class=\"selected\" href=\"#\" title=\"현재페이지\">1</a></div></body></html>",
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "details": {
+    "https://www.scourt.go.kr/portal/news/NewsViewAction.work?seqnum=902&gubun=6": "<html><body><table class=\"tableVer\"><tr><th>제목</th><td>Offline 2 title</td></tr><tr><th>등록일</th><td>2026.10.02</td></tr><tr><td class=\"contArea\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></td></tr></table><a href=\"#\" onclick=\"download('F902','report902.pdf')\">report902.pdf</a><a href=\"javascript:download('H902','note902.hwp')\">hwp</a></body></html>",
+    "https://www.scourt.go.kr/portal/news/NewsViewAction.work?seqnum=901&gubun=6": "<html><body><table class=\"tableVer\"><tr><th>제목</th><td>Offline 1 title</td></tr><tr><th>등록일</th><td>2026-10-01</td></tr><tr><td class=\"contArea\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></td></tr></table><a href=\"#\" onclick=\"download('F901','report901.pdf')\">report901.pdf</a><a href=\"javascript:download('H901','note901.hwp')\">hwp</a></body></html>"
+  },
+  "expected_ids": [
+    "902",
+    "901"
+  ],
+  "original_method_source_sha256": {
+    "_curl_get": "4d8234357a34c85db5bd47597e169af1f3d5745bf03d60197d1100526b7bc2da",
+    "_fetch_list_page": "d55b9dec63177bd9d378a1fdf5ea7063b9cf05deb45b115a90ce502392b7ae6f",
+    "_parse_list_page": "0465f37517536f70705e0dfc9899b21809e291551b89cb75b32241fbf5aca653",
+    "_fetch_detail": "fb885e69a378526a057acfe15dc03512a6e39ab97cce1c04d92524e3e8f86709",
+    "_parse_detail": "4d0c0f0248361913812ea0a21d61e98bb793f62654284b5c4fcbc2d7637e0bf0",
+    "crawl": "56cb148018f205582ac34a8c082a47a72f1239874d748d06e8aa96afec99e962"
+  }
+}

@@ -222,6 +222,75 @@ class ScourtPortalCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Pure enumeration conversion (collector-splits); crawl() is unchanged
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None) -> list[dict]:
+        """List page (?gubun=6&pageIndex=N) -> rows from ``_parse_list_page``.
+
+        A response without the board pager (``div.pagelist``) is a listing parse
+        error; a page past the last one keeps the pager with no rows (valid empty).
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        soup = _make_soup(html)
+        if soup is None or soup.select_one("div.pagelist") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_pager", url)
+        rows = []
+        for item in self._parse_list_page(html):
+            row = dict(item)
+            row["url"] = f"{_DETAIL_URL}?seqnum={item['seqnum']}&gubun={_GUBUN}"
+            row["external_id"] = item["seqnum"]
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Pure copy of crawl()'s per-item Paper conversion for one fetched detail
+        page; None where crawl() skips (no content, abstract < 100 chars)."""
+        seqnum = item["seqnum"]
+        detail_url = f"{_DETAIL_URL}?seqnum={seqnum}&gubun={_GUBUN}"
+        if not html:
+            return None
+        detail = self._parse_detail(html)
+        if detail is None:
+            return None
+        abstract = detail["abstract"]
+        if len(abstract) < 100:
+            return None
+        title = detail["title"] or item["title"]
+        pub_date = detail["published_date"]
+        listed_date = item["list_date"] or pub_date
+        return {
+            "site_id": self.site_id,
+            "external_id": seqnum,
+            "post_number": seqnum,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "listed_date": listed_date,
+            "url": detail_url,
+            "pdf_url": detail.get("pdf_url"),
+            "original_filename": detail.get("original_filename"),
+            "publisher": "대법원",
+            "authors": "",
+            "department": "",
+            "journal": "",
+            "keywords": "",
+            "doi": "",
+            "category": "보도자료",
+            "metadata": json.dumps(
+                {
+                    "seqnum": seqnum,
+                    "gubun": _GUBUN,
+                    "posted_date": pub_date,
+                    "attach_files": detail.get("attach_files", []),
+                },
+                ensure_ascii=False,
+            ),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
