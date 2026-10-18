@@ -1,0 +1,21 @@
+{
+  "listing_url": "https://www.humanrights.go.kr/base/board/list?boardManagementNo=20&menuLevel=3&menuNo=120&page=1",
+  "listing_body": "<html><body><table class=\"board_list\"><thead><tr><th>번호</th><th>구분</th><th>제목</th></tr></thead><tbody><tr><td class=\"num\">520</td><td class=\"sort\">연간통계</td><td class=\"tit\"><a class=\"td-title\" href=\"/base/board/read?boardManagementNo=20&amp;boardNo=7612362&amp;page=1&amp;menuLevel=3&amp;menuNo=120\">합성 통계 1</a></td><td class=\"dept\">기획재정담당관</td><td class=\"date\">2026-10-12</td><td class=\"hit\">10</td></tr><tr><td class=\"num\">519</td><td class=\"sort\">진정사건 처리현황</td><td class=\"tit\"><a class=\"td-title\" href=\"/base/board/read?boardManagementNo=20&amp;boardNo=7612000&amp;page=1&amp;menuLevel=3&amp;menuNo=120\">합성 통계 2</a></td><td class=\"dept\">기획재정담당관</td><td class=\"date\">2026-10-01</td><td class=\"hit\">10</td></tr></tbody></table></body></html>",
+  "empty_body": "<html><body><table class=\"board_list\"><thead><tr><th>번호</th><th>구분</th><th>제목</th></tr></thead><tbody><tr><td colspan=\"6\" class=\"no-data\">목록이 없습니다.</td></tr></tbody></table></body></html>",
+  "long_text": "합성 통계 게시물 본문입니다. Synthetic statistics board body for offline equality testing. 합성 통계 게시물 본문입니다. Synthetic statistics board body for offline equality testing. 합성 통계 게시물 본문입니다. Synthetic statistics board body for offline equality testing. ",
+  "details": {
+    "https://www.humanrights.go.kr/base/board/read?boardManagementNo=20&boardNo=7612362&page=1&menuLevel=3&menuNo=120": "<html><body><div class=\"board_view\"><span class=\"each\">담당부서 : 기획재정담당관</span><span class=\"each\">등록일 : 2026-10-12 10:00</span><div class=\"editor_view\"><p>합성 통계 게시물 본문입니다. Synthetic statistics board body for offline equality testing. 합성 통계 게시물 본문입니다. Synthetic statistics board body for offline equality testing. 합성 통계 게시물 본문입니다. Synthetic statistics board body for offline equality testing. </p></div><div class=\"file_box\"><p class=\"file_each\"><a href=\"/base/board/download?fileNo=76123620\" title=\"통계_2025.pdf 다운로드\">통계_2025.pdf</a></p><p class=\"file_each\"><a href=\"/base/board/download?fileNo=76123621\" title=\"통계_2025.hwp 다운로드\">통계_2025.hwp</a></p></div></div></body></html>",
+    "https://www.humanrights.go.kr/base/board/read?boardManagementNo=20&boardNo=7612000&page=1&menuLevel=3&menuNo=120": "<html><body><div class=\"board_view\"><span class=\"each\">담당부서 : 기획재정담당관</span><span class=\"each\">등록일 : 2026-10-01 10:00</span><div class=\"editor_view\"><p>합성 통계 게시물 본문입니다. Synthetic statistics board body for offline equality testing. 합성 통계 게시물 본문입니다. Synthetic statistics board body for offline equality testing. 합성 통계 게시물 본문입니다. Synthetic statistics board body for offline equality testing. </p></div><div class=\"file_box\"><p class=\"file_each\"><a href=\"/base/board/download?fileNo=76120000\" title=\"현황.hwp 다운로드\">현황.hwp</a></p></div></div></body></html>"
+  },
+  "site_id": "humanrights-go-kr-base",
+  "content_type": "text/html",
+  "original_method_source_sha256": {
+    "_bs": "a4aa13545c4bf4f8a420401a6e8f9ecf9c2b1e81ed252f581862f4b3a6ba10b2",
+    "_curl_get": "5ae1e73a8101180b00742f5102f99ccb4ac8e69b63e1a0f53052f4699d49b55e",
+    "_strip_tags": "ffa737840a5752878e676ffb2ced3ce2ec1d57249ec850a4ed097474bbd7730e",
+    "_parse_list_page": "44225c34e80f52c524cd1d76c192b14417d67c45677e0140e361283273dd0c85",
+    "_parse_detail_page": "d48727def04b9eefdbbefed3660bcce4cd69ad3937679029a61106e12e83b3a4",
+    "_build_abstract": "4ddec1d897b92dddd5cffece7b2977d373d0ea4ec3d8fe26ae1b57a6de0dc8a3",
+    "crawl": "bda2bfc2d82e7f75f9d15e3787fb92af06a27d4221ab895b9295aa7d14e8b05c"
+  }
+}

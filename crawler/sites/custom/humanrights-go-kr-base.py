@@ -379,3 +379,90 @@ class HumanrightsGoKrBaseCrawler(BaseCrawler):
 
         print(f"[humanrights-go-kr-base] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract; original crawl() and transport remain unchanged.
+    # ------------------------------------------------------------------
+
+    _ENUM_LISTING_MARKER = "table.board_list"
+
+    def _enumeration_items(self, html):
+        """목록 쪽 HTML → crawl() 과 같은 _parse_list_page 행 dict 목록.
+
+        목록 표(table.board_list)가 없으면 오류 쪽, 표는 있는데 행이 없으면
+        ("목록이 없습니다.") 빈 끝 쪽으로 본다."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _bs(html)
+        if soup is None or soup.select_one(self._ENUM_LISTING_MARKER) is None:
+            raise PermanentFailure("listing_parse_error:missing_board_list")
+        return _parse_list_page(html)
+
+    def _enumeration_paper(self, detail_html, item):
+        """상세 HTML + 목록 행 → crawl() 이 저장하는 것과 같은 paper (초록 50자 미만은 None)."""
+        if not detail_html:
+            return None
+        board_no = item["board_no"]
+        title = item["title"]
+        category = item["category"]
+        listed_date = item["listed_date"]
+        detail_url = item["url"]
+
+        det = _parse_detail_page(detail_html, board_no)
+
+        pub_date = det["published_date"] or listed_date
+        dept = det["department"]
+        file_links = det["file_links"]
+        file_names = det["file_names"]
+        content_text = det["content_text"]
+
+        abstract = _build_abstract(
+            title, category, dept,
+            pub_date, content_text, file_names
+        )
+
+        if len(abstract) < 50:
+            return None
+
+        pdf_url = ""
+        original_filename = ""
+        for link, fname in zip(file_links, file_names):
+            if link.lower().endswith(".pdf") or ".pdf" in link.lower():
+                pdf_url = link
+                original_filename = fname
+                break
+        if not pdf_url and file_links:
+            pdf_url = file_links[0]
+            original_filename = file_names[0] if file_names else ""
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": board_no,
+            "post_number": board_no,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "listed_date": listed_date,
+            "authors": "",
+            "publisher": "국가인권위원회",
+            "department": dept,
+            "journal": "",
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "keywords": "",
+            "category": category,
+            "doi": "",
+            "original_filename": original_filename,
+            "metadata": json.dumps({
+                "posted_date": listed_date,
+                "originalFilename": original_filename,
+                "boardManagementNo": _BOARD_MGMT_NO,
+                "boardNo": board_no,
+                "seqNum": item["seq_num"],
+                "fileLinks": file_links,
+                "fileNames": file_names,
+                "menuNo": _MENU_NO,
+            }, ensure_ascii=False),
+        }
