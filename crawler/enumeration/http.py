@@ -504,10 +504,10 @@ class RequestsTransport:
         self.max_bytes = max_bytes
         _pin_connections(self.session, resolver)
 
-    def request(self, method, url, *, headers=None):
+    def request(self, method, url, *, headers=None, data=None):
         try:
             # Redirects are handled hop by hop by Fetcher (gate, budget, robots, holds).
-            with self.session.request(method, url, headers=headers or {}, stream=True,
+            with self.session.request(method, url, headers=headers or {}, data=data, stream=True,
                                       timeout=self.timeout, allow_redirects=False) as r:
                 declared = str(r.headers.get("Content-Length") or "").strip()
                 if declared.isdigit() and int(declared) > self.max_bytes:
@@ -594,7 +594,7 @@ class Fetcher:
             self.blocked = AccessBlocked(f"host_access_hold:{held['reason']}", url)
             raise self.blocked
 
-    def _once(self, url):
+    def _once(self, url, *, method="GET", data=None, content_type=None):
         """One gated request. Returns Response or raises TransportError."""
         self._check_budget()
         host = host_of(url)
@@ -604,6 +604,8 @@ class Fetcher:
         headers = {"User-Agent": self.user_agent,
                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8"}
         headers.update(self.extra_headers)
+        if content_type:
+            headers["Content-Type"] = content_type
         delay = self._host_delay.get(host, 0)
         gate = self._gate(host)
         began = sent = self.clock()
@@ -623,7 +625,9 @@ class Fetcher:
                 self.requests_made += 1
                 sent = self.clock()
                 try:
-                    resp = self.transport.request("GET", url, headers=headers)
+                    # Only a POST passes a body (transports written for GET keep working).
+                    resp = self.transport.request(method, url, headers=headers,
+                                                  **({"data": data} if method != "GET" else {}))
                 except TransportError as exc:
                     outcome = f"transport:{exc}"
                     raise
@@ -745,12 +749,12 @@ class Fetcher:
         return rules
 
     # -- public ----------------------------------------------------------
-    def _with_retries(self, url, *, classify=True, accept_statuses=()):
+    def _with_retries(self, url, *, classify=True, accept_statuses=(), method="GET", data=None, content_type=None):
         last = None
         for attempt in range(self.retries):
             wait = self.backoff_s * (3 ** attempt)
             try:
-                resp = self._once(url)
+                resp = self._once(url, method=method, data=data, content_type=content_type)
             except BodyTooLarge:
                 raise PermanentFailure("body_too_large", url) from None
             except TransportError as exc:
@@ -861,3 +865,29 @@ class Fetcher:
             resp._encoding = resp._encoding or self.encoding
             return resp
         raise PermanentFailure("too_many_redirects", url)
+
+    def post(self, url, body, *, body_type="form", accept_statuses=()):
+        """POST a listing query (plans may use it only for idempotent search APIs) through the
+        same gate, budget, hold, robots and destination checks as ``get``. A redirect is never
+        followed (a POST cannot be replayed safely at another address)."""
+        from urllib.parse import urlencode
+        accept_statuses = tuple(s for s in accept_statuses if s not in REFUSAL_STATUSES)
+        if body_type == "json":
+            data, ctype = json.dumps(body, ensure_ascii=False, sort_keys=True).encode("utf-8"), "application/json"
+        elif body_type == "form":
+            data, ctype = urlencode(body, doseq=True).encode("ascii"), "application/x-www-form-urlencoded"
+        else:
+            raise PermanentFailure(f"unknown_body_type:{body_type}", url)
+        current = governed_url(url)
+        if current != url:
+            self._check_holds(url)
+        self._check_holds(current)
+        if not self._robots_allows(current):
+            raise RobotsDisallowed("robots_disallowed", current)
+        resp = self._with_retries(current, accept_statuses=accept_statuses, method="POST", data=data,
+                                  content_type=ctype)
+        if 300 <= resp.status < 400:
+            raise PermanentFailure("post_redirect_not_followed", current, resp.status)
+        resp.url = resp.url or current
+        resp._encoding = resp._encoding or self.encoding
+        return resp

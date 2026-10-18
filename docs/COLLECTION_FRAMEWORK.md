@@ -443,3 +443,23 @@ segments_mismatch, files_{pending,done,failed}, oldest_item`. JSON(상세 포함
 | M01 | 파일 패스의 blob 쓰기(`OSError`)와 문서 DB 갱신 오류는 파일 대장에 `transient:storage_error:<형>`/`db_error:<형>`으로 기록하고 시도 횟수 상한 후 `failed(retries_exhausted:…)`. blob·DB 갱신 후 대장 기록 전 크래시는 다음 패스에서 blob 해시와 `documents.pdf_sha256`이 같으면 다운로드 없이 `done(reconciled_existing_blob)`. `--files`는 본 실행과 같은 Fetcher(예산)를 쓰고, `--files-only`는 plan 예산으로 별도 실행. |
 | M02 | 어댑터 생성 시 문서 연결의 종류와 저장 경로(`LIBERTREE_DB_BACKEND`)가 다르면 `config_error(backend_mismatch:…)`. (전역 환경변수를 바꾸지 않고 검증으로 일치를 강제) |
 | M03 | 보고서에 `saved_current_generation`(현재 plan 세대에 열거된 항목 중 저장된 수, `listed_unique`와 같은 범위)과 `saved_all_time`(= `saved`) 분리. `date_fill`은 `DISTINCT seq_id` 기준. gap=0은 항목 실패 0건을 뜻하지 않는다. |
+
+## 18. 틀 확장 (X1, 2026-10-18)
+
+사이트 구역 세션이 "틀이 지원하지 않아 needs_dev" 로 남긴 공통 유형을 plan 키로 지원한다. 사유 표기(site-status `detail`)는 `ext:<이름>`.
+모든 새 요청은 기존 요청 게이트(호스트별 간격·예산·robots·호스트 보류·목적지 주소 검사·거절 분류)를 그대로 거친다.
+**새 키가 없는 plan 은 동작과 plan 지문이 바뀌지 않는다**(테스트 `FingerprintTest` 가 기존 지문 값을 고정).
+머리글(`request_headers*`)과 `adapter.second_step` 은 지문에 들어가지 않는다(토큰을 바꿔도 진행이 이어진다).
+테스트: `tests/test_enumeration_extensions.py`.
+
+| 표기 | plan 키 | 동작 | 막는 것 |
+|---|---|---|---|
+| `ext:headers` | `request_headers: {"Accept": "application/json"}`, `request_headers_env: {"Authorization": {"env": "SITE_API_TOKEN", "format": "Bearer {}"}}` | 모든 요청(robots·목록·상세·파일)에 머리글 추가. 비밀값은 **환경변수 이름만** plan 에 적고 실행 때 읽는다(`plan.resolve_headers`) | Host·Cookie·User-Agent·Content-*·Forwarded·X-Forwarded-*·Proxy-* 등 금지(세션 쿠키 = 로그인 우회 금지), 줄바꿈 값 금지, 환경변수가 없으면 실행하지 않음(빈 값으로 보내지 않음) |
+| `ext:post_listing` | `listing.method: "POST"`, `listing.idempotent: true`, `listing.body_type: "form"\|"json"` | 목록 요청을 POST 로. `params`·쪽 번호·구간 필터가 모두 본문으로 간다. `Fetcher.post` 가 GET 과 같은 게이트·robots(URL 경로 기준)·보류·목적지 검사를 거침 | `idempotent: true` 선언 필수(읽기 전용 검색 API 만), 리다이렉트는 따라가지 않음(`post_redirect_not_followed`), 경로형 쪽 넘김과 같이 못 씀 |
+| `ext:path_paging` | `listing.url` 에 `{page}` (예 `https://x/news/page/{page}/`), 선택 `listing.first_page_url` | 쪽 번호를 경로에 넣음. 첫 쪽은 `first_page_url`(보통 `/page/1/` 없는 주소). `page_mode: offset` 과 같이 쓸 수 있음 | `first_page_url` 은 절대 주소·`{page}` 없음. last_page_backward 의 "쪽 번호 없는 첫 쪽 비교" 는 건너뜀(첫 쪽이 곧 그 주소) |
+| `ext:json_page` (커서) | `listing.next_cursor: {"path": "meta.next", "param": "after"}` | JSON 응답의 다음 커서를 다음 요청 매개변수로. 커서가 비면 끝(`exhausted_cursor_end`). 상태 저장소 커서에 다음 토큰을 저장해 이어받음 | oldest_first_sort·date_range_split 만(앞으로만 읽힘), `overlap_pages` 금지, 같은 쪽·같은 토큰 반복은 `cursor_loop` 로 멈춤(완료 아님), 빈 쪽인데 다음 커서가 있으면 멈춤 |
+| `ext:json_page` (마지막 쪽) | `listing.last_page_path: "meta.last_page"` | last_page_backward 가 JSON 이 알려 준 마지막 쪽을 후보로 씀(탐색 요청 절약) | 후보도 기존과 같은 확인(L 실제, L+1·L+2 끝)을 통과해야 함. 실패하면 `reported_last_page_unconfirmed` 이벤트 후 원래 탐색 |
+| `ext:http204_end` | `listing.end_on_204: true` | 204 No Content 를 목록 끝으로(`end_status_204`) | 선언 없으면 204 는 끝이 아님(오류). 본문이 있는 204 는 오류(`http_204_with_body`) |
+| `ext:two_step_detail` | `adapter.second_step: {"use": "detail_page"\|"pdf_url", "selector": "a.next", "attr": "href", "required": true, "allow_hosts": []}` | `detail_page`: 상세 페이지의 링크를 한 번 더 받아(같은 fetcher) 그 페이지에서 상세를 뽑음. `pdf_url`: 추출에 pdf_url 이 없으면 링크를 pdf_url 로(요청 없음, 파일 단계가 게이트로 받음) | 식별값(key·meta_url)은 1단계 항목 그대로. 다른 호스트 링크는 `allow_hosts` 에 없으면 무시(요청 안 함), 링크가 없으면 `second_step_link_missing` 항목 실패(`required: false` 면 1단계 페이지 사용). list_only 어댑터에는 못 씀 |
+
+서버 배포는 아직(2026-10-18 사용자 방침: 이 컴퓨터에서 먼저 확인). 배포 목록은 `frwaler-delivery-out/plan-dev-20261008/dev-flow-20261018/status/DEPLOY.md`.

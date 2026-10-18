@@ -17,7 +17,7 @@ from pathlib import Path
 from .adapters import Adapter, AdapterConfigError
 from .files import FilePass
 from .http import Fetcher, RequestsTransport
-from .plan import PlanError, load_plan, site_plan
+from .plan import PlanError, load_plan, resolve_headers, site_plan
 from .report import write_report
 from .runner import SiteRunner
 from .store import Store
@@ -163,7 +163,7 @@ def make_fetcher(plan, state_dir, transport=None, *, max_bytes=None, holds=None)
                    max_runtime_s=plan.get("max_runtime_s"), retries=plan.get("retries"),
                    backoff_s=plan.get("backoff_s"), max_retry_wait_s=plan.get("max_retry_wait_s"),
                    respect_robots=plan.get("respect_robots"), user_agent=plan.get("user_agent"),
-                   encoding=plan.get("encoding"))
+                   encoding=plan.get("encoding"), extra_headers=resolve_headers(plan.raw))
 
 
 def make_adapter(plan, conn, crawler_factory=registered_crawler):

@@ -33,6 +33,16 @@ class Batch:
     detail: dict | None = None
 
 
+class PostUrl(str):
+    """A listing request sent as POST (ext:post_listing): the URL plus its form/JSON body.
+    A str, so caches, events and fingerprints keep working on the URL."""
+
+    def __new__(cls, url, body, body_type):
+        obj = super().__new__(cls, url)
+        obj.body, obj.body_type = body, body_type
+        return obj
+
+
 class StrategyStop(Exception):
     """Strategy cannot continue safely (configuration/contract problem)."""
 
@@ -65,11 +75,37 @@ class Strategy:
             return (n - self.start_page) * int(self.listing["page_size"]) + int(self.listing.get("offset_base", 0))
         return n
 
-    def page_url(self, n, extra=None, *, url=None):
+    def page_url(self, n, extra=None, *, url=None, token=None):
+        """Listing request for page ``n``. Plain GET with the page in the query (default);
+        ``{page}`` in the URL puts it in the path (ext:path_paging); method POST sends every
+        parameter in the body (ext:post_listing); ``token`` is a next-page cursor (ext:json_page)."""
         params = dict(self.listing.get("params") or {})
         params.update(extra or {})
-        params[self.page_param] = self.page_value(n)
-        return build_url(url or self.listing["url"], params)
+        base = url or self.listing["url"]
+        cursor = self.listing.get("next_cursor")
+        if cursor:
+            if token is not None:
+                params[cursor["param"]] = token
+        elif "{page}" in base:
+            if n == self.start_page and self.listing.get("first_page_url"):
+                return build_url(self.listing["first_page_url"], params)
+            base = base.replace("{page}", str(self.page_value(n)))
+        else:
+            params[self.page_param] = self.page_value(n)
+        if self.listing.get("method") == "POST":
+            return PostUrl(base, params, self.listing.get("body_type", "form"))
+        return build_url(base, params)
+
+    def bare_first_request(self):
+        """The listing without any page parameter (start-page check of last_page_backward).
+        None when the plan has no such form (path paging: first_page_url is the start page)."""
+        params = dict(self.listing.get("params") or {})
+        params.pop(self.page_param, None)
+        if "{page}" in self.listing["url"]:
+            return None
+        if self.listing.get("method") == "POST":
+            return PostUrl(self.listing["url"], params, self.listing.get("body_type", "form"))
+        return build_url(self.listing["url"], params, drop={self.page_param})
 
     def end_conditions(self):
         out = {}
@@ -87,11 +123,20 @@ class Strategy:
         an empty page."""
         ends = self.end_conditions()
         try:
-            resp = self.ctx.fetcher.get(url, accept_statuses=tuple(ends))
+            if isinstance(url, PostUrl):
+                resp = self.ctx.fetcher.post(str(url), url.body, body_type=url.body_type, accept_statuses=tuple(ends))
+            else:
+                resp = self.ctx.fetcher.get(url, accept_statuses=tuple(ends))
         except PermanentFailure as exc:
             if exc.status in (404, 410):
                 return Page([], None, exc.status, {"error": exc.reason, "explicit_empty": True})
             raise
+        if resp.status == 204 and self.listing.get("end_on_204"):
+            # ext:http204_end: "No Content" is this source's end of the listing. A 204 with a
+            # body is not what the plan declared and is read as an error.
+            if resp.body.strip():
+                raise PermanentFailure("http_204_with_body", url, 204)
+            return Page([], None, 204, {"end_status": 204, "explicit_empty": True})
         if resp.status in ends:
             cond = ends[resp.status]
             if cond is not None and not self._end_body_matches(resp, cond):
@@ -102,7 +147,26 @@ class Strategy:
             raise LoginReview("login_form", url, resp.status)
         if page.extra.get("parse_error"):
             raise PermanentFailure(f"listing_parse_error:{page.extra['parse_error']}", url, resp.status)
+        self._json_extras(page, resp, url)
         return page
+
+    def _json_extras(self, page, resp, url):
+        """ext:json_page: next-page cursor / last page number read from the JSON body."""
+        cursor, last = self.listing.get("next_cursor"), self.listing.get("last_page_path")
+        if not cursor and not last:
+            return
+        from .parsing import json_path
+        try:
+            data = resp.json()
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:json_extras", url, resp.status) from None
+        if cursor:
+            token = json_path(data, cursor["path"])
+            page.extra["next_cursor"] = None if token in (None, "", False) else str(token)
+        if last:
+            value = json_path(data, last)
+            page.extra["last_page"] = value if isinstance(value, int) and not isinstance(value, bool) else (
+                int(value) if isinstance(value, str) and value.isdigit() else None)
 
     @staticmethod
     def _end_body_matches(resp, cond):
@@ -205,6 +269,18 @@ class LastPageBackward(Strategy):
         return self.beyond(last + 1, first) is not None and self.beyond(last + 2, first) is not None
 
     def find_last_page(self, first):
+        reported = first.extra.get("last_page")
+        if reported is not None and reported >= self.start_page:
+            # ext:json_page: the source states its last page. Only a candidate: it must pass the
+            # same confirmation (L real, L+1 and L+2 beyond) as a searched one, else search.
+            cap = self.max_pages()
+            if cap is None or reported <= self.start_page + cap - 1:
+                if self.confirmed(reported, None, first):
+                    kind = self.beyond(reported + 1, first)
+                    return reported, kind
+                self.ctx.store.event(self.ctx.site_id, "reported_last_page_unconfirmed", {"reported": reported})
+                self.cache = {self.start_page: first}
+                self.real = {}
         for attempt in range(2):
             last, kind = self.search_last_page(first)
             if self.confirmed(last, kind, first):
@@ -237,9 +313,9 @@ class LastPageBackward(Strategy):
             first = self.get(s)
             if not first.items:
                 raise StrategyStop("incomplete", "empty_first_page_unverified")
-            if self.cfg.get("check_unparameterized_first_page", True):
-                params = dict(self.listing.get("params") or {})
-                bare = self.fetch_page(build_url(self.listing["url"], params, drop={self.page_param}))
+            bare_request = self.bare_first_request()
+            if self.cfg.get("check_unparameterized_first_page", True) and bare_request is not None:
+                bare = self.fetch_page(bare_request)
                 if set(bare.keys) != set(first.keys):
                     ctx.store.event(ctx.site_id, "start_page_mismatch",
                                     {"start_page": s, "bare_keys": bare.keys[:5], "start_keys": first.keys[:5]})
@@ -340,6 +416,8 @@ class LastPageBackward(Strategy):
 class _ForwardPager(Strategy):
     def forward(self, seg, extra_params=None, *, url=None, reverse_within_page=False, overlap=0):
         """Read one segment forward from its cursor. Yields batches; returns (evidence, total)."""
+        if self.listing.get("next_cursor"):
+            return (yield from self.forward_cursor(seg, extra_params, url=url, reverse_within_page=reverse_within_page))
         ctx = self.ctx
         row = self.segment_row(seg)
         cursor = row["cursor"] or {"next_page": self.start_page, "prev_fp": None, "first_fp": None,
@@ -396,6 +474,45 @@ class _ForwardPager(Strategy):
             cursor = dict(cursor, next_page=n + 1, prev_fp=fp,
                           first_fp=cursor.get("first_fp") or (fp if n == self.start_page else None))
             yield Batch(seg, ordered, cursor, listed, reported_total=cursor.get("total"))
+
+
+    def forward_cursor(self, seg, extra_params=None, *, url=None, reverse_within_page=False):
+        """ext:json_page next-cursor paging: each page names the next one. Only reachable
+        forward, so no overlap re-read and no probing past an empty page. The stored cursor
+        keeps the token of the next page, so a resumed run continues there."""
+        ctx = self.ctx
+        row = self.segment_row(seg)
+        cursor = row["cursor"] or {"next_page": self.start_page, "next_token": None, "prev_fp": None, "total": None}
+        cap = self.max_pages()
+        seen_tokens = set(cursor.get("seen_tokens") or [])
+        while True:
+            n = cursor["next_page"]
+            if n > self.start_page and cursor.get("next_token") is None:
+                return "cursor_end", cursor.get("total")
+            if cap is not None and n - self.start_page >= cap:
+                return "page_cap", cursor.get("total")
+            request = self.page_url(n, extra_params, url=url, token=cursor.get("next_token"))
+            page = self.fetch_page(request)
+            if not page.items:
+                page = self.fetch_page(request)  # an empty page is re-read once before it ends the segment
+            if page.total is not None and cursor.get("total") is None:
+                cursor["total"] = page.total
+            if not page.items:
+                if page.extra.get("next_cursor"):
+                    # An empty page that still points further: not an end, and not safe to skip.
+                    raise StrategyStop("incomplete", f"empty_page_with_next_cursor:{seg}:{n}")
+                return ("empty_first_page" if n == self.start_page else "cursor_empty_page"), cursor.get("total")
+            fp = page.fingerprint
+            token = page.extra.get("next_cursor")
+            if (n > self.start_page and fp == cursor.get("prev_fp")) or (token is not None and token in seen_tokens):
+                ctx.store.event(ctx.site_id, "cursor_loop", {"segment": seg, "page": n})
+                raise StrategyStop("incomplete", f"cursor_loop:{seg}:{n}")
+            if token is not None:
+                seen_tokens.add(token)
+            ordered = list(reversed(page.items)) if reverse_within_page else list(page.items)
+            cursor = dict(cursor, next_page=n + 1, next_token=token, prev_fp=fp,
+                          seen_tokens=sorted(seen_tokens)[-200:])
+            yield Batch(seg, ordered, cursor, page.keys, reported_total=cursor.get("total"))
 
 
 # ---------------------------------------------------------------------------
