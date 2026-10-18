@@ -1,0 +1,37 @@
+{
+ "version": 1,
+ "sites": {
+  "emep-int-mscw": {
+   "strategy": "last_page_backward",
+   "request_interval_s": 1.5,
+   "respect_robots": true,
+   "retries": 1,
+   "verify_ssl": true,
+   "base_url": "https://emep.int",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "html"
+    ],
+    "list_returns_paper": true
+   },
+   "listing": {
+    "url": "https://emep.int/mscw/mscw_publications.html",
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "key_field": "external_id",
+     "url_field": "url",
+     "title_field": "title",
+     "date_field": "published_date",
+     "listing_marker": "body"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1
+   }
+  }
+ }
+}

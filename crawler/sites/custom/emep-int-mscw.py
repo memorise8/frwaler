@@ -356,3 +356,22 @@ class EMEPMSCWCrawler(BaseCrawler):
 
         print(f"[emep-int-mscw] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() is unchanged. The single
+    # publications page yields the paper dicts crawl() saves (list_returns_paper),
+    # with its dedup key and 50-char abstract rule.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        papers, seen = [], set()
+        for entry in self._parse_page(html):
+            dedup_key = entry.get("pdf_url") or entry.get("url") or ""
+            if dedup_key in seen:
+                continue
+            if dedup_key:
+                seen.add(dedup_key)
+            if len(entry.get("abstract") or "") < 50:
+                continue
+            papers.append(entry)
+        return papers
