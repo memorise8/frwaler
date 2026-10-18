@@ -1,0 +1,16 @@
+{
+ "content_type": "text/html",
+ "listing_body": "<html><body><table id=\"projects\"><thead><tr><th>Award</th></tr></thead><tbody><tr><td>FC26-05NT42587</td><td>Montana State University</td><td>MT</td><td><a href=\"https://www.osti.gov/biblio/1735344\">Big Sky Partnership</a></td><td>12/31/2019</td><td>Carbon Storage</td><td>This final report describes the regional carbon sequestration partnership work over Phase II and Phase III.</td><td>https://www.osti.gov/biblio/1735344</td></tr><tr><td>FC26-05NT42588</td><td>University of Illinois</td><td>IL</td><td><a href=\"https://www.osti.gov/biblio/1806192\">Illinois Basin</a></td><td>4/30/2021</td><td>Carbon Storage</td><td>This final report describes the regional carbon sequestration partnership work over Phase II and Phase III. Illinois.</td><td>https://www.osti.gov/biblio/1806192</td></tr><tr><td>FC26-05NT42589</td><td>Battelle</td><td>OH</td><td><a href=\"https://www.osti.gov/biblio/1755351\">Short one</a></td><td>9/30/2020</td><td>Carbon Storage</td><td>Too short.</td><td>https://www.osti.gov/biblio/1755351</td></tr></tbody></table></body></html>",
+ "empty_body": "",
+ "details": {},
+ "original_method_source_sha256": {
+  "_curl_get": "bed27b54821a182c03516799cc36787be8e698920ca3caff1d10827f872f9a98",
+  "_bs": "297b21b000bb43749d204d1fde6d886fddd0db8e1baf13b644b8b54ba2021f16",
+  "_strip_tags": "744c416c47d203a15706da469b4a0b3407d37348d81c8550c4bab9b66ed2d21a",
+  "_parse_date": "bec2736c50c4bce3239050bf81c6e2b65b5a77024ae2469337a3662c9132efe6",
+  "_parse_table_rows": "122d04b8af58aeb297e7a674d4c2919d98323e65029b0a7c391a0dcc35668024",
+  "_parse_table_rows_regex": "751266f08e4d7ca49dd5c249a923bf2cf9d4f80de28d25648ed04bf7bbfa8137",
+  "_fetch_osti": "93d1961096227ebda57023cf624c447d29046c0e05ae3fbe606131f7e0914d9a",
+  "crawl": "de495f7870a16c88444bb26b0430b60f769f35db5641d9c27d811bfaa39d5fc0"
+ }
+}

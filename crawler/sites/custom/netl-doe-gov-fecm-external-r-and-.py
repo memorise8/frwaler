@@ -401,3 +401,71 @@ class NETLFECMCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (ND-2); crawl() is unchanged. Listing = the one
+    # report table (_parse_table_rows) with crawl()'s osti_url/award/title
+    # duplicate skip; the paper is crawl()'s own no-OSTI branch (osti_data = {}:
+    # table abstract, completion date) — www.osti.gov is outside this site, so
+    # the OSTI enrichment is not requested (scope decision, user-delegated 10-19).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str) or 'id="projects"' not in html:
+            raise PermanentFailure("listing_parse_error:projects_table_missing")
+        rows, seen_urls = [], set()
+        for row in self._parse_table_rows(html):
+            dedup_key = row.get("osti_url") or row.get("award_no") or row.get("title") or ""
+            if dedup_key and dedup_key in seen_urls:
+                continue
+            if dedup_key:
+                seen_urls.add(dedup_key)
+            rows.append(dict(row, _nd2_key=dedup_key))
+        return rows
+
+    def _enumeration_paper(self, row):
+        osti_url = row.get("osti_url") or ""
+        title = row.get("title") or ""
+        inline_abstract = row.get("abstract") or ""
+        osti_id = row.get("osti_id") or ""
+        osti_data: dict = {}
+        abstract = (osti_data.get("description") or inline_abstract).strip()
+        if len(abstract) < 50:
+            return None
+        date_raw = row.get("date_raw") or ""
+        completion_date = self._parse_date(date_raw) if date_raw else ""
+        pub_date = osti_data.get("pub_date") or completion_date
+        award_no = row.get("award_no") or ""
+        performer = row.get("performer") or ""
+        state = row.get("state") or ""
+        return {
+            "site_id": self.site_id,
+            "external_id": award_no or osti_id or None,
+            "post_number": award_no or osti_id or None,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "listed_date": completion_date,
+            "authors": None,
+            "publisher": performer or None,
+            "department": state or None,
+            "journal": None,
+            "url": osti_url or None,
+            "pdf_url": None,
+            "keywords": None,
+            "category": row.get("category") or None,
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps({
+                "award_number": award_no,
+                "performer_state": state,
+                "osti_id": osti_id,
+                "report_number": "",
+                "product_type": "",
+                "country_publication": "",
+                "completion_date": date_raw,
+                "posted_date": date_raw,
+                "originalFilename": "",
+            }, ensure_ascii=False),
+        }

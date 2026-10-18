@@ -1,0 +1,37 @@
+{
+ "version": 1,
+ "defaults": {
+  "request_interval_s": 1.5,
+  "respect_robots": true,
+  "retries": 1
+ },
+ "sites": {
+  "netl-doe-gov-fecm-external-r-and-": {
+   "strategy": "last_page_backward",
+   "base_url": "https://netl.doe.gov",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "html"
+    ],
+    "paper_method": "_enumeration_paper",
+    "none_is_rule_skip": true,
+    "allow_shared_post_number": true
+   },
+   "listing": {
+    "url": "https://netl.doe.gov/projects/project-Final-Report-List.aspx",
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "key_field": "_nd2_key",
+     "title_field": "title"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1
+   }
+  }
+ }
+}
