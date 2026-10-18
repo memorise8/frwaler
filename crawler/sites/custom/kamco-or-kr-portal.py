@@ -433,3 +433,89 @@ class KamcoPortalCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (no network); crawl() and the methods above
+    # stay unchanged. GET list.do?...&page=N serves the same board page as
+    # the POST form (checked 2026-10-18).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List-page HTML -> [{external_id, url}] in page order.
+
+        A valid empty page keeps ``table.board-table`` (plan listing_marker);
+        anything without the board table is not a listing.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        if not re.search(r'<table[^>]+class="[^"]*\bboard-table\b', html):
+            raise PermanentFailure("listing_parse_error:missing_board_table")
+        rows = []
+        seen = set()
+        for bIdx in self._parse_list_bIdxs(html):
+            if bIdx in seen:
+                continue
+            seen.add(bIdx)
+            rows.append({
+                "external_id": bIdx,
+                "url": f"{_VIEW_URL}?bIdx={bIdx}&ptIdx={_PT_IDX}&mId={_M_ID}",
+            })
+        if not rows and "등록된 게시물이 없습니다" not in html:
+            raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing")
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Detail HTML + list row -> the exact paper crawl() saves (or None)."""
+        bIdx = item["external_id"]
+        detail_html = html
+        if not detail_html:
+            return None
+        # Same error-page rule as _fetch_detail_page.
+        if len(detail_html) < 600 or "alert(" in detail_html[:500]:
+            return None
+
+        detail = self._parse_detail(detail_html)
+
+        abstract = self._build_abstract(detail)
+
+        if len(abstract) < 50:
+            return None
+
+        title = detail["title"] or f"캠코 연차보고서 #{bIdx}"
+        detail_url = (
+            f"{_VIEW_URL}?bIdx={bIdx}&ptIdx={_PT_IDX}&mId={_M_ID}"
+        )
+
+        paper = {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": bIdx,
+            "title": title,
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": "연차보고서",
+            "keywords": json.dumps(
+                ["연차보고서", "Annual Report", "KAMCO", "한국자산관리공사"],
+                ensure_ascii=False,
+            ),
+            "published_date": detail["date"],
+            "url": detail_url,
+            "pdf_url": detail["pdf_url"],
+            "doi": "",
+            "department": detail["department"],
+            "metadata": json.dumps(
+                {
+                    "bIdx": bIdx,
+                    "ptIdx": _PT_IDX,
+                    "mId": _M_ID,
+                    "fileNames": detail["file_names"],
+                    "fileIds": [
+                        {"fileId": fid, "fileSn": fsn}
+                        for fid, fsn, _ in detail["file_ids"]
+                    ],
+                },
+                ensure_ascii=False,
+            ),
+        }
+        return paper
