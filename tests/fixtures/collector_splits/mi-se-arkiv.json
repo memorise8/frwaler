@@ -1,0 +1,24 @@
+{
+ "listing_body": "[{\"id\": 101, \"date\": \"2024-02-01T08:00:00\", \"slug\": \"rapport-ett\", \"link\": \"https://www.mi.se/publikationer/rapport-ett/\", \"title\": {\"rendered\": \"Rapport ett\"}, \"excerpt\": {\"rendered\": \"<p>Syntetisk offline text för L2b-regressionstestet: crawl och plan ska ge exakt samma paper. Synthetic offline text, résumé kept identical between crawl and plan.</p>\"}, \"content\": {\"rendered\": \"\"}, \"yoast_head_json\": {}}, {\"id\": 102, \"date\": \"2025-03-01T08:00:00\", \"slug\": \"rapport-tva\", \"link\": \"https://www.mi.se/publikationer/rapport-tva/\", \"title\": {\"rendered\": \"Rapport två\"}, \"excerpt\": {\"rendered\": \"<p>Syntetisk offline text för L2b-regressionstestet: crawl och plan ska ge exakt samma paper. Synthetic offline text, résumé kept identical between crawl and plan.</p>\"}, \"content\": {\"rendered\": \"\"}, \"yoast_head_json\": {}}]",
+ "details": {
+  "https://www.mi.se/publikationer/rapport-ett/": "<html><body><main><h1>x</h1><a href=\"/wp-content/uploads/rapport-ett.pdf\">Ladda ner</a></main></body></html>",
+  "https://www.mi.se/publikationer/rapport-tva/": "<html><body><main><h1>x</h1><a href=\"/wp-content/uploads/rapport-tva.pdf\">Ladda ner</a></main></body></html>"
+ },
+ "extra_segments": {
+  "referral-response": "[{\"id\": 201, \"date\": \"2023-05-05T10:00:00\", \"slug\": \"remissvar-ett\", \"link\": \"https://www.mi.se/referral-response/remissvar-ett/\", \"title\": {\"rendered\": \"Remissvar ett\"}, \"excerpt\": {\"rendered\": \"<p>Syntetisk offline text för L2b-regressionstestet: crawl och plan ska ge exakt samma paper. Synthetic offline text, résumé kept identical between crawl and plan.</p>\"}, \"content\": {\"rendered\": \"\"}, \"yoast_head_json\": {}}]",
+  "posts": "[{\"id\": 301, \"date\": \"2022-01-01T09:00:00\", \"slug\": \"nyhet-ett\", \"link\": \"https://www.mi.se/nyheter/2022/nyhet-ett/\", \"title\": {\"rendered\": \"Nyhet ett\"}, \"excerpt\": {\"rendered\": \"<p>Syntetisk offline text för L2b-regressionstestet: crawl och plan ska ge exakt samma paper. Synthetic offline text, résumé kept identical between crawl and plan.</p>\"}, \"content\": {\"rendered\": \"\"}, \"yoast_head_json\": {}}]"
+ },
+ "extra_details": {
+  "https://www.mi.se/referral-response/remissvar-ett/": "<html><body><main><h1>x</h1><a href=\"/wp-content/uploads/rr.pdf\">Ladda ner</a></main></body></html>",
+  "https://www.mi.se/nyheter/2022/nyhet-ett/": "<html><body><main><h1>x</h1><a href=\"/wp-content/uploads/ny.pdf\">Ladda ner</a></main></body></html>"
+ },
+ "content_type": "application/json",
+ "long_text": "Syntetisk offline text för L2b-regressionstestet: crawl och plan ska ge exakt samma paper. Synthetic offline text, résumé kept identical between crawl and plan.",
+ "empty_body": "[]",
+ "site_id": "mi-se-arkiv",
+ "original_method_source_sha256": {
+  "_api_page": "4b03e9d5408b9f7bc3699b199d4d07069192cd92000b7e138d085d324bbcd66a",
+  "_extract_abstract": "9d34f32630f090267be83daa2103212ba0839165f25b312eff3f67cd16f64a18",
+  "crawl": "fe1ba12a2d30b10283fb4c9550e779bc8d7cead19bd98e8e63c305a38e90dba2"
+ }
+}

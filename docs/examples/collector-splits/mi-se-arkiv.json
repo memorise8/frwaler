@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "sites": {
+    "mi-se-arkiv": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "date_range_split",
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "html",
+          "item"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ]
+      },
+      "listing": {
+        "url": "https://www.mi.se/",
+        "params": {
+          "rest_route": "/wp/v2/publication",
+          "per_page": 100,
+          "orderby": "date",
+          "order": "asc",
+          "_fields": "id,date,slug,link,title,excerpt,content,yoast_head_json"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 100,
+        "end_statuses": [
+          {
+            "status": 400,
+            "json_code": "rest_post_invalid_page_number"
+          }
+        ],
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        },
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "id",
+          "date_field": "date",
+          "title_field": "title"
+        }
+      },
+      "segments": {
+        "mode": "explicit",
+        "within_segment_order": "oldest_first",
+        "overlap_pages": 1,
+        "items": [
+          {
+            "key": "publication",
+            "params": {
+              "rest_route": "/wp/v2/publication"
+            }
+          },
+          {
+            "key": "referral-response",
+            "params": {
+              "rest_route": "/wp/v2/referral-response"
+            }
+          },
+          {
+            "key": "posts",
+            "params": {
+              "rest_route": "/wp/v2/posts"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

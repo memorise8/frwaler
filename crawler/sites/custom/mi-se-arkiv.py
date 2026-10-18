@@ -347,3 +347,95 @@ class MiSeArkivCrawler(BaseCrawler):
 
         print(f"[mi-se-arkiv] crawl complete: {saved} records saved.")
         return saved
+
+    # -- enumeration split (crawl() unchanged) --------------------------
+    # One plan reads the three post types as explicit segments of
+    # https://www.mi.se/?rest_route=/wp/v2/<type> (same endpoints as crawl()).
+    def _enumeration_items(self, data, url=""):
+        from urllib.parse import parse_qs, urlparse
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:items_not_a_list_of_objects", url)
+        parts = urlparse(url or "")
+        route = (parse_qs(parts.query).get("rest_route") or [""])[0] or parts.path
+        post_type = route.rstrip("/").rsplit("/", 1)[-1]
+        if post_type not in dict(_POST_TYPES):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:unknown_post_type:" + post_type, url)
+        return [{"id": row.get("id"), "url": row.get("link", ""), "date": row.get("date", ""),
+                 "title": _strip_html((row.get("title") or {}).get("rendered", "")
+                                      if isinstance(row.get("title"), dict) else str(row.get("title") or "")),
+                 "post_type": post_type, "record": row} for row in data]
+
+    def _enumeration_detail(self, html, item=None):
+        """(pdf_url, original_filename) exactly as _get_pdf_url parses the detail page."""
+        raw = html
+        if not raw:
+            return "", ""
+        soup = _make_soup(raw)
+        if soup is not None:
+            try:
+                for tag in soup.find_all("a", href=True):
+                    href = tag["href"]
+                    if ".pdf" in href.lower():
+                        full = href if href.startswith("http") else _BASE_URL + href
+                        fname = full.rstrip("/").split("/")[-1].split("?")[0]
+                        return full, fname
+            except Exception:
+                pass
+        m = re.search(r'href="([^"]*\.pdf)"', raw, re.IGNORECASE)
+        if m:
+            href = m.group(1)
+            full = href if href.startswith("http") else _BASE_URL + href
+            fname = full.rstrip("/").split("/")[-1].split("?")[0]
+            return full, fname
+        return "", ""
+
+    def _enumeration_paper(self, row, detail):
+        """The paper crawl() saves for one REST row (same skips; PDF only for publications)."""
+        item = row["record"]
+        post_type = row["post_type"]
+        category = dict(_POST_TYPES)[post_type]
+        item_url = item.get("link", "")
+        wp_id = item.get("id")
+        slug = item.get("slug") or str(wp_id)
+        pub_date = (item.get("date") or "")[:10] or None
+        title_raw = item.get("title") or {}
+        title = _strip_html(
+            title_raw.get("rendered", "")
+            if isinstance(title_raw, dict)
+            else str(title_raw)
+        )
+        if not title:
+            return None
+        abstract = self._extract_abstract(item)
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+        pdf_url = ""
+        original_filename = ""
+        if post_type == "publication":
+            pdf_url, original_filename = detail
+        return {
+            "site_id":           self.site_id,
+            "external_id":       slug,
+            "post_number":       str(wp_id),
+            "title":             title,
+            "abstract":          abstract,
+            "published_date":    pub_date,
+            "listed_date":       pub_date,
+            "url":               item_url,
+            "pdf_url":           pdf_url or None,
+            "publisher":         _PUBLISHER,
+            "category":          category,
+            "original_filename": original_filename or None,
+            "metadata": json.dumps(
+                {
+                    "wp_id":       wp_id,
+                    "slug":        slug,
+                    "post_type":   post_type,
+                    "posted_date": item.get("date", ""),
+                },
+                ensure_ascii=False,
+            ),
+        }
+
