@@ -612,6 +612,10 @@ class Fetcher:
             headers.update(request_headers)  # ext:dynamic_token: this request only (the listing POST)
         if content_type:
             headers["Content-Type"] = content_type
+        # The User-Agent is always ours, whatever extra or per-request headers carried.
+        for name in [k for k in headers if k.lower() == "user-agent"]:
+            del headers[name]
+        headers["User-Agent"] = self.user_agent
         delay = self._host_delay.get(host, 0)
         gate = self._gate(host)
         began = sent = self.clock()

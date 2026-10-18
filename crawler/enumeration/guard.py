@@ -8,7 +8,7 @@ sites' gated fetchers) are unaffected.
 
 Not covered (documented limits): sockets already connected before the guarded
 call (keep-alive reuse via send/recv), native code that opens sockets itself
-(curl_cffi/libcurl, playwright drivers already running), threads that existed
+(libcurl other than the curl_cffi.requests calls wrapped below, playwright drivers already running), threads that existed
 before the guarded block (e.g. pre-created executor workers), and code paths
 run outside ``guarded()`` such as crawler constructors and ``_save_paper``.
 """
@@ -83,12 +83,41 @@ def _install():
                 self.run = guarded_run
             return orig_thread_start(self)
 
+        # curl_cffi (libcurl) opens its sockets in native code, past the connect tripwire, and
+        # crawler.stealth_fetcher poses as a browser: both stop in a guarded block.
+        _deny_in_guard("curl_cffi.requests", ("request", "get", "post"), "curl_cffi")
+        _deny_in_guard("curl_cffi.requests", ("Session.request", "AsyncSession.request"), "curl_cffi")
+        _deny_in_guard("crawler.stealth_fetcher", ("StealthSession.fetch_html",), "stealth_fetcher")
+
         socket.socket.connect = connect
         socket.socket.connect_ex = connect_ex
         threading.Thread.start = thread_start
         subprocess.Popen.__init__ = popen_init
         os.system = system
         _installed = True
+
+
+def _deny_in_guard(module_name, names, label):
+    """Wrap module attributes (``"func"`` or ``"Class.method"``) so a call inside a guarded
+    block stops; outside it they behave as before. A missing module or name is skipped."""
+    import importlib
+    import functools
+    try:
+        module = importlib.import_module(module_name)
+    except Exception:
+        return
+    for name in names:
+        owner, _, attr = name.rpartition(".")
+        target = getattr(module, owner, None) if owner else module
+        orig = getattr(target, attr, None) if target is not None else None
+        if orig is None:
+            continue
+
+        def wrapper(*args, _orig=orig, **kwargs):
+            if active():
+                _deny(label)
+            return _orig(*args, **kwargs)
+        setattr(target, attr, functools.wraps(orig)(wrapper))
 
 
 @contextmanager
