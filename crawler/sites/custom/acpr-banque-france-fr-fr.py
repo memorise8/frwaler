@@ -296,6 +296,35 @@ class ACPRBanqueFranceCrawler(BaseCrawler):
             if post != item['slug'] or url != item['url']:
                 raise ValueError('stored source identity requires review')
 
+    # Pure enumeration entry points; crawl() and the parsers above stay unchanged.
+    def _enumeration_items(self, html, url):
+        """Cards of one listing page through crawl()'s _listing (scope and page from
+        the requested URL). The empty page after the last one, which crawl() never
+        requests, is returned as [] only when the delivered listing view is present."""
+        parsed = urlsplit(url)
+        scope = next((name for name, cfg in _SCOPES.items() if parsed.path == cfg['path']), None)
+        if scope is None:
+            raise ValueError('unreviewed source listing path')
+        pages = parse_qs(parsed.query, keep_blank_values=True).get('page', ['0'])
+        if len(pages) != 1 or not re.fullmatch(r'[0-9]+', pages[0]):
+            raise ValueError('invalid source page parameter')
+        page = int(pages[0])
+        root = _make_soup(html).select_one(_SCOPES[scope]['view'])
+        if page > 0 and root is not None and not root.select('a.card-vertical'):
+            return []
+        return [dict(item, scope=scope) for item in _listing(html, scope, page)['items']]
+
+    def _enumeration_detail(self, html, item, url=None):
+        """crawl()'s _parse_detail. Its PDF text fallback downloads inside the crawler,
+        which the framework does not allow: such notices fail loudly instead."""
+        def no_pdf_fetch(pdf_url):
+            raise ValueError('source body unavailable: notice needs PDF text excerpt (crawler download)')
+        self._abstract_from_pdf = no_pdf_fetch
+        try:
+            return self._parse_detail(html, item)
+        finally:
+            del self._abstract_from_pdf
+
     @staticmethod
     def _contract():
         return _hash(_SCOPES)
