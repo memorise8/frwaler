@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "sites": {
+    "bmds-bund-de-aktuelles": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "oldest_first_sort",
+      "base_url": "https://bmds.bund.de",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://bmds.bund.de/aktuelles/pressemitteilungen",
+        "start_page": 1,
+        "next_link": {
+          "selector": "a.page-forward",
+          "attr": "href"
+        },
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "title_field": "title",
+          "listing_marker": "ol.results-list"
+        }
+      }
+    }
+  }
+}

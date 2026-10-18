@@ -1,0 +1,19 @@
+{
+ "site_id": "bmds-bund-de-aktuelles",
+ "listing_body": "<html><body><ol class=\"results-list list-unstyled\"><li class=\"search-result teaser\"><a class=\"teaser-link\" href=\"/aktuelles/pressemitteilungen/detail/pm-eins\" title=\"PM pm-eins\">PM</a><span class=\"date-text\">07.10.2026, Pressemitteilung</span><div class=\"results-list-teaser\"><p>Teaser pm-eins</p></div></li><li class=\"search-result teaser\"><a class=\"teaser-link\" href=\"/aktuelles/pressemitteilungen/detail/pm-zwei\" title=\"PM pm-zwei\">PM</a><span class=\"date-text\">01.10.2026, Pressemitteilung</span><div class=\"results-list-teaser\"><p>Teaser pm-zwei</p></div></li></ol><ul class=\"pagination\"><li><a class=\"page-link page-forward\" href=\"/aktuelles/pressemitteilungen?tx_news_pi1%5BcurrentPage%5D=2&amp;page=2&amp;cHash=abc\"></a></li></ul></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://bmds.bund.de/aktuelles/pressemitteilungen/detail/pm-eins": "<html><body><h1>PM pm-eins</h1><span class=\"date-text\">07.10.2026, Pressemitteilung</span><div class=\"ce-bodytext\"><p>Pressemitteilung 41/2026</p><p>Synthetische Pressemitteilung des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. Synthetische Pressemitteilung des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. </p><a href=\"/fileadmin/pm-eins.pdf\">PDF</a></div></body></html>",
+  "https://bmds.bund.de/aktuelles/pressemitteilungen/detail/pm-zwei": "<html><body><h1>PM pm-zwei</h1><span class=\"date-text\">01.10.2026, Pressemitteilung</span><div class=\"ce-bodytext\"><p>Pressemitteilung 40/2026</p><p>Synthetische Pressemitteilung des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. Synthetische Pressemitteilung des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. </p><a href=\"/fileadmin/pm-zwei.pdf\">PDF</a></div></body></html>"
+ },
+ "long_text": "Synthetische Pressemitteilung des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. Synthetische Pressemitteilung des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. ",
+ "empty_body": "<html><body><ol class=\"results-list list-unstyled\"></ol></body></html>",
+ "original_method_source_sha256": {
+  "_curl_get": "6e125972cbaa0f8b52af15bc620ea9306a2ecd22f2247a5c2b30629af41f0fe3",
+  "_make_soup": "c8ebf86308f72f05966142a74e2022f80fa2654ef167a3981a6fa14f5dc12d40",
+  "_parse_date": "bf1b01d171e990d5472a3d57898353b711d9fa897bbf176b8b9c486417d35e39",
+  "_parse_list_page": "6c720503c606eca481233709a5898c2dd9733d0a17948ebf28bc5f81fc3b69a9",
+  "_parse_detail": "7f2357569bb52507af69052bdbae93cd57b1ac229d2923ecaa6393a7a13d1132",
+  "crawl": "f77e8bedbb5f11d344dd033cc5228ad510004c1e1db186cb8695704e48b12b18"
+ }
+}

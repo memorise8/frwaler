@@ -343,3 +343,53 @@ class BmdsBundDeAktuellesCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # parsers stay unchanged; no fetching or storage happens here. Paging
+    # follows the page's own cHash-signed "next" link (ext:next_link).
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html):
+        """Rows of one list page, exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        items, _next = self._parse_list_page(html, 0)
+        return items
+
+    def _enumeration_paper(self, html, item):
+        """Copy of crawl()'s per-item conversion; None keeps crawl()'s skips."""
+        url = item["url"]
+        slug = url.rstrip("/").rsplit("/", 1)[-1]
+        detail = self._parse_detail(html, item)
+        title = detail.get("title") or item["title"]
+        abstract = detail.get("abstract") or item.get("teaser", "")
+        published_date = detail.get("published_date") or item["listed_date"]
+        pm_number = detail.get("pm_number")
+        pdf_url = detail.get("pdf_url")
+        if len(abstract) < 50:
+            return None
+        return {
+            "site_id": self.site_id,
+            "external_id": slug,
+            "url": url,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": item["listed_date"],
+            "posted_date": item["listed_date"],
+            "category": item.get("category") or "Pressemitteilung",
+            "publisher": self._PUBLISHER,
+            "authors": "",
+            "keywords": "",
+            "doi": None,
+            "pdf_url": pdf_url,
+            "post_number": pm_number,
+            "original_filename": None,
+            "metadata": json.dumps({
+                "posted_date": item["listed_date"],
+                "pm_number": pm_number,
+                "pm_year": published_date[:4] if published_date else None,
+                "teaser": item.get("teaser", ""),
+            }, ensure_ascii=False),
+        }
