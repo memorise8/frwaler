@@ -1,0 +1,18 @@
+{
+  "site_id": "nps-or-kr-pnsgdnc",
+  "listing_body": "<html><body><div class=\"data-list-column\"><ul><li class=\"list-item\"><p class=\"title\"><a href=\"/pnsgdnc/nscvrgdata/getOHAE0002M1.do?menuId=MN24000898&amp;pstId=ZZ202600000000000201&amp;hmpgCd=01&amp;hmpgBbsCd=BS20240145&amp;sortSe=FR&amp;pageIndex=1&amp;searchText=&amp;searchGbu=\">[보도자료] Offline ZZ202600000000000201</a></p><p class=\"summary\">Synthetic press résumé and Korean 자료 for offline equality testing, long enough to pass the fifty character rule.</p><ul class=\"info\"><li class=\"writer\"><span class=\"label\">작성부서</span> <span class=\"data\">대외소통팀</span></li><li class=\"date\"><span class=\"label\">작성일</span> <span class=\"data\">2026/10/01</span></li></ul></li><li class=\"list-item\"><p class=\"title\"><a href=\"/pnsgdnc/nscvrgdata/getOHAE0002M1.do?menuId=MN24000898&amp;pstId=ZZ202600000000000202&amp;hmpgCd=01&amp;hmpgBbsCd=BS20240145&amp;sortSe=FR&amp;pageIndex=1&amp;searchText=&amp;searchGbu=\">[보도자료] Offline ZZ202600000000000202</a></p><p class=\"summary\">Synthetic press résumé and Korean 자료 for offline equality testing, long enough to pass the fifty character rule.</p><ul class=\"info\"><li class=\"writer\"><span class=\"label\">작성부서</span> <span class=\"data\">대외소통팀</span></li><li class=\"date\"><span class=\"label\">작성일</span> <span class=\"data\">2026/10/02</span></li></ul></li></ul></div></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.nps.or.kr/pnsgdnc/nscvrgdata/getOHAE0002M1.do?menuId=MN24000898&pstId=ZZ202600000000000201&hmpgCd=01&hmpgBbsCd=BS20240145&sortSe=FR&pageIndex=1&searchText=&searchGbu=": "<html><body><table><tr><th>작성자</th><td>홍길동</td></tr></table><div class=\"view-contents-wrap\"><p>Synthetic press résumé and Korean 자료 for offline equality testing, long enough to pass the fifty character rule.</p></div><div class=\"file-item\"><p class=\"a-file hwp\" title=\"press-ZZ202600000000000201.hwp\">press-ZZ202600000000000201.hwp</p></div></body></html>",
+    "https://www.nps.or.kr/pnsgdnc/nscvrgdata/getOHAE0002M1.do?menuId=MN24000898&pstId=ZZ202600000000000202&hmpgCd=01&hmpgBbsCd=BS20240145&sortSe=FR&pageIndex=1&searchText=&searchGbu=": "<html><body><table><tr><th>작성자</th><td>홍길동</td></tr></table><div class=\"view-contents-wrap\"><p>Synthetic press résumé and Korean 자료 for offline equality testing, long enough to pass the fifty character rule.</p></div><div class=\"file-item\"><p class=\"a-file hwp\" title=\"press-ZZ202600000000000202.hwp\">press-ZZ202600000000000202.hwp</p></div></body></html>"
+  },
+  "long_text": "Synthetic press résumé and Korean 자료 for offline equality testing, long enough to pass the fifty character rule.",
+  "empty_body": "<html><body><div class=\"data-list-column\"><ul><li class=\"list-item no-data\"><p class=\"no-data-msg\">검색결과가 없습니다.</p></li></ul></div></body></html>",
+  "original_method_source_sha256": {
+    "_curl_post": "cab4f680559d41ca22c719198bc1a430f580f0ebd584b039cf9930c576d479ba",
+    "_curl_get": "6d37806a2ed365ab1dbdd47de5972b520703825badaee5bfb007bfd280c5a3aa",
+    "_parse_list_page": "b7193eac7041464a98beff98dcf13c70e846f12765c521e0f80f96c2d4c6b4a8",
+    "_parse_detail_page": "e0a121fd5694a060fe7ee608d65952c343d4b5078a76560950fcdd8368b9620c",
+    "crawl": "37d01f722bb747ddbe0d2644a3633e4696d5e0a15dc00bbaad5723912c653c56"
+  }
+}

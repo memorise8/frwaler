@@ -349,3 +349,54 @@ class NpsOrKrPnsgdncCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (no network); crawl() and the methods
+    # above are unchanged. The listing answers GET with the same fields
+    # that crawl() POSTs.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List-page HTML -> _parse_list_page() rows (detail URL = list href)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None or soup.select_one("div.data-list-column") is None:
+            raise PermanentFailure("listing_parse_error:missing_data_list_column")
+        return [dict(item) for item in self._parse_list_page(html)]
+
+    def _enumeration_paper(self, html, row):
+        """Detail HTML + list row -> the paper crawl() saves (or None)."""
+        item = {k: row[k] for k in ("pst_id", "title", "url", "summary", "published_date", "department")}
+        if html is None:
+            return None
+        detail = self._parse_detail_page(html)
+        parts = []
+        if item["summary"]:
+            parts.append(item["summary"])
+        if detail["abstract"] and detail["abstract"] != item["summary"]:
+            parts.append(detail["abstract"])
+        abstract = "\n\n".join(parts)
+        if len(abstract) < 50:
+            return None
+        authors = detail["authors"] or []
+        return {
+            "id":             None,
+            "site_id":        self.site_id,
+            "external_id":    item["pst_id"],
+            "title":          item["title"],
+            "authors":        json.dumps(authors, ensure_ascii=False),
+            "abstract":       abstract,
+            "category":       "보도자료",
+            "keywords":       json.dumps([], ensure_ascii=False),
+            "published_date": item["published_date"],
+            "url":            item["url"],
+            "pdf_url":        "",
+            "doi":            "",
+            "department":     item["department"],
+            "metadata":       json.dumps({
+                "hmpgBbsCd":     _BBS_CD,
+                "attachedFiles": detail["files"],
+            }, ensure_ascii=False),
+        }
