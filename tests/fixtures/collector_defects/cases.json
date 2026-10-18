@@ -38,7 +38,7 @@
     "empty_html": "<h1>Report 2027</h1><time></time>",
     "partial_html": "<time>2026</time>",
     "partial_expected": null,
-    "outside_date_sha256": "6e4e259ac949efac5b371ce4f3b60bbcd61fdb403620281c8cc8e33b0c3abe11",
+    "outside_date_sha256": "e8851d44ba6bbaccfdcaf3ef21e57cafda03a285bff250f6960f69565477ae9e",
     "delivery": true
   },
   {
