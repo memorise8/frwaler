@@ -298,3 +298,147 @@ class DeltaresNlEnCrawler(BaseCrawler):
 
         print(f"[deltares-nl-en] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl(), _list_page_urls()
+    # and _parse_detail() are unchanged; these methods only parse fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Detail URLs of a list page — the parse part of _list_page_urls() copied verbatim."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        raw = html
+        seen: set[str] = set()
+        result: list[dict] = []
+        for slug in re.findall(
+            r'href=["\'](?:https://www\.deltares\.nl)?'
+            r'(/en/expertise/publications/[^"\'?#/][^"\'?#]*)["\']',
+            raw,
+        ):
+            full = f"{_BASE}{slug}"
+            if full not in seen:
+                seen.add(full)
+                result.append({"url": full})
+        return result
+
+    def _enumeration_paper(self, html, item):
+        """The parse part of _parse_detail() copied verbatim for an already
+        fetched detail page (external_id = NUXT publicationPage id, else slug)."""
+        url = item["url"]
+        raw = html
+        if not raw:
+            return None
+
+        # BeautifulSoup for meta tags (with parser fallback)
+        try:
+            soup = _make_soup(raw)
+        except Exception as exc:
+            print(f"[deltares-nl-en] BS4 error for {url}: {exc}")
+            soup = None
+
+        # ── Title ──────────────────────────────────────────────────────────────
+        title = _meta(soup, name="twitter:title") or _meta(soup, prop="og:title")
+        if not title:
+            m = re.search(r"<title[^>]*>([^<]+)</title>", raw)
+            title = m.group(1).strip() if m else ""
+        title = re.sub(r"\s*[\|–—]\s*Deltares\s*$", "", title,
+                       flags=re.IGNORECASE).strip()
+
+        # ── Abstract from meta description ─────────────────────────────────────
+        abstract = _meta(soup, name="description")
+        if not abstract:
+            m = re.search(
+                r'<meta[^>]+name=["\']description["\'][^>]+content=["\']([^"\']+)["\']',
+                raw,
+            )
+            abstract = m.group(1).strip() if m else ""
+        abstract = abstract.strip()
+
+        if len(abstract) < 100:
+            return None
+
+        # ── NUXT state ─────────────────────────────────────────────────────────
+        nuxt_m = re.search(r"window\.__NUXT__=(.+?);</script>", raw, re.DOTALL)
+        nuxt = nuxt_m.group(1) if nuxt_m else ""
+
+        # External/numeric ID from controlPanel URL:
+        #   publicationPage/{ID}-{slug}?site=enDefault
+        ext_id: str | None = None
+        cp_m = re.search(r"publicationPage(?:\\u002F|/)+(\d+)-", nuxt)
+        if cp_m:
+            ext_id = cp_m.group(1)
+        if not ext_id:
+            # Fallback: use URL slug
+            ext_id = url.rstrip("/").split("/")[-1]
+
+        post_number: str | None = ext_id if (ext_id and ext_id.isdigit()) else None
+
+        # Authors: [{initials:"S.",insertion:"van",lastName:"Asselen"}, ...]
+        # insertion may be a string literal OR a variable reference (null/undefined)
+        authors_list: list[str] = []
+        for initials, insertion_lit, last in re.findall(
+            r'\{initials:"([^"]*)",insertion:(?:"([^"]*)"|[^,{}]+)'
+            r',lastName:"([^"]*)"\}',
+            nuxt,
+        ):
+            parts = [p for p in [initials.strip(), insertion_lit.strip(),
+                                 last.strip()] if p]
+            if parts:
+                authors_list.append(" ".join(parts))
+        authors = "; ".join(authors_list) if authors_list else None
+
+        # postDate: p.postDate="2024-01-01T01:00:00+01:00"
+        post_date: str | None = None
+        pd_m = re.search(r'\.postDate="(\d{4}-\d{2}-\d{2})', nuxt)
+        if pd_m:
+            post_date = pd_m.group(1)
+
+        # materialType
+        mat_m = re.search(r'\.materialType="([^"]+)"', nuxt)
+        category = mat_m.group(1) if mat_m else "ARTICLE"
+
+        # digitalReferences: [{name:"EP5491.pdf",description:"...",url:"https://..."}]
+        pdf_url: str | None = None
+        original_filename: str | None = None
+        ref_m = re.search(
+            r'digitalReferences=\[\{name:"([^"]+)",description:"[^"]*",'
+            r'url:"([^"]+)"',
+            nuxt,
+        )
+        if ref_m:
+            original_filename = ref_m.group(1)
+            raw_pdf = ref_m.group(2)
+            decoded_pdf = _decode_nuxt_url(raw_pdf)
+            if decoded_pdf.startswith("http"):
+                pdf_url = decoded_pdf
+
+        # ── Assemble paper dict ────────────────────────────────────────────────
+        meta_dict: dict = {
+            "posted_date": post_date,
+            "materialType": category,
+        }
+        if original_filename:
+            meta_dict["originalFilename"] = original_filename
+
+        return {
+            "site_id": self.site_id,
+            "external_id": ext_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": post_date,
+            "posted_date": post_date,
+            "authors": authors,
+            "publisher": "Deltares",
+            "department": None,
+            "journal": None,
+            "url": url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "keywords": None,
+            "category": category,
+            "doi": None,
+            "metadata": json.dumps(meta_dict, ensure_ascii=False),
+        }

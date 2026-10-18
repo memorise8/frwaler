@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "sites": {
+    "deltares-nl-en": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.deltares.nl",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.deltares.nl/en/expertise/publications?languages=Dutch&languages=English&materials=ARTICLE",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "url",
+          "listing_marker": ".v-grid-template-rows--overview"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
