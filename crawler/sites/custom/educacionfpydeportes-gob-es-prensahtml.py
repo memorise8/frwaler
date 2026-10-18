@@ -364,3 +364,154 @@ class EducacionFpyDeportesPrensaCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] done: saved {saved} documents")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl(), _fetch_list() and
+    # _fetch_detail() are unchanged; these methods only parse fetched HTML.
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _enumeration_external_id(url):
+        """crawl()'s external_id / post_number rule, copied verbatim."""
+        slug_match = re.search(
+            r"/prensa/actualidad/\d+/\d+/([^/]+)\.html", url
+        )
+        if slug_match:
+            external_id = slug_match.group(1)
+        else:
+            external_id = url.split("/")[-1].replace(".html", "")
+        num_match = re.match(r"^(\d+)", external_id)
+        post_number = num_match.group(1) if num_match else external_id
+        return external_id, post_number
+
+    def _enumeration_items(self, html, url=None):
+        """Rows of the search result page — the parse part of _fetch_list()
+        copied verbatim, plus crawl()'s external_id (listing key)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url or "")
+        soup = self._parse_html(html)
+        if not soup:
+            raise PermanentFailure("listing_parse_error:unparseable_html", url or "")
+
+        items = []
+        for div in soup.select("div.enlace"):
+            fecha_el = div.find("span", class_="fecha")
+            date_raw = self._clean(fecha_el) if fecha_el else ""
+
+            titulo_a = div.select_one("p.titulo a")
+            if not titulo_a:
+                continue
+            title = self._clean(titulo_a.get_text())
+            href = titulo_a.get("href", "")
+            if not href:
+                continue
+            if href.startswith("/"):
+                article_url = f"{_BASE_URL}{href}"
+            elif href.startswith("http"):
+                article_url = href
+            else:
+                article_url = urljoin(_BASE_URL, href)
+
+            desc_el = div.select_one("p.descripcion")
+            description = self._clean(desc_el) if desc_el else ""
+
+            external_id, _post_number = self._enumeration_external_id(article_url)
+            items.append({
+                "title": title,
+                "url": article_url,
+                "date_raw": date_raw,
+                "description": description,
+                "external_id": external_id,
+                "listed_date": self._parse_date(date_raw),
+            })
+        return items
+
+    def _enumeration_detail(self, raw):
+        """The parse part of _fetch_detail() copied verbatim (fetched HTML in)."""
+        if not raw:
+            return None
+        soup = self._parse_html(raw)
+        if not soup:
+            return None
+
+        result: dict = {}
+
+        contenido = soup.find(id="contenido")
+        if contenido:
+            h1 = contenido.find("h1")
+            if h1:
+                result["title"] = self._clean(h1)
+
+            fecha_p = contenido.find("p", id="fecha")
+            if fecha_p:
+                result["date_raw"] = self._clean(fecha_p)
+
+            cte = contenido.find("div", class_="cte")
+            if cte:
+                result["abstract"] = self._clean(cte)
+
+        pdf_url = None
+        for a in soup.find_all("a", href=True):
+            href = a["href"]
+            if href.lower().endswith(".pdf"):
+                if href.startswith("/"):
+                    pdf_url = f"{_BASE_URL}{href}"
+                elif href.startswith("http"):
+                    pdf_url = href
+                else:
+                    pdf_url = urljoin(_BASE_URL, href)
+                break
+        if pdf_url:
+            result["pdf_url"] = pdf_url
+
+        return result
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a list row and its fetched detail page — crawl()'s
+        conversion copied verbatim (external_id = URL slug, unchanged)."""
+        url = item["url"]
+        external_id, post_number = self._enumeration_external_id(url)
+        listed_date = self._parse_date(item.get("date_raw", ""))
+
+        detail = self._enumeration_detail(html)
+        if detail is None:
+            return None
+
+        title = detail.get("title") or item["title"]
+
+        abstract = detail.get("abstract", "")
+        if len(abstract) < _ABSTRACT_TARGET_CHARS:
+            fallback = item.get("description", "")
+            if len(fallback) > len(abstract):
+                abstract = fallback
+
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+
+        date_raw_detail = detail.get("date_raw", "")
+        published_date = self._parse_date(date_raw_detail) or listed_date
+
+        pdf_url = detail.get("pdf_url")
+
+        metadata = {
+            "posted_date": item.get("date_raw", ""),
+            "slug": external_id,
+            "list_description": item.get("description", ""),
+        }
+
+        return {
+            # BaseCrawler._save_paper() adds the same site_id default.
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "url": url,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "publisher": _PUBLISHER,
+            "pdf_url": pdf_url,
+            "post_number": post_number,
+            "category": "Prensa / Actualidad",
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }

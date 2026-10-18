@@ -1,0 +1,15 @@
+{
+  "site_id": "educacionfpydeportes-gob-es-prensahtml",
+  "listing_body": "<html><body><div id=\"contenido\"><h1>Actualidad</h1><div class=\"enlace\"><span class=\"fecha\">11/02/2026</span><p class=\"titulo\"><a href=\"/prensa/actualidad/2026/02/20260211-sintetica-uno.html\">Nota sintética uno</a></p><p class=\"descripcion\">Descripción breve 20260211-sintetica-uno.</p></div><div class=\"enlace\"><span class=\"fecha\">10/01/2026</span><p class=\"titulo\"><a href=\"/prensa/actualidad/2026/01/20260110-sintetica-cero.html\">Nota sintética cero</a></p><p class=\"descripcion\">Descripción breve 20260110-sintetica-cero.</p></div></div></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.educacionfpydeportes.gob.es/prensa/actualidad/2026/02/20260211-sintetica-uno.html": "<html><body><div id=\"contenido\" class=\"noticias\"><h1>Nota sintética uno</h1><p id=\"fecha\">11/02/2026</p><div class=\"cte\"><p>Texto sintético de nota de prensa para la prueba de igualdad sin conexión, con acentos áéíóú y eñe. Texto sintético de nota de prensa para la prueba de igualdad sin conexión, con acentos áéíóú y eñe.</p><a href=\"/dam/jcr:abc/sintetica.pdf\">PDF</a></div></div></body></html>",
+    "https://www.educacionfpydeportes.gob.es/prensa/actualidad/2026/01/20260110-sintetica-cero.html": "<html><body><div id=\"contenido\" class=\"noticias\"><h1>Nota sintética cero</h1><p id=\"fecha\">10/01/2026</p><div class=\"cte\"><p>Texto sintético de nota de prensa para la prueba de igualdad sin conexión, con acentos áéíóú y eñe. Texto sintético de nota de prensa para la prueba de igualdad sin conexión, con acentos áéíóú y eñe.</p></div></div></body></html>"
+  },
+  "long_text": "Texto sintético de nota de prensa para la prueba de igualdad sin conexión, con acentos áéíóú y eñe. Texto sintético de nota de prensa para la prueba de igualdad sin conexión, con acentos áéíóú y eñe.",
+  "original_method_source_sha256": {
+    "crawl": "781d495f9f4e0837e10c95e624fa5378dd2eb9d6628096f45c8a8397efffe3eb",
+    "_fetch_list": "ffe75f62290f80f950790b2ca3f8ea97a567f4267932323fc6a298365fc89e64",
+    "_fetch_detail": "d980052a35e488140c888b98d02c21996978cd1a85fe18d8d3c0635a7a63ccee"
+  }
+}
