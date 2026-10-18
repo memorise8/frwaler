@@ -41,7 +41,9 @@
       },
       "last_page": {
         "overlap_pages": 1
-      }
+      },
+      "max_consecutive_contract_failures": 30,
+      "max_contract_failure_ratio": 0.85
     }
   }
 }
