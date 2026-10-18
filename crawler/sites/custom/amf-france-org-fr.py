@@ -238,6 +238,73 @@ class AMFFranceOrgFrCrawler(BaseCrawler):
         print(f"[amf-france-org-fr] Sitemap: {len(entries)} communiques-de-lamf URLs")
         return entries
 
+    # Pure enumeration entry points; existing crawl and helpers stay unchanged.
+    def _enumeration_items(self, raw, url=None):
+        """Sitemap urlset -> communique rows, as _fetch_sitemap_urls filters them.
+
+        Non-sitemap answers (challenge, maintenance HTML, other XML) are listing
+        parse errors, never an empty page that could end the listing.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw, str) or access_challenge(raw):
+            raise PermanentFailure("listing_parse_error:not_a_sitemap", url)
+        try:
+            root = ET.fromstring(raw)
+        except ET.ParseError:
+            raise PermanentFailure("listing_parse_error:invalid_xml", url) from None
+        if root.tag != '{http://www.sitemaps.org/schemas/sitemap/0.9}urlset':
+            raise PermanentFailure("listing_parse_error:not_a_urlset", url)
+        ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+        rows = []
+        for url_el in root.findall("sm:url", ns):
+            loc_el = url_el.find("sm:loc", ns)
+            lastmod_el = url_el.find("sm:lastmod", ns)
+            if loc_el is None:
+                continue
+            loc = loc_el.text or ""
+            lastmod = _parse_sitemap_date(lastmod_el.text) if lastmod_el is not None else None
+            if self.TARGET_PATH_PREFIX in loc:
+                rows.append({"url": loc, "lastmod": lastmod})
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Pure copy of crawl's per-item conversion and skip rules (None = skipped)."""
+        from crawler.enumeration.http import PermanentFailure
+        article_url = item["url"]
+        lastmod = item.get("lastmod")
+        canonical = article_url.split("?")[0].split("#")[0].rstrip("/")
+        if not html:
+            raise PermanentFailure("detail_empty_response", article_url)
+        if access_challenge(html):
+            raise PermanentFailure("authentication_failed", article_url)
+        fields = _extract_article(html, article_url)
+        title = fields.get("title") or ""
+        abstract = fields.get("abstract") or ""
+        if not title:
+            return None
+        if len(abstract) < 50:
+            return None
+        return {
+            "site_id": self.site_id,
+            "external_id": fields.get("external_id"),
+            "post_number": fields.get("post_number"),
+            "url": canonical,
+            "title": title,
+            "abstract": abstract,
+            "published_date": fields.get("published_date"),
+            "listed_date": lastmod,
+            "authors": None,
+            "publisher": "AMF - Autorité des marchés financiers",
+            "department": None,
+            "journal": None,
+            "pdf_url": fields.get("pdf_url"),
+            "original_filename": fields.get("original_filename"),
+            "keywords": fields.get("keywords"),
+            "category": fields.get("category"),
+            "doi": None,
+            "metadata": fields.get("metadata"),
+        }
+
     def crawl(self, limit=None):
         """Crawl AMF France communiqués and save to DB.
 

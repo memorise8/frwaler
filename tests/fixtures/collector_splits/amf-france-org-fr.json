@@ -1,0 +1,19 @@
+{
+  "site_id": "amf-france-org-fr",
+  "listing_body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://www.amf-france.org/fr</loc></url><url><loc>https://www.amf-france.org/fr/actualites-publications/communiques/communiques-de-lamf/synthetic-offline-one</loc><lastmod>2026-10-01T10:00Z</lastmod></url><url><loc>https://www.amf-france.org/fr/actualites-publications/publications/other-scope</loc><lastmod>2026-01-01T10:00Z</lastmod></url><url><loc>https://www.amf-france.org/fr/actualites-publications/communiques/communiques-de-lamf/synthetic-offline-two</loc><lastmod>2026-09-15T08:30Z</lastmod></url></urlset>",
+  "content_type": "text/xml; charset=utf-8",
+  "details": {
+    "https://www.amf-france.org/fr/actualites-publications/communiques/communiques-de-lamf/synthetic-offline-one": "<html><head><title>Synthetic communiqué one</title></head><body data-nid=\"90001\" data-published-date=\"202610011000\" data-format=\"communique\" data-sujet=\"epargne\"><main><h1>Synthetic communiqué one</h1><span class=\"tag\">Communiqué</span><span class=\"tag\">Epargne</span><div class=\"contentToc\"><p>Synthetic AMF communique résumé for offline equality testing only. Synthetic AMF communique résumé for offline equality testing only. Synthetic AMF communique résumé for offline equality testing only. Synthetic AMF communique résumé for offline equality testing only. Synthetic AMF communique résumé for offline equality testing only. Synthetic AMF communique résumé for offline equality testing only.</p></div><a href=\"/sites/institutionnel/files/pdf/90001/fr/Synthetic_90001.pdf\">PDF</a></main></body></html>",
+    "https://www.amf-france.org/fr/actualites-publications/communiques/communiques-de-lamf/synthetic-offline-two": "<html><head><title>Synthetic communiqué two</title></head><body data-nid=\"90002\" data-published-date=\"202609150830\" data-format=\"communique\" data-sujet=\"epargne\"><main><h1>Synthetic communiqué two</h1><span class=\"tag\">Communiqué</span><span class=\"tag\">Epargne</span><div class=\"contentToc\"><p>Synthetic AMF communique résumé for offline equality testing only. Synthetic AMF communique résumé for offline equality testing only. Synthetic AMF communique résumé for offline equality testing only. Synthetic AMF communique résumé for offline equality testing only. Synthetic AMF communique résumé for offline equality testing only. Synthetic AMF communique résumé for offline equality testing only.</p></div><a href=\"/sites/institutionnel/files/pdf/90002/fr/Synthetic_90002.pdf\">PDF</a></main></body></html>"
+  },
+  "long_text": "Synthetic AMF communique résumé for offline equality testing only. Synthetic AMF communique résumé for offline equality testing only. Synthetic AMF communique résumé for offline equality testing only. Synthetic AMF communique résumé for offline equality testing only. Synthetic AMF communique résumé for offline equality testing only. Synthetic AMF communique résumé for offline equality testing only.",
+  "original_method_source_sha256": {
+    "module:_make_soup": "0074ce1947d0b832c5dcdcdc2cd86aadd6b6eca5f9ed0ab8651956b275135709",
+    "module:_curl_get": "55782ecd5a586f3f9690173716685c20a4d647932124dddcd9050579303a0ed3",
+    "module:_parse_amf_date": "07ef513fa2cbf7ed1b3e514dd2d3e774c6557a6e439ea1f45e778541d9612a03",
+    "module:_parse_sitemap_date": "33a25311ee051b6af25068c136ec415618c25af6aba1a53640e175706b616f41",
+    "module:_extract_article": "6a67c028566c0663fdcccd1a126166e40725bc9851ab22ca6e212979cc9c841a",
+    "_fetch_sitemap_urls": "412e1db0d2693490cdea294d46f3659bbed62bd9191df84d71ab62b476f4e377",
+    "crawl": "088541ee34875379c98cd77ac3bf5cbb2b3d7d7f6929675155089733d4baf5b7"
+  }
+}
