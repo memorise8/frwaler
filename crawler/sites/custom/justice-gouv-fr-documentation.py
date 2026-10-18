@@ -756,3 +756,24 @@ class JusticeGouvFrDocumentationCrawler(BaseCrawler):
             print(f"[{self.site_id}] safety cap of {self.MAX_PAGES} pages reached.")
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() is unchanged. Listing = the
+    # filtered resources page (_parse_list_page cards); detail = the resource
+    # page fetched by the framework, _parse_detail + _to_paper with crawl()'s
+    # 50-char abstract rule.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        from urllib.parse import parse_qs, urlsplit
+        page = parse_qs(urlsplit(url).query).get("page", ["0"])[0]
+        page_url = self._build_list_url(int(page)) if page.isdigit() else url
+        items, _has_next = self._parse_list_page(html, page_url)
+        return [dict(i) for i in items if i.get("url")]
+
+    def _enumeration_paper(self, html, item):
+        detail = self._parse_detail(html, item["url"])
+        paper = self._to_paper(dict(item), detail)
+        if len(paper.get("abstract") or "") < self.MIN_ABSTRACT_CHARS:
+            return None
+        return paper
