@@ -293,3 +293,25 @@ class SibSwissTrainingCrawler(BaseCrawler):
             )
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() is unchanged. The listing
+    # embeds every course as JSON-LD: the listing returns crawl()'s paper
+    # dicts (list_returns_paper), with its dedup key and 50-char rule.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw):
+        papers, seen_keys = [], set()
+        for course in _extract_courses(raw):
+            insts = course.get("hasCourseInstance", [])
+            inst_url = insts[0].get("url", "") if insts else ""
+            key = course.get("name", "") + "|" + inst_url
+            if key in seen_keys:
+                continue
+            seen_keys.add(key)
+            record = _course_to_record(course)
+            if len(record.get("abstract", "")) < 50:
+                continue
+            record["site_id"] = self.site_id
+            papers.append(record)
+        return papers
