@@ -305,3 +305,76 @@ class MoeGovCnJybXxgkCrawler(BaseCrawler):
 
         self._save_paper(paper)
         return self._last_save_created
+
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Rows of the single list page, parsed exactly like crawl() (same URL rule)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        rows = []
+        for it in _parse_list_page(html, _LIST_URL):
+            row = dict(it)
+            post_number = _extract_post_number(row["url"])
+            row["external_id"] = post_number or urlparse(row["url"]).path.split("/")[-1].replace(".html", "")
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, html, it):
+        """Paper dict exactly as _process_item() saves it (None = skipped as too short)."""
+        url = it["url"]
+        title = it["title"]
+        listed_date = it.get("listed_date", "")
+
+        post_number = _extract_post_number(url)
+        external_id = post_number or urlparse(url).path.split("/")[-1].replace(".html", "")
+
+        detail_html = html
+        abstract = _extract_content(detail_html)
+        if not abstract:
+            raise RuntimeError("detail page has no article content")
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+
+        pdf_url = None
+        pdf_match = re.search(r'href=["\']([^"\']*\.pdf)["\']', detail_html, re.I)
+        if pdf_match:
+            raw_pdf = pdf_match.group(1)
+            pdf_url = urljoin(url, raw_pdf)
+
+        original_filename = None
+        if pdf_url:
+            original_filename = pdf_url.rstrip("/").split("/")[-1] or None
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": listed_date,
+            "listed_date": listed_date,
+            "authors": None,
+            "publisher": "教育部",
+            "department": None,
+            "journal": None,
+            "url": url,
+            "pdf_url": pdf_url,
+            "doi": None,
+            "keywords": None,
+            "category": "政府信息公开年度报告",
+            "original_filename": original_filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": listed_date,
+                    "originalFilename": original_filename,
+                    "column": "部机关信息公开年度报告",
+                    "site": "中华人民共和国教育部政府门户网站",
+                },
+                ensure_ascii=False,
+            ),
+        }

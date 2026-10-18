@@ -1,0 +1,15 @@
+{
+ "site_id": "moe-gov-cn-jyb_xxgk",
+ "listing_body": "<html><body><div class=\"x_gkndbg\"><dl id=\"list\"><dd><a href=\"./202601/t20260130_1427903.html\" title=\"教育部2025年政府信息公开工作年度报告\">教育部2025年政府信息公开工作年度报告</a><span class=\"x_gkndbg_pcdate\">2026-01-30</span></dd><dd><a href=\"./202501/t20250127_1176956.html\" title=\"教育部2024年政府信息公开工作年度报告\">教育部2024年政府信息公开工作年度报告</a><span class=\"x_gkndbg_pcdate\">2025-01-27</span></dd></dl></div></body></html>",
+ "content_type": "text/html; charset=UTF-8",
+ "details": {
+  "http://www.moe.gov.cn/jyb_xxgk/xxgk/nianbao/jiguan/202601/t20260130_1427903.html": "<html><body><div class=\"TRS_Editor\"><p>本报告根据政府信息公开条例要求编制，介绍教育部2025年政府信息公开工作的总体情况、主动公开和依申请公开情况。</p><p><a href=\"./P020260130.pdf\">附件</a></p></div></body></html>",
+  "http://www.moe.gov.cn/jyb_xxgk/xxgk/nianbao/jiguan/202501/t20250127_1176956.html": "<html><body><div class=\"TRS_Editor\"><p>本报告根据政府信息公开条例要求编制，介绍教育部2025年政府信息公开工作的总体情况、主动公开和依申请公开情况。</p><p><a href=\"./P020250127.pdf\">附件</a></p></div></body></html>"
+ },
+ "long_text": "本报告根据政府信息公开条例要求编制，介绍教育部2025年政府信息公开工作的总体情况、主动公开和依申请公开情况。",
+ "original_method_source_sha256": {
+  "__init__": "3c531f3ed828b2469ff58e5b13cfa3dc37aad4a24fcc137d22f9e6648a149f1b",
+  "crawl": "d45fe17459f3e690d0919a21a0b055e98825112837e27c8ea88039881bf3a051",
+  "_process_item": "08620523d66a0e9bdae8d68a9629063c26e350145d03d8410e2d1d3169ce852e"
+ }
+}
