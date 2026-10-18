@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "sites": {
+    "kommunikasjon-ntb-no-presserom": {
+      "strategy": "last_page_backward",
+      "base_url": "https://kommunikasjon.ntb.no",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "json",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://kommunikasjon.ntb.no/public-website-api/pressroom/17848243/releases/1000/0",
+        "params": {
+          "categories": "19"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 1000,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "date_field": "listed_date",
+          "title_field": "title"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

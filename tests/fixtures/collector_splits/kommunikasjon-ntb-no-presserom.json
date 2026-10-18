@@ -1,0 +1,86 @@
+{
+  "site_id": "kommunikasjon-ntb-no-presserom",
+  "content_type": "application/json",
+  "listing_body": "{\"paging\": {\"count\": 2, \"itemsPerPage\": 20, \"page\": 0}, \"releases\": [{\"id\": 9000002, \"date\": \"2026-10-15T10:00:00.000Z\", \"versions\": {\"no\": {\"title\": \"Syntetisk pressemelding 9000002\", \"metadescription\": \"\", \"type\": \"Pressemelding\", \"url\": \"/release/9000002/syntetisk-9000002?publisherId=17848243\"}}}, {\"id\": 9000001, \"date\": \"2026-09-01T08:00:00.000Z\", \"versions\": {\"no\": {\"title\": \"Syntetisk pressemelding 9000001\", \"metadescription\": \"\", \"type\": \"Pressemelding\", \"url\": \"/release/9000001/syntetisk-9000001?publisherId=17848243\"}}}], \"categories\": [], \"brands\": []}",
+  "details": {
+    "https://kommunikasjon.ntb.no/public-website-api/release/9000002": {
+      "id": 9000002,
+      "date": "2026-10-15T10:00:00.000Z",
+      "format": "release",
+      "url": "/release/9000002/syntetisk-9000002?publisherId=17848243",
+      "publisher": {
+        "name": "Syntetisk institutt"
+      },
+      "versions": {
+        "no": {
+          "title": "Syntetisk pressemelding 9000002",
+          "leadtext": "",
+          "metadescription": "",
+          "type": "Pressemelding",
+          "body": {
+            "complete": "<p>Syntetisk ingress og brødtekst for den frakoblede likhetstesten av oppregningen, bare struktur og ingen ekte innhold ÆØÅ.</p>"
+          },
+          "keywords": "syntetisk, test",
+          "contacts": {
+            "cards": [
+              {
+                "name": "Syntetisk Person",
+                "title": "Kommunikasjon"
+              }
+            ]
+          },
+          "documents": [
+            {
+              "downloadPath": "/data/attachments/9000002/rapport.pdf",
+              "originalFilename": "rapport.pdf"
+            }
+          ]
+        }
+      }
+    },
+    "https://kommunikasjon.ntb.no/public-website-api/release/9000001": {
+      "id": 9000001,
+      "date": "2026-09-01T08:00:00.000Z",
+      "format": "release",
+      "url": "/release/9000001/syntetisk-9000001?publisherId=17848243",
+      "publisher": {
+        "name": "Syntetisk institutt"
+      },
+      "versions": {
+        "no": {
+          "title": "Syntetisk pressemelding 9000001",
+          "leadtext": "",
+          "metadescription": "",
+          "type": "Pressemelding",
+          "body": {
+            "complete": "<p>Syntetisk ingress og brødtekst for den frakoblede likhetstesten av oppregningen, bare struktur og ingen ekte innhold ÆØÅ.</p>"
+          },
+          "keywords": "syntetisk, test",
+          "contacts": {
+            "cards": [
+              {
+                "name": "Syntetisk Person",
+                "title": "Kommunikasjon"
+              }
+            ]
+          },
+          "documents": []
+        }
+      }
+    }
+  },
+  "long_text": "Syntetisk ingress og brødtekst for den frakoblede likhetstesten av oppregningen, bare struktur og ingen ekte innhold ÆØÅ.",
+  "original_method_source_sha256": {
+    "__init__": "f9b45ab3db252358f22d39cb7995b1988ba6a034941274bf251b8d5ec2a0271d",
+    "_curl_text": "b17dffcc94edee680811915f987cd8c3f0255b3e300de381263d9823d4db6eab",
+    "_curl_json": "aff5d7be21e995e60356c6983955f3effcc0699cfed48384174d882699497762",
+    "_list_api_url": "9bcc5c0bf9d419f8b78f9e6c4d4f1af601050b80c19ec21a10506b0b8e987480",
+    "_detail_api_url": "e4dbba43775d1aae50e4f79884ba0e8f600e8051e07a827d4556e8e100dcde73",
+    "_parse_list_json": "4484fa3f422c116eda939995343df2557e2f45dca2ce099aeff1c21458cd8530",
+    "_parse_list_html_fallback": "d178fa272478c3e3876c2f51a824bb87de3127ef403501d6b9f6477693905f22",
+    "_pick_version": "8cb493c4ef2ec25135111da6ff959f5a9bc84cfa65b7bf0c7605e498a431d3ed",
+    "_pick_pdf": "b7ffbd625ff52f82967050f323e95bd10b38d5e5bf5db1c6fe5d2e719920d4c9",
+    "_build_paper": "57bd0645495e1108ec1d5e4def960ac95fc1dbc4df73eafc829a9942d459d8a6",
+    "crawl": "4182955a08850ce0618be54c3a3dd97df19734a0d4f6c48d9506a179a3cad61b"
+  }
+}

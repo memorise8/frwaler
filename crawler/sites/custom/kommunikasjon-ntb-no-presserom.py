@@ -454,3 +454,50 @@ class KommunikasjonNtbNoPresseromCrawler(BaseCrawler):
             raise
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched JSON.
+    # ------------------------------------------------------------------
+
+    _ENUMERATION_LIST_SIZE = 1000
+
+    def _enumeration_items(self, data, url=None):
+        """All releases of the category from one list API call
+        (``/releases/1000/0?categories=19`` — crawl() reads the same list 20 per
+        page). The plan's ``?page=N`` is not sent on by the API, so only the start
+        page (or the page-less URL) carries rows; later pages are declared empty.
+        external_id = release id exactly as in crawl()/_build_paper()."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("releases"), list):
+            raise PermanentFailure("listing_parse_error:releases_missing", url or "")
+        query = urllib.parse.parse_qs(urllib.parse.urlsplit(url or "").query)
+        page = (query.get("page") or ["1"])[0]
+        if page not in ("", "1"):
+            return []
+        releases = self._parse_list_json(data)
+        paging = data.get("paging") if isinstance(data.get("paging"), dict) else {}
+        count = paging.get("count")
+        if isinstance(count, int) and count > len(releases):
+            raise PermanentFailure("listing_parse_error:list_truncated", url or "")
+        rows = []
+        for item in releases:
+            item_id = str(item.get("id") or "").strip()
+            if not item_id:
+                continue  # crawl(): no id -> no detail JSON -> skipped
+            version = self._pick_version(item)
+            rows.append({
+                "url": self._detail_api_url(item_id),
+                "external_id": item_id,
+                "listed_date": _iso_date(item.get("date")),
+                "title": _clean_text(version.get("title")),
+                "release": item,
+            })
+        return rows
+
+    def _enumeration_paper(self, data, item):
+        """Paper from the fetched release JSON — crawl()'s _build_paper(list_item,
+        detail) unchanged. None keeps crawl()'s skips (missing detail, short text)."""
+        if not isinstance(data, dict) or not data:
+            return None
+        return self._build_paper(item["release"], data)
