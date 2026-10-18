@@ -148,6 +148,66 @@ class MentalhealthcommissionCaResourcesCrawler(BaseCrawler):
     site_name = "Custom: mentalhealthcommission-ca-resources"
     base_url = _BASE_URL
 
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_items(self, data, url=None):
+        """Validate a decoded WP REST list; no fetching, storage, or identifier synthesis."""
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:items_not_a_list_of_objects", url)
+        return data
+
+    def _enumeration_paper(self, item):
+        """Pure copy of crawl's Paper conversion and item filters (None = crawl's skip).
+
+        crawl() also falls back to a category map fetched once per run when an item
+        has no embedded category; the listing asks for ``_embed=1``, so that network
+        fallback is not reproduced here (category stays "" in that rare case).
+        """
+        item_url = item.get("link") or ""
+        wp_id = item.get("id")
+        external_id = str(wp_id) if wp_id is not None else None
+        title = html.unescape((item.get("title") or {}).get("rendered") or "").strip()
+        content_html = (item.get("content") or {}).get("rendered") or ""
+        abstract = _html_to_text(content_html)
+        if not abstract or len(abstract) < 50:
+            return None
+        date_raw = item.get("date") or ""
+        published_date = _parse_date(date_raw)
+        listed_date = published_date
+        cat_names, all_term_names = _extract_terms(item)
+        category = cat_names[0] if cat_names else ""
+        keywords = ", ".join(dict.fromkeys(all_term_names)) if all_term_names else ""
+        pdf_url, original_filename = _extract_pdf(content_html)
+        metadata = {
+            "posted_date": date_raw,
+            "originalFilename": original_filename,
+            "wp_id": wp_id,
+            "slug": item.get("slug"),
+            "modified": item.get("modified"),
+            "categories_raw": item.get("categories"),
+            "term_names": all_term_names,
+        }
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": external_id,
+            "title": title or "(untitled)",
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "url": item_url,
+            "pdf_url": pdf_url or "",
+            "original_filename": original_filename or "",
+            "authors": "",
+            "publisher": _PUBLISHER,
+            "department": "",
+            "journal": "",
+            "keywords": keywords,
+            "category": category,
+            "doi": "",
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
+
     def crawl(self, limit=None):
         saved = 0
         seen_urls: set[str] = set()
