@@ -205,6 +205,116 @@ class InseeFrFrCrawler(BaseCrawler):
         return saved
 
     # ------------------------------------------------------------------
+    # Enumeration split (no I/O): same rows and Paper as crawl()
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Rows of one decoded Solr answer with crawl()'s per-document skips (no id, repeated
+        detail URL on the page). No fetching, storage or new identifiers."""
+        docs = data.get("documents", []) if isinstance(data, dict) else None
+        if not isinstance(docs, list) or any(not isinstance(doc, dict) for doc in docs):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:documents_not_a_list_of_objects", url)
+        rows = []
+        seen_urls = set()
+        for doc in docs:
+            doc_id = str(doc.get("id", "")).strip()
+            if not doc_id:
+                continue
+
+            detail_url = f"{self.base_url}/fr/information/{doc_id}"
+            if detail_url in seen_urls:
+                continue
+            seen_urls.add(detail_url)
+            rows.append({
+                "external_id": doc_id,
+                "url": detail_url,
+                "title": self._normalize_text(doc.get("titre") or ""),
+                "published_date": self._parse_date(doc.get("dateDiffusion") or ""),
+                "doc": doc,
+            })
+        return rows
+
+    def _enumeration_detail(self, first_html, url, pdf_text, item):
+        """crawl()'s Paper for one document. ``first_html`` is the detail page, ``url`` and
+        ``pdf_text`` the PDF the framework fetched from it (ext:two_step_keep_first + ext:pdf_text:
+        pdftotext -layout -enc UTF-8 -f 1 -l 4, timeout 45 s; None on a non-zero exit or no text).
+        The PDF link is re-derived with crawl()'s own _extract_pdf_url; a different fetched PDF
+        raises instead of storing another document's text."""
+        doc = item["doc"]
+        doc_id = item["external_id"]
+        detail_url = item["url"]
+
+        soup = self._make_soup(first_html, context=f"detail {doc_id}")
+        if soup is None:
+            print(f"[{self.site_id}] item {doc_id} soup parse failed; skipping")
+            return None
+
+        pdf_rel = self._extract_pdf_url(soup)
+        full_pdf_url = urljoin(self.base_url, pdf_rel) if pdf_rel else None
+
+        abstract = ""
+        if full_pdf_url:
+            if url != full_pdf_url:
+                raise ValueError(f"second step fetched {url}, crawl() reads the PDF {full_pdf_url}")
+            raw_text = pdf_text if pdf_text is not None and pdf_text.strip() else ""
+            abstract = self._clean_text(raw_text)
+
+        if len(abstract) < self.MIN_ABSTRACT:
+            print(
+                f"[{self.site_id}] item {doc_id} skipped: "
+                f"abstract too short ({len(abstract)} chars)"
+            )
+            return None
+
+        title = self._normalize_text(doc.get("titre") or "")
+        if not title:
+            print(f"[{self.site_id}] item {doc_id} skipped: no title")
+            return None
+
+        pub_date = self._parse_date(doc.get("dateDiffusion") or "")
+        famille = doc.get("famille") or {}
+        if not isinstance(famille, dict):
+            famille = {}
+        region = doc.get("libelleGeographique") or ""
+        collection = doc.get("collection") or "Communiqués de presse"
+        famille_libelle = famille.get("libelleFr") or ""
+        sous_titre = self._normalize_text(doc.get("sousTitre") or "")
+
+        orig_filename = None
+        if full_pdf_url:
+            orig_filename = urlparse(full_pdf_url).path.rsplit("/", 1)[-1] or None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": doc_id,
+            "title": title,
+            "authors": None,
+            "abstract": abstract[: self.MAX_ABSTRACT],
+            "category": collection,
+            "keywords": None,
+            "published_date": pub_date,
+            "url": detail_url,
+            "pdf_url": full_pdf_url,
+            "doi": None,
+            "department": region or famille_libelle or "INSEE",
+            "original_filename": orig_filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": pub_date,
+                    "familleId": famille.get("id"),
+                    "familleLibelle": famille_libelle,
+                    "libelleGeographique": region,
+                    "originalFilename": orig_filename,
+                    "dateDiffusion": doc.get("dateDiffusion"),
+                    "sousTitre": sous_titre or None,
+                    "solrId": doc_id,
+                },
+                ensure_ascii=False,
+            ),
+        }
+
+    # ------------------------------------------------------------------
     # Network helpers
     # ------------------------------------------------------------------
 

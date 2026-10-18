@@ -1,0 +1,99 @@
+{
+ "version": 1,
+ "sites": {
+  "insee-fr-fr": {
+   "request_interval_s": 1.5,
+   "respect_robots": true,
+   "retries": 1,
+   "strategy": "last_page_backward",
+   "base_url": "https://www.insee.fr",
+   "request_headers": {
+    "Accept": "application/json"
+   },
+   "request_headers_hosts": [
+    "www.insee.fr"
+   ],
+   "adapter": {
+    "type": "crawler",
+    "contract_version": 1,
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "json",
+     "url"
+    ],
+    "detail_method": "_enumeration_detail",
+    "detail_args": [
+     "first_html",
+     "final_url",
+     "pdf_text",
+     "item"
+    ],
+    "second_step": {
+     "use": "detail_page",
+     "selector": "div.donnees-telechargeables a[href$='.pdf' i], a[href$='.pdf' i]",
+     "attr": "href",
+     "required": false,
+     "allow_hosts": []
+    },
+    "pdf_text": {
+     "args": [
+      "-layout",
+      "-enc",
+      "UTF-8",
+      "-f",
+      "1",
+      "-l",
+      "4"
+     ],
+     "timeout_s": 45,
+     "min_bytes": 0
+    }
+   },
+   "listing": {
+    "url": "https://www.insee.fr/fr/solr/consultation",
+    "method": "POST",
+    "idempotent": true,
+    "body_type": "json",
+    "params": {
+     "q": "*:*",
+     "rows": 20,
+     "sortFields": [
+      {
+       "field": "dateDiffusion",
+       "order": "desc"
+      }
+     ],
+     "filters": [
+      {
+       "field": "typeProduit",
+       "values": [
+        "communiquesDePresse"
+       ]
+      }
+     ],
+     "facetsField": [
+      {
+       "field": "codeGeo",
+       "tag": "tagCodeGeo"
+      }
+     ],
+     "facetsQuery": []
+    },
+    "page_param": "start",
+    "page_mode": "offset",
+    "page_size": 20,
+    "start_page": 0,
+    "parser": {
+     "type": "adapter",
+     "key_field": "external_id",
+     "url_field": "url",
+     "date_field": "published_date",
+     "title_field": "title"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1
+   }
+  }
+ }
+}

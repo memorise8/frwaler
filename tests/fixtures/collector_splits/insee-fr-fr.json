@@ -1,0 +1,53 @@
+{
+ "listing_body": "{\"numFounds\": 6, \"documents\": [{\"id\": 9085592, \"titre\": \"Établissements dans les QPV&nbsp;: un tissu  économique\", \"dateDiffusion\": \"2026-10-16T12:00:00.000+0200\", \"famille\": {\"id\": 11, \"libelleFr\": \"Communiqués de presse\"}, \"libelleGeographique\": \"France\", \"collection\": null, \"sousTitre\": null}, {\"id\": \"9088692\", \"titre\": \"En Normandie, la moitié des décès\", \"dateDiffusion\": \"2026-10-15\", \"famille\": {\"id\": 11, \"libelleFr\": \"X\"}, \"libelleGeographique\": \"\", \"collection\": \"Insee Flash\", \"sousTitre\": \"Normandie\"}, {\"id\": \"9000001\", \"titre\": \"Sans version imprimable\", \"dateDiffusion\": \"2026-10-14\", \"famille\": null}, {\"id\": \"9000002\", \"titre\": \"Texte trop court\", \"dateDiffusion\": \"2026-10-13\", \"famille\": {}}, {\"id\": \"\", \"titre\": \"no id\"}, {\"id\": \"9085592\", \"titre\": \"repeat on the page\"}]}",
+ "details": {
+  "https://www.insee.fr/fr/information/9085592": "<!DOCTYPE html><html><head><title>Insee</title></head><body><div class=\"titre-page publication\"><div class=\"details hidden-template-impression\"><div class=\"donnees-telechargeables\"><a href=\"/fr/statistiques/fichier/9085592/ar_cp_2026_ina_217.pdf\"><div class=\"donnee-telechargeable\"><div class=\"libelle-taille\"><div class=\"libelle\">Version imprimable</div><div class=\"taille\">(pdf, 178 Ko)</div></div></div></a></div></div><h1>Titre</h1></div><p>Pour en savoir plus</p></body></html>",
+  "https://www.insee.fr/fr/information/9088692": "<!DOCTYPE html><html><head><title>Insee</title></head><body><div class=\"titre-page publication\"><div class=\"details hidden-template-impression\"><div class=\"donnees-telechargeables\"><a href=\"/fr/statistiques/fichier/9088692/nr_cp_2026_inf_161.pdf\"><div class=\"donnee-telechargeable\"><div class=\"libelle-taille\"><div class=\"libelle\">Version imprimable</div><div class=\"taille\">(pdf, 178 Ko)</div></div></div></a></div></div><h1>Titre</h1></div><p>Pour en savoir plus</p></body></html>",
+  "https://www.insee.fr/fr/information/9000001": "<!DOCTYPE html><html><head><title>Insee</title></head><body><div class=\"titre-page publication\"><div class=\"details hidden-template-impression\"></div><h1>Titre</h1></div><p>Pour en savoir plus</p></body></html>",
+  "https://www.insee.fr/fr/information/9000002": "<!DOCTYPE html><html><head><title>Insee</title></head><body><div class=\"titre-page publication\"><div class=\"details hidden-template-impression\"><div class=\"donnees-telechargeables\"><a href=\"/fr/statistiques/fichier/9000002/court.pdf\"><div class=\"donnee-telechargeable\"><div class=\"libelle-taille\"><div class=\"libelle\">Version imprimable</div><div class=\"taille\">(pdf, 178 Ko)</div></div></div></a></div></div><h1>Titre</h1></div><p>Pour en savoir plus</p></body></html>"
+ },
+ "pdfs": {
+  "https://www.insee.fr/fr/statistiques/fichier/9085592/ar_cp_2026_ina_217.pdf": [
+   [
+    "Communique de presse",
+    "16 octobre 2026",
+    "Etablissements dans les QPV : un tissu economique clairseme ou dominent les micro-entrepreneurs.",
+    "Fin 2023, les quartiers prioritaires de la politique de la ville comptent proportionnellement moins d etablissements."
+   ],
+   [
+    "Page deux du communique.",
+    "Contact presse : bureau de presse"
+   ],
+   [
+    "Page trois."
+   ],
+   [
+    "Page quatre."
+   ],
+   [
+    "Page cinq hors des pages lues."
+   ]
+  ],
+  "https://www.insee.fr/fr/statistiques/fichier/9088692/nr_cp_2026_inf_161.pdf": [
+   [
+    "Communique de presse",
+    "En Normandie, la moitie des deces est due a une tumeur ou une maladie circulatoire.",
+    "Insee Flash Normandie numero 161, octobre 2026, avec les principaux resultats regionaux."
+   ]
+  ],
+  "https://www.insee.fr/fr/statistiques/fichier/9000002/court.pdf": [
+   [
+    "Trop court."
+   ]
+  ]
+ },
+ "original_method_source_sha256": {
+  "crawl": "1f9bbc5b39004a21bf6cfec33452f4261da1c4f25d069a9c243d5dfa62c365af",
+  "_make_soup": "4dda829a09a8791954f84cf8317fac2ca4a13788d5a58ee836b9718718ca5bd0",
+  "_extract_pdf_url": "f84af0098cf4f7573a0f0d9f7dbc813e8b97df19f71130024f10c7870c16f1c1",
+  "_extract_pdf_text": "f68d41df0a18c957df1dfc2a387f94b3eb441307069b9ec1f646cbcf3a604dcd",
+  "_clean_text": "0093cbea76ab7cf5abaf23d84744aef8f3510912973224ee30fb3c6ab091e515",
+  "_parse_date": "b54ffa3f5babb4e2c13796569c87ff0f582b47e0e32c972373d7e8e631ff047f",
+  "_normalize_text": "28d286d6b431d722d04111d18e9dec3bc6e2b15c7cc1cb50958979846d043970"
+ }
+}
