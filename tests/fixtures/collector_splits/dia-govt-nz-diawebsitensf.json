@@ -1,0 +1,15 @@
+{
+  "site_id": "dia-govt-nz-diawebsitensf",
+  "listing_body": "<html><body><div class=\"content\"><h2>2024/25 Synthetic Annual Report</h2><p><a href=\"/Annual-Report-2024-2025\">Read the HTML version</a> <a href=\"/diawebsite.nsf/Files/Syn-2024-25/$file/Syn-2024-25.pdf\">PDF</a></p><h2>2023/24 Synthetic Annual Report</h2><p><a href=\"/diawebsite.nsf/wpg_URL/Syn-Annual-Report-2023-24?OpenDocument\">Details</a> <a href=\"/diawebsite.nsf/Files/Syn-2023-24/$file/Syn-2023-24.pdf\">PDF</a></p></div></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.dia.govt.nz/Annual-Report-2024-2025": "<html><head><meta name=\"DC.Description\" content=\"Synthetic annual report description for the offline equality test of the enumeration split. It imitates only the page structure and carries no real report text. Synthetic annual report description for the offline equality test of the enumeration split. It imitates only the page structure and carries no real report text. \"><meta name=\"DC.Subject\" content=\"annual report; synthetic\"><meta name=\"DC.Creator\" content=\"The Department of Internal Affairs\"><meta name=\"DC.Publisher\" content=\"Corporate Information\"><meta name=\"DC.Date.Created\" content=\"2025/10/20\"></head><body><div class=\"content\"><p>Synthetic body paragraph.</p></div></body></html>",
+    "https://www.dia.govt.nz/diawebsite.nsf/wpg_URL/Syn-Annual-Report-2023-24?OpenDocument": "<html><head><meta name=\"DC.Description\" content=\"Synthetic annual report description for the offline equality test of the enumeration split. It imitates only the page structure and carries no real report text. Synthetic annual report description for the offline equality test of the enumeration split. It imitates only the page structure and carries no real report text. \"><meta name=\"DC.Subject\" content=\"annual report; synthetic\"><meta name=\"DC.Creator\" content=\"The Department of Internal Affairs\"><meta name=\"DC.Publisher\" content=\"Corporate Information\"><meta name=\"DC.Date.Created\" content=\"2024/10/21\"></head><body><div class=\"content\"><p>Synthetic body paragraph.</p></div></body></html>"
+  },
+  "long_text": "Synthetic annual report description for the offline equality test of the enumeration split. It imitates only the page structure and carries no real report text. Synthetic annual report description for the offline equality test of the enumeration split. It imitates only the page structure and carries no real report text. ",
+  "original_method_source_sha256": {
+    "_extract_entries": "669db2658e46b9a3eea5cde1f838349a39ae0fcbd210bfebc8fa25a954d66845",
+    "_enrich": "751577819a7bd02d412347e5506888f4d99d7dd45cfcb791dbe4909d1f0a7d00",
+    "crawl": "8405b472b99c37a40d729ed1fa385bb0c3beb3a7f1b054e3a86f38f239476cc1"
+  }
+}

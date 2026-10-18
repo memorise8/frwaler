@@ -433,3 +433,161 @@ class DIAGovtNZCrawler(BaseCrawler):
         # pagination naturally ends.
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl(), _extract_entries()
+    # and _enrich() are unchanged; these methods only parse fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """Entries of the single listing page (the existing _extract_entries).
+        ``fetch_url`` is the page _enrich() would read first (detail, else HTML
+        version); pdf-only entries point at the listing page itself, whose
+        body _enumeration_paper ignores (crawl() fetches nothing for them and
+        robots.txt disallows /*.pdf)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._parse(html)
+        if not soup:
+            raise PermanentFailure("listing_parse_error:unparseable_html")
+        rows = []
+        for entry in self._extract_entries(soup):
+            rows.append(dict(entry, fetch_url=entry.get("detail_url") or entry.get("html_url") or url))
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """_enrich() copied verbatim, reading the already fetched detail/HTML
+        page instead of calling _curl (external_id = year slug, unchanged)."""
+        entry = item
+        slug = entry["slug"]
+        title = entry["title"]
+        pdf_url = entry.get("pdf_url")
+        detail_url = entry.get("detail_url")
+        html_url = entry.get("html_url")
+        canonical = entry.get("url")
+
+        dc_description = ""
+        dc_subject = ""
+        dc_creator = "The Department of Internal Affairs"
+        dc_publisher = "Corporate Information"
+        dc_created = ""
+        body_text = ""
+
+        # Prefer detail page, then HTML version page (already fetched by the
+        # runner as item["fetch_url"]; pdf-only entries are never fetched)
+        for fetch_url in filter(None, [detail_url or html_url]):
+            raw = html
+            if not raw:
+                continue
+            try:
+                s = self._parse(raw)
+                if not s:
+                    continue
+                dc_description = (
+                    self._meta(s, "DC.Description")
+                    or self._meta(s, "description")
+                )
+                dc_subject = self._meta(s, "DC.Subject") or self._meta(s, "keywords")
+                dc_creator = self._meta(s, "DC.Creator") or dc_creator
+                dc_publisher = self._meta(s, "DC.Publisher") or dc_publisher
+                created_raw = self._meta(s, "DC.Date.Created")
+                if created_raw:
+                    dc_created = re.sub(r"[^\d]", "-", created_raw).strip("-")
+
+                # Extract meaningful body text from the content area
+                content_div = s.find("div", class_="content")
+                src = content_div or s.body or s
+                raw_body = src.get_text(separator=" ", strip=True) if src else ""
+                body_text = re.sub(r"\s+", " ", raw_body).strip()
+            except Exception as exc:
+                print(f"[{_SITE_ID}] Error parsing {fetch_url}: {exc}")
+            break  # stop after first successful fetch
+
+        # Build abstract from best available sources
+        parts: list[str] = []
+        if dc_description:
+            parts.append(dc_description)
+        if dc_subject and dc_subject not in parts:
+            parts.append(dc_subject)
+        if body_text:
+            clean = body_text[:600]
+            if clean not in parts:
+                parts.append(clean)
+        abstract = "\n\n".join(parts).strip()
+
+        # Fallback: construct a descriptive abstract from known metadata
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            yr_str = slug.replace("-", "/")
+            abstract = (
+                f"Department of Internal Affairs Annual Report {yr_str}. "
+                f"This annual report covers the activities, performance, and financial "
+                f"statements of the Department of Internal Affairs "
+                f"(Te Tari Taiwhenua) New Zealand for the {yr_str} fiscal year. "
+                f"Tabled in the New Zealand Parliament and published by the "
+                f"Department of Internal Affairs, Wellington."
+            )
+
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+
+        # Original filename from PDF URL path segment
+        original_filename: str | None = None
+        if pdf_url:
+            path_seg = urlparse(pdf_url).path.split("/")[-1]
+            if path_seg:
+                original_filename = path_seg
+
+        # Normalise published_date: prefer DC.Date.Created, then year-derived
+        published_date = entry.get("published_date")
+        if dc_created:
+            date_parts = [p for p in dc_created.split("-") if p]
+            if len(date_parts) >= 3:
+                try:
+                    published_date = (
+                        f"{int(date_parts[0]):04d}-"
+                        f"{int(date_parts[1]):02d}-"
+                        f"{int(date_parts[2]):02d}"
+                    )
+                except ValueError:
+                    pass
+
+        return {
+            "id": None,
+            "site_id": _SITE_ID,
+            "external_id": slug,
+            "post_number": entry.get("post_number"),
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": None,
+            "authors": None,
+            "publisher": (
+                f"{dc_creator}; {dc_publisher}"
+                if dc_publisher and dc_publisher != dc_creator
+                else dc_creator
+            ),
+            "department": "Corporate Information",
+            "journal": None,
+            "url": canonical,
+            "pdf_url": pdf_url,
+            "keywords": dc_subject or None,
+            "category": "Annual Report",
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(
+                {
+                    "year_slug": slug,
+                    "start_year": entry.get("start_year"),
+                    "end_year": entry.get("end_year"),
+                    "detail_url": detail_url,
+                    "html_version_url": html_url,
+                    "dc_description": dc_description,
+                    "dc_subject": dc_subject,
+                    "dc_creator": dc_creator,
+                    "posted_date": dc_created or None,
+                    "originalFilename": original_filename,
+                },
+                ensure_ascii=False,
+            ),
+        }
