@@ -240,6 +240,77 @@ class PembinaOrgMediaReleasesCrawler(BaseCrawler):
         return result
 
     # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged): same parsers, same paper/skip rules
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        items = self._parse_list_page(html)
+        if not items:
+            soup = self._make_soup(html)
+            results = soup.select_one("div.results") if soup is not None else None
+            if results is not None and results.find(
+                    "div", class_=lambda c: c and "node-card" in c) is not None:
+                # Cards are rendered but none parsed: markup changed, not the end.
+                raise PermanentFailure("listing_parse_error:cards_not_parsed")
+        return items
+
+    def _enumeration_detail(self, html, item):
+        if not html:
+            return None
+        return self._parse_detail_page(html, item["url"])
+
+    def _enumeration_paper(self, item, detail):
+        title = detail["title"] or item["title"]
+        if not title:
+            return None
+        subtitle = detail["subtitle"] or item["teaser"] or ""
+        abstract = detail["abstract"]
+        if subtitle and subtitle not in abstract:
+            abstract = subtitle + "\n\n" + abstract
+        if len(abstract) < 50:
+            return None
+        published_date = detail["date"] or item["listed_date"]
+        listed_date = item["listed_date"]
+        category = detail["category"] or item["category"]
+        nid = detail["nid"]
+        slug = item["slug"]
+        external_id = nid or slug
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": nid,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "authors": detail["authors"],
+            "publisher": "Pembina Institute",
+            "department": "",
+            "journal": "",
+            "url": item["url"],
+            "pdf_url": detail["pdf_url"],
+            "keywords": "",
+            "category": category,
+            "doi": "",
+            "original_filename": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": listed_date,
+                    "nid": nid,
+                    "slug": slug,
+                    "subtitle": subtitle,
+                    "teaser": item["teaser"],
+                    "contact_info": detail["contact_info"],
+                },
+                ensure_ascii=False,
+            ),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
