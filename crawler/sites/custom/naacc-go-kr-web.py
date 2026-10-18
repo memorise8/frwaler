@@ -381,3 +381,58 @@ class NAACCCrawler(BaseCrawler):
 
         print(f"[naacc-go-kr-web] Done. Total saved: {saved}")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+    # The enumeration framework (last_page_backward) ends the listing at the page
+    # whose div.tableWrap shows "게시글이 없습니다." (div.noData), so the _MAX_PAGES
+    # cap of crawl() does not apply. Papers come from list rows only, as in crawl().
+
+    def _enumeration_items(self, html, url=None):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None or soup.find("div", class_="tableWrap") is None:
+            raise PermanentFailure("listing_parse_error:missing_tableWrap")
+        return _parse_list_page(html)
+
+    def _enumeration_paper(self, item):
+        abstract = _build_abstract(item)
+        if len(abstract) < 50:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": item["file_id"],
+            "post_number": item["post_number"],
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": item["date"],
+            "listed_date": item["date"],
+            "authors": "",
+            "publisher": "행정중심복합도시건설청",
+            "department": item["writer"],
+            "journal": "",
+            "url": (
+                f"{_LIST_BASE}?schM=list&page=1"
+                f"&viewCount=10&id=&schBdcode=&schGroupCode="
+            ),
+            "pdf_url": item["pdf_url"],
+            "doi": "",
+            "keywords": "간행물,행복도시,행복청,세종시",
+            "category": "간행물",
+            "original_filename": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": item["date"],
+                    "period": item["period"],
+                    "writer": item["writer"],
+                    "viewCount": item["view_count"],
+                    "thumbnail_id": item["thumbnail_id"],
+                    "file_id": item["file_id"],
+                    "nttId": item["file_id"],
+                    "board_type": "thumbnail_down",
+                },
+                ensure_ascii=False,
+            ),
+        }

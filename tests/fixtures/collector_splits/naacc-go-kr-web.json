@@ -1,0 +1,12 @@
+{
+  "site_id": "naacc-go-kr-web",
+  "listing_body": "<html><head><meta charset=\"utf-8\"></head><body><div class=\"tableWrap wrap board thumbnail down\"><table><tr><td><img src=\"/afile/previewThumbnail/TH0001\"/></td><td><span class=\"tit\">합성도시이야기 901호</span><ul class=\"boardInfo\"><li class=\"date\">2026-09-28</li><li class=\"writer\">합성 간행물 담당 부서 이름입니다 오프라인 비교 시험용</li><li>2026년 9월</li></ul><span class=\"viewCount\">11</span><a href=\"/afile/fileDownloadById/SYNTH0001AAAA\">다운로드</a></td></tr><tr><td><img src=\"/afile/previewThumbnail/TH0002\"/></td><td><span class=\"tit\">합성도시이야기 900호</span><ul class=\"boardInfo\"><li class=\"date\">2026-08-27</li><li class=\"writer\">합성 간행물 담당 부서 이름입니다 오프라인 비교 시험용</li><li>2026년 9월</li></ul><span class=\"viewCount\">11</span><a href=\"/afile/fileDownloadById/SYNTH0002BBBB\">다운로드</a></td></tr></table></div><span class=\"total_num\">1</span></body></html>",
+  "content_type": "text/html",
+  "details": {},
+  "long_text": "합성 간행물 담당 부서 이름입니다 오프라인 비교 시험용",
+  "empty_body": "<html><head><meta charset=\"utf-8\"></head><body><div class=\"tableWrap wrap board thumbnail down\"><table></table><div class=\"noData\">게시글이 없습니다.</div></div></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "8846a1b35d9cb6cdda3f9da2aa390b4bbb6ef1fcb30f27bd7b172f32b2ddce05"
+  },
+  "short_keeps_items": true
+}
