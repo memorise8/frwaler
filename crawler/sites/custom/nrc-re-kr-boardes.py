@@ -305,3 +305,70 @@ class NRCBoardesCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (no network); crawl() and the methods
+    # above are unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List-page HTML (+ its URL for nPage) -> _parse_list_page() rows
+        with the detail URL crawl() builds for that page."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        if self._make_soup(html).find("table", class_="tstyle_list") is None:
+            raise PermanentFailure("listing_parse_error:missing_tstyle_list")
+        query = parse_qs(urlsplit(url or "").query)
+        page = int((query.get("nPage") or ["1"])[0] or 1)
+        rows = []
+        for list_no, title, date in self._parse_list_page(html):
+            rows.append({
+                "list_no": list_no,
+                "title": title,
+                "date": date,
+                "page": page,
+                "url": (f"{self._LIST_BASE}?mid={self._MID}&bid={self._BID}"
+                        f"&act=view&list_no={list_no}&tag=&nPage={page}"),
+            })
+        return rows
+
+    def _enumeration_paper(self, html, row):
+        """Detail HTML + list row -> the paper crawl() saves (or None)."""
+        list_no, list_title, list_date = row["list_no"], row["title"], row["date"]
+        page = row["page"]
+        detail_url = (
+            f"{self._LIST_BASE}?mid={self._MID}&bid={self._BID}"
+            f"&act=view&list_no={list_no}&tag=&nPage={page}"
+        )
+        if not html:
+            return None
+        title, abstract, date, pdf_url = self._parse_detail(html, list_no)
+        if not title:
+            title = list_title
+        if not date:
+            date = list_date
+        if len(abstract) < self._MIN_ABSTRACT:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": list_no,
+            "title": title,
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": "보도자료",
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "doi": "",
+            "department": "경제인문사회연구회",
+            "metadata": json.dumps({
+                "board_id": self._BID,
+                "mid": self._MID,
+                "list_no": list_no,
+                "page": page,
+            }, ensure_ascii=False),
+        }

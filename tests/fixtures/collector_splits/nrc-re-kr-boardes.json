@@ -1,0 +1,19 @@
+{
+  "site_id": "nrc-re-kr-boardes",
+  "listing_body": "<html><body><table class=\"tstyle_list\"><thead><tr><th>번호</th></tr></thead><tbody><tr><td class=\"m_hidden\">2</td><td class=\"title\"><a href=\"/board.es?mid=a12102000000&amp;bid=0015&amp;act=view&amp;list_no=300101&amp;tag=&amp;nPage=1\">[NRC 보도자료] Offline 300101<span class=\"new\">N</span></a></td><td>2026-10-01</td><td class=\"m_hidden file\"></td><td>3</td></tr><tr><td class=\"m_hidden\">1</td><td class=\"title\"><a href=\"/board.es?mid=a12102000000&amp;bid=0015&amp;act=view&amp;list_no=300102&amp;tag=&amp;nPage=1\">[NRC 보도자료] Offline 300102<span class=\"new\">N</span></a></td><td>2026-10-02</td><td class=\"m_hidden file\"></td><td>3</td></tr></tbody></table></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.nrc.re.kr/board.es?mid=a12102000000&bid=0015&act=view&list_no=300101&tag=&nPage=1": "<html><body><div class=\"tstyle_view\"><div class=\"title\">[NRC 보도자료] Offline 300101 상세</div><ul><li class=\"date\"><b>작성일</b><span>2026-10-01 10:00</span></li></ul><div class=\"tb_contents\"><p>Synthetic press résumé and Korean 자료 for offline equality testing. Synthetic press résumé and Korean 자료 for offline equality testing. Synthetic press résumé and Korean 자료 for offline equality testing. </p></div><div class=\"add_file_list\"><a class=\"file-down\" href=\"/boardDownload.es?bid=0015&list_no=300101&seq=1\" title=\"report-300101.pdf\">down</a></div></div></body></html>",
+    "https://www.nrc.re.kr/board.es?mid=a12102000000&bid=0015&act=view&list_no=300102&tag=&nPage=1": "<html><body><div class=\"tstyle_view\"><div class=\"title\">[NRC 보도자료] Offline 300102 상세</div><ul><li class=\"date\"><b>작성일</b><span>2026-10-02 10:00</span></li></ul><div class=\"tb_contents\"><p>Synthetic press résumé and Korean 자료 for offline equality testing. Synthetic press résumé and Korean 자료 for offline equality testing. Synthetic press résumé and Korean 자료 for offline equality testing. </p></div><div class=\"add_file_list\"><a class=\"file-down\" href=\"/boardDownload.es?bid=0015&list_no=300102&seq=1\" title=\"report-300102.pdf\">down</a></div></div></body></html>"
+  },
+  "long_text": "Synthetic press résumé and Korean 자료 for offline equality testing. Synthetic press résumé and Korean 자료 for offline equality testing. Synthetic press résumé and Korean 자료 for offline equality testing. ",
+  "empty_body": "<html><body><table class=\"tstyle_list\"><thead><tr><th>번호</th></tr></thead><tbody><td class=\"nodata\" colspan=\"5\">해당 내용이 없습니다.</td></tbody></table></body></html>",
+  "original_method_source_sha256": {
+    "_curl_get": "c5ec718c705f848d59919d1b6c4c1fe86a6403f68c64444d884ab5fe1082c1f0",
+    "_make_soup": "878515cc9dcaebca9218406edd43a3e5e883850787e1ce5ab528f0e6c7e27776",
+    "_clean_text": "e9d600eb7e9939faafc620596da592d8913282e0a54d40a93dfbf07bedc0bfa5",
+    "_parse_list_page": "c71177a0e88cbc8b925f89fa5afe940d4897a6913780a31846ca315356a7a595",
+    "_parse_detail": "1fbd727afdb67ce044a6af472904953b77d201137f2e609cfd95f9a136fa0f89",
+    "crawl": "b05e0115dd47debd56bb9054735ae2e140a0c31c61e448c03800798c37936b99"
+  }
+}

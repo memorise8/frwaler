@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "sites": {
+    "nrc-re-kr-boardes": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "base_url": "https://www.nrc.re.kr",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.nrc.re.kr/board.es",
+        "params": {
+          "mid": "a12102000000",
+          "bid": "0015",
+          "nPage": 1
+        },
+        "page_param": "nPage",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "list_no",
+          "url_field": "url",
+          "date_field": "date",
+          "title_field": "title",
+          "listing_marker": "table.tstyle_list"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
