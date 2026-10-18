@@ -534,3 +534,31 @@ class PblNlEnCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done. total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Teaser rows of one listing page (``?...&page=N``, 0-based, 10 rows) —
+        crawl()'s _parse_list_items()."""
+        return self._parse_list_items(_make_soup(html))
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page via the unchanged _parse_detail().
+        Network-free: the /downloads/ PDF link is kept as is instead of being
+        resolved with a HEAD request (crawl() stores the redirect target), so
+        pdf_url/original_filename can differ from crawl() for those links;
+        external_id/post_number/url are unchanged. None = crawl()'s skips
+        (missing title, abstract under 50 chars)."""
+        self._curl_head = lambda url, timeout=20: url
+        try:
+            paper = self._parse_detail(html, item["url"], item)
+        except ValueError:
+            return None
+        finally:
+            del self._curl_head
+        if len((paper.get("abstract") or "").strip()) < self._MIN_ABSTRACT_CHARS:
+            return None
+        return paper

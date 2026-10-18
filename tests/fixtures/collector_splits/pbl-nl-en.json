@@ -1,0 +1,29 @@
+{
+  "site_id": "pbl-nl-en",
+  "content_type": "text/html",
+  "listing_body": "<html><body><main><div class=\"view view-publications-overview\"><div class=\"views-row view-publications-overview__row\"><article class=\"node-publication-teaser\"><span class=\"node-publication-teaser__type\">Publication</span><h3 class=\"node-publication-teaser__title\">Synthetic two</h3><div class=\"node-publication-teaser__body\">Teaser Synthetic two.</div><span class=\"node-publication-teaser__topic\">Synthetic topic</span><div class=\"node-publication-teaser__published-date\"><time datetime=\"2026-06-24T12:00:00Z\">date</time></div><a class=\"node-publication-teaser__read-more-link\" href=\"/en/publications/synthetic-two\" aria-label=\"Read more about Synthetic two\">Read more</a></article></div><div class=\"views-row view-publications-overview__row\"><article class=\"node-publication-teaser\"><span class=\"node-publication-teaser__type\">Publication</span><h3 class=\"node-publication-teaser__title\">Synthetic one</h3><div class=\"node-publication-teaser__body\">Teaser Synthetic one.</div><span class=\"node-publication-teaser__topic\">Synthetic topic</span><div class=\"node-publication-teaser__published-date\"><time datetime=\"2025-01-02T12:00:00Z\">date</time></div><a class=\"node-publication-teaser__read-more-link\" href=\"/en/publications/synthetic-one\" aria-label=\"Read more about Synthetic one\">Read more</a></article></div></div><nav class=\"pager\"><ul></ul></nav></main></body></html>",
+  "details": {
+    "https://www.pbl.nl/en/publications/synthetic-two": "<html><head><link rel=\"canonical\" href=\"https://www.pbl.nl/en/publications/synthetic-two\"><link rel=\"shortlink\" href=\"https://www.pbl.nl/node/990002\"></head><body><div class=\"node-publication-full__page-title\"><h1>Synthetic two</h1></div><div class=\"node-publication-full__published-date\"><time datetime=\"2026-06-24T10:00:00Z\">x</time></div><div class=\"node-publication-full__content\"><div class=\"node-publication-full__body\"><div class=\"node-publication-full__body-item text-basic-html\"><p>Synthetic offline abstract paragraph for the enumeration equality test. It only imitates the PBL publication page structure and carries no real content.</p></div></div></div><div class=\"node-publication-full__authors-item\">Synthetic Author</div><dl><div class=\"node-publication-full__specifications-item\"><dt>Product number</dt><dd>99002</dd></div><div class=\"node-publication-full__specifications-item\"><dt>Publication type</dt><dd>Report</dd></div></dl><div class=\"node-publication-full__links-primary\"><a data-file-reference href=\"/system/files/synthetic-two.pdf\">PDF</a></div><a href=\"https://doi.org/10.0000/syn.990002\">doi</a></body></html>",
+    "https://www.pbl.nl/en/publications/synthetic-one": "<html><head><link rel=\"canonical\" href=\"https://www.pbl.nl/en/publications/synthetic-one\"><link rel=\"shortlink\" href=\"https://www.pbl.nl/node/990001\"></head><body><div class=\"node-publication-full__page-title\"><h1>Synthetic one</h1></div><div class=\"node-publication-full__published-date\"><time datetime=\"2026-06-24T10:00:00Z\">x</time></div><div class=\"node-publication-full__content\"><div class=\"node-publication-full__body\"><div class=\"node-publication-full__body-item text-basic-html\"><p>Synthetic offline abstract paragraph for the enumeration equality test. It only imitates the PBL publication page structure and carries no real content.</p></div></div></div><div class=\"node-publication-full__authors-item\">Synthetic Author</div><dl><div class=\"node-publication-full__specifications-item\"><dt>Product number</dt><dd></dd></div><div class=\"node-publication-full__specifications-item\"><dt>Publication type</dt><dd>Report</dd></div></dl><div class=\"node-publication-full__links-primary\"><a data-file-reference href=\"/system/files/synthetic-one.pdf\">PDF</a></div><a href=\"https://doi.org/10.0000/syn.990001\">doi</a></body></html>"
+  },
+  "long_text": "Synthetic offline abstract paragraph for the enumeration equality test. It only imitates the PBL publication page structure and carries no real content.",
+  "original_method_source_sha256": {
+    "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+    "_curl": "fb525bf6d01eea42411a1cd5b668fbfe99a303c8d464eb1b72924d2c851591c5",
+    "_curl_head": "16ca77856079c92f53235b2ea42923a4cb35d4a068ef7cb4e60d36e8614e2cbc",
+    "_list_url": "2a9008e3b39eb4146e81435f52cfc3fd91b964d592419fad19e8dc0d62208df6",
+    "_parse_list_items": "b1c464f804e9c8e4313fcffef4e5a948f3df7b93fcb6e05d4f4238e90dd42b1e",
+    "_has_next_page": "a3771aaa17d0aac07bc371cf3965238050ae9d16c57c8a1f151c04f2a4429997",
+    "_extract_abstract": "c0d98adec81ba8e07690f1203503e3cbea29c4c27bdadd66b98a16eb3f99b197",
+    "_extract_authors": "8a28e218c1a4480eac5488850098cbc65480dbe944606c69c45c619feaacdf20",
+    "_extract_specs": "a76b5a40506a7a682538d14348bfe175c3e9b71956110dc80922334bf8824d83",
+    "_extract_topics": "42565fde5a8462e5b9071efa9a049b08349b8399a49b931237a0bda8bbcb0281",
+    "_extract_pdf": "4c747c47a310201e4c2de5164cf00555c21f411c04c6f1e78d7ae332187ea9c5",
+    "_normalize_doi": "aa9017b47a5ae3d19d5b8474dfcdeb912bfdad77186e4ed5de0457e5a433c42e",
+    "_extract_doi": "9fe7e994f24ef9f75193d11d6807c8ade10800f9e6001b99ceec6c09cc372586",
+    "_extract_node_id": "ec4afac01bdaecb37a867bac608c79403f347c5fe76912988ad173c235b16495",
+    "_resolve_pdf_url": "61b1491a06865fe0f09e042179602e2dc4e971f651f37669e6d6779ade0217b9",
+    "_parse_detail": "3647d749319e0309b0e30e4a6e9452e87bcb39e4c69a6894d7595c0ef6cefeeb",
+    "crawl": "5f09354ff648ea8c08676c787c3030bbcdea02a6e02dd42139a4de60d9c1530c"
+  }
+}
