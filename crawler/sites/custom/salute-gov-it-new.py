@@ -198,3 +198,27 @@ class SaluteGovItNewCrawler(BaseCrawler):
             parts.append(f"Temi: {', '.join(themes)}.")
         candidate = " ".join(parts)
         return candidate if len(candidate) >= 100 else None
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. The Gatsby
+    # page-data.json carries every node; the listing returns the papers of the
+    # "Rapporti" nodes exactly as crawl() builds them (list_returns_paper).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, payload):
+        try:
+            nodes = (
+                payload["result"]["data"]["node"]
+                ["relationships"]["field_view_list"][0]
+                ["fields"]["view"]["view_query_data"]["nodes"]
+            )
+        except (KeyError, IndexError, TypeError):
+            return []
+        papers = []
+        for node in nodes:
+            if self._node_type(node) != self._TARGET_TYPE:
+                continue
+            paper = self._node_to_paper(node)
+            if paper is not None:
+                papers.append(paper)
+        return papers
