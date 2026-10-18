@@ -347,8 +347,9 @@ class Adapter:
         if step.get("url_template"):
             payload = dict(item.payload) if item is not None else {}
             names = re.findall(r"\{item:([A-Za-z_][A-Za-z0-9_]*)\}", step["url_template"])
-            if any(payload.get(n) in (None, "") or isinstance(payload.get(n), (dict, list)) for n in names):
-                return None
+            if any(payload.get(n) in (None, "") or isinstance(payload.get(n), (dict, list))
+                   or str(payload[n]).strip(".") == "" for n in names):
+                return None  # also "." / "..": a dot segment would move the path past the checks
             value = re.sub(r"\{item:([A-Za-z_][A-Za-z0-9_]*)\}",
                            lambda m: quote(str(payload[m.group(1)]), safe=""), step["url_template"])
         else:

@@ -129,10 +129,9 @@ class SiteRunner:
         if seg.get("mode") == "explicit":
             spec = next((s for s in seg.get("items") or () if str(s["key"]) == key), {})
         elif seg.get("mode") == "discover":
-            if getattr(self, "_discovered", None) is None:
-                current = self.store.site(self.site_id) or {}
-                self._discovered = (current.get("state") or {}).get("discovered_segments") or {}
-            spec = self._discovered.get(key, {})
+            # Read each time: discovery (in batches) may save new segments after the retry pass.
+            current = self.store.site(self.site_id) or {}
+            spec = ((current.get("state") or {}).get("discovered_segments") or {}).get(key, {})
         else:
             spec = {}
         return {"key": key, "label": spec.get("label"), "params": dict(spec.get("params") or {})}

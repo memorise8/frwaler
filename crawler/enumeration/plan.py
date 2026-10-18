@@ -272,9 +272,14 @@ def _validate_post_body(site_id, listing):
         if listing.get("body_type") != "json" or not isinstance(ctype, str) or not _MEDIA_TYPE.match(ctype) \
                 or re.search(r"form|multipart", ctype, re.I):
             raise PlanError(f"{site_id}: listing.content_type is a JSON body's media type (no form/multipart)")
-    used = set()
-    for s in list(_walk_strings(body)) + list(_walk_strings(listing.get("params") or {})):
+    used, in_url = set(), set()
+    for s in _walk_strings(body):
         used |= set(_DYN.findall(s))
+    for s in _walk_strings(listing.get("params") or {}):
+        found = set(_DYN.findall(s))
+        used |= found
+        if listing.get("method", "GET") != "POST":
+            in_url |= found
     dyn = listing.get("dynamic")
     if dyn is None:
         if used:
@@ -291,8 +296,13 @@ def _validate_post_body(site_id, listing):
         raise PlanError(f"{site_id}: listing.dynamic.values must name at least one value")
     for name, rule in values.items():
         if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]{0,31}", str(name)) or not isinstance(rule, dict) \
-                or len(rule) != 1 or not set(rule) <= {"regex", "json_path"}:
-            raise PlanError(f"{site_id}: listing.dynamic.values.{name} is {{regex}} or {{json_path}}")
+                or len(set(rule) - {"public"}) != 1 or not set(rule) <= {"regex", "json_path", "public"} \
+                or rule.get("public", False) not in (True, False):
+            raise PlanError(f"{site_id}: listing.dynamic.values.{name} is {{regex}} or {{json_path}} (+ public)")
+        if name in in_url and (rule.get("public") is not True or _SECRET_HEADERS.search(str(name))):
+            # A GET parameter is part of the URL, which events, failures and timing records keep.
+            raise PlanError(f"{site_id}: listing.dynamic.values.{name} goes into a GET URL: only a non-secret"
+                            " value declared public: true (secrets go in a POST body or header)")
         if "regex" in rule:
             try:
                 groups = re.compile(rule["regex"]).groups
@@ -354,7 +364,10 @@ def _validate_segment_items(site_id, listing, items):
 def _validate_discover(site_id, listing, seg):
     """ext:multi_listing: segments found on a hub page of the listing host on every run."""
     allowed = {"mode", "hub_url", "selector", "attr", "key_regex", "params", "label", "min_segments",
-               "within_segment_order", "overlap_pages", "hidden_cap"}
+               "within_segment_order", "overlap_pages", "hidden_cap", "retired"}
+    retired = seg.get("retired", [])
+    if not isinstance(retired, list) or not all(isinstance(k, str) for k in retired):
+        raise PlanError(f"{site_id}: segments.retired is a list of segment keys a person confirmed gone")
     if set(seg) - allowed:
         raise PlanError(f"{site_id}: discover segments do not take {sorted(set(seg) - allowed)}")
     if not _same_listing_host(listing, seg.get("hub_url")):
@@ -469,6 +482,8 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
         raw["listing"] = listing
     if raw["strategy"] == "date_range_split":
         seg = raw.get("segments") or {}
+        if seg.get("mode", "range") not in ("range", "explicit", "discover"):
+            raise PlanError(f"{site_id}: segments.mode must be range, explicit or discover")
         if seg.get("mode", "range") == "explicit":
             if not seg.get("items"):
                 raise PlanError(f"{site_id}: explicit segments require items")

@@ -193,6 +193,8 @@ class PdfTextTest(unittest.TestCase):
         self.run_with(detail, self.site(min_bytes=100), bodies={1: b"%PDF-short"})
         self.assertIn(None, seen)
         self.assertEqual(len(self.env.docs()), 2)
+        from crawler.enumeration.pdftext import extract
+        self.assertIsNone(extract(b"<html>error page</html>" * 20, {}))  # pdftotext exits non-zero
 
     def test_validation(self):
         with self.assertRaises(PlanError):  # option outside the allowed set
@@ -293,6 +295,20 @@ class NestedBodyDynamicTest(unittest.TestCase):
         posts = [c for c in transport.calls if c[0] == "POST"]
         self.assertTrue(posts and all(c[2].get("X-Csrf") == TOKEN for c in posts))
         self.assertFalse([c for c in transport.calls if c[0] != "POST" and "X-Csrf" in c[2]])
+
+    def test_post_value_not_recorded_when_a_page_fails(self):
+        base = self.handler(list(range(1, 8)))
+
+        def handle(method, url, data):
+            if method == "POST" and json.loads(data)["search"]["page"] == 2:
+                return Response(400, {}, b"bad")
+            return base(method, url, data)
+        site = self.site({"url": "https://api.test/start", "values": {"nonce": {"regex": r'"nonce":\s*"([^"]+)"'}}},
+                         body={"nonce": "{dyn:nonce}", "search": {"page": "{page}"}})
+        result = self.env.run(site, None, transport=RecordingTransport(handle))
+        self.assertNotEqual(result["status"], "complete", result)
+        self.env.store.conn.commit()
+        self.assertNotIn(NONCE, "\n".join(self.env.store.conn.iterdump()))
 
     def test_missing_value_or_forbidden_header_stops_with_the_name_only(self):
         site = self.site({"url": "https://api.test/start", "values": {"nonce": {"regex": r'"other":"([^"]+)"'}}},
@@ -446,6 +462,37 @@ class MultiListingTest(unittest.TestCase):
         self.assertIn("https://board.test/?s=pdf", transport.urls)
         self.assertIn("https://board.test/page/2/?s=pdf", transport.urls)
 
+    def test_segment_with_own_url_never_borrows_the_listing_first_page(self):
+        def handle(method, url, data):
+            parts = urlsplit(url)
+            if parts.path == "/robots.txt":
+                return Response(404, {}, b"")
+            ids = {"/types/a/": [1], "/types/a/page/2/": [], "/other/1/": [2, 3], "/other/2/": [],
+                   "/types/b/": [9]}.get(parts.path)
+            if ids is None:
+                return Response(404, {}, b"")
+            rows = "".join(f'<tr><td class="date">2000-01-0{i}</td><td><a href="/view?id={i}">T{i}</a></td></tr>'
+                           for i in ids)
+            return Response(200, {"Content-Type": "text/html"}, html(f"<table><tbody>{rows}</tbody></table>"))
+        site = board_plan(strategy="date_range_split")
+        site["adapter"] = {"type": "list_only", "id_regex": r"id=(\d+)"}
+        site["listing"] = {"url": "https://board.test/types/{segment}/page/{page}/",
+                           "first_page_url": "https://board.test/types/{segment}/", "start_page": 1,
+                           "parser": dict(site["listing"]["parser"], listing_marker="tbody")}
+        site["segments"] = {"mode": "explicit", "items": [{"key": "a"},
+                                                          {"key": "b", "url": "https://board.test/other/{page}/"}]}
+        transport = RecordingTransport(handle)
+        self.env.run(site, None, transport=transport)
+        self.assertNotIn("https://board.test/types/b/", transport.urls)
+        self.assertIn("https://board.test/other/1/", transport.urls)
+        self.assertEqual(sorted(int(d["post_number"]) for d in self.env.docs()), [1, 2, 3])
+
+    def test_retired_segment_is_acknowledged(self):
+        self.env.run(self.site(), None, transport=RecordingTransport(self.handler(self.COLS)))
+        result = self.env.run(self.site(retired=["1570"]), None,
+                              transport=RecordingTransport(self.handler({"3698": self.COLS["3698"]})))
+        self.assertEqual(result["status"], "complete", result)
+
     def test_validation(self):
         def bad(site):
             with self.assertRaises(PlanError):
@@ -456,6 +503,7 @@ class MultiListingTest(unittest.TestCase):
         bad(self.site(label="script"))
         bad(self.site(min_segments=0))
         bad(self.site(**{"from": "2020"}))  # range keys do not apply
+        bad(self.site(mode="Range"))  # unknown mode (would silently run as range)
         site = api_plan(strategy="date_range_split")
         site["segments"] = {"mode": "explicit", "items": [{"key": "a", "url": "https://other.test/x"}]}
         bad(site)
@@ -522,6 +570,29 @@ class SmallExtensionsTest(unittest.TestCase):
         self.assertEqual(result["status"], "complete", result)
         self.assertEqual(len(self.env.docs()), 3)
 
+    def test_next_link_selector_missing_on_first_page_is_not_complete(self):
+        def handle(method, url, data):
+            if urlsplit(url).path == "/robots.txt":
+                return Response(404, {}, b"")
+            rows = '<tr><td class="date">2000-01-01</td><td><a href="/view?id=1">T</a></td></tr>'
+            more = '<a class="more-renamed" href="/list?slice=1">more</a>'
+            return Response(200, {"Content-Type": "text/html"}, html(f"<table><tbody>{rows}</tbody></table>{more}"))
+        site = board_plan(strategy="oldest_first_sort")
+        site["adapter"] = {"type": "list_only", "id_regex": r"id=(\d+)"}
+        site["listing"] = {"url": "https://board.test/list", "parser": dict(site["listing"]["parser"]),
+                           "next_link": {"selector": "a.more"}}
+        result = self.env.run(site, None, transport=RecordingTransport(handle))
+        self.assertEqual(result["status"], "config_error", result)
+
+    def test_next_link_downgrade_to_http_stops(self):
+        def handle(method, url, data):
+            parts = urlsplit(url)
+            if parts.path == "/robots.txt":
+                return Response(404, {}, b"")
+            return json_resp({"items": api_items([1]), "next": "http://api.test/load?slice=1"})
+        result = self.env.run(self.link_site(), None, transport=RecordingTransport(handle))
+        self.assertEqual(result["status"], "config_error", result)
+
     def test_next_link_validation(self):
         self.bad(api_plan(strategy="last_page_backward", listing={"next_link": {"json_path": "next"}}))
         self.bad(api_plan(listing={"next_link": {"json_path": "next"}, "next_cursor": {"path": "c", "param": "c"}}))
@@ -539,14 +610,26 @@ class SmallExtensionsTest(unittest.TestCase):
             if parts.path == "/search":
                 if q.get("ref") != "REF42":
                     return Response(400, {}, b"bad ref")
-                page = int(q["page"])
+                page = int(q.get("page", 1))
                 return json_resp({"items": api_items([1, 2, 3][(page - 1) * 2: page * 2])})
             return Response(404, {}, b"")
-        site = api_plan(listing={"params": {"ref": "{dyn:ref}"},
-                                 "dynamic": {"url": "https://api.test/api/v2", "values": {"ref": {"json_path": "refs.master"}}}})
+        dyn = {"url": "https://api.test/api/v2", "values": {"ref": {"json_path": "refs.master", "public": True}}}
+        site = api_plan(listing={"params": {"ref": "{dyn:ref}"}, "dynamic": dyn})
         result = self.env.run(site, None, transport=RecordingTransport(handle))
         self.assertEqual(result["status"], "complete", result)
         self.assertEqual(len(self.env.docs()), 3)
+        # Not declared public, or a secret-looking name: never in a GET URL (URLs are recorded).
+        self.bad(api_plan(listing={"params": {"ref": "{dyn:ref}"}, "dynamic": {
+            "url": "https://api.test/api/v2", "values": {"ref": {"json_path": "refs.master"}}}}))
+        self.bad(api_plan(listing={"params": {"k": "{dyn:api_key}"}, "dynamic": {
+            "url": "https://api.test/api/v2", "values": {"api_key": {"json_path": "k", "public": True}}}}))
+        # last_page_backward's bare first-page check also gets the value.
+        lp = api_plan(strategy="last_page_backward", listing={"params": {"ref": "{dyn:ref}"}, "dynamic": dyn})
+        transport = RecordingTransport(handle)
+        env2 = Env()
+        self.addCleanup(env2.close)
+        env2.run(lp, None, transport=transport)
+        self.assertFalse([u for u in transport.urls if "dyn" in u], transport.urls)
         self.bad(api_plan(listing={"params": {"ref": "{dyn:ref}"}, "dynamic": {
             "url": "https://api.test/api/v2", "values": {"ref": {"json_path": "refs.master"}},
             "header": {"name": "X-Ref", "value": "{dyn:ref}"}}}))  # headers: POST only
@@ -580,6 +663,14 @@ class SmallExtensionsTest(unittest.TestCase):
         self.assertEqual(result["status"], "complete", result)
         self.assertEqual(len(self.env.docs()), 3)
         self.assertIn("pageType=article&pageId=p%2F1", seen)  # value URL-quoted
+        env2 = Env()
+        self.addCleanup(env2.close)
+        c2 = make_crawler(env2, detail)
+        c2.listing = lambda h: [dict(r, page_id="..") for r in listing(h)]
+        seen.clear()
+        result = env2.run(site, None, crawler=c2, transport=RecordingTransport(handle))
+        self.assertEqual(seen, [])  # "." / ".." never become a path segment
+        self.assertEqual(env2.docs(), [])
         bad = dict(site, adapter=dict(site["adapter"], second_step={"use": "detail_page", "url_template": "/aux?x={item:a}"}))
         self.bad(bad)
         bad = dict(site, adapter=dict(site["adapter"], second_step={"use": "detail_page",

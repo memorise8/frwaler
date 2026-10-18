@@ -54,7 +54,7 @@ def available():
 
 def extract(body, spec):
     """pdftotext stdout (utf-8, errors replaced, not stripped), or None when the body is shorter
-    than min_bytes or the tool fails to run/times out -- what the crawlers' helpers returned."""
+    than min_bytes or the tool fails, exits non-zero or times out."""
     if not body or len(body) < spec.get("min_bytes", 0):
         return None
     fd, path = tempfile.mkstemp(suffix=".pdf")
@@ -71,4 +71,6 @@ def extract(body, spec):
             os.unlink(path)
         except OSError:
             pass
+    if result.returncode != 0:
+        return None  # damaged PDF or an error page: no text, as the crawlers' helpers decided
     return result.stdout.decode("utf-8", errors="replace")

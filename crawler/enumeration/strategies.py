@@ -110,7 +110,9 @@ class Strategy:
         if self.listing.get("next_link"):
             # ext:next_link: the token is the next page's full address, read from the page before.
             if token is not None:
-                if host_of(token) != host_of(base):
+                from urllib.parse import urlsplit
+                if host_of(token) != host_of(base) or (urlsplit(base).scheme == "https"
+                                                       and urlsplit(token).scheme != "https"):
                     raise StrategyStop("config_error", "next_link_other_host")
                 return token
             return build_url(base, self._dynamic_params(params))
@@ -155,7 +157,7 @@ class Strategy:
             return None
         if self.listing.get("method") == "POST":
             return PostUrl(self.listing["url"], params, self.listing.get("body_type", "form"))
-        return build_url(self.listing["url"], params, drop={self.page_param})
+        return build_url(self.listing["url"], self._dynamic_params(params), drop={self.page_param})
 
     def end_conditions(self):
         out = {}
@@ -253,6 +255,9 @@ class Strategy:
             node = BeautifulSoup(resp.text(), "html.parser").select_one(link["selector"])
             value = (node.get(link.get("attr", "href")) or "").strip() if node is not None else ""
             page.extra["next_cursor"] = urljoin(resp.url or str(url), value) if value else None
+            # Like a missing JSON field: no link on a non-empty first page is a renamed control
+            # (config_error), never a one-page listing read as complete.
+            page.extra["next_cursor_missing"] = node is None
             return
         if link:
             cursor = {"path": link["json_path"]}
@@ -611,7 +616,8 @@ class _ForwardPager(Strategy):
             if page.total is not None and cursor.get("total") is None:
                 cursor["total"] = page.total
             if n == self.start_page and page.items and page.extra.get("next_cursor_missing"):
-                path = (self.listing.get("next_cursor") or {}).get("path") or self.listing["next_link"]["json_path"]
+                link = self.listing.get("next_link") or {}
+                path = (self.listing.get("next_cursor") or {}).get("path") or link.get("json_path") or link.get("selector")
                 raise StrategyStop("config_error", f"next_cursor_path_missing:{path}")
             if not page.items:
                 if n == self.start_page:
@@ -881,7 +887,10 @@ class DateRangeSplit(_ForwardPager):
 
     def segment_first(self, key):
         spec = self.spec(key) if self.cfg.get("mode") in ("explicit", "discover") else {}
-        first = spec.get("first_page_url") or self.listing.get("first_page_url")
+        if spec.get("url"):
+            # A segment with its own listing never borrows the listing-level first page.
+            return spec.get("first_page_url")
+        first = self.listing.get("first_page_url")
         return first.replace("{segment}", key) if first else None
 
     def discover(self):
@@ -907,11 +916,14 @@ class DateRangeSplit(_ForwardPager):
             elif label_rule:
                 spec["label"] = str(node.get(label_rule[5:]) or "")[:200]
             found[key] = spec
-        previous = dict(ctx.state.get("discovered_segments") or {})
+        retired = set(cfg.get("retired") or ())
+        found = {k: v for k, v in found.items() if k not in retired}
+        previous = {k: v for k, v in (ctx.state.get("discovered_segments") or {}).items() if k not in retired}
         missing = [k for k in previous if k not in found]
-        # Ledger segments never remembered (e.g. after a plan change) cannot be read again
-        # without their parameters: reported, and the pass is not called complete.
-        lost = [k for k in ctx.store.item_segment_keys(ctx.site_id) if k not in found and k not in previous]
+        # Keys found under an earlier plan (parameters unknown now) cannot be read again: reported,
+        # and the pass is not called complete until a person lists them in segments.retired.
+        seen = [k for k in ctx.state.get("discovered_keys") or () if k not in retired]
+        lost = [k for k in seen if k not in found and k not in previous]
         if missing or lost:
             ctx.store.event(ctx.site_id, "segments_not_rediscovered",
                             {"keys": (missing + lost)[:50], "count": len(missing) + len(lost), "unreadable": lost[:50]})
@@ -919,6 +931,7 @@ class DateRangeSplit(_ForwardPager):
             raise StrategyStop("incomplete", f"segments_discovered_below_min:{len(found)}")
         merged = {**found, **{k: previous[k] for k in missing}}
         ctx.state["discovered_segments"] = merged
+        ctx.state["discovered_keys"] = list(dict.fromkeys([*seen, *merged]))
         ctx.store.save_state(ctx.site_id, ctx.state)
         self.not_rediscovered = missing + lost
         return list(merged)

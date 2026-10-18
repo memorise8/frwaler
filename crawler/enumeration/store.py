@@ -107,11 +107,13 @@ class Store:
                 # A completed enumeration re-runs from scratch as a fresh pass;
                 # saved items are skipped through the item ledger. Segments found on a hub page
                 # (ext:multi_listing) are remembered, so one missing later is still read.
-                state = {k: state[k] for k in ("discovered_segments",) if k in state}
+                state = {k: state[k] for k in ("discovered_segments", "discovered_keys") if k in state}
                 self._exec("DELETE FROM enum_segment WHERE site_id=? AND plan_fp=?", (site_id, plan_fp))
                 self._exec("DELETE FROM enum_listed WHERE site_id=? AND plan_fp=?", (site_id, plan_fp))
         else:
-            state = {}
+            # Only the keys of discovered segments outlive a plan change (their parameters may not).
+            kept = ((current or {}).get("state") or {}).get("discovered_keys")
+            state = {"discovered_keys": kept} if kept else {}
             if current:
                 self.event(site_id, "plan_changed", {"from": current["plan_fp"], "to": plan_fp})
         self._exec("""INSERT INTO enum_site(site_id,plan_fp,strategy,status,stop_reason,state,started_at,updated_at,completed_at)
@@ -206,11 +208,6 @@ class Store:
     # -- items -------------------------------------------------------------
     def item(self, site_id, key):
         return self._one("SELECT * FROM enum_item WHERE site_id=? AND item_key=?", (site_id, key))
-
-    def item_segment_keys(self, site_id):
-        """Segment keys the item ledger has items for (any plan generation)."""
-        return [r["segment_key"] for r in self._all(
-            "SELECT DISTINCT segment_key FROM enum_item WHERE site_id=? AND segment_key IS NOT NULL", (site_id,))]
 
     def known_keys(self, site_id, keys):
         if not keys:
