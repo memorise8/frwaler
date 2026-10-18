@@ -374,3 +374,186 @@ class AgricultureGouvFrCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (collector-splits): crawl() above is unchanged. These
+    # pure methods repeat crawl()'s listing-card and detail parsing line for
+    # line on bodies the runner fetched through its gate (no network here).
+    # Cross-page de-duplication (crawl()'s seen_urls) is the runner's key
+    # de-duplication (key_field url); a page with no new cards ends crawl().
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """crawl()'s card_items for one listing page."""
+        if not isinstance(html, str):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:expected_html")
+        seen_urls: set[str] = set()
+        list_soup = _make_soup(html)
+        card_items = []
+        for body_div in list_soup.find_all("div", class_="fr-card__body"):
+            a_tag = body_div.find("a", class_="fr-card__link")
+            date_el = body_div.find("span", class_="fr-card__date")
+            if not a_tag or not date_el:
+                continue
+
+            href = a_tag.get("href", "")
+            if not href.startswith("/") or len(href) < 10:
+                continue
+            # Skip system/filter links
+            if any(x in href for x in ["espace-presse", "mots-cles", "thematiques", "?", "#"]):
+                continue
+
+            full_url = _BASE_URL + href
+            if full_url in seen_urls:
+                continue
+            seen_urls.add(full_url)
+
+            title = a_tag.get_text(strip=True)
+            listed_date_raw = date_el.get_text(strip=True)
+            listed_date = _parse_fr_date(listed_date_raw)
+
+            # Article type from detail line (everything after the date span)
+            detail_el = body_div.find("p", class_="fr-card__detail")
+            category = ""
+            if detail_el:
+                detail_text = detail_el.get_text(strip=True)
+                if listed_date_raw:
+                    detail_text = detail_text.replace(listed_date_raw, "").strip()
+                category = detail_text
+
+            desc_el = body_div.find("p", class_="fr-card__desc")
+            card_desc = desc_el.get_text(strip=True) if desc_el else ""
+
+            slug = href.strip("/").split("/")[-1]
+
+            card_items.append({
+                "url": full_url,
+                "slug": slug,
+                "title": title,
+                "listed_date": listed_date,
+                "listed_date_raw": listed_date_raw,
+                "category": category,
+                "card_desc": card_desc,
+            })
+        return card_items
+
+    def _enumeration_paper(self, html, card):
+        """crawl()'s save argument for one card, or None where crawl() skips
+        (abstract < 50)."""
+        detail_soup = _make_soup(html)
+
+        # Full title from h1
+        h1 = detail_soup.find("h1")
+        full_title = h1.get_text(strip=True) if h1 else card["title"]
+        if not full_title:
+            full_title = card["title"]
+
+        # Meta description for abstract seed
+        meta_desc = ""
+        meta_el = detail_soup.find("meta", attrs={"name": "description"})
+        if meta_el:
+            meta_desc = meta_el.get("content", "").strip()
+
+        # Full article body text
+        main_el = (
+            detail_soup.find("main")
+            or detail_soup.find(id="content")
+            or detail_soup
+        )
+        # Remove noisy sub-elements
+        for noise in main_el.find_all(["nav", "header", "aside", "script", "style", "form"]):
+            noise.decompose()
+
+        article_el = main_el.find("article")
+        body_source = article_el if article_el else main_el
+        # Remove share/social sub-elements
+        for el in body_source.find_all(
+            True,
+            class_=lambda c: c and any(
+                x in " ".join(c) for x in ["share", "partager", "social", "breadcrumb"]
+            ),
+        ):
+            el.decompose()
+
+        raw_paras = [
+            p.get_text(strip=True)
+            for p in body_source.find_all("p")
+            if p.get_text(strip=True)
+        ]
+        # Filter out navigation / boilerplate short strings
+        body_paras = [
+            p for p in raw_paras
+            if len(p) >= 40 and not p.lower().startswith("partager")
+        ]
+
+        # Build abstract: meta desc first, then body paragraphs
+        abstract_parts: list[str] = []
+        if meta_desc and len(meta_desc) >= 50:
+            abstract_parts.append(meta_desc)
+        for para in body_paras:
+            if para not in abstract_parts:
+                abstract_parts.append(para)
+                if len("\n\n".join(abstract_parts)) >= 800:
+                    break
+
+        abstract = "\n\n".join(abstract_parts)
+
+        if len(abstract) < 50:
+            return None
+
+        # Keywords from fr-tag elements
+        kw_list = []
+        for tag_el in detail_soup.find_all("a", class_="fr-tag"):
+            kw = tag_el.get_text(strip=True)
+            if kw and kw not in kw_list:
+                kw_list.append(kw)
+        keywords = ",".join(kw_list)
+
+        # Published date: first fr-card__date in article
+        pub_date = card["listed_date"]
+        date_spans = detail_soup.find_all("span", class_="fr-card__date")
+        if date_spans:
+            parsed = _parse_fr_date(date_spans[0].get_text(strip=True))
+            if parsed:
+                pub_date = parsed
+
+        # PDF / attachment links
+        pdf_url = None
+        original_filename = None
+        for a in detail_soup.find_all("a", href=True):
+            href_val = a["href"]
+            if ".pdf" in href_val.lower() or "document_administratif" in href_val:
+                pdf_url = href_val
+                fn_m = re.search(r"/([^/?#]+\.pdf)", href_val, re.IGNORECASE)
+                if fn_m:
+                    original_filename = fn_m.group(1)
+                break
+
+        return {
+            "site_id": self.site_id,
+            "external_id": card["slug"],
+            "post_number": card["slug"],
+            "title": full_title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "listed_date": card["listed_date"],
+            "url": card["url"],
+            "pdf_url": pdf_url or "",
+            "original_filename": original_filename,
+            "authors": "",
+            "publisher": "Ministère de l'Agriculture et de la Souveraineté alimentaire",
+            "department": "",
+            "journal": "",
+            "keywords": keywords,
+            "category": card["category"],
+            "doi": "",
+            "metadata": json.dumps(
+                {
+                    "posted_date": card["listed_date_raw"],
+                    "article_type": card["category"],
+                    "card_description": card["card_desc"],
+                },
+                ensure_ascii=False,
+            ),
+        }

@@ -192,7 +192,7 @@
   "agriculture-gouv-fr-recherche-developpem": {
     "classification": "full_rescan_required",
     "reason": "original_scope_query_mismatch_and_theme_pagination_end_unverified",
-    "source_sha256": "87b529994ef05244169f1909dbc0ac7b107d8592448ae1da253802594ea3821f",
+    "source_sha256": "94ab5c8e9dcdff48e02486c21797b89df3d35255341d8a12aa28b88ce876436f",
     "dependency_source_sha256": {
       "docs/deliverables/test_URL_수집대조_20260802.csv": "336c04d463f70624cd4ec7aacdf386fd71bab34ca186acf8ac3413a3ee1fced9",
       "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
