@@ -371,3 +371,110 @@ class MoeGoKrBoardCntsCrawler(BaseCrawler):
 
         print(f"[moe-go-kr-boardcnts] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (collector-splits 방식; crawl() 은 그대로)
+    # ------------------------------------------------------------------
+
+    _ENUM_LISTING_MARKER = 'div[data-type="list"] table'
+
+    def _enumeration_items(self, html, url=""):
+        """목록 쪽 HTML → crawl() 과 같은 _parse_list 행 + 상세 URL(쪽 번호 포함, crawl() 과 동일)."""
+        from urllib.parse import parse_qs, urlsplit
+
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _bs4(html)
+        if soup.select_one(self._ENUM_LISTING_MARKER) is None:
+            raise PermanentFailure("listing_parse_error:missing_board_table")
+        values = parse_qs(urlsplit(url or "").query).get("page") or ["1"]
+        try:
+            page = int(values[0])
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:bad_page_param")
+        rows = []
+        for item in self._parse_list(html):
+            row = dict(item)
+            row["external_id"] = item["board_seq"]
+            row["url"] = self._detail_url(item["board_seq"], page=page)
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, detail_raw, item):
+        """상세 HTML + 목록 행 → crawl() 이 저장하는 것과 같은 paper (건너뛰는 항목은 None)."""
+        if not detail_raw:
+            return None
+        board_seq = item["board_seq"]
+        det_url = item["url"]
+        detail = self._parse_detail(detail_raw, board_seq)
+
+        title = detail.get("title") or item.get("title", "")
+        body = detail.get("body", "").strip()
+        dept = detail.get("dept") or item.get("dept", "")
+        dept_phone = detail.get("dept_phone", "")
+        date_str = detail.get("date") or item.get("date", "")
+        files = detail.get("files", [])
+
+        parts: list[str] = []
+        if title:
+            parts.append(title)
+        if body:
+            parts.append(body)
+        if files:
+            fnames = [f["filename"] for f in files if f.get("filename")]
+            if fnames:
+                parts.append("첨부파일: " + "; ".join(fnames))
+        dept_line = dept
+        if dept_phone:
+            dept_line = f"{dept} {dept_phone}"
+        if dept_line:
+            parts.append(f"담당부서: {dept_line}")
+        if date_str:
+            parts.append(f"등록일: {date_str}")
+        parts.append(f"게시판: 교육부 감사정보 (boardID={_BOARD_ID}) 담당: {dept} 등록일: {date_str}")
+        abstract = "\n".join(parts)
+        if len(abstract) < 100:
+            return None
+
+        pdf_url = None
+        original_filename = None
+        for f in files:
+            fname = f.get("filename", "")
+            furl = f.get("url", "")
+            if fname.lower().endswith(".pdf") or ".pdf" in furl.lower():
+                pdf_url = furl
+                original_filename = fname
+                break
+        if pdf_url is None and files:
+            pdf_url = files[0].get("url")
+            original_filename = files[0].get("filename")
+
+        post_number = item.get("post_number") or board_seq
+        meta = {
+            "posted_date": date_str,
+            "nttId": board_seq,
+            "boardID": _BOARD_ID,
+            "dept": dept,
+            "dept_phone": dept_phone,
+            "files": [{"filename": f["filename"], "url": f["url"]} for f in files],
+        }
+        return {
+            "site_id": self.site_id,
+            "external_id": board_seq,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": date_str,
+            "listed_date": date_str,
+            "url": det_url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "department": dept,
+            "publisher": "교육부",
+            "authors": None,
+            "keywords": None,
+            "category": "감사정보",
+            "doi": None,
+            "metadata": json.dumps(meta, ensure_ascii=False),
+        }
