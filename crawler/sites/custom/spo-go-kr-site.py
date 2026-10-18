@@ -574,3 +574,76 @@ class SpoGoKrSiteCrawler(BaseCrawler):
         if "." in tail and len(tail) <= 200:
             return tail
         return None
+
+    # ------------------------------------------------------------------
+    # Pure enumeration conversion (no network; crawl() is unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List page (GET List.do?cbIdx=1303&pageIndex=N) -> row dicts via ``_parse_list``.
+
+        Every page repeats the same pinned ``li.noti`` postings ahead of its own rows;
+        crawl() saves them once (seen_urls) from page 1, so they are kept only on page 1
+        (or the page-less URL). Past the last page the board answers 200 with
+        ``div.brdNothing`` ("검색 결과가 없습니다") and no ``.reportList``: a valid empty page.
+        Any other response without ``.reportList`` is a listing parse error.
+        """
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, (str, bytes)):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        soup = self._make_soup(html)
+        if soup is not None and soup.select_one(".reportList") is None and soup.select_one("div.brdNothing"):
+            return []
+        if soup is None or soup.select_one(".reportList") is None:
+            raise PermanentFailure("listing_parse_error:missing_report_list", url)
+        query = parse_qs(urlsplit(url or "").query)
+        try:
+            page = int((query.get("pageIndex") or ["1"])[0])
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:bad_page_index", url)
+        pinned = set()
+        for li in soup.select(".reportList ul li.noti"):
+            anchor = li.find("a", href=True) or li.find(
+                "a", attrs={"href": re.compile(r"javascript:doBbsContentView")}
+            )
+            if anchor is not None:
+                bc_idx = self._extract_bc_idx(anchor.get("href") or "") or self._extract_bc_idx(
+                    anchor.get("onclick") or ""
+                )
+                if bc_idx:
+                    pinned.add(bc_idx)
+        rows = []
+        for item in self._parse_list(html, page):
+            if page != 1 and item["bc_idx"] in pinned:
+                continue
+            rows.append(dict(item, external_id=item["bc_idx"]))
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s detail conversion and skip rules on an already fetched View.do page.
+
+        Runs the unchanged ``_fetch_parse_detail`` with its fetchers bound to the given
+        page (attachment filenames missing from the link text stay None instead of a
+        Content-Disposition request). None = skipped like crawl().
+        """
+        def page(*args, **kwargs):
+            return html.encode("utf-8") if isinstance(html, str) else html
+
+        names = ("_curl_get", "_curl_content_disposition_filename")
+        saved = {name: self.__dict__[name] for name in names if name in self.__dict__}
+        self._curl_get = page
+        self._curl_content_disposition_filename = lambda *args, **kwargs: None
+        try:
+            paper = self._fetch_parse_detail(item)
+        finally:
+            for name in names:
+                if name in saved:
+                    setattr(self, name, saved[name])
+                else:
+                    self.__dict__.pop(name, None)
+        if paper is None:
+            return None
+        if len(paper.get("abstract") or "") < self._MIN_ABSTRACT_CHARS:
+            return None
+        return paper

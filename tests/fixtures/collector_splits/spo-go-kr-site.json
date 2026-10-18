@@ -1,0 +1,42 @@
+{
+  "site_id": "spo-go-kr-site",
+  "listing_body": "<html><body><form id=\"BbsContentFVo\"><span>검색결과 <em>1</em> 건</span><div class=\"reportList\"><ul><li class=\"noti\"><a href=\"javascript:doBbsContentView('90002');\"><span class=\"label\">공지</span><span class=\"top\"><b class=\"title\">[과학수사부] Offline 2 pinned</b></span><span class=\"desc\">desc</span><span class=\"info\"><span class=\"file\">첨부파일있음</span><span class=\"date\">2026.10.02.</span><span class=\"hit\">1</span></span></a></li><li><a href=\"javascript:doBbsContentView('90001');\"><span class=\"top\"><b class=\"title\">「형사법의 신동향」 통권 제91호 Offline 1</b></span><span class=\"desc\">desc</span><span class=\"info\"><span class=\"file\">첨부파일있음</span><span class=\"date\">2026.10.01.</span><span class=\"hit\">1</span></span></a></li></ul></div></form></body></html>",
+  "empty_body": "<html><body><form id=\"BbsContentFVo\"><span>검색결과 <em>1</em> 건</span><div class=\"brdNothing\"><p>검색 결과가 없습니다. </p></div></form></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.spo.go.kr/site/spo/ex/board/View.do?cbIdx=1303&bcIdx=90002": "<html><body><div class=\"brdView\"><dl class=\"view\"><dt><span class=\"title\">[과학수사부] Offline 2 pinned</span><div class=\"etc\"><span class=\"date\"> 2026.10.02. </span><span class=\"hit\"> 1 </span></div></dt><dd><div class=\"file\"><a class=\"hwpFile\" href=\"/common/board/Download.do?bcIdx=90002&amp;cbIdx=1303&amp;streFileNm=x90002.hwp\"><span>notice90002.hwp</span></a><a class=\"pdfFile\" href=\"/common/board/Download.do?bcIdx=90002&amp;cbIdx=1303&amp;streFileNm=y90002.pdf\"><span>report_90002.pdf</span></a></div><div class=\"cont\"><strong>연구논문</strong><br/>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </div></dd></dl></div></body></html>",
+    "https://www.spo.go.kr/site/spo/ex/board/View.do?cbIdx=1303&bcIdx=90001": "<html><body><div class=\"brdView\"><dl class=\"view\"><dt><span class=\"title\">「형사법의 신동향」 통권 제91호 Offline 1</span><div class=\"etc\"><span class=\"date\"> 2026.10.01. </span><span class=\"hit\"> 1 </span></div></dt><dd><div class=\"file\"><a class=\"hwpFile\" href=\"/common/board/Download.do?bcIdx=90001&amp;cbIdx=1303&amp;streFileNm=x90001.hwp\"><span>notice90001.hwp</span></a><a class=\"pdfFile\" href=\"/common/board/Download.do?bcIdx=90001&amp;cbIdx=1303&amp;streFileNm=y90001.pdf\"><span>1._논문_90001.pdf</span></a></div><div class=\"cont\"><strong>연구논문</strong><br/>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </div></dd></dl></div></body></html>"
+  },
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "pinned_ids": [
+    "90002"
+  ],
+  "expected_ids": [
+    "90002",
+    "90001"
+  ],
+  "original_method_source_sha256": {
+    "crawl": "5c4f89e8971824e78499700f11f46e7b7e7dbd97824050b5300740355693007f",
+    "_curl": "7fd3048764503f182578e49d52c920b3c93aff1ce3fcc527077c3e2674f30a58",
+    "_fetch_list_page": "ddf64890193c9bb230ffe3080841ef6e7cc09056a007660f0ad33eecc0722f7e",
+    "_curl_get": "5eab08a1128a0d0d1df09f27f612c039ebd9a082c1d382e7bb8e025c99cbede8",
+    "_curl_content_disposition_filename": "acbe93a2762c339298870a977ddb1dc71da0cc21c0a580a252236d141a69a0c4",
+    "_parse_list": "1e72d093ca43064d20eaae9bcb39d8ea4a8336ba5db90fc92ff7e71d39ce797d",
+    "_fetch_parse_detail": "2aba0414df22cf93b8a8270a9763a35faac9441c4673c2fc57fbaf03eb67ad3e",
+    "_extract_content_text": "21abcd342725ae5dcc6ef82220630adc0babe4619dcef619c52ce01081dac16a",
+    "_extract_department": "fe673782794a0f93b70bb1026d41c468db93a2f413d12cd113ce5e2f9e55612d",
+    "_extract_journal_issue": "a59c5ee35669747b7c8f55e2a77e63993fd760a77e2b1b931798b984d0359545",
+    "_extract_attachments": "390b65118cdb83a2503f1dc1d22890d6b6a6724ab190d099ce77feb5202c5651",
+    "_choose_pdf_attachment": "0cc3ee11bfce8d82ced2aef6fb365b83e84d3d7883e95771effaf1c9e7b0193b",
+    "_last_stripped_string": "40fc723a3e8124b8412d5457b45a744ea0e4b60f6f34522727e672056968b311",
+    "_detail_url": "37f0d89b8865d8aa3323307ec0f5d59ac4e59ea6277988300103a5cd7d70881a",
+    "_extract_bc_idx": "5f68227183faa8017ae3e16d74fad0dfd650744138d4fc20a0f2d68bbdcd156b",
+    "_decode": "88a51adc1dc003f5e46f78a204019627b86bca940e781a11b9d04d10de50a14e",
+    "_make_soup": "0b9fcd4beb0441e8a3c8e3a20f847967ac8187930d637654fe9de645078eb28b",
+    "_safe_copy": "761672eeee61556de5916bdac44248fc02047226e896043cad25e9c36fb76f36",
+    "_clean_text": "291ae5e8631cb025d17d2f7aa1d81dd09d4610456ff160528d292cb4586995e5",
+    "_normalize_date": "17bd5ff4eba4e8ddb245e5b2b8d86ee9fa73e6873245c6d37900ff11358fd179",
+    "_extension_from_filename": "4be6da32a0fb1e0b492e4aea6db2d1a620b7092dc9eb9b06e82a2920754a0103",
+    "_filename_from_url": "231eac560c9767020838bf3825f2dd9ef16b75260f8cdea9beb3c16e6edb91fd"
+  }
+}
