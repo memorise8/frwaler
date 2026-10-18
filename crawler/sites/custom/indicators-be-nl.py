@@ -349,3 +349,28 @@ class IndicatorsBeNlCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() is unchanged. Listing = the
+    # SDG index page (_extract_indicator_links, crawl()'s 200-item cap);
+    # detail = the indicator page fetched by the framework, _parse_detail with
+    # crawl()'s title / abstract rules.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        urls = self._extract_indicator_links(html)[: self._MAX_ITEMS]
+        rows, seen = [], set()
+        for url in urls:
+            if url in seen:
+                continue
+            seen.add(url)
+            rows.append({"url": url})
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        paper = self._parse_detail(html, item["url"])
+        if not paper or not paper.get("title"):
+            return None
+        if len((paper.get("abstract") or "").strip()) < self._MIN_ABSTRACT_CHARS:
+            return None
+        return paper
