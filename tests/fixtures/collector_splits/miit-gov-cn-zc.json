@@ -1,0 +1,14 @@
+{
+ "listing_body": "{\"data\": {\"searchResult\": {\"dataResults\": [{\"groupData\": [{\"data\": {\"title\": \"通知一\", \"deploytime\": 1775200000000, \"publishtime\": 1775190000000, \"url\": \"/jgsj/kjs/wjfb/art/2026/art_2995f16b28504ddcbb604e918eb15759.html\", \"filenumbername\": \"工信部规〔2026〕1号\", \"publishgroupname\": \"科技司\", \"columnid\": \"c1\"}}]}, {\"groupData\": [{\"data\": {\"title\": \"公告二\", \"deploytime\": 1769050000000, \"publishtime\": null, \"url\": \"/jgsj/kjs/wjfb/art/2026/art_172b3edd967249d9ac61436e87a65971.html\", \"filenumbername\": \"工信部规〔2026〕1号\", \"publishgroupname\": \"科技司\", \"columnid\": \"c1\"}}]}]}}}",
+ "details": {
+  "https://www.miit.gov.cn/jgsj/kjs/wjfb/art/2026/art_2995f16b28504ddcbb604e918eb15759.html": "<html><head><meta name=\"Description\" content=\"合成的行政规范性文件摘要，用于 L2b 离线回归测试：crawl 与 plan 必须生成相同的 paper。这里的文字足够长，超过一百个字符的阈值，从而只使用 Description 元标签作为摘要内容，不读取正文。Synthetic offline text kept identical.\"><meta name=\"Keywords\" content=\"工业,规范\"><meta name=\"ContentSource\" content=\"科技司\"><meta name=\"PubDate\" content=\"2026-04-03 16:48\"></head><body><div id=\"con_con\"><iframe fileurl=\"/cms_files/filemanager/attach/a1.pdf\" src=\"/viewer?file=/cms_files/filemanager/attach/a1.pdf\"></iframe></div></body></html>",
+  "https://www.miit.gov.cn/jgsj/kjs/wjfb/art/2026/art_172b3edd967249d9ac61436e87a65971.html": "<html><head><meta name=\"Description\" content=\"合成的行政规范性文件摘要，用于 L2b 离线回归测试：crawl 与 plan 必须生成相同的 paper。这里的文字足够长，超过一百个字符的阈值，从而只使用 Description 元标签作为摘要内容，不读取正文。Synthetic offline text kept identical.\"><meta name=\"Keywords\" content=\"工业,规范\"><meta name=\"ContentSource\" content=\"科技司\"><meta name=\"PubDate\" content=\"\"></head><body><div id=\"con_con\"><iframe fileurl=\"/cms_files/filemanager/attach/a2.pdf\" src=\"/viewer?file=/cms_files/filemanager/attach/a2.pdf\"></iframe></div></body></html>"
+ },
+ "content_type": "application/json",
+ "long_text": "合成的行政规范性文件摘要，用于 L2b 离线回归测试：crawl 与 plan 必须生成相同的 paper。这里的文字足够长，超过一百个字符的阈值，从而只使用 Description 元标签作为摘要内容，不读取正文。Synthetic offline text kept identical.",
+ "empty_body": "{\"data\": {\"searchResult\": {\"dataResults\": []}}}",
+ "site_id": "miit-gov-cn-zc",
+ "original_method_source_sha256": {
+  "crawl": "b7411c6db24abb0a2937dc4a2260c90afbcc3cb3dbaa7490a4ad79b5ba2646df"
+ }
+}

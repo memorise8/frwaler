@@ -355,3 +355,90 @@ class MiitGovCnZcCrawler(BaseCrawler):
 
         print(f"[miit-gov-cn-zc] crawl complete. saved={saved}")
         return saved
+
+    # -- enumeration split (crawl() unchanged) --------------------------
+    def _enumeration_items(self, data, url=""):
+        """Rows of one search-API page with crawl()'s URL/ID/date rules."""
+        try:
+            results = data["data"]["searchResult"]["dataResults"]
+        except Exception:
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:searchResult_missing", url)
+        if not isinstance(results, list):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:dataResults_not_a_list", url)
+        rows = []
+        for item_rec in results:
+            if not isinstance(item_rec, dict):
+                continue
+            gd = item_rec.get("groupData") or []
+            record = gd[0] if gd else item_rec
+            d = record.get("data") if isinstance(record, dict) else {}
+            if not isinstance(d, dict):
+                d = {}
+            item_url = (d.get("url") or "").strip()
+            if not item_url:
+                continue
+            full_url = _BASE + item_url if item_url.startswith("/") else item_url
+            title = (d.get("title") or "").strip()
+            if not title:
+                continue
+            m = re.search(r"art_([0-9a-f]{10,})", item_url)
+            external_id = m.group(1) if m else item_url.split("/")[-1].replace(".html", "")
+            deploytime_ms = d.get("deploytime")
+            publishtime_ms = d.get("publishtime")
+            listed_date = _ms_to_date(deploytime_ms)
+            rows.append({
+                "external_id": external_id,
+                "url": full_url,
+                "title": title,
+                "listed_date": listed_date,
+                "published_date_fallback": _ms_to_date(publishtime_ms) or listed_date,
+                "data": d,
+            })
+        return rows
+
+    def _enumeration_detail(self, raw, item=None):
+        return _parse_detail(raw)
+
+    def _enumeration_paper(self, item, detail):
+        """The paper crawl() saves for one row + detail (same <50 skip)."""
+        d = item["data"]
+        abstract = detail["abstract"]
+        if len(abstract) < 50:
+            return None
+        deploytime_ms = d.get("deploytime")
+        publishtime_ms = d.get("publishtime")
+        listed_date = item["listed_date"]
+        published_date = detail["published_date"] or item["published_date_fallback"]
+        publisher = (detail["publisher"] or d.get("publishgroupname") or "").strip()
+        meta_payload = {
+            "filenumbername": d.get("filenumbername"),
+            "publishgroupname": d.get("publishgroupname"),
+            "columnid": d.get("columnid"),
+            "deploytime_ms": deploytime_ms,
+            "publishtime_ms": publishtime_ms,
+            "originalFilename": detail["original_filename"],
+            "posted_date": listed_date,
+        }
+        return {
+            "site_id": self.site_id,
+            "external_id": item["external_id"],
+            "post_number": str(deploytime_ms) if deploytime_ms else None,
+            "url": item["url"],
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "authors": None,
+            "publisher": publisher or None,
+            "department": None,
+            "journal": None,
+            "pdf_url": detail["pdf_url"],
+            "keywords": detail["keywords"],
+            "category": "行政规范性文件",
+            "doi": None,
+            "original_filename": detail["original_filename"],
+            "metadata": json.dumps(meta_payload, ensure_ascii=False),
+        }
+

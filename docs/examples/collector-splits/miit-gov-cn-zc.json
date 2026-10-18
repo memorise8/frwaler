@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "sites": {
+    "miit-gov-cn-zc": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "last_page_backward",
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "raw",
+          "item"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ]
+      },
+      "listing": {
+        "url": "https://www.miit.gov.cn/search-front-server/api/search/info",
+        "params": {
+          "websiteid": "110000000000000",
+          "scope": "basic",
+          "q": "",
+          "pg": "15",
+          "cateid": "194",
+          "pos": "title_text,titlepy",
+          "_cus_lq_themename": "行政规范性文件",
+          "dateField": "deploytime",
+          "selectFields": "title,deploytime,url,cdate,filenumbername,publishgroupname,publishtime,metaid,columnid,createdate",
+          "group": "distinct",
+          "level": "6",
+          "sortFields": "[{\"name\":\"deploytime\",\"type\":\"desc\"}]",
+          "p": 1
+        },
+        "page_param": "p",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "date_field": "listed_date",
+          "title_field": "title"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1,
+        "check_unparameterized_first_page": false
+      }
+    }
+  }
+}
