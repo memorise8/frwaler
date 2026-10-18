@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "sites": {
+    "nhlbi-nih-gov-about": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "date_range_split",
+      "base_url": "https://www.nhlbi.nih.gov",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "paper_method": "_enumeration_paper"
+      },
+      "listing": {
+        "url": "https://www.nhlbi.nih.gov/about/budget-and-legislative-information/{segment}",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "title_field": "title",
+          "listing_marker": "main"
+        }
+      },
+      "segments": {
+        "mode": "explicit",
+        "items": [
+          {
+            "key": "main",
+            "url": "https://www.nhlbi.nih.gov/about/budget-and-legislative-information"
+          },
+          {
+            "key": "science-advances"
+          },
+          {
+            "key": "science-advances-2023"
+          }
+        ]
+      }
+    }
+  }
+}

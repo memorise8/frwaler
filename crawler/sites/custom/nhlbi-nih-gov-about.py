@@ -547,3 +547,118 @@ class NHLBIAboutCrawler(BaseCrawler):
                 })
 
         return items
+
+
+    # -----------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # source fetchers stay unchanged; no fetching or storage happens here.
+    # -----------------------------------------------------------------------
+
+    def _enumeration_main_items(self, html: str) -> list[dict]:
+        """The parsing half of _items_from_main_page()."""
+        items: list[dict] = []
+        seen_ext_ids: set[str] = set()
+
+        # Match anchors whose text starts with "FY XXXX Congressional Justification"
+        # or "FY XXXX Significant Items"
+        pattern = re.compile(
+            r'<a\s[^>]*href=[\"\']([^\"\']+)[\"\']\s*[^>]*>\s*'
+            r'(FY\s+\d{4}[^<]*(?:Congressional\s+Justification|Significant\s+Items)[^<]*)'
+            r'\s*</a>',
+            re.IGNORECASE | re.DOTALL,
+        )
+
+        for m in pattern.finditer(html):
+            href = m.group(1).strip()
+            title = _strip(m.group(2))
+            if not title:
+                continue
+
+            # Make absolute
+            if href.startswith("/"):
+                href = self.base_url + href
+
+            yr_m = re.search(r"\b(\d{4})\b", title)
+            year = yr_m.group(1) if yr_m else ""
+
+            if "Congressional Justification" in title:
+                category = "Congressional Justification"
+            else:
+                category = "Significant Items"
+
+            pdf_url = href if ".pdf" in href.lower() else ""
+            doc_url = href if not pdf_url else f"{self.START_URL}#fy{year}-cj"
+
+            abstract = (
+                f"The {title}, published by the National Heart, Lung, and Blood "
+                f"Institute (NHLBI), provides Congress with detailed information on "
+                f"NHLBI research priorities, investments, and outcomes for the fiscal "
+                f"year. {self._CJ_DESC}"
+            )
+
+            slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+            ext_id = f"nhlbi-{slug}"
+            if ext_id in seen_ext_ids:
+                continue
+            seen_ext_ids.add(ext_id)
+
+            items.append({
+                "external_id": ext_id,
+                "title": title,
+                "abstract": abstract,
+                "category": category,
+                "keywords": ["NHLBI", "budget", "congressional justification", year],
+                "date": f"{year}-01-01" if year else "",
+                "url": doc_url,
+                "pdf_url": pdf_url,
+                "section": "Congressional Budget Justifications",
+            })
+
+        return items
+
+    def _enumeration_items(self, html, url):
+        """Rows of one source page (the plan's segment), parsed as crawl() does."""
+        from urllib.parse import urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        path = urlsplit(url or "").path.rstrip("/")
+        if path == urlsplit(self.SA_2025_URL).path:
+            src, items = "science-advances-2025", self._parse_sa_page(html, 2025, self.SA_2025_URL)
+        elif path == urlsplit(self.SA_2023_URL).path:
+            src, items = "science-advances-2023", self._parse_sa_page(html, 2023, self.SA_2023_URL)
+        elif path == urlsplit(self.START_URL).path:
+            src, items = "main-cj", self._enumeration_main_items(html)
+        else:
+            raise PermanentFailure("listing_parse_error:unknown_source_page")
+        return [dict(item, enumeration_source=src) for item in items]
+
+    def _enumeration_paper(self, item):
+        """crawl()'s paper for one row (rows carry everything; no detail page)."""
+        url = item.get("url", "")
+        abstract = item.get("abstract", "")
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        ext_id = (
+            item.get("external_id")
+            or hashlib.md5(url.encode()).hexdigest()[:16]
+        )
+        return {
+            "id": ext_id,
+            "site_id": self.site_id,
+            "external_id": ext_id,
+            "title": item.get("title") or "(untitled)",
+            "authors": json.dumps([]),
+            "abstract": abstract,
+            "category": item.get("category", "Budget and Legislative Information"),
+            "keywords": json.dumps(item.get("keywords", [])),
+            "published_date": item.get("date", ""),
+            "url": url,
+            "pdf_url": item.get("pdf_url", ""),
+            "doi": "",
+            "department": "National Heart, Lung, and Blood Institute",
+            "metadata": json.dumps({
+                "source": item.get("enumeration_source", ""),
+                "section": item.get("section", ""),
+            }),
+        }
