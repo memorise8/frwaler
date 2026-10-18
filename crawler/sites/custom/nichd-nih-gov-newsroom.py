@@ -551,3 +551,52 @@ class NichdNihGovNewsroomCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done: saved {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # module parsers stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """Listing rows of one news page, exactly as crawl() parses them."""
+        from urllib.parse import parse_qs
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        page = (parse_qs(urlparse(url or "").query).get("page") or ["0"])[0]
+        if not page.isdigit():
+            raise PermanentFailure("listing_parse_error:bad_page_param")
+        items, _has_next = _parse_listing_page(html, int(page))
+        return items
+
+    def _enumeration_paper(self, html, item):
+        """Copy of crawl()'s paper conversion; None keeps crawl()'s skips.
+        A URL-only item (identity precheck: {"detail_url": url}) works too."""
+        url = item.get("url") or item["detail_url"]
+        detail = _parse_detail(html, url, item)
+        if not detail:
+            return None
+        abstract = _strip_text(detail.get("abstract"))
+        if len(abstract) < _MIN_ABSTRACT_CHARS:
+            return None
+        return {
+            "id": detail.get("id"),
+            "site_id": self.site_id,
+            "external_id": detail.get("external_id"),
+            "post_number": detail.get("post_number"),
+            "title": detail.get("title"),
+            "abstract": abstract,
+            "published_date": detail.get("published_date"),
+            "listed_date": detail.get("listed_date"),
+            "posted_date": detail.get("posted_date"),
+            "authors": detail.get("authors"),
+            "publisher": detail.get("publisher"),
+            "department": detail.get("department"),
+            "journal": detail.get("journal"),
+            "url": detail.get("url"),
+            "pdf_url": detail.get("pdf_url"),
+            "keywords": detail.get("keywords"),
+            "category": detail.get("category"),
+            "doi": detail.get("doi"),
+            "original_filename": detail.get("original_filename"),
+            "metadata": json.dumps(detail.get("metadata", {}), ensure_ascii=False),
+        }

@@ -1,0 +1,14 @@
+{
+ "site_id": "nichd-nih-gov-newsroom",
+ "listing_body": "<html><body><div class=\"view-news-search view-display-id-news_search\"><div class=\"views-row\"><article data-history-node-id=\"101\"><h2><a href=\"/newsroom/news/study-one\">Study 101 finds results</a></h2><div class=\"field--name-body\">Listing summary 101</div><img src=\"/img/101.jpg\" alt=\"img 101\"></article></div><div class=\"views-row\"><article data-history-node-id=\"102\"><h2><a href=\"/newsroom/news/study-two\">Study 102 finds results</a></h2><div class=\"field--name-body\">Listing summary 102</div><img src=\"/img/102.jpg\" alt=\"img 102\"></article></div></div><nav><a rel=\"next\" href=\"?page=1\">Next</a></nav></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.nichd.nih.gov/newsroom/news/study-one": "<html><head><link rel=\"canonical\" href=\"https://www.nichd.nih.gov/newsroom/news/study-one\"><meta name=\"NICHDGoogleSortDate\" content=\"2026-10-01\"></head><body><main><article data-history-node-id=\"101\"><h1>Study 101 finds results</h1><div class=\"field--name-field-publication-display-date\"><time datetime=\"2026-10-01T12:00:00Z\">October 1, 2026</time></div><div class=\"field--name-body\"><p>Synthetic NICHD research summary for offline equality testing of the enumeration split. Synthetic NICHD research summary for offline equality testing of the enumeration split. </p><p><a href=\"/sites/default/files/r101.pdf\">Report</a></p></div></article></main></body></html>",
+  "https://www.nichd.nih.gov/newsroom/news/study-two": "<html><head><link rel=\"canonical\" href=\"https://www.nichd.nih.gov/newsroom/news/study-two\"><meta name=\"NICHDGoogleSortDate\" content=\"2026-09-15\"></head><body><main><article data-history-node-id=\"102\"><h1>Study 102 finds results</h1><div class=\"field--name-field-publication-display-date\"><time datetime=\"2026-09-15T12:00:00Z\">October 1, 2026</time></div><div class=\"field--name-body\"><p>Synthetic NICHD research summary for offline equality testing of the enumeration split. Synthetic NICHD research summary for offline equality testing of the enumeration split. </p><p><a href=\"/sites/default/files/r102.pdf\">Report</a></p></div></article></main></body></html>"
+ },
+ "long_text": "Synthetic NICHD research summary for offline equality testing of the enumeration split. Synthetic NICHD research summary for offline equality testing of the enumeration split. ",
+ "empty_body": "<html><body><div class=\"view-news-search view-display-id-news_search\"></div></body></html>",
+ "original_method_source_sha256": {
+  "crawl": "3f04eea90434d2e7397d9dcfa2e543e8ec2b56f53b7d3c43de72030683008162"
+ }
+}
