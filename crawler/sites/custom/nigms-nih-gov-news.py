@@ -489,3 +489,21 @@ class NigmsNihGovNewsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # parsing helpers stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html):
+        """Rows of one list page, exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        return self._parse_list_items_from_soup(self._parse_html(html))
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s per-item path: _parse_detail + the short-abstract skip (None)."""
+        paper = self._parse_detail(html, item)
+        if len(paper.get("abstract") or "") < self._MIN_ABSTRACT_CHARS:
+            return None
+        return paper

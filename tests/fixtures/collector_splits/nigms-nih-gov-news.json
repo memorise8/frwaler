@@ -1,0 +1,36 @@
+{
+ "site_id": "nigms-nih-gov-news",
+ "listing_body": "<html><body><main><div class=\"view-news view-display-id-page_1\"><div class=\"views-row\"><a href=\"/News/results/Pages/12-09-2024\">Gibbs to direct</a> <time datetime=\"2024-12-10T12:00:00Z\">December 10, 2024</time> • Office of Communications</div><div class=\"views-row\"><a href=\"/News/results/Pages/11-01-2024\">New program</a> <time datetime=\"2024-12-10T12:00:00Z\">December 10, 2024</time> • Office of Communications</div></div></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.nigms.nih.gov/News/results/Pages/12-09-2024": "<html><head><link rel=\"canonical\" href=\"https://www.nigms.nih.gov/News/results/Pages/12-09-2024\"></head><body><main><article data-history-node-id=\"901\"><h1>Gibbs to direct</h1><p>December 10, 2024</p><p>Synthetic NIGMS announcement body text for offline equality testing of the enumeration split, long enough. Synthetic NIGMS announcement body text for offline equality testing of the enumeration split, long enough. </p></article></main></body></html>",
+  "https://www.nigms.nih.gov/News/results/Pages/11-01-2024": "<html><head><link rel=\"canonical\" href=\"https://www.nigms.nih.gov/News/results/Pages/11-01-2024\"></head><body><main><article data-history-node-id=\"902\"><h1>New program</h1><p>December 10, 2024</p><p>Synthetic NIGMS announcement body text for offline equality testing of the enumeration split, long enough. Synthetic NIGMS announcement body text for offline equality testing of the enumeration split, long enough. </p></article></main></body></html>"
+ },
+ "long_text": "Synthetic NIGMS announcement body text for offline equality testing of the enumeration split, long enough. Synthetic NIGMS announcement body text for offline equality testing of the enumeration split, long enough. ",
+ "empty_body": "<html><body><main><div class=\"view-news view-display-id-page_1\"></div></main></body></html>",
+ "original_method_source_sha256": {
+  "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+  "_curl": "24fc8e9d5f7cd1fa11ff1c537d8dd9e1e3ce1d638de1a09357fe345aacb8f838",
+  "_fetch_list_page": "7d89ca41d33aab5cbc81a7cb9100d9bd940e879ebaeffbff27e80354101ac532",
+  "_fetch_detail_html": "90aef6cf008619e684eabe062078c65c01f5b4c4c40e399f290c8a336a746460",
+  "_parse_html": "2c62227223ac8dc2b27c5cf7146b7fe782cec169fd3d7d87f9cea4b041117621",
+  "_clean_text": "8d7fdce4f788148cf605829878f7c3f31983a3fdfb45a6588b0fc596dd5d9c5c",
+  "_one_line": "159d46f0e5e2328b8f5396236e4b0af55ccb7a4c6e2e7494edbc12c331a96cb2",
+  "_meta_content": "c737a4ef3ad0426c59e3dedb0ba2a492c609e091004605991fcc2c6c5e71b2b7",
+  "_parse_date": "75101c34325f29227171964cefaca29c6693cdaad48ef4ea0dcb33afa48206c4",
+  "_split_keywords": "1d83969d56deb846e500af69d710910f72b093b9623cebefa5184fbb1f5f092c",
+  "_external_id_from_url": "3dd6bca92a49394c774b698247fcee9a6aa859313528881f85ac38aaa349b130",
+  "_parse_list_items_from_soup": "9b2eaaac4633a20263d407c89edfb4c0c7666b3634f60678f1a0843a3c9c9a24",
+  "_has_next_page": "9774c5b6a674975fd905a4f14a504f63a90976296c2812ed451d3e5bb650b5cd",
+  "_extract_body_text": "ee306d6ac28488e0e840d02d0e9122356e652d9c958e17a78bedf008c26adc6c",
+  "_article_lines": "199cadb905de366e59cc7ada5b8b470ea462ae7829b0d83dcdc555a5a1de71dd",
+  "_extract_detail_date": "9e2228e5b1b07d6ef8b84b8b7c86ea8752886e136e031cae55bc1fd714830da2",
+  "_extract_last_updated": "5cd7627ee17a6b644e3b53741be3751aab0ec1f4f7e34b72d819ad0077d9e376",
+  "_extract_contact": "0b52cebc24f1fba7073ca019d532cf445f1d4b1cb178cb488bc72df107350431",
+  "_find_pdf_url": "48fcd8a97548e68f7f268c08772b11cd2b720d4d2d483c77cad7f6f2edd4e4a5",
+  "_collect_links": "6d9a45e7b88736de56deecba90ff1c108cf2c6de52705c3ee54a34102c8d297b",
+  "_fallback_article_text": "6bc761a5bfc6846220e59d888926039a16a5587c4f6fa8da232bd666ffbbd6a1",
+  "_parse_detail": "341dc4798fafd4aeacb6bfdeabe1ee9b3d6fc65022042e622fdedbe62d1f85df",
+  "crawl": "c3404d295a00fba81b93688e13f6e0c281d5d1ccb2bdaaf90a4d33cf51c55bb7"
+ }
+}
