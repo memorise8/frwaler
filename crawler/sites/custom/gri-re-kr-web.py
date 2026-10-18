@@ -429,6 +429,43 @@ class GriReKrWebCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Pure enumeration conversion (no network; crawl() is unchanged)
+    # ------------------------------------------------------------------
+
+    def _detail_url_for(self, item: dict) -> str:
+        return (
+            f"{self._LIST_URL}?schM=view"
+            f"&schProjectNo={item['schProjectNo']}"
+            f"&schBookResultNo={item['schBookResultNo']}"
+        )
+
+    def _enumeration_items(self, html, url=None):
+        """List page → row dicts via the registered list parser.
+
+        A response without the report list (``.issue_table_wrap ul``) is a listing
+        parse error; the list holding only the "데이터가 없습니다" row (past the last
+        page) is a valid empty page.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        soup = self._make_soup(html, context="enumeration list")
+        if soup.select_one(".issue_table_wrap ul") is None:
+            raise PermanentFailure("listing_parse_error:missing_report_list", url)
+        return [dict(item, external_id=item["schBookResultNo"], url=self._detail_url_for(item))
+                for item in self._parse_list_items(html)]
+
+    def _enumeration_detail(self, html, item):
+        return self._build_paper(item, html, self._detail_url_for(item))
+
+    def _enumeration_paper(self, item, paper):
+        """crawl()'s skip rule on the built paper (abstract under 100 chars → None)."""
+        abstract = paper.get("abstract") or ""
+        if len(abstract) < 100:
+            return None
+        return paper
+
+    # ------------------------------------------------------------------
     # Utilities
     # ------------------------------------------------------------------
 
