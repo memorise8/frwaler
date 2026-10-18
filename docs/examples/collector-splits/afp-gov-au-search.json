@@ -26,7 +26,7 @@
         ]
       },
       "listing": {
-        "url": "https://afp.gov.au/search?content_type_id=2&keys=pdf",
+        "url": "https://afp.gov.au/search?content_type_id=All&keys=pdf",
         "page_param": "page",
         "start_page": 0,
         "parser": {
