@@ -1,0 +1,22 @@
+{
+ "site_id": "stat-inst-se-om-sis",
+ "listing_body": "<html><body><header><h2>2099</h2></header><main><h1>Remissvar</h1><h2>2031</h2><ul><li class=\"list__item\"><a href=\"/globalassets/remissvar/2031/remissvar-syntetisk-sou-2031_1.pdf\">Remissvar &amp; synpunkter SOU 2031:1 (pdf, nytt fönster)</a></li><li class=\"list__item\"><a href=\"/globalassets/remissvar/2031/remissvar-syntetisk-sou-2031_1.pdf\">dup</a></li><li class=\"other\"><a href=\"/globalassets/x.pdf\">not a list item</a></li></ul><h2>2030</h2><ul><li class=\"list__item\"><a href=\"/globalassets/remissvar/2030/remissvar-syntetisk-ds-2030_9.PDF\">Remissvar Ds 2030:9 (, nytt fönster)</a></li></ul></main></body></html>",
+ "content_type": "text/html",
+ "long_text": "Synthetic consultation response written only for the offline regression test of this collector; it is long enough to pass the abstract threshold.",
+ "details": {
+  "https://www.stat-inst.se/globalassets/remissvar/2031/remissvar-syntetisk-sou-2031_1.pdf": "%PDF-1.4 synthetic-one xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "https://www.stat-inst.se/globalassets/remissvar/2030/remissvar-syntetisk-ds-2030_9.PDF": "%PDF-1.4 synthetic-two yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+ },
+ "pdf_texts": {
+  "https://www.stat-inst.se/globalassets/remissvar/2031/remissvar-syntetisk-sou-2031_1.pdf": "\n  SiS\n\nDatum 2031-03-05\nDnr 1.2.3-456/2031\n\nSynthetic consultation response written only for the offline regression test of this collector; it is long enough to pass the abstract threshold.\n\f",
+  "https://www.stat-inst.se/globalassets/remissvar/2030/remissvar-syntetisk-ds-2030_9.PDF": "Remissvar utan datum\n\nSynthetic consultation response written only for the offline regression test of this collector; it is long enough to pass the abstract threshold. Synthetic consultation response written only for the offline regression test of this collector; it is long enough to pass the abstract threshold.\n\f"
+ },
+ "original_method_source_sha256": {
+  "_curl_get": "affcb1948ef5b5932d9d3db039e14030751a76031354b4cf99a0d08de8b9aebd",
+  "_extract_pdf_text": "5586dbc31b0f2c8b06c711a0f4d3af20f77cd770b1b570bafd62dab96fb1a495",
+  "_parse_date": "b6944eb22b9f84427542ebc09f072a4d896c7a0ab8b27f6e414b76de55f2948c",
+  "_parse_dnr": "085c1152ed73c536b20416595c2ab47dd306d1a3c33cb7e4c9dfa86071776a37",
+  "_parse_listing": "ec26a6db906164c3fa70053dabd5febc42d991e4b4acc568b4059009d47fa22d",
+  "crawl": "53b383e62ba4c76e6c0dae912b5d14a37dca27d3b845a479bcecc6baf6f6b39a"
+ }
+}

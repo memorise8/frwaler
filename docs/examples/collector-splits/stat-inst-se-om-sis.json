@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "sites": {
+    "stat-inst-se-om-sis": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.stat-inst.se",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "pdf_text",
+          "item"
+        ],
+        "pdf_text": {
+          "args": [],
+          "timeout_s": 30,
+          "min_bytes": 100
+        }
+      },
+      "listing": {
+        "url": "https://www.stat-inst.se/om-sis/remissvar/",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "title_field": "title"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

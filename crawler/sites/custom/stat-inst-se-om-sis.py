@@ -302,3 +302,86 @@ class StatInstSisCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration conversion (collector-splits; crawl() unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Rows of the single remissvar page (one per PDF), in crawl()'s order and dedup.
+
+        A page without any list__item PDF link (error or maintenance page) is a listing
+        error; the listing has no empty end page of its own.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:not_html")
+        items = self._parse_listing(html)
+        if not items:
+            raise PermanentFailure("listing_parse_error:no_pdf_items")
+        rows = []
+        seen_urls: set[str] = set()
+        for title, pdf_url, year in items:
+            if pdf_url in seen_urls:
+                continue
+            seen_urls.add(pdf_url)
+            filename = pdf_url.rstrip("/").split("/")[-1]
+            rows.append({
+                "url": pdf_url,
+                "external_id": re.sub(r'\.pdf$', '', filename, flags=re.I),
+                "title": html_lib.unescape(title),
+                "raw_title": title,
+                "year": year,
+            })
+        return rows
+
+    def _enumeration_paper(self, pdf_text, item):
+        """crawl()'s paper for one PDF. pdf_text is what the framework's pdftotext (same
+        tool, no options) printed for the PDF it fetched (None on failure / short file);
+        crawl()'s strip and minimum-length rules are applied here unchanged."""
+        title = html_lib.unescape(item["raw_title"])
+        pdf_url = item["url"]
+        year = item["year"]
+        filename = pdf_url.rstrip("/").split("/")[-1]
+        external_id = re.sub(r'\.pdf$', '', filename, flags=re.I)
+
+        # _extract_pdf_text(): stdout stripped, empty -> None
+        if pdf_text is not None:
+            pdf_text = pdf_text.strip() or None
+
+        if not pdf_text or len(pdf_text.strip()) < _ABSTRACT_MIN_CHARS:
+            return None
+
+        abstract = pdf_text[:3000].strip()
+        published_date = self._parse_date(pdf_text)
+        if not published_date and year:
+            published_date = f"{year}-01-01"
+
+        dnr = self._parse_dnr(pdf_text)
+
+        return {
+            "id": None,
+            "site_id": _SITE_ID,
+            "external_id": external_id,
+            "post_number": external_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": f"{year}-01-01" if year else None,
+            "authors": None,
+            "publisher": "Statens institutionsstyrelse",
+            "department": None,
+            "journal": None,
+            "url": _LIST_URL,
+            "pdf_url": pdf_url,
+            "doi": None,
+            "keywords": None,
+            "category": "Remissvar",
+            "original_filename": filename,
+            "metadata": json.dumps({
+                "dnr": dnr,
+                "year": year,
+                "posted_date": f"{year}-01-01" if year else None,
+                "originalFilename": filename,
+            }, ensure_ascii=False),
+        }
