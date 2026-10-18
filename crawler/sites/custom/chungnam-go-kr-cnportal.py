@@ -604,3 +604,41 @@ class ChungnamGoKrCnportalCrawler(BaseCrawler):
             if value and value not in values:
                 values.append(value)
         return ",".join(values)
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L2a 2026-10-18); crawl() is unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """Listing rows exactly as crawl() parses them (page taken from pageIndex)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html)
+        if soup is None or soup.select_one(".txt-board") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_marker")
+        page_value = self._query_param(url, "pageIndex")
+        page = int(page_value) if page_value and page_value.isdigit() else 1
+        return self._parse_list(html, page)
+
+    def _enumeration_paper(self, raw, item):
+        """Paper as crawl() saves it: the unchanged _fetch_parse_detail on the given
+        detail body plus crawl()'s short-abstract skip. The transport (and the
+        Content-Disposition HEAD fallback, which needs the network) is replaced for
+        this call only; the filename then falls back to the URL as crawl() does when
+        that header request fails."""
+        own = {name: self.__dict__[name] for name in ("_curl_get", "_curl_content_disposition_filename")
+               if name in self.__dict__}
+        self._curl_get = lambda url, **kwargs: raw
+        self._curl_content_disposition_filename = lambda url, **kwargs: None
+        try:
+            paper = self._fetch_parse_detail(item)
+        finally:
+            for name in ("_curl_get", "_curl_content_disposition_filename"):
+                if name in own:
+                    setattr(self, name, own[name])
+                else:
+                    self.__dict__.pop(name, None)
+        if paper is None or len(paper.get("abstract") or "") < self._MIN_ABSTRACT_CHARS:
+            return None
+        return paper
