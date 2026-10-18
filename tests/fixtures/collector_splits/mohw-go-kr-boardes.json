@@ -1,0 +1,18 @@
+{
+ "listing_url": "https://www.mohw.go.kr/board.es?mid=a10503010100&bid=0027&nPage=1",
+ "listing_body": "<html><body><table class=\"tstyle_list\"><thead><tr><th>번호</th></tr></thead><tbody><tr><td>24692</td><td><a class=\"txt_title\" href=\"/board.es?mid=a10503010100&amp;bid=0027&amp;act=view&amp;list_no=1492254&amp;tag=&amp;nPage=1\"><span class=\"new\">새글</span>합성 제목 1</a></td><td>보건정책과</td><td>2026-10-16</td><td>5</td></tr><tr><td>24691</td><td><a class=\"txt_title\" href=\"/board.es?mid=a10503010100&amp;bid=0027&amp;act=view&amp;list_no=1492253&amp;tag=&amp;nPage=1\"><span class=\"new\">새글</span>합성 제목 2</a></td><td>보건정책과</td><td>2026-10-16</td><td>5</td></tr></tbody></table></body></html>",
+ "empty_body": "<html><body><table class=\"tstyle_list\"><thead><tr><th>번호</th></tr></thead><tbody><tr><td colspan=\"5\">등록된 게시물이 없습니다.</td></tr></tbody></table></body></html>",
+ "content_type": "text/html",
+ "long_text": "합성 보도자료 본문입니다. 오프라인 동등성 시험을 위한 문장입니다. Synthetic MOHW press release body for offline equality testing purposes.",
+ "details": {
+  "https://www.mohw.go.kr/board.es?mid=a10503010100&bid=0027&act=view&list_no=1492254&tag=&nPage=1": "<html><body><article class=\"board_view\"><ul class=\"info\"><li><strong>작성일</strong><span class=\"sr_only\">x</span><span>2026-10-16 09:00</span></li><li><strong>담당자</strong><span>홍길동</span></li><li><strong>담당부서</strong><span>보건정책과</span></li></ul><div class=\"contents\"><p>합성 보도자료 본문입니다. 오프라인 동등성 시험을 위한 문장입니다. Synthetic MOHW press release body for offline equality testing purposes.</p></div><div class=\"file\"><ul><li><a href=\"/boardDownload.es?bid=0027&amp;list_no=1492254&amp;seq=1\" title=\"보도_1492254.pdf\">받기</a></li></ul></div></article></body></html>",
+  "https://www.mohw.go.kr/board.es?mid=a10503010100&bid=0027&act=view&list_no=1492253&tag=&nPage=1": "<html><body><article class=\"board_view\"><ul class=\"info\"><li><strong>작성일</strong><span class=\"sr_only\">x</span><span>2026-10-16 09:00</span></li><li><strong>담당자</strong><span>홍길동</span></li><li><strong>담당부서</strong><span>보건정책과</span></li></ul><div class=\"contents\"><p>합성 보도자료 본문입니다. 오프라인 동등성 시험을 위한 문장입니다. Synthetic MOHW press release body for offline equality testing purposes.</p></div><div class=\"file\"><ul><li><a href=\"/boardDownload.es?bid=0027&amp;list_no=1492253&amp;seq=1\" title=\"보도_1492253.pdf\">받기</a></li></ul></div></article></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_curl": "8f0bf1b4bd1a34981e839c108e66946160a38b440d76a01e40e77f7b680e78b6",
+  "_fetch_list_page": "53d020f65e6f7c1248d348944cb7b62d2355c92d4536ebd168badd69247013d0",
+  "_fetch_detail": "49cfbb7ecfcfc0eab4b3aae8572df595d0b063adfd504c85943d3ebcc0606e18",
+  "crawl": "b1b476783eef81d15f15a5572d9962c264f9e93ade43f934c4313fddfed25a24"
+ },
+ "site_id": "mohw-go-kr-boardes"
+}

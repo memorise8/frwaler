@@ -369,3 +369,176 @@ class MohwGovKrBoardesCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (collector-splits 방식; crawl()·_fetch_* 는 그대로)
+    # _fetch_list_page/_fetch_detail 의 파싱 부분을 네트워크 없이 같은 규칙으로 옮겼다.
+    # ------------------------------------------------------------------
+
+    _ENUM_LISTING_MARKER = "table.tstyle_list"
+
+    def _enumeration_items(self, html, url=""):
+        """목록 쪽 HTML → _fetch_list_page() 와 같은 행 + crawl() 과 같은 상세 URL(nPage 포함)."""
+        from urllib.parse import parse_qs, urlsplit
+
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        table = soup.find("table", class_="tstyle_list") if soup else None
+        if not table:
+            raise PermanentFailure("listing_parse_error:missing_tstyle_list")
+        values = parse_qs(urlsplit(url or "").query).get("nPage") or ["1"]
+        try:
+            page = int(values[0])
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:bad_page_param")
+        items = []
+        tbody = table.find("tbody")
+        if not tbody:
+            return items
+        for row in tbody.find_all("tr"):
+            try:
+                cells = row.find_all("td")
+                if len(cells) < 4:
+                    continue
+                post_number = cells[0].get_text(strip=True)
+                a_tag = cells[1].find("a", class_="txt_title")
+                if not a_tag:
+                    continue
+                for unwanted in a_tag.find_all(["span", "i"]):
+                    unwanted.decompose()
+                title = a_tag.get_text(strip=True)
+                href = a_tag.get("href", "")
+                m = re.search(r"list_no=(\d+)", href)
+                if not m:
+                    continue
+                list_no = m.group(1)
+                dept = cells[2].get_text(strip=True) if len(cells) > 2 else ""
+                listed_date = cells[3].get_text(strip=True) if len(cells) > 3 else ""
+                items.append({
+                    "post_number": post_number,
+                    "list_no": list_no,
+                    "title": title,
+                    "department": dept,
+                    "listed_date": listed_date,
+                    "external_id": list_no,
+                    "url": (f"{_BASE}/board.es?mid={_MID}&bid={_BID}"
+                            f"&act=view&list_no={list_no}&tag=&nPage={page}"),
+                })
+            except Exception:
+                continue
+        return items
+
+    def _enumeration_detail_fields(self, html):
+        """_fetch_detail() 의 파싱 부분(네트워크 없음). 실패하면 {}."""
+        if not html:
+            return {}
+        try:
+            soup = _make_soup(html)
+        except Exception:
+            return {}
+        if not soup:
+            return {}
+        result: dict = {}
+        try:
+            board_view = soup.find("article", class_="board_view")
+            if not board_view:
+                return {}
+            info_ul = board_view.find("ul", class_="info")
+            if info_ul:
+                for li in info_ul.find_all("li"):
+                    try:
+                        strong = li.find("strong")
+                        if not strong:
+                            continue
+                        key = strong.get_text(strip=True)
+                        val = ""
+                        for sp in li.find_all("span"):
+                            cls = sp.get("class") or []
+                            style = sp.get("style") or ""
+                            if "sr_only" in cls or "display:none" in style:
+                                continue
+                            val = sp.get_text(strip=True)
+                        if key == "작성일":
+                            result["published_date"] = val[:10] if val else ""
+                        elif key == "담당자":
+                            result["contact_person"] = val
+                        elif key == "담당부서":
+                            result["department"] = val
+                    except Exception:
+                        continue
+            contents_div = board_view.find("div", class_="contents")
+            result["abstract"] = _strip_tags(str(contents_div)) if contents_div else ""
+            file_div = board_view.find("div", class_="file")
+            pdf_url: str | None = None
+            original_filename: str | None = None
+            all_files: list[dict] = []
+            if file_div:
+                for li in file_div.find_all("li"):
+                    try:
+                        for a in li.find_all("a"):
+                            href = a.get("href", "")
+                            if "boardDownload" not in href:
+                                continue
+                            fname = a.get("title", "")
+                            full_url = (_BASE + href) if href.startswith("/") else href
+                            all_files.append({"url": full_url, "title": fname})
+                            if pdf_url is None and ".pdf" in fname.lower():
+                                pdf_url = full_url
+                                original_filename = fname
+                    except Exception:
+                        continue
+            result["pdf_url"] = pdf_url
+            result["original_filename"] = original_filename
+            result["attachments"] = all_files
+        except Exception:
+            pass
+        return result
+
+    def _enumeration_paper(self, html, item):
+        """상세 HTML + 목록 행 → crawl() 이 저장하는 것과 같은 paper (건너뛰는 항목은 None)."""
+        detail = self._enumeration_detail_fields(html)
+        list_no = item["list_no"]
+        title = item["title"]
+        if not title:
+            return None
+        abstract = detail.get("abstract", "")
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+        listed_date = item["listed_date"]
+        published_date = detail.get("published_date", "") or listed_date
+        department = detail.get("department", "") or item.get("department", "")
+        contact = detail.get("contact_person", "")
+        pdf_url = detail.get("pdf_url") or None
+        original_filename = detail.get("original_filename")
+        attachments = detail.get("attachments", [])
+        return {
+            "site_id": self.site_id,
+            "external_id": list_no,
+            "post_number": item["post_number"],
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "url": item["url"],
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "publisher": "보건복지부",
+            "department": department,
+            "authors": contact or None,
+            "keywords": None,
+            "category": "보도자료",
+            "doi": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": listed_date,
+                    "originalFilename": original_filename,
+                    "contact_person": contact,
+                    "department": department,
+                    "list_no": list_no,
+                    "attachments": attachments,
+                },
+                ensure_ascii=False,
+            ),
+        }
