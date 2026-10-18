@@ -322,3 +322,144 @@ class HUDStatsInsightsCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (pure parsing; crawl() unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """One /documents/search?q=&sort=latest&start=N&count=12 page (JSON
+        {content: HTML fragment, resultsSentence}); the runner sends
+        X-Requested-With (plan request_headers). Each row carries what crawl()
+        reads from a search-result div (copied verbatim) plus ``start`` (the
+        page's own offset, crawl()'s metadata search_start_offset) and
+        ``detail_url`` (crawl()'s seen_urls key). Rows crawl() drops (no title,
+        no navigable URL) are dropped. Past the last page the source answers
+        200 with a pagination-only fragment (far past it: 'There has been an
+        error' + 'Sorry, no results'): an empty list (plan listing_marker).
+        Anything else is a listing parse error."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_json_text")
+        text = html.strip()
+        prefix = "There has been an error"
+        if text.startswith(prefix):
+            text = text[len(prefix):].lstrip()
+        try:
+            data = json.loads(text)
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:invalid_json") from None
+        if not isinstance(data, dict) or not isinstance(data.get("content"), str) \
+                or "resultsSentence" not in data:
+            raise PermanentFailure("listing_parse_error:unexpected_json_shape")
+        try:
+            start = int(parse_qs(urlsplit(url).query).get("start", ["0"])[0])
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:start_offset") from None
+        html_content = data.get("content", "")
+        soup = _make_soup(html_content) if html_content.strip() else None
+        results = soup.find_all("div", class_="search-result") if soup is not None else []
+        rows = []
+        for item_div in results:
+            # ---- title ----
+            title_el = item_div.find("span", class_="search-result__title-text")
+            title = _strip_html(str(title_el)) if title_el else ""
+            if not title:
+                continue
+
+            # ---- date ----
+            date_el = item_div.find("span", class_="search-result__title-date")
+            raw_date = date_el.get_text(strip=True) if date_el else ""
+
+            # ---- intro ----
+            intro_el = item_div.find("p", class_="search-result__intro")
+            intro = intro_el.get_text(strip=True) if intro_el else ""
+
+            # ---- topics / category ----
+            topic_els = item_div.find_all("li", class_="search-result__taglistitem")
+            topics = [t.get_text(strip=True) for t in topic_els if t.get_text(strip=True)]
+
+            # ---- PDF link ----
+            pdf_link = item_div.find("a", class_="linked-pages__download")
+            pdf_url = None
+            original_filename = None
+            if pdf_link and pdf_link.get("href"):
+                pdf_href = pdf_link["href"]
+                pdf_url = (_BASE_URL + pdf_href) if pdf_href.startswith("/") else pdf_href
+                original_filename = pdf_href.rstrip("/").split("/")[-1].split("?")[0]
+
+            # ---- detail ("Read Online") link ----
+            detail_link = item_div.find("a", class_="linked-pages__internal")
+            detail_path = (detail_link["href"]
+                           if detail_link and detail_link.get("href") else None)
+            if detail_path:
+                detail_url = (_BASE_URL + detail_path
+                              if detail_path.startswith("/") else detail_path)
+            elif pdf_url:
+                detail_url = pdf_url
+            else:
+                continue  # no navigable URL at all
+
+            rows.append({"title": title, "raw_date": raw_date, "intro": intro, "topics": topics,
+                         "pdf_url": pdf_url, "original_filename": original_filename,
+                         "detail_path": detail_path, "detail_url": detail_url, "start": start})
+        if not results:
+            if soup is None or not (soup.select_one("[data-pagination-link]") is not None
+                                    or "no results" in soup.get_text(" ", strip=True).lower()):
+                raise PermanentFailure("listing_parse_error:no_results_structure")
+        return rows
+
+    def _enumeration_paper(self, item):
+        """crawl()'s save argument copied verbatim from the list row (external_id
+        rule and post_number=None unchanged). None where crawl() skips."""
+        title = item["title"]
+        raw_date = item["raw_date"]
+        published_date = _parse_date(raw_date)
+        intro = item["intro"]
+        topics = list(item["topics"])
+        pdf_url = item["pdf_url"]
+        original_filename = item["original_filename"]
+        detail_path = item["detail_path"]
+        detail_url = item["detail_url"]
+        start = item["start"]
+
+        # ---- external_id ----
+        if detail_path:
+            external_id = _slug_from_url(detail_path)
+        elif original_filename:
+            external_id = re.sub(r"\.(pdf|docx?|xlsx?)$", "",
+                                 original_filename, flags=re.IGNORECASE)
+        else:
+            external_id = re.sub(r"[^\w-]", "-", title.lower())[:80]
+
+        # ---- abstract ----
+        abstract = _build_abstract(intro, topics)
+        if len(abstract) < 50:
+            return None
+
+        return {
+            "site_id": _SITE_ID,
+            "external_id": external_id,
+            "post_number": None,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "authors": "",
+            "publisher": _PUBLISHER,
+            "department": None,
+            "journal": None,
+            "keywords": ", ".join(topics),
+            "category": "; ".join(topics),
+            "doi": None,
+            "metadata": json.dumps({
+                "posted_date": raw_date,
+                "topics": topics,
+                "originalFilename": original_filename,
+                "search_start_offset": start,
+            }, ensure_ascii=False),
+        }

@@ -1,0 +1,12 @@
+{
+ "site_id": "hud-govt-nz-stats-and-insights",
+ "content_type": "application/json",
+ "listing_start": 12,
+ "listing_body": "{\"content\": \"<div class=\\\"search-result\\\"><h2 class=\\\"search-result__title\\\"><span class=\\\"search-result__title-text\\\">Synthetic Update Alpha &amp; Co</span><span class=\\\"search-result__title-date\\\">16 Oct 31</span></h2><p class=\\\"search-result__intro\\\">Synthetic intro A.</p><section><ul class=\\\"search-result__taglist\\\"><li class=\\\"search-result__taglistitem\\\"><a href=\\\"/documents?_topics%5B0%5D=1\\\">Housing</a></li><li class=\\\"search-result__taglistitem\\\"><a href=\\\"/documents?_topics%5B0%5D=1\\\">Urban development</a></li></ul></section><div class=\\\"document__download\\\"><a href=\\\"/assets/Uploads/Documents/Synthetic-Alpha.pdf?m=1\\\" class=\\\"linked-pages__download\\\"><span>View PDF</span></a><a href=\\\"/documents/synthetic-update-alpha\\\" class=\\\"linked-pages__internal\\\"><span>Read Online</span></a></div></div><div class=\\\"search-result\\\"><h2 class=\\\"search-result__title\\\"><span class=\\\"search-result__title-text\\\">Synthetic Sheet Beta</span><span class=\\\"search-result__title-date\\\">4 March 2031</span></h2><p class=\\\"search-result__intro\\\">Synthetic intro B.</p><div class=\\\"document__download\\\"><a href=\\\"/assets/Uploads/Documents/Synthetic-Beta.xlsx?m=2\\\" class=\\\"linked-pages__download\\\"><span>View PDF</span></a></div></div><div class=\\\"search-result\\\"><h2 class=\\\"search-result__title\\\"><span class=\\\"search-result__title-text\\\">No link at all</span><span class=\\\"search-result__title-date\\\">5 Feb 31</span></h2><p class=\\\"search-result__intro\\\">Dropped by crawl().</p><div class=\\\"document__download\\\"></div></div><div class=\\\"pagination\\\"><a href=\\\"/documents/search?q=&amp;sort=latest&amp;start=12&amp;count=12\\\" class=\\\"pagination__item\\\" data-pagination-link>2</a></div>\", \"resultsSentence\": \"13-24 of 30\", \"firstPage\": false, \"sort\": \"latest\"}",
+ "empty_body": "{\"content\": \"<div class=\\\"pagination\\\"><a href=\\\"/documents/search?q=&amp;sort=latest&amp;start=0&amp;count=12\\\" class=\\\"pagination__item\\\" data-pagination-link>1</a></div>\", \"resultsSentence\": \"37-30 of 30\", \"firstPage\": false}",
+ "far_body": "There has been an error{\"content\": \"<p>Sorry, no results</p>\", \"resultsSentence\": \"0\", \"firstPage\": true}",
+ "details": {},
+ "original_method_source_sha256": {
+  "crawl": "64d996bfd13102f2929e5cd860373ce79de01f2a4a14fe162ea6a4724a78b3b0"
+ }
+}
