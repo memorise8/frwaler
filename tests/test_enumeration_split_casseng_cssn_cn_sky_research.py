@@ -23,7 +23,7 @@ PLAN = {'version': 1, 'sites': {SITE: {
     'adapter': {'type': 'crawler', 'contract_version': 1,
                 'list_method': '_enumeration_items', 'list_args': ['html', 'url'],
                 'detail_method': '_enumeration_detail', 'detail_args': ['html', 'item', 'url']},
-    'listing': {'url': BASE + 'index_{page}.shtml', 'first_page_url': BASE, 'start_page': 0, 'page_size': 20,
+    'listing': {'url': BASE + 'index_{page}.shtml', 'first_page_url': BASE, 'start_page': 0, 'page_size': 8,
                 'parser': {'type': 'adapter', 'key_field': 'url', 'url_field': 'url', 'title_field': 'title'}},
     'last_page': {'overlap_pages': 1}}}}
 LONG = 'Sponsor: Synthetic Institute of Testing. ' * 3
