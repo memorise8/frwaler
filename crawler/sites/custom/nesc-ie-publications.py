@@ -311,3 +311,72 @@ class NescIePublicationsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, data):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or data.get("success") is not True or not isinstance(data.get("data"), dict) or not isinstance(data["data"].get("html"), str) or not isinstance(data["data"].get("pages"), int) or isinstance(data["data"]["pages"], bool) or data["data"]["pages"] < 0:
+            raise PermanentFailure("listing_parse_error:invalid_nesc_envelope")
+        rows = self._parse_list_html(data["data"]["html"])
+        if data["data"]["pages"] > 0 and not rows:
+            raise PermanentFailure("listing_parse_error:nesc_pages_without_items")
+        if data["data"]["pages"] == 0 and rows:
+            raise PermanentFailure("listing_parse_error:nesc_zero_pages_with_items")
+        return rows
+
+    def _enumeration_detail(self, raw, url):
+        try:
+            soup = self._make_soup(raw)
+        except Exception as exc:
+            print(f"[{self.site_id}] Soup error for {url}: {exc}")
+            return {}
+        if soup is None:
+            return {}
+
+        # Abstract: main entry content
+        abstract = ""
+        content_el = soup.select_one(".entry-content")
+        if content_el:
+            abstract = content_el.get_text(separator=" ", strip=True)
+
+        # PDF URL and original filename
+        pdf_url = None
+        original_filename = None
+        for a in soup.find_all("a", href=True):
+            href = a["href"]
+            if ".pdf" in href.lower():
+                pdf_url = href
+                seg = href.rstrip("/").split("/")[-1]
+                original_filename = seg if seg.lower().endswith(".pdf") else None
+                break
+
+        # WP post ID from body class attribute (postid-NNNN)
+        wp_post_id = None
+        body = soup.find("body")
+        if body:
+            for cls in body.get("class", []):
+                m = re.match(r"postid-(\d+)$", cls)
+                if m:
+                    wp_post_id = m.group(1)
+                    break
+
+        return {
+            "abstract": abstract,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "wp_post_id": wp_post_id,
+        }
+
+    def _enumeration_paper(self, item, detail):
+        url = item["url"]
+        abstract = detail.get('abstract', '')
+        if len(abstract) < 50:
+            return None
+        slug = urlparse(url).path.strip('/').split('/')[-1] or url
+        wp_post_id = detail.get('wp_post_id')
+        post_number = wp_post_id or slug
+        pdf_url = detail.get('pdf_url')
+        original_filename = detail.get('original_filename')
+        paper = {'site_id': self.site_id, 'external_id': slug, 'post_number': post_number, 'title': item['title'], 'abstract': abstract, 'published_date': item['date'], 'listed_date': item['date'], 'url': url, 'pdf_url': pdf_url, 'original_filename': original_filename, 'authors': '', 'publisher': 'National Economic & Social Council', 'department': '', 'journal': '', 'category': item.get('pub_type', ''), 'keywords': item.get('research_area', ''), 'doi': None, 'metadata': json.dumps({'posted_date': item['date'], 'pub_type': item.get('pub_type'), 'report_no': item.get('report_no'), 'research_area': item.get('research_area'), 'wp_post_id': wp_post_id, 'originalFilename': original_filename}, ensure_ascii=False)}
+        return paper

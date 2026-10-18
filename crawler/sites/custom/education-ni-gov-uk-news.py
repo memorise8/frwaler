@@ -423,3 +423,43 @@ class EducationNIGovUKNewsCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, html, page):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None or soup.find("main") is None:
+            raise PermanentFailure("listing_parse_error:missing_main_marker")
+        rows = _parse_list_page(html)
+        for row in rows:
+            row["page_num"] = page
+        if not rows and soup.find("main").get_text(" ", strip=True):
+            raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing")
+        return rows
+
+    def _enumeration_detail(self, html, url):
+        return _parse_detail_page(html, url)
+
+    def _enumeration_paper(self, item, detail):
+        item_url = item["url"]
+        page_num = item["page_num"]
+        title = detail['title'] or item.get('title', '')
+        abstract = detail['abstract']
+        if len(abstract) < 50 and detail.get('meta_description'):
+            abstract = detail['meta_description']
+        if len(abstract) < 50:
+            return None
+        listed_date = _parse_datetime(item.get('datetime_attr', ''))
+        published_date = detail['published_date'] or listed_date
+        node_id = detail.get('node_id', '')
+        slug = item_url.rstrip('/').rsplit('/', 1)[-1]
+        external_id = slug
+        pdf_url = detail.get('pdf_url', '')
+        original_filename = ''
+        if pdf_url:
+            original_filename = pdf_url.rstrip('/').split('/')[-1].split('?')[0]
+        paper = {'site_id': self.site_id, 'external_id': external_id, 'post_number': node_id or None, 'title': title, 'abstract': abstract, 'authors': '', 'publisher': _PUBLISHER, 'department': _PUBLISHER, 'journal': '', 'category': 'news', 'keywords': detail.get('keywords', ''), 'published_date': published_date, 'listed_date': listed_date, 'url': item_url, 'pdf_url': pdf_url, 'doi': '', 'original_filename': original_filename, 'metadata': json.dumps({'posted_date': item.get('date_text', ''), 'originalFilename': original_filename, 'node_id': node_id, 'snippet': item.get('snippet', ''), 'list_page': page_num}, ensure_ascii=False)}
+        return paper

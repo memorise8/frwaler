@@ -224,6 +224,54 @@ class CernNewsCrawler(BaseCrawler):
     # Main crawl
     # ------------------------------------------------------------------
 
+
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_items(self, raw, url=None):
+        """Reject non-feed/error responses before reusing the registered RSS parser.
+
+        crawl()'s parser returns [] for these; here they are listing parse errors
+        (the run ends incomplete), never an empty page that could end the listing.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        try:
+            root = ET.fromstring(raw)
+        except ET.ParseError:
+            raise PermanentFailure("listing_parse_error:invalid_xml", url) from None
+        if root.tag != "rss" or root.find("channel") is None:
+            raise PermanentFailure("listing_parse_error:not_an_rss_channel", url)
+        return self._parse_rss_page(raw)
+
+    def _enumeration_paper(self, item):
+        """Pure copy of crawl's Paper conversion and item filters.
+
+        None preserves item rejection; the framework currently records it as empty_item.
+        """
+        url = item.get("url", "")
+        title = item.get('title', '')
+        abstract = item.get('abstract', '')
+        external_id = item.get('external_id', '')
+        if not abstract or len(abstract) < 50:
+            return None
+        authors = item.get('authors', [])
+        keywords = item.get('keywords', [])
+        paper = {
+            'id': None,
+            'site_id': self.site_id,
+            'external_id': external_id,
+            'title': title,
+            'authors': json.dumps(authors, ensure_ascii=False),
+            'abstract': abstract,
+            'category': keywords[0] if keywords else '',
+            'keywords': json.dumps(keywords, ensure_ascii=False),
+            'published_date': item.get('published_date', ''),
+            'url': url,
+            'pdf_url': '',
+            'doi': '',
+            'department': 'CERN',
+            'metadata': json.dumps({'guid': item.get('guid', ''), 'categories': keywords}, ensure_ascii=False),
+        }
+        return paper
+
     def crawl(self, limit=None):
         """Crawl CERN news via paginated RSS feed.
 

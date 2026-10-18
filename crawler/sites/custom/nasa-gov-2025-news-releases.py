@@ -58,6 +58,63 @@ class NasaGov2025NewsReleasesCrawler(BaseCrawler):
     site_name = "Custom: nasa-gov-2025-news-releases"
     base_url = "https://www.nasa.gov"
 
+
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_items(self, data, url=None):
+        """Validate a decoded API list; no fetching, storage, or identifier synthesis."""
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            from crawler.enumeration.http import PermanentFailure
+            # Same class as the framework's own JSON-listing parse errors: the run ends
+            # incomplete (listing_failed:listing_parse_error:...), never as an empty page.
+            raise PermanentFailure("listing_parse_error:items_not_a_list_of_objects", url)
+        return data
+
+    def _enumeration_paper(self, item):
+        """Pure copy of crawl's Paper conversion and item filters.
+
+        None preserves item rejection; the framework currently records it as empty_item.
+        """
+        url = item.get("link", "")
+        post_id = item.get('id')
+        slug = item.get('slug', '')
+        date_raw = item.get('date', '')
+        published_date = date_raw[:10] if date_raw else None
+        title = _strip_html(item.get('title', {}).get('rendered', ''))
+        if not title:
+            return None
+        excerpt_raw = (item.get('excerpt') or {}).get('rendered', '') or ''
+        content_raw = (item.get('content') or {}).get('rendered', '') or ''
+        abstract = _strip_html(excerpt_raw)
+        if len(abstract) < 50:
+            abstract = _strip_html(content_raw)[:3000]
+        if len(abstract) < 50:
+            return None
+        metadata_dict = {
+            'posted_date': date_raw,
+            'post_id': post_id,
+            'slug': slug,
+        }
+        return {
+            'site_id': self.site_id,
+            'external_id': str(post_id),
+            'post_number': str(post_id),
+            'title': title,
+            'abstract': abstract,
+            'published_date': published_date,
+            'listed_date': published_date,
+            'url': url,
+            'pdf_url': None,
+            'authors': '',
+            'publisher': 'NASA',
+            'department': None,
+            'journal': None,
+            'keywords': None,
+            'category': 'News Release',
+            'doi': None,
+            'original_filename': None,
+            'metadata': json.dumps(metadata_dict, ensure_ascii=False),
+        }
+
     def crawl(self, limit=None):
         saved = 0
         seen_urls: set[str] = set()
