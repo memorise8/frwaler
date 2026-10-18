@@ -324,3 +324,103 @@ class AstronNlAboutCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw, url=None):
+        """Cards of the single annual-reports page, parsed as crawl() does.
+
+        The source has no pagination (crawl() reads one page): any page number
+        above 1 is declared empty, so the plan's listing_marker ends the listing.
+        A start page without cards is a listing parse error (crawl() aborts)."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw, (str, bytes)):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        page = (parse_qs(urlsplit(url or "").query).get("page") or ["1"])[0]
+        if page not in ("", "1"):
+            return []
+        items = self._parse_cards(raw)
+        if not items:
+            raise PermanentFailure("listing_parse_error:no_annual_report_cards", url)
+        rows = []
+        seen_urls: set = set()
+        for item in items:
+            pdf_url = item.get("pdf_url") or ""
+            if not pdf_url or pdf_url in seen_urls:
+                continue
+            seen_urls.add(pdf_url)
+            title_year = item.get("title_year") or "Unknown"
+            post_number = self._year_to_post_number(title_year)
+            original_filename = self._filename_from_url(pdf_url)
+            external_id = original_filename
+            if external_id and external_id.lower().endswith(".pdf"):
+                external_id = external_id[:-4]
+            if not external_id:
+                external_id = post_number
+            rows.append(dict(item, external_id=external_id,
+                             title=f"ASTRON Annual Report {title_year}"))
+        return rows
+
+    def _enumeration_paper(self, item):
+        """Paper from one card row — the conversion part of crawl() copied
+        verbatim (external_id = PDF file stem, post_number = reporting year)."""
+        pdf_url = item.get("pdf_url") or ""
+        if not pdf_url:
+            return None
+        title_year = item.get("title_year") or "Unknown"
+        file_size = item.get("file_size") or ""
+
+        title = f"ASTRON Annual Report {title_year}"
+        abstract = self._build_abstract(title_year, file_size)
+
+        if len(abstract.strip()) < _MIN_ABSTRACT_CHARS:
+            return None
+
+        post_number = self._year_to_post_number(title_year)
+        original_filename = self._filename_from_url(pdf_url)
+
+        # external_id: PDF filename without extension (unique per report)
+        external_id = original_filename
+        if external_id and external_id.lower().endswith(".pdf"):
+            external_id = external_id[:-4]
+        if not external_id:
+            external_id = post_number
+
+        # A reporting period does not specify when the report was
+        # published. The list provides no publication date.
+        published_date = None
+
+        metadata = {
+            "title_year": title_year,
+            "reporting_period_raw": title_year,
+            "year_role": "reporting_period",
+            "file_size": file_size,
+            "file_type": item.get("file_type") or "pdf",
+            "source_page": _LIST_URL,
+        }
+        metadata = {k: v for k, v in metadata.items() if v not in (None, "", [], {})}
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": None,
+            "authors": None,
+            "publisher": "ASTRON – Netherlands Institute for Radio Astronomy",
+            "department": None,
+            "journal": None,
+            "url": _LIST_URL,
+            "pdf_url": pdf_url,
+            "keywords": "radio astronomy, annual report, ASTRON, Netherlands",
+            "category": "Annual Report",
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }

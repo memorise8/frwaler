@@ -1,0 +1,19 @@
+{
+  "site_id": "astron-nl-about",
+  "listing_body": "<html><body><div id='main'><section class='annual-reports'><div class='oxy-post card'><a class='oxy-post-image' href='https://www.astron.nl/wp-content/uploads/2031/01/Synthetic_Annual_Report_2031.pdf'></a><a class='oxy-post-title' href='https://www.astron.nl/wp-content/uploads/2031/01/Synthetic_Annual_Report_2031.pdf'>2031</a><span class='oxy-post-filesize'>1.1 MB</span><span class='oxy-post-filetype'>pdf</span></div><div class='oxy-post card'><a class='oxy-post-image' href='https://www.astron.nl/wp-content/uploads/2031/01/Synthetic_Annual_Report_2030.pdf'></a><a class='oxy-post-title' href='https://www.astron.nl/wp-content/uploads/2031/01/Synthetic_Annual_Report_2030.pdf'>2030</a><span class='oxy-post-filesize'>1.0 MB</span><span class='oxy-post-filetype'>pdf</span></div></section></div></body></html>",
+  "content_type": "text/html",
+  "details": {},
+  "long_text": "ASTRON is the Netherlands Institute for Radio Astronomy",
+  "empty_body": "<html><body><div id='main'></div></body></html>",
+  "original_method_source_sha256": {
+    "__init__": "86b07d464f37e29597cb35f777a884f91e90c347c1dd28bcfaa42a3652409fb8",
+    "_curl": "0d940cb16e3fe6629026d7ed6e849e0ae407b3faacc8076898b977bfa5534312",
+    "_parse_html": "0c5899611e55c6911a46a4255ef42f5164a4a3a127fcf4e64279087c39f7fba8",
+    "_one_line": "c7a101cf1c56db7235f54dc5f1c6d681bb1639c36f321f23adaf6211e0d8c80e",
+    "_filename_from_url": "878fbdce293626046b03c8733301518bdee325dd616cb100b9e5895416a68879",
+    "_year_to_post_number": "1744e30ab8e5146dc9da806c116eb231d13f8db6242cb6f119d288d056a89270",
+    "_build_abstract": "3050bdfad05b5b27779dea02d6dc247a1544eeea67af40f5e2cb9eca53f462e0",
+    "_parse_cards": "ae18e9a6537a415f20417e45ad222627e84a0e2b65421539021c2c612a977d3c",
+    "crawl": "b39d27cf9a30b36501f8a29769fe958f27f211c2f33bae72c7c0d410f441e8cb"
+  }
+}
