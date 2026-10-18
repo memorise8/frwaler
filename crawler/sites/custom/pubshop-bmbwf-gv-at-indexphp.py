@@ -384,3 +384,23 @@ class PubshopBmbwfGvAtIndexphpCrawler(BaseCrawler):
         q = dict(parse_qsl(urlsplit(url).query))
         fn = q.get("rex_media_file", "")
         return fn if fn else ""
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() is unchanged. Listing = the
+    # catalogue page (offset paging, _parse_list_page); detail = the
+    # publication page fetched by the framework, _parse_detail with crawl()'s
+    # 50-char abstract rule.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        soup = self._make_soup(html)
+        return [] if soup is None else [dict(i) for i in self._parse_list_page(soup)]
+
+    def _enumeration_paper(self, html, item):
+        soup = self._make_soup(html)
+        if soup is None:
+            return None
+        paper = self._parse_detail(soup, dict(item))
+        if paper is None or len(paper.get("abstract") or "") < self._MIN_ABSTRACT:
+            return None
+        return paper
