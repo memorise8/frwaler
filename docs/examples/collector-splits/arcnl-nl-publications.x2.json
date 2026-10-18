@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "sites": {
+    "arcnl-nl-publications": {
+      "strategy": "date_range_split",
+      "base_url": "https://arcnl.nl",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://arcnl.nl/publications/types/{segment}/page/{page}",
+        "first_page_url": "https://arcnl.nl/publications/types/{segment}",
+        "start_page": 1,
+        "page_size": 10,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "url",
+          "listing_marker": "section.section-search-directory"
+        }
+      },
+      "segments": {
+        "mode": "explicit",
+        "items": [
+          {
+            "key": "bachelorthesis",
+            "label": "bachelorthesis"
+          },
+          {
+            "key": "masterthesis",
+            "label": "masterthesis"
+          },
+          {
+            "key": "phdthesis",
+            "label": "phdthesis"
+          }
+        ]
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

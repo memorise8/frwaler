@@ -365,3 +365,57 @@ class ArcnlNlPublicationsCrawler(BaseCrawler):
 
         print(f"[arcnl-nl-publications] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018, X2 multi_listing). crawl() and
+    # the existing methods are unchanged; these methods only parse already
+    # fetched HTML. One plan reads the three delivered lists as explicit
+    # segments (/publications/types/<scope>, /page/N).
+    # ------------------------------------------------------------------
+
+    _ENUMERATION_SCOPES = tuple(scope for scope, _ in _LIST_SCOPES)
+
+    def _enumeration_items(self, html, url=None):
+        """Detail links of one list page, collected exactly as _list_page_links()
+        does, each with its list scope (crawl()'s category) taken from the list URL."""
+        from crawler.enumeration.http import PermanentFailure
+        m = re.match(r"https://arcnl\.nl/publications/types/([a-z]+)(?:/page/\d+)?/?$", url or "")
+        if not isinstance(html, str) or not m or m.group(1) not in self._ENUMERATION_SCOPES:
+            raise PermanentFailure("listing_parse_error:arcnl_list_url_or_body", url)
+        category = m.group(1)
+        soup = _make_soup(html)
+        links = []
+        seen = set()
+        if soup:
+            for a in soup.find_all("a", href=True):
+                href = a["href"]
+                if (
+                    "/publications/" in href
+                    and "/types/" not in href
+                    and "arcnl.nl" in href
+                    and href not in seen
+                ):
+                    seen.add(href)
+                    links.append(href)
+        else:
+            for href in re.findall(
+                r'href=["\']([^"\']*arcnl\.nl/publications/(?!types)[^"\']+)["\']', html
+            ):
+                if href not in seen:
+                    seen.add(href)
+                    links.append(href)
+        return [{"url": link, "category": category} for link in links]
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page, with crawl()'s checks: no data or no
+        title is an item failure (crawl() stops there), an abstract under 50
+        characters is skipped (None). external_id/post_number = postid-N."""
+        link = item["url"]
+        data = self._parse_detail(link, raw=html)
+        if not data:
+            raise ValueError("arcnl detail page unparseable")
+        if not data.get("title", ""):
+            raise ValueError("arcnl detail page without title")
+        if len(data.get("abstract", "")) < 50:
+            return None
+        return self._paper(data, link, item["category"])
