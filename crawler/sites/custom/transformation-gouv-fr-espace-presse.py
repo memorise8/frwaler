@@ -184,6 +184,50 @@ class TransformationGouvFrEspacePresseCrawler(BaseCrawler):
         return items, has_next
 
     # ------------------------------------------------------------------
+    # Enumeration split (no I/O): same rows and Paper as crawl()
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Rows of one list page, exactly _parse_page's items (crawl() reads the same)."""
+        items, _has_next = self._parse_page(html)
+        return items
+
+    def _enumeration_detail(self, pdf_text, item):
+        """crawl()'s Paper for one card. ``pdf_text`` is the framework's pdftotext stdout of the
+        PDF (ext:pdf_text, plan args [] = crawl()'s bare ``pdftotext <file> -``, timeout 30 s,
+        None on a non-zero exit); _pdf_text's strip / ``or None`` and crawl()'s 100-char skip and
+        3000-char cut are applied here unchanged."""
+        text = pdf_text.strip() if pdf_text is not None else None
+        text = text or None
+        if not text or len(text) < 100:
+            return None
+
+        pdf_url = item["pdf_url"]
+        abstract = text[:3000]
+        pub_date = item.get("published_date")
+        external_id = item["original_filename"]
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": item["title"],
+            "abstract": abstract,
+            "url": pdf_url,
+            "pdf_url": pdf_url,
+            "published_date": pub_date,
+            "posted_date": pub_date,
+            "publisher": "Ministère de la Transformation publique et de la Réforme de l'État",
+            "category": item.get("category"),
+            "original_filename": item["original_filename"],
+            "metadata": json.dumps({
+                "posted_date": pub_date,
+                "category": item.get("category"),
+                "original_filename": item["original_filename"],
+                "pdf_href": item.get("pdf_href"),
+            }, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Public interface
     # ------------------------------------------------------------------
 
