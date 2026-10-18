@@ -18,7 +18,7 @@ from datetime import date, datetime
 
 from .http import LoginReview, PermanentFailure
 from .parsing import Item, Page
-from .urls import build_url, normalize_key_url
+from .urls import build_url, host_of, normalize_key_url
 
 
 @dataclass
@@ -41,6 +41,30 @@ class PostUrl(str):
         obj = super().__new__(cls, url)
         obj.body, obj.body_type = body, body_type
         return obj
+
+
+def _fill_page(template, value):
+    """Copy of a JSON body template with the whole-value "{page}" replaced by ``value``."""
+    if template == "{page}":
+        return value
+    if isinstance(template, dict):
+        return {k: _fill_page(v, value) for k, v in template.items()}
+    if isinstance(template, list):
+        return [_fill_page(v, value) for v in template]
+    return template
+
+
+_DYN_RE = re.compile(r"\{dyn:([A-Za-z_][A-Za-z0-9_]{0,31})\}")
+
+
+def _fill_dyn(template, values):
+    if isinstance(template, str):
+        return _DYN_RE.sub(lambda m: values[m.group(1)], template)
+    if isinstance(template, dict):
+        return {k: _fill_dyn(v, values) for k, v in template.items()}
+    if isinstance(template, list):
+        return [_fill_dyn(v, values) for v in template]
+    return template
 
 
 class StrategyStop(Exception):
@@ -83,29 +107,57 @@ class Strategy:
         params.update(extra or {})
         base = url or self.listing["url"]
         cursor = self.listing.get("next_cursor")
+        if self.listing.get("next_link"):
+            # ext:next_link: the token is the next page's full address, read from the page before.
+            if token is not None:
+                from urllib.parse import urlsplit
+                if host_of(token) != host_of(base) or (urlsplit(base).scheme == "https"
+                                                       and urlsplit(token).scheme != "https"):
+                    raise StrategyStop("config_error", "next_link_other_host")
+                return token
+            return build_url(base, self._dynamic_params(params))
         if cursor:
             if token is not None:
                 params[cursor["param"]] = token
         elif "{page}" in base:
-            if n == self.start_page and self.listing.get("first_page_url"):
-                return build_url(self.listing["first_page_url"], params)
+            # A segment's own first page (ext:multi_listing) when reading that segment.
+            first = getattr(self, "segment_first_page_url", None) if url is not None else None
+            first = first or self.listing.get("first_page_url")
+            if n == self.start_page and first and "{segment}" not in first:
+                return build_url(first, params)
             base = base.replace("{page}", str(self.page_value(n)))
         else:
             params[self.page_param] = self.page_value(n)
         if self.listing.get("method") == "POST":
+            if self.listing.get("body") is not None:
+                # ext:post_listing_nested_page: the page value goes where the template says;
+                # segment/cursor parameters stay top-level keys.
+                params.pop(self.page_param, None)
+                return PostUrl(base, {**_fill_page(self.listing["body"], self.page_value(n)), **params}, "json")
             return PostUrl(base, params, self.listing.get("body_type", "form"))
-        return build_url(base, params)
+        return build_url(base, self._dynamic_params(params))
+
+    def _dynamic_params(self, params):
+        """ext:dynamic_ref: {dyn:name} in a GET listing's parameters (e.g. an API's current
+        content ref), read once per run like the POST values."""
+        dyn = self.listing.get("dynamic")
+        if not dyn or self.listing.get("method") == "POST":
+            return params
+        values = getattr(self, "_dyn_values", None)
+        if values is None:
+            values = self._dyn_values = self._load_dynamic(dyn)
+        return _fill_dyn(params, values)
 
     def bare_first_request(self):
         """The listing without any page parameter (start-page check of last_page_backward).
         None when the plan has no such form (path paging: first_page_url is the start page)."""
         params = dict(self.listing.get("params") or {})
         params.pop(self.page_param, None)
-        if "{page}" in self.listing["url"]:
+        if "{page}" in self.listing["url"] or self.listing.get("body") is not None:
             return None
         if self.listing.get("method") == "POST":
             return PostUrl(self.listing["url"], params, self.listing.get("body_type", "form"))
-        return build_url(self.listing["url"], params, drop={self.page_param})
+        return build_url(self.listing["url"], self._dynamic_params(params), drop={self.page_param})
 
     def end_conditions(self):
         out = {}
@@ -124,7 +176,9 @@ class Strategy:
         ends = self.end_conditions()
         try:
             if isinstance(url, PostUrl):
-                resp = self.ctx.fetcher.post(str(url), url.body, body_type=url.body_type, accept_statuses=tuple(ends))
+                body, headers = self._dynamic_request(url.body)
+                resp = self.ctx.fetcher.post(str(url), body, body_type=url.body_type, accept_statuses=tuple(ends),
+                                             content_type=self.listing.get("content_type"), headers=headers)
             else:
                 resp = self.ctx.fetcher.get(url, accept_statuses=tuple(ends))
         except PermanentFailure as exc:
@@ -150,9 +204,63 @@ class Strategy:
         self._json_extras(page, resp, url)
         return page
 
+    def _dynamic_request(self, body):
+        """ext:dynamic_token: fill {dyn:name} values (read once per run from listing.dynamic.url,
+        a public page of the listing host, through the gated fetcher). The values go only into
+        this POST's body or its one header; they are never stored, logged or put in a URL."""
+        dyn = self.listing.get("dynamic")
+        if not dyn:
+            return body, None
+        values = getattr(self, "_dyn_values", None)
+        if values is None:
+            values = self._dyn_values = self._load_dynamic(dyn)
+        header = None
+        if dyn.get("header"):
+            name = _fill_dyn(dyn["header"]["name"], values)
+            from .plan import _FORBIDDEN_HEADERS, _HEADER_NAME
+            if not _HEADER_NAME.match(name) or _FORBIDDEN_HEADERS.match(name):
+                raise StrategyStop("config_error", "dynamic_header_name_not_allowed")
+            header = {name: _fill_dyn(dyn["header"]["value"], values)}
+        return _fill_dyn(body, values), header
+
+    def _load_dynamic(self, dyn):
+        from .parsing import json_path
+        resp = self.ctx.fetcher.get(dyn["url"])
+        if getattr(resp, "login_suspect", False):
+            raise LoginReview("login_form", dyn["url"], resp.status)
+        out = {}
+        for name, rule in dyn["values"].items():
+            if "regex" in rule:
+                m = re.search(rule["regex"], resp.text())
+                value = m.group(1) if m else None
+            else:
+                try:
+                    value = json_path(resp.json(), rule["json_path"])
+                except ValueError:
+                    value = None
+            if value is None or isinstance(value, (dict, list, bool)) or not str(value).strip() \
+                    or len(str(value)) > 8192 or re.search(r"[\r\n\x00]", str(value)):
+                # Only the name: the value may be a token.
+                raise StrategyStop("config_error", f"dynamic_value_missing:{name}")
+            out[name] = str(value)
+        return out
+
     def _json_extras(self, page, resp, url):
         """ext:json_page: next-page cursor / last page number read from the JSON body."""
         cursor, last = self.listing.get("next_cursor"), self.listing.get("last_page_path")
+        link = self.listing.get("next_link")
+        if link and "selector" in link:
+            from urllib.parse import urljoin
+            from bs4 import BeautifulSoup
+            node = BeautifulSoup(resp.text(), "html.parser").select_one(link["selector"])
+            value = (node.get(link.get("attr", "href")) or "").strip() if node is not None else ""
+            page.extra["next_cursor"] = urljoin(resp.url or str(url), value) if value else None
+            # Like a missing JSON field: no link on a non-empty first page is a renamed control
+            # (config_error), never a one-page listing read as complete.
+            page.extra["next_cursor_missing"] = node is None
+            return
+        if link:
+            cursor = {"path": link["json_path"]}
         if not cursor and not last:
             return
         from .parsing import json_path
@@ -168,6 +276,9 @@ class Strategy:
             page.extra["next_cursor_missing"] = not isinstance(holder, dict) or leaf not in holder
             token = holder.get(leaf) if isinstance(holder, dict) else None
             page.extra["next_cursor"] = None if token in (None, "", False) else str(token)
+            if link and page.extra["next_cursor"]:
+                from urllib.parse import urljoin
+                page.extra["next_cursor"] = urljoin(resp.url or str(url), page.extra["next_cursor"])
         if last:
             value = json_path(data, last)
             page.extra["last_page"] = value if isinstance(value, int) and not isinstance(value, bool) else (
@@ -423,7 +534,7 @@ class LastPageBackward(Strategy):
 class _ForwardPager(Strategy):
     def forward(self, seg, extra_params=None, *, url=None, reverse_within_page=False, overlap=0):
         """Read one segment forward from its cursor. Yields batches; returns (evidence, total)."""
-        if self.listing.get("next_cursor"):
+        if self.listing.get("next_cursor") or self.listing.get("next_link"):
             return (yield from self.forward_cursor(seg, extra_params, url=url, reverse_within_page=reverse_within_page))
         ctx = self.ctx
         row = self.segment_row(seg)
@@ -505,7 +616,9 @@ class _ForwardPager(Strategy):
             if page.total is not None and cursor.get("total") is None:
                 cursor["total"] = page.total
             if n == self.start_page and page.items and page.extra.get("next_cursor_missing"):
-                raise StrategyStop("config_error", f"next_cursor_path_missing:{self.listing['next_cursor']['path']}")
+                link = self.listing.get("next_link") or {}
+                path = (self.listing.get("next_cursor") or {}).get("path") or link.get("json_path") or link.get("selector")
+                raise StrategyStop("config_error", f"next_cursor_path_missing:{path}")
             if not page.items:
                 if n == self.start_page:
                     return "empty_first_page", cursor.get("total")
@@ -717,11 +830,16 @@ class DateRangeSplit(_ForwardPager):
         self.cfg = ctx.plan.section("segments")
         self.today = ctx.today
 
+    def spec(self, key):
+        """Explicit or discovered segment: {key, params, url?, first_page_url?, label?}."""
+        if self.cfg.get("mode") == "explicit":
+            return next(s for s in self.cfg["items"] if str(s["key"]) == key)
+        return (self.ctx.state.get("discovered_segments") or {}).get(key) or {"key": key}
+
     def filter_params(self, key):
         flt = self.cfg.get("filter", {})
-        if self.cfg.get("mode") == "explicit":
-            spec = next(s for s in self.cfg["items"] if str(s["key"]) == key)
-            return dict(spec.get("params") or {})
+        if self.cfg.get("mode") in ("explicit", "discover"):
+            return dict(self.spec(key).get("params") or {})
         if flt.get("type") == "query_prefix_range":
             field, lo, hi = _prefix_bounds(key)
             return {flt["param"]: f"{field}:[{lo} TO {hi}}}"}
@@ -747,7 +865,7 @@ class DateRangeSplit(_ForwardPager):
         raise ValueError(f"unknown filter type: {flt.get('type')}")
 
     def can_split(self, key):
-        if self.cfg.get("mode") == "explicit":
+        if self.cfg.get("mode") in ("explicit", "discover"):
             return False
         if self.cfg.get("filter", {}).get("type") == "query_prefix_range":
             return bool(_prefix_children(key, self.cfg["max_depth"]))
@@ -763,7 +881,60 @@ class DateRangeSplit(_ForwardPager):
 
     def segment_url(self, key):
         url = self.listing["url"]
+        if self.cfg.get("mode") in ("explicit", "discover") and self.spec(key).get("url"):
+            return self.spec(key)["url"]
         return url.replace("{segment}", key) if "{segment}" in url else url
+
+    def segment_first(self, key):
+        spec = self.spec(key) if self.cfg.get("mode") in ("explicit", "discover") else {}
+        if spec.get("url"):
+            # A segment with its own listing never borrows the listing-level first page.
+            return spec.get("first_page_url")
+        first = self.listing.get("first_page_url")
+        return first.replace("{segment}", key) if first else None
+
+    def discover(self):
+        """ext:multi_listing: segments found on the hub page (every run, gated fetcher). Keys found
+        earlier but missing now are kept (never a silent shrink) and reported."""
+        from urllib.parse import urljoin
+        from bs4 import BeautifulSoup
+        ctx, cfg = self.ctx, self.cfg
+        resp = ctx.fetcher.get(cfg["hub_url"])
+        if getattr(resp, "login_suspect", False):
+            raise LoginReview("login_form", cfg["hub_url"], resp.status)
+        found = {}
+        label_rule = cfg.get("label", "text")
+        for node in BeautifulSoup(resp.text(), "html.parser").select(cfg["selector"]):
+            value = (node.get(cfg.get("attr", "href")) or "").strip()
+            m = re.search(cfg["key_regex"], urljoin(resp.url, value) if value else "")
+            if not m or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,64}", m.group(1)) or m.group(1) in found:
+                continue
+            key = m.group(1)
+            spec = {"key": key, "params": {k: v.replace("{key}", key) for k, v in (cfg.get("params") or {}).items()}}
+            if label_rule == "text":
+                spec["label"] = node.get_text(" ", strip=True)[:200]
+            elif label_rule:
+                spec["label"] = str(node.get(label_rule[5:]) or "")[:200]
+            found[key] = spec
+        retired = set(cfg.get("retired") or ())
+        found = {k: v for k, v in found.items() if k not in retired}
+        previous = {k: v for k, v in (ctx.state.get("discovered_segments") or {}).items() if k not in retired}
+        missing = [k for k in previous if k not in found]
+        # Keys found under an earlier plan (parameters unknown now) cannot be read again: reported,
+        # and the pass is not called complete until a person lists them in segments.retired.
+        seen = [k for k in ctx.state.get("discovered_keys") or () if k not in retired]
+        lost = [k for k in seen if k not in found and k not in previous]
+        if missing or lost:
+            ctx.store.event(ctx.site_id, "segments_not_rediscovered",
+                            {"keys": (missing + lost)[:50], "count": len(missing) + len(lost), "unreadable": lost[:50]})
+        if len(found) < int(cfg.get("min_segments", 1)):
+            raise StrategyStop("incomplete", f"segments_discovered_below_min:{len(found)}")
+        merged = {**found, **{k: previous[k] for k in missing}}
+        ctx.state["discovered_segments"] = merged
+        ctx.state["discovered_keys"] = list(dict.fromkeys([*seen, *merged]))
+        ctx.store.save_state(ctx.site_id, ctx.state)
+        self.not_rediscovered = missing + lost
+        return list(merged)
 
     def split(self, key, ordinal):
         ctx = self.ctx
@@ -777,7 +948,8 @@ class DateRangeSplit(_ForwardPager):
         ctx = self.ctx
         # The full deterministic manifest is upserted on every run: a crash in the
         # middle of a previous initialisation can never leave a range out.
-        for i, key in enumerate(generate_segments(self.cfg, self.today)):
+        keys = self.discover() if self.cfg.get("mode") == "discover" else generate_segments(self.cfg, self.today)
+        for i, key in enumerate(keys):
             ctx.store.ensure_segment(ctx.site_id, ctx.plan_fp, key, ordinal=i)
         state = ctx.state
         check, boundary = self.overall_check()
@@ -791,6 +963,7 @@ class DateRangeSplit(_ForwardPager):
             row = pending[0]
             key = row["segment_key"]
             ctx.store.update_segment(ctx.site_id, ctx.plan_fp, key, status="running")
+            self.segment_first_page_url = self.segment_first(key)
             gen = self.forward(key, self.filter_params(key), url=self.segment_url(key),
                                reverse_within_page=reverse, overlap=overlap)
             split_now = False
@@ -902,6 +1075,9 @@ class DateRangeSplit(_ForwardPager):
             ctx.store.event(ctx.site_id, "overall_total_mismatch", {"overall_total": overall, "listed": listed})
             bad.append("overall_total")
         unverified = [r["segment_key"] for r in rows if r["status"] == "unverified"]
+        if getattr(self, "not_rediscovered", None):
+            # A segment no longer on the hub page was still read, but the hub changed.
+            unverified.append("segments_not_rediscovered")
         if bad:
             self.outcome = ("complete_with_mismatch", "segments:" + ",".join(bad[:20]))
         elif unverified:
@@ -921,7 +1097,7 @@ class DateRangeSplit(_ForwardPager):
         overall total the only evidence against boundary losses. The check defaults to on
         there (unless the listing URL needs a segment); an explicit plan value wins."""
         flt = self.cfg.get("filter") or {}
-        boundary = (self.cfg.get("mode", "range") != "explicit" and flt.get("type", "range") == "range"
+        boundary = (self.cfg.get("mode", "range") == "range" and flt.get("type", "range") == "range"
                     and bool(self.listing.get("total")))
         explicit = self.plan.raw.get("overall_total_check")
         if explicit is not None:
