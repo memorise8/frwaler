@@ -188,6 +188,124 @@ class KfssForestGoKrStatCrawler(BaseCrawler):
         return "\n".join(p for p in parts if p).strip()
 
     # ------------------------------------------------------------------
+    # Pure enumeration conversion (no network; crawl() is unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """selectArticleList.do JSON → row dicts (the article row plus identity fields).
+
+        ``{"code": 1, "data": []}`` is a valid empty page (past the last page); any
+        other shape (error code, missing/non-list data) is a listing parse error.
+        The row's ``url`` is the article's file-list API, read as its detail.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or data.get("code") != 1:
+            raise PermanentFailure("listing_parse_error:api_code_not_1", url)
+        rows = data.get("data")
+        if not isinstance(rows, list):
+            raise PermanentFailure("listing_parse_error:data_not_a_list", url)
+        out = []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            article_seq = str(row.get("articleSeq", ""))
+            if not article_seq:
+                continue
+            qs = urlencode({"workPath": "Article", "workSeq": article_seq})
+            out.append(dict(row, external_id=article_seq, url=f"{self._FILE_URL}?{qs}"))
+        return out
+
+    def _enumeration_detail(self, data, item):
+        """selectArticleFileList.do JSON → file dicts ([] like crawl() when unusable)."""
+        if isinstance(data, dict) and data.get("code") == 1:
+            files = data.get("data", [])
+            return files if isinstance(files, list) else []
+        return []
+
+    def _enumeration_paper(self, item, files):
+        """Pure copy of crawl()'s Paper conversion and skip rule (None = skipped)."""
+        row = item
+        article_seq = str(row.get("articleSeq", ""))
+        if not article_seq:
+            return None
+
+        abstract = self._build_abstract(row, files)
+
+        if len(abstract) < 50:
+            return None
+
+        reg_dtm = (row.get("regDtm") or "")
+        updt_dtm = (row.get("updtDtm") or "")
+        pub_date = reg_dtm[:10] if reg_dtm else None
+        listed_date = updt_dtm[:10] if updt_dtm else pub_date
+
+        pdf_file = None
+        for f in files:
+            if (f.get("fileExt") or "").lower() == "pdf":
+                pdf_file = f
+                break
+        if pdf_file is None and files:
+            pdf_file = files[0]
+
+        pdf_url = None
+        original_filename = None
+        if pdf_file:
+            pdf_url = (
+                f"{self._DOWN_URL}"
+                f"?fileSeq={pdf_file['fileSeq']}&workSeq={article_seq}"
+            )
+            original_filename = pdf_file.get("fileNm")
+
+        detail_url = (
+            f"{self.base_url}{_CTX}/ptl/article/articleDtl.do"
+            f"?bbsId={self._BBS_ID}&curMenu={self._MENU_ID}"
+            f"&articleSeq={article_seq}"
+        )
+
+        return {
+            "site_id": self.site_id,
+            "external_id": article_seq,
+            "post_number": article_seq,
+            "title": (row.get("title") or "").strip(),
+            "abstract": abstract,
+            "published_date": pub_date,
+            "posted_date": listed_date,
+            "authors": None,
+            "publisher": "산림청 산림통계포털",
+            "department": row.get("bbsNm") or "통계자료실",
+            "journal": None,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "keywords": None,
+            "category": None,
+            "doi": None,
+            "metadata": json.dumps(
+                {
+                    "articleSeq": article_seq,
+                    "bbsId": row.get("bbsId"),
+                    "bbsNm": row.get("bbsNm"),
+                    "regNm": row.get("regNm"),
+                    "regDtm": reg_dtm,
+                    "updtNm": row.get("updtNm"),
+                    "updtDtm": updt_dtm,
+                    "posted_date": listed_date,
+                    "originalFilename": original_filename,
+                    "files": [
+                        {
+                            "fileSeq": f.get("fileSeq"),
+                            "fileNm": f.get("fileNm"),
+                            "fileExt": f.get("fileExt"),
+                            "fileSize": f.get("fileSize"),
+                        }
+                        for f in files
+                    ],
+                },
+                ensure_ascii=False,
+            ),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 

@@ -1,0 +1,48 @@
+{
+  "listing_body": "{\"msg\": \"ok\", \"code\": 1, \"data\": [{\"totalCount\": \"2\", \"rn\": \"2\", \"regNm\": \"담당자\", \"regDtm\": \"2026-10-02 10:00:00\", \"updtNm\": \"담당자\", \"updtDtm\": \"2026-10-12 11:00:00\", \"bbsId\": \"ptlPdsBase\", \"bbsNm\": \"Synthetic 통계 자료실\", \"articleSeq\": 9102, \"title\": \" Offline 2 \", \"cont\": \"<p><span>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </span></p>\", \"mltFileList\": \"[]\"}, {\"totalCount\": \"2\", \"rn\": \"1\", \"regNm\": \"담당자\", \"regDtm\": \"2026-10-01 10:00:00\", \"updtNm\": \"담당자\", \"updtDtm\": \"2026-10-11 11:00:00\", \"bbsId\": \"ptlPdsBase\", \"bbsNm\": \"Synthetic 통계 자료실\", \"articleSeq\": 9101, \"title\": \" Offline 1 \", \"cont\": \"<p><span>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </span></p>\", \"mltFileList\": \"[]\"}]}",
+  "content_type": "application/json",
+  "details": {
+    "https://kfss.forest.go.kr/stat/ptl/article/selectArticleFileList.do?workPath=Article&workSeq=9102": {
+      "code": 1,
+      "msg": "ok",
+      "data": [
+        {
+          "fileSeq": 52,
+          "fileNm": "table2.xlsx",
+          "fileExt": "xlsx",
+          "fileSize": 10
+        },
+        {
+          "fileSeq": 53,
+          "fileNm": "report2.pdf",
+          "fileExt": "PDF",
+          "fileSize": 20
+        }
+      ]
+    },
+    "https://kfss.forest.go.kr/stat/ptl/article/selectArticleFileList.do?workPath=Article&workSeq=9101": {
+      "code": 1,
+      "msg": "ok",
+      "data": [
+        {
+          "fileSeq": 51,
+          "fileNm": "table1.hwp",
+          "fileExt": "hwp",
+          "fileSize": 10
+        }
+      ]
+    }
+  },
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "empty_body": "{\"msg\": \"ok\", \"code\": 1, \"data\": []}",
+  "short_keeps_items": true,
+  "site_id": "kfss-forest-go-kr-stat",
+  "original_method_source_sha256": {
+    "_curl_get": "b4b6b7aeb1863319b6d1b43d4e6e851b6d92163fd653dacc9ee8d0cb1242aaba",
+    "_curl_get_json": "9487448326ce5f4ca20cdd1395419dd0b6d22aaa6ce2ff74a79cced9885373f7",
+    "_fetch_list": "05272cbe9d761e2b50aff23d9f913616066159e1bf8b90599bf03de3dec57621",
+    "_fetch_files": "e1333b58772cd235b4dd9e7d77a8417ad7651b47a028e072ea1eacf89bf37576",
+    "_build_abstract": "e4fefcb83192be0684b90a1fb98f8cf945dd66b3b8045d0025edd28c5ac1c4ed",
+    "crawl": "0d692d2dcf471c76979eec1aa58ffd4726107bdb33c315c361a8046b5b764cee"
+  }
+}
