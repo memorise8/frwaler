@@ -544,3 +544,45 @@ class MinrelGobClMinrelCrawler(BaseCrawler):
             seen.add(value)
             result.append(value)
         return result
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Cards of one press-room page (/minrel/sala-de-prensa/p/{N}), parsed
+        with _parse_list exactly as crawl() does."""
+        soup = self._make_soup(html)
+        if soup is None:
+            return []
+        return self._parse_list(soup)
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page — the conversion part of crawl()
+        copied verbatim (external_id = '<14-digit stamp>:<URL path>')."""
+        detail_soup = self._make_soup(html)
+        if detail_soup is None:
+            raise RuntimeError("detail HTML could not be parsed")
+
+        parsed = self._parse_detail(detail_soup, item)
+        abstract = parsed["abstract"]
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": parsed["external_id"],
+            "title": parsed["title"],
+            "authors": json.dumps(parsed["authors"], ensure_ascii=False),
+            "abstract": abstract,
+            "category": parsed["category"],
+            "keywords": json.dumps(parsed["keywords"], ensure_ascii=False),
+            "published_date": parsed["published_date"],
+            "url": parsed["url"],
+            "pdf_url": parsed["pdf_url"],
+            "doi": "",
+            "department": parsed["department"],
+            "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
+        }
