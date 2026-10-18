@@ -1,0 +1,20 @@
+{
+  "listing_url": "https://www.incheon.go.kr/IC010205?curPage=1",
+  "listing_body": "<html><body><div class=\"board-blog-list\"><ul><li><a href=\"/IC010205/view?repSeq=DOM_0000000015774817&amp;curPage=1\"><div class=\"board-article-group\"><div class=\"txt-area\"><strong class=\"subject\">합성 보도자료 1</strong><div class=\"txt\">요약</div></div></div></a></li><li><a href=\"/IC010205/view?repSeq=DOM_0000000015774816&amp;curPage=1\"><div class=\"board-article-group\"><div class=\"txt-area\"><strong class=\"subject\">합성 보도자료 2</strong><div class=\"txt\">요약</div></div></div></a></li></ul></div><div class=\"paginate\"><a href=\"?curPage=1\">1</a></div></body></html>",
+  "empty_body": "<html><body><div class=\"board-blog-list\"><ul></ul></div><div class=\"paginate\"><a href=\"?curPage=1\">1</a></div></body></html>",
+  "long_text": "합성 보도자료 본문입니다. Synthetic Incheon press release body for offline equality testing. 합성 보도자료 본문입니다. Synthetic Incheon press release body for offline equality testing. 합성 보도자료 본문입니다. Synthetic Incheon press release body for offline equality testing. ",
+  "details": {
+    "https://www.incheon.go.kr/IC010205/view?repSeq=DOM_0000000015774817&curPage=1": "<html><body><div class=\"board-view-title\">합성 상세 1</div><div class=\"board-view-meta\">담당부서 자치안전과/ 제공일시 2026-10-18 10:00</div><div class=\"board-view-contents\"><p>합성 보도자료 본문입니다. Synthetic Incheon press release body for offline equality testing. 합성 보도자료 본문입니다. Synthetic Incheon press release body for offline equality testing. 합성 보도자료 본문입니다. Synthetic Incheon press release body for offline equality testing. </p><div id=\"hwpEditorBoardContent\">placeholder</div></div><ul><li><span class=\"file-name\">보도자료.hwp</span><a href=\"/comm/dmsFileDownload?fileId=0\">다운로드</a></li><li><span class=\"file-name\">보도자료.pdf</span><a href=\"/comm/dmsFileDownload?fileId=1\">다운로드</a></li></ul></body></html>",
+    "https://www.incheon.go.kr/IC010205/view?repSeq=DOM_0000000015774816&curPage=1": "<html><body><div class=\"board-view-title\">합성 상세 2</div><div class=\"board-view-meta\">담당부서 자치안전과/ 제공일시 2026-10-17 10:00</div><div class=\"board-view-contents\"><p>합성 보도자료 본문입니다. Synthetic Incheon press release body for offline equality testing. 합성 보도자료 본문입니다. Synthetic Incheon press release body for offline equality testing. 합성 보도자료 본문입니다. Synthetic Incheon press release body for offline equality testing. </p><div id=\"hwpEditorBoardContent\">placeholder</div></div><ul><li><span class=\"file-name\">보도자료2.hwp</span><a href=\"/comm/dmsFileDownload?fileId=0\">다운로드</a></li></ul></body></html>"
+  },
+  "site_id": "incheon-go-kr-ic010205",
+  "content_type": "text/html",
+  "original_method_source_sha256": {
+    "_make_soup": "0a53bd0ff8027d1a77bfb0fd35b7adb7c3b6bc1b49a540bb4311fb2a2683df9c",
+    "_curl_get": "ff5fd0bd6b14fc60b577f79562baa29eaae5704301fee8af802f367cf4ea2b8f",
+    "_post_number": "4990a6d9b476887086ac068976be4ef49b4a517e42ebc6ef82d81bbab61ecd98",
+    "_first_date": "7233336d5f477e2d8ec6c672a4e601260b7dd1da23150bf40dc391c2b8556306",
+    "_parse_detail": "66b4568881b67ac6b09f1ca532aaa3839edb9837748a3941863c267baabf6709",
+    "crawl": "adbe24633227fccc74b3e8c18284bcde8f3b806300882bd9f6abb5a7ead807e3"
+  }
+}

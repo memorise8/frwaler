@@ -291,3 +291,61 @@ class IncheonIC010205Crawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract; original crawl() and transport remain unchanged.
+    # ------------------------------------------------------------------
+
+    _ENUM_LISTING_MARKER = "div.board-blog-list"
+
+    def _enumeration_items(self, html, url=""):
+        """목록 쪽 HTML → crawl() 과 같은 규칙(a[href*="/IC010205/view"], repSeq·curPage)의 행.
+
+        목록 틀(div.board-blog-list)이 없으면 오류 쪽, 틀의 ul 이 비면 끝 뒤 빈 쪽."""
+        from urllib.parse import parse_qs, urlsplit
+
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup.select_one(self._ENUM_LISTING_MARKER) is None:
+            raise PermanentFailure("listing_parse_error:missing_board_blog_list")
+        values = parse_qs(urlsplit(url or "").query).get("curPage") or ["1"]
+        try:
+            page = int(values[0])
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:bad_page_number")
+        rows, seen = [], set()
+        for a in soup.select('a[href*="/IC010205/view"]'):
+            href = a.get('href', '')
+            if not href or href in seen:
+                continue
+            seen.add(href)
+            m = re.search(r'repSeq=([^&]+)', href)
+            if not m:
+                continue
+            rep_seq = m.group(1)
+            cp_m = re.search(r'curPage=(\d+)', href)
+            cur_page = int(cp_m.group(1)) if cp_m else page
+            subject = a.select_one('.subject')
+            rows.append({
+                "rep_seq": rep_seq,
+                "cur_page": cur_page,
+                "title": subject.get_text(strip=True) if subject else "",
+                "url": f"{self._DETAIL_BASE}?repSeq={rep_seq}&curPage={cur_page}",
+            })
+        return rows
+
+    def _enumeration_paper(self, detail_raw, item):
+        """상세 HTML + 목록 행 → crawl() 이 저장하는 것과 같은 paper.
+
+        crawl() 과 같이 제목 없음·초록 50자 미만은 None."""
+        if not detail_raw:
+            return None
+        detail_soup = _make_soup(detail_raw)
+        paper = self._parse_detail(detail_soup, item["rep_seq"], item["cur_page"])
+        if not paper.get('title'):
+            return None
+        if len(paper.get('abstract', '')) < 50:
+            return None
+        return paper
