@@ -22,7 +22,8 @@
           "html",
           "item"
         ],
-        "none_is_rule_skip": true
+        "none_is_rule_skip": true,
+        "max_rule_skip_ratio": 0.2
       },
       "listing": {
         "url": "https://presse.curie.fr/wp-admin/admin-ajax.php",

@@ -153,7 +153,8 @@ class CurieSplit(unittest.TestCase):
         f = short(self.fixture)
         self.assertEqual([], self.native(f))
         result, docs, raw, _ = self.run_plan(f)
-        self.assertEqual('complete', result['status'], result)
+        # Every item skipped is above the plan's max_rule_skip_ratio (0.2): shown for review.
+        self.assertEqual('complete_with_review', result['status'], result)
         self.assertEqual(2, result['stats']['skipped_by_rule'])
         self.assertEqual([], docs)
 
