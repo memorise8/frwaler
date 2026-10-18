@@ -1,0 +1,29 @@
+{
+  "site_id": "nora-nerc-ac-uk-view",
+  "index_body": "<html><body><div class=\"ep_view_page\"><a href=\"2031.html\">2031</a><a href=\"2030.html\">2030</a></div></body></html>",
+  "years": {
+    "2031": "<html><body><div class=\"ep_view_page\"><p><a href=\"https://nora.nerc.ac.uk/id/eprint/90004/\">Synthetic eprint 90004</a></p><p><a href=\"/id/eprint/90003\">Synthetic eprint 90003</a></p></div></body></html>",
+    "2030": "<html><body><div class=\"ep_view_page\"><p><a href=\"https://nora.nerc.ac.uk/id/eprint/90002/\">Synthetic eprint 90002</a></p><p><a href=\"/id/eprint/90001\">Synthetic eprint 90001</a></p></div></body></html>"
+  },
+  "details": {
+    "https://nora.nerc.ac.uk/id/eprint/90004/": "<html><head><meta name=\"eprints.eprintid\" content=\"90004\"><meta name=\"eprints.title\" content=\"Synthetic eprint 90004\"><meta name=\"eprints.abstract\" content=\"Synthetic abstract for the offline equality test of the enumeration split; it imitates only the EPrints meta tag structure.\"><meta name=\"eprints.date\" content=\"2031-03-01\"><meta name=\"eprints.datestamp\" content=\"2031-03-01 10:00:00\"><meta name=\"eprints.creators_name\" content=\"Synthetic, A.\"><meta name=\"eprints.creators_name\" content=\"Author, B.\"><meta name=\"eprints.type\" content=\"article\"><meta name=\"eprints.divisions\" content=\"noc\"><meta name=\"eprints.document_url\" content=\"https://nora.nerc.ac.uk/id/eprint/90004/1/synthetic.pdf\"></head><body></body></html>",
+    "https://nora.nerc.ac.uk/id/eprint/90003/": "<html><head><meta name=\"eprints.eprintid\" content=\"90003\"><meta name=\"eprints.title\" content=\"Synthetic eprint 90003\"><meta name=\"eprints.abstract\" content=\"Synthetic abstract for the offline equality test of the enumeration split; it imitates only the EPrints meta tag structure.\"><meta name=\"eprints.date\" content=\"2031-02-01\"><meta name=\"eprints.datestamp\" content=\"2031-02-01 10:00:00\"><meta name=\"eprints.creators_name\" content=\"Synthetic, A.\"><meta name=\"eprints.creators_name\" content=\"Author, B.\"><meta name=\"eprints.type\" content=\"article\"><meta name=\"eprints.divisions\" content=\"noc\"><meta name=\"eprints.document_url\" content=\"https://nora.nerc.ac.uk/id/eprint/90003/1/synthetic.pdf\"></head><body></body></html>",
+    "https://nora.nerc.ac.uk/id/eprint/90002/": "<html><head><meta name=\"eprints.eprintid\" content=\"90002\"><meta name=\"eprints.title\" content=\"Synthetic eprint 90002\"><meta name=\"eprints.abstract\" content=\"Synthetic abstract for the offline equality test of the enumeration split; it imitates only the EPrints meta tag structure.\"><meta name=\"eprints.date\" content=\"2030-12-01\"><meta name=\"eprints.datestamp\" content=\"2030-12-01 10:00:00\"><meta name=\"eprints.creators_name\" content=\"Synthetic, A.\"><meta name=\"eprints.creators_name\" content=\"Author, B.\"><meta name=\"eprints.type\" content=\"article\"><meta name=\"eprints.divisions\" content=\"noc\"><meta name=\"eprints.document_url\" content=\"https://nora.nerc.ac.uk/id/eprint/90002/1/synthetic.pdf\"></head><body></body></html>",
+    "https://nora.nerc.ac.uk/id/eprint/90001/": "<html><head><meta name=\"eprints.eprintid\" content=\"90001\"><meta name=\"eprints.title\" content=\"Synthetic eprint 90001\"><meta name=\"eprints.abstract\" content=\"Synthetic abstract for the offline equality test of the enumeration split; it imitates only the EPrints meta tag structure.\"><meta name=\"eprints.date\" content=\"2030-01-15\"><meta name=\"eprints.datestamp\" content=\"2030-01-15 10:00:00\"><meta name=\"eprints.creators_name\" content=\"Synthetic, A.\"><meta name=\"eprints.creators_name\" content=\"Author, B.\"><meta name=\"eprints.type\" content=\"article\"><meta name=\"eprints.divisions\" content=\"noc\"><meta name=\"eprints.document_url\" content=\"https://nora.nerc.ac.uk/id/eprint/90001/1/synthetic.pdf\"></head><body></body></html>"
+  },
+  "long_text": "Synthetic abstract for the offline equality test of the enumeration split; it imitates only the EPrints meta tag structure.",
+  "content_type": "text/html",
+  "empty_body": "<html><body><div class=\"ep_view_page\"></div></body></html>",
+  "original_method_source_sha256": {
+    "_curl": "0fed07adb50ff0481c2bae773d43bff9c2ce032046cf83693d36bafb561f0841",
+    "_parse_html": "e6e8529b8e636ed83cf8e65a707c5fb937e4b81965861a5ad62cd350f3f5194f",
+    "_clean": "5457b820b916d64192eae89336818c2f43d7617273e85ea90eb593932ae1545c",
+    "_get_years": "d633f85a699c3776a21ad33ce8d475351a90e5abadf08a79f486d66b37a5d6bf",
+    "_get_eprint_urls_for_year": "a77784834510ca2961298e61b9cb2191f15715b6b61149e02061ac3055119805",
+    "_collect_meta": "cca6599f9478953ed9fd394e9a353a3a4798886bf7e1e8afb90d9cb4c9f9c9f6",
+    "_first": "f8449d405b2c5d4316bfa90646094dfdda4c28061eed772ccfb67c28e6a045c2",
+    "_all": "78b527fb709b4f61feb40a071c1ed00bd1b1ebbdf0d270bd74ddd8edb6926fd3",
+    "_parse_detail_page": "b778b454b66da8e1049ec2b84c015d9b7b428e4a532cc92f77d2b0797d3384e0",
+    "crawl": "746b16868af4e70931cee9be2491be46c608f97417dcc87c90985cd1c310df63"
+  }
+}

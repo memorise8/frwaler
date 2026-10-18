@@ -352,3 +352,150 @@ class NoraNeRCAcUkViewCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Eprint links of one year page (/view/division/noc/YYYY.default.html),
+        found as _get_eprint_urls_for_year() does. A year page lists every
+        item (no pagination): a page number above 1 is declared empty and
+        proved by the plan's listing_marker."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        page = (parse_qs(urlsplit(url or "").query).get("page") or ["1"])[0]
+        if page not in ("", "0", "1"):
+            return []
+        soup = self._parse_html(html)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparseable_html", url)
+        rows = []
+        seen = set()
+        for a in soup.find_all("a", href=True):
+            href = a["href"]
+            if re.search(r"/id/eprint/\d+/?$", href):
+                full = urljoin(self.base_url, href)
+                if not full.endswith("/"):
+                    full += "/"
+                if full not in seen:
+                    seen.add(full)
+                    m = re.search(r"/id/eprint/(\d+)", full)
+                    rows.append({"url": full, "eprint_id": m.group(1),
+                                 "title": self._clean(a.get_text(" "))})
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched eprint page — _parse_detail_page() parsing copied
+        verbatim (external_id = eprints.eprintid, else the /id/eprint/ number),
+        with crawl()'s short-abstract skip."""
+        detail_url = item["url"]
+        if not html:
+            return None
+        soup = self._parse_html(html)
+        if soup is None:
+            return None
+
+        meta = self._collect_meta(soup)
+
+        eprint_id = self._first(meta, "eprints.eprintid")
+        if not eprint_id:
+            m = re.search(r"/id/eprint/(\d+)", detail_url)
+            eprint_id = m.group(1) if m else None
+
+        title = self._clean(self._first(meta, "eprints.title"))
+        abstract = self._clean(self._first(meta, "eprints.abstract"))
+        published_date_raw = self._first(meta, "eprints.date")
+        datestamp = self._first(meta, "eprints.datestamp")
+
+        published_date = ""
+        if published_date_raw:
+            m = re.match(r"(\d{4}-\d{2}-\d{2})", published_date_raw)
+            if m:
+                published_date = m.group(1)
+            else:
+                m2 = re.match(r"(\d{4})", published_date_raw)
+                if m2:
+                    published_date = m2.group(1)
+
+        posted_date = ""
+        if datestamp:
+            m = re.match(r"(\d{4}-\d{2}-\d{2})", datestamp)
+            if m:
+                posted_date = m.group(1)
+
+        authors_list = [self._clean(a) for a in self._all(meta, "eprints.creators_name") if a.strip()]
+        authors = "; ".join(authors_list)
+
+        keywords_raw = self._first(meta, "eprints.keywords")
+        keywords = self._clean(keywords_raw)
+
+        publication = self._first(meta, "eprints.publication")
+        journal = self._clean(publication)
+
+        doi = self._first(meta, "eprints.id_number")
+        volume = self._first(meta, "eprints.volume")
+        issue = self._first(meta, "eprints.number")
+        issn = self._first(meta, "eprints.issn")
+        item_type = self._first(meta, "eprints.type")
+        divisions = "; ".join(self._all(meta, "eprints.divisions"))
+        full_text_status = self._first(meta, "eprints.full_text_status")
+
+        pdf_url = self._first(meta, "eprints.document_url")
+        if not pdf_url:
+            for a in soup.find_all("a", href=True):
+                href = a["href"]
+                if href.lower().endswith(".pdf"):
+                    pdf_url = urljoin(self.base_url, href)
+                    break
+
+        original_filename = None
+        if pdf_url:
+            tail = pdf_url.rstrip("/").split("/")[-1].split("?")[0]
+            if "." in tail and len(tail) <= 200:
+                original_filename = tail
+
+        metadata_dict: dict = {
+            "node_id": eprint_id,
+            "posted_date": datestamp,
+            "eprint_type": item_type,
+            "divisions": divisions,
+            "full_text_status": full_text_status,
+            "issn": issn,
+        }
+        if volume:
+            metadata_dict["volume"] = volume
+        if issue:
+            metadata_dict["issue"] = issue
+        if journal:
+            metadata_dict["journal_raw"] = journal
+        if doi:
+            metadata_dict["doi"] = doi
+        if original_filename:
+            metadata_dict["originalFilename"] = original_filename
+
+        paper = {
+            "site_id": self.site_id,
+            "external_id": eprint_id,
+            "url": detail_url,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": posted_date,
+            "authors": authors,
+            "publisher": "NERC",
+            "journal": journal,
+            "keywords": keywords,
+            "pdf_url": pdf_url,
+            "doi": doi,
+            "department": divisions,
+            "category": item_type,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata_dict, ensure_ascii=False),
+        }
+        if len(paper.get("abstract") or "") < 50:
+            return None
+        return paper

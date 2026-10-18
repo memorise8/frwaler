@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "sites": {
+    "nora-nerc-ac-uk-view": {
+      "strategy": "date_range_split",
+      "base_url": "https://nora.nerc.ac.uk",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://nora.nerc.ac.uk/view/division/noc/{segment}.default.html",
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 1000,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "eprint_id",
+          "title_field": "title",
+          "listing_marker": "div.ep_view_page"
+        }
+      },
+      "segments": {
+        "mode": "range",
+        "granularity": "year",
+        "from": "1994",
+        "to": "now",
+        "filter": {
+          "type": "parts",
+          "year_param": "year"
+        },
+        "split_to": []
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
