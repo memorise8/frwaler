@@ -1,0 +1,14 @@
+{
+ "site_id": "issnationallab-org-publications",
+ "listing_body": "[{\"id\": 41235, \"date\": \"2018-12-10T18:25:00\", \"link\": \"https://issnationallab.org/publications/offline-1/\", \"title\": {\"rendered\": \"Offline Publication 1\"}, \"excerpt\": {\"rendered\": \"<p>Doe J, Roe K. Offline Publication 1. J Space Res. 2019;3:10. doi:10.1234/abc.1</p>\"}, \"content\": {\"rendered\": \"<p>Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing. Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing. Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing.</p>\"}, \"research_areas\": [12]}, {\"id\": 41234, \"date\": \"2018-12-10T18:25:00\", \"link\": \"https://issnationallab.org/publications/offline-2/\", \"title\": {\"rendered\": \"Offline Publication 2\"}, \"excerpt\": {\"rendered\": \"<p>Doe J, Roe K. Offline Publication 2. J Space Res. 2019;3:10. doi:10.1234/abc.2</p>\"}, \"content\": {\"rendered\": \"<p>Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing. Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing. Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing.</p>\"}, \"research_areas\": [12]}]",
+ "content_type": "application/json",
+ "details": {},
+ "long_text": "Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing. Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing. Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing.",
+ "empty_body": "[]",
+ "original_method_source_sha256": {
+  "__init__": "1e62650c4d09d493799e5dc05190ee9e3d1773cad811e520e52d62140a6ff42b",
+  "_fetch_page": "da6be23ec0f410e22a9525971af3a58925325243c6933a00c1bacf5e9ccecd55",
+  "_parse_item": "41db5253ad8548eefa6458ed655881a68acb7a2511fe072a30a7711b1c129560",
+  "crawl": "cf26776a3f78b1b9db12646333d3130c5e5ba33f8fa58ce0c8b6991f6ab608b8"
+ }
+}
