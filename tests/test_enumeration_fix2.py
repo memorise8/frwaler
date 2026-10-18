@@ -119,7 +119,7 @@ class RobotsMatcherTest(unittest.TestCase):
         self.assertTrue(self.allowed(robots, "https://x.org/x"))
         self.assertFalse(self.allowed(robots, "https://x.org/private/1"))
         # A group naming our product token (first product of the User-Agent) replaces the '*' group.
-        robots = "User-agent: *\nDisallow: /\n\nUser-agent: Mozilla\nDisallow: /c\n"
+        robots = "User-agent: *\nDisallow: /\n\nUser-agent: LibertreeCollector\nDisallow: /c\n"
         self.assertTrue(self.allowed(robots, "https://x.org/x"))
         self.assertFalse(self.allowed(robots, "https://x.org/c"))
         # Other words of the browser User-Agent never relax a stricter '*' group.
@@ -147,7 +147,7 @@ class RobotsMatcherTest(unittest.TestCase):
         robots = "User-agent: *\nCrawl-delay: 10\n\nUser-agent: Chrome\nCrawl-delay: 1\n"
         self.assertEqual(H.crawl_delay(robots, UA), 10)
         # "Chrome" is not our product token: like the rule groups, that group does not apply (fix4).
-        robots = "User-agent: *\nCrawl-delay: 2\n\nUser-agent: Mozilla\nCrawl-delay: 4.5\n"
+        robots = "User-agent: *\nCrawl-delay: 2\n\nUser-agent: LibertreeCollector\nCrawl-delay: 4.5\n"
         self.assertEqual(H.crawl_delay(robots, UA), 4.5)
 
     def test_bom_and_comments(self):
@@ -793,7 +793,7 @@ class ReviewFollowupTest(unittest.TestCase):
         self.assertFalse(H.parse_robots(robots).allows("https://x.org/board", UA))
         self.assertFalse(H.parse_robots("User-agent: Mozilla/5.0\nAllow: /\n\nUser-agent: *\nDisallow: /\n")
                          .allows("https://x.org/board", UA))
-        self.assertTrue(H.parse_robots("User-agent: mozilla\nAllow: /\n\nUser-agent: *\nDisallow: /\n")
+        self.assertTrue(H.parse_robots("User-agent: libertreecollector\nAllow: /\n\nUser-agent: *\nDisallow: /\n")
                         .allows("https://x.org/board", UA))
 
     def test_login_popup_on_dedicated_login_page_still_detected(self):
