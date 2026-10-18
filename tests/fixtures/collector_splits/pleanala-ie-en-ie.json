@@ -1,0 +1,40 @@
+{
+  "site_id": "pleanala-ie-en-ie",
+  "pages": {
+    "Annual-Statistics": "<html><body><main><article><h1>Annual Statistics</h1><ul><li><a href=\"/getmedia/11111111-2222-3333-4444-555555555555/Synthetic-Annual-2024.pdf?ext=.pdf\">Annual Statistics for 2024</a></li><li><a href=\"/en-IE/Statistics/Annual-Statistics/Annual-Report-and-Accounts-2019-Appendices\">Annual Statistics for 2019</a></li></ul></article></main></body></html>",
+    "Annual-Statistics/Annual-Report-and-Accounts-2019-Appendices": "<html><body><main><article><h1>Appendices</h1><ul><li><a href=\"/en-IE/Statistics/Annual-Statistics/Annual-Report-and-Accounts-2019-Appendices/AR2019-Appendix-01-Synthetic-Table\">Synthetic Table</a></li></ul></article></main></body></html>",
+    "Quarterly-Statistics": "<html><body><main><article><h1>Quarterly</h1><ul><li><a href=\"/getattachment/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/Synthetic-Q1-2026.pdf?lang=en-IE\">Planning Casework Statistics Q1 2026</a></li></ul></article></main></body></html>"
+  },
+  "html_details": {
+    "https://www.pleanala.ie/en-IE/Statistics/Annual-Statistics/Annual-Report-and-Accounts-2019-Appendices/AR2019-Appendix-01-Synthetic-Table": "<html><body><main><article><h1>Synthetic Table</h1><table><tr><td>Synthetic offline statistics table text for the enumeration equality test; it imitates the page structure only and carries no real content.</td></tr></table></article></main></body></html>"
+  },
+  "files": {
+    "https://www.pleanala.ie/getmedia/11111111-2222-3333-4444-555555555555/Synthetic-Annual-2024.pdf?ext=.pdf": {
+      "headers": {
+        "Content-Type": "application/pdf",
+        "Last-Modified": "Thu, 09 Oct 2025 10:00:00 GMT",
+        "Content-Disposition": "inline; filename=\"Synthetic-Annual-2024.pdf\""
+      },
+      "body": "%PDF-synthetic-not-parseable"
+    },
+    "https://www.pleanala.ie/getattachment/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/Synthetic-Q1-2026.pdf?lang=en-IE": {
+      "headers": {
+        "Content-Type": "application/pdf",
+        "Last-Modified": "Fri, 16 Oct 2026 08:00:00 GMT"
+      },
+      "body": "%PDF-synthetic-not-parseable"
+    }
+  },
+  "long_text": "Synthetic offline statistics table text for the enumeration equality test; it imitates the page structure only and carries no real content.",
+  "original_method_source_sha256": {
+    "_get_bytes": "ae1f91a2e3079dc2d8e37ac2ab2605026dfeacf4c74197c1b61d3abed9c50f17",
+    "_get_text": "9a0aff4bea6d21ce189bed98cced3fa4a3640a939edafe44dbf9e0f5c56f3a93",
+    "_head": "be3107efb01264013509b53ba690d28575b8e51e9b34dbb99a09468fd248f1d2",
+    "_pdf_text": "71f15ae20e58582897b0c00405483d7cd0f01dc765b87189c9d1b6a46b730df4",
+    "_fallback_abstract": "6241a0826e85407a6e6f592f12be89e11ec020d3dfe97e0e4a2e2ae4b470e231",
+    "_process_media": "51aee8df20922c8690b82a87c4bc890f340b9da07b158e7dac772e7c3b7ed2c1",
+    "_process_html": "986211afdfb3f04284754b217bfd71e4335050a3f0325652cf33485240b8b413",
+    "_article_links": "a22d5298511f6370fc04c21273de6211217c426316eba2fd25ea554a1e753d29",
+    "crawl": "777e5b5faa4854feab5ee9b76c4034e331fe3cf64c8cae760da12190180e8829"
+  }
+}

@@ -577,3 +577,193 @@ class PleanalaIeEnIeCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ──────────────── pure enumeration contract (L3b-20261018) ────────────────
+    # crawl() and the existing methods are unchanged. The plan reads crawl()'s
+    # three listing pages as explicit segments of /en-IE/Statistics/{segment}:
+    # the annual index, the quarterly index and the one HTML sub-index the annual
+    # index links to (crawl() expands it). These methods only parse fetched data.
+
+    _ENUMERATION_ANNUAL = "Annual-Statistics"
+    _ENUMERATION_QUARTERLY = "Quarterly-Statistics"
+    # sub-index path -> (category, parent_title, parent_year) as crawl() passes them
+    _ENUMERATION_SUBINDEX = {
+        "Annual-Statistics/Annual-Report-and-Accounts-2019-Appendices":
+            ("Annual Statistics", "Annual Statistics for 2019", "2019"),
+    }
+
+    def _enumeration_items(self, html, url=None):
+        """Items of one listing page in crawl() form (``type`` html/media).
+        Annual and quarterly index: media links only (crawl() expands the annual
+        HTML link, which must be a known sub-index; otherwise the plan needs a new
+        segment). Sub-index: media and HTML table pages. ``?page=N`` is ignored by
+        the site, so only the start page carries rows."""
+        from crawler.enumeration.http import PermanentFailure
+        parts = urllib.parse.urlsplit(url or "")
+        page = (urllib.parse.parse_qs(parts.query).get("page") or ["1"])[0]
+        if page not in ("", "1"):
+            return []
+        prefix = "/en-IE/Statistics/"
+        segment = parts.path[len(prefix):].strip("/") if parts.path.startswith(prefix) else ""
+        if segment == self._ENUMERATION_ANNUAL:
+            rows = []
+            for link in self._article_links(html, self._START_URL, category="Annual Statistics"):
+                if link["is_media"]:
+                    rows.append({"type": "media", **link})
+                    continue
+                path = urllib.parse.urlsplit(link["url"]).path
+                key = path[len(prefix):].strip("/") if path.startswith(prefix) else ""
+                known = self._ENUMERATION_SUBINDEX.get(key)
+                if known is None or known[1:] != (link.get("title"), link.get("year")):
+                    raise PermanentFailure("listing_parse_error:unknown_annual_sub_index", link["url"])
+            return rows
+        if segment == self._ENUMERATION_QUARTERLY:
+            return [{"type": "media", **ql} for ql in self._article_links(
+                html, self._QUARTERLY_URL, category="Quarterly Statistics") if ql["is_media"]]
+        if segment in self._ENUMERATION_SUBINDEX:
+            category, parent_title, parent_year = self._ENUMERATION_SUBINDEX[segment]
+            sub_url = self.base_url + prefix + segment
+            return [{"type": "media" if sl["is_media"] else "html", **sl} for sl in self._article_links(
+                html, sub_url, category=category, parent_title=parent_title, parent_year=parent_year)]
+        raise PermanentFailure("listing_parse_error:unknown_statistics_page", url or "")
+
+    def _enumeration_paper(self, raw, resp, item):
+        """Paper from the fetched item (HTML table page or file) — _process_html()
+        / _process_media() copied verbatim with the GET response in place of
+        their own requests (the file's GET headers stand in for crawl()'s HEAD),
+        then crawl()'s abstract cleaning and 50-char skip (None)."""
+        if item["type"] == "html":
+            paper = self._enumeration_html_paper(raw, item)
+        else:
+            paper = self._enumeration_media_paper(raw, resp, item)
+        if paper is None:
+            return None
+        abstract = _clean(paper.get("abstract") or "")
+        if len(abstract) < self._MIN_ABSTRACT:
+            return None
+        paper["abstract"] = abstract
+        return paper
+
+    def _enumeration_media_paper(self, raw, resp, item):
+        url = item["url"]
+        hdrs = {k.lower(): v for k, v in (getattr(resp, "headers", None) or {}).items()}
+        content_type = hdrs.get("content-type", "")
+        disposition = hdrs.get("content-disposition", "")
+        last_modified_raw = hdrs.get("last-modified")
+        last_modified_iso = _http_date(last_modified_raw)
+        orig_filename = _fname_from_disp(disposition) or _fname(url)
+        extension = _file_ext(orig_filename or url)
+        is_pdf = extension == ".pdf" or "application/pdf" in content_type.lower()
+        pdf_url = url if is_pdf else None
+
+        pdf_text = ""
+        if is_pdf:
+            pdf_bytes = raw
+            if pdf_bytes:
+                pdf_text = self._pdf_text(pdf_bytes)
+
+        yr = item.get("year") or item.get("parent_year") or _year(item.get("title"))
+        listed = last_modified_iso or item.get("listed_date")
+        published = (last_modified_iso
+                     or _date(item.get("title"))
+                     or (f"{yr}-01-01" if yr else None))
+
+        if pdf_text and len(pdf_text) >= self._MIN_ABSTRACT:
+            abstract = pdf_text[:5000]
+        else:
+            abstract = self._fallback_abstract(
+                title=item.get("title") or "Untitled",
+                year=yr,
+                category=item.get("category"),
+                filename=orig_filename,
+                last_modified=last_modified_raw,
+                content_type=content_type or None,
+            )
+
+        guid = item.get("media_guid") or _media_guid(url)
+        ext_id = guid or _canon(url) or str(uuid.uuid5(uuid.NAMESPACE_URL, url))
+        post_num = yr or guid or ext_id
+
+        return {
+            "id": f"{self.site_id}:{ext_id}",
+            "site_id": self.site_id,
+            "external_id": ext_id,
+            "post_number": post_num,
+            "title": item.get("title") or "Untitled",
+            "abstract": abstract,
+            "published_date": published,
+            "listed_date": listed,
+            "posted_date": listed,
+            "authors": None,
+            "publisher": self._PUBLISHER,
+            "url": url,
+            "pdf_url": pdf_url,
+            "keywords": item.get("category"),
+            "category": item.get("category"),
+            "doi": None,
+            "department": None,
+            "journal": None,
+            "original_filename": orig_filename if is_pdf else None,
+            "metadata": json.dumps({
+                "posted_date": listed,
+                "originalFilename": orig_filename,
+                "media_guid": guid,
+                "content_type": content_type or None,
+                "last_modified": last_modified_raw,
+                "year": yr,
+                "category": item.get("category"),
+                "source": item.get("source"),
+            }, ensure_ascii=False),
+        }
+
+    def _enumeration_html_paper(self, raw, item):
+        page_url = item["url"]
+        raw = raw.decode("utf-8", errors="replace") if isinstance(raw, bytes) else raw
+        if not raw:
+            return None
+        soup = _make_soup(raw)
+        if not soup:
+            return None
+        article = soup.find("article")
+        abstract = _clean(article.get_text(" ", strip=True)) if article else ""
+        if not abstract:
+            main = soup.find("main") or soup.find(id="maincontent")
+            abstract = _clean(main.get_text(" ", strip=True)) if main else ""
+
+        yr = item.get("year") or item.get("parent_year") or _year(item.get("title"))
+        slug = page_url.rstrip("/").split("/")[-1].lower()
+        ext_id = slug[:100] or str(uuid.uuid5(uuid.NAMESPACE_URL, page_url))
+        appendix = _appendix_num(page_url)
+        post_num = appendix or yr or ext_id
+        published = (_date(item.get("title"))
+                     or (f"{yr}-01-01" if yr else None))
+
+        return {
+            "id": f"{self.site_id}:{ext_id}",
+            "site_id": self.site_id,
+            "external_id": ext_id,
+            "post_number": post_num,
+            "title": item.get("title") or "Untitled",
+            "abstract": abstract,
+            "published_date": published,
+            "listed_date": published,
+            "posted_date": published,
+            "authors": None,
+            "publisher": self._PUBLISHER,
+            "url": page_url,
+            "pdf_url": None,
+            "keywords": item.get("category"),
+            "category": item.get("category"),
+            "doi": None,
+            "department": None,
+            "journal": None,
+            "original_filename": None,
+            "metadata": json.dumps({
+                "posted_date": published,
+                "year": yr,
+                "appendix_number": appendix,
+                "parent_title": item.get("parent_title"),
+                "category": item.get("category"),
+                "source": item.get("source"),
+            }, ensure_ascii=False),
+        }

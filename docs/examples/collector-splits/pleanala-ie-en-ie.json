@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "sites": {
+    "pleanala-ie-en-ie": {
+      "strategy": "date_range_split",
+      "base_url": "https://www.pleanala.ie",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "raw",
+          "resp",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.pleanala.ie/en-IE/Statistics/{segment}",
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 40,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "canonical_url",
+          "date_field": "listed_date",
+          "title_field": "title",
+          "listing_marker": "article"
+        }
+      },
+      "segments": {
+        "mode": "explicit",
+        "items": [
+          {
+            "key": "Annual-Statistics"
+          },
+          {
+            "key": "Annual-Statistics/Annual-Report-and-Accounts-2019-Appendices"
+          },
+          {
+            "key": "Quarterly-Statistics"
+          }
+        ]
+      },
+      "overall_total_check": false,
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
