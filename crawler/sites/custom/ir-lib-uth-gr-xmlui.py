@@ -318,6 +318,51 @@ class IrLibUthGrXmluiCrawler(BaseCrawler):
         return None
 
 
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L4-20261018). crawl(), _parse_list() and
+    # _fetch_detail() are unchanged; these methods only parse given HTML.
+    # The host's port 443 no longer speaks TLS (2026-10-18: SSL
+    # WRONG_VERSION_NUMBER), so the plan fetches over http://. The saved url
+    # stays the registered https form crawl() builds (identity unchanged).
+    # ------------------------------------------------------------------
+
+    _ENUM_FETCH_BASE = "http://ir.lib.uth.gr"
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        rows = []
+        for handle_path in self._parse_list(html, set()):
+            rows.append({
+                "handle_path": handle_path,
+                "url": f"{self._ENUM_FETCH_BASE}/xmlui/handle/{handle_path}",
+            })
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Same paper as crawl(): runs the unchanged _fetch_detail() parser on
+        the given HTML (its fetch is answered from memory, no network)."""
+        handle_path = item["handle_path"]
+        detail_url = f"{_BASE_URL}/xmlui/handle/{handle_path}"
+        if not html:
+            return None
+        sentinel = object()
+        previous = self.__dict__.get("_curl_get", sentinel)
+        self._curl_get = lambda url, context="request", retries=3: html
+        try:
+            paper = self._fetch_detail(detail_url, handle_path)
+        finally:
+            if previous is sentinel:
+                del self.__dict__["_curl_get"]
+            else:
+                self._curl_get = previous
+        if paper is None:
+            return None
+        if len(paper.get("abstract") or "") < _ABSTRACT_MIN:
+            return None
+        return paper
+
 # ------------------------------------------------------------------
 # Module-level helpers (no package context needed)
 # ------------------------------------------------------------------

@@ -1,0 +1,17 @@
+{
+  "site_id": "ir-lib-uth-gr-xmlui",
+  "listing_body": "<html><body><div id=\"aspect_discovery_SimpleSearch_div_search\" class=\"ds-static-div primary\"><a href=\"/xmlui/handle/11615/17762\">collection</a><a href=\"/xmlui/handle/11615/17710\">community</a><div id=\"aspect_discovery_SimpleSearch_div_search-results\"><div class=\"ds-artifact-item\"><div class=\"artifact-title\"><a href=\"/xmlui/handle/11615/5001\">Thesis 5001</a></div></div><div class=\"ds-artifact-item\"><div class=\"artifact-title\"><a href=\"/xmlui/handle/11615/5000\">Thesis 5000</a></div></div></div></div></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://ir.lib.uth.gr/xmlui/handle/11615/5001": "<html><head><meta name=\"DC.title\" content=\"Thesis 5001\"><meta name=\"DCTERMS.abstract\" content=\"Συνθετική περίληψη διατριβής για τον έλεγχο ισοδυναμίας εκτός σύνδεσης. Synthetic résumé abstract. Συνθετική περίληψη διατριβής για τον έλεγχο ισοδυναμίας εκτός σύνδεσης. Synthetic résumé abstract. Συνθετική περίληψη διατριβής για τον έλεγχο ισοδυναμίας εκτός σύνδεσης. Synthetic résumé abstract.\"><meta name=\"DCTERMS.issued\" content=\"2006\"><meta name=\"DCTERMS.available\" content=\"2016-05-11T10:00:00Z\"><meta name=\"DC.creator\" content=\"Author 5001\"><meta name=\"DC.subject\" content=\"Sport\"><meta name=\"DC.identifier\" content=\"5001\"><meta name=\"DC.identifier\" content=\"http://hdl.handle.net/11615/5001\"><meta name=\"DC.type\" content=\"Thesis\"><meta name=\"citation_pdf_url\" content=\"http://ir.lib.uth.gr/xmlui/bitstream/11615/5001/1/P5001.pdf\"></head><body></body></html>",
+    "https://ir.lib.uth.gr/xmlui/handle/11615/5000": "<html><head><meta name=\"DC.title\" content=\"Thesis 5000\"><meta name=\"DCTERMS.abstract\" content=\"Συνθετική περίληψη διατριβής για τον έλεγχο ισοδυναμίας εκτός σύνδεσης. Synthetic résumé abstract. Συνθετική περίληψη διατριβής για τον έλεγχο ισοδυναμίας εκτός σύνδεσης. Synthetic résumé abstract. Συνθετική περίληψη διατριβής για τον έλεγχο ισοδυναμίας εκτός σύνδεσης. Synthetic résumé abstract.\"><meta name=\"DCTERMS.issued\" content=\"2006\"><meta name=\"DCTERMS.available\" content=\"2016-05-10T10:00:00Z\"><meta name=\"DC.creator\" content=\"Author 5000\"><meta name=\"DC.subject\" content=\"Sport\"><meta name=\"DC.identifier\" content=\"5000\"><meta name=\"DC.identifier\" content=\"http://hdl.handle.net/11615/5000\"><meta name=\"DC.type\" content=\"Thesis\"></head><body><a href=\"/xmlui/bitstream/handle/11615/5000/P5000.pdf?sequence=1\">pdf</a></body></html>"
+  },
+  "long_text": "Συνθετική περίληψη διατριβής για τον έλεγχο ισοδυναμίας εκτός σύνδεσης. Synthetic résumé abstract. Συνθετική περίληψη διατριβής για τον έλεγχο ισοδυναμίας εκτός σύνδεσης. Synthetic résumé abstract. Συνθετική περίληψη διατριβής για τον έλεγχο ισοδυναμίας εκτός σύνδεσης. Synthetic résumé abstract.",
+  "empty_body": "<html><body><div id=\"aspect_discovery_SimpleSearch_div_search\"></div></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "904a9de9b4dd2fcf8d3481aaa7914cd4223fb62ba956736b91a37e1dae94c212",
+    "_parse_list": "3e990e8ff83e1383071f42a285ff2999a8ddd8b3d6ffcdf16d18ffdc0ba0992c",
+    "_fetch_detail": "076c6b3ed2a4dd56812a9b748a83df5d851fe7b6e383b5b64610ac9184da5b94",
+    "_curl_get": "62f37956b29403b86f5fb88b236fdd3054664439581d170dbc1d26b2ec9a9847"
+  }
+}

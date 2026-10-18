@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "sites": {
+    "ir-lib-uth-gr-xmlui": {
+      "strategy": "last_page_backward",
+      "base_url": "http://ir.lib.uth.gr",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "http://ir.lib.uth.gr/xmlui/handle/11615/17762/discover",
+        "params": {
+          "rpp": "50",
+          "filtertype_0": "has_content_in_original_bundle",
+          "filter_relational_operator_0": "equals",
+          "filter_0": "true"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "handle_path",
+          "listing_marker": "#aspect_discovery_SimpleSearch_div_search"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
