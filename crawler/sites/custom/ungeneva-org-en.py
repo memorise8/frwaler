@@ -66,6 +66,51 @@ class UNGenevaEnCrawler(UNGenevaTraversal, BaseCrawler):
     def _ung_soup(raw):
         return _make_soup(raw)
 
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Listing rows of one page: the row loop of crawl() without fetch/save (no I/O)."""
+        if not html:
+            return []
+        soup = _make_soup(html)
+        if soup is None:
+            return []
+        rows = []
+        for row in soup.select("div.views-row a.un-listings-box"):
+            href = row.get("href", "")
+            if not href:
+                continue
+            full_url = (
+                f"https://www.ungeneva.org{href}"
+                if href.startswith("/")
+                else href
+            )
+            time_tag = row.find("time")
+            list_date = ""
+            if time_tag and time_tag.get("datetime"):
+                list_date = time_tag["datetime"]
+            external_id = href.rstrip("/").split("/")[-1]
+            rows.append({"url": full_url, "external_id": external_id, "list_date": list_date})
+        return rows
+
+    def _enumeration_detail(self, html, url=None):
+        """Detail page body for _enumeration_paper (crawl parses it in _parse_article)."""
+        if not html:
+            return None
+        return {"raw": html}
+
+    def _enumeration_paper(self, item, detail):
+        """crawl's _fetch_and_save conversion: _parse_article on the listing URL;
+        a parse failure skips the item (None) as crawl does."""
+        if not detail:
+            return None
+        try:
+            return self._parse_article(item["url"], item["external_id"], item["list_date"], detail["raw"])
+        except Exception:
+            return None
+
     def crawl(self, limit=None):
         if self.delivery_mode == 'backfill':
             return self._crawl_ung_backfill(limit)
