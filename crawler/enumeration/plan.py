@@ -100,6 +100,141 @@ def validate_end_statuses(site_id, entries):
             raise PlanError(f"{site_id}: end status {status} needs a verified body condition")
 
 
+# Request headers a plan may never set: identity/transport headers, cookies (a session is a
+# login) and anything that would let a request pose as coming through another hop.
+_FORBIDDEN_HEADERS = re.compile(r"^(host|cookie2?|set-cookie|user-agent|content-length|content-type|transfer-encoding|"
+                                r"connection|te|upgrade|forwarded|via|proxy-.*|x-forwarded-.*|x-real-ip|"
+                                r"x-http-method(-override)?|x-method-override)$", re.I)
+# Secret-bearing names: only through request_headers_env (never a literal in a plan file).
+_SECRET_HEADERS = re.compile(r"^authorization$|token|key|secret|auth|session|password", re.I)
+_HEADER_NAME = re.compile(r"^[A-Za-z0-9!#$%&'*+.^_`|~-]{1,64}$")
+_ENV_NAME = re.compile(r"^[A-Z_][A-Z0-9_]{0,63}$")
+_LITERAL = re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]{0,63}$")
+
+
+def _validate_headers(site_id, raw):
+    """ext:headers. Literal values in ``request_headers``; secrets only as the *name* of an
+    environment variable in ``request_headers_env`` ({"Header": "ENV"} or {"Header": {"env":
+    "ENV", "format": "Bearer {}"}}). Resolved at run time by ``resolve_headers``."""
+    lit, env = raw.get("request_headers") or {}, raw.get("request_headers_env") or {}
+    if not isinstance(lit, dict) or not isinstance(env, dict):
+        raise PlanError(f"{site_id}: request_headers/request_headers_env must be objects")
+    for name in list(lit) + list(env):
+        if not isinstance(name, str) or not _HEADER_NAME.match(name) or _FORBIDDEN_HEADERS.match(name):
+            raise PlanError(f"{site_id}: request header not allowed: {name!r}")
+    if set(map(str.lower, lit)) & set(map(str.lower, env)):
+        raise PlanError(f"{site_id}: a request header is given twice")
+    for name in lit:
+        if _SECRET_HEADERS.search(name):
+            raise PlanError(f"{site_id}: {name} carries a secret: use request_headers_env (variable name only)")
+    hosts = raw.get("request_headers_hosts")
+    if hosts is not None and (not isinstance(hosts, list) or not hosts
+                              or not all(isinstance(h, str) and re.fullmatch(r"[a-z0-9.-]+", h) for h in hosts)):
+        raise PlanError(f"{site_id}: request_headers_hosts must be a non-empty list of host names")
+    for name, value in lit.items():
+        if not isinstance(value, str) or re.search(r"[\r\n\x00]", value) or len(value) > 512:
+            raise PlanError(f"{site_id}: request header {name} needs a short single-line string value")
+    for name, spec in env.items():
+        spec = {"env": spec} if isinstance(spec, str) else spec
+        if not isinstance(spec, dict) or not _ENV_NAME.match(str(spec.get("env") or "")):
+            raise PlanError(f"{site_id}: request_headers_env.{name} must name an environment variable")
+        fmt = spec.get("format", "{}")
+        if not isinstance(fmt, str) or fmt.count("{}") != 1 or re.search(r"[\r\n{}]", fmt.replace("{}", "")):
+            raise PlanError(f"{site_id}: request_headers_env.{name}.format must contain one '{{}}'")
+
+
+def resolve_headers(raw, environ=None):
+    """Header dict for the Fetcher. A missing environment variable is a PlanError (the site
+    does not run without its key, and never runs with an empty one)."""
+    import os
+    environ = os.environ if environ is None else environ
+    out = dict(raw.get("request_headers") or {})
+    for name, spec in (raw.get("request_headers_env") or {}).items():
+        spec = {"env": spec} if isinstance(spec, str) else spec
+        value = environ.get(spec["env"])
+        if not value or re.search(r"[\r\n\x00]", value):
+            raise PlanError(f"request header {name}: environment variable {spec['env']} is not set")
+        out[name] = spec.get("format", "{}").replace("{}", value)
+    return out
+
+
+def header_hosts(raw):
+    """Hosts that receive the plan's request headers: request_headers_hosts, else the listing
+    (or sitemap/base) host only."""
+    from urllib.parse import urlsplit
+    if raw.get("request_headers_hosts"):
+        return list(raw["request_headers_hosts"])
+    url = (raw.get("listing") or {}).get("url") or (raw.get("sitemap") or {}).get("sitemap_url") or raw.get("base_url") or ""
+    host = urlsplit(url.replace("{page}", "1").replace("{segment}", "x")).hostname
+    return [host] if host else []
+
+
+def _validate_listing_extensions(site_id, raw, listing):
+    """ext:post_listing, ext:path_paging, ext:json_page, ext:http204_end. Absent keys keep the
+    original behaviour (and the plan fingerprint) unchanged."""
+    strategy = raw["strategy"]
+    method = listing.get("method", "GET")
+    if method not in ("GET", "POST"):
+        raise PlanError(f"{site_id}: listing.method must be GET or POST")
+    if method == "POST":
+        if listing.get("idempotent") is not True:
+            raise PlanError(f"{site_id}: POST listing requires idempotent=true (read-only search APIs only)")
+        if listing.get("body_type", "form") not in ("form", "json"):
+            raise PlanError(f"{site_id}: listing.body_type must be form or json")
+    elif any(k in listing for k in ("idempotent", "body_type")):
+        raise PlanError(f"{site_id}: idempotent/body_type apply to POST listings only")
+    if "{page}" in listing["url"]:
+        if method == "POST":
+            raise PlanError(f"{site_id}: path paging and POST listing cannot be combined")
+        if "{segment}" in listing["url"] or strategy == "date_range_split":
+            if "first_page_url" in listing:
+                raise PlanError(f"{site_id}: first_page_url cannot be combined with segments")
+        first = listing.get("first_page_url")
+        if first is not None and (not isinstance(first, str) or not re.match(r"https?://", first) or "{page}" in first):
+            raise PlanError(f"{site_id}: listing.first_page_url must be an absolute URL without {{page}}")
+    elif "first_page_url" in listing:
+        raise PlanError(f"{site_id}: first_page_url needs a {{page}} listing url")
+    cursor = listing.get("next_cursor")
+    if cursor is not None:
+        if strategy not in ("oldest_first_sort", "date_range_split"):
+            raise PlanError(f"{site_id}: next_cursor paging is forward-only (oldest_first_sort, date_range_split)")
+        if not isinstance(cursor, dict) or not _LITERAL.match(str(cursor.get("path") or "")) \
+                or not _LITERAL.match(str(cursor.get("param") or "")):
+            raise PlanError(f"{site_id}: next_cursor needs a literal path and param")
+        overlap = (raw.get("oldest_sort") or {}).get("overlap_pages") or (raw.get("segments") or {}).get("overlap_pages")
+        if overlap:
+            raise PlanError(f"{site_id}: next_cursor paging cannot re-read earlier pages (overlap_pages)")
+        if "{page}" in listing["url"]:
+            raise PlanError(f"{site_id}: next_cursor and path paging cannot be combined")
+    last = listing.get("last_page_path")
+    if last is not None:
+        if strategy != "last_page_backward":
+            raise PlanError(f"{site_id}: last_page_path applies to last_page_backward only")
+        if not _LITERAL.match(str(last)):
+            raise PlanError(f"{site_id}: last_page_path must be a literal JSON path")
+    if "end_on_204" in listing and not isinstance(listing["end_on_204"], bool):
+        raise PlanError(f"{site_id}: end_on_204 must be true or false")
+
+
+def _validate_second_step(site_id, adapter):
+    """ext:two_step_detail: a link on the detail page is the PDF source (no request) or a second
+    detail page (one more governed request). Same host unless listed in allow_hosts."""
+    step = adapter.get("second_step")
+    if step is None:
+        return
+    if not isinstance(step, dict) or step.get("use") not in ("pdf_url", "detail_page"):
+        raise PlanError(f"{site_id}: adapter.second_step.use must be pdf_url or detail_page")
+    if not isinstance(step.get("selector"), str) or not step["selector"].strip():
+        raise PlanError(f"{site_id}: adapter.second_step.selector is required")
+    if not _LITERAL.match(str(step.get("attr", "href"))):
+        raise PlanError(f"{site_id}: adapter.second_step.attr must be an attribute name")
+    hosts = step.get("allow_hosts", [])
+    if not isinstance(hosts, list) or not all(isinstance(h, str) and re.fullmatch(r"[a-z0-9.-]+", h) for h in hosts):
+        raise PlanError(f"{site_id}: adapter.second_step.allow_hosts must be a list of host names")
+    if adapter.get("type", "list_only") == "list_only":
+        raise PlanError(f"{site_id}: second_step needs a detail page (adapter type selectors or crawler)")
+
+
 def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
     """Validate one site. ``registered``: site ids with an existing crawler; such sites
     must reuse that crawler's listing parser and identity rules (no duplicate rows)."""
@@ -130,6 +265,7 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
         if not isinstance(start, int) or start < 0:
             raise PlanError(f"{site_id}: listing.start_page must be a non-negative integer (0 or 1)")
         validate_end_statuses(site_id, listing.get("end_statuses", ()))
+        _validate_listing_extensions(site_id, raw, listing)
         if listing.get("page_mode") == "offset" and not isinstance(listing.get("page_size"), int):
             raise PlanError(f"{site_id}: offset paging requires listing.page_size")
         raw["listing"] = listing
@@ -186,6 +322,8 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
         sm = raw.get("sitemap") or {}
         if not sm.get("sitemap_url") and not sm.get("from_robots"):
             raise PlanError(f"{site_id}: sitemap requires sitemap_url or from_robots")
+    _validate_headers(site_id, raw)
+    _validate_second_step(site_id, raw.get("adapter") or {})
     robots_limit = raw.get("max_consecutive_robots_disallowed")
     if type(robots_limit) is not int or robots_limit < 1:
         raise PlanError(f"{site_id}: max_consecutive_robots_disallowed must be a positive integer")
