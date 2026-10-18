@@ -541,3 +541,76 @@ class KommunekreditComAboutUsCrawler(BaseCrawler):
             page += 1
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the module
+    # helpers are unchanged; these methods only parse already fetched data.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """DownloadList rows of the reports page, parsed with
+        _parse_download_items exactly as crawl() does (same page URL string,
+        so the row URL '<page>#<anchor>' is unchanged).
+
+        crawl() reads ?page=N only while the page shows a next link; the page
+        has none, so a page number above 1 is declared empty (the plan's
+        listing_marker proves it is still the reports page). A start page
+        without rows is a listing parse error (crawl() saves nothing)."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        page = (parse_qs(urlsplit(url or "").query).get("page") or ["1"])[0]
+        if page not in ("", "0", "1"):
+            return []
+        items, _has_next, page_meta = _parse_download_items(html, _LIST_URL)
+        if not items:
+            raise PermanentFailure("listing_parse_error:no_download_list_rows", url)
+        rows = []
+        seen_urls = set()
+        for item in items:
+            dedupe_url = item.get("pdf_url") or item.get("url")
+            if not dedupe_url or dedupe_url in seen_urls:
+                continue
+            seen_urls.add(dedupe_url)
+            rows.append(dict(item, external_id=_external_id_from_url(item["pdf_url"]),
+                             page_meta=page_meta))
+        return rows
+
+    def _enumeration_paper(self, resp, item):
+        """Paper for one row from the fetched PDF response headers — the
+        _enrich_with_pdf_headers + _paper_from_item steps of crawl() with the
+        headers of the framework's GET instead of curl -I (external_id = the
+        /media/ path, unchanged). raw_headers holds the header lines as text."""
+        headers = {str(k).lower(): str(v) for k, v in (getattr(resp, "headers", None) or {}).items()}
+        raw_headers = "\n".join(f"{k}: {v}" for k, v in headers.items()) or None
+        last_modified_raw = headers.get("last-modified")
+        listed_date = _iso_date_from_http_date(last_modified_raw)
+        published_date = listed_date or _fallback_published_date(item["title"])
+        original_filename = (
+            _filename_from_content_disposition(headers.get("content-disposition"))
+            or _filename_from_url(item["pdf_url"])
+        )
+        post_number = (
+            _post_number_from_http_date(last_modified_raw)
+            or _title_year(item["title"])
+            or _media_id_from_url(item["pdf_url"])
+        )
+        detail = {k: v for k, v in item.items() if k != "page_meta"}
+        detail.update(
+            {
+                "headers": headers,
+                "raw_headers": raw_headers,
+                "listed_date": listed_date,
+                "published_date": published_date,
+                "posted_date_raw": last_modified_raw,
+                "post_number": post_number,
+                "media_id": _media_id_from_url(item["pdf_url"]),
+                "external_id": _external_id_from_url(item["pdf_url"]),
+                "original_filename": original_filename,
+            }
+        )
+        abstract = _clean_text(detail.get("abstract"))
+        if len(abstract) < 50:
+            return None
+        return _paper_from_item(detail, item.get("page_meta") or {})

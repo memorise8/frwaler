@@ -1,0 +1,14 @@
+{
+  "site_id": "kommunekredit-com-about-us",
+  "listing_body": "<html><body><script type=\"application/json\">{\"apiOptions\": {\"headers\": [{\"key\": \"x-page-id\", \"value\": 1234}]}, \"language\": \"en\", \"theme\": \"x\"}</script><script type=\"application/json\">{\"moduleName\": \"SubpageHero\", \"text\": \"Synthetic hero text for the offline equality test; it imitates only the structure.\"}</script><script type=\"application/json\">{\"moduleName\": \"DownloadList\", \"title\": \"Download Synthetic Reports\", \"anchor\": \"synthetic\", \"columns\": [{\"files\": [{\"link\": {\"label\": \"Synthetic Annual Report 2031\", \"href\": \"/media/aaaa1111/synthetic_ar_2031.pdf\"}, \"features\": [\"1.0 MB\"]}, {\"link\": {\"label\": \"Synthetic Interim Report first half 2030\", \"href\": \"/media/bbbb2222/synthetic_ir_2030.pdf\"}, \"features\": [\"0.5 MB\"]}]}]}</script></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.kommunekredit.com/media/aaaa1111/synthetic_ar_2031.pdf": "%PDF-1.4 synthetic",
+    "https://www.kommunekredit.com/media/bbbb2222/synthetic_ir_2030.pdf": "%PDF-1.4 synthetic"
+  },
+  "long_text": "is a KommuneKredit report listed in the",
+  "empty_body": "<html><body><script type=\"application/json\">{}</script></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "e9b613d96cd4d35aff0676fff10a0ebb6d749b2d90ca1281d5f879e3e00b0273"
+  }
+}
