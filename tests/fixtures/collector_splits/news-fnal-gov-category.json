@@ -1,0 +1,137 @@
+{
+  "site_id": "news-fnal-gov-category",
+  "listing_body": "[{\"id\": 990001, \"slug\": \"synthetic-one\", \"status\": \"publish\", \"type\": \"post\", \"date\": \"2026-02-11T10:00:00\", \"date_gmt\": \"2026-02-11T10:00:00\", \"modified\": \"2026-02-11T10:00:00\", \"modified_gmt\": \"2026-02-11T10:00:00\", \"link\": \"https://news.fnal.gov/2026/02/synthetic-one/\", \"title\": {\"rendered\": \"Synthetic &amp; release 990001\"}, \"excerpt\": {\"rendered\": \"<p>Synthetic offline press release text for the enumeration equality test, résumé ünïcode. Synthetic offline press release text for the enumeration equality test, résumé ünïcode.</p>\"}, \"content\": {\"rendered\": \"<p>Synthetic offline press release text for the enumeration equality test, résumé ünïcode. Synthetic offline press release text for the enumeration equality test, résumé ünïcode.</p><p><a href=\\\"https://news.fnal.gov/wp-content/uploads/2026/02/synthetic-one.pdf\\\">PDF</a></p>\"}, \"categories\": [55], \"tags\": [7], \"author\": 3, \"yoast_head_json\": {\"article_published_time\": \"2026-02-11T10:00:00+00:00\", \"author\": \"Synthetic Writer\", \"schema\": {\"@graph\": [{\"@type\": \"Article\", \"keywords\": [\"physics\", \"synthetic\"]}]}}, \"_embedded\": {\"author\": [{\"name\": \"Synthetic Writer\"}], \"wp:term\": [[{\"taxonomy\": \"category\", \"name\": \"Press release\"}], [{\"taxonomy\": \"post_tag\", \"name\": \"neutrinos\"}]]}}, {\"id\": 990000, \"slug\": \"synthetic-zero\", \"status\": \"publish\", \"type\": \"post\", \"date\": \"2026-01-10T09:00:00\", \"date_gmt\": \"2026-01-10T09:00:00\", \"modified\": \"2026-01-10T09:00:00\", \"modified_gmt\": \"2026-01-10T09:00:00\", \"link\": \"https://news.fnal.gov/2026/02/synthetic-zero/\", \"title\": {\"rendered\": \"Synthetic &amp; release 990000\"}, \"excerpt\": {\"rendered\": \"<p>Synthetic offline press release text for the enumeration equality test, résumé ünïcode. Synthetic offline press release text for the enumeration equality test, résumé ünïcode.</p>\"}, \"content\": {\"rendered\": \"<p>Synthetic offline press release text for the enumeration equality test, résumé ünïcode. Synthetic offline press release text for the enumeration equality test, résumé ünïcode.</p>\"}, \"categories\": [55], \"tags\": [7], \"author\": 3, \"yoast_head_json\": {\"article_published_time\": \"2026-01-10T09:00:00+00:00\", \"author\": \"Synthetic Writer\", \"schema\": {\"@graph\": [{\"@type\": \"Article\", \"keywords\": [\"physics\", \"synthetic\"]}]}}, \"_embedded\": {\"author\": [{\"name\": \"Synthetic Writer\"}], \"wp:term\": [[{\"taxonomy\": \"category\", \"name\": \"Press release\"}], [{\"taxonomy\": \"post_tag\", \"name\": \"neutrinos\"}]]}}]",
+  "content_type": "application/json",
+  "details": {
+    "https://news.fnal.gov/wp-json/wp/v2/posts/990001?_embed=1": {
+      "id": 990001,
+      "slug": "synthetic-one",
+      "status": "publish",
+      "type": "post",
+      "date": "2026-02-11T10:00:00",
+      "date_gmt": "2026-02-11T10:00:00",
+      "modified": "2026-02-11T10:00:00",
+      "modified_gmt": "2026-02-11T10:00:00",
+      "link": "https://news.fnal.gov/2026/02/synthetic-one/",
+      "title": {
+        "rendered": "Synthetic &amp; release 990001"
+      },
+      "excerpt": {
+        "rendered": "<p>Synthetic offline press release text for the enumeration equality test, résumé ünïcode. Synthetic offline press release text for the enumeration equality test, résumé ünïcode.</p>"
+      },
+      "content": {
+        "rendered": "<p>Synthetic offline press release text for the enumeration equality test, résumé ünïcode. Synthetic offline press release text for the enumeration equality test, résumé ünïcode.</p><p><a href=\"https://news.fnal.gov/wp-content/uploads/2026/02/synthetic-one.pdf\">PDF</a></p>"
+      },
+      "categories": [
+        55
+      ],
+      "tags": [
+        7
+      ],
+      "author": 3,
+      "yoast_head_json": {
+        "article_published_time": "2026-02-11T10:00:00+00:00",
+        "author": "Synthetic Writer",
+        "schema": {
+          "@graph": [
+            {
+              "@type": "Article",
+              "keywords": [
+                "physics",
+                "synthetic"
+              ]
+            }
+          ]
+        }
+      },
+      "_embedded": {
+        "author": [
+          {
+            "name": "Synthetic Writer"
+          }
+        ],
+        "wp:term": [
+          [
+            {
+              "taxonomy": "category",
+              "name": "Press release"
+            }
+          ],
+          [
+            {
+              "taxonomy": "post_tag",
+              "name": "neutrinos"
+            }
+          ]
+        ]
+      }
+    },
+    "https://news.fnal.gov/wp-json/wp/v2/posts/990000?_embed=1": {
+      "id": 990000,
+      "slug": "synthetic-zero",
+      "status": "publish",
+      "type": "post",
+      "date": "2026-01-10T09:00:00",
+      "date_gmt": "2026-01-10T09:00:00",
+      "modified": "2026-01-10T09:00:00",
+      "modified_gmt": "2026-01-10T09:00:00",
+      "link": "https://news.fnal.gov/2026/02/synthetic-zero/",
+      "title": {
+        "rendered": "Synthetic &amp; release 990000"
+      },
+      "excerpt": {
+        "rendered": "<p>Synthetic offline press release text for the enumeration equality test, résumé ünïcode. Synthetic offline press release text for the enumeration equality test, résumé ünïcode.</p>"
+      },
+      "content": {
+        "rendered": "<p>Synthetic offline press release text for the enumeration equality test, résumé ünïcode. Synthetic offline press release text for the enumeration equality test, résumé ünïcode.</p>"
+      },
+      "categories": [
+        55
+      ],
+      "tags": [
+        7
+      ],
+      "author": 3,
+      "yoast_head_json": {
+        "article_published_time": "2026-01-10T09:00:00+00:00",
+        "author": "Synthetic Writer",
+        "schema": {
+          "@graph": [
+            {
+              "@type": "Article",
+              "keywords": [
+                "physics",
+                "synthetic"
+              ]
+            }
+          ]
+        }
+      },
+      "_embedded": {
+        "author": [
+          {
+            "name": "Synthetic Writer"
+          }
+        ],
+        "wp:term": [
+          [
+            {
+              "taxonomy": "category",
+              "name": "Press release"
+            }
+          ],
+          [
+            {
+              "taxonomy": "post_tag",
+              "name": "neutrinos"
+            }
+          ]
+        ]
+      }
+    }
+  },
+  "long_text": "Synthetic offline press release text for the enumeration equality test, résumé ünïcode. Synthetic offline press release text for the enumeration equality test, résumé ünïcode.",
+  "original_method_source_sha256": {
+    "crawl": "e4c9328ee8a8b320ac8da783d45c407eddb5f64adecce1d21b05715db6c176b9"
+  }
+}

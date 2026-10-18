@@ -92,7 +92,9 @@ def _html_to_text(raw_html: str | None, context: str = "") -> str:
 def _date_only(raw: str | None) -> str | None:
     if not raw:
         return None
-    match = re.search(r"\b((?:19|20)\d{2})-(\d{2})-(\d{2})\b", raw)
+    # (?!\d) instead of a trailing \b: WordPress ISO datetimes ("2026-10-15T10:00:00")
+    # have no word boundary between the day and "T", so \b never matched them.
+    match = re.search(r"\b((?:19|20)\d{2})-(\d{2})-(\d{2})(?!\d)", raw)
     if match:
         return match.group(0)
     return None
@@ -571,3 +573,108 @@ class NewsFnalGovCategoryCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done: saved {saved}/{limit_or_inf}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the module
+    # helpers are unchanged; these methods only parse already fetched JSON.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Rows of one wp/v2/posts list page in crawl() order. Each row keeps the
+        list request URL and gets crawl()'s detail API URL (key: post id)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            raise PermanentFailure("listing_parse_error:expected_wp_post_list", url or "")
+        rows = []
+        for item in data:
+            native_id = item.get("id")
+            if native_id is None:
+                continue
+            rows.append({
+                "id": native_id,
+                "link": item.get("link"),
+                "date": item.get("date"),
+                "title": _html_to_text((item.get("title") or {}).get("rendered", "")
+                                       if isinstance(item.get("title"), dict) else ""),
+                "detail_api_url": _detail_api_url(native_id),
+                "list_api_url": url or "",
+            })
+        return rows
+
+    def _enumeration_paper(self, item, detail):
+        """Paper from the fetched detail API JSON — _post_to_paper() copied, except
+        that original_filename comes from the PDF URL only (crawl() may add a HEAD
+        request for Content-Disposition; no request is made here). external_id and
+        url rules are unchanged (post id, post link)."""
+        if not isinstance(detail, dict):
+            return None
+        post = detail
+        list_api_url = item.get("list_api_url") or ""
+        detail_api_url = item.get("detail_api_url") or _detail_api_url(item.get("id"))
+        post_id = post.get("id")
+        if post_id is None:
+            return None
+
+        post_id_str = str(post_id)
+        title = _html_to_text((post.get("title") or {}).get("rendered", ""), f"title {post_id_str}")
+        if not title:
+            return None
+
+        categories, tags = _extract_terms(post)
+        keywords = _extract_keywords(post, tags)
+
+        excerpt = _html_to_text((post.get("excerpt") or {}).get("rendered", ""), f"excerpt {post_id_str}")
+        content_text = _html_to_text((post.get("content") or {}).get("rendered", ""), f"content {post_id_str}")
+        abstract = excerpt if len(excerpt) >= 50 else content_text
+        if len(abstract) < 50:
+            return None
+
+        published_date = (
+            _date_only(post.get("yoast_head_json", {}).get("article_published_time"))
+            or _date_only(post.get("date_gmt"))
+            or _date_only(post.get("date"))
+        )
+        listed_date = _date_only(post.get("date"))
+        if not listed_date:
+            listed_date = published_date
+
+        url = post.get("link") or (post.get("yoast_head_json", {}) or {}).get("canonical")
+        if not url:
+            return None
+
+        pdf_url = _extract_pdf_url(post)
+        original_filename = _filename_from_url(pdf_url)
+        authors = _extract_authors(post)
+        category = ", ".join(categories) if categories else "Press release"
+        metadata = _build_metadata(
+            post,
+            categories=categories,
+            tags=tags,
+            pdf_url=pdf_url,
+            original_filename=original_filename,
+            list_api_url=list_api_url,
+            detail_api_url=detail_api_url,
+        )
+
+        return {
+            "id": f"{_SITE_ID}:{post_id_str}",
+            "site_id": _SITE_ID,
+            "external_id": post_id_str,
+            "post_number": post_id_str,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "posted_date": listed_date,
+            "authors": authors,
+            "publisher": "Fermi National Accelerator Laboratory",
+            "department": "Newsroom",
+            "journal": None,
+            "url": url,
+            "pdf_url": pdf_url,
+            "keywords": keywords,
+            "category": category,
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": metadata,
+        }
