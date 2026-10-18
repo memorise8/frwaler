@@ -156,8 +156,10 @@ class SiteRunner:
                     or (row["status"] == "failed_transient" and row["attempts"] >= max_attempts)):
             self.stats["skipped_known"] += 1
             return
+        position = getattr(item, "list_position", None)
         common = dict(url=item.url, segment=segment, date=item.date,
-                      payload={"url": item.url, "date": item.date, "title": item.title, "payload": item.payload})
+                      payload={"url": item.url, "date": item.date, "title": item.title, "payload": item.payload,
+                               **({"list_position": position} if position else {})})
         item.segment = self.segment_info(segment)  # ext:multi_listing ("segment" argument)
         try:
             paper = self.adapter.materialize(item, self.fetcher)
@@ -198,6 +200,12 @@ class SiteRunner:
                            attempt=True, **common)
             self.stats["failed_permanent"] += 1
             self.contract_failure(item, f"parse_error:{type(exc).__name__}")
+            return
+        if paper is None and self.adapter.cfg.get("none_is_rule_skip"):
+            # The registered crawler's own rule skips this item (e.g. abstract under 50 characters):
+            # not a parser failure, counted and reported, never retried.
+            st.record_item(site, item.key, "failed_permanent", reason="skipped_by_rule", attempt=True, **common)
+            self.stats["skipped_by_rule"] = self.stats.get("skipped_by_rule", 0) + 1
             return
         if not paper or not str(paper.get("title") or "").strip() or not (paper.get("url") or paper.get("meta_url")):
             st.record_item(site, item.key, "failed_permanent", reason="empty_item", attempt=True, **common)
@@ -293,6 +301,8 @@ class SiteRunner:
             data = row["payload"] or {}
             item = Item(key=row["item_key"], url=data.get("url") or row["url"], date=data.get("date"),
                         title=data.get("title") or "", payload=data.get("payload") or {})
+            if data.get("list_position"):
+                item.list_position = data["list_position"]
             self.stats["retried"] += 1
             self.process_item(item, row["segment_key"])
         self.store.exhaust_items(self.site_id, max_attempts)
@@ -598,7 +608,14 @@ class SiteRunner:
         duplicates = {"before": duplicates_before, "after": duplicate_rows(doc_conn, site)}
         duplicates["new"] = max(0, duplicates["after"] - duplicates["before"])
         ctx.state["duplicates"] = duplicates
-        if duplicates["new"] > 0:
+        if duplicates["new"] > 0 and self.adapter.cfg.get("allow_shared_post_number"):
+            # Declared: the registered crawler's own rule stores several rows per post_number. The
+            # buyer's duplicate check (group by site_id, post_number) still counts them: a person
+            # decides, never a plain "complete" and never hidden.
+            st.event(site, "shared_post_number_rows", duplicates)
+            if status == "complete":
+                status, reason = "complete_with_review", f"shared_post_number_rows:{duplicates['new']}"
+        elif duplicates["new"] > 0:
             st.event(site, "new_duplicates", duplicates)
             status, reason = "failed_duplicates", f"new_duplicate_rows:{duplicates['new']}"
         if identity is not None:

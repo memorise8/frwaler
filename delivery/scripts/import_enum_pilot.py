@@ -37,6 +37,9 @@ CONTENT = ("title", "published_date", "listed_date", "authors", "publisher", "jo
            "published_date_raw", "published_date_status", "listed_date_raw", "listed_date_status")
 # crawler/document_identity.py 에 사이트별 식별 규칙이 있는 곳: 자동 반영 금지
 SPECIAL_IDENTITY = {"krivet-re-kr", "kei-re-kr-eliblistes", "cso-ie-en"}
+# 등록 수집기가 post_number 하나에 여러 행(meta_url 다름, 예: 같은 호의 언어별 PDF)을 저장하는 사이트.
+# 틀 plan 의 adapter.allow_shared_post_number 와 짝: 같은 post_number·다른 meta_url 은 충돌이 아니라 다른 문서.
+SHARED_POST_NUMBER = {"meri-belspo-be-site"}
 # 구역 세션 판정(dev-flow site-status/*.csv)이 이러면 자동 반영하지 않는다
 HOLD_STATES = {"needs_dev", "blocked_access", "moved", "no_crawler", "skip", "plan_written"}
 # 제품 sites 에 없는 enum 사이트 ID 는 crawler/sites/configs/<id>.json 의 별도 설정형 수집기다(납품 806곳 밖).
@@ -132,8 +135,9 @@ def unescape_copy(v):
 
 def psql_copy(container, sql, ssh=False):
     """docker exec <컨테이너> psql 로 COPY (...) TO STDOUT 를 한 줄씩 흘린다."""
-    cmd = ["docker", "exec", container, "psql", "-U", "libertree", "-d", "libertree", "-v", "ON_ERROR_STOP=1", "-At", "-c",
-           "copy (%s) to stdout" % sql]
+    # 읽기만 한다: 세션 전체를 읽기 전용 트랜잭션으로(대상이 운영·격리 스택이어도 쓰기 불가)
+    cmd = ["docker", "exec", "-e", "PGOPTIONS=-c default_transaction_read_only=on", container, "psql", "-U", "libertree",
+           "-d", "libertree", "-v", "ON_ERROR_STOP=1", "-At", "-c", "copy (%s) to stdout" % sql]
     if ssh:
         cmd = SSH + ["PATH=$HOME/bin:$PATH " + " ".join("'%s'" % a.replace("'", "'\\''") for a in cmd)]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, text=True)
@@ -147,13 +151,17 @@ def lit(s):
     return "'" + s.replace("'", "''") + "'"
 
 
+REMOTE_TARGET = False  # --target-remote: 대상 컨테이너가 서버에 있음(키만 SSH 로 읽음)
+
+
 def target_sites(container):
-    return {r[0] for r in psql_copy(container, "select site_id from sites")}
+    return {r[0] for r in psql_copy(container, "select site_id from sites", ssh=REMOTE_TARGET)}
 
 
 def target_keys(container, site):
     by_post, by_url, exact = {}, {}, set()
-    for post, url in psql_copy(container, "select post_number, meta_url from documents where site_id=%s" % lit(site)):
+    for post, url in psql_copy(container, "select post_number, meta_url from documents where site_id=%s" % lit(site),
+                               ssh=REMOTE_TARGET):
         exact.add((post, url))
         by_post.setdefault(post, set()).add(url)
         by_url.setdefault(url, set()).add(post)
@@ -239,8 +247,9 @@ def plan_site(args, enum_site, product_site, how, sites):
     # - 한 post_number 에 여러 URL: 그 post_number 가 있는 가장 최근 폴더에서 URL 이 하나면 그 행을 쓰고(drop 에 나머지), 여럿이면 제외
     # - 한 URL 에 여러 post_number: 가져오지 않고 보고
     source_conflict, drop = set(), set()
+    shared = product_site in SHARED_POST_NUMBER
     for p, fs in posts.items():
-        if len({u for us in fs.values() for u in us}) <= 1:
+        if shared or len({u for us in fs.values() for u in us}) <= 1:
             continue
         newest = max(fs, key=lambda f: folder_max.get(f, ("", "")))
         if len(fs[newest]) == 1:
@@ -265,7 +274,7 @@ def plan_site(args, enum_site, product_site, how, sites):
             c["excluded_null_post"] += 1  # 제품 고유 인덱스가 NULL post_number 를 막지 못한다
         elif (post, url) in exact:
             c["exists"] += 1
-        elif post in by_post:
+        elif post in by_post and not shared:
             c["post_conflict"] += 1
         elif url in by_url:
             c["url_conflict"] += 1
@@ -429,6 +438,8 @@ def main():
     ap.add_argument("--sci-container", default="ui-sci-20261013-postgres-1")
     ap.add_argument("--folders", nargs="*", help="이 실행 폴더만 (기본: 그 사이트가 있는 모든 폴더)")
     ap.add_argument("--target", default="ui-check-20261013-postgres-1", help="제품 스키마 Postgres 컨테이너")
+    ap.add_argument("--target-remote", action="store_true",
+                    help="대상 컨테이너가 서버에 있음: plan 은 키만 SSH 로 읽고(읽기 전용), 넣기는 서버 안에서만")
     ap.add_argument("--site-map", help="CSV enum_site_id,product_site_id")
     ap.add_argument("--sample", type=int, default=50, help="rollback-test 표본 수(사이트당)")
     ap.add_argument("--out", default="import-report.json")
@@ -441,6 +452,11 @@ def main():
     args = ap.parse_args()
     if args.target.lower().startswith("temis") or args.sci_container.lower().startswith("temis"):
         sys.exit("temis 는 다루지 않는다")
+    global REMOTE_TARGET
+    REMOTE_TARGET = args.target_remote
+    if REMOTE_TARGET and args.mode != "plan":
+        # 행이 이 컴퓨터를 거치면 안 됨(수집 데이터는 서버에만): 서버 안에서 도는 넣기 경로 전용
+        sys.exit("--target-remote 는 지금 plan 만: 서버 대상 넣기·되돌리기는 서버 안에서 도는 경로로 한다")
     if args.mode == "rollback":
         return rollback(args)
     approved = {}
@@ -473,7 +489,7 @@ def main():
             sys.exit("폴더 형식 오류: %s" % f)
     smap = load_site_map(args.site_map, enum_ids, sites)
     report = {"at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"), "mode": args.mode, "source": args.source,
-              "target": args.target, "sites": []}
+              "target": args.target, "target_remote": REMOTE_TARGET, "sites": []}
     for e in enum_ids:
         product, how = smap[e]
         print("== %s → %s (%s)" % (e, product, how), file=sys.stderr, flush=True)
