@@ -1,0 +1,17 @@
+{
+ "site_id": "gnewsonline-it-category",
+ "listing_body": "<html><head></head><body class=\"archive category category-comunicati-stampa\"><h3><a href=\"https://www.gnewsonline.it/organico-tribunale-milano/\">Organico</a></h3><h5><a href=\"https://www.gnewsonline.it/sicurezza-territorio-treviso/\">Sicurezza</a></h5><h5><a href=\"https://www.gnewsonline.it/category/altro/\">x</a></h5></body></html>",
+ "empty_body": "<html><body class=\"archive category category-comunicati-stampa\"><p>Nessun articolo</p></body></html>",
+ "content_type": "text/html",
+ "long_text": "Testo sintetico del comunicato usato solo per il test offline della divisione dei metodi: il Ministero della Giustizia chiarisce sul potenziamento del personale.",
+ "details": {
+  "https://www.gnewsonline.it/organico-tribunale-milano/": "<html><head><meta property=\"og:title\" content=\"Organico Tribunale di Milano\"></head><body class=\"post-template-default single postid-158209\"><div class=\"single-post post-158209\"><h1>Organico Tribunale di Milano</h1><span class=\"featured-post-date\">6 ottobre 2026</span><ul class=\"author\"><li><a href=\"/author/x\">Redazione</a></li></ul><p>Testo sintetico del comunicato usato solo per il test offline della divisione dei metodi: il Ministero della Giustizia chiarisce sul potenziamento del personale.</p><a href=\"/wp-content/uploads/2026/10/nota.pdf\">nota</a></div></body></html>",
+  "https://www.gnewsonline.it/sicurezza-territorio-treviso/": "<html><head><meta property=\"og:title\" content=\"Sicurezza territorio\"></head><body class=\"post-template-default single postid-158067\"><div class=\"single-post post-158067\"><h1>Sicurezza territorio</h1><span class=\"featured-post-date\">6 ottobre 2026</span><ul class=\"author\"><li><a href=\"/author/x\">Redazione</a></li></ul><p>Testo sintetico del comunicato usato solo per il test offline della divisione dei metodi: il Ministero della Giustizia chiarisce sul potenziamento del personale.</p></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_curl_get": "9bddcab7a1b918771e74585c5c37e0e3d3863622ef1e94612b740c98b415e650",
+  "_fetch_list_page": "ef36e78d83ec26ec295afe06fa3f064fa06cf3b8e6627f35173a4c814b737eb5",
+  "_fetch_detail": "9c3dbb8bdb295b8af337d00f738165ca88d173054877f602850fc754eb10a86a",
+  "crawl": "ff5de2084352c0d67a60047758b48532dcfd219a3d446df38e544b07a2ba0633"
+ }
+}

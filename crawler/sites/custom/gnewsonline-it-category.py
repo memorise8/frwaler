@@ -405,3 +405,160 @@ class GnewsonlineItCategoryCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # fetch helpers above stay unchanged; these repeat their parsing on the
+    # page the framework already fetched (no fetching or storage here).
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """Article links of one category page, exactly as _fetch_list_page() reads them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        urls: list[str] = []
+        seen_in_page: set[str] = set()
+        for tag in ("h3", "h5"):
+            for heading in soup.find_all(tag):
+                a = heading.find("a", href=True)
+                if not a:
+                    continue
+                href = a["href"].strip()
+                if (
+                    href.startswith(_BASE_URL)
+                    and "/category/" not in href
+                    and "/page/" not in href
+                    and "/wp-" not in href
+                    and "/author/" not in href
+                    and "/tag/" not in href
+                    and href not in seen_in_page
+                ):
+                    seen_in_page.add(href)
+                    urls.append(href)
+        return [{"url": u} for u in urls]
+
+    def _enumeration_detail(self, html, url):
+        """_fetch_detail() after its fetch."""
+        soup = _make_soup(html)
+        post_id = ""
+        body = soup.find("body")
+        if body:
+            body_class = " ".join(body.get("class", []))
+            m = re.search(r"\bpostid-(\d+)\b", body_class)
+            if m:
+                post_id = m.group(1)
+        if not post_id:
+            sp_div_tmp = soup.find("div", class_=re.compile(r"\bsingle-post\b"))
+            if sp_div_tmp:
+                sp_class = " ".join(sp_div_tmp.get("class", []))
+                m = re.search(r"\bpost-(\d+)\b", sp_class)
+                if m:
+                    post_id = m.group(1)
+        sp_div = soup.find("div", class_=re.compile(r"\bsingle-post\b"))
+        title = ""
+        if sp_div:
+            h = sp_div.find(re.compile(r"^h[123]$"))
+            if h:
+                title = h.get_text(separator=" ", strip=True)
+        if not title:
+            og = soup.find("meta", property="og:title")
+            if og:
+                title = og.get("content", "").strip()
+        if not title:
+            t = soup.find("title")
+            if t:
+                title = t.get_text(strip=True).split(" - ")[0].strip()
+        date_raw = ""
+        date_span = soup.find("span", class_=re.compile(r"featured-post-date"))
+        if date_span:
+            date_raw = date_span.get_text(strip=True)
+        published_date = _parse_italian_date(date_raw)
+        author = ""
+        author_ul = soup.find("ul", class_="author")
+        if author_ul:
+            links = author_ul.find_all("a")
+            if links:
+                author = "; ".join(a.get_text(strip=True) for a in links)
+        abstract = ""
+        if sp_div:
+            import copy
+            sp_copy = copy.copy(sp_div)
+            for noise_cls in ("addtoany", "a2a_kit", "author", "download-attachment"):
+                for node in sp_copy.find_all(
+                    True,
+                    class_=re.compile(rf"\b{noise_cls}\b", re.I)
+                ):
+                    node.decompose()
+            for h in sp_copy.find_all(re.compile(r"^h[1-6]$")):
+                h.decompose()
+            for ds in sp_copy.find_all("span", class_=re.compile(r"featured-post-date")):
+                ds.decompose()
+            paras = sp_copy.find_all("p")
+            if paras:
+                parts = [
+                    unescape(p.get_text(separator=" ", strip=True))
+                    for p in paras
+                    if p.get_text(strip=True)
+                ]
+                abstract = "\n\n".join(parts)
+            if not abstract:
+                abstract = unescape(
+                    sp_copy.get_text(separator="\n", strip=True)
+                )
+        abstract = re.sub(r"\n{3,}", "\n\n", abstract).strip()
+        pdf_url = None
+        pdf_a = soup.find("a", href=re.compile(r"\.pdf(\?|$)", re.I))
+        if pdf_a:
+            href = pdf_a["href"]
+            pdf_url = href if href.startswith("http") else urljoin(_BASE_URL, href)
+        original_filename = ""
+        if pdf_url:
+            seg = pdf_url.rstrip("/").split("/")[-1].split("?")[0]
+            if seg.lower().endswith(".pdf"):
+                original_filename = seg
+        return {
+            "post_id": post_id,
+            "title": title,
+            "date_raw": date_raw,
+            "published_date": published_date,
+            "author": author,
+            "abstract": abstract,
+            "pdf_url": pdf_url or "",
+            "original_filename": original_filename,
+            "url": url,
+        }
+
+    def _enumeration_paper(self, html, item):
+        """Copy of crawl()'s paper conversion; None keeps crawl()'s skips."""
+        art_url = item["url"]
+        detail = self._enumeration_detail(html, art_url)
+        abstract = detail.get("abstract", "")
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+        post_id = detail.get("post_id") or ""
+        return {
+            "site_id": _SITE_ID,
+            "external_id": post_id if post_id else art_url,
+            "post_number": post_id or None,
+            "title": detail.get("title") or "(untitled)",
+            "abstract": abstract,
+            "published_date": detail.get("published_date") or "",
+            "listed_date": detail.get("published_date") or "",
+            "url": art_url,
+            "authors": detail.get("author") or "",
+            "publisher": "gNews / Ministero della Giustizia",
+            "department": "",
+            "journal": "",
+            "pdf_url": detail.get("pdf_url") or "",
+            "keywords": "",
+            "category": "Comunicati Stampa",
+            "doi": "",
+            "original_filename": detail.get("original_filename") or "",
+            "metadata": json.dumps({
+                "posted_date": detail.get("date_raw") or "",
+                "originalFilename": detail.get("original_filename") or "",
+                "category_slug": "comunicati-stampa",
+                "post_id": post_id,
+            }, ensure_ascii=False),
+        }
