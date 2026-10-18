@@ -156,6 +156,66 @@ class ExterioresGobEsEnCrawler(BaseCrawler):
     site_name = "Custom: exteriores-gob-es-en"
     base_url = "https://www.exteriores.gob.es"
 
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_items(self, html, url=None):
+        """List rows of one list page (crawl's _parse_list_page) plus crawl's identity.
+
+        No fetching or storage. ``list_page`` is read from the ``p`` query value
+        (crawl requests page 1 without it), as crawl records it in metadata.
+        """
+        from urllib.parse import parse_qs, urlsplit
+        page_num = 1
+        values = parse_qs(urlsplit(url or "").query).get("p") or []
+        if values and values[0].isdigit():
+            page_num = int(values[0])
+        rows = []
+        for item in _parse_list_page(html):
+            row = dict(item)
+            # Same expression as crawl(): filename, else last URL segment.
+            row["external_id"] = item["filename"] or item["pdf_url"].split("/")[-1]
+            row["list_page"] = page_num
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, item):
+        """Pure copy of crawl's Paper conversion and its short-abstract skip (None)."""
+        pdf_url = item["pdf_url"]
+        title = item["title"]
+        abstract = item["abstract"]
+        if len(abstract) < 100:
+            return None
+        date_str = item["date"]
+        filename = item["filename"]
+        external_id = filename or pdf_url.split("/")[-1]
+        page_num = item.get("list_page", 1)
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": None,
+            "title": title,
+            "abstract": abstract,
+            "authors": "",
+            "publisher": _PUBLISHER,
+            "department": _PUBLISHER,
+            "journal": "",
+            "category": "Official Publications",
+            "keywords": "",
+            "published_date": date_str,
+            "listed_date": date_str,
+            "url": pdf_url,
+            "pdf_url": pdf_url,
+            "doi": "",
+            "original_filename": filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": date_str,
+                    "originalFilename": filename,
+                    "list_page": page_num,
+                },
+                ensure_ascii=False,
+            ),
+        }
+
     def crawl(self, limit=None):
         saved = 0
         seen_urls: set[str] = set()
