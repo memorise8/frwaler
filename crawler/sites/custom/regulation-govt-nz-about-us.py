@@ -367,6 +367,11 @@ class RegulationGovtNzAboutUsCrawler(BaseCrawler):
             raise PermanentFailure("listing_parse_error:missing_main_marker")
         rows = _parse_list_page(html, self.base_url)
 
+        # The live page past the last offset still renders the search chrome
+        # ("361 - 337 of 337 publication(s)") with an empty results container.
+        results_list = soup.select_one("main .search__results > ol")
+        if not rows and results_list is not None and results_list.find("li") is None:
+            return rows
         if not rows and soup.find("main").get_text(" ", strip=True):
             raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing")
         return rows
