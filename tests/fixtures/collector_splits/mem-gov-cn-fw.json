@@ -1,0 +1,18 @@
+{
+ "site_id": "mem-gov-cn-fw",
+ "listing_body": "<html><body><div class=\"tonglan_list\"><div class=\"cont\"><ul><li><a href=\"./202611/t20261101_900001.shtml\">Synthetic notice 1<span>2026-11-01 11:28</span></a></li><li><a href=\"./202612/t20261202_900002.shtml\">Synthetic notice 2<span>2026-12-02 11:28</span></a></li></ul></div></div><script>var currentPage = 0;//\nvar countPage = 1//\n</script></body></html>",
+ "empty_body": "<html><body><div class=\"tonglan_list\"><div class=\"cont\"><ul></ul></div></div><script>var currentPage = 1;//\nvar countPage = 1//\n</script></body></html>",
+ "content_type": "text/html",
+ "long_text": "Synthetic licence result notice with 中文 text for offline equality testing only, long enough for the abstract threshold.",
+ "details": {
+  "https://www.mem.gov.cn/fw/yajzjxzxk/zjxzxksxbljg/202611/t20261101_900001.shtml": "<html><body><div class=\"zhenwen\"><h2>Synthetic notice 1 full</h2><div class=\"time_laiy\"><span>2026-11-01</span> 来源</div><div class=\"TRS_Editor\"><p>Synthetic licence result notice with 中文 text for offline equality testing only, long enough for the abstract threshold.</p><p>Item 1.</p></div></div></body></html>",
+  "https://www.mem.gov.cn/fw/yajzjxzxk/zjxzxksxbljg/202612/t20261202_900002.shtml": "<html><body><div class=\"zhenwen\"><h2>Synthetic notice 2 full</h2><div class=\"time_laiy\"><span>2026-12-02</span> 来源</div><div class=\"TRS_Editor\"><p>Synthetic licence result notice with 中文 text for offline equality testing only, long enough for the abstract threshold.</p><p>Item 2.</p></div></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_list_url": "be8fa76318789a0a57241196349e54a6f383d3acf7d16d5594edd148b3c572ab",
+  "_parse_list": "e6edccaa7f67a545d5eb0e5dcb5205a931ad7ab862c393cd2f0938af9df6160b",
+  "_page_count": "fd69c87e4118d0a8680b15ace95d0f348138ad09d1c57c5de205b0e1dd6107cc",
+  "_fetch_detail": "c74e32be1c6154987c82568e834715e3d24f2e5fbdc935e3b90ad7f75247c6a3",
+  "crawl": "7d987712966cef42b89eb2ffe860c06038cdb6843e618428c9fbcd9ad4cc8848"
+ }
+}

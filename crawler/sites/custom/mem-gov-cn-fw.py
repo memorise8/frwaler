@@ -321,3 +321,130 @@ class MemGovCnFwCrawler(BaseCrawler):
 
         print(f"[mem-gov-cn-fw] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration (pure conversions for the enumeration framework)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Rows of one TRS list page (the channel root or index_N.shtml) exactly as crawl()
+        reads them. A page without the TRS pager (``var countPage``) is a listing error."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str) or not re.search(r"var\s+countPage\s*=\s*\d+", html):
+            raise PermanentFailure("listing_parse_error:not_a_list_page")
+        rows = []
+        seen_urls = set()
+        for href, list_title, list_date in self._parse_list(html):
+            rel = href[2:] if href.startswith("./") else href.lstrip("/")
+            detail_url = _LIST_BASE + rel
+            if detail_url in seen_urls:
+                continue
+            seen_urls.add(detail_url)
+            m2 = re.search(r"(t\d+_(\d+))\.shtml", detail_url)
+            rows.append({
+                "url": detail_url,
+                "external_id": m2.group(1) if m2 else detail_url.split("/")[-1],
+                "list_title": list_title,
+                "list_date": list_date,
+            })
+        return rows
+
+    def _enumeration_detail(self, html, url):
+        """The parsing half of _fetch_detail(): (title, abstract, pub_date, ext_id, post_num)."""
+        if not html:
+            return None
+
+        title = ""
+        h2 = re.search(r"<h2[^>]*>(.*?)</h2>", html, re.DOTALL | re.IGNORECASE)
+        if h2:
+            title = _strip_tags(h2.group(1)).strip()
+
+        pub_date = ""
+        dm = re.search(
+            r'class="time_laiy"[^>]*>.*?<span>([\d]{4}-[\d]{2}-[\d]{2})',
+            html, re.DOTALL,
+        )
+        if dm:
+            pub_date = dm.group(1).strip()
+
+        abstract = ""
+        try:
+            soup = _make_soup(html)
+            if soup:
+                editor = soup.find("div", class_="TRS_Editor")
+                if editor:
+                    abstract = re.sub(
+                        r"\s+", " ", editor.get_text(separator=" ")
+                    ).strip()
+        except Exception as exc:
+            print(f"[mem-gov-cn-fw] soup parse error for {url}: {exc}")
+
+        if not abstract:
+            trs = re.search(
+                r"<div\s[^>]*class=TRS_Editor[^>]*>(.*)",
+                html, re.DOTALL | re.IGNORECASE,
+            )
+            if trs:
+                abstract = _strip_tags(trs.group(1)[:80000]).strip()
+
+        ext_id = None
+        post_num = None
+        m2 = re.search(r"(t\d+_(\d+))\.shtml", url)
+        if m2:
+            ext_id = m2.group(1)
+            post_num = m2.group(2)
+
+        return title, abstract, pub_date, ext_id, post_num
+
+    def _enumeration_paper(self, detail_html, item):
+        """The paper crawl() saves for one list row and its detail page (None = skipped)."""
+        detail_url = item["url"]
+        list_title = item["list_title"]
+        list_date = item["list_date"]
+        result = self._enumeration_detail(detail_html, detail_url)
+        if result is None:
+            print(f"[mem-gov-cn-fw] item {detail_url} failed: no response")
+            return None
+
+        title, abstract, pub_date, ext_id, post_num = result
+
+        title = title or list_title
+        if not pub_date:
+            pub_date = list_date[:10] if list_date else ""
+
+        if not abstract or len(abstract) < 50:
+            print(
+                f"[mem-gov-cn-fw] Skipping short abstract "
+                f"({len(abstract)} chars): {title[:50]}"
+            )
+            return None
+
+        listed_date = list_date[:10] if list_date else None
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": ext_id or detail_url.split("/")[-1],
+            "post_number": post_num,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "posted_date": listed_date,
+            "url": detail_url,
+            "pdf_url": None,
+            "authors": None,
+            "publisher": "中华人民共和国应急管理部",
+            "department": None,
+            "journal": None,
+            "keywords": None,
+            "doi": None,
+            "category": "行政许可",
+            "original_filename": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": list_date,
+                    "category": "行政许可",
+                },
+                ensure_ascii=False,
+            ),
+        }
