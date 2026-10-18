@@ -1,0 +1,118 @@
+{
+ "listing_body": "[{\"id\": 101, \"date\": \"2026-10-17T10:50:16\", \"date_gmt\": \"2026-10-17T10:50:16\", \"modified\": \"2026-10-17T10:50:16\", \"modified_gmt\": \"2026-10-17T10:50:16\", \"slug\": \"deltio-1\", \"link\": \"https://www.mindev.gov.gr/deltio-1/\", \"title\": {\"rendered\": \"Δελτίο 1\"}, \"excerpt\": {\"rendered\": \"\"}, \"categories\": [76], \"tags\": []}, {\"id\": 102, \"date\": \"2026-10-16T09:00:00\", \"date_gmt\": \"2026-10-16T09:00:00\", \"modified\": \"2026-10-16T09:00:00\", \"modified_gmt\": \"2026-10-16T09:00:00\", \"slug\": \"deltio-2\", \"link\": \"https://www.mindev.gov.gr/deltio-2/\", \"title\": {\"rendered\": \"Δελτίο 2\"}, \"excerpt\": {\"rendered\": \"\"}, \"categories\": [76], \"tags\": []}]",
+ "details": {
+  "https://www.mindev.gov.gr/wp-json/wp/v2/posts/101?_embed=1": {
+   "id": 101,
+   "date": "2026-10-17T10:50:16",
+   "date_gmt": "2026-10-17T10:50:16",
+   "modified": "2026-10-17T10:50:16",
+   "modified_gmt": "2026-10-17T10:50:16",
+   "slug": "deltio-1",
+   "link": "https://www.mindev.gov.gr/deltio-1/",
+   "title": {
+    "rendered": "Δελτίο 1"
+   },
+   "excerpt": {
+    "rendered": ""
+   },
+   "categories": [
+    76
+   ],
+   "tags": [],
+   "content": {
+    "rendered": "<p>Συνθετικό δελτίο τύπου για τον έλεγχο παλινδρόμησης L2b: το crawl και το plan πρέπει να δίνουν το ίδιο paper. Synthetic offline text kept identical between crawl and plan.</p><p><a href=\"https://www.mindev.gov.gr/wp-content/uploads/2026/10/d1.pdf\">PDF</a></p>"
+   },
+   "guid": {
+    "rendered": "https://www.mindev.gov.gr/?p=101"
+   },
+   "author": 3,
+   "_embedded": {
+    "wp:term": [
+     [
+      {
+       "taxonomy": "category",
+       "name": "Δελτία Τύπου"
+      }
+     ],
+     []
+    ]
+   }
+  },
+  "https://www.mindev.gov.gr/wp-json/wp/v2/posts/102?_embed=1": {
+   "id": 102,
+   "date": "2026-10-16T09:00:00",
+   "date_gmt": "2026-10-16T09:00:00",
+   "modified": "2026-10-16T09:00:00",
+   "modified_gmt": "2026-10-16T09:00:00",
+   "slug": "deltio-2",
+   "link": "https://www.mindev.gov.gr/deltio-2/",
+   "title": {
+    "rendered": "Δελτίο 2"
+   },
+   "excerpt": {
+    "rendered": ""
+   },
+   "categories": [
+    76
+   ],
+   "tags": [],
+   "content": {
+    "rendered": "<p>Συνθετικό δελτίο τύπου για τον έλεγχο παλινδρόμησης L2b: το crawl και το plan πρέπει να δίνουν το ίδιο paper. Synthetic offline text kept identical between crawl and plan.</p><p><a href=\"https://www.mindev.gov.gr/wp-content/uploads/2026/10/d2.pdf\">PDF</a></p>"
+   },
+   "guid": {
+    "rendered": "https://www.mindev.gov.gr/?p=102"
+   },
+   "author": 3,
+   "_embedded": {
+    "wp:term": [
+     [
+      {
+       "taxonomy": "category",
+       "name": "Δελτία Τύπου"
+      }
+     ],
+     []
+    ]
+   }
+  }
+ },
+ "content_type": "application/json",
+ "long_text": "Συνθετικό δελτίο τύπου για τον έλεγχο παλινδρόμησης L2b: το crawl και το plan πρέπει να δίνουν το ίδιο paper. Synthetic offline text kept identical between crawl and plan.",
+ "empty_body": "[]",
+ "site_id": "mindev-gov-gr-category",
+ "original_method_source_sha256": {
+  "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+  "crawl": "53334c507fe490f93086a0ce03cd0fc6763410ce97adeed4f1c836816193b383",
+  "_curl_get": "85c4c18057b2579e815b126f4fff631c53f32dc7dc7276b2cd3d30f124e9d14b",
+  "_split_curl_output": "9fefd9318a34135142b988080eae93cae97bedaeb2f7b70ff591bcf7714f19a8",
+  "_list_api_url": "1256a8f509e4c7d9584169620ff0a1e723cda90f59e08bdf050c2550f7ca0ae3",
+  "_detail_api_url": "cd045db1156cbdd27959661b95fa46727c270178e9eac12941106e7aa22442b4",
+  "_parse_list_response": "01d293a8509e092f65ea37eab56b294cd65425670e4ad11b996f3ea7d8124e0e",
+  "_record_from_post": "0a8ae2fc7e73a6fc213eb587e7ad29101d2e50e0f3edbf5f76a59e03af5f3d9e",
+  "_parse_list_html": "b0c99cc51a13287ffcd776ba714c3de62651c165563e5a93d85bbbd82be726dc",
+  "_parse_detail_json": "50ab0fd73d8b6254b9504f54e2e3d26176a2710f78fbe7579fc63ec61e82f75d",
+  "_parse_public_detail_fallback": "02ce932e2499b73a0eea515f16e9faf19fc47b91352a795722a764f0eece6373",
+  "_make_soup": "3e2f545072b5efae0a79fad49f595ee91f8e788147bd271f597fbf89bffed85f",
+  "_extract_fragment_text": "fef8aac1c61806d0118f325c8153da0618f722229bd307f2f901ea7dd505fba4",
+  "_extract_links": "6d7cc66d932e02b64766afb611196f020001a21c47bb238a54f2353201f9acaf",
+  "_extract_image_urls": "b57d54baf073330d4c2625993f4ac891b0f86c72e24929792f5f7b7a81862f5c",
+  "_rendered": "72d570574df7ea50f0a3a81b121945f4d1b16c3270c4de1f70860d3000d8f4f1",
+  "_clean_text": "05a5e5e38e9ce628709d8e19dc362b0525cc1f668e53b92c7a5828ed6e248b91",
+  "_one_line": "159d46f0e5e2328b8f5396236e4b0af55ccb7a4c6e2e7494edbc12c331a96cb2",
+  "_clean_multiline": "7d1534819e9956946388a8da1b3884579ae6260ab78662562a6c86bd937950ce",
+  "_node_text": "b90ba4d6a303f698fea8a12683f211cbe24d655585899b253353184c5a185db5",
+  "_clean_title": "7bc274e3df9738f059737588e01dde73bf2d0615152eab57b02513a4faeb9b58",
+  "_meta_content": "5d537521e6ee72a422f44a01961ad4b32baa3b067677a49b11162c19a663cbec",
+  "_link_href": "ef48f3aa703c48ff7029dd89fe1e71c3281e3295b182950cd03c1d112c46b246",
+  "_parse_terms": "f45aaa9c0cf6f0ec8c9aad95a0fecab5057817ca8405441ea7067e403bafe75d",
+  "_parse_authors": "d703f7079f762a04d939fb311ecc09cfa994f1bd864688c1af55c9e7719a624e",
+  "_featured_media_url": "6df8162dadd4076d8a58e40d672d1a057bba4065255587073089c5dd540b059c",
+  "_parse_date": "6d81ca9fc5a38c562f0319598da574c9478b169092886b2b60b1eade1b2a2da8",
+  "_external_id_from_html": "65cc36bb310da10dd7b479f4bcf491d7bb8335e35ae0c69d62549b3789f90a72",
+  "_external_id_from_url": "4c8e66c3f70e9bf897a7dca2fd5d72014cdeaad0558d6dc0132c97995224c990",
+  "_looks_like_pdf": "6f49f7d77128fd45420f89905b8e3c57af785db546eec749ed816c2d78c09010",
+  "_looks_like_attachment": "b82b14f545d4438f6dc0217d610ef732bc4b305e1844345de1f0cfa188c4bced",
+  "_is_internal_link": "7e6fe4f4025a0d8138c370f179631f99d6ac67a637bc2f7858e5d756a3fff913",
+  "_dedupe": "d6bdd33ccfffa783f10fe0e20152d5ac0182afd855946b789383acdcffdc9cf2"
+ }
+}

@@ -18,7 +18,7 @@ import re
 import subprocess
 import time
 from html import unescape
-from urllib.parse import urlencode, urljoin, urlparse
+from urllib.parse import parse_qs, urlencode, urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
@@ -777,3 +777,56 @@ class MindevGovGrCategoryCrawler(BaseCrawler):
             seen.add(text)
             result.append(text)
         return result
+
+    # -- enumeration split (crawl() unchanged) --------------------------
+    def _enumeration_items(self, data, url=""):
+        """Records of one REST list page, exactly as crawl() builds them.
+        The list URL in each record is crawl's own string for that page number."""
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:items_not_a_list_of_objects", url)
+        query = parse_qs(urlparse(url or "").query)
+        try:
+            page = int((query.get("page") or ["1"])[0])
+        except ValueError:
+            page = 1
+        list_url = self._list_api_url(page)
+        records = []
+        for item in data:
+            record = self._record_from_post(item, list_url)
+            if record:
+                records.append(record)
+        return records
+
+    def _enumeration_detail(self, html, item):
+        """crawl()'s detail step for the REST detail body (no public-HTML network fallback)."""
+        detail_data = json.loads(html)
+        if not isinstance(detail_data, dict):
+            raise RuntimeError("detail API returned non-object JSON")
+        detail_url = item.get("detail_api_url") or self._detail_api_url(item.get("external_id"))
+        return self._parse_detail_json(detail_data, item, detail_url)
+
+    def _enumeration_paper(self, item, detail):
+        """The paper crawl() saves (same two abstract thresholds; None = skipped)."""
+        parsed = detail
+        abstract = parsed.get("abstract") or ""
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        if len(abstract) < self.MIN_SAVED_ABSTRACT_CHARS:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": parsed["external_id"],
+            "title": parsed["title"],
+            "authors": json.dumps(parsed["authors"], ensure_ascii=False),
+            "abstract": abstract,
+            "category": parsed["category"],
+            "keywords": json.dumps(parsed["keywords"], ensure_ascii=False),
+            "published_date": parsed["published_date"],
+            "url": parsed["url"],
+            "pdf_url": parsed["pdf_url"],
+            "doi": "",
+            "department": parsed["department"],
+            "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
+        }
