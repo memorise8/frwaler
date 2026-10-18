@@ -1,0 +1,19 @@
+{
+  "site_id": "kipo-go-kr-ko",
+  "listing_body": "<html><body><div class=\"countWrap\">총 : 2건</div><table class=\"tbl_list\"><thead><tr><th>번호</th><th>제목</th><th>등록일</th></tr></thead><tbody><tr><td>101</td><td class=\"bbs_tit\"><a href=\"/ko/kpoBultnDetail.do?menuCd=SCD0201112&amp;ntatcSeq=101&amp;sysCd=SCD02&amp;aprchId=BUT0000065\" title=\"Offline 101\">Offline 101</a></td><td>2026-10-01</td></tr><tr><td>102</td><td class=\"bbs_tit\"><a href=\"/ko/kpoBultnDetail.do?menuCd=SCD0201112&amp;ntatcSeq=102&amp;sysCd=SCD02&amp;aprchId=BUT0000065\" title=\"Offline 102\">Offline 102</a></td><td>2026-10-02</td></tr></tbody></table></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.kipo.go.kr/ko/kpoBultnDetail.do?menuCd=SCD0201112&ntatcSeq=101&sysCd=SCD02&aprchId=BUT0000065": "<html><body><div class=\"tbl_view\"><div class=\"v_tit\">Offline 101 연구보고서</div><div class=\"v_header\"><strong>담당부서</strong><div>정책과</div><strong>작성일</strong><div>2026-10-01</div></div><div class=\"v_header\"><strong>연락처</strong><div>042-000-0000</div></div><div class=\"v_body\"><p>Synthetic policy report résumé and Korean 연구 보고서 for offline equality testing only. Synthetic policy report résumé and Korean 연구 보고서 for offline equality testing only. </p></div><div class=\"v_bottom\"><a href=\"/ko/kpoBultnFileDown.do?ntatcSeq=101&amp;ntatcAtflSeq=1&amp;sysCd=SCD02&amp;aprchId=BUT0000065\" title=\"report-101.pdf 다운로드\">report-101.pdf</a></div></div></body></html>",
+    "https://www.kipo.go.kr/ko/kpoBultnDetail.do?menuCd=SCD0201112&ntatcSeq=102&sysCd=SCD02&aprchId=BUT0000065": "<html><body><div class=\"tbl_view\"><div class=\"v_tit\">Offline 102 연구보고서</div><div class=\"v_header\"><strong>담당부서</strong><div>정책과</div><strong>작성일</strong><div>2026-10-02</div></div><div class=\"v_header\"><strong>연락처</strong><div>042-000-0000</div></div><div class=\"v_body\"><p>Synthetic policy report résumé and Korean 연구 보고서 for offline equality testing only. Synthetic policy report résumé and Korean 연구 보고서 for offline equality testing only. </p></div><div class=\"v_bottom\"><a href=\"/ko/kpoBultnFileDown.do?ntatcSeq=102&amp;ntatcAtflSeq=1&amp;sysCd=SCD02&amp;aprchId=BUT0000065\" title=\"report-102.pdf 다운로드\">report-102.pdf</a></div></div></body></html>"
+  },
+  "long_text": "Synthetic policy report résumé and Korean 연구 보고서 for offline equality testing only. Synthetic policy report résumé and Korean 연구 보고서 for offline equality testing only. ",
+  "empty_body": "<html><body><div class=\"countWrap\">총 : 2건</div><table class=\"tbl_list\"><thead><tr><th>번호</th><th>제목</th><th>등록일</th></tr></thead><tbody><tr><td colspan=\"3\">등록된 게시물이 없습니다.</td></tr></tbody></table></body></html>",
+  "short_keeps_items": true,
+  "original_method_source_sha256": {
+    "_curl": "38a1026252156027de6bdaaaedc4382e392f211dfed2e6b372b9af3b1108d6de",
+    "_fetch_list": "ca05408edb713c9b1520d4c2770dfcd94464003bff1ab71b2c8a9477cf343f22",
+    "_parse_list": "c5630df2df4bab7ef23739f2af54678970730b190dc5148610eae9bcb3322d05",
+    "_fetch_detail": "ba2a328fa18506b9ecc9072b3b7542a7396325bf904cad9d6aee99bb3981a338",
+    "crawl": "6f676a60716c53894ac5572b849f6e1405a88847f7eaf70a76679b39bff91214"
+  }
+}

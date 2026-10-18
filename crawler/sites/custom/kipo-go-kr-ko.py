@@ -406,3 +406,168 @@ class KipoGoKrKoCrawler(BaseCrawler):
             raise
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (no network); crawl() and the methods
+    # above are unchanged. The listing is read with GET
+    # kpoBultnMgmt.do?...&pageIndex=N, which serves the same page as
+    # _fetch_list()'s POST.
+    # ------------------------------------------------------------------
+
+    def _enumeration_detail_url(self, ntatc_seq):
+        """The URL _fetch_detail() requests for one item."""
+        return (
+            f"{self._DETAIL_URL}"
+            f"?menuCd={self._MENU_CD}"
+            f"&ntatcSeq={ntatc_seq}"
+            f"&sysCd={self._SYS_CD}"
+            f"&aprchId={self._APRCH_ID}"
+        )
+
+    def _enumeration_items(self, html, url=None):
+        """List-page HTML -> _parse_list() rows plus _fetch_detail()'s URL."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None or soup.find("table", class_="tbl_list") is None:
+            raise PermanentFailure("listing_parse_error:missing_list_table")
+        rows = []
+        for item in self._parse_list(html):
+            row = dict(item)
+            row["fetch_url"] = self._enumeration_detail_url(item["ntatc_seq"])
+            rows.append(row)
+        return rows
+
+    def _enumeration_detail(self, html):
+        """_fetch_detail()'s parsing of an already fetched detail page (or None)."""
+        soup = _make_soup(html)
+        if not soup:
+            return None
+
+        tbl = soup.find("div", class_="tbl_view")
+        if not tbl:
+            return None
+
+        result = {
+            "title": None,
+            "department": None,
+            "contact": None,
+            "published_date": None,
+            "body": None,
+            "pdf_url": None,
+            "pdf_filename": None,
+        }
+
+        v_tit = tbl.find("div", class_="v_tit")
+        if v_tit:
+            result["title"] = v_tit.get_text(strip=True)
+
+        for v_hdr in tbl.find_all("div", class_="v_header"):
+            labels = [s.get_text(strip=True) for s in v_hdr.find_all("strong")]
+            val_divs = [d for d in v_hdr.find_all("div") if not d.find("div")]
+            vals = [d.get_text(strip=True) for d in val_divs]
+            for label, val in zip(labels, vals):
+                if "담당부서" in label:
+                    result["department"] = val
+                elif "작성일" in label or "등록일" in label:
+                    md = re.search(r"(\d{4}-\d{2}-\d{2})", val)
+                    if md:
+                        result["published_date"] = md.group(1)
+                elif "연락처" in label:
+                    result["contact"] = val
+
+        v_body = tbl.find("div", class_="v_body")
+        if v_body:
+            body_text = v_body.get_text(strip=True)
+            if body_text:
+                result["body"] = body_text
+
+        for v_bot in tbl.find_all("div", class_="v_bottom"):
+            for a in v_bot.find_all("a", href=re.compile(r"kpoBultnFileDown\.do")):
+                href = a.get("href", "")
+                result["pdf_url"] = urljoin(self.base_url, href)
+                a_title = a.get("title", "")
+                fn_m = re.match(r"(.+?)\s+다운로드", a_title)
+                if fn_m:
+                    result["pdf_filename"] = fn_m.group(1).strip()
+                elif a.get_text(strip=True):
+                    result["pdf_filename"] = a.get_text(strip=True)
+                break
+            if result["pdf_url"]:
+                break
+
+        return result
+
+    def _enumeration_paper(self, html, row):
+        """Detail HTML + list row -> the paper crawl() saves (or None)."""
+        item = {k: row[k] for k in ("ntatc_seq", "title", "detail_url", "listed_date",
+                                    "pdf_url", "pdf_filename")}
+        detail_url = item["detail_url"]
+        detail = self._enumeration_detail(html) if html else None
+
+        if detail:
+            title = detail.get("title") or item["title"]
+            body = detail.get("body") or ""
+            published_date = (
+                detail.get("published_date") or item.get("listed_date")
+            )
+            department = detail.get("department") or ""
+            contact = detail.get("contact") or ""
+            pdf_url = detail.get("pdf_url") or item.get("pdf_url")
+            pdf_filename = (
+                detail.get("pdf_filename") or item.get("pdf_filename")
+            )
+        else:
+            title = item["title"]
+            body = ""
+            published_date = item.get("listed_date")
+            department = ""
+            contact = ""
+            pdf_url = item.get("pdf_url")
+            pdf_filename = item.get("pdf_filename")
+
+        ab_parts = []
+        if title:
+            ab_parts.append(f"제목: {title}")
+        meta_fields = []
+        if department:
+            meta_fields.append(f"담당부서: {department}")
+        if contact:
+            meta_fields.append(f"연락처: {contact}")
+        if published_date:
+            meta_fields.append(f"작성일: {published_date}")
+        ab_parts.extend(meta_fields)
+        if body:
+            ab_parts.append(body)
+        if pdf_filename:
+            ab_parts.append(f"첨부파일: {pdf_filename}")
+        abstract = "\n".join(ab_parts)
+
+        if len(abstract) < 50:
+            return None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": item["ntatc_seq"],
+            "post_number": item["ntatc_seq"],
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": item.get("listed_date"),
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "original_filename": pdf_filename,
+            "publisher": "특허청",
+            "department": department,
+            "category": "정책용역/연구보고서",
+            "metadata": json.dumps(
+                {
+                    "ntatcSeq": item["ntatc_seq"],
+                    "posted_date": item.get("listed_date"),
+                    "originalFilename": pdf_filename,
+                    "contact": contact,
+                },
+                ensure_ascii=False,
+            ),
+        }
