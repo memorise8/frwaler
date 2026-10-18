@@ -324,3 +324,49 @@ class KwdiReKrPlazaCrawler(BaseCrawler):
                 ensure_ascii=False,
             ),
         }
+
+    # ------------------------------------------------------------------
+    # Enumeration split (collector-splits 방식; crawl() 은 그대로)
+    # ------------------------------------------------------------------
+
+    _ENUM_LISTING_MARKER = "table.table-list"
+
+    def _enumeration_items(self, html, url=""):
+        """목록 쪽 HTML → 행 dict. crawl() 과 같은 _parse_list 결과를 쓰고,
+        상세 URL 은 crawl() 과 같이 목록 쪽 번호(p)와 idx 로 만든다."""
+        from urllib.parse import parse_qs, urlsplit
+
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None or soup.select_one(self._ENUM_LISTING_MARKER) is None:
+            raise PermanentFailure("listing_parse_error:missing_table_list")
+        values = parse_qs(urlsplit(url or "").query).get("p") or ["1"]
+        try:
+            page = int(values[0])
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:bad_page_param")
+        rows = []
+        for idx, title_hint, date_hint, pdf_hint in self._parse_list(html):
+            rows.append({
+                "external_id": idx,
+                "url": f"{self._DETAIL_BASE}?p={page}&idx={idx}",
+                "title": title_hint,
+                "listed_date": date_hint,
+                "pdf_hint": pdf_hint,
+                "page": page,
+            })
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """상세 HTML + 목록 행 → crawl() 이 저장하는 것과 같은 paper (초록 100자 미만은 None)."""
+        if not html:
+            return None
+        paper = self._build_paper(
+            item["external_id"], html, item["url"],
+            item["title"], item["listed_date"], item["pdf_hint"], item["page"],
+        )
+        if len(paper.get("abstract") or "") < 100:
+            return None
+        return paper
