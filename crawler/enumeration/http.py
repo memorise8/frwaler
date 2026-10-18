@@ -162,6 +162,13 @@ def robots_octets(value):
     return "".join(out)
 
 
+def _html_body(body):
+    """An HTML/XML document, whatever the Content-Type: a robots.txt never has markup tags."""
+    head = (body or b"")[:4096].lstrip(b"\xef\xbb\xbf \t\r\n").lower()
+    return head.startswith((b"<!doctype", b"<html", b"<?xml")) or any(
+        tag in head for tag in (b"<html", b"<head", b"<body", b"<script"))
+
+
 def _agent_applies(agent, user_agent):
     """Group user-agent token vs our product token: the first product of our User-Agent
     ("LibertreeCollector" for the default), case-insensitive, as urllib.robotparser selected groups.
@@ -729,7 +736,8 @@ class Fetcher:
 
     def _load_robots(self, origin):
         """404/410 and other 4xx: no rules. 401/403/407/451, a challenge/login page or a
-        redirect to a login path: hold (never read as permission). 5xx/429/transport errors
+        redirect to a login path: hold (never read as permission). Any other HTML page in
+        place of the file: unparseable (the site stops). 5xx/429/transport errors
         after the retries: TransientFailure, turned into a RobotsUnavailable stop by the caller."""
         url = origin + "/robots.txt"
         for _hop in range(self.max_redirects + 1):
@@ -753,6 +761,10 @@ class Fetcher:
             return "allow_all"
         if self._challenge(resp) or login_page(resp.body):
             raise self._block("robots_challenge", url, resp.status)
+        if _html_body(resp.body):
+            # A page in place of robots.txt (home page after a redirect, error page, a challenge
+            # not recognised above): never read as "no rules". The caller stops the site.
+            return "unparseable"
         text = resp.text()
         try:
             rules = parse_robots(text)
