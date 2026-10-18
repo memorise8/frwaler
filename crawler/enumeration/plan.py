@@ -232,6 +232,9 @@ def _validate_listing_extensions(site_id, raw, listing):
             raise PlanError(f"{site_id}: last_page_path must be a literal JSON path")
     if "end_on_204" in listing and not isinstance(listing["end_on_204"], bool):
         raise PlanError(f"{site_id}: end_on_204 must be true or false")
+    if "end_on_blank_body" in listing and not isinstance(listing["end_on_blank_body"], bool):
+        raise PlanError(f"{site_id}: end_on_blank_body must be true or false")
+
 
 
 _DYN = re.compile(r"\{dyn:([A-Za-z_][A-Za-z0-9_]{0,31})\}")
@@ -364,7 +367,24 @@ def _validate_segment_items(site_id, listing, items):
 def _validate_discover(site_id, listing, seg):
     """ext:multi_listing: segments found on a hub page of the listing host on every run."""
     allowed = {"mode", "hub_url", "selector", "attr", "key_regex", "params", "label", "min_segments",
-               "within_segment_order", "overlap_pages", "hidden_cap", "retired"}
+               "within_segment_order", "overlap_pages", "hidden_cap", "retired", "follow", "link_as_url"}
+    if "link_as_url" in seg:
+        # ext:discover_segment_url: the found link itself is the segment's listing (paging by page_param).
+        if seg["link_as_url"] is not True or "{page}" in listing["url"] or "{segment}" in listing["url"]:
+            raise PlanError(f"{site_id}: segments.link_as_url is true, with a plain listing.url (no {{page}}/{{segment}})")
+        if not _same_listing_host(listing, seg.get("hub_url")):
+            raise PlanError(f"{site_id}: segments.link_as_url needs the hub on the listing host")
+    follow = seg.get("follow")
+    if follow is not None:
+        # ext:multi_level_discover: hub -> sub-hubs (same host) -> segment links.
+        if not isinstance(follow, dict) or set(follow) - {"selector", "attr", "max_depth", "max_pages"} \
+                or not isinstance(follow.get("selector"), str) or not follow["selector"].strip() \
+                or not _LITERAL.match(str(follow.get("attr", "href"))):
+            raise PlanError(f"{site_id}: segments.follow is {{selector, attr, max_depth, max_pages}}")
+        if type(follow.get("max_depth", 2)) is not int or not 1 <= follow.get("max_depth", 2) <= 5:
+            raise PlanError(f"{site_id}: segments.follow.max_depth must be 1..5")
+        if type(follow.get("max_pages", 100)) is not int or not 1 <= follow.get("max_pages", 100) <= 1000:
+            raise PlanError(f"{site_id}: segments.follow.max_pages must be 1..1000")
     retired = seg.get("retired", [])
     if not isinstance(retired, list) or not all(isinstance(k, str) for k in retired):
         raise PlanError(f"{site_id}: segments.retired is a list of segment keys a person confirmed gone")
@@ -385,7 +405,7 @@ def _validate_discover(site_id, listing, seg):
     params = seg.get("params", {})
     if not isinstance(params, dict) or not all(isinstance(v, str) for v in params.values()):
         raise PlanError(f"{site_id}: segments.params maps names to strings ({{key}} is the found key)")
-    if "{segment}" not in listing["url"] and not params:
+    if "{segment}" not in listing["url"] and not params and not seg.get("link_as_url"):
         raise PlanError(f"{site_id}: discovered segments need {{segment}} in listing.url or params")
     label = seg.get("label", "text")
     if label is not None and label != "text" and not re.fullmatch(r"attr:[A-Za-z_][A-Za-z0-9_.-]{0,63}", str(label)):
@@ -412,6 +432,24 @@ def _validate_second_step(site_id, adapter):
             raise PlanError(f"{site_id}: adapter.second_step.url_template uses {{item:<field>}} values only")
     elif not isinstance(step.get("selector"), str) or not step["selector"].strip():
         raise PlanError(f"{site_id}: adapter.second_step.selector is required")
+    add = step.get("add_params")
+    if add is not None and (not isinstance(add, dict) or not all(_LITERAL.match(str(k)) and isinstance(v, str)
+                                                               for k, v in add.items())):
+        raise PlanError(f"{site_id}: adapter.second_step.add_params maps parameter names to strings")
+    rewrite = step.get("rewrite")
+    if rewrite is not None:
+        # ext:second_step_link_rewrite: regex groups of the found link fill an absolute address.
+        if not isinstance(rewrite, dict) or set(rewrite) != {"regex", "template"}:
+            raise PlanError(f"{site_id}: adapter.second_step.rewrite is {{regex, template}}")
+        try:
+            groups = re.compile(rewrite["regex"]).groups
+        except (re.error, TypeError):
+            raise PlanError(f"{site_id}: adapter.second_step.rewrite.regex does not compile") from None
+        refs = [int(n) for n in re.findall(r"\{(\d)\}", str(rewrite["template"]))]
+        if not isinstance(rewrite["template"], str) or not re.match(r"https?://[^/{}]+/", rewrite["template"]) \
+                or not refs or max(refs) > groups or min(refs) < 1 \
+                or re.sub(r"\{\d\}", "", rewrite["template"]).count("{"):
+            raise PlanError(f"{site_id}: adapter.second_step.rewrite.template is an absolute URL using {{1}}..{{n}}")
     if not _LITERAL.match(str(step.get("attr", "href"))):
         raise PlanError(f"{site_id}: adapter.second_step.attr must be an attribute name")
     hosts = step.get("allow_hosts", [])
@@ -427,8 +465,13 @@ def _validate_first_tokens(site_id, adapter):
     for stage in ("detail", "paper"):
         bindings += list(adapter.get(stage + "_args") or []) + list((adapter.get(stage + "_kwargs") or {}).values())
     list_bindings = list(adapter.get("list_args") or []) + list((adapter.get("list_kwargs") or {}).values())
-    if "segment" in list_bindings:
-        raise PlanError(f"{site_id}: the segment argument is for detail/paper methods")
+    if "segment" in list_bindings or "list_position" in list_bindings:
+        raise PlanError(f"{site_id}: the segment/list_position arguments are for detail/paper methods")
+    for key in ("none_is_rule_skip", "allow_shared_post_number"):
+        if key in adapter and adapter[key] is not True:
+            raise PlanError(f"{site_id}: adapter.{key} is true or absent")
+    if adapter.get("allow_shared_post_number") and adapter.get("type") != "crawler":
+        raise PlanError(f"{site_id}: allow_shared_post_number keeps a registered crawler's rule (crawler adapter only)")
     uses_first = any(isinstance(b, str) and b.startswith("first_") for b in bindings)
     if uses_first and (adapter.get("second_step") or {}).get("use") != "detail_page":
         raise PlanError(f"{site_id}: first_* arguments need adapter.second_step.use detail_page")
@@ -541,6 +584,21 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
     _validate_headers(site_id, raw)
     _validate_second_step(site_id, raw.get("adapter") or {})
     _validate_first_tokens(site_id, raw.get("adapter") or {})
+    from .http import DEFAULT_MAX_BYTES
+    file_max = raw.get("file_max_bytes")
+    if type(file_max) is not int or file_max < 1:
+        raise PlanError(f"{site_id}: file_max_bytes must be a positive integer")
+    limit = raw.get("max_response_bytes")
+    if limit is not None and (type(limit) is not int or not DEFAULT_MAX_BYTES <= limit <= file_max):
+        # ext:response_size raises the response cap (default 50 MiB), never above file_max_bytes.
+        raise PlanError(f"{site_id}: max_response_bytes must be an integer from {DEFAULT_MAX_BYTES} up to file_max_bytes")
+    adapter = raw.get("adapter") or {}
+    ratio = adapter.get("max_rule_skip_ratio")
+    if ratio is not None and (type(ratio) not in (int, float) or not 0 <= ratio < 1):
+        raise PlanError(f"{site_id}: adapter.max_rule_skip_ratio must be within [0, 1)")
+    streak = adapter.get("max_consecutive_rule_skips")
+    if streak is not None and (type(streak) is not int or streak < 1):
+        raise PlanError(f"{site_id}: adapter.max_consecutive_rule_skips must be a positive integer")
     robots_limit = raw.get("max_consecutive_robots_disallowed")
     if type(robots_limit) is not int or robots_limit < 1:
         raise PlanError(f"{site_id}: max_consecutive_robots_disallowed must be a positive integer")

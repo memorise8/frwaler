@@ -157,6 +157,9 @@ def registered_crawler(site_id, conn):
 
 def make_fetcher(plan, state_dir, transport=None, *, max_bytes=None, holds=None):
     headers = resolve_headers(plan.raw)  # PlanError when a named environment variable is missing
+    if plan.raw.get("max_response_bytes"):
+        # ext:response_size: a source whose listing responses are larger than the default cap.
+        max_bytes = max(max_bytes or 0, int(plan.raw["max_response_bytes"]))
     transport = transport or RequestsTransport(verify=plan.get("verify_ssl"),
                                                **({"max_bytes": max_bytes} if max_bytes else {}))
     return Fetcher(plan.site_id, transport, Path(state_dir) / "gates", holds=holds,
