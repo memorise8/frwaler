@@ -421,3 +421,220 @@ class MmaGoBoardCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+
+# ---------------------------------------------------------------------------
+# Pure enumeration contract (no network); crawl() and the methods above are
+# unchanged.  These repeat the parsing halves of _fetch_list_page() and
+# _fetch_detail() over a response body instead of fetching.
+# ---------------------------------------------------------------------------
+
+def _enumeration_list_rows(table):
+    items = []
+    tbody = table.find("tbody")
+    rows = tbody.find_all("tr") if tbody else []
+    for row in rows:
+        td_title = row.find("td", class_="text_left")
+        if not td_title:
+            continue
+        a_tag = td_title.find("a")
+        if not a_tag:
+            continue
+        href = a_tag.get("href", "")
+        m = re.search(r"gsgeul_no=(\d+)", href)
+        if not m:
+            continue
+        gsgeul_no = m.group(1)
+        title = " ".join(a_tag.get_text(" ", strip=True).split())
+
+        tds = row.find_all("td")
+        date_text = ""
+        for td in tds:
+            text = td.get_text(strip=True)
+            if re.match(r"\d{4}-\d{2}-\d{2}", text):
+                date_text = text
+                break
+
+        dept = ""
+        skip_tds = [td for td in tds if "skip_m" in td.get("class", [])]
+        if skip_tds:
+            dept = skip_tds[0].get_text(strip=True)
+
+        items.append({
+            "gsgeul_no": gsgeul_no,
+            "title": title,
+            "listed_date": _parse_date(date_text),
+            "department": dept,
+        })
+    return items
+
+
+def _enumeration_detail(raw, gsgeul_no):
+    """Detail HTML -> the dict _fetch_detail() returns (or None)."""
+    if not raw:
+        return None
+    soup = _soup(raw)
+    if soup is None:
+        return None
+    table = soup.find("table", class_="notice_view")
+    if not table:
+        return None
+
+    url = (
+        f"{_BASE_URL}{_VIEW_PATH}"
+        f"?gesipan_id={_GESIPAN_ID}&gsgeul_no={gsgeul_no}"
+        f"&pageIndex=1&mc={_MC}"
+    )
+    result: dict = {"url": url, "gsgeul_no": gsgeul_no}
+
+    title_th = table.find("th", string=re.compile(r"제목"))
+    if title_th:
+        td = title_th.find_next_sibling("td")
+        if td:
+            result["title"] = td.get_text(" ", strip=True)
+
+    meta_td = table.find("td", attrs={"colspan": "2"})
+    if meta_td:
+        meta_text = meta_td.get_text(" ", strip=True)
+        m_author = re.search(r"작성자\s*:\s*([^\s]+(?:\s[^\s]+)*?)(?=\s{2,}|\s작성일|\s조회|$)", meta_text)
+        if m_author:
+            result["department"] = m_author.group(1).strip()
+        m_date = re.search(r"작성일\s*:\s*(\d{4}-\d{2}-\d{2})", meta_text)
+        if m_date:
+            result["published_date"] = m_date.group(1)
+        m_mod = re.search(r"최종\s*수정일\s*:\s*(\d{4}-\d{2}-\d{2})", meta_text)
+        if m_mod:
+            result["modified_date"] = m_mod.group(1)
+
+    con_td = table.find("td", class_="con_text")
+    if con_td:
+        result["abstract_html"] = str(con_td)
+        result["abstract"] = _strip_tags(str(con_td))
+
+    extra_fields: dict = {}
+    for tr in table.find_all("tr"):
+        th = tr.find("th")
+        td = tr.find("td")
+        if th and td:
+            label = th.get_text(strip=True)
+            if label in ("제목", "첨부파일") or td.get("colspan"):
+                continue
+            val = td.get_text(" ", strip=True)
+            if label and val:
+                extra_fields[label] = val
+    if extra_fields:
+        result["extra_fields"] = extra_fields
+
+    files = []
+    for a in table.find_all("a", href=re.compile(r"/boardFileDown\.do")):
+        href = a["href"]
+        fn_match = re.search(r"ilryeon_no=(\d+)", href)
+        ilryeon = fn_match.group(1) if fn_match else "1"
+        fname = a.get("title", "")
+        fname = re.sub(r"\s+파일\s+다운로드$", "", fname).strip()
+        link_text = a.get_text(" ", strip=True)
+        if not fname:
+            fname = link_text
+        down_url = urljoin(_BASE_URL, href.replace("&amp;", "&"))
+        files.append({
+            "url": down_url,
+            "filename": fname,
+            "ilryeon_no": ilryeon,
+        })
+    result["files"] = files
+    return result
+
+
+def _enumeration_items(self, html, url=None):
+    """List-page HTML -> rows plus the detail URL crawl() saves (``pageIndex`` = list page)."""
+    from urllib.parse import parse_qs, urlsplit
+    from crawler.enumeration.http import PermanentFailure
+    if not isinstance(html, str):
+        raise PermanentFailure("listing_parse_error:expected_html")
+    soup = _soup(html)
+    table = soup.find("table", class_="board_notice") if soup is not None else None
+    if table is None:
+        raise PermanentFailure("listing_parse_error:missing_board_notice")
+    page = 1
+    if url:
+        value = parse_qs(urlsplit(url).query).get("pageIndex")
+        if value and value[0].isdigit():
+            page = int(value[0])
+    rows = []
+    for item in _enumeration_list_rows(table):
+        row = dict(item)
+        row["page"] = page
+        row["url"] = (
+            f"{_BASE_URL}{_VIEW_PATH}"
+            f"?gesipan_id={_GESIPAN_ID}&gsgeul_no={item['gsgeul_no']}"
+            f"&pageIndex={page}&mc={_MC}"
+        )
+        rows.append(row)
+    return rows
+
+
+def _enumeration_paper(self, html, item):
+    """Detail page HTML + list row -> the paper crawl() saves (or None)."""
+    gsgeul_no = item["gsgeul_no"]
+    detail_url = item["url"]
+    detail = _enumeration_detail(html, gsgeul_no)
+    if not detail:
+        return None
+
+    title = detail.get("title") or item.get("title") or ""
+    abstract = detail.get("abstract") or ""
+    published_date = detail.get("published_date") or item.get("listed_date") or ""
+    listed_date = item.get("listed_date") or published_date
+    department = detail.get("department") or item.get("department") or "병무청"
+
+    if len(abstract) < 50:
+        return None
+
+    files = detail.get("files", [])
+    pdf_url = None
+    original_filename = None
+    for f in files:
+        fn = f.get("filename", "").lower()
+        if fn.endswith(".pdf"):
+            pdf_url = f["url"]
+            original_filename = f["filename"]
+            break
+    if not pdf_url and files:
+        pdf_url = files[0]["url"]
+        original_filename = files[0]["filename"]
+
+    metadata = {
+        "posted_date": listed_date,
+        "gsgeul_no": gsgeul_no,
+        "gesipan_id": _GESIPAN_ID,
+        "files": files,
+    }
+    if detail.get("modified_date"):
+        metadata["modified_date"] = detail["modified_date"]
+    if detail.get("extra_fields"):
+        metadata["extra_fields"] = detail["extra_fields"]
+
+    return {
+        "site_id": self.site_id,
+        "external_id": gsgeul_no,
+        "post_number": gsgeul_no,
+        "title": title,
+        "abstract": abstract,
+        "published_date": published_date,
+        "listed_date": listed_date,
+        "authors": "",
+        "publisher": "병무청",
+        "department": department,
+        "url": detail_url,
+        "pdf_url": pdf_url or "",
+        "original_filename": original_filename or "",
+        "category": "보도자료",
+        "keywords": "",
+        "doi": "",
+        "journal": "",
+        "metadata": json.dumps(metadata, ensure_ascii=False),
+    }
+
+
+MmaGoBoardCrawler._enumeration_items = _enumeration_items
+MmaGoBoardCrawler._enumeration_paper = _enumeration_paper

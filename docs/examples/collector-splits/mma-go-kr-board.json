@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "defaults": {"request_interval_s": 1.5, "respect_robots": true, "retries": 1},
+  "sites": {
+    "mma-go-kr-board": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.mma.go.kr",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": ["html", "url"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["html", "item"]
+      },
+      "listing": {
+        "url": "https://www.mma.go.kr/board/boardList.do",
+        "params": {"gesipan_id": "15", "mc": "mma0000392", "pageIndex": 1, "pageUnit": "10"},
+        "page_param": "pageIndex",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "gsgeul_no",
+          "url_field": "url",
+          "title_field": "title",
+          "date_field": "listed_date",
+          "listing_marker": "table.board_notice"
+        }
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}

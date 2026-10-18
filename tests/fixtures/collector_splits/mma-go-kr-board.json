@@ -1,0 +1,17 @@
+{
+  "site_id": "mma-go-kr-board",
+  "listing_body": "<html><body><table class=\"board_notice\"><thead><tr><th>번호</th></tr></thead><tbody class=\"text_center\"><tr><th scope=\"row\" class=\"skip_m\">2</th><td class=\"text_left\"><a href=\"boardView.do?gesipan_id=15&amp;gsgeul_no=101&amp;pageIndex=1&amp;mc=mma0000392\">Offline 101</a></td><td class=\"skip_m\">대변인실</td><td>2026-10-01</td><td class=\"skip_m\">1</td></tr><tr><th scope=\"row\" class=\"skip_m\">1</th><td class=\"text_left\"><a href=\"boardView.do?gesipan_id=15&amp;gsgeul_no=102&amp;pageIndex=1&amp;mc=mma0000392\">Offline 102</a></td><td class=\"skip_m\">대변인실</td><td>2026-10-02</td><td class=\"skip_m\">1</td></tr></tbody></table></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.mma.go.kr/board/boardView.do?gesipan_id=15&gsgeul_no=101&pageIndex=1&mc=mma0000392": "<html><body><table class=\"notice_view\"><tr><th>제목</th><td>Offline 101 상세</td></tr><tr><td colspan=\"2\">작성자 : 대변인실  작성일 : 2026-10-01  최종 수정일 : 2026-10-11  조회 : 3</td></tr><tr><th>부제목1</th><td>Sub 101</td></tr><tr><th>첨부파일</th><td><a href=\"/boardFileDown.do?gesipan_id=15&amp;gsgeul_no=101&amp;ilryeon_no=1\" title=\"report-101.hwp 파일 다운로드\">report-101.hwp</a> <a href=\"/boardFileDown.do?gesipan_id=15&amp;gsgeul_no=101&amp;ilryeon_no=2\" title=\"report-101.pdf 파일 다운로드\">report-101.pdf</a></td></tr><tr><td class=\"con_text\"><p>Synthetic military manpower press release 자료 for offline equality testing only. Synthetic military manpower press release 자료 for offline equality testing only. Synthetic military manpower press release 자료 for offline equality testing only. </p></td></tr></table></body></html>",
+    "https://www.mma.go.kr/board/boardView.do?gesipan_id=15&gsgeul_no=102&pageIndex=1&mc=mma0000392": "<html><body><table class=\"notice_view\"><tr><th>제목</th><td>Offline 102 상세</td></tr><tr><td colspan=\"2\">작성자 : 대변인실  작성일 : 2026-10-02  최종 수정일 : 2026-10-12  조회 : 3</td></tr><tr><th>부제목1</th><td>Sub 102</td></tr><tr><th>첨부파일</th><td><a href=\"/boardFileDown.do?gesipan_id=15&amp;gsgeul_no=102&amp;ilryeon_no=1\" title=\"report-102.hwp 파일 다운로드\">report-102.hwp</a> <a href=\"/boardFileDown.do?gesipan_id=15&amp;gsgeul_no=102&amp;ilryeon_no=2\" title=\"report-102.pdf 파일 다운로드\">report-102.pdf</a></td></tr><tr><td class=\"con_text\"><p>Synthetic military manpower press release 자료 for offline equality testing only. Synthetic military manpower press release 자료 for offline equality testing only. Synthetic military manpower press release 자료 for offline equality testing only. </p></td></tr></table></body></html>"
+  },
+  "long_text": "Synthetic military manpower press release 자료 for offline equality testing only. Synthetic military manpower press release 자료 for offline equality testing only. Synthetic military manpower press release 자료 for offline equality testing only. ",
+  "empty_body": "<html><body><table class=\"board_notice\"><thead><tr><th>번호</th></tr></thead><tbody class=\"text_center\"><tr><td colspan=\"6\">등록된 게시물이 없습니다.</td></tr></tbody></table></body></html>",
+  "original_method_source_sha256": {
+    "_curl_get": "cfe0a02316b356077a0fcbdccf717f824fb37ff3160af53cb4215da28ae4bdce",
+    "_fetch_list_page": "d8e3721b9273919f4f927eb516ef9e697dcb3088334499b73d7c0a459584ae56",
+    "_fetch_detail": "bb77da3536437e1c23e7559fbb0dec6f09740d8234758fdb3096161f1c3493ee",
+    "crawl": "4df66257b5c2c8ee0983ee26ac8cb12a75d908529f19f3db5a95b38702ff5af6"
+  }
+}
