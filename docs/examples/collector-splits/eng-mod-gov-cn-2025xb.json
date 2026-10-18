@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "sites": {
+    "eng-mod-gov-cn-2025xb": {
+      "strategy": "last_page_backward",
+      "base_url": "http://eng.mod.gov.cn",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "http://eng.mod.gov.cn/2025xb/M/L_251592/index.html",
+        "params": {
+          "page": 1
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "url",
+          "date_field": "listed_date_raw",
+          "title_field": "title",
+          "listing_marker": "ul#main-news-list"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

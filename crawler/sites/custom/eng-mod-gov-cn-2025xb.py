@@ -499,3 +499,62 @@ class EngModGovCn2025xbCrawler(BaseCrawler):
             if clean_href.endswith(".pdf"):
                 return urljoin(detail_url, href)
         return None
+
+    # ------------------------------------------------------------------
+    # Enumeration (pure conversions for the enumeration framework)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Rows of the channel list page exactly as crawl() parses them.
+
+        The channel is one static page (createPageHTML page count 1); further pages
+        would be index_N.html files, which a query-parameter plan cannot reach, so any
+        other page count is a listing parse error rather than a silently partial list.
+        Each row carries crawl()'s page_info and 1-based item_index (both go into the
+        paper's metadata).
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str) or 'id="main-news-list"' not in html:
+            raise PermanentFailure("listing_parse_error:main_news_list_missing")
+        page_info = self._parse_page_info(html)
+        if page_info.get("page_count") != 1:
+            raise PermanentFailure("listing_parse_error:channel_not_single_page")
+        soup = _make_soup(html)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparseable_html")
+        rows = []
+        for item_index, item in enumerate(self._parse_list_items(soup, 1), start=1):
+            row = dict(item)
+            row["item_index"] = item_index
+            row["page_info"] = dict(page_info)
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """The paper crawl()'s _parse_detail builds for one row from its detail page.
+
+        _parse_detail runs unchanged on a view whose detail fetch returns ``html``; its
+        HEAD lookup (only for a .pdf link without a usable file name) cannot be answered
+        offline and fails the item instead of guessing.
+        """
+        list_item = {k: v for k, v in item.items() if k not in ("item_index", "page_info")}
+        view = _OfflineDetailView(self, html)
+        return type(self)._parse_detail(view, list_item, item["page_info"], item["item_index"])
+
+
+class _OfflineDetailView:
+    """The crawler as seen by _parse_detail, with the detail page already fetched."""
+
+    def __init__(self, crawler, html):
+        self._crawler = crawler
+        self._html = html
+
+    def __getattr__(self, name):
+        return getattr(self._crawler, name)
+
+    def _curl_get(self, url, context="request"):
+        return self._html
+
+    def _curl_head_filename(self, url):
+        from crawler.enumeration.http import PermanentFailure
+        raise PermanentFailure("detail_needs_head_filename_lookup", url)

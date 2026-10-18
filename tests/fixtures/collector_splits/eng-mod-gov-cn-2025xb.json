@@ -1,0 +1,27 @@
+{
+  "site_id": "eng-mod-gov-cn-2025xb",
+  "listing_body": "<html><head><title>Laws</title></head><body><ul class=\"list-unstyled news-list\" id=\"main-news-list\"><!--HTMLBOX--><li class=\"first\"><a href='http://eng.mod.gov.cn/2025xb/M/L_251592/9000001.html' target=\"_blank\"><img src='/2025xb/M/L_251592/_attachment/2026/10/11/9000001_x.jpg' class=\"image\"><h3 class=\"title\">Offline Law 1</h3><small class=\"hidden-xs time\">2026-10-11 11:35:56</small></a></li><li class=\"first\"><a href='http://eng.mod.gov.cn/2025xb/M/L_251592/9000002.html' target=\"_blank\"><img src='/2025xb/M/L_251592/_attachment/2026/10/12/9000002_x.jpg' class=\"image\"><h3 class=\"title\">Offline Law 2</h3><small class=\"hidden-xs time\">2026-10-12 11:35:56</small></a></li></ul><div id=\"displaypagenum\"></div><script>createPageHTML(\n'1',\n'1',\n'index',\n'html',\n'2',\n'fenye'\n)</script></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "http://eng.mod.gov.cn/2025xb/M/L_251592/9000001.html": "<html><head><meta name=\"contentid\" content=\"9000001\"><meta name=\"catalogs\" content=\"251592\"><meta ame=\"publishdate\" content=\"2026-10-11 11:35:56\"><meta name=\"keywords\" content=\"law,defense\"><meta name=\"author\" content=\"Synthetic Author\"></head><body><div class=\"artichle-info\"><h2>Offline Law 1 full title</h2><p><span><em>Source:</em><a>China Military Online</a></span><span><em>Editor:</em>Synthetic Editor</span><span><em>Time:</em>2026-10-11 11:35:56</span></p></div><div id=\"article-content\"><div class=\"article-content\"><p>Synthetic law text and résumé with 中文 자료 for offline equality testing only. Synthetic law text and résumé with 中文 자료 for offline equality testing only. Synthetic law text and résumé with 中文 자료 for offline equality testing only. Synthetic law text and résumé with 中文 자료 for offline equality testing only. </p><p><a href=\"/2025xb/M/L_251592/_attachment/law1.pdf\">PDF</a></p></div></div></body></html>",
+    "http://eng.mod.gov.cn/2025xb/M/L_251592/9000002.html": "<html><head><meta name=\"contentid\" content=\"9000002\"><meta name=\"catalogs\" content=\"251592\"><meta ame=\"publishdate\" content=\"2026-10-12 11:35:56\"><meta name=\"keywords\" content=\"law,defense\"><meta name=\"author\" content=\"Synthetic Author\"></head><body><div class=\"artichle-info\"><h2>Offline Law 2 full title</h2><p><span><em>Source:</em><a>China Military Online</a></span><span><em>Editor:</em>Synthetic Editor</span><span><em>Time:</em>2026-10-12 11:35:56</span></p></div><div id=\"article-content\"><div class=\"article-content\"><p>Synthetic law text and résumé with 中文 자료 for offline equality testing only. Synthetic law text and résumé with 中文 자료 for offline equality testing only. Synthetic law text and résumé with 中文 자료 for offline equality testing only. Synthetic law text and résumé with 中文 자료 for offline equality testing only. </p><p><a href=\"/2025xb/M/L_251592/_attachment/law2.pdf\">PDF</a></p></div></div></body></html>"
+  },
+  "long_text": "Synthetic law text and résumé with 中文 자료 for offline equality testing only. Synthetic law text and résumé with 中文 자료 for offline equality testing only. Synthetic law text and résumé with 中文 자료 for offline equality testing only. Synthetic law text and résumé with 中文 자료 for offline equality testing only. ",
+  "empty_body": "<html><head><title>Laws</title></head><body><ul class=\"list-unstyled news-list\" id=\"main-news-list\"><!--HTMLBOX--></ul><div id=\"displaypagenum\"></div><script>createPageHTML(\n'1',\n'1',\n'index',\n'html',\n'0',\n'fenye'\n)</script></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "7f39dd88ab9ca8c6b10458dff80b1c0823af4f20b078e1a4c8fd2a093e4e1867",
+    "_detail_delay": "81e632cab28bae2663c7c3c04826ea051d97e3bca31a7b7d7cfa200107f63cec",
+    "_approaching_budget": "f7b28604ff4b38de9a3c427216c3391348e84170f549bb09ae6c673eac791834",
+    "_list_url": "3d76a0c3afc6613270e08beba2ee116c6d1cffca9d2c85ce432bec85b69374a8",
+    "_curl_get": "3a298a609430c55a4d3e6cf5e6a53cba9d979da0fefce6ac676529ccb045aa61",
+    "_curl_head_filename": "b3dff7a947a0b0881bdef2370abaf2b8baaccdfa2ee03c3c039448405200313c",
+    "_split_curl_status": "ae4d8da6b8e36bcdd3cdc31b4a76e62cb3b67b015f1e4f7538c7148aa920c500",
+    "_parse_page_info": "121252ec32b6ea916f4fde18682637b8ddeded22e938bb78aa4b3cb025f2f90b",
+    "_to_int": "caf525deb0dbba6d78e0d1f7e20d72939c4472a1c87c2e0bfbe2a8d34ca17def",
+    "_parse_list_items": "c2b48eae48c4afe940fd37df5b8eb700f9e93730897bc823116b752a64b79f2f",
+    "_has_next_page": "bca740270d2aab9c008290327fbc880216a7510f8f895e3382b49262cb261809",
+    "_parse_detail": "84c2d0633e369310b51693c846403c47d4df8ebb2a57fe4e7c6513b790a74b7c",
+    "_article_info": "f09a71062eb5f13387c05407e473a374bd41b3fbe37d9eb98364fb6575a2ec28",
+    "_find_pdf_url": "45952f921b7b2361a94e39678fc3ee363acbc1271de96d3ade75b905a28604cc"
+  }
+}
