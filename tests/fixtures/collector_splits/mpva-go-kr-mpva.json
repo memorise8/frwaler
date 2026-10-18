@@ -1,0 +1,19 @@
+{
+  "site_id": "mpva-go-kr-mpva",
+  "listing_body": "<html><body><table class=\"p-table simple\"><thead><tr><th>번호</th><th>제목</th><th>파일</th><th>부서</th><th>작성일</th></tr></thead><tbody><tr><td>3074</td><td class=\"p-subject\"><a href=\"./selectBbsNttView.do;jsessionid=X.node21?key=77&amp;bbsNo=16&amp;nttNo=900001&amp;pageIndex=1\">Offline 보도 1 <span class=\"p-icon\">새글</span></a></td><td><span>파일</span></td><td>홍보담당관</td><td>2026-10-11</td></tr><tr><td>3073</td><td class=\"p-subject\"><a href=\"./selectBbsNttView.do;jsessionid=X.node21?key=77&amp;bbsNo=16&amp;nttNo=900002&amp;pageIndex=1\">Offline 보도 2 <span class=\"p-icon\">새글</span></a></td><td><span>파일</span></td><td>홍보담당관</td><td>2026-10-12</td></tr></tbody></table></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.mpva.go.kr/mpva/selectBbsNttView.do?key=77&bbsNo=16&nttNo=900001&searchCtgry=&searchCnd=all&searchKrwd=&integrDeptCode=&pageIndex=1": "<html><body><table class=\"p-table\"><caption><span class=\"p-table__subject_text\">Offline 보도 1 상세</span></caption><tr><th>부서</th><td>홍보담당관실</td></tr><tr><th>연락처</th><td>044-000-0001</td></tr><tr><th>작성일</th><td><time>2026-10-11 09:00</time></td></tr></table><div class=\"p-table__text\"><p>Synthetic press release body and Korean 보도 자료 for offline equality testing. Synthetic press release body and Korean 보도 자료 for offline equality testing. Synthetic press release body and Korean 보도 자료 for offline equality testing. Synthetic press release body and Korean 보도 자료 for offline equality testing. </p></div><ul class=\"p-attach\"><li class=\"p-attach__item\"><a class=\"p-attach__link\" href=\"./downloadBbsFile.do?atchmnflNo=1\"><span class=\"p-icon p-icon__pdf\"></span><span>보도자료 1.pdf</span></a></li></ul></body></html>",
+    "https://www.mpva.go.kr/mpva/selectBbsNttView.do?key=77&bbsNo=16&nttNo=900002&searchCtgry=&searchCnd=all&searchKrwd=&integrDeptCode=&pageIndex=1": "<html><body><table class=\"p-table\"><caption><span class=\"p-table__subject_text\">Offline 보도 2 상세</span></caption><tr><th>부서</th><td>홍보담당관실</td></tr><tr><th>연락처</th><td>044-000-0002</td></tr><tr><th>작성일</th><td><time>2026-10-12 09:00</time></td></tr></table><div class=\"p-table__text\"><p>Synthetic press release body and Korean 보도 자료 for offline equality testing. Synthetic press release body and Korean 보도 자료 for offline equality testing. Synthetic press release body and Korean 보도 자료 for offline equality testing. Synthetic press release body and Korean 보도 자료 for offline equality testing. </p></div><ul class=\"p-attach\"><li class=\"p-attach__item\"><a class=\"p-attach__link\" href=\"./downloadBbsFile.do?atchmnflNo=2\"><span class=\"p-icon p-icon__pdf\"></span><span>보도자료 2.pdf</span></a></li></ul></body></html>"
+  },
+  "long_text": "Synthetic press release body and Korean 보도 자료 for offline equality testing. Synthetic press release body and Korean 보도 자료 for offline equality testing. Synthetic press release body and Korean 보도 자료 for offline equality testing. Synthetic press release body and Korean 보도 자료 for offline equality testing. ",
+  "short_keeps_items": true,
+  "empty_body": "<html><body><table class=\"p-table simple\"><thead><tr><th>번호</th><th>제목</th></tr></thead><tbody><tr><td colspan=\"5\" class=\"p-empty\">등록된 게시물이 없습니다.</td></tr></tbody></table></body></html>",
+  "original_method_source_sha256": {
+    "_curl_get": "2a069284cdd4e28ec4ab4014de2082db2dd01f9372681eb70c5424d1efdfa282",
+    "_make_soup": "b771d24dd23907646b0e026ab10145371179547cefd6dac216d431acd1a578a8",
+    "_parse_list_page": "e3f59dbafa24ad0d2b998cd58b5621a7caacf946e7d6d390d0b7bb4ad41ec1c1",
+    "_parse_detail_page": "7e313377450ffde5a250480b3b89d5604136053a37d66afb74afea05058c53bc",
+    "crawl": "68af2c787e35c9c4bb9edbd9f14c8187dcde19b4ae173443f25cbce77e6cb7b6"
+  }
+}

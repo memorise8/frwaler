@@ -357,3 +357,115 @@ class MpvaGovKrMpvaCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration (pure conversions for the enumeration framework)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """Rows of one board list page exactly as crawl() parses them, plus the detail URL
+        crawl() builds for that page (pageIndex is part of the stored URL).
+
+        A response without the board table is a listing parse error; the board table
+        without rows is the valid end page.
+        """
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str) or not re.search(r'<table[^>]*class="[^"]*\bp-table\b', html):
+            raise PermanentFailure("listing_parse_error:mpva_board_table_missing")
+        values = parse_qs(urlsplit(url or "").query).get("pageIndex") or ["1"]
+        if not re.fullmatch(r"[0-9]+", values[0]):
+            raise PermanentFailure("listing_parse_error:mpva_page_index_not_integer")
+        page = int(values[0])
+        items = []
+        for item in self._parse_list_page(html):
+            row = dict(item)
+            row["page"] = page
+            row["url"] = (
+                f"{_VIEW_URL}?key={_KEY}&bbsNo={_BBS_NO}&nttNo={item['ntt_no']}"
+                f"&searchCtgry=&searchCnd=all&searchKrwd=&integrDeptCode="
+                f"&pageIndex={page}"
+            )
+            items.append(row)
+        return items
+
+    def _enumeration_paper(self, raw_detail, item):
+        """The paper crawl() saves for one list row and its detail page (None = skipped)."""
+        ntt_no = item["ntt_no"]
+        detail_url = item["url"]
+        detail = self._parse_detail_page(raw_detail, ntt_no)
+
+        # Prefer detail-level values; fall back to list-level
+        title = detail["title"] or item["title"]
+        dept = detail["dept"] or item["dept"]
+        date = detail["date"] or item["date"]
+        contact = detail["contact"]
+        body = detail["body"]
+
+        # Build abstract from all available parts to ensure >= 100 chars
+        abstract_parts = []
+        if title:
+            abstract_parts.append(f"[제목] {title}")
+        if dept:
+            abstract_parts.append(f"[부서] {dept}")
+        if date:
+            abstract_parts.append(f"[작성일] {date}")
+        if contact:
+            abstract_parts.append(f"[연락처] {contact}")
+        if body:
+            abstract_parts.append("")
+            abstract_parts.append(body)
+        if detail["file_list"]:
+            fnames = [f["name"] for f in detail["file_list"] if f.get("name")]
+            if fnames:
+                abstract_parts.append("")
+                abstract_parts.append("[첨부파일]")
+                abstract_parts.extend(f"- {n}" for n in fnames[:5])
+
+        abstract = "\n".join(abstract_parts).strip()
+
+        if len(abstract) < 50:
+            print(
+                f"[{self.site_id}] Abstract too short ({len(abstract)} chars) "
+                f"for nttNo={ntt_no}, skipping."
+            )
+            return None
+
+        # PDF URL
+        pdf_url = detail["pdf_url"]
+        original_filename = detail["original_filename"]
+        if not pdf_url and detail["file_list"]:
+            first = detail["file_list"][0]
+            pdf_url = first["url"]
+            original_filename = first["name"] or None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": ntt_no,
+            "post_number": item["post_number"] or None,
+            "title": title,
+            "abstract": abstract,
+            "published_date": date,
+            "posted_date": date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "department": dept,
+            "publisher": dept,
+            "doi": None,
+            "keywords": None,
+            "category": "보도자료",
+            "original_filename": original_filename,
+            "authors": None,
+            "journal": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": date,
+                    "nttNo": ntt_no,
+                    "bbsNo": _BBS_NO,
+                    "contact": contact,
+                    "post_number": item["post_number"],
+                    "attached_files": detail["file_list"],
+                },
+                ensure_ascii=False,
+            ),
+        }
