@@ -140,6 +140,16 @@ class SecondStepLinkTest(Base):
         self.assertEqual(js._step_link(R("javascript:downloadFile('a+b=','2')")),
                          "https://board.test/FileDownload.do?fileNo=a%2Bb%3D&fileSeq=2")
         self.assertIsNone(js._step_link(R("javascript:alert(1)")))  # no match: no link
+        self.assertEqual(js._step_link(R("javascript:downloadFile('Lw==','1')")),
+                         "https://board.test/FileDownload.do?fileNo=Lw%3D%3D&fileSeq=1")
+        js2 = Adapter("fake-site", {"type": "selectors", "selectors": {"title": "h1"}, "second_step": {
+            "use": "detail_page", "selector": "a", "rewrite": {
+                "regex": r"^javascript:f\('([^']+)'\)", "template": "https://board.test/d/{1}"}}},
+            None, base_url="https://board.test")
+        self.assertEqual(js2._step_link(R("javascript:f('%2F..%2F@evil.test')")),
+                         "https://board.test/d/%2F..%2F%40evil.test")  # stays one path segment on the host
+        self.assertIsNone(js2._step_link(R("javascript:f('..')")))  # dot segment refused
+        self.assertIsNone(js._step_link(R("mailto:a@b.test")))
         self.assertIsNone(a._step_link(R("javascript:downloadFile('x','1')")))  # no rewrite: dropped as before
 
     def test_validation(self):

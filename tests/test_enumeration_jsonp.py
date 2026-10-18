@@ -30,6 +30,7 @@ class ResponseJsonpTest(unittest.TestCase):
         self.assertEqual([{"a": 1}], jsonp([{"a": 1}]).json(jsonp=True))
         self.assertEqual({"x": [1]}, Response(200, {}, ' cb.ns_1({"x": [1]})\n').json(jsonp=True))
         self.assertEqual([], Response(200, {}, "eventsLoaded([])").json(jsonp=True))
+        self.assertEqual([{"t": "a) b(c"}], Response(200, {}, 'cb([{"t": "a) b(c"}]);').json(jsonp=True))
 
     def test_other_bodies_are_errors(self):
         for body in ('[{"a": 1}]', "eventsLoaded([1]); alert(1)", "<html>error</html>", "a(b)(c)", ""):
@@ -65,6 +66,9 @@ class JsonpListingTest(unittest.TestCase):
             self.env.plan(api_plan(listing={"parser": {"type": "html", "item": "a", "jsonp": True}}))
         with self.assertRaises(PlanError):
             self.env.plan(api_plan(adapter={"type": "list_only", "jsonp": 1}))
+        with self.assertRaises(PlanError):  # cursors read plain JSON
+            self.env.plan(api_plan(listing={"parser": {**API_PARSER, "jsonp": True},
+                                            "next_cursor": {"path": "next", "param": "after"}}))
         self.env.plan(self.site(jsonp=False))
 
 
