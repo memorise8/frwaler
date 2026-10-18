@@ -536,3 +536,15 @@ class MoefGoKrNwCrawler(BaseCrawler):
         pieces.append(f"사이트 native ID: {ntt_id}.")
 
         return _clean_text(" ".join(pieces))
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. The list goes
+    # through _parse_list; the detail page through _build_paper with crawl()'s
+    # skip rule (abstract shorter than 50 characters).
+    # ------------------------------------------------------------------
+
+    def _enumeration_paper(self, html, item):
+        paper = self._build_paper(item, html)
+        if len(paper.get("abstract") or "") < 50:
+            return None
+        return paper

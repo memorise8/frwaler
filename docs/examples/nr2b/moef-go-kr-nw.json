@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "sites": {
+    "moef-go-kr-nw": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "base_url": "https://www.moef.go.kr",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_parse_list",
+        "list_args": ["html"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["html", "item"]
+      },
+      "listing": {
+        "url": "https://www.moef.go.kr/nw/nes/nesdta.do",
+        "params": {"bbsId": "MOSFBBS_000000000028", "menuNo": "4010100"},
+        "page_param": "pageIndex",
+        "start_page": 1,
+        "parser": {"type": "adapter", "key_field": "external_id", "url_field": "url",
+                   "title_field": "title", "date_field": "listed_date",
+                   "listing_marker": "ul.boardType3"}
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}
