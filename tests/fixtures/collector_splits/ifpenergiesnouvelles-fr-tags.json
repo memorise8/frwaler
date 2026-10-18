@@ -1,0 +1,18 @@
+{
+ "site_id": "ifpenergiesnouvelles-fr-tags",
+ "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.",
+ "original_method_source_sha256": {
+  "_fetch_list_page": "e700ca30add3245ee64cecc313abbe35e3902ffbc940bb9955179ab535fbc755",
+  "_parse_list_html": "653b1751a16bd1c62d56fa871f4f004d0c136424f86b76eb99afe0dfeaf634d7",
+  "_fetch_detail": "5aa4bc43fe558ec85cbce15f36a4ed3f7708b3ba24719da87c4b121cbb53b0ed",
+  "_parse_detail": "3307cc4621cf03c534e801bf8a065238ae1c4fa4f74e0b3e2338c7a5e0922d9b",
+  "crawl": "820d08fe1d7a0f05d3f47e2f3b74ce2e7f5006b61fd81f4726f9b4d8af90147e"
+ },
+ "content_type": "text/html",
+ "listing_body": "<html><body><div class=\"filActu view view-news-on-tags view-id-news_on_tags\"><div class=\"view-content\"><div class=\"views-row col-lg-4\"> <article> <div class=\"actu gabSmallArticle\"> <a href=\"https://www.ifpenergiesnouvelles.fr/article/offline-one\">i</a><p class=\"datePost\">1 octobre 2026</p><span class=\"categ\">Innovation</span><h3 class=\"actu_titre\"><a href=\"https://www.ifpenergiesnouvelles.fr/article/offline-one\">Offline one</a></h3></div></article></div><div class=\"views-row col-lg-4\"> <article> <div class=\"actu gabSmallArticle\"> <a href=\"https://www.ifpenergiesnouvelles.fr/article/offline-two\">i</a><p class=\"datePost\">30 juin 2026</p><span class=\"categ\">Innovation</span><h3 class=\"actu_titre\"><a href=\"https://www.ifpenergiesnouvelles.fr/article/offline-two\">Offline two</a></h3></div></article></div></div></div></body></html>",
+ "details": {
+  "https://www.ifpenergiesnouvelles.fr/article/offline-one": "<html><body><nav><a data-drupal-link-system-path=\"node/2073\" href=\"/en/x\">en</a></nav><main role=\"main\"><h1>Offline one</h1><p class=\"date\">01.10.2026</p><div class=\"field field--name-body\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.</p></div><ul class=\"field--items\"><li><a href=\"/tags/a\">Energie</a></li><li><a href=\"/tags/communiques-presse\">Communiqués de presse</a></li></ul><a href=\"/sites/default/files/2073.pdf\">pdf</a></main></body></html>",
+  "https://www.ifpenergiesnouvelles.fr/article/offline-two": "<html><body><nav><a data-drupal-link-system-path=\"node/2032\" href=\"/en/x\">en</a></nav><main role=\"main\"><h1>Offline two</h1><p class=\"date\">01.10.2026</p><div class=\"field field--name-body\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.</p></div><ul class=\"field--items\"><li><a href=\"/tags/a\">Energie</a></li><li><a href=\"/tags/communiques-presse\">Communiqués de presse</a></li></ul><a href=\"/sites/default/files/2032.pdf\">pdf</a></main></body></html>"
+ },
+ "empty_body": "<html><body><div class=\"filActu view view-news-on-tags view-id-news_on_tags\"><nav class=\"pager-nav\"></nav></div></body></html>"
+}

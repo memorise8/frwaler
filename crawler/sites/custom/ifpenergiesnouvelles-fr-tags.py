@@ -276,6 +276,70 @@ class IFPEnergiesNouvellesFrTagsCrawler(BaseCrawler):
         return result
 
     # ------------------------------------------------------------------ #
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    # The listing is the GET tag page (?page=N), which carries the same
+    # views-row cards that crawl reads from the POST /views/ajax insert command.
+    # ------------------------------------------------------------------ #
+
+    def _enumeration_items(self, html, url=None):
+        """Rows of one list page via crawl's _parse_list_html (no I/O)."""
+        return [
+            {"url": u, "listed_date_str": d, "title": t, "category": c}
+            for u, d, t, c in self._parse_list_html(html or "")
+        ]
+
+    def _enumeration_detail(self, html, url):
+        """crawl's detail parse (_parse_detail) of one fetched article page."""
+        return self._parse_detail(html, url)
+
+    def _enumeration_paper(self, item, detail):
+        """Pure copy of crawl's Paper conversion and its skips (None)."""
+        url = item["url"]
+        listed_date_str = item["listed_date_str"]
+        list_title = item["title"]
+        list_category = item["category"]
+        title = detail.get('title') or list_title
+        if not title:
+            return None
+        abstract = detail.get('abstract', '')
+        if len(abstract) < 50:
+            return None
+        node_id        = detail.get('node_id')
+        published_date = detail.get('published_date')
+        listed_date    = _parse_french_date(listed_date_str)
+        url_slug       = url.rstrip('/').split('/')[-1]
+        external_id    = node_id or url_slug
+        return {
+            "site_id":           self.site_id,
+            "external_id":       external_id,
+            "post_number":       node_id,
+            "title":             title,
+            "abstract":          abstract,
+            "published_date":    published_date or listed_date,
+            "listed_date":       listed_date,
+            "url":               url,
+            "pdf_url":           detail.get('pdf_url'),
+            "authors":           "",
+            "publisher":         "IFP Energies nouvelles",
+            "department":        "",
+            "journal":           "",
+            "doi":               "",
+            "keywords":          detail.get('keywords', ''),
+            "category":          detail.get('category') or list_category,
+            "original_filename": None,
+            "metadata": json.dumps({
+                "node_id":          node_id,
+                "posted_date":      listed_date_str,
+                "listed_date_raw":  listed_date_str,
+                "url_slug":         url_slug,
+                "tags": (
+                    detail.get('keywords', '').split(',')
+                    if detail.get('keywords') else []
+                ),
+            }, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------ #
     # Main crawl
     # ------------------------------------------------------------------ #
 
