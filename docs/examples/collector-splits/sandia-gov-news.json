@@ -1,0 +1,63 @@
+{
+ "version": 1,
+ "sites": {
+  "sandia-gov-news": {
+   "request_interval_s": 1.5,
+   "respect_robots": true,
+   "retries": 1,
+   "strategy": "date_range_split",
+   "base_url": "https://www.sandia.gov",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "html",
+     "url"
+    ],
+    "detail_method": "_enumeration_detail",
+    "detail_args": [
+     "pdf_text",
+     "item"
+    ],
+    "pdf_text": {
+     "args": [
+      "-f",
+      "1",
+      "-l",
+      "2"
+     ],
+     "timeout_s": 30,
+     "min_bytes": 1000
+    }
+   },
+   "listing": {
+    "url": "https://www.sandia.gov/news/publications/environmental-reports/page/{page}/",
+    "start_page": 1,
+    "page_size": 40,
+    "parser": {
+     "type": "adapter",
+     "key_field": "pdf_url",
+     "url_field": "pdf_url",
+     "title_field": "title"
+    }
+   },
+   "segments": {
+    "mode": "explicit",
+    "items": [
+     {
+      "key": "environmental-reports",
+      "label": "environmental-reports",
+      "url": "https://www.sandia.gov/news/publications/environmental-reports/page/{page}/",
+      "first_page_url": "https://www.sandia.gov/news/publications/environmental-reports/"
+     },
+     {
+      "key": "env-archive",
+      "label": "env-archive",
+      "url": "https://www.sandia.gov/news/publications/environmental-reports/env-archive/page/{page}/",
+      "first_page_url": "https://www.sandia.gov/news/publications/environmental-reports/env-archive/"
+     }
+    ]
+   }
+  }
+ }
+}

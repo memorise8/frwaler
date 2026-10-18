@@ -219,6 +219,90 @@ class SandiaGovNewsCrawler(BaseCrawler):
         )
 
     # ------------------------------------------------------------------ #
+    # Enumeration split (no I/O): same rows and Paper as crawl()           #
+    # ------------------------------------------------------------------ #
+
+    def _enumeration_items(self, html: str, url: str) -> list[dict]:
+        """Rows of one source page: _parse_pdf_links exactly as crawl() calls it. ``url`` is
+        the page address (the plan's segment first pages are crawl()'s two source URLs)."""
+        return self._parse_pdf_links(html, url)
+
+    def _enumeration_detail(self, pdf_text, rec: dict) -> dict | None:
+        """crawl()'s Paper for one PDF link. ``pdf_text`` is the framework's pdftotext stdout
+        (ext:pdf_text: -f 1 -l 2, timeout 30 s, min_bytes 1000 = crawl()'s small-download rule;
+        None when unreadable); _extract_pdf_text's whitespace rules and 50-char rule and
+        crawl()'s synthesized fallback are applied here unchanged."""
+        pdf_url = rec["pdf_url"]
+        title = rec["title"]
+        year = rec.get("year")
+        page_url = rec["page_url"]
+
+        # Identifiers from PDF filename
+        filename = pdf_url.rstrip("/").split("/")[-1].split("?")[0]
+        external_id = filename
+        post_number = re.sub(r"\.pdf$", "", filename, flags=re.IGNORECASE)
+
+        # Year fallback: parse from title text
+        if not year:
+            m = re.search(r"\b((?:19|20)\d{2})\b", title)
+            if m:
+                year = m.group(1)
+
+        published_date = f"{year}-01-01" if year else None
+
+        # Abstract: real PDF text preferred, synthesized fallback
+        abstract = None
+        if pdf_text is not None:
+            text = re.sub(r"[ \t]+", " ", pdf_text)
+            text = re.sub(r"\n{3,}", "\n\n", text).strip()
+            abstract = text if len(text) >= 50 else None
+        if not abstract or len(abstract) < 50:
+            print(
+                f"[{self.site_id}] PDF text unavailable, "
+                f"using synthesized abstract"
+            )
+            abstract = self._build_abstract(title, year)
+
+        if len(abstract) < 50:
+            print(
+                f"[{self.site_id}] Abstract <50 chars for "
+                f"'{title[:50]}', skipping"
+            )
+            return None
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "authors": "",
+            "publisher": "Sandia National Laboratories",
+            "department": "Sandia National Laboratories",
+            "journal": None,
+            "url": page_url,
+            "pdf_url": pdf_url,
+            "doi": None,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "category": "Environmental Report",
+            "keywords": "environmental,sandia,DOE,annual report,ASER",
+            "original_filename": filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": published_date,
+                    "originalFilename": filename,
+                    "year": year,
+                    "post_number": post_number,
+                    "source_page": page_url,
+                    "category": "Environmental Report",
+                },
+                ensure_ascii=False,
+            ),
+        }
+
+    # ------------------------------------------------------------------ #
     # Main crawl                                                           #
     # ------------------------------------------------------------------ #
 
