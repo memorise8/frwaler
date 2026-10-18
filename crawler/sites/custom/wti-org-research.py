@@ -228,6 +228,63 @@ class WtiOrgResearchCrawler(BaseCrawler):
     site_name = "Custom: wti-org-research"
     base_url = "https://www.wti.org"
 
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Listing rows of one page: crawl's _parse_listing (no I/O)."""
+        if not html:
+            return []
+        return _parse_listing(html)
+
+    def _enumeration_detail(self, html, url=None):
+        """Detail metadata: crawl's _parse_detail after its fetch (no I/O)."""
+        if not html:
+            return None
+        return _parse_detail(html)
+
+    def _enumeration_paper(self, item, detail):
+        """Pure copy of crawl's Paper conversion and its short-abstract skip (None)."""
+        if not detail:
+            return None
+        rec = item
+        title = detail["title"]
+        abstract = detail["abstract"]
+
+        if not abstract or len(abstract) < 50:
+            return None
+
+        published_date = _parse_date(detail["date_raw"])
+        authors_str = "; ".join(detail["authors"])
+
+        return {
+            "site_id": self.site_id,
+            "external_id": rec["pub_id"],
+            "post_number": rec["pub_id"],
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": published_date,
+            "url": rec["url"],
+            "pdf_url": detail["pdf_url"] or "",
+            "original_filename": detail["original_filename"] or "",
+            "authors": authors_str,
+            "publisher": _PUBLISHER,
+            "department": "",
+            "journal": "",
+            "keywords": "",
+            "category": detail["category"],
+            "doi": detail["doi"],
+            "metadata": json.dumps({
+                "posted_date": detail["date_raw"],
+                "originalFilename": detail["original_filename"],
+                "list_intro": rec["list_intro"],
+                "slug": rec["slug"],
+                "pub_id": rec["pub_id"],
+            }, ensure_ascii=False),
+        }
+
     def crawl(self, limit=None):
         saved = 0
         seen_urls: set = set()

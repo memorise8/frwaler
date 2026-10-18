@@ -1,0 +1,14 @@
+{
+ "site_id": "wti-org-research",
+ "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.",
+ "original_method_source_sha256": {
+  "crawl": "010730319877b901c2e5ecb39cd2651aa9a5b41436a30b301a05393ff4ab6f94"
+ },
+ "content_type": "text/html",
+ "listing_body": "<html><body><form><span class=\"custom_select\"><select name=\"type\" id=\"id_type\"><option value=\"2\" selected>Journal Articles</option></select></span></form><div class=\"results-count\">2 Results</div><article class=\"card publication-item publication-item_background-dark-blue\"><div class=\"card__text\"><p class=\"pre\">22 Jul 2026 | Journal Articles</p><h3><a href=\"/research/publications/1498/offline-one/\">Offline One</a></h3><p class=\"intro\">Intro Offline One…</p></div></article><article class=\"card publication-item publication-item_background-dark-blue\"><div class=\"card__text\"><p class=\"pre\">22 Jul 2026 | Journal Articles</p><h3><a href=\"/research/publications/1497/offline-two/\">Offline Two</a></h3><p class=\"intro\">Intro Offline Two…</p></div></article></body></html>",
+ "details": {
+  "https://www.wti.org/research/publications/1498/offline-one/": "<html><head><meta property=\"og:description\" content=\"og text\"></head><body><section id=\"publications\"><h1>Offline One</h1><p class=\"info\"><strong><span>22</span><span>July</span><span>2026</span></strong>\n | Journal Articles<br><a class=\"author\" href=\"/a/1/\">Doe, Jane</a><a class=\"author\" href=\"/a/2/\">Roe, Rick</a></p><div class=\"left\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.</p><p><a class=\"button\" href=\"/media/filer_public/aa/bb/offline-one.pdf\">Download</a></p><p>See https://doi.org/10.1234/abc.5</p></div></section></body></html>",
+  "https://www.wti.org/research/publications/1497/offline-two/": "<html><head><meta property=\"og:description\" content=\"og text\"></head><body><section id=\"publications\"><h1>Offline Two</h1><p class=\"info\"><strong>3 Jun 2026</strong>\n | Journal Articles<br><a class=\"author\" href=\"/a/1/\">Doe, Jane</a><a class=\"author\" href=\"/a/2/\">Roe, Rick</a></p><div class=\"left\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.</p><p>See https://doi.org/10.1234/abc.5</p></div></section></body></html>"
+ },
+ "empty_body": "<html><body><form><span class=\"custom_select\"><select name=\"type\" id=\"id_type\"><option value=\"2\" selected>Journal Articles</option></select></span></form><div class=\"results-count\">0 Results</div></body></html>"
+}
