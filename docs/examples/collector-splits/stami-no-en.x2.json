@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "sites": {
+    "stami-no-en": {
+      "strategy": "last_page_backward",
+      "base_url": "https://stami.no",
+      "request_interval_s": 10,
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "first_html",
+          "item"
+        ],
+        "second_step": {
+          "use": "detail_page",
+          "url_template": "https://stami.no/en/wp-json/wp/v2/publication/{item:post_id}",
+          "required": false
+        }
+      },
+      "listing": {
+        "url": "https://stami.no/en/publication/page/{page}/?fwp_publikasjontype=academic-article",
+        "first_page_url": "https://stami.no/en/publication/?fwp_publikasjontype=academic-article",
+        "start_page": 1,
+        "page_size": 10,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "url",
+          "title_field": "title",
+          "date_field": "published_date"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

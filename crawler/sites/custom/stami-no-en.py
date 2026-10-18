@@ -725,3 +725,139 @@ class StamiNoEnCrawler(BaseCrawler):
 
         print(f"[stami-no-en] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018, X2). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched data.
+    # Listing: /en/publication/page/{page}/?fwp_publikasjontype=academic-article
+    # (first page without /page/1/). Detail: the publication page (first step)
+    # plus the WordPress REST record /en/wp-json/wp/v2/publication/{post_id}
+    # (second step built from the row's post id, ext:two_step_keep_first).
+    # ------------------------------------------------------------------
+
+    class _NoHeadRequest:
+        """The crawler seen by _parse_detail_html, except that the curl HEAD
+        request (_head_filename) is refused: the method stays network-free and
+        an item that would need it fails instead of being saved differently."""
+
+        def __init__(self, inner):
+            self._inner = inner
+
+        def __getattr__(self, name):
+            return getattr(self._inner, name)
+
+        def _head_filename(self, url):
+            raise ValueError("stami pdf filename needs a HEAD request (not reproduced)")
+
+    def _enumeration_items(self, html, url=None):
+        """Rows of one archive page (_parse_list), each with crawl()'s list
+        endpoint for that page number."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        match = re.search(r"/page/(\d+)/", urlparse(url or "").path)
+        list_url = self._list_url(int(match.group(1)) if match else 1)
+        items, _ = self._parse_list(html)
+        return [dict(item, list_endpoint=list_url) for item in items]
+
+    def _enumeration_paper(self, native_text, detail_html, item):
+        """Paper exactly as crawl() builds it from the detail page and the REST
+        record (_fetch_wp_native's fields; an unreadable record is {} as there).
+        None when crawl() skips the item (abstract under 50 characters)."""
+        list_url = item.get("list_endpoint") or _START_URL
+        detail = type(self)._parse_detail_html(self._NoHeadRequest(self), detail_html, item["url"])
+        post_id = detail.get("post_id") or item.get("post_id")
+        if (item.get("post_id") or None) != (post_id or None):
+            # The REST record was requested for the row's post id; crawl() asks for the page's.
+            raise ValueError("stami detail post id differs from the listing post id")
+        native = {}
+        if post_id:
+            try:
+                data = json.loads(native_text)
+            except (TypeError, ValueError):
+                data = None
+            if isinstance(data, dict):
+                native = {
+                    "wp_id": data.get("id"),
+                    "wp_date": data.get("date"),
+                    "wp_date_gmt": data.get("date_gmt"),
+                    "wp_modified": data.get("modified"),
+                    "wp_modified_gmt": data.get("modified_gmt"),
+                    "wp_slug": data.get("slug"),
+                    "wp_status": data.get("status"),
+                    "wp_type": data.get("type"),
+                    "wp_link": data.get("link"),
+                }
+
+        title = detail.get("title") or item.get("title") or "(untitled)"
+        abstract = detail.get("abstract") or item.get("list_abstract") or ""
+        abstract = _clean_text(abstract)
+        if len(abstract) < 50:
+            return None
+
+        authors = detail.get("authors") or item.get("list_authors") or []
+        if isinstance(authors, str):
+            authors_text = authors
+        else:
+            authors_text = "; ".join(a for a in authors if a)
+
+        published_date = detail.get("published_date") or item.get("published_date")
+        listed_date = detail.get("listed_date") or _iso_date(native.get("wp_date")) or published_date
+        listed_raw = detail.get("listed_date_raw") or native.get("wp_date") or item.get("published_raw")
+
+        pdf_url = detail.get("pdf_url")
+        original_filename = detail.get("original_filename") or _filename_from_url(pdf_url)
+        doi = detail.get("doi")
+
+        metadata = {
+            "posted_date": listed_raw,
+            "originalFilename": original_filename,
+            "journal_raw": detail.get("journal_raw"),
+            "series": detail.get("series"),
+            "volume": detail.get("volume"),
+            "issue": detail.get("issue"),
+            "post_id": post_id,
+            "post_number": post_id or item.get("post_number"),
+            "slug": native.get("wp_slug") or _slug_from_url(item.get("url")),
+            "wp_rest_url": detail.get("wp_json_url") or (
+                f"{self.base_url}/en/wp-json/wp/v2/publication/{post_id}" if post_id else None
+            ),
+            "wp_date": native.get("wp_date"),
+            "wp_date_gmt": native.get("wp_date_gmt"),
+            "wp_modified": native.get("wp_modified"),
+            "wp_modified_gmt": native.get("wp_modified_gmt"),
+            "wp_status": native.get("wp_status"),
+            "wp_type": native.get("wp_type"),
+            "published_raw": detail.get("published_raw") or item.get("published_raw"),
+            "published_date_precision": "year" if (detail.get("published_raw") or item.get("published_raw")) else None,
+            "list_endpoint": list_url,
+            "detail_endpoint": item.get("url"),
+            "detail_api_endpoint": detail.get("wp_json_url"),
+            "publication_url": detail.get("publication_url"),
+            "list_abstract": item.get("list_abstract"),
+            "list_authors": item.get("list_authors"),
+        }
+        metadata = {k: v for k, v in metadata.items() if v not in (None, "", [])}
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": str(post_id or item.get("post_id") or item.get("url")),
+            "post_number": str(post_id or item.get("post_number")) if (post_id or item.get("post_number")) else None,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "posted_date": listed_date,
+            "authors": authors_text or None,
+            "publisher": "STAMI - National Institute of Occupational Health",
+            "department": None,
+            "journal": detail.get("journal"),
+            "url": item.get("url"),
+            "pdf_url": pdf_url,
+            "keywords": None,
+            "category": detail.get("category") or "Academic Article",
+            "doi": doi,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
