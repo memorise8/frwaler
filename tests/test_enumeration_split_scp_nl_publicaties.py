@@ -187,6 +187,52 @@ class ScpSplitTest(Base):
                          sorted((d["post_number"] for d in docs), reverse=True))
         self.assertEqual("https://www.scp.nl/robots.txt", transport.calls[0][1])
 
+    def test_nested_page_plan_pages_through_request_state(self):
+        """ext:post_listing_nested_page (gx3): requestState.current = "{page}" with 1 row per page
+        here; pages past the end answer an empty result list. Same Paper/identity as above."""
+        from tests.enumeration_fakes import Env
+        fixture = self.fixture
+        rows = json.loads(fixture["listing_body"])
+        site = copy.deepcopy(dict(split_plan(SITE), request_interval_s=0))
+        body = site["listing"].pop("params")
+        body["requestState"]["current"] = "{page}"
+        body["requestState"]["resultsPerPage"] = 1
+        site["listing"]["body"] = body
+        site["listing"]["page_size"] = 1
+        site["listing"].pop("page_param", None)
+        site_plan({"version": 1, "sites": {SITE: dict(site, request_interval_s=1.5)}}, SITE, registered=[SITE])
+        currents = []
+
+        def handle(method, url, data):
+            path = urlsplit(url).path
+            if path == "/robots.txt":
+                return Response(200, {"Content-Type": "text/plain"}, b"User-Agent: *\n", url)
+            if url == SEARCH:
+                req = json.loads(data)
+                cur = req["requestState"]["current"]
+                self.assertIsInstance(cur, int)
+                self.assertNotIn("page", req)
+                currents.append(cur)
+                page = dict(rows, results=rows["results"][cur - 1:cur])
+                return Response(200, {"Content-Type": "application/json"}, json.dumps(page), url)
+            if url in fixture["details"]:
+                return Response(200, {"Content-Type": "text/html"}, fixture["details"][url], url)
+            return Response(404, {}, b"", url)
+        env = Env(SITE)
+        try:
+            _, module = load(SITE)
+            cls = next(x for x in vars(module).values() if isinstance(x, type) and getattr(x, "site_id", None) == SITE)
+            with contextlib.redirect_stdout(io.StringIO()):
+                result = env.run(site, None, crawler=cls(env.conn, 0), transport=RecordingTransport(handle))
+            docs = env.docs()
+        finally:
+            env.close()
+        self.assertEqual("complete", result["status"], result)
+        self.assertEqual(["doc-6acdfc939f0bb5835bb3b462", "doc-6ac2cc9f11495ca23ac8efb5"],
+                         sorted((d["post_number"] for d in docs), reverse=True))
+        self.assertIn(2, currents)
+        self.assertIn(3, currents)  # past the end: empty result list
+
 
 if __name__ == "__main__":
     unittest.main()
