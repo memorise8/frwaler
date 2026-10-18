@@ -1,0 +1,19 @@
+{
+  "site_id": "koti-re-kr-user",
+  "listing_body": "<html><body><div class=\"list_detail_body\"><ul class=\"comm_text_list type09\"><li><div class=\"info\"><a href=\"./bassRsrchReprtView.do?bbs_no=101&pg=1&amp;pp=10&amp;sort=new\" class=\"txt\"><p class=\"title\">Offline 101</p><span class=\"date\"><em>2026.10.01</em><em>홍길동 외 1명</em></span></a></div></li><li><div class=\"info\"><a href=\"./bassRsrchReprtView.do?bbs_no=102&pg=1&amp;pp=10&amp;sort=new\" class=\"txt\"><p class=\"title\">Offline 102</p><span class=\"date\"><em>2026.10.02</em><em>홍길동 외 1명</em></span></a></div></li></ul></div></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.koti.re.kr/user/bbs/bassRsrchReprtView.do?bbs_no=101": "<html><head><title>Offline 101 - KOTI</title></head><body><div class=\"view\"><strong class=\"title\">Offline 101 상세</strong><p class=\"writer\">홍길동, 김철수</p><ul><li><em>발간일</em><p>2026-10-01</p></li></ul><div class=\"keyword\"><div class=\"keyword_wrap\"><span>#교통<button>x</button></span><span>#연구</span></div></div><dl><dt>주요 내용</dt><dd><div class=\"editor\"><p>Synthetic transport research summary 자료 for offline equality testing only. Synthetic transport research summary 자료 for offline equality testing only. Synthetic transport research summary 자료 for offline equality testing only. </p></div></dd><dt>목차</dt><dd><div class=\"editor\">1장 서론</div></dd></dl><button onclick=\"commonFileDownload('key101%3D%3D')\">원문 다운로드</button></div></body></html>",
+    "https://www.koti.re.kr/user/bbs/bassRsrchReprtView.do?bbs_no=102": "<html><head><title>Offline 102 - KOTI</title></head><body><div class=\"view\"><strong class=\"title\">Offline 102 상세</strong><p class=\"writer\">홍길동, 김철수</p><ul><li><em>발간일</em><p>2026-10-02</p></li></ul><div class=\"keyword\"><div class=\"keyword_wrap\"><span>#교통<button>x</button></span><span>#연구</span></div></div><dl><dt>주요 내용</dt><dd><div class=\"editor\"><p>Synthetic transport research summary 자료 for offline equality testing only. Synthetic transport research summary 자료 for offline equality testing only. Synthetic transport research summary 자료 for offline equality testing only. </p></div></dd><dt>목차</dt><dd><div class=\"editor\">1장 서론</div></dd></dl><button onclick=\"commonFileDownload('key102%3D%3D')\">원문 다운로드</button></div></body></html>"
+  },
+  "long_text": "Synthetic transport research summary 자료 for offline equality testing only. Synthetic transport research summary 자료 for offline equality testing only. Synthetic transport research summary 자료 for offline equality testing only. ",
+  "empty_body": "<html><body><div class=\"list_detail_body\"><div id=\"nothing\">등록된 게시물이 없습니다.</div></div></body></html>",
+  "original_method_source_sha256": {
+    "__init__": "c8f821b684c6ea70f6c95453fe9e1e6c6825c0432b82a52df210d42c9d6bc781",
+    "crawl": "aab5478614c1ede497071499fabde53e3e789b11af5ce172354bc3df2f197fe5",
+    "_fetch_and_save": "822c8d9aaf957819ae27129edca4ee6fd9ec08f64f581b14948f020371e5a7b3",
+    "_extract_abstract": "e3d293db26754b00356fb0904bb5438ea7d5bc47b2b164728661064959d408e3",
+    "_extract_toc": "aa5c6d26646a901c360f6cc4a671a17e32658e071c68826b31bf0b45333a0467",
+    "_extract_pdf_url": "04a235fc3651833f9d27404d943636318dbbfb445d7b91022169d6c6afd14ccc"
+  }
+}

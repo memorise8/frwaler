@@ -318,3 +318,127 @@ class KotiReKrUserCrawler(BaseCrawler):
             atch_no = m.group(1)
             return f"{_BASE_URL}/common/file/download.do?atch_no={atch_no}"
         return None
+
+
+# ---------------------------------------------------------------------------
+# Pure enumeration contract (no network); crawl(), _fetch_and_save() and the
+# parsing helpers above are unchanged.
+# ---------------------------------------------------------------------------
+
+def _enumeration_items(self, html, url=None):
+    """List-page HTML -> board rows of ``ul.comm_text_list`` (the "인기 보고서"
+    box repeated on every page is left out; those reports keep their own board row)."""
+    from crawler.enumeration.http import PermanentFailure
+    if not isinstance(html, str):
+        raise PermanentFailure("listing_parse_error:expected_html")
+    soup = _make_soup(html)
+    board = soup.find("ul", class_="comm_text_list") if soup is not None else None
+    if board is None:
+        if soup is not None and soup.find(id="nothing") is not None:
+            return []  # "등록된 게시물이 없습니다." page after the last one
+        raise PermanentFailure("listing_parse_error:missing_comm_text_list")
+    rows = []
+    seen = set()
+    for a in board.find_all("a", href=True):
+        m = re.search(r"bassRsrchReprtView\.do\?[^\"']*?bbs_no=(\d+)", a["href"])
+        if not m or m.group(1) in seen:
+            continue
+        bbs_no = m.group(1)
+        seen.add(bbs_no)
+        title_tag = a.find(class_="title")
+        date_tag = a.select_one("span.date em")
+        rows.append({
+            "bbs_no": bbs_no,
+            "url": f"{_DETAIL_BASE}?bbs_no={bbs_no}",
+            "title": title_tag.get_text(strip=True) if title_tag else None,
+            "date": date_tag.get_text(strip=True) if date_tag else None,
+        })
+    return rows
+
+
+def _enumeration_paper(self, html, row):
+    """Detail page HTML + list row -> the paper _fetch_and_save() saves (or None)."""
+    bbs_no = row["bbs_no"]
+    detail_url = f"{_DETAIL_BASE}?bbs_no={bbs_no}"
+    if not html:
+        return None
+    soup = _make_soup(html)
+    if not soup:
+        return None
+
+    # -- Title --
+    title_tag = soup.find("strong", class_="title")
+    title = title_tag.get_text(strip=True) if title_tag else None
+    if not title:
+        t = soup.find("title")
+        title = t.get_text(strip=True).split(" - ")[0].strip() if t else f"KOTI-{bbs_no}"
+
+    # -- Published date --
+    published_date = None
+    for li in soup.find_all("li"):
+        em = li.find("em")
+        if em and "발간일" in em.get_text():
+            p = li.find("p")
+            if p:
+                raw_date = p.get_text(strip=True)
+                published_date = raw_date
+            break
+
+    # -- Authors --
+    authors_str = None
+    writer_p = soup.find("p", class_="writer")
+    if writer_p:
+        authors_str = writer_p.get_text(strip=True)
+
+    # -- Keywords --
+    keywords_list = []
+    kw_div = soup.find("div", class_="keyword")
+    if kw_div:
+        kw_wrap = kw_div.find("div", class_="keyword_wrap")
+        target = kw_wrap if kw_wrap else kw_div
+        for span in target.find_all("span"):
+            btn = span.find("button")
+            if btn:
+                btn.decompose()
+            kw = span.get_text(strip=True).lstrip("#")
+            if kw:
+                keywords_list.append(kw)
+
+    # -- Abstract --
+    abstract = self._extract_abstract(soup, html)
+    if not abstract or len(abstract) < _ABSTRACT_MIN_CHARS:
+        return None
+    if len(abstract) < 100:
+        toc = self._extract_toc(soup)
+        if toc:
+            abstract = abstract + " " + toc
+    if len(abstract) < 100:
+        return None
+
+    # -- PDF URL --
+    pdf_url = self._extract_pdf_url(html)
+
+    if authors_str:
+        author_list = [a.strip() for a in authors_str.split(",") if a.strip()]
+    else:
+        author_list = []
+
+    return {
+        "site_id": self.site_id,
+        "external_id": bbs_no,
+        "title": title,
+        "authors": json.dumps(author_list, ensure_ascii=False),
+        "abstract": abstract,
+        "category": "기본연구보고서",
+        "keywords": json.dumps(keywords_list, ensure_ascii=False),
+        "published_date": published_date,
+        "url": detail_url,
+        "pdf_url": pdf_url,
+        "doi": None,
+        "department": "한국교통연구원",
+        "metadata": json.dumps({"bbs_no": bbs_no}, ensure_ascii=False),
+    }
+
+
+KotiReKrUserCrawler._enumeration_items = _enumeration_items
+KotiReKrUserCrawler._enumeration_paper = _enumeration_paper

@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "defaults": {"request_interval_s": 1.5, "respect_robots": true, "retries": 1},
+  "sites": {
+    "koti-re-kr-user": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.koti.re.kr",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": ["html", "url"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["html", "item"]
+      },
+      "listing": {
+        "url": "https://www.koti.re.kr/user/bbs/bassRsrchReprtList.do",
+        "params": {"pg": 1, "pp": "10", "sort": "new"},
+        "page_param": "pg",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "bbs_no",
+          "url_field": "url",
+          "title_field": "title",
+          "date_field": "date",
+          "listing_marker": "#nothing"
+        }
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}
