@@ -1,0 +1,19 @@
+{
+  "listing_body": "<html><body><div class=\"res_bbs_wrap\"><table class=\"tbl default\"><tbody><tr><td>2</td><td class=\"left\"><a href=\"/kfsweb/kfi/kfs/kna/application/publication/detailForm.do;jsessionid=X?seq=102&amp;mainCd=210103&amp;mn=UKNA_04_10&amp;pageIndex=1\">Offline 2</a></td><td>2026-10-02</td><td>5</td></tr><tr><td>1</td><td class=\"left\"><a href=\"/kfsweb/kfi/kfs/kna/application/publication/detailForm.do;jsessionid=X?seq=101&amp;mainCd=210103&amp;mn=UKNA_04_10&amp;pageIndex=1\">Offline 1</a></td><td>2026-10-01</td><td>5</td></tr></tbody></table></div><p>총게시글 : <span class=\"paging_count\">1/1</span></p></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://kna.forest.go.kr/kfsweb/kfi/kfs/kna/application/publication/detailForm.do?seq=102&mainCd=210103&mn=UKNA_04_10": "<html><body><div class=\"board_view\"><div class=\"b_info\"><strong>Offline title 2</strong></div><div class=\"date_num\"><p class=\"left\">등록일 2026-10-02</p></div><div class=\"b_content\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p><script>x()</script></div><div class=\"b_file\"><ul><li><a href=\"/kfsweb/cmm/fms/FileDown.do?atchFileId=FILE_102&amp;fileSn=0\" aria-label=\"report2.pdf 자료받기\"><span>report2.pdf [1.2 MB]</span></a></li></ul></div></div></body></html>",
+    "https://kna.forest.go.kr/kfsweb/kfi/kfs/kna/application/publication/detailForm.do?seq=101&mainCd=210103&mn=UKNA_04_10": "<html><body><div class=\"board_view\"><div class=\"b_info\"><strong>Offline title 1</strong></div><div class=\"date_num\"><p class=\"left\">등록일 2026-10-01</p></div><div class=\"b_content\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p><script>x()</script></div><div class=\"b_file\"><ul><li><a href=\"/kfsweb/cmm/fms/FileDown.do?atchFileId=FILE_101&amp;fileSn=0\" aria-label=\"report1.pdf 자료받기\"><span>report1.pdf [1.2 MB]</span></a></li></ul></div></div></body></html>"
+  },
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "empty_body": "<html><body><table class=\"tbl default\"><tbody></tbody></table><span class=\"paging_count\">2/1</span></body></html>",
+  "short_keeps_items": true,
+  "site_id": "kna-forest-go-kr-kfsweb",
+  "original_method_source_sha256": {
+    "_curl_get": "56fde15f5f27a8afdcb28ddbee78266067149ff321a4d50f7ba864676b4c6f6e",
+    "_make_soup": "1380b6deb64970592044411dac39852697b941ecad167dbc1ab3f90f9bfbb662",
+    "_parse_list_page": "db0a8bfee3db58fba1b6598f3e63ae4916d4706ab1f6d8e18de6d12311fec2b1",
+    "_parse_detail": "24b69f094adf570a89388b0b2d96f3a6c445e2065f9b77600b96c4b870f6d4f9",
+    "crawl": "4dfec221c5035b814067eb6d22d6c263ba29ada119e501e95a8776d2fcbd2ca6"
+  }
+}

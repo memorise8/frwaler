@@ -194,6 +194,102 @@ class KnaForestKrKfswebCrawler(BaseCrawler):
         return result
 
     # ------------------------------------------------------------------
+    # Pure enumeration conversion (no network; crawl() is unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List page → row dicts via the registered list parser.
+
+        A response without the board's page counter (``span.paging_count``) is a
+        listing parse error, never an empty page; an empty tbody with the counter
+        (page past the last one) is a valid empty page.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        soup = self._make_soup(html)
+        if soup is None or soup.select_one("span.paging_count") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_marker", url)
+        rows = []
+        for post_number, title, seq, listed_date in self._parse_list_page(html):
+            rows.append({
+                "url": f"{_DETAIL_BASE}?seq={seq}&mainCd={_MAIN_CD}&mn={_MN}",
+                "external_id": seq,
+                "seq": seq,
+                "post_number": post_number,
+                "title": title,
+                "listed_date": listed_date,
+            })
+        return rows
+
+    def _enumeration_detail(self, html, item):
+        return self._parse_detail(html, item["seq"], title_hint=item.get("title", ""))
+
+    def _enumeration_paper(self, item, detail):
+        """Pure copy of crawl()'s Paper conversion for one list row + parsed detail."""
+        post_number = item.get("post_number", "")
+        title = item.get("title", "")
+        seq = item["seq"]
+        listed_date = item.get("listed_date", "")
+        detail_url = f"{_DETAIL_BASE}?seq={seq}&mainCd={_MAIN_CD}&mn={_MN}"
+        d = detail
+
+        d_title = d["title"] or title
+        d_date = d["date"] or listed_date
+        d_content = d["content_text"]
+        d_filename = d["filename"]
+        d_pdf_url = d["pdf_url"]
+
+        abstract_parts = [f"[국립수목원 간행물] {d_title}"]
+        if d_content:
+            abstract_parts.append(d_content)
+        info_items = ["발행기관: 국립수목원(Korea National Arboretum)"]
+        if d_date:
+            info_items.append(f"등록일: {d_date}")
+        if post_number:
+            info_items.append(f"번호: {post_number}")
+        abstract_parts.append(", ".join(info_items))
+        if d_filename:
+            abstract_parts.append(f"첨부파일: {d_filename}")
+        abstract_parts.append(f"참고: {detail_url}")
+        abstract = "\n".join(abstract_parts)
+
+        if len(abstract) < 50:
+            return None
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": seq,
+            "post_number": post_number,
+            "title": d_title,
+            "abstract": abstract,
+            "published_date": d_date,
+            "listed_date": listed_date,
+            "url": detail_url,
+            "pdf_url": d_pdf_url,
+            "original_filename": d_filename,
+            "publisher": "국립수목원",
+            "authors": "",
+            "keywords": "",
+            "category": "간행물",
+            "doi": "",
+            "department": "국립수목원",
+            "metadata": json.dumps(
+                {
+                    "seq": seq,
+                    "post_number": post_number,
+                    "posted_date": listed_date,
+                    "listed_date": listed_date,
+                    "originalFilename": d_filename,
+                    "atchFileId": d["atch_file_id"],
+                    "category": "간행물",
+                },
+                ensure_ascii=False,
+            ),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
