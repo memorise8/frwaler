@@ -1,0 +1,31 @@
+{
+ "content_type": "text/html; charset=UTF-8",
+ "nonce_page": "<html><head><script>var ajaxurlPostNonce = {\"url\":\"https://presse.curie.fr/wp-admin/admin-ajax.php\",\"nonce\":\"0a1b2c3d4e\"};</script></head><body><div id=\"flux\"></div></body></html>",
+ "nonce": "0a1b2c3d4e",
+ "listing_body": "<div class=\"flux-wrap\"><div class=\"item-row post-90001 type-post status-publish\"><div class=\"content-post\"><a href=\"https://presse.curie.fr/synthetic-release-one-90001/\" title=\"Synthetic release one\"><h3 class=\"entry-title\">Synthetic release one</h3></a></div></div><div class=\"item-row post-90002 type-post status-publish\"><div class=\"content-post\"><a href=\"https://presse.curie.fr/synthetic-release-two/\" title=\"Synthetic release two\"><h3 class=\"entry-title\">Synthetic release two</h3></a></div></div></div>",
+ "empty_body": "  \n ",
+ "long_text": "Synthetic press release body used only by the regression test; it is long enough to pass the fifty character abstract rule of the registered crawler.",
+ "details": {
+  "https://presse.curie.fr/synthetic-release-one-90001/": "<html><head><meta property=\"og:url\" content=\"https://presse.curie.fr/?p=90001\"><meta property=\"og:title\" content=\"Synthetic release one - Institut Curie\"><meta property=\"article:published_time\" content=\"2026-06-03T09:00:00+00:00\"><meta property=\"og:description\" content=\"Synthetic og description 90001\"></head><body><h1>Synthetic release one</h1><div class=\"date-container\">Press Release 3 June 2026</div><div class=\"templateCp-content\"><p>Synthetic press release body used only by the regression test; it is long enough to pass the fifty character abstract rule of the registered crawler.</p><p>Second paragraph 90001.</p><p>See https://doi.org/10.1234/synth.90001.</p></div><a href=\"https://presse.curie.fr/download/?n=CP%20Synth%2090001&picid=900019\">PDF</a></body></html>",
+  "https://presse.curie.fr/synthetic-release-two/": "<html><head><meta property=\"og:url\" content=\"https://presse.curie.fr/?p=90002\"><meta property=\"og:title\" content=\"Synthetic release two - Institut Curie\"><meta property=\"article:published_time\" content=\"2026-05-28T09:00:00+00:00\"><meta property=\"og:description\" content=\"Synthetic og description 90002\"></head><body><h1>Synthetic release two</h1><div class=\"date-container\">Press Release 3 June 2026</div><div class=\"templateCp-content\"><p>Synthetic press release body used only by the regression test; it is long enough to pass the fifty character abstract rule of the registered crawler.</p><p>Second paragraph 90002.</p><p>See https://doi.org/10.1234/synth.90002.</p></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+  "crawl": "bf0dfab46dea004b8c2e164fe33d7eebecad35dfafd38cc92db230df0785f20e",
+  "_fetch_nonce": "dc429dd1fd9dda24554e6640d630e213a2efec7ff3f6ce44bfa7540b607cb523",
+  "_fetch_list_page": "09e2ea6b6c9052a2bf7483237730fb3eb038496d2715c573d8a04925c910824e",
+  "_parse_list_html": "e9fa687617c6244f212c98da87625da1bd265ee7d8c33e4c9d800516f8b3d997",
+  "_parse_detail": "896aca366aa5b5c7846c8137074533871e84c8a67524a956368151327b3233e1",
+  "_extract_text": "888ccef61502eca1ce362b6a11cec074c8b9a5c5ab79bcce9cd474f7cb0158a0",
+  "_curl_get": "aabff01e6ad08fe2228590b43aaaf20cc3d914fdae4d04074ed373ecd507fa00",
+  "_curl_post": "f17f6f72ae83b99e582dd23e60d4900496dc9faf6eea7413d6d91a5ff02373a8",
+  "_run_curl": "93603df6a353394d0592a01edfe3c2da4e3aed26195c4f350b1d638f5777900d",
+  "_make_soup": "89fb8e3063efaf17f7ee6a846a27bedd67bb5a7811a79236bfc253e3187eea16",
+  "_node_text": "129bfc9a8356b453ca594f21482afad4d35a70fe0d16348c98f316b8472e17c9",
+  "_meta_content": "a6268729036ff2f82b555c2ed8f064b2c949d7f119031292d409851a0fde62fe",
+  "_link_href": "35c29773946620f4e4044f89e45ee33a0515a0bab3edcb05044a807aa72690a4",
+  "_strip_site_suffix": "ef0ad2e1455ba1d9af0cccc2766d562df45fb96000d3454458430041ae58cc71",
+  "_extract_trailing_id": "7a41a2a9ca790912b8e427c191b44a9397938ef1528adb6f878a791c8d9f5c88",
+  "_parse_date": "22fe5168aac8c3a4edd6c2cc58f42ec57317249bc5546b757abd9583c6bf2e48"
+ }
+}

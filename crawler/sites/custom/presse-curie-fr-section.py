@@ -345,6 +345,59 @@ class PresseCurieFrSectionCrawler(BaseCrawler):
         return "\n\n".join(parts)
 
     # ------------------------------------------------------------------
+    # Enumeration conversion (pure; crawl() is unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Rows of one admin-ajax list fragment exactly as crawl() reads them
+        (``_parse_list_html``), keyed by the ``post-NNNN`` class. A non-blank body
+        without any ``div.item-row`` is a listing error (the blank body past the end
+        is handled by the plan's ``listing.end_on_blank_body``)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str) or "item-row" not in html:
+            raise PermanentFailure("listing_parse_error:item_rows_missing")
+        rows = []
+        for record in self._parse_list_html(html):
+            key = (record.get("post_id") or self._extract_trailing_id(record["url"])
+                   or urlparse(record["url"]).path.strip("/") or record["url"])
+            rows.append(dict(record, external_id=key))
+        return rows
+
+    def _enumeration_paper(self, detail_html, item):
+        """The paper crawl() saves for one list row and its detail page.
+        None = crawl()'s rule skip (abstract shorter than MIN_ABSTRACT_CHARS)."""
+        from crawler.enumeration.http import PermanentFailure
+        record = {"url": item["url"], "title": item["title"], "post_id": item.get("post_id")}
+        if not detail_html:
+            raise PermanentFailure("detail_fetch_failed")
+        detail_soup = self._make_soup(detail_html, context=record["url"])
+        if detail_soup is None:
+            raise PermanentFailure("detail_parse_failed")
+        parsed = self._parse_detail(detail_soup, record)
+        abstract = (parsed.get("abstract") or "").strip()
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        return {
+            "site_id": self.site_id,
+            "external_id": parsed["external_id"],
+            "post_number": parsed["post_number"],
+            "title": parsed["title"],
+            "abstract": abstract,
+            "published_date": parsed["published_date"],
+            "posted_date": parsed["listed_date"],
+            "url": parsed["url"],
+            "pdf_url": parsed["pdf_url"],
+            "authors": parsed["authors"],
+            "publisher": parsed["publisher"],
+            "department": parsed["department"],
+            "category": parsed["category"],
+            "keywords": parsed["keywords"],
+            "doi": parsed["doi"],
+            "original_filename": parsed["original_filename"],
+            "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # HTTP helpers
     # ------------------------------------------------------------------
 
