@@ -293,6 +293,120 @@ class KeeiReKrBoardesCrawler(BaseCrawler):
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
 
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _bs4(html)
+        report_list = soup.find("ul", class_="report_list")
+        if not report_list:
+            raise PermanentFailure("listing_parse_error:missing_report_list")
+        rows = []
+        for li in report_list.find_all("li", recursive=False):
+            anchor = li.find("a", href=re.compile(r"act=view"))
+            if not anchor:
+                continue
+            href = anchor.get("href", "")
+            m = re.search(r"list_no=(\d+)", href)
+            if not m:
+                continue
+            list_no = m.group(1)
+            detail_url = (
+                f"{_BASE}/board.es?mid={_MID}&bid={_BID}"
+                f"&act=view&list_no={list_no}&nPage=1"
+            )
+            title = _text(anchor)
+            category = _text(li.find("span", class_="cate"))
+            report_type = _text(li.find("span", class_="label"))
+            published_date = _norm_date(_text(li.find("span", class_="date")))
+            authors_list = _parse_authors(_text(li.find("span", class_="auth")))
+            pdf_url = ""
+            pdf_btn = li.find("a", href=re.compile(r"pdfOpen|boardDownload"))
+            if pdf_btn:
+                ph = pdf_btn.get("href", "")
+                pdf_url = ph if ph.startswith("http") else f"{_BASE}{ph}"
+            if not pdf_url:
+                pdf_url = f"{_BASE}/boardDownload.es?bid={_BID}&list_no={list_no}&seq=1"
+            rows.append({
+                "list_no": list_no,
+                "url": detail_url,
+                "title": title,
+                "category": category,
+                "report_type": report_type,
+                "published_date": published_date,
+                "authors_list": authors_list,
+                "pdf_url": pdf_url,
+            })
+        return rows
+
+    def _enumeration_detail(self, html, item):
+        authors_list = list(item["authors_list"])
+        published_date = item["published_date"]
+        category = item["category"]
+        pdf_url = item["pdf_url"]
+        abstract = ""
+        series = ""
+        if html:
+            try:
+                dsoup = _bs4(html)
+                bg_box = dsoup.find("div", class_="bg_txt_box")
+                if bg_box:
+                    abstract = _strip_tags(str(bg_box))
+                for ili in dsoup.select("ul.info > li"):
+                    strong = ili.find("strong")
+                    span = ili.find("span")
+                    if not strong or not span:
+                        continue
+                    key = _text(strong)
+                    val = _text(span)
+                    if key == "저자" and val:
+                        authors_list = _parse_authors(val)
+                    elif key == "총서사항" and val:
+                        series = val
+                    elif key == "발행일" and val:
+                        d = _norm_date(val)
+                        if d:
+                            published_date = d
+                cate_tags = dsoup.select("ul.cate > li")
+                if cate_tags:
+                    category = " > ".join(_text(t) for t in cate_tags)
+                dl_btn = dsoup.find("a", href=re.compile(r"boardDownload"))
+                if dl_btn:
+                    dh = dl_btn.get("href", "")
+                    if dh:
+                        pdf_url = dh if dh.startswith("http") else f"{_BASE}{dh}"
+            except Exception as exc:
+                print(f"[{self.site_id}] detail parse error {item['list_no']}: {exc}")
+        return {"abstract": abstract, "series": series, "authors_list": authors_list,
+                "published_date": published_date, "category": category, "pdf_url": pdf_url}
+
+    def _enumeration_paper(self, item, detail):
+        list_no = item["list_no"]
+        abstract = detail["abstract"]
+        if len(abstract) < self._MIN_ABSTRACT:
+            return None
+        return {
+            "site_id": self.site_id,
+            "external_id": list_no,
+            "title": item["title"],
+            "authors": json.dumps(detail["authors_list"], ensure_ascii=False),
+            "abstract": abstract,
+            "category": detail["category"],
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": detail["published_date"],
+            "url": item["url"],
+            "pdf_url": detail["pdf_url"],
+            "doi": "",
+            "department": "에너지경제연구원",
+            "metadata": json.dumps({
+                "report_type": item["report_type"],
+                "series": detail["series"],
+                "list_no": list_no,
+            }, ensure_ascii=False),
+        }
+
 
 # ---------------------------------------------------------------------------
 # Utility functions
