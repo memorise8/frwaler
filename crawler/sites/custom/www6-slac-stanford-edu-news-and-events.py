@@ -226,6 +226,117 @@ class SLACNewsCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points; existing crawl and helpers stay unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """List cards of one archive page via the existing parser (no I/O)."""
+        return self._parse_list_page(html)
+
+    def _enumeration_detail(self, html):
+        """Pure copy of _fetch_detail's parsing after the fetch (no sleep, no network)."""
+        if not html:
+            return {}
+
+        try:
+            soup = _make_soup(html)
+        except Exception:
+            return {}
+        if soup is None:
+            return {}
+
+        date_el = soup.find("div", class_=re.compile(r"c-kicker--big"))
+        pub_date = _parse_date(date_el.get_text(strip=True)) if date_el else ""
+
+        lede_div = soup.find("div", class_="c-lede")
+        lede = _strip_html(str(lede_div)) if lede_div else ""
+
+        author = ""
+        header_el = soup.find("header", class_=re.compile("c-page-title"))
+        search_root = header_el if header_el else soup
+        for p in search_root.find_all("p"):
+            txt = p.get_text(strip=True)
+            if txt.startswith("By "):
+                author = txt[3:].strip()
+                break
+
+        body_parts = []
+        for body_div in soup.find_all("div", class_=re.compile(r"field--name-field-body")):
+            inner = body_div.find("div", class_=re.compile(r"c-field__content"))
+            text = _strip_html(str(inner or body_div))
+            if text and len(text) > 30:
+                body_parts.append(text)
+
+        body = "\n\n".join(dict.fromkeys(body_parts))
+
+        keywords = []
+        for a in soup.find_all("a", class_=re.compile(r"tag|topic|keyword", re.I)):
+            kw = a.get_text(strip=True)
+            if kw and kw not in keywords:
+                keywords.append(kw)
+
+        return {
+            "published_date": pub_date,
+            "lede": lede,
+            "author": author,
+            "body": body,
+            "keywords": keywords,
+        }
+
+    def _enumeration_paper(self, card, detail):
+        """Pure copy of crawl's card + detail -> Paper conversion (None = skipped)."""
+        detail = detail or {}
+        parts = []
+        lede = (detail.get("lede") or "").strip()
+        body = (detail.get("body") or "").strip()
+        if lede:
+            parts.append(lede)
+        if body and body != lede:
+            parts.append(body)
+        abstract = "\n\n".join(parts).strip()
+
+        if len(abstract) < 50:
+            abstract = (card.get("teaser") or "").strip()
+
+        if len(abstract) < 50:
+            return None
+
+        pub_date = (detail.get("published_date") or "").strip() or card["published_date"]
+        listed_date = card["published_date"]
+        author = (detail.get("author") or "").strip()
+        keywords_list = detail.get("keywords") or []
+        node_id = card["node_id"]
+
+        return {
+            "site_id": self.site_id,
+            "external_id": node_id,
+            "post_number": node_id,
+            "title": card["title"],
+            "abstract": abstract,
+            "published_date": pub_date,
+            "posted_date": listed_date,
+            "url": card["url"],
+            "pdf_url": None,
+            "authors": author,
+            "publisher": "SLAC National Accelerator Laboratory",
+            "department": "",
+            "journal": "",
+            "doi": "",
+            "keywords": ",".join(keywords_list) if keywords_list else None,
+            "category": "News Release",
+            "original_filename": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": listed_date,
+                    "node_id": node_id,
+                    "about": card["about"],
+                    "date_raw": card.get("date_raw", ""),
+                },
+                ensure_ascii=False,
+            ),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 

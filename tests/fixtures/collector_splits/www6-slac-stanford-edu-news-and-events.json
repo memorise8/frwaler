@@ -1,0 +1,16 @@
+{
+ "site_id": "www6-slac-stanford-edu-news-and-events",
+ "listing_body": "<html><body><main><div class=\"c-view c-view--display-news_archive view\"><div class=\"c-views-view-unformatted\"><div class=\"c-view__row\"><div class=\"c-card c-card--teaser\" data-history-node-id=\"6247\" about=\"/news/offline-1\">\n<h3><a class=\"c-card__link\" href=\"/news/offline-1  \"><span>Offline &amp; one</span></a></h3>\n<div class=\"c-field field--name-field-teaser\">Short teaser.</div>\n<div class=\"c-card__footer\">October 8, 2026 &nbsp;·&nbsp; 3 min read</div></div></div><div class=\"c-view__row\"><div class=\"c-card c-card--teaser\" data-history-node-id=\"6253\" about=\"/news/offline-2\">\n<h3><a class=\"c-card__link\" href=\"/news/offline-2  \"><span>Offline two</span></a></h3>\n<div class=\"c-field field--name-field-teaser\">Teaser two.</div>\n<div class=\"c-card__footer\">October 7, 2026 &nbsp;·&nbsp; 3 min read</div></div></div><div class=\"c-card c-card--teaser\" data-history-node-id=\"1\" about=\"/events/x\"><h3><span>Event</span></h3></div></div></div></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www6.slac.stanford.edu/news/offline-1": "<html><body><header class=\"c-page-title\"><p>By Jane Doe</p></header>\n<div class=\"c-kicker c-kicker--big\">October 8, 2026</div>\n<div class=\"c-lede\"><p>Synthetic SLAC research résumé and Korean 자료 for offline equality testing of the enumeration split conversion.</p></div>\n<div class=\"c-field field--name-field-body\"><div class=\"c-field__content\"><p>Synthetic SLAC research résumé and Korean 자료 for offline equality testing of the enumeration split conversion. more 8</p></div></div>\n<a class=\"tag-link\" href=\"/t/a\">Accelerators</a><a class=\"topic\" href=\"/t/b\">X-ray</a></body></html>",
+  "https://www6.slac.stanford.edu/news/offline-2": "<html><body><header class=\"c-page-title\"><p>By Jane Doe</p></header>\n<div class=\"c-kicker c-kicker--big\">October 7, 2026</div>\n\n<div class=\"c-field field--name-field-body\"><div class=\"c-field__content\"><p>Synthetic SLAC research résumé and Korean 자료 for offline equality testing of the enumeration split conversion. more 7</p></div></div>\n<a class=\"tag-link\" href=\"/t/a\">Accelerators</a><a class=\"topic\" href=\"/t/b\">X-ray</a></body></html>"
+ },
+ "long_text": "Synthetic SLAC research résumé and Korean 자료 for offline equality testing of the enumeration split conversion.",
+ "original_method_source_sha256": {
+  "_curl_get": "b9ff54c61070879d7945ca1ddec716363a336893a0f80edc018b624f1a0a6a3c",
+  "_parse_list_page": "94e189341f6060806b29217bd1efdc22d6f5c7e7589ed353812e0409c78145ed",
+  "_fetch_detail": "ccb31314b3abc4ddae05f8a125df709406d7862ba065c81feccb96fe47a154ef",
+  "crawl": "4fadb5f1ca189defbdda2b4c36d0ea0ac59e197c2f7a5fe59b4f0a283706593c"
+ }
+}
