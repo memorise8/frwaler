@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "sites": {
+    "digital-gob-es-comunicacion": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "base_url": "https://digital.gob.es",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://digital.gob.es/content/portalmtdfp/es/comunicacion/jcr:content/root/container/containerSpace/content_display_copy.list.p{page}.html",
+        "first_page_url": "https://digital.gob.es/content/portalmtdfp/es/comunicacion/jcr:content/root/container/containerSpace/content_display_copy.list.html",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "url",
+          "url_field": "model_url",
+          "title_field": "title",
+          "date_field": "listed_date",
+          "listing_marker": "div.dnt-load-content"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

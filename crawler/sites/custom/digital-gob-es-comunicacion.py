@@ -545,3 +545,34 @@ class DigitalGobEsComunicacionCrawler(BaseCrawler):
             print(f"[{_SITE_ID}] reached safety cap of {_MAX_PAGES} pages")
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. The list service
+    # page (path paging .list.html / .list.pN.html) gives the items; the detail
+    # request is the item's AEM model.json (what _fetch_detail asks first) and
+    # the paper is _build_paper with crawl()'s checks. crawl()'s HTML fallback
+    # for a model without abstract is not taken here (the item is skipped).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        m = re.search(r"\.list\.p(\d+)\.html", url or "")
+        page = int(m.group(1)) if m else 1
+        return [dict(item, list_page=page, model_url=self._detail_model_url(item["public_path"]))
+                for item in self._parse_list_page(html) if item.get("url")]
+
+    def _enumeration_paper(self, html, item):
+        detail = {}
+        if html and html.lstrip().startswith("{"):
+            try:
+                detail = self._parse_detail_model(html, item)
+            except Exception:
+                detail = {}
+        detail.setdefault("detail_model_url", item.get("model_url"))
+        abstract = _clean_text(detail.get("abstract"))
+        if len(abstract) < _MIN_ABSTRACT_CHARS:
+            return None
+        detail["abstract"] = abstract
+        paper = self._build_paper(item, detail, item.get("list_page") or 1)
+        if not paper.get("title") or not paper.get("url"):
+            return None
+        return paper
