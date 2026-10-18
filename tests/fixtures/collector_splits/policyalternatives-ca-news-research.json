@@ -1,0 +1,25 @@
+{
+ "site_id": "policyalternatives-ca-news-research",
+ "listing_body": "[{\"id\": 99658, \"date\": \"2026-10-14T09:00:00\", \"link\": \"https://www.policyalternatives.ca/news-research/item-1/\", \"title\": {\"rendered\": \"Report &amp; item-1\"}, \"excerpt\": {\"rendered\": \"<p>Synthetic offline report summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline report summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. </p>\"}, \"content\": {\"rendered\": \"<p>Synthetic offline report summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline report summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. </p><p><a href=\\\"https://www.policyalternatives.ca/wp-content/uploads/2026/10/item-1.pdf?x=1\\\">PDF</a></p>\"}, \"meta\": {\"post_subheadline\": \"\"}, \"coauthors\": [1346, 6150], \"_embedded\": {\"wp:term\": [[{\"taxonomy\": \"category\", \"id\": 2812, \"name\": \"Reports\"}, {\"taxonomy\": \"category\", \"id\": 2749, \"name\": \"Housing &amp; Homelessness\"}], [{\"taxonomy\": \"post_tag\", \"id\": 9, \"name\": \"budget\"}], [{\"taxonomy\": \"region\", \"id\": 1374, \"name\": \"Saskatchewan\"}], [{\"taxonomy\": \"author\", \"id\": 1346, \"name\": \"David Macdonald\", \"slug\": \"cap-David Macdonald\"}, {\"taxonomy\": \"author\", \"id\": 6150, \"name\": \"noelle-greuel\", \"slug\": \"cap-noelle-greuel\"}]]}}, {\"id\": 99492, \"date\": \"2026-10-08T09:00:00\", \"link\": \"https://www.policyalternatives.ca/news-research/item-2/\", \"title\": {\"rendered\": \"Report &amp; item-2\"}, \"excerpt\": {\"rendered\": \"<p>Synthetic offline report summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline report summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. </p>\"}, \"content\": {\"rendered\": \"<p>Synthetic offline report summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline report summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. </p>\"}, \"meta\": {\"post_subheadline\": \"\"}, \"coauthors\": [], \"_embedded\": {\"wp:term\": [[{\"taxonomy\": \"category\", \"id\": 2812, \"name\": \"Reports\"}, {\"taxonomy\": \"category\", \"id\": 2749, \"name\": \"Housing &amp; Homelessness\"}], [{\"taxonomy\": \"post_tag\", \"id\": 9, \"name\": \"budget\"}], [{\"taxonomy\": \"region\", \"id\": 1374, \"name\": \"Saskatchewan\"}], []]}}]",
+ "content_type": "application/json",
+ "details": {},
+ "coauthors": [
+  {
+   "id": 1346,
+   "name": "David Macdonald",
+   "taxonomy": "author"
+  },
+  {
+   "id": 6150,
+   "name": "noelle-greuel",
+   "taxonomy": "author"
+  }
+ ],
+ "long_text": "Synthetic offline report summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline report summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. ",
+ "original_method_source_sha256": {
+  "_format_author_name": "4da2d62d6e608015d99d7896159824fd0e4f46ee25dbf27284f63ff74a50f9a7",
+  "_resolve_authors": "942f27d5bfa42052ad0e4031539ae324f84074a24139c2cab31b3f2a4f8ec6f1",
+  "_extract_pdf_url": "22f51445794350abc4eaab4d8aecef2765630e54f28ff279f61562de031af08b",
+  "crawl": "275b92ceffdfdb35a609b1bbe014d924e373cb553bc0c6627023eb22e74f418b"
+ }
+}

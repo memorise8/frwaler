@@ -363,3 +363,107 @@ class PolicyAlternativesCaNewsResearchCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged). One REST post row -> one paper,
+    # same fields and skip rule as crawl(). Author names come from the post's
+    # embedded "author" terms (wp:term), which are the same taxonomy terms the
+    # /coauthors endpoint returns (same ids and names), so no extra request.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:posts_not_a_list_of_objects", url)
+        return data
+
+    def _enumeration_authors(self, post: dict, coauthor_ids: list[int]) -> str:
+        names_by_id: dict[int, str] = {}
+        for term_group in (post.get("_embedded") or {}).get("wp:term") or []:
+            for term in (term_group or []):
+                if term.get("taxonomy") != "author":
+                    continue
+                aid = term.get("id")
+                name = self._format_author_name((term.get("name") or "").strip())
+                if aid and name:
+                    names_by_id[aid] = name
+        names = [names_by_id[i] for i in coauthor_ids if i in names_by_id]
+        return "; ".join(names)
+
+    def _enumeration_paper(self, post):
+        post_url = post.get("link", "")
+        if not post_url:
+            return None
+        post_id = post.get("id")
+        external_id = str(post_id) if post_id else None
+        title = _strip_html((post.get("title") or {}).get("rendered", ""))
+        raw_date = post.get("date", "")
+        published_date = raw_date[:10] if raw_date else ""
+        excerpt_html = (post.get("excerpt") or {}).get("rendered", "")
+        content_html = (post.get("content") or {}).get("rendered", "")
+        meta = post.get("meta") or {}
+        subheadline = (meta.get("post_subheadline") or "").strip()
+        if subheadline and len(subheadline) >= 80:
+            abstract = subheadline
+        else:
+            abstract = _extract_abstract(excerpt_html, content_html)
+        if len(abstract) < 50:
+            return None
+        pdf_url = self._extract_pdf_url(content_html)
+        original_filename = None
+        if pdf_url:
+            original_filename = pdf_url.rstrip("/").split("/")[-1]
+        embedded = post.get("_embedded") or {}
+        wp_terms = embedded.get("wp:term") or []
+        categories: list[str] = []
+        tags: list[str] = []
+        region = ""
+        for term_group in wp_terms:
+            for term in (term_group or []):
+                taxonomy = term.get("taxonomy", "")
+                term_name = (term.get("name") or "").strip()
+                if not term_name:
+                    continue
+                if taxonomy == "category":
+                    categories.append(term_name)
+                elif taxonomy == "post_tag":
+                    tags.append(term_name)
+                elif taxonomy == "region":
+                    region = term_name
+        coauthor_ids = [
+            cid for cid in (post.get("coauthors") or [])
+            if isinstance(cid, int)
+        ]
+        authors = self._enumeration_authors(post, coauthor_ids) if coauthor_ids else ""
+        category_str = "; ".join(categories) if categories else "News & Commentary"
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": external_id,
+            "title": title or f"Post {external_id}",
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "posted_date": published_date,
+            "authors": authors or None,
+            "publisher": _PUBLISHER,
+            "department": region or None,
+            "journal": None,
+            "url": post_url,
+            "pdf_url": pdf_url,
+            "doi": None,
+            "keywords": ", ".join(tags) if tags else None,
+            "category": category_str,
+            "original_filename": original_filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": published_date,
+                    "node_id": external_id,
+                    "region": region or None,
+                    "categories": categories,
+                    "tags": tags,
+                    "coauthor_ids": post.get("coauthors") or [],
+                },
+                ensure_ascii=False,
+            ),
+        }
