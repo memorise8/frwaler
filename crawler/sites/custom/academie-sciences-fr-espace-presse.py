@@ -499,6 +499,66 @@ class AcademieSciencesFrEspacePresseCrawler(AcademieTraversal, BaseCrawler):
         }
         return paper
 
+    # ------------------------------------------------------------------
+    # Enumeration split (no I/O): same rows and Paper as crawl()
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """Rows of one list page exactly as _ac_page builds them after its fetch: page number
+        from the ``page`` query (none = 0), crawl()'s own list URL for that page (so list_url /
+        source_endpoint stay crawl()'s values), the same completeness, pager and identity checks.
+        Each row: {key, url, native, title, listed_date}."""
+        query = urllib.parse.parse_qs(urllib.parse.urlsplit(url or "").query)
+        page = int(query["page"][0]) if query.get("page") else 0
+        list_url = self._list_url(page)
+        raw = html
+        from delivery.health.access_challenge import access_challenge
+        if access_challenge(raw):
+            raise PermissionError('Academie source access challenge')
+        if not re.search(r'<html\b', raw, re.I) or not re.search(r'</html\s*>', raw, re.I):
+            raise ValueError('Academie incomplete source catalogue')
+        soup = self._ac_soup(raw)
+        if soup is None:
+            raise ValueError('Academie source markup unavailable')
+        native, next_page = self._parse_list_items(soup, page + 1, list_url)
+        rows = []
+        for item in native:
+            target = item.get('detail_url') or item['pdf_url']
+            rows.append(dict(key=self._ac_external_id(target), url=target, native=item,
+                             title=item.get('title'), listed_date=item.get('listed_date')))
+        if len({row['key'] for row in rows}) != len(rows):
+            raise ValueError('Academie repeated source identity within one page')
+        if not rows and next_page:
+            raise ValueError('Academie empty page still advertises another page')
+        return rows
+
+    def _enumeration_detail(self, raw, pdf_text, row):
+        """crawl()'s Paper (or None = its explicit body exclusion) for one row: _prepare_item
+        itself, with its two fetch helpers answered by the response the framework fetched
+        (``raw``) and _extract_pdf_text answered by the framework's pdftotext -layout stdout
+        (``pdf_text``; None = non-zero exit, which crawl() also raises on). No other change."""
+        def fetch_bytes(url, *, accept=None, context=None, max_time=60):
+            return raw or None
+
+        def fetch_text(url, *, accept=None, context=None, max_time=60):
+            if not raw:
+                return None
+            value = raw.decode("utf-8", errors="replace")
+            if not re.search(r'<html\b', value, re.I) or not re.search(r'</html\s*>', value, re.I):
+                return None  # crawl(): invalid_response, then the item is unavailable
+            return value
+
+        def extract_pdf_text(pdf_bytes, url):
+            if pdf_text is None:
+                raise ValueError('Academie PDF extraction failed: framework pdftotext gave no text')
+            return pdf_text
+
+        self._fetch_bytes, self._fetch_text, self._extract_pdf_text = fetch_bytes, fetch_text, extract_pdf_text
+        try:
+            return self._prepare_item(row['native'])
+        finally:
+            del self._fetch_bytes, self._fetch_text, self._extract_pdf_text
+
     def _extract_pdf_text(self, pdf_bytes, url):
         try:
             result = subprocess.run(

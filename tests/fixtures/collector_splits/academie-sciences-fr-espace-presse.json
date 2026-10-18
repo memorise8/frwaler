@@ -1,0 +1,73 @@
+{
+ "pdfs": {
+  "https://www.academie-sciences.fr/files/1.pdf": [
+   [
+    "Communique de presse",
+    "Paris, le 6 octobre 2026",
+    "Une decouverte scientifique majeure presentee a l Academie",
+    "L Academie des sciences presente aujourd hui les resultats d une etude internationale sur le climat.",
+    "Les chercheurs montrent que les observations satellitaires confirment les modeles numeriques recents.",
+    "Paragraphe synthetique 0 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 1 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 2 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 3 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 4 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 5 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 6 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 7 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 8 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 9 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 10 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 11 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Contact presse : service communication",
+    "Ligne apres le contact, non retenue."
+   ],
+   [
+    "Seconde page avec une date citee le 1 janvier 2020."
+   ]
+  ],
+  "https://www.academie-sciences.fr/files/2.pdf": [
+   [
+    "Communique de presse",
+    "Titre seul tres court"
+   ]
+  ],
+  "https://www.academie-sciences.fr/files/3.pdf": [
+   [
+    "Communique de presse",
+    "Paris, le 6 octobre 2026",
+    "Une decouverte scientifique majeure presentee a l Academie",
+    "Paragraphe synthetique 0 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 1 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 2 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 3 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 4 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 5 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 6 decrivant les methodes, les donnees et les conclusions de l etude."
+   ]
+  ],
+  "https://www.academie-sciences.fr/files/dossier.pdf": [
+   [
+    "Dossier de presse",
+    "Le 3 juin 2026",
+    "Une decouverte scientifique majeure presentee a l Academie",
+    "L Academie des sciences presente aujourd hui les resultats d une etude internationale sur le climat.",
+    "Les chercheurs montrent que les observations satellitaires confirment les modeles numeriques recents.",
+    "Paragraphe synthetique 0 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 1 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 2 decrivant les methodes, les donnees et les conclusions de l etude.",
+    "Paragraphe synthetique 3 decrivant les methodes, les donnees et les conclusions de l etude."
+   ]
+  ]
+ },
+ "original_method_source_sha256": {
+  "crawl": "9869c1c3baa1ff711990d939f4806f15d28b0a80f9566ea1467531ee14b6c2c5",
+  "_list_url": "94b74f94c1b464b7e0663a715d179f07a6e87b33e16efe8fec39d1bcdf4d754f",
+  "_fetch_bytes": "b296f99c8753b78424de1638473372d0d3552e108f8d13f58321904c7447f174",
+  "_fetch_text": "d9a6c69a6a3f82bed3d11b76c112692cb8aa982a89ab027c37d70f7ea19e1901",
+  "_parse_list_items": "9606d4febb00078355ab0f5b66620be8d2a017983dde10556c99de9461259c51",
+  "_process_item": "4bba50055a2f6bcf1993938e586f60da67566ae230508b7724ef22b49736a6df",
+  "_prepare_item": "0522e9805738e6d372a2213268ec2f8a39fa8056dc6e921959217bc6e668b84d",
+  "_extract_pdf_text": "74cbffb31ea11c36a840aa3f7d6b4734bf0bde361b45935778bd0a81a03fb532"
+ }
+}
