@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "sites": {
+    "netl-doe-gov-advsearch": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "last_page_backward",
+      "base_url": "https://netl.doe.gov",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "raw"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "pdf_text",
+          "item"
+        ],
+        "pdf_text": {
+          "args": [
+            "-layout"
+          ],
+          "timeout_s": 120
+        }
+      },
+      "listing": {
+        "url": "https://netl.doe.gov/advsearch",
+        "params": {
+          "tid": "107",
+          "page": 0
+        },
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "title_field": "title",
+          "date_field": "listed_date",
+          "listing_marker": "table"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

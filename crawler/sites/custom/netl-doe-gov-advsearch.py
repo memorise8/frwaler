@@ -311,3 +311,91 @@ class NETLAdvSearchCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter, ext:pdf_text).
+    # crawl() stays unchanged. The listing row parsing is copied from
+    # crawl(); the framework fetches each row's PDF and runs pdftotext
+    # (adapter.pdf_text args ["-layout"], as _extract_pdf_text does).
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, raw):
+        """Rows of one advsearch list page that crawl() could save (rows with a PDF).
+        Rows without a PDF are left out: crawl() always skips them (empty abstract)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw, (bytes, str)):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _parse_bs(raw)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:html_parse_failed")
+        rows = []
+        for row in soup.find_all("tr", class_="solicitation-row"):
+            title_td = row.find("td", class_=re.compile(r"views-field-title"))
+            if not title_td:
+                continue
+            a_tag = title_td.find("a")
+            if not a_tag:
+                continue
+            title = a_tag.get_text(strip=True)
+            rel_href = a_tag.get("href", "")
+            if not rel_href:
+                continue
+            detail_url = rel_href if rel_href.startswith("http") else f"{_BASE_URL}{rel_href}"
+            file_td = row.find("td", class_=re.compile(r"views-field-field-file"))
+            pdf_url = None
+            if file_td:
+                pdf_a = file_td.find("a")
+                if pdf_a:
+                    pdf_href = pdf_a.get("href", "")
+                    if pdf_href:
+                        pdf_url = pdf_href if pdf_href.startswith("http") else f"{_BASE_URL}{pdf_href}"
+            if not pdf_url:
+                continue
+            date_td = row.find("td", class_=re.compile(r"views-field-created"))
+            raw_date = date_td.get_text(strip=True) if date_td else ""
+            rows.append({"url": pdf_url, "pdf_url": pdf_url, "detail_url": detail_url,
+                         "rel_href": rel_href, "title": title, "raw_date": raw_date,
+                         "listed_date": _parse_listed_date(raw_date)})
+        return rows
+
+    def _enumeration_paper(self, pdf_text, item):
+        """Copy of crawl()'s paper conversion; pdf_text is the framework's pdftotext stdout."""
+        rel_href = item["rel_href"]
+        pdf_url = item["pdf_url"]
+        raw_date = item["raw_date"]
+        listed_date = _parse_listed_date(raw_date)
+        m_node = re.search(r"/node/(\d+)", rel_href)
+        external_id = (
+            m_node.group(1) if m_node
+            else re.sub(r"[^a-z0-9-]", "-", rel_href.strip("/").lower())
+        )
+        post_number = m_node.group(1) if m_node else None
+        abstract = (pdf_text or "").strip()
+        if abstract:
+            abstract = abstract[:8000]
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+        ofname = _original_filename(pdf_url)
+        return {
+            "site_id":           self.site_id,
+            "external_id":       external_id,
+            "post_number":       post_number,
+            "title":             item["title"],
+            "abstract":          abstract,
+            "published_date":    listed_date,
+            "posted_date":       listed_date,
+            "url":               item["detail_url"],
+            "pdf_url":           pdf_url,
+            "original_filename": ofname,
+            "authors":           None,
+            "publisher":         "National Energy Technology Laboratory (NETL); U.S. Department of Energy",
+            "department":        None,
+            "journal":           None,
+            "keywords":          None,
+            "category":          None,
+            "doi":               None,
+            "metadata": json.dumps({
+                "posted_date":      raw_date,
+                "originalFilename": ofname,
+                "tid":              _TID,
+            }, ensure_ascii=False),
+        }
