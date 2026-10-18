@@ -204,6 +204,42 @@ class DHSNewsReleasesCrawler(BaseCrawler):
     site_name = "Custom: dhs-gov-news-releases"
     base_url = "https://www.dhs.gov"
 
+    # Pure enumeration entry points (framework fetches through its own gate;
+    # crawl() and its curl_cffi/Playwright fetchers stay unchanged and unused).
+    def _enumeration_items(self, html, url=None):
+        soup = _make_soup(html)
+        if soup is None:
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:no_html_parser", url)
+        return [{"url": link} for link in _extract_list_links(soup)]
+
+    def _enumeration_detail(self, html, item):
+        soup = _make_soup(html)
+        return _extract_article_fields(soup, item["url"]) if soup is not None else None
+
+    def _enumeration_paper(self, item, detail):
+        """Pure copy of crawl's Paper conversion and item filters (None = crawl's skip)."""
+        fields = detail
+        if not fields or not fields.get("abstract") or len(fields["abstract"]) < 50:
+            return None
+        return {
+            "site_id": self.site_id,
+            "external_id": fields["external_id"],
+            "post_number": fields["post_number"],
+            "title": fields["title"],
+            "abstract": fields["abstract"],
+            "published_date": fields["published_date"],
+            "listed_date": fields["listed_date"],
+            "url": item["url"],
+            "pdf_url": None,
+            "publisher": fields["publisher"],
+            "category": fields["category"],
+            "keywords": None,
+            "doi": None,
+            "original_filename": None,
+            "metadata": fields["metadata"],
+        }
+
     def crawl(self, limit=None):
         saved = 0
         seen_urls: set = set()
