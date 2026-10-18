@@ -1,0 +1,14 @@
+{
+  "site_id": "lavoro-gov-it-stampa-e-media",
+  "listing_body": "<html><body><main><div class=\"views-row\"><div class=\"item\"><div class=\"row\"><div><time datetime=\"2031-02-13T10:00:00Z\">x</time></div><div>short</div></div></div><a class=\"search-item-link\" href=\"/stampa-e-media/comunicati/pagine/synthetic-90002\"><h2>Synthetic release 90002</h2></a></div><div class=\"views-row\"><div class=\"item\"><div class=\"row\"><div><time datetime=\"2031-01-09T10:00:00Z\">x</time></div><div>short</div></div></div><a class=\"search-item-link\" href=\"/stampa-e-media/comunicati/pagine/synthetic-90001\"><h2>Synthetic release 90001</h2></a></div></main></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.lavoro.gov.it/stampa-e-media/comunicati/pagine/synthetic-90002": "<html><body><main><article data-history-node-id=\"90002\"><div class=\"field--name-field-data-riferimento\">13 Feb 2031</div><div class=\"field--name-body\"><p>Synthetic press release body for the offline equality test of the enumeration split; it imitates only the Drupal structure and carries no real content.</p></div><a href=\"/documents/synthetic-90002.pdf\">pdf</a></article></main></body></html>",
+    "https://www.lavoro.gov.it/stampa-e-media/comunicati/pagine/synthetic-90001": "<html><body><main><article data-history-node-id=\"90001\"><div class=\"field--name-field-data-riferimento\">9 Gen 2031</div><div class=\"field--name-body\"><p>Synthetic press release body for the offline equality test of the enumeration split; it imitates only the Drupal structure and carries no real content.</p></div><a href=\"/documents/synthetic-90001.pdf\">pdf</a></article></main></body></html>"
+  },
+  "long_text": "Synthetic press release body for the offline equality test of the enumeration split; it imitates only the Drupal structure and carries no real content.",
+  "empty_body": "<html><body><main></main></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "7768809ab8b4afef5a6f3086f62b8bc4666cc432ab7f6cb47484506104b1eaa8"
+  }
+}

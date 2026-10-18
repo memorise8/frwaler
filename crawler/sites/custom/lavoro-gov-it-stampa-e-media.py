@@ -321,3 +321,116 @@ class LavoroGovItStampaEMediaCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the module
+    # helpers are unchanged; these methods only parse already fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List rows of one Comunicati page (?page=N, 0-based), parsed as
+        crawl() does. A page past the end has no .views-row: an empty list,
+        judged by the plan's listing_marker."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        soup = _make_soup(html)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparseable_html", url)
+        items = []
+        seen_urls: set = set()
+        for row in soup.find_all(class_="views-row"):
+            link_tag = row.find("a", class_="search-item-link")
+            if not link_tag or not link_tag.get("href"):
+                continue
+            rel_path = link_tag["href"]
+            detail_url = (
+                _BASE_URL + rel_path if rel_path.startswith("/") else rel_path
+            )
+            if detail_url in seen_urls:
+                continue
+            seen_urls.add(detail_url)
+
+            h2 = row.find("h2")
+            title = h2.get_text(strip=True) if h2 else ""
+            if not title:
+                continue
+
+            time_tag = row.find("time")
+            listed_date = ""
+            if time_tag and time_tag.get("datetime"):
+                listed_date = _parse_it_date(time_tag["datetime"])
+
+            list_desc = ""
+            item_div = row.find("div", class_="item")
+            if item_div:
+                row_div = item_div.find("div", class_="row")
+                if row_div:
+                    child_divs = row_div.find_all("div", recursive=False)
+                    for d in reversed(child_divs):
+                        txt = d.get_text(strip=True)
+                        if txt and len(txt) > 20:
+                            list_desc = txt
+                            break
+
+            items.append({
+                "rel_path": rel_path,
+                "url": detail_url,
+                "title": title,
+                "listed_date": listed_date,
+                "list_desc": list_desc,
+            })
+        return items
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page — the detail/conversion part of
+        crawl() copied verbatim (external_id = Drupal node id, else slug)."""
+        rel_path = item["rel_path"]
+        detail_url = item["url"]
+        title = item["title"]
+        listed_date = item.get("listed_date") or ""
+        list_desc = item.get("list_desc") or ""
+
+        abstract = ""
+        node_id = ""
+        pub_date = ""
+        pdf_url = None
+        original_filename = None
+        if html:
+            abstract, node_id, pub_date, pdf_url, original_filename = _parse_detail(html)
+
+        if not abstract or len(abstract) < 50:
+            abstract = list_desc
+
+        if not abstract or len(abstract) < 50:
+            return None
+
+        ext_id = node_id if node_id else rel_path.rstrip("/").split("/")[-1]
+        post_num = node_id if node_id else None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": ext_id,
+            "post_number": post_num,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date or listed_date,
+            "url": detail_url,
+            "pdf_url": pdf_url or "",
+            "doi": "",
+            "department": _PUBLISHER,
+            "authors": "[]",
+            "keywords": "",
+            "category": "Comunicati",
+            "original_filename": original_filename or "",
+            "metadata": json.dumps(
+                {
+                    "posted_date": listed_date,
+                    "originalFilename": original_filename,
+                    "node_id": node_id,
+                    "listed_date": listed_date,
+                    "list_description": list_desc,
+                },
+                ensure_ascii=False,
+            ),
+        }
