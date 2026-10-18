@@ -214,3 +214,86 @@ class StateGovPressReleasesCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. One WP REST page
+    # (same query as _fetch_page) carries everything crawl() saves, so the
+    # listing returns the paper dicts (list_returns_paper), built and skipped
+    # (no title, abstract < 100 characters) as in crawl().
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        papers, seen = [], set()
+        for item in data if isinstance(data, list) else []:
+            if not isinstance(item, dict):
+                continue
+            url = item.get("link") or ""
+            if url in seen:
+                continue
+            seen.add(url)
+            post_id = item.get("id")
+            title = (item.get("title") or {}).get("rendered", "").strip()
+            if not title:
+                continue
+
+            date_raw = item.get("date") or ""
+            published_date = date_raw[:10] if date_raw else ""
+
+            content_html = (item.get("content") or {}).get("rendered", "") or ""
+            abstract = _strip_html(content_html)
+
+            if len(abstract) < 100:
+                exc_html = (item.get("excerpt") or {}).get("rendered", "") or ""
+                abstract = _strip_html(exc_html)
+
+            if len(abstract) < 100:
+                continue
+
+            class_list = item.get("class_list") or []
+            department = ""
+            doc_type = ""
+            policy_issues = []
+            for cls in class_list:
+                if cls.startswith("state_bureaus-") and not department:
+                    department = cls[len("state_bureaus-"):].replace("-", " ").title()
+                elif cls.startswith("state_document_type-") and not doc_type:
+                    doc_type = cls[len("state_document_type-"):].replace("-", " ").title()
+                elif cls.startswith("state_policy_issues-"):
+                    policy_issues.append(
+                        cls[len("state_policy_issues-"):].replace("-", " ").title()
+                    )
+
+            acf = item.get("acf") or {}
+            doc_date_raw = acf.get("document_date") or ""
+
+            paper = {
+                "id": None,
+                "site_id": self.site_id,
+                "external_id": str(post_id),
+                "post_number": str(post_id),
+                "title": title,
+                "abstract": abstract,
+                "published_date": published_date,
+                "listed_date": published_date,
+                "url": url,
+                "pdf_url": None,
+                "doi": None,
+                "authors": "",
+                "publisher": "United States Department of State",
+                "department": department,
+                "journal": "",
+                "keywords": ",".join(policy_issues),
+                "category": doc_type,
+                "original_filename": None,
+                "metadata": json.dumps({
+                    "posted_date": published_date,
+                    "post_id": post_id,
+                    "slug": item.get("slug") or "",
+                    "document_date": doc_date_raw,
+                    "policy_issues": policy_issues,
+                    "document_type": doc_type,
+                    "modified": item.get("modified") or "",
+                }, ensure_ascii=False),
+            }
+            papers.append(paper)
+        return papers
