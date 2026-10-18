@@ -32,7 +32,8 @@
           "date_field": "listed_date",
           "title_field": "title",
           "listing_marker": "section.resultat-communiques"
-        }
+        },
+        "page_size": 12
       },
       "last_page": {
         "overlap_pages": 1

@@ -38,7 +38,8 @@
           "date_field": "date",
           "title_field": "title",
           "listing_marker": "table.tstyle_list"
-        }
+        },
+        "page_size": 10
       },
       "last_page": {
         "overlap_pages": 1
