@@ -212,3 +212,61 @@ class ISSNationalLabPressReleasesCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Saved {saved} press releases.")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, data):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, list):
+            raise PermanentFailure("listing_parse_error:expected_wp_list")
+        rows = []
+        for record in data:
+            if (not isinstance(record, dict) or isinstance(record.get("id"), bool)
+                    or not isinstance(record.get("id"), int) or record["id"] <= 0
+                    or not isinstance(record.get("link"), str) or not record["link"]
+                    or not isinstance(record.get("title"), dict)):
+                raise PermanentFailure("listing_parse_error:invalid_wp_record")
+            rows.append({"url": record["link"], "id": str(record["id"]),
+                         "date": record.get("date"), "record": record})
+        return rows
+
+    def _enumeration_paper(self, row):
+        """Same paper as the loop body of crawl() for one WP post (None = crawl's skip)."""
+        item = row["record"]
+        url = item.get("link", "")
+        if not url:
+            return None
+        post_id = str(item.get("id", ""))
+
+        title_raw = item.get("title", {}).get("rendered", "")
+        title = _strip_to_text(title_raw)
+        if not title:
+            title = "(untitled)"
+
+        content_html = item.get("content", {}).get("rendered", "")
+        abstract = _strip_to_text(content_html)
+        if len(abstract) < 50:
+            excerpt_html = item.get("excerpt", {}).get("rendered", "")
+            abstract = _strip_to_text(excerpt_html)
+
+        if len(abstract) < 50:
+            return None
+
+        date_str = item.get("date", "")
+        published_date = date_str[:10] if date_str else None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": post_id,
+            "title": title,
+            "authors": json.dumps([]),
+            "abstract": abstract,
+            "category": "Press Release",
+            "keywords": json.dumps([]),
+            "published_date": published_date,
+            "url": url,
+            "pdf_url": None,
+            "doi": None,
+            "department": None,
+            "metadata": json.dumps({"wp_post_id": post_id}),
+        }

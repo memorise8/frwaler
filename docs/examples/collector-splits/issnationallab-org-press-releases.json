@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "sites": {
+    "issnationallab-org-press-releases": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://issnationallab.org/wp-json/wp/v2/posts",
+        "params": {
+          "categories": 5,
+          "per_page": 100,
+          "page": 1,
+          "_fields": "id,title,excerpt,content,date,link",
+          "orderby": "date",
+          "order": "desc"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "date_field": "date",
+          "key_field": "id"
+        },
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        },
+        "end_statuses": [
+          {
+            "status": 400,
+            "json_code": "rest_post_invalid_page_number"
+          }
+        ]
+      },
+      "last_page": {
+        "overlap_pages": 1,
+        "check_unparameterized_first_page": true
+      }
+    }
+  }
+}
