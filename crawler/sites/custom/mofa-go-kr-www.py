@@ -444,3 +444,56 @@ class MofaGoKrWwwCrawler(BaseCrawler):
 
         print(f"[mofa-go-kr-www] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # parsers above stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """Board rows of one list page, exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        return self._parse_list(html)
+
+    def _enumeration_paper(self, html, item):
+        """Copy of crawl()'s paper conversion; None keeps crawl()'s skips."""
+        seq = item["seq"]
+        item_url = item["url"]
+        detail = self._parse_detail(html, seq)
+        title = detail["title"] or item["title"]
+        abstract = detail["abstract"]
+        published_date = detail["published_date"] or item["listed_date"]
+        listed_date = item["listed_date"]
+        department = detail["department"] or item["department"]
+        if len(abstract) < 50:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": seq,
+            "post_number": item["post_number"],
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "authors": "",
+            "publisher": "외교부",
+            "department": department,
+            "journal": "",
+            "url": item_url,
+            "pdf_url": detail["pdf_url"],
+            "doi": "",
+            "keywords": "",
+            "category": "뉴포커스",
+            "original_filename": detail["original_filename"],
+            "metadata": json.dumps(
+                {
+                    "posted_date": listed_date,
+                    "seq": seq,
+                    "board_id": "m_4076",
+                    "board_number": item["post_number"],
+                },
+                ensure_ascii=False,
+            ),
+        }

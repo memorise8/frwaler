@@ -1,0 +1,17 @@
+{
+ "site_id": "mofa-go-kr-www",
+ "listing_body": "<html><body><div class=\"board_list\"><table><thead><tr><th>번호</th></tr></thead><tbody><tr><td><div>372493</div></td><td class=\"ta_l\"><a href=\"javascript:void(0);\" onclick=\"f_view('372493');\">한-싱가포르 공동운영위원회 개최</a></td><td></td><td>양자경제외교국</td><td>2026-10-16</td></tr><tr><td><div>372492</div></td><td class=\"ta_l\"><a href=\"javascript:void(0);\" onclick=\"f_view('372492');\">한-뉴질랜드 전략대화 개최</a></td><td></td><td>양자경제외교국</td><td>2026-10-16</td></tr></tbody></table></div></body></html>",
+ "empty_body": "<html><body><div class=\"board_list\"><table><thead><tr><th>번호</th></tr></thead><tbody><tr><td colspan=\"5\">등록된 게시물이 없습니다.</td></tr></tbody></table></div></body></html>",
+ "content_type": "text/html",
+ "long_text": "외교부 뉴포커스 시험용 합성 본문입니다. 분리 메서드가 기존 crawl 과 같은 문서를 만드는지 확인하기 위한 긴 문장입니다. 충분히 깁니다.",
+ "details": {
+  "https://www.mofa.go.kr/www/brd/m_4076/view.do?seq=372493&page=1": "<html><body><div class=\"bo_head\"><h2>박윤주 1차관, 제1차 한-싱가포르 공동운영위원회 개최</h2><dl><dt>담당부서</dt><dd>양자경제외교국</dd><dt>등록일</dt><dd>2026-10-16 </dd></dl></div><div class=\"bo_con\"><div class=\"se-contents\"><p>외교부 뉴포커스 시험용 합성 본문입니다. 분리 메서드가 기존 crawl 과 같은 문서를 만드는지 확인하기 위한 긴 문장입니다. 충분히 깁니다.</p></div></div><a href=\"/upload/fileDown.do?file=report.pdf\">보도자료.pdf</a></body></html>",
+  "https://www.mofa.go.kr/www/brd/m_4076/view.do?seq=372492&page=1": "<html><body><div class=\"bo_head\"><h2>제1차 한-뉴질랜드 전략대화 개최</h2><dl><dt>담당부서</dt><dd>양자경제외교국</dd><dt>등록일</dt><dd>2026-10-16 </dd></dl></div><div class=\"bo_con\"><div class=\"se-contents\"><p>외교부 뉴포커스 시험용 합성 본문입니다. 분리 메서드가 기존 crawl 과 같은 문서를 만드는지 확인하기 위한 긴 문장입니다. 충분히 깁니다.</p></div></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_curl_get": "227546ab6c7e2c93087ff0afbb731df023dbe475b263760a07ed0b8ba402f9bf",
+  "_parse_list": "3b0eef3b429272edd6294ecf272ad20ccfff2b200fb5d3b0c4d21b2f931d83c5",
+  "_parse_detail": "36f4dc8ceb09abfd3d564f02f9a13b59483fa4e3cb25ccbbcbcc83cc69b9c382",
+  "crawl": "b24f0cc98976b02c5bfe9abbc2f3a311760a59014eca1a65a657887d9fa608a6"
+ }
+}
