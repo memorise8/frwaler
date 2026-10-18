@@ -164,6 +164,55 @@ class FtcGovKrWwwCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Pure enumeration conversion (no network; crawl() is unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List page → row dicts via the registered list parser.
+
+        A response without the board table (``table.p-table``) is a listing parse
+        error; the table with an empty tbody (past the last page) is a valid empty page.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        soup = _make_soup(html)
+        if soup.select_one("table.p-table") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_table", url)
+        return [dict(item, external_id=item["ntt_sn"]) for item in self._parse_list_page(html)]
+
+    def _enumeration_detail(self, html, item):
+        return self._parse_detail(html, item["ntt_sn"])
+
+    def _enumeration_paper(self, item, parsed):
+        """Pure copy of crawl()'s Paper conversion and skip rules (None = skipped)."""
+        if parsed is None:
+            return None
+        ntt_sn = item["ntt_sn"]
+        abstract = parsed["abstract"]
+        if len(abstract) < 50:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": ntt_sn,
+            "title": item["title"],
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": item["category"],
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": item["pub_date"],
+            "url": item["url"],
+            "pdf_url": parsed["pdf_url"],
+            "doi": "",
+            "department": item["department"],
+            "metadata": json.dumps(
+                {"attachedFiles": parsed["attached_files"]},
+                ensure_ascii=False,
+            ),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
