@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "sites": {
+    "nccih-nih-gov-news": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "last_page_backward",
+      "base_url": "https://www.nccih.nih.gov",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "json",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.nccih.nih.gov/page-data/news/press-releases/page-{page}/page-data.json",
+        "first_page_url": "https://www.nccih.nih.gov/page-data/news/press-releases/page-data.json",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "enumeration_fetch_url",
+          "key_field": "url",
+          "title_field": "title",
+          "date_field": "listed_date"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

@@ -610,3 +610,45 @@ class NccihNihGovNewsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # parsing helpers stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, raw, url):
+        """Rows of one list page-data JSON, exactly as crawl() parses them.
+
+        Each row also names what the framework fetches as its detail: the press
+        release's own page-data JSON (crawl()'s _fetch_detail_record), or for an
+        external-news row (crawl() fetches no detail) the list page itself.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        try:
+            data = json.loads(raw) if isinstance(raw, str) else None
+        except json.JSONDecodeError:
+            data = None
+        if not isinstance(data, dict) or not isinstance(data.get("result"), dict):
+            raise PermanentFailure("listing_parse_error:expected_page_data")
+        m = re.search(r"/page-(\d+)/page-data\.json", url or "")
+        page = int(m.group(1)) if m else 1
+        rows = []
+        for item in self._parse_list_items(data):
+            path = item.get("internal_path") or ""
+            if not item.get("external_news") and path.startswith("/"):
+                fetch = self._detail_data_url(path)
+            else:
+                fetch = self._list_url(page)
+            rows.append(dict(item, page=page, enumeration_fetch_url=fetch))
+        return rows
+
+    def _enumeration_paper(self, data, item):
+        """crawl()'s per-item path: detail record, _build_paper, short-abstract skip."""
+        path = item.get("internal_path") or ""
+        if item.get("external_news") or not path.startswith("/"):
+            detail_news = {}
+        else:
+            detail_news = self._detail_news(data) if isinstance(data, dict) else {}
+        paper = self._build_paper(item, detail_news, item.get("page", 1))
+        if len(paper.get("abstract") or "") < _MIN_ABSTRACT_CHARS:
+            return None
+        return paper

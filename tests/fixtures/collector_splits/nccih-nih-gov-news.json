@@ -1,0 +1,90 @@
+{
+ "site_id": "nccih-nih-gov-news",
+ "listing_body": "{\"result\": {\"data\": {\"allNewsJson\": {\"edges\": [{\"node\": {\"news\": {\"id\": 501, \"title\": \"Release 501\", \"url\": \"/news/press-releases/rel-one\", \"summary\": \"<p>Short summary.</p>\", \"immediateReleaseDate\": \"2024-06-04T18:01:06+00:00\", \"updatedDate\": \"2024-06-05\", \"externalNews\": false}}}, {\"node\": {\"news\": {\"id\": 502, \"title\": \"Release 502\", \"url\": \"/news/press-releases/rel-two\", \"summary\": \"<p>Synthetic NCCIH press release body for offline equality testing of the enumeration split. Synthetic NCCIH press release body for offline equality testing of the enumeration split. </p>\", \"immediateReleaseDate\": \"2024-06-04T18:01:06+00:00\", \"updatedDate\": \"2024-06-05\", \"externalNews\": true, \"externalUrl\": \"https://www.nei.nih.gov/about/news-and-events/news/x\", \"externalOrganization\": \"NEI\"}}}]}}, \"pageContext\": {\"newsnumPages\": 1, \"currentPage\": 1}}}",
+ "content_type": "application/json",
+ "details": {
+  "https://www.nccih.nih.gov/page-data/news/press-releases/rel-one/page-data.json": {
+   "result": {
+    "data": {
+     "newsJson": {
+      "news": {
+       "id": 501,
+       "uuid": "u-501",
+       "title": "Release 501",
+       "blocks": [
+        {
+         "heading": "Findings",
+         "description": "<p>Synthetic NCCIH press release body for offline equality testing of the enumeration split. Synthetic NCCIH press release body for offline equality testing of the enumeration split.  See <a href='/sites/r.pdf'>r</a>.pdf</p>"
+        }
+       ],
+       "metadata": {
+        "keyword": "pain, sleep"
+       }
+      }
+     }
+    }
+   }
+  },
+  "https://www.nccih.nih.gov/page-data/news/press-releases/page-data.json": {
+   "result": {
+    "data": {
+     "allNewsJson": {
+      "edges": [
+       {
+        "node": {
+         "news": {
+          "id": 501,
+          "title": "Release 501",
+          "url": "/news/press-releases/rel-one",
+          "summary": "<p>Short summary.</p>",
+          "immediateReleaseDate": "2024-06-04T18:01:06+00:00",
+          "updatedDate": "2024-06-05",
+          "externalNews": false
+         }
+        }
+       },
+       {
+        "node": {
+         "news": {
+          "id": 502,
+          "title": "Release 502",
+          "url": "/news/press-releases/rel-two",
+          "summary": "<p>Synthetic NCCIH press release body for offline equality testing of the enumeration split. Synthetic NCCIH press release body for offline equality testing of the enumeration split. </p>",
+          "immediateReleaseDate": "2024-06-04T18:01:06+00:00",
+          "updatedDate": "2024-06-05",
+          "externalNews": true,
+          "externalUrl": "https://www.nei.nih.gov/about/news-and-events/news/x",
+          "externalOrganization": "NEI"
+         }
+        }
+       }
+      ]
+     }
+    },
+    "pageContext": {
+     "newsnumPages": 1,
+     "currentPage": 1
+    }
+   }
+  }
+ },
+ "long_text": "Synthetic NCCIH press release body for offline equality testing of the enumeration split. Synthetic NCCIH press release body for offline equality testing of the enumeration split. ",
+ "empty_body": "{\"result\": {\"data\": {\"allNewsJson\": {\"edges\": []}}, \"pageContext\": {}}}",
+ "original_method_source_sha256": {
+  "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+  "_curl_get": "faa1d4a946b3162a4011d0728c113ed8d7a5b4b2786251c778151aeb39b25c1d",
+  "_fetch_json": "19f6a59ddc5f7729a8aff217d614ee04443d7f2a1cc63868a6f689821b520cd4",
+  "_list_url": "c44fc9c7d7560215690bc4f6e4096f88897ab40f786080260f880f84de2c4476",
+  "_detail_data_url": "5895e176e2d5ba1f072afa5e850bdc4b4133091a9c8c67c7b6b156ce32df0ed8",
+  "_extract_edges": "b306e50ec32da2669a3d4860eba3151bd031c538631ea23bb26ba21c58837f91",
+  "_page_context": "daa6eb0679cdd293446ee257c228ac074e1614ec111ed6c475e52c79438ade8f",
+  "_parse_list_items": "643b6be6fbc67ff13548874408d58996c58c9c7b4a7de9d6f64cc10c3e4b664c",
+  "_detail_news": "4fd94652d575f7d86c88aa0af2013346a90a03e9f1fb9ee5913b11b834ca464e",
+  "_fetch_detail_record": "71da82b4657c9532720c9f6db69e47c1fec52f6a333a5baa27e7ac5230c93088",
+  "_extract_pdf_url": "0d5b23ce0f7bbb34be45ff6f81187abbab4dc010424b76d0b7c0a7a401aad96f",
+  "_detail_body": "596168c0033369dec92bd5034f8b90de0913e1ff0dbe2b53ff29b2affc9601b5",
+  "_build_paper": "9d4b7e3ad6dfadc3f7feef5028cc51bceffef229294e8687edc3568b89a44a7e",
+  "_time_budget_exhausted": "8538579ef63d69194fced95c88566501941c43b0b750dcc39034fba5d3d9e0cc",
+  "crawl": "df2afd85c7b718f3bd2046fa47c805b1730ce9a2521d3995a06811124533b7e4"
+ }
+}
