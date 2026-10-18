@@ -357,3 +357,149 @@ class FafoNoEnCrawler(BaseCrawler):
 
         print(f"[fafo-no-en] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl(), _fetch_html() and
+    # _parse_detail() are unchanged; these methods only parse fetched HTML.
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _enumeration_category(url):
+        m = re.search(r"/en/publications/([^/?#]+)", url or "")
+        return m.group(1) if m and m.group(1) in _CATEGORIES else None
+
+    def _enumeration_items(self, html, url):
+        """Detail links of one category listing page (crawl()'s _extract_item_urls)."""
+        from crawler.enumeration.http import PermanentFailure
+        category = self._enumeration_category(url)
+        if not isinstance(html, str) or category is None:
+            raise PermanentFailure("listing_parse_error:expected_category_listing", url or "")
+        soup = _make_soup(html)
+        return [{"url": u, "category": category} for u in self._extract_item_urls(soup, category)]
+
+    def _enumeration_paper(self, raw, item):
+        """Paper from a fetched detail page — the parse part of _parse_detail()
+        copied verbatim (external_id = 'Publication ID' or URL slug, unchanged).
+        None keeps crawl()'s short-abstract skip."""
+        url = item["url"]
+        category = item["category"]
+        soup = _make_soup(raw)
+        if soup is None or raw is None:
+            return None
+
+        title = ""
+        h1 = soup.find("h1")
+        if h1:
+            title = h1.get_text(" ", strip=True)
+        if not title:
+            t = soup.find("title")
+            if t:
+                title = t.get_text(strip=True)
+        title = re.sub(r"\s+", " ", title).strip()
+
+        abstract = ""
+        meta_desc = soup.find("meta", {"name": "description"})
+        if meta_desc:
+            abstract = meta_desc.get("content", "").strip()
+
+        if len(abstract) < 100:
+            main = soup.find("main")
+            if main:
+                for tag in main.find_all(["script", "style", "nav", "header", "footer"]):
+                    tag.decompose()
+                paras = [p.get_text(" ", strip=True)
+                         for p in main.find_all("p")
+                         if len(p.get_text(strip=True)) > 40]
+                if paras:
+                    combined = " ".join(paras)
+                    if len(combined) > len(abstract):
+                        abstract = combined[:5000]
+
+        pub_id = ""
+        m = re.search(r"Publication\s+ID\.?:?\s*(\d+)", raw, re.I)
+        if m:
+            pub_id = m.group(1)
+
+        pub_date = None
+        m_date = re.search(r"Publication\s+date:?\s*([^<\n]{5,35})", raw, re.I)
+        if m_date:
+            pub_date = _parse_date_text(m_date.group(1))
+
+        pdf_url = None
+        pdf_m = re.search(r'href=["\'](/images/pub/\d+/\d+\.pdf)["\'|]', raw, re.I)
+        if pdf_m:
+            pdf_url = _BASE + pdf_m.group(1)
+
+        original_filename = pdf_url.rstrip("/").split("/")[-1] if pdf_url else None
+
+        authors_list = []
+        for a_tag in soup.find_all("a", href=re.compile(r"/en/staff/")):
+            h3 = a_tag.find("h3")
+            if h3 and "el-title" in " ".join(h3.get("class", [])):
+                name = h3.get_text(strip=True)
+                if name and len(name) >= 3 and name not in authors_list:
+                    authors_list.append(name)
+        authors = "; ".join(authors_list) if authors_list else ""
+
+        report_num = ""
+        m_rep = re.search(
+            r"(Fafo-(?:rapport|notat|brief|report|note|paper)\s+[\w:]+)",
+            raw, re.I,
+        )
+        if m_rep:
+            report_num = m_rep.group(1).strip()
+
+        publisher = "Fafo"
+        m_comm = re.search(r"Commis{1,2}ioned\s+by[:\s]+([^<\n]{3,120})", raw, re.I)
+        if m_comm:
+            raw_pub = _strip_tags(m_comm.group(1)).strip()
+            if raw_pub:
+                publisher = raw_pub
+
+        keywords_list = []
+        ra_node = soup.find(string=re.compile(r"Research\s+areas?", re.I))
+        if ra_node:
+            container = ra_node.find_parent("li") or ra_node.find_parent("div")
+            if container:
+                for a_tag in container.find_all("a"):
+                    kw = a_tag.get_text(strip=True)
+                    if kw and len(kw) > 2:
+                        keywords_list.append(kw)
+        keywords = ", ".join(keywords_list) if keywords_list else ""
+
+        doi = ""
+        m_doi = re.search(r"doi\.org/(10\.[^\s\"'<>]+)", raw, re.I)
+        if m_doi:
+            doi = "https://doi.org/" + m_doi.group(1)
+
+        metadata_dict = {
+            "category": category,
+            "report_number": report_num,
+            "publication_id": pub_id,
+        }
+        if doi:
+            metadata_dict["doi"] = doi
+
+        external_id = pub_id if pub_id else url.rstrip("/").split("/")[-1]
+
+        paper = {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": pub_id if pub_id else None,
+            "url": url,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "listed_date": pub_date,
+            "authors": authors,
+            "publisher": publisher,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "keywords": keywords,
+            "doi": doi,
+            "category": category,
+            "metadata": json.dumps(metadata_dict, ensure_ascii=False),
+        }
+        if len(paper.get("abstract") or "") < 50:
+            return None
+        return paper

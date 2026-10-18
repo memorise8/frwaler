@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "sites": {
+    "fafo-no-en": {
+      "strategy": "date_range_split",
+      "base_url": "https://www.fafo.no",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.fafo.no/en/publications/{segment}",
+        "page_param": "page",
+        "start_page": 1,
+        "total": {
+          "type": "regex",
+          "pattern": "uk-text-secondary\"\\s*>\\s*(\\d+)\\s*</h2>"
+        },
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "listing_marker": "ul.uk-list-emphasis"
+        }
+      },
+      "segments": {
+        "mode": "explicit",
+        "items": [
+          {
+            "key": "fafo-reports"
+          },
+          {
+            "key": "fafo-notes"
+          },
+          {
+            "key": "briefs"
+          },
+          {
+            "key": "other-fafo-publications"
+          }
+        ]
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
