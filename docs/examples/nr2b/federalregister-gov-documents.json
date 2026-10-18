@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "sites": {
+    "federalregister-gov-documents": {
+      "strategy": "date_range_split",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "base_url": "https://www.federalregister.gov",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "paper_method": "_paper_from_item",
+        "paper_args": [
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.federalregister.gov/api/v1/documents",
+        "params": {
+          "conditions[agencies][]": "health-and-human-services-department",
+          "conditions[search_type_id]": "3",
+          "order": "newest",
+          "per_page": "200"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 200,
+        "parser": {
+          "type": "adapter",
+          "key_field": "external_id",
+          "url_field": "url",
+          "date_field": "publication_date",
+          "title_field": "title"
+        },
+        "total": {
+          "type": "json",
+          "path": "count"
+        }
+      },
+      "segments": {
+        "mode": "range",
+        "granularity": "year",
+        "from": "1994",
+        "to": "now",
+        "filter": {
+          "type": "range",
+          "from_param": "conditions[publication_date][gte]",
+          "to_param": "conditions[publication_date][lte]"
+        },
+        "split_to": [
+          "month",
+          "day"
+        ],
+        "hidden_cap": 10000
+      },
+      "overall_total_check": false,
+      "max_consecutive_contract_failures": 60,
+      "max_contract_failure_ratio": 0.6
+    }
+  }
+}

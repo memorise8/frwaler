@@ -151,6 +151,22 @@ class FederalRegisterDocsCrawler(BaseCrawler):
 
         return paper
 
+    def _enumeration_items(self, data):
+        """Pure enumeration contract (NR2-B): the API rows crawl() reads from one page
+        (document_number and html_url required, as in crawl()); _paper_from_item maps each
+        row and returns None for the rows crawl() skips (no title, abstract < 50 chars)."""
+        rows = data.get("results") if isinstance(data, dict) else None
+        out = []
+        for item in rows if isinstance(rows, list) else []:
+            if not isinstance(item, dict):
+                continue
+            html_url = (item.get("html_url") or "").strip()
+            doc_number = (item.get("document_number") or "").strip()
+            if not doc_number or not html_url:
+                continue
+            out.append(dict(item, external_id=doc_number, url=html_url))
+        return out
+
     def crawl(self, limit=None):
         saved = 0
         page = 1
