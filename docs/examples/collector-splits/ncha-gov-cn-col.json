@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "sites": {
+    "ncha-gov-cn-col": {
+      "strategy": "last_page_backward",
+      "base_url": "http://www.ncha.gov.cn",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "raw",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "resp",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "http://www.ncha.gov.cn/module/jslib/jquery/jpage/dataproxy.jsp",
+        "params": {
+          "page": 1,
+          "appid": "1",
+          "webid": "1",
+          "path": "/",
+          "columnid": "2423",
+          "unitid": "18241",
+          "webname": "国家文物局",
+          "permissiontype": "0"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "date_field": "published_date",
+          "title_field": "title",
+          "listing_marker": "datastore"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1,
+        "check_unparameterized_first_page": false
+      }
+    }
+  }
+}

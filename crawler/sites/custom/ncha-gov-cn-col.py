@@ -594,5 +594,72 @@ class NchaGovCnColCrawler(BaseCrawler):
     def _budget_nearly_exhausted(self, started_at):
         return (time.time() - started_at) >= (self.WALL_CLOCK_BUDGET_SECONDS - 30)
 
+    # ------------------------------------------------------------------
+    # Enumeration (pure conversions for the enumeration framework)
+    # ------------------------------------------------------------------
+
+    # dataproxy.jsp?page=N (no startrecord/endrecord) answers records
+    # (N-1)*100+1 .. totalrecord: page 1 carries everything, page 2 repeats the
+    # records after the first 100. Each page keeps only its own 100-record window.
+    _ENUM_WINDOW = 100
+
+    def _enumeration_items(self, raw, url):
+        """List rows of one dataproxy page, restricted to that page's own window.
+
+        Rows are exactly what crawl() gets from ``_parse_list_page``. crawl() reads
+        page 1 (all records) and skips the repeats on page 2 by URL, so every saved
+        record carries list_page 1; the rows here keep that value. A response that is
+        not a jpage datastore, or whose window no longer has the observed shape, is a
+        listing parse error; an empty ``<datastore>`` is the valid end page.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        text = self._decode_bytes(raw) if isinstance(raw, bytes) else raw
+        if not isinstance(text, str) or "<datastore>" not in text:
+            raise PermanentFailure("listing_parse_error:not_a_jpage_datastore")
+        values = parse_qs(urlparse(url or "").query).get("page") or ["1"]
+        if not re.fullmatch(r"[0-9]+", values[0]):
+            raise PermanentFailure("listing_parse_error:page_not_integer")
+        page = int(values[0])
+        record_htmls = re.findall(r"<record><!\[CDATA\[(.*?)\]\]></record>", text, re.DOTALL)
+        if not record_htmls:
+            if "<record>" not in text and re.search(r"<datastore>.*</datastore>", text, re.DOTALL):
+                return []
+            raise PermanentFailure("listing_parse_error:datastore_without_records")
+        total_records = self._int_from_tag(text, "totalrecord")
+        total_pages = self._int_from_tag(text, "totalpage")
+        if total_records is None or total_pages is None:
+            raise PermanentFailure("listing_parse_error:datastore_without_totals")
+        window = self._ENUM_WINDOW
+        if (total_pages != -(-total_records // window) or not 1 <= page <= total_pages
+                or len(record_htmls) != total_records - (page - 1) * window):
+            raise PermanentFailure("listing_parse_error:unexpected_record_window")
+        items = []
+        for raw_record in record_htmls[:window]:
+            record = self._parse_record(raw_record, 1)
+            if record:
+                items.append(record)
+        return items
+
+    def _enumeration_paper(self, resp, item):
+        """The paper crawl() saves for one row, from the file response of its link.
+
+        crawl() sends HEAD (curl -I -L) and reads the final headers and URL; here the
+        framework's GET response for the same link supplies them.
+        """
+        headers_text = "\n".join(f"{name}: {value}" for name, value in resp.headers.items())
+        parsed = self._enrich_record_with_headers(
+            record=item,
+            headers_text=headers_text,
+            effective_url=resp.url or item.get("pdf_url") or item.get("url"),
+        )
+        abstract = parsed.get("abstract") or ""
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            print(
+                f"[{self.site_id}] item {parsed.get('external_id')} skipped: "
+                f"abstract too short ({len(abstract)} chars)"
+            )
+            return None
+        return self._to_paper(parsed)
+
 
 Crawler = NchaGovCnColCrawler

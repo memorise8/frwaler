@@ -1,0 +1,40 @@
+{
+  "site_id": "ncha-gov-cn-col",
+  "listing_body": "<datastore>\n<totalrecord>2</totalrecord>\n<totalpage>1</totalpage>\n<recordset>\n<record><![CDATA[\n          <tr class=\"me\">            <td class=\"mes\"><!--serialnumber--></td>            <td>WW/T 901—2026</td>            <td><a href=\"/module/download/downfile.jsp?classid=0&amp;filename=9000001.pdf\" target=\"_blank\">Offline 文物 standard title for synthetic equality testing 1</a></td>            <td>2026-01-01</td>            <td>2026-01-15</td>            <td>推荐性</td>            <td>现行</td>            <td>国家文物局</td>          </tr>\n]]></record>\n<record><![CDATA[\n          <tr class=\"me\">            <td class=\"mes\"><!--serialnumber--></td>            <td>WW/T 902—2026</td>            <td><a href=\"/module/download/downfile.jsp?classid=0&amp;filename=9000002.pdf\" target=\"_blank\">Offline 文物 standard title for synthetic equality testing 2</a></td>            <td>2026-02-01</td>            <td>2026-02-15</td>            <td>推荐性</td>            <td>现行</td>            <td>国家文物局</td>          </tr>\n]]></record>\n</recordset>\n</datastore>",
+  "content_type": "text/xml",
+  "details": {
+    "http://www.ncha.gov.cn/module/download/downfile.jsp?classid=0&filename=9000001.pdf": "%PDF-1.4 synthetic 1",
+    "http://www.ncha.gov.cn/module/download/downfile.jsp?classid=0&filename=9000002.pdf": "%PDF-1.4 synthetic 2"
+  },
+  "long_text": "Offline 文物 standard title for synthetic equality testing",
+  "short_keeps_items": true,
+  "empty_body": "<datastore>\n<totalrecord>2</totalrecord>\n<totalpage>1</totalpage>\n<recordset>\n</recordset>\n</datastore>",
+  "original_method_source_sha256": {
+    "__init__": "d4ed6ea636dc20b5bd209aac06f2260b4f2a12a4e850c0df5666af7f211a34a9",
+    "crawl": "64f1fd59ef0591ac1601560c56f6c44fc5c0398d0614d744dc9bb2ca655cf5c6",
+    "_list_url": "38143b959d7158345540fd86d9eeafafbd48ae3315cf7da243aae287d744db4d",
+    "_curl_get_text": "05605b5428b5deb30c3d6eafe95c8147100e37394506ea6d40c99d8bd52804ac",
+    "_curl_get_headers": "1dcfc47a32cf55fa3deff91ca75e2bb22b7919b4bcbc57f6dcb377303a2a7c88",
+    "_curl": "daa8ac9fed29dab0836f0bf1209c121c6b30be0b00014be1357e515df687515b",
+    "_split_curl_output": "8ce45c8c218aed519e8736dddf77a6842263abd786479f74506d396d3146de52",
+    "_decode_bytes": "3ebd65f55e277b178bbaed0f4118de462c311de970d48915a576bc5577f9d8e5",
+    "_parse_list_page": "00da947f9c043075fb131a1153485a8b15a4141e3a5bfd15db44151cb5648cc7",
+    "_int_from_tag": "15f99284e9396c301f97ebb929c040fc09aa4bbb54bb0467ac0115fe14c777da",
+    "_parse_record": "a7148dafc52a5d395594c5b99b3eec9d30470c69d707b2553d6d2ddff83414fc",
+    "_enrich_record_with_headers": "2ee7c88bf5d6b5d7a0761bb7abce26f76aff3ed67949a3428976efe035a1034b",
+    "_to_paper": "f45905967038dddfa2f5dbea21552775314b7161689266c38a9e3688f9ea525e",
+    "_make_soup": "6a93a352a845a4688f32f1abdb68835d1d0ca9e80a6b38144abe75d4dce4247e",
+    "_build_abstract": "bf766d174e664db67a76f637963cfaeedd94f8e2612a5ba76f764e383b74efa5",
+    "_clean_text": "054760cfc07b439efaaa87a516c1c5bc524f36aff66c5c9df7c245e0e7e7efdb",
+    "_absolute_url": "d3465573926c3dd5740d44a455d721f23f3e0fae69d11af8c7da45e6624075fe",
+    "_date_only": "d2f4e13dd4aa030a9dd73699faecf1a40403374fc5171b5d43d5954ed43a6cf3",
+    "_query_filename": "cd11b15b5e93296a4833d7793ef5b0bbd7253a49aa1750ad836696790e50ade4",
+    "_native_number": "72144bcd16e914f029e2e50b41a64cbdb978ad0cc226e561f792cbb5a1faa8ce",
+    "_post_number": "78ddc2d2d1f5ede24ccee31c7631b7f3cc715a60adab223ae25cf7ad9fee30b9",
+    "_keywords": "8b36174dd7ab3fc8c0aa8264737203bb38ebf4b526d5acbb112176e3fd472be5",
+    "_header_value": "8febaab981b2f11ade98bcd265c3329b96d2e5f48172e020d201d4e510c330e6",
+    "_filename_from_content_disposition": "d1a5ca8d00d61fa58d10501418aabdabd7c1502302a9dd4bf05536dd488e29f2",
+    "_filename_from_url": "575aa5d1f08fe70504f2fdc501defd587966b46f070f400d83059f741f560f6d",
+    "_budget_nearly_exhausted": "62da76b35333889f12f1606d5614baa1e9e3383d6c6f235c5ff9798dab113d39"
+  }
+}
