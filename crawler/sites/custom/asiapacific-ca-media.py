@@ -328,3 +328,117 @@ class AsiaPacificCaMediaCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Rows of the single year-grouped list page in crawl() order.
+
+        The source has no server-side pagination: crawl() reads one page, so a
+        page number > 1 is declared empty (the plan's listing_marker proves it
+        is still the list page and not an error page)."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        page = (parse_qs(urlsplit(url or "").query).get("page") or ["1"])[0]
+        if page not in ("", "0", "1"):
+            return []
+        rows = []
+        for path in self._extract_article_paths(html):
+            m = re.match(r"/media/news-releases/(\d+)", path)
+            if m:
+                node_id = m.group(1)
+            else:
+                node_id = re.sub(r"[^0-9a-zA-Z_-]", "", path.split("/")[-1])
+            rows.append({"path": path, "url": _BASE_URL + path, "node_id": node_id})
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page — the parse part of _fetch_detail()
+        and the conversion part of crawl() copied verbatim (node_id unchanged)."""
+        node_id = item["node_id"]
+        url = _BASE_URL + item["path"]
+        if not html:
+            return None
+
+        # Primary: JSON-LD Article block
+        ld_blocks = re.findall(
+            r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+            html, re.DOTALL | re.IGNORECASE,
+        )
+        article_ld: dict = {}
+        for block in ld_blocks:
+            try:
+                data = json.loads(block)
+                if isinstance(data, dict) and data.get("@type") == "Article":
+                    article_ld = data
+                    break
+            except (json.JSONDecodeError, AttributeError, ValueError):
+                continue
+
+        title: str = article_ld.get("name", "").strip()
+        abstract: str = article_ld.get("articleBody", "").strip()
+        published_date: str = ""
+        if article_ld.get("datePublished"):
+            published_date = article_ld["datePublished"][:10]
+        description: str = article_ld.get("description", "").strip()
+
+        # Fallbacks via meta tags
+        if not title:
+            m = re.search(r'property="og:title"\s+content="([^"]+)"', html)
+            if m:
+                title = m.group(1).strip()
+
+        if not abstract:
+            # Try body field via BeautifulSoup
+            try:
+                soup = _make_soup(html)
+                if soup:
+                    body_div = soup.find("div", class_=re.compile(r"field--name-body"))
+                    if body_div:
+                        abstract = body_div.get_text(" ", strip=True)
+            except Exception:
+                pass
+
+        if not published_date:
+            m = re.search(r'"datePublished"\s*:\s*"([^"]{7,})"', html)
+            if m:
+                published_date = m.group(1)[:10]
+
+        abstract = _clean_text(abstract)
+
+        if not abstract or len(abstract) < 50:
+            return None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": node_id,
+            "post_number": node_id,
+            "title": title or f"Press Release {node_id}",
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "authors": "",
+            "publisher": _PUBLISHER,
+            "department": "",
+            "journal": "",
+            "url": url,
+            "pdf_url": None,
+            "doi": "",
+            "keywords": "",
+            "category": "Press Release",
+            "original_filename": None,
+            "metadata": json.dumps(
+                {
+                    "node_id": node_id,
+                    "posted_date": published_date,
+                    "description": description,
+                    "category": "Press Release",
+                },
+                ensure_ascii=False,
+            ),
+        }

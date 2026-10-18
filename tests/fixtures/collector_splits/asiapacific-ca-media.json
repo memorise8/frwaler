@@ -1,0 +1,17 @@
+{
+  "site_id": "asiapacific-ca-media",
+  "listing_body": "<html><body><main class=\"main\"><div class=\"expandable-list-item view-content begin-expanded\"><h3>2026</h3><ul><li><a href = \"/media/news-releases/90002\">Synthetic release 90002</a></li><li><a href = \"/media/news-releases/90001/synthetic-slug\">Synthetic release 90001</a></li></ul></div></main></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.asiapacific.ca/media/news-releases/90002": "<html><head><script type=\"application/ld+json\">{\"@context\": \"https://schema.org\", \"@type\": \"Article\", \"name\": \"Synthetic release 90002\", \"articleBody\": \"Synthetic press release body for the offline equality test of the enumeration split. It only imitates the JSON-LD structure of a news release page and carries no real content.\", \"datePublished\": \"2026-02-13T10:00:00-08:00\", \"description\": \"Synthetic description 90002\"}</script><meta property=\"og:title\" content=\"Synthetic release 90002\"></head><body><main class=\"main\"><h1>Synthetic release 90002</h1></main></body></html>",
+    "https://www.asiapacific.ca/media/news-releases/90001/synthetic-slug": "<html><head><script type=\"application/ld+json\">{\"@context\": \"https://schema.org\", \"@type\": \"Article\", \"name\": \"Synthetic release 90001\", \"articleBody\": \"Synthetic press release body for the offline equality test of the enumeration split. It only imitates the JSON-LD structure of a news release page and carries no real content.\", \"datePublished\": \"2026-01-09T09:00:00-08:00\", \"description\": \"Synthetic description 90001\"}</script><meta property=\"og:title\" content=\"Synthetic release 90001\"></head><body><main class=\"main\"><h1>Synthetic release 90001</h1></main></body></html>"
+  },
+  "long_text": "Synthetic press release body for the offline equality test of the enumeration split. It only imitates the JSON-LD structure of a news release page and carries no real content.",
+  "empty_body": "<html><body><main class=\"main\"></main></body></html>",
+  "original_method_source_sha256": {
+    "_fetch_list_html": "cd52ce4d4870f9ece15d819c2f921b3a3434627ee1c9232140e6a1aab40e4d8c",
+    "_extract_article_paths": "aca362c6bd55492a64d89f34023c5ff7b669bb0ea3cadfd624fa52de6ed7c090",
+    "_fetch_detail": "23cd46f9ccff9a28d96c6f93e4ce57c6d4f9e997055079f0649a104870c85e18",
+    "crawl": "903cbb24407d588c4c70e9f93878857b8714a27750e56cdbc186eaf29acc4d8d"
+  }
+}
