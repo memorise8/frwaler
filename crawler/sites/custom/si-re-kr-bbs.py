@@ -215,6 +215,79 @@ class SiReKrBbsCrawler(BaseCrawler):
 
         return result
 
+    # ------------------------------------------------- pure enumeration (crawl() unchanged)
+    def _enumeration_items(self, html_text, url=None):
+        """List page (?key=…&orderBy=bbsOrdr desc&pageIndex=N) -> rows from ``_parse_list``.
+
+        A response without the board counter (``div.board-count``) is a listing
+        parse error; a page past the last one keeps the counter and shows
+        ``li.no-list`` (valid empty page).
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html_text, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        soup = _bs(html_text)
+        if soup is None or soup.select_one("div.board-count") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_count", url)
+        rows = []
+        for item in self._parse_list(html_text):
+            row = dict(item)
+            row["url"] = f"{_BASE}/bbs/view.do?key={_KEY}&pstSn={item['pst_sn']}"
+            row["external_id"] = item["pst_sn"]
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, html_text, item):
+        """Pure copy of crawl()'s per-item Paper conversion for one fetched detail
+        page; None where crawl() skips (empty detail, abstract < 50 chars)."""
+        pst_sn = item["pst_sn"]
+        view_url = f"{_BASE}/bbs/view.do?key={_KEY}&pstSn={pst_sn}"
+        if not html_text:
+            return None
+        detail = self._parse_detail(html_text)
+        abstract = detail.get("abstract") or item.get("abstract_preview", "")
+        if len(abstract) < 50:
+            return None
+        authors_raw = detail.get("authors_detail") or item.get("authors", "")
+        listed_date = item.get("listed_date", "") or ""
+        published_date = detail.get("published_date") or listed_date
+        pdf_url = item.get("pdf_url")
+        category = detail.get("category") or item.get("category", "")
+        keywords = detail.get("keywords", "")
+        department = detail.get("department", "")
+        original_filename = detail.get("original_filename")
+        task_code = detail.get("task_code", "")
+        pub_type = detail.get("pub_type", "")
+        raw_meta = detail.get("raw_meta", {})
+        meta_dict = {
+            "posted_date": listed_date,
+            "pstSn": pst_sn,
+            "pub_type": pub_type,
+            "task_code": task_code,
+            "department": department,
+        }
+        if original_filename:
+            meta_dict["originalFilename"] = original_filename
+        for k, v in raw_meta.items():
+            if k not in meta_dict:
+                meta_dict[k] = v
+        return {
+            "site_id": self.site_id,
+            "external_id": pst_sn,
+            "url": view_url,
+            "title": item["title"],
+            "abstract": abstract,
+            "authors": authors_raw,
+            "publisher": "서울연구원",
+            "keywords": keywords,
+            "category": category,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "metadata": json.dumps(meta_dict, ensure_ascii=False),
+        }
+
     # ------------------------------------------------------------------ crawl
 
     def crawl(self, limit=None):

@@ -1,0 +1,23 @@
+{
+  "site_id": "si-re-kr-bbs",
+  "listing_body": "<html><body><div class=\"bbs-st1\"><div class=\"board-count\">2개의 연구보고서(이)가 있습니다.</div><ul class=\"board-list\"><li><div class=\"txt-wrap\"><strong class=\"tit txt-over1\"><a href=\"#none\" onclick=\"goView('2610000002')\">Offline 2</a></strong><div class=\"txt-info\"><ul class=\"top-txt\"><li><em>주제</em> <span> 교통 </span></li><li><em>저자</em><span>홍길동, 김철수</span></li></ul><ul class=\"mid-txt\"><li><i class=\"date\"><span class=\"hide\">등록일</span></i><span>2026-10-02</span></li></ul></div><p class=\"txt-over2 mt15\">Preview 2610000002</p><a href=\"/atch/fileDown.do?cnncSn=2610000002&cnncTy=bbs&ordr=2\">PDF</a></div></li><li><div class=\"txt-wrap\"><strong class=\"tit txt-over1\"><a href=\"#none\" onclick=\"goView('2610000001')\">Offline 1</a></strong><div class=\"txt-info\"><ul class=\"top-txt\"><li><em>주제</em> <span> 교통 </span></li><li><em>저자</em><span>홍길동, 김철수</span></li></ul><ul class=\"mid-txt\"><li><i class=\"date\"><span class=\"hide\">등록일</span></i><span>2026-10-01</span></li></ul></div><p class=\"txt-over2 mt15\">Preview 2610000001</p><a href=\"/atch/fileDown.do?cnncSn=2610000001&cnncTy=bbs&ordr=2\">PDF</a></div></li></ul><div id=\"paginationForm\" class=\"pagination\"></div></div></body></html>",
+  "content_type": "text/html",
+  "empty_body": "<html><body><div class=\"bbs-st1\"><div class=\"board-count\">2개의 연구보고서(이)가 있습니다.</div><ul class=\"board-list\"><li class=\"no-list\">등록된 글이 없습니다.</li></ul><div id=\"paginationForm\" class=\"pagination\"></div></div></body></html>",
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "details": {
+    "https://www.si.re.kr/bbs/view.do?key=2024100039&pstSn=2610000002": "<html><body><h3>Offline 2</h3><ul class=\"mid-txt\"><li><em>발행일</em><span>2026-09-30</span></li><li><em>저자</em><span>홍길동, 김철수, 이영희</span></li><li><em>주제</em><span>교통</span></li><li><em>부서명</em><span>교통연구실</span></li><li><em>과제코드</em><span>2026-PR-02</span></li><li><em>발간유형</em><span>정책리포트</span></li></ul><ul class=\"keyword\"><li>택시</li><li>만족도</li></ul><div class=\"bbs-cont\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></div></body></html>",
+    "https://www.si.re.kr/bbs/view.do?key=2024100039&pstSn=2610000001": "<html><body><h3>Offline 1</h3><ul class=\"mid-txt\"><li><em>발행일</em><span>2026-09-30</span></li><li><em>저자</em><span>홍길동, 김철수, 이영희</span></li><li><em>주제</em><span>교통</span></li><li><em>부서명</em><span>교통연구실</span></li><li><em>과제코드</em><span>2026-PR-01</span></li><li><em>발간유형</em><span>정책리포트</span></li></ul><ul class=\"keyword\"><li>택시</li><li>만족도</li></ul><div class=\"bbs-cont\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></div></body></html>"
+  },
+  "expected_ids": [
+    "2610000002",
+    "2610000001"
+  ],
+  "original_method_source_sha256": {
+    "_get": "ca2f2a67ffb637f65ef27bcf32361ff411e70a539c93c14523b94fd88927c8ca",
+    "_fetch_list": "55d1152e70be95c3bb2dfeebd44173789399ed4a9547bba7406c70e91fb5f2c3",
+    "_fetch_detail": "5f0dc1d168a9906b6cf5011d22a810b4cbd5108fe048e634646ec9ac97f04ac1",
+    "_parse_list": "bb9fba81074233bc2f7ef6acb4dbb456f8ed9c1147c3de93c26e079068bd4095",
+    "_parse_detail": "9b6e433683dbbcc013dcc53c10a3cc3ce151a89750c907c0bcc038f25e68b519",
+    "crawl": "724d03d1b21e0b730d2f269a8102837a8843f309dd8e71e7b9277341a1c9dda2"
+  }
+}
