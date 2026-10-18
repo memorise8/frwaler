@@ -371,3 +371,62 @@ class NiamsNihNewsroomCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry point (framework sitemap plan). crawl(),
+    # _parse_detail() and the discovery helpers stay unchanged.
+    # ------------------------------------------------------------------
+    def _enumeration_paper(self, html, url):
+        """crawl()'s per-URL paper from an already fetched press-release page.
+
+        Same parsing as _parse_detail(url) except the stub-page hop: a NIAMS stub
+        that only links to an nih.gov release is not followed here (that is a second
+        host request); its abstract stays short and the item is skipped (None).
+        """
+        url = (url or "").split("?")[0].rstrip("/")
+        soup = self._make_soup(html) if html else None
+        if not soup:
+            return None
+        title = ""
+        h1 = soup.find("h1", attrs={"itemprop": "name"})
+        if h1:
+            title = h1.get_text(separator=" ", strip=True)
+        if not title:
+            og = soup.find("meta", property="og:title")
+            if og:
+                title = og.get("content", "").strip()
+        if not title:
+            t = soup.find("title")
+            if t:
+                title = t.get_text(strip=True).split("|")[0].strip()
+        published_date = ""
+        pub_meta = soup.find("meta", property="article:published_time")
+        if pub_meta:
+            published_date = pub_meta.get("content", "").strip()[:10]
+        abstract = re.sub(r"\s+", " ", self._extract_abstract_from_html(soup)).strip()
+        title = title.strip()
+        if not title or len(abstract) < 50:
+            return None
+        slug = url.rstrip("/").split("/")[-1]
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": slug,
+            "title": title,
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": "Press Release",
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": published_date,
+            "url": url,
+            "pdf_url": "",
+            "doi": "",
+            "department": (
+                "National Institute of Arthritis and "
+                "Musculoskeletal and Skin Diseases"
+            ),
+            "metadata": json.dumps(
+                {"source": "NIAMS Newsroom"},
+                ensure_ascii=False,
+            ),
+        }

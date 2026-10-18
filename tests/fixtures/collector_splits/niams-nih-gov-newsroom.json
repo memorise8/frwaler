@@ -1,0 +1,10 @@
+{
+ "site_id": "niams-nih-gov-newsroom",
+ "long_text": "Synthetic NIAMS press release body for offline equality testing of the sitemap split, long enough here. Synthetic NIAMS press release body for offline equality testing of the sitemap split, long enough here. ",
+ "bodies": {
+  "https://www.niams.nih.gov/sitemap.xml": "<?xml version=\"1.0\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://www.niams.nih.gov/</loc></url><url><loc>https://www.niams.nih.gov/newsroom/press-releases/gene-one</loc></url><url><loc>https://www.niams.nih.gov/newsroom/press-releases/survey-two</loc></url><url><loc>https://www.niams.nih.gov/about/x</loc></url></urlset>",
+  "https://www.niams.nih.gov/newsroom/press-releases": "<html><body><main>none</main></body></html>",
+  "https://www.niams.nih.gov/newsroom/press-releases/gene-one": "<html><head><meta property=\"og:title\" content=\"Gene one | NIAMS\"><meta property=\"article:published_time\" content=\"2020-03-31T10:00:00-04:00\"></head><body><h1 itemprop=\"name\">Gene one</h1><div property=\"schema:text\"><p>Synthetic NIAMS press release body for offline equality testing of the sitemap split, long enough here. Synthetic NIAMS press release body for offline equality testing of the sitemap split, long enough here. </p></div></body></html>",
+  "https://www.niams.nih.gov/newsroom/press-releases/survey-two": "<html><head><meta property=\"og:title\" content=\"Survey two | NIAMS\"><meta property=\"article:published_time\" content=\"2020-05-07T10:00:00-04:00\"></head><body><h1 itemprop=\"name\">Survey two</h1><div property=\"schema:text\"><p>Synthetic NIAMS press release body for offline equality testing of the sitemap split, long enough here. Synthetic NIAMS press release body for offline equality testing of the sitemap split, long enough here. </p></div></body></html>"
+ }
+}
