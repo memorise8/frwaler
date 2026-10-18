@@ -572,3 +572,99 @@ class CSEMChEnCrawler(BaseCrawler):
     def _near_deadline(self, start_time):
         elapsed = time.monotonic() - start_time
         return elapsed >= (self.MAX_WALL_SECONDS - self.WALL_MARGIN_SECONDS)
+
+    # ------------------------------------------------------------------
+    # Pure enumeration conversion (collector-splits; crawl() unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, list_url):
+        """Rows of one Prismic search page, as crawl() walks them.
+
+        ``list_url`` is the page's own URL (carries ``page`` and the run's master ``ref``).
+        A body without a ``results`` list is a listing error; ``results: []`` is the
+        valid page after the last one.
+        """
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("results"), list):
+            raise PermanentFailure("listing_parse_error:prismic_results_missing")
+        query = parse_qs(urlsplit(list_url or "").query)
+        try:
+            page = int((query.get("page") or ["1"])[0])
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:page_number") from None
+        ref = (query.get("ref") or [""])[0]
+        rows = []
+        seen = set()
+        for record in data["results"]:
+            if not isinstance(record, dict):
+                continue
+            dedupe_url = self._dedupe_url(self._record_url(record) or record.get("id") or "")
+            if not dedupe_url or dedupe_url in seen:
+                continue
+            seen.add(dedupe_url)
+            detail_url = record.get("href") or ""
+            if not detail_url and record.get("id") and ref:
+                params = [
+                    ("ref", ref),
+                    ("q", f'[[at(document.id,"{record["id"]}")]]'),
+                    ("lang", self.LANG),
+                ]
+                detail_url = f"{self.SEARCH_ENDPOINT}?{urlencode(params)}"
+            if not detail_url:
+                continue  # crawl(): no detail -> item failed, nothing saved
+            uid = record.get("uid") or ""
+            if not uid:
+                slugs = record.get("slugs") or []
+                uid = slugs[0] if slugs else ""
+            rows.append({
+                "url": detail_url,
+                "key": record.get("id") or dedupe_url,
+                "title": self._rich_text((record.get("data") or {}).get("title")),
+                "published_date": self._publication_date(record),
+                "csem_uid": uid,
+                "page": page,
+                "record": record,
+            })
+        return rows
+
+    def _enumeration_html_text(self, raw):
+        """The parsing half of _fetch_public_html_text()."""
+        if not raw:
+            return ""
+        soup = self._make_soup(raw, context="HTML fallback")
+        if soup is None:
+            return ""
+        for tag in soup(["script", "style", "noscript", "svg"]):
+            tag.decompose()
+        main = soup.select_one("main article") or soup.select_one("main") or soup.body
+        if not main:
+            return ""
+        return self._clean_text(main.get_text(" "))
+
+    def _enumeration_paper(self, html, detail_data, final_url, first_final_url, item):
+        """crawl()'s paper for one press release (ext:two_step_keep_first).
+
+        detail_data is the Prismic detail answer (the item URL, first step); html is the
+        public www.csem.ch press page (second step), used exactly like crawl()'s HTML
+        fallback when the API text is shorter than MIN_ABSTRACT_CHARS. No second step
+        (no uid) means no fallback text, like crawl() without a csem_url.
+        """
+        results = (detail_data or {}).get("results") or []
+        if not results:
+            raise ValueError("detail fetch failed after retries")
+        detail = results[0]
+        parsed = self._parse_record(detail, list_record=item["record"], page=item["page"])
+        abstract = parsed.get("abstract") or ""
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            fallback = ""
+            csem_url = parsed.get("csem_url")
+            if (csem_url and csem_url.startswith(self.base_url)
+                    and final_url != first_final_url):
+                fallback = self._enumeration_html_text(html)
+            if len(fallback) > len(abstract):
+                parsed["abstract"] = fallback
+                abstract = fallback
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        return self._paper_from_parsed(parsed)

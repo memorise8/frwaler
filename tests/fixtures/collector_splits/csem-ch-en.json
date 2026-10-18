@@ -1,0 +1,270 @@
+{
+ "site_id": "csem-ch-en",
+ "listing_body": "{\"page\": 1, \"results_per_page\": 50, \"results_size\": 2, \"total_results_size\": 2, \"total_pages\": 1, \"next_page\": null, \"prev_page\": null, \"results\": [{\"id\": \"SYNTHid000000001\", \"uid\": \"synthetic-press-one\", \"type\": \"press\", \"href\": \"https://csem.cdn.prismic.io/api/v2/documents/search?ref=synthetic-master-ref&q=%5B%5B%3Ad+%3D+at%28document.id%2C+%22SYNTHid000000001%22%29%5D%5D\", \"lang\": \"en-gb\", \"slugs\": [\"synthetic-press-one\"], \"first_publication_date\": \"2031-02-03T08:00:00+0000\", \"last_publication_date\": \"2031-02-03T09:00:00+0000\", \"alternate_languages\": [], \"data\": {\"title\": [{\"type\": \"heading1\", \"text\": \"Synthetic press one\", \"spans\": []}], \"preContent\": [{\"type\": \"paragraph\", \"text\": \"Synthetic.\", \"spans\": []}], \"content\": [{\"type\": \"paragraph\", \"text\": \"Synthetic press release text written only for the offline regression test of this collector, long enough to pass the abstract threshold.\", \"spans\": []}], \"slices\": [{\"slice_type\": \"article_paragraph\", \"primary\": {\"content\": [{\"type\": \"paragraph\", \"text\": \"More.\", \"spans\": []}]}}, {\"slice_type\": \"image\", \"primary\": {\"image\": {\"url\": \"https://images.prismic.io/csem/x.jpg\"}}}], \"publicationDate\": \"2031-02-03\", \"domains\": [{\"domain\": {\"id\": \"D1\", \"uid\": \"digital-health\", \"tags\": [\"Digital health\"]}}], \"industries\": [{\"industry\": {\"id\": \"I1\", \"uid\": \"medtech\", \"tags\": []}}], \"technicalFocuses\": [], \"metaKeywords\": [{\"type\": \"paragraph\", \"text\": \"sensors; synthetic\", \"spans\": []}], \"externalLink\": {\"link_type\": \"Any\"}, \"attachment\": {\"link_type\": \"Media\", \"url\": \"https://csem.cdn.prismic.io/csem/synthetic-factsheet.pdf\"}}}, {\"id\": \"SYNTHid000000002\", \"uid\": \"synthetic-press-two\", \"type\": \"press\", \"href\": \"https://csem.cdn.prismic.io/api/v2/documents/search?ref=synthetic-master-ref&q=%5B%5B%3Ad+%3D+at%28document.id%2C+%22SYNTHid000000002%22%29%5D%5D\", \"lang\": \"en-gb\", \"slugs\": [\"synthetic-press-two\"], \"first_publication_date\": \"2031-01-05T08:00:00+0000\", \"last_publication_date\": \"2031-01-05T09:00:00+0000\", \"alternate_languages\": [], \"data\": {\"title\": [{\"type\": \"heading1\", \"text\": \"Synthetic press two\", \"spans\": []}], \"preContent\": [{\"type\": \"paragraph\", \"text\": \"Synthetic.\", \"spans\": []}], \"content\": [{\"type\": \"paragraph\", \"text\": \"Synthetic press release text written only for the offline regression test of this collector, long enough to pass the abstract threshold. Two.\", \"spans\": []}], \"slices\": [{\"slice_type\": \"article_paragraph\", \"primary\": {\"content\": [{\"type\": \"paragraph\", \"text\": \"More.\", \"spans\": []}]}}, {\"slice_type\": \"image\", \"primary\": {\"image\": {\"url\": \"https://images.prismic.io/csem/x.jpg\"}}}], \"publicationDate\": \"2031-01-05\", \"domains\": [{\"domain\": {\"id\": \"D1\", \"uid\": \"digital-health\", \"tags\": [\"Digital health\"]}}], \"industries\": [{\"industry\": {\"id\": \"I1\", \"uid\": \"medtech\", \"tags\": []}}], \"technicalFocuses\": [], \"metaKeywords\": [{\"type\": \"paragraph\", \"text\": \"sensors; synthetic\", \"spans\": []}], \"externalLink\": {\"link_type\": \"Any\"}, \"attachment\": {\"link_type\": \"Media\", \"url\": \"https://csem.cdn.prismic.io/csem/synthetic-factsheet.pdf\"}}}]}",
+ "empty_body": "{\"page\": 2, \"results_per_page\": 50, \"results_size\": 0, \"total_results_size\": 2, \"total_pages\": 1, \"next_page\": null, \"prev_page\": null, \"results\": []}",
+ "content_type": "application/json",
+ "long_text": "Synthetic press release text written only for the offline regression test of this collector, long enough to pass the abstract threshold.",
+ "api_root": {
+  "refs": [
+   {
+    "id": "release-x",
+    "ref": "other-release-ref",
+    "label": "Release"
+   },
+   {
+    "id": "master",
+    "ref": "synthetic-master-ref",
+    "label": "Master",
+    "isMasterRef": true
+   }
+  ],
+  "bookmarks": {},
+  "types": {
+   "press": "Press"
+  }
+ },
+ "details": {
+  "https://csem.cdn.prismic.io/api/v2/documents/search?ref=synthetic-master-ref&q=%5B%5B%3Ad+%3D+at%28document.id%2C+%22SYNTHid000000001%22%29%5D%5D": {
+   "page": 1,
+   "results_per_page": 20,
+   "results_size": 1,
+   "total_results_size": 1,
+   "total_pages": 1,
+   "next_page": null,
+   "prev_page": null,
+   "results": [
+    {
+     "id": "SYNTHid000000001",
+     "uid": "synthetic-press-one",
+     "type": "press",
+     "href": "https://csem.cdn.prismic.io/api/v2/documents/search?ref=synthetic-master-ref&q=%5B%5B%3Ad+%3D+at%28document.id%2C+%22SYNTHid000000001%22%29%5D%5D",
+     "lang": "en-gb",
+     "slugs": [
+      "synthetic-press-one"
+     ],
+     "first_publication_date": "2031-02-03T08:00:00+0000",
+     "last_publication_date": "2031-02-03T09:00:00+0000",
+     "alternate_languages": [],
+     "data": {
+      "title": [
+       {
+        "type": "heading1",
+        "text": "Synthetic press one",
+        "spans": []
+       }
+      ],
+      "preContent": [
+       {
+        "type": "paragraph",
+        "text": "Synthetic.",
+        "spans": []
+       }
+      ],
+      "content": [
+       {
+        "type": "paragraph",
+        "text": "Synthetic press release text written only for the offline regression test of this collector, long enough to pass the abstract threshold.",
+        "spans": []
+       }
+      ],
+      "slices": [
+       {
+        "slice_type": "article_paragraph",
+        "primary": {
+         "content": [
+          {
+           "type": "paragraph",
+           "text": "More.",
+           "spans": []
+          }
+         ]
+        }
+       },
+       {
+        "slice_type": "image",
+        "primary": {
+         "image": {
+          "url": "https://images.prismic.io/csem/x.jpg"
+         }
+        }
+       }
+      ],
+      "publicationDate": "2031-02-03",
+      "domains": [
+       {
+        "domain": {
+         "id": "D1",
+         "uid": "digital-health",
+         "tags": [
+          "Digital health"
+         ]
+        }
+       }
+      ],
+      "industries": [
+       {
+        "industry": {
+         "id": "I1",
+         "uid": "medtech",
+         "tags": []
+        }
+       }
+      ],
+      "technicalFocuses": [],
+      "metaKeywords": [
+       {
+        "type": "paragraph",
+        "text": "sensors; synthetic",
+        "spans": []
+       }
+      ],
+      "externalLink": {
+       "link_type": "Any"
+      },
+      "attachment": {
+       "link_type": "Media",
+       "url": "https://csem.cdn.prismic.io/csem/synthetic-factsheet.pdf"
+      }
+     }
+    }
+   ]
+  },
+  "https://www.csem.ch/en/press/synthetic-press-one/": "<html><body><nav>Menu</nav><main><article><h1>Synthetic press one</h1><p>Synthetic press release text written only for the offline regression test of this collector, long enough to pass the abstract threshold.</p><script>var x=1;</script></article></main></body></html>",
+  "https://csem.cdn.prismic.io/api/v2/documents/search?ref=synthetic-master-ref&q=%5B%5B%3Ad+%3D+at%28document.id%2C+%22SYNTHid000000002%22%29%5D%5D": {
+   "page": 1,
+   "results_per_page": 20,
+   "results_size": 1,
+   "total_results_size": 1,
+   "total_pages": 1,
+   "next_page": null,
+   "prev_page": null,
+   "results": [
+    {
+     "id": "SYNTHid000000002",
+     "uid": "synthetic-press-two",
+     "type": "press",
+     "href": "https://csem.cdn.prismic.io/api/v2/documents/search?ref=synthetic-master-ref&q=%5B%5B%3Ad+%3D+at%28document.id%2C+%22SYNTHid000000002%22%29%5D%5D",
+     "lang": "en-gb",
+     "slugs": [
+      "synthetic-press-two"
+     ],
+     "first_publication_date": "2031-01-05T08:00:00+0000",
+     "last_publication_date": "2031-01-05T09:00:00+0000",
+     "alternate_languages": [],
+     "data": {
+      "title": [
+       {
+        "type": "heading1",
+        "text": "Synthetic press two",
+        "spans": []
+       }
+      ],
+      "preContent": [
+       {
+        "type": "paragraph",
+        "text": "Synthetic.",
+        "spans": []
+       }
+      ],
+      "content": [
+       {
+        "type": "paragraph",
+        "text": "Synthetic press release text written only for the offline regression test of this collector, long enough to pass the abstract threshold. Two.",
+        "spans": []
+       }
+      ],
+      "slices": [
+       {
+        "slice_type": "article_paragraph",
+        "primary": {
+         "content": [
+          {
+           "type": "paragraph",
+           "text": "More.",
+           "spans": []
+          }
+         ]
+        }
+       },
+       {
+        "slice_type": "image",
+        "primary": {
+         "image": {
+          "url": "https://images.prismic.io/csem/x.jpg"
+         }
+        }
+       }
+      ],
+      "publicationDate": "2031-01-05",
+      "domains": [
+       {
+        "domain": {
+         "id": "D1",
+         "uid": "digital-health",
+         "tags": [
+          "Digital health"
+         ]
+        }
+       }
+      ],
+      "industries": [
+       {
+        "industry": {
+         "id": "I1",
+         "uid": "medtech",
+         "tags": []
+        }
+       }
+      ],
+      "technicalFocuses": [],
+      "metaKeywords": [
+       {
+        "type": "paragraph",
+        "text": "sensors; synthetic",
+        "spans": []
+       }
+      ],
+      "externalLink": {
+       "link_type": "Any"
+      },
+      "attachment": {
+       "link_type": "Media",
+       "url": "https://csem.cdn.prismic.io/csem/synthetic-factsheet.pdf"
+      }
+     }
+    }
+   ]
+  },
+  "https://www.csem.ch/en/press/synthetic-press-two/": "<html><body><nav>Menu</nav><main><article><h1>Synthetic press two</h1><p>Synthetic press release text written only for the offline regression test of this collector, long enough to pass the abstract threshold.</p><script>var x=1;</script></article></main></body></html>"
+ },
+ "original_method_source_sha256": {
+  "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+  "crawl": "38556069c1b144c3dc55775e62c9b963f959c611a66b079901abc0a90211c2c5",
+  "_fetch_master_ref": "aa0aa87c18118ef58c1d671ba7875f4548aec414614b57be3b9c1a84d053ec94",
+  "_list_url": "42293795ba1be65c03971073b5ba61303cdd0ffa15bfeae41e609e6f44879a47",
+  "_fetch_detail_record": "24ef8d71f85d89dcae6c48513a36d8a02ebc68b9c692c9ac915c23e2473166c0",
+  "_curl_json": "52c824247b7361ca0a1ce8526e5b8fe76a51dcef383c6a4ad284c9198ddd0e6a",
+  "_curl_get": "43be14f5c8ce85bdfa9e9ccfb6f29fce876ccf2849115c585f43a2fa7924beaf",
+  "_split_curl_output": "17f41955abc52db05d9ba4f02f8ad7600fa114230194cb96e52494f340e3350b",
+  "_parse_record": "19f49752631dac286886f5098bbf004f8c6255d9adf6ed7e14faef3258e7a67e",
+  "_paper_from_parsed": "67e20126180f9acdf296d87884bcc977341ce19b2e8e7d0062b99460ab0b91f0",
+  "_record_url": "16a5a422fa5b15a17cdc0e110a4a01a1bc827ca20109491a2969c17cdb23a379",
+  "_csem_url": "6594d844c8c7031b5c035dc46388ac2e76b46ab68e62f5c19605ecfa3167cdd2",
+  "_external_link": "0427d11f7057f1ad99ec5615514fbcb9e91e1730bd3e2bc24eb11529d2d69323",
+  "_pdf_url": "e3ca6c24f484dc37de26467c4739e9a3c26a8d1cf94c211dc14d5c59f5218740",
+  "_find_pdf_url": "b6a6ac49dd19500d78574a7115f20d751e6ab22e76afd402caa919a1f94fc357",
+  "_publication_date": "4294f3982194c2d6a1ca2185c2edb5fe77bf4e22eed1291773adbf4f8c2d7d06",
+  "_slice_body_text": "94a068941b5ccb460e9c70a5342bed5e1a0b97dde205c6140f4ee98bbf16599e",
+  "_rich_text": "02679e045cb3d3dc37371b6c448d46c228133d26ff45ed08204714743712aae7",
+  "_taxonomy_labels": "e629b221cc4c7afd395b0e1bdc2b2ac12e9832a1e69005925ab45d66dcd1e8f6",
+  "_keywords": "93cc0f9ee3aac51c8a09b20951ae37f048196f66d165b9938208eacc7bbd122b",
+  "_link_label": "d04c401bfa67846d8d284bc42a5fbddd57f49931fafa10b312c36c975fea6df9",
+  "_fetch_public_html_text": "a82ef76d97d8eb5b402429365a4607355bab56b7a412680956aab9ddf4606d81",
+  "_make_soup": "3c84e5d0ef2ef578bed8298a5aaa74fac3a85597f0b916300b362e7009aebd5c",
+  "_clean_text": "25a1f027a8af47ab18e04c602ad84a3eff2439a38178abf26c2945c65f25d244",
+  "_dedupe_keep_order": "922a892f5893db6c54156a7adca009e056d251403ac36f135c1de2921d4bb3db",
+  "_dedupe_url": "59c496f8961bd7f6cb7ee41b0f4cc3a39bcd769d804114a14532bd713dcf8927",
+  "_hash_id": "d9805078d837427f0a324311e620fb431c33d7375b4b141d7aa28342565bd3a4",
+  "_near_deadline": "816b9a9c4138b27f6048e0be028f3270f44237856d75b592d3fd8ee9af68ee0a"
+ }
+}

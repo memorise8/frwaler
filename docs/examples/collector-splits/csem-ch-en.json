@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "sites": {
+    "csem-ch-en": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.csem.ch",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "first_json",
+          "final_url",
+          "first_final_url",
+          "item"
+        ],
+        "second_step": {
+          "use": "detail_page",
+          "url_template": "https://www.csem.ch/en/press/{item:csem_uid}/",
+          "required": false,
+          "allow_hosts": [
+            "www.csem.ch"
+          ]
+        }
+      },
+      "listing": {
+        "url": "https://csem.cdn.prismic.io/api/v2/documents/search",
+        "params": {
+          "ref": "{dyn:ref}",
+          "q": [
+            "[[at(document.type,\"press\")]]",
+            "[[fulltext(document, \"\")]]"
+          ],
+          "orderings": "[my.press.publicationDate desc]",
+          "pageSize": 50,
+          "lang": "en-gb"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 50,
+        "dynamic": {
+          "url": "https://csem.cdn.prismic.io/api/v2",
+          "values": {
+            "ref": {
+              "regex": "\\{(?=[^{}]*(?:\"isMasterRef\"\\s*:\\s*true|\"id\"\\s*:\\s*\"master\"))[^{}]*\"ref\"\\s*:\\s*\"([^\"]+)\"",
+              "public": true
+            }
+          }
+        },
+        "total": {
+          "type": "json",
+          "path": "total_results_size"
+        },
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "key",
+          "date_field": "published_date",
+          "title_field": "title"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
