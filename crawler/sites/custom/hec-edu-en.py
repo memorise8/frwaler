@@ -242,6 +242,119 @@ class HecEduEnCrawler(BaseCrawler):
         return result
 
     # ------------------------------------------------------------------ #
+    # Pure enumeration conversion (collector-splits); crawl() is unchanged  #
+    # ------------------------------------------------------------------ #
+
+    def _enumeration_items(self, html, url=None):
+        """GET list page (?page=N, the same view crawl() reads via AJAX) ->
+        crawl()'s card dicts from ``_parse_cards``.
+
+        An empty page is accepted only with the view's exposed form and Drupal's
+        "no results" text; anything else is a listing parse error.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        if 'edit-submit-press-release-list' not in html:
+            raise PermanentFailure("listing_parse_error:missing_press_release_view", url)
+        cards, _ = self._parse_cards(html)
+        if not cards and "sorry no results found" not in html.lower():
+            raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing", url)
+        return cards
+
+    def _enumeration_detail(self, raw):
+        """Pure copy of ``_fetch_detail`` after its fetch (``raw`` = detail HTML)."""
+        if not raw:
+            return {}
+
+        result = {}
+
+        node_ids = re.findall(r'/node/(\d+)', raw)
+        if node_ids:
+            result["node_id"] = node_ids[0]
+
+        m = re.search(r'<meta\s+name="description"\s+content="([^"]+)"', raw)
+        if m:
+            result["meta_desc"] = m.group(1)
+
+        pdfs = re.findall(r'href="([^"]*\.pdf[^"]*)"', raw, re.IGNORECASE)
+        if pdfs:
+            result["pdf_url"] = pdfs[0]
+
+        dt_vals = re.findall(r'datetime="([^"]+)"', raw)
+        if dt_vals:
+            result["detail_date"] = dt_vals[0][:10]
+
+        try:
+            soup = _make_soup(raw)
+            body_parts = []
+            for p in soup.find_all("p"):
+                text = p.get_text(separator=" ", strip=True)
+                if len(text) > 50 and not re.search(
+                    r'(?:Maps and directions|Jouy-en-Josas|cookie|matomo|'
+                    r'privacy policy|terms of use|©)', text, re.IGNORECASE
+                ):
+                    body_parts.append(text)
+            if body_parts:
+                result["body"] = "\n\n".join(body_parts)
+        except Exception as exc:
+            print(f"[hec-edu-en] detail soup error: {exc}")
+
+        return result
+
+    def _enumeration_paper(self, html, card):
+        """Pure copy of crawl()'s per-card Paper conversion; None = short-abstract skip."""
+        url = card["url"]
+        detail = self._enumeration_detail(html)
+
+        abstract = detail.get("body") or detail.get("meta_desc") or card["description"]
+
+        if not abstract or len(abstract) < 50:
+            return None
+
+        slug = url.rstrip("/").split("/")[-1]
+        node_id = detail.get("node_id", "")
+        external_id = slug
+        post_number = slug
+
+        published_date = detail.get("detail_date") or card["date"]
+        listed_date = card["date"]
+
+        pdf_url = detail.get("pdf_url") or ""
+        original_filename = None
+        if pdf_url:
+            raw_fn = pdf_url.split("/")[-1].split("?")[0]
+            original_filename = unquote(raw_fn) if raw_fn else None
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": card["title"],
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "url": url,
+            "pdf_url": pdf_url or None,
+            "original_filename": original_filename,
+            "authors": "",
+            "publisher": "HEC Paris",
+            "department": "",
+            "journal": "",
+            "keywords": "",
+            "category": card["category"],
+            "doi": "",
+            "metadata": json.dumps({
+                "posted_date": card["date"],
+                "node_id": node_id,
+                "slug": slug,
+                "originalFilename": original_filename,
+                "meta_description": detail.get("meta_desc", ""),
+            }, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------ #
     # Main crawl                                                           #
     # ------------------------------------------------------------------ #
 

@@ -1,0 +1,19 @@
+{
+  "listing_body": "<html><body><main><form><input data-drupal-selector=\"edit-submit-press-release-list\" type=\"submit\" id=\"edit-submit-press-release-list\" value=\"Apply\"/></form><div class=\"blocks-list__area\"><div class=\"blocks-list\"><div class=\"views-infinite-scroll-content-wrapper\"><div class=\"news-item theme-scope theme-about\"><div class=\"cartridge\">Press release</div><a rel=\"bookmark\" href=\"/en/news/offline-1\"><span class=\"h4\"><span>Offline 1</span></span></a><div class=\"news-item__description\"><p>Card summary 1</p></div><time datetime=\"2026-10-12T10:00:00Z\">x</time></div><div class=\"news-item theme-scope theme-about\"><div class=\"cartridge\">Press release</div><a rel=\"bookmark\" href=\"/en/news/offline-2\"><span class=\"h4\"><span>Offline 2</span></span></a><div class=\"news-item__description\"><p>Card summary 2</p></div><time datetime=\"2026-10-11T10:00:00Z\">x</time></div></div></div></div><ul class=\"pager\"><li><a href=\"?page=1\">More</a></li></ul></main></body></html>",
+  "content_type": "text/html",
+  "empty_body": "<html><body><main><form><input data-drupal-selector=\"edit-submit-press-release-list\" type=\"submit\" id=\"edit-submit-press-release-list\" value=\"Apply\"/></form><div class=\"blocks-list__area\"><div class=\"blocks-list\"></div></div>sorry no results found.</main></body></html>",
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "details": {
+    "https://www.hec.edu/en/news/offline-1": "<html><head><meta name=\"description\" content=\"Meta description 1\"></head><body><a href=\"/node/771\">n</a><time datetime=\"2026-10-11T09:00:00Z\">d</time><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p><a href=\"https://files.example.org/doc%201.pdf?v=1\">pdf</a></body></html>",
+    "https://www.hec.edu/en/news/offline-2": "<html><head><meta name=\"description\" content=\"Meta description 2\"></head><body><a href=\"/node/772\">n</a><time datetime=\"2026-10-12T09:00:00Z\">d</time><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p><a href=\"https://files.example.org/doc%202.pdf?v=1\">pdf</a></body></html>"
+  },
+  "original_method_source_sha256": {
+    "_curl_get": "e0732157ddec03a6c779f437786f5d5e331d8d3b99571026228f400c011188b0",
+    "_ajax_post": "d62988f2763c6059f239fbdd677c121981a38f2bdc21ef4ef9be47c9bee3f9c5",
+    "_get_dom_id": "9bbef9131d5ee1f6852e5c4c7490ce521f647cb4e9c700de0d3acefec0dbe79d",
+    "_parse_cards": "466f34178a995e7dae790fd1dcb7bcff1672e262d0643f41960fc01b5845fd8b",
+    "_fetch_detail": "de9eb22b59094e7fcc1f659225333801ea9c049fc59da796b8f600eaa47e7f7a",
+    "crawl": "2e313bc40442a5842cee21bb6858b883829556c1baa72cb6cff3ed327d478065"
+  },
+  "site_id": "hec-edu-en"
+}
