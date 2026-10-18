@@ -637,6 +637,8 @@ class SiteRunner:
         robots = st.item_counts(site)[1].get("failed_permanent:robots_disallowed", 0)
         if robots and "robots_disallowed" not in review:
             self.warnings.append(f"robots_disallowed:{robots}")  # tolerated by the plan, still shown
+        if getattr(self.adapter, "missing_text", 0):
+            self.warnings.append(f"pdf_missing_as_no_text:{self.adapter.missing_text}")
         skipped = st.item_counts(site)[1].get("failed_permanent:skipped_by_rule", 0)
         if skipped and "skipped_by_rule" not in review:
             self.warnings.append(f"skipped_by_rule:{skipped}")  # within the plan's share, still shown

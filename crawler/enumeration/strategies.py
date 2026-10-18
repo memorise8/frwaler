@@ -961,6 +961,12 @@ class DateRangeSplit(_ForwardPager):
                     spec["label"] = str(node.get(label_rule[5:]) or "")[:200]
                 if follow:
                     spec["path"] = list(path)
+                if cfg.get("link_as_url"):
+                    link = urldefrag(urljoin(resp.url, value))[0]
+                    if host_of(link) != host_of(self.listing["url"]) or (
+                            hub_scheme == "https" and urlsplit(link).scheme != "https"):
+                        continue  # never a listing on another host or over plain HTTP
+                    spec["url"] = link
                 found[key] = spec
             if not follow:
                 continue
