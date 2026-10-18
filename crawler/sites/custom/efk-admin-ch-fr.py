@@ -743,3 +743,40 @@ class EfkAdminChFrCrawler(BaseCrawler):
     def _looks_like_pdf(url):
         path = urlparse(url or "").path.lower()
         return path.endswith(".pdf")
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() and its helpers are unchanged.
+    # Listing = /wp-json/wp/v2/posts for the press-release category (id found
+    # by _discover_category_id: 213 on 2026-10-18, also crawl()'s fallback).
+    # Detail = the public post page (first step) plus the REST post JSON
+    # (ext:detail_aux_request), both fetched by the framework; _parse_detail
+    # and _to_paper run on them as in crawl() (list record when no JSON).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, payload):
+        if isinstance(payload, dict) and payload.get("code") == "rest_post_invalid_page_number":
+            return []
+        if not isinstance(payload, list):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:invalid_wp_listing")
+        return self._parse_list_records(payload)
+
+    def _enumeration_paper(self, resp, item, first_resp):
+        record = dict(item)
+        detail_json = None
+        if resp is not first_resp:
+            try:
+                data = resp.json()
+            except ValueError:
+                data = None
+            if isinstance(data, dict) and not data.get("code"):
+                detail_json = data
+        if detail_json is None:
+            detail_json = record.get("raw") or {}
+        detail_soup = self._make_soup(first_resp.text(), context="detail HTML")
+        if detail_soup is None:
+            return None
+        parsed = self._parse_detail(record, detail_json, detail_soup, first_resp.url)
+        if len(parsed.get("abstract") or "") < self.MIN_ABSTRACT_CHARS:
+            return None
+        return self._to_paper(parsed)
