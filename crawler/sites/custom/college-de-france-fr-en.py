@@ -185,6 +185,30 @@ class CollegeDeFranceFrEnCrawler(BaseCrawler):
             query.append(("page", str(page)))
         return f"{self.base_url}{self.LIST_PATH}?{urlencode(query)}"
 
+    # Pure enumeration entry points; crawl() and the parsers stay unchanged.
+    def _enumeration_items(self, raw, url):
+        """crawl()'s _parse_list for one page; page and list_url as crawl() passes them."""
+        from urllib.parse import parse_qs
+
+        values = parse_qs(urlparse(url).query).get("page", ["0"])
+        if len(values) != 1 or not values[0].isdigit():
+            raise ValueError("invalid source page parameter")
+        page = int(values[0])
+        soup = self._make_soup(raw, context=f"list page {page}")
+        if soup is None:
+            raise ValueError("list page could not be parsed")
+        return self._parse_list(soup, self._list_url(page), page)
+
+    def _enumeration_detail(self, raw, record, url=None):
+        """crawl()'s per-item block: _parse_detail, the short-abstract skip, _to_paper."""
+        soup = self._make_soup(raw, context="detail")
+        if soup is None:
+            raise RuntimeError("detail HTML could not be parsed")
+        parsed = self._parse_detail(soup, raw, record)
+        if len(parsed.get("abstract") or "") < self.MIN_ABSTRACT_CHARS:
+            return None
+        return self._to_paper(parsed)
+
     def _time_budget_reached(self, started_at):
         elapsed = time.monotonic() - started_at
         if elapsed >= self.WALL_CLOCK_BUDGET_SECONDS - 30:
@@ -270,8 +294,13 @@ class CollegeDeFranceFrEnCrawler(BaseCrawler):
 
     def _parse_list(self, soup, list_url, page):
         records = []
-        for card in soup.select("a.card-news[href]"):
-            href = card.get("href") or ""
+        # Older markup: the whole card is <a class="card-news">. Since 2026 the card is
+        # <div class="card-news"> holding <a class="card-news__link"> (date outside the link).
+        for card in soup.select("a.card-news[href], div.card-news"):
+            link = card if card.name == "a" else card.select_one("a.card-news__link[href]")
+            if link is None:
+                continue
+            href = link.get("href") or ""
             url = urljoin(self.base_url, href)
             if "/en/news/" not in urlparse(url).path:
                 continue
