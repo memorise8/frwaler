@@ -294,3 +294,41 @@ class NHLBIResourcesCrawler(BaseCrawler):
 
         print(f"[nhlbi-nih-gov-resources] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # module parsers stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html):
+        """Listing rows of one /resources?page=N page, exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        return _parse_list_page(html, self.base_url)
+
+    def _enumeration_paper(self, html, item):
+        """Copy of crawl()'s paper conversion; None keeps crawl()'s skips."""
+        url = item["url"]
+        detail = _parse_detail(url, html, self.base_url)
+        abstract = detail["abstract"]
+        if len(abstract) < 50:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": item["external_id"] or url.split("/")[-1],
+            "title": item["title"],
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": detail["category"],
+            "keywords": json.dumps(detail["keywords"], ensure_ascii=False),
+            "published_date": detail["published_date"],
+            "url": url,
+            "pdf_url": detail["pdf_url"],
+            "doi": "",
+            "department": "NHLBI",
+            "metadata": json.dumps(
+                {"data_id": item["external_id"]},
+                ensure_ascii=False,
+            ),
+        }

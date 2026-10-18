@@ -1,0 +1,14 @@
+{
+ "site_id": "nhlbi-nih-gov-resources",
+ "listing_body": "<html><body><div class=\"view view-publications-search\"><div class=\"view-content\"><div class=\"views-row\"><article class=\"node node--type-nhlbi-publication\" data-id=\"201\"><div class=\"publicationTitle\"><a href=\"/resources/fact-one\" data-title=\"Fact sheet 201\" data-category=\"Fact Sheet\">Fact sheet 201</a></div></article></div><div class=\"views-row\"><article class=\"node node--type-nhlbi-publication\" data-id=\"202\"><div class=\"publicationTitle\"><a href=\"/resources/fact-two\" data-title=\"Fact sheet 202\" data-category=\"Fact Sheet\">Fact sheet 202</a></div></article></div></div></div></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.nhlbi.nih.gov/resources/fact-one": "<html><head><script type=\"application/ld+json\">{\"@context\": \"https://schema.org\", \"@graph\": [{\"@type\": \"Article\", \"description\": \"Synthetic NHLBI publication description used for offline equality testing of the split. Synthetic NHLBI publication description used for offline equality testing of the split. \", \"datePublished\": \"2026-03-01\", \"about\": [\"Heart\", \"Lung\"]}]}</script></head><body><main><h1>Fact sheet 201</h1><a href=\"/files/docs/f201.pdf\" data-category=\"Fact Sheet\">Download</a></main></body></html>",
+  "https://www.nhlbi.nih.gov/resources/fact-two": "<html><head><script type=\"application/ld+json\">{\"@context\": \"https://schema.org\", \"@graph\": [{\"@type\": \"Article\", \"description\": \"Synthetic NHLBI publication description used for offline equality testing of the split. Synthetic NHLBI publication description used for offline equality testing of the split. \", \"datePublished\": \"2025-11-20\", \"about\": [\"Heart\", \"Lung\"]}]}</script></head><body><main><h1>Fact sheet 202</h1><a href=\"/files/docs/f202.pdf\" data-category=\"Fact Sheet\">Download</a></main></body></html>"
+ },
+ "long_text": "Synthetic NHLBI publication description used for offline equality testing of the split. Synthetic NHLBI publication description used for offline equality testing of the split. ",
+ "empty_body": "<html><body><div class=\"view view-publications-search\"><div class=\"view-empty\">No results</div></div></body></html>",
+ "original_method_source_sha256": {
+  "crawl": "04211343c8e17ae9d03f4664a44f0bf78e645ec038658bf4089b863e8cc6a51e"
+ }
+}
