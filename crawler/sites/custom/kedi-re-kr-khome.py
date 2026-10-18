@@ -457,3 +457,20 @@ class KediReKrKhomeCrawler(BaseCrawler):
             )
             return True
         return False
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. The same list
+    # and detail parsers and _build_paper, with crawl()'s skip rule
+    # (abstract shorter than _MIN_ABSTRACT_CHARS). The site answers the same
+    # list/detail parameters by GET as by POST.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        m = re.search(r"[?&]currentPage=(\d+)", url or "")
+        return self._parse_list_page(html, int(m.group(1)) if m else 1)
+
+    def _enumeration_paper(self, html, item):
+        detail = self._parse_detail_page(html, item)
+        if len(detail.get("abstract") or "") < _MIN_ABSTRACT_CHARS:
+            return None
+        return self._build_paper(item, detail)

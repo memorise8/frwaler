@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "sites": {
+    "kedi-re-kr-khome": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "base_url": "https://www.kedi.re.kr",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": ["html", "url"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["html", "item"]
+      },
+      "listing": {
+        "url": "https://www.kedi.re.kr/khome/main/research/listPubForm.do",
+        "params": {"maxLinks": "10", "maxResults": "10", "tabGb": "1", "sort": "", "sortCol": "", "sortOp": "",
+                   "srchStartYear": "1972", "srchStartMonth": "01", "srchEndYear": "2026", "srchEndMonth": "12"},
+        "page_param": "currentPage",
+        "start_page": 1,
+        "parser": {"type": "adapter", "key_field": "external_id", "url_field": "url",
+                   "title_field": "title", "date_field": "published_date",
+                   "listing_marker": "table.colTbl"}
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}
