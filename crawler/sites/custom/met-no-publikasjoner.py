@@ -389,3 +389,104 @@ class MetNoPublikasjoner(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched data.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Reports of one year page (/publikasjoner/met-report/met-report-YYYY),
+        parsed with _parse_year_page as crawl() does (year and page URL from
+        the request URL; the page-less main list is the current year, as in
+        crawl()). Year pages are not paginated: a page number above 1 is
+        declared empty and proved by the plan's listing_marker."""
+        import datetime
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        parts = urlsplit(url or "")
+        page = (parse_qs(parts.query).get("page") or ["1"])[0]
+        if page not in ("", "0", "1"):
+            return []
+        m = re.search(r"/publikasjoner/met-report/met-report-(\d{4})$", parts.path)
+        if m:
+            year = int(m.group(1))
+            page_url = f"https://www.met.no{parts.path}"
+        else:
+            year = datetime.datetime.now().year
+            page_url = self._LIST_URL
+        rows = []
+        seen = set()
+        for report in self._parse_year_page(html, year, page_url):
+            if report["pdf_url"] in seen:
+                continue
+            seen.add(report["pdf_url"])
+            rows.append(report)
+        return rows
+
+    def _enumeration_paper(self, raw, item):
+        """Paper from the fetched report PDF — crawl()'s abstract extraction
+        (pdfplumber, then pypdf, Abstract/Sammendrag section) and conversion
+        copied verbatim (external_id = met-report-NN-YYYY). A PDF above the
+        crawler's size limit gets no abstract and is skipped, as in crawl()."""
+        report = item
+        pdf_url = report["pdf_url"]
+        abstract = ""
+        pdf_bytes = raw if isinstance(raw, (bytes, bytearray)) else None
+        if pdf_bytes and len(pdf_bytes) <= self._MAX_PDF_BYTES:
+            try:
+                import pdfplumber
+                with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+                    all_text = "\n".join(
+                        (page.extract_text() or "") for page in pdf.pages[:6]
+                    )
+                abstract = self._parse_abstract(all_text)
+            except Exception:
+                abstract = ""
+            if not abstract:
+                try:
+                    import pypdf
+                    reader = pypdf.PdfReader(io.BytesIO(pdf_bytes), strict=False)
+                    all_text = "\n".join(
+                        (page.extract_text() or "") for page in list(reader.pages)[:6]
+                    )
+                    abstract = self._parse_abstract(all_text)
+                except Exception:
+                    abstract = ""
+
+        if len(abstract) < 50:
+            return None
+
+        published_date = f"{report['year']}-01-01"
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": report["external_id"],
+            "post_number": report["report_num"],
+            "title": report["title"],
+            "abstract": abstract,
+            "authors": report["authors"],
+            "publisher": self._PUBLISHER,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "url": report["url"],
+            "pdf_url": pdf_url,
+            "original_filename": report["original_filename"],
+            "doi": None,
+            "department": None,
+            "journal": None,
+            "keywords": None,
+            "category": "MET report",
+            "metadata": json.dumps(
+                {
+                    "posted_date": published_date,
+                    "originalFilename": report["original_filename"],
+                    "report_number": report["report_num"],
+                    "year": report["year"],
+                },
+                ensure_ascii=False,
+            ),
+        }

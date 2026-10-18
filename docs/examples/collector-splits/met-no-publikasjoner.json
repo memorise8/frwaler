@@ -1,0 +1,175 @@
+{
+  "version": 1,
+  "sites": {
+    "met-no-publikasjoner": {
+      "strategy": "date_range_split",
+      "base_url": "https://www.met.no",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "raw",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.met.no/publikasjoner/{segment}",
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 40,
+        "parser": {
+          "type": "adapter",
+          "url_field": "pdf_url",
+          "key_field": "external_id",
+          "title_field": "title",
+          "listing_marker": "#main-container"
+        }
+      },
+      "segments": {
+        "mode": "explicit",
+        "items": [
+          {
+            "key": "met-report"
+          },
+          {
+            "key": "met-report/met-report-2025"
+          },
+          {
+            "key": "met-report/met-report-2024"
+          },
+          {
+            "key": "met-report/met-report-2023"
+          },
+          {
+            "key": "met-report/met-report-2022"
+          },
+          {
+            "key": "met-report/met-report-2021"
+          },
+          {
+            "key": "met-report/met-report-2020"
+          },
+          {
+            "key": "met-report/met-report-2019"
+          },
+          {
+            "key": "met-report/met-report-2018"
+          },
+          {
+            "key": "met-report/met-report-2017"
+          },
+          {
+            "key": "met-report/met-report-2016"
+          },
+          {
+            "key": "met-report/met-report-2015"
+          },
+          {
+            "key": "met-report/met-report-2014"
+          },
+          {
+            "key": "met-report/met-report-2013"
+          },
+          {
+            "key": "met-report/met-report-2012"
+          },
+          {
+            "key": "met-report/met-report-2011"
+          },
+          {
+            "key": "met-report/met-report-2010"
+          },
+          {
+            "key": "met-report/met-report-2009"
+          },
+          {
+            "key": "met-report/met-report-2008"
+          },
+          {
+            "key": "met-report/met-report-2007"
+          },
+          {
+            "key": "met-report/met-report-2006"
+          },
+          {
+            "key": "met-report/met-report-2005"
+          },
+          {
+            "key": "met-report/met-report-2004"
+          },
+          {
+            "key": "met-report/met-report-2003"
+          },
+          {
+            "key": "met-report/met-report-2002"
+          },
+          {
+            "key": "met-report/met-report-2001"
+          },
+          {
+            "key": "met-report/met-report-2000"
+          },
+          {
+            "key": "met-report/met-report-1999"
+          },
+          {
+            "key": "met-report/met-report-1998"
+          },
+          {
+            "key": "met-report/met-report-1997"
+          },
+          {
+            "key": "met-report/met-report-1996"
+          },
+          {
+            "key": "met-report/met-report-1995"
+          },
+          {
+            "key": "met-report/met-report-1994"
+          },
+          {
+            "key": "met-report/met-report-1993"
+          },
+          {
+            "key": "met-report/met-report-1992"
+          },
+          {
+            "key": "met-report/met-report-1991"
+          },
+          {
+            "key": "met-report/met-report-1990"
+          },
+          {
+            "key": "met-report/met-report-1989"
+          },
+          {
+            "key": "met-report/met-report-1988"
+          },
+          {
+            "key": "met-report/met-report-1987"
+          },
+          {
+            "key": "met-report/met-report-1986"
+          },
+          {
+            "key": "met-report/met-report-1985"
+          },
+          {
+            "key": "met-report/met-report-1984"
+          },
+          {
+            "key": "met-report/met-report-1983"
+          }
+        ]
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

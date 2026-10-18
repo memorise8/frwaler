@@ -1,0 +1,20 @@
+{
+  "site_id": "met-no-publikasjoner",
+  "main_body": "<html><body><div id=\"main-container\"><h1>MET report</h1><p>02-CUR: Synthetic Author 2, Other Author<br><a href=\"/publikasjoner/met-report/_/attachment/inline/abc:2/MET-report-02-CUR.pdf\">Synthetic report 2 of CUR</a></p><p>01-CUR: Synthetic Author 1, Other Author<br><a href=\"/publikasjoner/met-report/_/attachment/inline/abc:1/MET-report-01-CUR.pdf\">Synthetic report 1 of CUR</a></p><ul><li><a href=\"/publikasjoner/met-report/met-report-2025\">2025</a></li></ul></div></body></html>",
+  "listings": {
+    "2025": "<html><body><div id=\"main-container\"><h1>MET report 2025</h1><p>07-2025: Synthetic Author 7, Other Author<br><a href=\"/publikasjoner/met-report/met-report-2025/_/attachment/inline/abc:7/MET-report-07-2025.pdf\">Synthetic report 7 of 2025</a></p><p>03-2025: Synthetic Author 3, Other Author<br><a href=\"/publikasjoner/met-report/met-report-2025/_/attachment/inline/abc:3/MET-report-03-2025.pdf\">Synthetic report 3 of 2025</a></p></div></body></html>"
+  },
+  "pdf_long_text": "Abstract This synthetic report summary exists only for the offline equality test of the enumeration split and imitates the abstract section of a report without real content. 1. Introduction more text",
+  "content_type": "text/html",
+  "details": {},
+  "empty_body": "<html><body><div id=\"main-container\"></div></body></html>",
+  "original_method_source_sha256": {
+    "_curl": "989f72947f06a52727c59e178887257364b9c0a672f61dcb3e815b7a94edd486",
+    "_pdf_size": "c4992e41a965ab11eb38ceebe7c6062eb997618f10c98bf3d5196fc6d46b5379",
+    "_make_soup": "5c164a7611d1810fd1810f726ad1346e7fd9fc023be61ef0efae6e2f5710219c",
+    "_parse_year_page": "a7e1bcc116eb06f4786fee92984dff88d447ae0b4228b6bf2fbc6124c5c13698",
+    "_parse_abstract": "699cbccfdc1974ddc33f745b346bc506000a8053376e4385e24ec555d3975053",
+    "_extract_abstract": "3055208924dbaea1ce6e0eefb35f4518468a000a0042d60a588f5354b757f5d7",
+    "crawl": "e5a8b2dfd3aa475858b5aea69b33f3c014bab3dc38997ac1d1aa0a5b0ff746a0"
+  }
+}
