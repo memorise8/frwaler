@@ -308,3 +308,60 @@ class NIDCRNewsEventsCrawler(BaseCrawler):
 
         self._save_paper(paper)
         print(f"[{_SITE_ID}] Saved: {title[:70]}")
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and
+    # _fetch_and_save_article() stay unchanged; no fetching or storage.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html):
+        """Article rows of one year-listing page, exactly as crawl() collects them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        return [{"url": f"{_BASE_URL}{link}"} for link in _extract_article_links(html)]
+
+    def _enumeration_paper(self, html, item):
+        """The parsing half of _fetch_and_save_article(url); None keeps its skip.
+        A URL-only item (identity precheck: {"detail_url": url}) works too."""
+        url = item.get("url") or item["detail_url"]
+        soup = _make_soup(html)
+        node_id = _extract_node_id(html)
+        title = _extract_title(soup)
+        if not title:
+            title = "(untitled)"
+        published_date = _extract_date(html)
+        abstract = _extract_abstract(soup)
+        og_desc_m = re.search(r'property="og:description" content="([^"]+)"', html)
+        og_desc = og_desc_m.group(1).strip() if og_desc_m else ""
+        if len(abstract) < 100 and og_desc:
+            abstract = og_desc
+        if len(abstract) < 50:
+            return None
+        slug = url.split("/news-events/nidcr-news/")[-1].strip("/")
+        external_id = node_id if node_id else slug
+        post_number = node_id
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "url": url,
+            "pdf_url": None,
+            "authors": None,
+            "publisher": "National Institute of Dental and Craniofacial Research",
+            "department": None,
+            "journal": None,
+            "keywords": None,
+            "category": "NIDCR News",
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps({
+                "posted_date": published_date,
+                "node_id": node_id,
+                "slug": slug,
+                "og_description": og_desc,
+            }, ensure_ascii=False),
+        }

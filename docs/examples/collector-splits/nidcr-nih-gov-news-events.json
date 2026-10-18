@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "sites": {
+    "nidcr-nih-gov-news-events": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "date_range_split",
+      "base_url": "https://www.nidcr.nih.gov",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.nidcr.nih.gov/news-events/nidcr-news/{segment}",
+        "page_param": "p",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "listing_marker": "article.c-view--nidcr-news"
+        }
+      },
+      "segments": {
+        "mode": "explicit",
+        "items": [
+          {
+            "key": "current",
+            "url": "https://www.nidcr.nih.gov/news-events/nidcr-news"
+          },
+          {
+            "key": "2025"
+          },
+          {
+            "key": "2024"
+          },
+          {
+            "key": "2023"
+          },
+          {
+            "key": "2022"
+          },
+          {
+            "key": "2021"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+ "site_id": "nidcr-nih-gov-news-events",
+ "listing_body": "<html><body><main><article class=\"c-article c-view--nidcr-news\"><div class=\"c-view\"><div class=\"c-view__row\"><article class=\"c-teaser--news\"><div class=\"c-teaser__title\"><a href=\"/news-events/nidcr-news/dds-hub\">dds-hub</a></div></article></div><div class=\"c-view__row\"><article class=\"c-teaser--news\"><div class=\"c-teaser__title\"><a href=\"/news-events/nidcr-news/jansen-trial\">jansen-trial</a></div></article></div><a href=\"/news-events/nidcr-news/2025\">2025</a></div></article></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.nidcr.nih.gov/news-events/nidcr-news/dds-hub": "<html><head><title>dds-hub | NIDCR</title><meta property=\"og:description\" content=\"OG dds-hub\"></head><body><main><article><h1>Title dds-hub</h1><time datetime=\"2026-03-02T12:00:00Z\">March 2, 2026</time><p>Synthetic NIDCR news article paragraph used for offline equality testing of the enumeration split here. Synthetic NIDCR news article paragraph used for offline equality testing of the enumeration split here. </p></article></main><script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\": {\"currentPath\": \"node/27986\"}}</script></body></html>",
+  "https://www.nidcr.nih.gov/news-events/nidcr-news/jansen-trial": "<html><head><title>jansen-trial | NIDCR</title><meta property=\"og:description\" content=\"OG jansen-trial\"></head><body><main><article><h1>Title jansen-trial</h1><time datetime=\"2026-03-02T12:00:00Z\">March 2, 2026</time><p>Synthetic NIDCR news article paragraph used for offline equality testing of the enumeration split here. Synthetic NIDCR news article paragraph used for offline equality testing of the enumeration split here. </p></article></main><script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\": {\"currentPath\": \"node/27987\"}}</script></body></html>"
+ },
+ "long_text": "Synthetic NIDCR news article paragraph used for offline equality testing of the enumeration split here. Synthetic NIDCR news article paragraph used for offline equality testing of the enumeration split here. ",
+ "empty_body": "<html><body><main><article class=\"c-article c-view--nidcr-news\"><div class=\"c-view\"></div></article></main></body></html>",
+ "original_method_source_sha256": {
+  "crawl": "967da47f5343eca2b418f5ceccf7534942befac4b6e21933e5c4957800ae2393",
+  "_fetch_and_save_article": "67f349808377972d7e3e312329a00e14de490fb74b86a59e48d38d32538588fa"
+ }
+}
