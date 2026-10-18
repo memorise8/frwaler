@@ -1,0 +1,43 @@
+{
+ "version": 1,
+ "defaults": {
+  "request_interval_s": 1.5,
+  "respect_robots": true,
+  "retries": 1
+ },
+ "sites": {
+  "ufm-dk-publikationer": {
+   "strategy": "last_page_backward",
+   "base_url": "https://fudm.dk",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "html",
+     "url"
+    ],
+    "detail_method": "_enumeration_paper",
+    "detail_args": [
+     "html",
+     "item"
+    ]
+   },
+   "listing": {
+    "url": "https://fudm.dk/publikationer/",
+    "params": {
+     "pageNumber": 1
+    },
+    "page_param": "pageNumber",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "url_field": "url",
+     "listing_marker": "main"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1
+   }
+  }
+ }
+}

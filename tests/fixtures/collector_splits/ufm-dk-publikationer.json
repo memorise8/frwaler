@@ -1,0 +1,17 @@
+{
+ "site_id": "ufm-dk-publikationer",
+ "listing_body": "<html><body><main><a class=\"results-item\" href=\"/publikationer/2026/august/et-glansbillede/\">A</a><a class=\"results-item\" href=\"https://fudm.dk/publikationer/2026/august/brief-ugennemsigtige/\">B</a><a class=\"results-item\" href=\"/publikationer/\">root</a></main></body></html>",
+ "empty_body": "<html><body><main><p>Ingen resultater</p></main></body></html>",
+ "content_type": "text/html",
+ "long_text": "Syntetisk publikationstekst til offline test af opdelingen: rapporten belyser gennemsigtighed i techgiganters indberetninger. Udgiver: Forskningsministeriet.",
+ "details": {
+  "https://fudm.dk/publikationer/2026/august/et-glansbillede/": "<html><body data-nodeid=\"1234\"><h1 class=\"area-content__headline\">Et glansbillede</h1><time class=\"area-content__date-time\" datetime=\"2026-08-31\">31</time><p class=\"area-content__intro\">Intro.</p><div class=\"area-content__text\"><p>Syntetisk publikationstekst til offline test af opdelingen: rapporten belyser gennemsigtighed i techgiganters indberetninger. Udgiver: Forskningsministeriet.</p><p>ISBN: 978-87-1</p></div><a class=\"area-content__download-link\" href=\"/media/wodcr3tp/et-glansbillede.pdf\">Hent</a></body></html>",
+  "https://fudm.dk/publikationer/2026/august/brief-ugennemsigtige/": "<html><body data-nodeid=\"1235\"><h1 class=\"area-content__headline\">Brief</h1><time class=\"area-content__date-time\" datetime=\"2026-08-31\">31</time><p class=\"area-content__intro\">Intro.</p><div class=\"area-content__text\"><p>Syntetisk publikationstekst til offline test af opdelingen: rapporten belyser gennemsigtighed i techgiganters indberetninger. Udgiver: Forskningsministeriet.</p><p>ISBN: 978-87-1</p></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_fetch": "639bad37176dcc688a9b63485c55395426b613702abf2073e4aa84857118c9a2",
+  "_parse_list_page": "d7bb18409f8045ceff4ed113594416dd5c0cde0b8594274b21cbee699d6a6765",
+  "_parse_detail": "1ec4d8b779aa8b8b0448de51028dd5e1f2ccc92263bcb14234160c11ec9fca19",
+  "crawl": "b406f04eca2a78cc41439292e871e7d832e63142972ef732744508691c8e2dce"
+ }
+}
