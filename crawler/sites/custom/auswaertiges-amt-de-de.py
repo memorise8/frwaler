@@ -366,3 +366,78 @@ class AuswaertigesAmtDeDeCrawler(BaseCrawler):
         if not text:
             return ""
         return re.sub(r"\s+", " ", text).strip()
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched data.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Listing rows of one json-filterlist page (``?offset=N``, 20 rows) in
+        crawl() order. external_id is computed exactly as in crawl()."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("items"), list):
+            raise PermanentFailure("listing_parse_error:json_filterlist_items_missing", url)
+        rows = []
+        for item in data["items"]:
+            if not isinstance(item, dict):
+                continue
+            link = item.get("link") or ""
+            if not link:
+                continue
+            detail_url = urljoin(self.base_url, link)
+            slug = link.rstrip("/").split("/")[-1]
+            m = re.search(r"(\d{5,})", slug)
+            external_id = m.group(1) if m else slug
+            rows.append(dict(item, url=detail_url, external_id=external_id,
+                             listed_date=self._parse_date(item.get("date") or "")))
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page — the conversion part of crawl()
+        copied verbatim (external_id/post_number and url unchanged)."""
+        link = item.get("link") or ""
+        detail_url = item["url"]
+        external_id = item["external_id"]
+        list_date_raw = item.get("date") or ""
+        if not html:
+            return None
+
+        detail = self._parse_detail(html, item)
+
+        abstract = detail.get("abstract") or ""
+        if len(abstract) < self._MIN_ABSTRACT_CHARS:
+            return None
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": external_id,
+            "title": detail.get("title") or item.get("headline") or "",
+            "authors": "",
+            "abstract": abstract,
+            "category": item.get("name") or item.get("type") or "",
+            "keywords": detail.get("keywords") or "",
+            "published_date": (
+                detail.get("published_date")
+                or self._parse_date(list_date_raw)
+            ),
+            "listed_date": self._parse_date(list_date_raw),
+            "url": detail_url,
+            "pdf_url": detail.get("pdf_url") or "",
+            "doi": "",
+            "department": "Auswärtiges Amt",
+            "publisher": "Auswärtiges Amt",
+            "original_filename": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": list_date_raw,
+                    "type": item.get("type") or "",
+                    "name": item.get("name") or "",
+                    "snippet": item.get("text") or "",
+                    "link": link,
+                },
+                ensure_ascii=False,
+            ),
+        }

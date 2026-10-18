@@ -1,0 +1,19 @@
+{
+  "site_id": "auswaertiges-amt-de-de",
+  "listing_body": "{\"itemsTotal\": 2, \"sortDirection\": \"desc\", \"items\": [{\"date\": \"12.02.2026\", \"dateVisible\": true, \"type\": \"press\", \"name\": \"Pressemitteilung\", \"headline\": \"Synthetische Pressemitteilung 9000102\", \"link\": \"/de/newsroom/9000102-9000102\", \"text\": \"Synthetic snippet ...\", \"picture\": {}}, {\"date\": \"11.01.2026\", \"dateVisible\": true, \"type\": \"press\", \"name\": \"Pressemitteilung\", \"headline\": \"Synthetische Pressemitteilung 9000101\", \"link\": \"/de/newsroom/9000101-9000101\", \"text\": \"Synthetic snippet ...\", \"picture\": {}}], \"facets\": []}",
+  "content_type": "application/json",
+  "details": {
+    "https://www.auswaertiges-amt.de/de/newsroom/9000102-9000102": "<html><body><main><h1 class=\"heading__title\"><span class=\"heading__title-text\">Synthetische Pressemitteilung 9000102</span></h1><span class=\"heading__meta\">12.02.2026 - Pressemitteilung</span><p class=\"heading__intro\">Synthetic intro 9000102.</p><div class=\"rte\"><p class=\"rte__paragraph\">Synthetic body paragraph for the offline equality test of the enumeration split. It only imitates the structure of a newsroom article and carries no real content at all.</p></div><section><h2>Schlagworte</h2><a href=\"/x\">Synthetik</a><a href=\"/y\">Test</a></section><a href=\"/blob/9000102/file.pdf\">PDF</a></main></body></html>",
+    "https://www.auswaertiges-amt.de/de/newsroom/9000101-9000101": "<html><body><main><h1 class=\"heading__title\"><span class=\"heading__title-text\">Synthetische Pressemitteilung 9000101</span></h1><span class=\"heading__meta\">11.01.2026 - Pressemitteilung</span><p class=\"heading__intro\">Synthetic intro 9000101.</p><div class=\"rte\"><p class=\"rte__paragraph\">Synthetic body paragraph for the offline equality test of the enumeration split. It only imitates the structure of a newsroom article and carries no real content at all.</p></div><section><h2>Schlagworte</h2><a href=\"/x\">Synthetik</a><a href=\"/y\">Test</a></section></main></body></html>"
+  },
+  "long_text": "Synthetic body paragraph for the offline equality test of the enumeration split. It only imitates the structure of a newsroom article and carries no real content at all.",
+  "empty_body": "{\"itemsTotal\": 2, \"sortDirection\": \"desc\", \"items\": [], \"facets\": []}",
+  "original_method_source_sha256": {
+    "crawl": "9879cd7d32cfc0305facce640627450a8641ece936b4050a6a7a897eace15134",
+    "_curl_get": "c035a5ad6c36eefc7dae74d49eca0c117e94a9c94bf40f392ba029d509f47f57",
+    "_make_soup": "35394d5a2dac44ba5509b1b0de0805a4b3c824af39ce2d21724cf3f58b611003",
+    "_parse_detail": "edebe8d973f509564f53b64350ac88748d06f2fe9fda50ad0ac74341e87097c6",
+    "_parse_date": "1d8bd6ef2a6cc16c9437183ade10b1206ef298b9c240e09b735bcf5774e20399",
+    "_clean_text": "bf3bac1d4a2a006dab59c81a5ce77edbd013092489d67eae830e86c94dbde1c1"
+  }
+}
