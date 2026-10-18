@@ -315,3 +315,31 @@ class MofGoKrDocCrawler(BaseCrawler):
 
     def _budget_exhausted(self, t0: float) -> bool:
         return (time.monotonic() - t0) >= (self._MAX_RUNTIME_S - self._RUNTIME_GRACE_S)
+
+    # ------------------------------------------------------------------
+    # Enumeration split (collector-splits 방식; crawl() 은 그대로)
+    # ------------------------------------------------------------------
+
+    _ENUM_LISTING_MARKER = "table.bod-table-list"
+
+    def _enumeration_items(self, html, url=""):
+        """목록 쪽 HTML → docSeq 행. 상세 URL 은 crawl() 과 같은 형식."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html, context="enumeration listing")
+        if soup.select_one(self._ENUM_LISTING_MARKER) is None:
+            raise PermanentFailure("listing_parse_error:missing_board_list")
+        return [{"external_id": doc_seq,
+                 "url": (f"{self._DETAIL_URL}?docSeq={doc_seq}"
+                         f"&menuSeq={self._MENU_SEQ}&bbsSeq={self._BBS_SEQ}")}
+                for doc_seq in self._parse_list_seqs(html)]
+
+    def _enumeration_paper(self, html, item):
+        """상세 HTML + 목록 행 → crawl() 이 저장하는 것과 같은 paper (초록 100자 미만은 None)."""
+        if not html:
+            return None
+        paper = self._build_paper(item["external_id"], html, item["url"])
+        if len(paper.get("abstract") or "") < 100:
+            return None
+        return paper

@@ -1,0 +1,25 @@
+{
+ "listing_url": "https://www.mof.go.kr/doc/ko/selectDocList.do?paginationInfo.currentPageNo=1&menuSeq=971&bbsSeq=10",
+ "listing_body": "<html><body><table class=\"bod-table-list\"><thead><tr><th>번호</th></tr></thead><tbody><tr><td>1</td><td class=\"ta-l\"><a href=\"#none\" onclick=\"fn_selectDoc('69031'); return false;\">합성 제목 1</a></td><td>해운정책과</td><td></td><td>2026.10.01</td><td>3</td></tr><tr><td>1</td><td class=\"ta-l\"><a href=\"#none\" onclick=\"fn_selectDoc('69030'); return false;\">합성 제목 2</a></td><td>해운정책과</td><td></td><td>2026.10.01</td><td>3</td></tr></tbody></table></body></html>",
+ "empty_body": "<html><body><table class=\"bod-table-list\"><thead><tr><th>번호</th></tr></thead><tbody></tbody></table></body></html>",
+ "content_type": "text/html",
+ "long_text": "합성 보도자료 본문입니다. 오프라인 동등성 시험을 위한 문장입니다. Synthetic MOF press release body text for testing. 합성 보도자료 본문입니다. 오프라인 동등성 시험을 위한 문장입니다. Synthetic MOF press release body text for testing. ",
+ "details": {
+  "https://www.mof.go.kr/doc/ko/selectDoc.do?docSeq=69031&menuSeq=971&bbsSeq=10": "<html><body><div class=\"bo-tit\">합성 상세 1</div><div class=\"bod-info-box\"><ul class=\"list\"><li><div class=\"tit-cell\"><p>부서</p></div><div class=\"txt-cell\"><p>해운정책과</p></div></li><li><div class=\"tit-cell\"><p>담당자</p></div><div class=\"txt-cell\"><p>홍길동</p></div></li><li><div class=\"tit-cell\"><p>등록일</p></div><div class=\"txt-cell\"><p>2026.10.01.</p></div></li></ul></div><div class=\"attach-list\"><a class=\"down-i-btn pdf\" href=\"/jfile/readDownloadFile.do?fileType=MOF_ARTICLE&fileTypeSeq=69031&fileNum=1\"><span class=\"blind\">다운로드</span>보도_69031.pdf</a></div><div class=\"bod-detail-view\"><p>합성 보도자료 본문입니다. 오프라인 동등성 시험을 위한 문장입니다. Synthetic MOF press release body text for testing. 합성 보도자료 본문입니다. 오프라인 동등성 시험을 위한 문장입니다. Synthetic MOF press release body text for testing. </p></div></body></html>",
+  "https://www.mof.go.kr/doc/ko/selectDoc.do?docSeq=69030&menuSeq=971&bbsSeq=10": "<html><body><div class=\"bo-tit\">합성 상세 2</div><div class=\"bod-info-box\"><ul class=\"list\"><li><div class=\"tit-cell\"><p>부서</p></div><div class=\"txt-cell\"><p>해운정책과</p></div></li><li><div class=\"tit-cell\"><p>담당자</p></div><div class=\"txt-cell\"><p>홍길동</p></div></li><li><div class=\"tit-cell\"><p>등록일</p></div><div class=\"txt-cell\"><p>2026.10.01.</p></div></li></ul></div><div class=\"attach-list\"><a class=\"down-i-btn pdf\" href=\"/jfile/readDownloadFile.do?fileType=MOF_ARTICLE&fileTypeSeq=69030&fileNum=1\"><span class=\"blind\">다운로드</span>보도_69030.pdf</a></div><div class=\"bod-detail-view\"><p>합성 보도자료 본문입니다. 오프라인 동등성 시험을 위한 문장입니다. Synthetic MOF press release body text for testing. 합성 보도자료 본문입니다. 오프라인 동등성 시험을 위한 문장입니다. Synthetic MOF press release body text for testing. </p></div></body></html>"
+ },
+ "native_attrs": {
+  "delivery_cursor": null
+ },
+ "original_method_source_sha256": {
+  "crawl": "c379b8c1fca6b834f588e52c62b5a18a5c5525d782bcbbe3e7a3eda102f7eca8",
+  "_curl_get": "8043a5acbbb5626e45270014e2fefd208488f69b0bfab3e1d155c9bd72f0d675",
+  "_parse_list_seqs": "c32ff39520d9b60a79c092334d6bc529d30010355a6791376d9e2de8dfdd9aac",
+  "_make_soup": "0df218d4169c4376e2e78018cf47255b3eb0e5518a21ddb320b03ab6d7f9d608",
+  "_parse_info_cell": "79871a5fb99b70ec16b989006f2a62404cb45b1e14a8064e8a896d1b1f983a8b",
+  "_parse_date": "61ef446b04f683b7c358c18ba889c2c916561addc0ee85027aac07ee09862fb1",
+  "_build_paper": "c1e54a18eb8a437c704f0b9b15b35f24bf28bb8452b440d78776ad36e59c0cf5",
+  "_budget_exhausted": "a4eae935e22d3018c8c652432d8bcb94d33fe943975db7f45a1d6cbbbee18c7d"
+ },
+ "site_id": "mof-go-kr-doc"
+}
