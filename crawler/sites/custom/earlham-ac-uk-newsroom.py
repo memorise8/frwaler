@@ -193,6 +193,10 @@ class EarlhamAcUkNewsroomCrawler(BaseCrawler):
         if not soup:
             return []
 
+        return self._parse_cards(soup)
+
+    def _parse_cards(self, soup) -> list[dict]:
+        """Article stubs from newsroom cards (AJAX insert chunk or full page)."""
         articles = []
         for link_tag in soup.find_all("a", class_="earlham-card-link"):
             href = (link_tag.get("href") or "").strip()
@@ -240,7 +244,10 @@ class EarlhamAcUkNewsroomCrawler(BaseCrawler):
         raw = _curl_get(url)
         if not raw:
             return None
+        return self._parse_detail_raw(raw)
 
+    def _parse_detail_raw(self, raw: str) -> dict:
+        """Parse a news article detail page body (no network)."""
         result: dict = {
             "title": "",
             "abstract": "",
@@ -500,3 +507,74 @@ class EarlhamAcUkNewsroomCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged): the plain /newsroom?page=N
+    # pages carry the same cards as the AJAX insert chunk.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Article stubs of one /newsroom page, parsed with the crawl() card parser.
+
+        The featured (latest) story sits in the view header and repeats on every
+        page; crawl() keeps it once through seen_urls. Here it is listed on the
+        first page only, so later pages hold just their own stories and the page
+        past the last one is empty.
+        """
+        import urllib.parse
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparsable_html")
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(url or "").query)
+        first_page = (query.get("page") or ["0"])[0] in ("", "0")
+        if not first_page:
+            for header in soup.select(".view-header"):
+                header.decompose()
+        return self._parse_cards(soup)
+
+    def _enumeration_paper(self, html, article):
+        """Paper dict exactly as crawl() saves it for one article (None = skipped)."""
+        detail = self._parse_detail_raw(html)
+        url = article["url"]
+        title = detail.get("title") or article.get("title", "")
+        abstract = detail.get("abstract", "") or article.get("excerpt", "")
+        if len(abstract) < 50:
+            return None
+        node_id = detail.get("node_id") or article.get("node_id", "")
+        external_id = node_id or article["slug"].lstrip("/news/")
+        published_date = (
+            detail.get("published_date") or article.get("listed_date", "")
+        )
+        listed_date = (
+            detail.get("listed_date") or article.get("listed_date", "")
+        )
+        author = detail.get("author") or "Earlham Institute"
+        metadata = {
+            "posted_date": article.get("listed_date_raw", ""),
+            "node_id": node_id,
+            "slug": article["slug"],
+            "notes_to_editors": detail.get("notes_to_editors", ""),
+        }
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": node_id if node_id else None,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "url": url,
+            "pdf_url": None,
+            "authors": author,
+            "publisher": "Earlham Institute",
+            "department": None,
+            "journal": None,
+            "keywords": None,
+            "category": "News",
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
