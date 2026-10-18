@@ -2,16 +2,15 @@
   "version": 1,
   "sites": {
     "ifau-se-forskning": {
-      "strategy": "sitemap",
+      "strategy": "last_page_backward",
       "request_interval_s": 1.5,
       "respect_robots": true,
       "retries": 1,
-      "verify_ssl": true,
       "base_url": "https://www.ifau.se",
       "adapter": {
         "type": "crawler",
         "contract_version": 1,
-        "list_method": "_enumeration_items",
+        "list_method": "_enumeration_search_items",
         "list_args": [
           "html",
           "url"
@@ -22,11 +21,26 @@
           "request_url"
         ]
       },
-      "sitemap": {
-        "sitemap_url": "https://www.ifau.se/sitemap.xml",
-        "include": [
-          "^https://www\\.ifau\\.se/Forskning/Publikationer/Rapporter/\\d{4}/[^/?#]+/$"
-        ]
+      "listing": {
+        "url": "https://www.ifau.se/Forskning/Publikationer/Rapporter/SearchQep/",
+        "method": "POST",
+        "idempotent": true,
+        "body_type": "json",
+        "params": {
+          "Years": [],
+          "SubjectCategories": [],
+          "Query": ""
+        },
+        "page_param": "Page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "listing_marker": "div.mb-7 > ul"
+        }
+      },
+      "last_page": {
+        "check_unparameterized_first_page": false
       }
     }
   }

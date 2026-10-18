@@ -256,6 +256,18 @@ class IFAURapporterCrawler(BaseCrawler):
             raise PermanentFailure("listing_parse_error:no_report_links", url)
         return [{"path": path, "url": _BASE_URL + path} for path in links]
 
+    def _enumeration_search_items(self, html: str, url: str | None = None) -> list[dict]:
+        """SearchQep fragment (POST list, JSON body Page=N, as crawl() sends) -> rows from
+        ``_extract_links``. A fragment with its "Visar ... utav N" header but no report
+        links is a valid empty page (past the last page); anything else (maintenance
+        page, foreign HTML) is a listing parse error."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        if not re.search(r"Visar\s*<strong>.*?utav\s*<strong>\s*\d+", html, re.S):
+            raise PermanentFailure("listing_parse_error:not_a_search_fragment", url)
+        return [{"path": path, "url": _BASE_URL + path} for path in self._extract_links(html)]
+
     def _enumeration_detail(self, raw: str, path: str) -> dict | None:
         """Pure copy of ``_fetch_detail`` after its fetch (``raw`` = detail HTML)."""
         url = _BASE_URL + path
