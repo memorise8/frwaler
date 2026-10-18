@@ -164,6 +164,66 @@ class BroadbentInstituteCAResearchCrawler(BaseCrawler):
     # Main crawl
     # ------------------------------------------------------------------
 
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_items(self, data, url=None):
+        """Validate a decoded WP REST list; no fetching, storage, or identifier synthesis."""
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:items_not_a_list_of_objects", url)
+        return data
+
+    def _enumeration_detail(self, html, item):
+        """Authors from the post page, exactly as crawl() reads them."""
+        return {"authors": self._extract_authors(html) if html else None}
+
+    def _enumeration_paper(self, item, detail):
+        """Pure copy of crawl's Paper conversion and item filters (None = crawl's skip)."""
+        post_url = item.get("link", "")
+        post_id = item.get("id")
+        external_id = str(post_id)
+        post_number = str(post_id)
+        slug = item.get("slug", "")
+        title = self._html_to_text(item.get("title", {}).get("rendered", ""))
+        if not title:
+            return None
+        content_html = item.get("content", {}).get("rendered", "")
+        excerpt_html = item.get("excerpt", {}).get("rendered", "")
+        date_iso = (item.get("date") or "")[:10] or None
+        abstract = self._html_to_text(content_html)
+        if len(abstract) < 50:
+            abstract = self._html_to_text(excerpt_html)
+        if len(abstract) < 50:
+            return None
+        pdf_url = self._extract_pdf_url(content_html)
+        orig_filename = self._original_filename(pdf_url)
+        authors = (detail or {}).get("authors")
+        metadata = {
+            "wordpress_id": post_id,
+            "slug": slug,
+            "posted_date": date_iso,
+            "tags": item.get("tags", []),
+        }
+        if orig_filename:
+            metadata["originalFilename"] = orig_filename
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": date_iso,
+            "posted_date": date_iso,
+            "authors": authors,
+            "publisher": "Broadbent Institute",
+            "url": post_url,
+            "pdf_url": pdf_url,
+            "original_filename": orig_filename,
+            "keywords": None,
+            "category": None,
+            "doi": None,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
+
     def crawl(self, limit=None):
         saved = 0
         page = 1

@@ -1,0 +1,16 @@
+{
+  "site_id": "broadbentinstitute-ca-research",
+  "listing_body": "[{\"id\": 701, \"slug\": \"offline-1\", \"date\": \"2026-10-11T09:00:00\", \"link\": \"https://broadbentinstitute.ca/research/offline-1/\", \"title\": {\"rendered\": \"Offline &amp; 1\"}, \"content\": {\"rendered\": \"<p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p><a href=\\\"https://broadbentinstitute.ca/wp-content/uploads/r1.pdf\\\">PDF</a>\"}, \"excerpt\": {\"rendered\": \"<p>short</p>\"}, \"tags\": [3]}, {\"id\": 702, \"slug\": \"offline-2\", \"date\": \"2026-10-12T09:00:00\", \"link\": \"https://broadbentinstitute.ca/research/offline-2/\", \"title\": {\"rendered\": \"Offline &amp; 2\"}, \"content\": {\"rendered\": \"<p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p><a href=\\\"https://broadbentinstitute.ca/wp-content/uploads/r2.pdf\\\">PDF</a>\"}, \"excerpt\": {\"rendered\": \"<p>short</p>\"}, \"tags\": [3]}]",
+  "content_type": "application/json",
+  "details": {
+    "https://broadbentinstitute.ca/research/offline-1/": "<html><body><a class=\"bi-research-author__link\">Å Author 1</a></body></html>",
+    "https://broadbentinstitute.ca/research/offline-2/": "<html><body><a class=\"bi-research-author__link\">Å Author 2</a></body></html>"
+  },
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "original_method_source_sha256": {
+    "_html_to_text": "a6b795da6999fd6977bba6302c6522cf1379a6a5966e6fd38b7623531626e924",
+    "_extract_pdf_url": "f1db2c34d2c965ed5addd9af8f16ad0c9252062b97484f57d2c3b73be4766bf2",
+    "_extract_authors": "74e02684581324d4d4f083c87ffd55272ad5a9caefe3d79d966aaadf494b4e9c",
+    "crawl": "8f4aad36c6f0c797fb617e3d0f578e8541e6df81cd68aece75128918fcc59806"
+  }
+}
