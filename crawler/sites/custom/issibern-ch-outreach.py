@@ -747,3 +747,43 @@ class IssibernChOutreachCrawler(BaseCrawler):
 
     def _budget_nearly_exhausted(self, started_at):
         return time.time() - started_at > self.WALL_CLOCK_BUDGET_SECONDS - 30
+
+    # ------------------------------------------------------------------
+    # Enumeration contract (ND-1, 2026-10-19): pure methods, crawl() unchanged.
+    # The framework POSTs the same FacetWP refresh body as _fetch_list_page.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """One FacetWP refresh response -> crawl()'s list records (with list_page and
+        list_index from _parse_list_template). The page's pager and compact API metadata,
+        which crawl() stores per paper, ride along on each record."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("template"), str):
+            raise PermanentFailure("listing_parse_error:not_a_facetwp_response", url)
+        pager = (data.get("settings") or {}).get("pager") or {}
+        page = self._safe_int(pager.get("page"))
+        if page is None:
+            raise PermanentFailure("listing_parse_error:facetwp_pager_without_page", url)
+        template = data.get("template") or ""
+        if not template.strip():
+            return []
+        raw_api = self._compact_api_metadata(data)
+        records = self._parse_list_template(template, page)
+        for record in records:
+            record["_facetwp_pager"] = pager
+            record["_facetwp_raw_api"] = raw_api
+        return records
+
+    def _enumeration_paper(self, raw, url, record):
+        """crawl()'s detail parse, paper and short-abstract skip for one list record.
+        The FacetWP endpoint and template are the start page's (live 2026-10-19:
+        ajaxurl .../wp-json/facetwp/v1/refresh, data-name 'news'); the per-session nonce,
+        which crawl() only records in metadata, is not available here (None)."""
+        clean = {k: v for k, v in record.items() if not k.startswith("_facetwp_")}
+        page_data = {"pager": record.get("_facetwp_pager") or {}, "raw_api": record.get("_facetwp_raw_api") or {}}
+        config = {"ajaxurl": self.DEFAULT_LIST_ENDPOINT, "template": "news", "nonce": None}
+        detail = self._parse_detail(raw, url, clean)
+        paper = self._to_paper(clean, detail, clean.get("list_page"), clean.get("list_index"), config, page_data)
+        if len(paper.get("abstract") or "") < self.MIN_ABSTRACT_CHARS:
+            return None
+        return paper
