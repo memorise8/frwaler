@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "sites": {
+    "bmleh-de-en": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.bmleh.de",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "item",
+          "first_resp",
+          "resp"
+        ],
+        "second_step": {
+          "use": "detail_page",
+          "selector": "#content a.c-download-teaser__a",
+          "attr": "href",
+          "required": false
+        }
+      },
+      "listing": {
+        "url": "https://www.bmleh.de/EN/ministry/organisation/advisory-boards/AgriculturalPolicyPublications.html",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "href",
+          "url_field": "href",
+          "title_field": "title",
+          "listing_marker": "#content"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

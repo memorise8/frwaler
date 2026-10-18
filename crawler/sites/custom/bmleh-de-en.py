@@ -451,3 +451,43 @@ class BmlehDeEnCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (collector-splits): crawl() and the methods above are
+    # unchanged. The runner fetches the list page, the item page (detail HTML,
+    # or the PDF itself for direct_pdf rows) and, as a second step, the
+    # detail page's download link through its gate. _enumeration_paper runs
+    # the original _build_document on those bodies by answering its self._curl
+    # from them (no network here); a request crawl() would make that the runner
+    # did not make fails the item instead of producing a different document.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """crawl()'s list rows (_parse_list); crawl()'s href de-duplication is the
+        runner's key de-duplication (key_field href)."""
+        if not isinstance(html, str):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:expected_html")
+        return self._parse_list(html)
+
+    def _enumeration_paper(self, item, first_resp, resp):
+        """crawl()'s save argument for one list row, or None where it skips
+        (abstract shorter than _MIN_ABSTRACT)."""
+        bodies = {}
+        if item["kind"] in ("detail_pdf", "basepage"):
+            bodies[(item["href"], False)] = first_resp.body.decode("utf-8", errors="replace")
+            if resp is not first_resp:
+                bodies[(resp.url, True)] = resp.body
+        else:  # direct_pdf: the item page is the PDF
+            bodies[(item["href"], True)] = first_resp.body
+
+        def answer(url, *, binary=False, retries=3):
+            if (url, binary) not in bodies:
+                raise RuntimeError(f"enumeration_request_not_fetched:{url}")
+            return bodies[(url, binary)]
+
+        self._curl = answer
+        try:
+            return self._build_document(item)
+        finally:
+            del self._curl

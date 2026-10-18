@@ -31,7 +31,7 @@
   "bmleh-de-en": {
     "reason": "advisory_month_precision_and_nonchronological_versions_prevent_whole_scope_early_stop",
     "classification": "full_rescan_required",
-    "source_sha256": "931eb87896e84d0b4a1f2c8af4955b1e695587f7597dfb1ccc21fb8853e514a5",
+    "source_sha256": "7bc05aeaf13348ca1ac5ab49f43e22f3f5ed44e2ff632cb5e0fbd7edd9241fb0",
     "reviewed_at": "2026-10-11T16:29:47.989390+00:00",
     "evidence": "incremental-rollout-20261012/batch-006-bmleh/order-review.json",
     "evidence_sha256": "6234a8166a0bd09c80b2c41ff8cc3706794ec2dd34d354b4b9df81b867a3865a",
