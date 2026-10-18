@@ -263,3 +263,44 @@ class InfrastructureNiGovUkNewsCrawler(BaseCrawler):
 
         print(f"[infrastructure-ni-gov-uk-news] Done. Saved {saved} items.")
         return saved
+
+    def _enumeration_sitemap_paper(self, html, url):
+        """Sitemap route (ND-1, 2026-10-19; the /news listing ignores ?page= on the live
+        site). crawl() builds every field from the detail page, so this is crawl()'s paper
+        for one URL, including its skip rules (no title / abstract < 50 -> None).
+        crawl() and identity (URL slug) are unchanged."""
+        if not isinstance(html, str):
+            return None
+        detail = _extract_detail(html, url)
+        title = detail["title"]
+        abstract = detail["abstract"]
+        published_date = detail["published_date"]
+        node_id = detail["node_id"]
+        if not title:
+            return None
+        if len(abstract) < 50:
+            return None
+        slug = url.rstrip("/").split("/")[-1]
+        metadata = {
+            "node_id": node_id,
+        }
+        return {
+            "site_id": self.site_id,
+            "external_id": slug,
+            "post_number": slug,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "authors": None,
+            "publisher": self.PUBLISHER,
+            "department": None,
+            "journal": None,
+            "url": url,
+            "pdf_url": None,
+            "keywords": None,
+            "category": detail.get("category"),
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
