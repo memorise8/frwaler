@@ -123,6 +123,19 @@ class SiteRunner:
             raise StrategyStop("config_error", f"adapter_contract_failures_consecutive:{reason}")
 
     # -- items ---------------------------------------------------------------
+    def segment_info(self, key):
+        """{key, label, params} of the segment an item was listed in (explicit or discovered)."""
+        seg = self.plan.section("segments") if self.plan.strategy == "date_range_split" else {}
+        if seg.get("mode") == "explicit":
+            spec = next((s for s in seg.get("items") or () if str(s["key"]) == key), {})
+        elif seg.get("mode") == "discover":
+            # Read each time: discovery (in batches) may save new segments after the retry pass.
+            current = self.store.site(self.site_id) or {}
+            spec = ((current.get("state") or {}).get("discovered_segments") or {}).get(key, {})
+        else:
+            spec = {}
+        return {"key": key, "label": spec.get("label"), "params": dict(spec.get("params") or {})}
+
     def process_item(self, item, segment):
         st, site = self.store, self.site_id
         seen_url = self._attempted.get(item.key)
@@ -145,6 +158,7 @@ class SiteRunner:
             return
         common = dict(url=item.url, segment=segment, date=item.date,
                       payload={"url": item.url, "date": item.date, "title": item.title, "payload": item.payload})
+        item.segment = self.segment_info(segment)  # ext:multi_listing ("segment" argument)
         try:
             paper = self.adapter.materialize(item, self.fetcher)
         except RobotsDisallowed as exc:
