@@ -266,3 +266,93 @@ class JusticeNiPublicationsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    def _enumeration_sitemap_paper(self, raw, url):
+        """Sitemap route (ND-1, 2026-10-19; the /publications listing ignores ?page= on the
+        live site). crawl()'s paper for one detail page, its detail parsing copied as is.
+        A sitemap entry has no listing card, so: title = detail <h1> (the card title on
+        the live site), card-only fields (listed_date, category, card summary) empty and
+        the abstract is the meta description. crawl() and identity (slug external_id,
+        node id or slug post_number) are unchanged; abstract < 100 -> None (crawl()'s skip)."""
+        if not isinstance(raw, str):
+            return None
+        detail_url = url
+        dsoup = self._make_soup(raw)
+        if not dsoup:
+            return None
+        h1 = dsoup.find("h1")
+        title = h1.get_text(strip=True) if h1 else ""
+        if not title:
+            return None
+        listed_date = ""
+        card_summary = ""
+        category = ""
+        slug = urlparse(detail_url).path.rstrip("/").rsplit("/", 1)[-1]
+        node_id = None
+        meta_desc = ""
+        pdf_url = None
+        original_filename = None
+        published_date = listed_date
+        topics: list = []
+        sl = dsoup.find("link", {"rel": "shortlink"})
+        if sl:
+            m = re.search(r"/node/(\d+)", sl.get("href", ""))
+            if m:
+                node_id = m.group(1)
+        mt = dsoup.find("meta", {"name": "description"})
+        if mt:
+            meta_desc = mt.get("content", "").strip()
+        dt_el = dsoup.find("time")
+        if dt_el:
+            published_date = self._parse_iso_date(dt_el.get("datetime", "") or "")
+        topics_div = dsoup.find(
+            class_=lambda c: bool(c and "field--name-field-site-topics" in " ".join(c))
+        )
+        if topics_div:
+            topics = [lnk.get_text(strip=True) for lnk in topics_div.find_all("a") if lnk.get_text(strip=True)]
+        art = dsoup.find("div", class_="article-content")
+        search_scope = art if art else dsoup
+        for lnk in search_scope.find_all("a", href=True):
+            href = lnk.get("href", "")
+            if ".pdf" in href.lower() or "/sites/default/files/" in href:
+                if not href.startswith("http"):
+                    href = self.base_url + href
+                pdf_url = href
+                fn = urlparse(href).path.split("/")[-1]
+                if fn:
+                    original_filename = unquote(fn)
+                break
+        abstract = meta_desc if len(meta_desc) >= len(card_summary) else card_summary
+        if not abstract:
+            abstract = card_summary or meta_desc
+        if len(abstract) < 100:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": slug,
+            "post_number": node_id or slug,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "keywords": ",".join(topics) if topics else None,
+            "category": category,
+            "publisher": "Department of Justice Northern Ireland",
+            "authors": None,
+            "department": None,
+            "doi": None,
+            "journal": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": listed_date,
+                    "node_id": node_id,
+                    "card_summary_raw": card_summary,
+                    "publication_type": category,
+                },
+                ensure_ascii=False,
+            ),
+        }
