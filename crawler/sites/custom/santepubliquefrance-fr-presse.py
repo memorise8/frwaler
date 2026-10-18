@@ -166,6 +166,50 @@ class SantePubliqueFranceFrPresseCrawler(BaseCrawler):
         return saved
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List rows of one /presse?page=N HTML page via the existing parser (no I/O)."""
+        soup = self._make_soup(html, context="enumeration list")
+        if soup is None:
+            return []
+        return self._parse_list(soup, url or self.START_URL)
+
+    def _enumeration_paper(self, record, detail_raw, effective_url):
+        """Pure copy of crawl's detail -> Paper conversion and skip rule (None = skipped)."""
+        if not detail_raw:
+            raise RuntimeError("detail fetch failed after retries")
+        detail_soup = self._make_soup(detail_raw, context="enumeration detail")
+        if detail_soup is None:
+            raise RuntimeError("detail HTML could not be parsed")
+        parsed = self._parse_detail(
+            detail_soup,
+            detail_raw,
+            record,
+            effective_url or record.get("url") or "",
+        )
+        abstract = parsed.get("abstract") or ""
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": parsed["external_id"],
+            "title": parsed["title"],
+            "authors": json.dumps(parsed["authors"], ensure_ascii=False),
+            "abstract": abstract,
+            "category": parsed["category"],
+            "keywords": json.dumps(parsed["keywords"], ensure_ascii=False),
+            "published_date": parsed["published_date"],
+            "url": parsed["url"],
+            "pdf_url": parsed["pdf_url"],
+            "doi": parsed["doi"],
+            "department": parsed["department"],
+            "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Network helpers
     # ------------------------------------------------------------------
 

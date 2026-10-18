@@ -1,0 +1,29 @@
+{
+ "site_id": "santepubliquefrance-fr-presse",
+ "listing_body": "<html><body><main><div class=\"view-page-list view-list-press\"><div class=\"view-content view-list-press\"><div class=\"views-row\"><div class=\"views-field-title\"><span class=\"field-content\">Offline &amp; un</span></div>\n<div class=\"views-field-field-displayed-pub-date\"><time datetime=\"2026-10-13T08:00:00Z\">2026-10-13</time></div>\n<div class=\"views-field-field-document\"><a class=\"download\" href=\"/sites/default/files/2026-10/cp1.pdf\" aria-label=\"PDF offline-1\">PDF</a></div>\n<div class=\"views-field-view-node\"><a href=\"/presse/offline-1\">Lire</a></div></div><div class=\"views-row\"><div class=\"views-field-title\"><span class=\"field-content\">Offline deux</span></div>\n<div class=\"views-field-field-displayed-pub-date\"><time datetime=\"2026-10-08T08:00:00Z\">2026-10-08</time></div>\n<div class=\"views-field-field-document\"><a class=\"download\" href=\"/sites/default/files/2026-10/cp2.pdf\" aria-label=\"PDF offline-2\">PDF</a></div>\n<div class=\"views-field-view-node\"><a href=\"/presse/offline-2\">Lire</a></div></div></div></div></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.santepubliquefrance.fr/presse/offline-1": "<html><head><link rel=\"canonical\" href=\"https://www.santepubliquefrance.fr/presse/offline-1-full\"/>\n<script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\": {\"currentPath\": \"node/39736\"}}</script></head>\n<body><header id=\"SPF-header\" data-piano-regions='[\"Île-de-France\"]' data-piano-thematics='[\"Grippe\",\"Vaccination\"]' data-piano-document-types='[\"Communiqué\"]'></header>\n<h1 class=\"node-full__header__title\">Offline &amp; un (détail)</h1>\n<div class=\"node-full__header__bottom\"><time pubdate datetime=\"2026-10-13T09:00:00Z\">2026-10-13</time>\n<div class=\"field--name-field-document\"><a class=\"download\" href=\"/sites/default/files/2026-10/offline-1.pdf\">PDF</a>\n<div class=\"field--name-name\"><div class=\"field__item\">offline-1.pdf</div></div></div></div>\n<div class=\"node-full__content__description\"><div class=\"field--name-field-description\"><div class=\"field__item\">Synthetic Santé publique France résumé and Korean 자료 for offline equality testing of the enumeration split conversion.</div></div></div>\n<div class=\"node-full__content--background\"><div class=\"field--name-field-content\"><div class=\"paragraph--type--wysiwyg\"><div class=\"field--name-field-text\"><div class=\"field__item\">Corps du texte offline-1.</div></div></div></div></div>\n</body></html>",
+  "https://www.santepubliquefrance.fr/presse/offline-2": "<html><head><link rel=\"canonical\" href=\"https://www.santepubliquefrance.fr/presse/offline-2-full\"/>\n<script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\": {\"currentPath\": \"\"}}</script></head>\n<body><header id=\"SPF-header\" data-piano-regions='[\"Île-de-France\"]' data-piano-thematics='[\"Grippe\",\"Vaccination\"]' data-piano-document-types='[\"Communiqué\"]'></header>\n<h1 class=\"node-full__header__title\">Offline deux</h1>\n<div class=\"node-full__header__bottom\"><time pubdate datetime=\"2026-10-08T09:00:00Z\">2026-10-08</time>\n<div class=\"field--name-field-document\"><a class=\"download\" href=\"/sites/default/files/2026-10/offline-2.pdf\">PDF</a>\n<div class=\"field--name-name\"><div class=\"field__item\">offline-2.pdf</div></div></div></div>\n<div class=\"node-full__content__description\"><div class=\"field--name-field-description\"><div class=\"field__item\">Synthetic Santé publique France résumé and Korean 자료 for offline equality testing of the enumeration split conversion.</div></div></div>\n<div class=\"node-full__content--background\"><div class=\"field--name-field-content\"><div class=\"paragraph--type--wysiwyg\"><div class=\"field--name-field-text\"><div class=\"field__item\">Corps du texte offline-2.</div></div></div></div></div>\n</body></html>"
+ },
+ "long_text": "Synthetic Santé publique France résumé and Korean 자료 for offline equality testing of the enumeration split conversion.",
+ "original_method_source_sha256": {
+  "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+  "crawl": "718fb242d38a57f68cb6bc2ac67aa774c3087eba8e8b0b73d4db654c46bf95c5",
+  "_curl_get": "aa419033bb730ad7447a27772d1e99ffe2c78b5e29dfc02f4626e19519e8b49d",
+  "_split_curl_output": "17f41955abc52db05d9ba4f02f8ad7600fa114230194cb96e52494f340e3350b",
+  "_make_soup": "3e2f545072b5efae0a79fad49f595ee91f8e788147bd271f597fbf89bffed85f",
+  "_parse_list": "d157a4300c8dbaf9385a5bac669143a090f3c01651bcb0174564efa316cbbb09",
+  "_parse_detail": "7fce14beb07e9dbb18601ea05dec6e550eaffb9a7856f3766379ce6a22c88db8",
+  "_drupal_settings": "5f21fad477369680cde2e06643df2ef326a432562b0e4835a18e220617e209ce",
+  "_has_next_page": "6efe1e46703030c0a849dbb897227472eceda0a4dc998910f72f39dbd99952cb",
+  "_list_url": "7adcaa662591f322888c3892358f795fe8aafd9b3e232933c677002a79439fe8",
+  "_is_press_detail_url": "08dded143c396e11f43826f1a1c18b8c3122a31164a1c0798fb0a63e60ee5616",
+  "_external_id_from_url": "9bc1c0a58697a2f5341bc28fb47a3b79523ea752673e9c4bfa263283d6a4fb5e",
+  "_decode_attr_list": "e4962ffaf40aba06a3c4f5dbece06bbe1d493bc48fe3ee18886828257ad41630",
+  "_element_text": "988d9076cc8b1b342015bf0c62909905dd131a0f0f40252c4c45872b14367bfb",
+  "_parse_date": "a30519a4c924e338409a08072470d7b6d3db23f6cc906b30d898b892e32d3fe2",
+  "_strip_accents": "1e8d0db346e0188a55e0afbe0ed4e192ad237caedcf92ff352b4d9d439e38b21",
+  "_clean_text": "82de1ad2459c11e7f7d72a89c5cbdb6def864f3fdd3662bffcc0ea5d6812d318"
+ }
+}
