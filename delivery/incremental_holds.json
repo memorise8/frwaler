@@ -217,7 +217,8 @@
   "amf-france-org-fr": {
     "classification": "full_rescan_required",
     "reason": "native_sitemap_scope_omits_delivered_rows_and_shared_URL_history_unresolved",
-    "source_sha256": "1aba45c2624e04c2f7d4f9809c2b2bc310138f539d5e274c4971f01eb901ec61",
+    "source_sha256": "00f7a546d09e80ae1ce180d89d17c6539b4f27531b0a50e1f995e7cced51d383",
+    "source_sha256_note": "L3a-20261018: rehashed after adding only pure _enumeration_items/_enumeration_paper methods; crawl() and all reviewed methods byte-identical (pinned by tests/test_enumeration_split_*); previous 1aba45c2624e04c2f7d4f9809c2b2bc310138f539d5e274c4971f01eb901ec61",
     "dependency_source_sha256": {
       "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b",
       "docs/deliverables/test_URL_수집대조_20260802.csv": "336c04d463f70624cd4ec7aacdf386fd71bab34ca186acf8ac3413a3ee1fced9"
@@ -279,7 +280,8 @@
   "arn-se-om-arn": {
     "classification": "full_rescan_required",
     "reason": "reporting_period_IDs_not_arrival_chronology_and_three_original_scopes_unconfigured",
-    "source_sha256": "a1e2d197fe5aa59580c6b40fe33297a2de4d9930b6090667fcdd22b264d24e74",
+    "source_sha256": "8914379eb392eb7f2d1573e2da69fbb531f86c412a8601b39360118af4ec4ef1",
+    "source_sha256_note": "L3a-20261018: rehashed after adding only pure _enumeration_items/_enumeration_paper methods; crawl() and all reviewed methods byte-identical (pinned by tests/test_enumeration_split_*); previous a1e2d197fe5aa59580c6b40fe33297a2de4d9930b6090667fcdd22b264d24e74",
     "dependency_source_sha256": {
       "docs/deliverables/test_URL_수집대조_20260802.csv": "336c04d463f70624cd4ec7aacdf386fd71bab34ca186acf8ac3413a3ee1fced9",
       "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
