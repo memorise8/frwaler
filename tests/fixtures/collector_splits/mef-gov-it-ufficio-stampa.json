@@ -1,0 +1,20 @@
+{
+ "site_id": "mef-gov-it-ufficio-stampa",
+ "listing_body": "<html><body><main><ul><li><a href=\"/ufficio-stampa/comunicati/2026/titoli-di-stato/\">Comunicato titoli-di-stato</a> N° 122 del 23/12/2026</li><li><a href=\"/ufficio-stampa/comunicati/2026/calendario-aste/\">Comunicato calendario-aste</a> N° 120 del 19/12/2026</li><li><a href=\"/ufficio-stampa/comunicati/2026/index.html?page=2&pagesize=10\">2</a></li></ul></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.mef.gov.it/ufficio-stampa/comunicati/2026/titoli-di-stato/": "<html><body><main><div class=\"tp-comunicato\"><div class=\"body-sec\"><h3>Comunicato Stampa N° 122 del 23/12/2026</h3><div><p>Testo sintetico del comunicato MEF per il test di uguaglianza offline della separazione dei metodi. Testo sintetico del comunicato MEF per il test di uguaglianza offline della separazione dei metodi. </p></div><div class=\"data-bot\">Roma 23/12/2026</div></div></div><a href=\"/export/sites/MEF/c122.pdf\">PDF</a><span class=\"chip-label\">Debito</span></main></body></html>",
+  "https://www.mef.gov.it/ufficio-stampa/comunicati/2026/calendario-aste/": "<html><body><main><div class=\"tp-comunicato\"><div class=\"body-sec\"><h3>Comunicato Stampa N° 120 del 19/12/2026</h3><div><p>Testo sintetico del comunicato MEF per il test di uguaglianza offline della separazione dei metodi. Testo sintetico del comunicato MEF per il test di uguaglianza offline della separazione dei metodi. </p></div><div class=\"data-bot\">Roma 19/12/2026</div></div></div><a href=\"/export/sites/MEF/c120.pdf\">PDF</a><span class=\"chip-label\">Debito</span></main></body></html>"
+ },
+ "long_text": "Testo sintetico del comunicato MEF per il test di uguaglianza offline della separazione dei metodi. Testo sintetico del comunicato MEF per il test di uguaglianza offline della separazione dei metodi. ",
+ "empty_body": "<html><body><main><ul></ul></main></body></html>",
+ "original_method_source_sha256": {
+  "_curl_get": "b3fa157c834e94266d80cbb054f6c72a30fe5f6112ee8a31d900d2d752c2d350",
+  "_make_soup": "8a3ff4dbcda59d7e19541ec26d07e092485d0451890fb50b959d6c4c5e23f7c9",
+  "_parse_it_date": "ba1d41c9ab4a4ddcdcc7ebe57a718add70e6a5a9fefd588c41c1f19d08003539",
+  "_extract_post_number": "5951ded5b7335450d8c7fe64c8b7534cf124b4e8b914f4a9fc79cd3baf8bdf6c",
+  "_extract_list_items": "122d1d9755f56025742e2ffe06fe54d50ef032476832c16957851d7c614bab99",
+  "_extract_detail": "467fa7d25ec3fa7f1f284e0c28e6c28d5a37e5063ee226e2a7f6cff859ad2c8b",
+  "crawl": "b5f1f81f0790cca4d1a591c0a8d4ce9749e8897cd8556297b92fd09b46d29dcc"
+ }
+}

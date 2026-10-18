@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "sites": {
+    "mef-gov-it-ufficio-stampa": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "date_range_split",
+      "base_url": "https://www.mef.gov.it",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.mef.gov.it/ufficio-stampa/comunicati/{segment}/index.html",
+        "params": {
+          "pagesize": 10
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "url",
+          "title_field": "title",
+          "date_field": "listed_date",
+          "listing_marker": "main"
+        }
+      },
+      "segments": {
+        "mode": "explicit",
+        "items": [
+          {
+            "key": "2025"
+          },
+          {
+            "key": "2026"
+          }
+        ]
+      }
+    }
+  }
+}

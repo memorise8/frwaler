@@ -354,3 +354,53 @@ class MefGovItUfficioStampaCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # existing parsers stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """Rows of one year listing page (year taken from the listing URL path,
+        as crawl() knows it), each row carrying that year for the paper."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        m = re.search(r"/ufficio-stampa/comunicati/(\d{4})/", url or "")
+        if not m:
+            raise PermanentFailure("listing_parse_error:year_not_in_url")
+        year = int(m.group(1))
+        return [dict(item, year=year) for item in self._extract_list_items(html, year)]
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s detail step and paper; None keeps its short-abstract skip."""
+        url = item["url"]
+        detail = self._extract_detail(html)
+        abstract = detail.get("abstract", "").strip()
+        if len(abstract) < 50:
+            return None
+        post_number = detail.get("post_number") or item.get("post_number")
+        published_date = detail.get("published_date") or item.get("listed_date", "")
+        listed_date = item.get("listed_date", "") or published_date
+        return {
+            "site_id": self.site_id,
+            "external_id": item["external_id"],
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "url": url,
+            "pdf_url": detail.get("pdf_url"),
+            "keywords": detail.get("keywords") or "",
+            "publisher": "Ministero dell'Economia e delle Finanze",
+            "category": "Comunicato Stampa",
+            "original_filename": detail.get("original_filename"),
+            "metadata": json.dumps(
+                {
+                    "posted_date": listed_date,
+                    "originalFilename": detail.get("original_filename"),
+                    "post_number": post_number,
+                    "year": item["year"],
+                },
+                ensure_ascii=False,
+            ),
+        }
