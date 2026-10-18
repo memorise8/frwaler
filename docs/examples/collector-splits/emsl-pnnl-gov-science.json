@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "sites": {
+    "emsl-pnnl-gov-science": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "last_page_backward",
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "resp",
+          "item"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ]
+      },
+      "listing": {
+        "url": "https://www.emsl.pnnl.gov/science/reports",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "date_field": "published_date",
+          "title_field": "title",
+          "listing_marker": "main"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

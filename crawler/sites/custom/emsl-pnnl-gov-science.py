@@ -519,6 +519,94 @@ def _build_paper(item: dict) -> dict:
     }
 
 
+# ---------------------------------------------------------------------------
+# Enumeration split (crawl() unchanged): copies of _fetch_pdf_metadata and
+# _build_paper that take the PDF response headers instead of a curl HEAD.
+# ---------------------------------------------------------------------------
+
+def _pdf_metadata_from_headers(headers_raw: str | None, pdf_url: str) -> dict:
+    headers = _parse_header_block(headers_raw)
+    content_disposition = headers.get("content-disposition")
+    original_filename = (
+        _filename_from_content_disposition(content_disposition)
+        or _filename_from_url(pdf_url)
+    )
+
+    listed_date_raw = headers.get("last-modified")
+    listed_date = _iso_from_http_date(listed_date_raw)
+    path_listed_date, path_date_raw = _date_from_pdf_path(pdf_url)
+    if not listed_date:
+        listed_date = path_listed_date
+        listed_date_raw = path_date_raw
+
+    return {
+        "listed_date": listed_date,
+        "posted_date_raw": listed_date_raw,
+        "original_filename": original_filename,
+        "headers": {
+            "content_type": headers.get("content-type"),
+            "content_length": headers.get("content-length"),
+            "last_modified": headers.get("last-modified"),
+            "content_disposition": content_disposition,
+        },
+        "pdf_path_date_raw": path_date_raw,
+    }
+
+
+def _build_paper_with_meta(item: dict, pdf_meta: dict) -> dict:
+    external_id = item.get("node_id") or item.get("post_number") or item["pdf_url"]
+    post_number = item.get("post_number")
+    original_filename = pdf_meta.get("original_filename")
+
+    metadata = {
+        "posted_date": pdf_meta.get("posted_date_raw") or item.get("published_year"),
+        "listed_date": pdf_meta.get("listed_date"),
+        "originalFilename": original_filename,
+        "journal_raw": None,
+        "series": None,
+        "volume": None,
+        "issue": None,
+        "node_id": item.get("node_id"),
+        "data_history_node_id": item.get("node_id"),
+        "post_number": post_number,
+        "published_year": item.get("published_year"),
+        "tags": item.get("tags") or [],
+        "science_area": item.get("science_area"),
+        "irp": item.get("irp"),
+        "report_type": item.get("category"),
+        "list_page": item.get("list_page"),
+        "list_page_index": item.get("list_page_index"),
+        "view_name": _VIEW_NAME,
+        "view_display_id": _VIEW_DISPLAY_ID,
+        "pdf_headers": pdf_meta.get("headers") or {},
+        "pdf_path_date_raw": pdf_meta.get("pdf_path_date_raw"),
+        "record_url_kind": "pdf_direct",
+    }
+
+    return {
+        "id": str(uuid.uuid5(uuid.NAMESPACE_URL, item["pdf_url"])),
+        "site_id": _SITE_ID,
+        "external_id": str(external_id),
+        "post_number": str(post_number) if post_number else None,
+        "title": item.get("title"),
+        "abstract": item.get("abstract"),
+        "published_date": item.get("published_date") or pdf_meta.get("listed_date"),
+        "listed_date": pdf_meta.get("listed_date"),
+        "posted_date": pdf_meta.get("listed_date"),
+        "authors": None,
+        "publisher": _PUBLISHER,
+        "department": "Environmental Molecular Sciences Laboratory",
+        "journal": None,
+        "url": item["url"],
+        "pdf_url": item["pdf_url"],
+        "keywords": item.get("keywords"),
+        "category": item.get("category"),
+        "doi": None,
+        "original_filename": original_filename,
+        "metadata": json.dumps(metadata, ensure_ascii=False),
+    }
+
+
 class EmslPnnlGovScienceCrawler(BaseCrawler):
     site_id = _SITE_ID
     site_name = "Custom: emsl-pnnl-gov-science"
@@ -606,3 +694,28 @@ class EmslPnnlGovScienceCrawler(BaseCrawler):
         if page >= _MAX_PAGES:
             print(f"[{_SITE_ID}] reached safety cap of {_MAX_PAGES} pages")
         return saved
+
+    # Enumeration split entry points (pure; transport is the framework's).
+
+    def _enumeration_items(self, html, url=None):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        page = _parse_page_number(url) or 0
+        items, _has_next = _parse_list_items(html, page)
+        if not items:
+            soup = _make_soup(html)
+            if soup is not None and soup.select("article.node--type--workshop-reports"):
+                raise PermanentFailure("listing_parse_error:cards_not_parsed")
+        return items
+
+    def _enumeration_detail(self, resp, item):
+        # The PDF response's own headers stand in for crawl()'s curl HEAD request.
+        headers_raw = "\n".join(f"{k}: {v}" for k, v in (resp.headers or {}).items())
+        return _pdf_metadata_from_headers(headers_raw, item["pdf_url"])
+
+    def _enumeration_paper(self, item, detail):
+        paper = _build_paper_with_meta(item, detail)
+        if len(paper.get("abstract") or "") < _MIN_ABSTRACT_CHARS:
+            return None
+        return paper
