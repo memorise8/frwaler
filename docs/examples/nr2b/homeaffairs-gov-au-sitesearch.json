@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "sites": {
+    "homeaffairs-gov-au-sitesearch": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "base_url": "https://www.homeaffairs.gov.au",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "list_returns_paper": true
+      },
+      "listing": {
+        "url": "https://www.homeaffairs.gov.au/_api/search/query",
+        "params": {
+          "querytext": "'fileextension:pdf'",
+          "rowlimit": "50",
+          "trimduplicates": "false",
+          "summaryLength": "500",
+          "desiredSnippetLength": "500",
+          "hiddenconstraints": "'-filename:allitems.aspx -filename:News-publisher.aspx -filename:search.aspx -filename:spsdisco.aspx -filename:mod-view.aspx -filename:allforms.aspx -contenttype:Folder -contenttype:Internet.Progressive.Result -contentclass:STS_List_850 -contentclass:STS_Site -contentclass:STS_Web'",
+          "selectproperties": "'Title,Path,OriginalPath,HitHighlightedSummary,LastModifiedTime,Write,FileExtension,FileType,Size,DocId,ListItemID,Description,Internet.GolbalMetaData.GlbDocDescription,Internet.GolbalMetaData.SeoMetaDescription,Internet.GolbalMetaData.GlbTopictype,Internet.GolbalMetaData.GlbContentFormat,Internet.GolbalMetaData.GlbPageGroupTitle,Internet.GolbalMetaData.GlbListItemSearchTitle,InternetPageSearchKeywords,ContentType,ContentTypeId,contentclass,SPSiteURL,Author'",
+          "queryTemplatePropertiesUrl": "'spfile://webroot/queryparametertemplate.xml'"
+        },
+        "page_param": "startrow",
+        "page_mode": "offset",
+        "page_size": 50,
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "external_id",
+          "url_field": "url",
+          "title_field": "title",
+          "date_field": "published_date"
+        },
+        "total": {
+          "type": "json",
+          "path": "PrimaryQueryResult.RelevantResults.TotalRows"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

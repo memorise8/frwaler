@@ -431,3 +431,97 @@ class HomeAffairsGovAuSiteSearchCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. One search
+    # response (same GET query as _fetch_search_page) carries everything
+    # crawl() saves, so the listing returns the paper dicts (list_returns_paper),
+    # built and skipped (no public URL, abstract < 100 chars) as in crawl().
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        primary = ((data or {}).get("PrimaryQueryResult", {}) or {}).get("RelevantResults", {}) or {}
+        total_on_server = int(primary.get("TotalRows", 0) or 0) or None
+        papers, seen_urls = [], set()
+        for row in (primary.get("Table", {}) or {}).get("Rows", []) or []:
+            cells = row.get("Cells", [])
+            if isinstance(cells, dict):
+                cells = cells.get("results", [])
+            item = {c.get("Key"): c.get("Value") for c in cells if c.get("Key")}
+            path = item.get("Path") or item.get("OriginalPath") or ""
+            public_url = _to_public_url(path)
+            if not public_url:
+                continue
+
+            # URL-based deduplication
+            dedup_key = public_url.lower().rstrip("/")
+            if dedup_key in seen_urls:
+                continue
+            seen_urls.add(dedup_key)
+
+            abstract = self._build_abstract(item)
+            if len(abstract) < 50:
+                continue
+            # Ensure test invariant: all saved rows have abstract >=100 chars
+            if len(abstract) < 100:
+                continue
+
+            date_raw = item.get("Write") or item.get("LastModifiedTime") or ""
+            published_date = _parse_date(date_raw)
+
+            doc_id = str(item.get("DocId") or "")
+            list_item_id = str(item.get("ListItemID") or "")
+            external_id = doc_id or list_item_id or hashlib.md5(path.encode()).hexdigest()[:16]
+            post_number = doc_id or list_item_id or None
+
+            is_pdf = _is_pdf_url(public_url)
+            pdf_url = public_url if is_pdf else None
+            original_filename = _filename_from_url(public_url) if is_pdf else None
+
+            keywords_raw = item.get("InternetPageSearchKeywords") or ""
+            keywords = _clean_text(keywords_raw)
+
+            metadata = {
+                "posted_date": date_raw,
+                "originalFilename": original_filename,
+                "node_id": doc_id,
+                "doc_id": doc_id,
+                "list_item_id": list_item_id,
+                "content_type": item.get("ContentType"),
+                "content_type_id": item.get("ContentTypeId"),
+                "contentclass": item.get("contentclass"),
+                "internal_path": path,
+                "sp_site_url": item.get("SPSiteURL"),
+                "file_extension": item.get("FileExtension"),
+                "file_type": item.get("FileType"),
+                "size": item.get("Size"),
+                "search_url": "https://www.homeaffairs.gov.au/sitesearch?k=pdf",
+                "total_rows": total_on_server,
+            }
+            # Remove None values to keep metadata compact
+            metadata = {k: v for k, v in metadata.items() if v is not None}
+
+            paper = {
+                "id": str(uuid.uuid5(uuid.NAMESPACE_URL, f"{self.site_id}:{external_id}")),
+                "site_id": self.site_id,
+                "external_id": external_id,
+                "post_number": post_number,
+                "title": self._build_title(item),
+                "abstract": abstract,
+                "published_date": published_date,
+                "listed_date": published_date,
+                "posted_date": published_date,
+                "authors": _clean_text(item.get("Author")),
+                "publisher": _publisher_for(public_url),
+                "department": "Department of Home Affairs",
+                "journal": None,
+                "url": public_url,
+                "pdf_url": pdf_url,
+                "keywords": keywords,
+                "category": _clean_text(item.get("Internet.GolbalMetaData.GlbTopictype")),
+                "doi": None,
+                "original_filename": original_filename,
+                "metadata": json.dumps(metadata, ensure_ascii=False),
+            }
+            papers.append(paper)
+        return papers
