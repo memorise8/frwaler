@@ -309,3 +309,94 @@ class EnMojGovCnLawsRegsCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # helpers above stay unchanged; no fetching or storage happens here.
+    # PDF-only rows need no detail page in crawl(); their framework detail
+    # URL is the list page they were read from (small, already allowed).
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """Rows of one list page (lawsandregulations[_N].html), as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        rows = []
+        for item in self._parse_list_page(html):
+            is_pdf = item["url"].lower().split("?")[0].endswith(".pdf")
+            rows.append(dict(item, detail_url=(url if is_pdf else item["url"])))
+        return rows
+
+    @staticmethod
+    def _enumeration_detail_text(html: str) -> str:
+        """_fetch_detail_text() after its fetch."""
+        if not html:
+            return ""
+        html2 = re.sub(r"<script[^>]*>.*?</script>", " ", html, flags=re.DOTALL)
+        html2 = re.sub(r"<style[^>]*>.*?</style>", " ", html2, flags=re.DOTALL)
+        for cls in ("art_info", "artinfo_box", "art_box", "l_865"):
+            for quote in ('"', "'"):
+                idx = html2.find(f"class={quote}{cls}{quote}")
+                if idx != -1:
+                    chunk = html2[idx: idx + 15000]
+                    text = EnMojGovCnLawsRegsCrawler._strip_html(chunk)
+                    if len(text) >= _ABSTRACT_MIN_CHARS:
+                        return text
+        return ""
+
+    def _enumeration_paper(self, raw, item):
+        """Copy of crawl()'s per-row conversion; None keeps crawl()'s skips."""
+        url = item["url"]
+        title = item["title"]
+        date_str = item["date"]
+        is_pdf = url.lower().split("?")[0].endswith(".pdf")
+        if is_pdf:
+            abstract = item["list_abstract"]
+            pdf_url = url
+            if len(abstract) < _ABSTRACT_MIN_CHARS:
+                return None
+        else:
+            html = bytes(raw).decode("utf-8", errors="replace") if raw else ""
+            abstract = self._enumeration_detail_text(html)
+            pdf_url = None
+            if len(abstract) < _ABSTRACT_MIN_CHARS:
+                return None
+        m_id = re.search(r"c_(\d+)\.htm", url)
+        if m_id:
+            external_id = m_id.group(1)
+            post_number = m_id.group(1)
+        else:
+            tail = url.rstrip("/").split("/")[-1].split("?")[0]
+            external_id = re.sub(r"[^A-Za-z0-9._-]", "_", tail)[:200]
+            post_number = None
+        original_filename = None
+        if is_pdf:
+            original_filename = url.rstrip("/").split("/")[-1]
+        return {
+            "site_id": _SITE_ID,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "url": url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "published_date": date_str or None,
+            "posted_date": date_str or None,
+            "authors": None,
+            "publisher": (
+                "Ministry of Justice of the People's Republic of China"
+            ),
+            "department": None,
+            "journal": None,
+            "keywords": None,
+            "category": "Laws and Regulations",
+            "doi": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": date_str,
+                    "list_abstract": item["list_abstract"],
+                },
+                ensure_ascii=False,
+            ),
+        }

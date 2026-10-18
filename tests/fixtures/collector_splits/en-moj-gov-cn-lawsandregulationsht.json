@@ -1,0 +1,20 @@
+{
+ "site_id": "en-moj-gov-cn-lawsandregulationsht",
+ "listing_body": "<html><body><div class=\"mr950_cont\"><div class=\"lis_box\"><h3><a href=\"lawsandregulations.html\">Laws</a></h3></div><div class=\"lis_box\"><h3><a href=\"2021-06/23/c_635355.htm\">Regulation A</a></h3><b>2021-06-23</b><p class=\"pc_box\">short</p></div><div class=\"lis_box\"><h3><a href=\"http://en.moj.gov.cn/2021-06/20/c_635300.htm\">Regulation B</a></h3><b>2021-06-20</b><p class=\"pc_box\">short</p></div></div></body></html>",
+ "empty_body": "<html><body><div class=\"mr950_cont\"></div></body></html>",
+ "content_type": "text/html",
+ "long_text": "Synthetic regulation text used only for the offline split test of the Ministry of Justice laws and regulations list, long enough to pass the minimum.",
+ "details": {
+  "http://en.moj.gov.cn/2021-06/23/c_635355.htm": "<html><body><div class=\"art_info\"><h1>Regulation A</h1><p>Synthetic regulation text used only for the offline split test of the Ministry of Justice laws and regulations list, long enough to pass the minimum.</p></div></body></html>",
+  "http://en.moj.gov.cn/2021-06/20/c_635300.htm": "<html><body><div class=\"art_info\"><h1>Regulation B</h1><p>Synthetic regulation text used only for the offline split test of the Ministry of Justice laws and regulations list, long enough to pass the minimum.</p></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_curl_get": "f158dff505790ac53b6e434a0a6d363115dbb16ba7853ff2dab6fc9a18cacd68",
+  "_make_soup": "f5bdcdc7b1d3b2ee35575267e01defbc91ebffdb8b6975c0c40fa72a2f5ef3c7",
+  "_strip_html": "022430bc51d61d9ab77bced9720be5e98d029744d6354cd5b7970065d4533a01",
+  "_get_total_pages": "b46862c5ee0aae49f950266f85c0600ba247bab84ad97aac4ce9197c18fb4a91",
+  "_parse_list_page": "c2421e84d20b055c397d4292440f66427e1875e8c2c101287cc724f4b7711689",
+  "_fetch_detail_text": "e66930f7e1976f4bf8f6b27a0be5e3b4a96d73b85021bae80c1d765b0cf2cfa8",
+  "crawl": "c56b213b8846a76703dde273ff87c5680d2ee3ab1a80e972d5e6a31c1bc9b69d"
+ }
+}
