@@ -66,7 +66,7 @@
     "empty_html": "<h1>Report 2027</h1><time></time>",
     "partial_html": "<time>2026</time>",
     "partial_expected": null,
-    "outside_date_sha256": "2afe352307f0401f149e0c01bde8a522fbc6753549a1b3f5d082d96ef358cfe1",
+    "outside_date_sha256": "b4b12105d3dbd02e40f2998345587e96ad6632f5adafa3b05fca40293881b9fb",
     "delivery": true,
     "invalid_html": [
       "<time><span>25</span><span>Juneper</span><span>2026</span></time>",
