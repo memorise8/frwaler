@@ -74,13 +74,18 @@ for p in dbs:
         out.write(json.dumps({"t": "error", "folder": folder, "error": str(e)[:200]}) + "\n"); continue
     if not n:
         continue
-    st = None
-    try:
-        s = sqlite3.connect("file:%s/%s/data/state/enumeration.sqlite?mode=ro" % (R, folder), uri=True, timeout=10)
-        st = s.execute("select status, stop_reason from enum_site where site_id=?", (sid,)).fetchone()
-    except sqlite3.Error:
-        pass
-    out.write(json.dumps({"t": "folder", "folder": folder, "n": n, "max_collected": mx, "state": st}) + "\n")
+    st, fps = None, set()
+    for sp in sorted(glob.glob("%s/%s/data/state/enumeration.sqlite" % (R, folder)) + glob.glob("%s/%s/data/enumeration-*/enumeration.sqlite" % (R, folder))):
+        try:
+            s = sqlite3.connect("file:%s?mode=ro" % sp, uri=True, timeout=10)
+            r = s.execute("select status, stop_reason, plan_fp from enum_site where site_id=?", (sid,)).fetchone()
+        except sqlite3.Error:
+            continue
+        if r:
+            fps.add(r[2])
+            if sp.endswith("/state/enumeration.sqlite"):
+                st = r[:2]
+    out.write(json.dumps({"t": "folder", "folder": folder, "n": n, "max_collected": mx, "state": st, "plan_fp": sorted(fps)}) + "\n")
     if q["mode"] == "keys":
         cols = ",".join("coalesce(%s,'')" % k for k in CONTENT)
         for row in c.execute("select cast(post_number as text), meta_url, collected_at, coalesce(title,'')<>'', coalesce(pdf_downloaded,0), " + cols + " from documents where site_id=?", (sid,)):
@@ -196,7 +201,7 @@ def plan_site(args, enum_site, product_site, how, sites):
         rep["issues"].append("제품 sites 표에 %s 없음" % product_site)
         return rep, None
     # 원본 합치기
-    merged, folder_max, posts, urls = {}, {}, {}, {}
+    merged, folder_max, posts, urls, urlf = {}, {}, {}, {}, {}
     rows = 0
     stats = {"no_title": 0, "null_post": 0, "pdf_downloaded": 0, "content_diff": 0, "date_status": {}}
     if args.source == "sqlite":
@@ -206,7 +211,7 @@ def plan_site(args, enum_site, product_site, how, sites):
     for x in stream:
         if isinstance(x, dict):
             if x["t"] == "folder":
-                rep["folders"].append({k: x[k] for k in ("folder", "n", "max_collected", "state")})
+                rep["folders"].append({k: x.get(k) for k in ("folder", "n", "max_collected", "state", "plan_fp")})
                 folder_max[x["folder"]] = (norm_ts(x["max_collected"]), x["folder"])
             elif x["t"] == "error":
                 rep["issues"].append("폴더 읽기 실패 %s: %s" % (x["folder"], x["error"]))
@@ -218,6 +223,7 @@ def plan_site(args, enum_site, product_site, how, sites):
         stats["pdf_downloaded"] += bool(pdf)
         posts.setdefault(post, {}).setdefault(folder, set()).add(url)
         urls.setdefault(url, set()).add(post)
+        urlf.setdefault(url, {})[folder] = post
         k = (post, url)
         old = merged.get(k)
         if old is None:
@@ -244,6 +250,8 @@ def plan_site(args, enum_site, product_site, how, sites):
         else:
             source_conflict.add(p)
     url_conflict_src = {u for u, ps in urls.items() if len(ps) > 1}
+    rep["merge_check"] = merge_check(args, rep["folders"], urlf)
+    del urlf
     exact, by_post, by_url = target_keys(args.target, product_site)
     c = {"source_rows": rows, "merged_unique": len(merged), "source_conflict_posts": len(source_conflict), "target_existing": len(exact),
          "exists": 0, "new": 0, "post_conflict": 0, "url_conflict": 0, "excluded_source_conflict": 0, "excluded_null_post": 0}
@@ -278,6 +286,9 @@ def plan_site(args, enum_site, product_site, how, sites):
         rep["issues"].append("제목 없는 행 %d (제품 NOT NULL·빈값)" % stats["no_title"])
     if stats["pdf_downloaded"]:
         rep["issues"].append("PDF 받은 행 %d — blob 복사 단계 필요(아직 미구현)" % stats["pdf_downloaded"])
+    mc = rep["merge_check"]
+    if mc["result"] not in ("single_folder", "same_plan_and_version", "post_numbers_match"):
+        rep["issues"].append("실행 폴더 합치기 불가(%s): %s" % (mc["result"], mc["detail"]))
     st = args.status.get(enum_site) or args.status.get(product_site)
     if st and st["state"] in HOLD_STATES:
         rep["issues"].append("구역 판정 %s (%s): %s" % (st["state"], st["file"], st["detail"][:120]))
@@ -297,6 +308,60 @@ def sci_stream(args, site):
            "left(md5(%s),16), published_date_status from documents where site_id=%s" % (cols, lit(site)))
     for r in psql_copy(args.sci_container, sql, ssh=True):
         yield [args.sci_container, r[0], r[1], r[2], int(r[3]), int(r[4]), r[5], r[6]]
+
+
+def collector_versions(folders):
+    """폴더별 수집기 버전 = 그 폴더 이미지(enum-pilot:<폴더>) 안 crawler/*.py 해시. 네트워크 없는 읽기 전용 컨테이너로 계산.
+    이미지가 없으면 None. 서버에서 한 번 계산한 값은 이 실행 동안 기억한다."""
+    want = [f for f in folders if f not in VERSION_CACHE]
+    if want:
+        code = ("export PATH=$HOME/bin:$PATH\nfor f in %s; do v=$(docker run --rm --network none --read-only --user 10001:10001 "
+                "--entrypoint python3 enum-pilot:$f -c \"import hashlib,os\nh=hashlib.sha256()\nfor d,_,fs in sorted(os.walk('crawler')):\n"
+                "    for n in sorted(fs):\n        p=os.path.join(d,n)\n        if n.endswith('.py'): h.update(p.encode()); h.update(open(p,'rb').read())\n"
+                "print(h.hexdigest()[:16])\" 2>/dev/null); echo \"$f ${v:-none}\"; done\n") % " ".join(want)
+        r = subprocess.run(SSH + ["bash -s"], input=code, capture_output=True, text=True, timeout=1800)
+        for line in r.stdout.split("\n"):
+            if " " in line:
+                f, v = line.split(" ", 1)
+                VERSION_CACHE[f] = None if v == "none" else v
+    return {f: VERSION_CACHE.get(f) for f in folders}
+
+
+VERSION_CACHE = {}
+
+
+def merge_check(args, folders, urlf):
+    """F1: 같은 사이트 실행 폴더는 plan 지문·수집기 버전이 같을 때만 그대로 합친다.
+    다르면 폴더 사이에 겹치는 meta_url 의 post_number 를 대조해 전부 같을 때만 합치고, 다르거나 겹침이 없으면 보고."""
+    names = [f["folder"] for f in folders]
+    if len(names) <= 1:
+        return {"result": "single_folder", "detail": ""}
+    ver = collector_versions(names) if args.source == "sqlite" else {}
+    groups = {}
+    for f in folders:
+        groups.setdefault((tuple(f.get("plan_fp") or []), ver.get(f["folder"])), []).append(f["folder"])
+    info = {"groups": [{"plan_fp": list(k[0]), "version": k[1], "folders": v} for k, v in groups.items()]}
+    if len(groups) == 1 and all(ver.get(n) for n in names) and all(f.get("plan_fp") for f in folders):
+        return dict(info, result="same_plan_and_version", detail="")
+    # 그룹이 다르거나 버전·지문을 모름: 겹치는 URL 대조
+    gof = {n: i for i, v in enumerate(groups.values()) for n in v}
+    overlap = diff = 0
+    samples = []
+    for url, fp in urlf.items():
+        if len({gof[f] for f in fp}) < 2:
+            continue
+        overlap += 1
+        if len(set(fp.values())) > 1:
+            diff += 1
+            if len(samples) < 5:
+                samples.append({"meta_url": url, "post_numbers": fp})
+    info.update(overlap=overlap, post_number_diff=diff, samples=samples)
+    if overlap and not diff:
+        return dict(info, result="post_numbers_match", detail="겹침 %d건 post_number 일치" % overlap)
+    if not overlap:
+        return dict(info, result="no_overlap", detail="plan 지문·버전이 다른데 겹치는 URL 이 없어 대조 불가 (%s)" % "; ".join(
+            "%s=%s/%s" % (",".join(v), ",".join(k[0]) or "?", k[1] or "?") for k, v in groups.items()))
+    return dict(info, result="post_numbers_differ", detail="겹침 %d건 중 post_number 다름 %d건" % (overlap, diff))
 
 
 def norm_ts(v):
