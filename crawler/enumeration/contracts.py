@@ -229,7 +229,7 @@ class Contract:
         if binding == "raw":
             return resp.body
         if binding == "json":
-            return resp.json()
+            return resp.json(jsonp=True) if self.cfg.get("jsonp") else resp.json()
         if binding in ("url", "final_url"):
             return resp.url
         if binding == "resp":
@@ -249,7 +249,10 @@ class Contract:
 
     def rows(self, resp):
         from .guard import guarded
-        raw = resp.json() if self.cfg.get("list_source") == "json" else self.call("list", resp)
+        if self.cfg.get("list_source") == "json":
+            raw = resp.json(jsonp=True) if self.cfg.get("jsonp") else resp.json()
+        else:
+            raw = self.call("list", resp)
         with guarded():
             return self._rows(raw)
 

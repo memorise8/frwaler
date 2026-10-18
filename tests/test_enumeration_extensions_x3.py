@@ -132,6 +132,15 @@ class SecondStepLinkTest(Base):
             "use": "detail_page", "selector": "a", "rewrite": {"regex": r"/rec/([^/?]+)", "template": "https://board.test/r/{1}"}}},
             None, base_url="https://board.test")
         self.assertEqual(b._step_link(R("/rec/a%20b")), "https://board.test/r/a%20b")  # not double-encoded
+        js = Adapter("fake-site", {"type": "selectors", "selectors": {"title": "h1"}, "second_step": {
+            "use": "detail_page", "selector": "a", "rewrite": {
+                "regex": r"^javascript:downloadFile\('([A-Za-z0-9+/=]+)','(\d+)'\)",
+                "template": "https://board.test/FileDownload.do?fileNo={1}&fileSeq={2}"}}},
+            None, base_url="https://board.test")
+        self.assertEqual(js._step_link(R("javascript:downloadFile('a+b=','2')")),
+                         "https://board.test/FileDownload.do?fileNo=a%2Bb%3D&fileSeq=2")
+        self.assertIsNone(js._step_link(R("javascript:alert(1)")))  # no match: no link
+        self.assertIsNone(a._step_link(R("javascript:downloadFile('x','1')")))  # no rewrite: dropped as before
 
     def test_validation(self):
         step = {"use": "detail_page", "selector": "a"}
