@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "sites": {
+    "issibern-ch-results": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.issibern.ch/wp-json/facetwp/v1/refresh",
+        "method": "POST",
+        "idempotent": true,
+        "body_type": "json",
+        "body": {
+          "action": "facetwp_refresh",
+          "data": {
+            "facets": {
+              "search": "",
+              "jp_groups": "",
+              "fcpager": ""
+            },
+            "frozen_facets": {},
+            "http_params": {
+              "get": [],
+              "uri": "results/publications/journal-publications",
+              "url_vars": []
+            },
+            "template": "journal_publications",
+            "extras": {
+              "counts": true,
+              "sort": "default"
+            },
+            "soft_refresh": 1,
+            "is_bfcache": 1,
+            "first_load": 0,
+            "paged": "{page}"
+          }
+        },
+        "page_param": "paged",
+        "start_page": 1,
+        "page_size": 10,
+        "dynamic": {
+          "url": "https://www.issibern.ch/results/publications/journal-publications/",
+          "values": {
+            "nonce": {
+              "regex": "\"nonce\"\\s*:\\s*\"([^\"]+)\""
+            }
+          },
+          "header": {
+            "name": "X-WP-Nonce",
+            "value": "{dyn:nonce}"
+          }
+        },
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "date_field": "published_date"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

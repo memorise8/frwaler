@@ -276,6 +276,35 @@ class IssibernChResultsCrawler(BaseCrawler):
     # Main crawl
     # ------------------------------------------------------------------
 
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    # The framework reads the public page nonce itself (listing.dynamic) and sends it
+    # as X-WP-Nonce on the FacetWP POST, exactly like crawl() does.
+    def _enumeration_items(self, data, url=None):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("template"), str):
+            raise PermanentFailure("listing_parse_error:not_a_facetwp_response", url)
+        template_html = data.get("template", "")
+        return self._parse_items(template_html) if template_html.strip() else []
+
+    def _enumeration_paper(self, item):
+        """Pure copy of crawl's Paper conversion and item filter (None = crawl's skip)."""
+        abstract = item.get("abstract") or ""
+        if len(abstract) < 50:
+            return None
+        return {
+            "site_id": self.site_id,
+            "external_id": item["external_id"],
+            "title": item["title"],
+            "abstract": abstract,
+            "authors": item.get("authors"),
+            "journal": item.get("journal"),
+            "published_date": item.get("published_date"),
+            "url": item.get("url"),
+            "doi": item.get("doi"),
+            "publisher": "International Space Science Institute",
+            "metadata": item.get("metadata"),
+        }
+
     def crawl(self, limit=None):
         """Crawl ISSI Bern journal publications via FacetWP API.
 
