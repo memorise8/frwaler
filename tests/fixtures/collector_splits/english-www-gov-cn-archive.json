@@ -1,0 +1,20 @@
+{
+ "site_id": "english-www-gov-cn-archive",
+ "listing_body": "<html><body><div class=\"Gazette_List\"><ul><li><a href=\"/archive/statecouncilgazette/202610/10/content_WS6ac9ff62c6d00ca5f9a0d99d.html\">State Council Gazette Issue No.28 Serial No.1927 (Oct 10, 2026)</a></li><li><a href=\"https://english.www.gov.cn/archive/statecouncilgazette/202609/30/content_WS6abccfabc6d00ca5f9a0d8b9.html\">State Council Gazette Issue No.27 Serial No.1926 (Sept 30, 2026)</a></li></ul></div></body></html>",
+ "empty_body": "<html><body><div class=\"Gazette_List\"><ul></ul></div></body></html>",
+ "content_type": "text/html",
+ "long_text": "Synthetic gazette contents paragraph used only for the offline split test: the State Council issued decisions and regulations in this issue of the gazette.",
+ "details": {
+  "https://english.www.gov.cn/archive/statecouncilgazette/202610/10/content_WS6ac9ff62c6d00ca5f9a0d99d.html": "<html><head><meta name=\"publishdate\" content=\"2026-10-10 09:00:00\"><meta name=\"keywords\" content=\"gazette, State Council\"></head><body><div class=\"Artical_Title\">State Council Gazette Issue No.28 Serial No.1927 (Oct 10, 2026)</div><div class=\"Artical_Info_Div\">Updated: 2026-10-10 09:00:00 english.gov.cn</div><div class=\"Artical_Content\"><p>Synthetic gazette contents paragraph used only for the offline split test: the State Council issued decisions and regulations in this issue of the gazette.</p><a href=\"P020261010.pdf\">PDF</a></div></body></html>",
+  "https://english.www.gov.cn/archive/statecouncilgazette/202609/30/content_WS6abccfabc6d00ca5f9a0d8b9.html": "<html><head><meta name=\"publishdate\" content=\"2026-09-30 09:00:00\"><meta name=\"keywords\" content=\"gazette, State Council\"></head><body><div class=\"Artical_Title\">State Council Gazette Issue No.27 Serial No.1926 (Sept 30, 2026)</div><div class=\"Artical_Info_Div\">Updated: 2026-09-30 09:00:00 english.gov.cn</div><div class=\"Artical_Content\"><p>Synthetic gazette contents paragraph used only for the offline split test: the State Council issued decisions and regulations in this issue of the gazette.</p></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "__init__": "f9b45ab3db252358f22d39cb7995b1988ba6a034941274bf251b8d5ec2a0271d",
+  "_curl_text": "b0fabb0b369402fcecb3f015942ebbb78dc9ae1d69b08b678f2df284d0cab06f",
+  "_make_soup": "6e0efc62ae346d4c92fe26a3818cf5360a804af63c08e8b1844c1ce027ef2a27",
+  "_page_url": "a8c8011e7bed487ebbb533158316f280941748c910443f8138f9bff3c9ccb9a9",
+  "_parse_list_page": "00c9bb87763fa385907b7c4be18b24346ea215eb851ecd53c618a549e62ab2f8",
+  "_parse_detail": "f1238a20d264227db28f9a48bb1c53fb650d302d8146d389f87722a236160773",
+  "crawl": "f652e382059f805c0380c427d499bfd786bce529b21b03194c86ffcee735ca41"
+ }
+}

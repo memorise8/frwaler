@@ -515,3 +515,96 @@ class EnglishWwwGovCnArchiveCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # parsers above stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """Gazette rows of one list page (/ or page_N.html), exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        m = re.search(r"/page_(\d+)\.html?$", urlparse(url or "").path)
+        page = int(m.group(1)) if m else 1
+        items, _has_next = self._parse_list_page(html, page)
+        return items
+
+    def _enumeration_paper(self, html, item):
+        """Copy of crawl()'s paper conversion; None keeps crawl()'s skips."""
+        item_url = item.get("url") or ""
+        if not item_url:
+            return None
+        list_url = self._page_url(item.get("list_page") or 1)
+        detail = self._parse_detail(html, item_url, item)
+        title = detail.get("title") or item.get("title") or ""
+        abstract = detail.get("abstract") or ""
+        if 0 < len(abstract) < 100:
+            abstract = (
+                f"{abstract}\n\n"
+                f"Archive record for {title}, published by english.www.gov.cn "
+                f"as part of the State Council Gazette."
+            )
+        if len(abstract) < _MIN_ABSTRACT_CHARS:
+            return None
+
+        published_date = detail.get("published_date") or item.get("listed_date") or ""
+        listed_date = item.get("listed_date") or published_date
+        posted_date_raw = item.get("listed_date_raw") or listed_date
+        external_id = (
+            detail.get("external_id")
+            or item.get("content_slug")
+            or item.get("post_number")
+        )
+        post_number = item.get("post_number") or item.get("content_slug")
+        original_filename = detail.get("original_filename")
+
+        metadata = {
+            "posted_date": posted_date_raw,
+            "listed_date": listed_date,
+            "originalFilename": original_filename,
+            "journal_raw": None,
+            "series": _CATEGORY,
+            "volume": item.get("serial"),
+            "issue": item.get("issue"),
+            "node_id": detail.get("native_content_id"),
+            "contentid": (detail.get("metas") or {}).get("contentid"),
+            "content_slug": detail.get("content_slug") or item.get("content_slug"),
+            "post_number": post_number,
+            "serial": item.get("serial"),
+            "issue_number": item.get("issue"),
+            "list_page": item.get("list_page"),
+            "list_href": item.get("href"),
+            "list_title": item.get("title"),
+            "list_endpoint": list_url,
+            "detail_endpoint": item_url,
+            "published_raw": (detail.get("metas") or {}).get("publishdate"),
+            "updated_raw": detail.get("updated_raw"),
+            "source": detail.get("source"),
+            "author_raw": detail.get("authors"),
+            "meta": detail.get("metas") or {},
+            "raw_info_text": detail.get("info_text"),
+        }
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "posted_date": listed_date,
+            "authors": detail.get("authors") or "",
+            "publisher": _PUBLISHER,
+            "department": _CATEGORY,
+            "journal": "",
+            "url": item_url,
+            "pdf_url": detail.get("pdf_url"),
+            "keywords": detail.get("keywords") or "",
+            "category": _CATEGORY,
+            "doi": "",
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
