@@ -214,7 +214,10 @@ class KostatGoKrBoardesCrawler(BaseCrawler):
         if not detail_html:
             print(f"[{self.site_id}] Detail fetch failed for list_no={list_no}")
             return None
+        return self._parse_item(detail_html, list_no, detail_url, page_num)
 
+    def _parse_item(self, detail_html: str, list_no: str, detail_url: str, page_num: int) -> dict | None:
+        """Pure parser of one detail page (split out of _fetch_item, NR2-B)."""
         try:
             dsoup = _bs4(detail_html)
         except Exception as exc:
@@ -344,4 +347,24 @@ class KostatGoKrBoardesCrawler(BaseCrawler):
                 ensure_ascii=False,
             ),
         }
+        return paper
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. The list page
+    # gives the goView ids; the detail URL keeps crawl()'s nPage of the page it
+    # was listed on; the paper comes from _parse_item with crawl()'s skip rule
+    # (abstract shorter than 50 characters).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        m = re.search(r"[?&]nPage=(\d+)", url or "")
+        page = int(m.group(1)) if m else 1
+        return [{"list_no": n, "page": page,
+                 "url": f"{self._LIST_URL}?mid={_MID}&bid={_BID}&act=view&list_no={n}&nPage={page}"}
+                for n in dict.fromkeys(re.findall(r"goView\('(\d+)'\)", html or ""))]
+
+    def _enumeration_paper(self, html, item):
+        paper = self._parse_item(html, item["list_no"], item["url"], item["page"])
+        if paper is None or len(paper.get("abstract", "") or "") < 50:
+            return None
         return paper
