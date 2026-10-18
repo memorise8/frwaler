@@ -420,3 +420,34 @@ class KdcaGoKrKdcaCrawler(BaseCrawler):
 
     def _budget_exhausted(self, t0: float) -> bool:
         return (time.monotonic() - t0) >= (self._MAX_RUNTIME_S - self._RUNTIME_GRACE_S)
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (no network); crawl() and the methods
+    # above are unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List-page HTML -> _parse_list_items() rows plus the detail URL."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        if self._make_soup(html, context="list page").find("tbody") is None:
+            raise PermanentFailure("listing_parse_error:missing_tbody")
+        rows = []
+        for item in self._parse_list_items(html):
+            row = dict(item)
+            row["url"] = self._DETAIL_TMPL.format(seq=item["artcl_seq"])
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, html, row):
+        """Detail HTML + list row -> the paper crawl() saves (or None)."""
+        item = {k: row[k] for k in ("artcl_seq", "post_number", "listed_date")}
+        detail_url = self._DETAIL_TMPL.format(seq=item["artcl_seq"])
+        if not html:
+            return None
+        paper = self._build_paper(item, html, detail_url)
+        abstract = paper.get("abstract") or ""
+        if len(abstract) < 100:
+            return None
+        return paper
