@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "sites": {
+    "rigsrevisionen-dk-revisionssager": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "sitemap",
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "html",
+          "url"
+        ]
+      },
+      "sitemap": {
+        "sitemap_url": "https://www.rigsrevisionen.dk/sitemap.xml",
+        "include": [
+          "^https://www\\.rigsrevisionen\\.dk/revisionssager-arkiv/\\d{4}/[a-z]+/[^/]+$"
+        ]
+      }
+    }
+  }
+}

@@ -280,6 +280,21 @@ class RigsrevisionenDkRevisionssagerCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged). The plan reads the same sitemap
+    # URLs (sitemap strategy + include regex = _ITEM_PATH_RE); the detail page
+    # goes through crawl's _parse_detail. The sitemap <lastmod> is not passed
+    # to the detail stage by the framework, so it is absent here (it only fed
+    # metadata.sitemap_lastmod and the unused paper "post_number" fallback;
+    # the stored identity is external_id = URL path, unchanged).
+    # ------------------------------------------------------------------
+
+    def _enumeration_detail(self, html, url):
+        paper = self._parse_detail(html, url, {"url": url, "lastmod": ""})
+        if len(paper.get("abstract") or "") < self._MIN_ABSTRACT_CHARS:
+            return None
+        return paper
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
