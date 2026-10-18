@@ -1,0 +1,22 @@
+{
+ "site_id": "bmz-de-de",
+ "content_type": "text/html;charset=UTF-8",
+ "long_text": "Synthetische Beschreibung fuer den Offline-Gleichheitstest der Aufteilung; sie ahmt nur die Struktur einer Publikationsseite nach und enthaelt keinen echten Inhalt.",
+ "listing_body": "<div class=\"m-publications\"><div data-hits=\"2\"></div><ul><li class=\"m-publications__item\" data-js-publication=\"\"><div class=\"e-publication-teaser\"><img class=\"e-picture__img\" src=\"/resource/image/900002/x.jpg\" alt=\"Titelbild 900002\"><h3 class=\"e-publication-teaser__headline\">Synthetische Publikation Zwei</h3><p class=\"e-publication-teaser__teaser-text\">Kurz 900002.</p><dl><dt>Sachstandsdatum</dt><dd>März 2031</dd><dt>Dateityp</dt><dd>PDF</dd><dt>Seiten</dt><dd>12</dd></dl><a href=\"/resource/blob/900002/synthetic-900002.pdf\">PDF</a><button data-js-order-button data-content-id=\"900002\" data-order-number=\"Nr. 900002\" data-endpoint=\"/ajax/order/900002\">Bestellen</button></div></li><li class=\"m-publications__item\" data-js-publication=\"\"><div class=\"e-publication-teaser\"><img class=\"e-picture__img\" src=\"/resource/image/900001/x.jpg\" alt=\"Titelbild 900001\"><h3 class=\"e-publication-teaser__headline\">Synthetische Publikation Eins</h3><p class=\"e-publication-teaser__teaser-text\">Kurz 900001.</p><dl><dt>Sachstandsdatum</dt><dd>Februar 2031</dd><dt>Dateityp</dt><dd>PDF</dd><dt>Seiten</dt><dd>12</dd></dl><a href=\"/resource/blob/900001/synthetic-900001.pdf\">PDF</a><button data-js-order-button data-content-id=\"900001\" data-order-number=\"Nr. 900001\" data-endpoint=\"/ajax/order/900001\">Bestellen</button></div></li></ul></div>",
+ "details": {
+  "https://www.bmz.de/de/aktuelles/publikationen/900002-900002": "<html><head><title>Synthetische Publikation Zwei | BMZ</title><meta property=\"og:title\" content=\"Synthetische Publikation Zwei\"><meta property=\"og:url\" content=\"https://www.bmz.de/de/aktuelles/publikationen/900002-900002\"><meta name=\"description\" content=\"Beschreibung 900002\"></head><body><div class=\"m-download-view\"><h1 class=\"m-download-view__headline\">Synthetische Publikation Zwei</h1><div class=\"m-download-view__description\"><p>Synthetische Beschreibung fuer den Offline-Gleichheitstest der Aufteilung; sie ahmt nur die Struktur einer Publikationsseite nach und enthaelt keinen echten Inhalt.</p></div><a class=\"m-download-view__anchor\" href=\"/resource/blob/900002/synthetic-900002.pdf\">Download</a><dl><dt>Sachstandsdatum</dt><dd>15.03.2031</dd><dt>Dateityp</dt><dd>PDF</dd></dl></div></body></html>",
+  "https://www.bmz.de/de/aktuelles/publikationen/900001-900001": "<html><head><title>Synthetische Publikation Eins | BMZ</title><meta property=\"og:title\" content=\"Synthetische Publikation Eins\"><meta property=\"og:url\" content=\"https://www.bmz.de/de/aktuelles/publikationen/900001-900001\"><meta name=\"description\" content=\"Beschreibung 900001\"></head><body><div class=\"m-download-view\"><h1 class=\"m-download-view__headline\">Synthetische Publikation Eins</h1><div class=\"m-download-view__description\"><p>Synthetische Beschreibung fuer den Offline-Gleichheitstest der Aufteilung; sie ahmt nur die Struktur einer Publikationsseite nach und enthaelt keinen echten Inhalt.</p></div><a class=\"m-download-view__anchor\" href=\"/resource/blob/900001/synthetic-900001.pdf\">Download</a><dl><dt>Sachstandsdatum</dt><dd>15.03.2031</dd><dt>Dateityp</dt><dd>PDF</dd></dl></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "__init__": "f9b45ab3db252358f22d39cb7995b1988ba6a034941274bf251b8d5ec2a0271d",
+  "_cffi_get": "6e33cd2b7037b5ae24efc6a434f526cd9dd75dd29ae02fd0e8d80400dc708b70",
+  "_curl_get": "55d006ecada4874522ab74cfc7aa1c17c37006837a70ba3ebad026e2f330b29e",
+  "_make_soup": "359b9664cfa3d1965d7150b037a9a1eeb66e84eabfaf2af7d67213dc804dc918",
+  "_list_url": "5c5d59c204df7c5a1756fffb54cbe65bcf056972ef1fa03b9fa0d7663b54661a",
+  "_parse_list_page": "2e44360e90db5831250af644d17838b37bcfde158cea870805594a69629b5a95",
+  "_parse_list_item": "a3dd22bda1a67a802e185969bc0c707026a5333b23ca11b5f0ceb442d3dffdc2",
+  "_parse_detail": "793baae2258b7cc8e06290ab70d7865ea24f7a9a996c3f5a49c3adce5caa317b",
+  "_build_paper": "55e9aa93becd648b191d4e8c3ec79e6004f8d15f5a2600a9a30bbfef87d872ff",
+  "crawl": "c8c0d560f3a0ae1e253cb643bda812a02bc98869c094fb45c75ba6c855423875"
+ }
+}

@@ -606,3 +606,42 @@ class BmzDeDeCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (pure parsing; crawl() and the methods above unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """One /ajax/filterlist/de/24710-24710?offset=N&limit=9 page parsed by the
+        existing _parse_list_page() (page/offset read from the URL, as crawl()
+        passes them). ``detail_url`` is the page crawl() fetches for the item.
+        Past the last page the source answers 204 No Content (plan
+        listing.end_on_204); a 200 page without the list wrapper is a listing
+        parse error, one with it but without rows is an empty page."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        try:
+            offset = int(parse_qs(urlsplit(url).query).get("offset", ["0"])[0])
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:offset") from None
+        soup = self._make_soup(html, context="enumeration list")
+        if soup is None or soup.select_one("[data-hits]") is None:
+            raise PermanentFailure("listing_parse_error:no_filterlist")
+        items, _hits = self._parse_list_page(html, page=offset // _PAGE_SIZE + 1, offset=offset)
+        return [dict(item, detail_url=_DETAIL_URL_TMPL.format(content_id=item["content_id"]))
+                for item in items]
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s per-item block (_parse_detail + _build_paper + abstract
+        length skip) with the detail page already fetched by the runner;
+        content_id external_id/post_number unchanged. None where crawl() skips."""
+        list_item = {k: v for k, v in item.items() if k != "detail_url"}
+        detail_url = _DETAIL_URL_TMPL.format(content_id=list_item["content_id"])
+        detail = self._parse_detail(html, list_item, detail_url)
+        paper = self._build_paper(list_item, detail)
+        abstract = paper.get("abstract") or ""
+        if len(abstract) < _MIN_ABSTRACT_CHARS:
+            return None
+        return paper

@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "sites": {
+    "bmz-de-de": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.bmz.de",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.bmz.de/ajax/filterlist/de/24710-24710",
+        "params": {
+          "limit": "9"
+        },
+        "page_param": "offset",
+        "page_mode": "offset",
+        "page_size": 9,
+        "start_page": 1,
+        "end_on_204": true,
+        "parser": {
+          "type": "adapter",
+          "url_field": "detail_url",
+          "key_field": "content_id",
+          "title_field": "title",
+          "listing_marker": "[data-hits]"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
