@@ -1,0 +1,57 @@
+{
+ "version": 1,
+ "sites": {
+  "swisspolar-ch-expeditions": {
+   "strategy": "last_page_backward",
+   "base_url": "https://swisspolar.ch",
+   "verify_ssl": true,
+   "adapter": {
+    "type": "crawler",
+    "contract_version": 1,
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "json",
+     "url"
+    ],
+    "detail_method": "_enumeration_detail",
+    "detail_args": [
+     "json",
+     "item"
+    ],
+    "paper_method": "_enumeration_paper",
+    "paper_args": [
+     "item",
+     "detail"
+    ]
+   },
+   "listing": {
+    "url": "https://swisspolar.ch/wp-json/wp/v2/pages",
+    "params": {
+     "slug": "ace-publications",
+     "per_page": 1,
+     "_fields": "id,date,date_gmt,modified,modified_gmt,slug,link,title,content"
+    },
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "url_field": "url",
+     "key_field": "post_number",
+     "date_field": "date"
+    },
+    "end_statuses": [
+     {
+      "status": 400,
+      "json_code": "rest_post_invalid_page_number"
+     }
+    ]
+   },
+   "last_page": {
+    "overlap_pages": 1
+   },
+   "request_interval_s": 1.5,
+   "respect_robots": true,
+   "retries": 1
+  }
+ }
+}

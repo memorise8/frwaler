@@ -634,3 +634,140 @@ class SwissPolarChExpeditionsCrawler(BaseCrawler):
             "original_filename": original_filename,
             "metadata": json.dumps(metadata, ensure_ascii=False, default=str),
         }
+
+    # ------------------------------------------------------------------
+    # Enumeration framework split (crawl() unchanged). The framework fetches
+    # the WordPress page JSON (listing) and one Crossref works record per DOI
+    # (detail, api.crossref.org) through its own gate; these methods only parse.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, data, url):
+        """WP pages JSON -> rows. Only DOI records are listed: without a DOI the
+        original crawl has no Crossref detail, so its abstract is empty and the
+        record is always skipped (abstract < 100 chars). Repeated records keep the
+        first occurrence, as crawl()'s seen_urls does."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+
+        if not isinstance(data, list):
+            raise PermanentFailure("listing_parse_error:invalid_wp_pages_response")
+        if not data:
+            return []
+        page_obj = data[0]
+        if not isinstance(page_obj, dict):
+            raise PermanentFailure("listing_parse_error:invalid_wp_page_object")
+        content = ((page_obj.get("content") or {}).get("rendered") or "")
+        if not content:
+            raise PermanentFailure("listing_parse_error:empty_wp_page_content")
+        soup = _make_soup(content)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:html_parse_failed")
+        try:
+            page = int((parse_qs(urlsplit(url or "").query).get("page") or ["1"])[0])
+        except ValueError:
+            page = 1
+        page_text = soup.get_text(" ", strip=True)
+        listed_date, listed_raw = _extract_last_updated(page_text)
+        listed_date = listed_date or _parse_date(page_obj.get("modified"))
+        listed_raw = listed_raw or page_obj.get("modified")
+        page_meta = {
+            "wp_page_id": page_obj.get("id"),
+            "source_page_url": page_obj.get("link") or _START_URL,
+            "source_page_api": _WP_LIST_API.format(page=page),
+            "wp_date": page_obj.get("date"),
+            "wp_date_gmt": page_obj.get("date_gmt"),
+            "wp_modified": page_obj.get("modified"),
+            "wp_modified_gmt": page_obj.get("modified_gmt"),
+            "listed_date": listed_date,
+            "listed_date_raw": listed_raw,
+        }
+        rows, seen = [], set()
+        for index, record in enumerate(self._parse_publications(soup, page_meta), start=1):
+            key = record.get("url") or record.get("doi") or record.get("external_id")
+            if key and key in seen:
+                continue
+            if key:
+                seen.add(key)
+            if not record.get("doi"):
+                continue
+            rows.append({
+                "url": _CROSSREF_API.format(doi=quote(record["doi"], safe="")),
+                "post_number": record.get("post_number"),
+                "date": record.get("listed_date"),
+                "index": index,
+                "record": record,
+            })
+        return rows
+
+    def _enumeration_detail(self, data, item):
+        """Crossref works JSON -> the dict _fetch_detail() builds from it. The only
+        omission: _fetch_detail's best-effort HEAD request for a PDF filename when
+        the PDF URL has no usable last path segment (left None here)."""
+        from crawler.enumeration.http import PermanentFailure
+
+        if not isinstance(data, dict):
+            raise PermanentFailure("detail_parse_error:invalid_crossref_response")
+        doi = item["record"].get("doi")
+        if data.get("status") != "ok" or not isinstance(data.get("message"), dict):
+            return {"crossref_raw": data}
+        msg = data["message"]
+        abstract = _strip_markup(msg.get("abstract"))
+        published_date = None
+        date_key_used = None
+        for key in ("published", "published-print", "published-online", "created", "deposited"):
+            published_date = _date_from_parts(msg.get(key))
+            if published_date:
+                date_key_used = key
+                break
+        authors = []
+        for author in msg.get("author") or []:
+            if not isinstance(author, dict):
+                continue
+            literal = _clean_text(author.get("name"))
+            given = _clean_text(author.get("given"))
+            family = _clean_text(author.get("family"))
+            name = literal or _clean_text(f"{given} {family}")
+            if name:
+                authors.append(name)
+        journal = None
+        container = msg.get("container-title") or []
+        if container:
+            journal = _clean_text(container[0])
+        pdf_url = None
+        for link in msg.get("link") or []:
+            if not isinstance(link, dict):
+                continue
+            link_url = link.get("URL")
+            content_type = (link.get("content-type") or "").lower()
+            if link_url and ("pdf" in content_type or link_url.lower().split("?")[0].endswith(".pdf")):
+                pdf_url = link_url
+                break
+        original_filename = _filename_from_url(pdf_url)
+        return {
+            "doi": msg.get("DOI") or doi,
+            "title": _clean_text((msg.get("title") or [""])[0]),
+            "abstract": abstract,
+            "published_date": published_date,
+            "date_key_used": date_key_used,
+            "authors": authors,
+            "publisher": _clean_text(msg.get("publisher")),
+            "journal": journal,
+            "keywords": msg.get("subject") or [],
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "series": _clean_text(_first_nonempty(msg.get("series-title"), msg.get("series"))),
+            "volume": _clean_text(msg.get("volume")),
+            "issue": _clean_text(msg.get("issue")),
+            "page": _clean_text(msg.get("page")),
+            "crossref_type": msg.get("type"),
+            "crossref_url": msg.get("URL"),
+            "crossref_raw": msg,
+        }
+
+    def _enumeration_paper(self, item, detail):
+        """crawl()'s _build_paper + abstract filter, unchanged."""
+        paper = self._build_paper(item["record"], detail or {}, item["index"])
+        abstract = _clean_text(paper.get("abstract"))
+        if len(abstract) < _MIN_ABSTRACT_CHARS:
+            return None
+        paper["abstract"] = abstract
+        return paper
