@@ -1,0 +1,29 @@
+{
+  "site_id": "nivel-nl-en",
+  "listing_body": "<html><body><div class=\"view-publications\"><div class=\"views-row\"><div class=\"publication--type-publication\" onclick=\"location.href='/en/publicatie/synthetic-two'\"><time datetime=\"2031-02-13T12:00:00Z\">13-02-2031</time><div class=\"field--name-field-authors\"><div class=\"field__item\">Synthetic, A., Author, B.</div></div><div class=\"field--name-field-title\"><div class=\"field__item\">Synthetic two</div></div><div class=\"field--name-field-imprint\"><div class=\"field__item\">Synthetic Journal: 2031, 12(3), p. 1-9</div></div></div></div><div class=\"views-row\"><div class=\"publication--type-publication\" onclick=\"location.href='/en/publicatie/synthetic-one'\"><time datetime=\"2031-01-09T12:00:00Z\">09-01-2031</time><div class=\"field--name-field-authors\"><div class=\"field__item\">Synthetic, A., Author, B.</div></div><div class=\"field--name-field-title\"><div class=\"field__item\">Synthetic one</div></div><div class=\"field--name-field-imprint\"><div class=\"field__item\">Synthetic Journal: 2031, 12(3), p. 1-9</div></div></div></div></div></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.nivel.nl/en/publicatie/synthetic-two": "<html><head><link rel=\"canonical\" href=\"https://www.nivel.nl/en/publicatie/synthetic-two\"></head><body><article data-history-node-id=\"90002\"><h1 class=\"field--name-field-title\">Synthetic two</h1><div class=\"field--name-field-summary-english\">Synthetic English summary for the offline equality test of the enumeration split; it imitates only the Drupal publication page structure.</div><div class=\"field--name-field-webopac-date\"><time datetime=\"2031-02-13T00:00:00Z\">13-02-2031</time></div><div class=\"field--name-field-doi\"><a href=\"https://doi.org/10.9999/synthetic.90002\">doi</a></div><a class=\"cta-button--download-the-pdf\" href=\"/sites/default/files/bestanden/90002.pdf\">pdf</a></article></body></html>",
+    "https://www.nivel.nl/en/publicatie/synthetic-one": "<html><head><link rel=\"canonical\" href=\"https://www.nivel.nl/en/publicatie/synthetic-one\"></head><body><article data-history-node-id=\"90001\"><h1 class=\"field--name-field-title\">Synthetic one</h1><div class=\"field--name-field-summary-english\">Synthetic English summary for the offline equality test of the enumeration split; it imitates only the Drupal publication page structure.</div><div class=\"field--name-field-webopac-date\"><time datetime=\"2031-01-09T00:00:00Z\">09-01-2031</time></div><div class=\"field--name-field-doi\"><a href=\"https://doi.org/10.9999/synthetic.90001\">doi</a></div><a class=\"cta-button--download-the-pdf\" href=\"/sites/default/files/bestanden/90001.pdf\">pdf</a></article></body></html>"
+  },
+  "long_text": "Synthetic English summary for the offline equality test of the enumeration split; it imitates only the Drupal publication page structure.",
+  "empty_body": "<html><body><div class=\"view-publications\"></div></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "dbae0679199ffd4d307a966c8369453e486adc8ee400f52e357341ddcce42d26",
+    "_wall_budget_nearly_spent": "ba1b77966624986b92e3805aaaaa27c20d6225d9e65b65319fa8dbcfeaf7c5b3",
+    "_curl_get": "62ad45aaf88558942aa4379bd9301d5227aca04e053c0ebfa4fc872a3203ea73",
+    "_curl_post": "243e286350e7652e2cb13fc4391cfc8c0ee2e4cfe6668cfa26882c5f0fd56dde",
+    "_curl": "7cfa002982cbdc4b67c5978ef6bdd574f0b488a3acba06bfd4cd2134a0aff636",
+    "_extract_view_config": "e34dafc11e51620c1e804f07dbbc6f85430c60be7b98b0e5c372f235a649bb2f",
+    "_fetch_ajax_page": "1094ecfee00d6c476ffcbb23a67ba418106a46be4ca9f5ec9e0b404110350c50",
+    "_extract_ajax_html": "abba494a8e3e777b7a1071002db6001d064e51117ecd94c88abf71ddaf89651e",
+    "_parse_list_items": "ef1e0161574d27183a0a55a7e657c9a9edf9b1391a6f16133878f1a466242c5b",
+    "_parse_list_items_regex": "a58dd43d02beb704748adbf9bef2bd73ba8198f9ce1c8e18d464c1330bd95113",
+    "_row_href": "81f006ff8202f360de0492d013b1bc411f0cf2ac4981e9441c1bf6b3116d6550",
+    "_has_next_page": "9714beec8e964208f24d1f3e6021c573e3f68d604ec5b74dfe75b34d3bbe914f",
+    "_build_paper": "e2f88ef06b1893e86a6dc41be9252fd55248d37932e167f99d17f53ce674941f",
+    "_parse_detail": "7267ceaff3bb0fc7b5f9c34b76a77aa87d831474d0e11a8486678e9475d663e0",
+    "_extract_node_id": "93aa990500e61ca876f9b11815f7cd5f173584b530871a9da258f5ec728c30b2",
+    "_extract_canonical": "23d94431df0152ed3e59ac0497d2bce6cf2b85a50743aa013d57913c3d3d40b2"
+  }
+}

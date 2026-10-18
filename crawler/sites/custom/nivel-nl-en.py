@@ -693,3 +693,37 @@ class NivelNlEnCrawler(BaseCrawler):
         if href and "pagina-niet-gevonden-404" not in href:
             return urljoin(self.base_url, href)
         return None
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Publication rows of one list page (GET ?page=N, 0-based — the same
+        Drupal view crawl() reads through views/ajax), parsed with
+        _parse_list_items. A page without rows is an empty list, judged by
+        the plan's listing_marker."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        raw_page = (parse_qs(urlsplit(url or "").query).get("page") or ["0"])[0]
+        try:
+            page = int(raw_page)
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:bad_page_number", url)
+        return self._parse_list_items(html, page)
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page — _build_paper() as crawl() calls
+        it (external_id = Drupal node id, else slug), with crawl()'s
+        short-abstract skip."""
+        if not html:
+            return None
+        paper = self._build_paper(item, html)
+        if not paper:
+            return None
+        if len(paper.get("abstract") or "") < self.MIN_ABSTRACT_CHARS:
+            return None
+        return paper
