@@ -326,7 +326,12 @@ def plan_site(args, enum_site, product_site, how, sites):
     source_conflict, drop = set(), set()
     shared = product_site in SHARED_POST_NUMBER
     for p, fs in posts.items():
-        if shared or len({u for us in fs.values() for u in us}) <= 1:
+        if len({u for us in fs.values() for u in us}) <= 1:
+            continue
+        if shared:
+            # 여러 URL 이 원래 규칙(언어별 판). 다만 가장 최근 폴더에 없는 URL(옛 실행에만 있는 주소)은 바뀐 주소로 보고 뺀다.
+            newest = max(fs, key=lambda f: folder_max.get(f, ("", "")))
+            drop |= {(p, u) for f, us in fs.items() if f != newest for u in us if u not in fs[newest]}
             continue
         newest = max(fs, key=lambda f: folder_max.get(f, ("", "")))
         if len(fs[newest]) == 1:
@@ -353,6 +358,9 @@ def plan_site(args, enum_site, product_site, how, sites):
             c["exists"] += 1
         elif post in by_post and not shared:
             c["post_conflict"] += 1
+        elif post in by_post:
+            # 공유 규칙 사이트: 대상에 같은 번호의 다른 주소가 이미 있음 — 새 판일 수도, 주소가 바뀐 같은 문서일 수도
+            c["shared_post_new"] = c.get("shared_post_new", 0) + 1
         elif url in by_url:
             c["url_conflict"] += 1
         else:
@@ -364,6 +372,8 @@ def plan_site(args, enum_site, product_site, how, sites):
     rep["counts"], rep["stats"] = c, stats
     if enum_site in SPECIAL_IDENTITY or product_site in SPECIAL_IDENTITY:
         rep["issues"].append("사이트별 식별 규칙(document_identity.py) 대상 — 수동 검토")
+    if c.get("shared_post_new"):
+        rep["issues"].append("같은 post_number 의 다른 meta_url %d건(공유 규칙 사이트) — 새 판인지 주소가 바뀐 같은 문서인지 확인" % c["shared_post_new"])
     if c["post_conflict"] or c["url_conflict"]:
         rep["issues"].append("대상과 식별값 충돌: post %d, url %d — 기존 수집과 post_number 규칙이 다른지 확인" % (c["post_conflict"], c["url_conflict"]))
     if c["excluded_source_conflict"] or c["excluded_null_post"]:
@@ -549,6 +559,8 @@ def main():
         if args.source != "sqlite":
             sys.exit("apply --source sci 는 아직 없다(대량 COPY 경로 필요, status/B2.md 참고)")
         plan = json.load(open(args.approved_plan))
+        if bool(plan.get("target_remote")) != bool(args.target_remote):
+            sys.exit("승인한 plan 의 대상 위치(원격 여부)가 지금과 다름")
         if plan.get("target") != args.target:
             sys.exit("승인한 plan 의 대상(%s)이 지금 대상(%s)과 다름" % (plan.get("target"), args.target))
         approved = {x["enum_site"]: x for x in plan["sites"]}
