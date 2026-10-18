@@ -92,11 +92,25 @@ class OaiCursorTest(unittest.TestCase):
                           OAI + "?verb=ListRecords&resumptionToken=oai_dc%3A%2F2",
                           OAI + "?verb=ListRecords&resumptionToken=oai_dc%3A%2F3"], lists)
 
+    def test_error_page_after_first_page_is_not_an_end(self):
+        board = OaiBoard()
+
+        def handle(method, url, data):
+            if "resumptionToken=oai_dc%3A%2F3" in url:  # expired token: OAI answers 200 with an error
+                return Response(200, {"Content-Type": "text/xml"},
+                                '<?xml version="1.0"?><OAI-PMH><error code="badResumptionToken"/></OAI-PMH>')
+            return board(method, url, data)
+        result = self.env.run(site(), None, transport=RecordingTransport(handle), crawler=crawler(self.env))
+        self.assertNotIn(result["status"], ("complete", "complete_unverified"), result)
+
     def test_validation(self):
         bad = [{"template": "https://other.test/oai?resumptionToken={token}"},
                {"template": OAI + "?resumptionToken="},
                {"template": OAI + "?a={token}&b={token}"},
                {"template": "/oai/request?resumptionToken={token}"},
+               {"template": "http://board.test/oai/request?resumptionToken={token}"},  # https -> http
+               {"template": "https://board.test:8443/oai/request?resumptionToken={token}"},
+               {"template": "https://u:p@board.test/oai/request?resumptionToken={token}"},
                {"text": "yes"}]
         for over in bad:
             with self.assertRaises(PlanError, msg=over):
