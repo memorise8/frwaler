@@ -1,0 +1,16 @@
+{
+ "site_id": "archives-nationales-culture-gouv-fr-presse",
+ "listing_body": "<html><head><title>Presse | Archives nationales</title></head><body><main><div class=\"views-element-container\"><div class=\"fr-grid-row an-views-view-liste-publications\"><h1>Presse</h1></div><div class=\"view-content\"><article class=\"node node--type-detail-publication node--view-mode-carte fr-enlarge-link fr-card fr-mb-8v\">\n  <div class=\"fr-card__body\"><div class=\"fr-card__content\">\n    <h3 class=\"fr-card__title\"><a class=\"fr-card__link\" data-type=\"file\" href=\"https://s3.fr-par.scw.cloud/an-p0-bucket/an-public/files/Footer/Espace%20presse/2026/CP_Traverser%20le%20monde_AN_VF.pdf?VersionId=1790003638210009\" target=\"_blank\"><span class=\"field field--name-title field--type-string field--label-hidden\">Communiqué de presse \"Traverser le monde\"</span>\n</a></h3>\n    <p class=\"fr-card__desc\">\n              L’Exposition universelle de 1867, rassemblant pas moins de 52 000 exposants venus du monde entier, est la première à bénéficier d’une immense production photographique.\n          </p>\n    <div class=\"fr-card__start\"><p class=\"fr-card__detail\">\n                        Publié(e) le 14 septembre 2026\n          </p></div>\n  </div></div>\n</article><article class=\"node node--type-detail-publication node--view-mode-carte fr-enlarge-link fr-card fr-mb-8v\">\n  <div class=\"fr-card__body\"><div class=\"fr-card__content\">\n    <h3 class=\"fr-card__title\"><a class=\"fr-card__link\" data-type=\"file\" href=\"https://s3.fr-par.scw.cloud/an-p0-bucket/an-public/files/Footer/Espace%20presse/2026/CP_Exemple.pdf?VersionId=\" target=\"_blank\"><span class=\"field field--name-title field--type-string field--label-hidden\">Communiqué de presse \"Exemple sans version\"</span>\n</a></h3>\n    <p class=\"fr-card__desc\">\n              L’Exposition universelle de 1867, rassemblant pas moins de 52 000 exposants venus du monde entier, est la première à bénéficier d’une immense production photographique.\n          </p>\n    <div class=\"fr-card__start\"><p class=\"fr-card__detail\">\n                        Publié(e) le 05 février 2026\n          </p></div>\n  </div></div>\n</article></div></div></main></body></html>",
+ "content_type": "text/html; charset=UTF-8",
+ "details": {},
+ "long_text": "L’Exposition universelle de 1867, rassemblant pas moins de 52 000 exposants venus du monde entier, est la première à bénéficier d’une immense production photographique.",
+ "original_method_source_sha256": {
+  "_curl_get": "6a046d28f388d1bfd0352f431cd49feae97dbf40f9c97e86cab96a054bf81ccd",
+  "_fetch_page": "f0e7666ca21f179137763b2fdbfe2acb2d870fe67812a5af2f7fc5cf2b5e61a9",
+  "_make_soup": "057b4f7263e9b08878b962daed2e683e57c020824773d2240fdc8d4499ee4ec3",
+  "_parse_french_date": "2ffdf2af60d183d490068f9d5fa6603823e5c7ff1e390aa09e4123ca51b3cbb2",
+  "_version_id": "a7653455527c58e961ab3c4d247cc1d95817fef2b2e131ee41e89008b70b37cd",
+  "_url_filename": "35e87763933dafff6aa6cedba1b97109da2f498eb2a390919cb7cf096a98173e",
+  "crawl": "ee989cd99082918574de3b5bbef7eea7e50d593c1428cb20946e813015e7d514"
+ }
+}

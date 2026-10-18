@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "sites": {
+    "archives-nationales-culture-gouv-fr-presse": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.archives-nationales.culture.gouv.fr",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "paper_method": "_enumeration_paper"
+      },
+      "listing": {
+        "url": "https://www.archives-nationales.culture.gouv.fr/presse",
+        "params": {
+          "title": "",
+          "field_type_publication_target_id_1[32]": "32",
+          "created[value]": ""
+        },
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "key_field": "external_id",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "title_field": "title",
+          "listing_marker": ".an-views-view-liste-publications"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

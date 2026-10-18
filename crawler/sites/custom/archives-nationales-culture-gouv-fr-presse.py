@@ -320,3 +320,106 @@ class ArchivesNationalesPresseCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged): same card parsing and paper
+    # fields as crawl(), one listing page at a time.
+    # ------------------------------------------------------------------
+
+    _LISTING_MARKER_CLASS = "an-views-view-liste-publications"
+
+    def _enumeration_items(self, html, url=None):
+        """Listing rows of one /presse page, filtered and keyed like crawl()."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparsable_html")
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(url or "").query)
+        try:
+            p = int((query.get("page") or ["0"])[0])
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:bad_page_number")
+        page_url = (
+            f"{_BASE}{_LIST_PATH}?{_LIST_PARAMS}"
+            if p == 0
+            else f"{_BASE}{_LIST_PATH}?{_LIST_PARAMS}&page={p}"
+        )
+        rows = []
+        for art in soup.find_all("article", class_="node--type-detail-publication"):
+            title_el = art.find("span", class_="field--name-title")
+            if not title_el:
+                continue
+            title = title_el.get_text(strip=True)
+            if not title:
+                continue
+            link_el = art.find("a", class_="fr-card__link")
+            pdf_url = (link_el.get("href", "") or "").strip() if link_el else ""
+            dedup_key = pdf_url or title
+            desc_el = art.find("p", class_="fr-card__desc")
+            abstract = desc_el.get_text(strip=True) if desc_el else ""
+            date_el = art.find("p", class_="fr-card__detail")
+            raw_date = date_el.get_text(strip=True) if date_el else ""
+            vid = self._version_id(pdf_url)
+            external_id = vid if vid else hashlib.sha256(dedup_key.encode()).hexdigest()[:20]
+            rows.append({
+                "external_id": external_id,
+                "url": pdf_url or page_url,
+                "title": title,
+                "pdf_url": pdf_url,
+                "abstract": abstract,
+                "raw_date": raw_date,
+                "listed_date": self._parse_french_date(raw_date),
+                "page_number": p,
+                "page_url": page_url,
+            })
+        return rows
+
+    def _enumeration_paper(self, item):
+        """Paper dict exactly as crawl() saves it for this card (None = skipped)."""
+        title = item["title"]
+        pdf_url = item.get("pdf_url") or ""
+        page_url = item["page_url"]
+        abstract = item.get("abstract") or ""
+        if len(abstract) < 50:
+            return None
+        raw_date = item.get("raw_date") or ""
+        published_date = self._parse_french_date(raw_date)
+        dedup_key = pdf_url or title
+        vid = self._version_id(pdf_url)
+        external_id = (
+            vid
+            if vid
+            else hashlib.sha256(dedup_key.encode()).hexdigest()[:20]
+        )
+        post_number = vid
+        original_filename = self._url_filename(pdf_url) if pdf_url else None
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": published_date,
+            "authors": "",
+            "publisher": "Archives nationales",
+            "journal": "",
+            "url": pdf_url or page_url,
+            "pdf_url": pdf_url or None,
+            "doi": "",
+            "keywords": "",
+            "category": "Communiqué de presse",
+            "original_filename": original_filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": published_date,
+                    "originalFilename": original_filename,
+                    "version_id": vid,
+                    "raw_date": raw_date,
+                    "page_number": item["page_number"],
+                },
+                ensure_ascii=False,
+            ),
+        }
