@@ -1,0 +1,17 @@
+{
+ "site_id": "justitsministeriet-dk-pressemeddelelse",
+ "listing_body": "<html><body><main id=\"main\" class=\"site-main\"><article id=\"post-501\"><h2 class=\"entry-title\"><a href=\"https://www.justitsministeriet.dk/pressemeddelelse/meddelelse-en/\">Meddelelse 501</a></h2><time class=\"entry-date\" datetime=\"2026-10-14T10:00:00+02:00\">x</time><div class=\"entry-summary\">Resumé 501</div></article><article id=\"post-502\"><h2 class=\"entry-title\"><a href=\"https://www.justitsministeriet.dk/pressemeddelelse/meddelelse-to/\">Meddelelse 502</a></h2><time class=\"entry-date\" datetime=\"2026-10-09T10:00:00+02:00\">x</time><div class=\"entry-summary\">Resumé 502</div></article></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.justitsministeriet.dk/pressemeddelelse/meddelelse-en/": "<html><body><main id=\"main\"><article id=\"post-501\"><time class=\"entry-date\" datetime=\"2026-10-14T10:00:00+02:00\">x</time><div class=\"entry-summary\">Resumé 501</div><div class=\"entry-content\"><p>Syntetisk pressemeddelelse fra ministeriet til offline sammenligning af opdelingen uden netværk. Syntetisk pressemeddelelse fra ministeriet til offline sammenligning af opdelingen uden netværk. </p><a href=\"https://www.justitsministeriet.dk/wp-content/uploads/b501.pdf\">Bilag</a></div></article></main></body></html>",
+  "https://www.justitsministeriet.dk/pressemeddelelse/meddelelse-to/": "<html><body><main id=\"main\"><article id=\"post-502\"><time class=\"entry-date\" datetime=\"2026-10-09T10:00:00+02:00\">x</time><div class=\"entry-summary\">Resumé 502</div><div class=\"entry-content\"><p>Syntetisk pressemeddelelse fra ministeriet til offline sammenligning af opdelingen uden netværk. Syntetisk pressemeddelelse fra ministeriet til offline sammenligning af opdelingen uden netværk. </p><a href=\"https://www.justitsministeriet.dk/wp-content/uploads/b502.pdf\">Bilag</a></div></article></main></body></html>"
+ },
+ "long_text": "Syntetisk pressemeddelelse fra ministeriet til offline sammenligning af opdelingen uden netværk. Syntetisk pressemeddelelse fra ministeriet til offline sammenligning af opdelingen uden netværk. ",
+ "empty_body": "<html><body><main id=\"main\" class=\"site-main\"><p>Intet fundet</p></main></body></html>",
+ "original_method_source_sha256": {
+  "_fetch": "30e38961019a5d959c04f019aaf81f498ea775adc1a76469d2edd0c9ff30a24a",
+  "_parse_listing": "90b25beb4129ca7aad77cba2b3094d00180d1decd3e9aee330be9843517dbf98",
+  "_parse_detail": "69c22c44da0121bdf64d9511ae69a00cc73431b187c991801a8e78a37db25466",
+  "crawl": "586c8f3f5e74af3f177a47297baa5821e22104c204a7f1b6b802a00f0cf70392"
+ }
+}

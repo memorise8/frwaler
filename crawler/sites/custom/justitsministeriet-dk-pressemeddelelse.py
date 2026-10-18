@@ -297,3 +297,53 @@ class JustitsministerietPressemeddelelseCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # parsers stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html):
+        """Article stubs of one listing page, exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        return self._parse_listing(html)
+
+    def _enumeration_paper(self, html, it):
+        """Copy of crawl()'s per-item conversion; None keeps crawl()'s skips."""
+        url = it["url"]
+        detail = self._parse_detail(html)
+        title = it["title"]
+        abstract = detail["abstract"]
+        if not abstract.strip() and it["listing_summary"]:
+            abstract = it["listing_summary"]
+        if len(abstract.strip()) < 50:
+            return None
+        pub_date = detail["published_date"] or it["listed_date"]
+        listed_date = it["listed_date"]
+        post_number = detail["post_number"] or it.get("post_number")
+        pdf_url = detail["pdf_url"]
+        original_filename = detail["original_filename"]
+        slug = url.rstrip("/").split("/")[-1]
+        return {
+            "site_id": self.site_id,
+            "external_id": post_number or slug,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "posted_date": listed_date,
+            "url": url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "publisher": "Justitsministeriet",
+            "authors": "",
+            "keywords": "",
+            "category": "Pressemeddelelse",
+            "doi": "",
+            "metadata": json.dumps({
+                "posted_date": listed_date,
+                "post_id": post_number,
+                "slug": slug,
+            }, ensure_ascii=False),
+        }

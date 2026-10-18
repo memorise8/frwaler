@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "sites": {
+    "justitsministeriet-dk-pressemeddelelse": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "last_page_backward",
+      "base_url": "https://www.justitsministeriet.dk",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.justitsministeriet.dk/pressemeddelelse/side/{page}/",
+        "first_page_url": "https://www.justitsministeriet.dk/pressemeddelelse/",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "title_field": "title",
+          "date_field": "listed_date",
+          "listing_marker": "main#main"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
