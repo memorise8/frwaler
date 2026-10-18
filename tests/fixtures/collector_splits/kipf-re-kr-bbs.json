@@ -1,0 +1,15 @@
+{
+ "listing_body": "<html><body><table class=\"board_list table\"><thead><tr><th>번호</th></tr></thead><tbody><tr><td class=\"atchFileId\">2</td><td class=\"subject\"><a href=\"#view\" onclick=\"javascript: fn_search_detail('B000000000001Aa1aA1x'); return false;\">Offline 1</a></td></tr><tr><td class=\"atchFileId\">1</td><td class=\"subject\"><a href=\"#view\" onclick=\"javascript: fn_search_detail('B000000000002Bb2bB2x'); return false;\">Offline 2</a></td></tr></tbody></table></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.kipf.re.kr/bbs/kor_Plaza_PressRelease/view.do?nttId=B000000000001Aa1aA1x": "<html><body><div class=\"ui bbs--view--tit\">Offline 1</div><span><i>작성자</i> 홍보팀</span><span class=\"date\">2025-06-13</span><div class=\"ui bbs--view--content\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></div><ul><li><i class=\"acrobat\"></i><a href=\"javascript:fn_egov_downFile('FILE_000000000001Aa1','0')\">report.pdf</a></li></ul></body></html>",
+  "https://www.kipf.re.kr/bbs/kor_Plaza_PressRelease/view.do?nttId=B000000000002Bb2bB2x": "<html><body><div class=\"ui bbs--view--tit\">Offline 2</div><span><i>작성자</i> 홍보팀</span><span class=\"date\">2025-06-12</span><div class=\"ui bbs--view--content\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></div><ul><li><i class=\"acrobat\"></i><a href=\"javascript:fn_egov_downFile('FILE_000000000002Bb2','0')\">report.pdf</a></li></ul></body></html>"
+ },
+ "empty_body": "<html><body><table class=\"board_list table\"><thead><tr><th>번호</th></tr></thead><tbody><tr><td colspan=\"6\">데이터가 없습니다.</td></tr></tbody></table></body></html>",
+ "site_id": "kipf-re-kr-bbs",
+ "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+ "original_method_source_sha256": {
+  "crawl": "92219c7234594e9a4cd167870b56bdca5ae83ce5e3fc5a8792ea09cbab652dda",
+  "_fetch_detail": "87ab6fc0b29956c0796771d3635ec82eeb3ddccaa593481c4466e372a21e9510"
+ }
+}

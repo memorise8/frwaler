@@ -244,3 +244,105 @@ class KipfBbsCrawler(BaseCrawler):
             "department": dept,
             "metadata": json.dumps({"nttId": ntt_id}, ensure_ascii=False),
         }
+
+    # Pure enumeration contract; original crawl, _fetch_detail and transport remain unchanged.
+
+    def _enumeration_items(self, raw):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw, (bytes, str)):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        text = _decode(raw) if isinstance(raw, bytes) else raw
+        soup = _make_soup(text.encode("utf-8"))
+        if soup is None or soup.select_one("table.board_list tbody") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_list")
+        rows, seen = [], set()
+        for nid in re.findall(r"fn_search_detail\(['\"]([A-Za-z0-9]+)['\"]", text):
+            url = f"{_DETAIL_URL}?nttId={nid}"
+            if url in seen:
+                continue
+            seen.add(url)
+            rows.append({"nttId": nid, "url": url})
+        return rows
+
+    def _enumeration_detail(self, raw, item):
+        """Same parsing as _fetch_detail after its network fetch."""
+        ntt_id = item["nttId"]
+        detail_url = item["url"]
+        if not raw:
+            return None
+        try:
+            soup = _make_soup(raw)
+        except Exception as exc:
+            print(f"[kipf-re-kr-bbs] Parse error for {ntt_id}: {exc}")
+            return None
+
+        if soup is None:
+            return None
+
+        tit_tag = soup.find(class_="ui bbs--view--tit")
+        if tit_tag is None:
+            tit_tag = soup.select_one("[class*='bbs--view--tit']")
+        title = tit_tag.get_text(" ", strip=True) if tit_tag else ""
+
+        pub_date = ""
+        date_tag = soup.find(class_="date")
+        if date_tag:
+            m = re.search(r"\d{4}-\d{2}-\d{2}", date_tag.get_text())
+            if m:
+                pub_date = m.group(0)
+
+        dept = ""
+        for span in soup.find_all("span"):
+            i_tag = span.find("i")
+            if i_tag and "작성자" in i_tag.get_text():
+                dept = span.get_text(" ", strip=True).replace("작성자", "").strip()
+                break
+
+        content_tag = soup.find(class_="ui bbs--view--content")
+        if content_tag is None:
+            content_tag = soup.select_one("[class*='bbs--view--content']")
+
+        abstract = ""
+        if content_tag:
+            abstract = content_tag.get_text(separator="\n", strip=True)
+            abstract = re.sub(r"\n{3,}", "\n\n", abstract).strip()
+
+        text = _decode(raw)
+        pdf_url = ""
+        file_refs = re.findall(
+            r"fn_egov_downFile\(['\"]([A-Za-z0-9_]+)['\"],\s*['\"](\d+)['\"]",
+            text,
+        )
+        for file_id, file_sn in file_refs:
+            pos = text.find(file_id)
+            nearby = text[max(0, pos - 20):pos + 500] if pos >= 0 else ""
+            if "acrobat" in nearby or ".pdf" in nearby.lower():
+                pdf_url = f"{_DOWNLOAD_BASE}?atchFileId={file_id}&fileSn={file_sn}"
+                break
+        if not pdf_url and file_refs:
+            file_id, file_sn = file_refs[0]
+            pdf_url = f"{_DOWNLOAD_BASE}?atchFileId={file_id}&fileSn={file_sn}"
+
+        return {
+            "site_id": self.site_id,
+            "external_id": ntt_id,
+            "title": title,
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": "보도자료",
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": pub_date,
+            "url": detail_url,
+            "pdf_url": pdf_url or None,
+            "doi": "",
+            "department": dept,
+            "metadata": json.dumps({"nttId": ntt_id}, ensure_ascii=False),
+        }
+
+    def _enumeration_paper(self, item, paper):
+        if paper is None:
+            return None
+        abstract = paper.get("abstract") or ""
+        if len(abstract) < 50:
+            return None
+        return paper
