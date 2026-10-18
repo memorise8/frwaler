@@ -350,3 +350,66 @@ class PolytechniqueEduPresseCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (no network); crawl() and the methods
+    # above are unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List-page HTML -> _parse_list() rows (plus an ISO listed_date)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _bs(html)
+        if soup is None or soup.select_one("section.resultat-communiques") is None:
+            raise PermanentFailure("listing_parse_error:missing_resultat_communiques")
+        rows = []
+        for item in self._parse_list(html):
+            row = dict(item)
+            row["listed_date"] = _parse_date(item.get("date_raw"))
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, html, row):
+        """Detail HTML + list row -> the paper crawl() saves (or None)."""
+        item = {k: row[k] for k in ("url", "title", "date_raw", "category")}
+        if not html:
+            return None
+        detail = self._parse_detail(html)
+        abstract = detail.get("body", "").strip()
+        if not abstract:
+            abstract = detail.get("meta_desc", "").strip()
+        if len(abstract) < 50:
+            return None
+        date_raw = detail.get("date_raw") or item.get("date_raw", "")
+        published_date = _parse_date(date_raw)
+        title = detail.get("title") or item.get("title", "")
+        node_id = detail.get("node_id")
+        category = detail.get("category") or item.get("category", "")
+        pdf_url = detail.get("pdf_url")
+        pdf_filename = detail.get("pdf_filename")
+        return {
+            "site_id": self.site_id,
+            "external_id": node_id or item["url"],
+            "post_number": node_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "url": item["url"],
+            "pdf_url": pdf_url,
+            "original_filename": pdf_filename,
+            "category": category,
+            "publisher": _PUBLISHER,
+            "keywords": None,
+            "authors": None,
+            "doi": None,
+            "metadata": json.dumps({
+                "node_id": node_id,
+                "date_raw": date_raw,
+                "posted_date": date_raw,
+                "originalFilename": pdf_filename,
+                "category": category,
+            }, ensure_ascii=False),
+        }

@@ -1,0 +1,17 @@
+{
+  "site_id": "polytechnique-edu-presse",
+  "listing_body": "<html><body><section class=\"resultat-communiques\"><div class=\"container\"><div class=\"flex\"><div class=\"node--communiques\"><div class=\"bottom\"><span class=\"theme\">Recherche <span class=\"date\">• 01.10.26</span></span><a class=\"stretched-link titre\" href=\"/presse/communiques-et-dossiers-de-presse/offline-communique-3101\"><span class=\"field field--name-title\">Offline communiqué 3101</span></a></div></div><div class=\"node--communiques\"><div class=\"bottom\"><span class=\"theme\">Recherche <span class=\"date\">• 02.10.26</span></span><a class=\"stretched-link titre\" href=\"/presse/communiques-et-dossiers-de-presse/offline-communique-3102\"><span class=\"field field--name-title\">Offline communiqué 3102</span></a></div></div></div></div></section></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.polytechnique.edu/presse/communiques-et-dossiers-de-presse/offline-communique-3101": "<html><head><meta name=\"description\" content=\"meta\"/><script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\":{\"currentPath\":\"node/3101\"}}</script></head><body><h1><span class=\"field field--name-title\">Offline communiqué 3101 détail</span></h1><div class=\"date\"><b>01.10.26</b></div><div class=\"tags\">Recherche</div><div class=\"nce--wysiwyg\"><p>Synthetic communiqué résumé for offline equality testing, long enough to pass the fifty character rule.</p></div><div class=\"liste-documents\"><a href=\"/sites/default/files/cp-3101.pdf\"><span>cp-3101.pdf</span></a></div></body></html>",
+    "https://www.polytechnique.edu/presse/communiques-et-dossiers-de-presse/offline-communique-3102": "<html><head><meta name=\"description\" content=\"meta\"/><script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\":{\"currentPath\":\"node/3102\"}}</script></head><body><h1><span class=\"field field--name-title\">Offline communiqué 3102 détail</span></h1><div class=\"date\"><b>02.10.26</b></div><div class=\"tags\">Recherche</div><div class=\"nce--wysiwyg\"><p>Synthetic communiqué résumé for offline equality testing, long enough to pass the fifty character rule.</p></div><div class=\"liste-documents\"><a href=\"/sites/default/files/cp-3102.pdf\"><span>cp-3102.pdf</span></a></div></body></html>"
+  },
+  "long_text": "Synthetic communiqué résumé for offline equality testing, long enough to pass the fifty character rule.",
+  "empty_body": "<html><body><section class=\"resultat-communiques\"><div class=\"container\"><div class=\"flex\"></div></div></section></body></html>",
+  "original_method_source_sha256": {
+    "_fetch": "dd59c42561f3f136f35734c56064c5106322cec5d02cb2edfd2f9ae618ee4a67",
+    "_parse_list": "ab981c8c1fc0c7856ae1e1ab180f122af7e000b57c3321c960c795e17590becb",
+    "_parse_detail": "15e962ab19c0a0cd06e3092f5f40c3454a3c315fd78ba577b647037d0d503d43",
+    "crawl": "106c617b39718f8bd77536f12d525db743eb1ff113ee2e230f2280bd43cf518c"
+  }
+}
