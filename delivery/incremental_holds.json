@@ -230,7 +230,7 @@
   "ami-swiss-en": {
     "classification": "full_rescan_required",
     "reason": "year_only_source_groups_do_not_define_within_year_incremental_order",
-    "source_sha256": "1c9fa1ee4a37bc7475a2c7c85727eae3e217bf453a28b70ae60fc9feae4bba0c",
+    "source_sha256": "5ad7e972cd32f66a1e9ac150cb744243c0e6ceafc9abbbd9a1fa960d8ced0534",
     "dependency_source_sha256": {
       "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
     },
