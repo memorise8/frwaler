@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "sites": {
+    "kasa-go-kr-bbs": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "html",
+          "item"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ]
+      },
+      "listing": {
+        "url": "https://www.kasa.go.kr/bbs/BBSMSTR_000000000010/list.do",
+        "params": {
+          "pageIndex": 1
+        },
+        "page_param": "pageIndex",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "nttId",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "title_field": "title",
+          "listing_marker": ".PRGRM_list-nodata"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

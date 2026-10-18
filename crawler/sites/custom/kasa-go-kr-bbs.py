@@ -537,3 +537,79 @@ class KasaGoKrBbsCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Saved {saved} items.")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None or soup.select_one(".program__board-section") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_section")
+        items, _has_next = _parse_list_page(html, 0)
+        if not items and soup.select_one(".PRGRM_list-nodata") is None:
+            raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing")
+        return items
+
+    def _enumeration_detail(self, html, item):
+        return _parse_detail_page(html, item)
+
+    def _enumeration_paper(self, item, detail):
+        detail_url = item["url"]
+        ntt_id = item.get("nttId") or detail_url
+        if detail is None:
+            return None
+        abstract = detail.get("abstract") or ""
+        if len(abstract) < _MIN_ABSTRACT_CHARS:
+            return None
+
+        title = detail.get("title") or item.get("title") or ntt_id
+        listed_date = item.get("listed_date") or detail.get("published_date")
+        listed_date_raw = item.get("listed_date_raw") or detail.get("published_date_raw")
+        published_date = detail.get("published_date") or listed_date
+
+        attachments = detail.get("attachments") or []
+        selected_attachment = detail.get("selected_attachment") or {}
+        metadata = {
+            "posted_date": listed_date_raw,
+            "originalFilename": detail.get("original_filename"),
+            "journal_raw": None,
+            "series": None,
+            "volume": None,
+            "issue": None,
+            "bbsId": _BBS_ID,
+            "nttId": ntt_id,
+            "node_id": _BBS_ID,
+            "post_number": item.get("post_number"),
+            "listed_date": listed_date,
+            "listed_date_raw": listed_date_raw,
+            "published_date_raw": detail.get("published_date_raw"),
+            "list_file_id": item.get("list_file_id"),
+            "attachments": attachments,
+            "selected_attachment": selected_attachment,
+            "pdf_url_is_pdf": (selected_attachment.get("ext") == "pdf") if selected_attachment else False,
+        }
+
+        return {
+            "id": f"{self.site_id}:{ntt_id}",
+            "site_id": self.site_id,
+            "external_id": ntt_id,
+            "post_number": item.get("post_number"),
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "posted_date": listed_date,
+            "authors": detail.get("authors") or None,
+            "publisher": detail.get("publisher") or "우주항공청",
+            "department": detail.get("department") or None,
+            "journal": None,
+            "url": detail_url,
+            "pdf_url": detail.get("pdf_url"),
+            "keywords": "",
+            "category": "보도자료",
+            "doi": None,
+            "original_filename": detail.get("original_filename"),
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
