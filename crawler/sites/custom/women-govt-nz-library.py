@@ -174,6 +174,141 @@ class WomenGovtNzLibraryCrawler(BaseCrawler):
     )
     _MIN_ABSTRACT = 100   # chars — items below this threshold are skipped
 
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points; existing crawl stays unchanged.
+    # The GET page /library?page=N renders the same Views display
+    # (sector_sitewide_search / resource_search) that crawl() POSTs to
+    # /views/ajax; only the view's own block is read, as crawl reads the
+    # replaceWith fragment.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Listing rows of one page: crawl's list-level extraction (no I/O)."""
+        if not html:
+            return []
+        soup = _make_soup(html)
+        if soup is None:
+            return []
+        view = soup.select_one('div.search-results[class*="js-view-dom-id-"]') or soup
+        rows = []
+        for item in view.find_all("li", class_="slat"):
+            a_tag = item.find("a")
+            if not a_tag:
+                continue
+
+            title = _clean(a_tag.get_text())
+            rel_url = (a_tag.get("href") or "").strip()
+            if not rel_url:
+                continue
+
+            full_url = urljoin(self.base_url, rel_url)
+
+            body_div = item.find("div", class_="slat__body")
+            list_abstract = _clean(body_div.get_text()) if body_div else ""
+
+            badges = item.find_all("span", class_="badge")
+            categories = [
+                _clean(b.get_text()) for b in badges if b.get_text().strip()
+            ]
+            rows.append({
+                "url": full_url,
+                "rel_url": rel_url,
+                "title": title,
+                "list_abstract": list_abstract,
+                "categories": categories,
+            })
+        return rows
+
+    def _enumeration_detail(self, html, url=None):
+        """Detail page body for _enumeration_paper (crawl parses it inline)."""
+        if not html:
+            return None
+        return {"dhtml": html}
+
+    def _enumeration_paper(self, item, detail):
+        """Pure copy of crawl's detail parsing, short-abstract skip (None) and Paper."""
+        if not detail:
+            return None
+        title = item["title"]
+        rel_url = item["rel_url"]
+        full_url = item["url"]
+        list_abstract = item["list_abstract"]
+        categories = item["categories"]
+        dhtml = detail["dhtml"]
+
+        # Drupal node ID from <link rel="shortlink" href="/node/NNN">
+        m = re.search(r'<link rel="shortlink"[^>]+/node/(\d+)"', dhtml)
+        node_id = m.group(1) if m else None
+        slug = rel_url.rstrip("/").rsplit("/", 1)[-1]
+        external_id = node_id if node_id else slug
+        post_number = node_id if node_id else slug
+
+        ds = _make_soup(dhtml)
+
+        full_abstract = list_abstract
+        pdf_url = None
+        original_filename = None
+        published_date = None
+
+        if ds:
+            prose = ds.find("div", class_=re.compile(r"\bprose\b"))
+            if prose:
+                prose_text = _clean(prose.get_text())
+                if len(prose_text) > len(full_abstract):
+                    full_abstract = prose_text
+
+            if len(full_abstract) < self._MIN_ABSTRACT:
+                main = ds.find("main")
+                if main:
+                    candidate = _clean(main.get_text())
+                    if len(candidate) > len(full_abstract):
+                        full_abstract = candidate
+
+            for a in ds.find_all("a", href=True):
+                href = a["href"]
+                if re.search(r"\.pdf", href, re.I):
+                    if not href.startswith("http"):
+                        href = urljoin(self.base_url, href)
+                    pdf_url = href
+                    parsed_p = urlparse(href).path
+                    original_filename = unquote(
+                        parsed_p.rsplit("/", 1)[-1]
+                    )
+                    published_date = _date_from_url(href)
+                    break
+
+            if not published_date:
+                published_date = _date_from_text(full_abstract)
+
+        if len(full_abstract) < self._MIN_ABSTRACT:
+            return None
+
+        return {
+            "external_id":       external_id,
+            "site_id":           self.site_id,
+            "post_number":       post_number,
+            "title":             title,
+            "abstract":          full_abstract,
+            "published_date":    published_date,
+            "listed_date":       None,
+            "url":               full_url,
+            "pdf_url":           pdf_url,
+            "original_filename": original_filename,
+            "category":          "; ".join(categories) if categories else None,
+            "publisher":         "Manatū Wāhine Ministry for Women",
+            "authors":           None,
+            "keywords":          None,
+            "doi":               None,
+            "metadata":          json.dumps(
+                {
+                    "node_id":    node_id,
+                    "slug":       slug,
+                    "categories": categories,
+                },
+                ensure_ascii=False,
+            ),
+        }
+
     def crawl(self, limit=None):
         saved = 0
         seen_urls: set = set()
