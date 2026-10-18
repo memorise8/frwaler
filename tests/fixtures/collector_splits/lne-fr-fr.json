@@ -1,0 +1,34 @@
+{
+ "site_id": "lne-fr-fr",
+ "listing_body": "<html><body><main><div class=\"liste__content\"><div class=\"row\"><div class=\"col-12\"><div class=\"actus-teaser__item\"><a class=\"node_teaser_block__link\" href=\"/fr/communiques-de-presse/2026/rse-trappes\">x</a><div class=\"actus-teaser__title\"><span class=\"field--name-title\">Titre rse-trappes</span></div><div class=\"actus-teaser__date\">2 juillet 2026</div><div class=\"actus-teaser__text\">Résumé rse-trappes</div></div></div><div class=\"col-12\"><div class=\"actus-teaser__item\"><a class=\"node_teaser_block__link\" href=\"/fr/communiques-de-presse/2026/vivatech\">x</a><div class=\"actus-teaser__title\"><span class=\"field--name-title\">Titre vivatech</span></div><div class=\"actus-teaser__date\">15 juin 2026</div><div class=\"actus-teaser__text\">Résumé vivatech</div></div></div></div></div></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.lne.fr/fr/communiques-de-presse/2026/rse-trappes": "<html><head><script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\":{\"currentPath\":\"node/6272\"},\"statistics\":{\"data\":{\"nid\":\"6272\"}}}</script><meta name=\"keywords\" content=\"métrologie, essais\"></head><body><main><div class=\"edito\"><h1>Titre rse-trappes</h1><div class=\"teaser__date\">2 juillet 2026</div><p>Texte synthétique du communiqué LNE pour le test hors ligne d'égalité de la séparation. Texte synthétique du communiqué LNE pour le test hors ligne d'égalité de la séparation. </p><p><a href=\"/sites/default/files/rse-trappes.pdf\">PDF</a></p></div></main></body></html>",
+  "https://www.lne.fr/fr/communiques-de-presse/2026/vivatech": "<html><head><script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\":{\"currentPath\":\"node/6257\"},\"statistics\":{\"data\":{\"nid\":\"6257\"}}}</script><meta name=\"keywords\" content=\"métrologie, essais\"></head><body><main><div class=\"edito\"><h1>Titre vivatech</h1><div class=\"teaser__date\">15 juin 2026</div><p>Texte synthétique du communiqué LNE pour le test hors ligne d'égalité de la séparation. Texte synthétique du communiqué LNE pour le test hors ligne d'égalité de la séparation. </p><p><a href=\"/sites/default/files/vivatech.pdf\">PDF</a></p></div></main></body></html>"
+ },
+ "long_text": "Texte synthétique du communiqué LNE pour le test hors ligne d'égalité de la séparation. Texte synthétique du communiqué LNE pour le test hors ligne d'égalité de la séparation. ",
+ "empty_body": "<html><body><main><div class=\"liste__content\"><div class=\"row\"></div></div></main></body></html>",
+ "original_method_source_sha256": {
+  "crawl": "e8c6d9c19b32a2b4f13b15c8104801e82ff970ee6b9992917d3ac168c0ae37ad",
+  "_list_url": "e31d019e263e4cb0bbbda1382388f39f9cf91fac959b96b8bd9ab79de078efdd",
+  "_parse_list": "ea99e040b39ab66c0885ad08271caee2f35cf33a8076b2e5ebcfaf41641fc262",
+  "_parse_detail": "ae8f46751beb0b28fc2f800db193db952ce995b4b63a3ed29b3aff9d699aaf5c",
+  "_to_paper": "5ca6de9370ae3cea09a74e465b74c5e6c07723ab055827f0edfa0a5ad9565a69",
+  "_curl_get": "5ee59a85c748fe9e295631a1a2121f6567b94bff5870098a11f747f08e0650cb",
+  "_make_soup": "e3460dd94f723c0f9a91e00b54f2bba5caf0cf5063fddbed204c00ec1170bdaf",
+  "_extract_abstract": "77cd4cebad18b378e7b1dee10d73133aa08f059b362ff9c2feb1ea21ac571e48",
+  "_extract_authors": "295cd89e76560e11aa29b0a4f46997a4135e4f81bbb0780d7fc2f616f9bcff63",
+  "_extract_keywords": "0344f35405b777d07e122f19d381a812086b73e9755f40dcd74437706c0c1cf6",
+  "_extract_pdf_url": "9e7c1bcb8d3eedc05fa5b3392f43a88bef5da87000c70fa62d000fd308da34ae",
+  "_extract_drupal_settings": "e6c5bb85ed8461f9fa0f37b51cebc4998a3af5e7219abaa0b1b64470b7ee6c6f",
+  "_extract_node_id": "44fc374e48e56320262d7af26abeb8392d7a97d0a9324821374d5ece66a4e110",
+  "_meta_content": "bec8c3438fbe9219aff044b404c7fefee9d06d8ad01b3e908d13f3b8dad014dd",
+  "_parse_fr_date": "517f9d6d7e6287b4066d5000845df4e565bac91e8d895ac2038a55752a6fe110",
+  "_clean_text": "cc2f6c3eadeee66818a55bcdb9a3c577c5cbb003e3f062c34825b8e023343bfd",
+  "_strip_accents": "e6fe3bb48f36e24998a45f6c076fa418797923a1123f17a51121512fdc2bfc3c",
+  "_slug_from_url": "e61c107c43c383a05e5af51a3e54634e2402c71119e97ded7262c8fe1e2e3132",
+  "_filename_from_url": "45059da4c8cea2616bfbcb05f98feef11c18e2b9550ad536e4057411885ee89e",
+  "_detail_delay": "da4383e495392ad1ee0bb78c23993750085f25712ef8dcdf1e69f6c02874b699",
+  "_dig": "70e2a8deae6548cfb4eb007d89492545d516a1df27793556e398690f9e07a7ec"
+ }
+}

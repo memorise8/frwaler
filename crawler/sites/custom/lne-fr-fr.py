@@ -486,3 +486,34 @@ class LneFrFrCrawler(BaseCrawler):
                 return None
             cur = cur[key]
         return cur
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # existing parsers stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """Rows of one list page, exactly as crawl() parses them (list_url and
+        list_page are rebuilt the way crawl() builds them)."""
+        from urllib.parse import parse_qs
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        page = (parse_qs(urlparse(url or "").query).get("page") or ["0"])[0]
+        if not page.isdigit():
+            raise PermanentFailure("listing_parse_error:bad_page_param")
+        page = int(page)
+        soup = self._make_soup(html, context=f"list page {page}")
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparseable_html")
+        return self._parse_list(soup, page, self._list_url(page))
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s detail step: parse, short-abstract skip (None), paper."""
+        soup = self._make_soup(html, context=f"detail {item.get('url')}")
+        if soup is None:
+            return None
+        parsed = self._parse_detail(soup, html, item)
+        abstract = parsed.get("abstract") or ""
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        return self._to_paper(parsed)
