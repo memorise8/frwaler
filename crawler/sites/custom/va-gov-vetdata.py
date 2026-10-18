@@ -456,3 +456,59 @@ class VaGovVetdataCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse the fetched page.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """File records of the single report page — _parse_reports() plus
+        crawl()'s file-URL dedup. No pagination: ``?page=N`` past the start
+        page is declared empty."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url or "")
+        page = (parse_qs(urlsplit(url or "").query).get("page") or ["1"])[0]
+        if page not in ("", "1"):
+            return []
+        seen_urls: set[str] = set()
+        rows = []
+        for r in self._parse_reports(html):
+            key = r.get("pdf_url") or r.get("url", "")
+            if key and key in seen_urls:
+                continue
+            if key:
+                seen_urls.add(key)
+            rows.append({"item_url": key, "external_id": r["external_id"],
+                         "title": r.get("title"), "listed_date": r.get("listed_date"), "record": r})
+        return rows
+
+    def _enumeration_paper(self, item):
+        """Paper of one record exactly as crawl() saves it; None = short abstract."""
+        record = item["record"]
+        abstract = record.get("abstract", "")
+        if len(abstract) < _ABSTRACT_MIN:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": record["external_id"],
+            "post_number": record.get("post_number"),
+            "title": record["title"],
+            "abstract": record["abstract"],
+            "published_date": record.get("published_date"),
+            "listed_date": record.get("listed_date"),
+            "url": record["url"],
+            "pdf_url": record.get("pdf_url"),
+            "authors": record.get("authors", ""),
+            "publisher": record.get("publisher", ""),
+            "department": record.get("department", ""),
+            "journal": record.get("journal", ""),
+            "keywords": record.get("keywords", ""),
+            "category": record.get("category", ""),
+            "doi": record.get("doi", ""),
+            "original_filename": record.get("original_filename"),
+            "metadata": record.get("metadata", "{}"),
+        }

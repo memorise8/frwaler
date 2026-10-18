@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "sites": {
+    "va-gov-vetdata": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.va.gov",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "paper_method": "_enumeration_paper"
+      },
+      "listing": {
+        "url": "https://www.va.gov/vetdata/report.asp",
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 150,
+        "parser": {
+          "type": "adapter",
+          "url_field": "item_url",
+          "key_field": "external_id",
+          "date_field": "listed_date",
+          "title_field": "title",
+          "listing_marker": "div.accordion-container"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

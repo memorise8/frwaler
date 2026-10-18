@@ -1,0 +1,20 @@
+{
+  "site_id": "va-gov-vetdata",
+  "content_type": "text/html",
+  "listing_body": "<html><body><div id=\"innerContent\"><div class=\"accordion-container\"><a class=\"accordion-toggle\">Synthetic Section</a><div class=\"accordion-content\"><h2>Synthetic Group</h2><p>Synthetic offline report description for the enumeration equality test that only imitates the NCVAS page structure and has no real content.</p><table><caption>By County</caption><tr><td><a href=\"/vetdata/docs/Synthetic/Report_2019.xlsx\">2019</a></td><td><a href=\"/vetdata/docs/Synthetic/Report_2018.pdf\">2018</a></td><td><a href=\"/vetdata/docs/Synthetic/Report_2018.pdf\">2018 again</a></td></tr></table></div></div></div></body></html>",
+  "details": {},
+  "long_text": "Synthetic offline report description for the enumeration equality test that only imitates the NCVAS page structure and has no real content.",
+  "original_method_source_sha256": {
+    "_curl_get": "ced570695819e16e6269c0d6c3fbeb8ac6fe6f08b03776bb11f2f3ba7aed1275",
+    "_make_soup": "650a81cb26980f667fea00fe4f16bdf9c9cc87ac862599f512096e1f95808dd9",
+    "_clean": "acc6dfb0ce1955f4a7e06c828fde11bc116998a5ca4a75d5a4d999958c9510e4",
+    "_elem_text": "9dfbaed9e57f9005a4066de12a5d2ba51cd489965b4fcbf72a2c1f23569723e2",
+    "_para_desc": "ff6287823e9023b90f01e893050ad1a56b20685104c0d336d312edd5d0c6b46f",
+    "_is_file_href": "d239ea1941e6a608a0abaad8eb457e4e0f6efe8bfa908e13da748bced847e4f2",
+    "_build_abstract": "e5f89aaf0e885b6c33918d117d6441d71b8655cf32c033a72987d991908f4925",
+    "_resolve_url": "6316d9c847afd2859cfc0fcd699c11fffa6deac738ce0683243efbaeb45f3b47",
+    "_build_record": "f21b07fc511b53dcbe01dac0964b1aa1ceb3c29286c7d66d32704d3d07984f22",
+    "_parse_reports": "c0eeeab0f8572930a848994c6657e52d8ea5feecc896339b6c530ee99836116a",
+    "crawl": "95a6e94ad4562643c73570fe4a9d587a908e945b495081b0230f0e782b507cad"
+  }
+}
