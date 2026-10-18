@@ -465,3 +465,37 @@ class CpbNlEnCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L2a 2026-10-18); crawl() is unchanged.
+    # The unchanged list/detail parsers run on the given body: the instance
+    # transport is replaced for the duration of one call only.
+    # ------------------------------------------------------------------
+
+    def _with_body(self, body, call):
+        had_own = "_curl_get" in self.__dict__
+        previous = self.__dict__.get("_curl_get")
+        self._curl_get = lambda url, referer=None: body
+        try:
+            return call()
+        finally:
+            if had_own:
+                self._curl_get = previous
+            else:
+                del self._curl_get
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str) or not html.strip():
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None or soup.select_one('[data-component-id="cpb:faceted_list"]') is None:
+            raise PermanentFailure("listing_parse_error:missing_faceted_list_marker")
+        items, _has_next = self._with_body(html, lambda: self._fetch_list_page(1))
+        return items
+
+    def _enumeration_paper(self, html, item):
+        paper = self._with_body(html, lambda: self._parse_detail(item.get("detail_url"), item))
+        if not paper or len(paper.get("abstract") or "") < 50:
+            return None
+        return paper
