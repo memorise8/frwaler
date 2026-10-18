@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "sites": {
+    "biorbic-com-publications": {
+      "strategy": "last_page_backward",
+      "base_url": "https://biorbic.com",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "paper_method": "_enumeration_paper"
+      },
+      "listing": {
+        "url": "https://biorbic.com/publications/",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "row_id",
+          "date_field": "published_date",
+          "title_field": "title",
+          "listing_marker": "table#footable_41203, table.ninja_footable"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

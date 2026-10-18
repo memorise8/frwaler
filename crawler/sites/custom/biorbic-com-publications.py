@@ -454,3 +454,76 @@ class BiorbicComPublicationsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done: saved {saved}/{limit_or_inf}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl(), _fetch_rows() and
+    # _build_paper() are unchanged; these methods only parse already fetched
+    # HTML (no network, no subprocess).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Rows of the single /publications/ page, as crawl() saves them.
+
+        The table parse is _fetch_rows() copied verbatim (row_id = data-row_id,
+        else the row index). crawl() skips rows _build_paper() rejects and rows
+        whose reference URL was already saved earlier in table order; the same
+        rows are dropped here, so the first row of a repeated DOI keeps its id."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparseable_html")
+
+        table = soup.find("table", id="footable_41203")
+        if table is None:
+            table = soup.find("table", class_=re.compile(r"ninja_footable"))
+        if table is None:
+            return []
+
+        tbody = table.find("tbody") or table
+        trs = tbody.find_all("tr")
+        rows = []
+        for i, tr in enumerate(trs):
+            try:
+                tds = tr.find_all("td")
+                if len(tds) < 10:
+                    continue
+                row_id = tr.get("data-row_id")
+                if row_id is None or not str(row_id).strip():
+                    row_id = str(i)
+                cells = [td.get_text(" ", strip=True) for td in tds[:10]]
+                rows.append({
+                    "row_id": str(row_id).strip(),
+                    "journal": cells[0],
+                    "date": cells[1],
+                    "challenge": cells[2],
+                    "authors": cells[3],
+                    "type": cells[4],
+                    "title": cells[5],
+                    "status": cells[6],
+                    "doi_cell": cells[7],
+                    "open_access": cells[8],
+                    "keywords": cells[9],
+                })
+            except Exception:
+                continue
+
+        out = []
+        seen_urls = set()
+        for row in rows:
+            try:
+                paper = self._build_paper(row)
+            except Exception:
+                continue
+            if paper is None or paper["url"] in seen_urls:
+                continue
+            seen_urls.add(paper["url"])
+            out.append(dict(row, url=paper["url"], published_date=paper["published_date"]))
+        return out
+
+    def _enumeration_paper(self, item):
+        """Paper from one listing row: crawl()'s own _build_paper (external_id =
+        row_id, unchanged). The two helper fields added by _enumeration_items
+        are not row cells and are ignored by _build_paper."""
+        return self._build_paper(item)

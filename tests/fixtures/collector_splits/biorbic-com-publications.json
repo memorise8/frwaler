@@ -1,0 +1,15 @@
+{
+  "site_id": "biorbic-com-publications",
+  "listing_body": "<html><body><table id=\"footable_41203\" class=\"foo-table ninja_footable\"><thead><tr><th>Journal</th></tr></thead><tbody><tr class=\"ninja_table_row_9001\" data-row_id=\"9001\"><td>Synthetic Journal</td><td>11/02/2026</td><td>Challenge A</td><td>A. Author, B. Author and C. Author</td><td>Original article</td><td>Synthetic study title used only for the offline equality test of the enumeration split 9001</td><td>Published</td><td>10.9999/synthetic.9001</td><td>Yes</td><td>synthetic; test</td></tr><tr class=\"ninja_table_row_9000\" data-row_id=\"9000\"><td>Synthetic Journal</td><td>10/01/2026</td><td>Challenge A</td><td>A. Author, B. Author and C. Author</td><td>Original article</td><td>Synthetic study title used only for the offline equality test of the enumeration split 9000</td><td>Published</td><td>https://repository.example.invalid/handle/9000</td><td>Yes</td><td>synthetic; test</td></tr></tbody></table></body></html>",
+  "content_type": "text/html",
+  "details": {},
+  "long_text": "Synthetic study title used only for the offline equality test of the enumeration split",
+  "empty_body": "<html><body><table id=\"footable_41203\" class=\"foo-table ninja_footable\"><thead><tr><th>Journal</th></tr></thead><tbody></tbody></table></body></html>",
+  "duplicate_body": "<html><body><table id=\"footable_41203\" class=\"foo-table ninja_footable\"><thead><tr><th>Journal</th></tr></thead><tbody><tr class=\"ninja_table_row_9001\" data-row_id=\"9001\"><td>Synthetic Journal</td><td>11/02/2026</td><td>Challenge A</td><td>A. Author, B. Author and C. Author</td><td>Original article</td><td>Synthetic study title used only for the offline equality test of the enumeration split 9001</td><td>Published</td><td>10.9999/synthetic.9001</td><td>Yes</td><td>synthetic; test</td></tr><tr class=\"ninja_table_row_9002\" data-row_id=\"9002\"><td>Synthetic Journal</td><td>12/02/2026</td><td>Challenge A</td><td>A. Author, B. Author and C. Author</td><td>Original article</td><td>Synthetic study title used only for the offline equality test of the enumeration split 9002 repeat</td><td>Published</td><td>10.9999/synthetic.9001</td><td>Yes</td><td>synthetic; test</td></tr><tr class=\"ninja_table_row_9000\" data-row_id=\"9000\"><td>Synthetic Journal</td><td>10/01/2026</td><td>Challenge A</td><td>A. Author, B. Author and C. Author</td><td>Original article</td><td>Synthetic study title used only for the offline equality test of the enumeration split 9000</td><td>Published</td><td>https://repository.example.invalid/handle/9000</td><td>Yes</td><td>synthetic; test</td></tr></tbody></table></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "a6b23ed2eb229b67b2cddea1417cdd91910fa8a671a0e42d1781c3568d5c1bfe",
+    "_fetch_rows": "e43ea2a0072325a142301d73569d6f8a9dc201b511b07cbf46c2ae7a2d6c25eb",
+    "_build_paper": "dc80996a17ef4224a3ac06182d15c3050776575f2bec7183f946cf72e246bf71",
+    "_curl_fetch": "9d5f5a338c890fd225ee092f166a70899a3543e362b3ea56eceb712c7749e2c9"
+  }
+}
