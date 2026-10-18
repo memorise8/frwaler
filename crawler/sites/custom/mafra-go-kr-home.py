@@ -458,3 +458,88 @@ class MafraGoKrHomeCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done. saved {saved}")
         return saved
+
+
+# ---------------------------------------------------------------------------
+# Pure enumeration contract (no network); crawl() and the methods above are
+# unchanged.  The board also answers GET artclList.do?page=N&row=10 (crawl()
+# posts the same form fields), which the enumeration plan uses.
+# ---------------------------------------------------------------------------
+
+def _enumeration_items(self, html, url=None):
+    """List-page HTML -> _parse_list_page() rows (the page number comes from ``page=``)."""
+    from urllib.parse import parse_qs, urlsplit
+    from crawler.enumeration.http import PermanentFailure
+    if not isinstance(html, str):
+        raise PermanentFailure("listing_parse_error:expected_html")
+    soup = _make_soup(html)
+    if soup is None or soup.select_one("._articleTable .list table") is None:
+        raise PermanentFailure("listing_parse_error:missing_article_table")
+    page = 1
+    if url:
+        value = parse_qs(urlsplit(url).query).get("page")
+        if value and value[0].isdigit():
+            page = int(value[0])
+    return self._parse_list_page(html, page)["items"]
+
+
+def _enumeration_paper(self, html, item):
+    """Detail page HTML + list row -> the paper crawl() saves (or None)."""
+    if not html:
+        return None
+    bbs_artcl_seq = item["bbsArtclSeq"]
+    detail = self._parse_detail_page(html, item)
+    title = detail["title"] or item["title"]
+    abstract = detail["abstract"]
+    if len(abstract) < 50:
+        return None
+
+    listed_date = item.get("listed_date") or detail["published_date"]
+    original_filename = detail.get("original_filename")
+    metadata = {
+        "posted_date": item.get("listed_date_raw") or listed_date,
+        "posted_date_iso": listed_date,
+        "originalFilename": original_filename,
+        "journal_raw": None,
+        "series": None,
+        "volume": None,
+        "issue": None,
+        "siteId": item.get("siteId"),
+        "fnctNo": item.get("fnctNo"),
+        "bbsArtclSeq": bbs_artcl_seq,
+        "bbsSeq": self._FNCT_NO,
+        "post_number": item.get("post_number"),
+        "list_page": item.get("page"),
+        "listed_date": listed_date,
+        "listed_date_raw": item.get("listed_date_raw"),
+        "detail_date_raw": detail.get("date_raw"),
+        "department": detail.get("department"),
+        "attachments": detail.get("attachments"),
+    }
+
+    return {
+        "id": f"{self.site_id}:{bbs_artcl_seq}",
+        "site_id": self.site_id,
+        "external_id": bbs_artcl_seq,
+        "post_number": item.get("post_number"),
+        "title": title,
+        "abstract": abstract,
+        "published_date": detail["published_date"] or listed_date,
+        "listed_date": listed_date,
+        "posted_date": listed_date,
+        "authors": "",
+        "publisher": self._PUBLISHER,
+        "department": detail.get("department") or "",
+        "journal": "",
+        "url": item["url"],
+        "pdf_url": detail.get("pdf_url"),
+        "keywords": "",
+        "category": self._CATEGORY,
+        "doi": "",
+        "original_filename": original_filename,
+        "metadata": json.dumps(metadata, ensure_ascii=False),
+    }
+
+
+MafraGoKrHomeCrawler._enumeration_items = _enumeration_items
+MafraGoKrHomeCrawler._enumeration_paper = _enumeration_paper

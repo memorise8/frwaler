@@ -1,0 +1,21 @@
+{
+  "site_id": "mafra-go-kr-home",
+  "listing_body": "<html><body><form name=\"pageForm\"><input type=\"hidden\" name=\"layout\" value=\"L1\"></form><div class=\"_fnctWrap _articleTable\"><div class=\"list\"><table class=\"artclTable\"><thead><tr><th>번호</th></tr></thead><tbody><tr><td class=\"_artclTdNum\">2</td><td class=\"_artclTdTitle\"><a href=\"/bbs/home/792/101/artclView.do\"><strong>Offline 101</strong></a><dl><dd class=\"date\">2026.10.01</dd></dl></td></tr><tr><td class=\"_artclTdNum\">1</td><td class=\"_artclTdTitle\"><a href=\"/bbs/home/792/102/artclView.do\"><strong>Offline 102</strong></a><dl><dd class=\"date\">2026.10.02</dd></dl></td></tr></tbody></table></div></div></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.mafra.go.kr/bbs/home/792/101/artclView.do": "<html><body><div class=\"view_top\"><dl><dt>Offline 101 상세</dt><dd class=\"date\">2026.10.01<br>대변인실</dd></dl></div><div class=\"view_contents\"><p>Synthetic agriculture press release 자료 for offline equality testing only. Synthetic agriculture press release 자료 for offline equality testing only. Synthetic agriculture press release 자료 for offline equality testing only. </p><script>var x=1;</script></div><div class=\"file_list\"><ul><li><a href=\"/bbs/home/792/9101/download.do\">report-101.pdf (파일 용량 : 1MB)</a></li><li><a href=\"/bbs/home/792/8101/download.do\">report-101.hwp (파일 용량 : 1MB)</a></li></ul></div></body></html>",
+    "https://www.mafra.go.kr/bbs/home/792/102/artclView.do": "<html><body><div class=\"view_top\"><dl><dt>Offline 102 상세</dt><dd class=\"date\">2026.10.02<br>대변인실</dd></dl></div><div class=\"view_contents\"><p>Synthetic agriculture press release 자료 for offline equality testing only. Synthetic agriculture press release 자료 for offline equality testing only. Synthetic agriculture press release 자료 for offline equality testing only. </p><script>var x=1;</script></div><div class=\"file_list\"><ul><li><a href=\"/bbs/home/792/9102/download.do\">report-102.pdf (파일 용량 : 1MB)</a></li><li><a href=\"/bbs/home/792/8102/download.do\">report-102.hwp (파일 용량 : 1MB)</a></li></ul></div></body></html>"
+  },
+  "long_text": "Synthetic agriculture press release 자료 for offline equality testing only. Synthetic agriculture press release 자료 for offline equality testing only. Synthetic agriculture press release 자료 for offline equality testing only. ",
+  "empty_body": "<html><body><form name=\"pageForm\"><input type=\"hidden\" name=\"layout\" value=\"L1\"></form><div class=\"_fnctWrap _articleTable\"><div class=\"list\"><table class=\"artclTable\"><thead><tr><th>번호</th></tr></thead><tbody><tr><td class=\"_noData\">등록된 글이 없습니다.</td></tr></tbody></table></div></div></body></html>",
+  "original_method_source_sha256": {
+    "__init__": "f73732027b17cde28796c7c374ed9d4394fd4743548b7ba328272f655308a6e2",
+    "_curl": "7aa6e44873e221bd6549e5a8e980433d80b930e56f9f346155b01dc7dc326e38",
+    "_page_payload": "944d25cb4bff1e6b6d7be613d154c471c55f140a68cde8cb060ceac6652f57ad",
+    "_fetch_list_page": "59d60f77a0ec221aa85be9567e1829b7e9938755d1a838f9d08ef9ed92e5fac5",
+    "_parse_list_page": "b3caec5dd7c8b58e653207364a2fbd96bf381998fadb90fe6d52a6cb7b53e7ca",
+    "_parse_attachments": "88466a792ca38756983197203c33bdc0a30c2e928a1b29022ed62718adc645b3",
+    "_parse_detail_page": "e6ac33f043ef86493e144519bec351fa1daf0d3088db37fe90147fb469cbebb4",
+    "crawl": "1bca69fc9617705ea4e8cca38987042d955e092b401b714edebd919d6cdea668"
+  }
+}
