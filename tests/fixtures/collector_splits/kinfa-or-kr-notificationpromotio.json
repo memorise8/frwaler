@@ -1,0 +1,23 @@
+{
+  "site_id": "kinfa-or-kr-notificationpromotio",
+  "listing_body": "<html><body><form id=\"listForm\"><p>전체 <em>2</em>건</p><ul class=\"board-list-thumb\"><li class=\"item type01\" data-seqBoardContents=\"101\"><a href=\"#\"><div class=\"info\"><p class=\"tit\">Offline 101</p><p class=\"date\">2026-10-01</p></div></a></li><li class=\"item type01\" data-seqBoardContents=\"102\"><a href=\"#\"><div class=\"info\"><p class=\"tit\">Offline 102</p><p class=\"date\">2026-10-02</p></div></a></li></ul></form></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.kinfa.or.kr/notificationPromotion/newsDetail.do?seq=101": "<html><head><title>보도자료 상세보기 &gt; 보도자료</title></head><body><div class=\"board-detail\"><div class=\"board-detail-header\"><p class=\"tit\">Offline 101 보도</p><ul class=\"info-list\"><li>서민금융진흥원</li><li>2026-10-01</li></ul></div><div class=\"board-detail-con\"><p>Synthetic press résumé and Korean 보도 자료 for offline equality testing only. Synthetic press résumé and Korean 보도 자료 for offline equality testing only. </p></div><div class=\"file\"><a href=\"javascript:fn_fileDown('1011','1012')\">보도-101.pdf</a></div><div class=\"board-detail-prev-next\">이전글 다음글</div></div></body></html>",
+    "https://www.kinfa.or.kr/notificationPromotion/newsDetail.do?seq=102": "<html><head><title>보도자료 상세보기 &gt; 보도자료</title></head><body><div class=\"board-detail\"><div class=\"board-detail-header\"><p class=\"tit\">Offline 102 보도</p><ul class=\"info-list\"><li>서민금융진흥원</li><li>2026-10-02</li></ul></div><div class=\"board-detail-con\"><p>Synthetic press résumé and Korean 보도 자료 for offline equality testing only. Synthetic press résumé and Korean 보도 자료 for offline equality testing only. </p></div><div class=\"file\"><a href=\"javascript:fn_fileDown('1021','1022')\">보도-102.pdf</a></div><div class=\"board-detail-prev-next\">이전글 다음글</div></div></body></html>"
+  },
+  "long_text": "Synthetic press résumé and Korean 보도 자료 for offline equality testing only. Synthetic press résumé and Korean 보도 자료 for offline equality testing only. ",
+  "empty_body": "<html><body><form id=\"listForm\"><p>전체 <em>0</em>건</p><ul class=\"board-list-thumb\"></ul></form></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "dc0099a643189b8ce9ebce7d59076485f8b577fd61bd7bf70a80427d2002e1a0",
+    "_curl_post": "a1b5b6a259e43dc74d3a64d150324f2c174e978ef9a5aced2b9c0caba2f6e22a",
+    "_curl_get": "66377587527aae0cf8a15adce43dbee19c275ca498c239bb78bc2bb6ba2dbafd",
+    "_run_curl": "d2adaaa5d49ee8c01de9635284b848ec2026288f74d3e1df92a760f8721a8673",
+    "_make_soup": "0df218d4169c4376e2e78018cf47255b3eb0e5518a21ddb320b03ab6d7f9d608",
+    "_detect_last_page": "877231789c4cf94e727e0a123ca15deb060ef1912bb0c474bd75f372d8d2dad0",
+    "_parse_list_seqs": "d8acffccd395f00d13d4d963f8863119a59d5d5a24c2e0770923093a2e393a7e",
+    "_build_paper": "0d826c48629437456324f9fb5395acdc2f274ed754504159887ff27a8b25dd34",
+    "_budget_exhausted": "a4eae935e22d3018c8c652432d8bcb94d33fe943975db7f45a1d6cbbbee18c7d"
+  },
+  "short_keeps_items": true
+}

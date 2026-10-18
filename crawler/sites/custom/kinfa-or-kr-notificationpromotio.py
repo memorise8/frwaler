@@ -345,3 +345,31 @@ class KinfaOrKrNotificationPromotioCrawler(BaseCrawler):
 
     def _budget_exhausted(self, t0: float) -> bool:
         return (time.monotonic() - t0) >= (self._MAX_RUNTIME_S - self._RUNTIME_GRACE_S)
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (no network); crawl() and the methods
+    # above are unchanged. The listing is read with GET
+    # news.do?currentPageNo=N, which serves the same page as crawl()'s POST.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List-page HTML -> crawl()'s seq rows (seq, detail_url)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        if self._make_soup(html, context="list page").select_one("form#listForm") is None:
+            raise PermanentFailure("listing_parse_error:missing_list_form")
+        return [{"seq": seq, "detail_url": f"{self._DETAIL_URL}?seq={seq}"}
+                for seq in self._parse_list_seqs(html)]
+
+    def _enumeration_paper(self, html, row):
+        """Detail HTML + list row -> the paper crawl() saves (or None)."""
+        seq = int(row["seq"])
+        detail_url = f"{self._DETAIL_URL}?seq={seq}"
+        if not html:
+            return None
+        paper = self._build_paper(seq, html, detail_url)
+        abstract = paper.get("abstract") or ""
+        if len(abstract) < 50:
+            return None
+        return paper
