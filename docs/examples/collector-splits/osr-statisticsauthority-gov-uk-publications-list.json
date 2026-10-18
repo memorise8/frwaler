@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "sites": {
+    "osr-statisticsauthority-gov-uk-publications-list": {
+      "strategy": "last_page_backward",
+      "base_url": "https://osr.statisticsauthority.gov.uk",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": ["json", "url"],
+        "detail_method": "_enumeration_detail",
+        "detail_args": ["raw", "first_resp", "item"],
+        "second_step": {
+          "use": "detail_page",
+          "url_template": "https://osr.statisticsauthority.gov.uk/wp-json/wp/v2/media?parent={item:wp_id}&mime_type=application/pdf",
+          "required": true
+        }
+      },
+      "listing": {
+        "url": "https://osr.statisticsauthority.gov.uk/wp-json/wp/v2/publication",
+        "params": {"per_page": 100, "orderby": "date", "order": "desc", "_embed": 1},
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 100,
+        "total": {"type": "header", "name": "X-WP-Total"},
+        "end_statuses": [{"status": 400, "json_code": "rest_post_invalid_page_number"}],
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "date_field": "listed_date",
+          "title_field": "title"
+        }
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}

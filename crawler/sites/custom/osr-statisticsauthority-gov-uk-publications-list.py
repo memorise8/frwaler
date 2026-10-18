@@ -261,3 +261,138 @@ class OSRPublicationsListCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Crawl complete: saved {saved} items.")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (no I/O): same rows and Paper as crawl()
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Rows of one decoded /wp/v2/publication page with crawl()'s list-level skip
+        (no link). No fetching, storage or new identifiers."""
+        if not isinstance(data, list) or any(not isinstance(item, dict) for item in data):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:not_a_list_of_objects", url)
+        rows = []
+        for item in data:
+            detail_url = item.get("link", "")
+            if not detail_url or item.get("id") in (None, ""):
+                continue
+            rows.append({
+                "url": detail_url,
+                "external_id": str(item.get("id")),
+                "wp_id": str(item.get("id")),
+                "title": item.get("title", {}).get("rendered", "").strip(),
+                "listed_date": (item.get("date") or "")[:10],
+                "item": item,
+            })
+        return rows
+
+    def _enumeration_abstract(self, raw):
+        """_get_abstract() on an already fetched detail page body."""
+        if not raw:
+            return None
+        soup = self._parse_html(raw)
+        if not soup:
+            return None
+        content_div = soup.find(class_="entry-content")
+        if not content_div:
+            content_div = soup.find("main") or soup.find("article")
+        if not content_div:
+            return None
+        paragraphs = []
+        for p in content_div.find_all("p"):
+            txt = p.get_text(separator=" ", strip=True)
+            if len(txt) > 30:
+                paragraphs.append(txt)
+        if paragraphs:
+            return " ".join(paragraphs[:12])
+        return content_div.get_text(separator=" ", strip=True)
+
+    def _enumeration_pdf_info(self, raw):
+        """_get_pdf_info() on an already fetched /wp/v2/media?parent=<id> body."""
+        if not raw:
+            return None, None
+        try:
+            data = json.loads(raw)
+            if data:
+                m = data[0]
+                pdf_url = m.get("source_url")
+                title = m.get("title", {}).get("rendered", "").strip()
+                slug = m.get("slug", "").strip()
+                filename = title or slug or ""
+                if pdf_url and not filename:
+                    filename = pdf_url.rstrip("/").split("/")[-1].split("?")[0]
+                if filename and not filename.lower().endswith(".pdf"):
+                    filename += ".pdf"
+                return pdf_url or None, filename or None
+        except Exception:
+            pass
+        return None, None
+
+    def _enumeration_detail(self, media_raw, detail_resp, row):
+        """crawl()'s Paper for one row (None = crawl() skip). ``detail_resp`` is the detail
+        page (first step), ``media_raw`` the media API body (second step, url_template)."""
+        item = row["item"]
+        detail_url = row["url"]
+        wp_id = item.get("id")
+        title = item.get("title", {}).get("rendered", "").strip()
+        date_str = (item.get("date") or "")[:10]
+
+        pub_type_ids = item.get("publication-type") or []
+        if pub_type_ids:
+            # crawl() maps these through a term table it reads once per run; that request is
+            # not part of this split, so refuse instead of storing a different category.
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("publication_type_map_needed", detail_url)
+        category = ""
+
+        theme_names = []
+        try:
+            for term_list in item.get("_embedded", {}).get("wp:term", []):
+                for t in term_list:
+                    if t.get("taxonomy") in ("themes", "country"):
+                        name = t.get("name", "").strip()
+                        if name:
+                            theme_names.append(name)
+        except Exception:
+            pass
+        keywords = ", ".join(theme_names)
+
+        abstract = self._enumeration_abstract(getattr(detail_resp, "body", None))
+        if not abstract or len(abstract) < 100:
+            return None
+
+        pdf_url, original_filename = self._enumeration_pdf_info(media_raw)
+
+        metadata = json.dumps(
+            {
+                "wp_id": wp_id,
+                "slug": item.get("slug", ""),
+                "modified": item.get("modified", ""),
+                "pub_type_ids": pub_type_ids,
+                "producer": item.get("producer", []),
+                "country": item.get("country", []),
+                "themes_raw": item.get("themes", []),
+            },
+            ensure_ascii=False,
+        )
+
+        return {
+            "site_id": self.site_id,
+            "external_id": str(wp_id),
+            "post_number": str(wp_id),
+            "title": title,
+            "abstract": abstract,
+            "published_date": date_str,
+            "posted_date": date_str,
+            "listed_date": date_str,
+            "url": detail_url,
+            "meta_url": detail_url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "keywords": keywords,
+            "category": category,
+            "publisher": "Office for Statistics Regulation",
+            "authors": "",
+            "metadata": metadata,
+        }
