@@ -269,3 +269,83 @@ class KammarkollegietSeAktuellt(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Saved {saved}/{limit_display} items.")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (no network); crawl() above is unchanged.
+    # /aktuellt embeds every news item in one page (crawl() reads only that
+    # page). The server ignores page numbers: page 2 repeats page 1, which
+    # last_page_backward treats as the end ("wrap").
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str) or '"news":[' not in html:
+            raise PermanentFailure("listing_parse_error:missing_embedded_news_json")
+        raw = html.encode("utf-8")
+        all_items = _extract_list_json(raw)
+        if not all_items:
+            raise PermanentFailure("listing_parse_error:empty_embedded_news_json")
+        rows = []
+        seen_urls = set()
+        for item in all_items:
+            uri = (item.get("uri") or "").strip()
+            if not uri:
+                continue
+            item_url = f"{_BASE_URL}{uri}"
+            if item_url in seen_urls:
+                continue
+            seen_urls.add(item_url)
+            title = (item.get("title") or "").strip()
+            if not title:
+                continue
+            row = dict(item)
+            row["url"] = item_url
+            row["external_id"] = uri.strip("/").replace("/", "_")
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, detail_raw, item):
+        """Detail page bytes + embedded-JSON row -> the paper crawl() saves (or None)."""
+        uri = (item.get("uri") or "").strip()
+        url = f"{_BASE_URL}{uri}"
+        title = (item.get("title") or "").strip()
+        ingress = (item.get("ingress") or "").strip()
+        published_date = _parse_date(
+            item.get("publishedLong"), item.get("published")
+        )
+        category = (item.get("category") or item.get("type") or "").strip()
+        # external_id: use URI slug (unique and stable)
+        external_id = uri.strip("/").replace("/", "_")
+
+        if detail_raw:
+            body = _extract_body(detail_raw)
+        else:
+            body = ""
+
+        # Build abstract: prefer full body; fall back to ingress
+        abstract = body.strip() if len(body.strip()) >= len(ingress) else ingress
+        abstract = abstract.strip()
+
+        if len(abstract) < 50:
+            return None
+
+        paper = {
+            "site_id":        _SITE_ID,
+            "external_id":    external_id,
+            "title":          title,
+            "authors":        json.dumps([]),
+            "abstract":       abstract,
+            "category":       category,
+            "keywords":       json.dumps([]),
+            "published_date": published_date,
+            "url":            url,
+            "pdf_url":        None,
+            "doi":            None,
+            "department":     "Kammarkollegiet",
+            "metadata":       json.dumps({
+                "type":  item.get("type"),
+                "year":  item.get("year"),
+                "month": item.get("month"),
+            }, ensure_ascii=False),
+        }
+        return paper
