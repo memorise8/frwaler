@@ -1,0 +1,22 @@
+{
+  "listing_url": "https://treasury.gov.au/publication?page=0",
+  "listing_body": "<html><body><main><div class=\"view view-publications\"><div class=\"view-content\"><div class=\"views-row\"><div class=\"field field--name-node-title\"><h3><a href=\"/publication/p2026-900001\">Synthetic publication 1</a></h3></div><div class=\"field field--name-field-date\"><time datetime=\"2026-10-05T12:00:00Z\">5 October 2026</time></div></div><div class=\"views-row\"><div class=\"field field--name-node-title\"><h3><a href=\"/publication/p2026-900002\">Synthetic publication 2</a></h3></div><div class=\"field field--name-field-date\"><time datetime=\"2026-09-21T12:00:00Z\">21 September 2026</time></div></div><div class=\"views-row\"><div class=\"field field--name-node-title\"><h3><a href=\"/publication/p2026-900003\">Synthetic short item</a></h3></div><div class=\"field field--name-field-date\"><time datetime=\"2026-09-01T12:00:00Z\">1 September 2026</time></div></div></div><nav class=\"pager\"></nav></div></main></body></html>",
+  "empty_body": "<html><body><main><div class=\"view view-publications\"><div class=\"view-empty\">No results.</div></div></main></body></html>",
+  "long_text": "Synthetic Treasury publication body for offline equality testing of the enumeration split. Synthetic Treasury publication body for offline equality testing of the enumeration split. ",
+  "details": {
+    "https://treasury.gov.au/publication/p2026-900001": "<html><body><main><h1>Synthetic publication 1</h1><div class=\"field field--name-field-date\"><time datetime=\"x\">5 October 2026</time></div><div class=\"field field--name-field-author\">Author Treasury</div><div class=\"field field--name-field-topics\">Topic Economy</div><div class=\"field field--name-field-publication-type\">Publication type Report</div><div class=\"field field--name-body\"><p>Synthetic Treasury publication body for offline equality testing of the enumeration split. Synthetic Treasury publication body for offline equality testing of the enumeration split. </p></div><div class=\"field field--name-field-attachments\"><a href=\"/sites/default/files/2026-10/p2026-900001.pdf\">Download PDF</a></div></main></body></html>",
+    "https://treasury.gov.au/publication/p2026-900002": "<html><body><main><h1>Synthetic publication 2</h1><div class=\"field field--name-field-date\"><time datetime=\"x\">21 September 2026</time></div><div class=\"field field--name-field-author\">Author Treasury</div><div class=\"field field--name-field-topics\">Topic Economy</div><div class=\"field field--name-field-publication-type\">Publication type Report</div><div class=\"field field--name-body\"><p>Synthetic Treasury publication body for offline equality testing of the enumeration split. Synthetic Treasury publication body for offline equality testing of the enumeration split. </p></div></main></body></html>",
+    "https://treasury.gov.au/publication/p2026-900003": "<html><body><main><h1>Synthetic short item</h1><div class=\"field field--name-field-date\"><time datetime=\"x\">1 September 2026</time></div><div class=\"field field--name-field-author\">Author Treasury</div><div class=\"field field--name-field-topics\">Topic Economy</div><div class=\"field field--name-field-publication-type\">Publication type Report</div><div class=\"field field--name-body\"><p>short</p></div></main></body></html>"
+  },
+  "site_id": "treasury-gov-au-publication",
+  "content_type": "text/html",
+  "original_method_source_sha256": {
+    "_make_soup": "a603b4b85e77b8ca41c9f256d9c7f84cf2d3b805bd0ec53ecb12ccab7190693f",
+    "_curl_get": "dad19aad05cdb37dfbed787096210c411ff95d9cb1c5749fcc7ee8230020176f",
+    "_parse_date": "78b39947e0a44603091012f2e422ea032b60cb248f2526db60a1caf790d7fd45",
+    "_strip_label": "ae6414d9387cd1bec73dd37f65105cec36dad3c26969c43f22b4bcfcb1edc837",
+    "_parse_list_page": "4e6b543229e3362e535ff85175f883094955320891ef81783eba78f13b7e868e",
+    "_parse_detail_page": "0b36b6cb60b6538c7eec4015b10c52530d599bd5523d864e8559523ef10ee0c4",
+    "crawl": "4bdc83fb518c28fcfdfc776c18a80414b4b74852f526dc24762a405f064c4508"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "sites": {
+    "treasury-gov-au-publication": {
+      "strategy": "last_page_backward",
+      "base_url": "https://treasury.gov.au",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://treasury.gov.au/publication",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "key_field": "slug",
+          "url_field": "url",
+          "title_field": "title",
+          "date_field": "date_iso",
+          "listing_marker": "div.view"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

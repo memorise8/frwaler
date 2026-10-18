@@ -473,3 +473,68 @@ class TreasuryGovAuPublicationCrawler(BaseCrawler):
 
         print(f"[treasury-gov-au-publication] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract; original crawl() and transport remain unchanged.
+    # ------------------------------------------------------------------
+
+    _ENUM_LISTING_MARKER = "div.view"
+
+    def _enumeration_items(self, html):
+        """목록 쪽 HTML → crawl() 과 같은 규칙(_parse_list_page)의 행.
+
+        Drupal view 틀(div.view)이 없으면 오류 쪽, 틀에 views-row 가 없으면 끝 뒤 빈 쪽."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        if _make_soup(html).select_one(self._ENUM_LISTING_MARKER) is None:
+            raise PermanentFailure("listing_parse_error:missing_drupal_view")
+        return _parse_list_page(html)
+
+    def _enumeration_paper(self, detail_html, item):
+        """상세 HTML + 목록 행 → crawl() 이 저장하는 것과 같은 paper.
+
+        crawl() 과 같이 초록 50자 미만은 None."""
+        item_url = item["url"]
+        if detail_html:
+            detail = _parse_detail_page(detail_html, item_url)
+        else:
+            detail = {
+                "abstract": "",
+                "pdf_url": "",
+                "authors": "",
+                "category": "",
+                "keywords": "",
+                "published_date": item.get("date_iso", ""),
+                "original_filename": "",
+                "metadata": {},
+            }
+        abstract = detail["abstract"].strip()
+        if len(abstract) < 50:
+            return None
+        slug = item["slug"]
+        published_date = detail.get("published_date") or item.get("date_iso", "")
+        listed_date = item.get("date_iso", "")
+        metadata = {
+            "posted_date": item.get("date_raw", ""),
+            "slug": slug,
+        }
+        metadata.update(detail.get("metadata", {}))
+        return {
+            "site_id": self.site_id,
+            "external_id": slug,
+            "title": item["title"],
+            "abstract": abstract,
+            "authors": detail.get("authors", ""),
+            "department": "Australian Treasury",
+            "category": detail.get("category", ""),
+            "keywords": detail.get("keywords", ""),
+            "published_date": published_date,
+            # posted_date in paper dict → listed_date in libertree v2
+            "posted_date": listed_date,
+            "url": item_url,
+            "pdf_url": detail.get("pdf_url", ""),
+            "original_filename": detail.get("original_filename", ""),
+            "doi": "",
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
