@@ -1,0 +1,17 @@
+{
+ "site_id": "consult-environment-govt-nz-resource-management",
+ "listing_body": "<html><body><main><ul id=\"consultations\"><li class=\"dss-card\" data-consultation-state=\"closed\"><h2><a class=\"cs-no-underline\" href=\"https://consult.environment.govt.nz/waste/plan-one/\">Consultation plan-one</a></h2><div class=\"row\"><div class=\"col-md-9\"><span>Short snippet plan-one</span></div></div><div class=\"cs-date-delta\">Closed 1 Jun 2025</div></li><li class=\"dss-card\" data-consultation-state=\"closed\"><h2><a class=\"cs-no-underline\" href=\"https://consult.environment.govt.nz/climate/plan-two/\">Consultation plan-two</a></h2><div class=\"row\"><div class=\"col-md-9\"><span>Short snippet plan-two</span></div></div><div class=\"cs-date-delta\">Closed 1 Jun 2025</div></li></ul></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://consult.environment.govt.nz/waste/plan-one/": "<html><body><div class=\"row\"><div class=\"col-md-8 order-2\"><h2>Overview</h2><p>Synthetic consultation overview used for offline equality testing of the enumeration split. Synthetic consultation overview used for offline equality testing of the enumeration split. </p><a href=\"https://consult.environment.govt.nz/plan-one/supporting_documents/doc.pdf\">Document</a></div><div class=\"col-md-4 order-1\"><div class=\"cs-consultation-sidebar-container\"><p class=\"cs-consultation-sidebar-primary-date\">Closed 1 Jun 2025</p><p class=\"cs-consultation-sidebar-secondary-date\">Opened 31 Mar 2025</p></div></div></div></body></html>",
+  "https://consult.environment.govt.nz/climate/plan-two/": "<html><body><div class=\"row\"><div class=\"col-md-8 order-2\"><h2>Overview</h2><p>Synthetic consultation overview used for offline equality testing of the enumeration split. Synthetic consultation overview used for offline equality testing of the enumeration split. </p><a href=\"https://consult.environment.govt.nz/plan-two/supporting_documents/doc.pdf\">Document</a></div><div class=\"col-md-4 order-1\"><div class=\"cs-consultation-sidebar-container\"><p class=\"cs-consultation-sidebar-primary-date\">Closed 1 Jun 2025</p><p class=\"cs-consultation-sidebar-secondary-date\">Opened 31 Mar 2025</p></div></div></div></body></html>"
+ },
+ "long_text": "Synthetic consultation overview used for offline equality testing of the enumeration split. Synthetic consultation overview used for offline equality testing of the enumeration split. ",
+ "empty_body": "<html><body><main><ul id=\"consultations\"></ul></main></body></html>",
+ "original_method_source_sha256": {
+  "_fetch_url": "57f74d35e77180d6b3a997e215d02ac7f87c6dfd4921829708127ad494c82c96",
+  "_extract_abstract": "4522fd4f47401d3d5ec39acfc1ee1d11f437514790c1c58539d0a7a8548a1c8e",
+  "_extract_dates": "6613bac84f5c0dc396b97fc4800f1f7771ce05c4ef5335989227a087fc150410",
+  "crawl": "a029e2fa3c4567e13edf9a32d22ca357d3f3e8866b166165ad8cdc97562eda83"
+ }
+}

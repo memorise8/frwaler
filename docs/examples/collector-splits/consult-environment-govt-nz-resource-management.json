@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "sites": {
+    "consult-environment-govt-nz-resource-management": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "last_page_backward",
+      "base_url": "https://consult.environment.govt.nz",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://consult.environment.govt.nz/consultation_finder/",
+        "params": {
+          "b_start": 0
+        },
+        "page_param": "b_start",
+        "page_mode": "offset",
+        "page_size": 30,
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "title_field": "title",
+          "listing_marker": "ul#consultations"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

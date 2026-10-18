@@ -288,3 +288,98 @@ class ConsultEnvironmentNZCrawler(BaseCrawler):
 
         print(f"[{SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # helpers stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html):
+        """Finder rows (ul#consultations > li) with the list fields crawl() reads."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        ul = soup.find("ul", id="consultations")
+        if not ul:
+            return []
+        rows = []
+        for li in ul.find_all("li", recursive=False):
+            h2 = li.find("h2")
+            if not h2:
+                continue
+            a_tag = h2.find("a")
+            if not a_tag:
+                continue
+            url = a_tag.get("href", "").strip()
+            if not url:
+                continue
+            date_div = li.find(class_="cs-date-delta")
+            listed_date_raw = date_div.get_text(strip=True) if date_div else ""
+            snippet = ""
+            col9 = li.find(class_="col-md-9")
+            if col9:
+                span = col9.find("span")
+                if span:
+                    snippet = span.get_text(separator=" ", strip=True)
+            url_parts = url.rstrip("/").split("/")
+            rows.append({
+                "url": url,
+                "title": a_tag.get_text(strip=True),
+                "slug": url.rstrip("/").split("/")[-1],
+                "listed_date_raw": listed_date_raw,
+                "listed_date_iso": _parse_date(listed_date_raw),
+                "snippet": snippet,
+                "status": li.get("data-consultation-state", "") or "",
+                "category": url_parts[-2] if len(url_parts) >= 2 else "",
+            })
+        return rows
+
+    def _enumeration_paper(self, html, row):
+        """Copy of crawl()'s per-consultation conversion; None keeps crawl()'s skips."""
+        url = row["url"]
+        slug = row["slug"]
+        detail_soup = _make_soup(html)
+        abstract = self._extract_abstract(detail_soup)
+        if len(abstract) < 50 and len(row["snippet"]) >= 50:
+            abstract = row["snippet"]
+        if len(abstract) < 50:
+            return None
+        published_date, closed_date = self._extract_dates(detail_soup)
+        if not published_date and row["listed_date_iso"]:
+            published_date = row["listed_date_iso"]
+        posted_date = closed_date or row["listed_date_iso"]
+        pdf_links = [
+            a["href"] for a in detail_soup.find_all("a", href=True)
+            if a["href"].lower().endswith(".pdf")
+        ]
+        pdf_url = pdf_links[0] if pdf_links else None
+        original_filename = pdf_url.rstrip("/").split("/")[-1] if pdf_url else None
+        return {
+            "site_id": self.site_id,
+            "external_id": slug,
+            "post_number": slug,
+            "title": row["title"],
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": posted_date,
+            "url": url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "category": row["category"],
+            "publisher": "Ministry for the Environment",
+            "authors": None,
+            "keywords": None,
+            "doi": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": row["listed_date_raw"],
+                    "slug": slug,
+                    "status": row["status"],
+                    "category": row["category"],
+                    "pdfLinks": pdf_links,
+                    "closedDate": closed_date,
+                    "openedDate": published_date,
+                },
+                ensure_ascii=False,
+            ),
+        }
