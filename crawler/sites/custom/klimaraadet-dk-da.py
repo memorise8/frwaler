@@ -589,3 +589,96 @@ class KlimaraadetDkDaCrawler(BaseCrawler):
             page += 1
 
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+    # The list page number and endpoint (metadata.list_page / list_endpoint in crawl())
+    # are rebuilt from the listing URL and carried in private item keys.
+
+    def _enumeration_items(self, html, url=None):
+        from urllib.parse import parse_qs
+
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        view = soup.select_one(".view-publications.view-display-id-block_main") or soup.select_one(".view-publications")
+        if view is None:
+            raise PermanentFailure("listing_parse_error:missing_publications_view")
+        items, _has_next = _parse_list_items(html)
+        if not items and view.select_one(".view-content") is not None:
+            raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing")
+        page = int((parse_qs(urlparse(url or "").query).get("page") or ["0"])[0])
+        list_url = _LIST_URL if page == 0 else f"{_LIST_URL}?page={page}"
+        return [dict(item, _list_page=page, _list_endpoint=list_url) for item in items]
+
+    def _enumeration_detail(self, html, item):
+        return _parse_detail_page(html, item["url"])
+
+    def _enumeration_paper(self, row, detail):
+        item = {k: v for k, v in row.items() if not k.startswith("_list_")}
+        page = row["_list_page"]
+        list_url = row["_list_endpoint"]
+        item_url = item.get("url")
+        title = detail.get("title") or item.get("title") or "(untitled)"
+        abstract = detail.get("abstract") or ""
+        if len(abstract) < _ABSTRACT_MIN_LEN:
+            return None
+
+        node_id = detail.get("node_id")
+        slug = item.get("slug") or _slug_from_url(item_url)
+        external_id = node_id or slug or item_url
+        post_number = node_id or slug
+        listed_date = item.get("listed_date")
+        published_date = detail.get("published_date") or listed_date
+        category = detail.get("category") or item.get("category")
+        pdf_url = detail.get("pdf_url")
+        original_filename = detail.get("original_filename") or _filename_from_url(pdf_url)
+
+        metadata = {
+            "posted_date": item.get("date_raw") or item.get("listed_datetime") or listed_date,
+            "listed_date": listed_date,
+            "listed_datetime": item.get("listed_datetime"),
+            "originalFilename": original_filename,
+            "journal_raw": None,
+            "series": None,
+            "volume": None,
+            "issue": None,
+            "node_id": node_id,
+            "current_path": detail.get("current_path"),
+            "post_number": post_number,
+            "slug": slug,
+            "category": category,
+            "node_type": detail.get("node_type") or item.get("node_type"),
+            "list_page": page,
+            "list_endpoint": list_url,
+            "detail_url": item_url,
+            "detail_date_raw": detail.get("date_raw"),
+            "list_item": item,
+            "pdf_links": detail.get("pdf_links") or [],
+            "meta_description": detail.get("meta_description"),
+            "og_description": detail.get("og_description"),
+            "source_system": "Drupal 10 HTML view",
+        }
+
+        return {
+            "id": f"{self.site_id}:{external_id}",
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "posted_date": listed_date,
+            "authors": None,
+            "publisher": _PUBLISHER,
+            "department": None,
+            "journal": None,
+            "url": item_url,
+            "pdf_url": pdf_url,
+            "keywords": None,
+            "category": category,
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
