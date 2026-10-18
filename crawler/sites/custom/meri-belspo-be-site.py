@@ -301,3 +301,157 @@ class MeriBelspoBeSiteCrawler(BaseCrawler):
 
         print(f"[{_LOG}] Done: {saved} items saved")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (L3b X3): pure copies of crawl()'s steps; crawl() unchanged
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw, url=None):
+        """'Research studies' rows of MERI_publications.csv, parsed exactly as
+        crawl() does: utf-8 (replace) decode, BOM strip, ';' DictReader,
+        carry-forward of _CARRY_COLS, category filter, and the same first-wins
+        de-duplication on pdf_url (or title1||title2||year). Each row keeps its
+        index in the category rows (crawl()'s rs-idx-<idx> fallback).
+
+        The CSV is one file (crawl() reads it once); the server ignores the
+        page parameter, so every page number returns the same rows and the
+        framework ends on the repeat (wrap). A body without a single row is a
+        listing parse error (crawl() would save nothing)."""
+        from crawler.enumeration.http import PermanentFailure
+        if isinstance(raw, (bytes, bytearray)):
+            text = bytes(raw).decode("utf-8", errors="replace")
+        elif isinstance(raw, str):
+            text = raw
+        else:
+            raise PermanentFailure("listing_parse_error:expected_csv", url)
+        text = text.lstrip("﻿")
+        try:
+            all_rows = list(csv.DictReader(io.StringIO(text), delimiter=";"))
+        except Exception:
+            raise PermanentFailure("listing_parse_error:csv", url)
+        carry = {c: "" for c in _CARRY_COLS}
+        processed = []
+        for row in all_rows:
+            r = dict(row)
+            for col in _CARRY_COLS:
+                val = (r.get(col) or "").strip()
+                if val:
+                    carry[col] = val
+                else:
+                    r[col] = carry[col]
+            processed.append(r)
+        rs_rows = [r for r in processed if (r.get("category") or "").strip() == _TARGET_CAT]
+        if not rs_rows:
+            raise PermanentFailure("listing_parse_error:no_research_studies_rows", url)
+        items = []
+        seen_urls: set = set()
+        for idx, row in enumerate(rs_rows):
+            title1 = (row.get("title 1") or "").strip()
+            title2 = (row.get("title 2") or "").strip()
+            year = (row.get("year") or "").strip()
+            win_path = ((row.get("download_EN") or "").strip() or (row.get("download_FR") or "").strip()
+                        or (row.get("download_NL") or "").strip())
+            pdf_url, _ = self._win_path_to_url(win_path)
+            dedup_key = pdf_url or f"{title1}||{title2}||{year}"
+            if dedup_key in seen_urls:
+                continue
+            seen_urls.add(dedup_key)
+            if title1 and title2:
+                full_title = f"{title1}: {title2}"
+            else:
+                full_title = (title1 or title2 or "").strip()
+            items.append({
+                "key": dedup_key,
+                "url": pdf_url or _PUB_URL,
+                "title": full_title,
+                "listed_date": f"{year}-01-01" if year and re.match(r"^\d{4}$", year) else None,
+                "idx": idx,
+                "row": {k: v for k, v in row.items() if k is not None},
+            })
+        return items
+
+    def _enumeration_paper(self, pdf_text, item):
+        """Paper for one CSV row, field for field what crawl() saves. The
+        framework fetches the row's PDF through the gate and runs pdftotext with
+        crawl()'s flags (plan adapter.pdf_text args ["-f", "1", "-l", "2"],
+        min_bytes 512 = _pdf_abstract's size check); this applies the same strip
+        + _best_paragraph, then the description / constructed fallbacks.
+        Returns None where crawl() skips (no title, abstract under 50 chars).
+        external_id = RS-<number of 'title 1'> (several language editions share
+        it, as in the registered collection; plan allow_shared_post_number)."""
+        row = item["row"]
+        idx = item["idx"]
+        title1      = row.get("title 1", "").strip()
+        title2      = row.get("title 2", "").strip()
+        authors_raw = row.get("authors", "").strip()
+        year        = row.get("year", "").strip()
+        description = row.get("description", "").strip()
+        sub_cat     = row.get("sub_category", "").strip()
+
+        win_en   = row.get("download_EN", "").strip()
+        win_fr   = row.get("download_FR", "").strip()
+        win_nl   = row.get("download_NL", "").strip()
+        win_path = win_en or win_fr or win_nl
+        pdf_url, original_filename = self._win_path_to_url(win_path)
+
+        if title1 and title2:
+            full_title = f"{title1}: {title2}"
+        else:
+            full_title = (title1 or title2 or "").strip()
+        if not full_title:
+            return None
+
+        post_number = self._extract_number(title1)
+        external_id = f"RS-{post_number}" if post_number else f"rs-idx-{idx}"
+
+        abstract = None
+        if pdf_url:
+            # _pdf_abstract: stdout decoded, stripped, best paragraph (None on failure).
+            text = (pdf_text or "").strip()
+            abstract = self._best_paragraph(text) if text else None
+
+        if not abstract and description:
+            abstract = description
+
+        if not abstract:
+            abstract = (
+                f"{full_title}. Published by BELSPO-MERI in {year}. "
+                f"Authors: {authors_raw}. "
+                f"Part of the MERI {_TARGET_CAT} series."
+            )
+
+        if len(abstract) < 50:
+            return None
+
+        pub_date = f"{year}-01-01" if year and re.match(r"^\d{4}$", year) else None
+        item_url = pdf_url or _PUB_URL
+
+        meta = {
+            "title_1":             title1,
+            "title_2":             title2,
+            "sub_category":        sub_cat,
+            "category_description": description,
+            "download_EN":         win_en,
+            "download_FR":         win_fr,
+            "download_NL":         win_nl,
+            "originalFilename":    original_filename,
+        }
+
+        return {
+            "site_id":           self.site_id,
+            "external_id":       external_id,
+            "post_number":       post_number,
+            "title":             full_title,
+            "abstract":          abstract,
+            "url":               item_url,
+            "pdf_url":           pdf_url,
+            "original_filename": original_filename,
+            "authors":           authors_raw,
+            "publisher":         "BELSPO - MERI",
+            "published_date":    pub_date,
+            "listed_date":       pub_date,
+            "keywords":          None,
+            "category":          _TARGET_CAT,
+            "doi":               None,
+            "metadata":          json.dumps(meta, ensure_ascii=False),
+        }

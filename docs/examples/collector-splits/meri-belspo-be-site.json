@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "sites": {
+    "meri-belspo-be-site": {
+      "strategy": "last_page_backward",
+      "base_url": "https://meri.belspo.be",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": ["raw", "url"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["pdf_text", "item"],
+        "pdf_text": {"args": ["-f", "1", "-l", "2"], "timeout_s": 30, "min_bytes": 512},
+        "none_is_rule_skip": true,
+        "allow_shared_post_number": true
+      },
+      "listing": {
+        "url": "https://meri.belspo.be/site/docs/publications/MERI_publications.csv",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "key",
+          "url_field": "url",
+          "title_field": "title",
+          "date_field": "listed_date"
+        }
+      },
+      "last_page": {"overlap_pages": 1},
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
