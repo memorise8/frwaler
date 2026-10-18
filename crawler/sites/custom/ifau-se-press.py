@@ -226,6 +226,37 @@ class IFAUPressCrawler(BaseCrawler):
     site_name = "Custom: ifau-se-press"
     base_url  = "https://www.ifau.se"
 
+    # ------------------------------------------------------------------
+    # Pure enumeration conversion (collector-splits); crawl() is unchanged
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html: str, url: str | None = None) -> list[dict]:
+        """Listing page (?page=N) -> rows from ``_parse_listing``. The shipped
+        plan enumerates /sitemap.xml instead."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        paths = _parse_listing(html)
+        if not paths:
+            raise PermanentFailure("listing_parse_error:no_press_links", url)
+        return [{"path": path, "url": _BASE_URL + path} for path in paths]
+
+    def _enumeration_paper(self, html: str, request_url: str) -> dict | None:
+        """crawl()'s per-article conversion for the requested article URL; None =
+        crawl()'s parse failure or short-abstract skip."""
+        from urllib.parse import urlsplit
+        path = urlsplit(request_url).path
+        if not html:
+            return None
+        paper = _parse_article(html, path)
+        if paper is None:
+            return None
+        if len(paper.get("abstract", "")) < _MIN_ABSTRACT:
+            return None
+        paper["site_id"] = self.site_id
+        paper["id"] = None
+        return paper
+
     def crawl(self, limit=None):
         """Crawl IFAU Pressmeddelanden.
 

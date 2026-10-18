@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "sites": {
+    "ifau-se-press": {
+      "strategy": "sitemap",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "base_url": "https://www.ifau.se",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "request_url"
+        ]
+      },
+      "sitemap": {
+        "sitemap_url": "https://www.ifau.se/sitemap.xml",
+        "include": [
+          "^https://www\\.ifau\\.se/Press/Pressmeddelanden/[^/?#]+/$"
+        ]
+      }
+    }
+  }
+}

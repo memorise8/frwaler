@@ -1,0 +1,28 @@
+{
+  "listing_body": "<html><body><main><a href=\"/Press/Pressmeddelanden/offline-1/\">Offline 1</a><a href=\"/Press/Pressmeddelanden/offline-2/\">Offline 2</a><a href=\"/Press/Pressmeddelanden/?page=2\">2</a></main></body></html>",
+  "content_type": "text/html",
+  "sitemap_url": "https://www.ifau.se/sitemap.xml",
+  "sitemap_body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://www.ifau.se/Press/Pressmeddelanden/</loc></url><url><loc>https://www.ifau.se/Press/Pressmeddelanden/offline-1/</loc></url><url><loc>https://www.ifau.se/Press/Pressmeddelanden/offline-1/bild/</loc></url><url><loc>https://www.ifau.se/Press/Pressmeddelanden/offline-2/</loc></url><url><loc>https://www.ifau.se/Forskning/Publikationer/Rapporter/2026/x/</loc></url></urlset>",
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "empty_body": "<html><body><main></main></body></html>",
+  "expected_ids": [
+    "offline-1",
+    "offline-2"
+  ],
+  "details": {
+    "https://www.ifau.se/Press/Pressmeddelanden/offline-1/": "<html><body><h1>Offline 1</h1><div class=\"preamble\">Ingress 1</div><p>Publicerades: 11 oktober 2026</p><div><span>Författare</span><span class=\"d-inline-block\">Å Author</span><span class=\"d-inline-block\">och</span><span class=\"d-inline-block\">B Author</span></div><div class=\"article-content\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></div><a class=\"tag\" href=\"#\">Arbetsmarknad</a></body></html>",
+    "https://www.ifau.se/Press/Pressmeddelanden/offline-2/": "<html><body><h1>Offline 2</h1><div class=\"preamble\">Ingress 2</div><p>Publicerades: 12 oktober 2026</p><div><span>Författare</span><span class=\"d-inline-block\">Å Author</span><span class=\"d-inline-block\">och</span><span class=\"d-inline-block\">B Author</span></div><div class=\"article-content\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></div><a class=\"tag\" href=\"#\">Arbetsmarknad</a></body></html>"
+  },
+  "original_method_source_sha256": {
+    "crawl": "0a4d695db25140f88def7a1fdc73e3044e3188a21c02760dc5052eaab259f8dc"
+  },
+  "site_id": "ifau-se-press",
+  "module_function_source_sha256": {
+    "_curl": "02b137c6900c9d650b24dec3c766d59e1ca8c8806189dc8926c5c13a39b3f76e",
+    "_make_soup": "a24d42d6f1d7953c65efa94bbbeb0f3a126ebad4582856bc1a9114f1ccf16ff5",
+    "_parse_date_se": "b4353f23292792fae5c67113cbe10fc34151de24d2045867607f5298669651d3",
+    "_clean_text": "940149a5ed6e1ae42d016426d38d1cef30e7c07f20bc12719c4fb165f76d7837",
+    "_parse_listing": "f2c3569ba57f4ce41de7a4b8c4e3c2f443a2361a7fe20036dd3212a4200587d7",
+    "_parse_article": "23c281e516f470207af8f645495fd63c1afdac17e73601e15418dc61d8646bb1"
+  }
+}
