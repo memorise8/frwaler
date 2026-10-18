@@ -1,0 +1,41 @@
+{
+ "version": 1,
+ "sites": {
+  "bmj-gv-at-ministerium": {
+   "strategy": "last_page_backward",
+   "request_interval_s": 1.5,
+   "respect_robots": true,
+   "retries": 1,
+   "verify_ssl": true,
+   "base_url": "https://www.bmj.gv.at",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "html"
+    ],
+    "detail_method": "_enumeration_paper",
+    "detail_args": [
+     "html",
+     "item"
+    ]
+   },
+   "listing": {
+    "url": "https://www.bmj.gv.at/ministerium/aktuelle-meldungen.html",
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "key_field": "slug",
+     "url_field": "url",
+     "title_field": "title",
+     "date_field": "listed_date",
+     "listing_marker": "main"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1
+   }
+  }
+ }
+}

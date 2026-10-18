@@ -295,3 +295,108 @@ class BmjGvAtMinisteriumCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() is unchanged. The listing card
+    # fields and the detail parsing below repeat crawl()'s inline code; the
+    # framework fetches the list pages (?page=N) and each detail page.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw):
+        soup = _make_soup(raw)
+        rows = []
+        if not soup:
+            return rows
+        for item in soup.select("li.overview-item"):
+            link_el = item.select_one("a.card-link")
+            if not link_el:
+                continue
+            href = link_el.get("href", "")
+            if not href:
+                continue
+            date_el = item.select_one("small.card-date")
+            listed_date_raw = _text(date_el)
+            rows.append({
+                "url": urljoin(_BASE_URL, href),
+                "slug": unquote(href.rstrip("/").rsplit("/", 1)[-1]).replace(".html", ""),
+                "listed_date_raw": listed_date_raw,
+                "listed_date": _parse_german_date(listed_date_raw) if listed_date_raw else "",
+                "title": _text(item.select_one("h2.card-title-heading")),
+                "list_abstract": _text(item.select_one("p.card-text")),
+            })
+        return rows
+
+    def _enumeration_paper(self, detail_raw, item):
+        item_url = item["url"]
+        slug = item["slug"]
+        listed_date_raw = item["listed_date_raw"]
+        listed_date = item["listed_date"]
+        list_title = item["title"]
+        list_abstract = item["list_abstract"]
+        detail_soup = _make_soup(detail_raw)
+        if not detail_soup:
+            return None
+        time_el = detail_soup.select_one("time.datetime")
+        published_date = ""
+        if time_el:
+            published_date = time_el.get("datetime", "").strip()
+            if not published_date:
+                published_date = _parse_german_date(_text(time_el))
+        title_el = detail_soup.select_one("span.title")
+        title = _text(title_el) or list_title
+        abstract_parts = []
+        content_el = detail_soup.find(id="content")
+        main_el = detail_soup.find("main") or content_el
+        if content_el:
+            abs_el = content_el.select_one("p.abstract")
+            if abs_el:
+                t = _text(abs_el)
+                if t:
+                    abstract_parts.append(t)
+        if main_el:
+            for tag in main_el.find_all(["p", "li"]):
+                cls = tag.get("class") or []
+                if "abstract" in cls:
+                    continue
+                t = _text(tag)
+                if t and t not in abstract_parts:
+                    abstract_parts.append(t)
+        if not abstract_parts and list_abstract:
+            abstract_parts.append(list_abstract)
+        abstract = "\n\n".join(abstract_parts)
+        if len(abstract) < 50:
+            return None
+        pdf_url = None
+        original_filename = None
+        for a_el in detail_soup.find_all("a", href=True):
+            href_val = a_el["href"]
+            if href_val.lower().endswith(".pdf"):
+                pdf_url = urljoin(_BASE_URL, href_val)
+                fname = unquote(href_val.rstrip("/").rsplit("/", 1)[-1])
+                original_filename = fname if fname else None
+                break
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": slug,
+            "post_number": slug,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date or listed_date,
+            "posted_date": listed_date,
+            "url": item_url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "authors": "",
+            "publisher": "Bundesministerium für Justiz",
+            "department": "",
+            "journal": "",
+            "keywords": "",
+            "category": "Aktuelle Meldungen",
+            "doi": "",
+            "metadata": json.dumps({
+                "posted_date": listed_date_raw,
+                "originalFilename": original_filename,
+                "slug": slug,
+            }, ensure_ascii=False),
+        }
