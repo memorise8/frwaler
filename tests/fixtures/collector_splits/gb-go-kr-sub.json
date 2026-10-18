@@ -1,0 +1,19 @@
+{
+ "site_id": "gb-go-kr-sub",
+ "listing_body": "<html><body><table class=\"bbsList\"><tbody><tr><td class=\"b_number\">504</td><td class=\"b_subject\"><a href=\"./page.do?mnu_uid=7866&BD_CODE=gb_statboard&cmd=2&Start=0&B_NUM=260642501&V_NUM=504\">2026년 9월 경기종합지수</a></td><td class=\"b_file\"><a href=\"/invest/Common/board_egov/download.jsp?B_NUM=260642501\"><img alt=\"자료504.pdf\"></a></td><td class=\"b_date\">26-10-01</td></tr><tr><td class=\"b_number\">503</td><td class=\"b_subject\"><a href=\"./page.do?mnu_uid=7866&BD_CODE=gb_statboard&cmd=2&Start=0&B_NUM=260603901&V_NUM=503\">2026년 8월 경기종합지수</a></td><td class=\"b_file\"><a href=\"/invest/Common/board_egov/download.jsp?B_NUM=260603901\"><img alt=\"자료503.pdf\"></a></td><td class=\"b_date\">26-10-01</td></tr></tbody></table></body></html>",
+ "empty_body": "<html><body><table class=\"bbsList\"><tbody></tbody></table></body></html>",
+ "content_type": "text/html",
+ "long_text": "경상북도 경기종합지수 시험용 합성 본문입니다. 분리된 plan 이 기존 crawl 과 같은 문서를 만드는지 확인합니다.",
+ "details": {
+  "https://gb.go.kr/Sub/open_contents/section/datastat/page.do?mnu_uid=7866&BD_CODE=gb_statboard&cmd=2&Start=0&B_NUM=260642501&V_NUM=504": "<html><body><ul><li><span class=\"span_l\">등록일</span><span class=\"span_r\">2026-10-01 10:00</span></li><li><span class=\"span_l\">작성자</span><span class=\"span_r\">홍길동 [빅데이터과] ☎ 000</span></li></ul><dl class=\"content\"><dt>내용</dt><dd><p>경상북도 경기종합지수 시험용 합성 본문입니다. 분리된 plan 이 기존 crawl 과 같은 문서를 만드는지 확인합니다.</p></dd></dl><dl class=\"attfile\"><dd><a href=\"/invest/Common/board_egov/download.jsp?x=1\">자료.pdf</a></dd></dl></body></html>",
+  "https://gb.go.kr/Sub/open_contents/section/datastat/page.do?mnu_uid=7866&BD_CODE=gb_statboard&cmd=2&Start=0&B_NUM=260603901&V_NUM=503": "<html><body><ul><li><span class=\"span_l\">등록일</span><span class=\"span_r\">2026-10-01 10:00</span></li><li><span class=\"span_l\">작성자</span><span class=\"span_r\">홍길동 [빅데이터과] ☎ 000</span></li></ul><dl class=\"content\"><dt>내용</dt><dd><p>경상북도 경기종합지수 시험용 합성 본문입니다. 분리된 plan 이 기존 crawl 과 같은 문서를 만드는지 확인합니다.</p></dd></dl><dl class=\"attfile\"><dd><a href=\"/invest/Common/board_egov/download.jsp?x=1\">자료.pdf</a></dd></dl></body></html>"
+ },
+ "original_method_source_sha256": {
+  "crawl": "08d47641edf256465a6c1860283bd7b302b01c3fc33a18f0f8ff02d30e94da00",
+  "_parse_list_items": "4b63630fd4be52a1cd78e4ed18a0e681102394da62659bb9fd6a9cf2abc09694",
+  "_build_paper": "a408fb15ee7d18c09c3f13857eae7dcbd1a974be85e82e4ea0b81410164f80be",
+  "_curl_get": "8043a5acbbb5626e45270014e2fefd208488f69b0bfab3e1d155c9bd72f0d675",
+  "_make_soup": "dc79ee4fee2bf3c6acd5613bde198441a38d9dfb9d973918b3ea39822c1d95df",
+  "_budget_exhausted": "a4eae935e22d3018c8c652432d8bcb94d33fe943975db7f45a1d6cbbbee18c7d"
+ }
+}

@@ -1,0 +1,57 @@
+{
+ "version": 1,
+ "defaults": {
+  "request_interval_s": 1.5,
+  "respect_robots": true,
+  "retries": 1
+ },
+ "sites": {
+  "gb-go-kr-sub": {
+   "strategy": "last_page_backward",
+   "base_url": "https://gb.go.kr",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_parse_list_items",
+    "list_args": [
+     "html"
+    ],
+    "detail_method": "_build_paper",
+    "detail_args": [
+     "item",
+     "html"
+    ]
+   },
+   "listing": {
+    "url": "https://gb.go.kr/Sub/open_contents/section/datastat/page.do",
+    "params": {
+     "mnu_uid": "7866",
+     "BD_CODE": "gb_statboard",
+     "cmd": "1",
+     "key": "0",
+     "word": "",
+     "p1": "0",
+     "p2": "0",
+     "period": "1",
+     "B_START": "2000-01-01",
+     "B_END": "2030-12-31",
+     "Start": 0
+    },
+    "page_param": "Start",
+    "page_mode": "offset",
+    "page_size": 10,
+    "start_page": 0,
+    "parser": {
+     "type": "adapter",
+     "key_field": "url",
+     "url_field": "url",
+     "title_field": "title",
+     "date_field": "listed_date",
+     "listing_marker": "table.bbsList"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1
+   }
+  }
+ }
+}
