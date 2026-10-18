@@ -262,6 +262,64 @@ class InsightCentreOrgPressReleasesCrawler(BaseCrawler):
     site_name = "Custom: insight-centre-org-press-releases"
     base_url  = "https://www.insight-centre.org"
 
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_items(self, html, url=None):
+        """Links of the press-release editor block. crawl() falls back to every link on
+        the page when that block is missing; here a missing block is a listing error."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:not_html", url)
+        soup = _make_soup(html, "list page")
+        if soup is None or not any(div.find("a", href=re.compile(r"insight-centre\.org"))
+                                   for div in soup.find_all("div", class_=re.compile(r"content-content_editor"))):
+            raise PermanentFailure("listing_parse_error:press_block_missing", url)
+        return [{"url": href, "link_text": text} for href, text in _parse_list_page(html)]
+
+    def _enumeration_detail(self, html, item):
+        return _parse_detail(html, item["url"])
+
+    def _enumeration_paper(self, item, detail):
+        """Pure copy of crawl's Paper conversion and item filters (None = crawl's skip)."""
+        url, link_text = item["url"], item["link_text"]
+        if detail is None:
+            return None
+        title         = detail["title"]
+        abstract      = detail["abstract"]
+        published_date = detail["published_date"]
+        post_number   = detail["post_number"]
+        if not title:
+            t = re.sub(r"^[\d\w\s,]+[–\-:]\s*", "", link_text).strip()
+            title = t or link_text
+        if len(abstract) < 50:
+            return None
+        slug = _slug_from_url(url)
+        external_id = post_number or slug
+        return {
+            "id":              None,
+            "site_id":         self.site_id,
+            "external_id":     external_id,
+            "post_number":     post_number,
+            "title":           title,
+            "abstract":        abstract,
+            "published_date":  published_date,
+            "listed_date":     published_date,
+            "url":             url,
+            "pdf_url":         None,
+            "authors":         None,
+            "publisher":       "Insight Centre for Data Analytics",
+            "department":      None,
+            "journal":         None,
+            "keywords":        None,
+            "category":        "Press Release",
+            "doi":             None,
+            "original_filename": None,
+            "metadata":        json.dumps({
+                "slug":       slug,
+                "page_id":    post_number,
+                "link_text":  link_text,
+            }, ensure_ascii=False),
+        }
+
     def crawl(self, limit=None):  # noqa: C901
         saved      = 0
         seen_urls: set = set()
