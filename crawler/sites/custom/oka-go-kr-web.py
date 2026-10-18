@@ -376,3 +376,50 @@ class OkaGoKrWebCrawler(BaseCrawler):
         if attachments:
             parts.append("첨부파일: " + "; ".join(attachments))
         return " ".join(p for p in parts if p)
+
+    # ------------------------------------------------------------------
+    # Pure enumeration conversion (framework plan; no network here)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None) -> list:
+        """ajax/list.do JSON -> row dicts (the board row plus identity fields).
+
+        ``{"brdList": []}`` is a valid empty page (past the last page); any other
+        shape is a listing parse error. Each row's ``url`` is the item's
+        brdDetail.do address (crawl()'s ``item_url``, also read as its detail JSON).
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("brdList"), list):
+            raise PermanentFailure("listing_parse_error:brdList_missing", url)
+        rows = []
+        for item in data["brdList"]:
+            if not isinstance(item, dict) or item.get("num") is None:
+                continue
+            num = item["num"]
+            rows.append({
+                "url": self._detail_url(num),
+                "external_id": str(num),
+                "title": _clean_text(item.get("title")),
+                "write_dt": item.get("write_dt") or "",
+                "list_item": item,
+            })
+        return rows
+
+    def _enumeration_paper(self, detail, item) -> Optional[dict]:
+        """crawl()'s ``_build_paper`` plus its short-abstract skip (None = skipped),
+        fed with the brdDetail.do JSON the framework already fetched."""
+        from crawler.enumeration.http import PermanentFailure
+        item_url = item["url"]
+        if not isinstance(detail, dict):
+            raise PermanentFailure("detail_parse_error:not_a_json_object", item_url)
+        # The instance attribute shadows the network method only for this call.
+        self._fetch_detail = lambda num, _detail=detail: _detail
+        try:
+            paper = self._build_paper(item["list_item"], item_url)
+        finally:
+            del self._fetch_detail
+        if paper is None:
+            return None
+        if len(paper.get("abstract") or "") < self._MIN_ABSTRACT_CHARS:
+            return None
+        return paper

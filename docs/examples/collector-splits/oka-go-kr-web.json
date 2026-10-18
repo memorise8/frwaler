@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "sites": {
+    "oka-go-kr-web": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "base_url": "https://www.oka.go.kr",
+      "request_headers": {
+        "Accept": "application/json"
+      },
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "json",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.oka.go.kr/web/board/ajax/list.do",
+        "params": {
+          "menu_cd": "000164",
+          "searchData": "contdata",
+          "searchText": ""
+        },
+        "page_param": "currentPage",
+        "start_page": 1,
+        "last_page_path": "pagingInfoVO.totalPageCount",
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "date_field": "write_dt",
+          "title_field": "title"
+        }
+      }
+    }
+  }
+}

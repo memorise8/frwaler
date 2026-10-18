@@ -1,0 +1,77 @@
+{
+  "site_id": "oka-go-kr-web",
+  "content_type": "application/json",
+  "listing_body": "{\"brdList\": [{\"rnum\": 1, \"num\": 9102, \"menu_id\": \"law_refer\", \"username\": \"담당관\", \"title\": \" Offline 2 \", \"cont\": \"<p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p>\", \"write_dt\": \"2026-10-02\", \"disp_write_dt\": \"2026-10-02\", \"state\": \"001\", \"att_file\": \"Y\"}, {\"rnum\": 1, \"num\": 9101, \"menu_id\": \"law_refer\", \"username\": \"담당관\", \"title\": \"Offline 1\", \"cont\": \"<p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p>\", \"write_dt\": \"2026-10-01\", \"disp_write_dt\": \"2026-10-01\", \"state\": \"001\", \"att_file\": \"Y\"}], \"pagingInfoVO\": {\"currentPageNo\": 1, \"recordCountPerPage\": 10, \"totalRecordCount\": 2, \"totalPageCount\": 1}, \"menuInfo\": {\"menu_cd\": \"000164\"}}",
+  "empty_body": "{\"brdList\": [], \"pagingInfoVO\": {\"currentPageNo\": 2, \"recordCountPerPage\": 10, \"totalRecordCount\": 2, \"totalPageCount\": 1}}",
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "short_keeps_items": false,
+  "details": {
+    "https://www.oka.go.kr/web/board/brdDetail.do?menu_cd=000164&num=9102": {
+      "brd": {
+        "num": 9102,
+        "title": "Offline 2",
+        "cont": "<div><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></div>",
+        "write_dt": "2026-10-02",
+        "disp_write_dt": "2026-10-02",
+        "menu_id": "law_refer",
+        "state": "001"
+      },
+      "menuInfo": {
+        "menu_id": "law_refer",
+        "menu_nm": "법령자료실"
+      },
+      "siteVo": {
+        "site_nm": "재외동포청"
+      },
+      "fileList": [
+        {
+          "num": 7702,
+          "file_org": "a.hwp",
+          "contenttype": "application/x-hwp"
+        },
+        {
+          "num": 7703,
+          "file_org": "b.pdf",
+          "contenttype": "application/pdf"
+        }
+      ]
+    },
+    "https://www.oka.go.kr/web/board/brdDetail.do?menu_cd=000164&num=9101": {
+      "brd": {
+        "num": 9101,
+        "title": "Offline 1",
+        "cont": "<div><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></div>",
+        "write_dt": "2026-10-01",
+        "disp_write_dt": "2026-10-01",
+        "menu_id": "law_refer",
+        "state": "001"
+      },
+      "menuInfo": {
+        "menu_id": "law_refer",
+        "menu_nm": "법령자료실"
+      },
+      "siteVo": {
+        "site_nm": "재외동포청"
+      },
+      "fileList": [
+        {
+          "num": 7701,
+          "file_org": "c.hwp"
+        }
+      ]
+    }
+  },
+  "expected_ids": [
+    "9102",
+    "9101"
+  ],
+  "original_method_source_sha256": {
+    "crawl": "c698d6eb122c4e7e001e28e21af4c3575fcb84b0687f277f5616428c3adbad10",
+    "_curl_get": "8b5dfad1310f137c6aa2370c6a4877471eaa0bfe23c949ed33c8fc0e40bfee79",
+    "_fetch_list_page": "9e84e82c94572f17f69d930f465a071e205f8c39c83bbd9c257012ba580ca65a",
+    "_fetch_detail": "695635d6e6751aab59cb0e4590625bfc60add33ee394ffc565b0a45f2daaf3c1",
+    "_detail_url": "b1e77a28c06ba13575918b564575ea7b278c3be35eba90be9c71ad5d8f9c95b4",
+    "_build_paper": "4cedadc57d01f878507c68235f1afa0bc6575f05c98b0c6762d56cdc2b94d80d",
+    "_build_abstract": "60274424d8ac887cd93d64c6db86d179c654931239f9dcc28f44176e4fbd78e1"
+  }
+}
