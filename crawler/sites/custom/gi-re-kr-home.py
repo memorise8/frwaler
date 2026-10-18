@@ -324,6 +324,37 @@ class GiReKrHomeCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Rows of one list page via crawl's _parse_list_page (no I/O).
+
+        ``page`` (kept in metadata.list_page) is read from the request URL;
+        crawl requests page 1 without the parameter.
+        """
+        page = 1
+        values = urllib.parse.parse_qs(urllib.parse.urlsplit(url or "").query).get("page") or []
+        if values and values[0].isdigit():
+            page = int(values[0])
+        items, _has_next = self._parse_list_page(html, page)
+        return items
+
+    def _enumeration_detail(self, html, item):
+        """crawl's detail parse (_parse_detail) of one fetched detail page."""
+        return self._parse_detail(html, item)
+
+    def _enumeration_paper(self, item, detail):
+        """crawl's Paper conversion (_paper_from_item) and its skips (None)."""
+        paper = self._paper_from_item(item, detail)
+        if not paper.get("title"):
+            return None
+        abstract = paper.get("abstract") or ""
+        if len(abstract) < _MIN_ABSTRACT_CHARS:
+            return None
+        return paper
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 

@@ -1,0 +1,26 @@
+{
+ "site_id": "gi-re-kr-home",
+ "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.",
+ "original_method_source_sha256": {
+  "_curl": "bf0c9703e7cea22dfa3402d0dcdfa204849ddf988b68a70b31a0e1917e730a5e",
+  "_make_soup": "2dbf8553d7304c337504dbdf8078529429c27f946d54d8a2c7720bcc05bd7aa7",
+  "_clean_text": "98c3610e411a88242e1869ee183fdc43bfd81a99215c1c380b139f9e134e1a49",
+  "_text": "47528d4ec8936bbd600bf9a476ccb56aff483ebf35978a7f428c17e8d8f40e96",
+  "_absolute_url": "ed5db2a30e186072386429c27b4a744121d237b2637fc76e8e3d8c5bd6c74845",
+  "_normalize_year_date": "240ed4e26862c71e378a975d540f12d67ac14e351b564271c866601c9f9afb03",
+  "_split_people": "5d27329997800ffdec04ce9b496ec1cc94dee9d33093ba0ec01a7e92c94b8795",
+  "_attachment_name": "3635c32c4aef4f1cf0e303112916ea83e3864d3e97c395a203852f9663ffa7e9",
+  "_filename_from_url": "72b8f6ca0a5a2f964474c25223c3fb343cef4e6c0166d56125e1d5a00f6566d0",
+  "_parse_list_page": "32a012768212bcc6a6e49a1f54cd6da9b6842444054dd221f046d8130498039d",
+  "_parse_detail": "12bd7dc5df8a622db3417187e1a1403bbba0cd2048526e49e24568945b150112",
+  "_paper_from_item": "4e5e419682d6e9bd3f7992eab3115ceb452e50637d21eff052e3f0da022b5f48",
+  "crawl": "ebe2dc2ee8e27700f7d790fece5fc7181806b03ffefdea03c4786d9feba4bfcd"
+ },
+ "content_type": "text/html",
+ "listing_body": "<html><body><form id=\"theForm\" action=\"pmsReportList\" method=\"get\"></form><div class=\"m-guide-total\">총 게시물 <strong>2</strong>건</div><div class=\"m-boards type-gallery01\"><a class=\"m-board\" href=\"pmsReportView?projcd=1026SU0026\"><span class=\"m-board-tag\">정책과제</span><span class=\"m-board-title\">오프라인 보고서 하나</span><span class=\"m-board-info\"><span class=\"m-board-info-title\">저자</span><span class=\"m-board-info-body\">홍길동, 김철수</span></span><span class=\"m-board-info\"><span class=\"m-board-info-title\">발행</span><span class=\"m-board-info-body\">2026년</span></span></a><a class=\"m-board\" href=\"pmsReportView?projcd=1026P20033\"><span class=\"m-board-tag\">정책과제</span><span class=\"m-board-title\">오프라인 보고서 둘</span><span class=\"m-board-info\"><span class=\"m-board-info-title\">저자</span><span class=\"m-board-info-body\">홍길동, 김철수</span></span><span class=\"m-board-info\"><span class=\"m-board-info-title\">발행</span><span class=\"m-board-info-body\">2026년</span></span></a></div></body></html>",
+ "details": {
+  "https://www.gi.re.kr/Home/H10000/H10100/pmsReportView?projcd=1026SU0026": "<html><body><div class=\"m-boardDetail-header\"><span class=\"m-board-tag\">정책과제</span><span class=\"m-board-title\">오프라인 보고서 하나</span><div class=\"m-boardDetail-info\"><span class=\"m-boardDetail-info-title\">발행</span><span class=\"m-boardDetail-info-body\">2026년</span></div></div><div class=\"m-boardDetail-subHeader\"><a href=\"/attachDown?file=1026SU0026\">1026SU0026.pdf</a></div><div class=\"m-boardDetail-content\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.</p></div><div class=\"pageInfo\"><div class=\"charger\"><span class=\"title\">담당부서</span><span class=\"body\">연구지원팀</span></div></div></body></html>",
+  "https://www.gi.re.kr/Home/H10000/H10100/pmsReportView?projcd=1026P20033": "<html><body><div class=\"m-boardDetail-header\"><span class=\"m-board-tag\">정책과제</span><span class=\"m-board-title\">오프라인 보고서 둘</span><div class=\"m-boardDetail-info\"><span class=\"m-boardDetail-info-title\">발행</span><span class=\"m-boardDetail-info-body\">2026년</span></div></div><div class=\"m-boardDetail-subHeader\"><a href=\"/attachDown?file=1026P20033\">1026P20033.pdf</a></div><div class=\"m-boardDetail-content\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.</p></div><div class=\"pageInfo\"><div class=\"charger\"><span class=\"title\">담당부서</span><span class=\"body\">연구지원팀</span></div></div></body></html>"
+ },
+ "empty_body": "<html><body><fieldset><legend>게시물 검색</legend><form id=\"theForm\" action=\"pmsReportList\" method=\"get\"><input"
+}

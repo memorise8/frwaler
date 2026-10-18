@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "sites": {
+    "gi-re-kr-home": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ],
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.gi.re.kr/Home/H10000/H10100/pmsReportList",
+        "page_param": "page",
+        "start_page": 1,
+        "total": {
+          "type": "regex",
+          "pattern": "총 게시물\\s*<strong>([\\d,]+)</strong>"
+        },
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "projcd",
+          "title_field": "title",
+          "listing_marker": "form#theForm"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
