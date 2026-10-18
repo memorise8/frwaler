@@ -517,3 +517,42 @@ class KirjEeArchiveCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (L3b X3): crawl() unchanged
+    # ------------------------------------------------------------------
+
+    # Stand-in for the journal hint, which only the segment knows (detail stage).
+    _HINT_SENTINEL = "\x00journal-hint"
+
+    def _enumeration_items(self, raw, url):
+        """Article rows of one issue page, parsed with crawl()'s _parse_issue_records.
+        The framework requests the discovered issue link itself (segments.link_as_url);
+        crawl() requested that link after _canonical_url, so the response URL is put in the
+        same canonical form (filter[year]/filter[issue] only; v= and the page parameter
+        dropped) before relative article links are resolved, as in crawl().
+        The journal hint (archive link text inherited along the discovery path) is filled
+        in by _enumeration_paper from the segment."""
+        issue_url = self._canonical_url(url, include_publication=False)
+        records, _ = self._parse_issue_records(raw, issue_url, self._HINT_SENTINEL)
+        return records
+
+    def _enumeration_paper(self, detail_raw, segment, record):
+        """Paper for one article, made by crawl()'s _parse_detail_record. journal_hint is
+        the archive link text of the issue's discovery chain (segment path[0], or the
+        segment's own link text when it was found on the archive page), as crawl()
+        inherited it through its queue. Returns None where crawl() skips (abstract
+        shorter than _MIN_ABSTRACT_CHARS)."""
+        segment = segment or {}
+        path = segment.get("path") or []
+        hint = self._one_line(path[0] if path else (segment.get("label") or ""))
+        record = dict(record)
+        record["journal_hint"] = hint
+        if record.get("journal") == self._HINT_SENTINEL:
+            # _page_journal_name: page title, else the hint, else the publisher name.
+            record["journal"] = hint or "Estonian Academy Publishers"
+        paper = self._parse_detail_record(detail_raw, record)
+        abstract = paper.get("abstract") or ""
+        if len(abstract) < self._MIN_ABSTRACT_CHARS:
+            return None
+        return paper

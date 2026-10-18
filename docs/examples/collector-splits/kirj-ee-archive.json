@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "sites": {
+    "kirj-ee-archive": {
+      "strategy": "date_range_split",
+      "base_url": "https://kirj.ee",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": ["html", "url"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["html", "segment", "item"],
+        "none_is_rule_skip": true
+      },
+      "listing": {
+        "url": "https://kirj.ee/archive/",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "external_id",
+          "url_field": "url",
+          "title_field": "title",
+          "listing_marker": ".issues_menu"
+        }
+      },
+      "segments": {
+        "mode": "discover",
+        "hub_url": "https://kirj.ee/archive/?v=38dd815e66db",
+        "selector": ".sisu a[href], .issues_menu a[href], a[href*='filter%5Bissue%5D'], a[href*='filter[issue]']",
+        "attr": "href",
+        "key_regex": "^https://kirj\\.ee/[^?#]*\\?(?:[^#]*&)?filter(?:%5B|\\[)issue(?:%5D|\\])=(\\d+)",
+        "label": "text",
+        "link_as_url": true,
+        "follow": {
+          "selector": ".sisu a[href]:not([href*='/wp-content/']):not([href*='/wp-admin/']), .issues_menu a[href], a[href*='filter%5Bissue%5D'], a[href*='filter[issue]']",
+          "attr": "href",
+          "max_depth": 5,
+          "max_pages": 1000
+        },
+        "within_segment_order": "oldest_first"
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
