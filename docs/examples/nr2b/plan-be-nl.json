@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "sites": {
+    "plan-be-nl": {
+      "strategy": "sitemap",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "base_url": "https://www.plan.be",
+      "adapter": {
+        "type": "crawler",
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["html", "url"]
+      },
+      "sitemap": {
+        "sitemap_url": "https://www.plan.be/sitemap.xml",
+        "include": ["^https://www\\.plan\\.be/nl/publicaties/[^/?#]+"]
+      }
+    }
+  }
+}

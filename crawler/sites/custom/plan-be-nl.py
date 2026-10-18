@@ -302,3 +302,15 @@ class PlanBeNlCrawler(BaseCrawler):
 
         print(f"[plan-be-nl] Done: saved {saved} documents")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. Each NL
+    # publication URL from the sitemaps goes through _parse_detail with
+    # crawl()'s skip rule (abstract shorter than 100 characters).
+    # ------------------------------------------------------------------
+
+    def _enumeration_paper(self, html, url):
+        paper = _parse_detail(html, url)
+        if not paper or len(paper.get("abstract") or "") < 100:
+            return None
+        return paper
