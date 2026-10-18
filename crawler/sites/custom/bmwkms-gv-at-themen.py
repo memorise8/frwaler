@@ -246,3 +246,73 @@ class BmwkmsGvAtThemenCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() is unchanged. The one listing
+    # page carries everything crawl() saves: the listing returns the same paper
+    # dicts (list_returns_paper).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw):
+        soup = _make_soup(raw)
+        if soup is None:
+            return []
+        papers, seen_urls = [], set()
+        for link in soup.find_all("a", class_="file"):
+            href = (link.get("href") or "").strip()
+            if not href:
+                continue
+            if href.startswith("/"):
+                pdf_url = _BASE + href
+            elif href.startswith("http"):
+                pdf_url = href
+            else:
+                pdf_url = _BASE + "/" + href
+            if pdf_url in seen_urls:
+                continue
+            seen_urls.add(pdf_url)
+            raw_text = link.get_text(separator=" ", strip=True)
+            title = re.sub(r'\s*\(PDF[^)]*\)', '', raw_text).strip()
+            title = re.sub(r'\s+', ' ', title).strip()
+            if not title:
+                title = "Innovative Film Austria"
+            url_path = href.split("?")[0]
+            original_filename = unquote(url_path.split("/")[-1])
+            jcr_match = re.search(r'/dam/jcr:([^/]+)/', href)
+            external_id = jcr_match.group(1) if jcr_match else original_filename
+            post_number, published_date = _year_from_title(title)
+            abstract = f"{title} — {_SERIES_DESC}"
+            if len(abstract) < 50:
+                continue
+            size_span = link.find("span", class_="fileinfo")
+            file_size = size_span.get_text(strip=True) if size_span else None
+            papers.append({
+                "site_id": self.site_id,
+                "external_id": external_id,
+                "post_number": post_number,
+                "url": _START_URL,
+                "title": title,
+                "abstract": abstract,
+                "published_date": published_date,
+                "posted_date": published_date,
+                "authors": None,
+                "publisher": _PUBLISHER,
+                "department": "Sektion IV – Kunst und Kultur",
+                "journal": None,
+                "pdf_url": pdf_url,
+                "original_filename": original_filename,
+                "keywords": (
+                    "Innovative Film Austria,Filmabteilung,"
+                    "Österreichischer Film,Festivaleinladungen,Kulturförderung"
+                ),
+                "category": "Innovative Film Austria",
+                "doi": None,
+                "metadata": json.dumps({
+                    "posted_date": published_date,
+                    "originalFilename": original_filename,
+                    "jcr_uuid": jcr_match.group(1) if jcr_match else None,
+                    "source_page": _START_URL,
+                    "file_size": file_size,
+                }, ensure_ascii=False),
+            })
+        return papers
