@@ -273,3 +273,81 @@ class PBOCRILnzy3Crawler(BaseCrawler):
                 os.unlink(tmp_path)
             except Exception:
                 pass
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # helpers above stay unchanged; no fetching, subprocess or storage
+    # happens here. The framework fetches each PDF and runs
+    # `pdftotext -enc UTF-8` on it (X2 pdf_text, as _extract_pdf_text());
+    # the pypdf/pdfplumber fallbacks run in process on the same bytes.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, raw, url):
+        """PDF rows of the single list page, exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw, (bytes, bytearray)):
+            raise PermanentFailure("listing_parse_error:expected_bytes")
+        soup = _parse_html(bytes(raw))
+        if not soup:
+            raise PermanentFailure("listing_parse_error:unparseable_html")
+        items = []
+        for h1 in soup.find_all("h1"):
+            a = h1.find("a", href=True)
+            if not a:
+                continue
+            href = a.get("href", "").strip()
+            title = a.get_text(strip=True)
+            if not href or not title:
+                continue
+            if not href.lower().endswith(".pdf"):
+                continue
+            if not href.startswith("http"):
+                href = self.base_url + href
+            items.append({"title": title, "pdf_url": href})
+        return items
+
+    def _enumeration_paper(self, pdf_text, raw, item):
+        """crawl()'s per-row conversion after _fetch_abstract(); None keeps its skips."""
+        import io
+        title = item["title"]
+        pdf_url = item["pdf_url"]
+        data = bytes(raw) if raw else b""
+        if len(data) < 100:
+            return None
+        raw_text = pdf_text
+        if raw_text is None:
+            raw_text = ""
+            try:
+                import pypdf
+                reader = pypdf.PdfReader(io.BytesIO(data))
+                raw_text = "\n".join((page.extract_text() or "") for page in reader.pages[:10])
+            except Exception:
+                try:
+                    import pdfplumber
+                    with pdfplumber.open(io.BytesIO(data)) as pdf:
+                        raw_text = "\n".join(t for t in (p.extract_text() for p in pdf.pages[:10]) if t)
+                except Exception:
+                    raw_text = ""
+        abstract = _clean_text(raw_text)
+        if len(abstract) > 3000:
+            abstract = abstract[:3000]
+        if not abstract or len(abstract) < 50:
+            return None
+        year = _extract_year(title)
+        published_date = f"{year}-01-01" if year else None
+        pdf_fname = pdf_url.split("/")[-1]
+        external_id = pdf_fname.replace(".pdf", "")
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": title,
+            "authors": json.dumps(["《中国金融年鉴》编委会"], ensure_ascii=False),
+            "abstract": abstract,
+            "category": "年鉴摘要",
+            "keywords": json.dumps(["中国金融年鉴", "金融", "年鉴"], ensure_ascii=False),
+            "published_date": published_date,
+            "url": _LIST_URL,
+            "pdf_url": pdf_url,
+            "doi": None,
+            "department": "中国人民银行金融研究所",
+            "metadata": json.dumps({"year": year, "source_page": _LIST_URL}, ensure_ascii=False),
+        }

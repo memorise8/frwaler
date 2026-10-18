@@ -1,0 +1,12 @@
+{
+ "site_id": "pbocri-org-cn-lnzy3html",
+ "listing_body": "<html><body><h1><a href=\"https://file.pbocri.org.cn/89b6d77489621a993cba11205737acc1.pdf\">2024年中国金融年鉴</a></h1><h1><a href=\"/upload/2023abc.pdf\">2023年中国金融年鉴</a></h1><h1><a href=\"/x.html\">not pdf</a></h1></body></html>",
+ "empty_body": "<html><body></body></html>",
+ "content_type": "text/html",
+ "long_text": "中国金融年鉴 摘要 시험용 합성 본문입니다. 분리 메서드가 기존 crawl 과 같은 문서를 만드는지 확인하기 위한 긴 문장입니다…… 목차 ·· (12)",
+ "details": {},
+ "original_method_source_sha256": {
+  "crawl": "1d6daad76b4058700469dadfa1bdadd984135b13606c798ec693c7e46e958c71",
+  "_fetch_abstract": "0e0b8db1709815d822b844d58c24af17ea38e4de911776dbaedd962138453167"
+ }
+}

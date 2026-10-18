@@ -1,0 +1,51 @@
+{
+ "version": 1,
+ "defaults": {
+  "request_interval_s": 1.5,
+  "respect_robots": true,
+  "retries": 1
+ },
+ "sites": {
+  "pbocri-org-cn-lnzy3html": {
+   "strategy": "last_page_backward",
+   "base_url": "https://www.pbocri.org.cn",
+   "verify_ssl": false,
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "raw",
+     "url"
+    ],
+    "detail_method": "_enumeration_paper",
+    "detail_args": [
+     "pdf_text",
+     "raw",
+     "item"
+    ],
+    "pdf_text": {
+     "args": [
+      "-enc",
+      "UTF-8"
+     ],
+     "timeout_s": 60
+    }
+   },
+   "listing": {
+    "url": "https://www.pbocri.org.cn/lnzy3.html",
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "key_field": "pdf_url",
+     "url_field": "pdf_url",
+     "title_field": "title",
+     "listing_marker": "body"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1
+   }
+  }
+ }
+}
