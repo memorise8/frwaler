@@ -209,6 +209,120 @@ class BoverketSeEnCrawler(BaseCrawler):
         return saved
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points; crawl() and _fetch_and_save stay unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw, url=None):
+        """RSS items exactly as crawl() reads them; non-RSS answers are listing errors."""
+        from crawler.enumeration.http import PermanentFailure
+        try:
+            root = ET.fromstring(raw)
+        except (ET.ParseError, TypeError):
+            raise PermanentFailure("listing_parse_error:invalid_xml", url) from None
+        channel = root.find("channel")
+        if root.tag != 'rss' or channel is None:
+            raise PermanentFailure("listing_parse_error:not_an_rss_channel", url)
+        items = []
+        for el in channel.findall("item"):
+            def _t(tag, _el=el):
+                node = _el.find(tag)
+                return node.text.strip() if node is not None and node.text else ""
+            items.append({
+                "guid":      _t("guid"),
+                "url":       _t("link"),
+                "title":     _t("title"),
+                "rss_desc":  _t("description"),
+                "pub_date":  _t("pubDate"),
+            })
+        return items
+
+    def _enumeration_paper(self, raw_html, item):
+        """Pure copy of _fetch_and_save's parsing and Paper conversion (None = skipped)."""
+        from crawler.enumeration.http import PermanentFailure
+        url = item["url"]
+        guid = item["guid"]
+        title = item["title"]
+        rss_desc = item["rss_desc"]
+        pub_date = item["pub_date"]
+
+        if not raw_html:
+            raise PermanentFailure("detail_empty_response", url)
+        soup = _make_soup(raw_html)
+        if soup is None:
+            raise PermanentFailure("detail_parse_failed", url)
+
+        abstract = ""
+        if soup:
+            main_body = soup.find("div", class_="main-body")
+            if main_body:
+                paras = [
+                    p.get_text(separator=" ", strip=True)
+                    for p in main_body.find_all("p")
+                    if p.get_text(strip=True)
+                ]
+                abstract = "\n\n".join(paras)
+
+        if len(abstract.strip()) < 50:
+            og_m = re.search(r'<meta property="og:description" content="([^"]+)"', raw_html)
+            if og_m:
+                abstract = og_m.group(1)
+
+        if len(abstract.strip()) < 50:
+            abstract = rss_desc
+
+        abstract = abstract.strip()
+
+        if len(abstract) < 100:
+            return None
+
+        pdf_url = ""
+        if soup:
+            pdf_tag = soup.find("a", rel="attachment")
+            if pdf_tag and pdf_tag.get("href"):
+                href = pdf_tag["href"]
+                pdf_url = f"{self.base_url}{href}" if href.startswith("/") else href
+
+        if not pdf_url:
+            m = re.search(r'href="(/globalassets/[^"]+\.pdf)"', raw_html)
+            if m:
+                pdf_url = f"{self.base_url}{m.group(1)}"
+
+        pub_meta: dict = {}
+        if soup:
+            pub_metadata_div = soup.find("div", class_="publication-metadata")
+            if pub_metadata_div:
+                for row in pub_metadata_div.find_all("div", class_="metadata-row"):
+                    lbl = row.find("div", class_="metadata-label")
+                    val = row.find("div", class_="metadata-value")
+                    if lbl and val:
+                        k = lbl.get_text(strip=True).rstrip(":")
+                        v = val.get_text(strip=True)
+                        if k and v:
+                            pub_meta[k] = v
+
+        if not pub_date and pub_meta.get("Year"):
+            pub_date = pub_meta['Year']
+
+        external_id = guid if guid else url.rstrip("/").split("/")[-2]
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": title,
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": "",
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": pub_date,
+            "url": url,
+            "pdf_url": pdf_url,
+            "doi": "",
+            "department": "Boverket",
+            "metadata": json.dumps(pub_meta, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Detail-page fetch + save
     # ------------------------------------------------------------------
 

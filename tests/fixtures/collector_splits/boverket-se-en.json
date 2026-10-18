@@ -1,0 +1,16 @@
+{
+  "site_id": "boverket-se-en",
+  "listing_body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><rss version=\"2.0\"><channel><title>Publications</title><item><title>Synthetic publication one</title><link>https://www.boverket.se/en/start/publications/publications/2031/synthetic-one/</link><guid isPermaLink=\"false\">990001</guid><description>Short RSS text.</description><pubDate>Tue, 22 Sep 2031 08:34:06 +0200</pubDate></item><item><title>Synthetic publication two</title><link>https://www.boverket.se/en/start/publications/publications/2031/synthetic-two/</link><guid isPermaLink=\"false\">990002</guid><description>Short RSS text.</description><pubDate>Wed, 30 Oct 2030 07:54:35 +0100</pubDate></item></channel></rss>",
+  "content_type": "application/rss+xml; charset=utf-8",
+  "details": {
+    "https://www.boverket.se/en/start/publications/publications/2031/synthetic-one/": "<html><body><div class=\"main-body\"><p>Synthetic Boverket publication body for the offline equality test only. Synthetic Boverket publication body for the offline equality test only. Synthetic Boverket publication body for the offline equality test only.</p></div><a rel=\"attachment\" href=\"/globalassets/publikationer/dokument/2031/synthetic-one.pdf\">PDF</a><div class=\"publication-metadata\"><div class=\"metadata-row\"><div class=\"metadata-label\">Year:</div><div class=\"metadata-value\">2031</div></div></div></body></html>",
+    "https://www.boverket.se/en/start/publications/publications/2031/synthetic-two/": "<html><body><div class=\"main-body\"><p>Synthetic Boverket publication body for the offline equality test only. Synthetic Boverket publication body for the offline equality test only. Synthetic Boverket publication body for the offline equality test only.</p></div><a href=\"/globalassets/publikationer/dokument/2030/synthetic-two.pdf\">PDF</a><div class=\"publication-metadata\"><div class=\"metadata-row\"><div class=\"metadata-label\">Year:</div><div class=\"metadata-value\">2031</div></div></div></body></html>"
+  },
+  "long_text": "Synthetic Boverket publication body for the offline equality test only. Synthetic Boverket publication body for the offline equality test only. Synthetic Boverket publication body for the offline equality test only.",
+  "original_method_source_sha256": {
+    "module:_curl_get": "e542c07ec07d5b32edd1ff04056f7ecdf3d7a3695f12c943324df51badd5a5f1",
+    "module:_make_soup": "ef83a6c8dcc4b606530ac6d35b45ed33386a23559872104b3cd3df91f3143660",
+    "crawl": "0c82b286d9e85c7284db49f504cba25f6537ed07a444edc25664a29e73d4892d",
+    "_fetch_and_save": "90445661f9c8644f65fa6cdd196b73100819ba14ad5686c1c2700ed075816989"
+  }
+}
