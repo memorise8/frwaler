@@ -324,5 +324,71 @@ class PdfRetryAndSizeTest(Base):
         self.bad(api_plan(max_response_bytes=900 << 20))
 
 
+@unittest.skipUnless(shutil.which("pdftotext"), "pdftotext not installed")
+class MissingPdfAsNoTextTest(Base):
+    def test_declared_404_on_the_pdf_reaches_the_fallback_rule(self):
+        got = []
+
+        def detail(text, item):
+            got.append(text)
+            abstract = text.strip() if text else "description from the listing"
+            return {"external_id": item["external_id"], "url": item["url"], "title": "t", "abstract": abstract}
+
+        def handle(method, url, data):
+            parts = urlsplit(url)
+            if parts.path == "/view":
+                i = parse_qs(parts.query)["id"][0]
+                return Response(200, {"Content-Type": "text/html"}, html(f'<a class="next" href="/files/{i}.pdf">pdf</a>'))
+            if parts.path == "/files/2.pdf":
+                return Response(404, {}, b"")
+            if parts.path.startswith("/files/"):
+                return Response(200, {"Content-Type": "application/pdf"}, make_pdf("Abstract ok"))
+            return FakeBoard(3)(url)
+        site = contract_site(detail_args=["pdf_text", "item"], second_step={"use": "detail_page", "selector": "a.next"},
+                             pdf_text={"missing_statuses": [404]})
+        result = self.env.run(site, None, crawler=crawler(self.env, detail), transport=RecordingTransport(handle))
+        self.assertEqual(result["status"], "complete", result)
+        self.assertEqual(len(self.env.docs()), 3)
+        self.assertIn(None, got)
+        env2 = Env()
+        self.addCleanup(env2.close)
+        site2 = contract_site(detail_args=["pdf_text", "item"], second_step={"use": "detail_page", "selector": "a.next"},
+                              pdf_text={})
+        env2.run(site2, None, crawler=crawler(env2, detail), transport=RecordingTransport(handle))
+        self.assertEqual(len(env2.docs()), 2)  # undeclared: the item fails as before
+        self.bad(contract_site(detail_args=["pdf_text"], pdf_text={"missing_statuses": [500]}))
+
+
+class DiscoverLinkAsUrlTest(Base):
+    def test_each_found_link_is_its_segments_listing(self):
+        pages = {"/archive": '<a class="issue" href="/oil/issue/1129/">Oil 1</a><a class="issue" href="/est/issue/900/">Est 1</a>'
+                             '<a class="issue" href="https://other.test/x/issue/5/">Other</a>'}
+        seen = []
+
+        def handle(method, url, data):
+            parts = urlsplit(url)
+            seen.append(url)
+            if parts.path == "/robots.txt":
+                return Response(404, {}, b"")
+            if parts.path in pages:
+                return Response(200, {"Content-Type": "text/html"}, html(pages[parts.path]))
+            if "/issue/" in parts.path:
+                page = int(parse_qs(parts.query).get("page", ["1"])[0])
+                n = int(parts.path.rstrip("/").rsplit("/", 1)[1])
+                return json_resp({"items": api_items([n % 100 + 1]) if page == 1 else []})
+            return Response(404, {}, b"")
+        site = api_plan(strategy="date_range_split")
+        site["segments"] = {"mode": "discover", "hub_url": "https://api.test/archive", "selector": "a.issue",
+                            "key_regex": r"/issue/(\d+)/", "link_as_url": True}
+        result = self.env.run(site, None, transport=RecordingTransport(handle))
+        self.assertIn(result["status"], ("complete", "complete_unverified"), result)
+        self.assertIn("https://api.test/oil/issue/1129/?page=1", seen)
+        self.assertIn("https://api.test/est/issue/900/?page=1", seen)
+        self.assertFalse([u for u in seen if "other.test" in u])
+        bad = api_plan(strategy="date_range_split", listing={"url": "https://api.test/s/{page}/"})
+        bad["segments"] = dict(site["segments"])
+        self.bad(bad)
+
+
 if __name__ == "__main__":
     unittest.main()
