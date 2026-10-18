@@ -496,3 +496,76 @@ class PNNLNewsGovCrawler(BaseCrawler):
 
         print(f"[pnnl-gov-news] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged). The plan reads the same
+    # news_listing view (news[]=type:23) as a GET HTML page
+    # (/news?news[0]=type:23&page=N) instead of the views/ajax POST; the cards
+    # are parsed by crawl's own _parse_list_response.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        view = soup.select_one("div.view--news-listing") if soup is not None else None
+        if view is None:
+            raise PermanentFailure("listing_parse_error:missing_news_listing_view")
+        cards = _parse_list_response(json.dumps([{"command": "insert", "data": str(view)}]))
+        if not cards and view.find("article", class_=re.compile(r"\bteaser\b")) is not None:
+            raise PermanentFailure("listing_parse_error:cards_not_parsed")
+        return cards
+
+    def _enumeration_detail(self, html, item):
+        if not html:
+            return None
+        return _parse_detail(html)
+
+    def _enumeration_paper(self, card, detail):
+        item_url = card["url"]
+        title = detail["title"] or card["title"]
+        if not title:
+            return None
+        abstract = detail["abstract"]
+        if not abstract:
+            abstract = card.get("summary", "")
+        if len(abstract) < 50:
+            return None
+        date_str = detail["date_str"] or card["date_str"]
+        published_date = _parse_date(date_str)
+        news_type = detail["news_type"] or card["news_type"]
+        author = detail["author"]
+        node_id = detail["node_id"]
+        subtitle = detail["subtitle"]
+        slug = item_url.rstrip("/").split("/")[-1]
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": node_id or slug,
+            "post_number": node_id or None,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "authors": author,
+            "publisher": "Pacific Northwest National Laboratory",
+            "department": "",
+            "journal": "",
+            "url": item_url,
+            "pdf_url": None,
+            "keywords": "",
+            "category": news_type,
+            "doi": "",
+            "original_filename": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": date_str,
+                    "node_id": node_id,
+                    "subtitle": subtitle,
+                    "news_type": news_type,
+                    "slug": slug,
+                },
+                ensure_ascii=False,
+            ),
+        }
