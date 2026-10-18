@@ -280,3 +280,111 @@ class EducationGovtNzSearchCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched JSON.
+    # The listing is crawl()'s Algolia query (same index, facetFilters,
+    # filters, page size) sent to the single-index endpoint
+    # (/1/indexes/<index>/query), whose answer is crawl()'s results[0].
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Hits of one Algolia answer ({"hits": [...]}), in crawl() order.
+        A page past the end answers an empty "hits" list (explicit end); an
+        error object or another shape is a listing parse error (never an end).
+        Every hit stays listed (the run accounts for it against nbHits); a hit
+        crawl() would skip is marked and _enumeration_paper returns None for it:
+        no title, or crawl()'s dedup key (file_url, else objectID) already seen
+        on this page."""
+        from crawler.enumeration.http import PermanentFailure
+        hits = data.get("hits") if isinstance(data, dict) else None
+        if not isinstance(hits, list) or not all(isinstance(h, dict) for h in hits):
+            raise PermanentFailure("listing_parse_error:invalid_response", url)
+        rows = []
+        seen = set()
+        for hit in hits:
+            obj_id = hit.get("objectID") or ""
+            title = (hit.get("title") or "").strip()
+            file_url = (hit.get("file_url") or "").strip()
+            dedup_key = file_url or obj_id
+            skip = None
+            if not title:
+                skip = "no_title"
+            elif dedup_key in seen:
+                skip = "duplicate_dedup_key"
+            else:
+                seen.add(dedup_key)
+            url = file_url or (
+                f"{self.base_url}/search?site_search_live"
+                "%5BhierarchicalMenu%5D%5Bresult.lvl0%5D%5B0%5D=Documents"
+            )
+            rows.append({"url": url, "objectID": obj_id, "title": title, "hit": hit, "skip": skip})
+        return rows
+
+    def _enumeration_paper(self, row):
+        """Paper from one listing hit: crawl()'s conversion, copied verbatim
+        (external_id = objectID, post_number = its numeric entity id, url =
+        pdf_url = file_url). None when crawl() would skip it (no title, dedup
+        key already seen on the page, short abstract)."""
+        if row.get("skip"):
+            return None
+        hit = row["hit"]
+        obj_id = hit.get("objectID") or ""
+        title = (hit.get("title") or "").strip()
+        file_url = (hit.get("file_url") or "").strip()
+
+        abstract = self._build_abstract(hit)
+        if len(abstract) < 50:
+            print(
+                f"[{self.site_id}] skipping '{title[:50]}': "
+                f"abstract too short ({len(abstract)} chars)"
+            )
+            return None
+
+        created_ms = hit.get("created")
+        pub_date = self._parse_date(created_ms)
+
+        post_number = None
+        m = re.search(r"/(\d+):", obj_id)
+        if m:
+            post_number = m.group(1)
+
+        url = file_url or (
+            f"{self.base_url}/search?site_search_live"
+            "%5BhierarchicalMenu%5D%5Bresult.lvl0%5D%5B0%5D=Documents"
+        )
+
+        original_filename = self._extract_filename(file_url)
+
+        metadata = {
+            "objectID": obj_id,
+            "search_api_id": hit.get("search_api_id"),
+            "entity_type": hit.get("entity_type"),
+            "file_type": hit.get("file_type"),
+            "file_size": hit.get("file_size"),
+            "result_type": hit.get("result_type"),
+            "result": hit.get("result"),
+            "algolia_index": _ALGOLIA_INDEX,
+        }
+
+        return {
+            "site_id": self.site_id,
+            "external_id": obj_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "listed_date": pub_date,
+            "url": url,
+            "pdf_url": file_url or None,
+            "category": hit.get("document_type") or "",
+            "keywords": None,
+            "authors": None,
+            "publisher": "Ministry of Education",
+            "department": None,
+            "journal": None,
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }

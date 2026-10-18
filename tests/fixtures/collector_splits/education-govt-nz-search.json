@@ -1,0 +1,64 @@
+{
+ "site_id": "education-govt-nz-search",
+ "listing": {
+  "hits": [
+   {
+    "objectID": "entity:paragraph/5001:en",
+    "search_api_id": "entity:paragraph/5001:en",
+    "title": "Synthetic corporate report",
+    "file_url": "https://assets.example.invalid/documents/synthetic-report.pdf",
+    "content": "Synthetic corporate report summary.",
+    "document_type": "Annual report",
+    "created": 1924992000000,
+    "entity_type": "paragraph",
+    "file_type": "pdf",
+    "file_size": 12345,
+    "result_type": "Document",
+    "result": {
+     "lvl0": "Documents",
+     "lvl1": "Documents > Corporate publication"
+    }
+   },
+   {
+    "objectID": "entity:paragraph/5002:en",
+    "title": "Synthetic statement without file",
+    "content": "",
+    "document_type": "Statement of intent",
+    "created": 1925078400000
+   },
+   {
+    "objectID": "entity:paragraph/5003:en",
+    "title": "Synthetic duplicate of the first file",
+    "file_url": "https://assets.example.invalid/documents/synthetic-report.pdf",
+    "created": 1925078400000
+   },
+   {
+    "objectID": "entity:paragraph/5004:en",
+    "title": "",
+    "file_url": "https://assets.example.invalid/documents/untitled.pdf"
+   },
+   {
+    "objectID": "x",
+    "title": "T"
+   }
+  ],
+  "nbHits": 5,
+  "page": 0,
+  "nbPages": 1,
+  "hitsPerPage": 20
+ },
+ "end": {
+  "hits": [],
+  "nbHits": 5,
+  "page": 1,
+  "nbPages": 1,
+  "hitsPerPage": 20
+ },
+ "original_method_source_sha256": {
+  "_algolia_query": "907680ae92fa57fb20d2d65338edb4ddc1cd37dc9cb37ac4bfd202103b534806",
+  "_parse_date": "a840316c946e9877983dfca92d99eb9be2af6fc646162f972ccc518757c6d882",
+  "_extract_filename": "a12205b284fbe325058682d902fd1f1dc16f295337ff03d4dad88a421c1435a9",
+  "_build_abstract": "5ec4d4aa7075e84aa67a4a998d2f89dfe5869b1620776d2c1c31795268c29fb9",
+  "crawl": "f999fc8f2332c0bc09eaef1d90a3e6ec51552c2ad88bf6566b036d3ab1bae494"
+ }
+}
