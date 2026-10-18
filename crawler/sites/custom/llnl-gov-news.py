@@ -276,3 +276,104 @@ class LLNLGovNewsCrawler(BaseCrawler):
 
         print(f"[llnl-gov-news] crawl complete: saved={saved}")
         return saved
+
+    # Pure enumeration entry points (collector-splits); crawl() and helpers stay unchanged.
+    def _enumeration_items(self, data, url=None):
+        """One contenthub JSONP page (already unwrapped) -> listing rows.
+
+        Same id rule as crawl(): external_id = post_number = nid; rows without nid are
+        skipped like crawl()'s invalid_response skip. The detail URL is crawl()'s detail_url.
+        """
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:items_not_a_list_of_objects", url)
+        rows = []
+        for item in data:
+            nid = str(item.get("nid") or "").strip()
+            if not nid:
+                continue
+            source     = item.get("source", "pao")
+            alias_path = (item.get("alias_path") or "").strip()
+            ext_link   = (item.get("ext_link") or "").strip()
+            if source == "external" and ext_link:
+                detail_url = ext_link
+            elif alias_path:
+                detail_url = f"{_WWW_BASE}{alias_path}"
+            else:
+                detail_url = f"{_WWW_BASE}/news"
+            rows.append({
+                "external_id":    nid,
+                "url":            detail_url,
+                "title":          (item.get("title") or "").strip(),
+                "published_date": _parse_date((item.get("pub_date") or "").strip()),
+                "record":         item,
+            })
+        return rows
+
+    def _enumeration_paper(self, row):
+        """Pure copy of crawl()'s Paper conversion for one API item.
+
+        None keeps crawl()'s skips (empty title, abstract under 50 chars).
+        """
+        item = row["record"]
+        nid = str(item.get("nid") or "").strip()
+        if not nid:
+            return None
+
+        title = (item.get("title") or "").strip()
+        if not title:
+            return None
+
+        source     = item.get("source", "pao")
+        alias_path = (item.get("alias_path") or "").strip()
+        ext_link   = (item.get("ext_link") or "").strip()
+
+        if source == "external" and ext_link:
+            detail_url = ext_link
+        elif alias_path:
+            detail_url = f"{_WWW_BASE}{alias_path}"
+        else:
+            detail_url = f"{_WWW_BASE}/news"
+
+        body_raw = item.get("body_value") or item.get("body_mini_value") or ""
+        abstract = _strip_tags(body_raw).strip()
+
+        if len(abstract) < 50:
+            return None
+
+        pub_date_raw   = (item.get("pub_date") or "").strip()
+        published_date = _parse_date(pub_date_raw)
+
+        keywords = _extract_keywords(item.get("terms"))
+        category = (item.get("name") or "").strip() or None
+
+        meta = {
+            "nid":          nid,
+            "tid":          item.get("tid"),
+            "vid":          item.get("vid"),
+            "terms":        item.get("terms"),
+            "alias":        item.get("alias"),
+            "source":       source,
+            "ext_link":     ext_link or None,
+            "pub_date_raw": pub_date_raw,
+            "large_image":  item.get("large_image"),
+            "posted_date":  published_date,
+        }
+
+        return {
+            "site_id":           self.site_id,
+            "external_id":       nid,
+            "post_number":       nid,
+            "url":               detail_url,
+            "title":             title,
+            "abstract":          abstract,
+            "published_date":    published_date,
+            "posted_date":       published_date,
+            "listed_date":       published_date,
+            "publisher":         "Lawrence Livermore National Laboratory",
+            "keywords":          keywords,
+            "category":          category,
+            "pdf_url":           None,
+            "original_filename": None,
+            "metadata":          json.dumps(meta, ensure_ascii=False),
+        }

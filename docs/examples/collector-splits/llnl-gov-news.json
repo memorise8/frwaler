@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "sites": {
+    "llnl-gov-news": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "base_url": "https://www.llnl.gov",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "jsonp": true,
+        "none_is_rule_skip": true,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://contenthub.llnl.gov/articles/all/20/{page}/none/www.llnl.gov",
+        "params": {
+          "callback": "eventsLoaded"
+        },
+        "page_mode": "offset",
+        "page_size": 20,
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "external_id",
+          "url_field": "url",
+          "date_field": "published_date",
+          "title_field": "title"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
