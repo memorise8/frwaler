@@ -352,3 +352,80 @@ class SeerCancerGovReportToNationCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] done: saved {saved} items")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() is unchanged; these
+    # methods only parse the already fetched archive page (no network).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Entries of the single archive page as crawl() saves them: the same
+        grouping/parse helpers, the same slug/url dedup and short-abstract skip.
+        Each row also carries the page's last_modified date crawl() stores."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        listed_date, listed_date_raw = _extract_listed_date(html)
+        rows = []
+        seen_urls = set()
+        seen_slugs = set()
+        for entry in _extract_entries(html):
+            try:
+                parsed = _parse_entry(entry)
+            except Exception:
+                continue
+            if not parsed:
+                continue
+            slug = parsed["slug"]
+            url_ = parsed["url"]
+            if slug in seen_slugs or url_ in seen_urls:
+                continue
+            if len(parsed["abstract"]) < _MIN_ABSTRACT:
+                continue
+            seen_slugs.add(slug)
+            seen_urls.add(url_)
+            rows.append(dict(parsed, listed_date=listed_date, listed_date_raw=listed_date_raw))
+        return rows
+
+    def _enumeration_paper(self, item):
+        """Paper from one archive entry: crawl()'s paper dict copied verbatim
+        (external_id = post_number = year slug, unchanged)."""
+        parsed = item
+        listed_date = item.get("listed_date")
+        listed_date_raw = item.get("listed_date_raw")
+        slug = parsed["slug"]
+        url = parsed["url"]
+        abstract = parsed["abstract"]
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+        return {
+            "site_id": self.site_id,
+            "external_id": slug,
+            "post_number": slug,
+            "title": parsed["title"],
+            "abstract": abstract,
+            "published_date": parsed["published_date"],
+            "posted_date": listed_date,
+            "url": url,
+            "pdf_url": parsed["pdf_url"],
+            "original_filename": parsed["original_filename"],
+            "authors": parsed["authors"],
+            "publisher": _PUBLISHER,
+            "department": None,
+            "journal": parsed["journal"],
+            "keywords": parsed["keywords"],
+            "category": "Cancer Statistics Report",
+            "doi": parsed["doi"],
+            "metadata": json.dumps({
+                "posted_date": listed_date_raw,
+                "originalFilename": parsed["original_filename"],
+                "journal_raw": parsed["journal"],
+                "series": None,
+                "volume": parsed["volume"],
+                "issue": parsed["issue"],
+                "slug": slug,
+                "html_links": parsed["html_links"],
+                "pdf_links": parsed["pdf_links"],
+                "materials_url": parsed["materials_url"],
+            }, ensure_ascii=False),
+        }
