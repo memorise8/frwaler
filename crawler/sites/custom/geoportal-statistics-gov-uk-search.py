@@ -476,3 +476,36 @@ class GeoportalStatisticsGovUkSearchCrawler(BaseCrawler):
             if isinstance(link, dict) and link.get("rel") == "next" and link.get("href"):
                 return str(link["href"])
         return None
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. The list page
+    # gives the features (native id required); the detail request is the
+    # item's JSON API address and the paper is _paper_from_detail. Its HEAD
+    # request for a PDF file name is not made here (no network in the adapter):
+    # the name then comes from the URL, as crawl() falls back to.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        rows = []
+        for feature in (data.get("features") or []) if isinstance(data, dict) else []:
+            if not isinstance(feature, dict):
+                continue
+            item_id = str(feature.get("id") or "").strip()
+            if not item_id:
+                continue
+            rows.append({"external_id": item_id, "url": self._detail_api_url(item_id),
+                         "page_url": self._detail_page_url(item_id), "feature": feature})
+        return rows
+
+    def _enumeration_detail(self, data, item):
+        return data if isinstance(data, dict) else None
+
+    def _enumeration_paper(self, item, detail):
+        if not isinstance(detail, dict):
+            return None
+        head = self._filename_from_head
+        self._filename_from_head = lambda url: None
+        try:
+            return self._paper_from_detail(detail, item["feature"])
+        finally:
+            self._filename_from_head = head
