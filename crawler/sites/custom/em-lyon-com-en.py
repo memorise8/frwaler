@@ -478,3 +478,27 @@ class EMLyonComEnCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html_text, url=None):
+        """Cards of one /en/newsroom page, parsed like crawl() (same list_url)."""
+        from urllib.parse import parse_qs
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html_text, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html_text)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparsable_html")
+        page = (parse_qs(urlparse(url or "").query).get("page") or ["0"])[0]
+        list_url = _START_URL if page in ("", "0") else f"{_START_URL}?page={page}"
+        return _parse_list_items(soup, list_url)
+
+    def _enumeration_paper(self, detail_html, item):
+        """Paper dict exactly as crawl() saves it for one card (None = skipped)."""
+        paper = _parse_detail(detail_html, item)
+        if len(paper.get("abstract") or "") < 50:
+            return None
+        return paper

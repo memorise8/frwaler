@@ -1,0 +1,13 @@
+{
+ "site_id": "em-lyon-com-en",
+ "listing_body": "<html><body class=\"path-newsroom\"><main><div class=\"views-element-container\"><article class=\"emlyon-big-card-content\"><a href=\"/en/news/faculty/yacine-rekik-dean\"><h4 class=\"card-titre\">Yacine Rekik Appointed Academic Dean</h4></a>\n<time datetime=\"2026-10-15T09:00:00Z\">15 October 2026</time><span class=\"badge\">Faculty</span></article><article class=\"emlyon-big-card-content\"><a href=\"/en/news/partnership/london-interdisciplinary-school\"><h4 class=\"card-titre\">London Interdisciplinary School joins emlyon</h4></a>\n<time datetime=\"2026-10-14T09:00:00Z\">15 October 2026</time><span class=\"badge\">Faculty</span></article></div></main></body></html>",
+ "content_type": "text/html; charset=UTF-8",
+ "details": {
+  "https://em-lyon.com/en/news/faculty/yacine-rekik-dean": "<html><head><link rel=\"canonical\" href=\"https://em-lyon.com/en/news/faculty/yacine-rekik-dean\"><script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\": {\"currentPath\": \"node/38251\"}}</script></head>\n<body><article class=\"emlyon-news full\"><h1>Yacine Rekik Appointed Academic Dean</h1><time datetime=\"2026-10-15T09:00:00Z\">15 October 2026</time><span class=\"sub-category\">Faculty</span>\n<div class=\"field-type--text_long\"><p>emlyon business school announces the appointment of a new academic dean for its technology school, effective from the start of the academic year.</p></div><a href=\"https://res.cloudinary.com/emlyon/image/upload/press-38251.pdf\">Press release</a></article></body></html>",
+  "https://em-lyon.com/en/news/partnership/london-interdisciplinary-school": "<html><head><link rel=\"canonical\" href=\"https://em-lyon.com/en/news/partnership/london-interdisciplinary-school\"><script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\": {\"currentPath\": \"node/38288\"}}</script></head>\n<body><article class=\"emlyon-news full\"><h1>London Interdisciplinary School joins emlyon</h1><time datetime=\"2026-10-14T09:00:00Z\">15 October 2026</time><span class=\"sub-category\">Faculty</span>\n<div class=\"field-type--text_long\"><p>emlyon business school announces the appointment of a new academic dean for its technology school, effective from the start of the academic year.</p></div><a href=\"https://res.cloudinary.com/emlyon/image/upload/press-38288.pdf\">Press release</a></article></body></html>"
+ },
+ "long_text": "emlyon business school announces the appointment of a new academic dean for its technology school, effective from the start of the academic year.",
+ "original_method_source_sha256": {
+  "crawl": "496bc128b1cae7be304d489e4a0c67eff9555a09b24901733af880cf57bffe32"
+ }
+}
