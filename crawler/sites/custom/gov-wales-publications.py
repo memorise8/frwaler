@@ -400,3 +400,11 @@ class GovWalesPublicationsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged: list rows from
+    # _parse_list_page, the paper (or None) from _parse_detail as in crawl().
+    # ------------------------------------------------------------------
+
+    def _enumeration_paper(self, html, item):
+        return self._parse_detail(item["url"], html, item)
