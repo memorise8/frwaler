@@ -382,3 +382,90 @@ class GenomeCanadaAboutCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (framework plan; crawl() above is unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Publication rows of the single index page, parsed with _parse_page
+        exactly as crawl() does (same order, same pdf_url de-duplication).
+
+        The index has no pagination (crawl() reads it once), so a page number
+        above 1 is declared empty; the plan's listing_marker proves the page is
+        still the publications index. A start page without rows is a listing
+        parse error (crawl() would save nothing)."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        page = (parse_qs(urlsplit(url or "").query).get("page") or ["1"])[0]
+        if page not in ("", "0", "1"):
+            return []
+        rows = []
+        seen_urls: set[str] = set()
+        for pub in self._parse_page(html):
+            pdf_url = pub["pdf_url"]
+            if pdf_url in seen_urls:
+                continue
+            seen_urls.add(pdf_url)
+            filename = pdf_url.split("/")[-1]
+            rows.append(dict(pub, external_id=re.sub(r"\.pdf$", "", filename, flags=re.I)))
+        if not rows:
+            raise PermanentFailure("listing_parse_error:no_publication_pdf_links", url)
+        return rows
+
+    def _enumeration_paper(self, pdf_text, pub):
+        """Paper for one index row from the framework's pdftotext output of the
+        row's PDF (plan adapter.pdf_text args ["-l", "5"], the flags of
+        _pdf_to_text). Same conversion as crawl(): _clean() the text, skip
+        below _ABSTRACT_MIN_CHARS, external_id = PDF filename stem."""
+        pdf_url = pub["pdf_url"]
+        title = pub["title"]
+        category = pub["category"]
+        upload_date = pub["upload_date"]
+        filename = pdf_url.split("/")[-1]
+
+        # pdftotext failure (None) gives "" like _pdf_to_text's error path.
+        abstract = _clean(pdf_text or "")
+
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+
+        # Date: upload URL gives YYYY-MM; fallback to year from filename
+        published_date = upload_date
+        if not published_date:
+            yr = re.search(r"(20\d{2})", filename)
+            published_date = f"{yr.group(1)}-01-01" if yr else ""
+
+        # post_number: YYYYMM for incremental-collection comparisons
+        pm = re.search(r"/uploads/(\d{4})/(\d{2})/", pdf_url)
+        post_number = f"{pm.group(1)}{pm.group(2)}" if pm else None
+
+        external_id = re.sub(r"\.pdf$", "", filename, flags=re.I)
+
+        return {
+            "id": None,
+            "site_id": _SITE_ID,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract[:8000],
+            "category": category,
+            "published_date": published_date,
+            "listed_date": upload_date,
+            "url": _INDEX_URL,
+            "pdf_url": pdf_url,
+            "original_filename": filename,
+            "authors": "",
+            "publisher": "Genome Canada",
+            "journal": "",
+            "keywords": "",
+            "doi": "",
+            "department": "",
+            "metadata": json.dumps({
+                "posted_date": upload_date,
+                "originalFilename": filename,
+                "source_page": _INDEX_URL,
+            }, ensure_ascii=False),
+        }
