@@ -392,3 +392,23 @@ class UnidataGvAtPagesCrawler(BaseCrawler):
             seen.add(key)
             out.append(text)
         return ", ".join(out) if out else None
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() is unchanged. Listing pages are
+    # /publikationen and /publikationen/p{N} (ext:path_paging); each card holds
+    # everything crawl() saves, so the listing returns crawl()'s paper dicts
+    # (list_returns_paper) with its dedup and abstract rules.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw):
+        papers, seen = [], set()
+        for card in self._parse_cards(raw):
+            pdf_url = card.get("pdf_url")
+            if not pdf_url or pdf_url in seen:
+                continue
+            seen.add(pdf_url)
+            paper = self._build_paper(card)
+            if not paper or len(paper.get("abstract") or "") < _ABSTRACT_MIN_CHARS:
+                continue
+            papers.append(paper)
+        return papers
