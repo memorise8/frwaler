@@ -454,3 +454,63 @@ class KnmiNlKennisEnDatacentruCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # -- enumeration split (crawl() unchanged) --------------------------
+    def _with_body(self, body, call):
+        """Run crawl's own fetch+parse helper on an already fetched body (no network)."""
+        self._curl_get = lambda url, extra_headers=None, retries=3: body
+        try:
+            return call()
+        finally:
+            del self._curl_get
+
+    def _enumeration_items(self, html: str, url: str = "") -> list[dict]:
+        """List rows exactly as _fetch_list_page parses them (AJAX snippet or full page)."""
+        return self._with_body(html, lambda: self._fetch_list_page(1))
+
+    def _enumeration_detail(self, html: str, url: str) -> dict | None:
+        return self._with_body(html, lambda: self._fetch_detail(url))
+
+    def _enumeration_paper(self, item: dict, detail: dict | None) -> dict | None:
+        """The paper crawl() saves (same skips: no list intro, no detail, abstract < 50)."""
+        if not item.get("intro") or not detail:
+            return None
+        abstract = detail.get("abstract", "")
+        if len(abstract) < 50:
+            return None
+        title = detail.get("title") or item.get("title", "")
+        year = detail.get("year")
+        if not year:
+            # The detail page no longer carries "Year:" (all 388 earlier saves have no
+            # published_date); the list row meta does ("... | Year: 2026 | Pages: 45").
+            m = re.search(r"Year:\s*(\d{4})", item.get("meta_text") or "")
+            year = m.group(1) if m else None
+        published_date = f"{year}-01-01" if year else None
+        slug = item["url"].rstrip("/").split("/")[-1]
+        meta_dict = {
+            "knmi_number": detail.get("knmi_number"),
+            "volume": detail.get("volume"),
+            "issue": detail.get("issue"),
+            "pages": detail.get("pages"),
+            "bib_text": detail.get("bib_text"),
+        }
+        return {
+            "site_id": self.site_id,
+            "external_id": slug,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": published_date,
+            "authors": detail.get("authors_raw") or "",
+            "publisher": "KNMI",
+            "journal": detail.get("journal"),
+            "url": item["url"],
+            "pdf_url": detail.get("pdf_url"),
+            "original_filename": detail.get("original_filename"),
+            "doi": detail.get("doi"),
+            "category": "KNMI Publication",
+            "metadata": json.dumps(
+                meta_dict, ensure_ascii=False
+            ),
+        }
+

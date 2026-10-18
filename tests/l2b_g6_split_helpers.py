@@ -53,3 +53,11 @@ class EmptyBodyEndRunChecks(G4SplitRunChecks):
         self.assertEqual(2, len(docs))
         self.assertEqual(2, len({d['post_number'] for d in docs}))
         self.assertEqual(2, len({d['meta_url'] for d in docs}))
+
+
+class PlainNativeSplitChecks(G4SplitChecks):
+    """crawl() reaches the network only through ``self._curl_get`` (no list-helper
+    rerouting), with the g4 site-marker empty-page checks."""
+
+    def native(self, fixture=None):
+        return base.SplitChecks.native(self, fixture)

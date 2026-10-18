@@ -1,0 +1,17 @@
+{
+ "listing_body": "<html><body><div id=\"search-results\"><ul><li><a class=\"search-results__title\" href=\"/kennis-en-datacentrum/publicatie/pub-een\">Publicatie een</a><p class=\"search-results__intro\">Korte intro een...</p><span class=\"search-results__meta\">A Auteur | Year: 2026 | Pages: 12</span></li><li><a class=\"search-results__title\" href=\"/kennis-en-datacentrum/publicatie/pub-twee\">Publicatie twee</a><p class=\"search-results__intro\">Korte intro twee...</p><span class=\"search-results__meta\">A Auteur | Year: 2025 | Pages: 12</span></li></ul></div></body></html>",
+ "details": {
+  "https://www.knmi.nl/kennis-en-datacentrum/publicatie/pub-een": "<html><body><h1 class=\"hero-text__heading\">Publicatie een detail</h1><div class=\"publication-author\">A Auteur<div>share</div></div><div class=\"serif\"><p>Synthetic offline KNMI abstract for the L2b split regression; crawl and plan must build the same paper. Synthetic offline text, résumé kept identical between crawl and plan.</p></div><div class=\"editable-table\"><p>KNMI number: WR-2026-01, Year: 2026, Pages: 12</p></div><a class=\"download\" href=\"https://cdn.knmi.nl/system/data_center_publications/files/p1.pdf\">Download</a></body></html>",
+  "https://www.knmi.nl/kennis-en-datacentrum/publicatie/pub-twee": "<html><body><h1 class=\"hero-text__heading\">Publicatie twee detail</h1><div class=\"publication-author\">A Auteur<div>share</div></div><div class=\"serif\"><p>Synthetic offline KNMI abstract for the L2b split regression; crawl and plan must build the same paper. Synthetic offline text, résumé kept identical between crawl and plan.</p></div><div class=\"editable-table\"><p>KNMI number: WR-2026-01, Year: 2025, Pages: 12</p></div><a class=\"download\" href=\"https://cdn.knmi.nl/system/data_center_publications/files/p2.pdf\">Download</a></body></html>"
+ },
+ "content_type": "text/html",
+ "long_text": "Synthetic offline KNMI abstract for the L2b split regression; crawl and plan must build the same paper. Synthetic offline text, résumé kept identical between crawl and plan.",
+ "empty_body": "<html><body><div id=\"search-results\"><p>Geen resultaten</p></div></body></html>",
+ "site_id": "knmi-nl-kennis-en-datacentru",
+ "original_method_source_sha256": {
+  "_curl_get": "9ec1060de1956cd78f05180311e39f93a2b174dd5c50276e57e4117e34df5f02",
+  "_fetch_list_page": "b9f78209df7aac5bb2f6f659a2f2ee69057e940df006401933915bd4f88c08a9",
+  "_fetch_detail": "c841654b2f50c2cc4db6dd63b05dd77180726e7118d78aa9663fb228e8df96c8",
+  "crawl": "4ce88f31bdef6578494cb3a4cb5e4dd5d9f41115d8504d607dd45644f8a60e46"
+ }
+}
