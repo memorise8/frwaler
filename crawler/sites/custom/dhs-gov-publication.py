@@ -164,6 +164,71 @@ class DHSPublicationCrawler(BaseCrawler):
     site_name = "Custom: dhs-gov-publication"
     base_url  = "https://www.dhs.gov"
 
+    # Pure enumeration entry points (framework fetches through its own gate;
+    # crawl() and its Playwright fetcher stay unchanged and unused).
+    def _enumeration_items(self, html, url=None):
+        if not isinstance(html, str):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:not_html", url)
+        return _parse_listing_page(html)
+
+    def _enumeration_paper(self, record):
+        """Pure copy of crawl's Paper conversion and item filters (None = crawl's skip)."""
+        pdf_url = record["pdf_url"]
+        title = record["title"].strip()
+        if not title:
+            return None
+        date_raw = record.get("date_raw", "")
+        ext      = record.get("ext", "PDF")
+        size     = record.get("size", "")
+        abstract = (
+            f"{_PAGE_DESCRIPTION}\n\n"
+            f"Document: {title}. "
+            f"Type: {ext}. "
+            f"Size: {size}. "
+            f"Listing date: {date_raw}."
+        )
+        if len(abstract) < 50:
+            return None
+        fy_m = re.search(r'\bFY\s*(\d{4})\b', title, re.IGNORECASE)
+        post_number = fy_m.group(1) if fy_m else None
+        pdf_filename = pdf_url.rstrip("/").split("/")[-1].split("?")[0]
+        pdf_filename_decoded = pdf_filename.replace("%20", "_").replace("%24", "$")
+        external_id = re.sub(r'\.[^.]+$', '', pdf_filename_decoded)
+        if not external_id:
+            external_id = re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')
+        return {
+            "id":               None,
+            "site_id":          self.site_id,
+            "external_id":      external_id,
+            "post_number":      post_number,
+            "title":            title,
+            "abstract":         abstract,
+            "published_date":   None,
+            "listed_date":      date_raw,
+            "url":              _LISTING_URL,
+            "pdf_url":          pdf_url,
+            "publisher":        "U.S. Department of Homeland Security",
+            "department":       "Department of Homeland Security",
+            "authors":          "",
+            "keywords":         f"conferences, annual report, DHS, fiscal year, {post_number or ''}".rstrip(", "),
+            "category":         "Annual Report on Conferences",
+            "doi":              "",
+            "original_filename": pdf_filename_decoded,
+            "metadata": json.dumps(
+                {
+                    "posted_date":      date_raw,
+                    "originalFilename": pdf_filename_decoded,
+                    "file_size":        size,
+                    "file_ext":         ext,
+                    "node_id":          "9535",
+                    "fiscal_year":      post_number,
+                    "listing_url":      _LISTING_URL,
+                },
+                ensure_ascii=False,
+            ),
+        }
+
     def crawl(self, limit=None):
         """Crawl DHS annual conference report PDFs.
 
