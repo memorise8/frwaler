@@ -563,5 +563,53 @@ class EdocRkiDeHandleCrawler(BaseCrawler):
             deduped.append(value)
         return deduped
 
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() and its transport are unchanged.
+    # Listing = the collection's discover page (same parameters as _list_url;
+    # list_url in metadata is rebuilt with _list_url). Detail = the METS record
+    # fetched by the framework, parsed by _parse_mets_detail with crawl()'s
+    # 100-char abstract rule. crawl()'s HTML fallback (only when METS fails)
+    # is not made here: such an item is skipped instead.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        from urllib.parse import parse_qs, urlsplit
+        page = parse_qs(urlsplit(url).query).get("page", ["1"])[0]
+        list_url = self._list_url(int(page)) if page.isdigit() else url
+        soup = self._make_soup(html)
+        rows = []
+        for record in self._parse_list(soup, list_url):
+            row = dict(record)
+            row["_mets_url"] = self._mets_url(record["external_id"])
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, raw, item):
+        record = dict(item)
+        mets_url = record.pop("_mets_url")
+        try:
+            parsed = self._parse_mets_detail(raw, record, mets_url)
+        except Exception:
+            return None
+        abstract = parsed.get("abstract") or ""
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": parsed["external_id"],
+            "title": parsed["title"],
+            "authors": json.dumps(parsed["authors"], ensure_ascii=False),
+            "abstract": abstract,
+            "category": parsed["category"],
+            "keywords": json.dumps(parsed["keywords"], ensure_ascii=False),
+            "published_date": parsed["published_date"],
+            "url": parsed["url"],
+            "pdf_url": parsed["pdf_url"],
+            "doi": parsed["doi"],
+            "department": parsed["department"],
+            "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
+        }
+
 
 __all__ = ["EdocRkiDeHandleCrawler"]

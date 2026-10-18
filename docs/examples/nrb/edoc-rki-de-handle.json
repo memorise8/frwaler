@@ -1,0 +1,54 @@
+{
+ "version": 1,
+ "sites": {
+  "edoc-rki-de-handle": {
+   "strategy": "last_page_backward",
+   "request_interval_s": 1.5,
+   "respect_robots": true,
+   "retries": 1,
+   "verify_ssl": true,
+   "base_url": "https://edoc.rki.de",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "html",
+     "url"
+    ],
+    "detail_method": "_enumeration_paper",
+    "detail_args": [
+     "html",
+     "item"
+    ]
+   },
+   "listing": {
+    "url": "https://edoc.rki.de/handle/176904/2/discover",
+    "params": {
+     "rpp": "100",
+     "etal": "0",
+     "group_by": "none",
+     "sort_by": "dc.date.issued_dt",
+     "order": "desc"
+    },
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "key_field": "external_id",
+     "url_field": "_mets_url",
+     "title_field": "title",
+     "date_field": "published_date",
+     "listing_marker": "#aspect_discovery_SimpleSearch_div_search-results"
+    },
+    "total": {
+     "type": "regex",
+     "pattern": "\\b(?:von|of)\\s+([\\d.,]+)"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1,
+    "check_unparameterized_first_page": false
+   }
+  }
+ }
+}
