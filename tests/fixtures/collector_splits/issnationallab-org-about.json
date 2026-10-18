@@ -1,0 +1,19 @@
+{
+ "site_id": "issnationallab-org-about",
+ "listing_body": "<html><body><main><div class=\"page-content\"><div class=\"wpb_wrapper\"><h2>2025</h2><p>Synthetic ISS National Lab fiscal year summary résumé and Korean 자료 used only for offline equality testing of the enumeration split conversion.</p><p><a href=\"/about/annual-quarterly-reports-metrics/fy25-annual-report/\">View the FY25 Annual Report</a></p><p><a href=\"https://issnationallab.org/download/60001/?tmstv=1792296901\">FY25 Q1 Quarterly Report</a></p></div></div></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://issnationallab.org/about/annual-quarterly-reports-metrics/fy25-annual-report/": "<html><body><main><div class=\"page-content\"><p>Synthetic ISS National Lab fiscal year summary résumé and Korean 자료 used only for offline equality testing of the enumeration split conversion.</p><p>Back to reports</p></div></main></body></html>",
+  "https://issnationallab.org/about/annual-quarterly-reports-metrics/": "<html><body><main><div class=\"page-content\"><div class=\"wpb_wrapper\"><h2>2025</h2><p>Synthetic ISS National Lab fiscal year summary résumé and Korean 자료 used only for offline equality testing of the enumeration split conversion.</p><p><a href=\"/about/annual-quarterly-reports-metrics/fy25-annual-report/\">View the FY25 Annual Report</a></p><p><a href=\"https://issnationallab.org/download/60001/?tmstv=1792296901\">FY25 Q1 Quarterly Report</a></p></div></div></main></body></html>"
+ },
+ "long_text": "Synthetic ISS National Lab fiscal year summary résumé and Korean 자료 used only for offline equality testing of the enumeration split conversion.",
+ "original_method_source_sha256": {
+  "__init__": "9c25e525f01c51ef9a3bbc2da5e5c70590974e8667805d29ce4dbc1a93df730c",
+  "_curl_get": "03b073a420ed45af89973de1f23ce77c5caa4814640bdfe740739f1f11bd198e",
+  "_derive_external_id": "0e800573297d5c5e606fd60a71ca6f2d2f62de1a6d7921cd319ce66334ee8db5",
+  "_quarter_date": "795c80ea1ba03143cfcdffc1d5c49b74b6217bac587c07dadcabf82912597389",
+  "_extract_detail_abstract": "c11707c5ffdbc02790a2f08582879a685e229479c7d7016352717c52eda249fc",
+  "_parse_listing": "9fc878c13aa2638231bf2ec7ee1758460471f7190c9ab7be5ed68b511dd8ce42",
+  "crawl": "dd84d22e679330b55122cb0dc13e7f977012c1b35914ad6400e5085813a4a580"
+ }
+}

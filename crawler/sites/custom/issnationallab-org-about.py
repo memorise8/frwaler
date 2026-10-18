@@ -235,6 +235,68 @@ class ISSNationalLabAboutCrawler(BaseCrawler):
         return entries
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points; existing crawl and helpers stay unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Report entries of the single listing page (no I/O), in crawl() order.
+
+        crawl() skips entries without a URL and repeated URLs; the same rows are
+        dropped here. ``fetch_url`` is what the framework requests for the
+        detail step: the annual report web page for ``annual_detail`` entries
+        (crawl() fetches it for a richer abstract) and the listing page itself
+        for PDF entries, so PDF downloads are never requested as "detail".
+        """
+        rows, seen_urls = [], set()
+        for entry in self._parse_listing(html):
+            url = entry.get('url', '')
+            if not url or url in seen_urls:
+                continue
+            seen_urls.add(url)
+            row = dict(entry)
+            row['fetch_url'] = (entry['detail_url']
+                                if entry.get('kind') == 'annual_detail' and entry.get('detail_url')
+                                else self._LIST_URL)
+            rows.append(row)
+        return rows
+
+    def _enumeration_detail(self, html, entry):
+        """crawl()'s detail step without the fetch: rich abstract for annual_detail only."""
+        if entry.get('kind') == 'annual_detail' and entry.get('detail_url') and html:
+            return {'rich': self._extract_detail_abstract(html)}
+        return {}
+
+    def _enumeration_paper(self, entry, detail):
+        """Pure copy of crawl()'s entry -> paper conversion (None = skipped)."""
+        url = entry.get('url', '')
+        abstract = (f"{entry['title']}\n\n"
+                    f"{entry.get('year_description', '')}").strip()
+        rich = (detail or {}).get('rich')
+        if rich and len(rich) >= 100:
+            abstract = rich
+        if len(abstract) < 50:
+            return None
+        return {
+            'id': None,
+            'site_id': self.site_id,
+            'external_id': entry.get('external_id', ''),
+            'title': entry.get('title', ''),
+            'authors': json.dumps([], ensure_ascii=False),
+            'abstract': abstract,
+            'category': entry.get('category', ''),
+            'keywords': json.dumps([], ensure_ascii=False),
+            'published_date': entry.get('published_date', ''),
+            'url': url,
+            'pdf_url': entry.get('pdf_url', '') or '',
+            'doi': '',
+            'department': '',
+            'metadata': json.dumps({
+                'year': entry.get('year'),
+                'kind': entry.get('kind'),
+            }, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
