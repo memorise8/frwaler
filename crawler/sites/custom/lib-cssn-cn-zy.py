@@ -156,7 +156,10 @@ class LibCssnCnZyCrawler(BaseCrawler):
         html = _curl_get(url)
         if not html:
             return None
+        return self._detail_from_html(html, url)
 
+    def _detail_from_html(self, html, url):
+        """Paper fields of one detail page body (no I/O); None when crawl drops it."""
         soup = _make_soup(html)
         if not soup:
             return None
@@ -238,3 +241,34 @@ class LibCssnCnZyCrawler(BaseCrawler):
             "original_filename": None,
             "metadata": json.dumps(metadata, ensure_ascii=False),
         }
+
+    # -- enumeration split (crawl() unchanged; same parsing and Paper fields) --
+    def _enumeration_items(self, html, url=None):
+        """Detail rows of one 按学科分类浏览 listing page, with crawl()'s URL rule."""
+        from crawler.enumeration.http import PermanentFailure
+        soup = _make_soup(html)
+        if not soup:
+            raise PermanentFailure("listing_parse_error:html_unparseable", url)
+        rows = []
+        for link in soup.select("span.detail a[href]"):
+            href = link.get("href", "").strip()
+            if not href:
+                continue
+            if href.startswith("../"):
+                detail_url = _DETAIL_BASE + href[3:]
+            elif href.startswith("http"):
+                detail_url = href
+            else:
+                detail_url = _DETAIL_BASE + href
+            rows.append({"url": detail_url, "title": _text(link)})
+        return rows
+
+    def _enumeration_detail(self, html, url):
+        """crawl()'s Paper for one detail page; None where crawl skips it."""
+        item = self._detail_from_html(html, url)
+        if item is None:
+            return None
+        abstract = item.get("abstract", "") or ""
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+        return item
