@@ -1,0 +1,38 @@
+{
+ "site_id": "ecologie-gouv-fr-presse",
+ "listing_body": "<html><body><main><form class=\"views-exposed-form bef-exposed-form\" action=\"/presse\"></form><div class=\"views-element-container\"><div class=\"fr-card\"><div class=\"fr-card__body\"><h3 class=\"fr-card__title\"><a href=\"/presse/preservation-biodiversite-plan-national\">Préservation de la biodiversité</a></h3>\n<p class=\"fr-card__desc\">Résumé court</p><p class=\"fr-card__detail\">Publié le 14 octobre 2026</p><p class=\"fr-tag\">Biodiversité</p></div></div><div class=\"fr-card\"><div class=\"fr-card__body\"><h3 class=\"fr-card__title\"><a href=\"/presse/transport-routier-gouvernement\">Transport routier : le Gouvernement</a></h3>\n<p class=\"fr-card__desc\">Résumé court</p><p class=\"fr-card__detail\">Publié le 16 octobre 2026</p><p class=\"fr-tag\">Biodiversité</p></div></div></div></main></body></html>",
+ "content_type": "text/html; charset=UTF-8",
+ "details": {
+  "https://www.ecologie.gouv.fr/presse/preservation-biodiversite-plan-national": "<html><head><link rel=\"canonical\" href=\"https://www.ecologie.gouv.fr/presse/preservation-biodiversite-plan-national\">\n<script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\":{\"currentPath\":\"node/7329\"}}</script></head>\n<body><div class=\"node--type-press node--view-mode-full\"><div class=\"heading\"><h1>Préservation de la biodiversité</h1><div class=\"heading-info\"><p>Publié le 14 octobre 2026</p></div>\n<div class=\"heading-tags\"><p class=\"fr-tag\">Biodiversité</p></div></div><div class=\"layout-inner\"><p>La France a remis à la Commission européenne son projet de plan national de restauration de la nature, qui fixe les objectifs de préservation de la biodiversité jusqu'en 2050.</p>\n<p><a href=\"/sites/default/files/documents/cp-7329.pdf\">Communiqué (PDF)</a></p></div></div></body></html>",
+  "https://www.ecologie.gouv.fr/presse/transport-routier-gouvernement": "<html><head><link rel=\"canonical\" href=\"https://www.ecologie.gouv.fr/presse/transport-routier-gouvernement\">\n<script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\":{\"currentPath\":\"node/7339\"}}</script></head>\n<body><div class=\"node--type-press node--view-mode-full\"><div class=\"heading\"><h1>Transport routier : le Gouvernement</h1><div class=\"heading-info\"><p>Publié le 16 octobre 2026</p></div>\n<div class=\"heading-tags\"><p class=\"fr-tag\">Biodiversité</p></div></div><div class=\"layout-inner\"><p>La France a remis à la Commission européenne son projet de plan national de restauration de la nature, qui fixe les objectifs de préservation de la biodiversité jusqu'en 2050.</p>\n<p><a href=\"/sites/default/files/documents/cp-7339.pdf\">Communiqué (PDF)</a></p></div></div></body></html>"
+ },
+ "long_text": "La France a remis à la Commission européenne son projet de plan national de restauration de la nature, qui fixe les objectifs de préservation de la biodiversité jusqu'en 2050.",
+ "original_method_source_sha256": {
+  "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+  "crawl": "ab1076f7930633e8e74a30be2c183d2139a24dbfdf6dfa57c297d1c7610feefa",
+  "_curl_get": "53f5088424b5aa60cb656e8447c015946ddcc1c8f85e5667491e95cfd0843283",
+  "_split_curl_output": "17f41955abc52db05d9ba4f02f8ad7600fa114230194cb96e52494f340e3350b",
+  "_make_soup": "3e2f545072b5efae0a79fad49f595ee91f8e788147bd271f597fbf89bffed85f",
+  "_parse_list": "7c6d8bac168971037297870f600e7484fd850a1948cef59ad6d38ee5fb05cbff",
+  "_parse_detail": "bb1f3e7ba6c74be8e685ab0ab1a5ac84a9684cd87dca799bca907b2bd8198a54",
+  "_extract_article_text": "6b4847d936fe58ff0c901b3e807b418c60841865dcbf95d987eb2205afe409c8",
+  "_list_url": "53d142ff394fade46d09deebba0352ce1383230f7460c0ac340d78b755a7f87b",
+  "_has_next_page": "ee09c6d544debdc70adb517dace3a45e09af0f32db0a7f994f2e522719c9c582",
+  "_parse_date": "3966f721d466aa19d60f71b1f544b0faec92dd6f737a7aac8913ee386b1f1d72",
+  "_parse_labeled_date": "99cde23c7e68ee3641c855e38c8ca089f8f48020b7fac4daa4455e2551c84c50",
+  "_clean_text": "4949302d00955256133eb5a91c07da341faf80d2c3781aa79344b037ee379987",
+  "_one_line": "159d46f0e5e2328b8f5396236e4b0af55ccb7a4c6e2e7494edbc12c331a96cb2",
+  "_clean_multiline": "7d1534819e9956946388a8da1b3884579ae6260ab78662562a6c86bd937950ce",
+  "_node_text": "b90ba4d6a303f698fea8a12683f211cbe24d655585899b253353184c5a185db5",
+  "_clean_title": "c3298431b1d2edcbc3f81209c501b1c8ca363ce24745262334a128ae766553a1",
+  "_meta_content": "5d537521e6ee72a422f44a01961ad4b32baa3b067677a49b11162c19a663cbec",
+  "_link_href": "ef48f3aa703c48ff7029dd89fe1e71c3281e3295b182950cd03c1d112c46b246",
+  "_external_id_from_url": "c21a79da4d105c3f247aecba72f52f7addafbeab34c67d19c35b38a2fbea3fc7",
+  "_is_press_detail_url": "6f1968b2e336cfd9aacbbc475fc220212d76d1bfea52f13b0b8e22cd5e42b167",
+  "_is_share_url": "0176dd192bfd688edd2661aabb7fa70d1ae1e8ad2cb1a7ec8e313756cdb5ddb6",
+  "_extract_node_id": "13c1c01e68c0eb583bf5a14f9a072e54e2fab06ca62b46af54dc90ec9c1b18f7",
+  "_strip_accents": "1e8d0db346e0188a55e0afbe0ed4e192ad237caedcf92ff352b4d9d439e38b21",
+  "_dedupe": "54f5faeb5aecc09052dff5883d0233d741f02dfb7a6eb2a9fd4637efec081779",
+  "_dedupe_dicts": "83a84de41321275402a1f3c73975a1611c675e74377e1c83cc3a665fca5d482c"
+ }
+}

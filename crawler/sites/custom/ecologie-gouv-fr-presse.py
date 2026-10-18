@@ -576,3 +576,48 @@ class EcologieGouvFrPresseCrawler(BaseCrawler):
             result.append(item)
             seen.add(value)
         return result
+
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Records of one /presse page, parsed like crawl() (same list_endpoint)."""
+        from urllib.parse import parse_qs
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html, context="enumeration listing")
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparsable_html")
+        try:
+            page = int((parse_qs(urlparse(url or "").query).get("page") or ["0"])[0])
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:bad_page_number")
+        return self._parse_list(soup, self._list_url(page))
+
+    def _enumeration_paper(self, html, record):
+        """Paper dict exactly as crawl() saves it for one record (None = skipped)."""
+        detail_soup = self._make_soup(html, context="enumeration detail")
+        if detail_soup is None:
+            raise RuntimeError("detail HTML could not be parsed")
+        parsed = self._parse_detail(detail_soup, html, record)
+        abstract = parsed.get("abstract") or ""
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": parsed["external_id"],
+            "title": parsed["title"],
+            "authors": json.dumps(parsed["authors"], ensure_ascii=False),
+            "abstract": abstract,
+            "category": parsed["category"],
+            "keywords": json.dumps(parsed["keywords"], ensure_ascii=False),
+            "published_date": parsed["published_date"],
+            "url": parsed["url"],
+            "pdf_url": parsed["pdf_url"],
+            "doi": parsed["doi"],
+            "department": parsed["department"],
+            "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
+        }

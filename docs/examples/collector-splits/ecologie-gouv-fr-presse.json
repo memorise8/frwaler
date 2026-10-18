@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "sites": {
+    "ecologie-gouv-fr-presse": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.ecologie.gouv.fr",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.ecologie.gouv.fr/presse",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "key_field": "url",
+          "url_field": "url",
+          "date_field": "published_date",
+          "title_field": "title",
+          "listing_marker": "form.views-exposed-form"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
