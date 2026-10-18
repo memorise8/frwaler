@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "sites": {
+    "opengov-seoul-go-kr-research": {
+      "strategy": "date_range_split",
+      "base_url": "https://opengov.seoul.go.kr",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://opengov.seoul.go.kr/research/list",
+        "params": {
+          "items_per_page": "50",
+          "rangeDate": "custom"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "nid",
+          "url_field": "url",
+          "title_field": "title",
+          "listing_marker": ".table-list-wrap"
+        }
+      },
+      "segments": {
+        "mode": "range",
+        "from": "1990",
+        "to": "now",
+        "granularity": "year",
+        "filter": {
+          "type": "range",
+          "from_param": "startDate",
+          "to_param": "endDate",
+          "date_format": "%Y-%m-%d",
+          "to_inclusive": true
+        },
+        "hidden_cap": 10000,
+        "split_to": [
+          "month",
+          "day"
+        ]
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

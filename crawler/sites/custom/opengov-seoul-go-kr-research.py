@@ -364,3 +364,77 @@ class OpengovSeoulGoKrResearchCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract; original crawl() and transport remain unchanged.
+    # ------------------------------------------------------------------
+
+    _ENUM_LISTING_MARKER = ".table-list-wrap"
+
+    def _enumeration_items(self, html):
+        """목록 쪽 HTML → crawl() 과 같은 규칙(_parse_list_page)의 행.
+
+        목록 틀(.table-list-wrap)이 없으면 오류 쪽, 틀에 항목이 없으면 끝 뒤 빈 쪽."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        if _make_soup(html).select_one(self._ENUM_LISTING_MARKER) is None:
+            raise PermanentFailure("listing_parse_error:missing_table_list_wrap")
+        return self._parse_list_page(html)
+
+    def _enumeration_paper(self, detail_raw, entry):
+        """상세 HTML + 목록 행 → crawl() 이 저장하는 것과 같은 paper.
+
+        crawl() 과 같이 제목 없음·초록 100자 미만은 None."""
+        if not detail_raw:
+            return None
+        parsed = self._parse_detail_page(detail_raw, entry["nid"])
+        title = parsed["title"] or entry["title"]
+        if not title:
+            return None
+        abstract = parsed["abstract"]
+        if len(abstract) < self._MIN_ABSTRACT:
+            return None
+        info = parsed["info"]
+        listed_date = (
+            _norm_date(info.get("등록일", ""))
+            or _norm_date(entry.get("listed_date_raw", ""))
+        )
+        published_date = _norm_date(info.get("생산일", "")) or listed_date
+        publisher = info.get("원본시스템", "") or entry.get("category", "")
+        department = info.get("제공부서", "") or entry.get("dept", "")
+        author = info.get("작성자(책임자)", "")
+        category = info.get("분야", "") or entry.get("category", "")
+        meta = {
+            "posted_date": entry.get("listed_date_raw") or info.get("등록일", ""),
+            "originalFilename": parsed.get("original_filename"),
+            "node_id": entry["nid"],
+            "관리번호": info.get("관리번호"),
+            "유형": info.get("유형"),
+            "생산년도": info.get("생산년도"),
+            "지역": info.get("지역"),
+            "소요예산": info.get("소요예산"),
+            "이용조건": info.get("이용조건"),
+        }
+        meta = {k: v for k, v in meta.items() if v}
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": entry["nid"],
+            "post_number": entry["nid"],
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "authors": author,
+            "publisher": publisher,
+            "department": department,
+            "journal": None,
+            "url": entry["url"],
+            "pdf_url": parsed.get("pdf_url"),
+            "keywords": "",
+            "category": category,
+            "doi": None,
+            "original_filename": parsed.get("original_filename"),
+            "metadata": json.dumps(meta, ensure_ascii=False),
+        }
