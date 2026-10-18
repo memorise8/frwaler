@@ -1,0 +1,62 @@
+{
+ "listing": {
+  "items": [
+   {
+    "id": "swr_18299",
+    "langGroupId": "lg-1",
+    "title": "T1",
+    "description": "A sufficiently long description of the press release that easily exceeds the one hundred character minimum used by the crawler.",
+    "publishDate": "2026-05-01T08:00:00Z",
+    "topics": [
+     "t1",
+     "t2"
+    ],
+    "newsCategory": "medienmitteilung",
+    "kind": "CONTENT_HUB",
+    "lang": "en",
+    "content": {
+     "metadata": {
+      "metaTitle": "Wbf one",
+      "announcementDate": "2026-05-02T00:00:00Z"
+     }
+    }
+   },
+   {
+    "id": "swr_18298",
+    "langGroupId": "lg-2",
+    "title": "T2",
+    "description": "short",
+    "text": [
+     "<p>A sufficiently long description of the press release that easily exceeds the one hundred character minimum used by the crawler.</p>"
+    ],
+    "publishDate": "2026-04-01T08:00:00Z",
+    "kind": "ONSB",
+    "lang": "en",
+    "content": {
+     "metadata": {
+      "metaTitle": "Wbf two"
+     }
+    }
+   },
+   {
+    "id": "swr_18297",
+    "langGroupId": "lg-3",
+    "title": "T3",
+    "description": "tiny",
+    "publishDate": "2026-03-01T08:00:00Z",
+    "kind": "ONSB",
+    "lang": "en",
+    "content": {
+     "metadata": {
+      "metaTitle": "Wbf three"
+     }
+    }
+   }
+  ],
+  "pageResults": 3
+ },
+ "empty": {
+  "items": [],
+  "pageResults": 3
+ }
+}

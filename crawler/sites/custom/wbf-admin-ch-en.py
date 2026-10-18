@@ -282,3 +282,25 @@ class WbfAdminChEnCrawler(BaseCrawler):
                 return str(src).strip()
 
         return ""
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() and its transport are unchanged.
+    # The search row carries everything crawl() saves: the listing returns the
+    # same paper dicts (list_returns_paper), with crawl()'s skip rules.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("items"), list):
+            raise PermanentFailure("listing_parse_error:invalid_wbf_envelope")
+        papers = []
+        for item in data["items"]:
+            if not isinstance(item, dict):
+                raise PermanentFailure("listing_parse_error:invalid_wbf_record")
+            paper = self._parse_item(item)
+            if paper is None or not paper.get("url"):
+                continue
+            if len(paper.get("abstract") or "") < self._MIN_ABSTRACT_CHARS:
+                continue
+            papers.append(paper)
+        return papers
