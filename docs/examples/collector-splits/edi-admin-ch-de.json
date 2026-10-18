@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "sites": {
+    "edi-admin-ch-de": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ],
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "json",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://d-nsbc-p.admin.ch/v1/search",
+        "params": {
+          "languages": "de",
+          "newsKinds": [
+            "CONTENT_HUB",
+            "ONSB"
+          ],
+          "publisherIDs": "3",
+          "start_date": "2000-01-01T00:00:00.000Z",
+          "end_date": "2100-01-01T00:00:00.000Z",
+          "offset": 0,
+          "limit": 20,
+          "sort": "DESC"
+        },
+        "page_param": "offset",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "date_field": "date"
+        },
+        "page_mode": "offset",
+        "page_size": 20,
+        "total": {
+          "type": "json",
+          "path": "pageResults"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1,
+        "check_unparameterized_first_page": true
+      }
+    }
+  }
+}

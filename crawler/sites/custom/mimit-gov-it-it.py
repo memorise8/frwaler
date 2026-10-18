@@ -350,3 +350,33 @@ class MimitGovItCrawler(BaseCrawler):
 
         print(f"[mimit-gov-it-it] Done. Total saved: {saved}")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None or soup.find("main") is None:
+            raise PermanentFailure("listing_parse_error:missing_main_marker")
+        rows = [{"url": u} for u in self._parse_list_page(html)]
+
+        if not rows and soup.find("main").get_text(" ", strip=True):
+            raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing")
+        return rows
+
+    def _enumeration_paper(self, item, detail):
+        item_url = item["url"]
+        title = detail.get('title', '').strip()
+        abstract = detail.get('abstract', '').strip()
+        article_id = detail.get('article_id') or detail.get('slug')
+        published_date = detail.get('published_date', '')
+        pdf_url = detail.get('pdf_url')
+        original_filename = detail.get('original_filename')
+        slug = detail.get('slug', '')
+        if not title:
+            return None
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+        return {'site_id': self.site_id, 'external_id': article_id or slug, 'post_number': article_id, 'title': title, 'abstract': abstract, 'published_date': published_date, 'listed_date': published_date, 'url': item_url, 'pdf_url': pdf_url, 'original_filename': original_filename, 'publisher': 'Ministero delle Imprese e del Made in Italy', 'category': 'Pubblicazioni', 'keywords': None, 'authors': None, 'department': None, 'journal': None, 'doi': None, 'metadata': json.dumps({'slug': slug, 'article_id': article_id, 'posted_date': published_date, 'originalFilename': original_filename}, ensure_ascii=False)}

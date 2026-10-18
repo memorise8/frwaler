@@ -54,6 +54,34 @@ class BrgmFrFrCrawler(BaseCrawler):
     # Main crawl
     # ------------------------------------------------------------------
 
+
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_detail(self, raw_html, list_meta, detail_url):
+        """Parse a detail page exactly like crawl() (self._make_soup, html5lib first)
+        and reuse _build_paper; an unparseable page is skipped as crawl() skips it."""
+        soup = self._make_soup(raw_html, context=f"detail {detail_url}")
+        if soup is None:
+            return None
+        return self._build_paper(soup, raw_html, list_meta, detail_url)
+
+    def _enumeration_items(self, raw, url=None):
+        """Reuse crawl's card selector and metadata parser without fetching details.
+
+        An empty result is judged by the plan's listing_marker ("main"): a page
+        without it (maintenance/error page) is a listing parse error, not an end.
+        """
+        soup = self._make_soup(raw, context="enumeration listing")
+        if soup is None:
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:html_unparseable", url)
+        cards = soup.select("a.bk-article[href]")
+        records = []
+        for card in cards:
+            href = card.get("href", "").strip()
+            if href:
+                records.append(self._parse_card(card, urljoin(self.base_url, href)))
+        return records
+
     def crawl(self, limit=None):
         """Walk paginated press-release list and persist each item."""
         saved = 0

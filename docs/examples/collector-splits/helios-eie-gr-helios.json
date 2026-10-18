@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "sites": {
+    "helios-eie-gr-helios": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ],
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://helios.eie.gr/helios/handle/10442/11/simple-search",
+        "params": {
+          "query": "",
+          "filter_field_1": "searchFilterTypeQualified",
+          "filter_type_1": "equals",
+          "filter_value_1": "Άρθρο σε επιστημονικό περιοδικό",
+          "sort_by": "score",
+          "order": "desc",
+          "rpp": 100,
+          "start": 0,
+          "etal": 0
+        },
+        "page_param": "start",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "listing_marker": "main"
+        },
+        "page_mode": "offset",
+        "page_size": 100,
+        "total": {
+          "type": "regex",
+          "pattern": "Αποτελέσματα για \\d+-\\d+ από ([\\d\\s\\xa0]+)"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1,
+        "check_unparameterized_first_page": true
+      }
+    }
+  }
+}

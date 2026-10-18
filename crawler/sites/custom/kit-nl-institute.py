@@ -353,3 +353,22 @@ class KitNlInstituteCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] crawl complete: saved {saved}/{limit_label}")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, data):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, list):
+            raise PermanentFailure("listing_parse_error:expected_wp_list")
+        rows = []
+        for record in data:
+            if not isinstance(record, dict) or isinstance(record.get("id"), bool) or not isinstance(record.get("id"), int) or record["id"] <= 0 or not isinstance(record.get("link"), str) or not record["link"] or not isinstance(record.get("title"), dict) or not isinstance(record.get("content"), dict):
+                raise PermanentFailure("listing_parse_error:invalid_wp_record")
+            rows.append({"url": record["link"], "id": str(record["id"]), "date": record.get("date"), "record": record})
+        return rows
+
+    def _enumeration_paper(self, item):
+        paper = self._parse_item(item["record"])
+        if paper is None or len(paper.get("abstract", "")) < _ABSTRACT_MIN_CHARS:
+            return None
+        return paper
