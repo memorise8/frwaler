@@ -426,3 +426,246 @@ class ResearchTheaIeBrowseCrawler(BaseCrawler):
                 original_filename = fname
 
         return {"pdf_url": chosen, "original_filename": original_filename}
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (collector-splits); crawl() and the
+    # methods above stay unchanged.
+
+    @staticmethod
+    def _enumeration_page_url(record):
+        """crawl()'s page_url rule for one record (dc:identifier handle, else the OAI id)."""
+        header = record.find("oai:header", _NS)
+        oai_id = _text(header.find("oai:identifier", _NS)) if header is not None else ""
+        dc = record.find("oai:metadata/oai_dc:dc", _NS)
+        identifiers = ([_text(el) for el in dc.findall("dc:identifier", _NS) if _text(el)]
+                       if dc is not None else [])
+        page_url = None
+        for ident in identifiers:
+            m = re.search(r"https?://research\.thea\.ie/handle/\S+", ident)
+            if m:
+                page_url = "https://" + m.group(0).split("://", 1)[1]
+                break
+        if not page_url:
+            m = re.search(r"oai:research\.thea\.ie:(\S+)", oai_id)
+            if m:
+                page_url = f"https://research.thea.ie/handle/{m.group(1)}"
+        return oai_id, page_url
+
+    def _enumeration_items(self, raw, url=None):
+        """One OAI-PMH ListRecords page -> rows, one per record crawl() could save.
+
+        external_id is crawl()'s (handle, else the OAI id tail); ``url`` is the same
+        GetRecord(mets) address crawl() requests for the bitstream; the record XML is
+        carried so the Paper is built from exactly the listed oai_dc metadata.
+        A page without <ListRecords> (OAI error, HTML) is a listing parse error, never the end.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        try:
+            root = _parse_xml(raw)
+        except (TypeError, ValueError):
+            root = None
+        list_records = root.find("oai:ListRecords", _NS) if root is not None else None
+        if list_records is None:
+            err = root.find("oai:error", _NS) if root is not None else None
+            code = (err.get("code") or "error") if err is not None else "no_listrecords"
+            raise PermanentFailure(f"listing_parse_error:oai_{code}", url)
+        rows = []
+        for record in list_records.findall("oai:record", _NS):
+            oai_id, page_url = self._enumeration_page_url(record)
+            if not page_url or not oai_id:
+                continue  # crawl() returns False before any save or request
+            m = re.search(r"/handle/(\S+)$", page_url)
+            handle = m.group(1) if m else None
+            datestamp = _text(record.find("oai:header/oai:datestamp", _NS))
+            rows.append({
+                "external_id": handle or oai_id.rsplit(":", 1)[-1],
+                "url": (f"{_OAI_BASE}?verb=GetRecord&metadataPrefix=mets"
+                        f"&identifier={oai_id}"),
+                "oai_id": oai_id,
+                "page_url": page_url,
+                "title": _text(record.find("oai:metadata/oai_dc:dc/dc:title", _NS)),
+                "datestamp": _parse_date(datestamp),
+                "record_xml": ET.tostring(record, encoding="unicode"),
+            })
+        return rows
+
+    @staticmethod
+    def _enumeration_mets(raw):
+        """crawl()'s mets bitstream choice (_fetch_bitstream_detail without the request)."""
+        root = _parse_xml(raw)
+        if root is None:
+            return None
+
+        get_record = root.find("oai:GetRecord", _NS)
+        if get_record is None:
+            return None
+        record = get_record.find("oai:record", _NS)
+        if record is None:
+            return None
+        metadata_el = record.find("oai:metadata", _NS)
+        if metadata_el is None:
+            return None
+        mets_el = metadata_el.find("mets:mets", _NS)
+        if mets_el is None:
+            return None
+
+        file_sec = mets_el.find("mets:fileSec", _NS)
+        if file_sec is None:
+            return None
+
+        pdf_url = None
+        any_url = None
+        for file_grp in file_sec.findall("mets:fileGrp", _NS):
+            if file_grp.get("USE") != "ORIGINAL":
+                continue
+            for file_el in file_grp.findall("mets:file", _NS):
+                flocat = file_el.find("mets:FLocat", _NS)
+                if flocat is None:
+                    continue
+                href = flocat.get("{http://www.w3.org/1999/xlink}href")
+                if not href:
+                    continue
+                if any_url is None:
+                    any_url = href
+                if file_el.get("MIMETYPE") == "application/pdf":
+                    pdf_url = href
+                    break
+            if pdf_url:
+                break
+
+        chosen = pdf_url or any_url
+        original_filename = None
+        if chosen:
+            fname = unquote(urlparse(chosen).path.rsplit("/", 1)[-1])
+            if fname and "." in fname and len(fname) <= 255:
+                original_filename = fname
+
+        return {"pdf_url": chosen, "original_filename": original_filename}
+
+    def _enumeration_paper(self, item, raw):
+        """Pure copy of _process_record's Paper for the listed record plus its mets answer.
+
+        None keeps crawl()'s skips (deleted, no metadata, no title, abstract < 50 chars).
+        """
+        record = ET.fromstring(item["record_xml"])
+        header = record.find("oai:header", _NS)
+        if header is None:
+            return None
+        if header.get("status") == "deleted":
+            return None
+
+        oai_id = _text(header.find("oai:identifier", _NS))
+        datestamp = _text(header.find("oai:datestamp", _NS))
+
+        metadata_el = record.find("oai:metadata", _NS)
+        if metadata_el is None:
+            return None
+        dc = metadata_el.find("oai_dc:dc", _NS)
+        if dc is None:
+            return None
+
+        title = _text(dc.find("dc:title", _NS))
+        if not title:
+            return None
+
+        abstract = _text(dc.find("dc:description", _NS))
+        if len(abstract) < _MIN_ABSTRACT_LEN:
+            return None
+
+        creators = [_text(el) for el in dc.findall("dc:creator", _NS)]
+        authors = "; ".join(c for c in creators if c)
+
+        contributors = [_text(el) for el in dc.findall("dc:contributor", _NS)]
+
+        raw_dates = [_text(el) for el in dc.findall("dc:date", _NS) if _text(el)]
+        iso_dates = sorted(d for d in raw_dates if "T" in d)
+        plain_dates = [d for d in raw_dates if "T" not in d]
+
+        published_date = None
+        for d in plain_dates:
+            published_date = _parse_date(d)
+            if published_date:
+                break
+
+        listed_date_raw = iso_dates[0] if iso_dates else datestamp
+        listed_date = _parse_date(listed_date_raw) or _parse_date(datestamp)
+
+        publishers = [_text(el) for el in dc.findall("dc:publisher", _NS)]
+        publisher = "; ".join(p for p in publishers if p)
+
+        journal = _text(dc.find("dc:source", _NS))
+
+        subjects = [_text(el) for el in dc.findall("dc:subject", _NS)]
+        keywords = ", ".join(s for s in subjects if s)
+
+        type_values = [_text(el) for el in dc.findall("dc:type", _NS)]
+        category = next((t for t in type_values if t and not t.lower().startswith("info")), None)
+        if not category and type_values:
+            category = type_values[0]
+
+        rights_list = [_text(el) for el in dc.findall("dc:rights", _NS)]
+        rights = "; ".join(r for r in rights_list if r)
+
+        identifiers = [_text(el) for el in dc.findall("dc:identifier", _NS) if _text(el)]
+
+        _, page_url = self._enumeration_page_url(record)
+        if not page_url:
+            return None
+
+        doi = None
+        for ident in identifiers:
+            m = _DOI_RE.search(ident)
+            if m:
+                doi = m.group(0).rstrip(".")
+                break
+
+        handle = None
+        m = re.search(r"/handle/(\S+)$", page_url)
+        if m:
+            handle = m.group(1)
+        external_id = handle or oai_id.rsplit(":", 1)[-1]
+
+        post_number = None
+        if handle:
+            m2 = re.search(r"/(\d+)$", handle)
+            if m2:
+                post_number = m2.group(1)
+
+        pdf_url = None
+        original_filename = None
+        detail = self._enumeration_mets(raw)
+        if detail:
+            pdf_url = detail.get("pdf_url")
+            original_filename = detail.get("original_filename")
+
+        meta = {
+            "oai_identifier": oai_id,
+            "datestamp": datestamp,
+            "posted_date": listed_date,
+            "originalFilename": original_filename,
+            "journal_raw": journal or None,
+            "rights": rights or None,
+            "dc_type_all": type_values or None,
+            "contributors": "; ".join(c for c in contributors if c) or None,
+        }
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "listed_date": listed_date,
+            "authors": authors,
+            "publisher": publisher,
+            "journal": journal,
+            "url": page_url,
+            "pdf_url": pdf_url,
+            "keywords": keywords,
+            "category": category,
+            "doi": doi,
+            "original_filename": original_filename,
+            "metadata": json.dumps({k: v for k, v in meta.items() if v}, ensure_ascii=False),
+        }
