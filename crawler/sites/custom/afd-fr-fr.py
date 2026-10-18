@@ -211,6 +211,16 @@ class AfdFrFrCrawler(BaseCrawler):
             self._report_source_failure('authentication_failed')
             return False
 
+        paper = self._enumeration_detail_paper(raw, detail_url)
+        if paper is None:
+            return False
+        self._save_paper(paper)
+        print(f"[afd-fr-fr] Saved [{paper['external_id']}]: {paper['title'][:70]}")
+        return bool(self._last_save_created)
+
+    def _enumeration_detail_paper(self, raw: str, detail_url: str):
+        """Pure: detail HTML -> paper dict (None = skipped). Extracted unchanged from
+        _process_item so crawl() and the enumeration plan build the same paper."""
         # Drupal JSON — the richest metadata source
         data = _extract_drupal_data(raw)
 
@@ -235,7 +245,7 @@ class AfdFrFrCrawler(BaseCrawler):
                         break
         if not title:
             print(f"[afd-fr-fr] No title for {detail_url}. Skipping.")
-            return False
+            return None
 
         # ---- Abstract ----
         abstract = ""
@@ -253,7 +263,7 @@ class AfdFrFrCrawler(BaseCrawler):
 
         if len(abstract) < 50:
             print(f"[afd-fr-fr] Abstract too short ({len(abstract)} chars) for {detail_url}. Skipping.")
-            return False
+            return None
 
         # ---- Node ID (external_id / post_number) ----
         nid = str(data.get("content_nid", "")).strip()
@@ -347,7 +357,36 @@ class AfdFrFrCrawler(BaseCrawler):
             "category": resource_type or None,
             "metadata": json.dumps(meta_dict, ensure_ascii=False),
         }
+        return paper
 
-        self._save_paper(paper)
-        print(f"[afd-fr-fr] Saved [{nid}]: {title[:70]}")
-        return bool(self._last_save_created)
+    # ------------------------------------------------------------------ #
+    # Pure enumeration contract (L2a 2026-10-18)                           #
+    # ------------------------------------------------------------------ #
+
+    def _enumeration_items(self, html):
+        """Listing rows exactly as crawl() collects them (div.views-row a.fr-card__link)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        if access_challenge(html):
+            raise PermanentFailure("listing_parse_error:access_challenge")
+        soup = _make_soup(html)
+        # The publication list form is on every listing page, also on the empty page
+        # after the last one ("Aucun contenu trouvé"); an error page has neither it nor cards.
+        if soup is None or (soup.find(id="views-exposed-form-publication-publication-list") is None
+                            and not soup.find_all("div", class_="views-row")):
+            raise PermanentFailure("listing_parse_error:missing_listing_marker")
+        rows, seen = [], set()
+        for card in soup.find_all("div", class_="views-row"):
+            link_el = card.find("a", class_="fr-card__link")
+            if not link_el:
+                continue
+            href = (link_el.get("href") or "").strip()
+            if not href:
+                continue
+            full_url = href if href.startswith("http") else self.base_url + href
+            if full_url in seen:
+                continue
+            seen.add(full_url)
+            rows.append({"url": full_url, "title": link_el.get_text(" ", strip=True)})
+        return rows
