@@ -581,3 +581,95 @@ class MFATAnnualReportsCrawler(BaseCrawler):
 
         print(f"[mfat-govt-nz-en] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() and its helpers are unchanged.
+    # Listing = the live annual-reports page (_parse_listing) merged with
+    # crawl()'s seed list; detail = the report page fetched by the framework,
+    # parsed by _extract_detail, with crawl()'s abstract fallbacks. crawl()'s
+    # Wayback fallbacks (only when the live site answers a bot wall) are not
+    # used: a bot wall stops the run instead (never bypassed).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        items = [dict(i) for i in self._parse_listing(html)]
+        seen_slugs = {i["slug"] for i in items}
+        for seed in _SEEDS:
+            if seed["slug"] not in seen_slugs:
+                items.append({
+                    "slug": seed["slug"],
+                    "title": seed["title"],
+                    "url": f"{_BASE_URL}/en/about-us/mfat-annual-reports/{seed['slug']}/",
+                    "description": seed["description"],
+                    "_year_range": seed["year_range"],
+                })
+        out, seen = [], set()
+        for item in items:
+            if item["url"] in seen:
+                continue
+            seen.add(item["url"])
+            out.append(item)
+        return out
+
+    def _enumeration_paper(self, html, item):
+        slug = item["slug"]
+        title = item["title"]
+        url = item["url"]
+        listing_desc = item.get("description", "")
+        yr_m = re.search(r'(\d{4}-\d{2})', slug)
+        year_range = yr_m.group(1) if yr_m else item.get("_year_range", "")
+        detail_html = html if html and not self._is_incapsula(html) and len(html) > 500 else None
+        detail = self._extract_detail(detail_html) if detail_html else {}
+        abstract = detail.get("abstract", "")
+        if len(abstract) < 100:
+            if len(listing_desc) >= 100:
+                abstract = listing_desc
+            else:
+                seed_desc = next((s["description"] for s in _SEEDS if s["slug"] == slug), "")
+                if len(seed_desc) >= 100:
+                    abstract = seed_desc
+                else:
+                    abstract = (
+                        f"{title} — Annual report of the {_PUBLISHER} (MFAT) "
+                        f"for the financial year {year_range}. "
+                        f"Published annually to the New Zealand House of "
+                        f"Representatives, covering MFAT's performance "
+                        f"against its Strategic Intentions and performance "
+                        f"measures, financial statements, and departmental "
+                        f"activities for the year {year_range}."
+                    )
+                    if listing_desc:
+                        abstract = listing_desc + " " + abstract
+        if len(abstract) < _ABSTRACT_MIN:
+            return None
+        published_date = detail.get("date", "")
+        if not published_date and year_range:
+            published_date = _year_range_to_approx_date(year_range)
+        pdf_url = detail.get("pdf_url") or None
+        orig_fn = detail.get("original_filename") or _original_filename(pdf_url or "") or None
+        return {
+            "site_id": self.site_id,
+            "external_id": slug,
+            "post_number": slug,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "url": url,
+            "pdf_url": pdf_url,
+            "original_filename": orig_fn,
+            "publisher": _PUBLISHER,
+            "authors": None,
+            "department": None,
+            "journal": None,
+            "keywords": "annual report,MFAT,New Zealand,foreign affairs,trade",
+            "category": "Annual Report",
+            "doi": None,
+            "metadata": json.dumps({
+                "posted_date": published_date,
+                "originalFilename": orig_fn,
+                "year_range": year_range,
+                "slug": slug,
+                "listing_source": "live",
+            }, ensure_ascii=False),
+        }
