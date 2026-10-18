@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "sites": {
+    "scp-nl-publicaties": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.scp.nl",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.scp.nl/api/search",
+        "method": "POST",
+        "idempotent": true,
+        "body_type": "json",
+        "params": {
+          "requestState": {
+            "current": 1,
+            "filters": [
+              {
+                "field": "information_type",
+                "values": [
+                  "Publicatie",
+                  "Rapport",
+                  "Kennisnotitie",
+                  "Factsheet",
+                  "Essay",
+                  "Beleidsnota",
+                  "Magazine",
+                  "Richtlijn",
+                  "Jaarplan"
+                ],
+                "type": "any"
+              }
+            ],
+            "resultsPerPage": 1000,
+            "searchTerm": "",
+            "sortList": [
+              {
+                "field": "sort_date",
+                "direction": "desc"
+              }
+            ]
+          },
+          "queryConfig": {
+            "filters": [],
+            "result_fields": {
+              "author": {
+                "raw": {}
+              },
+              "url": {
+                "raw": {}
+              },
+              "page_title": {
+                "raw": {}
+              },
+              "meta_description": {
+                "raw": {},
+                "snippet": {
+                  "size": 500,
+                  "fallback": true
+                }
+              },
+              "sort_date": {
+                "raw": {}
+              },
+              "information_type": {
+                "raw": {}
+              }
+            },
+            "disjunctiveFacets": [
+              "information_type"
+            ],
+            "facets": {
+              "information_type": {
+                "type": "value",
+                "size": 100
+              }
+            }
+          }
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 1000,
+        "total": {
+          "type": "json",
+          "path": "totalResults"
+        },
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "date_field": "listed_date",
+          "title_field": "title"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

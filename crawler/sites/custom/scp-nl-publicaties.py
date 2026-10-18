@@ -270,6 +270,112 @@ class ScpNlPublicatiesCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Enumeration split (no I/O): same rows and Paper as crawl()
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Rows of one decoded /api/search answer, with crawl()'s list-level fields and
+        skips (no URL / title / external_id). No fetching, storage or new identifiers."""
+        if not isinstance(data, dict) or not isinstance(data.get("results"), list) \
+                or any(not isinstance(item, dict) for item in data["results"]):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:results_not_a_list_of_objects", url)
+        rows = []
+        for item in data["results"]:
+            raw_url = ((item.get("url") or {}).get("raw") or "").strip()
+            if not raw_url:
+                continue
+
+            full_url = urljoin(self.base_url, raw_url)
+
+            title = self._clean(
+                (item.get("page_title") or {}).get("raw", "")
+            )
+            if not title:
+                continue
+
+            # external_id: Elastic doc ID e.g. "doc-6a1846706eab3398fc3b9438"
+            external_id = (
+                (item.get("id") or {}).get("raw", "")
+                or (item.get("_meta") or {}).get("id", "")
+            ).strip()
+            if not external_id:
+                continue
+
+            sort_date_raw = (
+                (item.get("sort_date") or {}).get("raw") or ""
+            ).strip()
+            listed_date = ""
+            post_number = None
+            if sort_date_raw:
+                m = re.search(r"(\d{4}-\d{2}-\d{2})", sort_date_raw)
+                if m:
+                    listed_date = m.group(1)
+                # Use epoch seconds as numeric post_number for ordering
+                try:
+                    from datetime import datetime, timezone
+                    dt = datetime.fromisoformat(
+                        sort_date_raw.replace("Z", "+00:00")
+                    )
+                    post_number = str(int(dt.timestamp()))
+                except Exception:
+                    post_number = listed_date.replace("-", "") if listed_date else None
+
+            category = self._clean(
+                (item.get("information_type") or {}).get("raw", "")
+            )
+            rows.append({
+                "url": full_url,
+                "title": title,
+                "external_id": external_id,
+                "post_number": post_number,
+                "sort_date_raw": sort_date_raw,
+                "listed_date": listed_date,
+                "category": category,
+                "item": item,
+            })
+        return rows
+
+    def _enumeration_detail(self, detail_raw, row):
+        """crawl()'s Paper for one row from the fetched detail HTML (None = crawl() skip)."""
+        item = row["item"]
+        detail = self._parse_detail(detail_raw, item)
+        abstract = detail["abstract"]
+
+        if len(abstract.strip()) < _MIN_ABSTRACT_CHARS:
+            return None
+
+        external_id = row["external_id"]
+        sort_date_raw = row["sort_date_raw"]
+        listed_date = row["listed_date"]
+        elastic = detail.get("elastic") or {}
+        metadata = {
+            "doc_id": external_id,
+            "sort_date": sort_date_raw,
+            "posted_date": sort_date_raw,
+            "elastic_content": elastic,
+        }
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": row["post_number"],
+            "title": row["title"],
+            "abstract": abstract,
+            "published_date": detail["published_date"] or listed_date,
+            "posted_date": listed_date,
+            "authors": detail["authors"] or None,
+            "publisher": detail["publisher"],
+            "url": row["url"],
+            "pdf_url": detail["pdf_url"] or None,
+            "original_filename": detail["original_filename"] or None,
+            "category": row["category"],
+            "keywords": None,
+            "doi": None,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 

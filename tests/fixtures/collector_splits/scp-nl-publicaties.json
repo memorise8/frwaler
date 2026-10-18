@@ -1,0 +1,18 @@
+{
+ "content_type": "application/json",
+ "listing_body": "{\"facets\": {}, \"rawResponse\": {\"info\": {\"meta\": {\"page\": {\"current\": 1, \"total_pages\": 1, \"total_results\": 2, \"size\": 1000}}}}, \"requestId\": \"test\", \"results\": [{\"meta_description\": {\"raw\": \"...\", \"snippet\": \"...\"}, \"page_title\": {\"raw\": \"Bestaansonzekerheid vanuit de beleving van mensen\"}, \"information_type\": {\"raw\": \"Publicatie\"}, \"sort_date\": {\"raw\": \"2026-10-11T22:01:00+00:00\"}, \"url\": {\"raw\": \"/documenten/2026/10/12/bestaansonzekerheid-vanuit-de-beleving-van-mensen\"}, \"id\": {\"raw\": \"doc-6acdfc939f0bb5835bb3b462\"}, \"_meta\": {\"id\": \"doc-6acdfc939f0bb5835bb3b462\", \"engine\": \"scp-nl\", \"score\": null}}, {\"meta_description\": {\"raw\": \"...\", \"snippet\": \"...\"}, \"page_title\": {\"raw\": \"Belangrijkste bevindingen:  mantelzorgers met een grote zorgtaak\"}, \"information_type\": {\"raw\": \"Publicatie\"}, \"sort_date\": {\"raw\": \"2026-10-04T22:01:00+00:00\"}, \"url\": {\"raw\": \"/documenten/2026/10/06/belangrijkste-bevindingen-mantelzorgers\"}, \"id\": {\"raw\": \"doc-6ac2cc9f11495ca23ac8efb5\"}, \"_meta\": {\"id\": \"doc-6ac2cc9f11495ca23ac8efb5\", \"engine\": \"scp-nl\", \"score\": null}}], \"totalPages\": 1, \"totalResults\": 2}",
+ "details": {
+  "https://www.scp.nl/documenten/2026/10/12/bestaansonzekerheid-vanuit-de-beleving-van-mensen": "<html><head><meta name=\"DCTERMS.issued\" content=\"2026-10-12T00:00:00+02:00\"><meta name=\"DCTERMS.creator\" content=\"Sociaal en Cultureel Planbureau\"><meta name=\"DCTERMS.publisher\" content=\"Sociaal en Cultureel Planbureau\"></head><body><div class=\"intro\"><div class=\"rich-text\"><p>In het rapport Bestaansonzekerheid vanuit de beleving van mensen laten we de leefwereld van mensen in bestaansonzekerheid zien (synthetische samenvatting voor de regressietest).</p></div></div><ul><li><a class=\"download-list__link\" href=\"https://www.scp.nl/site/binaries/a/scp-bestaansonzekerheid.pdf\">PDF</a></li></ul><script id=\"elastic-content\" type=\"application/json\">{\"information_type\": \"Publicatie\"}</script></body></html>",
+  "https://www.scp.nl/documenten/2026/10/06/belangrijkste-bevindingen-mantelzorgers": "<html><head><meta name=\"DCTERMS.issued\" content=\"2026-10-06T00:00:00+02:00\"><meta name=\"DCTERMS.creator\" content=\"A. Auteur\"><meta name=\"DCTERMS.publisher\" content=\"Sociaal en Cultureel Planbureau\"></head><body><div class=\"intro\"><div class=\"rich-text\"><p>Bijna drie miljoen mantelzorgers in Nederland hebben een grote zorgtaak; deze synthetische samenvatting dient alleen de regressietest.</p></div></div><ul><li><a class=\"download-list__link\" href=\"https://www.scp.nl/site/binaries/b/samenvatting-mantelzorgers.pdf\">PDF</a></li></ul><script id=\"elastic-content\" type=\"application/json\">{\"information_type\": \"Publicatie\"}</script></body></html>"
+ },
+ "long_text": "Bijna drie miljoen mantelzorgers in Nederland hebben een grote zorgtaak; deze synthetische samenvatting dient alleen de regressietest.",
+ "original_method_source_sha256": {
+  "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+  "_curl": "beb05c4f542e57b313a43428ed4f0bbb6f1a8d78562f07c7fa28a8f2535851f7",
+  "_parse_html": "6f1c30b19aafb87e6eca1768ed06f38ad0357dc80f196484de0815b72d75ae7a",
+  "_clean": "3c63def1cdb0ef231daba41666e3db449876e232b341735cf6b0c478b0e1b8ae",
+  "_search_page": "9777d7b7fa9c3e5ad8b0c7a725fef6de84c9827544d71b78acce7568778d5f76",
+  "_parse_detail": "e1edd5ffc0fc1f2ec9b366054ae9639da33e13a6ed2aa7532392ce417137add1",
+  "crawl": "3bc86e66543dfb0b04ce7d89a271f35cee399ceffa21f9a76cc9d23d15514ef5"
+ }
+}
