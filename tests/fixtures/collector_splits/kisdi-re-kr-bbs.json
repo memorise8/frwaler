@@ -1,0 +1,15 @@
+{
+  "site_id": "kisdi-re-kr-bbs",
+  "listing_body": "<html><body><div class=\"board_wrap\"><div class=\"board_list mt60\"><ul><li><a href=\"#none\" onclick=\"goView('9001', '');\"><span>No.9001</span><strong>합성 보도자료 9001</strong></a></li><li><a href=\"#none\" onclick=\"goView('9000', '');\"><span>No.9000</span><strong>합성 보도자료 9000</strong></a></li></ul></div></div></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.kisdi.re.kr/bbs/view.do?bbsSn=9001&key=m2101113055776": "<html><body><div class=\"view\"><h4>합성 보도자료 9001</h4><ul><li><strong>등록일</strong> 2026-02-11</li><li><strong>부서</strong><span>홍보실</span></li></ul><div class=\"content\"><p>오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test. 오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test. 오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test.</p></div><em>보고서9001.pdf <a href=\"/cmm/fileDown.do?key=90011&type=bbs\">down</a></em><em>자료9001.hwp <a href=\"/cmm/fileDown.do?key=90012&type=bbs\">down</a></em></div></body></html>",
+    "https://www.kisdi.re.kr/bbs/view.do?bbsSn=9000&key=m2101113055776": "<html><body><div class=\"view\"><h4>합성 보도자료 9000</h4><ul><li><strong>등록일</strong> 2026-01-10</li><li><strong>부서</strong><span>홍보실</span></li></ul><div class=\"content\"><p>오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test. 오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test. 오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test.</p></div><em>자료9000.hwp <a href=\"/cmm/fileDown.do?key=90002&type=bbs\">down</a></em></div></body></html>"
+  },
+  "long_text": "오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test. 오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test. 오프라인 동등성 시험용 합성 보도자료 본문입니다. Synthetic résumé text for the offline equality test.",
+  "empty_body": "<html><body><div class=\"board_list mt60\"><ul></ul></div></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "f2c3d8a0d1adfc7dc040fc3e6b1a20634ba7ea269be5196964c5097355ae0e59",
+    "_fetch_and_save": "59a864141df22cb374a22aa559d54e192d8c5b6977e425473fbf4eb40f589f15"
+  }
+}

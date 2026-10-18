@@ -266,3 +266,94 @@ class KisdiRekrBbsCrawler(BaseCrawler):
         }
         self._save_paper(paper)
         return bool(self._last_save_created)
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L4-20261018). crawl() and _fetch_and_save()
+    # are unchanged; these methods only parse already fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Listing rows in crawl() order: goView('<bbsSn>') -> detail URL."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        rows = []
+        for bbs_sn in re.findall(r"goView\('(\d+)'", html):
+            rows.append({"bbs_sn": bbs_sn, "url": f"{_VIEW_URL}?bbsSn={bbs_sn}&key={_KEY}"})
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page — the parse part of
+        _fetch_and_save() copied verbatim (external_id = bbsSn, unchanged)."""
+        bbs_sn = item["bbs_sn"]
+        detail_url = item["url"]
+        if not html:
+            return None
+        soup = _bs(html)
+
+        h4 = soup.find("h4")
+        title = _text(h4).strip() if h4 else ""
+        if not title:
+            li_title = soup.find("li", class_="title")
+            if li_title:
+                strong = li_title.find("strong")
+                title = _text(strong)
+        if not title:
+            return None
+
+        published_date = ""
+        for strong_tag in soup.find_all("strong"):
+            if "등록일" in _text(strong_tag):
+                parent = strong_tag.parent
+                date_text = _text(parent).replace("등록일", "").strip()
+                published_date = date_text
+                break
+
+        content_div = soup.find("div", class_="content")
+        abstract = _text(content_div).strip() if content_div else ""
+        if len(abstract) < 50:
+            return None
+
+        pdf_url = ""
+        em_tags = soup.find_all("em")
+        pdf_href = ""
+        hwp_href = ""
+        for em in em_tags:
+            fname = em.get_text(" ", strip=True).lower()
+            a_tag = em.find("a", href=True)
+            if not a_tag:
+                continue
+            href = a_tag["href"]
+            if href.startswith("/"):
+                href = self.base_url + href
+            if ".pdf" in fname and not pdf_href:
+                pdf_href = href
+            elif not hwp_href:
+                hwp_href = href
+        pdf_url = pdf_href or hwp_href
+
+        department = ""
+        for strong_tag in soup.find_all("strong"):
+            if "부서" in _text(strong_tag):
+                span = strong_tag.find_next_sibling("span")
+                if span:
+                    department = _text(span)
+                break
+
+        return {
+            "site_id": self.site_id,
+            "external_id": bbs_sn,
+            "title": title,
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": "보도자료",
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": published_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "doi": "",
+            "department": department,
+            "metadata": json.dumps(
+                {"bbs_sn": bbs_sn, "key": _KEY}, ensure_ascii=False
+            ),
+        }

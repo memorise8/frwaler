@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "sites": {
+    "kisdi-re-kr-bbs": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.kisdi.re.kr",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.kisdi.re.kr/bbs/list.do",
+        "params": {
+          "key": "m2101113055776"
+        },
+        "page_param": "pageIndex",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "bbs_sn",
+          "listing_marker": "div.board_list"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
