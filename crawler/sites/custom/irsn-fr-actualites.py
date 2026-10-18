@@ -119,6 +119,10 @@ class IRSNFrActualitesCrawler(BaseCrawler):
         raw = self._curl_get(url)
         if not raw:
             return []
+        return self._parse_listing_html(raw)
+
+    def _parse_listing_html(self, raw: str) -> list[dict]:
+        """Pure parser of one listing page (split out of _fetch_listing, NR2-B)."""
         soup = self._soup(raw)
         if not soup:
             return []
@@ -166,7 +170,10 @@ class IRSNFrActualitesCrawler(BaseCrawler):
         raw = self._curl_get(url)
         if not raw:
             return {}
+        return self._parse_detail_html(raw)
 
+    def _parse_detail_html(self, raw: str) -> dict:
+        """Pure parser of one detail page (split out of _fetch_detail, NR2-B)."""
         soup = self._soup(raw)
         if not soup:
             return {}
@@ -343,3 +350,63 @@ class IRSNFrActualitesCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------ #
+    # Pure enumeration contract (NR2-B); crawl() is unchanged.             #
+    # ------------------------------------------------------------------ #
+
+    def _enumeration_items(self, html):
+        out = []
+        for item in self._parse_listing_html(html):
+            href = item["href"]
+            out.append(dict(item, url=href if href.startswith("http") else f"{_ACTUAL_BASE}{href}",
+                            slug=href.rstrip("/").split("/")[-1]))
+        return out
+
+    def _enumeration_paper(self, html, item):
+        href = item["href"]
+        detail_url = item["url"]
+        detail = self._parse_detail_html(html)
+        title = item["title"]
+        abstract = detail.get("abstract", "")
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+        # Prefer date from detail page body; fall back to listing card
+        date_str = detail.get("date_str") or item["date_str"]
+        published_date = self._parse_date(date_str)
+        listed_date = self._parse_date(item["date_str"])
+
+        slug = href.rstrip("/").split("/")[-1]
+
+        return (
+            {
+                "id": None,
+                "site_id": self.site_id,
+                "external_id": slug,
+                "post_number": slug,
+                "title": title,
+                "abstract": abstract,
+                "published_date": published_date,
+                "posted_date": listed_date,
+                "url": detail_url,
+                "pdf_url": detail.get("pdf_url") or None,
+                "original_filename": detail.get("original_filename") or None,
+                "publisher": "IRSN / ASNR",
+                "authors": None,
+                "department": None,
+                "journal": None,
+                "category": item.get("category", ""),
+                "doi": None,
+                "keywords": item.get("category") or None,
+                "metadata": json.dumps(
+                    {
+                        "posted_date": item["date_str"],
+                        "node_id": detail.get("node_id"),
+                        "slug": slug,
+                        "category": item.get("category", ""),
+                        "originalFilename": detail.get("original_filename"),
+                    },
+                    ensure_ascii=False,
+                ),
+            }
+        )

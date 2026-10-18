@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "sites": {
+    "irsn-fr-actualites": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "base_url": "https://recherche-expertise.asnr.fr",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": ["html"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["html", "item"]
+      },
+      "listing": {
+        "url": "https://recherche-expertise.asnr.fr/actualites/communiques-presse",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {"type": "adapter", "key_field": "slug", "url_field": "url",
+                   "title_field": "title", "date_field": "date_str",
+                   "listing_marker": ".views-element-container"}
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}
