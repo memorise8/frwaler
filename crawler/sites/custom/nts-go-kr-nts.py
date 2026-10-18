@@ -248,6 +248,113 @@ class NtsGoKrNtsCrawler(BaseCrawler):
         return abstract
 
     # ------------------------------------------------------------------
+    # Enumeration split (crawl() 무변경). 틀 확장 X2:
+    #   1단계 상세 GET selectNttInfo.do?nttSn=..&mi=2210 (first_html, 본문 bbsV_cont)
+    #   2단계 second_step.url_template → selectNttFileList.do JSON (html, 파일 목록)
+    # paper 는 crawl() 의 저장 코드와 같은 규칙으로 만든다(external_id=nttSn, url=상세 주소).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html: str) -> list[dict]:
+        """List page → crawl() 과 같은 행(ebook 링크 있는 행만) + 상세 주소."""
+        rows = self._parse_list_page(html)
+        for row in rows:
+            row["detail_url"] = f"{_DETAIL_URL}?nttSn={row['ntt_sn']}&mi={_MI}"
+        return rows
+
+    @staticmethod
+    def _file_list_from_json(raw: str) -> list[dict]:
+        """_fetch_file_list 와 같은 해석(응답 문자열 입력)."""
+        if not raw:
+            return []
+        try:
+            data = json.loads(raw)
+            return data.get("list") or []
+        except (json.JSONDecodeError, AttributeError):
+            return []
+
+    def _detail_text_from_html(self, html: str, ntt_sn: str = "") -> str:
+        """_fetch_detail_text 와 같은 본문 추출(응답 HTML 입력)."""
+        if not html:
+            return ""
+        try:
+            soup = self._make_soup(html)
+            if not soup:
+                return ""
+            cont = soup.find("div", {"class": "bbsV_cont"})
+            if cont:
+                return re.sub(r"\s+", " ", cont.get_text(separator=" ")).strip()
+        except Exception as exc:
+            print(f"[{self.site_id}] detail parse error (nttSn={ntt_sn}): {exc}")
+        return ""
+
+    def _enumeration_paper(self, files_raw: str, first_html: str, item: dict):
+        """crawl() 의 항목 처리와 같은 paper (건너뛰기면 None)."""
+        ntt_sn = item["ntt_sn"]
+        title = item["title"]
+        raw_date = item["raw_date"]
+        post_num = item["post_number"]
+        detail_url = f"{_DETAIL_URL}?nttSn={ntt_sn}&mi={_MI}"
+
+        files = self._file_list_from_json(files_raw)
+        body_text = self._detail_text_from_html(first_html, ntt_sn)
+
+        date_str = self._parse_date(raw_date)
+        abstract = self._build_abstract(title, date_str, body_text, files)
+        if len(abstract) < 50:
+            return None
+
+        pdf_file = next(
+            (f for f in files
+             if (f.get("nttExtsn") or "").lower() == "pdf"
+             and f.get("fileTy") == "doc"),
+            None,
+        )
+        if pdf_file is None:
+            pdf_file = next(
+                (f for f in files
+                 if (f.get("nttExtsn") or "").lower() == "pdf"),
+                None,
+            )
+
+        pdf_url = ""
+        original_filename = ""
+        if pdf_file:
+            dwld = pdf_file.get("dwldUrl", "")
+            if dwld:
+                pdf_url = f"{_DL_BASE}?fileKey={dwld}"
+            original_filename = pdf_file.get("fileNm", "")
+
+        metadata = {
+            "nttSn": ntt_sn,
+            "bbsId": _BBS_ID,
+            "posted_date": raw_date,
+            "post_number_seq": post_num,
+            "originalFilename": original_filename,
+            "files": [
+                {k: v for k, v in f.items()
+                 if k in ("fileNm", "nttExtsn", "fileSize", "fileTy", "dwldUrl")}
+                for f in files
+            ],
+        }
+
+        return {
+            "site_id": self.site_id,
+            "external_id": ntt_sn,
+            "title": title,
+            "abstract": abstract,
+            "published_date": date_str,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "authors": "",
+            "department": "국세청",
+            "keywords": "국세,세금,월간국세,국세청",
+            "category": "월간지",
+            "doi": "",
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 

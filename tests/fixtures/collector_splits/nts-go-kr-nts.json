@@ -1,0 +1,67 @@
+{
+ "site_id": "nts-go-kr-nts",
+ "listing_url": "https://www.nts.go.kr/nts/na/ntt/selectNttList.do?mi=2210&bbsId=1034&currPage=1",
+ "listing_body": "<html><head><title>월간 국세</title></head><body><ul class=\"gnb\"><li><a class=\"nttEbookInfoBtn\" data-id=\"2201\">nav</a></li></ul><div class=\"bbs_ListA\"><table><thead><tr><th>번호</th></tr></thead><tbody><tr><td data-table=\"number\">90</td><td data-table=\"subject\"><a href=\"#none\" class=\"nttEbookInfoBtn\" data-id=\"1353204\">2026년 국세 여름호</a></td><td data-table=\"write\">국세청</td><td data-table=\"date\">2026.07.10.</td></tr><tr><td data-table=\"number\">89</td><td data-table=\"subject\"><a href=\"#none\" class=\"nttEbookInfoBtn\" data-id=\"1350463\">2026년 국세 봄호</a></td><td data-table=\"write\">국세청</td><td data-table=\"date\">2026.04.22.</td></tr><tr><td data-table=\"number\">88</td><td data-table=\"subject\"><a href=\"#none\" class=\"nttInfoBtn\" data-id=\"1349000\">국세 공지(전자책 없음)</a></td><td data-table=\"write\">국세청</td><td data-table=\"date\">2026.03.02.</td></tr></tbody></table></div></body></html>",
+ "empty_body": "<html><head><title>월간 국세</title></head><body><ul class=\"gnb\"><li><a class=\"nttEbookInfoBtn\" data-id=\"2201\">nav</a></li></ul><div class=\"bbs_ListA\"><table><thead><tr><th>번호</th></tr></thead><tbody><tr><td data-table=\"number\">40</td><td data-table=\"subject\"><a href=\"#none\" class=\"nttInfoBtn\" data-id=\"43400\">2015년 1월호</a></td><td data-table=\"write\">국세청</td><td data-table=\"date\">2015.01.10.</td></tr><tr><td data-table=\"number\">39</td><td data-table=\"subject\"><a href=\"#none\" class=\"nttInfoBtn\" data-id=\"43399\">2014년 12월호</a></td><td data-table=\"write\">국세청</td><td data-table=\"date\">2014.12.10.</td></tr></tbody></table></div></body></html>",
+ "content_type": "text/html;charset=UTF-8",
+ "details": {
+  "https://www.nts.go.kr/nts/na/ntt/selectNttInfo.do?nttSn=1353204&mi=2210": "<html><body><div class=\"bbsV_cont\"> <div> </div> <div> <p>2026년 국세 여름호<br></p><br /><br /> </div> </div><div class=\"bbsV_atchmnfl\"><a href=\"/comm/nttFileDownload.do?fileKey=abc\" class=\"fileName\">x.pdf</a></div></body></html>",
+  "https://www.nts.go.kr/nts/na/ntt/selectNttFileList.do?nttSn=1353204&bbsId=1034&mi=2210": {
+   "list": [
+    {
+     "bbsId": "1034",
+     "nttSn": 1353204,
+     "dwldCo": 7,
+     "nttFlpth": "/upload/x",
+     "fileSn": 1,
+     "fileNm": "2026년 국세 여름호.pdf",
+     "fileSize": 141422463,
+     "dwldUrl": "43007633f2624383fdb22cfb135d19bc",
+     "nttExtsn": "pdf",
+     "fileTy": "doc"
+    },
+    {
+     "bbsId": "1034",
+     "nttSn": 1353204,
+     "dwldCo": 7,
+     "nttFlpth": "/upload/x",
+     "fileSn": 2,
+     "fileNm": "vol676.zip",
+     "fileSize": 123624293,
+     "dwldUrl": "0b252c994ca2ccb977d2f1664f723cec",
+     "nttExtsn": "zip",
+     "fileTy": "ebook"
+    }
+   ]
+  },
+  "https://www.nts.go.kr/nts/na/ntt/selectNttInfo.do?nttSn=1350463&mi=2210": "<html><body><div class=\"bbsV_cont\"> <div> </div> <div> <p>2026년 봄호 안내 &nbsp; 세법 개정 해설과 납세 일정을 담았습니다.<br></p><br /><br /> </div> </div><div class=\"bbsV_atchmnfl\"><a href=\"/comm/nttFileDownload.do?fileKey=abc\" class=\"fileName\">x.pdf</a></div></body></html>",
+  "https://www.nts.go.kr/nts/na/ntt/selectNttFileList.do?nttSn=1350463&bbsId=1034&mi=2210": {
+   "list": [
+    {
+     "bbsId": "1034",
+     "nttSn": 1350463,
+     "dwldCo": 7,
+     "nttFlpth": "/upload/x",
+     "fileSn": 3,
+     "fileNm": "vol675.zip",
+     "fileSize": 100000000,
+     "dwldUrl": "e1",
+     "nttExtsn": "zip",
+     "fileTy": "ebook"
+    },
+    {
+     "bbsId": "1034",
+     "nttSn": 1350463,
+     "dwldCo": 7,
+     "nttFlpth": "/upload/x",
+     "fileSn": 4,
+     "fileNm": "2026년 국세 봄호.PDF",
+     "fileSize": 0,
+     "dwldUrl": "p2",
+     "nttExtsn": "PDF",
+     "fileTy": "etc"
+    }
+   ]
+  }
+ }
+}
