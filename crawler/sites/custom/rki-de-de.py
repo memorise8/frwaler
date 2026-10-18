@@ -336,6 +336,63 @@ class RkiDeDeCrawler(BaseCrawler):
         print(f"[{_SITE_ID}] Crawl complete. Total saved: {saved}")
         return saved
 
+    # ------------------------------------------------------------------
+    # Enumeration contract (ND-3, 2026-10-19): pure methods, crawl() unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """crawl()'s teaser rows for one list page, each with external_id = crawl()'s
+        path slug (the listing identity)."""
+        rows = []
+        for item in _parse_list_page(html or ""):
+            row = dict(item)
+            slug = urlparse(item["url"]).path.rstrip("/").rsplit("/", 1)[-1]
+            row["external_id"] = re.sub(r"\.html?$", "", slug)
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s paper for one teaser from its detail page; None = crawl()'s
+        short-abstract skip (detail body and teaser both < 50 chars)."""
+        if not html:
+            raise ValueError("rki detail page empty")
+        item_url = item["url"]
+        path_slug = urlparse(item_url).path.rstrip("/").rsplit("/", 1)[-1]
+        path_slug = re.sub(r"\.html?$", "", path_slug)
+        post_number = _extract_post_number(item_url)
+        detail = _parse_detail_page(html)
+        abstract = detail.get("abstract", "").strip()
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            abstract = item.get("teaser_text", "").strip()
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+        published_date = detail.get("published_date") or item.get("listed_date", "")
+        listed_date = item.get("listed_date", "")
+        return {
+            "site_id": _SITE_ID,
+            "external_id": path_slug,
+            "post_number": post_number,
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "url": item_url,
+            "pdf_url": detail.get("pdf_url"),
+            "original_filename": detail.get("original_filename"),
+            "authors": None,
+            "publisher": "Robert Koch-Institut",
+            "department": None,
+            "journal": None,
+            "doi": None,
+            "keywords": None,
+            "category": item.get("category", ""),
+            "metadata": json.dumps({
+                "posted_date": listed_date,
+                "item_type": item.get("category", ""),
+                "slug": path_slug,
+            }, ensure_ascii=False),
+        }
+
 
 def _has_next_page(html: str, current_page: int) -> bool:
     """Detect whether a next-page link exists for pages after current_page."""
