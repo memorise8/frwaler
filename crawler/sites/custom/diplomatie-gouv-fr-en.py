@@ -416,6 +416,50 @@ class DiplomatieGouvFrEnCrawler(BaseCrawler):
         return nxt is not None and bool((nxt.get("href") or "").strip())
 
 
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Listing rows of one /en/press/news page, parsed like crawl()."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html, context="enumeration listing")
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparsable_html")
+        return self._parse_list(soup)
+
+    def _enumeration_paper(self, html, item):
+        """Paper dict exactly as crawl() saves it for one record (None = skipped)."""
+        detail_soup = self._make_soup(html, context="detail")
+        if detail_soup is None:
+            raise RuntimeError("detail HTML could not be parsed")
+        parsed = self._parse_detail(detail_soup, html, item)
+        abstract = parsed.get("abstract", "")
+        if len(abstract) < self._MIN_ABSTRACT:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": parsed["external_id"],
+            "post_number": parsed["post_number"],
+            "title": parsed["title"],
+            "abstract": abstract,
+            "published_date": parsed["published_date"],
+            "url": parsed["url"],
+            "pdf_url": parsed["pdf_url"] or "",
+            "authors": "",
+            "publisher": "Ministère de l'Europe et des Affaires étrangères",
+            "department": parsed["department"],
+            "category": parsed["category"],
+            "keywords": parsed["keywords"],
+            "doi": "",
+            "original_filename": parsed["original_filename"],
+            "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
+        }
+
+
 # ---------------------------------------------------------------------------
 # Standalone helpers
 # ---------------------------------------------------------------------------
