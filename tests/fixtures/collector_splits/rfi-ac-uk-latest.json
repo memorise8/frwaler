@@ -1,0 +1,11 @@
+{
+ "site_id": "rfi-ac-uk-latest",
+ "listing_body": "[{\"id\": 8548, \"date\": \"2026-09-14T10:00:00\", \"link\": \"https://www.rfi.ac.uk/latest/item-1/\", \"slug\": \"item-1\", \"categories\": [8], \"title\": {\"rendered\": \"News &amp; item-1\"}, \"content\": {\"rendered\": \"<p>Synthetic offline news text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline news text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. </p>\"}, \"excerpt\": {\"rendered\": \"<p>x</p>\"}}, {\"id\": 8513, \"date\": \"2026-08-18T10:00:00\", \"link\": \"https://www.rfi.ac.uk/latest/item-2/\", \"slug\": \"item-2\", \"categories\": [8], \"title\": {\"rendered\": \"News &amp; item-2\"}, \"content\": {\"rendered\": \"<p></p>\"}, \"excerpt\": {\"rendered\": \"<p>Synthetic offline news text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline news text for the L2b split regression, résumé and 자료 kept identical between crawl and plan.  [&hellip;]</p>\"}}]",
+ "content_type": "application/json",
+ "details": {},
+ "long_text": "Synthetic offline news text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline news text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. ",
+ "original_method_source_sha256": {
+  "crawl": "ee8578dfce08183967f0c9b304978fc5f64fd24560c4e69ef197fb7e62df4252",
+  "_api_get": "fa2e3ef64a6be0969f521379f05aa5ea32808554314a14de304f287fbe158ea0"
+ }
+}

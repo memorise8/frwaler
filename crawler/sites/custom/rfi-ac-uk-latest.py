@@ -176,6 +176,60 @@ class RfiAcUkLatestCrawler(BaseCrawler):
         print(f"[{self.site_id}] done. Total saved: {saved}")
         return saved
 
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged): one REST post -> crawl's paper.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:posts_not_a_list_of_objects", url)
+        return data
+
+    def _enumeration_paper(self, post):
+        post_url = post.get("link", "")
+        post_id = str(post.get("id", ""))
+        title_raw = (post.get("title") or {}).get("rendered") or ""
+        title = _strip_html(title_raw).strip()
+        content_html = (post.get("content") or {}).get("rendered") or ""
+        excerpt_html = (post.get("excerpt") or {}).get("rendered") or ""
+        abstract = _strip_html(content_html).strip()
+        if len(abstract) < _MIN_ABSTRACT:
+            abstract = _strip_html(excerpt_html).strip()
+            abstract = re.sub(r"\s*\[[…\.]{1,3}\]\s*$", "", abstract).strip()
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+        date_raw = post.get("date", "")
+        pub_date = date_raw[:10] if date_raw else None
+        slug = post.get("slug", "")
+        cat_ids = post.get("categories", [])
+        metadata = {
+            "posted_date": date_raw,
+            "post_id": post_id,
+            "slug": slug,
+            "category_ids": cat_ids,
+        }
+        return {
+            "site_id": self.site_id,
+            "external_id": post_id,
+            "post_number": post_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "listed_date": pub_date,
+            "url": post_url,
+            "pdf_url": None,
+            "authors": None,
+            "publisher": "Rosalind Franklin Institute",
+            "department": None,
+            "journal": None,
+            "keywords": None,
+            "category": "news",
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
+
     def _api_get(self, url: str) -> "str | None":
         """Fetch a URL with curl, returning decoded body string or None after 3 retries."""
         cmd = [
