@@ -326,3 +326,101 @@ class GardaIeEnCrawler(BaseCrawler):
 
         print(f"[garda-ie-en] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (framework plan; crawl() above is unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """PDF rows of the annual-reports start page, parsed with _parse_page
+        exactly as crawl() does (page_url = _START_URL, the queue string crawl()
+        records as source_page; same pdf_url de-duplication).
+
+        The start page has no pagination, so a page number above 1 is declared
+        empty (the plan's listing_marker proves it is still the reports page).
+        crawl() would also follow div.landing-document sub-pages; the page has
+        none today, and if any appear the listing fails as a parse error so the
+        plan is revisited instead of silently missing a sub-page."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        page = (parse_qs(urlsplit(url or "").query).get("page") or ["1"])[0]
+        if page not in ("", "0", "1"):
+            return []
+        subpages, pdf_items = _parse_page(html, _START_URL)
+        if subpages:
+            raise PermanentFailure("listing_parse_error:landing_document_subpages_present", url)
+        rows = []
+        seen_pdf_urls: set = set()
+        for item in pdf_items:
+            if item["pdf_url"] in seen_pdf_urls:
+                continue
+            seen_pdf_urls.add(item["pdf_url"])
+            rows.append(dict(item))
+        if not rows:
+            raise PermanentFailure("listing_parse_error:no_file_list_pdfs", url)
+        return rows
+
+    def _enumeration_paper(self, pdf_text, pdf_bytes, item):
+        """Paper for one PDF row. pdf_text is the framework's `pdftotext -layout`
+        output of the fetched PDF (plan adapter.pdf_text), stripped as _pdf_text
+        does; when it is empty the same pypdf step (first 15 pages) runs on the
+        PDF bytes. Same 50-char skip and paper fields as crawl()."""
+        abstract = (pdf_text or "").strip()
+        if not abstract:
+            try:
+                import pypdf  # noqa: PLC0415
+                reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+                parts = []
+                for page in reader.pages[:15]:
+                    t = page.extract_text() or ""
+                    if t:
+                        parts.append(t)
+                abstract = "\n".join(parts).strip()
+            except Exception:
+                abstract = ""
+
+        title = item["title"].strip()
+        date_raw = item["date_raw"]
+        filename = item["filename"]
+        slug = item["slug"]
+        file_size = item.get("file_size", "")
+        file_ext = item.get("file_ext", "pdf")
+        listed_date = _parse_date(date_raw)
+        source_page = item["page_url"]
+        pdf_url = item["pdf_url"]
+
+        if len(abstract) < 50:
+            return None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": slug,
+            "post_number": slug,
+            "title": title,
+            "abstract": abstract,
+            "published_date": listed_date,
+            "listed_date": listed_date,
+            "url": source_page,
+            "pdf_url": pdf_url,
+            "publisher": _PUBLISHER,
+            "authors": "",
+            "keywords": "",
+            "category": _CATEGORY,
+            "doi": None,
+            "department": None,
+            "journal": None,
+            "original_filename": filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": date_raw,
+                    "originalFilename": filename,
+                    "file_extension": file_ext,
+                    "file_size": file_size,
+                    "category": _CATEGORY,
+                    "source_page": source_page,
+                },
+                ensure_ascii=False,
+            ),
+        }

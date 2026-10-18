@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "sites": {
+    "garda-ie-en": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.garda.ie",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "pdf_text",
+          "raw",
+          "item"
+        ],
+        "pdf_text": {
+          "args": [
+            "-layout"
+          ],
+          "timeout_s": 30,
+          "min_bytes": 0
+        }
+      },
+      "listing": {
+        "url": "https://www.garda.ie/en/information-centre/annual-reports/",
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 120,
+        "parser": {
+          "type": "adapter",
+          "url_field": "pdf_url",
+          "key_field": "slug",
+          "title_field": "title",
+          "listing_marker": "div.file-list"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
