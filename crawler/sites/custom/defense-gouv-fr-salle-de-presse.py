@@ -107,7 +107,9 @@ class DefenseGouvFrSalleDePresseCrawler(BaseCrawler):
         m = re.match(r"(\d{1,2})\s+(\S+)\s+(\d{4})", raw)
         if m:
             day, mon, year = m.group(1), m.group(2).lower(), m.group(3)
-            mon_num = self._MONTHS_FR.get(mon, "01")
+            mon_num = self._MONTHS_FR.get(mon)
+            if not mon_num:
+                return ""
             return f"{year}-{mon_num}-{day.zfill(2)}"
         return ""
 

@@ -30,6 +30,7 @@ import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 from crawler.base_crawler import BaseCrawler
+from datetime import date
 
 try:
     from bs4 import BeautifulSoup as _BS
@@ -155,16 +156,26 @@ class SintefNoEnCrawler(BaseCrawler):
 
     @staticmethod
     def _iso_from_date_parts(date_parts):
-        if not date_parts:
+        if not isinstance(date_parts, dict) or not date_parts.get("year"):
             return None
-        year = date_parts.get("year")
-        if not year:
+        year, month, day = (date_parts.get(k) for k in ("year", "month", "day"))
+        if any(isinstance(v, bool) or (v is not None and not isinstance(v, (int, str)))
+               for v in (year, month, day)):
             return None
-        month = date_parts.get("month") or "1"
-        day = date_parts.get("day") or "1"
         try:
-            return f"{int(year):04d}-{int(month):02d}-{int(day):02d}"
-        except (TypeError, ValueError):
+            year = int(year)
+            if month is None or month == "":
+                if day not in (None, ""):
+                    return None
+                date(year, 1, 1)
+                return f"{year:04d}"
+            month = int(month)
+            if day is None or day == "":
+                date(year, month, 1)
+                return f"{year:04d}-{month:02d}"
+            day = int(day)
+            return date(year, month, day).isoformat()
+        except (TypeError, ValueError, OverflowError):
             return None
 
     def _resolve_publisher_name(self, publication_context):
