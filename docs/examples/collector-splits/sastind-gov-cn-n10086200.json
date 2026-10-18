@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "sites": {
+    "sastind-gov-cn-n10086200": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.sastind.gov.cn",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.sastind.gov.cn/n10086200/n10086319/index_10126608_{page}.html",
+        "first_page_url": "https://www.sastind.gov.cn/n10086200/n10086319/index.html",
+        "start_page": 0,
+        "page_size": 8,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "title_field": "title",
+          "listing_marker": "div.list_infor_news"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

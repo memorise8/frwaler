@@ -376,3 +376,55 @@ class SastindGovCnN10086200Crawler(BaseCrawler):
             print(f"[{SITE_ID}] reached safety page cap {self._MAX_PAGES}; stopping")
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration (pure conversions for the enumeration framework)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Rows of one static list page (index.html or index_10126608_N.html) exactly as
+        crawl() collects them. A page without the list block is a listing error."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:not_html")
+        soup = self._soup(html)
+        if soup.select_one("div.list_infor_news") is None:
+            raise PermanentFailure("listing_parse_error:list_block_missing")
+        rows = []
+        seen_urls = set()
+        for title, list_abstract, detail_url, listed_date_raw, article_id in self._parse_list(soup):
+            if detail_url in seen_urls:
+                continue
+            seen_urls.add(detail_url)
+            rows.append({
+                "url": detail_url,
+                "external_id": article_id or detail_url.rstrip("/").split("/")[-2],
+                "title": title,
+                "list_abstract": list_abstract,
+                "listed_date_raw": listed_date_raw,
+                "article_id": article_id,
+            })
+        return rows
+
+    def _enumeration_paper(self, detail_html, item):
+        """The paper crawl() saves for one list row and its detail page (None = skipped)."""
+        item_label = item["article_id"] or item["url"]
+        if not detail_html:
+            print(f"[{SITE_ID}] item {item_label} failed: empty detail response")
+            return None
+        paper = self._parse_detail(
+            item["url"], detail_html, item["title"], item["list_abstract"],
+            item["listed_date_raw"], item["article_id"],
+        )
+        if not paper.get("title"):
+            print(f"[{SITE_ID}] item {item_label} skipped: missing title")
+            return None
+        abstract = self._clean(paper.get("abstract", ""))
+        if len(abstract) < self._MIN_ABSTRACT_CHARS:
+            print(
+                f"[{SITE_ID}] item {item_label} skipped: "
+                f"short abstract ({len(abstract)} chars)"
+            )
+            return None
+        paper["abstract"] = abstract
+        return paper

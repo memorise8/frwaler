@@ -1,0 +1,25 @@
+{
+ "site_id": "sastind-gov-cn-n10086200",
+ "listing_body": "<html><body><div class=\"list_infor_news\"><ul><li><a href=\"/n10086200/n10086319/c90000001/content.html\" title=\"Synthetic news 1\"><p class=\"list_first\">Synthetic news 1</p><p class=\"list_second\">List snippet 1</p></a><span class=\"list_news_time\">10-01</span></li><li><a href=\"/n10086200/n10086319/c90000002/content.html\" title=\"Synthetic news 2\"><p class=\"list_first\">Synthetic news 2</p><p class=\"list_second\">List snippet 2</p></a><span class=\"list_news_time\">10-02</span></li></ul></div></body></html>",
+ "empty_body": "<html><body><div class=\"list_infor_news\"><ul></ul></div></body></html>",
+ "content_type": "text/html",
+ "long_text": "Synthetic defence industry news article with 中文 text for offline equality testing only. It repeats enough words to pass the one hundred character abstract threshold of the crawler.",
+ "details": {
+  "https://www.sastind.gov.cn/n10086200/n10086319/c90000001/content.html": "<html><body><div class=\"article_title\"><b>Synthetic news 1 full</b></div><span class=\"wz_xx\">发布日期：2026-10-01 　信息来源：Synthetic Agency</span><div id=\"article\"><p>Synthetic defence industry news article with 中文 text for offline equality testing only. It repeats enough words to pass the one hundred character abstract threshold of the crawler.</p><script>x()</script><a href=\"/files/n1.pdf\">附件</a></div></body></html>",
+  "https://www.sastind.gov.cn/n10086200/n10086319/c90000002/content.html": "<html><body><div class=\"article_title\"><b>Synthetic news 2 full</b></div><span class=\"wz_xx\">发布日期：2026-10-02 　信息来源：Synthetic Agency</span><div id=\"article\"><p>Synthetic defence industry news article with 中文 text for offline equality testing only. It repeats enough words to pass the one hundred character abstract threshold of the crawler.</p><script>x()</script><a href=\"/files/n2.pdf\">附件</a></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "__init__": "f73732027b17cde28796c7c374ed9d4394fd4743548b7ba328272f655308a6e2",
+  "_curl_get": "1e6fca5b75c067f1f9811fd832e1e5fb6a575393d1076aeb2e4cebfcc24a4d57",
+  "_decode": "56b3140507d67dbf795cb5f9b0d6ac13ee74b0a8c34dad11fe51926cb42450a3",
+  "_soup": "63d9d41e48524f1f222465020c76197bc3c25aaa53d2b27bdd5ab9c4b6928573",
+  "_clean": "8cd6578b9702b71d69e84bba2851d58578164388318a95641b6973e958926498",
+  "_date_only": "8ebb67ba54fc06cb60a28fdce98f4e7ce4ef4e5497139b93c012d88856b2d6ec",
+  "_abs_url": "a06cc6d0611e19bde79f0875edd90c0f57a2fc08151c54980da3142b354479c6",
+  "_list_url": "56d1026b7817e6b310c5cc3afe1b2ae018962da348360cfbd40e968d55d2572d",
+  "_detect_max_page": "2a28dc292b5c035e74e9e8512140424d7e3c0bf9f9fbfb320fd5a9d23b5edc02",
+  "_parse_list": "0f102f0bc150946b93272690b894bd94a79e9babc1033bc7969a623bb16d5cea",
+  "_parse_detail": "9748cd1267b34138fe4805a0e06477fe1e6e37afa8e59e9f2b05c6b7d0112f9b",
+  "crawl": "ee106e8b0e84bcf6e8768e44e9d9d3244a1288204ed6491b1533c4d9fac2b17c"
+ }
+}
