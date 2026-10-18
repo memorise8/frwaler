@@ -209,6 +209,56 @@ class AFPGovAuSearchCrawler(BaseCrawler):
     site_name = "Custom: afp-gov-au-search"
     base_url = "https://afp.gov.au"
 
+    # -- enumeration split (crawl() unchanged) --------------------------
+    def _enumeration_items(self, html):
+        return _parse_list_page(html)
+
+    def _enumeration_detail(self, html, url):
+        return _parse_detail_page(html, url)
+
+    def _enumeration_paper(self, item, detail):
+        """The paper crawl() saves for one search card (same skip rule)."""
+        abstract = detail["abstract"] or item.get("snippet", "")
+        if len(abstract) < 50:
+            return None
+        pdf_url = detail["pdf_url"] or None
+        node_id = item.get("node_id") or ""
+        listed_date = item.get("listed_date", "")
+        original_filename = None
+        if pdf_url:
+            tail = pdf_url.rstrip("/").split("/")[-1].split("?")[0]
+            if "." in tail and len(tail) <= 200:
+                original_filename = tail
+        return {
+            "site_id": self.site_id,
+            "external_id": node_id,
+            "post_number": node_id,
+            "url": item["url"],
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": listed_date,
+            "posted_date": listed_date,
+            "listed_date": listed_date,
+            "authors": "",
+            "publisher": "Australian Federal Police",
+            "department": "Australian Federal Police",
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "category": item.get("category", ""),
+            "keywords": "",
+            "doi": "",
+            "metadata": json.dumps(
+                {
+                    "node_id": node_id,
+                    "posted_date": listed_date,
+                    "snippet": item.get("snippet", ""),
+                    "category": item.get("category", ""),
+                    "datetime_raw": item.get("datetime_raw", ""),
+                },
+                ensure_ascii=False,
+            ),
+        }
+
     def crawl(self, limit=None):
         """Crawl AFP search results for keyword 'pdf'.
 

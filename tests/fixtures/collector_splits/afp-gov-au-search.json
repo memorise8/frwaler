@@ -1,0 +1,14 @@
+{
+ "listing_body": "<html><body><main><div class=\"views-row\"><div data-history-node-id=\"101\" class=\"node node--type-landing-page\"><div class=\"search-result__title\"><a href=\"/about-us/page-1\">Page 1 title</a></div><time datetime=\"2026-01-01T10:00:00+10:00\">x</time><div class=\"field--search-api-excerpt\">Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. </div></div></div><div class=\"views-row\"><div data-history-node-id=\"102\" class=\"node node--type-landing-page\"><div class=\"search-result__title\"><a href=\"/about-us/page-2\">Page 2 title</a></div><time datetime=\"2026-02-02T10:00:00+10:00\">x</time><div class=\"field--search-api-excerpt\">Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. </div></div></div></main></body></html>",
+ "details": {
+  "https://afp.gov.au/about-us/page-1": "<html><body><main><h1>Page 1</h1><p>Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. </p><a href=\"/sites/default/files/2026-01/doc-1.pdf\">PDF</a></main></body></html>",
+  "https://afp.gov.au/about-us/page-2": "<html><body><main><h1>Page 2</h1><p>Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. </p><a href=\"/sites/default/files/2026-02/doc-2.pdf\">PDF</a></main></body></html>"
+ },
+ "site_id": "afp-gov-au-search",
+ "content_type": "text/html",
+ "long_text": "Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. ",
+ "empty_body": "<html><main/></html>",
+ "original_method_source_sha256": {
+  "crawl": "98b71aad99b27bd08bcc42b54e35262e5abd0b0c76dfee5730cd0ad3743fa49a"
+ }
+}
