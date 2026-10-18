@@ -152,6 +152,11 @@ def _fetch_search_page(page_num: int) -> list[dict]:
     )
     if not raw:
         raise SourceFailure('fetch_failed')
+    return _parse_search_response(raw, page_num)
+
+
+def _parse_search_response(raw: str, page_num=None) -> list[dict]:
+    """Parse one Views AJAX response body (no I/O). Same rules as the crawl listing."""
     if access_challenge(raw):
         raise SourceFailure('authentication_failed')
 
@@ -203,6 +208,11 @@ def _fetch_detail(url: str) -> dict:
     raw = _curl_get(url)
     if not raw:
         raise SourceFailure('fetch_failed')
+    return _parse_detail(raw, url)
+
+
+def _parse_detail(raw: str, url: str) -> dict:
+    """Parse one detail page body (no I/O). Same rules as the crawl detail step."""
     if access_challenge(raw):
         raise SourceFailure('authentication_failed')
 
@@ -416,3 +426,61 @@ class AnstoGovAuSearchCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] crawl complete: {saved} saved.")
         return saved
+
+    # -- enumeration split (crawl() unchanged; same parsing and Paper fields) --
+    def _enumeration_items(self, raw):
+        """Rows of one /views/ajax response body (JSON, possibly <textarea>-wrapped),
+        parsed exactly like crawl's listing.
+
+        A malformed or challenge response is a listing parse error, never an empty page.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        try:
+            return _parse_search_response(raw)
+        except SourceFailure as exc:
+            raise PermanentFailure(f"listing_parse_error:{exc.reason}") from None
+
+    def _enumeration_detail(self, html, item, url):
+        """crawl()'s Paper for one listed result; None where crawl skips (short abstract)."""
+        from crawler.enumeration.http import PermanentFailure
+        try:
+            detail = _parse_detail(html, url)
+        except SourceFailure as exc:
+            raise PermanentFailure(f"detail_{exc.reason}", url) from None
+        abstract = detail.get("abstract", "")
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+        node_id = detail.get("node_id", "")
+        external_id = node_id if node_id else (
+            item["url"].replace(_BASE, "").strip("/") or item["url"]
+        )
+        pdf_url = detail.get("pdf_url") or None
+        published_date = detail.get("published_date") or None
+        orig_fname = detail.get("original_filename") or None
+        metadata = {
+            "node_id": node_id,
+            "search_query": _QUERY,
+            "originalFilename": orig_fname,
+        }
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": node_id or None,
+            "title": item["title"],
+            "abstract": abstract[:5000],
+            "url": item["url"],
+            "pdf_url": pdf_url,
+            "published_date": published_date,
+            "listed_date": None,
+            "authors": None,
+            "publisher": (
+                "Australian Nuclear Science and Technology Organisation"
+            ),
+            "department": None,
+            "journal": None,
+            "keywords": None,
+            "category": None,
+            "doi": None,
+            "original_filename": orig_fname,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
