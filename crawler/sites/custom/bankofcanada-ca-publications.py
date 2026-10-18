@@ -656,3 +656,55 @@ class BankOfCanadaCaPublicationsCrawler(BaseCrawler):
 
     def _normalize_text(self, text):
         return re.sub(r"\s+", " ", str(text)).strip()
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched HTML.
+    # The listing is the browse page itself (GET ?mt_page=N, 10 rows), whose
+    # article.media rows are the same markup crawl() reads from the widget.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Rows of one browse page, parsed with _discover_list_api() and
+        _parse_list_records() exactly as crawl() does."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        soup = self._make_soup(html)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:html_parse_failed", url)
+        query = dict(parse_qsl(urlparse(url or "").query))
+        page_raw = query.get("mt_page") or "1"
+        page = int(page_raw) if page_raw.isdigit() else 1
+        list_api = self._discover_list_api(soup, url or self.BROWSE_FALLBACK_URL)
+        return self._parse_list_records(soup, list_api, page)
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page — the conversion part of crawl()
+        copied verbatim (external_id = list post id, else canonical slug)."""
+        record = item
+        detail_soup = self._make_soup(html) if html else None
+        if detail_soup is None:
+            raise RuntimeError("detail HTML could not be parsed")
+
+        parsed = self._parse_detail(detail_soup, record)
+        abstract = parsed["abstract"]
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": parsed["external_id"],
+            "title": parsed["title"],
+            "authors": json.dumps(parsed["authors"], ensure_ascii=False),
+            "abstract": abstract,
+            "category": parsed["category"],
+            "keywords": json.dumps(parsed["keywords"], ensure_ascii=False),
+            "published_date": parsed["published_date"],
+            "url": parsed["url"],
+            "pdf_url": parsed["pdf_url"],
+            "doi": parsed["doi"],
+            "department": parsed["department"],
+            "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
+        }

@@ -20,7 +20,7 @@
   "bankofcanada-ca-publications": {
     "reason": "delivered_external_research_dependency_access_challenge_and_external_detail_identity_date_contract_unverified",
     "classification": "full_rescan_required",
-    "source_sha256": "a7395b7bd320f72f354db69dabc76a25ae1e922a4059fe3d830385c5da1614bd",
+    "source_sha256": "fba0298d0cf893f155f6857c22c0cced85db104bc51f116b75fde5af5bcb0766",
     "adapter": "BankOfCanadaAdapter",
     "adapter_source_sha256": "eaecce209cd17a884373209c23eeaaeee09c1eda8113c546b2537e0febd3f8b2",
     "reviewed_at": "2026-10-11T16:59:12.372112+00:00",

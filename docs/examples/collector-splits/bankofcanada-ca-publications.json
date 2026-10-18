@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "sites": {
+    "bankofcanada-ca-publications": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.bankofcanada.ca",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.bankofcanada.ca/publications/browse/",
+        "params": {
+          "content_type[]": [
+            "21396",
+            "21396"
+          ]
+        },
+        "page_param": "mt_page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "post_id",
+          "title_field": "title",
+          "date_field": "published_date",
+          "listing_marker": ".mtw.archive"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

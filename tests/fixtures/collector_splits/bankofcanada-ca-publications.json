@@ -1,0 +1,40 @@
+{
+  "site_id": "bankofcanada-ca-publications",
+  "listing_body": "<html><head><link rel=\"shortlink\" href=\"https://www.bankofcanada.ca/?p=169645\"></head><body class=\"page-id-169645\"><main><form data-mtw=\"multitaxonomytaglist-cfct-module-synthetic\"></form><div class=\"mtw archive paging-paged\" id=\"multitaxonomytaglist-cfct-module-synthetic\" data-ajax-url=\"/wp-content/plugins/frontend-ajax.php\"><input type=\"hidden\" name=\"content_type[0]\" value=\"21396\"><input type=\"hidden\" name=\"content_type[1]\" value=\"21396\"><span class=\"num-results\">2</span><article class=\"media\" id=\"post-990002\"><div class=\"media-body\"><h3 class=\"media-heading\"><a href=\"https://www.bankofcanada.ca/2031/04/synthetic-survey-990002/\" data-content-type=\"Canadian Survey of Consumer Expectations\">Synthetic survey 990002</a></h3><span class=\"media-date\">April 20, 2031</span><span class=\"media-excerpt\">Synthetic excerpt 990002.</span><div class=\"media-tags\"><a href=\"#\">Inflation</a></div></div></article><article class=\"media\" id=\"post-990001\"><div class=\"media-body\"><h3 class=\"media-heading\"><a href=\"https://www.bankofcanada.ca/2031/01/synthetic-survey-990001/\" data-content-type=\"Canadian Survey of Consumer Expectations\">Synthetic survey 990001</a></h3><span class=\"media-date\">January 19, 2031</span><span class=\"media-excerpt\">Synthetic excerpt 990001.</span><div class=\"media-tags\"><a href=\"#\">Inflation</a></div></div></article></div></main></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.bankofcanada.ca/2031/04/synthetic-survey-990002/": "<html><head><link rel=\"canonical\" href=\"https://www.bankofcanada.ca/2031/04/synthetic-survey-990002/\"><meta property=\"og:title\" content=\"Synthetic survey 990002\"><meta name=\"publication_date\" content=\"2031-04-15\"><meta name=\"description\" content=\"Synthetic description 990002.\"></head><body><main><h1>Synthetic survey 990002</h1><div class=\"post-content\"><p>Synthetic survey summary for the offline equality test of the enumeration split. It only imitates the structure of a publication page and carries no real content.</p><a href=\"https://www.bankofcanada.ca/wp-content/uploads/2031/04/synthetic-990002.pdf\">PDF</a></div></main></body></html>",
+    "https://www.bankofcanada.ca/2031/01/synthetic-survey-990001/": "<html><head><link rel=\"canonical\" href=\"https://www.bankofcanada.ca/2031/01/synthetic-survey-990001/\"><meta property=\"og:title\" content=\"Synthetic survey 990001\"><meta name=\"publication_date\" content=\"2031-01-15\"><meta name=\"description\" content=\"Synthetic description 990001.\"></head><body><main><h1>Synthetic survey 990001</h1><div class=\"post-content\"><p>Synthetic survey summary for the offline equality test of the enumeration split. It only imitates the structure of a publication page and carries no real content.</p><a href=\"https://www.bankofcanada.ca/wp-content/uploads/2031/01/synthetic-990001.pdf\">PDF</a></div></main></body></html>"
+  },
+  "long_text": "Synthetic survey summary for the offline equality test of the enumeration split. It only imitates the structure of a publication page and carries no real content.",
+  "original_method_source_sha256": {
+    "crawl": "ed1138465f9525a5e345fc485c2a0cd36a9ccbe322b367495db0b9579b9bcb8b",
+    "_fetch_list_page": "f226d66a1f04331bc99844d1dafa2df90f6e28d4e377865020c74d044d46acc9",
+    "_discover_browse_url": "8fc8a89bf04ca0242c026af136d52dc26780202abad6658e995b1d810752ad3a",
+    "_discover_list_api": "2d573a777129aee76d1720a14c55c2fd985c85b12faa628f12a0b5d179a3fdce",
+    "_parse_list_records": "101df7557ee11376fa70f62dcaf6c5cc026e70a0157d9229748fb4c2eebe525b",
+    "_parse_detail": "b94e27169df493eeba62348469761862762e87e3373c97b8b8a4874a4a401078",
+    "_curl_json": "f88a6cb8e8b80ce85db6cafc3d4569cc5268a1d0c8dc5563a0c5f4f60e471fd1",
+    "_curl_get": "5656bf3f466d2b66ce2888ffd97de4eac2af33d41fafdaa32e583c9b57f34a88",
+    "_make_soup": "322d312aeb544a6438373454a75bbd00757ef890a50ee99dce76056aa13172d7",
+    "_extract_body_summary": "74c78c62ed72c9aba97d3e2f1548f189eccc0b7241768347f329729bc9b36c97",
+    "_is_useful_abstract_part": "5c15acf5857e5cd9c39f8293a297b504bbf95e15cf8611aa3772966f12da0593",
+    "_remove_noise": "2bd8f9c55ccac45a32362e41f53e5b158b486bb701bfe8f4bb68f53c34cc4e40",
+    "_has_next_page": "d465412601028c4ede2630fc959d8dd201366ee85f90d798fb68345cab2c8459",
+    "_data_links": "4afb96352c3550c9a7d2ee5f2d3d4c7d545330c1e55e9ef7e2218b4fdb22fa8c",
+    "_first_pdf_url": "8be5337b714c3f70d911cdd14fe089816ffe2605bd690abb2c0d492b25338cc9",
+    "_canonical_url": "c0e4d14480f8f0a991f7c946010e00eae3327b81c85c1de3d6de9537f5832482",
+    "_meta_content": "2642263f2acc20521abc011ab41c90439a3f0727b6688ee3c7a010da65a25f21",
+    "_page_id": "aac06ca1e95c29b5c89c35a28cf54de78d416f9361925e6936587310de996f86",
+    "_post_id_from_detail": "a6d9cf9c87ed28227ce8f48cb6d1df5c551a60851ec095369fb3764493fc59cd",
+    "_post_id": "fca5aff4943f25d32afab7f39eb475999e895fc3c53e5e61cad4bcc5ac5fe158",
+    "_external_id": "3ddec9df199ac56850165d738227cc5f0d32879cf458e37e8d8e5a92bc10005c",
+    "_date_from_url": "f9d5eba62e9879f78e1a1ba30addc91ef3491a42ab82556b7db40319c3c688ad",
+    "_normalize_date": "b47a0420e93db90b687a1e66b828c55299e1e4e20e16f582e7e92266a137d37f",
+    "_site_title_cleanup": "800c096886c94a854507842b47000adf7d9d9f82c554ebd80aeb4625585005ca",
+    "_dedupe": "0b02038151359d7e4c75a522a00e8fdaef7ffeafcd87bf294c4f2b228bc4906b",
+    "_join_limited": "1cb583547d083486e0c49f9fd9fa4fbf4fffe46441d9991dffd353bba03bde8f",
+    "_clean_text": "c42c26788ab53b13f59e698c61809bc1fd103ff5f97ef186fd142195a3cabe88",
+    "_normalize_text": "74c755b226d724dc32a6554e5a85096d9b44d79063f99ea604a58b0b7fc75ca0"
+  }
+}
