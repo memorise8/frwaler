@@ -234,9 +234,7 @@ def _validate_listing_extensions(site_id, raw, listing):
         raise PlanError(f"{site_id}: end_on_204 must be true or false")
     if "end_on_blank_body" in listing and not isinstance(listing["end_on_blank_body"], bool):
         raise PlanError(f"{site_id}: end_on_blank_body must be true or false")
-    limit = raw.get("max_response_bytes")
-    if limit is not None and (type(limit) is not int or not 1 << 20 <= limit <= int(raw.get("file_max_bytes") or 200 << 20)):
-        raise PlanError(f"{site_id}: max_response_bytes must be an integer from 1 MiB up to file_max_bytes")
+
 
 
 _DYN = re.compile(r"\{dyn:([A-Za-z_][A-Za-z0-9_]{0,31})\}")
@@ -580,6 +578,21 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
     _validate_headers(site_id, raw)
     _validate_second_step(site_id, raw.get("adapter") or {})
     _validate_first_tokens(site_id, raw.get("adapter") or {})
+    from .http import DEFAULT_MAX_BYTES
+    file_max = raw.get("file_max_bytes")
+    if type(file_max) is not int or file_max < 1:
+        raise PlanError(f"{site_id}: file_max_bytes must be a positive integer")
+    limit = raw.get("max_response_bytes")
+    if limit is not None and (type(limit) is not int or not DEFAULT_MAX_BYTES <= limit <= file_max):
+        # ext:response_size raises the response cap (default 50 MiB), never above file_max_bytes.
+        raise PlanError(f"{site_id}: max_response_bytes must be an integer from {DEFAULT_MAX_BYTES} up to file_max_bytes")
+    adapter = raw.get("adapter") or {}
+    ratio = adapter.get("max_rule_skip_ratio")
+    if ratio is not None and (type(ratio) not in (int, float) or not 0 <= ratio < 1):
+        raise PlanError(f"{site_id}: adapter.max_rule_skip_ratio must be within [0, 1)")
+    streak = adapter.get("max_consecutive_rule_skips")
+    if streak is not None and (type(streak) is not int or streak < 1):
+        raise PlanError(f"{site_id}: adapter.max_consecutive_rule_skips must be a positive integer")
     robots_limit = raw.get("max_consecutive_robots_disallowed")
     if type(robots_limit) is not int or robots_limit < 1:
         raise PlanError(f"{site_id}: max_consecutive_robots_disallowed must be a positive integer")

@@ -310,7 +310,10 @@ class Adapter:
         return bool(self.cfg.get("detail_method"))
 
     def materialize(self, item, fetcher):
-        """Return a paper dict (or None). Detail requests go through ``fetcher``."""
+        """Return a paper dict (or None). Detail requests go through ``fetcher``.
+        ``returned_none``: the crawler method itself returned None (none_is_rule_skip only counts
+        that, never a non-dict result turned into None here)."""
+        self.returned_none = False
         if self.contract is not None:
             return self._materialize_contract(item, fetcher)
         c = self.crawler
@@ -318,6 +321,7 @@ class Adapter:
             with guarded():
                 if self.mode == "crawler" and not self.is_generic and self.cfg.get("paper_method"):
                     paper = getattr(c, self.cfg["paper_method"])(dict(item.payload))
+                    self.returned_none = paper is None
                 elif self.mode == "crawler" and not self.is_generic and self.cfg.get("list_returns_paper"):
                     paper = dict(item.payload)
                 else:
@@ -341,6 +345,7 @@ class Adapter:
         args = self._args(self.cfg.get("detail_args", ["html", "item"]), resp, item)
         with guarded():
             result = getattr(c, self.cfg["detail_method"])(*args)
+        self.returned_none = result is None
         return self._finish(self._with_step_pdf(result, resp, item), item)
 
     # -- ext:two_step_detail ------------------------------------------------
@@ -371,14 +376,25 @@ class Adapter:
             return None
         if step.get("rewrite"):
             # ext:second_step_link_rewrite: e.g. a record link -> its MARCXML export address.
+            from urllib.parse import unquote, urlsplit
             m = re.search(step["rewrite"]["regex"], link)
-            if not m or any(g is None or g.strip(".") == "" for g in m.groups()):
+            used = {int(n) for n in re.findall(r"\{(\d)\}", step["rewrite"]["template"])}
+            if not m or any(m.group(n) is None or m.group(n).strip(".") == "" for n in used):
                 return None
-            link = re.sub(r"\{(\d)\}", lambda r: quote(m.group(int(r.group(1))), safe=""), step["rewrite"]["template"])
+            new = re.sub(r"\{(\d)\}", lambda r: quote(unquote(m.group(int(r.group(1)))), safe=""),
+                         step["rewrite"]["template"])
+            if urlsplit(resp.url).scheme == "https" and urlsplit(new).scheme != "https":
+                return None  # never a downgrade to plain HTTP
+            link = new
         if step.get("add_params"):
-            # ext:second_step_link_params: fixed parameters the crawler added (e.g. _embed=1).
-            from .urls import build_url
-            link = build_url(link, dict(step["add_params"]))
+            # ext:second_step_link_params: fixed parameters the crawler added (e.g. _embed=1). A link
+            # that already has one of them, or a fragment route, is left alone (no link).
+            from urllib.parse import parse_qsl, urlsplit
+            parts = urlsplit(link)
+            if parts.fragment or set(step["add_params"]) & {k for k, _ in parse_qsl(parts.query, keep_blank_values=True)}:
+                return None
+            from urllib.parse import urlencode
+            link = link + ("&" if parts.query else "?") + urlencode(step["add_params"])
         if host_of(link) != host_of(resp.url) and host_of(link) not in set(step.get("allow_hosts", [])):
             return None
         return link
@@ -431,6 +447,7 @@ class Adapter:
             resp = self._detail_response(item, fetcher)
             detail = self.contract.call("detail", resp, item)
             if detail is None:
+                self.returned_none = True
                 return None
         if self.cfg.get("paper_method"):
             paper = self.contract.call("paper", resp, item, detail)
@@ -440,6 +457,7 @@ class Adapter:
         else:
             paper = detail
         if paper is None:
+            self.returned_none = bool(self.cfg.get("paper_method"))
             return None
         if resp is not None:
             paper = self._with_step_pdf(paper, resp, item)

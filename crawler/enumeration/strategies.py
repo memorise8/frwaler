@@ -927,10 +927,24 @@ class DateRangeSplit(_ForwardPager):
         follow = cfg.get("follow") or {}
         # ext:multi_level_discover: breadth-first over sub-hub links on the hub host (depth and
         # page caps); without "follow" only the hub page itself.
-        queue, visited = [(cfg["hub_url"], 0, [])], {cfg["hub_url"]}
+        from urllib.parse import urlsplit, urldefrag
+
+        def seen_key(u):
+            p = urlsplit(urldefrag(u)[0])
+            return (p.netloc.lower(), p.path or "/", p.query)
+        queue, visited, problems = [(cfg["hub_url"], 0, [])], {seen_key(cfg["hub_url"])}, []
+        hub_scheme = urlsplit(cfg["hub_url"]).scheme
         while queue:
             page_url, depth, path = queue.pop(0)
-            resp = ctx.fetcher.get(page_url)
+            try:
+                resp = ctx.fetcher.get(page_url)
+            except PermanentFailure as exc:
+                if depth == 0:
+                    raise  # the hub itself: nothing can be discovered
+                # A dead sub-hub: keep what was found elsewhere, never call the pass complete.
+                problems.append(f"sub_hub_failed:{exc.status}")
+                ctx.store.event(ctx.site_id, "sub_hub_failed", {"url": page_url, "status": exc.status})
+                continue
             if getattr(resp, "login_suspect", False):
                 raise LoginReview("login_form", page_url, resp.status)
             soup = BeautifulSoup(resp.text(), "html.parser")
@@ -948,18 +962,22 @@ class DateRangeSplit(_ForwardPager):
                 if follow:
                     spec["path"] = list(path)
                 found[key] = spec
-            if not follow or depth >= int(follow.get("max_depth", 2)):
+            if not follow:
                 continue
             for node in soup.select(follow["selector"]):
                 value = (node.get(follow.get("attr", "href")) or "").strip()
-                link = urljoin(resp.url, value) if value else ""
+                link = urldefrag(urljoin(resp.url, value))[0] if value else ""
                 if not link.startswith(("http://", "https://")) or host_of(link) != host_of(cfg["hub_url"]) \
-                        or link in visited:
+                        or (hub_scheme == "https" and urlsplit(link).scheme != "https") or seen_key(link) in visited:
                     continue
+                if depth >= int(follow.get("max_depth", 2)):
+                    problems.append("hub_depth_limit")  # deeper sub-hubs exist but are not read
+                    break
                 if len(visited) >= int(follow.get("max_pages", 100)):
-                    # Not every sub-hub read: the segment set may be short; never a complete pass.
-                    raise StrategyStop("incomplete", f"hub_pages_cap:{len(visited)}")
-                visited.add(link)
+                    problems.append("hub_pages_cap")  # not every sub-hub read
+                    queue = []
+                    break
+                visited.add(seen_key(link))
                 queue.append((link, depth + 1, path + [node.get_text(" ", strip=True)[:200]]))
         retired = set(cfg.get("retired") or ())
         found = {k: v for k, v in found.items() if k not in retired}
@@ -979,6 +997,7 @@ class DateRangeSplit(_ForwardPager):
         ctx.state["discovered_keys"] = list(dict.fromkeys([*seen, *merged]))
         ctx.store.save_state(ctx.site_id, ctx.state)
         self.not_rediscovered = missing + lost
+        self.discovery_problems = sorted(set(problems))
         return list(merged)
 
     def split(self, key, ordinal):
@@ -1123,6 +1142,7 @@ class DateRangeSplit(_ForwardPager):
         if getattr(self, "not_rediscovered", None):
             # A segment no longer on the hub page was still read, but the hub changed.
             unverified.append("segments_not_rediscovered")
+        unverified.extend(getattr(self, "discovery_problems", None) or [])  # found segments read, set maybe short
         if bad:
             self.outcome = ("complete_with_mismatch", "segments:" + ",".join(bad[:20]))
         elif unverified:
