@@ -54,6 +54,23 @@ class RobotsHtmlTest(unittest.TestCase):
         self.assertFalse([u for u in transport.urls if "/view" in u])
         self.assertTrue([u for u in transport.urls if "/list" in u])
 
+    def robots_events(self):
+        return [e["detail"] for e in self.env.store.events("fake-site", "robots_checked")]
+
+    def test_robots_reads_are_recorded(self):
+        self.assert_stopped_before_listing(Response(301, {"Location": "https://board.test/"}, b""))
+        (event,) = self.robots_events()
+        self.assertEqual({"origin": "https://board.test", "verdict": "unparseable", "url": "https://board.test/",
+                          "status": 200, "content_type": "text/html", "bytes": len(HOME)}, event)
+
+    def test_blocked_and_missing_robots_are_recorded(self):
+        self.assert_stopped_before_listing(Response(403, {"Content-Type": "text/html"}, b"no"))
+        self.assertEqual(["blocked:robots_403"], [e["verdict"] for e in self.robots_events()])
+
+    def test_missing_robots_is_recorded_as_allow_all(self):
+        self.run_with(Response(404, {"Content-Type": "text/html"}, HOME))
+        self.assertEqual([("allow_all", 404)], [(e["verdict"], e["status"]) for e in self.robots_events()])
+
     def test_missing_robots_is_still_no_rules(self):
         result, _ = self.run_with(Response(404, {"Content-Type": "text/html"}, HOME))
         self.assertEqual("complete", result["status"], result)
