@@ -90,7 +90,7 @@ def pipeline(site, serve, plan=None, ctype="text/html; charset=utf-8", types=Non
             crawler = cls(env.conn)
         with contextlib.redirect_stdout(io.StringIO()):
             result = env.run(plan, handler, crawler=crawler)
-        return result, env.docs()
+        return result, docs_of(env)
     finally:
         env.close()
 
@@ -104,8 +104,14 @@ def identities(papers):
     return sorted(out)
 
 
+def docs_of(env):
+    return [dict(r) for r in env.conn.execute(
+        "SELECT post_number, meta_url, title, published_date, pdf_url, abstract FROM documents ORDER BY seq_id")]
+
+
 def doc_identities(docs):
-    return sorted((str(d["post_number"]), d["meta_url"], d["title"], d["published_date"] or None, d["pdf_url"] or None)
+    return sorted((str(d["post_number"]), d["meta_url"], d["title"], d["published_date"] or None, d["pdf_url"] or None,
+                   d.get("abstract"))
                   for d in docs)
 
 
@@ -138,6 +144,6 @@ def native_docs(site, serve, net_methods=(), module_funcs=(), limit=None, init=N
             stack.enter_context(patch("time.sleep", lambda *a: None))
             with contextlib.redirect_stdout(io.StringIO()):
                 crawler.crawl(limit=limit)
-        return env.docs()
+        return docs_of(env)
     finally:
         env.close()

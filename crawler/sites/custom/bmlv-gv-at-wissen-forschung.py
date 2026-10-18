@@ -467,3 +467,39 @@ class BmlvWissenForschungCrawler(BaseCrawler):
                 ensure_ascii=False,
             ),
         }
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() and _fetch_publication are
+    # unchanged. The framework fetches the publication page and (second step,
+    # ext:two_step_keep_first) the first beitrag.php page through its gate;
+    # _enumeration_paper runs the original _fetch_publication on those bodies
+    # by answering its module-level _curl_get from them (no network here).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw):
+        html_text = _decode(raw)
+        clean_html = re.sub(r"<!--.*?-->", "", html_text, flags=re.DOTALL)
+        rows, seen = [], set()
+        for pid in re.findall(r'publikation\.php\?id=(\d+)', clean_html):
+            if pid in seen:
+                continue
+            seen.add(pid)
+            rows.append({"url": f"{_BASE_PUB}/publikation.php?id={pid}", "pub_id": pid})
+        return rows
+
+    def _enumeration_paper(self, item, first_resp, resp):
+        global _curl_get
+        pub_id = item["pub_id"]
+        detail_url = item["url"]
+        bodies = {detail_url: first_resp.body}
+        if resp is not first_resp and getattr(resp, "url", None):
+            bodies[resp.url] = resp.body
+        original = _curl_get
+        _curl_get = lambda url, retries=3: bodies.get(url)
+        try:
+            paper = self._fetch_publication(pub_id, detail_url)
+        finally:
+            _curl_get = original
+        if paper is None or len(paper.get("abstract") or "") < 50:
+            return None
+        return paper

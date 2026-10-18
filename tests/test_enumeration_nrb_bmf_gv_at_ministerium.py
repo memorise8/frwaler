@@ -2,7 +2,7 @@ import subprocess
 import tempfile
 import unittest
 
-from tests.nrb_helpers import native, pipeline, identities, doc_identities
+from tests.nrb_helpers import native, native_docs, pipeline, identities, doc_identities
 from tests.test_enumeration_extensions_x2 import make_pdf
 
 SITE = "bmf-gv-at-ministerium"
@@ -47,7 +47,7 @@ class BmfSplit(unittest.TestCase):
         result, docs = pipeline(SITE, self.serve,
                                 types=lambda u: "application/pdf" if u.endswith(".pdf") else None)
         self.assertTrue(result["status"].startswith("complete"), result)
-        self.assertEqual(identities(expected), doc_identities(docs))
+        self.assertEqual(doc_identities(native_docs(SITE, self.serve, net_methods=["_curl_get_text"], init=self.init)), doc_identities(docs))
 
 
 if __name__ == "__main__":

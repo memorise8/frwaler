@@ -1,7 +1,7 @@
 import copy
 import unittest
 
-from tests.nrb_helpers import fixture, native, pipeline, identities, doc_identities, query
+from tests.nrb_helpers import fixture, native, native_docs, pipeline, identities, doc_identities, query
 
 SITE = "wbf-admin-ch-en"
 
@@ -24,7 +24,7 @@ class WbfSplit(unittest.TestCase):
         self.assertEqual(2, len(expected))  # third row: abstract too short
         result, docs = pipeline(SITE, self.serve)
         self.assertTrue(result["status"].startswith("complete"), result)
-        self.assertEqual(identities(expected), doc_identities(docs))
+        self.assertEqual(doc_identities(native_docs(SITE, self.serve, init=self.init)), doc_identities(docs))
 
 
 if __name__ == "__main__":

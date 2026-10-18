@@ -1,7 +1,7 @@
 import copy
 import unittest
 
-from tests.nrb_helpers import fixture, native, pipeline, identities, doc_identities, query
+from tests.nrb_helpers import fixture, native, native_docs, pipeline, identities, doc_identities, query
 
 SITE = "seco-admin-ch-seco"
 
@@ -26,7 +26,7 @@ class SecoSplit(unittest.TestCase):
         self.assertEqual(2, len(expected))  # de row, LINK row and short row are skipped by crawl()
         result, docs = pipeline(SITE, self.serve)
         self.assertTrue(result["status"].startswith("complete"), result)
-        self.assertEqual(identities(expected), doc_identities(docs))
+        self.assertEqual(doc_identities(native_docs(SITE, self.serve, init=self.init)), doc_identities(docs))
 
 
 if __name__ == "__main__":
