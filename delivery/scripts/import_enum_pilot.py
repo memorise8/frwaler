@@ -40,7 +40,8 @@ SPECIAL_IDENTITY = {"krivet-re-kr", "kei-re-kr-eliblistes", "cso-ie-en"}
 # 등록 수집기가 post_number 하나에 여러 행(meta_url 다름, 예: 같은 호의 언어별 PDF)을 저장하는 사이트.
 # 틀 plan 의 adapter.allow_shared_post_number 와 짝: 같은 post_number·다른 meta_url 은 충돌이 아니라 다른 문서.
 # meri: 사용자 결정 10-18, bmi(PDF 폴더명 공유, fd914ae): 추천안·사용자 위임 10-19.
-SHARED_POST_NUMBER = {"meri-belspo-be-site", "bmi-gv-at-114"}
+# bmluk(해마다 같은 파일명 URL 끝 조각, 시험 identity_collision 53/287): 추천안·사용자 위임 10-19(ND-3).
+SHARED_POST_NUMBER = {"meri-belspo-be-site", "bmi-gv-at-114", "bmluk-gv-at-service"}
 # 구역 세션 판정(dev-flow site-status/*.csv)이 이러면 자동 반영하지 않는다
 HOLD_STATES = {"needs_dev", "blocked_access", "moved", "no_crawler", "skip", "plan_written"}
 # 제품 sites 에 없는 enum 사이트 ID 는 crawler/sites/configs/<id>.json 의 별도 설정형 수집기다(납품 806곳 밖).
