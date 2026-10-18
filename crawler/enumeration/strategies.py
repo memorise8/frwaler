@@ -276,7 +276,15 @@ class Strategy:
             from urllib.parse import urljoin
             from bs4 import BeautifulSoup
             node = BeautifulSoup(resp.text(), "html.parser").select_one(link["selector"])
-            value = (node.get(link.get("attr", "href")) or "").strip() if node is not None else ""
+            if node is None:
+                value = ""
+            elif link.get("text"):
+                value = node.get_text().strip()  # ext:next_link text: the element's text is a token (OAI resumptionToken)
+            else:
+                value = (node.get(link.get("attr", "href")) or "").strip()
+            if value and link.get("template"):
+                from urllib.parse import quote
+                value = link["template"].replace("{token}", quote(value, safe=""))
             page.extra["next_cursor"] = urljoin(resp.url or str(url), value) if value else None
             # Like a missing JSON field: no link on a non-empty first page is a renamed control
             # (config_error), never a one-page listing read as complete.

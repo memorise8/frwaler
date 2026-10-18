@@ -219,8 +219,19 @@ def _validate_listing_extensions(site_id, raw, listing):
         if not isinstance(link, dict) or not (
                 (set(link) <= {"selector", "attr"} and isinstance(link.get("selector"), str) and link["selector"].strip()
                  and _LITERAL.match(str(link.get("attr", "href"))))
+                or (set(link) == {"selector", "text", "template"} and isinstance(link["selector"], str)
+                    and link["selector"].strip() and link["text"] is True)
                 or (set(link) == {"json_path"} and _LITERAL.match(str(link["json_path"])))):
-            raise PlanError(f"{site_id}: next_link is {{selector, attr}} or {{json_path}}")
+            raise PlanError(f"{site_id}: next_link is {{selector, attr}}, {{selector, text: true, template}} or {{json_path}}")
+        if "template" in link:
+            # The token goes into a fixed address on the listing host (OAI: ?verb=ListRecords&resumptionToken=).
+            from urllib.parse import urlsplit
+            tpl = link["template"]
+            parts = urlsplit(tpl.replace("{token}", "t")) if isinstance(tpl, str) else None
+            if parts is None or tpl.count("{token}") != 1 or parts.scheme not in ("http", "https") or \
+                    (parts.hostname or "").lower() != (urlsplit(listing["url"]).hostname or "").lower() or \
+                    re.search(r"[\s{}]", tpl.replace("{token}", "")):
+                raise PlanError(f"{site_id}: next_link.template must be an absolute URL on the listing host with one {{token}}")
         overlap = (raw.get("oldest_sort") or {}).get("overlap_pages") or (raw.get("segments") or {}).get("overlap_pages")
         if overlap:
             raise PlanError(f"{site_id}: next_link paging cannot re-read earlier pages (overlap_pages)")
@@ -506,6 +517,13 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
     # Access policy is an execution ceiling: a plan can tighten, never relax it.
     if raw.get("respect_robots") is not True:
         raise PlanError(f"{site_id}: respect_robots cannot be disabled by a plan")
+    # ext:jsonp: a JSON listing wrapped in one callback call (listing parser json, or the adapter's json token).
+    parser_cfg = ((raw.get("listing") or {}).get("parser") or {})
+    for where, value in (("listing.parser.jsonp", parser_cfg.get("jsonp")), ("adapter.jsonp", (raw.get("adapter") or {}).get("jsonp"))):
+        if value is not None and not isinstance(value, bool):
+            raise PlanError(f"{site_id}: {where} must be true or false")
+    if parser_cfg.get("jsonp") and parser_cfg.get("type") != "json":
+        raise PlanError(f"{site_id}: listing.parser.jsonp needs listing.parser.type 'json' (adapter lists use adapter.jsonp)")
     # Every request says it is a collector (user decision 2026-10-19): a plan cannot change it.
     if raw.get("user_agent") != DEFAULT_USER_AGENT:
         raise PlanError(f"{site_id}: user_agent cannot be set by a plan")
