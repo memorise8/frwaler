@@ -676,3 +676,140 @@ class PasteurFrEnCrawler(BaseCrawler):
         text = text.replace("\xa0", " ")
         text = re.sub(r"\s+", " ", text)
         return text.strip()
+
+    # ------------------------------------------------------------------
+    # Enumeration contract for the redesigned site (L4-20261018).
+    # crawl() and the original parsers are unchanged. The site was rebuilt
+    # with new Drupal node ids; the 314 documents already delivered keep
+    # their registered identity through a lookup table (old node id + old
+    # meta_url, from the operations DB and each old URL's 301 Location):
+    #   in the table  -> post_number = old node id, url = old meta_url (bytes
+    #                    unchanged), new address in metadata.current_url
+    #   not in table  -> post_number = "n<new node id>", url = new address
+    # (user decision 2026-10-18; the product dedup key is
+    # (site_id, post_number, meta_url)).
+    # ------------------------------------------------------------------
+
+    NEW_LIST_URL = "https://www.pasteur.fr/en/whats-new/press-area/press-releases-and-press-kits"
+    NODE_MAP_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pasteur-fr-en.node-map.csv")
+    PRESS_RELEASE_LABEL = "press release"  # old scope: field_pst_doc_type=49 (press releases)
+    _node_map_cache = None
+
+    @classmethod
+    def _node_map(cls):
+        """{new path without query/trailing slash: (old node id, old meta_url)}."""
+        if cls._node_map_cache is None:
+            import csv
+            from crawler.enumeration.http import PermanentFailure
+            try:
+                with open(cls.NODE_MAP_FILE, newline="", encoding="utf-8") as fh:
+                    reader = csv.DictReader(fh)
+                    if not {"old_node_id", "old_meta_url", "new_path"} <= set(reader.fieldnames or []):
+                        raise PermanentFailure("config_error:pasteur_node_map_columns")
+                    table = {}
+                    for row in reader:
+                        key = cls._path_key(row["new_path"])
+                        if not key or not row["old_node_id"] or not row["old_meta_url"] or key in table:
+                            raise PermanentFailure("config_error:pasteur_node_map_row")
+                        table[key] = (row["old_node_id"], row["old_meta_url"])
+            except OSError:
+                raise PermanentFailure("config_error:pasteur_node_map_missing")
+            cls._node_map_cache = table
+        return cls._node_map_cache
+
+    @staticmethod
+    def _path_key(url_or_path):
+        path = urlparse(url_or_path or "").path
+        return unquote(path).rstrip("/")
+
+    def _enumeration_items(self, html):
+        """Press-release rows of the new list (Press Kits and other labels skipped)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = BeautifulSoup(html, "html.parser")
+        rows = []
+        teasers = soup.select(".views-row .teaser__content")
+        for teaser in teasers:
+            link = teaser.select_one("a.teaser__link[href]")
+            if not link:
+                continue
+            label_el = teaser.select_one(".teaser__label")
+            label = self._clean_text(label_el.get_text(" ", strip=True)) if label_el else ""
+            if label.lower() != self.PRESS_RELEASE_LABEL:
+                continue
+            time_el = teaser.select_one("time[datetime]")
+            listed_raw = time_el.get("datetime") if time_el else ""
+            rows.append({
+                "url": self._absolute_url(link.get("href")).split("?")[0].split("#")[0],
+                "title": self._clean_text(link.get_text(" ", strip=True)),
+                "listed_date_raw": listed_raw,
+                "listed_date": self._parse_date(listed_raw),
+                "category": label,
+            })
+        if not rows and not teasers and soup.select(".views-row"):
+            raise PermanentFailure("listing_parse_error:unparsed_view_rows")
+        return rows
+
+    def _news_article_jsonld(self, soup):
+        for script in soup.select('script[type="application/ld+json"]'):
+            try:
+                data = json.loads(script.string or script.get_text("", strip=True) or "")
+            except Exception:
+                continue
+            for candidate in (data if isinstance(data, list) else [data]):
+                if isinstance(candidate, dict):
+                    kind = candidate.get("@type")
+                    kinds = kind if isinstance(kind, list) else [kind]
+                    if "NewsArticle" in kinds or "Article" in kinds:
+                        return candidate
+        return {}
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a new-site detail page: the original _parse_detail() fields,
+        the NewsArticle articleBody as abstract when the old body selector is gone,
+        and the identity rule above."""
+        from crawler.enumeration.http import PermanentFailure
+        if not html:
+            return None
+        soup = self._make_soup(html, context="enumeration detail")
+        if soup is None:
+            return None
+        record = {k: item.get(k) for k in ("title", "url", "listed_date", "listed_date_raw", "category")}
+        parsed = self._parse_detail(soup, html, record, item["url"])
+        has_old_body = bool(soup.select_one(".article__content .body") or soup.select_one("article .body"))
+        if not has_old_body:
+            # Redesigned page: the full text is only in the NewsArticle JSON-LD
+            # (the original order body text -> articleBody -> og:description
+            # would otherwise fall through to the short og:description).
+            article = self._news_article_jsonld(soup)
+            body = self._clean_text(article.get("articleBody"))
+            if body:
+                parsed["abstract"] = body
+            if not parsed.get("published_date"):
+                parsed["published_date"] = self._parse_date(article.get("datePublished"))
+        if len(parsed.get("abstract") or "") < self.MIN_ABSTRACT_CHARS:
+            return None
+
+        match = re.search(r'"currentPath"\s*:\s*"node\\?/(\d+)"', html)
+        new_node_id = match.group(1) if match else ""
+        current_url = item["url"]
+        mapped = self._node_map().get(self._path_key(current_url))
+        if mapped:
+            post_number, meta_url = mapped
+            identity_source = "node_map_old_node_id"
+        else:
+            if not new_node_id:
+                raise PermanentFailure("detail_parse_error:new_node_id_missing", current_url)
+            post_number, meta_url = "n" + new_node_id, current_url
+            identity_source = "new_site_node_id"
+        parsed["external_id"] = post_number
+        parsed["post_number"] = post_number
+        parsed["id"] = f"{self.site_id}:{post_number}"
+        parsed["url"] = meta_url
+        metadata = dict(parsed.get("metadata") or {})
+        metadata.update({"current_url": current_url, "new_node_id": new_node_id or None,
+                         "identity_source": identity_source, "post_number": post_number,
+                         "node_id": post_number if mapped else None})
+        parsed["metadata"] = metadata
+        return self._paper_from_parsed(parsed)

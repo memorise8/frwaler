@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "sites": {
+    "pasteur-fr-en": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.pasteur.fr",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.pasteur.fr/en/whats-new/press-area/press-releases-and-press-kits",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "title_field": "title",
+          "listing_marker": "nav.pager"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
