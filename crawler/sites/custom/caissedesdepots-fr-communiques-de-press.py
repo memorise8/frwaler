@@ -274,6 +274,27 @@ class CaisseDesDepotsCommPresseCrawler(BaseCrawler):
                         originalFilename=filename, source_pdf_urls=detail["pdf_urls"],
                         abstract_source=detail["abstract_source"]), ensure_ascii=False))
 
+    # Pure enumeration entry points; crawl() and the parsers above stay unchanged.
+    def _enumeration_items(self, html, url=None):
+        """One catalogue page through crawl()'s checks and _parse_page (no fetching)."""
+        if not html or not self._soup(html).select_one('main .results__title'):
+            raise ValueError("source catalogue missing or invalid")
+        items = self._parse_page(html)
+        if not items and self._next_page(html, url or self._LIST_URL + "?page=0"):
+            raise ValueError("empty source page still has a next page")
+        return items
+
+    def _enumeration_detail(self, html, item, url=None):
+        """crawl()'s _paper with the detail page the framework already fetched
+        (direct-PDF cards use only their listing fields, as in _paper)."""
+        def fetched(_url):
+            return html
+        self._curl_get = fetched
+        try:
+            return self._paper(item)
+        finally:
+            del self._curl_get
+
     def _save_document(self, document):
         # The legacy shared upsert deletes stored files when pdf_url changes.
         # Historical HTML-as-PDF rows need a separate evidence-backed repair;
