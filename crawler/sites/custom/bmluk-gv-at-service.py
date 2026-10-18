@@ -455,3 +455,74 @@ class BmlukGvAtServiceCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] crawl complete: saved {saved}/{limit_label}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() and its helpers are unchanged.
+    # The one statistics page lists external files/pages that crawl() saves
+    # without any further request; the listing returns those same paper dicts
+    # (list_returns_paper). A bmluk publication link would need crawl()'s detail
+    # fetch, which this listing cannot do: it stops loudly instead of saving a
+    # different paper.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw):
+        from crawler.enumeration.http import PermanentFailure
+        items = self._collect_items(raw)
+        papers = []
+        seen_urls = set()
+        for idx, item in enumerate(items):
+            url = item["url"]
+            if url in seen_urls:
+                continue
+            seen_urls.add(url)
+            if item["is_bmluk_pub"]:
+                raise PermanentFailure("listing_parse_error:bmluk_publication_needs_detail_fetch")
+            abstract = self._build_abstract(item, None)
+            if len(abstract) < _ABSTRACT_MIN_CHARS:
+                continue
+            pdf_url = ""
+            original_filename = ""
+            if item["is_pdf"]:
+                pdf_url = url
+                original_filename = self._filename_from_url(url)
+            external_id = self._slug_from_url(url)
+            if not external_id:
+                external_id = str(idx)
+            published_date = ""
+            m = re.search(r"\b(20\d{2})\b", item["title"])
+            if m:
+                published_date = m.group(1)
+            title = item["title"]
+            publisher = item["publisher"] or "BMLUK"
+            section = item["section"]
+            metadata = json.dumps(
+                {
+                    "source_url": _START_URL,
+                    "section": section,
+                    "li_text": item["li_text"],
+                    "is_bmluk_pub": item["is_bmluk_pub"],
+                    "is_pdf": item["is_pdf"],
+                },
+                ensure_ascii=False,
+            )
+            papers.append({
+                "site_id": _SITE_ID,
+                "external_id": external_id,
+                "post_number": external_id,
+                "url": url,
+                "title": title,
+                "abstract": abstract,
+                "published_date": published_date,
+                "listed_date": "",
+                "authors": "",
+                "publisher": publisher,
+                "department": _MINISTRY_LONG,
+                "journal": "",
+                "pdf_url": pdf_url,
+                "keywords": section,
+                "category": section,
+                "doi": "",
+                "original_filename": original_filename,
+                "metadata": metadata,
+            })
+        return papers

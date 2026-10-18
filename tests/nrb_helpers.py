@@ -107,3 +107,37 @@ def identities(papers):
 def doc_identities(docs):
     return sorted((str(d["post_number"]), d["meta_url"], d["title"], d["published_date"] or None, d["pdf_url"] or None)
                   for d in docs)
+
+
+def native_docs(site, serve, net_methods=(), module_funcs=(), limit=None, init=None):
+    """Like native(), but crawl() saves through its real _save_paper into a disposable
+    SQLite DB, so both sides go through the same storage normalisation."""
+    from tests.enumeration_fakes import Env
+    env = Env(site)
+    try:
+        _, module = load(site)
+        cls = next(x for x in vars(module).values() if isinstance(x, type) and getattr(x, "site_id", None) == site)
+        try:
+            crawler = cls(env.conn, 0)
+        except TypeError:
+            crawler = cls(env.conn)
+        if init:
+            init(crawler)
+
+        def transport(url, *a, **k):
+            body = serve(url)
+            return None if body is None else as_text(body)
+
+        crawler._delay = 0
+        crawler._detail_delay = 0
+        for name in net_methods:
+            setattr(crawler, name, transport)
+        with contextlib.ExitStack() as stack:
+            for name in module_funcs:
+                stack.enter_context(patch.object(module, name, transport))
+            stack.enter_context(patch("time.sleep", lambda *a: None))
+            with contextlib.redirect_stdout(io.StringIO()):
+                crawler.crawl(limit=limit)
+        return env.docs()
+    finally:
+        env.close()
