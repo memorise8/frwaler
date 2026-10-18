@@ -40,6 +40,40 @@ class DatacatalogueAdrukOrgBrowserCrawler(BaseCrawler):
     BACKOFF_SECONDS = (1, 3, 9)
     MIN_ABSTRACT_CHARS = 50
 
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_items(self, data, url=None):
+        """Rows of one catalogue API page; each row's url is its detail API address
+        (the framework's detail request), the stored url stays the browser page."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("content"), list):
+            raise PermanentFailure("listing_parse_error:not_a_catalogue_page", url)
+        rows = []
+        for item in data.get("content") or []:
+            dataset_id = self._string(item.get("id")) if isinstance(item, dict) else ""
+            if not dataset_id:
+                raise PermanentFailure("listing_parse_error:record_without_id", url)
+            origin_id = self._origin_id(item)
+            query = f"?{urllib.parse.urlencode({'originId': origin_id})}" if origin_id else ""
+            rows.append({"url": f"{self.API_BASE_URL}/dataset/{urllib.parse.quote(dataset_id)}{query}",
+                         "key": f"{dataset_id}:{origin_id}" if origin_id else dataset_id,
+                         "detail_page": self._detail_page_url(dataset_id, origin_id),
+                         "record": item})
+        return rows
+
+    def _enumeration_detail(self, data, item):
+        return data if isinstance(data, dict) else None
+
+    def _enumeration_paper(self, item, detail):
+        """crawl()'s conversion (_parse_record) and abstract filter (None = crawl's skip).
+        crawl() retries a failed detail API call through the browser page; here a failed
+        detail request is an item failure the runner retries."""
+        if detail is None:
+            return None
+        paper = self._parse_record(item["record"], detail, item["detail_page"])
+        if len(paper.get("abstract") or "") < self.MIN_ABSTRACT_CHARS:
+            return None
+        return paper
+
     def crawl(self, limit=None):
         saved = 0
         seen_urls: set[str] = set()

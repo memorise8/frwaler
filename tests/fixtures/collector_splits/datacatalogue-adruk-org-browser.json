@@ -1,0 +1,32 @@
+{
+  "site_id": "datacatalogue-adruk-org-browser",
+  "listing_body": "{\"content\": [{\"id\": \"ds-1\", \"title\": \"Offline 1\", \"origin\": {\"id\": \"org1\"}}, {\"id\": \"ds-2\", \"title\": \"Offline 2\", \"origin\": {\"id\": \"org2\"}}], \"totalCount\": 2, \"totalPages\": 1}",
+  "content_type": "application/json",
+  "details": {
+    "https://api-datacatalogue.adruk.org/api/dataset/ds-1?originId=org1": {
+      "id": "ds-1",
+      "origin": {
+        "id": "org1"
+      },
+      "summary": {
+        "title": "Offline 1",
+        "abstract": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. "
+      }
+    },
+    "https://api-datacatalogue.adruk.org/api/dataset/ds-2?originId=org2": {
+      "id": "ds-2",
+      "origin": {
+        "id": "org2"
+      },
+      "summary": {
+        "title": "Offline 2",
+        "abstract": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. "
+      }
+    }
+  },
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "original_method_source_sha256": {
+    "crawl": "f233c051d25c19570c88dec2583b172254352f8e8806a47e68e3022b84746dfb",
+    "_parse_record": "414575d209e1ca6883fa066c1eca430c58dc55be846bc449d702fbbfcd56c938"
+  }
+}
