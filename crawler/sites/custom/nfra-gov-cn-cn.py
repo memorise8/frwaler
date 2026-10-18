@@ -388,3 +388,143 @@ class NfraGovCnCnCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration (pure conversions for the enumeration framework)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, payload):
+        """Rows of one list API page (SelectDocByItemIdAndChild JSON), as crawl() reads them.
+
+        Each row carries the public detail page URL that crawl() stores (``url``) and the
+        detail API URL crawl() fetches (``detail_api``). A response that is not this API's
+        list answer is a listing parse error; ``rows: []`` is the valid end page.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(payload, dict) or payload.get("rptCode") != 200:
+            raise PermanentFailure("listing_parse_error:not_an_nfra_doc_list")
+        data_block = payload.get("data")
+        if not isinstance(data_block, dict) or not isinstance(data_block.get("rows"), list):
+            raise PermanentFailure("listing_parse_error:nfra_doc_list_without_rows")
+        items = []
+        for row in data_block["rows"]:
+            if not isinstance(row, dict):
+                continue
+            doc_id = row.get("docId")
+            if not doc_id:
+                continue
+            generaltype = row.get("generaltype") or "0"
+            items.append({
+                "doc_id": str(doc_id),
+                "url": (
+                    f"{_BASE}/cn/view/pages/ItemDetail.html"
+                    f"?docId={doc_id}&itemId={_ITEM_ID}&generaltype={generaltype}"
+                ),
+                "detail_api": f"{_DETAIL_API}?docId={doc_id}",
+                "title": row.get("docTitle") or row.get("docSubtitle"),
+                "published_date": _parse_date(row.get("publishDate") or ""),
+                "row": dict(row),
+            })
+        return items
+
+    def _enumeration_paper(self, payload, item):
+        """The paper crawl() saves for one list row and its SelectByDocId answer (None = skipped)."""
+        row = item["row"]
+        doc_id = row.get("docId")
+        generaltype = row.get("generaltype") or "0"
+        detail_url = item["url"]
+        detail = (payload.get("data") or None) if isinstance(payload, dict) else None
+        if not detail:
+            print(f"[{self.site_id}] item docId={doc_id}: no detail, skipping.")
+            return None
+
+        # Abstract
+        abstract = self._build_abstract(detail, row)
+        if len(abstract) < 50:
+            print(f"[{self.site_id}] item docId={doc_id}: abstract too short, skipping.")
+            return None
+
+        # Dates
+        pub_raw = detail.get("publishDate") or row.get("publishDate") or ""
+        published_date = _parse_date(pub_raw)
+        listed_date = published_date
+
+        # Title
+        title = (
+            detail.get("docTitle")
+            or detail.get("docSubtitle")
+            or row.get("docSubtitle")
+            or "(untitled)"
+        )
+
+        # PDF URL — prefer list-level pdfFileUrl, fall back to attachments
+        pdf_url = None
+        original_filename = None
+
+        list_pdf = row.get("pdfFileUrl") or detail.get("pdfFileUrl") or ""
+        if list_pdf:
+            pdf_url = (
+                _BASE + list_pdf if list_pdf.startswith("/") else list_pdf
+            )
+            original_filename = list_pdf.rstrip("/").split("/")[-1]
+
+        for att in (detail.get("attachmentInfoVOList") or []):
+            att_url = att.get("urlOtherName") or ""
+            att_title = att.get("title") or ""
+            if att_url and not pdf_url:
+                pdf_url = _BASE + att_url if att_url.startswith("/") else att_url
+            if att_title:
+                original_filename = att_title  # prefer human-readable name
+
+        # Publisher / keywords
+        publisher = detail.get("docSource") or "国家金融监督管理总局"
+
+        kw_list = []
+        for lvl_item in (detail.get("listTwoItem") or []):
+            for lv in (lvl_item.get("ItemLvs") or []):
+                kw = lv.get("keyword") or ""
+                if kw and kw not in kw_list:
+                    kw_list.append(kw)
+        keywords = ",".join(kw_list) if kw_list else None
+
+        # Full metadata blob
+        meta = {
+            "posted_date": pub_raw,
+            "docId": doc_id,
+            "generaltype": generaltype,
+            "documentType": detail.get("documentType"),
+            "indexNo": detail.get("indexNo") or None,
+            "documentNo": detail.get("documentNo") or None,
+            "agencyType": detail.get("agencyType") or None,
+            "agencyTypeName": detail.get("agencyTypeName") or None,
+            "interviewTypeName": detail.get("interviewTypeName") or None,
+            "builddate": detail.get("builddate") or None,
+            "docFileUrl": (
+                row.get("docFileUrl") or detail.get("docFileUrl") or None
+            ),
+            "docEditdate": detail.get("docEditdate") or None,
+            "remark2": detail.get("remark2") or None,
+            "originalFilename": original_filename,
+        }
+        meta = {k: v for k, v in meta.items() if v is not None}
+
+        return {
+            "site_id": self.site_id,
+            "external_id": str(doc_id),
+            "post_number": str(doc_id),
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "publisher": publisher,
+            "keywords": keywords,
+            "category": "统计信息",
+            "doi": None,
+            "authors": None,
+            "department": None,
+            "journal": None,
+            "metadata": json.dumps(meta, ensure_ascii=False),
+        }

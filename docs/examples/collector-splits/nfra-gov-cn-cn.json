@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "sites": {
+    "nfra-gov-cn-cn": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.nfra.gov.cn",
+      "encoding": "utf-8",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "json",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.nfra.gov.cn/cbircweb/DocInfo/SelectDocByItemIdAndChild",
+        "params": {
+          "itemId": "954",
+          "pageSize": "18",
+          "pageIndex": 1
+        },
+        "page_param": "pageIndex",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "detail_api",
+          "key_field": "doc_id",
+          "date_field": "published_date",
+          "title_field": "title"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1,
+        "check_unparameterized_first_page": false
+      }
+    }
+  }
+}

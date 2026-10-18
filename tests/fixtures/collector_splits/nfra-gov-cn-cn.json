@@ -1,0 +1,86 @@
+{
+  "site_id": "nfra-gov-cn-cn",
+  "listing_body": "{\"rptCode\": 200, \"msg\": \"success\", \"data\": {\"total\": 2, \"rows\": [{\"docId\": 900001, \"docSubtitle\": \"Offline release 1\", \"publishDate\": \"2026-09-21 16:56:00\", \"docSummary\": null, \"docFileUrl\": \"/chinese/OFFICE/DOC/900001.doc\", \"generaltype\": \"0\", \"pdfFileUrl\": \"/chinese/OFFICE/PDF/900001.pdf\", \"docTitle\": \"Offline release 1\", \"itemId\": null}, {\"docId\": 900002, \"docSubtitle\": \"Offline release 2\", \"publishDate\": \"2026-09-22 16:56:00\", \"docSummary\": null, \"docFileUrl\": \"/chinese/OFFICE/DOC/900002.doc\", \"generaltype\": \"0\", \"pdfFileUrl\": \"/chinese/OFFICE/PDF/900002.pdf\", \"docTitle\": \"Offline release 2\", \"itemId\": null}]}}",
+  "content_type": "application/json",
+  "details": {
+    "https://www.nfra.gov.cn/cbircweb/DocInfo/SelectByDocId?docId=900001": {
+      "rptCode": 200,
+      "msg": "success",
+      "data": {
+        "docId": 900001,
+        "docTitle": "Offline release 1 统计",
+        "docClob": "<html><head><style>p{}</style></head><body><p>Synthetic statistical release text and 合成 统计 자료 for offline equality testing only. Synthetic statistical release text and 合成 统计 자료 for offline equality testing only. Synthetic statistical release text and 合成 统计 자료 for offline equality testing only. Synthetic statistical release text and 合成 统计 자료 for offline equality testing only. </p></body></html>",
+        "docSource": "统计信息部",
+        "publishDate": "2026-09-21 16:56:00",
+        "documentNo": "",
+        "indexNo": "IDX-1",
+        "agencyTypeName": "统计",
+        "interviewTypeName": "",
+        "listTwoItem": [
+          {
+            "ItemName": "统计信息",
+            "ItemLvs": [
+              {
+                "itemName": "月度",
+                "type": "数据",
+                "keyword": "统计"
+              }
+            ]
+          }
+        ],
+        "attachmentInfoVOList": [
+          {
+            "title": "附件 1.xlsx",
+            "urlOtherName": "/chinese/ATT/1.xlsx"
+          }
+        ],
+        "documentType": "1",
+        "builddate": null
+      }
+    },
+    "https://www.nfra.gov.cn/cbircweb/DocInfo/SelectByDocId?docId=900002": {
+      "rptCode": 200,
+      "msg": "success",
+      "data": {
+        "docId": 900002,
+        "docTitle": "Offline release 2 统计",
+        "docClob": "<html><head><style>p{}</style></head><body><p>Synthetic statistical release text and 合成 统计 자료 for offline equality testing only. Synthetic statistical release text and 合成 统计 자료 for offline equality testing only. Synthetic statistical release text and 合成 统计 자료 for offline equality testing only. Synthetic statistical release text and 合成 统计 자료 for offline equality testing only. </p></body></html>",
+        "docSource": "统计信息部",
+        "publishDate": "2026-09-22 16:56:00",
+        "documentNo": "",
+        "indexNo": "IDX-2",
+        "agencyTypeName": "统计",
+        "interviewTypeName": "",
+        "listTwoItem": [
+          {
+            "ItemName": "统计信息",
+            "ItemLvs": [
+              {
+                "itemName": "月度",
+                "type": "数据",
+                "keyword": "统计"
+              }
+            ]
+          }
+        ],
+        "attachmentInfoVOList": [
+          {
+            "title": "附件 2.xlsx",
+            "urlOtherName": "/chinese/ATT/2.xlsx"
+          }
+        ],
+        "documentType": "1",
+        "builddate": null
+      }
+    }
+  },
+  "long_text": "Synthetic statistical release text and 合成 统计 자료 for offline equality testing only. Synthetic statistical release text and 合成 统计 자료 for offline equality testing only. Synthetic statistical release text and 合成 统计 자료 for offline equality testing only. Synthetic statistical release text and 合成 统计 자료 for offline equality testing only. ",
+  "short_keeps_items": true,
+  "empty_body": "{\"rptCode\": 200, \"msg\": \"success\", \"data\": {\"total\": 2, \"rows\": []}}",
+  "original_method_source_sha256": {
+    "_fetch_list": "998a250da347d5b0e986176e7fc1f571fdc7d17389cc1787bc0c15d36a6bb2d6",
+    "_fetch_detail": "5e2197ec74dcd7b0c7fafbda0aa4d32c62595bdce4b3d9abc342e94d2ba4b4e1",
+    "_build_abstract": "9eb6a4d0ba8960ff3eb089c9e3a774470d5e6e9b4a8a4caca498bf9ab3fcf778",
+    "crawl": "22732ef9d4561b56bafce484b283474edd60c2edb6d32bf1f717c1cb721c15d2"
+  }
+}
