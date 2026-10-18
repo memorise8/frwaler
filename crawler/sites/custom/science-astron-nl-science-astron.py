@@ -260,3 +260,67 @@ class ASTRONScienceCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration framework split (crawl() unchanged). The framework fetches
+    # the OpenAlex works listing (api.openalex.org, page-numbered, one
+    # publication-date segment at a time); the paper comes from the row alone.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data) -> list:
+        """OpenAlex works page -> rows (crawl()'s _parse_work per result)."""
+        from crawler.enumeration.http import PermanentFailure
+
+        if not isinstance(data, dict) or not isinstance(data.get("results"), list) \
+                or not isinstance(data.get("meta"), dict):
+            raise PermanentFailure("listing_parse_error:invalid_openalex_works_page")
+        rows = []
+        for work in data["results"]:
+            if not isinstance(work, dict):
+                raise PermanentFailure("listing_parse_error:invalid_openalex_work")
+            entry = self._parse_work(work)
+            if not entry["openalex_id"]:
+                raise PermanentFailure("listing_parse_error:openalex_work_without_id")
+            rows.append({
+                "url": entry["url"],
+                "openalex_id": entry["openalex_id"],
+                "date": entry["pub_date"],
+                "entry": entry,
+            })
+        return rows
+
+    def _enumeration_paper(self, item):
+        """The paper crawl() builds from one parsed work (same skip rule)."""
+        entry = item["entry"]
+        openalex_id = entry["openalex_id"]
+        if not entry["title"]:
+            return None  # crawl() skips untitled works
+        abstract = entry["abstract"]
+        if len(abstract) < 50:
+            return None
+
+        published_date = entry["pub_date"] or None
+
+        return {
+            "site_id":           self.site_id,
+            "external_id":       openalex_id,
+            "post_number":       openalex_id,
+            "title":             entry["title"],
+            "abstract":          abstract,
+            "published_date":    published_date,
+            "posted_date":       published_date,
+            "url":               entry["url"],
+            "pdf_url":           entry["pdf_url"],
+            "authors":           "; ".join(entry["authors"]),
+            "publisher":         "ASTRON",
+            "journal":           entry["journal"],
+            "keywords":          "",
+            "doi":               entry["doi"],
+            "category":          entry["category"],
+            "original_filename": None,
+            "metadata": json.dumps({
+                "posted_date": published_date,
+                "openalex_id": openalex_id,
+                "journal_raw": entry["journal"],
+            }, ensure_ascii=False),
+        }
