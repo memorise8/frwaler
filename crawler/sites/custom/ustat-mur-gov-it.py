@@ -285,3 +285,148 @@ class UstatMurGovItCrawler(BaseCrawler):
 
         print(f"[{SITE_ID}] done — total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the module
+    # helpers are unchanged; these methods only parse already fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw, url=None):
+        """Items of one of crawl()'s two listing pages (/documenti/ and
+        /documenti/archivio-documenti/), parsed as crawl()'s phase 1 does.
+        Archive PDF rows whose title is shorter than 50 characters are left
+        out: crawl() uses the title as abstract and skips them. Neither page
+        is paginated: a page number above 1 is declared empty and proved by
+        the plan's listing_marker."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if isinstance(raw, str):
+            raw = raw.encode('utf-8')
+        if not isinstance(raw, (bytes, bytearray)):
+            raise PermanentFailure('listing_parse_error:expected_html', url)
+        parts = urlsplit(url or '')
+        page = (parse_qs(parts.query).get('page') or ['1'])[0]
+        if page not in ('', '0', '1'):
+            return []
+        list_url = f"{parts.scheme}://{parts.netloc}{parts.path}"
+        soup = _parse_html(bytes(raw))
+        if soup is None:
+            raise PermanentFailure('listing_parse_error:unparseable_html', url)
+        rows = []
+        for news_div in soup.find_all('div', class_='news'):
+            date_span = news_div.find('span')
+            date_str = _text(date_span) if date_span else ''
+            a_tag = news_div.find('a')
+            if not a_tag:
+                continue
+            href = a_tag.get('href', '')
+            title = _text(a_tag)
+            if not href or not title:
+                continue
+            full_url = urljoin(self.base_url, href)
+            snippet = ''
+            for child_div in news_div.find_all('div'):
+                t = _text(child_div)
+                if t:
+                    snippet = t
+                    break
+            rows.append({'date_str': date_str, 'url': full_url, 'title': title, 'snippet': snippet,
+                         'is_pdf_only': False, 'direct_pdf_url': None})
+        if 'archivio' in list_url:
+            for li in soup.find_all('li'):
+                a = li.find('a')
+                if not a:
+                    continue
+                href = a.get('href', '')
+                if not re.search(r'\.pdf', href, re.I):
+                    continue
+                title = _text(a)
+                full_url = urljoin(self.base_url, href)
+                if len(title or '') < 50:
+                    continue
+                rows.append({'date_str': '', 'url': full_url, 'title': title, 'snippet': '',
+                             'is_pdf_only': True, 'direct_pdf_url': full_url})
+        out, seen = [], set()
+        for row in rows:
+            if row['url'] in seen:
+                continue
+            seen.add(row['url'])
+            row['external_id'] = row['url'].rstrip('/').split('/')[-1]
+            out.append(row)
+        return out
+
+    def _enumeration_paper(self, raw, item):
+        """Paper for one item — crawl()'s phase 2 copied verbatim: detail page
+        for modern items, the title as abstract for archive PDFs (the fetched
+        PDF body is not used). external_id = URL slug."""
+        date_str = item['date_str']
+        item_url = item['url']
+        title = item['title']
+        snippet = item['snippet']
+        is_pdf_only = item['is_pdf_only']
+        direct_pdf_url = item['direct_pdf_url']
+        if is_pdf_only:
+            abstract = title
+            pdf_url = direct_pdf_url
+            detail_url = None
+            published_date = _parse_italian_date(date_str)
+            original_filename = unquote(item_url.rstrip('/').split('/')[-1])
+        else:
+            if not raw:
+                return None
+            if isinstance(raw, str):
+                raw = raw.encode('utf-8')
+            soup = _parse_html(bytes(raw))
+            if soup is None:
+                return None
+            content_div = soup.find(id='content')
+            if content_div:
+                abstract = _text(content_div)
+            else:
+                abstract = snippet
+            if not abstract or len(abstract) < 50:
+                abstract = snippet
+            pdf_url = None
+            original_filename = None
+            for a in soup.find_all('a', href=True):
+                href = a['href']
+                if re.search(r'\.pdf', href, re.I) and 'mur.gov.it/sites' not in href:
+                    pdf_url = urljoin(self.base_url, href)
+                    raw_fn = pdf_url.rstrip('/').split('/')[-1].split('?')[0]
+                    original_filename = unquote(raw_fn)
+                    break
+            detail_url = item_url
+            published_date = _parse_italian_date(date_str)
+
+        if not abstract or len(abstract) < 50:
+            return None
+
+        slug = item_url.rstrip('/').split('/')[-1]
+        if not slug:
+            return None
+        external_id = slug
+        if published_date:
+            post_number = published_date.replace('-', '')
+        else:
+            post_number = None
+        metadata = {
+            'slug': slug,
+            'list_snippet': snippet,
+        }
+        if is_pdf_only:
+            metadata['pdf_only'] = True
+        return {
+            'site_id': self.site_id,
+            'external_id': external_id,
+            'post_number': post_number,
+            'title': title,
+            'abstract': abstract,
+            'published_date': published_date,
+            'posted_date': published_date,
+            'publisher': "USTAT - Ministero dell'Università e della Ricerca",
+            'url': detail_url or item_url,
+            'pdf_url': pdf_url,
+            'original_filename': original_filename,
+            'category': 'documenti',
+            'metadata': json.dumps(metadata, ensure_ascii=False),
+        }

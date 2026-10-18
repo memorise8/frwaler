@@ -1,0 +1,17 @@
+{
+  "site_id": "ustat-mur-gov-it",
+  "pages": {
+    "https://ustat.mur.gov.it/documenti/": "<html><body><div id=\"content\"><div class=\"news\"><span>13 febbraio 2031</span><a href=\"/documenti/2031-synthetic-n-2/\">Synthetic bulletin 2</a><div>Synthetic snippet for 2031-synthetic-n-2</div></div><div class=\"news\"><span>9 gennaio 2031</span><a href=\"/documenti/2031-synthetic-n-1/\">Synthetic bulletin 1</a><div>Synthetic snippet for 2031-synthetic-n-1</div></div></div></body></html>",
+    "https://ustat.mur.gov.it/documenti/archivio-documenti/": "<html><body><div id=\"content\"><ul><li><a href=\"/media/9/synthetic_archive_long_2010.pdf\">Synthetic archive bulletin with a sufficiently long descriptive title 2010</a></li><li><a href=\"/media/9/synthetic_short.pdf\">Short archive title</a></li></ul></div></body></html>"
+  },
+  "details": {
+    "https://ustat.mur.gov.it/documenti/2031-synthetic-n-2/": "<html><body><div id=\"content\"><h1>Synthetic bulletin 2</h1><p>Synthetic statistical bulletin text for the offline equality test of the enumeration split; it imitates only the page structure.</p><a href=\"/media/1/b2.pdf\">pdf</a><a href=\"https://www.mur.gov.it/sites/privacy.pdf\">p</a></div></body></html>",
+    "https://ustat.mur.gov.it/documenti/2031-synthetic-n-1/": "<html><body><div id=\"content\"><h1>Synthetic bulletin 1</h1><p>Synthetic statistical bulletin text for the offline equality test of the enumeration split; it imitates only the page structure.</p><a href=\"/media/1/b1.pdf\">pdf</a><a href=\"https://www.mur.gov.it/sites/privacy.pdf\">p</a></div></body></html>"
+  },
+  "long_text": "Synthetic statistical bulletin text for the offline equality test of the enumeration split; it imitates only the page structure.",
+  "content_type": "text/html",
+  "empty_body": "<html><body><div id=\"content\"></div></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "59a6debff064dfe0d00d6b9bf3753e90ee6b3507179e5f6ad0e3a55fda11ccaf"
+  }
+}

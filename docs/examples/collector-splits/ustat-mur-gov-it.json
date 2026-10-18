@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "sites": {
+    "ustat-mur-gov-it": {
+      "strategy": "date_range_split",
+      "base_url": "https://ustat.mur.gov.it",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "raw",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "raw",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://ustat.mur.gov.it/{segment}",
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 100,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "title_field": "title",
+          "listing_marker": "#content"
+        }
+      },
+      "segments": {
+        "mode": "explicit",
+        "items": [
+          {
+            "key": "documenti/"
+          },
+          {
+            "key": "documenti/archivio-documenti/"
+          }
+        ]
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
