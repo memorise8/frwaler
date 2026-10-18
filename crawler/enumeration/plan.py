@@ -228,8 +228,14 @@ def _validate_listing_extensions(site_id, raw, listing):
             from urllib.parse import urlsplit
             tpl = link["template"]
             parts = urlsplit(tpl.replace("{token}", "t")) if isinstance(tpl, str) else None
-            if parts is None or tpl.count("{token}") != 1 or parts.scheme not in ("http", "https") or \
-                    (parts.hostname or "").lower() != (urlsplit(listing["url"]).hostname or "").lower() or \
+            base = urlsplit(listing["url"])
+            try:
+                same_port = parts is not None and parts.port == base.port
+            except ValueError:
+                same_port = False
+            if parts is None or tpl.count("{token}") != 1 or parts.scheme != base.scheme or not same_port or \
+                    parts.username is not None or parts.password is not None or \
+                    (parts.hostname or "").lower() != (base.hostname or "").lower() or \
                     re.search(r"[\s{}]", tpl.replace("{token}", "")):
                 raise PlanError(f"{site_id}: next_link.template must be an absolute URL on the listing host with one {{token}}")
         overlap = (raw.get("oldest_sort") or {}).get("overlap_pages") or (raw.get("segments") or {}).get("overlap_pages")
@@ -524,6 +530,18 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
             raise PlanError(f"{site_id}: {where} must be true or false")
     if parser_cfg.get("jsonp") and parser_cfg.get("type") != "json":
         raise PlanError(f"{site_id}: listing.parser.jsonp needs listing.parser.type 'json' (adapter lists use adapter.jsonp)")
+    if parser_cfg.get("jsonp") or (raw.get("adapter") or {}).get("jsonp"):
+        # Only the item list reads JSONP: cursors, last page, totals and JSON end codes read plain JSON.
+        listing_raw = raw.get("listing") or {}
+        others = [k for k in ("next_cursor", "last_page_path") if listing_raw.get(k)]
+        if "json_path" in (listing_raw.get("next_link") or {}):
+            others.append("next_link.json_path")
+        if (listing_raw.get("total") or {}).get("type") == "json":
+            others.append("total")
+        if any(isinstance(e, dict) and "json_code" in e for e in listing_raw.get("end_statuses") or ()):
+            others.append("end_statuses.json_code")
+        if others:
+            raise PlanError(f"{site_id}: jsonp listings cannot use {others} (they read plain JSON)")
     # Every request says it is a collector (user decision 2026-10-19): a plan cannot change it.
     if raw.get("user_agent") != DEFAULT_USER_AGENT:
         raise PlanError(f"{site_id}: user_agent cannot be set by a plan")
