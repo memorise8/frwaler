@@ -1,0 +1,13 @@
+{
+  "site_id": "arn-se-om-arn",
+  "listing_body": "<html><head><title>Årsredovisning</title></head><body><div id=\"main-content\"><h1>Årsredovisning</h1><p class=\"preamble\">Synthetic preamble for the offline ARN årsredovisning equality test.</p><ul><li><a href=\"/globalassets/extern/arsredovisningar/synthetic-arsredovisning-2031.pdf\">Synthetic årsredovisning 2031</a></li><li><a href=\"/globalassets/extern/arsredovisningar/synthetic-arsredovisning-2030.pdf\">Synthetic årsredovisning 2030</a></li><li><a href=\"/globalassets/extern/arsredovisningar/synthetic-arsredovisning-2030.pdf\">duplicate link</a></li></ul></div></body></html>",
+  "content_type": "text/html; charset=utf-8",
+  "details": {},
+  "long_text": "Synthetic preamble for the offline ARN årsredovisning equality test.",
+  "original_method_source_sha256": {
+    "_curl_get": "ee422e19ffc88a54a062f363ded55164208b7973666be68e272a4df5872684d7",
+    "_make_soup": "d427785629dfa6ca7d42488ffc8388938af86b2f7aa768baddd3f6d3c4915342",
+    "_build_abstract": "9c3b396b742dd2bc19be478e3124d16c5206c1351bb1738bbb83360f864fcb25",
+    "crawl": "d933bdc464abb146fb44ac26d51e26db94e066bcea92bd0fbce51d946160d9ce"
+  }
+}

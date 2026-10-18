@@ -80,6 +80,117 @@ class ArnSeOmArnCrawler(BaseCrawler):
         ).strip()
         return base
 
+    # Pure enumeration entry points; existing crawl and helpers stay unchanged.
+    def _enumeration_items(self, raw, url=None):
+        """Rows of the single årsredovisning page, filtered exactly as crawl() does.
+
+        The source has no pagination (crawl() reads one page): any page number
+        above 1 is declared empty, so the plan's listing_marker ends the listing.
+        A page without PDF links, a repeated reporting year or an unparsable body
+        is a listing parse error (crawl() reports invalid_response there).
+        """
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        from delivery.health.access_challenge import access_challenge
+        page = (parse_qs(urlsplit(url or "").query).get("page") or ["1"])[0]
+        if not isinstance(raw, str) or access_challenge(raw):
+            raise PermanentFailure("listing_parse_error:not_a_listing", url)
+        if page != "1":
+            return []
+        soup = self._make_soup(raw)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:html_parse_failed", url)
+        preamble = ""
+        preamble_tag = soup.find("p", class_="preamble")
+        if preamble_tag:
+            preamble = preamble_tag.get_text(strip=True)
+        if not preamble:
+            preamble = (
+                "Årsredovisningen innehåller en resultatredovisning samt en "
+                "ekonomisk redovisning av ARN:s verksamhet."
+            )
+        main = (
+            soup.find("main")
+            or soup.find("div", {"id": "main-content"})
+            or soup.find("div", {"id": "content"})
+            or soup.find("body")
+        )
+        if main is None:
+            raise PermanentFailure("listing_parse_error:content_area_missing", url)
+        pdf_links = main.find_all("a", href=re.compile(r'\.pdf', re.I))
+        if not pdf_links:
+            raise PermanentFailure("listing_parse_error:no_pdf_links", url)
+        rows, seen_years, seen_urls = [], set(), set()
+        for anchor in pdf_links:
+            href = anchor.get("href", "").strip()
+            if not href:
+                continue
+            if href.startswith("/"):
+                pdf_url = self.base_url + href
+            elif href.startswith("http"):
+                pdf_url = href
+            else:
+                pdf_url = self.base_url + "/" + href
+            if pdf_url in seen_urls:
+                continue
+            seen_urls.add(pdf_url)
+            year_m = re.search(r'(\d{4})', href)
+            year = year_m.group(1) if year_m else "unknown"
+            if not year.isdigit() or year in seen_years:
+                raise PermanentFailure("listing_parse_error:reporting_year_not_unique", url)
+            seen_years.add(year)
+            link_text = anchor.get_text(strip=True)
+            if not link_text:
+                link_text = f"ARN Årsredovisning {year}"
+            rows.append({"external_id": year, "year": year, "href": href, "pdf_url": pdf_url,
+                         "title": link_text.strip(), "preamble": preamble})
+        return rows
+
+    def _enumeration_paper(self, item):
+        """Pure copy of crawl()'s Paper conversion for one listing row (None = skipped)."""
+        year = item["year"]
+        href = item["href"]
+        pdf_url = item["pdf_url"]
+        title = item["title"]
+        original_filename = href.rstrip("/").split("/")[-1]
+        published_date = None
+        external_id = year
+        post_number = year if year.isdigit() else None
+        abstract = self._build_abstract(year, item["preamble"])
+        if len(abstract) < 50:
+            return None
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "url": self._LIST_URL,
+            "pdf_url": pdf_url,
+            "category": "Årsredovisning",
+            "publisher": self._PUBLISHER,
+            "authors": None,
+            "department": None,
+            "journal": None,
+            "keywords": "årsredovisning,annual report,ARN",
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(
+                {
+                    "year": year,
+                    "reporting_period_year_raw": year,
+                    "year_role": "reporting_period",
+                    "published_date_source": None,
+                    "original_filename": original_filename,
+                    "posted_date": published_date,
+                    "source_page": self._LIST_URL,
+                },
+                ensure_ascii=False,
+            ),
+        }
+
     def crawl(self, limit=None):
         """Crawl the årsredovisning listing page and save annual report entries.
 
