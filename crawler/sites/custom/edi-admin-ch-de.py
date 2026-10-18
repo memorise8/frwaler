@@ -298,3 +298,60 @@ class EdiAdminChDeCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, data):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("items"), list) or not isinstance(data.get("pageResults"), int) or isinstance(data["pageResults"], bool) or data["pageResults"] < 0:
+            raise PermanentFailure("listing_parse_error:invalid_edi_envelope")
+        rows = []
+        for record in data["items"]:
+            if not isinstance(record, dict) or not isinstance(record.get("id"), str) or not record["id"] or not isinstance(record.get("langGroupId"), str) or not record["langGroupId"] or not isinstance(record.get("content"), dict) or not isinstance(record["content"].get("metadata"), dict):
+                raise PermanentFailure("listing_parse_error:invalid_edi_record")
+            rows.append({"url": self._SEARCH_BASE + "/" + record["id"], "record": record, "date": record.get("publishDate")})
+        return rows
+
+    def _enumeration_detail(self, data, item):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("text"), list) or not all(isinstance(f, str) for f in data["text"]):
+            raise PermanentFailure("detail_parse_error:invalid_edi_record")
+        return data
+
+    def _enumeration_paper(self, stub, detail):
+        item = stub["record"]
+        item_id = item["id"]
+        lang_group_id = item["langGroupId"]
+        url = f"{self.base_url}/de/newnsb/{lang_group_id}"
+        md = (item.get('content') or {}).get('metadata') or {}
+        title = md.get('metaTitle') or ''
+        if not title:
+            return None
+        description = md.get('description') or ''
+        body_parts = []
+        if detail:
+            for frag in detail.get('text') or []:
+                text = _strip_html(frag)
+                if text:
+                    body_parts.append(text)
+        abstract = ' '.join([description] + body_parts).strip()
+        abstract = re.sub('\\s+', ' ', abstract)
+        if len(abstract) < self._MIN_ABSTRACT:
+            return None
+        pdf_url, original_filename = self._find_pdf(detail)
+        published_date = self._iso_date(md.get('announcementDate')) or self._iso_date(item.get('publishDate'))
+        listed_date = self._iso_date(item.get('publishDate'))
+        news_category = item.get('newsCategory') or ''
+        department = ''
+        if '_' in item_id:
+            department = item_id.split('_', 1)[0].upper()
+        topics = (detail or {}).get('topics') or item.get('topics') or []
+        keywords = ','.join((str(t) for t in topics)) if topics else ''
+        meta = {'posted_date': item.get('publishDate'), 'id': item_id, 'langGroupId': lang_group_id, 'newsCategory': news_category, 'kind': item.get('kind'), 'location': (detail or {}).get('location'), 'publishers_raw': (detail or {}).get('publishers'), 'coPublishers_raw': (detail or {}).get('coPublishers'), 'topics_raw': (detail or {}).get('topics')}
+        if original_filename:
+            meta['originalFilename'] = original_filename
+        meta = {k: v for k, v in meta.items() if v not in (None, [], '')}
+        m = re.search('(\\d+)$', item_id)
+        post_number = m.group(1) if m else item_id or None
+        paper = {'id': None, 'site_id': self.site_id, 'external_id': item_id, 'post_number': post_number, 'title': title, 'abstract': abstract, 'published_date': published_date, 'listed_date': listed_date, 'authors': '', 'publisher': self._PUBLISHER_NAME, 'department': department, 'journal': '', 'url': url, 'pdf_url': pdf_url, 'keywords': keywords, 'category': news_category, 'doi': None, 'original_filename': original_filename, 'metadata': json.dumps(meta, ensure_ascii=False)}
+        return paper

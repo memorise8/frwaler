@@ -407,3 +407,28 @@ class OlympiasLibUoiGrJspuiCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        from bs4 import BeautifulSoup
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = BeautifulSoup(html, "html.parser")
+        if soup is None or soup.find("main") is None:
+            raise PermanentFailure("listing_parse_error:missing_main_marker")
+        rows = [{"url": _DETAIL_TPL.format(handle=h), "handle": h} for h in _extract_handles(html)]
+
+        if not rows and soup.find("main").get_text(" ", strip=True):
+            raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing")
+        return rows
+
+    def _enumeration_detail(self, html, item):
+        return _parse_full_record(html)
+
+    def _enumeration_paper(self, item, detail):
+        paper = _build_paper(item["handle"], detail)
+        if paper is None or len(paper.get("abstract", "")) < 100:
+            return None
+        return paper
