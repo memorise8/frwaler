@@ -1,0 +1,16 @@
+{
+ "site_id": "difesa-it-il-ministro",
+ "listing_body": "[{\"contentitemid\": 114851, \"ordine\": 1, \"url\": \"/il-ministro/note-stampa/nota-uno/114851.html\", \"titolo\": \"Nota uno\", \"sottotitolo\": \"\", \"contenuto\": \"\", \"contentitemdata\": \"2026-10-12T00:00:00\", \"sdata\": \"12 ott 2026\", \"luogo\": \"Roma\", \"anno\": 2026, \"comunicatonumero\": \"\", \"metatags\": \"\", \"inaggiornamento\": 0, \"areatematica\": \"Ministro\", \"video\": null}, {\"contentitemid\": 112434, \"ordine\": 2, \"url\": \"/il-ministro/note-stampa/nota-due/112434.html\", \"titolo\": \"Nota due\", \"sottotitolo\": \"\", \"contenuto\": \"\", \"contentitemdata\": \"2026-09-19T00:00:00\", \"sdata\": \"19 set 2026\", \"luogo\": \"Roma\", \"anno\": 2026, \"comunicatonumero\": \"\", \"metatags\": \"\", \"inaggiornamento\": 0, \"areatematica\": \"\", \"video\": null}]",
+ "content_type": "application/json",
+ "details": {
+  "https://www.difesa.it/il-ministro/note-stampa/nota-uno/114851.html": "<html><body><div id=\"main\"><div class=\"col-xl-8 col-lg-8\"><div class=\"breadcrumb\">Home / Ministro / Note stampa</div><div class=\"colorDate\">12 ott 2026</div><p>Testo sintetico della nota stampa del Ministero per il test di uguaglianza offline della separazione. Testo sintetico della nota stampa del Ministero per il test di uguaglianza offline della separazione. </p></div></div></body></html>",
+  "https://www.difesa.it/il-ministro/note-stampa/nota-due/112434.html": "<html><body><div id=\"main\"><div class=\"col-xl-8 col-lg-8\"><div class=\"breadcrumb\">Home / Ministro / Note stampa</div><div class=\"colorDate\">12 ott 2026</div><p>Testo sintetico della nota stampa del Ministero per il test di uguaglianza offline della separazione. Testo sintetico della nota stampa del Ministero per il test di uguaglianza offline della separazione. </p></div></div></body></html>"
+ },
+ "long_text": "Testo sintetico della nota stampa del Ministero per il test di uguaglianza offline della separazione. Testo sintetico della nota stampa del Ministero per il test di uguaglianza offline della separazione. ",
+ "empty_body": "[]",
+ "original_method_source_sha256": {
+  "_curl": "696c3f78952a610d482423a4159fd09dba82082add1af7026d27fe81796cdbe4",
+  "_extract_abstract": "3bfc23d288ba270b37f7614f1214e4fd27d6835463cb123a5d1d276d5edcbf8e",
+  "crawl": "c8d861513b6e7e2e87c6b9eaa17d0290496300d17811e0ab3a5799be76c371dd"
+ }
+}

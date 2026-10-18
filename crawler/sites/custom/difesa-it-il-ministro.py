@@ -291,3 +291,101 @@ class DifesaItIlMinistroCrawler(BaseCrawler):
 
         print(f"[difesa-it-il-ministro] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and
+    # _extract_abstract() stay unchanged; these are their parsing parts.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, text):
+        """Rows of the static list JSON (one 'page'), in crawl()'s order."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(text, str):
+            raise PermanentFailure("listing_parse_error:expected_text")
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError:
+            raise PermanentFailure("listing_parse_error:invalid_json") from None
+        if not isinstance(data, list) or any(not isinstance(x, dict) for x in data):
+            raise PermanentFailure("listing_parse_error:expected_json_list")
+        items = list(data)
+        try:
+            items = sorted(items, key=lambda x: int(x.get("contentitemid", 0)), reverse=True)
+        except Exception:
+            pass
+        rows = []
+        for item in items:
+            raw_url = item.get("url", "") or ""
+            row = dict(item)
+            row["detail_url"] = _BASE_URL + raw_url if raw_url.startswith("/") else raw_url
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s per-item checks and paper, with _extract_abstract()'s
+        parsing applied to the fetched detail page. None keeps crawl()'s skips."""
+        item_id = str(item.get("contentitemid", ""))
+        raw_url = item.get("url", "")
+        detail_url = _BASE_URL + raw_url if raw_url.startswith("/") else raw_url
+        title = (item.get("titolo") or "").strip()
+        if not item_id or not raw_url or not title:
+            return None
+        published_date = _parse_iso_date(item.get("contentitemdata", ""))
+        listed_date = _parse_it_date(item.get("sdata", ""))
+        abstract = ""
+        raw = html
+        if raw:
+            soup = _make_soup(raw)
+            if soup is None:
+                match = re.search(r'col-xl-8 col-lg-8[^>]*>(.*?)</div>', raw, re.DOTALL | re.IGNORECASE)
+                abstract = _strip_html(match.group(1)) if match else ""
+            else:
+                container = soup.find("div", class_=lambda c: c and "col-xl-8" in c and "col-lg-8" in c)
+                if container is None:
+                    container = soup.find("div", id="indexdiv")
+                if container is None:
+                    container = soup.find("div", id="main")
+                if container is not None:
+                    parts = []
+                    for tag in container.find_all(["p", "div", "li", "h2", "h3"]):
+                        classes = " ".join(tag.get("class", []))
+                        if any(k in classes for k in ("breadcrumb", "colorDate", "row")):
+                            continue
+                        text = tag.get_text(separator=" ", strip=True)
+                        if text and len(text) > 20:
+                            parts.append(text)
+                    abstract = re.sub(r"\s+", " ", " ".join(parts)).strip()
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+        meta = {
+            "posted_date": item.get("sdata"),
+            "contentitemid": item.get("contentitemid"),
+            "ordine": item.get("ordine"),
+            "luogo": item.get("luogo"),
+            "anno": item.get("anno"),
+            "comunicatonumero": item.get("comunicatonumero"),
+            "areatematica": item.get("areatematica"),
+            "inaggiornamento": item.get("inaggiornamento"),
+            "sottotitolo": item.get("sottotitolo"),
+            "video": item.get("video"),
+            "metatags": item.get("metatags"),
+        }
+        return {
+            "site_id": self.site_id,
+            "external_id": item_id,
+            "post_number": item_id,
+            "title": title,
+            "abstract": abstract,
+            "url": detail_url,
+            "pdf_url": None,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "authors": None,
+            "publisher": "Ministero della Difesa",
+            "department": None,
+            "journal": None,
+            "keywords": None,
+            "category": item.get("areatematica") or "",
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps(meta, ensure_ascii=False),
+        }
