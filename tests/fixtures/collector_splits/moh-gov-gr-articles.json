@@ -1,0 +1,49 @@
+{
+ "listing_url": "https://www.moh.gov.gr/articles/ministry/grafeio-typoy/press-releases?page=1",
+ "listing_body": "<html><body><div id=\"page_content\" class=\"list\"><div class=\"item\"><article><h1><a href=\"/articles/ministry/grafeio-typoy/press-releases/14866-offline-one\">Τίτλος 14866</a></h1><div class=\"datetime\">16/10/2026</div><div class=\"category\"><a>Δελτία Τύπου</a></div><div class=\"description\">Περίληψη</div></article></div><div class=\"item\"><article><h1><a href=\"/articles/ministry/grafeio-typoy/press-releases/14865-offline-two\">Τίτλος 14865</a></h1><div class=\"datetime\">16/10/2026</div><div class=\"category\"><a>Δελτία Τύπου</a></div><div class=\"description\">Περίληψη</div></article></div></div></body></html>",
+ "empty_body": "<html><body><div id=\"page_content\" class=\"list\"></div></body></html>",
+ "content_type": "text/html",
+ "long_text": "Συνθετικό κείμενο δελτίου τύπου για έλεγχο ισοδυναμίας χωρίς δίκτυο. Synthetic Ministry of Health press text, long enough.",
+ "native_attrs": {
+  "detail_delay": 0
+ },
+ "details": {
+  "https://www.moh.gov.gr/articles/ministry/grafeio-typoy/press-releases/14866-offline-one": "<html><head><link rel=\"canonical\" href=\"https://www.moh.gov.gr/articles/ministry/grafeio-typoy/press-releases/14866-offline-one\"><script type=\"application/ld+json\">{\"@context\": \"https://schema.org\", \"@type\": \"NewsArticle\", \"headline\": \"Πλήρης τίτλος 14866\", \"articleBody\": \"Συνθετικό κείμενο δελτίου τύπου για έλεγχο ισοδυναμίας χωρίς δίκτυο. Synthetic Ministry of Health press text, long enough.\", \"datePublished\": \"2026-10-16T09:00:00+03:00\", \"articleSection\": \"Δελτία Τύπου\", \"keywords\": \"υγεία, νοσοκομεία\", \"publisher\": {\"@type\": \"Organization\", \"name\": \"Υπουργείο Υγείας\"}}</script></head><body><div id=\"page_content\"><article id=\"article_section_14866\"><h1>Πλήρης τίτλος 14866</h1><p>Συνθετικό κείμενο δελτίου τύπου για έλεγχο ισοδυναμίας χωρίς δίκτυο. Synthetic Ministry of Health press text, long enough.</p><a href=\"/images/offline-one.pdf\">pdf</a></article></div></body></html>",
+  "https://www.moh.gov.gr/articles/ministry/grafeio-typoy/press-releases/14865-offline-two": "<html><head><link rel=\"canonical\" href=\"https://www.moh.gov.gr/articles/ministry/grafeio-typoy/press-releases/14865-offline-two\"><script type=\"application/ld+json\">{\"@context\": \"https://schema.org\", \"@type\": \"NewsArticle\", \"headline\": \"Πλήρης τίτλος 14865\", \"articleBody\": \"Συνθετικό κείμενο δελτίου τύπου για έλεγχο ισοδυναμίας χωρίς δίκτυο. Synthetic Ministry of Health press text, long enough.\", \"datePublished\": \"2026-10-16T09:00:00+03:00\", \"articleSection\": \"Δελτία Τύπου\", \"keywords\": \"υγεία, νοσοκομεία\", \"publisher\": {\"@type\": \"Organization\", \"name\": \"Υπουργείο Υγείας\"}}</script></head><body><div id=\"page_content\"><article id=\"article_section_14865\"><h1>Πλήρης τίτλος 14865</h1><p>Συνθετικό κείμενο δελτίου τύπου για έλεγχο ισοδυναμίας χωρίς δίκτυο. Synthetic Ministry of Health press text, long enough.</p><a href=\"/images/offline-two.pdf\">pdf</a></article></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+  "crawl": "7a21a0a74805cf00bcd14c6905d9c9f73feb3396d897ff1c622ed557302275f7",
+  "_curl_get": "5b4eefe7269879adecedf4594f720a579ea52637a803986bf2ae6cbc8c475615",
+  "_split_curl_output": "17f41955abc52db05d9ba4f02f8ad7600fa114230194cb96e52494f340e3350b",
+  "_make_soup": "3e2f545072b5efae0a79fad49f595ee91f8e788147bd271f597fbf89bffed85f",
+  "_parse_list": "935e7c55dab27d0915d36d5135886b4e1e3215b2690db0070e8408a7ffc117ff",
+  "_parse_detail": "a77e346cc218596fdddc02a34bb9151adf886e24f317e8b5fe86582c43112228",
+  "_find_news_article_jsonld": "bd0401122d7ce4c73e89894094b1d1e531430b4c97a7b9d12c3bc4b798dc4128",
+  "_iter_jsonld": "85190c4878302c44f40ab3c312d60aa84f7af756069fa548ebc931647dbd31c3",
+  "_extract_article_text": "6da453b036a507826f13c8e9c0a3a65bce2ccab2a16b0ceab5e1972f0bd842d6",
+  "_list_url": "0e19e895ce229aebd9e69b0907550bfd3afa68618104bc893dfce95067bdc66e",
+  "_has_next_page": "1f213eb95a05d6196b8013e2564265495b69af635ae3957ab177a96d20ee1fef",
+  "_parse_date": "bd4e442e7ad3ccc2c6c21aa85a26c4fe0caab3ff42227bf7b7789c78c84e7986",
+  "_meta_content": "5d537521e6ee72a422f44a01961ad4b32baa3b067677a49b11162c19a663cbec",
+  "_link_href": "ef48f3aa703c48ff7029dd89fe1e71c3281e3295b182950cd03c1d112c46b246",
+  "_clean_title": "4f737e00423e508606145f84e78012307dac0280bbebae9019735249180592df",
+  "_clean_text": "4949302d00955256133eb5a91c07da341faf80d2c3781aa79344b037ee379987",
+  "_one_line": "159d46f0e5e2328b8f5396236e4b0af55ccb7a4c6e2e7494edbc12c331a96cb2",
+  "_clean_multiline": "7d1534819e9956946388a8da1b3884579ae6260ab78662562a6c86bd937950ce",
+  "_node_text": "b90ba4d6a303f698fea8a12683f211cbe24d655585899b253353184c5a185db5",
+  "_parse_keywords": "64817f6d5093b388b6d54fd7f859d86ce9ec32134c4d390fc626dbce6e7c4a29",
+  "_parse_people": "991e3592af79bc3ae35b10ee6c350163ff1c2dcf9b6a622450164ed7751b31b1",
+  "_parse_org_name": "e21ecb0b152867bf67a2e8c0ffefabfc5ba85b47daa46872a1376fcc8bf8cdfd",
+  "_image_url": "163df99b6464574f60a91ef9b616cdf2060dcb390c1dd1ed273ba307754316a8",
+  "_article_id_from_html": "2ebc0d64df5622f2b9467b45ee940a03d9029bff3e5450095778fc4ec6bb7e41",
+  "_external_id_from_url": "c1026e12b60b9ccbfaa89c3f5f68329880e0d62b0716ef8c445c2f11e99609f9",
+  "_is_press_detail_url": "5174d33064a5f09a123d2bfb3faa027d6b18c1ec1d1f865204f2264c3c19a0e8",
+  "_is_share_url": "9ff8fb4030a8a68d0a1cfaa450ade9c281c5326769af7fe9f8ca4dc56687269a",
+  "_looks_like_pdf": "a8ad9c1d38d6ca341571c944127bcd44bad9780082163590209024db1aa37f1e",
+  "_looks_like_attachment": "3854de7c94fde8aac86ead5ee5eedf27d75351e4371856f7ea0a77ba98dfa871",
+  "_dedupe": "54f5faeb5aecc09052dff5883d0233d741f02dfb7a6eb2a9fd4637efec081779",
+  "_dedupe_dicts": "83a84de41321275402a1f3c73975a1611c675e74377e1c83cc3a665fca5d482c"
+ },
+ "site_id": "moh-gov-gr-articles"
+}

@@ -674,3 +674,60 @@ class MohGovGrArticlesCrawler(BaseCrawler):
             result.append(item)
             seen.add(value)
         return result
+
+    # ------------------------------------------------------------------
+    # Enumeration split (collector-splits 방식; crawl() 은 그대로)
+    # ------------------------------------------------------------------
+
+    _ENUM_LISTING_MARKER = "#page_content"
+
+    def _enumeration_items(self, html, url=""):
+        """목록 쪽 HTML → crawl() 과 같은 _parse_list record 목록.
+        list_endpoint 는 crawl() 과 같이 _list_url(쪽 번호) 로 만든다."""
+        from urllib.parse import parse_qs
+
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html, context="enumeration listing")
+        if soup is None or soup.select_one(self._ENUM_LISTING_MARKER) is None:
+            raise PermanentFailure("listing_parse_error:missing_page_content")
+        values = parse_qs(urlparse(url or "").query).get("page") or ["1"]
+        try:
+            page = int(values[0])
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:bad_page_param")
+        return self._parse_list(soup, self._list_url(page))
+
+    def _enumeration_paper(self, detail_raw, record):
+        """상세 HTML + 목록 record → crawl() 이 저장하는 것과 같은 paper (건너뛰는 항목은 None)."""
+        if not detail_raw:
+            return None
+        detail_soup = self._make_soup(detail_raw, context="enumeration detail")
+        if detail_soup is None:
+            return None
+        try:
+            parsed = self._parse_detail(detail_soup, detail_raw, record)
+        except RuntimeError:
+            return None  # crawl(): "detail page has no title" → 항목 실패로 건너뜀
+        abstract = parsed.get("abstract") or ""
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        if len(abstract) < self.MIN_SAVED_ABSTRACT_CHARS:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": parsed["external_id"],
+            "title": parsed["title"],
+            "authors": json.dumps(parsed["authors"], ensure_ascii=False),
+            "abstract": abstract,
+            "category": parsed["category"],
+            "keywords": json.dumps(parsed["keywords"], ensure_ascii=False),
+            "published_date": parsed["published_date"],
+            "url": parsed["url"],
+            "pdf_url": parsed["pdf_url"],
+            "doi": parsed["doi"],
+            "department": parsed["department"],
+            "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
+        }
