@@ -307,3 +307,96 @@ class VtgAdminChEnCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done — total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (ND-2); crawl() is unchanged. The one listing
+    # page gives the rows crawl() saves, built as crawl() does when the
+    # po.zem.ch reader yields no table of contents (issue + page description
+    # abstract). po.zem.ch is outside this site and is not requested (scope,
+    # user-delegated 10-19); zem_url stays in metadata as crawl() records it.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        items = soup.select('a.download-item') if soup else []
+        if not items:
+            raise PermanentFailure("listing_parse_error:no_download_items")
+        zem_links = {}
+        for a in soup.find_all('a', href=True):
+            href = a.get('href', '')
+            if 'zem.ch' in href:
+                zem_links[a.get_text(strip=True)] = href
+        meta_el = soup.find('meta', {'name': 'description'})
+        page_desc = meta_el.get('content', '').strip() if meta_el else (
+            "Swiss Peace Supporter is the multilingual magazine covering "
+            "Swiss contributions to international peace support operations, "
+            "including peacekeeping missions, security policy analysis, and "
+            "the work of Swiss military and civilian personnel abroad."
+        )
+        rows, seen_urls = [], set()
+        for item in items:
+            try:
+                title_el = item.select_one('.download-item__title')
+                desc_el = item.select_one('.download-item__description')
+                meta_els = item.select('.meta-info__item')
+                pdf_url = item.get('href', '').strip()
+                dl_filename = item.get('download', '').strip() or None
+                title = title_el.get_text(strip=True) if title_el else ''
+                issue_desc = desc_el.get_text(strip=True) if desc_el else ''
+                meta_info = [m.get_text(strip=True) for m in meta_els]
+                date_str = meta_info[2] if len(meta_info) >= 3 else ''
+                if not title or not pdf_url or pdf_url in seen_urls:
+                    continue
+                seen_urls.add(pdf_url)
+                yr_m = re.search(r'(\d{4})/(\d+)', title)
+                year = yr_m.group(1) if yr_m else ''
+                issue_num = yr_m.group(2) if yr_m else ''
+                post_number = f"{year}{issue_num.zfill(2)}" if year and issue_num else None
+                dam_m = re.search(r'/sd-web/([^/]+)/', pdf_url)
+                external_id = dam_m.group(1) if dam_m else post_number
+                published_date = _parse_date(date_str)
+                zem_key = f"Swiss Peace Supporter {year}/{issue_num}" if year else None
+                zem_url = zem_links.get(zem_key, '') if zem_key else ''
+                abstract = ''
+                if not abstract or len(abstract) < 100:
+                    parts = [p for p in [issue_desc, page_desc] if p]
+                    fallback = '. '.join(parts)
+                    if not abstract or len(fallback) > len(abstract):
+                        abstract = fallback
+                if len(abstract) < 50:
+                    continue
+                rows.append({
+                    'site_id': self.site_id,
+                    'external_id': external_id,
+                    'post_number': post_number,
+                    'title': title,
+                    'abstract': abstract,
+                    'published_date': published_date,
+                    'listed_date': published_date,
+                    'publisher': _PUBLISHER,
+                    'url': _START_URL,
+                    'pdf_url': pdf_url,
+                    'original_filename': dl_filename,
+                    'category': 'Magazine',
+                    'keywords': (
+                        'peacekeeping, Switzerland, military, peace support, '
+                        'SWISSINT, SWISSCOY, international missions'
+                    ),
+                    'metadata': json.dumps({
+                        'posted_date': date_str,
+                        'originalFilename': dl_filename,
+                        'issue': f"{year}/{issue_num}" if year else '',
+                        'year': year,
+                        'issue_number': issue_num,
+                        'post_number': post_number,
+                        'dam_hash': external_id,
+                        'zem_url': zem_url,
+                        'file_size': meta_info[1] if len(meta_info) >= 2 else '',
+                    }, ensure_ascii=False),
+                })
+            except Exception:
+                continue
+        return rows
