@@ -375,3 +375,151 @@ class KepcoCoKrHomeCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] crawl done: saved={saved} pages_fetched={page-1}")
         return saved
+
+    # ------------------------------------------------------------------ #
+    # Pure enumeration entry points (collector-splits); crawl() and the    #
+    # methods above stay unchanged.                                        #
+    # ------------------------------------------------------------------ #
+
+    def _enumeration_items(self, html, url=None):
+        """One boardListAjax.do page -> rows (crawl()'s _fetch_list_page parsing).
+
+        external_id = boardNo; url = crawl()'s boardView.do address (meta_url).
+        """
+        soup = self._parse_soup(html.encode("utf-8") if isinstance(html, str) else html)
+        if not soup:
+            return []
+
+        rows = []
+        for item_div in soup.find_all("div", class_="media-list-item"):
+            link = item_div.find("a")
+            if not link:
+                continue
+            m = re.search(r"fn_Detail\('(\d+)','(\d+)'\)", link.get("href", ""))
+            if not m:
+                continue
+            board_no = m.group(2)
+
+            title_tag = item_div.find("strong", class_="tit")
+            title = title_tag.get_text(strip=True) if title_tag else ""
+
+            date_tag = item_div.find("span", class_="date")
+            date_str = date_tag.get_text(strip=True) if date_tag else ""
+
+            rows.append({
+                "external_id": board_no,
+                "url": (f"{self.base_url}/home/media/newsroom/pr/boardView.do"
+                        f"?boardMngNo={self._BOARD_MNG_NO}&boardNo={board_no}"),
+                "title": title,
+                "date_str": date_str,
+                "listed_date": self._parse_date(date_str),
+            })
+        return rows
+
+    def _enumeration_detail_fields(self, html):
+        """crawl()'s _fetch_detail parsing for an already fetched detail page."""
+        soup = self._parse_soup(html.encode("utf-8") if isinstance(html, str) else html)
+        if not soup:
+            return None
+
+        title_tag = soup.find("h4", class_="detail-top-title")
+        title = title_tag.get_text(strip=True) if title_tag else ""
+
+        date_str = ""
+        for label_span in soup.find_all("span", class_="label"):
+            if "작성일" in label_span.get_text():
+                txt_span = label_span.find_next_sibling("span", class_="txt")
+                if txt_span:
+                    date_str = txt_span.get_text(strip=True)
+                break
+
+        pdf_info = None
+        hwp_info = None
+
+        for file_item in soup.find_all("div", class_="file-list-item"):
+            icon_img = file_item.find("img", src=re.compile(r"file_icon"))
+            if not icon_img:
+                continue
+            icon_src = icon_img.get("src", "")
+
+            fname_tag = file_item.find("span", class_="file-name")
+            fname = fname_tag.get_text(strip=True) if fname_tag else ""
+
+            dl_link = file_item.find("a", href=re.compile(r"downloadFile"))
+            if not dl_link:
+                continue
+            m_dl = re.search(r"downloadFile\('([^']+)','([^']+)'\)", dl_link.get("href", ""))
+            if not m_dl:
+                continue
+            enc_no, enc_seq = m_dl.group(1), m_dl.group(2)
+
+            if "file_icon_pdf" in icon_src and pdf_info is None:
+                pdf_info = (enc_no, enc_seq, fname)
+            elif "file_icon_hwp" in icon_src and hwp_info is None:
+                hwp_info = (enc_no, enc_seq, fname)
+
+        return {
+            "title": title,
+            "date_str": date_str,
+            "pdf_info": pdf_info,
+            "hwp_info": hwp_info,
+        }
+
+    def _enumeration_paper(self, item, html, pdf_text):
+        """Pure copy of crawl()'s Paper for one listed board item.
+
+        ``html`` is the detail page, ``pdf_text`` the framework's pdftotext of the first
+        PDF attachment (same -enc UTF-8 option, None when missing/not a PDF/too small).
+        None keeps crawl()'s skips (no detail, abstract shorter than 50 chars).
+        """
+        board_no = item["external_id"]
+        list_title = item.get("title") or ""
+        list_date_str = item.get("date_str") or ""
+        url = item["url"]
+
+        detail = self._enumeration_detail_fields(html)
+        if not detail:
+            return None
+
+        title = detail["title"] or list_title
+        published_date = self._parse_date(detail["date_str"] or list_date_str)
+        listed_date = self._parse_date(list_date_str)
+
+        abstract = None
+        original_filename = None
+        pdf_info = detail.get("pdf_info")
+        hwp_info = detail.get("hwp_info")
+
+        if pdf_info:
+            enc_no, enc_seq, pdf_fname = pdf_info
+            if pdf_text:
+                abstract = " ".join(pdf_text.split())
+            if pdf_fname:
+                original_filename = pdf_fname + ".pdf"
+
+        if not abstract or len(abstract) < 50:
+            return None
+
+        meta = {
+            "boardMngNo": self._BOARD_MNG_NO,
+            "boardNo": board_no,
+            "posted_date": list_date_str,
+        }
+        if hwp_info:
+            meta["hwp_filename"] = hwp_info[2]
+
+        return {
+            "site_id": self.site_id,
+            "external_id": board_no,
+            "post_number": board_no,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "url": url,
+            "pdf_url": None,
+            "original_filename": original_filename,
+            "publisher": "한국전력공사",
+            "category": "보도자료",
+            "metadata": json.dumps(meta, ensure_ascii=False),
+        }

@@ -1,0 +1,30 @@
+{
+  "site_id": "kepco-co-kr-home",
+  "listing_body": "<head><script>function fn_Detail(a,b){}</script></head><div class=\"media-container media-list-col-3\"><div class=\"media-list-item\"><a href=\"javascript:fn_Detail('15','3166');\"><div class=\"img-wrap\"></div><strong class=\"tit\">한전·기상청 협력 (목록)</strong><span class=\"date\">2026-10-15 14:20:16.0</span></a></div><div class=\"media-list-item\"><a href=\"javascript:fn_Detail('15','3165');\"><div class=\"img-wrap\"></div><strong class=\"tit\">PDF 없는 글</strong><span class=\"date\">2026-10-15 13:34:20.0</span></a></div><div class=\"media-list-item\"><a href=\"javascript:fn_Detail('15','3164');\"><div class=\"img-wrap\"></div><strong class=\"tit\">전자파 정보</strong><span class=\"date\">2026-10-15 09:13:26.0</span></a></div></div><div class=\"pagination\"></div>",
+  "empty_body": "<head></head><div class=\"search-no-result\"><p class=\"msg\">검색결과를 찾을 수 없습니다.</p></div>",
+  "content_type": "text/html;charset=UTF-8",
+  "detail_ajax": {
+    "3166": "<h4 class=\"detail-top-title\">한전·기상청, 전력·기상 융합 기술 협력 확대 본격화</h4><div class=\"info\"><span class=\"label\">작성일</span><span class=\"txt\">2026-10-15</span></div><div class=\"file-list\"><div class=\"file-list-item\"><img src=\"/images/file_icon_jpg.png\" alt=\"\"><span class=\"file-name\">사진</span><a href=\"javascript:downloadFile('jK9Y+t20/Q==','3gO6+68c/w==')\">다운로드</a></div><div class=\"file-list-item\"><img src=\"/images/file_icon_pdf.png\" alt=\"\"><span class=\"file-name\">261015(보도자료)협력</span><a href=\"javascript:downloadFile('jK9Y+t20/Q==','gEeD+tuD/yg==')\">다운로드</a></div><div class=\"file-list-item\"><img src=\"/images/file_icon_hwp.png\" alt=\"\"><span class=\"file-name\">261015(보도자료)협력</span><a href=\"javascript:downloadFile('jK9Y+t20/Q==','y5LL+Wx7/TQ==')\">다운로드</a></div></div>",
+    "3165": "<h4 class=\"detail-top-title\">PDF 없는 글</h4><div class=\"info\"><span class=\"label\">작성일</span><span class=\"txt\">2026-10-15</span></div><div class=\"file-list\"><div class=\"file-list-item\"><img src=\"/images/file_icon_hwp.png\" alt=\"\"><span class=\"file-name\">설명자료</span><a href=\"javascript:downloadFile('AAAA','BBBB')\">다운로드</a></div></div>",
+    "3164": "<h4 class=\"detail-top-title\"></h4><div class=\"info\"><span class=\"label\">작성일</span><span class=\"txt\">2026.10.15</span></div><div class=\"file-list\"><div class=\"file-list-item\"><img src=\"/images/file_icon_pdf.png\" alt=\"\"><span class=\"file-name\">전자파</span><a href=\"javascript:downloadFile('Q1Q1','Z9/Z9+==')\">다운로드</a></div></div>"
+  },
+  "detail_page": {
+    "3166": "<!DOCTYPE html><html lang=\"ko\"><head><title>KEPCO</title></head><body><div id=\"header\"><a href=\"javascript:G_FILE.downloadFile('XX','YY');\">헤더</a></div><div id=\"contents\"><h4 class=\"detail-top-title\">한전·기상청, 전력·기상 융합 기술 협력 확대 본격화</h4><div class=\"info\"><span class=\"label\">작성일</span><span class=\"txt\">2026-10-15</span></div><div class=\"file-list\"><div class=\"file-list-item\"><img src=\"/images/file_icon_jpg.png\" alt=\"\"><span class=\"file-name\">사진</span><a href=\"javascript:G_FILE.downloadFile('jK9Y+t20/Q==','3gO6+68c/w==');\">다운로드</a></div><div class=\"file-list-item\"><img src=\"/images/file_icon_pdf.png\" alt=\"\"><span class=\"file-name\">261015(보도자료)협력</span><a href=\"javascript:G_FILE.downloadFile('jK9Y+t20/Q==','gEeD+tuD/yg==');\">다운로드</a></div><div class=\"file-list-item\"><img src=\"/images/file_icon_hwp.png\" alt=\"\"><span class=\"file-name\">261015(보도자료)협력</span><a href=\"javascript:G_FILE.downloadFile('jK9Y+t20/Q==','y5LL+Wx7/TQ==');\">다운로드</a></div></div></div></body></html>",
+    "3165": "<!DOCTYPE html><html lang=\"ko\"><head><title>KEPCO</title></head><body><div id=\"header\"><a href=\"javascript:G_FILE.downloadFile('XX','YY');\">헤더</a></div><div id=\"contents\"><h4 class=\"detail-top-title\">PDF 없는 글</h4><div class=\"info\"><span class=\"label\">작성일</span><span class=\"txt\">2026-10-15</span></div><div class=\"file-list\"><div class=\"file-list-item\"><img src=\"/images/file_icon_hwp.png\" alt=\"\"><span class=\"file-name\">설명자료</span><a href=\"javascript:G_FILE.downloadFile('AAAA','BBBB');\">다운로드</a></div></div></div></body></html>",
+    "3164": "<!DOCTYPE html><html lang=\"ko\"><head><title>KEPCO</title></head><body><div id=\"header\"><a href=\"javascript:G_FILE.downloadFile('XX','YY');\">헤더</a></div><div id=\"contents\"><h4 class=\"detail-top-title\"></h4><div class=\"info\"><span class=\"label\">작성일</span><span class=\"txt\">2026.10.15</span></div><div class=\"file-list\"><div class=\"file-list-item\"><img src=\"/images/file_icon_pdf.png\" alt=\"\"><span class=\"file-name\">전자파</span><a href=\"javascript:G_FILE.downloadFile('Q1Q1','Z9/Z9+==');\">다운로드</a></div></div></div></body></html>"
+  },
+  "pdf_text_by_seq": {
+    "gEeD+tuD/yg==": "  한국전력공사 보도자료 본문 시험용 문장입니다. Synthetic KEPCO press release text for offline equality testing. 한국전력공사 보도자료 본문 시험용 문장입니다. Synthetic KEPCO press release text for offline equality testing. \n\n page 1 \f",
+    "Z9/Z9+==": "한국전력공사 보도자료 본문 시험용 문장입니다. Synthetic KEPCO press release text for offline equality testing. 한국전력공사 보도자료 본문 시험용 문장입니다. Synthetic KEPCO press release text for offline equality testing. "
+  },
+  "long_text": "한국전력공사 보도자료 본문 시험용 문장입니다. Synthetic KEPCO press release text for offline equality testing. 한국전력공사 보도자료 본문 시험용 문장입니다. Synthetic KEPCO press release text for offline equality testing. ",
+  "original_method_source_sha256": {
+    "_curl_raw": "dddda7642ff9c46e2fba55a8ac0869668611d6984cb8f602b48f0cebbccfde80",
+    "_parse_soup": "880ccc4bb6afae1e7d05304ad155202cc8b70cf755f2bcfe3331e447bb14292c",
+    "_parse_date": "b88aa0db224bf88c3beaa61285407f0be7324dd118203541e442ed7d3431e63c",
+    "_fetch_list_page": "46318acdd7b310a0446f95f826d77b835c18f83711632173389b4f690217cd2a",
+    "_fetch_detail": "defdbe698b3844e82c3275060679433700a9b5f2700088386da6da082f858f13",
+    "_download_pdf_text": "bb75e6781562a6daec0a78bffe35836046d462c47747530b6e658bac7c4c3b32",
+    "crawl": "d052fb2e8c707d14fb416979b6610d4e69a27e9e52c0c7a09f885271ff5cc9bc"
+  }
+}

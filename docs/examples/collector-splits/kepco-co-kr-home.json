@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "sites": {
+    "kepco-co-kr-home": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "base_url": "https://www.kepco.co.kr",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "none_is_rule_skip": true,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "item",
+          "first_html",
+          "pdf_text"
+        ],
+        "second_step": {
+          "use": "detail_page",
+          "selector": "div.file-list-item:has(img[src*='file_icon_pdf']) a[href*='downloadFile']",
+          "attr": "href",
+          "required": false,
+          "allow_hosts": [],
+          "rewrite": {
+            "regex": "^javascript:(?:G_FILE\\.)?downloadFile\\('([^']+)','([^']+)'\\);?$",
+            "template": "https://www.kepco.co.kr/c2r/FileDownload.do?fileNo={1}&fileSeq={2}"
+          }
+        },
+        "pdf_text": {
+          "args": [
+            "-enc",
+            "UTF-8"
+          ],
+          "timeout_s": 30,
+          "min_bytes": 512
+        }
+      },
+      "listing": {
+        "url": "https://www.kepco.co.kr/home/media/newsroom/pr/boardListAjax.do",
+        "method": "POST",
+        "idempotent": true,
+        "body_type": "form",
+        "params": {
+          "boardMngNo": "15"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "external_id",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "title_field": "title",
+          "listing_marker": ".search-no-result"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1,
+        "check_unparameterized_first_page": false
+      }
+    }
+  }
+}
