@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "sites": {
+    "jic-ac-uk-news-events": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "last_page_backward",
+      "base_url": "https://jic.ac.uk",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "paper_method": "_enumeration_paper"
+      },
+      "listing": {
+        "url": "https://jic.ac.uk/wp-json/wp/v2/posts",
+        "params": {
+          "per_page": 100,
+          "page": 1,
+          "_embed": "1",
+          "orderby": "date",
+          "order": "desc"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "end_statuses": [
+          {
+            "status": 400,
+            "json_code": "rest_post_invalid_page_number"
+          }
+        ],
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        },
+        "parser": {
+          "type": "adapter",
+          "key_field": "id",
+          "url_field": "link",
+          "date_field": "date"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

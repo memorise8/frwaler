@@ -1,0 +1,11 @@
+{
+ "site_id": "jic-ac-uk-news-events",
+ "listing_body": "[{\"id\": 38352, \"date\": \"2026-10-15T11:54:48\", \"slug\": \"trailblazers\", \"type\": \"post\", \"format\": \"standard\", \"link\": \"https://jic.ac.uk/news/trailblazers/\", \"title\": {\"rendered\": \"News &amp; trailblazers\"}, \"excerpt\": {\"rendered\": \"<p>Synthetic John Innes Centre news excerpt for offline equality testing of the enumeration split. Synthetic John Innes Centre news excerpt for offline equality testing of the enumeration split. </p>\"}, \"content\": {\"rendered\": \"<p>Synthetic John Innes Centre news excerpt for offline equality testing of the enumeration split. Synthetic John Innes Centre news excerpt for offline equality testing of the enumeration split. </p><p>More.</p>\"}, \"_embedded\": {\"wp:term\": [[{\"taxonomy\": \"category\", \"name\": \"Blog\"}], [{\"taxonomy\": \"post_tag\", \"name\": \"people\"}]]}}, {\"id\": 38333, \"date\": \"2026-10-13T10:00:08\", \"slug\": \"oak-award\", \"type\": \"post\", \"format\": \"standard\", \"link\": \"https://jic.ac.uk/news/oak-award/\", \"title\": {\"rendered\": \"News &amp; oak-award\"}, \"excerpt\": {\"rendered\": \"<p>Synthetic John Innes Centre news excerpt for offline equality testing of the enumeration split. Synthetic John Innes Centre news excerpt for offline equality testing of the enumeration split. </p>\"}, \"content\": {\"rendered\": \"<p>Synthetic John Innes Centre news excerpt for offline equality testing of the enumeration split. Synthetic John Innes Centre news excerpt for offline equality testing of the enumeration split. </p><p>More.</p>\"}, \"_embedded\": {\"wp:term\": [[{\"taxonomy\": \"category\", \"name\": \"News\"}], []]}}]",
+ "content_type": "application/json",
+ "details": {},
+ "long_text": "Synthetic John Innes Centre news excerpt for offline equality testing of the enumeration split. Synthetic John Innes Centre news excerpt for offline equality testing of the enumeration split. ",
+ "empty_body": "[]",
+ "original_method_source_sha256": {
+  "crawl": "3b8d15d2123f9fa7b1302c4773a7618604ad4e56a47312d7ec5d34f4006f3d28"
+ }
+}

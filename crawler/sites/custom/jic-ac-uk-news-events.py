@@ -248,3 +248,84 @@ class JicAcUkNewsEventsCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() stays
+    # unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, text):
+        """Posts of one WP REST page (decoded like crawl(): JSON list)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(text, str):
+            raise PermanentFailure("listing_parse_error:expected_text")
+        try:
+            posts = json.loads(text)
+        except (json.JSONDecodeError, ValueError):
+            raise PermanentFailure("listing_parse_error:invalid_json") from None
+        if not isinstance(posts, list) or any(not isinstance(p, dict) for p in posts):
+            raise PermanentFailure("listing_parse_error:expected_json_list")
+        return posts
+
+    def _enumeration_paper(self, post):
+        """crawl()'s per-post conversion; None keeps its short-abstract skip."""
+        post_url = post.get("link", "") or ""
+        wp_id = post.get("id")
+        post_number = str(wp_id) if wp_id is not None else None
+        external_id = post_number
+        title_raw = (post.get("title") or {}).get("rendered") or ""
+        title = _strip_html(title_raw) or "(untitled)"
+        date_raw = post.get("date") or ""
+        published_date = date_raw[:10] if len(date_raw) >= 10 else None
+        listed_date = published_date
+        excerpt_html = (post.get("excerpt") or {}).get("rendered") or ""
+        content_html = (post.get("content") or {}).get("rendered") or ""
+        abstract = _strip_html(excerpt_html)
+        if len(abstract) < 50:
+            abstract = _strip_html(content_html)[:4000]
+        if len(abstract) < 50:
+            return None
+        embedded = post.get("_embedded") or {}
+        term_groups = embedded.get("wp:term") or []
+        cat_names = []
+        tag_names = []
+        for group in term_groups:
+            for term in (group or []):
+                tax = term.get("taxonomy") or ""
+                name = term.get("name") or ""
+                if not name:
+                    continue
+                if tax == "category":
+                    cat_names.append(name)
+                elif tax == "post_tag":
+                    tag_names.append(name)
+        category = ", ".join(cat_names) if cat_names else None
+        keywords = ", ".join(tag_names) if tag_names else None
+        slug = post.get("slug") or ""
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "url": post_url,
+            "pdf_url": None,
+            "authors": None,
+            "publisher": "John Innes Centre",
+            "department": None,
+            "journal": None,
+            "keywords": keywords,
+            "category": category,
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps({
+                "posted_date": listed_date,
+                "wp_id": wp_id,
+                "slug": slug,
+                "post_type": post.get("type"),
+                "format": post.get("format"),
+                "categories": cat_names,
+                "tags": tag_names,
+            }, ensure_ascii=False),
+        }
