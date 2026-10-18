@@ -1,0 +1,18 @@
+{
+ "site_id": "bdap-opendata-rgs-mef-gov-it-catalog",
+ "listing_body": "<html><body><div id=\"metadata-catalog\"><ol class=\"search-results metadata-results\"><li class=\"metadata-search-result\"><h3 class=\"title\"><a href=\"/content/anagrafe-uno\">Dataset anagrafe-uno</a></h3><p class=\"search-snippet\">Snippet anagrafe-uno</p><span itemprop=\"author\"><span itemprop=\"name\">RGS</span></span><span id=\"creationdate\">08/02/2018</span><div class=\"taxonomy-result-term\"><a>Economia</a></div></li><li class=\"metadata-search-result\"><h3 class=\"title\"><a href=\"/content/anagrafe-due\">Dataset anagrafe-due</a></h3><p class=\"search-snippet\">Snippet anagrafe-due</p><span itemprop=\"author\"><span itemprop=\"name\">RGS</span></span><span id=\"creationdate\">29/05/2017</span><div class=\"taxonomy-result-term\"><a>Economia</a></div></li></ol></div></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://bdap-opendata.rgs.mef.gov.it/content/anagrafe-uno": "<html><body class=\"node-type page-node-1928\"><div id=\"maind\"><span itemprop=\"name\">Dataset anagrafe-uno</span></div><div class=\"field field-name-body\"><div class=\"field-item even\"><p>Descrizione sintetica del dataset BDAP per il test di uguaglianza offline della separazione dei metodi. Descrizione sintetica del dataset BDAP per il test di uguaglianza offline della separazione dei metodi. </p></div></div><span id=\"creationdate\">08/Feb/2018</span><span id=\"lastupdate\">10/Gen/2025</span><div class=\"field field-name-metadata-type\"><a>bilancio</a><a>enti</a></div><div class=\"metadata-publisher\"><a>MEF</a></div><div class=\"field extra-attach-link\"><a href=\"https://bdap-opendata.rgs.mef.gov.it/sites/default/files/report/1928.pdf\">Allegato</a></div><ul><li id=\"Scarica\"><a href=\"https://bdap-opendata.rgs.mef.gov.it/download/1928.csv\">CSV</a></li></ul></body></html>",
+  "https://bdap-opendata.rgs.mef.gov.it/content/anagrafe-due": "<html><body class=\"node-type page-node-1686\"><div id=\"maind\"><span itemprop=\"name\">Dataset anagrafe-due</span></div><div class=\"field field-name-body\"><div class=\"field-item even\"><p>Descrizione sintetica del dataset BDAP per il test di uguaglianza offline della separazione dei metodi. Descrizione sintetica del dataset BDAP per il test di uguaglianza offline della separazione dei metodi. </p></div></div><span id=\"creationdate\">29/Mag/2017</span><span id=\"lastupdate\">10/Gen/2025</span><div class=\"field field-name-metadata-type\"><a>bilancio</a><a>enti</a></div><div class=\"metadata-publisher\"><a>MEF</a></div><div class=\"field extra-attach-link\"><a href=\"https://bdap-opendata.rgs.mef.gov.it/sites/default/files/report/1686.pdf\">Allegato</a></div><ul><li id=\"Scarica\"><a href=\"https://bdap-opendata.rgs.mef.gov.it/download/1686.csv\">CSV</a></li></ul></body></html>"
+ },
+ "long_text": "Descrizione sintetica del dataset BDAP per il test di uguaglianza offline della separazione dei metodi. Descrizione sintetica del dataset BDAP per il test di uguaglianza offline della separazione dei metodi. ",
+ "empty_body": "<html><body><div id=\"metadata-catalog\"><ol class=\"search-results metadata-results\"></ol></div></body></html>",
+ "original_method_source_sha256": {
+  "_decode_html": "aebd61b6d4774e8b3fa56791e8a7b0fabf3a5a1d262a1b6305173061211c2849",
+  "_curl": "f763f9bd874dff9419edf87506eb3bcc7a06c50c1b78d94488584bf0c499170a",
+  "_parse_listing": "bc34a2a66e8b3b41c507cb74d6c8143784501536c09a42234684395c20bc6bbd",
+  "_parse_detail": "2ca2fb69adb1d38bb481de2166545dce9f3b442de97c5bec3c8e8515106a9aef",
+  "crawl": "4d85e03fbb3f1fb119de03262531b9ed01c975288e8bb0b70bebf2446a8e61e3"
+ }
+}

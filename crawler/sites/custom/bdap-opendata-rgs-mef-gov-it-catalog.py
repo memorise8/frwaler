@@ -438,3 +438,68 @@ class BdapOpendataRgsMefGovItCatalogCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # existing parsers stay unchanged; bytes are decoded like _curl() does.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, raw):
+        """Rows of one /catalog?page=N page, exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw, (bytes, bytearray)):
+            raise PermanentFailure("listing_parse_error:expected_bytes")
+        return self._parse_listing(self._decode_html(bytes(raw)))
+
+    def _enumeration_paper(self, raw, item):
+        """crawl()'s detail step and paper; None keeps crawl()'s skips."""
+        url = item["url"]
+        detail_html = self._decode_html(bytes(raw)) if raw and raw.strip() else None
+        if not detail_html:
+            return None
+        detail = self._parse_detail(detail_html, url)
+        title = detail["title"] or item["title"]
+        if not title:
+            return None
+        abstract = detail["abstract"] or item["snippet"]
+        if not abstract or len(abstract) < self._MIN_ABSTRACT_LEN:
+            return None
+        node_id = detail["node_id"]
+        post_number = node_id if node_id else url.rstrip("/").split("/")[-1]
+        published_raw = detail["creationdate_raw"] or item["creation_raw"]
+        published_date = _parse_it_date(published_raw)
+        listed_raw = detail["lastupdate_raw"] or published_raw
+        listed_date = _parse_it_date(listed_raw) or published_date
+        keywords = detail["keywords"]
+        category = detail["category"] or item["category"]
+        source = detail["source"] or item["source"]
+        metadata = {
+            "posted_date": listed_raw,
+            "originalFilename": detail["original_filename"],
+            "node_id": node_id,
+            "creationdate_raw": detail["creationdate_raw"] or item["creation_raw"],
+            "lastupdate_raw": detail["lastupdate_raw"],
+            "keywords_raw": keywords,
+            "datasource": detail["datasource"],
+            "license": detail["license"],
+            "csv_download_url": detail["csv_download_url"],
+        }
+        return {
+            "site_id": self.site_id,
+            "external_id": post_number,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "url": url,
+            "pdf_url": detail["pdf_url"],
+            "original_filename": detail["original_filename"],
+            "authors": source or None,
+            "publisher": detail["publisher"] or None,
+            "department": None,
+            "journal": None,
+            "keywords": ", ".join(keywords) if keywords else None,
+            "category": category,
+            "doi": None,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
