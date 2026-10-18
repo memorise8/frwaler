@@ -43,6 +43,12 @@ class PostUrl(str):
         return obj
 
 
+def _request_key(request):
+    import json
+    body = getattr(request, "body", None)
+    return (str(request), json.dumps(body, sort_keys=True, default=str) if body is not None else None)
+
+
 def _fill_page(template, value):
     """Copy of a JSON body template with the whole-value "{page}" replaced by ``value``."""
     if template == "{page}":
@@ -100,6 +106,15 @@ class Strategy:
         return n
 
     def page_url(self, n, extra=None, *, url=None, token=None):
+        request = self._page_url(n, extra, url=url, token=token)
+        if not hasattr(self, "_page_numbers"):
+            self._page_numbers = {}
+        if len(self._page_numbers) > 5000:
+            self._page_numbers.clear()
+        self._page_numbers[_request_key(request)] = (self.page_value(n), n)
+        return request
+
+    def _page_url(self, n, extra=None, *, url=None, token=None):
         """Listing request for page ``n``. Plain GET with the page in the query (default);
         ``{page}`` in the URL puts it in the path (ext:path_paging); method POST sends every
         parameter in the body (ext:post_listing); ``token`` is a next-page cursor (ext:json_page)."""
@@ -191,12 +206,20 @@ class Strategy:
             if resp.body.strip():
                 raise PermanentFailure("http_204_with_body", url, 204)
             return Page([], None, 204, {"end_status": 204, "explicit_empty": True})
+        if resp.status == 200 and self.listing.get("end_on_blank_body") and not resp.body.strip():
+            # ext:blank_body_end: this source answers past its end with 200 and an empty body.
+            return Page([], None, 200, {"end_status": "blank_body", "explicit_empty": True})
         if resp.status in ends:
             cond = ends[resp.status]
             if cond is not None and not self._end_body_matches(resp, cond):
                 raise PermanentFailure(f"unverified_error_status_{resp.status}", url, resp.status)
             return Page([], None, resp.status, {"end_status": resp.status, "explicit_empty": True})
         page = self.ctx.parser.parse(resp)
+        number = getattr(self, "_page_numbers", {}).get(_request_key(url))
+        for i, item in enumerate(page.items):
+            # ext:list_page_arg: the requested page and the item's place on it (as served).
+            item.list_position = {"page": number[0] if number else None, "n": number[1] if number else None,
+                                  "position": i + 1}
         if not page.items and page.extra.get("login_suspect"):
             raise LoginReview("login_form", url, resp.status)
         if page.extra.get("parse_error"):
@@ -899,23 +922,69 @@ class DateRangeSplit(_ForwardPager):
         from urllib.parse import urljoin
         from bs4 import BeautifulSoup
         ctx, cfg = self.ctx, self.cfg
-        resp = ctx.fetcher.get(cfg["hub_url"])
-        if getattr(resp, "login_suspect", False):
-            raise LoginReview("login_form", cfg["hub_url"], resp.status)
         found = {}
         label_rule = cfg.get("label", "text")
-        for node in BeautifulSoup(resp.text(), "html.parser").select(cfg["selector"]):
-            value = (node.get(cfg.get("attr", "href")) or "").strip()
-            m = re.search(cfg["key_regex"], urljoin(resp.url, value) if value else "")
-            if not m or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,64}", m.group(1)) or m.group(1) in found:
+        follow = cfg.get("follow") or {}
+        # ext:multi_level_discover: breadth-first over sub-hub links on the hub host (depth and
+        # page caps); without "follow" only the hub page itself.
+        from urllib.parse import urlsplit, urldefrag
+
+        def seen_key(u):
+            p = urlsplit(urldefrag(u)[0])
+            return (p.netloc.lower(), p.path or "/", p.query)
+        queue, visited, problems = [(cfg["hub_url"], 0, [])], {seen_key(cfg["hub_url"])}, []
+        hub_scheme = urlsplit(cfg["hub_url"]).scheme
+        while queue:
+            page_url, depth, path = queue.pop(0)
+            try:
+                resp = ctx.fetcher.get(page_url)
+            except PermanentFailure as exc:
+                if depth == 0:
+                    raise  # the hub itself: nothing can be discovered
+                # A dead sub-hub: keep what was found elsewhere, never call the pass complete.
+                problems.append(f"sub_hub_failed:{exc.status}")
+                ctx.store.event(ctx.site_id, "sub_hub_failed", {"url": page_url, "status": exc.status})
                 continue
-            key = m.group(1)
-            spec = {"key": key, "params": {k: v.replace("{key}", key) for k, v in (cfg.get("params") or {}).items()}}
-            if label_rule == "text":
-                spec["label"] = node.get_text(" ", strip=True)[:200]
-            elif label_rule:
-                spec["label"] = str(node.get(label_rule[5:]) or "")[:200]
-            found[key] = spec
+            if getattr(resp, "login_suspect", False):
+                raise LoginReview("login_form", page_url, resp.status)
+            soup = BeautifulSoup(resp.text(), "html.parser")
+            for node in soup.select(cfg["selector"]):
+                value = (node.get(cfg.get("attr", "href")) or "").strip()
+                m = re.search(cfg["key_regex"], urljoin(resp.url, value) if value else "")
+                if not m or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,64}", m.group(1)) or m.group(1) in found:
+                    continue
+                key = m.group(1)
+                spec = {"key": key, "params": {k: v.replace("{key}", key) for k, v in (cfg.get("params") or {}).items()}}
+                if label_rule == "text":
+                    spec["label"] = node.get_text(" ", strip=True)[:200]
+                elif label_rule:
+                    spec["label"] = str(node.get(label_rule[5:]) or "")[:200]
+                if follow:
+                    spec["path"] = list(path)
+                if cfg.get("link_as_url"):
+                    link = urldefrag(urljoin(resp.url, value))[0]
+                    if host_of(link) != host_of(self.listing["url"]) or (
+                            hub_scheme == "https" and urlsplit(link).scheme != "https"):
+                        continue  # never a listing on another host or over plain HTTP
+                    spec["url"] = link
+                found[key] = spec
+            if not follow:
+                continue
+            for node in soup.select(follow["selector"]):
+                value = (node.get(follow.get("attr", "href")) or "").strip()
+                link = urldefrag(urljoin(resp.url, value))[0] if value else ""
+                if not link.startswith(("http://", "https://")) or host_of(link) != host_of(cfg["hub_url"]) \
+                        or (hub_scheme == "https" and urlsplit(link).scheme != "https") or seen_key(link) in visited:
+                    continue
+                if depth >= int(follow.get("max_depth", 2)):
+                    problems.append("hub_depth_limit")  # deeper sub-hubs exist but are not read
+                    break
+                if len(visited) >= int(follow.get("max_pages", 100)):
+                    problems.append("hub_pages_cap")  # not every sub-hub read
+                    queue = []
+                    break
+                visited.add(seen_key(link))
+                queue.append((link, depth + 1, path + [node.get_text(" ", strip=True)[:200]]))
         retired = set(cfg.get("retired") or ())
         found = {k: v for k, v in found.items() if k not in retired}
         previous = {k: v for k, v in (ctx.state.get("discovered_segments") or {}).items() if k not in retired}
@@ -934,6 +1003,7 @@ class DateRangeSplit(_ForwardPager):
         ctx.state["discovered_keys"] = list(dict.fromkeys([*seen, *merged]))
         ctx.store.save_state(ctx.site_id, ctx.state)
         self.not_rediscovered = missing + lost
+        self.discovery_problems = sorted(set(problems))
         return list(merged)
 
     def split(self, key, ordinal):
@@ -1078,6 +1148,7 @@ class DateRangeSplit(_ForwardPager):
         if getattr(self, "not_rediscovered", None):
             # A segment no longer on the hub page was still read, but the hub changed.
             unverified.append("segments_not_rediscovered")
+        unverified.extend(getattr(self, "discovery_problems", None) or [])  # found segments read, set maybe short
         if bad:
             self.outcome = ("complete_with_mismatch", "segments:" + ",".join(bad[:20]))
         elif unverified:
