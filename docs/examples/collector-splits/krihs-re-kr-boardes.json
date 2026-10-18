@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "defaults": {"request_interval_s": 1.5, "respect_robots": true, "retries": 1},
+  "sites": {
+    "krihs-re-kr-boardes": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.krihs.re.kr",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": ["html", "url"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["html", "item"]
+      },
+      "listing": {
+        "url": "https://www.krihs.re.kr/board.es",
+        "params": {"mid": "a10607000000", "bid": "0008", "nPage": 1},
+        "page_param": "nPage",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "list_no",
+          "url_field": "url",
+          "title_field": "title",
+          "date_field": "listed_date",
+          "listing_marker": "table.tstyle_list"
+        }
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}

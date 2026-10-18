@@ -1,0 +1,14 @@
+{
+  "site_id": "krihs-re-kr-boardes",
+  "listing_body": "<html><body><table class=\"tstyle_list\"><tbody><tr><td aria-label=\"번호\">101</td><td aria-label=\"분류\">보도자료</td><td aria-label=\"제목\"><a href=\"/board.es?mid=a10607000000&bid=0008&act=view&list_no=101&tag=&nPage=1\">Offline 101</a></td><td aria-label=\"작성자\">대외협력팀</td><td aria-label=\"등록일\">2026-10-01</td></tr><tr><td aria-label=\"번호\">102</td><td aria-label=\"분류\">보도자료</td><td aria-label=\"제목\"><a href=\"/board.es?mid=a10607000000&bid=0008&act=view&list_no=102&tag=&nPage=1\">Offline 102</a></td><td aria-label=\"작성자\">대외협력팀</td><td aria-label=\"등록일\">2026-10-02</td></tr></tbody></table></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.krihs.re.kr/board.es?mid=a10607000000&bid=0008&act=view&list_no=101&tag=&nPage=1": "<html><body><div class=\"board_view\"><h2 class=\"title\">Offline 101 상세</h2><ul class=\"info\"><li><strong>작성일</strong><span>2026-10-01</span></li><li><strong>분류</strong><span>보도자료</span></li></ul><div class=\"contents\"><p>Synthetic press release body 자료 for offline equality testing only. Synthetic press release body 자료 for offline equality testing only. Synthetic press release body 자료 for offline equality testing only. </p></div><div class=\"file\"><ul><li><a href=\"/boardDownload.es?bid=0008&list_no=101&seq=1\">down</a> report-101.pdf</li><li><a href=\"/boardDownload.es?bid=0008&list_no=101&seq=2\">down</a> report-101.hwp</li></ul></div></div></body></html>",
+    "https://www.krihs.re.kr/board.es?mid=a10607000000&bid=0008&act=view&list_no=102&tag=&nPage=1": "<html><body><div class=\"board_view\"><h2 class=\"title\">Offline 102 상세</h2><ul class=\"info\"><li><strong>작성일</strong><span>2026-10-02</span></li><li><strong>분류</strong><span>보도자료</span></li></ul><div class=\"contents\"><p>Synthetic press release body 자료 for offline equality testing only. Synthetic press release body 자료 for offline equality testing only. Synthetic press release body 자료 for offline equality testing only. </p></div><div class=\"file\"><ul><li><a href=\"/boardDownload.es?bid=0008&list_no=102&seq=1\">down</a> report-102.pdf</li><li><a href=\"/boardDownload.es?bid=0008&list_no=102&seq=2\">down</a> report-102.hwp</li></ul></div></div></body></html>"
+  },
+  "long_text": "Synthetic press release body 자료 for offline equality testing only. Synthetic press release body 자료 for offline equality testing only. Synthetic press release body 자료 for offline equality testing only. ",
+  "empty_body": "<html><body><table class=\"tstyle_list\"><tbody><tr><td colspan=\"7\">등록된 게시물이 없습니다.</td></tr></tbody></table></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "2bc50a7da600120e4f86e62ca3e967e568bc9b51ee004d82fb99027b39eb5d21"
+  }
+}

@@ -329,3 +329,64 @@ class KrihsReKrBoardesCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+
+# ---------------------------------------------------------------------------
+# Pure enumeration contract (no network); crawl() and the module helpers above
+# are unchanged.
+# ---------------------------------------------------------------------------
+
+def _enumeration_items(self, html, url=None):
+    """List-page HTML -> _parse_list_page() rows plus the detail URL crawl() builds."""
+    from crawler.enumeration.http import PermanentFailure
+    if not isinstance(html, str):
+        raise PermanentFailure("listing_parse_error:expected_html")
+    soup = _try_bs4(html)
+    if soup is None or soup.find("table", class_="tstyle_list") is None:
+        raise PermanentFailure("listing_parse_error:missing_tstyle_list")
+    rows = []
+    for item in _parse_list_page(html):
+        row = dict(item)
+        row["url"] = _DETAIL_URL.format(list_no=item["list_no"])
+        rows.append(row)
+    return rows
+
+
+def _enumeration_paper(self, html, item):
+    """Detail page HTML + list row -> the paper crawl() saves (or None)."""
+    list_no = item["list_no"]
+    detail_url = _DETAIL_URL.format(list_no=list_no)
+    if not html:
+        return None
+    detail = _parse_detail_page(html, list_no)
+    if not detail:
+        return None
+
+    title = detail["title"] or item["title"]
+    abstract = detail["abstract"]
+    if len(abstract) < _ABSTRACT_MIN_CHARS:
+        return None
+
+    return {
+        "site_id": self.site_id,
+        "external_id": list_no,
+        "url": detail_url,
+        "title": title,
+        "abstract": abstract,
+        "published_date": detail["published_date"] or item["listed_date"],
+        "posted_date": item["listed_date"],
+        "publisher": "국토연구원",
+        "department": item["department"],
+        "category": detail["category"] or item["category"],
+        "pdf_url": detail["pdf_url"],
+        "original_filename": detail["original_filename"],
+        "metadata": json.dumps({
+            "posted_date": item["listed_date"],
+            "list_no": list_no,
+            "attachments": detail["attachments"],
+        }, ensure_ascii=False),
+    }
+
+
+KrihsReKrBoardesCrawler._enumeration_items = _enumeration_items
+KrihsReKrBoardesCrawler._enumeration_paper = _enumeration_paper
