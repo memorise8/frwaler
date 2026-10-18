@@ -340,3 +340,54 @@ class NpsInforlsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (no network); crawl() and the methods
+    # above are unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List-page HTML -> _parse_list_page() rows (detail URL = list href)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _try_soup(html)
+        if soup is None or soup.find("div", class_="data-list") is None:
+            raise PermanentFailure("listing_parse_error:missing_data_list")
+        return [dict(item) for item in self._parse_list_page(html)]
+
+    def _enumeration_paper(self, html, row):
+        """Detail HTML + list row -> the paper crawl() saves (or None)."""
+        item = {k: row[k] for k in ("no", "title", "pst_id", "url", "author", "dept", "phone", "date")}
+        if not html:
+            return None
+        abstract, detail_meta = self._parse_detail(html)
+        if len(abstract) < 50:
+            return None
+        date_raw = item["date"].replace("/", "-").strip()
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": item["pst_id"],
+            "title": item["title"],
+            "authors": json.dumps(
+                [item["author"]] if item["author"] else [],
+                ensure_ascii=False,
+            ),
+            "abstract": abstract,
+            "category": "",
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": date_raw,
+            "url": item["url"],
+            "pdf_url": "",
+            "doi": "",
+            "department": item["dept"],
+            "metadata": json.dumps(
+                {
+                    "no": item["no"],
+                    "phone": item["phone"],
+                    **detail_meta,
+                },
+                ensure_ascii=False,
+            ),
+        }

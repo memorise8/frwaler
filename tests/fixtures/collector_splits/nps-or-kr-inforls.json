@@ -1,0 +1,19 @@
+{
+  "site_id": "nps-or-kr-inforls",
+  "listing_body": "<html><body><div class=\"data-list\"><table><thead><tr><th>번호</th></tr></thead><tbody><tr><td class=\"no\">2</td><td class=\"title\"><a href=\"/inforls/publdata/getOHAB0019M1.do?menuId=MN24000873&amp;pstId=ZZ202600000000000101&amp;hmpgCd=01&amp;hmpgBbsCd=BS20240191&amp;sortSe=FR&amp;pageIndex=1&amp;searchText=&amp;searchGbu=\">Offline ZZ202600000000000101</a></td><td class=\"file\"><a href=\"javascript:fncAtchFileDownload('FL1', '1', '');\">f</a></td><td>홍길동</td><td>기획조정실</td><td>063-000-0000</td><td>2026/10/01</td><td>5</td></tr><tr><td class=\"no\">1</td><td class=\"title\"><a href=\"/inforls/publdata/getOHAB0019M1.do?menuId=MN24000873&amp;pstId=ZZ202600000000000102&amp;hmpgCd=01&amp;hmpgBbsCd=BS20240191&amp;sortSe=FR&amp;pageIndex=1&amp;searchText=&amp;searchGbu=\">Offline ZZ202600000000000102</a></td><td class=\"file\"><a href=\"javascript:fncAtchFileDownload('FL1', '1', '');\">f</a></td><td>홍길동</td><td>기획조정실</td><td>063-000-0000</td><td>2026/10/02</td><td>5</td></tr></tbody></table></div></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.nps.or.kr/inforls/publdata/getOHAB0019M1.do?menuId=MN24000873&pstId=ZZ202600000000000101&hmpgCd=01&hmpgBbsCd=BS20240191&sortSe=FR&pageIndex=1&searchText=&searchGbu=": "<html><body><div class=\"view-contents-wrap\"><p>Synthetic statistics résumé and Korean 자료 for offline equality testing, long enough to pass the fifty character rule.</p></div><div class=\"file-item\"><p class=\"a-file xls\">stat-ZZ202600000000000101.xlsx</p><a class=\"btn-file-down\" href=\"javascript:fncAtchFileDownload('FL101', '1', '');\">down</a></div></body></html>",
+    "https://www.nps.or.kr/inforls/publdata/getOHAB0019M1.do?menuId=MN24000873&pstId=ZZ202600000000000102&hmpgCd=01&hmpgBbsCd=BS20240191&sortSe=FR&pageIndex=1&searchText=&searchGbu=": "<html><body><div class=\"view-contents-wrap\"><p>Synthetic statistics résumé and Korean 자료 for offline equality testing, long enough to pass the fifty character rule.</p></div><div class=\"file-item\"><p class=\"a-file xls\">stat-ZZ202600000000000102.xlsx</p><a class=\"btn-file-down\" href=\"javascript:fncAtchFileDownload('FL102', '1', '');\">down</a></div></body></html>"
+  },
+  "long_text": "Synthetic statistics résumé and Korean 자료 for offline equality testing, long enough to pass the fifty character rule.",
+  "empty_body": "<html><body><div class=\"data-list\"><table><thead><tr><th>번호</th></tr></thead><tbody><tr><td class=\"no-data\" colspan=\"8\">등록된 게시물이 없습니다.</td></tr></tbody></table></div></body></html>",
+  "original_method_source_sha256": {
+    "_curl_get": "d7b7d6ec77c63d6517ebae68d2101dcb837f59b0a0dff7882073335771add407",
+    "_fetch_list_page": "63ce112d32a6bbce6639bd967c9c3bde7195f16adaf1828f531334c5b344979d",
+    "_parse_list_page": "403730d5921b4ab09ec845a7d093f32b74f80f92215b84c3878b5c83d90165fc",
+    "_fetch_detail": "0486d05e19b482a5e0ee5e1e23609c1c1933b9bf3226ce90e41d9b66398ea074",
+    "_parse_detail": "79ed9643858e3a1836bc0fb25b35945baaa29782a2a648eceac7b9cf81c034ed",
+    "crawl": "e57536de5e35c6e5f09fd1323915e6ec83720b49ddc74be3b083cc92d4e41a9b"
+  }
+}
