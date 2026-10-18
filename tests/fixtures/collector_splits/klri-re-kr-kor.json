@@ -1,0 +1,14 @@
+{
+ "listing_body": "<html><body><div class=\"publication-list\"><ul><li><a href=\"#\" onclick=\"issueData_view('9001'); return false;\"><strong>Offline 1</strong></a><div class=\"date\"><p><em>발행일</em>2025-06-13</p><p><em>저자</em>홍길동, 김철수</p></div><p class=\"cate\"><em>비고</em>이슈페이퍼 25-01</p><p class=\"atch\"><a href=\"#\" onclick=\"fn_egov_downFile('FILE_9001','0')\">PDF</a></p></li><li><a href=\"#\" onclick=\"issueData_view('9002'); return false;\"><strong>Offline 2</strong></a><div class=\"date\"><p><em>발행일</em>2025-06-12</p><p><em>저자</em>홍길동, 김철수</p></div><p class=\"cate\"><em>비고</em>이슈페이퍼 25-02</p><p class=\"atch\"><a href=\"#\" onclick=\"fn_egov_downFile('FILE_9002','0')\">PDF</a></p></li></ul></div></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.klri.re.kr/kor/issueData/P/9001/view.do": "<html><head><meta property=\"og:title\" content=\"Offline 1 | 한국법제연구원\"></head><body><ul class=\"type_02\"><li><strong>발행일</strong><span>2025-06-01</span></li><li><strong>저자</strong><span>이영희</span></li></ul><div id=\"tab_view_4\">Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </div></body></html>",
+  "https://www.klri.re.kr/kor/issueData/P/9002/view.do": "<html><head><meta property=\"og:title\" content=\"Offline 2 | 한국법제연구원\"></head><body><ul class=\"type_02\"><li><strong>발행일</strong><span>2025-06-01</span></li><li><strong>저자</strong><span>이영희</span></li></ul><div id=\"tab_view_4\">Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </div></body></html>"
+ },
+ "empty_body": "<html><body><div class=\"publication-list\"><ul></ul></div></body></html>",
+ "site_id": "klri-re-kr-kor",
+ "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+ "original_method_source_sha256": {
+  "crawl": "3d74d568c40a7088f179a73cc76309056f1cefa87b18c3c98c728fb2c6cea444"
+ }
+}

@@ -390,3 +390,58 @@ class KlriReKrKorCrawler(BaseCrawler):
 
         print(f"[klri-re-kr-kor] Crawl complete. Total saved: {saved}")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html, "list")
+        if soup.find("div", class_="publication-list") is None:
+            raise PermanentFailure("listing_parse_error:missing_publication_list")
+        return [dict(it, url=_DETAIL_BASE.format(item_id=it["item_id"]))
+                for it in _parse_list_page(html)]
+
+    def _enumeration_detail(self, html, item):
+        return _parse_detail(html, item["item_id"])
+
+    def _enumeration_paper(self, item, det):
+        item_id = item["item_id"]
+        detail_url = item["url"]
+        title = item["title"] or det["title"] or f"이슈페이퍼 {item_id}"
+        date = item["date"] or det["date"] or ""
+        authors_list = (
+            [a.strip() for a in re.split(r"[,·]", item["author"])
+             if a.strip()]
+            if item["author"]
+            else det["authors"]
+        )
+        note = item["note"] or det["note"] or ""
+        file_id = item["file_id"] or det["file_id"] or ""
+
+        core = det["abstract"].strip()
+        if len(core) < _MIN_ABSTRACT_LEN:
+            return None
+
+        abstract = _build_abstract(core, note, authors_list, date)
+        pdf_url = _PDF_BASE.format(file_id=file_id) if file_id else ""
+
+        return {
+            "site_id": self.site_id,
+            "external_id": item_id,
+            "title": title,
+            "authors": json.dumps(authors_list, ensure_ascii=False),
+            "abstract": abstract,
+            "category": "이슈페이퍼",
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": date or None,
+            "url": detail_url,
+            "pdf_url": pdf_url or None,
+            "doi": None,
+            "department": "한국법제연구원",
+            "metadata": json.dumps(
+                {"series": note, "fileId": file_id},
+                ensure_ascii=False,
+            ),
+        }
