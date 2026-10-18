@@ -1,0 +1,18 @@
+{
+ "site_id": "bm-dk-soeg",
+ "listing_body": "{\"TotalResults\": 2, \"Offset\": 0, \"Documents\": [{\"Id\": 248045, \"FriendlyUri\": \"https://bm.dk/arbejdsomraader/udgivelser/rapporter-publikationer/2025/offline-one\", \"Uri\": \"https://bm.dk/arbejdsomraader/udgivelser/rapporter-publikationer/2025/offline-one\", \"LastUpdated\": \"2025-11-27T10:00:00\", \"Created\": \"2025-11-26T10:00:00\", \"DataSourceId\": 3, \"Properties\": [{\"Name\": \"_shadowTitle\", \"Value\": \"Offline &amp; one\"}, {\"Name\": \"ManualDate\", \"Value\": \"2025-11-26T12:00:00\"}, {\"Name\": \"Keywords\", \"Value\": \"pension\"}, {\"Name\": \"ContentTags\", \"Value\": \"Publikation\"}, {\"Name\": \"Section\", \"Value\": \"Arbejdsområder\"}, {\"Name\": \"Subsection\", \"Value\": null}]}, {\"Id\": 246584, \"FriendlyUri\": \"https://bm.dk/arbejdsomraader/udgivelser/rapporter-publikationer/2025/offline-two\", \"Uri\": \"https://bm.dk/arbejdsomraader/udgivelser/rapporter-publikationer/2025/offline-two\", \"LastUpdated\": \"2025-11-27T10:00:00\", \"Created\": \"2025-11-26T10:00:00\", \"DataSourceId\": 3, \"Properties\": [{\"Name\": \"_shadowTitle\", \"Value\": \"Offline two\"}, {\"Name\": \"ManualDate\", \"Value\": \"2025-11-05T12:00:00\"}, {\"Name\": \"Keywords\", \"Value\": \"pension\"}, {\"Name\": \"ContentTags\", \"Value\": \"Publikation\"}, {\"Name\": \"Section\", \"Value\": \"Arbejdsområder\"}, {\"Name\": \"Subsection\", \"Value\": null}]}]}",
+ "content_type": "application/json",
+ "details": {
+  "https://bm.dk/arbejdsomraader/udgivelser/rapporter-publikationer/2025/offline-one": "<html><head><meta name=\"publish-date\" content=\"2025-11-27T08:00:00\"></head><body><div class=\"article-lead\"><p>Synthetic Danish ministry publication résumé and Korean 자료 used only for offline equality testing of the enumeration split.</p></div><div class=\"article-rte\"><p>Short body.</p></div><a href=\"/media/a1/offline-one.pdf\">PDF</a></body></html>",
+  "https://bm.dk/arbejdsomraader/udgivelser/rapporter-publikationer/2025/offline-two": "<html><head><meta name=\"publish-date\" content=\"2025-11-13T08:00:00\"></head><body><div class=\"article-lead\"><p>Synthetic Danish ministry publication résumé and Korean 자료 used only for offline equality testing of the enumeration split.</p></div><div class=\"article-rte\"><p>Short body.</p></div><a href=\"https://bm.dk/media/b2/offline-two.pdf\">PDF</a></body></html>"
+ },
+ "long_text": "Synthetic Danish ministry publication résumé and Korean 자료 used only for offline equality testing of the enumeration split.",
+ "original_method_source_sha256": {
+  "_curl_get": "3be02ce45e4311425644fc664e6605da1a157e9c7410878b0214800527360df4",
+  "_fetch_api_page": "245839d7810169918ac5ba1b6f649f2bf8a68c38488b4fb84ed0f0b697913d45",
+  "_fetch_detail": "fe6014b6f83fba5d60f49a4965ff51c022edf6c34e8700711934a80943cc30b7",
+  "_parse_iso_date": "18ba3c4a90a5efb6671cd06887a05895b39a35d5e158c28443ef9a6b9809b54f",
+  "_filename_from_url": "8f84c373a2fb78ce98c6443914f048d83a14854ceea2e9eeb3d876c1feb6727d",
+  "crawl": "5a2e03195dc0cd1ee17aaddeff2071ee30997182b57a9e3a7c43f8196616c43e"
+ }
+}

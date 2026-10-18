@@ -197,6 +197,185 @@ class BmDkSoegCrawler(BaseCrawler):
         return name if name else None
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points; existing crawl and helpers stay unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Rows of one Ankiro search API page (no I/O). Same URL choice as crawl()."""
+        docs = data.get("Documents") if isinstance(data, dict) else None
+        if not isinstance(docs, list) or any(not isinstance(d, dict) for d in docs):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:ankiro_documents_missing", url)
+        rows = []
+        for doc in docs:
+            doc_url = (doc.get("FriendlyUri") or doc.get("Uri") or "").strip()
+            if not doc_url:
+                continue
+            props = {
+                p["Name"]: (p.get("Value") or "")
+                for p in doc.get("Properties", [])
+            }
+            rows.append({
+                "doc_id": str(doc.get("Id", "")),
+                "url": doc_url,
+                "title": (props.get("_shadowTitle") or props.get("Title") or "").strip(),
+                "listed_date": self._parse_iso_date(props.get("ManualDate", "")),
+                "doc": doc,
+            })
+        return rows
+
+    def _enumeration_detail(self, html):
+        """Pure copy of _fetch_detail's parsing after the fetch (no sleep, no network)."""
+        raw = html
+        if not raw:
+            return "", None, None
+
+        abstract = ""
+        pdf_url = None
+        published_date = None
+
+        # --- BeautifulSoup parsing (preferred) ---
+        soup = None
+        try:
+            from bs4 import BeautifulSoup
+            for parser in ("html5lib", "lxml", "html.parser"):
+                try:
+                    soup = BeautifulSoup(raw, parser)
+                    break
+                except Exception:
+                    continue
+        except Exception:
+            soup = None
+
+        if soup:
+            # Published date
+            meta_pub = soup.find("meta", {"name": "publish-date"})
+            if meta_pub:
+                published_date = (meta_pub.get("content") or "").strip()[:10]
+
+            # Abstract: article-lead (intro) + article-rte paragraphs (body)
+            parts = []
+
+            lead = soup.find(class_=re.compile(r"\barticle-lead\b"))
+            if lead:
+                txt = lead.get_text(separator=" ", strip=True)
+                txt = re.sub(r"\s+", " ", txt).strip()
+                if txt:
+                    parts.append(txt)
+
+            rte = soup.find(class_=re.compile(r"\barticle-rte\b"))
+            if rte:
+                for p in rte.find_all("p"):
+                    txt = p.get_text(separator=" ", strip=True)
+                    txt = re.sub(r"\s+", " ", txt).strip()
+                    if txt and len(txt) > 30 and txt not in parts:
+                        parts.append(txt)
+
+            abstract = "\n\n".join(parts)
+
+            # PDF link
+            for a in soup.find_all("a", href=True):
+                href = str(a["href"])
+                if href.lower().endswith(".pdf"):
+                    if not href.startswith("http"):
+                        href = self.base_url + href
+                    pdf_url = href
+                    break
+
+        # --- Regex fallback ---
+        if not abstract:
+            # Extract paragraphs from raw HTML
+            para_hits = re.findall(r"<p[^>]*>(.*?)</p>", raw, re.DOTALL | re.IGNORECASE)
+            chunks = []
+            for p in para_hits:
+                txt = re.sub(r"<[^>]+>", " ", p)
+                txt = re.sub(r"&#\d+;", lambda m: chr(int(m.group(0)[2:-1])), txt)
+                txt = re.sub(r"&[a-zA-Z]+;", " ", txt)
+                txt = re.sub(r"\s+", " ", txt).strip()
+                if len(txt) > 50:
+                    chunks.append(txt)
+            abstract = "\n\n".join(chunks)
+
+        if not pdf_url:
+            m = re.search(r'href="([^"]*\.pdf)"', raw, re.IGNORECASE)
+            if m:
+                href = m.group(1)
+                if not href.startswith("http"):
+                    href = self.base_url + href
+                pdf_url = href
+
+        if not published_date:
+            m = re.search(r'name="publish-date"[^>]+content="([^"]+)"', raw, re.IGNORECASE)
+            if not m:
+                m = re.search(r'content="([^"]+)"[^>]+name="publish-date"', raw, re.IGNORECASE)
+            if m:
+                published_date = m.group(1).strip()[:10]
+
+        return abstract, pdf_url, published_date
+
+    def _enumeration_paper(self, row, detail):
+        """Pure copy of crawl()'s doc + detail -> paper conversion (None = skipped)."""
+        doc = row["doc"]
+        doc_url = row["url"]
+        doc_id = str(doc.get("Id", ""))
+        props = {
+            p["Name"]: (p.get("Value") or "")
+            for p in doc.get("Properties", [])
+        }
+
+        title = (props.get("_shadowTitle") or props.get("Title") or "").strip()
+        if not title:
+            return None
+
+        manual_date = props.get("ManualDate", "")
+        listed_date = self._parse_iso_date(manual_date)
+        keywords = props.get("Keywords", "") or ""
+        category = props.get("ContentTags", "") or ""
+        section = props.get("Section", "") or ""
+        subsection = props.get("Subsection", "") or ""
+
+        abstract, pdf_url, published_date = detail or ("", None, None)
+
+        # Skip items with short abstracts
+        if not abstract or len(abstract) < 50:
+            return None
+
+        if not published_date:
+            published_date = listed_date
+
+        original_filename = self._filename_from_url(pdf_url)
+
+        return {
+            "site_id": self.site_id,
+            "external_id": doc_id,
+            "post_number": doc_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "url": doc_url,
+            "pdf_url": pdf_url or "",
+            "keywords": keywords,
+            "category": category,
+            "department": subsection or section,
+            "publisher": "Beskæftigelsesministeriet",
+            "authors": "",
+            "journal": "",
+            "doi": "",
+            "original_filename": original_filename,
+            "metadata": json.dumps({
+                "posted_date": manual_date,
+                "originalFilename": original_filename,
+                "section": section,
+                "subsection": subsection,
+                "lastUpdated": doc.get("LastUpdated", ""),
+                "created": doc.get("Created", ""),
+                "dataSourceId": doc.get("DataSourceId"),
+                "ankiroId": doc_id,
+            }, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 

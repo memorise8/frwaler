@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "sites": {
+    "bm-dk-soeg": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "last_page_backward",
+      "verify_ssl": true,
+      "base_url": "https://bm.dk",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "html"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ]
+      },
+      "listing": {
+        "url": "https://bm.ankiro.dk/Public/Rest/Search/bm.dk.json",
+        "params": {
+          "q": "*",
+          "ContentTags": "Publikation",
+          "sort-desc": "ManualDate",
+          "maxResults": "10",
+          "baseStr": "Ym0uZGstNjM5Mg=="
+        },
+        "page_param": "startIndex",
+        "page_mode": "offset",
+        "page_size": 10,
+        "offset_base": 1,
+        "start_page": 1,
+        "total": {
+          "type": "json",
+          "path": "TotalResults"
+        },
+        "parser": {
+          "type": "adapter",
+          "key_field": "doc_id",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "title_field": "title"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
