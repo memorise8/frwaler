@@ -1,0 +1,14 @@
+{
+ "content_type": "text/html",
+ "listing_body": "<html><body><main>\n<details><summary>2026</summary>\n <details><summary>MOROCCO - Socio-Economic Survey 2026</summary>\n  <dl><dt>Kategorie:</dt><dd>Umfrage</dd><dt>Auftragnehmer:</dt><dd>One to One for Research and Polling</dd>\n  <dt>Bedarfsträger und Auftraggeber:</dt><dd>Staatendokumentation</dd><dt>Kosten:</dt><dd>€ 13.000</dd>\n  <dt>Dokument:</dt><dd><a href=\"files/umfrage-2026/dossier-morocco-20260727.pdf\">dossier-morocco-20260727.pdf</a></dd></dl>\n </details>\n <details><summary>AFGHANISTAN - Socio-Economic Survey 2026</summary>\n  <dl><dt>Kategorie:</dt><dd>Umfrage</dd><dt>Schlagwort:</dt><dd>Sozio-ökonomische Situation</dd>\n  <dt>Dokument:</dt><dd><a href=\"files/umfrage-2026/dossier-afghanistan-20260622.pdf\">dossier-afghanistan-20260622.pdf</a></dd></dl>\n </details>\n</details>\n</main></body></html>\n",
+ "empty_body": "<html><body><main></main></body></html>",
+ "details": {},
+ "original_method_source_sha256": {
+  "_curl_get": "1cf395da2c3fb20507554554f777b9ae1897a295cc8bf717bce7e40883583b5a",
+  "_make_soup": "5fce77bb678659816865d055dbb7e9380e44a05720ae9c026cad9f82c6505924",
+  "_clean": "811a46d5beb16106eb138a8c96182aaf7f8ff43da7cc31c3b872a0ec85b7cd17",
+  "_date_from_string": "fcfa50d5731a340b0185fc705c8a63d6298d0a73efc5e30f2f08b65a3cdd6a56",
+  "_parse_block": "d69d446467f82277180e3610a3ffe755c6cda9c1b7233abaaa7a33b74e0b2fa0",
+  "crawl": "b319dff2d91a67b342e663eadcd699ffe6ae7237a393cca659957692cafc0f3a"
+ }
+}

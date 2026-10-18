@@ -315,3 +315,36 @@ class BmiGvAt114Crawler(BaseCrawler):
 
         print(f"[bmi-gv-at-114] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (ND-2); crawl() is unchanged. The listing is
+    # the one start page; rows are the papers crawl() would save, built by the
+    # same _parse_block(block, idx) over every <details> in document order
+    # (post_number/url keep crawl()'s list-position rule) with crawl()'s
+    # pdf_url-or-title duplicate skip.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:no_soup")
+        blocks = soup.find_all("details")
+        if not blocks:
+            raise PermanentFailure("listing_parse_error:no_details_blocks")
+        rows, seen_urls = [], set()
+        for idx, block in enumerate(blocks, 1):
+            try:
+                paper = self._parse_block(block, idx)
+            except Exception:
+                continue
+            if paper is None:
+                continue
+            dedup_key = paper.get("pdf_url") or paper["title"]
+            if dedup_key in seen_urls:
+                continue
+            seen_urls.add(dedup_key)
+            rows.append(paper)
+        return rows
