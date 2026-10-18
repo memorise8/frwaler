@@ -294,3 +294,76 @@ class CaitecOrgCnN6Crawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] crawl complete: saved={saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration (pure conversions for the enumeration framework)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        """Rows of one static list JSON (json/index.html, json/index_N.html) exactly as
+        crawl() reads them. A body without a ``data`` list is a listing error."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("data"), list):
+            raise PermanentFailure("listing_parse_error:data_list_missing")
+        rows = []
+        seen_urls = set()
+        for item in data["data"]:
+            if not isinstance(item, dict):
+                continue
+            alink = item.get("alink", "")
+            if not alink:
+                continue
+            detail_url = alink if alink.startswith("http") else _BASE + alink
+            if detail_url in seen_urls:
+                continue
+            seen_urls.add(detail_url)
+            m = re.search(r"/(\d+)\.html$", alink)
+            post_number = m.group(1) if m else re.sub(r"\.html$", "", alink.split("/")[-1])
+            rows.append({
+                "url": detail_url,
+                "external_id": post_number,
+                "listed_date": item.get("dtime", ""),
+                "list_title": item.get("atitle", ""),
+            })
+        return rows
+
+    def _enumeration_paper(self, detail_html, item):
+        """The paper crawl() saves for one list row and its detail page (None = skipped)."""
+        detail_url = item["url"]
+        external_id = item["external_id"]
+        listed_date = item["listed_date"]
+        list_title = item["list_title"]
+        if not detail_html:
+            print(f"[{_SITE_ID}] item {external_id}: failed to fetch detail, skipping")
+            return None
+
+        detail = _parse_detail(detail_html, detail_url, list_title=list_title)
+
+        title = detail["title"] or list_title
+        abstract = detail["abstract"]
+        published_date = detail["published_date"] or listed_date
+        publisher = detail["publisher"]
+        pdf_url = detail["pdf_url"]
+        original_filename = detail["original_filename"]
+
+        if len(abstract) < 50:
+            print(f"[{_SITE_ID}] skipping (abstract <50 chars): {title[:60]}")
+            return None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "publisher": publisher,
+            "original_filename": original_filename,
+            "category": "研究报告",
+            "metadata": json.dumps({
+                "posted_date": listed_date,
+                "originalFilename": original_filename,
+                "category": "研究报告",
+            }, ensure_ascii=False),
+        }

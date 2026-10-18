@@ -1,0 +1,14 @@
+{
+ "site_id": "caitec-org-cn-n6",
+ "listing_body": "{\"data\": [{\"atitle\": \"Synthetic report 1\", \"alink\": \"/n6/sy_xsyj_yjbg/json/9001.html\", \"img\": \"/upfiles\", \"dtime\": \"2026-06-05\"}, {\"atitle\": \"Synthetic report 2\", \"alink\": \"/n6/sy_xsyj_yjbg/json/9002.html\", \"img\": \"/upfiles\", \"dtime\": \"2026-05-25\"}], \"nextPage\": \"false\", \"curpage\": 1, \"countPage\": 1}",
+ "empty_body": "{\"data\": [], \"nextPage\": \"false\", \"curpage\": 2, \"countPage\": 1}",
+ "content_type": "text/html",
+ "long_text": "Synthetic research report body with 中文 text for offline equality testing only; it is long enough to pass the abstract thresholds of the crawler.",
+ "details": {
+  "https://www.caitec.org.cn/n6/sy_xsyj_yjbg/json/9001.html": "<html><body><h1>Synthetic report 1</h1><div style=\"font-size: 12px; color: #999\">2026-06-01 文章来源：Synthetic Institute</div><div class=\"art-bd\"><p>Synthetic research report body with 中文 text for offline equality testing only; it is long enough to pass the abstract thresholds of the crawler.</p><script>var x=1;</script><p><a href=\"/upfiles/file/2026/1/r1.pdf\">附件</a></p></div></body></html>",
+  "https://www.caitec.org.cn/n6/sy_xsyj_yjbg/json/9002.html": "<html><body><h1>Synthetic report 2</h1><div style=\"font-size: 12px; color: #999\">2026-05-02 文章来源：Synthetic Institute</div><div class=\"art-bd\"><p>Synthetic research report body with 中文 text for offline equality testing only; it is long enough to pass the abstract thresholds of the crawler.</p><script>var x=1;</script><p><a href=\"/upfiles/file/2026/2/r2.pdf\">附件</a></p></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "crawl": "136261c808933b3788f4cef78a00cecefd4bf2e9b845493be8f201c2227be053"
+ }
+}
