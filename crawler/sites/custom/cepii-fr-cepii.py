@@ -266,6 +266,92 @@ class CepiiFrCepiiCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Enumeration (pure conversions for the enumeration framework)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw_html):
+        """List entries exactly as crawl() reads them from one ``?offset=`` page.
+
+        A response without the report column (error page) is a listing parse
+        error. Past the end the site re-serves the last page (clamp).
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw_html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(raw_html)
+        if soup.find("div", class_="colonnepage530px") is None:
+            raise PermanentFailure("listing_parse_error:missing_report_column")
+        return self._parse_list_page(raw_html)
+
+    def _enumeration_paper(self, detail_raw, entry):
+        """Pure copy of crawl()'s per-entry conversion after the detail fetch (paper or None)."""
+        no_doc = entry["noDoc"]
+        detail = self._parse_detail_page(detail_raw, no_doc)
+        if not detail:
+            print(f"[{self.site_id}] item NoDoc={no_doc} failed: could not parse detail page; skipping.")
+            return None
+
+        title = detail.get("title") or entry.get("title") or ""
+        if not title:
+            print(f"[{self.site_id}] item NoDoc={no_doc} has empty title; skipping.")
+            return None
+
+        abstract = detail.get("abstract") or ""
+        if len(abstract) < self._MIN_ABSTRACT:
+            print(
+                f"[{self.site_id}] item NoDoc={no_doc} abstract too short "
+                f"({len(abstract)} chars); skipping."
+            )
+            return None
+
+        published_date, date_precision, date_period = _publication_date(detail.get("date_raw", ""))
+        listed_date = None
+
+        authors = "; ".join(detail.get("authors") or [])
+        pdf_url = detail.get("pdf_url")
+        original_filename = None
+        if pdf_url:
+            tail = pdf_url.rstrip("/").split("/")[-1].split("?")[0]
+            if "." in tail:
+                original_filename = tail
+
+        meta = {
+            "node_id": no_doc,
+            "report_number": detail.get("report_no") or "",
+            "series": "CEPII Research Report",
+            "publication_date_raw": detail.get("date_raw") or "",
+            "publication_date_precision": date_precision,
+            "publication_period": date_period,
+            "publication_date_role": "report_citation_publication",
+        }
+        if original_filename:
+            meta["originalFilename"] = original_filename
+        if detail.get("jel"):
+            meta["jel_codes"] = detail["jel"]
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": no_doc,
+            "post_number": no_doc,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "authors": authors,
+            "publisher": "CEPII",
+            "department": None,
+            "journal": None,
+            "url": entry["url"],
+            "pdf_url": pdf_url,
+            "keywords": detail.get("keywords") or "",
+            "category": detail.get("category") or "",
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(meta, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 

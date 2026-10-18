@@ -1,0 +1,24 @@
+{
+ "site_id": "cepii-fr-cepii",
+ "listing_body": "<html><body><div class='colonnepage530px'><span class='titre-actu'><a href='/CEPII/fr/publications/reports/abstract.asp?NoDoc=91' > Offline report 1</a></span><br /><span class='sstitre-actu'>CEPII Research Report, N&deg;2026-01, mars 2026</span><br /><span class='titre-actu'>no link</span><span class='titre-actu'><a href='/CEPII/fr/publications/reports/abstract.asp?NoDoc=92' > Offline report 2</a></span><br /><span class='sstitre-actu'>CEPII Research Report, N&deg;2026-02, mars 2026</span><br /></div></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.cepii.fr/CEPII/fr/publications/reports/abstract.asp?NoDoc=91": "<html><body><div class='colonnepage530px'><div class=\"titre-page\">Offline report 1 &amp; co<br/><br/>Ann Author<br/>Bo Écrivain</div><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p><p>Mots-clés</p><span class='titre-ss-rubrique'>Trade | Biodiversity</span><span class='titre-ss-rubrique'>F13, Q57</span><span class='citation'>CEPII Research Report N°2026-01, 12 mars 2026</span><a href='/PDF_PUB/rr/rr2026-01.pdf'>PDF</a></div><div class='ss_menu_droit_themes'><span class='themes'>Commerce international</span></div></body></html>",
+  "https://www.cepii.fr/CEPII/fr/publications/reports/abstract.asp?NoDoc=92": "<html><body><div class='colonnepage530px'><div class=\"titre-page\">Offline report 2 &amp; co<br/><br/>Ann Author<br/>Bo Écrivain</div><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p><p>Mots-clés</p><span class='titre-ss-rubrique'>Trade | Biodiversity</span><span class='titre-ss-rubrique'>F13, Q57</span><span class='citation'>CEPII Research Report N°2026-02, avril 2026</span><a href='/PDF_PUB/rr/rr2026-02.pdf'>PDF</a></div><div class='ss_menu_droit_themes'><span class='themes'>Commerce international</span></div></body></html>"
+ },
+ "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+ "empty_body": "<html><body><div class='colonnepage530px'></div></body></html>",
+ "original_method_source_sha256": {
+  "_curl_get": "56dd0f9b70ffa629839761e22f7fd27dc544a7ee07d0569dbd9f0333489bc57d",
+  "_parse_list_page": "284f7b361e01177d51029e35e02b51c070d7d9a808cf95b56db142ec32339255",
+  "_parse_detail_page": "468317a25905ae1cc2eb85b87abf42eb6640acbabe1c7ded4c566d4c680db394",
+  "crawl": "6144ae6fb5484b863ffc116136b8aa4fea00ba4540ec9626a1323c25c681732d"
+ },
+ "module_function_source_sha256": {
+  "_make_soup": "f078d0a1118d76da48f61aefdaf032a0955fa2c80c2e8eac23e72618a5876a03",
+  "_clean_text": "a095c142034b7c3adbb38b5adaae6bcf2e1555cc45669845db8c952e60682897",
+  "_split_by_br": "429ad32fa9cbb9b404268ddc7872457c4772857628957cac3aa3c2598e63f0e9",
+  "_publication_date": "0b56ab5ee37b338dd6d54bff9ae3b90355aa3043e887f8093fd30438576621a4",
+  "_parse_fr_date": "bb64ce4f7f700820d32e6608c0b7cddf18f71884eb254830002ef2bcdc2135cd"
+ }
+}
