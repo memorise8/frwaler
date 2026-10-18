@@ -1,0 +1,41 @@
+{
+ "site_id": "ntp-niehs-nih-gov-publications",
+ "listing_body": "<html><body><main><table id=\"datatable\"><tbody><tr><td><a href=\"/go/tr606abs\">TR-606</a></td><td><a href=\"/go/tr606\">PDF (1 MB)</a></td><td>Pinene study</td><td>2026</td><td data-title=\"Technical Reports\">TR</td></tr><tr><td><a href=\"/go/tr605abs\">TR-605</a></td><td><a href=\"/go/tr605\">PDF (1 MB)</a></td><td>Other study</td><td>2026</td><td data-title=\"Technical Reports\">TR</td></tr></tbody></table></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://ntp.niehs.nih.gov/go/tr606abs": "<html><head><meta name=\"citation_title\" content=\"Pinene study\"><meta name=\"citation_publication_date\" content=\"2026/01/15\"></head><body><main><div class=\"field--name-field-book-id\">TR-606</div><div id=\"Abstract-x\"><p>Synthetic NTP technical report abstract text for offline equality testing of the enumeration split here. Synthetic NTP technical report abstract text for offline equality testing of the enumeration split here. </p></div><a href=\"/ntp/htdocs/lt_rpts/tr606_508.pdf\">PDF</a></main></body></html>",
+  "https://ntp.niehs.nih.gov/go/tr605abs": "<html><head><meta name=\"citation_title\" content=\"Other study\"><meta name=\"citation_publication_date\" content=\"2026/01/15\"></head><body><main><div class=\"field--name-field-book-id\">TR-605</div><div id=\"Abstract-x\"><p>Synthetic NTP technical report abstract text for offline equality testing of the enumeration split here. Synthetic NTP technical report abstract text for offline equality testing of the enumeration split here. </p></div><a href=\"/ntp/htdocs/lt_rpts/tr605_508.pdf\">PDF</a></main></body></html>"
+ },
+ "long_text": "Synthetic NTP technical report abstract text for offline equality testing of the enumeration split here. Synthetic NTP technical report abstract text for offline equality testing of the enumeration split here. ",
+ "empty_body": "<html><body><main><table id=\"datatable\"><tbody></tbody></table></main></body></html>",
+ "original_method_source_sha256": {
+  "crawl": "0a01664429091da9e55bc146fe7903ce05570112135df16613974e43b51d8e65",
+  "_curl_get": "ba01b78baed8bf56652a56083503b85cfe0240bab44c971c6f58028fc70fed1e",
+  "_split_curl_output": "85123b6619d6e58dc40e5f7b608b9426f4a5eb9458562f7c54ffa99c73b16e17",
+  "_parse_html": "16738f95793fe07bb16cafdde5538448aba615d1c00adf4e14844d5e95f6db84",
+  "_clean": "c0e9f9f82dad5998602f5009c60b88ff7c318e52a8211cc52b8d3747178944fa",
+  "_one_line": "e9a7b30d474a6dee3c397bd32c1381d8758bb099f9de3e0a8e4526ed0e405dbd",
+  "_meta": "c714ebfd6deae2b04287b9030e8bfc048587b55136476dcd3933fd66f1ed9c69",
+  "_parse_date": "f924ae55862a7338fca9303ef8969291fc3cee08c8feb47b0636f545d4ae2db2",
+  "_filename_from_url": "2984d26b85ee7a5aec8550e93e4db9c0130f3f192a7c2b76d1a8d87b428cdfc7",
+  "_time_exhausted": "c63f9fffd069ca5ac8335d609cdff07dd8d4829e2eff73df83042b851654a936",
+  "_list_url": "537b80127c96069eb24a32160d46394af896da24257d84f693ca9758886dfc32",
+  "_parse_list_items": "e4e0216a3d754a2608051b48707143d6ae62b1aae3e79a2803263ac4f6c20213",
+  "_normalize_url": "ee4113c29c70acd8869fb6fd9675d190ee41c25e2b6bc4a04fdc8fdc93b158bb",
+  "_slug_from_detail_url": "22923b50a616b0a61d49f79e9da2fcb142d39c4f93f4f9814c736406c74b36c9",
+  "_post_number": "efaa32cd8a328e09ca6c3468c55a2baeaba57d153597361bcf24ab34a2f49926",
+  "_has_next_page": "6b328efcbf1981864f445c48f81811922ddb7c0030aa7123aadc820f92a26018",
+  "_build_paper": "d235cd85cdeeb5b4730901d915fd8df4bf942a0e4fe55a38b30e33bff111abeb",
+  "_collect_meta": "82901b1efdcaba1b4b82ce5b6d276d1aef8c4166850f12c1268a746345f0f604",
+  "_drupal_settings": "210d4f7fe5d97784241ee793cf34186206f20f117124e2176ef93e85f1613c1c",
+  "_node_id": "7a3564ca6b17fe36ae37f89c0600b771284334cbbf1b9c0e08e83a7a40cdbdb0",
+  "_text_first": "fab7b58cad3f019e288240135302c43e798325defa1cb00178572a956b8236b5",
+  "_publication_title": "78371c6c149f3095bf4bacdbb173a52be22f65c3efb69f8354dd4b745ea142ba",
+  "_extract_abstract": "b265f305d806f28acfe70d925efeeeeb8a2c648ff19d778f2d4bbfc1c6ca90db",
+  "_extract_authors": "3d98158bf29b82ad4d98542e026ed5d15e270efd877ce2c58ac831843f0b089a",
+  "_extract_affiliations": "eb6bf34731cca9439f11295b2cebf77bc48da49eaf09defdc8c62ad207c4dae0",
+  "_extract_pdf_url": "e3fe3dee585899bfd3cf543c2de0c5ae469f4b1be1a6b1500a158bb2f7ef6e7d",
+  "_extract_doi": "fbdeb6b9100a550389a6e77ea534a5084ccb843ba595ae3cf031a7479cc3522e",
+  "_extract_keywords": "6f7b9b6bb8209fab234f18027de9ef8201fbbb2417a65d95abe0e7c94846c020"
+ }
+}

@@ -624,3 +624,28 @@ class NtpNiehsNihGovPublicationsCrawler(BaseCrawler):
         for cas in re.findall(r"\bCAS(?:RN| No\.)?\s*([0-9-]+)", title or "", re.I):
             values.append(f"CASRN {cas}")
         return ", ".join(dict.fromkeys(v for v in values if v)) or None
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # parsing helpers stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """Rows of the report table, exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._parse_html(html, context="list page")
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:html")
+        return self._parse_list_items(soup, url or self.LIST_URL)
+
+    def _enumeration_paper(self, html, item, url):
+        """crawl()'s per-row path on the fetched abstract page (``url`` = final URL,
+        as curl -L reported it to crawl()): _build_paper + the short-abstract skip."""
+        soup = self._parse_html(html, context=f"item {item.get('post_number')}")
+        if soup is None:
+            return None
+        paper = self._build_paper(item, soup, {"body": html, "final_url": url})
+        if len(self._clean(paper.get("abstract"))) < self.MIN_ABSTRACT_CHARS:
+            return None
+        return paper
