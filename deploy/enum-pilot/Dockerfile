@@ -30,7 +30,8 @@ COPY crawler /app/crawler
 # 틀이 import 하는 delivery 쪽 최소 모듈 (grep 확인:
 #   enumeration/http.py -> delivery.health.{access_challenge,request_gate,source_observer}
 #   enumeration/{runner,parsing}.py -> delivery.scripts.discovery_structure
-#   위 모듈의 상대 import -> health/{diagnostics,results,scope_inventory})
+#   위 모듈의 상대 import -> health/{diagnostics,results,scope_inventory}
+#   PDF 본문 품질 검사 수집기(academie·kei·krivet) -> delivery.files.text_quality (표준 라이브러리만))
 COPY delivery/__init__.py /app/delivery/__init__.py
 COPY delivery/health/__init__.py \
      delivery/health/access_challenge.py \
@@ -41,6 +42,7 @@ COPY delivery/health/__init__.py \
      delivery/health/source_observer.py \
      /app/delivery/health/
 COPY delivery/scripts/discovery_structure.py /app/delivery/scripts/discovery_structure.py
+COPY delivery/files/__init__.py delivery/files/text_quality.py /app/delivery/files/
 
 RUN useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin enumpilot \
     && mkdir -p /data && chown 10001:10001 /data
