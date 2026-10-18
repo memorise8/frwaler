@@ -329,3 +329,77 @@ class BmfGvAtMinisteriumCrawler(BaseCrawler):
 
         print(f"[bmf-gv-at-ministerium] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------ #
+    # Pure enumeration contract (NR-B); crawl() and its helpers are unchanged.
+    # Listing = the one downloads page (_parse_page). Detail = the file itself;
+    # the framework runs pdftotext (ext:pdf_text) and _enumeration_paper keeps
+    # crawl()'s rules (5000/3000 chars, dateline, 100-char minimum).
+    # ------------------------------------------------------------------ #
+
+    def _enumeration_items(self, html):
+        rows, seen = [], set()
+        for item in self._parse_page(html):
+            if item["url"] in seen:
+                continue
+            seen.add(item["url"])
+            if not item["title"]:
+                continue  # crawl(): empty title, skipped
+            rows.append(dict(item))
+        return rows
+
+    def _enumeration_paper(self, item, pdf_text):
+        url = item["url"]
+        title = item["title"]
+        if not title:
+            return None
+        filename = item["filename"]
+        category = item["category"]
+        jcr_id = item["jcr_id"]
+        is_pdf = item["is_pdf"]
+        pdf_url = url if is_pdf else None
+        abstract = ""
+        published_date = None
+        date_evidence = _publication_date_evidence("")
+        if is_pdf:
+            raw_text = (pdf_text or "").strip()
+            if raw_text:
+                abstract = re.sub(r"\s+", " ", raw_text[:5000]).strip()
+                if len(abstract) > 3000:
+                    abstract = abstract[:3000]
+                date_evidence = _publication_date_evidence(raw_text)
+                published_date = date_evidence["value"]
+        else:
+            abstract = (
+                f"[{category}] {title}. "
+                f"Datei: {filename}. "
+                f"Herausgegeben vom {_PUBLISHER}."
+            )
+            published_date = _extract_date("", filename)
+        if len(abstract) < 100:
+            return None
+        external_id = jcr_id or filename
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "url": _START_URL,
+            "pdf_url": pdf_url,
+            "publisher": _PUBLISHER,
+            "authors": None,
+            "department": None,
+            "category": category,
+            "keywords": None,
+            "doi": None,
+            "original_filename": filename,
+            "metadata": json.dumps({
+                "jcr_id": jcr_id,
+                "originalFilename": filename,
+                "category": category,
+                "is_pdf": is_pdf,
+                "href": item["href"],
+                "publication_date_evidence": date_evidence,
+            }, ensure_ascii=False),
+        }

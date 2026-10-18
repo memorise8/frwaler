@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "sites": {
+    "bmf-gv-at-ministerium": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "base_url": "https://www.bmf.gv.at",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": ["html"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["item", "pdf_text"],
+        "pdf_text": {"args": [], "timeout_s": 30, "min_bytes": 201}
+      },
+      "listing": {
+        "url": "https://www.bmf.gv.at/ministerium/nationale-finanzbildungsstrategie/uebersicht-nationale-finanzbildungsstrategie/downloads.html",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {"type": "adapter", "key_field": "url", "url_field": "url", "title_field": "title",
+                   "listing_marker": "main"}
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}
