@@ -481,3 +481,26 @@ X1 다음으로 구역 세션들이 모은 요구. 원칙은 X1 과 같다: 새 
 | `ext:detail_aux_request` | `adapter.second_step: {"use": "detail_page", "url_template": "https://host/api?pageId={item:page_id}"}` (selector 대신) | 상세 쪽 링크 대신 항목의 목록 필드로 만든 주소를 한 번 더 요청. first_* 와 같이 쓰면 두 응답을 모두 사용 | 값은 URL 인코딩, `.`·`..`·빈 값·객체는 링크 없음(→ `required` 규칙). 호스트는 리터럴이고 상세 호스트 또는 `allow_hosts` 만 |
 
 남긴 요구(개발 필요·협의): 다른 호스트 행만 있는 쪽·끝 뒤 홈페이지 리다이렉트(neac), 계정이 필요한 조건부 상세(github)·Basic auth(vlaanderen), 구간별로 다른 동적 값(em-dk 월 쪽), POST 로 받는 PDF(kepco), 3단계 상세(ehesp), 상세 1쪽→여러 문서(dhs-congressional-approp, cnl).
+
+## 20. 틀 확장 (X3, 2026-10-18)
+
+X2 적용 중 나온 요구. 원칙은 같다(게이트 그대로, 새 키 없는 plan 불변, 식별값 규칙 불변). 테스트: `tests/test_enumeration_extensions_x3.py`.
+
+| 표기 | plan 키 | 동작 | 막는 것 |
+|---|---|---|---|
+| `ext:blank_body_end` | `listing.end_on_blank_body: true` | 200 + 공백 본문을 목록 끝으로 | 선언 없으면 공백 본문은 파싱 오류(끝 아님) |
+| `ext:second_step_link_params` | `adapter.second_step.add_params: {"_embed": "1"}` | 찾은 2단계 링크에 고정 매개변수를 더함(수집기가 붙이던 것) | 이름은 리터럴, 값은 문자열. 링크에 같은 이름이 이미 있거나 `#` 경로면 링크 없음(덮어쓰지 않음). 호스트 검사는 그대로 |
+| `ext:second_step_link_rewrite` | `adapter.second_step.rewrite: {"regex": "/record/(\\d+)$", "template": "https://host/record/{1}?of=xm"}` | 찾은 링크를 정규식 그룹으로 새 주소(예 MARCXML 내보내기)로 바꿈 | template 은 절대 주소·`{1}`..`{n}` 만, 쓰는 그룹 값은 한 번만 URL 인코딩(이미 인코딩된 값은 풀고 다시)·`.`/`..` 거절, 맞지 않으면 링크 없음. https 상세에서 http 주소로는 안 바꿈. 바꾼 주소도 상세 호스트 또는 allow_hosts 만 |
+| `ext:list_page_arg` (`list_position`) | 인자 `list_position` (detail/paper) | `{page: 보낸 쪽 값, n: 쪽 번호, position: 그 쪽 안 순번(1부터, 응답 순서)}`. 항목 장부에 같이 저장돼 다시 시도 때도 같음 | 목록 메서드에는 못 씀. 식별값 점검 표본은 None(그래서 이 인자를 쓰는 계약은 "목록 값에 기댐"으로 봄). 한계: 커서·next_link 에서는 page 도 쪽 번호 n, position 은 파서가 남긴 항목 기준, 다시 시도한 항목은 처음 저장한 위치 |
+| `ext:multi_level_discover` | `segments.follow: {"selector": "a.journal, a.year", "attr": "href", "max_depth": 2, "max_pages": 100}` (discover 와 함께) | 허브 → 같은 호스트의 하위 허브를 너비 우선으로 따라가며 구간 링크를 찾음. 구간에 `path`(따라간 링크 글자들) 저장 → `segment` 인자로 전달 | 깊이 1..5, 쪽 1..1000, 허브 호스트만·https 허브에서 http 링크 안 따라감·같은 주소(조각·스킴 무시) 한 번만. 하위 허브 404/410 은 건너뛰고 찾은 구간은 읽되 `complete_unverified: sub_hub_failed:<상태>`. 쪽 상한·깊이 상한에 닿으면 마찬가지로 `hub_pages_cap`·`hub_depth_limit`(완료 아님). 허브 자체 실패는 실행 실패 |
+| `ext:identity_post_number_multi_url` | `adapter.allow_shared_post_number: true` (crawler 어댑터) | 등록 수집기가 post_number 하나에 여러 행(언어별 PDF 등, meta_url 다름)을 저장하던 규칙을 그대로: IdentityCollision 으로 거절하지 않음(정확 일치 dedup 은 그대로) | 구매자 중복 검사(site_id·post_number 묶음)에는 걸리므로 결과는 `complete_with_review: shared_post_number_rows:N`(N = 그 사이트 전체 공유 행, 이번 실행분만이 아님; 다른 완료 상태면 경고로). 가져오기(import_enum_pilot.py)는 `SHARED_POST_NUMBER` 목록 사이트만: 가장 최근 폴더에 없는 옛 주소는 빼고, 대상에 같은 번호의 다른 주소가 있으면 넣지 않고 `shared_post_new` 로 검토 |
+| `ext:pdf_text` 재시도 | `adapter.pdf_text.retry_args: ["-raw"]` | 첫 옵션 결과가 비면 두 번째 옵션으로 다시(수집기의 "-layout 안 되면 -raw") | 같은 허용 옵션 목록. 최악 시간은 timeout_s × 2 |
+| `ext:response_size` | `max_response_bytes: 83886080` (사이트) | 목록·상세 응답 크기 상한을 올림(누적 "더 보기" 응답 등) | 기본 상한(50 MiB) ~ `file_max_bytes` (올리기만, 모든 전략에서 검사) |
+| `ext:none_is_rule_skip` | `adapter.none_is_rule_skip: true` | 메서드가 None 을 돌려주면 수집기 규칙에 따른 건너뛰기(예 초록 50자 미만): `failed_permanent: skipped_by_rule` 로 기록·건수 보고, 계약 실패·검토로 세지 않음 | 메서드가 실제로 None 을 돌려준 경우만(dict 아닌 값·빈 dict·제목 없음은 그대로 실패). 건너뛴 몫이 `adapter.max_rule_skip_ratio`(기본 0.2)를 넘으면 `complete_with_review: skipped_by_rule:N`, 저장 없이 연속 `max_consecutive_rule_skips`(기본 20)번이면 `config_error`(고장 난 파서). 건수는 늘 경고로 표시. 선언 없으면 계약 사이트는 계약 실패로 셈 |
+
+X3 후속(2026-10-18):
+
+| 표기 | plan 키 | 동작 | 막는 것 |
+|---|---|---|---|
+| `ext:detail_missing_as_no_text` | `adapter.pdf_text.missing_statuses: [404]` (404·410 만) | pdf_text 가 읽는 요청(2단계가 있으면 2단계, 없으면 상세)이 그 상태면 항목 실패 대신 `pdf_text = None` 으로 메서드 호출 → 수집기의 대체 규칙(예 목록 설명을 초록으로) 그대로. 건수는 경고 `pdf_missing_as_no_text:N` | 그 요청만(1단계 상세 404 는 여전히 실패), 선언한 상태만 |
+| `ext:discover_segment_url` | `segments.link_as_url: true` (discover) | 찾은 구간 링크 자체를 그 구간의 목록 주소로(쪽은 page_param) | listing.url 에 `{page}`·`{segment}` 없음, 허브가 목록 호스트, 다른 호스트·https→http 링크는 구간으로 안 씀 |
