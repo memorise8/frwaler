@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "sites": {
+    "ens-lyon-fr-lecole": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.ens-lyon.fr",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.ens-lyon.fr/lecole/medias-et-presse/communiques-de-presse",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "key_field": "node_id",
+          "url_field": "url",
+          "title_field": "title",
+          "listing_marker": ".view-id-communiques_de_presse"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

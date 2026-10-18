@@ -1,0 +1,22 @@
+{
+ "site_id": "ens-lyon-fr-lecole",
+ "listing_body": "<html><body><main><div class=\"views-element-container\"><div class=\"view view-id-communiques_de_presse view-display-id-page_1\"><div class=\"view-content\"><article data-history-node-id=\"1633732\"><a href=\"/lecole/actualite/communique-mobilisation-lyceenne?ctx=contexte\">Communiqué 1633732</a></article><article data-history-node-id=\"1581627\"><a href=\"/lecole/actualite/stage-initiation-recherche?ctx=contexte\">Communiqué 1581627</a></article></div></div></div></main></body></html>",
+ "content_type": "text/html; charset=UTF-8",
+ "details": {
+  "https://www.ens-lyon.fr/lecole/actualite/communique-mobilisation-lyceenne": "<html><body><main><article data-history-node-id=\"1633732\"><h1>Communiqué : À propos de la mobilisation lycéenne</h1>\n<div class=\"field--name-field-article-date\">Date de publication12/10/2026</div>\n<div class=\"field--name-field-article-type\">Communiqué de presse</div>\n<div class=\"field--name-field-article-resume\"><p>L'École normale supérieure de Lyon a pris connaissance de la mobilisation lycéenne et rappelle son attachement au dialogue avec l'ensemble des élèves et des personnels de l'établissement.</p></div></article></main></body></html>",
+  "https://www.ens-lyon.fr/lecole/actualite/stage-initiation-recherche": "<html><body><main><article data-history-node-id=\"1581627\"><h1>Stage d'initiation à la recherche en mathématiques</h1>\n<div class=\"field--name-field-article-date\">Date de publication02/07/2026</div>\n<div class=\"field--name-field-article-type\">Communiqué de presse</div>\n<div class=\"field--name-field-article-resume\"><p>L'École normale supérieure de Lyon a pris connaissance de la mobilisation lycéenne et rappelle son attachement au dialogue avec l'ensemble des élèves et des personnels de l'établissement.</p></div></article></main></body></html>"
+ },
+ "long_text": "L'École normale supérieure de Lyon a pris connaissance de la mobilisation lycéenne et rappelle son attachement au dialogue avec l'ensemble des élèves et des personnels de l'établissement.",
+ "original_method_source_sha256": {
+  "__init__": "86b07d464f37e29597cb35f777a884f91e90c347c1dd28bcfaa42a3652409fb8",
+  "crawl": "36983d4b75c6a3ba7c5a15fca27c6f3631a46632916ebe0760df5e911bcdb127",
+  "_crawl_listing": "8438b64b8b5688a917b65d4f8d40dbecdf64ed5ec414a0406b3bcc66efd50656",
+  "_process_article": "ac110759f15a9fe79997e577e66d147009c377c4d9706ff0ca01ec4c107bd79e",
+  "_parse_article": "d55d29ec03b55d95d212d9256a5c46c3cb89f1b0d2c5bf8861ddf649a8f85ec5",
+  "_pdf_candidates": "04a0469528980e4c9a0fbe3a108645566b0813b6588cc11fcf0a594ff9c3bdf0",
+  "_curl_get": "a3cd4485e94b2e316acdf79c9a7c6628efe08b8c9cf6a0ababb644d96fa15bcc",
+  "_make_soup": "f9a52dc943e5131ca2566f29fc66b128786f39ddacb8dce175c43e601e116722",
+  "_node_text": "ac0eea16ab0057974721fc9624e5df18efbe2d5df12d0ec71df87b974c5336a0",
+  "_parse_date_dmy": "d6943b151cbd866f081707cc658dcc675ddd0f6f7c80fa52129ee5d174d2b4db"
+ }
+}

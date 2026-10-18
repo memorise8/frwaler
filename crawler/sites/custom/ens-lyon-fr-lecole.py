@@ -406,3 +406,45 @@ class EnsLyonFrLecoleCrawler(EnsLyonTraversal, BaseCrawler):
             d, mo, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
             return f"{y:04d}-{mo:02d}-{d:02d}"
         return ""
+
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Cards of one ?page=N listing page, keyed and URL-normalised like _crawl_listing()."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        if access_challenge(html):
+            raise PermanentFailure("listing_parse_error:access_challenge")
+        soup = self._make_soup(html, context="enumeration listing")
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparsable_html")
+        rows = []
+        for article in soup.select("article[data-history-node-id]"):
+            node_id = article.get("data-history-node-id", "").strip()
+            link_el = article.select_one("a[href]")
+            if not link_el:
+                continue
+            href = (link_el.get("href") or "").strip()
+            parsed = urlparse(urljoin(self.base_url, href))
+            detail_url = urlunparse(parsed._replace(query="", fragment=""))
+            rows.append({"node_id": node_id, "url": detail_url})
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Paper dict exactly as _crawl_listing() saves it (None = verified short-body exclusion).
+
+        Pages crawl() rejects as failures (challenge, foreign node, no title) raise
+        instead of being skipped silently.
+        """
+        if getattr(self, "_source_failure", None) is None:
+            self._source_failure = None
+        before = self._source_failure
+        paper = self._parse_article(item["node_id"], item["url"], html)
+        if paper is None and self._ens_last_exclusion is None:
+            failure = self._source_failure
+            self._source_failure = before
+            raise ValueError(f"item_failed:{failure or 'unparsed'}")
+        return paper
