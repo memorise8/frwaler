@@ -11,6 +11,8 @@ call (keep-alive reuse via send/recv), native code that opens sockets itself
 (libcurl other than the curl_cffi.requests calls wrapped below, playwright drivers already running), threads that existed
 before the guarded block (e.g. pre-created executor workers), and code paths
 run outside ``guarded()`` such as crawler constructors and ``_save_paper``.
+A crawler method that catches ``Exception`` itself (stealth_fetcher's own fallbacks) can
+swallow the stop; the denied call still sends nothing.
 """
 from __future__ import annotations
 
@@ -87,6 +89,7 @@ def _install():
         # crawler.stealth_fetcher poses as a browser: both stop in a guarded block.
         _deny_in_guard("curl_cffi.requests", ("request", "get", "post"), "curl_cffi")
         _deny_in_guard("curl_cffi.requests", ("Session.request", "AsyncSession.request"), "curl_cffi")
+        _deny_in_guard("curl_cffi.curl", ("Curl.perform",), "curl_cffi")  # every sync transfer ends here
         _deny_in_guard("crawler.stealth_fetcher", ("StealthSession.fetch_html",), "stealth_fetcher")
 
         socket.socket.connect = connect
