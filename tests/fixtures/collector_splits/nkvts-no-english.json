@@ -1,0 +1,15 @@
+{
+ "content_type": "application/json",
+ "listing_body": "{\"hits\": [{\"objectID\": \"8788-0\", \"post_id\": 8788, \"post_type\": \"academic-article\", \"post_title\": \"Synthetic  article one\", \"post_date\": \"2026-09-30 10:00:00\", \"published_year\": 2026, \"permalink\": \"https://www.nkvts.no/english/academic-article/synthetic-article-one/\", \"content\": \"short\"}, {\"objectID\": \"8788-1\", \"post_id\": 8788, \"post_type\": \"academic-article\", \"post_title\": \"Synthetic article one\", \"post_date\": \"2026-09-30 10:00:00\", \"published_year\": 2026, \"permalink\": \"https://www.nkvts.no/english/academic-article/synthetic-article-one/\", \"content\": \"split record\"}, {\"objectID\": \"8789-0\", \"post_id\": 8789, \"post_type\": \"academic-article\", \"post_title\": \"Synthetic article two\", \"post_date\": \"\", \"published_year\": 2025, \"permalink\": \"https://www.nkvts.no/english/academic-article/synthetic-article-two/\", \"content\": \"Abstract This synthetic Algolia content field is the fallback abstract of the second fixture record, used when the detail page has no entry-content column.\"}], \"nbHits\": 3, \"page\": 0, \"nbPages\": 1, \"hitsPerPage\": 50}",
+ "details": {
+  "https://www.nkvts.no/english/academic-article/synthetic-article-one/": "<html><body><h1 class=\"wp-block-post-title\">Synthetic article one</h1><div class=\"entry-header\"><p>Andersen, A. J., &amp; Nielsen, S. B. (2026). Synthetic article one. <i>Journal of Tests</i>. <a href=\"https://doi.org/10.1234/test.5678\">https://doi.org/10.1234/test.5678</a></p></div><div class=\"entry-content-col\"><p>Abstract Background: This synthetic abstract stands in for the article text of the first fixture record and is long enough for the entry-content column rule of the crawler.</p></div></body></html>",
+  "https://www.nkvts.no/english/academic-article/synthetic-article-two/": "<html><body><h1 class=\"wp-block-post-title\">Synthetic article two</h1><div class=\"entry-header\"><p>Bukten, A. (2025). Synthetic article two.</p></div><div class=\"entry-researchers-col\"><h3>Anne Bukten</h3></div></body></html>"
+ },
+ "long_text": "Abstract This synthetic Algolia content field is the fallback abstract of the second fixture record, used when the detail page has no entry-content column.",
+ "original_method_source_sha256": {
+  "_algolia_page": "eb423f3ed8a02131de89ea4aa24c7b870ab53aee8575d36f89ac2d8bb0c65305",
+  "_fetch_html": "d77c59f1d653176237e3d83a48680f98b559b24cd77976f462582c5f565e9d8a",
+  "_parse_detail": "9627702118f0e873dab0746f60618277edd7189100bf55ffc940e85b925cbce3",
+  "crawl": "4e2074abe0165ca19624ff0c051cbc9ebccbcb82c5dc2711fd9af623c3de2bd7"
+ }
+}

@@ -279,6 +279,210 @@ class NKVTSEnglishCrawler(BaseCrawler):
         return result
 
     # ------------------------------------------------------------------
+    # Enumeration split (no I/O): same rows and Paper as crawl()
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Rows of one decoded Algolia answer, with crawl()'s per-hit fields and skips
+        (no post_id / no permalink / repeated post_id or permalink on the page).
+        No fetching, storage or new identifiers."""
+        if not isinstance(data, dict) or not isinstance(data.get("hits"), list) \
+                or any(not isinstance(hit, dict) for hit in data["hits"]):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:hits_not_a_list_of_objects", url)
+        rows = []
+        seen_urls: set = set()
+        seen_post_ids: set = set()
+        for hit in data["hits"]:
+            post_id = hit.get("post_id")
+            if not post_id:
+                continue
+
+            # Deduplicate: Algolia may split long posts into multiple records
+            if post_id in seen_post_ids:
+                continue
+            seen_post_ids.add(post_id)
+
+            permalink = (hit.get("permalink") or "").strip()
+            if not permalink:
+                continue
+
+            if permalink in seen_urls:
+                continue
+            seen_urls.add(permalink)
+
+            post_title = hit.get("post_title", "")
+            post_date_raw = hit.get("post_date", "") or ""
+            published_year = hit.get("published_year")
+            algolia_content = hit.get("content", "") or ""
+
+            # Published date from Algolia post_date "YYYY-MM-DD HH:MM:SS"
+            published_date = ""
+            m = re.match(r"(\d{4}-\d{2}-\d{2})", post_date_raw)
+            if m:
+                published_date = m.group(1)
+            elif published_year:
+                published_date = f"{published_year}-01-01"
+
+            rows.append({
+                "post_id": post_id,
+                "external_id": str(post_id),
+                "url": permalink,
+                "post_title": post_title,
+                "title": _clean(post_title),
+                "published_date": published_date,
+                "published_year": published_year,
+                "algolia_content": algolia_content,
+                "post_type": hit.get("post_type", ""),
+            })
+        return rows
+
+    def _parse_detail_html(self, html: str, algolia_content: str = "") -> dict:
+        """_parse_detail after its fetch, for an already fetched page (pure copy)."""
+        result = {
+            "title": "",
+            "abstract": "",
+            "authors": "",
+            "journal": "",
+            "doi": "",
+            "category": "",
+            "citation": "",
+        }
+
+        if not html:
+            clean_ac = re.sub(r"^Abstract\s*", "", algolia_content or "").strip()
+            result["abstract"] = clean_ac
+            return result
+
+        try:
+            soup = _make_soup(html)
+        except Exception as exc:
+            print(f"[{self.site_id}] soup error: {exc}")
+            soup = None
+
+        if soup is None:
+            result["abstract"] = re.sub(r"^Abstract\s*", "", algolia_content or "").strip()
+            return result
+
+        # ---- Title ----
+        h1 = soup.find("h1", class_="wp-block-post-title")
+        if h1:
+            result["title"] = _clean(h1.get_text())
+
+        # ---- Category ----
+        htype = soup.find(class_="entry-header-type")
+        if htype:
+            a = htype.find("a")
+            if a:
+                result["category"] = _clean(a.get_text())
+
+        # ---- Citation paragraph (authors / journal / DOI) ----
+        entry_header = soup.find(class_="entry-header")
+        citation_p = entry_header.find("p") if entry_header else None
+
+        if citation_p:
+            citation_text = _clean(citation_p.get_text(" "))
+            result["citation"] = citation_text
+
+            # DOI from anchor href first (most reliable)
+            doi_anchor = citation_p.find(
+                "a", href=lambda h: h and "doi.org" in h
+            )
+            if doi_anchor:
+                doi_href = doi_anchor.get("href", "")
+                m = re.search(r"10\.\d{4,}/\S+", doi_href)
+                if m:
+                    result["doi"] = m.group(0).rstrip(".,;)")
+            if not result["doi"]:
+                m = re.search(r"10\.\d{4,}/[^\s\"'<>]+", citation_text)
+                if m:
+                    result["doi"] = m.group(0).rstrip(".,;)")
+
+            # Journal from <i> tag
+            i_tag = citation_p.find("i")
+            if i_tag:
+                result["journal"] = _clean(i_tag.get_text())
+
+            # Authors: everything before the first "(YYYY)", parsed into "; " format
+            year_m = re.search(r"\(\d{4}\)", citation_text)
+            if year_m:
+                raw = citation_text[: year_m.start()].strip().rstrip(",").strip()
+                result["authors"] = _parse_authors(raw)
+
+        # ---- Abstract: entry-content-col (preferred) ----
+        content_col = soup.find(class_="entry-content-col")
+        if content_col:
+            text = _clean(content_col.get_text(" "))
+            text = re.sub(r"^Abstract\s*", "", text).strip()
+            if len(text) >= 100:
+                result["abstract"] = text
+
+        # ---- Fallback: Algolia content field ----
+        if len(result["abstract"]) < 100 and algolia_content:
+            cleaned = re.sub(r"^Abstract\s*", "", algolia_content).strip()
+            if len(cleaned) >= 100:
+                result["abstract"] = cleaned
+
+        # ---- Last resort: full citation text as abstract ----
+        if len(result["abstract"]) < 100:
+            cit = result["citation"]
+            if len(cit) >= 100:
+                result["abstract"] = cit
+
+        # ---- Authors fallback: researcher list ----
+        if not result["authors"]:
+            researchers = soup.find(class_="entry-researchers-col")
+            if researchers:
+                names = [
+                    _clean(h3.get_text()) for h3 in researchers.find_all("h3")
+                ]
+                result["authors"] = "; ".join(names)
+
+        return result
+
+    def _enumeration_detail(self, html, row):
+        """crawl()'s Paper for one row from the fetched detail HTML (None = crawl() skip)."""
+        detail = self._parse_detail_html(html, row["algolia_content"])
+        post_id = row["post_id"]
+        published_date = row["published_date"]
+
+        title = detail["title"] or _clean(row["post_title"])
+        abstract = detail["abstract"]
+
+        # Skip items whose abstract is too short
+        if len(abstract) < 50:
+            return None
+
+        meta = {
+            "posted_date": published_date,
+            "post_id": post_id,
+            "published_year": row["published_year"],
+            "citation": detail["citation"],
+            "post_type": row["post_type"],
+        }
+        if detail["doi"]:
+            meta["doi"] = detail["doi"]
+
+        return {
+            "site_id": self.site_id,
+            "external_id": str(post_id),
+            "url": row["url"],
+            "title": title,
+            "abstract": abstract,
+            "authors": detail["authors"] or None,
+            "publisher": "NKVTS",
+            "journal": detail["journal"] or None,
+            "pdf_url": None,
+            "doi": detail["doi"] or None,
+            "category": detail["category"] or None,
+            "published_date": published_date or None,
+            "posted_date": published_date or None,
+            "keywords": None,
+            "original_filename": None,
+            "metadata": json.dumps(meta, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
