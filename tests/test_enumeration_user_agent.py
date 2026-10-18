@@ -65,6 +65,23 @@ class UserAgentTest(unittest.TestCase):
             fetcher.post("https://board.test/b", {"q": "1"}, headers={"User-agent": "Chrome/131"})
         self.assertEqual([[DEFAULT_USER_AGENT]] * len(transport.calls), agents(transport))
 
+    def test_redirect_hops_and_robots_carry_our_user_agent(self):
+        def handle(url):
+            if url.endswith("/robots.txt"):
+                return ROBOTS_OK
+            if url.endswith("/old"):
+                return Response(302, {"Location": "https://board.test/new"}, "")
+            return Response(200, {}, "ok")
+        plan = self.env.plan(site())
+        transport = Recording(handle)
+        with tempfile.TemporaryDirectory() as tmp:
+            fetcher = make_fetcher(plan, tmp, transport)
+            fetcher.sleep = lambda s: None
+            fetcher.get("https://board.test/old")
+        urls = [u for u, _ in transport.calls]
+        self.assertEqual(["https://board.test/robots.txt", "https://board.test/old", "https://board.test/new"], urls)
+        self.assertEqual([[DEFAULT_USER_AGENT]] * 3, agents(transport))
+
     def test_stealth_fetch_stops_inside_adapter(self):
         from crawler.stealth_fetcher import StealthSession
 
@@ -86,6 +103,9 @@ class UserAgentTest(unittest.TestCase):
                 curl_requests.get("https://board.test/x")
             with self.assertRaises(AdapterUngatedNetwork):
                 curl_requests.Session().request("GET", "https://board.test/x")
+            from curl_cffi import Curl
+            with self.assertRaises(AdapterUngatedNetwork):
+                Curl().perform()
 
 
 class WireTest(unittest.TestCase):
