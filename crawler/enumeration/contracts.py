@@ -142,7 +142,9 @@ def uses_item(cfg):
         if not cfg.get(stage + "_method"):
             continue
         bindings = cfg.get(stage + "_args", default_args(stage)) + list(cfg.get(stage + "_kwargs", {}).values())
-        if any(b == "item" or (isinstance(b, dict) and b.get("source") == "item") for b in bindings):
+        # segment/list_position come from the run, like listing fields: a URL-only sample lacks them.
+        if any(b in ("item", "segment", "list_position") or (isinstance(b, dict) and b.get("source") == "item")
+               for b in bindings):
             return True
     return False
 
