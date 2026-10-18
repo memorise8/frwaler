@@ -1,0 +1,77 @@
+{
+ "site_id": "education-govt-nz-our-work",
+ "listing": {
+  "hits": [
+   {
+    "objectID": "entity:node/9001:en",
+    "url": "/our-work/publications/education-circulars/synthetic-circular-one",
+    "title": "Synthetic circular one",
+    "created": 1924992000000,
+    "changed": 1925078400000,
+    "tags": [
+     "Synthetic",
+     "Circular"
+    ],
+    "content": "Short synthetic summary.",
+    "school_types": [
+     "Primary"
+    ],
+    "year_levels": [
+     "1"
+    ],
+    "te_reo_title": "",
+    "breadcrumbs": [
+     "Our work",
+     "Publications"
+    ],
+    "result_type": "Guidance"
+   },
+   {
+    "objectID": "entity:node/9002:en",
+    "url": "/our-work/publications/education-circulars/synthetic-circular-two",
+    "title": "Synthetic circular two",
+    "created": null,
+    "changed": 1925164800000,
+    "tags": "Synthetic tag",
+    "content": "A synthetic summary that is comfortably longer than the fifty character threshold.",
+    "result_type": "Information"
+   },
+   {
+    "objectID": "entity:node/9003:en",
+    "url": "/our-work/publications/education-circulars/synthetic-circular-three",
+    "title": "Synthetic circular three",
+    "created": 1925251200000,
+    "content": "Too short."
+   },
+   {
+    "objectID": "entity:node/9004:en",
+    "url": "/our-work/publications/education-circulars/synthetic-untitled",
+    "title": "   ",
+    "created": 1925251200000
+   }
+  ],
+  "nbHits": 4,
+  "page": 0,
+  "nbPages": 1,
+  "hitsPerPage": 20
+ },
+ "end": {
+  "hits": [],
+  "nbHits": 4,
+  "page": 1,
+  "nbPages": 1,
+  "hitsPerPage": 20
+ },
+ "details": {
+  "https://www.education.govt.nz/our-work/publications/education-circulars/synthetic-circular-one": "<!DOCTYPE html><html><head><title>Synthetic</title></head><body><main></main><script>self.__next_f.push([1,\"5:T8f,<h2>Synthetic heading</h2><p>Synthetic circular body paragraph used only by the regression test, long enough to win over the index summary.</p>\"])</script></body></html>",
+  "https://www.education.govt.nz/our-work/publications/education-circulars/synthetic-circular-two": "<!DOCTYPE html><html><head><title>Synthetic</title></head><body><main></main><script>self.__next_f.push([1,\"5:Tb,<p>tiny</p>\"])</script></body></html>",
+  "https://www.education.govt.nz/our-work/publications/education-circulars/synthetic-circular-three": "<html><body></body></html>",
+  "https://www.education.govt.nz/our-work/publications/education-circulars/synthetic-untitled": "<!DOCTYPE html><html><head><title>Synthetic</title></head><body><main></main><script>self.__next_f.push([1,\"5:T51,<p>Synthetic body of an untitled entry that crawl() skips before any request.</p>\"])</script></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_curl_get": "a8392d13c8d7216874673843b3f5f47753248c4205116d93b340d97615f0f9fd",
+  "_algolia_query": "54a358f487f6d9cd113e0072c33a7439e5c5ae1212fe97667fc41d1833e374b2",
+  "_extract_abstract": "a32d06351ea1666de6ccc17bb5266202bdd1f2e1e3ef95a62775ca5c122f0a79",
+  "crawl": "65992193630197730fc2bf33bce8f2ce791a461f1a3c5f8d50712df2683258df"
+ }
+}

@@ -306,3 +306,113 @@ class EducationGovtNzOurWorkCrawler(BaseCrawler):
             page += 1
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched data.
+    # The listing is the same Algolia index/filter/page size as crawl(),
+    # read from the single-index endpoint (/1/indexes/<index>/query), whose
+    # answer is crawl()'s results[0] at the top level.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Hits of one Algolia answer ({"hits": [...]}), in crawl() order.
+        A page past the end answers an empty "hits" list (explicit end); an
+        error object or another shape is a listing parse error (never an end).
+        A hit without url has no identity and no detail page (crawl() skips it)
+        and is left out; a hit without title stays listed so the run accounts
+        for it, and _enumeration_paper skips it as crawl() does."""
+        from crawler.enumeration.http import PermanentFailure
+        hits = data.get("hits") if isinstance(data, dict) else None
+        if not isinstance(hits, list) or not all(isinstance(h, dict) for h in hits):
+            raise PermanentFailure("listing_parse_error:invalid_response", url)
+        rows = []
+        seen_urls = set()
+        for hit in hits:
+            url_path = hit.get("url", "")
+            if not url_path:
+                continue
+            full_url = f"{self.base_url}{url_path}"
+            if full_url in seen_urls:
+                continue
+            seen_urls.add(full_url)
+            title = (hit.get("title") or "").strip()
+            obj_id = hit.get("objectID") or hit.get("search_api_id") or ""
+            m = re.search(r"node/(\d+)", obj_id)
+            node_id = m.group(1) if m else obj_id
+            rows.append({"url": full_url, "post_number": node_id, "title": title, "hit": hit})
+        return rows
+
+    def _enumeration_paper(self, html, row):
+        """Paper from one listing hit plus its detail page HTML: crawl()'s
+        conversion, copied verbatim (external_id = post_number = Drupal node
+        id from objectID). None when crawl() would skip it (no title, short
+        abstract)."""
+        hit = row["hit"]
+        full_url = row["url"]
+        title = (hit.get("title") or "").strip()
+        if not title:
+            return None
+
+        obj_id = hit.get("objectID") or hit.get("search_api_id") or ""
+        m = re.search(r"node/(\d+)", obj_id)
+        node_id = m.group(1) if m else obj_id
+
+        created_ms = hit.get("created") or hit.get("changed")
+        if created_ms:
+            try:
+                published_date = datetime.fromtimestamp(
+                    int(created_ms) / 1000, tz=timezone.utc
+                ).strftime("%Y-%m-%d")
+            except Exception:
+                published_date = None
+        else:
+            published_date = None
+
+        tags_raw = hit.get("tags", "")
+        if isinstance(tags_raw, list):
+            keywords = ", ".join(tags_raw)
+        else:
+            keywords = str(tags_raw) if tags_raw else ""
+
+        algolia_abstract = (hit.get("content") or "").strip()
+        abstract = algolia_abstract
+        if html:
+            try:
+                full_text = self._extract_abstract(html)
+                if len(full_text) > len(abstract):
+                    abstract = full_text
+            except Exception as exc:
+                print(f"[{self.site_id}] detail parse failed for {full_url}: {exc}")
+
+        if len(abstract) < 50:
+            print(f"[{self.site_id}] skip (short abstract {len(abstract)} chars): {title}")
+            return None
+
+        metadata = {
+            "node_id": node_id,
+            "objectID": obj_id,
+            "school_types": hit.get("school_types", []),
+            "year_levels": hit.get("year_levels", []),
+            "te_reo_title": hit.get("te_reo_title", ""),
+            "breadcrumbs": hit.get("breadcrumbs", []),
+            "result_type": hit.get("result_type", ""),
+            "changed_ms": hit.get("changed"),
+        }
+
+        return {
+            "external_id": node_id,
+            "post_number": node_id,
+            "title": title,
+            "abstract": abstract,
+            "url": full_url,
+            "pdf_url": None,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "publisher": "Ministry of Education New Zealand",
+            "authors": "",
+            "keywords": keywords,
+            "category": "Education Circular",
+            "original_filename": None,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
