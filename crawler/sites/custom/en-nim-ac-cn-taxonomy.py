@@ -485,3 +485,75 @@ class EnNimAcCnTaxonomyCrawler(BaseCrawler):
             print(f"[{self.site_id}] reached safety page cap {self._MAX_PAGES}; stopping")
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Rows of one taxonomy list page: the parsing part of _fetch_list_page(), same rules."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparsable_html")
+
+        row_nodes = soup.select(".view-kxyj-lwzl-lw .view-content .views-row")
+        if not row_nodes:
+            row_nodes = [
+                row
+                for row in soup.select(".view-content .views-row")
+                if row.select_one("a[href^='/paper/'], a[href*='/paper/']")
+            ]
+
+        rows = []
+        for row in row_nodes:
+            link = row.select_one("a[href^='/paper/'], a[href*='/paper/']")
+            if link is None:
+                continue
+            detail_url = self._absolute_url(link.get("href"))
+            title = self._clean_text(link.get_text(" ", strip=True))
+            if not detail_url or not title:
+                continue
+
+            publication = ""
+            detail = row.select_one(".sh_expan_detail")
+            if detail is not None:
+                strong = detail.find("strong", string=re.compile(r"Publication", re.I))
+                if strong is not None:
+                    next_p = strong.find_parent("p")
+                    if next_p is not None:
+                        next_p = next_p.find_next_sibling("p")
+                    if next_p is not None:
+                        publication = self._clean_text(next_p.get_text(" ", strip=True))
+                if not publication:
+                    texts = [
+                        self._clean_text(p.get_text(" ", strip=True))
+                        for p in detail.find_all("p")
+                    ]
+                    texts = [text for text in texts if text and text.lower() != "publication"]
+                    publication = texts[0] if texts else ""
+
+            rows.append(
+                {
+                    "title": title,
+                    "url": detail_url,
+                    "list_publication": publication,
+                    "external_id": self._external_id(detail_url),
+                }
+            )
+        return rows
+
+    def _enumeration_paper(self, raw_detail, row):
+        """Paper dict exactly as crawl() saves it for one list row (None = skipped)."""
+        detail_url = self._clean_text(row.get("url"))
+        crawl_row = {k: row.get(k) for k in ("title", "url", "list_publication")}
+        paper = self._parse_detail(crawl_row, detail_url, raw_detail)
+        if not paper.get("title"):
+            return None
+        abstract = self._clean_text(paper.get("abstract"))
+        if len(abstract) < self._MIN_ABSTRACT_CHARS:
+            return None
+        paper["abstract"] = abstract
+        return paper

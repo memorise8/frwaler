@@ -1,0 +1,32 @@
+{
+ "site_id": "en-nim-ac-cn-taxonomy",
+ "listing_body": "<html><body><main><div class=\"view-kxyj-lwzl-lw\"><div class=\"view-content\"><div class=\"views-row\"><div class=\"sh_expan_click\"><a href=\"/paper/222\">Characterizing OMNI-Directional Antenna by Complex Normalized Effective Height</a></div><div class=\"sh_expan_detail\"><p><strong>Publication</strong></p><p>IEEE Transactions on EMC</p></div></div><div class=\"views-row\"><div class=\"sh_expan_click\"><a href=\"/paper/201\">Calibration of the superconducting gravimeter based on a cold atom absolute gravimeter at NIM</a></div><div class=\"sh_expan_detail\"><p><strong>Publication</strong></p><p>Metrologia</p></div></div></div></div></main></body></html>",
+ "content_type": "text/html; charset=UTF-8",
+ "details": {
+  "https://en.nim.ac.cn/paper/222": "<html><body><main><div class=\"field field--name-paper-name\"><div class=\"field--label\">Paper name</div><div class=\"field--item\">Characterizing OMNI-Directional Antenna</div></div><div class=\"field field--name-author-of-the-paper\"><div class=\"field--label\">Authors</div><div class=\"field--item\">Zhang San; Li Si</div></div><div class=\"field field--name-published-publication-conference\"><div class=\"field--label\">Publication</div><div class=\"field--item\">IEEE Transactions on EMC</div></div><div class=\"field field--name-key-words\"><div class=\"field--label\">Key words</div><div class=\"field--item\">antenna, calibration</div></div><div class=\"field field--name-abstract\"><div class=\"field--label\">Abstract</div><div class=\"field--item\">A broadband calculable antenna is used to characterize an omni-directional antenna by its complex normalized effective height; the uncertainty budget is evaluated.</div></div><div class=\"field field--name-date\"><div class=\"field--label\">Date</div><div class=\"field--item\">2021-05-06</div></div></main></body></html>",
+  "https://en.nim.ac.cn/paper/201": "<html><body><main><div class=\"field field--name-paper-name\"><div class=\"field--label\">Paper name</div><div class=\"field--item\">Calibration of the superconducting gravimeter</div></div><div class=\"field field--name-author-of-the-paper\"><div class=\"field--label\">Authors</div><div class=\"field--item\">Zhang San; Li Si</div></div><div class=\"field field--name-published-publication-conference\"><div class=\"field--label\">Publication</div><div class=\"field--item\">Metrologia</div></div><div class=\"field field--name-key-words\"><div class=\"field--label\">Key words</div><div class=\"field--item\">antenna, calibration</div></div><div class=\"field field--name-abstract\"><div class=\"field--label\">Abstract</div><div class=\"field--item\">A broadband calculable antenna is used to characterize an omni-directional antenna by its complex normalized effective height; the uncertainty budget is evaluated.</div></div><div class=\"field field--name-date\"><div class=\"field--label\">Date</div><div class=\"field--item\">2021-05-06</div></div></main></body></html>"
+ },
+ "long_text": "A broadband calculable antenna is used to characterize an omni-directional antenna by its complex normalized effective height; the uncertainty budget is evaluated.",
+ "original_method_source_sha256": {
+  "__init__": "f73732027b17cde28796c7c374ed9d4394fd4743548b7ba328272f655308a6e2",
+  "_curl_get": "acc85f9df839031c25f99aa33e7d483ea2c34631ad92de55db4047e9557f5680",
+  "_make_soup": "889126206f205efcb5faa52d31db7f93169269af8b2d660282e3a2258665ead6",
+  "_clean_text": "4b07fb9b0e3682528035ba1b8581e9c125d20e4c70b61490c1c95ca64028800a",
+  "_absolute_url": "a6b1aa18dc2a275354c98e076c70a25ad1de020f39eab2c5d2aa8f90b9a0f5ef",
+  "_list_url": "87ead18ebc8e10d06d4b8729f71e1b4a5437e96604cb113dac80895547bca4d1",
+  "_split_people": "4bb8a3bb1cd1eab15767dec683628d86232aa6c1204ac37ac7bbdb0d4ad38295",
+  "_split_keywords": "33d83d91e92d84b7f95a964e47adc13a9231b7931d5aed881c154aa5c1e25ca5",
+  "_date_only": "45c5aeea2575f7abf1ba87621f9fc5e4c3211be5926ec1849a8d321c1323e47e",
+  "_field_value_by_class": "37cd4014c189ef1834203b02c50147c2ef359663d467146190096fe8f18ced8f",
+  "_field_value_by_label": "f317c80257b5fbe752b9eceac5dd4501e3ccf1221beff959ce1383e471bf508e",
+  "_meta_content": "a74f89b333e13b550a97449693c047c15c8db678e944df4a2cd2d996e9ac9fb9",
+  "_fetch_list_page": "283869e08be82c10eec9aee0e55c710f450b5916021f324b584f0fe592094e21",
+  "_external_id": "1801172776bcefa3653fc7e56cbd17e59a73006ef1f0cbdc9478f96ed11f0ebf",
+  "_extract_pdf_url": "d25d8b066f64d0f77c25ba0c4971753f303515cbcd379e3cd8917812c9d7f66b",
+  "_extract_doi": "82d1a64cf24b7853c0a70d9a615f9aa6dde14fa99226b5f9ce955736116a5d42",
+  "_build_abstract": "98f6c3f7898ce92380a4afb5b80cbaed137669d0d36037500e6ff2b89b7d36cb",
+  "_parse_detail": "8e0290a6e49ed813578e46ad47c915dfc0618cda6102891e226b7eeaeeb5f316",
+  "crawl": "746e5b887aad26b7cc5debda486a9ddd2b36ee194332e9a0c15a98d5c3e9a006"
+ },
+ "empty_body": "<html><body><main><div class=\"view-kxyj-lwzl-lw\"></div></main></body></html>"
+}
