@@ -571,3 +571,42 @@ class SodhaBeDataverseCrawler(BaseCrawler):
             or self._clean_text(item.get("name"))
             or "unknown"
         )
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # helpers above stay unchanged; no fetching or storage happens here.
+    # The framework fetches each row's Dataverse dataset API JSON (the
+    # first detail source crawl() uses).
+    # ------------------------------------------------------------------
+    _ENUM_DETAIL_KEY = "_enumeration_detail_api_url"
+
+    def _enumeration_items(self, data):
+        """Search rows of one page (start=N), as crawl() reads them, each with the
+        dataset API URL crawl() fetches next (dropped again before paper building)."""
+        from crawler.enumeration.http import PermanentFailure
+        items = ((data or {}).get("data") or {}).get("items") if isinstance(data, dict) else None
+        if not isinstance(items, list):
+            raise PermanentFailure("listing_parse_error:expected_search_items")
+        rows = []
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            persistent_id = self._persistent_id(item)
+            if not persistent_id:
+                continue
+            row = dict(item)
+            row[self._ENUM_DETAIL_KEY] = self._DETAIL_API + "?" + urlencode({"persistentId": persistent_id})
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, data, item):
+        """_fetch_parse_item() with the dataset API JSON + crawl()'s abstract minimum.
+        (crawl() falls back to the dataset HTML page when the API is not OK; here such a
+        row returns None.)"""
+        item = {k: v for k, v in item.items() if k != self._ENUM_DETAIL_KEY}
+        if not isinstance(data, dict) or data.get("status") != "OK":
+            return None
+        paper = self._build_paper(item, data.get("data") or {}, {})
+        if paper is None or len(paper.get("abstract") or "") < self._MIN_ABSTRACT_CHARS:
+            return None
+        return paper

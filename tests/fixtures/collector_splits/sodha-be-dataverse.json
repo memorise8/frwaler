@@ -1,0 +1,128 @@
+{
+ "site_id": "sodha-be-dataverse",
+ "listing_body": "{\"status\": \"OK\", \"data\": {\"total_count\": 2, \"count_in_response\": 2, \"items\": [{\"name\": \"Lived Environment\", \"type\": \"dataset\", \"url\": \"https://doi.org/10.34934/DVN/XUK37S\", \"global_id\": \"doi:10.34934/DVN/XUK37S\", \"description\": \"short\", \"published_at\": \"2026-08-06T10:00:00Z\", \"publisher\": \"SODHA\", \"subjects\": [\"Social Sciences\"], \"name_of_dataverse\": \"SODHA\"}, {\"name\": \"THRIVE\", \"type\": \"dataset\", \"url\": \"https://doi.org/10.34934/DVN/7SZGXQ\", \"global_id\": \"doi:10.34934/DVN/7SZGXQ\", \"description\": \"short\", \"published_at\": \"2026-08-06T10:00:00Z\", \"publisher\": \"SODHA\", \"subjects\": [\"Social Sciences\"], \"name_of_dataverse\": \"SODHA\"}]}}",
+ "empty_body": "{\"status\": \"OK\", \"data\": {\"total_count\": 2, \"count_in_response\": 0, \"items\": []}}",
+ "content_type": "application/json",
+ "long_text": "Synthetic dataset description used only for the offline split test: survey of lived environment and wellbeing in Belgium, wave six, with documentation.",
+ "details": {
+  "https://www.sodha.be/api/datasets/:persistentId/?persistentId=doi%3A10.34934%2FDVN%2FXUK37S": {
+   "status": "OK",
+   "data": {
+    "id": 7168,
+    "publicationDate": "2026-08-06",
+    "latestVersion": {
+     "id": 7169,
+     "datasetPersistentId": "doi:10.34934/DVN/XUK37S",
+     "releaseTime": "2026-08-06T10:00:00Z",
+     "metadataBlocks": {
+      "citation": {
+       "fields": [
+        {
+         "typeName": "title",
+         "value": "[Embargo] Lived Environment"
+        },
+        {
+         "typeName": "dsDescription",
+         "value": [
+          {
+           "dsDescriptionValue": {
+            "value": "Synthetic dataset description used only for the offline split test: survey of lived environment and wellbeing in Belgium, wave six, with documentation."
+           }
+          }
+         ]
+        }
+       ]
+      }
+     },
+     "files": [
+      {
+       "label": "doc.pdf",
+       "restricted": false,
+       "dataFile": {
+        "id": 7179,
+        "filename": "doc.pdf",
+        "contentType": "application/pdf"
+       }
+      }
+     ]
+    }
+   }
+  },
+  "https://www.sodha.be/api/datasets/:persistentId/?persistentId=doi%3A10.34934%2FDVN%2F7SZGXQ": {
+   "status": "OK",
+   "data": {
+    "id": 7173,
+    "publicationDate": "2026-08-06",
+    "latestVersion": {
+     "id": 7174,
+     "datasetPersistentId": "doi:10.34934/DVN/7SZGXQ",
+     "releaseTime": "2026-08-06T10:00:00Z",
+     "metadataBlocks": {
+      "citation": {
+       "fields": [
+        {
+         "typeName": "title",
+         "value": "THRIVE"
+        },
+        {
+         "typeName": "dsDescription",
+         "value": [
+          {
+           "dsDescriptionValue": {
+            "value": "Synthetic dataset description used only for the offline split test: survey of lived environment and wellbeing in Belgium, wave six, with documentation."
+           }
+          }
+         ]
+        }
+       ]
+      }
+     },
+     "files": [
+      {
+       "label": "doc.pdf",
+       "restricted": false,
+       "dataFile": {
+        "id": 7184,
+        "filename": "doc.pdf",
+        "contentType": "application/pdf"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "original_method_source_sha256": {
+  "crawl": "492c51279bd8987e02ba16ee87172738d12685c18d1266851b779c067fca8bc8",
+  "_search_url": "5e090c3cf25448c61d78ce0d54077eecfa1a3aedd193f359de27d7be1c33999a",
+  "_fetch_parse_item": "6145ced4ae53d69373cf1a2ebd49fa3bce9d554954ededf816ff917c0abc3508",
+  "_build_paper": "6dd2a09e2239f83e665f4ed5e07dfb78b6fc2f511d9d19997f0de4cdcdc8c004",
+  "_curl_json": "660b377e3a793687cca360f7ab048ae7149feb285b66bf3d09b364e2289d358c",
+  "_curl_text": "7a2907cb27c7aa5d97965a5b004de7394141760f19aadef77ffffc6a0ee2a211",
+  "_parse_detail_html": "a9cdb4bdca32d7f90e32594e349b75289f74b1924f17f13770c5c02e382a1b7d",
+  "_safe_soup": "313f69df2c3f15aa4ccf2973238b974fe68be6bd85e9910ec27f3e2023c1bfd6",
+  "_field_map": "fa6cd599958da9cba1a457c48d9eae9a86e0a16c3984bfc8b9fa69eeee449e3c",
+  "_text_field": "f1236b2c64962b4b64f5f181377b4f4fd2071755709dd8561b8d9ba22687e92c",
+  "_first_text_field": "c6826eb450e3cc5e40c1218a337b8fc7ee1360e14a783e95163502047dc55986",
+  "_compound_values": "fc6e1d568bb9dfa6be97772833e891f3863d85982bb5cff8113da31a6d82bb65",
+  "_authors": "5f5f096a19106e7cde8e2ae4b08ff65a55f9d7c2237ed7e8d323c9b9e57304ca",
+  "_producers": "fdef17eaa046b1fa6235a37ab3d9ac17a9fe92e394487d9b569aa68a6dc314c5",
+  "_abstract": "ba10f76033b796af5b174898b6a67a7889349ff9289131f706630ed9903e0628",
+  "_keywords": "a36f17d442df2ae282a81a6429df38e1fa7b3035d96f579a0787bda49d4e5876",
+  "_journal_raw": "e330451beab6c71d5498df4f6efadb8265b09374c1a74924d18e325ba08898c7",
+  "_select_file": "4c76abdca0ae4ebd2ea562315a0e41ea8162bb89099fe82839002f3ea9c9e7bb",
+  "_file_metadata": "be3b88c30ca6ed19816bf216968ce6ec663f3904fc6f1cb230fb99c99ec434df",
+  "_persistent_id": "6aeef43252da4792cf27798c3bc12fad1bfbe44132ef6db067941ed82cea3806",
+  "_post_number_from_persistent_id": "841792f00f01ebf7ca004780ea9f46734084f106cf4edc8c0dfec0ed84d93909",
+  "_doi_from_persistent_id": "5f4444bed0f15eb2984ccffdbe63112b9251e0d344b96dfae4a0e4fd4738b253",
+  "_dataset_url": "ec94b90ac19130778d3150c825f1a13cb7b5e8764b47bb9c52f212807e1b529d",
+  "_iso_date": "179a34657cc70297a6ac59324d0935e1f0339dae6f0bc32364adf18c00c4a986",
+  "_filename_from_url": "aa862fb0428372dfd07f81f0cd6c7b33fc6b87cf0762ed7a9f3826aac6211467",
+  "_clean_url": "bbc1b6dcf8ea469b553c000f2fcca5360c8fd0bc47692ec0e2b55401092ded6a",
+  "_clean_text": "01c4dcca42cefa8162365006d01ce6a855d53b3528b7a504fa11fde29aae4386",
+  "_join_values": "6fac367555b34a1ce312a5177fc2a90635a7a0b94ad1b35d5b9cf2e4c4d16f60",
+  "_join_unique": "a9572c5a653a37c94667852041f12bb505ede0600c1255d60974f336e97e2e24",
+  "_first": "f08ce1e9205e48284ea403baad1e734a969eb4c5e45c802a802ca960200196af",
+  "_item_label": "cfd0fd6eb47be6188d03494f5c61a837ca4e98f0182df789d4eb816c51d49f82"
+ }
+}
