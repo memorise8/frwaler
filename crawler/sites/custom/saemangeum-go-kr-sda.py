@@ -228,6 +228,123 @@ class SaemangeumSdaCrawler(BaseCrawler):
         return items
 
     # ------------------------------------------------------------------
+    # Pure enumeration conversion (collector-splits); crawl() is unchanged
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None) -> list:
+        """List page (?pageIndex=N) -> rows from ``_parse_list_page``.
+
+        A response without the board pager (``div.page_wrap``) is a listing parse
+        error; the page past the last one keeps the pager and has an empty
+        tbody ("검색결과가 없습니다."), which is a valid empty page.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        soup = _make_soup(html)
+        if soup.select_one("div.page_wrap") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_pager", url)
+        rows = []
+        for item in self._parse_list_page(soup):
+            row = dict(item)
+            row["url"] = item["view_url"]
+            row["external_id"] = item["ntt_sn"]
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Pure copy of ``_crawl_item``'s Paper conversion for one fetched detail
+        page; None where ``_crawl_item`` returns 0 (empty page, short abstract)."""
+        ntt_sn = item["ntt_sn"]
+        view_url = item["view_url"]
+        if not html:
+            return None
+        soup = _make_soup(html)
+
+        h4 = soup.select_one(".viewtit h4")
+        title = h4.get_text(strip=True) if h4 else item["title"]
+        if not title:
+            title = item["title"]
+
+        listed_date = item["listed_date"]
+        date_div = soup.select_one(".viewtit .date")
+        if date_div:
+            raw_date = re.sub(r"\s+", "", date_div.get_text())
+            m = re.search(r"(\d{4})(\d{2})\.(\d{2})", raw_date)
+            if m:
+                listed_date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+
+        author = ""
+        dept = item["department"]
+        prev_label = ""
+        for span in soup.select(".viewtit .depart .dpname"):
+            b = span.find("b")
+            if b:
+                prev_label = b.get_text(strip=True)
+            else:
+                val = span.get_text(strip=True)
+                if not val:
+                    continue
+                if prev_label == "작성자":
+                    author = val
+                elif prev_label == "주관부서 담당자":
+                    parts = re.split(r"\s+", re.sub(r" ", " ", val).strip())
+                    if parts:
+                        dept = parts[0]
+
+        article = soup.select_one("article.view_article")
+        abstract = ""
+        if article:
+            abstract = _strip_html(str(article))
+
+        if len(abstract) < 50:
+            return None
+
+        pdf_url = None
+        original_filename = None
+        pdf_link = soup.select_one(".download_wrap a.isi_dw4")
+        if pdf_link:
+            href = pdf_link.get("href", "")
+            if href and not href.startswith("javascript"):
+                pdf_url = (
+                    f"{_BASE}{href}" if href.startswith("/") else href
+                )
+                fname_raw = pdf_link.get_text(" ", strip=True)
+                m = re.match(r"^(.+?)\s*\(", fname_raw)
+                fname = m.group(1).strip() if m else fname_raw.strip()
+                if fname and not fname.lower().endswith(".pdf"):
+                    fname += ".pdf"
+                original_filename = fname or None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": ntt_sn,
+            "post_number": post_number_str(item["post_number"]),
+            "title": title,
+            "abstract": abstract,
+            "published_date": listed_date,
+            "listed_date": listed_date,
+            "authors": author or None,
+            "publisher": _PUBLISHER,
+            "department": dept or None,
+            "url": view_url,
+            "pdf_url": pdf_url,
+            "keywords": None,
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": listed_date,
+                    "nttSn": ntt_sn,
+                    "post_number": item["post_number"],
+                    "department": dept or None,
+                    "originalFilename": original_filename,
+                },
+                ensure_ascii=False,
+            ),
+        }
+
+    # ------------------------------------------------------------------
     # Detail-page fetcher
     # ------------------------------------------------------------------
 

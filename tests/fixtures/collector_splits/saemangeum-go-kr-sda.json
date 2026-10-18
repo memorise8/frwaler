@@ -1,0 +1,20 @@
+{
+  "site_id": "saemangeum-go-kr-sda",
+  "listing_body": "<html><body><table><tbody><tr class=\"notice\"><th class=\"mbnone\" scope=\"row\">2</th><td title=\"Offline 2\"><a href=\"javascript:void(0);\" class=\"tit\" onclick=\"goView('102', ''); return false;\">Offline 2</a></td><td class=\"mbnone\"><a href=\"/common/fileDown.do?key=9102&type=brd\" class=\"download\"><i class=\"isico isi_dw4\">PDF 파일</i></a></td><td> 기획과 </td><td class=\"mbinline\">2026.10.02</td><td class=\"mbnone\">5</td></tr><tr class=\"notice\"><th class=\"mbnone\" scope=\"row\">1</th><td title=\"Offline 1\"><a href=\"javascript:void(0);\" class=\"tit\" onclick=\"goView('101', ''); return false;\">Offline 1</a></td><td class=\"mbnone\"><a href=\"/common/fileDown.do?key=9101&type=brd\" class=\"download\"><i class=\"isico isi_dw4\">PDF 파일</i></a></td><td> 기획과 </td><td class=\"mbinline\">2026.10.01</td><td class=\"mbnone\">5</td></tr></tbody></table><div class=\"page_wrap\"><a href=\"#none\" class=\"current\" title=\"현재 페이지\"><span>1</span></a></div></body></html>",
+  "content_type": "text/html",
+  "empty_body": "<html><body><table><tbody><tr><td colspan=\"6\">검색결과가 없습니다.</td></tr></tbody></table><div class=\"page_wrap\"><a href=\"#none\" class=\"current\" title=\"현재 페이지\"><span>1</span></a></div></body></html>",
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "details": {
+    "https://www.saemangeum.go.kr/sda/brd/view.do?key=2009074409621&nttSn=102": "<html><body><div class=\"viewtit\"><h4>Offline 2 title</h4><div class=\"date\">2026<span>10.02</span></div><div class=\"depart\"><span class=\"dpname\"><b>작성자</b></span><span class=\"dpname\">홍길동</span><span class=\"dpname\"><b>주관부서 담당자</b></span><span class=\"dpname\">기획과 담당자 063-000-0000</span></div></div><article class=\"view_article\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></article><div class=\"download_wrap\"><a class=\"isi_dw4\" href=\"/common/fileDown.do?key=9102&amp;type=brd\">report102.hwp (1.2MB)</a></div></body></html>",
+    "https://www.saemangeum.go.kr/sda/brd/view.do?key=2009074409621&nttSn=101": "<html><body><div class=\"viewtit\"><h4>Offline 1 title</h4><div class=\"date\">2026<span>10.01</span></div><div class=\"depart\"><span class=\"dpname\"><b>작성자</b></span><span class=\"dpname\">홍길동</span><span class=\"dpname\"><b>주관부서 담당자</b></span><span class=\"dpname\">기획과 담당자 063-000-0000</span></div></div><article class=\"view_article\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></article><div class=\"download_wrap\"><a class=\"isi_dw4\" href=\"/common/fileDown.do?key=9101&amp;type=brd\">report101.hwp (1.2MB)</a></div></body></html>"
+  },
+  "expected_ids": [
+    "102",
+    "101"
+  ],
+  "original_method_source_sha256": {
+    "crawl": "3b6a73a84e3ca25b2561b5d017b3504660ef2d9f487a70add76f6a0cf6513d43",
+    "_parse_list_page": "808a88656c0ceb933f5f37639da025e2b15853fb6a26391507ef78386675e6e5",
+    "_crawl_item": "baf2fbabe8972f46da22b354f40f796e60d095cf19e3d531eb745afd73ea74af"
+  }
+}
