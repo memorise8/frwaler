@@ -442,3 +442,91 @@ class MolegGoKrBoardesCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+    # The listing is read by the enumeration framework (last_page_backward), so the
+    # _MAX_PAGES cap of crawl() does not apply; the empty tbody#listView ends the list.
+
+    def _enumeration_items(self, html, url=None):
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None or soup.select_one("tbody#listView") is None:
+            raise PermanentFailure("listing_parse_error:missing_listView")
+        page = 1
+        if url:
+            values = parse_qs(urlsplit(url).query).get("nPage")
+            if values and values[0].isdigit():
+                page = int(values[0])
+        return _parse_list_page(html, page)
+
+    def _enumeration_detail(self, html, item):
+        detail = _parse_detail_page(html, item.get("url"), item.get("list_no") or "")
+        return detail or None
+
+    def _enumeration_paper(self, item, detail):
+        page = item.get("page")
+        detail_url = item.get("url")
+        title = detail.get("title") or item.get("title") or "(untitled)"
+        abstract = detail.get("abstract") or ""
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+
+        listed_date = item.get("listed_date")
+        published_date = detail.get("published_date") or listed_date
+        original_filename = detail.get("original_filename")
+        metadata = {
+            "mid": _MID,
+            "bid": _BID,
+            "list_no": item.get("list_no"),
+            "node_id": item.get("list_no"),
+            "post_number": item.get("post_number"),
+            "display_post_number": item.get("post_number"),
+            "posted_date": item.get("listed_date_raw") or listed_date,
+            "listed_date": listed_date,
+            "originalFilename": original_filename,
+            "journal_raw": None,
+            "series": None,
+            "volume": None,
+            "issue": None,
+            "list_page": item.get("page"),
+            "list_url": f"{_LIST_URL}&nPage={page}",
+            "detail_url": detail_url,
+            "list_title": item.get("title"),
+            "list_cells": item.get("cell_texts"),
+            "list_author_raw": item.get("list_author_raw"),
+            "list_has_attachment": item.get("list_has_attachment"),
+            "published_date_raw": detail.get("published_date_raw"),
+            "body_text_raw": detail.get("body_text"),
+            "department": detail.get("department"),
+            "contact": detail.get("contact"),
+            "contact_person": detail.get("contact_person"),
+            "view_count": detail.get("view_count"),
+            "detail_fields": detail.get("detail_fields"),
+            "attachments": detail.get("attachments"),
+        }
+
+        return {
+            "id": f"{self.site_id}:{item.get('external_id')}",
+            "site_id": self.site_id,
+            "external_id": item.get("external_id"),
+            "post_number": item.get("post_number"),
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "posted_date": listed_date,
+            "authors": detail.get("contact_person") or item.get("list_author_raw") or "",
+            "publisher": _PUBLISHER,
+            "department": detail.get("department") or "",
+            "journal": "",
+            "url": detail_url,
+            "pdf_url": detail.get("pdf_url"),
+            "keywords": "",
+            "category": _CATEGORY,
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }

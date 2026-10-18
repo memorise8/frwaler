@@ -1,0 +1,14 @@
+{
+  "site_id": "moleg-go-kr-boardes",
+  "listing_body": "<html><body><table class=\"tstyle_list\"><tbody id =\"listView\"><tr><td>258</td><td class=\"tl\"><a href=\"/board.es?mid=a10404000000&amp;bid=0007&amp;act=view&amp;list_no=900001&amp;nPage=1\">합성 간행물 1</a></td><td>2026-10-12</td><td><img alt=\"첨부파일\"/></td><td>12</td><!-- <li>홍길동</li> --></tr><tr><td>257</td><td class=\"tl\"><a href=\"/board.es?mid=a10404000000&amp;bid=0007&amp;act=view&amp;list_no=900002&amp;nPage=1\">합성 간행물 2</a></td><td>2026-07-31</td><td><img alt=\"첨부파일\"/></td><td>12</td><!-- <li>홍길동</li> --></tr></tbody></table></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.moleg.go.kr/board.es?mid=a10404000000&bid=0007&act=view&list_no=900001&nPage=1": "<html><body><div class=\"tstyle_view\"><div class=\"title\">합성 간행물 1</div><ul class=\"head\"><li><strong>등록일</strong><span>2026-10-12</span></li><li><strong>조회수</strong><span>12</span></li></ul><div class=\"tb_contents\"><p>법제처 간행물 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. 법제처 간행물 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. 법제처 간행물 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. 법제처 간행물 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. </p></div><div class=\"add_file_list\"><ul><li><a class=\"file_down\" href=\"/boardDownload.es?bid=0007&amp;list_no=900001&amp;seq=1\" title=\"자료900001.pdf 내려받기\">자료900001.pdf</a><span class=\"fileSize\">1MB</span></li></ul></div></div></body></html>",
+    "https://www.moleg.go.kr/board.es?mid=a10404000000&bid=0007&act=view&list_no=900002&nPage=1": "<html><body><div class=\"tstyle_view\"><div class=\"title\">합성 간행물 2</div><ul class=\"head\"><li><strong>등록일</strong><span>2026-07-31</span></li><li><strong>조회수</strong><span>12</span></li></ul><div class=\"tb_contents\"><p>법제처 간행물 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. 법제처 간행물 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. 법제처 간행물 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. 법제처 간행물 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. </p></div><div class=\"add_file_list\"><ul><li><a class=\"file_down\" href=\"/boardDownload.es?bid=0007&amp;list_no=900002&amp;seq=1\" title=\"자료900002.pdf 내려받기\">자료900002.pdf</a><span class=\"fileSize\">1MB</span></li></ul></div></div></body></html>"
+  },
+  "long_text": "법제처 간행물 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. 법제처 간행물 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. 법제처 간행물 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. 법제처 간행물 합성 본문입니다. 오프라인 비교 시험용 문장이며 실제 자료가 아닙니다. ",
+  "empty_body": "<html><body><table class=\"tstyle_list\"><tbody id =\"listView\">\n\n</tbody></table></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "a3c55a854eb2fd69933d35f1eaf3c192c5801613f3fc2c267a59f2824bdcd335"
+  }
+}
