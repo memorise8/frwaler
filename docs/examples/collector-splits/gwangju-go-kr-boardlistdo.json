@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "sites": {
+    "gwangju-go-kr-boardlistdo": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "base_url": "https://www.gwangju.go.kr",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "raw",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "raw",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.gwangju.go.kr/boardList.do",
+        "params": {
+          "boardId": "BD_0000000027",
+          "pageId": "www789",
+          "movePage": 1
+        },
+        "page_param": "movePage",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "seq",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "title_field": "title",
+          "listing_marker": "p.nodata"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

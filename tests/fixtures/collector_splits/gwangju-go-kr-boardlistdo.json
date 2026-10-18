@@ -1,0 +1,37 @@
+{
+  "listing_body": "<html><body><div class=\"board_list\"><p class=\"total_num\">전체게시글 : 2 / 전체페이지 : 1</p><div class=\"board_list_head\"><div class=\"num\">번호</div></div><div class=\"board_list_body\"><div class=\"body_row\"><div class=\"num\"><span class=\"blind\">번호</span>9001</div><div class=\"category\"><span class=\"blind\">분류</span>보도자료</div><div class=\"subject\"><a href=\"#none\" data-seq=\"9001\" title=\"Offline 1\">Offline 1</a></div><div class=\"date\"><span class=\"blind\">작성일</span>2026-10-12</div></div><div class=\"body_row\"><div class=\"num\"><span class=\"blind\">번호</span>9002</div><div class=\"category\"><span class=\"blind\">분류</span>보도자료</div><div class=\"subject\"><a href=\"#none\" data-seq=\"9002\" title=\"Offline 2\">Offline 2</a></div><div class=\"date\"><span class=\"blind\">작성일</span>2026-10-11</div></div></div></div><div class=\"paging\"></div></body></html>",
+  "content_type": "text/html",
+  "empty_body": "<html><body><div class=\"board_list\"><p class=\"total_num\">전체게시글 : 2 / 전체페이지 : 1</p><div class=\"board_list_head\"><div class=\"num\">번호</div></div><p class=\"nodata\">게시글이 존재하지 않습니다.</p></div><div class=\"paging\"></div></body></html>",
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "details": {
+    "https://www.gwangju.go.kr/boardView.do?pageId=www789&boardId=BD_0000000027&seq=9001&movePage=1&recordCnt=15": "<html><head><meta property=\"og:title\" content=\"Offline 1\"></head><body><div class=\"board_view_head\"><h6>Offline 1</h6><p class=\"tc mt10\">부제</p></div><div class=\"board_view_info\"><span>작성일 : 2026.10.12 09:00</span><span>조회 : 3</span></div><div class=\"charger\"><dl><dt>담당부서</dt><dd>대변인실</dd></dl></div><div class=\"board_view_body\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p><div class=\"add_file\"><ul><li><a href=\"/fileDownload.do?fileSe=BB&amp;fileKey=BD_0000000027%7C9001&amp;fileSn=1&amp;boardId=BD_0000000027&amp;seq=9001\">자료9001.pdf</a></li></ul></div></div></body></html>",
+    "https://www.gwangju.go.kr/boardView.do?pageId=www789&boardId=BD_0000000027&seq=9002&movePage=1&recordCnt=15": "<html><head><meta property=\"og:title\" content=\"Offline 2\"></head><body><div class=\"board_view_head\"><h6>Offline 2</h6><p class=\"tc mt10\">부제</p></div><div class=\"board_view_info\"><span>작성일 : 2026.10.11</span><span>조회 : 3</span></div><div class=\"charger\"><dl><dt>담당부서</dt><dd>대변인실</dd></dl></div><div class=\"board_view_body\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p><div class=\"add_file\"><ul><li><a href=\"/fileDownload.do?fileSe=BB&amp;fileKey=BD_0000000027%7C9002&amp;fileSn=1&amp;boardId=BD_0000000027&amp;seq=9002\">자료9002.pdf</a></li></ul></div></div></body></html>"
+  },
+  "original_method_source_sha256": {
+    "crawl": "05b9fc8d1e993d0d5b38553c9763246218168a64fecd94b81a64d77e630350c4",
+    "_curl_get": "c20a6f808b2a03f4a0cf4abfa451ef853b8e281f0dd4ff14b3bc1bacf4f82512",
+    "_curl_content_disposition_filename": "acbe93a2762c339298870a977ddb1dc71da0cc21c0a580a252236d141a69a0c4",
+    "_parse_list": "c90975c59254935c007620fe0353446466f2aa1f3fe1c269fea702ab1a71c7a4",
+    "_fetch_parse_detail": "428187ae7f4c37ca3af8b771e1ad25c2869d36601069db3a433846c65bb249c6",
+    "_extract_detail_title": "200409ef7a2552d6418d472e2cb9b60da66cd84b090b38d735488ae6588b62a8",
+    "_extract_subtitle": "c27437740feecbea62782b044ba6a728f7b4a9b316e9ea825885d37abe4816f4",
+    "_extract_view_info": "2e416b355d3d6415c3a76157cb8521125c214f22ed309a574be17f9a9c0e20f2",
+    "_extract_department": "ae112aacb180401f058e8275e1ae1aff884290eaba7fd4887d99b4153df7c199",
+    "_extract_content_text": "2e9eaede2c6c2ca065305be82e459731beffe7d22a18585c6e4443fd4d6a7f3a",
+    "_extract_attachments": "0776dadcc286be2642d3a533bc2e3066b8b2f602f0db511978964e3b75ac13e8",
+    "_choose_pdf_attachment": "0cc3ee11bfce8d82ced2aef6fb365b83e84d3d7883e95771effaf1c9e7b0193b",
+    "_choose_abstract": "29fda7a22f13b23ebb9e4e4bdebf9d48c23db8664e5a11b919a4b047a2c193b5",
+    "_last_stripped_string": "40fc723a3e8124b8412d5457b45a744ea0e4b60f6f34522727e672056968b311",
+    "_list_url": "fce50ee209b3f8e80d2b98915e8303c465b7325424925a8231822b6db9f2a62d",
+    "_detail_url": "9e3d6bd8796549f1a705d08f7fdeb825f63bf40b6127a5e64d13f52f58b9bf0d",
+    "_extract_seq": "004d342eeb627039aa43167475971b9bbb885ae15b7da038605a91414a6704ff",
+    "_decode": "88a51adc1dc003f5e46f78a204019627b86bca940e781a11b9d04d10de50a14e",
+    "_make_soup": "0b9fcd4beb0441e8a3c8e3a20f847967ac8187930d637654fe9de645078eb28b",
+    "_safe_copy": "761672eeee61556de5916bdac44248fc02047226e896043cad25e9c36fb76f36",
+    "_clean_text": "291ae5e8631cb025d17d2f7aa1d81dd09d4610456ff160528d292cb4586995e5",
+    "_normalize_date": "17bd5ff4eba4e8ddb245e5b2b8d86ee9fa73e6873245c6d37900ff11358fd179",
+    "_extension_from_filename": "4be6da32a0fb1e0b492e4aea6db2d1a620b7092dc9eb9b06e82a2920754a0103",
+    "_filename_from_url": "231eac560c9767020838bf3825f2dd9ef16b75260f8cdea9beb3c16e6edb91fd"
+  },
+  "site_id": "gwangju-go-kr-boardlistdo"
+}

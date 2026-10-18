@@ -40,6 +40,125 @@ class GwangjuGoKrBoardlistdoCrawler(BaseCrawler):
     _STOP_SOON_SECONDS = _WALL_CLOCK_SECONDS - 30
     _MIN_ABSTRACT_CHARS = 50
 
+    # ------------------------------------------------------------------
+    # Pure enumeration conversion (collector-splits); crawl() is unchanged
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw, url=None):
+        """List page -> crawl()'s list rows (``_parse_list``) for the page in ``url``.
+
+        A page without the board list frame is a listing parse error; an empty
+        board must show the board's own "no data" notice (``p.nodata``).
+        """
+        from urllib.parse import parse_qs, urlsplit
+
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw, (bytes, str)):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        soup = self._make_soup(raw)
+        if soup is None or soup.select_one(".board_list_head") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_list", url)
+        values = parse_qs(urlsplit(url or "").query).get("movePage") or ["1"]
+        try:
+            page = int(values[0])
+        except ValueError:
+            raise PermanentFailure("listing_parse_error:bad_page_number", url) from None
+        rows = self._parse_list(raw, page)
+        if not rows and soup.select_one("p.nodata") is None:
+            raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing", url)
+        return rows
+
+    def _enumeration_paper(self, raw, item):
+        """Pure copy of ``_fetch_parse_detail`` after its fetch, plus crawl()'s
+        short-abstract skip (None). ``raw`` is the detail page body."""
+        detail_url = item["url"]
+        soup = self._make_soup(raw)
+        if soup is None:
+            return None
+
+        seq = item.get("seq") or self._extract_seq(detail_url)
+        if not seq:
+            return None
+
+        title = self._extract_detail_title(soup) or item.get("title") or f"Gwangju press release {seq}"
+        subtitle = self._extract_subtitle(soup)
+
+        info_raw = self._extract_view_info(soup)
+        published_date_raw = info_raw
+        published_date = self._normalize_date(published_date_raw) or item.get("listed_date")
+
+        listed_date_raw = item.get("listed_date_raw") or published_date_raw
+        listed_date = item.get("listed_date") or published_date
+
+        department = self._extract_department(soup)
+        content_text = self._extract_content_text(soup)
+        abstract = self._choose_abstract(subtitle, content_text)
+
+        # Attachment links all end in /fileDownload.do, so _filename_from_url
+        # always yields a name and the Content-Disposition request is never made.
+        attachments = self._extract_attachments(soup, detail_url)
+        pdf = self._choose_pdf_attachment(attachments)
+        pdf_url = pdf.get("url") if pdf else None
+        original_filename = pdf.get("filename") if pdf else None
+        if pdf_url and not original_filename:
+            original_filename = self._filename_from_url(pdf_url)
+
+        category = item.get("category")
+
+        metadata = {
+            "posted_date": listed_date_raw,
+            "originalFilename": original_filename,
+            "journal_raw": None,
+            "series": None,
+            "volume": None,
+            "issue": None,
+            "boardId": self._BOARD_ID,
+            "pageId": self._PAGE_ID,
+            "seq": seq,
+            "post_number": seq,
+            "list_page": item.get("list_page"),
+            "list_href": item.get("list_href"),
+            "list_title": item.get("title"),
+            "listed_date": listed_date,
+            "listed_date_raw": listed_date_raw,
+            "published_date_raw": published_date_raw,
+            "department": department,
+            "category_raw": category,
+            "subtitle": subtitle,
+            "attachments": attachments,
+            "source_endpoints": {
+                "list": self._list_url(item.get("list_page") or 1),
+                "detail": detail_url,
+                "attachment": f"{self.base_url}/fileDownload.do",
+            },
+        }
+
+        if len(abstract or "") < self._MIN_ABSTRACT_CHARS:
+            return None
+
+        return {
+            "id": f"{self.site_id}-{seq}",
+            "site_id": self.site_id,
+            "external_id": seq,
+            "post_number": seq,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "posted_date": listed_date,
+            "authors": None,
+            "publisher": self._PUBLISHER,
+            "department": department,
+            "journal": None,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "keywords": None,
+            "category": category,
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
+
     def crawl(self, limit=None):
         saved = 0
         seen_urls = set()
