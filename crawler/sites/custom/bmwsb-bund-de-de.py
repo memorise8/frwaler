@@ -364,6 +364,101 @@ class BmwsbBundDeDeCrawler(BaseCrawler):
         return None
 
 
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # helpers stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """List rows of one page (start page or ?gtp=122226_Dokumente%3DN), with the
+        list fields crawl() reads per row."""
+        from urllib.parse import unquote
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html, context="enumeration list page")
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparseable_html")
+        m = re.search(r"_Dokumente=(\d+)", unquote(url or ""))
+        page_num = int(m.group(1)) if m else 1
+        page_url = url if m else self.START_URL
+        rows = []
+        for item_el in soup.select("div.c-teaser-search-result"):
+            link_el = item_el.select_one("a.c-teaser-search-result__link-main")
+            if not link_el:
+                continue
+            href = (link_el.get("href") or "").strip()
+            if not href:
+                continue
+            title_el = item_el.select_one("h3.c-teaser-search-result__headline")
+            list_title = _clean_text(title_el.get_text(" ", strip=True) if title_el else "")
+            date_el = item_el.select_one("span.c-topline__element.is-date")
+            list_date_raw = date_el.get_text(strip=True) if date_el else ""
+            cat_el = item_el.select_one("p.c-teaser-search-result__category")
+            category = ""
+            if cat_el:
+                for span in cat_el.find_all("span"):
+                    span.decompose()
+                category = _clean_text(cat_el.get_text(" ", strip=True))
+            abs_el = item_el.select_one("p.c-teaser-search-result__text")
+            list_abstract = _clean_text(abs_el.get_text(" ", strip=True) if abs_el else "")
+            rows.append({
+                "url": urljoin(self.base_url, href),
+                "list_title": list_title,
+                "list_date_raw": list_date_raw,
+                "list_date": _parse_german_date(list_date_raw),
+                "category": category,
+                "list_abstract": list_abstract,
+                "page_url": page_url,
+                "page_num": page_num,
+            })
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Copy of crawl()'s per-row conversion; None keeps crawl()'s skips."""
+        detail_url = item["url"]
+        detail_soup = self._make_soup(html, context=f"detail {detail_url}")
+        if detail_soup is None:
+            return None
+        parsed = self._parse_detail(detail_soup, detail_url)
+        title = parsed.get("title") or item["list_title"]
+        abstract = parsed.get("abstract") or item["list_abstract"]
+        published_date = parsed.get("published_date") or item["list_date"]
+        pdf_url = parsed.get("pdf_url") or ""
+        original_filename = parsed.get("original_filename") or ""
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        if len(abstract) < self.PREFERRED_ABSTRACT_CHARS:
+            return None
+        external_id = _external_id_from_url(detail_url)
+        metadata = {
+            "list_page": item["page_url"],
+            "list_date_raw": item["list_date_raw"],
+            "list_abstract_preview": item["list_abstract"][:200],
+            "category": item["category"],
+            "page_num": item["page_num"],
+        }
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": external_id,
+            "title": title,
+            "abstract": abstract,
+            "category": item["category"],
+            "keywords": item["category"],
+            "published_date": published_date,
+            "listed_date": item["list_date"],
+            "url": detail_url,
+            "pdf_url": pdf_url or None,
+            "doi": "",
+            "department": self.PUBLISHER,
+            "publisher": self.PUBLISHER,
+            "authors": "",
+            "journal": "",
+            "original_filename": original_filename or None,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
+
 # ------------------------------------------------------------------
 # Module-level helpers (used by crawler and importable for tests)
 # ------------------------------------------------------------------

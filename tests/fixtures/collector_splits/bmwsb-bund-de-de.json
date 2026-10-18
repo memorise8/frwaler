@@ -1,0 +1,18 @@
+{
+ "site_id": "bmwsb-bund-de-de",
+ "listing_body": "<html><body><div class=\"l-article__content\"><div class=\"wrapperTable\"><div class=\"c-teaser-search-result\"><span class=\"c-topline__element is-date\">24.06.2026</span><a class=\"c-teaser-search-result__link-main\" href=\"/SharedDocs/gesetzgebungsverfahren/DE/gesetz-eins/gesetz-eins.html\"><h3 class=\"c-teaser-search-result__headline\">Entwurf gesetz-eins</h3></a><p class=\"c-teaser-search-result__category\"><span>Typ:</span> Gesetzgebungsverfahren</p><p class=\"c-teaser-search-result__text\">Kurz gesetz-eins</p></div><div class=\"c-teaser-search-result\"><span class=\"c-topline__element is-date\">27.05.2026</span><a class=\"c-teaser-search-result__link-main\" href=\"/SharedDocs/gesetzgebungsverfahren/DE/gesetz-zwei/gesetz-zwei.html\"><h3 class=\"c-teaser-search-result__headline\">Entwurf gesetz-zwei</h3></a><p class=\"c-teaser-search-result__category\"><span>Typ:</span> Gesetzgebungsverfahren</p><p class=\"c-teaser-search-result__text\">Kurz gesetz-zwei</p></div></div></div></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.bmwsb.bund.de/SharedDocs/gesetzgebungsverfahren/DE/gesetz-eins/gesetz-eins.html": "<html><body><div class=\"l-article\"><div class=\"l-article__intro\"><h1 class=\"c-intro__headline\">Entwurf gesetz-eins</h1><span class=\"c-intro__label-element is-date\">24.06.2026</span></div><div class=\"row\"><div class=\"l-article__content\"><p>Synthetischer Gesetzentwurf des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. Synthetischer Gesetzentwurf des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. </p><a href=\"/SharedDocs/gesetz-eins.pdf?__blob=publicationFile&amp;v=1\">PDF</a></div></div></div></body></html>",
+  "https://www.bmwsb.bund.de/SharedDocs/gesetzgebungsverfahren/DE/gesetz-zwei/gesetz-zwei.html": "<html><body><div class=\"l-article\"><div class=\"l-article__intro\"><h1 class=\"c-intro__headline\">Entwurf gesetz-zwei</h1><span class=\"c-intro__label-element is-date\">27.05.2026</span></div><div class=\"row\"><div class=\"l-article__content\"><p>Synthetischer Gesetzentwurf des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. Synthetischer Gesetzentwurf des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. </p><a href=\"/SharedDocs/gesetz-zwei.pdf?__blob=publicationFile&amp;v=1\">PDF</a></div></div></div></body></html>"
+ },
+ "long_text": "Synthetischer Gesetzentwurf des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. Synthetischer Gesetzentwurf des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. ",
+ "empty_body": "<html><body><div class=\"l-article__content\"><p>Keine Ergebnisse</p></div></body></html>",
+ "original_method_source_sha256": {
+  "crawl": "31401068873517ad95ad652bb4ed27484ec1c5748c5d16ce3e4d4910f2694b67",
+  "_next_page_url": "20ead42ffacc4edd8764a934ea60cbab4d3d306d856364a5cfa8063f9820df7c",
+  "_parse_detail": "77c1a91ec8dac3005039c522d0081faf6fad32a62acd4d018b08a765102cc503",
+  "_curl_get": "52896f874f54ad61c75bc9b0d96fb59bb87b1d396380271e7b2295554e61780a",
+  "_make_soup": "89d95d081f2a780b4a8c8e567786b69fe9ed62f4d6bf11bdfc71f4aa71514ece"
+ }
+}
