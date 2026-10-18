@@ -512,3 +512,140 @@ class CanurbOrgPublicationsCrawler(CanurbTraversal, BaseCrawler):
 
         print(f"[{self.site_id}] {context} gave up after 3 attempts")
         return None
+
+    # ------------------------------------------------------------------
+    # Enumeration split (pure parsing; crawl() and the methods above unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """The publications listing (one page holding the whole FacetWP catalogue;
+        /page/N/ repeats it, as crawl() sees through _has_next_page) parsed by
+        the existing _parse_list(). ``fetch_url`` is the page crawl() reads for
+        the card: the detail page for detail_html cards; direct-PDF and
+        external-publisher cards, which crawl() saves from the card without any
+        request, point at the listing itself, whose body _enumeration_paper
+        ignores. A page without publication cards is a listing parse error."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparseable_html")
+        records = self._parse_list(soup)
+        if not records:
+            raise PermanentFailure("listing_parse_error:no_publication_cards")
+        return [dict(r, fetch_url=r["url"] if r.get("link_type") == "detail_html" else _LIST_URL)
+                for r in records]
+
+    def _enumeration_paper(self, html, item):
+        """_process_record() / _save_linked_publication() save arguments copied
+        verbatim, with the detail page already fetched by the runner (external_id
+        = post id else slug, post_number = post id, unchanged). None where they
+        skip (abstract < _MIN_ABSTRACT)."""
+        record = {k: v for k, v in item.items() if k != "fetch_url"}
+        if record.get('link_type') in ('direct_pdf', 'external_publication'):
+            abstract = record.get('excerpt', '')
+            if len(abstract) < _MIN_ABSTRACT:
+                return None
+            url = record['url']
+            post_id = record.get('post_id')
+            pdf_url = url if record['link_type'] == 'direct_pdf' else None
+            return {
+                'site_id': self.site_id,
+                'external_id': post_id or self._slug_from_url(url),
+                'post_number': post_id or None,
+                'title': record['title'], 'abstract': abstract,
+                'publisher': 'Canadian Urban Institute',
+                'category': record.get('category', ''),
+                'url': url, 'pdf_url': pdf_url,
+                'original_filename': urlsplit(pdf_url).path.rsplit('/', 1)[-1] if pdf_url else None,
+                'published_date': None, 'listed_date': None,
+                'metadata': json.dumps({
+                    'post_id': post_id, 'excerpt': abstract,
+                    'metadata_source_url': _LIST_URL,
+                    'link_type': record['link_type'], 'linked_resource_fetched': False,
+                }, ensure_ascii=False),
+            }
+        url = record["url"]
+        soup = self._make_soup(html)
+        if soup is None:
+            raise RuntimeError(f"detail parse failed: {url}")
+
+        # Title: prefer detail h1 over list title
+        h1 = soup.select_one("h1.entry-title")
+        title = self._clean_text(h1) if h1 else record["title"]
+        if not title:
+            title = record["title"]
+
+        # Post ID from body class (or from listing)
+        post_id = record.get("post_id") or self._post_id_from_body(soup)
+        external_id = post_id or self._slug_from_url(url)
+
+        web_date_published = self._extract_published_date(soup) or ""
+        detail_publication_date = self._detail_publication_date(soup)
+        published_date = (detail_publication_date if detail_publication_date is not None
+                          else web_date_published)
+
+        social_description = (
+            self._meta(soup, "og:description")
+            or self._meta(soup, "description")
+        )
+        body_excerpt = self._extract_body_text(soup)
+        abstract = body_excerpt or social_description or record.get("excerpt", "")
+        abstract_source = ('detail_body_excerpt' if body_excerpt else
+                           'social_description' if social_description else 'listing_excerpt')
+
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+
+        pdf_url = self._find_pdf_url(soup, url)
+
+        original_filename = ""
+        if pdf_url:
+            seg = pdf_url.rstrip("/").split("/")[-1]
+            if seg.lower().endswith(".pdf"):
+                original_filename = seg
+
+        category = record.get("category", "")
+        if not category:
+            for cls in (soup.find("body") or soup).get("class", []):
+                if cls.startswith("category-"):
+                    category = cls[len("category-"):].replace("-", " ").title()
+                    break
+
+        keywords = self._extract_keywords(soup)
+
+        metadata = {
+            "post_id": post_id,
+            "excerpt": record.get("excerpt", ""),
+            "og_url": self._meta(soup, "og:url"),
+            "pdf_candidates": self._pdf_links(soup, url),
+            "publication_pdf_candidates": self._pdf_links(soup, url, publication_only=True),
+            "abstract_source": abstract_source,
+            "social_description_raw": social_description,
+            "publication_date_source": ('detail_publication_date' if detail_publication_date is not None
+                                        else 'web_date_published_fallback'),
+            "web_date_published_raw": web_date_published,
+        }
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_id or None,
+            "title": title,
+            "abstract": abstract,
+            "authors": "",
+            "publisher": "Canadian Urban Institute",
+            "department": "",
+            "journal": "",
+            "category": category,
+            "keywords": keywords,
+            "published_date": published_date,
+            "listed_date": web_date_published,
+            "url": url,
+            "pdf_url": pdf_url or None,
+            "doi": "",
+            "original_filename": original_filename or None,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }

@@ -1,0 +1,31 @@
+{
+ "site_id": "canurb-org-publications",
+ "content_type": "text/html; charset=UTF-8",
+ "long_text": "Synthetic body text for the offline equality test of the enumeration split; it imitates the structure of a publication page only and carries no real content.",
+ "card_excerpt": "Synthetic card excerpt long enough to pass the fifty character minimum of the crawler.",
+ "listing_body": "<html><body><main><div class=\"facetwp-template\"><article class=\"post-90001 publications type-publications category-research-report\"><a href=\"https://canurb.org/publications/synthetic-report/\"><h4>Synthetic Report</h4></a><div class=\"posts__content\"><p>Short.</p></div></article><article class=\"post-90002 publications type-publications category-brief\"><a href=\"https://canurb.org/wp-content/uploads/synthetic-brief.pdf\"><h4>Synthetic Brief</h4></a><div class=\"posts__content\"><p>Synthetic card excerpt long enough to pass the fifty character minimum of the crawler.</p></div></article><article class=\"post-90003 publications type-publications category-book\"><a href=\"https://publisher.example.org/synthetic-book\"><h4>Synthetic Book</h4></a><div class=\"posts__content\"><p>Synthetic card excerpt long enough to pass the fifty character minimum of the crawler.</p></div></article></div></main></body></html>",
+ "details": {
+  "https://canurb.org/publications/synthetic-report/": "<html><head><meta property=\"og:url\" content=\"https://canurb.org/publications/synthetic-report/\"><meta property=\"og:description\" content=\"Synthetic social description.\"><script type=\"application/ld+json\">{\"@graph\":[{\"@type\":\"WebPage\",\"datePublished\":\"2031-02-03T10:00:00+00:00\"}]}</script></head><body class=\"postid-90001 category-research-report\"><article><h1 class=\"entry-title\">Synthetic Report (Detail)</h1><div class=\"single__date\"><h3>Date:</h3><div>March 2031</div></div><div class=\"the__content\"><p>Synthetic body text for the offline equality test of the enumeration split; it imitates the structure of a publication page only and carries no real content.</p></div><a href=\"/wp-content/uploads/synthetic-summary.pdf\">Executive summary</a><a href=\"/wp-content/uploads/synthetic-final.pdf\">Final Report</a><div class=\"posts__tag\"><a>Housing</a><a>Climate</a></div></article><aside><a href=\"/wp-content/uploads/other.pdf\">Other</a></aside></body></html>",
+  "https://canurb.org/publications/": "<html><body><main><div class=\"facetwp-template\"><article class=\"post-90001 publications type-publications category-research-report\"><a href=\"https://canurb.org/publications/synthetic-report/\"><h4>Synthetic Report</h4></a><div class=\"posts__content\"><p>Short.</p></div></article><article class=\"post-90002 publications type-publications category-brief\"><a href=\"https://canurb.org/wp-content/uploads/synthetic-brief.pdf\"><h4>Synthetic Brief</h4></a><div class=\"posts__content\"><p>Synthetic card excerpt long enough to pass the fifty character minimum of the crawler.</p></div></article><article class=\"post-90003 publications type-publications category-book\"><a href=\"https://publisher.example.org/synthetic-book\"><h4>Synthetic Book</h4></a><div class=\"posts__content\"><p>Synthetic card excerpt long enough to pass the fifty character minimum of the crawler.</p></div></article></div></main></body></html>"
+ },
+ "original_method_source_sha256": {
+  "crawl": "babe1f80d70f123626f029093775aa90ecc3ce9fa0e2417c8dc0e963e05798f8",
+  "_crawl_listing": "7a22781d011f09004d0ea8a70291e168386e52ed1e17207ffd1b3fb7ca0a907a",
+  "_parse_list": "1bdae4ff2781a68f97aeed6ba6a3a5a44f66ab91ec586789721acaf9518ca3cb",
+  "_process_record": "1e5e1532ef9ea821f7b25590018baeeee4a7ee5507eaec988530c8bb23c486af",
+  "_save_linked_publication": "69006567ed53a30e7ccddb5af8096ddda31c4f3c2a560472ddc75d0744f0d7d4",
+  "_extract_published_date": "403dceb43ff1c3e37f12f1e437b73177a72c68e4a356d7c8a47d7058ee96169c",
+  "_detail_publication_date": "6d7022eb289ad8aa661e85d7572d606a840aa2b3f58302c4c1c979b92ffa3a5c",
+  "_extract_body_text": "ba694fb853cae39dffe86f5d4c0cc7c3c6fce40ebe7758fa90792a61f97509e3",
+  "_find_pdf_url": "43850f9bc926b728cef5f8f088f0540981a1eabe39fe3de62e2647a224b77804",
+  "_pdf_links": "94ee15b50a721ded5fdff10414f58cce04e27b2b0e9e510292ec479a4f73e586",
+  "_extract_keywords": "e29f36ece72fc92af65bbb79a95379610f0f6761e2f6b5252a2629a22fe01da9",
+  "_post_id_from_body": "af7fb3fc68af410155265992dcb5b4d75838061a4a7e042abbdb77c0b258ecbf",
+  "_slug_from_url": "420664cf73c1bab12df12ef87a199271f3fabf0110831a367fbbbc926f95f9f1",
+  "_has_next_page": "f57c9f9d6b4de126cdbf36d987efd606aefbb7727b0d0591cd1638d490cf15b2",
+  "_meta": "fd478fb7d2b29eb0624bf8474c62be4952b5a7a2a14c76886d68e1199e7a18cd",
+  "_clean_text": "79669c22052968e1a40605acbb223be0249a52b894b5cd3afe2e0c02895e671a",
+  "_make_soup": "13d0189f86eb73c90e3bbc923c0fca64f176a2757e546072fcc41051833b9606",
+  "_curl_get": "687306548aa99f49bf27b0be5af53425a6c07640179925ddadc872ea7d1d1c61"
+ }
+}

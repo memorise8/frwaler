@@ -49,7 +49,7 @@
   "canurb-org-publications": {
     "reason": "listing_dates_absent_and_wordpress_ids_nonmonotonic_in_complete_public_catalogue",
     "classification": "full_rescan_required",
-    "source_sha256": "21dfff8ec208010ce69f701114a625da4bb17f27f09e2512d36423e5476a14bc",
+    "source_sha256": "d578c866fd12ea50aa7a822b393604df39cd6488179f6c24fb0b11a7e3188bd2",
     "reviewed_at": "2026-10-11T18:56:04.361160+00:00",
     "evidence": "incremental-rollout-20261012/batch-017-canurb/order-review.json",
     "evidence_sha256": "4e1bd8403f8632433c6d2779bb1d05ac459f76b9bb88045b9ed87a87d4d1f113",
