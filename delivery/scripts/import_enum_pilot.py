@@ -37,6 +37,9 @@ CONTENT = ("title", "published_date", "listed_date", "authors", "publisher", "jo
            "published_date_raw", "published_date_status", "listed_date_raw", "listed_date_status")
 # crawler/document_identity.py 에 사이트별 식별 규칙이 있는 곳: 자동 반영 금지
 SPECIAL_IDENTITY = {"krivet-re-kr", "kei-re-kr-eliblistes", "cso-ie-en"}
+# 등록 수집기가 post_number 하나에 여러 행(meta_url 다름, 예: 같은 호의 언어별 PDF)을 저장하는 사이트.
+# 틀 plan 의 adapter.allow_shared_post_number 와 짝: 같은 post_number·다른 meta_url 은 충돌이 아니라 다른 문서.
+SHARED_POST_NUMBER = {"meri-belspo-be-site"}
 # 구역 세션 판정(dev-flow site-status/*.csv)이 이러면 자동 반영하지 않는다
 HOLD_STATES = {"needs_dev", "blocked_access", "moved", "no_crawler", "skip", "plan_written"}
 # 제품 sites 에 없는 enum 사이트 ID 는 crawler/sites/configs/<id>.json 의 별도 설정형 수집기다(납품 806곳 밖).
@@ -107,6 +110,83 @@ for p in dbs:
 '''
 
 
+# 서버 안에서 도는 넣기: 원본 sqlite 행을 읽어 같은 서버의 대상 컨테이너 psql 로 넣는다. 문서 행은 서버
+# 밖으로 나오지 않고, 이 컴퓨터로는 청크마다 건수와 (seq_id, post_number, meta_url) 만 돌아온다.
+# 매니페스트는 서버에도 fsync 해서 남긴다(연결이 끊겨도 되돌릴 수 있게). 아래 copy_text·insert_sql 소스를 붙여 보낸다.
+SERVER_APPLY_MAIN = r'''
+import glob, json, os, sqlite3, subprocess, sys, time
+q = json.loads(sys.stdin.readline())
+FIELDS = tuple(q["fields"])
+want = {}
+for line in sys.stdin:
+    k = json.loads(line)
+    want.setdefault(k[2], set()).add((k[0], k[1]))
+manifest = os.path.expanduser(q["manifest"]) if q["finish"] == "COMMIT" else None
+if manifest:
+    os.makedirs(os.path.dirname(manifest), exist_ok=True)
+psql = ["docker", "exec", "-i", q["target"], "psql", "-U", "libertree", "-d", "libertree", "-At", "-F", "\t"]
+def flush(rows):
+    r = subprocess.run(psql, input=insert_sql(q["product"], rows, q["finish"]), capture_output=True, text=True)
+    if r.returncode != 0:
+        print(json.dumps({"t": "error", "error": r.stderr[-500:]}), flush=True)
+        sys.exit(2)
+    out = [l.split("\t") for l in r.stdout.splitlines()]
+    got = [[int(x[1]), x[2], x[3]] for x in out if x[0] == "row"]
+    if manifest:
+        with open(manifest, "a") as f:
+            for seq, post, url in got:
+                f.write(json.dumps({"batch": q["batch"], "target": q["target"], "seq_id": seq, "site_id": q["product"],
+                                    "post_number": post, "meta_url": url}, ensure_ascii=False) + "\n")
+            f.flush()
+            os.fsync(f.fileno())
+    print(json.dumps({"t": "chunk", "tried": len(rows), "rows": got,
+                      "inserted": next((int(x[1]) for x in out if x[0] == "inserted"), 0),
+                      "fts_ok": next((int(x[1]) for x in out if x[0] == "fts_ok"), 0)}, ensure_ascii=False), flush=True)
+    time.sleep(q.get("pause", 0))
+buf = []
+for p in sorted(glob.glob(q["root"] + "/*/data/enum_pilot.db")):
+    folder = p[len(q["root"]) + 1:].split("/")[0]
+    keys = want.get(folder)
+    if not keys:
+        continue
+    c = sqlite3.connect("file:%s?mode=ro" % p, uri=True, timeout=10)
+    c.row_factory = sqlite3.Row
+    for row in c.execute("select * from documents where site_id=? order by collected_at desc, seq_id desc", (q["site"],)):
+        k = (None if row["post_number"] is None else str(row["post_number"]), row["meta_url"])
+        if k in keys:
+            keys.discard(k)
+            d = {f: row[f] for f in row.keys() if f in FIELDS}
+            d["post_number"] = k[0]
+            buf.append(d)
+            if len(buf) >= q["chunk"]:
+                flush(buf)
+                buf = []
+if buf:
+    flush(buf)
+print(json.dumps({"t": "done", "missing": sum(len(v) for v in want.values())}), flush=True)
+'''
+
+
+def server_apply(args, enum_site, product, keys, finish):
+    """SERVER_APPLY_MAIN 을 서버에서 돌리고 청크 결과(JSON 줄)를 흘린다."""
+    import inspect
+    code = "import re\n" + inspect.getsource(copy_text) + "\n" + inspect.getsource(insert_sql) + SERVER_APPLY_MAIN
+    q = {"root": RUNS_ROOT, "site": enum_site, "product": product, "target": args.target, "chunk": args.chunk,
+         "finish": finish, "fields": FIELDS, "batch": args.batch or "", "pause": args.pause,
+         "manifest": "~/enum-import/import-manifest-%s.jsonl" % (args.batch or "test")}
+    b64 = base64.b64encode(code.encode()).decode()
+    p = subprocess.Popen(SSH + ["PATH=$HOME/bin:$PATH python3 -c 'import base64,sys;exec(base64.b64decode(sys.argv[1]).decode())' "
+                                + b64], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+    p.stdin.write(json.dumps(q) + "\n")
+    for k in keys:
+        p.stdin.write(json.dumps(k) + "\n")
+    p.stdin.close()
+    for line in p.stdout:
+        yield json.loads(line)
+    if p.wait() != 0:
+        raise RuntimeError("서버 넣기 실패(%s)" % enum_site)
+
+
 def server_sqlite(site, mode, folders=None, keys=None):
     """서버에서 조회를 돌린다. 코드는 인자(base64)로, 입력(설정 한 줄 + 키 줄들)은 stdin 으로 보낸다."""
     q = {"root": RUNS_ROOT, "site": site, "mode": mode, "folders": folders, "content": CONTENT, "fields": FIELDS}
@@ -132,8 +212,9 @@ def unescape_copy(v):
 
 def psql_copy(container, sql, ssh=False):
     """docker exec <컨테이너> psql 로 COPY (...) TO STDOUT 를 한 줄씩 흘린다."""
-    cmd = ["docker", "exec", container, "psql", "-U", "libertree", "-d", "libertree", "-v", "ON_ERROR_STOP=1", "-At", "-c",
-           "copy (%s) to stdout" % sql]
+    # 읽기만 한다: 세션 전체를 읽기 전용 트랜잭션으로(대상이 운영·격리 스택이어도 쓰기 불가)
+    cmd = ["docker", "exec", "-e", "PGOPTIONS=-c default_transaction_read_only=on", container, "psql", "-U", "libertree",
+           "-d", "libertree", "-v", "ON_ERROR_STOP=1", "-At", "-c", "copy (%s) to stdout" % sql]
     if ssh:
         cmd = SSH + ["PATH=$HOME/bin:$PATH " + " ".join("'%s'" % a.replace("'", "'\\''") for a in cmd)]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, text=True)
@@ -147,13 +228,17 @@ def lit(s):
     return "'" + s.replace("'", "''") + "'"
 
 
+REMOTE_TARGET = False  # --target-remote: 대상 컨테이너가 서버에 있음(키만 SSH 로 읽음)
+
+
 def target_sites(container):
-    return {r[0] for r in psql_copy(container, "select site_id from sites")}
+    return {r[0] for r in psql_copy(container, "select site_id from sites", ssh=REMOTE_TARGET)}
 
 
 def target_keys(container, site):
     by_post, by_url, exact = {}, {}, set()
-    for post, url in psql_copy(container, "select post_number, meta_url from documents where site_id=%s" % lit(site)):
+    for post, url in psql_copy(container, "select post_number, meta_url from documents where site_id=%s" % lit(site),
+                               ssh=REMOTE_TARGET):
         exact.add((post, url))
         by_post.setdefault(post, set()).add(url)
         by_url.setdefault(url, set()).add(post)
@@ -239,8 +324,9 @@ def plan_site(args, enum_site, product_site, how, sites):
     # - 한 post_number 에 여러 URL: 그 post_number 가 있는 가장 최근 폴더에서 URL 이 하나면 그 행을 쓰고(drop 에 나머지), 여럿이면 제외
     # - 한 URL 에 여러 post_number: 가져오지 않고 보고
     source_conflict, drop = set(), set()
+    shared = product_site in SHARED_POST_NUMBER
     for p, fs in posts.items():
-        if len({u for us in fs.values() for u in us}) <= 1:
+        if shared or len({u for us in fs.values() for u in us}) <= 1:
             continue
         newest = max(fs, key=lambda f: folder_max.get(f, ("", "")))
         if len(fs[newest]) == 1:
@@ -265,7 +351,7 @@ def plan_site(args, enum_site, product_site, how, sites):
             c["excluded_null_post"] += 1  # 제품 고유 인덱스가 NULL post_number 를 막지 못한다
         elif (post, url) in exact:
             c["exists"] += 1
-        elif post in by_post:
+        elif post in by_post and not shared:
             c["post_conflict"] += 1
         elif url in by_url:
             c["url_conflict"] += 1
@@ -413,8 +499,11 @@ def insert_sql(product_site, rows, finish):
 
 
 def run_psql(container, script):
-    r = subprocess.run(["docker", "exec", "-i", container, "psql", "-U", "libertree", "-d", "libertree", "-At", "-F", "\t"],
-                       input=script, capture_output=True, text=True)
+    cmd = ["docker", "exec", "-i", container, "psql", "-U", "libertree", "-d", "libertree", "-At", "-F", "\t"]
+    if REMOTE_TARGET:
+        # 키·seq_id 만 담긴 스크립트(되돌리기)만 이 길로 간다. 문서 행은 SERVER_APPLY 로 서버 안에서만.
+        cmd = SSH + ["PATH=$HOME/bin:$PATH " + " ".join("'%s'" % a.replace("'", "'\\''") for a in cmd)]
+    r = subprocess.run(cmd, input=script, capture_output=True, text=True)
     if r.returncode != 0:
         raise RuntimeError("psql 실패: " + r.stderr[-500:])
     return [l.split("\t") for l in r.stdout.splitlines()]
@@ -429,6 +518,8 @@ def main():
     ap.add_argument("--sci-container", default="ui-sci-20261013-postgres-1")
     ap.add_argument("--folders", nargs="*", help="이 실행 폴더만 (기본: 그 사이트가 있는 모든 폴더)")
     ap.add_argument("--target", default="ui-check-20261013-postgres-1", help="제품 스키마 Postgres 컨테이너")
+    ap.add_argument("--target-remote", action="store_true",
+                    help="대상 컨테이너가 서버에 있음: plan 은 키만 SSH 로 읽고(읽기 전용), 넣기는 서버 안에서만")
     ap.add_argument("--site-map", help="CSV enum_site_id,product_site_id")
     ap.add_argument("--sample", type=int, default=50, help="rollback-test 표본 수(사이트당)")
     ap.add_argument("--out", default="import-report.json")
@@ -438,9 +529,15 @@ def main():
     ap.add_argument("--manifest", help="rollback 할 매니페스트")
     ap.add_argument("--approved-plan", help="apply: 사용자가 검토·승인한 plan 보고서(JSON). 다시 계산한 결과가 같아야 넣는다")
     ap.add_argument("--chunk", type=int, default=10000, help="apply: 한 트랜잭션에 넣을 행 수")
+    ap.add_argument("--pause", type=float, default=1.0, help="--target-remote 넣기: 청크 사이 쉬는 초(같은 DB 의 다른 작업 부하)")
     args = ap.parse_args()
     if args.target.lower().startswith("temis") or args.sci_container.lower().startswith("temis"):
         sys.exit("temis 는 다루지 않는다")
+    global REMOTE_TARGET
+    REMOTE_TARGET = args.target_remote
+    if REMOTE_TARGET and args.target != "ui-sci-20261013-postgres-1" and args.mode != "plan":
+        # 넣기 대상으로 정해진 곳은 격리 스택 ui-sci 뿐(사용자 결정 2026-10-18). 운영 컨테이너는 넣기 금지.
+        sys.exit("--target-remote 넣기·되돌리기 대상은 ui-sci-20261013-postgres-1 만")
     if args.mode == "rollback":
         return rollback(args)
     approved = {}
@@ -473,12 +570,19 @@ def main():
             sys.exit("폴더 형식 오류: %s" % f)
     smap = load_site_map(args.site_map, enum_ids, sites)
     report = {"at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"), "mode": args.mode, "source": args.source,
-              "target": args.target, "sites": []}
+              "target": args.target, "target_remote": REMOTE_TARGET, "sites": []}
     for e in enum_ids:
         product, how = smap[e]
         print("== %s → %s (%s)" % (e, product, how), file=sys.stderr, flush=True)
         rep, new = plan_site(args, e, product, how, sites)
-        if args.mode == "rollback-test" and new and args.source == "sqlite":
+        if args.mode == "rollback-test" and new and args.source == "sqlite" and REMOTE_TARGET:
+            res = {"tried": 0, "inserted": 0, "fts_ok": 0}
+            for x in server_apply(args, e, product, new[:args.sample], "ROLLBACK"):
+                if x["t"] == "chunk":
+                    for k in res:
+                        res[k] += x[k]
+            rep["insert_test"] = res
+        elif args.mode == "rollback-test" and new and args.source == "sqlite":
             rows = next(iter_rows(e, new[:args.sample], args.sample), [])
             out = run_psql(args.target, insert_sql(product, rows, "ROLLBACK"))
             rep["insert_test"] = {"tried": len(rows), "inserted": next((int(r[1]) for r in out if r[0] == "inserted"), 0),
@@ -501,6 +605,25 @@ def apply_site(args, enum_site, product, new):
     """chunk 단위 트랜잭션. 커밋할 때마다 매니페스트에 바로 적고 fsync 한다(중간에 멈춰도 되돌릴 수 있게)."""
     mp = "import-manifest-%s.jsonl" % args.batch
     done = {"tried": 0, "inserted": 0, "fts_ok": 0, "chunks": 0, "manifest": mp}
+    if REMOTE_TARGET:
+        done["server_manifest"] = "~/enum-import/import-manifest-%s.jsonl" % args.batch
+        with open(mp, "a") as f:
+            for x in server_apply(args, enum_site, product, new, "COMMIT"):
+                if x["t"] == "error":
+                    raise RuntimeError(x["error"])
+                if x["t"] == "done":
+                    done["missing_source_rows"] = x["missing"]
+                    continue
+                for seq, post, url in x["rows"]:
+                    f.write(json.dumps({"batch": args.batch, "target": args.target, "seq_id": seq, "site_id": product,
+                                        "post_number": post, "meta_url": url}, ensure_ascii=False) + "\n")
+                f.flush()
+                os.fsync(f.fileno())
+                for k in ("tried", "inserted", "fts_ok"):
+                    done[k] += x[k]
+                done["chunks"] += 1
+                print("  %s: %d/%d" % (enum_site, done["tried"], len(new)), file=sys.stderr, flush=True)
+        return done
     with open(mp, "a") as f:
         for rows in iter_rows(enum_site, new, args.chunk):
             out = run_psql(args.target, insert_sql(product, rows, "COMMIT"))
