@@ -378,3 +378,63 @@ class WerkBelgieBeNlCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # parsers above stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """News rows of one ?page=N list page, exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        return self._parse_listing(html)
+
+    def _enumeration_paper(self, html, item):
+        """Copy of crawl()'s paper conversion (detail page fetched by the framework);
+        None keeps crawl()'s skips."""
+        detail_url = item["detail_url"]
+        abstract = item["teaser"]
+        pub_date = item["pub_date"]
+        category = item["category"]
+        pdf_url = None
+        original_filename = None
+        keywords = ""
+        if html:
+            detail = self._parse_detail(html, item)
+            if detail:
+                abstract = detail["abstract"] or abstract
+                pub_date = detail["pub_date"] or pub_date
+                category = detail["category"] or category
+                pdf_url = detail["pdf_url"]
+                original_filename = detail["original_filename"]
+                keywords = detail["keywords"]
+        if len(abstract) < 50:
+            return None
+        return {
+            "site_id": self.site_id,
+            "external_id": item["slug"],
+            "post_number": item["slug"],
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": pub_date,
+            "posted_date": item["listed_date"],
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "keywords": keywords,
+            "category": category,
+            "authors": "",
+            "publisher": (
+                "Federale Overheidsdienst Werkgelegenheid, "
+                "Arbeid en Sociaal Overleg"
+            ),
+            "department": "",
+            "journal": "",
+            "doi": "",
+            "metadata": json.dumps({
+                "posted_date": item["listed_date"],
+                "slug": item["slug"],
+                "category": category,
+            }, ensure_ascii=False),
+        }

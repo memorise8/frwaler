@@ -1,0 +1,45 @@
+{
+ "version": 1,
+ "defaults": {
+  "request_interval_s": 1.5,
+  "respect_robots": true,
+  "retries": 1
+ },
+ "sites": {
+  "werk-belgie-be-nl": {
+   "strategy": "last_page_backward",
+   "base_url": "https://werk.belgie.be",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "html",
+     "url"
+    ],
+    "detail_method": "_enumeration_paper",
+    "detail_args": [
+     "html",
+     "item"
+    ]
+   },
+   "listing": {
+    "url": "https://werk.belgie.be/nl/nieuws",
+    "params": {
+     "page": 0
+    },
+    "page_param": "page",
+    "start_page": 0,
+    "parser": {
+     "type": "adapter",
+     "key_field": "detail_url",
+     "url_field": "detail_url",
+     "title_field": "title",
+     "listing_marker": ".view"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1
+   }
+  }
+ }
+}

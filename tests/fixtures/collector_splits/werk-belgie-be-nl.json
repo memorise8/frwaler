@@ -1,0 +1,20 @@
+{
+ "site_id": "werk-belgie-be-nl",
+ "listing_body": "<html><body><div class=\"view view-news\"><ul><li class=\"views-row\"><article><div class=\"field--name-node-title\"><a href=\"/nl/news/statistieken-herstructureringen\">Statistieken over herstructureringen</a></div><div class=\"field--name-dynamic-token-fieldnode-publication-day\"><time datetime=\"2026-10-16T10:00:00Z\">x</time></div><div class=\"field--name-field-theme\"><a href=\"/nl/t\">Statistieken</a></div><div class=\"field--name-body\">Korte teaser</div></article></li><li class=\"views-row\"><article><div class=\"field--name-node-title\"><a href=\"/nl/news/werelddag-mentale-gezondheid\">Werelddag van de Mentale Gezondheid</a></div><div class=\"field--name-dynamic-token-fieldnode-publication-day\"><time datetime=\"2026-10-09T10:00:00Z\">x</time></div><div class=\"field--name-field-theme\"><a href=\"/nl/t\">Statistieken</a></div><div class=\"field--name-body\">Korte teaser twee</div></article></li></ul></div></body></html>",
+ "empty_body": "<html><body><div class=\"view view-news\"><div class=\"view-empty\">Geen resultaten</div></div></body></html>",
+ "content_type": "text/html",
+ "long_text": "Synthetische nieuwstekst voor de offline test van de splitsing: de FOD Werkgelegenheid publiceert statistieken over herstructureringen voor de periode.",
+ "details": {
+  "https://werk.belgie.be/nl/news/statistieken-herstructureringen": "<html><head><meta name=\"keywords\" content=\"werk, statistiek\"></head><body><div class=\"field--name-field-publication-date\"><time datetime=\"2026-10-16T10:00:00Z\">x</time></div><div class=\"field--name-body\"><p>Synthetische nieuwstekst voor de offline test van de splitsing: de FOD Werkgelegenheid publiceert statistieken over herstructureringen voor de periode.</p><a href=\"/sites/default/files/content/stat.pdf\">pdf</a></div></body></html>",
+  "https://werk.belgie.be/nl/news/werelddag-mentale-gezondheid": "<html><head><meta name=\"keywords\" content=\"werk, statistiek\"></head><body><div class=\"field--name-field-publication-date\"><time datetime=\"2026-10-16T10:00:00Z\">x</time></div><div class=\"field--name-body\"><p>Synthetische nieuwstekst voor de offline test van de splitsing: de FOD Werkgelegenheid publiceert statistieken over herstructureringen voor de periode.</p></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_curl_get": "7bbae0f0956248403b08b4725ce1f1aee5308a212c89dbe401168dccac2ec6ea",
+  "_make_soup": "658943c90c0237b213daab4934e2be19e064794ea7152acfafc2892d70f12979",
+  "_clean": "5345dcd9b010bad51fa6ddb7f5eb2ad533a73b5814d8831d856800c683236172",
+  "_parse_date": "3767fd6f039f3d2542e15fda0153936b279480b389dbb5468e21f086168b42c2",
+  "_parse_listing": "94fd52c06ee75bfc0eda1a6b8e2c34ac11d9b052af1ac3bc9d6e4ff893ab1631",
+  "_parse_detail": "b3ed2d7e90dbe325a7c94b137cd9a379bc85d0c2ccb4014dbd3bb180f219386a",
+  "crawl": "a44902ac97df4f3e940cbd7b408559a1179211a57500a4c732302d6d4a683e22"
+ }
+}
