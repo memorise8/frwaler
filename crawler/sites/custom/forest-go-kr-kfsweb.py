@@ -231,6 +231,89 @@ class ForestGoKrKfswebCrawler(BaseCrawler):
         return result
 
     # ------------------------------------------------------------------
+    # Pure enumeration conversion (no network; crawl() is unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List page → row dicts via the registered list parser.
+
+        Without the board's list element (``ul.lst_thumb``) and page counter the
+        response is a listing parse error; both present with no rows (past the
+        last page) is a valid empty page.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        soup = _make_soup(html, "enumeration list")
+        if soup is None or soup.select_one("ul.lst_thumb") is None or soup.select_one("span.paging_count") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_marker", url)
+        rows = []
+        for item in self._parse_list(html):
+            ntt_id = item["nttId"]
+            rows.append(dict(item, external_id=ntt_id, url=(
+                f"{_BASE}/kfsweb/cop/bbs/selectBoardArticle.do"
+                f"?nttId={ntt_id}&bbsId={_BBS_ID}&mn={_MN}"
+            )))
+        return rows
+
+    def _enumeration_detail(self, html, item):
+        return self._parse_detail(html, item["nttId"])
+
+    def _enumeration_paper(self, item, detail):
+        """Pure copy of crawl()'s Paper conversion and skip rule (None = skipped)."""
+        ntt_id = item["nttId"]
+        detail_url = (
+            f"{_BASE}/kfsweb/cop/bbs/selectBoardArticle.do"
+            f"?nttId={ntt_id}&bbsId={_BBS_ID}&mn={_MN}"
+        )
+        title = detail["title"] or item["title"]
+        if not title:
+            title = f"산림청 보도자료 {ntt_id}"
+
+        abstract = detail["abstract"]
+        if not abstract or len(abstract) < 100:
+            preview = item["preview"]
+            if len(preview) > len(abstract):
+                abstract = preview
+
+        if len(abstract) < 100:
+            return None
+
+        raw_date = detail["published_date"] or item["date"]
+        m = re.search(r"(\d{4})[-./](\d{1,2})[-./](\d{1,2})", raw_date)
+        pub_date = (
+            f"{m.group(1)}-{int(m.group(2)):02d}-{int(m.group(3)):02d}"
+            if m else raw_date
+        )
+
+        file_links = detail["file_links"]
+        pdf_url = file_links[0] if file_links else None
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": ntt_id,
+            "title": title,
+            "authors": detail["author"] or "",
+            "abstract": abstract,
+            "category": "보도자료",
+            "keywords": "",
+            "published_date": pub_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "doi": "",
+            "department": detail["department"] or "산림청",
+            "metadata": json.dumps({
+                "posted_date": item["date"],
+                "nttId": ntt_id,
+                "bbsId": _BBS_ID,
+                "author_raw": f"{detail['department']} / {detail['author']}".strip(" /"),
+                "preview": item["preview"],
+                "file_links": file_links,
+            }, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
