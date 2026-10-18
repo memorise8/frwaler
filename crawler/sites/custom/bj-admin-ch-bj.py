@@ -338,3 +338,53 @@ class BjAdminChBjCrawler(BaseCrawler):
             return ""
         m = re.match(r"(\d{4}-\d{2}-\d{2})", value)
         return m.group(1) if m else ""
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() and its transport are unchanged.
+    # The search API row already carries everything crawl() saves, so the
+    # listing returns the same paper dicts (list_returns_paper).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, payload):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(payload, dict) or not isinstance(payload.get("items"), list):
+            raise PermanentFailure("listing_parse_error:invalid_bj_envelope")
+        papers = []
+        for item in payload["items"]:
+            if not isinstance(item, dict):
+                raise PermanentFailure("listing_parse_error:invalid_bj_record")
+            paper = self._enumeration_paper_from_item(item)
+            if paper is not None:
+                papers.append(paper)
+        return papers
+
+    def _enumeration_paper_from_item(self, item):
+        record = self._build_record(item)
+        if record is None:
+            return None
+        url = record["url"]
+        abstract = record.get("abstract") or ""
+        if len(abstract) < _MIN_ABSTRACT_CHARS:
+            return None
+        return {
+            "id": str(uuid.uuid5(uuid.NAMESPACE_URL, url)),
+            "site_id": self.site_id,
+            "external_id": record["external_id"],
+            "post_number": record["post_number"],
+            "title": record["title"],
+            "abstract": abstract,
+            "published_date": record["published_date"],
+            "listed_date": record["listed_date"],
+            "url": url,
+            "pdf_url": None,
+            "doi": None,
+            "authors": None,
+            "publisher": "Federal Office of Justice",
+            "department": "Federal Office of Justice",
+            "journal": None,
+            "category": "Press Release",
+            "keywords": "",
+            "posted_date": record["listed_date"],
+            "original_filename": None,
+            "metadata": json.dumps(record["metadata"], ensure_ascii=False),
+        }

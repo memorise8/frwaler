@@ -1,0 +1,83 @@
+{
+ "listing": {
+  "items": [
+   {
+    "id": "bj_3",
+    "title": "Press release 3",
+    "description": "A sufficiently long description of the press release number three, well over fifty characters.",
+    "text": [
+     "<p>The Federal Office of Justice today published a report on the revision of the civil code concerning inheritance law and related matters.</p>"
+    ],
+    "publishDate": "2026-03-01T08:00:00Z",
+    "newsCategory": "medienmitteilung",
+    "publishers": [
+     "29"
+    ],
+    "coPublishers": [],
+    "location": "Bern",
+    "content": {
+     "metadata": {
+      "slug": "press-3-slug"
+     },
+     "systemdata": {
+      "documentId": 1003,
+      "visiblePublicationDate": "2026-03-02T00:00:00Z"
+     }
+    }
+   },
+   {
+    "id": "bj_2",
+    "title": "Press release 2",
+    "description": "short",
+    "text": [
+     "<p>The Federal Office of Justice today published a report on the revision of the civil code concerning inheritance law and related matters.</p>"
+    ],
+    "publishDate": "2026-02-01T08:00:00Z",
+    "newsCategory": "medienmitteilung",
+    "publishers": [
+     "29"
+    ],
+    "coPublishers": [],
+    "location": "Bern",
+    "content": {
+     "metadata": {
+      "slug": "press-2-slug"
+     },
+     "systemdata": {
+      "documentId": 1002,
+      "visiblePublicationDate": "2026-02-02T00:00:00Z"
+     }
+    }
+   },
+   {
+    "id": "bj_1",
+    "title": "Press release 1",
+    "description": "",
+    "text": [
+     "<b>x</b>"
+    ],
+    "publishDate": "2026-01-01T08:00:00Z",
+    "newsCategory": "medienmitteilung",
+    "publishers": [
+     "29"
+    ],
+    "coPublishers": [],
+    "location": "Bern",
+    "content": {
+     "metadata": {
+      "slug": "press-1-slug"
+     },
+     "systemdata": {
+      "documentId": 1001,
+      "visiblePublicationDate": "2026-01-02T00:00:00Z"
+     }
+    }
+   }
+  ],
+  "pageResults": 3
+ },
+ "empty": {
+  "items": [],
+  "pageResults": 3
+ }
+}
