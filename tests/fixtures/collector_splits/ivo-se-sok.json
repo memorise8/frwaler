@@ -1,0 +1,34 @@
+{
+  "site_id": "ivo-se-sok",
+  "listing_body": "<html><body><header><a href=\"/\">IVO</a></header><main><div id=\"search-result\"><a class=\"search-article\" href=\"/publicerat-material/offline-1/\"><span class=\"category\">Rapport</span><h2>Offline 1</h2><span class=\"published-date\">Publicerad 2026-01-01</span><p class=\"search-article__excerpt\">Kort utdrag offline-1</p></a><a class=\"search-article\" href=\"/publicerat-material/offline-2/\"><span class=\"category\">Rapport</span><h2>Offline 2</h2><span class=\"published-date\">Publicerad 2026-02-02</span><p class=\"search-article__excerpt\">Kort utdrag offline-2</p></a></div></main></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.ivo.se/publicerat-material/offline-1/": "<html><head><link rel=\"canonical\" href=\"https://www.ivo.se/publicerat-material/offline-1/\" /><meta property=\"og:title\" content=\"OG 1\" /></head><body><h1 class=\"hero__heading\">Offline 1 detalj</h1><div class=\"article-meta\"><span>Rapport</span><span>2026-01-01</span></div><aside><div class=\"publication-meta-property\"><h2>Utgivningsdatum</h2>2026-01-11</div><div class=\"publication-meta-property\"><h2>Diarienummer</h2>3.5.1-12341/2026</div><div class=\"publication-meta-property\"><h2>Publikationsnummer</h2>IVO 2026-1</div><a href=\"/globalassets/offline-1.pdf?v=2\">PDF</a></aside><p class=\"ingress\">Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p><div class=\"mainbody bodytext\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></div><p class=\"last-update\">Senast uppdaterad 2026-10-01</p></body></html>",
+    "https://www.ivo.se/publicerat-material/offline-2/": "<html><head><link rel=\"canonical\" href=\"https://www.ivo.se/publicerat-material/offline-2/\" /><meta property=\"og:title\" content=\"OG 2\" /></head><body><h1 class=\"hero__heading\">Offline 2 detalj</h1><div class=\"article-meta\"><span>Rapport</span><span>2026-02-02</span></div><aside><div class=\"publication-meta-property\"><h2>Utgivningsdatum</h2>2026-02-12</div><div class=\"publication-meta-property\"><h2>Diarienummer</h2>3.5.1-12342/2026</div><a href=\"/globalassets/offline-2.pdf?v=2\">PDF</a></aside><p class=\"ingress\">Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p><div class=\"mainbody bodytext\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></div><p class=\"last-update\">Senast uppdaterad 2026-10-02</p></body></html>"
+  },
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "empty_body": "<html><body><main><div id=\"search-result\"><p>Inga träffar</p></div></main></body></html>",
+  "original_method_source_sha256": {
+    "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+    "crawl": "bb6ef179703aaa8b9374c2eee32a9b92fe0e9be48d4e5c0757c3dc4be7c6a820",
+    "_fetch_search_page": "cd204735f3a611ecfb8bf60643928584dbd2db730370a125a2367b5c4d28de38",
+    "_parse_search_records": "50bdc2ded610abcc883b99dc0cd2f241062468d989aaba4753e0531472c85da5",
+    "_build_paper": "0854d3603af167257d3a0c66c9744a394430afb312a376d0247866675e5898a6",
+    "_publication_meta": "0341db7fd55f1f393d9c9200210a53386ead8168a5799c50e1afd71b45233140",
+    "_first_pdf_url": "385f360b6338ded859a06b2fdc7102b577fced8b3fd0852aff6d7c0592f61fff",
+    "_curl_text": "79415e733dcca67ceb69458a372d1067178730892d2077c6e1ac4b774dcb505f",
+    "_make_soup": "94b15a294e2b2796552762b8793ae80036b2d73b86815faeec868a4d0388f71e",
+    "_canonical_url": "d531aab2e038e84d9b63eb5cb58d112aa9ac45541ef22be0de5556394aded409",
+    "_clean_url": "93527c3d49bace5c1969f9af6b08326a21d1965c8153a1983a30cdbfe11fd20a",
+    "_slug_from_url": "2956b803f3d3d3793697c5226a26e9b65f68376140d9a2225ea92af9118f101d",
+    "_filename_from_url": "410e2f91fc830079e91008df322e65a219bcbe7e7bf9641ad9e0e1e5a6c6e872",
+    "_meta_content": "b66b7f6ccecff6f96c56bcd361bca7a756993211cd3161392bca811ba83acba7",
+    "_parse_iso_date": "d797ef863a3ddebdded5481a3fe5e494fdb26d344fba424bfbbc983da4c8f09e",
+    "_numeric_token": "9d5f9260aca6fe0c6119b4d0060eb9c17b8442f668c76023f6643f7be59bf749",
+    "_int_or_none": "d906a7be947a86f9ef53fd6a497da2456ef4790f9efeaa2dfcb20dd837e67138",
+    "_budget_exceeded": "0dd7fc1e175bd2ffefa192f90bf2c347b481c9dd20c73369e2e40f3fb344c64d",
+    "_text_of": "90e94be9144a8a2f8dbb0009585eb38660b66a892aa87d065da8a1a2ed7f849a",
+    "_clean_text": "9d12c7b0163db8bc2dcfc77fc11250dccb76eb653213a6d96b48050770c85155",
+    "_join_parts": "c499a21661e473796b80c9e913821cfddec9e0ddbfb9f330d0932f2ddeb3d4d0"
+  }
+}

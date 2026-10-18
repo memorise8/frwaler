@@ -196,6 +196,33 @@ class IvoSeSokCrawler(BaseCrawler):
         return records
 
     # ------------------------------------------------------------------
+    # Pure enumeration conversion (no network): used by crawler.enumeration.
+    # crawl() is unchanged. The enumeration framework sends plain GET requests
+    # (no AJAX headers), so the listing is the server-rendered /sok/?...&p=N page,
+    # handled exactly like crawl()'s own non-JSON fallback (search meta = {}).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Server-rendered search page -> list records (crawl()'s fallback path)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html, context="enumeration listing")
+        container = soup.select_one("#search-result") if soup is not None else None
+        if container is None:
+            raise PermanentFailure("listing_parse_error:missing_search_result")
+        return self._parse_search_records(str(container))
+
+    def _enumeration_paper(self, html, item):
+        """Detail HTML + list record -> the paper crawl() saves, or None (skip)."""
+        if not html:
+            return None
+        paper = self._build_paper(item, html, {})
+        if len(paper.get("abstract") or "") < self.MIN_ABSTRACT_CHARS:
+            return None
+        return paper
+
+    # ------------------------------------------------------------------
     # Detail parsing
     # ------------------------------------------------------------------
 
