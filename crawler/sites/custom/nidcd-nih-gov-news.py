@@ -258,3 +258,78 @@ class NidcdNihGovNewsCrawler(BaseCrawler):
 
         print(f"[nidcd-nih-gov-news] crawl complete: {saved} items saved")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl(),
+    # _parse_list_page() and _fetch_abstract() stay unchanged.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """Rows of one list page, exactly as crawl() parses them (+ its page number)."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        page = (parse_qs(urlsplit(url or "").query).get("page") or ["0"])[0]
+        if not page.isdigit():
+            raise PermanentFailure("listing_parse_error:bad_page_param")
+        return [{"title": t, "url": u, "date_str": d, "page": int(page)}
+                for t, u, d in self._parse_list_page(html)]
+
+    def _enumeration_abstract(self, html):
+        """The parsing half of _fetch_abstract(url)."""
+        if not html:
+            return None
+        try:
+            soup = _make_soup(html)
+        except Exception:
+            return None
+        for attr, val in [
+            ("name", "description"),
+            ("property", "og:description"),
+            ("name", "twitter:description"),
+        ]:
+            tag = soup.find("meta", attrs={attr: val})
+            if tag and tag.get("content"):
+                text = tag["content"].strip()
+                if len(text) >= self.MIN_ABSTRACT_CHARS:
+                    return text
+        for cls in ("field--name-body", "field--type-text-with-summary", "field-item"):
+            container = soup.find(class_=cls)
+            if container:
+                text = re.sub(r"\s+", " ", container.get_text(separator=" ", strip=True)).strip()
+                if len(text) >= self.MIN_ABSTRACT_CHARS:
+                    return text[:2000]
+        article = soup.find("article")
+        if article:
+            text = re.sub(r"\s+", " ", article.get_text(separator=" ", strip=True)).strip()
+            if len(text) >= self.MIN_ABSTRACT_CHARS:
+                return text[:2000]
+        main = soup.find("main")
+        if main:
+            text = re.sub(r"\s+", " ", main.get_text(separator=" ", strip=True)).strip()
+            if len(text) >= self.MIN_ABSTRACT_CHARS:
+                return text[:2000]
+        return None
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s paper for one row; None keeps its short-abstract skip."""
+        url = item["url"]
+        abstract = self._enumeration_abstract(html)
+        if not abstract or len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        external_id = re.sub(r"^https?://", "", url).rstrip("/")
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": item["title"],
+            "authors": json.dumps([]),
+            "abstract": abstract,
+            "category": "news",
+            "keywords": json.dumps([]),
+            "published_date": item["date_str"],
+            "url": url,
+            "pdf_url": None,
+            "doi": None,
+            "department": "NIDCD",
+            "metadata": json.dumps({"source": "nidcd-news", "page": item["page"]}),
+        }

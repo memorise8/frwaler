@@ -1,0 +1,18 @@
+{
+ "site_id": "nidcd-nih-gov-news",
+ "listing_body": "<html><body><main><div class=\"block-system-main-block\"><div class=\"views-element-container\"><div class=\"item-list\"><ul><li><span class=\"views-field views-field-title\"><a href=\"/news/2025/scent\">News scent</a></span><span class=\"views-field views-field-field-publish-date\">(04/29/2025)</span></li><li><span class=\"views-field views-field-title\"><a href=\"/news/2025/hearing\">News hearing</a></span><span class=\"views-field views-field-field-publish-date\">(03/02/2025)</span></li></ul></div></div></div></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.nidcd.nih.gov/news/2025/scent": "<html><head><meta name=\"description\" content=\"Synthetic NIDCD news summary for offline equality testing of the enumeration split, long enough. Synthetic NIDCD news summary for offline equality testing of the enumeration split, long enough. \"></head><body><main><article><p>Body</p></article></main></body></html>",
+  "https://www.nidcd.nih.gov/news/2025/hearing": "<html><head><meta name=\"description\" content=\"Synthetic NIDCD news summary for offline equality testing of the enumeration split, long enough. Synthetic NIDCD news summary for offline equality testing of the enumeration split, long enough. \"></head><body><main><article><p>Body</p></article></main></body></html>"
+ },
+ "long_text": "Synthetic NIDCD news summary for offline equality testing of the enumeration split, long enough. Synthetic NIDCD news summary for offline equality testing of the enumeration split, long enough. ",
+ "empty_body": "<html><body><main><div class=\"block-system-main-block\"><div class=\"views-element-container\"></div></div></main></body></html>",
+ "original_method_source_sha256": {
+  "_curl_get": "6a7d11dd405bc06311ca14e460ee7f0ac8767e82f6695e30f8754562d597dce3",
+  "_parse_list_page": "380f199162473372df0a6652ebedcdf666821364dfe20de6829358b830a3d701",
+  "_has_next_page": "73bed294888c890028df44539acb50e436870902617092d4c1ccfd9959e77281",
+  "_fetch_abstract": "5e1f53bd9831719f5e5461ece7c352b46512d253a76842c36067c37b957bf53d",
+  "crawl": "c7f032fd7dfbbcef213aae531ee83cfbf971a1143716f873242a0a8934044514"
+ }
+}

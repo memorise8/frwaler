@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "sites": {
+    "nidcd-nih-gov-news": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "last_page_backward",
+      "base_url": "https://www.nidcd.nih.gov",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.nidcd.nih.gov/news/nidcd-news",
+        "params": {
+          "page": 0
+        },
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "title_field": "title",
+          "date_field": "date_str",
+          "listing_marker": ".block-system-main-block .views-element-container"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
