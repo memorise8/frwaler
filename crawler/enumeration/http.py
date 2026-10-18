@@ -599,7 +599,7 @@ class Fetcher:
             self.blocked = AccessBlocked(f"host_access_hold:{held['reason']}", url)
             raise self.blocked
 
-    def _once(self, url, *, method="GET", data=None, content_type=None):
+    def _once(self, url, *, method="GET", data=None, content_type=None, request_headers=None):
         """One gated request. Returns Response or raises TransportError."""
         self._check_budget()
         host = host_of(url)
@@ -610,6 +610,8 @@ class Fetcher:
                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8"}
         if host.lower() in self.header_hosts:
             headers.update(self.extra_headers)
+        if request_headers:
+            headers.update(request_headers)  # ext:dynamic_token: this request only (the listing POST)
         if content_type:
             headers["Content-Type"] = content_type
         delay = self._host_delay.get(host, 0)
@@ -755,12 +757,14 @@ class Fetcher:
         return rules
 
     # -- public ----------------------------------------------------------
-    def _with_retries(self, url, *, classify=True, accept_statuses=(), method="GET", data=None, content_type=None):
+    def _with_retries(self, url, *, classify=True, accept_statuses=(), method="GET", data=None, content_type=None,
+                      request_headers=None):
         last = None
         for attempt in range(self.retries):
             wait = self.backoff_s * (3 ** attempt)
             try:
-                resp = self._once(url, method=method, data=data, content_type=content_type)
+                resp = self._once(url, method=method, data=data, content_type=content_type,
+                                  request_headers=request_headers)
             except BodyTooLarge:
                 raise PermanentFailure("body_too_large", url) from None
             except TransportError as exc:
@@ -872,7 +876,7 @@ class Fetcher:
             return resp
         raise PermanentFailure("too_many_redirects", url)
 
-    def post(self, url, body, *, body_type="form", accept_statuses=()):
+    def post(self, url, body, *, body_type="form", accept_statuses=(), content_type=None, headers=None):
         """POST a listing query (plans may use it only for idempotent search APIs) through the
         same gate, budget, hold, robots and destination checks as ``get``. A redirect is never
         followed (a POST cannot be replayed safely at another address)."""
@@ -884,6 +888,8 @@ class Fetcher:
             data, ctype = urlencode(body, doseq=True).encode("ascii"), "application/x-www-form-urlencoded"
         else:
             raise PermanentFailure(f"unknown_body_type:{body_type}", url)
+        if content_type and body_type == "json":
+            ctype = content_type  # plan-declared JSON media type (validated by the plan)
         current = governed_url(url)
         if current != url:
             self._check_holds(url)
@@ -891,7 +897,7 @@ class Fetcher:
         if not self._robots_allows(current):
             raise RobotsDisallowed("robots_disallowed", current)
         resp = self._with_retries(current, accept_statuses=accept_statuses, method="POST", data=data,
-                                  content_type=ctype)
+                                  content_type=ctype, request_headers=headers)
         if 300 <= resp.status < 400:
             nxt = urljoin(current, location_of(resp))
             if _LOGIN_PATH.search(urlsplit(nxt).path or ""):
