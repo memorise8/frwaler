@@ -1,0 +1,22 @@
+{
+ "listing_url": "https://www.kwdi.re.kr/publications/genderReview.do?p=1",
+ "listing_body": "<html><body><table class=\"table table-list\"><thead><tr><th>번호</th></tr></thead><tbody><tr><td>637</td><td>제81호</td><td class=\"subject\"><span>[2026년 여름호]</span><br /><a href=\"genderReviewView.do?p=1&idx=134268\">합성 제목 1</a></td><td>2026-05-31</td><td><a href=\"/inc/preview.do?ut=A&upIdx=134268&no=1\" class=\"file red\">.PDF</a></td></tr><tr><td>637</td><td>제81호</td><td class=\"subject\"><span>[2026년 여름호]</span><br /><a href=\"genderReviewView.do?p=1&idx=134265\">합성 제목 2</a></td><td>2026-05-30</td><td><a href=\"/inc/preview.do?ut=A&upIdx=134265&no=1\" class=\"file red\">.PDF</a></td></tr></tbody></table><a href=\"?&p=64\" class=\"last\">끝</a></body></html>",
+ "empty_body": "<html><body><table class=\"table table-list\"><thead><tr><th>번호</th></tr></thead><tbody></tbody></table></body></html>",
+ "content_type": "text/html",
+ "long_text": "합성 젠더리뷰 본문입니다. Synthetic gender review text for offline equality testing. 합성 젠더리뷰 본문입니다. Synthetic gender review text for offline equality testing. 합성 젠더리뷰 본문입니다. Synthetic gender review text for offline equality testing. ",
+ "short_keeps_items": true,
+ "details": {
+  "https://www.kwdi.re.kr/publications/genderReviewView.do?p=1&idx=134268": "<html><body><table class=\"table table-view\"><tr><th class=\"tit\" colspan=\"4\">합성 상세 제목 1</th></tr><tr><th>발간호</th><td>제81호</td><th>통권제목</th><td>2026년 여름호</td></tr><tr><th>구분</th><td>기획특집</td><th>등록일</th><td>2026-05-31</td></tr><tr><th>첨부</th><td><a href=\"/inc/download.do?ut=A&upIdx=134268&no=1\">file.pdf</a></td></tr></table><div class=\"viewwrap\"><p>합성 젠더리뷰 본문입니다. Synthetic gender review text for offline equality testing. 합성 젠더리뷰 본문입니다. Synthetic gender review text for offline equality testing. 합성 젠더리뷰 본문입니다. Synthetic gender review text for offline equality testing. </p></div></body></html>",
+  "https://www.kwdi.re.kr/publications/genderReviewView.do?p=1&idx=134265": "<html><body><table class=\"table table-view\"><tr><th class=\"tit\" colspan=\"4\">합성 상세 제목 2</th></tr><tr><th>발간호</th><td>제81호</td><th>통권제목</th><td>2026년 여름호</td></tr><tr><th>구분</th><td>기획특집</td><th>등록일</th><td>2026-05-30</td></tr><tr><th>첨부</th><td><a href=\"/inc/download.do?ut=A&upIdx=134265&no=1\">file.pdf</a></td></tr></table><div class=\"viewwrap\"><p>합성 젠더리뷰 본문입니다. Synthetic gender review text for offline equality testing. 합성 젠더리뷰 본문입니다. Synthetic gender review text for offline equality testing. 합성 젠더리뷰 본문입니다. Synthetic gender review text for offline equality testing. </p></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "crawl": "d514402a5338527cf0f414dda07afcb131719b323998e857a441f4c11415d17e",
+  "_curl_get": "8043a5acbbb5626e45270014e2fefd208488f69b0bfab3e1d155c9bd72f0d675",
+  "_parse_list": "18a4544de740da180ae393e3f58c976859a5beb50b28b17bd56cd4443469e1ea",
+  "_extract_total_pages": "8d74afe8a86d4715eb4265788e2a7ea562a0bd16d7eb1bfd6bfcd69e9546b9b9",
+  "_make_soup": "a5e0e57ff45a9578d1bb1d7a9059599de5d6603553c43594cd10faa08f64c3aa",
+  "_build_paper": "2e10db5242ee640232cddb88f5d56ca6e639b068d34cd16ed48d61add9f1b4d0",
+  "_budget_exhausted": "a4eae935e22d3018c8c652432d8bcb94d33fe943975db7f45a1d6cbbbee18c7d"
+ },
+ "site_id": "kwdi-re-kr-publications"
+}

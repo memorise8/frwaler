@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "sites": {
+    "kwdi-re-kr-publications": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.kwdi.re.kr",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.kwdi.re.kr/publications/genderReview.do",
+        "page_param": "p",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "external_id",
+          "url_field": "url",
+          "listing_marker": "table.table-list"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
