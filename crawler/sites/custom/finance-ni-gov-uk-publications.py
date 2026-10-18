@@ -280,3 +280,30 @@ class FinanceNiGovUkPublicationsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html)
+        if soup is None or soup.find("main") is None:
+            raise PermanentFailure("listing_parse_error:missing_main_marker")
+        rows = self._parse_list_page(html)[0]
+
+        if not rows and soup.find("main").get_text(" ", strip=True):
+            raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing")
+        return rows
+
+    def _enumeration_paper(self, it, d):
+        abstract = d.get('abstract', '')
+        if len(abstract) < 100:
+            return None
+        node_id = d.get('node_id')
+        slug = urlparse(it['url']).path.rstrip('/').split('/')[-1]
+        external_id = node_id or slug
+        topics = d.get('topics', [])
+        pub_date = d.get('pub_date') or it['listed_date']
+        paper = {'site_id': self.site_id, 'external_id': external_id, 'post_number': node_id, 'title': it['title'], 'abstract': abstract, 'published_date': pub_date, 'listed_date': it['listed_date'], 'url': it['url'], 'pdf_url': d.get('pdf_url'), 'original_filename': d.get('original_filename'), 'category': it['category'], 'keywords': ','.join(topics), 'publisher': 'Department of Finance, Northern Ireland', 'metadata': json.dumps({'node_id': node_id, 'slug': slug, 'topics': topics, 'all_files': d.get('all_files', []), 'posted_date': it['listed_date']}, ensure_ascii=False)}
+        return paper
