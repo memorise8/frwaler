@@ -1,0 +1,20 @@
+{
+ "site_id": "masaf-gov-it-flex",
+ "listing_body": "<html><body><div id=\"CorpoPagina\"><h2 class=\"u-text-h2\">Comunicati stampa</h2><section id=\"imgComunicati\"><div class=\"Grid Grid--withGutter u-border-bottom-xxs\"><div class=\"Grid-cell u-size3of5\"><div class=\"Grid Grid--fit u-padding-bottom-xxs\"><p class=\"Grid-cell u-text-xs u-textSecondary u-textWeight-400\">15/10/2026</p></div><div class=\"u-text-r-xs\"><h3 class=\"u-padding-bottom-xs\"><a class=\"u-textClean u-color-50\" href=\"https://www.masaf.gov.it/olio_igp_test\">Olio IGP riconosciuto</a></h3></div></div></div><div class=\"Grid Grid--withGutter u-border-bottom-xxs\"><div class=\"Grid-cell u-size3of5\"><div class=\"Grid Grid--fit u-padding-bottom-xxs\"><p class=\"Grid-cell u-text-xs u-textSecondary u-textWeight-400\">14/10/2026</p></div><div class=\"u-text-r-xs\"><h3 class=\"u-padding-bottom-xs\"><a class=\"u-textClean u-color-50\" href=\"https://www.masaf.gov.it/pesca_fondo_test\">Pesca fondo solidarieta</a></h3></div></div></div></section></div></body></html>",
+ "empty_body": "<html><body><div id=\"CorpoPagina\"><h2 class=\"u-text-h2\">Comunicati stampa</h2><section id=\"imgComunicati\"></section></div></body></html>",
+ "content_type": "text/html",
+ "long_text": "Testo sintetico del comunicato stampa usato solo per il test offline della divisione: il Ministero annuncia nuove misure per gli agricoltori italiani e per le filiere.",
+ "details": {
+  "https://www.masaf.gov.it/olio_igp_test": "<html><body><h4 class=\"u-text-h4 u-color-70\">Olio IGP riconosciuto</h4><!-- Begin BLOB Content --><div class=\"viewPar\"><strong class=\"userFormat1\">(15.10.2026)</strong></div><div class=\"viewPar\">Testo sintetico del comunicato stampa usato solo per il test offline della divisione: il Ministero annuncia nuove misure per gli agricoltori italiani e per le filiere.</div><a href=\"/flex/files/1/a/b/D.123/decreto.pdf\">Decreto</a><!-- End BLOB Content --></body></html>",
+  "https://www.masaf.gov.it/pesca_fondo_test": "<html><body><h4 class=\"u-text-h4 u-color-70\">Pesca: fondo di solidarieta</h4><!-- Begin BLOB Content --><div class=\"viewPar\"><strong class=\"userFormat1\">(14.10.2026)</strong></div><div class=\"viewPar\">Testo sintetico del comunicato stampa usato solo per il test offline della divisione: il Ministero annuncia nuove misure per gli agricoltori italiani e per le filiere.</div><!-- End BLOB Content --></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_decode_html": "219f0ec6b1c61edbe0dc4de7dea229d232d1962736a080dbe266371c2c513ed0",
+  "_curl": "5691fd31eb3f13d707383f2835642ddfffde62d1e4d65de22b96fecaa3c2ad04",
+  "_parse_listing": "ea66fda7269a1f52b9b3195ed589049d582eee57d0bfa4a586efff1be474c151",
+  "_parse_listing_regex": "af01c0a57b626c9ea2e1f37397884fae5615fc7a187427d8c57b7a90bc86adf3",
+  "_parse_detail": "b2165e589e531961e7f7b26cd47823a49466b48dab3a3b656683446c973ae87c",
+  "_parse_detail_regex": "d000940dfeae69ad0262a0c95026d70856235f091ffd2a2082e58b8e734b6d0e",
+  "crawl": "4ddb6dd6e8727e11bc09ca8c2b832d4f92519e4b26b5013161948b6a0443e551"
+ }
+}

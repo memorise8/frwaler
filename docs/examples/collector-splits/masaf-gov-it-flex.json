@@ -1,0 +1,73 @@
+{
+ "version": 1,
+ "defaults": {
+  "request_interval_s": 1.5,
+  "respect_robots": true,
+  "retries": 1
+ },
+ "sites": {
+  "masaf-gov-it-flex": {
+   "strategy": "date_range_split",
+   "base_url": "https://www.masaf.gov.it",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "raw",
+     "url"
+    ],
+    "detail_method": "_enumeration_paper",
+    "detail_args": [
+     "raw",
+     "item"
+    ]
+   },
+   "listing": {
+    "url": "https://www.masaf.gov.it/flex/cm/pages/ServeBLOB.php/L/IT/IDPagina/331",
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "url_field": "url",
+     "title_field": "title",
+     "listing_marker": "section#imgComunicati"
+    }
+   },
+   "segments": {
+    "mode": "explicit",
+    "items": [
+     {
+      "key": "2022",
+      "params": {
+       "YY": "2022"
+      }
+     },
+     {
+      "key": "2023",
+      "params": {
+       "YY": "2023"
+      }
+     },
+     {
+      "key": "2024",
+      "params": {
+       "YY": "2024"
+      }
+     },
+     {
+      "key": "2025",
+      "params": {
+       "YY": "2025"
+      }
+     },
+     {
+      "key": "2026",
+      "params": {
+       "YY": "2026"
+      }
+     }
+    ]
+   }
+  }
+ }
+}

@@ -413,3 +413,71 @@ class MasafGovItFlexCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # parsers above stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw, url):
+        """Article rows of one year listing (?YY=YYYY), exactly as crawl() parses them.
+        Each row carries the listing year (crawl() writes it into metadata)."""
+        from urllib.parse import parse_qs, urlparse
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw, (bytes, bytearray)):
+            raise PermanentFailure("listing_parse_error:expected_bytes")
+        year = (parse_qs(urlparse(url or "").query).get("YY") or [""])[0]
+        html = self._decode_html(bytes(raw))
+        items = self._parse_listing(html)
+        for item in items:
+            # crawl() records the year page the row was listed on; a page without ?YY=
+            # (the site's current-year default) falls back to the row's DD/MM/YYYY year.
+            listed = re.search(r"(\d{4})\s*$", item.get("listed_date") or "")
+            item["year"] = int(year) if year.isdigit() else (int(listed.group(1)) if listed else None)
+        return items
+
+    def _enumeration_paper(self, raw, item):
+        """Copy of crawl()'s paper conversion; None keeps crawl()'s skips."""
+        art_url = item["url"]
+        slug = art_url.rstrip("/").split("/")[-1]
+        detail = self._parse_detail(self._decode_html(bytes(raw)), art_url)
+        title = detail["title"] or item.get("title")
+        if not title:
+            return None
+        abstract = detail["abstract"]
+        if len(abstract) < 100:
+            return None
+        pub_date = detail["published_date"]
+        listed_date_raw = item.get("listed_date") or ""
+        listed_date = _parse_date_it(listed_date_raw) if listed_date_raw else pub_date
+        return {
+            "site_id": self.site_id,
+            "external_id": slug,
+            "post_number": slug,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "posted_date": listed_date,
+            "url": art_url,
+            "pdf_url": detail["pdf_url"],
+            "original_filename": detail["original_filename"],
+            "authors": None,
+            "publisher": (
+                "Ministero dell'Agricoltura, "
+                "della Sovranità Alimentare e delle Foreste"
+            ),
+            "department": None,
+            "journal": None,
+            "keywords": None,
+            "category": "Comunicati stampa",
+            "doi": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": listed_date_raw,
+                    "slug": slug,
+                    "year": item.get("year"),
+                    "category": "Comunicati stampa",
+                },
+                ensure_ascii=False,
+            ),
+        }
