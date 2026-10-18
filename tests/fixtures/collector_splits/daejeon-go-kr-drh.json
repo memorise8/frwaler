@@ -1,0 +1,29 @@
+{
+ "site_id": "daejeon-go-kr-drh",
+ "listing_body": "<html><body><table class=\"board_table_list\"><tbody><tr><td class=\"num\">30001</td><td class=\"subject\"><a href=\"/drh/board/boardNormalView.do?boardId=normal_0189&menuSeq=6825&pageIndex=1&recordCountPerPage=10&ntatcSeq=1524775248\">대전시 2026 동물사랑 큰 잔치 개최</a></td><td class=\"division\">동물보호과</td><td class=\"date\">2026-10-17</td><td class=\"counter\">12</td></tr><tr><td class=\"num\">30000</td><td class=\"subject\"><a href=\"/drh/board/boardNormalView.do?boardId=normal_0189&menuSeq=6825&pageIndex=1&recordCountPerPage=10&ntatcSeq=1524775200\">대전시 보도자료 둘</a></td><td class=\"division\">동물보호과</td><td class=\"date\">2026-10-16</td><td class=\"counter\">12</td></tr></tbody></table></body></html>",
+ "empty_body": "<html><body><table class=\"board_table_list\"><tbody></tbody></table></body></html>",
+ "content_type": "text/html",
+ "long_text": "대전시 보도자료 시험용 합성 본문입니다. 분리 메서드가 기존 crawl 과 같은 문서를 만드는지 확인하기 위한 긴 문장입니다. 동물사랑 큰 잔치가 열립니다. 많은 시민의 참여를 바랍니다. 끝.",
+ "details": {
+  "https://www.daejeon.go.kr/drh/board/boardNormalView.do?boardId=normal_0189&menuSeq=6825&pageIndex=1&recordCountPerPage=10&ntatcSeq=1524775248": "<html><body><div class=\"board_view\"><ul><li><span class=\"subject\">제목</span><span class=\"txt\">대전시 2026 동물사랑 큰 잔치 개최</span></li><li><span class=\"subject\">담당부서</span><span class=\"txt\">동물보호과</span></li><li><span class=\"subject\">작성일</span><span class=\"txt\">2026-10-17</span></li><li><span class=\"subject\">첨부파일</span><span class=\"txt\"><a href=\"javascript:fileDownLoad('/upload/2026/a.pdf','보도자료.pdf')\">보도자료.pdf</a></span></li></ul><div class=\"board_txt\"><p>대전시 보도자료 시험용 합성 본문입니다. 분리 메서드가 기존 crawl 과 같은 문서를 만드는지 확인하기 위한 긴 문장입니다. 동물사랑 큰 잔치가 열립니다. 많은 시민의 참여를 바랍니다. 끝.</p></div></div></body></html>",
+  "https://www.daejeon.go.kr/drh/board/boardNormalView.do?boardId=normal_0189&menuSeq=6825&pageIndex=1&recordCountPerPage=10&ntatcSeq=1524775200": "<html><body><div class=\"board_view\"><ul><li><span class=\"subject\">제목</span><span class=\"txt\">대전시 보도자료 둘</span></li><li><span class=\"subject\">담당부서</span><span class=\"txt\">동물보호과</span></li><li><span class=\"subject\">작성일</span><span class=\"txt\">2026-10-17</span></li><li><span class=\"subject\">첨부파일</span><span class=\"txt\"></span></li></ul><div class=\"board_txt\"><p>대전시 보도자료 시험용 합성 본문입니다. 분리 메서드가 기존 crawl 과 같은 문서를 만드는지 확인하기 위한 긴 문장입니다. 동물사랑 큰 잔치가 열립니다. 많은 시민의 참여를 바랍니다. 끝.</p></div></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "crawl": "3de226ded727c7adda5dc7797f0b4e8b73bfe0592d5613bfb3400b8d60891b39",
+  "_curl_get": "39509f6199b3bd2b934bdb232f129af3e3e72db6fac5f0fb57e4208e8b28deca",
+  "_list_url": "fac927a8a1f7ac871d7ecb725dfb5507beda723f87dbc0951d9244c568a87588",
+  "_parse_list": "ecc1217e022eed759b393ac4db24067aec6a24fe868c3abdc5840c3cb092c884",
+  "_fetch_parse_detail": "5ca5c21a9fed8f9c6e048d96ee1b95d0d98271884b2eb4a194a946ce04db6221",
+  "_parse_detail_fields": "4bbdc627d04364f9ccc63316cde497828f9227da18b190034970930d59565eda",
+  "_parse_attachments": "229e6e8b869dd75ef318925279f9626bebf1b8a12938218a8f1b2cb2f351be27",
+  "_build_abstract": "9211e82d0bba39e105a87ad5a53bd0244687865337a6a34806ebe897fe37fcc8",
+  "_make_soup": "f56173145346ea2bda5cd6734d830eda0dadc20db6b05d0f8cb8efa3c65c489e",
+  "_decode": "1575d61a1133de95e5ab8031f78ce5b801f62ec58c76fe91478740910d7cadb3",
+  "_clean_text": "b2f25116d94ae7346b0afeabff413a999540f96eac9115468b1fae5922605950",
+  "_text_of": "812905da13defb6f561d0708563919729198852b0dd11a6ac1ab35763dc4055a",
+  "_normalize_date": "97a551b6eaae6f093a0029ad3024577e8d991c9a753eb7fad73843aea38d8a3f",
+  "_query_param": "efc32fa2d1ee95ee226ad68ae39445a924fbbdfd6657f3c30bbb3aad38787f2c",
+  "_first_pdf_attachment": "f676d1e5e72eb368a4e0568b8c465eb1d38c4d4261c00d627296287d2b05837b",
+  "_keywords": "05dcfdb599dd0e8f621620e58d5f6ae9a06390376666efd64650a9557c710a40"
+ }
+}

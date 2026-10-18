@@ -482,3 +482,87 @@ class DaejeonGoKrDrhCrawler(BaseCrawler):
             if value and value not in values:
                 values.append(value)
         return ",".join(values)
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # parsers above stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, raw, url):
+        """Board rows of one list page (pageIndex=N), exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw, (bytes, bytearray)):
+            raise PermanentFailure("listing_parse_error:expected_bytes")
+        page = self._query_param(url or "", "pageIndex")
+        page = int(page) if page and page.isdigit() else 1
+        return self._parse_list(bytes(raw), page)
+
+    def _enumeration_paper(self, raw, item):
+        """_fetch_parse_detail() after its fetch, plus crawl()'s abstract minimum
+        (None keeps crawl()'s skips)."""
+        detail_url = item["url"]
+        soup = self._make_soup(bytes(raw))
+        if soup is None:
+            return None
+        fields = self._parse_detail_fields(soup)
+        title = fields.get("제목") or item.get("title")
+        content = self._clean_text(self._text_of(soup.select_one("div.board_txt")))
+        abstract = self._build_abstract(title, content, fields, item)
+        if len(abstract) < self._MIN_ABSTRACT_CHARS:
+            return None
+
+        listed_date_raw = item.get("listed_date_raw")
+        listed_date = item.get("listed_date")
+        published_raw = fields.get("작성일") or listed_date_raw
+        published_date = self._normalize_date(published_raw) or listed_date
+        department = fields.get("담당부서") or item.get("department")
+        author = fields.get("작성자")
+        tel = fields.get("문의처")
+        category = "보도자료"
+        attachments = self._parse_attachments(soup)
+        pdf_attachment = self._first_pdf_attachment(attachments)
+        pdf_url = pdf_attachment.get("url") if pdf_attachment else None
+        original_filename = pdf_attachment.get("filename") if pdf_attachment else None
+        if not original_filename and attachments:
+            original_filename = attachments[0].get("filename")
+
+        metadata = {
+            "posted_date": listed_date_raw,
+            "posted_date_iso": listed_date,
+            "originalFilename": original_filename,
+            "journal_raw": None,
+            "series": None,
+            "volume": None,
+            "issue": None,
+            "ntatcSeq": item.get("external_id"),
+            "boardId": self._BOARD_ID,
+            "menuSeq": self._MENU_SEQ,
+            "post_number_raw": item.get("post_number_raw"),
+            "department": department,
+            "tel": tel,
+            "view_count": item.get("view_count") or fields.get("조회수"),
+            "attachments": attachments,
+            "page": item.get("page"),
+        }
+        keywords = self._keywords(category, department)
+        return {
+            "id": f"{self.site_id}:{item.get('external_id')}",
+            "site_id": self.site_id,
+            "external_id": item.get("external_id"),
+            "post_number": item.get("post_number"),
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "posted_date": listed_date,
+            "authors": author,
+            "publisher": "대전광역시",
+            "department": department,
+            "journal": None,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "keywords": keywords,
+            "category": category,
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
