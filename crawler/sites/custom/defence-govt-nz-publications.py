@@ -389,3 +389,185 @@ class DefenceGovtNzPublicationsCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] crawl complete: {saved} saved.")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl(), _fetch_list_page()
+    # and _fetch_detail() are unchanged; these methods only parse fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Listing rows — the parse part of _fetch_list_page() copied verbatim."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        raw = html
+        if not raw:
+            return []
+
+        soup = _make_soup(raw)
+        if not soup:
+            return []
+
+        items = []
+        for block in soup.find_all("div", class_="search-result"):
+            try:
+                # Date from list
+                date_raw = ""
+                date_el = block.find(class_="search-result__date")
+                if date_el:
+                    b_tag = date_el.find("b")
+                    if b_tag:
+                        date_raw = b_tag.get_text(strip=True)
+
+                # Title + detail URL
+                text_el = block.find(class_="search-result__text")
+                if not text_el:
+                    continue
+                a_tag = text_el.find("a")
+                if not a_tag:
+                    continue
+                title = _clean_text(a_tag.get_text(strip=True))
+                if not title:
+                    continue
+                rel_url = a_tag.get("href", "")
+                if not rel_url:
+                    continue
+                detail_url = (_BASE + rel_url) if rel_url.startswith("/") else rel_url
+
+                # Short abstract from list (may be truncated)
+                p_tag = text_el.find("p")
+                abstract_short = _clean_text(p_tag.get_text(" ", strip=True)) if p_tag else ""
+
+                # PDF URL from list
+                pdf_url = None
+                buttons_el = block.find(class_="search-result__buttons")
+                if buttons_el:
+                    dl_a = buttons_el.find(
+                        "a", class_=lambda c: c and "button--download" in c
+                    )
+                    if dl_a:
+                        href = dl_a.get("href", "")
+                        if href:
+                            pdf_url = (_BASE + href) if href.startswith("/") else href
+
+                items.append({
+                    "title": title,
+                    "date_raw": date_raw,
+                    "url": detail_url,
+                    "abstract_short": abstract_short,
+                    "pdf_url": pdf_url,
+                })
+            except Exception:
+                continue
+
+        return items
+
+    @staticmethod
+    def _enumeration_detail(html):
+        """The parse part of _fetch_detail() copied verbatim (no request)."""
+        raw = html
+        if not raw:
+            return {}
+
+        soup = _make_soup(raw)
+        if not soup:
+            return {}
+
+        result = {}
+
+        # Published date
+        date_el = soup.find(attrs={"data-element": "publication-date"})
+        if date_el:
+            text = date_el.get_text(" ", strip=True)
+            m = re.search(r"(\d{1,2}\s+\w+\s+\d{4})", text)
+            result["published_date"] = _parse_date(m.group(1)) if m else None
+
+        # Category
+        cat_el = soup.find(attrs={"data-element": "publication-category"})
+        if cat_el:
+            text = cat_el.get_text(" ", strip=True)
+            result["category"] = re.sub(r"^Category\s*[:\-]\s*", "", text, flags=re.I).strip()
+
+        # Main summary — remove buttons/links before extracting text
+        abstract_parts = []
+        summary_el = soup.find(attrs={"data-element": "publication-summary"})
+        if summary_el:
+            for tag in summary_el.find_all(["a", "button"]):
+                tag.decompose()
+            text = _clean_text(summary_el.get_text(" ", strip=True))
+            if text:
+                abstract_parts.append(text)
+
+        # Additional info (extends abstract if summary is short)
+        add_el = soup.find(attrs={"data-element": "publication-additional-info"})
+        if add_el:
+            typo = add_el.find(class_="typography")
+            if not typo:
+                typo = add_el
+            # Remove heading tags that just say "Additional info"
+            for tag in typo.find_all(["h2", "h3", "h4"]):
+                tag.decompose()
+            add_text = _clean_text(typo.get_text(" ", strip=True))
+            if add_text:
+                abstract_parts.append(add_text)
+
+        result["abstract"] = " ".join(abstract_parts).strip()
+
+        # PDF URL from detail page (more reliable than list page)
+        pdf_a = soup.find("a", attrs={"data-element": "publication-button"})
+        if not pdf_a:
+            pdf_a = soup.find("a", class_=lambda c: c and "button--download" in c)
+        if pdf_a:
+            href = pdf_a.get("href", "")
+            if href:
+                result["pdf_url"] = (_BASE + href) if href.startswith("/") else href
+
+        return result
+
+    def _enumeration_paper(self, html, item):
+        """Paper built exactly as in crawl() (external_id = post_number = URL slug)."""
+        detail = self._enumeration_detail(html)
+
+        # Build abstract: prefer detail page, fall back to list snippet
+        abstract = detail.get("abstract", "") or item.get("abstract_short", "")
+        abstract = _clean_text(abstract)
+
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+
+        slug = _slug_from_url(item["url"])
+        published_date = (
+            detail.get("published_date")
+            or _parse_date(item.get("date_raw", ""))
+        )
+        category = detail.get("category") or None
+        pdf_url = detail.get("pdf_url") or item.get("pdf_url") or None
+        orig_fname = _original_filename(pdf_url)
+
+        metadata = {
+            "slug": slug,
+            "posted_date": item.get("date_raw") or None,
+            "category_raw": category,
+            "originalFilename": orig_fname,
+        }
+
+        return {
+            "site_id": self.site_id,
+            "external_id": slug,
+            "post_number": slug,
+            "title": item["title"],
+            "abstract": abstract[:8000],
+            "url": item["url"],
+            "pdf_url": pdf_url,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "authors": None,
+            "publisher": "Ministry of Defence, New Zealand",
+            "department": None,
+            "journal": None,
+            "keywords": None,
+            "category": category,
+            "doi": None,
+            "original_filename": orig_fname,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
