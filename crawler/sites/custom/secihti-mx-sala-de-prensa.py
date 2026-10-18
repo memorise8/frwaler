@@ -266,6 +266,104 @@ class SecihtiSalaDePrensaCrawler(BaseCrawler):
         return saved
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points; existing crawl and helpers stay unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Validate a decoded WP REST list; no fetching, storage, or identifier synthesis."""
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:items_not_a_list_of_objects", url)
+        return data
+
+    def _enumeration_paper(self, item):
+        """Pure copy of crawl's per-item Paper conversion and skip rule (None = skipped)."""
+        item_url = item.get("link", "")
+
+        post_id = item.get("id")
+        external_id = str(post_id) if post_id is not None else None
+        slug = item.get("slug", "")
+
+        title_raw = (item.get("title") or {}).get("rendered", "")
+        title = _bs4_strip(title_raw) if title_raw else slug
+
+        acf = item.get("acf") or {}
+        pub_date_raw = acf.get("comunicado_fecha_publicacion") or ""
+        published_date = _parse_date(pub_date_raw)
+        comunicado_numero = str(acf.get("comunicado_numero") or "").strip()
+        post_number = comunicado_numero if comunicado_numero else external_id
+        pdf_url = acf.get("comunicado_pdf") or ""
+
+        puntos = acf.get("comunicado_puntos_clave") or []
+        key_points = []
+        for p in puntos:
+            pt = (p.get("comunicado_punto", "") if isinstance(p, dict)
+                  else str(p))
+            if pt and pt.strip():
+                key_points.append(pt.strip())
+
+        content_html = (item.get("content") or {}).get("rendered", "") or ""
+        content_text = _bs4_strip(content_html)
+
+        if key_points:
+            abstract = ("Puntos clave: " + "; ".join(key_points)
+                        + "\n\n" + content_text)
+        else:
+            abstract = content_text
+        abstract = abstract.strip()
+
+        if len(abstract) < 50:
+            return None
+
+        listed_date = _parse_date(item.get("date") or "")
+
+        authors = self._extract_term(item, "autor-comunicado-de-prensa")
+        if not authors:
+            prefix = "autor-comunicado-de-prensa-"
+            for cls in item.get("class_list") or []:
+                if cls.startswith(prefix):
+                    authors = cls[len(prefix):].replace("-", " ").title()
+                    break
+        if not authors:
+            authors = "SECIHTI"
+
+        category = self._extract_term(item, "categoria-comunicado-de-prensa")
+        keywords = ", ".join(key_points) if key_points else ""
+
+        original_filename = None
+        if pdf_url:
+            tail = pdf_url.rstrip("/").split("/")[-1].split("?")[0]
+            if "." in tail and len(tail) <= 200:
+                original_filename = tail
+
+        metadata_dict = {
+            "posted_date": item.get("date", ""),
+            "node_id": post_id,
+            "slug": slug,
+            "comunicado_numero": comunicado_numero,
+            "comunicado_puntos_clave": key_points,
+            "modified": item.get("modified", ""),
+        }
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "url": item_url,
+            "pdf_url": pdf_url or None,
+            "original_filename": original_filename,
+            "authors": authors,
+            "publisher": "SECIHTI",
+            "category": category,
+            "keywords": keywords,
+            "metadata": json.dumps(metadata_dict, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Taxonomy helper
     # ------------------------------------------------------------------
 

@@ -1,0 +1,11 @@
+{
+ "site_id": "secihti-mx-sala-de-prensa",
+ "listing_body": "[{\"id\": 79816, \"date\": \"2026-10-17T12:00:00\", \"modified\": \"2026-10-18T01:00:00\", \"slug\": \"offline-1\", \"link\": \"https://secihti.mx/sala-de-prensa/offline-1/\", \"title\": {\"rendered\": \"Offline &amp; uno\"}, \"content\": {\"rendered\": \"<p>Synthetic SECIHTI comunicado résumé and Korean 자료 for offline equality testing of the enumeration split conversion.</p>\"}, \"acf\": {\"comunicado_fecha_publicacion\": \"20261018\", \"comunicado_numero\": \"79\", \"comunicado_pdf\": \"https://secihti.mx/wp-content/uploads/2026/10/Comunicado_79.pdf\", \"comunicado_puntos_clave\": [{\"comunicado_punto\": \" Punto A \"}, {\"comunicado_punto\": \"\"}]}, \"_embedded\": {\"wp:term\": [[{\"taxonomy\": \"autor-comunicado-de-prensa\", \"name\": \"Prensa\"}], [{\"taxonomy\": \"categoria-comunicado-de-prensa\", \"name\": \"Comunicados\"}]]}}, {\"id\": 79712, \"date\": \"2026-10-16T12:00:00\", \"slug\": \"offline-2\", \"link\": \"https://secihti.mx/sala-de-prensa/offline-2/\", \"title\": {\"rendered\": \"\"}, \"content\": {\"rendered\": \"<div>Synthetic SECIHTI comunicado résumé and Korean 자료 for offline equality testing of the enumeration split conversion.</div>\"}, \"acf\": {}, \"class_list\": [\"autor-comunicado-de-prensa-juan-perez\"]}]",
+ "content_type": "application/json",
+ "details": {},
+ "long_text": "Synthetic SECIHTI comunicado résumé and Korean 자료 for offline equality testing of the enumeration split conversion.",
+ "original_method_source_sha256": {
+  "crawl": "a5db8833de357fcbe06c4500f51086c615b72ff33751dac022394a6beab6f755",
+  "_extract_term": "c0185d3c951812bedb75ed2b7d40ac390a14b999e63ffde8264cc2ab0ca5acfe"
+ }
+}
