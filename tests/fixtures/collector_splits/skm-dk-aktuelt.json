@@ -1,0 +1,19 @@
+{
+ "site_id": "skm-dk-aktuelt",
+ "listing_body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://svmn.dk/aktuelt/presse-nyheder/pressemeddelelser/</loc></url><url><loc>https://svmn.dk/aktuelt/presse-nyheder/pressemeddelelser/nyt-it-system</loc></url><url><loc>https://svmn.dk/om-os</loc></url><url><loc>https://svmn.dk/aktuelt/publikationer/rapporter/rapport-om-skat</loc></url></urlset>",
+ "empty_body": "<html><body>no next data</body></html>",
+ "content_type": "application/xml",
+ "long_text": "Syntetisk brødtekst til offline test af opdelingen: Skatteministeriet meddeler nye regler for moms og selskabsskat, som gælder fra næste år for alle.",
+ "details": {
+  "https://svmn.dk/aktuelt/presse-nyheder/pressemeddelelser/nyt-it-system": "<html><head></head><body><div id=\"__next\"></div><script id=\"__NEXT_DATA__\" type=\"application/json\">{\"props\": {\"pageProps\": {\"content\": {\"page\": {\"id\": \"a1655e89-1cd9-4f7b-8a43-2f959502a758\", \"name\": \"Et nyt it-system\", \"url\": \"/aktuelt/presse-nyheder/pressemeddelelser/nyt-it-system\", \"createDate\": \"2023-09-12T00:00:00Z\", \"lastUpdated\": \"2023-09-12T00:00:00Z\", \"documentType\": \"newsPage\", \"culture\": \"da\", \"properties\": {\"heading\": \"Et nyt it-system\", \"teaser\": \"Kort teaser.\", \"text\": {\"markup\": \"<p>Syntetisk brødtekst til offline test af opdelingen: Skatteministeriet meddeler nye regler for moms og selskabsskat, som gælder fra næste år for alle.</p>\"}, \"date\": \"2023-09-12T00:00:00Z\", \"tags\": [{\"name\": \"Moms\"}], \"types\": [{\"name\": \"Pressemeddelelse\"}], \"pdf\": [], \"subject\": [{\"name\": \"Skat\"}]}}}}}, \"buildId\": \"abc\"}</script></body></html>",
+  "https://svmn.dk/aktuelt/publikationer/rapporter/rapport-om-skat": "<html><head></head><body><div id=\"__next\"></div><script id=\"__NEXT_DATA__\" type=\"application/json\">{\"props\": {\"pageProps\": {\"content\": {\"page\": {\"id\": \"4b21504f-98b5-4f54-afc0-a988f52e8555\", \"name\": \"Rapport om skat\", \"url\": \"/aktuelt/publikationer/rapporter/rapport-om-skat\", \"createDate\": \"2018-01-31T00:00:00Z\", \"lastUpdated\": \"2018-01-31T00:00:00Z\", \"documentType\": \"newsPage\", \"culture\": \"da\", \"properties\": {\"heading\": \"Rapport om skat\", \"teaser\": \"Kort teaser.\", \"text\": {\"markup\": \"<p>Syntetisk brødtekst til offline test af opdelingen: Skatteministeriet meddeler nye regler for moms og selskabsskat, som gælder fra næste år for alle.</p>\"}, \"date\": \"2018-01-31T00:00:00Z\", \"tags\": [{\"name\": \"Moms\"}], \"types\": [{\"name\": \"Pressemeddelelse\"}], \"pdf\": [{\"url\": \"/media/123/rapport.pdf\", \"extension\": \"pdf\"}], \"subject\": [{\"name\": \"Skat\"}]}}}}}, \"buildId\": \"abc\"}</script></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_get_sitemap_urls": "7c8c832d7bf005e08394f395355007fa9b7ce35f62c377a546bb390e5b42cc7b",
+  "_get_build_id": "4d5ca948d5ce874de64502d5112cc32d577f21e6bd525eea641883976a133e10",
+  "_fetch_detail_json": "4a308d40e716bd2e5acefd6ddc663344e0c2659a44e50f27f0733eb37e74ca54",
+  "_fetch_detail_html": "3c8b9aadcc2b160f0b4c2df209210b56d79c30a0b2389eb7c4c4bff46e9cc9ff",
+  "_parse_page_props": "40efb491f1c938b190ef101bc07f916b27d5db2eaa1eb2c62309780d185c2b2e",
+  "crawl": "7a788bbb9f42f1f6ff1e2773ffee977b694675486a2aae456490847fa7f87f72"
+ }
+}

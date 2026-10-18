@@ -424,3 +424,27 @@ class SkmDkAktueltCrawler(BaseCrawler):
 
         print(f"[skm-dk-aktuelt] Done. Total saved: {saved}")
         return saved
+
+    # -----------------------------------------------------------------------
+    # Pure enumeration entry point (framework adapter, sitemap strategy).
+    # crawl() and the parsers above stay unchanged; no fetching happens here.
+    # -----------------------------------------------------------------------
+    def _enumeration_paper(self, html, url):
+        """crawl()'s HTML path (_fetch_detail_html after its fetch) and paper rules:
+        __NEXT_DATA__ props.pageProps -> _parse_page_props, URL fallback, 50-char minimum."""
+        if not isinstance(html, str):
+            return None
+        data = _extract_next_data(html)
+        if not data:
+            return None
+        page_props = (data.get("props") or {}).get("pageProps")
+        if page_props is None:
+            return None
+        paper = self._parse_page_props(page_props)
+        if paper is None:
+            return None
+        if not paper.get("url"):
+            paper["url"] = url
+        if len(paper.get("abstract") or "") < 50:
+            return None
+        return paper

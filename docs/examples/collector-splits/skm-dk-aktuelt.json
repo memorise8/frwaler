@@ -1,0 +1,29 @@
+{
+ "version": 1,
+ "defaults": {
+  "request_interval_s": 1.5,
+  "respect_robots": true,
+  "retries": 1
+ },
+ "sites": {
+  "skm-dk-aktuelt": {
+   "strategy": "sitemap",
+   "base_url": "https://svmn.dk",
+   "adapter": {
+    "type": "crawler",
+    "detail_method": "_enumeration_paper",
+    "detail_args": [
+     "html",
+     "url"
+    ]
+   },
+   "sitemap": {
+    "sitemap_url": "https://svmn.dk/sitemap.xml",
+    "include": [
+     "^https://(svmn|skm)\\.dk/aktuelt/presse-nyheder/pressemeddelelser/.+",
+     "^https://(svmn|skm)\\.dk/aktuelt/publikationer/rapporter/.+"
+    ]
+   }
+  }
+ }
+}
