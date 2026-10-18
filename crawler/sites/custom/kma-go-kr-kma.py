@@ -398,3 +398,140 @@ class KMAPressCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw, url):
+        """Rows of one unfiltered list page, parsed exactly like crawl().
+
+        The detail URL keeps crawl()'s form, including ``&page=N`` of the list page
+        the row was read from (N is taken from the list URL; no page = 1)."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        soup = _make_soup(raw)
+        if not soup:
+            raise PermanentFailure("listing_parse_error:html_unparseable", url)
+        tbody = soup.find("tbody")
+        if not tbody:
+            raise PermanentFailure("listing_parse_error:no_tbody", url)
+        page = int((parse_qs(urlsplit(url).query).get("page") or ["1"])[0])
+        rows = tbody.find_all("tr")
+        if len(rows) == 1:
+            td_text = rows[0].get_text()
+            if "없습니다" in td_text or "No result" in td_text.lower():
+                return []
+        out = []
+        for row in rows:
+            title_td = row.find("td", class_=lambda c: c and "tal_l" in c)
+            if not title_td:
+                continue
+            a_tag = title_td.find("a", href=True)
+            if not a_tag:
+                continue
+            num_m = re.search(r"[?&]num=(\d+)", a_tag["href"])
+            if not num_m:
+                continue
+            num = num_m.group(1)
+            detail_url = f"{_LIST_JSP}?bid=press&mode=view&num={num}&page={page}"
+            title_text = a_tag.get_text(strip=True)
+            tds = row.find_all("td")
+            listed_date = ""
+            for td in tds:
+                txt = td.get_text(strip=True)
+                if re.match(r"\d{4}/\d{2}/\d{2}", txt):
+                    listed_date = _norm_date(txt)
+                    break
+            dept = ""
+            for td in tds:
+                classes = td.get("class") or []
+                if "m_h" in classes:
+                    txt = td.get_text(strip=True)
+                    if txt and not re.match(r"^\d+$", txt) and "파일" not in txt:
+                        dept = txt
+                        break
+            pdf_url = None
+            original_filename = None
+            for a in row.find_all("a", href=True):
+                ah = a["href"]
+                if "NeoboardProcess" not in ah:
+                    continue
+                k_m = re.search(r"[&?]k=([^&\"']+)", ah)
+                if k_m and k_m.group(1).lower().endswith(".pdf"):
+                    pdf_url = (_BASE + ah) if ah.startswith("/") else ah
+                    original_filename = k_m.group(1)
+                    break
+            out.append({"url": detail_url, "external_id": num, "title": title_text,
+                        "listed_date": listed_date, "dept": dept, "pdf_url": pdf_url,
+                        "original_filename": original_filename})
+        return out
+
+    def _enumeration_detail(self, raw, row):
+        """Same paper as the loop body of crawl() for one fetched detail page."""
+        detail_soup = _make_soup(raw)
+        if not detail_soup:
+            return None
+        num = row["external_id"]
+        title_text = row["title"]
+        listed_date = row["listed_date"]
+        dept = row["dept"]
+        pdf_url = row["pdf_url"]
+        original_filename = row["original_filename"]
+
+        view_body = detail_soup.find(class_="bbs_view_body")
+        filedown = detail_soup.find(class_="bbs_view_filedown")
+        abstract = _build_abstract(view_body, filedown, title_text)
+        if len(abstract) < 50:
+            return None
+
+        if not listed_date:
+            writer = detail_soup.find("span", class_="writer")
+            if writer:
+                for em in writer.find_all("em"):
+                    txt = em.get_text(strip=True)
+                    if re.match(r"\d{4}/\d{2}/\d{2}", txt):
+                        listed_date = _norm_date(txt)
+                        break
+
+        if not pdf_url:
+            for a in detail_soup.find_all("a", href=True):
+                ah = a["href"]
+                if "NeoboardProcess" not in ah:
+                    continue
+                k_m = re.search(r"[&?]k=([^&\"']+)", ah)
+                if k_m and k_m.group(1).lower().endswith(".pdf"):
+                    pdf_url = (_BASE + ah) if ah.startswith("/") else ah
+                    original_filename = k_m.group(1)
+                    break
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": num,
+            "title": title_text,
+            "abstract": abstract,
+            "published_date": listed_date,
+            "listed_date": listed_date,
+            "posted_date": listed_date,
+            "url": row["url"],
+            "pdf_url": pdf_url or "",
+            "doi": "",
+            "authors": "",
+            "publisher": "기상청",
+            "department": dept,
+            "journal": "",
+            "keywords": "",
+            "category": "보도자료",
+            "original_filename": original_filename or "",
+            "metadata": json.dumps(
+                {
+                    "posted_date": listed_date,
+                    "num": num,
+                    "board_id": "press",
+                    "department": dept,
+                    "originalFilename": original_filename or "",
+                },
+                ensure_ascii=False,
+            ),
+        }

@@ -1,0 +1,14 @@
+{
+ "site_id": "kma-go-kr-kma",
+ "listing_body": "<html><body><table class=\"bbs_list\"><thead><tr><th>번호</th></tr></thead><tbody><tr><td class=\"m_h\">1</td><td class=\"tal_l\"><a href=\"press_01.jsp?bid=press&amp;mode=view&amp;num=1194753&amp;page=1\">합성 보도자료 1</a></td><td class=\"m_h\">예보정책과</td><td>2026/10/16</td><td class=\"m_h\"><a href=\"/kma/servlet/NeoboardProcess?mode=download&amp;bid=press&amp;num=1194753&amp;fno=1&amp;k=ATC1194753.pdf\">pdf</a></td></tr><tr><td class=\"m_h\">2</td><td class=\"tal_l\"><a href=\"press_01.jsp?bid=press&amp;mode=view&amp;num=1194752&amp;page=1\">합성 보도자료 2</a></td><td class=\"m_h\">예보정책과</td><td>2026/10/15</td><td class=\"m_h\"><a href=\"/kma/servlet/NeoboardProcess?mode=download&amp;bid=press&amp;num=1194752&amp;fno=1&amp;k=ATC1194752.hwpx\">hwpx</a></td></tr></tbody></table></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.kma.go.kr/kma/news/press_01.jsp?bid=press&mode=view&num=1194753&page=1": "<html><body><span class=\"writer\"><em>2026/10/15</em></span><div class=\"bbs_view_body\"><p>기상청은 오프라인 동등성 검사를 위한 합성 보도자료 본문입니다. Synthetic press body for offline equality testing. 기상청은 오프라인 동등성 검사를 위한 합성 보도자료 본문입니다. Synthetic press body for offline equality testing. </p></div><div class=\"bbs_view_filedown\"><span>첨부파일</span></div></body></html>",
+  "https://www.kma.go.kr/kma/news/press_01.jsp?bid=press&mode=view&num=1194752&page=1": "<html><body><span class=\"writer\"><em>2026/10/15</em></span><div class=\"bbs_view_body\"><p>기상청은 오프라인 동등성 검사를 위한 합성 보도자료 본문입니다. Synthetic press body for offline equality testing. 기상청은 오프라인 동등성 검사를 위한 합성 보도자료 본문입니다. Synthetic press body for offline equality testing. </p></div><div class=\"bbs_view_filedown\"><span>첨부파일</span><a href=\"/kma/servlet/NeoboardProcess?mode=download&amp;bid=press&amp;num=1194752&amp;fno=2&amp;k=ATC1194752_b.pdf\">첨부</a></div></body></html>"
+ },
+ "long_text": "기상청은 오프라인 동등성 검사를 위한 합성 보도자료 본문입니다. Synthetic press body for offline equality testing. 기상청은 오프라인 동등성 검사를 위한 합성 보도자료 본문입니다. Synthetic press body for offline equality testing. ",
+ "empty_body": "<html><body><table class=\"bbs_list\"><tbody><tr><td colspan=\"5\">검색된 결과가 없습니다.</td></tr></tbody></table></body></html>",
+ "original_method_source_sha256": {
+  "crawl": "5c887b307bd27bd09645f6bf42fc5aa29cfb1906ffb50491d47070d7f76e2c7d"
+ }
+}
