@@ -475,6 +475,9 @@ class SiteRunner:
     def record_timing(self, state, *, save=True):
         """One aggregated request-timing event per run (and the latest copy in the site state),
         so slow sites (Crawl-delay vs slow responses) can be told apart from the state DB."""
+        log = getattr(self.fetcher, "robots_log", None)
+        while log:
+            self.store.event(self.site_id, "robots_checked", log.pop(0))
         summary = self.fetcher.timing_summary(reset=True) if hasattr(self.fetcher, "timing_summary") else None
         if not summary or not summary["hosts"]:
             return
