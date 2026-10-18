@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "sites": {
+    "prism-go-kr-homepage": {
+      "strategy": "last_page_backward",
+      "verify_ssl": false,
+      "base_url": "https://www.prism.go.kr",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://api.prism.go.kr/prism-be-prtl/search/totalSearch.do",
+        "method": "POST",
+        "idempotent": true,
+        "body_type": "json",
+        "params": {
+          "query": "연구",
+          "collection": "report",
+          "listCount": 20,
+          "jrsdInstGrntNo": "",
+          "hghrkFwkClsfSysId": "",
+          "asmtOtln": "",
+          "kywdCn": "",
+          "rptpDtlCn": "",
+          "thssSmryCn": "",
+          "startDate": "",
+          "endDate": ""
+        },
+        "page_param": "startCount",
+        "page_mode": "offset",
+        "page_size": 20,
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "key_field": "_uid",
+          "url_field": "_detail_url",
+          "date_field": "DATE",
+          "title_field": "ASMT_NM"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

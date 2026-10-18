@@ -320,3 +320,114 @@ class PrismGoKrHomepageCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L4-20261018). crawl() is unchanged; these
+    # methods only read one already fetched totalSearch.do JSON page
+    # (framework ext:post_listing does the POST).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """searchResultList rows with crawl()'s uid (DOCID without '#0' prefix, else ASMT_ID)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict):
+            raise PermanentFailure("listing_parse_error:expected_json_object", url)
+        report = data.get("report")
+        if not isinstance(report, dict):
+            raise PermanentFailure("listing_parse_error:missing_report", url)
+        items = report.get("searchResultList") or []
+        if not isinstance(items, list) or any(not isinstance(i, dict) for i in items):
+            raise PermanentFailure("listing_parse_error:rows_not_a_list_of_objects", url)
+        rows = []
+        for item in items:
+            docid_raw = item.get("DOCID") or ""
+            docid = re.sub(r"^#+0*", "", docid_raw)
+            asmt_id = item.get("ASMT_ID") or ""
+            uid = docid or asmt_id
+            if not uid:
+                continue  # crawl() skips rows without an id
+            row = dict(item)
+            row["_uid"] = uid
+            row["_detail_url"] = f"{self._DETAIL_BASE}/{asmt_id}" if asmt_id else ""
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, item):
+        """Paper from one list row — crawl()'s conversion and skips copied verbatim."""
+        uid = item["_uid"]
+        docid_raw = item.get("DOCID") or ""
+        asmt_id = item.get("ASMT_ID") or ""
+
+        title = self._strip_html(item.get("ASMT_NM") or "")
+        if not title:
+            return None
+
+        abs_parts = []
+        for fld in ("THSS_SMRY_CN", "ASMT_OTLN", "RPTP_DTL_CN", "FILE_CONTENT"):
+            val = self._strip_html(item.get(fld) or "")
+            if val and val not in abs_parts:
+                abs_parts.append(val)
+        abstract = "\n\n".join(abs_parts)
+        if len(abstract) < 50:
+            return None
+
+        published_date = self._parse_date(
+            item.get("FRST_REG_DT") or item.get("DATE")
+        )
+        listed_date = self._parse_date(item.get("DATE"))
+
+        detail_url = (
+            f"{self._DETAIL_BASE}/{asmt_id}" if asmt_id else ""
+        )
+
+        file_path = (item.get("FILE_PATH_NM") or "").rstrip("/")
+        strg_file = item.get("STRG_FILE_NM") or ""
+        pdf_url = (
+            f"{self.base_url}{file_path}/{strg_file}"
+            if file_path and strg_file
+            else None
+        )
+
+        file_nm = self._strip_html(item.get("FILE_NM") or "")
+        original_filename = file_nm or strg_file or None
+
+        kw_raw = self._strip_html(item.get("KYWD_CN") or "")
+        keywords = re.sub(r"\|\|+", ", ", kw_raw).strip(", ") or None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": uid,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "publisher": item.get("INST_NM") or "",
+            "authors": "",
+            "journal": "",
+            "keywords": keywords,
+            "category": item.get("CLSF_SYS_NM") or "",
+            "original_filename": original_filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": item.get("DATE"),
+                    "originalFilename": item.get("FILE_NM"),
+                    "asmtId": asmt_id,
+                    "docid": docid_raw,
+                    "fileTypeCd": item.get("FILE_TYPE_CD"),
+                    "fileSn": item.get("FILE_SN"),
+                    "fileWkky": item.get("FILE_WKKY"),
+                    "pdfTrsfYn": item.get("PDF_TRSF_YN"),
+                    "pdfTrsfTrgtYn": item.get("PDF_TRSF_TRGT_YN"),
+                    "prgrsSttsNm": item.get("PRGRS_STTS_NM"),
+                    "pblcnYr": item.get("PBLCN_YR"),
+                    "rschBgngYmd": item.get("RSCH_BGNG_YMD"),
+                    "rschEndYmd": item.get("RSCH_END_YMD"),
+                    "jrsdInstGrntNo": item.get("JRSD_INST_GRNT_NO"),
+                    "hghrkFwkClsfSysId": item.get("HGHRK_FWK_CLSF_SYS_ID"),
+                    "clsfSysNm": item.get("CLSF_SYS_NM"),
+                },
+                ensure_ascii=False,
+            ),
+        }
