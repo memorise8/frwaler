@@ -1,0 +1,16 @@
+{
+  "site_id": "alrc-gov-au-publications",
+  "listing_body": "<html><body><main><div class=\"section-listing-item\"><h2><a href=\"https://www.alrc.gov.au/publication/synthetic-report-9/\">Synthetic Report 9</a></h2><span class=\"section-listing-item-date\">09.02.2031</span><p>Synthetic listing snippet 9.</p></div><div class=\"section-listing-item\"><h2><a href=\"https://www.alrc.gov.au/publication/synthetic-report-8/\">Synthetic Report 8</a></h2><span class=\"section-listing-item-date\">08.02.2031</span><p>Synthetic listing snippet 8.</p></div><div class=\"tw-pagination\"><span class=\"page current\">1</span></div></main></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.alrc.gov.au/publication/synthetic-report-9/": "<html><head><link rel=\"canonical\" href=\"https://www.alrc.gov.au/publication/synthetic-report-9/\"><link rel=\"shortlink\" href=\"https://www.alrc.gov.au/?p=90009\"><script type=\"application/ld+json\">{\"@graph\":[{\"@type\":\"Article\",\"datePublished\":\"2031-02-09T10:00:00+10:00\"}]}</script></head><body class=\"publication postid-90009\"><div id=\"main-content\"><main class=\"content\"><h1 class=\"post-title\">Synthetic Report 9</h1><div class=\"wysiwyg\"><p>Synthetic final report body for the offline equality test of the enumeration split. It only imitates the structure of a report page and carries no real content of any kind.</p></div><div class=\"alrc-publication-action-pdf\"><a href=\"https://www.alrc.gov.au/wp-content/uploads/2031/02/synthetic-final-report-9.pdf\">Download PDF</a></div></main></div></body></html>",
+    "https://www.alrc.gov.au/publication/synthetic-report-8/": "<html><head><link rel=\"canonical\" href=\"https://www.alrc.gov.au/publication/synthetic-report-8/\"><link rel=\"shortlink\" href=\"https://www.alrc.gov.au/?p=90008\"><script type=\"application/ld+json\">{\"@graph\":[{\"@type\":\"Article\",\"datePublished\":\"2031-02-08T10:00:00+10:00\"}]}</script></head><body class=\"publication postid-90008\"><div id=\"main-content\"><main class=\"content\"><h1 class=\"post-title\">Synthetic Report 8</h1><div class=\"wysiwyg\"><p>Synthetic final report body for the offline equality test of the enumeration split. It only imitates the structure of a report page and carries no real content of any kind.</p></div><div class=\"alrc-publication-action-pdf\"><a href=\"https://www.alrc.gov.au/wp-content/uploads/2031/02/synthetic-final-report-8.pdf\">Download PDF</a></div></main></div></body></html>"
+  },
+  "long_text": "Synthetic final report body for the offline equality test of the enumeration split. It only imitates the structure of a report page and carries no real content of any kind.",
+  "original_method_source_sha256": {
+    "_alrc_wall_seconds": "1286b676fcb307b81a04eecbd1fc9db0f18cb8765f732c8b4d4d72ce1908a6c5",
+    "_alrc_fetch": "027799702c581c5eac1f568eb7fc5098ad4d6b1c2d64acea786db324a2bb15a4",
+    "_alrc_list": "086221414ec0586d485b9dc7f1d734c3ba48376ae2a5c644e0798bd1e02a2411",
+    "_alrc_paper": "1e477f1f141858facedfea28c3ca082ddec1bbe4a25104d728c74169b8b1c8cb"
+  }
+}

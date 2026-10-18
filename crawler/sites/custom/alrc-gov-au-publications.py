@@ -500,3 +500,79 @@ class ALRCGovAuPublicationsCrawler(AlrcTraversal, BaseCrawler):
                     category=item.get('type_label') or ('Final Report' if scope == 'final-report' else ''),
                     doi='', original_filename=detail.get('original_filename'),
                     metadata=json.dumps(metadata, ensure_ascii=False, default=str))
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() (AlrcTraversal) and
+    # the existing methods are unchanged; these methods only parse already
+    # fetched HTML. Scope: the first delivered list, 'final-report'
+    # (/publications/final-report/, ?paged=N -> 301 /page/N/).
+    # ------------------------------------------------------------------
+
+    _ENUMERATION_SCOPE = 'final-report'
+
+    def _enumeration_items(self, html, url=None):
+        """Rows of one final-report list page, parsed and validated as
+        _alrc_list() does (same host check, same publisher-pager check)."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure('listing_parse_error:expected_html', url)
+        parts = urlsplit(url or START_URL)
+        match = re.search(r'/page/(\d+)/?$', parts.path)
+        paged = (parse_qs(parts.query).get('paged') or [None])[0]
+        page = int(match.group(1)) if match else int(paged) if paged and paged.isdigit() else 1
+        page = max(page, 1)
+        try:
+            items, _ = _parse_list_page(html)
+            if not items:
+                # Past the last page the source answers 200 with an empty
+                # section.section-listing (no rows, no pager); the plan's
+                # listing_marker tells it apart from an error page.
+                return []
+            for item in items:
+                parsed = urlparse(item['url'])
+                if parsed.scheme != 'https' or parsed.netloc != 'www.alrc.gov.au' or parsed.fragment:
+                    raise ValueError('ALRC listing document outside source host')
+            inspect_listing(_make_soup(html), items, self._ENUMERATION_SCOPE, page)
+        except ValueError as exc:
+            raise PermanentFailure('listing_parse_error:alrc_listing_invalid', url) from exc
+        source_list_url = list_url(self._ENUMERATION_SCOPE, page)
+        return [dict(item, source_list_url=source_list_url) for item in items]
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page — _alrc_paper() copied verbatim with
+        the fetched HTML in place of _alrc_fetch() (identity unchanged:
+        external_id = WordPress post id, else slug)."""
+        scope = self._ENUMERATION_SCOPE
+        source_list_url = item['source_list_url']
+        item_url = item['url']
+        raw = html
+        if not raw or not re.search(r'</html\s*>', raw, re.I):
+            raise ValueError('ALRC HTML document incomplete')
+        soup = _make_soup(raw)
+        canonical = soup.select_one('link[rel="canonical"][href]') if soup else None
+        if not canonical or not same_url(canonical['href'], item_url) or not soup.find('h1'):
+            raise ValueError('ALRC detail URL identity missing or changed')
+        detail = _parse_detail_page(raw, item_url, item)
+        title = detail.get('title') or ''
+        abstract = _clean_text(detail.get('abstract') or '')
+        if not title or len(abstract) < ABSTRACT_MIN_CHARS:
+            return None
+        native_id = detail.get('wp_post_id') or item.get('slug') or item_url
+        post_number = detail.get('wp_post_id') or item.get('slug')
+        metadata = dict(detail.get('metadata') or {})
+        metadata.update(posted_date=item.get('listed_date_raw'), post_number=post_number,
+                        external_id=native_id, detail_url=item_url,
+                        source_list_url=source_list_url, source_scope=scope,
+                        source_type_label=item.get('type_label'))
+        return dict(id=f'{self.site_id}:{native_id}', site_id=self.site_id,
+                    external_id=str(native_id), post_number=post_number, title=title,
+                    abstract=abstract,
+                    published_date=metadata.get('date_published_raw') or item.get('listed_date_raw'),
+                    listed_date=item.get('listed_date_raw'), posted_date=item.get('listed_date_raw'),
+                    authors=detail.get('authors') or '', publisher=PUBLISHER,
+                    department='', journal='', url=item_url, pdf_url=detail.get('pdf_url'),
+                    keywords=detail.get('keywords') or '',
+                    category=item.get('type_label') or ('Final Report' if scope == 'final-report' else ''),
+                    doi='', original_filename=detail.get('original_filename'),
+                    metadata=json.dumps(metadata, ensure_ascii=False, default=str))
