@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "sites": {
+    "miit-gov-cn-zwgk": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "last_page_backward",
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "html",
+          "url"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ]
+      },
+      "listing": {
+        "url": "https://www.miit.gov.cn/api-gateway/jpaas-publish-server/front/page/build/unit",
+        "params": {
+          "parseType": "buildstatic",
+          "webId": "8d828e408d90447786ddbe128d495e9e",
+          "tplSetId": "209741b2109044b5b7695700b2bec37e",
+          "pageType": "column",
+          "tagId": "栏目1板块",
+          "editType": "null",
+          "pageId": "829759aed51b4ca49164b7a711a11de8",
+          "paramJson": "{\"pageNo\": 1, \"pageSize\": 100}"
+        },
+        "page_param": "pageNo",
+        "start_page": 1,
+        "total": {
+          "type": "regex",
+          "pattern": "count=\\\\?\"(\\d+)"
+        },
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "title_field": "title"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1,
+        "check_unparameterized_first_page": false
+      }
+    }
+  }
+}

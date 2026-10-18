@@ -1,0 +1,21 @@
+{
+ "listing_body": "{\"data\": {\"html\": \"<div class=\\\"page-content\\\" count=\\\"2\\\"><p><a href=\\\"/zwgk/zfxxgkzl/zfxxgknb/gyhxxhb/art/2026/art_77642e9bb04e42849b051b34a1c01d25.html\\\" title=\\\"年度报告一\\\">年度报告一</a><span>2026-01-30</span></p><p><a href=\\\"/zwgk/zfxxgkzl/zfxxgknb/gyhxxhb/art/2025/art_036e65e4f36749448a5d670d98050515.html\\\" title=\\\"年度报告二\\\">年度报告二</a><span>2025-01-21</span></p></div>\"}}",
+ "details": {
+  "https://www.miit.gov.cn/zwgk/zfxxgkzl/zfxxgknb/gyhxxhb/art/2026/art_77642e9bb04e42849b051b34a1c01d25.html": "<html><head><meta name=\"ArticleTitle\" content=\"年度报告一 详情\"><meta name=\"PubDate\" content=\"2026-01-30 17:21\"><meta name=\"ContentSource\" content=\"办公厅\"><meta name=\"Keywords\" content=\"年报\"><meta name=\"Description\" content=\"摘要\"><meta name=\"Author\" content=\"工信部\"></head><body><div id=\"con_con\"><p>合成的政府信息公开工作年度报告正文，用于 L2b 离线回归测试：crawl 与 plan 必须生成相同的 paper。Synthetic offline text kept identical between crawl and plan.</p><a href=\"/cms_files/attach/r1.pdf\"></a></div></body></html>",
+  "https://www.miit.gov.cn/zwgk/zfxxgkzl/zfxxgknb/gyhxxhb/art/2025/art_036e65e4f36749448a5d670d98050515.html": "<html><head><meta name=\"ArticleTitle\" content=\"年度报告二 详情\"><meta name=\"PubDate\" content=\"2025-01-21 17:21\"><meta name=\"ContentSource\" content=\"办公厅\"><meta name=\"Keywords\" content=\"年报\"><meta name=\"Description\" content=\"摘要\"><meta name=\"Author\" content=\"工信部\"></head><body><div id=\"con_con\"><p>合成的政府信息公开工作年度报告正文，用于 L2b 离线回归测试：crawl 与 plan 必须生成相同的 paper。Synthetic offline text kept identical between crawl and plan.</p><a href=\"/cms_files/attach/r2.pdf\"></a></div></body></html>"
+ },
+ "content_type": "application/json",
+ "long_text": "合成的政府信息公开工作年度报告正文，用于 L2b 离线回归测试：crawl 与 plan 必须生成相同的 paper。Synthetic offline text kept identical between crawl and plan.",
+ "empty_body": "{\"data\": {\"html\": \"<div class=\\\"page-content\\\" count=\\\"0\\\"></div>\"}}",
+ "site_id": "miit-gov-cn-zwgk",
+ "original_method_source_sha256": {
+  "_curl_get": "7d7ddb051ade6fa622343e2e490ef261126937ab094b70c9158a47e95e1ab330",
+  "_fetch_list_page": "0071808df97b002679ba7449c2a997d1c99c4d88e09783a913758685d41a2598",
+  "_parse_list_html": "16f7cbc9aeef572423631b90d9dfdf531ddcef9ebad98d28d38a2b0af310867d",
+  "_get_total_pages": "3c76d87373f2cc3a2ef89b77277be925b43c63f2fdfb3d39a8bf1036d45c0266",
+  "_fetch_detail": "7ec1e94546a6bedecb668f68742056f2dddd06ace8c7a4337c7a52fb16d9d7fa",
+  "_meta": "3a7fd62360abe2e4b6332a3c5dd858d245d9a29a4da822c66c7c2479e6e34da9",
+  "_parse_detail": "9c5623261faef995c23e246b65230cdc8323caef3e5770fed2149f4c977e552c",
+  "crawl": "1b37ff83611b74474879fab257d747f1f5d3e9b9b82de95accc5ab58e13e7b84"
+ }
+}

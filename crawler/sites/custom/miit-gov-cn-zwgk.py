@@ -334,3 +334,63 @@ class MiitGovCnZwgkCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # -- enumeration split (crawl() unchanged) --------------------------
+    def _enumeration_items(self, data, url=""):
+        """Rows of one build/unit API answer (JSON wrapping an HTML fragment), as crawl() reads them."""
+        try:
+            list_html = data["data"]["html"]
+        except (KeyError, TypeError):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:data_html_missing", url)
+        if not isinstance(list_html, str):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:data_html_not_text", url)
+        return [{"title": title, "url": full_url, "listed_date": listed_date}
+                for title, full_url, listed_date in self._parse_list_html(list_html)]
+
+    def _enumeration_detail(self, html, url):
+        return self._parse_detail(html, url)
+
+    def _enumeration_paper(self, item, detail):
+        """The paper crawl() saves for one row + parsed detail (same <50 skip)."""
+        title_list, url, listed_date = item["title"], item["url"], item["listed_date"]
+        art_title = detail.get("title") or title_list
+        abstract = detail.get("abstract", "")
+        if len(abstract) < 50:
+            return None
+        external_id = detail.get("external_id", "")
+        pub_date = detail.get("pub_date", "")
+        source = detail.get("source", "")
+        keywords_str = detail.get("keywords", "")
+        pdf_url = detail.get("pdf_url")
+        original_filename = detail.get("original_filename")
+        description = detail.get("description", "")
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": None,
+            "title": art_title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "listed_date": listed_date,
+            "authors": detail.get("author", "") or "",
+            "publisher": source,
+            "department": "",
+            "journal": "",
+            "url": url,
+            "pdf_url": pdf_url,
+            "keywords": keywords_str,
+            "category": "政府信息公开年报",
+            "doi": "",
+            "original_filename": original_filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": listed_date,
+                    "description": description,
+                    "originalFilename": original_filename,
+                },
+                ensure_ascii=False,
+            ),
+        }
+
