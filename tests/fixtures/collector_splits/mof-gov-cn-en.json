@@ -1,0 +1,14 @@
+{
+  "site_id": "mof-gov-cn-en",
+  "listing_body": "<html><body><ul class=\"media-list\"><li class=\"media listpage\"><div class=\"media-body\"><h4><a href=\"./202611/t20261101_9900001.htm\" target=\"_blank\"> OFFLINE REPORT 1</a></h4><span> Oct 01,2026 </span></div></li><li class=\"media listpage\"><div class=\"media-body\"><h4><a href=\"./202612/t20261202_9900002.htm\" target=\"_blank\"> OFFLINE REPORT 2</a></h4><span> Oct 02,2026 </span></div></li></ul><script>\n//createPageHTML(1, 0, \"index\", \"htm\");\nvar currentPage = 0;\nvar countPage = 1//共多少页\n</script></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "http://www.mof.gov.cn/en/reports/202611/t20261101_9900001.htm": "<html><body><div id=\"zoom\" class=\"conpagecon\"><div class=\"TRS_Editor\"><p>Synthetic fiscal report paragraph with résumé and 中文 자료 for offline equality testing only. Synthetic fiscal report paragraph with résumé and 中文 자료 for offline equality testing only. Synthetic fiscal report paragraph with résumé and 中文 자료 for offline equality testing only. Synthetic fiscal report paragraph with résumé and 中文 자료 for offline equality testing only. </p><p>short</p></div></div></body></html>",
+    "http://www.mof.gov.cn/en/reports/202612/t20261202_9900002.htm": "<html><body><div id=\"zoom\" class=\"conpagecon\"><div class=\"TRS_Editor\"><p>Synthetic fiscal report paragraph with résumé and 中文 자료 for offline equality testing only. Synthetic fiscal report paragraph with résumé and 中文 자료 for offline equality testing only. Synthetic fiscal report paragraph with résumé and 中文 자료 for offline equality testing only. Synthetic fiscal report paragraph with résumé and 中文 자료 for offline equality testing only. </p><p>short</p></div></div></body></html>"
+  },
+  "long_text": "Synthetic fiscal report paragraph with résumé and 中文 자료 for offline equality testing only. Synthetic fiscal report paragraph with résumé and 中文 자료 for offline equality testing only. Synthetic fiscal report paragraph with résumé and 中文 자료 for offline equality testing only. Synthetic fiscal report paragraph with résumé and 中文 자료 for offline equality testing only. ",
+  "empty_body": "<html><body><ul class=\"media-list\"></ul><script>\n//createPageHTML(1, 0, \"index\", \"htm\");\nvar currentPage = 0;\nvar countPage = 1//共多少页\n</script></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "25eb6f03fc0fbe713bb01eded3508f23f356e85e0717618dd3364609ba4447fa"
+  }
+}

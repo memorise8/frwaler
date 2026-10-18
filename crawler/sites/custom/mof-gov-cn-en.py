@@ -256,3 +256,96 @@ class MofGovCnEnCrawler(BaseCrawler):
             time.sleep(0.5)
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration (pure conversions for the enumeration framework)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Rows of the reports list page (index.htm) exactly as crawl() collects them.
+
+        The channel is one static page (``var countPage = 1``); further pages would be
+        index_N.htm files a query-parameter plan cannot reach, so any other page count
+        is a listing parse error rather than a silently partial list.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:not_html")
+        count = re.search(r"var\s+countPage\s*=\s*(\d+)", html)
+        if not count:
+            raise PermanentFailure("listing_parse_error:count_page_missing")
+        if int(count.group(1)) != 1:
+            raise PermanentFailure("listing_parse_error:channel_not_single_page")
+        soup = _make_soup(html)
+        if not soup:
+            raise PermanentFailure("listing_parse_error:unparseable_html")
+
+        page_url = _LIST_BASE + "index.htm"
+        li_items = soup.find_all("li", class_="listpage")
+        if li_items:
+            anchors = [li.find("a", href=True) for li in li_items]
+            anchors = [a for a in anchors if a]
+        else:
+            anchors = []
+            for h4 in soup.find_all("h4"):
+                a = h4.find("a", href=True)
+                if a and re.search(r"/t\d{8}_\d+\.htm", a.get("href", "")):
+                    anchors.append(a)
+
+        rows = []
+        seen_urls = set()
+        for anchor in anchors:
+            href = anchor.get("href", "")
+            detail_url = urljoin(_LIST_BASE, href)
+            if detail_url in seen_urls:
+                continue
+            seen_urls.add(detail_url)
+            rows.append({
+                "url": detail_url,
+                "list_title": anchor.get_text(strip=True),
+                "list_url": page_url,
+                "post_number": _parse_post_number(detail_url),
+                "published_date": _parse_date_from_url(detail_url),
+            })
+        return rows
+
+    def _enumeration_paper(self, detail_html, item):
+        """The paper crawl() saves for one list row and its detail page (None = skipped)."""
+        detail_url = item["url"]
+        detail_soup = _make_soup(detail_html)
+        if not detail_soup:
+            print(f"[mof-gov-cn-en] detail parse failed: {detail_url}")
+            return None
+
+        abstract = _extract_abstract(detail_soup)
+        if len(abstract) < 50:
+            print(
+                f"[mof-gov-cn-en] abstract too short "
+                f"({len(abstract)} chars), skipping: {detail_url}"
+            )
+            return None
+
+        pub_date = _parse_date_from_url(detail_url)
+        post_num = _parse_post_number(detail_url)
+
+        title = item["list_title"] or detail_url.rsplit("/", 1)[-1]
+
+        return {
+            "site_id": self.site_id,
+            "external_id": post_num,
+            "post_number": post_num,
+            "url": detail_url,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "listed_date": pub_date,
+            "publisher": _PUBLISHER,
+            "category": "Reports",
+            "pdf_url": None,
+            "keywords": None,
+            "metadata": json.dumps({
+                "posted_date": pub_date,
+                "post_number_raw": post_num,
+                "list_url": item["list_url"],
+            }),
+        }

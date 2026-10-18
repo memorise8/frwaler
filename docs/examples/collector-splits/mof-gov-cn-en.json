@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "sites": {
+    "mof-gov-cn-en": {
+      "strategy": "last_page_backward",
+      "base_url": "http://www.mof.gov.cn",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "http://www.mof.gov.cn/en/reports/index.htm",
+        "params": {
+          "page": 1
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 9,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "post_number",
+          "date_field": "published_date",
+          "title_field": "list_title",
+          "listing_marker": "ul.media-list"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
