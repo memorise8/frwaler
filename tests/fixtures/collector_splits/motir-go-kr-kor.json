@@ -1,0 +1,17 @@
+{
+ "site_id": "motir-go-kr-kor",
+ "listing_body": "<html><body><table id=\"mytable\"><thead><tr><th>번호</th></tr></thead><tbody><tr><td>359</td><td class=\"ta-l\"><div class=\"board-link\"><a href=\"/kor/article/ATCL449580de4/861/view?mno=&pageIndex=1\" onclick=\"article.view('861'); return false;\"><i>표준 이슈 포커스 제32호</i></a></div></td><td>2026-09-30</td><td>320</td><td></td></tr><tr><td>358</td><td class=\"ta-l\"><div class=\"board-link\"><a href=\"/kor/article/ATCL449580de4/860/view?mno=&pageIndex=1\" onclick=\"article.view('860'); return false;\"><i>표준 이슈 포커스 제31호</i></a></div></td><td>2026-08-31</td><td>320</td><td></td></tr></tbody></table></body></html>",
+ "content_type": "text/html; charset=UTF-8",
+ "details": {
+  "https://www.motir.go.kr/kor/article/ATCL3f49a5a8c/861/view": "<html><body><div class=\"detail-tit\"><span>표준 이슈 포커스 제32호</span></div><ul class=\"detail-info\"><li><em>등록일</em><span>2026-09-30</span></li><li><em>담당부서</em><span>국가기술표준원</span></li><li><em>담당자</em><span>홍길동</span></li><li><em>연락처</em><span>043-000-0000</span></li></ul><div class=\"detail-cont\"><p>이번 호에서는 국제표준화기구의 최신 동향과 우리 기업의 표준 대응 과제를 정리하고, 디지털 전환 분야 표준 전략을 소개합니다. 배포 2026. 9. 30.</p></div><div class=\"info-down\"><a href=\"javascript:location.href='/attach/down/c145/a1'\">표준 이슈 포커스.pdf [1.2MB]</a></div></body></html>",
+  "https://www.motir.go.kr/kor/article/ATCL3f49a5a8c/860/view": "<html><body><div class=\"detail-tit\"><span>표준 이슈 포커스 제31호</span></div><ul class=\"detail-info\"><li><em>등록일</em><span>2026-08-31</span></li><li><em>담당부서</em><span>국가기술표준원</span></li><li><em>담당자</em><span>홍길동</span></li><li><em>연락처</em><span>043-000-0000</span></li></ul><div class=\"detail-cont\"><p>이번 호에서는 국제표준화기구의 최신 동향과 우리 기업의 표준 대응 과제를 정리하고, 디지털 전환 분야 표준 전략을 소개합니다. 배포 2026. 9. 30.</p></div><div class=\"info-down\"><a href=\"javascript:location.href='/attach/down/c145/b2'\">표준 이슈 포커스.pdf [1.2MB]</a></div></body></html>"
+ },
+ "long_text": "이번 호에서는 국제표준화기구의 최신 동향과 우리 기업의 표준 대응 과제를 정리하고, 디지털 전환 분야 표준 전략을 소개합니다. 배포 2026. 9. 30.",
+ "original_method_source_sha256": {
+  "_curl_get": "f276d0158d190f4d644c38b834474686742fbabedeed4e00637c45c16cb19cc7",
+  "_parse_list_page": "7dd6f3802b79114f0b3f810c815f34d03dd57a954da7e886fbac24e5cb6610e4",
+  "_parse_detail_page": "95efc72a31ea4d08930a002192b1fb9631f9dc58216171df6185864650776756",
+  "crawl": "446b31a45aac33dfaeb44e33a568c3af96982a15de1dacaa5b1ff5ddc0a04037"
+ },
+ "empty_body": "<html><body><table id=\"mytable\"><tbody><tr><td colspan=\"\" class=\"ta-c\" id=\"col\">등록된 자료가 없습니다. </td></tr></tbody></table></body></html>"
+}

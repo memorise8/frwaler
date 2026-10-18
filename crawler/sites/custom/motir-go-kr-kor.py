@@ -362,3 +362,78 @@ class MotirGoKrKorCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged)
+    # ------------------------------------------------------------------
+
+    _ENUM_BOARD_RE = re.compile(r"/kor/article/(ATCL[0-9A-Za-z]+)")
+
+    def _enumeration_items(self, html, url=None):
+        """Rows of one board list page, parsed like crawl(); the board (ATCL code) comes from
+        the list URL, so the plan can name the registered board. Identity stays bbs_seq_n."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        m = self._ENUM_BOARD_RE.search(url or "")
+        code = m.group(1) if m else self._ARTICLE_CODE
+        rows = []
+        for row in self._parse_list_page(html):
+            row = dict(row)
+            row["atcl_id"] = code
+            row["url"] = f"{self.base_url}/kor/article/{code}/{row['bbs_seq_n']}/view"
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, detail_raw, row):
+        """Paper dict exactly as crawl() saves it for one list row (None = skipped)."""
+        code = row.get("atcl_id") or self._ARTICLE_CODE
+        detail_url = f"{self.base_url}/kor/article/{code}/{row['bbs_seq_n']}/view"
+        detail = self._parse_detail_page(detail_raw)
+        if not detail:
+            return None
+        title = detail.get("title") or row["title"]
+        if not title:
+            return None
+        abstract = detail.get("abstract") or ""
+        if len(abstract) < self._MIN_ABSTRACT:
+            return None
+
+        listed_date = detail.get("listed_date") or row["listed_date"] or None
+        published_date = detail.get("published_date") or listed_date
+        department = detail.get("department") or row["department"] or None
+
+        meta = {
+            "posted_date": listed_date,
+            "bbsSeqN": row["bbs_seq_n"],
+            "atclId": code,
+            "category_raw": row["category"],
+            "department": department,
+            "contact_person": detail.get("contact_person") or None,
+            "contact_phone": detail.get("contact_phone") or None,
+            "attachments": detail.get("attachments") or [],
+        }
+        if detail.get("original_filename"):
+            meta["originalFilename"] = detail["original_filename"]
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": row["bbs_seq_n"],
+            "post_number": row["bbs_seq_n"],
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "authors": None,
+            "publisher": self._PUBLISHER,
+            "department": department,
+            "journal": None,
+            "url": detail_url,
+            "pdf_url": detail.get("pdf_url"),
+            "keywords": None,
+            "category": row["category"] or None,
+            "doi": None,
+            "original_filename": detail.get("original_filename"),
+            "metadata": json.dumps(meta, ensure_ascii=False),
+        }

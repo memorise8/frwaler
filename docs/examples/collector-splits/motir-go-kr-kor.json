@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "sites": {
+    "motir-go-kr-kor": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.motir.go.kr",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.motir.go.kr/kor/article/ATCL449580de4",
+        "page_param": "pageIndex",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "bbs_seq_n",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "title_field": "title",
+          "listing_marker": "table#mytable tbody"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
