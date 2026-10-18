@@ -352,3 +352,62 @@ class DefenseGouvFrSalleDePresseCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L2a 2026-10-18); crawl() is unchanged.
+    # The listing card is the whole record (no HTML detail page).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        items = self._parse_page(html)
+        if not items and "<main" not in html:
+            raise PermanentFailure("listing_parse_error:missing_main_marker")
+        return items
+
+    def _enumeration_paper(self, item):
+        """The paper crawl() builds for one card (same fields, same skip rule)."""
+        actual_title = item["actual_title"]
+        raw_title = item["raw_title"]
+        category = item["category"]
+        listed_date = item["listed_date"]
+        date_raw = item["date_raw"]
+        pdf_url = item.get("pdf_url")
+        external_id = item["external_id"]
+        original_filename = item.get("original_filename")
+        published_date = item.get("published_date", "")
+        abstract = self._build_abstract(actual_title, category, listed_date, pdf_url)
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": external_id,
+            "title": actual_title or raw_title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "url": pdf_url or self.START_URL,
+            "pdf_url": pdf_url,
+            "category": category,
+            "publisher": (
+                "Ministère des Armées et des Anciens combattants"
+            ),
+            "original_filename": original_filename,
+            "authors": "",
+            "keywords": "",
+            "doi": "",
+            "department": "",
+            "journal": "",
+            "metadata": json.dumps(
+                {
+                    "posted_date": date_raw,
+                    "originalFilename": original_filename,
+                    "raw_title": raw_title,
+                    "category": category,
+                },
+                ensure_ascii=False,
+            ),
+        }
