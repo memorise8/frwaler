@@ -1,0 +1,14 @@
+{
+ "site_id": "data-busan-go-kr-bdip",
+ "listing_body": "{\"result\": {\"total_count\": 2, \"rows\": [{\"fields\": {\"PUBLICDATAPK\": \"15092750\", \"PUBLICDATASJ\": \"부산 버스정보\", \"PUBLICDATADC\": \"<p>부산광역시 합성 공공데이터 설명문으로 오프라인 동등성 시험에 쓰는 문장입니다. Synthetic Busan open data description for offline tests. 부산광역시 합성 공공데이터 설명문으로 오프라인 동등성 시험에 쓰는 문장입니다. Synthetic Busan open data description for offline tests. </p>\", \"BRMNNM\": \"교통\", \"INSTTNM\": \"부산광역시\", \"KEYWORD\": \"버스 노선\", \"REGISTDT\": \"20211026120000\", \"UPDTDT\": \"20211026120000\", \"DATATY\": \"FILE\", \"BRMNCD\": \"B01\", \"INSTTCODE\": \"6260000\"}}, {\"fields\": {\"PUBLICDATAPK\": \"3057229\", \"PUBLICDATASJ\": \"승하차인원\", \"PUBLICDATADC\": \"<p>부산광역시 합성 공공데이터 설명문으로 오프라인 동등성 시험에 쓰는 문장입니다. Synthetic Busan open data description for offline tests. 부산광역시 합성 공공데이터 설명문으로 오프라인 동등성 시험에 쓰는 문장입니다. Synthetic Busan open data description for offline tests. </p>\", \"BRMNNM\": \"교통\", \"INSTTNM\": \"부산광역시\", \"KEYWORD\": \"버스 노선\", \"REGISTDT\": \"20200414\", \"UPDTDT\": \"20200414\", \"DATATY\": \"FILE\", \"BRMNCD\": \"B01\", \"INSTTCODE\": \"6260000\"}}]}}",
+ "content_type": "application/json",
+ "details": {},
+ "long_text": "부산광역시 합성 공공데이터 설명문으로 오프라인 동등성 시험에 쓰는 문장입니다. Synthetic Busan open data description for offline tests. 부산광역시 합성 공공데이터 설명문으로 오프라인 동등성 시험에 쓰는 문장입니다. Synthetic Busan open data description for offline tests. ",
+ "empty_body": "{\"result\": {\"total_count\": 2, \"rows\": []}}",
+ "original_method_source_sha256": {
+  "_curl_post_json": "5205f54887e81e993c3b1905ed91910225fd73f2f9265f7286f300c9843a0529",
+  "_parse_date": "c97de2fa99f4b7e39607b4a214f311efc12bf26f0b720c916487dbe10f16930b",
+  "_strip_html": "1c59e0844a8deec9f37879366a425a9196f37d274c371fba0481e43cdbefee19",
+  "crawl": "b9ec4bf8341de97eb88aaee989e174d4cca38781f1e101a50cf8dc583d9b3d32"
+ }
+}

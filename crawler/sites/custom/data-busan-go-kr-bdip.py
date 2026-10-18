@@ -244,3 +244,83 @@ class BusanBdipCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() stays
+    # unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, data):
+        """Rows of one list API response (data["result"]["rows"]), as crawl() reads them."""
+        from crawler.enumeration.http import PermanentFailure
+        try:
+            rows = data["result"]["rows"]
+        except (KeyError, TypeError):
+            raise PermanentFailure("listing_parse_error:missing_result_rows") from None
+        if not isinstance(rows, list):
+            raise PermanentFailure("listing_parse_error:rows_not_a_list")
+        out = []
+        for row in rows:
+            fields = (row or {}).get("fields") or {}
+            pk = str(fields.get("PUBLICDATAPK") or "").strip()
+            if not pk:
+                continue  # crawl(): rows without a key are skipped
+            out.append({"pk": pk, "fields": fields,
+                        "url": f"{self.base_url}/bdip/opendata/detail.do?publicdatapk={pk}",
+                        "title": (fields.get("PUBLICDATASJ") or "").strip(),
+                        "listed_date": self._parse_date((fields.get("REGISTDT") or "").strip())})
+        return out
+
+    def _enumeration_paper(self, item):
+        """Copy of crawl()'s per-row paper conversion; None keeps its skips."""
+        fields = item.get("fields") or {}
+        pk = str(fields.get("PUBLICDATAPK") or "").strip()
+        if not pk:
+            return None
+        title = (fields.get("PUBLICDATASJ") or "").strip()
+        if not title:
+            title = f"공공데이터_{pk}"
+        abstract = self._strip_html(fields.get("PUBLICDATADC") or "")
+        if len(abstract) < 100:
+            return None
+        category = (fields.get("BRMNNM") or "").strip()
+        publisher = (fields.get("INSTTNM") or "").strip()
+        kw_raw = (fields.get("KEYWORD") or "").strip()
+        keywords = ", ".join(k for k in kw_raw.split() if k) if kw_raw else ""
+        registdt = (fields.get("REGISTDT") or "").strip()
+        updtdt = (fields.get("UPDTDT") or "").strip()
+        dataty = (fields.get("DATATY") or "").strip()
+        brmncd = (fields.get("BRMNCD") or "").strip()
+        insttcode = (fields.get("INSTTCODE") or "").strip()
+        published_date = self._parse_date(registdt)
+        detail_url = f"{self.base_url}/bdip/opendata/detail.do?publicdatapk={pk}"
+        return {
+            "site_id": self.site_id,
+            "external_id": pk,
+            "post_number": pk,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": published_date,
+            "authors": None,
+            "publisher": publisher,
+            "department": None,
+            "journal": None,
+            "category": category,
+            "keywords": keywords,
+            "url": detail_url,
+            "pdf_url": None,
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": registdt,
+                    "updtdt": updtdt,
+                    "dataty": dataty,
+                    "publicdatapk": pk,
+                    "brmncd": brmncd,
+                    "insttcode": insttcode,
+                    "category": category,
+                },
+                ensure_ascii=False,
+            ),
+        }
