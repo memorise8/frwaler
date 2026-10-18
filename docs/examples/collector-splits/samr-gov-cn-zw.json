@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "sites": {
+    "samr-gov-cn-zw": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.samr.gov.cn",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "raw",
+          "first_resp",
+          "item"
+        ],
+        "second_step": {
+          "use": "detail_page",
+          "url_template": "https://www.samr.gov.cn/api-gateway/jpaas-publish-server/front/page/build/unit?parseType=bulid&webId=29e9522dc89d4e088a953d8cede72f4c&tplSetId=5c30fb89ae5e48b9aefe3cdf49853830&pageType=article&tagId=%E6%96%87%E7%AB%A0%E6%AD%A3%E6%96%872&editType=null&pageId={item:page_id}",
+          "required": false
+        }
+      },
+      "listing": {
+        "url": "https://www.samr.gov.cn/api-gateway/jpaas-publish-server/front/page/build/unit?parseType=bulidstatic&webId=29e9522dc89d4e088a953d8cede72f4c&tplSetId=5c30fb89ae5e48b9aefe3cdf49853830&pageType=column&tagId=%E5%86%85%E5%AE%B9%E5%8C%BA%E5%9F%9F&editType=null&pageId=f6a995f86b4f4362836c3c2d7ce72889&paramJson=%7B%22pageNo%22%3A{page}%2C%22pageSize%22%3A20%7D",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "title_field": "title"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

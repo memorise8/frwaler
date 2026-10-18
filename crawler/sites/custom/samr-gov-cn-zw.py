@@ -726,3 +726,68 @@ class SamrGovCnZwCrawler(BaseCrawler):
 
     def _budget_nearly_exhausted(self, started_at):
         return time.time() - started_at >= self.WALL_CLOCK_BUDGET_SECONDS - 30
+
+    # ------------------------------------------------------------------
+    # Pure enumeration conversion (collector-splits; crawl() unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, payload, url):
+        """Rows of one JPaas list response exactly as crawl() reads them: the JSON's
+        data.html fragment parsed by _parse_list_records, with the page number taken from
+        paramJson in the request URL (crawl() stores it as metadata.list_page). A failed or
+        non-JPaas answer is a listing error; a fragment without rows is an empty page only
+        when its .pagination block is present."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(payload, dict) or not payload.get("success"):
+            raise PermanentFailure("listing_parse_error:unexpected_list_response")
+        try:
+            param_json = json.loads(parse_qs(urlparse(url).query)["paramJson"][0])
+            page = int(param_json["pageNo"])
+        except (KeyError, IndexError, TypeError, ValueError):
+            raise PermanentFailure("listing_parse_error:page_number_missing") from None
+        html = (payload.get("data") or {}).get("html") or ""
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:fragment_not_text")
+        records, _total = self._parse_list_records(html, page) if html else ([], None)
+        if not records:
+            soup = self._make_soup(html, context=f"list page {page}") if html else None
+            if soup is None or soup.select_one(".pagination") is None:
+                raise PermanentFailure("listing_parse_error:empty_without_pagination")
+        return records
+
+    def _enumeration_unit_html(self, raw):
+        """data.html of the article-unit answer, by the same rules as
+        _fetch_article_unit_html after its request (invalid/failed JSON -> "")."""
+        text = self._decode_bytes(raw)
+        if not text:
+            return ""
+        try:
+            payload = json.loads(text)
+        except json.JSONDecodeError:
+            return ""
+        if not isinstance(payload, dict) or not payload.get("success"):
+            return ""
+        return (payload.get("data") or {}).get("html") or ""
+
+    def _enumeration_paper(self, unit_raw, first_resp, item):
+        """The paper crawl() saves for one list row: the detail page (first step, its final
+        URL as effective_url) and the article-unit API answer that _parse_detail would
+        request for the row's page_id (second step, url_template). _parse_detail runs
+        unchanged; its one network call is answered with the already fetched unit."""
+        detail_raw = self._decode_bytes(first_resp.body)
+        if not detail_raw:
+            raise RuntimeError("detail fetch failed after retries")
+        effective_url = first_resp.url or item.get("url") or ""
+        detail_soup = self._make_soup(detail_raw, context="enumeration detail")
+        if detail_soup is None:
+            raise RuntimeError("detail HTML could not be parsed")
+        unit_html = self._enumeration_unit_html(unit_raw)
+        self._fetch_article_unit_html = lambda page_id, referer: unit_html if page_id else ""
+        try:
+            parsed = self._parse_detail(record=item, soup=detail_soup, raw_html=detail_raw,
+                                        effective_url=effective_url)
+        finally:
+            del self._fetch_article_unit_html
+        if len(parsed.get("abstract") or "") < self.MIN_ABSTRACT_CHARS:
+            return None
+        return self._to_paper(parsed)
