@@ -1,0 +1,14 @@
+{
+ "port": 8793,
+ "max_parallel": 2,
+ "runs_root": "/mnt/main/public/wise/enum-pilot-run",
+ "seed_holds": "/mnt/apps/home/wise/enum-pilot-handoff/b2full-input/seed-holds.csv",
+ "reference_db": "/mnt/main/public/wise/enum-pilot-run/reference_empty.db",
+ "docker": "/mnt/apps/home/wise/bin/docker",
+ "path_prefix": "/mnt/apps/home/wise/bin",
+ "reserved_units": ["e-stat.go.jp", "kisti.re.kr", "nasa.gov"],
+ "trial_default": 100,
+ "trial_max": 1000,
+ "large_threshold": 10000,
+ "fake_cmd": null
+}
