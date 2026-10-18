@@ -1,0 +1,29 @@
+{
+  "listing_body": "<div class=\"list\"><a href=\"/Forskning/Publikationer/Rapporter/2026/offline-1/\">Offline 1</a><a href=\"/Forskning/Publikationer/Rapporter/2026/offline-2/\">Offline 2</a></div>",
+  "content_type": "text/html",
+  "sitemap_url": "https://www.ifau.se/sitemap.xml",
+  "sitemap_body": "<?xml version=\"1.0\" encoding=\"utf-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://www.ifau.se/Forskning/Publikationer/Rapporter/2026/</loc></url><url><loc>https://www.ifau.se/Forskning/Publikationer/Rapporter/2026/offline-1/</loc></url><url><loc>https://www.ifau.se/en/Research/Publications/Reports/2026/offline-1/</loc></url><url><loc>https://www.ifau.se/Forskning/Publikationer/Rapporter/2026/offline-2/</loc></url><url><loc>https://www.ifau.se/Press/Pressmeddelanden/x/</loc></url></urlset>",
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "empty_body": "<div class=\"list\"></div>",
+  "expected_ids": [
+    "2026:91",
+    "2026:92"
+  ],
+  "details": {
+    "https://www.ifau.se/Forskning/Publikationer/Rapporter/2026/offline-1/": "<html><head><meta name=\"citation_title\" content=\"Offline 1\"/><meta name=\"citation_author\" content=\"Å Author\"/><meta name=\"citation_abstract\" content=\"&lt;p&gt;Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. &lt;/p&gt;\"/><meta name=\"citation_publication_date\" content=\"2026-10-11\"/><meta name=\"citation_technical_report_number\" content=\"2026:91\"/><meta name=\"citation_technical_report_institution\" content=\"IFAU\"/><meta name=\"citation_pdf_url\" content=\"/globalassets/pdf/se/2026/r-2026-91.pdf\"/></head><body><h1>Offline 1</h1></body></html>",
+    "https://www.ifau.se/Forskning/Publikationer/Rapporter/2026/offline-2/": "<html><head><meta name=\"citation_title\" content=\"Offline 2\"/><meta name=\"citation_author\" content=\"Å Author\"/><meta name=\"citation_abstract\" content=\"&lt;p&gt;Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. &lt;/p&gt;\"/><meta name=\"citation_publication_date\" content=\"2026-10-12\"/><meta name=\"citation_technical_report_number\" content=\"2026:92\"/><meta name=\"citation_technical_report_institution\" content=\"IFAU\"/><meta name=\"citation_pdf_url\" content=\"/globalassets/pdf/se/2026/r-2026-92.pdf\"/></head><body><h1>Offline 2</h1></body></html>"
+  },
+  "original_method_source_sha256": {
+    "_post_list_page": "55a4778f62214e46fcdf0a23ca1dbc25e6771a84a62d60d9d71ef5c65dbde394",
+    "_extract_links": "ab41639c4dd5b7e28a339f9bf4bf41b17f360ffd38aea4b8aea722bf34ab969b",
+    "_fetch_detail": "287159d324d2558bc1d8072aa7ecdc895de2c50bdd16fb5b25cbe2b0ee18ac8f",
+    "crawl": "8651b2b7bf32cbecdffc1604c19f8b6af56bccc61210c229e9b7e214e3346f15"
+  },
+  "site_id": "ifau-se-forskning",
+  "module_function_source_sha256": {
+    "_curl": "4b7941cad2b2eb5ef0c2d434e1501fb7191f87d7171886341e8b8a39220682d7",
+    "_make_soup": "4d3a8693be8fbebcd102ffdd3161a65002c36075c10c2f27b3c6163e4d942a54",
+    "_strip_html": "20badc41bcab662d01ca1d0601c6808b64af639d2ca5a3dcfe4cdea5d92b2f5a",
+    "_extract_citation_meta": "b6d00ddfb9d0f1fcc11910297148698d581fabcd29191c5de864b0c19bebdcb7"
+  }
+}

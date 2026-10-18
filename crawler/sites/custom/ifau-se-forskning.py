@@ -241,6 +241,112 @@ class IFAURapporterCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Pure enumeration conversion (collector-splits); crawl() is unchanged
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html: str, url: str | None = None) -> list[dict]:
+        """Report list HTML (first page / SearchQep fragment) -> rows from
+        ``_extract_links``. The shipped plan enumerates /sitemap.xml instead
+        (the list pages are POST-only)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        links = self._extract_links(html)
+        if not links:
+            raise PermanentFailure("listing_parse_error:no_report_links", url)
+        return [{"path": path, "url": _BASE_URL + path} for path in links]
+
+    def _enumeration_detail(self, raw: str, path: str) -> dict | None:
+        """Pure copy of ``_fetch_detail`` after its fetch (``raw`` = detail HTML)."""
+        url = _BASE_URL + path
+        if not raw:
+            return None
+
+        try:
+            soup = _make_soup(raw)
+        except Exception as exc:
+            print(f"[{self.site_id}] soup parse error {url}: {exc}")
+            soup = None
+
+        meta = _extract_citation_meta(raw, soup)
+
+        # Title
+        title = meta.get("citation_title", "")
+        if not title and soup is not None:
+            h1 = soup.find("h1")
+            if h1:
+                title = h1.get_text(strip=True)
+        if not title:
+            m = re.search(r"<h1[^>]*>(.*?)</h1>", raw, re.DOTALL)
+            if m:
+                title = _strip_html(m.group(1))
+
+        # Abstract — HTML-encoded in meta tag; strip tags
+        abstract = _strip_html(meta.get("citation_abstract", ""))
+        if not abstract and soup is not None:
+            art = soup.select_one(".article-content")
+            if art:
+                abstract = art.get_text(strip=True)
+
+        # Authors list
+        authors = meta.get("_authors_list", [])
+
+        # Publication date (prefer full date over year-only)
+        pub_date = (
+            meta.get("citation_publication_date", "")
+            or meta.get("citation_year", "")
+        )
+        if not pub_date:
+            m = re.search(r"/(\d{4})/", path)
+            if m:
+                pub_date = m.group(1)
+
+        # Report number e.g. "2026:9"
+        report_num = meta.get("citation_technical_report_number", "")
+        institution = meta.get("citation_technical_report_institution", "IFAU")
+
+        # PDF URL
+        pdf_rel = meta.get("citation_pdf_url", "")
+        if pdf_rel:
+            pdf_url = (_BASE_URL + pdf_rel) if pdf_rel.startswith("/") else pdf_rel
+        else:
+            hits = re.findall(r'href="(/globalassets/[^"]*\.pdf)"', raw)
+            pdf_url = (_BASE_URL + hits[0]) if hits else ""
+
+        external_id = report_num if report_num else path.rstrip("/").split("/")[-1]
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": title,
+            "authors": json.dumps(authors, ensure_ascii=False),
+            "abstract": abstract,
+            "category": "Rapport",
+            "keywords": json.dumps([]),
+            "published_date": pub_date or None,
+            "url": url,
+            "pdf_url": pdf_url,
+            "doi": "",
+            "department": institution,
+            "metadata": json.dumps(
+                {"report_number": report_num, "institution": institution, "path": path},
+                ensure_ascii=False,
+            ),
+        }
+
+    def _enumeration_paper(self, raw: str, request_url: str) -> dict | None:
+        """crawl()'s per-path conversion for the requested report URL; None =
+        crawl()'s fetch/parse failure or short-abstract skip."""
+        from urllib.parse import urlsplit
+        path = urlsplit(request_url).path
+        detail = self._enumeration_detail(raw, path)
+        if not detail:
+            return None
+        if len(detail.get("abstract", "")) < _MIN_ABSTRACT:
+            return None
+        return detail
+
+    # ------------------------------------------------------------------
     # Main crawl loop
     # ------------------------------------------------------------------
 
