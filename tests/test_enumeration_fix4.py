@@ -180,9 +180,10 @@ ROBOTS_TABLE = [
     ("Disallow: /x\nUser-agent: *\nDisallow: /y", "/x", True),
     ("User-agent: a\nSitemap: https://x/s.xml\nUser-agent: *\nDisallow: /z", "/z", False),
     ("User-agent: * \nDisallow: /a", "/a", False),
-    ("User-agent: Mozilla\nAllow: /\n\nUser-agent: *\nDisallow: /", "/x", True),
+    ("User-agent: LibertreeCollector\nAllow: /\n\nUser-agent: *\nDisallow: /", "/x", True),
+    ("User-agent: Mozilla\nAllow: /\n\nUser-agent: *\nDisallow: /", "/x", False),
     ("User-agent: Chrome\nDisallow: /\n\nUser-agent: *\nDisallow:", "/x", True),
-    ("User-agent: mozilla\nDisallow:\n\nUser-agent: *\nDisallow: /", "/x", True),
+    ("User-agent: libertreecollector\nDisallow:\n\nUser-agent: *\nDisallow: /", "/x", True),
     ("User-agent: *\nDisallow: *", "/x", False),
     ("User-agent: *\nDisallow: /a$b", "/a$b", False),
     ("User-agent: *\nAllow: /a/*/c\nDisallow: /a/b", "/a/b/c", True),
@@ -212,7 +213,7 @@ class RobotsMatcherTest(unittest.TestCase):
         return parse_robots(robots).allows("https://h.test" + path, DEFAULT_USER_AGENT)
 
     def test_rfc9309_table_unchanged(self):
-        self.assertEqual(len(ROBOTS_TABLE), 44)
+        self.assertEqual(len(ROBOTS_TABLE), 45)
         for robots, path, expected in ROBOTS_TABLE:
             self.assertIs(self.allowed(robots, path), expected, (robots, path))
 
@@ -331,8 +332,9 @@ class CrawlDelayValueTest(unittest.TestCase):
         self.assertEqual(self.delay("User-agent: a\nCrawl-delay: 99\n"), 0)
         self.assertEqual(self.delay("User-agent: Safari\nCrawl-delay: 400\n\nUser-agent: *\nCrawl-delay: 1\n"), 1)
         self.assertEqual(self.delay("User-agent: Mozilla/5.0 (compatible; Yeti/1.1)\nCrawl-delay: 99\n"), 0)
-        self.assertEqual(self.delay("User-agent: mozilla\nCrawl-delay: 9\n\nUser-agent: *\nCrawl-delay: 1\n"), 9)
-        self.assertEqual(self.delay("User-agent: *\nCrawl-delay: 9\n\nUser-agent: Mozilla\nCrawl-delay: 1\n"), 9)
+        self.assertEqual(self.delay("User-agent: libertreecollector\nCrawl-delay: 9\n\nUser-agent: *\nCrawl-delay: 1\n"), 9)
+        self.assertEqual(self.delay("User-agent: *\nCrawl-delay: 9\n\nUser-agent: LibertreeCollector\nCrawl-delay: 1\n"), 9)
+        self.assertEqual(self.delay("User-agent: Mozilla\nCrawl-delay: 9\n\nUser-agent: *\nCrawl-delay: 1\n"), 1)
 
     def test_fetcher_stops_on_unreadable_delay_and_waits_on_suffixed_one(self):
         from unittest import mock

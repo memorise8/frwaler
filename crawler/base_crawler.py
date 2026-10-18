@@ -39,11 +39,8 @@ class CrawlUpToDate(CrawlControl):
 class BaseCrawler(ABC):
     """Abstract base class for all site crawlers."""
 
-    USER_AGENT = (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/120.0.0.0 Safari/537.36"
-    )
+    # Says we are a collector (user decision 2026-10-19), same as enumeration.http.DEFAULT_USER_AGENT.
+    USER_AGENT = "LibertreeCollector/1.0 (research data collection; respects robots.txt)"
 
     # 재개(cursor) 계약 -- 기본값이면 아무것도 달라지지 않는다.
     DELIVERY_ORDER = "arbitrary"      # newest_first | oldest_first | arbitrary

@@ -134,7 +134,10 @@ class SiteRunner:
             spec = ((current.get("state") or {}).get("discovered_segments") or {}).get(key, {})
         else:
             spec = {}
-        return {"key": key, "label": spec.get("label"), "params": dict(spec.get("params") or {})}
+        out = {"key": key, "label": spec.get("label"), "params": dict(spec.get("params") or {})}
+        if "path" in spec:
+            out["path"] = list(spec["path"])  # ext:multi_level_discover: link texts followed to it
+        return out
 
     def process_item(self, item, segment):
         st, site = self.store, self.site_id
@@ -156,8 +159,10 @@ class SiteRunner:
                     or (row["status"] == "failed_transient" and row["attempts"] >= max_attempts)):
             self.stats["skipped_known"] += 1
             return
+        position = getattr(item, "list_position", None)
         common = dict(url=item.url, segment=segment, date=item.date,
-                      payload={"url": item.url, "date": item.date, "title": item.title, "payload": item.payload})
+                      payload={"url": item.url, "date": item.date, "title": item.title, "payload": item.payload,
+                               **({"list_position": position} if position else {})})
         item.segment = self.segment_info(segment)  # ext:multi_listing ("segment" argument)
         try:
             paper = self.adapter.materialize(item, self.fetcher)
@@ -199,6 +204,16 @@ class SiteRunner:
             self.stats["failed_permanent"] += 1
             self.contract_failure(item, f"parse_error:{type(exc).__name__}")
             return
+        if paper is None and self.adapter.cfg.get("none_is_rule_skip") and getattr(self.adapter, "returned_none", False):
+            # The registered crawler's own rule skips this item (e.g. abstract under 50 characters):
+            # not a parser failure, counted and reported, never retried. A long run of skips with
+            # nothing saved looks like a broken parser (redesigned site), not a rule: the site stops.
+            st.record_item(site, item.key, "failed_permanent", reason="skipped_by_rule", attempt=True, **common)
+            self.stats["skipped_by_rule"] = self.stats.get("skipped_by_rule", 0) + 1
+            self._rule_skips = getattr(self, "_rule_skips", 0) + 1
+            if self._rule_skips >= int(self.adapter.cfg.get("max_consecutive_rule_skips") or 20):
+                raise StrategyStop("config_error", f"rule_skips_consecutive:{self._rule_skips}")
+            return
         if not paper or not str(paper.get("title") or "").strip() or not (paper.get("url") or paper.get("meta_url")):
             st.record_item(site, item.key, "failed_permanent", reason="empty_item", attempt=True, **common)
             self.stats["failed_permanent"] += 1
@@ -206,6 +221,7 @@ class SiteRunner:
             return
         self._contract_failures = 0
         self._contract_streak = []
+        self._rule_skips = 0
         self._login_details = 0
         self._robots_details = 0
         try:
@@ -293,6 +309,8 @@ class SiteRunner:
             data = row["payload"] or {}
             item = Item(key=row["item_key"], url=data.get("url") or row["url"], date=data.get("date"),
                         title=data.get("title") or "", payload=data.get("payload") or {})
+            if data.get("list_position"):
+                item.list_position = data["list_position"]
             self.stats["retried"] += 1
             self.process_item(item, row["segment_key"])
         self.store.exhaust_items(self.site_id, max_attempts)
@@ -483,6 +501,11 @@ class SiteRunner:
             ratio = float(self.plan.get("max_contract_failure_ratio") or 0.0)
             if bad and bad / seen > ratio:
                 counts["adapter_contract_failures"] = bad
+        # Rule skips (none_is_rule_skip) above the plan's share need a person (default 20%).
+        skipped = failed.get("failed_permanent:skipped_by_rule", 0)
+        if skipped and skipped / max(1, saved + sum(failed.values())) > float(
+                self.adapter.cfg.get("max_rule_skip_ratio", 0.2)):
+            counts["skipped_by_rule"] = skipped
         # Detail URLs robots.txt excludes were never collected: a person decides unless the plan
         # explicitly tolerates that share (default: none).
         robots = failed.get("failed_permanent:robots_disallowed", 0)
@@ -598,7 +621,13 @@ class SiteRunner:
         duplicates = {"before": duplicates_before, "after": duplicate_rows(doc_conn, site)}
         duplicates["new"] = max(0, duplicates["after"] - duplicates["before"])
         ctx.state["duplicates"] = duplicates
-        if duplicates["new"] > 0:
+        if self.adapter.cfg.get("allow_shared_post_number"):
+            # Declared: the registered crawler's own rule stores several rows per post_number. The
+            # buyer's duplicate check (group by site_id, post_number) still counts them: reported
+            # below as a review count (never a plain "complete", never hidden).
+            if duplicates["new"] > 0:
+                st.event(site, "shared_post_number_rows", duplicates)
+        elif duplicates["new"] > 0:
             st.event(site, "new_duplicates", duplicates)
             status, reason = "failed_duplicates", f"new_duplicate_rows:{duplicates['new']}"
         if identity is not None:
@@ -608,6 +637,15 @@ class SiteRunner:
         robots = st.item_counts(site)[1].get("failed_permanent:robots_disallowed", 0)
         if robots and "robots_disallowed" not in review:
             self.warnings.append(f"robots_disallowed:{robots}")  # tolerated by the plan, still shown
+        if getattr(self.adapter, "missing_text", 0):
+            self.warnings.append(f"pdf_missing_as_no_text:{self.adapter.missing_text}")
+        skipped = st.item_counts(site)[1].get("failed_permanent:skipped_by_rule", 0)
+        if skipped and "skipped_by_rule" not in review:
+            self.warnings.append(f"skipped_by_rule:{skipped}")  # within the plan's share, still shown
+        if self.adapter.cfg.get("allow_shared_post_number") and duplicates["after"] > 0:
+            # All shared rows of the site (not only this run's): the buyer's duplicate check sees them all.
+            review["shared_post_number_rows"] = duplicates["after"]
+            self.warnings.append(f"shared_post_number_rows:{duplicates['after']}")
         if status == "complete" and review:
             # Enumeration finished, but items need a person: never a plain "complete".
             status = "complete_with_review"

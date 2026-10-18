@@ -31,11 +31,9 @@ from delivery.health.source_observer import retry_after
 
 from .urls import host_of
 
-DEFAULT_USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/120.0.0.0 Safari/537.36"
-)
+# Says we are a collector (user decision 2026-10-19). The first product, "LibertreeCollector",
+# is the robots.txt token our groups are chosen by (_agent_applies).
+DEFAULT_USER_AGENT = "LibertreeCollector/1.0 (research data collection; respects robots.txt)"
 DEFAULT_MAX_BYTES = 50 * 1024 * 1024
 _LOGIN_PATH = re.compile(r"(^|/)(login|logon|signin|sign-in|sso|cas/login|auth|oauth2?|saml|captcha|challenge)"
                          r"(/|$|\.|\?)", re.I)
@@ -165,7 +163,7 @@ def robots_octets(value):
 
 def _agent_applies(agent, user_agent):
     """Group user-agent token vs our product token: the first product of our User-Agent
-    ("Mozilla" for the default), case-insensitive, as urllib.robotparser selected groups.
+    ("LibertreeCollector" for the default), case-insensitive, as urllib.robotparser selected groups.
     Other words of a browser User-Agent (Chrome, Safari...) do not select a group: such a
     group could otherwise replace a stricter '*' group."""
     product = re.split(r"[/\s]", user_agent.strip().lower(), 1)[0]

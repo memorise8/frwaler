@@ -36,7 +36,7 @@ TOKENS = {"html", "raw", "soup", "json", "url", "request_url", "final_url", "ite
 # ext:two_step_keep_first: the first detail page (detail/paper stages only).
 FIRST_TOKENS = {"first_html", "first_soup", "first_json", "first_final_url", "first_resp"}
 # ext:pdf_text: text the framework extracted from the detail response (detail/paper stages).
-DETAIL_ONLY = FIRST_TOKENS | {"pdf_text", "segment"}  # segment: ext:multi_listing
+DETAIL_ONLY = FIRST_TOKENS | {"pdf_text", "segment", "list_position"}  # ext:multi_listing, ext:list_page_arg
 NEW_KEYS = {"contract_version", "list_source", "list_result", "row_path", "list_row",
             "list_kwargs", "detail_kwargs", "paper_args", "paper_kwargs"}
 
@@ -116,7 +116,7 @@ def validate_contract(cfg):
         for binding in [*args, *kwargs.values()]:
             _binding(binding, stage)
             if (stage == "paper" and cfg.get("paper_method") and not cfg.get("detail_method")
-                    and not (binding in ("item", "segment")
+                    and not (binding in ("item", "segment", "list_position")
                              or (isinstance(binding, dict) and binding.get("source") == "item"))):
                 fail("paper_response_without_detail")
     return True
@@ -142,7 +142,9 @@ def uses_item(cfg):
         if not cfg.get(stage + "_method"):
             continue
         bindings = cfg.get(stage + "_args", default_args(stage)) + list(cfg.get(stage + "_kwargs", {}).values())
-        if any(b == "item" or (isinstance(b, dict) and b.get("source") == "item") for b in bindings):
+        # segment/list_position come from the run, like listing fields: a URL-only sample lacks them.
+        if any(b in ("item", "segment", "list_position") or (isinstance(b, dict) and b.get("source") == "item")
+               for b in bindings):
             return True
     return False
 
@@ -206,6 +208,9 @@ class Contract:
         if binding == "segment":
             from .adapters import segment_of
             return segment_of(item)
+        if binding == "list_position":
+            from .adapters import position_of
+            return position_of(item)
         if binding in ("url", "request_url") and item is not None:
             # The item URL as requested, exactly what the registered crawl() passes;
             # never the post-redirect URL (that is "final_url").
