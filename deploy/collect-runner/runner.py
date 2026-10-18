@@ -10,7 +10,7 @@
 사용법: runner.py serve | ensure | ctl <명령> ...  (runnerctl 이 감싼다)
 표준 라이브러리만 쓴다. 파이썬 3.9 이상.
 """
-import argparse, csv, datetime, glob, hashlib, hmac, json, os, re, secrets, signal, sqlite3, subprocess, sys, threading, time
+import argparse, csv, datetime, fcntl, glob, hashlib, hmac, json, os, re, secrets, signal, sqlite3, subprocess, sys, threading, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HOME = os.environ.get("RUNNER_HOME") or os.path.dirname(os.path.abspath(__file__))
@@ -56,12 +56,14 @@ def db():
     c.executescript("""
       create table if not exists runs(run_id text primary key, site_id text not null, mode text not null, lim integer,
         status text not null, tag text, unit text, requested_by text, requested_at text, started_at text, finished_at text,
-        pid integer, cancel_requested integer not null default 0, result text, reason text);
+        pid integer, cancel_requested integer not null default 0, result text, reason text, requeues integer not null default 0);
       create table if not exists events(id integer primary key autoincrement, at text not null, actor text, action text not null,
         run_id text, site_id text, detail text);
       create table if not exists site_folder(site_id text primary key, tag text not null, assigned_at text not null);
       create table if not exists flags(name text primary key, value text);
     """)
+    if "requeues" not in [r[1] for r in c.execute("pragma table_info(runs)")]:
+        c.execute("alter table runs add column requeues integer not null default 0")
     return c
 
 
@@ -132,19 +134,25 @@ def load_units():
 
 
 def busy(c, reg, tags):
-    """지금 바쁜 (사이트, unit, 폴더): 실행기 작업 + 실행기 밖 컨테이너."""
-    sites, units, folders = set(), set(), set()
+    """지금 바쁜 (사이트, unit, 폴더, 판정 불가 폴더): 실행기 작업 + 실행기 밖 컨테이너.
+    실행기 밖 컨테이너인데 사이트나 도메인을 알 수 없으면 판정 불가로 돌려 아무것도 새로 시작하지 않게 한다."""
+    sites, units, folders, unknown = set(), set(), set(), set()
     for r in c.execute("select site_id,unit,tag from runs where status='running'"):
         sites.add(r["site_id"]); units.add(r["unit"]); folders.add(r["tag"])
     ours = {r["tag"] for r in c.execute("select tag from runs where status='running'")}
     for tag in (tags or set()) - ours:
         folders.add(tag)
-        for sid in sites_in_folder(tag):
+        found = sites_in_folder(tag)
+        if not found:
+            unknown.add(tag)
+        for sid in found:
             sites.add(sid)
             u = unit_of(sid, reg)
             if u:
                 units.add(u)
-    return sites, units, folders
+            else:
+                unknown.add(tag)
+    return sites, units, folders, unknown
 
 
 def pid_alive(pid, run_id):
@@ -184,7 +192,9 @@ def check_request(c, site_id, mode, limit):
     tags = docker_running()
     if tags is None:
         return "docker_unavailable", "docker 상태를 읽지 못함"
-    sites, units, folders = busy(c, reg, tags)
+    sites, units, folders, unknown = busy(c, reg, tags)
+    if unknown:
+        return "external_unknown", "실행기 밖 컨테이너의 사이트·도메인을 알 수 없음: %s" % ", ".join(sorted(unknown))
     if site_id in sites:
         return "site_busy", "같은 사이트가 실행기 밖에서 실행 중"
     if e["unit"] in units or c.execute("select 1 from runs where unit=? and status='queued'", (e["unit"],)).fetchone():
@@ -246,18 +256,23 @@ def tick():
         for r in c.execute("select * from runs where status='queued' order by run_id").fetchall():
             if running >= cfg["max_parallel"]:
                 break
-            sites, units, folders = busy(c, reg, tags)
-            if r["site_id"] in sites or r["unit"] in units or (r["tag"] and r["tag"] in folders):
-                continue
-            if r["site_id"] not in reg or not reg[r["site_id"]].get("ready"):
-                c.execute("update runs set status='failed', finished_at=?, reason='plan_not_ready' where run_id=?", (now(), r["run_id"]))
+            sites, units, folders, unknown = busy(c, reg, tags)
+            if unknown:
+                break  # 실행기 밖 컨테이너를 판정할 수 없으면 아무것도 시작하지 않는다
+            if r["site_id"] not in reg or not reg[r["site_id"]].get("ready") or r["unit"] in cfg["reserved_units"]:
+                c.execute("update runs set status='failed', finished_at=?, reason='plan_not_ready' where run_id=? and status='queued'", (now(), r["run_id"]))
                 event(c, "runner", "fail", r["run_id"], r["site_id"], {"reason": "plan_not_ready"})
                 continue
             tag = r["tag"] or (folder_for(c, r["site_id"]) if r["mode"] == "resume" else "%s-t%s" % (time.strftime("%Y%m%d"), r["run_id"][1:]))
+            if r["site_id"] in sites or r["unit"] in units or tag in folders:
+                continue
+            # 상태·폴더를 먼저 쓰고 나서 실행 프로세스를 띄운다(자식이 빈 폴더 값을 읽지 않게)
+            if c.execute("update runs set status='running', tag=?, started_at=?, pid=null where run_id=? and status='queued'", (tag, now(), r["run_id"])).rowcount != 1:
+                continue
             log = open(path("logs", r["run_id"] + ".log"), "a")
             p = subprocess.Popen([sys.executable, os.path.abspath(__file__), "_exec", r["run_id"]], stdout=log, stderr=subprocess.STDOUT,
                                  stdin=subprocess.DEVNULL, start_new_session=True, cwd=HOME, env=dict(os.environ, RUNNER_HOME=HOME))
-            c.execute("update runs set status='running', tag=?, started_at=?, pid=? where run_id=?", (tag, now(), p.pid, r["run_id"]))
+            c.execute("update runs set pid=? where run_id=?", (p.pid, r["run_id"]))
             event(c, "runner", "start", r["run_id"], r["site_id"], {"tag": tag, "pid": p.pid})
             running += 1
 
@@ -274,23 +289,30 @@ def read_result(tag, site_id):
         return {"error": str(e)[:200]}
 
 
+MAX_REQUEUES = 3
+
+
 def finish(c, r, rc, why=None):
-    """작업 끝 기록. rc None = 실행 프로세스가 사라짐(재부팅 등)."""
-    cancelled = c.execute("select cancel_requested from runs where run_id=?", (r["run_id"],)).fetchone()[0]
+    """작업 끝 기록. rc None = 실행 프로세스가 사라짐(재부팅 등). 아직 running 인 행만 바꾼다(다른 프로세스가 먼저 끝냈으면 그대로)."""
+    cur = c.execute("select status,cancel_requested,requeues from runs where run_id=?", (r["run_id"],)).fetchone()
+    if not cur or cur["status"] != "running":
+        return
+    cancelled = cur["cancel_requested"]
     result = read_result(r["tag"], r["site_id"]) if r["tag"] else None
     if cancelled:
         status, reason = "cancelled", "cancel_requested"
     elif rc == 0:
         status, reason = "done", None
-    elif rc is None and r["mode"] == "resume":
-        # 이어받기는 같은 폴더로 다시 돌리면 상태 저장소가 이어받는다: 대기열로 되돌린다
-        c.execute("update runs set status='queued', pid=null, reason='requeued_after_interrupt' where run_id=?", (r["run_id"],))
-        event(c, "runner", "requeue", r["run_id"], r["site_id"], {"why": why})
+    elif rc is None and r["mode"] == "resume" and cur["requeues"] < MAX_REQUEUES:
+        # 이어받기는 같은 폴더로 다시 돌리면 상태 저장소가 이어받는다: 대기열로 되돌린다(최대 MAX_REQUEUES 번)
+        if c.execute("update runs set status='queued', pid=null, requeues=requeues+1, reason='requeued_after_interrupt' where run_id=? and status='running'", (r["run_id"],)).rowcount:
+            event(c, "runner", "requeue", r["run_id"], r["site_id"], {"why": why, "requeues": cur["requeues"] + 1})
         return
     else:
         status, reason = "failed", why or ("exit_%s" % rc)
-    c.execute("update runs set status=?, finished_at=?, result=?, reason=? where run_id=?",
-              (status, now(), json.dumps(result, ensure_ascii=False) if result else None, reason, r["run_id"]))
+    if not c.execute("update runs set status=?, finished_at=?, result=?, reason=? where run_id=? and status='running'",
+                     (status, now(), json.dumps(result, ensure_ascii=False) if result else None, reason, r["run_id"])).rowcount:
+        return
     event(c, "runner", "finish", r["run_id"], r["site_id"], {"status": status, "reason": reason, "result": result})
 
 
@@ -308,16 +330,30 @@ def trial_plan(e, run_id, limit):
 
 
 def exec_run(run_id):
-    """자식 프로세스: build → run. 실행기가 다시 떠도 이 프로세스는 계속 돈다."""
+    """자식 프로세스: build → run. 실행기가 다시 떠도 이 프로세스는 계속 돈다. 어떤 오류든 failed 로 남긴다."""
     if not RUN_RE.match(run_id):
         sys.exit(2)
-    cfg = config()
     c = db()
+    try:
+        rc, why = _exec(c, run_id), None
+    except Exception as e:
+        print("%s exec_error: %r" % (now(), e), flush=True)
+        rc, why = 1, "exec_error: %s" % str(e)[:150]
+    with lock:
+        finish(c, c.execute("select * from runs where run_id=?", (run_id,)).fetchone(), rc, why)
+
+
+def _exec(c, run_id):
+    cfg = config()
     r = c.execute("select * from runs where run_id=?", (run_id,)).fetchone()
-    e = registry()[r["site_id"]]
-    tag = r["tag"]
+    e = registry().get(r["site_id"])
+    if not e:
+        raise RuntimeError("등록 해제됨")
+    tag = r["tag"] or ""
     if not TAG_RE.match(tag) or not SITE_RE.match(r["site_id"]):
-        sys.exit(2)
+        raise RuntimeError("폴더·사이트 형식 오류")
+    if hashlib.sha256(open(e["plan_file"], "rb").read()).hexdigest() != e["sha256"]:
+        raise RuntimeError("등록된 plan 파일이 등록 뒤 바뀜(sha256 불일치)")
     plan = trial_plan(e, run_id, r["lim"]) if r["mode"] == "trial" else e["plan_file"]
     env = dict(os.environ, PATH=cfg["path_prefix"] + ":" + os.environ.get("PATH", "/usr/bin:/bin"),
                ENUM_PILOT_ROOT=cfg["runs_root"], ENUM_PILOT_DATE=tag, ENUM_SEED_HOLDS=cfg["seed_holds"],
@@ -338,8 +374,7 @@ def exec_run(run_id):
         print("%s rc=%s" % (now(), rc), flush=True)
         if rc != 0:
             break
-    with lock:
-        finish(c, c.execute("select * from runs where run_id=?", (run_id,)).fetchone(), rc)
+    return rc
 
 
 def cancel(c, run_id, actor):
@@ -353,14 +388,18 @@ def cancel(c, run_id, actor):
         c.execute("update runs set status='cancelled', finished_at=?, reason='cancelled_while_queued', cancel_requested=1 where run_id=?", (now(), run_id))
         return 200, {"run_id": run_id, "status": "cancelled"}
     c.execute("update runs set cancel_requested=1 where run_id=?", (run_id,))
-    if TAG_RE.match(r["tag"] or ""):
-        subprocess.run([config()["docker"], "stop", "enum-pilot-" + r["tag"]], capture_output=True, timeout=120)
-    if r["pid"] and pid_alive(r["pid"], run_id):
+    threading.Thread(target=stop_run, args=(run_id, r["tag"], r["pid"]), daemon=True).start()  # docker stop 은 잠금 밖에서
+    return 200, {"run_id": run_id, "status": "cancelling"}
+
+
+def stop_run(run_id, tag, pid):
+    if TAG_RE.match(tag or ""):
+        subprocess.run([config()["docker"], "stop", "enum-pilot-" + tag], capture_output=True, timeout=120)
+    if pid and pid_alive(pid, run_id):
         try:
-            os.killpg(r["pid"], signal.SIGTERM)  # build 단계였다면 그 프로세스 묶음을 멈춘다
+            os.killpg(pid, signal.SIGTERM)  # build 단계였다면 그 프로세스 묶음을 멈춘다
         except OSError:
             pass
-    return 200, {"run_id": run_id, "status": "cancelling"}
 
 
 # ---------- HTTP ----------
@@ -415,6 +454,8 @@ class H(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")
         except ValueError:
             return self.reply(400, {"reason": "bad_json"})
+        if not isinstance(data, dict):
+            return self.reply(400, {"reason": "bad_json"})
         actor = str(data.get("requested_by") or "unknown")[:80]
         m = re.fullmatch(r"/runner/runs/(r[0-9]{4,})/cancel", self.path)
         with lock:
@@ -445,14 +486,20 @@ def serve():
         fd = os.open(path(".token"), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         os.write(fd, secrets.token_hex(24).encode())
         os.close(fd)
+    lk = open(path("runner.lock"), "w")
+    try:
+        fcntl.flock(lk, fcntl.LOCK_EX | fcntl.LOCK_NB)  # 실행기는 하나만
+    except OSError:
+        sys.exit("runner already running (runner.lock)")
+    cfg = config()
+    srv = ThreadingHTTPServer(("127.0.0.1", cfg["port"]), H)
+    open(path("runner.pid"), "w").write(str(os.getpid()))
     with lock:
         c = db()
         event(c, "runner", "serve_start", detail={"pid": os.getpid()})
-    open(path("runner.pid"), "w").write(str(os.getpid()))
     threading.Thread(target=scheduler, daemon=True).start()
-    cfg = config()
     print("%s runner on 127.0.0.1:%d home=%s" % (now(), cfg["port"], HOME), flush=True)
-    ThreadingHTTPServer(("127.0.0.1", cfg["port"]), H).serve_forever()
+    srv.serve_forever()
 
 
 def runner_alive():

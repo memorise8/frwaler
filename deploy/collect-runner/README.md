@@ -27,7 +27,8 @@ runnerctl list | unregister --site <id>
 - `GET /runner/plans`, `GET /runner/runs[?site_id=]`, `GET /runner/health`
 - `POST /runner/runs {site_id, mode:"resume"|"trial", limit?, requested_by}` → `201 {run_id}` / `409 {reason, detail}`
 - `POST /runner/runs/{run_id}/cancel {requested_by}`
-- 409 이유: plan_not_registered, plan_not_ready, bad_limit, large_needs_approval, unit_reserved, site_busy, unit_busy, folder_busy, docker_unavailable, runner_paused
+- 409 이유: plan_not_registered, plan_not_ready, bad_limit, large_needs_approval, unit_reserved, site_busy, unit_busy, folder_busy, external_unknown(실행기 밖 컨테이너를 판정 못 함), docker_unavailable, runner_paused
+- 등록 뒤 plan 파일이 바뀌면(sha256) 실행하지 않고 failed. 중단된 이어받기는 최대 3번까지만 자동 재대기.
 - 시험 수집(trial)의 limit 은 "요청 상한"으로 바뀐다: plan 사본의 `max_requests = limit×1.2 + 목록 쪽수 + 10`, `max_pages = ceil(limit/10)`. 수집 틀에 건수 옵션이 없어서다. 결과 `incomplete/request_budget` 가 정상.
 
 ## 기록
