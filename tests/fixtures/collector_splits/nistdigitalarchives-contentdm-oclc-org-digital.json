@@ -1,0 +1,35 @@
+{
+  "site_id": "nistdigitalarchives-contentdm-oclc-org-digital",
+  "content_type": "application/json",
+  "listing_body": "{\"pager\": {\"start\": \"1\", \"maxrecs\": \"1024\", \"total\": 2}, \"records\": [{\"pointer\": 900001, \"filetype\": \"cpd\", \"parentobject\": -1, \"find\": \"900001.cpd\", \"title\": \"Synthetic paper 900001\", \"descri\": \"Synthetic offline abstract for the enumeration equality test. It only imitates the CONTENTdm record structure and carries no real content.\", \"subjec\": \"synthetic; test\", \"creato\": \"Person, A.; Person, B.\", \"date\": \"1999-05\", \"source\": \"Synthetic Journal\", \"doi\": \"https://doi.org/10.0000/synthetic.900001\", \"publis\": \"Synthetic Publisher\", \"volume\": \"99\", \"number\": \"1\", \"issn\": \"0000-0000\"}, {\"pointer\": 900002, \"filetype\": \"cpd\", \"parentobject\": -1, \"find\": \"900002.cpd\", \"title\": \"Synthetic paper 900002\", \"descri\": {}, \"subjec\": \"synthetic; test\", \"creato\": \"Person, A.; Person, B.\", \"date\": \"2001\", \"source\": \"Synthetic Journal\", \"doi\": \"https://doi.org/10.0000/synthetic.900002\", \"publis\": \"Synthetic Publisher\", \"volume\": \"99\", \"number\": \"1\", \"issn\": \"0000-0000\"}]}",
+  "details": {
+    "https://nistdigitalarchives.contentdm.oclc.org/digital/bl/dmwebservices/index.php?q=dmGetItemInfo/p16009coll6/900001/json": {
+      "title": "Synthetic paper 900001",
+      "descri": "unused",
+      "creato": {},
+      "date": "1999-05",
+      "doi": {},
+      "subjec": {}
+    },
+    "https://nistdigitalarchives.contentdm.oclc.org/digital/bl/dmwebservices/index.php?q=dmGetItemInfo/p16009coll6/900002/json": {
+      "title": "Synthetic paper 900002",
+      "descri": "Synthetic offline abstract for the enumeration equality test. It only imitates the CONTENTdm record structure and carries no real content.",
+      "creato": "Person, C.",
+      "date": "2001",
+      "doi": {},
+      "subjec": "detail; subject"
+    }
+  },
+  "long_text": "Synthetic offline abstract for the enumeration equality test. It only imitates the CONTENTdm record structure and carries no real content.",
+  "original_method_source_sha256": {
+    "_curl_get": "c6cc4d5861236668eb0217f5e41925cf4942e25fe4a0dfde5641368b61b29052",
+    "_dmquery": "4f895bf4c18dcdd33d167003d3b6ef21e7752a340ee7155dc50d02fcbc30d9af",
+    "_get_item_detail": "67cf8b4283275a7356a1e68e5ea812629f29158aa888b26659d1b57055816c8e",
+    "_s": "2ec4a52510b26e61ed677cf0512cdbd73fdde7b4e7bb38885dcb902e92ad8981",
+    "_parse_authors": "f362b15f79f8212ce184bdfa6c08d999e0057adf5b3b187ceda9fc44f05efeec",
+    "_parse_keywords": "06928a5ee86c28ec9f8177cb3777d905d34b96ba51e5ea655e0c9f667d97a158",
+    "_parse_date": "01ee6ac4142998c404632739f3600c1a316bc71ad438bceb58db3a50fdbd8b05",
+    "_clean_doi": "5b6e2383bd78325f714cbdfa6e97ec5ffba2536de0f3c1d49607885135c959cf",
+    "crawl": "f68482733e383d0721a7f908d20a0ed0e7172983293facd8be7a2bd145ceda90"
+  }
+}

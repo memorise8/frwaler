@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "sites": {
+    "nistdigitalarchives-contentdm-oclc-org-digital": {
+      "strategy": "date_range_split",
+      "base_url": "https://nistdigitalarchives.contentdm.oclc.org",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "json",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://nistdigitalarchives.contentdm.oclc.org/digital/bl/dmwebservices/index.php?q=dmQuery/p16009coll6/0/title!descri!subjec!creato!date!source!doi!publis!volume!number!issn/dmrecord/1024/{segment}/1/0/0/0/0/json",
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 1024,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "date_field": "listed_date",
+          "title_field": "title"
+        }
+      },
+      "segments": {
+        "mode": "explicit",
+        "items": [
+          {
+            "key": "1"
+          },
+          {
+            "key": "1025"
+          },
+          {
+            "key": "2049"
+          },
+          {
+            "key": "3073"
+          },
+          {
+            "key": "4097"
+          },
+          {
+            "key": "5121"
+          },
+          {
+            "key": "6145"
+          },
+          {
+            "key": "7169"
+          },
+          {
+            "key": "8193"
+          }
+        ]
+      },
+      "overall_total_check": false,
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

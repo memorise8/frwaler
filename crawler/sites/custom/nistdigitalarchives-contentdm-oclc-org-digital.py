@@ -315,3 +315,123 @@ class NISTDigitalArchivesCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched JSON.
+    # ------------------------------------------------------------------
+
+    # The plan reads dmQuery in fixed offset windows of 1024 records
+    # (segments 1, 1025, ... 8193). A larger collection needs a plan update.
+    _ENUMERATION_WINDOW = 1024
+    _ENUMERATION_CAPACITY = 9 * 1024
+
+    def _enumeration_items(self, data, url=None):
+        """Records of one dmQuery window (``.../dmrecord/1024/<start>/...``) in
+        crawl() form. The plan's ``&page=N`` is not part of the dmQuery path, so
+        only the first page of a window carries rows; later pages are empty."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("records"), list) \
+                or not isinstance(data.get("pager"), dict):
+            raise PermanentFailure("listing_parse_error:dmquery_records_missing", url or "")
+        try:
+            total = int(data["pager"].get("total"))
+        except (TypeError, ValueError):
+            raise PermanentFailure("listing_parse_error:dmquery_total_missing", url or "")
+        if total > self._ENUMERATION_CAPACITY:
+            raise PermanentFailure("listing_parse_error:collection_larger_than_plan_windows", url or "")
+        page = (parse_qs(urlsplit(url or "").query).get("page") or ["1"])[0]
+        if page not in ("", "1"):
+            return []
+        rows = []
+        for rec in data["records"]:
+            if not isinstance(rec, dict):
+                continue
+            pointer = rec.get("pointer")
+            if not pointer:
+                continue
+            rows.append({
+                "url": f"{_WS_BASE}?q=dmGetItemInfo/{_COLLECTION}/{pointer}/json",
+                "external_id": str(pointer),
+                "listed_date": self._parse_date(self._s(rec.get("date"))),
+                "title": self._s(rec.get("title")),
+                "record": rec,
+            })
+        return rows
+
+    def _enumeration_paper(self, detail, item):
+        """Paper of one record — crawl()'s per-record conversion copied verbatim.
+        The dmGetItemInfo JSON is used only when the list abstract is short, as in
+        crawl(); an error object counts as no detail. None = crawl()'s skip."""
+        rec = item["record"]
+        pointer = rec.get("pointer")
+        if not pointer:
+            return None
+        if not (isinstance(detail, dict) and "code" not in detail):
+            detail = None
+
+        item_url = (
+            f"{self.base_url}/digital/collection/{_COLLECTION}/id/{pointer}"
+        )
+
+        # ---- extract list-level fields ----
+        title    = self._s(rec.get("title"))
+        abstract = self._s(rec.get("descri"))
+        subjec   = self._s(rec.get("subjec"))
+        creato   = self._s(rec.get("creato"))
+        date_raw = self._s(rec.get("date"))
+        source   = self._s(rec.get("source"))
+        doi_raw  = self._s(rec.get("doi"))
+        publisher= self._s(rec.get("publis"))
+        volume   = self._s(rec.get("volume"))
+        number   = self._s(rec.get("number"))
+        issn     = self._s(rec.get("issn"))
+
+        # ---- augment from detail API if abstract is short ----
+        if len(abstract) < _MIN_ABSTRACT:
+            if detail:
+                abstract = self._s(detail.get("descri")) or abstract
+                if not creato:
+                    creato = self._s(detail.get("creato"))
+                if not date_raw:
+                    date_raw = self._s(detail.get("date"))
+                if not doi_raw:
+                    doi_raw = self._s(detail.get("doi"))
+                if not subjec:
+                    subjec = self._s(detail.get("subjec"))
+
+        # ---- skip items whose abstract is still too short ----
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+
+        pdf_url = (
+            f"{self.base_url}/utils/getfile/collection/{_COLLECTION}"
+            f"/id/{pointer}/filename/{pointer}.pdf"
+        )
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": str(pointer),
+            "title": title or "(untitled)",
+            "authors": self._parse_authors(creato),
+            "abstract": abstract,
+            "category": source,
+            "keywords": self._parse_keywords(subjec),
+            "published_date": self._parse_date(date_raw),
+            "url": item_url,
+            "pdf_url": pdf_url,
+            "doi": self._clean_doi(doi_raw),
+            "department": publisher,
+            "metadata": json.dumps(
+                {
+                    "volume": volume,
+                    "number": number,
+                    "issn": issn,
+                    "source": source,
+                    "publisher": publisher,
+                },
+                ensure_ascii=False,
+            ),
+        }
