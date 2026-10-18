@@ -1,0 +1,19 @@
+{
+ "site_id": "carabinieri-it-in-vostro-aiuto",
+ "content_type": "text/html; charset=utf-8",
+ "long_text": "Testo sintetico per il test di uguaglianza offline della suddivisione; imita soltanto la struttura di una pagina di comunicato e non contiene alcun contenuto reale.",
+ "summary_text": "Sintesi sintetica del comunicato abbastanza lunga da superare il minimo di cinquanta caratteri",
+ "listing_body": "<html><body><div class=\"docContenitore\"><div class=\"tableContainer\"><table class=\"tabella footable\"><caption>Comunicati Stampa</caption><thead><tr><th>Data</th><th>Titolo</th><th>Fonte</th><th>Descrizione</th></tr></thead><tbody><tr><td class=\"tabellaD\">17/02/2031 11:52</td><td class=\"tabellaD\"><a href=\"/in-vostro-aiuto/informazioni/comunicati-stampa/sintetico-alfa\"><span id=\"lblLuogo\">Roma - </span>Comunicato sintetico alfa</a></td><td class=\"tabellaD\">Comando Provinciale Roma</td><td class=\"tabellaD\">Breve....</td></tr><tr><td class=\"tabellaP\">16/02/2031 09:10</td><td class=\"tabellaP\"><a href=\"/in-vostro-aiuto/informazioni/comunicati-stampa/sintetico-beta\"><span id=\"lblLuogo\">Milano - </span>Comunicato sintetico beta</a></td><td class=\"tabellaP\">Comando Provinciale Milano</td><td class=\"tabellaP\">Sintesi sintetica del comunicato abbastanza lunga da superare il minimo di cinquanta caratteri...</td></tr></tbody></table></div></div></body></html>",
+ "empty_body": "<html><body><div class=\"docContenitore\"><div class=\"tableContainer\"><table class=\"tabella footable\"><caption>Comunicati Stampa</caption><thead><tr><th>Data</th><th>Titolo</th><th>Fonte</th><th>Descrizione</th></tr></thead><tbody><tr><td class=\"tabellaD\" colspan=\"4\">Nessun elemento</td></tr></tbody></table></div></div></body></html>",
+ "details": {
+  "https://www.carabinieri.it/in-vostro-aiuto/informazioni/comunicati-stampa/sintetico-alfa": "<html><head><meta property=\"og:title\" content=\"Comunicati Stampa\"><meta property=\"og:title\" content=\"Titolo dettaglio\"><meta property=\"og:description\" content=\"Descrizione breve.\"></head><body><div class=\"docData\">18/02/2031 <span id=\"ctl00_lblLuogo\">Roma</span></div><div class=\"docTesto\"><p>Testo sintetico per il test di uguaglianza offline della suddivisione; imita soltanto la struttura di una pagina di comunicato e non contiene alcun contenuto reale.</p></div></body></html>",
+  "https://www.carabinieri.it/in-vostro-aiuto/informazioni/comunicati-stampa/sintetico-beta": "<html><head><meta property=\"og:title\" content=\"Comunicati Stampa\"><meta property=\"og:title\" content=\"Titolo dettaglio\"><meta property=\"og:description\" content=\"Descrizione breve.\"></head><body><div class=\"docData\">18/02/2031 <span id=\"ctl00_lblLuogo\">Milano</span></div><div class=\"docTesto\"><p>Corto.</p></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "__init__": "26b4bdd49445d0dbf06bdb9bc0191e92cc2246c2dc64be2d751120cb4f0e2024",
+  "_curl_get": "58ef138665712f42a5206498586fa37839126d1c363f496394cbed418f20b4b7",
+  "_parse_list_page": "1f7d8e0c515c5ceff361b63f37056e2f778810c435202fbd46776674b4088a99",
+  "_parse_detail": "720fdea24d069c139351905c5b8d2ef5b77ceeb96f5da616ed96d39cc84d4fff",
+  "crawl": "62b6ca77da55f037bc5bc59700880d705d41cdfa8ba83232c8bf16a70c7eecac"
+ }
+}

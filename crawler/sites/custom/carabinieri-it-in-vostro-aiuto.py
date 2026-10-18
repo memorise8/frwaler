@@ -316,3 +316,69 @@ class CarabinieriItInVostroAiutoCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (pure parsing; crawl() and the methods above unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """One list page (first page ?d=all, later pages /!page/page/N?d=all: plan
+        listing.url with {page} + first_page_url) parsed by the existing
+        _parse_list_page(). Past the last page the source answers 200 with the
+        empty table.tabella (plan listing_marker); a page without that table is
+        a listing parse error."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        if _make_soup(html).select_one("table.tabella") is None:
+            raise PermanentFailure("listing_parse_error:no_list_table")
+        return self._parse_list_page(html)
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s per-item block copied verbatim with the detail page already
+        fetched by the runner (URL slug external_id/post_number unchanged).
+        None where crawl() skips (abstract < _ABSTRACT_MIN_CHARS)."""
+        detail_html = html
+        abstract = ""
+        published_date = item["listed_date"]
+        location = ""
+
+        if detail_html:
+            abstract, detail_date, location = self._parse_detail(detail_html)
+            if detail_date:
+                published_date = detail_date
+
+        # Fallback abstract from list summary
+        if not abstract or len(abstract) < _ABSTRACT_MIN_CHARS:
+            abstract = item.get("summary", "")
+
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+
+        # URL slug as external_id / post_number (no numeric IDs on this site)
+        slug = item["url"].rstrip("/").split("/")[-1]
+
+        return {
+            "site_id": _SITE_ID,
+            "external_id": slug,
+            "post_number": slug,
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": item["listed_date"],
+            "url": item["url"],
+            "pdf_url": None,
+            "publisher": item.get("source", ""),
+            "department": None,
+            "authors": None,
+            "journal": None,
+            "keywords": None,
+            "category": "Comunicati Stampa",
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps({
+                "posted_date": item["raw_date"],
+                "location": location,
+                "list_summary": item.get("summary", ""),
+            }, ensure_ascii=False),
+        }
