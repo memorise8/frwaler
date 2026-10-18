@@ -302,3 +302,140 @@ class LibraryKwrwaterNlEnCrawler(BaseCrawler):
                 print(f"[{self.site_id}] page {page} attempt {attempt + 1}/3 error: {exc}")
 
         return None
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched JSON.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Documents of one searchPublications answer, in crawl() order.
+
+        Pages are selected by the POST field ``current`` (the site's own
+        script; ``paged`` is ignored by the server). A page past the end
+        answers success with pagination and a response without "documents"
+        (crawl() stops there on the KeyError): an explicit end. A payload of
+        another shape is a listing parse error."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not data.get("success"):
+            raise PermanentFailure("listing_parse_error:unexpected_payload", url)
+        try:
+            response = data["data"]["response"]
+            pagination = data["data"]["pagination"]
+        except (KeyError, TypeError):
+            raise PermanentFailure("listing_parse_error:unexpected_payload", url)
+        if not isinstance(response, dict) or not isinstance(pagination, dict):
+            raise PermanentFailure("listing_parse_error:unexpected_payload", url)
+        if "documents" not in response and "count" in response:
+            return []
+        docs = response.get("documents")
+        if not isinstance(docs, list):
+            raise PermanentFailure("listing_parse_error:unexpected_payload", url)
+        rows = []
+        for doc in docs:
+            if not isinstance(doc, dict):
+                continue
+            src = doc.get("_source") or {}
+            doc_id = str(src.get("id") or doc.get("_id") or "").strip()
+            if not doc_id:
+                continue
+            rows.append({
+                "doc_id": doc_id,
+                "url": f"{_DETAIL_BASE}{doc_id}/",
+                "title": (src.get("title") or "").strip(),
+                "doc": doc,
+            })
+        return rows
+
+    def _enumeration_paper(self, item):
+        """Paper from one document — the conversion part of crawl() copied
+        verbatim (external_id = post_number = Elasticsearch document id)."""
+        doc = item["doc"]
+        src = doc.get("_source") or {}
+        doc_id = str(src.get("id") or doc.get("_id") or "").strip()
+        if not doc_id:
+            return None
+
+        detail_url = f"{_DETAIL_BASE}{doc_id}/"
+
+        title = (src.get("title") or "").strip()
+        if not title:
+            return None
+
+        abstract = _clean_abstract(src.get("abstract") or "")
+        if len(abstract) < 50:
+            return None
+
+        if len(abstract) < 100:
+            doc_type_str = src.get("document_type") or ""
+            pub_str = _join_semi(src.get("publishers") or []) or ""
+            supplement = ""
+            if pub_str:
+                supplement += f" Published in {pub_str}."
+            if doc_type_str:
+                supplement += f" Document type: {doc_type_str}."
+            abstract = (abstract + supplement).strip()
+
+        website_info = src.get("website") or {}
+        pub_date: Optional[str] = None
+        if isinstance(website_info, dict):
+            pub_date = _to_date(website_info.get("publication_date"))
+        if not pub_date:
+            pub_date = _to_date(src.get("year"))
+
+        pdf_rel = (src.get("url") or "").strip()
+        pdf_url: Optional[str] = (_BASE_URL + pdf_rel) if pdf_rel else None
+        file_name: Optional[str] = (src.get("file_name") or "").strip() or None
+        if not file_name and pdf_rel:
+            tail = pdf_rel.rstrip("/").split("/")[-1]
+            file_name = tail if tail else None
+
+        doi = _extract_doi(src.get("article_link"))
+
+        publishers_raw = src.get("publishers") or []
+        authors_raw = src.get("authors") or []
+        keywords_raw = src.get("keywords") or []
+        doc_type = src.get("document_type") or src.get("document_class") or ""
+
+        if doc_type in _JOURNAL_DOC_TYPES:
+            journal = _join_semi(publishers_raw)
+            publisher_str = None
+        else:
+            journal = None
+            publisher_str = _join_semi(publishers_raw)
+
+        return {
+            "site_id": self.site_id,
+            "external_id": doc_id,
+            "post_number": doc_id,
+            "title": title,
+            "abstract": abstract,
+            "authors": _join_semi(authors_raw),
+            "publisher": publisher_str,
+            "journal": journal,
+            "published_date": pub_date,
+            "listed_date": pub_date,
+            "posted_date": pub_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "doi": doi,
+            "keywords": _join_comma(keywords_raw),
+            "category": doc_type,
+            "original_filename": file_name,
+            "metadata": json.dumps(
+                {
+                    "posted_date": pub_date,
+                    "originalFilename": file_name,
+                    "journal_raw": _join_semi(publishers_raw),
+                    "report_number": src.get("report_number") or None,
+                    "book_title": src.get("book_title") or None,
+                    "project_numbers": src.get("project_numbers") or None,
+                    "expertises": src.get("expertises") or None,
+                    "document_class": src.get("document_class") or None,
+                    "old_id": src.get("old_id"),
+                    "views": src.get("views"),
+                    "clients": src.get("clients") or None,
+                },
+                ensure_ascii=False,
+            ),
+        }

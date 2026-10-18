@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "sites": {
+    "library-kwrwater-nl-en": {
+      "strategy": "last_page_backward",
+      "base_url": "https://library.kwrwater.nl",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://library.kwrwater.nl/wp/wp-admin/admin-ajax.php",
+        "method": "POST",
+        "idempotent": true,
+        "body_type": "form",
+        "params": {
+          "action": "searchPublications",
+          "document_type[]": [
+            "BTO rapport",
+            "KWRW -Waterwijs rapport",
+            "Peer review artikel",
+            "Vakblad artikel"
+          ]
+        },
+        "page_param": "current",
+        "start_page": 1,
+        "page_size": 25,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "doc_id",
+          "title_field": "title"
+        },
+        "total": {
+          "type": "json",
+          "path": "data.pagination.total"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

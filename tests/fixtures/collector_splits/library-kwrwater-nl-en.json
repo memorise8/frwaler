@@ -1,0 +1,160 @@
+{
+ "site_id": "library-kwrwater-nl-en",
+ "listing": {
+  "success": true,
+  "data": {
+   "pagination": {
+    "current": 1,
+    "pages": [
+     1
+    ],
+    "count": 1,
+    "has_prev": false,
+    "has_next": false,
+    "total": 4
+   },
+   "response": {
+    "terms": {},
+    "count": {
+     "value": 4,
+     "relation": "eq"
+    },
+    "documents": [
+     {
+      "_id": "900001",
+      "_source": {
+       "id": 900001,
+       "title": "Synthetic report one",
+       "abstract": "Synthetic abstract one describing a water quality study with enough words to pass the length checks of the crawler.",
+       "document_type": "BTO rapport",
+       "publishers": [
+        "Synthetic Journal"
+       ],
+       "authors": [
+        "Author, A.",
+        "Author, B."
+       ],
+       "keywords": [
+        "water",
+        "synthetic"
+       ],
+       "year": "2031",
+       "website": {
+        "publication_date": "2031-03-02"
+       },
+       "url": "/uploads/synthetic-900001.pdf",
+       "article_link": "https://doi.org/10.9999/synthetic.900001",
+       "report_number": "SYN-900001"
+      }
+     },
+     {
+      "_id": "900002",
+      "_source": {
+       "id": 900002,
+       "title": "Synthetic article two",
+       "abstract": "\"Synthetic abstract two about drinking water distribution networks and their maintenance in a fictional town.\"\n\n(Citation: Synthetic, A. (2031). Example.)",
+       "document_type": "Peer review artikel",
+       "publishers": [
+        "Synthetic Journal"
+       ],
+       "authors": [
+        "Author, A.",
+        "Author, B."
+       ],
+       "keywords": [
+        "water",
+        "synthetic"
+       ],
+       "year": "2031",
+       "website": {
+        "publication_date": "2031-03-03"
+       },
+       "url": "/uploads/synthetic-900002.pdf",
+       "article_link": "https://doi.org/10.9999/synthetic.900002",
+       "report_number": "SYN-900002"
+      }
+     },
+     {
+      "_id": "900003",
+      "_source": {
+       "id": 900003,
+       "title": "Synthetic short",
+       "abstract": "Too short.",
+       "document_type": "Vakblad artikel",
+       "publishers": [
+        "Synthetic Journal"
+       ],
+       "authors": [
+        "Author, A.",
+        "Author, B."
+       ],
+       "keywords": [
+        "water",
+        "synthetic"
+       ],
+       "year": "2031",
+       "website": {
+        "publication_date": "2031-03-04"
+       },
+       "url": "/uploads/synthetic-900003.pdf",
+       "article_link": "https://doi.org/10.9999/synthetic.900003",
+       "report_number": "SYN-900003"
+      }
+     },
+     {
+      "_id": "900004",
+      "_source": {
+       "id": 900004,
+       "title": "Synthetic mid",
+       "abstract": "Synthetic mid-length abstract that is between fifty and one hundred chars.",
+       "document_type": "KWRW -Waterwijs rapport",
+       "publishers": [
+        "Synthetic Journal"
+       ],
+       "authors": [
+        "Author, A.",
+        "Author, B."
+       ],
+       "keywords": [
+        "water",
+        "synthetic"
+       ],
+       "year": "2031",
+       "website": {},
+       "url": "",
+       "article_link": "https://doi.org/10.9999/synthetic.900004",
+       "report_number": "SYN-900004"
+      }
+     }
+    ]
+   }
+  }
+ },
+ "end": {
+  "success": true,
+  "data": {
+   "pagination": {
+    "current": 2,
+    "pages": [
+     1,
+     2
+    ],
+    "count": 1,
+    "has_prev": true,
+    "has_next": true,
+    "total": 4
+   },
+   "response": {
+    "terms": {},
+    "count": {
+     "value": 4,
+     "relation": "eq"
+    }
+   }
+  }
+ },
+ "original_method_source_sha256": {
+  "crawl": "249c5e74bc02399a479abe3f8d1d0ce3d14399a9ad2a7ead0f45b1177bc8b9f3",
+  "_fetch_page_json": "8c5be1a70d2bd6ac960c8d5408ca7e91c5abe6d6dbbcc58fe5a91b640911496b"
+ }
+}
