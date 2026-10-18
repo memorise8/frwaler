@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "sites": {
+    "sm-dk-publikationer": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.sm.dk",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": ["json", "url"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["html", "list_position", "item"],
+        "none_is_rule_skip": true
+      },
+      "listing": {
+        "url": "https://www.sm.dk/publikationer/proxy.gba",
+        "method": "POST",
+        "idempotent": true,
+        "body_type": "json",
+        "content_type": "versus/callback; charset=UTF-8",
+        "body": {
+          "control": "GoBasic.Presentation.Controls.ListHelper, GoBasic.Presentation",
+          "method": "GetPage",
+          "path": "/publikationer",
+          "query": "",
+          "args": {
+            "arg0": {
+              "options": {"generator": "GoBasic.Presentation.Controls.ListHelper, GoBasic.Presentation", "dateRange": true},
+              "context": "{dyn:context}",
+              "hash": "{dyn:hash}"
+            },
+            "arg1": "{page}",
+            "arg2": {"categorizations": []},
+            "arg3": ""
+          }
+        },
+        "dynamic": {
+          "url": "https://www.sm.dk/publikationer",
+          "values": {
+            "context": {"regex": "(?s)application\\.script\\.register\\('itemlist',\\s*\\{.*?\"context\":\\s*\"([A-Za-z0-9+/=]+)\""},
+            "hash": {"regex": "(?s)application\\.script\\.register\\('itemlist',\\s*\\{.*?\"hash\":\\s*\"([a-f0-9]+)\""}
+          }
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 10,
+        "parser": {
+          "type": "adapter",
+          "key_field": "url",
+          "url_field": "url",
+          "title_field": "title"
+        }
+      },
+      "last_page": {"overlap_pages": 1},
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

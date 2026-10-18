@@ -426,3 +426,79 @@ class SmDkPubikationerCrawler(BaseCrawler):
 
         print(f"[sm-dk-publikationer] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (L3b X3): pure copies of crawl()'s steps; crawl() unchanged
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Rows of one proxy.gba GetPage answer (the framework POSTs the same
+        body crawl() sends: context/hash read from the public list page, arg1 =
+        page number). Parsed with _parse_list_html exactly as crawl() does.
+        An answer without success is an error (never an end); an empty page
+        HTML or a page without rows is the end of the list (crawl() stops)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not data.get("success"):
+            raise PermanentFailure("listing_parse_error:proxy_not_success", url)
+        value = data.get("value", {})
+        page_html = value.get("page", "") if isinstance(value, dict) else ""
+        if not page_html:
+            return []
+        return _parse_list_html(page_html)
+
+    def _enumeration_paper(self, detail_html, list_position, item):
+        """Paper for one list row from its detail page, field for field what
+        crawl() saves. metadata.list_page is the page number crawl() sent
+        (framework list_position.page, ext:list_page_arg). Returns None where
+        crawl() skips (abstract under 50 characters)."""
+        item_url = item["url"]
+        page_num = list_position["page"] if list_position else None
+        if detail_html:
+            detail = _parse_detail_page(detail_html, item_url)
+        else:
+            detail = {"abstract": item.get("teaser", ""),
+                      "pdf_url": "",
+                      "original_filename": None}
+
+        abstract = detail["abstract"] or item.get("teaser", "")
+        if len(abstract) < 50:
+            return None
+
+        published_date = _parse_date(item.get("date_raw", ""))
+        listed_date = published_date
+        post_number = _date_to_post_number(published_date)
+
+        path = item_url.replace(_BASE, "").strip("/")
+        external_id = path or item_url
+
+        labels = item.get("labels", [])
+        category = ", ".join(labels) if labels else ""
+
+        pdf_url = detail.get("pdf_url", "") or ""
+        original_filename = detail.get("original_filename")
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "url": item_url,
+            "pdf_url": pdf_url if pdf_url else None,
+            "original_filename": original_filename,
+            "authors": None,
+            "publisher": "Social- og Boligministeriet",
+            "department": None,
+            "journal": None,
+            "keywords": None,
+            "category": category,
+            "doi": None,
+            "metadata": json.dumps({
+                "posted_date": item.get("date_raw", ""),
+                "labels": labels,
+                "teaser": item.get("teaser", ""),
+                "list_page": page_num,
+            }, ensure_ascii=False),
+        }
