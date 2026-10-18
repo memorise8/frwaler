@@ -1,0 +1,57 @@
+{
+ "site_id": "transparency-gov-au-publications",
+ "listing": {
+  "@odata.count": 3,
+  "value": [
+   {
+    "ID": "00000000-0000-0000-0000-000000000001",
+    "Title": "Synthetic annual report",
+    "ContentType": "annual_report",
+    "UrlSlug": "synthetic-agency/reporting-year/2030-31",
+    "Entity": "Synthetic Agency",
+    "Portfolio": "Synthetic Portfolio",
+    "BodyType": "Non-corporate entity",
+    "ReportingYear": "2030-31",
+    "Acronym": "SA",
+    "PublicationDate": "13/11/2031 4:58:37 AM",
+    "CodeName": "syn_1"
+   },
+   {
+    "ID": "00000000-0000-0000-0000-000000000002",
+    "Title": "Synthetic corporate plan",
+    "ContentType": "corp_plan",
+    "UrlSlug": "https://assets.example.invalid/synthetic%20plan.pdf",
+    "Entity": "Synthetic Agency",
+    "Portfolio": "Synthetic Portfolio",
+    "BodyType": "Non-corporate entity",
+    "ReportingYear": "2030-31",
+    "Acronym": "SA",
+    "PublicationDate": "13/11/2031 4:58:37 AM",
+    "CodeName": "syn_2"
+   },
+   {
+    "ID": "00000000-0000-0000-0000-000000000003",
+    "Title": "",
+    "ContentType": "pbs",
+    "UrlSlug": "",
+    "Entity": "Synthetic Agency",
+    "Portfolio": "Synthetic Portfolio",
+    "BodyType": "Non-corporate entity",
+    "ReportingYear": "2030-31",
+    "Acronym": "SA",
+    "PublicationDate": "13/11/2031 4:58:37 AM",
+    "CodeName": "syn_3"
+   }
+  ]
+ },
+ "end": {
+  "@odata.count": 3,
+  "value": []
+ },
+ "original_method_source_sha256": {
+  "crawl": "7ea2986192e6b1870e60e4e2a8eb779201afe7f8b7c312778921eae0616f83ea",
+  "_fetch_page": "550291da8a4df2ea9a9519b691e8b71d50c0406a7203f3f8b4f59825689d3c25",
+  "_build_paper": "32837ffa59d4d41debe0dda0e1c4307628ea8768a38248714605a6ed751323dc",
+  "_parse_url": "d8da790c83cb8a9a064947b64b90b1e09e43e3d0208fb2383f5add85f985a813"
+ }
+}

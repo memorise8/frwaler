@@ -342,3 +342,33 @@ class TransparencyGovAuPublicationsCrawler(BaseCrawler):
         )
 
         return " ".join(parts)
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched JSON.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Rows of one Azure Search answer ({"value": [...]}), in crawl() order.
+        A window past the end answers an empty "value" list (explicit end); an
+        error object or another shape is a listing parse error (never an end)."""
+        from crawler.enumeration.http import PermanentFailure
+        rows_in = data.get("value") if isinstance(data, dict) else None
+        if not isinstance(rows_in, list) or not all(isinstance(r, dict) for r in rows_in):
+            raise PermanentFailure("listing_parse_error:invalid_response", url)
+        rows = []
+        seen_ids = set()
+        for item in rows_in:
+            item_id = item.get("ID", "")
+            if not item_id or item_id in seen_ids:
+                continue
+            seen_ids.add(item_id)
+            page_url, _ = self._parse_url(item.get("ContentType", "") or "", item.get("UrlSlug", "") or "")
+            rows.append({"ID": item_id, "url": page_url, "title": (item.get("Title") or "").strip(),
+                         "item": item})
+        return rows
+
+    def _enumeration_paper(self, row):
+        """Paper from one search row: crawl()'s _build_paper, unchanged
+        (external_id = post_number = the index row ID)."""
+        return self._build_paper(row["item"])
