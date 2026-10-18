@@ -1,0 +1,16 @@
+{
+  "site_id": "defensa-gob-es-gabinete",
+  "listing_body": "<html><body><div id=\"paginacionMINISDEF\"><ul class=\"list-group\"><li class=\"listados1 list-group-item noticias\"><dl><dt class=\"fecha\">11/02/2026</dt><dd><a href=\"/gabinete/notasPrensa/2026/02/DGC-260211-sintetica-b.html\">Nota sintetica DGC-260211-sintetica-b</a><p>Resumen DGC-260211-sintetica-b.</p></dd></dl></li><li class=\"listados1 list-group-item noticias\"><dl><dt class=\"fecha\">10/01/2026</dt><dd><a href=\"/gabinete/notasPrensa/2026/02/DGC-260110-sintetica-a.html\">Nota sintetica DGC-260110-sintetica-a</a><p>Resumen DGC-260110-sintetica-a.</p></dd></dl></li></ul></div></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.defensa.gob.es/gabinete/notasPrensa/2026/02/DGC-260211-sintetica-b.html": "<html><head><link rel=\"canonical\" href=\"https://www.defensa.gob.es/gabinete/notasPrensa/2026/02/DGC-260211-sintetica-b.html\"/></head><body><span class=\"hCabNot\">Nota de prensa</span><span class=\"hFecha\">11/02/2026</span><div class=\"contenido\"><p>Texto sintetico de nota de prensa para la prueba de igualdad sin red del reparto de enumeracion. Solo imita la estructura de la pagina y no contiene texto real. Texto sintetico de nota de prensa para la prueba de igualdad sin red del reparto de enumeracion. Solo imita la estructura de la pagina y no contiene texto real. </p><a href=\"/Galerias/gabinete/ficheros_docs/2026/DGC-260211-sintetica-b.pdf\">pdf</a></div></body></html>",
+    "https://www.defensa.gob.es/gabinete/notasPrensa/2026/02/DGC-260110-sintetica-a.html": "<html><head><link rel=\"canonical\" href=\"https://www.defensa.gob.es/gabinete/notasPrensa/2026/02/DGC-260110-sintetica-a.html\"/></head><body><span class=\"hCabNot\">Nota de prensa</span><span class=\"hFecha\">10/01/2026</span><div class=\"contenido\"><p>Texto sintetico de nota de prensa para la prueba de igualdad sin red del reparto de enumeracion. Solo imita la estructura de la pagina y no contiene texto real. Texto sintetico de nota de prensa para la prueba de igualdad sin red del reparto de enumeracion. Solo imita la estructura de la pagina y no contiene texto real. </p><a href=\"/Galerias/gabinete/ficheros_docs/2026/DGC-260110-sintetica-a.pdf\">pdf</a></div></body></html>"
+  },
+  "long_text": "Texto sintetico de nota de prensa para la prueba de igualdad sin red del reparto de enumeracion. Solo imita la estructura de la pagina y no contiene texto real. Texto sintetico de nota de prensa para la prueba de igualdad sin red del reparto de enumeracion. Solo imita la estructura de la pagina y no contiene texto real. ",
+  "list_year": 2026,
+  "original_method_source_sha256": {
+    "crawl": "a18b5d8a92560b77a178bd78a4f810a52b398411793177a0b5d8cfcca3679145",
+    "_parse_list": "63be6f363c26b0ba3f4f8ca7f25a5d2b245dc1e22c69078993956107a41a45b3",
+    "_parse_detail": "edb4344d220b4c575b55603349b1a28e799458c8b8015f38253221775b6cc7e6"
+  }
+}

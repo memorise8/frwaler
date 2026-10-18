@@ -419,3 +419,46 @@ class DefensaGobEsGabineteCrawler(BaseCrawler):
         if node and node.get("href"):
             return node["href"].strip()
         return ""
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl(), _parse_list() and
+    # _parse_detail() are unchanged; these methods only parse fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """Year list rows in crawl() order (the existing _parse_list on the list URL)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html, context="list")
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparseable_html")
+        return self._parse_list(soup, url)
+
+    def _enumeration_paper(self, html, item):
+        """Paper built exactly as in crawl()'s item loop from a fetched detail
+        page (external_id from the list URL path, unchanged)."""
+        record = item
+        detail_soup = self._make_soup(html, context="detail")
+        if detail_soup is None:
+            raise RuntimeError("detail page could not be parsed")
+
+        parsed = self._parse_detail(detail_soup, record)
+        abstract = (parsed.get("abstract") or "").strip()
+        if len(abstract) < self._MIN_ABSTRACT:
+            return None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": parsed["external_id"],
+            "title": parsed["title"],
+            "abstract": abstract,
+            "published_date": parsed["published_date"],
+            "posted_date": parsed["listed_date"],  # → posted_date column via adapter
+            "url": parsed["url"],                  # → meta_url via adapter
+            "pdf_url": parsed["pdf_url"] or None,
+            "keywords": None,
+            "department": "Ministerio de Defensa de España",  # → publisher
+            "doi": None,
+            "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
+        }
