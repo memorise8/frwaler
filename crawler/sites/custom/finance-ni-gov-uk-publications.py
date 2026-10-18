@@ -307,3 +307,19 @@ class FinanceNiGovUkPublicationsCrawler(BaseCrawler):
         pub_date = d.get('pub_date') or it['listed_date']
         paper = {'site_id': self.site_id, 'external_id': external_id, 'post_number': node_id, 'title': it['title'], 'abstract': abstract, 'published_date': pub_date, 'listed_date': it['listed_date'], 'url': it['url'], 'pdf_url': d.get('pdf_url'), 'original_filename': d.get('original_filename'), 'category': it['category'], 'keywords': ','.join(topics), 'publisher': 'Department of Finance, Northern Ireland', 'metadata': json.dumps({'node_id': node_id, 'slug': slug, 'topics': topics, 'all_files': d.get('all_files', []), 'posted_date': it['listed_date']}, ensure_ascii=False)}
         return paper
+
+    def _enumeration_sitemap_paper(self, raw, url):
+        """Sitemap route (the /publications listing ignores ?page= on the live site):
+        crawl()'s paper for one detail page. Identity (node id post_number, node id or
+        slug external_id) and detail fields are unchanged. A sitemap entry has no listing
+        card, so the title comes from the detail page's <h1> (the card title on the live
+        site), and the card-only fields (listed_date, category) are empty."""
+        soup = self._make_soup(raw) if isinstance(raw, str) else None
+        if soup is None:
+            return None
+        h1 = (soup.find("main") or soup).find("h1")
+        title = self._clean(h1.get_text()) if h1 else ""
+        if not title:
+            return None
+        item = {"url": url, "title": title, "card_summary": "", "listed_date": "", "category": ""}
+        return self._enumeration_paper(item, self._parse_detail(raw, ""))
