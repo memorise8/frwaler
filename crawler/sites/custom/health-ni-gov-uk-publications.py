@@ -329,3 +329,19 @@ class HealthNiGovUkPublicationsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    def _enumeration_sitemap_paper(self, raw, url):
+        """Sitemap route (the /publications listing ignores ?page= on the live site, 2026-10-18):
+        crawl()'s paper for one detail page. Identity (node id post_number, node id or
+        slug external_id) and detail fields are unchanged. A sitemap entry has no listing
+        card, so the title comes from the detail page's <h1> (the card title on the live
+        site), and the card-only fields (listed_date, category) are empty."""
+        soup = self._make_soup(raw) if isinstance(raw, str) else None
+        if soup is None:
+            return None
+        h1 = (soup.find("main") or soup).find("h1")
+        title = self._clean(h1.get_text()) if h1 else ""
+        if not title:
+            return None
+        item = {"url": url, "title": title, "card_summary": "", "listed_date": "", "category": ""}
+        return self._enumeration_paper(item, self._parse_detail(raw, ""))
