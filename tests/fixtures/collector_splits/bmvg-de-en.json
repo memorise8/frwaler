@@ -1,0 +1,14 @@
+{
+  "site_id": "bmvg-de-en",
+  "listing_body": "<template data-json='{\"limit\":6,\"totalItemCount\":2}'><li><article class=\"Teaser type6\"><figure class=\"Figure\"></figure><div class=\"Teaser-content\"><em class=\"Tag\"><span class=\"isAural\">Kategorie</span>Press release</em><h3><a href=\"/en/synthetic-press-release-9000002\">Synthetic press release 9000002</a></h3><p>Synthetic press release body for the offline equality test of the enumeration split. It only imitates the structure of the source page and carries no real content at all.</p><time datetime=\"2026-02-11T10:00:00+02:00\">2026-02-11</time></div></article></li><li><article class=\"Teaser type6\"><figure class=\"Figure\"></figure><div class=\"Teaser-content\"><em class=\"Tag\"><span class=\"isAural\">Kategorie</span>Press release</em><h3><a href=\"/en/synthetic-press-release-9000001\">Synthetic press release 9000001</a></h3><p>Synthetic press release body for the offline equality test of the enumeration split. It only imitates the structure of the source page and carries no real content at all.</p><time datetime=\"2026-01-10T10:00:00+02:00\">2026-01-10</time></div></article></li></template>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.bmvg.de/en/synthetic-press-release-9000002": "<html><body><main><h1>Synthetic press release 9000002 (detail)</h1><time datetime=\"2026-02-12T09:00:00+02:00\">2026-02-12</time><div class=\"RichText\"><p>Synthetic press release body for the offline equality test of the enumeration split. It only imitates the structure of the source page and carries no real content at all.</p><a href=\"https://www.bmvg.de/resource/blob/9000002/synthetic-9000002.pdf\">PDF</a></div></main></body></html>",
+    "https://www.bmvg.de/en/synthetic-press-release-9000001": "<html><body><main><h1>Synthetic press release 9000001 (detail)</h1><time datetime=\"2026-01-11T09:00:00+02:00\">2026-01-11</time><div class=\"RichText\"><p>Synthetic press release body for the offline equality test of the enumeration split. It only imitates the structure of the source page and carries no real content at all.</p></div></main></body></html>"
+  },
+  "long_text": "Synthetic press release body for the offline equality test of the enumeration split. It only imitates the structure of the source page and carries no real content at all.",
+  "empty_body": "<template data-json='{\"limit\":6,\"totalItemCount\":2}'>\n</template>",
+  "original_method_source_sha256": {
+    "crawl": "52445dfc54da30c0f58a019c14b0ee5cbf6403d27f537395f1f77162fb6515f4"
+  }
+}

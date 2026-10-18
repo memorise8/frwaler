@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "sites": {
+    "bmvg-de-en": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.bmvg.de",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.bmvg.de/service/queryL-list-filter/en/277064",
+        "params": {
+          "targetView": "asFilterableList"
+        },
+        "page_param": "offset",
+        "page_mode": "offset",
+        "page_size": 6,
+        "start_page": 1,
+        "total": {
+          "type": "regex",
+          "pattern": "totalItemCount[^0-9<>]{1,16}(\\d+)"
+        },
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "post_number",
+          "date_field": "listed_date",
+          "title_field": "title",
+          "listing_marker": "template"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

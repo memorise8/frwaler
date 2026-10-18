@@ -419,3 +419,89 @@ class BmvgDeEnCrawler(BaseCrawler):
 
         print(f"[bmvg-de-en] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() is unchanged; these
+    # methods only parse already fetched HTML (no network, no subprocess).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """List rows of one list-filter page (offset=N, 6 rows) in crawl() order.
+
+        Each row carries crawl()'s identity (post_number = trailing numeric id of
+        the article URL, unchanged)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        rows = []
+        seen = set()
+        for it in _parse_list_page(html):
+            url = it["url"]
+            if url in seen:
+                continue
+            seen.add(url)
+            rows.append(dict(it, post_number=_extract_post_number(url)))
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page: the per-item body of crawl() copied
+        verbatim (external_id = post_number from the article URL, unchanged).
+        Returns None where crawl() skips the item (short abstract)."""
+        it = item
+        url = it["url"]
+        post_number = _extract_post_number(url)
+        external_id = post_number
+
+        detail_raw = html
+
+        abstract = ""
+        published_date = it["listed_date"]
+        title = it["title"]
+        pdf_url = None
+        original_filename = None
+
+        if detail_raw:
+            detail = _parse_detail_page(detail_raw)
+            abstract = detail.get("abstract", "")
+            if detail.get("published_date"):
+                published_date = detail["published_date"]
+            if detail.get("title"):
+                title = detail["title"]
+            pdf_url = detail.get("pdf_url")
+            original_filename = detail.get("original_filename")
+
+        # Fall back to teaser if RichText missing
+        if len(abstract) < 50:
+            if len(it["teaser"]) >= 50:
+                abstract = it["teaser"]
+            else:
+                return None
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "authors": "",
+            "publisher": "German Federal Ministry of Defence",
+            "department": "",
+            "journal": "",
+            "category": it["category"],
+            "keywords": "",
+            "published_date": published_date,
+            "listed_date": it["listed_date"],
+            "url": url,
+            "pdf_url": pdf_url or "",
+            "doi": "",
+            "original_filename": original_filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": it["listed_date"],
+                    "teaser": it["teaser"],
+                    "originalFilename": original_filename,
+                },
+                ensure_ascii=False,
+            ),
+        }
