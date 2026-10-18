@@ -325,3 +325,106 @@ class CancerGovAboutNciCrawler(BaseCrawler):
 
         print(f"[cancer-gov-about-nci] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() is unchanged; these
+    # methods only parse the already fetched landing page (no network).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Entries of the single landing page in crawl() order, each carrying the
+        page-level Updated date crawl() reads (same regex/soup code). Repeated PDF
+        links are dropped exactly as crawl()'s dedup_key does."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        raw = html
+
+        article_date = None
+        article_date_raw = None
+        article_datetime_raw = None
+        try:
+            m = re.search(r'<time[^>]+datetime="(\d{4}-\d{2}-\d{2})', raw)
+            if m:
+                article_date = m.group(1)
+            time_node = _make_soup(raw).find("time")
+            if time_node:
+                article_date_raw = time_node.get_text(" ", strip=True)
+                article_datetime_raw = time_node.get("datetime")
+        except Exception:
+            pass
+
+        rows = []
+        seen_urls = set()
+        for entry in _parse_entries(raw):
+            pdf_url = entry["pdf_url"]
+            dedup_key = pdf_url.split("#")[0].lower()
+            if dedup_key in seen_urls:
+                continue
+            seen_urls.add(dedup_key)
+            rows.append(dict(entry, external_id=_slug_from_url(pdf_url),
+                             article_date=article_date, article_date_raw=article_date_raw,
+                             article_datetime_raw=article_datetime_raw))
+        return rows
+
+    def _enumeration_paper(self, item):
+        """Paper from one landing-page entry: crawl()'s per-entry body copied
+        verbatim (external_id = PDF file slug, post_number = fiscal year)."""
+        entry = item
+        article_date = item.get("article_date")
+        article_date_raw = item.get("article_date_raw")
+        article_datetime_raw = item.get("article_datetime_raw")
+
+        pdf_url = entry["pdf_url"]
+
+        title = entry["title"]
+        fy_year = entry.get("fy_year")
+        highlights = entry.get("highlights") or []
+
+        # Compose abstract — guaranteed >= 100 chars via intro text (350+ chars)
+        parts = [title, _INTRO_TEXT]
+        if highlights:
+            parts.append("Highlighted scientific opportunities: " + "; ".join(highlights))
+        abstract = " ".join(parts)
+
+        if len(abstract) < 50:
+            return None
+
+        original_filename = pdf_url.split("#")[0].rstrip("/").rsplit("/", 1)[-1]
+        external_id = _slug_from_url(pdf_url)
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": fy_year,
+            "title": title,
+            "abstract": abstract,
+            # A budget fiscal year is a coverage period. The
+            # catalogue's Updated label belongs to the web page.
+            # Neither establishes a document publication date.
+            "published_date": None,
+            "listed_date": None,
+            "authors": "",
+            "publisher": "National Cancer Institute",
+            "department": "National Cancer Institute",
+            "journal": None,
+            "url": _LANDING_URL,
+            "pdf_url": pdf_url.split("#")[0],
+            "keywords": "NCI,Annual Plan,Budget Proposal,Professional Judgment,Cancer Research,Fiscal Year",
+            "category": "Budget & Appropriations",
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps({
+                "fy_year": fy_year,
+                "highlights": highlights,
+                "posted_date": None,
+                "fiscal_year_role": "budget_coverage_period",
+                "landing_updated_date": article_date,
+                "landing_updated_date_raw": article_date_raw,
+                "landing_updated_datetime_raw": article_datetime_raw,
+                "landing_updated_date_role": "catalogue_page_update",
+                "originalFilename": original_filename,
+                "landing_url": _LANDING_URL,
+            }, ensure_ascii=False),
+        }
