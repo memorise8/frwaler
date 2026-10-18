@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "sites": {
+    "nei-nih-gov-about": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "last_page_backward",
+      "base_url": "https://www.nei.nih.gov",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.nei.nih.gov/about/budget-and-congress",
+        "params": {
+          "page": 0
+        },
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "title_field": "label",
+          "listing_marker": "main article"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

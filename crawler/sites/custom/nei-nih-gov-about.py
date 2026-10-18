@@ -382,3 +382,123 @@ class NEINihGovAboutCrawler(BaseCrawler):
             "department": "National Eye Institute",
             "metadata": json.dumps(metadata, ensure_ascii=False),
         }
+
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl(),
+    # _build_paper() and _fetch_detail_text() stay unchanged.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html):
+        """Rows of the landing page, exactly as crawl() extracts them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        return self._extract_items(html)
+
+    def _enumeration_detail_text(self, raw):
+        """The parsing half of _fetch_detail_text(url)."""
+        if not raw:
+            return "", ""
+        soup = self._make_soup(raw)
+        if soup is None:
+            return "", ""
+        title = ""
+        if soup.title and soup.title.string:
+            title = self._norm_ws(soup.title.get_text(" ", strip=True))
+            title = re.sub(r"\s*\|\s*National Eye Institute\s*$", "", title)
+        for sel in ("main#main-content", "main", "article", "div.l-page-content"):
+            container = soup.select_one(sel)
+            if container is not None:
+                break
+        if container is None:
+            container = soup.body or soup
+        for tag in list(container.find_all(["script", "style", "nav", "header", "footer", "aside", "form", "noscript"])):
+            tag.decompose()
+        text = self._norm_ws(container.get_text(" ", strip=True))
+        return title, text
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s per-item path: _build_paper + the short-abstract skip (None)."""
+        paper = self._enumeration_paper_from(item, html)
+        if paper is None or len(paper.get("abstract") or "") < 50:
+            return None
+        return paper
+
+    def _enumeration_paper_from(self, it: dict, html) -> dict | None:
+        """Copy of _build_paper(); the sub-page text comes from ``html`` instead of a fetch."""
+        url = it["url"]
+        label = it["label"]
+        section_intro = it["section_intro"]
+        category = it["category"]
+        is_pdf = it["is_pdf"]
+
+        # External_id: stable, derived from URL path
+        external_id = re.sub(r"[^a-zA-Z0-9]+", "-", url.split("nei.nih.gov/", 1)[-1]).strip("-")
+        if not external_id:
+            external_id = re.sub(r"[^a-zA-Z0-9]+", "-", url).strip("-")
+        external_id = external_id[:200]
+
+        # Try to extract a year from the label (e.g. "FY 2025") for published_date
+        year_match = re.search(r"(?:FY|fy)\s*(\d{4})", label) or re.search(r"\b(20\d{2})\b", label)
+        published_date = f"{year_match.group(1)}-01-01" if year_match else ""
+
+        title = label
+        # Promote the section name into the title for clarity (it's vague otherwise)
+        if not re.search(r"justification|testimony|budget|remarks|statement", title, re.I):
+            title = f"{label} — {category}"
+
+        keywords = ["NEI", "NIH", "budget", category]
+
+        if is_pdf:
+            abstract_parts = [
+                f"{label} ({category}).",
+                section_intro,
+            ]
+            abstract = self._norm_ws(" ".join(p for p in abstract_parts if p))
+            pdf_url = url
+            page_url = self._START_URL  # listing page is the canonical web URL
+        elif "officeofbudget.od.nih.gov" in url.lower():
+            abstract = self._norm_ws(
+                f"{label} ({category}). External link to the NIH Office of Budget congressional "
+                f"justification index. {section_intro}"
+            )
+            pdf_url = ""
+            page_url = url
+        else:
+            # Sub-page on nei.nih.gov — fetch & parse for body text
+            page_title, body = self._enumeration_detail_text(html)
+            if page_title:
+                title = page_title
+            abstract = body or self._norm_ws(f"{label} ({category}). {section_intro}")
+            pdf_url = ""
+            page_url = url
+
+        # Truncate runaway abstracts (some NEI pages dump >50k chars of menus
+        # even after stripping; cap at 20k for sanity).
+        if len(abstract) > 20000:
+            abstract = abstract[:20000]
+
+        metadata = {
+            "source_listing_url": self._START_URL,
+            "category": category,
+            "label": label,
+            "is_pdf": is_pdf,
+            "section_intro": section_intro[:1000],
+        }
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": title,
+            "authors": json.dumps(["National Eye Institute"], ensure_ascii=False),
+            "abstract": abstract,
+            "category": category,
+            "keywords": json.dumps(keywords, ensure_ascii=False),
+            "published_date": published_date,
+            "url": page_url,
+            "pdf_url": pdf_url,
+            "doi": "",
+            "department": "National Eye Institute",
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }

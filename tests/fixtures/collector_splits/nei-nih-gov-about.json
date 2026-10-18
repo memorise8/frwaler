@@ -1,0 +1,22 @@
+{
+ "site_id": "nei-nih-gov-about",
+ "listing_body": "<html><body><main><article><div class=\"c-section\"><h2>Congressional Justifications</h2><p>Each year NEI submits a justification of its budget request.</p></div><div class=\"c-text\"><ul><li><a href=\"/sites/default/files/2024-03/nei-cj-2025.pdf\">FY 2025 Congressional Justification</a></li></ul></div><div class=\"c-section\"><h2>Congressional Testimony</h2><p>Testimony before Congress.</p><ul><li><a href=\"/about/budget-and-congress/nei-fy2019-budget-request\">FY 2019 Budget Request</a></li></ul></div></article></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.nei.nih.gov/sites/default/files/2024-03/nei-cj-2025.pdf": "%PDF-1.4 synthetic",
+  "https://www.nei.nih.gov/about/budget-and-congress/nei-fy2019-budget-request": "<html><head><title>NEI FY2019 Budget Request | National Eye Institute</title></head><body><nav>menu</nav><main id=\"main-content\"><h1>FY2019</h1><p>Synthetic NEI testimony text for offline equality testing of the enumeration split, long enough to pass. Synthetic NEI testimony text for offline equality testing of the enumeration split, long enough to pass. </p></main></body></html>"
+ },
+ "long_text": "Synthetic NEI testimony text for offline equality testing of the enumeration split, long enough to pass. Synthetic NEI testimony text for offline equality testing of the enumeration split, long enough to pass. ",
+ "empty_body": "<html><body><main><article></article></main></body></html>",
+ "original_method_source_sha256": {
+  "_curl_get": "9cf9aebd7788f80eac8621306220cb7d6e4a031b296906c5c9512b9587f6dd35",
+  "_make_soup": "d21a6d1640164de38ee9b0e76ec3a3a42dc1e9478630b67b7ff76f6c2b0fe5d9",
+  "_norm_ws": "7afa865d7fe7f9e722042e49124c1c275431c3912a4db7a3bb9e92920afd9954",
+  "_section_text": "e0fbe2a143686947b72adacf423763cd54596961002d9a33387ec996d2002b69",
+  "_section_links": "2901621fedd9b02a1dbf1b6fc5596ced8c2d894d068befc07f91a614b1311daf",
+  "_fetch_detail_text": "897809baebd5723871e462d5f21ffc38ab349e4aa51bf1944b9ef1e87dfe588a",
+  "_extract_items": "b1a1f892eea05363501d6d0b098dc9677f3cce9ba4935c42e645a79dc1ef364a",
+  "crawl": "6afc8e4293107915c14b0957b05f89c1fffd859e06c331ed6c033cd29bd0e2a9",
+  "_build_paper": "3e3612e5148e0cbfb670e8370b5b8a0c902ad8b5c21d7b849587d6e893e28313"
+ }
+}
