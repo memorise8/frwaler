@@ -242,7 +242,7 @@
   "anses-fr-fr": {
     "classification": "full_rescan_required",
     "reason": "sampled_signature_and_online_dates_nonmonotonic_and_two_original_scopes_unconfigured",
-    "source_sha256": "2aabfbc59ef1794c2e37373a64c4a226ecfcf57e60ebc62bd102ab4b7c8d70c9",
+    "source_sha256": "0aae5da9ee7ad76b9d5b31c66889b3f779984f6c7b0c66fa74d97d818aa09f6a",
     "dependency_source_sha256": {
       "docs/deliverables/test_URL_수집대조_20260802.csv": "336c04d463f70624cd4ec7aacdf386fd71bab34ca186acf8ac3413a3ee1fced9",
       "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
