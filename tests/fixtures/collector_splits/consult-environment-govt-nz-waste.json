@@ -1,0 +1,16 @@
+{
+ "site_id": "consult-environment-govt-nz-waste",
+ "listing_body": "<html><body><main><ul id=\"consultations\"><li class=\"dss-card\" data-consultation-state=\"closed\"><h2><a class=\"cs-no-underline\" href=\"https://consult.environment.govt.nz/waste/plan-one/\">Consultation plan-one</a></h2><div class=\"row\"><div class=\"col-md-9\"><span>Short snippet plan-one</span></div></div><div class=\"cs-date-delta\">Closed 1 Jun 2025</div></li><li class=\"dss-card\" data-consultation-state=\"closed\"><h2><a class=\"cs-no-underline\" href=\"https://consult.environment.govt.nz/climate/plan-two/\">Consultation plan-two</a></h2><div class=\"row\"><div class=\"col-md-9\"><span>Short snippet plan-two</span></div></div><div class=\"cs-date-delta\">Closed 1 Jun 2025</div></li></ul></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://consult.environment.govt.nz/waste/plan-one/": "<html><body><h1 class=\"x\" id=\"cs-consultation-title-in-banner\">Consultation plan-one</h1><p class=\"cs-consultation-sidebar-primary-date\">Closed 1 Jun 2025</p><p class=\"cs-consultation-sidebar-secondary-date\">Opened 31 Mar 2025</p><div id=\"overview\"><h2>Overview</h2><p>Synthetic consultation overview used for offline equality testing of the enumeration split. Synthetic consultation overview used for offline equality testing of the enumeration split. </p><a href=\"https://consult.environment.govt.nz/plan-one/supporting_documents/doc.pdf\">Doc</a></div><div id=\"results\"><p>Results updated 2 Jul 2025 Done.</p></div></body></html>",
+  "https://consult.environment.govt.nz/climate/plan-two/": "<html><body><h1 class=\"x\" id=\"cs-consultation-title-in-banner\">Consultation plan-two</h1><p class=\"cs-consultation-sidebar-primary-date\">Closed 1 Jun 2025</p><p class=\"cs-consultation-sidebar-secondary-date\">Opened 31 Mar 2025</p><div id=\"overview\"><h2>Overview</h2><p>Synthetic consultation overview used for offline equality testing of the enumeration split. Synthetic consultation overview used for offline equality testing of the enumeration split. </p><a href=\"https://consult.environment.govt.nz/plan-two/supporting_documents/doc.pdf\">Doc</a></div><div id=\"results\"><p>Results updated 2 Jul 2025 Done.</p></div></body></html>"
+ },
+ "long_text": "Synthetic consultation overview used for offline equality testing of the enumeration split. Synthetic consultation overview used for offline equality testing of the enumeration split. ",
+ "empty_body": "<html><body><main><ul id=\"consultations\"></ul></main></body></html>",
+ "original_method_source_sha256": {
+  "crawl": "55aca32953c07af67444efe926765dcbb415968a5544ba0f14ec7f46b629a361",
+  "_parse_list_page": "a005c8c412a5d452e011051b4b8d48f729b93bd114468a7f41fd04b1e09a124e",
+  "_fetch_detail": "e14ea7944bbf9e5b5755fe8e77acd2afef7c238d7b5e9823e35f062857e5ec5d"
+ }
+}

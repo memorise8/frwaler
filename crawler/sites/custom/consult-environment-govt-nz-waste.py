@@ -405,3 +405,142 @@ class ConsultEnvironmentGovtNzWasteCrawler(BaseCrawler):
             "doi": None,
             "metadata": metadata,
         }
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl(),
+    # _parse_list_page() and _fetch_detail() stay unchanged; these are their
+    # parsing parts without the fetch. No storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html):
+        """Finder rows, exactly as crawl() parses them (_parse_list_page)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        return self._parse_list_page(html)
+
+    def _enumeration_paper(self, raw, list_item):
+        """_fetch_detail() without the fetch, then crawl()'s short-abstract skip."""
+        record = self._enumeration_detail_record(raw, list_item["url"], list_item)
+        if record is None:
+            return None
+        abstract = record.get("abstract", "") or ""
+        if len(abstract) < 50:
+            return None
+        return record
+
+    def _enumeration_detail_record(self, raw, url, list_item):
+        """Verbatim parsing body of _fetch_detail(url, list_item) on an already fetched page."""
+        if not raw:
+            return None
+
+        # external_id = "{category}/{slug}"
+        slug_m = re.match(
+            r"https?://consult\.environment\.govt\.nz/([^/?#]+)/([^/?#]+)/?",
+            url,
+        )
+        if slug_m:
+            category = slug_m.group(1)
+            slug = slug_m.group(2)
+            external_id = f"{category}/{slug}"
+            post_number = slug
+        else:
+            slug = url.rstrip("/").rsplit("/", 1)[-1]
+            external_id = slug
+            post_number = slug
+            category = ""
+
+        # Title
+        title_m = re.search(
+            r'<h1[^>]*id="cs-consultation-title-in-banner"[^>]*>\s*(.*?)\s*</h1>',
+            raw, re.DOTALL,
+        )
+        title = (
+            _strip_tags(title_m.group(1)).strip()
+            if title_m
+            else list_item.get("title", "")
+        )
+
+        # Open/close dates from sidebar
+        primary_m = re.search(
+            r'<p\s+class="cs-consultation-sidebar-primary-date"[^>]*>(.*?)</p>',
+            raw, re.DOTALL,
+        )
+        secondary_m = re.search(
+            r'<p\s+class="cs-consultation-sidebar-secondary-date"[^>]*>(.*?)</p>',
+            raw, re.DOTALL,
+        )
+        primary_text = _strip_tags(primary_m.group(1)).strip() if primary_m else ""
+        secondary_text = _strip_tags(secondary_m.group(1)).strip() if secondary_m else ""
+
+        # published_date = opened date (when consultation started)
+        # close_date     = when consultation closed
+        published_date = _parse_date(secondary_text)
+        close_date = _parse_date(primary_text)
+        listed_date = published_date  # same as opened date
+
+        # Abstract: overview section (primary) + results section (supplemental)
+        overview_text = _extract_text_block(raw, "overview")
+        # Remove leading "Overview" heading
+        overview_text = re.sub(r"^Overview\s*", "", overview_text).strip()
+
+        results_text = _extract_text_block(raw, "results")
+        # Remove "Results updated DD Mon YYYY" heading
+        results_text = re.sub(
+            r"^Results updated\s+\d{1,2}\s+\w+\s+\d{4}\s*", "", results_text
+        ).strip()
+
+        parts = []
+        if overview_text:
+            parts.append(overview_text)
+        if results_text and results_text not in overview_text:
+            parts.append(results_text)
+        if not parts and list_item.get("snippet"):
+            parts.append(list_item["snippet"])
+
+        abstract = " ".join(parts)[:8000].strip()
+
+        # PDF links — prefer overview section, then any in page
+        pdf_url = None
+        original_filename = None
+        ov_idx = raw.find('id="overview"')
+        search_region = raw[ov_idx: ov_idx + 8000] if ov_idx >= 0 else raw
+        pdf_m = re.search(r'href="([^"]+\.pdf)"', search_region, re.IGNORECASE)
+        if pdf_m:
+            pdf_url = pdf_m.group(1)
+            fname_m = re.search(r"/([^/]+\.pdf)$", pdf_url, re.IGNORECASE)
+            if fname_m:
+                original_filename = fname_m.group(1)
+
+        metadata = json.dumps(
+            {
+                "state": list_item.get("state", ""),
+                "category": category,
+                "close_date": close_date,
+                "primary_date_raw": primary_text,
+                "secondary_date_raw": secondary_text,
+                "posted_date": listed_date,
+                "snippet": list_item.get("snippet", ""),
+            },
+            ensure_ascii=False,
+        )
+
+        return {
+            "site_id": _SITE_ID,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "url": url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "publisher": "Ministry for the Environment",
+            "department": None,
+            "authors": None,
+            "journal": None,
+            "category": category,
+            "keywords": None,
+            "doi": None,
+            "metadata": metadata,
+        }
