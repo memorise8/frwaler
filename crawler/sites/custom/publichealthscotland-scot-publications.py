@@ -437,7 +437,10 @@ class PublichealthscotlandScotPublicationsCrawler(BaseCrawler):
             listed_date = self._parse_date(listed_date_raw)
             rows.append({"url": detail_url, "list_title": list_title, "list_desc": list_desc, "listed_date": listed_date, "listed_date_raw": listed_date_raw, "categories": categories})
 
-        if not rows and soup.find("main").get_text(" ", strip=True):
+        # Past the last page the site answers 200 with the full page chrome and an
+        # empty div.search-results (observed 2026-10-18, p=409+ of 408): that is an
+        # explicit empty listing. Text in <main> without that container stays an error.
+        if not rows and soup.find("main").get_text(" ", strip=True) and soup.select_one("div.search-results") is None:
             raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing")
         return rows
 
