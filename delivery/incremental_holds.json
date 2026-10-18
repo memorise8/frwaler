@@ -130,7 +130,7 @@
   "afd-fr-fr": {
     "classification": "full_rescan_required",
     "reason": "publication_listing_dates_missing_and_node_IDs_detail_only_order_unverified",
-    "source_sha256": "eb5318c2ebf791dfa4a22b909859946fdc3e935ab11bc0bdc624fcbe4a243564",
+    "source_sha256": "ae612ead8daaa07197b83feaf3f78a292143bae624ed7c6ef648b8544a5b80bf",
     "dependency_source_sha256": {
       "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
     },
