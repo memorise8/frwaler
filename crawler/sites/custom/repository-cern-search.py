@@ -44,9 +44,9 @@ def _normalize_date(raw):
     if re.match(r"^\d{4}-\d{2}-\d{2}$", raw):
         return raw
     if re.match(r"^\d{4}-\d{2}$", raw):
-        return f"{raw}-01"
+        return raw
     if re.match(r"^\d{4}$", raw):
-        return f"{raw}-01-01"
+        return raw
     return raw
 
 
