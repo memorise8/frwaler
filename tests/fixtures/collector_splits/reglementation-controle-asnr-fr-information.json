@@ -1,0 +1,18 @@
+{
+  "site_id": "reglementation-controle-asnr-fr-information",
+  "listing_body": "<html><body><div class=\"Wrapper Wrapper--grid\"><div class=\"Wrapper-gridMain\"><article class=\"Teaser\"><a class=\"Teaser-titleLink\" href=\"/information/publications/rapports-d-expertise/synthetic-one\">Synthetic report one</a><span class=\"Teaser-date\">Publié le 17/04/2031</span><div class=\"Teaser-text\"><div class=\"eztext-field\">Teaser.</div></div></article><article class=\"Teaser\"><a class=\"Teaser-titleLink\" href=\"/information/publications/rapports-d-expertise/synthetic-two\">Synthetic report two</a><span class=\"Teaser-date\">Publié le 02/01/2030</span><div class=\"Teaser-text\"><div class=\"eztext-field\">Teaser.</div></div></article></div></div></body></html>",
+  "content_type": "text/html; charset=utf-8",
+  "details": {
+    "https://reglementation-controle.asnr.fr/information/publications/rapports-d-expertise/synthetic-one": "<html><body><div class=\"Wrapper-gridMain\"><span class=\"ArticleHeader-date\">Publié le 18 avril 2031</span><div class=\"RichText\"><div class=\"ezrichtext-field\"><p>Synthetic ASNR expertise report body for the offline equality test only. Synthetic ASNR expertise report body for the offline equality test only. Synthetic ASNR expertise report body for the offline equality test only. Synthetic ASNR expertise report body for the offline equality test only.</p></div></div><a href=\"/content/download/990001/pdf_file/Synthetic%20one.pdf\">PDF</a></div></body></html>",
+    "https://reglementation-controle.asnr.fr/information/publications/rapports-d-expertise/synthetic-two": "<html><body><div class=\"Wrapper-gridMain\"><span class=\"ArticleHeader-date\">Publié le 03/01/2030</span><div class=\"RichText\"><div class=\"ezrichtext-field\"><p>Synthetic ASNR expertise report body for the offline equality test only. Synthetic ASNR expertise report body for the offline equality test only. Synthetic ASNR expertise report body for the offline equality test only. Synthetic ASNR expertise report body for the offline equality test only.</p></div></div></div></body></html>"
+  },
+  "long_text": "Synthetic ASNR expertise report body for the offline equality test only. Synthetic ASNR expertise report body for the offline equality test only. Synthetic ASNR expertise report body for the offline equality test only. Synthetic ASNR expertise report body for the offline equality test only.",
+  "original_method_source_sha256": {
+    "crawl": "c02e42cf3e7b6f47525c0609a4dd3252cf7ee66c8d64ba15b5237dea9c61d36f",
+    "_curl_get": "935161e3b098446cd1c6e77bc1ae7f875e4767ed8c3378e3cda16cf6e575ba3d",
+    "_make_soup": "d8a5704713c13544e9117df307024efc123b601d6c9cc47f00b1411bfd94c478",
+    "_clean_text": "1dcfcaf638ddc04ee581196b93358cc1f16953b41b1f70999a41c9dab5adc41d",
+    "module:_parse_date_fr": "9fe97934af4edf722866c2abe8a80f76ef78b6dcbe1189b79c24d65f1b41ac1d",
+    "module:_has_next_page": "68226f44efac5d33407a75163fc1d1554f60b165c96a5d70694fa64a6871c057"
+  }
+}

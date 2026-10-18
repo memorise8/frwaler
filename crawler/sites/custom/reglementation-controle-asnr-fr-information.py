@@ -259,6 +259,146 @@ class ReglementationControleAsnrFrInformationCrawler(BaseCrawler):
         return saved
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points; crawl() and helpers stay unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw, url=None):
+        """Listing rows exactly as crawl() reads article.Teaser on one list page.
+
+        A page without the listing grid (maintenance/foreign HTML) or without any
+        teaser is a listing parse error; the real end after the last page is a 404.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        soup = self._make_soup(raw, context="enumeration list page") if isinstance(raw, (str, bytes)) else None
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:not_html", url)
+        articles = soup.select("article.Teaser")
+        if not articles:
+            raise PermanentFailure("listing_parse_error:no_teasers", url)
+        rows = []
+        for art in articles:
+            link_el = art.select_one(".Teaser-titleLink")
+            if link_el is None:
+                continue
+            title = self._clean_text(link_el.get_text(" ", strip=True))
+            href = link_el.get("href", "")
+            if not href:
+                continue
+            detail_url = urljoin(_REAL_BASE, href)
+            date_el = art.select_one(".Teaser-date")
+            listed_date = _parse_date_fr(date_el.get_text(" ", strip=True) if date_el else "")
+            teaser_el = art.select_one(".Teaser-text .eztext-field")
+            teaser_text = self._clean_text(teaser_el.get_text(" ", strip=True)) if teaser_el else ""
+            rows.append({"url": detail_url, "title": title, "listed_date": listed_date,
+                         "teaser_text": teaser_text})
+        return rows
+
+    def _enumeration_paper(self, detail_raw, item):
+        """Pure copy of crawl()'s detail parsing and Paper conversion (None = skipped)."""
+        detail_url = item["url"]
+        title = item["title"]
+        listed_date = item["listed_date"]
+        teaser_text = item["teaser_text"]
+        slug = urlparse(detail_url).path.rstrip("/").rsplit("/", 1)[-1]
+
+        abstract = ""
+        pdf_url = None
+        published_date = listed_date
+        original_filename = None
+        post_number = None
+
+        if detail_raw:
+            dsoup = self._make_soup(detail_raw, context=f"detail {slug}")
+            if dsoup:
+                rich = dsoup.select_one(".Wrapper-gridMain .RichText")
+                if rich is None:
+                    rich = dsoup.select_one(".RichText")
+                if rich:
+                    parts = []
+                    for field in rich.select(".ezrichtext-field"):
+                        t = self._clean_text(field.get_text(" ", strip=True))
+                        if t and len(t) > 2:
+                            parts.append(t)
+                    if parts:
+                        abstract = " ".join(parts)[:_MAX_ABSTRACT]
+                    else:
+                        abstract = self._clean_text(
+                            rich.get_text(" ", strip=True)
+                        )[:_MAX_ABSTRACT]
+
+                date2 = dsoup.select_one(".ArticleHeader-date")
+                if date2:
+                    parsed = _parse_date_fr(date2.get_text(" ", strip=True))
+                    if parsed:
+                        published_date = parsed
+
+                for a in dsoup.find_all("a", href=True):
+                    h = a.get("href", "")
+                    if not h:
+                        continue
+                    h_low = h.lower()
+                    if h_low.endswith(".pdf") or (
+                        "/content/download/" in h_low and "/file/" in h_low
+                    ):
+                        pdf_url = urljoin(_REAL_BASE, h)
+                        fname = urlparse(pdf_url).path.rsplit("/", 1)[-1]
+                        original_filename = unquote(fname) if fname else None
+                        m = re.search(r"/content/download/(\d+)/", h)
+                        if m:
+                            post_number = m.group(1)
+                        break
+
+        if not abstract:
+            abstract = teaser_text
+
+        if len(abstract) < _MIN_ABSTRACT and detail_raw:
+            dsoup2 = self._make_soup(detail_raw, context=f"detail-meta {slug}")
+            if dsoup2:
+                for meta in dsoup2.find_all("meta"):
+                    name = meta.get("name", "") or meta.get("property", "")
+                    if name in ("description", "og:description"):
+                        cand = self._clean_text(meta.get("content", ""))
+                        if len(cand) > len(abstract):
+                            abstract = cand
+
+        if not abstract or len(abstract) < _MIN_ABSTRACT:
+            return None
+
+        external_id = post_number or slug
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number or slug,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "posted_date": listed_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "authors": None,
+            "publisher": "ASNR",
+            "department": None,
+            "journal": None,
+            "keywords": None,
+            "category": "Rapport d'expertise",
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": listed_date,
+                    "originalFilename": original_filename,
+                    "slug": slug,
+                    "content_id": post_number,
+                    "category": "Rapport d'expertise",
+                },
+                ensure_ascii=False,
+            ),
+        }
+
+    # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
 
