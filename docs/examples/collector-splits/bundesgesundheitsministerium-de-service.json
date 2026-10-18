@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "sites": {
+    "bundesgesundheitsministerium-de-service": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.bundesgesundheitsministerium.de",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.bundesgesundheitsministerium.de/service/publikationen/gesundheit/seite-{page}",
+        "first_page_url": "https://www.bundesgesundheitsministerium.de/service/publikationen/gesundheit",
+        "start_page": 1,
+        "page_size": 10,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "slug",
+          "title_field": "title",
+          "listing_marker": "div.news"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

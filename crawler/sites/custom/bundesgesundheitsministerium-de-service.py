@@ -475,3 +475,40 @@ class BundesgesundheitsministeriumDeServiceCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] crawl complete: saved {saved}/{limit_label}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (pure parsing; crawl() and the methods above unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """One list page (first page = _LIST_URL, later pages /seite-N: plan
+        listing.url with {page} + first_page_url) parsed by the existing
+        _parse_list_page(). Every page repeats the pinned top teaser
+        (div.c-teaser--top) as its first card; crawl() saves it once from the
+        first page (seen_urls) and so does this: on /seite-N pages the pinned
+        card is dropped. Past the last page the source answers 404. A page
+        without the news list is a listing parse error."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._parse_html(html)
+        if soup is None or soup.select_one("div.news") is None:
+            raise PermanentFailure("listing_parse_error:no_news_list")
+        rows = self._parse_list_page(html)
+        if re.search(r"/seite-\d+/?$", urlparse(url).path):
+            pinned = set()
+            for teaser in soup.select("div.c-teaser--top"):
+                for a in teaser.find_all("a", href=re.compile(r"/service/publikationen/details/")):
+                    pinned.add(self._slug_from_url(urljoin(_BASE_URL, a.get("href", "").strip())))
+            rows = [row for row in rows if row["slug"] not in pinned]
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s per-item block (_parse_detail + abstract length skip) with
+        the detail page already fetched by the runner; external_id = slug,
+        post_number = Artikel-Nr. else slug, unchanged. None where crawl() skips."""
+        paper = self._parse_detail(html, item)
+        abstract = paper.get("abstract") or ""
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+        return paper
