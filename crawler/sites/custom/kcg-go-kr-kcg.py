@@ -403,3 +403,131 @@ def _parse_list_rows(soup) -> list:
         })
 
     return rows
+
+
+# ---------------------------------------------------------------------------
+# Pure enumeration contract (no network); crawl(), _process_item() and the
+# module helpers above are unchanged.
+# ---------------------------------------------------------------------------
+
+def _enumeration_items(self, html, url=None):
+    """List-page HTML -> _parse_list_rows() rows (a valid list keeps its tbody)."""
+    from crawler.enumeration.http import PermanentFailure
+    if not isinstance(html, str):
+        raise PermanentFailure("listing_parse_error:expected_html")
+    soup = _make_soup(html)
+    if soup is None or soup.find("tbody") is None:
+        raise PermanentFailure("listing_parse_error:missing_tbody")
+    return _parse_list_rows(soup)
+
+
+def _enumeration_paper(self, raw, row):
+    """Detail page bytes + list row -> the paper _process_item() saves (or None)."""
+    url = row["url"]
+    ntt_sn = row["ntt_sn"]
+
+    if not raw:
+        return None
+
+    soup = _make_soup(raw)
+    if not soup:
+        return None
+
+    # --- Title (authoritative from detail page) ---
+    title = row["title"]
+    title_th = soup.find("th", class_="title")
+    if title_th:
+        t = title_th.get_text(strip=True)
+        if t:
+            title = t
+
+    # --- Author ---
+    author = row.get("author") or ""
+    auth_th = soup.find("th", string=lambda s: s and "작성자" in s)
+    if auth_th:
+        auth_td = auth_th.find_next_sibling("td")
+        if auth_td:
+            author = auth_td.get_text(strip=True)
+
+    # --- Date ---
+    date_raw = row.get("date") or ""
+    date_th = soup.find("th", string=lambda s: s and "등록일" in s)
+    if date_th:
+        date_td = date_th.find_next_sibling("td")
+        if date_td:
+            date_raw = date_td.get_text(strip=True)
+    published_date = _parse_date(date_raw)
+
+    # --- Abstract (content body) ---
+    abstract = ""
+    content_td = soup.find("td", style=re.compile(r"word-break"))
+    if content_td:
+        abstract = _strip_html(content_td)
+    if len(abstract) < 50:
+        for td in soup.find_all("td", attrs={"colspan": "4"}):
+            text = _strip_html(td)
+            if len(text) > len(abstract):
+                abstract = text
+    if len(abstract) < 50:
+        main = soup.find("div", class_=re.compile(r"BD_table|sub_content"))
+        if main:
+            abstract = _strip_html(main)
+
+    abstract = re.sub(r"\s+", " ", abstract).strip()
+
+    if len(abstract) < 100:
+        return None
+
+    # --- Attachments ---
+    pdf_url = None
+    original_filename = None
+    file_entries = []
+
+    file_ul = soup.find("ul", class_="file")
+    if file_ul:
+        for a in file_ul.find_all("a", href=True):
+            href = a["href"].strip()
+            if "nttFileDownload" not in href and "fileKey" not in href:
+                continue
+            fname = a.get_text(strip=True)
+            full = f"{_BASE}{href}" if href.startswith("/") else href
+            ext = fname.rsplit(".", 1)[-1].lower() if "." in fname else ""
+            file_entries.append({"name": fname, "url": full, "ext": ext})
+
+    for fe in file_entries:
+        if fe["ext"] == "pdf":
+            pdf_url = fe["url"]
+            original_filename = fe["name"]
+            break
+    if not pdf_url and file_entries:
+        pdf_url = file_entries[0]["url"]
+        original_filename = file_entries[0]["name"]
+
+    # --- Metadata ---
+    metadata = {
+        "nttSn": ntt_sn,
+        "posted_date": date_raw,
+        "post_number": row.get("post_number"),
+    }
+    if file_entries:
+        metadata["files"] = [{"name": fe["name"], "url": fe["url"]} for fe in file_entries]
+
+    return {
+        "site_id": self.site_id,
+        "external_id": ntt_sn,
+        "title": title,
+        "abstract": abstract,
+        "url": url,
+        "pdf_url": pdf_url,
+        "original_filename": original_filename,
+        "published_date": published_date,
+        "listed_date": published_date,
+        "posted_date": date_raw,
+        "authors": author or None,
+        "publisher": "해양경찰청",
+        "metadata": json.dumps(metadata, ensure_ascii=False),
+    }
+
+
+KcgGoKrKcgCrawler._enumeration_items = _enumeration_items
+KcgGoKrKcgCrawler._enumeration_paper = _enumeration_paper

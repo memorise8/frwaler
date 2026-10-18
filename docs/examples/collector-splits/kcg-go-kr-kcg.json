@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "sites": {
+    "kcg-go-kr-kcg": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "base_url": "https://www.kcg.go.kr",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "raw",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.kcg.go.kr/kcg/na/ntt/selectNttList.do",
+        "params": {
+          "mi": "2799",
+          "bbsId": "313",
+          "currPage": 1
+        },
+        "page_param": "currPage",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "ntt_sn",
+          "url_field": "url",
+          "title_field": "title",
+          "date_field": "date",
+          "listing_marker": "tbody"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
