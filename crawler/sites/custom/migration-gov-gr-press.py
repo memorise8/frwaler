@@ -279,3 +279,67 @@ class MigrationGovGrPressCrawler(BaseCrawler):
         path = url.split("?")[0].split("#")[0]
         part = path.rstrip("/").rsplit("/", 1)[-1]
         return part if part.lower().endswith(".pdf") else None
+
+    # ------------------------------------------------------------------
+    # Enumeration split (collector-splits 방식; crawl() 은 그대로)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """WP REST 목록(JSON) 검증만 한다. 요청·저장·식별값 합성 없음."""
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:items_not_a_list_of_objects", url)
+        return data
+
+    def _enumeration_paper(self, post):
+        """crawl() 의 항목 처리(건너뛰기 조건·paper 구성)를 그대로 옮긴 순수 함수.
+        건너뛰는 항목은 None."""
+        post_url = (post.get("link") or "").strip()
+        if not post_url:
+            return None
+        post_id = post.get("id")
+        if not post_id:
+            return None
+        title_raw = (post.get("title") or {}).get("rendered") or ""
+        title = re.sub(r"\s+", " ", unescape(title_raw)).strip()
+        if not title:
+            return None
+        content_html = (post.get("content") or {}).get("rendered") or ""
+        excerpt_html = (post.get("excerpt") or {}).get("rendered") or ""
+        abstract = self._html_to_text(content_html)
+        if len(abstract) < self._MIN_ABSTRACT_CHARS:
+            abstract = self._html_to_text(excerpt_html)
+        if len(abstract) < self._MIN_ABSTRACT_CHARS:
+            return None
+        if len(abstract) < self._MIN_SAVED_ABSTRACT_CHARS:
+            return None
+        date_raw = post.get("date") or ""
+        published_date = date_raw[:10] if len(date_raw) >= 10 else ""
+        pdf_url = self._find_pdf_url(content_html)
+        original_filename = self._filename_from_url(pdf_url) if pdf_url else None
+        metadata = {
+            "wp_post_id": post_id,
+            "slug": post.get("slug") or "",
+            "modified": post.get("modified") or "",
+            "posted_date": published_date,
+            "source": "WP REST API /wp-json/wp/v2/posts?categories=23",
+            "category_id": self._CATEGORY_ID,
+        }
+        return {
+            "site_id": self.site_id,
+            "external_id": str(post_id),
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "url": post_url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "department": self._PUBLISHER,
+            "category": "Δελτία Τύπου",
+            "authors": json.dumps([], ensure_ascii=False),
+            "keywords": json.dumps(
+                ["μετανάστευση", "άσυλο", "δελτίο τύπου"],
+                ensure_ascii=False,
+            ),
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
