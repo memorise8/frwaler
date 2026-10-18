@@ -725,3 +725,24 @@ class CultureGouvFrEspaceDocumentationCrawler(BaseCrawler):
             print(f"[{self.site_id}] safety cap of {self.MAX_PAGES} pages reached.")
 
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, html, page):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html, "enumeration listing")
+        if soup is None or soup.find("main") is None:
+            raise PermanentFailure("listing_parse_error:missing_main_marker")
+        rows = self._parse_list_page(html, self._build_list_url(page))[0]
+
+        if not rows and soup.find("main").get_text(" ", strip=True):
+            raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing")
+        return rows
+
+    def _enumeration_paper(self, item, detail):
+        paper = self._to_paper(item, detail)
+        if len(paper.get("abstract") or "") < self.MIN_ABSTRACT_CHARS:
+            return None
+        return paper

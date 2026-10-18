@@ -401,3 +401,49 @@ class PublichealthscotlandScotPublicationsCrawler(BaseCrawler):
             return text
         cut = text[:limit].rsplit(" ", 1)[0].rstrip(" .,;:")
         return f"{cut}."
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html)
+        if soup is None or soup.find("main") is None:
+            raise PermanentFailure("listing_parse_error:missing_main_marker")
+        rows = []
+        for item in soup.select("li.search-item"):
+            a = item.select_one("a[href]")
+            if a is None:
+                from crawler.enumeration.http import PermanentFailure
+                raise PermanentFailure("listing_parse_error:search_item_without_link")
+            detail_url = urljoin(self.base_url, a["href"])
+            h3 = item.select_one('h3')
+            list_title = self._clean_text(h3) if h3 else self._clean_text(a.get('title', ''))
+            muted_lis = item.select('ul.list-inline.text-muted li')
+            listed_date_raw = muted_lis[0].get_text(strip=True) if muted_lis else ''
+            categories = [li.get_text(strip=True) for li in muted_lis[1:] if li.get_text(strip=True)]
+            list_desc_el = item.select_one('.search-item-description p')
+            list_desc = self._clean_text(list_desc_el) if list_desc_el else ''
+            listed_date = self._parse_date(listed_date_raw)
+            rows.append({"url": detail_url, "list_title": list_title, "list_desc": list_desc, "listed_date": listed_date, "listed_date_raw": listed_date_raw, "categories": categories})
+
+        if not rows and soup.find("main").get_text(" ", strip=True):
+            raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing")
+        return rows
+
+    def _enumeration_detail(self, html, item):
+        soup = self._make_soup(html)
+        if soup is None:
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("detail_parse_error:invalid_html")
+        return self._parse_detail(soup, item["url"], item["list_title"], item["list_desc"], item["listed_date"], item["listed_date_raw"], item["categories"])
+
+    def _enumeration_paper(self, item, parsed):
+        detail_url = item["url"]
+        listed_date = item["listed_date"]
+        abstract = parsed['abstract']
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        paper = {'site_id': self.site_id, 'external_id': parsed['external_id'], 'url': detail_url, 'title': parsed['title'], 'abstract': abstract, 'authors': parsed['authors'], 'publisher': parsed['publisher'], 'published_date': parsed['published_date'], 'posted_date': listed_date, 'pdf_url': parsed['pdf_url'], 'original_filename': parsed['original_filename'], 'keywords': parsed['keywords'], 'category': parsed['category'], 'doi': None, 'post_number': parsed['post_number'], 'metadata': json.dumps(parsed['metadata'], ensure_ascii=False)}
+        return paper

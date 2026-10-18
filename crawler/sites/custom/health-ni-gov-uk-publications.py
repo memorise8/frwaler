@@ -187,6 +187,42 @@ class HealthNiGovUkPublicationsCrawler(BaseCrawler):
     # Crawl                                                                #
     # ------------------------------------------------------------------ #
 
+
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_paper(self, it, d):
+        """Pure copy of crawl's Paper conversion and item filters.
+
+        None preserves item rejection; the framework currently records it as empty_item.
+        """
+        it["url"]  # Refuse missing identity input, even for a short/empty abstract.
+        abstract = d.get('abstract', '')
+        if len(abstract) < 50:
+            return None
+        if len(abstract) < 100:
+            return None
+        node_id = d.get('node_id')
+        slug = urlparse(it['url']).path.rstrip('/').split('/')[-1]
+        external_id = node_id or slug
+        topics = d.get('topics', [])
+        pub_date = d.get('pub_date') or it['listed_date']
+        paper = {
+            'site_id': self.site_id,
+            'external_id': external_id,
+            'post_number': node_id,
+            'title': it['title'],
+            'abstract': abstract,
+            'published_date': pub_date,
+            'listed_date': it['listed_date'],
+            'url': it['url'],
+            'pdf_url': d.get('pdf_url'),
+            'original_filename': d.get('original_filename'),
+            'category': it['category'],
+            'keywords': ','.join(topics),
+            'publisher': 'Department of Health, Northern Ireland',
+            'metadata': json.dumps({'node_id': node_id, 'slug': slug, 'topics': topics, 'all_files': d.get('all_files', []), 'posted_date': it['listed_date']}, ensure_ascii=False),
+        }
+        return paper
+
     def crawl(self, limit=None):
         start_time = time.time()
         saved = 0

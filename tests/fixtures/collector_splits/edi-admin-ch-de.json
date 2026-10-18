@@ -1,0 +1,76 @@
+{
+  "site_id": "edi-admin-ch-de",
+  "listing_body": "{\"pageResults\": 2, \"items\": [{\"id\": \"edi_101\", \"langGroupId\": \"group-1\", \"publishDate\": \"2025-06-12T08:00:00Z\", \"newsCategory\": \"Research\", \"kind\": \"ONSB\", \"content\": {\"metadata\": {\"metaTitle\": \"Offline 1\", \"description\": \"Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. \", \"announcementDate\": \"2025-06-13T08:00:00Z\"}}}, {\"id\": \"edi_102\", \"langGroupId\": \"group-2\", \"publishDate\": \"2025-06-12T08:00:00Z\", \"newsCategory\": \"Research\", \"kind\": \"ONSB\", \"content\": {\"metadata\": {\"metaTitle\": \"Offline 2\", \"description\": \"Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. \", \"announcementDate\": \"2025-06-13T08:00:00Z\"}}}]}",
+  "content_type": "application/json",
+  "details": {
+    "https://d-nsbc-p.admin.ch/v1/edi_101": {
+      "text": [
+        "<p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p>"
+      ],
+      "topics": [
+        "Science"
+      ],
+      "location": "Bern",
+      "publishers": [
+        "3"
+      ],
+      "content": {
+        "references": {
+          "media": {
+            "pdf1": {
+              "asset": {
+                "mimeType": "application/pdf",
+                "filename": "report-1.pdf"
+              }
+            }
+          },
+          "permalinks": {
+            "pdf1": {
+              "de": "https://www.edi.admin.ch/file/report-1.pdf"
+            }
+          }
+        }
+      }
+    },
+    "https://d-nsbc-p.admin.ch/v1/edi_102": {
+      "text": [
+        "<p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p>"
+      ],
+      "topics": [
+        "Science"
+      ],
+      "location": "Bern",
+      "publishers": [
+        "3"
+      ],
+      "content": {
+        "references": {
+          "media": {
+            "pdf2": {
+              "asset": {
+                "mimeType": "application/pdf",
+                "filename": "report-2.pdf"
+              }
+            }
+          },
+          "permalinks": {
+            "pdf2": {
+              "de": "https://www.edi.admin.ch/file/report-2.pdf"
+            }
+          }
+        }
+      }
+    }
+  },
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "empty_body": "{\"pageResults\": 2, \"items\": []}",
+  "original_method_source_sha256": {
+    "_curl_get": "71f81e304583dd9babcb87625653324ce74c8a6821bcb29bd675ce99ecdf10ad",
+    "_curl_get_json": "8cbe65322a466dd4d50a505f78f844ce393aeb509efd7925b5ab7b634c01c916",
+    "_search": "aa64aca9ed16d10a02c0d51575f76f1d1df83510ac1cfd14640e8d6010638a39",
+    "_fetch_detail": "1ecf7d09b4ba2f84c26ffc516bb3d71fd0b4029c3cd8b651867a7ee9f5540651",
+    "_iso_date": "f05f8f5405897e7cc749f0bba87444a2155475549392b2d996d5b193da60ee40",
+    "_find_pdf": "39bf4674d7635df075bc48f9ff510eb35dde9056006c531464e4d2203e53e66c",
+    "crawl": "d78c79ad930e5a29986eda2107e0f330a36cbefdbbcae2839bb7df3dc5b6a933"
+  }
+}

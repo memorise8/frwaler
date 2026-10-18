@@ -65,6 +65,66 @@ class IMTNordEuropeNewsEnCrawler(BaseCrawler):
     _PER_PAGE = 20
     _RATE_SLEEP = 1.0
 
+
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_items(self, data, url=None):
+        """Validate a decoded API list; no fetching, storage, or identifier synthesis."""
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            from crawler.enumeration.http import PermanentFailure
+            # Same class as the framework's own JSON-listing parse errors: the run ends
+            # incomplete (listing_failed:listing_parse_error:...), never as an empty page.
+            raise PermanentFailure("listing_parse_error:items_not_a_list_of_objects", url)
+        return data
+
+    def _enumeration_paper(self, post):
+        """Pure copy of crawl's Paper conversion and item filters.
+
+        None preserves item rejection; the framework currently records it as empty_item.
+        """
+        post_url = post.get('link', '') or ''
+        if not post_url:
+            return None
+        post_id = str(post.get('id', ''))
+        title_obj = post.get('title') or {}
+        title = _strip_html(title_obj.get('rendered', ''))
+        if not title:
+            title = '(untitled)'
+        content_obj = post.get('content') or {}
+        abstract = _strip_html(content_obj.get('rendered', ''))
+        if len(abstract) < 100:
+            excerpt_obj = post.get('excerpt') or {}
+            fallback = _strip_html(excerpt_obj.get('rendered', ''))
+            if len(fallback) > len(abstract):
+                abstract = fallback
+        if len(abstract) < 50:
+            return None
+        published_date = ''
+        raw_date = post.get('date', '') or ''
+        if raw_date and len(raw_date) >= 10:
+            published_date = raw_date[:10]
+        content_html = (post.get('content') or {}).get('rendered', '') or ''
+        pdf_url = ''
+        pdf_match = re.search('href="([^"]+\\.pdf)"', content_html, re.I)
+        if pdf_match:
+            pdf_url = pdf_match.group(1)
+        paper = {
+            'id': None,
+            'site_id': self.site_id,
+            'external_id': post_id,
+            'title': title,
+            'authors': json.dumps([], ensure_ascii=False),
+            'abstract': abstract,
+            'category': 'news',
+            'keywords': json.dumps([], ensure_ascii=False),
+            'published_date': published_date,
+            'url': post_url,
+            'pdf_url': pdf_url,
+            'doi': '',
+            'department': '',
+            'metadata': json.dumps({'slug': post.get('slug', '')}, ensure_ascii=False),
+        }
+        return paper
+
     def crawl(self, limit=None):
         saved = 0
         seen_urls = set()

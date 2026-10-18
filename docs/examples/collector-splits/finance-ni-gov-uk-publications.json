@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "sites": {
+    "finance-ni-gov-uk-publications": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ],
+        "detail_method": "_parse_detail",
+        "detail_args": [
+          "html",
+          {
+            "source": "item",
+            "path": [
+              "card_summary"
+            ]
+          }
+        ]
+      },
+      "listing": {
+        "url": "https://www.finance-ni.gov.uk/publications",
+        "params": {
+          "page": 0
+        },
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "listing_marker": "main"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1,
+        "check_unparameterized_first_page": true
+      }
+    }
+  }
+}
