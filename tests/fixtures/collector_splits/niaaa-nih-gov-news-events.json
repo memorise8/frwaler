@@ -1,0 +1,17 @@
+{
+ "site_id": "niaaa-nih-gov-news-events",
+ "listing_body": "<html><body><nav><a href=\"/news-events/news/x/y\">nav</a></nav><main><div id=\"block-views-block-niaaa-news-block-5\"><div class=\"usa-card\"><h4 class=\"usa-card__heading\"><a href=\"/news-events/announcement/award-one\">Award one</a></h4><a class=\"tags\" href=\"/news-events/announcement\">Announcement</a></div><div class=\"usa-card\"><h4 class=\"usa-card__heading\"><a href=\"/news-events/spectrum/vol-1/story-two\">Story two</a></h4><a class=\"tags\" href=\"/news-events/announcement\">Announcement</a></div></div></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.niaaa.nih.gov/news-events/announcement/award-one": "<html><body><main><h1>Award one</h1><p>Announcement</p><time datetime=\"2024-09-09T12:00:00Z\">September 9, 2024</time><p>Synthetic NIAAA announcement body for offline equality testing of the enumeration split, long enough. Synthetic NIAAA announcement body for offline equality testing of the enumeration split, long enough. </p></main></body></html>",
+  "https://www.niaaa.nih.gov/news-events/spectrum/vol-1/story-two": "<html><body><main><h1>Story two</h1><p>Announcement</p><time datetime=\"2024-09-09T12:00:00Z\">September 9, 2024</time><p>Synthetic NIAAA announcement body for offline equality testing of the enumeration split, long enough. Synthetic NIAAA announcement body for offline equality testing of the enumeration split, long enough. </p></main></body></html>"
+ },
+ "long_text": "Synthetic NIAAA announcement body for offline equality testing of the enumeration split, long enough. Synthetic NIAAA announcement body for offline equality testing of the enumeration split, long enough. ",
+ "empty_body": "<html><body><main><div id=\"block-views-block-niaaa-news-block-5\"></div></main></body></html>",
+ "original_method_source_sha256": {
+  "crawl": "fd31f78f64bcd1a278239e5cdd201de4ae9a53be9068a5d3294da44e89576ae9",
+  "_parse_listing": "f4a3d62990092ee2daf658420efa0d47b015ea2a6c27063557c11648bd189032",
+  "_parse_listing_regex": "529a0852e5905cc3d8d0841a6c858ba519fbecd27db81535a607eb0a81395172",
+  "_fetch_and_save": "d64d9a482fa533be71187163e80e2920fdbc895acc28aa4847657685579bd05f"
+ }
+}

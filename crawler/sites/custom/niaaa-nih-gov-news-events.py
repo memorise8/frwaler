@@ -364,3 +364,64 @@ class NIAAANewsEventsCrawler(BaseCrawler):
 
         self._save_paper(paper)
         return self._last_save_created
+
+    # ------------------------------------------------------------------ #
+    # Pure enumeration entry points (framework adapter). crawl(),         #
+    # _parse_listing() and _fetch_and_save() stay unchanged.              #
+    # ------------------------------------------------------------------ #
+    def _enumeration_items(self, html):
+        """Rows of one listing page, exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        return [{"href": href, "title": title, "url": f"{self.base_url}{href}"}
+                for href, title in self._parse_listing(html)]
+
+    def _enumeration_paper(self, html, item):
+        """The parsing half of _fetch_and_save(href, list_title); None keeps its skips.
+        A URL-only item (identity precheck: {"detail_url": url}) works too."""
+        from urllib.parse import urlsplit
+        href = item.get("href") or urlsplit(item["detail_url"]).path
+        list_title = item.get("title") or ""
+        detail_url = f"{self.base_url}{href}"
+        soup = _make_soup(html)
+        if soup is None:
+            return None
+        h1 = soup.find("h1")
+        title = h1.get_text(separator=" ", strip=True) if h1 else list_title
+        if not title:
+            title = list_title
+        main = soup.find("main")
+        if not main:
+            return None
+        main_text = main.get_text(separator=" ", strip=True)
+        stamp = main.find('time')
+        published_date = ((stamp.get('datetime') or stamp.get_text(' ', strip=True)) if stamp else '')
+        if not published_date:
+            published_date = next((_parse_date(text) for text in main.stripped_strings
+                                   if text != title and _parse_date(text)), '')
+        abstract = _strip_header_tokens(main_text, title)
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+        parts = href.strip("/").split("/")
+        category = parts[1] if len(parts) > 1 else ""
+        external_id = href.strip("/").replace("/", "--")
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": title,
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": category,
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": published_date,
+            "url": detail_url,
+            "pdf_url": "",
+            "doi": "",
+            "department": "National Institute on Alcohol Abuse and Alcoholism",
+            "metadata": json.dumps(
+                {"source_path": href, "category": category},
+                ensure_ascii=False,
+            ),
+        }

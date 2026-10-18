@@ -39,6 +39,12 @@ class NRSplitChecks(SplitChecks):
         crawler._delay = 0
         crawler._detail_delay = 0
         crawler.detail_delay = 0
+        crawler._source_failure = None
+        crawler.delivery_cursor = None
+        crawler._check_cancelled = lambda: None
+        crawler._report_source_failure = lambda *a, **k: None
+        crawler._advance_cursor = lambda *a, **k: None
+        crawler._mark_exhausted = lambda: None
         crawler._last_save_created = True
         crawler._save_paper = lambda paper: captured.append(copy.deepcopy(paper))
         with contextlib.ExitStack() as stack:
