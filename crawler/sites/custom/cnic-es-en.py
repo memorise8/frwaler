@@ -337,3 +337,119 @@ class CnicEsEnCrawler(BaseCrawler):
 
         print(f"[cnic-es-en] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl(), _fetch_detail() and
+    # _parse_list_page() are unchanged; these methods only parse fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Listing rows in crawl() order (the existing _parse_list_page rows)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        items, _next_url = self._parse_list_page(html)
+        return items
+
+    def _enumeration_detail(self, html):
+        """The parse part of _fetch_detail() copied verbatim (no request)."""
+        if not html:
+            return {}
+
+        soup = _make_soup(html)
+        if soup is None:
+            return {}
+
+        result: dict = {}
+
+        # Node ID from body class: "page-node-241702"
+        body_tag = soup.find("body")
+        if body_tag:
+            body_cls = " ".join(body_tag.get("class", []))
+            m = re.search(r"page-node-(\d+)", body_cls)
+            if m:
+                result["node_id"] = m.group(1)
+
+        # Full article body from field-name-field-description
+        desc_div = soup.find("div", class_=re.compile(r"field-name-field-description"))
+        if desc_div:
+            fi = desc_div.find("div", class_=re.compile(r"field-item"))
+            if fi:
+                result["body"] = self._clean(fi)
+
+        # Brief intro from field-name-field-introduction
+        intro_div = soup.find("div", class_=re.compile(r"field-name-field-introduction"))
+        if intro_div:
+            fi = intro_div.find("div", class_=re.compile(r"field-item"))
+            if fi:
+                result["intro"] = self._clean(fi)
+
+        # Publication date from dc:date span
+        date_span = soup.find("span", attrs={"property": "dc:date"})
+        result["pub_date"] = self._parse_date(date_span)
+
+        return result
+
+    def _enumeration_paper(self, html, item):
+        """Paper built exactly as in crawl() from a fetched detail page
+        (external_id = node_id from body class, else URL slug — unchanged)."""
+        item_url = item["url"]
+        detail = self._enumeration_detail(html)
+
+        node_id = detail.get("node_id", "")
+        body = detail.get("body", "")
+        intro = detail.get("intro", "") or item.get("list_intro", "")
+        pub_date = detail.get("pub_date") or item.get("published_date", "")
+        category = item.get("category", "")
+
+        # Abstract: prefer full body; build from intro+context if short
+        if body and len(body) >= _MIN_ABSTRACT_SAVE:
+            abstract = body
+        else:
+            parts = []
+            if intro:
+                parts.append(intro)
+            parts.append(
+                f"Source: CNIC - Centro Nacional de Investigaciones "
+                f"Cardiovasculares Carlos III, Madrid, Spain."
+            )
+            if category:
+                parts.append(f"Category: {category}.")
+            if pub_date:
+                parts.append(f"Published: {pub_date}.")
+            abstract = " ".join(parts)
+
+        # Ensure abstract meets minimum length
+        if len(abstract) < _MIN_ABSTRACT_SAVE:
+            return None
+
+        # external_id: prefer numeric node_id, fall back to slug
+        slug = item_url.rstrip("/").rsplit("/", 1)[-1]
+        external_id = node_id if node_id else slug
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": node_id if node_id else None,
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": pub_date,
+            "posted_date": item.get("published_date", ""),
+            "url": item_url,
+            "authors": None,
+            "publisher": "CNIC - Centro Nacional de Investigaciones Cardiovasculares Carlos III",
+            "department": None,
+            "journal": None,
+            "pdf_url": None,
+            "keywords": category if category else None,
+            "category": category,
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps({
+                "posted_date": item.get("published_date", ""),
+                "originalFilename": None,
+                "node_id": node_id,
+                "category": category,
+                "list_intro": item.get("list_intro", ""),
+            }, ensure_ascii=False),
+        }
