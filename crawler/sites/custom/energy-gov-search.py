@@ -438,3 +438,81 @@ class EnergyGovSearchCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] crawl complete: {saved} saved.")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() and the module helpers are
+    # unchanged. Listing = the /api/v1/search JSON page (rows parsed like
+    # _fetch_list_page; past the end the API repeats the last page, which the
+    # framework reads as a clamp). Detail = the document page fetched by the
+    # framework and parsed by the original _fetch_detail, answered from that
+    # response (no network here).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        items = []
+        for row in (data or {}).get("rows", []) if isinstance(data, dict) else []:
+            title_html = row.get("title", "")
+            m = re.search(r'href="(/[^"]+)"', title_html)
+            if not m:
+                continue
+            path = m.group(1)
+            title = _unescape(row.get("titleUnion", "") or re.sub(r"<[^>]+>", "", title_html).strip())
+            node_id = ""
+            nm = re.search(r"node/(\d+)", row.get("id", ""))
+            if nm:
+                node_id = nm.group(1)
+            items.append({
+                "title": title,
+                "url": _BASE + path,
+                "date": row.get("date", ""),
+                "office": _unescape(row.get("offices", "") or ""),
+                "article_type": row.get("articleType", ""),
+                "node_id": node_id,
+            })
+        return items
+
+    def _enumeration_paper(self, html, item):
+        global _curl_get
+        original = _curl_get
+        _curl_get = lambda url, timeout=30, retries=3: html if url == item["url"] else None
+        try:
+            detail = _fetch_detail(item["url"])
+        finally:
+            _curl_get = original
+        if not detail:
+            return None
+        abstract = detail.get("abstract", "")
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+        node_id = item["node_id"]
+        external_id = node_id if node_id else item["url"].replace(_BASE, "").strip("/")
+        listed_date = _parse_date(item["date"])
+        published_date = detail.get("published_date") or listed_date or None
+        pdf_url = detail.get("pdf_url") or None
+        orig_fname = detail.get("original_filename") or None
+        metadata = {
+            "node_id": node_id,
+            "article_type": item.get("article_type", ""),
+            "posted_date": item["date"],
+            "originalFilename": orig_fname,
+        }
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": node_id or None,
+            "title": item["title"],
+            "abstract": abstract[:5000],
+            "url": item["url"],
+            "pdf_url": pdf_url,
+            "published_date": published_date,
+            "posted_date": listed_date or None,
+            "authors": None,
+            "publisher": item["office"] or None,
+            "department": None,
+            "journal": None,
+            "keywords": None,
+            "category": item.get("article_type") or None,
+            "doi": None,
+            "original_filename": orig_fname,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
