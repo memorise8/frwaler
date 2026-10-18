@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "sites": {
+    "ameslab-gov-news": {
+      "strategy": "date_range_split",
+      "base_url": "https://www.ameslab.gov",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": ["html", "url"],
+        "detail_method": "_enumeration_detail",
+        "detail_args": ["html", "url", "item"]
+      },
+      "listing": {
+        "url": "https://www.ameslab.gov/news/{segment}?page={page}",
+        "first_page_url": "https://www.ameslab.gov/news/{segment}",
+        "start_page": 0,
+        "page_size": 10,
+        "parser": {
+          "type": "adapter",
+          "key_field": "url",
+          "url_field": "url",
+          "title_field": "title",
+          "listing_marker": ".views-element-container"
+        }
+      },
+      "segments": {
+        "mode": "explicit",
+        "items": [
+          {"key": "news-releases", "label": "News Release",
+           "url": "https://www.ameslab.gov/news/news-releases?page={page}",
+           "first_page_url": "https://www.ameslab.gov/news/news-releases"},
+          {"key": "in-the-news", "label": "In the News",
+           "url": "https://www.ameslab.gov/news/in-the-news?page={page}",
+           "first_page_url": "https://www.ameslab.gov/news/in-the-news"},
+          {"key": "feature-stories", "label": "Feature Story",
+           "url": "https://www.ameslab.gov/news/feature-stories?page={page}",
+           "first_page_url": "https://www.ameslab.gov/news/feature-stories"}
+        ],
+        "allow_overlap": true
+      }
+    }
+  }
+}

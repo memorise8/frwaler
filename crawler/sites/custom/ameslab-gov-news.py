@@ -510,3 +510,35 @@ class AmeslabGovNewsCrawler(BaseCrawler):
             return unquote(urlparse(url).path.rstrip("/").rsplit("/", 1)[-1]) or None
         except Exception:
             return None
+
+    # ------------------------------------------------------------------
+    # Enumeration split (no I/O, crawl() unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw: str, url: str) -> list[dict]:
+        """_parse_list_page for one fetched listing page. The category label is the one crawl()
+        pairs with that listing (/news/<slug>), read from the page URL."""
+        slug = urlparse(url).path.rstrip("/").rsplit("/", 1)[-1]
+        labels = dict(self._CATEGORIES)
+        if slug not in labels:
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:unknown_category_listing", url)
+        return self._parse_list_page(raw, url, labels[slug])
+
+    def _enumeration_detail(self, raw: str, url: str, item: dict) -> Optional[dict]:
+        """crawl()'s Paper for one listed item (None = crawl()'s short-abstract skip).
+        _parse_detail_page sends a HEAD request only for a PDF link whose URL has no file name;
+        that request cannot be made here, so such an item fails visibly instead of being stored
+        with a different original_filename."""
+        def no_head(pdf_url):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("original_filename_needs_head_request", pdf_url)
+        self._curl_head_content_disposition = no_head
+        try:
+            detail = self._parse_detail_page(raw, url, item.get("category"))
+        finally:
+            del self._curl_head_content_disposition
+        paper = self._build_paper(item, detail)
+        if len(paper.get("abstract") or "") < self._MIN_ABSTRACT_CHARS:
+            return None
+        return paper
