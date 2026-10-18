@@ -466,3 +466,72 @@ class BmwetGvAtServicesCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() is unchanged. Listing = the
+    # publications index (one page, _parse_index_page; only "detail" entries,
+    # as in crawl()); detail = the publication page fetched by the framework,
+    # _parse_detail_page with crawl()'s title / 50-char abstract rules.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        rows, seen = [], set()
+        for idx, entry in enumerate(self._parse_index_page(html)):
+            if idx >= _MAX_SAFETY_ITEMS:
+                break
+            if entry["url_type"] != "detail" or entry["url"] in seen:
+                continue
+            seen.add(entry["url"])
+            rows.append(dict(entry))
+        return rows
+
+    def _enumeration_paper(self, detail_html, entry):
+        url = entry["url"]
+        category = entry["category"]
+        index_title = entry["title"]
+        detail = self._parse_detail_page(detail_html, url)
+        item_title = detail.get("title") or index_title
+        if not item_title:
+            return None
+        abstract = detail.get("abstract", "")
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+        path = urlparse(url).path
+        slug = path.rstrip("/").split("/")[-1].replace(".html", "")
+        path_parts = [p for p in path.split("/") if p]
+        if len(path_parts) >= 2:
+            slug = f"{path_parts[-2]}__{path_parts[-1].replace('.html', '')}"
+        pdf_url = detail.get("pdf_url") or ""
+        pdf_filename = detail.get("pdf_filename") or ""
+        authors = detail.get("authors") or ""
+        publisher = detail.get("publisher") or "Bundesministerium für Wirtschaft, Energie und Tourismus"
+        return {
+            "id": None,
+            "site_id": _SITE_ID,
+            "external_id": slug,
+            "post_number": slug,
+            "title": item_title,
+            "abstract": abstract,
+            "url": url,
+            "pdf_url": pdf_url,
+            "authors": authors,
+            "publisher": publisher,
+            "department": "",
+            "journal": "",
+            "category": category,
+            "keywords": "",
+            "published_date": detail.get("published_date") or "",
+            "listed_date": "",
+            "doi": "",
+            "original_filename": pdf_filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": None,
+                    "originalFilename": pdf_filename or None,
+                    "category": category,
+                    "index_title": index_title,
+                    "source_url": url,
+                },
+                ensure_ascii=False,
+            ),
+        }
