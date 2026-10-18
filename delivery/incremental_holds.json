@@ -78,7 +78,7 @@
   "academie-sciences-fr-espace-presse": {
     "reason": "undated_editorial_sections_and_nonchronological_press_article_dates_prevent_global_early_stop",
     "classification": "full_rescan_required",
-    "source_sha256": "b011878bd7daf925ec07656a2cb3523e875bdbf9400e568e5e79ab7ea9abcf71",
+    "source_sha256": "7ae533dc82e7f852103b2880e775a51053e254a02c7655ff932e5aa73e4f408a",
     "dependency_source_sha256": {
       "crawler/academie_source.py": "8fac866595bcee7096d8de59f202748c1122cb82ef0f96682e53141b2b081eb6",
       "crawler/academie_traversal.py": "6a6e6264d61e0fd55aa58f757e6e93c1e1e9ad9ee1ef6e72d6af24a1e070f35c",
