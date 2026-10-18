@@ -385,3 +385,63 @@ class MoisGoKrFrtCrawler(BaseCrawler):
 
         print(f"[mois-go-kr-frt] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (collector-splits 방식; crawl() 은 그대로)
+    # ------------------------------------------------------------------
+
+    _ENUM_LISTING_MARKER = "table.table_style1"
+
+    def _enumeration_items(self, html, url=""):
+        """목록 쪽 HTML → _parse_list() 행 + crawl() 과 같은 상세 URL."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        if self._make_soup(html).select_one(self._ENUM_LISTING_MARKER) is None:
+            raise PermanentFailure("listing_parse_error:missing_board_table")
+        rows = []
+        for item in self._parse_list(html):
+            row = dict(item)
+            row["external_id"] = item["ntt_id"]
+            row["url"] = (f"{self.base_url}/frt/bbs/type010/commonSelectBoardArticle.do"
+                          f"?bbsId={_BBS_ID}&nttId={item['ntt_id']}")
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, detail_html, item):
+        """상세 HTML + 목록 행 → crawl() 이 저장하는 것과 같은 paper (초록 100자 미만은 None)."""
+        if not detail_html:
+            return None
+        ntt_id = item["ntt_id"]
+        detail = self._parse_detail(detail_html, ntt_id)
+        abstract = detail.get("abstract", "").strip()
+        if len(abstract) < 100:
+            return None
+        listed_date = self._parse_date(item.get("date", ""))
+        return {
+            "site_id": self.site_id,
+            "external_id": ntt_id,
+            "post_number": item.get("post_number") or ntt_id,
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": listed_date,
+            "listed_date": listed_date,
+            "url": item["url"],
+            "pdf_url": detail.get("pdf_url"),
+            "original_filename": detail.get("original_filename"),
+            "department": item.get("department", ""),
+            "publisher": "행정안전부",
+            "authors": "",
+            "keywords": "",
+            "category": "보도자료",
+            "doi": "",
+            "journal": "",
+            "metadata": json.dumps({
+                "nttId": ntt_id,
+                "bbsId": _BBS_ID,
+                "posted_date": item.get("date", ""),
+                "post_number": item.get("post_number", ""),
+                "atchFileId": detail.get("atch_file_id", ""),
+                "files": detail.get("files", []),
+            }, ensure_ascii=False),
+        }

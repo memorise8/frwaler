@@ -1,0 +1,23 @@
+{
+ "listing_url": "https://www.mois.go.kr/frt/bbs/type010/commonSelectBoardList.do?bbsId=BBSMSTR_000000000008&pageIndex=1",
+ "listing_body": "<html><body><table class=\"table_style1 mobile\"><thead><tr><th>번호</th></tr></thead><tbody><tr><td>16130</td><td><a href=\"#\" onclick=\"fn_egov_inqire_notice('000000123456', 'BBSMSTR_000000000008');return false;\">합성 제목 1</a></td><td></td><td>안전정책과</td><td>2026.10.16.</td><td>3</td></tr><tr><td>16129</td><td><a href=\"#\" onclick=\"fn_egov_inqire_notice('000000123455', 'BBSMSTR_000000000008');return false;\">합성 제목 2</a></td><td></td><td>안전정책과</td><td>2026.10.16.</td><td>3</td></tr></tbody></table></body></html>",
+ "empty_body": "<html><body><table class=\"table_style1 mobile\"><thead><tr><th>번호</th></tr></thead><tbody><tr><td colspan=\"6\">자료가 없습니다.</td></tr></tbody></table></body></html>",
+ "content_type": "text/html",
+ "long_text": "합성 보도자료 본문입니다. 오프라인 동등성 시험을 위한 문장입니다. Synthetic MOIS press release body text for offline equality testing purposes.",
+ "details": {
+  "https://www.mois.go.kr/frt/bbs/type010/commonSelectBoardArticle.do?bbsId=BBSMSTR_000000000008&nttId=000000123456": "<html><body><!--[data-hwpjson]{\"p\": [{\"t\": \"합성 보도자료 본문입니다. 오프라인 동등성 시험을 위한 문장입니다. Synthetic MOIS press release body text for offline equality testing purposes.\"}, {\"t\": \"둘째 문단\"}]}]--><input type=\"hidden\" name=\"atchFileId\" value=\"FILE_000000123456\"><a href=\"/cmm/fms/FileDown.do?atchFileId=FILE_000000123456&amp;fileSn=0\"><img src=\"x.gif\"> 보도_000000123456.pdf &nbsp;[ 147.5 KB ]</a></body></html>",
+  "https://www.mois.go.kr/frt/bbs/type010/commonSelectBoardArticle.do?bbsId=BBSMSTR_000000000008&nttId=000000123455": "<html><body><!--[data-hwpjson]{\"p\": [{\"t\": \"합성 보도자료 본문입니다. 오프라인 동등성 시험을 위한 문장입니다. Synthetic MOIS press release body text for offline equality testing purposes.\"}, {\"t\": \"둘째 문단\"}]}]--><input type=\"hidden\" name=\"atchFileId\" value=\"FILE_000000123455\"><a href=\"/cmm/fms/FileDown.do?atchFileId=FILE_000000123455&amp;fileSn=0\"><img src=\"x.gif\"> 보도_000000123455.pdf &nbsp;[ 147.5 KB ]</a></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_curl": "4d05660227218b9d105e3dd52b1c33e8265bfd87f029aad3718974a709bc9456",
+  "_fetch_list": "e091bfcbfdfac8774b81ed609342eefa715365e7ac4bdc76de1a6754932b81e2",
+  "_fetch_detail": "31081e44a9d2d259cbd2533ddb58780ea4087636d8c4e67e9c27d6a62aba528a",
+  "_make_soup": "cd96cd7cdc72ea097a3a791a9d83630e2f6e63c704c7f21eb044eb330f9482ce",
+  "_parse_list": "6b1f5f0b0ffe3881945a317ea4f5a03c3d499608ee45e67b70a96149614bf454",
+  "_extract_hwp_texts": "a8bd7f24537b377b4abe9c24752913eb3fe234961e8ca170d9bbbfca572fa7b4",
+  "_parse_detail": "2a0437c757f3a3faafc39c852ce65ae6340e92d404f3d34b4abdf4e4e1690391",
+  "_parse_date": "8e38ffed1d2af861fb9e995e8e73db3ad1712f74c92ecf2219b2af6ad050e202",
+  "crawl": "5705537d10354430f481b83ea5ac19f3e40f0591e46e5eaeacedcd5ec522440e"
+ },
+ "site_id": "mois-go-kr-frt"
+}
