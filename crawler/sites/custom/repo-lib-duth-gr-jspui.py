@@ -416,3 +416,20 @@ class RepoLibDuthGrJspuiCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. The browse listing
+    # (type=title, sort_by=3, order=DESC, rpp=20, offset=N) gives the handles; the
+    # ?mode=full item page gives the paper exactly as crawl() builds it, with the
+    # same skip rule (no title, or abstract shorter than 100 characters).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        return [{"external_id": h, "url": _DETAIL_TPL.format(handle=h)}
+                for h in _extract_handles(html or "")]
+
+    def _enumeration_paper(self, html, item):
+        paper = _build_paper(item["external_id"], _parse_full_record(html or ""))
+        if paper is None or len(paper.get("abstract", "")) < 100:
+            return None
+        return paper
