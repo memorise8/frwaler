@@ -1,0 +1,17 @@
+{
+ "site_id": "gcsp-ch-publications",
+ "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.",
+ "original_method_source_sha256": {
+  "_curl_get": "35c03742049fc6e3ff3e5c05da92b03f94b9fd5ba0e1b5041285b31f8d4d1115",
+  "_get_links_on_page": "de7eeac9dffa88da4b5a6a7ba5c9d8f56047894236fee7a6f24ae996c9f37b20",
+  "_parse_detail": "b1a9c51679ba07d7fed82af4b195a3160996b73064bd6b661e7e5a2309ae7f12",
+  "crawl": "ce1ff823e2a078a60cd9e468e6e2b04c6868cb2daa7a376c463e88c8e2089626"
+ },
+ "content_type": "text/html",
+ "listing_body": "<html><body><div class=\"views-element-container\"><div class=\"row\"><div class=\"col-12 col-lg-6 mb-4\"><div class=\"card-publications-teaser\"><a href=\"/publications/offline-one\">t</a></div></div><div class=\"col-12 col-lg-6 mb-4\"><div class=\"card-publications-teaser\"><a href=\"/publications/offline-two\">t</a></div></div></div></div></body></html>",
+ "details": {
+  "https://www.gcsp.ch/publications/offline-one": "<html><head><meta property=\"og:description\" content=\"Policy Brief 7 by Ann Author, Bob Writer\"></head><body><script>{\"path\":{\"currentPath\":\"node/3353\"}}</script><h1>Offline One</h1><div class=\"publications-date\">16 October 2026</div><div class=\"publications-inner-content experts\"><div class=\"title\">Ann Author</div></div><a href=\"/sites/default/files/2026-10/Offline-One.pdf\">pdf</a><div class=\"basic-page\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.</p><div class=\"publications-disclaimer\">GCSP is not responsible</div></div></body></html>",
+  "https://www.gcsp.ch/publications/offline-two": "<html><head><meta property=\"og:description\" content=\"Policy Brief 7 by Ann Author, Bob Writer\"></head><body><script>{\"path\":{\"currentPath\":\"node\\/3354\"}}</script><h1>Offline Two</h1><div class=\"publications-date\">6 October 2026</div><div class=\"publications-inner-content experts\"><div class=\"title\">Ann Author</div></div><a href=\"/sites/default/files/2026-10/Offline-Two.pdf\">pdf</a><div class=\"basic-page\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.</p><div class=\"publications-disclaimer\">GCSP is not responsible</div></div></body></html>"
+ },
+ "empty_body": "<html><body><div class=\"views-element-container\"><div class=\"row\"></div></div></body></html>"
+}

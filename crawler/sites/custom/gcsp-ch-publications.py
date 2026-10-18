@@ -226,6 +226,163 @@ class GCSPPublicationsCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Listing rows of one page: the parse half of _get_links_on_page (no I/O)."""
+        if not html:
+            return []
+        soup = _make_soup(html)
+        if soup:
+            links = []
+            for card in soup.find_all(class_="card-publications-teaser"):
+                a = card.find("a", href=True)
+                if a and a["href"].startswith("/publications/"):
+                    links.append(a["href"])
+        else:
+            links = re.findall(r'href="(/publications/[^"?#]+)"', html)
+        return [{"url": _BASE + slug, "slug": slug} for slug in links]
+
+    def _enumeration_detail(self, html, url=None):
+        """Pure copy of _parse_detail after its fetch: parse one detail page (no I/O)."""
+        if not html:
+            return None
+
+        soup = _make_soup(html)
+
+        # --- Title ---
+        title = ""
+        if soup:
+            h1 = soup.find("h1")
+            if h1:
+                title = h1.get_text(separator=" ", strip=True)
+        if not title:
+            m = re.search(r"<h1[^>]*>(.*?)</h1>", html, re.DOTALL)
+            if m:
+                title = _strip_tags(m.group(1))
+
+        # --- External ID (Drupal node ID) ---
+        external_id = ""
+        m = re.search(r'"currentPath":"node/(\d+)"', html)
+        if m:
+            external_id = m.group(1)
+
+        # --- Published date ---
+        published_date = ""
+        if soup:
+            date_div = soup.find(class_="publications-date")
+            if date_div:
+                published_date = _parse_date(date_div.get_text(separator=" ", strip=True))
+        if not published_date:
+            m = re.search(r'publications-date[^>]*>\s*([^<\r\n]+)', html)
+            if m:
+                published_date = _parse_date(m.group(1).strip())
+
+        # --- Authors (from card-expert-teaser .title divs) ---
+        authors = []
+        if soup:
+            experts_div = soup.find(class_="publications-inner-content experts")
+            if experts_div:
+                for t in experts_div.find_all(class_="title"):
+                    name = t.get_text(separator=" ", strip=True)
+                    if name and name not in authors:
+                        authors.append(name)
+        if not authors:
+            # Fallback: parse from og:description "by Author1, Author2"
+            m = re.search(r'<meta property="og:description" content="([^"]+)"', html)
+            if m:
+                by_m = re.search(r" by (.{3,150}?)(?:$|[.!\n])", m.group(1))
+                if by_m:
+                    authors = [a.strip() for a in by_m.group(1).split(",") if a.strip()]
+
+        # --- Category (from og:description prefix, e.g. "Geneva Paper") ---
+        category = ""
+        og_desc = ""
+        m = re.search(r'<meta property="og:description" content="([^"]+)"', html)
+        if m:
+            og_desc = m.group(1)
+            cat_m = re.match(r"^([A-Za-z ]+\d)", og_desc)
+            if cat_m:
+                category = re.sub(r"\s*\d.*", "", cat_m.group(1)).strip()
+
+        # --- PDF URL ---
+        pdf_url = ""
+        if soup:
+            for a in soup.find_all("a", href=True):
+                href = a["href"]
+                if "/sites/default/files/" in href and href.lower().endswith(".pdf"):
+                    pdf_url = _BASE + href if href.startswith("/") else href
+                    break
+        if not pdf_url:
+            m = re.search(r'href="(/sites/default/files/[^"]+\.pdf)"', html)
+            if m:
+                pdf_url = _BASE + m.group(1)
+
+        # --- Abstract from div.basic-page ---
+        abstract = ""
+        if soup:
+            basic = soup.find(class_="basic-page")
+            if basic:
+                # Remove disclaimer blocks
+                for tag in basic.find_all(class_=re.compile(r"disclaimer")):
+                    tag.decompose()
+                for tag in basic.find_all(["script", "style"]):
+                    tag.decompose()
+                abstract = basic.get_text(separator=" ", strip=True)
+                # Normalise whitespace
+                abstract = re.sub(r"\s+", " ", abstract).strip()
+
+        if not abstract:
+            # Regex fallback: text inside basic-page until disclaimer
+            m = re.search(
+                r'class="basic-page">(.*?)(?:publications-disclaimer|GCSP is not responsible)',
+                html, re.DOTALL
+            )
+            if m:
+                abstract = _strip_tags(m.group(1))
+
+        return {
+            "title": title,
+            "external_id": external_id,
+            "published_date": published_date,
+            "authors": authors,
+            "category": category,
+            "pdf_url": pdf_url,
+            "abstract": abstract,
+            "og_desc": og_desc,
+        }
+
+    def _enumeration_paper(self, item, detail):
+        """Pure copy of crawl's Paper conversion and its short-abstract skip (None)."""
+        if not detail:
+            return None
+        slug = item["slug"]
+        detail_url = _BASE + slug
+        abstract = detail.get("abstract", "")
+        if len(abstract) < 50:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": detail["external_id"] or slug,
+            "title": detail["title"],
+            "authors": json.dumps(detail["authors"], ensure_ascii=False),
+            "abstract": abstract,
+            "category": detail.get("category", ""),
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": detail.get("published_date", ""),
+            "url": detail_url,
+            "pdf_url": detail.get("pdf_url", ""),
+            "doi": "",
+            "department": "",
+            "metadata": json.dumps(
+                {"og_desc": detail.get("og_desc", ""), "slug": slug},
+                ensure_ascii=False,
+            ),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 

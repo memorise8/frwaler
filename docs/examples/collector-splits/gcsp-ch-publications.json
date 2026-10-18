@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "sites": {
+    "gcsp-ch-publications": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ],
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "html",
+          "url"
+        ]
+      },
+      "listing": {
+        "url": "https://www.gcsp.ch/publications?type%5B230%5D=230&type%5B879%5D=879&type%5B600%5D=600&type%5B675%5D=675",
+        "params": {
+          "page": 0
+        },
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "url",
+          "listing_marker": "div.views-element-container"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
