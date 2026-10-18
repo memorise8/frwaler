@@ -393,3 +393,44 @@ class NcriIeEnCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] crawl complete: saved {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Rows of one section=3 search page, parsed like crawl() (same parser, every row kept,
+        also rows that link straight to a file: dropping them could make a page look empty)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        urls, _has_next = self._parse_list_page(html)
+        return [{"url": u} for u in urls]
+
+    def _enumeration_paper(self, html, item):
+        """Paper dict as crawl() saves it for one detail page (None = skipped as too short).
+
+        The only difference: crawl() sends a HEAD (curl subprocess) to the PDF download link
+        to read the Content-Disposition filename; the enumeration runner forbids processes and
+        unmanaged requests in adapters, so original_filename (and metadata.originalFilename)
+        stay None here. Identity (node id / slug), URL and all other fields are unchanged."""
+        url = item["url"]
+        if re.search(r"/en/media/\d+/download", url):
+            # A file row: crawl() parses the file bytes as HTML, finds no title, saves nothing.
+            return None
+        had_own = "_curl_head" in self.__dict__
+        own = self.__dict__.get("_curl_head")
+        self._curl_head = lambda _url: {}
+        try:
+            paper = self._parse_detail(html, url)
+        finally:
+            if had_own:
+                self._curl_head = own
+            else:
+                del self._curl_head
+        if not paper:
+            raise RuntimeError("detail page could not be parsed (no title)")
+        abstract = paper.get("abstract") or ""
+        if len(abstract) < self._MIN_ABSTRACT_CHARS:
+            return None
+        return paper

@@ -1,0 +1,19 @@
+{
+ "site_id": "ncri-ie-en",
+ "listing_body": "<html><body><main><div class=\"view-content\"><article class=\"search-result\"><a class=\"blocklink__link\" href=\"/en/reports-publications/reports/cancer-trends-melanoma\">Cancer Trends: Melanoma</a></article><article class=\"search-result\"><a class=\"blocklink__link\" href=\"/en/reports-publications/reports/cancer-trends-27-lung-cancer\">Cancer Trends 27: Lung cancer</a></article></div></main></body></html>",
+ "content_type": "text/html; charset=UTF-8",
+ "details": {
+  "https://www.ncri.ie/en/reports-publications/reports/cancer-trends-melanoma": "<html><head><meta property=\"og:title\" content=\"Cancer Trends: Melanoma\"><meta property=\"og:description\" content=\"This report describes trends in incidence, mortality and survival for the cancer in Ireland, using data from the National Cancer Registry, and compares the Irish figures with other European countries.\"><script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\":{\"currentPath\":\"node\\/251\"}}</script></head><body><main><h1>Cancer Trends: Melanoma</h1><div class=\"field--name-field-date\"><time datetime=\"2011-05-01T12:00:00Z\">2011-05-01</time></div><div class=\"field--name-field-block-text\"><p>This report describes trends in incidence, mortality and survival for the cancer in Ireland, using data from the National Cancer Registry, and compares the Irish figures with other European countries.</p></div><a href=\"/en/media/431/download\">Download</a></main></body></html>",
+  "https://www.ncri.ie/en/reports-publications/reports/cancer-trends-27-lung-cancer": "<html><head><meta property=\"og:title\" content=\"Cancer Trends 27: Lung cancer\"><meta property=\"og:description\" content=\"This report describes trends in incidence, mortality and survival for the cancer in Ireland, using data from the National Cancer Registry, and compares the Irish figures with other European countries.\"><script type=\"application/json\" data-drupal-selector=\"drupal-settings-json\">{\"path\":{\"currentPath\":\"node\\/262\"}}</script></head><body><main><h1>Cancer Trends 27: Lung cancer</h1><div class=\"field--name-field-date\"><time datetime=\"2015-02-01T12:00:00Z\">2015-02-01</time></div><div class=\"field--name-field-block-text\"><p>This report describes trends in incidence, mortality and survival for the cancer in Ireland, using data from the National Cancer Registry, and compares the Irish figures with other European countries.</p></div><a href=\"/en/media/442/download\">Download</a></main></body></html>"
+ },
+ "long_text": "This report describes trends in incidence, mortality and survival for the cancer in Ireland, using data from the National Cancer Registry, and compares the Irish figures with other European countries.",
+ "original_method_source_sha256": {
+  "_curl_get": "01187d4c939464f067354c0e70c5340772a9e07960c90350db5b44f446715d13",
+  "_curl_head": "ba3265fc91f8b8321048f5199da33e261a29438a03e165649a09f95f656796f0",
+  "_parse_list_page": "c94575b82ad194c2745fe037c5a680f7d96e1793239bd1970d8f43ba58764c08",
+  "_build_abstract": "844e33774284360d826ccd829f778ce2b8f4e0e52711f061a91277afe5b0d7ec",
+  "_parse_detail": "64e97e24c0dc9ef4d9dfd6eb54375ba1cc2383ab39f3671d881c91aa61ad12e8",
+  "crawl": "a5effc558b07ddd50b587205b7995f780aea0d411423a397062698031fd7fc9b"
+ },
+ "empty_body": "<html><body><main><div class=\"view-empty\">No results found.</div></main></body></html>"
+}
