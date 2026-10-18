@@ -329,3 +329,78 @@ class HeaIeResourcesCrawler(BaseCrawler):
             print(f"[{self.site_id}] safety cap of {self._MAX_PAGES} pages reached")
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() is unchanged; these
+    # methods only parse an already fetched listing page / PDF body.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Listing rows in crawl() order. The detail request is the row's PDF
+        (crawl() reads the abstract from it); rows without a PDF link are left
+        out because crawl() always skips them (empty abstract)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        rows = []
+        for item in self._parse_list_page(html):
+            pdf_url = item.get("pdf_url", "")
+            if not pdf_url:
+                continue
+            fname = _pdf_filename(pdf_url)
+            rows.append(dict(item, url=pdf_url,
+                             post_number=re.sub(r"\.[Pp][Dd][Ff]$", "", fname)))
+        return rows
+
+    def _enumeration_paper(self, pdf_data, item):
+        """Paper from the fetched PDF bytes — the per-item body of crawl()
+        copied verbatim (external_id = PDF filename without extension)."""
+        pdf_url = item.get("pdf_url", "")
+        title = item.get("title", "")
+
+        abstract = ""
+        if pdf_url:
+            if pdf_data:
+                abstract = self._extract_pdf_text(pdf_data)
+
+        if len(abstract) < self._MIN_ABS:
+            return None
+
+        # external_id: PDF filename without extension
+        if pdf_url:
+            fname = _pdf_filename(pdf_url)
+            ext_id = re.sub(r"\.[Pp][Dd][Ff]$", "", fname)
+        else:
+            ext_id = _title_to_slug(title)[:100]
+
+        # detail page URL derived from title slug (WP standard)
+        detail_slug = _title_to_slug(title)
+        detail_url = f"{self._LIST_BASE}/{detail_slug}/"
+
+        date_str = item.get("date", "")
+        cats = item.get("categories", [])
+        category = ", ".join(cats) if cats else None
+        original_filename = _pdf_filename(pdf_url) if pdf_url else None
+
+        metadata = {
+            "posted_date": date_str,
+            "originalFilename": original_filename,
+            "categories_raw": cats,
+        }
+
+        return {
+            "site_id": self.site_id,
+            "external_id": ext_id,
+            "post_number": ext_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": date_str,
+            "listed_date": date_str,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "publisher": "Higher Education Authority (HEA)",
+            "category": category,
+            "keywords": category,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
