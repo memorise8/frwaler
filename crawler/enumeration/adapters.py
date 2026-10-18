@@ -404,27 +404,47 @@ class Adapter:
         framework outside the adapter guard (the crawler method only receives the text)."""
         resp = self._detail_page(item, fetcher)
         spec = self.cfg.get("pdf_text")
-        if spec is not None:
+        if spec is not None and getattr(resp, "pdf_missing", None) is None:
             from .pdftext import extract
             resp.pdf_text = extract(resp.body, spec)
         return resp
+
+    def _text_source(self, fetcher, url, first=None):
+        """GET of the response pdf_text reads. ext:detail_missing_as_no_text: a declared status
+        (404/410) on that request is "no text" (pdf_text None) for the crawler's own fallback rule,
+        not an item failure. Any other failure, and every other request, fails as before."""
+        missing = set((self.cfg.get("pdf_text") or {}).get("missing_statuses") or ())
+        try:
+            return fetcher.get(url)
+        except PermanentFailure as exc:
+            if exc.status not in missing:
+                raise
+            status = exc.status
+        from .http import Response
+        self.missing_text = getattr(self, "missing_text", 0) + 1  # reported as a warning by the runner
+        stub = Response(status, {}, b"", url=url)
+        stub.pdf_missing, stub.pdf_text = status, None
+        if first is not None:
+            stub.first_resp = first
+        return stub
 
     def _detail_page(self, item, fetcher):
         """Detail page response; with second_step.use=detail_page the page its link points to
         (one more request through the same fetcher: gate, robots, holds, destination check).
         The item's identity (key, url) never changes."""
-        resp = fetcher.get(item.url)
+        step = self.cfg.get("second_step")
+        two = bool(step) and step["use"] == "detail_page"
+        resp = fetcher.get(item.url) if two else self._text_source(fetcher, item.url)
         if getattr(resp, "login_suspect", False):
             raise PermanentFailure("login_required_suspect", item.url, resp.status)
-        step = self.cfg.get("second_step")
-        if not step or step["use"] != "detail_page":
+        if not two:
             return resp
         link = self._step_link(resp, item)
         if link is None:
             if step.get("required", True):
                 raise PermanentFailure("second_step_link_missing", item.url, resp.status)
             return resp
-        second = fetcher.get(link)
+        second = self._text_source(fetcher, link, resp)
         if getattr(second, "login_suspect", False):
             raise PermanentFailure("login_required_suspect", link, second.status)
         second.first_url = item.url

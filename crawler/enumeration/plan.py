@@ -367,7 +367,13 @@ def _validate_segment_items(site_id, listing, items):
 def _validate_discover(site_id, listing, seg):
     """ext:multi_listing: segments found on a hub page of the listing host on every run."""
     allowed = {"mode", "hub_url", "selector", "attr", "key_regex", "params", "label", "min_segments",
-               "within_segment_order", "overlap_pages", "hidden_cap", "retired", "follow"}
+               "within_segment_order", "overlap_pages", "hidden_cap", "retired", "follow", "link_as_url"}
+    if "link_as_url" in seg:
+        # ext:discover_segment_url: the found link itself is the segment's listing (paging by page_param).
+        if seg["link_as_url"] is not True or "{page}" in listing["url"] or "{segment}" in listing["url"]:
+            raise PlanError(f"{site_id}: segments.link_as_url is true, with a plain listing.url (no {{page}}/{{segment}})")
+        if not _same_listing_host(listing, seg.get("hub_url")):
+            raise PlanError(f"{site_id}: segments.link_as_url needs the hub on the listing host")
     follow = seg.get("follow")
     if follow is not None:
         # ext:multi_level_discover: hub -> sub-hubs (same host) -> segment links.
@@ -399,7 +405,7 @@ def _validate_discover(site_id, listing, seg):
     params = seg.get("params", {})
     if not isinstance(params, dict) or not all(isinstance(v, str) for v in params.values()):
         raise PlanError(f"{site_id}: segments.params maps names to strings ({{key}} is the found key)")
-    if "{segment}" not in listing["url"] and not params:
+    if "{segment}" not in listing["url"] and not params and not seg.get("link_as_url"):
         raise PlanError(f"{site_id}: discovered segments need {{segment}} in listing.url or params")
     label = seg.get("label", "text")
     if label is not None and label != "text" and not re.fullmatch(r"attr:[A-Za-z_][A-Za-z0-9_.-]{0,63}", str(label)):
