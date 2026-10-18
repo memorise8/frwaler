@@ -1,0 +1,30 @@
+{
+ "listing_body": "<html><body><main><div class=\"view-solr-news-centre\"><div class=\"view-content\"><div class=\"views-row\"><article data-history-node-id=\"5710\" class=\"node node--type-article\"><div class=\"card--title\">News 1 title</div><div class=\"card--link\"><a href=\"/news-centre/media-release/news-1\">Read</a></div><div class=\"card--date\"><time datetime=\"2026-10-11T10:00:00+11:00\">11 Oct 2026</time></div></article></div><div class=\"views-row\"><article data-history-node-id=\"5720\" class=\"node node--type-article\"><div class=\"card--title\">News 2 title</div><div class=\"card--link\"><a href=\"/news-centre/media-release/news-2\">Read</a></div><div class=\"card--date\"><time datetime=\"2026-10-12T10:00:00+11:00\">12 Oct 2026</time></div></article></div></div></div></main></body></html>",
+ "details": {
+  "https://www.afp.gov.au/news-centre/media-release/news-1": "<html><body><main><div id=\"block-system-main-block\"><article data-history-node-id=\"5710\" class=\"node node--type-article\"><h1 class=\"article-page__title\">News 1 detail</h1><div class=\"article-page__date\"><time datetime=\"2026-10-11T10:00:00+11:00\">x</time></div><div class=\"article-page__body\"><p>Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. </p><a href=\"/sites/default/files/2026-10/release-1.pdf\">PDF</a></div></article></div></main></body></html>",
+  "https://www.afp.gov.au/news-centre/media-release/news-2": "<html><body><main><div id=\"block-system-main-block\"><article data-history-node-id=\"5720\" class=\"node node--type-article\"><h1 class=\"article-page__title\">News 2 detail</h1><div class=\"article-page__date\"><time datetime=\"2026-10-12T10:00:00+11:00\">x</time></div><div class=\"article-page__body\"><p>Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. </p><a href=\"/sites/default/files/2026-10/release-2.pdf\">PDF</a></div></article></div></main></body></html>"
+ },
+ "site_id": "afp-gov-au-news-centre",
+ "content_type": "text/html",
+ "long_text": "Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline text for the L2b split regression, résumé and 자료 kept identical between crawl and plan. ",
+ "empty_body": "<html><main/></html>",
+ "original_method_source_sha256": {
+  "crawl": "1ae52005b815b790c9e635066990571248854f9ca2a873dca59d73f2b06f054c",
+  "_list_url": "96223bfb42d68137595faeef8264c27b31f09a7c17c07c7e4db185e09be1b832",
+  "_curl_get": "717fd5130d0295d465adee6423b4331d64adc5edc4cd07da72d46192370c17cf",
+  "_curl_head_content_disposition": "4c7e6cc56675941fdc62fcc278429fe0c2e97cbbc213b3fc091cec6e04d548de",
+  "_parse_list_page": "5eee7939c454fa6635193b2b98ffbcfe1c17f0ef264533890111f08c88cef6db",
+  "_parse_detail_page": "c010c8494569ffe133649b2322e1a8ba9d646cf4a7e10f95cb59dbfef6be2a10",
+  "_build_paper": "a7b471938cd78ed178f1c60d43bf7f84701395c83323a029b4af3c404202078e",
+  "_list_title": "51252f7b2c9d52525ebe9962523be9daa5a76c3990fe61f6e920b6f59b96dd7b",
+  "_node_type_from_classes": "fb4c426f130f0bf135646f443c0013ceb905323b6bc5044afdbbd3060672e36d",
+  "_parse_json_ld": "5c4cc37671fe3c040cf65b4da3a17db3d3152d6b794ed6befb7b272389c541f7",
+  "_detail_title": "cdf25b93bc17cc3c19ee9dc8c2e6a2bbdadcbb8a01bda3460768e96b26977a6b",
+  "_detail_category": "7d41385d578fe3302ef4eb444f0072360ef1894b3844e897ab6cadc1cb1eac9e",
+  "_detail_published_raw": "3a2b97643a663727e0ab9b613fb71039f7a5912680e7c7cef59457847e827207",
+  "_detail_abstract": "f09e56597983320b60c248bffa49757ec2566b2ae26462a9ef403b0a8ab5e8f8",
+  "_detail_pdf_url": "bec00d89a7c0af01ceba1df3c3fb8f604550d0088de5d5bfe25b167b4071a5b6",
+  "_detail_keywords": "2b9e1a4ebad13e5b9d87af9878d0bb4a3e51c752b92ca56241ec4069b429118b",
+  "_slug_from_url": "0de5fba7217402311319fdb0a8b6cd9ccfcd21643ba1a682c9253cf413644f3f"
+ }
+}

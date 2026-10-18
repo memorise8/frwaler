@@ -212,6 +212,26 @@ class AFPGovAuNewsCentreCrawler(BaseCrawler):
         print(f"[{self.site_id}] done: saved {saved}")
         return saved
 
+    # -- enumeration split (crawl() unchanged) --------------------------
+    def _enumeration_items(self, html: str, url: str = "") -> list[dict]:
+        return self._parse_list_page(html, url)[0]
+
+    def _enumeration_detail(self, html: str, url: str) -> dict:
+        """_parse_detail_page without its HEAD request (no process may be spawned here).
+        Only a PDF link whose URL has no filename differs: original_filename stays None
+        instead of the Content-Disposition name; identity fields are unaffected."""
+        self._curl_head_content_disposition = lambda _url: None
+        try:
+            return self._parse_detail_page(html, url)
+        finally:
+            del self._curl_head_content_disposition
+
+    def _enumeration_paper(self, item: dict, detail: dict) -> Optional[dict]:
+        paper = self._build_paper(item, detail)
+        if len(paper.get("abstract") or "") < self._MIN_ABSTRACT_CHARS:
+            return None
+        return paper
+
     def _list_url(self, page: int) -> str:
         if page <= 0:
             return self._START_URL
