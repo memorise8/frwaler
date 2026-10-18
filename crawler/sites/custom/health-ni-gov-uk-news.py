@@ -317,3 +317,82 @@ class HealthNiGovUkNewsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done: {saved} items saved.")
         return saved
+
+    # Sitemap route (ND-1, 2026-10-19). The RSS feed ignores ?page= on the live site
+    # (page 0 and page 1 are identical), so the plan reads the sitemap. crawl() and
+    # _fetch_detail are unchanged; these are pure functions over one detail page.
+
+    @staticmethod
+    def _enumeration_detail_text(html):
+        """_fetch_detail's parsing after the fetch, unchanged: (abstract, node_id)."""
+        node_id = _extract_node_id(html)
+        try:
+            soup = _make_soup(html)
+        except Exception:
+            return None, node_id
+        article = soup.find("article")
+        if not article:
+            article = soup.find("main") or soup.find("div", {"id": "main-content"})
+        if not article:
+            return None, node_id
+        for tag in article.find_all(["script", "style", "nav", "header", "footer"]):
+            tag.decompose()
+        text = article.get_text(separator=" ", strip=True)
+        text = re.sub(
+            r'^.{0,300}?Date published:\s*\d+\s+\w+\s+\d{4}\s*',
+            "",
+            text,
+            flags=re.DOTALL,
+        ).strip()
+        text = re.sub(r'\s+', ' ', text).strip()
+        text = text.replace('\xa0', ' ')
+        return (text if text else None), node_id
+
+    def _enumeration_sitemap_paper(self, html, url):
+        """crawl()'s paper for one sitemap URL. The RSS item fields come from the same
+        page: title = <h1>, date = the 'Date published' <time> text (the RSS pubDate
+        text on the live site), publisher = the default creator. Identity (node id or
+        slug) is unchanged. Without an RSS description there is no short-abstract
+        fallback: such items return None (crawl()'s skip rule)."""
+        if not isinstance(html, str):
+            return None
+        abstract, node_id = self._enumeration_detail_text(html)
+        if not abstract or len(abstract) < 50:
+            return None
+        soup = _make_soup(html)
+        h1 = soup.find("h1")
+        title = h1.get_text(" ", strip=True) if h1 else ""
+        if not title:
+            return None
+        date_el = soup.find("p", class_="published-date")
+        time_el = date_el.find("time") if date_el else None
+        pub_date_raw = time_el.get_text(strip=True) if time_el else ""
+        published_date = _parse_date(pub_date_raw)
+        slug = url.rstrip("/").split("/")[-1]
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": node_id or slug,
+            "post_number": node_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "url": url,
+            "pdf_url": None,
+            "authors": "",
+            "publisher": _PUBLISHER,
+            "department": "",
+            "journal": "",
+            "keywords": "",
+            "category": "News",
+            "doi": "",
+            "original_filename": None,
+            "metadata": json.dumps({
+                "posted_date": pub_date_raw,
+                "node_id": node_id,
+                "slug": slug,
+                "rss_description": "",
+                "creator": _PUBLISHER,
+            }, ensure_ascii=False),
+        }
