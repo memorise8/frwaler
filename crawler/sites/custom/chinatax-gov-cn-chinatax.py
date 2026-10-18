@@ -315,3 +315,113 @@ class ChinataxGovCnCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration (pure conversions for the enumeration framework)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        """Rows of one /getFileListByCodeId POST answer, exactly as crawl() reads them.
+
+        An answer without ``results.data`` is a listing error (never an empty end page).
+        """
+        from crawler.enumeration.http import PermanentFailure
+        try:
+            res_data = data["results"]["data"]
+            items = res_data.get("results") or []
+        except (KeyError, TypeError, AttributeError):
+            raise PermanentFailure("listing_parse_error:unexpected_structure") from None
+        if not isinstance(items, list):
+            raise PermanentFailure("listing_parse_error:results_not_list")
+
+        rows = []
+        seen_urls = set()
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            title = _strip_tags(item.get("titleHtml") or "").strip()
+            if not title:
+                title = _strip_tags(item.get("subTitleHtml") or "").strip()
+            if not title:
+                continue
+            url = (item.get("redirectUrl") or item.get("url") or "").strip()
+            url = url.replace("http://www.chinatax.gov.cn",
+                              "https://www.chinatax.gov.cn")
+            if not url:
+                continue
+            if url in seen_urls:
+                continue
+            seen_urls.add(url)
+            m = re.search(r"/c(\d+)/content\.html", url)
+            external_id = m.group(1) if m else re.sub(r"[^a-zA-Z0-9_-]", "_", url)[-64:]
+            pub_time_str = (item.get("publishedTimeStr") or "").strip()
+            published_date = pub_time_str.split(" ")[0] if pub_time_str else ""
+            publisher = (
+                self._get_meta_value(item, "source")
+                or self._get_meta_value(item, "fwdw")
+            )
+            rows.append({
+                "url": url,
+                "external_id": external_id,
+                "title": title,
+                "published_date": published_date,
+                "pub_time_str": pub_time_str,
+                "publisher": publisher,
+            })
+        return rows
+
+    @staticmethod
+    def _enumeration_abstract(raw):
+        """Body text of a detail page; the parsing half of _fetch_detail_abstract()."""
+        if not raw:
+            return ""
+        soup = None
+        try:
+            soup = _parse_html(raw)
+        except Exception as exc:
+            print(f"[chinatax-gov-cn-chinatax] HTML parse error: {exc}")
+        if soup is not None:
+            div = soup.find(id="zoomcon")
+            if div is None:
+                div = soup.find("div", class_="article-content")
+            if div is not None:
+                text = div.get_text(separator=" ", strip=True)
+                return re.sub(r"\s+", " ", text).strip()
+        for marker in ('class="article-content"', 'id="zoomcon"', "article-content"):
+            idx = raw.find(marker)
+            if idx >= 0:
+                return _strip_tags(raw[idx: idx + 30000])
+        return ""
+
+    def _enumeration_paper(self, detail_html, item):
+        """The paper crawl() saves for one list row and its detail page (None = skipped)."""
+        abstract = self._enumeration_abstract(detail_html)
+        if len(abstract) < 50:
+            print(f"[{self.site_id}] abstract too short ({len(abstract)} chars) "
+                  f"for '{item['title'][:50]}' — skipping")
+            return None
+        publisher = item["publisher"]
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": item["external_id"],
+            "post_number": item["external_id"],
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": item["published_date"],
+            "listed_date": item["published_date"],
+            "url": item["url"],
+            "pdf_url": None,
+            "original_filename": None,
+            "publisher": publisher or "国家税务总局",
+            "authors": None,
+            "keywords": None,
+            "doi": None,
+            "category": "政府信息公开年报",
+            "department": None,
+            "metadata": json.dumps({
+                "posted_date": item["pub_time_str"],
+                "source": publisher,
+                "channel_id": _CHANNEL_ID,
+            }, ensure_ascii=False),
+        }

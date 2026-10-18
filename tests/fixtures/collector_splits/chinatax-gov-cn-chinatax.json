@@ -1,0 +1,19 @@
+{
+ "site_id": "chinatax-gov-cn-chinatax",
+ "listing_body": "{\"results\": {\"data\": {\"total\": 2, \"results\": [{\"titleHtml\": \"<em>Synthetic</em> annual report 1\", \"subTitleHtml\": \"\", \"url\": \"http://www.chinatax.gov.cn/chinatax/n810214/c102384r/c9000001/content.html\", \"redirectUrl\": \"\", \"publishedTimeStr\": \"2026-03-01 10:00:01\", \"domainMetaList\": [{\"resultList\": [{\"key\": \"source\", \"value\": \"Synthetic Office\"}]}]}, {\"titleHtml\": \"<em>Synthetic</em> annual report 2\", \"subTitleHtml\": \"\", \"url\": \"http://www.chinatax.gov.cn/chinatax/n810214/c102384r/c9000002/content.html\", \"redirectUrl\": \"\", \"publishedTimeStr\": \"2026-01-02 10:00:02\", \"domainMetaList\": [{\"resultList\": [{\"key\": \"source\", \"value\": \"Synthetic Office\"}]}]}]}}}",
+ "empty_body": "{\"results\": {\"data\": {\"total\": 2, \"results\": []}}}",
+ "content_type": "application/json",
+ "long_text": "Synthetic annual report body with 中文 text for offline equality testing only, long enough to pass the abstract threshold.",
+ "details": {
+  "https://www.chinatax.gov.cn/chinatax/n810214/c102384r/c9000001/content.html": "<html><head><title>Report 1</title></head><body><div class=\"article-content\" id=\"zoomcon\"><p>Synthetic annual report body with 中文 text for offline equality testing only, long enough to pass the abstract threshold.</p><p>Report 1.</p></div></body></html>",
+  "https://www.chinatax.gov.cn/chinatax/n810214/c102384r/c9000002/content.html": "<html><head><title>Report 2</title></head><body><div class=\"article-content\" id=\"zoomcon\"><p>Synthetic annual report body with 中文 text for offline equality testing only, long enough to pass the abstract threshold.</p><p>Report 2.</p></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_curl_get": "56cc6d8632b361e76ec2f05f86303a083a16c612595a6dfab0aa4956ca3f265a",
+  "_curl_post_form": "04dca236fdce3d9df3c8a705ba0a937d27de42cbe478223196d01dd064b172f5",
+  "_fetch_list_page": "abc66e59e8ed6080bffd509e87a020457fac09d18810799ed86fdb30b59854e2",
+  "_fetch_detail_abstract": "ffdd61b4936763387946273e176bbd530d1cdc5f2030b94544814545afe69b88",
+  "_get_meta_value": "0249413f48857c5a433e03eca5b8e2948caf144eeed1858c2e2302417cd266b0",
+  "crawl": "6c256d7fba7039b037eec1cf1d63d75c534427551bef2f62b89da1663d5b68ed"
+ }
+}

@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "sites": {
+    "chinatax-gov-cn-chinatax": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.chinatax.gov.cn",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.chinatax.gov.cn/getFileListByCodeId",
+        "method": "POST",
+        "idempotent": true,
+        "body_type": "form",
+        "params": {
+          "channelId": "61eaab3127b040d4950fff177f09e561",
+          "size": 20,
+          "relateSubChannels": "true"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "page_size": 20,
+        "total": {
+          "type": "json",
+          "path": "results.data.total"
+        },
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "date_field": "published_date",
+          "title_field": "title"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
