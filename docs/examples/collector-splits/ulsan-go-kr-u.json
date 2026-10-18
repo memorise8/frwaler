@@ -31,6 +31,7 @@
         },
         "page_param": "page",
         "start_page": 1,
+        "page_size": 5,
         "parser": {
           "type": "adapter",
           "url_field": "url",
