@@ -199,7 +199,7 @@ class PublicServiceGovtNzResearchAndDataCrawler(BaseCrawler):
         ):
             try:
                 dt = datetime.strptime(value, fmt)
-                return dt.date().isoformat()
+                return dt.date().isoformat() if "%d" in fmt else dt.strftime("%Y-%m")
             except ValueError:
                 pass
 
