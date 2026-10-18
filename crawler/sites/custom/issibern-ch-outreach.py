@@ -281,7 +281,7 @@ class IssibernChOutreachCrawler(BaseCrawler):
     # Detail parsing
     # ------------------------------------------------------------------
 
-    def _parse_detail(self, raw, url, record):
+    def _parse_detail(self, raw, url, record, head_lookup=True):
         soup = self._make_soup(raw)
         if soup is None:
             raise RuntimeError("detail HTML parse failed")
@@ -343,7 +343,10 @@ class IssibernChOutreachCrawler(BaseCrawler):
         authors = self._extract_authors(info_text) or meta_author
 
         pdf_url = self._find_pdf_url(soup)
-        original_filename = self._original_filename(pdf_url)
+        # head_lookup=False (enumeration path): no curl HEAD subprocess, the URL's last
+        # path segment, which is _original_filename's own fallback.
+        original_filename = (self._original_filename(pdf_url) if head_lookup
+                             else self._filename_from_url(pdf_url))
         doi = self._extract_doi(raw)
 
         return {
@@ -653,6 +656,11 @@ class IssibernChOutreachCrawler(BaseCrawler):
             filename = unquote(match.group(1).strip().strip('"'))
             if filename:
                 return filename
+        return self._filename_from_url(pdf_url)
+
+    def _filename_from_url(self, pdf_url):
+        if not pdf_url:
+            return None
         tail = unquote(urlparse(pdf_url).path.rstrip("/").rsplit("/", 1)[-1])
         return tail or None
 
@@ -778,11 +786,13 @@ class IssibernChOutreachCrawler(BaseCrawler):
         """crawl()'s detail parse, paper and short-abstract skip for one list record.
         The FacetWP endpoint and template are the start page's (live 2026-10-19:
         ajaxurl .../wp-json/facetwp/v1/refresh, data-name 'news'); the per-session nonce,
-        which crawl() only records in metadata, is not available here (None)."""
+        which crawl() only records in metadata, is not available here (None).
+        No subprocess (ND-3): original_filename is the PDF URL's last path segment instead of
+        crawl()'s curl HEAD Content-Disposition lookup (whose own fallback is the same tail)."""
         clean = {k: v for k, v in record.items() if not k.startswith("_facetwp_")}
         page_data = {"pager": record.get("_facetwp_pager") or {}, "raw_api": record.get("_facetwp_raw_api") or {}}
         config = {"ajaxurl": self.DEFAULT_LIST_ENDPOINT, "template": "news", "nonce": None}
-        detail = self._parse_detail(raw, url, clean)
+        detail = self._parse_detail(raw, url, clean, head_lookup=False)
         paper = self._to_paper(clean, detail, clean.get("list_page"), clean.get("list_index"), config, page_data)
         if len(paper.get("abstract") or "") < self.MIN_ABSTRACT_CHARS:
             return None

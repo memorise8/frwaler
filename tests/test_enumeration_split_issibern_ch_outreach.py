@@ -52,9 +52,11 @@ EMPTY = {'template': '', 'settings': {'pager': {'page': 2, 'per_page': 10, 'tota
 START = ('<html><body><div class="facetwp-template" data-name="news"></div><script>window.FWP_JSON = '
          '{"ajaxurl":"https:\\/\\/www.issibern.ch\\/wp-json\\/facetwp\\/v1\\/refresh","nonce":"abc123"};</script>'
          '<script>window.FWP_HTTP = {"uri":"outreach\\/news"};</script></body></html>')
+PDF_URL = BASE + '/wp-content/uploads/2026/10/ISSI%20Report.pdf'
+PDF_LINK = f'<p><a href="{PDF_URL}">Report</a></p>'
 DETAILS = {f'{BASE}/{s}/': (f'<html><body class="post-template postid-{n}"><main id="content"><h1>{s}</h1>'
                             f'<div id="news-lead-meta-date">{d}</div><div id="news-lead-text-inner"><p>{t}</p></div>'
-                            f'</main></body></html>') for s, n, d, t in NEWS}
+                            f'{PDF_LINK if n == "23739" else ""}</main></body></html>') for s, n, d, t in NEWS}
 
 
 class Split(unittest.TestCase):
@@ -105,6 +107,21 @@ class Split(unittest.TestCase):
             self.assertEqual(me, ma)
             self.assertEqual(e, a)
         self.assertEqual(['23739', '23731'], [p['post_number'] for p in papers[:2]])
+
+    def test_paper_path_opens_no_subprocess(self):
+        # ND-3: trial 20261019-t0402 stopped with adapter_ungated_network:subprocess — the
+        # detail parse ran crawl()'s curl HEAD for the PDF filename. The split path must not.
+        calls = []
+        crawler_mod = load(SITE)[0].__class__.__module__
+        def run(*a, **k):
+            calls.append(a)
+            raise AssertionError('subprocess.run from the enumeration path')
+        with patch(crawler_mod + '.subprocess.run', run):
+            page, papers = self.pipeline()
+        self.assertEqual([], calls)
+        self.assertEqual(PDF_URL, papers[0]['pdf_url'])
+        self.assertEqual('ISSI Report.pdf', papers[0]['original_filename'])
+        self.assertEqual('ISSI Report.pdf', json.loads(papers[0]['metadata'])['originalFilename'])
 
     def test_empty_template_is_end_and_bad_shape_fails(self):
         from crawler.enumeration.http import PermanentFailure
