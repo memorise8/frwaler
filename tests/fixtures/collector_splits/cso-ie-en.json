@@ -1,0 +1,14 @@
+{
+  "site_id": "cso-ie-en",
+  "listing_body": "<html><body><div class=\"row mainContent\"><div class=\"module open orange allPressreleases\"><div class=\"moduleBody\"><span id=\"d.en.990002\"></span><ul class=\"links ulList\"><li><a href=\"/en/csolatestnews/pressreleases/2026pressreleases/pressstatement-synthetic-b/\">Synthetic release 990002</a><span class=\"externalSource\">- 11 February 2026</span></li></ul><span id=\"d.en.990001\"></span><ul class=\"links ulList\"><li><a href=\"/en/csolatestnews/pressreleases/2026pressreleases/pressstatement-synthetic-a/\">Synthetic release 990001</a><span class=\"externalSource\">- 10 February 2026</span></li></ul></div></div></div></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.cso.ie/en/csolatestnews/pressreleases/2026pressreleases/pressstatement-synthetic-b/": "<html><head><meta property=\"article:published_time\" content=\"2026-02-11\" /></head><body><div class=\"row mainContent\"><div class=\"copy\"><p>Synthetic press release body for the offline equality test of the enumeration split. It imitates only the page structure and carries no real release text. Synthetic press release body for the offline equality test of the enumeration split. It imitates only the page structure and carries no real release text. </p><p class=\"pressReleaseEnds\">ENDS</p><a href=\"https://www.cso.ie/en/media/csoie/releasespublications/documents/synthetic11.pdf\">pdf</a></div></div></body></html>",
+    "https://www.cso.ie/en/csolatestnews/pressreleases/2026pressreleases/pressstatement-synthetic-a/": "<html><head><meta property=\"article:published_time\" content=\"2026-02-10\" /></head><body><div class=\"row mainContent\"><div class=\"copy\"><p>Synthetic press release body for the offline equality test of the enumeration split. It imitates only the page structure and carries no real release text. Synthetic press release body for the offline equality test of the enumeration split. It imitates only the page structure and carries no real release text. </p><p class=\"pressReleaseEnds\">ENDS</p><a href=\"https://www.cso.ie/en/media/csoie/releasespublications/documents/synthetic10.pdf\">pdf</a></div></div></body></html>"
+  },
+  "long_text": "Synthetic press release body for the offline equality test of the enumeration split. It imitates only the page structure and carries no real release text. Synthetic press release body for the offline equality test of the enumeration split. It imitates only the page structure and carries no real release text. ",
+  "list_year": 2026,
+  "original_method_source_sha256": {
+    "crawl": "75d3f5caf8be82559f0b2aec5d7b3dc6d73e963d6abc296ed36d9bea4915df83"
+  }
+}

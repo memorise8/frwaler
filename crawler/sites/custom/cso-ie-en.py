@@ -434,3 +434,68 @@ class CsoIeEnCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] done: saved {saved} documents")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() is unchanged; these
+    # methods only parse already fetched HTML (year list page / detail page).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """Year list rows in crawl() order; ``year`` comes from the list URL
+        ({year}pressreleases/) exactly like crawl()'s loop variable."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        m = re.search(r"/(\d{4})pressreleases/", url or "")
+        if not m:
+            raise PermanentFailure("listing_parse_error:year_not_in_url")
+        year = int(m.group(1))
+        return [dict(it, year=year) for it in _parse_list_page(html)]
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page — the body of crawl()'s item loop
+        copied verbatim (external_id = post_number = list node_id, unchanged)."""
+        it = item
+        year = it["year"]
+        if not html:
+            raise RuntimeError("detail fetch failed")
+        detail = _extract_detail(html)
+
+        abstract = detail.get("abstract", "")
+        if len(abstract) < 50:
+            return None
+
+        published_date = detail.get("published_date") or it.get("listed_date")
+        listed_date = it.get("listed_date")
+
+        metadata = json.dumps(
+            {
+                "node_id": it["node_id"],
+                "listing_anchor": it.get("listing_anchor"),
+                "listed_date": listed_date,
+                "year": year,
+            },
+            ensure_ascii=False,
+        )
+
+        return {
+            "site_id": self.site_id,
+            "external_id": it["node_id"],
+            "post_number": it["node_id"],
+            "url": it["url"],
+            "title": it["title"],
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "listed_date": listed_date,
+            "publisher": _PUBLISHER,
+            "pdf_url": detail.get("pdf_url"),
+            "keywords": None,
+            "authors": None,
+            "department": None,
+            "journal": None,
+            "doi": None,
+            "category": "Press Release",
+            "original_filename": None,
+            "metadata": metadata,
+        }
