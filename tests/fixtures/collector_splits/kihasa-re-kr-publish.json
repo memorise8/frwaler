@@ -1,0 +1,23 @@
+{
+  "site_id": "kihasa-re-kr-publish",
+  "listing_body": "<html><body><div id=\"__nuxt\"><div class=\"board-list\"><ul><li class=\"rpt-thumb-li\"><div class=\"rpt-thumb\"><a href=\"/publish/report/policy/view?page=1&amp;seq=101\">Offline 101</a></div></li></ul><ul><li class=\"rpt-thumb-li\"><div class=\"rpt-thumb\"><a href=\"/publish/report/research/view?page=1&amp;seq=102\">Offline 102</a></div></li></ul></div></div><script>window.__NUXT__=(function(a,b){return {layout:\"page\",data:[{pagination:{totalCount:2,totalPage:1,currentPage:1},body:[{seq:101},{seq:102}]}],fetch:[],error:b}}(1,null));</script></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.kihasa.re.kr/publish/report/policy/view?page=1&seq=101": "<html><body><div id=\"__nuxt\"><div class=\"board-list\"></div></div><script>window.__NUXT__=(function(a,b){return {layout:\"page\",data:[{content:{seq:101,title:\"Offline 101 보고서\",writer:\"연구자101\",regDate:1790812800000,rno:\"정책보고서 2026-101\",taxonomyInfo:[{level1Name:\"보건\",level2Name:\"정신건강\"},{level1Name:\"보건\",level2Name:\"노인\"}],contents:\"\\u003Cp\\u003ESynthetic report contents résumé and Korean 보고서 목차 for offline equality testing only. Synthetic report contents résumé and Korean 보고서 목차 for offline equality testing only. \\u003C\\u002Fp\\u003E\",files:[{fileSeq:1010}]}}],fetch:[],error:b}}(1,null));</script></body></html>",
+    "https://www.kihasa.re.kr/publish/report/research/view?page=1&seq=102": "<html><body><div id=\"__nuxt\"><div class=\"board-list\"></div></div><script>window.__NUXT__=(function(a,b){return {layout:\"page\",data:[{content:{seq:102,title:\"Offline 102 보고서\",writer:\"연구자102\",regDate:1790899200000,rno:\"정책보고서 2026-102\",taxonomyInfo:[{level1Name:\"보건\",level2Name:\"정신건강\"},{level1Name:\"보건\",level2Name:\"노인\"}],contents:\"\\u003Cp\\u003ESynthetic report contents résumé and Korean 보고서 목차 for offline equality testing only. Synthetic report contents résumé and Korean 보고서 목차 for offline equality testing only. \\u003C\\u002Fp\\u003E\",files:[{fileSeq:1020}]}}],fetch:[],error:b}}(1,null));</script></body></html>"
+  },
+  "long_text": "Synthetic report contents résumé and Korean 보고서 목차 for offline equality testing only. Synthetic report contents résumé and Korean 보고서 목차 for offline equality testing only. ",
+  "empty_body": "<html><body><div id=\"__nuxt\"><div class=\"board-list\"></div></div><script>window.__NUXT__=(function(a,b){return {layout:\"page\",data:[{pagination:{totalCount:0,totalPage:0,currentPage:0},body:[]}],fetch:[],error:b}}(1,null));</script></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "13efe0ac94b9313cabeb2926b6233b5ab7e6fb65edffd5dcb9174d432bec67b2",
+    "_curl_get": "8043a5acbbb5626e45270014e2fefd208488f69b0bfab3e1d155c9bd72f0d675",
+    "_nuxt_state": "68d076d862001e021cac121a0ecd02e12660c9c22f67da45cf920be88dd0a65a",
+    "_extract_int": "f6d81bbe7b661dd7237af71532ab222e2a5529cbcd47fe1941c5f97839d29656",
+    "_parse_list_items": "2605cfbb90a81c89483d80b87b230156f284e9a6c9b30c82419f85221cf8c0e2",
+    "_extract_js_string": "2a719dd28c4ff4ff1fcf86b337424a3a929af5c87eedb4463a80d0f3fcfa784d",
+    "_make_soup": "0df218d4169c4376e2e78018cf47255b3eb0e5518a21ddb320b03ab6d7f9d608",
+    "_build_paper": "25b7e0c0c477a4b1e823da40ef388210ff0579880bf9ae4162bf32cfe2b733be",
+    "_budget_exhausted": "a4eae935e22d3018c8c652432d8bcb94d33fe943975db7f45a1d6cbbbee18c7d",
+    "_ms_to_date": "e728da3dc2ed24e35f98b0b24a875edc6af72b0632d16d921e49a63229b9f4ce"
+  }
+}

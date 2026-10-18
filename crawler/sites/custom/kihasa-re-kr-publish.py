@@ -374,3 +374,40 @@ class KihasaReKrPublishCrawler(BaseCrawler):
     @staticmethod
     def _ms_to_date(ts_ms: int) -> str:
         return datetime.fromtimestamp(ts_ms / 1000, tz=timezone.utc).strftime("%Y-%m-%d")
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (no network); crawl() and the methods
+    # above are unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List-page HTML -> crawl()'s (seq, detail URL) rows.
+
+        A page without the Nuxt pagination state is not a listing; a past-the-end
+        page carries the state with no report links (crawl() stops there too).
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        if "pagination:{" not in self._nuxt_state(html):
+            raise PermanentFailure("listing_parse_error:missing_nuxt_pagination")
+        rows = []
+        for seq, detail_path in self._parse_list_items(html):
+            detail_url = (
+                detail_path if detail_path.startswith("http")
+                else self.base_url + detail_path
+            )
+            rows.append({"seq": seq, "detail_url": detail_url})
+        return rows
+
+    def _enumeration_paper(self, html, row):
+        """Detail HTML + list row -> the paper crawl() saves (or None)."""
+        seq = int(row["seq"])
+        detail_url = row["detail_url"]
+        if not html:
+            return None
+        paper = self._build_paper(seq, html, detail_url)
+        abstract = paper.get("abstract") or ""
+        if len(abstract) < 100:
+            return None
+        return paper
