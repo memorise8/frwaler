@@ -1,0 +1,112 @@
+{
+  "site_id": "waltoninstitute-ie-research",
+  "content_type": "application/json",
+  "listing_body": "[{\"id\": 990002, \"date\": \"2021-12-02T10:00:00\", \"slug\": \"synthetic-two\", \"link\": \"https://wordpress.waltoninstitute.ie/publication/synthetic-two/\"}, {\"id\": 990001, \"date\": \"2014-05-08T10:00:00\", \"slug\": \"synthetic-one\", \"link\": \"https://wordpress.waltoninstitute.ie/publication/synthetic-one/\"}]",
+  "details": {
+    "https://wordpress.waltoninstitute.ie/wp-json/wp/v2/publication/990002?_fields=id,date,date_gmt,guid,modified,modified_gmt,slug,status,type,link,title,content,excerpt,author,featured_media,tags,publications,publication-author,post_type_data,acf,yoast_head_json,_links": {
+      "id": 990002,
+      "date": "2021-12-02T10:00:00",
+      "date_gmt": "2021-12-02T10:00:00",
+      "guid": {
+        "rendered": "https://wordpress.waltoninstitute.ie/?p=990002"
+      },
+      "modified": "2022-01-01T00:00:00",
+      "slug": "synthetic-two",
+      "status": "publish",
+      "type": "publication",
+      "link": "https://wordpress.waltoninstitute.ie/publication/synthetic-two/",
+      "title": {
+        "rendered": "Synthetic publication 990002"
+      },
+      "content": {
+        "rendered": "<p>Synthetic offline publication content for the enumeration equality test; it imitates the WordPress REST structure only and has no real content.</p>"
+      },
+      "excerpt": {
+        "rendered": ""
+      },
+      "post_type_data": {
+        "data": [
+          {
+            "type": "author",
+            "content": "Person, A. and Person, B."
+          },
+          {
+            "type": "journal",
+            "content": "Synthetic Journal"
+          },
+          {
+            "type": "year",
+            "content": "2021"
+          },
+          {
+            "type": "url",
+            "content": "https://wordpress.waltoninstitute.ie/wp-content/uploads/synthetic-two.pdf"
+          },
+          {
+            "type": "type",
+            "content": "article"
+          }
+        ]
+      }
+    },
+    "https://wordpress.waltoninstitute.ie/wp-json/wp/v2/publication/990001?_fields=id,date,date_gmt,guid,modified,modified_gmt,slug,status,type,link,title,content,excerpt,author,featured_media,tags,publications,publication-author,post_type_data,acf,yoast_head_json,_links": {
+      "id": 990001,
+      "date": "2021-12-02T10:00:00",
+      "date_gmt": "2021-12-02T10:00:00",
+      "guid": {
+        "rendered": "https://wordpress.waltoninstitute.ie/?p=990001"
+      },
+      "modified": "2022-01-01T00:00:00",
+      "slug": "synthetic-one",
+      "status": "publish",
+      "type": "publication",
+      "link": "https://wordpress.waltoninstitute.ie/publication/synthetic-one/",
+      "title": {
+        "rendered": "Synthetic publication 990001"
+      },
+      "content": {
+        "rendered": "<p>Synthetic offline publication content for the enumeration equality test; it imitates the WordPress REST structure only and has no real content.</p>"
+      },
+      "excerpt": {
+        "rendered": ""
+      },
+      "post_type_data": {
+        "data": [
+          {
+            "type": "author",
+            "content": "Person, A. and Person, B."
+          },
+          {
+            "type": "journal",
+            "content": "Synthetic Journal"
+          },
+          {
+            "type": "year",
+            "content": "2021"
+          },
+          {
+            "type": "url",
+            "content": "https://doi.org/10.0000/synthetic.1"
+          },
+          {
+            "type": "type",
+            "content": "article"
+          }
+        ]
+      }
+    }
+  },
+  "long_text": "Synthetic offline publication content for the enumeration equality test; it imitates the WordPress REST structure only and has no real content.",
+  "original_method_source_sha256": {
+    "__init__": "b43e3cb695b389d137d63346361cb9217a583d85587660630be556ede7ee6607",
+    "_split_curl_output": "5f7318d2a04179640c020c735096ff4f636450bf06ecfd28996f6474b2d2b911",
+    "_curl_text": "d0d1b5ff25d2c393158714206a5deade1dda0f653ec2f8cfcef7142cb8098c3c",
+    "_curl_json": "9910bc6c89faaf9bfd9244dbee0c9fb3cb75ffa02584d1a86fa4d2379fffa7e3",
+    "_content_disposition_filename": "931cabb49e9cb6b738b3d5b09e3e324e663376fb82c4dcdce1180fd24003d9db",
+    "_list_url": "20d410c4e631518ce51ac6dadb30f6a26f0764fa8e84bc2702d8e3ae00605c46",
+    "_detail_url": "791efd9475a6874dcedacbae108f97c7b73b76fe713ec3afc9078fcbe82c7685",
+    "_build_abstract": "fc8749a39dcba3b2dc23f53d6b7f6b78ddf7200643ba69be496b7f0028ec0fc7",
+    "_build_paper": "4eb7d061ff5ba4c5766e406165c14254eccfcc4dfe75fe35d89d88d22bf5baf5",
+    "crawl": "cae2e1edfa1936360dc509d4b83a4425f88669424547b736d800bb59a151872f"
+  }
+}

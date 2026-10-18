@@ -663,3 +663,44 @@ class WaltoninstituteIeResearchCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done: saved {saved}/{limit_or_inf}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched JSON.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Rows of one WordPress REST list page (``/wp-json/wp/v2/publication?
+        per_page=100&page=N&_fields=id,date,slug,link``), each pointing at the
+        same per-item REST URL crawl() requests (_detail_url)."""
+        from crawler.enumeration.http import PermanentFailure
+        if isinstance(data, dict) and data.get("code") == "rest_post_invalid_page_number":
+            return []
+        if not isinstance(data, list):
+            raise PermanentFailure("listing_parse_error:wp_rest_list_expected", url or "")
+        rows = []
+        for list_item in data:
+            if not isinstance(list_item, dict) or list_item.get("id") is None:
+                continue
+            item_id = list_item["id"]
+            rows.append({
+                "url": self._detail_url(item_id),
+                "external_id": str(item_id),
+                "listed_date": _first_iso_date(list_item.get("date")),
+                "link": list_item.get("link"),
+                "slug": list_item.get("slug"),
+            })
+        return rows
+
+    def _enumeration_paper(self, data, item):
+        """Paper from the fetched per-item REST JSON via the unchanged
+        _build_paper(). Network-free: a PDF URL without a file name in its path
+        gets no Content-Disposition HEAD lookup (crawl() does one), so
+        original_filename can be None there; identity/url unchanged."""
+        if not isinstance(data, dict):
+            return None
+        self._content_disposition_filename = lambda url: None
+        try:
+            return self._build_paper(data)
+        finally:
+            del self._content_disposition_filename
