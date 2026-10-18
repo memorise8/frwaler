@@ -235,3 +235,81 @@ class ProvenienzforschungBeschluesseCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() is unchanged. Listing = the
+    # alphabetical decisions table (one page); detail = the PDF, fetched by the
+    # framework; its text comes from the same in-process pdfplumber helper
+    # crawl() uses (_extract_pdf_text, no subprocess or network).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw):
+        raw_text = raw.decode("utf-8", errors="replace")
+        soup = _bs4_parse(raw_text.encode("utf-8"))
+        rows = []
+        if not soup:
+            return rows
+        table = soup.find("table", class_="downloads")
+        if not table:
+            return rows
+        seen = set()
+        for row in table.find_all("tr"):
+            th = row.find("th")
+            a_tag = row.find("a", attrs={"download": True})
+            if not th or not a_tag:
+                continue
+            th_text = th.get_text(strip=True)
+            pdf_href = (a_tag.get("href") or "").strip()
+            if not pdf_href:
+                continue
+            pdf_url = urljoin(self.base_url, pdf_href)
+            if pdf_url in seen:
+                continue
+            seen.add(pdf_url)
+            rows.append({"url": pdf_url, "th_text": th_text, "pdf_href": pdf_href,
+                         "external_id": Path(Path(pdf_href.rstrip()).name).stem})
+        return rows
+
+    def _enumeration_paper(self, pdf_bytes, item):
+        title = item["th_text"]
+        th_text = item["th_text"]
+        pdf_href = item["pdf_href"]
+        pdf_url = item["url"]
+        published_date = _date_from_text(title)
+        pdf_filename = Path(pdf_href.rstrip()).name
+        external_id = Path(pdf_filename).stem
+        lang = "en" if ("englisch" in title.lower() or "_englisch" in pdf_href.lower()) else "de"
+        if not pdf_bytes:
+            return None
+        abstract = _extract_pdf_text(pdf_bytes)
+        if len(abstract) < 50:
+            return None
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": external_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": published_date,
+            "authors": "",
+            "publisher": _PUBLISHER,
+            "department": "",
+            "journal": "",
+            "url": pdf_url,
+            "pdf_url": pdf_url,
+            "keywords": "",
+            "category": "Beschluss",
+            "doi": "",
+            "original_filename": pdf_filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": published_date,
+                    "originalFilename": pdf_filename,
+                    "language": lang,
+                    "table_heading": th_text,
+                    "pdf_href": pdf_href,
+                },
+                ensure_ascii=False,
+            ),
+        }
