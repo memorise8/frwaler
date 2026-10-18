@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "sites": {
+    "forskningsradet-no-om-forskningsradet": {
+      "strategy": "date_range_split",
+      "base_url": "https://www.forskningsradet.no",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "raw",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.forskningsradet.no/om-forskningsradet/publikasjoner/",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "pdf_url_full",
+          "key_field": "external_id",
+          "title_field": "title_clean",
+          "listing_marker": ".grouped-search-page"
+        }
+      },
+      "segments": {
+        "mode": "range",
+        "granularity": "year",
+        "from": "1996",
+        "to": "now",
+        "filter": {
+          "type": "parts",
+          "year_param": "year"
+        },
+        "split_to": []
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

@@ -398,3 +398,139 @@ class ForskningsradetNomOmForskningsradetCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the fetch helpers
+    # are unchanged; these methods only parse already fetched responses.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """SearchResult rows of one ?year=YYYY page (crawl()'s _fetch_year_items
+        parse part) with the year section and crawl()'s external_id (PDF stem)."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url or "")
+        props = self._extract_props(html)
+        if not props:
+            raise PermanentFailure("listing_parse_error:publications_props_missing", url or "")
+        year = (parse_qs(urlsplit(url or "").query).get("year") or [""])[0]
+        rows = []
+        for item in self._find_search_results(props):
+            pdf_path = (item.get("url") or "").strip()
+            if not pdf_path:
+                continue
+            filename = pdf_path.rstrip("/").split("/")[-1]
+            row = dict(item)
+            row.update({
+                "pdf_url_full": urljoin(self.base_url, pdf_path),
+                "external_id": re.sub(r"\.pdf$", "", filename, flags=re.I),
+                "year_section": year,
+                "title_clean": self._clean_text(unescape(item.get("title") or "")),
+            })
+            rows.append(row)
+        return rows
+
+    def _enumeration_pdf_text(self, pdf_bytes):
+        """The text part of _extract_pdf_abstract() copied verbatim (PDF bytes in)."""
+        if not pdf_bytes or len(pdf_bytes) < 200:
+            return ""
+
+        try:
+            from pdfminer.high_level import extract_text as _pdf_extract
+            text = _pdf_extract(io.BytesIO(pdf_bytes), maxpages=3)
+            return self._clean_text(text or "")
+        except Exception as exc:
+            print(f"[{self.site_id}] PDF text extraction failed: {exc}")
+
+        try:
+            import pypdf
+            reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+            parts = []
+            for page in reader.pages[:3]:
+                parts.append(page.extract_text() or "")
+            return self._clean_text(" ".join(parts))
+        except Exception as exc2:
+            print(f"[{self.site_id}] pypdf fallback failed: {exc2}")
+            return ""
+
+    def _enumeration_paper(self, raw, item):
+        """Paper from a list row and its fetched PDF — crawl()'s conversion copied
+        verbatim (external_id = post_number = PDF file name without .pdf)."""
+        pdf_path = (item.get("url") or "").strip()
+        if not pdf_path:
+            return None
+        full_pdf_url = urljoin(self.base_url, pdf_path)
+        year = item.get("year_section") or ""
+
+        title = self._clean_text(unescape(item.get("title") or ""))
+        if not title:
+            return None
+
+        meta_raw = self._parse_meta_items(
+            item.get("metadata", {}).get("items", [])
+        )
+        pub_type = (
+            meta_raw.get("Publikasjonstype")
+            or meta_raw.get("Publication type", "")
+        )
+        pub_year_raw = (
+            meta_raw.get("Publiseringsår")
+            or meta_raw.get("Year of publication", year)
+        )
+        pages = meta_raw.get("Antall sider") or meta_raw.get("Number of pages", "")
+        isbn = meta_raw.get("ISBN", "")
+        doc_info = meta_raw.get("Dokument") or meta_raw.get("Document", "")
+        subtitle = self._clean_text(item.get("text") or "")
+
+        pub_year_str = str(pub_year_raw).strip()
+        m = re.search(r"\b(19|20)\d{2}\b", pub_year_str)
+        published_date = m.group(0) if m else pub_year_str
+        listed_date = published_date
+
+        filename = pdf_path.rstrip("/").split("/")[-1]
+        original_filename = filename
+        post_number = re.sub(r"\.pdf$", "", filename, flags=re.I)
+        external_id = post_number
+
+        abstract = self._enumeration_pdf_text(raw)
+
+        if len(abstract) < self._MIN_ABSTRACT_CHARS:
+            return None
+
+        abstract = abstract[:4000]
+
+        metadata_dict = {
+            "posted_date": pub_year_str,
+            "originalFilename": original_filename,
+            "pub_type": pub_type,
+            "pages": pages,
+            "isbn": isbn,
+            "doc_info": doc_info,
+            "subtitle": subtitle,
+            "year_section": year,
+            "raw_metadata": meta_raw,
+        }
+        metadata_dict = {k: v for k, v in metadata_dict.items() if v}
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "authors": "",
+            "publisher": "Norges forskningsråd",
+            "department": "",
+            "journal": "",
+            "url": full_pdf_url,
+            "pdf_url": full_pdf_url,
+            "keywords": pub_type,
+            "category": pub_type,
+            "doi": "",
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata_dict, ensure_ascii=False),
+        }
