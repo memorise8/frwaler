@@ -97,6 +97,30 @@ class RegisteredSplit(unittest.TestCase):
         self.assertEqual([clean_paper(x) for x in expected], self.pipeline(files))
         self.assertTrue(all(x['abstract'].startswith('Research studies description') for x in expected))
 
+    def test_missing_pdf_gives_the_description_abstract_like_crawl(self):
+        """A PDF answering 404: crawl() (curl -s) receives the 404 HTML, pdftotext fails and the
+        CSV description becomes the abstract; the plan declares pdf_text.missing_statuses [404]."""
+        files = pdfs()
+        gone = PDFS[0]
+        native_files = dict(files, **{gone: b'<html><title>404 - File or directory not found.</title>' + b' ' * 1200 + b'</html>'})
+        expected = self.native(native_files)
+        p = site_plan(plan(), SITE, registered=[SITE])
+        crawler, _ = load(SITE)
+        adapter = Adapter(SITE, p.section('adapter'), None, crawler=crawler)
+        items = ListingParser(p.listing['parser'], adapter=adapter).parse(
+            Response(200, {'Content-Type': 'application/octet-stream'}, CSV.encode(), CSV_URL)).items
+
+        def fetch(url):
+            if url == gone:
+                raise PermanentFailure('http_404', url, 404)
+            if url in files:
+                return Response(200, {'Content-Type': 'application/pdf'}, files[url], url)
+            return Response(200, {'Content-Type': 'text/html'}, b'<html>' + b'x' * 600 + b'</html>', url)
+        actual = [x for x in (adapter.materialize(i, SimpleNamespace(get=fetch)) for i in items) if x is not None]
+        self.assertEqual([clean_paper(x) for x in expected], actual)
+        self.assertEqual('Research studies description long enough for fallback.', actual[0]['abstract'])
+        self.assertEqual(1, adapter.missing_text)
+
     def test_listing_without_research_rows_is_a_parse_error(self):
         p = site_plan(plan(), SITE, registered=[SITE])
         crawler, _ = load(SITE)
@@ -120,6 +144,7 @@ class RegisteredSplit(unittest.TestCase):
 
     def test_end_to_end_shared_post_numbers_are_saved_for_review(self):
         files = pdfs()
+        del files[PDFS[1]]  # RS_9 NL answers 404
         site = copy.deepcopy(plan()['sites'][SITE])
         site['request_interval_s'] = 0
 
@@ -128,6 +153,8 @@ class RegisteredSplit(unittest.TestCase):
                 return Response(404, {}, b'')
             if url in files:
                 return Response(200, {'Content-Type': 'application/pdf'}, files[url], url)
+            if url == PDFS[1]:
+                return Response(404, {'Content-Type': 'text/html'}, b'<html>404</html>', url)
             if url.startswith(CSV_URL):
                 return Response(200, {'Content-Type': 'application/octet-stream'}, CSV.encode(), url)
             return Response(200, {'Content-Type': 'text/html'}, b'<html>publications page</html>', url)
@@ -138,10 +165,12 @@ class RegisteredSplit(unittest.TestCase):
             with contextlib.redirect_stdout(io.StringIO()):
                 result = env.run(site, handler, crawler=cls(env.conn))
             docs = env.docs()
+            warnings = env.store.site(SITE)['state'].get('warnings') or []
         finally:
             env.close()
         self.assertEqual('complete_with_review', result['status'], result)
         self.assertIn('shared_post_number_rows', result['stop_reason'])
+        self.assertIn('pdf_missing_as_no_text:1', warnings)
         self.assertEqual(['RS-13', 'RS-8', 'RS-9', 'RS-9'], sorted(d['post_number'] for d in docs))
 
 
