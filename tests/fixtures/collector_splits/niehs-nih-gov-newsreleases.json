@@ -1,0 +1,23 @@
+{
+ "site_id": "niehs-nih-gov-newsreleases",
+ "listing_body": "<html><body><main><div id=\"newsreleases-container-internal\"><div class=\"newsreleases_result\"><div class=\"newsreleases_result_dateorigin\"><span class=\"newsreleases_result_dateorigin-day\">13</span><span class=\"newsreleases_result_dateorigin-monthyear\">Nov 2025</span></div><div class=\"newsreleases_result_description_metaData\"><div class=\"newsreleases_result_description_metaData-title\"><a href=\"/newsreleases/walsh-director\">Walsh director</a></div><div class=\"blurbtext\">Blurb Walsh director</div></div></div><div class=\"newsreleases_result\"><div class=\"newsreleases_result_dateorigin\"><span class=\"newsreleases_result_dateorigin-day\">13</span><span class=\"newsreleases_result_dateorigin-monthyear\">Nov 2025</span></div><div class=\"newsreleases_result_description_metaData\"><div class=\"newsreleases_result_description_metaData-title\"><a href=\"/newsreleases/biologic-age\">Biologic age</a></div><div class=\"blurbtext\">Blurb Biologic age</div></div></div></div></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.niehs.nih.gov/newsreleases/walsh-director": "<html><head><title>Walsh director | NIEHS</title><meta property=\"og:title\" content=\"Walsh director | National Institute\"><meta property=\"og:description\" content=\"OG Walsh director\"></head><body><main><article><p>November 13, 2025</p><p>Synthetic NIEHS news release article text for offline equality testing of the enumeration split here. Synthetic NIEHS news release article text for offline equality testing of the enumeration split here. </p></article></main></body></html>",
+  "https://www.niehs.nih.gov/newsreleases/biologic-age": "<html><head><title>Biologic age | NIEHS</title><meta property=\"og:title\" content=\"Biologic age | National Institute\"><meta property=\"og:description\" content=\"OG Biologic age\"></head><body><main><article><p>November 13, 2025</p><p>Synthetic NIEHS news release article text for offline equality testing of the enumeration split here. Synthetic NIEHS news release article text for offline equality testing of the enumeration split here. </p></article></main></body></html>"
+ },
+ "long_text": "Synthetic NIEHS news release article text for offline equality testing of the enumeration split here. Synthetic NIEHS news release article text for offline equality testing of the enumeration split here. ",
+ "empty_body": "<html><body><main><div id=\"newsreleases-container-internal\"></div></main></body></html>",
+ "original_method_source_sha256": {
+  "_curl": "a544b47b4e74c46b36d1ee5ac463145c67e2b8f22c7c0db270103a2fe77de777",
+  "_parse_html": "1db5a0699c0b8dd782d38d2b9859e1a32f93987a47c3db534094db0893f16b95",
+  "_clean": "e8d21910ffd8115d31b478d130db38c63b86a1b20dc469846d2ed673efbe4efe",
+  "_one_line": "2d8304ef4765d6299af37fb145c893275447e2836929bbcfde8e7ffe9287779f",
+  "_meta": "feec8a58b9efce8ab1fbba8931e9d91cc6803143468d35c2584f3269d5b03c11",
+  "_parse_date_monthyear": "a0149dd008e300449c5f396f4dc5535f339af133ab0ecbeb15ceb29449e9475e",
+  "_parse_date_text": "cd1800506518ef91171dde5f7f6532d4c3d00db6558a69a7eb7705725e0879c6",
+  "_fetch_entries": "c83682b46c8e0cd522e93ee08c14172d0285e9e48123eca9d860b904c2d82273",
+  "_fetch_detail": "c01e4e60bd69824ddbf6a1051cebefccd207d0d3fe1670680d7ba30e88b8dece",
+  "crawl": "75e1b2a932203b0e362b196b366511bc387c285a9f767e0deca15c523157225c"
+ }
+}

@@ -422,3 +422,176 @@ class NiehsNihGovNewsReleasesCrawler(BaseCrawler):
         print(f"[{self.site_id}] page {p}: saved {saved}/{limit_or_inf}")
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl(),
+    # _fetch_entries() and _fetch_detail() stay unchanged.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html):
+        """Rows of the list page, exactly as crawl() discovers them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        return self._enumeration_entries(html)
+
+    def _enumeration_entries(self, raw) -> list[dict]:
+        """The parsing half of _fetch_entries() (no fetch)."""
+        if not raw:
+            return []
+
+        soup = self._parse_html(raw)
+        if soup is None:
+            # Regex fallback
+            slugs = re.findall(r'href="(/newsreleases/[^"]+)"', raw)
+            return [
+                {"url": f"https://www.niehs.nih.gov{s}", "title": "", "date": "", "blurb": ""}
+                for s in dict.fromkeys(slugs)  # deduplicate, preserve order
+            ]
+
+        container = soup.find(id="newsreleases-container-internal") or soup
+        entries = []
+        seen = set()
+
+        for div in container.find_all("div", class_="newsreleases_result"):
+            try:
+                # Link — must be internal (/newsreleases/...)
+                title_div = div.find(class_="newsreleases_result_description_metaData-title")
+                if not title_div:
+                    continue
+                a = title_div.find("a", href=True)
+                if not a:
+                    continue
+                href = a["href"].strip()
+                if not href.startswith("/newsreleases/"):
+                    continue
+                url = f"https://www.niehs.nih.gov{href}"
+                if url in seen:
+                    continue
+                seen.add(url)
+
+                title = self._one_line(a.get_text(" ", strip=True))
+
+                # Date from list card
+                day_el = div.find(class_="newsreleases_result_dateorigin-day")
+                mon_el = div.find(class_="newsreleases_result_dateorigin-monthyear")
+                day = day_el.get_text(strip=True) if day_el else ""
+                monthyear = mon_el.get_text(strip=True) if mon_el else ""
+                date_str = self._parse_date_monthyear(day, monthyear)
+
+                # Blurb (the short description div that isn't the title)
+                blurb = ""
+                meta_div = div.find(class_="newsreleases_result_description_metaData")
+                if meta_div:
+                    for child in meta_div.find_all("div", recursive=False):
+                        cls_list = " ".join(child.get("class", []))
+                        if "title" in cls_list or "agency" in cls_list or "subtitle" in cls_list:
+                            continue
+                        txt = self._one_line(child.get_text(" ", strip=True))
+                        if txt and txt != title:
+                            blurb = txt
+                            break
+
+                entries.append({"url": url, "title": title, "date": date_str, "blurb": blurb})
+            except Exception as exc:
+                print(f"[{self.site_id}] list-entry parse error: {exc}")
+                continue
+
+        return entries
+
+    def _enumeration_detail(self, raw: str, url: str) -> dict | None:
+        """The parsing half of _fetch_detail(url) (no fetch)."""
+        if not raw:
+            return None
+
+        soup = self._parse_html(raw)
+
+        # Title
+        title = ""
+        if soup:
+            title = self._meta(soup, "og:title") or self._one_line(
+                soup.title.get_text() if soup.title else ""
+            )
+            # Strip trailing site name
+            title = re.sub(r"\s*\|.*$", "", title).strip()
+
+        # Date from article text
+        date_str = self._parse_date_text(raw)
+
+        # Abstract: full article body
+        abstract = ""
+        if soup:
+            article = soup.find("article")
+            if article:
+                # Remove nav, aside, script, style noise
+                for tag in article.find_all(["script", "style", "nav", "aside", "footer"]):
+                    tag.decompose()
+                abstract = self._clean(article.get_text("\n", strip=True))
+            if not abstract:
+                main = soup.find("main")
+                if main:
+                    for tag in main.find_all(["script", "style", "nav", "aside", "footer"]):
+                        tag.decompose()
+                    abstract = self._clean(main.get_text("\n", strip=True))
+        else:
+            # Regex fallback
+            art_m = re.search(r"<article[^>]*>(.*?)</article>", raw, re.DOTALL)
+            if art_m:
+                txt = re.sub(r"<[^>]+>", " ", art_m.group(1))
+                abstract = self._clean(unescape(txt))
+
+        # OG description as a short summary / fallback
+        og_desc = ""
+        if soup:
+            og_desc = self._meta(soup, "og:description")
+
+        external_id = urlparse(url).path.strip("/").rsplit("/", 1)[-1]
+
+        return {
+            "title": title,
+            "date": date_str,
+            "abstract": abstract,
+            "og_description": og_desc,
+            "external_id": external_id,
+        }
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s per-entry paper; None keeps its skips.
+        A URL-only item (identity precheck: {"detail_url": url}) works too."""
+        entry = item
+        url = entry.get("url") or entry["detail_url"]
+        detail = self._enumeration_detail(html, url)
+        if not detail:
+            return None
+        title = detail.get("title") or entry.get("title") or ""
+        abstract = detail.get("abstract") or ""
+        date_str = detail.get("date") or entry.get("date") or ""
+        og_desc = detail.get("og_description") or ""
+        external_id = detail.get("external_id") or url.split("/")[-1]
+        if not abstract and og_desc:
+            abstract = og_desc
+        if len(abstract) < self._MIN_ABSTRACT:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": title,
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": "News Release",
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": date_str,
+            "url": url,
+            "pdf_url": "",
+            "doi": "",
+            "department": "National Institute of Environmental Health Sciences",
+            "metadata": json.dumps(
+                {
+                    "blurb": entry.get("blurb", ""),
+                    "og_description": og_desc,
+                    "list_date": entry.get("date", ""),
+                },
+                ensure_ascii=False,
+            ),
+        }
