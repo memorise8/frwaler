@@ -613,3 +613,52 @@ class DataGvAtDatasetsCrawler(BaseCrawler):
         elif pdf_url:
             parts.append(f"PDF resource URL: {pdf_url}.")
         return re.sub(r"\s+", " ", " ".join(parts)).strip()
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() and its transport are unchanged.
+    # Listing = the piveau search page (same parameters as _fetch_list);
+    # detail = /api/hub/search/datasets/{id} through the framework's gate;
+    # _enumeration_paper applies crawl()'s merge (detail + _list_record, list
+    # record when the detail is empty) and _build_paper. The optional HEAD
+    # request for a filename is not made here (it answers None, as a failed
+    # HEAD does in crawl()).
+    # ------------------------------------------------------------------
+
+    _ENUM_URL_KEY = "_nrb_detail_api"
+
+    def _enumeration_items(self, data):
+        from crawler.enumeration.http import PermanentFailure
+        result = data.get("result") if isinstance(data, dict) else None
+        if not isinstance(result, dict) or not isinstance(result.get("results"), list):
+            raise PermanentFailure("listing_parse_error:invalid_piveau_envelope")
+        rows = []
+        for item in result["results"]:
+            if not isinstance(item, dict):
+                raise PermanentFailure("listing_parse_error:invalid_piveau_record")
+            item_id = self._string(item.get("id"))
+            if not item_id:
+                continue
+            row = dict(item)
+            row[self._ENUM_URL_KEY] = f"{_DETAIL_API}/{item_id}"
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, data, item):
+        record = dict(item)
+        record.pop(self._ENUM_URL_KEY, None)
+        result = data.get("result") if isinstance(data, dict) else None
+        detail = result if isinstance(result, dict) and result else None
+        if not detail:
+            detail = record
+        else:
+            detail.setdefault("_list_record", record)
+        had = "_curl_head" in self.__dict__
+        saved_head = self.__dict__.get("_curl_head")
+        self._curl_head = lambda url: None
+        try:
+            return self._build_paper(detail)
+        finally:
+            if had:
+                self._curl_head = saved_head
+            else:
+                del self._curl_head

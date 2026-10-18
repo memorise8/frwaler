@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "sites": {
+    "data-gv-at-datasets": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "base_url": "https://www.data.gv.at",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": ["json"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["json", "item"]
+      },
+      "listing": {
+        "url": "https://www.data.gv.at/api/hub/search/search",
+        "params": {
+          "q": "",
+          "filter": "dataset",
+          "limit": 50,
+          "sort": "relevance+desc, modified+desc, title.de+asc",
+          "facetOperator": "AND",
+          "facetGroupOperator": "AND",
+          "dataServices": "false",
+          "facets": "{\"format\": [\"PDF\"]}"
+        },
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {"type": "adapter", "key_field": "id", "url_field": "_nrb_detail_api", "date_field": "modified"},
+        "total": {"type": "json", "path": "result.count"}
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}
