@@ -1,0 +1,19 @@
+{
+ "site_id": "publicservice-govt-nz-research-and-data",
+ "listing_body": "<html><body><main><form><select id=\"DirectoryFilterForm_getDirectoryFilterForm_topics\"><option value=\"193\" selected>Research</option></select></form><div class=\"result-list\"><div class=\"result\"><h3 class=\"result__title\"><a class=\"result__title-link\" href=\"/assets/DirectoryFile/ELN-younger.pdf?_searchAnalytics=eyJkb2N1bWVudElkIjoiRGlyXzEifQ\">Census: Younger workers</a></h3><span class=\"result__date\">16 December 2025</span><p id=\"2933-metaDescription\">Synthetic offline research summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline research summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. </p><span class=\"result__taxon-individual\">Research</span><div class=\"result__actions\"><a href=\"/assets/DirectoryFile/r-2933.pdf\">Download PDF</a></div></div><div class=\"result\"><h3 class=\"result__title\"><a class=\"result__title-link\" href=\"/research-and-data/measuring-trust?_searchAnalytics=eyJkb2N1bWVudElkIjoiRGlyXzEifQ\">Measuring trust</a></h3><span class=\"result__date\">30 April 2024</span><p id=\"1194-metaDescription\">Synthetic offline research summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline research summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. </p><span class=\"result__taxon-individual\">Research</span><div class=\"result__actions\"><a href=\"/assets/DirectoryFile/r-1194.pdf\">Download PDF</a></div></div></div></main></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.publicservice.govt.nz/assets/DirectoryFile/ELN-younger.pdf": "HTTP/1.1 200\ncontent-type: text/html",
+  "https://www.publicservice.govt.nz/research-and-data/measuring-trust": "<html><head><link rel=\"canonical\" href=\"https://www.publicservice.govt.nz/research-and-data/measuring-trust\"></head><body><div class=\"banner__breadcrumbs\"><a>Home</a><a>Research and data</a></div><main><h1>Measuring trust</h1><div class=\"meta\">30 April 2024</div><div class=\"body__intro\">Synthetic offline research summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline research summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. </div><section class=\"element\"><div class=\"content-element__content\"><p>Authors: Jane Doe and John Roe Publisher: PSC Format: PDF</p></div></section></main></body></html>"
+ },
+ "empty_body": "<html><body><main><form><select id=\"DirectoryFilterForm_getDirectoryFilterForm_topics\"></select></form><p>No results</p></main></body></html>",
+ "long_text": "Synthetic offline research summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. Synthetic offline research summary for the L2b split regression, résumé and 자료 kept identical between crawl and plan. ",
+ "original_method_source_sha256": {
+  "_parse_list_page": "ecc859da68dac0cc84749245bb035e2d02b780bf8bb4023a2134a6f7d87adfc4",
+  "_external_id": "7c9eb6757c560e8ea88c09666437fa48771e83fbdc119ccf718e68093bb92f52",
+  "_parse_pdf_record": "ef5b5cce8d32e3afe318dbd5d1fc0ee4f300b5e2335d082389a2c7617168a3a1",
+  "_parse_html_detail": "d58e4cf59c0495d845f9203a5d62377821e4e3e544f9fc41c5a0a2865cd32bf2",
+  "_fetch_and_parse_item": "51fb0ac6c6d7cc7a1e6f15a7f1e1d246a1ae9985148dc19d4f8d3012befe70dd",
+  "crawl": "6874cc08b56434592b49a5e7eb4f2643c45e1a8c2392ed5cb6fa7234dbcfd6a0"
+ }
+}

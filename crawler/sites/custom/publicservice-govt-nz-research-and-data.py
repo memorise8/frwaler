@@ -650,3 +650,35 @@ class PublicServiceGovtNzResearchAndDataCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged). Listing rows come from
+    # _parse_list_page; each row's detail response feeds the same record
+    # parsers crawl() uses (PDF rows: response headers instead of a curl HEAD).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        # Record the same list_url crawl() would (no start= on the first page).
+        start = dict(parse_qsl(urlsplit(url or "").query)).get("start") or "0"
+        page = int(start) // self.PAGE_SIZE + 1 if start.isdigit() else 1
+        records, _next_url = self._parse_list_page(html, self._list_url(page))
+        if not records:
+            soup = self._make_soup(html)
+            if soup.select_one(".result-list .result") is not None:
+                raise PermanentFailure("listing_parse_error:results_not_parsed")
+        return records
+
+    def _enumeration_detail(self, resp, item):
+        record = dict(item)
+        if record.get("detail_kind") == "pdf" or self._is_pdf_url(record["url"]):
+            headers = "\n".join(
+                [f"HTTP/1.1 {resp.status}"] + [f"{k}: {v}" for k, v in (resp.headers or {}).items()]
+            )
+            return self._parse_pdf_record(record, headers)
+        return self._parse_html_detail(record, resp.text())
+
+    def _enumeration_paper(self, item, detail):
+        return detail
