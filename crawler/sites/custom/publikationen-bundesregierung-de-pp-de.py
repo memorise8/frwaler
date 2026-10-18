@@ -701,3 +701,157 @@ class PublikationenBundesregierungDePpDeCrawler(BaseCrawler):
             year, month, day = compact.groups()
             return f"{year}-{month}-{day}"
         return ""
+
+    # ------------------------------------------------------------------
+    # Enumeration split (framework plan; crawl() above is unchanged)
+    # ------------------------------------------------------------------
+
+    _ENUM_PAGE = "_enum_list_page"
+    _ENUM_ENDPOINT = "_enum_list_endpoint"
+
+    def _enumeration_items(self, data, url=None):
+        """Records of one searchJson page (the plan POSTs crawl()'s JSON body
+        with the page number nested at search.page), parsed with
+        _parse_list_records exactly as crawl() does. crawl()'s list_page /
+        list_endpoint metadata come from the response (result.page) and the
+        POST URL; they ride along under private keys and are removed again
+        before the record is stored as metadata.list_record. Records without
+        an id or detail URL fail in crawl() before saving; they are left out."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("result"), dict):
+            raise PermanentFailure("listing_parse_error:expected_search_result_object", url)
+        result = data["result"]
+        if not isinstance(result.get("items"), list):
+            raise PermanentFailure("listing_parse_error:search_result_without_items", url)
+        page = self._to_int(result.get("page"))
+        rows = []
+        for record in self._parse_list_records(data):
+            external_id = record.get("external_id") or record.get("id") or ""
+            if not external_id or not record.get("url"):
+                continue
+            row = dict(record)
+            row[self._ENUM_PAGE] = page
+            row[self._ENUM_ENDPOINT] = url
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, detail_raw, effective_detail_url, row):
+        """Paper for one record from its detail HTML (final URL after
+        redirects = crawl()'s effective_detail_url). The abstract enrichment,
+        skip rule and paper fields are crawl()'s, unchanged."""
+        record = {k: v for k, v in row.items() if k not in (self._ENUM_PAGE, self._ENUM_ENDPOINT)}
+        page = row.get(self._ENUM_PAGE)
+        list_endpoint = row.get(self._ENUM_ENDPOINT)
+        external_id = record.get("external_id") or record.get("id") or ""
+        if not external_id:
+            raise RuntimeError("list record has no external id")
+        detail_url = record.get("url") or ""
+        if not detail_url:
+            raise RuntimeError("list record has no detail URL")
+        if not detail_raw:
+            raise RuntimeError("detail fetch failed after retries")
+
+        detail_soup = self._make_soup(detail_raw, "detail")
+        if detail_soup is None:
+            raise RuntimeError("detail HTML could not be parsed")
+
+        parsed = self._parse_detail(
+            detail_soup,
+            record,
+            effective_detail_url or detail_url,
+        )
+        title = parsed.get("title") or record.get("title") or ""
+        abstract = parsed.get("abstract") or record.get("abstract") or ""
+        abstract = self._clean_text(abstract)
+
+        # Enrich abstract until >= 100 chars
+        if len(abstract) < 100:
+            subtitle = self._clean_text(
+                parsed.get("subtitle") or record.get("subtitle") or ""
+            )
+            if subtitle and subtitle not in abstract:
+                abstract = f"{abstract} {subtitle}".strip() if abstract else subtitle
+        if len(abstract) < 100:
+            facts = parsed.get("facts") or {}
+            extra = []
+            for key in ("Stand", "Artikelnummer", "Herausgeber", "Sprachfassung der PDF"):
+                val = facts.get(key)
+                if val:
+                    extra.append(f"{key}: {val}")
+            if extra:
+                abstract = (abstract + ". " + ". ".join(extra)).strip(". ")
+        if len(abstract) < 100:
+            meta_desc = self._clean_text(parsed.get("meta_description") or "")
+            if meta_desc and meta_desc not in abstract:
+                abstract = meta_desc if len(meta_desc) >= len(abstract) else f"{abstract} {meta_desc}".strip()
+        if len(abstract) < 100 and title:
+            if title not in abstract:
+                abstract = f"{title}. {abstract}".strip(". ") if abstract else title
+        if len(abstract) < 100:
+            abstract = f"{abstract}. {self.DEPARTMENT_DISPLAY}".strip(". ")
+
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        if not title:
+            raise RuntimeError("parsed record has no title")
+
+        category = (
+            parsed.get("category")
+            or record.get("category")
+            or "Publikation"
+        )
+        keywords = self._dedupe(
+            (parsed.get("keywords") or [])
+            + (record.get("keywords") or [])
+            + [
+                category,
+                parsed.get("language") or "",
+                self.DEPARTMENT_DISPLAY,
+            ]
+        )
+        published_date = (
+            parsed.get("published_date")
+            or self._parse_date(record.get("sort_date") or "")
+        )
+        pdf_url = parsed.get("pdf_url") or record.get("pdf_url") or ""
+
+        original_filename = None
+        if pdf_url:
+            m = re.search(r"/([^/?#]+\.pdf)", pdf_url, re.I)
+            if m:
+                original_filename = m.group(1)
+
+        metadata = {
+            "source": "CoreMedia searchJson API and publication detail HTML",
+            "start_url": self.START_URL,
+            "list_endpoint": list_endpoint,
+            "list_page": page,
+            "list_record": record,
+            "detail_url": effective_detail_url or detail_url,
+            "facts": parsed.get("facts") or {},
+            "meta_description": parsed.get("meta_description") or "",
+            "subtitle": parsed.get("subtitle") or record.get("subtitle") or "",
+            "image_url": parsed.get("image_url") or record.get("image_url") or "",
+            "original_description_url": parsed.get("original_description_url") or "",
+            "pdf_info": parsed.get("pdf_info") or record.get("pdf_info") or "",
+            "sort_date": record.get("sort_date") or "",
+        }
+
+        return {
+            "id": f"{self.site_id}:{external_id}",
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": external_id,
+            "title": title,
+            "authors": json.dumps([self.DEPARTMENT_DISPLAY], ensure_ascii=False),
+            "abstract": abstract,
+            "category": category,
+            "keywords": json.dumps(keywords, ensure_ascii=False),
+            "published_date": published_date,
+            "url": effective_detail_url or detail_url,
+            "pdf_url": pdf_url,
+            "doi": "",
+            "department": self.DEPARTMENT,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
