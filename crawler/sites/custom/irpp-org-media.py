@@ -566,3 +566,43 @@ class IRPPOrgMediaCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (L3b X3): crawl() unchanged
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Media cards of one list page, parsed with _parse_list_items exactly
+        as crawl() does. crawl() follows a.load-more-link, which is the path
+        form /media/page/N/; the plan reads the same pages by number."""
+        soup = self._soup(html)
+        if soup is None:
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:html", url)
+        return self._parse_list_items(soup)
+
+    def _enumeration_paper(self, detail_html, detail_effective_url, resp, list_item):
+        """Paper for one card, made by crawl()'s own _parse_detail. The framework
+        fetched the detail page (first step) and the page's WordPress REST JSON
+        link with _embed=1 added (second_step selector + add_params, the
+        _with_embed rule); here that response stands in for _fetch_json, so
+        _parse_detail runs unchanged without network. No JSON link: the second
+        response is the detail page itself and _parse_detail gets no data, as
+        in crawl(). Returns None where crawl() skips (abstract under 50 chars)."""
+        if getattr(resp, "first_resp", None) is not None:
+            try:
+                data = json.loads(resp.text())
+            except json.JSONDecodeError:
+                data = None
+            fetched = (data, resp.url)
+        else:
+            fetched = (None, "")
+        self._fetch_json = lambda url, _fetched=fetched: _fetched
+        try:
+            paper = self._parse_detail(list_item, detail_html, detail_effective_url)
+        finally:
+            del self._fetch_json
+        abstract = paper.get("abstract") or ""
+        if len(abstract) < 50:
+            return None
+        return paper

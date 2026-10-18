@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "sites": {
+    "irpp-org-media": {
+      "strategy": "last_page_backward",
+      "base_url": "https://irpp.org",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": ["html", "url"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["first_html", "first_url", "resp", "item"],
+        "second_step": {
+          "use": "detail_page",
+          "selector": "link[href*='/wp-json/']:not([href*='oembed'])[title='json' i], link[href*='/wp-json/']:not([href*='oembed'])[type*='application/json' i]",
+          "attr": "href",
+          "required": false,
+          "add_params": {"_embed": "1"}
+        },
+        "none_is_rule_skip": true
+      },
+      "listing": {
+        "url": "https://irpp.org/media/page/{page}/",
+        "first_page_url": "https://irpp.org/media/",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "url",
+          "url_field": "url",
+          "title_field": "title",
+          "listing_marker": "body.page-template-page-media"
+        }
+      },
+      "last_page": {"overlap_pages": 1},
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
