@@ -420,3 +420,87 @@ class HomeTreasuryGovAboutCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() and its helpers are unchanged.
+    # Listing = the one GAO-IG Act page (_parse_listing; intro and page date
+    # travel with each row). Detail = the PDF; the framework runs
+    # pdftotext -f 1 -l 2 (ext:pdf_text) and _enumeration_paper applies
+    # crawl()'s cleanup, 2000-char cut and intro fallback.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        page_intro, page_date, doc_list = self._parse_listing(html)
+        rows, seen = [], set()
+        for doc in doc_list:
+            if doc["full_url"] in seen:
+                continue
+            seen.add(doc["full_url"])
+            row = dict(doc)
+            row["_page_intro"] = page_intro
+            row["_page_date"] = page_date
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, item, pdf_text):
+        page_intro = item.get("_page_intro") or ""
+        page_date = item.get("_page_date")
+        title = item["title"]
+        category = item["category"]
+        filename = item["filename"]
+        href = item["href"]
+        full_url = item["full_url"]
+        external_id = re.sub(r"\.pdf$", "", filename, flags=re.IGNORECASE)[:200]
+        fy_year = self._extract_fy_year(title)
+        post_number = fy_year
+        published_date = page_date or None
+        if not published_date and fy_year:
+            pub_yr = int(fy_year) - 1
+            published_date = f"{pub_yr}-03-01"
+        abstract = ""
+        if pdf_text is not None:
+            text = re.sub(r"[ \t]+", " ", pdf_text)
+            text = re.sub(r"\n{3,}", "\n\n", text)
+            abstract = text.strip()[:2000]
+        if not abstract or len(abstract) < 50:
+            ctx = f" This document is the {title}"
+            if fy_year:
+                ctx += f" for fiscal year {fy_year}"
+            ctx += "."
+            abstract = re.sub(r"\s+", " ", (page_intro + ctx)).strip()
+        if len(abstract) < 50:
+            return None
+        kw_parts = ["GAO", "IG Act", "Treasury", "accountability", "recommendations"]
+        if fy_year:
+            kw_parts.append(f"FY{fy_year}")
+        if "executive summary" in title.lower():
+            kw_parts.append("executive summary")
+        return {
+            "site_id": _SITE_ID,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "url": _START_URL,
+            "pdf_url": full_url,
+            "publisher": _PUBLISHER,
+            "department": _DEPARTMENT,
+            "authors": None,
+            "journal": None,
+            "category": category,
+            "keywords": ",".join(kw_parts),
+            "doi": None,
+            "original_filename": filename,
+            "metadata": json.dumps(
+                {
+                    "posted_date": published_date,
+                    "originalFilename": filename,
+                    "fiscal_year": fy_year,
+                    "report_type": category,
+                    "href": href,
+                },
+                ensure_ascii=False,
+            ),
+        }
