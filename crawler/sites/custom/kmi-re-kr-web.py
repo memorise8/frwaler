@@ -481,3 +481,63 @@ class KmiReKrWebCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done. total saved: {saved}")
         return saved
+
+    # -- enumeration split (crawl() unchanged) --------------------------
+    def _enumeration_items(self, html: str, url: str = "") -> list[dict]:
+        """List rows exactly as crawl() reads them (page number only drives has_next)."""
+        return self._parse_list_page(html, 0)[0]
+
+    def _enumeration_detail(self, html: str, item: dict) -> dict:
+        return self._parse_detail(html, item)
+
+    def _enumeration_paper(self, item: dict, detail: dict) -> dict | None:
+        """The paper crawl() saves for one list row + parsed detail (same skip rule)."""
+        abstract = detail.get("abstract") or ""
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+
+        published_date = detail.get("published_date") or item.get("listed_date") or ""
+        original_filename = detail.get("original_filename")
+        metadata = {
+            "posted_date": item.get("listed_date_raw") or item.get("listed_date"),
+            "posted_date_iso": item.get("listed_date"),
+            "originalFilename": original_filename,
+            "journal_raw": None,
+            "series": None,
+            "volume": None,
+            "issue": None,
+            "rbsIdx": _RBS_IDX,
+            "idx": item.get("idx"),
+            "node_id": item.get("idx"),
+            "post_number": item.get("post_number"),
+            "board_number": item.get("post_number"),
+            "view_count": item.get("view_count"),
+            "listed_department": item.get("department"),
+            "detail_department": detail.get("department"),
+            "published_date_raw": detail.get("published_date_raw"),
+            "source_href": item.get("source_href"),
+            "attachments": detail.get("attachments") or [],
+        }
+
+        return {
+            "id": f"{self.site_id}:{item['idx']}",
+            "site_id": self.site_id,
+            "external_id": item["external_id"],
+            "post_number": item.get("post_number"),
+            "title": detail.get("title") or item["title"],
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": item.get("listed_date"),
+            "posted_date": item.get("listed_date"),
+            "authors": "",
+            "publisher": _PUBLISHER,
+            "department": detail.get("department") or item.get("department") or "",
+            "journal": "",
+            "url": item["url"],
+            "pdf_url": detail.get("pdf_url"),
+            "keywords": "KMI, 한국해양수산개발원, 보도자료",
+            "category": "보도자료",
+            "doi": "",
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }

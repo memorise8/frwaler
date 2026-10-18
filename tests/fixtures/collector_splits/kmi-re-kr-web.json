@@ -1,0 +1,26 @@
+{
+ "listing_body": "<html><body><table class=\"bbsListA wviewT\"><tbody class=\"alignC\"><tr><td>1202</td><td class=\"tit\"><a href=\"/web/board/view.do?rbsIdx=164&amp;page=1&amp;idx=3670\" title=\"보도 1\">보도 1</a></td><td>2026-10-14</td><td>연구실</td><td>7</td></tr><tr><td>1201</td><td class=\"tit\"><a href=\"/web/board/view.do?rbsIdx=164&amp;page=1&amp;idx=3669\" title=\"보도 2\">보도 2</a></td><td>2026.10.13</td><td>연구실</td><td>7</td></tr></tbody></table><div class=\"paginate\"></div></body></html>",
+ "details": {
+  "https://www.kmi.re.kr/web/board/view.do?rbsIdx=164&idx=3670": "<html><body><table class=\"bbsViewA wviewT\"><thead><tr><th class=\"viewTlt\" colspan=\"4\">보도 1 상세</th></tr><tr><th>담당부서</th><td>연구실 상세</td><th>보도일</th><td>2026-10-14</td></tr></thead><tbody><tr><td class=\"_board_cont\" colspan=\"4\"><p>합성 보도자료 본문입니다. 한국해양수산개발원 회귀 시험용 텍스트로 crawl 과 plan 이 같은 paper 를 만드는지 확인합니다. Synthetic offline text, résumé kept identical.</p></td></tr><tr><td colspan=\"4\"><ul class=\"multi_file\"><li><a href=\"/web/board/download.do?rbsIdx=164&amp;idx=3670&amp;fidx=2\" title=\"보도3670.pdf 다운로드 하기\"><span>보도3670.pdf</span></a></li></ul></td></tr></tbody></table></body></html>",
+  "https://www.kmi.re.kr/web/board/view.do?rbsIdx=164&idx=3669": "<html><body><table class=\"bbsViewA wviewT\"><thead><tr><th class=\"viewTlt\" colspan=\"4\">보도 2 상세</th></tr><tr><th>담당부서</th><td>연구실 상세</td><th>보도일</th><td>2026-10-13</td></tr></thead><tbody><tr><td class=\"_board_cont\" colspan=\"4\"><p>합성 보도자료 본문입니다. 한국해양수산개발원 회귀 시험용 텍스트로 crawl 과 plan 이 같은 paper 를 만드는지 확인합니다. Synthetic offline text, résumé kept identical.</p></td></tr><tr><td colspan=\"4\"><ul class=\"multi_file\"><li><a href=\"/web/board/download.do?rbsIdx=164&amp;idx=3669&amp;fidx=2\" title=\"보도3669.pdf 다운로드 하기\"><span>보도3669.pdf</span></a></li></ul></td></tr></tbody></table></body></html>"
+ },
+ "content_type": "text/html",
+ "long_text": "합성 보도자료 본문입니다. 한국해양수산개발원 회귀 시험용 텍스트로 crawl 과 plan 이 같은 paper 를 만드는지 확인합니다. Synthetic offline text, résumé kept identical.",
+ "empty_body": "<html><body><table class=\"bbsListA wviewT\"><tbody class=\"alignC\"></tbody></table></body></html>",
+ "site_id": "kmi-re-kr-web",
+ "original_method_source_sha256": {
+  "__init__": "f9b45ab3db252358f22d39cb7995b1988ba6a034941274bf251b8d5ec2a0271d",
+  "_curl_get": "3e928a4670eb130109a455b8695c2a0c1ee937efc4ad9a9973cae0cb151c2036",
+  "_fetch_list_page": "d0d61e6c838b5f14f7be2af61c7c2ffc3d6ef8a0327ab6e8fb7cd6ff26287ed5",
+  "_fetch_detail": "c93c5d5e6ef4868a6a42b9df1b44e61084dbc4f5d2489e1fd9515c6ef6fef3aa",
+  "_parse_list_page": "929ebde0e542ea4e9b86e01115f6663111c17723f98fcf1f99c08faf9667c24a",
+  "_has_next_page": "9cc31df5da3f49d086d787fbeb81eb198db778441ab6e4e893b9d4a9f5bc2954",
+  "_parse_detail": "4a0a2ddbccedcf6237639bd46d84165a21f064ccd103eeb504913b3b81e11c78",
+  "_extract_detail_fields": "d44e2eb4728346b744600591bace1e85ef8d43bb75cc66e6b033dfd9eaa1dc94",
+  "_extract_attachments": "95e13b1579141949a9d8755a0de64edb9ba1879c015a8b222125947d4441b3ac",
+  "_pick_pdf_attachment": "ad7d76146cfe8cb8a95ec7b1b370ad03628dea5aba82bccda8882b5bc64168dd",
+  "_extract_abstract": "b0fb98ea9d9bafafb9c50c362b415048f9b1448cbd3026dfbafb3b6f79e7cc0b",
+  "_extract_hwp_json_text": "3b86f95ef8c3dd0f1213d27c5a4a5245cb055d8b4474cf2356e7e4d4b8fb5b4b",
+  "crawl": "91e029ea231902dfab1b47929e17ba095cfa3417ff02886f7486ce0c4b68e07f"
+ }
+}

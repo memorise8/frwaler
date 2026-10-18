@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "sites": {
+    "kmi-re-kr-web": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "last_page_backward",
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "html",
+          "item"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ]
+      },
+      "listing": {
+        "url": "https://www.kmi.re.kr/web/board/list.do",
+        "params": {
+          "rbsIdx": "164"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "date_field": "listed_date",
+          "title_field": "title",
+          "listing_marker": "table.bbsListA"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
