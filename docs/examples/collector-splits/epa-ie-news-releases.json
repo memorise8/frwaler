@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "sites": {
+    "epa-ie-news-releases": {
+      "strategy": "date_range_split",
+      "base_url": "https://www.epa.ie",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.epa.ie/news-releases/news-releases-{segment}/",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "date_field": "listed_date",
+          "title_field": "title"
+        }
+      },
+      "segments": {
+        "mode": "range",
+        "granularity": "year",
+        "from": "2023",
+        "to": "now",
+        "filter": {
+          "type": "parts",
+          "year_param": "year"
+        },
+        "split_to": []
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

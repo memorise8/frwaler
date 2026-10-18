@@ -334,3 +334,64 @@ class EPAIENewsReleasesCrawler(BaseCrawler):
 
         print(f"[epa-ie-news-releases] done. total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the parsers are
+    # unchanged; these methods only parse already fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """Rows of one year page (crawl()'s _parse_list_page) plus the year page
+        URL that crawl() stores in metadata (request URL without its query)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url or "")
+        year_page = (url or "").split("?", 1)[0].split("#", 1)[0]
+        rows = []
+        for item in self._parse_list_page(html):
+            row = dict(item)
+            row["year_page"] = year_page
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page — crawl()'s conversion copied verbatim
+        (external_id/post_number = list span id d.en.<N>, url = list link)."""
+        if not html:
+            return None
+        detail = self._parse_detail_page(html)
+
+        title = detail["title"] or item["title"]
+        abstract = detail["abstract"] or item["abstract_short"]
+        published_date = detail["published_date"] or item["listed_date"]
+
+        if not abstract or len(abstract) < 50:
+            return None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": item["external_id"],
+            "post_number": item["post_number"],
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": item["listed_date"],
+            "url": item["url"],
+            "pdf_url": detail["pdf_url"],
+            "original_filename": detail["original_filename"],
+            "publisher": self._PUBLISHER,
+            "authors": None,
+            "keywords": None,
+            "category": "News Release",
+            "doi": None,
+            "department": None,
+            "journal": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": item["listed_date"],
+                    "year_page": item["year_page"],
+                    "node_id": item["external_id"],
+                },
+                ensure_ascii=False,
+            ),
+        }
