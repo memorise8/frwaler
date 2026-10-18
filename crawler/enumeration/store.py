@@ -105,8 +105,9 @@ class Store:
             if current["status"] in ("complete", "complete_with_mismatch", "complete_unverified",
                                      "complete_with_review"):
                 # A completed enumeration re-runs from scratch as a fresh pass;
-                # saved items are skipped through the item ledger.
-                state = {}
+                # saved items are skipped through the item ledger. Segments found on a hub page
+                # (ext:multi_listing) are remembered, so one missing later is still read.
+                state = {k: state[k] for k in ("discovered_segments",) if k in state}
                 self._exec("DELETE FROM enum_segment WHERE site_id=? AND plan_fp=?", (site_id, plan_fp))
                 self._exec("DELETE FROM enum_listed WHERE site_id=? AND plan_fp=?", (site_id, plan_fp))
         else:
@@ -205,6 +206,11 @@ class Store:
     # -- items -------------------------------------------------------------
     def item(self, site_id, key):
         return self._one("SELECT * FROM enum_item WHERE site_id=? AND item_key=?", (site_id, key))
+
+    def item_segment_keys(self, site_id):
+        """Segment keys the item ledger has items for (any plan generation)."""
+        return [r["segment_key"] for r in self._all(
+            "SELECT DISTINCT segment_key FROM enum_item WHERE site_id=? AND segment_key IS NOT NULL", (site_id,))]
 
     def known_keys(self, site_id, keys):
         if not keys:

@@ -181,14 +181,16 @@ def _validate_listing_extensions(site_id, raw, listing):
             raise PlanError(f"{site_id}: POST listing requires idempotent=true (read-only search APIs only)")
         if listing.get("body_type", "form") not in ("form", "json"):
             raise PlanError(f"{site_id}: listing.body_type must be form or json")
-    elif any(k in listing for k in ("idempotent", "body_type")):
-        raise PlanError(f"{site_id}: idempotent/body_type apply to POST listings only")
+    elif any(k in listing for k in ("idempotent", "body_type", "body", "content_type")):
+        raise PlanError(f"{site_id}: idempotent/body_type/body/content_type apply to POST listings only")
+    _validate_post_body(site_id, listing)
     if "{page}" in listing["url"]:
         if method == "POST":
             raise PlanError(f"{site_id}: path paging and POST listing cannot be combined")
         if "{segment}" in listing["url"] or strategy == "date_range_split":
-            if "first_page_url" in listing:
-                raise PlanError(f"{site_id}: first_page_url cannot be combined with segments")
+            if "first_page_url" in listing and "{segment}" not in str(listing["first_page_url"]):
+                # One first page for every segment would read the same page in each of them.
+                raise PlanError(f"{site_id}: with segments first_page_url needs {{segment}}")
         first = listing.get("first_page_url")
         if first is not None and (not isinstance(first, str) or not re.match(r"https?://", first) or "{page}" in first):
             raise PlanError(f"{site_id}: listing.first_page_url must be an absolute URL without {{page}}")
@@ -206,6 +208,22 @@ def _validate_listing_extensions(site_id, raw, listing):
             raise PlanError(f"{site_id}: next_cursor paging cannot re-read earlier pages (overlap_pages)")
         if "{page}" in listing["url"]:
             raise PlanError(f"{site_id}: next_cursor and path paging cannot be combined")
+    link = listing.get("next_link")
+    if link is not None:
+        # ext:next_link: the next page's address is read from the page itself (a signed
+        # "load more" URL). Forward only, GET, on the listing host (checked again at run time).
+        if strategy not in ("oldest_first_sort", "date_range_split"):
+            raise PlanError(f"{site_id}: next_link paging is forward-only (oldest_first_sort, date_range_split)")
+        if cursor is not None or "{page}" in listing["url"] or method != "GET":
+            raise PlanError(f"{site_id}: next_link cannot be combined with next_cursor, path paging or POST")
+        if not isinstance(link, dict) or not (
+                (set(link) <= {"selector", "attr"} and isinstance(link.get("selector"), str) and link["selector"].strip()
+                 and _LITERAL.match(str(link.get("attr", "href"))))
+                or (set(link) == {"json_path"} and _LITERAL.match(str(link["json_path"])))):
+            raise PlanError(f"{site_id}: next_link is {{selector, attr}} or {{json_path}}")
+        overlap = (raw.get("oldest_sort") or {}).get("overlap_pages") or (raw.get("segments") or {}).get("overlap_pages")
+        if overlap:
+            raise PlanError(f"{site_id}: next_link paging cannot re-read earlier pages (overlap_pages)")
     last = listing.get("last_page_path")
     if last is not None:
         if strategy != "last_page_backward":
@@ -216,6 +234,153 @@ def _validate_listing_extensions(site_id, raw, listing):
         raise PlanError(f"{site_id}: end_on_204 must be true or false")
 
 
+_DYN = re.compile(r"\{dyn:([A-Za-z_][A-Za-z0-9_]{0,31})\}")
+_MEDIA_TYPE = re.compile(r"^[a-z]+/[a-z0-9.+-]+(; ?charset=[A-Za-z0-9-]+)?$", re.I)
+_HEADER_NAME = re.compile(r"^[A-Za-z0-9-]{1,64}$")
+
+
+def _walk_strings(value):
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for v in value.values():
+            yield from _walk_strings(v)
+    elif isinstance(value, list):
+        for v in value:
+            yield from _walk_strings(v)
+
+
+def _validate_post_body(site_id, listing):
+    """ext:post_listing_nested_page (a JSON body template; "{page}" is the page value wherever
+    it sits) and ext:dynamic_token (values read from one public page of the listing host, used
+    only in the listing POST's body or one header; never in URLs, files or logs)."""
+    from urllib.parse import urlsplit
+    body = listing.get("body")
+    if body is not None:
+        if listing.get("body_type") != "json" or not isinstance(body, dict):
+            raise PlanError(f"{site_id}: listing.body is a JSON object template (body_type json)")
+        if "params" in listing:
+            raise PlanError(f"{site_id}: listing.body replaces params (give one of them)")
+        pages = sum(1 for s in _walk_strings(body) if s == "{page}")
+        if pages != (0 if listing.get("next_cursor") else 1):
+            raise PlanError(f"{site_id}: listing.body needs exactly one \"{{page}}\" value"
+                            " (none with next_cursor)")
+        if any("{page}" in s and s != "{page}" for s in _walk_strings(body)):
+            raise PlanError(f"{site_id}: \"{{page}}\" must be a whole value in listing.body")
+    ctype = listing.get("content_type")
+    if ctype is not None:
+        if listing.get("body_type") != "json" or not isinstance(ctype, str) or not _MEDIA_TYPE.match(ctype) \
+                or re.search(r"form|multipart", ctype, re.I):
+            raise PlanError(f"{site_id}: listing.content_type is a JSON body's media type (no form/multipart)")
+    used = set()
+    for s in list(_walk_strings(body)) + list(_walk_strings(listing.get("params") or {})):
+        used |= set(_DYN.findall(s))
+    dyn = listing.get("dynamic")
+    if dyn is None:
+        if used:
+            raise PlanError(f"{site_id}: {{dyn:...}} values need listing.dynamic")
+        return
+    if not isinstance(dyn, dict) or set(dyn) - {"url", "values", "header"}:
+        raise PlanError(f"{site_id}: listing.dynamic has url, values and an optional header")
+    url = dyn.get("url")
+    if not isinstance(url, str) or not re.match(r"https?://", url) or \
+            urlsplit(url).hostname != urlsplit(listing["url"]).hostname:
+        raise PlanError(f"{site_id}: listing.dynamic.url must be an absolute URL on the listing host")
+    values = dyn.get("values")
+    if not isinstance(values, dict) or not values:
+        raise PlanError(f"{site_id}: listing.dynamic.values must name at least one value")
+    for name, rule in values.items():
+        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]{0,31}", str(name)) or not isinstance(rule, dict) \
+                or len(rule) != 1 or not set(rule) <= {"regex", "json_path"}:
+            raise PlanError(f"{site_id}: listing.dynamic.values.{name} is {{regex}} or {{json_path}}")
+        if "regex" in rule:
+            try:
+                groups = re.compile(rule["regex"]).groups
+            except (re.error, TypeError):
+                raise PlanError(f"{site_id}: listing.dynamic.values.{name}.regex does not compile") from None
+            if groups != 1:
+                raise PlanError(f"{site_id}: listing.dynamic.values.{name}.regex needs exactly one group")
+        elif not _LITERAL.match(str(rule["json_path"])):
+            raise PlanError(f"{site_id}: listing.dynamic.values.{name}.json_path must be a literal path")
+    header = dyn.get("header")
+    if header is not None and listing.get("method", "GET") != "POST":
+        raise PlanError(f"{site_id}: listing.dynamic.header applies to POST listings only")
+    if header is not None:
+        if not isinstance(header, dict) or set(header) != {"name", "value"} or \
+                not all(isinstance(header[k], str) for k in header):
+            raise PlanError(f"{site_id}: listing.dynamic.header is {{name, value}}")
+        if not _DYN.fullmatch(header["name"]) and (not _HEADER_NAME.match(header["name"])
+                                                    or _FORBIDDEN_HEADERS.match(header["name"])):
+            raise PlanError(f"{site_id}: listing.dynamic.header.name is not an allowed header")
+        if not _DYN.fullmatch(header["value"]):
+            raise PlanError(f"{site_id}: listing.dynamic.header.value must be a {{dyn:...}} value")
+        used |= set(_DYN.findall(header["name"] + header["value"]))
+    missing = used - set(values)
+    if missing:
+        raise PlanError(f"{site_id}: undeclared dynamic values {sorted(missing)}")
+    if not used:
+        raise PlanError(f"{site_id}: listing.dynamic values are not used")
+
+
+def _same_listing_host(listing, url):
+    from urllib.parse import urlsplit
+    return isinstance(url, str) and bool(re.match(r"https?://", url)) and \
+        urlsplit(url).hostname == urlsplit(listing["url"].replace("{page}", "1").replace("{segment}", "x")).hostname
+
+
+def _validate_segment_items(site_id, listing, items):
+    """ext:multi_listing: an explicit segment may be its own listing (url, first_page_url on the
+    listing host, same paging form) and carry a label for the crawler (``segment`` argument)."""
+    if not isinstance(items, list) or not all(isinstance(s, dict) and "key" in s for s in items):
+        raise PlanError(f"{site_id}: explicit segment items are objects with a key")
+    keys = [str(s["key"]) for s in items]
+    if len(set(keys)) != len(keys):
+        raise PlanError(f"{site_id}: explicit segment keys must be unique")
+    paged = "{page}" in listing["url"]
+    for spec in items:
+        if "url" in spec:
+            url = spec["url"]
+            if not _same_listing_host(listing, url) or "{segment}" in url or ("{page}" in url) != paged:
+                raise PlanError(f"{site_id}: segment {spec['key']}: url must be on the listing host"
+                                " with the listing's paging form")
+        if "first_page_url" in spec and (not paged or not _same_listing_host(listing, spec["first_page_url"])
+                                         or "{page}" in spec["first_page_url"]):
+            raise PlanError(f"{site_id}: segment {spec['key']}: first_page_url needs a {{page}} listing"
+                            " and a URL on the listing host")
+        if "label" in spec and (not isinstance(spec["label"], str) or len(spec["label"]) > 200):
+            raise PlanError(f"{site_id}: segment {spec['key']}: label must be a short string")
+
+
+def _validate_discover(site_id, listing, seg):
+    """ext:multi_listing: segments found on a hub page of the listing host on every run."""
+    allowed = {"mode", "hub_url", "selector", "attr", "key_regex", "params", "label", "min_segments",
+               "within_segment_order", "overlap_pages", "hidden_cap"}
+    if set(seg) - allowed:
+        raise PlanError(f"{site_id}: discover segments do not take {sorted(set(seg) - allowed)}")
+    if not _same_listing_host(listing, seg.get("hub_url")):
+        raise PlanError(f"{site_id}: segments.hub_url must be an absolute URL on the listing host")
+    if not isinstance(seg.get("selector"), str) or not seg["selector"].strip():
+        raise PlanError(f"{site_id}: segments.selector is required")
+    if not _LITERAL.match(str(seg.get("attr", "href"))):
+        raise PlanError(f"{site_id}: segments.attr must be an attribute name")
+    try:
+        groups = re.compile(seg.get("key_regex", "")).groups
+    except (re.error, TypeError):
+        groups = 0
+    if groups != 1:
+        raise PlanError(f"{site_id}: segments.key_regex needs exactly one group")
+    params = seg.get("params", {})
+    if not isinstance(params, dict) or not all(isinstance(v, str) for v in params.values()):
+        raise PlanError(f"{site_id}: segments.params maps names to strings ({{key}} is the found key)")
+    if "{segment}" not in listing["url"] and not params:
+        raise PlanError(f"{site_id}: discovered segments need {{segment}} in listing.url or params")
+    label = seg.get("label", "text")
+    if label is not None and label != "text" and not re.fullmatch(r"attr:[A-Za-z_][A-Za-z0-9_.-]{0,63}", str(label)):
+        raise PlanError(f"{site_id}: segments.label is text, attr:<name> or null")
+    if type(seg.get("min_segments", 1)) is not int or seg.get("min_segments", 1) < 1:
+        raise PlanError(f"{site_id}: segments.min_segments must be a positive integer")
+
+
 def _validate_second_step(site_id, adapter):
     """ext:two_step_detail: a link on the detail page is the PDF source (no request) or a second
     detail page (one more governed request). Same host unless listed in allow_hosts."""
@@ -224,7 +389,15 @@ def _validate_second_step(site_id, adapter):
         return
     if not isinstance(step, dict) or step.get("use") not in ("pdf_url", "detail_page"):
         raise PlanError(f"{site_id}: adapter.second_step.use must be pdf_url or detail_page")
-    if not isinstance(step.get("selector"), str) or not step["selector"].strip():
+    template = step.get("url_template")
+    if template is not None:
+        # ext:detail_aux_request: the second address is built from the item's own listing fields.
+        if "selector" in step or not isinstance(template, str) or not re.match(r"https?://[^/{}]+/", template):
+            raise PlanError(f"{site_id}: adapter.second_step.url_template is an absolute URL (instead of selector)")
+        rest = re.sub(r"\{item:[A-Za-z_][A-Za-z0-9_]{0,63}\}", "", template)
+        if "{" in rest or "}" in rest or rest == template:
+            raise PlanError(f"{site_id}: adapter.second_step.url_template uses {{item:<field>}} values only")
+    elif not isinstance(step.get("selector"), str) or not step["selector"].strip():
         raise PlanError(f"{site_id}: adapter.second_step.selector is required")
     if not _LITERAL.match(str(step.get("attr", "href"))):
         raise PlanError(f"{site_id}: adapter.second_step.attr must be an attribute name")
@@ -233,6 +406,31 @@ def _validate_second_step(site_id, adapter):
         raise PlanError(f"{site_id}: adapter.second_step.allow_hosts must be a list of host names")
     if adapter.get("type", "list_only") == "list_only":
         raise PlanError(f"{site_id}: second_step needs a detail page (adapter type selectors or crawler)")
+
+
+def _validate_first_tokens(site_id, adapter):
+    """ext:two_step_keep_first: first_* argument tokens only with a second detail page."""
+    bindings = []
+    for stage in ("detail", "paper"):
+        bindings += list(adapter.get(stage + "_args") or []) + list((adapter.get(stage + "_kwargs") or {}).values())
+    list_bindings = list(adapter.get("list_args") or []) + list((adapter.get("list_kwargs") or {}).values())
+    if "segment" in list_bindings:
+        raise PlanError(f"{site_id}: the segment argument is for detail/paper methods")
+    uses_first = any(isinstance(b, str) and b.startswith("first_") for b in bindings)
+    if uses_first and (adapter.get("second_step") or {}).get("use") != "detail_page":
+        raise PlanError(f"{site_id}: first_* arguments need adapter.second_step.use detail_page")
+    # ext:pdf_text: the extraction and its argument come together, on a crawler detail method.
+    uses_text = "pdf_text" in bindings
+    if uses_text != (adapter.get("pdf_text") is not None):
+        raise PlanError(f"{site_id}: adapter.pdf_text and the pdf_text argument go together")
+    if uses_text:
+        from .pdftext import PdfTextConfigError, validate
+        if adapter.get("type") != "crawler" or not adapter.get("detail_method"):
+            raise PlanError(f"{site_id}: pdf_text needs a crawler detail_method")
+        try:
+            validate(adapter["pdf_text"])
+        except PdfTextConfigError as exc:
+            raise PlanError(f"{site_id}: {exc}") from None
 
 
 def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
@@ -274,6 +472,9 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
         if seg.get("mode", "range") == "explicit":
             if not seg.get("items"):
                 raise PlanError(f"{site_id}: explicit segments require items")
+            _validate_segment_items(site_id, raw["listing"], seg["items"])
+        elif seg.get("mode") == "discover":
+            _validate_discover(site_id, raw["listing"], seg)
         elif (seg.get("filter") or {}).get("type") != "query_prefix_range" and (
                 not seg.get("from") or not (seg.get("filter") or {}).get("type", "range")):
             raise PlanError(f"{site_id}: range segments require 'from' and 'filter'")
@@ -324,6 +525,7 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
             raise PlanError(f"{site_id}: sitemap requires sitemap_url or from_robots")
     _validate_headers(site_id, raw)
     _validate_second_step(site_id, raw.get("adapter") or {})
+    _validate_first_tokens(site_id, raw.get("adapter") or {})
     robots_limit = raw.get("max_consecutive_robots_disallowed")
     if type(robots_limit) is not int or robots_limit < 1:
         raise PlanError(f"{site_id}: max_consecutive_robots_disallowed must be a positive integer")
