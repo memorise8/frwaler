@@ -302,6 +302,20 @@ class HecEduEnCrawler(BaseCrawler):
 
         return result
 
+    @staticmethod
+    def _enumeration_detail_title(html):
+        """Detail <h1> text. Older press releases (about 2016-2019) render an empty
+        card title (<span class="h4"></span>) and an empty <title>; crawl() would save
+        them with title "" (the framework ledgers those as empty_item). Used only
+        when the card title is empty; identity (slug) is unaffected."""
+        if not html:
+            return ""
+        try:
+            h1 = _make_soup(html).find("h1")
+        except Exception:
+            return ""
+        return re.sub(r"\s+", " ", h1.get_text(" ", strip=True)).strip() if h1 else ""
+
     def _enumeration_paper(self, html, card):
         """Pure copy of crawl()'s per-card Paper conversion; None = short-abstract skip."""
         url = card["url"]
@@ -326,12 +340,14 @@ class HecEduEnCrawler(BaseCrawler):
             raw_fn = pdf_url.split("/")[-1].split("?")[0]
             original_filename = unquote(raw_fn) if raw_fn else None
 
+        title = card["title"] or self._enumeration_detail_title(html)
+
         return {
             "id": None,
             "site_id": self.site_id,
             "external_id": external_id,
             "post_number": post_number,
-            "title": card["title"],
+            "title": title,
             "abstract": abstract,
             "published_date": published_date,
             "listed_date": listed_date,
