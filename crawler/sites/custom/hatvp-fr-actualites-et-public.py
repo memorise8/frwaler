@@ -196,7 +196,11 @@ def _fetch_detail(url: str, retries: int = 3) -> dict | None:
 
     if not html:
         return None
+    return _parse_detail_html(html)
 
+
+def _parse_detail_html(html: str) -> dict | None:
+    """Parse a /presse/SLUG/ detail page body (the part of _fetch_detail after the fetch)."""
     # Locate <article> element
     idx = html.find("<article")
     if idx < 0:
@@ -401,3 +405,59 @@ class HatvpFrActualitesCrawler(BaseCrawler):
             page_n += 1
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration contract (ND-3, 2026-10-19): pure methods, crawl() unchanged.
+    # The plan reads the listing's own Communiqués filter
+    # (/actualites-et-publications/page/N/?anchor=communiques&type=communiques), whose
+    # #communiques section crawl()'s _extract_communiques parses as is.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """crawl()'s list records for one listing page (only Communiqués-tagged items),
+        each with external_id = crawl()'s slug rule."""
+        rows = []
+        for item in _extract_communiques(html or ""):
+            row = dict(item)
+            row["external_id"] = item["url"].rstrip("/").rsplit("/", 1)[-1]
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s paper for one Communiqué from its detail page; None = crawl()'s
+        short-abstract skip. A page without <article> fails (crawl(): 'could not fetch detail')."""
+        detail = _parse_detail_html(html or "")
+        if not detail:
+            raise ValueError("hatvp detail page without <article>")
+        abstract = detail.get("abstract") or ""
+        if len(abstract) < 50:
+            return None
+        item_url = item["url"]
+        slug = item_url.rstrip("/").rsplit("/", 1)[-1]
+        pdf_url = detail.get("pdf_url")
+        original_filename = pdf_url.split("/")[-1] if pdf_url else None
+        metadata = {
+            "posted_date": item.get("date_raw"),
+            "list_abstract": item.get("list_abstract", ""),
+            "category_raw": "Communiqués",
+        }
+        return {
+            "site_id": self.site_id,
+            "external_id": slug,
+            "post_number": slug,
+            "title": detail.get("title") or item.get("title") or slug,
+            "abstract": abstract,
+            "published_date": detail.get("published_date") or item.get("published_date"),
+            "listed_date": item.get("published_date"),
+            "url": item_url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "publisher": _PUBLISHER,
+            "category": "Communiqués",
+            "keywords": None,
+            "authors": None,
+            "doi": None,
+            "department": None,
+            "journal": None,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
