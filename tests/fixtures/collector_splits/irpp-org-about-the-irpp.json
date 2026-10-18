@@ -1,0 +1,16 @@
+{
+  "site_id": "irpp-org-about-the-irpp",
+  "listing_body": "<html><body><main><section><div class=\"annual-report\"><a class=\"annual-report\" href=\"https://irpp.org/wp-content/uploads/2031/09/Synthetic-Annual-Report-2031.pdf\"><img alt=\"Annual Report 2031\" src=\"x.jpg\"><span class=\"secondary-info\">2031</span></a></div><div class=\"annual-report\"><a class=\"annual-report\" href=\"https://irpp.org/wp-content/uploads/2031/09/Synthetic-Annual-Report-2030.pdf\"><img alt=\"Annual Report 2030\" src=\"x.jpg\"><span class=\"secondary-info\">2030</span></a></div></section></main></body></html>",
+  "content_type": "text/html",
+  "details": {},
+  "long_text": "IRPP Annual Report",
+  "empty_body": "<html><body><main></main></body></html>",
+  "original_method_source_sha256": {
+    "_curl_get": "64445c6488167841d32815201e4779a4692bbc22d9b3606f6de1ca0521c2b09a",
+    "_download_pdf": "837098cc4f280025bce5e42c137eb2e37a9281a08cf1f3015ece615b4cfbfde8",
+    "_extract_abstract_from_pdf": "2ee3faa990b2563683a2df551466736827c801b42d6631b2d1c017b2ea641ce4",
+    "_fallback_abstract": "96f7cda21d4f02505ff374b716d33c5d67ceb33f78b054f31cca6bba4bb67bea",
+    "_parse_reports": "88737c55636e8e86ae9d5a5cc82ac6f05c4c94865d582b13a3061d33cc8ff9f9",
+    "crawl": "30926475de440f4e68a23cf1be6a22bbc399df3d24fef8c0aa16d3cfa038ca24"
+  }
+}

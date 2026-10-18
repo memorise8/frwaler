@@ -315,3 +315,71 @@ class IRPPOrgAboutTheIRPPCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done — saved {saved} records total")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Report cards of the single annual-reports page, parsed as crawl() does.
+
+        The source has no pagination (crawl() reads one page): a page number
+        above 1 is declared empty and the plan's listing_marker proves it is
+        still the list page. A start page without cards is a listing parse
+        error (crawl() aborts there too)."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        page = (parse_qs(urlsplit(url or "").query).get("page") or ["1"])[0]
+        if page not in ("", "0", "1"):
+            return []
+        reports = self._parse_reports(html)
+        if not reports:
+            raise PermanentFailure("listing_parse_error:no_annual_report_cards", url)
+        rows = []
+        seen_urls: set = set()
+        for rpt in reports:
+            if rpt["pdf_url"] in seen_urls:
+                continue
+            seen_urls.add(rpt["pdf_url"])
+            rows.append(dict(rpt))
+        return rows
+
+    def _enumeration_paper(self, item):
+        """Paper from one report card — the conversion part of crawl() copied
+        verbatim (external_id = PDF file stem, post_number = year label).
+
+        crawl() extracts the abstract with curl + pdftotext; a pure method
+        cannot open processes, so it uses crawl()'s own fallback abstract
+        (what crawl() stores when the PDF text cannot be extracted)."""
+        rpt = item
+        pdf_url = rpt["pdf_url"]
+        abstract = self._fallback_abstract(rpt["year_label"], pdf_url)
+        if len(abstract) < 50:
+            return None
+        return {
+            "site_id": self.site_id,
+            "external_id": rpt["external_id"],
+            "post_number": rpt["post_number"],
+            "title": rpt["title"],
+            "abstract": abstract,
+            "published_date": rpt["published_date"],
+            "posted_date": rpt["published_date"],
+            "url": self._START_URL,
+            "pdf_url": pdf_url,
+            "publisher": "IRPP; Institute for Research on Public Policy",
+            "authors": None,
+            "keywords": "annual report, IRPP, public policy, Canada",
+            "category": "Annual Report",
+            "original_filename": rpt["fname"],
+            "metadata": json.dumps(
+                {
+                    "year_label": rpt["year_label"],
+                    "posted_date": rpt["published_date"],
+                    "originalFilename": rpt["fname"],
+                },
+                ensure_ascii=False,
+            ),
+        }
