@@ -31,12 +31,11 @@ from delivery.health.source_observer import retry_after
 
 from .urls import host_of
 
-DEFAULT_USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/120.0.0.0 Safari/537.36"
-)
+# Says we are a collector (user decision 2026-10-19). The first product, "LibertreeCollector",
+# is the robots.txt token our groups are chosen by (_agent_applies).
+DEFAULT_USER_AGENT = "LibertreeCollector/1.0 (research data collection; respects robots.txt)"
 DEFAULT_MAX_BYTES = 50 * 1024 * 1024
+_JSONP = re.compile(r"\s*(?:/\*\*/\s*)?[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\s*\((.*)\)\s*;?\s*", re.S)
 _LOGIN_PATH = re.compile(r"(^|/)(login|logon|signin|sign-in|sso|cas/login|auth|oauth2?|saml|captcha|challenge)"
                          r"(/|$|\.|\?)", re.I)
 REFUSAL_STATUSES = (401, 403, 407, 429, 451)
@@ -163,9 +162,16 @@ def robots_octets(value):
     return "".join(out)
 
 
+def _html_body(body):
+    """An HTML/XML document, whatever the Content-Type: a robots.txt never has markup tags."""
+    head = (body or b"")[:4096].lstrip(b"\xef\xbb\xbf \t\r\n").lower()
+    return head.startswith((b"<!doctype", b"<html", b"<?xml")) or any(
+        tag in head for tag in (b"<html", b"<head", b"<body", b"<script"))
+
+
 def _agent_applies(agent, user_agent):
     """Group user-agent token vs our product token: the first product of our User-Agent
-    ("Mozilla" for the default), case-insensitive, as urllib.robotparser selected groups.
+    ("LibertreeCollector" for the default), case-insensitive, as urllib.robotparser selected groups.
     Other words of a browser User-Agent (Chrome, Safari...) do not select a group: such a
     group could otherwise replace a stricter '*' group."""
     product = re.split(r"[/\s]", user_agent.strip().lower(), 1)[0]
@@ -457,8 +463,15 @@ class Response:
         except LookupError:
             return self.body.decode("utf-8", errors="replace")
 
-    def json(self):
-        return json.loads(self.text())
+    def json(self, jsonp=False):
+        """ext:jsonp: ``jsonp=True`` reads ``callback({...});`` (optionally ``/**/`` first) as its
+        JSON argument; a body that is not one callback call is a ValueError like broken JSON."""
+        if not jsonp:
+            return json.loads(self.text())
+        match = _JSONP.fullmatch(self.text())
+        if match is None:
+            raise ValueError("not_jsonp")
+        return json.loads(match.group(1))
 
 
 def _pin_connections(session, resolver):
@@ -504,10 +517,10 @@ class RequestsTransport:
         self.max_bytes = max_bytes
         _pin_connections(self.session, resolver)
 
-    def request(self, method, url, *, headers=None):
+    def request(self, method, url, *, headers=None, data=None):
         try:
             # Redirects are handled hop by hop by Fetcher (gate, budget, robots, holds).
-            with self.session.request(method, url, headers=headers or {}, stream=True,
+            with self.session.request(method, url, headers=headers or {}, data=data, stream=True,
                                       timeout=self.timeout, allow_redirects=False) as r:
                 declared = str(r.headers.get("Content-Length") or "").strip()
                 if declared.isdigit() and int(declared) > self.max_bytes:
@@ -527,7 +540,7 @@ class Fetcher:
     def __init__(self, site_id, transport, gate_dir, *, interval=1.5, max_requests=None,
                  max_runtime_s=None, retries=3, backoff_s=2.0, max_retry_wait_s=120,
                  respect_robots=True, user_agent=DEFAULT_USER_AGENT, encoding=None,
-                 extra_headers=None, rate_limit_stop=3, holds=None, max_redirects=5,
+                 extra_headers=None, header_hosts=None, rate_limit_stop=3, holds=None, max_redirects=5,
                  clock=time.monotonic, sleep=time.sleep, resolver=None):
         if not 0 <= float(interval) <= 10:
             raise ValueError("request_interval_s must be within [0, 10]")
@@ -544,6 +557,11 @@ class Fetcher:
         self.user_agent = user_agent
         self.encoding = encoding
         self.extra_headers = dict(extra_headers or {})
+        # Plan headers (ext:headers, possibly an API token) go only to these hosts: never to a
+        # redirect target, a PDF/CDN host or a second-step host elsewhere. Required with headers.
+        self.header_hosts = {h.lower() for h in (header_hosts or ())}
+        if self.extra_headers and not self.header_hosts:
+            raise ValueError("extra_headers need header_hosts")
         self.clock = clock
         self.sleep = sleep
         self.started = clock()
@@ -560,6 +578,8 @@ class Fetcher:
         self._host_delay = {}
         self._robots = {}
         self._robots_failed = {}  # origin -> (retry_after monotonic, reason)
+        self.robots_log = []  # one entry per robots.txt read: what came back and how it was read
+        self._robots_seen = None
         self._timing = {}  # host -> aggregated request timing (diagnostics)
         self._slow = []    # slowest requests (at most SLOW_SAMPLES)
 
@@ -594,7 +614,7 @@ class Fetcher:
             self.blocked = AccessBlocked(f"host_access_hold:{held['reason']}", url)
             raise self.blocked
 
-    def _once(self, url):
+    def _once(self, url, *, method="GET", data=None, content_type=None, request_headers=None):
         """One gated request. Returns Response or raises TransportError."""
         self._check_budget()
         host = host_of(url)
@@ -603,7 +623,16 @@ class Fetcher:
         checked_addresses(url, host, self.resolver)
         headers = {"User-Agent": self.user_agent,
                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8"}
-        headers.update(self.extra_headers)
+        if host.lower() in self.header_hosts:
+            headers.update(self.extra_headers)
+        if request_headers:
+            headers.update(request_headers)  # ext:dynamic_token: this request only (the listing POST)
+        if content_type:
+            headers["Content-Type"] = content_type
+        # The User-Agent is always ours, whatever extra or per-request headers carried.
+        for name in [k for k in headers if k.lower() == "user-agent"]:
+            del headers[name]
+        headers["User-Agent"] = self.user_agent
         delay = self._host_delay.get(host, 0)
         gate = self._gate(host)
         began = sent = self.clock()
@@ -623,7 +652,9 @@ class Fetcher:
                 self.requests_made += 1
                 sent = self.clock()
                 try:
-                    resp = self.transport.request("GET", url, headers=headers)
+                    # Only a POST passes a body (transports written for GET keep working).
+                    resp = self.transport.request(method, url, headers=headers,
+                                                  **({"data": data} if method != "GET" else {}))
                 except TransportError as exc:
                     outcome = f"transport:{exc}"
                     raise
@@ -689,13 +720,20 @@ class Fetcher:
             failed = self._robots_failed.get(origin)
             if failed and self.clock() < failed[0]:
                 raise RobotsUnavailable(failed[1], url)
+            self._robots_seen = None
             try:
                 self._robots[origin] = self._load_robots(origin)
             except (TransientFailure, PermanentFailure) as exc:
                 # PermanentFailure here is body_too_large: no readable file, no permission.
                 reason = f"robots_unavailable:{exc.reason}"
                 self._robots_failed[origin] = (self.clock() + ROBOTS_RETRY_S, reason)
+                self._log_robots(origin, reason)
                 raise RobotsUnavailable(reason, url, exc.status) from None
+            except AccessBlocked as exc:
+                self._log_robots(origin, f"blocked:{exc.reason}")
+                raise
+            rule = self._robots[origin]
+            self._log_robots(origin, rule if isinstance(rule, str) else "rules")
             self._robots_failed.pop(origin, None)
         rule = self._robots[origin]
         if rule == "too_slow":
@@ -705,9 +743,16 @@ class Fetcher:
             raise self._block("robots_unparseable", url, host_wide=False)
         return True if rule == "allow_all" else rule.allows(url, self.user_agent)
 
+    def _log_robots(self, origin, verdict):
+        """Audit trail (enum_event robots_checked, written by the runner): status, type and size of
+        the response read as robots.txt, and the verdict. No body is kept."""
+        seen = self._robots_seen or {}
+        self.robots_log.append({"origin": origin, "verdict": verdict, **seen})
+
     def _load_robots(self, origin):
         """404/410 and other 4xx: no rules. 401/403/407/451, a challenge/login page or a
-        redirect to a login path: hold (never read as permission). 5xx/429/transport errors
+        redirect to a login path: hold (never read as permission). Any other HTML page in
+        place of the file: unparseable (the site stops). 5xx/429/transport errors
         after the retries: TransientFailure, turned into a RobotsUnavailable stop by the caller."""
         url = origin + "/robots.txt"
         for _hop in range(self.max_redirects + 1):
@@ -725,12 +770,18 @@ class Fetcher:
             break
         else:
             raise self._block("robots_redirect_loop", url)
+        self._robots_seen = {"url": url, "status": resp.status, "content_type": resp.content_type,
+                             "bytes": len(resp.body or b"")}
         if resp.status in (401, 403, 407, 451):
             raise self._block(f"robots_{resp.status}", url, resp.status)
         if not 200 <= resp.status < 300:
             return "allow_all"
         if self._challenge(resp) or login_page(resp.body):
             raise self._block("robots_challenge", url, resp.status)
+        if _html_body(resp.body):
+            # A page in place of robots.txt (home page after a redirect, error page, a challenge
+            # not recognised above): never read as "no rules". The caller stops the site.
+            return "unparseable"
         text = resp.text()
         try:
             rules = parse_robots(text)
@@ -745,12 +796,14 @@ class Fetcher:
         return rules
 
     # -- public ----------------------------------------------------------
-    def _with_retries(self, url, *, classify=True, accept_statuses=()):
+    def _with_retries(self, url, *, classify=True, accept_statuses=(), method="GET", data=None, content_type=None,
+                      request_headers=None):
         last = None
         for attempt in range(self.retries):
             wait = self.backoff_s * (3 ** attempt)
             try:
-                resp = self._once(url)
+                resp = self._once(url, method=method, data=data, content_type=content_type,
+                                  request_headers=request_headers)
             except BodyTooLarge:
                 raise PermanentFailure("body_too_large", url) from None
             except TransportError as exc:
@@ -861,3 +914,34 @@ class Fetcher:
             resp._encoding = resp._encoding or self.encoding
             return resp
         raise PermanentFailure("too_many_redirects", url)
+
+    def post(self, url, body, *, body_type="form", accept_statuses=(), content_type=None, headers=None):
+        """POST a listing query (plans may use it only for idempotent search APIs) through the
+        same gate, budget, hold, robots and destination checks as ``get``. A redirect is never
+        followed (a POST cannot be replayed safely at another address)."""
+        from urllib.parse import urlencode
+        accept_statuses = tuple(s for s in accept_statuses if s not in REFUSAL_STATUSES)
+        if body_type == "json":
+            data, ctype = json.dumps(body, ensure_ascii=False, sort_keys=True).encode("utf-8"), "application/json"
+        elif body_type == "form":
+            data, ctype = urlencode(body, doseq=True).encode("ascii"), "application/x-www-form-urlencoded"
+        else:
+            raise PermanentFailure(f"unknown_body_type:{body_type}", url)
+        if content_type and body_type == "json":
+            ctype = content_type  # plan-declared JSON media type (validated by the plan)
+        current = governed_url(url)
+        if current != url:
+            self._check_holds(url)
+        self._check_holds(current)
+        if not self._robots_allows(current):
+            raise RobotsDisallowed("robots_disallowed", current)
+        resp = self._with_retries(current, accept_statuses=accept_statuses, method="POST", data=data,
+                                  content_type=ctype, request_headers=headers)
+        if 300 <= resp.status < 400:
+            nxt = urljoin(current, location_of(resp))
+            if _LOGIN_PATH.search(urlsplit(nxt).path or ""):
+                raise self._block("login_redirect", current, resp.status)
+            raise PermanentFailure("post_redirect_not_followed", current, resp.status)
+        resp.url = resp.url or current
+        resp._encoding = resp._encoding or self.encoding
+        return resp

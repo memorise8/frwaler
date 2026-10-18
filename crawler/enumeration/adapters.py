@@ -12,6 +12,7 @@ instead of silently bypassing the request gate.
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 
 from .guard import AdapterUngatedNetwork, guarded
@@ -84,6 +85,26 @@ def paper_identity(paper):
     post_number = doc.get("external_id")
     meta_url = doc.get("meta_url") or doc.get("pdf_url") or ""
     return (None if post_number is None else str(post_number)), meta_url
+
+
+def segment_of(item):
+    """ext:multi_listing: {key, label, params} of the item's segment ({key: None} outside a run,
+    e.g. the identity precheck sample)."""
+    seg = getattr(item, "segment", None) if item is not None else None
+    return dict(seg) if seg else {"key": None, "label": None, "params": {}}
+
+
+def position_of(item):
+    """ext:list_page_arg: {page (value sent), n (page number), position (1-based)} of the item on
+    its listing page; Nones when not known (identity precheck sample)."""
+    pos = getattr(item, "list_position", None) if item is not None else None
+    return dict(pos) if pos else {"page": None, "n": None, "position": None}
+
+
+def first_response(resp):
+    """ext:two_step_keep_first: the first detail page behind a second-step response; the
+    response itself when no second step was taken (optional link missing)."""
+    return getattr(resp, "first_resp", None) or resp
 
 
 def _query(conn, sql, args):
@@ -163,9 +184,21 @@ class Adapter:
         self.contract = Contract(self.cfg, self.crawler) if validate_contract(self.cfg) else None
         self._check_backend()
         self._check_methods()
+        if self.cfg.get("pdf_text") is not None:
+            from .pdftext import PdfTextConfigError, available, validate
+            try:
+                validate(self.cfg["pdf_text"])
+            except PdfTextConfigError as exc:
+                raise AdapterConfigError(str(exc)) from None
+            if not available():
+                raise AdapterConfigError("pdf_text_tool_missing:pdftotext")
         self._prepare_crawler()
 
     ARG_TOKENS = ("html", "raw", "soup", "json", "url", "item", "resp")
+    # ext:two_step_keep_first: the first detail page next to the second-step response.
+    FIRST_TOKENS = ("first_html", "first_soup", "first_json", "first_url", "first_resp")
+    # ext:pdf_text: text the framework extracted from the detail response (a PDF).
+    DETAIL_ONLY = FIRST_TOKENS + ("pdf_text", "segment", "list_position")  # ext:multi_listing, ext:list_page_arg
 
     def _check_backend(self):
         """The save path (BaseCrawler._save_paper) picks its backend from
@@ -186,7 +219,7 @@ class Adapter:
                 raise AdapterConfigError(f"adapter_method_missing:{key}={name}")
         for key in ("list_args", "detail_args"):
             for token in self.cfg.get(key) or ():
-                if token not in self.ARG_TOKENS:
+                if token not in self.ARG_TOKENS + (self.DETAIL_ONLY if key == "detail_args" else ()):
                     raise AdapterConfigError(f"unknown adapter argument token: {token}")
 
     @property
@@ -245,13 +278,23 @@ class Adapter:
                 from bs4 import BeautifulSoup
                 out.append(BeautifulSoup(resp.text(), "html.parser"))
             elif token == "json":
-                out.append(resp.json())
+                out.append(resp.json(jsonp=True) if self.cfg.get("jsonp") else resp.json())
             elif token == "url":
                 out.append(resp.url)
             elif token == "item":
                 out.append(dict(item.payload) if item else {})
             elif token == "resp":
                 out.append(resp)
+            elif token == "pdf_text":
+                out.append(getattr(resp, "pdf_text", None))
+            elif token == "segment":
+                out.append(segment_of(item))
+            elif token == "list_position":
+                out.append(position_of(item))
+            elif token in self.FIRST_TOKENS:
+                first = first_response(resp)
+                kind = token[len("first_"):]
+                out.append(first if kind == "resp" else self._args([kind], first, item)[0])
             else:
                 raise AdapterConfigError(f"unknown adapter argument token: {token}")
         return out
@@ -267,7 +310,10 @@ class Adapter:
         return bool(self.cfg.get("detail_method"))
 
     def materialize(self, item, fetcher):
-        """Return a paper dict (or None). Detail requests go through ``fetcher``."""
+        """Return a paper dict (or None). Detail requests go through ``fetcher``.
+        ``returned_none``: the crawler method itself returned None (none_is_rule_skip only counts
+        that, never a non-dict result turned into None here)."""
+        self.returned_none = False
         if self.contract is not None:
             return self._materialize_contract(item, fetcher)
         c = self.crawler
@@ -275,14 +321,13 @@ class Adapter:
             with guarded():
                 if self.mode == "crawler" and not self.is_generic and self.cfg.get("paper_method"):
                     paper = getattr(c, self.cfg["paper_method"])(dict(item.payload))
+                    self.returned_none = paper is None
                 elif self.mode == "crawler" and not self.is_generic and self.cfg.get("list_returns_paper"):
                     paper = dict(item.payload)
                 else:
                     paper = paper_from_item(self.site_id, item, self._legacy_id())
             return self._finish(paper, item)
-        resp = fetcher.get(item.url)
-        if getattr(resp, "login_suspect", False):
-            raise PermanentFailure("login_required_suspect", item.url, resp.status)
+        resp = self._detail_response(item, fetcher)
         if self.is_generic and not self.cfg.get("detail_method"):
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(resp.text(), "html.parser")
@@ -296,21 +341,137 @@ class Adapter:
                     paper = c._fetch_detail(item.url, basic, c._config.get("detail_page") or {})
             finally:
                 del c._fetch_page
-            return self._finish(paper, item)
+            return self._finish(self._with_step_pdf(paper, resp, item), item)
         args = self._args(self.cfg.get("detail_args", ["html", "item"]), resp, item)
         with guarded():
             result = getattr(c, self.cfg["detail_method"])(*args)
-        return self._finish(result, item)
+        self.returned_none = result is None
+        return self._finish(self._with_step_pdf(result, resp, item), item)
+
+    # -- ext:two_step_detail ------------------------------------------------
+    def _step_link(self, resp, item=None):
+        """The second-step link on a detail page (absolute), or None. Only the detail page's own
+        host or a host listed in allow_hosts; anything else is ignored, never requested.
+        With url_template (ext:detail_aux_request) the address is built from the item's listing
+        fields, each value URL-quoted; a missing field gives no link."""
+        from urllib.parse import quote, urljoin
+        from bs4 import BeautifulSoup
+        from .urls import host_of
+        step = self.cfg["second_step"]
+        if step.get("url_template"):
+            payload = dict(item.payload) if item is not None else {}
+            names = re.findall(r"\{item:([A-Za-z_][A-Za-z0-9_]*)\}", step["url_template"])
+            if any(payload.get(n) in (None, "") or isinstance(payload.get(n), (dict, list))
+                   or str(payload[n]).strip(".") == "" for n in names):
+                return None  # also "." / "..": a dot segment would move the path past the checks
+            value = re.sub(r"\{item:([A-Za-z_][A-Za-z0-9_]*)\}",
+                           lambda m: quote(str(payload[m.group(1)]), safe=""), step["url_template"])
+        else:
+            node = BeautifulSoup(resp.text(), "html.parser").select_one(step["selector"])
+            value = (node.get(step.get("attr", "href")) or "").strip() if node is not None else ""
+        if not value:
+            return None
+        link = urljoin(resp.url, value)
+        if not link.startswith(("http://", "https://")):
+            if not step.get("rewrite"):
+                return None
+            # A javascript:downloadFile('enc','seq') link has no address of its own: the rewrite
+            # reads the link text and its template (an absolute URL) gives the address.
+            link = value
+        if step.get("rewrite"):
+            # ext:second_step_link_rewrite: e.g. a record link -> its MARCXML export address.
+            from urllib.parse import unquote, urlsplit
+            m = re.search(step["rewrite"]["regex"], link)
+            used = {int(n) for n in re.findall(r"\{(\d)\}", step["rewrite"]["template"])}
+            if not m or any(m.group(n) is None or m.group(n).strip(".") == "" for n in used):
+                return None
+            new = re.sub(r"\{(\d)\}", lambda r: quote(unquote(m.group(int(r.group(1)))), safe=""),
+                         step["rewrite"]["template"])
+            if urlsplit(resp.url).scheme == "https" and urlsplit(new).scheme != "https":
+                return None  # never a downgrade to plain HTTP
+            link = new
+        if step.get("add_params"):
+            # ext:second_step_link_params: fixed parameters the crawler added (e.g. _embed=1). A link
+            # that already has one of them, or a fragment route, is left alone (no link).
+            from urllib.parse import parse_qsl, urlsplit
+            parts = urlsplit(link)
+            if parts.fragment or set(step["add_params"]) & {k for k, _ in parse_qsl(parts.query, keep_blank_values=True)}:
+                return None
+            from urllib.parse import urlencode
+            link = link + ("&" if parts.query else "?") + urlencode(step["add_params"])
+        if host_of(link) != host_of(resp.url) and host_of(link) not in set(step.get("allow_hosts", [])):
+            return None
+        return link
+
+    def _detail_response(self, item, fetcher):
+        """Detail response, plus ext:pdf_text: its body's PDF text, extracted here by the
+        framework outside the adapter guard (the crawler method only receives the text)."""
+        resp = self._detail_page(item, fetcher)
+        spec = self.cfg.get("pdf_text")
+        if spec is not None and getattr(resp, "pdf_missing", None) is None:
+            from .pdftext import extract
+            resp.pdf_text = extract(resp.body, spec)
+        return resp
+
+    def _text_source(self, fetcher, url, first=None):
+        """GET of the response pdf_text reads. ext:detail_missing_as_no_text: a declared status
+        (404/410) on that request is "no text" (pdf_text None) for the crawler's own fallback rule,
+        not an item failure. Any other failure, and every other request, fails as before."""
+        missing = set((self.cfg.get("pdf_text") or {}).get("missing_statuses") or ())
+        try:
+            return fetcher.get(url)
+        except PermanentFailure as exc:
+            if exc.status not in missing:
+                raise
+            status = exc.status
+        from .http import Response
+        self.missing_text = getattr(self, "missing_text", 0) + 1  # reported as a warning by the runner
+        stub = Response(status, {}, b"", url=url)
+        stub.pdf_missing, stub.pdf_text = status, None
+        if first is not None:
+            stub.first_resp = first
+        return stub
+
+    def _detail_page(self, item, fetcher):
+        """Detail page response; with second_step.use=detail_page the page its link points to
+        (one more request through the same fetcher: gate, robots, holds, destination check).
+        The item's identity (key, url) never changes."""
+        step = self.cfg.get("second_step")
+        two = bool(step) and step["use"] == "detail_page"
+        resp = fetcher.get(item.url) if two else self._text_source(fetcher, item.url)
+        if getattr(resp, "login_suspect", False):
+            raise PermanentFailure("login_required_suspect", item.url, resp.status)
+        if not two:
+            return resp
+        link = self._step_link(resp, item)
+        if link is None:
+            if step.get("required", True):
+                raise PermanentFailure("second_step_link_missing", item.url, resp.status)
+            return resp
+        second = self._text_source(fetcher, link, resp)
+        if getattr(second, "login_suspect", False):
+            raise PermanentFailure("login_required_suspect", link, second.status)
+        second.first_url = item.url
+        second.first_resp = resp
+        return second
+
+    def _with_step_pdf(self, paper, resp, item=None):
+        """second_step.use=pdf_url: the link becomes pdf_url when the extraction found none.
+        No request here; the file pass fetches it through the gate like any PDF."""
+        step = self.cfg.get("second_step")
+        if not step or step["use"] != "pdf_url" or not isinstance(paper, dict) or paper.get("pdf_url"):
+            return paper
+        link = self._step_link(resp, item)
+        return dict(paper, pdf_url=link) if link else paper
 
     def _materialize_contract(self, item, fetcher):
         from .contracts import fail
         resp, detail = None, None
         if self.cfg.get("detail_method"):
-            resp = fetcher.get(item.url)
-            if getattr(resp, "login_suspect", False):
-                raise PermanentFailure("login_required_suspect", item.url, resp.status)
+            resp = self._detail_response(item, fetcher)
             detail = self.contract.call("detail", resp, item)
             if detail is None:
+                self.returned_none = True
                 return None
         if self.cfg.get("paper_method"):
             paper = self.contract.call("paper", resp, item, detail)
@@ -320,7 +481,10 @@ class Adapter:
         else:
             paper = detail
         if paper is None:
+            self.returned_none = bool(self.cfg.get("paper_method"))
             return None
+        if resp is not None:
+            paper = self._with_step_pdf(paper, resp, item)
         if not isinstance(paper, dict):
             fail("paper_not_dict")
         if paper.get("site_id", self.site_id) != self.site_id:
@@ -403,7 +567,10 @@ class Adapter:
                 if review_rule(str(exc)):
                     raise IdentityReview(str(exc)) from None
                 raise IdentityRuleConfig(f"identity_rule_config:{exc}") from None
-            if same is None and self.existing_post_number(post_number) is not None:
+            # allow_shared_post_number: the registered crawler stores several rows with one
+            # post_number (e.g. language editions, different meta_url); exact dedup still applies.
+            if same is None and not self.cfg.get("allow_shared_post_number") \
+                    and self.existing_post_number(post_number) is not None:
                 raise IdentityCollision(post_number)
             seq_id = self.crawler._save_paper(paper)
         except Exception:

@@ -348,6 +348,9 @@ segments_mismatch, files_{pending,done,failed}, oldest_item`. JSON(상세 포함
 `gate_wait_avg_s`, `response_avg_s`, `crawl_delay_s`를 낸다. 예: 요청당 11초인 사이트에서 `gate_wait_avg_s`≈10,
 `crawl_delay_s`=10이면 Crawl-delay 때문이고, `response_avg_s`가 크면 사이트 응답이 느린 것이다.
 
+robots 감사: robots.txt 를 읽을 때마다 `robots_checked` 이벤트 1건(`origin`, 마지막 응답의 `url`·`status`·`content_type`·`bytes`,
+`verdict` = `rules`·`allow_all`·`unparseable`·`too_slow`·`blocked:<사유>`·`robots_unavailable:<사유>`; 파일 패스는 `scope: file_pass`). 본문은 남기지 않는다.
+
 ## 12. 알려진 한계
 
 * 날짜 구간 분할은 날짜 필터에 걸리지 않는 항목(날짜 없음)이나 경계일 항목을 놓칠 수 있다 → `overall_total_check`(range 필터+총건수 plan은 기본 켬)로 탐지만 한다.
@@ -443,3 +446,65 @@ segments_mismatch, files_{pending,done,failed}, oldest_item`. JSON(상세 포함
 | M01 | 파일 패스의 blob 쓰기(`OSError`)와 문서 DB 갱신 오류는 파일 대장에 `transient:storage_error:<형>`/`db_error:<형>`으로 기록하고 시도 횟수 상한 후 `failed(retries_exhausted:…)`. blob·DB 갱신 후 대장 기록 전 크래시는 다음 패스에서 blob 해시와 `documents.pdf_sha256`이 같으면 다운로드 없이 `done(reconciled_existing_blob)`. `--files`는 본 실행과 같은 Fetcher(예산)를 쓰고, `--files-only`는 plan 예산으로 별도 실행. |
 | M02 | 어댑터 생성 시 문서 연결의 종류와 저장 경로(`LIBERTREE_DB_BACKEND`)가 다르면 `config_error(backend_mismatch:…)`. (전역 환경변수를 바꾸지 않고 검증으로 일치를 강제) |
 | M03 | 보고서에 `saved_current_generation`(현재 plan 세대에 열거된 항목 중 저장된 수, `listed_unique`와 같은 범위)과 `saved_all_time`(= `saved`) 분리. `date_fill`은 `DISTINCT seq_id` 기준. gap=0은 항목 실패 0건을 뜻하지 않는다. |
+
+## 18. 틀 확장 (X1, 2026-10-18)
+
+사이트 구역 세션이 "틀이 지원하지 않아 needs_dev" 로 남긴 공통 유형을 plan 키로 지원한다. 사유 표기(site-status `detail`)는 `ext:<이름>`.
+모든 새 요청은 기존 요청 게이트(호스트별 간격·예산·robots·호스트 보류·목적지 주소 검사·거절 분류)를 그대로 거친다.
+**새 키가 없는 plan 은 동작과 plan 지문이 바뀌지 않는다**(테스트 `FingerprintTest` 가 기존 지문 값을 고정).
+머리글(`request_headers*`)과 `adapter.second_step` 은 지문에 들어가지 않는다(토큰을 바꿔도 진행이 이어진다).
+테스트: `tests/test_enumeration_extensions.py`.
+
+| 표기 | plan 키 | 동작 | 막는 것 |
+|---|---|---|---|
+| `ext:headers` | `request_headers: {"Accept": "application/json"}`, `request_headers_env: {"Authorization": {"env": "SITE_API_TOKEN", "format": "Bearer {}"}}`, 선택 `request_headers_hosts: ["api.example.org"]` | plan 의 호스트로 가는 요청(robots·목록·상세·파일)에만 머리글 추가: `request_headers_hosts`(없으면 listing 호스트 하나). 리다이렉트로 다른 호스트·PDF/CDN 호스트로 가면 붙지 않음. 비밀값은 **환경변수 이름만** plan 에 적고 실행 때 읽는다(`plan.resolve_headers`) | Host·Cookie(2)·User-Agent·Content-*·Forwarded·X-Forwarded-*·Proxy-*·X-HTTP-Method(-Override) 금지(세션 쿠키 = 로그인 우회, 메서드 바꿔치기 금지). Authorization·이름에 token/key/secret/auth/session/password 가 든 머리글은 리터럴 금지(환경변수로만). 줄바꿈 값 금지. 환경변수가 없으면 그 사이트는 `config_error`(빈 값으로 보내지 않음) |
+| `ext:post_listing` | `listing.method: "POST"`, `listing.idempotent: true`, `listing.body_type: "form"\|"json"` | 목록 요청을 POST 로. `params`·쪽 번호·구간 필터가 모두 본문으로 간다. `Fetcher.post` 가 GET 과 같은 게이트·재시도·robots(URL 경로 기준)·보류·목적지 검사를 거침 | `idempotent: true` 선언 필수(읽기 전용 검색 API 만). 리다이렉트는 따라가지 않음(`post_redirect_not_followed`; 로그인 경로로 가면 접근 거절·호스트 보류). 경로형 쪽 넘김과 같이 못 씀 |
+| `ext:path_paging` | `listing.url` 에 `{page}` (예 `https://x/news/page/{page}/`), 선택 `listing.first_page_url` | 쪽 번호를 경로에 넣음. 첫 쪽은 `first_page_url`(보통 `/page/1/` 없는 주소). `page_mode: offset` 과 같이 쓸 수 있음 | `first_page_url` 은 절대 주소·`{page}` 없음, 구간(`{segment}`·date_range_split)과 같이 못 씀. last_page_backward 의 "쪽 번호 없는 첫 쪽 비교" 는 건너뜀(첫 쪽이 곧 그 주소) |
+| `ext:json_page` (커서) | `listing.next_cursor: {"path": "meta.next", "param": "after"}` | JSON 응답의 다음 커서를 다음 요청 매개변수로. 커서가 비면 끝(`exhausted_cursor_end`). 상태 저장소 커서에 다음 토큰을 저장해 이어받음 | oldest_first_sort·date_range_split 만(앞으로만 읽힘), `overlap_pages` 금지. 첫 쪽에 커서 칸 자체가 없으면 `config_error`(경로 오타·API 변경). 같은 쪽·최근 200개 토큰 반복은 `cursor_loop` 로 멈춤(완료 아님). 토큰으로 간 쪽이 비면(만료된 토큰 등) 보고된 총건수와 목록 수가 같을 때만 끝, 아니면 `empty_page_by_cursor` 로 멈춤(완료 아님) |
+| `ext:jsonp` | `listing.parser.jsonp: true`(JSON 파서) 또는 `adapter.jsonp: true`(수집기 메서드의 `json` 인자·`list_source: "json"`) | 본문이 `콜백(…)` 한 번(앞에 `/**/`, 끝 `;` 허용)이면 괄호 안을 JSON 으로 읽는다. 빈 배열이면 다른 JSON 목록처럼 끝 후보 | 콜백 이름은 점으로 이은 식별자만. 콜백 하나가 아닌 본문(뒤에 다른 문장, HTML 오류 쪽)은 `invalid_json`(끝이 아님). 값은 true/false 만. 커서·총건수(`next_cursor`·`total`)는 JSONP 를 읽지 않음 |
+| `ext:json_page` (마지막 쪽) | `listing.last_page_path: "meta.last_page"` | last_page_backward 가 JSON 이 알려 준 마지막 쪽을 후보로 씀(탐색 요청 절약) | 후보도 기존과 같은 확인(L 실제, L+1·L+2 끝)을 통과해야 함. 실패하면 `reported_last_page_unconfirmed` 이벤트 후 원래 탐색. `max_pages` 상한 이상이면 상한 쪽까지만(`page_cap`, 완료 아님) |
+| `ext:http204_end` | `listing.end_on_204: true` | 204 No Content 를 목록 끝으로(`end_status_204`) | 선언 없으면 204 는 끝이 아님(오류). 본문이 있는 204 는 오류(`http_204_with_body`) |
+| `ext:two_step_detail` | `adapter.second_step: {"use": "detail_page"\|"pdf_url", "selector": "a.next", "attr": "href", "required": true, "allow_hosts": []}` | `detail_page`: 상세 페이지의 링크를 한 번 더 받아(같은 fetcher) 그 페이지에서 상세를 뽑음. `pdf_url`: 추출에 pdf_url 이 없으면 링크를 pdf_url 로(요청 없음, 파일 단계가 게이트로 받음) | 식별값(key·meta_url)은 1단계 항목 그대로. 다른 호스트 링크는 `allow_hosts` 에 없으면 무시(요청 안 함), 링크가 없으면 `second_step_link_missing` 항목 실패(`required: false` 면 1단계 페이지 사용). list_only 어댑터에는 못 씀 |
+
+서버 배포는 아직(2026-10-18 사용자 방침: 이 컴퓨터에서 먼저 확인). 배포 목록은 `frwaler-delivery-out/plan-dev-20261008/dev-flow-20261018/status/DEPLOY.md`.
+
+## 19. 틀 확장 (X2, 2026-10-18)
+
+X1 다음으로 구역 세션들이 모은 요구. 원칙은 X1 과 같다: 새 요청은 모두 기존 게이트를 거치고, **새 키가 없는 plan 은 동작과 지문이 그대로**이며, 식별값(post_number·meta_url) 규칙은 바꾸지 않는다(수집기 메서드가 그대로 만든다).
+`adapter.*` 키(`pdf_text`, 인자 토큰, `second_step.url_template`)는 지문에 들어가지 않고, `listing.*`·`segments.*` 키는 들어간다.
+테스트: `tests/test_enumeration_extensions_x2.py`.
+
+| 표기 | plan 키 | 동작 | 막는 것 |
+|---|---|---|---|
+| `ext:two_step_keep_first` (`two_step_both`) | 인자 토큰 `first_html`·`first_soup`·`first_json`·`first_url`·`first_resp` (계약: `first_final_url`) | `second_step.use: detail_page` 에서 2단계 응답과 함께 1단계 상세 쪽을 메서드에 넘김. 링크가 없고 `required: false` 면 1단계 = 그 쪽 | `second_step.use: detail_page` 없이 쓰면 plan 오류. 목록 단계에는 못 씀 |
+| `ext:pdf_text` | `adapter.pdf_text: {"args": ["-layout"], "timeout_s": 30, "min_bytes": 0}` + 인자 `pdf_text` | 상세 응답(보통 2단계로 받은 PDF) 본문에 **틀이** pdftotext 를 실행(어댑터 감시 밖; 메서드는 여전히 감시 안). 결과 = stdout(utf-8, 깨진 글자 치환, strip 안 함) → 메서드가 원래 수집기의 strip·최소 길이 규칙을 그대로 적용 | 옵션은 `-layout -raw -nopgbrk -f N -l N -enc UTF-8` 만. 셸·네트워크 없음, 시간 제한(≤120초), 임시 파일. 짧은 본문·비정상 종료·시간 초과는 `None`. 이미지에 pdftotext 가 없으면 `config_error`. crawler 어댑터의 detail_method 에만 |
+| `ext:post_listing_nested_page` | `listing.body: {"search": {"page": "{page}"}, "filters": []}`, 선택 `listing.content_type: "versus/callback; charset=UTF-8"` | POST JSON 본문 틀. 값이 정확히 `"{page}"` 인 자리에 쪽 값(정수, offset 모드면 offset). 구간·커서 매개변수는 최상위 키로 더함 | `{page}` 는 정확히 하나(커서면 없음), 값 전체여야 함. `params` 와 같이 못 씀. content_type 은 JSON 본문용만(form·multipart 금지) |
+| `ext:dynamic_token` / `ext:dynamic_ref` | `listing.dynamic: {"url": <목록 호스트의 공개 쪽>, "values": {"nonce": {"regex": "..."}, "ref": {"json_path": "refs.master", "public": true}}, "header": {"name": "{dyn:h}", "value": "{dyn:t}"}}`, 값 자리 `"{dyn:이름}"` | 실행마다 그 쪽을 1번(게이트로) 읽어 값을 뽑고 POST 본문·머리글 1개(POST 만)·GET 매개변수에 넣음. nonce·CSRF·쪽에 들어 있는 hash 처럼 **사이트가 공개로 내주는 값만**(계산·재현 아님) | 값은 상태 DB·이벤트·중단 사유에 남지 않음(이름만). GET 매개변수(=URL, 기록됨)에는 `public: true` 이고 비밀처럼 보이지 않는 이름(token·key·secret·auth·session·password 아님)만. 받은 머리글 이름이 금지 머리글이면 `config_error`. 값이 없으면 `config_error: dynamic_value_missing:<이름>`. 로그인·챌린지·발급 키가 필요하면 쓰지 않음(협의) |
+| `ext:multi_listing` | 명시 구간 `items: [{"key", "params", "url", "first_page_url", "label"}]`, `listing.first_page_url` 의 `{segment}`, `segments.mode: "discover"` (`hub_url`, `selector`, `attr`, `key_regex`, `params: {"columnid": "{key}"}`, `label: "text"\|"attr:<이름>"\|null`, `min_segments`, `retired`), 인자 `segment` | 구간마다 자기 목록(주소·첫 쪽). discover: 매 실행 허브 쪽에서 구간을 찾음. 메서드에 `{key, label, params}` (항목이 실린 구간) | 자기 `url` 이 있는 구간은 목록의 첫 쪽을 빌리지 않음. 예전에 찾았는데 허브에서 사라진 구간도 계속 읽고 결과는 `complete_unverified`(`segments_not_rediscovered`), plan 이 바뀌어 매개변수를 모르는 구간도 같음 → 사람이 확인하면 `segments.retired` 에 적음. 찾은 구간이 `min_segments` 보다 적으면 `incomplete`. 알 수 없는 `segments.mode` 는 plan 오류. 식별값 점검 표본에는 구간 정보가 없음(`{key: null}`) |
+| `ext:next_link` | `listing.next_link: {"selector": "a.load-more", "attr": "href"}` 또는 `{"json_path": "links.next"}` 또는 `{"selector": "resumptionToken", "text": true, "template": "https://x/oai/request?verb=ListRecords&resumptionToken={token}"}` | 응답 안 다음 쪽 주소(서버 서명 "더 보기" 링크 등)를 따라감. `text`+`template`: 요소의 글자(OAI-PMH resumptionToken 등)를 퍼센트 인코딩해 고정 주소의 `{token}` 에 넣음 — 다음 요청은 그 주소 그대로(첫 쪽 params 는 붙지 않음), 빈 요소면 끝. template 은 목록 호스트의 절대 주소, `{token}` 하나. 커서(`ext:json_page`)와 같은 저장·이어받기·반복 감시 | oldest_first_sort·date_range_split 만, GET 만, `next_cursor`·경로형·`overlap_pages` 와 같이 못 씀. 다른 호스트나 https→http 링크면 `config_error`. 첫 쪽에 링크 자리가 없으면 `config_error`(한 쪽짜리 목록은 next_link 를 쓰지 않음) |
+| `ext:detail_aux_request` | `adapter.second_step: {"use": "detail_page", "url_template": "https://host/api?pageId={item:page_id}"}` (selector 대신) | 상세 쪽 링크 대신 항목의 목록 필드로 만든 주소를 한 번 더 요청. first_* 와 같이 쓰면 두 응답을 모두 사용 | 값은 URL 인코딩, `.`·`..`·빈 값·객체는 링크 없음(→ `required` 규칙). 호스트는 리터럴이고 상세 호스트 또는 `allow_hosts` 만 |
+
+남긴 요구(개발 필요·협의): 다른 호스트 행만 있는 쪽·끝 뒤 홈페이지 리다이렉트(neac), 계정이 필요한 조건부 상세(github)·Basic auth(vlaanderen), 구간별로 다른 동적 값(em-dk 월 쪽), POST 로 받는 PDF(kepco), 3단계 상세(ehesp), 상세 1쪽→여러 문서(dhs-congressional-approp, cnl).
+
+## 20. 틀 확장 (X3, 2026-10-18)
+
+X2 적용 중 나온 요구. 원칙은 같다(게이트 그대로, 새 키 없는 plan 불변, 식별값 규칙 불변). 테스트: `tests/test_enumeration_extensions_x3.py`.
+
+| 표기 | plan 키 | 동작 | 막는 것 |
+|---|---|---|---|
+| `ext:blank_body_end` | `listing.end_on_blank_body: true` | 200 + 공백 본문을 목록 끝으로 | 선언 없으면 공백 본문은 파싱 오류(끝 아님) |
+| `ext:second_step_link_params` | `adapter.second_step.add_params: {"_embed": "1"}` | 찾은 2단계 링크에 고정 매개변수를 더함(수집기가 붙이던 것) | 이름은 리터럴, 값은 문자열. 링크에 같은 이름이 이미 있거나 `#` 경로면 링크 없음(덮어쓰지 않음). 호스트 검사는 그대로 |
+| `ext:second_step_link_rewrite` | `adapter.second_step.rewrite: {"regex": "/record/(\\d+)$", "template": "https://host/record/{1}?of=xm"}` | 찾은 링크를 정규식 그룹으로 새 주소(예 MARCXML 내보내기)로 바꿈. 링크가 http(s) 주소가 아니면(`javascript:downloadFile('enc','seq')`) 링크 글자 그대로에 정규식을 적용(rewrite 가 없으면 전처럼 버림) | template 은 절대 주소·`{1}`..`{n}` 만, 쓰는 그룹 값은 한 번만 URL 인코딩(이미 인코딩된 값은 풀고 다시)·`.`/`..` 거절, 맞지 않으면 링크 없음. https 상세에서 http 주소로는 안 바꿈. 바꾼 주소도 상세 호스트 또는 allow_hosts 만 |
+| `ext:list_page_arg` (`list_position`) | 인자 `list_position` (detail/paper) | `{page: 보낸 쪽 값, n: 쪽 번호, position: 그 쪽 안 순번(1부터, 응답 순서)}`. 항목 장부에 같이 저장돼 다시 시도 때도 같음 | 목록 메서드에는 못 씀. 식별값 점검 표본은 None(그래서 이 인자를 쓰는 계약은 "목록 값에 기댐"으로 봄). 한계: 커서·next_link 에서는 page 도 쪽 번호 n, position 은 파서가 남긴 항목 기준, 다시 시도한 항목은 처음 저장한 위치 |
+| `ext:multi_level_discover` | `segments.follow: {"selector": "a.journal, a.year", "attr": "href", "max_depth": 2, "max_pages": 100}` (discover 와 함께) | 허브 → 같은 호스트의 하위 허브를 너비 우선으로 따라가며 구간 링크를 찾음. 구간에 `path`(따라간 링크 글자들) 저장 → `segment` 인자로 전달 | 깊이 1..5, 쪽 1..1000, 허브 호스트만·https 허브에서 http 링크 안 따라감·같은 주소(조각·스킴 무시) 한 번만. 하위 허브 404/410 은 건너뛰고 찾은 구간은 읽되 `complete_unverified: sub_hub_failed:<상태>`. 쪽 상한·깊이 상한에 닿으면 마찬가지로 `hub_pages_cap`·`hub_depth_limit`(완료 아님). 허브 자체 실패는 실행 실패 |
+| `ext:identity_post_number_multi_url` | `adapter.allow_shared_post_number: true` (crawler 어댑터) | 등록 수집기가 post_number 하나에 여러 행(언어별 PDF 등, meta_url 다름)을 저장하던 규칙을 그대로: IdentityCollision 으로 거절하지 않음(정확 일치 dedup 은 그대로) | 구매자 중복 검사(site_id·post_number 묶음)에는 걸리므로 결과는 `complete_with_review: shared_post_number_rows:N`(N = 그 사이트 전체 공유 행, 이번 실행분만이 아님; 다른 완료 상태면 경고로). 가져오기(import_enum_pilot.py)는 `SHARED_POST_NUMBER` 목록 사이트만: 가장 최근 폴더에 없는 옛 주소는 빼고, 대상에 같은 번호의 다른 주소가 있으면 넣지 않고 `shared_post_new` 로 검토 |
+| `ext:pdf_text` 재시도 | `adapter.pdf_text.retry_args: ["-raw"]` | 첫 옵션 결과가 비면 두 번째 옵션으로 다시(수집기의 "-layout 안 되면 -raw") | 같은 허용 옵션 목록. 최악 시간은 timeout_s × 2 |
+| `ext:response_size` | `max_response_bytes: 83886080` (사이트) | 목록·상세 응답 크기 상한을 올림(누적 "더 보기" 응답 등) | 기본 상한(50 MiB) ~ `file_max_bytes` (올리기만, 모든 전략에서 검사) |
+| `ext:none_is_rule_skip` | `adapter.none_is_rule_skip: true` | 메서드가 None 을 돌려주면 수집기 규칙에 따른 건너뛰기(예 초록 50자 미만): `failed_permanent: skipped_by_rule` 로 기록·건수 보고, 계약 실패·검토로 세지 않음 | 메서드가 실제로 None 을 돌려준 경우만(dict 아닌 값·빈 dict·제목 없음은 그대로 실패). 건너뛴 몫이 `adapter.max_rule_skip_ratio`(기본 0.2)를 넘으면 `complete_with_review: skipped_by_rule:N`, 저장 없이 연속 `max_consecutive_rule_skips`(기본 20)번이면 `config_error`(고장 난 파서). 건수는 늘 경고로 표시. 선언 없으면 계약 사이트는 계약 실패로 셈 |
+
+X3 후속(2026-10-18):
+
+| 표기 | plan 키 | 동작 | 막는 것 |
+|---|---|---|---|
+| `ext:detail_missing_as_no_text` | `adapter.pdf_text.missing_statuses: [404]` (404·410 만) | pdf_text 가 읽는 요청(2단계가 있으면 2단계, 없으면 상세)이 그 상태면 항목 실패 대신 `pdf_text = None` 으로 메서드 호출 → 수집기의 대체 규칙(예 목록 설명을 초록으로) 그대로. 건수는 경고 `pdf_missing_as_no_text:N` | 그 요청만(1단계 상세 404 는 여전히 실패), 선언한 상태만 |
+| `ext:discover_segment_url` | `segments.link_as_url: true` (discover) | 찾은 구간 링크 자체를 그 구간의 목록 주소로(쪽은 page_param) | listing.url 에 `{page}`·`{segment}` 없음, 허브가 목록 호스트, 다른 호스트·https→http 링크는 구간으로 안 씀 |

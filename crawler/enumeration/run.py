@@ -17,7 +17,7 @@ from pathlib import Path
 from .adapters import Adapter, AdapterConfigError
 from .files import FilePass
 from .http import Fetcher, RequestsTransport
-from .plan import PlanError, load_plan, site_plan
+from .plan import PlanError, header_hosts, load_plan, resolve_headers, site_plan
 from .report import write_report
 from .runner import SiteRunner
 from .store import Store
@@ -156,6 +156,10 @@ def registered_crawler(site_id, conn):
 
 
 def make_fetcher(plan, state_dir, transport=None, *, max_bytes=None, holds=None):
+    headers = resolve_headers(plan.raw)  # PlanError when a named environment variable is missing
+    if plan.raw.get("max_response_bytes"):
+        # ext:response_size: a source whose listing responses are larger than the default cap.
+        max_bytes = max(max_bytes or 0, int(plan.raw["max_response_bytes"]))
     transport = transport or RequestsTransport(verify=plan.get("verify_ssl"),
                                                **({"max_bytes": max_bytes} if max_bytes else {}))
     return Fetcher(plan.site_id, transport, Path(state_dir) / "gates", holds=holds,
@@ -163,7 +167,8 @@ def make_fetcher(plan, state_dir, transport=None, *, max_bytes=None, holds=None)
                    max_runtime_s=plan.get("max_runtime_s"), retries=plan.get("retries"),
                    backoff_s=plan.get("backoff_s"), max_retry_wait_s=plan.get("max_retry_wait_s"),
                    respect_robots=plan.get("respect_robots"), user_agent=plan.get("user_agent"),
-                   encoding=plan.get("encoding"))
+                   encoding=plan.get("encoding"), extra_headers=headers,
+                   header_hosts=header_hosts(plan.raw) if headers else None)
 
 
 def make_adapter(plan, conn, crawler_factory=registered_crawler):
@@ -183,8 +188,13 @@ def run_site(plan, store, conn, state_dir, *, transport=None, refresh=False, ret
         store.finish_site(plan.site_id, "config_error", str(exc))
         return {"site_id": plan.site_id, "status": "config_error", "stop_reason": str(exc)}
     # One Fetcher (one budget, one set of holds) for the body run and the file pass.
-    fetcher = make_fetcher(plan, state_dir, transport, holds=store,
-                           max_bytes=plan.get("file_max_bytes") if files else None)
+    try:
+        fetcher = make_fetcher(plan, state_dir, transport, holds=store,
+                               max_bytes=plan.get("file_max_bytes") if files else None)
+    except PlanError as exc:
+        store.start_site(plan.site_id, plan.fingerprint, plan.strategy)
+        store.finish_site(plan.site_id, "config_error", str(exc))
+        return {"site_id": plan.site_id, "status": "config_error", "stop_reason": str(exc)}
     try:
         result = SiteRunner(plan, store, fetcher, adapter, today=today, log=log,
                             reference_conn=reference_conn, identity_required=identity_required,
@@ -311,7 +321,10 @@ def main(argv=None):
         if args.reprocess_failed:
             store.requeue_failed(plan.site_id, args.reprocess_failed)
         if args.files_only:
-            fetcher = make_fetcher(plan, state_dir, max_bytes=plan.get("file_max_bytes"), holds=store)
+            try:
+                fetcher = make_fetcher(plan, state_dir, max_bytes=plan.get("file_max_bytes"), holds=store)
+            except PlanError as exc:
+                return {"site_id": plan.site_id, "status": "config_error", "stop_reason": str(exc)}
             return {"site_id": plan.site_id, "files": FilePass(
                 store, fetcher, blob_root=args.blob_root or state_dir / "files", doc_conn=conn,
                 max_attempts=plan.get("file_max_attempts"), max_bytes=plan.get("file_max_bytes")).run(plan.site_id)}
