@@ -473,3 +473,28 @@ class MojGoKrMojCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. The list page and
+    # the detail page go through crawl()'s own parsers and _build_paper, with the
+    # same skip rule (abstract shorter than 50 characters). The optional HEAD
+    # request _parse_detail makes for an attachment without a visible name is not
+    # made here (no network in the adapter): such a file keeps the URL-tail name.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        m = re.search(r"[?&]page=(\d+)", url or "")
+        page = int(m.group(1)) if m else 1
+        items, _ = self._parse_list_page(html, page, self._list_url(page))
+        return items
+
+    def _enumeration_paper(self, html, item):
+        head = self._curl_head_filename
+        self._curl_head_filename = lambda url: None
+        try:
+            detail = self._parse_detail(html, item)
+        finally:
+            self._curl_head_filename = head
+        if not detail or len(detail.get("abstract") or "") < 50:
+            return None
+        return self._build_paper(item, detail)
