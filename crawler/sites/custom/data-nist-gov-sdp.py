@@ -270,3 +270,93 @@ class NistSdpCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+    # The enumeration framework (last_page_backward over the 0-indexed page
+    # parameter) ends at the page with an empty ResultData, so the _MAX_PAGES
+    # cap of crawl() does not apply. Papers come from the record JSON only.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("ResultData", []), list):
+            raise PermanentFailure("listing_parse_error:invalid_rmm_envelope")
+        if "ResultData" not in data and "ResultCount" not in data:
+            raise PermanentFailure("listing_parse_error:invalid_rmm_envelope")
+        rows = []
+        for item in data.get("ResultData") or []:
+            if not isinstance(item, dict):
+                raise PermanentFailure("listing_parse_error:invalid_rmm_record")
+            ark_id = (item.get("@id") or "").strip()
+            ediid = (item.get("ediid") or "").strip()
+            if ark_id:
+                detail_url = f"https://data.nist.gov/sdp/#/id/{ark_id}"
+            else:
+                detail_url = f"https://data.nist.gov/od/id/{ediid}"
+            rows.append({"record": item, "url": detail_url, "key": ediid or ark_id or detail_url})
+        return rows
+
+    def _enumeration_paper(self, row):
+        item = row["record"]
+        ark_id = (item.get("@id") or "").strip()
+        ediid = (item.get("ediid") or "").strip()
+        title = (item.get("title") or "").strip()
+        if not title:
+            return None
+        detail_url = row["url"]
+        abstract = self._flatten(item.get("description") or "")
+        if len(abstract) < 50:
+            return None
+        modified = (item.get("modified") or "").strip()
+        pub_date = modified[:10] if len(modified) >= 10 else modified
+        kw_parts: list[str] = []
+        for kw in (item.get("keyword") or []):
+            kw_parts.extend(k.strip() for k in str(kw).split(";") if k.strip())
+        keywords = ",".join(kw_parts)
+        theme = item.get("theme") or []
+        category = "; ".join(str(t).strip() for t in theme if t)
+        pub_raw = item.get("publisher") or {}
+        publisher = pub_raw.get("name", "") if isinstance(pub_raw, dict) else str(pub_raw)
+        cp = item.get("contactPoint") or {}
+        authors = cp.get("fn", "") if isinstance(cp, dict) else ""
+        components = item.get("components") or []
+        pdf_url, original_filename = self._extract_pdf(components)
+        doi = self._extract_doi(item)
+        metadata_dict = {
+            "posted_date": modified,
+            "ark_id": ark_id,
+            "ediid": ediid,
+            "status": item.get("status") or "",
+            "accessLevel": item.get("accessLevel") or "",
+            "license": item.get("license") or "",
+            "bureauCode": item.get("bureauCode") or [],
+            "programCode": item.get("programCode") or [],
+            "version": item.get("version") or "",
+            "landingPage": item.get("landingPage") or "",
+            "language": item.get("language") or [],
+            "topic": [
+                t.get("tag", "") for t in (item.get("topic") or [])
+                if isinstance(t, dict) and t.get("tag")
+            ],
+        }
+        metadata_dict = {k: v for k, v in metadata_dict.items()
+                         if v not in (None, "", [], {})}
+        return {
+            "site_id": self.site_id,
+            "external_id": ediid or ark_id,
+            "post_number": ediid or ark_id or None,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "listed_date": pub_date,
+            "authors": authors or None,
+            "publisher": publisher or None,
+            "url": detail_url,
+            "pdf_url": pdf_url or None,
+            "keywords": keywords or None,
+            "category": category or None,
+            "doi": doi or None,
+            "original_filename": original_filename or None,
+            "metadata": json.dumps(metadata_dict, ensure_ascii=False),
+        }

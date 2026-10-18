@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "sites": {
+    "data-nist-gov-sdp": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://data.nist.gov/rmm/records",
+        "params": {
+          "size": 50
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "key",
+          "url_field": "url"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1,
+        "check_unparameterized_first_page": true
+      }
+    }
+  }
+}

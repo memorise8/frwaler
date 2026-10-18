@@ -1,0 +1,16 @@
+{
+  "site_id": "data-nist-gov-sdp",
+  "listing_body": "{\"ResultCount\": 2, \"PageSize\": 50, \"ResultData\": [{\"@id\": \"ark:/88434/offline1\", \"ediid\": \"OFFLINE0001\", \"title\": \"Offline dataset one\", \"description\": [\"Synthetic NIST dataset description for offline equality testing only; it is not a real record. Synthetic NIST dataset description for offline equality testing only; it is not a real record. \"], \"modified\": \"2017-11-09 00:00:00\", \"keyword\": [\"alpha; beta\", \"gamma\"], \"theme\": [\"Testing\"], \"publisher\": {\"name\": \"NIST\"}, \"contactPoint\": {\"fn\": \"Offline Contact\"}, \"accessLevel\": \"public\", \"references\": [{\"location\": \"https://doi.org/10.0000/offline\"}], \"topic\": [{\"tag\": \"Synthetic\"}], \"components\": [{\"downloadURL\": \"https://data.nist.gov/od/ds/offline1/report.pdf\", \"mediaType\": \"application/pdf\"}]}, {\"@id\": \"ark:/88434/offline2\", \"ediid\": \"\", \"title\": \"Offline dataset two\", \"description\": [\"Synthetic NIST dataset description for offline equality testing only; it is not a real record. Synthetic NIST dataset description for offline equality testing only; it is not a real record. \"], \"modified\": \"2012-01-30\", \"keyword\": [\"alpha; beta\", \"gamma\"], \"theme\": [\"Testing\"], \"publisher\": {\"name\": \"NIST\"}, \"contactPoint\": {\"fn\": \"Offline Contact\"}, \"accessLevel\": \"public\", \"references\": [{\"location\": \"https://doi.org/10.0000/offline\"}], \"topic\": [{\"tag\": \"Synthetic\"}]}]}",
+  "content_type": "application/json",
+  "details": {},
+  "long_text": "Synthetic NIST dataset description for offline equality testing only; it is not a real record. Synthetic NIST dataset description for offline equality testing only; it is not a real record. ",
+  "empty_body": "{\"ResultCount\": 2, \"PageSize\": 50, \"ResultData\": []}",
+  "original_method_source_sha256": {
+    "_curl_get": "193ca7d8d206eeaf6cf9a758f3456487338cd6bb1d4251def93b5ab56b3854d9",
+    "_fetch_page": "c628a4409cc43d6de98b6cdb995f2fb4d7e97290fb17b77d19efb5147c534620",
+    "_flatten": "af864a0c6342b5d63a77fa72885301bda1b15019328e3b7d4a8ae48aa8a1ad42",
+    "_extract_pdf": "fd277c1644e48050cbc1aae65bbae3830450014716bab56946f183ffdc4162d6",
+    "_extract_doi": "7023ae3fe1111a22980ba208e49dc508b463a1824117ea60c98ca956a2e99f8d",
+    "crawl": "aa127f548c5c81e417c67f25636e35eee868bf5759bbbbb85218874e90c25115"
+  }
+}
