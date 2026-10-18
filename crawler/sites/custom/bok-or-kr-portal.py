@@ -480,3 +480,63 @@ class BokOrKrPortalCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. List rows from
+    # _parse_list_rows (listCont.do); the paper from the detail page with the
+    # same checks (short error page, abstract < 50 characters) as crawl().
+    # ------------------------------------------------------------------
+
+    def _enumeration_paper(self, html, row):
+        if not html or len(html) < 600:
+            return None
+        ntt_id = row["ntt_id"]
+        detail = self._parse_detail(html)
+        abstract = self._build_abstract(detail, row)
+        if len(abstract) < 50:
+            return None
+        title = detail["title"] or row["title"] or f"한국은행 뉴스/자료 #{ntt_id}"
+        date = detail["date"] or row["date"] or None
+        department = detail["department"] or row["department"] or None
+        category = detail["category"] or row["category"] or None
+
+        paper = {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": ntt_id,
+            "post_number": ntt_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": date,
+            "listed_date": row["date"] or date,
+            "authors": "",
+            "publisher": _PUBLISHER,
+            "department": department,
+            "journal": None,
+            "url": row["url"],
+            "pdf_url": detail["pdf_url"] or None,
+            "keywords": ", ".join(detail["keywords"]) if detail["keywords"] else None,
+            "category": category,
+            "doi": None,
+            "original_filename": detail["original_filename"] or None,
+            "metadata": json.dumps(
+                {
+                    "nttId": ntt_id,
+                    "menuNo": _LIST_PARAMS_BASE["menuNo"],
+                    "depth2": _LIST_PARAMS_BASE["depth2"],
+                    "posted_date": row["date_raw"] or detail["date_raw"] or None,
+                    "originalFilename": detail["original_filename"] or None,
+                    "journal_raw": None,
+                    "series": None,
+                    "volume": None,
+                    "issue": None,
+                    "category_list_raw": row["category"] or None,
+                    "category_detail_raw": detail["category"] or None,
+                    "department_raw": department,
+                    "keywords_list": detail["keywords"],
+                    "attachments": detail["attachments"],
+                },
+                ensure_ascii=False,
+            ),
+        }
+        return paper

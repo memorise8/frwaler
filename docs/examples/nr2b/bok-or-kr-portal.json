@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "sites": {
+    "bok-or-kr-portal": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "base_url": "https://www.bok.or.kr",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_parse_list_rows",
+        "list_args": [
+          "html"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.bok.or.kr/portal/singl/newsData/listCont.do",
+        "params": {
+          "targetDepth": "",
+          "menuNo": "201150",
+          "syncMenuChekKey": "1",
+          "depthSubMain": "",
+          "subMainAt": "",
+          "searchCnd": "1",
+          "searchKwd": "",
+          "depth2": "200038",
+          "date": "",
+          "sdate": "",
+          "edate": "",
+          "sort": "1",
+          "pageUnit": "10"
+        },
+        "page_param": "pageIndex",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "ntt_id",
+          "url_field": "url",
+          "title_field": "title",
+          "date_field": "date",
+          "listing_marker": "div.bd-line"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
