@@ -301,3 +301,112 @@ class MoeGovCnJybXwfbCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Rows of one list page (static page or WAS fragment), parsed like crawl()."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        rows = []
+        for item_url, title, date_str in self._parse_list_items(html, _LIST_BASE):
+            m = re.search(r't\d{8}_(\d+)\.html', item_url)
+            rows.append({
+                "url": item_url,
+                "post_number": m.group(1) if m else None,
+                "title": title,
+                "date_str": date_str,
+            })
+        return rows
+
+    def _enumeration_detail_fields(self, html):
+        """The parsing part of _parse_detail(), on already fetched HTML (same rules)."""
+        if not html:
+            return None
+        soup = _make_soup(html)
+        if soup is None:
+            return None
+
+        def _meta(name):
+            tag = soup.find("meta", attrs={"name": name})
+            return (tag.get("content") or "").strip() if tag else ""
+
+        external_id = _meta("contentid")
+        published_date = _meta("publishdate")
+        if published_date and " " in published_date:
+            published_date = published_date.split()[0]
+        author = _meta("author")
+        publisher = _meta("source") or _meta("ContentSource")
+
+        content_div = soup.find("div", class_="TRS_Editor")
+        abstract = ""
+        if content_div:
+            parts = []
+            for elem in content_div.find_all(["p", "li", "td"]):
+                text = elem.get_text(separator=" ", strip=True)
+                if len(text) > 5:
+                    parts.append(text)
+            abstract = "\n".join(parts) if parts else content_div.get_text(separator="\n", strip=True)
+
+        listed_date = published_date
+        for shuxing in soup.find_all("div", class_="moe-detail-shuxing"):
+            text = shuxing.get_text(strip=True)
+            m = re.search(r'(\d{4}-\d{2}-\d{2})', text)
+            if m:
+                listed_date = m.group(1)
+            if not publisher:
+                src_m = re.search(r'来源[：:]([^（\n\r]+)', text)
+                if src_m:
+                    publisher = src_m.group(1).strip()
+            break
+
+        return {
+            "external_id": external_id,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "author": author,
+            "publisher": publisher or "教育部",
+            "abstract": abstract,
+        }
+
+    def _enumeration_paper(self, html, record):
+        """Paper dict exactly as crawl() saves it for one list row (None = skipped)."""
+        url = record["url"]
+        title = record["title"]
+        date_str = record["date_str"]
+        post_number = record.get("post_number")
+        detail = self._enumeration_detail_fields(html)
+        if not detail:
+            raise RuntimeError("detail HTML could not be parsed")
+        abstract = detail.get("abstract", "").strip()
+        if len(abstract) < 50:
+            return None
+        external_id = detail.get("external_id") or post_number or url
+        published_date = detail.get("published_date") or date_str
+        listed_date = detail.get("listed_date") or date_str
+        author = detail.get("author", "")
+        publisher = detail.get("publisher") or "教育部"
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "url": url,
+            "authors": author,
+            "publisher": publisher,
+            "pdf_url": None,
+            "keywords": None,
+            "category": "政策解读",
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps(
+                {"posted_date": date_str, "contentid": external_id},
+                ensure_ascii=False,
+            ),
+        }

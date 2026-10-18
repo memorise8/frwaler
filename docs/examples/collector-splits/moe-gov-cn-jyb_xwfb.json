@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "sites": {
+    "moe-gov-cn-jyb_xwfb": {
+      "strategy": "last_page_backward",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "http://www.moe.gov.cn/was5/web/search",
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "post_number",
+          "url_field": "url",
+          "date_field": "date_str",
+          "title_field": "title",
+          "listing_marker": "li > a[href=\"\"]"
+        },
+        "params": {
+          "channelid": "254874",
+          "chnlid": "271"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "base_url": "http://www.moe.gov.cn",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+ "site_id": "moe-gov-cn-jyb_xwfb",
+ "listing_body": "<li ><a href=\"http://www.moe.gov.cn/jyb_xwfb/s271/202608/t20260831_1448325.html\" target=\"_blank\" title=\"教育部基础教育司负责人答记者问\">教育部基础教育司负责人答记者问</a><span>2026-08-31</span></li>\r\n<li ><a href=\"http://www.moe.gov.cn/jyb_xwfb/s271/202607/t20260715_1443829.html\" target=\"_blank\" title=\"教育部职业教育与成人教育司负责人答记者问\">教育部职业教育与成人教育司负责人答记者问</a><span>2026-07-15</span></li>\r\n",
+ "content_type": "text/html; charset=UTF-8",
+ "details": {
+  "http://www.moe.gov.cn/jyb_xwfb/s271/202608/t20260831_1448325.html": "<html><head><meta name=\"contentid\" content=\"1448325\"><meta name=\"publishdate\" content=\"2026-08-31 10:00\"><meta name=\"author\" content=\"教育部\"><meta name=\"source\" content=\"教育部\"></head><body><div class=\"moe-detail-shuxing\">2026-08-31　来源：教育部</div><div class=TRS_Editor><p>教育部基础教育司负责人就特殊教育发展提升行动计划答记者问，介绍了行动计划的出台背景、总体要求和主要举措。</p></div></body></html>",
+  "http://www.moe.gov.cn/jyb_xwfb/s271/202607/t20260715_1443829.html": "<html><head><meta name=\"contentid\" content=\"1443829\"><meta name=\"publishdate\" content=\"2026-07-16 10:00\"><meta name=\"author\" content=\"教育部\"><meta name=\"source\" content=\"教育部\"></head><body><div class=\"moe-detail-shuxing\">2026-07-16　来源：教育部</div><div class=TRS_Editor><p>教育部基础教育司负责人就特殊教育发展提升行动计划答记者问，介绍了行动计划的出台背景、总体要求和主要举措。</p></div></body></html>"
+ },
+ "long_text": "教育部基础教育司负责人就特殊教育发展提升行动计划答记者问，介绍了行动计划的出台背景、总体要求和主要举措。",
+ "original_method_source_sha256": {
+  "_fetch_raw": "e5f33bb20f9ae51d2964b182e9cdf4aac34b0c61565e50d3343d5d72fec033a7",
+  "_parse_list_items": "def8b576e4e8fe0ba0eea5900f256c72a0cdf7967877e562ad986d6c7fd300cc",
+  "_parse_detail": "d630fd349b5053ba4e1f3feacd7a908fdd2abc1af31080368eaffb8f2f95ec16",
+  "crawl": "631b7d244a7057e06473704f9e0e847e3a7b99904f82cb7ce25c422812844953"
+ },
+ "empty_body": "\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n<li ><a href=\"\" target=\"_blank\" title=\"\"></a><span></span></li>\r\n"
+}
