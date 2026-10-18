@@ -383,3 +383,51 @@ class UlsanGoKrUCrawler(BaseCrawler):
                 ensure_ascii=False,
             ),
         }
+
+    # ------------------------------------------------------------------
+    # Pure enumeration conversion (no network; crawl() is unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List page (GET list.ulsan?bbsId=...&mId=...&page=N, same rows as crawl()'s
+        POST page=N) -> row dicts via ``_parse_list``. A response without the board
+        table (``table.tbl_bd_list``) is a listing parse error; past the last page the
+        table has no fn_view rows (valid empty page).
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if isinstance(html, bytes):
+            html = _decode(html)
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        soup = _make_soup(html)
+        if soup is None or soup.select_one("table.tbl_bd_list") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_table", url)
+        rows = []
+        for post_num, data_id in self._parse_list(html):
+            rows.append({
+                "external_id": data_id,
+                "data_id": data_id,
+                "post_number": post_num,
+                "url": f"{_VIEW_BASE}?bbsId={_BBS_ID}&mId={_MID}&dataId={data_id}",
+            })
+        return rows
+
+    def _enumeration_paper(self, raw, item):
+        """crawl()'s detail conversion and skip rule on an already fetched view.do page.
+
+        Runs the unchanged ``_fetch_detail`` with the module fetcher bound to the given
+        response body. None = skipped like crawl().
+        """
+        body = raw.encode("utf-8") if isinstance(raw, str) else raw
+        module = globals()
+        original = module["_curl_raw"]
+        module["_curl_raw"] = lambda *args, **kwargs: body
+        try:
+            paper = self._fetch_detail(item["data_id"], item["post_number"], item["url"])
+        finally:
+            module["_curl_raw"] = original
+        if paper is None:
+            return None
+        if len(paper.get("abstract") or "") < 50:
+            return None
+        return paper

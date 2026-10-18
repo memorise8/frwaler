@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "sites": {
+    "ulsan-go-kr-u": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "base_url": "https://www.ulsan.go.kr",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "raw",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.ulsan.go.kr/u/rep/bbs/list.ulsan",
+        "params": {
+          "bbsId": "BBS_0000000000000170",
+          "mId": "001003007001000000",
+          "page": 1
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "external_id",
+          "listing_marker": "table.tbl_bd_list"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
