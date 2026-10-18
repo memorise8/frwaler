@@ -280,9 +280,7 @@ class Adapter:
                 else:
                     paper = paper_from_item(self.site_id, item, self._legacy_id())
             return self._finish(paper, item)
-        resp = fetcher.get(item.url)
-        if getattr(resp, "login_suspect", False):
-            raise PermanentFailure("login_required_suspect", item.url, resp.status)
+        resp = self._detail_response(item, fetcher)
         if self.is_generic and not self.cfg.get("detail_method"):
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(resp.text(), "html.parser")
@@ -296,19 +294,66 @@ class Adapter:
                     paper = c._fetch_detail(item.url, basic, c._config.get("detail_page") or {})
             finally:
                 del c._fetch_page
-            return self._finish(paper, item)
+            return self._finish(self._with_step_pdf(paper, resp), item)
         args = self._args(self.cfg.get("detail_args", ["html", "item"]), resp, item)
         with guarded():
             result = getattr(c, self.cfg["detail_method"])(*args)
-        return self._finish(result, item)
+        return self._finish(self._with_step_pdf(result, resp), item)
+
+    # -- ext:two_step_detail ------------------------------------------------
+    def _step_link(self, resp):
+        """The second-step link on a detail page (absolute), or None. Only the detail page's own
+        host or a host listed in allow_hosts; anything else is ignored, never requested."""
+        from urllib.parse import urljoin
+        from bs4 import BeautifulSoup
+        from .urls import host_of
+        step = self.cfg["second_step"]
+        node = BeautifulSoup(resp.text(), "html.parser").select_one(step["selector"])
+        value = (node.get(step.get("attr", "href")) or "").strip() if node is not None else ""
+        if not value:
+            return None
+        link = urljoin(resp.url, value)
+        if not link.startswith(("http://", "https://")):
+            return None
+        if host_of(link) != host_of(resp.url) and host_of(link) not in set(step.get("allow_hosts", [])):
+            return None
+        return link
+
+    def _detail_response(self, item, fetcher):
+        """Detail page response; with second_step.use=detail_page the page its link points to
+        (one more request through the same fetcher: gate, robots, holds, destination check).
+        The item's identity (key, url) never changes."""
+        resp = fetcher.get(item.url)
+        if getattr(resp, "login_suspect", False):
+            raise PermanentFailure("login_required_suspect", item.url, resp.status)
+        step = self.cfg.get("second_step")
+        if not step or step["use"] != "detail_page":
+            return resp
+        link = self._step_link(resp)
+        if link is None:
+            if step.get("required", True):
+                raise PermanentFailure("second_step_link_missing", item.url, resp.status)
+            return resp
+        second = fetcher.get(link)
+        if getattr(second, "login_suspect", False):
+            raise PermanentFailure("login_required_suspect", link, second.status)
+        second.first_url = item.url
+        return second
+
+    def _with_step_pdf(self, paper, resp):
+        """second_step.use=pdf_url: the link becomes pdf_url when the extraction found none.
+        No request here; the file pass fetches it through the gate like any PDF."""
+        step = self.cfg.get("second_step")
+        if not step or step["use"] != "pdf_url" or not isinstance(paper, dict) or paper.get("pdf_url"):
+            return paper
+        link = self._step_link(resp)
+        return dict(paper, pdf_url=link) if link else paper
 
     def _materialize_contract(self, item, fetcher):
         from .contracts import fail
         resp, detail = None, None
         if self.cfg.get("detail_method"):
-            resp = fetcher.get(item.url)
-            if getattr(resp, "login_suspect", False):
-                raise PermanentFailure("login_required_suspect", item.url, resp.status)
+            resp = self._detail_response(item, fetcher)
             detail = self.contract.call("detail", resp, item)
             if detail is None:
                 return None
@@ -321,6 +366,8 @@ class Adapter:
             paper = detail
         if paper is None:
             return None
+        if resp is not None:
+            paper = self._with_step_pdf(paper, resp)
         if not isinstance(paper, dict):
             fail("paper_not_dict")
         if paper.get("site_id", self.site_id) != self.site_id:
