@@ -162,10 +162,10 @@ class EarthPrintsOrgCrawler(BaseCrawler):
             return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
         m = re.match(r"^(\d{4})-(\d{2})$", text)
         if m:
-            return f"{m.group(1)}-{m.group(2)}-01"
+            return f"{m.group(1)}-{m.group(2)}"
         m = re.match(r"^(\d{4})$", text)
         if m:
-            return f"{m.group(1)}-01-01"
+            return m.group(1)
         return None
 
     @staticmethod

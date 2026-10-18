@@ -16,6 +16,7 @@ import time
 from urllib.parse import urljoin, urlparse, unquote
 
 from crawler.base_crawler import BaseCrawler
+from crawler.source_date_text import separate_date_parts
 from delivery.health.access_challenge import access_challenge
 
 _BASE = "https://www.apra.gov.au"
@@ -37,6 +38,7 @@ _MONTHS = {
 
 def _parse_display_date(text):
     """Parse 'D Month YYYY' (e.g. '31 July 2026') -> ISO YYYY-MM-DD."""
+    text = separate_date_parts(text)
     if not text:
         return None
     import re
