@@ -1,0 +1,16 @@
+{
+ "site_id": "hrb-ie-publications",
+ "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.",
+ "original_method_source_sha256": {
+  "_curl_get": "51b06920de47bc16e431e0fcaff97b5e719b54bf6a2c4f48f01ebc35ad6349b1",
+  "_parse_detail_page": "ee963dd3a2dab34baaa7731665eafb28c289e5be00f6578e346dced76ffe1f9e",
+  "crawl": "9ec05dbfee5c77975143e2aeee13ab63bd475154a3d7cb9ae8eb5e9585bb7239"
+ },
+ "content_type": "application/json",
+ "listing_body": "[{\"id\": 33063, \"date\": \"2026-10-05T16:12:36\", \"slug\": \"offline-one\", \"link\": \"https://www.hrb.ie/publication/offline-one/\", \"title\": {\"rendered\": \"Offline &amp; report 33063\"}, \"content\": {\"rendered\": \"<p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.</p>\"}}, {\"id\": 32947, \"date\": \"2026-10-05T16:12:36\", \"slug\": \"offline-two\", \"link\": \"https://www.hrb.ie/publication/offline-two/\", \"title\": {\"rendered\": \"Offline &amp; report 32947\"}, \"content\": {\"rendered\": \"<p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing.</p>\"}}]",
+ "details": {
+  "https://www.hrb.ie/publication/offline-one/": "<html><body><div id=\"downloads-container\"><a href=\"https://www.hrb.ie/wp-content/uploads/2026/09/offline-one.pdf\">pdf</a></div><div class=\"publication-meta row\"><div class=\"small-card\"><div class=\"card-title\">Publication type</div><div class=\"card-value\">Report</div></div><div class=\"small-card\"><div class=\"card-title\">DOI</div><div class=\"card-value\"><a href=\"https://doi.org/10.1234/hrb.5.\">x</a></div></div></div></body></html>",
+  "https://www.hrb.ie/publication/offline-two/": "<html><body><div id=\"downloads-container\"><a href=\"https://www.hrb.ie/wp-content/uploads/2026/09/offline-two.pdf\">pdf</a></div><div class=\"publication-meta row\"><div class=\"small-card\"><div class=\"card-title\">Publication type</div><div class=\"card-value\">Report</div></div><div class=\"small-card\"><div class=\"card-title\">DOI</div><div class=\"card-value\"><a href=\"https://doi.org/10.1234/hrb.5.\">x</a></div></div></div></body></html>"
+ },
+ "empty_body": "[]"
+}

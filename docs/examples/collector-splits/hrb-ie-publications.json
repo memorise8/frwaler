@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "sites": {
+    "hrb-ie-publications": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ],
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "html",
+          "url"
+        ]
+      },
+      "listing": {
+        "url": "https://www.hrb.ie/wp-json/wp/v2/publication",
+        "params": {
+          "per_page": 10,
+          "page": 1,
+          "_fields": "id,slug,title,date,link,content",
+          "orderby": "date",
+          "order": "desc"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "end_statuses": [
+          {
+            "status": 400,
+            "json_code": "rest_post_invalid_page_number"
+          }
+        ],
+        "total": {
+          "type": "header",
+          "name": "X-WP-Total"
+        },
+        "parser": {
+          "type": "adapter",
+          "url_field": "link",
+          "key_field": "id",
+          "date_field": "date"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

@@ -153,6 +153,122 @@ class HRBIEPublicationsCrawler(BaseCrawler):
         return out
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Validate a decoded REST list; no fetching, storage, or identifier synthesis."""
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:items_not_a_list_of_objects", url)
+        return data
+
+    def _enumeration_detail(self, raw, url=None):
+        """Pure copy of _parse_detail_page after its fetch (no I/O)."""
+        out = {
+            "pdf_url": None,
+            "original_filename": None,
+            "publisher": None,
+            "journal": None,
+            "publication_type": None,
+            "doi": None,
+            "place": None,
+        }
+        if not raw:
+            return out
+
+        soup = _make_soup(raw)
+        if soup is None:
+            return out
+
+        # PDF link inside #downloads-container
+        dl_container = soup.find(id="downloads-container")
+        if dl_container:
+            for a in dl_container.find_all("a", href=True):
+                href = a["href"]
+                if ".pdf" in href.lower():
+                    out["pdf_url"] = href
+                    fname = href.rstrip("/").split("/")[-1]
+                    if fname:
+                        out["original_filename"] = fname
+                    break
+
+        # Metadata small-cards
+        meta_div = soup.find(
+            class_=lambda c: isinstance(c, list) and "publication-meta" in c
+                             or isinstance(c, str) and "publication-meta" in c
+        )
+        if meta_div:
+            for card in meta_div.find_all(class_="small-card"):
+                title_el = card.find(class_="card-title")
+                value_el = card.find(class_="card-value")
+                if not title_el or not value_el:
+                    continue
+                key = title_el.get_text(strip=True).lower()
+                a_tag = value_el.find("a", href=True)
+                val = a_tag["href"].strip() if a_tag else value_el.get_text(strip=True)
+                if "publication type" in key:
+                    out["publication_type"] = val
+                elif "publisher" in key:
+                    out["publisher"] = val
+                elif "creator" in key:
+                    out["journal"] = val
+                elif "doi" in key:
+                    out["doi"] = val
+                elif "place" in key:
+                    out["place"] = val
+
+        return out
+
+    def _enumeration_paper(self, item, detail):
+        """Pure copy of crawl's Paper conversion and its short-abstract skip (None)."""
+        item_url = item.get("link", "")
+        wp_id = item.get("id")
+        title = _strip_html(item.get("title", {}).get("rendered", ""))
+        raw_date = item.get("date", "")
+        published_date = raw_date[:10] if raw_date else None
+        content_html = item.get("content", {}).get("rendered", "")
+        abstract = _strip_html(content_html)
+        if len(abstract) < 50:
+            return None
+        doi_str = None
+        raw_doi = detail.get("doi") or ""
+        if raw_doi:
+            m = re.search(r"10\.\d{4,}/\S+", raw_doi)
+            if m:
+                doi_str = m.group(0).rstrip(".,)")
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": str(wp_id),
+            "post_number": str(wp_id),
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "url": item_url,
+            "pdf_url": detail.get("pdf_url"),
+            "original_filename": detail.get("original_filename"),
+            "publisher": detail.get("publisher"),
+            "journal": detail.get("journal"),
+            "doi": doi_str,
+            "category": detail.get("publication_type"),
+            "authors": None,
+            "keywords": None,
+            "department": None,
+            "metadata": json.dumps({
+                "posted_date": raw_date,
+                "wp_id": wp_id,
+                "slug": item.get("slug"),
+                "publication_type": detail.get("publication_type"),
+                "place_of_publication": detail.get("place"),
+                "creator": detail.get("journal"),
+                "doi_url": raw_doi or None,
+                "originalFilename": detail.get("original_filename"),
+            }, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
