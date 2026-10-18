@@ -358,3 +358,79 @@ class NibioNoEnCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (ND-2); crawl() is unchanged. Listing rows are
+    # _parse_panels(html, page) of the requested page (page from the request,
+    # default 1); the paper is crawl()'s, built from the row with the page URL
+    # crawl() would have requested (_page_url(page)) for the no-link fallback.
+    # Identity keeps crawl()'s rule (uid as served, list-position prefix included).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        page = (parse_qs(urlsplit(url or "").query).get("page") or ["1"])[0]
+        if not page.isdigit():
+            raise PermanentFailure("listing_parse_error:bad_page_param")
+        rows, seen = [], set()
+        for entry in self._parse_panels(html, int(page)):
+            if entry["uid"] in seen:
+                continue
+            seen.add(entry["uid"])
+            rows.append(entry)
+        return rows
+
+    def _enumeration_paper(self, entry):
+        uid = entry["uid"]
+        title = entry["title"]
+        if not title:
+            return None
+        abstract = entry["abstract"]
+        if len(abstract) < self._MIN_ABSTRACT:
+            return None
+        url = self._page_url(entry["page"])
+        doc_href = entry["doc_href"]
+        item_url = doc_href or f"{url}#publication--{uid}-collapse"
+        doi = ""
+        if doc_href.startswith("https://doi.org/") or doc_href.startswith("http://doi.org/"):
+            doi = doc_href.split("doi.org/", 1)[-1].strip()
+        year = entry["year"]
+        published_date = f"{year}-01-01" if year and str(year).isdigit() else None
+        listed_date = published_date
+        meta_info = entry["meta"]
+        metadata = {
+            "posted_date": year or "",
+            "journal_raw": meta_info.get("raw") or "",
+            "series": meta_info.get("journal") or "",
+            "volume": meta_info.get("volume") or "",
+            "issue": meta_info.get("issue") or "",
+            "pages": meta_info.get("pages") or "",
+            "publication_type": entry["category"] or "",
+            "reference": entry["reference"] or "",
+            "uid": uid,
+            "list_page": entry["page"],
+        }
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": uid,
+            "post_number": uid,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "authors": entry["authors"],
+            "publisher": self._PUBLISHER,
+            "department": "",
+            "journal": meta_info.get("journal") or "",
+            "url": item_url,
+            "pdf_url": None,
+            "keywords": "",
+            "category": entry["category"] or "",
+            "doi": doi or None,
+            "original_filename": None,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }

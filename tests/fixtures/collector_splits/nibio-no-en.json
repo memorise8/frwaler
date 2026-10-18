@@ -1,0 +1,20 @@
+{
+ "content_type": "text/html",
+ "listing_body": "<html><body><main id=\"content\"><div id=\"publications\" class=\"panel-group\"><div class=\"panel panel-default\" data-year=\"2026\"><div class=\"panel-heading\"><div class=\"title\"><h3><span>Article – </span>Pest slugs</h3></div>\n<div class=\"meta\"><p>Journal of Pests, 12 (3), p. 10-20, 2026</p></div></div>\n<div class=\"panel-collapse collapse\" id=\"publication--0f7fdd5c1-6043-4b88-9350-edbf0744046c-collapse\"><div class=\"panel-body\"><div class=\"link-list\"><a href=\"#\">Ola Nordmann</a><span>Kari Nordmann</span></div>\n<h4>Abstract</h4><p>Abstract text long enough to pass the fifty character minimum of crawl() rule for NIBIO.</p><a class=\"til-dokument\" href=\"https://doi.org/10.21373/chs0-mk13\">Go to document</a></div></div>\n<div class=\"references\">Ref 0f7f</div></div><div class=\"panel panel-default\" data-year=\"2025\"><div class=\"panel-heading\"><div class=\"title\"><h3><span>Report – </span>Risk ranking</h3></div>\n<div class=\"meta\"><p>Journal of Pests, 12 (3), p. 10-20, 2025</p></div></div>\n<div class=\"panel-collapse collapse\" id=\"publication--15f5552e9-4880-40bc-a796-a6b15cef39dc-collapse\"><div class=\"panel-body\"><div class=\"link-list\"><a href=\"#\">Ola Nordmann</a><span>Kari Nordmann</span></div>\n<h4>Abstract</h4><p>Abstract text long enough to pass the fifty character minimum of crawl() rule for NIBIO. Second.</p></div></div>\n<div class=\"references\">Ref 15f5</div></div><div class=\"panel panel-default\" data-year=\"2025\"><div class=\"panel-heading\"><div class=\"title\"><h3><span>Report – </span>Short one</h3></div>\n<div class=\"meta\"><p>Journal of Pests, 12 (3), p. 10-20, 2025</p></div></div>\n<div class=\"panel-collapse collapse\" id=\"publication--2ef7ee141-e05c-473e-bd90-707e4febbcd3-collapse\"><div class=\"panel-body\"><div class=\"link-list\"><a href=\"#\">Ola Nordmann</a><span>Kari Nordmann</span></div>\n<h4>Abstract</h4><p>Too short.</p></div></div>\n<div class=\"references\">Ref 2ef7</div></div></div></main></body></html>",
+ "empty_body": "<html><body><main id=\"content\"><div id=\"publications\" class=\"panel-group\"><h3>No results found</h3></div></main></body></html>",
+ "details": {},
+ "original_method_source_sha256": {
+  "_curl_get": "f276d0158d190f4d644c38b834474686742fbabedeed4e00637c45c16cb19cc7",
+  "_page_url": "228c3b9bc1d90c18bb42df25e5b62ca5fe918dc88f2a6d27a1ec075304a66a9f",
+  "_extract_uid": "5b95daa93fbe02a683511928bb50ff08be7dbec10909ec4db5b35e2d71cf3546",
+  "_extract_title_and_category": "732e9b4ee8db50c6ded43b1698b3a1e1f4437225cc6cd62e187bb122f19d9d8d",
+  "_extract_authors": "a4e488494594d56f8cef39c0c57e6b1b5474a6b857aef3d93c4ecfa0c84d83bd",
+  "_extract_meta": "394a8c67579203f17d72f687897e6ca1b6f97763b5e211f87d5fb8176e97fe51",
+  "_extract_abstract": "f508fe37c99a56a41b16d25bd6ddbb0a97b24060281132d6e84d68f51355e8f7",
+  "_extract_doc_link": "a0105b0bbbde47dbd654a874c1933ad7d9e5885d8013e74706267d43ff90a39f",
+  "_extract_reference": "76fe0c4a6fc68bd74129df10198eaca8a1e033c1538879c0738accb950cb891e",
+  "_parse_panels": "5e351d3a91b20cf39fd3fd94fc7acf5f66c384776ceacaf13336d6f4c6dfb239",
+  "crawl": "e16adf799e0cf5594520964268dae034fed37524f25d4684b7d2cb3c02453de0"
+ },
+ "empty_is_end": true
+}

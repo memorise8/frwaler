@@ -1,0 +1,44 @@
+{
+ "version": 1,
+ "defaults": {
+  "request_interval_s": 1.5,
+  "respect_robots": true,
+  "retries": 1
+ },
+ "sites": {
+  "nibio-no-en": {
+   "strategy": "last_page_backward",
+   "base_url": "https://www.nibio.no",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "html",
+     "url"
+    ],
+    "paper_method": "_enumeration_paper",
+    "none_is_rule_skip": true,
+    "max_rule_skip_ratio": 0.7
+   },
+   "listing": {
+    "url": "https://www.nibio.no/en/publications",
+    "params": {
+     "publicationType[]": "e4b9b2bc-82be-42d1-80f5-f1515ad07e2e",
+     "filters": "1",
+     "q": ""
+    },
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "key_field": "uid",
+     "title_field": "title",
+     "listing_marker": "div#publications.panel-group"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1
+   }
+  }
+ }
+}

@@ -94,13 +94,23 @@ class OnePageListChecks:
         for name, digest in self.fixture['original_method_source_sha256'].items():
             self.assertEqual(digest, actual[name], name)
 
-    def test_error_page_is_parse_error(self):
-        c, _ = load(self.SITE)
-        for bad in ({'error': 'x'}, '<html><body>maintenance</body></html>'):
-            with self.assertRaises(PermanentFailure) as ctx:
-                with guarded():
-                    c._enumeration_items(bad)
-            self.assertTrue(ctx.exception.reason.startswith('listing_parse_error:'))
+    def test_error_page_is_parse_error_and_empty_page_is_end(self):
+        p = site_plan(self.plan, self.SITE, registered=[self.SITE])
+        crawler, _ = load(self.SITE)
+        parser = ListingParser(p.listing['parser'], adapter=Adapter(self.SITE, p.section('adapter'), None, crawler=crawler))
+        url = build_url(p.listing['url'], p.listing.get('params') or {})
+        for bad, ctype in (('<html><body>maintenance</body></html>', 'text/html'), ('{"error": "x"}', 'application/json')):
+            try:
+                page = parser.parse(Response(200, {'Content-Type': ctype}, bad, url))
+            except PermanentFailure as exc:
+                self.assertTrue(exc.reason.startswith('listing_parse_error:'), exc.reason)
+            else:
+                self.assertEqual([], page.items)
+                self.assertTrue(page.extra.get('parse_error'))
+        if self.fixture.get('empty_is_end'):
+            page = parser.parse(Response(200, {'Content-Type': self.fixture['content_type']}, self.fixture['empty_body'], url))
+            self.assertEqual([], page.items)
+            self.assertTrue(page.extra.get('explicit_empty'))
 
     def test_caller_input_not_mutated(self):
         before = copy.deepcopy(self.fixture)
