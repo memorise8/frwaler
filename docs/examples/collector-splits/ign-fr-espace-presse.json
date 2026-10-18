@@ -6,7 +6,7 @@
       "respect_robots": true,
       "retries": 1,
       "verify_ssl": true,
-      "strategy": "sitemap",
+      "strategy": "date_range_split",
       "base_url": "https://www.ign.fr",
       "adapter": {
         "type": "crawler",
@@ -22,15 +22,22 @@
           "url"
         ]
       },
-      "sitemap": {
-        "sitemap_url": "https://www.ign.fr/sitemap.xml",
-        "include": [
-          "^https://www\\.ign\\.fr/(institut/)?espace-presse/[^?#]+$"
+      "listing": {
+        "url": "https://www.ign.fr/{segment}",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url"
+        }
+      },
+      "segments": {
+        "mode": "explicit",
+        "items": [
+          {"key": "espace-presse"},
+          {"key": "espace-presse/communiques-de-presse-archives"}
         ],
-        "exclude": [
-          "/espace-presse/communiques-de-presse-archives",
-          "/espace-presse/retombees-medias-archivees$"
-        ]
+        "allow_overlap": true
       }
     }
   }

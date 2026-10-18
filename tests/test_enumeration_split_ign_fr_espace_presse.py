@@ -1,79 +1,39 @@
-"""ign-fr-espace-presse: sitemap plan + pure detail conversion (memory only).
+"""ign-fr-espace-presse: registered scope as explicit segments + pure conversion (memory only).
 
-The site has no listing pagination (two static listing pages); the shipped plan reads
-the Drupal sitemap with an include filter and converts each detail page with
-``_enumeration_paper(html, url)``, which must equal what the unchanged crawl() saves.
+The registered crawler reads exactly two listing pages (``/espace-presse`` and
+``/espace-presse/communiques-de-presse-archives``; no pagination, ``?page`` is ignored)
+and fetches every linked article. The shipped plan expresses that scope as a
+``date_range_split`` with two explicit segments substituted into ``listing.url``
+(``{segment}``). Inside a segment ``?page=1`` repeats ``?page=0`` exactly, which the
+forward pager ends as ``repeated_page`` after re-reading the repeat and checking the
+next page brings nothing new. The two pages are a union, not a partition, so the plan
+sets ``allow_overlap`` (crawl() de-duplicates across the two pages the same way).
+``_enumeration_paper(html, url)`` must equal what the unchanged crawl() saves.
 """
 import ast
+import contextlib
 import copy
 import hashlib
+import io
 import json
 import unittest
-from types import SimpleNamespace
+from urllib.parse import urlsplit
 
-from crawler.enumeration.adapters import Adapter, clean_paper, paper_identity
+from crawler.enumeration.adapters import Adapter, paper_identity
 from crawler.enumeration.guard import guarded
 from crawler.enumeration.http import PermanentFailure, Response
 from crawler.enumeration.parsing import ListingParser
 from crawler.enumeration.plan import site_plan
-from crawler.enumeration.strategies import Sitemap
-from crawler.enumeration.urls import normalize_key_url
-from tests.collector_split_helpers import ROOT, SplitChecks, SplitRunChecks, load, split_fixture, split_plan
+from crawler.enumeration.strategies import DateRangeSplit, generate_segments
+from tests.collector_split_helpers import ROOT, SplitChecks, SplitRunChecks, load, split_plan
 
 SITE = 'ign-fr-espace-presse'
-
-
-def sitemap_items(plan_site, body):
-    """Items exactly as the Sitemap strategy builds them (include/exclude applied)."""
-    import xml.etree.ElementTree as ET
-    strat = Sitemap.__new__(Sitemap)
-    strat.cfg = plan_site['sitemap']
-    import re
-    strat.include = [re.compile(p) for p in strat.cfg.get('include', [])]
-    strat.exclude = [re.compile(p) for p in strat.cfg.get('exclude', [])]
-    from crawler.enumeration.parsing import Item
-    out = []
-    for node in ET.fromstring(body):
-        loc = next(((c.text or '').strip() for c in node if c.tag.rsplit('}', 1)[-1] == 'loc'), '')
-        if loc and strat.wanted(loc):
-            out.append(Item(key=normalize_key_url(loc), url=loc, date=None, payload={'detail_url': loc}))
-    return out
+MAIN = 'espace-presse'
+ARCHIVES = 'espace-presse/communiques-de-presse-archives'
 
 
 class RegisteredSplit(SplitChecks, unittest.TestCase):
     SITE = SITE
-
-    def pipeline(self, fixture=None, redirect=False):
-        fixture = fixture or self.fixture
-        p = site_plan(self.plan, self.SITE, registered=[self.SITE])
-        crawler, _ = load(self.SITE)
-        adapter = Adapter(self.SITE, p.section('adapter'), None, crawler=crawler)
-        self.raw_papers = []
-        original = crawler._enumeration_paper
-        def capture(*args, **kwargs):
-            result = original(*args, **kwargs)
-            if result is not None:
-                self.raw_papers.append(copy.deepcopy(result))
-            return result
-        crawler._enumeration_paper = capture
-        items = sitemap_items(self.plan['sites'][self.SITE], fixture['sitemap_body'])
-        self.assertEqual(2, len(items))
-        # The sitemap selection equals the URLs the registered listing parser yields.
-        listed = ListingParser({'type': 'adapter', 'url_field': 'url'}, adapter=adapter).parse(
-            Response(200, {'Content-Type': 'text/html'}, fixture['listing_body'], 'https://www.ign.fr/espace-presse')).items
-        self.assertEqual([i.url for i in listed], [i.url for i in items])
-        papers, calls = [], []
-        def fetch(url):
-            self.assertIn(url, fixture['details'], 'undeclared detail request')
-            calls.append(url)
-            return Response(200, {'Content-Type': 'text/html'}, fixture['details'][url],
-                            url + '?moved=1' if redirect else url)
-        for item in items:
-            paper = adapter.materialize(item, SimpleNamespace(get=fetch))
-            if paper is not None:
-                papers.append(paper)
-        self.assertEqual(len(fixture['details']), len(calls))
-        return papers
 
     def test_module_helpers_are_unchanged(self):
         code = (ROOT/'crawler/sites/custom'/(self.SITE+'.py')).read_text()
@@ -86,6 +46,18 @@ class RegisteredSplit(SplitChecks, unittest.TestCase):
         self.assertEqual(['901', '902'], [paper_identity(p)[0] for p in papers])
         self.assertEqual(list(self.fixture['details']), [paper_identity(p)[1] for p in papers])
 
+    def test_segments_are_the_registered_listing_pages(self):
+        """The explicit segments resolve to exactly the crawler's _LISTING_URLS, in order."""
+        _, module = load(self.SITE)
+        p = site_plan(self.plan, self.SITE, registered=[self.SITE])
+        strat = DateRangeSplit.__new__(DateRangeSplit)
+        strat.listing, strat.cfg = p.listing, p.section('segments')
+        keys = generate_segments(strat.cfg, None)
+        self.assertEqual([MAIN, ARCHIVES], keys)
+        self.assertEqual(module._LISTING_URLS, [strat.segment_url(k) for k in keys])
+        self.assertEqual([{}, {}], [strat.filter_params(k) for k in keys])
+        self.assertTrue(strat.cfg.get('allow_overlap'))
+
     def test_listing_without_press_links_is_an_error(self):
         crawler, _ = load(self.SITE)
         for body in ('<html><main></main></html>', '<html><body>maintenance</body></html>'):
@@ -95,27 +67,35 @@ class RegisteredSplit(SplitChecks, unittest.TestCase):
             self.assertTrue(ctx.exception.reason.startswith('listing_parse_error:'))
 
     def test_valid_empty_page_and_error_page_are_distinct(self):
-        """Sitemap plan: no listing pages. The distinction lives in the sitemap strategy:
-        a urlset without wanted URLs is a filtering result, a non-XML page fails the run
-        (both are covered end-to-end in RegisteredSplitRun)."""
-        self.assertEqual('sitemap', self.plan['sites'][self.SITE]['strategy'])
-        self.assertNotIn('listing', self.plan['sites'][self.SITE])
+        """Both registered pages always carry press links and ignore ?page, so an empty
+        page never ends a segment (the end is the exact repeat of ?page=0): an empty <main>
+        and a foreign page are both listing errors, never an explicit empty page."""
+        p = site_plan(self.plan, self.SITE, registered=[self.SITE])
+        crawler, _ = load(self.SITE)
+        parser = ListingParser(p.listing['parser'], adapter=Adapter(self.SITE, p.section('adapter'), None,
+                                                                     crawler=crawler))
+        for body in (self.fixture['empty_body'], '<html>maintenance</html>'):
+            with self.assertRaises(PermanentFailure) as ctx:
+                parser.parse(Response(200, {'Content-Type': 'text/html'}, body, 'https://www.ign.fr/espace-presse?page=0'))
+            self.assertTrue(ctx.exception.reason.startswith('listing_parse_error:'), ctx.exception.reason)
 
 
-def run_sitemap(fixture, *, sitemap_body=None, sitemap_type='application/xml'):
-    import contextlib, io
+def run_segments(fixture, *, bodies=None, plan=None):
+    """Real SiteRunner.run over the shipped plan. Each segment URL answers its own body for
+    any ?page (as the live site does); details from the fixture; anything else 404."""
     from tests.enumeration_fakes import Env
-    from urllib.parse import urlsplit
-    plan = copy.deepcopy(split_plan(SITE))
+    plan = copy.deepcopy(plan or split_plan(SITE))
     plan['request_interval_s'] = 0
+    bodies = bodies or fixture['segment_bodies']
     def handler(url):
-        if urlsplit(url).path == '/robots.txt':
+        parts = urlsplit(url)
+        if parts.path == '/robots.txt':
             return Response(404, {}, b'')
-        if url == fixture['sitemap_url']:
-            return Response(200, {'Content-Type': sitemap_type},
-                            fixture['sitemap_body'] if sitemap_body is None else sitemap_body, url)
         if url in fixture['details']:
             return Response(200, {'Content-Type': 'text/html'}, fixture['details'][url], url)
+        key = parts.path.lstrip('/')
+        if key in bodies:
+            return Response(200, {'Content-Type': 'text/html'}, bodies[key], url)
         return Response(404, {'Content-Type': 'text/html'}, '<html>not found</html>', url)
     env = Env(SITE)
     try:
@@ -132,34 +112,58 @@ def run_sitemap(fixture, *, sitemap_body=None, sitemap_type='application/xml'):
 class RegisteredSplitRun(SplitRunChecks, unittest.TestCase):
     SITE = SITE
 
+    def listing_urls(self, result):
+        return [u for u in result['transport'].urls if '?page=' in u]
+
     def test_shipped_plan_completes_end_to_end(self):
-        result, docs = run_sitemap(self.fixture)
+        result, docs = run_segments(self.fixture)
         self.assertEqual('complete', result['status'], result)
-        self.assertEqual('all_sitemaps_listed', result['stop_reason'], result)
-        self.assertEqual(['901', '902'], [d['post_number'] for d in docs])
-        self.assertEqual(list(self.fixture['details']), [d['meta_url'] for d in docs])
-        # Hub pages and non-press pages were never requested.
-        urls = result['transport'].urls
-        self.assertFalse([u for u in urls if u.endswith(('/espace-presse', 'archives', 'notre-histoire'))], urls)
+        self.assertEqual('all_segments_reconciled', result['stop_reason'], result)
+        self.assertEqual({'901', '902'}, {d['post_number'] for d in docs})
+        self.assertEqual(set(self.fixture['details']), {d['meta_url'] for d in docs})
+        # Per segment: page 0, page 1 (repeat), page 1 re-read, page 2 (nothing new) -> end.
+        base = 'https://www.ign.fr/'
+        expected = [f'{base}{k}?page={n}' for k in (MAIN, ARCHIVES) for n in (0, 1, 1, 2)]
+        self.assertEqual(expected, self.listing_urls(result))
+
+    def test_item_on_both_pages_is_saved_once(self):
+        """An article linked from both registered pages: crawl() keeps one; so does the plan
+        (allow_overlap: the union is the scope, not a partition)."""
+        bodies = {MAIN: self.fixture['listing_body'], ARCHIVES: self.fixture['segment_bodies'][ARCHIVES]}
+        result, docs = run_segments(self.fixture, bodies=bodies)
+        self.assertEqual('complete', result['status'], result)
+        self.assertEqual(2, len(docs))
+        details = [u for u in result['transport'].urls if u in self.fixture['details']]
+        self.assertEqual(sorted(self.fixture['details']), sorted(details))
+
+    def test_overlap_without_allow_overlap_is_reported(self):
+        plan = copy.deepcopy(split_plan(SITE))
+        del plan['segments']['allow_overlap']
+        bodies = {MAIN: self.fixture['listing_body'], ARCHIVES: self.fixture['segment_bodies'][ARCHIVES]}
+        result, _ = run_segments(self.fixture, bodies=bodies, plan=plan)
+        self.assertEqual('complete_with_mismatch', result['status'], result)
+        self.assertIn('segment_overlap', result['stop_reason'])
+
+    def test_archives_answering_the_main_page_is_not_complete(self):
+        """If the archives URL served the main page (redirect, removed page), the identical
+        first pages are flagged instead of being counted as a reconciled scope."""
+        main = self.fixture['segment_bodies'][MAIN]
+        result, _ = run_segments(self.fixture, bodies={MAIN: main, ARCHIVES: main})
+        self.assertEqual('complete_unverified', result['status'], result)
+
+    def test_missing_archives_page_is_not_complete(self):
+        result, _ = run_segments(self.fixture, bodies={MAIN: self.fixture['segment_bodies'][MAIN]})
+        self.assertNotIn(result['status'], ('complete', 'complete_with_review'), result)
 
     def test_error_listing_ends_incomplete_as_listing_parse_error(self):
-        """Sitemap counterpart: a maintenance page instead of the sitemap is a failed
-        sitemap (incomplete), never a completed empty source."""
-        result, docs = run_sitemap(self.fixture, sitemap_body='<html><body>maintenance</body></html>',
-                                   sitemap_type='text/html')
+        body = '<html><body><p>Site under maintenance</p></body></html>'
+        result, docs = run_segments(self.fixture, bodies={MAIN: body, ARCHIVES: body})
         self.assertEqual('incomplete', result['status'], result)
-        self.assertTrue(result['stop_reason'].startswith('sitemaps_failed:'), result)
-        self.assertEqual([], docs)
-
-    def test_sitemap_without_press_urls_is_not_complete_with_items(self):
-        body = ('<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-                '<url><loc>https://www.ign.fr/espace-presse</loc></url></urlset>')
-        result, docs = run_sitemap(self.fixture, sitemap_body=body)
-        self.assertEqual('complete_unverified', result['status'], result)
+        self.assertTrue(result['stop_reason'].startswith('listing_failed:listing_parse_error:'), result)
         self.assertEqual([], docs)
 
     def test_short_paper_does_not_silently_become_complete(self):
         fixture = json.loads(json.dumps(self.fixture, ensure_ascii=False).replace(self.fixture['long_text'], 'Short.'))
-        result, docs = run_sitemap(fixture)
+        result, docs = run_segments(fixture)
         self.assertEqual('complete_with_review', result['status'], result)
         self.assertEqual([], docs)
