@@ -362,3 +362,62 @@ class MogefGoKrNwCrawler(BaseCrawler):
 
         print(f"[mogef-go-kr-nw] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR2-B); crawl() is unchanged. Same list parser
+    # and detail parser, same paper and skip rule (abstract < 50 characters).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        return [dict(item, external_id=item["bbt_sn"], url=_DETAIL_BASE + item["bbt_sn"])
+                for item in _parse_list_page(html or "")]
+
+    def _enumeration_paper(self, html, item):
+        bbt_sn = item["bbt_sn"]
+        detail_url = _DETAIL_BASE + bbt_sn
+        detail = _parse_detail(html or "", bbt_sn)
+        if not detail:
+            return None
+        title = detail.get("title") or item.get("title") or ""
+        abstract = detail.get("abstract", "")
+        if len(abstract) < 50:
+            return None
+        reg_date = detail.get("date") or item.get("date") or ""
+        dept = detail.get("dept") or item.get("dept") or ""
+        pdf_filename = detail.get("pdf_filename")
+        pdf_atfile_sn = detail.get("pdf_atfile_sn")
+        pdf_atfile_seq = detail.get("pdf_atfile_seq")
+        attachments = detail.get("attachments", [])
+        metadata = {
+            "bbtSn": bbt_sn,
+            "bbid": "news405",
+            "phone": detail.get("phone", ""),
+            "posted_date": reg_date,
+        }
+        if pdf_atfile_sn:
+            metadata["atfileSn"] = pdf_atfile_sn
+            metadata["atfileSeq"] = pdf_atfile_seq
+            metadata["downloadFormAction"] = "/news/down.do?mid=news405"
+        if attachments:
+            metadata["attachments"] = attachments
+        if item.get("post_number"):
+            metadata["tnum"] = item["post_number"]
+        return {
+            "site_id": self.site_id,
+            "external_id": bbt_sn,
+            "post_number": item.get("post_number"),
+            "title": title,
+            "abstract": abstract,
+            "published_date": reg_date,
+            "listed_date": reg_date,
+            "url": detail_url,
+            "pdf_url": None,
+            "original_filename": pdf_filename,
+            "publisher": "성평등가족부",
+            "department": dept,
+            "authors": None,
+            "keywords": None,
+            "category": "보도자료",
+            "doi": None,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
