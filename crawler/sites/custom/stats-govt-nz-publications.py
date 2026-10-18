@@ -304,6 +304,44 @@ class StatsGovtNzPublicationsCrawler(BaseCrawler):
             "metadata": json.dumps({"source": "stats.govt.nz"}, ensure_ascii=False),
         }
 
+    # ── Pure enumeration entry points (crawl() and helpers unchanged) ─────────
+
+    def _enumeration_items(self, html, url=None):
+        """PaginatedBlockPages rows of one listing page (no I/O).
+
+        Each row is a copy with ``page_link`` (absolute PageLink, as crawl builds it)."""
+        if not isinstance(html, str):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:listing_not_html", url)
+        pv = _parse_pv_data(html)
+        if not pv:
+            # No pageViewData: judged by the plan's listing_marker (#pageViewData) as a parse error.
+            return []
+        rows = []
+        for item in pv.get("PaginatedBlockPages") or []:
+            if not isinstance(item, dict):
+                continue
+            row = dict(item)
+            page_link = item.get("PageLink") or ""
+            if page_link and not page_link.startswith("http"):
+                page_link = f"{self.base_url}{page_link}"
+            row["page_link"] = page_link
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, item, detail_html):
+        """Pure copy of _crawl_direct's per-item conversion: the listing row first,
+        the detail pageViewData only when the listing abstract is too short."""
+        item = dict(item)
+        page_link = item.pop("page_link", "")
+        paper = self._make_paper_from_listing_item(item, page_link)
+        if paper is None and page_link:
+            if detail_html and not self._is_blocked(detail_html):
+                detail_pv = _parse_pv_data(detail_html)
+                if detail_pv:
+                    paper = self._make_paper(detail_pv, page_link)
+        return paper
+
     # ── Main crawl entry point ────────────────────────────────────────────────
 
     def crawl(self, limit: int | None = None) -> int:

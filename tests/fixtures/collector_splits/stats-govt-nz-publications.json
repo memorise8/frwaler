@@ -1,0 +1,21 @@
+{
+ "site_id": "stats-govt-nz-publications",
+ "listing_body": "<html><body><div id=\"pageViewData\" data-value=\"{&quot;totalPages&quot;: 1, &quot;PaginatedBlockPages&quot;: [{&quot;ID&quot;: 80677, &quot;Title&quot;: &quot;Offline &amp;amp; one&quot;, &quot;PageLink&quot;: &quot;/reports/offline-1/&quot;, &quot;PageDate&quot;: &quot;2026-09-29T00:00:00&quot;, &quot;MetaDescription&quot;: &quot;Synthetic Stats NZ report résumé and Korean 자료 for offline equality testing of the enumeration split conversion, long enough.&quot;, &quot;FeaturedText&quot;: &quot;&lt;p&gt;Featured.&lt;/p&gt;&quot;}, {&quot;ID&quot;: 79966, &quot;Title&quot;: &quot;Offline two&quot;, &quot;PageLink&quot;: &quot;/reports/offline-2/&quot;, &quot;PageDate&quot;: &quot;2025-06-24&quot;, &quot;MetaDescription&quot;: &quot;Short meta.&quot;, &quot;FeaturedText&quot;: &quot;&quot;}]}\"></div></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.stats.govt.nz/reports/offline-1/": "<html><body><div id=\"pageViewData\" data-value=\"{&quot;ID&quot;: 80677, &quot;Title&quot;: &quot;Offline one detail&quot;, &quot;PageLink&quot;: &quot;/reports/offline-1/&quot;, &quot;MetaDescription&quot;: &quot;Synthetic Stats NZ report résumé and Korean 자료 for offline equality testing of the enumeration split conversion, long enough.&quot;, &quot;PageDate&quot;: &quot;2026-09-29&quot;}\"></div></body></html>",
+  "https://www.stats.govt.nz/reports/offline-2/": "<html><body><div id=\"pageViewData\" data-value=\"{&quot;ID&quot;: 79966, &quot;Title&quot;: &quot;Offline two&quot;, &quot;PageLink&quot;: &quot;/reports/offline-2/&quot;, &quot;PageDate&quot;: &quot;2025-06-24&quot;, &quot;MetaDescription&quot;: &quot;Synthetic Stats NZ report résumé and Korean 자료 for offline equality testing of the enumeration split conversion, long enough.&quot;, &quot;FeaturedText&quot;: &quot;&lt;p&gt;More text&lt;/p&gt;&quot;, &quot;PageBlocks&quot;: [{&quot;Content&quot;: &quot;&lt;p&gt;Synthetic Stats NZ report résumé and Korean 자료 for offline equality testing of the enumeration split conversion, long enough. block&lt;/p&gt;&quot;}], &quot;TermsTopics&quot;: [{&quot;Title&quot;: &quot;Population&quot;}], &quot;TermsReleases&quot;: [{&quot;Title&quot;: &quot;Census&quot;}], &quot;ClassName&quot;: &quot;ReportPage&quot;}\"></div></body></html>"
+ },
+ "long_text": "Synthetic Stats NZ report résumé and Korean 자료 for offline equality testing of the enumeration split conversion, long enough.",
+ "original_method_source_sha256": {
+  "_curl_get": "57d1988f7ba780008aaae0f31f1fa02a97237d155710af04df9b1e8fd0e17f1e",
+  "_is_blocked": "d4b0f11da20ebe0731d4a100efa8e1eb92742bb28d21ca41721c7aaed0518e9d",
+  "_cc_cdx_query": "743e9050a23469133110f69780987b648ed64a59f1902a4a31cf5d8e87c23a45",
+  "_cc_fetch_warc": "cb0fdc9ae58e2b06aa4334e49fb2d271db7d9b3d669255dc36ba25b14cf0cb1f",
+  "_make_paper": "4356dc11b9d6730b739f7a92353ce60b9c761a53fb150af3b5a9af4673dd034a",
+  "_make_paper_from_listing_item": "eb51337dbae8761fd4b854ff3d2f73b3f11f42bcf0258a16ca4df0c358fcca70",
+  "crawl": "e402b063a41a245796344b2b0178f6234355c10f6fdf018a95cd758dbf53079c",
+  "_crawl_direct": "f7c8eb3b5ee250a316546b3133f08eab321723b63065baddacc95258084efb95",
+  "_crawl_via_cc": "26c108fe0eef3c10bf31338cde0a21e3b94dd658437009cb412c34d5a503fcb0"
+ }
+}
