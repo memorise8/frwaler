@@ -390,3 +390,29 @@ class EconomyNiGovUkPublicationsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done. saved={saved}")
         return saved
+
+    # ------------------------------------------------------------------ #
+    # Pure enumeration contract (L2a 2026-10-18); crawl() is unchanged.    #
+    # ------------------------------------------------------------------ #
+
+    def _enumeration_sitemap_paper(self, raw, url):
+        """Paper for one detail page reached through the sitemap, exactly as crawl()
+        builds it for its sitemap-phase items (_fetch_detail on the given bytes).
+        The instance transport is replaced by the given body for this call only."""
+        item = {
+            "url": url,
+            "title": "",
+            "rss_desc": "",
+            "pub_raw": "",
+            "creator": "Department for the Economy",
+        }
+        had_own = "_curl" in self.__dict__
+        previous = self.__dict__.get("_curl")
+        self._curl = lambda _url, retries=3: raw
+        try:
+            return self._fetch_detail(item)
+        finally:
+            if had_own:
+                self._curl = previous
+            else:
+                del self._curl
