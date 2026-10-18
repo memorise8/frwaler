@@ -506,6 +506,9 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
     # Access policy is an execution ceiling: a plan can tighten, never relax it.
     if raw.get("respect_robots") is not True:
         raise PlanError(f"{site_id}: respect_robots cannot be disabled by a plan")
+    # Every request says it is a collector (user decision 2026-10-19): a plan cannot change it.
+    if raw.get("user_agent") != DEFAULT_USER_AGENT:
+        raise PlanError(f"{site_id}: user_agent cannot be set by a plan")
     interval = raw.get("request_interval_s")
     if not isinstance(interval, (int, float)) or not min_interval <= interval <= 10:
         raise PlanError(f"{site_id}: request_interval_s must be within [{min_interval}, 10]")
