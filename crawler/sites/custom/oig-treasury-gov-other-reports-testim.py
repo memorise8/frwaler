@@ -333,3 +333,55 @@ class OigTreasuryOtherReportsTestimCrawler(BaseCrawler):
                 time.sleep(1.0)
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() is unchanged. Each section is
+    # one explicit segment of the plan (its own paginated listing); the page
+    # URL tells which _SECTIONS entry applies. Rows link straight to PDFs, so
+    # the listing returns crawl()'s paper dicts (list_returns_paper).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        from crawler.enumeration.http import PermanentFailure
+        path = urlparse(url).path.rstrip("/")
+        section = next((s for s in _SECTIONS if path == s["path"]), None)
+        if section is None:
+            raise PermanentFailure("listing_parse_error:unknown_oig_section")
+        category = section["category"]
+        papers = []
+        for item in self._parse_listing_page(html, section["has_agency_col"], section["has_date_col"]):
+            pdf_url = item["pdf_url"]
+            title = item["title"]
+            date_str = item.get("date")
+            agency = item.get("agency") or ""
+            abstract = title
+            if len(abstract) < _ABSTRACT_MIN:
+                continue
+            if len(abstract) < 100:
+                abstract = abstract + _ABSTRACT_SUFFIX
+            report_num = _extract_report_num(title)
+            external_id = report_num or _filename_from_url(pdf_url) or pdf_url
+            original_filename = _filename_from_url(pdf_url)
+            metadata = {
+                "agency": agency,
+                "category": category,
+                "report_number": report_num,
+                "originalFilename": original_filename,
+                "posted_date": date_str,
+            }
+            papers.append({
+                "site_id": _SITE_ID,
+                "external_id": external_id,
+                "title": title,
+                "abstract": abstract,
+                "published_date": date_str,
+                "posted_date": date_str,
+                "url": pdf_url,
+                "pdf_url": pdf_url,
+                "publisher": _PUBLISHER,
+                "category": category,
+                "department": agency or None,
+                "original_filename": original_filename,
+                "metadata": json.dumps(metadata, ensure_ascii=False),
+            })
+        return papers

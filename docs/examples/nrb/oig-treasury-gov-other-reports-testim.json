@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "sites": {
+  "oig-treasury-gov-other-reports-testim": {
+   "strategy": "date_range_split",
+   "request_interval_s": 1.5,
+   "respect_robots": true,
+   "retries": 1,
+   "verify_ssl": true,
+   "base_url": "https://oig.treasury.gov",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "html",
+     "url"
+    ],
+    "list_returns_paper": true
+   },
+   "listing": {
+    "url": "https://oig.treasury.gov/reports/{segment}",
+    "page_param": "page",
+    "start_page": 0,
+    "parser": {
+     "type": "adapter",
+     "key_field": "external_id",
+     "url_field": "url",
+     "title_field": "title",
+     "date_field": "published_date",
+     "listing_marker": ".view-empty"
+    }
+   },
+   "segments": {
+    "mode": "explicit",
+    "items": [
+     {
+      "key": "audit-and-evaluation"
+     },
+     {
+      "key": "testimonies-other-documents"
+     }
+    ]
+   }
+  }
+ }
+}
