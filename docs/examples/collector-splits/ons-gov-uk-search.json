@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "sites": {
+    "ons-gov-uk-search": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.ons.gov.uk",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "json",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://api.beta.ons.gov.uk/v1/search",
+        "params": {
+          "q": "uk wide",
+          "limit": 1000,
+          "content_type": "dataset"
+        },
+        "page_param": "offset",
+        "page_mode": "offset",
+        "page_size": 1000,
+        "start_page": 0,
+        "total": {
+          "type": "json",
+          "path": "count"
+        },
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "date_field": "release_date",
+          "title_field": "title"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

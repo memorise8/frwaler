@@ -1,0 +1,39 @@
+{
+  "site_id": "ons-gov-uk-search",
+  "content_type": "application/json",
+  "listing_body": "{\"count\": 2, \"took\": 1, \"items\": [{\"uri\": \"/economy/synthetic/datasets/syntheticone/current\", \"title\": \"Synthetic dataset SYN001\", \"summary\": \"Synthetic offline dataset summary for the enumeration equality test. It only imitates the ONS search API structure and carries no real content.\", \"dataset_id\": \"SYN001\", \"release_date\": \"2026-01-02T00:00:00.000Z\", \"keywords\": [\"synthetic\", \"test\"], \"type\": \"dataset\", \"topics\": [\"t1\"]}, {\"uri\": \"/people/synthetic/datasets/synthetictwo/2015\", \"title\": \"Synthetic dataset o/2015\", \"summary\": \"Synthetic offline dataset summary for the enumeration equality test. It only imitates the ONS search API structure and carries no real content.\", \"dataset_id\": null, \"release_date\": \"2015-04-15T00:00:00.000Z\", \"keywords\": [\"synthetic\", \"test\"], \"type\": \"dataset\", \"topics\": [\"t1\"]}]}",
+  "details": {
+    "https://www.ons.gov.uk/economy/synthetic/datasets/syntheticone/current/data": {
+      "description": {
+        "title": "Synthetic dataset",
+        "summary": "Synthetic offline dataset summary for the enumeration equality test. It only imitates the ONS search API structure and carries no real content.",
+        "releaseDate": "2026-01-02",
+        "contact": {
+          "name": "Synthetic Person",
+          "email": "x@example.invalid"
+        },
+        "unit": "",
+        "source": "syn"
+      },
+      "downloads": [
+        {
+          "file": "synthetic1.xlsx"
+        }
+      ]
+    },
+    "https://www.ons.gov.uk/people/synthetic/datasets/synthetictwo/2015/data": {
+      "description": {
+        "title": "Synthetic two",
+        "metaDescription": "Synthetic offline dataset summary for the enumeration equality test. It only imitates the ONS search API structure and carries no real content."
+      },
+      "downloads": []
+    }
+  },
+  "long_text": "Synthetic offline dataset summary for the enumeration equality test. It only imitates the ONS search API structure and carries no real content.",
+  "original_method_source_sha256": {
+    "_search_page": "0412881fe81215199fdd050b4c86cf9d02d991048191dd165a19ba2f076b7edd",
+    "_fetch_detail": "9852061795f7c428f69446591d69c47c1ba47cdf0d6d0e9ccf74785a1d13e090",
+    "_process_item": "5e9fd2b7b13d46e7c06d94ef452a7cbde4f07eeac2d7a5d7714c951791750ef8",
+    "crawl": "c795531c8b3ee5d403efa77d388d792e23686de0b4ca1054a127055feef9253f"
+  }
+}

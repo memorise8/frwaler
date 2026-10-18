@@ -357,3 +357,147 @@ class OnsGovUkSearchCrawler(BaseCrawler):
             print(f"[{_SITE_ID}] interrupted by user after saving {saved} items")
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched JSON.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Search results of one API page (``/v1/search?q=uk+wide&content_type=
+        dataset&limit=N&offset=M``) with crawl()'s response checks. Each row keeps
+        the API item and points at the item's ``{uri}/data`` JSON."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("items"), list):
+            raise PermanentFailure("listing_parse_error:search_items_missing", url or "")
+        items = data["items"]
+        if any(not isinstance(item, dict) or not item.get("uri") for item in items):
+            raise PermanentFailure("listing_parse_error:search_item_without_uri", url or "")
+        return [{
+            "url": f"{_BASE}{item['uri']}/data",
+            "page_url": f"{_BASE}{item['uri']}",
+            "title": item.get("title") or "",
+            "release_date": item.get("release_date") or "",
+            "api_item": item,
+        } for item in items]
+
+    def _enumeration_paper(self, detail, row):
+        """Paper of one search result — _process_item() copied verbatim with the
+        fetched ``{uri}/data`` JSON in place of _fetch_detail() and the paper
+        returned instead of saved. None = crawl()'s skips (no detail JSON,
+        abstract under 100 chars). external_id/post_number unchanged."""
+        item = row["api_item"]
+        uri = item.get("uri", "")
+        if not uri:
+            return None
+
+        item_url = f"{_BASE}{uri}"
+
+        # --- Abstract ---------------------------------------------------
+        abstract = (
+            item.get("summary") or item.get("meta_description") or ""
+        ).strip()
+
+        # If summary from search API is too short, try the /data endpoint.
+        if len(abstract) < _ABSTRACT_MIN:
+            if not isinstance(detail, dict):
+                return None
+            if detail:
+                desc = detail.get("description", {})
+                richer = (
+                    desc.get("summary") or desc.get("metaDescription") or ""
+                ).strip()
+                if richer:
+                    abstract = richer
+
+        if len(abstract) < 50:
+            return None
+
+        if len(abstract) < _ABSTRACT_MIN:
+            return None
+
+        # --- Detail page (for downloads / richer metadata) --------------
+        if not isinstance(detail, dict):
+            return None
+
+        desc = {}
+        downloads = []
+        if detail:
+            desc = detail.get("description", {})
+            downloads = detail.get("downloads", [])
+
+        # --- PDF URL ----------------------------------------------------
+        pdf_url = None
+        original_filename = None
+        if downloads:
+            fname = downloads[0].get("file", "")
+            if fname:
+                pdf_url = f"{item_url}/{fname}"
+                original_filename = fname
+
+        # --- IDs --------------------------------------------------------
+        uri_parts = [p for p in uri.split("/") if p]
+        # external_id: last two path segments (unique enough without full path)
+        external_id = (
+            "/".join(uri_parts[-2:]) if len(uri_parts) >= 2
+            else (uri_parts[-1] if uri_parts else uri)
+        )
+        # post_number: dataset_id or cdid from the API item
+        post_number = (
+            item.get("dataset_id") or item.get("cdid") or external_id or None
+        )
+
+        # --- Dates ------------------------------------------------------
+        release_raw = item.get("release_date") or desc.get("releaseDate", "")
+        published_date = _parse_date(release_raw)
+
+        # --- Keywords ---------------------------------------------------
+        kw_list = item.get("keywords") or desc.get("keywords") or []
+        keywords = ",".join(str(k) for k in kw_list) if kw_list else ""
+
+        # --- Category ---------------------------------------------------
+        category = uri_parts[0] if uri_parts else ""
+
+        # --- Author / publisher -----------------------------------------
+        contact = desc.get("contact") or {}
+        author = contact.get("name", "") if isinstance(contact, dict) else ""
+
+        # --- Metadata ---------------------------------------------------
+        metadata = json.dumps({
+            "cdid": item.get("cdid"),
+            "dataset_id": item.get("dataset_id"),
+            "edition": item.get("edition"),
+            "type": item.get("type"),
+            "topics": item.get("topics"),
+            "national_statistic": desc.get("nationalStatistic"),
+            "next_release": desc.get("nextRelease"),
+            "contact_email": (
+                contact.get("email", "") if isinstance(contact, dict) else ""
+            ),
+            "contact_telephone": (
+                contact.get("telephone", "") if isinstance(contact, dict) else ""
+            ),
+            "unit": desc.get("unit"),
+            "pre_unit": desc.get("preUnit"),
+            "source": desc.get("source"),
+            "uri": uri,
+        })
+
+        return {
+            "id": external_id,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": (item.get("title") or desc.get("title") or "").strip(),
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "authors": author,
+            "publisher": "Office for National Statistics",
+            "url": item_url,
+            "pdf_url": pdf_url,
+            "keywords": keywords,
+            "category": category,
+            "original_filename": original_filename,
+            "metadata": metadata,
+        }
