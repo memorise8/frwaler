@@ -330,3 +330,105 @@ class APRAStatisticsCrawler(BaseCrawler):
             print(f"[apra-gov-au-statistics] Safety cap of {_MAX_PAGES} pages reached, stopping.")
 
         return saved
+
+    # ------------------------------------------------------------------ #
+    # Pure enumeration contract (L2a 2026-10-18). crawl() is unchanged;    #
+    # these mirror its list-level and detail-level extraction line by line #
+    # (tests/test_enumeration_split_apra_gov_au_statistics.py compares).   #
+    # ------------------------------------------------------------------ #
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        if access_challenge(html):
+            raise PermanentFailure("listing_parse_error:access_challenge")
+        soup = _bs(html)
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparsable")
+        articles = soup.select("div.views-row")
+        if not articles and soup.select_one("form.views-exposed-form") is None:
+            raise PermanentFailure("listing_parse_error:missing_listing_marker")
+        rows, seen = [], set()
+        for art in articles:
+            link_tag = art.select_one(".search-result__title a[href]")
+            if not link_tag:
+                continue
+            href = link_tag.get("href", "").strip()
+            if not href:
+                continue
+            detail_url = urljoin(_BASE, href)
+            if detail_url in seen:
+                continue
+            seen.add(detail_url)
+            listed_date_raw = ""
+            for pill in art.select(".anx-pill--split"):
+                label = pill.select_one(".anx-pill__label-first")
+                value = pill.select_one(".anx-pill__label-last")
+                if label and value and "published" in label.get_text(strip=True).lower():
+                    listed_date_raw = value.get_text(strip=True)
+                    break
+            cat_tag = art.select_one(".tag-bungle-type")
+            rows.append({
+                "url": detail_url,
+                "href": href,
+                "link_text": link_tag.get_text(strip=True),
+                "listed_date_raw": listed_date_raw,
+                "listed_date": _parse_display_date(listed_date_raw),
+                "category": cat_tag.get_text(strip=True) if cat_tag else "Statistical publication",
+            })
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        from crawler.enumeration.http import PermanentFailure
+        if access_challenge(html):
+            raise PermanentFailure("detail_access_challenge")
+        detail_soup = _bs(html)
+        if not detail_soup:
+            raise PermanentFailure("detail_parse_error")
+        href = item["href"]
+        detail_url = item["url"]
+        listed_date_raw = item["listed_date_raw"]
+        listed_date = item["listed_date"]
+        category = item["category"]
+
+        h1 = detail_soup.find("h1")
+        title = h1.get_text(strip=True) if h1 else item["link_text"]
+        if not title:
+            return None
+        time_tag = detail_soup.find("time", attrs={"datetime": True})
+        published_date_raw = time_tag.get("datetime", "") if time_tag else ""
+        published_date = _parse_date(published_date_raw)
+        abstract = _get_abstract(detail_soup)
+        if not abstract or len(abstract) < 50:
+            return None
+        pdf_url = None
+        for atag in detail_soup.find_all("a", href=True):
+            href_a = atag["href"]
+            lower = href_a.lower()
+            if ".pdf" in lower:
+                pdf_url = href_a if href_a.startswith("http") else urljoin(_BASE, href_a)
+                break
+        original_filename = _extract_filename(pdf_url) if pdf_url else None
+        slug = href.strip("/").split("/")[-1] or href.strip("/")
+        metadata = {
+            "posted_date": listed_date_raw,
+            "published_date_raw": published_date_raw,
+            "category": category,
+        }
+        if original_filename:
+            metadata["originalFilename"] = original_filename
+        return {
+            "site_id": self.site_id,
+            "external_id": slug,
+            "url": detail_url,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "publisher": "Australian Prudential Regulation Authority",
+            "category": category,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
