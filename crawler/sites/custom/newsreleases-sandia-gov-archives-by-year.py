@@ -104,6 +104,100 @@ class SandiaNewsReleasesCrawler(BaseCrawler):
         return unescape(re.sub(r"\s+", " ", raw)).strip()
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points; existing crawl and helpers stay unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """Validate a decoded WP REST post list; no fetching, storage, or identifier synthesis."""
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            from crawler.enumeration.http import PermanentFailure
+            raise PermanentFailure("listing_parse_error:items_not_a_list_of_objects", url)
+        return data
+
+    def _enumeration_paper(self, post):
+        """Pure copy of crawl's per-post Paper conversion and skip rules (None = skipped)."""
+        post_id = post.get("id")
+        title = self._clean_title(
+            (post.get("title") or {}).get("rendered", "")
+        )
+        if not title:
+            return None
+
+        content_html = (post.get("content") or {}).get("rendered", "") or ""
+        abstract = self._strip_html(content_html)
+        if len(abstract) < 50:
+            excerpt_html = (post.get("excerpt") or {}).get("rendered", "") or ""
+            abstract = self._strip_html(excerpt_html)
+        if len(abstract) < 50:
+            return None
+
+        raw_date = post.get("date", "") or ""
+        published_date = raw_date[:10] if raw_date else ""
+        listed_date = published_date
+
+        url = post.get("link", "")
+        slug = post.get("slug", "")
+        post_number = str(post_id) if post_id is not None else None
+
+        categories: list[str] = []
+        tags: list[str] = []
+        embedded = post.get("_embedded") or {}
+        for term_group in (embedded.get("wp:term") or []):
+            for term in (term_group or []):
+                taxonomy = term.get("taxonomy", "")
+                name = (term.get("name") or "").strip()
+                if not name:
+                    continue
+                if taxonomy == "category":
+                    categories.append(name)
+                elif taxonomy == "post_tag":
+                    tags.append(name)
+
+        category_str = ", ".join(categories)
+        keywords_str = ", ".join(tags) if tags else category_str
+
+        acf = post.get("acf") or {}
+        subheader = (acf.get("subheader") or "").strip()
+        media_contacts = acf.get("media_contact") or []
+        if isinstance(media_contacts, list):
+            authors_str = "; ".join(
+                str(c).strip() for c in media_contacts if c
+            )
+        else:
+            authors_str = str(media_contacts).strip() if media_contacts else ""
+
+        metadata = {
+            "slug": slug,
+            "modified": post.get("modified", ""),
+            "subheader": subheader,
+            "post_id": post_id,
+            "categories": categories,
+            "tags": tags,
+            "posted_date": listed_date,
+        }
+
+        return {
+            "site_id": self.site_id,
+            "external_id": post_number,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "url": url,
+            "pdf_url": None,
+            "doi": None,
+            "keywords": keywords_str or None,
+            "category": category_str or None,
+            "publisher": "Sandia National Laboratories",
+            "department": "Sandia National Laboratories",
+            "authors": authors_str or None,
+            "journal": None,
+            "original_filename": None,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 

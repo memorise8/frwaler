@@ -1,0 +1,14 @@
+{
+ "site_id": "newsreleases-sandia-gov-archives-by-year",
+ "listing_body": "[{\"id\": 118907, \"date\": \"2026-10-06T10:00:00\", \"modified\": \"2026-10-07T08:00:00\", \"slug\": \"offline-1\", \"link\": \"https://newsreleases.sandia.gov/offline-1/\", \"title\": {\"rendered\": \"Offline &amp; one\"}, \"content\": {\"rendered\": \"<p>Synthetic Sandia research résumé and Korean 자료 for offline equality testing of the enumeration split conversion.</p>\"}, \"excerpt\": {\"rendered\": \"<p>Short.</p>\"}, \"acf\": {\"subheader\": \" Sub head \", \"media_contact\": [\"Jane Doe\", \"\", null]}, \"_embedded\": {\"wp:term\": [[{\"taxonomy\": \"category\", \"name\": \"Energy\"}], [{\"taxonomy\": \"post_tag\", \"name\": \"Grid\"}, {\"taxonomy\": \"post_tag\", \"name\": \" \"}]]}}, {\"id\": 118771, \"date\": \"2026-09-24T09:00:00\", \"modified\": \"\", \"slug\": \"offline-2\", \"link\": \"https://newsreleases.sandia.gov/offline-2/\", \"title\": {\"rendered\": \"Offline two\"}, \"content\": {\"rendered\": \"<div>Synthetic Sandia research résumé and Korean 자료 for offline equality testing of the enumeration split conversion. Second.</div>\"}, \"excerpt\": {\"rendered\": \"\"}, \"acf\": {\"media_contact\": \"John Roe\"}, \"_embedded\": {\"wp:term\": [[{\"taxonomy\": \"category\", \"name\": \"News\"}]]}}]",
+ "content_type": "application/json",
+ "details": {},
+ "long_text": "Synthetic Sandia research résumé and Korean 자료 for offline equality testing of the enumeration split conversion.",
+ "original_method_source_sha256": {
+  "__init__": "86b07d464f37e29597cb35f777a884f91e90c347c1dd28bcfaa42a3652409fb8",
+  "_curl_get": "22c3897075e3e205d0fd15cd36f5adc750a3653010a67abcb285a56abd38842c",
+  "_strip_html": "b130f8ff56b8e544406b2ce9edf996606b53e965704dd5520f141d861b9ed373",
+  "_clean_title": "52f160624e8f0e065bd286021d0af5f1c3d1f60414bf96f2208482555fb93057",
+  "crawl": "d180e47808f6946d6398074332fd7aac9071413da389150ae40dab072958d772"
+ }
+}
