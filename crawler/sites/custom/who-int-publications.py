@@ -411,3 +411,92 @@ class WHOPublicationsCrawler(BaseCrawler):
 
         print(f"[who-int-publications] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration conversion (no network; crawl() is unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data, url=None):
+        """OData list page ({"value": [...]} from /api/hubs/publications with
+        $skip/$top) -> row dicts. Rows without ItemDefaultUrl are skipped like crawl().
+        Anything but an object with a ``value`` list is a listing parse error;
+        ``value: []`` past the end is a valid empty page.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("value"), list):
+            raise PermanentFailure("listing_parse_error:expected_odata_value_list", url)
+        rows = []
+        for item in data["value"]:
+            if not isinstance(item, dict):
+                raise PermanentFailure("listing_parse_error:odata_row_not_object", url)
+            item_path = (item.get("ItemDefaultUrl") or "").strip()
+            if not item_path:
+                continue
+            item_id = item_path.lstrip("/")
+            rows.append(dict(item,
+                             item_path=item_path,
+                             external_id=item_id,
+                             url=f"https://www.who.int/publications/i/item/{item_id}",
+                             published_date=self._parse_date(item.get("FormatedDate") or "")))
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """crawl()'s Paper conversion and skip rule for one list row and its fetched
+        detail page (``_fetch_detail`` runs unchanged with its fetcher bound to the page).
+        None = skipped like crawl()."""
+        saved = self.__dict__.get("_curl_get")
+        self._curl_get = lambda *args, **kwargs: (html.strip() or None) if isinstance(html, str) else html
+        try:
+            detail = self._fetch_detail(item["item_path"])
+        finally:
+            if saved is None:
+                self.__dict__.pop("_curl_get", None)
+            else:
+                self._curl_get = saved
+
+        item_path = item["item_path"]
+        item_id = item_path.lstrip("/")
+        item_url = f"https://www.who.int/publications/i/item/{item_id}"
+        title = (item.get("Title") or "").strip()
+        formatted_date = item.get("FormatedDate") or ""
+        tag = item.get("Tag") or ""
+        download_url = (item.get("DownloadUrl") or "").strip()
+
+        published_date = self._parse_date(formatted_date)
+
+        abstract = (detail.get("abstract") or "").strip()
+        authors = detail.get("authors") or []
+        doi = detail.get("doi") or ""
+        detail_date = detail.get("published_date") or ""
+        department = detail.get("department") or ""
+        keywords = detail.get("keywords") or []
+
+        if detail_date and len(detail_date) >= 7:
+            published_date = detail_date
+
+        if len(abstract) < self._ABSTRACT_MIN_CHARS:
+            return None
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": item_id,
+            "title": title or "(untitled)",
+            "authors": json.dumps(authors, ensure_ascii=False),
+            "abstract": abstract,
+            "category": tag,
+            "keywords": json.dumps(keywords, ensure_ascii=False),
+            "published_date": published_date,
+            "url": item_url,
+            "pdf_url": download_url,
+            "doi": doi,
+            "department": department,
+            "metadata": json.dumps(
+                {
+                    "tag": tag,
+                    "itemDefaultUrl": item_path,
+                    "formatedDate": formatted_date,
+                },
+                ensure_ascii=False,
+            ),
+        }
