@@ -1,0 +1,15 @@
+{
+ "site_id": "cae-eco-fr-presse-cae-0",
+ "listing_body": "<html><body><div class=\"portfolio row grid-container\"><article class=\"portfolio-item\"><div class=\"entry-image\"><a href=\"strategie-economique-ruptures\">img</a></div><h3><a href=\"strategie-economique-ruptures\">Stratégie</a></h3><a href=\"a=1\">Auteur A</a></article><article class=\"portfolio-item\"><div class=\"entry-image\"><a href=\"strategie-europeenne-ciblee\">img</a></div><h3><a href=\"strategie-europeenne-ciblee\">UE</a></h3><a href=\"a=1\">Auteur A</a></article></div></body></html>",
+ "empty_body": "<html><body><div class=\"portfolio row grid-container\"></div></body></html>",
+ "content_type": "text/html",
+ "long_text": "Synthèse de presse synthétique pour le test hors ligne de la séparation: les membres du CAE proposent une stratégie économique pour la France, longue.",
+ "details": {
+  "https://cae-eco.fr/strategie-economique-ruptures": "<html><head><meta property=\"og:description\" content=\"Synthèse de presse synthétique pour le test hors ligne de la séparation: les membres du CAE proposent une stratégie économique pour la France, longue.\"></head><body><div><div><h1>Stratégie économique</h1></div></div><ul><li>Publié le 2026-10-08</li></ul><a href=\"/static/pdf/Communique-presse-N95 note.pdf\">pdf</a><div class=\"tagcloud\"><a>Auteur A</a></div></body></html>",
+  "https://cae-eco.fr/strategie-europeenne-ciblee": "<html><head><meta property=\"og:description\" content=\"Synthèse de presse synthétique pour le test hors ligne de la séparation: les membres du CAE proposent une stratégie économique pour la France, longue.\"></head><body><div><div><h1>UE stratégie</h1></div></div><ul><li>Publié le 2026-10-08</li></ul><div class=\"tagcloud\"><a>Auteur A</a></div></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_save_document": "064ff6b8288c645044feefc2c4829865fb023f291ef38681a4b72d4ddb3b4d4f",
+  "crawl": "5f716ed8077efd98a389b9a9b7cc45ad8077e26e547179c3471a05af5259d6a5"
+ }
+}

@@ -279,3 +279,128 @@ class CaeEcoFrPresseCae0Crawler(BaseCrawler):
             page += 1
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and
+    # _save_document() stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """Article rows of one /Presse-CAE-N page, exactly as crawl() reads them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _bs4(html)
+        if not soup:
+            raise PermanentFailure("listing_parse_error:unparseable_html")
+        rows = []
+        for art in soup.select("article.portfolio-item"):
+            link_tag = art.select_one("h3 a") or art.select_one("div.entry-image > a")
+            if not link_tag:
+                continue
+            slug = link_tag.get("href", "").strip("'\" ")
+            if not slug or slug.startswith("http"):
+                continue
+            rows.append({
+                "slug": slug,
+                "url": f"{BASE}/{slug}",
+                "list_title": link_tag.get_text(strip=True),
+                "list_authors": [a.get_text(strip=True) for a in art.select('a[href^="a="]')],
+            })
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Copy of crawl()'s per-article conversion; None where crawl() skips or fails."""
+        slug = item["slug"]
+        article_url = item["url"]
+        list_title = item.get("list_title")
+        list_authors = item.get("list_authors") or []
+        detail = _bs4(html)
+        if not detail:
+            return None
+        h1 = detail.select_one("h1")
+        title = h1.get_text(strip=True) if h1 else list_title
+        abstract = ""
+        og = detail.select_one('meta[property="og:description"]')
+        if og:
+            abstract = og.get("content", "").strip()
+        if len(abstract) < 50:
+            for tag in detail.select('meta[name="description"]'):
+                c = tag.get("content", "").strip()
+                if len(c) > 50:
+                    abstract = c
+                    break
+        abstract_source = "original source metadata"
+        if len(abstract) < 50 and h1:
+            body = h1.parent.parent.select_one(":scope > div.p-3")
+            if body:
+                body_text = body.get_text(" ", strip=True)
+                if body_text:
+                    abstract = body_text
+                    abstract_source = "original HTML press body"
+        published_date = None
+        for li in detail.select("li"):
+            text = li.get_text(strip=True)
+            m = re.search(r"(\d{4}-\d{2}-\d{2})", text)
+            if m:
+                published_date = m.group(1)
+                break
+        pdf_url = None
+        pdf_url_raw = None
+        original_filename = None
+        pdf_tag = detail.select_one('a[href*="/static/pdf/"][href$=".pdf"]')
+        if pdf_tag:
+            pdf_path = pdf_tag.get("href", "")
+            pdf_url_raw = urljoin(BASE + "/", pdf_path)
+            pdf_url = _pdf_request_url(pdf_path)
+            original_filename = pdf_path.split("/")[-1]
+        if not abstract and not pdf_url:
+            return None  # crawl(): "source press entry has neither summary nor PDF" (item failed)
+        pdf_urls = []
+        pdf_urls_raw = []
+        for link in detail.select('a[href*="/static/pdf/"][href$=".pdf"]'):
+            href = link["href"]
+            raw_url = urljoin(BASE + "/", href)
+            if raw_url not in pdf_urls_raw:
+                pdf_urls_raw.append(raw_url)
+            url = _pdf_request_url(href)
+            if url not in pdf_urls:
+                pdf_urls.append(url)
+        post_number = None
+        if original_filename:
+            m = re.search(r"[Nn](\d+)", original_filename)
+            if m:
+                post_number = m.group(1)
+        if not post_number:
+            m = re.search(r"(\d+)", slug)
+            if m:
+                post_number = m.group(1)
+        authors_list = []
+        tagcloud = detail.select_one("div.tagcloud")
+        if tagcloud:
+            authors_list = [a.get_text(strip=True) for a in tagcloud.select("a")]
+        if not authors_list:
+            authors_list = list_authors
+        metadata = {"posted_date": published_date, "slug": slug}
+        metadata["source_pdf_urls"] = pdf_urls
+        metadata["source_pdf_urls_raw"] = pdf_urls_raw
+        metadata["primary_pdf_url_raw"] = pdf_url_raw
+        metadata["abstract_source"] = abstract_source if abstract else "source PDF full text pending"
+        if original_filename:
+            metadata["originalFilename"] = original_filename
+        return {
+            "site_id": self.site_id,
+            "external_id": slug,
+            "post_number": post_number,
+            "title": title or list_title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "authors": "; ".join(authors_list) if authors_list else None,
+            "publisher": "Conseil d'Analyse Economique",
+            "url": article_url,
+            "pdf_url": pdf_url,
+            "keywords": None,
+            "category": "Communiques de presse",
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
