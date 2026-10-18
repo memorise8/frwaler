@@ -146,6 +146,66 @@ class SRNLGovNewsroomCrawler(BaseCrawler):
     # Main crawl
     # ------------------------------------------------------------------
 
+
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_items(self, data, url=None):
+        """Validate a decoded API list; no fetching, storage, or identifier synthesis."""
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            from crawler.enumeration.http import PermanentFailure
+            # Same class as the framework's own JSON-listing parse errors: the run ends
+            # incomplete (listing_failed:listing_parse_error:...), never as an empty page.
+            raise PermanentFailure("listing_parse_error:items_not_a_list_of_objects", url)
+        return data
+
+    def _enumeration_paper(self, item, detail_html):
+        """Pure copy of crawl's Paper conversion and item filters.
+
+        None preserves item rejection; the framework currently records it as empty_item.
+        """
+        post_id = str(item.get('id', ''))
+        slug = item.get('slug', '')
+        title_raw = item.get('title', {})
+        title = self._strip_html(title_raw.get('rendered', '') if isinstance(title_raw, dict) else str(title_raw)).strip()
+        date_raw = item.get('date', '')
+        detail_url = item.get('link', '')
+        if not title or not detail_url:
+            return None
+        published_date = self._parse_date(date_raw)
+        abstract = ''
+        pdf_url = None
+        original_filename = None
+        if detail_html:
+            abstract = self._extract_abstract(detail_html)
+            pdf_url = self._extract_pdf_url(detail_html)
+            if pdf_url:
+                fname = pdf_url.rstrip('/').split('/')[-1].split('?')[0].split('#')[0]
+                if fname and '.' in fname:
+                    original_filename = fname
+        if len(abstract) < 50:
+            return None
+        paper = {
+            'id': None,
+            'site_id': self.site_id,
+            'external_id': post_id,
+            'post_number': post_id,
+            'title': title,
+            'abstract': abstract,
+            'published_date': published_date,
+            'listed_date': published_date,
+            'url': detail_url,
+            'pdf_url': pdf_url,
+            'original_filename': original_filename,
+            'authors': '',
+            'publisher': 'Savannah River National Laboratory',
+            'department': '',
+            'journal': '',
+            'keywords': '',
+            'category': 'News Release',
+            'doi': '',
+            'metadata': json.dumps({'posted_date': date_raw, 'slug': slug, 'post_id': post_id}, ensure_ascii=False),
+        }
+        return paper
+
     def crawl(self, limit=None):
         """Crawl SRNL news releases via WordPress REST API + HTML detail page.
 

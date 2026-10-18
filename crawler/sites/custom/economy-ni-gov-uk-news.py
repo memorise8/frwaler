@@ -280,3 +280,36 @@ class EconomyNIGovUKNewsCrawler(BaseCrawler):
 
         print(f"[economy-ni-gov-uk-news] Done. Total saved: {saved}")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _parse_html(html)
+        if soup is None or soup.find("main") is None:
+            raise PermanentFailure("listing_parse_error:missing_main_marker")
+        rows = [{"url": u} for u in _extract_listing_urls(html)]
+
+        if not rows and soup.find("main").get_text(" ", strip=True):
+            raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing")
+        return rows
+
+    def _enumeration_detail(self, html, url):
+        return _extract_detail(url, html)
+
+    def _enumeration_paper(self, item, d):
+        article_url = item["url"]
+        title = d['title']
+        abstract = d['abstract']
+        published_date = d['published_date']
+        node_id = d['node_id']
+        slug = d['slug']
+        pdf_url = d['pdf_url']
+        pdf_filename = d['pdf_filename']
+        if not title:
+            return None
+        if len(abstract) < 50:
+            return None
+        return {'id': None, 'site_id': self.site_id, 'external_id': node_id or slug, 'post_number': node_id, 'title': title, 'abstract': abstract, 'published_date': published_date, 'listed_date': published_date, 'url': article_url, 'pdf_url': pdf_url, 'original_filename': pdf_filename, 'publisher': 'Department for the Economy', 'authors': None, 'department': None, 'journal': None, 'keywords': None, 'category': 'News', 'doi': None, 'metadata': json.dumps({'node_id': node_id, 'slug': slug, 'posted_date': published_date, 'originalFilename': pdf_filename}, ensure_ascii=False)}

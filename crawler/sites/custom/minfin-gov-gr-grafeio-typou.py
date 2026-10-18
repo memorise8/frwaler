@@ -37,6 +37,61 @@ class MinfinGovGrGrafeioTypouCrawler(BaseCrawler):
     # Main crawl
     # ------------------------------------------------------------------
 
+
+    # Pure enumeration entry points; existing crawl and parsers stay unchanged.
+    def _enumeration_items(self, data, page, url=None):
+        """Carry the source page needed by crawl's api_page metadata."""
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            from crawler.enumeration.http import PermanentFailure
+            # Same class as the framework's own JSON-listing parse errors: the run ends
+            # incomplete (listing_failed:listing_parse_error:...), never as an empty page.
+            raise PermanentFailure("listing_parse_error:items_not_a_list_of_objects", url)
+        return [{"record": row, "page": page, "id": row.get("id"),
+                 "url": row.get("link", ""), "date": row.get("date", "")} for row in data]
+
+    def _enumeration_paper(self, post, page):
+        """Pure copy of crawl's Paper conversion and item filters.
+
+        None preserves item rejection; the framework currently records it as empty_item.
+        """
+        url = post.get('link', '')
+        post_id = str(post.get('id', ''))
+        title_raw = (post.get('title') or {}).get('rendered', '')
+        title = _one_line(BeautifulSoup(title_raw, 'html.parser').get_text(' ', strip=True))
+        if not title:
+            title = '(untitled)'
+        date_str = (post.get('date') or '')[:10]
+        content_html = (post.get('content') or {}).get('rendered', '')
+        abstract = _extract_text(content_html, self.site_id)
+        if len(abstract) < self._MIN_ABSTRACT:
+            return None
+        if len(abstract) < self._MIN_SAVE:
+            return None
+        pdf_url = _find_pdf_url(content_html, self.base_url)
+        original_filename = _filename_from_url(pdf_url) if pdf_url else None
+        metadata = json.dumps({'source': 'minfin.gov.gr WP REST API', 'post_id': post.get('id'), 'date_raw': post.get('date', ''), 'api_page': page, 'posted_date': date_str}, ensure_ascii=False)
+        paper = {
+            'site_id': self.site_id,
+            'external_id': post_id,
+            'post_number': post_id,
+            'title': title,
+            'abstract': abstract,
+            'published_date': date_str,
+            'posted_date': date_str,
+            'url': url,
+            'pdf_url': pdf_url or None,
+            'original_filename': original_filename,
+            'authors': None,
+            'publisher': 'Υπουργείο Εθνικής Οικονομίας και Οικονομικών',
+            'department': None,
+            'journal': None,
+            'keywords': 'Ανακοινώσεις Τύπου',
+            'category': 'Ανακοινώσεις Τύπου',
+            'doi': None,
+            'metadata': metadata,
+        }
+        return paper
+
     def crawl(self, limit=None):
         saved = 0
         page = 1
