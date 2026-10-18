@@ -1,0 +1,19 @@
+{
+ "site_id": "issnationallab-org-research-and-science",
+ "listing_body": "[{\"id\": 41497, \"date\": \"2020-01-12T15:01:46\", \"link\": \"https://issnationallab.org/research-and-science/research-opportunities-and-results/research-reports/offline-1/\", \"title\": {\"rendered\": \"Offline Report 1\"}, \"slug\": \"offline-1\"}, {\"id\": 41498, \"date\": \"2020-02-12T15:01:46\", \"link\": \"https://issnationallab.org/research-and-science/research-opportunities-and-results/research-reports/offline-2/\", \"title\": {\"rendered\": \"Offline Report 2\"}, \"slug\": \"offline-2\"}]",
+ "content_type": "application/json",
+ "details": {
+  "https://issnationallab.org/research-and-science/research-opportunities-and-results/research-reports/offline-1/": "<html><head><title>x</title></head><body><header><p>Sign up for our newsletter to receive updates every month.</p></header><main><div class='page-content'><p>Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing. Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing. Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing.</p><p>Download this report <a href='https://issnationallab.org/download/48981/?tmstv=1'>PDF</a></p></div></main><footer><p>Copyright ISS National Laboratory, all rights reserved worldwide.</p></footer></body></html>",
+  "https://issnationallab.org/research-and-science/research-opportunities-and-results/research-reports/offline-2/": "<html><head><title>x</title></head><body><header><p>Sign up for our newsletter to receive updates every month.</p></header><main><div class='page-content'><p>Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing. Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing. Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing.</p><p>Download this report <a href='https://issnationallab.org/download/48982/?tmstv=1'>PDF</a></p></div></main><footer><p>Copyright ISS National Laboratory, all rights reserved worldwide.</p></footer></body></html>"
+ },
+ "long_text": "Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing. Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing. Synthetic microgravity research summary with résumé and Korean 자료 for offline equality testing.",
+ "empty_body": "[]",
+ "original_method_source_sha256": {
+  "__init__": "a7f86ededfe7c521435b9119608d9270d7f3f8ad3055883a1fb9a35c17505a69",
+  "_api_get": "de75a46849a5d7e0032b8dbcc9c5eab5e80361d01e9310cf6f69e9231594d894",
+  "_fetch_html": "87acca3144c719594216100515b8897f99676eba5876bbdb74132b888de777f7",
+  "_dlm_content": "1678ef8142b1e2e4e95b09ac1a9b50c8504b043fbc111b259603be3b75753736",
+  "_fetch_list_page": "4571f8594fb94ad7c6e861105a8cdb00823fc2b95dc8c37b2a3def946b57db4a",
+  "crawl": "3dec51526b1d829ad1cec1e891c07027308af892e30ddd5c8d5596233f18e2fb"
+ }
+}

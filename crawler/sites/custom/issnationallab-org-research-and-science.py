@@ -373,3 +373,75 @@ class ISSNationalLabResearchAndScienceCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] crawl complete: saved {saved} records")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, data):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, list):
+            raise PermanentFailure("listing_parse_error:expected_wp_list")
+        rows = []
+        for record in data:
+            if (not isinstance(record, dict) or isinstance(record.get("id"), bool)
+                    or not isinstance(record.get("id"), int) or record["id"] <= 0
+                    or not isinstance(record.get("link"), str) or not record["link"]
+                    or not isinstance(record.get("title"), (dict, str))):
+                raise PermanentFailure("listing_parse_error:invalid_wp_record")
+            rows.append({"url": record["link"], "id": str(record["id"]),
+                         "date": record.get("date"), "record": record})
+        return rows
+
+    def _enumeration_detail(self, html, row):
+        """Same paper as crawl() builds from the WP list record and the detail HTML.
+
+        crawl() falls back to the DLM REST API when the HTML abstract is shorter than
+        _MIN_ABSTRACT_LEN; that needs a second request, which a pure method cannot make.
+        Such a page fails loudly here instead of being skipped silently."""
+        item = row["record"]
+        post_id = item.get("id")
+        url = item.get("link", "")
+        if not url:
+            return None
+
+        title_raw = item.get("title", {})
+        if isinstance(title_raw, dict):
+            title_raw = title_raw.get("rendered", "")
+        title = _strip_html(title_raw).strip()
+        if not title:
+            return None
+
+        date_raw = item.get("date", "")
+        published_date = date_raw[:10] if date_raw else ""
+
+        if not html:
+            return None
+
+        abstract = _extract_abstract(html)
+        if len(abstract) < _MIN_ABSTRACT_LEN:
+            if _extract_dlm_id(html):
+                from crawler.enumeration.http import PermanentFailure
+                raise PermanentFailure("detail_needs_dlm_fallback", url)
+            return None
+
+        pdf_url = _extract_pdf_url(html)
+        dlm_id = _extract_dlm_id(html)
+
+        return {
+            "site_id": _SITE_ID,
+            "external_id": str(post_id),
+            "title": title,
+            "authors": json.dumps([]),
+            "abstract": abstract,
+            "category": "Research Reports",
+            "keywords": json.dumps([]),
+            "published_date": published_date,
+            "url": url,
+            "pdf_url": pdf_url,
+            "doi": "",
+            "department": "ISS National Lab",
+            "metadata": json.dumps({
+                "post_id": post_id,
+                "slug": item.get("slug", ""),
+                "dlm_id": dlm_id,
+            }),
+        }
