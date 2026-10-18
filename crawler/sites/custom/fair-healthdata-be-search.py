@@ -335,3 +335,117 @@ class FairHealthdataBeSearchCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() is unchanged; these
+    # methods only read an already fetched search response (no network).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        """Search rows in crawl() order: results values that carry an identifier."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or "results" not in data:
+            raise PermanentFailure("listing_parse_error:expected_search_json")
+        results = data.get("results") or {}
+        if isinstance(results, dict):
+            values = list(results.values())
+        elif isinstance(results, list):
+            values = results
+        else:
+            raise PermanentFailure("listing_parse_error:results_not_a_collection")
+        rows = []
+        for item in values:
+            if not isinstance(item, dict):
+                continue
+            identifier = (item.get("identifier") or "").strip()
+            if not identifier:
+                continue
+            rows.append({"url": f"{self.base_url}/dataset/{identifier}",
+                         "identifier": identifier, "record": item})
+        return rows
+
+    def _enumeration_paper(self, row):
+        """Paper from one search record — the per-item body of crawl() copied
+        verbatim (external_id = post_number = identifier, unchanged)."""
+        item = row["record"]
+        identifier = (item.get("identifier") or "").strip()
+        if not identifier:
+            return None
+
+        detail_url = f"{self.base_url}/dataset/{identifier}"
+
+        title = (item.get("title") or "").strip()
+        if not title:
+            return None
+
+        abstract = self._build_abstract(item, title, identifier)
+        if len(abstract) < 50:
+            return None
+
+        published_date = self._parse_date(item.get("issued") or "")
+        listed_date = self._parse_date(item.get("modified") or "")
+
+        publisher = self._extract_publisher(item.get("publisher"))
+
+        kw_list = self._extract_list_field(item.get("keyword"))
+        keywords = ", ".join(kw_list) if kw_list else ""
+
+        theme_list = self._extract_list_field(item.get("theme"))
+        category = "; ".join(theme_list) if theme_list else ""
+
+        # First PDF distribution
+        pdf_url = None
+        original_filename = None
+        for dist in (item.get("distribution") or []):
+            if not isinstance(dist, dict):
+                continue
+            dl_url = (dist.get("downloadURL") or "").strip()
+            mime = (dist.get("mediaType") or dist.get("format") or "").lower()
+            if not dl_url:
+                for ref in (dist.get("%Ref:downloadURL") or []):
+                    if isinstance(ref, dict):
+                        fp = (ref.get("data") or {}).get("filePath", "")
+                        if fp:
+                            dl_url = fp
+                            break
+            if dl_url and ("pdf" in mime or dl_url.lower().endswith(".pdf")):
+                pdf_url = dl_url
+                original_filename = dl_url.rstrip("/").split("/")[-1].split("?")[0]
+                break
+
+        contact = item.get("contactPoint") or {}
+        dept = contact.get("fn", "") if isinstance(contact, dict) else ""
+
+        metadata = {
+            "posted_date": item.get("modified") or "",
+            "originalFilename": original_filename,
+            "accessLevel": item.get("accessLevel"),
+            "accrualPeriodicity": item.get("accrualPeriodicity"),
+            "license": item.get("license"),
+            "spatial": item.get("spatial"),
+            "isPartOf": item.get("isPartOf"),
+            "contactPoint": item.get("contactPoint"),
+            "distribution_count": len(item.get("distribution") or []),
+            "identifier": identifier,
+            "category": category,
+        }
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": identifier,
+            "post_number": identifier,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "authors": "",
+            "publisher": publisher,
+            "department": dept,
+            "keywords": keywords,
+            "category": category,
+            "doi": "",
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }

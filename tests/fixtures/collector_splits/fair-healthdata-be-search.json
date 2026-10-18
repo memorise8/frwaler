@@ -1,0 +1,12 @@
+{
+ "site_id": "fair-healthdata-be-search",
+ "listing_body": "{\"total\": \"2\", \"results\": {\"dkan_dataset/a\": {\"identifier\": \"00000000-0000-4000-8000-000000009001\", \"title\": \"Synthetic dataset 9001\", \"description\": \"<p>Synthetic dataset description for the offline equality test of the enumeration split. Synthetic dataset description for the offline equality test of the enumeration split. Synthetic dataset description for the offline equality test of the enumeration split.</p>\", \"issued\": \"2024-03-02T10:00:00\", \"modified\": \"2025-01-02\", \"accessLevel\": \"public\", \"keyword\": [\"synthetic\", {\"data\": \"test\"}], \"theme\": [{\"data\": {\"name\": \"Health\"}}], \"publisher\": {\"data\": {\"name\": \"Synthetic publisher\"}}, \"contactPoint\": {\"fn\": \"Synthetic team\"}, \"distribution\": [{\"title\": \"Rules\", \"format\": \"pdf\", \"downloadURL\": \"https://fair.healthdata.be/sites/default/files/rules-9001.pdf\"}]}, \"dkan_dataset/b\": {\"identifier\": \"00000000-0000-4000-8000-000000009000\", \"title\": \"Synthetic dataset 9000\", \"description\": \"<p>Synthetic dataset description for the offline equality test of the enumeration split. Synthetic dataset description for the offline equality test of the enumeration split. Synthetic dataset description for the offline equality test of the enumeration split.</p>\", \"issued\": \"2024-03-01T10:00:00\", \"modified\": \"2025-01-02\", \"accessLevel\": \"public\", \"keyword\": [\"synthetic\", {\"data\": \"test\"}], \"theme\": [{\"data\": {\"name\": \"Health\"}}], \"publisher\": {\"data\": {\"name\": \"Synthetic publisher\"}}, \"contactPoint\": {\"fn\": \"Synthetic team\"}, \"distribution\": []}}}",
+ "content_type": "application/json",
+ "details": {},
+ "long_text": "Synthetic dataset description for the offline equality test of the enumeration split. Synthetic dataset description for the offline equality test of the enumeration split. Synthetic dataset description for the offline equality test of the enumeration split.",
+ "empty_body": "{\"total\": \"2\", \"results\": []}",
+ "original_method_source_sha256": {
+  "_build_abstract": "a682183dfc8ed81e8be6eb33a5940922945dea10999ce2f68347f579ce65e019",
+  "crawl": "e5264a5fcbf38ebf03ded18273e988aba178db7f63a0d8903efe332884cf4bae"
+ }
+}

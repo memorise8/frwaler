@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "sites": {
+    "fair-healthdata-be-search": {
+      "strategy": "last_page_backward",
+      "base_url": "https://fair.healthdata.be",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://fair.healthdata.be/api/1/search",
+        "params": {
+          "fulltext": "",
+          "page-size": 20
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "identifier"
+        },
+        "total": {
+          "type": "json",
+          "path": "total"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
