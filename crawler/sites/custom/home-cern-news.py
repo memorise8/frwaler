@@ -190,6 +190,36 @@ class CernNewsCrawler(BaseCrawler):
 
         return items
 
+    def _paper_from_rss_item(self, item: dict) -> dict | None:
+        """Paper for one parsed RSS item (None when the abstract is too short).
+
+        Shared by crawl() and the enumeration framework (adapter paper_method),
+        so post_number (external_id) and fields stay identical on both paths.
+        """
+        title = item.get("title", "")
+        abstract = item.get("abstract", "")
+        if not abstract or len(abstract) < 50:
+            print(f"[{self.site_id}] Skip '{title[:50]}': abstract too short ({len(abstract)} chars)")
+            return None
+        authors = item.get("authors", [])
+        keywords = item.get("keywords", [])
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": item.get("external_id", ""),
+            "title": title,
+            "authors": json.dumps(authors, ensure_ascii=False),
+            "abstract": abstract,
+            "category": keywords[0] if keywords else "",
+            "keywords": json.dumps(keywords, ensure_ascii=False),
+            "published_date": item.get("published_date", ""),
+            "url": item.get("url", ""),
+            "pdf_url": "",
+            "doi": "",
+            "department": "CERN",
+            "metadata": json.dumps({"guid": item.get("guid", ""), "categories": keywords}, ensure_ascii=False),
+        }
+
     # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
@@ -254,44 +284,14 @@ class CernNewsCrawler(BaseCrawler):
                 new_on_page += 1
 
                 try:
-                    title = item.get("title", "")
-                    abstract = item.get("abstract", "")
-                    external_id = item.get("external_id", "")
-
-                    if not abstract or len(abstract) < 50:
-                        print(
-                            f"[{self.site_id}] Skip '{title[:50]}': "
-                            f"abstract too short ({len(abstract)} chars)"
-                        )
+                    paper = self._paper_from_rss_item(item)
+                    if paper is None:
                         continue
-
-                    authors = item.get("authors", [])
-                    keywords = item.get("keywords", [])
-
-                    paper = {
-                        "id": None,
-                        "site_id": self.site_id,
-                        "external_id": external_id,
-                        "title": title,
-                        "authors": json.dumps(authors, ensure_ascii=False),
-                        "abstract": abstract,
-                        "category": keywords[0] if keywords else "",
-                        "keywords": json.dumps(keywords, ensure_ascii=False),
-                        "published_date": item.get("published_date", ""),
-                        "url": url,
-                        "pdf_url": "",
-                        "doi": "",
-                        "department": "CERN",
-                        "metadata": json.dumps(
-                            {"guid": item.get("guid", ""), "categories": keywords},
-                            ensure_ascii=False,
-                        ),
-                    }
 
                     self._save_paper(paper)
                     if self._last_save_created:
                         saved += 1
-                    print(f"[{self.site_id}] Saved {saved}/{lim_display}: {title[:60]}")
+                    print(f"[{self.site_id}] Saved {saved}/{lim_display}: {paper['title'][:60]}")
 
                 except KeyboardInterrupt:
                     raise
