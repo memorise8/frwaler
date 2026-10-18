@@ -1,0 +1,30 @@
+{
+ "site_id": "bmbfsfj-bund-de-bmbfsfj",
+ "listing_body": "<html><head><meta property=\"og:url\" content=\"https://www.bmbfsfj.bund.de/dynamic/action/bmbfsfj/72630/aktuelle-meldungen-suchergebnisse\"></head><body><div class=\"search-wrapper\"><form id=\"searchFormPaging\" action=\"/bmbfsfj/aktuelles/alle-meldungen/72630!search#search72630\"><input name=\"state\" type=\"hidden\" value=\"STATE1\"></form><ul class=\"search-list\"><li class=\"teaser-list-item\"><p class=\"teaser-tagline\">Familie</p><h3 class=\"teaser-headline\"><a class=\"text-link\" href=\"/bmbfsfj/aktuelles/alle-meldungen/meldung-eins-111\">Meldung 111</a></h3><p class=\"teaser-text\">Kurz 111</p></li><li class=\"teaser-list-item\"><p class=\"teaser-tagline\">Familie</p><h3 class=\"teaser-headline\"><a class=\"text-link\" href=\"/bmbfsfj/aktuelles/alle-meldungen/meldung-zwei-112\">Meldung 112</a></h3><p class=\"teaser-text\">Kurz 112</p></li></ul></div></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.bmbfsfj.bund.de/bmbfsfj/aktuelles/alle-meldungen/meldung-eins-111": "<html><head><meta property=\"og:description\" content=\"Beschreibung 111\"><meta name=\"keywords\" content=\"Familie, Jugend\"></head><body><h1 class=\"title\"><span class=\"title__text\">Meldung 111</span></h1><div class=\"dateline\"><time datetime=\"2026-10-01\">x</time> Aktuelle Meldung</div><div class=\"article-intro\"><p class=\"article-teaser\">Teaser 111</p></div><div class=\"article-content\"><p>Synthetische Meldung des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. Synthetische Meldung des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. </p><a href=\"/resource/blob/111/x/doc-data.pdf\">PDF</a></div></body></html>",
+  "https://www.bmbfsfj.bund.de/bmbfsfj/aktuelles/alle-meldungen/meldung-zwei-112": "<html><head><meta property=\"og:description\" content=\"Beschreibung 112\"><meta name=\"keywords\" content=\"Familie, Jugend\"></head><body><h1 class=\"title\"><span class=\"title__text\">Meldung 112</span></h1><div class=\"dateline\"><time datetime=\"2026-09-20\">x</time> Aktuelle Meldung</div><div class=\"article-intro\"><p class=\"article-teaser\">Teaser 112</p></div><div class=\"article-content\"><p>Synthetische Meldung des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. Synthetische Meldung des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. </p><a href=\"/resource/blob/112/x/doc-data.pdf\">PDF</a></div></body></html>"
+ },
+ "long_text": "Synthetische Meldung des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. Synthetische Meldung des Ministeriums zur Prüfung der Aufzählungsaufteilung ohne Netzwerk. ",
+ "empty_body": "<html><head><meta property=\"og:url\" content=\"https://www.bmbfsfj.bund.de/dynamic/action/bmbfsfj/72630/aktuelle-meldungen-suchergebnisse\"></head><body><div class=\"search-wrapper\"><form id=\"searchFormPaging\" action=\"/bmbfsfj/aktuelles/alle-meldungen/72630!search#search72630\"><input name=\"state\" type=\"hidden\" value=\"STATE1\"></form><ul class=\"search-list\"></ul></div></body></html>",
+ "original_method_source_sha256": {
+  "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+  "crawl": "7c4e7f8b576e19a37bfaf2f247560bb0b263ce67d26abad8d8d8d8e6f83577d9",
+  "_curl_get_text": "601a34e1db8b9b900feeab26cbcce0bc41d91fafea3945e17bc2c180c9f78102",
+  "_make_soup": "0d48bc9ea4426d150c83e15e68370a905b83753b57cb7267f89b70892e81007f",
+  "_discover_list_config": "acfcd345c70392296aaceaa549b1dedf30c935a14eaf1ace2120dbada805664e",
+  "_extract_search_state": "315ae33c6daa61f42319e03051afe7450c78c5579e42ec589c75c2635308ab2e",
+  "_build_page_url": "b2e116b1a6712e56a14c651c0258e75cd2454a9014dbfe2b47275669fa0e7cd3",
+  "_has_next_page": "a10ef7b2e985ad12bca1edf2117ad6279ceef6257c4a636462753729fc8c5587",
+  "_parse_list_records": "c0251f37b94cd1e24fce4398300279ba843ebfafe493c9567b020a8432242fe7",
+  "_parse_detail": "2507058acdd8ca92fc641af8e605c27c97d476cc8890e8c1d3233cf48eff49a4",
+  "_first_text": "c5381a9f303951bb657cf4a6d44e13294e35c7bca7f586343b2ccea0dd196927",
+  "_meta_content": "108200c1a1596a4aa5dbe6558eecbdd95ee788f6f2e4d0813ccfb281424c4bb9",
+  "_external_id": "ae83e68a852df6f6d538b4929a2ced215bd18fe658276fc5f2d575a6f88c59df",
+  "_is_bmbfsfj_url": "909a6273eceafb3bd710e15af7aca15a2a0fa0cc2b21bf8a562b303da7dbaf72",
+  "_parse_german_date": "85760aa48c81f93ce103a74034a7c3542800e8a627d8b9935b50f31641e396d6",
+  "_clean_text": "50d0fb0bbd827c99c64f49f1494e6d1172c1b0ed47c941a3aab1b6585a091ad2",
+  "_safe_int": "4896d0e172bbd9ca24297ec43bbc1b738708bb4c0be361f0c5c2d27a5590cd63"
+ }
+}

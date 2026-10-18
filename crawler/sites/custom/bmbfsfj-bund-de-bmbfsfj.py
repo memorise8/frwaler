@@ -510,3 +510,91 @@ class BmbfsfjBundDeBmbfsfjCrawler(BaseCrawler):
             return int(str(value).strip())
         except (TypeError, ValueError):
             return default
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # helper methods stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """Rows of one search page (72630!search?state=...&pageNum=N) as crawl() parses
+        them, plus the page context crawl() keeps in metadata."""
+        from urllib.parse import parse_qs
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html, context="enumeration list page")
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparseable_html")
+        query = parse_qs(urlparse(url or "").query)
+        page_num = self._safe_int((query.get("pageNum") or ["0"])[0], -1)
+        if page_num < 0:
+            raise PermanentFailure("listing_parse_error:bad_page_param")
+        list_endpoint, dynamic_endpoint, page_state = self._discover_list_config(soup)
+        state = (query.get("state") or [page_state])[0]
+        page_url = (self.START_URL if page_num == 0
+                    else self._build_page_url(list_endpoint, state, page_num))
+        rows = []
+        for record in self._parse_list_records(soup):
+            rows.append({"record": record, "url": record["url"], "page_num": page_num,
+                         "page_url": page_url, "list_endpoint": list_endpoint,
+                         "dynamic_endpoint": dynamic_endpoint})
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Copy of crawl()'s per-record conversion; None keeps crawl()'s skips."""
+        record = item["record"]
+        detail_url = record.get("url") or ""
+        if not detail_url:
+            return None
+        external_id = record.get("external_id") or self._external_id(detail_url)
+        detail_soup = self._make_soup(html, context="enumeration detail")
+        if detail_soup is None:
+            return None
+        parsed = self._parse_detail(detail_soup, record, detail_url)
+        title = parsed.get("title") or record.get("title") or ""
+        abstract = parsed.get("abstract") or record.get("abstract") or ""
+        abstract = self._clean_text(abstract)
+        if len(abstract) > self.MAX_ABSTRACT_CHARS:
+            abstract = abstract[: self.MAX_ABSTRACT_CHARS].rsplit(" ", 1)[0]
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        category = (
+            parsed.get("category")
+            or record.get("category")
+            or "Aktuelle Meldung"
+        )
+        keywords = parsed.get("keywords") or []
+        if category and category not in keywords:
+            keywords.append(category)
+        metadata = {
+            "source": "CoreMedia HTML search/detail endpoints",
+            "start_url": self.START_URL,
+            "list_endpoint": item.get("list_endpoint"),
+            "dynamic_endpoint": item.get("dynamic_endpoint"),
+            "list_page_url": item.get("page_url"),
+            "page_num": item.get("page_num"),
+            "list_record": record,
+            "meta_description": parsed.get("meta_description") or "",
+            "image_url": parsed.get("image_url") or record.get("image_url") or "",
+            "pdf_links": parsed.get("pdf_links") or [],
+            "content_type": parsed.get("content_type") or "",
+        }
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "title": title,
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": category,
+            "keywords": json.dumps(keywords, ensure_ascii=False),
+            "published_date": parsed.get("published_date") or "",
+            "url": detail_url,
+            "pdf_url": parsed.get("pdf_url") or "",
+            "doi": "",
+            "department": (
+                "Bundesministerium fuer Bildung, Familie, Senioren, "
+                "Frauen und Jugend (BMBFSFJ)"
+            ),
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }

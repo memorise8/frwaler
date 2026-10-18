@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "sites": {
+    "bmbfsfj-bund-de-bmbfsfj": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "strategy": "last_page_backward",
+      "base_url": "https://www.bmbfsfj.bund.de",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.bmbfsfj.bund.de/bmbfsfj/aktuelles/alle-meldungen/72630!search",
+        "params": {
+          "state": "H4sIAAAAAAAA_1WOyw6CMBBFf8XMugsfgMrOoKwxYWdYNHTQJrXFdvBF-HdLdSG7uWdepwfBCXNrrpDqTikWcmn-09gt8UnTiX_SOdw9uBV734G04cphgIc7aprAVnGpc6kI7bFDK9FBeqoYNLxG8nUPq_U22ngIyySK4wSqgcFFkivQFvzsLy3mDG5-9wUpAIO3bDMj8BucsV4qGM4EuhqCxmiQGe3I-uf0cxk-s3zOdPsAAAA=",
+          "pageNum": 0
+        },
+        "page_param": "pageNum",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "listing_marker": "ul.search-list"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
