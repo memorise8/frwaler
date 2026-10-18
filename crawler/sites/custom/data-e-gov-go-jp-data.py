@@ -257,3 +257,118 @@ class DataEGovJpDataCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged): same CKAN rows and paper
+    # fields as crawl(), one package_search page at a time.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        """Rows of one package_search response; an error answer is never an empty page."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not data.get("success"):
+            raise PermanentFailure("listing_parse_error:ckan_success_false")
+        results = (data.get("result") or {}).get("results")
+        if not isinstance(results, list):
+            raise PermanentFailure("listing_parse_error:ckan_results_missing")
+        rows = []
+        for item in results:
+            if not isinstance(item, dict):
+                continue
+            dataset_name = (item.get("name") or "").strip()
+            row = dict(item)
+            row["dataset_url"] = f"https://data.e-gov.go.jp/data/dataset/{dataset_name}"
+            rows.append(row)
+        return rows
+
+    def _enumeration_paper(self, item):
+        """Paper dict exactly as crawl() saves it for one CKAN row (None = skipped)."""
+        dataset_name = (item.get("name") or "").strip()
+        dataset_id = (item.get("id") or "").strip()
+        dataset_url = f"https://data.e-gov.go.jp/data/dataset/{dataset_name}"
+
+        title = (item.get("title") or "").strip()
+        if not title:
+            return None
+
+        notes = (item.get("notes") or "").strip()
+        extras = {e["key"]: e["value"] for e in (item.get("extras") or [])}
+        extras_desc = (extras.get("description") or "").strip()
+
+        res_descs: list = []
+        for r in (item.get("resources") or []):
+            rd = (r.get("description") or "").strip()
+            if rd and rd not in res_descs:
+                res_descs.append(rd)
+
+        parts: list = []
+        for p in [notes, extras_desc] + res_descs:
+            if p and p not in parts:
+                parts.append(p)
+        abstract = "\n".join(parts).strip()
+
+        if len(abstract) < self._ABSTRACT_MIN:
+            return None
+
+        meta_created = (item.get("metadata_created") or "")
+        meta_modified = (item.get("metadata_modified") or "")
+        published_date = meta_created[:10] if meta_created else None
+        listed_date = meta_modified[:10] if meta_modified else None
+
+        publisher = (item.get("publisher") or "").strip()
+        org = item.get("organization") or {}
+        org_title = (org.get("title") or "").strip()
+        if not publisher:
+            publisher = org_title
+
+        author = (item.get("author") or "").strip()
+        creator = (extras.get("creator") or "").strip()
+        authors = author or creator or None
+
+        pdf_url = None
+        original_filename = None
+        for r in (item.get("resources") or []):
+            fmt = (r.get("format") or "").upper()
+            r_url = (r.get("url") or "").strip()
+            if fmt == "PDF" and r_url:
+                pdf_url = r_url
+                tail = r_url.rstrip("/").split("/")[-1].split("?")[0].split("#")[0]
+                if "." in tail and len(tail) <= 200:
+                    original_filename = tail
+                break
+
+        tag_list = [t.get("name", "") for t in (item.get("tags") or []) if t.get("name")]
+        keywords = ", ".join(tag_list) if tag_list else None
+
+        groups = item.get("groups") or []
+        category = groups[0].get("title", "") if groups else None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": dataset_id,
+            "post_number": dataset_name,  # slug, used for incremental MAX() ordering
+            "url": dataset_url,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "posted_date": listed_date,
+            "authors": authors,
+            "publisher": publisher,
+            "department": None,
+            "journal": None,
+            "pdf_url": pdf_url,
+            "keywords": keywords,
+            "category": category,
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps({
+                "posted_date": listed_date,
+                "ckan_name": dataset_name,
+                "organization": org_title,
+                "frequency_of_update": item.get("frequency_of_update") or "",
+                "landingPage": item.get("landingPage") or "",
+                "num_resources": item.get("num_resources") or 0,
+                "license_id": item.get("license_id"),
+            }, ensure_ascii=False),
+        }

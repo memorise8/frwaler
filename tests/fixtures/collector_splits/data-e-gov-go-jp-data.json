@@ -1,0 +1,11 @@
+{
+ "site_id": "data-e-gov-go-jp-data",
+ "listing_body": "{\"success\": true, \"result\": {\"count\": 2, \"results\": [{\"id\": \"85f736f8-5597-4d8e-abe4-f6a4d8bb56af\", \"name\": \"clb_20140901_0031\", \"title\": \"公共工事の入札・契約情報 clb_20140901_0031\", \"notes\": \"公共工事の入札契約の適正化の促進に関する法律に基づく入札及び契約の過程並びに契約の内容に関する情報の公表について、各府省庁が作成した資料をPDF形式で掲載しています。年度ごとに更新され、発注見通しや契約実績の一覧を含みます。\", \"metadata_created\": \"2014-09-19T00:37:25.076167\", \"metadata_modified\": \"2020-01-01T00:00:00\", \"organization\": {\"title\": \"公安調査庁\"}, \"author\": \"\", \"extras\": [{\"key\": \"creator\", \"value\": \"公安調査庁\"}], \"tags\": [{\"name\": \"入札\"}, {\"name\": \"契約\"}], \"groups\": [{\"title\": \"行財政\"}], \"num_resources\": 1, \"license_id\": \"cc-by\", \"resources\": [{\"format\": \"PDF\", \"url\": \"https://www.clb.go.jp/files/topics/clb_20140901_0031.pdf\", \"description\": \"\"}]}, {\"id\": \"13a34bd4-385d-42c3-83fd-98ea880e5f36\", \"name\": \"clb_20140901_0032\", \"title\": \"公共工事の入札・契約情報 clb_20140901_0032\", \"notes\": \"公共工事の入札契約の適正化の促進に関する法律に基づく入札及び契約の過程並びに契約の内容に関する情報の公表について、各府省庁が作成した資料をPDF形式で掲載しています。年度ごとに更新され、発注見通しや契約実績の一覧を含みます。\", \"metadata_created\": \"2014-09-19T00:38:00.000000\", \"metadata_modified\": \"2019-01-01T00:00:00\", \"organization\": {\"title\": \"公安調査庁\"}, \"author\": \"\", \"extras\": [{\"key\": \"creator\", \"value\": \"公安調査庁\"}], \"tags\": [{\"name\": \"入札\"}, {\"name\": \"契約\"}], \"groups\": [{\"title\": \"行財政\"}], \"num_resources\": 1, \"license_id\": \"cc-by\", \"resources\": [{\"format\": \"PDF\", \"url\": \"https://www.clb.go.jp/files/topics/clb_20140901_0032.pdf\", \"description\": \"\"}]}]}}",
+ "content_type": "application/json; charset=utf-8",
+ "details": {},
+ "long_text": "公共工事の入札契約の適正化の促進に関する法律に基づく入札及び契約の過程並びに契約の内容に関する情報の公表について、各府省庁が作成した資料をPDF形式で掲載しています。年度ごとに更新され、発注見通しや契約実績の一覧を含みます。",
+ "original_method_source_sha256": {
+  "_curl_get": "e08c93820d5dfb35e7bb66f351d299c87a9800a42fd6291fc5d7c9091ce744cd",
+  "crawl": "a29d7efd551633b67297fa6eb72a0e03a3f9f8d2705af9f2414efb941cf7efec"
+ }
+}

@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "sites": {
+    "data-e-gov-go-jp-data": {
+      "strategy": "oldest_first_sort",
+      "base_url": "https://data.e-gov.go.jp",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://data.e-gov.go.jp/data/api/3/action/package_search",
+        "params": {
+          "fq": "res_format:PDF",
+          "rows": 100,
+          "sort": "metadata_created asc"
+        },
+        "page_param": "start",
+        "page_mode": "offset",
+        "page_size": 100,
+        "start_page": 0,
+        "total": {
+          "type": "json",
+          "path": "result.count"
+        },
+        "parser": {
+          "type": "adapter",
+          "key_field": "id",
+          "url_field": "dataset_url",
+          "date_field": "metadata_created",
+          "title_field": "title"
+        }
+      },
+      "oldest_sort": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
