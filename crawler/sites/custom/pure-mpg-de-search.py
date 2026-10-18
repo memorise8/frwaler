@@ -361,3 +361,85 @@ class PureMpgDeSearchCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] done. total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() stays
+    # unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, data):
+        """Records of one search response, as crawl() reads them (rec["data"] or rec)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("records"), list):
+            raise PermanentFailure("listing_parse_error:expected_search_records")
+        rows = []
+        for rec in data.get("records") or []:
+            if not isinstance(rec, dict):
+                continue
+            item = rec.get("data") or rec
+            if isinstance(item, dict) and (item.get("objectId") or "").strip():
+                rows.append(item)
+        return rows
+
+    def _enumeration_paper(self, item):
+        """Copy of crawl()'s per-record conversion; None keeps crawl()'s skips."""
+        object_id = (item.get("objectId") or "").strip()
+        if not object_id:
+            return None
+        meta = item.get("metadata") or {}
+        version = item.get("versionNumber") or 1
+        title = (meta.get("title") or "").strip()
+        if not title:
+            return None
+        abstract = self._extract_abstract(meta)
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+        authors = self._extract_authors(meta)
+        publisher = self._extract_publisher(meta)
+        journal = self._extract_journal(meta)
+        doi = self._extract_doi(meta)
+        keywords = self._extract_keywords(meta)
+        category = (meta.get("genre") or "").strip()
+        published_date = self._parse_date(
+            meta.get("datePublishedInPrint")
+            or meta.get("datePublishedOnline")
+            or meta.get("dateCreated")
+        )
+        listed_date = self._parse_date(item.get("creationDate"))
+        detail_url = f"{_BASE_URL}/pubman/item/{object_id}_{version}"
+        pdf_url, original_filename = self._extract_pdf_info(item)
+        post_number = self._numeric_post_number(object_id)
+        src_meta = self._source_metadata(meta)
+        metadata_blob: dict = {
+            "objectId": object_id,
+            "versionNumber": version,
+            "genre": category,
+            "publicState": item.get("publicState", ""),
+            "context": (item.get("context") or {}).get("name", ""),
+            "posted_date": listed_date,
+            "modificationDate": item.get("modificationDate", ""),
+            **src_meta,
+        }
+        if doi:
+            metadata_blob["doi"] = doi
+        if original_filename:
+            metadata_blob["originalFilename"] = original_filename
+        if post_number:
+            metadata_blob["nativeNumericId"] = post_number
+        return {
+            "site_id": self.site_id,
+            "external_id": object_id,
+            "title": title,
+            "abstract": abstract,
+            "authors": authors,
+            "publisher": publisher or None,
+            "journal": journal or None,
+            "published_date": published_date or None,
+            "posted_date": listed_date or None,
+            "url": detail_url,
+            "pdf_url": pdf_url or None,
+            "doi": doi or None,
+            "keywords": keywords or None,
+            "category": category or None,
+            "original_filename": original_filename or None,
+            "metadata": json.dumps(metadata_blob, ensure_ascii=False),
+        }

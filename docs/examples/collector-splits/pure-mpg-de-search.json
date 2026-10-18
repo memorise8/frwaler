@@ -1,0 +1,58 @@
+{
+ "version": 1,
+ "defaults": {
+  "request_interval_s": 1.5,
+  "respect_robots": true,
+  "retries": 1
+ },
+ "sites": {
+  "pure-mpg-de-search": {
+   "strategy": "oldest_first_sort",
+   "base_url": "https://pure.mpg.de",
+   "adapter": {
+    "type": "crawler",
+    "contract_version": 1,
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "json"
+    ],
+    "paper_method": "_enumeration_paper",
+    "paper_args": [
+     "item"
+    ]
+   },
+   "listing": {
+    "url": "https://pure.mpg.de/rest/items/search",
+    "method": "POST",
+    "idempotent": true,
+    "body_type": "json",
+    "body": {
+     "query": {
+      "bool": {
+       "must": [
+        {
+         "exists": {
+          "field": "metadata.abstracts"
+         }
+        }
+       ]
+      }
+     },
+     "sortingKeys": [
+      "lastModificationDate"
+     ],
+     "sortOrder": "DESCENDING",
+     "size": 25,
+     "offset": "{page}"
+    },
+    "page_mode": "offset",
+    "page_size": 25,
+    "start_page": 0,
+    "parser": {
+     "type": "adapter",
+     "key_field": "objectId"
+    }
+   }
+  }
+ }
+}

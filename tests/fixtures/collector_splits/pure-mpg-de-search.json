@@ -1,0 +1,23 @@
+{
+ "site_id": "pure-mpg-de-search",
+ "listing_body": "{\"numberOfRecords\": 2, \"records\": [{\"data\": {\"objectId\": \"item_912132\", \"versionNumber\": 1, \"publicState\": \"RELEASED\", \"creationDate\": \"2010-05-01T10:00:00Z\", \"modificationDate\": \"2026-10-01T10:00:00Z\", \"context\": {\"name\": \"MPI\"}, \"metadata\": {\"title\": \"Modelling Galactic Gamma-ray\", \"genre\": \"ARTICLE\", \"abstracts\": [{\"language\": \"eng\", \"value\": \"Synthetic abstract used only for the offline split test: modelling galactic gamma-ray source populations with a detailed statistical treatment of the data.\"}], \"creators\": [{\"role\": \"AUTHOR\", \"person\": {\"givenName\": \"A\", \"familyName\": \"Author\"}}], \"datePublishedInPrint\": \"2010-04\", \"identifiers\": [{\"type\": \"DOI\", \"id\": \"10.1/x\"}], \"sources\": [{\"genre\": \"JOURNAL\", \"title\": \"J Astro\", \"publishingInfo\": {\"publisher\": \"Pub\"}}]}, \"files\": []}}, {\"data\": {\"objectId\": \"item_914760\", \"versionNumber\": 1, \"publicState\": \"RELEASED\", \"creationDate\": \"2010-05-01T10:00:00Z\", \"modificationDate\": \"2026-10-01T10:00:00Z\", \"context\": {\"name\": \"MPI\"}, \"metadata\": {\"title\": \"Measurement of Distance\", \"genre\": \"ARTICLE\", \"abstracts\": [{\"language\": \"eng\", \"value\": \"Synthetic abstract used only for the offline split test: modelling galactic gamma-ray source populations with a detailed statistical treatment of the data.\"}], \"creators\": [{\"role\": \"AUTHOR\", \"person\": {\"givenName\": \"A\", \"familyName\": \"Author\"}}], \"datePublishedInPrint\": \"2010-04\", \"identifiers\": [{\"type\": \"DOI\", \"id\": \"10.1/x\"}], \"sources\": [{\"genre\": \"JOURNAL\", \"title\": \"J Astro\", \"publishingInfo\": {\"publisher\": \"Pub\"}}]}, \"files\": []}}]}",
+ "empty_body": "{\"numberOfRecords\": 2, \"records\": []}",
+ "content_type": "application/json",
+ "long_text": "Synthetic abstract used only for the offline split test: modelling galactic gamma-ray source populations with a detailed statistical treatment of the data.",
+ "details": {},
+ "original_method_source_sha256": {
+  "__init__": "86b07d464f37e29597cb35f777a884f91e90c347c1dd28bcfaa42a3652409fb8",
+  "_post_json": "2b9547f4e158bff2f01abcdf43b87db82d6c5e5d595a6ed09c9fb349e2befd2d",
+  "_extract_abstract": "e36e5adab48cb51f8dc91d373d31478cfffeba10ddb2e6c041ad361990bed517",
+  "_extract_authors": "b70d785b8dc497babe57163ece9fc8543369ff914f6cf1f06eaeb8c9ca12d79f",
+  "_extract_publisher": "6695589de2f6359f49614ae302c56b18e25586811d6568ba128f251362506e23",
+  "_extract_journal": "8e294ca74c42da911def85ae499d694124e59971652a775fa8938461ad5262d9",
+  "_extract_doi": "208f02880b1aefe416c2a201058afb0a696d14564665b3da6343583e994a60aa",
+  "_extract_keywords": "b3db7646a4542f49890ea9acea1ea814eb7f9e928b9f8fc37bf74c718b4ca4ed",
+  "_parse_date": "c2b38a0160c11c8e7792987da51299a67b22e51e382b2c51ef3580d47797432b",
+  "_extract_pdf_info": "559772ff87ec40110f7694005afde5e18af8e117078131abc50a1536b52038e3",
+  "_numeric_post_number": "823c27247c6540a941d99f7230b0d5cbdbf935cba8f06af8bee4d47c4daeef5f",
+  "_source_metadata": "beb1a95f082f825db7186721255c6f0deec5d1e9bd92ce1013fb11d9f2022a4f",
+  "crawl": "7656d3ba8adcae766efcf26054c5de9d772f1d7bddba3902e128bfa6a6757a30"
+ }
+}
