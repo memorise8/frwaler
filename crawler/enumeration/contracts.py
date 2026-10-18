@@ -33,6 +33,10 @@ def fail(code):
 
 
 TOKENS = {"html", "raw", "soup", "json", "url", "request_url", "final_url", "item", "resp", "detail"}
+# ext:two_step_keep_first: the first detail page (detail/paper stages only).
+FIRST_TOKENS = {"first_html", "first_soup", "first_json", "first_final_url", "first_resp"}
+# ext:pdf_text: text the framework extracted from the detail response (detail/paper stages).
+DETAIL_ONLY = FIRST_TOKENS | {"pdf_text", "segment"}  # segment: ext:multi_listing
 NEW_KEYS = {"contract_version", "list_source", "list_result", "row_path", "list_row",
             "list_kwargs", "detail_kwargs", "paper_args", "paper_kwargs"}
 
@@ -44,8 +48,8 @@ def _path(path):
 
 
 def _binding(binding, stage):
-    allowed = TOKENS - ({"item", "detail", "request_url"} if stage == "list"
-                        else {"detail"} if stage == "detail" else set())
+    allowed = (TOKENS | (DETAIL_ONLY if stage != "list" else set())) - (
+        {"item", "detail", "request_url"} if stage == "list" else {"detail"} if stage == "detail" else set())
     if isinstance(binding, str):
         if binding not in allowed:
             fail("invalid_argument_token:" + binding)
@@ -112,7 +116,8 @@ def validate_contract(cfg):
         for binding in [*args, *kwargs.values()]:
             _binding(binding, stage)
             if (stage == "paper" and cfg.get("paper_method") and not cfg.get("detail_method")
-                    and not (binding == "item" or (isinstance(binding, dict) and binding.get("source") == "item"))):
+                    and not (binding in ("item", "segment")
+                             or (isinstance(binding, dict) and binding.get("source") == "item"))):
                 fail("paper_response_without_detail")
     return True
 
@@ -198,12 +203,22 @@ class Contract:
             return deepcopy(item.payload)
         if binding == "detail":
             return deepcopy(detail)
+        if binding == "segment":
+            from .adapters import segment_of
+            return segment_of(item)
         if binding in ("url", "request_url") and item is not None:
             # The item URL as requested, exactly what the registered crawl() passes;
             # never the post-redirect URL (that is "final_url").
             return item.url
         if resp is None:
             fail("response_required:" + binding)
+        if binding == "pdf_text":
+            return getattr(resp, "pdf_text", None)
+        if binding in FIRST_TOKENS:
+            from .adapters import first_response
+            first = first_response(resp)
+            kind = binding[len("first_"):]
+            return first if kind == "resp" else self.value("url" if kind == "final_url" else kind, first, None, detail)
         if binding == "html":
             return resp.text()
         if binding == "raw":

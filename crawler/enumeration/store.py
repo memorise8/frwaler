@@ -105,12 +105,15 @@ class Store:
             if current["status"] in ("complete", "complete_with_mismatch", "complete_unverified",
                                      "complete_with_review"):
                 # A completed enumeration re-runs from scratch as a fresh pass;
-                # saved items are skipped through the item ledger.
-                state = {}
+                # saved items are skipped through the item ledger. Segments found on a hub page
+                # (ext:multi_listing) are remembered, so one missing later is still read.
+                state = {k: state[k] for k in ("discovered_segments", "discovered_keys") if k in state}
                 self._exec("DELETE FROM enum_segment WHERE site_id=? AND plan_fp=?", (site_id, plan_fp))
                 self._exec("DELETE FROM enum_listed WHERE site_id=? AND plan_fp=?", (site_id, plan_fp))
         else:
-            state = {}
+            # Only the keys of discovered segments outlive a plan change (their parameters may not).
+            kept = ((current or {}).get("state") or {}).get("discovered_keys")
+            state = {"discovered_keys": kept} if kept else {}
             if current:
                 self.event(site_id, "plan_changed", {"from": current["plan_fp"], "to": plan_fp})
         self._exec("""INSERT INTO enum_site(site_id,plan_fp,strategy,status,stop_reason,state,started_at,updated_at,completed_at)
