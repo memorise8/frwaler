@@ -1,0 +1,25 @@
+{
+ "site_id": "publications-idiap-ch-publications",
+ "listing_body": "<html><body><div class=\"publication_summary\"><span class=\"author\"><a href=\"/a\">A. Author</a></span> <span class=\"title\"><a href=\"https://publications.idiap.ch/publications/show/5841\">A Scalable Algorithm</a></span> Journal X, 2025 <a href=\"https://publications.idiap.ch/attachments/papers/2025/x5841.pdf\">pdf</a></div><div class=\"publication_summary\"><span class=\"author\"><a href=\"/a\">A. Author</a></span> <span class=\"title\"><a href=\"https://publications.idiap.ch/publications/show/5817\">Another paper</a></span> Journal X, 2025 <a href=\"https://publications.idiap.ch/attachments/papers/2025/x5817.pdf\">pdf</a></div></body></html>",
+ "empty_body": "<html><body><p>none</p></body></html>",
+ "content_type": "text/html",
+ "long_text": "Synthetic abstract used only for the offline split test: a scalable, automatic and evolutionary algorithm for calibration of speech models is described.",
+ "details": {
+  "https://publications.idiap.ch/publications/show/5841": "<html><body><h1 class=\"title\">A Scalable, Automatic, and Evolutionary Algorithm</h1><span class=\"authorlist\"><a href=\"/a\">A. Author</a></span><table class=\"publication_details\"><tr><td>Type of publication:</td><td>Journal paper</td></tr><tr><td>Year:</td><td>2025</td></tr><tr><td>Month:</td><td>March</td></tr><tr><td>Journal:</td><td>Journal X</td></tr><tr><td>Keywords:</td><td><a href=\"/k\">speech</a></td></tr><tr><td>Abstract:</td><td>Synthetic abstract used only for the offline split test: a scalable, automatic and evolutionary algorithm for calibration of speech models is described.</td></tr></table></body></html>",
+  "https://publications.idiap.ch/publications/show/5817": "<html><body><h1 class=\"title\">Another paper</h1><span class=\"authorlist\"><a href=\"/a\">A. Author</a></span><table class=\"publication_details\"><tr><td>Type of publication:</td><td>Journal paper</td></tr><tr><td>Year:</td><td>2024</td></tr><tr><td>Month:</td><td>March</td></tr><tr><td>Journal:</td><td>Journal X</td></tr><tr><td>Keywords:</td><td><a href=\"/k\">speech</a></td></tr><tr><td>Abstract:</td><td>Synthetic abstract used only for the offline split test: a scalable, automatic and evolutionary algorithm for calibration of speech models is described.</td></tr></table></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_curl_get": "6394c8d90ed4008f5350d6a7275811c8fff5e6bc3ae9d21fe689e6239d94e52c",
+  "_parse_list_page": "06d0d4fee600549e698d6717d4b1068320f69a0d389904dab2e830b7f00d8300",
+  "_parse_list_page_regex": "f21fc3ebeed80c9370398a4afd5816e70ecc49525cee97fa2e258e469631d3a4",
+  "_next_page_url": "7da45ec24475679e2522654a5694cf1b3dc1cac89f25e054baaf038fe2462911",
+  "_id_from_url": "5280887ddb2e59cad89e276451289a768178dd8e3a7c85e2101381ff115ebcf3",
+  "_parse_detail": "20dc1872c573b17321910f3d76aa2b957f4931d603ba83a9dfed0ecb2c56f15e",
+  "_parse_detail_regex": "1d26462602676225faefebbe774847a639a7470f5d587d969bbd34eabb1f8abc",
+  "_detail_title": "5bc3f5c896b53d7d9dbb31ed06d9460267667c9688f01abbfcedcf1b43acc688",
+  "_detail_pdf_url": "517bdb8abf2dd19eed7da542b307c568e7876238a7b50ba621d7ac83845325e9",
+  "_detail_doi": "dd6ba3d6994d0a7f192ae56c80dd40ec2a25e1cefe7ae4c162e52a202f954d6e",
+  "_detail_external_url": "1f73ecf653093fa744bf1ca01b398c951c9adedecd0d627301c336f392a232b8",
+  "crawl": "252404c730097e488a37a5b1755f6dae03df36f94bbd3efd67b0d92ece69a6d1"
+ }
+}

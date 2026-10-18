@@ -590,3 +590,24 @@ class PublicationsIdiapChPublicationsCrawler(BaseCrawler):
             page_url = next_url
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (framework adapter). crawl() and the
+    # parsers above stay unchanged; no fetching or storage happens here.
+    # ------------------------------------------------------------------
+    def _enumeration_items(self, html, url):
+        """Publication rows of one list page, exactly as crawl() parses them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        items, _next_url = self._parse_list_page(html)
+        return items
+
+    def _enumeration_paper(self, html, item):
+        """Copy of crawl()'s paper conversion; None keeps crawl()'s skips."""
+        paper = self._parse_detail(html, item)
+        abstract = _clean_text(paper.get("abstract"))
+        if len(abstract) < _MIN_ABSTRACT_CHARS:
+            return None
+        paper["abstract"] = abstract
+        return paper
