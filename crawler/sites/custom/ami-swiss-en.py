@@ -380,3 +380,132 @@ class AmiSwissEnCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration framework split (crawl() unchanged). The framework fetches
+    # the year page (listing, ?year=YYYY) and one Crossref works record per
+    # DOI (detail, api.crossref.org) through its own gate; these only parse.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html: str, url: str) -> list:
+        """Year page -> rows (one per DOI entry with a title, as crawl() keeps)."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+
+        year = (parse_qs(urlsplit(url or "").query).get("year") or [""])[0]
+        if not re.fullmatch(r"\d{4}", year):
+            raise PermanentFailure("listing_parse_error:year_parameter_missing")
+        if 'class="bg-white' not in (html or "") and "class='bg-white" not in (html or ""):
+            raise PermanentFailure("listing_parse_error:publication_article_missing")
+        rows = []
+        for entry in self._parse_year_page(html, year):
+            if not entry.get("doi") or not entry.get("title"):
+                continue  # crawl(): "Empty title ... skipping"; no DOI means no Crossref abstract
+            rows.append({
+                "url": f"{self._CROSSREF_BASE}/{entry['doi']}",
+                "post_number": entry["doi"],
+                "date": entry["year"],
+                "entry": entry,
+            })
+        return rows
+
+    def _enumeration_detail(self, data, item):
+        """Crossref works JSON -> message, with _fetch_crossref()'s DOI check
+        (a mismatching record becomes {} and the item is skipped as in crawl())."""
+        from crawler.enumeration.http import PermanentFailure
+
+        if not isinstance(data, dict):
+            raise PermanentFailure("detail_parse_error:invalid_crossref_response")
+        doi = item["entry"]["doi"]
+        msg = data.get("message", {})
+        if not isinstance(msg, dict) or str(msg.get('DOI') or '').casefold() != doi.casefold():
+            return {}
+        return msg
+
+    def _enumeration_paper(self, item, cf):
+        """The paper crawl() builds for one entry (same code, same skip rule)."""
+        entry = item["entry"]
+        cf = cf or {}
+        doi = entry["doi"]
+        title = entry["title"]
+        url = entry["url"]
+
+        abstract = _strip_jats(cf.get("abstract") or "")
+        if len(abstract) < self._MIN_ABSTRACT:
+            return None
+
+        # Dates
+        crossref_date = self._crossref_date(cf)
+        published_date = crossref_date or entry["year"]
+        listed_date = entry["year"]
+
+        # Authors: prefer CrossRef structured list
+        cf_authors = cf.get("author") or []
+        if cf_authors:
+            author_parts = []
+            for a in cf_authors:
+                name = " ".join(
+                    p for p in [a.get("given", ""), a.get("family", "")] if p
+                )
+                if name:
+                    author_parts.append(name)
+            authors = "; ".join(author_parts)
+        else:
+            # Fall back to comma-separated page data
+            authors = "; ".join(
+                p.strip() for p in entry["authors_raw"].split(",") if p.strip()
+            )
+
+        # Journal
+        cf_titles = cf.get("container-title") or []
+        journal = html.unescape(cf_titles[0]) if cf_titles else entry["journal"]
+
+        # Publisher / volume / issue / subjects
+        publisher = cf.get("publisher") or ""
+        volume = cf.get("volume") or entry.get("volume") or ""
+        issue = cf.get("issue") or ""
+        subjects = cf.get("subject") or []
+        keywords = ", ".join(subjects) if subjects else ""
+        pdf_url = self._crossref_pdf_url(cf) or None
+
+        meta = {
+            "posted_date": listed_date,
+            "journal_raw": entry["journal"],
+            "crossref_type": cf.get("type"),
+            "source_publication_year_raw": entry["year"],
+            "listed_date_role": "source_publication_year_group",
+            "published_date_source": "crossref_publication_date" if crossref_date else "source_publication_year",
+            "crossref_dates_raw": {
+                key: cf[key] for key in
+                ("published", "published-print", "published-online", "issued", "created")
+                if key in cf
+            },
+            "publication_year_conflict": bool(
+                crossref_date and crossref_date[:4] != entry["year"]
+            ),
+        }
+        if volume:
+            meta["volume"] = volume
+        if issue:
+            meta["issue"] = issue
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": doi,
+            "post_number": doi,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "authors": authors,
+            "publisher": publisher,
+            "journal": journal,
+            "url": url,
+            "pdf_url": pdf_url,
+            "keywords": keywords,
+            "category": "",
+            "doi": doi,
+            "original_filename": None,
+            "metadata": json.dumps(meta, ensure_ascii=False),
+        }

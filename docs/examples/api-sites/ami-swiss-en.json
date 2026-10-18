@@ -1,0 +1,56 @@
+{
+ "version": 1,
+ "sites": {
+  "ami-swiss-en": {
+   "strategy": "date_range_split",
+   "base_url": "https://www.ami.swiss",
+   "verify_ssl": true,
+   "adapter": {
+    "type": "crawler",
+    "contract_version": 1,
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "html",
+     "url"
+    ],
+    "detail_method": "_enumeration_detail",
+    "detail_args": [
+     "json",
+     "item"
+    ],
+    "paper_method": "_enumeration_paper",
+    "paper_args": [
+     "item",
+     "detail"
+    ]
+   },
+   "listing": {
+    "url": "https://www.ami.swiss/en/research/publications.html",
+    "page_param": "page",
+    "start_page": 1,
+    "parser": {
+     "type": "adapter",
+     "url_field": "url",
+     "key_field": "post_number",
+     "date_field": "date",
+     "listing_marker": "article.bg-white"
+    }
+   },
+   "segments": {
+    "mode": "range",
+    "granularity": "year",
+    "from": "2008",
+    "to": "now",
+    "split_to": [],
+    "filter": {
+     "type": "parts",
+     "year_param": "year"
+    }
+   },
+   "overall_total_check": false,
+   "request_interval_s": 1.5,
+   "respect_robots": true,
+   "retries": 1
+  }
+ }
+}
