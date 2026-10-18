@@ -1,0 +1,20 @@
+{
+  "site_id": "bra-se-english",
+  "listing_body": "<div class=\"bra-report-hits__wrapper\"><ol start=\"1\" class=\"sv-search-result\"><li class=\"sv-search-hit\"><div><h3 class=\"bra-reports__content--title\"><a href=\"/english/publications/archive/2031-01-02-synthetic-one\">Synthetic report one</a></h3><p class=\"normal\" style=\"margin-top:0.5em\">Synthetic BRA report summary for the offline equality test only. Synthetic BRA report summary for the offline equality test only. Synthetic BRA report summary for the offline equality test only.</p><p class=\"normal\" style=\"margin-top:0.5em\">Publicerad 2031-01-02</p><ul><li class=\"bra-reports__tags--item\">Crime</li></ul></div></li><li class=\"sv-search-hit\"><h3 class=\"bra-reports__content--title\"><a href=\"/other/swedish-page\">Svensk sida</a></h3></li><li class=\"sv-search-hit\"><div><h3 class=\"bra-reports__content--title\"><a href=\"/english/publications/archive/2030-05-06-synthetic-two\">Synthetic report two</a></h3><p class=\"normal\" style=\"margin-top:0.5em\">Synthetic BRA report summary for the offline equality test only. Synthetic BRA report summary for the offline equality test only. Synthetic BRA report summary for the offline equality test only.</p><p class=\"normal\" style=\"margin-top:0.5em\">Publicerad 2030-05-06</p><ul><li class=\"bra-reports__tags--item\">Crime</li></ul></div></li></ol></div>",
+  "content_type": "text/html; charset=utf-8",
+  "details": {
+    "https://bra.se/english/publications/archive/2031-01-02-synthetic-one": "<html><body><a href=\"https://bra.se/download/18.1/1/Synthetic%20one.pdf\">PDF</a></body></html>",
+    "https://bra.se/english/publications/archive/2030-05-06-synthetic-two": "<html><body>No file</body></html>"
+  },
+  "empty_body": "<div class=\"bra-report-hits__wrapper\"><ol start=\"311\" class=\"sv-search-result\"></ol></div>",
+  "long_text": "Synthetic BRA report summary for the offline equality test only. Synthetic BRA report summary for the offline equality test only. Synthetic BRA report summary for the offline equality test only.",
+  "original_method_source_sha256": {
+    "module:_curl": "165a88f6797878341940cd2dc5cd081e27e98df06792c89969562fac213d2e10",
+    "module:_strip_tags": "32565f923438ce3da7bd780ba751d049549d3f6b5ed8107acf1275d1d735035c",
+    "module:_make_soup": "01c8a02d36c59f7c8339e1ea933071f971e7121a9ad611ddfd3b90ecbfa80de8",
+    "module:_parse_list_items": "41836ca38abcb098ddda592d3f6e2c9c684ed26b03dcd9b514611803acf1ddbf",
+    "module:_parse_single_item": "bc46cb455324bc3f7b0fe37f3dfb782ed96c4df0d3fcfbe552093eb6df68e4d9",
+    "module:_get_pdf_url": "3c74126c151b8ed42a675ba0e2f014ec5f45e95d8d4127463cf012a356d85855",
+    "crawl": "acde76d8bcdfaa7823edb986f43a64b77fd1a4f8c9bc0f4e66202bc4258d0837"
+  }
+}

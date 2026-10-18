@@ -234,6 +234,56 @@ class BraSEEnglishCrawler(BaseCrawler):
     site_name = "Custom: bra-se-english"
     base_url = _BASE_URL
 
+    # Pure enumeration entry points; crawl() and module helpers stay unchanged.
+    def _enumeration_items(self, raw, url=None):
+        """Hits of one search-paging fragment, parsed by the registered _parse_list_items.
+
+        A fragment with search hits that all fall outside the English namespaces is
+        reported as a listing error, never as an empty page that could end the listing.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw, str):
+            raise PermanentFailure("listing_parse_error:not_html", url)
+        items = _parse_list_items(raw)
+        if not items and "sv-search-hit" in re.sub(r"<!--.*?-->", "", raw, flags=re.DOTALL):
+            raise PermanentFailure("listing_parse_error:hits_without_english_publication", url)
+        return items
+
+    def _enumeration_paper(self, detail_raw, it):
+        """Pure copy of crawl()'s per-item skip rule and Paper conversion (None = skipped)."""
+        abstract = it.get("abstract", "")
+        subtitle = it.get("subtitle", "")
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+        pdf_url = ""
+        detail_url = _BASE_URL + it["url"]
+        if detail_raw:
+            pdf_url = _get_pdf_url(detail_raw)
+        slug = (
+            it["url"].split("/archive/", 1)[-1]
+            if "/archive/" in it["url"]
+            else it["url"].lstrip("/")
+        )
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": slug,
+            "title": it.get("title", ""),
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": it.get("category", ""),
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": it.get("date", ""),
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "doi": "",
+            "department": "",
+            "metadata": json.dumps(
+                {"subtitle": subtitle},
+                ensure_ascii=False,
+            ),
+        }
+
     def crawl(self, limit=None) -> int:
         """Crawl BRA English publications, saving up to *limit* items (None = all)."""
         seen_urls: set[str] = set()
