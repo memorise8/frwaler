@@ -1,0 +1,33 @@
+{
+  "listing_body": "<html><body><table id=\"resultats\"><thead><tr><td>Date</td><td>Support</td><td>Titre</td></tr></thead><tbody><tr><td>12/10/2026</td><td><span class=\"document-type\">Communiqué de presse</span></td><td><a href=\"avisrapportsdomaine?clefr=901\">Offline 1</a></td></tr><tr><td>11/10/2026</td><td><span class=\"document-type\">Communiqué de presse</span></td><td><a href=\"avisrapportsdomaine?clefr=902\">Offline 2</a></td></tr></tbody></table></body></html>",
+  "content_type": "text/html",
+  "empty_body": "<html><body><table id=\"resultats\"><thead><tr><td>Date</td><td>Support</td><td>Titre</td></tr></thead><tbody></tbody></table></body></html>",
+  "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+  "details": {
+    "https://www.hcsp.fr/Explore.cgi/avisrapportsdomaine?clefr=901": "<html><head><meta property=\"og: url\" content=\"https://www.hcsp.fr/Explore.cgi/avisrapportsdomaine?clefr=901\"/></head><body><div class=\"row principal\"><div class=\"col-sm-12\"><h2>Offline 1</h2><div id=\"doc-donnees\">Date du document : 01/10/2026<br/>Date de mise en ligne : 11/10/2026<br/><a href=\"/Explore.cgi/Telecharger?NomFichier=hcspc20261.pdf\">PDF</a><span class=\"motclef\"><a href=\"#\">Prévention</a></span></div><div class=\"avistexte\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></div></div></div></body></html>",
+    "https://www.hcsp.fr/Explore.cgi/avisrapportsdomaine?clefr=902": "<html><head><meta property=\"og: url\" content=\"https://www.hcsp.fr/Explore.cgi/avisrapportsdomaine?clefr=902\"/></head><body><div class=\"row principal\"><div class=\"col-sm-12\"><h2>Offline 2</h2><div id=\"doc-donnees\">Date du document : 02/10/2026<br/>Date de mise en ligne : 12/10/2026<br/><a href=\"/Explore.cgi/Telecharger?NomFichier=hcspc20262.pdf\">PDF</a><span class=\"motclef\"><a href=\"#\">Prévention</a></span></div><div class=\"avistexte\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></div></div></div></body></html>"
+  },
+  "original_method_source_sha256": {
+    "__init__": "92a1f2a87b6fa015a69f4fb6d8d1a5048356d62586ca3d1d0cdfc05f38cf7b72",
+    "crawl": "4e9afa7c263bdf9d8d8586f4c5de2c7c55f01f5ef9067a0707e2e47cc9318ea1",
+    "_curl_get": "aa419033bb730ad7447a27772d1e99ffe2c78b5e29dfc02f4626e19519e8b49d",
+    "_split_curl_output": "17f41955abc52db05d9ba4f02f8ad7600fa114230194cb96e52494f340e3350b",
+    "_make_soup": "3e2f545072b5efae0a79fad49f595ee91f8e788147bd271f597fbf89bffed85f",
+    "_parse_list": "5b2ce5b2d787680c8237536be2a2d549fdc7f2399c5d5578bdcc7a4983e0aab1",
+    "_parse_detail": "ca78329e5f116c22a11f89debd61f3141570d1fce43572e4f88f3145e6f81180",
+    "_extract_pdf_links": "e974c24f7be5ba56caab3b790fc45b4ad6399e70c2ea9919369d698c2c2389cb",
+    "_extract_abstract": "c0ee5d9fb8c7fdecf50d41235b4c40695ee6a1cf926403cc6b5155c39a690b89",
+    "_clean_text": "86ec748733956be90ad5c64ae0c9d12862061b9eb25f31aa46f2e325fd05239f",
+    "_clean_multiline": "7d1534819e9956946388a8da1b3884579ae6260ab78662562a6c86bd937950ce",
+    "_node_text": "a27e8b59939586c21e418622560631b76ca7afdb2de76e10f293b8ca0c072f01",
+    "_node_multiline_text": "4685d50dec46702e73d93f54d11692cf293eb90a33a704758693b2991459cd09",
+    "_dedupe": "5c795bf6d00f070d848d43bddfb90543c20d24b758033467e7c03fbfad93381c",
+    "_dedupe_dicts": "42ddf8e4806309f0f170529392dcf4cad10fbb9504653746496d75572068235b",
+    "_parse_date": "a341a7efe1b97365c21bae5e9887ba682e02890980a5108cc68b435ae22cf52f",
+    "_extract_labeled_date": "1f712bbaecc2dd6105b77af57bbd1d22e61eaea6dc0e42ed6020c8ca96ab5f1b",
+    "_external_id_from_url": "28a50cc92a1290dc473d679935827e0c0b721304b45292fb5eb5b08a2cd5d747",
+    "_meta_content": "883743ae7ed141035ea42d3195dbab00172f5ea92c79d61c1836d9632066162a",
+    "_extract_doi": "cc49a9a6ab063059f7dcc37af407979871e24fbe54f5a754dd9b31cc12c736a8"
+  },
+  "site_id": "hcsp-fr-explorecgi"
+}

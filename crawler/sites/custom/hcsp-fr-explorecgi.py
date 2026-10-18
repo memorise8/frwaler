@@ -147,6 +147,60 @@ class HCSPFrExploreCGICrawler(BaseCrawler):
         return saved
 
     # ------------------------------------------------------------------
+    # Pure enumeration conversion (collector-splits); crawl() is unchanged
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Single-page list -> crawl()'s records from ``_parse_list``.
+
+        Records keep crawl()'s list endpoint (START_URL) so metadata matches;
+        a page without ``table#resultats`` is a listing parse error.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        soup = self._make_soup(html, context="list HTML endpoint")
+        if soup is None or soup.select_one("table#resultats") is None:
+            raise PermanentFailure("listing_parse_error:missing_resultats_table", url)
+        return self._parse_list(soup, self.START_URL)
+
+    def _enumeration_paper(self, html, url, record):
+        """Pure copy of crawl()'s per-record Paper conversion after the detail fetch.
+
+        ``url`` is the detail response's final URL (crawl()'s effective_url);
+        None preserves the short-abstract skip.
+        """
+        external_id = record.get("external_id") or ""
+        detail_url = record.get("url") or ""
+        if not external_id:
+            raise RuntimeError("record has no clefr id")
+        if not detail_url:
+            raise RuntimeError("record has no detail URL")
+        detail_soup = self._make_soup(html, context="item detail")
+        if detail_soup is None:
+            raise RuntimeError("detail HTML could not be parsed")
+        parsed = self._parse_detail(detail_soup, html, record, url or detail_url)
+        abstract = parsed.get("abstract") or ""
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": parsed["external_id"],
+            "title": parsed["title"],
+            "authors": json.dumps(parsed["authors"], ensure_ascii=False),
+            "abstract": abstract,
+            "category": parsed["category"],
+            "keywords": json.dumps(parsed["keywords"], ensure_ascii=False),
+            "published_date": parsed["published_date"],
+            "url": parsed["url"],
+            "pdf_url": parsed["pdf_url"],
+            "doi": parsed["doi"],
+            "department": parsed["department"],
+            "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Network helpers
     # ------------------------------------------------------------------
 
