@@ -409,3 +409,63 @@ class MoeGovCnJybSjzlCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------ #
+    # Enumeration split (crawl() unchanged)
+    # ------------------------------------------------------------------ #
+
+    def _enumeration_items(self, html, url=None):
+        """Rows of one WAS list page, parsed exactly like crawl() (same parser and URL rule)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        rows = []
+        for title, href, listed_date in self._parse_list_page(html):
+            detail_url = href if href.startswith("http") else urljoin(self._LIST_URL, href)
+            rows.append({
+                "url": detail_url,
+                "external_id": self._extract_post_number(detail_url),
+                "title": title,
+                "listed_date": listed_date,
+            })
+        return rows
+
+    def _enumeration_paper(self, html, record):
+        """Paper dict exactly as crawl() saves it for one list row (None = skipped)."""
+        detail_url = record["url"]
+        title = record["title"]
+        listed_date = record["listed_date"]
+        detail = self._parse_detail_page(html, detail_url)
+        abstract = detail["abstract"]
+        if len(abstract) < 100:
+            return None
+        post_number = self._extract_post_number(detail_url)
+        return {
+            "site_id": self.site_id,
+            "external_id": post_number,
+            "post_number": post_number,
+            "title": title,
+            "abstract": abstract,
+            "published_date": detail["published_date"] or listed_date,
+            "posted_date": listed_date,
+            "publisher": detail["publisher"] or "教育部",
+            "url": detail_url,
+            "pdf_url": detail["pdf_url"],
+            "original_filename": detail["original_filename"],
+            "category": "教育经费执行公告",
+            "keywords": None,
+            "authors": None,
+            "doi": None,
+            "department": None,
+            "journal": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": listed_date,
+                    "originalFilename": detail["original_filename"],
+                    "channelid": self._WAS_CHANNEL_ID,
+                    "chnlid": self._WAS_CHNL_ID,
+                    "category": "教育经费执行公告",
+                },
+                ensure_ascii=False,
+            ),
+        }

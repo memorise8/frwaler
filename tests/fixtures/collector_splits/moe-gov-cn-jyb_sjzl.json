@@ -1,0 +1,20 @@
+{
+ "site_id": "moe-gov-cn-jyb_sjzl",
+ "listing_body": "\r\n\r\n<li ><a href=\"http://www.moe.gov.cn/srcsite/A05/s3040/202512/t20251231_1426092.html\" target=\"_blank\" title=\"2024年全国教育经费执行情况统计公告\">2024年全国教育经费执行情况统计公告</a><span>2025-12-31</span></li>\r\n<li class=\"moe_list_group_line\"><a href=\"http://www.moe.gov.cn/srcsite/A05/s3040/202412/t20241219_1167656.html\" target=\"_blank\" title=\"2023年全国教育经费执行情况统计公告\">2023年全国教育经费执行情况统计公告</a><span>2024-12-19</span></li>\r\n",
+ "content_type": "text/html; charset=UTF-8",
+ "details": {
+  "http://www.moe.gov.cn/srcsite/A05/s3040/202512/t20251231_1426092.html": "<html><head><meta charset=\"utf-8\"></head><body><div class=\"moe-detail-box\"><h1>公告</h1><div id=\"downloadContent\">发布日期：2025-12-31　来源：教育部财务司</div><div class=\"TRS_Editor\"><p>全国教育经费总投入为69129亿元，比上年增长6.4%。其中，国家财政性教育经费为54321亿元，比上年增长5.9%，占国内生产总值比例为4.01%。全国一般公共预算教育经费为43210亿元，比上年增长4.8%。各级教育生均一般公共预算教育经费均有增长。</p></div><p>附件：<a href=\"./W020260109376441821920.doc\" oldsrc=\"W020260109376441821920.doc\">附件下载</a></p></div></body></html>",
+  "http://www.moe.gov.cn/srcsite/A05/s3040/202412/t20241219_1167656.html": "<html><head><meta charset=\"utf-8\"></head><body><div class=\"moe-detail-box\"><h1>公告</h1><div id=\"downloadContent\">发布日期：2024-12-19　来源：教育部财务司</div><div class=\"TRS_Editor\"><p>全国教育经费总投入为69129亿元，比上年增长6.4%。其中，国家财政性教育经费为54321亿元，比上年增长5.9%，占国内生产总值比例为4.01%。全国一般公共预算教育经费为43210亿元，比上年增长4.8%。各级教育生均一般公共预算教育经费均有增长。</p></div><p>附件：<a href=\"./W020241219534507885354.doc\" oldsrc=\"W020241219534507885354.doc\">附件下载</a></p></div></body></html>"
+ },
+ "long_text": "全国教育经费总投入为69129亿元，比上年增长6.4%。其中，国家财政性教育经费为54321亿元，比上年增长5.9%，占国内生产总值比例为4.01%。全国一般公共预算教育经费为43210亿元，比上年增长4.8%。各级教育生均一般公共预算教育经费均有增长。",
+ "original_method_source_sha256": {
+  "_curl_get": "4808c187d78ee77ff93a6053b07038815e583fec461dd3c3146f1c1d51196580",
+  "_make_soup": "61c6a2b2f76cc73b5c09d07c842a7d9fa6a9e89c4a91555b47e6ef84d58a27b8",
+  "_strip_text": "7f48511e697fda7bee55468e6bb44ec73b3dead51e5afe097e0ae66f6c4d51ce",
+  "_parse_list_page": "5c79026543b66cda2ab687ede565ae439fa93e53409aac1eb43d4a15060d3e7d",
+  "_parse_detail_page": "74e7d253d34becf5d4c3d8001044853020b4a7c951b6f609bef3b22fc15074a4",
+  "_extract_post_number": "b94479d5b22b5606c1bd4c2ffc45dda77d1e694a3c1a934018cff8570c77d2c7",
+  "crawl": "de58e5d5ba14047748ad395b70eff3004601a6e9854e3cf2c136b7c6d41ab634"
+ },
+ "empty_body": "\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n<li ><a href=\"\" target=\"_blank\" title=\"\"></a><span></span></li>\r\n"
+}
