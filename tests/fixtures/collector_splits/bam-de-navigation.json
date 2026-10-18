@@ -1,0 +1,20 @@
+{
+ "site_id": "bam-de-navigation",
+ "listing_body": "<html><body><main><ul><li class=\"search-result\"><h3 class=\"results-topic\"><a href=\"/en/news/papers-of-the-month/paper/jenseits-der-farbe\">Beyond colour</a></h3></li><li class=\"search-result\"><h3 class=\"results-topic\"><a href=\"/en/news/papers-of-the-month/paper/atomare-strukturen\">Atomic structures</a></h3></li></ul><a class=\"page-link page-forward\" href=\"/en/news/papers-of-the-month?tx_news_pi1%5BcurrentPage%5D=2&amp;cHash=abc\">next</a></main></body></html>",
+ "empty_body": "<html><body><main><ul></ul></main></body></html>",
+ "content_type": "text/html",
+ "long_text": "Synthetic abstract paragraph of the paper of the month used only for the offline split test, describing oxidation fronts in slag-containing cements in detail.",
+ "details": {
+  "https://www.bam.de/en/news/papers-of-the-month/paper/jenseits-der-farbe": "<html><body><h1 class=\"headerMain\"><span>Beyond colour</span></h1><time class=\"date-text\" datetime=\"2026-10-04\">4 Oct</time><div class=\"frame-type-news_newsdetail\"><div class=\"ce-bodytext\"><p>Synthetic abstract paragraph of the paper of the month used only for the offline split test, describing oxidation fronts in slag-containing cements in detail.</p><p><em>Beyond colour paper</em><br>A. Author, B. Author<br>Cement and Concrete Research, 2026</p></div></div><a class=\"external-link\" href=\"https://opus4.kobv.de/opus4-bam/frontdoor/index/index/docId/65146\">opus</a></body></html>",
+  "https://www.bam.de/en/news/papers-of-the-month/paper/atomare-strukturen": "<html><body><h1 class=\"headerMain\"><span>Atomic structures</span></h1><time class=\"date-text\" datetime=\"2026-10-04\">4 Oct</time><div class=\"frame-type-news_newsdetail\"><div class=\"ce-bodytext\"><p>Synthetic abstract paragraph of the paper of the month used only for the offline split test, describing oxidation fronts in slag-containing cements in detail.</p><p><em>Atomic structures paper</em><br>A. Author, B. Author<br>Cement and Concrete Research, 2026</p></div></div><a class=\"external-link\" href=\"https://opus4.kobv.de/opus4-bam/frontdoor/index/index/docId/66735\">opus</a></body></html>"
+ },
+ "original_method_source_sha256": {
+  "_curl_get": "8a34c4017eb543cce536190ec6d4e0f1f423cdcd00fb5a08cd68190aa2b6addb",
+  "_make_soup": "f5bdcdc7b1d3b2ee35575267e01defbc91ebffdb8b6975c0c40fa72a2f5ef3c7",
+  "_clean": "98798e45100885c2e0c0e1cfa4f499aba59352216100e5644ace8c0566339ef8",
+  "_parse_list_page": "faa887c3d4d248821b6c5cf27f536997e79e56d1b273b4c09ec5828bb2147fc3",
+  "_next_page_url": "bcdea3f5e9bd259ff7d3230491162a82a4abd407e1e2779b04cc695b83f972bf",
+  "_parse_detail": "e65cd40f298254c50a03010fe74711c28f08e1cddd737cc54511a54f16cfc228",
+  "crawl": "7290d093b475ac971b4bd869754294dadb6d27f105046884b873d11333702ce3"
+ }
+}
