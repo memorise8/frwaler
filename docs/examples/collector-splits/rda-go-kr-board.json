@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "sites": {
+    "rda-go-kr-board": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "base_url": "https://www.rda.go.kr",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.rda.go.kr/board/board.do",
+        "params": {
+          "prgId": "day_farmprmninfoEntry",
+          "boardId": "farmprmninfo",
+          "searchKey": "",
+          "searchVal": "",
+          "searchSDate": "",
+          "searchEDate": "",
+          "searchOrgDeptKey": "",
+          "searchOrgDeptVal": "",
+          "catgId": "",
+          "mode": "list",
+          "currPage": 1
+        },
+        "page_param": "currPage",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "data_no",
+          "url_field": "url",
+          "date_field": "listed_date",
+          "title_field": "title",
+          "listing_marker": "ul.krds-structured-list"
+        },
+        "page_size": 10
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

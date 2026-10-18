@@ -363,3 +363,156 @@ class RdaGoKrBoardCrawler(BaseCrawler):
             )
             results.append((clean_name, dl_url))
         return results
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (no network); crawl() and the methods
+    # above are unchanged. These split _process_item() into its list part
+    # and its detail part (it fetches the detail page itself).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """List-page HTML (+ its URL for currPage) -> list-level fields of
+        _process_item() and the canonical detail URL crawl() builds."""
+        from urllib.parse import parse_qs, urlsplit
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _bs4(html)
+        ul = soup.find("ul", class_="krds-structured-list")
+        if not ul:
+            raise PermanentFailure("listing_parse_error:missing_structured_list")
+        query = parse_qs(urlsplit(url or "").query)
+        page_num = int((query.get("currPage") or ["1"])[0] or 1)
+        rows = []
+        for li in ul.find_all("li", class_="structured-item"):
+            link = li.find("a")
+            if not link:
+                continue
+            m = re.search(r"dataNo=(\d+)", link.get("href", ""))
+            if not m:
+                continue
+            data_no = m.group(1)
+            tit_el = li.find("p", class_="c-tit")
+            txt_el = li.find("p", class_="c-txt")
+            date_el = li.find("p", class_="c-date")
+            rows.append({
+                "data_no": data_no,
+                "page": page_num,
+                "title": tit_el.get_text(strip=True) if tit_el else "",
+                "list_abstract": txt_el.get_text(strip=True) if txt_el else "",
+                "listed_date": date_el.get_text(strip=True) if date_el else "",
+                "url": (
+                    f"{_BASE}/board/board.do?boardId={_BOARD_ID}"
+                    f"&prgId={_PRG_ID}&currPage={page_num}"
+                    f"&dataNo={data_no}&mode=updateCnt"
+                    f"&searchSDate=&searchEDate="
+                    f"&searchOrgDeptKey=allOrgDept&searchOrgDeptVal="
+                    f"&searchKey=&searchVal="
+                ),
+            })
+        return rows
+
+    def _enumeration_paper(self, html, row):
+        """Detail HTML + list row -> the paper crawl() saves (or None)."""
+        data_no = row["data_no"]
+        page_num = row["page"]
+        title_from_list = row["title"]
+        list_abstract = row["list_abstract"]
+        listed_date = row["listed_date"]
+        detail_url = (
+            f"{_BASE}/board/board.do?boardId={_BOARD_ID}"
+            f"&prgId={_PRG_ID}&currPage={page_num}"
+            f"&dataNo={data_no}&mode=updateCnt"
+            f"&searchSDate=&searchEDate="
+            f"&searchOrgDeptKey=allOrgDept&searchOrgDeptVal="
+            f"&searchKey=&searchVal="
+        )
+        if not html:
+            return None
+        dsoup = _bs4(html)
+
+        title = title_from_list
+        h2 = dsoup.find("h2", class_="tit")
+        if h2:
+            t = h2.get_text(strip=True)
+            if t:
+                title = t
+
+        author = ""
+        published_date = ""
+        department = ""
+        page_title_div = dsoup.find("div", class_="community-page-title")
+        if page_title_div:
+            info_ul = page_title_div.find("ul", class_="info")
+            if info_ul:
+                for p_el in info_ul.find_all("p"):
+                    strong = p_el.find("strong")
+                    if not strong:
+                        continue
+                    label = strong.get_text(strip=True)
+                    full_text = p_el.get_text(strip=True)
+                    val = full_text.replace(label, "", 1).strip()
+                    if label == "작성자":
+                        author = val
+                    elif label == "작성일":
+                        published_date = val
+                    elif label == "출처":
+                        department = val
+
+        abstract = ""
+        content_div = dsoup.find("div", id="contents")
+        if content_div:
+            raw_text = content_div.get_text(" ", strip=True)
+            abstract = re.sub(r"\s+", " ", raw_text).strip()
+        if len(abstract) < 50:
+            og = dsoup.find("meta", property="og:description")
+            if og:
+                og_text = og.get("content", "")
+                og_text = re.sub(r"&[a-zA-Z0-9#]+;", " ", og_text)
+                og_text = re.sub(r"\s+", " ", og_text).strip()
+                if len(og_text) > len(abstract):
+                    abstract = og_text
+        if len(abstract) < 50 and len(list_abstract) >= 50:
+            abstract = list_abstract
+
+        pdf_url = None
+        original_filename = None
+        file_list_ul = dsoup.find("ul", id="file-list")
+        if file_list_ul:
+            files = self._parse_file_list(file_list_ul, data_no)
+            for fname, furl in files:
+                if fname.lower().endswith(".pdf"):
+                    pdf_url = furl
+                    original_filename = fname
+                    break
+            if not pdf_url and files:
+                original_filename, pdf_url = files[0]
+
+        if len(abstract) < 50:
+            return None
+        return {
+            "site_id": self.site_id,
+            "external_id": data_no,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "authors": author,
+            "publisher": "농촌진흥청",
+            "department": department,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "keywords": "",
+            "category": "보도자료",
+            "metadata": json.dumps(
+                {
+                    "dataNo": data_no,
+                    "boardId": _BOARD_ID,
+                    "prgId": _PRG_ID,
+                    "posted_date": listed_date,
+                    "department": department,
+                },
+                ensure_ascii=False,
+            ),
+        }

@@ -1,0 +1,16 @@
+{
+  "site_id": "rda-go-kr-board",
+  "listing_body": "<html><body><ul class=\"krds-structured-list type-full\"><li class=\"structured-item\"><a href=\"/board/board.do?boardId=farmprmninfo&amp;prgId=day_farmprmninfoEntry&amp;currPage=1&amp;dataNo=100000000101&amp;mode=updateCnt&amp;searchSDate=&amp;searchEDate=&amp;searchOrgDeptKey=&amp;searchOrgDeptVal=&amp;searchKey=&amp;searchVal=\"><div class=\"card-body\"><div class=\"c-text\"><p class=\"c-tit\"><span class=\"span\">Offline 100000000101</span></p><p class=\"c-txt\">list text</p><p class=\"c-date\">2026-10-01</p></div></div></a></li><li class=\"structured-item\"><a href=\"/board/board.do?boardId=farmprmninfo&amp;prgId=day_farmprmninfoEntry&amp;currPage=1&amp;dataNo=100000000102&amp;mode=updateCnt&amp;searchSDate=&amp;searchEDate=&amp;searchOrgDeptKey=&amp;searchOrgDeptVal=&amp;searchKey=&amp;searchVal=\"><div class=\"card-body\"><div class=\"c-text\"><p class=\"c-tit\"><span class=\"span\">Offline 100000000102</span></p><p class=\"c-txt\">list text</p><p class=\"c-date\">2026-10-02</p></div></div></a></li></ul></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.rda.go.kr/board/board.do?boardId=farmprmninfo&prgId=day_farmprmninfoEntry&currPage=1&dataNo=100000000101&mode=updateCnt&searchSDate=&searchEDate=&searchOrgDeptKey=allOrgDept&searchOrgDeptVal=&searchKey=&searchVal=": "<html><body><div class=\"community-page-title\"><h2 class=\"tit\">Offline 100000000101 상세</h2><ul class=\"info\"><li><p><strong>작성자</strong>홍길동</p></li><li><p><strong>작성일</strong>2026-10-01</p></li><li><p><strong>출처</strong>국립원예특작과학원</p></li></ul></div><div id=\"contents\"><p>Synthetic press résumé and Korean 자료 for offline equality testing, long enough to pass the fifty character rule.</p></div><ul id=\"file-list\"><li><p class=\"name\">press-100000000101.pdf [382.00 KB]</p><button onclick=\"fn_download('farmprmninfo', '100000000101', '1')\">down</button></li></ul></body></html>",
+    "https://www.rda.go.kr/board/board.do?boardId=farmprmninfo&prgId=day_farmprmninfoEntry&currPage=1&dataNo=100000000102&mode=updateCnt&searchSDate=&searchEDate=&searchOrgDeptKey=allOrgDept&searchOrgDeptVal=&searchKey=&searchVal=": "<html><body><div class=\"community-page-title\"><h2 class=\"tit\">Offline 100000000102 상세</h2><ul class=\"info\"><li><p><strong>작성자</strong>홍길동</p></li><li><p><strong>작성일</strong>2026-10-02</p></li><li><p><strong>출처</strong>국립원예특작과학원</p></li></ul></div><div id=\"contents\"><p>Synthetic press résumé and Korean 자료 for offline equality testing, long enough to pass the fifty character rule.</p></div><ul id=\"file-list\"><li><p class=\"name\">press-100000000102.pdf [382.00 KB]</p><button onclick=\"fn_download('farmprmninfo', '100000000102', '1')\">down</button></li></ul></body></html>"
+  },
+  "long_text": "Synthetic press résumé and Korean 자료 for offline equality testing, long enough to pass the fifty character rule.",
+  "empty_body": "<html><body><ul class=\"krds-structured-list type-full\"></ul></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "884f9711b2ed507cbbb759ce009ab765a55d7455707f264d493895c8572856f3",
+    "_process_item": "fefd651e630fb3dbfb2b92ea6605cc0026808de8d6c6abc419803b3a794adb30",
+    "_parse_file_list": "a6eefc9284a9ea6f8a650ed3436315b8588c171095068c762965b08df8ae3587"
+  }
+}
