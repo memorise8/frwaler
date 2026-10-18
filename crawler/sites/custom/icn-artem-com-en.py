@@ -219,6 +219,178 @@ class IcnArtemComEnCrawler(BaseCrawler):
         }
 
     # ----------------------------------------------------------------
+    # Pure enumeration conversion (collector-splits); crawl() is unchanged
+    # ----------------------------------------------------------------
+    def _enumeration_items(self, raw: str, url: str | None = None) -> list[dict]:
+        """News list page -> article URL rows, as crawl()'s ``_news_page_urls``
+        reads them (the shipped plan enumerates post-sitemap.xml instead)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        soup = self._make_soup(raw)
+        if soup is None or soup.find("article") is None:
+            raise PermanentFailure("listing_parse_error:no_articles", url)
+        urls = []
+        for article in soup.find_all("article"):
+            for a in article.find_all("a", href=True):
+                href = a["href"]
+                if "icn-artem.com/en/" in href:
+                    urls.append(href)
+        return [{"url": u} for u in dict.fromkeys(urls)]
+
+    def _enumeration_detail(self, raw: str, url: str) -> dict | None:
+        """Pure copy of ``_parse_detail`` after its fetch (``raw`` = detail HTML)."""
+        if not raw:
+            return None
+
+        # --- Post ID from body class (postid-NNNN) ---
+        post_id: str | None = None
+        body_match = re.search(r"<body[^>]+class=\"([^\"]+)\"", raw)
+        if body_match:
+            pid = re.search(r"postid-(\d+)", body_match.group(1))
+            if pid:
+                post_id = pid.group(1)
+
+        # --- JSON-LD structured data ---
+        title = ""
+        published_date = ""
+        author = ""
+        category = ""
+        schemas = re.findall(
+            r'<script[^>]+type="application/ld\+json"[^>]*>(.*?)</script>',
+            raw, re.DOTALL,
+        )
+        for s in schemas:
+            try:
+                d = json.loads(s)
+                graph = d.get("@graph", [d])
+                for item in graph:
+                    if item.get("@type") == "Article":
+                        title = item.get("headline", "") or title
+                        dp = item.get("datePublished", "")
+                        if dp:
+                            published_date = dp[:10]
+                        auth = item.get("author", {})
+                        if isinstance(auth, dict):
+                            author = auth.get("name", "") or author
+                        elif isinstance(auth, str):
+                            author = auth
+                        secs = item.get("articleSection", [])
+                        if isinstance(secs, list) and secs:
+                            category = secs[0]
+                        elif isinstance(secs, str):
+                            category = secs
+            except Exception:
+                continue
+
+        # --- Title fallback from H1 ---
+        if not title:
+            h1 = re.search(r"<h1[^>]*>(.*?)</h1>", raw, re.DOTALL)
+            if h1:
+                title = self._strip_tags(h1.group(1))
+
+        # --- Date fallback from visible date string (DD.MM.YY or DD-MM-YYYY) ---
+        if not published_date:
+            dm = re.search(r"(\d{2})[.\-](\d{2})[.\-](\d{2,4})", raw)
+            if dm:
+                d_part, m_part, y_part = dm.groups()
+                if len(y_part) == 2:
+                    y_part = "20" + y_part
+                published_date = f"{y_part}-{m_part}-{d_part}"
+
+        # --- Abstract from <main> paragraphs (BeautifulSoup) ---
+        abstract = ""
+        try:
+            soup = self._make_soup(raw)
+            if soup:
+                main = soup.find("main")
+                if main:
+                    paras = []
+                    for p in main.find_all("p"):
+                        text = p.get_text(separator=" ", strip=True)
+                        if len(text) > 40:
+                            paras.append(text)
+                    abstract = "\n\n".join(paras)
+        except Exception as exc:
+            print(f"[{self.site_id}] soup parse error for {url}: {exc}")
+
+        # --- Abstract fallback via regex <p> extraction ---
+        if not abstract:
+            para_matches = re.findall(r"<p[^>]*>(.*?)</p>", raw, re.DOTALL)
+            paras = []
+            for pm in para_matches:
+                text = self._strip_tags(pm)
+                if len(text) > 40:
+                    paras.append(text)
+            abstract = "\n\n".join(paras)
+
+        return {
+            "post_id": post_id,
+            "title": title,
+            "published_date": published_date,
+            "author": author,
+            "category": category,
+            "abstract": abstract,
+            "url": url,
+        }
+
+    def _enumeration_paper(self, raw: str, url: str) -> dict | None:
+        """Pure copy of crawl()'s per-URL Paper conversion; ``url`` is the
+        sitemap loc that was requested. None = crawl()'s skips (no title,
+        short abstract)."""
+        record = self._enumeration_detail(raw, url)
+        if record is None:
+            return None
+
+        title = record.get("title", "").strip()
+        abstract = record.get("abstract", "").strip()
+        published_date = record.get("published_date", "")
+        author = record.get("author", "")
+        category = record.get("category", "")
+        post_id = record.get("post_id")
+
+        if not title:
+            return None
+
+        if len(abstract) < self._MIN_ABSTRACT_CHARS:
+            return None
+
+        if post_id:
+            external_id = post_id
+        else:
+            slug = url.rstrip("/").split("/en/", 1)[-1].strip("/")
+            external_id = re.sub(r"[^a-zA-Z0-9_-]", "-", slug)
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "authors": author,
+            "publisher": "ICN ARTEM Business School",
+            "department": None,
+            "journal": None,
+            "url": url,
+            "pdf_url": None,
+            "keywords": None,
+            "category": category,
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": published_date,
+                    "originalFilename": None,
+                    "node_id": post_id,
+                    "articleSection": category,
+                },
+                ensure_ascii=False,
+            ),
+        }
+
+    # ----------------------------------------------------------------
     # Main crawl
     # ----------------------------------------------------------------
     def crawl(self, limit=None):
