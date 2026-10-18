@@ -1,0 +1,15 @@
+{
+  "site_id": "minedu-gov-gr-grafeio-typoy-kai-di",
+  "listing_body": "<html><body><div class=\"custom-article-list\"><article class=\"custom-article-item\"><h4 class=\"custom-article-title\"><a href=\"/deltia-typoy-2/90002-13-02-31-synthetic-release\">13-02-31 Synthetic release 90002</a></h4></article><article class=\"custom-article-item\"><h4 class=\"custom-article-title\"><a href=\"/deltia-typoy-2/90001-09-01-31-synthetic-release\">09-01-31 Synthetic release 90001</a></h4></article></div></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.minedu.gov.gr/deltia-typoy-2/90002-13-02-31-synthetic-release": "<html><body><div class=\"item-pageDeltia-Typou\"><h2>13-02-31 Synthetic release 90002</h2><p>Synthetic press release body for the offline equality test of the enumeration split; it imitates only the Joomla article structure.</p><a href=\"/images/synthetic-90002.pdf\">pdf</a></div></body></html>",
+    "https://www.minedu.gov.gr/deltia-typoy-2/90001-09-01-31-synthetic-release": "<html><body><div class=\"item-pageDeltia-Typou\"><h2>09-01-31 Synthetic release 90001</h2><p>Synthetic press release body for the offline equality test of the enumeration split; it imitates only the Joomla article structure.</p><a href=\"/images/synthetic-90001.pdf\">pdf</a></div></body></html>"
+  },
+  "long_text": "Synthetic press release body for the offline equality test of the enumeration split; it imitates only the Joomla article structure.",
+  "empty_body": "<html><body><div class=\"custom-article-list\"></div></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "2a97d07d64fb917263e1962ee003892c30f4056bf1956caa8a59d806a81193e3",
+    "_process_article": "e20a9e1ddbe787f1b03e186735e55895e1cb76befd52cc6d13d34a48836dad97"
+  }
+}

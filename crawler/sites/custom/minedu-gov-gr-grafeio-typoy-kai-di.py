@@ -334,3 +334,105 @@ class MineduGovGrGrafeioTypoyKaiDiCrawler(BaseCrawler):
 
         self._save_paper(paper)
         return int(self._last_save_created)
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl(), _process_article()
+    # and the module helpers are unchanged; these methods only parse HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Article rows of one Joomla list page (?start=N, 20 rows), parsed as
+        crawl() does. A page without the list container is a listing parse
+        error (crawl() stops with invalid_response); a container without rows
+        is an empty page, judged by the plan's listing_marker."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        soup = _make_soup(html)
+        container = soup.find("div", class_="custom-article-list") or soup.find(
+            "div", class_="custom-category-listing"
+        )
+        if not container:
+            raise PermanentFailure("listing_parse_error:no_article_list_container", url)
+        rows = []
+        seen = set()
+        for article_el in container.find_all("article", class_="custom-article-item"):
+            title_el = article_el.find("h4", class_="custom-article-title")
+            a_tag = title_el.find("a", href=True) if title_el else None
+            if not a_tag:
+                continue
+            title = a_tag.get_text(strip=True)
+            href = a_tag["href"]
+            if not href.startswith("http"):
+                href = _BASE_URL + href
+            if href in seen:
+                continue
+            seen.add(href)
+            rows.append({"title": title, "url": href,
+                         "external_id": _extract_joomla_id(href),
+                         "listed_date": _parse_date_from_title(title)})
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page — the parse/conversion part of
+        _process_article() copied verbatim (external_id = Joomla article id
+        from the list URL)."""
+        url = item["url"]
+        title = item["title"]
+
+        joomla_id = _extract_joomla_id(url)
+        published_date = _parse_date_from_title(title)
+
+        if not html:
+            return None
+        soup = _make_soup(html)
+
+        content_div = None
+        for div in soup.find_all("div", class_=True):
+            if any(c.startswith("item-page") for c in div.get("class", [])):
+                content_div = div
+                break
+        if not content_div:
+            return None
+
+        abstract = content_div.get_text(" ", strip=True)
+
+        if abstract.startswith(title):
+            abstract = abstract[len(title):].strip()
+        for prefix in re.findall(r'^[^\n]{10,120}', abstract):
+            clean = re.sub(r'\s+', ' ', prefix).strip()
+            if clean == re.sub(r'\s+', ' ', title).strip():
+                abstract = abstract[len(prefix):].strip()
+                break
+
+        abstract = re.sub(r'\s+', ' ', abstract).strip()
+
+        if len(abstract) < 50:
+            return None
+
+        pdf_url, original_filename = _find_pdf(soup)
+
+        return {
+            "site_id": _SITE_ID,
+            "external_id": joomla_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": published_date,
+            "url": url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "authors": None,
+            "publisher": _PUBLISHER,
+            "department": _DEPARTMENT,
+            "journal": None,
+            "category": "Δελτία Τύπου",
+            "keywords": None,
+            "doi": None,
+            "metadata": json.dumps({
+                "posted_date": published_date,
+                "joomla_id": joomla_id,
+                "category": "Δελτία Τύπου",
+                "originalFilename": original_filename,
+            }, ensure_ascii=False),
+        }
