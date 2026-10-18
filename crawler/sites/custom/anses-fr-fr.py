@@ -155,6 +155,51 @@ class AnsesFrFrCrawler(BaseCrawler):
         return saved
 
     # ------------------------------------------------------------------
+    # Enumeration split (collector-splits 방식, crawl() 무변경)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw):
+        """목록 쪽 바이트 → crawl() 과 같은 디코딩·파서(_make_soup)·_parse_list 행."""
+        from crawler.enumeration.http import PermanentFailure
+
+        soup = self._make_soup(raw, context="enumeration list page")
+        if soup is None:
+            raise PermanentFailure("listing_parse_error:unparseable_html")
+        return self._parse_list(soup)
+
+    def _enumeration_paper(self, pdf_text, url, item):
+        """ext:pdf_text 로 틀이 뽑은 PDF 본문 + 최종 PDF 주소 + 목록 행 → crawl() 과 같은 paper.
+
+        pdf_text 는 crawl() 의 첫 시도와 같은 pdftotext 옵션(-layout -enc UTF-8 -f 1 -l 6)의
+        출력이다. None(추출 실패·시간 초과)이면 crawl() 처럼 항목 실패로 둔다. 초록이
+        MIN_ABSTRACT_CHARS 미만이면 crawl() 처럼 건너뛴다(None).
+        """
+        from crawler.enumeration.http import PermanentFailure
+
+        if pdf_text is None:
+            raise PermanentFailure("pdf_text_extraction_failed", url)
+        parsed = self._parse_detail(item, pdf_text, url)
+        abstract = parsed.get("abstract") or ""
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": parsed["external_id"],
+            "title": parsed["title"],
+            "authors": json.dumps(parsed["authors"], ensure_ascii=False),
+            "abstract": abstract,
+            "category": parsed["category"],
+            "keywords": json.dumps(parsed["keywords"], ensure_ascii=False),
+            "published_date": parsed["published_date"],
+            "url": parsed["url"],
+            "pdf_url": parsed["pdf_url"],
+            "doi": parsed["doi"],
+            "department": parsed["department"],
+            "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Network helpers
     # ------------------------------------------------------------------
 

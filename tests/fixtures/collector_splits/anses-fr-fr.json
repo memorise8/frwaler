@@ -1,0 +1,28 @@
+{
+ "site_id": "anses-fr-fr",
+ "listing_url": "https://www.anses.fr/fr/content/avis-et-rapports-de-lanses-sur-saisine?page=0",
+ "listing_body": "<html><body><main><div class=\"view-content\"><div class=\"views-row\"><article class=\"document\"><h3 class=\"know-more__title\"><a href=\"/system/files/SYN-2026-SA-0001.pdf\">Avis synthétique 1</a></h3><a class=\"download\" href=\"/system/files/SYN-2026-SA-0001.pdf?download=1\">Télécharger</a><div class=\"document__type_document\">Avis</div><div class=\"document__expert_committee\">Santé animale</div><div class=\"document__referral\">2026-SA-0001</div><div class=\"document__signature_date\"><time datetime=\"2026-10-01T12:00:00Z\">x</time></div><div class=\"document__online_date\"><time datetime=\"2026-10-16T12:00:00Z\">x</time></div><div class=\"document__keywords\">Risque, santé animale, risque</div><span class=\"document__thematique-item\">Santé animale</span></article></div><div class=\"views-row\"><article class=\"document\"><h3 class=\"know-more__title\"><a href=\"/system/files/SYN-2026-SA-0002.pdf\">Avis synthétique 2</a></h3><a class=\"download\" href=\"/system/files/SYN-2026-SA-0002.pdf?download=1\">Télécharger</a><div class=\"document__type_document\">Avis</div><div class=\"document__expert_committee\">Santé animale</div><div class=\"document__referral\">2026-SA-0002</div><div class=\"document__signature_date\"><time datetime=\"2026-09-30T12:00:00Z\">x</time></div><div class=\"document__online_date\"><time datetime=\"2026-10-15T12:00:00Z\">x</time></div><div class=\"document__keywords\">Risque, santé animale, risque</div><span class=\"document__thematique-item\">Santé animale</span></article></div></div></main></body></html>",
+ "empty_body": "<html><body><main><div class=\"view-empty\">Aucun résultat</div></main></body></html>",
+ "content_type": "text/html; charset=UTF-8",
+ "long_text": "L'Anses a été saisie pour évaluer un risque sanitaire synthétique. Ce texte sert uniquement au test hors ligne d'égalité entre crawl() et le chemin enumeration.",
+ "details": {
+  "https://www.anses.fr/system/files/SYN-2026-SA-0001.pdf": "%PDF-1.4 synthetic anses document one xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "https://www.anses.fr/system/files/SYN-2026-SA-0002.pdf": "%PDF-1.4 synthetic anses document two yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+ },
+ "pdf_texts": {
+  "%PDF-1.4 synthetic anses document one xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx": "Agence nationale de sécurité sanitaire de l'alimentation\nPage 1 / 9\n\n1. CONTEXTE ET OBJET DE LA SAISINE\nL'Anses a été saisie pour évaluer un risque sanitaire synthétique. Ce texte sert uniquement au test hors ligne d'égalité entre crawl() et le chemin enumeration.\n\f",
+  "%PDF-1.4 synthetic anses document two yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy": "RÉSUMÉ\n   L'Anses a été saisie pour évaluer un risque sanitaire synthétique. Ce texte sert uniquement au test hors ligne d'égalité entre crawl() et le chemin enumeration.   \n\nTEL : 01 02 03\n"
+ },
+ "original_method_source_sha256": {
+  "crawl": "59e60cd2ba2c3d97aeea8241c9f9a46f9f321452be8ffc1ec2b1d561659fec2a",
+  "_curl_get_text": "84b7ac3612d27b1f9ec09062d861263a84cf582259cc1c6c55941b03d973994c",
+  "_curl_get_bytes": "336a923fa76805cfe6a8e4e0a2ccb477778cbf76d1fcf0dc9d831a7f4b7da5d9",
+  "_make_soup": "3e2f545072b5efae0a79fad49f595ee91f8e788147bd271f597fbf89bffed85f",
+  "_parse_list": "53e45b7f0c2c35e166781415fd7280c7002a0dc2574e3861fef4477374924d85",
+  "_parse_detail": "c11b789c860b77843e83de617fd6790d4492bb7c27e8e3909a4f7ba8d3fd489b",
+  "_extract_pdf_text": "e6113c02ac2481f4c97ab33dba8fa2ca2545b73a062e44cb6d7b725544289bf7",
+  "_build_abstract": "e56df543191cfe8459c576fe3db7743b72402a572c8bc7b466b83281461062a6",
+  "_clean_pdf_text": "7cf79979f39a9fd9240635f4f1bdcc1ddef5c4a14ed29035e854b277c14656c5",
+  "_external_id": "baa95fe22252945d0d661ff922c4f8dc3da0edb6cfb78645a271d0f6eda37bf8"
+ }
+}

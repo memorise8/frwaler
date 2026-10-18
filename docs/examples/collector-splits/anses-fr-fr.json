@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "sites": {
+    "anses-fr-fr": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.anses.fr",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "raw"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "pdf_text",
+          "url",
+          "item"
+        ],
+        "pdf_text": {
+          "args": [
+            "-layout",
+            "-enc",
+            "UTF-8",
+            "-f",
+            "1",
+            "-l",
+            "6"
+          ],
+          "timeout_s": 45,
+          "min_bytes": 0
+        }
+      },
+      "listing": {
+        "url": "https://www.anses.fr/fr/content/avis-et-rapports-de-lanses-sur-saisine",
+        "page_param": "page",
+        "start_page": 0,
+        "page_size": 10,
+        "parser": {
+          "type": "adapter",
+          "key_field": "external_id",
+          "url_field": "url",
+          "title_field": "title",
+          "date_field": "online_date",
+          "listing_marker": "main"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}
