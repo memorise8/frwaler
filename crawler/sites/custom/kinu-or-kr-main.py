@@ -264,3 +264,51 @@ class KinuOrKrMainCrawler(BaseCrawler):
 
         print(f"[kinu-or-kr-main] crawl complete: saved {saved} items across {page} pages.")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+
+    def _enumeration_items(self, html):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _bs(html)
+        if soup is None or soup.select_one("div.board-list table") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_list")
+        rows = []
+        for bid in _parse_list_ids(html):
+            detail_url = (
+                f"{_VIEW_URL}?nav_code={_NAV_CODE}&code={_CODE}&idx={bid}"
+            )
+            rows.append({"board_id": bid, "url": detail_url})
+        return rows
+
+    def _enumeration_detail(self, html, item):
+        return _parse_detail(html, item["board_id"])
+
+    def _enumeration_paper(self, item, parsed):
+        bid = item["board_id"]
+        detail_url = item["url"]
+        if parsed is None:
+            return None
+        abstract = parsed["abstract"]
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+        return {
+            "id": f"{self.site_id}-{bid}",
+            "site_id": self.site_id,
+            "external_id": bid,
+            "title": parsed["title"],
+            "authors": json.dumps([], ensure_ascii=False),
+            "abstract": abstract,
+            "category": "보도자료",
+            "keywords": json.dumps([], ensure_ascii=False),
+            "published_date": parsed["published_date"],
+            "url": detail_url,
+            "pdf_url": parsed["pdf_url"],
+            "doi": None,
+            "department": "통일연구원",
+            "metadata": json.dumps(
+                {"board_id": bid, "code": _CODE, "nav_code": _NAV_CODE},
+                ensure_ascii=False,
+            ),
+        }

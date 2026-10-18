@@ -1,0 +1,14 @@
+{
+ "listing_body": "<html><body><div class=\"board-list\"><table><thead><tr><th>번호</th></tr></thead><tbody><tr><td class=\"num\">2</td><td class=\"subject\"><a href=\"javascript:void(0);\" onclick=\"viewBoard(90001);\"><span>Offline 1</span></a></td><td></td><td> 2025.06.13 </td><td class=\"num\">5</td></tr><tr><td class=\"num\">1</td><td class=\"subject\"><a href=\"javascript:void(0);\" onclick=\"viewBoard(90002);\"><span>Offline 2</span></a></td><td></td><td> 2025.06.13 </td><td class=\"num\">5</td></tr></tbody></table></div></body></html>",
+ "content_type": "text/html",
+ "details": {
+  "https://www.kinu.or.kr/main/board/view.do?nav_code=mai1674793705&code=XDXh8TgkVFNJ&idx=90001": "<html><body><div class=\"board-view\"><div class=\"subject\">Offline 1</div><div class=\"date\">2025.06.13</div><div class=\"board-view-cont\"><div class=\"text\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></div></div><a href=\"/main/board/boardFile/download/XDXh8TgkVFNJ/901/0/0.do\">file</a></div></body></html>",
+  "https://www.kinu.or.kr/main/board/view.do?nav_code=mai1674793705&code=XDXh8TgkVFNJ&idx=90002": "<html><body><div class=\"board-view\"><div class=\"subject\">Offline 2</div><div class=\"date\">2025.06.12</div><div class=\"board-view-cont\"><div class=\"text\"><p>Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. </p></div></div><a href=\"/main/board/boardFile/download/XDXh8TgkVFNJ/902/0/0.do\">file</a></div></body></html>"
+ },
+ "empty_body": "<html><body><div class=\"board-list\"><table><thead><tr><th>번호</th></tr></thead><tbody> </tbody></table></div></body></html>",
+ "site_id": "kinu-or-kr-main",
+ "long_text": "Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. Synthetic research résumé and Korean 자료 for offline equality testing. ",
+ "original_method_source_sha256": {
+  "crawl": "470859d02328b1e5c0b71452d826252e3b47a036dac1b1d4ee7eef93f902747d"
+ }
+}
