@@ -293,3 +293,25 @@ class NISTPublicationsCrawler(BaseCrawler):
 
         print(f"[nist-gov-publications] Done. Saved {saved} records.")
         return saved
+
+    # Pure enumeration contract; original crawl and transport remain unchanged.
+    # The enumeration framework (last_page_backward over ?page=N, 0-indexed) ends at
+    # the "No results were found." page, so the hard-coded 200-page cap of crawl()
+    # does not apply.
+
+    def _enumeration_items(self, html, url=None):
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None or soup.select_one("#block-nist-www-content .views-element-container") is None:
+            raise PermanentFailure("listing_parse_error:missing_views_container")
+        return [{"url": u} for u in self._parse_list_page(html)]
+
+    def _enumeration_detail(self, html, url):
+        return self._parse_detail_page(html, url)
+
+    def _enumeration_paper(self, item, detail):
+        paper = dict(detail)
+        paper['site_id'] = self.site_id
+        return paper

@@ -1,0 +1,18 @@
+{
+  "site_id": "nist-gov-publications",
+  "listing_body": "<html><head><meta charset=\"utf-8\"></head><body><div id=\"block-nist-www-content\" class=\"nist-block\"><div class=\"views-element-container\"><div><header>Displaying 1 - 2 of 2</header><article class=\"nist-teaser\"><h3 class=\"nist-teaser__title\"><a href=\"/publications/offline-one\">Offline One</a></h3></article><article class=\"nist-teaser\"><h3 class=\"nist-teaser__title\"><a href=\"/publications/offline-two\">Offline Two</a></h3></article></div></div></div></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.nist.gov/publications/offline-one": "<html><head><meta charset=\"utf-8\"><meta name=\"citation_title\" content=\"Offline One\"><meta name=\"citation_author\" content=\"A. Author\"><meta name=\"citation_author\" content=\"B. Author\"><meta name=\"citation_publication_date\" content=\"2026-10-30\"><meta name=\"citation_pdf_url\" content=\"https://doi.org/10.0000/offline.9000001\"><link rel=\"shortlink\" href=\"https://www.nist.gov/node/9000001\"></head><body><h1>Offline One</h1><div class=\"text-with-summary\"><h3>Abstract</h3><p>Synthetic NIST publication abstract for offline equality testing only; it is not a real paper. Synthetic NIST publication abstract for offline equality testing only; it is not a real paper. </p></div><div class=\"nist-field\"><div class=\"nist-field__label\">Keywords</div>alpha, beta</div><div class=\"nist-field\"><div class=\"nist-field__label\">Pub Type</div>Journals</div><a href=\"https://doi.org/10.0000/offline.9000001\">DOI</a></body></html>",
+    "https://www.nist.gov/publications/offline-two": "<html><head><meta charset=\"utf-8\"><meta name=\"citation_title\" content=\"Offline Two\"><meta name=\"citation_author\" content=\"A. Author\"><meta name=\"citation_author\" content=\"B. Author\"><meta name=\"citation_publication_date\" content=\"2025-01-15\"><meta name=\"citation_pdf_url\" content=\"\"><link rel=\"shortlink\" href=\"https://www.nist.gov/node/9000002\"></head><body><h1>Offline Two</h1><div class=\"text-with-summary\"><h3>Abstract</h3><p>Synthetic NIST publication abstract for offline equality testing only; it is not a real paper. Synthetic NIST publication abstract for offline equality testing only; it is not a real paper. </p></div><div class=\"nist-field\"><div class=\"nist-field__label\">Keywords</div>alpha, beta</div><div class=\"nist-field\"><div class=\"nist-field__label\">Pub Type</div>Journals</div><a href=\"https://doi.org/10.0000/offline.9000002\">DOI</a></body></html>"
+  },
+  "long_text": "Synthetic NIST publication abstract for offline equality testing only; it is not a real paper. Synthetic NIST publication abstract for offline equality testing only; it is not a real paper. ",
+  "empty_body": "<html><head><meta charset=\"utf-8\"></head><body><div id=\"block-nist-www-content\" class=\"nist-block\"><div class=\"views-element-container\"><div><header>Displaying 1 - 2 of 2</header><p>No results were found.</p></div></div></div></body></html>",
+  "original_method_source_sha256": {
+    "_curl_get": "6e1ca0bba1b8f75b490e68615b241e850d9314d95c5d398af98aed1679c91fb5",
+    "_parse_list_page": "4e48a83783c5d9d749a7355609eb67c61ceaac0ed46d1a4f391ce7439a33e2d8",
+    "_get_nist_field": "3bae6b1d07ee85b4277f4a8d33aab95941c98d9c579cbfc3666f47aaf3b9f509",
+    "_parse_detail_page": "d078be376c58b78d000e70c9730ce9e3651ec1e6b8f2ec566ba36212d97cc89f",
+    "crawl": "0ae69f226ab9564db2e0ea4cbff95d8f7afe89ab2e675c96a832e879f4ddd110"
+  }
+}
