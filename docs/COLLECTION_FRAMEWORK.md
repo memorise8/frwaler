@@ -497,3 +497,10 @@ X2 적용 중 나온 요구. 원칙은 같다(게이트 그대로, 새 키 없�
 | `ext:pdf_text` 재시도 | `adapter.pdf_text.retry_args: ["-raw"]` | 첫 옵션 결과가 비면 두 번째 옵션으로 다시(수집기의 "-layout 안 되면 -raw") | 같은 허용 옵션 목록. 최악 시간은 timeout_s × 2 |
 | `ext:response_size` | `max_response_bytes: 83886080` (사이트) | 목록·상세 응답 크기 상한을 올림(누적 "더 보기" 응답 등) | 기본 상한(50 MiB) ~ `file_max_bytes` (올리기만, 모든 전략에서 검사) |
 | `ext:none_is_rule_skip` | `adapter.none_is_rule_skip: true` | 메서드가 None 을 돌려주면 수집기 규칙에 따른 건너뛰기(예 초록 50자 미만): `failed_permanent: skipped_by_rule` 로 기록·건수 보고, 계약 실패·검토로 세지 않음 | 메서드가 실제로 None 을 돌려준 경우만(dict 아닌 값·빈 dict·제목 없음은 그대로 실패). 건너뛴 몫이 `adapter.max_rule_skip_ratio`(기본 0.2)를 넘으면 `complete_with_review: skipped_by_rule:N`, 저장 없이 연속 `max_consecutive_rule_skips`(기본 20)번이면 `config_error`(고장 난 파서). 건수는 늘 경고로 표시. 선언 없으면 계약 사이트는 계약 실패로 셈 |
+
+X3 후속(2026-10-18):
+
+| 표기 | plan 키 | 동작 | 막는 것 |
+|---|---|---|---|
+| `ext:detail_missing_as_no_text` | `adapter.pdf_text.missing_statuses: [404]` (404·410 만) | pdf_text 가 읽는 요청(2단계가 있으면 2단계, 없으면 상세)이 그 상태면 항목 실패 대신 `pdf_text = None` 으로 메서드 호출 → 수집기의 대체 규칙(예 목록 설명을 초록으로) 그대로. 건수는 경고 `pdf_missing_as_no_text:N` | 그 요청만(1단계 상세 404 는 여전히 실패), 선언한 상태만 |
+| `ext:discover_segment_url` | `segments.link_as_url: true` (discover) | 찾은 구간 링크 자체를 그 구간의 목록 주소로(쪽은 page_param) | listing.url 에 `{page}`·`{segment}` 없음, 허브가 목록 호스트, 다른 호스트·https→http 링크는 구간으로 안 씀 |

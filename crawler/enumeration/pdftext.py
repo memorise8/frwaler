@@ -26,8 +26,11 @@ class PdfTextConfigError(ValueError):
 
 def validate(spec):
     """``adapter.pdf_text``: {"args": [...], "retry_args": [...], "timeout_s": 30, "min_bytes": 0}."""
-    if not isinstance(spec, dict) or set(spec) - {"args", "retry_args", "timeout_s", "min_bytes"}:
-        raise PdfTextConfigError("pdf_text must be an object with args, retry_args, timeout_s, min_bytes")
+    if not isinstance(spec, dict) or set(spec) - {"args", "retry_args", "timeout_s", "min_bytes", "missing_statuses"}:
+        raise PdfTextConfigError("pdf_text must be an object with args, retry_args, timeout_s, min_bytes, missing_statuses")
+    missing = spec.get("missing_statuses", [])
+    if not isinstance(missing, list) or not set(missing) <= {404, 410} or not all(type(m) is int for m in missing):
+        raise PdfTextConfigError("pdf_text.missing_statuses may list 404 and 410 only")
     for key in ("args", "retry_args"):
         if key in spec:
             _validate_args(spec[key], key)
