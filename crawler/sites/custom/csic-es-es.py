@@ -439,3 +439,60 @@ class CsicEsEsCrawler(BaseCrawler):
 
         print(f"[csic-es-es] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (NR-B); crawl() is unchanged. Every listing
+    # page (?page=N) yields PDF rows (Drupal view + the static 2004-2010
+    # section); the listing returns crawl()'s paper dicts (list_returns_paper).
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        from urllib.parse import parse_qs, urlsplit
+        page_s = parse_qs(urlsplit(url).query).get("page", ["0"])[0]
+        items, _has_next = self._parse_page(html, int(page_s) if page_s.isdigit() else 0)
+        papers, seen = [], set()
+        for item in items:
+            pdf_url = item.get("pdf_url", "")
+            if not pdf_url or pdf_url in seen:
+                continue
+            seen.add(pdf_url)
+            title = item.get("title", "").strip()
+            year = item.get("year")
+            fname = _filename_from_url(pdf_url)
+            external_id = fname or re.sub(r"https?://[^/]+/", "", pdf_url)
+            if not title:
+                title = f"CSIC datos {year or 'histórico'}"
+            abstract = self._build_abstract(item)
+            if len(abstract) < _MIN_ABSTRACT:
+                continue
+            published_date = f"{year}-01-01" if year else None
+            papers.append({
+                "site_id": self.site_id,
+                "external_id": external_id,
+                "post_number": year,
+                "title": title,
+                "abstract": abstract,
+                "published_date": published_date,
+                "posted_date": published_date,
+                "url": _LIST_URL,
+                "pdf_url": pdf_url,
+                "authors": None,
+                "publisher": _PUBLISHER,
+                "department": None,
+                "journal": None,
+                "keywords": "datos estadísticos, institutos, centros, CSIC",
+                "category": "Datos Institucionales",
+                "doi": None,
+                "original_filename": fname,
+                "metadata": json.dumps(
+                    {
+                        "posted_date": published_date,
+                        "originalFilename": fname,
+                        "year": year,
+                        "source_page": _LIST_URL,
+                        "source_section": item.get("source", ""),
+                    },
+                    ensure_ascii=False,
+                ),
+            })
+        return papers

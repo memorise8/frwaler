@@ -1,0 +1,39 @@
+{
+ "version": 1,
+ "sites": {
+  "csic-es-es": {
+   "strategy": "last_page_backward",
+   "request_interval_s": 1.5,
+   "respect_robots": true,
+   "retries": 1,
+   "verify_ssl": true,
+   "base_url": "https://www.csic.es",
+   "adapter": {
+    "type": "crawler",
+    "list_method": "_enumeration_items",
+    "list_args": [
+     "html",
+     "url"
+    ],
+    "list_returns_paper": true
+   },
+   "listing": {
+    "url": "https://www.csic.es/es/el-csic/informacion-corporativa/el-csic-en-cifras",
+    "page_param": "page",
+    "start_page": 0,
+    "parser": {
+     "type": "adapter",
+     "key_field": "pdf_url",
+     "url_field": "pdf_url",
+     "title_field": "title",
+     "date_field": "published_date",
+     "listing_marker": "main"
+    }
+   },
+   "last_page": {
+    "overlap_pages": 1,
+    "check_unparameterized_first_page": true
+   }
+  }
+ }
+}
