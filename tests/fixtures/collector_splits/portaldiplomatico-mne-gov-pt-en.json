@@ -1,0 +1,14 @@
+{
+  "site_id": "portaldiplomatico-mne-gov-pt-en",
+  "listing_body": "<html><body><main><div class=\"blog\"><div class=\"items-row\"><div itemprop=\"blogPost\"><h2><a href=\"/en/communication-and-media/press-releases/synthetic-90002\">Synthetic release 90002</a></h2><time datetime=\"2031-02-13T10:00:00+00:00\">x</time><div class=\"autoblog-intro\">short</div></div></div><div class=\"items-row\"><div itemprop=\"blogPost\"><h2><a href=\"/en/communication-and-media/press-releases/synthetic-90001\">Synthetic release 90001</a></h2><time datetime=\"2031-01-09T10:00:00+00:00\">x</time><div class=\"autoblog-intro\">short</div></div></div></div></main></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://portaldiplomatico.mne.gov.pt/en/communication-and-media/press-releases/synthetic-90002": "<html><body><h1>Synthetic release 90002</h1><time itemprop=\"datePublished\" datetime=\"2031-02-13T10:00:00+00:00\">x</time><div class=\"com-content-article__body\"><p>Synthetic press release body for the offline equality test of the enumeration split; it imitates only the Joomla article structure.</p></div></body></html>",
+    "https://portaldiplomatico.mne.gov.pt/en/communication-and-media/press-releases/synthetic-90001": "<html><body><h1>Synthetic release 90001</h1><time itemprop=\"datePublished\" datetime=\"2031-01-09T10:00:00+00:00\">x</time><div class=\"com-content-article__body\"><p>Synthetic press release body for the offline equality test of the enumeration split; it imitates only the Joomla article structure.</p></div></body></html>"
+  },
+  "long_text": "Synthetic press release body for the offline equality test of the enumeration split; it imitates only the Joomla article structure.",
+  "empty_body": "<html><body><main><div class=\"blog\"></div></main></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "ad193c518f901864440ed96f5e06eebec195f3ea45b4c2abf3545519a0439b31"
+  }
+}

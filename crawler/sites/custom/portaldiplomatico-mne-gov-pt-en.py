@@ -361,3 +361,77 @@ class PortalDiplomaticoEnCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the module
+    # helpers are unchanged; these methods only parse already fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Blog rows of one Joomla list page (?start=N), parsed with
+        _parse_list_page as crawl() does. A page without rows is an empty
+        list, judged by the plan's listing_marker."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        rows = []
+        seen = set()
+        for item in _parse_list_page(html):
+            if item["url"] in seen:
+                continue
+            seen.add(item["url"])
+            rows.append(dict(item, slug=item["url"].rstrip("/").rsplit("/", 1)[-1]))
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched detail page — the conversion part of crawl()
+        copied verbatim (external_id = post_number = URL slug)."""
+        url = item["url"]
+        slug = url.rstrip("/").rsplit("/", 1)[-1]
+        if not html:
+            return None
+
+        detail = _parse_detail_page(html)
+
+        title = detail.get("title") or item["title"]
+        abstract = detail.get("abstract") or item["intro"] or ""
+        abstract = re.sub(r"\s+", " ", abstract).strip()
+
+        if len(abstract) < 50:
+            return None
+
+        published_date = detail.get("published_date") or item["listed_date"]
+        listed_date = item["listed_date"]
+        pdf_url = detail.get("pdf_url")
+
+        original_filename = None
+        if pdf_url:
+            original_filename = pdf_url.rstrip("/").split("/")[-1].split("?")[0]
+
+        return {
+            "site_id": self.site_id,
+            "external_id": slug,
+            "post_number": slug,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "url": url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "authors": None,
+            "publisher": "Portuguese Ministry of Foreign Affairs",
+            "department": None,
+            "journal": None,
+            "keywords": None,
+            "category": "Press Release",
+            "doi": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": item["listed_date"],
+                    "slug": slug,
+                    "intro": item["intro"],
+                },
+                ensure_ascii=False,
+            ),
+        }
