@@ -206,6 +206,69 @@ class CentraleSupelecPresseCrawler(BaseCrawler):
         return full_text, eff_url, detail_pdf_url
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points (crawl() and the parsers stay unchanged)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """crawl()'s _parse_list_page; each row's detail URL is crawl()'s /node/<id>."""
+        items = self._parse_list_page(html)
+        return [dict(it, url=f"{self.base_url}/node/{it['node_id']}") for it in items]
+
+    def _enumeration_detail(self, html, item, url=None):
+        """crawl()'s per-item block with the /node/<id> page the framework already
+        fetched (``url`` = final URL after redirects, as curl -L reported it)."""
+        node_id = item['node_id']
+
+        def fetched(_url, follow=False, timeout=30):
+            return html, (url or _url)
+        self._curl_get = fetched
+        try:
+            full_text, page_url, detail_pdf_url = self._fetch_detail(node_id)
+        finally:
+            del self._curl_get
+
+        abstract = full_text.strip() if full_text else item['teaser'].strip()
+        pdf_url = item['pdf_url'] or detail_pdf_url or None
+        if not item['title'] or (len(abstract) < 50 and not pdf_url):
+            return None
+
+        original_filename = None
+        if pdf_url:
+            raw_name = urlsplit(pdf_url).path.rstrip('/').split('/')[-1]
+            try:
+                original_filename = unquote(raw_name)
+            except Exception:
+                original_filename = raw_name
+
+        metadata = {'node_id': node_id, 'posted_date': item['raw_date']}
+        if pdf_url and len(abstract) < 50:
+            metadata['source_abstract_state'] = 'empty' if not abstract else 'short'
+            metadata['source_fulltext_file_url'] = pdf_url
+        if pdf_url and urlsplit(pdf_url).path.lower().endswith(('.docx', '.xlsx')):
+            metadata['source_file_type'] = urlsplit(pdf_url).path.rsplit('.', 1)[-1].lower()
+            metadata['source_file_conversion_pending'] = True
+        return {
+            'site_id': self.site_id,
+            'external_id': node_id,
+            'post_number': node_id,
+            'title': item['title'],
+            'abstract': abstract,
+            'published_date': item['published_date'],
+            'listed_date': item['published_date'],
+            'url': page_url or f"{self.base_url}/node/{node_id}",
+            'pdf_url': pdf_url,
+            'original_filename': original_filename,
+            'publisher': 'CentraleSupélec',
+            'authors': None,
+            'keywords': None,
+            'category': 'Communiqué de presse',
+            'doi': None,
+            'department': None,
+            'journal': None,
+            'metadata': json.dumps(metadata, ensure_ascii=False),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
