@@ -1,0 +1,6 @@
+#!/bin/sh
+# 수집 실행기 관리(서버 셸 전용). 예: runnerctl status | ensure | list | runs | events | register ... | pause | unpause
+H="$(cd "$(dirname "$0")" && pwd)"
+export RUNNER_HOME="$H"
+if [ "$1" = "ensure" ]; then exec python3 "$H/runner.py" ensure; fi
+exec python3 "$H/runner.py" ctl "$@"
