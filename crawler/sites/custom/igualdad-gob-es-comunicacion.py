@@ -120,35 +120,16 @@ class IgualdadGobEsComunicacionCrawler(BaseCrawler):
                         if detail_soup is None:
                             raise RuntimeError("detail HTML could not be parsed")
 
-                        parsed = self._parse_detail(detail_soup, detail_raw, record)
-                        abstract = parsed.get("abstract") or ""
-                        if len(abstract) < self.MIN_ABSTRACT_CHARS:
-                            print(
-                                f"[{self.site_id}] {item_label} skipped: "
-                                f"abstract too short ({len(abstract)} chars)"
-                            )
+                        paper = self._paper_from_detail(detail_soup, detail_raw, record)
+                        if paper is None:
+                            print(f"[{self.site_id}] {item_label} skipped: abstract too short")
                             continue
-
-                        paper = {
-                            "site_id": self.site_id,
-                            "external_id": parsed["external_id"],
-                            "title": parsed["title"],
-                            "abstract": abstract,
-                            "published_date": parsed["published_date"],
-                            "posted_date": parsed["listed_date"],
-                            "url": parsed["url"],
-                            "publisher": "Ministerio de Igualdad",
-                            "pdf_url": parsed.get("pdf_url") or "",
-                            "keywords": parsed.get("keywords") or "",
-                            "original_filename": parsed.get("original_filename") or "",
-                            "metadata": json.dumps(parsed.get("metadata", {}), ensure_ascii=False),
-                        }
 
                         self._save_paper(paper)
                         if self._last_save_created:
                             saved += 1
                         counter = f"{saved}/{limit}" if limit is not None else str(saved)
-                        print(f"[{self.site_id}] saved {counter}: {parsed['title'][:80]}")
+                        print(f"[{self.site_id}] saved {counter}: {paper['title'][:80]}")
 
                     except Exception as exc:
                         print(f"[{self.site_id}] item {item_label} failed: {exc}")
@@ -279,6 +260,31 @@ class IgualdadGobEsComunicacionCrawler(BaseCrawler):
                 "list_url": list_url,
             })
         return records
+
+    def _paper_from_detail(self, soup, raw_html, record):
+        """Paper for one detail page (None when the abstract is too short).
+
+        Shared by crawl() and the enumeration framework (adapter detail_method),
+        so post_number (WordPress post id) and fields are identical on both paths.
+        """
+        parsed = self._parse_detail(soup, raw_html, record)
+        abstract = parsed.get("abstract") or ""
+        if len(abstract) < self.MIN_ABSTRACT_CHARS:
+            return None
+        return {
+            "site_id": self.site_id,
+            "external_id": parsed["external_id"],
+            "title": parsed["title"],
+            "abstract": abstract,
+            "published_date": parsed["published_date"],
+            "posted_date": parsed["listed_date"],
+            "url": parsed["url"],
+            "publisher": "Ministerio de Igualdad",
+            "pdf_url": parsed.get("pdf_url") or "",
+            "keywords": parsed.get("keywords") or "",
+            "original_filename": parsed.get("original_filename") or "",
+            "metadata": json.dumps(parsed.get("metadata", {}), ensure_ascii=False),
+        }
 
     def _parse_detail(self, soup, raw_html, record):
         """Parse a sala-de-prensa detail page into a normalised dict."""
