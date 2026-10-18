@@ -348,6 +348,9 @@ segments_mismatch, files_{pending,done,failed}, oldest_item`. JSON(상세 포함
 `gate_wait_avg_s`, `response_avg_s`, `crawl_delay_s`를 낸다. 예: 요청당 11초인 사이트에서 `gate_wait_avg_s`≈10,
 `crawl_delay_s`=10이면 Crawl-delay 때문이고, `response_avg_s`가 크면 사이트 응답이 느린 것이다.
 
+robots 감사: robots.txt 를 읽을 때마다 `robots_checked` 이벤트 1건(`origin`, 마지막 응답의 `url`·`status`·`content_type`·`bytes`,
+`verdict` = `rules`·`allow_all`·`unparseable`·`too_slow`·`blocked:<사유>`·`robots_unavailable:<사유>`; 파일 패스는 `scope: file_pass`). 본문은 남기지 않는다.
+
 ## 12. 알려진 한계
 
 * 날짜 구간 분할은 날짜 필터에 걸리지 않는 항목(날짜 없음)이나 경계일 항목을 놓칠 수 있다 → `overall_total_check`(range 필터+총건수 plan은 기본 켬)로 탐지만 한다.

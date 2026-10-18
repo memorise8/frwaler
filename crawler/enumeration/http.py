@@ -578,6 +578,8 @@ class Fetcher:
         self._host_delay = {}
         self._robots = {}
         self._robots_failed = {}  # origin -> (retry_after monotonic, reason)
+        self.robots_log = []  # one entry per robots.txt read: what came back and how it was read
+        self._robots_seen = None
         self._timing = {}  # host -> aggregated request timing (diagnostics)
         self._slow = []    # slowest requests (at most SLOW_SAMPLES)
 
@@ -718,13 +720,20 @@ class Fetcher:
             failed = self._robots_failed.get(origin)
             if failed and self.clock() < failed[0]:
                 raise RobotsUnavailable(failed[1], url)
+            self._robots_seen = None
             try:
                 self._robots[origin] = self._load_robots(origin)
             except (TransientFailure, PermanentFailure) as exc:
                 # PermanentFailure here is body_too_large: no readable file, no permission.
                 reason = f"robots_unavailable:{exc.reason}"
                 self._robots_failed[origin] = (self.clock() + ROBOTS_RETRY_S, reason)
+                self._log_robots(origin, reason)
                 raise RobotsUnavailable(reason, url, exc.status) from None
+            except AccessBlocked as exc:
+                self._log_robots(origin, f"blocked:{exc.reason}")
+                raise
+            rule = self._robots[origin]
+            self._log_robots(origin, rule if isinstance(rule, str) else "rules")
             self._robots_failed.pop(origin, None)
         rule = self._robots[origin]
         if rule == "too_slow":
@@ -733,6 +742,12 @@ class Fetcher:
             # Never read a file we could not parse as permission.
             raise self._block("robots_unparseable", url, host_wide=False)
         return True if rule == "allow_all" else rule.allows(url, self.user_agent)
+
+    def _log_robots(self, origin, verdict):
+        """Audit trail (enum_event robots_checked, written by the runner): status, type and size of
+        the response read as robots.txt, and the verdict. No body is kept."""
+        seen = self._robots_seen or {}
+        self.robots_log.append({"origin": origin, "verdict": verdict, **seen})
 
     def _load_robots(self, origin):
         """404/410 and other 4xx: no rules. 401/403/407/451, a challenge/login page or a
@@ -755,6 +770,8 @@ class Fetcher:
             break
         else:
             raise self._block("robots_redirect_loop", url)
+        self._robots_seen = {"url": url, "status": resp.status, "content_type": resp.content_type,
+                             "bytes": len(resp.body or b"")}
         if resp.status in (401, 403, 407, 451):
             raise self._block(f"robots_{resp.status}", url, resp.status)
         if not 200 <= resp.status < 300:
