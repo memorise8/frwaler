@@ -1,0 +1,18 @@
+{
+  "site_id": "biblio-naturalsciences-be-rbins-publications",
+  "listing_body": "<html><body><div class=\"biblio-datatable\"></div><div class=\"tileItem\"><span class=\"ref-authors\">Synthetic, A.; Author, B.</span> <span class=\"ref-year\">2031</span> <span class=\"ref-title\"><a href=\"https://biblio.naturalsciences.be/rbins-publications/journals/synthetic/articlereference.2031-02-13.1234567890\" class=\"summary url\">Synthetic article two</a></span> <span class=\"ref-source\">Synthetic Bulletin, 2: 1-10</span></div><div class=\"tileItem\"><span class=\"ref-authors\">Synthetic, A.; Author, B.</span> <span class=\"ref-year\">2030</span> <span class=\"ref-title\"><a href=\"https://biblio.naturalsciences.be/rbins-publications/journals/synthetic/synthetic_article_2030\" class=\"summary url\">Synthetic article one</a></span> <span class=\"ref-source\">Synthetic Bulletin, 1: 1-10</span></div></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://biblio.naturalsciences.be/rbins-publications/journals/synthetic/articlereference.2031-02-13.1234567890": "<html><head><meta name=\"DC.date.created\" content=\"2031-02-01T10:00:00\"></head><body><span class=\"Z3988\" title=\"rft.atitle=Synthetic%20article%20two&amp;rft.jtitle=Synthetic%20Bulletin&amp;rft.volume=2&amp;rft.pages=1-10&amp;rft.date=2031&amp;rft.genre=article\"></span><a href=\"articlereference.2031-02-13.1234567890/at_download/file.pdf\">pdf</a> doi 10.9999/synthetic.2</body></html>",
+    "https://biblio.naturalsciences.be/rbins-publications/journals/synthetic/synthetic_article_2030": "<html><head><meta name=\"DC.date.created\" content=\"2031-01-01T10:00:00\"></head><body><span class=\"Z3988\" title=\"rft.atitle=Synthetic%20article%20one&amp;rft.jtitle=Synthetic%20Bulletin&amp;rft.volume=1&amp;rft.pages=1-10&amp;rft.date=2030&amp;rft.genre=article\"></span><a href=\"synthetic_article_2030/at_download/file.pdf\">pdf</a> doi 10.9999/synthetic.1</body></html>"
+  },
+  "long_text": "Synthetic article",
+  "empty_body": "<html><body><div class=\"biblio-datatable\"></div></body></html>",
+  "original_method_source_sha256": {
+    "_curl_fetch": "eecf7167892583eb7fe56c7e611452c8fc99223b68782cdc1e0a748e07fc55d5",
+    "_parse_list_html": "0abcde8f4ca8cd29512520be1cbae4cb2d3e385cb4cd286cb7f8df1c54b0ad9d",
+    "_parse_detail": "685234f013f1da3271e4181fe282880296d042ddad383737079700e56856db90",
+    "_build_abstract": "65592357147260af92f1e42faddd3991fb2e437612d19d86f364911e83450f0d",
+    "crawl": "17bfe3e99529cd88bf9797e9497eacec1805bcb9a9b6aa88f4df8a50954df754"
+  }
+}

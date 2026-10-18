@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "sites": {
+    "biblio-naturalsciences-be-rbins-publications": {
+      "strategy": "last_page_backward",
+      "base_url": "https://biblio.naturalsciences.be",
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://biblio.naturalsciences.be/rbins-publications/search-references/@@faceted_query",
+        "page_param": "b_start:int",
+        "page_mode": "offset",
+        "page_size": 250,
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "url_field": "url",
+          "key_field": "slug",
+          "title_field": "title",
+          "listing_marker": ".biblio-datatable"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      },
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1
+    }
+  }
+}

@@ -428,3 +428,108 @@ class RBINSPublicationsCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (L3b-20261018). crawl() and the existing
+    # methods are unchanged; these methods only parse already fetched HTML.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url=None):
+        """Reference rows of one @@faceted_query answer (b_start:int=N, 250
+        rows), parsed with _parse_list_html as crawl() does. An answer
+        without rows is an empty list, judged by the plan's listing_marker."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html", url)
+        rows, seen = [], set()
+        for entry in self._parse_list_html(html):
+            if entry["url"] in seen:
+                continue
+            seen.add(entry["url"])
+            rows.append(dict(entry, slug=entry["url"].rstrip("/").split("/")[-1]))
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Paper from a fetched reference page — the detail/conversion part of
+        crawl() copied verbatim (external_id = URL slug, post_number = its
+        trailing number)."""
+        entry = item
+        url = entry["url"]
+        if html:
+            detail = self._parse_detail(html, url)
+        else:
+            detail = {"z3988": {}, "pdf_url": None,
+                      "listed_date": None, "doi": ""}
+
+        z3988 = detail["z3988"]
+        pdf_url = detail["pdf_url"]
+        listed_date = detail["listed_date"]
+        doi = detail.get("doi") or ""
+
+        abstract = self._build_abstract(
+            entry["title"], entry["authors"], entry["year"],
+            entry["source"], z3988,
+        )
+        if len(abstract) < 50:
+            return None
+
+        slug = url.rstrip("/").split("/")[-1]
+        external_id = slug
+        num_m = re.search(r"\.(\d+)$", slug)
+        post_number = num_m.group(1) if num_m else None
+
+        year_val = entry.get("year") or z3988.get("rft.date") or ""
+        if re.match(r"^\d{4}$", str(year_val).strip()):
+            published_date = f"{year_val}-01-01"
+        else:
+            published_date = str(year_val).strip() or None
+
+        journal = (
+            z3988.get("rft.jtitle") or z3988.get("rft.title")
+            or entry.get("source", "").split(",")[0].strip()
+        )
+        authors = entry.get("authors") or z3988.get("rft.au") or ""
+
+        original_filename = None
+        if pdf_url:
+            fname = pdf_url.split("/")[-1].split("?")[0].split("#")[0]
+            if fname and "." in fname:
+                original_filename = fname
+
+        volume = z3988.get("rft.volume") or ""
+        issue = z3988.get("rft.part") or ""
+        pages = z3988.get("rft.pages") or ""
+        genre = z3988.get("rft.genre") or "article"
+
+        metadata = json.dumps({
+            "posted_date": listed_date,
+            "originalFilename": original_filename,
+            "journal_raw": entry.get("source", ""),
+            "series": "",
+            "volume": volume,
+            "issue": issue,
+            "pages": pages,
+            "genre": genre,
+            "slug": slug,
+        }, ensure_ascii=False)
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": post_number,
+            "title": entry["title"],
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "posted_date": listed_date,
+            "url": url,
+            "pdf_url": pdf_url,
+            "authors": authors,
+            "publisher": "Royal Belgian Institute of Natural Sciences",
+            "journal": journal,
+            "keywords": "",
+            "category": genre,
+            "doi": doi,
+            "original_filename": original_filename,
+            "metadata": metadata,
+        }
