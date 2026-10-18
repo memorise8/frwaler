@@ -277,6 +277,30 @@ class CancerFrPresseCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Enumeration (pure conversions for the enumeration framework)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """List rows exactly as crawl() collects them from one press list page.
+
+        A response without the press listing block (error/maintenance page) is a
+        listing parse error, never an empty page. Past the last page the site
+        re-serves the last page (clamp), which the framework detects itself.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _make_soup(html)
+        if soup is None or soup.select_one("div.list-articles") is None:
+            raise PermanentFailure("listing_parse_error:missing_press_listing")
+        urls, _ = self._parse_list_page(html, 0)
+        return [{"url": url} for url in urls]
+
+    def _enumeration_paper(self, html, url):
+        """Same paper (or None for skipped items) that crawl() saves for this detail URL."""
+        return self._parse_detail(html, url)
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
