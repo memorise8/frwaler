@@ -333,3 +333,12 @@ class NidcdNihGovNewsCrawler(BaseCrawler):
             "department": "NIDCD",
             "metadata": json.dumps({"source": "nidcd-news", "page": item["page"]}),
         }
+
+    def _enumeration_items_own_host(self, html, url):
+        """ND-2 scope (user-delegated 10-19): crawl()'s rows whose article lives on this
+        site's own host. Rows linking to other hosts (www.nih.gov, nihrecord, newsinhealth,
+        medlineplus, enttoday, ...) are left out: their detail pages are outside this site."""
+        from urllib.parse import urlsplit
+        own = urlsplit(self.base_url).netloc.lower()
+        return [row for row in self._enumeration_items(html, url)
+                if urlsplit(row["url"]).netloc.lower() == own]
