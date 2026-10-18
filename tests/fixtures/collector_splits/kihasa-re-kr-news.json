@@ -1,0 +1,24 @@
+{
+  "site_id": "kihasa-re-kr-news",
+  "listing_body": "<html><body><div id=\"__nuxt\"><div class=\"el-table board notice list\"></div></div><script>window.__NUXT__=(function(a,b){return {layout:\"page\",data:[{pagination:{totalCount:2,totalPage:1,currentPage:1},body:[{seq:101,title:\"Offline 101\",regId:b,regDate:1790812800000,hitCnt:1,rnum:2},{seq:102,title:\"Offline 102\",regId:b,regDate:1790899200000,hitCnt:1,rnum:1}]}],fetch:[],error:b}}(1,null));</script></body></html>",
+  "content_type": "text/html",
+  "details": {
+    "https://www.kihasa.re.kr/news/press/view?seq=101": "<html><body><div id=\"__nuxt\"><div class=\"el-table board notice list\"></div></div><script>window.__NUXT__=(function(a,b){return {layout:\"page\",data:[{content:{seq:101,title:\"Offline 101 \\u003C보도\\u003E\",regId:b,regDate:1790812800000,contents:\"\\u003Cp\\u003ESynthetic press résumé and Korean 보도 자료 for offline equality testing only. Synthetic press résumé and Korean 보도 자료 for offline equality testing only. \\u003C\\u002Fp\\u003E\",files:[{fileSeq:1010,fileName:\"r.pdf\"}]}}],fetch:[],error:b}}(1,null));</script></body></html>",
+    "https://www.kihasa.re.kr/news/press/view?seq=102": "<html><body><div id=\"__nuxt\"><div class=\"el-table board notice list\"></div></div><script>window.__NUXT__=(function(a,b){return {layout:\"page\",data:[{content:{seq:102,title:\"Offline 102 \\u003C보도\\u003E\",regId:b,regDate:1790899200000,contents:\"\\u003Cp\\u003ESynthetic press résumé and Korean 보도 자료 for offline equality testing only. Synthetic press résumé and Korean 보도 자료 for offline equality testing only. \\u003C\\u002Fp\\u003E\",files:[{fileSeq:1020,fileName:\"r.pdf\"}]}}],fetch:[],error:b}}(1,null));</script></body></html>"
+  },
+  "long_text": "Synthetic press résumé and Korean 보도 자료 for offline equality testing only. Synthetic press résumé and Korean 보도 자료 for offline equality testing only. ",
+  "empty_body": "<html><body><div id=\"__nuxt\"><div class=\"el-table board notice list\"></div></div><script>window.__NUXT__=(function(a,b){return {layout:\"page\",data:[{pagination:{totalCount:0,totalPage:0,currentPage:0},body:[]}],fetch:[],error:b}}(1,null));</script></body></html>",
+  "original_method_source_sha256": {
+    "crawl": "ecc1f6964349c474375224dd7254c05e276c8a795da29f0087deb5f4ebcc99d6",
+    "_curl_get": "8043a5acbbb5626e45270014e2fefd208488f69b0bfab3e1d155c9bd72f0d675",
+    "_nuxt_state": "e031352e25492bb3b73c917441832e3735755be62189bc64d3eeea0e804e7761",
+    "_extract_int": "b4c6d15792b25ddd213da67cb0ea68ce6b271bcf4696a1ad7c7e32ab9d86b2a5",
+    "_parse_list_seqs": "8d38a2a95da79abd9db8a8946ba6436e7f86df6f5708f30ba7bd5aab44d1d84f",
+    "_extract_js_string": "53b5adf0b8be44c1c921feaa63b5d406d7ef6ddfe1a55ee9a895191534a7a6bd",
+    "_decode_js_str": "de73f1ade2fde9c5d23ff63ae899a8334724f1ae85ad945afc99fae384f4590a",
+    "_make_soup": "0df218d4169c4376e2e78018cf47255b3eb0e5518a21ddb320b03ab6d7f9d608",
+    "_build_paper": "54e9ed422e45f63867a1e4daff8dd59edbb61e26f89d90f0f0ed73f3c770b531",
+    "_budget_exhausted": "a4eae935e22d3018c8c652432d8bcb94d33fe943975db7f45a1d6cbbbee18c7d",
+    "_ms_to_date": "e728da3dc2ed24e35f98b0b24a875edc6af72b0632d16d921e49a63229b9f4ce"
+  }
+}

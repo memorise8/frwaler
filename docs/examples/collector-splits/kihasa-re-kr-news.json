@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "sites": {
+    "kihasa-re-kr-news": {
+      "strategy": "last_page_backward",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "base_url": "https://www.kihasa.re.kr",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "html",
+          "url"
+        ],
+        "detail_method": "_enumeration_paper",
+        "detail_args": [
+          "html",
+          "item"
+        ]
+      },
+      "listing": {
+        "url": "https://www.kihasa.re.kr/news/press/list",
+        "params": {
+          "page": 1
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "seq",
+          "url_field": "detail_url",
+          "listing_marker": "div.el-table.board"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}
