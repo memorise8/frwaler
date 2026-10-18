@@ -1,0 +1,140 @@
+{
+ "site_id": "data-gouv-fr-organizations",
+ "content_type": "application/json",
+ "listing_body": "{\"data\": [{\"id\": \"aaaaaaaaaaaaaaaaaaaa0001\", \"slug\": \"jeu-synthetique-un\", \"title\": \"Jeu synthétique 1\", \"acronym\": null, \"uri\": \"https://www.data.gouv.fr/api/1/datasets/jeu-synthetique-un/\", \"page\": \"https://www.data.gouv.fr/datasets/jeu-synthetique-un\", \"description\": \"Jeu de données synthétique du Cerema pour un test hors ligne : description longue en français, avec accents (é, è, à) et 자료 coréen, répétée pour dépasser le seuil minimal du résumé.\", \"description_short\": \"Jeu de données synthétique du Cerema pour un test hors ligne\", \"created_at\": \"2019-03-04T10:00:00+00:00\", \"last_update\": \"2025-01-02T00:00:00+00:00\", \"last_modified\": \"2025-01-02T00:00:00+00:00\", \"frequency\": \"unknown\", \"license\": \"lov2\", \"tags\": [\"littoral\", \"synthetique\"], \"organization\": {\"id\": \"5c812a16634f416583ed1876\", \"name\": \"Cerema\", \"slug\": \"cerema\", \"acronym\": null}, \"owner\": null, \"contact_points\": [{\"name\": \"Contact synthétique\"}], \"resources\": [{\"title\": \"rapport.pdf\", \"format\": \"pdf\", \"mime\": \"application/pdf\", \"url\": \"https://www.data.gouv.fr/fichiers/jeu-synthetique-un/rapport.pdf\", \"filesize\": 1234}, {\"title\": \"donnees.csv\", \"format\": \"csv\", \"url\": \"https://www.data.gouv.fr/fichiers/jeu-synthetique-un/donnees.csv\"}], \"extras\": {}, \"topics\": [], \"spatial\": null, \"temporal_coverage\": null, \"quality\": {\"score\": 0.5}, \"metrics\": {\"views\": 1}}, {\"id\": \"aaaaaaaaaaaaaaaaaaaa0002\", \"slug\": \"jeu-synthetique-deux\", \"title\": \"Jeu synthétique 2\", \"acronym\": null, \"uri\": \"https://www.data.gouv.fr/api/1/datasets/jeu-synthetique-deux/\", \"page\": \"https://www.data.gouv.fr/datasets/jeu-synthetique-deux\", \"description\": \"Jeu de données synthétique du Cerema pour un test hors ligne : description longue en français, avec accents (é, è, à) et 자료 coréen, répétée pour dépasser le seuil minimal du résumé.\", \"description_short\": \"Jeu de données synthétique du Cerema pour un test hors ligne\", \"created_at\": \"2021-06-07T08:30:00+00:00\", \"last_update\": \"2026-02-03T00:00:00+00:00\", \"last_modified\": \"2026-02-03T00:00:00+00:00\", \"frequency\": \"unknown\", \"license\": \"lov2\", \"tags\": [\"littoral\", \"synthetique\"], \"organization\": {\"id\": \"5c812a16634f416583ed1876\", \"name\": \"Cerema\", \"slug\": \"cerema\", \"acronym\": null}, \"owner\": null, \"contact_points\": [{\"name\": \"Contact synthétique\"}], \"resources\": [{\"title\": \"rapport.pdf\", \"format\": \"pdf\", \"mime\": \"application/pdf\", \"url\": \"https://www.data.gouv.fr/fichiers/jeu-synthetique-deux/rapport.pdf\", \"filesize\": 1234}, {\"title\": \"donnees.csv\", \"format\": \"csv\", \"url\": \"https://www.data.gouv.fr/fichiers/jeu-synthetique-deux/donnees.csv\"}], \"extras\": {}, \"topics\": [], \"spatial\": null, \"temporal_coverage\": null, \"quality\": {\"score\": 0.5}, \"metrics\": {\"views\": 1}}], \"page\": 1, \"page_size\": 20, \"total\": 2, \"next_page\": null, \"previous_page\": null}",
+ "empty_body": "{\"data\": [], \"page\": 2, \"page_size\": 20, \"total\": 2, \"next_page\": null, \"previous_page\": null}",
+ "details": {
+  "https://www.data.gouv.fr/api/1/datasets/jeu-synthetique-un/": {
+   "id": "aaaaaaaaaaaaaaaaaaaa0001",
+   "slug": "jeu-synthetique-un",
+   "title": "Jeu synthétique 1",
+   "acronym": null,
+   "uri": "https://www.data.gouv.fr/api/1/datasets/jeu-synthetique-un/",
+   "page": "https://www.data.gouv.fr/datasets/jeu-synthetique-un",
+   "description": "Jeu de données synthétique du Cerema pour un test hors ligne : description longue en français, avec accents (é, è, à) et 자료 coréen, répétée pour dépasser le seuil minimal du résumé. (détail)",
+   "description_short": "Jeu de données synthétique du Cerema pour un test hors ligne",
+   "created_at": "2019-03-04T10:00:00+00:00",
+   "last_update": "2025-01-02T00:00:00+00:00",
+   "last_modified": "2025-01-02T00:00:00+00:00",
+   "frequency": "unknown",
+   "license": "lov2",
+   "tags": [
+    "littoral",
+    "synthetique"
+   ],
+   "organization": {
+    "id": "5c812a16634f416583ed1876",
+    "name": "Cerema",
+    "slug": "cerema",
+    "acronym": null
+   },
+   "owner": null,
+   "contact_points": [
+    {
+     "name": "Contact synthétique"
+    }
+   ],
+   "resources": [
+    {
+     "title": "rapport.pdf",
+     "format": "pdf",
+     "mime": "application/pdf",
+     "url": "https://www.data.gouv.fr/fichiers/jeu-synthetique-un/rapport.pdf",
+     "filesize": 1234
+    },
+    {
+     "title": "donnees.csv",
+     "format": "csv",
+     "url": "https://www.data.gouv.fr/fichiers/jeu-synthetique-un/donnees.csv"
+    }
+   ],
+   "extras": {},
+   "topics": [],
+   "spatial": null,
+   "temporal_coverage": null,
+   "quality": {
+    "score": 0.5
+   },
+   "metrics": {
+    "views": 1
+   }
+  },
+  "https://www.data.gouv.fr/api/1/datasets/jeu-synthetique-deux/": {
+   "id": "aaaaaaaaaaaaaaaaaaaa0002",
+   "slug": "jeu-synthetique-deux",
+   "title": "Jeu synthétique 2",
+   "acronym": null,
+   "uri": "https://www.data.gouv.fr/api/1/datasets/jeu-synthetique-deux/",
+   "page": "https://www.data.gouv.fr/datasets/jeu-synthetique-deux",
+   "description": "Jeu de données synthétique du Cerema pour un test hors ligne : description longue en français, avec accents (é, è, à) et 자료 coréen, répétée pour dépasser le seuil minimal du résumé. (détail)",
+   "description_short": "Jeu de données synthétique du Cerema pour un test hors ligne",
+   "created_at": "2021-06-07T08:30:00+00:00",
+   "last_update": "2026-02-03T00:00:00+00:00",
+   "last_modified": "2026-02-03T00:00:00+00:00",
+   "frequency": "unknown",
+   "license": "lov2",
+   "tags": [
+    "littoral",
+    "synthetique"
+   ],
+   "organization": {
+    "id": "5c812a16634f416583ed1876",
+    "name": "Cerema",
+    "slug": "cerema",
+    "acronym": null
+   },
+   "owner": null,
+   "contact_points": [
+    {
+     "name": "Contact synthétique"
+    }
+   ],
+   "resources": [
+    {
+     "title": "rapport.pdf",
+     "format": "pdf",
+     "mime": "application/pdf",
+     "url": "https://www.data.gouv.fr/fichiers/jeu-synthetique-deux/rapport.pdf",
+     "filesize": 1234
+    },
+    {
+     "title": "donnees.csv",
+     "format": "csv",
+     "url": "https://www.data.gouv.fr/fichiers/jeu-synthetique-deux/donnees.csv"
+    }
+   ],
+   "extras": {},
+   "topics": [],
+   "spatial": null,
+   "temporal_coverage": null,
+   "quality": {
+    "score": 0.5
+   },
+   "metrics": {
+    "views": 1
+   }
+  }
+ },
+ "long_text": "Jeu de données synthétique du Cerema pour un test hors ligne : description longue en français, avec accents (é, è, à) et 자료 coréen, répétée pour dépasser le seuil minimal du résumé.",
+ "original_method_source_sha256": {
+  "_curl_get": "8c4ff7cfce3d1d4844ae1d2010d949c2976dda9be94b73142f526383d2554452",
+  "_curl_json": "bda5a9536df2bcbad905a9127dd5078a714484537afecb653059dbeef0a29eee",
+  "_make_soup": "510abe81e4be92a2c1d07b261b6634d89fa97ee919b21f79b007bd929f6549fb",
+  "_clean_text": "6e51cb39e90729c89965b31ec30f0d945600d6f1c58127e5cc6739728199cbb4",
+  "_date_only": "64b2502a64948b5912713b3f371988e7015387ec50e7558de19e8e045adb76be",
+  "_join_unique": "ff7c36a8ec70548f94b437777dc6fc7df9b0d1e3e521dfd27894137129affc63",
+  "_resource_format": "e41ac14a5d8c1ae63074403c7e37cb800989b5e48aacbf67b5d176ea8689c737",
+  "_is_pdf_resource": "2a291b4d6c913fd4dd88a1fc0fc2fc0cdd4fb8ef0f1a12c8bf3ab3ed40d66f2f",
+  "_pick_pdf_resource": "bfe85882e4dbf95b5d2521bfcddb111b127f3b83a7fab5fd991a2718afb67bcc",
+  "_filename_from_url": "18779afe21e6f243491e4bff370a70557a21eab867a49aef49f691bddf51526e",
+  "_resource_filename": "69646304c511d42d21ad5de286d1e1dde4b965f0622f880ed3e6d9383660c4cd",
+  "_topic_values": "cd764c4d191fc2f8ce0a3c1ab8826930a1a5eb87dc99387e04bfc27e6563213b",
+  "_contact_names": "ef42c9bf7edb55fbe937874b01704d31b12be0cf73027ff093bdd1785d9a1bbe",
+  "_list_url": "ad77c5586ce2bdb9bfa32fddfdd2e6b6239fb8e39b642323076903a0e05a726b",
+  "_api_page": "b3d38a9673116e3d984c74d2a160f86cac0f0dfe1bcd339a984e469a3e41df91",
+  "_detail_url": "87dfc1b50a02f2041a901930bbafad0ef27ba052fab182b7d535889c31c3bef7",
+  "_fetch_detail": "4e8c11a39c99ad6f961fbc8dc0bf7041dd31b64cdeb3239f03287874d3455aaa",
+  "_build_record": "9df0a57d212bf69e451677622bc4cb97d93c8f83bb88b06fe3cd156fd3b830ba",
+  "crawl": "84b978208036c91d799b5397cd7302648f52cbc80dc363221938d643e93e352d"
+ }
+}

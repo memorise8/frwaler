@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "sites": {
+    "data-gouv-fr-organizations": {
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "verify_ssl": true,
+      "strategy": "last_page_backward",
+      "base_url": "https://www.data.gouv.fr",
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": [
+          "json"
+        ],
+        "detail_method": "_enumeration_detail",
+        "detail_args": [
+          "json"
+        ],
+        "paper_method": "_enumeration_paper",
+        "paper_args": [
+          "item",
+          "detail"
+        ]
+      },
+      "listing": {
+        "url": "https://www.data.gouv.fr/api/2/datasets/search/",
+        "params": {
+          "organization": "5c812a16634f416583ed1876",
+          "page": 1,
+          "page_size": 20,
+          "lang": "fr",
+          "sort": "created"
+        },
+        "page_param": "page",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "url_field": "_enumeration_detail_url",
+          "key_field": "id",
+          "date_field": "created_at",
+          "title_field": "title"
+        }
+      },
+      "last_page": {
+        "overlap_pages": 1
+      }
+    }
+  }
+}

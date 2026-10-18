@@ -483,3 +483,41 @@ class DataGouvFrOrganizationsCrawler(BaseCrawler):
             page += 1
 
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration conversion (no network; crawl() is unchanged)
+    # ------------------------------------------------------------------
+
+    _ENUMERATION_DETAIL_KEY = "_enumeration_detail_url"
+
+    def _enumeration_items(self, data):
+        """API search page (parsed JSON) -> list items, each with crawl()'s detail URL.
+
+        Non-listing responses are listing parse errors, never an empty page.
+        """
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("data"), list) or "page" not in data:
+            raise PermanentFailure("listing_parse_error:not_a_dataset_search_page")
+        rows = []
+        for item in data["data"]:
+            if not isinstance(item, dict):
+                continue
+            item_url = str(item.get("page") or item.get("uri") or item.get("slug") or item.get("id") or "")
+            detail_url = self._detail_url(item)
+            if not item_url or not detail_url:
+                continue
+            row = dict(item)
+            row[self._ENUMERATION_DETAIL_KEY] = detail_url
+            rows.append(row)
+        return rows
+
+    def _enumeration_detail(self, data):
+        """Detail API JSON -> dict, or None exactly where crawl()'s _curl_json gives up."""
+        if not isinstance(data, dict) or not data:
+            return None
+        return data
+
+    def _enumeration_paper(self, item, detail):
+        """crawl()'s record conversion (_build_record) on the original list item."""
+        list_item = {k: v for k, v in item.items() if k != self._ENUMERATION_DETAIL_KEY}
+        return self._build_record(list_item, detail)
