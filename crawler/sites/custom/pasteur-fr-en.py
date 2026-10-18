@@ -765,35 +765,40 @@ class PasteurFrEnCrawler(BaseCrawler):
                         return candidate
         return {}
 
-    def _enumeration_paper(self, html, item):
-        """Paper from a new-site detail page: the original _parse_detail() fields,
-        the NewsArticle articleBody as abstract when the old body selector is gone,
-        and the identity rule above."""
+    def _enumeration_paper(self, html, url):
+        """Paper from a new-site detail page and its final URL only (no listing
+        fields), so the identity can be recomputed from a registered meta_url:
+        the old URL 301-redirects to the new page, whose path is looked up in
+        the table. Fields: the original _parse_detail(), the NewsArticle
+        articleBody as abstract when the old body selector is gone, and the
+        identity rule above."""
         from crawler.enumeration.http import PermanentFailure
         if not html:
             return None
         soup = self._make_soup(html, context="enumeration detail")
         if soup is None:
             return None
-        record = {k: item.get(k) for k in ("title", "url", "listed_date", "listed_date_raw", "category")}
-        parsed = self._parse_detail(soup, html, record, item["url"])
+        current_url = (url or "").split("#")[0]
+        parsed = self._parse_detail(soup, html, {"url": current_url}, current_url)
         has_old_body = bool(soup.select_one(".article__content .body") or soup.select_one("article .body"))
+        article = self._news_article_jsonld(soup)
         if not has_old_body:
             # Redesigned page: the full text is only in the NewsArticle JSON-LD
             # (the original order body text -> articleBody -> og:description
             # would otherwise fall through to the short og:description).
-            article = self._news_article_jsonld(soup)
             body = self._clean_text(article.get("articleBody"))
             if body:
                 parsed["abstract"] = body
-            if not parsed.get("published_date"):
-                parsed["published_date"] = self._parse_date(article.get("datePublished"))
+        if not parsed.get("published_date"):
+            parsed["published_date"] = self._parse_date(article.get("datePublished"))
+        if not parsed.get("listed_date"):
+            parsed["listed_date"] = parsed.get("published_date")
         if len(parsed.get("abstract") or "") < self.MIN_ABSTRACT_CHARS:
             return None
 
         match = re.search(r'"currentPath"\s*:\s*"node\\?/(\d+)"', html)
         new_node_id = match.group(1) if match else ""
-        current_url = item["url"]
+        new_address = current_url.split("?")[0]
         mapped = self._node_map().get(self._path_key(current_url))
         if mapped:
             post_number, meta_url = mapped
@@ -801,15 +806,15 @@ class PasteurFrEnCrawler(BaseCrawler):
         else:
             if not new_node_id:
                 raise PermanentFailure("detail_parse_error:new_node_id_missing", current_url)
-            post_number, meta_url = "n" + new_node_id, current_url
+            post_number, meta_url = "n" + new_node_id, new_address
             identity_source = "new_site_node_id"
         parsed["external_id"] = post_number
         parsed["post_number"] = post_number
         parsed["id"] = f"{self.site_id}:{post_number}"
         parsed["url"] = meta_url
         metadata = dict(parsed.get("metadata") or {})
-        metadata.update({"current_url": current_url, "new_node_id": new_node_id or None,
+        metadata.update({"current_url": new_address, "new_node_id": new_node_id or None,
                          "identity_source": identity_source, "post_number": post_number,
-                         "node_id": post_number if mapped else None})
+                         "node_id": post_number if mapped else None, "list_record": None})
         parsed["metadata"] = metadata
         return self._paper_from_parsed(parsed)

@@ -90,6 +90,17 @@ class PasteurNewSite(unittest.TestCase):
         fetch = lambda url: Response(200, {'Content-Type': 'text/html'}, detail(node_id, body=body), url)
         return adapter.materialize(page.items[0], type('F', (), {'get': staticmethod(fetch)})())
 
+    def redirecting_fetcher(self, node_id, query=''):
+        """Old registered URL -> 301 -> new page: the fetcher returns the final response
+        (Fetcher.get follows redirects hop by hop; Response.url is the final URL)."""
+        old_to_new = {old: NEW + slug + query for _, old, slug in MAPPED}
+        calls = []
+        def get(url):
+            calls.append(url)
+            final = old_to_new.get(url, url)
+            return Response(200, {'Content-Type': 'text/html'}, detail(node_id), final)
+        return type('F', (), {'get': staticmethod(get)})(), calls
+
     # 1
     def test_mapped_page_keeps_old_node_id(self):
         paper = self.through_plan(MAPPED[0][2], '3001')
@@ -145,7 +156,7 @@ class PasteurNewSite(unittest.TestCase):
                 with self.subTest(case=name), patch.object(cls, 'NODE_MAP_FILE', path):
                     cls._node_map_cache = None
                     with self.assertRaises(PermanentFailure):
-                        self.crawler._enumeration_paper(detail('3001'), {'url': NEW + MAPPED[0][2], 'title': 't'})
+                        self.crawler._enumeration_paper(detail('3001'), NEW + MAPPED[0][2])
         cls._node_map_cache = None
 
     # 8
@@ -156,6 +167,20 @@ class PasteurNewSite(unittest.TestCase):
                   for n in cls.body if isinstance(n, ast.FunctionDef)}
         for name, digest in ORIGINAL_METHOD_SHA256.items():
             self.assertEqual(digest, actual[name], name)
+
+    # 10 (trial 20261018-tpasteur: identity must be computable from the registered URL alone)
+    def test_identity_from_registered_url_only_equals_operations_db(self):
+        from crawler.enumeration.parsing import Item
+        p, adapter = self.adapter()
+        self.assertFalse(adapter.identity_uses_list_fields())
+        for old_id, old_url, slug in MAPPED:
+            with self.subTest(old_id=old_id):
+                query = '?language=fr' if '?' in old_url else ''
+                fetcher, calls = self.redirecting_fetcher('3100', query)
+                ident = adapter.identity(Item(key=old_url, url=old_url), fetcher)
+                self.assertEqual([old_url], calls)
+                self.assertEqual((old_id, old_url), ident)
+                self.assertEqual(old_url.encode('utf-8'), ident[1].encode('utf-8'))
 
     # 9
     def test_body_from_article_json_and_short_body_skip_and_end_page(self):
