@@ -353,3 +353,134 @@ class FiSeEnCrawler(BaseCrawler):
 
         print(f"[fi-se-en] done: saved {saved} records total")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration contract (ND-1, 2026-10-19). crawl() is unchanged.
+    # The ?year= pages show only the newest 10 items up to that year, so the plan
+    # pages through the JSON endpoint the list page's own "load more" uses:
+    # /en/published/reports/reports/loadmore?page=N (10 items per page).
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _enumeration_clean(value) -> str:
+        return re.sub(r"\s+", " ", str(value or "")).strip()
+
+    def _enumeration_items(self, data, url=None) -> list[dict]:
+        """One loadmore page -> the list rows _fetch_year_items builds from the HTML
+        (same title/url/listed_date/intro/categories/external_id; the HTML and JSON carry
+        the same values, including the '?language=en' item URL). year_filter is the
+        item's own year (crawl() records the year page where it first saw the item)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("items"), list):
+            raise PermanentFailure("listing_parse_error:not_a_loadmore_response", url)
+        rows = []
+        for it in data["items"]:
+            if not isinstance(it, dict) or it.get("typ") != "item":
+                continue
+            href = (it.get("url") or "").strip()
+            title = self._enumeration_clean(it.get("title"))
+            if not href or not title:
+                continue
+            detail_url = urljoin(self.base_url, href)
+            m = re.search(r"/reports/reports/(\d{4})/([^/]+)/?$", href)
+            if m:
+                external_id = f"{m.group(1)}/{m.group(2)}"
+            else:
+                parts = [p for p in urlparse(detail_url).path.split("/") if p]
+                external_id = "/".join(parts[-2:]) if len(parts) >= 2 else parts[-1]
+            links = (it.get("topCategoryLinks") or {}).get(str(it.get("contentId"))) or []
+            cats = [self._enumeration_clean(c.get("Text")) for c in links
+                    if isinstance(c, dict) and self._enumeration_clean(c.get("Text"))]
+            rows.append({
+                "title": title,
+                "url": detail_url,
+                "listed_date": self._enumeration_clean(it.get("published")),
+                "intro": self._enumeration_clean(it.get("ingress")),
+                "categories": cats,
+                "external_id": external_id,
+                "year_filter": it.get("year"),
+            })
+        return rows
+
+    def _enumeration_detail(self, html) -> dict:
+        """_fetch_detail's parsing after the fetch, unchanged."""
+        if not html:
+            return {}
+        soup = _make_soup(html)
+        if soup is None:
+            return {}
+        result: dict = {}
+        editor = soup.find("div", class_="editor-content")
+        if editor:
+            result["body"] = _text(editor)
+        else:
+            paras = [_text(p) for p in soup.find_all("p") if len(_text(p)) > 30]
+            result["body"] = " ".join(paras[:12])
+        pdf_url = None
+        original_filename = None
+        fi_pdf = None
+        any_pdf = None
+        for a in soup.find_all("a", href=True):
+            h = a["href"]
+            if ".pdf" not in h.lower():
+                continue
+            full = h if h.startswith("http") else urljoin(self.base_url, h)
+            if any_pdf is None:
+                any_pdf = full
+            if "fi.se" in full and fi_pdf is None:
+                fi_pdf = full
+        pdf_url = fi_pdf or any_pdf
+        if pdf_url:
+            fname = urlparse(pdf_url).path.rstrip("/").split("/")[-1].split("?")[0]
+            if "." in fname:
+                original_filename = fname
+        result["pdf_url"] = pdf_url
+        result["original_filename"] = original_filename
+        return result
+
+    def _enumeration_paper(self, item, detail):
+        """crawl()'s paper assembly and short-abstract skip (None) for one row."""
+        url = item["url"]
+        body = detail.get("body", "") or ""
+        intro = item.get("intro", "") or ""
+        if len(body) >= 100:
+            abstract = body
+        elif body:
+            abstract = (intro + " " + body).strip()
+        else:
+            abstract = intro
+        if len(abstract) < 50:
+            return None
+        listed_date = item.get("listed_date", "")
+        categories = item.get("categories", [])
+        category = "; ".join(categories) if categories else ""
+        external_id = item["external_id"]
+        pdf_url = detail.get("pdf_url") or ""
+        original_filename = detail.get("original_filename")
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": external_id,
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": listed_date,
+            "listed_date": listed_date,
+            "posted_date": listed_date,
+            "url": url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "publisher": _PUBLISHER,
+            "department": "",
+            "journal": "",
+            "authors": "",
+            "category": category,
+            "keywords": "",
+            "doi": "",
+            "metadata": json.dumps({
+                "posted_date": listed_date,
+                "originalFilename": original_filename,
+                "categories": categories,
+                "intro": intro,
+                "year_filter": item.get("year_filter"),
+            }, ensure_ascii=False),
+        }
