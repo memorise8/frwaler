@@ -48,6 +48,9 @@ SHARED_POST_NUMBER = {"meri-belspo-be-site", "bmi-gv-at-114"}
 # pbocri-lnzy3 8/1, dhs-gov-publication 29/1, bmleh 26/17(direct_pdf 만 목록 주소 — 새 수집 26/17 과 같은 모양).
 SHARED_META_URL = {"garda-ie-en", "kefm-dk-aftaler", "csic-es-es", "um-dk-om-os", "justitsministeriet-dk-forskning",
                    "bmwkms-gv-at-themen", "pbocri-org-cn-lnzy3html", "dhs-gov-publication", "bmleh-de-en"}
+# review 를 구역 세션이 검토해 받아들인 사이트: 새 문서 목록 해시(new_sha)가 그때와 같을 때만 ready 로 본다.
+# em-lyon-com-en: 폴더 안 같은 meta_url 에 post_number 2개인 2행 제외한 채 845건(collect-sites 10-20, work/ND/decisions.csv).
+REVIEW_ACCEPTED = {"em-lyon-com-en": "f837027769dae5908f1bb9a3ff521f7682848d31d22bc0ac154da9a57bb7e6b9"}
 # 구역 세션 판정(dev-flow site-status/*.csv)이 이러면 자동 반영하지 않는다
 HOLD_STATES = {"needs_dev", "blocked_access", "moved", "no_crawler", "skip", "plan_written"}
 # 제품 sites 에 없는 enum 사이트 ID 는 crawler/sites/configs/<id>.json 의 별도 설정형 수집기다(납품 806곳 밖).
@@ -400,6 +403,9 @@ def plan_site(args, enum_site, product_site, how, sites):
     if rep["folders"] and all(TRIAL_TAG.search(f["folder"]) for f in rep["folders"]):
         rep["issues"].append("시험 수집 폴더만 있음 — 본 수집 뒤 가져오기")
     rep["decision"] = "ready" if not rep["issues"] else ("review" if c["new"] else "nothing_new")
+    if rep["decision"] == "review" and REVIEW_ACCEPTED.get(enum_site) == rep["new_sha"]:
+        rep["decision"] = "ready"
+        rep["issues"].append("검토 받아들임(REVIEW_ACCEPTED, 새 문서 목록 같음)")
     if not c["new"] and not rep["issues"]:
         rep["decision"] = "nothing_new"
     return rep, new
