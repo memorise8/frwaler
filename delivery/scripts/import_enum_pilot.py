@@ -41,6 +41,13 @@ SPECIAL_IDENTITY = {"krivet-re-kr", "kei-re-kr-eliblistes", "cso-ie-en"}
 # 틀 plan 의 adapter.allow_shared_post_number 와 짝: 같은 post_number·다른 meta_url 은 충돌이 아니라 다른 문서.
 # meri: 사용자 결정 10-18, bmi(PDF 폴더명 공유, fd914ae): 추천안·사용자 위임 10-19.
 SHARED_POST_NUMBER = {"meri-belspo-be-site", "bmi-gv-at-114"}
+# 등록 수집기가 목록·시작 쪽 주소를 모든 문서의 meta_url 로 넣는 사이트(한 meta_url 에 여러 post_number).
+# 운영 DB 기존 납품도 같은 모양임을 읽기 전용 집계로 확인한 곳만(사용자 결정 10-19: "기존 납품과 같은지 보고 결정").
+# 한 URL 의 여러 post_number 는 충돌이 아니라 다른 문서 — 식별은 post_number 로.
+# 10-19 운영 집계(문서/고유 meta_url): garda 94/1, kefm 101/1, csic 25/1, um-dk 24/1, justitsministeriet 24/1, bmwkms 41/2,
+# pbocri-lnzy3 8/1, dhs-gov-publication 29/1, bmleh 26/17(direct_pdf 만 목록 주소 — 새 수집 26/17 과 같은 모양).
+SHARED_META_URL = {"garda-ie-en", "kefm-dk-aftaler", "csic-es-es", "um-dk-om-os", "justitsministeriet-dk-forskning",
+                   "bmwkms-gv-at-themen", "pbocri-org-cn-lnzy3html", "dhs-gov-publication", "bmleh-de-en"}
 # 구역 세션 판정(dev-flow site-status/*.csv)이 이러면 자동 반영하지 않는다
 HOLD_STATES = {"needs_dev", "blocked_access", "moved", "no_crawler", "skip", "plan_written"}
 # 제품 sites 에 없는 enum 사이트 ID 는 crawler/sites/configs/<id>.json 의 별도 설정형 수집기다(납품 806곳 밖).
@@ -341,7 +348,8 @@ def plan_site(args, enum_site, product_site, how, sites):
             stats["post_newest_pick"] = stats.get("post_newest_pick", 0) + 1
         else:
             source_conflict.add(p)
-    url_conflict_src = {u for u, ps in urls.items() if len(ps) > 1}
+    shared_url = product_site in SHARED_META_URL
+    url_conflict_src = set() if shared_url else {u for u, ps in urls.items() if len(ps) > 1}
     rep["merge_check"] = merge_check(args, rep["folders"], urlf)
     del urlf
     exact, by_post, by_url = target_keys(args.target, product_site)
@@ -362,7 +370,7 @@ def plan_site(args, enum_site, product_site, how, sites):
         elif post in by_post:
             # 공유 규칙 사이트: 대상에 같은 번호의 다른 주소가 이미 있음 — 새 판일 수도, 주소가 바뀐 같은 문서일 수도
             c["shared_post_new"] = c.get("shared_post_new", 0) + 1
-        elif url in by_url:
+        elif url in by_url and not shared_url:
             c["url_conflict"] += 1
         else:
             c["new"] += 1
