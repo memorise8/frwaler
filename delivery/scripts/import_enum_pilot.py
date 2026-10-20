@@ -47,7 +47,8 @@ SHARED_POST_NUMBER = {"meri-belspo-be-site", "bmi-gv-at-114"}
 # 10-19 운영 집계(문서/고유 meta_url): garda 94/1, kefm 101/1, csic 25/1, um-dk 24/1, justitsministeriet 24/1, bmwkms 41/2,
 # pbocri-lnzy3 8/1, dhs-gov-publication 29/1, bmleh 26/17(direct_pdf 만 목록 주소 — 새 수집 26/17 과 같은 모양).
 SHARED_META_URL = {"garda-ie-en", "kefm-dk-aftaler", "csic-es-es", "um-dk-om-os", "justitsministeriet-dk-forskning",
-                   "bmwkms-gv-at-themen", "pbocri-org-cn-lnzy3html", "dhs-gov-publication", "bmleh-de-en"}
+                   "bmwkms-gv-at-themen", "pbocri-org-cn-lnzy3html", "dhs-gov-publication", "bmleh-de-en",
+                   "stepi-re-kr-site"}  # stepi: 10-20 운영 570/202(최신분이 목록 주소 공유, 사용자 허용 집계)
 # review 를 구역 세션이 검토해 받아들인 사이트: 새 문서 목록 해시(new_sha)가 그때와 같을 때만 ready 로 본다.
 # em-lyon-com-en: 폴더 안 같은 meta_url 에 post_number 2개인 2행 제외한 채 845건(collect-sites 10-20, work/ND/decisions.csv).
 REVIEW_ACCEPTED = {"em-lyon-com-en": "f837027769dae5908f1bb9a3ff521f7682848d31d22bc0ac154da9a57bb7e6b9"}
