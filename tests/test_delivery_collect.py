@@ -339,6 +339,55 @@ class CollectRunnerNonRootTest(unittest.TestCase):
                 proc.terminate()
                 proc.wait(timeout=10)
 
+    @unittest.skipIf(os.geteuid() == 0, "needs a non-root uid")
+    def test_be_reaches_the_runner_over_its_unix_socket(self):
+        import socket
+        import subprocess
+        import time
+        from unittest import mock
+        from delivery.be import collect
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            port = probe.getsockname()[1]
+        with tempfile.TemporaryDirectory() as home:
+            with open(os.path.join(ROOT, "delivery", "collect-runner.config.json"), encoding="utf-8") as handle:
+                config = json.load(handle)
+            config.update({"port": port, "docker": "/bin/false"})
+            with open(os.path.join(home, "config.json"), "w", encoding="utf-8") as handle:
+                json.dump(config, handle)
+            sock_path = os.path.join(home, "sock", "runner.sock")
+            proc = subprocess.Popen([sys.executable, os.path.join(ROOT, "deploy", "collect-runner", "runner.py"), "serve"],
+                                    env=dict(os.environ, RUNNER_HOME=home, RUNNER_BIND="127.0.0.1",
+                                             RUNNER_SOCKET=sock_path, HOME="/tmp"),
+                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            try:
+                token_path = os.path.join(home, ".token")
+                for _ in range(50):
+                    if os.path.exists(sock_path) and os.path.exists(token_path):
+                        break
+                    time.sleep(0.1)
+                else:
+                    self.fail("runner socket did not appear")
+                self.assertEqual(os.stat(sock_path).st_mode & 0o777, 0o660)
+                token = open(token_path).read().strip()
+                env = {"COLLECT_RUNNER_SOCKET": sock_path, "COLLECT_RUNNER_TOKEN": token,
+                       "COLLECT_RUNNER_URL": "http://unreachable.invalid:1"}
+                with mock.patch.dict(os.environ, env):
+                    status, payload = collect.runner_call("GET", "/runner/health")
+                self.assertEqual(status, 200)
+                self.assertEqual(payload["running"], 0)
+                with mock.patch.dict(os.environ, dict(env, COLLECT_RUNNER_TOKEN="wrong")):
+                    with self.assertRaises(collect.RunnerError) as caught:
+                        collect.runner_call("GET", "/runner/health")
+                self.assertEqual(caught.exception.reason, "runner_auth_failed")
+                with mock.patch.dict(os.environ, dict(env, COLLECT_RUNNER_SOCKET=sock_path + ".missing")):
+                    with self.assertRaises(collect.RunnerError) as caught:
+                        collect.runner_call("GET", "/runner/health")
+                self.assertEqual(caught.exception.reason, "runner_unavailable")
+            finally:
+                proc.terminate()
+                proc.wait(timeout=10)
+
 
 if __name__ == "__main__":
     unittest.main()

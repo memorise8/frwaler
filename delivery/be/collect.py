@@ -14,6 +14,7 @@ import http.client
 import json
 import os
 import re
+import socket
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -53,6 +54,43 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 _OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoRedirect)
 
 
+class _UnixHTTPConnection(http.client.HTTPConnection):
+    """HTTP over a unix socket (COLLECT_RUNNER_SOCKET): no TCP path between container and host is needed."""
+
+    def __init__(self, socket_path: str, timeout: float):
+        super().__init__("runner", timeout=timeout)
+        self._socket_path = socket_path
+
+    def connect(self):
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.settimeout(self.timeout)
+        try:
+            sock.connect(self._socket_path)
+        except OSError:
+            sock.close()
+            raise
+        self.sock = sock
+
+
+def _runner_socket() -> str | None:
+    path = (os.environ.get("COLLECT_RUNNER_SOCKET") or "").strip()
+    if not path:
+        return None
+    if not os.path.isabs(path):
+        raise RunnerError("runner_unconfigured", "COLLECT_RUNNER_SOCKET must be an absolute path")
+    return path
+
+
+def _unix_call(socket_path: str, method: str, path: str, data: bytes | None, headers: dict):
+    conn = _UnixHTTPConnection(socket_path, RUNNER_TIMEOUT_SECONDS)
+    try:
+        conn.request(method, path, body=data, headers=headers)
+        response = conn.getresponse()
+        return response.status, response.read(RUNNER_MAX_BODY + 1)
+    finally:
+        conn.close()
+
+
 def _runner_base() -> str:
     base = (os.environ.get("COLLECT_RUNNER_URL") or "http://runner:8793").rstrip("/")
     parts = urllib.parse.urlsplit(base)
@@ -79,12 +117,18 @@ def _runner_token() -> str:
 
 def runner_call(method: str, path: str, body: dict | None = None):
     """Return (status, parsed JSON) from the runner. Raises RunnerError when it cannot be used."""
-    url = _runner_base() + path
+    socket_path = _runner_socket()
     data = None if body is None else json.dumps(body, ensure_ascii=False).encode("utf-8")
-    request = urllib.request.Request(url, data=data, method=method, headers={
-        "X-Runner-Token": _runner_token(), "Accept": "application/json",
-        **({"Content-Type": "application/json"} if data is not None else {}),
-    })
+    headers = {"X-Runner-Token": _runner_token(), "Accept": "application/json",
+               **({"Content-Type": "application/json"} if data is not None else {})}
+    if socket_path:
+        try:
+            status, raw = _unix_call(socket_path, method, path, data, headers)
+        except (OSError, ValueError, http.client.HTTPException):
+            raise RunnerError("runner_unavailable", "runner is not reachable") from None
+        return _runner_payload(status, raw)
+    url = _runner_base() + path
+    request = urllib.request.Request(url, data=data, method=method, headers=headers)
     try:
         with _OPENER.open(request, timeout=RUNNER_TIMEOUT_SECONDS) as response:
             status, raw = response.status, response.read(RUNNER_MAX_BODY + 1)
@@ -98,6 +142,10 @@ def runner_call(method: str, path: str, body: dict | None = None):
     # http.client.HTTPException: malformed status line, truncated body, etc.
     except (urllib.error.URLError, OSError, ValueError, http.client.HTTPException):
         raise RunnerError("runner_unavailable", "runner is not reachable") from None
+    return _runner_payload(status, raw)
+
+
+def _runner_payload(status: int, raw: bytes):
     if status == 401:
         raise RunnerError("runner_auth_failed", "runner rejected the configured token")
     if 300 <= status < 400:

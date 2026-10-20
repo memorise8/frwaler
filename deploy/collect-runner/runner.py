@@ -3,7 +3,7 @@
 
 - HTTP 는 127.0.0.1 에서만 열고 X-Runner-Token 을 요구한다(수집 콘솔 server.py 가 대신 호출).
   RUNNER_BIND 로 듣는 주소를 바꿀 수 있다(기본 127.0.0.1, 쉼표로 여러 개 — 예 127.0.0.1,172.16.1.1 은
-  루프백 + 도커 내부망 게이트웨이). 0.0.0.0 은 외부 포트가 없는 컨테이너
+  루프백 + 도커 내부망 게이트웨이). RUNNER_SOCKET=<경로> 면 유닉스 소켓도 듣는다(컨테이너에 마운트해 연결). 0.0.0.0 은 외부 포트가 없는 컨테이너
   (delivery compose 의 runner) 안에서만 쓴다. 서버 호스트에서는 0.0.0.0 으로 두지 않는다.
 - 같은 등록 도메인(unit)은 한 번에 하나, 전체 동시 실행은 config.max_parallel 개.
 - 등록·해제·일시정지는 서버 셸의 runnerctl 로만 한다(HTTP 로는 못 바꾼다).
@@ -13,13 +13,23 @@
 사용법: runner.py serve | ensure | ctl <명령> ...  (runnerctl 이 감싼다)
 표준 라이브러리만 쓴다. 파이썬 3.9 이상.
 """
-import argparse, csv, datetime, fcntl, glob, hashlib, hmac, json, os, re, secrets, signal, sqlite3, subprocess, sys, threading, time
+import argparse, csv, datetime, fcntl, glob, hashlib, hmac, json, os, re, secrets, signal, socketserver, sqlite3, subprocess, sys, threading, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HOME = os.environ.get("RUNNER_HOME") or os.path.dirname(os.path.abspath(__file__))
 # 듣는 주소. 기본은 127.0.0.1(서버 설치 그대로). 컨테이너(delivery compose 의 runner)에서만 0.0.0.0 으로 바꾼다.
 BIND = os.environ.get("RUNNER_BIND") or "127.0.0.1"
 BINDS = [b.strip() for b in BIND.split(",") if b.strip()]
+# 유닉스 소켓도 듣는다(선택). delivery be 컨테이너에 이 소켓 파일을 마운트하면 TCP·방화벽 없이 연결된다. 토큰은 똑같이 필요.
+SOCKET = os.environ.get("RUNNER_SOCKET") or ""
+
+
+class UnixHTTPServer(socketserver.ThreadingMixIn, socketserver.UnixStreamServer):
+    daemon_threads = True
+
+    def get_request(self):
+        sock, _ = super().get_request()
+        return sock, ("unix-socket", 0)  # BaseHTTPRequestHandler 가 client_address[0] 를 쓴다
 CONFIG_DEFAULTS = {
     "port": 8793,
     "max_parallel": 2,
@@ -504,9 +514,19 @@ def serve():
         c = db()
         event(c, "runner", "serve_start", detail={"pid": os.getpid()})
     threading.Thread(target=scheduler, daemon=True).start()
+    if SOCKET:
+        if os.path.exists(SOCKET):
+            os.unlink(SOCKET)  # 앞 실행이 남긴 소켓 파일(runner.lock 으로 실행기는 하나만)
+        os.makedirs(os.path.dirname(SOCKET) or ".", exist_ok=True)
+        old = os.umask(0o117)
+        try:
+            servers.append(UnixHTTPServer(SOCKET, H))
+        finally:
+            os.umask(old)
+        os.chmod(SOCKET, 0o660)
     for extra in servers[1:]:
         threading.Thread(target=extra.serve_forever, daemon=True).start()
-    print("%s runner on %s:%d home=%s" % (now(), ",".join(BINDS), cfg["port"], HOME), flush=True)
+    print("%s runner on %s:%d%s home=%s" % (now(), ",".join(BINDS), cfg["port"], " + unix:" + SOCKET if SOCKET else "", HOME), flush=True)
     servers[0].serve_forever()
 
 
