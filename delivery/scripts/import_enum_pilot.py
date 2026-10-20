@@ -354,7 +354,9 @@ def plan_site(args, enum_site, product_site, how, sites):
             source_conflict.add(p)
     shared_url = product_site in SHARED_META_URL
     url_conflict_src = set() if shared_url else {u for u, ps in urls.items() if len(ps) > 1}
-    rep["merge_check"] = merge_check(args, rep["folders"], urlf)
+    # 공유 URL 사이트: 여러 post_number 가 붙은 URL 은 폴더 사이 짝짓기가 안 되므로 대조에서 뺀다
+    rep["merge_check"] = merge_check(args, rep["folders"], urlf,
+                                     {u for u, ps in urls.items() if len(ps) > 1} if shared_url else set())
     del urlf
     exact, by_post, by_url = target_keys(args.target, product_site)
     c = {"source_rows": rows, "merged_unique": len(merged), "source_conflict_posts": len(source_conflict), "target_existing": len(exact),
@@ -442,7 +444,7 @@ def collector_versions(folders):
 VERSION_CACHE = {}
 
 
-def merge_check(args, folders, urlf):
+def merge_check(args, folders, urlf, skip_urls=frozenset()):
     """F1: 같은 사이트 실행 폴더는 plan 지문·수집기 버전이 같을 때만 그대로 합친다.
     다르면 폴더 사이에 겹치는 meta_url 의 post_number 를 대조해 전부 같을 때만 합치고, 다르거나 겹침이 없으면 보고."""
     names = [f["folder"] for f in folders]
@@ -460,7 +462,7 @@ def merge_check(args, folders, urlf):
     overlap = diff = 0
     samples = []
     for url, fp in urlf.items():
-        if len({gof[f] for f in fp}) < 2:
+        if url in skip_urls or len({gof[f] for f in fp}) < 2:
             continue
         overlap += 1
         if len(set(fp.values())) > 1:
