@@ -167,13 +167,17 @@ services:
       BE_URL: http://be:3001
       DELIVERY_API_TOKEN: ${DELIVERY_API_TOKEN:-}
       TRANSLATION_INTERNAL_MODEL: ${TRANSLATION_INTERNAL_MODEL:-}
+      # Basic auth for every FE route (src/proxy.ts). Unset = FE refuses all requests (503).
+      FE_BASIC_USER: ${FE_BASIC_USER:-}
+      FE_BASIC_PASS: ${FE_BASIC_PASS:-}
     ports:
       - "127.0.0.1:${FE_PORT:-3000}:3002"
     depends_on:
       be:
         condition: service_started
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3002/"]
+      # / is behind Basic auth; /healthz is the only unauthenticated route.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3002/healthz"]
       interval: 10s
       timeout: 5s
       retries: 12

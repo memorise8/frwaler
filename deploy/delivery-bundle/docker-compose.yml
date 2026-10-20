@@ -159,6 +159,9 @@ services:
       BE_URL: http://be:3001
       DELIVERY_API_TOKEN: ${DELIVERY_API_TOKEN:-}
       TRANSLATION_INTERNAL_MODEL: ${TRANSLATION_INTERNAL_MODEL:-}
+      # 모든 FE 경로의 Basic 인증(src/proxy.ts). 둘 중 하나라도 비면 FE는 모든 요청을 거부(503).
+      FE_BASIC_USER: ${FE_BASIC_USER:-}
+      FE_BASIC_PASS: ${FE_BASIC_PASS:-}
     ports:
       # 기본 127.0.0.1. FE는 로그인 없이 운영자 권한(DELIVERY_API_TOKEN)으로 BE를 호출하므로
       # 외부 공개는 인증하는 리버스 프록시/IP 허용 목록 뒤에서만(ADMIN_GUIDE.md 7장).
@@ -167,7 +170,8 @@ services:
       be:
         condition: service_started
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3002/"]
+      # / 는 Basic 인증 뒤에 있다. 인증 없이 열린 경로는 /healthz 뿐.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3002/healthz"]
       interval: 10s
       timeout: 5s
       retries: 12
