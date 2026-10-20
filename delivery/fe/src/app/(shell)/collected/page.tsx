@@ -62,7 +62,7 @@ export default async function CollectedState() {
             <Link className="summary-card summary-card--secondary" href="/crawlers?freshness=31_to_90_days"><span>31~90일</span><strong>{(freshnessStats.summary.distribution["31_to_90_days"] ?? 0).toLocaleString("ko-KR")}</strong><small>사이트</small></Link>
             <Link className="summary-card summary-card--secondary summary-card--bad" href="/crawlers?freshness=over_90_or_never"><span>90일 초과·미수집</span><strong>{((freshnessStats.summary.distribution.over_90_days ?? 0) + freshnessStats.summary.never_collected).toLocaleString("ko-KR")}</strong><small>점검 대상</small></Link>
           </div>
-          <p className="run-note">각 카드를 누르면 해당 사이트만 크롤러 상태 목록에 표시됩니다. 오래된 사이트를 골라 <Link href="/">수집</Link>에서 바로 실행하세요.</p>
+          <p className="run-note">각 카드를 누르면 해당 사이트만 크롤러 상태 목록에 표시됩니다. 오래된 사이트를 골라 <Link href="/jobs">작업 대시보드</Link>에서 바로 실행하세요.</p>
         </> : <aside className="snapshot-note snapshot-note--unavailable"><strong>최신화 측정 대기</strong><span>BE 또는 PostgreSQL 연결 후 사이트별 마지막 수집일을 계산합니다.</span></aside>}
       </section>
     </div>
