@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
+# [부록: 새 서버로 옮길 때]
 # (c) 복원 후 정렬 규칙(collation) 버전 확인, 필요하면 REINDEX DATABASE 와
 #     ALTER DATABASE ... REFRESH COLLATION VERSION 을 실행합니다.
 #
-# 사용: ./03_postcheck.sh 대상컨테이너 [-U 사용자] [-d DB] [--reindex] [--yes]
+# 사용: migrate/new-server/postcheck.sh 대상컨테이너 [-U 사용자] [-d DB] [--reindex] [--yes]
 #   불일치가 없으면 아무것도 바꾸지 않고 보고만 합니다.
 #   --reindex : 불일치가 없어도 REINDEX DATABASE 를 실행합니다.
 # 언제 필요한가: README.md "정렬 규칙 버전" 참고. pg_dump/pg_restore 로 옮기면 인덱스는
@@ -10,7 +11,7 @@
 # glibc 버전이 다른 이미지로 그대로 띄웠을 때 불일치가 생깁니다.
 set -eu
 set -o pipefail
-. "$(dirname "$0")/lib.sh"
+. "$(dirname "$0")/../lib.sh"
 
 usage() { sed -n '2,10p' "$0" >&2; exit 2; }
 DST=""; PGU=libertree; PGD=libertree; REINDEX=0; ASSUME_YES=0

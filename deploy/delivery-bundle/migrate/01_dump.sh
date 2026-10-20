@@ -60,15 +60,19 @@ fi
 confirm
 
 done_ok=0
-trap '[ "$done_ok" = 1 ] || rm -rf "$OUT.partial"' EXIT
+ctmp=/tmp/libertree-dump-$$
+# 실패하든 성공하든 컨테이너 쪽 임시 덤프는 지우고, 실패하면 호스트의 .partial 도 지웁니다.
+cleanup() {
+  if [ "$JOBS" -gt 1 ]; then docker exec "$SRC" rm -rf "$ctmp" >/dev/null 2>&1 || true; fi
+  [ "$done_ok" = 1 ] || rm -rf "$OUT.partial"
+}
+trap cleanup EXIT
 started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 if [ "$JOBS" -gt 1 ]; then
-  ctmp=/tmp/libertree-dump-$$
   log "병렬 덤프 시작 → 컨테이너 $ctmp"
   docker exec "$SRC" pg_dump -U "$PGU" -d "$PGD" -Fd -j "$JOBS" -f "$ctmp"
   log "docker cp → $OUT"
   docker cp "$SRC:$ctmp" "$OUT.partial"
-  docker exec "$SRC" rm -rf "$ctmp"
   [ -f "$OUT.partial/toc.dat" ] || die "덤프 디렉터리에 toc.dat 이 없습니다"
 else
   log "덤프 시작 → $OUT.partial"

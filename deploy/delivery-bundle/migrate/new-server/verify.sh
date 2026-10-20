@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
+# [부록: 새 서버로 옮길 때]
 # (d) 원본·대상 DB 를 같은 방식으로 세어 CSV 두 개와 diff 를 만듭니다. 두 DB 모두 읽기만 합니다.
 #
-# 사용: ./04_verify.sh 원본컨테이너 대상컨테이너 출력폴더
+# 사용: migrate/new-server/verify.sh 원본컨테이너 대상컨테이너 출력폴더
 #         [--src-user U] [--src-db D] [--dst-user U] [--dst-db D]
 # 출력: 출력폴더/source.csv, target.csv, diff.txt   (일치하면 종료코드 0, 다르면 1)
 # CSV 열: kind,table,site_id,value
@@ -13,7 +14,7 @@
 # 복원 직후(migrate 실행 전)에 돌리십시오. migrate 는 sites 등 카탈로그 행을 추가할 수 있습니다.
 set -eu
 set -o pipefail
-. "$(dirname "$0")/lib.sh"
+. "$(dirname "$0")/../lib.sh"
 
 usage() { sed -n '2,13p' "$0" >&2; exit 2; }
 SRC=""; DST=""; OUTD=""
@@ -50,7 +51,7 @@ TABLES_SQL="SELECT format('%I.%I', t.table_schema, t.table_name),
   EXISTS (SELECT 1 FROM information_schema.columns c WHERE c.table_schema=t.table_schema AND c.table_name=t.table_name AND c.column_name='site_id')
 FROM information_schema.tables t
 WHERE t.table_type='BASE TABLE' AND t.table_schema NOT IN ('pg_catalog','information_schema')
-ORDER BY 1"
+ORDER BY t.table_schema COLLATE \"C\", t.table_name COLLATE \"C\""
 
 snapshot() { # 컨테이너 사용자 DB
   c=$1; u=$2; d=$3
@@ -58,7 +59,7 @@ snapshot() { # 컨테이너 사용자 DB
   pg_sql_ro "$c" "$u" "$d" "$TABLES_SQL" | while IFS="$(printf '\t')" read -r tbl has_site; do
     pg_sql_ro "$c" "$u" "$d" "SELECT 'rows,$tbl,,' || count(*) FROM $tbl"
     if [ "$has_site" = t ]; then
-      pg_sql_ro "$c" "$u" "$d" "SELECT 'site_rows,$tbl,' || coalesce(site_id::text,'(null)') || ',' || count(*) FROM $tbl GROUP BY site_id ORDER BY 1"
+      pg_sql_ro "$c" "$u" "$d" "SELECT x FROM (SELECT 'site_rows,$tbl,' || coalesce(site_id::text,'(null)') || ',' || count(*) AS x FROM $tbl GROUP BY site_id) s ORDER BY x COLLATE \"C\""
     fi
   done
   if [ "$(has_documents "$c" "$u" "$d")" = t ]; then
@@ -66,7 +67,7 @@ snapshot() { # 컨테이너 사용자 DB
         SELECT site_id, 'seq_min,public.documents,' || site_id || ',' || min(seq_id) AS x FROM documents GROUP BY site_id
         UNION ALL SELECT site_id, 'seq_max,public.documents,' || site_id || ',' || max(seq_id) FROM documents GROUP BY site_id
         UNION ALL SELECT site_id, 'seq_md5,public.documents,' || site_id || ',' || md5(string_agg(seq_id::text, ',' ORDER BY seq_id)) FROM documents GROUP BY site_id
-      ) s ORDER BY x"
+      ) s ORDER BY x COLLATE \"C\""
     pg_sql_ro "$c" "$u" "$d" "SELECT 'seq_last,public.documents,,' || coalesce((SELECT last_value::text FROM pg_sequences WHERE format('%I.%I', schemaname, sequencename) = pg_get_serial_sequence('public.documents','seq_id')), '-')"
   fi
 }

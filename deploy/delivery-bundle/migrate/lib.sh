@@ -49,3 +49,71 @@ project_siblings() {
 has_documents() {
   pg_sql_ro "$1" "$2" "$3" "SELECT to_regclass('public.documents') IS NOT NULL"
 }
+
+# ---- 번들 compose 연동 ------------------------------------------------------
+LIB_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+BUNDLE=$(dirname "$LIB_DIR")
+STATE_DIR="$LIB_DIR/.state"
+
+# 번들 디렉터리에서 docker compose 실행(.env 와 그 안의 COMPOSE_FILE 을 그대로 따름).
+# ENV_FILE 이 설정되면 --env-file 로 넘깁니다.
+dc() {
+  if [ -n "${ENV_FILE:-}" ]; then
+    (cd "$BUNDLE" && docker compose --env-file "$ENV_FILE" "$@")
+  else
+    (cd "$BUNDLE" && docker compose "$@")
+  fi
+}
+
+project_name() {
+  dc config 2>/dev/null | sed -n 's/^name: //p' | head -1
+}
+
+# 정규화된 compose 설정에서 필요한 사실만 뽑습니다.
+#   PORT <서비스> <host_ip> <published> <target>
+#   BIND <서비스> <source> <target>
+#   ENV  <서비스> <이름> <값>      (RUNNER_HOME, LIBERTREE_PG_DSN)
+#   USER <서비스> <uid:gid>     GROUP <서비스> <gid>
+#   NET  <키> <name> <external>
+cfg_facts() {
+  dc config | awk '
+    /^services:/ { ins = 1; inn = 0; next }
+    /^networks:/ { ins = 0; inn = 1; next }
+    /^[a-z]/ { ins = 0; inn = 0 }
+    inn && /^  [A-Za-z0-9_.-]+:$/ { if (nk != "") print "NET", nk, nn, ne; nk = $1; sub(":", "", nk); nn = ""; ne = "false"; next }
+    inn && /^    name:/ { nn = $2 }
+    inn && /^    external:/ { ne = $2 }
+    END { if (nk != "") print "NET", nk, nn, ne }
+    !ins { next }
+    /^  [A-Za-z0-9_.-]+:$/ { svc = $1; sub(":", "", svc); inb = 0; ing = 0; next }
+    /^      - mode:/ { ip = "" }
+    /^        host_ip:/ { ip = $2 }
+    /^        target:/ && !inb { tgt = $2 }
+    /^        published:/ { p = $2; gsub("\"", "", p); print "PORT", svc, (ip == "" ? "0.0.0.0" : ip), p, tgt }
+    /^      - type:/ { inb = ($3 == "bind"); src = "" }
+    inb && /^        source:/ { src = $2 }
+    inb && /^        target:/ { print "BIND", svc, src, $2 }
+    /^      (RUNNER_HOME|LIBERTREE_PG_DSN):/ { k = $1; sub(":", "", k); print "ENV", svc, k, $2 }
+    /^    user:/ { print "USER", svc, $2 }
+    /^    group_add:/ { ing = 1; next }
+    ing && /^      - / { g = $2; gsub("\"", "", g); print "GROUP", svc, g; next }
+    { ing = 0 }
+  '
+}
+
+# be 의 DSN 에서 운영 DB 호스트(=운영 postgres 컨테이너 이름)를 꺼냅니다.
+prod_db_host() {
+  cfg_facts | awk '$1=="ENV" && $2=="be" && $3=="LIBERTREE_PG_DSN" {print $4}' | sed -E 's#^[a-z]+://[^@]*@##; s#[:/].*$##'
+}
+prod_network() {
+  cfg_facts | awk '$1=="NET" && $2=="proddb" {print $3}'
+}
+
+# 00_preflight.sh 가 남긴 운영 컨테이너 기록:
+#   서비스 <TAB> 컨테이너ID <TAB> 이름 <TAB> 상태 <TAB> 이미지참조 <TAB> 이미지ID
+prod_record() { printf '%s/production-%s.tsv' "$STATE_DIR" "$1"; }
+prod_field() { # 기록파일 서비스 열번호
+  awk -F '\t' -v s="$2" -v c="$3" '$1==s {print $c}' "$1"
+}
+
+to_epoch() { date -d "$1" +%s; }
