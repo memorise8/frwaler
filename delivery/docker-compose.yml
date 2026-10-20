@@ -114,6 +114,23 @@ services:
       CRAWLER_HEALTH_STALE_HOURS: ${CRAWLER_HEALTH_STALE_HOURS:-48}
       TRANSLATION_INTERNAL_MODEL: ${TRANSLATION_INTERNAL_MODEL:-}
       TRANSLATION_EXTERNAL_MODEL: ${TRANSLATION_EXTERNAL_MODEL:-}
+      # /collect API (delivery/be/collect.py). Without a token the routes answer
+      # 503 runner_unconfigured and /collect/sites still shows judgments/counts.
+      # COLLECT_STATUS_DIR is empty by default: the site-status bind lives in
+      # docker-compose.collect.yml (see there for why it is not in this file).
+      COLLECT_RUNNER_URL: ${COLLECT_RUNNER_URL:-http://runner:8793}
+      COLLECT_RUNNER_TOKEN: ${COLLECT_RUNNER_TOKEN:-}
+      COLLECT_RUNNER_TOKEN_FILE: ${COLLECT_RUNNER_TOKEN_FILE:-}
+      COLLECT_STATUS_DIR: ${COLLECT_STATUS_DIR:-}
+    # Lets COLLECT_RUNNER_URL=http://host.docker.internal:8793 reach a runner
+    # installed on the host instead of the compose `runner` service. That host
+    # runner must then listen on an address the bridge can reach (RUNNER_BIND),
+    # not only its default 127.0.0.1. NEVER set RUNNER_BIND=0.0.0.0 on the host:
+    # that exposes the runner (which can start containers) on every interface.
+    # Bind it to the docker bridge gateway IP only (e.g. RUNNER_BIND=172.17.0.1,
+    # see `docker network inspect bridge`) and firewall port 8793 from anything
+    # but the docker bridge.
+    extra_hosts: ["host.docker.internal:host-gateway"]
     volumes:
       - blob:/data/blob
       - health-reports:/data/health:ro
@@ -257,8 +274,69 @@ services:
       start_period: 60s
     logging: *delivery-logging
 
+  # Collect runner (deploy/collect-runner/runner.py) for the /collect API.
+  # Only under the "runner" profile, so plain `docker compose up -d` is
+  # unchanged:  docker compose --profile runner up -d runner
+  #
+  # SECURITY: the docker socket mount below gives this container
+  # host-root-equivalent access (anything that can talk to the socket can
+  # start a privileged container mounting /). That is why the runner only
+  # accepts registered plans with fixed arguments, requires X-Runner-Token,
+  # and is NOT published on any host port -- it is reachable only from this
+  # compose network (be calls http://runner:8793). Do not add `ports:` here.
+  #
+  # Paths: run-pilot.sh asks the HOST docker daemon to bind-mount the run
+  # folder, the registered plan files (under RUNNER_HOME) and the seed/reference
+  # files, so those must have the same path inside this container as on the
+  # host. Hence RUNNER_HOME and the runs root are mounted at identical paths
+  # (COLLECT_RUNNER_HOME, COLLECT_RUNS_ROOT; create both on the host first).
+  # Non-root: run-pilot.sh refuses uid 0 and requires the run folder to be
+  # owned by the calling uid, so the runner runs as COLLECT_RUNNER_UID:GID and
+  # joins the host docker socket's group (DOCKER_GID, `stat -c %g
+  # /var/run/docker.sock`). Before the first start, on the host:
+  #   mkdir -p "$COLLECT_RUNNER_HOME" "$COLLECT_RUNS_ROOT"
+  #   chown "$COLLECT_RUNNER_UID:$COLLECT_RUNNER_GID" "$COLLECT_RUNNER_HOME" "$COLLECT_RUNS_ROOT"
+  # (Joining the socket group is still host-root-equivalent; see SECURITY.)
+  #
+  # On first start the entrypoint copies delivery/collect-runner.config.json
+  # into RUNNER_HOME/config.json; edit that copy (runs_root etc.) if you change
+  # COLLECT_RUNS_ROOT. Register plans with
+  #   docker compose exec runner runnerctl register --src /opt/frwaler-src ...
+  runner:
+    profiles: ["runner"]
+    build:
+      context: ..
+      dockerfile: delivery/Dockerfile.runner
+    user: "${COLLECT_RUNNER_UID:-1000}:${COLLECT_RUNNER_GID:-1000}"
+    group_add: ["${DOCKER_GID:-999}"]
+    environment:
+      RUNNER_HOME: ${COLLECT_RUNNER_HOME:-/srv/collect-runner}
+      # Safe here only because this service publishes no port (see SECURITY).
+      RUNNER_BIND: 0.0.0.0
+    volumes:
+      - runner-state:${COLLECT_RUNNER_HOME:-/srv/collect-runner}
+      - ${COLLECT_RUNS_ROOT:-/srv/enum-pilot-run}:${COLLECT_RUNS_ROOT:-/srv/enum-pilot-run}
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    init: true
+    logging: *delivery-logging
+
 volumes:
   pgdata:
   blob:
   runtime:
   health-reports:
+  # Runner state (registry, runner.sqlite, events.jsonl, logs, .token). A named
+  # volume backed by a host directory at the SAME path it is mounted at in the
+  # runner (see the runner service): the host daemon resolves plan paths
+  # under RUNNER_HOME when run-pilot.sh bind-mounts them.
+  # Docker stores driver_opts when the volume is first created: after changing
+  # COLLECT_RUNNER_HOME, stop the runner and `docker volume rm
+  # libertree-delivery_runner-state` so it is recreated with the new device
+  # (the data stays in the old host directory; move it yourself).
+  runner-state:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${COLLECT_RUNNER_HOME:-/srv/collect-runner}

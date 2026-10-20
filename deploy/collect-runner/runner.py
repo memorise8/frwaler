@@ -2,6 +2,8 @@
 """수집 실행기: 등록된 plan 만 deploy/enum-pilot/run-pilot.sh 로 실행한다.
 
 - HTTP 는 127.0.0.1 에서만 열고 X-Runner-Token 을 요구한다(수집 콘솔 server.py 가 대신 호출).
+  RUNNER_BIND 로 듣는 주소를 바꿀 수 있다(기본 127.0.0.1). 0.0.0.0 은 외부 포트가 없는 컨테이너
+  (delivery compose 의 runner) 안에서만 쓴다. 서버 호스트에서는 0.0.0.0 으로 두지 않는다.
 - 같은 등록 도메인(unit)은 한 번에 하나, 전체 동시 실행은 config.max_parallel 개.
 - 등록·해제·일시정지는 서버 셸의 runnerctl 로만 한다(HTTP 로는 못 바꾼다).
 - 실행은 정해진 인자로만: 임의 docker 인자·ENUM_EXTRA_ARGS 를 받지 않는다.
@@ -14,6 +16,8 @@ import argparse, csv, datetime, fcntl, glob, hashlib, hmac, json, os, re, secret
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HOME = os.environ.get("RUNNER_HOME") or os.path.dirname(os.path.abspath(__file__))
+# 듣는 주소. 기본은 127.0.0.1(서버 설치 그대로). 컨테이너(delivery compose 의 runner)에서만 0.0.0.0 으로 바꾼다.
+BIND = os.environ.get("RUNNER_BIND") or "127.0.0.1"
 CONFIG_DEFAULTS = {
     "port": 8793,
     "max_parallel": 2,
@@ -492,13 +496,13 @@ def serve():
     except OSError:
         sys.exit("runner already running (runner.lock)")
     cfg = config()
-    srv = ThreadingHTTPServer(("127.0.0.1", cfg["port"]), H)
+    srv = ThreadingHTTPServer((BIND, cfg["port"]), H)
     open(path("runner.pid"), "w").write(str(os.getpid()))
     with lock:
         c = db()
         event(c, "runner", "serve_start", detail={"pid": os.getpid()})
     threading.Thread(target=scheduler, daemon=True).start()
-    print("%s runner on 127.0.0.1:%d home=%s" % (now(), cfg["port"], HOME), flush=True)
+    print("%s runner on %s:%d home=%s" % (now(), BIND, cfg["port"], HOME), flush=True)
     srv.serve_forever()
 
 

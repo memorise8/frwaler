@@ -1,0 +1,22 @@
+{
+ "_source": "plan-dev-20261008/dashboard/uncollected.py NOTES (납품 메모, 사용자 결정) 사본",
+ "notes": {
+  "meri-belspo-be-site": "같은 번호 여러 행(언어별 PDF, RS-<번호>) — 기존 방식 유지(사용자 결정 2026-10-18), 구매자 중복 검사 주의",
+  "bmi-gv-at-114": "같은 번호 여러 행(PDF 폴더명 공유) — 기존 방식 유지(추천안, 사용자 위임 2026-10-19), 구매자 중복 검사 주의",
+  "garda-ie-en": "문서 주소 = 목록 주소(기존 납품과 같음) — 한 주소에 여러 문서, 식별은 post_number",
+  "kefm-dk-aftaler": "문서 주소 = 목록 주소(기존 납품과 같음) — 한 주소에 여러 문서, 식별은 post_number",
+  "csic-es-es": "문서 주소 = 목록 주소(기존 납품과 같음) — 한 주소에 여러 문서, 식별은 post_number",
+  "um-dk-om-os": "문서 주소 = 목록 주소(기존 납품과 같음) — 한 주소에 여러 문서, 식별은 post_number",
+  "justitsministeriet-dk-forskning": "문서 주소 = 목록 주소(기존 납품과 같음) — 한 주소에 여러 문서, 식별은 post_number",
+  "bmwkms-gv-at-themen": "문서 주소 = 목록 주소(기존 납품과 같음) — 한 주소에 여러 문서, 식별은 post_number",
+  "pbocri-org-cn-lnzy3html": "문서 주소 = 목록 주소(기존 납품과 같음) — 한 주소에 여러 문서, 식별은 post_number",
+  "dhs-gov-publication": "문서 주소 = 목록 주소(기존 납품과 같음) — 한 주소에 여러 문서, 식별은 post_number",
+  "bmleh-de-en": "문서 주소 = 목록 주소(기존 납품과 같음) — 한 주소에 여러 문서, 식별은 post_number",
+  "nhlbi-nih-gov-about": "반영 보류: 새 수집은 문서 주소 일부 공유, 기존 납품은 문서마다 주소 다름(운영 22/22) — 식별값 규칙 확인 필요",
+  "arn-se-om-arn": "반영 보류: 새 수집 12건 모두 같은 문서 주소, 기존 납품은 80건·주소 69개 — 범위·식별값 다름",
+  "genomecanada-ca-about": "반영 보류: 기존 납품 비교 불가(운영 조회 0행, 10-18 집계 50건 — site_id 표기 확인 필요)",
+  "home-treasury-gov-about": "반영 보류: 기존 납품 비교 불가(운영 조회 0행, 10-18 집계 12건 — site_id 표기 확인 필요)",
+  "stat-inst-se-om-sis": "반영 보류: 문서 주소 공유, 기존 납품 비교 불가(운영 0행)",
+  "stepi-re-kr-site": "문서 주소 = 목록 주소(기존 납품과 같음) — 한 주소에 여러 문서, 식별은 post_number"
+ }
+}

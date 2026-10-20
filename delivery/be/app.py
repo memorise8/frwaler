@@ -27,6 +27,7 @@ from delivery.db.schema import verify_required_schema
 from delivery.translation.observations import prune as prune_observations, record as record_observation
 from delivery.be.database import get_database
 from delivery.be.cache import TTLCache
+from delivery.be.collect import build_router as build_collect_router
 
 
 class JobIn(BaseModel):
@@ -128,6 +129,8 @@ def create_app(dsn: str) -> FastAPI:
 
     def _conn():
         return database.connection()
+
+    app.include_router(build_collect_router(_conn, aggregates))
 
     @app.get("/health")
     def health():

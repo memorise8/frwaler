@@ -1,0 +1,14 @@
+{
+ "port": 8793,
+ "max_parallel": 2,
+ "runs_root": "/srv/enum-pilot-run",
+ "seed_holds": "/srv/enum-pilot-run/seed-holds.csv",
+ "reference_db": "/srv/enum-pilot-run/reference_empty.db",
+ "docker": "docker",
+ "path_prefix": "/usr/local/bin",
+ "reserved_units": ["e-stat.go.jp", "kisti.re.kr", "nasa.gov"],
+ "trial_default": 100,
+ "trial_max": 1000,
+ "large_threshold": 10000,
+ "fake_cmd": null
+}

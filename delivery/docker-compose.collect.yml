@@ -1,0 +1,33 @@
+# Optional /collect wiring for the be service. Use together with the main file:
+#   docker compose -f docker-compose.yml -f docker-compose.collect.yml up -d be
+#
+# Why a separate file: both mounts below are host paths that only exist on a
+# host that runs collection (site-status CSVs from dev-flow, the runner's
+# state directory). A bind of a missing host path in docker-compose.yml would
+# either fail `be` on every other install or make Docker create an empty
+# root-owned directory there, so the default file keeps COLLECT_STATUS_DIR
+# empty (/collect/sites then answers status_source.reason="not_configured").
+services:
+  be:
+    environment:
+      COLLECT_STATUS_DIR: /data/collect-status
+      # The runner writes its token to RUNNER_HOME/.token on first start. Reading
+      # it from there avoids copying the secret into .env.
+      # (COLLECT_RUNNER_TOKEN, if set, still takes precedence.)
+      COLLECT_RUNNER_TOKEN_FILE: /run/collect-runner/token
+    volumes:
+      # Directory holding the site-status *.csv files (site_id,state,detail,updated_at,...).
+      - ${COLLECT_STATUS_HOST_DIR:?set COLLECT_STATUS_HOST_DIR to the site-status directory}:/data/collect-status:ro
+      # Only the token file, read-only (not the whole runner state). It is a
+      # plain host-file bind: runner-state is backed by COLLECT_RUNNER_HOME on
+      # the host. create_host_path=false: if the runner has not created .token
+      # yet, be fails to start instead of Docker creating a *directory* named
+      # .token (which would then stop the runner from writing its token).
+      # Start the runner once first (`--profile runner up -d runner`).
+      # be runs as root, so the runner's 0600 token file is readable.
+      - type: bind
+        source: ${COLLECT_RUNNER_HOME:-/srv/collect-runner}/.token
+        target: /run/collect-runner/token
+        read_only: true
+        bind:
+          create_host_path: false
