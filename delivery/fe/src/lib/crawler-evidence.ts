@@ -24,6 +24,11 @@ export type CrawlerEvidence =
 // failure mode called out for this page: an empty table with no explanation
 // reads the same as a broken connection. Centralizing the mapping here
 // means the page component only ever renders one of three known shapes.
+// Facets without a count (BE counts table not refreshed yet) say nothing
+// about the crawler's mix, so the evidence tiles only show counted ones.
+const counted = (facets: ReadonlyArray<Readonly<{ value: string; count: number | null }>>): readonly Facet[] =>
+  facets.flatMap((facet) => facet.count === null ? [] : [{ value: facet.value, count: facet.count }]);
+
 export const summarizeCrawlerEvidence = (result: CatalogueResult): CrawlerEvidence => {
   if (!result.ok) return { kind: "unavailable" };
   const { data } = result;
@@ -33,8 +38,8 @@ export const summarizeCrawlerEvidence = (result: CatalogueResult): CrawlerEviden
     total: data.pagination.total,
     measuredAt: data.measured_at,
     items: data.items,
-    docTypes: data.facets.doc_types,
-    languages: data.facets.languages,
+    docTypes: counted(data.facets.doc_types),
+    languages: counted(data.facets.languages),
   };
 };
 

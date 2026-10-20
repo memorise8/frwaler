@@ -79,13 +79,13 @@ export default async function CrawlerDetail({ params }: Readonly<{ params: Promi
               <strong>스냅샷과 실시간 비교</strong>
               <span>
                 위 과거 수집 {crawler.collected.toLocaleString("ko-KR")}건은 {AUDIT_DATE}에 기록된 스냅샷 값이고,
-                아래 {evidence.total.toLocaleString("ko-KR")}건은 지금 데이터베이스를 조회한 값입니다. 두 수치는 측정 시점이 달라 다를 수 있습니다.
+                아래 {evidence.total.toLocaleString("ko-KR")}건은 데이터베이스 건수표(정기 갱신) 기준 값이고, 아래 문서 목록은 지금 조회한 것입니다. 두 수치는 측정 시점이 달라 다를 수 있습니다.
               </span>
             </aside>
 
-            <div className="taxonomy-grid" aria-label="이 사이트의 실시간 문서 분포">
+            <div className="taxonomy-grid" aria-label="이 사이트의 문서 분포(건수표 기준)">
               <article className="taxonomy-panel">
-                <div className="taxonomy-heading"><div><p className="eyebrow">DOC TYPES</p><h3>자료 유형</h3></div><span>실시간</span></div>
+                <div className="taxonomy-heading"><div><p className="eyebrow">DOC TYPES</p><h3>자료 유형</h3></div><span>건수표 기준</span></div>
                 <div className="type-grid">
                   {evidence.docTypes.map((item) => (
                     <Link href={crawlerDocumentsHref(siteId, { key: "doc_type", value: item.value })} key={item.value}>
@@ -95,7 +95,7 @@ export default async function CrawlerDetail({ params }: Readonly<{ params: Promi
                 </div>
               </article>
               <article className="taxonomy-panel">
-                <div className="taxonomy-heading"><div><p className="eyebrow">LANGUAGES</p><h3>언어</h3></div><span>실시간</span></div>
+                <div className="taxonomy-heading"><div><p className="eyebrow">LANGUAGES</p><h3>언어</h3></div><span>건수표 기준</span></div>
                 <div className="type-grid">
                   {evidence.languages.map((item) => (
                     <Link href={crawlerDocumentsHref(siteId, { key: "lang", value: item.value })} key={item.value}>

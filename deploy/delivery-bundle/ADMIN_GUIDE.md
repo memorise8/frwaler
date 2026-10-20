@@ -307,6 +307,34 @@ migrate/03_cutover.sh
 되돌린 뒤에도 추가된 열과 테이블은 남습니다. 이전 코드는 이를 무시합니다. 로컬 리허설에서
 이전 이미지로 정상 기동되는 것을 확인했습니다. 문제가 되면 2-2의 백업으로 복원합니다(부록).
 
+이미 `documents.fts` 열과 GIN 인덱스가 있는 DB에서는 migrate가 이 ALTER/CREATE INDEX를 아예
+보내지 않습니다(있는지 먼저 확인). 그래서 documents에 잠금을 걸지 않습니다.
+
+### 4-1. 문서 탐색 인덱스와 건수 테이블 (2026-10-20 추가)
+
+문서 목록(`/documents`)과 `/stats`가 빠르려면 두 가지가 더 필요합니다. 둘 다 migrate와 별도로 한 번 실행합니다.
+
+1. **인덱스**: `deploy/delivery-bundle/sql/20261020-catalogue-indexes.sql`.
+   `CREATE INDEX CONCURRENTLY`라 읽기·쓰기를 막지 않지만, 400만 건 기준 약 2분, 1억 건이면 수십 분이
+   걸리고 인덱스마다 디스크를 씁니다. 사용이 적은 시간에 실행합니다.
+   ```bash
+   # DB에 접속할 수 있는 곳에서 (트랜잭션으로 감싸지 말 것)
+   psql "$LIBERTREE_PG_DSN" -v ON_ERROR_STOP=1 -f deploy/delivery-bundle/sql/20261020-catalogue-indexes.sql
+   # 또는 DB 컨테이너로 흘려 넣기
+   docker compose exec -T <DB 서비스> psql -U <사용자> -d <DB> -v ON_ERROR_STOP=1 < deploy/delivery-bundle/sql/20261020-catalogue-indexes.sql
+   ```
+   중간에 실패하면 파일 머리말의 쿼리로 INVALID 인덱스를 찾아 `DROP INDEX CONCURRENTLY` 한 뒤 다시 실행합니다.
+   인덱스가 없어도 화면은 동작하지만 큰 사이트에서는 느립니다(필수/권장/선택 구분은 파일 머리말).
+2. **건수 테이블 갱신**: `document_counts`(migrate가 만듦)를 채웁니다. 비어 있으면 총계·필터 건수가
+   추정치("이상"/"약")로 나옵니다.
+   ```bash
+   docker compose run --rm migrate python -m delivery.be.counts refresh                 # 전체
+   docker compose run --rm migrate python -m delivery.be.counts refresh --site scienceon-api  # 한 사이트
+   ```
+   - **하루 한 번 전체 갱신**을 cron 등으로 걸어 둡니다(400만 건 기준 2초 미만).
+   - 대량 적재(import) 직후에는 그 사이트만 갱신합니다. 코드에서는 `delivery.be.counts.refresh_counts(conn, [site_id])`.
+   - 갱신 사이에 들어온 문서도 목록에는 바로 나오고, 총계만 다음 갱신까지 예전 값입니다.
+
 ## 5. 점검
 
 ```bash

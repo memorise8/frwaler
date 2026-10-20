@@ -1,4 +1,5 @@
-export type Facet = Readonly<{ value: string; count: number; label?: string }>;
+// count is null when the BE could list the option but not count it.
+export type Facet = Readonly<{ value: string; count: number | null; label?: string }>;
 
 // -1 marks a facet option this module synthesized to keep the operator's
 // selection visible when its real count isn't known -- either because the
@@ -31,4 +32,11 @@ export const facetOptionsWithSelection = (
   const value = selected.trim();
   if (!value || list.some((item) => item.value === value)) return list;
   return [{ value, count: RETAINED_COUNT }, ...list];
+};
+
+// "(1,234)" for counted options, "(선택값 유지)" for retained ones, "" when the
+// BE had no count for the option.
+export const facetCountLabel = (facet: Facet): string => {
+  if (isRetainedFacetOption(facet)) return " (선택값 유지)";
+  return facet.count === null ? "" : ` (${facet.count.toLocaleString("ko-KR")})`;
 };

@@ -34,12 +34,53 @@ def init_catalogue_schema(conn) -> None:
     conn.execute("CREATE INDEX IF NOT EXISTS idx_tr_seq_field ON document_translations(seq_id,source_field)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_tr_state ON document_translations(state)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_lang_lang ON document_lang(lang)")
-    conn.execute("""ALTER TABLE documents ADD COLUMN IF NOT EXISTS fts tsvector
-      GENERATED ALWAYS AS (to_tsvector('simple',left(coalesce(title,'')||' '||
-        coalesce(abstract,'')||' '||coalesce(summary,'')||' '||coalesce(keywords,''),250000))) STORED""")
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_doc_fts ON documents USING GIN(fts)")
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_doc_title_trgm ON documents USING GIN(title gin_trgm_ops)")
+    # ALTER TABLE ... IF NOT EXISTS and CREATE INDEX IF NOT EXISTS still lock
+    # documents (ACCESS EXCLUSIVE / SHARE) until COMMIT even when nothing is
+    # created; queued behind a long transaction that would block every read
+    # of a multi-million-row table. Only issue them when the object is absent.
+    fts_present = conn.execute("""SELECT 1 FROM information_schema.columns
+      WHERE table_schema='public' AND table_name='documents' AND column_name='fts'""").fetchone()
+    if fts_present is None:
+        conn.execute("""ALTER TABLE documents ADD COLUMN IF NOT EXISTS fts tsvector
+          GENERATED ALWAYS AS (to_tsvector('simple',left(coalesce(title,'')||' '||
+            coalesce(abstract,'')||' '||coalesce(summary,'')||' '||coalesce(keywords,''),250000))) STORED""")
+    for name, ddl in (
+        ("idx_doc_fts", "CREATE INDEX IF NOT EXISTS idx_doc_fts ON documents USING GIN(fts)"),
+        ("idx_doc_title_trgm", "CREATE INDEX IF NOT EXISTS idx_doc_title_trgm ON documents USING GIN(title gin_trgm_ops)"),
+    ):
+        if conn.execute("SELECT to_regclass(%s) AS relation", (f"public.{name}",)).fetchone()["relation"] is None:
+            conn.execute(ddl)
+    # Catalogue browsing (additive only). document_counts feeds totals/facets
+    # and is filled by `python -m delivery.be.counts refresh`. The published-day
+    # function backs the published_desc keyset indexes, which are built
+    # separately with CREATE INDEX CONCURRENTLY from
+    # deploy/delivery-bundle/sql/20261020-catalogue-indexes.sql.
+    conn.execute(COUNTS_TABLE_DDL)
+    conn.execute(PUBLISHED_DAY_FUNCTION_DDL)
     conn.commit()
+
+
+# One row per (site_id, lang, has_pdf, has_text); see delivery/be/counts.py.
+COUNTS_TABLE_DDL = """CREATE TABLE IF NOT EXISTS document_counts(
+  site_id TEXT NOT NULL,
+  lang TEXT NOT NULL,
+  has_pdf BOOLEAN,
+  has_text BOOLEAN,
+  n BIGINT NOT NULL CHECK(n >= 0),
+  pdf_bytes BIGINT NOT NULL DEFAULT 0,
+  missing_pdf_metadata BIGINT NOT NULL DEFAULT 0,
+  refreshed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE NULLS NOT DISTINCT (site_id, lang, has_pdf, has_text))"""
+
+
+# ISO YYYY-MM-DD input parses identically under every DateStyle and the regex
+# excludes special values ('today', 'now'), so the result depends only on the
+# argument: IMMUTABLE is truthful and the function can back an index.
+PUBLISHED_DAY_FUNCTION_DDL = """CREATE OR REPLACE FUNCTION delivery_published_day(value TEXT)
+  RETURNS DATE LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE AS $$
+  SELECT CASE WHEN value ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' AND pg_input_is_valid(value, 'date')
+              THEN value::date END
+$$"""
 
 
 REQUIRED_TABLES = (

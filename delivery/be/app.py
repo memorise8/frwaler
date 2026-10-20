@@ -10,7 +10,8 @@ from fastapi import Depends, FastAPI, HTTPException, Path, Query
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
-from delivery.be.catalogue import CatalogueFilters, collect_catalogue, load_taxonomy
+from delivery.be.catalogue import (CatalogueError, CatalogueFilters, MAX_OFFSET_PAGE, PAGE_SIZE_MAX,
+                                    collect_catalogue, default_sort, load_taxonomy)
 from delivery.be.document_detail import collect_document_detail
 from delivery.be.freshness import collect_freshness
 from delivery.be.verification import collect_verification
@@ -210,7 +211,8 @@ def create_app(dsn: str) -> FastAPI:
     def get_documents(
         q: str | None = Query(default=None, max_length=200),
         page: int = Query(default=1, ge=1),
-        page_size: int = Query(default=20, ge=1, le=100),
+        page_size: int = Query(default=20, ge=1, le=PAGE_SIZE_MAX),
+        cursor: str | None = Query(default=None, max_length=512),
         site_id: str | None = None,
         country: str | None = None,
         doc_type: str | None = None,
@@ -225,9 +227,19 @@ def create_app(dsn: str) -> FastAPI:
     ):
         normalized_q = q.strip() if q else None
         normalized_q = normalized_q or None
-        effective_sort = sort or ("relevance" if normalized_q else "collected_desc")
+        site_id = site_id or None
+        effective_sort = sort or default_sort(normalized_q)
         if effective_sort == "relevance" and not normalized_q:
             raise HTTPException(status_code=422, detail="relevance sort requires q")
+        # Full-text search is scoped to one site: an unscoped match over every
+        # document cannot be ranked or counted within the response budget.
+        if normalized_q and not site_id:
+            raise HTTPException(status_code=422, detail={
+                "reason": "q_requires_site", "message": "q requires site_id"})
+        if cursor is None and page > MAX_OFFSET_PAGE:
+            raise HTTPException(status_code=422, detail={
+                "reason": "page_requires_cursor",
+                "message": f"page > {MAX_OFFSET_PAGE} requires cursor pagination (use next_cursor)"})
         if published_from and published_to and published_from > published_to:
             raise HTTPException(status_code=422, detail="invalid published date range")
         if collected_from and collected_to and collected_from > collected_to:
@@ -245,8 +257,10 @@ def create_app(dsn: str) -> FastAPI:
                 country=country, doc_type=doc_type, lang=lang,
                 published_from=published_from, published_to=published_to,
                 collected_from=collected_from, collected_to=collected_to,
-                has_pdf=has_pdf, has_text=has_text, sort=effective_sort,
+                has_pdf=has_pdf, has_text=has_text, sort=effective_sort, cursor=cursor,
             ), taxonomy)
+        except CatalogueError as exc:
+            raise HTTPException(status_code=422, detail={"reason": exc.reason, "message": exc.message}) from exc
         finally:
             conn.close()
 
