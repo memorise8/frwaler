@@ -31,6 +31,21 @@
 .health-page .section-heading p { margin-block: 4px; }
 .health-page .health-badge--unknown { color: var(--muted); background: var(--sand-wash); }
 
+/* 사이트 수집: health-page 의 표·카드를 그대로 쓰고 탭·진행 막대·작업 버튼만 더한다. */
+.site-collect-page .filters--collect { grid-template-columns: minmax(220px,1fr) 170px 180px 140px; }
+.collect-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--rule); }
+.collect-tab { padding: 10px 18px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted); font-weight: 700; cursor: pointer; }
+.collect-tab--active { border-bottom-color: var(--ink); color: var(--ink); }
+.collect-bar { display: block; height: 6px; margin-top: 6px; background: var(--sand-wash); }
+.collect-bar b { display: block; height: 100%; background: var(--moss); }
+.collect-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.collect-actions button { padding: 5px 10px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); font-size: 12px; cursor: pointer; }
+.collect-actions button:disabled { cursor: not-allowed; opacity: .5; }
+.site-collect-page .run-message { margin-top: 8px; padding: 8px 10px; font-size: 12px; }
+@media (max-width: 800px) {
+  .site-collect-page .filters--collect { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 800px) {
   .masthead .nav-link { flex: 0 0 auto; white-space: nowrap; }
 }

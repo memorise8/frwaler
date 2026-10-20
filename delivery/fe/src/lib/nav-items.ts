@@ -6,8 +6,11 @@ export type NavItem = Readonly<{ href: string; label: string; match: readonly st
 // than something touched on every visit, so it sits after the daily screens.
 // 백필 sits between watching crawlers and checking results: it is the
 // long-running collection campaign an operator monitors alongside both.
+// 사이트 수집 follows 수집 directly: it is the per-site view of the same job
+// (judgment, uncollected reason, runner trial/resume) for the delivery sites.
 export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/", label: "수집", match: ["/"] },
+  { href: "/site-collect", label: "사이트 수집", match: ["/site-collect"] },
   { href: "/crawlers", label: "크롤러 상태", match: ["/crawlers"] },
   { href: "/health", label: "건강 점검", match: ["/health"] },
   { href: "/backfill", label: "백필", match: ["/backfill"] },
