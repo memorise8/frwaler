@@ -376,6 +376,8 @@ export const needsAttention = (site: ConsoleSite): boolean => site.state === "st
 
 export type Scope = Readonly<{
   attn: boolean; type: string; country: string; cls: string;
+  /** 판정 파일 구역(예: "L2a"). 예전 사이트 수집 표의 구역 필터. */
+  lane?: string;
   /** 콘솔에 없던 운영 보기: "approval"(승인 대기) | "uncollected"(미수집) | "" */
   special: "" | "approval" | "uncollected";
 }>;
@@ -386,6 +388,7 @@ export const scoped = (list: readonly ConsoleSite[], scope: Scope): ConsoleSite[
   (!scope.type || site.type === scope.type) &&
   (!scope.country || site.country === scope.country) &&
   (!scope.cls || site.cls.k === scope.cls) &&
+  (!scope.lane || site.cls.lane === scope.lane) &&
   (scope.special !== "approval" || site.approval) &&
   (scope.special !== "uncollected" || site.uncollected !== null));
 
@@ -395,6 +398,9 @@ export const filtered = (list: readonly ConsoleSite[], filter: Filter): ConsoleS
     (!filter.state || site.state === filter.state) &&
     (!q || `${site.id} ${site.name}`.toLowerCase().includes(q)));
 };
+
+export const laneNames = (list: readonly ConsoleSite[]): string[] =>
+  [...new Set(list.map((site) => site.cls.lane).filter((lane): lane is string => Boolean(lane)))].sort();
 
 /** 콘솔 정렬: 상태 순서 → 규모(총건수 또는 저장) 큰 순 → ID. */
 export const sortSites = (list: readonly ConsoleSite[]): ConsoleSite[] => [...list].sort((a, b) =>

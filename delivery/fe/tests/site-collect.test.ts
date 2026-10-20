@@ -7,7 +7,8 @@ import {
   describeRejection, filterSites, needsApproval, normalizeRunnerHealth, normalizeSitesReport, normalizeUncollected, performAction,
   REJECTION_LABELS, UNCLASSIFIED, type CollectSite,
 } from "@/lib/site-collect";
-import SiteCollectConsole, { SiteRow } from "@/app/(shell)/site-collect/site-collect-console";
+import SiteCollectConsole from "@/app/(shell)/site-collect/site-collect-console";
+import { buildConsole } from "@/lib/collect-console";
 import { POST as postRun } from "@/app/api/collect/runs/route";
 import { POST as postCancel } from "@/app/api/collect/runs/[runId]/cancel/route";
 
@@ -150,14 +151,6 @@ describe("409 rejection reasons", () => {
     expect(message).toContain("409");
   });
 
-  it("shows the rejection on the site row", () => {
-    const html = renderToStaticMarkup(createElement("table", null, createElement("tbody", null, createElement(SiteRow, {
-      site: sites[2]!, reason: undefined, busy: false, disabled: false, trialLimit: 100, onAction: () => undefined,
-      message: { ok: false, text: describeRejection(409, { reason: "runner_paused" }).message },
-    }))));
-    expect(html).toContain("실행기가 일시 중지돼 있어");
-    expect(html).toContain('role="alert"');
-  });
 });
 
 describe("confirm before action", () => {
@@ -191,18 +184,48 @@ describe("confirm before action", () => {
   });
 });
 
+// /site-collect 는 수집 콘솔(collect-console)을 쓴다: BE 응답 원본을 buildConsole 로 묶어 넘긴다.
+const NOW = Date.parse("2026-10-20T02:00:00Z") / 1000;
+const consoleData = (runnerOk: boolean) => buildConsole({
+  sites: { status_source: { ok: true }, runner_ok: runnerOk, runner_reason: runnerOk ? null : "runner_unavailable", documents_ok: true, sites: [
+    { site_id: "ntrs-nasa-gov-search", state: "ready", class: "run", detail: "plan 통과", reason_codes: [], status_file: "L2a.csv", documents: 1200,
+      plan: { ready: true, why: null, strategy: "api", folder: "f", expected_items: 648013, approved_large: true }, latest_run: null },
+    { site_id: "e-stat-go-jp-stat-search", state: "ready", class: "run", detail: "", reason_codes: [], status_file: "L2b.csv", documents: 5,
+      plan: { ready: true, why: null, strategy: "api", folder: null, expected_items: 1721215, approved_large: false }, latest_run: null },
+  ] },
+  uncollected: { sites: [] },
+  runs: [{ run_id: "r0001", site_id: "ntrs-nasa-gov-search", mode: "resume", status: "running", started_at: "2026-10-20T01:00:00Z", result: null }],
+  health: runnerOk ? { runner_ok: true, paused: false, max_parallel: 2, running: 1, queued: 0 } : { runner_ok: false, reason: "runner_unavailable", detail: "runner is not reachable" },
+  stats: null, progress: { sites: [] },
+}, null, new Map(), NOW);
+const render = (data: ReturnType<typeof buildConsole>) => renderToStaticMarkup(createElement(SiteCollectConsole, { data, fetchedAt: NOW }));
+
 describe("site collection console", () => {
-  it("links each row to its documents and crawler pages", () => {
-    const html = renderToStaticMarkup(createElement(SiteCollectConsole, { report, uncollected: [], runner: { ok: true, paused: false, detail: "" } }));
-    expect(html).toContain('href="/documents?site_id=sonar-ch-global"');
-    expect(html).toContain('href="/crawlers/sonar-ch-global"');
-    expect(html).toContain("승인 대기 (1)");
-    // A running site offers cancel, not another start.
-    expect(html).toContain("취소");
+  it("links the selected site to its documents and crawler pages", () => {
+    const html = render(consoleData(true));
+    // 주의 필요 사이트가 없으면 첫 사이트(ID 순)가 상세에 열린다.
+    expect(html).toContain('href="/documents?site_id=e-stat-go-jp-stat-search"');
+    expect(html).toContain('href="/crawlers/e-stat-go-jp-stat-search"');
+    expect(html).toMatch(/<b>1<\/b><span>승인 대기<\/span>/);
+    expect(html).toContain("구역 L2a");
+  });
+
+  it("offers cancel, not another start, on a running run", () => {
+    const data = consoleData(true);
+    const html = render({ ...data, sites: data.sites.filter((site) => site.id === "ntrs-nasa-gov-search") });
+    expect(html).toContain(">취소</button>");
+    expect(html).toContain("실행기 작업 r0001 이(가) 실행 중입니다");
+    expect(html).toMatch(/<button type="button" class="primary" disabled="">/);
+  });
+
+  it("disables runner buttons with the reason when the runner is down", () => {
+    const html = render(consoleData(false));
+    expect(html).toContain("실행기 없음 — 실행기에 연결할 수 없습니다. (runner is not reachable)");
+    expect(html).toMatch(/<button type="button" class="primary" disabled="">/);
   });
 
   it("explains an unavailable backend instead of rendering an empty table", () => {
-    const html = renderToStaticMarkup(createElement(SiteCollectConsole, { report: null, uncollected: [], runner: null }));
+    const html = render(buildConsole({ sites: null, uncollected: null, runs: null, health: null, stats: null, progress: null }, null, new Map(), NOW));
     expect(html).toContain("사이트 수집 현황을 불러올 수 없습니다");
   });
 });

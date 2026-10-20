@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
-  ago, buildConsole, classOf, countClasses, countStates, filtered, isBig, namesBy, normalizeProgress, normalizeRunnerRuns,
+  ago, buildConsole, classOf, laneNames, countClasses, countStates, filtered, isBig, namesBy, normalizeProgress, normalizeRunnerRuns,
   normalizeRunnerStatus, normalizeStats, percentOf, scoped, secondaryCounts, sortSites, startCheck, stateOf, tsOf,
   type BackfillRow, type ConsoleSite, type RunnerRun, type Scope,
 } from "../src/lib/collect-console";
@@ -181,6 +181,11 @@ describe("filters and grouping", () => {
     expect(scoped(data.sites, { ...none, cls: "nego" }).map((s) => s.id)).toEqual(["blocked-site"]);
     expect(scoped(data.sites, { ...none, special: "approval" }).map((s) => s.id)).toEqual(["big-site"]);
     expect(scoped(data.sites, { ...none, special: "uncollected" }).map((s) => s.id)).toEqual(["blocked-site", "note-only"]);
+  });
+  it("filters by judgment-file lane (예전 사이트 수집 표의 구역 필터)", () => {
+    expect(laneNames(data.sites)).toEqual(["L2a"]);
+    expect(scoped(data.sites, { ...none, lane: "L2a" }).map((s) => s.id)).toEqual(["a-site", "big-site", "blocked-site"]);
+    expect(scoped(data.sites, { ...none, lane: "L9" })).toEqual([]);
   });
   it("filters by state and search text", () => {
     expect(filtered(data.sites, { ...none, state: "run", q: "" }).map((s) => s.id)).toEqual(["a-site", "big-site"]);

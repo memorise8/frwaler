@@ -8,12 +8,8 @@ export type NavItem = Readonly<{ href: string; label: string; match: readonly st
 // long-running collection campaign an operator monitors alongside both.
 // 사이트 수집 follows 수집 directly: it is the per-site view of the same job
 // (judgment, uncollected reason, runner trial/resume) for the delivery sites.
-// 수집 콘솔 owns "/" (the delivery collection console ported from the local
-// dashboard); the previous landing page, 작업 대시보드, moved to /jobs and
-// keeps the second slot because it is where crawler jobs are started.
 export const NAV_ITEMS: readonly NavItem[] = [
-  { href: "/", label: "수집 콘솔", match: ["/"] },
-  { href: "/jobs", label: "작업 대시보드", match: ["/jobs"] },
+  { href: "/", label: "수집", match: ["/"] },
   { href: "/site-collect", label: "사이트 수집", match: ["/site-collect"] },
   { href: "/crawlers", label: "크롤러 상태", match: ["/crawlers"] },
   { href: "/health", label: "건강 점검", match: ["/health"] },

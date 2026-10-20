@@ -100,7 +100,7 @@ export default async function CrawlerFleet({ searchParams }: Readonly<{ searchPa
         <article className="summary-card summary-card--secondary"><span>여기서 수집 확인</span><strong>{(verificationStats?.summary.sites_with_saved_documents ?? 0).toLocaleString("ko-KR")}</strong><small>{verificationStats ? `이 설치에서 ${verificationStats.summary.sites_with_jobs.toLocaleString("ko-KR")}개 실행` : "실행 기록 조회 불가"}</small></article>
       </div>
 
-      <aside className="snapshot-note"><strong>스냅샷 안내</strong><span>상태 배지는 {AUDIT_DATE}에 <strong>다른 네트워크에서</strong> 검증한 결과이며 갱신되지 않습니다. 아래 &ldquo;여기 결과&rdquo; 칸이 이 설치에서 실제로 실행한 기록입니다. 둘이 다르면 이쪽이 현재 사실입니다. 아직 실행한 적 없는 수집기는 <Link href="/jobs">작업 대시보드</Link>에서 3건 상태 확인으로 확인할 수 있습니다.</span></aside>
+      <aside className="snapshot-note"><strong>스냅샷 안내</strong><span>상태 배지는 {AUDIT_DATE}에 <strong>다른 네트워크에서</strong> 검증한 결과이며 갱신되지 않습니다. 아래 &ldquo;여기 결과&rdquo; 칸이 이 설치에서 실제로 실행한 기록입니다. 둘이 다르면 이쪽이 현재 사실입니다. 아직 실행한 적 없는 수집기는 <Link href="/">수집 화면</Link>에서 3건 상태 확인으로 확인할 수 있습니다.</span></aside>
 
       <div className="taxonomy-grid" aria-label="국가 및 자료 유형 분류">
         <article className="taxonomy-panel">

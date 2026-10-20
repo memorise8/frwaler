@@ -26,12 +26,12 @@ describe("NAV_ITEMS", () => {
   // landing route; crawler health and collected data follow in the order the
   // work actually happens.
   it("leads with collection and orders the sections by operator workflow", () => {
-    expect(NAV_ITEMS.map((item) => item.href)).toEqual(["/", "/jobs", "/site-collect", "/crawlers", "/health", "/backfill", "/collected", "/documents", "/schedules", "/translations"]);
-    expect(NAV_ITEMS.map((item) => item.label)).toEqual(["수집 콘솔", "작업 대시보드", "사이트 수집", "크롤러 상태", "건강 점검", "백필", "수집 상태", "문서 탐색", "수집 예약", "번역 작업"]);
+    expect(NAV_ITEMS.map((item) => item.href)).toEqual(["/", "/site-collect", "/crawlers", "/health", "/backfill", "/collected", "/documents", "/schedules", "/translations"]);
+    expect(NAV_ITEMS.map((item) => item.label)).toEqual(["수집", "사이트 수집", "크롤러 상태", "건강 점검", "백필", "수집 상태", "문서 탐색", "수집 예약", "번역 작업"]);
   });
 
   it("activates exactly one section for every console route", () => {
-    const routes = ["/", "/jobs", "/site-collect", "/crawlers", "/crawlers/site-1", "/collected", "/schedules", "/documents", "/documents/9", "/translations"];
+    const routes = ["/", "/site-collect", "/crawlers", "/crawlers/site-1", "/collected", "/schedules", "/documents", "/documents/9", "/translations"];
     for (const route of routes) {
       const matched = NAV_ITEMS.filter((item) => isActiveNav(route, item.match));
       expect(matched, route).toHaveLength(1);
