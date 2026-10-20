@@ -1,0 +1,15 @@
+# 선택: /site-collect 화면의 사이트 상태(site-status CSV) 폴더를 be에 연결합니다.
+# 사용: .env의 COMPOSE_FILE 에 :docker-compose.collect-status.yml 추가
+# COLLECT_STATUS_HOST_DIR은 *.csv(site_id,state,detail,updated_at,...)가 있는 호스트 폴더.
+# 이 파일을 쓰지 않으면 /collect/sites는 status_source.reason="not_configured"로 응답합니다.
+services:
+  be:
+    environment:
+      COLLECT_STATUS_DIR: /data/collect-status
+    volumes:
+      - type: bind
+        source: ${COLLECT_STATUS_HOST_DIR:?set COLLECT_STATUS_HOST_DIR to the site-status directory}
+        target: /data/collect-status
+        read_only: true
+        bind:
+          create_host_path: false

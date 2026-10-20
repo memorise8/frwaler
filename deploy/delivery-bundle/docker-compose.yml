@@ -1,0 +1,296 @@
+# libertree-delivery 통합 배포 번들 (FE·BE·DB 한 스택)
+#
+# 이 디렉터리(deploy/delivery-bundle)에서 실행합니다. .env도 이 디렉터리에 둡니다.
+#   cp .env.example .env   # 값을 채운 뒤
+#   docker compose build
+#   docker compose up -d postgres            # → 데이터 복원(migrate/README.md)
+#   docker compose run --rm migrate          # 복원된 스키마를 현재 코드 버전으로 맞춤(추가형)
+#   docker compose up -d be worker file-worker
+#   docker compose up -d fe
+#   docker compose up -d runner
+# 자세한 순서·점검·되돌리기는 ADMIN_GUIDE.md.
+#
+# 이미지는 저장소의 기존 Dockerfile(delivery/Dockerfile.*)을 그대로 빌드합니다
+# (build context = 저장소 루트 ../..). 서비스 정의는 delivery/docker-compose.yml,
+# docker-compose.blob.yml, docker-compose.collect.yml을 합친 것이며 차이는
+# ADMIN_GUIDE.md "현재 구성과의 차이"에 정리했습니다.
+#
+# 번들 밖에 두는 것: nginx-blob(8181), cloudflare-ddns. 이 파일은 건드리지 않습니다.
+name: libertree-delivery
+
+x-pg-dsn: &pg-dsn postgresql://${POSTGRES_USER:-libertree}:${POSTGRES_PASSWORD:-}@postgres:5432/${POSTGRES_DB:-libertree}
+
+# 기존 운영 blob 디렉터리(seq_id 기반 파일). 필수. be는 읽기 전용.
+x-blob-ro: &blob-ro
+  type: bind
+  source: ${BLOB_HOST_PATH:?set BLOB_HOST_PATH in .env to the existing blob directory}
+  target: /data/blob
+  read_only: true
+  bind:
+    create_host_path: false
+x-blob-rw: &blob-rw
+  type: bind
+  source: ${BLOB_HOST_PATH:?set BLOB_HOST_PATH in .env to the existing blob directory}
+  target: /data/blob
+  bind:
+    create_host_path: false
+
+x-logging: &delivery-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-site-keys: &site-keys
+  CANCER_FR_CATALOGUE_DES_PUBLIC_KEY: ${CANCER_FR_CATALOGUE_DES_PUBLIC_KEY:-}
+  EDUCATION_GOVT_NZ_OUR_WORK_KEY: ${EDUCATION_GOVT_NZ_OUR_WORK_KEY:-}
+  EDUCATION_GOVT_NZ_SEARCH_KEY: ${EDUCATION_GOVT_NZ_SEARCH_KEY:-}
+  INRAE_FR_ACTUALITES_KEY: ${INRAE_FR_ACTUALITES_KEY:-}
+  NKVTS_NO_ENGLISH_KEY: ${NKVTS_NO_ENGLISH_KEY:-}
+  PHFSCIENCE_NZ_DIGITAL_LIBRARY_KEY: ${PHFSCIENCE_NZ_DIGITAL_LIBRARY_KEY:-}
+  PHFSCIENCE_NZ_NEWS_PUBLICATIONS_KEY: ${PHFSCIENCE_NZ_NEWS_PUBLICATIONS_KEY:-}
+  TRANSPARENCY_GOV_AU_PUBLICATIONS_KEY: ${TRANSPARENCY_GOV_AU_PUBLICATIONS_KEY:-}
+  SCIENCEON_KEY: ${SCIENCEON_KEY:-}
+  SCIENCEON_CLIENT_ID: ${SCIENCEON_CLIENT_ID:-}
+  SCIENCEON_MAC_ADDRESS: ${SCIENCEON_MAC_ADDRESS:-}
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-libertree}
+      # 빈 값이면 새 볼륨에서 공식 이미지가 기동을 거부합니다(아래 guard도 참고).
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      POSTGRES_DB: ${POSTGRES_DB:-libertree}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # 호스트 포트는 기본 미공개. 필요하면 docker-compose.pg-port.yml 사용(ADMIN_GUIDE.md).
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-libertree} -d ${POSTGRES_DB:-libertree}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    logging: *delivery-logging
+
+  # POSTGRES_PASSWORD가 비어 있으면 be/worker가 알 수 없는 인증 오류로 죽기 전에
+  # 원인을 이름으로 알려 주고 실패합니다(delivery/docker-compose.yml과 동일).
+  postgres-password-guard:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        if [ -z "$$POSTGRES_PASSWORD" ]; then
+          echo "POSTGRES_PASSWORD is not set. migrate/be/worker cannot authenticate to postgres." >&2
+          echo "Set POSTGRES_PASSWORD in deploy/delivery-bundle/.env -- see ADMIN_GUIDE.md." >&2
+          exit 1
+        fi
+    restart: "no"
+
+  # 1회성 스키마 마이그레이션(추가형, 기존 행을 지우지 않음). 기본 `up`에는
+  # 포함되지 않습니다:  docker compose run --rm migrate
+  migrate:
+    profiles: ["tools"]
+    build:
+      context: ../..
+      dockerfile: delivery/Dockerfile.be
+    image: ${IMAGE_PREFIX:-libertree-delivery}-be:${IMAGE_TAG:-latest}
+    command: ["python", "-m", "delivery.be.migrate"]
+    environment:
+      LIBERTREE_PG_DSN: *pg-dsn
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres-password-guard:
+        condition: service_completed_successfully
+    restart: "no"
+
+  be:
+    build:
+      context: ../..
+      dockerfile: delivery/Dockerfile.be
+    image: ${IMAGE_PREFIX:-libertree-delivery}-be:${IMAGE_TAG:-latest}
+    environment:
+      <<: *site-keys
+      LIBERTREE_PG_DSN: *pg-dsn
+      LIBERTREE_DB_BACKEND: postgres
+      LIBERTREE_BLOB_ROOT: /data/blob
+      DELIVERY_AUTH_MODE: ${DELIVERY_AUTH_MODE:-token}
+      DELIVERY_API_TOKEN: ${DELIVERY_API_TOKEN:-}
+      DELIVERY_DB_POOL_MIN: ${DELIVERY_DB_POOL_MIN:-1}
+      DELIVERY_DB_POOL_MAX: ${DELIVERY_DB_POOL_MAX:-10}
+      DELIVERY_AGGREGATE_CACHE_SECONDS: ${DELIVERY_AGGREGATE_CACHE_SECONDS:-30}
+      CRAWLER_HEALTH_REPORT_DIR: /data/health
+      CRAWLER_HEALTH_STALE_HOURS: ${CRAWLER_HEALTH_STALE_HOURS:-48}
+      TRANSLATION_INTERNAL_MODEL: ${TRANSLATION_INTERNAL_MODEL:-}
+      TRANSLATION_EXTERNAL_MODEL: ${TRANSLATION_EXTERNAL_MODEL:-}
+      # /collect API → 같은 compose 네트워크의 runner 서비스.
+      COLLECT_RUNNER_URL: ${COLLECT_RUNNER_URL:-http://runner:8793}
+      # 비워 두면 아래 토큰 파일(runner가 처음 기동할 때 만든 RUNNER_HOME/.token)을 읽습니다.
+      COLLECT_RUNNER_TOKEN: ${COLLECT_RUNNER_TOKEN:-}
+      COLLECT_RUNNER_TOKEN_FILE: /run/collect-runner/.token
+      COLLECT_RUNNER_CACHE_SECONDS: ${COLLECT_RUNNER_CACHE_SECONDS:-3}
+      # 사이트 상태 CSV 폴더. docker-compose.collect-status.yml을 함께 쓸 때만 채워집니다.
+      COLLECT_STATUS_DIR: ${COLLECT_STATUS_DIR:-}
+    # host.docker.internal → 호스트 게이트웨이 (Docker 20.10 이상 필요).
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    volumes:
+      - *blob-ro
+      - health-reports:/data/health:ro
+      # runner 상태 디렉터리를 읽기 전용으로 붙여 .token만 읽습니다. 토큰 파일이
+      # 아직 없어도 be는 기동하며 /collect는 runner_unconfigured로 응답합니다.
+      - runner-state:/run/collect-runner:ro
+    ports:
+      - "127.0.0.1:${BE_PORT:-8080}:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres-password-guard:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:3001/ready', timeout=3)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+    logging: *delivery-logging
+
+  fe:
+    build:
+      context: ../..
+      dockerfile: delivery/Dockerfile.fe
+    image: ${IMAGE_PREFIX:-libertree-delivery}-fe:${IMAGE_TAG:-latest}
+    environment:
+      BE_URL: http://be:3001
+      DELIVERY_API_TOKEN: ${DELIVERY_API_TOKEN:-}
+      TRANSLATION_INTERNAL_MODEL: ${TRANSLATION_INTERNAL_MODEL:-}
+    ports:
+      # 현재 운영과 같이 모든 인터페이스(0.0.0.0). 앞단 프록시만 쓰면 FE_BIND=127.0.0.1.
+      - "${FE_BIND:-0.0.0.0}:${FE_PORT:-3000}:3002"
+    depends_on:
+      be:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3002/"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+    logging: *delivery-logging
+
+  worker:
+    build:
+      context: ../..
+      dockerfile: delivery/Dockerfile.worker
+    image: ${IMAGE_PREFIX:-libertree-delivery}-worker:${IMAGE_TAG:-latest}
+    environment:
+      <<: *site-keys
+      LIBERTREE_PG_DSN: *pg-dsn
+      LIBERTREE_DB_BACKEND: postgres
+      LIBERTREE_BLOB_ROOT: /data/blob
+      TRANSLATION_EXTERNAL_ENDPOINT: ${TRANSLATION_EXTERNAL_ENDPOINT:-}
+      TRANSLATION_EXTERNAL_MODEL: ${TRANSLATION_EXTERNAL_MODEL:-}
+      TRANSLATION_EXTERNAL_API_KEY: ${TRANSLATION_EXTERNAL_API_KEY:-}
+      TRANSLATION_INTERNAL_ENDPOINT: ${TRANSLATION_INTERNAL_ENDPOINT:-}
+      TRANSLATION_INTERNAL_MODEL: ${TRANSLATION_INTERNAL_MODEL:-}
+      TRANSLATION_WORKER_ID: ${TRANSLATION_WORKER_ID:-delivery-worker-1}
+      LIBERTREE_MAX_WALL_S: ${LIBERTREE_MAX_WALL_S:-1500}
+      SCIENCEON_TOKEN_CACHE: ${SCIENCEON_TOKEN_CACHE:-/data/runtime/scienceon_token.json}
+      SCIENCEON_SLICE_BUDGET: ${SCIENCEON_SLICE_BUDGET:-4}
+      SCIENCEON_INCREMENTAL_YEARS: ${SCIENCEON_INCREMENTAL_YEARS:-2}
+      SCIENCEON_INCREMENTAL_PAGES: ${SCIENCEON_INCREMENTAL_PAGES:-3}
+    volumes:
+      - *blob-rw
+      - runtime:/data/runtime
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres-password-guard:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-m", "delivery.health.worker_check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging: *delivery-logging
+
+  file-worker:
+    build:
+      context: ../..
+      dockerfile: delivery/Dockerfile.worker
+    image: ${IMAGE_PREFIX:-libertree-delivery}-worker:${IMAGE_TAG:-latest}
+    command: ["python", "-m", "delivery.files.worker"]
+    environment:
+      LIBERTREE_PG_DSN: *pg-dsn
+      LIBERTREE_DB_BACKEND: postgres
+      LIBERTREE_BLOB_ROOT: /data/blob
+      FILE_STAGE_TIMEOUT_SECONDS: ${FILE_STAGE_TIMEOUT_SECONDS:-180}
+    volumes:
+      - *blob-rw
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres-password-guard:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    init: true
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 128
+    healthcheck:
+      test: ["CMD", "python", "-m", "delivery.files.check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging: *delivery-logging
+
+  # 수집 실행기(deploy/collect-runner/runner.py). be가 http://runner:8793 으로 호출.
+  #
+  # 보안: docker 소켓을 마운트하므로 이 컨테이너는 호스트 root와 같은 권한입니다.
+  # 그래서 호스트 포트를 절대 공개하지 않습니다(ports: 없음). 같은 compose
+  # 네트워크 안에서만 접근되며 X-Runner-Token을 요구합니다.
+  #
+  # 경로: run-pilot.sh가 호스트 docker 데몬에 실행 폴더·계획 파일을 bind-mount
+  # 시키므로 RUNNER_HOME과 runs root는 호스트와 컨테이너에서 같은 경로여야 합니다.
+  # 비root: COLLECT_RUNNER_UID:GID로 실행되고 소켓 그룹(DOCKER_GID)에 들어갑니다.
+  # 최초 기동 전에 두 호스트 디렉터리를 만들고 그 uid로 chown 하십시오(ADMIN_GUIDE.md).
+  runner:
+    build:
+      context: ../..
+      dockerfile: delivery/Dockerfile.runner
+    image: ${IMAGE_PREFIX:-libertree-delivery}-runner:${IMAGE_TAG:-latest}
+    user: "${COLLECT_RUNNER_UID:-1000}:${COLLECT_RUNNER_GID:-1000}"
+    group_add: ["${DOCKER_GID:-999}"]
+    environment:
+      RUNNER_HOME: ${COLLECT_RUNNER_HOME:-/srv/collect-runner}
+      # 포트를 공개하지 않으므로 컨테이너 안에서 0.0.0.0 바인드가 안전합니다.
+      RUNNER_BIND: 0.0.0.0
+    volumes:
+      - runner-state:${COLLECT_RUNNER_HOME:-/srv/collect-runner}
+      - ${COLLECT_RUNS_ROOT:-/srv/enum-pilot-run}:${COLLECT_RUNS_ROOT:-/srv/enum-pilot-run}
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    init: true
+    logging: *delivery-logging
+
+volumes:
+  pgdata:
+  runtime:
+  health-reports:
+  # COLLECT_RUNNER_HOME 호스트 디렉터리를 같은 경로로 붙이는 named volume.
+  # 디렉터리가 없으면 runner/be 기동이 실패합니다(먼저 만들고 chown).
+  # COLLECT_RUNNER_HOME을 바꾸면 runner·be를 내리고
+  # `docker volume rm libertree-delivery_runner-state` 후 다시 올립니다(데이터는 호스트 폴더에 남음).
+  runner-state:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${COLLECT_RUNNER_HOME:-/srv/collect-runner}
