@@ -45,7 +45,7 @@ describe("normalizeSitesReport", () => {
   });
 
   it("treats an unexpected body as empty and the runner as down", () => {
-    expect(normalizeSitesReport(null)).toEqual({ sites: [], runner_ok: false, status_dir_ok: false });
+    expect(normalizeSitesReport(null)).toEqual({ sites: [], runner_ok: false, status_dir_ok: false, progress_ok: null });
     expect(normalizeSitesReport([{ site_id: "a" }]).sites).toHaveLength(1);
   });
 });

@@ -19,6 +19,17 @@ export type CollectRun = Readonly<{
   total: number | null;
 }>;
 
+/** O1 상태 파일(status/O1-full.csv) 한 줄: 실행기 밖에서 직접 돌리는 수집의 진행. */
+export type DirectProgress = Readonly<{
+  status: string;
+  running: boolean;
+  saved: number | null;
+  run_folder: string | null;
+  started_at: string | null;
+  updated_at: string | null;
+  detail: string;
+}>;
+
 export type CollectPlan = Readonly<{ ready: boolean; why: string; expected_items: number | null; approved_large: boolean }>;
 
 export type CollectSite = Readonly<{
@@ -34,12 +45,19 @@ export type CollectSite = Readonly<{
   expected: number | null;
   plan: CollectPlan | null;
   latest_run: CollectRun | null;
+  /** "status"(판정 파일) | "runner"(실행기 기록) | "db_only"(DB 문서만 있음) | "" (모름) */
+  source: string;
+  /** BE 가 정한 구분 이름(DB 에만 있는 사이트는 "판정 없음"·"API 수집" 등). */
+  class_label: string;
+  direct: DirectProgress | null;
 }>;
 
 export type CollectSitesReport = Readonly<{
   sites: readonly CollectSite[];
   runner_ok: boolean;
   status_dir_ok: boolean;
+  /** O1 상태 파일을 읽었는지. 필드가 없는 예전 BE 면 null. */
+  progress_ok: boolean | null;
 }>;
 
 export type UncollectedRow = Readonly<{ site_id: string; class: CollectClass; reason: string; note: string }>;
@@ -101,6 +119,15 @@ export const normalizeRun = (raw: unknown): CollectRun | null => {
   };
 };
 
+export const normalizeDirect = (raw: unknown): DirectProgress | null => {
+  if (!isRecord(raw) || !str(raw.status)) return null;
+  return {
+    status: str(raw.status), running: raw.running === true, saved: num(raw.saved),
+    run_folder: strOrNull(raw.run_folder), started_at: strOrNull(raw.started_at), updated_at: strOrNull(raw.updated_at),
+    detail: str(raw.detail),
+  };
+};
+
 export const normalizeSite = (raw: unknown): CollectSite | null => {
   if (!isRecord(raw)) return null;
   const siteId = str(raw.site_id).trim();
@@ -124,6 +151,9 @@ export const normalizeSite = (raw: unknown): CollectSite | null => {
       ?? (plan ? num(plan.expected_items) : null) ?? latest?.total ?? null,
     plan: plan ? { ready: plan.ready === true, why: str(plan.why), expected_items: num(plan.expected_items), approved_large: plan.approved_large === true } : null,
     latest_run: latest,
+    source: str(raw.source),
+    class_label: str(raw.class_label),
+    direct: normalizeDirect(raw.direct),
   };
 };
 
@@ -132,6 +162,7 @@ export const normalizeSitesReport = (raw: unknown): CollectSitesReport => ({
   runner_ok: isRecord(raw) && raw.runner_ok === true,
   // BE 초안은 status_source.ok 로 준다.
   status_dir_ok: isRecord(raw) && (raw.status_dir_ok === true || (isRecord(raw.status_source) && raw.status_source.ok === true)),
+  progress_ok: isRecord(raw) && isRecord(raw.progress_source) ? raw.progress_source.ok === true : null,
 });
 
 // /collect/uncollected 는 reason 문자열 대신 uncollected_reasons 코드 목록을 줄 수 있다.

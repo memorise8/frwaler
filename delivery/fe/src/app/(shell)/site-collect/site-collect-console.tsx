@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import "./collect-console.css";
 import {
-  ago, CLASS_KEYS, CLASSES, countClasses, countStates, filtered, fmt, isBig, MIX_ORDER, namesBy, needsAttention,
+  ago, CLASS_KEYS, CLASSES, classText, countClasses, countStates, filtered, fmt, isBig, MIX_ORDER, namesBy, needsAttention,
   laneNames, pctText, percentOf, RESULT_STATUS_KO, RUNNER_STATUS_KO, scoped, secondaryCounts, sortSites, startCheck, STATE_KEYS,
   STATES, tsOf, type ConsoleData, type ConsoleSite, type ConsoleState, type Scope,
 } from "@/lib/collect-console";
@@ -30,7 +30,7 @@ const SPECIAL_LABEL: Readonly<Record<Exclude<Special, "">, string>> = { approval
 const Badge = ({ state }: { state: ConsoleState }) => (
   <span className={`badge b-${state}`}>{state === "run" ? <span className="pulse" /> : <i>{STATES[state].mark}</i>}{STATES[state].label}</span>
 );
-const ClsPill = ({ site }: { site: ConsoleSite }) => <span className={`cls ${CLASSES[site.cls.k].tone}`}>{CLASSES[site.cls.k].label}</span>;
+const ClsPill = ({ site }: { site: ConsoleSite }) => <span className={`cls ${CLASSES[site.cls.k].tone}`}>{classText(site.cls)}</span>;
 const MixBar = ({ list }: { list: readonly ConsoleSite[] }) => {
   const c = countStates(list);
   return <div className="mix">{MIX_ORDER.map((k) => c[k] ? <i key={k} style={{ width: `${(c[k] / list.length) * 100}%`, background: MIXCOL[k] }} /> : null)}</div>;
@@ -138,6 +138,7 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
     data.sitesOk && !data.documentsOk && "DB 문서 수를 읽지 못했습니다",
     !data.runsOk && "실행기 작업 목록(/collect/runs)을 읽지 못했습니다",
     !data.progressOk && "백필 진행(/progress)을 읽지 못했습니다",
+    data.sitesOk && data.directOk === false && "직접 실행 진행(O1 상태 파일)을 읽지 못했습니다 — 직접 실행 중인 사이트가 '수집 중'으로 보이지 않을 수 있습니다",
     !data.uncollectedOk && "미수집 사유(/collect/uncollected)를 읽지 못했습니다",
     !data.stats && "DB 통계(/stats)를 읽지 못했습니다",
   ].filter(Boolean).join(" · ");
@@ -345,7 +346,7 @@ function Detail({ site: s, data, now, trialLimit, setTrialLimit, busy, anyBusy, 
       <span className="sub" style={{ marginLeft: 8 }}>{s.country} · {s.type}</span>
       <div className="sub" style={{ wordBreak: "break-all" }}>{s.id} · <Link className="lnk" href={`/crawlers/${encodeURIComponent(s.id)}`}>수집기 상세</Link> · <Link className="lnk" href={crawlerDocumentsHref(s.id)}>문서</Link></div>
       {s.alert && <div className="err" style={{ marginTop: 4 }}>{s.alert}</div>}
-      <div className="sub" style={{ marginTop: 4 }}><b className={CLASSES[s.cls.k].tone}>{CLASSES[s.cls.k].label}</b> · {s.cls.why}<br />근거 {s.cls.src}{s.cls.lane ? ` · 담당 구역 ${s.cls.lane}` : ""}</div>
+      <div className="sub" style={{ marginTop: 4 }}><b className={CLASSES[s.cls.k].tone}>{classText(s.cls)}</b> · {s.cls.why}<br />근거 {s.cls.src}{s.cls.lane ? ` · 담당 구역 ${s.cls.lane}` : ""}</div>
     </div>
     <div>
       <h2>커버리지</h2>

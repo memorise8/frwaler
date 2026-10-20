@@ -9,6 +9,7 @@ class mapping as the delivery dashboard's uncollected.py).
 from __future__ import annotations
 
 import csv
+import datetime
 import glob
 import http.client
 import json
@@ -24,6 +25,7 @@ from fastapi.responses import JSONResponse
 
 from delivery.be.access import require_operator
 from delivery.be.cache import TTLCache
+from delivery.be.counts import counts_available
 
 SITE_RE = re.compile(r"^[0-9A-Za-z._-]{1,120}$")
 RUN_RE = re.compile(r"^r[0-9]{4,12}$")
@@ -37,6 +39,13 @@ CLASS = {"ready": "run", "plan_written": "dev", "needs_dev": "dev", "moved": "de
 CLASS_KO = {"run": "실행 가능", "dev": "개발 필요", "nego": "협의 필요", "skip": "대상 아님", "": "판정 없음"}
 CLASS_ORDER = {"nego": 0, "dev": 2, "": 3, "run": 4, "skip": 5}
 NOTES_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "collect_notes.json")
+# Sites that only exist in the DB (no judgment file, no runner record) and are collected another way.
+DB_ONLY_LABELS = {"scienceon-api": "API 수집"}
+# O1 collection status (status/O1-full.csv), synced every 5 minutes into <COLLECT_STATUS_DIR>/runs/.
+# It lives in a sub-folder so load_status (top-level *.csv only) never mixes it into the judgments.
+PROGRESS_FILE = os.path.join("runs", "O1-full.csv")
+DIRECT_RUNNING = ("direct_running", "running")
+_SAVED_RE = re.compile(r"문서 ([0-9][0-9,]*)")
 
 
 class RunnerError(Exception):
@@ -213,6 +222,39 @@ def load_status(directory: str | None):
     return info, latest
 
 
+def load_progress(directory: str | None):
+    """(source info, {site_id: row}) from the O1 status file; read-only, never fatal."""
+    path = os.environ.get("COLLECT_PROGRESS_FILE") or (os.path.join(directory, PROGRESS_FILE) if directory else "")
+    if not path:
+        return {"ok": False, "reason": "not_configured", "updated_at": None}, {}
+    try:
+        updated = datetime.datetime.fromtimestamp(os.path.getmtime(path), datetime.timezone.utc)
+        with open(path, encoding="utf-8-sig", newline="") as handle:
+            rows = {}
+            for row in csv.DictReader(handle):
+                sid = (row.get("site_id") or "").strip()
+                if sid and sid != "site_id":
+                    rows[sid] = row
+    except FileNotFoundError:
+        return {"ok": False, "reason": "missing", "updated_at": None}, {}
+    except (OSError, UnicodeDecodeError, csv.Error):
+        return {"ok": False, "reason": "unreadable", "updated_at": None}, {}
+    stamp = updated.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return {"ok": True, "reason": None, "updated_at": stamp}, {sid: _direct(row, stamp) for sid, row in rows.items()}
+
+
+def _direct(row: dict, file_updated_at: str) -> dict:
+    """One O1 row: status, documents saved so far (the "문서 N" in result) and when we last saw it."""
+    result = " ".join((row.get("result") or "").split())
+    found = _SAVED_RE.findall(result)
+    status = (row.get("status") or "").strip()
+    return {"status": status or None, "running": status in DIRECT_RUNNING,
+            "saved": int(found[-1].replace(",", "")) if found else None,
+            "run_id": (row.get("run_id") or "").strip() or None, "run_folder": (row.get("run_folder") or "").strip() or None,
+            "started_at": (row.get("started") or "").strip() or None, "updated_at": file_updated_at,
+            "detail": result[:400]}
+
+
 def _notes():
     """(ok, {site_id: note}). ok is False when the notes file is missing or unreadable."""
     try:
@@ -240,7 +282,11 @@ def build_router(conn_factory, cache) -> APIRouter:
         def collect():
             conn = conn_factory()
             try:
-                rows = conn.execute("SELECT site_id, count(*) AS documents FROM documents GROUP BY site_id").fetchall()
+                # document_counts (delivery.be.counts) is O(sites); a live GROUP BY over millions of
+                # rows is only the fallback for a DB whose counts were never refreshed.
+                sql = ("SELECT site_id, sum(n)::bigint AS documents FROM document_counts GROUP BY site_id"
+                       if counts_available(conn) else "SELECT site_id, count(*) AS documents FROM documents GROUP BY site_id")
+                rows = conn.execute(sql).fetchall()
             finally:
                 conn.close()
             return {row["site_id"]: int(row["documents"]) for row in rows}
@@ -251,6 +297,7 @@ def build_router(conn_factory, cache) -> APIRouter:
 
     def site_table():
         status_info, status = load_status(os.environ.get("COLLECT_STATUS_DIR"))
+        progress_info, progress = load_progress(os.environ.get("COLLECT_STATUS_DIR"))
         counts = document_counts()
         runner = {"ok": True, "reason": None}
         latest_runs, plans = {}, {}
@@ -263,14 +310,18 @@ def build_router(conn_factory, cache) -> APIRouter:
         except RunnerError as exc:
             runner = {"ok": False, "reason": exc.reason}
         sites = []
-        for sid in sorted(set(status) | set(latest_runs) | set(plans)):
+        in_db = {sid for sid, n in (counts or {}).items() if n > 0}
+        for sid in sorted(set(status) | set(latest_runs) | set(plans) | in_db):
             row = status.get(sid) or {}
             state = (row.get("state") or "").strip()
             cls = CLASS.get(state, "")
+            db_only = sid not in status and sid not in latest_runs and sid not in plans
             detail = " ".join((row.get("detail") or "").split())
             plan = plans.get(sid)
             sites.append({
-                "site_id": sid, "state": state or None, "class": cls, "class_label": CLASS_KO[cls],
+                "site_id": sid, "state": state or None, "class": cls,
+                "class_label": DB_ONLY_LABELS.get(sid, CLASS_KO[cls]) if db_only else CLASS_KO[cls],
+                "source": "db_only" if db_only else "status" if sid in status else "runner",
                 "detail": detail[:400], "reason_codes": reason_codes(detail),
                 "updated_at": row.get("updated_at") or None, "status_file": row.get("_file"),
                 "documents": None if counts is None else counts.get(sid, 0),
@@ -279,8 +330,10 @@ def build_router(conn_factory, cache) -> APIRouter:
                                                    "expected_items": plan.get("expected_items"),
                                                    "approved_large": bool(plan.get("approved_large"))},
                 "latest_run": latest_runs.get(sid),
+                "direct": progress.get(sid),
             })
-        return {"status_source": status_info, "runner_ok": runner["ok"], "runner_reason": runner["reason"],
+        return {"status_source": status_info, "progress_source": progress_info,
+                "runner_ok": runner["ok"], "runner_reason": runner["reason"],
                 "documents_ok": counts is not None, "sites": sites}
 
     @router.get("/runner/health")
@@ -351,8 +404,10 @@ def build_router(conn_factory, cache) -> APIRouter:
                 "site_id": sid, "state": None, "class": "", "class_label": CLASS_KO[""], "detail": "",
                 "reason_codes": [], "updated_at": None, "status_file": None,
                 "documents": None if not table["documents_ok"] else 0, "plan": None, "latest_run": None,
+                "source": "notes", "direct": None,
             }
-            not_done = site["class"] != "run" or site["documents"] == 0
+            # A DB-only site (no judgment, no runner record) has documents, so it is collected.
+            not_done = site["source"] != "db_only" and (site["class"] != "run" or site["documents"] == 0)
             if not not_done and sid not in notes:
                 continue
             reasons = []
@@ -365,7 +420,8 @@ def build_router(conn_factory, cache) -> APIRouter:
         by_class = {}
         for row in rows:
             by_class[row["class"] or "none"] = by_class.get(row["class"] or "none", 0) + 1
-        return {"status_source": table["status_source"], "runner_ok": table["runner_ok"],
+        return {"status_source": table["status_source"], "progress_source": table["progress_source"],
+                "runner_ok": table["runner_ok"],
                 "runner_reason": table["runner_reason"], "documents_ok": table["documents_ok"],
                 "notes_ok": notes_ok, "count": len(rows), "by_class": by_class, "sites": rows}
 

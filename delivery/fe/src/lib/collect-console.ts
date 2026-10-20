@@ -5,7 +5,7 @@
 // null 로 둔다(모르면 비율·상태를 지어내지 않는다 — 콘솔과 같은 원칙).
 
 import {
-  needsApproval, normalizeRunnerHealth, normalizeSitesReport, normalizeUncollected, REJECTION_LABELS, stateLabel,
+  type DirectProgress, needsApproval, normalizeRunnerHealth, normalizeSitesReport, normalizeUncollected, REJECTION_LABELS, stateLabel,
   type CollectPlan, type CollectSite, type UncollectedRow,
 } from "./site-collect";
 
@@ -185,7 +185,9 @@ export const runnerDownText = (runner: RunnerStatus | null, reportReason: string
 export type Taxon = Readonly<{ country?: string; doc_type?: string }>;
 export type Taxonomy = Readonly<{ version?: string; sites: Readonly<Record<string, Taxon>> }>;
 
-export type SiteClass = Readonly<{ k: ClassKey; why: string; src: string; lane: string | null }>;
+/** label: 구분 이름을 CLASSES 와 다르게 보일 때(예: DB 에만 있는 scienceon-api 의 "API 수집"). */
+export type SiteClass = Readonly<{ k: ClassKey; why: string; src: string; lane: string | null; label?: string }>;
+export const classText = (cls: SiteClass): string => cls.label || CLASSES[cls.k].label;
 export type Uncollected = Readonly<{ reasons: readonly string[]; note: string }>;
 
 export type ConsoleSite = Readonly<{
@@ -217,9 +219,18 @@ const UNCOLLECTED_LABELS: Readonly<Record<string, string>> = {
   class_dev: "개발 필요", class_nego: "협의 필요", class_skip: "대상 아님", class_none: "판정 없음", no_documents: "수집 문서 0건",
 };
 
-/** 실행기 결과·백필 진행으로 콘솔 상태를 정한다 (콘솔 stateOf 를 운영 데이터로). */
-export const stateOf = (run: RunnerRun | null, backfill: BackfillRow | null, now: number):
+/** 직접 실행 진행 한 줄: "수집 중(직접 실행) · 저장 N건 · 갱신 시각". */
+export const directText = (direct: DirectProgress, now: number): string => {
+  const updated = tsOf(direct.updated_at);
+  return ["수집 중(직접 실행)", direct.saved !== null ? `저장 ${fmt(direct.saved)}건` : null,
+    updated !== null ? `갱신 ${ago(now - updated)}` : null].filter(Boolean).join(" · ");
+};
+
+/** 실행기 결과·백필 진행·직접 실행으로 콘솔 상태를 정한다 (콘솔 stateOf 를 운영 데이터로). */
+export const stateOf = (run: RunnerRun | null, backfill: BackfillRow | null, now: number, direct: DirectProgress | null = null):
   Readonly<{ state: ConsoleState; alert: string | null; why: string }> => {
+  // 실행기 밖에서 직접 돌리는 수집: 실행기 기록이 비어 있어도 '수집 중'으로 보인다.
+  if (direct?.running && !(run && ACTIVE.includes(run.status))) return { state: "run", alert: null, why: directText(direct, now) };
   if (backfill?.active_status === "running") {
     const since = tsOf(backfill.updated_at);
     if (since !== null && now - since >= STALL_SECONDS) {
@@ -256,6 +267,9 @@ export const classOf = (site: CollectSite | null, run: RunnerRun | null, state: 
     const label = run.result?.site_status ? RESULT_STATUS_KO[run.result.site_status] ?? run.result.site_status : RUNNER_STATUS_KO[run.status] ?? run.status;
     return { k: "run", why: `실행 기록 있음 · ${label}`, src: "실행 기록", lane };
   }
+  if (site?.source === "db_only") {
+    return { k: "none", label: site.class_label || undefined, why: "판정 파일·실행 기록 없이 DB 문서만 있음", src: "DB 문서 수", lane };
+  }
   if (!site || !site.state) return { k: site?.class || "none", why: "판정 기록 없음", src: "판정 파일 없음", lane };
   return {
     k: site.class || "none",
@@ -280,6 +294,8 @@ export type ConsoleData = Readonly<{
   documentsOk: boolean;
   runsOk: boolean;
   progressOk: boolean;
+  /** O1 상태 파일(직접 실행 진행). 예전 BE 처럼 알 수 없으면 null. */
+  directOk: boolean | null;
   uncollectedOk: boolean;
   latestJudgment: number | null;
   taxonomyVersion: string | null;
@@ -318,17 +334,20 @@ export const buildConsole = (input: ConsoleInput, taxonomy: Taxonomy | null, nam
     // 실행 중·대기 작업이 있으면 그것을, 없으면 가장 최근 작업을 현재 상태로 쓴다(콘솔 규칙).
     const cur = runs.find((run) => ACTIVE.includes(run.status)) ?? runs[0] ?? null;
     const bf = backfill.get(id) ?? null;
-    const st = stateOf(cur, bf, now);
+    const direct = site?.direct ?? null;
+    const st = stateOf(cur, bf, now, direct);
     const documents = site?.doc_count ?? bf?.docs_in_db ?? null;
     // 실행 중인 작업은 아직 결과가 없으므로, 결과가 있는 가장 최근 작업의 저장·실패 수를 쓴다.
     const withResult = runs.find((run) => run.result?.saved !== null && run.result?.saved !== undefined) ?? null;
     const runSaved = withResult?.result?.saved ?? null;
-    const candidates: Array<[number | null, string]> = [[documents, "DB 문서 수"], [bf?.items_done ?? null, "백필 진행 건수"], [runSaved, "실행기 결과 저장 건수"]];
+    const candidates: Array<[number | null, string]> = [[documents, "DB 문서 수"], [bf?.items_done ?? null, "백필 진행 건수"], [runSaved, "실행기 결과 저장 건수"],
+      [direct?.saved ?? null, `직접 실행 저장 건수 (O1 상태${direct?.updated_at ? ` · ${direct.updated_at}` : ""})`]];
     const best = candidates.filter((c): c is [number, string] => c[0] !== null).sort((a, b) => b[0] - a[0])[0] ?? null;
     const saved = best?.[0] ?? 0;
     const total = bf?.total_estimate && bf.total_estimate >= saved ? bf.total_estimate : site?.plan?.expected_items ?? null;
     const totalSrc = total === null ? null : bf?.total_estimate === total ? "백필이 사이트에서 받은 총건수 추정" : "plan 예상 건수";
-    const last = Math.max(tsOf(bf?.updated_at) ?? 0, tsOf(cur?.finished_at) ?? 0, tsOf(cur?.started_at) ?? 0);
+    const last = Math.max(tsOf(bf?.updated_at) ?? 0, tsOf(cur?.finished_at) ?? 0, tsOf(cur?.started_at) ?? 0,
+      direct?.running ? tsOf(direct.updated_at) ?? 0 : 0);
     const u = unc.get(id);
     const codes = uncCodes.get(id) ?? [];
     const rawPlan = rawSites.get(id)?.plan;
@@ -364,6 +383,7 @@ export const buildConsole = (input: ConsoleInput, taxonomy: Taxonomy | null, nam
     documentsOk: isRecord(input.sites) && input.sites.documents_ok === true,
     runsOk,
     progressOk: isRecord(input.progress) && Array.isArray(input.progress.sites),
+    directOk: report?.progress_ok ?? null,
     uncollectedOk: isRecord(input.uncollected) && Array.isArray(input.uncollected.sites),
     latestJudgment: latestJudgment > 0 ? latestJudgment : null,
     taxonomyVersion: taxonomy?.version ?? null,

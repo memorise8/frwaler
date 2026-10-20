@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
-  ago, buildConsole, classOf, laneNames, countClasses, countStates, filtered, isBig, namesBy, normalizeProgress, normalizeRunnerRuns,
+  ago, buildConsole, classOf, classText, laneNames, countClasses, countStates, filtered, isBig, namesBy, normalizeProgress, normalizeRunnerRuns,
   normalizeRunnerStatus, normalizeStats, percentOf, scoped, secondaryCounts, sortSites, startCheck, stateOf, tsOf,
   type BackfillRow, type ConsoleSite, type RunnerRun, type Scope,
 } from "../src/lib/collect-console";
@@ -168,6 +168,40 @@ describe("buildConsole", () => {
     expect(d.runsOk).toBe(false);
     expect(d.sites.find((s) => s.id === "a-site")).toMatchObject({ state: "stop" });
     expect(d.runnerText).toBe("실행기에 연결할 수 없습니다. (runner is not reachable)");
+  });
+});
+
+describe("DB-only sites and direct runs", () => {
+  const empty = { uncollected: null, runs: [], health: null, stats: null, progress: null };
+  const direct = { status: "direct_running", running: true, saved: 354455, run_id: "direct", run_folder: "20261019-s155",
+    started_at: "2026-10-20T10:00:00Z", updated_at: "2026-10-20T11:50:00Z", detail: "incomplete/time_budget, 문서 354455" };
+  it("lists a site that only has DB documents with its count and the BE label", () => {
+    const data = buildConsole({ ...empty, sites: { runner_ok: false, documents_ok: true, progress_source: { ok: true }, sites: [
+      siteRow({ site_id: "scienceon-api", state: null, class: "", class_label: "API 수집", source: "db_only", status_file: null,
+        documents: 3_400_000, plan: null }),
+    ] } }, null, new Map(), NOW);
+    const sci = data.sites[0]!;
+    expect(sci).toMatchObject({ id: "scienceon-api", state: "idle", saved: 3_400_000, savedSrc: "DB 문서 수" });
+    expect(sci.cls).toMatchObject({ k: "none", label: "API 수집", src: "DB 문서 수" });
+    expect(classText(sci.cls)).toBe("API 수집");
+    expect(data.directOk).toBe(true);
+  });
+  it("shows a direct run as 수집 중 with saved count and refresh time even without runner records", () => {
+    const data = buildConsole({ ...empty, runs: null, sites: { runner_ok: false, documents_ok: true, sites: [
+      siteRow({ site_id: "prism", documents: 2900, plan: null, direct }),
+      siteRow({ site_id: "done-site", direct: { ...direct, status: "done", running: false, saved: 10 } }),
+    ] } }, null, new Map(), NOW);
+    const prism = data.sites.find((s) => s.id === "prism")!;
+    expect(prism.state).toBe("run");
+    expect(prism.why).toBe("수집 중(직접 실행) · 저장 354,455건 · 갱신 10분 전");
+    expect(prism.saved).toBe(354455);
+    expect(prism.savedSrc).toContain("직접 실행 저장 건수");
+    expect(prism.lastTs).toBe(tsOf("2026-10-20T11:50:00Z"));
+    expect(data.sites.find((s) => s.id === "done-site")!.state).toBe("idle");
+    expect(data.directOk).toBeNull();  // 예전 BE: progress_source 없음
+  });
+  it("keeps a live runner job ahead of the direct-run text", () => {
+    expect(stateOf(run({ status: "running" }), null, NOW, normalizeSite(siteRow({ direct }))!.direct).why).toBe("");
   });
 });
 

@@ -78,8 +78,10 @@ class FakeRunner:
 
 
 class FakeConn:
-    def __init__(self, rows, fail=False):
-        self.rows, self.fail = rows, fail
+    """counts=None: no document_counts table (live GROUP BY); a list: rows of the counts table."""
+
+    def __init__(self, rows, fail=False, counts=None):
+        self.rows, self.fail, self.counts = rows, fail, counts
 
     def execute(self, sql, params=None):
         if self.fail:
@@ -87,8 +89,13 @@ class FakeConn:
         self.sql = sql
         return self
 
+    def fetchone(self):
+        if "to_regclass" in self.sql:
+            return {"relation": None if self.counts is None else "document_counts"}
+        return {"present": bool(self.counts)}
+
     def fetchall(self):
-        return self.rows
+        return self.counts if "FROM document_counts" in self.sql else self.rows
 
     def close(self):
         pass
@@ -261,6 +268,58 @@ class CollectRoutesTest(unittest.TestCase):
         data = self.client.get("/collect/sites", headers=self.headers).json()
         self.assertFalse(data["documents_ok"])
         self.assertIsNone(data["sites"][0]["documents"])
+
+    def write_progress(self, rows):
+        import csv
+        os.makedirs(os.path.join(self.tmp.name, "runs"), exist_ok=True)
+        with open(os.path.join(self.tmp.name, "runs", "O1-full.csv"), "w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, ["site_id", "zone", "expected", "status", "run_id", "run_folder", "source",
+                                             "started", "finished", "result", "cap_hit", "group"])
+            writer.writeheader()
+            writer.writerows(rows)
+
+    def test_db_only_sites_and_counts_table(self):
+        self.conn.counts = [{"site_id": "site-a", "documents": 12}, {"site_id": "scienceon-api", "documents": 3400000},
+                            {"site_id": "db-site", "documents": 7}]
+        data = self.client.get("/collect/sites", headers=self.headers).json()
+        self.assertIn("FROM document_counts", self.conn.sql)
+        sites = {s["site_id"]: s for s in data["sites"]}
+        self.assertEqual(sorted(sites), ["db-site", "scienceon-api", "site-a", "site-b", "site-c"])
+        sci, other = sites["scienceon-api"], sites["db-site"]
+        self.assertEqual((sci["source"], sci["class"], sci["class_label"], sci["documents"]), ("db_only", "", "API 수집", 3400000))
+        self.assertEqual((other["class_label"], other["documents"]), ("판정 없음", 7))
+        self.assertEqual(sites["site-a"]["source"], "status")
+        self.assertEqual(sites["site-c"]["documents"], 0)  # not in the counts table
+        unc = {r["site_id"] for r in self.client.get("/collect/uncollected", headers=self.headers).json()["sites"]}
+        self.assertNotIn("scienceon-api", unc)
+        self.assertNotIn("db-site", unc)
+
+    def test_direct_progress_from_o1_status(self):
+        data = self.client.get("/collect/sites", headers=self.headers).json()
+        self.assertEqual(data["progress_source"], {"ok": False, "reason": "missing", "updated_at": None})
+        self.assertIsNone(data["sites"][0]["direct"])
+        self.write_progress([
+            {"site_id": "site-a", "status": "direct_running", "run_id": "direct", "run_folder": "20261019-s155",
+             "started": "2026-10-20T22:04:49Z",
+             "result": "시간 예산으로 끊김, 같은 방식으로 이어받음 — incomplete/time_budget, 문서 354455, 날짜 2006-01-27~2026-10-20"},
+            {"site_id": "site-b", "status": "done", "run_id": "r0575", "result": "complete/x, 문서 1,234, 날짜 None~None"},
+            {"site_id": "site-z", "status": "failed", "result": "no count here"},
+        ])
+        data = self.client.get("/collect/sites", headers=self.headers).json()
+        self.assertTrue(data["progress_source"]["ok"])
+        self.assertRegex(data["progress_source"]["updated_at"], r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
+        sites = {s["site_id"]: s for s in data["sites"]}
+        self.assertNotIn("site-z", sites)  # the progress file never adds sites by itself
+        a = sites["site-a"]["direct"]
+        self.assertEqual((a["status"], a["running"], a["saved"], a["run_folder"]), ("direct_running", True, 354455, "20261019-s155"))
+        self.assertEqual(a["updated_at"], data["progress_source"]["updated_at"])
+        self.assertEqual((sites["site-b"]["direct"]["running"], sites["site-b"]["direct"]["saved"]), (False, 1234))
+        self.assertEqual(data["status_source"]["files"], 2)  # runs/O1-full.csv is not a judgment file
+        with open(os.path.join(self.tmp.name, "runs", "O1-full.csv"), "wb") as handle:
+            handle.write(b"\xff\xfe\x00bad")
+        data = self.client.get("/collect/sites", headers=self.headers).json()
+        self.assertEqual(data["progress_source"]["reason"], "unreadable")
+        self.assertEqual(len(data["sites"]), 3)
 
     def test_uncollected_filter_and_notes(self):
         data = self.client.get("/collect/uncollected", headers=self.headers).json()
