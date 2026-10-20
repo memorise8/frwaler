@@ -1,12 +1,132 @@
-# libertree-delivery v2 이미지 교체: 관리자 안내
+# libertree-delivery 관리자 인계 안내
 
-**같은 DB를 그대로 쓰고 앱 이미지만 바꿉니다.** 운영 중인 compose 프로젝트 `libertree-delivery`의
-postgres(`libertree-delivery-postgres-1`, 데이터 볼륨, 호스트 포트 53232)와 blob 디렉터리
-(`/mnt/main/public/wise/WISE/blob`)는 그대로 둡니다. 이 브랜치에서 빌드한 be·fe·worker·file-worker·runner를
-별도 프로젝트 `libertree-delivery-v2`로 띄워 기존 postgres에 붙입니다.
+이 문서는 두 가지를 다룹니다.
 
-ui-sci-20261013 문서를 운영 DB에 합치는 작업은 **이 번들과 별개로** 진행합니다. 번들은 DB를
-옮기거나 합치지 않습니다. 합친 뒤에는 `migrate/02_blobcheck.sh`를 다시 돌려 확인합니다(4장).
+- **A. 현재 운영 구성(2026-10-20 교체)**: 운영 서버에서 지금 실제로 돌고 있는 구성과 운영·되돌리기
+  명령입니다. 운영 서버는 이 번들의 v2 프로젝트가 아니라, 기존 compose 프로젝트에 override 파일
+  하나를 더하는 더 단순한 방식으로 교체했습니다.
+- **B. 번들 경로(0~10장)**: 새 서버나 다른 서버에 같은 방식(기존 DB를 그대로 두고 앱 이미지만 교체)을
+  적용할 때 쓰는 `deploy/delivery-bundle` 절차입니다.
+
+## A. 현재 운영 구성(2026-10-20 교체)
+
+사용자 승인 하에 2026-10-20에 교체했습니다. 아래 경로·이름은 운영 서버 기준입니다.
+
+### A-1. compose 파일: 항상 세 개를 함께 씁니다
+
+- 프로젝트: 기존 그대로 `libertree-delivery`
+- 디렉터리: `/mnt/apps/apps/docker/libertree-delivery/delivery/`
+- 파일:
+  - `docker-compose.yml`, `docker-compose.blob.yml`: **원본 그대로**
+  - `docker-compose.swap-20261020.yml`: **이번에 추가한 override**
+- **모든 명령에 `-f` 세 개를 붙입니다.** 두 개(원본+blob)만 쓰면 서비스가 `:latest`, 즉 **교체 전
+  이미지**로 돌아갑니다. 이것이 곧 되돌리기 방법이기도 하므로 실수로 두 개만 쓰지 않도록 주의합니다.
+
+```bash
+cd /mnt/apps/apps/docker/libertree-delivery/delivery
+DC="docker compose -f docker-compose.yml -f docker-compose.blob.yml -f docker-compose.swap-20261020.yml"
+$DC ps
+$DC logs --since 10m be worker file-worker
+$DC up -d --no-deps be          # 서비스 하나만 다시 띄울 때. --no-deps 로 postgres 를 건드리지 않음
+```
+
+`--remove-orphans`와 `down`은 쓰지 않습니다. 원하면 `delivery/.env`에
+`COMPOSE_FILE=docker-compose.yml:docker-compose.blob.yml:docker-compose.swap-20261020.yml`를 넣어 세
+파일을 기본값으로 둘 수 있습니다. 이때도 `-f`를 직접 주면 `COMPOSE_FILE`보다 우선하므로 되돌리기
+명령은 그대로 동작합니다.
+
+### A-2. 이미지와 서비스
+
+| 서비스 | 이미지 | 비고 |
+|---|---|---|
+| be | `libertree-delivery-be:20261020-865e5612` | 유닉스 소켓으로 runner 접속 |
+| fe | `libertree-delivery-fe:20261020-4e75c48b` | `0.0.0.0:3000` 공개(A-6) |
+| worker | `libertree-delivery-worker:20261020-4e75c48b` | |
+| file-worker | worker 이미지(`:20261020-4e75c48b`) | **새 서비스**. `python -m delivery.files.worker`, blob bind |
+| postgres | 변경 없음 | 컨테이너를 다시 만들지 않음(A-4) |
+
+교체 전 이미지는 `:prev` 태그로 남아 있고, `:latest`도 여전히 교체 전 이미지를 가리킵니다. 교체
+전 이미지를 지우거나 `:latest`를 다시 태그하지 마십시오. 되돌리기에 필요합니다.
+
+### A-3. 수집 실행기(runner): 호스트 프로세스 + 유닉스 소켓
+
+- runner는 컨테이너가 아니라 서버 사용자 홈의 **프로세스** `~/collect-runner`입니다.
+- 호스트 방화벽이 컨테이너→호스트 TCP를 막기 때문에, be는 TCP 대신 **유닉스 소켓**으로 접속합니다.
+  - be는 `~/collect-runner/sock`을 `/run/collect-runner`에 읽기 전용으로 마운트하고
+    `COLLECT_RUNNER_SOCKET=/run/collect-runner/runner.sock`을 씁니다.
+  - 토큰은 `COLLECT_RUNNER_TOKEN`(`delivery/.env`)에 있습니다.
+- **runner를 재시작할 때는 반드시 `RUNNER_SOCKET`을 함께 줍니다.** 빠뜨리면 소켓이 열리지 않아 be가
+  `runner_unavailable`을 냅니다.
+
+```bash
+RUNNER_BIND=127.0.0.1 RUNNER_SOCKET=$HOME/collect-runner/sock/runner.sock ~/collect-runner/runnerctl ensure
+# 확인 (서버에서)
+TOKEN=$(grep '^DELIVERY_API_TOKEN=' /mnt/apps/apps/docker/libertree-delivery/delivery/.env | cut -d= -f2)
+curl -s -H "X-Delivery-Token: $TOKEN" http://127.0.0.1:8080/collect/runner/health   # {"runner_ok":true,...}
+ls -l ~/collect-runner/sock/runner.sock                                              # srw-rw----
+```
+
+- 소켓 경로는 리눅스 제한상 107바이트 이하여야 합니다. 긴 경로에서는 `AF_UNIX path too long`으로
+  runner가 뜨지 않습니다.
+- runner 자체는 자동 재시작이 없습니다. 서버를 재부팅한 뒤에는 위 명령을 다시 실행합니다.
+
+### A-4. DB: 컨테이너는 그대로, 오늘 바뀐 데이터
+
+운영 postgres 컨테이너(`libertree-delivery-postgres-1`, 볼륨, 53232)는 다시 만들지 않았습니다.
+오늘 바뀐 데이터는 다음과 같습니다.
+
+- `sites` 중복 행 81개 삭제. 지운 행은 백업 CSV로 남겼습니다.
+- 텍스트 btree 인덱스를 `REINDEX CONCURRENTLY`했습니다.
+- `documents` 날짜 열 6개를 추가했습니다(추가형).
+- ui-sci-20261013 문서를 운영 DB에 합쳤습니다.
+  - 새 seq_id는 운영 최대값 다음부터 붙였습니다. 운영 문서의 seq_id와 blob 파일 연결은 바뀌지 않습니다.
+  - 원래 번호(`src_seq_id`)는 서버의 `/mnt/main/public/wise/merge-20261020/manifest-prod-*.jsonl`에 있습니다.
+- 추가형 migrate: 새 테이블 7개, `crawl_jobs` 열 3개, `sites` 행 1개(`delivery.be.migrate`, B-4장).
+- `datcollversion`이 NULL입니다(정렬 규칙 버전을 기록하지 않는 DB). 따라서 `ALTER DATABASE ...
+  REFRESH COLLATION VERSION`은 해당 없습니다. glibc가 다른 postgres 이미지로 바꿀 때는 텍스트 인덱스
+  `REINDEX`가 필요합니다(`migrate/README.md`).
+
+### A-5. 되돌리기 (교체 전 이미지로)
+
+백업은 서버의 `/mnt/main/public/wise/merge-20261020/swap-backup`에 있습니다.
+
+```bash
+cd /mnt/apps/apps/docker/libertree-delivery/delivery
+# 1) 교체 때 새로 생긴 file-worker 를 멈춤(삭제하지 않음)
+docker compose -f docker-compose.yml -f docker-compose.blob.yml -f docker-compose.swap-20261020.yml stop file-worker
+# 2) 두 파일만으로 be/fe/worker 를 :latest(=교체 전 이미지)로 다시 띄움. postgres 는 --no-deps 로 제외
+docker compose -f docker-compose.yml -f docker-compose.blob.yml up -d --no-deps be fe worker
+docker compose -f docker-compose.yml -f docker-compose.blob.yml ps
+```
+
+- `--remove-orphans`를 붙이지 않습니다. 붙이면 file-worker 같은 override 전용 서비스가 지워집니다.
+- 데이터 변경(A-4)은 이미지 되돌리기로 돌아가지 않습니다. 추가된 열·테이블과 합친 문서는 그대로
+  남습니다. 데이터까지 되돌리려면 swap-backup의 덤프로 복원해야 하며, 이는 별도 판단이 필요합니다.
+- 다시 교체하려면 세 파일로 `up -d --no-deps be fe worker file-worker`를 실행합니다.
+
+### A-6. 남은 일과 보안 권고
+
+- **사이트 상태 폴더**: `COLLECT_STATUS_DIR`을 서버에 설정하지 않았습니다. `/site-collect`의 상태
+  칸은 "not_configured"로 나옵니다. 상태 CSV 폴더를 정하면 be에 읽기 전용으로 마운트하고 설정합니다.
+- **ScienceON**: scienceon-api 문서를 운영 DB에 합치는 작업이 남았습니다. ui-sci postgres가 대량
+  insert 중에 죽는 원인을 아직 모릅니다. 원인을 찾은 뒤 나눠서 진행합니다.
+- **FE `0.0.0.0:3000` 공개, 로그인 없음**: FE가 서버 쪽에서 운영자 토큰을 붙여 BE를 부르므로, 3000에
+  닿는 사람은 누구나 운영자 권한을 가집니다(7장). 권고: 인증하는 리버스 프록시 뒤로 옮기고 FE를
+  `127.0.0.1`로 바인드하거나, 최소한 `DOCKER-USER`에 IP 허용 목록 규칙을 둡니다.
+- **postgres 53232 공개**: superuser 계정이 비밀번호 하나로만 보호됩니다(7장). 권고: 당장은
+  `iptables -I DOCKER-USER -i <외부NIC> -p tcp --dport 5432 -j DROP`으로 막고, 다음 정비 때 백업 후
+  `127.0.0.1:53232`로 다시 바인드합니다(postgres 컨테이너 재생성이 필요).
+- 8792를 공개하는 프로세스가 있으면 확인해 닫습니다(7장).
+
+---
+
+# B. 번들 경로: 새 서버나 다른 서버에 적용할 때
+
+**같은 DB를 그대로 쓰고 앱 이미지만 바꿉니다.** 대상 서버에서 운영 중인 compose 프로젝트(기본
+`libertree-delivery`)의 postgres(컨테이너·데이터 볼륨·호스트 포트)와 blob 디렉터리는 그대로 둡니다. 이 브랜치에서
+빌드한 be·fe·worker·file-worker·runner를 별도 프로젝트 `libertree-delivery-v2`로 띄워 기존 postgres에 붙입니다.
+문서를 다른 DB에서 합치는 작업은 번들과 별개입니다. 합친 뒤에는 `migrate/02_blobcheck.sh`를 다시
+돌려 확인합니다(4장).
 
 ## 0. 구성
 
@@ -63,6 +183,26 @@ stat -c %g /var/run/docker.sock                                          # → D
 
 운영 runner 폴더의 `units/*.csv`와 등록 정보를 이어 쓰려면 2-2에서 만든 tar를 새 폴더에 풀고
 소유자를 맞춥니다. `.token`은 새 것을 그대로 둡니다.
+
+### 1-1. (선택) runner를 호스트 프로세스 + 유닉스 소켓으로 둘 때
+
+호스트 방화벽이 컨테이너→호스트 TCP를 막는 서버(운영 서버가 그렇습니다, A-3)에서는 compose 안의
+runner 대신 호스트의 `~/collect-runner`를 쓰고, be가 소켓으로 붙게 할 수 있습니다.
+
+```bash
+# .env
+COMPOSE_FILE=docker-compose.yml:docker-compose.runner-socket.yml
+COLLECT_RUNNER_HOME=/home/<사용자>/collect-runner        # be 가 이 폴더의 .token 을 읽음
+COLLECT_RUNNER_HOST_SOCKET_DIR=/home/<사용자>/collect-runner/sock
+# 호스트 runner (재시작할 때도 RUNNER_SOCKET 필수, 경로는 107바이트 이하)
+RUNNER_BIND=127.0.0.1 RUNNER_SOCKET=$HOME/collect-runner/sock/runner.sock ~/collect-runner/runnerctl ensure
+```
+
+- 이 오버라이드는 be에 `COLLECT_RUNNER_SOCKET=/run/collect-runner-sock/runner.sock`을 넣고 소켓
+  폴더를 읽기 전용으로 붙입니다.
+- compose의 `runner` 서비스는 `in-compose-runner` 프로파일로 빠져 기동되지 않습니다.
+- `00_preflight.sh`는 소켓 폴더와 `.token`을 확인합니다. `03_cutover.sh`는 runner 기동을 건너뜁니다.
+- 위 1장의 `/srv/collect-runner-v2`, `DOCKER_GID` 준비는 필요 없습니다.
 
 ## 2. .env 작성과 사전 점검
 
@@ -252,9 +392,9 @@ docker compose ps
 docker compose --profile tools build && docker compose run --rm migrate && docker compose up -d
 ```
 
-## 9. 현재 운영 구성과의 차이
+## 9. 교체 전 운영 구성과의 차이
 
-| 항목 | 현재 운영 (`libertree-delivery`) | v2 |
+| 항목 | 교체 전 운영 (`libertree-delivery`) | v2 |
 |---|---|---|
 | postgres | `libertree-delivery-postgres-1`, 53232 공개 | **같은 컨테이너 그대로**(v2는 정의하지 않음) |
 | 프로젝트·컨테이너 이름 | `libertree-delivery-*` | `libertree-delivery-v2-*` |
@@ -262,7 +402,7 @@ docker compose --profile tools build && docker compose run --rm migrate && docke
 | BE | `127.0.0.1:8080`→3001 | 같음 |
 | FE | `0.0.0.0:3000`→3002 | 기본 `127.0.0.1:3000`(`FE_BIND`) |
 | blob | `/mnt/main/public/wise/WISE/blob` bind | 같은 경로(00_preflight가 일치 확인) |
-| runner | (있으면) 운영 폴더 | 별도 폴더 `/srv/collect-runner-v2`, 포트 없음 |
+| runner | (있으면) 운영 폴더 | 기본: compose 안 runner(별도 폴더 `/srv/collect-runner-v2`, 포트 없음). 선택: 호스트 runner + 소켓(1-1) |
 | runtime 볼륨(ScienceON 토큰 캐시) | `libertree-delivery_runtime` | 새 볼륨(토큰은 다시 발급됨) |
 | health-reports 볼륨 | 운영 볼륨 | 새 볼륨(수집기 점검 결과는 health 서비스를 다시 돌리기 전까지 비어 있음) |
 

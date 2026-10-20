@@ -132,6 +132,18 @@ echo "== 디렉터리 ==" >&2
 if [ -z "$blob" ] || [ ! -d "$blob" ]; then bad "BLOB_HOST_PATH 디렉터리가 없습니다: '$blob'"
 elif [ ! -r "$blob" ]; then bad "BLOB_HOST_PATH 를 읽을 수 없습니다(권한): $blob"
 else ok "BLOB_HOST_PATH $blob (seq_id 상위 폴더 $(ls -1 "$blob" | grep -cE '^[0-9]{4}$' || true) 개)"; fi
+tok=$(printf '%s\n' "$FACTS" | awk '$1=="BIND" && $2=="be" && $4=="/run/collect-runner/.token" {print $3}')
+rsock=$(printf '%s\n' "$FACTS" | awk '$1=="ENV" && $2=="be" && $3=="COLLECT_RUNNER_SOCKET" {print $4}')
+if [ -n "$rsock" ]; then
+  # 소켓 방식(docker-compose.runner-socket.yml): runner 는 호스트 프로세스, compose runner 는 기동 안 함
+  sdir=$(printf '%s\n' "$FACTS" | awk '$1=="BIND" && $2=="be" && $4=="/run/collect-runner-sock" {print $3}')
+  ok "runner: 호스트 프로세스 + 유닉스 소켓 방식 (be 의 COLLECT_RUNNER_SOCKET=$rsock)"
+  if [ ! -d "$sdir" ]; then bad "COLLECT_RUNNER_HOST_SOCKET_DIR 폴더가 없습니다: '$sdir'"
+  elif [ -S "$sdir/${rsock##*/}" ]; then ok "runner 소켓 $sdir/${rsock##*/} 있음"
+  else warn "runner 소켓 $sdir/${rsock##*/} 이 아직 없습니다. 호스트 runner 를 RUNNER_SOCKET 과 함께 기동하십시오(ADMIN_GUIDE.md 1-1)."; fi
+  if [ ! -f "$tok" ]; then bad "runner 토큰 파일이 없습니다: $tok (be 가 이 파일을 bind 하므로 필수, COLLECT_RUNNER_HOME 확인)"
+  else ok "runner 토큰 $tok ($(stat -c '%a uid %u' "$tok"))"; fi
+else
 rhome=$(printf '%s\n' "$FACTS" | awk '$1=="ENV" && $2=="runner" && $3=="RUNNER_HOME" {print $4}')
 runs=$(printf '%s\n' "$FACTS" | awk '$1=="BIND" && $2=="runner" && $3==$4 && $3!="/var/run/docker.sock" {print $3}')
 ruser=$(printf '%s\n' "$FACTS" | awk '$1=="USER" && $2=="runner" {print $3}')
@@ -149,7 +161,6 @@ if [ -n "$oldrunner" ]; then
   oldhome=$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$oldrunner" | sed -n 's/^RUNNER_HOME=//p')
   [ "$oldhome" != "$rhome" ] || bad "v2 COLLECT_RUNNER_HOME 이 운영 runner 와 같은 폴더입니다($rhome). 별도 폴더로(롤백 시 상태 보존)."
 fi
-tok="$rhome/.token"
 if [ ! -f "$tok" ]; then bad "runner 토큰 파일이 없습니다: $tok (be 가 이 파일을 bind 하므로 필수)"
 else
   m=$(stat -c '%a %u' "$tok")
@@ -157,6 +168,7 @@ else
 fi
 sg=$(stat -c %g /var/run/docker.sock 2>/dev/null || echo '?')
 if [ "$sg" = "$rgid" ]; then ok "docker 소켓 그룹 $sg = DOCKER_GID"; else bad "docker 소켓 그룹 $sg ≠ DOCKER_GID $rgid"; fi
+fi
 
 echo "== 만들어질 자원 (운영 postgres·볼륨은 건드리지 않음) ==" >&2
 for s in $(dc config --services | sort); do printf '  컨테이너 %s-%s-1\n' "$P" "$s" >&2; done

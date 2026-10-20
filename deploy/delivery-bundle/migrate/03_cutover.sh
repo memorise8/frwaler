@@ -68,7 +68,7 @@ cat >&2 <<PLAN
   2) docker stop (기록 → $STOPPED):
 $(printf '%s' "$to_stop" | awk -F '\t' 'NF {printf "       %-12s %s (%s)\n", $1, $3, substr($2, 1, 12)}')
   3) docker compose run --rm migrate (추가형 스키마 변경)
-  4) v2 기동: be → worker file-worker → fe → runner
+  4) v2 기동: be → worker file-worker → fe → runner(소켓 방식이면 생략, 호스트 runner 사용)
   되돌리기: migrate/04_rollback.sh (v2 stop → 위 ID 만 docker start)
 PLAN
 [ -n "$to_stop" ] || log "주의: 실행 중인 운영 앱 컨테이너가 없습니다."
@@ -95,7 +95,11 @@ log "4) v2 기동"
 dc up -d --wait be || fail_hint "be 기동 실패"
 dc up -d --wait worker file-worker || fail_hint "worker/file-worker 기동 실패"
 dc up -d --wait fe || fail_hint "fe 기동 실패"
-dc up -d runner || fail_hint "runner 기동 실패"
+if dc config --services | grep -qx runner; then
+  dc up -d runner || fail_hint "runner 기동 실패"
+else
+  log "   runner 서비스 비활성(소켓 방식): 호스트 runner 를 사용합니다."
+fi
 
 [ "$(docker inspect -f '{{.Id}}' "$pg_name")" = "$pg_id" ] || die "경고: 운영 postgres 컨테이너 ID 가 바뀌었습니다!"
 log "운영 postgres 컨테이너 ID 그대로: ${pg_id:0:12}"

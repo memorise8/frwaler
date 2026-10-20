@@ -93,7 +93,7 @@ cfg_facts() {
     /^      - type:/ { inb = ($3 == "bind"); src = "" }
     inb && /^        source:/ { src = $2 }
     inb && /^        target:/ { print "BIND", svc, src, $2 }
-    /^      (RUNNER_HOME|LIBERTREE_PG_DSN):/ { k = $1; sub(":", "", k); print "ENV", svc, k, $2 }
+    /^      (RUNNER_HOME|LIBERTREE_PG_DSN|COLLECT_RUNNER_SOCKET):/ { k = $1; sub(":", "", k); print "ENV", svc, k, $2 }
     /^    user:/ { print "USER", svc, $2 }
     /^    group_add:/ { ing = 1; next }
     ing && /^      - / { g = $2; gsub("\"", "", g); print "GROUP", svc, g; next }
