@@ -79,10 +79,12 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
   const uncollectedN = all.filter((s) => s.uncollected).length;
   const stopped = all.filter((s) => s.state === "stop");
   const lockedN = all.filter((s) => s.state === "lock").length;
-  // 위쪽에는 사이트별 줄 대신 요약 한 줄: 누르면 왼쪽 목록이 그 상태로 걸러진다. 이유는 상세 패널에.
-  const showState = (state: "stop" | "lock") => {
-    setStateFilter(state); setOnlyAttn(false); setSelType(""); setSelCountry(""); setSelCls(""); setLane(""); setSpecial(""); reset();
+  // 위 칩·구분 칩·왼쪽 묶음의 숫자는 전체 기준이다. 누르면 다른 거르기를 모두 풀고 그것만 걸러서, 목록 수 = 누른 숫자가 된다.
+  const clearAll = () => {
+    setOnlyAttn(false); setSelType(""); setSelCountry(""); setSelCls(""); setLane(""); setSpecial(""); setStateFilter(""); setQ("");
   };
+  // 위쪽에는 사이트별 줄 대신 요약 한 줄: 누르면 목록이 그 상태로 걸러진다. 이유는 상세 패널에.
+  const showState = (state: "stop" | "lock") => { clearAll(); setStateFilter(state); reset(); };
 
   useEffect(() => {
     document.title = (stopped.length ? `⚠ ${stopped.length}건 확인 필요 · ` : "") + "수집 콘솔";
@@ -99,7 +101,11 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
   const current = all.find((s) => s.id === selected) ?? rows[0] ?? all[0] ?? null;
 
   const heading = [onlyAttn ? "주의 필요" : null, special ? SPECIAL_LABEL[special] : null, selCls ? CLASSES[selCls as keyof typeof CLASSES].label : null,
-    selType || null, selCountry || null, lane ? `구역 ${lane}` : null].filter(Boolean).join(" · ") || "전체 사이트";
+    stateFilter ? STATES[stateFilter as keyof typeof STATES]?.label : null, selType || null, selCountry || null, lane ? `구역 ${lane}` : null,
+    q.trim() ? `"${q.trim()}" 검색` : null].filter(Boolean).join(" · ") || "전체 사이트";
+  // 보조 칩·표 보기 숫자: 지금 거르기에서 그 축만 비운 목록 기준(누르면 목록 수 = 그 숫자).
+  const secondaryBase = filtered(all, { ...scope, [view === "type" ? "country" : "type"]: "", state: stateFilter, q });
+  const matrixBase = filtered(all, { ...scope, type: "", country: "", state: stateFilter, q });
 
   const pick = (id: string) => {
     setSelected(id);
@@ -107,7 +113,7 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
     if (matchMedia("(max-width:1180px)").matches) document.getElementById("cc-detail")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
   const railPick = (key: string) => {
-    setSelType(""); setSelCountry(""); setSpecial("");
+    clearAll();
     if (key === "__attn") setOnlyAttn(true);
     else {
       setOnlyAttn(false);
@@ -118,8 +124,9 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
     reset();
   };
   // 상태 칩: 아래 '상태 필터' 드롭다운과 같은 값. 다시 누르면 해제.
-  const toggleState = (value: string) => { setStateFilter(stateFilter === value ? "" : value); if (stateFilter !== value) setOnlyAttn(false); reset(); };
-  const toggleSpecial = (value: Exclude<Special, "">) => { setSpecial(special === value ? "" : value); if (special !== value) setOnlyAttn(false); reset(); };
+  const toggleState = (value: string) => { const on = stateFilter === value; clearAll(); if (!on) setStateFilter(value); reset(); };
+  const toggleSpecial = (value: Exclude<Special, "">) => { const on = special === value; clearAll(); if (!on) setSpecial(value); reset(); };
+  const toggleCls = (value: string) => { const on = selCls === value; clearAll(); if (!on) setSelCls(value); reset(); };
 
   const act = async (site: ConsoleSite, action: CollectAction) => {
     setBusy(site.id);
@@ -182,12 +189,13 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
           aria-pressed={stateFilter === k} disabled={!counts[k] && stateFilter !== k} onClick={() => toggleState(k)}><b>{fmt(counts[k])}</b><span>{STATES[k].label}</span></button>)}
         <button type="button" className={`chip ${approvalN ? "warn" : ""} ${special === "approval" ? "on" : ""}`} aria-pressed={special === "approval"} onClick={() => toggleSpecial("approval")}><b>{fmt(approvalN)}</b><span>승인 대기</span></button>
         <button type="button" className={`chip ${special === "uncollected" ? "on" : ""}`} aria-pressed={special === "uncollected"} onClick={() => toggleSpecial("uncollected")}><b>{fmt(uncollectedN)}</b><span>미수집</span></button>
+        <span className="note">숫자는 전체 기준 · 누르면 다른 거르기를 풀고 그것만 보여 줍니다(다시 누르면 해제)</span>
       </div>
       <div className="csum" aria-label="실행 구분">
         <span className="note">구분</span>
         {CLASS_KEYS.filter((k) => clsCounts[k] || (k !== "skip" && k !== "none")).map((k) =>
           <button key={k} type="button" className={selCls === k ? "on" : ""} aria-pressed={selCls === k}
-            onClick={() => { const v = selCls === k ? "" : k; setSelCls(v); if (v) setOnlyAttn(false); reset(); }}>
+            disabled={!clsCounts[k] && selCls !== k} onClick={() => toggleCls(k)}>
             <span className={CLASSES[k].tone}>●</span> {CLASSES[k].label}<b>{fmt(clsCounts[k])}</b></button>)}
         <span className="note">근거: 실행 기록 &gt; site-status{data.latestJudgment ? ` · 판정 파일 최근 ${ago(now - data.latestJudgment)}` : ""}</span>
       </div>
@@ -217,8 +225,8 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
         </nav>}
 
         <section className="panel" id="cc-list" aria-labelledby="cc-list-h">
-          <h2 id="cc-list-h">{heading} · {fmt(sc.length)}곳</h2>
-          {view === "matrix" && <Matrix list={all} selType={selType} selCountry={selCountry}
+          <h2 id="cc-list-h">{heading} · {fmt(rows.length)}곳</h2>
+          {view === "matrix" && <Matrix list={matrixBase} selType={selType} selCountry={selCountry}
             onType={(t) => { setSelType(selType === t ? "" : t); reset(); }}
             onCountry={(c) => { setSelCountry(selCountry === c ? "" : c); reset(); }}
             onCell={(c, t) => { const same = selCountry === c && selType === t; setSelCountry(same ? "" : c); setSelType(same ? "" : t); reset(); }} />}
@@ -238,8 +246,7 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
               {lanes.map((name) => <option key={name} value={name}>구역 {name}</option>)}
             </select>
           </div>
-          {view !== "matrix" && <SecondaryChips view={view} base={all.filter((s) => (!onlyAttn || needsAttention(s)) && (!primary || s[primaryField] === primary)
-            && (special !== "approval" || s.approval) && (special !== "uncollected" || s.uncollected))}
+          {view !== "matrix" && <SecondaryChips view={view} base={secondaryBase}
             value={view === "type" ? selCountry : selType}
             onPick={(v) => { if (view === "type") setSelCountry(v); else setSelType(v); reset(); }} />}
           <div className="tablewrap">

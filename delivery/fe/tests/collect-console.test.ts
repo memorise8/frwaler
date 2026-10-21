@@ -378,8 +378,19 @@ describe("state chips (site-collect-console.tsx)", () => {
     expect(chips).toContain("aria-pressed={stateFilter === k}");
     expect(chips).toContain("onClick={() => toggleState(k)}");
     expect(chips).toContain("disabled={!counts[k] && stateFilter !== k}");
-    expect(source).toContain('setStateFilter(stateFilter === value ? "" : value)');
+    expect(source).toContain("const toggleState = (value: string) => { const on = stateFilter === value; clearAll(); if (!on) setStateFilter(value); reset(); };");
     expect(source).toMatch(/<select value=\{stateFilter\} aria-label="상태 필터"/);
+  });
+  it("keeps every clickable number equal to the list it opens", () => {
+    // 전체 기준 숫자(위 칩·구분 칩·왼쪽 묶음·경고 요약)는 누를 때 다른 거르기를 모두 푼다.
+    for (const fn of ["toggleState", "toggleSpecial", "toggleCls", "showState", "railPick"]) {
+      expect(source).toMatch(new RegExp(`const ${fn} = \\([^)]*\\) => \\{\\s*(const on = [^;]+; )?clearAll\\(\\);`));
+    }
+    expect(source).toContain("onClick={() => toggleCls(k)}");
+    // 목록 제목·보조 칩·표 보기 숫자는 지금 거른 목록 기준.
+    expect(source).toContain("{heading} · {fmt(rows.length)}곳");
+    expect(source).toContain("<SecondaryChips view={view} base={secondaryBase}");
+    expect(source).toContain("<Matrix list={matrixBase}");
   });
   it("no longer lists every stopped site at the top", () => {
     expect(source).not.toContain("stopped.map(");
