@@ -136,7 +136,9 @@ def process(conn, task, *, root, executor=run_stage, timeout=180):
                 if not result.get('success'):
                     # Only transient trouble is retried; a robots refusal, access block or rate limit is final
                     # (no bypass or retry around a site's refusal).
-                    finish('failed', result.get('error','download_failed'), retry=result.get('error') not in NO_RETRY_PDF_ERRORS)
+                    code = result.get('error', 'download_failed')
+                    detail = ':'.join(str(x) for x in (code, result.get('reason'), result.get('status')) if x not in (None, ''))
+                    finish('failed', detail[:200], retry=code not in NO_RETRY_PDF_ERRORS and not result.get('permanent'))
                     return
                 candidate = temp / 'download.pdf'
                 if not pdf_is_valid(candidate):

@@ -202,6 +202,12 @@ class FileProcessingSafetyTest(unittest.TestCase):
         self.assertEqual(result['error'], 'access_blocked')
         result, _, _ = self._pdf_stage({'https://fixture.test/robots.txt': allow, url: Response(429, {}, b'', url)})
         self.assertEqual(result['error'], 'rate_limited')
+        # the 429 leaves a cooldown in the shared host gate: the next request to that host is refused too
+        result, seen, _ = self._pdf_stage({'https://fixture.test/robots.txt': allow, url: Response(200, {}, make_pdf(), url)})
+        self.assertEqual((result['error'], seen), ('rate_limited', []))
+        other = 'https://other.test/file.pdf'
+        result, _, _ = self._pdf_stage({'https://other.test/robots.txt': allow}, url=other)  # the file is a 404
+        self.assertEqual((result['error'], result.get('permanent')), ('download_failed', True))
 
     def test_refused_downloads_are_not_retried(self):
         for code in ('robots_disallowed', 'robots_unavailable', 'access_blocked', 'rate_limited'):
@@ -211,6 +217,10 @@ class FileProcessingSafetyTest(unittest.TestCase):
                 self.assertFalse(self.finish.call_args.kwargs['retry'])
         self.process(mock.Mock(return_value={'success': False, 'error': 'download_failed'}))
         self.assertTrue(self.finish.call_args.kwargs['retry'])
+        # the Fetcher reason is kept with the code; a permanent answer (404) is not retried
+        self.process(mock.Mock(return_value={'success': False, 'error': 'download_failed', 'reason': 'http_404', 'status': 404, 'permanent': True}))
+        self.assertEqual(self.finish.call_args.kwargs['error'], 'download_failed:http_404:404')
+        self.assertFalse(self.finish.call_args.kwargs['retry'])
 
     def test_pdf_stage_rejects_private_destination_before_request(self):
         result, seen, _ = self._pdf_stage({}, url='http://fixture.test/file.pdf', resolve=lambda host, port=None: ['127.0.0.1'])

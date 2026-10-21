@@ -71,8 +71,9 @@ def download_pdf(root, url, transport=None):
     try:
         response = fetcher.get(url)
     except http.PermanentFailure as exc:
+        # 404/410 and other permanent answers: retrying would only repeat the same request.
         return {'success': False, 'error': 'file_too_large' if exc.reason == 'body_too_large' else 'download_failed',
-                'reason': exc.reason, 'status': exc.status}
+                'reason': exc.reason, 'status': exc.status, 'permanent': True}
     except (http.FetchError, http.EnumerationStop) as exc:
         code = next((c for name, c in FETCH_ERRORS if isinstance(exc, getattr(http, name))), 'download_failed')
         return {'success': False, 'error': code, 'reason': getattr(exc, 'reason', None), 'status': getattr(exc, 'status', None)}
