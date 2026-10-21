@@ -156,30 +156,68 @@ class FileProcessingSafetyTest(unittest.TestCase):
         self.assertEqual(self.finish.call_args.kwargs['error'],'disk_space_low')
         self.assertTrue(self.finish.call_args.kwargs['retry'])
 
+    def _pdf_stage(self, routes, url='https://fixture.test/docs/file.pdf', resolve=None):
+        """download_pdf through the real Fetcher with a fake transport. Returns (result, requests seen)."""
+        from crawler.enumeration.http import Response
+        from delivery.files.stage import download_pdf
+        seen = []
+        class Transport:
+            def __init__(self):
+                if resolve:
+                    self.resolve = resolve
+            def request(self, method, target, *, headers=None):
+                seen.append((target, (headers or {}).get('User-Agent')))
+                hit = routes.get(target)
+                return hit if hit is not None else Response(404, {}, b'', target)
+        task = self.root / 'task-1'
+        task.mkdir(exist_ok=True)
+        return download_pdf(task, url, transport=Transport()), seen, task
+
     def test_pdf_stage_downloads_actual_bytes_and_rejects_html(self):
-        import io
-        import requests
-        from delivery.files.stage import execute
+        from crawler.enumeration.http import Response
+        robots = Response(200, {'content-type': 'text/plain'}, b'User-agent: *\nAllow: /\n', 'https://fixture.test/robots.txt')
         for content, expected in [(make_pdf(), True), (b'<html>Login</html>', False)]:
             with self.subTest(expected=expected):
-                response=requests.Response()
-                response.status_code=200
-                response.headers={'Content-Type':'application/pdf'}
-                response.raw=io.BytesIO(content)
-                with mock.patch('delivery.files.stage.socket.getaddrinfo',return_value=[(2,1,6,'',('8.8.8.8',443))]), mock.patch('requests.Session.send',return_value=response):
-                    result=execute('pdf',self.root,'https://fixture.invalid/file.pdf')
-                self.assertEqual(result['success'],expected)
+                result, seen, task = self._pdf_stage({'https://fixture.test/robots.txt': robots,
+                    'https://fixture.test/docs/file.pdf': Response(200, {'content-type': 'application/pdf'}, content, '')})
+                self.assertEqual(result['success'], expected)
                 if expected:
-                    self.assertEqual((self.root/'download.pdf').read_bytes(),content)
+                    self.assertEqual((task / 'download.pdf').read_bytes(), content)
+                    self.assertEqual(result['size'], len(content))
                 else:
-                    self.assertEqual(result['error'],'invalid_pdf')
+                    self.assertEqual(result['error'], 'invalid_pdf')
+                # robots.txt first, then the file, both with the collector's honest User-Agent
+                self.assertEqual([u for u, _ in seen], ['https://fixture.test/robots.txt', 'https://fixture.test/docs/file.pdf'])
+                self.assertTrue(all(ua and ua.startswith('LibertreeCollector/') for _, ua in seen))
+
+    def test_pdf_stage_honours_robots_and_access_refusals(self):
+        from crawler.enumeration.http import Response
+        url = 'https://fixture.test/docs/file.pdf'
+        disallow = Response(200, {'content-type': 'text/plain'}, b'User-agent: *\nDisallow: /docs/\n', '')
+        result, seen, _ = self._pdf_stage({'https://fixture.test/robots.txt': disallow})
+        self.assertEqual(result['error'], 'robots_disallowed')
+        self.assertNotIn(url, [u for u, _ in seen])  # never requested
+        allow = Response(200, {'content-type': 'text/plain'}, b'User-agent: *\nAllow: /\n', '')
+        result, _, _ = self._pdf_stage({'https://fixture.test/robots.txt': allow, url: Response(403, {}, b'denied', url)})
+        self.assertEqual(result['error'], 'access_blocked')
+        result, _, _ = self._pdf_stage({'https://fixture.test/robots.txt': allow, url: Response(429, {}, b'', url)})
+        self.assertEqual(result['error'], 'rate_limited')
+
+    def test_refused_downloads_are_not_retried(self):
+        for code in ('robots_disallowed', 'robots_unavailable', 'access_blocked', 'rate_limited'):
+            with self.subTest(code=code):
+                self.process(mock.Mock(return_value={'success': False, 'error': code}))
+                self.assertEqual(self.finish.call_args.kwargs['error'], code)
+                self.assertFalse(self.finish.call_args.kwargs['retry'])
+        self.process(mock.Mock(return_value={'success': False, 'error': 'download_failed'}))
+        self.assertTrue(self.finish.call_args.kwargs['retry'])
 
     def test_pdf_stage_rejects_private_destination_before_request(self):
-        from delivery.files.stage import execute
-        with mock.patch('delivery.files.stage.socket.getaddrinfo',return_value=[(2,1,6,'',('127.0.0.1',80))]), mock.patch('requests.Session.send') as send:
-            result=execute('pdf',self.root,'http://fixture.invalid/file.pdf')
+        result, seen, _ = self._pdf_stage({}, url='http://fixture.test/file.pdf', resolve=lambda host, port=None: ['127.0.0.1'])
         self.assertFalse(result['success'])
-        send.assert_not_called()
+        self.assertEqual(seen, [])
+        result, seen, _ = self._pdf_stage({}, url='ftp://fixture.test/file.pdf')
+        self.assertEqual((result['error'], seen), ('download_failed', []))
 
 
 @unittest.skipUnless(os.environ.get('TEST_PG_DSN'), 'requires disposable PostgreSQL')

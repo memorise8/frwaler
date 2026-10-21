@@ -1,13 +1,11 @@
 """Isolated file parser/downloader. Receives a temporary work directory only."""
 from __future__ import annotations
 
+import hashlib
 import json
-import ipaddress
-import socket
 import shutil
 import subprocess
 from pathlib import Path
-import sqlite3
 import sys
 from urllib.parse import urlsplit
 
@@ -44,6 +42,47 @@ def _fallback_text(root):
     return candidate.read_text(encoding='utf-8'), None
 
 
+PDF_MAX_BYTES = 200 * 1024 * 1024
+# Same politeness as collection: one request per host per gap, shared by every stage process.
+PDF_REQUEST_INTERVAL_S = 2.0
+FETCH_ERRORS = (('RobotsDisallowed', 'robots_disallowed'), ('RobotsUnavailable', 'robots_unavailable'),
+                ('RateLimited', 'rate_limited'), ('PrivateDestination', 'download_failed'),
+                ('AccessBlocked', 'access_blocked'), ('BudgetExhausted', 'download_failed'))
+
+
+def _transport():
+    from crawler.enumeration.http import RequestsTransport
+    return RequestsTransport(max_bytes=PDF_MAX_BYTES)
+
+
+def download_pdf(root, url, transport=None):
+    """Fetch one PDF through the collection Fetcher (crawler.enumeration.http): robots.txt is
+    honoured, the honest collector User-Agent is sent, every hop must resolve to a public
+    address, and a host gate under the shared work directory keeps PDF_REQUEST_INTERVAL_S
+    between requests to one host across stage processes. A block, robots refusal or rate limit
+    is returned as its own error code and never retried around."""
+    from crawler.enumeration import http
+    parsed = urlsplit(url or '')
+    if parsed.scheme not in ('http', 'https') or not parsed.hostname or parsed.username or parsed.password:
+        return {'success': False, 'error': 'download_failed'}
+    # root is <blob>/.file-work/task-XXXX; the gates sit beside the task directories and outlive them.
+    fetcher = http.Fetcher('file-worker', transport or _transport(), root.parent / '.gates',
+                           interval=PDF_REQUEST_INTERVAL_S, retries=2, rate_limit_stop=1)
+    try:
+        response = fetcher.get(url)
+    except http.PermanentFailure as exc:
+        return {'success': False, 'error': 'file_too_large' if exc.reason == 'body_too_large' else 'download_failed',
+                'reason': exc.reason, 'status': exc.status}
+    except (http.FetchError, http.EnumerationStop) as exc:
+        code = next((c for name, c in FETCH_ERRORS if isinstance(exc, getattr(http, name))), 'download_failed')
+        return {'success': False, 'error': code, 'reason': getattr(exc, 'reason', None), 'status': getattr(exc, 'status', None)}
+    body = response.body
+    if not body[:1024].lstrip(b'\xef\xbb\xbf \t\r\n\x00').startswith((b'%PDF-1.', b'%PDF-2.')):
+        return {'success': False, 'error': 'invalid_pdf'}
+    (root / 'download.pdf').write_bytes(body)
+    return {'success': True, 'size': len(body), 'sha256': hashlib.sha256(body).hexdigest()}
+
+
 def execute(stage, directory, url=None):
     root = Path(directory)
     if stage == 'pdf_body_coverage':
@@ -59,37 +98,7 @@ def execute(stage, directory, url=None):
             return {'success': False, 'error': 'pdf_body_coverage_review_required', 'coverage': coverage}
         return {'success': True, 'coverage': coverage}
     if stage == 'pdf':
-        import requests
-        from crawler.pdf_downloader import download_pdf_for
-        class HttpSession(requests.Session):
-            def send(self, request, **kwargs):
-                parsed = urlsplit(request.url)
-                if parsed.scheme not in ('http','https') or not parsed.hostname or parsed.username or parsed.password:
-                    raise requests.RequestException('invalid PDF URL')
-                # Apply on every redirect as well as the first URL. These are
-                # public-source PDFs; metadata must not become an internal fetch.
-                try:
-                    addresses = socket.getaddrinfo(parsed.hostname, parsed.port or (443 if parsed.scheme == 'https' else 80), type=socket.SOCK_STREAM)
-                    if not addresses or any(not ipaddress.ip_address(item[4][0]).is_global for item in addresses):
-                        raise requests.RequestException('non-public PDF destination')
-                except (OSError, ValueError) as exc:
-                    raise requests.RequestException('invalid PDF destination') from exc
-                return super().send(request, **kwargs)
-        conn = sqlite3.connect(':memory:')
-        conn.execute('CREATE TABLE documents(seq_id INTEGER,pdf_downloaded INTEGER,pdf_size_bytes INTEGER,pdf_sha256 TEXT)')
-        try:
-            with HttpSession() as session:
-                result = download_pdf_for(conn, 1, url, blob_root=root, session=session)
-            if result['success']:
-                Path(result['path']).replace(root / 'download.pdf')
-                return {'success': True, 'size': result['size_bytes'], 'sha256': result['sha256']}
-            error = result.get('error') or ''
-            code = 'invalid_pdf' if 'PDF header' in error else 'download_failed'
-            if 'max_size' in error:
-                code = 'file_too_large'
-            return {'success': False, 'error': code}
-        finally:
-            conn.close()
+        return download_pdf(root, url)
     if stage in ('text', 'text_fallback'):
         from crawler.converter import PDFTextAccessError, extract_text_pdf
         (root / 'output.txt').unlink(missing_ok=True)

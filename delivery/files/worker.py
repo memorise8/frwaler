@@ -17,6 +17,9 @@ from crawler import blob_storage
 from . import jobs
 from .text_quality import inspect_file
 
+NO_RETRY_PDF_ERRORS = ('invalid_pdf', 'file_too_large', 'robots_disallowed', 'robots_unavailable', 'access_blocked',
+                       'rate_limited')
+
 
 def run_stage(stage, directory, url=None, *, timeout=180):
     result = _run_stage_once(stage, directory, url, timeout=timeout)
@@ -131,7 +134,9 @@ def process(conn, task, *, root, executor=run_stage, timeout=180):
                     conn.rollback()
                     return
                 if not result.get('success'):
-                    finish('failed', result.get('error','download_failed'), retry=result.get('error') not in ('invalid_pdf','file_too_large'))
+                    # Only transient trouble is retried; a robots refusal, access block or rate limit is final
+                    # (no bypass or retry around a site's refusal).
+                    finish('failed', result.get('error','download_failed'), retry=result.get('error') not in NO_RETRY_PDF_ERRORS)
                     return
                 candidate = temp / 'download.pdf'
                 if not pdf_is_valid(candidate):
