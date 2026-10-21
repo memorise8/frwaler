@@ -210,6 +210,8 @@ export type ConsoleSite = Readonly<{
   planInfo: Readonly<{ strategy: string | null; folder: string | null }> | null;
   runs: readonly RunnerRun[];
   backfill: BackfillRow | null;
+  /** O1 상태 파일의 이 사이트 줄(직접 실행·전체 수집 처리기). */
+  direct: DirectProgress | null;
   status: Readonly<{ state: string; detail: string; codes: readonly string[]; file: string; updated_at: string | null }> | null;
   approval: boolean;
   uncollected: Uncollected | null;
@@ -397,7 +399,7 @@ export const buildConsole = (input: ConsoleInput, taxonomy: Taxonomy | null, nam
       documents,
       plan: site?.plan ?? null,
       planInfo: isRecord(rawPlan) ? { strategy: strOrNull(rawPlan.strategy), folder: strOrNull(rawPlan.folder) } : null,
-      runs, backfill: bf,
+      runs, backfill: bf, direct,
       status: site && site.state ? { state: site.state, detail: site.detail, codes: site.reason_codes, file: site.file, updated_at: site.updated_at } : null,
       approval: site !== null && needsApproval(site),
       uncollected: u ? { reasons: codes.length ? codes.map((code) => UNCOLLECTED_LABELS[code] ?? code) : u.reason ? [u.reason] : [], note: u.note } : null,
@@ -488,6 +490,53 @@ export const BIG_SITE = 100_000;
 export const isBig = (site: ConsoleSite): boolean => (site.total ?? 0) >= BIG_SITE || site.saved >= BIG_SITE;
 export const percentOf = (site: ConsoleSite): number | null => (site.total ? Math.min(100, (site.saved / site.total) * 100) : null);
 
+// ---- 쉬운 말 이유 -------------------------------------------------------------------
+
+const REASON_KO: Readonly<Record<string, string>> = {
+  robots_403: "robots.txt 요청이 403 으로 막힘", robots_401: "robots.txt 요청이 401 로 막힘",
+  robots_disallowed: "robots.txt 가 수집을 금지함", http_403: "사이트가 403 으로 거부함", http_401: "사이트가 로그인을 요구함",
+  http_429: "요청이 너무 많다고 거부됨(429)", challenge: "봇 확인(챌린지) 화면이 나옴", login_required: "로그인이 필요함",
+  complete_with_mismatch: "끝났지만 사이트가 밝힌 총건수와 받은 수가 다름", complete_with_review: "끝났지만 검토할 항목이 있음",
+  complete_unverified: "끝났지만 총건수를 확인할 수 없음", time_budget: "시간 예산이 다 돼 끊김", empty_item: "내용이 빈 항목",
+  adapter_contract_failures: "수집 규칙(필수 칸)을 못 채운 항목", skipped_by_rule: "규칙으로 건너뛴 항목",
+  adapter_contract_failures_consecutive: "수집 규칙을 못 채운 항목이 연달아 나와 멈춤",
+  identity_collisions: "같은 문서로 보이는 항목끼리 충돌", listing_transient: "목록 요청이 일시 오류로 끊김",
+  exit_1: "수집기가 오류로 끝남(rc 1)", exit_2: "결과 확인이 필요한 상태로 끝남(rc 2)", exit_139: "수집기가 비정상 종료됨(rc 139)",
+};
+
+/** 실행기·수집기 이유 코드 → 쉬운 말. "skipped_by_rule:468" 처럼 뒤에 붙은 수는 "N건"으로, 모르는 코드는 그대로. */
+export const reasonText = (code: string | null | undefined): string => {
+  if (!code) return "";
+  const [head, count] = code.split(":", 2) as [string, string | undefined];
+  const base = REASON_KO[head] ?? (head.startsWith("robots_") ? "robots.txt 확인에 실패함" : head.startsWith("exit_") ? `수집기가 ${head.slice(5)} 코드로 끝남` : null);
+  if (!base) return code;
+  if (!count) return base;
+  return /^\d+$/.test(count) ? `${base} ${fmt(Number(count))}건` : `${base} · ${REASON_KO[count] ?? count}`;
+};
+
+/** 상세 패널 상단 상태 줄: 마지막 실행기 작업의 결과를 쉬운 말로(코드는 괄호에). */
+export const runExplain = (run: RunnerRun | null): string => {
+  if (!run) return "";
+  const r = run.result;
+  const parts = [r?.site_status ? `${RESULT_STATUS_KO[r.site_status] ?? r.site_status}` : RUNNER_STATUS_KO[run.status] ?? run.status,
+    r?.stop_reason ? `${reasonText(r.stop_reason)} (${r.stop_reason})` : null,
+    run.reason ? `${reasonText(run.reason)}` : null,
+    r?.error ? `결과 읽기 실패: ${r.error}` : null];
+  return `작업 ${run.run_id} · ` + parts.filter(Boolean).join(" · ");
+};
+
+/** 접근 제한 근거: 콘솔 상태(lock)·마지막 실행 결과(access_blocked, robots_*)·판정 파일(blocked_access)·협의 필요 구분. 없으면 null. */
+export const accessBlock = (site: ConsoleSite): string | null => {
+  const r = site.runs[0]?.result ?? null;
+  if (r?.site_status === "access_blocked" || r?.stop_reason?.startsWith("robots_")) {
+    return `마지막 실행(${site.runs[0]!.run_id})에서 접근 차단 · ${reasonText(r.stop_reason) || "접근 차단"}`;
+  }
+  if (site.state === "lock") return site.why || "접근 제한";
+  if (site.status?.state === "blocked_access") return "판정 파일에 접근 제한으로 기록됨";
+  if (site.cls.k === "nego") return "협의 필요 사이트";
+  return null;
+};
+
 // ---- 시작 전 점검(콘솔 startBox / pre) -----------------------------------------
 
 export type StartCheck = Readonly<{ blocked: readonly string[]; resumeBlocked: readonly string[]; liveRun: RunnerRun | null }>;
@@ -502,7 +551,8 @@ export const startCheck = (site: ConsoleSite, runner: RunnerStatus | null, runne
   else if (!site.plan.ready) no.push(`plan 등록됨, 실행 불가 — ${site.plan.why || "이유 미기재"}`);
   if (live) no.push(`실행기 작업 ${live.run_id} 이(가) ${live.status === "queued" ? "대기 중" : live.status === "cancelling" ? "취소 중" : "실행 중"}입니다`);
   else if (site.state === "run") no.push("이미 수집 중입니다");
-  if (site.state === "lock" || site.cls.k === "nego") no.push("접근 제한·협의 필요 사이트는 시작할 수 없습니다");
+  const blockedBy = accessBlock(site);
+  if (blockedBy) no.push(`접근 제한·협의 필요 사이트는 시작할 수 없습니다 (${blockedBy}) — 우회·재시도하지 않습니다`);
   const resume = site.approval
     ? [`승인 대기 — 예상 ${site.plan?.expected_items === null || site.plan?.expected_items === undefined ? "미상" : `${fmt(site.plan.expected_items)}건`}: 1만 건 이상이거나 모르면 실행기 등록 때 대량 승인(--approved-large)이 있어야 이어받기를 받습니다. 시험 수집은 승인 없이 됩니다`]
     : [];

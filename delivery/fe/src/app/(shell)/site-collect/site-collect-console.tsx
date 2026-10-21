@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import "./collect-console.css";
 import {
-  ago, CLASS_KEYS, CLASSES, classText, countClasses, countStates, filtered, fmt, isBig, MIX_ORDER, namesBy, needsAttention,
+  accessBlock, ago, CLASS_KEYS, CLASSES, classText, countClasses, countStates, filtered, fmt, isBig, MIX_ORDER, namesBy, needsAttention, runExplain,
   laneNames, pctText, percentOf, RESULT_STATUS_KO, RUNNER_STATUS_KO, scoped, secondaryCounts, sortSites, startCheck, STATE_KEYS,
   STATES, tsOf, type ConsoleData, type ConsoleSite, type ConsoleState, type Scope,
 } from "@/lib/collect-console";
@@ -30,8 +30,6 @@ const SPECIAL_LABEL: Readonly<Record<Exclude<Special, "">, string>> = { approval
 const Badge = ({ state }: { state: ConsoleState }) => (
   <span className={`badge b-${state}`}>{state === "run" ? <span className="pulse" /> : <i>{STATES[state].mark}</i>}{STATES[state].label}</span>
 );
-// 위쪽 경고는 이만큼만 보이고 나머지는 접어 둔다(대시보드 본문이 첫 화면에 보이게).
-const ALERTS_SHOWN = 4;
 const ClsPill = ({ site }: { site: ConsoleSite }) => <span className={`cls ${CLASSES[site.cls.k].tone}`}>{classText(site.cls)}</span>;
 const MixBar = ({ list }: { list: readonly ConsoleSite[] }) => {
   const c = countStates(list);
@@ -80,8 +78,11 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
   const approvalN = all.filter((s) => s.approval).length;
   const uncollectedN = all.filter((s) => s.uncollected).length;
   const stopped = all.filter((s) => s.state === "stop");
-  const [alertsOpen, setAlertsOpen] = useState(false);
-  const shownAlerts = alertsOpen ? stopped : stopped.slice(0, ALERTS_SHOWN);
+  const lockedN = all.filter((s) => s.state === "lock").length;
+  // 위쪽에는 사이트별 줄 대신 요약 한 줄: 누르면 왼쪽 목록이 그 상태로 걸러진다. 이유는 상세 패널에.
+  const showState = (state: "stop" | "lock") => {
+    setStateFilter(state); setOnlyAttn(false); setSelType(""); setSelCountry(""); setSelCls(""); setLane(""); setSpecial(""); reset();
+  };
 
   useEffect(() => {
     document.title = (stopped.length ? `⚠ ${stopped.length}건 확인 필요 · ` : "") + "수집 콘솔";
@@ -188,10 +189,10 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
         <span className="note">근거: 실행 기록 &gt; site-status{data.latestJudgment ? ` · 판정 파일 최근 ${ago(now - data.latestJudgment)}` : ""}</span>
       </div>
       <div className="alerts" role="status">
-        {shownAlerts.map((s) => <button key={s.id} type="button" className="alert" onClick={() => { setSelected(s.id); setOnlyAttn(true); setSelType(""); setSelCountry(""); setSpecial(""); }}>
-          확인 필요 · {s.name}<small>{s.alert ?? "실행 중이어야 하는데 저장 건수가 늘지 않습니다"}</small></button>)}
-        {stopped.length > ALERTS_SHOWN && <button type="button" className="alert more" aria-expanded={alertsOpen} onClick={() => setAlertsOpen(!alertsOpen)}>
-          {alertsOpen ? "접기" : `외 ${fmt(stopped.length - ALERTS_SHOWN)}곳 더 보기`}</button>}
+        {(stopped.length > 0 || lockedN > 0) && <div className="alert summary">확인 필요
+          {stopped.length > 0 && <button type="button" onClick={() => showState("stop")}>멈춤 {fmt(stopped.length)}곳</button>}
+          {lockedN > 0 && <button type="button" onClick={() => showState("lock")}>접근 제한 {fmt(lockedN)}곳</button>}
+          <small>누르면 목록이 걸러집니다 · 사이트별 이유는 오른쪽 상세에</small></div>}
         {!data.runnerOk && <div className="alert warn" role="alert">실행기 없음 · 시작·이어받기 버튼을 막아 두었습니다<small>{data.runnerText}</small></div>}
         {data.runnerOk && runner?.paused && <div className="alert warn" role="alert">실행기 일시 중지 · 새 작업 요청은 거절됩니다</div>}
       </div>
@@ -338,9 +339,10 @@ function Detail({ site: s, data, now, trialLimit, setTrialLimit, busy, anyBusy, 
     pre.push({ ok: s.state !== "stop", t: "수집 작업이 움직이고 있다", d: s.state === "stop" ? s.alert ?? "갱신이 멈췄습니다" : "실행 중 · 마지막 활동 " + (s.lastTs ? ago(now - s.lastTs) : "-") });
   }
   pre.push({ ok: s.state !== "run", t: "같은 사이트 작업이 실행 중이 아니다", d: s.state === "run" ? "이미 실행 중입니다" : s.state === "stop" ? "멈춘 실행이 있습니다. 이어받기로 재시작 대상입니다" : "실행 중인 작업 없음", warn: s.state === "stop" });
-  pre.push({ ok: s.state !== "lock", t: "사이트가 접근을 허용한다",
-    d: s.state === "lock" ? `${s.why || "접근 제한"} — 화면에서 해제하거나 우회할 수 없습니다` : cur ? "마지막 실행에서 접근 제한 없음" : "아직 확인 전 (실행 기록 없음)",
-    warn: !cur && s.state !== "lock" });
+  const blockedBy = accessBlock(s);
+  pre.push({ ok: !blockedBy, t: "사이트가 접근을 허용한다",
+    d: blockedBy ? `${blockedBy} — 화면에서 해제하거나 우회·재시도할 수 없습니다` : cur ? "마지막 실행에서 접근 제한 없음" : "아직 확인 전 (실행 기록 없음)",
+    warn: !cur && !blockedBy });
   if (cur && s.state === "review") pre.push({ ok: false, warn: true, t: "마지막 실행이 깨끗하게 끝났다", d: s.why || RUNNER_STATUS_KO[cur.status] || cur.status });
   pre.push({ ok: !s.approval, warn: s.approval, t: "대량 수집 승인이 필요 없다",
     d: s.approval ? "승인 대기 — 이어받기(전체)는 대량 승인 전까지 거절됩니다. 시험 수집은 됩니다" : s.plan ? (s.plan.approved_large ? "대량 승인 받음" : `예상 ${fmt(s.plan.expected_items)}건 — 승인 기준(1만 건) 미만`) : "plan 없음" });
@@ -352,6 +354,10 @@ function Detail({ site: s, data, now, trialLimit, setTrialLimit, busy, anyBusy, 
       <span className="sub" style={{ marginLeft: 8 }}>{s.country} · {s.type}</span>
       <div className="sub" style={{ wordBreak: "break-all" }}>{s.id} · <Link className="lnk" href={`/crawlers/${encodeURIComponent(s.id)}`}>수집기 상세</Link> · <Link className="lnk" href={crawlerDocumentsHref(s.id)}>문서</Link></div>
       {s.alert && <div className="err" style={{ marginTop: 4 }}>{s.alert}</div>}
+      <div className="sub" style={{ marginTop: 4 }}>{STATES[s.state].label}{s.why ? ` · ${s.why}` : ""}</div>
+      {s.runs[0] && <div className="sub">실행기 마지막 작업 — {runExplain(s.runs[0])}</div>}
+      {s.direct && s.direct.run_id !== s.runs[0]?.run_id && <div className="sub" style={{ wordBreak: "break-word" }}>
+        O1 상태 ({s.direct.status}{s.direct.finished_at && !s.direct.running ? ` · ${s.direct.finished_at}` : ""}) — {s.direct.detail}</div>}
       <div className="sub" style={{ marginTop: 4 }}><b className={CLASSES[s.cls.k].tone}>{classText(s.cls)}</b> · {s.cls.why}<br />근거 {s.cls.src}{s.cls.lane ? ` · 담당 구역 ${s.cls.lane}` : ""}</div>
     </div>
     <div>

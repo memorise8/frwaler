@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
-  ago, buildConsole, classOf, classText, laneNames, countClasses, countStates, filtered, isBig, namesBy, normalizeProgress, normalizeRunnerRuns,
+  accessBlock, ago, buildConsole, classOf, classText, reasonText, runExplain, laneNames, countClasses, countStates, filtered, isBig, namesBy, normalizeProgress, normalizeRunnerRuns,
   normalizeRunnerStatus, normalizeStats, percentOf, scoped, secondaryCounts, sortSites, startCheck, stateOf, tsOf,
   type BackfillRow, type ConsoleSite, type RunnerRun, type Scope,
 } from "../src/lib/collect-console";
@@ -262,6 +262,27 @@ describe("filters and grouping", () => {
   });
 });
 
+describe("plain-language reasons", () => {
+  it("explains runner and collector codes, keeping counts and unknown codes", () => {
+    expect(reasonText("robots_403")).toBe("robots.txt 요청이 403 으로 막힘");
+    expect(reasonText("robots_500")).toBe("robots.txt 확인에 실패함");
+    expect(reasonText("skipped_by_rule:468")).toBe("규칙으로 건너뛴 항목 468건");
+    expect(reasonText("adapter_contract_failures:1755")).toBe("수집 규칙(필수 칸)을 못 채운 항목 1,755건");
+    expect(reasonText("exit_2")).toBe("결과 확인이 필요한 상태로 끝남(rc 2)");
+    expect(reasonText("exit_7")).toBe("수집기가 7 코드로 끝남");
+    expect(reasonText("weird_code")).toBe("weird_code");
+    expect(reasonText("adapter_contract_failures_consecutive:empty_item")).toBe("수집 규칙을 못 채운 항목이 연달아 나와 멈춤 · 내용이 빈 항목");
+    expect(reasonText(null)).toBe("");
+  });
+  it("summarises the last runner job for the detail panel", () => {
+    expect(runExplain(run({ status: "failed", reason: "exit_2", result: { site_status: "complete_with_mismatch", stop_reason: null } })))
+      .toBe("작업 r0001 · 완료(총건수 불일치) · 결과 확인이 필요한 상태로 끝남(rc 2)");
+    expect(runExplain(run({ status: "failed", reason: "exit_2", result: { site_status: "access_blocked", stop_reason: "robots_403" } })))
+      .toBe("작업 r0001 · 접근 차단 · robots.txt 요청이 403 으로 막힘 (robots_403) · 결과 확인이 필요한 상태로 끝남(rc 2)");
+    expect(runExplain(null)).toBe("");
+  });
+});
+
 describe("startCheck", () => {
   const data = buildConsole(fullInput(), TAX, new Map(), NOW);
   const by = (id: string): ConsoleSite => data.sites.find((s) => s.id === id)!;
@@ -275,8 +296,23 @@ describe("startCheck", () => {
     expect(startCheck(by("a-site"), health, true, "").blocked).toEqual(["실행기 작업 r0003 이(가) 실행 중입니다"]);
     expect(startCheck(by("blocked-site"), health, true, "").blocked).toEqual([
       "실행기에 등록된 plan 이 없습니다 (협의 필요 · 접근 제한 · 403)",
-      "접근 제한·협의 필요 사이트는 시작할 수 없습니다",
+      "접근 제한·협의 필요 사이트는 시작할 수 없습니다 (판정 파일에 접근 제한으로 기록됨) — 우회·재시도하지 않습니다",
     ]);
+  });
+  it("blocks trial and resume when the last run was access-blocked, even if the plan is ready (homeaffairs)", () => {
+    const input = fullInput();
+    input.sites.sites.push(siteRow({ site_id: "homeaffairs", class: "nego", state: "blocked_access", detail: "robots_403", documents: 0 }));
+    input.runs.push(runRow({ run_id: "r0376", site_id: "homeaffairs", mode: "trial", status: "failed", reason: "exit_2",
+      result: { site_status: "access_blocked", stop_reason: "robots_403", saved: 0, failed: 0 } }));
+    const site = buildConsole(input, TAX, new Map(), NOW).sites.find((x) => x.id === "homeaffairs")!;
+    expect(site.state).toBe("lock");
+    expect(accessBlock(site)).toBe("마지막 실행(r0376)에서 접근 차단 · robots.txt 요청이 403 으로 막힘");
+    const check = startCheck(site, health, true, "");
+    expect(check.blocked).toHaveLength(1);
+    expect(check.blocked[0]).toMatch(/^접근 제한·협의 필요 사이트는 시작할 수 없습니다 \(마지막 실행\(r0376\)/);
+    // 콘솔 상태가 lock 이 아니어도(예: 판정이 바뀌기 전 데이터) 실행 결과만으로 막는다.
+    expect(accessBlock({ ...site, state: "stop", status: null, cls: { ...site.cls, k: "run" } })).toMatch(/^마지막 실행\(r0376\)/);
+    expect(accessBlock(by("a-site"))).toBeNull();
   });
   it("holds only resume for a site awaiting large-run approval", () => {
     const check = startCheck({ ...by("big-site"), state: "idle", runs: [] }, health, true, "");
