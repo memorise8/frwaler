@@ -156,8 +156,10 @@ class FileProcessingSafetyTest(unittest.TestCase):
         self.assertEqual(self.finish.call_args.kwargs['error'],'disk_space_low')
         self.assertTrue(self.finish.call_args.kwargs['retry'])
 
-    def _pdf_stage(self, routes, url='https://fixture.test/docs/file.pdf', resolve=None):
-        """download_pdf through the real Fetcher with a fake transport. Returns (result, requests seen)."""
+    def _pdf_stage(self, routes, url='https://fixture.test/docs/file.pdf', resolve=None, shared=False):
+        """download_pdf through the real Fetcher with a fake transport. Returns (result, requests seen).
+        Each call gets its own work area (gates, robots cache) unless shared=True, which reuses one
+        like consecutive stage processes of one worker."""
         from crawler.enumeration.http import Response
         from delivery.files.stage import download_pdf
         seen = []
@@ -169,8 +171,9 @@ class FileProcessingSafetyTest(unittest.TestCase):
                 seen.append((target, (headers or {}).get('User-Agent')))
                 hit = routes.get(target)
                 return hit if hit is not None else Response(404, {}, b'', target)
-        task = self.root / 'task-1'
-        task.mkdir(exist_ok=True)
+        self._calls = getattr(self, '_calls', 0) + 1
+        task = self.root / ('shared' if shared else f'area-{self._calls}') / 'task-1'
+        task.mkdir(parents=True, exist_ok=True)
         return download_pdf(task, url, transport=Transport()), seen, task
 
     def test_pdf_stage_downloads_actual_bytes_and_rejects_html(self):
@@ -200,10 +203,10 @@ class FileProcessingSafetyTest(unittest.TestCase):
         allow = Response(200, {'content-type': 'text/plain'}, b'User-agent: *\nAllow: /\n', '')
         result, _, _ = self._pdf_stage({'https://fixture.test/robots.txt': allow, url: Response(403, {}, b'denied', url)})
         self.assertEqual(result['error'], 'access_blocked')
-        result, _, _ = self._pdf_stage({'https://fixture.test/robots.txt': allow, url: Response(429, {}, b'', url)})
+        result, _, _ = self._pdf_stage({'https://fixture.test/robots.txt': allow, url: Response(429, {}, b'', url)}, shared=True)
         self.assertEqual(result['error'], 'rate_limited')
         # the 429 leaves a cooldown in the shared host gate: the next request to that host is refused too
-        result, seen, _ = self._pdf_stage({'https://fixture.test/robots.txt': allow, url: Response(200, {}, make_pdf(), url)})
+        result, seen, _ = self._pdf_stage({'https://fixture.test/robots.txt': allow, url: Response(200, {}, make_pdf(), url)}, shared=True)
         self.assertEqual((result['error'], seen), ('rate_limited', []))
         other = 'https://other.test/file.pdf'
         result, _, _ = self._pdf_stage({'https://other.test/robots.txt': allow}, url=other)  # the file is a 404
@@ -222,6 +225,51 @@ class FileProcessingSafetyTest(unittest.TestCase):
         self.assertEqual(self.finish.call_args.kwargs['error'], 'download_failed:http_404:404')
         self.assertFalse(self.finish.call_args.kwargs['retry'])
 
+    def test_robots_verdict_is_shared_across_stage_processes(self):
+        from crawler.enumeration.http import Response
+        allow = Response(200, {'content-type': 'text/plain'}, b'User-agent: *\nAllow: /\n', '')
+        routes = {'https://fixture.test/robots.txt': allow,
+                  'https://fixture.test/a.pdf': Response(200, {}, make_pdf(), ''), 'https://fixture.test/b.pdf': Response(200, {}, make_pdf(), '')}
+        first, seen1, _ = self._pdf_stage(routes, url='https://fixture.test/a.pdf', shared=True)
+        second, seen2, _ = self._pdf_stage(routes, url='https://fixture.test/b.pdf', shared=True)  # a new Fetcher, like a new stage process
+        self.assertTrue(first['success'] and second['success'])
+        self.assertEqual([u for u, _ in seen1], ['https://fixture.test/robots.txt', 'https://fixture.test/a.pdf'])
+        self.assertEqual([u for u, _ in seen2], ['https://fixture.test/b.pdf'])  # one PDF = one request
+        # a robots refusal is remembered too: the site is not asked again
+        blocked = {'https://deny.test/robots.txt': Response(403, {}, b'', '')}
+        r1, s1, _ = self._pdf_stage(blocked, url='https://deny.test/a.pdf', shared=True)
+        r2, s2, _ = self._pdf_stage(blocked, url='https://deny.test/b.pdf', shared=True)
+        self.assertEqual((r1['error'], r2['error']), ('access_blocked', 'access_blocked'))
+        self.assertEqual((len(s1), s2), (1, []))
+        # a disallow rule read from the cache still refuses without any request
+        disallow = {'https://rule.test/robots.txt': Response(200, {}, b'User-agent: *\nDisallow: /private/\n', '')}
+        self._pdf_stage(disallow, url='https://rule.test/ok.pdf', shared=True)
+        r3, s3, _ = self._pdf_stage(disallow, url='https://rule.test/private/x.pdf', shared=True)
+        self.assertEqual((r3['error'], s3), ('robots_disallowed', []))
+
+    def test_streaming_transport_writes_to_disk_and_enforces_the_cap(self):
+        from unittest import mock as m
+        from delivery.files import stage
+        body = make_pdf()
+        class Raw:
+            def __init__(self, data, headers=None):
+                self.status_code, self.headers, self.url, self.data = 200, headers or {}, 'https://fixture.test/x.pdf', data
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def iter_content(self, n): return [self.data[i:i + 5] for i in range(0, len(self.data), 5)]
+        sink = self.root / 'download.part'
+        transport = stage._streaming_transport(sink)
+        with m.patch.object(transport.session, 'request', return_value=Raw(body)):
+            resp = transport.request('GET', 'https://fixture.test/x.pdf')
+        self.assertEqual((sink.read_bytes(), resp.size, resp.body), (body, len(body), body[:stage.STREAM_HEAD_BYTES]))
+        from crawler.enumeration.http import BodyTooLarge
+        with m.patch.object(stage, 'PDF_MAX_BYTES', 10):
+            small = stage._streaming_transport(sink)
+        for raw in (Raw(body), Raw(b'', {'Content-Length': '11'})):
+            with self.subTest(declared='Content-Length' in raw.headers), m.patch.object(small.session, 'request', return_value=raw):
+                with self.assertRaises(BodyTooLarge):
+                    small.request('GET', 'https://fixture.test/x.pdf')
+
     def test_pdf_stage_rejects_private_destination_before_request(self):
         result, seen, _ = self._pdf_stage({}, url='http://fixture.test/file.pdf', resolve=lambda host, port=None: ['127.0.0.1'])
         self.assertFalse(result['success'])
@@ -232,6 +280,25 @@ class FileProcessingSafetyTest(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get('TEST_PG_DSN'), 'requires disposable PostgreSQL')
 class FilePipelinePostgresTest(unittest.TestCase):
+    def test_claim_by_host_shard_keeps_one_host_on_one_worker(self):
+        from delivery.files import jobs
+        from delivery.worker import jobs as crawl_jobs
+        hosts = ['a.test', 'b.test', 'c.test', 'd.test', 'e.test', 'f.test']
+        for i, host in enumerate(hosts * 2):
+            self.db.insert_document(self.conn, {'site_id': 'file-fixture', 'title': str(i), 'meta_url': f'https://fixture.invalid/{i}',
+                                                'pdf_url': f'https://{host}/{i}.pdf'})
+        jobs.backfill(self.conn, 'file-fixture', limit=100, dry_run=False)
+        owner = {}
+        for shard in range(3):
+            while (task := jobs.claim(self.conn, shard=shard, shards=3)):
+                url = self.conn.execute('SELECT pdf_url FROM documents WHERE seq_id=%s', (task['seq_id'],)).fetchone()['pdf_url']
+                host = url.split('/')[2]
+                self.assertEqual(owner.setdefault(host, shard), shard)  # a host never moves to another shard
+        self.assertEqual(sorted(owner), hosts)
+        with self.assertRaises(ValueError):
+            jobs.claim(self.conn, shard=3, shards=3)
+        self.assertIsNotNone(crawl_jobs)
+
     def test_existing_document_backfill_preview_enqueue_and_active_exclusion(self):
         from delivery.files import jobs
         seqs=[self.db.insert_document(self.conn,{'site_id':'file-fixture','title':str(i),

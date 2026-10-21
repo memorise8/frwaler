@@ -219,6 +219,26 @@ def beat(dsn, stop):
         stop.wait(20)
 
 
+# Disk guard (user decision 10-21): below this much free space no new download starts.
+MIN_FREE_BYTES = int(os.environ.get('FILE_MIN_FREE_BYTES', str(10 * 1024 ** 4)))
+
+
+def serve(dsn, root, timeout, shard, shards):
+    """One queue consumer. shard/shards split tasks by PDF host (jobs.claim)."""
+    from crawler import db_pg
+    with db_pg.open_db(dsn) as conn:
+        while True:
+            jobs.recover(conn)
+            if shutil.disk_usage(root).free < MIN_FREE_BYTES:
+                time.sleep(60)  # leave queued tasks queued; the operator frees space or moves the pool
+                continue
+            task = jobs.claim(conn, lease_seconds=timeout*2+120, shard=shard, shards=shards)
+            if task:
+                process(conn,task,root=root,timeout=timeout)
+            else:
+                time.sleep(3)
+
+
 def main():
     from crawler import db_pg
     from delivery.db.schema import verify_required_schema
@@ -228,22 +248,31 @@ def main():
     dsn = os.environ['LIBERTREE_PG_DSN']
     timeout = max(10, min(int(os.environ.get('FILE_STAGE_TIMEOUT_SECONDS','180')),600))
     root = os.environ.get('LIBERTREE_BLOB_ROOT','/data/blob')
+    shards = max(1, min(int(os.environ.get('FILE_WORKERS', '1')), 16))
     with db_pg.open_db(dsn) as conn:
         verify_required_schema(conn)
-        stop = threading.Event()
-        heartbeat = threading.Thread(target=beat,args=(dsn,stop),daemon=True)
-        heartbeat.start()
-        try:
-            while True:
-                jobs.recover(conn)
-                task = jobs.claim(conn, lease_seconds=timeout*2+120)
-                if task:
-                    process(conn,task,root=root,timeout=timeout)
-                else:
-                    time.sleep(3)
-        finally:
-            stop.set()
-            heartbeat.join(timeout=2)
+    stop = threading.Event()
+    heartbeat = threading.Thread(target=beat,args=(dsn,stop),daemon=True)
+    heartbeat.start()
+    children = []
+    try:
+        if shards == 1:
+            serve(dsn, root, timeout, 0, 1)
+        # One process per host shard: a host is only ever requested by one of them.
+        import multiprocessing
+        ctx = multiprocessing.get_context('spawn')
+        children = [ctx.Process(target=serve, args=(dsn, root, timeout, i, shards), daemon=True) for i in range(shards)]
+        for child in children:
+            child.start()
+        while all(child.is_alive() for child in children):
+            time.sleep(5)
+        raise SystemExit('file worker shard exited')  # the container restarts the whole set
+    finally:
+        for child in children:
+            if child.is_alive():
+                child.terminate()
+        stop.set()
+        heartbeat.join(timeout=2)
 
 
 if __name__ == '__main__':

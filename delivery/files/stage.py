@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -42,46 +43,165 @@ def _fallback_text(root):
     return candidate.read_text(encoding='utf-8'), None
 
 
-PDF_MAX_BYTES = 200 * 1024 * 1024
+PDF_MAX_BYTES = 1024 * 1024 * 1024  # 1 GB (user decision 10-21); larger files are recorded as file_too_large
 # Same politeness as collection: one request per host per gap, shared by every stage process.
 PDF_REQUEST_INTERVAL_S = 2.0
+# Kept in memory for the Fetcher's challenge/login checks; the rest of a PDF goes straight to disk.
+STREAM_HEAD_BYTES = 256 * 1024
+ROBOTS_CACHE_S = 24 * 3600
 FETCH_ERRORS = (('RobotsDisallowed', 'robots_disallowed'), ('RobotsUnavailable', 'robots_unavailable'),
                 ('RateLimited', 'rate_limited'), ('PrivateDestination', 'download_failed'),
                 ('AccessBlocked', 'access_blocked'), ('BudgetExhausted', 'download_failed'))
 
 
-def _transport():
-    from crawler.enumeration.http import RequestsTransport
-    return RequestsTransport(max_bytes=PDF_MAX_BYTES)
+def _streaming_transport(sink):
+    """RequestsTransport that writes a GET body to ``sink`` instead of memory (robots.txt stays in memory).
+    The returned Response carries the first STREAM_HEAD_BYTES as body and the full size as ``size``."""
+    from crawler.enumeration.http import BodyTooLarge, RequestsTransport, Response, TransportError
+
+    class StreamingTransport(RequestsTransport):
+        def request(self, method, url, *, headers=None, data=None):
+            if method != 'GET' or urlsplit(url).path == '/robots.txt':
+                return super().request(method, url, headers=headers, data=data)
+            try:
+                with self.session.request(method, url, headers=headers or {}, stream=True,
+                                          timeout=self.timeout, allow_redirects=False) as r:
+                    declared = str(r.headers.get('Content-Length') or '').strip()
+                    if declared.isdigit() and int(declared) > self.max_bytes:
+                        raise BodyTooLarge('body_too_large')
+                    head, size = bytearray(), 0
+                    with open(sink, 'wb') as out:
+                        for chunk in r.iter_content(64 * 1024):
+                            size += len(chunk)
+                            if size > self.max_bytes:
+                                raise BodyTooLarge('body_too_large')
+                            if len(head) < STREAM_HEAD_BYTES:
+                                head += chunk[:STREAM_HEAD_BYTES - len(head)]
+                            out.write(chunk)
+                    response = Response(r.status_code, dict(r.headers), bytes(head), r.url)
+                    response.size = size
+                    return response
+            except self._requests.RequestException as exc:
+                raise TransportError(type(exc).__name__) from exc
+
+    return StreamingTransport(max_bytes=PDF_MAX_BYTES)
+
+
+def _cached_robots_fetcher(gates, transport):
+    """Fetcher whose robots.txt verdict per origin is shared on disk by every stage process, so one
+    PDF costs one request. A refusal (403/challenge/login) or an unreachable robots.txt is cached
+    too: the site is not asked again until the entry expires."""
+    import time
+    from crawler.enumeration import http
+    cache = gates / 'robots'
+
+    class CachedRobotsFetcher(http.Fetcher):
+        def _path(self, origin):
+            return cache / (hashlib.sha256(origin.encode()).hexdigest()[:24] + '.json')
+
+        def _write(self, origin, entry):
+            cache.mkdir(parents=True, exist_ok=True, mode=0o700)
+            path = self._path(origin)
+            tmp = path.with_suffix('.tmp%d' % os.getpid())
+            tmp.write_text(json.dumps(dict(entry, origin=origin, at=time.time())), encoding='utf-8')
+            os.replace(tmp, path)
+
+        def _read(self, origin):
+            try:
+                entry = json.loads(self._path(origin).read_text(encoding='utf-8'))
+            except (OSError, ValueError):
+                return None
+            ttl = http.ROBOTS_RETRY_S if entry.get('kind') == 'unavailable' else ROBOTS_CACHE_S
+            return entry if entry.get('origin') == origin and time.time() - entry.get('at', 0) < ttl else None
+
+        def _load_robots(self, origin):
+            seen = {}
+            fetch = self._with_retries
+            def capture(url, **kwargs):
+                seen['response'] = fetch(url, **kwargs)
+                return seen['response']
+            self._with_retries = capture
+            try:
+                result = super()._load_robots(origin)
+            finally:
+                del self._with_retries
+            self._robots_text = seen['response'].text() if not isinstance(result, str) else None
+            return result
+
+        def _robots_allows(self, url):
+            parts = urlsplit(url)
+            origin = f'{parts.scheme}://{parts.netloc}'
+            fresh = self.respect_robots and origin not in self._robots
+            if fresh:
+                entry = self._read(origin)
+                if entry:
+                    fresh = False
+                    if entry['kind'] == 'blocked':
+                        raise http.AccessBlocked(entry['reason'], url, entry.get('status'))
+                    if entry['kind'] == 'unavailable':
+                        raise http.RobotsUnavailable(entry['reason'], url, entry.get('status'))
+                    self._robots[origin] = http.parse_robots(entry['text']) if entry['kind'] == 'rules' else entry['kind']
+                    if entry.get('delay'):
+                        self._host_delay[http.host_of(origin)] = entry['delay']
+            try:
+                allowed = super()._robots_allows(url)
+            except http.RobotsUnavailable as exc:
+                if fresh:
+                    self._write(origin, {'kind': 'unavailable', 'reason': exc.reason, 'status': exc.status})
+                raise
+            except http.AccessBlocked as exc:
+                rule = self._robots.get(origin)
+                if fresh and not isinstance(rule, str):  # too_slow/unparseable verdicts are cached as rules below
+                    self._write(origin, {'kind': 'blocked', 'reason': exc.reason, 'status': exc.status})
+                elif fresh:
+                    self._write(origin, {'kind': rule})
+                raise
+            if fresh:
+                rule = self._robots[origin]
+                self._write(origin, {'kind': rule if isinstance(rule, str) else 'rules', 'text': getattr(self, '_robots_text', None),
+                                     'delay': self._host_delay.get(http.host_of(origin))})
+            return allowed
+
+    return CachedRobotsFetcher('file-worker', transport, gates, interval=PDF_REQUEST_INTERVAL_S,
+                               retries=2, rate_limit_stop=1)
 
 
 def download_pdf(root, url, transport=None):
     """Fetch one PDF through the collection Fetcher (crawler.enumeration.http): robots.txt is
-    honoured, the honest collector User-Agent is sent, every hop must resolve to a public
-    address, and a host gate under the shared work directory keeps PDF_REQUEST_INTERVAL_S
-    between requests to one host across stage processes. A block, robots refusal or rate limit
-    is returned as its own error code and never retried around."""
+    honoured (verdict shared on disk, see _cached_robots_fetcher), the honest collector
+    User-Agent is sent, every hop must resolve to a public address, and a host gate under the
+    shared work directory keeps PDF_REQUEST_INTERVAL_S between requests to one host across
+    stage processes. The body streams to disk (up to PDF_MAX_BYTES). A block, robots refusal or
+    rate limit is returned as its own error code and never retried around."""
     from crawler.enumeration import http
     parsed = urlsplit(url or '')
     if parsed.scheme not in ('http', 'https') or not parsed.hostname or parsed.username or parsed.password:
         return {'success': False, 'error': 'download_failed'}
+    sink = root / 'download.part'
     # root is <blob>/.file-work/task-XXXX; the gates sit beside the task directories and outlive them.
-    fetcher = http.Fetcher('file-worker', transport or _transport(), root.parent / '.gates',
-                           interval=PDF_REQUEST_INTERVAL_S, retries=2, rate_limit_stop=1)
+    fetcher = _cached_robots_fetcher(root.parent / '.gates', transport or _streaming_transport(sink))
     try:
         response = fetcher.get(url)
     except http.PermanentFailure as exc:
+        sink.unlink(missing_ok=True)
         # 404/410 and other permanent answers: retrying would only repeat the same request.
         return {'success': False, 'error': 'file_too_large' if exc.reason == 'body_too_large' else 'download_failed',
                 'reason': exc.reason, 'status': exc.status, 'permanent': True}
     except (http.FetchError, http.EnumerationStop) as exc:
+        sink.unlink(missing_ok=True)
         code = next((c for name, c in FETCH_ERRORS if isinstance(exc, getattr(http, name))), 'download_failed')
         return {'success': False, 'error': code, 'reason': getattr(exc, 'reason', None), 'status': getattr(exc, 'status', None)}
-    body = response.body
-    if not body[:1024].lstrip(b'\xef\xbb\xbf \t\r\n\x00').startswith((b'%PDF-1.', b'%PDF-2.')):
+    if not response.body[:1024].lstrip(b'\xef\xbb\xbf \t\r\n\x00').startswith((b'%PDF-1.', b'%PDF-2.')):
+        sink.unlink(missing_ok=True)
         return {'success': False, 'error': 'invalid_pdf'}
-    (root / 'download.pdf').write_bytes(body)
-    return {'success': True, 'size': len(body), 'sha256': hashlib.sha256(body).hexdigest()}
+    target = root / 'download.pdf'
+    if getattr(response, 'size', None) is not None and sink.is_file():
+        os.replace(sink, target)
+    else:  # a transport that returned the whole body in memory (tests)
+        target.write_bytes(response.body)
+    with target.open('rb') as handle:
+        digest = hashlib.file_digest(handle, 'sha256').hexdigest()
+    return {'success': True, 'size': target.stat().st_size, 'sha256': digest}
 
 
 def execute(stage, directory, url=None):

@@ -63,15 +63,25 @@ def enqueue_new(conn, crawl_job_id, site_id, after_seq):
     conn.commit()
 
 
-def claim(conn, *, lease_seconds=300):
+# Host of a document's PDF URL, as the shard key: every task for one host goes to one worker.
+PDF_HOST_SQL = "lower(split_part(split_part(split_part(coalesce(d.pdf_url,''),'://',2),'/',1),'@',1))"
+
+
+def claim(conn, *, lease_seconds=300, shard=0, shards=1):
+    """Next due task. With shards>1 only tasks whose PDF host hashes to ``shard`` are taken, so
+    several workers never request the same host at the same time."""
+    if not 0 <= shard < shards:
+        raise ValueError('invalid shard')
     token = str(uuid.uuid4())
-    row = conn.execute("""UPDATE document_file_jobs SET status='running',token=%s,
+    row = conn.execute(f"""UPDATE document_file_jobs SET status='running',token=%s,
         lease_expires_at=now()+make_interval(secs=>%s),attempts=attempts+1,updated_at=now()
         WHERE id=(SELECT f.id FROM document_file_jobs f JOIN crawl_jobs j ON j.id=f.crawl_job_id
+            JOIN documents d ON d.seq_id=f.seq_id
           WHERE f.status='queued' AND f.next_attempt_at<=now()
             AND j.status IN ('done','failed')
+            AND (%s=1 OR ((hashtext({PDF_HOST_SQL})::bigint %% %s) + %s) %% %s = %s)
           ORDER BY f.next_attempt_at,f.id FOR UPDATE OF f SKIP LOCKED LIMIT 1)
-        RETURNING *""", (token, lease_seconds)).fetchone()
+        RETURNING *""", (token, lease_seconds, shards, shards, shards, shards, shard)).fetchone()
     conn.commit()
     return dict(row) if row else None
 
