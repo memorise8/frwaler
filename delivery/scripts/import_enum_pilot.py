@@ -50,7 +50,10 @@ SHARED_META_URL = {"garda-ie-en", "kefm-dk-aftaler", "csic-es-es", "um-dk-om-os"
                    "bmwkms-gv-at-themen", "pbocri-org-cn-lnzy3html", "dhs-gov-publication", "bmleh-de-en",
                    "stepi-re-kr-site",  # stepi: 10-20 운영 570/202(최신분이 목록 주소 공유, 사용자 허용 집계)
                    # 10-19 집계는 깨진 색인 때문에 0행 → 10-20 표 전체 읽기: 50/1, 12/1, 69/1
-                   "genomecanada-ca-about", "home-treasury-gov-about", "stat-inst-se-om-sis"}
+                   "genomecanada-ca-about", "home-treasury-gov-about", "stat-inst-se-om-sis",
+                   # prism: 보고서 한 주소에 첨부 여러 개. 10-21 운영 2,900/1,349, 여러 번호 주소 640(최대 14), s155 와 겹치는
+                   # 2,819 번호 모두 같은 주소(S 판정·사용자 승인 10-21)
+                   "prism-go-kr-homepage"}
 # review 를 구역 세션이 검토해 받아들인 사이트: 새 문서 목록 해시(new_sha)가 그때와 같을 때만 ready 로 본다.
 # em-lyon-com-en: 폴더 안 같은 meta_url 에 post_number 2개인 2행 제외한 채 845건(collect-sites 10-20, work/ND/decisions.csv).
 # daejeon-go-kr-drh: no_overlap — 전체 수집 s144(44,209)와 10-18 시험 t0357(98)이 겹치는 URL 0, 시험 98건은 같은 post_number 의
