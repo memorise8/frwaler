@@ -565,14 +565,14 @@ export const runExplain = (run: RunnerRun | null): string => {
 
 /** 접근 제한 근거: 콘솔 상태(lock)·마지막 실행 결과(access_blocked, robots_*)·판정 파일(blocked_access)·협의 필요 구분. 없으면 null. */
 export const accessBlock = (site: ConsoleSite): string | null => {
-  // 마지막 실행기 작업 뒤에 직접 실행이 접근해 끝났으면 그 뒤 결과가 우선이다.
-  const later = site.via === "direct";
+  // 마지막 실행기 작업 뒤의 직접 실행이 완료로 끝났을 때만 그 뒤 결과가 우선이다(미완료·검토면 옛 차단을 그대로 둔다).
+  const later = site.via === "direct" && site.state === "done";
   const r = later ? null : site.runs[0]?.result ?? null;
   if (r?.site_status === "access_blocked" || r?.stop_reason?.startsWith("robots_")) {
     return `마지막 실행(${site.runs[0]!.run_id})에서 접근 차단 · ${reasonText(r.stop_reason) || "접근 차단"}`;
   }
   if (site.state === "lock") return site.why || "접근 제한";
-  if (site.status?.state === "blocked_access" && !(later && site.state === "done")) return "판정 파일에 접근 제한으로 기록됨";
+  if (site.status?.state === "blocked_access" && !later) return "판정 파일에 접근 제한으로 기록됨";
   if (site.cls.k === "nego") return "협의 필요 사이트";
   return null;
 };

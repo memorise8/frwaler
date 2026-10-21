@@ -113,7 +113,11 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
     if (matchMedia("(max-width:1180px)").matches) document.getElementById("cc-detail")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
   const railPick = (key: string) => {
+    // 켜진 묶음을 다시 누르면 해제(전체 보기). "전체"는 늘 전체.
+    const on = key === "__attn" ? onlyAttn && !primary && !special : key === "__approval" ? special === "approval" && !primary
+      : key === "__uncollected" ? special === "uncollected" && !primary : key !== "__all" && primary === key;
     clearAll();
+    if (on) { reset(); return; }
     if (key === "__attn") setOnlyAttn(true);
     else {
       setOnlyAttn(false);
@@ -187,8 +191,8 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
       <div className="sum" aria-label="상태 요약">
         {STATE_KEYS.map((k) => <button key={k} type="button" className={`chip ${k === "stop" && counts[k] ? "bad" : ""} ${stateFilter === k ? "on" : ""}`}
           aria-pressed={stateFilter === k} disabled={!counts[k] && stateFilter !== k} onClick={() => toggleState(k)}><b>{fmt(counts[k])}</b><span>{STATES[k].label}</span></button>)}
-        <button type="button" className={`chip ${approvalN ? "warn" : ""} ${special === "approval" ? "on" : ""}`} aria-pressed={special === "approval"} onClick={() => toggleSpecial("approval")}><b>{fmt(approvalN)}</b><span>승인 대기</span></button>
-        <button type="button" className={`chip ${special === "uncollected" ? "on" : ""}`} aria-pressed={special === "uncollected"} onClick={() => toggleSpecial("uncollected")}><b>{fmt(uncollectedN)}</b><span>미수집</span></button>
+        <button type="button" className={`chip ${approvalN ? "warn" : ""} ${special === "approval" ? "on" : ""}`} aria-pressed={special === "approval"} disabled={!approvalN && special !== "approval"} onClick={() => toggleSpecial("approval")}><b>{fmt(approvalN)}</b><span>승인 대기</span></button>
+        <button type="button" className={`chip ${special === "uncollected" ? "on" : ""}`} aria-pressed={special === "uncollected"} disabled={!uncollectedN && special !== "uncollected"} onClick={() => toggleSpecial("uncollected")}><b>{fmt(uncollectedN)}</b><span>미수집</span></button>
         <span className="note">숫자는 전체 기준 · 누르면 다른 거르기를 풀고 그것만 보여 줍니다(다시 누르면 해제)</span>
       </div>
       <div className="csum" aria-label="실행 구분">

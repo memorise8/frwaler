@@ -290,6 +290,19 @@ describe("state, class and access agree (운영 808곳 모순 점검에서 나�
     expect(buildConsole(input([siteRow({ site_id: "empty", documents: 0, plan: null })], []), null, new Map(), NOW).sites[0]!)
       .toMatchObject({ state: "idle", why: "", via: null });
   });
+  it("keeps an old runner access block when the later direct run did not finish (review)", () => {
+    const input2 = input([siteRow({ site_id: "blk", direct: { ...doneDirect, detail: "incomplete/listing_failed:http_4xx, 문서 0" } })],
+      [runRow({ run_id: "r0700", site_id: "blk", status: "failed", reason: "exit_2", started_at: "2026-10-19T00:00:00Z",
+        result: { site_status: "access_blocked", stop_reason: "robots_403" } })]);
+    const s = buildConsole(input2, null, new Map(), NOW).sites[0]!;
+    expect(s).toMatchObject({ state: "review", via: "direct" });
+    expect(accessBlock(s)).toMatch(/^마지막 실행\(r0700\)에서 접근 차단/);
+    expect(startCheck(s, null, true, "").blocked.some((x) => x.startsWith("접근 제한"))).toBe(true);
+  });
+  it("treats an O1 done row with no site_status in its result as unknown (review), not complete", () => {
+    expect(stateOf(null, null, NOW, normalizeSite(siteRow({ direct: { ...doneDirect, detail: "문서 10" } }))!.direct))
+      .toMatchObject({ state: "review", why: "결과 미상 · 직접 실행" });
+  });
   it("does not let a judgment-file access block outlive a later successful direct run", () => {
     const data = buildConsole(input([siteRow({ site_id: "ok", class: "nego", state: "blocked_access", direct: doneDirect })], []), null, new Map(), NOW);
     expect(accessBlock(data.sites[0]!)).toBeNull();
@@ -381,11 +394,21 @@ describe("state chips (site-collect-console.tsx)", () => {
     expect(source).toContain("const toggleState = (value: string) => { const on = stateFilter === value; clearAll(); if (!on) setStateFilter(value); reset(); };");
     expect(source).toMatch(/<select value=\{stateFilter\} aria-label="상태 필터"/);
   });
+  it("opens a list of exactly the clicked size on real-shaped data (counts == filtered with other filters cleared)", () => {
+    const data = buildConsole(fullInput(), TAX, new Map(), NOW);
+    const none = { attn: false, type: "", country: "", cls: "", lane: "", special: "" as const, state: "", q: "" };
+    const counts = countStates(data.sites), cls = countClasses(data.sites);
+    for (const k of ["run", "stop", "review", "done", "lock", "idle"] as const) expect(filtered(data.sites, { ...none, state: k })).toHaveLength(counts[k]);
+    for (const k of ["run", "dev", "nego", "skip", "none"] as const) expect(filtered(data.sites, { ...none, cls: k })).toHaveLength(cls[k]);
+    expect(filtered(data.sites, { ...none, special: "approval" })).toHaveLength(data.sites.filter((s) => s.approval).length);
+    expect(filtered(data.sites, { ...none, special: "uncollected" })).toHaveLength(data.sites.filter((s) => s.uncollected).length);
+  });
   it("keeps every clickable number equal to the list it opens", () => {
     // 전체 기준 숫자(위 칩·구분 칩·왼쪽 묶음·경고 요약)는 누를 때 다른 거르기를 모두 푼다.
-    for (const fn of ["toggleState", "toggleSpecial", "toggleCls", "showState", "railPick"]) {
+    for (const fn of ["toggleState", "toggleSpecial", "toggleCls", "showState"]) {
       expect(source).toMatch(new RegExp(`const ${fn} = \\([^)]*\\) => \\{\\s*(const on = [^;]+; )?clearAll\\(\\);`));
     }
+    expect(source).toMatch(/const railPick = [\s\S]{0,400}clearAll\(\);\s*if \(on\) \{ reset\(\); return; \}/);
     expect(source).toContain("onClick={() => toggleCls(k)}");
     // 목록 제목·보조 칩·표 보기 숫자는 지금 거른 목록 기준.
     expect(source).toContain("{heading} · {fmt(rows.length)}곳");
