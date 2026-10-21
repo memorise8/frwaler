@@ -109,8 +109,13 @@ describe("stateOf", () => {
     // 실행기 작업보다 먼저 시작한 직접 실행, 또는 끝나지 않은 직접 실행은 실패를 덮지 않는다.
     expect(stateOf(bad, null, NOW, o1({ started_at: "2026-10-18T00:00:00Z", finished_at: "2026-10-18T01:00:00Z" })).state).toBe("stop");
     expect(stateOf(bad, null, NOW, o1({ status: "failed" })).state).toBe("stop");
-    // 같은 작업을 O1 이 done 으로 정리했으면 그것을 따른다.
-    expect(stateOf(bad, null, NOW, o1({ run_id: "r0001", started_at: null, finished_at: null })).state).toBe("done");
+    // 같은 작업(run_id 같음)의 O1 "done" 은 처리 끝이라는 뜻일 뿐: 실행기 결과를 그대로 쓴다.
+    expect(stateOf(bad, null, NOW, o1({ run_id: "r0001", started_at: null, finished_at: null })).state).toBe("stop");
+    // 다만 O1 이 같은 작업을 접근 거부로 정리했으면 접근 제한.
+    expect(stateOf(bad, null, NOW, o1({ run_id: "r0001", status: "done(접근 거부)" }))).toMatchObject({ state: "lock", via: "direct" });
+    // 뒤의 직접 실행이 미완료·검토로 끝났으면 완료가 아니다.
+    expect(stateOf(bad, null, NOW, o1({ detail: "incomplete/listing_failed:http_4xx, 문서 0" }))).toMatchObject({ state: "review", why: "미완료 · 직접 실행" });
+    expect(stateOf(bad, null, NOW, o1({ detail: "complete_with_review/adapter_contract_failures:3" })).state).toBe("review");
   });
   it("flags a running backfill that stopped updating for 30 minutes", () => {
     const stale = bf({ active_status: "running", active_job_id: 9, updated_at: "2026-10-20T11:00:00Z" });
@@ -215,7 +220,7 @@ describe("DB-only sites and direct runs", () => {
   it("shows a direct run as 수집 중 with saved count and refresh time even without runner records", () => {
     const data = buildConsole({ ...empty, runs: null, sites: { runner_ok: false, documents_ok: true, sites: [
       siteRow({ site_id: "prism", documents: 2900, plan: null, direct }),
-      siteRow({ site_id: "done-site", direct: { ...direct, status: "done", running: false, saved: 10 } }),
+      siteRow({ site_id: "done-site", direct: { ...direct, status: "done", running: false, saved: 10, detail: "complete/last_page, 문서 10" } }),
     ] } }, null, new Map(), NOW);
     const prism = data.sites.find((s) => s.id === "prism")!;
     expect(prism.state).toBe("run");
@@ -262,6 +267,35 @@ describe("filters and grouping", () => {
   });
 });
 
+describe("state, class and access agree (운영 808곳 모순 점검에서 나온 경우)", () => {
+  const input = (sites: Record<string, unknown>[], runs: Record<string, unknown>[]) =>
+    ({ sites: { runner_ok: true, documents_ok: true, progress_source: { ok: true }, sites }, uncollected: null, runs, health: null, stats: null, progress: null });
+  const doneDirect = { status: "done", running: false, saved: 389075, run_id: "direct", started_at: "2026-10-20T22:04:49Z",
+    finished_at: "2026-10-21T00:10:13Z", updated_at: "2026-10-21T00:15:00Z", detail: "complete/last_page_empty_reached_start, 문서 389075" };
+  it("re-classes a site finished by a later direct run, keeping the runner failure only as a note (prism)", () => {
+    const data = buildConsole(input([siteRow({ site_id: "prism", direct: doneDirect })],
+      [runRow({ run_id: "r0590", site_id: "prism", status: "failed", reason: "exit_1", started_at: "2026-10-19T06:32:20Z",
+        result: { site_status: "config_error", stop_reason: "adapter_contract_failures_consecutive:empty_item" } })]), null, new Map(), NOW);
+    const s = data.sites[0]!;
+    expect(s).toMatchObject({ state: "done", via: "direct", why: "직접 실행으로 완료" });
+    expect(s.cls).toMatchObject({ k: "run", why: "직접 실행 결과 · 직접 실행으로 완료", src: "O1 상태 (직접 실행)" });
+    expect(accessBlock(s)).toBeNull();
+  });
+  it("calls a site with only earlier DB documents 새 수집 전, with the count", () => {
+    const data = buildConsole(input([siteRow({ site_id: "old", class: "dev", state: "needs_dev", detail: "ext:pdf", documents: 318, plan: null })], []),
+      null, new Map(), NOW);
+    const s = data.sites[0]!;
+    expect(s).toMatchObject({ state: "idle", via: "db", why: "이전 수집분 DB 318건" });
+    expect(s.cls.why).toBe("이전 수집분 DB 에 있음 · 새 수집 판정: 수집기 개발 필요 · ext:pdf");
+    expect(buildConsole(input([siteRow({ site_id: "empty", documents: 0, plan: null })], []), null, new Map(), NOW).sites[0]!)
+      .toMatchObject({ state: "idle", why: "", via: null });
+  });
+  it("does not let a judgment-file access block outlive a later successful direct run", () => {
+    const data = buildConsole(input([siteRow({ site_id: "ok", class: "nego", state: "blocked_access", direct: doneDirect })], []), null, new Map(), NOW);
+    expect(accessBlock(data.sites[0]!)).toBeNull();
+  });
+});
+
 describe("plain-language reasons", () => {
   it("explains runner and collector codes, keeping counts and unknown codes", () => {
     expect(reasonText("robots_403")).toBe("robots.txt 요청이 403 으로 막힘");
@@ -273,6 +307,8 @@ describe("plain-language reasons", () => {
     expect(reasonText("weird_code")).toBe("weird_code");
     expect(reasonText("adapter_contract_failures_consecutive:empty_item")).toBe("수집 규칙을 못 채운 항목이 연달아 나와 멈춤 · 내용이 빈 항목");
     expect(reasonText(null)).toBe("");
+    expect(reasonText("access_refused")).toBe("사이트가 접근을 거부함");
+    expect(reasonText("robots_unavailable:http_500")).toBe("robots.txt 를 받지 못함 · http_500");
   });
   it("summarises the last runner job for the detail panel", () => {
     expect(runExplain(run({ status: "failed", reason: "exit_2", result: { site_status: "complete_with_mismatch", stop_reason: null } })))
@@ -331,5 +367,22 @@ describe("vendored taxonomy", () => {
     const vendored = readFileSync(new URL("../src/vendor/site-taxonomy.json", import.meta.url), "utf8");
     const source = readFileSync(new URL("../../data/site-taxonomy.json", import.meta.url), "utf8");
     expect(JSON.parse(vendored)).toEqual(JSON.parse(source));
+  });
+});
+
+describe("state chips (site-collect-console.tsx)", () => {
+  const source = readFileSync(new URL("../src/app/(shell)/site-collect/site-collect-console.tsx", import.meta.url), "utf8");
+  const chips = source.slice(source.indexOf('aria-label="상태 요약"'), source.indexOf('aria-label="실행 구분"'));
+  it("are buttons that toggle the same stateFilter as the 상태 필터 dropdown", () => {
+    expect(chips).toContain("STATE_KEYS.map((k) => <button");
+    expect(chips).toContain("aria-pressed={stateFilter === k}");
+    expect(chips).toContain("onClick={() => toggleState(k)}");
+    expect(chips).toContain("disabled={!counts[k] && stateFilter !== k}");
+    expect(source).toContain('setStateFilter(stateFilter === value ? "" : value)');
+    expect(source).toMatch(/<select value=\{stateFilter\} aria-label="상태 필터"/);
+  });
+  it("no longer lists every stopped site at the top", () => {
+    expect(source).not.toContain("stopped.map(");
+    expect(source).toContain('className="alert summary"');
   });
 });

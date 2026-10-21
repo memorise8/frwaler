@@ -19,7 +19,8 @@ export const STATES: Readonly<Record<ConsoleState, Readonly<{ label: string; mar
   review: { label: "검토 필요", mark: "?" },
   done: { label: "완료", mark: "✓" },
   lock: { label: "접근 제한", mark: "⊘" },
-  idle: { label: "미시작", mark: "○" },
+  // 이번 수집(실행기·백필·직접 실행) 기록이 없음. 예전 수집분이 DB 에 있을 수 있다(why 에 적음).
+  idle: { label: "새 수집 전", mark: "○" },
 };
 export const STATE_ORDER: Readonly<Record<ConsoleState, number>> = { stop: 0, review: 1, run: 2, done: 3, lock: 4, idle: 5 };
 export const MIX_ORDER: readonly ConsoleState[] = ["done", "run", "review", "stop", "lock", "idle"];
@@ -212,6 +213,8 @@ export type ConsoleSite = Readonly<{
   backfill: BackfillRow | null;
   /** O1 상태 파일의 이 사이트 줄(직접 실행·전체 수집 처리기). */
   direct: DirectProgress | null;
+  /** 상태를 정한 근거가 실행기가 아닐 때: "direct"(O1 직접 실행) | "db"(실행 기록 없이 DB 문서만). */
+  via: "direct" | "db" | null;
   status: Readonly<{ state: string; detail: string; codes: readonly string[]; file: string; updated_at: string | null }> | null;
   approval: boolean;
   uncollected: Uncollected | null;
@@ -239,26 +242,44 @@ export const isHardFailure = (run: RunnerRun): boolean => {
   return !r || Boolean(r.error) || !r.site_status || r.site_status === "running" || r.site_status === "config_error";
 };
 
-/** O1 상태 파일의 직접 실행이 이 실행기 작업보다 뒤에 끝났는지(같은 작업이거나 더 늦게 시작). */
+/**
+ * O1 상태 파일 줄이 마지막 실행기 작업 뒤의 다른 실행(직접 실행 등)으로 끝났는지. 같은 작업(run_id 같음)이면
+ * 실행기 결과가 이미 같은 내용이므로 덮지 않는다(O1 "done" 은 처리 끝이라는 뜻일 뿐 완료가 아닐 수 있다).
+ */
 const directSupersedes = (direct: DirectProgress, run: RunnerRun | null): boolean => {
   if (!direct.status.startsWith("done")) return false;
   if (!run) return true;
-  if (direct.run_id && direct.run_id === run.run_id) return true;
+  if (direct.run_id && direct.run_id === run.run_id) return false;
   const d = tsOf(direct.started_at) ?? tsOf(direct.finished_at);
   const r = tsOf(run.started_at) ?? tsOf(run.requested_at);
   return d !== null && r !== null && d >= r;
 };
 
+const RESULT_RE = /\b(complete_with_mismatch|complete_with_review|complete_unverified|incomplete|access_blocked|config_error|complete)\b/;
+
+/** O1 줄의 결과(result 글 안 첫 site_status)로 정한 상태. */
+const directOutcome = (direct: DirectProgress): Readonly<{ state: ConsoleState; why: string }> => {
+  if (direct.status.includes("접근 거부")) return { state: "lock", why: "접근 거부 (직접 실행)" };
+  const status = RESULT_RE.exec(direct.detail)?.[1] ?? null;
+  if (status === "complete") return { state: "done", why: "직접 실행으로 완료" };
+  if (status === "complete_with_mismatch") return { state: "done", why: "완료(수치 확인) · 직접 실행" };
+  if (status === "access_blocked") return { state: "lock", why: "접근 차단 (직접 실행)" };
+  return { state: "review", why: `${status ? RESULT_STATUS_KO[status] ?? status : "결과 미상"} · 직접 실행` };
+};
+
+export type StateResult = Readonly<{ state: ConsoleState; alert: string | null; why: string; via?: "direct" | "db" }>;
+
 /** 실행기 결과·백필 진행·직접 실행으로 콘솔 상태를 정한다 (콘솔 stateOf 를 운영 데이터로). */
-export const stateOf = (run: RunnerRun | null, backfill: BackfillRow | null, now: number, direct: DirectProgress | null = null):
-  Readonly<{ state: ConsoleState; alert: string | null; why: string }> => {
+export const stateOf = (run: RunnerRun | null, backfill: BackfillRow | null, now: number, direct: DirectProgress | null = null,
+  documents: number | null = null): StateResult => {
   // 실행기 밖에서 직접 돌리는 수집: 실행기 기록이 비어 있어도 '수집 중'으로 보인다.
   const live = Boolean(run && ACTIVE.includes(run.status));
-  if (direct?.running && !live) return { state: "run", alert: null, why: directText(direct, now) };
-  // 실행기 작업 뒤에 직접 실행으로 끝난 사이트: 옛 실행기 실패는 경고하지 않는다.
-  if (direct && !live && directSupersedes(direct, run)) {
-    if (direct.status.includes("접근 거부")) return { state: "lock", alert: null, why: "접근 거부 (직접 실행)" };
-    return { state: "done", alert: null, why: direct.detail.includes("complete_with_mismatch") ? "완료(수치 확인) · 직접 실행" : "직접 실행으로 완료" };
+  if (direct?.running && !live) return { state: "run", alert: null, why: directText(direct, now), via: "direct" };
+  // 실행기 작업 뒤에 다른 실행(직접 실행)으로 끝난 사이트: 옛 실행기 실패는 경고하지 않고 그 결과로 본다.
+  if (direct && !live && directSupersedes(direct, run)) return { ...directOutcome(direct), alert: null, via: "direct" };
+  // 같은 작업이라도 O1 이 사람 확인 뒤 접근 거부로 정리했으면 그것을 따른다.
+  if (direct && !live && direct.status.includes("접근 거부") && direct.run_id && direct.run_id === run?.run_id) {
+    return { state: "lock", alert: null, why: `접근 거부 (O1 확인 · ${reasonText(run.result?.stop_reason) || "접근 차단"})`, via: "direct" };
   }
   if (backfill?.active_status === "running") {
     const since = tsOf(backfill.updated_at);
@@ -287,12 +308,20 @@ export const stateOf = (run: RunnerRun | null, backfill: BackfillRow | null, now
   }
   if (backfill?.completed_at) return { state: "done", alert: null, why: "백필 완주" };
   if (backfill?.has_cursor) return { state: "review", alert: null, why: "백필 중단됨" };
+  // 실행·백필 기록은 없지만 DB 에 문서가 있음(예전 수집·가져오기분): 새 수집 전이지만 비어 있지 않다.
+  if (documents !== null && documents > 0) return { state: "idle", alert: null, why: `이전 수집분 DB ${fmt(documents)}건`, via: "db" };
   return { state: "idle", alert: null, why: "" };
 };
 
 /** 콘솔 classOf: 실행 기록(최우선) > site-status 판정 파일. */
-export const classOf = (site: CollectSite | null, run: RunnerRun | null, state: ConsoleState, why: string): SiteClass => {
+export const classOf = (site: CollectSite | null, run: RunnerRun | null, state: ConsoleState, why: string,
+  via: StateResult["via"] = undefined): SiteClass => {
   const lane = site?.lane || null;
+  // 직접 실행이 마지막 결과면 구분도 그 결과로(실행기 옛 실패는 상세의 '이전 실행기 작업' 줄로만).
+  if (via === "direct") {
+    if (state === "lock") return { k: "nego", why: `직접 실행에서 접근 차단 · ${why}`, src: "O1 상태 (직접 실행)", lane };
+    return { k: "run", why: state === "run" ? "직접 실행 중" : `직접 실행 결과 · ${why}`, src: "O1 상태 (직접 실행)", lane };
+  }
   if (state === "lock") return { k: "nego", why: `마지막 실행에서 접근 차단${why ? ` · ${why}` : ""}`, src: "실행 기록", lane };
   if (run && isHardFailure(run) && state === "stop") return { k: "dev", why: `실행기 실행 실패 (${run.run_id})`, src: "실행 기록", lane };
   if (run?.result?.site_status === "config_error") return { k: "dev", why: "설정 오류로 멈춘 실행", src: "실행 기록", lane };
@@ -303,7 +332,12 @@ export const classOf = (site: CollectSite | null, run: RunnerRun | null, state: 
   if (site?.source === "db_only") {
     return { k: "none", label: site.class_label || undefined, why: "판정 파일·실행 기록 없이 DB 문서만 있음", src: "DB 문서 수", lane };
   }
-  if (!site || !site.state) return { k: site?.class || "none", why: "판정 기록 없음", src: "판정 파일 없음", lane };
+  if (!site || !site.state) return { k: site?.class || "none", why: via === "db" ? "이전 수집분 DB 에 있음 · 판정 기록 없음" : "판정 기록 없음", src: "판정 파일 없음", lane };
+  if (via === "db") {
+    // 상태 '완료'는 DB 에 이미 있는 이전 수집분, 구분은 새 수집기에 대한 판정이다(둘 다 참).
+    return { k: site.class || "none", why: `이전 수집분 DB 에 있음 · 새 수집 판정: ${stateLabel(site.state)}${site.detail ? ` · ${site.detail}` : ""}`,
+      src: `site-status/${site.file}${site.updated_at ? ` (${site.updated_at})` : ""}`, lane };
+  }
   return {
     k: site.class || "none",
     why: stateLabel(site.state) + (site.detail ? ` · ${site.detail}` : ""),
@@ -368,8 +402,8 @@ export const buildConsole = (input: ConsoleInput, taxonomy: Taxonomy | null, nam
     const cur = runs.find((run) => ACTIVE.includes(run.status)) ?? runs[0] ?? null;
     const bf = backfill.get(id) ?? null;
     const direct = site?.direct ?? null;
-    const st = stateOf(cur, bf, now, direct);
     const documents = site?.doc_count ?? bf?.docs_in_db ?? null;
+    const st = stateOf(cur, bf, now, direct, documents);
     // 실행 중인 작업은 아직 결과가 없으므로, 결과가 있는 가장 최근 작업의 저장·실패 수를 쓴다.
     const withResult = runs.find((run) => run.result?.saved !== null && run.result?.saved !== undefined) ?? null;
     const runSaved = withResult?.result?.saved ?? null;
@@ -391,7 +425,8 @@ export const buildConsole = (input: ConsoleInput, taxonomy: Taxonomy | null, nam
       type: t?.doc_type || UNCLASS,
       country: t?.country || UNCLASS,
       state: st.state, alert: st.alert, why: st.why,
-      cls: classOf(site, cur, st.state, st.why),
+      cls: classOf(site, cur, st.state, st.why, st.via),
+      via: st.via ?? null,
       saved, savedSrc: best?.[1] ?? null,
       failed: withResult?.result?.failed ?? 0,
       total, totalSrc,
@@ -501,6 +536,9 @@ const REASON_KO: Readonly<Record<string, string>> = {
   adapter_contract_failures: "수집 규칙(필수 칸)을 못 채운 항목", skipped_by_rule: "규칙으로 건너뛴 항목",
   adapter_contract_failures_consecutive: "수집 규칙을 못 채운 항목이 연달아 나와 멈춤",
   identity_collisions: "같은 문서로 보이는 항목끼리 충돌", listing_transient: "목록 요청이 일시 오류로 끊김",
+  access_refused: "사이트가 접근을 거부함", host_access_hold: "같은 호스트 접근 보류 중",
+  robots_unparseable: "robots.txt 를 해석할 수 없음", robots_unavailable: "robots.txt 를 받지 못함",
+  robots_login_redirect: "robots.txt 요청이 로그인 화면으로 넘어감",
   exit_1: "수집기가 오류로 끝남(rc 1)", exit_2: "결과 확인이 필요한 상태로 끝남(rc 2)", exit_139: "수집기가 비정상 종료됨(rc 139)",
 };
 
@@ -527,12 +565,14 @@ export const runExplain = (run: RunnerRun | null): string => {
 
 /** 접근 제한 근거: 콘솔 상태(lock)·마지막 실행 결과(access_blocked, robots_*)·판정 파일(blocked_access)·협의 필요 구분. 없으면 null. */
 export const accessBlock = (site: ConsoleSite): string | null => {
-  const r = site.runs[0]?.result ?? null;
+  // 마지막 실행기 작업 뒤에 직접 실행이 접근해 끝났으면 그 뒤 결과가 우선이다.
+  const later = site.via === "direct";
+  const r = later ? null : site.runs[0]?.result ?? null;
   if (r?.site_status === "access_blocked" || r?.stop_reason?.startsWith("robots_")) {
     return `마지막 실행(${site.runs[0]!.run_id})에서 접근 차단 · ${reasonText(r.stop_reason) || "접근 차단"}`;
   }
   if (site.state === "lock") return site.why || "접근 제한";
-  if (site.status?.state === "blocked_access") return "판정 파일에 접근 제한으로 기록됨";
+  if (site.status?.state === "blocked_access" && !(later && site.state === "done")) return "판정 파일에 접근 제한으로 기록됨";
   if (site.cls.k === "nego") return "협의 필요 사이트";
   return null;
 };

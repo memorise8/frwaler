@@ -117,6 +117,8 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
     }
     reset();
   };
+  // 상태 칩: 아래 '상태 필터' 드롭다운과 같은 값. 다시 누르면 해제.
+  const toggleState = (value: string) => { setStateFilter(stateFilter === value ? "" : value); if (stateFilter !== value) setOnlyAttn(false); reset(); };
   const toggleSpecial = (value: Exclude<Special, "">) => { setSpecial(special === value ? "" : value); if (special !== value) setOnlyAttn(false); reset(); };
 
   const act = async (site: ConsoleSite, action: CollectAction) => {
@@ -176,7 +178,8 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
       </div>
       <div className="err" role="alert">{errors}</div>
       <div className="sum" aria-label="상태 요약">
-        {STATE_KEYS.map((k) => <div key={k} className={`chip ${k === "stop" && counts[k] ? "bad" : ""}`}><b>{fmt(counts[k])}</b><span>{STATES[k].label}</span></div>)}
+        {STATE_KEYS.map((k) => <button key={k} type="button" className={`chip ${k === "stop" && counts[k] ? "bad" : ""} ${stateFilter === k ? "on" : ""}`}
+          aria-pressed={stateFilter === k} disabled={!counts[k] && stateFilter !== k} onClick={() => toggleState(k)}><b>{fmt(counts[k])}</b><span>{STATES[k].label}</span></button>)}
         <button type="button" className={`chip ${approvalN ? "warn" : ""} ${special === "approval" ? "on" : ""}`} aria-pressed={special === "approval"} onClick={() => toggleSpecial("approval")}><b>{fmt(approvalN)}</b><span>승인 대기</span></button>
         <button type="button" className={`chip ${special === "uncollected" ? "on" : ""}`} aria-pressed={special === "uncollected"} onClick={() => toggleSpecial("uncollected")}><b>{fmt(uncollectedN)}</b><span>미수집</span></button>
       </div>
@@ -196,7 +199,7 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
         {!data.runnerOk && <div className="alert warn" role="alert">실행기 없음 · 시작·이어받기 버튼을 막아 두었습니다<small>{data.runnerText}</small></div>}
         {data.runnerOk && runner?.paused && <div className="alert warn" role="alert">실행기 일시 중지 · 새 작업 요청은 거절됩니다</div>}
       </div>
-      <p className="info">상태는 운영 BE 의 실행기 작업 기록(/collect)·백필 진행(/progress)·사이트 판정 파일(site-status)에서 읽습니다. <b>미시작</b>은 &ldquo;실행기·백필 기록 없음&rdquo;이라는 뜻입니다. 시작·이어받기는 실행기에 등록된 plan 으로만 실행하며, 예상 1만 건 이상(또는 미상)인 이어받기는 대량 승인이 있어야 받습니다(<b>승인 대기</b>).</p>
+      <p className="info">상태는 운영 BE 의 실행기 작업 기록(/collect)·백필 진행(/progress)·사이트 판정 파일(site-status)에서 읽습니다. <b>새 수집 전</b>은 &ldquo;이번 실행기·백필·직접 실행 기록 없음&rdquo;이라는 뜻이고, 예전 수집분이 DB 에 있으면 그 건수를 함께 적습니다. 시작·이어받기는 실행기에 등록된 plan 으로만 실행하며, 예상 1만 건 이상(또는 미상)인 이어받기는 대량 승인이 있어야 받습니다(<b>승인 대기</b>).</p>
 
       <div className={`main ${view === "matrix" ? "nr" : ""}`}>
         {view !== "matrix" && <nav className="panel rail" aria-label="분류">
@@ -355,7 +358,7 @@ function Detail({ site: s, data, now, trialLimit, setTrialLimit, busy, anyBusy, 
       <div className="sub" style={{ wordBreak: "break-all" }}>{s.id} · <Link className="lnk" href={`/crawlers/${encodeURIComponent(s.id)}`}>수집기 상세</Link> · <Link className="lnk" href={crawlerDocumentsHref(s.id)}>문서</Link></div>
       {s.alert && <div className="err" style={{ marginTop: 4 }}>{s.alert}</div>}
       <div className="sub" style={{ marginTop: 4 }}>{STATES[s.state].label}{s.why ? ` · ${s.why}` : ""}</div>
-      {s.runs[0] && <div className="sub">실행기 마지막 작업 — {runExplain(s.runs[0])}</div>}
+      {s.runs[0] && <div className="sub">{s.via === "direct" ? "이전 실행기 작업(참고)" : "실행기 마지막 작업"} — {runExplain(s.runs[0])}</div>}
       {s.direct && s.direct.run_id !== s.runs[0]?.run_id && <div className="sub" style={{ wordBreak: "break-word" }}>
         O1 상태 ({s.direct.status}{s.direct.finished_at && !s.direct.running ? ` · ${s.direct.finished_at}` : ""}) — {s.direct.detail}</div>}
       <div className="sub" style={{ marginTop: 4 }}><b className={CLASSES[s.cls.k].tone}>{classText(s.cls)}</b> · {s.cls.why}<br />근거 {s.cls.src}{s.cls.lane ? ` · 담당 구역 ${s.cls.lane}` : ""}</div>

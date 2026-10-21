@@ -41,6 +41,8 @@
 .cc .chip.bad{border-color:var(--stop);background:var(--stop-bg)}
 .cc .chip.warn{border-color:var(--review);background:var(--review-bg)}
 .cc button.chip.on{outline:2px solid var(--accent);outline-offset:1px}
+.cc button.chip{cursor:pointer}
+.cc button.chip:disabled{opacity:.55;cursor:default}
 .cc .alerts{display:flex;flex-direction:column;gap:6px}
 .cc .alerts:empty{display:none}
 .cc .alert.summary{cursor:default;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
