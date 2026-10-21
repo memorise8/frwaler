@@ -38,7 +38,7 @@ export const CLASSES: Readonly<Record<ClassKey, Readonly<{ label: string; tone: 
 
 export const RESULT_STATUS_KO: Readonly<Record<string, string>> = {
   running: "실행 중", complete: "완료", complete_with_review: "완료(검토 필요)", complete_with_mismatch: "완료(총건수 불일치)",
-  incomplete: "미완료", config_error: "설정 오류", access_blocked: "접근 차단",
+  incomplete: "미완료", config_error: "설정 오류", access_blocked: "접근 차단", complete_unverified: "완료(검증 안 됨)",
 };
 export const RUNNER_STATUS_KO: Readonly<Record<string, string>> = {
   queued: "대기 중", running: "실행 중", done: "완료", failed: "실패", cancelled: "취소됨", cancelling: "취소 중",
@@ -226,11 +226,38 @@ export const directText = (direct: DirectProgress, now: number): string => {
     updated !== null ? `갱신 ${ago(now - updated)}` : null].filter(Boolean).join(" · ");
 };
 
+/**
+ * 실행기가 failed 로 적었어도 수집기가 끝까지 돌아 결과(site_status)를 남겼으면 멈춤이 아니다:
+ * run-pilot 은 완료지만 검토·수치 확인이 필요한 결과(complete_with_review·complete_with_mismatch·
+ * access_blocked 등)도 rc 2 로 끝낸다. 결과가 없거나 설정 오류·실행 중에 죽은 것만 진짜 실패로 본다.
+ */
+export const isHardFailure = (run: RunnerRun): boolean => {
+  if (run.status !== "failed") return false;
+  const r = run.result;
+  return !r || Boolean(r.error) || !r.site_status || r.site_status === "running" || r.site_status === "config_error";
+};
+
+/** O1 상태 파일의 직접 실행이 이 실행기 작업보다 뒤에 끝났는지(같은 작업이거나 더 늦게 시작). */
+const directSupersedes = (direct: DirectProgress, run: RunnerRun | null): boolean => {
+  if (!direct.status.startsWith("done")) return false;
+  if (!run) return true;
+  if (direct.run_id && direct.run_id === run.run_id) return true;
+  const d = tsOf(direct.started_at) ?? tsOf(direct.finished_at);
+  const r = tsOf(run.started_at) ?? tsOf(run.requested_at);
+  return d !== null && r !== null && d >= r;
+};
+
 /** 실행기 결과·백필 진행·직접 실행으로 콘솔 상태를 정한다 (콘솔 stateOf 를 운영 데이터로). */
 export const stateOf = (run: RunnerRun | null, backfill: BackfillRow | null, now: number, direct: DirectProgress | null = null):
   Readonly<{ state: ConsoleState; alert: string | null; why: string }> => {
   // 실행기 밖에서 직접 돌리는 수집: 실행기 기록이 비어 있어도 '수집 중'으로 보인다.
-  if (direct?.running && !(run && ACTIVE.includes(run.status))) return { state: "run", alert: null, why: directText(direct, now) };
+  const live = Boolean(run && ACTIVE.includes(run.status));
+  if (direct?.running && !live) return { state: "run", alert: null, why: directText(direct, now) };
+  // 실행기 작업 뒤에 직접 실행으로 끝난 사이트: 옛 실행기 실패는 경고하지 않는다.
+  if (direct && !live && directSupersedes(direct, run)) {
+    if (direct.status.includes("접근 거부")) return { state: "lock", alert: null, why: "접근 거부 (직접 실행)" };
+    return { state: "done", alert: null, why: direct.detail.includes("complete_with_mismatch") ? "완료(수치 확인) · 직접 실행" : "직접 실행으로 완료" };
+  }
   if (backfill?.active_status === "running") {
     const since = tsOf(backfill.updated_at);
     if (since !== null && now - since >= STALL_SECONDS) {
@@ -242,11 +269,15 @@ export const stateOf = (run: RunnerRun | null, backfill: BackfillRow | null, now
     return { state: "run", alert: null, why: queued ? "대기 중" : run?.status === "cancelling" ? "취소 중" : "" };
   }
   if (run) {
-    if (run.status === "failed") return { state: "stop", alert: `멈춤: 실행기 작업 ${run.run_id} 실패${run.reason ? ` · ${run.reason}` : ""}`, why: "" };
+    if (isHardFailure(run)) {
+      const what = run.result?.site_status === "config_error" ? " · 설정 오류" : run.result?.site_status === "running" ? " · 실행 중 중단" : "";
+      return { state: "stop", alert: `멈춤: 실행기 작업 ${run.run_id} 실패${run.reason ? ` · ${run.reason}` : ""}${what}`, why: "" };
+    }
     if (run.status === "cancelled") return { state: "review", alert: null, why: "취소됨" };
     const r = run.result;
     if (r?.error) return { state: "review", alert: null, why: "결과 읽기 실패" };
     if (r?.site_status === "access_blocked") return { state: "lock", alert: null, why: r.stop_reason === "robots_disallowed" ? "robots.txt 금지" : r.stop_reason ?? "" };
+    if (r?.site_status === "complete_with_mismatch") return { state: "done", alert: null, why: "완료(수치 확인)" };
     if (r?.site_status && r.site_status !== "complete") {
       return { state: "review", alert: null, why: r.site_status !== "complete_with_review" ? RESULT_STATUS_KO[r.site_status] ?? r.site_status : "" };
     }
@@ -261,7 +292,7 @@ export const stateOf = (run: RunnerRun | null, backfill: BackfillRow | null, now
 export const classOf = (site: CollectSite | null, run: RunnerRun | null, state: ConsoleState, why: string): SiteClass => {
   const lane = site?.lane || null;
   if (state === "lock") return { k: "nego", why: `마지막 실행에서 접근 차단${why ? ` · ${why}` : ""}`, src: "실행 기록", lane };
-  if (run?.status === "failed") return { k: "dev", why: `실행기 실행 실패 (${run.run_id})`, src: "실행 기록", lane };
+  if (run && isHardFailure(run) && state === "stop") return { k: "dev", why: `실행기 실행 실패 (${run.run_id})`, src: "실행 기록", lane };
   if (run?.result?.site_status === "config_error") return { k: "dev", why: "설정 오류로 멈춘 실행", src: "실행 기록", lane };
   if (run) {
     const label = run.result?.site_status ? RESULT_STATUS_KO[run.result.site_status] ?? run.result.site_status : RUNNER_STATUS_KO[run.status] ?? run.status;

@@ -43,6 +43,7 @@
 .cc button.chip.on{outline:2px solid var(--accent);outline-offset:1px}
 .cc .alerts{display:flex;flex-direction:column;gap:6px}
 .cc .alerts:empty{display:none}
+.cc .alert.more{background:transparent;border-style:dashed;font-weight:400;text-align:left;cursor:pointer}
 .cc .alert{background:var(--stop-bg);color:var(--stop);border:1px solid var(--stop);border-radius:8px;padding:8px 12px;font-weight:600;cursor:pointer;text-align:left;font-size:14px}
 .cc .alert small{font-weight:400;color:var(--ink);margin-left:8px}
 .cc .alert.warn{background:var(--review-bg);color:var(--review);border-color:var(--review)}

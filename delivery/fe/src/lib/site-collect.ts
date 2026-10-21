@@ -24,8 +24,11 @@ export type DirectProgress = Readonly<{
   status: string;
   running: boolean;
   saved: number | null;
+  /** O1 의 run_id: 실행기 작업이면 rNNNN, 직접 실행이면 "direct". */
+  run_id: string | null;
   run_folder: string | null;
   started_at: string | null;
+  finished_at: string | null;
   updated_at: string | null;
   detail: string;
 }>;
@@ -122,8 +125,9 @@ export const normalizeRun = (raw: unknown): CollectRun | null => {
 export const normalizeDirect = (raw: unknown): DirectProgress | null => {
   if (!isRecord(raw) || !str(raw.status)) return null;
   return {
-    status: str(raw.status), running: raw.running === true, saved: num(raw.saved),
-    run_folder: strOrNull(raw.run_folder), started_at: strOrNull(raw.started_at), updated_at: strOrNull(raw.updated_at),
+    status: str(raw.status), running: raw.running === true, saved: num(raw.saved), run_id: strOrNull(raw.run_id),
+    run_folder: strOrNull(raw.run_folder), started_at: strOrNull(raw.started_at), finished_at: strOrNull(raw.finished_at),
+    updated_at: strOrNull(raw.updated_at),
     detail: str(raw.detail),
   };
 };

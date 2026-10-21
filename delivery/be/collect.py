@@ -251,7 +251,8 @@ def _direct(row: dict, file_updated_at: str) -> dict:
     return {"status": status or None, "running": status in DIRECT_RUNNING,
             "saved": int(found[-1].replace(",", "")) if found else None,
             "run_id": (row.get("run_id") or "").strip() or None, "run_folder": (row.get("run_folder") or "").strip() or None,
-            "started_at": (row.get("started") or "").strip() or None, "updated_at": file_updated_at,
+            "started_at": (row.get("started") or "").strip() or None,
+            "finished_at": (row.get("finished") or "").strip() or None, "updated_at": file_updated_at,
             "detail": result[:400]}
 
 

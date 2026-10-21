@@ -300,7 +300,7 @@ class CollectRoutesTest(unittest.TestCase):
         self.assertIsNone(data["sites"][0]["direct"])
         self.write_progress([
             {"site_id": "site-a", "status": "direct_running", "run_id": "direct", "run_folder": "20261019-s155",
-             "started": "2026-10-20T22:04:49Z",
+             "started": "2026-10-20T22:04:49Z", "finished": "2026-10-20T22:04:48Z",
              "result": "시간 예산으로 끊김, 같은 방식으로 이어받음 — incomplete/time_budget, 문서 354455, 날짜 2006-01-27~2026-10-20"},
             {"site_id": "site-b", "status": "done", "run_id": "r0575", "result": "complete/x, 문서 1,234, 날짜 None~None"},
             {"site_id": "site-z", "status": "failed", "result": "no count here"},
@@ -313,6 +313,7 @@ class CollectRoutesTest(unittest.TestCase):
         a = sites["site-a"]["direct"]
         self.assertEqual((a["status"], a["running"], a["saved"], a["run_folder"]), ("direct_running", True, 354455, "20261019-s155"))
         self.assertEqual(a["updated_at"], data["progress_source"]["updated_at"])
+        self.assertEqual(a["finished_at"], "2026-10-20T22:04:48Z")
         self.assertEqual((sites["site-b"]["direct"]["running"], sites["site-b"]["direct"]["saved"]), (False, 1234))
         self.assertEqual(data["status_source"]["files"], 2)  # runs/O1-full.csv is not a judgment file
         with open(os.path.join(self.tmp.name, "runs", "O1-full.csv"), "wb") as handle:

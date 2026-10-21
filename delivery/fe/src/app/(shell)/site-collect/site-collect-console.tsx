@@ -30,6 +30,8 @@ const SPECIAL_LABEL: Readonly<Record<Exclude<Special, "">, string>> = { approval
 const Badge = ({ state }: { state: ConsoleState }) => (
   <span className={`badge b-${state}`}>{state === "run" ? <span className="pulse" /> : <i>{STATES[state].mark}</i>}{STATES[state].label}</span>
 );
+// 위쪽 경고는 이만큼만 보이고 나머지는 접어 둔다(대시보드 본문이 첫 화면에 보이게).
+const ALERTS_SHOWN = 4;
 const ClsPill = ({ site }: { site: ConsoleSite }) => <span className={`cls ${CLASSES[site.cls.k].tone}`}>{classText(site.cls)}</span>;
 const MixBar = ({ list }: { list: readonly ConsoleSite[] }) => {
   const c = countStates(list);
@@ -78,6 +80,8 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
   const approvalN = all.filter((s) => s.approval).length;
   const uncollectedN = all.filter((s) => s.uncollected).length;
   const stopped = all.filter((s) => s.state === "stop");
+  const [alertsOpen, setAlertsOpen] = useState(false);
+  const shownAlerts = alertsOpen ? stopped : stopped.slice(0, ALERTS_SHOWN);
 
   useEffect(() => {
     document.title = (stopped.length ? `⚠ ${stopped.length}건 확인 필요 · ` : "") + "수집 콘솔";
@@ -184,8 +188,10 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
         <span className="note">근거: 실행 기록 &gt; site-status{data.latestJudgment ? ` · 판정 파일 최근 ${ago(now - data.latestJudgment)}` : ""}</span>
       </div>
       <div className="alerts" role="status">
-        {stopped.map((s) => <button key={s.id} type="button" className="alert" onClick={() => { setSelected(s.id); setOnlyAttn(true); setSelType(""); setSelCountry(""); setSpecial(""); }}>
+        {shownAlerts.map((s) => <button key={s.id} type="button" className="alert" onClick={() => { setSelected(s.id); setOnlyAttn(true); setSelType(""); setSelCountry(""); setSpecial(""); }}>
           확인 필요 · {s.name}<small>{s.alert ?? "실행 중이어야 하는데 저장 건수가 늘지 않습니다"}</small></button>)}
+        {stopped.length > ALERTS_SHOWN && <button type="button" className="alert more" aria-expanded={alertsOpen} onClick={() => setAlertsOpen(!alertsOpen)}>
+          {alertsOpen ? "접기" : `외 ${fmt(stopped.length - ALERTS_SHOWN)}곳 더 보기`}</button>}
         {!data.runnerOk && <div className="alert warn" role="alert">실행기 없음 · 시작·이어받기 버튼을 막아 두었습니다<small>{data.runnerText}</small></div>}
         {data.runnerOk && runner?.paused && <div className="alert warn" role="alert">실행기 일시 중지 · 새 작업 요청은 거절됩니다</div>}
       </div>

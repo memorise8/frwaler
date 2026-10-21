@@ -84,8 +84,33 @@ describe("stateOf", () => {
     expect(stateOf(run(), null, NOW).state).toBe("done");
     expect(stateOf(run({ result: { site_status: "access_blocked", stop_reason: "robots_disallowed" } }), null, NOW))
       .toMatchObject({ state: "lock", why: "robots.txt 금지" });
-    expect(stateOf(run({ result: { site_status: "complete_with_mismatch" } }), null, NOW)).toMatchObject({ state: "review", why: "완료(총건수 불일치)" });
+    expect(stateOf(run({ result: { site_status: "complete_with_mismatch" } }), null, NOW)).toMatchObject({ state: "done", why: "완료(수치 확인)" });
     expect(stateOf(run({ result: { site_status: "complete_with_review" } }), null, NOW)).toMatchObject({ state: "review", why: "" });
+  });
+  it("does not call a finished run with rc 2 a stop: run-pilot exits 2 for results that need review", () => {
+    const failed = (site_status: string | null, extra: Record<string, unknown> = {}) =>
+      stateOf(run({ status: "failed", reason: "exit_2", result: { site_status, stop_reason: null, saved: 5, failed: 0, ...extra } }), null, NOW);
+    expect(failed("complete_with_mismatch")).toMatchObject({ state: "done", alert: null, why: "완료(수치 확인)" });
+    expect(failed("complete_with_review")).toMatchObject({ state: "review", alert: null });
+    expect(failed("complete_unverified")).toMatchObject({ state: "review", why: "완료(검증 안 됨)" });
+    expect(failed("access_blocked")).toMatchObject({ state: "lock", alert: null });
+    expect(failed("config_error")).toMatchObject({ state: "stop", alert: "멈춤: 실행기 작업 r0001 실패 · exit_2 · 설정 오류" });
+    expect(failed("running")).toMatchObject({ state: "stop", alert: "멈춤: 실행기 작업 r0001 실패 · exit_2 · 실행 중 중단" });
+    expect(failed("complete", { error: "result.json 없음" }).state).toBe("stop");
+  });
+  it("lets a later direct run in the O1 status file replace an old runner failure", () => {
+    const bad = run({ status: "failed", reason: "exit_1", started_at: "2026-10-19T21:00:00Z", result: { site_status: "config_error" } });
+    const o1 = (over: Record<string, unknown>) => normalizeSite(siteRow({ direct: {
+      status: "done", running: false, saved: 50789, run_id: "direct", started_at: "2026-10-20T04:57:38Z", finished_at: "2026-10-20T07:26:44Z",
+      updated_at: "2026-10-20T11:00:00Z", detail: "직접 실행: complete/last_page", ...over } }))!.direct;
+    expect(stateOf(bad, null, NOW, o1({}))).toMatchObject({ state: "done", alert: null, why: "직접 실행으로 완료" });
+    expect(stateOf(bad, null, NOW, o1({ detail: "complete_with_mismatch, 문서 10" })).why).toBe("완료(수치 확인) · 직접 실행");
+    expect(stateOf(bad, null, NOW, o1({ status: "done(접근 거부)" })).state).toBe("lock");
+    // 실행기 작업보다 먼저 시작한 직접 실행, 또는 끝나지 않은 직접 실행은 실패를 덮지 않는다.
+    expect(stateOf(bad, null, NOW, o1({ started_at: "2026-10-18T00:00:00Z", finished_at: "2026-10-18T01:00:00Z" })).state).toBe("stop");
+    expect(stateOf(bad, null, NOW, o1({ status: "failed" })).state).toBe("stop");
+    // 같은 작업을 O1 이 done 으로 정리했으면 그것을 따른다.
+    expect(stateOf(bad, null, NOW, o1({ run_id: "r0001", started_at: null, finished_at: null })).state).toBe("done");
   });
   it("flags a running backfill that stopped updating for 30 minutes", () => {
     const stale = bf({ active_status: "running", active_job_id: 9, updated_at: "2026-10-20T11:00:00Z" });
@@ -105,6 +130,7 @@ describe("classOf", () => {
   it("prefers run evidence over the site-status judgment (console priority)", () => {
     expect(classOf(site, run(), "done", "")).toMatchObject({ k: "run", src: "실행 기록", why: "실행 기록 있음 · 완료" });
     expect(classOf(site, run({ status: "failed", result: null }), "stop", "")).toMatchObject({ k: "dev", why: "실행기 실행 실패 (r0001)" });
+    expect(classOf(site, run({ status: "failed", result: { site_status: "complete_with_review" } }), "review", "")).toMatchObject({ k: "run" });
     expect(classOf(site, run({ result: { site_status: "config_error" } }), "review", "")).toMatchObject({ k: "dev", why: "설정 오류로 멈춘 실행" });
     expect(classOf(site, run(), "lock", "robots.txt 금지")).toMatchObject({ k: "nego", why: "마지막 실행에서 접근 차단 · robots.txt 금지" });
   });
@@ -197,7 +223,7 @@ describe("DB-only sites and direct runs", () => {
     expect(prism.saved).toBe(354455);
     expect(prism.savedSrc).toContain("직접 실행 저장 건수");
     expect(prism.lastTs).toBe(tsOf("2026-10-20T11:50:00Z"));
-    expect(data.sites.find((s) => s.id === "done-site")!.state).toBe("idle");
+    expect(data.sites.find((s) => s.id === "done-site")!).toMatchObject({ state: "done", why: "직접 실행으로 완료" });
     expect(data.directOk).toBeNull();  // 예전 BE: progress_source 없음
   });
   it("keeps a live runner job ahead of the direct-run text", () => {
