@@ -419,4 +419,18 @@ describe("state chips (site-collect-console.tsx)", () => {
     expect(source).not.toContain("stopped.map(");
     expect(source).toContain('className="alert summary"');
   });
+  it("keeps codes in collapsed 기술 정보 and shows times in Asia/Seoul", () => {
+    const detail = source.slice(source.indexOf("function Detail("));
+    expect(detail).toContain('<details className="tech"><summary>기술 정보</summary>');
+    expect(detail).not.toMatch(/<details[^>]* open/);
+    // 작업 번호·O1 원문·plan 폴더는 기술 정보 안에만.
+    expect(detail.slice(0, detail.indexOf("<details"))).not.toContain("O1 상태");
+    expect(detail).toContain("formatSeoul(x.started_at ?? x.requested_at)");
+    expect(detail).not.toContain("{x.started_at ?? x.requested_at ?? \"-\"}");
+    expect(source).not.toContain("근거: 실행 기록 &gt; site-status");
+    expect(source).toContain("data.sites.length");
+    expect(source).toContain("data.stats.sites");
+    expect(source).toContain('title={`상태: ${STATES[state].label}`}');
+    expect(source).toContain('title={`구분: ${classText(site.cls)}`}');
+  });
 });

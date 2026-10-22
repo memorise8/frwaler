@@ -6,6 +6,8 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
+from delivery.be.site_names import display_site_name
+
 from .inventory import inventory
 from .results import read_result, report_dir, utc_now
 
@@ -14,7 +16,8 @@ def crawler_overview(root: Path | None = None) -> dict:
     data = inventory()
     now = datetime.now(timezone.utc)
     stale_hours = max(1, float(os.environ.get("CRAWLER_HEALTH_STALE_HOURS", "48")))
-    sites = [{**site, "probe": read_result(root or report_dir(), site, now=now, stale_hours=stale_hours)}
+    sites = [{**site, "site_name": display_site_name(site["site_name"]),
+              "probe": read_result(root or report_dir(), site, now=now, stale_hours=stale_hours)}
              for site in data["sites"]]
     return {"sites": sites, "registry_errors": data["registry_errors"], "measured_at": now.isoformat(),
             "summary": {**data["summary"], "probes": dict(Counter(r["probe"]["state"] for r in sites))},

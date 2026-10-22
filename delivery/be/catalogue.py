@@ -29,6 +29,8 @@ from dataclasses import dataclass, asdict
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+from delivery.be.site_names import display_site_name
+
 TAXONOMY_PATH = Path(__file__).resolve().parents[1] / "data" / "site-taxonomy.json"
 
 PAGE_SIZE_MAX = 100
@@ -589,7 +591,7 @@ def _facets_from_counts(rows: list[dict], taxonomy) -> dict[str, list[dict]]:
                              ("doc_types", entry.get("doc_type", OTHER)),
                              ("sites", row["site_id"]), ("languages", row["lang"])):
             buckets[facet][value] = buckets[facet].get(value, 0) + n
-        labels[row["site_id"]] = row["site_name"] or row["site_id"]
+        labels[row["site_id"]] = display_site_name(row["site_name"]) or row["site_id"]
 
     def ordered(facet: str) -> list[dict]:
         items = sorted(buckets[facet].items(), key=lambda item: (-item[1], item[0]))
@@ -608,7 +610,7 @@ def _fallback_facets(conn, taxonomy) -> dict[str, list[dict]]:
     return {
         "countries": [{"value": v, "count": None} for v in countries],
         "doc_types": [{"value": v, "count": None} for v in doc_types],
-        "sites": [{"value": r["site_id"], "label": r["site_name"], "count": None} for r in sites],
+        "sites": [{"value": r["site_id"], "label": display_site_name(r["site_name"]), "count": None} for r in sites],
         "languages": [],
     }
 
@@ -634,7 +636,7 @@ def _hydrate(conn, ids: list[int], taxonomy) -> list[dict]:
     by_id = {}
     for row in rows:
         entry = taxonomy.get(row["site_id"]) or {}
-        item = {"seq_id": row["seq_id"], "site_id": row["site_id"], "site_name": row["site_name"],
+        item = {"seq_id": row["seq_id"], "site_id": row["site_id"], "site_name": display_site_name(row["site_name"]),
                 "country": entry.get("country", OTHER), "doc_type": entry.get("doc_type", OTHER)}
         item.update({key: value for key, value in dict(row).items() if key not in item})
         by_id[row["seq_id"]] = item

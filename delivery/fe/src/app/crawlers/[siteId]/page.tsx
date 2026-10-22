@@ -25,9 +25,9 @@ export default async function CrawlerDetail({ params }: Readonly<{ params: Promi
   const documentsHref = crawlerDocumentsHref(siteId);
   return (
     <div className="detail-page">
-      <Link className="back-link" href="/crawlers">← 크롤러 상태</Link>
+      <Link className="back-link" href="/crawlers">← 수집기 상태</Link>
       <header className="detail-header">
-        <div><p className="eyebrow">CRAWLER PROFILE</p><h1>{crawler.siteName || crawler.siteId}</h1><code>{crawler.siteId}</code></div>
+        <div><p className="eyebrow">수집기 정보</p><h1>{crawler.siteName || crawler.siteId}</h1><code>{crawler.siteId}</code></div>
         <span className={`health-badge health-badge--${crawler.status}`}><i />{crawler.status === "healthy" ? `이전 검증 성공 (${AUDIT_DATE})` : `이전 검증 실패 (${AUDIT_DATE})`}</span>
       </header>
       <aside className="snapshot-note">

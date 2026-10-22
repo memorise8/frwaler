@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isActiveNav, NAV_ITEMS } from "../src/lib/nav-items";
+import { HOME_HREF, isActiveNav, NAV_GROUPS, NAV_ITEMS } from "../src/lib/nav-items";
 
 describe("isActiveNav", () => {
   it("matches the root route only exactly", () => {
@@ -21,27 +21,41 @@ describe("isActiveNav", () => {
   });
 });
 
-describe("NAV_ITEMS", () => {
-  // Running a collection is the first thing an operator does, so it owns the
-  // landing route; crawler health and collected data follow in the order the
-  // work actually happens.
-  it("leads with collection and orders the sections by operator workflow", () => {
-    expect(NAV_ITEMS.map((item) => item.href)).toEqual(["/", "/site-collect", "/crawlers", "/health", "/backfill", "/collected", "/documents", "/schedules", "/translations"]);
-    expect(NAV_ITEMS.map((item) => item.label)).toEqual(["수집", "사이트 수집", "크롤러 상태", "건강 점검", "백필", "수집 상태", "문서 탐색", "수집 예약", "번역 작업"]);
+describe("NAV_GROUPS / NAV_ITEMS", () => {
+  it("groups the menu as 수집 · 상태 · 결과 · 기타 in operator order", () => {
+    expect(NAV_GROUPS.map((group) => group.label)).toEqual(["수집", "상태", "결과", "기타"]);
+    expect(NAV_GROUPS.map((group) => group.items.map((item) => item.label))).toEqual([
+      ["사이트 수집", "수집 예약", "백필 진행"],
+      ["수집기 상태", "건강 점검", "수집 상태"],
+      ["문서 탐색", "번역 작업"],
+      ["작업 대시보드 (암호 필요)"],
+    ]);
+    expect(NAV_ITEMS.map((item) => item.href)).toEqual(["/site-collect", "/schedules", "/backfill", "/crawlers", "/health", "/collected", "/documents", "/translations", "/"]);
+  });
+
+  // "/" sits behind a separate Basic-auth prompt: neither the logo nor an
+  // unmarked menu item may lead there.
+  it("marks the password-protected dashboard and keeps the logo off it", () => {
+    expect(HOME_HREF).toBe("/site-collect");
+    const locked = NAV_ITEMS.filter((item) => item.locked);
+    expect(locked.map((item) => item.href)).toEqual(["/"]);
+    expect(locked[0]!.label).toContain("암호 필요");
+  });
+
+  it("uses 수집기, never 크롤러, in menu labels", () => {
+    for (const item of NAV_ITEMS) expect(item.label).not.toContain("크롤러");
   });
 
   it("activates exactly one section for every console route", () => {
-    const routes = ["/", "/site-collect", "/crawlers", "/crawlers/site-1", "/collected", "/schedules", "/documents", "/documents/9", "/translations"];
+    const routes = ["/", "/site-collect", "/crawlers", "/crawlers/site-1", "/health", "/backfill", "/collected", "/schedules", "/documents", "/documents/9", "/translations"];
     for (const route of routes) {
       const matched = NAV_ITEMS.filter((item) => isActiveNav(route, item.match));
       expect(matched, route).toHaveLength(1);
     }
   });
 
-  // The crawler detail page is reached from the run picker on / as well as
-  // from the catalogue, and it must not light up the 수집 tab from either.
-  it("keeps the crawler detail page under 크롤러 상태", () => {
+  it("keeps the crawler detail page under 수집기 상태", () => {
     const matched = NAV_ITEMS.filter((item) => isActiveNav("/crawlers/bfr-bund-de-en", item.match));
-    expect(matched.map((item) => item.label)).toEqual(["크롤러 상태"]);
+    expect(matched.map((item) => item.label)).toEqual(["수집기 상태"]);
   });
 });

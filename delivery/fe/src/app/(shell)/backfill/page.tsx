@@ -1,4 +1,5 @@
 import { getCrawlerHealth } from "@/lib/crawler-health";
+import { formatSeoul } from "@/lib/seoul-time";
 import { backfillStateLabel, formatBackfillPercent, type ProgressRow } from "@/lib/backfill-progress";
 
 // Reads live backfill progress from the BE on every request. Without this
@@ -51,26 +52,25 @@ export default async function BackfillProgress() {
     <div className="status-page">
       <header className="hero">
         <div>
-          <p className="eyebrow">BACKFILL PROGRESS</p>
-          <h1>전체 백필 수집의<br />진행 상황을 확인합니다.</h1>
-          <p className="lede">사이트별 백필 커서와 예상 대비 진행률을 보여줍니다. 예상 문서 수는 추정치이므로 진행률은 100%를 넘지 않게 표시합니다.</p>
+          <h1>백필 진행</h1>
+          <p className="lede">백필은 사이트에 쌓인 지난 자료를 처음부터 끝까지 모두 받는 작업입니다. 사이트마다 어디까지 받았는지와 예상 문서 수 대비 진행률을 보여 줍니다. 예상 문서 수는 어림값이라 진행률은 100%를 넘지 않게 표시합니다. 시각은 한국 시각입니다.</p>
         </div>
       </header>
 
       {rows === null ? (
         <aside className="snapshot-note snapshot-note--unavailable">
           <strong>연결 안 됨</strong>
-          <span>백필 진행 정보를 불러올 수 없습니다.</span>
+          <span>백필 진행 정보를 불러올 수 없습니다. 잠시 뒤 새로고침해 주세요.</span>
         </aside>
       ) : (
         <>
           <div className="summary-grid">
-            <article className="summary-card"><span>전체 사이트</span><strong>{rows.length.toLocaleString("ko-KR")}</strong><small>백필 기록 있음</small></article>
-            <article className="summary-card summary-card--good"><span>완주</span><strong>{completed.toLocaleString("ko-KR")}</strong><small>백필 완료</small></article>
-            <article className="summary-card summary-card--secondary"><span>진행 중</span><strong>{inProgress.toLocaleString("ko-KR")}</strong><small>실행 중인 백필 작업</small></article>
-            <article className="summary-card"><span>대기·취소 처리 중</span><strong>{waiting.toLocaleString("ko-KR")}</strong><small>작업 상태 기준</small></article>
-            <article className="summary-card"><span>중단됨</span><strong>{stopped.toLocaleString("ko-KR")}</strong><small>커서는 있으나 활성 작업 없음</small></article>
-            <article className="summary-card"><span>시작 전</span><strong>{notStarted.toLocaleString("ko-KR")}</strong><small>아직 커서 없음</small></article>
+            <article className="summary-card"><span>전체 사이트</span><strong>{rows.length.toLocaleString("ko-KR")}</strong><small>백필 기록이 있는 사이트</small></article>
+            <article className="summary-card summary-card--good"><span>완주</span><strong>{completed.toLocaleString("ko-KR")}</strong><small>끝까지 다 받음</small></article>
+            <article className="summary-card summary-card--secondary"><span>진행 중</span><strong>{inProgress.toLocaleString("ko-KR")}</strong><small>지금 받고 있음</small></article>
+            <article className="summary-card"><span>대기·취소 처리 중</span><strong>{waiting.toLocaleString("ko-KR")}</strong><small>차례를 기다리거나 취소하는 중</small></article>
+            <article className="summary-card"><span>중단됨</span><strong>{stopped.toLocaleString("ko-KR")}</strong><small>중간까지 받다가 멈춤 (이어 받기 가능)</small></article>
+            <article className="summary-card"><span>시작 전</span><strong>{notStarted.toLocaleString("ko-KR")}</strong><small>아직 한 번도 받지 않음</small></article>
           </div>
 
           <div className="table-shell">
@@ -80,9 +80,10 @@ export default async function BackfillProgress() {
                   <th>사이트</th>
                   <th>상태</th>
                   <th className="number">진행률</th>
-                  <th className="number">수집 완료</th>
-                  <th className="number">DB 저장</th>
+                  <th className="number">받은 항목</th>
+                  <th className="number">저장된 문서</th>
                   <th>마지막 갱신</th>
+                  <th>끝난 시각</th>
                 </tr>
               </thead>
               <tbody>
@@ -96,7 +97,8 @@ export default async function BackfillProgress() {
                       <td className="number">{percent ?? "—"}</td>
                       <td className="number">{row.items_done.toLocaleString("ko-KR")}</td>
                       <td className="number">{row.docs_in_db.toLocaleString("ko-KR")}</td>
-                      <td>{new Date(row.updated_at).toLocaleString("ko-KR")}</td>
+                      <td>{formatSeoul(row.updated_at)}</td>
+                      <td>{formatSeoul(row.completed_at, { fallback: "—" })}</td>
                     </tr>
                   );
                 })}

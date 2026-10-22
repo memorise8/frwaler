@@ -5,7 +5,11 @@
 // numbers, accepts free-text q only together with site_id (422
 // "q_requires_site" otherwise), and reports totals beyond 10,000 as inexact.
 
-export const Q_REQUIRES_SITE_NOTICE = "검색어는 사이트를 고른 뒤에 쓸 수 있습니다";
+export const Q_REQUIRES_SITE_NOTICE = "검색하려면 먼저 사이트를 고르세요";
+
+// The search box stays disabled (with this reason) until a site is chosen.
+export const searchDisabledReason = (siteId: string): string | null =>
+  siteId.trim() ? null : Q_REQUIRES_SITE_NOTICE;
 
 // Matches the BE's MAX_OFFSET_PAGE.
 export const MAX_OFFSET_PAGE = 5;
@@ -16,6 +20,15 @@ export const CATALOGUE_PARAMS = [
 ] as const;
 
 export type CatalogueParam = (typeof CATALOGUE_PARAMS)[number];
+
+// Filters kept in the collapsed "상세 조건" panel; it opens when any is set.
+export const ADVANCED_PARAMS = [
+  "country", "doc_type", "lang", "published_from", "published_to",
+  "collected_from", "collected_to", "has_pdf", "has_text", "sort",
+] as const satisfies readonly CatalogueParam[];
+
+export const hasAdvancedFilters = (selected: Readonly<Record<CatalogueParam, string>>): boolean =>
+  ADVANCED_PARAMS.some((key) => selected[key] !== "");
 type Source = Record<string, string | string[] | undefined>;
 
 const one = (value: string | string[] | undefined): string => Array.isArray(value) ? value[0] ?? "" : value ?? "";

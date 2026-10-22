@@ -4,14 +4,9 @@ import { notFound } from "next/navigation";
 import { getDocumentDetail } from "@/lib/document-detail";
 import { pdfMissingReason, textMissingReason } from "@/lib/document-file-state";
 import { resolveSourceFileLink, sourceFileLinkLabel } from "@/lib/source-file-link";
+import { formatSeoul } from "@/lib/seoul-time";
 
 export const dynamic = "force-dynamic";
-
-const formatDate = (value: string | null): string => {
-  if (!value) return "정보 없음";
-  const parsed = new Date(value.length === 10 ? `${value}T00:00:00Z` : value);
-  return Number.isNaN(parsed.valueOf()) ? value : parsed.toLocaleDateString("ko-KR");
-};
 
 const formatBytes = (value: number | null): string => {
   if (!value) return "크기 미측정";
@@ -53,7 +48,7 @@ export default async function DocumentDetailPage({ params }: Readonly<{ params: 
       <div><dt>저널·간행물</dt><dd>{document.source.journal || "정보 없음"}</dd></div>
       <div><dt>발행일</dt><dd>{documentDate(document.source.published_date, document.source.published_date_raw, document.source.published_date_status)}</dd></div>
       <div><dt>게시일</dt><dd>{documentDate(document.source.listed_date, document.source.listed_date_raw, document.source.listed_date_status)}</dd></div>
-      <div><dt>수집일</dt><dd>{formatDate(document.source.collected_at)}</dd></div>
+      <div><dt>수집 시각</dt><dd>{formatSeoul(document.source.collected_at, { fallback: "정보 없음" })}</dd></div>
       <div><dt>문서 번호</dt><dd>{document.seq_id.toLocaleString("ko-KR")}</dd></div>
     </dl>
 

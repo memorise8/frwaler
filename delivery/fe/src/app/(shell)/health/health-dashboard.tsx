@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { formatHealthDate as dateText, healthLabel, healthTone, HEALTH_LABELS, type CrawlerHealthReport, type SystemHealthReport } from "@/lib/health-status";
+import { allSitesUnchecked, formatHealthDate as dateText, healthLabel, healthTone, HEALTH_LABELS, type CrawlerHealthReport, type SystemHealthReport } from "@/lib/health-status";
 
 export default function HealthDashboard({ crawlers, system }: {
   crawlers: CrawlerHealthReport | null; system: SystemHealthReport | null;
@@ -12,6 +12,7 @@ export default function HealthDashboard({ crawlers, system }: {
   const [query, setQuery] = useState("");
   const [state, setState] = useState("");
   const [page, setPage] = useState(1);
+  const [expanded, setExpanded] = useState(false);
   useEffect(() => {
     const timer = window.setInterval(() => router.refresh(), 30_000);
     return () => window.clearInterval(timer);
@@ -22,13 +23,15 @@ export default function HealthDashboard({ crawlers, system }: {
   const currentPage = Math.min(page, pages);
   const visible = rows.slice((currentPage - 1) * 40, currentPage * 40);
   const counts = crawlers?.summary.probes ?? {};
+  const nothingChecked = allSitesUnchecked(crawlers?.sites ?? []);
+  const showTable = !nothingChecked || expanded;
   const blob = system?.blob_sample;
   const blobText = !blob ? "확인 불가" : blob.state === "no_sample" ? "확인할 PDF 없음" : blob.state === "sample_ok"
     ? `표본 ${blob.checked}개 확인` : `누락 ${blob.missing ?? 0}개 · 형식 오류 ${blob.invalid ?? 0}개`;
 
   return <div className="status-page health-page">
     <div className="section-heading">
-      <div><h1>수집기 건강 상태</h1><p>최근 검사 결과와 운영 환경을 확인합니다. 30초마다 표시를 갱신합니다. 시각은 한국 시간입니다.</p></div>
+      <div><h1>건강 점검</h1><p>최근 검사 결과와 운영 환경을 확인합니다. 30초마다 표시를 갱신합니다. 시각은 한국 시간입니다.</p></div>
       <button type="button" onClick={() => router.refresh()}>새로고침</button>
     </div>
     <aside className="snapshot-note">
@@ -56,6 +59,13 @@ export default function HealthDashboard({ crawlers, system }: {
         <article className="summary-card"><span>미검사</span><strong>{counts.unchecked ?? 0}</strong><small>검사 서비스 실행 후 갱신</small></article>
       </div>
       {crawlers.registry_errors.length > 0 && <p role="alert">수집기 코드 로딩 오류 {crawlers.registry_errors.length}개가 있습니다. 관리자 확인이 필요합니다.</p>}
+      {nothingChecked && <aside className="snapshot-note">
+        <strong>아직 검사한 사이트가 없습니다</strong>
+        <span>{crawlers.sites.length.toLocaleString("ko-KR")}개 사이트 모두 「미검사」입니다. 표본 검사가 한 번도 돌지 않았다는 뜻이며, 고장이라는 뜻은 아닙니다.
+          검사 서비스가 돌면 이 자리에 사이트별 결과가 나옵니다.</span>
+        <button type="button" onClick={() => setExpanded(!expanded)} aria-expanded={expanded}>{expanded ? "사이트 목록 접기" : `사이트 목록 펼치기 (${crawlers.sites.length.toLocaleString("ko-KR")}개)`}</button>
+      </aside>}
+      {showTable && <>
       <div className="filters">
         <label><span>사이트 검색</span><input value={query} onChange={e => {setQuery(e.target.value); setPage(1);}} placeholder="사이트 이름 또는 ID" /></label>
         <label><span>최근 검사 상태</span><select value={state} onChange={e => {setState(e.target.value); setPage(1);}}>
@@ -77,6 +87,7 @@ export default function HealthDashboard({ crawlers, system }: {
       {!visible.length && <p>조건에 맞는 수집기가 없습니다.</p>}
       <div className="section-heading"><button type="button" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}>이전</button>
         <span>{currentPage} / {pages}</span><button type="button" disabled={currentPage >= pages} onClick={() => setPage(currentPage + 1)}>다음</button></div>
+      </>}
     </>}
   </div>;
 }

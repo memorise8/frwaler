@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from delivery.be.catalogue import load_taxonomy
+from delivery.be.site_names import display_site_name
 
 
 def collect_document_detail(conn, seq_id: int, taxonomy: dict | None = None) -> dict | None:
@@ -47,7 +48,8 @@ def collect_document_detail(conn, seq_id: int, taxonomy: dict | None = None) -> 
     classification = taxonomy.get(row["site_id"], {"country": "기타", "doc_type": "기타"})
     return {
         "seq_id": row["seq_id"],
-        "site": {key: row[key] for key in ("site_id", "site_name", "site_url", "sheet")},
+        "site": {**{key: row[key] for key in ("site_id", "site_url", "sheet")},
+                 "site_name": display_site_name(row["site_name"])},
         "classification": classification,
         "source": {
             key: row[key] for key in (

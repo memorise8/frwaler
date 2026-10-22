@@ -46,9 +46,6 @@
   .site-collect-page .filters--collect { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 800px) {
-  .masthead .nav-link { flex: 0 0 auto; white-space: nowrap; }
-}
 
 * {
   box-sizing: border-box;
@@ -123,14 +120,40 @@ button,input,select {
   stroke-linejoin: round;
 }
 
+/* Menu: four small groups, each a tiny heading over its links. The nav wraps
+   instead of scrolling so every item -- including the current one -- stays
+   on screen at any width. */
 .masthead nav {
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 4px 22px;
   margin-left: auto;
+  min-width: 0;
+}
+
+.nav-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nav-group-label {
+  color: var(--muted);
+  font: 600 10px var(--mono);
+  letter-spacing: .08em;
+  opacity: .8;
+}
+
+.nav-group-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 14px;
 }
 
 .nav-link {
-  padding-block: 8px;
+  white-space: nowrap;
+  word-break: keep-all;
+  padding-block: 4px 6px;
   color: var(--muted);
   font-size: .875rem;
   font-weight: 600;
@@ -140,6 +163,35 @@ button,input,select {
 .nav-link-active {
   color: var(--moss);
   border-color: var(--moss);
+  border-bottom-width: 2px;
+}
+
+/* Phone: one group per row, heading beside its links, nothing wider than
+   the screen. */
+@media(max-width:600px) {
+  .masthead nav {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .nav-group {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .nav-group-label {
+    flex: 0 0 3.2em;
+  }
+
+  .nav-group-links {
+    gap: 0 12px;
+  }
+
+  .nav-link-active {
+    background: var(--moss-wash);
+    padding-inline: 6px;
+  }
 }
 
 .console-mark {
@@ -154,7 +206,8 @@ button,input,select {
 
 .main-content {
   flex: 1;
-  padding-block: clamp(48px,7vw,84px);
+  /* 제목 위 빈 공간을 줄여 첫 화면에 내용이 더 보이게 */
+  padding-block: clamp(20px,3vw,36px) clamp(40px,6vw,72px);
 }
 
 .status-page {
@@ -618,8 +671,20 @@ code {
   font: 600 1.2rem var(--serif);
 }
 
+/* Seven fields plus 찾기/초기화: fixed 130px tracks added up to more than the
+   1180px frame, squeezing the button and link into one-character columns at
+   1440px. Flexible tracks with a floor keep everything on one row. */
 .filters--taxonomy {
-  grid-template-columns: minmax(200px,1fr) repeat(6,130px) auto auto;
+  grid-template-columns: minmax(160px,1.6fr) repeat(6,minmax(88px,1fr)) auto auto;
+}
+
+.filters--taxonomy label {
+  min-width: 0;
+}
+
+.filters button,.reset-link {
+  white-space: nowrap;
+  word-break: keep-all;
 }
 
 /* The run picker on / carries one field, not seven: without its own track
@@ -1105,7 +1170,6 @@ code {
     order: 3;
     width: 100%;
     margin-left: 0;
-    overflow-x: auto;
   }
 
   .console-mark {
@@ -1184,7 +1248,7 @@ code {
   }
 
   .main-content {
-    padding-block: 40px;
+    padding-block: 16px 40px;
   }
 
   .summary-card {
@@ -2621,3 +2685,58 @@ code {
 .file-progress p { margin: 8px 0; }
 .file-progress-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .file-progress li { margin: 8px 0; }
+
+/* Global text rules: Korean titles break between words, not inside them;
+   long machine IDs may break anywhere so they never push the page wider;
+   tables scroll inside their wrapper instead of widening the page. */
+h1,h2,h3,h4,.eyebrow,.summary-card>span,th,.nav-link,.health-badge,.verify-tag,.material-tag {
+  word-break: keep-all;
+}
+
+code,.site-name,.mono-id {
+  overflow-wrap: anywhere;
+}
+
+.main-content {
+  min-width: 0;
+}
+
+/* 기술 정보: 운영자에게는 접어 두는 내부 코드·원문 */
+details.tech-info {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+details.tech-info > summary {
+  cursor: pointer;
+  width: fit-content;
+  list-style: revert;
+}
+details.tech-info[open] {
+  padding: 8px 10px;
+  border: 1px dashed var(--rule);
+  border-radius: 6px;
+}
+details.tech-info code, details.tech-info .run-note {
+  overflow-wrap: anywhere;
+}
+
+.table-shell {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+td {
+  word-break: keep-all;
+}
+
+.health-badge,.verify-tag,.material-tag {
+  white-space: nowrap;
+}
+
+/* 납품 당시(08-06) 수치: 현재 실측 수치 아래 회색 참고값. */
+.summary-card .summary-baseline {
+  margin-top: 4px;
+  color: var(--muted);
+  opacity: .85;
+}

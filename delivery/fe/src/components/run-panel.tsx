@@ -173,7 +173,7 @@ export default function RunPanel({ siteId, status, category, reason }: Readonly<
           <span>최대 저장 건수</span>
           <input disabled={unbounded} min="1" onChange={(event) => setLimit(event.target.value)} type="number" value={unbounded ? "" : limit} placeholder={unbounded ? "무제한 선택됨" : undefined} />
         </label>
-        <button className="run-submit" disabled={!canSubmit} onClick={submit} type="button">{state.kind === "submitting" ? "등록 중…" : "크롤러 실행"}</button>
+        <button className="run-submit" disabled={!canSubmit} onClick={submit} type="button">{state.kind === "submitting" ? "등록 중…" : "수집기 실행"}</button>
       </div>
       <label className="run-confirm"><input type="checkbox" checked={processFiles} onChange={event => setProcessFiles(event.target.checked)} /><span>PDF 다운로드·텍스트 추출도 실행 (이번에 처리한 문서 대상)</span></label>
       <p className="run-note">PDF 주소가 없는 문서는 건너뛰며, 문서 수집 완료 후 파일 처리가 별도로 진행됩니다.</p>

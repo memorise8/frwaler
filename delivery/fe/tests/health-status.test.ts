@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatHealthDate, healthLabel, healthTone } from "../src/lib/health-status";
+import { allSitesUnchecked, formatHealthDate, healthLabel, healthTone } from "../src/lib/health-status";
 
 describe("health evidence presentation", () => {
   it("uses deterministic Korean time across server and browser locales", () => {
@@ -19,5 +19,12 @@ describe("health evidence presentation", () => {
     expect(healthLabel("partial")).toBe("일부 성공·확인 필요");
     expect(healthLabel("future_state")).toBe("알 수 없음");
     expect(healthTone("future_state")).toBe("unknown");
+  });
+
+  it("detects the all-unchecked state that collapses the table", () => {
+    const site = (state: string) => ({ probe: { state } });
+    expect(allSitesUnchecked([site("unchecked"), site("unchecked")])).toBe(true);
+    expect(allSitesUnchecked([site("unchecked"), site("healthy")])).toBe(false);
+    expect(allSitesUnchecked([])).toBe(false);
   });
 });

@@ -8,6 +8,7 @@ import {
   type DirectProgress, needsApproval, normalizeRunnerHealth, normalizeSitesReport, normalizeUncollected, REJECTION_LABELS, stateLabel,
   type CollectPlan, type CollectSite, type UncollectedRow,
 } from "./site-collect";
+import { formatSeoul } from "./seoul-time";
 
 // ---- 상태(콘솔 STATE) -------------------------------------------------------
 
@@ -408,7 +409,7 @@ export const buildConsole = (input: ConsoleInput, taxonomy: Taxonomy | null, nam
     const withResult = runs.find((run) => run.result?.saved !== null && run.result?.saved !== undefined) ?? null;
     const runSaved = withResult?.result?.saved ?? null;
     const candidates: Array<[number | null, string]> = [[documents, "DB 문서 수"], [bf?.items_done ?? null, "백필 진행 건수"], [runSaved, "실행기 결과 저장 건수"],
-      [direct?.saved ?? null, `직접 실행 저장 건수 (O1 상태${direct?.updated_at ? ` · ${direct.updated_at}` : ""})`]];
+      [direct?.saved ?? null, `직접 실행 저장 건수${direct?.updated_at ? ` (갱신 ${formatSeoul(direct.updated_at)})` : ""}`]];
     const best = candidates.filter((c): c is [number, string] => c[0] !== null).sort((a, b) => b[0] - a[0])[0] ?? null;
     const saved = best?.[0] ?? 0;
     const total = bf?.total_estimate && bf.total_estimate >= saved ? bf.total_estimate : site?.plan?.expected_items ?? null;
@@ -594,7 +595,7 @@ export const startCheck = (site: ConsoleSite, runner: RunnerStatus | null, runne
   const blockedBy = accessBlock(site);
   if (blockedBy) no.push(`접근 제한·협의 필요 사이트는 시작할 수 없습니다 (${blockedBy}) — 우회·재시도하지 않습니다`);
   const resume = site.approval
-    ? [`승인 대기 — 예상 ${site.plan?.expected_items === null || site.plan?.expected_items === undefined ? "미상" : `${fmt(site.plan.expected_items)}건`}: 1만 건 이상이거나 모르면 실행기 등록 때 대량 승인(--approved-large)이 있어야 이어받기를 받습니다. 시험 수집은 승인 없이 됩니다`]
+    ? [`승인 대기 — 예상 ${site.plan?.expected_items === null || site.plan?.expected_items === undefined ? "미상" : `${fmt(site.plan.expected_items)}건`}: 1만 건 이상이거나 모르면 대량 승인이 있어야 이어받기를 시작할 수 있습니다. 시험 수집은 승인 없이 됩니다`]
     : [];
   return { blocked: no, resumeBlocked: resume, liveRun: live };
 };

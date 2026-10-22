@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from delivery.be.site_names import display_site_name
+
 
 def _utc(value: datetime) -> datetime:
     """Normalize database timestamps for deterministic age calculations."""
@@ -59,7 +61,7 @@ def collect_freshness(conn, *, measured_at: datetime | None = None) -> dict:
             age_days = max(0, (as_of - _utc(last_collected_at)).days)
         bucket = _bucket(age_days)
         distribution[bucket] += 1
-        sites.append({**item, "age_days": age_days, "freshness_bucket": bucket})
+        sites.append({**item, "site_name": display_site_name(item["site_name"]), "age_days": age_days, "freshness_bucket": bucket})
 
     total_sites = len(sites)
     return {

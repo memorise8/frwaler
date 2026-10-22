@@ -9,10 +9,11 @@ import { useRouter } from "next/navigation";
 import "./collect-console.css";
 import {
   accessBlock, ago, CLASS_KEYS, CLASSES, classText, countClasses, countStates, filtered, fmt, isBig, MIX_ORDER, namesBy, needsAttention, runExplain,
-  laneNames, pctText, percentOf, RESULT_STATUS_KO, RUNNER_STATUS_KO, scoped, secondaryCounts, sortSites, startCheck, STATE_KEYS,
+  laneNames, pctText, percentOf, reasonText, RESULT_STATUS_KO, RUNNER_STATUS_KO, scoped, secondaryCounts, sortSites, startCheck, STATE_KEYS,
   STATES, tsOf, type ConsoleData, type ConsoleSite, type ConsoleState, type Scope,
 } from "@/lib/collect-console";
 import { crawlerDocumentsHref } from "@/lib/crawler-evidence";
+import { formatSeoul } from "@/lib/seoul-time";
 import { performAction, runModeLabel, stateLabel, TRIAL_LIMIT_MAX, type CollectAction } from "@/lib/site-collect";
 
 type View = "type" | "country" | "matrix";
@@ -27,10 +28,26 @@ const MIXCOL: Readonly<Record<ConsoleState, string>> = {
 };
 const SPECIAL_LABEL: Readonly<Record<Exclude<Special, "">, string>> = { approval: "승인 대기", uncollected: "미수집" };
 
+// 목록·상세의 알약 세 가지(상태 / 구분 / 상태 이유·승인)는 마우스를 올리면 어느 축인지 알려 준다.
 const Badge = ({ state }: { state: ConsoleState }) => (
-  <span className={`badge b-${state}`}>{state === "run" ? <span className="pulse" /> : <i>{STATES[state].mark}</i>}{STATES[state].label}</span>
+  <span className={`badge b-${state}`} title={`상태: ${STATES[state].label}`}>{state === "run" ? <span className="pulse" /> : <i>{STATES[state].mark}</i>}{STATES[state].label}</span>
 );
-const ClsPill = ({ site }: { site: ConsoleSite }) => <span className={`cls ${CLASSES[site.cls.k].tone}`}>{classText(site.cls)}</span>;
+const ClsPill = ({ site }: { site: ConsoleSite }) => <span className={`cls ${CLASSES[site.cls.k].tone}`} title={`구분: ${classText(site.cls)}`}>{classText(site.cls)}</span>;
+const ApprovalPill = () => <span className="pill ap" title="승인: 대량 수집 승인을 기다리는 중">승인 대기</span>;
+// 구분 뜻풀이(상세 패널에 보이는 쉬운 말). 판정 원문은 기술 정보에.
+const CLASS_PLAIN: Readonly<Record<keyof typeof CLASSES, string>> = {
+  run: "지금 수집기로 받을 수 있는 사이트입니다",
+  dev: "수집기를 더 만들거나 고쳐야 받을 수 있는 사이트입니다",
+  nego: "사이트 측 허락이나 협의가 있어야 받을 수 있는 사이트입니다",
+  skip: "수집 대상에서 뺀 사이트입니다",
+  none: "아직 수집 가능 여부를 판정하지 않은 사이트입니다",
+};
+// 실행기 작업 결과를 코드 없이 한 줄로(코드는 기술 정보의 runExplain 에).
+const runPlain = (run: ConsoleSite["runs"][number]): string => [
+  run.result?.site_status ? RESULT_STATUS_KO[run.result.site_status] ?? "결과 확인 필요" : RUNNER_STATUS_KO[run.status] ?? run.status,
+  reasonText(run.result?.stop_reason), reasonText(run.reason), run.result?.error ? "결과를 읽지 못함" : null,
+].filter(Boolean).join(" · ");
+const seoulTs = (ts: number | null): string => (ts === null ? "-" : formatSeoul(ts * 1000));
 const MixBar = ({ list }: { list: readonly ConsoleSite[] }) => {
   const c = countStates(list);
   return <div className="mix">{MIX_ORDER.map((k) => c[k] ? <i key={k} style={{ width: `${(c[k] / list.length) * 100}%`, background: MIXCOL[k] }} /> : null)}</div>;
@@ -170,9 +187,9 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
     <div className="wrap">
       <div className="top">
         <div>
-          <h1>수집 콘솔</h1>
+          <h1>사이트 수집</h1>
           <div className="meta">
-            <span>마지막 조회 {ago(now - fetchedAt)} · 15초마다 갱신 · {runnerMeta}
+            <span>마지막 조회 {formatSeoul(fetchedAt * 1000)} ({ago(now - fetchedAt)}) · 15초마다 갱신 · {runnerMeta}
               {data.stats ? ` · DB 문서 ${fmt(data.stats.documents)}건 · 사이트 ${fmt(data.stats.sites)}곳` : ""}
               {data.taxonomyVersion ? ` · 분류 ${data.taxonomyVersion}` : ""}</span>
             {" · "}<Link href="/">작업 대시보드</Link>
@@ -201,8 +218,9 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
           <button key={k} type="button" className={selCls === k ? "on" : ""} aria-pressed={selCls === k}
             disabled={!clsCounts[k] && selCls !== k} onClick={() => toggleCls(k)}>
             <span className={CLASSES[k].tone}>●</span> {CLASSES[k].label}<b>{fmt(clsCounts[k])}</b></button>)}
-        <span className="note">근거: 실행 기록 &gt; site-status{data.latestJudgment ? ` · 판정 파일 최근 ${ago(now - data.latestJudgment)}` : ""}</span>
+        <span className="note">구분은 사이트 판정 결과입니다{data.latestJudgment ? ` · 판정 최근 갱신 ${seoulTs(data.latestJudgment)} (${ago(now - data.latestJudgment)})` : ""}</span>
       </div>
+      {data.stats && <p className="note cnt">이 목록({fmt(data.sites.length)}곳)에는 DB 에만 있거나 판정 파일에만 있는 사이트도 들어 있어, 납품 통계의 사이트 수({fmt(data.stats.sites)}곳)와 다를 수 있습니다.</p>}
       <div className="alerts" role="status">
         {(stopped.length > 0 || lockedN > 0) && <div className="alert summary">확인 필요
           {stopped.length > 0 && <button type="button" onClick={() => showState("stop")}>멈춤 {fmt(stopped.length)}곳</button>}
@@ -211,7 +229,17 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
         {!data.runnerOk && <div className="alert warn" role="alert">실행기 없음 · 시작·이어받기 버튼을 막아 두었습니다<small>{data.runnerText}</small></div>}
         {data.runnerOk && runner?.paused && <div className="alert warn" role="alert">실행기 일시 중지 · 새 작업 요청은 거절됩니다</div>}
       </div>
-      <p className="info">상태는 운영 BE 의 실행기 작업 기록(/collect)·백필 진행(/progress)·사이트 판정 파일(site-status)에서 읽습니다. <b>새 수집 전</b>은 &ldquo;이번 실행기·백필·직접 실행 기록 없음&rdquo;이라는 뜻이고, 예전 수집분이 DB 에 있으면 그 건수를 함께 적습니다. 시작·이어받기는 실행기에 등록된 plan 으로만 실행하며, 예상 1만 건 이상(또는 미상)인 이어받기는 대량 승인이 있어야 받습니다(<b>승인 대기</b>).</p>
+      <div className="info">
+        <p>상태는 실행 기록, 백필 진행, 사이트 판정을 함께 보고 정합니다. <b>새 수집 전</b>은 이번에 수집한 기록이 아직 없다는 뜻이고, 예전에 받아 둔 문서가 DB 에 있으면 그 건수를 함께 적습니다.
+          시작·이어받기는 미리 등록된 수집 계획대로만 실행됩니다. 예상 1만 건 이상(또는 건수를 모르는) 이어받기는 대량 승인이 있어야 시작됩니다(<b>승인 대기</b>).</p>
+        <details className="tech"><summary>기술 정보</summary>
+          <ul>
+            <li>상태 근거: 실행기 작업 기록(<code>/collect/runs</code>) · 백필 진행(<code>/progress</code>) · 직접 실행(O1 상태 파일) · 사이트 판정 파일(<code>site-status/*.csv</code>, <code>/collect/sites</code>). 구분은 실행 기록이 있으면 그것을, 없으면 판정 파일을 따릅니다.</li>
+            <li>대량 승인: plan 의 <code>expected_items</code> 가 10,000 이상이거나 비어 있으면 실행기 등록 때 <code>--approved-large</code> 가 있어야 이어받기(전체)를 받습니다.</li>
+            <li>DB 통계: <code>/stats</code> · 미수집 사유: <code>/collect/uncollected</code></li>
+          </ul>
+        </details>
+      </div>
 
       <div className={`main ${view === "matrix" ? "nr" : ""}`}>
         {view !== "matrix" && <nav className="panel rail" aria-label="분류">
@@ -255,7 +283,7 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
             onPick={(v) => { if (view === "type") setSelCountry(v); else setSelType(v); reset(); }} />}
           <div className="tablewrap">
             <table>
-              <thead><tr><th>사이트</th><th>상태</th><th style={{ width: "34%" }}>저장 / 사이트 총건수</th><th className="r">마지막 활동</th></tr></thead>
+              <thead><tr><th>사이트</th><th>상태 / 구분</th><th style={{ width: "34%" }}>저장 / 사이트 총건수</th><th className="r">마지막 활동</th></tr></thead>
               <tbody>
                 {rows.slice(0, shown).map((s) => <SiteRow key={s.id} site={s} now={now} sel={s.id === current?.id} onPick={() => pick(s.id)} />)}
                 {!rows.length && <tr><td colSpan={4} className="note" style={{ padding: 16 }}>조건에 맞는 사이트가 없습니다.</td></tr>}
@@ -327,7 +355,7 @@ function SiteRow({ site: s, now, sel, onPick }: Readonly<{ site: ConsoleSite; no
     <td><div className="name">{s.name}</div><div className="sub">{s.country} · {s.type}{s.name !== s.id ? ` · ${s.id}` : ""}</div></td>
     <td><Badge state={s.state} />
       <div style={{ marginTop: 3, display: "flex", gap: 4, flexWrap: "wrap" }}>
-        <ClsPill site={s} />{s.why && <span className="pill">{s.why}</span>}{s.approval && <span className="pill ap">승인 대기</span>}
+        <ClsPill site={s} />{s.why && <span className="pill" title={`상태 이유: ${s.why}`}>{s.why}</span>}{s.approval && <ApprovalPill />}
       </div></td>
     <td>{big ? <>
       <div className="num">{fmt(s.saved)} / {s.total ? fmt(s.total) : "총건수 미확인"}{pct !== null ? ` · ${pctText(pct)}%` : ""}</div>
@@ -359,20 +387,35 @@ function Detail({ site: s, data, now, trialLimit, setTrialLimit, busy, anyBusy, 
     warn: !cur && !blockedBy });
   if (cur && s.state === "review") pre.push({ ok: false, warn: true, t: "마지막 실행이 깨끗하게 끝났다", d: s.why || RUNNER_STATUS_KO[cur.status] || cur.status });
   pre.push({ ok: !s.approval, warn: s.approval, t: "대량 수집 승인이 필요 없다",
-    d: s.approval ? "승인 대기 — 이어받기(전체)는 대량 승인 전까지 거절됩니다. 시험 수집은 됩니다" : s.plan ? (s.plan.approved_large ? "대량 승인 받음" : `예상 ${fmt(s.plan.expected_items)}건 — 승인 기준(1만 건) 미만`) : "plan 없음" });
+    d: s.approval ? "승인 대기 — 이어받기(전체)는 대량 승인 전까지 거절됩니다. 시험 수집은 됩니다" : s.plan ? (s.plan.approved_large ? "대량 승인 받음" : `예상 ${fmt(s.plan.expected_items)}건 — 승인 기준(1만 건) 미만`) : "등록된 수집 계획 없음" });
+
+  const judgedAt = s.status?.updated_at ?? null;
+  const clsSrc = s.cls.src.startsWith("site-status/") && s.status ? `site-status/${s.status.file}${judgedAt ? ` (${formatSeoul(judgedAt)})` : ""}` : s.cls.src;
+  const showDirect = s.direct !== null && s.direct.run_id !== s.runs[0]?.run_id;
 
   return <>
     <div>
-      <h2 style={{ wordBreak: "break-all" }}>{s.name}</h2>
-      <Badge state={s.state} /> <ClsPill site={s} />{s.approval && <> <span className="pill ap">승인 대기</span></>}
+      <h2 className="ttl">{s.name}</h2>
+      <Badge state={s.state} /> <ClsPill site={s} />{s.approval && <> <ApprovalPill /></>}
       <span className="sub" style={{ marginLeft: 8 }}>{s.country} · {s.type}</span>
-      <div className="sub" style={{ wordBreak: "break-all" }}>{s.id} · <Link className="lnk" href={`/crawlers/${encodeURIComponent(s.id)}`}>수집기 상세</Link> · <Link className="lnk" href={crawlerDocumentsHref(s.id)}>문서</Link></div>
+      <div className="sub id">{s.id} · <Link className="lnk" href={`/crawlers/${encodeURIComponent(s.id)}`}>수집기 상세</Link> · <Link className="lnk" href={crawlerDocumentsHref(s.id)}>문서</Link></div>
       {s.alert && <div className="err" style={{ marginTop: 4 }}>{s.alert}</div>}
       <div className="sub" style={{ marginTop: 4 }}>{STATES[s.state].label}{s.why ? ` · ${s.why}` : ""}</div>
-      {s.runs[0] && <div className="sub">{s.via === "direct" ? "이전 실행기 작업(참고)" : "실행기 마지막 작업"} — {runExplain(s.runs[0])}</div>}
-      {s.direct && s.direct.run_id !== s.runs[0]?.run_id && <div className="sub" style={{ wordBreak: "break-word" }}>
-        O1 상태 ({s.direct.status}{s.direct.finished_at && !s.direct.running ? ` · ${s.direct.finished_at}` : ""}) — {s.direct.detail}</div>}
-      <div className="sub" style={{ marginTop: 4 }}><b className={CLASSES[s.cls.k].tone}>{classText(s.cls)}</b> · {s.cls.why}<br />근거 {s.cls.src}{s.cls.lane ? ` · 담당 구역 ${s.cls.lane}` : ""}</div>
+      {s.runs[0] && <div className="sub">{s.via === "direct" ? "이전 실행기 작업(참고)" : "마지막 실행"}: {runPlain(s.runs[0])}</div>}
+      <div className="sub" style={{ marginTop: 4 }}><b className={CLASSES[s.cls.k].tone}>{classText(s.cls)}</b> · {CLASS_PLAIN[s.cls.k]}</div>
+      <details className="tech"><summary>기술 정보</summary>
+        <dl className="kv">
+          <dt>구분 근거</dt><dd>{clsSrc}</dd>
+          <dt>판정 원문</dt><dd>{s.cls.why || "-"}</dd>
+          {s.cls.lane && <><dt>담당 구역</dt><dd>{s.cls.lane}</dd></>}
+          {s.status && <><dt>판정 파일</dt><dd>site-status/{s.status.file}{judgedAt ? ` · ${formatSeoul(judgedAt)} (${ago(now - (tsOf(judgedAt) ?? now))})` : ""}</dd></>}
+          {s.status && (s.status.detail || s.status.codes.length > 0) && <><dt>판정 메모</dt><dd>{s.status.state}{s.status.detail ? ` · ${s.status.detail}` : ""}
+            {s.status.codes.length > 0 && <> · <code>{s.status.codes.join(", ")}</code></>}</dd></>}
+          {s.runs[0] && <><dt>마지막 작업</dt><dd>{runExplain(s.runs[0])}</dd></>}
+          {showDirect && s.direct && <><dt>O1 상태</dt><dd>{s.direct.status}{s.direct.finished_at && !s.direct.running ? ` · ${formatSeoul(s.direct.finished_at)}` : ""} — {s.direct.detail}</dd></>}
+          <dt>plan</dt><dd>전략 {s.planInfo?.strategy ?? "-"} · 폴더 {s.planInfo?.folder ?? "-"}</dd>
+        </dl>
+      </details>
     </div>
     <div>
       <h2>커버리지</h2>
@@ -400,18 +443,20 @@ function Detail({ site: s, data, now, trialLimit, setTrialLimit, busy, anyBusy, 
         <div>{s.uncollected.reasons.length ? s.uncollected.reasons.map((r) => <span key={r} className="pill" style={{ marginRight: 4 }}>{r}</span>) : <span className="note">사유 코드 없음</span>}</div>
         {s.uncollected.note && <p className="note" style={{ margin: "6px 0 0" }}>메모: {s.uncollected.note}</p>}
       </> : <p className="note" style={{ margin: 0 }}>{data.uncollectedOk ? "미수집 목록에 없습니다 (실행 가능 판정이고 DB 문서가 있음)." : "미수집 사유를 읽지 못했습니다."}</p>}
-      {s.status && <div className="sub" style={{ marginTop: 6 }}>판정 {stateLabel(s.status.state)}{s.status.detail ? ` · ${s.status.detail}` : ""}
-        {s.status.codes.length > 0 && <> · <code>{s.status.codes.join(", ")}</code></>}</div>}
+      {s.status && <div className="sub" style={{ marginTop: 6 }}>사이트 판정: {stateLabel(s.status.state)}</div>}
     </div>
     <hr />
     <div>
       <h2>실행 기록</h2>
       {s.runs.length ? <>
         <ul className="runs">{s.runs.slice(0, 8).map((x) => <li key={x.run_id}>
-          <div className="num rn">{x.run_id} · {RUNNER_STATUS_KO[x.status] ?? x.status}{x.mode ? ` · ${runModeLabel(x.mode)}` : ""}{x.limit ? ` ${fmt(x.limit)}건` : ""}{x.status === "running" ? <> <span className="pulse" /></> : null}</div>
-          {x.result && <div>{x.result.site_status ? RESULT_STATUS_KO[x.result.site_status] ?? x.result.site_status : "결과"} · 저장 <span className="num">{fmt(x.result.saved)}</span>{x.result.failed ? <> · 실패 <span className="num">{fmt(x.result.failed)}</span></> : null}{x.result.error ? ` · ${x.result.error}` : ""}</div>}
-          <div className="sub rn">{x.requested_by ?? "-"} · {x.started_at ?? x.requested_at ?? "-"} → {x.finished_at ?? ""}{x.run_folder ? ` · ${x.run_folder}` : ""}</div>
-          {(x.reason || x.result?.stop_reason) && <div className="sub rn">{[x.reason, x.result?.stop_reason].filter(Boolean).join(" · ").slice(0, 160)}</div>}
+          <div className="rn">{RUNNER_STATUS_KO[x.status] ?? x.status}{x.mode ? ` · ${runModeLabel(x.mode)}` : ""}{x.limit ? ` ${fmt(x.limit)}건` : ""}{x.status === "running" ? <> <span className="pulse" /></> : null}</div>
+          {x.result && <div>{x.result.site_status ? RESULT_STATUS_KO[x.result.site_status] ?? "결과 확인 필요" : "결과"} · 저장 <span className="num">{fmt(x.result.saved)}</span>{x.result.failed ? <> · 실패 <span className="num">{fmt(x.result.failed)}</span></> : null}{x.result.error ? " · 결과를 읽지 못함" : ""}</div>}
+          <div className="sub rn">{x.requested_by ?? "-"} · {formatSeoul(x.started_at ?? x.requested_at)} → {formatSeoul(x.finished_at, { fallback: "" })}</div>
+          {(x.reason || x.result?.stop_reason) && <div className="sub rn">{[reasonText(x.reason), reasonText(x.result?.stop_reason)].filter(Boolean).join(" · ").slice(0, 160)}</div>}
+          <details className="tech"><summary>기술 정보</summary>
+            <div className="sub rn">작업 {x.run_id}{x.result?.site_status ? ` · site_status ${x.result.site_status}` : ""}{x.result?.stop_reason ? ` · stop_reason ${x.result.stop_reason}` : ""}{x.reason ? ` · reason ${x.reason}` : ""}{x.result?.error ? ` · error ${x.result.error}` : ""}{x.run_folder ? ` · ${x.run_folder}` : ""}</div>
+          </details>
           {(x.status === "queued" || x.status === "running") && <button type="button" style={{ marginTop: 4 }} disabled={anyBusy || !data.runnerOk}
             onClick={() => onAction({ kind: "cancel", siteId: s.id, runId: x.run_id })}>취소</button>}
         </li>)}</ul>
@@ -433,11 +478,11 @@ function Detail({ site: s, data, now, trialLimit, setTrialLimit, busy, anyBusy, 
           {check.blocked.map((t) => <li key={t} className="no"><span className="mk">✕</span><span>{t}</span></li>)}
           {check.resumeBlocked.map((t) => <li key={t} className="wn"><span className="mk">!</span><span>{t}</span></li>)}
         </ul>
-        : <p className="note" style={{ margin: "6px 0 0" }}>plan: 전략 {s.planInfo?.strategy ?? "-"} · 폴더 {s.planInfo?.folder ?? "-"} · 예상 {fmt(s.plan?.expected_items)}건. 누른 사람·시각은 실행기에 기록됩니다.</p>}
+        : <p className="note" style={{ margin: "6px 0 0" }}>수집 계획 예상 {fmt(s.plan?.expected_items)}건. 누른 사람·시각은 실행기에 기록됩니다.</p>}
       {busy && <div className="ok-msg" style={{ marginTop: 6 }}>요청 보내는 중…</div>}
       {msg && !busy && <div role={msg.ok ? "status" : "alert"} className={msg.ok ? "ok-msg" : "why"} style={{ marginTop: 6 }}>{msg.t}</div>}
       <p className="note" style={{ margin: "8px 0 0" }}>접근 제한(robots 거부, 로그인, 챌린지)은 이 화면에서 해제하거나 우회할 수 없습니다.</p>
     </div>
-    {tsOf(s.status?.updated_at) !== null && <p className="note" style={{ margin: 0 }}>판정 파일 {s.status?.file} · {ago(now - (tsOf(s.status?.updated_at) ?? now))}</p>}
+    {tsOf(judgedAt) !== null && <p className="note" style={{ margin: 0 }}>사이트 판정 갱신 {formatSeoul(judgedAt)} ({ago(now - (tsOf(judgedAt) ?? now))})</p>}
   </>;
 }

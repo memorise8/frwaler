@@ -1,0 +1,113 @@
+/* Compact /documents layout: the first result must be visible on the first
+   screen (1440x900 and phone). Element+class selectors outrank the global
+   .documents-page / .document-filters rules regardless of load order. */
+
+div.page {
+  gap: 14px;
+}
+
+header.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+header.header h1 {
+  margin: 0;
+  font: 600 1.6rem/1.2 var(--serif);
+}
+
+header.header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+form.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+}
+
+div.mainRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+  align-items: start;
+  gap: 10px;
+}
+
+form.form input, form.form select {
+  height: 40px;
+}
+
+label.site, label.query {
+  min-width: 0;
+}
+
+small.reason {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+div.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+div.actions button {
+  height: 40px;
+}
+
+div.actions a {
+  margin-top: 0;
+}
+
+details.more > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+div.moreGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+p.note {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  div.moreGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  header.header h1 {
+    font-size: 1.3rem;
+  }
+
+  div.mainRow {
+    grid-template-columns: 1fr;
+  }
+
+  div.actions {
+    margin-top: 0;
+  }
+
+  div.moreGrid {
+    grid-template-columns: 1fr;
+  }
+}

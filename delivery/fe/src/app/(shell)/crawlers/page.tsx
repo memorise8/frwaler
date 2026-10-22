@@ -50,6 +50,7 @@ export default async function CrawlerFleet({ searchParams }: Readonly<{ searchPa
   const verification = indexVerification(verificationStats?.sites);
   const freshnessBucketBySite = new Map((freshnessStats?.sites ?? []).map((site) => [site.site_id, site.freshness_bucket]));
   const healthy = rows.filter((row) => row.status === "healthy").length;
+  const auditDay = AUDIT_DATE.slice(5);
   const unhealthy = rows.length - healthy;
   const categories = [...new Set(rows.map((row) => row.category).filter(Boolean))].sort();
   const countries = [...new Set(rows.map((row) => row.country))].sort((a, b) => a.localeCompare(b, "ko"));
@@ -87,20 +88,23 @@ export default async function CrawlerFleet({ searchParams }: Readonly<{ searchPa
       <header className="hero">
         <div>
           <p className="eyebrow">CRAWLER HEALTH INDEX</p>
-          <h1>수집기의 상태를,<br />근거와 함께 살핍니다.</h1>
-          <p className="lede">{rows.length.toLocaleString("ko-KR")}개 수집기의 마지막 실측 결과를 한곳에서 확인합니다. 정상 판정은 실제 문서가 임시 DB에 저장된 경우에만 부여했습니다.</p>
+          <h1>수집기 상태</h1>
+          <p className="lede">{rows.length.toLocaleString("ko-KR")}개 수집기가 지금 이 설치에서 실제로 문서를 모으는지, 근거와 함께 확인합니다. 납품 당시 검증 결과는 참고용으로 회색으로 함께 보여 줍니다.</p>
         </div>
-        <div className="audit-date"><span>LAST AUDIT</span><strong>{AUDIT_DATE}</strong><small>실시간 검사는 다음 단계에서 연결됩니다.</small></div>
+        <div className="audit-date"><span>납품 당시 검증일</span><strong>{AUDIT_DATE}</strong><small>이 날짜 이후의 변화는 &ldquo;여기 결과&rdquo; 칸에 나옵니다.</small></div>
       </header>
 
       <div className="summary-grid">
         <Link className="summary-card" href="/crawlers?all=1"><span>전체 수집기</span><strong>{rows.length.toLocaleString("ko-KR")}</strong><small>등록 카탈로그 · 전체 보기</small></Link>
-        <Link className="summary-card summary-card--good" href="/crawlers?status=healthy"><span>정상 작동</span><strong>{healthy.toLocaleString("ko-KR")}</strong><small>{rows.length ? ((healthy / rows.length) * 100).toFixed(1) : "0.0"}% 저장 성공</small></Link>
-        <Link className="summary-card summary-card--bad" href="/crawlers?status=unhealthy"><span>실패·확인 필요</span><strong>{unhealthy.toLocaleString("ko-KR")}</strong><small>코드·차단·네트워크</small></Link>
-        <article className="summary-card summary-card--secondary"><span>여기서 수집 확인</span><strong>{(verificationStats?.summary.sites_with_saved_documents ?? 0).toLocaleString("ko-KR")}</strong><small>{verificationStats ? `이 설치에서 ${verificationStats.summary.sites_with_jobs.toLocaleString("ko-KR")}개 실행` : "실행 기록 조회 불가"}</small></article>
+        {/* The headline number is what this installation has verified itself
+            (a run here stored documents). The delivery snapshot is kept only
+            as a grey reference figure because nothing ever updates it. */}
+        <article className="summary-card summary-card--good"><span>정상 작동 (지금 확인)</span><strong>{verificationStats ? verificationStats.summary.sites_with_saved_documents.toLocaleString("ko-KR") : "—"}</strong><small>{verificationStats ? "이 설치에서 문서 저장까지 확인된 수집기" : "실행 기록을 불러오지 못했습니다"}</small><small className="summary-baseline">납품 당시({auditDay}) {healthy.toLocaleString("ko-KR")}</small></article>
+        <Link className="summary-card summary-card--bad" href="/crawlers?status=unhealthy"><span>실패·확인 필요</span><strong>{unhealthy.toLocaleString("ko-KR")}</strong><small>코드·차단·네트워크</small><small className="summary-baseline">납품 당시({auditDay}) 기준</small></Link>
+        <article className="summary-card summary-card--secondary"><span>이 설치에서 실행</span><strong>{verificationStats ? verificationStats.summary.sites_with_jobs.toLocaleString("ko-KR") : "—"}</strong><small>{verificationStats ? "한 번 이상 실행한 수집기" : "실행 기록 조회 불가"}</small></article>
       </div>
 
-      <aside className="snapshot-note"><strong>스냅샷 안내</strong><span>상태 배지는 {AUDIT_DATE}에 <strong>다른 네트워크에서</strong> 검증한 결과이며 갱신되지 않습니다. 아래 &ldquo;여기 결과&rdquo; 칸이 이 설치에서 실제로 실행한 기록입니다. 둘이 다르면 이쪽이 현재 사실입니다. 아직 실행한 적 없는 수집기는 <Link href="/">수집 화면</Link>에서 3건 상태 확인으로 확인할 수 있습니다.</span></aside>
+      <aside className="snapshot-note"><strong>스냅샷 안내</strong><span>상태 배지는 {AUDIT_DATE}에 <strong>다른 네트워크에서</strong> 검증한 결과이며 갱신되지 않습니다. 아래 &ldquo;여기 결과&rdquo; 칸이 이 설치에서 실제로 실행한 기록입니다. 둘이 다르면 이쪽이 현재 사실입니다. 아직 실행한 적 없는 수집기는 <Link href="/site-collect">사이트 수집</Link> 화면에서 시험 수집으로 확인할 수 있습니다.</span></aside>
 
       <div className="taxonomy-grid" aria-label="국가 및 자료 유형 분류">
         <article className="taxonomy-panel">
@@ -114,7 +118,7 @@ export default async function CrawlerFleet({ searchParams }: Readonly<{ searchPa
       </div>
 
       <section className="catalogue-section">
-        <div className="section-heading"><div><p className="eyebrow">STATUS CATALOGUE</p><h2>{country || docType ? `${[country, docType].filter(Boolean).join(" · ")} 크롤러` : showAll ? "전체 크롤러 목록" : "분류별 크롤러 목록"}</h2></div><p>{hasCatalogueSelection ? `${selectedRows.length.toLocaleString("ko-KR")}개 결과` : "사이트를 검색하거나 조건을 선택하세요"}</p></div>
+        <div className="section-heading"><div><p className="eyebrow">STATUS CATALOGUE</p><h2>{country || docType ? `${[country, docType].filter(Boolean).join(" · ")} 수집기` : showAll ? "전체 수집기 목록" : "분류별 수집기 목록"}</h2></div><p>{hasCatalogueSelection ? `${selectedRows.length.toLocaleString("ko-KR")}개 결과` : "사이트를 검색하거나 조건을 선택하세요"}</p></div>
         <Form className="filters filters--taxonomy" action="/crawlers">
           <label className="query-field"><span>사이트 검색</span><input defaultValue={query} name="q" placeholder="사이트 이름 또는 site_id" /></label>
           <label><span>상태</span><select defaultValue={status} name="status"><option value="">전체 상태</option><option value="healthy">정상</option><option value="unhealthy">실패</option></select></label>
@@ -149,14 +153,14 @@ export default async function CrawlerFleet({ searchParams }: Readonly<{ searchPa
               </tr></Fragment>;
             })}</tbody>
           </table>
-          {!visible.length && <div className="empty">조건에 맞는 크롤러가 없습니다.</div>}
-        </div> : <div className="catalogue-prompt"><span aria-hidden="true">↗</span><div><strong>검색어를 입력하거나 조건을 선택해 주세요.</strong><p>사이트 이름으로 검색하거나 위의 상태·실패 유형·국가·자료 유형 중 하나를 선택하면 해당 크롤러만 목록에 표시됩니다.</p></div></div>}
+          {!visible.length && <div className="empty">조건에 맞는 수집기가 없습니다.</div>}
+        </div> : <div className="catalogue-prompt"><span aria-hidden="true">↗</span><div><strong>검색어를 입력하거나 조건을 선택해 주세요.</strong><p>사이트 이름으로 검색하거나 위의 상태·실패 유형·국가·자료 유형 중 하나를 선택하면 해당 수집기만 목록에 표시됩니다.</p></div></div>}
 
         {/* Acts on every row the current filter selects, not just this page --
             which is what makes "독일 전체" or "논문 전체" a single action. */}
         {hasCatalogueSelection && selectedRows.length > 0 && (
           <BulkRunPanel
-            label={[country, docType, status === "healthy" ? "정상" : status === "unhealthy" ? "실패" : "", category].filter(Boolean).join(" · ") || (query ? `"${query}" 검색` : showAll ? "등록된 전체 크롤러" : "선택한 조건")}
+            label={[country, docType, status === "healthy" ? "정상" : status === "unhealthy" ? "실패" : "", category].filter(Boolean).join(" · ") || (query ? `"${query}" 검색` : showAll ? "등록된 전체 수집기" : "선택한 조건")}
             siteIds={selectedRows.map((row) => row.siteId)}
           />
         )}

@@ -6,7 +6,9 @@ import {
   defaultSortLabel,
   cursorHref,
   formatTotal,
+  hasAdvancedFilters,
   invalidCatalogueMessage,
+  searchDisabledReason,
 } from "../src/lib/document-paging";
 import { facetCountLabel } from "../src/lib/facet-options";
 import { summarizeCrawlerEvidence } from "../src/lib/crawler-evidence";
@@ -24,7 +26,7 @@ describe("buildCatalogueQuery", () => {
   it("drops q without a site and raises the notice, keeping it visible in the form", () => {
     const { apiParams, qNotice, selected } = buildCatalogueQuery({ q: "climate", country: "한국" });
     expect(qNotice).toBe(Q_REQUIRES_SITE_NOTICE);
-    expect(qNotice).toBe("검색어는 사이트를 고른 뒤에 쓸 수 있습니다");
+    expect(qNotice).toBe("검색하려면 먼저 사이트를 고르세요");
     expect(apiParams.has("q")).toBe(false);
     expect(apiParams.get("country")).toBe("한국");
     expect(selected.q).toBe("climate");
@@ -132,5 +134,19 @@ describe("facet counts from the new response", () => {
       expect(evidence.docTypes).toEqual([]);
       expect(evidence.languages).toEqual([{ value: "en", count: 3 }]);
     }
+  });
+});
+
+describe("search box state", () => {
+  it("is disabled with a reason until a site is chosen", () => {
+    expect(searchDisabledReason("")).toBe("검색하려면 먼저 사이트를 고르세요");
+    expect(searchDisabledReason("  ")).toBe(Q_REQUIRES_SITE_NOTICE);
+    expect(searchDisabledReason("prism")).toBeNull();
+  });
+
+  it("opens the detailed filters only when one of them is set", () => {
+    expect(hasAdvancedFilters(buildCatalogueQuery({ q: "x", site_id: "s" }).selected)).toBe(false);
+    expect(hasAdvancedFilters(buildCatalogueQuery({ has_pdf: "true" }).selected)).toBe(true);
+    expect(hasAdvancedFilters(buildCatalogueQuery({ sort: "seq_desc" }).selected)).toBe(true);
   });
 });

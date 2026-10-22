@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteNav } from "./site-nav";
+import { HOME_HREF } from "@/lib/nav-items";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Libertree 운영 콘솔",
-  description: "Libertree 크롤러 상태 및 수집 운영 콘솔",
+  description: "Libertree 수집기 상태 및 수집 운영 콘솔",
 };
 
 const TreeRing = () => (
@@ -23,7 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <header className="masthead">
           <div className="frame masthead-inner">
-            <Link className="brand" href="/" aria-label="Libertree 운영 콘솔 홈">
+            <Link className="brand" href={HOME_HREF} aria-label="Libertree 운영 콘솔 처음 화면(사이트 수집)">
               <TreeRing />
               <span>Libertree</span>
             </Link>
@@ -32,7 +33,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </div>
         </header>
         <main className="frame main-content">{children}</main>
-        <footer className="frame footer"><span>Libertree Delivery</span><span>크롤러 운영 콘솔</span></footer>
+        <footer className="frame footer"><span>Libertree Delivery</span><span>수집기 운영 콘솔</span></footer>
       </body>
     </html>
   );
