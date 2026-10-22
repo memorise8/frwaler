@@ -10,13 +10,14 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import signal
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from .adapters import Adapter, AdapterConfigError
 from .files import FilePass
-from .http import Fetcher, RequestsTransport
+from .http import CANCEL, WAITING, Fetcher, RequestsTransport
 from .plan import PlanError, header_hosts, load_plan, resolve_headers, site_plan
 from .report import write_report
 from .runner import SiteRunner
@@ -209,7 +210,7 @@ def run_site(plan, store, conn, state_dir, *, transport=None, refresh=False, ret
             result = runner.run(refresh=refresh, retry_only=retry_only)
     finally:
         adapter.close()
-    if files:
+    if files and result.get("stop_reason") != "cancelled":
         result["files"] = FilePass(store, fetcher, blob_root=blob_root or Path(state_dir) / "files",
                                    doc_conn=conn, max_attempts=plan.get("file_max_attempts"),
                                    max_bytes=plan.get("file_max_bytes")).run(plan.site_id)
@@ -230,6 +231,16 @@ def exit_code(results):
     if statuses & set(REVIEW_STATUSES):
         return 2
     return 0
+
+
+def _on_sigterm(signum, frame):
+    """The collect runner's cancel (docker stop): a listing retry wait ends at once (RunCancelled,
+    state saved as incomplete/cancelled). Outside such a wait the default action is kept, exactly
+    as without this handler (terminate; ignored as PID 1 in a container until docker kills it)."""
+    CANCEL.set()
+    if not WAITING[0]:
+        signal.signal(signal.SIGTERM, signal.SIG_DFL)
+        os.kill(os.getpid(), signal.SIGTERM)
 
 
 def main(argv=None):
@@ -374,8 +385,17 @@ def main(argv=None):
             if reference is not None:
                 reference.close()
 
-    with ThreadPoolExecutor(max_workers=args.workers) as pool:
-        results = list(pool.map(one, plans))
+    import threading
+    handled = threading.current_thread() is threading.main_thread() and \
+        signal.getsignal(signal.SIGTERM) == signal.SIG_DFL
+    if handled:
+        signal.signal(signal.SIGTERM, _on_sigterm)
+    try:
+        with ThreadPoolExecutor(max_workers=args.workers) as pool:
+            results = list(pool.map(one, plans))
+    finally:
+        if handled:
+            signal.signal(signal.SIGTERM, signal.SIG_DFL)
     conn = open_documents_db(args.db)
     try:
         write_report(store, sites, report_dir, doc_conn=conn)

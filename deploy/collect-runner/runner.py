@@ -7,7 +7,9 @@
   (delivery compose 의 runner) 안에서만 쓴다. 서버 호스트에서는 0.0.0.0 으로 두지 않는다.
 - 같은 등록 도메인(unit)은 한 번에 하나, 전체 동시 실행은 config.max_parallel 개.
 - 등록·해제·일시정지는 서버 셸의 runnerctl 로만 한다(HTTP 로는 못 바꾼다).
-- 실행은 정해진 인자로만: 임의 docker 인자·ENUM_EXTRA_ARGS 를 받지 않는다.
+- 실행은 정해진 인자로만: 임의 docker 인자·ENUM_EXTRA_ARGS 를 받지 않는다. 이어받기의 reprocess_failed(허용 목록의
+  대장 이유 앞부분)만 실행기가 --reprocess-failed 로 만들어 넘긴다. auto_continue 면 time_budget 으로 끝난 이어받기를
+  같은 폴더·같은 인자로 다시 대기열에 넣는다(max_runs 까지, 다른 끝남이면 멈춤).
 - 누가·언제·무엇을 했는지 events 표와 events.jsonl 에 남긴다.
 
 사용법: runner.py serve | ensure | ctl <명령> ...  (runnerctl 이 감싼다)
@@ -53,6 +55,15 @@ TAG_RE = re.compile(r"^[0-9]{8}([-_][A-Za-z0-9]+)?$")
 SITE_RE = re.compile(r"^[0-9A-Za-z._-]{1,120}$")
 RUN_RE = re.compile(r"^r[0-9]{4,}$")
 ACTIVE = ("queued", "running")
+# reprocess_failed: crawler/enumeration 의 항목 대장 이유(enum_item.reason) 앞부분 중 다시 시도해도 되는 것만.
+# runner.process_item 이 남기는 이유: empty_item, parse_error:<예외>, adapter_contract:<코드>, transient:<이유>(상세 일시 실패가
+# 시도 횟수를 다 씀), save_transient:<예외>, save_error:<예외>. identity_*·listing_identity_conflict 는 store.requeue_failed 가 거절한다.
+REPROCESS_PREFIXES = ("empty_item", "parse_error", "adapter_contract", "transient", "save_transient", "save_error")
+REPROCESS_RE = re.compile(r"^[a-z_]+(:[A-Za-z0-9_.-]+)*:?$")
+AUTO_CONTINUE_ON = ("time_budget",)  # 이어서 돌릴 끝남(enum_site incomplete/<stop_reason>)
+AUTO_CONTINUE_DEFAULT, AUTO_CONTINUE_MAX = 5, 20
+# 이어 돌릴 때 기다리면 풀리는 거절: 대기열에 넣고 tick 이 사이트·도메인·폴더가 빌 때까지 기다린다(지금 요청과 같은 규칙).
+CHAIN_WAITABLE = ("site_busy", "unit_busy", "folder_busy", "external_unknown", "docker_unavailable")
 lock = threading.RLock()
 
 
@@ -83,8 +94,13 @@ def db():
       create table if not exists site_folder(site_id text primary key, tag text not null, assigned_at text not null);
       create table if not exists flags(name text primary key, value text);
     """)
-    if "requeues" not in [r[1] for r in c.execute("pragma table_info(runs)")]:
+    cols = [r[1] for r in c.execute("pragma table_info(runs)")]
+    if "requeues" not in cols:
         c.execute("alter table runs add column requeues integer not null default 0")
+    # opts: {"reprocess_failed": [...], "auto_continue": {"max_runs", "on"}}; chain_*: 자동 이어받기 묶음(첫 run_id, 순번, 멈춘 까닭)
+    for col in ("opts", "chain_root", "chain_seq", "chain_end"):
+        if col not in cols:
+            c.execute("alter table runs add column %s %s" % (col, "integer" if col == "chain_seq" else "text"))
     return c
 
 
@@ -250,6 +266,33 @@ def check_request(c, site_id, mode, limit):
     return None, limit
 
 
+def check_options(mode, data):
+    """(None, opts) 또는 (이유 코드, 설명). opts 는 이어받기에만: reprocess_failed, auto_continue."""
+    opts = {}
+    rf, ac = data.get("reprocess_failed"), data.get("auto_continue")
+    if rf is not None:
+        if mode != "resume":
+            return "bad_reprocess_failed", "reprocess_failed 는 이어받기(resume)에만"
+        if not isinstance(rf, list) or not 1 <= len(rf) <= len(REPROCESS_PREFIXES) or not all(
+                isinstance(p, str) and len(p) <= 80 and REPROCESS_RE.match(p) and p.split(":")[0] in REPROCESS_PREFIXES
+                for p in rf):
+            return "bad_reprocess_failed", "reprocess_failed 는 이유 앞부분 목록(최대 %d개): %s[:<세부>]" % (
+                len(REPROCESS_PREFIXES), ", ".join(REPROCESS_PREFIXES))
+        opts["reprocess_failed"] = list(dict.fromkeys(rf))
+    if ac is not None:
+        if mode != "resume":
+            return "bad_auto_continue", "auto_continue 는 이어받기(resume)에만"
+        if not isinstance(ac, dict) or set(ac) - {"max_runs", "on"}:
+            return "bad_auto_continue", "auto_continue 는 {max_runs, on}"
+        n, on = ac.get("max_runs", AUTO_CONTINUE_DEFAULT), ac.get("on", list(AUTO_CONTINUE_ON))
+        if type(n) is not int or not 1 <= n <= AUTO_CONTINUE_MAX:
+            return "bad_auto_continue", "auto_continue.max_runs 는 1~%d (기본 %d)" % (AUTO_CONTINUE_MAX, AUTO_CONTINUE_DEFAULT)
+        if not isinstance(on, list) or not on or any(x not in AUTO_CONTINUE_ON for x in on):
+            return "bad_auto_continue", "auto_continue.on 은 %s 만" % ", ".join(AUTO_CONTINUE_ON)
+        opts["auto_continue"] = {"max_runs": n, "on": list(dict.fromkeys(on))}
+    return None, opts
+
+
 def folder_for(c, site_id, assign=True):
     e = registry().get(site_id) or {}
     if e.get("folder"):
@@ -268,6 +311,22 @@ def folder_for(c, site_id, assign=True):
 def next_run_id(c):
     r = c.execute("select max(cast(substr(run_id,2) as integer)) from runs").fetchone()[0] or 0
     return "r%04d" % (r + 1)
+
+
+def insert_run(c, site_id, mode, lim, unit, actor, *, tag=None, opts=None, chain_seq=None, chain_root=None):
+    """새 대기 작업. 실행 프로세스(_exec)도 자동 이어받기로 넣으므로 run_id 가 겹치면 다음 번호로 다시 넣는다."""
+    for _ in range(20):
+        run_id = next_run_id(c)
+        root = chain_root or (run_id if chain_seq else None)
+        try:
+            c.execute("insert into runs(run_id,site_id,mode,lim,status,tag,unit,requested_by,requested_at,opts,chain_root,chain_seq) "
+                      "values(?,?,?,?,?,?,?,?,?,?,?,?)",
+                      (run_id, site_id, mode, lim, "queued", tag, unit, actor, now(),
+                       json.dumps(opts, ensure_ascii=False) if opts else None, root, chain_seq))
+            return run_id
+        except sqlite3.IntegrityError:
+            time.sleep(0.05)
+    raise RuntimeError("run_id 를 정하지 못함")
 
 
 # ---------- 실행 ----------
@@ -367,6 +426,62 @@ def finish(c, r, rc, why=None):
                      (status, now(), json.dumps(result, ensure_ascii=False) if result else None, reason, r["run_id"])).rowcount:
         return
     event(c, "runner", "finish", r["run_id"], r["site_id"], {"status": status, "reason": reason, "result": result})
+    continue_chain(c, r, status, result)
+
+
+def opts_of(r):
+    try:
+        return json.loads(r["opts"] or "{}") if "opts" in r.keys() else {}
+    except ValueError:
+        return {}
+
+
+def continue_chain(c, r, status, result):
+    """auto_continue 이어받기가 끝났을 때: incomplete/<on 의 이유>(time_budget)이면 같은 폴더·같은 인자로 다음 작업을
+    대기열에 넣는다(max_runs 까지). 그 밖의 끝남(완료·차단·robots·config_error·rate limit·취소·실패…)이면 묶음을 멈추고 남긴다."""
+    ac = opts_of(r).get("auto_continue")
+    if r["mode"] != "resume" or not ac:
+        return
+    root, seq = r["chain_root"] or r["run_id"], r["chain_seq"] or 1
+    res = result if isinstance(result, dict) else {}
+    outcome = "%s/%s" % (res.get("site_status"), res.get("stop_reason"))
+    nxt = None
+    if status != "done":
+        end = "run_%s" % status
+    elif res.get("site_status") != "incomplete" or res.get("stop_reason") not in ac.get("on", AUTO_CONTINUE_ON):
+        end = "outcome:%s" % outcome
+    elif seq >= ac.get("max_runs", AUTO_CONTINUE_DEFAULT):
+        end = "max_runs"
+    else:
+        if c.execute("select 1 from runs where site_id=? and status in ('queued','running')", (r["site_id"],)).fetchone():
+            why = "site_busy"
+        else:
+            why, _ = check_request(c, r["site_id"], "resume", None)
+            why = None if why in CHAIN_WAITABLE else why
+        if why:
+            end = "refused:%s" % why
+        else:
+            e = registry()[r["site_id"]]
+            # reprocess_failed only on the first run: its items were requeued then; later runs resume normally.
+            nopts = {k: v for k, v in opts_of(r).items() if k != "reprocess_failed"}
+            if opts_of(r).get("reprocess_failed"):
+                nopts["chain_reprocessed"] = {"run_id": r["run_id"], "prefixes": opts_of(r)["reprocess_failed"]}
+            nxt = insert_run(c, r["site_id"], "resume", None, e["unit"], r["requested_by"], tag=r["tag"], opts=nopts,
+                             chain_seq=seq + 1, chain_root=root)
+            event(c, "runner", "auto_continue", nxt, r["site_id"], {"after": r["run_id"], "root": root, "seq": seq + 1,
+                                                                     "outcome": outcome, "tag": r["tag"]})
+            return
+    c.execute("update runs set chain_end=? where run_id=?", (end, r["run_id"]))
+    runs = []
+    for x in c.execute("select run_id,status,result from runs where chain_root=? order by chain_seq", (root,)):
+        res = json.loads(x["result"]) if x["result"] else {}
+        runs.append({"run_id": x["run_id"], "status": x["status"],
+                     "outcome": "%s/%s" % (res.get("site_status"), res.get("stop_reason"))})
+    first = c.execute("select opts from runs where run_id=?", (root,)).fetchone()
+    reprocessed = {"run_id": root, "prefixes": json.loads(first["opts"]).get("reprocess_failed")} \
+        if first and first["opts"] and json.loads(first["opts"]).get("reprocess_failed") else None
+    event(c, "runner", "chain_end", r["run_id"], r["site_id"], {"root": root, "seq": seq, "end": end, "runs": runs,
+                                                               "reprocess_failed": reprocessed})
 
 
 def trial_plan(e, run_id, limit):
@@ -413,6 +528,12 @@ def _exec(c, run_id):
                ENUM_ALLOW_EMPTY_REFERENCE="1", ENUM_REFERENCE_DB=cfg["reference_db"])
     for k in ("ENUM_EXTRA_ARGS", "ENUM_FILES", "ENUM_WITH_BROWSER", "ENUM_INCREMENTAL", "ENUM_KNOWN_KEYS"):
         env.pop(k, None)
+    if r["mode"] == "resume" and opts_of(r).get("reprocess_failed"):
+        # 실행기가 허용 목록으로 검사한 값만(요청 때 검사, 여기서 한 번 더): 공백·글롭 문자가 없다.
+        why, opts = check_options("resume", {"reprocess_failed": opts_of(r)["reprocess_failed"]})
+        if why:
+            raise RuntimeError("reprocess_failed 형식 오류")
+        env["ENUM_EXTRA_ARGS"] = " ".join("--reprocess-failed %s" % p for p in opts["reprocess_failed"])
     if e.get("files"):
         env["ENUM_FILES"] = "1"
     if r["mode"] == "incremental":
@@ -471,7 +592,10 @@ def stop_run(run_id, tag, pid):
 def run_row(r):
     return {"run_id": r["run_id"], "site_id": r["site_id"], "mode": r["mode"], "limit": r["lim"], "status": r["status"],
             "run_folder": r["tag"], "started_at": r["started_at"], "finished_at": r["finished_at"], "requested_at": r["requested_at"],
-            "requested_by": r["requested_by"], "result": json.loads(r["result"]) if r["result"] else None, "reason": r["reason"]}
+            "requested_by": r["requested_by"], "result": json.loads(r["result"]) if r["result"] else None, "reason": r["reason"],
+            "reprocess_failed": opts_of(r).get("reprocess_failed"), "auto_continue": opts_of(r).get("auto_continue"),
+            "chain": {"root": r["chain_root"], "seq": r["chain_seq"], "end": r["chain_end"],
+                      "reprocess_failed_in": opts_of(r).get("chain_reprocessed")} if r["chain_root"] else None}
 
 
 class H(BaseHTTPRequestHandler):
@@ -533,14 +657,17 @@ class H(BaseHTTPRequestHandler):
             site_id, mode, limit = data.get("site_id"), data.get("mode"), data.get("limit")
             if not isinstance(site_id, str) or not SITE_RE.match(site_id) or mode not in MODES:
                 return self.reply(400, {"reason": "bad_request"})
-            reason, x = check_request(c, site_id, mode, limit)
+            reason, opts = check_options(mode, data)
+            if not reason:
+                reason, x = check_request(c, site_id, mode, limit)
+            else:
+                x = opts
             if reason:
                 event(c, actor, "reject", None, site_id, {"mode": mode, "limit": limit, "reason": reason})
                 return self.reply(409, {"reason": reason, "detail": x})
-            run_id = next_run_id(c)
-            c.execute("insert into runs(run_id,site_id,mode,lim,status,unit,requested_by,requested_at) values(?,?,?,?,?,?,?,?)",
-                      (run_id, site_id, mode, x if mode == "trial" else None, "queued", registry()[site_id]["unit"], actor, now()))
-            event(c, actor, "request", run_id, site_id, {"mode": mode, "limit": x if mode == "trial" else None})
+            run_id = insert_run(c, site_id, mode, x if mode == "trial" else None, registry()[site_id]["unit"], actor,
+                                opts=opts, chain_seq=1 if opts.get("auto_continue") else None)
+            event(c, actor, "request", run_id, site_id, dict({"mode": mode, "limit": x if mode == "trial" else None}, **opts))
             return self.reply(201, {"run_id": run_id})
 
 

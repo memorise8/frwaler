@@ -20,6 +20,7 @@ import ipaddress
 import json
 import re
 import socket
+import threading
 import time
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit, urlunsplit
@@ -411,6 +412,17 @@ class BudgetExhausted(EnumerationStop):
     """Request or wall-clock budget reached; the run stops without completion."""
 
 
+class RunCancelled(EnumerationStop):
+    """The run was cancelled (SIGTERM from the collect runner's cancel) during a listing retry wait."""
+
+
+# Set by run.py's SIGTERM handler; checked between the slices of a listing retry wait.
+CANCEL = threading.Event()
+# Listing retry waits in progress (run.py's SIGTERM handler keeps the default action otherwise).
+WAITING = [0]
+PAUSE_SLICE_S = 5.0
+
+
 class TransportError(Exception):
     """Raised by a transport for connection-level failures."""
 
@@ -541,7 +553,7 @@ class Fetcher:
                  max_runtime_s=None, retries=3, backoff_s=2.0, max_retry_wait_s=120,
                  respect_robots=True, user_agent=DEFAULT_USER_AGENT, encoding=None,
                  extra_headers=None, header_hosts=None, rate_limit_stop=3, holds=None, max_redirects=5,
-                 clock=time.monotonic, sleep=time.sleep, resolver=None):
+                 clock=time.monotonic, sleep=time.sleep, resolver=None, cancel=None):
         if not 0 <= float(interval) <= 10:
             raise ValueError("request_interval_s must be within [0, 10]")
         self.site_id = site_id
@@ -564,6 +576,7 @@ class Fetcher:
             raise ValueError("extra_headers need header_hosts")
         self.clock = clock
         self.sleep = sleep
+        self.cancel = cancel if cancel is not None else CANCEL
         self.started = clock()
         self.requests_made = 0
         self.blocked = None
@@ -597,6 +610,28 @@ class Fetcher:
             raise BudgetExhausted("request_budget")
         if self.max_runtime_s is not None and self.clock() - self.started >= self.max_runtime_s:
             raise BudgetExhausted("time_budget")
+
+    def pause(self, seconds):
+        """Wait without any request (listing retry). Counted against max_runtime_s: a wait that
+        would reach it is not started (BudgetExhausted; listing_request then ends the run with the
+        original transient failure). Slept in short slices so a
+        cancel (``self.cancel`` set) ends it within PAUSE_SLICE_S (RunCancelled)."""
+        seconds = max(0.0, float(seconds))
+        if self.max_runtime_s is not None and self.clock() + seconds - self.started >= self.max_runtime_s:
+            raise BudgetExhausted("time_budget")
+        WAITING[0] += 1
+        try:
+            left = seconds
+            while True:
+                if self.cancel.is_set():
+                    raise RunCancelled("cancelled")
+                if left <= 0:
+                    return
+                step = min(left, PAUSE_SLICE_S)
+                self.sleep(step)
+                left -= step
+        finally:
+            WAITING[0] -= 1
 
     def _check_holds(self, url):
         if self.blocked is not None:

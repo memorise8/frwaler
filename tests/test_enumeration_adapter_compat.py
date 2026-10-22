@@ -25,9 +25,11 @@ def normalize(value):
 def compare(test,sid,plans):
     oldplan=baseline('plan').site_plan(plans,sid,registered=plans['sites'])
     newplan=plan.site_plan(plans,sid,registered=plans['sites'])
-    # The request-policy fixes added one plan default (never part of the fingerprint); any other key difference must still fail.
-    added={'max_consecutive_robots_disallowed'}
+    # The request-policy fixes and the listing transient retry added plan defaults (never part of the fingerprint);
+    # any other key difference must still fail.
+    added={'max_consecutive_robots_disallowed','listing_retry'}
     test.assertEqual(5,newplan.raw.get('max_consecutive_robots_disallowed'))
+    test.assertEqual({'wait_s':300,'max':3},newplan.raw.get('listing_retry'))
     test.assertEqual(oldplan.raw,{k:v for k,v in newplan.raw.items() if k not in added})
     test.assertEqual(oldplan.fingerprint,newplan.fingerprint)
     outcomes=[]

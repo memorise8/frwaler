@@ -61,7 +61,7 @@ plan.json ─► SitePlan ─► Strategy.batches(progress)  ── yields Batch
   | 2xx | 성공 | |
   | 404, 410 | `PermanentFailure(http_404/http_410)` | 항목: 대장 기록 후 계속. 목록 탐색: 끝 판정 근거 |
   | 기타 4xx(400, 405, 422…) | `PermanentFailure(http_4xx)` | 같음 |
-  | 전송 오류, DNS 해석 실패(`dns_unresolved`), 5xx, 429 | 재시도(`retries`, 지수 대기, 429와 503은 Retry-After 존중·상한) 후 `TransientFailure`. 503의 Retry-After가 `max_retry_wait_s`보다 길면 기다리지 않고 호스트 게이트에 쿨다운을 쓰고 `RateLimited(unavailable_retry_after)`로 멈춘다 | 항목: 대장(일시 실패, 시도 횟수) 후 계속, 다음 실행에서 `item_max_attempts`까지 재시도. 목록: 해당 실행 중단(미완료) |
+  | 전송 오류, DNS 해석 실패(`dns_unresolved`), 5xx, 429 | 재시도(`retries`, 지수 대기, 429와 503은 Retry-After 존중·상한) 후 `TransientFailure`. 503의 Retry-After가 `max_retry_wait_s`보다 길면 기다리지 않고 호스트 게이트에 쿨다운을 쓰고 `RateLimited(unavailable_retry_after)`로 멈춘다 | 항목: 대장(일시 실패, 시도 횟수) 후 계속, 다음 실행에서 `item_max_attempts`까지 재시도. 목록: 5xx·전송 오류·DNS 실패면 plan `listing_retry`(기본 `{"wait_s": 300, "max": 3}`)대로 기다렸다가 같은 목록 요청을 실행당 최대 `max`번 다시 하고(기본 켜짐, `max: 0` 이면 끔; 취소 시 곧 끝남), 그래도 안 되거나 대기가 `max_runtime_s` 안에 들지 않으면 해당 실행 중단(`incomplete/listing_transient:<이유>`, time_budget 이 아님). 429·차단·robots·404·리다이렉트 정책 거절(`redirect_*`)은 다시 하지 않는다 |
   | 401/403/407/451, JS/봇 챌린지 본문(`access_challenge`), 로그인 경로 리다이렉트, robots 거부 | `AccessBlocked` | **우회하지 않는다**. 사이트 상태를 `access_blocked`로 기록하고 그 사이트 진행을 멈춘다. 이후 실행도 사람이 검토해 `--refresh`로 풀기 전까지 요청하지 않는다 |
 * robots.txt: 호스트별 1회(같은 게이트 경유) 조회. 404/410 등 4xx는 "규칙 없음", 401/403/407/451은 호스트 보류(H09).
   5xx/429/전송 오류(재시도 후)는 허용을 추측하지 않고 `RobotsUnavailable`(`robots_unavailable:<세부>`)로 사이트 실행을

@@ -16,7 +16,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from datetime import date, datetime
 
-from .http import LoginReview, PermanentFailure
+from .http import BudgetExhausted, LoginReview, PermanentFailure, TransientFailure
 from .parsing import Item, Page
 from .urls import build_url, host_of, normalize_key_url
 
@@ -80,6 +80,39 @@ class StrategyStop(Exception):
         super().__init__(reason)
         self.status = status
         self.reason = reason
+
+
+def listing_request(ctx, call, url):
+    """``call()`` for a listing-side request (listing page, sitemap, hub, dynamic value page).
+    A transient failure that survived the Fetcher's own retries (5xx, transport/connection error,
+    DNS) is retried after plan ``listing_retry.wait_s`` seconds, at most ``listing_retry.max``
+    times per run, before it ends the site (incomplete/listing_transient). Refusals, robots,
+    429 (its own cooldown), 404 and policy refusals (``redirect_*``) are never retried here.
+    The wait goes through Fetcher.pause, ended by a cancel. A wait that does not fit in the time
+    budget is not started and the original failure ends the run (incomplete/listing_transient:<reason>),
+    never time_budget: a collect-runner auto_continue chain must stop on a host that stays down."""
+    cfg = ctx.plan.get("listing_retry") or {}
+    while True:
+        try:
+            return call()
+        except TransientFailure as exc:
+            if exc.status is not None and exc.status < 500:
+                raise  # 429 that persisted through the retries: rate limit, never waited out here
+            if str(exc.reason).startswith("redirect_"):
+                raise  # a redirect the policy refused: waiting does not change it
+            used = getattr(ctx, "listing_retries", 0)
+            if used >= int(cfg.get("max") or 0):
+                raise
+            ctx.listing_retries = used + 1
+            wait = float(cfg.get("wait_s", 300))
+            ctx.store.event(ctx.site_id, "listing_transient_retry",
+                            {"reason": exc.reason, "url": str(url), "attempt": used + 1, "wait_s": wait})
+            try:
+                ctx.fetcher.pause(wait)
+            except BudgetExhausted:
+                ctx.store.event(ctx.site_id, "listing_transient_retry_no_budget",
+                                {"reason": exc.reason, "url": str(url), "wait_s": wait})
+                raise exc from None
 
 
 class Strategy:
@@ -192,10 +225,11 @@ class Strategy:
         try:
             if isinstance(url, PostUrl):
                 body, headers = self._dynamic_request(url.body)
-                resp = self.ctx.fetcher.post(str(url), body, body_type=url.body_type, accept_statuses=tuple(ends),
-                                             content_type=self.listing.get("content_type"), headers=headers)
+                resp = listing_request(self.ctx, lambda: self.ctx.fetcher.post(
+                    str(url), body, body_type=url.body_type, accept_statuses=tuple(ends),
+                    content_type=self.listing.get("content_type"), headers=headers), url)
             else:
-                resp = self.ctx.fetcher.get(url, accept_statuses=tuple(ends))
+                resp = listing_request(self.ctx, lambda: self.ctx.fetcher.get(url, accept_statuses=tuple(ends)), url)
         except PermanentFailure as exc:
             if exc.status in (404, 410):
                 return Page([], None, exc.status, {"error": exc.reason, "explicit_empty": True})
@@ -248,7 +282,7 @@ class Strategy:
 
     def _load_dynamic(self, dyn):
         from .parsing import json_path
-        resp = self.ctx.fetcher.get(dyn["url"])
+        resp = listing_request(self.ctx, lambda: self.ctx.fetcher.get(dyn["url"]), dyn["url"])
         if getattr(resp, "login_suspect", False):
             raise LoginReview("login_form", dyn["url"], resp.status)
         out = {}
@@ -945,7 +979,7 @@ class DateRangeSplit(_ForwardPager):
         while queue:
             page_url, depth, path = queue.pop(0)
             try:
-                resp = ctx.fetcher.get(page_url)
+                resp = listing_request(ctx, lambda: ctx.fetcher.get(page_url), page_url)
             except PermanentFailure as exc:
                 if depth == 0:
                     raise  # the hub itself: nothing can be discovered
@@ -1214,7 +1248,7 @@ class Sitemap(Strategy):
         self.order_re = re.compile(self.cfg["order_by_url_number"]) if self.cfg.get("order_by_url_number") else None
 
     def _load(self, url):
-        resp = self.ctx.fetcher.get(url)
+        resp = listing_request(self.ctx, lambda: self.ctx.fetcher.get(url), url)
         body = resp.body
         if body[:2] == b"\x1f\x8b":
             cap = int(self.cfg.get("max_uncompressed_bytes") or SITEMAP_MAX_BYTES)
@@ -1235,7 +1269,7 @@ class Sitemap(Strategy):
             return [self.cfg["sitemap_url"]]
         if self.cfg.get("from_robots"):
             base = self.cfg.get("robots_url") or self.plan.base_url.rstrip("/") + "/robots.txt"
-            text = self.ctx.fetcher.get(base).text()
+            text = listing_request(self.ctx, lambda: self.ctx.fetcher.get(base), base).text()
             urls = re.findall(r"(?im)^\s*Sitemap:\s*(\S+)", text)
             if not urls:
                 raise StrategyStop("config_error", "robots_has_no_sitemap")

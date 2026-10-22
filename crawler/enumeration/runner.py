@@ -10,7 +10,8 @@ from delivery.scripts.discovery_structure import date_value
 from .adapters import (AdapterConfigError, AdapterUngatedNetwork, IdentityCollision, IdentityMissing,
                        IdentityReview, IdentityRuleConfig)
 from .http import (AccessBlocked, BudgetExhausted, EnumerationStop, LoginReview, PermanentFailure, PrivateDestination,
-                   RateLimited, ROBOTS_RETRY_S, RobotsDisallowed, RobotsUnavailable, TransientFailure)
+                   RateLimited, ROBOTS_RETRY_S, RobotsDisallowed, RobotsUnavailable, RunCancelled,
+                   TransientFailure)
 from .parsing import Item, ListingParser
 from .strategies import STRATEGIES, StrategyStop, today_from
 from .urls import host_of, normalize_key_url, url_identity
@@ -436,7 +437,7 @@ class SiteRunner:
                 # The items that caused the stop; the hold lasts until they are requeued.
                 state["adapter_contract_stop_items"] = list(self._contract_streak)
             return exc.status, exc.reason
-        if isinstance(exc, BudgetExhausted):
+        if isinstance(exc, (BudgetExhausted, RunCancelled)):
             return "incomplete", exc.reason
         if isinstance(exc, RateLimited):
             state["cooldown_until"] = exc.retry_at

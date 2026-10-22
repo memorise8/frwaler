@@ -187,6 +187,22 @@ class CollectRoutesTest(unittest.TestCase):
         self.assertEqual(response.json(), {"reason": "unit_busy", "detail": "같은 등록 도메인(x) 작업이 대기·실행 중"})
         self.assertNotIn("limit", self.runner.requests[-1][3])
 
+    def test_resume_options_pass_through_to_the_runner(self):
+        options = {"reprocess_failed": ["empty_item"], "auto_continue": {"max_runs": 5, "on": ["time_budget"]}}
+        response = self.client.post("/collect/runs", headers=self.headers, json=dict({"site_id": "site-a", "mode": "resume"}, **options))
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(self.runner.requests[-1][3], dict({"site_id": "site-a", "mode": "resume",
+                                                            "requested_by": "customer-operator"}, **options))
+        sent = len(self.runner.requests)
+        for bad in ({"reprocess_failed": "empty_item"}, {"reprocess_failed": [1]}, {"auto_continue": True}):
+            response = self.client.post("/collect/runs", headers=self.headers, json=dict({"site_id": "site-a", "mode": "resume"}, **bad))
+            self.assertEqual(response.status_code, 422, bad)
+        self.assertEqual(len(self.runner.requests), sent)  # malformed options never reach the runner
+        self.runner.post_reply = (409, {"reason": "bad_reprocess_failed", "detail": "x"})
+        response = self.client.post("/collect/runs", headers=self.headers,
+                                    json={"site_id": "site-a", "mode": "resume", "reprocess_failed": ["identity_collision"]})
+        self.assertEqual((response.status_code, response.json()["reason"]), (409, "bad_reprocess_failed"))
+
     def test_proxies_health_plans_runs(self):
         health = self.client.get("/collect/runner/health", headers=self.headers).json()
         self.assertEqual(health, {"runner_ok": True, "reason": None, "detail": None,

@@ -377,6 +377,17 @@ def build_router(conn_factory, cache) -> APIRouter:
         payload = {"site_id": site_id, "mode": mode, "requested_by": operator}
         if limit is not None:
             payload["limit"] = limit
+        # Resume options: passed through; the runner validates them against its allow-list (409 bad_reprocess_failed /
+        # bad_auto_continue) and refuses them for other modes.
+        reprocess, auto = body.get("reprocess_failed"), body.get("auto_continue")
+        if reprocess is not None:
+            if not isinstance(reprocess, list) or not all(isinstance(p, str) for p in reprocess):
+                return _error(422, "bad_reprocess_failed", "reprocess_failed must be a list of reason prefixes")
+            payload["reprocess_failed"] = reprocess
+        if auto is not None:
+            if not isinstance(auto, dict):
+                return _error(422, "bad_auto_continue", "auto_continue must be an object {max_runs, on}")
+            payload["auto_continue"] = auto
         try:
             return _passthrough(*runner_call("POST", "/runner/runs", payload))
         except RunnerError as exc:

@@ -29,6 +29,9 @@ DEFAULTS = {
     "verify_ssl": True,
     "file_max_attempts": 3,
     "file_max_bytes": 200 * 1024 * 1024,
+    # A listing request still failing transiently (5xx, connection error) after the Fetcher's
+    # retries is retried after wait_s seconds, at most max times per run (strategies.listing_request).
+    "listing_retry": {"wait_s": 300, "max": 3},
 }
 
 # Keys that define *what* is enumerated. Budgets, pacing and adapters do not
@@ -643,6 +646,11 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
     streak = adapter.get("max_consecutive_rule_skips")
     if streak is not None and (type(streak) is not int or streak < 1):
         raise PlanError(f"{site_id}: adapter.max_consecutive_rule_skips must be a positive integer")
+    retry = raw.get("listing_retry")
+    if not isinstance(retry, dict) or set(retry) - {"wait_s", "max"} \
+            or type(retry.get("wait_s", 300)) not in (int, float) or not 0 <= retry.get("wait_s", 300) <= 3600 \
+            or type(retry.get("max", 3)) is not int or not 0 <= retry.get("max", 3) <= 10:
+        raise PlanError(f"{site_id}: listing_retry must be {{\"wait_s\": 0..3600, \"max\": 0..10}}")
     robots_limit = raw.get("max_consecutive_robots_disallowed")
     if type(robots_limit) is not int or robots_limit < 1:
         raise PlanError(f"{site_id}: max_consecutive_robots_disallowed must be a positive integer")
