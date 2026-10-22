@@ -281,16 +281,17 @@ def _parse_detail(url: str, html: str) -> dict | None:
     abstract = re.sub(r"\s+", " ", abstract).strip()
 
     # --- PDF URL ---
+    # First button that links a .pdf; buttons also link pictures (.jpg/.webp) and Word files
     pdf_url: str | None = None
     if soup is not None:
         try:
-            btn = soup.select_one("div.group a.btn[href]")
-            if btn:
+            for btn in soup.select("div.group a.btn[href]"):
                 href = btn.get("href", "")
-                if href:
+                if href and urllib.parse.urlsplit(href).path.lower().endswith(".pdf"):
                     if not href.startswith("http"):
                         href = _BASE_URL + href
                     pdf_url = href
+                    break
         except Exception:
             pass
     if not pdf_url:
