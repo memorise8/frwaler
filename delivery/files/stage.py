@@ -166,6 +166,22 @@ def _cached_robots_fetcher(gates, transport):
                                retries=2, rate_limit_stop=1)
 
 
+def sniff_kind(head: bytes) -> str:
+    """PDF 가 아닌 응답이 무엇이었는지(원인표용): html · ole(HWP 5·옛 Office) · zip(HWPX·docx·xlsx) · image · empty · other."""
+    lead = head[:1024].lstrip(b'\xef\xbb\xbf \t\r\n\x00')
+    if not lead:
+        return 'empty'
+    if lead[:1] == b'<' or lead[:9].lower() == b'<!doctype':
+        return 'html'
+    if head.startswith(b'\xd0\xcf\x11\xe0'):
+        return 'ole'
+    if head.startswith(b'PK\x03\x04'):
+        return 'zip'
+    if head.startswith((b'\x89PNG', b'\xff\xd8\xff', b'GIF8')):
+        return 'image'
+    return 'other'
+
+
 def download_pdf(root, url, transport=None):
     """Fetch one PDF through the collection Fetcher (crawler.enumeration.http): robots.txt is
     honoured (verdict shared on disk, see _cached_robots_fetcher), the honest collector
@@ -193,7 +209,9 @@ def download_pdf(root, url, transport=None):
         return {'success': False, 'error': code, 'reason': getattr(exc, 'reason', None), 'status': getattr(exc, 'status', None)}
     if not response.body[:1024].lstrip(b'\xef\xbb\xbf \t\r\n\x00').startswith((b'%PDF-1.', b'%PDF-2.')):
         sink.unlink(missing_ok=True)
-        return {'success': False, 'error': 'invalid_pdf'}
+        # 무엇을 받았는지만 남긴다(본문은 남기지 않음): 예 invalid_pdf:html:text/html
+        ctype = (response.content_type or '').split(';', 1)[0].strip().lower()[:40]
+        return {'success': False, 'error': 'invalid_pdf', 'reason': sniff_kind(response.body), 'status': ctype or None}
     target = root / 'download.pdf'
     if getattr(response, 'size', None) is not None and sink.is_file():
         os.replace(sink, target)

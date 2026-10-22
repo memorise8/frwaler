@@ -193,6 +193,17 @@ class FileProcessingSafetyTest(unittest.TestCase):
                 self.assertEqual([u for u, _ in seen], ['https://fixture.test/robots.txt', 'https://fixture.test/docs/file.pdf'])
                 self.assertTrue(all(ua and ua.startswith('LibertreeCollector/') for _, ua in seen))
 
+    def test_non_pdf_answer_is_classified(self):
+        from crawler.enumeration.http import Response
+        from delivery.files.stage import sniff_kind
+        self.assertEqual([sniff_kind(b) for b in (b'<html>x', b'\n <!DOCTYPE html>', b'\xd0\xcf\x11\xe0rest', b'PK\x03\x04zip', b'\x89PNGx', b'', b'GARBAGE')],
+                         ['html', 'html', 'ole', 'zip', 'image', 'empty', 'other'])
+        allow = Response(200, {'content-type': 'text/plain'}, b'User-agent: *\nAllow: /\n', '')
+        url = 'https://fixture.test/docs/file.pdf'
+        result, _, _ = self._pdf_stage({'https://fixture.test/robots.txt': allow,
+                                         url: Response(200, {'content-type': 'application/x-hwp; charset=x'}, b'\xd0\xcf\x11\xe0hwp', url)})
+        self.assertEqual((result['error'], result['reason'], result['status']), ('invalid_pdf', 'ole', 'application/x-hwp'))
+
     def test_pdf_stage_honours_robots_and_access_refusals(self):
         from crawler.enumeration.http import Response
         url = 'https://fixture.test/docs/file.pdf'
