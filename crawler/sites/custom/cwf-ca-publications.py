@@ -246,7 +246,8 @@ class CwfCaPublicationsCrawler(BaseCrawler):
         published_date = self._parse_date(raw_date)
         listed_date = published_date
 
-        pdf_urls = self._extract_pdf_urls(article_body or soup)
+        # The "Download PDF" button sits in .article-body .button-container, outside .wysiwyg
+        pdf_urls = self._extract_pdf_urls(soup.select_one(".article-body") or soup)
         pdf_url = pdf_urls[0] if pdf_urls else None
         original_filename = self._filename_from_url(pdf_url)
 
@@ -460,7 +461,9 @@ class CwfCaPublicationsCrawler(BaseCrawler):
             href_no_fragment = href.split("#", 1)[0]
             path = urlparse(href_no_fragment).path.lower()
             link_text = link.get_text(" ", strip=True).lower()
-            if not path.endswith(".pdf") and "pdf" not in link_text:
+            # "(PDF)" in the text alone is not enough: such buttons also link the report page
+            # itself or the home page; keep them only when they point into the uploads folder
+            if not path.endswith(".pdf") and not ("pdf" in link_text and "/wp-content/uploads/" in path):
                 continue
             if href_no_fragment not in seen:
                 seen.add(href_no_fragment)
