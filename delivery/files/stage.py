@@ -87,7 +87,12 @@ def _streaming_transport(sink):
     return StreamingTransport(max_bytes=PDF_MAX_BYTES)
 
 
-def _cached_robots_fetcher(gates, transport):
+# Some CMSs (e.g. Optimizely, sgu.se) answer a JSON description instead of the file when the request
+# accepts JSON first; asking for PDF first returns the file itself (S 확인 10-23).
+PDF_ACCEPT = 'application/pdf,*/*;q=0.8'
+
+
+def _cached_robots_fetcher(gates, transport, pdf_host=None):
     """Fetcher whose robots.txt verdict per origin is shared on disk by every stage process, so one
     PDF costs one request. A refusal (403/challenge/login) or an unreachable robots.txt is cached
     too: the site is not asked again until the entry expires."""
@@ -162,8 +167,10 @@ def _cached_robots_fetcher(gates, transport):
                                      'delay': self._host_delay.get(http.host_of(origin))})
             return allowed
 
+    headers = {'Accept': PDF_ACCEPT} if pdf_host else None
     return CachedRobotsFetcher('file-worker', transport, gates, interval=PDF_REQUEST_INTERVAL_S,
-                               retries=2, rate_limit_stop=1)
+                               retries=2, rate_limit_stop=1, extra_headers=headers,
+                               header_hosts=[pdf_host] if pdf_host else None)
 
 
 def sniff_kind(head: bytes) -> str:
@@ -195,7 +202,7 @@ def download_pdf(root, url, transport=None):
         return {'success': False, 'error': 'download_failed'}
     sink = root / 'download.part'
     # root is <blob>/.file-work/task-XXXX; the gates sit beside the task directories and outlive them.
-    fetcher = _cached_robots_fetcher(root.parent / '.gates', transport or _streaming_transport(sink))
+    fetcher = _cached_robots_fetcher(root.parent / '.gates', transport or _streaming_transport(sink), parsed.hostname.lower())
     try:
         response = fetcher.get(url)
     except http.PermanentFailure as exc:

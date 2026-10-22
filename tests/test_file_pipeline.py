@@ -163,12 +163,14 @@ class FileProcessingSafetyTest(unittest.TestCase):
         from crawler.enumeration.http import Response
         from delivery.files.stage import download_pdf
         seen = []
+        self_accept = self.accepts = []
         class Transport:
             def __init__(self):
                 if resolve:
                     self.resolve = resolve
             def request(self, method, target, *, headers=None):
                 seen.append((target, (headers or {}).get('User-Agent')))
+                self_accept.append((target, (headers or {}).get('Accept')))
                 hit = routes.get(target)
                 return hit if hit is not None else Response(404, {}, b'', target)
         self._calls = getattr(self, '_calls', 0) + 1
@@ -192,6 +194,14 @@ class FileProcessingSafetyTest(unittest.TestCase):
                 # robots.txt first, then the file, both with the collector's honest User-Agent
                 self.assertEqual([u for u, _ in seen], ['https://fixture.test/robots.txt', 'https://fixture.test/docs/file.pdf'])
                 self.assertTrue(all(ua and ua.startswith('LibertreeCollector/') for _, ua in seen))
+
+    def test_pdf_request_asks_for_pdf_first_on_its_own_host_only(self):
+        from crawler.enumeration.http import Response
+        allow = Response(200, {'content-type': 'text/plain'}, b'User-agent: *\nAllow: /\n', '')
+        url = 'https://fixture.test/docs/file.pdf'
+        result, _, _ = self._pdf_stage({'https://fixture.test/robots.txt': allow, url: Response(200, {}, make_pdf(), url)})
+        self.assertTrue(result['success'])
+        self.assertEqual(dict(self.accepts)[url], 'application/pdf,*/*;q=0.8')
 
     def test_non_pdf_answer_is_classified(self):
         from crawler.enumeration.http import Response
