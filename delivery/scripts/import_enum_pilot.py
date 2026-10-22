@@ -144,7 +144,7 @@ for line in sys.stdin:
 manifest = os.path.expanduser(q["manifest"]) if q["finish"] == "COMMIT" else None
 if manifest:
     os.makedirs(os.path.dirname(manifest), exist_ok=True)
-psql = ["docker", "exec", "-i", q["target"], "psql", "-U", "libertree", "-d", "libertree", "-At", "-F", "\t"]
+psql = ["docker", "exec", "-i", q["target"], "psql", "-U", "libertree", "-d", q.get("db") or "libertree", "-At", "-F", "\t"]
 def flush(rows):
     r = subprocess.run(psql, input=insert_sql(q["product"], rows, q["finish"]), capture_output=True, text=True)
     if r.returncode != 0:
@@ -191,7 +191,7 @@ def server_apply(args, enum_site, product, keys, finish):
     """SERVER_APPLY_MAIN 을 서버에서 돌리고 청크 결과(JSON 줄)를 흘린다."""
     import inspect
     code = "import re\n" + inspect.getsource(copy_text) + "\n" + inspect.getsource(insert_sql) + SERVER_APPLY_MAIN
-    q = {"root": RUNS_ROOT, "site": enum_site, "product": product, "target": args.target, "chunk": args.chunk,
+    q = {"root": RUNS_ROOT, "site": enum_site, "product": product, "target": args.target, "db": TARGET_DB, "chunk": args.chunk,
          "finish": finish, "fields": FIELDS, "batch": args.batch or "", "pause": args.pause,
          "manifest": "~/enum-import/import-manifest-%s.jsonl" % (args.batch or "test")}
     b64 = base64.b64encode(code.encode()).decode()
@@ -230,11 +230,11 @@ def unescape_copy(v):
     return re.sub(r"\\(.)", lambda m: {"t": "\t", "n": "\n", "r": "\r", "b": "\b", "f": "\f", "v": "\v", "\\": "\\"}.get(m.group(1), m.group(1)), v)
 
 
-def psql_copy(container, sql, ssh=False):
+def psql_copy(container, sql, ssh=False, db=None):
     """docker exec <컨테이너> psql 로 COPY (...) TO STDOUT 를 한 줄씩 흘린다."""
     # 읽기만 한다: 세션 전체를 읽기 전용 트랜잭션으로(대상이 운영·격리 스택이어도 쓰기 불가)
     cmd = ["docker", "exec", "-e", "PGOPTIONS=-c default_transaction_read_only=on", container, "psql", "-U", "libertree",
-           "-d", "libertree", "-v", "ON_ERROR_STOP=1", "-At", "-c", "copy (%s) to stdout" % sql]
+           "-d", db or TARGET_DB, "-v", "ON_ERROR_STOP=1", "-At", "-c", "copy (%s) to stdout" % sql]
     if ssh:
         cmd = SSH + ["PATH=$HOME/bin:$PATH " + " ".join("'%s'" % a.replace("'", "'\\''") for a in cmd)]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, text=True)
@@ -249,6 +249,10 @@ def lit(s):
 
 
 REMOTE_TARGET = False  # --target-remote: 대상 컨테이너가 서버에 있음(키만 SSH 로 읽음)
+TARGET_DB = "libertree"  # --target-db: 대상 컨테이너 안의 데이터베이스
+# 넣기·되돌리기를 허용하는 (컨테이너, DB). 2026-10-18 결정은 격리 스택 ui-sci 만이었고, 2026-10-22 사용자 결정
+# ("DB 는 이제 libertree_v2 로 고정해서 받게")으로 운영 libertree_v2(main 풀 delivery-pg-main)에 직접 넣는다.
+WRITE_TARGETS = {("ui-sci-20261013-postgres-1", "libertree"), ("delivery-pg-main", "libertree_v2")}
 
 
 def target_sites(container):
@@ -428,7 +432,7 @@ def sci_stream(args, site):
     yield {"t": "folder", "folder": args.sci_container, "n": None, "max_collected": "", "state": None}
     sql = ("select post_number, meta_url, collected_at::text, (coalesce(title,'')<>'')::int, coalesce(pdf_downloaded,0), "
            "left(md5(%s),16), published_date_status from documents where site_id=%s" % (cols, lit(site)))
-    for r in psql_copy(args.sci_container, sql, ssh=True):
+    for r in psql_copy(args.sci_container, sql, ssh=True, db="libertree"):
         yield [args.sci_container, r[0], r[1], r[2], int(r[3]), int(r[4]), r[5], r[6]]
 
 
@@ -535,7 +539,7 @@ def insert_sql(product_site, rows, finish):
 
 
 def run_psql(container, script):
-    cmd = ["docker", "exec", "-i", container, "psql", "-U", "libertree", "-d", "libertree", "-At", "-F", "\t"]
+    cmd = ["docker", "exec", "-i", container, "psql", "-U", "libertree", "-d", TARGET_DB, "-At", "-F", "\t"]
     if REMOTE_TARGET:
         # 키·seq_id 만 담긴 스크립트(되돌리기)만 이 길로 간다. 문서 행은 SERVER_APPLY 로 서버 안에서만.
         cmd = SSH + ["PATH=$HOME/bin:$PATH " + " ".join("'%s'" % a.replace("'", "'\\''") for a in cmd)]
@@ -552,6 +556,7 @@ def main():
     ap.add_argument("--all", action="store_true", help="서버 실행 폴더에 있는 모든 사이트")
     ap.add_argument("--source", choices=["sqlite", "sci"], default="sqlite")
     ap.add_argument("--sci-container", default="ui-sci-20261013-postgres-1")
+    ap.add_argument("--target-db", default="libertree", help="대상 컨테이너 안의 DB 이름(운영 직접 반영은 libertree_v2)")
     ap.add_argument("--folders", nargs="*", help="이 실행 폴더만 (기본: 그 사이트가 있는 모든 폴더)")
     ap.add_argument("--target", default="ui-check-20261013-postgres-1", help="제품 스키마 Postgres 컨테이너")
     ap.add_argument("--target-remote", action="store_true",
@@ -569,11 +574,13 @@ def main():
     args = ap.parse_args()
     if args.target.lower().startswith("temis") or args.sci_container.lower().startswith("temis"):
         sys.exit("temis 는 다루지 않는다")
-    global REMOTE_TARGET
+    global REMOTE_TARGET, TARGET_DB
     REMOTE_TARGET = args.target_remote
-    if REMOTE_TARGET and args.target != "ui-sci-20261013-postgres-1" and args.mode != "plan":
-        # 넣기 대상으로 정해진 곳은 격리 스택 ui-sci 뿐(사용자 결정 2026-10-18). 운영 컨테이너는 넣기 금지.
-        sys.exit("--target-remote 넣기·되돌리기 대상은 ui-sci-20261013-postgres-1 만")
+    if not re.fullmatch(r"[a-z0-9_]+", args.target_db):
+        sys.exit("--target-db 형식 오류")
+    TARGET_DB = args.target_db
+    if REMOTE_TARGET and args.mode != "plan" and (args.target, TARGET_DB) not in WRITE_TARGETS:
+        sys.exit("--target-remote 넣기·되돌리기 대상은 %s 만" % ", ".join("%s/%s" % t for t in sorted(WRITE_TARGETS)))
     if args.mode == "rollback":
         return rollback(args)
     approved = {}
