@@ -6,6 +6,7 @@ describe("seoul-time", () => {
     expect(formatSeoul("2026-10-21T15:05:00Z")).toBe("2026-10-22 00:05");
     expect(formatSeoul("2026-10-21 15:05:09+00", { seconds: true })).toBe("2026-10-22 00:05:09");
     expect(formatSeoulDate("2026-10-21T15:05:00Z")).toBe("2026-10-22");
+    expect(formatSeoul("2026-10-22 00:05:00+09")).toBe("2026-10-22 00:05");  // Postgres offsets other than +00
   });
   it("falls back on missing or bad values", () => {
     expect(formatSeoul(null)).toBe("-");

@@ -8,7 +8,7 @@ const PARTS = new Intl.DateTimeFormat("en-CA", {
 const parse = (value: string | number | Date | null | undefined): Date | null => {
   if (value === null || value === undefined || value === "") return null;
   // "2026-10-20 01:02:03+00" (Postgres) 도 받는다.
-  const date = value instanceof Date ? value : new Date(typeof value === "string" ? value.replace(" ", "T").replace(/\+00$/, "Z") : value);
+  const date = value instanceof Date ? value : new Date(typeof value === "string" ? value.replace(" ", "T").replace(/([+-]\d{2})$/, "$1:00") : value);
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
