@@ -1,5 +1,6 @@
 import unittest
 
+from tests.collector_split_helpers import load
 from tests.nrb_helpers import native, native_docs, pipeline, doc_identities
 
 SITE = "bmwet-gv-at-services"
@@ -36,6 +37,18 @@ class BmwetSplit(unittest.TestCase):
         result, docs = pipeline(SITE, self.serve)
         self.assertIn(result["status"], ("complete", "complete_with_review"), result)
         self.assertEqual(doc_identities(native_docs(SITE, self.serve, net_methods=["_curl"])), doc_identities(docs))
+
+    def test_pdf_link_skips_cover_image(self):
+        crawler, _ = load(SITE)
+        page = B + "/Services/Publikationen/energie/Bauplan.html"
+        html = (f'<html><body><div id="content"><h1>Bauplan</h1><p>{TEXT}</p>'
+                '<a href="/dam/jcr:07/Bauplan_Energiewende-titel.jpg"><img src="x.jpg"></a>'
+                '<a href="/dam/jcr:07/Bauplan_Energiewende.pdf">Bauplan (PDF)</a></div></body></html>')
+        paper = crawler._parse_detail_page(html, page)
+        self.assertEqual(B + "/dam/jcr:07/Bauplan_Energiewende.pdf", paper["pdf_url"])
+        self.assertEqual("Bauplan_Energiewende.pdf", paper["pdf_filename"])
+        only_image = html.replace('<a href="/dam/jcr:07/Bauplan_Energiewende.pdf">Bauplan (PDF)</a>', "")
+        self.assertIsNone(crawler._parse_detail_page(only_image, page)["pdf_url"])
 
 
 if __name__ == "__main__":

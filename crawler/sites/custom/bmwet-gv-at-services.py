@@ -22,6 +22,7 @@ _SITE_ID = "bmwet-gv-at-services"
 _BASE_URL = "https://www.bmwet.gv.at"
 _INDEX_URL = "https://www.bmwet.gv.at/Services/Publikationen.html"
 _ABSTRACT_MIN_CHARS = 50
+_IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg")
 _MAX_SAFETY_ITEMS = 10_000  # safety cap instead of pages (no pagination on this site)
 _MAX_WALL_SECONDS = int(os.environ.get("LIBERTREE_MAX_WALL_S", str(25 * 60)))
 
@@ -284,22 +285,32 @@ class BmwetGvAtServicesCrawler(BaseCrawler):
             if m:
                 authors = m.group(1).strip().rstrip(",;")
 
-        # PDF link — first PDF/dam link in the page
+        # PDF link — first .pdf link in the page; otherwise the first /dam/ link that is
+        # not an image (the cover picture "...-titel.jpg" is also a /dam/ link, often first)
         pdf_url = None
         pdf_filename = None
+        fallback = None
         for a in content.find_all("a"):
             href = a.get("href", "")
-            if ".pdf" in href.lower() or "/dam/" in href:
-                if href.startswith("/"):
-                    pdf_url = _BASE_URL + href
-                elif href.startswith("http"):
-                    pdf_url = href
-                else:
-                    pdf_url = urljoin(page_url, href)
-                fname = unquote(urlparse(pdf_url).path.split("/")[-1])
-                if fname.lower().endswith(".pdf"):
-                    pdf_filename = fname
+            if ".pdf" not in href.lower() and "/dam/" not in href:
+                continue
+            if href.startswith("/"):
+                url = _BASE_URL + href
+            elif href.startswith("http"):
+                url = href
+            else:
+                url = urljoin(page_url, href)
+            path = urlparse(url).path.lower()
+            if path.endswith(".pdf"):
+                pdf_url = url
                 break
+            if fallback is None and not path.endswith(_IMAGE_EXTS):
+                fallback = url
+        pdf_url = pdf_url or fallback
+        if pdf_url:
+            fname = unquote(urlparse(pdf_url).path.split("/")[-1])
+            if fname.lower().endswith(".pdf"):
+                pdf_filename = fname
 
         published_date = self._parse_german_date(abstract) if abstract else None
 
